@@ -1,21 +1,23 @@
 <p align="center"><a href="https://lo-th.github.io/phy/"><img src="./assets/textures/logo.svg"/></a></p>
 <p align="center"><a href="https://lo-th.github.io/phy/">start &phi;hy</a></p>
 
-Phy is like a game engine for three, is a simple language for create and controle physics engine.<br>
-You can use direct or worker version. Phy support last version of oimo and ammo ( and more ).
+Phy game engine for <a href="https://github.com/mrdoob/three.js">three.js</a>, is a simple language for create and control physics engine.<br>
+You can use direct or worker version. Phy support last version of <a href="https://github.com/saharan/OimoPhysics/">OimoPhysics</a> and <a href="https://github.com/kripken/ammo.js">Ammo.js</a>  ( and more ).
 
-Phy simplify three physics, include new chanfer geometry, GLB import, envmap and reflection ...
+Phy simplify creation of game, is like a bridge between three.js and physics
+
+## Features
+
+Chanfer geometry, Glb manager, envmap and refection, post process ...
 
 ## Usage
 
-Phy have three main function add, remove and update.
-You can see and edit demo code directlly on start webpage 
+Phy have three main function add, remove and update.<br>
+You can see and edit demo code directlly on <a href="https://lo-th.github.io/phy/">webpage</a> 
 
 ## Todo
 
-Add full character support
-Add more demos 
-Fixe joint
+Add full character support, add more demos, fixe joint
 
 ## About
 
