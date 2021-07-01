@@ -1,0 +1,57 @@
+
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" preserveAspectRatio="none" x="0px" y="0px" width="128px" height="128px" viewBox="0 0 128 128">
+<defs>
+<linearGradient id="Gradient_1" gradientUnits="userSpaceOnUse" x1="57.3125" y1="77.8375" x2="45.3875" y2="74.6625" spreadMethod="pad">
+<stop  offset="0%" stop-color="#999999"/>
+
+<stop  offset="100%" stop-color="#CCCCCC"/>
+</linearGradient>
+
+<linearGradient id="Gradient_2" gradientUnits="userSpaceOnUse" x1="71.47500000000001" y1="77.95" x2="82.325" y2="75.05" spreadMethod="pad">
+<stop  offset="0%" stop-color="#999999"/>
+
+<stop  offset="100%" stop-color="#CCCCCC"/>
+</linearGradient>
+
+<g id="Layer0_0_FILL">
+<path fill="#CCCCCC" stroke="none" d="
+M 91.45 91
+L 87.05 91 92 104.15 89.95 109.4 94.45 109.4 101.25 91 96.95 91 94.3 99.45 91.45 91
+M 84.5 91.95
+Q 83.4 90.65 81.35 90.65 80.15 90.65 79.2 91.15 78.25 91.6 77.2 92.5
+L 77.2 85.8 73 85.8 73 104.45 77.2 104.45 77.2 94.95
+Q 77.8 94.5 78.3 94.3 78.85 94.1 79.35 94.1 80.05 94.1 80.45 94.3 80.85 94.5 81.05 95 81.25 95.35 81.35 96.2 81.4 96.95 81.4 97.8
+L 81.4 104.45 85.6 104.45 85.6 95.7
+Q 85.6 93.25 84.5 91.95
+M 38.8 21.25
+Q 29.75 29.75 26.3 42.3 21.75 64.6 36.75 75.85 37.75 76.55 38.75 77.2
+L 44.9 69.65
+Q 43.25 68.5 41.7 67.05 34 57.4 37.3 42.85 40.65 29.7 53.2 21.25
+L 38.8 21.25
+M 102.2 49.45
+Q 102.65 34.65 89.55 25.25 76.15 17.6 58.75 19.75
+L 58.75 74.2 58.75 83 58.75 104.4 69.2 104.4 69.2 83 69.2 74.2 69.2 28.35
+Q 90.7 29.6 91.55 49.45 91.5 63.75 82.75 69.85
+L 87.5 77.45
+Q 89.95 76 92.3 74.2 103.1 64.5 102.2 49.45 Z"/>
+
+<path fill="url(#Gradient_1)" stroke="none" d="
+M 58.75 74.2
+Q 51.1 74 44.9 69.65
+L 38.75 77.2
+Q 47.25 82.5 58.75 83
+L 58.75 74.2 Z"/>
+
+<path fill="url(#Gradient_2)" stroke="none" d="
+M 87.5 77.45
+L 82.75 69.85
+Q 77.55 73.45 69.2 74.2
+L 69.2 83
+Q 78.7 82.65 87.5 77.45 Z"/>
+</g>
+</defs>
+
+<g transform="matrix( 1, 0, 0, 1, 0,0) ">
+<use xlink:href="#Layer0_0_FILL"/>
+</g>
+</svg>

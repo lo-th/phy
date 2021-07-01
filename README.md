@@ -1,8 +1,10 @@
+<p align="center"><a href="https://lo-th.github.io/phy/"><img src="./assets/textures/logo.svg"/></a></p>
+
 ## Welcome to &phi;
 
-launch (https://lo-th.github.io/phy/)
+<a href="https://lo-th.github.io/phy/">launch PHY</a>
 
-Phy is like a game engine for three, is a simple language for create and controle physics engine.
+Phy is like a game engine for three, is a simple language for create and controle physics engine.<br>
 You can use direct or worker version. Phy support last version of oimo and ammo ( and more ).
 
 Phy simplify three controle, include new chanfer geometry, GLB import, envmap and reflection ...
