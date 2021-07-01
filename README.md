@@ -6,7 +6,18 @@ You can use direct or worker version. Phy support last version of oimo and ammo 
 
 Phy simplify three physics, include new chanfer geometry, GLB import, envmap and reflection ...
 
+## Usage
 
+Phy have three main function add, remove and update.
+You can see and edit demo code directlly on start webpage 
+
+## Todo
+
+Add full character support
+Add more demos 
+Fixe joint
+
+## About
 
 You can help me improve phy engine
 
