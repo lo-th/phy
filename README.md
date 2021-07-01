@@ -1,14 +1,14 @@
 <p align="center"><a href="https://lo-th.github.io/phy/"><img src="./assets/textures/logo.svg"/></a></p>
-<p align="center"><a href="https://lo-th.github.io/phy/">start &phi;hy</a></p>
+<p align="center"><a href="https://lo-th.github.io/phy/">START DEMO</a></p>
 
 Phy game engine for <a href="https://github.com/mrdoob/three.js">three.js</a>, is a simple language for create and control physics engine.<br>
 You can use direct or worker version. Phy support last version of <a href="https://github.com/saharan/OimoPhysics/">OimoPhysics</a> and <a href="https://github.com/kripken/ammo.js">Ammo.js</a>  ( and more ).
 
-Phy simplify creation of game, is like a bridge between three.js and physics
+Phy simplify creation of game, is like a bridge between three.js and physics 
 
 ## Features
 
-Chanfer geometry, Glb manager, envmap and refection, post process ...
+ES6, chamfer geometry, Glb manager, envmap and refection, post process ...
 
 ## Usage
 
@@ -17,7 +17,7 @@ You can see and edit demo code directlly on <a href="https://lo-th.github.io/phy
 
 ## Todo
 
-Add full character support, add more demos, fixe joint
+Add character support, add more demos, fixe joint
 
 ## About
 
