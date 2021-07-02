@@ -39,13 +39,18 @@ function onComplete(){
         kinematic:true
     })
 
-    phy.add({
-        name:'limiter',
-        type:'mesh',
-        shape:model.limiter2.geometry,
-        restitution:0, friction:0.1,
-        visible:false
-    })
+    // add wall limiter
+    
+    let j = 14, a = 0, d = 8, s
+    let ar = (2*math.Pi)/j;
+    while(j--){
+        a += ar
+        phy.add({
+            type:'box', size:[4,6,2.5], pos:[ d * Math.sin(a), 4, d * Math.cos(a) ], rot:[ 0, a*math.todeg, 0 ], 
+            restitution:0, friction:0.1,
+            visible:false
+        })
+    } 
 
     phy.add({ 
         type:'box', size:[17,4,17], pos:[0,-1,1], 
@@ -53,19 +58,15 @@ function onComplete(){
         visible:false
     })
 
-    let j = 200, pos, s,a,d;
+    // add some ball
 
+    j = 200
     while(j--){
 
-        s = 0.3//math.rand( 0.1, 0.25 )
+        s = math.rand( 0.1, 0.4 )
         a = math.rand(-math.Pi, math.Pi)
         d = 2 + math.rand(0, 4)
-
-        pos = [ d * Math.sin(a), 5+j*0.6, d * Math.cos(a) ]
-
-        //phy.add({ size:[0.2], pos:pos, density:1, restitution:0, friction:0.5, radius:0.03, group:64, mask:2|64 })
-        phy.add({ type:'sphere', size:[s], pos:pos, density:1, restitution:0, friction:0.1, material:'chrome' })
-        //phy.add({ type:'cylinder', size:[0.1, 0.2], pos:pos, density:1, restitution:0, friction:0.5, radius:0.03, group:256, mask:2|256 })
+        phy.add({ type:'sphere', size:[s], pos:[ d * Math.sin(a), 5+j*0.6, d * Math.cos(a) ], density:1, restitution:0, friction:0.1, material:'chrome' })
 
     }
 
