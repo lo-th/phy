@@ -1,4 +1,7 @@
 node_modules
 npm-debug.log
 prepa
-*.ico
+index.sh
+dev.sh
+dev.html
+package-lock.json
