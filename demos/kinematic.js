@@ -40,7 +40,7 @@ function onComplete(){
     })
 
     // add wall limiter
-    
+
     let j = 14, a = 0, d = 8, s
     let ar = (2*math.Pi)/j;
     while(j--){
@@ -63,7 +63,7 @@ function onComplete(){
     j = 200
     while(j--){
 
-        s = math.rand( 0.1, 0.4 )
+        s = math.rand( 0.2, 0.4 )
         a = math.rand(-math.Pi, math.Pi)
         d = 2 + math.rand(0, 4)
         phy.add({ type:'sphere', size:[s], pos:[ d * Math.sin(a), 5+j*0.6, d * Math.cos(a) ], density:1, restitution:0, friction:0.1, material:'chrome' })
