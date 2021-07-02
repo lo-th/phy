@@ -47,14 +47,14 @@ function onComplete(){
         a += ar
         phy.add({
             type:'box', size:[4,6,2.5], pos:[ d * Math.sin(a), 4, d * Math.cos(a) ], rot:[ 0, a*math.todeg, 0 ], 
-            restitution:0, friction:0.1,
+            friction:0.1,
             visible:false
         })
     } 
 
     phy.add({ 
         type:'box', size:[17,4,17], pos:[0,-1,1], 
-        restitution:0, friction:0.1,
+        friction:0.1,
         visible:false
     })
 
@@ -66,7 +66,12 @@ function onComplete(){
         s = math.rand( 0.2, 0.4 )
         a = math.rand(-math.Pi, math.Pi)
         d = 2 + math.rand(0, 4)
-        phy.add({ type:'sphere', size:[s], pos:[ d * Math.sin(a), 5+j*0.6, d * Math.cos(a) ], density:1, restitution:0, friction:0.1, material:'chrome' })
+        phy.add({ 
+            type:'sphere', size:[s], 
+            pos:[ d * Math.sin(a), 5+j*0.6, d * Math.cos(a) ], 
+            density:1, friction:0.1, 
+            material:'chrome' 
+        })
 
     }
 
