@@ -304,8 +304,15 @@ export class Body extends Item {
 
 	    //b.add( m );
 
-	    b.receiveShadow = b.visible;
-	    b.castShadow = b.visible;
+	    b.receiveShadow = o.shadow !== undefined ? o.shadow : true;
+	    b.castShadow = o.shadow !== undefined ? o.shadow : true;
+
+	    if( !b.visible ){
+	    	b.receiveShadow = false;
+	        b.castShadow = false;
+	    }
+
+	    
 
 		// apply option
 		this.set( o, b );

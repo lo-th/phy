@@ -170,6 +170,22 @@ function makeMachine () {
      ]
     let i = meshs.length, name, p, d, m
 
+    phy.add({ 
+        name:'block1', type:'box', mass:0, material:'glass',
+        size:[1,0.2,1], pos:[0,-4.87+py,0],
+        friction: 0, restitution: 0,
+        renderOrder:2,
+        shadow: false,
+    })
+
+    phy.add({ 
+        name:'block2', type:'box', mass:0, material:'glass',
+        size:[1,0.2,1], pos:[8.5,-4.87+py,0],
+        friction: 0, restitution: 0,
+        renderOrder:3,
+        shadow: false,
+    });
+
     while(i--){
 
     	name = meshs[i]
@@ -186,21 +202,10 @@ function makeMachine () {
 	        friction: friction, restitution: bounce,
 	        pos: i>5 ? [8.5,d+py,0] : [0,py,0],
 	        rot: p ? [0,0,45]:[0,0,0],
-	        renderOrder:2+i,
+	        renderOrder:4+i,
+	        shadow: false,
 	    })
     }
-
-    phy.add({ 
-        name:'block1', type:'box', mass:0, material:'glass',
-        size:[1,0.2,1], pos:[0,-4.87+py,0],
-        friction: 0, restitution: 0,
-    })
-
-    phy.add({ 
-        name:'block2', type:'box', mass:0, material:'glass',
-        size:[1,0.2,1], pos:[8.5,-4.87+py,0],
-        friction: 0, restitution: 0,
-    });
 
 }
 
