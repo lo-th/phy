@@ -146,7 +146,7 @@ export class Body extends Item {
 
 		if( index !== null ){
 
-			console.log('isIndex')
+			//console.log('isIndex')
 
 			let ta, tb, tc
 			lng = index.length/3
@@ -301,9 +301,9 @@ export class Body extends Item {
 
 		// state
 
-		if( o.sleep ) b.sleep();
-		if( o.activate || o.wake ){ b.wakeUp(); console.log('wake')  }
-		if( o.neverSleep ) b.setAutoSleep( false )
+		if( o.sleep ) b.sleep()
+		if( o.activate || o.wake ) b.wakeUp()
+		if( o.neverSleep !== undefined ) b.setAutoSleep( !o.neverSleep )
 			
 
 		// Applies the force `force` to `positionInWorld` in world position. [ 0,0,0,   0,0,0 ]
