@@ -52,7 +52,10 @@ export class Motor {
 	static setExtraTexture ( f ) { extraTexture = f }
 	static setExtraMaterial ( f ) { extraMaterial = f }
 
-	static setPostUpdate ( f ) { postUpdate = f }
+	static setPostUpdate ( f ) { 
+		if( f === null ) postUpdate = function () {}
+		else postUpdate = f 
+	}
 	static setAzimut ( f ) { azimut = f }
 
 	static getKey () { return user.key }

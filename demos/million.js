@@ -6,9 +6,9 @@ var open2 = false;
 var yellow = false;
 var timer = null
 var game = 'start';
-var ball = [];
-
+var result = []
 var balls = [];
+var startPos = []
 var model = null
 
 var tmpCanvas = document.createElement('canvas')
@@ -17,18 +17,15 @@ tmpCanvas.width = tmpCanvas.height = 128
 
 function demo() {
 
+    phy.log( 'SPACE to restart' )
+
 	phy.view({
 		envmap:'beach',
-		//ground:false
-
-		//groundSize:[ 5, 11.3],
-		//groundAlpha:false,
-
 	})
 
 	// setting and start oimophysics
 	phy.set({ 
-		substep:16,
+		substep:8,
 		gravity:[0,-9.81,0],
 	})
 
@@ -58,8 +55,44 @@ function activeBall () {
 
 	phy.up( r )
 
+    timer = setTimeout( startSimulation, 3000 )
+}
 
-    timer = setTimeout( startSimulation, 3000 );
+function replay () {
+
+    phy.setPostUpdate ( null )
+
+    game = 'start'
+
+    a = 0
+    yellow = false
+    open1 = false
+    open2 = false
+
+    let r = [
+
+        { name:'L_pale1', rot:[0,0,a+45], noVelocity:true },
+        { name:'L_pale2', rot:[0,0,-a],   noVelocity:true },
+        { name:'M_pale1', rot:[0,0,a+45], noVelocity:true },
+        { name:'M_pale2', rot:[0,0,-a],   noVelocity:true },
+
+        { name:'block1', pos:[ 0, -4.87+py, open1 ? -1 : 0 ] },
+        { name:'block2', pos:[ 8.5, -4.87+py, open2 ? -1 : 0  ]}
+
+    ]
+
+    result = []
+    onReset ()
+    
+    let i = balls.length;
+    while(i--){
+        r.push({ name: balls[i].name, sleep:true, pos:startPos[i], rot:[0,0,0], reset:true })
+    }
+
+    phy.up( r )
+
+    timer = setTimeout( activeBall, 3000 )
+
 }
 
 function onReset () {
@@ -73,9 +106,12 @@ function onReset () {
 
 function update () {
 
+    let key = phy.getKey()
+    if( key[4] === 1 ) replay()
+
 	a+=1
 
-	var r = [
+	let r = [
 
         { name:'L_pale1', rot:[0,0,a+45], noVelocity:true },
         { name:'L_pale2', rot:[0,0,-a],   noVelocity:true },
@@ -89,21 +125,13 @@ function update () {
 
     phy.update( r )
 
-   /* balls.forEach( function ( b ) {
-
-    	if( game === 'wantBall' ){
-    		if( b.position.y < (-5.4+py) ) haveBall( b.name );
-    	}
-
-    });*/
-
     if( game !== 'wantBall' ) return
 
     let i = balls.length, b
 	while(i--){
 
 		b = balls[i]
-		if( ball.indexOf( b.name ) === -1 ){
+		if( result.indexOf( b.name ) === -1 ){
 			if( b.position.y < (-5.4+py) ) haveBall( b.name );
 		}
 
@@ -114,18 +142,7 @@ function update () {
 function startSimulation () {
 
 	phy.setPostUpdate ( update )
-    
-    timer = setTimeout( function(){ 
-
-        /*phy.add({ 
-            name:'close', type:'mesh', mass:0, material:glassMat,//, material:'hide',
-            shape:view.getGeometry( 'million', 'L_close' ),
-            friction: 0.5, restitution: 0.0
-        });*/
-
-        timer = setTimeout( wantBall, 6000 );
-
-    }, 6000 );
+    timer = setTimeout( wantBall, 12000 );
 
 }
 
@@ -146,15 +163,15 @@ function haveBall ( name ) {
 	open1 = false
 	open2 = false
 	
-	ball.push( name )
+	result.push( name )
 
-	if( ball.length<5 ){
+	if( result.length<5 ){
 		timer = setTimeout( wantBall, 6000 )
-	} else if(ball.length<7){
+	} else if(result.length<7){
         yellow = true
         timer = setTimeout( wantBall, 6000 )
     } else {
-		console.log( ball )
+		phy.log( result )
 	}
 
 }
@@ -239,6 +256,7 @@ function makeBall () {
         	sleep:true,
         });
         balls.push( b )
+        startPos.push( [x*0.1, (y*0.1)+py, -1.16] )
         j++;
         if(j===10) j = 0;
 
@@ -269,6 +287,7 @@ function makeBall () {
         })
 
         balls.push( b )
+        startPos.push( [x*0.1, (y*0.1)+py, -0.975] )
         j++;
         if(j===6) j = 0;
 

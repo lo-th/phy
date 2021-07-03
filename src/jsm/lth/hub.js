@@ -452,6 +452,7 @@ export var hub = ( function () {
 
 
             if(fps) fps.style.left = (s.left + 10) + "px"
+            if(debug) debug.style.left = (s.left + 10) + "px"
             
 
         },
