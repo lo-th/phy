@@ -106,6 +106,8 @@ export class Motor {
 
 		let type = o.type || 'OIMO';
 
+		let isFirefox = navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
+
 		body.extraConvex = o.extraConvex || false
 
 		if( o.callback ){ 
@@ -131,12 +133,15 @@ export class Motor {
 
 				case 'OIMO':
 
-					try {
+				    if( isFirefox ) worker = new Worker( './build/Oimo.min.js' );
+				    else {
+				    	try {
 					    worker = new Worker('./build/Oimo.module.js', {type:'module'});
-					    st = 'ES6'
-					} catch (error) {
-					    worker = new Worker( './build/Oimo.min.js' );
-					}
+						    st = 'ES6'
+						} catch (error) {
+						    worker = new Worker( './build/Oimo.min.js' );
+						}
+				    }
 
 				break
 
