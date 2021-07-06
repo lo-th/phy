@@ -134,6 +134,9 @@ export class engine {
 		    // create new world
 			root.world = new World( broadphase, gravity );
 
+			root.world.setNumVelocityIterations( 10 )
+			root.world.setNumPositionIterations( 5 )
+
 		} 
 
 		isStop = false

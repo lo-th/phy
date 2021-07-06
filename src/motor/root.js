@@ -175,6 +175,14 @@ export class math {
 
 	}
 
+	static toLocalQuatArray ( rot = [0,0,0], b ) { // rotation array in degree
+
+		quat.setFromEuler( euler.fromArray( math.vectorad( rot ) ) )
+		quat.premultiply( b.quaternion.inverse() );
+		return quat.toArray();
+
+	}
+
 	static vectorad ( r ) {
 
 		let i = 3, nr = [];

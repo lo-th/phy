@@ -67,8 +67,6 @@ export class Main {
 
 		ground.visible = o.ground
 
-		
-
 	}
 
 	static injectCode ( cc ){
@@ -204,10 +202,10 @@ function init() {
 	let s = light.shadow
 	
 	s.mapSize.setScalar( 2048 );
-	s.camera.top = s.camera.right = 10
-	s.camera.bottom = s.camera.left = - 10
-	s.camera.near = 0.5
-	s.camera.far = 30
+	s.camera.top = s.camera.right = 30
+	s.camera.bottom = s.camera.left = - 30
+	s.camera.near = 5
+	s.camera.far = 40
 
 	s.bias = -0.0001
 	s.normalBias = 0.05;

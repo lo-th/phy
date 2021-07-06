@@ -443,6 +443,10 @@ export class Motor {
 		let type = b.type;
 
 		if( o.rot !== undefined ){ o.quat = math.toQuatArray( o.rot ); delete ( o.rot ); }
+		if( o.localRot !== undefined ){ 
+
+			o.quat = math.toLocalQuatArray( o.localRot, b ); delete ( o.localRot ); 
+		}
 
 		switch( type ){
 

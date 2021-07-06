@@ -103,6 +103,7 @@ function ragdoll( o ){
         swingSd:[10, 1],
         twistSd:[10, 1],
         twistLm:[-90,90],
+        swingLm: [ 90, 90 ],
         visible:false,
     })
 

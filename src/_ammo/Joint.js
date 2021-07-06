@@ -1,5 +1,5 @@
 import { Item } from '../core/Item.js';
-import { Utils, torad } from './root.js';
+import { Utils, root, torad } from './root.js';
 
 export class Joint extends Item {
 
@@ -156,7 +156,12 @@ export class Joint extends Item {
 			case "prismatic":  j = new Ammo.btSliderConstraint( b1, b2, formA, formB, useA ); break;
 			case 'ragdoll': j = new Ammo.btConeTwistConstraint( b1, b2, formA, formB ); break;
 			//case "dof": j = new Ammo.btGeneric6DofConstraint( b1, b2, formA, formB, useA ); break;
-			case "dof": j = new Ammo.btGeneric6DofSpringConstraint( b1, b2, formA, formB, useA ); break;
+			case "dof": 
+			j = new Ammo.btGeneric6DofSpringConstraint( b1, b2, formA, formB, useA );
+			// by default i lock all angle
+			j.setAngularLowerLimit( this.v1.fromArray([0,0,0]))
+		    j.setAngularUpperLimit( this.v1.fromArray([0,0,0]))
+			 break;
 			case "fixe": j = new Ammo.btFixedConstraint( b1, b2, formA, formB ); break;
             case "gear": j = new Ammo.btGearConstraint( b1, b2, axeA, axeB, o.ratio || 1); break;
             //case "universal": j = new Ammo.btUniversalConstraint( b1, b2, formA, axeA, axeB); break;// missing
@@ -193,7 +198,7 @@ export class Joint extends Item {
 		if( j === null ) return;
 
 		if ( o.breaking && j.setBreakingImpulseThreshold ) j.setBreakingImpulseThreshold( o.breaking );
-		if ( o.iterations && j.setOverrideNumSolverIterations ) j.setOverrideNumSolverIterations( o.iterations ) // -1
+		if ( o.iteration && j.setOverrideNumSolverIterations ) j.setOverrideNumSolverIterations( o.iteration ) // -1
 
 		let i, k, m, n
 	    const idx = [ 'x', 'y', 'z', 'rx', 'ry', 'rz' ]
@@ -212,6 +217,10 @@ export class Joint extends Item {
 
 			// low / high / _softness / _biasFactor / _relaxationFactor
 			if( o.lm ) j.setLimit( o.lm[0]*torad, o.lm[1]*torad, o.lm[2] || 0.9, o.lm[3] || 0.3, o.lm[4] || 1.0 )
+
+			if( o.motor ){
+				j.enableAngularMotor( true, o.motor[0]*torad, o.motor[0] )
+			}
 			
 
 			
@@ -219,18 +228,18 @@ export class Joint extends Item {
 			break;
 
 			case "dof" : case "sdof" :
-			// by default i lock all angle
-			j.setAngularLowerLimit( this.v1.fromArray([0,0,0]))
-	        j.setAngularUpperLimit( this.v1.fromArray([0,0,0]))
-	        // liniear are lock by defazult
+
+			
+			
 
 			//console.log( j )
-			//console.log( j.getRotationalLimitMotor(0) )
+			
 
 			// MOTOR
 			// translation motor not exist in ammo !!
 
 			if( o.motor ){
+				//console.log( j)
 				i = o.motor.length
 				while(i--){
 					k = o.motor[i]
@@ -238,9 +247,17 @@ export class Joint extends Item {
 					if( k[0]==='ry' ) { m = j.getRotationalLimitMotor(1); }
 					if( k[0]==='rz' ) { m = j.getRotationalLimitMotor(2); }
 
-					m.m_enableMotor=true; 
-					m_targetVelocity = k[1];// def 0 
-					m.m_maxMotorForce = k[2];// def 6
+					//console.log(m, k[1] !== 0)
+
+					//m.m_enableMotor = k[1] ? true : false; 
+					//m.m_targetVelocity = k[1] /// root.substep;// def 0 
+					//m.m_maxMotorForce = k[2] /// root.substep;// def 6
+					if(m){
+						m.set_m_enableMotor( k[1] !== 0 )
+						m.set_m_targetVelocity( k[1]*torad )
+						m.set_m_maxMotorForce(k[2])
+					}
+					
 
 				}
 			}
@@ -249,23 +266,27 @@ export class Joint extends Item {
 
 			if( o.lm ){
 
+
+
 				m = [ [0,0,0], [0,0,0], [0,0,0], [0,0,0] ]
 				
 				i = o.lm.length
 				while(i--){
 					k = o.lm[i]
-					if( k[0]==='rx' ) { m[0][0] = k[1] * torad; m[1][0] = k[2] * torad; }
-					if( k[0]==='ry' ) { m[0][1] = k[1] * torad; m[1][1] = k[2] * torad; }
-					if( k[0]==='rz' ) { m[0][2] = k[1] * torad; m[1][2] = k[2] * torad; }
+					if( k[0]==='rx' ) { m[0][0] = k[1] * torad; m[1][0] = k[2] * torad; }// X -PI PI
+					if( k[0]==='ry' ) { m[0][1] = k[1] * torad; m[1][1] = k[2] * torad; }// Y -PI/2 PI/2
+					if( k[0]==='rz' ) { m[0][2] = k[1] * torad; m[1][2] = k[2] * torad; }// Z -PI PI
 					if( k[0]==='x' )  { m[2][0] = k[1]; m[3][0] = k[2]; }
 					if( k[0]==='y' )  { m[2][1] = k[1]; m[3][1] = k[2]; }
 					if( k[0]==='z' )  { m[2][2] = k[1]; m[3][2] = k[2]; }
 				}
 
+				// setting the lower limit above the upper one.
+
 			    j.setAngularUpperLimit( this.v1.fromArray(m[0]) )
 			    j.setAngularLowerLimit( this.v1.fromArray(m[1]) )
-			    j.setLinearUpperLimit( this.v1.fromArray(m[3]) )
 			    j.setLinearLowerLimit( this.v1.fromArray(m[2]) )
+			    j.setLinearUpperLimit( this.v1.fromArray(m[2]) )
 
 			}
 
@@ -274,7 +295,7 @@ export class Joint extends Item {
 			if( o.sd ){
 
 				i = 6
-				while( i-- ) j.enableSpring( i, false )
+				//while( i-- ) j.enableSpring( i, false )
 
 				m = [ [0,0,0], [0,0,0], [0,0,0], [0,0,0] ]
 				
@@ -282,10 +303,10 @@ export class Joint extends Item {
 				while(i--){
 					k = o.sd[i]
 					n = idx.indexOf( k[0] )
-					j.setStiffness( n, k[1] ) 
-					j.setDamping( n, k[2] ) 
+					j.setStiffness( n, k[1] ) // raideur
+					j.setDamping( n, k[2] ) // amortissement
 					j.enableSpring( n, true )
-					//j.setEquilibriumPoint(n) // lock the spring ?
+					if(k[3]) j.setEquilibriumPoint(n) // lock the spring ?
 				}
 
 			}
@@ -297,11 +318,11 @@ export class Joint extends Item {
 
 
 
-		if( o.motor && j.enableAngularMotor ){
+		/*if( o.motor && j.enableAngularMotor ){
 			j.enableAngularMotor( true, o.motor[0]*torad, o.motor[0]*torad*1 )
 		}
 		if ( o.enableMotor && j.enableMotor ) j.enableMotor( o.enableMotor );
-		if ( o.maxMotorImpulse && j.setMaxMotorImpulse ) j.setMaxMotorImpulse( o.maxMotorImpulse );
+		if ( o.maxMotorImpulse && j.setMaxMotorImpulse ) j.setMaxMotorImpulse( o.maxMotorImpulse );*/
 
 		//if(j.setLimit) j.setLimit(0, 360*torad, 0, 1, 0 )
 

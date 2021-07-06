@@ -87,8 +87,19 @@ export class Joint extends Item {
 
 			 if ( o.worldAxis ) {
 			 	v.fromArray( o.worldAxis );
-			 	b1.getLocalVectorTo( v, jc.localAxis1 );
-			 	b2.getLocalVectorTo( v, jc.localAxis2 );
+
+			 	if( jc.localAxis1 && jc.localAxis2 ){
+			 		b1.getLocalVectorTo( v, jc.localAxis1 );
+			 	    b2.getLocalVectorTo( v, jc.localAxis2 );
+			 	}
+
+			 	if( jc.localBasis1 && jc.localBasis2 ){ // generic joint
+
+			 		// ??
+			 		//b1.getLocalVectorTo( v, jc.localAxis1 );
+			 	    //b2.getLocalVectorTo( v, jc.localAxis2 );
+			 	}
+			 	
 			 }
 
 		}
@@ -99,9 +110,10 @@ export class Joint extends Item {
 		if( jc.localAxis1 && o.axis1 ) jc.localAxis1.fromArray( o.axis1 );
 		if( jc.localAxis2 && o.axis2 ) jc.localAxis2.fromArray( o.axis2 );
 
-		/*jc.allowCollision = o.collision !== undefined ? o.collision : false;
-		jc.breakForce = o.breakForce !== undefined ? o.breakForce : 0;
-		jc.breakTorque = o.breakTorque !== undefined ? o.breakTorque : 0;*/
+		//if( jc.localBasis1 && o.axis1 ) jc.localBasis1.fromQuat( o.axis1 );
+		//if( jc.localBasis2 && o.axis2 ) jc.localBasis2.fromQuat( o.axis2 );
+
+		//console.log(jc.localAxis2)
 
 		switch ( mode ) {
 
@@ -130,6 +142,9 @@ export class Joint extends Item {
 				//jc.maxSwingAngle2 = (o.maxSwing2 !== undefined ? o.maxSwing2 : 180) * torad;
 
 			break;
+			case 'Generic':
+			
+			break;
 
 		}
 
@@ -138,6 +153,8 @@ export class Joint extends Item {
 		j.type = this.type;
 		j.mode = mode;
 		j.visible = o.visible !== undefined ? o.visible : true; 
+
+		//if( j.mode ==='Generic' ) console.log( j.getAxisY() )
 
 
 		// apply option
@@ -223,6 +240,16 @@ export class Joint extends Item {
 			break;
 			case 'Generic':
 
+			/*if( o.setAxis ){
+				i = o.axis.length
+				while(i--){
+					k = o.axis[i]
+					if( k[0]==='rx' ) j._axisX.fromArray( [ k[1], k[2], k[3] ] )
+					if( k[0]==='ry' ) j._axisY.fromArray( [ k[1], k[2], k[3] ] )
+					if( k[0]==='rz' ) j._axisZ.fromArray( [ k[1], k[2], k[3] ] )
+				}
+			}*/
+
 			// MOTOR
 
 			if( o.motor ){
@@ -259,12 +286,12 @@ export class Joint extends Item {
 				i = o.sd.length
 				while(i--){
 					k = o.sd[i]
-					if( k[0]==='rx' ) this.spring( j.getRotationalSpringDampers()[0], [ k[1], k[2] ] )
-					if( k[0]==='ry' ) this.spring( j.getRotationalSpringDampers()[1], [ k[1], k[2] ] )
-					if( k[0]==='rz' ) this.spring( j.getRotationalSpringDampers()[2], [ k[1], k[2] ] )
-					if( k[0]==='x' ) this.spring( j.getTranslationalSpringDampers()[0], [ k[1], k[2] ], true )
-					if( k[0]==='y' ) this.spring( j.getTranslationalSpringDampers()[1], [ k[1], k[2] ], true )
-					if( k[0]==='z' ) this.spring( j.getTranslationalSpringDampers()[2], [ k[1], k[2] ], true )
+					if( k[0]==='rx' ) this.spring( j._rotSds[0], [ k[1], k[2] ] )
+					if( k[0]==='ry' ) this.spring( j._rotSds[1], [ k[1], k[2] ] )
+					if( k[0]==='rz' ) this.spring( j._rotSds[2], [ k[1], k[2] ] )
+					if( k[0]==='x' ) this.spring( j._translSds[0], [ k[1], k[2] ], true )
+					if( k[0]==='y' ) this.spring( j._translSds[1], [ k[1], k[2] ], true )
+					if( k[0]==='z' ) this.spring( j._translSds[2], [ k[1], k[2] ], true )
 				}
 			}
 
@@ -274,7 +301,6 @@ export class Joint extends Item {
 			break;
 
 		}
-
 
 
 	}
@@ -294,8 +320,9 @@ export class Joint extends Item {
 	motor ( ref, r = [0,0], trans = false ){
 
 	    // speed / force or torque
+	    // meters per second / newtons > 0 
 		let m = trans ? 1 : torad;
-		ref.setMotor( r[0] * m, r[1] * m );
+		ref.setMotor( r[0] * m ,  r[1] );
 
 	}
 
