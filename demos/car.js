@@ -5,7 +5,7 @@ function demo() {
     phy.log('under construction')
 
     phy.set({ 
-        substep:4, 
+        substep:16, 
         gravity:[0,-10,0] 
     })
 
@@ -47,10 +47,10 @@ function testCar ( n, pos ){
         front = i>=2 ? true : false;
         side = i === 0 || i === 2 ? 1 : -1;
 
-        wpos = [ side * ws[0], -ws[1], front ? -ws[2] :  ws[2] ];
+        wpos = [ side * ws[0], ws[1], front ? -ws[2] :  ws[2] ];
 
-        b = phy.add({ type:'box', name:'axis'+i+'_'+n, pos:[wpos[0]+pos[0], wpos[1]+pos[1], wpos[2]+pos[2] ], size:[0.25],  density:1, material:'debug2', neverSleep:true/*, angularFactor:[0,1,0]*/ });
-        w = phy.add({ type:'sphere', name:'wheel'+i+'_'+n, pos:[wpos[0]+pos[0], wpos[1]+pos[1], wpos[2]+pos[2] ], size:[radius],  density:1, friction:0.5, restitution:0.2, material:'debug', mesh:mw, neverSleep:true });
+        b = phy.add({ type:'box', name:'axis'+i+'_'+n, pos:[wpos[0]+pos[0], wpos[1]+pos[1], wpos[2]+pos[2] ], size:[0.25],  density:4, material:'debug2', neverSleep:true/*, angularFactor:[0,1,0]*/ });
+        w = phy.add({ type:'sphere', name:'wheel'+i+'_'+n, pos:[wpos[0]+pos[0], wpos[1]+pos[1], wpos[2]+pos[2] ], size:[radius],  density:4, friction:0.9, restitution:0.2, material:'debug', mesh:mw, neverSleep:true });
 
        /*j = phy.add({ 
 
@@ -77,12 +77,12 @@ function testCar ( n, pos ){
             name:'axe'+i+'_'+n, 
             b1:'chassis'+n, b2:'axis'+i+'_'+n, 
             pos1:wpos, helperSize:0.1,
-            iteration:10,
-            lm: front ? [ ['ry',-25,25]] : [],
-            sd : front ? [['ry',1,1, true]]: [],
+            //iteration:10,
+            lm: front ? [ ['ry',-25,25] ] : [['ry',0,0]],
+           // sd : front ? [['ry',1,1, true]]: [],
 
             //lm: front ? [ ['ry',-45,45],['y',-0.05,0.05]] : [['y',-0.05,0.05]],
-            //lm: front ? [ ['y', -0.1, 0.1], ['ry', -30, 30]] : [['y', -0.1, 0.1]],
+            //lm: front ? [ ['y', -0.1, 0.1], ['ry', -30, 30]] : [ss['y', -0.1, 0.1]],
             //sd : front ?  [['ry',20,0.8],['y', 20,0.3]]: [['y', 20,0.3]],
             //sd : front ? [['ry',10,0.3],['y', 10,0.3]]: [['y', 10,0.3]],
         })
@@ -96,8 +96,8 @@ function testCar ( n, pos ){
             b2:'wheel'+i+'_'+n,
 
             helperSize:0.1,
-            iteration:10,
-            lm:[ ['rx', -180, 180] ]
+            //iteration:10,
+            lm:[ ['rx', -180, 180]  ]
         })
 
     }
@@ -131,11 +131,11 @@ function update () {
         //if( f )r.push( { name:'axe'+i+'_'+current, motor:[ ['ry', v ,0]] } )
 
         //if( f ) r.push( { name:'axis'+i+'_'+ current, localRot:[0, rs ,0], reset:true } )
-        if( f ) r.push({ name:'axe'+i+'_'+ current, motor:[['ry',-rs, Math.abs(rs)*20 ]] })
+        if( f ) r.push({ name:'axe'+i+'_'+ current, motor:[['ry',-rs*360, 200 ]] })
 
         //r.push( { name:'wheel'+i+'_'+ current, torque:[ts*300, 0 ,0 ] } )
 
-        r.push({ name:'joint'+i+'_'+ current, motor:[['rx',-ts*10, 10 ]] })
+        r.push({ name:'joint'+i+'_'+ current, motor:[['rx',ts*360*2, 360 ]] })
        //r.push( { name:'joint'+i+'_'+ current, motor:[['rx',-ts*200,-ts*2000 ]] } )
 
         //r.push( { name:'axe'+i+'_'+current, driveVelocity:[[0,0,0], [ 0, v ,0]] } )

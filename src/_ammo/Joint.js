@@ -219,7 +219,7 @@ export class Joint extends Item {
 			if( o.lm ) j.setLimit( o.lm[0]*torad, o.lm[1]*torad, o.lm[2] || 0.9, o.lm[3] || 0.3, o.lm[4] || 1.0 )
 
 			if( o.motor ){
-				j.enableAngularMotor( true, o.motor[0]*torad, o.motor[0] )
+				j.enableAngularMotor( true, o.motor[0]*torad, o.motor[1] )
 			}
 			
 
@@ -247,15 +247,16 @@ export class Joint extends Item {
 					if( k[0]==='ry' ) { m = j.getRotationalLimitMotor(1); }
 					if( k[0]==='rz' ) { m = j.getRotationalLimitMotor(2); }
 
-					//console.log(m, k[1] !== 0)
+					//console.log(m)
 
 					//m.m_enableMotor = k[1] ? true : false; 
 					//m.m_targetVelocity = k[1] /// root.substep;// def 0 
-					//m.m_maxMotorForce = k[2] /// root.substep;// def 6
+					//m.m_maxMotorForce = k[2] /// root.substep;
 					if(m){
-						m.set_m_enableMotor( k[1] !== 0 )
-						m.set_m_targetVelocity( k[1]*torad )
-						m.set_m_maxMotorForce(k[2])
+						m.set_m_enableMotor( true)//k[1] !== 0 )
+						m.set_m_targetVelocity( -k[1]*torad )// is reverse why ??
+						m.set_m_maxMotorForce(k[2])// def 6
+						//m.set_m_maxLimitForce(k[2])
 					}
 					
 
@@ -283,8 +284,10 @@ export class Joint extends Item {
 
 				// setting the lower limit above the upper one.
 
-			    j.setAngularUpperLimit( this.v1.fromArray(m[0]) )
-			    j.setAngularLowerLimit( this.v1.fromArray(m[1]) )
+			    
+			    j.setAngularLowerLimit( this.v1.fromArray(m[0]) )
+			    j.setAngularUpperLimit( this.v1.fromArray(m[1]) )
+
 			    j.setLinearLowerLimit( this.v1.fromArray(m[2]) )
 			    j.setLinearUpperLimit( this.v1.fromArray(m[2]) )
 
@@ -304,9 +307,10 @@ export class Joint extends Item {
 					k = o.sd[i]
 					n = idx.indexOf( k[0] )
 					j.setStiffness( n, k[1] ) // raideur
-					j.setDamping( n, k[2] ) // amortissement
+					j.setDamping( n, k[2] ) // amortissement //1
 					j.enableSpring( n, true )
 					if(k[3]) j.setEquilibriumPoint(n) // lock the spring ?
+						//j.set_m_bounce( )//0
 				}
 
 			}
