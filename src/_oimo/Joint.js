@@ -168,12 +168,10 @@ export class Joint extends Item {
 
 	set ( o = {}, j = null ) {
 
-		let i, k, axe
+		let i, k, axe, translate, rotate
 
 		if( j === null ) j = this.byName( o.name );
 		if( j === null ) return;
-
-		//const v = this.v;
 
 		if( o.collision !== undefined ) j.setAllowCollision( o.collision )
 		if( o.breakForce !== undefined ) j.setBreakForce( o.breakForce )
@@ -199,17 +197,37 @@ export class Joint extends Item {
 			    //if( o.axis3 ) j._localBasisY1.fromArray( o.axis3 || [0,1,0] ); // missing in oimoPhysics
 			    */
 
-			    if (o.twistSd ) this.spring( j.getTwistSpringDamper(), o.twistSd );
-			    if (o.swingSd ) this.spring( j.getSwingSpringDamper(), o.swingSd );
-				if (o.twistLm ) this.limit( j.getTwistLimitMotor(), o.twistLm );
+			    if ( o.twistSd ) this.spring( j.getTwistSpringDamper(), o.twistSd )
+			    if ( o.swingSd ) this.spring( j.getSwingSpringDamper(), o.swingSd )
+				if ( o.twistLm ) this.limit( j.getTwistLimitMotor(), o.twistLm )
+				if ( o.twistMotor ) this.motor( j.getTwistLimitMotor(), o.twistMotor )
 
-
-				j._maxSwingAngle1 = (o.maxSwing1 !== undefined ? o.maxSwing1 : 180) * torad;
-				j._maxSwingAngle2 = (o.maxSwing2 !== undefined ? o.maxSwing2 : 180) * torad;
+				j._maxSwingAngle1 = (o.maxSwing1 !== undefined ? o.maxSwing1 : 180) * torad
+				j._maxSwingAngle2 = (o.maxSwing2 !== undefined ? o.maxSwing2 : 180) * torad
 
 
 			break;
-			case 'Universal':
+			
+			case 'Prismatic': case 'Revolute': // one degree of freedom
+
+				if( o.sd ) this.spring( j.getSpringDamper(), o.sd )
+			    if( o.lm ) this.limit( j.getLimitMotor(), o.lm, j.mode === 'Prismatic' )
+			    if( o.motor ) this.motor( j.getLimitMotor(), o.motor, j.mode === 'Prismatic' )
+
+			break;
+
+			case 'Cylindrical': // two degrees of freedom
+
+			    if ( o.rsd ) this.spring( j.getRotationalSpringDamper(), o.rsd )
+				if ( o.tsd ) this.spring( j.translationalSpringDamper(), o.tsd )
+				if ( o.rlm ) this.limit( j.getRotationalLimitMotor(), o.rlm )
+				if ( o.tlm ) this.limit( j.getTranslationalLimitMotor(), o.tlm, true )
+				if ( o.rmotor ) this.motor( j.getRotationalLimitMotor(), o.rmotor )
+				if ( o.tmotor) this.motor( j.getTranslationalLimitMotor(), o.tmotor, true )
+
+			break;
+
+			case 'Universal': // two degrees of freedom
 
 			    if ( o.sd1 ) this.spring( j.getSpringDamper1(), o.sd1 )
 			    if ( o.sd2 ) this.spring( j.getSpringDamper2(), o.sd2 )
@@ -220,25 +238,7 @@ export class Joint extends Item {
 
 			break;
 
-			case 'Prismatic': case 'Revolute':
-
-				if( o.sd ) this.spring( j.getSpringDamper(), o.sd )
-			    if( o.lm ) this.limit( j.getLimitMotor(), o.lm, j.mode === 'Prismatic' )
-			    if( o.motor ) this.motor( j.getLimitMotor(), o.motor, j.mode === 'Prismatic' )
-
-			break;
-
-			case 'Cylindrical': 
-
-			    if ( o.rsd ) this.spring( j.getRotationalSpringDamper(), o.rsd );
-				if ( o.tsd ) this.spring( j.translationalSpringDamper(), o.tsd );
-				if ( o.rlm ) this.limit( j.getRotationalLimitMotor(), o.rlm );
-				if ( o.tlm ) this.limit( j.getTranslationalLimitMotor(), o.tlm, true );
-				if ( o.rlm ) this.limit( j.getRotationalLimitMotor(), o.rlm );
-				if ( o.tlm ) this.limit( j.getTranslationalLimitMotor(), o.tlm, true );
-
-			break;
-			case 'Generic':
+			case 'Generic': // six degrees of freedom
 
 			/*if( o.setAxis ){
 				i = o.axis.length
@@ -256,12 +256,14 @@ export class Joint extends Item {
 				i = o.motor.length
 				while(i--){
 					k = o.motor[i]
-					if( k[0]==='rx' ) this.motor( j.getRotationalLimitMotors()[0], [ k[1], k[2] ] )
-					if( k[0]==='ry' ) this.motor( j.getRotationalLimitMotors()[1], [ k[1], k[2] ] )
-					if( k[0]==='rz' ) this.motor( j.getRotationalLimitMotors()[2], [ k[1], k[2] ] )
-					if( k[0]==='x' ) this.motor( j.getTranslationalLimitMotors()[0], [ k[1], k[2] ], true )
-					if( k[0]==='y' ) this.motor( j.getTranslationalLimitMotors()[1], [ k[1], k[2] ], true )
-					if( k[0]==='z' ) this.motor( j.getTranslationalLimitMotors()[2], [ k[1], k[2] ], true )
+					rotate = j.getRotationalLimitMotors()
+					translate =  j.getTranslationalLimitMotors()
+					if( k[0]==='rx' ) this.motor( rotate[0], [ k[1], k[2] ] )
+					if( k[0]==='ry' ) this.motor( rotate[1], [ k[1], k[2] ] )
+					if( k[0]==='rz' ) this.motor( rotate[2], [ k[1], k[2] ] )
+					if( k[0]==='x' ) this.motor( translate[0], [ k[1], k[2] ], true )
+					if( k[0]==='y' ) this.motor( translate[1], [ k[1], k[2] ], true )
+					if( k[0]==='z' ) this.motor( translate[2], [ k[1], k[2] ], true )
 				}
 			}
 
@@ -271,12 +273,14 @@ export class Joint extends Item {
 				i = o.lm.length
 				while(i--){
 					k = o.lm[i]
-					if( k[0]==='rx' ) this.limit( j.getRotationalLimitMotors()[0], [ k[1], k[2] ] )
-					if( k[0]==='ry' ) this.limit( j.getRotationalLimitMotors()[1], [ k[1], k[2] ] )
-					if( k[0]==='rz' ) this.limit( j.getRotationalLimitMotors()[2], [ k[1], k[2] ] )
-					if( k[0]==='x' ) this.limit( j.getTranslationalLimitMotors()[0], [ k[1], k[2] ], true )
-					if( k[0]==='y' ) this.limit( j.getTranslationalLimitMotors()[1], [ k[1], k[2] ], true )
-					if( k[0]==='z' ) this.limit( j.getTranslationalLimitMotors()[2], [ k[1], k[2] ], true )
+					rotate = j.getRotationalLimitMotors()
+					translate =  j.getTranslationalLimitMotors()
+					if( k[0]==='rx' ) this.limit( rotate[0], [ k[1], k[2] ] )
+					if( k[0]==='ry' ) this.limit( rotate[1], [ k[1], k[2] ] )
+					if( k[0]==='rz' ) this.limit( rotate[2], [ k[1], k[2] ] )
+					if( k[0]==='x' ) this.limit( translate[0], [ k[1], k[2] ], true )
+					if( k[0]==='y' ) this.limit( translate[1], [ k[1], k[2] ], true )
+					if( k[0]==='z' ) this.limit( translate[2], [ k[1], k[2] ], true )
 				}
 			}
 

@@ -227,13 +227,7 @@ export class Joint extends Item {
 
 			break;
 
-			case "dof" : case "sdof" :
-
-			
-			
-
-			//console.log( j )
-			
+			case "dof" : case "sdof" :			
 
 			// MOTOR
 			// translation motor not exist in ammo !!
@@ -267,8 +261,6 @@ export class Joint extends Item {
 
 			if( o.lm ){
 
-
-
 				m = [ [0,0,0], [0,0,0], [0,0,0], [0,0,0] ]
 				
 				i = o.lm.length
@@ -284,12 +276,11 @@ export class Joint extends Item {
 
 				// setting the lower limit above the upper one.
 
-			    
 			    j.setAngularLowerLimit( this.v1.fromArray(m[0]) )
 			    j.setAngularUpperLimit( this.v1.fromArray(m[1]) )
 
 			    j.setLinearLowerLimit( this.v1.fromArray(m[2]) )
-			    j.setLinearUpperLimit( this.v1.fromArray(m[2]) )
+			    j.setLinearUpperLimit( this.v1.fromArray(m[3]) )
 
 			}
 

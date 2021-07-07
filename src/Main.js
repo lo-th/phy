@@ -46,6 +46,8 @@ export class Main {
 
 		introText = (isWorker ? 'WORKER ' : '') + engineType + ' ' + version 
 
+		if( o.extra ) engineList.push('HIDE')
+
 		o.callback = init
 		Motor.init( o )
 
@@ -520,6 +522,8 @@ function swapEngine ( type ){
 
 	if( name!=='oimo' ) url=name
 	if( !isWorker ) url+='_d'
+
+	if( type==='hide' ) url = '../phy_plus/'+url
 
 
 	let w = window.open( url+'.html'+hash, '_self')
