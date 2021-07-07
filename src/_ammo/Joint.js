@@ -34,7 +34,7 @@ export class Joint extends Item {
 
 			j = this.list[i];
 
-			n = N + ( i * 16 );
+			n = N + ( i * 16 )
 			if(j.visible){
 				this.t.copy( j.getRigidBodyA().getWorldTransform() ).op_mul( j.formA ).toArray( AR, n  )
 				this.t.copy( j.getRigidBodyB().getWorldTransform() ).op_mul( j.formB ).toArray( AR, n + 7 )
@@ -58,15 +58,13 @@ export class Joint extends Item {
 
 		const v = this.v;
 
-		let name = this.setName( o );
+		let name = this.setName( o )
 
 		// define body b1 and b2 is string body name
         // note: b1 / b2 can be null
 
-		const b1 = this.byName(o.b1);
-		const b2 = this.byName(o.b2);
-
-
+		const b1 = this.byName(o.b1)
+		const b2 = this.byName(o.b2)
 
 		let posA = this.v1.fromArray( o.pos1 || [0,0,0])
 		let posB = this.v2.fromArray( o.pos2 || [0,0,0])
@@ -80,25 +78,25 @@ export class Joint extends Item {
 		let axeA = this.p1.fromArray( o.axis1 || [0,0,1])
 		let axeB = this.p2.fromArray( o.axis2 || [0,0,1])
 
-		if(!o.quat1) quatA.fromAxis( axeA );
-		if(!o.quat2) quatB.fromAxis( axeB );
+		if(!o.quat1) quatA.fromAxis( axeA )
+		if(!o.quat2) quatB.fromAxis( axeB )
 
 		//console.log(quatA.toArray())
 
-		this.t1.identity();
-		this.t2.identity();
+		this.t1.identity()
+		this.t2.identity()
 
 		const useA = o.useA || false;
 
 		if( o.worldAnchor || o.worldAxis ){
 
 			if(b1){ 
-				b1.activate();
+				b1.activate()
 				b1.getMotionState().getWorldTransform( this.t1 )
 			}
 
 			if(b2){ 
-				b2.activate();
+				b2.activate()
 				b2.getMotionState().getWorldTransform( this.t2 )
 			}
 
@@ -131,8 +129,8 @@ export class Joint extends Item {
 
 		}
 
-		const formA = new Ammo.btTransform().set( posA, quatA );
-		const formB = new Ammo.btTransform().set( posB, quatB );
+		const formA = new Ammo.btTransform().set( posA, quatA )
+		const formB = new Ammo.btTransform().set( posB, quatB )
 
 		let j
 
@@ -172,15 +170,17 @@ export class Joint extends Item {
 		j.mode = mode
 		j.type = this.type
 
-		/*j.B1 = b1
-		j.B2 = b2*/
+		/*
+		j.B1 = b1
+		j.B2 = b2
+		*/
 
 		j.formA = formA
 		j.formB = formB
 		j.visible = o.visible !== undefined ? o.visible : true;
 
 		// apply option
-		this.set( o, j );
+		this.set( o, j )
 
 		// add to world
 		//let collision = o.collision !== undefined ? o.collision : false;
@@ -310,36 +310,6 @@ export class Joint extends Item {
 			break;
 
 		}
-
-
-
-		/*if( o.motor && j.enableAngularMotor ){
-			j.enableAngularMotor( true, o.motor[0]*torad, o.motor[0]*torad*1 )
-		}
-		if ( o.enableMotor && j.enableMotor ) j.enableMotor( o.enableMotor );
-		if ( o.maxMotorImpulse && j.setMaxMotorImpulse ) j.setMaxMotorImpulse( o.maxMotorImpulse );*/
-
-		//if(j.setLimit) j.setLimit(0, 360*torad, 0, 1, 0 )
-
-			//if(o.motor)	j.enableAngularMotor( true, 0, o.motor[0]*torad )
-
-		//console.log( j.getParam( 2, 1 ))//-1
-
-		//console.log( j.getAngularOnly() )
-
-		//setLimit (btScalar low, btScalar high, btScalar _softness=0.9f, btScalar _biasFactor=0.3f, btScalar _relaxationFactor=1.0f)
-
-		/*
-		
-		j.setMotorTarget(  q.fromArray( o.target ), o.scale || 1 )
-		j.setLimit( o.limit[ 0 ] * math.torad, o.limit[ 1 ] * math.torad, o.limit[ 2 ] || 0.9, o.limit[ 3 ] || 0.3, o.limit[ 4 ] || 1.0 )
-		j.setMotorTarget( o.target, o.axis || -1 )
-		*/
-
-
-		/*if( o.collision !== undefined ) j.setAllowCollision( o.collision )
-		if( o.breakForce !== undefined ) j.setBreakForce( o.breakForce )
-		if( o.breakTorque !== undefined ) j.setBreakTorque( o.breakTorque )*/
 
 	}
 

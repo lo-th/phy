@@ -9,42 +9,42 @@ export class Joint extends Item {
 
 		this.Utils = Utils
 
-		this.type = 'joint';
+		this.type = 'joint'
 
-		this.v = new Vec3();
-		this.q = new Quat();
-		this.m = new Mat3();
+		this.v = new Vec3()
+		this.q = new Quat()
+		this.m = new Mat3()
 
 	}
 
 	step ( AR, N ) {
 
-		let i = this.list.length, j, n;
-		const v = this.v;
-		const q = this.q;
-		const m = this.m;
+		let i = this.list.length, j, n
+		const v = this.v
+		const q = this.q
+		const m = this.m
 
 		while( i-- ){
 
-			j = this.list[i];
+			j = this.list[i]
 
-			n = N + ( i * 16 );
+			n = N + ( i * 16 )
 
-			if(j.visible){
+			if( j.visible ){
 
-				j.getAnchor1To( v );
-				v.toArray( AR, n );
-
-				j.getBasis1To( m )
-				q.fromMat3( m );
-				q.toArray( AR, n+3 );
-
-				j.getAnchor2To( v );
-				v.toArray( AR, n+7 );
+				j.getAnchor1To( v )
+				v.toArray( AR, n )
 
 				j.getBasis1To( m )
-				q.fromMat3( m );
-				q.toArray( AR, n+10 );
+				q.fromMat3( m )
+				q.toArray( AR, n+3 )
+
+				j.getAnchor2To( v )
+				v.toArray( AR, n+7 )
+
+				j.getBasis2To( m )
+				q.fromMat3( m )
+				q.toArray( AR, n+10 )
 				
 			}
 
@@ -58,39 +58,39 @@ export class Joint extends Item {
 
 		const v = this.v;
 
-		let name = this.setName( o );
+		let name = this.setName( o )
 
 		// define body b1 and b2 is string body name
         // note: b1 / b2 can be null
 
-		let b1 = this.byName(o.b1);
-		let b2 = this.byName(o.b2);
+		let b1 = this.byName(o.b1)
+		let b2 = this.byName(o.b2)
 
-		let mode = o.mode || 'revolute';
+		let mode = o.mode || 'revolute'
 
-		mode = mode.charAt(0).toUpperCase() + mode.slice(1);
+		mode = mode.charAt(0).toUpperCase() + mode.slice(1)
 
 		if( mode === 'D6' ) mode = 'Generic'
 
-		const jc = new Joints[ mode + 'JointConfig' ]();
+		const jc = new Joints[ mode + 'JointConfig' ]()
 
-		jc.rigidBody1 = b1;
-		jc.rigidBody2 = b2;
+		jc.rigidBody1 = b1
+		jc.rigidBody2 = b2
 
 		if( b1 && b2 ){
 
 			if ( o.worldAnchor ) {
 				v.fromArray( o.worldAnchor );
-				b1.getLocalPointTo( v, jc.localAnchor1 );
-			 	b2.getLocalPointTo( v, jc.localAnchor2 );
+				b1.getLocalPointTo( v, jc.localAnchor1 )
+			 	b2.getLocalPointTo( v, jc.localAnchor2 )
 			}
 
 			 if ( o.worldAxis ) {
 			 	v.fromArray( o.worldAxis );
 
 			 	if( jc.localAxis1 && jc.localAxis2 ){
-			 		b1.getLocalVectorTo( v, jc.localAxis1 );
-			 	    b2.getLocalVectorTo( v, jc.localAxis2 );
+			 		b1.getLocalVectorTo( v, jc.localAxis1 )
+			 	    b2.getLocalVectorTo( v, jc.localAxis2 )
 			 	}
 
 			 	if( jc.localBasis1 && jc.localBasis2 ){ // generic joint
@@ -104,11 +104,11 @@ export class Joint extends Item {
 
 		}
 
-		if( o.pos1 ) jc.localAnchor1.fromArray( o.pos1 || [0,0,0] );
-		if( o.pos2 ) jc.localAnchor2.fromArray( o.pos2 || [0,0,0] );
+		if( o.pos1 ) jc.localAnchor1.fromArray( o.pos1 || [0,0,0] )
+		if( o.pos2 ) jc.localAnchor2.fromArray( o.pos2 || [0,0,0] )
 
-		if( jc.localAxis1 && o.axis1 ) jc.localAxis1.fromArray( o.axis1 );
-		if( jc.localAxis2 && o.axis2 ) jc.localAxis2.fromArray( o.axis2 );
+		if( jc.localAxis1 && o.axis1 ) jc.localAxis1.fromArray( o.axis1 )
+		if( jc.localAxis2 && o.axis2 ) jc.localAxis2.fromArray( o.axis2 )
 
 		//if( jc.localBasis1 && o.axis1 ) jc.localBasis1.fromQuat( o.axis1 );
 		//if( jc.localBasis2 && o.axis2 ) jc.localBasis2.fromQuat( o.axis2 );
@@ -309,11 +309,9 @@ export class Joint extends Item {
 
 	}
 
-
-
-
-
 	spring ( ref, r = [0,0] ){
+
+		//console.log( r )
 
 		// frequency / dampingRatio
 		ref.setSpring( r[0], r[1] );

@@ -16,7 +16,6 @@ export class Editor {
 
         if( this.isOpen ) this.close()
         else this.open()
-
         Main.setLeft( this.left )
 
     }
@@ -26,27 +25,29 @@ export class Editor {
         this.left = (window.innerWidth*0.5)-200
         this.isOpen = true
 
+        let text = 'font-smooth: antialiased; -webkit-font-smoothing : antialiased; -moz-osx-font-smoothing: grayscale;'//text-rendering: optimizeSpeed; text-shadow: 1px 1px 1px #000;
+
         let unselectable = '-o-user-select:none; -ms-user-select:none; -khtml-user-select:none; -webkit-user-select:none; -moz-user-select: none; pointer-events:none; '
 
         this.content = document.createElement( 'div' );
         this.content.style.cssText = 'position:absolute; margin:0; padding:0; top:0px; left:0px; width:'+this.left+'px;  height:100%; '
-        this.content.style.cssText += 'font-size:18px; font-family:Tahoma; text-shadow: 1px 1px 1px #000; color:#f8f8f2; background: #20211c;'//background: #282923;
+        this.content.style.cssText += 'font-size:18px; font-family:Tahoma; color:#f8f8f2; background: #20211c;'//background: #282923;
         document.body.appendChild( this.content )
 
 
         this.codeContent = document.createElement( 'div' );
-        this.codeContent.style.cssText = 'position:absolute; margin:0; padding:0; top:30px; left:3px; width:calc( 100% - 6px); height:calc( 100% - 60px); border-top: 1px solid #3e4036; border-bottom: 1px solid #3e4036;'
+        this.codeContent.style.cssText = text + 'position:absolute; margin:0; padding:0; top:30px; left:3px; width:calc( 100% - 6px); height:calc( 100% - 60px); border-top: 1px solid #3e4036; border-bottom: 1px solid #3e4036;'
         this.code = new CodeFlask( this.codeContent, { language: 'js', lineNumbers: true, handleTabs: true, lineNumbers: false, })
         this.code.onUpdate( function ( code ){ this.onUpdate(code)}.bind(this) )
 
         this.content.appendChild( this.codeContent )
 
         this.title = document.createElement( 'div' )
-        this.title.style.cssText = unselectable + "position:absolute; top:3px; left:10px; width:calc( 100% - 20px); color:#7c806c; "
+        this.title.style.cssText = unselectable + "position:absolute; top:3px; left:10px; width:calc( 100% - 20px); color:#7c806c; text-shadow: 1px 1px 1px #000;"
         this.content.appendChild( this.title )
 
         this.info = document.createElement( 'div' )
-        this.info.style.cssText = unselectable + "position:absolute; bottom:2px; left:10px; width:calc( 100% - 20px); ;"
+        this.info.style.cssText = unselectable + "position:absolute; bottom:2px; left:10px; width:calc( 100% - 20px); text-shadow: 1px 1px 1px #000;"
         this.content.appendChild( this.info )
 
         this.separator = document.createElement( 'div' )
