@@ -7,8 +7,7 @@
 		<link rel="shortcut icon" href="favicon.ico">
 		<script src="./build/ammo.wasm.js"></script>
 	</head>
-	<body style="background-color:#000; margin: 0; overflow: hidden;">
-
+	<body style="background-color:#000; margin:0; padding:0;  overflow:hidden;">
 
 		<script type="module">
 
@@ -17,7 +16,7 @@
 			
 			import { Main } from './src/Main.js';
 
-			Main.start( { direct: engine.message, type:'AMMO', version:'3.0', extra:true } )
+			Main.start( { direct: engine.message, type:'AMMO', version:'3.0' } )
 
 		</script>
 	</body>

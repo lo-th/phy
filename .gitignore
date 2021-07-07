@@ -1,7 +1,13 @@
 node_modules
+package-lock.json
 npm-debug.log
 prepa
 index.sh
 dev.sh
-dev.html
-package-lock.json
+index_dev.html
+ammo_dev.html
+hide_dev.html
+src/_hide
+src/Hide.js
+build/hide.wasm
+build/hide.wasm.js

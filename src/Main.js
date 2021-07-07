@@ -31,10 +31,6 @@ let engineList = [ 'OIMO','AMMO' ]
 
 export class Main {
 
-	static setEngineList ( r ){
-		engineList = r
-	}
-
 	static start ( option = {} ){
 
 		let o = { ...option }
@@ -522,8 +518,7 @@ function swapEngine ( type ){
 
 	if( name!=='oimo' ) url=name
 	if( !isWorker ) url+='_d'
-
-	if( type==='hide' ) url = '../phy_plus/'+url
+	if(engineList.length>2) url+='ev'
 
 
 	let w = window.open( url+'.html'+hash, '_self')

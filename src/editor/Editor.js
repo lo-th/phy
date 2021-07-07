@@ -30,23 +30,23 @@ export class Editor {
 
         this.content = document.createElement( 'div' );
         this.content.style.cssText = 'position:absolute; margin:0; padding:0; top:0px; left:0px; width:'+this.left+'px;  height:100%; '
-        this.content.style.cssText += 'font-size:18px; font-family:Tahoma; text-shadow: 1px 1px 1px #000; color:#f8f8f2;'
+        this.content.style.cssText += 'font-size:18px; font-family:Tahoma; text-shadow: 1px 1px 1px #000; color:#f8f8f2; background: #20211c;'//background: #282923;
         document.body.appendChild( this.content )
 
 
         this.codeContent = document.createElement( 'div' );
-        this.codeContent.style.cssText = 'position:absolute; margin:0; padding:0; top:30px; left:3px; width:calc( 100% - 6px); height:calc( 100% - 60px); border-top: 1px solid #75715f; border-bottom: 1px solid #75715f;'
+        this.codeContent.style.cssText = 'position:absolute; margin:0; padding:0; top:30px; left:3px; width:calc( 100% - 6px); height:calc( 100% - 60px); border-top: 1px solid #3e4036; border-bottom: 1px solid #3e4036;'
         this.code = new CodeFlask( this.codeContent, { language: 'js', lineNumbers: true, handleTabs: true, lineNumbers: false, })
         this.code.onUpdate( function ( code ){ this.onUpdate(code)}.bind(this) )
 
         this.content.appendChild( this.codeContent )
 
         this.title = document.createElement( 'div' )
-        this.title.style.cssText = unselectable + "position:absolute; top:3px; left:10px; width:calc( 100% - 20px); "
+        this.title.style.cssText = unselectable + "position:absolute; top:3px; left:10px; width:calc( 100% - 20px); color:#7c806c; "
         this.content.appendChild( this.title )
 
         this.info = document.createElement( 'div' )
-        this.info.style.cssText = unselectable + "position:absolute; bottom:3px; left:10px; width:calc( 100% - 20px); ;"
+        this.info.style.cssText = unselectable + "position:absolute; bottom:2px; left:10px; width:calc( 100% - 20px); ;"
         this.content.appendChild( this.info )
 
         this.separator = document.createElement( 'div' )
@@ -140,7 +140,7 @@ export class Editor {
 
     setInfo ( message, e=0 ) {
         //console.log( message )
-        this.info.style.color = e ? '#ff0000':'#00ff00'
+        this.info.style.color = e ? '#ff0000':'#7c806c'
         this.info.innerHTML = message
     }
 
