@@ -491,9 +491,9 @@ function initGUI () {
 
 	ui.add( 'empty', {h:6})
 
-	ui.add( composer, 'enabled', { type:'bool', rename:'POST PROCESS ON', onName:'POST PROCESS OFF', mode:1, h:30 } );
+	ui.add( composer, 'enabled', { type:'bool', rename:'POST PROCESS ON', onName:'POST PROCESS OFF', mode:1, h:30 })
 
-	let gr0 = ui.add('group', { name:'PP options', h:30 });
+	let gr0 = ui.add('group', { name:'PP options', h:30 })
 
 
 	gr0.add( composer.options, 'focus', {min:0, max:100} ).onChange( function(){ composer.update() } )
@@ -507,7 +507,7 @@ function initGUI () {
 }
 
 function gotoGithub ( ) {
-	window.open( 'https://github.com/lo-th/phy', '_self')
+	window.open( 'https://github.com/lo-th/phy', '_self' )
 }
 
 function swapEngine ( type ){
@@ -541,20 +541,20 @@ function activeDragMouse ( b ) {
 	if( b ){
 
 		if( !isActveMouse ){
-			dom.addEventListener( 'pointermove', mousemove, false );
-	        dom.addEventListener( 'pointerdown', mousedown, false );
-	        document.addEventListener( 'pointerup', mouseup, false );
-	        isActveMouse = true;
-	        rayTest = true;
+			dom.addEventListener( 'pointermove', mousemove, false )
+	        dom.addEventListener( 'pointerdown', mousedown, false )
+	        document.addEventListener( 'pointerup', mouseup, false )
+	        isActveMouse = true
+	        rayTest = true
 	    }
 
 	} else {
 
 		if( isActveMouse ){
-			dom.removeEventListener( 'pointermove', mousemove );
-		    dom.removeEventListener( 'pointerdown', mousedown );
-		    document.removeEventListener( 'pointerup', mouseup );
-		    isActveMouse = false;
+			dom.removeEventListener( 'pointermove', mousemove )
+		    dom.removeEventListener( 'pointerdown', mousedown )
+		    document.removeEventListener( 'pointerup', mouseup )
+		    isActveMouse = false
 		}
 
 	}
@@ -564,12 +564,12 @@ function activeDragMouse ( b ) {
 function mousedown ( e ) {
 
 	if( !mouseDown ){
-		if( firstSelect ) firstSelect = false;
-		oldMouse.copy( mouse );
+		if( firstSelect ) firstSelect = false
+		oldMouse.copy( mouse )
 	}
 
-    mouseDown = true;
-    castray();
+    mouseDown = true
+    castray()
 
 }
 
@@ -628,9 +628,9 @@ function select ( obj, pos ) {
 
 	if( !mouseDown || selected === obj ) return 'pointer'
 	
-	selected = obj;
+	selected = obj
 
-	dragPlane = new THREE.Mesh( new THREE.PlaneBufferGeometry( 1, 1 ), hideMat );
+	dragPlane = new THREE.Mesh( new THREE.PlaneBufferGeometry( 1, 1 ), hideMat )
     dragPlane.castShadow = false
     dragPlane.receiveShadow = false
     dragPlane.scale.set( 1, 1, 1 ).multiplyScalar( 200 )
@@ -639,17 +639,17 @@ function select ( obj, pos ) {
     dragPlane.rotation.set( 0, controls.getAzimuthalAngle(), 0 )
     dragPlane.position.copy( pos )
 
-    let p = pos.toArray();
+    let p = pos.toArray()
 
 	//Motor.add({ name:'mouse', type:'sphere', size:[0.1], pos:p, mask:0 })
 	Motor.add({ name:'mouse', type:'null', size:[0.1], pos:p })
 	Motor.add({ 
-		name:'mouseJoint', type:'joint', mode:'spherical', 
-		b1:selected.name, b2:'mouse', worldAnchor:p, sd:[4.0,1]
+		name:'mouseJoint', type:'joint', mode:'spherical',
+		b1:selected.name, b2:'mouse', worldAnchor:p, sd:[4,1]
 	})
 
-	rayTest = false;
-	controls.enabled = false;
+	rayTest = false
+	controls.enabled = false
 
 	return 'move'
 

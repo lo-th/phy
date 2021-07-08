@@ -10,14 +10,14 @@ export class Body extends Item {
 		this.Utils = Utils
 		this.type = 'body';
 
-		this.v = new Ammo.btVector3();
-		this.vv = new Ammo.btVector3();
-		this.q = new Ammo.btQuaternion();
-		this.t = new Ammo.btTransform();
+		this.v = new Ammo.btVector3()
+		this.vv = new Ammo.btVector3()
+		this.q = new Ammo.btQuaternion()
+		this.t = new Ammo.btTransform()
 
-		this.v1 = new Ammo.btVector3();
-		this.v2 = new Ammo.btVector3();
-		this.v3 = new Ammo.btVector3();
+		this.v1 = new Ammo.btVector3()
+		this.v2 = new Ammo.btVector3()
+		this.v3 = new Ammo.btVector3()
 
 	}
 
@@ -65,13 +65,19 @@ export class Body extends Item {
 			case 'box' : g = new Ammo.btBoxShape( this.v.set(s[0] * 0.5, s[1] * 0.5, s[2] * 0.5) );
 			volume = 8 * this.v.mul()//s[0]*s[1]*s[2];
 			 break;
-			case 'sphere' : g = new Ammo.btSphereShape( s[0] ); 
-			volume = (4*Math.PI*s[0]*s[0]*s[0])/3;
+			case 'sphere' : g = new Ammo.btSphereShape( s[0] )
+			volume = (4*Math.PI*s[0]*s[0]*s[0])/3
 			//volume = 4 / 3 * Math.PI * s[0] * s[0] * s[0]; 
 			break;
-			case 'cone' : g = new Ammo.btConeShape( s[0]* 0.5, s[1] * 0.5 ); break;
+			case 'cone' : 
+			//g = new Ammo.btConeShape( s[0] * 0.5, s[1] * 0.5 )
+			g = new Ammo.btConeShape( s[0], s[1] )
+			volume = Math.PI * s[0] * (s[1] * 0.5) * 2
+			//g.setSafeMargin(1,1)
+			//console.log(g)
+			break;
 			case 'cylinder' : 
-			g = new Ammo.btCylinderShape( this.v.set(s[0], s[1] * 0.5, 0) )
+			g = new Ammo.btCylinderShape( this.v.set( s[0], s[1] * 0.5, s[0] ))
 			volume = Math.PI * s[0] * s[0] * (s[1] * 0.5) * 2
 			break;// def Y
 			//btCylinderShapeX( height, radius, 0 )
@@ -179,7 +185,7 @@ export class Body extends Item {
 
 		//if( o.margin !== undefined && g.setMargin && o.type!=='sphere' && o.type!=='capsule') g.setMargin( o.margin )
 
-		if( g.setMargin ) g.setMargin( o.margin || 0.0 ) // )
+		if( g.setMargin ) g.setMargin( o.margin || 0.0001 ) // )
 
 
 		g.volume = volume;

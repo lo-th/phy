@@ -298,11 +298,9 @@ export class Body extends Item {
 		b.visible = o.visible !== undefined ? o.visible : true
 
 	    if( o.renderOrder ) b.renderOrder = o.renderOrder
+	    if( o.order ) b.rotation.order = o.order
 
-	    //let m = new Mesh( geo[o.type], mat[this.type] );
-	    //m.scale.fromArray( o.size );
-
-	    //b.add( m );
+	    // shadow
 
 	    b.receiveShadow = o.shadow !== undefined ? o.shadow : true;
 	    b.castShadow = o.shadow !== undefined ? o.shadow : true;

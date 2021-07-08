@@ -102,8 +102,8 @@ geo.joint.scale( 0.05,0.05,0.05 );
 
 const flakeTexture = new CanvasTexture(new CheckTexture())
 flakeTexture.wrapS = flakeTexture.wrapT = RepeatWrapping
-flakeTexture.repeat.x = 2;
-flakeTexture.repeat.y = 2;
+flakeTexture.repeat.x = 2
+flakeTexture.repeat.y = 2
 
 const matExtra = {
 
