@@ -199,9 +199,27 @@ export class Body extends Item {
 
 	add ( o = {} ) {
 
+		let i, n
 		let name = this.setName( o );
 
 		o.type = o.type === undefined ? 'box' : o.type;
+
+		// change default center of mass 
+		if( o.massCenter ){
+			if( o.type !== 'compound' ){
+				o.shapes = [{ type:o.type, pos:o.massCenter, size:o.size }]
+				if( o.segment ) o.shapes[0].segment = o.segment
+				if( o.radius ) o.shapes[0].radius = o.radius
+				delete ( o.size )
+				o.type = 'compound'
+			} else {
+				for ( i = 0; i < o.shapes.length; i ++ ) {
+					n = o.shapes[ i ]
+					if( n.pos ) n.pos = Utils.vecAdd( n.pos, o.massCenter )
+					else n.pos = o.massCenter
+				}
+			}
+		}
 
 		// position
 		o.pos = o.pos === undefined ? [ 0, 0, 0 ] : o.pos;
@@ -256,7 +274,7 @@ export class Body extends Item {
 
 	    	case 'compound':
 
-	    	    for ( var i = 0, n; i < o.shapes.length; i ++ ) {
+	    	    for ( i = 0; i < o.shapes.length; i ++ ) {
 
 					n = o.shapes[ i ];
 
@@ -271,7 +289,7 @@ export class Body extends Item {
 					n.debug = o.debug || false;
 					n.meshRemplace = o.meshRemplace;
 
-					this.geometry( n, b, material );
+					this.geometry( n, b, material )
 
 				}
 

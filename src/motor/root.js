@@ -183,6 +183,14 @@ export class math {
 
 	}
 
+	static vecAdd ( a, b ) {
+
+		let i = a.length, r = [];
+	    while ( i -- ) r[i] = a[ i ] + b[ i ];
+	    return r;
+
+	}
+
 	static vectorad ( r ) {
 
 		let i = 3, nr = [];

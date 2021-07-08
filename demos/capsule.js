@@ -7,7 +7,7 @@ function demo() {
     phy.add({ type:'plane', size:[300,1,300], visible:false });
 
     // box container
-    let h = 5, w = 0.2, l = 5, d = 7
+    let h = 5, w = 0.2, l = 16, d = 16
     phy.add({type:'box', pos:[d*0.5,h*0.5,0], size:[w,h, l+w], visible:false})
     phy.add({type:'box', pos:[-d*0.5,h*0.5,0], size:[w,h, l+w], visible:false})
     phy.add({type:'box', pos:[0,h*0.5,l*0.5], size:[d-w,h, w], visible:false})
@@ -58,10 +58,12 @@ function onComplete(){
         
         phy.add({ 
         	type:'capsule', 
-        	size:[  math.rand( 0.2, 0.5 ), 0.75], 
+        	size:[ math.rand( 0.2, 0.5 ), 0.75], 
         	pos:[ math.rand( -3, 3 ),5+(i*0.5),  math.rand( -2, 2 )], 
-        	material:mats[ math.randInt(0,2)] , 
-        	density:1 
+        	material:mats[ math.randInt(0,2)],
+        	friction:0.5,
+        	density:1,
+        	massCenter:[ 0,-0.75, 0 ],
         });
 
     }

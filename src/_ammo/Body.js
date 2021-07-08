@@ -32,15 +32,16 @@ export class Body extends Item {
 
 	step ( AR, N ) {
 
-		let i = this.list.length, b, n;
+		let i = this.list.length, b, n, s;
 
 		while( i-- ){
 
 			b = this.list[i];
 
-			n = N + ( i * 8 );
+			n = N + ( i * 8 )
 
-			AR[ n ] = b.getLinearVelocity().length() * 9.8; // speed km/h
+			s = b.getMotionState()===2
+			AR[ n ] = s ? 0 : b.getLinearVelocity().length() * 9.8; // speed km/h
 
 			b.getMotionState().getWorldTransform( this.t );
 			this.t.toArray( AR, n + 1 )
@@ -273,6 +274,8 @@ export class Body extends Item {
 		let motionState = new Ammo.btDefaultMotionState( this.t )
 		//var rbInfo = new Ammo.btRigidBodyConstructionInfo( o.density || 0, motionState, g, this.v )
 		let rbInfo = new Ammo.btRigidBodyConstructionInfo( mass, motionState, g, this.v );
+
+
 
 
 		let b = new Ammo.btRigidBody( rbInfo );

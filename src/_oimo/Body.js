@@ -1,6 +1,6 @@
 import { Item } from '../core/Item.js';
 import { 
-	Utils, Vec3, Quat, RigidBodyConfig, ShapeConfig, Shape, RigidBody,ContactCallback,
+	Utils, Vec3, Quat, Transform, RigidBodyConfig, ShapeConfig, Shape, RigidBody,ContactCallback,
 	BoxGeometry, SphereGeometry, CylinderGeometry, CapsuleGeometry, ConeGeometry, ConvexHullGeometry
 } from './root.js';
 
@@ -17,6 +17,7 @@ export class Body extends Item {
 
 		this.v = new Vec3();
 		this.q = new Quat();
+		this.t = new Transform();
 
 		this.sc = new ShapeConfig();
 
@@ -33,21 +34,24 @@ export class Body extends Item {
 
 	step ( AR, N ) {
 
-		let i = this.list.length, b, n;
+		let i = this.list.length, b, n, s;
 
 		while( i-- ){
 
 			b = this.list[i];
 
-			b.getPositionTo( this.v );
-			b.getOrientationTo( this.q );
-
 			n = N + ( i * 8 );
 
-			AR[ n ] = b.isSleeping() ? 0 : 1;
+			s = b.isSleeping()
 
-			this.v.toArray( AR, n+1 );
-			this.q.toArray( AR, n+4 );
+			if( s ) b.getLinearVelocityTo(this.v)
+			AR[ n ] = s ? 0 : this.v.length() * 9.8;// speed km/h
+
+			b.getPositionTo( this.v )
+			b.getOrientationTo( this.q )
+
+			this.v.toArray( AR, n+1 )
+			this.q.toArray( AR, n+4 )
 
 		}
 
@@ -234,16 +238,13 @@ export class Body extends Item {
 
 		if(o.type === 'mesh') this.autoMesh( o );
 
-
-
-
 		switch( o.type ){
 
 			case 'null': break;
 			
 			case 'compound':
 
-				var gs = [], n;
+				let gs = [], n;
 
 				for ( var i = 0; i < o.shapes.length; i ++ ) {
 
@@ -273,6 +274,9 @@ export class Body extends Item {
 			break;
 
 		}
+
+
+		
 
 
 		b.name = name
