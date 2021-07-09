@@ -55,9 +55,20 @@ export class Body extends Item {
 
 	geometry ( o = {}, b, material ) {
 
-		let g, i, n;
-		let t = o.type, s = o.size;
+		let g, i, n, s = o.size
+		let t = o.type
 		let noScale = false, custom = false;
+
+
+		if( t==='mesh' || t==='convex' ){
+			if( o.shape ){
+				if( o.shape.isMesh ) o.shape = o.shape.geometry
+			} else {
+				if( o.mesh && !o.v ) o.shape = o.mesh.geometry
+			}			
+		}
+
+		
 
 		if( o.radius ){
 			if( t === 'box' ) t = 'ChamferBox';
@@ -264,8 +275,6 @@ export class Body extends Item {
 	    	o.meshRemplace = true;
 	    	b.add( mm )
 
-	    	delete ( o.mesh );
-
 	    }
 
 	    switch( o.type ){
@@ -317,6 +326,8 @@ export class Body extends Item {
 
 	    if( o.renderOrder ) b.renderOrder = o.renderOrder
 	    if( o.order ) b.rotation.order = o.order
+
+	    if( o.mesh ) delete ( o.mesh )
 
 	    // shadow
 

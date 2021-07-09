@@ -144,6 +144,7 @@ export class Body extends Item {
 		o.shapes = []
 
 		let square = o.square || false
+		square = o.isTerrain || false
 		let v = o.v
 		let n, vv, lng
 		let index = o.index || null

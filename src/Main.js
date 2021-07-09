@@ -45,6 +45,7 @@ export class Main {
 		if( o.extra ) engineList.push('HIDE')
 
 		o.callback = init
+	    Motor.engine = engineType
 		Motor.init( o )
 
 	}
@@ -98,12 +99,19 @@ let isLoadCode = true
 
 
 let needResize = true;
-const Demos = [ 'start', 'basic', 'joint', 'capsule', 'compound', 'bridge', 'gears', 'diamond', 'ragdoll', 'raycast', 'terrain', 'character', 'chess', 'pinball', 'car', 'collision', 'mesh', 'kinematic', 'million', 'desk' ]
+const Demos = [ 'start', 'basic', 'joint', 'capsule', 'compound', 'bridge', 'gears', 'raycast', 'terrain', 'character', 'car', 'collision', 'mesh', 'kinematic' ]
+const DemosA = [ 'diamond', 'ragdoll', 'chess', 'pinball', 'million', 'desk' ]
+
+Demos.sort();
+DemosA.sort();
+
 const Envs = [ 'basic', 'factory', 'studio', 'beach', 'tomoco', 'tatami', 'box', 'park', 'color', 'room', 'tokyo', 'gallery', 'river', 'cave' ]
 
 //const timer = new Timer(60)
 const size = { w:0, h:0, r:0, left:0 }
 const tm = { now:0, delta:0, then:0, inter: 1000/60, tmp:0, n:0, dt:0, fps:0 };
+
+let g1, g2
 
 //window.rand = Motor.rand
 
@@ -114,6 +122,8 @@ Motor.getMesh = Pool.getMesh;
 Motor.getGroup = Pool.getGroup;
 Motor.getMap = Pool.getMap;
 Motor.get = Pool.get;
+
+
 
 Motor.log = hub.log;
 
@@ -340,6 +350,9 @@ function testingScript( name ){
 
 function loadDemo( name ){
 
+	if( DemosA.indexOf(name) !== -1 ) { g1.setValue(name); g1.reset() }
+	else { g2.setValue(name); g2.reset() }
+
 	unSelect()
 
 	options.demo = name
@@ -457,6 +470,7 @@ function initGUI () {
 	ui.add( 'empty', {h:6})
 
 	ui.add('button', { name:'GITHUB / ABOUT', p:0, h:24 }).onChange( gotoGithub )
+
 	ui.add( 'empty', {h:6})
 
 	ui.add('selector', { values:engineList, selectable:true, p:0, h:24, value:engineType }).onChange( swapEngine )
@@ -464,45 +478,44 @@ function initGUI () {
 	ui.add('bool', { name:'WORKER', h:20, value:isWorker }).onChange( function(b){ isWorker = b } )
 	//ui.add('bool', { name:'TIMEOUT', h:20, value:Motor.getTimeout() }).onChange( function(b){ Motor.setTimeout( b ) } )
 
-	ui.add( 'empty', {h:6})
+	//ui.add( 'empty', {h:6})
 	ui.add( 'bool', { name:'SHOW CODE', onName:'HIDE CODE', h:24, mode:1 }).onChange( function(){ editor.show()} )
 	ui.add( 'bool', { name:'PAUSE', onName:'RUN', h:24, mode:1 }).onChange( Motor.pause )
 	ui.add( 'empty', {h:6})
 
+	// DISPLAY
 
-	ui.add( options, 'demo', { type:'grid', values:Demos, selectable:true, h:20 } ).onChange( loadDemo )
+	let grV = ui.add('group', { name:'DISPLAY', h:30 })
 
-	ui.add( 'empty', {h:6})
+	grV.add( options, 'Exposure', {min:0, max:4} ).onChange( function( v ){ renderer.toneMappingExposure = v } )
 
-	ui.add( options, 'Exposure', {min:0, max:4} ).onChange( function( v ){ renderer.toneMappingExposure = v } )
+	grV.add( options, 'Shadow', {min:0, max:1} ).onChange( function(){ Shader.up( options ) } )
 
-	ui.add( options, 'Shadow', {min:0, max:1} ).onChange( function(){ Shader.up( options ) } )
-	/*ui.add( options, 'ShadowGamma', {rename:'gamma', min:0, max:2} ).onChange( function(){ Shader.up( options ) } )
-	ui.add( options, 'ShadowLuma', {rename:'luma', min:0, max:2} ).onChange( function(){ Shader.up( options ) } )
-	ui.add( options, 'ShadowContrast', {rename:'contrast', min:0, max:4} ).onChange( function(){ Shader.up( options ) } )*/
+	envui = grV.add( 'list', { list:Envs, value:options.envmap, path:'assets/textures/equirectangular/mini/', format:'.jpg', imageSize: [128,64], h:64,  p:0}).onChange( setEnv )//.listen()
 
+	grV.add( 'empty', {h:6})
 
+	grV.add( composer, 'enabled', { type:'bool', rename:'POST PROCESS ON', onName:'POST PROCESS OFF', mode:1, h:30 })
 
-	//ui.add( options, 'envmap', { type:'grid', values:Envs, selectable:true, h:20 } ).onChange( setEnv )
+	grV.add( composer.options, 'focus', {min:0, max:100} ).onChange( function(){ composer.update() } )
+	grV.add( composer.options, 'aperture', {min:0, max:10} ).onChange( function(){ composer.update() } )
+	grV.add( composer.options, 'maxblur', {min:0, max:10} ).onChange( function(){ composer.update() } )
 
-	//envui = ui.add( options, 'envmap', { type:'list', list:Envs, path:'assets/textures/equirectangular/mini/', format:'.jpg', imageSize: [128,64], h:64,  p:0}).onChange( setEnv )//.listen()
-
-	envui = ui.add( 'list', { list:Envs, value:options.envmap, path:'assets/textures/equirectangular/mini/', format:'.jpg', imageSize: [128,64], h:64,  p:0}).onChange( setEnv )//.listen()
-
-	ui.add( 'empty', {h:6})
-
-	ui.add( composer, 'enabled', { type:'bool', rename:'POST PROCESS ON', onName:'POST PROCESS OFF', mode:1, h:30 })
-
-	let gr0 = ui.add('group', { name:'PP options', h:30 })
+	grV.add( composer.options, 'threshold', {min:0, max:1} ).onChange( function(){ composer.update() } )
+	grV.add( composer.options, 'strength', {min:0, max:3} ).onChange( function(){ composer.update() } )
+	grV.add( composer.options, 'bloomRadius', {min:0, max:1} ).onChange( function(){ composer.update() } )
 
 
-	gr0.add( composer.options, 'focus', {min:0, max:100} ).onChange( function(){ composer.update() } )
-	gr0.add( composer.options, 'aperture', {min:0, max:10} ).onChange( function(){ composer.update() } )
-	gr0.add( composer.options, 'maxblur', {min:0, max:10} ).onChange( function(){ composer.update() } )
+	// DEMOS
 
-	gr0.add( composer.options, 'threshold', {min:0, max:1} ).onChange( function(){ composer.update() } )
-	gr0.add( composer.options, 'strength', {min:0, max:3} ).onChange( function(){ composer.update() } )
-	gr0.add( composer.options, 'bloomRadius', {min:0, max:1} ).onChange( function(){ composer.update() } )
+	let grB = ui.add('group', { name:'BASIC', h:30 })
+	g1 = grB.add( options, 'demo', { type:'grid', values:Demos, selectable:true, h:20 } ).onChange( loadDemo )
+	grB.open()
+
+	let grA = ui.add('group', { name:'ADVANCED', h:30 })
+	g2 = grA.add( options, 'demo', { type:'grid', values:DemosA, selectable:true, h:20 } ).onChange( loadDemo )
+	grA.open()
+
 
 }
 
