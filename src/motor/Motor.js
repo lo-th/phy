@@ -106,8 +106,6 @@ export class Motor {
 
 		let type = o.type || 'OIMO';
 
-		console.log( navigator.userAgent.toLowerCase() )
-
 		let isFirefox = navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
 
 		body.extraConvex = o.extraConvex || false

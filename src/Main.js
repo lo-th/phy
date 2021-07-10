@@ -69,7 +69,7 @@ export class Main {
 	}
 
 	static injectCode ( cc ){
-		console.log('code is edit')
+		//console.log('code is edit')
 		inject(cc)
 	}
 
@@ -465,8 +465,6 @@ function initGUI () {
 
 	var ui = new UIL.Gui( { w:200, h:20, close:false, bottomText:['OPTIONS', 'CLOSE'] } )
 
-	
-
 	ui.add( 'empty', {h:6})
 
 	ui.add('button', { name:'GITHUB / ABOUT', p:0, h:24 }).onChange( gotoGithub )
@@ -515,7 +513,6 @@ function initGUI () {
 	let grA = ui.add('group', { name:'ADVANCED', h:30 })
 	g2 = grA.add( options, 'demo', { type:'grid', values:DemosA, selectable:true, h:20 } ).onChange( loadDemo )
 	grA.open()
-
 
 }
 

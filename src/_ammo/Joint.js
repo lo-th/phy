@@ -288,19 +288,19 @@ export class Joint extends Item {
 
 			if( o.sd ){
 
-				i = 6
-				//while( i-- ) j.enableSpring( i, false )
-
-				m = [ [0,0,0], [0,0,0], [0,0,0], [0,0,0] ]
-				
 				i = o.sd.length
+
 				while(i--){
+
+
 					k = o.sd[i]
 					n = idx.indexOf( k[0] )
+					console.log(j)
+					
 					j.setStiffness( n, k[1] ) // raideur
 					j.setDamping( n, k[2] ) // amortissement //1
 					j.enableSpring( n, true )
-					if(k[3]) j.setEquilibriumPoint(n) // lock the spring ?
+					if( k[3] ) j.setEquilibriumPoint(n) // lock the spring ?
 						//j.set_m_bounce( )//0
 				}
 

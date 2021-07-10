@@ -34,7 +34,7 @@ function testCar ( n, pos ){
 
     current = n
 
-    var body = phy.add({ type:'box', name:'chassis'+n, pos:pos, size:[1.4, 1, 2.4],  density:10, friction:0.5, restitution:0, neverSleep:true });
+    var body = phy.add({ type:'box', name:'chassis'+n, pos:pos, size:[1.4, 1, 2.4],  density:10, friction:0.5, restitution:0, neverSleep:true, massCenter:[0,0.5,0] });
     body.rotation._order = 'YXZ';
 
     var ws = [ 1.1, -0.5, 1 ];
@@ -47,13 +47,13 @@ function testCar ( n, pos ){
         front = i>=2 ? true : false;
         side = i === 0 || i === 2 ? 1 : -1;
 
-        wpos = [ side * ws[0], ws[1], front ? -ws[2] :  ws[2] ];
+        wpos = [ side * ws[0], ws[1]+0.5, front ? -ws[2] :  ws[2] ];
 
         b = phy.add({ type:'box', name:'axis'+i+'_'+n, pos:[wpos[0]+pos[0], wpos[1]+pos[1], wpos[2]+pos[2] ], size:[0.25],  density:4, material:'debug2', neverSleep:true/*, angularFactor:[0,1,0]*/ });
         w = phy.add({ type:'sphere', name:'wheel'+i+'_'+n, pos:[wpos[0]+pos[0], wpos[1]+pos[1], wpos[2]+pos[2] ], size:[radius],  density:4, friction:0.9, restitution:0.2, material:'debug', mesh:mw, neverSleep:true });
 
        /*j = phy.add({ 
-
+s
             type:'joint', mode:'d6', 
             name:'joint'+i+'_'+n, 
 
@@ -76,9 +76,13 @@ function testCar ( n, pos ){
             type:'joint', mode:'d6', 
             name:'axe'+i+'_'+n, 
             b1:'chassis'+n, b2:'axis'+i+'_'+n, 
-            pos1:wpos, helperSize:0.1,
+            pos1:wpos, 
+            helperSize:0.2,
+            helperColor:'blue',
             //iteration:10,
-            lm: front ? [ ['ry',-25,25] ] : [['ry',0,0]],
+            lm: front ? [ ['ry',-25,25], ['y',-0.1,0.1] ] : [['y',-0.1,0.1]],
+            //lm: front ? [ ['ry',-25,25] ] : [],
+            sd:[[ 'y',20,0.01, true]]
            // sd : front ? [['ry',1,1, true]]: [],
 
             //lm: front ? [ ['ry',-45,45],['y',-0.05,0.05]] : [['y',-0.05,0.05]],
@@ -145,7 +149,5 @@ function update () {
     }
 
     phy.update( r )
-
-
 
 }
