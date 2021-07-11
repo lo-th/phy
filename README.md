@@ -7,7 +7,7 @@ Phy simplify creation of game, is like a bridge between three.js and physics
 
 ## Features
 
-ES6, chamfer geometry, Glb manager, envmap and refection, post process ...
+ES6, chamfer geometry, Glb manager, envmap and reflection, post process ...
 
 ## Usage
 
