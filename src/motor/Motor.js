@@ -154,7 +154,7 @@ export class Motor {
 
 				break
 
-				case 'CANNON':
+				/*case 'CANNON':
 
 					try {
 					    worker = new Worker('./build/Cannon.module.js', {type:'module'});
@@ -184,7 +184,7 @@ export class Motor {
 				    o.blob = document.location.href.replace(/\/[^/]*$/,"/") + './build/nrj.js'
 					worker = new Worker( './build/'+mini+'.min.js' );
 
-				break
+				break*/
 				
 				default :
 

@@ -217,6 +217,8 @@ export class Body extends Item {
 
 		o.type = o.type === undefined ? 'box' : o.type;
 
+		if( o.type === 'plane' && !o.visible ) o.visible = false;
+
 		// change default center of mass 
 		if( o.massCenter ){
 			if( o.type !== 'compound' ){

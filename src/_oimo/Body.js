@@ -80,6 +80,8 @@ export class Body extends Item {
         	}
         }*/
 
+
+
 		let g;
 		let t = o.type || 'box'
 		let s = o.size || [1,1,1];
@@ -89,6 +91,9 @@ export class Body extends Item {
 		switch( t ){
 
 			case 'plane':
+			
+			if( s[0]===1 ) s = [300,0,300]
+
 			h = [
 			    new Vec3( s[0]*0.5, 0, s[2]*0.5 ),
 			    new Vec3( s[0]*0.5, 0, -s[2]*0.5 ),
@@ -97,7 +102,7 @@ export class Body extends Item {
 			]
 			
 			g = new ConvexHullGeometry( h );
-			g._gjkMargin = o.margin || 0;// default 0.05
+			g._gjkMargin = o.margin || 0.0001;// default 0.05
 			g._useGjkRayCast = o.ray || false;
 
 			break;
@@ -116,7 +121,7 @@ export class Body extends Item {
 			    	h.push( this.v.fromArray( o.v, n ).clone() )
 			    } 
 			    g = new ConvexHullGeometry( h );
-			    g._gjkMargin = o.margin || 0.00001 // default 0.05
+			    g._gjkMargin = o.margin || 0.0001 // default 0.05
 			    g._useGjkRayCast = o.ray || false
 
 			break;

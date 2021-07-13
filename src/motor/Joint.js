@@ -82,9 +82,7 @@ export class ExtraJoint extends Object3D {
 
 	constructor( g, material = undefined ) {
 
-	    super();
-
-
+	    super()
 
 	    this.type = 'joint';
 	    this.mode = 'revolute';

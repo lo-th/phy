@@ -4,7 +4,7 @@ function demo() {
     phy.set( {substep:2, gravity:[0,-9.81,0]});
 
     // add static plane 
-    phy.add({ type:'plane', size:[300,1,300], visible:false });
+    phy.add({ type:'plane', visible:false });
     //phy.add({ type:'box', size:[300,1,300], pos:[0, -0.5, 0], visible:false })
 
     // add dynamic sphere

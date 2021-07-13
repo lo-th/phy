@@ -3,7 +3,7 @@ export class Item {
 
 	constructor () {
 
-		this.id = 0;
+		this.id = 0
 		this.list = []
 		this.type = 'item'
 		this.Utils = null
@@ -20,8 +20,6 @@ export class Item {
 
 	}
 
-	
-
 	///
 
 	byName ( name ) {
@@ -34,7 +32,7 @@ export class Item {
 
 		let name = o.name !== undefined ? o.name : this.type + this.id ++
 
-		// clear old item if existe
+		// clear old item if existe keep id
 		o.id = this.remove( name, true )
 
 		return name
@@ -51,7 +49,7 @@ export class Item {
 
 	remove ( name, remplace ) {
 
-		let b = this.byName( name );
+		let b = this.byName( name )
 		if( !b ) return -1
 		return this.clear( b, remplace )
 
