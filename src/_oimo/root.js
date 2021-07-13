@@ -59,7 +59,6 @@ export class Utils {
 			switch( b.type ){
 				case 'joint': root.world.removeJoint( b ); break;
 				default: root.world.removeRigidBody( b ); break;
-
 			}
 		}
 

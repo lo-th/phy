@@ -44,6 +44,10 @@ let timeout = null;
 let gravity = null;
 let penetration = null;
 
+let tmpadd = []
+let tmpremove = []
+let tmpchange = []
+
 let Solver, SolverSoft, CollisionConfig, Dispatcher, Broadphase;
 
 //--------------
@@ -242,18 +246,36 @@ export class engine {
 
 	//static changes ( r = [] ){ for( let o in r ) this.change( r[o] ) }
 
+	static dispatch (){
+
+		tmpremove = root.flow.remove
+		tmpadd = root.flow.add
+		tmpchange = root.flow.tmp
+
+		while ( tmpremove.length > 0 ) this.remove( tmpremove.shift() )
+		while ( tmpadd.length > 0 ) this.add( tmpadd.shift() )
+		while ( tmpchange.length > 0 ) this.change( tmpchange.shift() )
+
+		root.flow = { key:[], add:[], remove:[], tmp:[] }
+		
+	} 
+
 	static poststep (){
 
 		if( isStop ) return;
 
-		// for update object
-		let i = root.flow.tmp.length;
-		while( i-- ) this.change( root.flow.tmp[i] );
-
-		root.flow.tmp = [];
-		root.flow.key = [];
-
 		tmpStep = 1;
+
+		this.dispatch()
+
+		// for update object
+		/*let i = root.flow.tmp.length;
+		while( i-- ) this.change( root.flow.tmp[i] );*/
+
+		//root.flow.tmp = [];
+		//root.flow.key = [];
+
+		
 
 		if( isTimeout ){
 

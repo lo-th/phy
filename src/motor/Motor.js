@@ -88,8 +88,17 @@ export class Motor {
 
 	static post ( e, buffer ){
 
-		if( isWorker ) worker.postMessage( e, buffer );
-		else directMessage( { data : e } );
+		if( isWorker ){ 
+
+			if ( e.m === 'add' ) root.flow.add.push( e.o )
+			else if ( e.m === 'remove' ) root.flow.remove.push( e.o )
+			else worker.postMessage( e, buffer )
+
+		} else {
+
+			directMessage( { data : e } )
+
+		}
 
 	}
 
@@ -220,6 +229,12 @@ export class Motor {
 
 	}
 
+	static flowReset ( ){
+
+		root.flow = { tmp:[], key:[], add:[], remove:[] }
+
+	}
+
 	static reset ( callback ){
 
 		if( first ){
@@ -234,8 +249,7 @@ export class Motor {
 
 		postUpdate = function () {}
 
-		root.flow.tmp = [];
-		root.flow.key = [];
+		Motor.flowReset()
 
 		body.reset()
 		solid.reset()
@@ -312,11 +326,11 @@ export class Motor {
 
 	static step ( o ){
 
-		Motor.stepItems();
+		Motor.stepItems()
 
 		// user key interaction 
 		root.flow.key = user.update()
-		root.flow.tmp = []
+		//root.flow.tmp = []
 
 		postUpdate();
 
@@ -328,6 +342,8 @@ export class Motor {
 		// finally post flow change to physx
 		if( isBuffer ) root.post( { m:'poststep', flow:root.flow, Ar:Ar }, [ Ar.buffer ] )
 		else root.post( { m:'poststep', flow:root.flow, Ar:Ar })
+
+		Motor.flowReset()
 
 	}
 
@@ -380,6 +396,8 @@ export class Motor {
 
 	}
 
+
+	static adds ( r = [] ){ for( let o in r ) this.add( r[o] ) }
 	static add ( o = {} ){
 
 		if ( o.constructor === Array ) return this.adds( o )
@@ -405,6 +423,8 @@ export class Motor {
 
 	}
 
+
+	static removes ( r = [] ){ for( let o in r ) this.remove( r[o] ) }
 	static remove ( name ){
 
 		if ( name.constructor === Array ) return this.removes( o )
@@ -427,8 +447,8 @@ export class Motor {
 
 	}
 
-	static adds ( r = [] ){ for( let o in r ) this.add( r[o] ) }
-	static removes ( r = [] ){ for( let o in r ) this.remove( r[o] ) }
+	
+	
 
 	static changes ( r = [], direct = false ){ for( let o in r ) this.change( r[o], direct ) }
 

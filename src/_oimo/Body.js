@@ -13,22 +13,13 @@ export class Body extends Item {
 		
 		this.Utils = Utils
 
-		this.type = 'body';
+		this.type = 'body'
 
-		this.v = new Vec3();
-		this.q = new Quat();
-		this.t = new Transform();
+		this.v = new Vec3()
+		this.q = new Quat()
+		this.t = new Transform()
 
-		this.sc = new ShapeConfig();
-
-	}
-
-	reset () {
-
-		super.reset();
-
-		// ?? need rest shape config
-		//this.sc = new ShapeConfig();
+		this.sc = new ShapeConfig()
 
 	}
 
@@ -39,20 +30,23 @@ export class Body extends Item {
 		while( i-- ){
 
 			b = this.list[i];
+			n = N + ( i * 8 )
 
-			n = N + ( i * 8 );
+			if( !b ){ 
+				AR[n]=AR[n+1]=AR[n+2]=AR[n+3]=AR[n+4]=AR[n+5]=AR[n+6]=AR[n+7]=0
+				continue
+			}
 
 			s = b.isSleeping()
 
-			if( s ) b.getLinearVelocityTo(this.v)
-			AR[ n ] = s ? 0 : this.v.length() * 9.8;// speed km/h
+			if( !s ) b.getLinearVelocityTo(this.v)
+			AR[ n ] = s ? 0 : this.v.length() * 9.8 // speed km/h
 
 			b.getPositionTo( this.v )
 			b.getOrientationTo( this.q )
 
 			this.v.toArray( AR, n+1 )
 			this.q.toArray( AR, n+4 )
-
 		}
 
 	}
@@ -234,7 +228,6 @@ export class Body extends Item {
 		// 0 : DYNAMIC / 1 : STATIC / 2 : KINEMATIC 
 		bodyConfig.type = this.type === 'body' ? ( o.kinematic ? 2 : 0 ) : 1;
 
-
 		let b = new RigidBody( bodyConfig ); 
 
 		if(o.type === 'mesh') this.autoMesh( o );
@@ -251,19 +244,18 @@ export class Body extends Item {
 
 					n = o.shapes[ i ];
 
-			        if( o.density !== undefined ) n.density = o.density;
-			        if( o.friction !== undefined ) n.friction = o.friction;
-			        if( o.restitution !== undefined ) n.restitution = o.restitution;
-			        if( o.mask !== undefined ) n.collisionMask = o.mask;
-			        if( o.group !== undefined ) n.collisionGroup = o.group;
-
-			        if( o.margin !== undefined ) n.margin = o.margin;
+			        if( o.density !== undefined ) n.density = o.density
+			        if( o.friction !== undefined ) n.friction = o.friction
+			        if( o.restitution !== undefined ) n.restitution = o.restitution
+			        if( o.mask !== undefined ) n.collisionMask = o.mask
+			        if( o.group !== undefined ) n.collisionGroup = o.group
+			        if( o.margin !== undefined ) n.margin = o.margin
 			        //if( o.contactCallback !== undefined ) n.contactCallback = new ContactCallback()//o.contactCallback;
 
-					if( n.pos ) n.localPos = n.pos;
+					if( n.pos ) n.localPos = n.pos
 					if( n.quat ) n.localQuat = n.quat
 
-					b.addShape( this.shape( n ) );
+					b.addShape( this.shape( n ) )
 
 				}
 
@@ -283,19 +275,22 @@ export class Body extends Item {
 		b.name = name
 		b.type = this.type
 
+		b.first = true
+
 		// apply option
 		this.set( o, b );
 
 		// add to world
-		this.addToWorld( b );
+		//this.addToWorld( b );
+		this.addToWorld( b, null, null, o.oldId || -1 )
 
 	}
 
 
 	set ( o = {}, b = null ) {
 
-		if( b === null ) b = this.byName( o.name );
-		if( b === null ) return;
+		if( b === null ) b = this.byName( o.name )
+		if( b === null ) return
 
 		if( o.noGravity ) b.setGravityScale( 0 )
 
@@ -317,43 +312,43 @@ export class Body extends Item {
 		if( o.torque ) b.applyTorque( this.v.fromArray( o.torque ) )
 
 	    // Applies the impulse `impulse` to the rigid body at `positionInWorld` in world position. [ 0,0,0,   0,0,0 ]
-	    if( o.impulse ) b.applyImpulse( this.v.fromArray( o.impulse ), this.v.fromArray( o.impulse, 3 ) );
-	    if( o.linearImpulse ) b.applyLinearImpulse( this.v.fromArray( o.linearImpulse ) );
-	    if( o.angularImpulse ) b.applyAngularImpulse( this.v.fromArray( o.angularImpulse ) );
+	    if( o.impulse ) b.applyImpulse( this.v.fromArray( o.impulse ), this.v.fromArray( o.impulse, 3 ) )
+	    if( o.linearImpulse ) b.applyLinearImpulse( this.v.fromArray( o.linearImpulse ) )
+	    if( o.angularImpulse ) b.applyAngularImpulse( this.v.fromArray( o.angularImpulse ) )
 
 	    if( o.gravityScale ) b.setGravityScale( o.gravityScale );
 
-	    if( o.linearVelocity ) b.setLinearVelocity( this.v.fromArray( o.linearVelocity ) );
-	    if( o.angularVelocity ) b.setAngularVelocity( this.v.fromArray( o.angularVelocity ) );
+	    if( o.linearVelocity ) b.setLinearVelocity( this.v.fromArray( o.linearVelocity ) )
+	    if( o.angularVelocity ) b.setAngularVelocity( this.v.fromArray( o.angularVelocity ) )
 
 	    if( o.angularFactor ) b.setRotationFactor( this.v.fromArray( o.angularFactor ) )
 
 	    // Sets the linear and angular damping. [ 0,0 ]
 	    if( o.damping ){
-		     b.setLinearDamping( o.damping[0] );
-		     b.setAngularDamping( o.damping[1] );
+		     b.setLinearDamping( o.damping[0] )
+		     b.setAngularDamping( o.damping[1] )
 		 }
 
 		if( o.reset ){ 
-			b.setLinearVelocity( this.v.set( 0, 0, 0) );
-			b.setAngularVelocity( this.v.set( 0, 0, 0) );
+			b.setLinearVelocity( this.v.set( 0, 0, 0) )
+			b.setAngularVelocity( this.v.set( 0, 0, 0) )
 		}
 
 	}
 
 	setShapes ( o = {}, b = null  ){
 
-		let shapes = b.getShapeList();
-		let i = b.getNumShapes(), s;
+		let shapes = b.getShapeList()
+		let i = b.getNumShapes(), s
 		while(i--){
 
-			s = shapes[i];
+			s = shapes[i]
 
-			if( o.density !== undefined ) s.setDensity( o.density );
-		    if( o.friction !== undefined ) s.setFriction( o.friction );
-		    if( o.restitution !== undefined ) s.setRestitution( o.restitution );
-		    if( o.mask !== undefined ) s.setCollisionMask( o.mask );
-		    if( o.group !== undefined ) s.setCollisionGroup( o.group );
+			if( o.density !== undefined ) s.setDensity( o.density )
+		    if( o.friction !== undefined ) s.setFriction( o.friction )
+		    if( o.restitution !== undefined ) s.setRestitution( o.restitution )
+		    if( o.mask !== undefined ) s.setCollisionMask( o.mask )
+		    if( o.group !== undefined ) s.setCollisionGroup( o.group )
 		    //if( o.callback !== undefined ) s.setContactCallback( o.callback );
 
 		}

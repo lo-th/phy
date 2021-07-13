@@ -21,29 +21,24 @@ export class Body extends Item {
 
 	}
 
-	reset () {
-
-		super.reset();
-
-		// ?? need rest shape config
-		//this.sc = new ShapeConfig();
-
-	}
-
 	step ( AR, N ) {
 
 		let i = this.list.length, b, n, s;
 
 		while( i-- ){
 
-			b = this.list[i];
-
+			b = this.list[i]
 			n = N + ( i * 8 )
+
+			if( !b ){ 
+				AR[n]=AR[n+1]=AR[n+2]=AR[n+3]=AR[n+4]=AR[n+5]=AR[n+6]=AR[n+7]=0
+				continue
+			}
 
 			s = b.getMotionState()===2
 			AR[ n ] = s ? 0 : b.getLinearVelocity().length() * 9.8; // speed km/h
 
-			b.getMotionState().getWorldTransform( this.t );
+			b.getMotionState().getWorldTransform( this.t )
 			this.t.toArray( AR, n + 1 )
 
 		}
@@ -56,9 +51,9 @@ export class Body extends Item {
 
 		let g;
 		let t = o.type || 'box'
-		let s = o.size || [1,1,1];
+		let s = o.size || [1,1,1]
 
-		let i, n, volume = 1;
+		let i, n, volume = 1
 
 		switch( t ){
 
@@ -189,7 +184,7 @@ export class Body extends Item {
 		if( g.setMargin ) g.setMargin( o.margin || 0.0001 ) // )
 
 
-		g.volume = volume;
+		g.volume = volume
 
 			//console.log( g.getMargin() )
 
@@ -289,6 +284,8 @@ export class Body extends Item {
 		b.isKinematic = o.kinematic || false
 		b.isGhost = false
 
+		b.first = true
+
 		delete( o.pos )
 		delete( o.quat )
 
@@ -296,7 +293,8 @@ export class Body extends Item {
 		this.set( o, b );
 
 		// add to world
-		this.addToWorld( b, group, mask );
+		//this.addToWorld( b, group, mask );
+		this.addToWorld( b,  group, mask, o.oldId || -1 )
 
 	}
 

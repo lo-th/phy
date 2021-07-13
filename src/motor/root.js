@@ -35,13 +35,13 @@ export const root = {
 	flow:{
 		tmp:[],
 		key:[],
+		add:[],
+		remove:[]
 	},
 	
 	reflow:{
 		ray:[],
-		stat:{
-			fps:0,
-		},
+		stat:{ fps:0, },
 	}
 
 };
@@ -77,8 +77,8 @@ export class Utils {
 
 	static remove ( b ) {
 
-		if( b.type !== 'contact') b.parent.remove( b );
-
+		if( b.parent ) b.parent.remove( b );
+		//if( b.type !== 'contact' ) b.parent.remove( b );
 		map.delete( b.name );
 
 	}

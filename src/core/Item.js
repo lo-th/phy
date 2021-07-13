@@ -35,38 +35,41 @@ export class Item {
 		let name = o.name !== undefined ? o.name : this.type + this.id ++
 
 		// clear old item if existe
-		this.remove( name )
+		o.oldId = this.remove( name, true )
 
 		return name
 
 	}
 
-	addToWorld ( b, c, d ) {
+	addToWorld ( b, c, d, id = -1 ) {
 
 		this.Utils.add( b, c, d )
-		this.list.push( b )
+		if( id !== -1  ) this.list[id] = b
+		else this.list.push( b )
 
 	}
 
-	remove ( name ) {
+	remove ( name, remplace ) {
 
 		let b = this.byName( name );
-		if( !b ) return
-		this.clear( b )
+		if( !b ) return -1
+		return this.clear( b, remplace )
 
 	}
 
-	clear ( b ) {
+	clear ( b, remplace ) {
 
 		let n = this.list.indexOf( b )
-		if ( n !== - 1 ) this.list.splice( n, 1 )
+		if ( n !== - 1 && !remplace ) this.list.splice( n, 1 )
+		else this.list[n] = null
 		this.dispose( b )
+		return n
 
 	}
 
 	dispose ( b ) {
 
-		this.Utils.remove( b )
+		if( b !== null ) this.Utils.remove( b )
 
 	}
 

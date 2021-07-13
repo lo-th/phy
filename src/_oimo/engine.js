@@ -41,6 +41,10 @@ let timeout = null;
 
 let gravity = null;
 
+let tmpadd = []
+let tmpremove = []
+let tmpchange = []
+
 
 //--------------
 //
@@ -58,6 +62,10 @@ export class engine {
 
 		if( e.Ar ) Ar = e.Ar;
 		if( e.flow ) root.flow = e.flow;
+
+		/*if ( e.m === 'add' ) tmpadd.push( e.o )
+		else if ( e.m === 'remove' ) tmpremove.push( e.o )
+		else */
 		engine[ e.m ]( e.o );
 
 	}
@@ -129,10 +137,10 @@ export class engine {
 		if( root.world  === null ){
 
 			// define transfer array
-		    Ar = new Float32Array( ArMax );
+		    Ar = new Float32Array( ArMax )
 
 		    // create new world
-			root.world = new World( broadphase, gravity );
+			root.world = new World( broadphase, gravity )
 
 			root.world.setNumVelocityIterations( 10 )
 			root.world.setNumPositionIterations( 5 )
@@ -200,18 +208,44 @@ export class engine {
 
 	//static changes ( r = [] ){ for( let o in r ) this.change( r[o] ) }
 
+	static dispatch (){
+
+		tmpremove = root.flow.remove
+		tmpadd = root.flow.add
+		tmpchange = root.flow.tmp
+
+		while ( tmpremove.length > 0 ) this.remove( tmpremove.shift() )
+		while ( tmpadd.length > 0 ) this.add( tmpadd.shift() )
+		while ( tmpchange.length > 0 ) this.change( tmpchange.shift() )
+
+		root.flow = { key:[], add:[], remove:[], tmp:[] }
+		
+	} 
+
 	static poststep (){
 
 		if( isStop ) return;
 
-		// for update object
-		let i = root.flow.tmp.length;
-		while( i-- ) this.change( root.flow.tmp[i] );
-
-		root.flow.tmp = [];
-		root.flow.key = [];
-
 		tmpStep = 1;
+
+		this.dispatch()
+
+		/*let i, n, flow = root.flow
+
+		// for update object
+		i = flow.tmp.length
+		while( i-- ) this.change( flow.tmp[i] )
+
+
+		root.flow = {
+			key:[],
+			add:[],
+			remove:[],
+			tmp:[]
+		}*/
+		//root.flow.key = [];
+
+		
 
 		if( isTimeout ){
 
@@ -230,11 +264,17 @@ export class engine {
 		if( isReset ){ engine.endReset(); return }
 		if( isStop || tmpStep === 2 ) return;
 
+		
+
 		tmpStep = 2;
+
+		//engine.stepItems()
 
 		startTime = Time.now();
 		root.delta = ( startTime - lastTime ) * 0.001;
 		lastTime = startTime;
+
+
 
 		let n = substep;
 		while( n-- ){ 
@@ -244,6 +284,7 @@ export class engine {
 
 		engine.stepItems()
 
+
 		// get simulation stat
 		if ( startTime - 1000 > t.tmp ){ t.tmp = startTime; root.reflow.stat.fps = t.n; t.n = 0; }; t.n++;
 		root.reflow.stat.delta = root.delta
@@ -251,7 +292,6 @@ export class engine {
 		if ( isBuffer ) engine.post( { m: 'step', reflow:root.reflow, Ar: Ar }, [ Ar.buffer ] );	
 		else engine.post( { m:'step', reflow:root.reflow, Ar:Ar } );
 
-		
 	}
 
 	static stepItems () {

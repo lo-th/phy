@@ -24,6 +24,8 @@ export class Body extends Item {
 
 			b = this.list[i];
 
+			if(b===null) continue
+
 			n = N + ( i * 8 );
 
 			// update only when physics actif
@@ -342,15 +344,17 @@ export class Body extends Item {
 	    
 
 		// apply option
-		this.set( o, b );
+		this.set( o, b )
 
 		// add to world
-		this.addToWorld( b );
+		//this.addToWorld( b )
+		this.addToWorld( b, null, null, o.oldId || -1 )
 
 		// add to worker 
-		root.post( { m:'add', o:o } );
+		root.post( { m:'add', o:o } )
+		
 
-		return b;
+		return b
 
 	}
 
