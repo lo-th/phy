@@ -44,7 +44,7 @@ export class Item {
 	addToWorld ( b, id = -1 ) {
 
 		this.Utils.add( b )
-		if( id !== -1  ) this.list[id] = b
+		if( id !== -1 ) this.list[id] = b
 		else this.list.push( b )
 
 	}

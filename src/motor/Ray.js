@@ -50,10 +50,10 @@ export class Ray extends Item {
 
 		let r = new ExtraRay( o, mat.ray );
 
-		r.visible = o.visible !== undefined ? o.visible : true; 
+		r.visible = o.visible !== undefined ? o.visible : true
 
 		// add to world
-		this.addToWorld( r, o.id );
+		this.addToWorld( r, o.id )
 
 		if(o.parent) delete (o.parent);
 		if(o.callback) delete (o.callback);
