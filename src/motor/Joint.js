@@ -59,7 +59,7 @@ export class Joint extends Item {
 		j.visible = o.visible !== undefined ? o.visible : true; 
 
 		// add to world
-		this.addToWorld( j );
+		this.addToWorld( j, o.id );
 
 		// add to worker 
 		root.post( { m:'add', o:o } );

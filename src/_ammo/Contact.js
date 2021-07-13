@@ -8,8 +8,8 @@ export class Contact extends Item {
 		super();
 
 		this.Utils = Utils
-		this.type = 'contact';
-		this.cb = new Ammo.ConcreteContactResultCallback();
+		this.type = 'contact'
+		this.cb = new Ammo.ConcreteContactResultCallback()
 
 	}
 
@@ -46,7 +46,7 @@ export class Contact extends Item {
 		let c = new Pair( o )
 
 		// add to world
-		this.addToWorld( c );
+		this.addToWorld( c, o.id )
 
 	}
 

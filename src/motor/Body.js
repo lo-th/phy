@@ -348,7 +348,7 @@ export class Body extends Item {
 
 		// add to world
 		//this.addToWorld( b )
-		this.addToWorld( b, null, null, o.oldId || -1 )
+		this.addToWorld( b, o.id || -1 )
 
 		// add to worker 
 		root.post( { m:'add', o:o } )

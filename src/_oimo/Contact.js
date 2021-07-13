@@ -60,7 +60,7 @@ export class Contact extends Item {
 		let c = new Pair( o )
 
 		// add to world
-		this.addToWorld( c );
+		this.addToWorld( c, o.id );
 
 	}
 

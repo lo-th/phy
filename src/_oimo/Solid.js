@@ -5,9 +5,9 @@ export class Solid extends Body {
 
 	constructor () {
 
-		super();
+		super()
 
-		this.type = 'solid';
+		this.type = 'solid'
 
 
 	}

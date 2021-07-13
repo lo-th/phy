@@ -284,6 +284,9 @@ export class Body extends Item {
 		b.isKinematic = o.kinematic || false
 		b.isGhost = false
 
+		b.group = group
+		b.mask = mask
+
 		b.first = true
 
 		delete( o.pos )
@@ -293,8 +296,7 @@ export class Body extends Item {
 		this.set( o, b );
 
 		// add to world
-		//this.addToWorld( b, group, mask );
-		this.addToWorld( b,  group, mask, o.oldId || -1 )
+		this.addToWorld( b, o.id )
 
 	}
 
@@ -354,8 +356,8 @@ export class Body extends Item {
 
 		if(!b.isGhost){
 	    	
-			if ( o.group !== undefined ) b.getBroadphaseProxy().set_m_collisionFilterGroup( o.group );
-			if ( o.mask !== undefined ) b.getBroadphaseProxy().set_m_collisionFilterMask( o.mask );
+			if ( o.group !== undefined ){ b.getBroadphaseProxy().set_m_collisionFilterGroup( o.group ); b.group = o.group }
+			if ( o.mask !== undefined ){ b.getBroadphaseProxy().set_m_collisionFilterMask( o.mask ); b.mask = o.mask }
 			if ( o.damping !== undefined ) b.setDamping( o.damping[ 0 ], o.damping[ 1 ] );
 			if ( o.sleeping !== undefined ) b.setSleepingThresholds( o.sleeping[ 0 ], o.sleeping[ 1 ] );
 

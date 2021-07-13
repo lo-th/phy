@@ -53,7 +53,7 @@ export class Ray extends Item {
 		r.visible = o.visible !== undefined ? o.visible : true; 
 
 		// add to world
-		this.addToWorld( r );
+		this.addToWorld( r, o.id );
 
 		if(o.parent) delete (o.parent);
 		if(o.callback) delete (o.callback);

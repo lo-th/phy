@@ -35,15 +35,15 @@ export class Item {
 		let name = o.name !== undefined ? o.name : this.type + this.id ++
 
 		// clear old item if existe
-		o.oldId = this.remove( name, true )
+		o.id = this.remove( name, true )
 
 		return name
 
 	}
 
-	addToWorld ( b, c, d, id = -1 ) {
+	addToWorld ( b, id = -1 ) {
 
-		this.Utils.add( b, c, d )
+		this.Utils.add( b )
 		if( id !== -1  ) this.list[id] = b
 		else this.list.push( b )
 

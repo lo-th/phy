@@ -278,11 +278,10 @@ export class Body extends Item {
 		b.first = true
 
 		// apply option
-		this.set( o, b );
+		this.set( o, b )
 
 		// add to world
-		//this.addToWorld( b );
-		this.addToWorld( b, null, null, o.oldId || -1 )
+		this.addToWorld( b, o.id )
 
 	}
 

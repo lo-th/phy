@@ -178,16 +178,13 @@ export class Joint extends Item {
 		j.formA = formA
 		j.formB = formB
 		j.visible = o.visible !== undefined ? o.visible : true;
+		j.collision = o.collision || false; 
 
 		// apply option
 		this.set( o, j )
 
 		// add to world
-		//let collision = o.collision !== undefined ? o.collision : false;
-		//this.addToWorld( j, collision ? false : true )
-
-		let collision = o.collision || false;
-		this.addToWorld( j, !collision )
+		this.addToWorld( j, o.id )
 
 
 	}
@@ -218,9 +215,8 @@ export class Joint extends Item {
 			// low / high / _softness / _biasFactor / _relaxationFactor
 			if( o.lm ) j.setLimit( o.lm[0]*torad, o.lm[1]*torad, o.lm[2] || 0.9, o.lm[3] || 0.3, o.lm[4] || 1.0 )
 
-			if( o.motor ){
-				j.enableAngularMotor( true, o.motor[0]*torad, o.motor[1] )
-			}
+			if( o.motor ) j.enableAngularMotor( true, o.motor[0]*torad, o.motor[1] )
+			
 			
 
 			

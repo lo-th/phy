@@ -10,7 +10,7 @@ export class Ray extends Item {
 		this.Utils = Utils
 		this.type = 'ray'
 
-		this.callback = new Ammo.ClosestRayResultCallback();
+		this.callback = new Ammo.ClosestRayResultCallback()
 
 
 	}
@@ -65,14 +65,14 @@ export class Ray extends Item {
 
 	add ( o = {} ) {
 
-		let name = this.setName( o );
-		let r = new ExtraRay( o ); 
+		let name = this.setName( o )
+		let r = new ExtraRay( o )
 
 		// apply option
 		//this.set( o, r );
 
 		// add to world
-		this.addToWorld( r );
+		this.addToWorld( r, o.id )
 
 	}
 

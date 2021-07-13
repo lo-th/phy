@@ -66,7 +66,7 @@ export class Ray extends Item {
 		//this.set( o, r );
 
 		// add to world
-		this.addToWorld( r );
+		this.addToWorld( r, o.id );
 
 	}
 

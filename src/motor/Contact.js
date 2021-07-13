@@ -39,7 +39,7 @@ export class Contact extends Item {
 		if( o.callback ) delete ( o.callback );
 
 		// add to world
-		this.addToWorld( c );
+		this.addToWorld( c, o.id );
 
 		// add to worker 
 		root.post( { m:'add', o:o } );

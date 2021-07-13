@@ -40,13 +40,13 @@ export class Utils {
 
 	}
 
-	static add( b, g, m ) {
+	static add( b ) {
 
 		if( b.type !== 'ray' &&  b.type !== 'contact' ){
 			switch( b.type ){
-				case 'joint': root.world.addConstraint( b, g ); break;
-				case 'solid': root.world.addCollisionObject( b, g, m ); break;
-				default: root.world.addRigidBody( b, g, m ); break;
+				case 'joint': root.world.addConstraint( b, !b.collision ); break;
+				case 'solid': root.world.addCollisionObject( b, b.group, b.mask ); break;
+				default: root.world.addRigidBody( b, b.group, b.mask ); break;
 			}
 		}
 
