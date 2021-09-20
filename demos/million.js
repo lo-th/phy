@@ -71,10 +71,10 @@ function replay () {
 
     let r = [
 
-        { name:'L_pale1', rot:[0,0,a+45], noVelocity:true },
-        { name:'L_pale2', rot:[0,0,-a],   noVelocity:true },
-        { name:'M_pale1', rot:[0,0,a+45], noVelocity:true },
-        { name:'M_pale2', rot:[0,0,-a],   noVelocity:true },
+        { name:'L_pale1', rot:[0,0,a+45], reset:true },
+        { name:'L_pale2', rot:[0,0,-a],   reset:true },
+        { name:'M_pale1', rot:[0,0,a+45], reset:true },
+        { name:'M_pale2', rot:[0,0,-a],   reset:true },
 
         { name:'block1', pos:[ 0, -4.87+py, open1 ? -1 : 0 ] },
         { name:'block2', pos:[ 8.5, -4.87+py, open2 ? -1 : 0  ]}
@@ -113,10 +113,10 @@ function update () {
 
 	let r = [
 
-        { name:'L_pale1', rot:[0,0,a+45], noVelocity:true },
-        { name:'L_pale2', rot:[0,0,-a],   noVelocity:true },
-        { name:'M_pale1', rot:[0,0,a+45], noVelocity:true },
-        { name:'M_pale2', rot:[0,0,-a],   noVelocity:true },
+        { name:'L_pale1', rot:[0,0,a+45], reset:true },
+        { name:'L_pale2', rot:[0,0,-a],   reset:true },
+        { name:'M_pale1', rot:[0,0,a+45], reset:true },
+        { name:'M_pale2', rot:[0,0,-a],   reset:true },
 
         { name:'block1', pos:[ 0, -4.87+py, open1 ? -1 : 0 ] },
         { name:'block2', pos:[ 8.5, -4.87+py, open2 ? -1 : 0  ]}
@@ -188,7 +188,7 @@ function makeMachine () {
     let i = meshs.length, name, p, d, m
 
     phy.add({ 
-        name:'block1', type:'box', mass:0, material:'glass',
+        name:'block1', type:'box', density:0, material:'glass',
         size:[1,0.2,1], pos:[0,-4.87+py,0],
         friction: 0, restitution: 0,
         renderOrder:2,
@@ -196,7 +196,7 @@ function makeMachine () {
     })
 
     phy.add({ 
-        name:'block2', type:'box', mass:0, material:'glass',
+        name:'block2', type:'box', density:0, material:'glass',
         size:[1,0.2,1], pos:[8.5,-4.87+py,0],
         friction: 0, restitution: 0,
         renderOrder:3,
@@ -210,7 +210,7 @@ function makeMachine () {
         d = name==='M_rampe' ? 0 : -1.8
 
     	phy.add({ 
-	        name:name, type:'mesh', mass:0,
+	        name:name, type:'mesh', density:0,
 	        size:[10],
 	        meshScale:[10],
 	        mesh:model[name],
@@ -249,9 +249,8 @@ function makeBall () {
         y = 75 - (l*5.)
 
         b = phy.add({ 
-        	name:(i+1), type:'sphere', material: tmpMat,
-        	geometry:ballGeo,
-        	size:[0.25], pos:[x*0.1, (y*0.1)+py, -1.16], mass:0.65, state:4, 
+        	name:'b'+(i+1), type:'sphere', material: tmpMat, geometry:ballGeo,
+        	size:[0.25], pos:[x*0.1, (y*0.1)+py, -1.16], density:0.65,
         	friction: 0.5, restitution: 0.3,
         	sleep:true,
         });
@@ -279,13 +278,11 @@ function makeBall () {
         y = 25 - (l*5)
 
         b = phy.add({ 
-            name:'x'+(i+1), type:'sphere', material: tmpMat,
-            geometry:ballGeo,
-            size:[0.25], pos:[x*0.1, (y*0.1)+py, -0.975], mass:0.65,
+            name:'x'+(i+1), type:'sphere', material: tmpMat, geometry:ballGeo,
+            size:[0.25], pos:[x*0.1, (y*0.1)+py, -0.975], density:0.65,
             friction: 0.5, restitution: 0.3, 
             sleep:true,
         })
-
         balls.push( b )
         startPos.push( [x*0.1, (y*0.1)+py, -0.975] )
         j++;

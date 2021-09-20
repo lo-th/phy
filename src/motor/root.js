@@ -77,8 +77,9 @@ export class Utils {
 
 	static remove ( b ) {
 
-		if( b.parent ) b.parent.remove( b );
-		//if( b.type !== 'contact' ) b.parent.remove( b );
+		if( b.dispose ) b.dispose()
+		if( b.parent ) b.parent.remove( b )
+
 		map.delete( b.name );
 
 	}
@@ -132,7 +133,8 @@ export const mat = {
 	
 	joint: new LineBasicMaterial( { color: 0x00FF00, toneMapped: false } ),
 	ray: new LineBasicMaterial( { vertexColors: true, toneMapped: false } ),
-	glass: new MeshStandardMaterial({ name:'glass', color:0x9999ff, transparent:true, opacity:0.25, depthTest:true, depthWrite:false, roughness:0.1, metalness:1, side:DoubleSide, premultipliedAlpha:true  }),
+	glass: new MeshPhysicalMaterial({ name:'glass', color:0x9999ff, transparent:true, opacity:0.25,  depthTest:true, depthWrite:false, reflectivity:0.5, roughness:0., metalness:1, side:DoubleSide, premultipliedAlpha:true  }),
+	//glass: new MeshPhysicalMaterial({ name:'glass', color:0x9999ff, transparent:true, reflectivity:0.5, transmission:1, opacity:0.9, roughness:0, metalness:0, side:DoubleSide, premultipliedAlpha:true, depthTest:true, depthWrite:false }),
 	chrome: new MeshStandardMaterial({ name:'chrome', color:0x808080, metalness:1, roughness:0 }),
 	hide: new MeshBasicMaterial({ name:'hide', color:0x0088ff, transparent:true, opacity:0, depthTest:false, depthWrite:false  }),
 
@@ -178,7 +180,7 @@ export class math {
 	static toLocalQuatArray ( rot = [0,0,0], b ) { // rotation array in degree
 
 		quat.setFromEuler( euler.fromArray( math.vectorad( rot ) ) )
-		quat.premultiply( b.quaternion.inverse() );
+		quat.premultiply( b.quaternion.invert() );
 		return quat.toArray();
 
 	}

@@ -192,7 +192,7 @@ export class Body extends Item {
 
 		//g.rotateZ( -Math.PI*0.5 );
 
-		let m = new Mesh( g, material );
+		let m = new Mesh( g, material )
 
 		if( o.localRot ) o.localQuat = math.toQuatArray( o.localRot );
 		if( o.localPos ) m.position.fromArray( o.localPos );
@@ -200,11 +200,17 @@ export class Body extends Item {
 
     	if( !noScale ) m.scale.fromArray( o.size );
 
-    	if( custom ) root.tmpGeo.push( g );
+    	if( custom ) {
+    		//root.tmpGeo.push( g );
+    		m.unic = true
+    	}
+
+
 
     	// add or not add
-    	if( !o.meshRemplace || o.debug ) b.add( m );
+    	if( !o.meshRemplace || o.debug ) b.add( m )
 
+    	// clear untranspherable variable for phy
     	if(o.shape) delete ( o.shape );
     	if(o.geometry) delete ( o.geometry );
 
@@ -264,6 +270,8 @@ export class Body extends Item {
 
 	    if( o.mesh ){
 
+	    	if(o.isTerrain) o.noClone = true
+
 	    	let mm = o.noClone ? o.mesh : o.mesh.clone()
 
 	    	mm.position.fromArray( o.meshPos || [0,0,0]);
@@ -300,7 +308,7 @@ export class Body extends Item {
 					if( n.quat ) n.localQuat = n.quat;
 					
 					n.debug = o.debug || false;
-					n.meshRemplace = o.meshRemplace;
+					n.meshRemplace = o.meshRemplace || false;
 
 					this.geometry( n, b, material )
 
@@ -342,6 +350,9 @@ export class Body extends Item {
 	    	b.receiveShadow = false;
 	        b.castShadow = false;
 	    }
+
+
+	    //if( o.type === 'compound' )console.log( b )
 
 	    
 
@@ -431,6 +442,16 @@ export class ExtraGroup extends Object3D {
 
 
 	select ( b ) {
+
+    }
+
+    dispose () {
+
+    	this.traverse( function ( node ) {
+			if( node.isMesh && node.unic ) node.geometry.dispose()
+		})
+
+		this.children = []
 
     }
 

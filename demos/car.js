@@ -34,8 +34,7 @@ function testCar ( n, pos ){
 
     current = n
 
-    var body = phy.add({ type:'box', name:'chassis'+n, pos:pos, size:[1.4, 1, 2.4],  density:10, friction:0.5, restitution:0, neverSleep:true, massCenter:[0,0.5,0] });
-    body.rotation._order = 'YXZ';
+    var body = phy.add({ type:'box', name:'chassis'+n, pos:pos, size:[1.4, 1, 2.4],  density:10, friction:0.5, restitution:0, neverSleep:true, massCenter:[0,0.5,0], order:'YXZ' });
 
     var ws = [ 1.1, -0.5, 1 ];
     var radius = 0.3;
@@ -49,7 +48,7 @@ function testCar ( n, pos ){
 
         wpos = [ side * ws[0], ws[1]+0.5, front ? -ws[2] :  ws[2] ];
 
-        b = phy.add({ type:'box', name:'axis'+i+'_'+n, pos:[wpos[0]+pos[0], wpos[1]+pos[1], wpos[2]+pos[2] ], size:[0.25],  density:4, material:'debug2', neverSleep:true/*, angularFactor:[0,1,0]*/ });
+        b = phy.add({ type:'box', name:'axis'+i+'_'+n, pos:[wpos[0]+pos[0], wpos[1]+pos[1], wpos[2]+pos[2] ], size:[0.25],  density:4, material:'debug2', neverSleep:true,  order:'YXZ'/*, angularFactor:[0,1,0]*/ });
         w = phy.add({ type:'sphere', name:'wheel'+i+'_'+n, pos:[wpos[0]+pos[0], wpos[1]+pos[1], wpos[2]+pos[2] ], size:[radius],  density:4, friction:0.9, restitution:0.2, material:'debug', mesh:mw, neverSleep:true });
 
        /*j = phy.add({ 
@@ -119,7 +118,7 @@ function update () {
     let key = phy.getKey()
 
     let rs = key[0]//*40; // Q-D or A-D or left-right
-    let ts = key[1]; // Z-S or W-S or up-down
+    let ts = key[1] // Z-S or W-S or up-down
 
    
 
@@ -134,7 +133,7 @@ function update () {
        // r.push( { name:'joint'+i+'_'+current, motor:[ ['rx', -ts*100,-ts*100] ] } )
         //if( f )r.push( { name:'axe'+i+'_'+current, motor:[ ['ry', v ,0]] } )
 
-        //if( f ) r.push( { name:'axis'+i+'_'+ current, localRot:[0, rs ,0], reset:true } )
+        //if( f ) r.push( { name:'axis'+i+'_'+ current, localRot:[0,-rs * 25 ,0], reset:true } )
         if( f ) r.push({ name:'axe'+i+'_'+ current, motor:[['ry',-rs*360, 200 ]] })
 
         //r.push( { name:'wheel'+i+'_'+ current, torque:[ts*300, 0 ,0 ] } )

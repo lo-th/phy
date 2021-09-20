@@ -32,6 +32,7 @@ export var hub = ( function () {
 
     var isReady = false;
     var fps = null;
+    var statistics = null
     var debug = null;
 
 
@@ -132,6 +133,24 @@ export var hub = ( function () {
 
         },
 
+        setStats: function ( t ) {
+
+            if( statistics === null ) return;
+            for(let j in t.memory ){
+                //t.memory[j] = Math.round( t.memory[j]*0.000976563 )
+
+                if( j === 'drawingbuffer' || j === 'total' ) t.memory[j] = Math.round( t.memory[j]*0.0000001 )
+                else t.memory[j] = Math.round( t.memory[j]*0.0001 )
+
+                //t.memory[j] = Math.round( t.memory[j] / 1024/ 1024 )
+            }
+
+
+            //t.memory.total = t.total*0.001
+            statistics.textContent = JSON.stringify(t, null, 2);
+
+        },
+
         endLoading : function () {
 
             //loader.removeChild(loader.lastChild);
@@ -145,6 +164,11 @@ export var hub = ( function () {
             debug = document.createElement( 'div' );
             debug.style.cssText = 'position: absolute; bottom:20px; left:10px; font-size:14px; font-family:Tahoma; color:#dcdcdc; text-shadow: 1px 1px 1px #000;  width:400px; vertical-align:bottom;'
             content.appendChild( debug );
+
+
+            statistics = document.createElement( 'div' );
+            statistics.style.cssText = 'position: absolute; top:3px; left:10px; font-size:14px; font-family:Tahoma; color:#00ff33; text-shadow: 1px 1px 1px #000; width:200px; white-space: pre;'
+            content.appendChild( statistics );
 
             /*this.addCross();
 
@@ -452,6 +476,8 @@ export var hub = ( function () {
 
 
             if(fps) fps.style.left = (s.left + 10) + "px"
+            if(statistics) statistics.style.left = (s.left + 10) + "px"
+                
             if(debug) debug.style.left = (s.left + 10) + "px"
             
 

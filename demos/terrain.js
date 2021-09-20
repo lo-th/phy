@@ -1,4 +1,4 @@
-let terrain
+var terrain
 
 function demo() {
 
@@ -35,6 +35,8 @@ function demo() {
 }
 
 function addLand (){
+
+	console.log('is add')
 
     phy.add({
         type:'mesh',

@@ -398,6 +398,7 @@ export class Motor {
 
 
 	static adds ( r = [] ){ for( let o in r ) this.add( r[o] ) }
+
 	static add ( o = {} ){
 
 		if ( o.constructor === Array ) return this.adds( o )
@@ -425,6 +426,7 @@ export class Motor {
 
 
 	static removes ( r = [] ){ for( let o in r ) this.remove( r[o] ) }
+	
 	static remove ( name ){
 
 		if ( name.constructor === Array ) return this.removes( o )
@@ -512,7 +514,7 @@ export class Motor {
 
 	static byName ( name ){
 
-		return Utils.byName( name );
+		return Utils.byName( name )
 
 	}
 

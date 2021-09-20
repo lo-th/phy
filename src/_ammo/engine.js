@@ -64,7 +64,7 @@ export class engine {
 
 		if( e.Ar ) Ar = e.Ar;
 		if( e.flow ) root.flow = e.flow;
-		engine[ e.m ]( e.o );
+		if( e.m ) engine[ e.m ]( e.o );
 
 	}
 

@@ -1,5 +1,6 @@
 import {
 	MeshStandardMaterial,
+	MeshPhysicalMaterial,
 	WebGLRenderTarget,
 	Mesh,
 	PlaneGeometry,
@@ -412,6 +413,8 @@ export class Reflector extends Mesh {
 
 	groundAlpha () {
 
+		//if(!this.settings.gAlpha ) return
+
 		let c = document.createElement('canvas');
 		c.width = c.height = 512;
         let ctx = c.getContext('2d');
@@ -436,7 +439,7 @@ export class Reflector extends Mesh {
 
 		img.onload = function(){
 			//_this.material.alphaMap = _this.alphaMap;
-		    _this.material.alphaMap.needsUpdate = true; 
+		    if(_this.material.alphaMap !== null)_this.material.alphaMap.needsUpdate = true; 
 		 }
 
 

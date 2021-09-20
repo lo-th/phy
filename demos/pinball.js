@@ -9,6 +9,7 @@ function demo() {
 
 	phy.view({
 		envmap:'room',
+        ground:true,
 		groundSize:[ 5, 11.3],
 		groundAlpha:false,
 

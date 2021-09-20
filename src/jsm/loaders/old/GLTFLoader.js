@@ -4,6 +4,7 @@ import {
 	Box3,
 	BufferAttribute,
 	BufferGeometry,
+	CanvasTexture,
 	ClampToEdgeWrapping,
 	Color,
 	DirectionalLight,
@@ -45,7 +46,6 @@ import {
 	Points,
 	PointsMaterial,
 	PropertyBinding,
-	Quaternion,
 	QuaternionKeyframeTrack,
 	RGBFormat,
 	RepeatWrapping,
@@ -54,7 +54,6 @@ import {
 	Sphere,
 	SpotLight,
 	TangentSpaceNormalMap,
-	Texture,
 	TextureLoader,
 	TriangleFanDrawMode,
 	TriangleStripDrawMode,
@@ -97,24 +96,6 @@ class GLTFLoader extends Loader {
 		this.register( function ( parser ) {
 
 			return new GLTFMaterialsTransmissionExtension( parser );
-
-		} );
-
-		this.register( function ( parser ) {
-
-			return new GLTFMaterialsVolumeExtension( parser );
-
-		} );
-
-		this.register( function ( parser ) {
-
-			return new GLTFMaterialsIorExtension( parser );
-
-		} );
-
-		this.register( function ( parser ) {
-
-			return new GLTFMaterialsSpecularExtension( parser );
 
 		} );
 
@@ -426,12 +407,9 @@ const EXTENSIONS = {
 	KHR_DRACO_MESH_COMPRESSION: 'KHR_draco_mesh_compression',
 	KHR_LIGHTS_PUNCTUAL: 'KHR_lights_punctual',
 	KHR_MATERIALS_CLEARCOAT: 'KHR_materials_clearcoat',
-	KHR_MATERIALS_IOR: 'KHR_materials_ior',
 	KHR_MATERIALS_PBR_SPECULAR_GLOSSINESS: 'KHR_materials_pbrSpecularGlossiness',
-	KHR_MATERIALS_SPECULAR: 'KHR_materials_specular',
 	KHR_MATERIALS_TRANSMISSION: 'KHR_materials_transmission',
 	KHR_MATERIALS_UNLIT: 'KHR_materials_unlit',
-	KHR_MATERIALS_VOLUME: 'KHR_materials_volume',
 	KHR_TEXTURE_BASISU: 'KHR_texture_basisu',
 	KHR_TEXTURE_TRANSFORM: 'KHR_texture_transform',
 	KHR_MESH_QUANTIZATION: 'KHR_mesh_quantization',
@@ -440,10 +418,10 @@ const EXTENSIONS = {
 };
 
 /**
- * Punctual Lights Extension
- *
- * Specification: https://github.com/KhronosGroup/glTF/tree/master/extensions/2.0/Khronos/KHR_lights_punctual
- */
+	 * Punctual Lights Extension
+	 *
+	 * Specification: https://github.com/KhronosGroup/glTF/tree/master/extensions/2.0/Khronos/KHR_lights_punctual
+	 */
 class GLTFLightsExtension {
 
 	constructor( parser ) {
@@ -568,10 +546,10 @@ class GLTFLightsExtension {
 }
 
 /**
- * Unlit Materials Extension
- *
- * Specification: https://github.com/KhronosGroup/glTF/tree/master/extensions/2.0/Khronos/KHR_materials_unlit
- */
+	 * Unlit Materials Extension
+	 *
+	 * Specification: https://github.com/KhronosGroup/glTF/tree/master/extensions/2.0/Khronos/KHR_materials_unlit
+	 */
 class GLTFMaterialsUnlitExtension {
 
 	constructor() {
@@ -621,10 +599,10 @@ class GLTFMaterialsUnlitExtension {
 }
 
 /**
- * Clearcoat Materials Extension
- *
- * Specification: https://github.com/KhronosGroup/glTF/tree/master/extensions/2.0/Khronos/KHR_materials_clearcoat
- */
+	 * Clearcoat Materials Extension
+	 *
+	 * Specification: https://github.com/KhronosGroup/glTF/tree/master/extensions/2.0/Khronos/KHR_materials_clearcoat
+	 */
 class GLTFMaterialsClearcoatExtension {
 
 	constructor( parser ) {
@@ -706,11 +684,11 @@ class GLTFMaterialsClearcoatExtension {
 }
 
 /**
- * Transmission Materials Extension
- *
- * Specification: https://github.com/KhronosGroup/glTF/tree/master/extensions/2.0/Khronos/KHR_materials_transmission
- * Draft: https://github.com/KhronosGroup/glTF/pull/1698
- */
+	 * Transmission Materials Extension
+	 *
+	 * Specification: https://github.com/KhronosGroup/glTF/tree/master/extensions/2.0/Khronos/KHR_materials_transmission
+	 * Draft: https://github.com/KhronosGroup/glTF/pull/1698
+	 */
 class GLTFMaterialsTransmissionExtension {
 
 	constructor( parser ) {
@@ -765,182 +743,10 @@ class GLTFMaterialsTransmissionExtension {
 }
 
 /**
- * Materials Volume Extension
- *
- * Specification: https://github.com/KhronosGroup/glTF/tree/master/extensions/2.0/Khronos/KHR_materials_volume
- */
-class GLTFMaterialsVolumeExtension {
-
-	constructor( parser ) {
-
-		this.parser = parser;
-		this.name = EXTENSIONS.KHR_MATERIALS_VOLUME;
-
-	}
-
-	getMaterialType( materialIndex ) {
-
-		const parser = this.parser;
-		const materialDef = parser.json.materials[ materialIndex ];
-
-		if ( ! materialDef.extensions || ! materialDef.extensions[ this.name ] ) return null;
-
-		return MeshPhysicalMaterial;
-
-	}
-
-	extendMaterialParams( materialIndex, materialParams ) {
-
-		const parser = this.parser;
-		const materialDef = parser.json.materials[ materialIndex ];
-
-		if ( ! materialDef.extensions || ! materialDef.extensions[ this.name ] ) {
-
-			return Promise.resolve();
-
-		}
-
-		const pending = [];
-
-		const extension = materialDef.extensions[ this.name ];
-
-		materialParams.thickness = extension.thicknessFactor !== undefined ? extension.thicknessFactor : 0;
-
-		if ( extension.thicknessTexture !== undefined ) {
-
-			pending.push( parser.assignTexture( materialParams, 'thicknessMap', extension.thicknessTexture ) );
-
-		}
-
-		materialParams.attenuationDistance = extension.attenuationDistance || 0;
-
-		const colorArray = extension.attenuationColor || [ 1, 1, 1 ];
-		materialParams.attenuationTint = new Color( colorArray[ 0 ], colorArray[ 1 ], colorArray[ 2 ] );
-
-		return Promise.all( pending );
-
-	}
-
-}
-
-/**
- * Materials ior Extension
- *
- * Specification: https://github.com/KhronosGroup/glTF/tree/master/extensions/2.0/Khronos/KHR_materials_ior
- */
-class GLTFMaterialsIorExtension {
-
-	constructor( parser ) {
-
-		this.parser = parser;
-		this.name = EXTENSIONS.KHR_MATERIALS_IOR;
-
-	}
-
-	getMaterialType( materialIndex ) {
-
-		const parser = this.parser;
-		const materialDef = parser.json.materials[ materialIndex ];
-
-		if ( ! materialDef.extensions || ! materialDef.extensions[ this.name ] ) return null;
-
-		return MeshPhysicalMaterial;
-
-	}
-
-	extendMaterialParams( materialIndex, materialParams ) {
-
-		const parser = this.parser;
-		const materialDef = parser.json.materials[ materialIndex ];
-
-		if ( ! materialDef.extensions || ! materialDef.extensions[ this.name ] ) {
-
-			return Promise.resolve();
-
-		}
-
-		const extension = materialDef.extensions[ this.name ];
-
-		materialParams.ior = extension.ior !== undefined ? extension.ior : 1.5;
-
-		return Promise.resolve();
-
-	}
-
-}
-
-/**
- * Materials specular Extension
- *
- * Specification: https://github.com/KhronosGroup/glTF/tree/master/extensions/2.0/Khronos/KHR_materials_specular
- */
-class GLTFMaterialsSpecularExtension {
-
-	constructor( parser ) {
-
-		this.parser = parser;
-		this.name = EXTENSIONS.KHR_MATERIALS_SPECULAR;
-
-	}
-
-	getMaterialType( materialIndex ) {
-
-		const parser = this.parser;
-		const materialDef = parser.json.materials[ materialIndex ];
-
-		if ( ! materialDef.extensions || ! materialDef.extensions[ this.name ] ) return null;
-
-		return MeshPhysicalMaterial;
-
-	}
-
-	extendMaterialParams( materialIndex, materialParams ) {
-
-		const parser = this.parser;
-		const materialDef = parser.json.materials[ materialIndex ];
-
-		if ( ! materialDef.extensions || ! materialDef.extensions[ this.name ] ) {
-
-			return Promise.resolve();
-
-		}
-
-		const pending = [];
-
-		const extension = materialDef.extensions[ this.name ];
-
-		materialParams.specularIntensity = extension.specularFactor !== undefined ? extension.specularFactor : 1.0;
-
-		if ( extension.specularTexture !== undefined ) {
-
-			pending.push( parser.assignTexture( materialParams, 'specularIntensityMap', extension.specularTexture ) );
-
-		}
-
-		const colorArray = extension.specularColorFactor || [ 1, 1, 1 ];
-		materialParams.specularTint = new Color( colorArray[ 0 ], colorArray[ 1 ], colorArray[ 2 ] );
-
-		if ( extension.specularColorTexture !== undefined ) {
-
-			pending.push( parser.assignTexture( materialParams, 'specularTintMap', extension.specularColorTexture ).then( function ( texture ) {
-
-				texture.encoding = sRGBEncoding;
-
-			} ) );
-
-		}
-
-		return Promise.all( pending );
-
-	}
-
-}
-
-/**
- * BasisU Texture Extension
- *
- * Specification: https://github.com/KhronosGroup/glTF/tree/master/extensions/2.0/Khronos/KHR_texture_basisu
- */
+	 * BasisU Texture Extension
+	 *
+	 * Specification: https://github.com/KhronosGroup/glTF/tree/master/extensions/2.0/Khronos/KHR_texture_basisu
+	 */
 class GLTFTextureBasisUExtension {
 
 	constructor( parser ) {
@@ -989,10 +795,10 @@ class GLTFTextureBasisUExtension {
 }
 
 /**
- * WebP Texture Extension
- *
- * Specification: https://github.com/KhronosGroup/glTF/tree/master/extensions/2.0/Vendor/EXT_texture_webp
- */
+	 * WebP Texture Extension
+	 *
+	 * Specification: https://github.com/KhronosGroup/glTF/tree/master/extensions/2.0/Vendor/EXT_texture_webp
+	 */
 class GLTFTextureWebPExtension {
 
 	constructor( parser ) {
@@ -1074,10 +880,10 @@ class GLTFTextureWebPExtension {
 }
 
 /**
- * meshopt BufferView Compression Extension
- *
- * Specification: https://github.com/KhronosGroup/glTF/tree/master/extensions/2.0/Vendor/EXT_meshopt_compression
- */
+	* meshopt BufferView Compression Extension
+	*
+	* Specification: https://github.com/KhronosGroup/glTF/tree/master/extensions/2.0/Vendor/EXT_meshopt_compression
+	*/
 class GLTFMeshoptCompression {
 
 	constructor( parser ) {
@@ -1212,10 +1018,10 @@ class GLTFBinaryExtension {
 }
 
 /**
- * DRACO Mesh Compression Extension
- *
- * Specification: https://github.com/KhronosGroup/glTF/tree/master/extensions/2.0/Khronos/KHR_draco_mesh_compression
- */
+	 * DRACO Mesh Compression Extension
+	 *
+	 * Specification: https://github.com/KhronosGroup/glTF/tree/master/extensions/2.0/Khronos/KHR_draco_mesh_compression
+	 */
 class GLTFDracoMeshCompressionExtension {
 
 	constructor( json, dracoLoader ) {
@@ -1295,10 +1101,10 @@ class GLTFDracoMeshCompressionExtension {
 }
 
 /**
- * Texture Transform Extension
- *
- * Specification: https://github.com/KhronosGroup/glTF/tree/master/extensions/2.0/Khronos/KHR_texture_transform
- */
+	 * Texture Transform Extension
+	 *
+	 * Specification: https://github.com/KhronosGroup/glTF/tree/master/extensions/2.0/Khronos/KHR_texture_transform
+	 */
 class GLTFTextureTransformExtension {
 
 	constructor() {
@@ -1308,19 +1114,6 @@ class GLTFTextureTransformExtension {
 	}
 
 	extendTexture( texture, transform ) {
-
-		if ( transform.texCoord !== undefined ) {
-
-			console.warn( 'THREE.GLTFLoader: Custom UV sets in "' + this.name + '" extension not yet supported.' );
-
-		}
-
-		if ( transform.offset === undefined && transform.rotation === undefined && transform.scale === undefined ) {
-
-			// See https://github.com/mrdoob/three.js/issues/21819.
-			return texture;
-
-		}
 
 		texture = texture.clone();
 
@@ -1342,6 +1135,12 @@ class GLTFTextureTransformExtension {
 
 		}
 
+		if ( transform.texCoord !== undefined ) {
+
+			console.warn( 'THREE.GLTFLoader: Custom UV sets in "' + this.name + '" extension not yet supported.' );
+
+		}
+
 		texture.needsUpdate = true;
 
 		return texture;
@@ -1351,16 +1150,17 @@ class GLTFTextureTransformExtension {
 }
 
 /**
- * Specular-Glossiness Extension
- *
- * Specification: https://github.com/KhronosGroup/glTF/tree/master/extensions/2.0/Khronos/KHR_materials_pbrSpecularGlossiness
- */
+	 * Specular-Glossiness Extension
+	 *
+	 * Specification: https://github.com/KhronosGroup/glTF/tree/master/extensions/2.0/Khronos/KHR_materials_pbrSpecularGlossiness
+	 */
 
 /**
- * A sub class of StandardMaterial with some of the functionality
- * changed via the `onBeforeCompile` callback
- * @pailhead
- */
+	 * A sub class of StandardMaterial with some of the functionality
+	 * changed via the `onBeforeCompile` callback
+	 * @pailhead
+	 */
+
 class GLTFMeshStandardSGMaterial extends MeshStandardMaterial {
 
 	constructor( params ) {
@@ -1406,9 +1206,9 @@ class GLTFMeshStandardSGMaterial extends MeshStandardMaterial {
 			'material.diffuseColor = diffuseColor.rgb * ( 1. - max( specularFactor.r, max( specularFactor.g, specularFactor.b ) ) );',
 			'vec3 dxy = max( abs( dFdx( geometryNormal ) ), abs( dFdy( geometryNormal ) ) );',
 			'float geometryRoughness = max( max( dxy.x, dxy.y ), dxy.z );',
-			'material.roughness = max( 1.0 - glossinessFactor, 0.0525 ); // 0.0525 corresponds to the base mip of a 256 cubemap.',
-			'material.roughness += geometryRoughness;',
-			'material.roughness = min( material.roughness, 1.0 );',
+			'material.specularRoughness = max( 1.0 - glossinessFactor, 0.0525 ); // 0.0525 corresponds to the base mip of a 256 cubemap.',
+			'material.specularRoughness += geometryRoughness;',
+			'material.specularRoughness = min( material.specularRoughness, 1.0 );',
 			'material.specularColor = specularFactor;',
 		].join( '\n' );
 
@@ -1684,10 +1484,10 @@ class GLTFMaterialsPbrSpecularGlossinessExtension {
 }
 
 /**
- * Mesh Quantization Extension
- *
- * Specification: https://github.com/KhronosGroup/glTF/tree/master/extensions/2.0/Khronos/KHR_mesh_quantization
- */
+	 * Mesh Quantization Extension
+	 *
+	 * Specification: https://github.com/KhronosGroup/glTF/tree/master/extensions/2.0/Khronos/KHR_mesh_quantization
+	 */
 class GLTFMeshQuantizationExtension {
 
 	constructor() {
@@ -1777,23 +1577,6 @@ GLTFCubicSplineInterpolant.prototype.interpolate_ = function ( i1, t0, t, t1 ) {
 	return result;
 
 };
-
-const _q = new Quaternion();
-
-class GLTFCubicSplineQuaternionInterpolant extends GLTFCubicSplineInterpolant {
-
-	interpolate_( i1, t0, t, t1 ) {
-
-		const result = super.interpolate_( i1, t0, t, t1 );
-
-		_q.fromArray( result ).normalize().toArray( result );
-
-		return result;
-
-	}
-
-}
-
 
 /*********************************/
 /********** INTERNALS ************/
@@ -1917,8 +1700,8 @@ function resolveURL( url, path ) {
 }
 
 /**
- * Specification: https://github.com/KhronosGroup/glTF/blob/master/specification/2.0/README.md#default-material
- */
+	 * Specification: https://github.com/KhronosGroup/glTF/blob/master/specification/2.0/README.md#default-material
+	 */
 function createDefaultMaterial( cache ) {
 
 	if ( cache[ 'DefaultMaterial' ] === undefined ) {
@@ -1957,9 +1740,9 @@ function addUnknownExtensionsToUserData( knownExtensions, object, objectDef ) {
 }
 
 /**
- * @param {Object3D|Material|BufferGeometry} object
- * @param {GLTF.definition} gltfDef
- */
+	 * @param {Object3D|Material|BufferGeometry} object
+	 * @param {GLTF.definition} gltfDef
+	 */
 function assignExtrasToUserData( object, gltfDef ) {
 
 	if ( gltfDef.extras !== undefined ) {
@@ -1979,13 +1762,13 @@ function assignExtrasToUserData( object, gltfDef ) {
 }
 
 /**
- * Specification: https://github.com/KhronosGroup/glTF/blob/master/specification/2.0/README.md#morph-targets
- *
- * @param {BufferGeometry} geometry
- * @param {Array<GLTF.Target>} targets
- * @param {GLTFParser} parser
- * @return {Promise<BufferGeometry>}
- */
+	 * Specification: https://github.com/KhronosGroup/glTF/blob/master/specification/2.0/README.md#morph-targets
+	 *
+	 * @param {BufferGeometry} geometry
+	 * @param {Array<GLTF.Target>} targets
+	 * @param {GLTFParser} parser
+	 * @return {Promise<BufferGeometry>}
+	 */
 function addMorphTargets( geometry, targets, parser ) {
 
 	let hasMorphPosition = false;
@@ -2052,9 +1835,9 @@ function addMorphTargets( geometry, targets, parser ) {
 }
 
 /**
- * @param {Mesh} mesh
- * @param {GLTF.Mesh} meshDef
- */
+	 * @param {Mesh} mesh
+	 * @param {GLTF.Mesh} meshDef
+	 */
 function updateMorphTargets( mesh, meshDef ) {
 
 	mesh.updateMorphTargets();
@@ -2181,8 +1964,6 @@ class GLTFParser {
 		this.meshCache = { refs: {}, uses: {} };
 		this.cameraCache = { refs: {}, uses: {} };
 		this.lightCache = { refs: {}, uses: {} };
-
-		this.textureCache = {};
 
 		// Track node names, to ensure no duplicates
 		this.nodeNamesUsed = {};
@@ -2748,24 +2529,13 @@ class GLTFParser {
 
 		const textureDef = json.textures[ textureIndex ];
 
-		const cacheKey = ( source.uri || source.bufferView ) + ':' + textureDef.sampler;
-
-		if ( this.textureCache[ cacheKey ] ) {
-
-			// See https://github.com/mrdoob/three.js/issues/21559.
-			return this.textureCache[ cacheKey ];
-
-		}
-
 		const URL = self.URL || self.webkitURL;
 
-		let sourceURI = source.uri || '';
+		let sourceURI = source.uri;
 		let isObjectURL = false;
 		let hasAlpha = true;
 
-		const isJPEG = sourceURI.search( /\.jpe?g($|\?)/i ) > 0 || sourceURI.search( /^data\:image\/jpeg/ ) === 0;
-
-		if ( source.mimeType === 'image/jpeg' || isJPEG ) hasAlpha = false;
+		if ( source.mimeType === 'image/jpeg' ) hasAlpha = false;
 
 		if ( source.bufferView !== undefined ) {
 
@@ -2799,7 +2569,7 @@ class GLTFParser {
 
 		}
 
-		const promise = Promise.resolve( sourceURI ).then( function ( sourceURI ) {
+		return Promise.resolve( sourceURI ).then( function ( sourceURI ) {
 
 			return new Promise( function ( resolve, reject ) {
 
@@ -2809,10 +2579,7 @@ class GLTFParser {
 
 					onLoad = function ( imageBitmap ) {
 
-						const texture = new Texture( imageBitmap );
-						texture.needsUpdate = true;
-
-						resolve( texture );
+						resolve( new CanvasTexture( imageBitmap ) );
 
 					};
 
@@ -2854,16 +2621,7 @@ class GLTFParser {
 
 			return texture;
 
-		} ).catch( function () {
-
-			console.error( 'THREE.GLTFLoader: Couldn\'t load texture', sourceURI );
-			return null;
-
 		} );
-
-		this.textureCache[ cacheKey ] = promise;
-
-		return promise;
 
 	}
 
@@ -2872,7 +2630,7 @@ class GLTFParser {
 	 * @param {Object} materialParams
 	 * @param {string} mapName
 	 * @param {Object} mapDef
-	 * @return {Promise<Texture>}
+	 * @return {Promise}
 	 */
 	assignTexture( materialParams, mapName, mapDef ) {
 
@@ -2904,8 +2662,6 @@ class GLTFParser {
 
 			materialParams[ mapName ] = texture;
 
-			return texture;
-
 		} );
 
 	}
@@ -2926,6 +2682,9 @@ class GLTFParser {
 		const useVertexTangents = geometry.attributes.tangent !== undefined;
 		const useVertexColors = geometry.attributes.color !== undefined;
 		const useFlatShading = geometry.attributes.normal === undefined;
+		const useSkinning = mesh.isSkinnedMesh === true;
+		const useMorphTargets = Object.keys( geometry.morphAttributes ).length > 0;
+		const useMorphNormals = useMorphTargets && geometry.morphAttributes.normal !== undefined;
 
 		if ( mesh.isPoints ) {
 
@@ -2968,14 +2727,17 @@ class GLTFParser {
 		}
 
 		// Clone the material if it will be modified
-		if ( useVertexTangents || useVertexColors || useFlatShading ) {
+		if ( useVertexTangents || useVertexColors || useFlatShading || useSkinning || useMorphTargets ) {
 
 			let cacheKey = 'ClonedMaterial:' + material.uuid + ':';
 
 			if ( material.isGLTFSpecularGlossinessMaterial ) cacheKey += 'specular-glossiness:';
+			if ( useSkinning ) cacheKey += 'skinning:';
 			if ( useVertexTangents ) cacheKey += 'vertex-tangents:';
 			if ( useVertexColors ) cacheKey += 'vertex-colors:';
 			if ( useFlatShading ) cacheKey += 'flat-shading:';
+			if ( useMorphTargets ) cacheKey += 'morph-targets:';
+			if ( useMorphNormals ) cacheKey += 'morph-normals:';
 
 			let cachedMaterial = this.cache.get( cacheKey );
 
@@ -2983,10 +2745,15 @@ class GLTFParser {
 
 				cachedMaterial = material.clone();
 
+				if ( useSkinning ) cachedMaterial.skinning = true;
 				if ( useVertexColors ) cachedMaterial.vertexColors = true;
 				if ( useFlatShading ) cachedMaterial.flatShading = true;
+				if ( useMorphTargets ) cachedMaterial.morphTargets = true;
+				if ( useMorphNormals ) cachedMaterial.morphNormals = true;
 
 				if ( useVertexTangents ) {
+
+					cachedMaterial.vertexTangents = true;
 
 					// https://github.com/mrdoob/three.js/issues/11438#issuecomment-507003995
 					if ( cachedMaterial.normalScale ) cachedMaterial.normalScale.y *= - 1;
@@ -3118,7 +2885,6 @@ class GLTFParser {
 
 		} else {
 
-			materialParams.format = RGBFormat;
 			materialParams.transparent = false;
 
 			if ( alphaMode === ALPHA_MODES.MASK ) {
@@ -3634,9 +3400,7 @@ class GLTFParser {
 							// representing inTangent, splineVertex, and outTangent. As a result, track.getValueSize()
 							// must be divided by three to get the interpolant's sampleSize argument.
 
-							const interpolantType = ( this instanceof QuaternionKeyframeTrack ) ? GLTFCubicSplineQuaternionInterpolant : GLTFCubicSplineInterpolant;
-
-							return new interpolantType( this.times, this.values, this.getValueSize() / 3, result );
+							return new GLTFCubicSplineInterpolant( this.times, this.values, this.getValueSize() / 3, result );
 
 						};
 

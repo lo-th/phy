@@ -93,6 +93,8 @@ export class Pool {
 
 		let name = url.substring( url.lastIndexOf('/')+1, url.lastIndexOf('.') );
 
+		
+
 		if( data[ 'T_' + name ] ) return this.getMap( name, o );
 			
 		return loaderMap.load( url, function ( txt ) { 
@@ -328,8 +330,24 @@ export class Pool {
 			loaderGLTF = new GLTFLoader();//.setPath( './' );
 
 			let dracoLoader = new DRACOLoader().setDecoderPath( 'build/draco/' );
-			let ua = navigator.userAgent.toLowerCase();
-			dracoLoader.setDecoderConfig( { type: (ua.indexOf('safari') !== -1 && ua.indexOf('chrome') === -1) ? 'js' : 'wasm' } );
+
+			let ua, type
+
+			if ( navigator.userAgentData ) {
+
+				//console.log( navigator.userAgentData )
+
+				type = 'wasm'
+			  // use new hints
+			} else {
+			  // fall back to user-agent string parsing
+			  ua = navigator.userAgent.toLowerCase()
+			  type = (ua.indexOf('safari') !== -1 && ua.indexOf('chrome') === -1) ? 'js' : 'wasm'
+
+			}
+
+			
+			dracoLoader.setDecoderConfig( { type: type } );
 
 			loaderGLTF.setDRACOLoader( dracoLoader );
             //loaderGLTF.setDDSLoader( new DDSLoader() );
@@ -410,7 +428,7 @@ export class Pool {
 		let m, name, tName, target, id, g;
 
 		// get mesh list
-		let meshs = Pool.meshList( meshName );
+		let meshs = Pool.getMesh( meshName );
 
 		
 		for( let n in meshs ){

@@ -66,7 +66,8 @@ export class engine {
 		/*if ( e.m === 'add' ) tmpadd.push( e.o )
 		else if ( e.m === 'remove' ) tmpremove.push( e.o )
 		else */
-		engine[ e.m ]( e.o );
+		//if(!engine[ e.m ]) console.log(e.m)
+		if( e.m ) engine[ e.m ]( e.o )
 
 	}
 

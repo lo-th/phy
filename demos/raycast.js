@@ -4,9 +4,16 @@ function demo() {
 
     phy.set({ substep:1, gravity:[0,-9.81,0] })
 
+    phy.add({ type:'plane' })
+
     phy.add({ type:'box', size:[2,0.2,6], rot:[10,0,0], pos:[0,0.85,0], friction:0.8, group:1, mask:2, radius:0.025 })
 
+
     ball = phy.add({ type:'highSphere', name:'ball', size:[0.4], pos:[0,2,-2.5], density:2, friction:0.8, restitution:0.8, group:2, mask:1|2 })
+
+
+    phy.add({ type:'box', name:'bb1', size:[2,3,2], pos:[2,1.5,0], density:2, friction:0.8, restitution:0.8, group:2, mask:1|2 })
+    phy.add({ type:'box', name:'bb2', size:[2,3,2], pos:[-2,1.5,0], density:2, friction:0.8, restitution:0.8, group:2, mask:1|2 })
 
     // ray can be add to scene
     var i = 20, x;
@@ -52,7 +59,7 @@ function Yoch( o ){
 function up () {
 
     // if ball position y is under 10, ball is replaved and velocity reset
-    if( ball.position.y<-1 ) phy.update( { name:'ball', pos: [ math.rand(-0.4,0.4),2,-2.5 ], rot:[math.randInt(-180,180),0,math.randInt(-180,180)], reset:true } )
+    if( ball.position.y<0.38 ) phy.update( { name:'ball', pos: [ math.rand(-0.4,0.4),2,-2.5 ], rot:[math.randInt(-180,180),0,math.randInt(-180,180)], reset:true } )
 
 
 

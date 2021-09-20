@@ -9,7 +9,8 @@ import {
     DoubleSide,
     VertexColors,
     MeshStandardMaterial,
-    MeshBasicMaterial
+    MeshBasicMaterial,
+    sRGBEncoding
 } from '../../../build/three.module.js';
 
 import { BufferGeometryUtils } from '../utils/BufferGeometryUtils.js';
@@ -123,16 +124,17 @@ export class Landscape extends Mesh {
 
         if(this.isWater) maps = ['water'];
 
-        for( var i in maps ){
+        for( let i in maps ){
 
-            name = maps[i];
+            name = maps[i]
+
             txt[name] = Pool.directTexture('./assets/textures/terrain/'+name+'.jpg', { flip:false, repeat:this.uvx, encoding:o.encoding || true , callback: this.mapcallback.bind(this)  });
             txt[name+'_n'] = Pool.directTexture('./assets/textures/terrain/'+name+'_n.jpg', { flip:false, repeat:this.uvx, callback: this.mapcallback.bind(this) });
            // if( isORM )txt[name+'_n'] = Pool.directTexture('./assets/textures/terrain/'+name+'_n.jpg', { flip:false, repeat:this.uvx, callback: this.mapcallback.bind(this) });
 
         }
 
-        this.material = new MeshStandardMaterial({ name:'terrain', vertexColors:VertexColors, color:0xFFFFFF, map:txt[maps[0]], normalMap:txt[maps[0]+'_n'] });
+        this.material = new MeshStandardMaterial({ name:'terrain', vertexColors:VertexColors, color:0xFFFFFF, map:txt[maps[0]], normalMap:txt[maps[0]+'_n'], format:sRGBEncoding });
 
         if( o.envmap !== undefined ) this.material.envMap = o.envmap 
 
@@ -249,10 +251,10 @@ export class Landscape extends Mesh {
 
     mapcallback (){
 
-        this.mapN++;
+        this.mapN++
         if( this.mapN == this.mapMax ){ 
            // this.material.needsUpdate = true;
-            this.callback();
+            this.callback()
         }
 
     }

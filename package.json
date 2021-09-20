@@ -16,7 +16,7 @@
     "extends": "mdcs"
   },
   "scripts": {
-    "all": "npm run build && npm run oimo && npm run ammo",
+    "all": "npm run main && npm run oimo && npm run ammo",
     "build": "npm run oimo && npm run ammo",
     "main": "rollup -c rollup/rollup.config.js",
     "oimo": "rollup -c rollup/rollup.config.oimo.js",

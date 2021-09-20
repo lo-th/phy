@@ -25,9 +25,68 @@ import { Editor } from './editor/Editor.js'
 
 import { Motor } from './motor/Motor.js'
 
+import './jsm/libs/webgl-memory.js';
 
+let fullStat = false
+let devMode = false
 let engineType, version, isWorker, introText
 let engineList = [ 'OIMO','AMMO' ]
+
+
+
+const setting = {
+
+	envmap:'basic',
+	groundSize:[ 200, 200 ],
+	groundAlpha: true,
+	groundOpacity:1,
+	ground:true,
+
+}
+
+const options = {
+
+	demo:'start',
+	envmap:'basic',
+	substep:1,
+	fps:60,
+	gravity:[0,-9.81,0],
+
+	Exposure: 1.25,
+	Shadow:0.5,//0.25,
+
+	ShadowGamma:1,
+	ShadowLuma: 0.75,//0,
+    ShadowContrast: 2.5,//1,
+
+}
+
+
+let dom, camera, controls, scene, renderer, composer, content, dragPlane, followGroup, hideMat, stats, txt, light, light2 = null, ground = null, envui;
+let ray, mouse, oldMouse, isActveMouse = false, mouseDown = false, mouseMove = false, firstSelect = false, selected = null, rayTest = false, controlFirst = true;
+
+let editor = null
+let script = null
+let code = ''
+let isLoadCode = true
+
+
+let needResize = true;
+const Demos = [ 'start', 'basic', 'joint', 'capsule', 'compound', 'bridge', 'gears', 'raycast', 'terrain', 'character', 'car', 'collision', 'mesh', 'kinematic', 'add_remove', 'tower' ]
+const DemosA = [ 'diamond', 'ragdoll', 'chess', 'pinball', 'million', 'desk' ]
+
+Demos.sort();
+DemosA.sort();
+
+const Envs = [ 'basic', 'factory', 'studio', 'beach', 'tomoco', 'tatami', 'box', 'park', 'color', 'room', 'tokyo', 'gallery', 'river', 'cave' ]
+
+//const timer = new Timer(60)
+const size = { w:0, h:0, r:0, left:0 }
+const tm = { now:0, delta:0, then:0, inter: 1000/60, tmp:0, n:0, dt:0, fps:0 }
+
+
+
+let memo = null
 
 export class Main {
 
@@ -42,7 +101,13 @@ export class Main {
 
 		introText = (isWorker ? 'WORKER ' : '') + engineType + ' ' + version 
 
-		if( o.extra ) engineList.push('HIDE')
+		if( o.extra ){
+		    devMode = true
+		    fullStat = true
+			engineList.push('HIDE')
+			Demos.push('empty')
+			//options.demo='empty'
+		}
 
 		o.callback = init
 	    Motor.engine = engineType
@@ -60,11 +125,19 @@ export class Main {
 			}
 		}
 
-		ground.setSize( o.groundSize )
-		ground.setAlphaMap( o.groundAlpha )
-		ground.setOpacity( o.groundOpacity )
+		if(o.ground){
+			if( ground === null ) addGround()
 
-		ground.visible = o.ground
+			ground.setSize( o.groundSize )
+			ground.setAlphaMap( o.groundAlpha )
+			ground.setOpacity( o.groundOpacity )
+
+			//ground.visible = o.ground
+		} else {
+			removeGround()
+		}
+
+		
 
 	}
 
@@ -89,27 +162,8 @@ export class Main {
 }
 
 
-let dom, camera, controls, scene, renderer, composer, content, dragPlane, followGroup, hideMat, stats, txt, light, light2 = null, ground, envui;
-let ray, mouse, oldMouse, isActveMouse = false, mouseDown = false, mouseMove = false, firstSelect = false, selected = null, rayTest = false, controlFirst = true;
-
-let editor = null
-let script = null
-let code = ''
-let isLoadCode = true
 
 
-let needResize = true;
-const Demos = [ 'start', 'basic', 'joint', 'capsule', 'compound', 'bridge', 'gears', 'raycast', 'terrain', 'character', 'car', 'collision', 'mesh', 'kinematic', 'add_remove', 'tower' ]
-const DemosA = [ 'diamond', 'ragdoll', 'chess', 'pinball', 'million', 'desk' ]
-
-Demos.sort();
-DemosA.sort();
-
-const Envs = [ 'basic', 'factory', 'studio', 'beach', 'tomoco', 'tatami', 'box', 'park', 'color', 'room', 'tokyo', 'gallery', 'river', 'cave' ]
-
-//const timer = new Timer(60)
-const size = { w:0, h:0, r:0, left:0 }
-const tm = { now:0, delta:0, then:0, inter: 1000/60, tmp:0, n:0, dt:0, fps:0 };
 
 let g1, g2
 
@@ -140,40 +194,19 @@ window.Diamond = Diamond
 window.Sparkle = Sparkle
 window.Landscape = Landscape
 
-const setting = {
 
-	envmap:'basic',
-	groundSize:[ 200, 200 ],
-	groundAlpha: true,
-	groundOpacity:1,
-	ground:true,
-
-}
-
-const options = {
-
-	demo:'start',
-	envmap:'basic',
-	substep:1,
-	fps:60,
-	gravity:[0,-9.81,0],
-
-	Exposure: 1.25,
-	Shadow:0.5,//0.25,
-
-	ShadowGamma:1,
-	ShadowLuma: 0.75,//0,
-    ShadowContrast: 2.5,//1,
-
-}
 
 function init() {
 
-	content = Motor.getScene();
+	let pixelRatio = window.devicePixelRatio
+	let AA = pixelRatio > 1 ? false : true
+	if( pixelRatio > 2 ) pixelRatio = 2
 
-	mouse = new THREE.Vector2();
-	oldMouse = new THREE.Vector2();
-	ray = new THREE.Raycaster();
+	content = Motor.getScene()
+
+	mouse = new THREE.Vector2()
+	oldMouse = new THREE.Vector2()
+	ray = new THREE.Raycaster()
 
 	size.w = window.innerWidth
 	size.h = window.innerHeight
@@ -182,17 +215,21 @@ function init() {
 	Shader.init( options )
 
 	scene = new THREE.Scene()
-	scene.background = new THREE.Color( 0x000000 );
+	scene.background = new THREE.Color( 0x000000 )
+	scene.matrixAutoUpdate = false
+	//scene.autoUpdate = false // 
 
-	renderer = new THREE.WebGLRenderer( { antialias: true } )
-	renderer.setPixelRatio( 1 )//window.devicePixelRatio
+	renderer = new THREE.WebGLRenderer( { antialias: AA, powerPreference: "high-performance" } )
+	renderer.setPixelRatio( pixelRatio )
 	renderer.setSize( size.w, size.h )
 	renderer.outputEncoding = THREE.sRGBEncoding
 	renderer.toneMapping = THREE.ACESFilmicToneMapping
 	renderer.physicallyCorrectLights = true
-	renderer.toneMappingExposure = 0
+	renderer.toneMappingExposure = 0;// def : 1
 
 	Shader.setGl2( renderer.capabilities.isWebGL2 );
+
+	if( fullStat ) memo = renderer.getContext().getExtension('GMAN_webgl_memory')
 
 	document.body.appendChild( renderer.domElement )
 	dom = renderer.domElement;
@@ -270,7 +307,6 @@ function init() {
 
 	composer = new Composer( renderer, scene, camera, controls, size );
 
-
 	hideMat = new THREE.ShaderMaterial({ fragmentShader:'void main() {gl_FragColor = vec4( 0.0 );}', transparent:true, depthTest:false, depthWrite:false });
 
 	window.addEventListener( 'resize', onResize )
@@ -299,20 +335,7 @@ function next () {
 
 	//let info = Env.getData()
 
-	// add reflect ground
-	ground = new Reflector({
-
-    	textureSize: 2048,
-        clipBias:0.003,
-        encoding:true,
-        reflect:0.8,
-        //color:info.fog,
-        round:true
-
-    })
-    
-    scene.add( ground )
-    //reflector.renderDepth = 1
+	
 
     Motor.setContent( scene );
     Motor.setControl( controls );
@@ -338,6 +361,33 @@ function next () {
 	//loadDemo( options.demo )
 
 	Pool.load(['./assets/libs/esprima.hex'], testingScript )
+
+}
+
+function addGround () {
+
+	// add reflect ground
+	ground = new Reflector({
+
+    	textureSize: 2048,
+        clipBias:0.003,
+        encoding:true,
+        reflect:0.8,
+        //color:info.fog,
+        round:true
+
+    })
+    
+    scene.add( ground )
+    //reflector.renderDepth = 1
+}
+
+function removeGround () {
+
+	if(ground=== null) return
+
+	scene.remove( ground )
+    ground = null
 
 }
 
@@ -445,6 +495,8 @@ function render ( stamp ) {
 		if ( tm.now - 1000 > tm.tmp ){ tm.tmp = tm.now; tm.fps = tm.n; tm.n = 0; }; tm.n++;
 
 		hub.setFps( 'T: '+ tm.fps + ' | P: '+ Motor.getFps() )
+
+		getFullStats()
 
 
 
@@ -678,4 +730,13 @@ function unSelect () {
 	firstSelect = true
 	controls.enabled = true
 
+}
+
+function getFullStats() {
+    if (memo) {
+        const info = memo.getMemoryInfo();
+        //document.querySelector('#info').textContent = JSON.stringify(info, null, 2);
+
+        hub.setStats( info )
+    }
 }

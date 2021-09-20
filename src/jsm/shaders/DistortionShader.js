@@ -1,3 +1,6 @@
+//import { Vector2 } from '../../../build/three.module.js';
+
+
 /**
  * Distortion shader
  * based on Giliam de Carpentier's shader for lens distortion
@@ -8,6 +11,7 @@ const DistortionShader = {
 	uniforms: {
 
 		'tDiffuse': { value: null },
+        //'resolution': { value: new Vector2() },
 		'strength': { value: 0 },
 		'height': { value: 1 },
 		'aspectRatio': { value: 1 },
