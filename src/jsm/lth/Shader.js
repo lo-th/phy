@@ -9,8 +9,10 @@ let isGL2 = true;
 
 const uniforms = {
 
-	renderMode: { value: 0 },
-	fogTime: { value: 0.0 },
+	renderMode: { value: 2 },
+    depthPacking: { value: 0 },
+
+	time: { value: 0.0 },
 
 	Shadow: { value: 0.25 },
     ShadowLuma: { value: 0 },
@@ -41,6 +43,12 @@ export class Shader {
             uniform float ShadowContrast;
             uniform float ShadowGamma;
 
+            uniform int renderMode;
+            uniform int depthPacking;
+
+            varying vec2 vZW;
+
+
             vec3 brightnessContrastCorrection(vec3 value, float brightness, float contrast){
                 return (value - 0.5) * contrast + 0.5 + brightness;
             }
@@ -53,6 +61,19 @@ export class Shader {
 
         ShaderChunk.common = s;
 
+
+        /**/
+
+        s = ShaderChunk.fog_vertex;
+
+        s = s.replace( '#ifdef USE_FOG', `
+            vZW = gl_Position.zw;
+            #ifdef USE_FOG
+        `);
+
+        ShaderChunk.fog_vertex = s;
+
+
         
 
         //THREE.ShaderChunk.lights_fragment_begin = s;
@@ -63,6 +84,7 @@ export class Shader {
         s = s.replace( '#if NUM_CLIPPING_PLANES > 0', `
         	vec3 shadowR = vec3(1.0);
             vec3 shadowF = vec3(1.0);
+
 
         	#if NUM_CLIPPING_PLANES > 0
         `);
@@ -124,7 +146,7 @@ export class Shader {
         THREE.ShaderChunk.tonemapping_fragment = s;*/
 
 
-       s = ShaderChunk.fog_fragment;
+        s = ShaderChunk.fog_fragment;
 
         s = s.replace( '#ifdef USE_FOG', `
 
@@ -146,17 +168,30 @@ export class Shader {
 
         //console.log('shadow modif on')
 
-        /*s = THREE.ShaderChunk.dithering_fragment;
+        s = THREE.ShaderChunk.dithering_fragment;
 
-        s = s.replace( '#ifdef DITHERING', `
-            #if defined( USE_SHADOWMAP )
-            gl_FragColor.rgb = mix( gl_FragColor.rgb, gl_FragColor.rgb * shadowR, Shadow);
+        s = s.replace( '#endif', `
+
             #endif
 
-            #ifdef DITHERING
+            #ifdef STANDARD
+
+            if( renderMode == 1 ){ 
+                float fz = 0.5 * vZW[0] / vZW[1] + 0.5;
+                gl_FragColor = depthPacking == 1 ? packDepthToRGBA( fz ) : vec4( vec3( 1.0 - fz ), opacity );// depth render
+            }
+            if( renderMode == 2 ) gl_FragColor = vec4(  packNormalToRGB( normal ), opacity );// normal render
+            if( renderMode == 3 ) gl_FragColor = vec4(  shadowF, opacity );// normal render
+
+            #else
+
+            if( renderMode != 0 ) discard;
+
+            #endif
+
         `);
 
-        THREE.ShaderChunk.dithering_fragment = s;*/
+        THREE.ShaderChunk.dithering_fragment = s;
 
 
 

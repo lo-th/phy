@@ -9,20 +9,19 @@ import { RGBELoader } from '../loaders/RGBELoader.js';
 
 let env = null;
 let data = {};
-
+let color =  new Color();
 let light = null, scene = null, renderer = null, light2 = null;
 
 export class Env {
 
-	static get (){
+	static get (){ return env }
 
-        return env;
+	static getData (){ return data }
 
-	}
+	static setBackgroud ( c ) {
 
-	static getData (){
-
-        return data;
+		if( c !== undefined ) scene.background = color.setHex(c);
+		else scene.background = env
 
 	}
 
@@ -30,10 +29,10 @@ export class Env {
 
 		data = {};
 
-		if(Renderer) renderer = Renderer;
-		if(Scene) scene = Scene;
-		if(Light) light = Light;
-		if(Light2) light2 = Light2;
+		if(Renderer) renderer = Renderer
+		if(Scene) scene = Scene
+		if(Light) light = Light
+		if(Light2) light2 = Light2
 
 
 		autosun = autosun !== undefined ? autosun : true;
@@ -45,7 +44,7 @@ export class Env {
 
 			env = pmremGenerator.fromEquirectangular( texture ).texture;
 
-			if( autosun )Env.autoSun( texture.image, 'hdr', renderer );
+			if( autosun ) Env.autoSun( texture.image, 'hdr', renderer );
 			
 			if( scene ) {
 				scene.background = env;

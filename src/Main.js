@@ -11,10 +11,10 @@ import { Controller } from './jsm/lth/Controller.js'
 import { Shader } from './jsm/lth/Shader.js'
 import { Reflector } from './jsm/lth/Reflector.js'
 import { Landscape } from './jsm/lth/Landscape.js'
-import { Env } from './jsm/lth/Env.js'
 import { Pool } from './jsm/lth/Pool.js'
 import { math } from './jsm/lth/math.js'
-import { hub } from './jsm/lth/hub.js'
+import { Hub } from './jsm/lth/Hub.js'
+import { Env } from './jsm/lth/Env.js'
 import { Timer } from './jsm/lth/Timer.js'
 
 import { Building } from './jsm/lth/Building.js'
@@ -58,6 +58,8 @@ const options = {
 	ShadowGamma:1,
 	ShadowLuma: 0.75,//0,
     ShadowContrast: 2.5,//1,
+
+    renderMode:0,
 
 }
 
@@ -179,7 +181,7 @@ Motor.get = Pool.get;
 
 
 
-Motor.log = hub.log;
+Motor.log = Hub.log;
 
 Motor.view = Main.view;
 
@@ -283,7 +285,9 @@ function init() {
 
 	// CAMERA / CONTROLER
 
-	camera = new THREE.PerspectiveCamera( 50, size.r, 0.02, 1000 )
+	//camera = new THREE.PerspectiveCamera( 50, size.r, 0.02, 1000 )
+
+	camera = new THREE.PerspectiveCamera( 50, size.r, 0.1, 200 )
 	camera.position.set( 0, 8, 10 )
 	camera.lookAt( 0, 2, 0 )
 
@@ -307,13 +311,14 @@ function init() {
 
 	composer = new Composer( renderer, scene, camera, controls, size );
 
-	hideMat = new THREE.ShaderMaterial({ fragmentShader:'void main() {gl_FragColor = vec4( 0.0 );}', transparent:true, depthTest:false, depthWrite:false });
+	hideMat = new THREE.ShaderMaterial({ fragmentShader:'void main() { gl_FragColor = vec4( 0.0 );}', transparent:true, depthTest:false, depthWrite:false });
+	//hideMat = new THREE.ShaderMaterial({ fragmentShader:'void main() {discard;}', transparent:false, depthTest:false, depthWrite:false });
 
 	window.addEventListener( 'resize', onResize )
 
 	activeDragMouse( true )
 
-	hub.init( camera, size, introText )
+	Hub.init( camera, size, introText )
 
 	editor = new Editor()
 
@@ -354,7 +359,7 @@ function next () {
 
     initGUI()
 
-    hub.endLoading()
+    Hub.endLoading()
 
 	new TWEEN.Tween( { a:0 } ).to( { a:options.Exposure }, 3000 ).onUpdate(function(o){ renderer.toneMappingExposure = math.toFixed(o.a,3) }).easing( TWEEN.Easing.Quadratic.In ).start()
 
@@ -419,7 +424,7 @@ function inject ( newCode ) {
 	code = isLoadCode ? Pool.getScript( options.demo ) : newCode
 
 	if(window['onReset']) window['onReset']()
-	hub.log();
+	Hub.log();
 
 	phy.reset( refreshCode )
 
@@ -476,7 +481,7 @@ function render ( stamp ) {
 		camera.updateProjectionMatrix()
 		renderer.setSize( size.w, size.h )
 		composer.resize( size )
-		hub.update( size, '' )
+		Hub.update( size, '' )
 
 	}
 
@@ -494,7 +499,7 @@ function render ( stamp ) {
 		// three fps
 		if ( tm.now - 1000 > tm.tmp ){ tm.tmp = tm.now; tm.fps = tm.n; tm.n = 0; }; tm.n++;
 
-		hub.setFps( 'T: '+ tm.fps + ' | P: '+ Motor.getFps() )
+		Hub.setFps( 'T: '+ tm.fps + ' | P: '+ Motor.getFps() )
 
 		getFullStats()
 
@@ -536,6 +541,18 @@ function initGUI () {
 	// DISPLAY
 
 	let grV = ui.add('group', { name:'DISPLAY', h:30 })
+
+	grV.add( options, 'renderMode', { type:'selector', values:[0,1,2,3], selectable:true, p:0, h:24 }).onChange( function(n){ 
+
+		//if( camera.near!== 0.1 ){camera.near = 0.1; camera.updateProjectionMatrix();}
+		if( n===1 ) { Env.setBackgroud(0x000000 ); /*camera.near = 1; camera.updateProjectionMatrix();*/}
+		else if( n===2 ) Env.setBackgroud(0x7777ff)
+		else if( n===2 ) Env.setBackgroud(0xffffff)
+		else Env.setBackgroud()
+
+		Hub.setRenderMode(n)
+		Shader.up( options ) 
+	})
 
 	grV.add( options, 'Exposure', {min:0, max:4} ).onChange( function( v ){ renderer.toneMappingExposure = v } )
 
@@ -737,6 +754,7 @@ function getFullStats() {
         const info = memo.getMemoryInfo();
         //document.querySelector('#info').textContent = JSON.stringify(info, null, 2);
 
-        hub.setStats( info )
+        Hub.setStats( info )
+
     }
 }

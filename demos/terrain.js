@@ -36,8 +36,6 @@ function demo() {
 
 function addLand (){
 
-	console.log('is add')
-
     phy.add({
         type:'mesh',
         isTerrain:true,
