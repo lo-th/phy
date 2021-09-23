@@ -27,7 +27,12 @@ export class Env {
 
 	static load ( url, callback, Renderer, Scene, Light, Light2, autosun ) {
 
-		data = {};
+		data = {
+			pos: new Vector3(0,1,0),
+			sun: new Color(0xffffff),
+			fog: new Color(0x000000),
+			envmap:null,
+		}
 
 		if(Renderer) renderer = Renderer
 		if(Scene) scene = Scene
@@ -44,7 +49,7 @@ export class Env {
 
 			env = pmremGenerator.fromEquirectangular( texture ).texture;
 
-			if( autosun ) Env.autoSun( texture.image, 'hdr', renderer );
+			if( autosun ) Env.autoSun( texture.image, 'hdr' );
 			
 			if( scene ) {
 				scene.background = env;
@@ -71,15 +76,16 @@ export class Env {
 			texture.dispose();
 			pmremGenerator.dispose();
 
-			data['envmap'] = env;
+			//data['envmap'] = env;
 
-			if( callback ) callback( data );
+			if( callback ) callback();
 
 		});
 
+
 	}
 
-	static autoSun ( image, format, renderer, preview ) {
+	static autoSun ( image, format, preview ) {
 
 		let d = image.data;
 		let lng = d.length/4;
@@ -201,6 +207,7 @@ export class Env {
 		//return { pos:sunPosition, color:sunColor, fog:fogColor };
 
 	}
+
 
 
 

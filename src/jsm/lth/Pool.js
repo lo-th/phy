@@ -19,6 +19,8 @@ const data = {};
 const geo = {};
 const materials = {};
 
+let extraMaterial = null;
+
 let id = 0;
 let loaderMap = null;
 let loaderGLTF = null;
@@ -28,6 +30,10 @@ let tmp = [];
 let inLoad = false;
 
 export class Pool {
+
+	static setExtraMaterial ( f ){
+		return extraMaterial = f
+	}
 
 
 	// --------------------------
@@ -354,7 +360,16 @@ export class Pool {
 
 		}
 
-		loaderGLTF.load( url, function ( gltf ) { Pool.set( name, gltf.scene ) })
+		loaderGLTF.load( url, function ( gltf ) { 
+
+			if( extraMaterial !== null ) {
+				// modify base shader
+				gltf.scene.traverse( function ( node ) {
+					if( node.isMesh ) extraMaterial( node.material )
+				})
+			}
+			Pool.set( name, gltf.scene ) 
+		})
 
 	}
 

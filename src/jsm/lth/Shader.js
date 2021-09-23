@@ -3,9 +3,13 @@ import {
 } from '../../../build/three.module.js';
 
 
-const shaders = [];
+//const shaders = [];
 
 let isGL2 = true;
+
+const mats = {}
+
+const defines = {}
 
 const uniforms = {
 
@@ -19,23 +23,49 @@ const uniforms = {
     ShadowContrast: { value: 1 },
     ShadowGamma: { value: 0.25 },
 	//shadowAlpha: { value: 1.0 }
+
+    lightSizeUV: { value: 1.3 },
+    nearPlane: { value: 9.5 },
+    rings:{ value: 11 },
+    nSample:{ value: 17 },
 };
 
 
 export class Shader {
 
-    static setGl2 ( b ) { isGL2 = b; }
-    static getGl2 ( b ) { return isGL2; }
+    static setGl2 ( b ) { isGL2 = b }
+    static getGl2 ( b ) { return isGL2 }
 
 	static init ( o = {} ) {
 
+        let s
+
         this.up( o );
 
-        //if( o.shadow ) uniforms.Shadow.value = o.shadow;
+        if( o.shadowPCSS ) {
+
+            //defines['NUM_SAMPLES'] = 17
+            //defines['NUM_RINGS'] = 11
+
+            s = ShaderChunk.shadowmap_pars_fragment
+
+            s = s.replace(
+                '#ifdef USE_SHADOWMAP', shadowPCSS
+            )
+
+            s = s.replace(
+                '#if defined( SHADOWMAP_TYPE_PCF )',`
+                return PCSS( shadowMap, shadowCoord );
+                #if defined( SHADOWMAP_TYPE_PCF )
+            `)
+
+            ShaderChunk.shadowmap_pars_fragment = s
+
+        }
 
 		//return;
 
-		let s = ShaderChunk.common;
+		s = ShaderChunk.common;
         s = s.replace( '#define EPSILON 1e-6', `
         	#define EPSILON 1e-6
         	uniform float Shadow;
@@ -47,6 +77,28 @@ export class Shader {
             uniform int depthPacking;
 
             varying vec2 vZW;
+
+            float color_distance( vec3 a, vec3 b){
+                vec3 s = vec3( a - b );
+                float dist = sqrt( s.r * s.r + s.g * s.g + s.b * s.b );
+                return clamp(dist, 0.0, 1.0);
+            }
+
+            vec3 rgb2hsv(vec3 c){
+                vec4 K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);
+                vec4 p = mix(vec4(c.bg, K.wz), vec4(c.gb, K.xy), step(c.b, c.g));
+                vec4 q = mix(vec4(p.xyw, c.r), vec4(c.r, p.yzx), step(p.x, c.r));
+
+                float d = q.x - min(q.w, q.y);
+                float e = 1.0e-10;
+                return vec3(abs(q.z + (q.w - q.y) / (6.0 * d + e)), d / (q.x + e), q.x);
+            }
+
+            vec3 hsv2rgb(vec3 c){
+                vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
+                vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);
+                return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
+            }
 
 
             vec3 brightnessContrastCorrection(vec3 value, float brightness, float contrast){
@@ -153,11 +205,53 @@ export class Shader {
         	#if defined( USE_SHADOWMAP )
             shadowF = brightnessContrastCorrection( shadowF, ShadowLuma, ShadowContrast );
             shadowF = GammaCorrection( shadowF, ShadowGamma );
-
             shadowF = clamp( shadowF, 0.0, 1.0 );
 
+            float shadV = shadowF.r;
+
             //gl_FragColor *= vec4( shad, Shadow );
-        	gl_FragColor.rgb = mix( gl_FragColor.rgb, gl_FragColor.rgb * shadowF.rgb, Shadow );
+            vec3 invColor = vec3(1.0 - gl_FragColor.rgb);
+            //vec3 invShadow = vec3(1.0 - shadowF);
+
+
+            vec3 cc = rgb2hsv( invColor );
+            cc.r += 0.1; // teint
+            cc.g *= 2.0; // saturation
+            cc.b *= 0.25; // luma
+            invColor = hsv2rgb( cc );
+
+
+            //float match = 1.0 - color_distance(fragment.rgb, old);
+            //fragment.rgb -= match * old;
+            //fragment.rgb += match * new;
+
+            //float match = 1.0 - color_distance(shadowF, vec3(0.0));
+            //shadowF -= match * vec3(0.0);
+            //shadowF += match * invColor;
+
+            //shadowF.rgb = mix( gl_FragColor.rgb, invColor-shadV, 1.0-shadV );
+
+
+
+            //vec3 shadowColor = gl_FragColor.rgb;
+            //shadowColor -= match * shadowColor;
+            //shadowColor.rgb += match * invColor;
+
+            //gl_FragColor.rgb = mix( gl_FragColor.rgb, gl_FragColor.rgb * shadowColor, Shadow );
+
+
+
+
+            //gl_FragColor.rgb = mix( gl_FragColor.rgb, (gl_FragColor.rgb * shadowF), Shadow );
+
+            //gl_FragColor.rgb = invColor;
+
+            //gl_FragColor.rgb = mix( gl_FragColor.rgb, gl_FragColor.rgb * shadowF, (1.0-shadV) * Shadow );
+
+            gl_FragColor.rgb = mix( gl_FragColor.rgb, invColor, (1.0-shadV) * Shadow );
+
+            //
+
         	#endif
 
         	#ifdef USE_FOG
@@ -204,20 +298,37 @@ export class Shader {
 	}
 
     static add ( m ) {
+
+        //mats[m.name] = m
         
         m.shadowSide = DoubleSide;
 
         m.onBeforeCompile = function ( shader ) {
             Shader.modify( shader );
-        }// Shader.modify;
+        }
 
-        //console.log(m)
+        /*if(!m.defines){ 
+            m.defines = defines
+        } else {
+            Shader.setDefines( m )
+        }*/
+
+    }  
+
+    static setDefines ( m ) {
+        
+        //for( var o in defines ) m.defines[o] = defines[o]
+
+        //if(!mats[m.name]) mats[m.name] = m
+
+       // console.log(m.name)
+
     }
 
 
     static modify ( s ) {
 
-       shaders.push( s );
+       //shaders.push( s );
        // apply global uniform
        for( let n in uniforms ){
 
@@ -246,6 +357,17 @@ export class Shader {
                 else uniforms[n].value = o[n];
 
             }
+
+            /*if( defines[n] ){
+
+                for( let m in mats ){ 
+                    console.log(m)
+                    mats[m].defines[n] = o[n]
+                }
+
+            }*/
+            
+
         }
 
     	/*for ( let s of shaders ){
@@ -267,3 +389,103 @@ export class Shader {
 
 
 
+const shadowPCSS = `
+#ifdef USE_SHADOWMAP
+
+uniform float lightSizeUV;
+uniform float nearPlane;
+uniform float rings;
+uniform int nSample;
+
+//#define LIGHT_WORLD_SIZE 0.005
+//#define LIGHT_FRUSTUM_WIDTH 3.75
+//#define LIGHT_SIZE_UV (LIGHT_WORLD_SIZE / LIGHT_FRUSTUM_WIDTH)
+//#define NEAR_PLANE 9.5
+
+#define NUM_SAMPLES 17
+
+vec2 poissonDisk[32];
+
+void initPoissonSamples( const in vec2 randomSeed ) {
+
+    int numSample = nSample;
+
+    float ANGLE_STEP = PI2 * rings / float( numSample );
+    float INV_NUM_SAMPLES = 1.0 / float( numSample );
+
+    // jsfiddle that shows sample pattern: https://jsfiddle.net/a16ff1p7/
+    float angle = rand( randomSeed ) * PI2;
+    float radius = INV_NUM_SAMPLES;
+    float radiusStep = radius;
+
+    for( int i = 0; i < numSample; i ++ ) {
+        poissonDisk[i] = vec2( cos( angle ), sin( angle ) ) * pow( radius, 0.75 );
+        radius += radiusStep;
+        angle += ANGLE_STEP;
+    }
+}
+
+float penumbraSize( const in float zReceiver, const in float zBlocker ) { // Parallel plane estimation
+    return (zReceiver - zBlocker) / zBlocker;
+}
+
+float findBlocker( sampler2D shadowMap, const in vec2 uv, const in float zReceiver, float ls ) {
+    // This uses similar triangles to compute what
+    // area of the shadow map we should search
+    float searchRadius = ls * ( zReceiver - nearPlane ) / zReceiver;
+    float blockerDepthSum = 0.0;
+    int numBlockers = 0;
+
+    int numSample = nSample;
+
+    for( int i = 0; i < numSample; i++ ) {
+        float shadowMapDepth = unpackRGBAToDepth(texture2D(shadowMap, uv + poissonDisk[i] * searchRadius));
+        if ( shadowMapDepth < zReceiver ) {
+            blockerDepthSum += shadowMapDepth;
+            numBlockers ++;
+        }
+    }
+
+    if( numBlockers == 0 ) return -1.0;
+
+    return blockerDepthSum / float( numBlockers );
+}
+
+float PCF_Filter(sampler2D shadowMap, vec2 uv, float zReceiver, float filterRadius ) {
+    int numSample = nSample;
+    float sum = 0.0;
+    for( int i = 0; i < numSample; i ++ ) {
+        float depth = unpackRGBAToDepth( texture2D( shadowMap, uv + poissonDisk[ i ] * filterRadius ) );
+        if( zReceiver <= depth ) sum += 1.0;
+    }
+    for( int i = 0; i < numSample; i ++ ) {
+        float depth = unpackRGBAToDepth( texture2D( shadowMap, uv + -poissonDisk[ i ].yx * filterRadius ) );
+        if( zReceiver <= depth ) sum += 1.0;
+    }
+    return sum / ( 2.0 * float( numSample ) );
+}
+
+float PCSS ( sampler2D shadowMap, vec4 coords ) {
+
+    vec2 uv = coords.xy;
+    float zReceiver = coords.z; // Assumed to be eye-space z in this code
+    //float lightSizeUV = LIGHT_WORLD_SIZE / LIGHT_FRUSTUM_WIDTH;
+
+    float ls = lightSizeUV * 0.001;
+
+    initPoissonSamples( uv );
+    // STEP 1: blocker search
+    float avgBlockerDepth = findBlocker( shadowMap, uv, zReceiver, ls );
+
+    //There are no occluders so early out (this saves filtering)
+    if( avgBlockerDepth == -1.0 ) return 1.0;
+
+    // STEP 2: penumbra size
+    float penumbraRatio = penumbraSize( zReceiver, avgBlockerDepth );
+    float filterRadius = penumbraRatio * ls * nearPlane / zReceiver;
+
+    // STEP 3: filtering
+    //return avgBlockerDepth;
+    return PCF_Filter( shadowMap, uv, zReceiver, filterRadius );
+}
+`

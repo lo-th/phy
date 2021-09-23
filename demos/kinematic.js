@@ -15,6 +15,9 @@ function onComplete(){
 
     const model = phy.getMesh('fan')
 
+    //phy.mat( model.fan.material )
+
+
     const shapes = []
 
     let i = 7
@@ -75,7 +78,7 @@ function onComplete(){
 
     }
 
-    phy.setPostUpdate ( update )
+    phy.setPostUpdate( update )
 
 
 }

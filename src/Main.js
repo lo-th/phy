@@ -1,7 +1,6 @@
 import * as THREE from '../build/three.module.js'
-
-import * as UIL from './jsm/libs/uil.module.js'
 import * as TWEEN from './jsm/libs/tween.esm.js'
+import * as UIL from './jsm/libs/uil.module.js'
 
 import { OrbitControls } from './jsm/controls/OrbitControls.js'
 
@@ -9,14 +8,15 @@ import { Composer } from './jsm/lth/Composer.js'
 import { Controller } from './jsm/lth/Controller.js'
 
 import { Shader } from './jsm/lth/Shader.js'
-import { Reflector } from './jsm/lth/Reflector.js'
-import { Landscape } from './jsm/lth/Landscape.js'
+
 import { Pool } from './jsm/lth/Pool.js'
 import { math } from './jsm/lth/math.js'
 import { Hub } from './jsm/lth/Hub.js'
 import { Env } from './jsm/lth/Env.js'
 import { Timer } from './jsm/lth/Timer.js'
 
+import { Reflector } from './jsm/lth/Reflector.js'
+import { Landscape } from './jsm/lth/Landscape.js'
 import { Building } from './jsm/lth/Building.js'
 import { Diamond } from './jsm/lth/Diamond.js'
 import { Sparkle } from './jsm/lth/Sparkle.js'
@@ -61,9 +61,17 @@ const options = {
 
     renderMode:0,
 
+    shadowPCSS:true,
+
+    lightSizeUV:1.3,
+    nearPlane:9.5,
+    rings:11,
+    nSample:17,
+
 }
 
 
+let g1, g2
 let dom, camera, controls, scene, renderer, composer, content, dragPlane, followGroup, hideMat, stats, txt, light, light2 = null, ground = null, envui;
 let ray, mouse, oldMouse, isActveMouse = false, mouseDown = false, mouseMove = false, firstSelect = false, selected = null, rayTest = false, controlFirst = true;
 
@@ -71,7 +79,7 @@ let editor = null
 let script = null
 let code = ''
 let isLoadCode = true
-
+let quality = 2
 
 let needResize = true;
 const Demos = [ 'start', 'basic', 'joint', 'capsule', 'compound', 'bridge', 'gears', 'raycast', 'terrain', 'character', 'car', 'collision', 'mesh', 'kinematic', 'add_remove', 'tower' ]
@@ -85,7 +93,6 @@ const Envs = [ 'basic', 'factory', 'studio', 'beach', 'tomoco', 'tatami', 'box',
 //const timer = new Timer(60)
 const size = { w:0, h:0, r:0, left:0 }
 const tm = { now:0, delta:0, then:0, inter: 1000/60, tmp:0, n:0, dt:0, fps:0 }
-
 
 
 let memo = null
@@ -127,7 +134,7 @@ export class Main {
 			}
 		}
 
-		if(o.ground){
+		if( o.ground ){
 			if( ground === null ) addGround()
 
 			ground.setSize( o.groundSize )
@@ -138,8 +145,6 @@ export class Main {
 		} else {
 			removeGround()
 		}
-
-		
 
 	}
 
@@ -165,10 +170,6 @@ export class Main {
 
 
 
-
-
-let g1, g2
-
 //window.rand = Motor.rand
 
 
@@ -178,6 +179,8 @@ Motor.getMesh = Pool.getMesh;
 Motor.getGroup = Pool.getGroup;
 Motor.getMap = Pool.getMap;
 Motor.get = Pool.get;
+
+Pool.setExtraMaterial( function(m){ if( m ) Shader.add( m ) } );
 
 
 
@@ -191,10 +194,11 @@ window.Main = Main
 
 window.THREE = THREE
 
+window.Landscape = Landscape
 window.Building = Building
 window.Diamond = Diamond
 window.Sparkle = Sparkle
-window.Landscape = Landscape
+
 
 
 
@@ -218,10 +222,10 @@ function init() {
 
 	scene = new THREE.Scene()
 	scene.background = new THREE.Color( 0x000000 )
-	scene.matrixAutoUpdate = false
+	//scene.matrixAutoUpdate = false
 	//scene.autoUpdate = false // 
 
-	renderer = new THREE.WebGLRenderer( { antialias: AA, powerPreference: "high-performance" } )
+	renderer = new THREE.WebGLRenderer( { antialias: AA, /*powerPreference: "high-performance"*/ } )
 	renderer.setPixelRatio( pixelRatio )
 	renderer.setSize( size.w, size.h )
 	renderer.outputEncoding = THREE.sRGBEncoding
@@ -248,22 +252,23 @@ function init() {
 
 	let s = light.shadow
 	
-	s.mapSize.setScalar( 2048 );
-	s.camera.top = s.camera.right = 30
-	s.camera.bottom = s.camera.left = - 30
-	s.camera.near = 5
+	s.mapSize.setScalar( 1024 * quality );
+	s.camera.top = s.camera.right = 20
+	s.camera.bottom = s.camera.left = -20
+	s.camera.near = 10
 	s.camera.far = 40
 
-	s.bias = -0.0001
-	s.normalBias = 0.05;
-	s.radius = 4
+	s.bias = -0.0005
+	s.normalBias = 0.0075//0.05
+	s.radius = 2
+	s.blurSamples = 8 // only for VSM !
 
 	//console.log(s.bias, s.radius)
 	
 
 	light.castShadow = true
 	renderer.shadowMap.enabled = true
-	//renderer.shadowMap.type = THREE.PCFSoftShadowMap
+	renderer.shadowMap.type = THREE.PCFSoftShadowMap
 	//renderer.shadowMap.type = THREE.VSMShadowMap
 
 	followGroup.add( light )
@@ -287,12 +292,18 @@ function init() {
 
 	//camera = new THREE.PerspectiveCamera( 50, size.r, 0.02, 1000 )
 
-	camera = new THREE.PerspectiveCamera( 50, size.r, 0.1, 200 )
+	camera = new THREE.PerspectiveCamera( 50, size.r, 1, 200 )
 	camera.position.set( 0, 8, 10 )
 	camera.lookAt( 0, 2, 0 )
 
 	controls = new Controller( camera, renderer.domElement, followGroup )
 	controls.target.y = 2
+	controls.minDistance = 1
+    controls.maxDistance = 100
+    controls.enableDamping = true // an animation loop is required when either damping or auto-rotation are enabled
+    controls.dampingFactor = 0.5//0.25;
+    controls.screenSpacePanning = true
+    //controls.maxPolarAngle = Math.PI / 2
 	controls.update()
 
 	controls.addEventListener( 'end', function ( e ){ controlFirst = true; rayTest = true; } );
@@ -311,7 +322,7 @@ function init() {
 
 	composer = new Composer( renderer, scene, camera, controls, size );
 
-	hideMat = new THREE.ShaderMaterial({ fragmentShader:'void main() { gl_FragColor = vec4( 0.0 );}', transparent:true, depthTest:false, depthWrite:false });
+	//hideMat = new THREE.ShaderMaterial({ fragmentShader:'void main() { gl_FragColor = vec4( 0.0 );}', transparent:true, depthTest:false, depthWrite:false });
 	//hideMat = new THREE.ShaderMaterial({ fragmentShader:'void main() {discard;}', transparent:false, depthTest:false, depthWrite:false });
 
 	window.addEventListener( 'resize', onResize )
@@ -332,15 +343,9 @@ function next () {
 	let mat = Motor.getMat()
 
 	// custom shadow for default motor material
-	for( let m in mat ){ 
-		//mat[m].metalness = 0.75
-		//mat[m].roughness = 0.25
-		Shader.add( mat[m] )
-	}
+	for( let m in mat ) Shader.add( mat[m] )
 
-	//let info = Env.getData()
-
-	
+	hideMat = mat['hide']
 
     Motor.setContent( scene );
     Motor.setControl( controls );
@@ -545,9 +550,9 @@ function initGUI () {
 	grV.add( options, 'renderMode', { type:'selector', values:[0,1,2,3], selectable:true, p:0, h:24 }).onChange( function(n){ 
 
 		//if( camera.near!== 0.1 ){camera.near = 0.1; camera.updateProjectionMatrix();}
-		if( n===1 ) { Env.setBackgroud(0x000000 ); /*camera.near = 1; camera.updateProjectionMatrix();*/}
+		if( n===1 ) { Env.setBackgroud(0x000000) /*camera.near = 1; camera.updateProjectionMatrix();*/}
 		else if( n===2 ) Env.setBackgroud(0x7777ff)
-		else if( n===2 ) Env.setBackgroud(0xffffff)
+		else if( n===3 ) Env.setBackgroud(0xffffff)
 		else Env.setBackgroud()
 
 		Hub.setRenderMode(n)
@@ -557,6 +562,11 @@ function initGUI () {
 	grV.add( options, 'Exposure', {min:0, max:4} ).onChange( function( v ){ renderer.toneMappingExposure = v } )
 
 	grV.add( options, 'Shadow', {min:0, max:1} ).onChange( function(){ Shader.up( options ) } )
+
+	grV.add( options, 'lightSizeUV', {min:1, max:10, precision:4} ).onChange( function(){ Shader.up( options ) } )
+	grV.add( options, 'nearPlane', {min:1, max:20, precision:2} ).onChange( function(){ Shader.up( options ) } )
+	grV.add( options, 'rings', {min:1, max:30, precision:0} ).onChange( function(){ Shader.up( options ) } )
+	grV.add( options, 'nSample', {min:2, max:32, precision:0} ).onChange( function(){ Shader.up( options ) } )
 
 	envui = grV.add( 'list', { list:Envs, value:options.envmap, path:'assets/textures/equirectangular/mini/', format:'.jpg', imageSize: [128,64], h:64,  p:0}).onChange( setEnv )//.listen()
 

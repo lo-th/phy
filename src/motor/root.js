@@ -121,22 +121,26 @@ const matExtra = {
 
 export const mat = {
 
+	
 
 	body: new MeshPhysicalMaterial({ name:'body', color:0xff8800, ...matExtra }),
 	sleep: new MeshPhysicalMaterial({ name:'sleep', color:0x888888, ...matExtra }),
 	solid: new MeshPhysicalMaterial({ name:'solid', color:0x0088ff, ...matExtra }),
-
-	debug: new MeshBasicMaterial({ name:'debug', color:0xffFF00,  wireframe:true }),
-	debug2: new MeshBasicMaterial({ name:'debug2', color:0x00FFFF,  wireframe:true }),
 	hero: new MeshPhysicalMaterial({ name:'body', color:0x00FF88, ...matExtra }),
 	skin: new MeshPhysicalMaterial({ name:'skin', color:0x8D5524, ...matExtra }),
-	
-	joint: new LineBasicMaterial( { color: 0x00FF00, toneMapped: false } ),
-	ray: new LineBasicMaterial( { vertexColors: true, toneMapped: false } ),
 	glass: new MeshPhysicalMaterial({ name:'glass', color:0x9999ff, transparent:true, opacity:0.25,  depthTest:true, depthWrite:false, reflectivity:0.5, roughness:0., metalness:1, side:DoubleSide, premultipliedAlpha:true  }),
 	//glass: new MeshPhysicalMaterial({ name:'glass', color:0x9999ff, transparent:true, reflectivity:0.5, transmission:1, opacity:0.9, roughness:0, metalness:0, side:DoubleSide, premultipliedAlpha:true, depthTest:true, depthWrite:false }),
-	chrome: new MeshStandardMaterial({ name:'chrome', color:0x808080, metalness:1, roughness:0 }),
-	hide: new MeshBasicMaterial({ name:'hide', color:0x0088ff, transparent:true, opacity:0, depthTest:false, depthWrite:false  }),
+	chrome: new MeshPhysicalMaterial({ name:'chrome', color:0x808080, metalness:1, roughness:0 }),
+
+
+	joint: new LineBasicMaterial( { name:'joint', color: 0x00FF00, toneMapped: false } ),
+	ray: new LineBasicMaterial( { name:'ray', vertexColors: true, toneMapped: false } ),
+
+	
+	//hide: new MeshBasicMaterial({ name:'hide', color:0x0088ff, transparent:true, opacity:0, depthTest:false, depthWrite:false  }),
+    debug: new MeshBasicMaterial({ name:'debug', color:0xffFF00, wireframe:true }),
+	debug2: new MeshBasicMaterial({ name:'debug2', color:0x00FFFF, wireframe:true }),
+	hide: new MeshBasicMaterial({ name:'hide', visible:false  }),
 
 };
 

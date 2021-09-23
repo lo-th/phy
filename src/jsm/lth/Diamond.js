@@ -1,12 +1,12 @@
 import {
-	MeshStandardMaterial, ShaderMaterial, WebGLCubeRenderTarget, CubeCamera, Scene, Mesh, RGBAFormat,
+	MeshPhysicalMaterial, MeshStandardMaterial, ShaderMaterial, WebGLCubeRenderTarget, CubeCamera, Scene, Mesh, RGBAFormat,
 	DoubleSide, Color, Vector3, BackSide, LinearMipmapLinearFilter
 } from '../../../build/three.module.js';
 
 import { Shader } from './Shader.js';
 
 
-export class Diamond extends MeshStandardMaterial {
+export class Diamond extends MeshPhysicalMaterial {
 
 	constructor( o = {}, extra = {} ) {
 
@@ -59,7 +59,8 @@ export class Diamond extends MeshStandardMaterial {
 
 			var fragment = shader.fragmentShader;
 			fragment = fragment.replace( 'void main() {', fragAdd );
-			fragment = fragment.replace( 'gl_FragColor = vec4( outgoingLight, diffuseColor.a );', fragMainAdd );
+			//fragment = fragment.replace( 'gl_FragColor = vec4( outgoingLight, diffuseColor.a );', fragMainAdd );
+            fragment = fragment.replace( '#include <output_fragment>', fragMainAdd );
 
 			shader.fragmentShader = fragment;
 
@@ -163,8 +164,16 @@ vI = normalize( worldPosition.xyz - cameraPosition );//vecPos - cameraPosition;
 `;
 
 const fragMainAdd =/* glsl */`
-//gl_FragColor = vec4( outgoingLight, diffuseColor.a );
+#ifdef OPAQUE
+diffuseColor.a = 1.0;
+#endif
 
+// https://github.com/mrdoob/three.js/pull/22425
+#ifdef USE_TRANSMISSION
+diffuseColor.a *= transmissionAlpha + 0.1;
+#endif
+
+//gl_FragColor = vec4( outgoingLight, diffuseColor.a );
 
 float vReflectionFactor = mFresnelBias + mFresnelScale * pow( abs((1.0 + dot( normalize( vI ), vNormal ))), mFresnelPower );
 

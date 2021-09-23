@@ -97,7 +97,7 @@ export class Reflector extends Mesh {
 
 
 		this.material = new MeshStandardMaterial({ 
-			name:'ground', color:this.color, map:this.map, roughness:0.25, metalness:1, opacity:1,
+			name:'floor', color:this.color, map:this.map, roughness:0.25, metalness:1, opacity:1,
 			transparent:true,
 			depthWrite: false,
 	        //depthTest: false, 
@@ -165,6 +165,8 @@ export class Reflector extends Mesh {
 			Shader.modify( shader );
 
 		}
+
+		Shader.setDefines( this.material )
 		
 		this.onBeforeRender = function ( renderer, scene, camera ) {
 

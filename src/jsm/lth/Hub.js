@@ -133,8 +133,8 @@ export class Hub {
         for(let j in t.memory ){
             //t.memory[j] = Math.round( t.memory[j]*0.000976563 )
 
-            if( j === 'drawingbuffer' || j === 'total' ) t.memory[j] = Math.round( t.memory[j]*0.0000001 ) + ' MB'
-            else t.memory[j] = Math.round( t.memory[j]*0.0001 ) + ' KB'
+            if( j === 'drawingbuffer' || j === 'total' ) t.memory[j] = Math.round( t.memory[j]*0.000001 ) + ' MB'
+            else t.memory[j] = Math.round( t.memory[j]*0.001 ) + ' KB'
 
             //t.memory[j] = Math.round( t.memory[j] / 1024/ 1024 )
         }
@@ -235,7 +235,7 @@ export class Hub {
     //
     //-------------------------
 
-    static hideCross( b ){
+    /*static hideCross( b ){
 
         cross.style.visibility = !b ? 'visible' : 'hidden';
 
@@ -285,7 +285,7 @@ export class Hub {
             setSvg( cross, 'transform', 'matrix( '+ t[m]+' '+t[m+1]+' '+t[m+2]+' '+t[m+3]+' '+p[n]+' '+p[n+1] +' )', 1, i );
         }
 
-    }
+    }*/
 
     //-------------------------
     //

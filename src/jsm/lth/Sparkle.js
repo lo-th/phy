@@ -131,7 +131,9 @@ export class Sparkle extends Points {
 
 			var fragment = shader.fragmentShader;
 			fragment = fragment.replace( '#include <clipping_planes_pars_fragment>', fragAdd );
-			fragment = fragment.replace( 'gl_FragColor = vec4( outgoingLight, diffuseColor.a );', fragMainAdd );
+
+            fragment = fragment.replace( '#include <output_fragment>', fragMainAdd );
+			//fragment = fragment.replace( 'gl_FragColor = vec4( outgoingLight, diffuseColor.a );', fragMainAdd );
 
 			fragment = fragment.replace( '#include <map_particle_fragment>', fragMap );
 
@@ -347,6 +349,15 @@ vec2 rotUV(vec2 uv, float angle){
 `;
 
 const fragMainAdd =/* glsl */`
+#ifdef OPAQUE
+diffuseColor.a = 1.0;
+#endif
+
+// https://github.com/mrdoob/three.js/pull/22425
+#ifdef USE_TRANSMISSION
+diffuseColor.a *= transmissionAlpha + 0.1;
+#endif
+
 gl_FragColor = vec4( outgoingLight, diffuseColor.a * aaa  );
 //gl_FragColor = vec4( outgoingLight, aaa );
 
