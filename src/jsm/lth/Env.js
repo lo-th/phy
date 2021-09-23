@@ -1,7 +1,7 @@
 import {
 	PMREMGenerator,
 	UnsignedByteType,
-	Vector3,
+	Vector3, Spherical,
 	Color
 } from '../../../build/three.module.js';
 
@@ -11,6 +11,9 @@ let env = null;
 let data = {};
 let color =  new Color();
 let light = null, scene = null, renderer = null, light2 = null;
+
+const s1 = new Spherical()
+const s2 = new Spherical()
 
 export class Env {
 
@@ -60,14 +63,28 @@ export class Env {
 
 			if( light && autosun ) {
 
-				light.position.copy( data.pos ).multiplyScalar( light.distance || 20 );
+				//light.position.copy( data.pos ).multiplyScalar( light.distance || 20 );
+				light.position.setFromSpherical(s1).multiplyScalar( light.distance || 20 );
 				light.color.copy( data.sun );
+				//light.lookAt( 0, 0, 0 )
+
+				light.target.position.set( 0, 0, 0 )
+				light.updateMatrixWorld();
+
+				if( light.helper ) light.helper.update()
 
 				if(light2){
 
-					light2.position.copy( data.pos ).multiplyScalar( light2.distance || 20 );
-					light2.color.copy( data.sun );
-					light2.lookAt( 0, 0, 0 )
+					light2.position.setFromSpherical(s2).multiplyScalar( light2.distance || 20 );
+
+					//light2.position.copy( data.pos ).multiplyScalar( light2.distance || 20 );
+					light2.color.copy( data.fog );
+					//light2.lookAt( 0, 0, 0 )
+
+					light2.target.position.set( 0, 0, 0 )
+				    light2.updateMatrixWorld();
+
+					if(light2.helper) light2.helper.update()
 
 				}
 
@@ -186,6 +203,11 @@ export class Env {
 		y = Math.floor((maxId-x)/w);
 		let sunPosition = new Vector3().setFromSphericalCoords( 1, (y / h)*Math.PI, -(x / w)*(Math.PI * 2)-(Math.PI*0.5) );
 		let sunColor = new Color( color[0] * rs, color[1] * rs, color[1] * rs);
+
+		s1.set( 1,  (y / h)*Math.PI, -(x / w)*(Math.PI * 2)-(Math.PI*0.5 ) )
+		s2.copy( s1 )
+		s2.theta += Math.PI * 0.2
+		s2.phi -= Math.PI*0.5
 		
 
 		let fcc = new Color()
@@ -193,8 +215,10 @@ export class Env {
 		//if( format === 'hdr' ) fogColor.setHSL( fcc.h, fcc.s*0.65, fcc.l *.92);
 		//if( format === 'hdr' ) fogColor.setHSL( fcc.h, fcc.s*2.1, fcc.l*1.4);
 		if( format === 'hdr' ){ 
-			if( renderer.toneMapping === 4 ) fogColor.setHSL( fcc.h, fcc.s*1.666, fcc.l*( 1.1 + renderer.toneMappingExposure ));
-			else fogColor.setHSL( fcc.h, fcc.s*1.66, fcc.l*1.88);
+			//if( renderer.toneMapping === 4 ) 
+			//	fogColor.setHSL( fcc.h, fcc.s*1.666, fcc.l*( 1.1 + renderer.toneMappingExposure ));
+			//else 
+			fogColor.setHSL( fcc.h, fcc.s*1.66, fcc.l*1.88);
 		}
 		else fogColor.setHSL( fcc.h, fcc.s*0.99, fcc.l*1.1 );
 

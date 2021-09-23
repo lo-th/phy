@@ -217,8 +217,6 @@ export class Sparkle extends Points {
         ctx.lineWidth = 1;
         ctx.stroke()
 
-
-
         var texture = new Texture(canvas);
         texture.type = FloatType;
         texture.needsUpdate = true;
@@ -306,8 +304,6 @@ export class Sparkle extends Points {
 }
 
 
-
-
 const vertAdd =/* glsl */`
 #include <clipping_planes_pars_vertex>
 
@@ -344,8 +340,6 @@ vec2 rotUV(vec2 uv, float angle){
     uv -= 0.5; uv = uv * r; uv += 0.5;
     return uv;
 }
-
-
 `;
 
 const fragMainAdd =/* glsl */`

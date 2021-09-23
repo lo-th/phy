@@ -29,6 +29,7 @@ import './jsm/libs/webgl-memory.js';
 
 let fullStat = false
 let devMode = false
+let debugLight = false
 let engineType, version, isWorker, introText
 let engineList = [ 'OIMO','AMMO' ]
 
@@ -88,7 +89,7 @@ const DemosA = [ 'diamond', 'ragdoll', 'chess', 'pinball', 'million', 'desk' ]
 Demos.sort();
 DemosA.sort();
 
-const Envs = [ 'basic', 'factory', 'studio', 'beach', 'tomoco', 'tatami', 'box', 'park', 'color', 'room', 'tokyo', 'gallery', 'river', 'cave' ]
+const Envs = [ 'basic', 'factory', 'studio', 'beach', 'tomoco', 'tatami', 'box', 'park', 'color', 'room', 'tokyo', 'gallery', 'river', 'cave', 'histo', 'bed', 'forest' ]
 
 //const timer = new Timer(60)
 const size = { w:0, h:0, r:0, left:0 }
@@ -112,6 +113,7 @@ export class Main {
 
 		if( o.extra ){
 		    devMode = true
+		    debugLight = true
 		    fullStat = true
 			engineList.push('HIDE')
 			Demos.push('empty')
@@ -246,7 +248,7 @@ function init() {
 
 	// LIGHT
 
-	light = new THREE.DirectionalLight( 0xFFFFFF, 4 )
+	light = new THREE.DirectionalLight( 0xFFFFFF, 3 )
 	light.position.set( 1, 8, 0 )
 	light.distance = 20
 
@@ -255,8 +257,8 @@ function init() {
 	s.mapSize.setScalar( 1024 * quality );
 	s.camera.top = s.camera.right = 20
 	s.camera.bottom = s.camera.left = -20
-	s.camera.near = 10
-	s.camera.far = 40
+	s.camera.near = 5
+	s.camera.far = 33
 
 	s.bias = -0.0005
 	s.normalBias = 0.0075//0.05
@@ -275,8 +277,25 @@ function init() {
 	followGroup.add( light.target )
 
 	// debug light
-	//scene.add( new THREE.CameraHelper( s.camera ) )
+	//
 
+	light2 = new THREE.DirectionalLight( 0xFF0000, 1.5 )
+	light2.position.set( -1, 0, 0 )
+	light2.distance = 2
+
+	followGroup.add( light2 )
+	followGroup.add( light2.target )
+
+	if( debugLight ){
+
+		light.helper = new THREE.DirectionalLightHelper( light )
+		light2.helper = new THREE.DirectionalLightHelper( light2 )
+		scene.add( light.helper )
+		scene.add( light2.helper )
+		scene.add( new THREE.CameraHelper( s.camera ) )
+	}
+
+	
 
 	// rectangle light
 	/*RectAreaLightUniformsLib.init();
