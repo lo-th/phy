@@ -60,7 +60,7 @@ export class Diamond extends MeshPhysicalMaterial {
 			var fragment = shader.fragmentShader;
 			fragment = fragment.replace( 'void main() {', fragAdd );
 			//fragment = fragment.replace( 'gl_FragColor = vec4( outgoingLight, diffuseColor.a );', fragMainAdd );
-            fragment = fragment.replace( '#include <output_fragment>', fragMainAdd );
+            fragment = fragment.replace( '#include <output_fragment>', '#include <output_fragment>' + fragMainAdd );
 
 			shader.fragmentShader = fragment;
 
@@ -164,16 +164,6 @@ vI = normalize( worldPosition.xyz - cameraPosition );//vecPos - cameraPosition;
 `;
 
 const fragMainAdd =/* glsl */`
-#ifdef OPAQUE
-diffuseColor.a = 1.0;
-#endif
-
-// https://github.com/mrdoob/three.js/pull/22425
-#ifdef USE_TRANSMISSION
-diffuseColor.a *= transmissionAlpha + 0.1;
-#endif
-
-//gl_FragColor = vec4( outgoingLight, diffuseColor.a );
 
 float vReflectionFactor = mFresnelBias + mFresnelScale * pow( abs((1.0 + dot( normalize( vI ), vNormal ))), mFresnelPower );
 

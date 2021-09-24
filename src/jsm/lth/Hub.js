@@ -55,11 +55,11 @@ export class Hub {
         parent = Parent || document.body;
 
         content = document.createElement( 'div' );
-        content.style.cssText = unselectable + "position:absolute; margin:0; padding:0; top:0; left:0; width:100%; height:100%; display:block; ";
+        content.style.cssText = unselectable + "position:absolute; margin:0; padding:0; top:0; left:0; width:100%; height:100%; display:block; font-family: Tahoma;";
         parent.appendChild( content );
         
         txt = document.createElement( 'div' );
-        txt.style.cssText = "font-family: Tahoma; color: #fff; font-size:16px; text-align:center; position:absolute; margin:0; padding:0; top:50%; left:50%; width:512px; height:20px; margin-left:-256px; margin-top:-38px; display:block; pointer-events:none; text-shadow: 1px 1px #000000;";
+        txt.style.cssText = " color: #fff; font-size:16px; text-align:center; position:absolute; margin:0; padding:0; top:50%; left:50%; width:512px; height:20px; margin-left:-256px; margin-top:-38px; display:block; pointer-events:none; text-shadow: 1px 1px #000000;";
         txt.textContent = text || 'load...';
         content.appendChild( txt );
 

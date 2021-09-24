@@ -78,6 +78,11 @@ export class Shader {
 
             varying vec2 vZW;
 
+            float shadowValue = 1.0;
+            float shadowTmp = 1.0;
+            vec3 shadowColor = vec3(1.0);
+
+            /*
             float color_distance( vec3 a, vec3 b){
                 vec3 s = vec3( a - b );
                 float dist = sqrt( s.r * s.r + s.g * s.g + s.b * s.b );
@@ -101,6 +106,7 @@ export class Shader {
             }
 
 
+            
             vec3 brightnessContrastCorrection(vec3 value, float brightness, float contrast){
                 return (value - 0.5) * contrast + 0.5 + brightness;
             }
@@ -108,6 +114,7 @@ export class Shader {
             vec3 GammaCorrection(vec3 value, float param){
                 return vec3(pow(abs(value.r), param),pow(abs(value.g), param),pow(abs(value.b), param));
             }
+            */
 
         `);
 
@@ -128,62 +135,37 @@ export class Shader {
 
         
 
-        //THREE.ShaderChunk.lights_fragment_begin = s;
-
-
-        s = ShaderChunk.clipping_planes_fragment;
-
-        s = s.replace( '#if NUM_CLIPPING_PLANES > 0', `
-        	vec3 shadowR = vec3(1.0);
-            vec3 shadowF = vec3(1.0);
-
-
-        	#if NUM_CLIPPING_PLANES > 0
-        `);
-
-        ShaderChunk.clipping_planes_fragment = s;
-
-
-
-
         
 
         s = ShaderChunk.lights_fragment_begin;
 
-        s = s.replace( 'IncidentLight directLight;', `
-        	
-            //vec3 shadowR = vec3(1.0);
-
-        	IncidentLight directLight;
-        `);
-
         // point
         s = s.replace( 'directLight.color *= all( bvec2( directLight.visible, receiveShadow ) ) ? getPointShadow( pointShadowMap[ i ], pointLightShadow.shadowMapSize, pointLightShadow.shadowBias, pointLightShadow.shadowRadius, vPointShadowCoord[ i ], pointLightShadow.shadowCameraNear, pointLightShadow.shadowCameraFar ) : 1.0;', `
-        	shadowR = vec3(1.0);
-        	shadowR *= all( bvec2( directLight.visible, receiveShadow ) ) ? getPointShadow( pointShadowMap[ i ], pointLightShadow.shadowMapSize, pointLightShadow.shadowBias, pointLightShadow.shadowRadius, vPointShadowCoord[ i ], pointLightShadow.shadowCameraNear, pointLightShadow.shadowCameraFar ) : 1.0;
-        	directLight.color *= shadowR;
-            shadowF *= shadowR;
-        `);
+        	shadowTmp = 1.0;
+        	shadowTmp *= all( bvec2( directLight.visible, receiveShadow ) ) ? getPointShadow( pointShadowMap[ i ], pointLightShadow.shadowMapSize, pointLightShadow.shadowBias, pointLightShadow.shadowRadius, vPointShadowCoord[ i ], pointLightShadow.shadowCameraNear, pointLightShadow.shadowCameraFar ) : 1.0;
+        	//directLight.color *= shadowTmp;
+            shadowValue *= shadowTmp;
+        `)
 
         // spot
         s = s.replace( 'directLight.color *= all( bvec2( directLight.visible, receiveShadow ) ) ? getShadow( spotShadowMap[ i ], spotLightShadow.shadowMapSize, spotLightShadow.shadowBias, spotLightShadow.shadowRadius, vSpotShadowCoord[ i ] ) : 1.0;', `
-            shadowR = vec3(1.0);
-        	shadowR *= all( bvec2( directLight.visible, receiveShadow ) ) ? getShadow( spotShadowMap[ i ], spotLightShadow.shadowMapSize, spotLightShadow.shadowBias, spotLightShadow.shadowRadius, vSpotShadowCoord[ i ] ) : 1.0;
-        	directLight.color *= shadowR;
-            shadowF *= shadowR;
-        `);
+            shadowTmp = 1.0;
+        	shadowTmp *= all( bvec2( directLight.visible, receiveShadow ) ) ? getShadow( spotShadowMap[ i ], spotLightShadow.shadowMapSize, spotLightShadow.shadowBias, spotLightShadow.shadowRadius, vSpotShadowCoord[ i ] ) : 1.0;
+        	//directLight.color *= shadowTmp;
+            shadowValue *= shadowTmp;
+        `)
 
         // direct
         s = s.replace( 'directLight.color *= all( bvec2( directLight.visible, receiveShadow ) ) ? getShadow( directionalShadowMap[ i ], directionalLightShadow.shadowMapSize, directionalLightShadow.shadowBias, directionalLightShadow.shadowRadius, vDirectionalShadowCoord[ i ] ) : 1.0;', `
-            shadowR = vec3(1.0);
-        	shadowR *= all( bvec2( directLight.visible, receiveShadow ) ) ? getShadow( directionalShadowMap[ i ], directionalLightShadow.shadowMapSize, directionalLightShadow.shadowBias, directionalLightShadow.shadowRadius, vDirectionalShadowCoord[ i ] ) : 1.0;
-        	directLight.color *= shadowR;
-            shadowF *= shadowR;
-        `);
-
-        
+            shadowTmp = 1.0;
+            shadowTmp *= all( bvec2( directLight.visible, receiveShadow ) ) ? getShadow( directionalShadowMap[ i ], directionalLightShadow.shadowMapSize, directionalLightShadow.shadowBias, directionalLightShadow.shadowRadius, vDirectionalShadowCoord[ i ] ) : 1.0;
+            //directLight.color *= shadowTmp;
+            shadowValue *= shadowTmp;
+        `)
 
         ShaderChunk.lights_fragment_begin = s;
+
+
 
        /* s = THREE.ShaderChunk.tonemapping_fragment;
 
@@ -198,66 +180,73 @@ export class Shader {
         THREE.ShaderChunk.tonemapping_fragment = s;*/
 
 
-        s = ShaderChunk.fog_fragment;
+        //s = ShaderChunk.fog_fragment;
+        s = ShaderChunk.output_fragment;
 
-        s = s.replace( '#ifdef USE_FOG', `
+
+
+        //s = s.replace( '#ifndef saturate', `
+        //s = ShaderChunk.tonemapping_fragment;
+
+        s = s.replace( 'gl_FragColor = vec4( outgoingLight, diffuseColor.a );', `
+
+            gl_FragColor = vec4( outgoingLight, diffuseColor.a );
 
         	#if defined( USE_SHADOWMAP )
-            shadowF = brightnessContrastCorrection( shadowF, ShadowLuma, ShadowContrast );
-            shadowF = GammaCorrection( shadowF, ShadowGamma );
-            shadowF = clamp( shadowF, 0.0, 1.0 );
 
-            float shadV = shadowF.r;
+            shadowValue = (shadowValue - 0.5) * ShadowContrast + 0.5 + ShadowLuma;
+            shadowValue = pow(abs(shadowValue), ShadowGamma );
+            shadowValue = clamp( shadowValue, 0.0, 1.0 );
 
-            //gl_FragColor *= vec4( shad, Shadow );
+            shadowColor = vec3( shadowValue );
+
+
+
+
+            /*
             vec3 invColor = vec3(1.0 - gl_FragColor.rgb);
-            //vec3 invShadow = vec3(1.0 - shadowF);
-
-
             vec3 cc = rgb2hsv( invColor );
             cc.r += 0.1; // teint
-            cc.g *= 2.0; // saturation
-            cc.b *= 0.25; // luma
+            cc.g *= 1.0; // saturation
+            cc.b *= 0.5; // luma
             invColor = hsv2rgb( cc );
+
+            shadowColor = shadowColor + invColor;
+            shadowColor = clamp( shadowColor, 0.0, 1.0 );
+            */
 
 
             //float match = 1.0 - color_distance(fragment.rgb, old);
             //fragment.rgb -= match * old;
             //fragment.rgb += match * new;
 
-            //float match = 1.0 - color_distance(shadowF, vec3(0.0));
-            //shadowF -= match * vec3(0.0);
-            //shadowF += match * invColor;
+            //float match = 1.0 - color_distance(shadowColor, vec3(0.0));
+            //shadowColor -= match * vec3(0.0);
+            //shadowColor += match * invColor;
 
-            //shadowF.rgb = mix( gl_FragColor.rgb, invColor-shadV, 1.0-shadV );
-
+            //shadowColor -= shadowValue * vec3(0.0);
+            //shadowColor += shadowValue * invColor;
 
 
             //vec3 shadowColor = gl_FragColor.rgb;
             //shadowColor -= match * shadowColor;
-            //shadowColor.rgb += match * invColor;
-
-            //gl_FragColor.rgb = mix( gl_FragColor.rgb, gl_FragColor.rgb * shadowColor, Shadow );
+            //shadowColor.rgb += match * invColor;;
 
 
+            //shadowColor = invColor;
 
 
-            //gl_FragColor.rgb = mix( gl_FragColor.rgb, (gl_FragColor.rgb * shadowF), Shadow );
 
-            //gl_FragColor.rgb = invColor;
-
-            //gl_FragColor.rgb = mix( gl_FragColor.rgb, gl_FragColor.rgb * shadowF, (1.0-shadV) * Shadow );
-
-            gl_FragColor.rgb = mix( gl_FragColor.rgb, invColor, (1.0-shadV) * Shadow );
-
-            //
+            gl_FragColor.rgb = mix( gl_FragColor.rgb, gl_FragColor.rgb * shadowColor, (1.0-shadowValue) * Shadow );
 
         	#endif
-
-        	#ifdef USE_FOG
+            
         `);
 
-        ShaderChunk.fog_fragment = s;
+        //ShaderChunk.fog_fragment = s;
+        ShaderChunk.output_fragment = s
+
+      //  ShaderChunk.tonemapping_fragment = s;
 
 
         //console.log('shadow modif on')
@@ -275,7 +264,7 @@ export class Shader {
                 gl_FragColor = depthPacking == 1 ? packDepthToRGBA( fz ) : vec4( vec3( 1.0 - fz ), opacity );// depth render
             }
             if( renderMode == 2 ) gl_FragColor = vec4(  packNormalToRGB( normal ), opacity );// normal render
-            if( renderMode == 3 ) gl_FragColor = vec4(  shadowF, opacity );// normal render
+            if( renderMode == 3 ) gl_FragColor = vec4(  shadowColor, opacity );// normal render
 
             #else
 

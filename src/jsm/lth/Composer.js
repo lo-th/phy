@@ -48,6 +48,9 @@ export class Composer extends EffectComposer {
 
 		super( renderer, renderTarget );
 
+	    this.needNormal = false
+	    this.needDepth = false
+
 		this.v = new Vector3();
 
 		this.torad = Math.PI / 180;
@@ -61,8 +64,8 @@ export class Composer extends EffectComposer {
 		this.controls = controls
 		this.size = size
 
-		this._width = size.w;
-		this._height = size.h;
+		this._width = size.w
+		this._height = size.h
 
 		this.enabled = false
 		this.needDepth = false
@@ -107,11 +110,13 @@ export class Composer extends EffectComposer {
 		this.addPass( this.pass.distortion )
 
 
-		/*
+		
 		this.pass.sharpen = new ShaderPass( SharpenShader )
 		this.pass.sharpen.setSize = function (w,h){ this.uniforms[ 'resolution' ].value.set(w,h) }
 		this.addPass( this.pass.sharpen )
-		*/
+
+		this.pass.sharpen.enabled = false
+		
 
 
 
@@ -160,8 +165,6 @@ export class Composer extends EffectComposer {
 			this.pass.focus.uniforms[ "aspect" ].value = this.camera.aspect;
 		}
 
-		
-
 		this.pass.bloom.threshold = this.options.threshold;
 		this.pass.bloom.strength = this.options.strength;
 		this.pass.bloom.bloomRadius = this.options.bloomRadius;
@@ -182,7 +185,7 @@ export class Composer extends EffectComposer {
 
 	setLut ( name ){
 
-		this.pass.lut.lut = this.isGl2 ? this.lutMap[ name ].texture : this.lutMap[ name ].texture3D;;
+		this.pass.lut.lut = this.isGl2 ? this.lutMap[ name ].texture : this.lutMap[ name ].texture3D
 
 	}
 
@@ -191,7 +194,6 @@ export class Composer extends EffectComposer {
 		if( !this.enabled ) return;
 
 		this.size = size;
-
 		this.setSize( this.size.w, this.size.h );
 
 	}

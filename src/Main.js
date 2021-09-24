@@ -184,8 +184,6 @@ Motor.get = Pool.get;
 
 Pool.setExtraMaterial( function(m){ if( m ) Shader.add( m ) } );
 
-
-
 Motor.log = Hub.log;
 
 Motor.view = Main.view;
@@ -311,7 +309,7 @@ function init() {
 
 	//camera = new THREE.PerspectiveCamera( 50, size.r, 0.02, 1000 )
 
-	camera = new THREE.PerspectiveCamera( 50, size.r, 1, 200 )
+	camera = new THREE.PerspectiveCamera( 45, size.r, 1, 1000 )
 	camera.position.set( 0, 8, 10 )
 	camera.lookAt( 0, 2, 0 )
 
@@ -340,9 +338,6 @@ function init() {
 	// POST PROCESS
 
 	composer = new Composer( renderer, scene, camera, controls, size );
-
-	//hideMat = new THREE.ShaderMaterial({ fragmentShader:'void main() { gl_FragColor = vec4( 0.0 );}', transparent:true, depthTest:false, depthWrite:false });
-	//hideMat = new THREE.ShaderMaterial({ fragmentShader:'void main() {discard;}', transparent:false, depthTest:false, depthWrite:false });
 
 	window.addEventListener( 'resize', onResize )
 
@@ -527,11 +522,6 @@ function render ( stamp ) {
 
 		getFullStats()
 
-
-
-		//hub.setFps( timer.fps )
-	//}
-
 }
 
 function initGUI () {
@@ -541,6 +531,7 @@ function initGUI () {
 		background:'none',
 		backgroundOver:'none',
 		fontShadow:'#000000',
+		fontFamily: 'Tahoma',
 
 	})
 
@@ -781,9 +772,6 @@ function unSelect () {
 function getFullStats() {
     if (memo) {
         const info = memo.getMemoryInfo();
-        //document.querySelector('#info').textContent = JSON.stringify(info, null, 2);
-
         Hub.setStats( info )
-
     }
 }
