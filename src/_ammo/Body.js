@@ -23,23 +23,24 @@ export class Body extends Item {
 
 	step ( AR, N ) {
 
-		let i = this.list.length, b, n, s;
+		let i = this.list.length, b, n, v;
 
 		while( i-- ){
 
 			b = this.list[i]
-			n = N + ( i * 8 )
+			n = N + ( i * 11 )
 
 			if( !b ){ 
 				AR[n]=AR[n+1]=AR[n+2]=AR[n+3]=AR[n+4]=AR[n+5]=AR[n+6]=AR[n+7]=0
 				continue
 			}
 
-			s = b.getMotionState()===2
-			AR[ n ] = s ? 0 : b.getLinearVelocity().length() * 9.8; // speed km/h
+			v = b.getLinearVelocity()
+			AR[ n ] = b.getMotionState() === 2 ? 0 : v.length() * 9.8; // speed km/h
 
 			b.getMotionState().getWorldTransform( this.t )
 			this.t.toArray( AR, n + 1 )
+			v.toArray( AR, n + 8 ) // velocity
 
 		}
 

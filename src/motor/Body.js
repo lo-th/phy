@@ -24,24 +24,25 @@ export class Body extends Item {
 
 			b = this.list[i];
 
-			if(b===null) continue
+			if( b === null ) continue
 
-			n = N + ( i * 8 );
+			n = N + ( i * 11 )
 
 			// update only when physics actif
 			if( !b.actif ){
 				a = AR[n+0]+AR[n+1]+AR[n+2]+AR[n+3]+ AR[n+4]+AR[n+5]+AR[n+6]+AR[n+7]
-				if( a===0 ) continue
+				if( a === 0 ) continue
 				else b.actif = true
 			}
 
 
 		    // update position and rotation
-			b.sleep = AR[n] > 0 ? false : true;
-			b.position.fromArray( AR, n + 1 );
-	        b.quaternion.fromArray( AR, n + 4 );
-	        if( !b.auto ) b.updateMatrix();
+			b.sleep = AR[n] > 0 ? false : true
+			b.position.fromArray( AR, n + 1 )
+	        b.quaternion.fromArray( AR, n + 4 )
+	        b.velocity.fromArray( AR, n + 8 )
 
+	        if( !b.auto ) b.updateMatrix()
 
 	        // update default material
 	        if( b.defMat ){
@@ -400,9 +401,11 @@ export class ExtraGroup extends Object3D {
 
 		this.type = '';
 
-		this.shapetype = 'box';
-		this.data = {};
-		this._size = new Vector3();
+		this.shapetype = 'box'
+		this.data = {}
+		this._size = new Vector3()
+
+		this.velocity = new Vector3()
 
 		this.defMat = false;
 		this.actif = false;

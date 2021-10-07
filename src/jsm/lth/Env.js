@@ -58,6 +58,11 @@ export class Env {
 				scene.background = env;
 				scene.environment = env;
 
+				//renderer.background = env;
+
+
+				//scene.background.visible = false
+
 				//console.log(scene.background)
 			}
 

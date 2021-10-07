@@ -1,6 +1,7 @@
 import {
 	ShaderMaterial,
-	UniformsUtils
+	UniformsUtils,
+	sRGBEncoding
 } from '../../../build/three.module.js';
 import { Pass, FullScreenQuad } from '../postprocessing/Pass.js';
 
@@ -27,7 +28,8 @@ class ShaderPass extends Pass {
 				defines: Object.assign( {}, shader.defines ),
 				uniforms: this.uniforms,
 				vertexShader: shader.vertexShader,
-				fragmentShader: shader.fragmentShader
+				fragmentShader: shader.fragmentShader,
+				//format: sRGBEncoding,
 
 			} );
 

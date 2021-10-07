@@ -25,9 +25,13 @@ import { LuminosityHighPassShader } from '../shaders/LuminosityHighPassShader.js
  */
 class UnrealBloomPass extends Pass {
 
-	constructor( resolution, strength, radius, threshold, noBack ) {
+	constructor( resolution, strength, radius, threshold, noBack, env ) {
 
 		super();
+
+		this.Env = env || null
+
+
 
 		this.strength = ( strength !== undefined ) ? strength : 1;
 		this.radius = radius;
@@ -200,12 +204,15 @@ class UnrealBloomPass extends Pass {
 
 	render( renderer, writeBuffer, readBuffer, deltaTime, maskActive ) {
 
+		if( this.Env ) this.Env.setBackgroud(0x111111)
+
 		renderer.getClearColor( this._oldClearColor );
 		this.oldClearAlpha = renderer.getClearAlpha();
 		const oldAutoClear = renderer.autoClear;
 		renderer.autoClear = false;
 
 		renderer.setClearColor( this.clearColor, 0 );
+		
 
 
 		if ( maskActive ) renderer.state.buffers.stencil.setTest( false );
@@ -291,6 +298,7 @@ class UnrealBloomPass extends Pass {
 
 		renderer.setClearColor( this._oldClearColor, this.oldClearAlpha );
 		renderer.autoClear = oldAutoClear;
+		if( this.Env ) this.Env.setBackgroud()
 
 	}
 

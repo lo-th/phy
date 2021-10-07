@@ -43,7 +43,7 @@ export class Sparkle extends Points {
         let mul = 1.02;
         let model;
 
-        let i = this.numParticle, j, g, n, glng, m, c, sampler;
+        let i = this.numParticle, j, g, n, glng, m, c
 
         while( i-- ){
 
@@ -70,7 +70,7 @@ export class Sparkle extends Points {
 	    	//glng = g.count;
 	    	j = this.num;
 
-	    	while(j--){
+	    	while( j-- ){
 
 	    		n = ((i*this.num) + j) * 3;
 	    		//m = math.randInt(1, glng-1) * 3;
@@ -295,9 +295,10 @@ export class Sparkle extends Points {
 
     dispose () {
 
-    	this.parent.remove(this);
-        this.geometry.dispose();
-        this.material.dispose();
+    	this.parent.remove(this)
+        this.geometry.dispose()
+        this.material.map.dispose()
+        this.material.dispose()
         
     }
 

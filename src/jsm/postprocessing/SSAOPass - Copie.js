@@ -30,7 +30,7 @@ import { CopyShader } from '../shaders/CopyShader.js';
 
 class SSAOPass extends Pass {
 
-	constructor( scene, camera, width, height, sharedTarget ) {
+	constructor( scene, camera, width, height ) {
 
 		super();
 
@@ -52,8 +52,6 @@ class SSAOPass extends Pass {
 		this.maxDistance = 0.1;
 
 		this._visibilityCache = new Map();
-
-		this.isSharedTarget = sharedTarget || false;
 
 		//
 
@@ -79,8 +77,6 @@ class SSAOPass extends Pass {
 			format: RGBAFormat,
 			depthTexture: depthTexture
 		} );
-
-		this.depthRenderTarget = this.normalRenderTarget.clone()
 
 		// ssao render target
 
@@ -110,7 +106,7 @@ class SSAOPass extends Pass {
 
 		this.ssaoMaterial.uniforms[ 'tDiffuse' ].value = this.beautyRenderTarget.texture;
 		this.ssaoMaterial.uniforms[ 'tNormal' ].value = this.normalRenderTarget.texture;
-		this.ssaoMaterial.uniforms[ 'tDepth' ].value = this.isSharedTarget ? this.depthRenderTarget.texture:this.normalRenderTarget.depthTexture;
+		this.ssaoMaterial.uniforms[ 'tDepth' ].value = this.normalRenderTarget.depthTexture;
 		this.ssaoMaterial.uniforms[ 'tNoise' ].value = this.noiseTexture;
 		this.ssaoMaterial.uniforms[ 'kernel' ].value = this.kernel;
 		this.ssaoMaterial.uniforms[ 'cameraNear' ].value = this.camera.near;
@@ -195,32 +191,17 @@ class SSAOPass extends Pass {
 
 	render( renderer, writeBuffer /*, readBuffer, deltaTime, maskActive */ ) {
 
+		// render beauty
 
-		if(!this.isSharedTarget){
+		renderer.setRenderTarget( this.beautyRenderTarget );
+		renderer.clear();
+		renderer.render( this.scene, this.camera );
 
-		
+		// render normals and depth (honor only meshes, points and lines do not contribute to SSAO)
 
-			// render beauty
-
-			renderer.setRenderTarget( this.beautyRenderTarget );
-			renderer.clear();
-			renderer.render( this.scene, this.camera );
-
-			// render normals and depth (honor only meshes, points and lines do not contribute to SSAO)
-
-			this.overrideVisibility();
-			this.renderOverride( renderer, this.normalMaterial, this.normalRenderTarget, 0x7777ff, 1.0 );
-			this.restoreVisibility();
-
-		} else {
-			/*renderer.setRenderTarget( this.beautyRenderTarget );
-			renderer.clear();
-			renderer.render( this.scene, this.camera );*/
-
-			this.ssaoMaterial.uniforms[ 'tDiffuse' ].value = this.beautyRenderTarget.texture;
-			this.ssaoMaterial.uniforms[ 'tNormal' ].value = this.normalRenderTarget.texture;
-			this.ssaoMaterial.uniforms[ 'tDepth' ].value = this.depthRenderTarget.texture;
-		}
+		this.overrideVisibility();
+		this.renderOverride( renderer, this.normalMaterial, this.normalRenderTarget, 0x7777ff, 1.0 );
+		this.restoreVisibility();
 
 		// render SSAO
 
@@ -464,24 +445,6 @@ class SSAOPass extends Pass {
 
 		cache.clear();
 
-	}
-
-	setBeautyTarget ( target ) {
-
-		this.beautyRenderTarget = target;
-		
-	}
-
-	setNormalTarget ( target ) {
-
-		this.normalRenderTarget = target;
-
-	}
-
-	setDepthTarget ( target ) {
-
-		this.depthRenderTarget = target;
-		
 	}
 
 }

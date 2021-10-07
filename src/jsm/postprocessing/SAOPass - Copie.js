@@ -17,8 +17,7 @@ import {
 	UnsignedShortType,
 	Vector2,
 	WebGLRenderTarget,
-	ZeroFactor,
-	sRGBEncoding
+	ZeroFactor
 } from '../../../build/three.module.js';
 import { Pass, FullScreenQuad } from '../postprocessing/Pass.js';
 import { SAOShader } from '../shaders/SAOShader.js';
@@ -42,10 +41,6 @@ class SAOPass extends Pass {
 
 		this.clear = true;
 		this.needsSwap = false;
-
-		this.isDirectDepth = false;
-		this.isDirectNormal = false;
-
 
 		this.supportsDepthTextureExtension = useDepthTexture;
 		this.supportsNormalTexture = useNormals;
@@ -72,8 +67,7 @@ class SAOPass extends Pass {
 		this.saoRenderTarget = new WebGLRenderTarget( this.resolution.x, this.resolution.y, {
 			minFilter: LinearFilter,
 			magFilter: LinearFilter,
-			format: RGBAFormat,
-			//encoding: sRGBEncoding 
+			format: RGBAFormat
 		} );
 		this.blurIntermediateRenderTarget = this.saoRenderTarget.clone();
 		this.beautyRenderTarget = this.saoRenderTarget.clone();
@@ -253,27 +247,24 @@ class SAOPass extends Pass {
 
 		}
 
-		if ( ! this.isDirectDepth ){
-			
-			// Rendering scene to depth texture
-			renderer.setClearColor( 0x000000 );
-			renderer.setRenderTarget( this.beautyRenderTarget );
-			renderer.clear();
-			renderer.render( this.scene, this.camera );
+		// Rendering scene to depth texture
+		renderer.setClearColor( 0x000000 );
+		renderer.setRenderTarget( this.beautyRenderTarget );
+		renderer.clear();
+		renderer.render( this.scene, this.camera );
 
-			// Re-render scene if depth texture extension is not supported
-			if ( ! this.supportsDepthTextureExtension ) {
+		// Re-render scene if depth texture extension is not supported
+		if ( ! this.supportsDepthTextureExtension ) {
 
-				// Clear rule : far clipping plane in both RGBA and Basic encoding
-				this.renderOverride( renderer, this.depthMaterial, this.depthRenderTarget, 0x000000, 1.0 );
+			// Clear rule : far clipping plane in both RGBA and Basic encoding
+			this.renderOverride( renderer, this.depthMaterial, this.depthRenderTarget, 0x000000, 1.0 );
 
-			}
 		}
 
 		if ( this.supportsNormalTexture ) {
 
 			// Clear rule : default normal is facing the camera
-			if ( ! this.isDirectNormal ) this.renderOverride( renderer, this.normalMaterial, this.normalRenderTarget, 0x7777ff, 1.0 );
+			this.renderOverride( renderer, this.normalMaterial, this.normalRenderTarget, 0x7777ff, 1.0 );
 
 		}
 
@@ -414,24 +405,6 @@ class SAOPass extends Pass {
 		this.hBlurMaterial.uniforms[ 'size' ].value.set( width, height );
 		this.hBlurMaterial.needsUpdate = true;
 
-	}
-
-	setNormalTarget ( target ) {
-
-		this.isDirectNormal = true;
-		this.normalRenderTarget = target;
-		this.saoMaterial.uniforms[ 'tNormal' ].value = this.normalRenderTarget.texture;
-
-	}
-
-	setDepthTarget ( target ) {
-
-		if( this.supportsDepthTextureExtension ) return;
-
-		this.isDirectDepth = true;
-		this.depthRenderTarget = target;
-		this.saoMaterial.uniforms[ 'tDepth' ].value = this.depthRenderTarget.texture;
-		
 	}
 
 }

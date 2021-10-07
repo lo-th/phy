@@ -4,6 +4,7 @@ npm-debug.log
 prepa
 index.sh
 dev.sh
+build.sh
 index_dev.html
 ammo_dev.html
 hide_dev.html

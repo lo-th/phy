@@ -1,4 +1,4 @@
-/* webgl-memory@1.0.5, license MIT */
+/* webgl-memory@1.0.6, license MIT */
 (function (factory) {
   typeof define === 'function' && define.amd ? define(factory) :
   factory();
@@ -614,6 +614,18 @@
       sharedState.currentVertexArray = va ? va : sharedState.defaultVertexArray;
     }
 
+    function handleBufferBinding(target, obj) {
+      switch (target) {
+        case ELEMENT_ARRAY_BUFFER:
+          const info = webglObjectToMemory.get(sharedState.currentVertexArray);
+          info.elementArrayBuffer = obj;
+          break;
+        default:
+          bindings.set(target, obj);
+          break;
+      }
+    }
+
     const preChecks = {};
     const postChecks = {
       // WebGL1
@@ -665,15 +677,17 @@
 
       bindBuffer(gl, funcName, args) {
         const [target, obj] = args;
-        switch (target) {
-          case ELEMENT_ARRAY_BUFFER:
-            const info = webglObjectToMemory.get(sharedState.currentVertexArray);
-            info.elementArrayBuffer = obj;
-            break;
-          default:
-            bindings.set(target, obj);
-            break;
-        }
+        handleBufferBinding(target, obj);
+      },
+
+      bindBufferBase(gl, funcName, args) {
+        const [target, ndx, obj] = args;
+        handleBufferBinding(target, obj);
+      },
+
+      bindBufferRange(gl, funcName, args) {
+        const [target, ndx, obj, offset, size] = args;
+        handleBufferBinding(target, obj);
       },
 
       bindRenderbuffer(gl, funcName, args) {

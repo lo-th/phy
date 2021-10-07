@@ -297,13 +297,13 @@ export class Motor {
 	static ready (){
 
 		console.log( 'Motor is ready !!' )
-		if( callback ) callback();
+		if( callback ) callback()
 
 	}
 
 	static start ( o = {} ){
 
-		Motor.post({ m:'start', o:o });
+		Motor.post({ m:'start', o:o })
 
 	}
 
@@ -332,7 +332,7 @@ export class Motor {
 		root.flow.key = user.update()
 		//root.flow.tmp = []
 
-		postUpdate();
+		postUpdate()
 
 		// for update static object !!! 
 		//let i = root.flow.tmp.length;
@@ -378,7 +378,7 @@ export class Motor {
 	static initArray ( max = {} ) {
 
 		let counts = {
-			body: ( max.body || 2000 ) * 8,
+			body: ( max.body || 2000 ) * 11,
             joint:( max.joint || 200 ) * 16,
             ray:( max.ray || 100 ) * 8,
             contact:( max.contact || 100 ) * 8
@@ -388,9 +388,9 @@ export class Motor {
 
         for( let m in counts ){ 
 
-            ArPos[m] = prev;
-            ArMax += counts[m];
-            prev += counts[m];
+            ArPos[m] = prev
+            ArMax += counts[m]
+            prev += counts[m]
 
         }
 
@@ -483,23 +483,23 @@ export class Motor {
 
 	static addDirect ( b ){
 
-		root.scene.add( b );
-		root.tmpMesh.push( b ); 
+		root.scene.add( b )
+		root.tmpMesh.push( b )
 
 	}
 
 	static texture ( o = {} ){
 
 		let t = extraTexture( o )
-		root.tmpTex.push( t );
+		root.tmpTex.push( t )
 		return t
 	}
 
 	static material ( o = {} ){
 
-		let m;
-		if( o.isMaterial ) m = o;
-		else m = new MeshStandardMaterial( o );
+		let m
+		if( o.isMaterial ) m = o
+		else m = new MeshStandardMaterial( o )
 
 		if( mat[ m.name ] ) return null;
 
@@ -526,10 +526,10 @@ export class Motor {
 
 	static explosion ( position = [0,0,0], radius = 10, force = 100 ){
 
-		let r = [];
-	    let pos = new Vector3().fromArray( position );
-	    let dir = new Vector3();
-	    let i = body.list.length, b, scaling;
+		let r = []
+	    let pos = new Vector3().fromArray( position )
+	    let dir = new Vector3()
+	    let i = body.list.length, b, scaling
 
 	    while( i-- ){
 
@@ -554,7 +554,7 @@ export class Motor {
 
 	static setCamera ( o = {} ){
 
-		controls.moveCam( o );
+		controls.moveCam( o )
 
 	}
 
@@ -562,10 +562,10 @@ export class Motor {
 
 		let mesh = null;
 
-		if ( typeof m === 'string' || m instanceof String ) mesh = m === '' ? null : this.byName( m );
-		else if( m.isMesh || m.isGroup ) mesh = m;
+		if ( typeof m === 'string' || m instanceof String ) mesh = m === '' ? null : this.byName( m )
+		else if ( m.isMesh || m.isGroup ) mesh = m
 
-		if( mesh === null ) controls.resetFollow();
+		if( mesh === null ) controls.resetFollow()
 		else controls.startFollow( mesh, o )
 
 	}
