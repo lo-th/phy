@@ -25,13 +25,9 @@ import { LuminosityHighPassShader } from '../shaders/LuminosityHighPassShader.js
  */
 class UnrealBloomPass extends Pass {
 
-	constructor( resolution, strength, radius, threshold, noBack, env ) {
+	constructor( resolution, strength, radius, threshold, noBack ) {
 
 		super();
-
-		this.Env = env || null
-
-
 
 		this.strength = ( strength !== undefined ) ? strength : 1;
 		this.radius = radius;
@@ -161,6 +157,8 @@ class UnrealBloomPass extends Pass {
 
 		this.fsQuad = new FullScreenQuad( null );
 
+		this.applyValue()
+
 	}
 
 	dispose() {
@@ -202,9 +200,25 @@ class UnrealBloomPass extends Pass {
 
 	}
 
+	applyValue (){
+
+		this.highPassUniforms[ 'luminosityThreshold' ].value = this.threshold;
+
+		/*for ( let i = 0; i < this.nMips; i ++ ) {
+			this.separableBlurMaterials[ i ].uniforms[ 'direction' ].value = UnrealBloomPass.BlurDirectionX;
+			this.separableBlurMaterials[ i ].uniforms[ 'direction' ].value = UnrealBloomPass.BlurDirectionY;
+		}*/
+
+		this.compositeMaterial.uniforms[ 'bloomStrength' ].value = this.strength;
+		this.compositeMaterial.uniforms[ 'bloomRadius' ].value = this.radius;
+		this.compositeMaterial.uniforms[ 'bloomTintColors' ].value = this.bloomTintColors;
+
+	}
+
 	render( renderer, writeBuffer, readBuffer, deltaTime, maskActive ) {
 
-		if( this.Env ) this.Env.setBackgroud(0x111111)
+	//	if( this.Env ) 
+		//	this.Env.setBackgroud(0x111111)
 
 		renderer.getClearColor( this._oldClearColor );
 		this.oldClearAlpha = renderer.getClearAlpha();
@@ -233,7 +247,7 @@ class UnrealBloomPass extends Pass {
 		// 1. Extract Bright Areas
 
 		this.highPassUniforms[ 'tDiffuse' ].value = readBuffer.texture;
-		this.highPassUniforms[ 'luminosityThreshold' ].value = this.threshold;
+		//this.highPassUniforms[ 'luminosityThreshold' ].value = this.threshold;
 		this.fsQuad.material = this.materialHighPassFilter;
 
 		renderer.setRenderTarget( this.renderTargetBright );
@@ -267,9 +281,9 @@ class UnrealBloomPass extends Pass {
 		// Composite All the mips
 
 		this.fsQuad.material = this.compositeMaterial;
-		this.compositeMaterial.uniforms[ 'bloomStrength' ].value = this.strength;
-		this.compositeMaterial.uniforms[ 'bloomRadius' ].value = this.radius;
-		this.compositeMaterial.uniforms[ 'bloomTintColors' ].value = this.bloomTintColors;
+		//this.compositeMaterial.uniforms[ 'bloomStrength' ].value = this.strength;
+		//this.compositeMaterial.uniforms[ 'bloomRadius' ].value = this.radius;
+		//this.compositeMaterial.uniforms[ 'bloomTintColors' ].value = this.bloomTintColors;
 
 		renderer.setRenderTarget( this.renderTargetsHorizontal[ 0 ] );
 		renderer.clear();
@@ -298,7 +312,7 @@ class UnrealBloomPass extends Pass {
 
 		renderer.setClearColor( this._oldClearColor, this.oldClearAlpha );
 		renderer.autoClear = oldAutoClear;
-		if( this.Env ) this.Env.setBackgroud()
+		//if( this.Env ) this.Env.setBackgroud()
 
 	}
 

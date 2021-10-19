@@ -40,7 +40,7 @@ function addTower( o ){
             phy.add({
 
                 type:"box",
-                //radius:0.01,
+                radius:0.01,
                 size:[sx,sy,sz],
                 pos:[px,py,pz],
                 rot:[0,angle*(180 / Math.PI),0],

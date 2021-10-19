@@ -126,8 +126,6 @@ export class Motor {
 		root.scene = new Group()
 		root.scenePlus = new Group()
 
-		console.log(root.scene)
-
 		root.post = this.post
 
 		if( !o.direct ){ // is worker version

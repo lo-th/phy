@@ -15,6 +15,7 @@ const SharpenShader = {
 
 		'tDiffuse': { value: null },
 		'resolution': { value: new Vector2() },
+		'power': { value: 0.1 },
 		'kernel': { value: [-1, -1, -1, -1, 9, -1, -1, -1, -1] }
 
 	},
@@ -35,6 +36,7 @@ const SharpenShader = {
 
 		uniform sampler2D tDiffuse;
 		uniform vec2 resolution;
+		uniform float power;
 		varying vec2 vUv;
 		uniform float kernel[9];
 
@@ -52,11 +54,16 @@ const SharpenShader = {
 			offset[6] = vec2(-texel.x, texel.y);
 			offset[7] = vec2(0.0, texel.y);
 			offset[8] = vec2(texel.x, texel.y);
-		   	vec3 sum = vec3(0.0);
+		   	vec4 sum = vec4(0.0);
 
-		   for( int i=0; i<9; i++ ) sum += texture2D( tDiffuse, vUv + offset[i] ).rgb * kernel[i];
 
-		   gl_FragColor = vec4(sum,1.0);
+		   	for( int i=0; i<9; i++ ) sum.rgb += texture2D( tDiffuse, vUv + offset[i] ).rgb * kernel[i];
+
+		   	sum.a = 1.0;
+
+		    vec4 texelColor = texture2D( tDiffuse, vUv );
+
+		    gl_FragColor = mix( texelColor, sum, power );
 
 		}`
 

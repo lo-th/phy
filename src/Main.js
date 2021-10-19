@@ -398,6 +398,8 @@ function addGround () {
     })
     
     scene.add( ground )
+
+    scene.ground = ground
     //reflector.renderDepth = 1
 }
 
@@ -437,7 +439,10 @@ function inject ( newCode ) {
 	isLoadCode = !newCode
 	code = isLoadCode ? Pool.getScript( options.demo ) : newCode
 
-	if(window['onReset']) window['onReset']()
+	if(window['onReset']){ 
+		window['onReset']()
+		window['onReset'] = null
+	}
 	Hub.log()
 
 	phy.reset( refreshCode )
@@ -579,13 +584,6 @@ function initGUI () {
 
 	grV.add( composer, 'enabled', { type:'bool', rename:'POST PROCESS ON', onName:'POST PROCESS OFF', mode:1, h:30 })
 
-	//grV.add( composer.pass.sharpen, 'enabled', { type:'bool', rename:'sharpen' })
-	grV.add( composer.pass.lut, 'enabled', { type:'bool', rename:'lut' })
-	//grV.add('button', { name:'LOAD', fontColor:'#D4B87B', h:30, loader:true });
-	grV.add('button', { name:'LOAD', p:10, h:25, drag:true }).onChange( function(a,b,c){ composer.changeLut(a,b,c) } )
-
-	grV.add( composer.pass.distortion, 'enabled', { type:'bool', rename:'distortion' })
-	grV.add( 'empty', {h:6})
 
 	/*grV.add( composer.pass.focus, 'enabled', { type:'bool', rename:'focus', onName:'focus' })
 	grV.add( composer.options, 'focus', {min:0, max:100} ).onChange( function(){ composer.update() } )
@@ -601,10 +599,23 @@ function initGUI () {
 	grV.add( composer.options, 'saoMinResolution', {min:0, max:1} ).onChange( function(){ composer.update() } )
 	grV.add( 'empty', {h:6})
 
+    //grV.add( composer.pass.bloom, 'enabled', { type:'bool', rename:'bloom' })
     grV.add( composer.pass.bloom, 'enabled', { type:'bool', rename:'bloom' })
 	grV.add( composer.options, 'threshold', {min:0, max:1} ).onChange( function(){ composer.update() } )
 	grV.add( composer.options, 'strength', {min:0, max:10} ).onChange( function(){ composer.update() } )
 	grV.add( composer.options, 'bloomRadius', {min:0, max:1, step:0.01} ).onChange( function(){ composer.update() } )
+    grV.add( 'empty', {h:6})
+
+    grV.add( composer.pass.distortion, 'enabled', { type:'bool', rename:'distortion' })
+	grV.add( 'empty', {h:6})
+
+	grV.add( composer.pass.lut, 'enabled', { type:'bool', rename:'lut' })
+	grV.add('button', { name:'LOAD', p:10, h:25, drag:true }).onChange( function(a,b,c){ composer.changeLut(a,b,c) } )
+	grV.add( 'empty', {h:6})
+
+
+    grV.add( composer.pass.sharpen, 'enabled', { type:'bool', rename:'sharpen' })
+    grV.add( composer.options, 'power', {min:0, max:1} ).onChange( function(){ composer.update() } )
     grV.add( 'empty', {h:6})
 
     

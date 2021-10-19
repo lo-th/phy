@@ -113,7 +113,8 @@ export class Reflector extends Mesh {
 
 		this.material.userData = {
 			reflectif: { value: this.reflect },
-			mirrorMap:{ value: null }
+			mirrorMap:{ value: null },
+			blackAll:{ value: 0 }
 		}
 
 		this.setTarget();
@@ -136,6 +137,7 @@ export class Reflector extends Mesh {
 			//uniforms[ "mirrorPower" ] = { value: scope.reflect };
 			uniforms[ "textureMatrix" ] = { value: textureMatrix };
 			uniforms[ "reflectif" ] =  this.userData.reflectif;
+			uniforms[ "blackAll" ] = this.userData.blackAll;
 			//uniforms[ "shadowPower" ] =  { value: 0.01 };
 			shader.uniforms = uniforms;
 
@@ -147,8 +149,9 @@ export class Reflector extends Mesh {
 			shader.vertexShader = vertex;
 
 			var fragment = shader.fragmentShader;
-			fragment = fragment.replace( 'uniform vec3 diffuse;', ['uniform vec3 diffuse;', 'varying vec4 vUvR;', 'uniform float reflectif;', 'uniform sampler2D mirrorMap;'].join("\n") );
+			fragment = fragment.replace( 'uniform vec3 diffuse;', ['uniform vec3 diffuse;', 'varying vec4 vUvR;', 'uniform float reflectif;', 'uniform sampler2D mirrorMap;', 'uniform int blackAll;'].join("\n") );
 			fragment = fragment.replace( '#include <map_fragment>', MapRemplace );
+			fragment = fragment.replace( '#include <output_fragment>', OutputRemplace );
 
 			fragment = fragment.replace( '#include <aomap_pars_fragment>', '' );
 			fragment = fragment.replace( '#include <aomap_fragment>', '' );
@@ -447,6 +450,13 @@ export class Reflector extends Mesh {
 
 	}
 
+	setBlack ( b ){
+
+		this.isShow = !b  ;
+		this.material.userData.blackAll.value = b ? 1 : 0 ;
+
+	}
+
 }
 //});
 
@@ -479,6 +489,8 @@ vec4 reflector = texture2DProj( mirrorMap, vUvR );
 	texelColor.rgb = mix( texelColor.rgb, reflector.rgb, reflectif );
 	//texelColor.rgb *= mix( vec3(1.0), reflector.rgb, reflectif );
 	diffuseColor *= texelColor;
+
+	
 	
 #else
 
@@ -505,3 +517,15 @@ diffuseColor.rgb *= mix( vec3(1.0), reflector.rgb, reflectif );
 	}*/
 /*`;*/
 
+const OutputRemplace =/* glsl */`
+#ifdef OPAQUE
+diffuseColor.a = 1.0;
+#endif
+
+#ifdef USE_TRANSMISSION
+diffuseColor.a *= transmissionAlpha + 0.1;
+#endif
+
+if( blackAll == 1 ) gl_FragColor = vec4( vec3(0.0), diffuseColor.a );
+else gl_FragColor = vec4( outgoingLight, diffuseColor.a );
+`;

@@ -197,6 +197,47 @@ class SAOPass extends Pass {
 
 		this.fsQuad = new FullScreenQuad( null );
 
+		this.applyValue()
+
+	}
+
+	applyValue (){
+
+		let uni = this.saoMaterial.uniforms
+
+		uni.bias.value = this.params.saoBias
+		uni.intensity.value = this.params.saoIntensity
+		uni.scale.value = this.params.saoScale
+		uni.kernelRadius.value = this.params.saoKernelRadius
+		uni.minResolution.value = this.params.saoMinResolution
+		uni.cameraNear.value = this.camera.near
+		uni.cameraFar.value = this.camera.far
+		// this.saoMaterial.uniforms['randomSeed'].value = Math.random();
+
+		const depthCutoff = this.params.saoBlurDepthCutoff * ( this.camera.far - this.camera.near );
+
+		uni = this.vBlurMaterial.uniforms
+
+		uni.depthCutoff.value = depthCutoff;
+		uni.cameraNear.value = this.camera.near;
+		uni.cameraFar.value = this.camera.far;
+
+		uni = this.hBlurMaterial.uniforms
+
+		uni.depthCutoff.value = depthCutoff;
+		uni.cameraNear.value = this.camera.near;
+		uni.cameraFar.value = this.camera.far;
+
+		this.params.saoBlurRadius = Math.floor( this.params.saoBlurRadius );
+		if ( ( this.prevStdDev !== this.params.saoBlurStdDev ) || ( this.prevNumSamples !== this.params.saoBlurRadius ) ) {
+
+			BlurShaderUtils.configure( this.vBlurMaterial, this.params.saoBlurRadius, this.params.saoBlurStdDev, new Vector2( 0, 1 ) );
+			BlurShaderUtils.configure( this.hBlurMaterial, this.params.saoBlurRadius, this.params.saoBlurStdDev, new Vector2( 1, 0 ) );
+			this.prevStdDev = this.params.saoBlurStdDev;
+			this.prevNumSamples = this.params.saoBlurRadius;
+
+		}
+
 	}
 
 	render( renderer, writeBuffer, readBuffer/*, deltaTime, maskActive*/ ) {
@@ -211,11 +252,7 @@ class SAOPass extends Pass {
 
 		}
 
-		if ( this.params.output === 1 ) {
-
-			return;
-
-		}
+		if ( this.params.output === 1 ) return;
 
 		renderer.getClearColor( this._oldClearColor );
 		this.oldClearAlpha = renderer.getClearAlpha();
@@ -225,25 +262,7 @@ class SAOPass extends Pass {
 		renderer.setRenderTarget( this.depthRenderTarget );
 		renderer.clear();
 
-		this.saoMaterial.uniforms[ 'bias' ].value = this.params.saoBias;
-		this.saoMaterial.uniforms[ 'intensity' ].value = this.params.saoIntensity;
-		this.saoMaterial.uniforms[ 'scale' ].value = this.params.saoScale;
-		this.saoMaterial.uniforms[ 'kernelRadius' ].value = this.params.saoKernelRadius;
-		this.saoMaterial.uniforms[ 'minResolution' ].value = this.params.saoMinResolution;
-		this.saoMaterial.uniforms[ 'cameraNear' ].value = this.camera.near;
-		this.saoMaterial.uniforms[ 'cameraFar' ].value = this.camera.far;
-		// this.saoMaterial.uniforms['randomSeed'].value = Math.random();
-
-		const depthCutoff = this.params.saoBlurDepthCutoff * ( this.camera.far - this.camera.near );
-		this.vBlurMaterial.uniforms[ 'depthCutoff' ].value = depthCutoff;
-		this.hBlurMaterial.uniforms[ 'depthCutoff' ].value = depthCutoff;
-
-		this.vBlurMaterial.uniforms[ 'cameraNear' ].value = this.camera.near;
-		this.vBlurMaterial.uniforms[ 'cameraFar' ].value = this.camera.far;
-		this.hBlurMaterial.uniforms[ 'cameraNear' ].value = this.camera.near;
-		this.hBlurMaterial.uniforms[ 'cameraFar' ].value = this.camera.far;
-
-		this.params.saoBlurRadius = Math.floor( this.params.saoBlurRadius );
+		/*this.params.saoBlurRadius = Math.floor( this.params.saoBlurRadius );
 		if ( ( this.prevStdDev !== this.params.saoBlurStdDev ) || ( this.prevNumSamples !== this.params.saoBlurRadius ) ) {
 
 			BlurShaderUtils.configure( this.vBlurMaterial, this.params.saoBlurRadius, this.params.saoBlurStdDev, new Vector2( 0, 1 ) );
@@ -251,7 +270,7 @@ class SAOPass extends Pass {
 			this.prevStdDev = this.params.saoBlurStdDev;
 			this.prevNumSamples = this.params.saoBlurRadius;
 
-		}
+		}*/
 
 		if ( ! this.isDirectDepth ){
 			

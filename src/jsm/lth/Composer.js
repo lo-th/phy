@@ -29,6 +29,7 @@ import { SharpenShader } from '../shaders/SharpenShader.js';
 //import { BokehShader, BokehDepthShader } from '../shaders/BokehShader2.js';
 import { GammaCorrectionShader } from '../shaders/GammaCorrectionShader.js';
 import { DistortionShader } from '../shaders/DistortionShader.js';
+import { BloomMix } from '../shaders/BloomMix.js';
 
 import { LUTCubeLoader } from '../loaders/LUTCubeLoader.js';
 //import { LUT3dlLoader } from '../loaders/LUT3dlLoader.js';
@@ -40,13 +41,13 @@ export class Composer extends EffectComposer {
 		let isGl2 = renderer.capabilities.isWebGL2
 		let px = renderer.getPixelRatio()
 		let RTClass = isGl2 ? WebGLMultisampleRenderTarget : WebGLRenderTarget
-		
+		//let RTClass = WebGLRenderTarget
 
 		const renderTarget = new RTClass( size.w*px, size.h*px, {
 			minFilter: LinearFilter,
 			magFilter: LinearFilter,
 			format: RGBAFormat,
-			encoding: sRGBEncoding//???
+			//encoding: sRGBEncoding//??? slow down
 		})
 
 		if( renderTarget.samples ) renderTarget.samples = 4
@@ -99,7 +100,7 @@ export class Composer extends EffectComposer {
 			// bloom
 			threshold:0.85,
 			strength:1.5,
-			bloomRadius: 0.4,
+			bloomRadius: 0,
 
 			// sao
 			saoBias:0.5,
@@ -115,6 +116,9 @@ export class Composer extends EffectComposer {
 
 			// lut
 			lutIntensity:1,
+
+			// sharpen
+			power: 0.1,
 
 		}
 
@@ -142,17 +146,14 @@ export class Composer extends EffectComposer {
 		this.pass.sao.setNormalTarget( this.normalTarget )
 		if(!this.isGl2) this.pass.sao.setDepthTarget( this.depthTarget )
 
-		this.addPass( this.pass.sao );
-
 		this.pass.sao.enabled = true
-
 
 		this.lutMap = null
 		this.pass.lut = new LUTPass()
 		this.loadLut( 'premium' )
 
 		this.pass.lut.intensity = this.options.lutIntensity
-		this.addPass( this.pass.lut )
+		
 		this.pass.lut.enabled = true
 
 
@@ -168,13 +169,11 @@ export class Composer extends EffectComposer {
 		this.pass.ssao.setBeautyTarget( this.beautyTarget )
 		this.addPass( this.pass.ssao );*/
 
-		/*
+		
 		this.pass.sharpen = new ShaderPass( SharpenShader )
-		this.pass.sharpen.setSize = function (w,h){ this.uniforms[ 'resolution' ].value.set(w,h) }
-		this.addPass( this.pass.sharpen )
-		this.pass.sharpen.enabled = false
-		*/
-
+		this.pass.sharpen.setSize = function (w,h){ this.uniforms[ 'resolution' ].value.set(w,h) }	
+		this.pass.sharpen.enabled = true
+		
 
 		/*
 		this.pass.focus = new BokehPass( this.scene, this.camera, { focus: 20.0, aperture: 0.2, maxblur: 2, width: size.w, height: size.h } );
@@ -186,17 +185,41 @@ export class Composer extends EffectComposer {
 
 		this.pass.distortion = new ShaderPass( DistortionShader );
 		this.setDistortion()
-		this.addPass( this.pass.distortion )
-		this.pass.distortion.enabled = false
+		
+		this.pass.distortion.enabled = true
 
 
 
-		this.pass.bloom = new UnrealBloomPass( new Vector2( size.w, size.h ), 1.5, 0.4, 0.85, true, Env )
-		this.addPass( this.pass.bloom )
+		/*this.pass.bloom = new UnrealBloomPass( new Vector2( size.w, size.h ), 1.5, 0.4, 0.85, true, Env )
+		
+		this.pass.bloom.enabled = true*/
+
+		this.bloomPass = new UnrealBloomPass( new Vector2( size.w, size.h ), this.options.strength, this.options.bloomRadius, this.options.threshold, true )
+		this.bloomPass.enabled = true
+
+		this.bloomComposer = new EffectComposer( renderer, renderTarget )
+		this.bloomComposer.renderToScreen = false
+		this.bloomComposer.addPass( this.pass.render )
+		this.bloomComposer.addPass( this.bloomPass )
+
+
+
+		this.pass.bloom = new ShaderPass( BloomMix )
 		this.pass.bloom.enabled = true
+		this.pass.bloom.needsSwap = true
+		this.pass.bloom.uniforms[ "bloomTexture" ].value = this.bloomComposer.renderTarget2.texture;
 
 
 
+
+
+
+		
+		this.addPass( this.pass.bloom )
+		this.addPass( this.pass.sao )
+		this.addPass( this.pass.distortion )
+		this.addPass( this.pass.lut )
+		this.addPass( this.pass.sharpen )
 		
 
 		/*this.pass.gamma = new ShaderPass( GammaCorrectionShader )
@@ -287,11 +310,20 @@ export class Composer extends EffectComposer {
 			this.pass.focus.uniforms[ "aspect" ].value = this.camera.aspect;
 		}*/
 
-		if( this.pass.bloom ){
+		if( this.bloomPass ){
+			this.bloomPass.threshold = this.options.threshold;
+			this.bloomPass.strength = this.options.strength;
+			this.bloomPass.radius = this.options.bloomRadius; 
+
+			this.bloomPass.applyValue()
+
+		}
+
+		/*if( this.pass.bloom ){
 			this.pass.bloom.threshold = this.options.threshold;
 			this.pass.bloom.strength = this.options.strength;
 			this.pass.bloom.bloomRadius = this.options.bloomRadius; 
-		}
+		}*/
 
 		if(this.pass.sao){
 
@@ -301,7 +333,14 @@ export class Composer extends EffectComposer {
 			this.pass.sao.params.saoKernelRadius = this.options.saoKernelRadius
 			this.pass.sao.params.saoMinResolution = this.options.saoMinResolution
 
+			this.pass.sao.applyValue()
 		}
+
+		if(this.pass.sharpen){
+			this.pass.sharpen.uniforms[ "power" ].value = this.options.power
+		}
+
+		
 
 		/*if(this.pass.ssaoPass){
 			this.pass.ssao.kernelRadius = this.options.kernelRadius;
@@ -351,11 +390,25 @@ export class Composer extends EffectComposer {
 		if( !this.enabled ) return;
 
 		this.size = size;
-		this.setSize( this.size.w, this.size.h );
+		this.setSize( this.size.w, this.size.h )
+		this.bloomComposer.setSize( this.size.w, this.size.h )
 
 	}
 
 	render ( deltaTime ) {
+
+
+		if( this.pass.bloom.enabled ){ 
+			this.bloomPass.enabled = true
+
+			Env.setBackgroud(0x000000)
+			if( this.scene.ground ) this.scene.ground.setBlack( true )
+			this.bloomComposer.render( deltaTime )
+		    if( this.scene.ground ) this.scene.ground.setBlack( false )
+			Env.setBackgroud()
+		} else {
+			this.bloomPass.enabled = false
+		}
 
 		if( this.pass.sao.isDirectNormal || this.pass.sao.isDirectDepth ){
 
@@ -364,6 +417,8 @@ export class Composer extends EffectComposer {
 	        this.renderBeauty()
 
 		}
+
+
 
 		//Env.setBackgroud(0x111111)
 
