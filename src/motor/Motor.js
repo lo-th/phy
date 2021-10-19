@@ -19,43 +19,37 @@ import { User } from './User.js';
 //--------------
 
 let callback = null;
-let Ar, ArPos = {}, ArMax = 0;
+let Ar, ArPos = {}, ArMax = 0
 
-let worker = null;
-let isWorker = false;
-let isBuffer = false;
-let isTimeout = true;
+let worker = null
+let isWorker = false
+let isBuffer = false
+let isTimeout = true
 
-let directMessage = null;
-let controls = null;
+let directMessage = null
+let controls = null
+let first = true
 
-let first = true; 
+const ray = new Ray()
+const body = new Body()
+const solid = new Solid()
+const joint = new Joint()
+const contact = new Contact()
 
-const body = new Body();
-const solid = new Solid();
-const joint = new Joint();
-const ray = new Ray();
-const contact = new Contact();
+const user = new User()
 
-const user = new User();
-
-let postUpdate = function () {};
-let azimut = function () { return 0 };
-
-let endReset = function () {};
-
-let extraTexture = function () {};
-let extraMaterial = function () {};
+let azimut = function(){ return 0 }
+let endReset = function(){}
+let postUpdate = function(){}
+let extraTexture = function(){}
+let extraMaterial = function(){}
 
 export class Motor {
 
 	static setExtraTexture ( f ) { extraTexture = f }
 	static setExtraMaterial ( f ) { extraMaterial = f }
 
-	static setPostUpdate ( f ) { 
-		if( f === null ) postUpdate = function () {}
-		else postUpdate = f 
-	}
+	static setPostUpdate ( f ) { postUpdate = f !== null ? f : function(){} }
 	static setAzimut ( f ) { azimut = f }
 
 	static getKey () { return user.key }
@@ -79,7 +73,6 @@ export class Motor {
 	static message ( m ){
 
 		let e = m.data;
-
 		if( e.Ar ) Ar = e.Ar;
 		if( e.reflow ) root.reflow = e.reflow
 		Motor[ e.m ]( e.o )
@@ -106,7 +99,6 @@ export class Motor {
 
 	}
 
-	//static setScene ( scene = new Group() ) { root.scene = scene; }
 	static getScene () { return root.scene; }
 
 	static getMat () { return mat; }
@@ -114,58 +106,51 @@ export class Motor {
 	static init ( o = {} ){
 
 		let type = o.type || 'OIMO';
+		let name = type.toLowerCase()
+		let mini = name.charAt(0).toUpperCase() + name.slice(1)
+		let st = ''
 
 		let isFirefox = navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
 
 		body.extraConvex = o.extraConvex || false
 
 		if( o.callback ){ 
-			callback = o.callback;
-			delete ( o.callback );
+			callback = o.callback
+			delete ( o.callback )
 		}
 
-		Motor.initArray();
+		this.initArray()
+		o.ArPos = ArPos
+		o.ArMax = ArMax
 
-		o.ArPos = ArPos;
-		o.ArMax = ArMax;
+		root.scene = new Group()
+		root.scenePlus = new Group()
 
-		root.scene = new Group();
-		root.scenePlus = new Group();
+		console.log(root.scene)
 
-		root.post = Motor.post;
+		root.post = this.post
 
 		if( !o.direct ){ // is worker version
 
-			let st = '', name, mini
+			
 
 			switch( type ){
 
 				case 'OIMO':
 
-				    if( isFirefox ) worker = new Worker( './build/Oimo.min.js' );
+				    if( isFirefox ) worker = new Worker( './build/'+mini+'.min.js' )
 				    else {
 				    	try {
-					    worker = new Worker('./build/Oimo.module.js', {type:'module'});
+					        worker = new Worker('./build/'+mini+'.module.js', {type:'module'})
 						    st = 'ES6'
 						} catch (error) {
-						    worker = new Worker( './build/Oimo.min.js' );
+						    worker = new Worker( './build/'+mini+'.min.js' )
 						}
 				    }
 
 				break
 
-				/*case 'CANNON':
-
-					try {
-					    worker = new Worker('./build/Cannon.module.js', {type:'module'});
-					    st = 'ES6'
-					} catch (error) {
-					    worker = new Worker( './build/Cannon.min.js' );
-					}
-
-				break
-
-				case 'ODE':
+				/*case 'ODE':
 
 					name = type.toLowerCase()
 				    mini = name.charAt(0).toUpperCase() + name.slice(1)
@@ -187,9 +172,6 @@ export class Motor {
 				break*/
 				
 				default :
-
-				    name = type.toLowerCase()
-				    mini = name.charAt(0).toUpperCase() + name.slice(1)
 
 				    o.blob = document.location.href.replace(/\/[^/]*$/,"/") + './build/'+name+'.wasm.js'
 					worker = new Worker( './build/'+mini+'.min.js' );
@@ -219,13 +201,13 @@ export class Motor {
 		}
 
 		root.engine = type
-		Motor.post({ m:'init', o:o });
+		this.post({ m:'init', o:o });
 
 	}
 
 	static pause (){
 
-		Motor.post({ m:'pause' });
+		this.post({ m:'pause' })
 
 	}
 
@@ -249,12 +231,12 @@ export class Motor {
 
 		postUpdate = function () {}
 
-		Motor.flowReset()
+		this.flowReset()
 
+		ray.reset()
 		body.reset()
 		solid.reset()
 		joint.reset()
-		ray.reset()
 		contact.reset()
 
 		let i, name
@@ -284,7 +266,11 @@ export class Motor {
 		for( i in root.tmpTex ) root.tmpTex[i].dispose()
 		root.tmpTex = []
 
-		Motor.post({ m:'reset' });
+
+	    root.scenePlus.children = []
+	    root.scene.children = []
+
+		this.post({ m:'reset' });
 
 	}
 
@@ -378,11 +364,11 @@ export class Motor {
 	static initArray ( max = {} ) {
 
 		let counts = {
-			body: ( max.body || 2000 ) * 11,
-            joint:( max.joint || 200 ) * 16,
-            ray:( max.ray || 100 ) * 8,
-            contact:( max.contact || 100 ) * 8
-		};
+			body: ( max.body || 1000 ) * 11,
+            joint:( max.joint || 100 ) * 16,
+            ray:( max.ray || 50 ) * 8,
+            contact:( max.contact || 50 ) * 8
+		}
 
         let prev = 0;
 
@@ -395,7 +381,6 @@ export class Motor {
         }
 
 	}
-
 
 	static adds ( r = [] ){ for( let o in r ) this.add( r[o] ) }
 
@@ -420,7 +405,7 @@ export class Motor {
 			
 		}
 
-		return b;
+		return b
 
 	}
 
@@ -449,8 +434,6 @@ export class Motor {
 
 	}
 
-	
-	
 
 	static changes ( r = [], direct = false ){ for( let o in r ) this.change( r[o], direct ) }
 

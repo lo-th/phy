@@ -138,6 +138,8 @@ export class engine {
 		if( root.world  === null ){
 
 			// define transfer array
+			//const buffer = new ArrayBuffer(ArMax)
+			//Ar = new Float32Array( buffer )
 		    Ar = new Float32Array( ArMax )
 
 		    // create new world

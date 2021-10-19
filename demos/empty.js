@@ -1,7 +1,7 @@
 function demo() {
 
     phy.view({
-        //envmap:'room',
+        envmap:0x604545,
         ground:false
     })
 

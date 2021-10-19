@@ -16,11 +16,11 @@
     "extends": "mdcs"
   },
   "scripts": {
-    "all": "npm run main && npm run oimo && npm run ammo",
     "build": "npm run oimo && npm run ammo",
     "main": "rollup -c rollup/rollup.config.js",
     "oimo": "rollup -c rollup/rollup.config.oimo.js",
     "ammo": "rollup -c rollup/rollup.config.ammo.js",
+    "hide": "rollup -c rollup/rollup.config.hide.js",
     "dev": "concurrently --names \"ROLLUP,HTTP\" -c \"bgBlue.bold,bgGreen.bold\" \"rollup -c rollup/rollup.config.js -w -m inline\" \"servez -p 8121 --index\"",
     "start": "concurrently --names \"ROLLUP,HTTP\" -c \"bgBlue.bold,bgGreen.bold\" \"rollup -c rollup/rollup.config.js -w -m inline\" \"http-server -c-1 -p 8121 -o index.html\""
   },

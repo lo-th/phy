@@ -31,6 +31,7 @@ import { GammaCorrectionShader } from '../shaders/GammaCorrectionShader.js';
 import { DistortionShader } from '../shaders/DistortionShader.js';
 
 import { LUTCubeLoader } from '../loaders/LUTCubeLoader.js';
+//import { LUT3dlLoader } from '../loaders/LUT3dlLoader.js';
 
 export class Composer extends EffectComposer {
 
@@ -45,7 +46,7 @@ export class Composer extends EffectComposer {
 			minFilter: LinearFilter,
 			magFilter: LinearFilter,
 			format: RGBAFormat,
-			//encoding: sRGBEncoding
+			encoding: sRGBEncoding//???
 		})
 
 		if( renderTarget.samples ) renderTarget.samples = 4
@@ -66,6 +67,9 @@ export class Composer extends EffectComposer {
 	    //this.normalTarget.texture.format=RGBFormat
 
 	    //this.saoEnable = true
+
+	    this.lutCubeLoader = null;
+	    //this.lut3DLoader = null;
 
 
 		this.v = new Vector3();
@@ -109,6 +113,8 @@ export class Composer extends EffectComposer {
 			minDistance:0.0001,
 			maxDistance:2,
 
+			// lut
+			lutIntensity:1,
 
 		}
 
@@ -117,9 +123,6 @@ export class Composer extends EffectComposer {
 		this.pass.render = new RenderPass( scene, camera )
 		this.addPass( this.pass.render )
 
-
-
-		
 
 		// SAO PASS
 		this.pass.sao = new SAOPass( scene, camera, this.isGl2, true );
@@ -144,12 +147,13 @@ export class Composer extends EffectComposer {
 		this.pass.sao.enabled = true
 
 
-		this.lutMap = {}
-		this.pass.lut = new LUTPass();
+		this.lutMap = null
+		this.pass.lut = new LUTPass()
 		this.loadLut( 'premium' )
-		//this.loadLut( 'indoor/dreams' )
+
+		this.pass.lut.intensity = this.options.lutIntensity
 		this.addPass( this.pass.lut )
-		this.pass.lut.enabled = false
+		this.pass.lut.enabled = true
 
 
 		// SSAO PASS
@@ -190,6 +194,8 @@ export class Composer extends EffectComposer {
 		this.pass.bloom = new UnrealBloomPass( new Vector2( size.w, size.h ), 1.5, 0.4, 0.85, true, Env )
 		this.addPass( this.pass.bloom )
 		this.pass.bloom.enabled = true
+
+
 
 		
 
@@ -305,21 +311,38 @@ export class Composer extends EffectComposer {
 
 	}
 
+	changeLut ( txt, name, type ) {
+
+		type = type.toLowerCase()
+
+		if( type !== 'cube' ) return
+
+		if( this.lutMap !== null ){
+			this.lutMap.texture.dispose()
+			this.lutMap.texture3D.dispose()
+		}
+
+		if( this.lutCubeLoader === null ) this.lutCubeLoader = new LUTCubeLoader();
+		this.lutMap = this.lutCubeLoader.parse( txt )
+
+		this.setLut()
+
+	}
+
 	loadLut ( name ){
 
-		new LUTCubeLoader().load( 'assets/luts/' + name + '.cube', function ( result ) {
+		if( this.lutCubeLoader === null ) this.lutCubeLoader = new LUTCubeLoader();
 
-			let n = name.substring( name.lastIndexOf('/')+1, name.lastIndexOf('.') )
-			this.lutMap[ n ] = result
-			this.setLut( n )
-
+		this.lutCubeLoader.load( 'assets/luts/' + name + '.cube', function ( result ) {
+			this.lutMap = result
+			this.setLut()
 		}.bind(this) );
 
 	}
 
-	setLut ( name ){
+	setLut (){
 
-		this.pass.lut.lut = this.isGl2 ? this.lutMap[ name ].texture : this.lutMap[ name ].texture3D
+		this.pass.lut.lut = this.isGl2 ? this.lutMap.texture : this.lutMap.texture3D
 
 	}
 

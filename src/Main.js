@@ -34,7 +34,6 @@ let engineType, version, isWorker, introText
 let engineList = [ 'OIMO','AMMO' ]
 
 
-
 const setting = {
 
 	envmap:'basic',
@@ -111,7 +110,10 @@ export class Main {
 
 		introText = (isWorker ? 'WORKER ' : '') + engineType + ' ' + version 
 
-		if( o.extra ){
+		let urlParams = new URLSearchParams(window.location.search)
+		//if( urlParams.has('dev') ) o.extra = true
+
+		if( urlParams.has('dev') ){
 		    devMode = true
 		    debugLight = true
 		    fullStat = true
@@ -131,8 +133,13 @@ export class Main {
 		if( o.envmap ){
 			if( o.envmap !== options.envmap ){
 				options.envmap = o.envmap
-				envui.setValue( options.envmap )
-				Env.load( './assets/textures/equirectangular/'+options.envmap+'.hdr' )
+				if( typeof o.envmap  === 'string' ){
+					envui.setValue( options.envmap )
+				    Env.load( './assets/textures/equirectangular/'+options.envmap+'.hdr' )
+				} else if (!isNaN(o.envmap)){
+					Env.setBackgroud( o.envmap )
+				}
+				
 			}
 		}
 
@@ -150,10 +157,7 @@ export class Main {
 
 	}
 
-	static injectCode ( cc ){
-		//console.log('code is edit')
-		inject(cc)
-	}
+	static injectCode ( cc ){ inject(cc) }
 
 	static getScene( ){ return scene }
 	static getRenderer( ){ return renderer }
@@ -171,10 +175,6 @@ export class Main {
 }
 
 
-
-//window.rand = Motor.rand
-
-
 // import from pool
 Motor.load = Pool.load;
 Motor.getMesh = Pool.getMesh;
@@ -185,7 +185,6 @@ Motor.get = Pool.get;
 Pool.setExtraMaterial( function(m){ if( m ) Shader.add( m ) } );
 
 Motor.log = Hub.log;
-
 Motor.view = Main.view;
 
 window.phy = Motor
@@ -198,8 +197,6 @@ window.Landscape = Landscape
 window.Building = Building
 window.Diamond = Diamond
 window.Sparkle = Sparkle
-
-
 
 
 function init() {
@@ -218,12 +215,7 @@ function init() {
 	size.h = window.innerHeight
 	size.r = size.w / size.h
 
-	Shader.init( options )
-
-	scene = new THREE.Scene()
-	scene.background = new THREE.Color( 0x000000 )
-	//scene.matrixAutoUpdate = false
-	//scene.autoUpdate = false // 
+	// RENDERER
 
 	renderer = new THREE.WebGLRenderer( { antialias: AA,  /*powerPreference: "high-performance"*/ } )
 	renderer.setPixelRatio( pixelRatio )
@@ -234,17 +226,26 @@ function init() {
 	renderer.physicallyCorrectLights = true
 	renderer.toneMappingExposure = 0;// def : 1
 
-	//console.log(renderer.setClearColor)
-
-	
-
-	Shader.setGl2( renderer.capabilities.isWebGL2 );
-
 	if( fullStat ) memo = renderer.getContext().getExtension('GMAN_webgl_memory')
 
-	document.body.appendChild( renderer.domElement )
+	// DOM
+    document.body.appendChild( renderer.domElement )
 	dom = renderer.domElement;
 	dom.style.position = 'absolute'
+
+	// SHADER
+
+	Shader.setGl2( renderer.capabilities.isWebGL2 )
+	Shader.init( options )
+
+	// SCENE
+
+	scene = new THREE.Scene()
+	scene.background = new THREE.Color( 0x000000 )
+	//scene.matrixAutoUpdate = false
+	//scene.autoUpdate = false 
+
+	// GROUP
 
 	followGroup = new THREE.Group()
 	scene.add( followGroup )
@@ -268,9 +269,6 @@ function init() {
 	s.radius = 2
 	s.blurSamples = 8 // only for VSM !
 
-	//console.log(s.bias, s.radius)
-	
-
 	light.castShadow = true
 	renderer.shadowMap.enabled = true
 	renderer.shadowMap.type = THREE.PCFSoftShadowMap
@@ -279,8 +277,7 @@ function init() {
 	followGroup.add( light )
 	followGroup.add( light.target )
 
-	// debug light
-	//
+	// light 2
 
 	light2 = new THREE.DirectionalLight( 0xFF0000, 1.5 )
 	light2.position.set( -1, 0, 0 )
@@ -296,6 +293,7 @@ function init() {
 		scene.add( light.helper )
 		scene.add( light2.helper )
 		scene.add( new THREE.CameraHelper( s.camera ) )
+
 	}*/
 
 	
@@ -311,8 +309,6 @@ function init() {
 	scene.add( new RectAreaLightHelper( light2 ) );*/
 
 	// CAMERA / CONTROLER
-
-	//camera = new THREE.PerspectiveCamera( 50, size.r, 0.02, 1000 )
 
 	camera = new THREE.PerspectiveCamera( 45, size.r, 1, 1000 )
 	camera.position.set( 0, 8, 10 )
@@ -339,7 +335,6 @@ function init() {
 
 	scene.add( camera )
 
-
 	// POST PROCESS
 
 	composer = new Composer( renderer, scene, camera, controls, size );
@@ -358,16 +353,15 @@ function init() {
 
 
 function next () {
-	
-	let mat = Motor.getMat()
 
 	// custom shadow for default motor material
+	let mat = Motor.getMat()
 	for( let m in mat ) Shader.add( mat[m] )
 
 	hideMat = mat['hide']
 
-    Motor.setContent( scene );
-    Motor.setControl( controls );
+    Motor.setContent( scene )
+    Motor.setControl( controls )
 
     Motor.setExtraTexture( function(o){ return Pool.directTexture( o.url, o ) } );
     Motor.setExtraMaterial( function(m){ if( m ) Shader.add( m ) } );
@@ -440,11 +434,11 @@ function loadDemo( name ){
 
 function inject ( newCode ) {
 
-	isLoadCode = !newCode;
+	isLoadCode = !newCode
 	code = isLoadCode ? Pool.getScript( options.demo ) : newCode
 
 	if(window['onReset']) window['onReset']()
-	Hub.log();
+	Hub.log()
 
 	phy.reset( refreshCode )
 
@@ -488,9 +482,9 @@ function render ( stamp ) {
 
 	requestAnimationFrame( render )
 
-	tm.now = stamp;
-	tm.delta = tm.now - tm.then;
-	tm.dt = tm.delta * 0.001;
+	tm.now = stamp
+	tm.delta = tm.now - tm.then
+	tm.dt = tm.delta * 0.001
 
 
 	if( needResize ){
@@ -555,7 +549,7 @@ function initGUI () {
 	ui.add( 'empty', {h:6})
 
 	// DISPLAY
-composer
+
 	let grV = ui.add('group', { name:'DISPLAY', h:30 })
 
 	grV.add( options, 'renderMode', { type:'selector', values:[0,1,2,3], selectable:true, p:0, h:24 }).onChange( function(n){ 
@@ -587,6 +581,8 @@ composer
 
 	//grV.add( composer.pass.sharpen, 'enabled', { type:'bool', rename:'sharpen' })
 	grV.add( composer.pass.lut, 'enabled', { type:'bool', rename:'lut' })
+	//grV.add('button', { name:'LOAD', fontColor:'#D4B87B', h:30, loader:true });
+	grV.add('button', { name:'LOAD', p:10, h:25, drag:true }).onChange( function(a,b,c){ composer.changeLut(a,b,c) } )
 
 	grV.add( composer.pass.distortion, 'enabled', { type:'bool', rename:'distortion' })
 	grV.add( 'empty', {h:6})
@@ -637,14 +633,15 @@ function swapEngine ( type ){
 
 	let name = type.toLowerCase()
 	let hash = location.hash
+	let variable = ''
 	let url = 'index'
 
 	if( name!=='oimo' ) url=name
-	if( !isWorker ) url+='_d'
-	if(engineList.length>2) url+='ev'
+	if( !isWorker ) url += '_d'
 
-
-	let w = window.open( url+'.html'+hash, '_self')
+    if( devMode ) variable = '?dev'
+	
+	let w = window.open( url+'.html'+variable+hash, '_self')
     
     //w.focus()
 
@@ -706,7 +703,7 @@ function mouseup ( e ) {
 
 function mousemove( e ) {
 
-	mouse.x =   ( (e.clientX-size.left) / size.w ) * 2 - 1
+	mouse.x =   ( ( e.clientX - size.left ) / size.w ) * 2 - 1
 	mouse.y = - ( e.clientY / size.h ) * 2 + 1
 	castray();
 
@@ -720,7 +717,7 @@ function castray () {
 
 		ray.setFromCamera( mouse, camera )
 		inters = ray.intersectObject( dragPlane )
-		if ( inters.length ) Motor.change({ name:'mouse', pos:inters[0].point.toArray() }, true );
+		if ( inters.length ) Motor.change({ name:'mouse', pos:inters[0].point.toArray() }, true )
 
 	}
 
@@ -794,8 +791,8 @@ function unSelect () {
 }
 
 function getFullStats() {
-    if (memo) {
-        const info = memo.getMemoryInfo();
+    if ( memo ) {
+        const info = memo.getMemoryInfo()
         Hub.setStats( info )
     }
 }

@@ -22,10 +22,8 @@ function demo() {
         if(i===0 || i===4 || i===8) p = 1.5
         else p = 1
         phy.material({ name:'c'+i, color:paintlColor[i], roughness:1, metalness:0, toneMapped:false })
-        phy.add({ name:'box'+i, size:[p,4,p], pos:[ d * Math.sin(a), 2, d * Math.cos(a)],rot:[0,a*math.todeg,0], density:1, restitution:0.5, friction:0.9, material:'c'+i })
+        phy.add({ name:'box'+i, size:[p,4,p], pos:[ d * Math.sin(a), 2, d * Math.cos(a)],rot:[0,a*math.todeg,0], radius:0.05, density:1, restitution:0.5, friction:0.9, material:'c'+i })
         a -= k
     }
-
-
 
 }

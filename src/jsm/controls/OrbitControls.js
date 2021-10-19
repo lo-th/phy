@@ -126,6 +126,12 @@ class OrbitControls extends EventDispatcher {
 
 		};
 
+		this.getDistance = function () {
+
+			return this.object.position.distanceTo( this.target );
+
+		};
+
 		this.listenToKeyEvents = function ( domElement ) {
 
 			domElement.addEventListener( 'keydown', onKeyDown );
@@ -815,6 +821,8 @@ class OrbitControls extends EventDispatcher {
 
 			if ( pointers.length === 0 ) {
 
+				scope.domElement.setPointerCapture( event.pointerId );
+
 				scope.domElement.ownerDocument.addEventListener( 'pointermove', onPointerMove );
 				scope.domElement.ownerDocument.addEventListener( 'pointerup', onPointerUp );
 
@@ -871,6 +879,8 @@ class OrbitControls extends EventDispatcher {
 			//
 
 			if ( pointers.length === 0 ) {
+
+				scope.domElement.releasePointerCapture( event.pointerId );
 
 				scope.domElement.ownerDocument.removeEventListener( 'pointermove', onPointerMove );
 				scope.domElement.ownerDocument.removeEventListener( 'pointerup', onPointerUp );
@@ -1028,7 +1038,7 @@ class OrbitControls extends EventDispatcher {
 
 		function onMouseWheel( event ) {
 
-			if ( scope.enabled === false || scope.enableZoom === false || ( state !== STATE.NONE && state !== STATE.ROTATE ) ) return;
+			if ( scope.enabled === false || scope.enableZoom === false || state !== STATE.NONE ) return;
 
 			event.preventDefault();
 
