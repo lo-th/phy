@@ -248,6 +248,7 @@ export class Composer extends EffectComposer {
 		//if( this.normalTarget === null  ) this.normalTarget = this.renderTarget.clone()
 		Shader.up( {renderMode:2} )
 		Env.setBackgroud(0x7777ff)
+		this.scene.helper.visible = false
 	    this.renderer.setRenderTarget( this.normalTarget )
 	    //this.renderer.clear();
 	    this.renderer.render( this.scene, this.camera )
@@ -261,6 +262,7 @@ export class Composer extends EffectComposer {
 		//if( this.depthTarget === null  ) this.depthTarget = this.renderTarget.clone()
 		Shader.up( {renderMode:1} )
 		Env.setBackgroud(0x000000)
+		this.scene.helper.visible = false
 
 	    this.renderer.setRenderTarget( this.depthTarget )
 	    //this.renderer.clear();
@@ -273,6 +275,7 @@ export class Composer extends EffectComposer {
 		//if( this.depthTarget === null  ) this.depthTarget = this.renderTarget.clone()
 		Shader.up( {renderMode:0} )
 		Env.setBackgroud()
+		this.scene.helper.visible = true
 
 		this.renderer.setRenderTarget( null )
 
@@ -402,9 +405,11 @@ export class Composer extends EffectComposer {
 			this.bloomPass.enabled = true
 
 			Env.setBackgroud(0x000000)
+			this.scene.helper.visible = false
 			if( this.scene.ground ) this.scene.ground.setBlack( true )
 			this.bloomComposer.render( deltaTime )
 		    if( this.scene.ground ) this.scene.ground.setBlack( false )
+		    this.scene.helper.visible = true
 			Env.setBackgroud()
 		} else {
 			this.bloomPass.enabled = false

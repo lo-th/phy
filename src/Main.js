@@ -72,7 +72,7 @@ const options = {
 
 
 let g1, g2
-let dom, camera, controls, scene, renderer, composer, content, dragPlane, followGroup, hideMat, stats, txt, light, light2 = null, ground = null, envui;
+let dom, camera, controls, scene, renderer, composer, content, dragPlane, followGroup, helperGroup, hideMat, stats, txt, light, light2 = null, ground = null, envui;
 let ray, mouse, oldMouse, isActveMouse = false, mouseDown = false, mouseMove = false, firstSelect = false, selected = null, rayTest = false, controlFirst = true;
 
 let editor = null
@@ -250,6 +250,11 @@ function init() {
 	followGroup = new THREE.Group()
 	scene.add( followGroup )
 
+	helperGroup = new THREE.Group()
+	scene.add( helperGroup )
+
+	scene.helper = helperGroup
+
 	// LIGHT
 
 	light = new THREE.DirectionalLight( 0xFFFFFF, 3 )
@@ -281,20 +286,20 @@ function init() {
 
 	light2 = new THREE.DirectionalLight( 0xFF0000, 1.5 )
 	light2.position.set( -1, 0, 0 )
-	light2.distance = 2
+	light2.distance = 18
 
 	followGroup.add( light2 )
 	followGroup.add( light2.target )
 
-	/*if( debugLight ){
+	if( debugLight ){
 
 		light.helper = new THREE.DirectionalLightHelper( light )
 		light2.helper = new THREE.DirectionalLightHelper( light2 )
-		scene.add( light.helper )
-		scene.add( light2.helper )
-		scene.add( new THREE.CameraHelper( s.camera ) )
+		helperGroup.add( light.helper )
+		helperGroup.add( light2.helper )
+		helperGroup.add( new THREE.CameraHelper( s.camera ) )
 
-	}*/
+	}
 
 	
 
@@ -560,10 +565,14 @@ function initGUI () {
 	grV.add( options, 'renderMode', { type:'selector', values:[0,1,2,3], selectable:true, p:0, h:24 }).onChange( function(n){ 
 
 		//if( camera.near!== 0.1 ){camera.near = 0.1; camera.updateProjectionMatrix();}
+		if( n!== 0 ) scene.helper.visible = false
 		if( n===1 ) { Env.setBackgroud(0x000000) /*camera.near = 1; camera.updateProjectionMatrix();*/}
 		else if( n===2 ) Env.setBackgroud(0x7777ff)
 		else if( n===3 ) Env.setBackgroud(0xffffff)
-		else Env.setBackgroud()
+		else {
+			Env.setBackgroud()
+			scene.helper.visible = true
+		}
 
 		Hub.setRenderMode(n)
 		Shader.up( options ) 

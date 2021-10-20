@@ -151,7 +151,7 @@ export class Reflector extends Mesh {
 			var fragment = shader.fragmentShader;
 			fragment = fragment.replace( 'uniform vec3 diffuse;', ['uniform vec3 diffuse;', 'varying vec4 vUvR;', 'uniform float reflectif;', 'uniform sampler2D mirrorMap;', 'uniform int blackAll;'].join("\n") );
 			fragment = fragment.replace( '#include <map_fragment>', MapRemplace );
-			fragment = fragment.replace( '#include <output_fragment>', OutputRemplace );
+			fragment = fragment.replace( '#include <fog_fragment>', FogRemplace );
 
 			fragment = fragment.replace( '#include <aomap_pars_fragment>', '' );
 			fragment = fragment.replace( '#include <aomap_fragment>', '' );
@@ -491,13 +491,15 @@ vec4 reflector = texture2DProj( mirrorMap, vUvR );
 	diffuseColor *= texelColor;
 
 	
+
+	
 	
 #else
 
 diffuseColor.rgb *= mix( vec3(1.0), reflector.rgb, reflectif );
 
 #endif
-
+//if( blackAll == 1 ) diffuseColor = vec4(0.0, 0.0, 0.0, 1.0);
 `;
 
 /*Reflector.ExtraFunction =`
@@ -517,15 +519,22 @@ diffuseColor.rgb *= mix( vec3(1.0), reflector.rgb, reflectif );
 	}*/
 /*`;*/
 
-const OutputRemplace =/* glsl */`
-#ifdef OPAQUE
-diffuseColor.a = 1.0;
-#endif
 
-#ifdef USE_TRANSMISSION
-diffuseColor.a *= transmissionAlpha + 0.1;
-#endif
-
+const FogRemplace =/* glsl */`
 if( blackAll == 1 ) gl_FragColor = vec4( vec3(0.0), diffuseColor.a );
-else gl_FragColor = vec4( outgoingLight, diffuseColor.a );
+#ifdef USE_FOG
+
+	#ifdef FOG_EXP2
+
+		float fogFactor = 1.0 - exp( - fogDensity * fogDensity * vFogDepth * vFogDepth );
+
+	#else
+
+		float fogFactor = smoothstep( fogNear, fogFar, vFogDepth );
+
+	#endif
+
+	gl_FragColor.rgb = mix( gl_FragColor.rgb, fogColor, fogFactor );
+
+#endif
 `;
