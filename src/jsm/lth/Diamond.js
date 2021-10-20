@@ -1,6 +1,6 @@
 import {
 	MeshPhysicalMaterial, MeshStandardMaterial, ShaderMaterial, WebGLCubeRenderTarget, CubeCamera, Scene, Mesh, RGBAFormat,
-	DoubleSide, Color, Vector3, BackSide, LinearMipmapLinearFilter
+	DoubleSide, Color, Vector3, BackSide, LinearMipmapLinearFilter, sRGBEncoding
 } from '../../../build/three.module.js';
 
 import { Shader } from './Shader.js';
@@ -17,9 +17,12 @@ export class Diamond extends MeshPhysicalMaterial {
 		//o.transparent = true;
 		o.envMapIntensity = 1;
 		//o.premultipliedAlpha = true;
-		o.opacity = 1.0;
+		o.opacity = 1.0
+        o.format = sRGBEncoding
 
-		super( o );
+		super( o )
+
+        this.color.convertSRGBToLinear();
 
 		this.onBeforeCompile = function ( shader ) {
 

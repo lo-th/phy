@@ -9,6 +9,8 @@ let isGL2 = true;
 
 const mats = {}
 
+const names = new Map()
+
 const defines = {}
 
 const uniforms = {
@@ -289,9 +291,17 @@ export class Shader {
     static add ( m ) {
 
         //mats[m.name] = m
+        let name = m.name;
+        if ( names.has( name ) ) { 
+            //console.log('already add', name)
+            return 
+        }
+        //else console.log('add', name)
+        names.set( name, true )
         
         m.shadowSide = DoubleSide;
         m.format = sRGBEncoding;
+        m.color.convertSRGBToLinear()
 
         m.onBeforeCompile = function ( shader ) {
             Shader.modify( shader );
@@ -373,6 +383,10 @@ export class Shader {
 
     	}*/
 
+    }
+
+    static reset (){
+        names.clear()
     }
 
 }

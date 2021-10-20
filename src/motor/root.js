@@ -111,7 +111,7 @@ const matExtra = {
 	clearcoat:1.0,
 	clearcoatRoughness:0.1,
 	metalness: 0.9,
-	roughness: 0.15,
+	roughness: 0.2,
 	normalMap: flakeTexture,
 	normalScale: new Vector2(0.25,0.25),
 
@@ -123,11 +123,11 @@ export const mat = {
 
 	
 
-	body: new MeshPhysicalMaterial({ name:'body', color:0xff8800, ...matExtra }),
-	sleep: new MeshPhysicalMaterial({ name:'sleep', color:0x888888, ...matExtra }),
-	solid: new MeshPhysicalMaterial({ name:'solid', color:0x0088ff, ...matExtra }),
-	hero: new MeshPhysicalMaterial({ name:'body', color:0x00FF88, ...matExtra }),
-	skin: new MeshPhysicalMaterial({ name:'skin', color:0x8D5524, ...matExtra }),
+	body: new MeshPhysicalMaterial({ name:'body', color:0xFF934F, ...matExtra }),
+	sleep: new MeshPhysicalMaterial({ name:'sleep', color:0x46B1C9, ...matExtra }),
+	solid: new MeshPhysicalMaterial({ name:'solid', color:0x3C474B, ...matExtra }),
+	hero: new MeshPhysicalMaterial({ name:'hero', color:0x00FF88, ...matExtra }),
+	skin: new MeshPhysicalMaterial({ name:'skin', color:0xB0A1BA, ...matExtra }),
 	glass: new MeshPhysicalMaterial({ name:'glass', color:0x9999ff, transparent:true, opacity:0.25,  depthTest:true, depthWrite:false, reflectivity:0.5, roughness:0., metalness:1, side:DoubleSide, premultipliedAlpha:true  }),
 	//glass: new MeshPhysicalMaterial({ name:'glass', color:0x9999ff, transparent:true, reflectivity:0.5, transmission:1, opacity:0.9, roughness:0, metalness:0, side:DoubleSide, premultipliedAlpha:true, depthTest:true, depthWrite:false }),
 	chrome: new MeshPhysicalMaterial({ name:'chrome', color:0x808080, metalness:1, roughness:0 }),

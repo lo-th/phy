@@ -63,7 +63,7 @@ export class Reflector extends Mesh {
 		o = o || {};
 
 		this.map = o.map || null;
-		this.color = o.color || 0x505050//0x404040;
+		this.color = o.color || 0x808080//505050//0x404040;
 		this.reflect = o.reflect !== undefined ? o.reflect : 0.35;
 		this.opacity = o.opacity !== undefined ? o.opacity : 1;
 		this.isWater = o.water !== undefined ? o.water : false;
@@ -99,11 +99,14 @@ export class Reflector extends Mesh {
 		this.material = new MeshStandardMaterial({ 
 			name:'floor', color:this.color, map:this.map, roughness:0.25, metalness:1, opacity:1,
 			transparent:true,
-			depthWrite: false,
+			depthWrite:false,
 	        //depthTest: false, 
 	        premultipliedAlpha:true,
+	        format:sRGBEncoding,
 
 		});
+
+		this.material.color.convertSRGBToLinear();
 
 
 		this.groundAlpha();
@@ -346,10 +349,11 @@ export class Reflector extends Mesh {
 
 	}
 
-	setColor ( v ) {
+	setColor ( v, srgb ) {
 
-		this.color = v !==undefined ? v : 0xa87232;
-		this.material.color.setHex( this.color );
+		this.color = v !== undefined ? v : 0xa87232
+		this.material.color.setHex( this.color )
+		if(!srgb) this.material.color.convertSRGBToLinear()
 
 	}
 

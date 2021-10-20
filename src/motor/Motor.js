@@ -1,6 +1,6 @@
 
 import {
-    Group, MeshStandardMaterial, MeshBasicMaterial, Vector3
+    Group, MeshPhysicalMaterial, MeshBasicMaterial, Vector3
 } from '../../build/three.module.js';
 
 import { root, math, mat, Utils } from './root.js';
@@ -480,7 +480,9 @@ export class Motor {
 
 		let m
 		if( o.isMaterial ) m = o
-		else m = new MeshStandardMaterial( o )
+		else m = new MeshPhysicalMaterial( o )
+
+		
 
 		if( mat[ m.name ] ) return null;
 

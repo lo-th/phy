@@ -55,8 +55,11 @@ export class Env {
 			if( autosun ) Env.autoSun( texture.image, 'hdr' );
 			
 			if( scene ) {
+				
 				scene.background = env;
 				scene.environment = env;
+
+				if(scene.ground) scene.ground.setColor( data.fog.getHex(), true )
 
 				//renderer.background = env;
 
@@ -95,14 +98,12 @@ export class Env {
 
 			}
 
-			texture.dispose();
-			pmremGenerator.dispose();
+			texture.dispose()
+			pmremGenerator.dispose()
 
-			//data['envmap'] = env;
+			if( callback ) callback()
 
-			if( callback ) callback();
-
-		});
+		})
 
 
 	}
@@ -226,6 +227,9 @@ export class Env {
 			fogColor.setHSL( fcc.h, fcc.s*1.66, fcc.l*1.88);
 		}
 		else fogColor.setHSL( fcc.h, fcc.s*0.99, fcc.l*1.1 );
+
+		sunColor.convertSRGBToLinear()
+		fogColor.convertSRGBToLinear()
 
 		//console.log( sunPosition, sunColor );
 

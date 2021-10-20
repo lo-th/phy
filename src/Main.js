@@ -83,7 +83,7 @@ let quality = 2
 
 let needResize = true;
 const Demos = [ 'start', 'basic', 'joint', 'capsule', 'compound', 'bridge', 'gears', 'raycast', 'terrain', 'character', 'car', 'collision', 'mesh', 'kinematic', 'add_remove', 'tower' ]
-const DemosA = [ 'diamond', 'ragdoll', 'chess', 'pinball', 'million', 'desk', 'life' ]
+const DemosA = [ 'diamond', 'ragdoll', 'chess', 'pinball', 'million', 'desk' ]
 
 Demos.sort();
 DemosA.sort();
@@ -217,7 +217,7 @@ function init() {
 
 	// RENDERER
 
-	renderer = new THREE.WebGLRenderer( { antialias: AA,  /*powerPreference: "high-performance"*/ } )
+	renderer = new THREE.WebGLRenderer( { antialias: AA,  powerPreference: "high-performance" } )
 	renderer.setPixelRatio( pixelRatio )
 	renderer.setSize( size.w, size.h )
 
@@ -397,7 +397,7 @@ function addGround () {
         clipBias:0.003,
         encoding:true,
         reflect:0.8,
-        //color:info.fog,
+        color:0x6a8397,
         round:true
 
     })
@@ -450,6 +450,7 @@ function inject ( newCode ) {
 	}
 	Hub.log()
 
+	Shader.reset()
 	phy.reset( refreshCode )
 
 }
