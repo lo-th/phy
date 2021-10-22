@@ -127,26 +127,29 @@ export class Hub {
 
     }
 
-    static setStats ( t ) {
+    static setStats ( t = '' ) {
 
         if( statistics === null ) return;
-        for(let j in t.memory ){
-            //t.memory[j] = Math.round( t.memory[j]*0.000976563 )
 
-            if( j === 'drawingbuffer' || j === 'total' ) t.memory[j] = Math.round( t.memory[j]*0.000001 ) + ' MB'
-            else t.memory[j] = Math.round( t.memory[j]*0.001 ) + ' KB'
+        let txt = t
 
-            //t.memory[j] = Math.round( t.memory[j] / 1024/ 1024 )
+        if( t!=='' ){
+
+            for( let j in t.memory ){
+                //t.memory[j] = Math.round( t.memory[j]*0.000976563 )
+
+                if( j === 'drawingbuffer' || j === 'total' ) t.memory[j] = Math.round( t.memory[j]*0.000001 ) + ' MB'
+                else t.memory[j] = Math.round( t.memory[j]*0.001 ) + ' KB'
+
+                //t.memory[j] = Math.round( t.memory[j] / 1024/ 1024 )
+            }
+
+            txt = JSON.stringify(t, null, 2)
+            txt = txt.replace(/[",.*+?^${}()|[\]\\]/g, '')
+
         }
 
-        let txt = JSON.stringify(t, null, 2)
-
-        //txt = txt.replace(/{},/g, '')
-        txt = txt.replace(/[",.*+?^${}()|[\]\\]/g, '')
-        //txt = txt.replace(/{/g, '')
-
-        //t.memory.total = t.total*0.001
-        statistics.textContent = txt;
+        statistics.textContent = txt
 
     }
 

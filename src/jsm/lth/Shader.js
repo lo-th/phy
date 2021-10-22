@@ -84,6 +84,7 @@ export class Shader {
             float shadowTmp = 1.0;
             vec3 shadowColor = vec3(1.0);
 
+            
             /*
             float color_distance( vec3 a, vec3 b){
                 vec3 s = vec3( a - b );
@@ -205,6 +206,7 @@ export class Shader {
 
 
 
+            
             /*
             vec3 invColor = vec3(1.0 - gl_FragColor.rgb);
             vec3 cc = rgb2hsv( invColor );
@@ -216,30 +218,13 @@ export class Shader {
             shadowColor = shadowColor + invColor;
             shadowColor = clamp( shadowColor, 0.0, 1.0 );
             */
+            
 
 
-            //float match = 1.0 - color_distance(fragment.rgb, old);
-            //fragment.rgb -= match * old;
-            //fragment.rgb += match * new;
+            //gl_FragColor.rgb = mix( gl_FragColor.rgb, gl_FragColor.rgb * shadowColor, (1.0-shadowValue) * Shadow );
 
-            //float match = 1.0 - color_distance(shadowColor, vec3(0.0));
-            //shadowColor -= match * vec3(0.0);
-            //shadowColor += match * invColor;
+            gl_FragColor.rgb *= ((1.0-shadowValue) * (1.0-Shadow)) + shadowColor;
 
-            //shadowColor -= shadowValue * vec3(0.0);
-            //shadowColor += shadowValue * invColor;
-
-
-            //vec3 shadowColor = gl_FragColor.rgb;
-            //shadowColor -= match * shadowColor;
-            //shadowColor.rgb += match * invColor;;
-
-
-            //shadowColor = invColor;
-
-
-
-            gl_FragColor.rgb = mix( gl_FragColor.rgb, gl_FragColor.rgb * shadowColor, (1.0-shadowValue) * Shadow );
 
         	#endif
             
@@ -313,7 +298,7 @@ export class Shader {
             Shader.setDefines( m )
         }*/
 
-    }  
+    } 
 
     static setDefines ( m ) {
         

@@ -3,14 +3,26 @@ var h = [ 3.785, 3.4, 2.716, 2.648, 2.138, 1.973 ];
 var chessSize = 0.25;
 
 function demo() {
-    // setting and start oimophysics
-    phy.set( { substep:2 })
+
+    phy.view({ envmap:'room', ground:true })
+
+    phy.set({ substep:2 })
+
+    let grid = new THREE.GridHelper( 8, 8, 0x000000, 0x000000 )
+    grid.material.opacity = 0.0001
+    grid.position.y = 0.01
+    //grid.material.depthWrite = false
+    grid.material.transparent = true
+
+    phy.addDirect( grid )
 
     // add static ground
     //phy.add({ type:'plane', size:[300,1,300], visible:false });
     phy.add({ type:'box', size:[300,1,300], pos:[0, -0.5, 0], visible:false })
 
     phy.load(['./assets/models/chess.glb'], onComplete );
+
+
 
 }
 
@@ -81,6 +93,7 @@ function calculatePosition ( items ) {
     let sz = space[1]
     let dx = ((x*sx)*0.5) - x*0.5
     let dz = ((z*sz)*0.5) - z*0.5
+    dz+=2
     let n = 0
     let item
 

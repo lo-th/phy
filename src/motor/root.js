@@ -19,6 +19,7 @@ import {
 
 import { FlakesTexture } from '../jsm/textures/FlakesTexture.js';
 import { CheckTexture } from '../jsm/textures/CheckTexture.js';
+import { CarbonTexture } from '../jsm/textures/CarbonTexture.js';
 
 export const map = new Map();
 
@@ -101,18 +102,22 @@ export const geo = {
 geo.plane.rotateX( -Math.PI * 0.5 );
 geo.joint.scale( 0.05,0.05,0.05 );
 
-const flakeTexture = new CanvasTexture(new CheckTexture())
+const flakeTexture = new CanvasTexture( new CarbonTexture('rgb(69,69,69)', 'rgb(39,39,39)', true) )
 flakeTexture.wrapS = flakeTexture.wrapT = RepeatWrapping
-flakeTexture.repeat.x = 2
-flakeTexture.repeat.y = 2
+flakeTexture.repeat.x = flakeTexture.repeat.y = 2
+
+const carbonTexture = new CanvasTexture( new CarbonTexture('#ffffff', '#CCCCCC') )
+carbonTexture.wrapS = carbonTexture.wrapT = RepeatWrapping
+carbonTexture.repeat.x = carbonTexture.repeat.y = 2
 
 const matExtra = {
 
 	clearcoat:1.0,
 	clearcoatRoughness:0.1,
-	metalness: 0.9,
-	roughness: 0.2,
+	metalness: 0.8,
+	roughness: 0.1,
 	normalMap: flakeTexture,
+	map:carbonTexture,
 	normalScale: new Vector2(0.25,0.25),
 
 }

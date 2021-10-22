@@ -33,7 +33,6 @@ let debugLight = false
 let engineType, version, isWorker, introText
 let engineList = [ 'OIMO','AMMO' ]
 
-
 const setting = {
 
 	envmap:'basic',
@@ -53,8 +52,14 @@ const options = {
 	gravity:[0,-9.81,0],
 
 	Exposure: 1.25,
-	Shadow:0.5,//0.25,
+	EnvPower: 1,
 
+	light_1: 3,
+	light_2: 1.5,
+	show_light: false,
+	show_stat: false,
+
+	Shadow:0.5,//0.25,
 	ShadowGamma:1,
 	ShadowLuma: 0.75,//0,
     ShadowContrast: 2.5,//1,
@@ -115,8 +120,6 @@ export class Main {
 
 		if( urlParams.has('dev') ){
 		    devMode = true
-		    debugLight = true
-		    fullStat = true
 			engineList.push('HIDE')
 			Demos.push('empty')
 			//options.demo='empty'
@@ -143,17 +146,11 @@ export class Main {
 			}
 		}
 
-		if( o.ground ){
-			if( ground === null ) addGround()
+		// reflect floor
 
-			ground.setSize( o.groundSize )
-			ground.setAlphaMap( o.groundAlpha )
-			ground.setOpacity( o.groundOpacity )
-
-			//ground.visible = o.ground
-		} else {
-			removeGround()
-		}
+		if( o.ground ) addGround( o )
+		else removeGround()
+		
 
 	}
 
@@ -224,9 +221,8 @@ function init() {
 	renderer.outputEncoding = THREE.sRGBEncoding
 	renderer.toneMapping = THREE.ACESFilmicToneMapping
 	renderer.physicallyCorrectLights = true
-	renderer.toneMappingExposure = 0;// def : 1
-
-	if( fullStat ) memo = renderer.getContext().getExtension('GMAN_webgl_memory')
+	renderer.toneMappingExposure = 0
+	//renderer.info.autoReset = false
 
 	// DOM
     document.body.appendChild( renderer.domElement )
@@ -242,8 +238,6 @@ function init() {
 
 	scene = new THREE.Scene()
 	scene.background = new THREE.Color( 0x000000 )
-	//scene.matrixAutoUpdate = false
-	//scene.autoUpdate = false 
 
 	// GROUP
 
@@ -257,7 +251,7 @@ function init() {
 
 	// LIGHT
 
-	light = new THREE.DirectionalLight( 0xFFFFFF, 3 )
+	light = new THREE.DirectionalLight( 0xFFFFFF, options.light_1 )
 	light.position.set( 1, 8, 0 )
 	light.distance = 20
 
@@ -284,34 +278,12 @@ function init() {
 
 	// light 2
 
-	light2 = new THREE.DirectionalLight( 0xFF0000, 1.5 )
+	light2 = new THREE.DirectionalLight( 0xFF0000, options.light_2 )
 	light2.position.set( -1, 0, 0 )
 	light2.distance = 18
 
 	followGroup.add( light2 )
 	followGroup.add( light2.target )
-
-	if( debugLight ){
-
-		light.helper = new THREE.DirectionalLightHelper( light )
-		light2.helper = new THREE.DirectionalLightHelper( light2 )
-		helperGroup.add( light.helper )
-		helperGroup.add( light2.helper )
-		helperGroup.add( new THREE.CameraHelper( s.camera ) )
-
-	}
-
-	
-
-	// rectangle light
-	/*RectAreaLightUniformsLib.init();
-	light2 = new THREE.RectAreaLight( 0xff0000, 4, 30, 30 )
-	light2.distance = 10
-	light2.position.set( - 5, 5, 5 );
-	scene.add( light2 );
-	light2.lookAt( 0, 0, 0 )
-
-	scene.add( new RectAreaLightHelper( light2 ) );*/
 
 	// CAMERA / CONTROLER
 
@@ -336,7 +308,7 @@ function init() {
 			if( controlFirst ) controlFirst = false;
 			else rayTest = false;
 		}
-	});
+	})
 
 	scene.add( camera )
 
@@ -355,7 +327,6 @@ function init() {
 	Env.load( './assets/textures/equirectangular/'+options.envmap+'.hdr', next, renderer, scene, light, light2 )
 
 }
-
 
 function next () {
 
@@ -388,7 +359,9 @@ function next () {
 
 }
 
-function addGround () {
+function addGround ( o ) {
+
+	if( ground !== null ) return
 
 	// add reflect ground
 	ground = new Reflector({
@@ -401,16 +374,19 @@ function addGround () {
         round:true
 
     })
+
+    ground.setSize( o.groundSize )
+	ground.setAlphaMap( o.groundAlpha )
+	ground.setOpacity( o.groundOpacity )
     
     scene.add( ground )
-
     scene.ground = ground
     //reflector.renderDepth = 1
 }
 
 function removeGround () {
 
-	if(ground=== null) return
+	if( ground === null ) return
 
 	scene.remove( ground )
     ground = null
@@ -580,6 +556,17 @@ function initGUI () {
 	})
 
 	grV.add( options, 'Exposure', {min:0, max:4} ).onChange( function( v ){ renderer.toneMappingExposure = v } )
+	grV.add( options, 'EnvPower', {min:0, max:1} ).onChange( setEnvmapIntensity )
+
+	grV.add( options, 'light_1', {min:0, max:10} ).onChange( function( v ){ light.intensity = v } )
+	grV.add( options, 'light_2', {min:0, max:10} ).onChange( function( v ){ light2.intensity = v } )
+
+	grV.add( 'empty', {h:6})
+
+	grV.add( options, 'show_light', { type:'bool' }).onChange( function(b){ showDebugLight(b) } )
+	grV.add( options, 'show_stat', { type:'bool' }).onChange( function(b){ showStatistic(b) } )
+
+	grV.add( 'empty', {h:6})
 
 	grV.add( options, 'Shadow', {min:0, max:1} ).onChange( function(){ Shader.up( options ) } )
 
@@ -588,45 +575,51 @@ function initGUI () {
 	grV.add( options, 'rings', {min:1, max:30, precision:0} ).onChange( function(){ Shader.up( options ) } )
 	//grV.add( options, 'nSample', {min:2, max:32, precision:0} ).onChange( function(){ Shader.up( options ) } )
 
+	grV.add( 'empty', {h:6})
+
 	envui = grV.add( 'list', { list:Envs, value:options.envmap, path:'assets/textures/equirectangular/mini/', format:'.jpg', imageSize: [128,64], h:64,  p:0}).onChange( setEnv )//.listen()
 
 	grV.add( 'empty', {h:6})
 
-	grV.add( composer, 'enabled', { type:'bool', rename:'POST PROCESS ON', onName:'POST PROCESS OFF', mode:1, h:30 })
 
 
-	/*grV.add( composer.pass.focus, 'enabled', { type:'bool', rename:'focus', onName:'focus' })
-	grV.add( composer.options, 'focus', {min:0, max:100} ).onChange( function(){ composer.update() } )
-	grV.add( composer.options, 'aperture', {min:0, max:10} ).onChange( function(){ composer.update() } )
-	grV.add( composer.options, 'maxblur', {min:0, max:10} ).onChange( function(){ composer.update() } )
-    grV.add( 'empty', {h:6})*/
+	let grC = ui.add('group', { name:'POST PROCESS', h:30 })
 
-    grV.add( composer.pass.sao, 'enabled', { type:'bool', rename:'sao' })
-	grV.add( composer.options, 'saoBias', {min:-1, max:1} ).onChange( function(){ composer.update() } )
-	grV.add( composer.options, 'saoIntensity', {min:0, max:1} ).onChange( function(){ composer.update() } )
-	grV.add( composer.options, 'saoScale', {min:0, max:50} ).onChange( function(){ composer.update() } )
-	grV.add( composer.options, 'saoKernelRadius', {min:1, max:100} ).onChange( function(){ composer.update() } )
-	grV.add( composer.options, 'saoMinResolution', {min:0, max:1} ).onChange( function(){ composer.update() } )
-	grV.add( 'empty', {h:6})
+	grC.add( composer, 'enabled', { type:'bool', rename:'POST PROCESS ON', onName:'POST PROCESS OFF', mode:1, h:30 })
+
+
+	/*grC.add( composer.pass.focus, 'enabled', { type:'bool', rename:'focus', onName:'focus' })
+	grC.add( composer.options, 'focus', {min:0, max:100} ).onChange( function(){ composer.update() } )
+	grC.add( composer.options, 'aperture', {min:0, max:10} ).onChange( function(){ composer.update() } )
+	grC.add( composer.options, 'maxblur', {min:0, max:10} ).onChange( function(){ composer.update() } )
+    grC.add( 'empty', {h:6})*/
+
+    grC.add( composer.pass.sao, 'enabled', { type:'bool', rename:'sao' })
+	grC.add( composer.options, 'saoBias', {min:-1, max:1} ).onChange( function(){ composer.update() } )
+	grC.add( composer.options, 'saoIntensity', {min:0, max:1} ).onChange( function(){ composer.update() } )
+	grC.add( composer.options, 'saoScale', {min:0, max:50} ).onChange( function(){ composer.update() } )
+	grC.add( composer.options, 'saoKernelRadius', {min:1, max:100} ).onChange( function(){ composer.update() } )
+	grC.add( composer.options, 'saoMinResolution', {min:0, max:1} ).onChange( function(){ composer.update() } )
+	grC.add( 'empty', {h:6})
 
     //grV.add( composer.pass.bloom, 'enabled', { type:'bool', rename:'bloom' })
-    grV.add( composer.pass.bloom, 'enabled', { type:'bool', rename:'bloom' })
-	grV.add( composer.options, 'threshold', {min:0, max:1} ).onChange( function(){ composer.update() } )
-	grV.add( composer.options, 'strength', {min:0, max:10} ).onChange( function(){ composer.update() } )
-	grV.add( composer.options, 'bloomRadius', {min:0, max:1, step:0.01} ).onChange( function(){ composer.update() } )
-    grV.add( 'empty', {h:6})
+    grC.add( composer.pass.bloom, 'enabled', { type:'bool', rename:'bloom' })
+	grC.add( composer.options, 'threshold', {min:0, max:1} ).onChange( function(){ composer.update() } )
+	grC.add( composer.options, 'strength', {min:0, max:10} ).onChange( function(){ composer.update() } )
+	grC.add( composer.options, 'bloomRadius', {min:0, max:1, step:0.01} ).onChange( function(){ composer.update() } )
+    grC.add( 'empty', {h:6})
 
-    grV.add( composer.pass.distortion, 'enabled', { type:'bool', rename:'distortion' })
-	grV.add( 'empty', {h:6})
+    grC.add( composer.pass.distortion, 'enabled', { type:'bool', rename:'distortion' })
+	grC.add( 'empty', {h:6})
 
-	grV.add( composer.pass.lut, 'enabled', { type:'bool', rename:'lut' })
-	grV.add('button', { name:'LOAD', p:10, h:25, drag:true }).onChange( function(a,b,c){ composer.changeLut(a,b,c) } )
-	grV.add( 'empty', {h:6})
+	grC.add( composer.pass.lut, 'enabled', { type:'bool', rename:'lut' })
+	grC.add('button', { name:'LOAD', p:10, h:25, drag:true }).onChange( function(a,b,c){ composer.changeLut(a,b,c) } )
+	grC.add( 'empty', {h:6})
 
 
-    grV.add( composer.pass.sharpen, 'enabled', { type:'bool', rename:'sharpen' })
-    grV.add( composer.options, 'power', {min:0, max:1} ).onChange( function(){ composer.update() } )
-    grV.add( 'empty', {h:6})
+    grC.add( composer.pass.sharpen, 'enabled', { type:'bool', rename:'sharpen' })
+    grC.add( composer.options, 'power', {min:0, max:1} ).onChange( function(){ composer.update() } )
+    grC.add( 'empty', {h:6})
 
     
     /*grV.add( 'empty', {h:6})
@@ -761,7 +754,7 @@ function castray () {
 
 	}
 
-	document.body.style.cursor = cursor;
+	document.body.style.cursor = cursor
 
 }
 
@@ -811,9 +804,83 @@ function unSelect () {
 
 }
 
+function setEnvmapIntensity (v) {
+
+	let g = Motor.getScene()
+	g.traverse( function ( node ) {
+		if( node.isMesh ) node.material.envMapIntensity = v
+	})
+	ground.material.envMapIntensity = v
+
+}
+
+// OPTIONAL
+
+function showStatistic ( b ) {
+
+	if( b && !fullStat ){
+
+		memo = renderer.getContext().getExtension('GMAN_webgl_memory')
+		fullStat = true
+
+	}
+
+	if( !b && fullStat ){
+
+		fullStat = false
+		memo = null
+		Hub.setStats()
+		
+	}
+
+}
+
+function showDebugLight ( b ) {
+
+	if( b && !debugLight ){
+
+		light.helper = new THREE.DirectionalLightHelper( light )
+		light.shadowHelper = new THREE.CameraHelper( light.shadow.camera )
+		light2.helper = new THREE.DirectionalLightHelper( light2 )
+		helperGroup.add( light.helper )
+		helperGroup.add( light2.helper )
+		helperGroup.add( light.shadowHelper )
+		debugLight = true;
+	}
+
+	if( !b && debugLight ){
+		helperGroup.remove( light.helper )
+		helperGroup.remove( light2.helper )
+		helperGroup.remove( light.shadowHelper )
+		debugLight = false
+	}
+
+}
+
 function getFullStats() {
-    if ( memo ) {
-        const info = memo.getMemoryInfo()
-        Hub.setStats( info )
+
+    if ( !fullStat ) return
+
+    const info = memo.getMemoryInfo()
+    
+    
+    const eng = renderer.info
+
+    info['engine'] = {
+
+    	geometries : eng.memory.geometries,
+		textures : eng.memory.textures,
+
+	    calls : eng.render.calls,
+		triangles : eng.render.triangles,
+		points : eng.render.points,
+		lines : eng.render.lines,
+		//frame : eng.render.frame,
+
     }
+
+    //renderer.info.reset()
+
+    Hub.setStats( info )
+    
 }

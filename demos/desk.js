@@ -22,11 +22,11 @@ function demo() {
         if(i===0 || i===4 || i===8) p = 1.5
         else p = 1
         phy.material({ name:'c'+i, color:paintlColor[i], roughness:1, metalness:0, toneMapped:false })
-        phy.add({ name:'box'+i, size:[p,2,p], pos:[ d * Math.sin(a), 1, d * Math.cos(a)],rot:[0,a*math.todeg,0], radius:0.05, density:1, restitution:0.5, friction:0.9, material:'c'+i })
+        phy.add({ name:'box'+i, size:[p,2,p], pos:[ d * Math.sin(a), 1, d * Math.cos(a)],rot:[0,a*math.todeg,0], radius:0.1, density:1, restitution:0.5, friction:0.9, material:'c'+i })
         a -= k
     }
 
     phy.material({ name:'white', color:0xFFFFFF, roughness:1, metalness:0, toneMapped:false })
-    phy.add({ type:'highSphere', size:[3], pos:[ 0, 3, 0], density:1, restitution:0.5, friction:0.9, material:'white' })
+    phy.add({ type:'highSphere', size:[2], pos:[ 0, 2, 0], density:1, restitution:0.5, friction:0.9, material:'white' })
 
 }

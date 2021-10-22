@@ -500,7 +500,8 @@ vec4 reflector = texture2DProj( mirrorMap, vUvR );
 	
 #else
 
-diffuseColor.rgb *= mix( vec3(1.0), reflector.rgb, reflectif );
+//diffuseColor.rgb *= mix( vec3(1.0), reflector.rgb, reflectif );
+diffuseColor.rgb *= reflectif + reflector.rgb;
 
 #endif
 //if( blackAll == 1 ) diffuseColor = vec4(0.0, 0.0, 0.0, 1.0);
