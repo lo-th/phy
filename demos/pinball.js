@@ -1,9 +1,9 @@
 
-var startPosition
-var pad = []
-var ball = []
+let startPosition
+const pad = []
+const ball = []
 
-function demo() {
+demo = () => {
 
     phy.log('use key A-D or Q-D')
 
@@ -25,9 +25,9 @@ function demo() {
 
 }
 
-function onComplete(){
+onComplete = () => {
 
-    const scene = phy.get('pinball').clone()
+    const scene = phy.get('pinball', 'O').clone()
 
     groups = {}
 
@@ -50,7 +50,7 @@ function onComplete(){
 
 }
 
-function addPhysics ( groups ) {
+addPhysics = ( groups ) => {
 
 	// playfield
     phy.add({ type:"box", name:'playfield', size: [5.093, 1, 11.315], pos: [0, -0.5, 0], group:1, mask:4, friction: 0.075, staticFriction: 0.075, restitution:0.25, visible:false });
@@ -87,7 +87,7 @@ function addPhysics ( groups ) {
 
     let prot = [ [ 0, -120, 0 ], [ 0, 120, 0 ], [ 0, 160, 0 ] ]
 
-    let limit = [ [ -120, -60 ], [ 60, 120 ], [ 100, 160 ] ]
+    let limit = [ [ -120, -60, 100, 100, 0.5 ], [ 60, 120, 100, 100, 0.5 ], [ 100, 160, 100, 100, 0.5 ] ]
 
     angles = [ -120, 120, 160 ]
     
@@ -114,7 +114,7 @@ function addPhysics ( groups ) {
             noGravity:true,
         })
 
-        pad[i].rotation._order = 'YZX'
+        //pad[i].rotation._order = 'YZX'
 
         phy.add({
             name:'A'+i, type:'joint', mode:'revolute',
@@ -125,6 +125,7 @@ function addPhysics ( groups ) {
             //driveVelocity:0.1,
             //driveForceLimit:1,
             lm:limit[i] , // sd:[10, 1]
+            acc:true
             //pos1:ppos[i], pos2:[ 0, 0, 0 ],
             //motions:[['swing1', 'limited']], limits:[ limit[i] ],
             //drives: [['swing1', 10000, 0.2, Infinity, false ]],
@@ -149,7 +150,7 @@ function addPhysics ( groups ) {
         name:'L', type:'joint', mode:'prismatic',
         b1:'playfield', b2:'launcher',
         worldAnchor:[2.2481, 0.135, 5.0575], worldAxis:[0,0,1],
-        lm:[ 0, 0.7 ],  sd:[10, 1]
+        lm:[ -0.01, 0.7, 2000, 100, 0.1 ],  sd:[10, 1]
      
         //motions:[['z', 'limited']], limits:[ ['z', 0, 0.7 ] ],
         //drives: [['z', 1000, 0.99, Infinity, false ]],
@@ -276,7 +277,7 @@ function addPhysics ( groups ) {
 
 }
 
-function addSw () {
+addSw = () => {
 
 	var pos = [
 	    [-1.1876, 0, -1.2411],
@@ -311,7 +312,7 @@ function addSw () {
 
 }
 
-function update () {
+update = () => {
 
     let r = []
 

@@ -1,0 +1,26 @@
+{
+    "Basic": [ 
+        "start", "basic", "joint", "capsule", "compound", "bridge",
+        "gears", "raycast", "terrain", "character", "car", "collision",
+        "mesh", "kinematic", "add_remove", "tower", "keva", "empty"
+    ],
+    "Advanced" : [ 
+        "diamond", "ragdoll", "chess", "pinball", "million", "desk" 
+    ],
+
+    "PHYSX": [
+        "solver", "vehicle", "robot" 
+    ],
+
+    "AMMO": [
+        "vehicle" 
+    ],
+
+    "Envmap": [ 
+        "null", "basic", "factory", "studio", "beach", "tomoco",
+        "tatami", "box", "park", "color", "room", "tokyo",
+        "gallery", "river", "cave", "histo", "bed", "forest",
+        "small", "garden", "port", "querry", "bridge", 
+        "point", "golf", "esplanade", "clear", "swiss", "ueno"
+    ]
+}

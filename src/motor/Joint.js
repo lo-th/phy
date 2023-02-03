@@ -1,11 +1,14 @@
 import { Item } from '../core/Item.js';
-import { Utils, root, math, geo, mat } from './root.js';
+import { Num } from '../core/Config.js';
+
+import { Basic3D } from '../core/Basic3D.js';
+import { Utils, root, math, Mat, Geo } from './root.js';
 
 import {
 	LineSegments, BufferGeometry,
     Object3D, Line, Float32BufferAttribute,
     Matrix4, Quaternion, Vector3
-} from '../../build/three.module.js';
+} from 'three';
 
 //import { Item } from './Item.js';
 
@@ -29,7 +32,7 @@ export class Joint extends Item {
 
 			j = this.list[i];
 
-			n = N + ( i * 16 );
+			n = N + ( i * Num.joint );
 
 			j.update( AR, n );
 
@@ -53,10 +56,11 @@ export class Joint extends Item {
 
 		if( o.drivePosition) if( o.drivePosition.rot !== undefined ){ o.drivePosition.quat = math.toQuatArray( o.drivePosition.rot ); delete ( o.drivePosition.rot ); }
 
-		let j = new ExtraJoint( geo.joint, mat.joint );
+		let j = new ExtraJoint( Geo.get('joint'), Mat.get('joint') );
 		j.name = name;
 
-		j.visible = o.visible !== undefined ? o.visible : true; 
+		j.visible = false; // joint is visible after first update
+		j.isVisible = o.visible !== undefined ? o.visible : true;
 
 		// add to world
 		this.addToWorld( j, o.id );
@@ -78,7 +82,7 @@ export class Joint extends Item {
 
 
 
-export class ExtraJoint extends Object3D {
+export class ExtraJoint extends Basic3D {
 
 	constructor( g, material = undefined ) {
 
@@ -86,13 +90,12 @@ export class ExtraJoint extends Object3D {
 
 	    this.type = 'joint';
 	    this.mode = 'revolute';
+	    this.isJoint = true;
 
 	    this.mtx = new Matrix4();
 
-	    this.matrixAutoUpdate = false;
-
-	    let m = new LineSegments( g, material )
-	    this.add(m)
+	    this.m1 = new LineSegments( g, material )
+	    this.add(this.m1)
 
 	    this.m2 = new LineSegments( g, material )
 	    this.add( this.m2 );
@@ -111,7 +114,7 @@ export class ExtraJoint extends Object3D {
 
 	update ( r, n = 0 ) {
 
-		if(!this.visible) return
+		if(!this.isVisible) return
 
 		this.position.fromArray( r, n );
 		this.quaternion.fromArray( r, n + 3 );
@@ -130,8 +133,17 @@ export class ExtraJoint extends Object3D {
 		position.setXYZ(1, this.m2.position.x, this.m2.position.y, this.m2.position.z)
 		position.needsUpdate = true
 
+		if( !this.visible ) this.visible = true;
+
+	}
+
+	dispose (){
+
+		this.m1.geometry.dispose()
+		this.m2.geometry.dispose()
+		this.m3.geometry.dispose()
+		this.children = []
+
 	}
 
 }
-
-ExtraJoint.prototype.isJoint = true;

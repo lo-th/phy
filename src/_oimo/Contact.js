@@ -1,4 +1,6 @@
 import { Item } from '../core/Item.js';
+import { Num } from '../core/Config.js';
+
 import { Utils, root } from './root.js'
 
 export class Contact extends Item {
@@ -21,16 +23,19 @@ export class Contact extends Item {
 		while( i-- ){
 
 			c = this.list[i]
-			n = N + ( i * 8 )
+			n = N + ( i * Num.contact )
 
 			k = 0
 
 			//k = c.b1.getNumContectLinks()
 			l = c.b1.getContactLinkList()
 
+
+
 			if ( c.b2 !== null && l !== null ){
 
-				//k = 0
+				//console.log(l.getOther())
+
 				let ct = l.getContact()
 				while( ct !== null ){
 
@@ -52,8 +57,8 @@ export class Contact extends Item {
 
 		let name = this.setName( o )
 
-		o.b1 = this.byName(o.b1)
-		o.b2 = this.byName(o.b2)
+		o.b1 = this.byName( o.b1 )
+		o.b2 = this.byName( o.b2 )
 
 		if( o.b1 === null ) return
 

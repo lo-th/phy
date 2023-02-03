@@ -1,4 +1,4 @@
-import { oimo } from '../jsm/libs/OimoPhysics.js';
+import { oimo } from '../libs/OimoPhysics.js';
 
 export const map = new Map();
 

@@ -1,4 +1,6 @@
 import { Item } from '../core/Item.js';
+import { Num } from '../core/Config.js';
+
 import { Utils, root, map, torad, Vec3, Quat, Mat3, RayCastClosest } from './root.js';
 
 export class Ray extends Item {
@@ -25,7 +27,7 @@ export class Ray extends Item {
 
 		while( i-- ){
 
-			n = N + ( i * 8 );
+			n = N + ( i * Num.ray );
 
 			r = this.list[i];
 

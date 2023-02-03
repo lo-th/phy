@@ -8,7 +8,7 @@ import {
 	Skeleton,
 	Vector3,
 	VectorKeyframeTrack
-} from '../../../build/three.module.js';
+} from 'three';
 
 /**
  * Description: reads BVH files and outputs a single Skeleton and an AnimationClip
@@ -422,10 +422,9 @@ class BVHLoader extends Loader {
 
 		const threeBones = [];
 
-		//toTHREEBone( bones[ 0 ], threeBones );
-
 		if( this.toBone ) this.toBone( bones[ 0 ], threeBones );
         else toTHREEBone( bones[ 0 ], threeBones )
+		//toTHREEBone( bones[ 0 ], threeBones );
 
 		const threeClip = toTHREEAnimation( bones );
 

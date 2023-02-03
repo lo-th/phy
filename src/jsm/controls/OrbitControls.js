@@ -6,7 +6,7 @@ import {
 	TOUCH,
 	Vector2,
 	Vector3
-} from '../../../build/three.module.js';
+} from 'three';
 
 // This set of controls performs orbiting, dollying (zooming), and panning.
 // Unlike TrackballControls, it maintains the "up" direction object.up (+Y by default).
@@ -24,9 +24,6 @@ class OrbitControls extends EventDispatcher {
 	constructor( object, domElement ) {
 
 		super();
-
-		if ( domElement === undefined ) console.warn( 'THREE.OrbitControls: The second parameter "domElement" is now mandatory.' );
-		if ( domElement === document ) console.error( 'THREE.OrbitControls: "document" should not be used as the target "domElement". Please use "renderer.domElement" instead.' );
 
 		this.object = object;
 		this.domElement = domElement;
@@ -312,8 +309,8 @@ class OrbitControls extends EventDispatcher {
 			scope.domElement.removeEventListener( 'pointercancel', onPointerCancel );
 			scope.domElement.removeEventListener( 'wheel', onMouseWheel );
 
-			scope.domElement.ownerDocument.removeEventListener( 'pointermove', onPointerMove );
-			scope.domElement.ownerDocument.removeEventListener( 'pointerup', onPointerUp );
+			scope.domElement.removeEventListener( 'pointermove', onPointerMove );
+			scope.domElement.removeEventListener( 'pointerup', onPointerUp );
 
 
 			if ( scope._domElementKeyEvents !== null ) {
@@ -593,12 +590,6 @@ class OrbitControls extends EventDispatcher {
 
 		}
 
-		function handleMouseUp( /*event*/ ) {
-
-			// no-op
-
-		}
-
 		function handleMouseWheel( event ) {
 
 			if ( event.deltaY < 0 ) {
@@ -622,22 +613,62 @@ class OrbitControls extends EventDispatcher {
 			switch ( event.code ) {
 
 				case scope.keys.UP:
-					pan( 0, scope.keyPanSpeed );
+
+					if ( event.ctrlKey || event.metaKey || event.shiftKey ) {
+
+						rotateUp( 2 * Math.PI * scope.rotateSpeed / scope.domElement.clientHeight );
+
+					} else {
+
+						pan( 0, scope.keyPanSpeed );
+
+					}
+
 					needsUpdate = true;
 					break;
 
 				case scope.keys.BOTTOM:
-					pan( 0, - scope.keyPanSpeed );
+
+					if ( event.ctrlKey || event.metaKey || event.shiftKey ) {
+
+						rotateUp( - 2 * Math.PI * scope.rotateSpeed / scope.domElement.clientHeight );
+
+					} else {
+
+						pan( 0, - scope.keyPanSpeed );
+
+					}
+
 					needsUpdate = true;
 					break;
 
 				case scope.keys.LEFT:
-					pan( scope.keyPanSpeed, 0 );
+
+					if ( event.ctrlKey || event.metaKey || event.shiftKey ) {
+
+						rotateLeft( 2 * Math.PI * scope.rotateSpeed / scope.domElement.clientHeight );
+
+					} else {
+
+						pan( scope.keyPanSpeed, 0 );
+
+					}
+
 					needsUpdate = true;
 					break;
 
 				case scope.keys.RIGHT:
-					pan( - scope.keyPanSpeed, 0 );
+
+					if ( event.ctrlKey || event.metaKey || event.shiftKey ) {
+
+						rotateLeft( - 2 * Math.PI * scope.rotateSpeed / scope.domElement.clientHeight );
+
+					} else {
+
+						pan( - scope.keyPanSpeed, 0 );
+
+					}
+
 					needsUpdate = true;
 					break;
 
@@ -805,12 +836,6 @@ class OrbitControls extends EventDispatcher {
 
 		}
 
-		function handleTouchEnd( /*event*/ ) {
-
-			// no-op
-
-		}
-
 		//
 		// event handlers - FSM: listen for events and reset state
 		//
@@ -823,8 +848,8 @@ class OrbitControls extends EventDispatcher {
 
 				scope.domElement.setPointerCapture( event.pointerId );
 
-				scope.domElement.ownerDocument.addEventListener( 'pointermove', onPointerMove );
-				scope.domElement.ownerDocument.addEventListener( 'pointerup', onPointerUp );
+				scope.domElement.addEventListener( 'pointermove', onPointerMove );
+				scope.domElement.addEventListener( 'pointerup', onPointerUp );
 
 			}
 
@@ -862,30 +887,20 @@ class OrbitControls extends EventDispatcher {
 
 		function onPointerUp( event ) {
 
-			if ( scope.enabled === false ) return;
+		    removePointer( event );
 
-			if ( event.pointerType === 'touch' ) {
+		    if ( pointers.length === 0 ) {
 
-				onTouchEnd();
+		        scope.domElement.releasePointerCapture( event.pointerId );
 
-			} else {
+		        scope.domElement.removeEventListener( 'pointermove', onPointerMove );
+		        scope.domElement.removeEventListener( 'pointerup', onPointerUp );
 
-				onMouseUp( event );
+		    }
 
-			}
+		    scope.dispatchEvent( _endEvent );
 
-			removePointer( event );
-
-			//
-
-			if ( pointers.length === 0 ) {
-
-				scope.domElement.releasePointerCapture( event.pointerId );
-
-				scope.domElement.ownerDocument.removeEventListener( 'pointermove', onPointerMove );
-				scope.domElement.ownerDocument.removeEventListener( 'pointerup', onPointerUp );
-
-			}
+		    state = STATE.NONE;
 
 		}
 
@@ -994,8 +1009,6 @@ class OrbitControls extends EventDispatcher {
 
 		function onMouseMove( event ) {
 
-			if ( scope.enabled === false ) return;
-
 			switch ( state ) {
 
 				case STATE.ROTATE:
@@ -1023,16 +1036,6 @@ class OrbitControls extends EventDispatcher {
 					break;
 
 			}
-
-		}
-
-		function onMouseUp( event ) {
-
-			handleMouseUp( event );
-
-			scope.dispatchEvent( _endEvent );
-
-			state = STATE.NONE;
 
 		}
 
@@ -1193,16 +1196,6 @@ class OrbitControls extends EventDispatcher {
 					state = STATE.NONE;
 
 			}
-
-		}
-
-		function onTouchEnd( event ) {
-
-			handleTouchEnd( event );
-
-			scope.dispatchEvent( _endEvent );
-
-			state = STATE.NONE;
 
 		}
 

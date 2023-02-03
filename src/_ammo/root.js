@@ -4,6 +4,8 @@ export const map = new Map();
 export const root = {
 
 	world : null,
+	bodyRef: null,
+	byName: null,
 	delta : 0,
 	substep:1,
 
@@ -25,54 +27,81 @@ export const root = {
 export const torad = Math.PI / 180;
 export const todeg = 180 / Math.PI;
 
-export class Utils {
+export const math = {
+	clamp: ( v, min, max ) => { 
+		//Math.max( min, Math.min( max, v )) 
+		v = v < min ? min : v;
+	    v = v > max ? max : v;
+	    return v;
+	}
+}
 
-	static clear() {
+export const Utils = {
+
+	clear: () => {
 
 		map.clear()
 
-	}
+	},
 
-	static byName( name ) {
+	byName: ( name ) => {
 
 		if ( !map.has( name ) ) return null;
 		return map.get( name );
 
-	}
+	},
 
-	static add( b ) {
+	add: ( b ) => {
 
 		if( b.type !== 'ray' &&  b.type !== 'contact' ){
 			switch( b.type ){
 				case 'joint': root.world.addConstraint( b, !b.collision ); break;
 				case 'solid': root.world.addCollisionObject( b, b.group, b.mask ); break;
-				default: root.world.addRigidBody( b, b.group, b.mask ); break;
+				case 'terrain': root.world.addCollisionObject( b.body, b.group, b.mask ); break;
+				case 'body': root.world.addRigidBody( b, b.group, b.mask ); break;
 			}
 		}
 
 		map.set( b.name, b );
 
-	}
+	},
 
-	static remove( b ) {
+	remove: ( b ) => {
 
 		if( b.type !== 'ray' && b.type !== 'contact' ){
 			switch( b.type ){
-				case 'joint': root.world.removeConstraint( b ); Ammo.destroy( b.formA ); Ammo.destroy( b.formB ); break;
-				case 'solid': root.world.removeCollisionObject( b ); break;
-				default: root.world.removeRigidBody( b ); break;
-
+				case 'joint': root.world.removeConstraint( b ); Ammo.destroy( b.formA ); Ammo.destroy( b.formB ); Ammo.destroy( b ); break;
+				case 'solid': root.world.removeCollisionObject( b ); Ammo.destroy( b ); break;
+				case 'body': root.world.removeRigidBody( b ); Ammo.destroy( b ); break;
+				case 'vehicle': b.release(); break;
+				case 'terrain': b.release(); break;
 			}
-
-			Ammo.destroy( b );
-
 		}
 
 		map.delete( b.name );
 
-	}
+	},
 
-	static getConvexVolume ( v ) {
+	getVolume: ( type, s, v ) => {
+
+		let volume = 1
+
+		switch(type){
+			
+			case 'sphere' : volume = (4*Math.PI*s[0]*s[0]*s[0])/3; break;
+			case 'cone' : volume = Math.PI * s[0] * (s[1] * 0.5) * 2; break;
+			case 'box' : volume = 8 * (s[0]*0.5)*(s[1]*0.5)*(s[2]*0.5); break;
+			case 'cylinder' : volume = Math.PI * s[0] * s[0] * (s[1] * 0.5) * 2; break;
+			case 'capsule' : volume = ( (4*Math.PI*s[0]*s[0]*s[0])/3) + ( Math.PI * s[0] * s[0] * (s[1] * 0.5) * 2 ); break;
+			case 'convex' : case 'mesh' : volume = Utils.getConvexVolume( v ); break;
+
+		}
+
+		return volume;
+
+	},
+
+	getConvexVolume: ( v ) => {
 
 		let i = v.length / 3, n;
 		let min = [v[0], v[1], v[2]]
@@ -92,12 +121,26 @@ export class Utils {
 
 	    return (max[0]-min[0])*(max[1]-min[1])*(max[2]-min[2])
 
-	}
+	},
 
-	static stats (){
-	}
+	malloc: ( f, q ) => {
 
-	static extends (){
+        var nDataBytes = f.length * f.BYTES_PER_ELEMENT;
+        if( q === undefined ) q = Ammo._malloc(nDataBytes);
+        var dataHeap = new Uint8Array( Ammo.HEAPU8.buffer, q, nDataBytes);
+        dataHeap.set(new Uint8Array( f.buffer ));
+        return q;
+
+    },
+
+    free: ( ptr ) => {
+    	if( ptr ) Ammo._free( ptr );
+    },
+
+	stats: () => {
+	},
+
+	extends: () => {
 
 		// CLASS EXTEND
 
@@ -123,7 +166,6 @@ export class Utils {
 			r[ n + 1 ] = this.y();
 			r[ n + 2 ] = this.z();
 
-
 			if(!direct) return r;
 
 		}
@@ -143,10 +185,24 @@ export class Utils {
 			
 		}
 
+		Ammo.btVector3.prototype.sub = function ( v ){
+
+			this.setValue( this.x()-v.x(), this.y()-v.y(), this.z()-v.z() )
+			return this
+			
+		}
+
 		Ammo.btVector3.prototype.mul = function (){
 
 			// for box volume calcylation
 			return this.x() * this.y() * this.z()
+			
+		}
+
+		Ammo.btVector3.prototype.multiplyArray = function (ar){
+
+			this.setValue( this.x()*ar[0], this.y()*ar[1], this.z()*ar[2] )
+			return this
 			
 		}
 
@@ -182,8 +238,12 @@ export class Utils {
 			
 		}
 
+		Ammo.btVector3.prototype.free = function (){
+			//Ammo._free( this.ptr );
+		}
 
-		// QUAT
+
+		// QUATERNION
 
 		Ammo.btQuaternion.prototype.set = function ( x,y,z,w ){
 
@@ -219,6 +279,41 @@ export class Utils {
 			
 		}
 
+		Ammo.btQuaternion.prototype.multiply = function ( q ){
+
+			return this.multiplyQuaternions( this, q );
+			
+		}
+
+		Ammo.btQuaternion.prototype.premultiply = function ( q ){
+
+			return this.multiplyQuaternions( q, this );
+			
+		}
+
+		Ammo.btQuaternion.prototype.multiplyQuaternions = function ( a, b ){
+
+			const qax = a.x(), qay = a.y(), qaz = a.z(), qaw = a.w();
+			const qbx = b.x(), qby = b.y(), qbz = b.z(), qbw = b.w();
+
+			this.setValue(
+				qax * qbw + qaw * qbx + qay * qbz - qaz * qby,
+				qay * qbw + qaw * qby + qaz * qbx - qax * qbz,
+				qaz * qbw + qaw * qbz + qax * qby - qay * qbx,
+				qaw * qbw - qax * qbx - qay * qby - qaz * qbz
+			)
+
+			return this;
+			
+		}
+
+		/*Ammo.btQuaternion.prototype.invert = function (){
+
+			const x = this.x(), y = this.y(), z = this.z(), w = this.w();
+			this.setValue( -x, -y, -z, w )
+			return this;
+
+		}*/
 
 		Ammo.btQuaternion.prototype.fromAxisAngle = function ( axis, angle ){
 
@@ -245,7 +340,11 @@ export class Utils {
 			
 		}
 
-		// TRANS
+		Ammo.btQuaternion.prototype.free = function (){
+			//Ammo._free( this.ptr );
+		}
+
+		// TRANSFORM
 
 		Ammo.btTransform.prototype.set = function ( p, q ){
 
@@ -299,9 +398,9 @@ export class Utils {
 
 		Ammo.btTransform.prototype.copy = function ( t ){
 
-			this.op_set( t )
-			//this.setOrigin( t.getOrigin() );
-			//this.setRotation( t.getRotation() );
+			//this.op_set( t )
+			this.setOrigin( t.getOrigin() );
+			this.setRotation( t.getRotation() );
 			return this;
 
 		}
@@ -315,6 +414,13 @@ export class Utils {
 			return this;
 
 		}
+
+		Ammo.btTransform.prototype.free = function (){
+			//Ammo._free( this.ptr );
+		}
+
+
+		//console.log(new Ammo.btTransform())
 
 	} 
 

@@ -1,0 +1,1 @@
+export { engine } from './_rapier/engine.js';

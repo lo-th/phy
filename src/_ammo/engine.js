@@ -1,30 +1,33 @@
+import { root, Utils } from './root.js'
+import { getType } from '../core/Config.js';
 
-import { root, Utils } from './root.js';
+import { Ray } from './Ray.js'
+import { Body } from './Body.js'
+import { Joint } from './Joint.js'
+import { Contact } from './Contact.js'
+import { Vehicle } from './Vehicle.js'
+import { Terrain } from './Terrain.js'
+import { Character } from './Character.js'
 
-import { Body } from './Body.js';
-import { Solid } from './Solid.js';
-import { Joint } from './Joint.js';
-import { Ray } from './Ray.js';
-import { Contact } from './Contact.js';
-
-
-//--------------
-//
-//  AMMO SIDE 
-//
-//--------------
-
+/** __
+*    _)_|_|_
+*   __) |_| | 2023
+* @author lo.th / https://github.com/lo-th
+*
+*    AMMO ENGINE
+*/
 
 self.onmessage = function ( m ) { engine.message( m ) }
 
+let items;
+
 let isTimeout = false;
+let outsideStep = false;
 let isSoft = true;
 
 let Ar, ArPos, ArMax;
 let isBuffer = false;
 let returnMessage, isWorker;
-
-let body, solid, joint, ray, contact;
 
 const Time = typeof performance === 'undefined' ? Date : performance;
 
@@ -35,9 +38,8 @@ let substep = 4;
 let fixe = true;
 let broadphase = 2;
 
-let startTime = 0;
-let lastTime = 0;
-let isStop, isReset, tmpStep;
+let startTime = 0, lastTime = 0;
+let isStop = true, isReset, tmpStep;
 
 let interval = null;
 let timeout = null;
@@ -50,9 +52,6 @@ let tmpchange = []
 
 let Solver, SolverSoft, CollisionConfig, Dispatcher, Broadphase;
 
-//--------------
-//  OIMO SIDE 
-//--------------
 
 export class engine {
 
@@ -60,11 +59,10 @@ export class engine {
 
 	static message ( m ) {
 
-		let e = m.data;
-
-		if( e.Ar ) Ar = e.Ar;
-		if( e.flow ) root.flow = e.flow;
-		if( e.m ) engine[ e.m ]( e.o );
+		let e = m.data
+		if( e.Ar ) Ar = e.Ar
+		if( e.flow ) root.flow = e.flow
+		if( e.m ) engine[ e.m ]( e.o )
 
 	}
 
@@ -80,9 +78,8 @@ export class engine {
 		isWorker = true;
 		isBuffer = o.isBuffer || false;
 
-		ArPos = o.ArPos;
-		ArMax = o.ArMax;
-
+		//ArPos = o.ArPos;
+		//ArMax = o.ArMax;
 
 		if( o.fps !== undefined ) timestep = 1 / o.fps;
 		if( o.substep !== undefined ) substep = o.substep;
@@ -95,10 +92,11 @@ export class engine {
 
 		if( o.blob ) importScripts( o.blob )
 
-		Ammo().then( function ( Ammo ) {
+		Ammo().then( ( Ammo ) => {
+
+			self.Ammo = Ammo;
 
 			Utils.extends()
-
 			engine.initItems()
 
 			engine.post( { m:'ready', o:{} } )
@@ -107,18 +105,13 @@ export class engine {
 
 	}
 
-	static initItems () {
-
-		body = new Body()
-		solid = new Solid()
-		joint = new Joint()
-		ray = new Ray()
-		contact = new Contact()
-
-	}
-
 	static set ( o = {} ){
 
+		ArPos = o.ArPos;
+		ArMax = o.ArMax;
+		items.body.setFull(o.full)
+
+		outsideStep = o.outsideStep || false;
 		isTimeout = o.isTimeout || false;
 
 		timestep = 1 / (o.fps || 60 );
@@ -146,7 +139,7 @@ export class engine {
 		    Ar = new Float32Array( ArMax );
 
 		    // create new world
-		    this.makeWorld()
+		    engine.initWorld()
 
 		}
 
@@ -154,13 +147,15 @@ export class engine {
 		isReset = false
 		lastTime = 0
 		tmpStep = 0
+
+		if( outsideStep ) return
 		
 		if( isTimeout ) engine.step();
 		else interval = setInterval( engine.step, 1000 * timestep )
 		
 	}
 
-    static makeWorld () {
+    static initWorld () {
 
     	 // create new world
 		Solver = new Ammo.btSequentialImpulseConstraintSolver();
@@ -191,60 +186,9 @@ export class engine {
 
 		}
 
+		//console.log(root.world)
+
     }
-
-
-
-	static add ( o = {} ){
-
-		let type = o.type || 'box';
-
-		switch( type ){
-			case 'contact': contact.add( o ); break;
-			case 'ray': ray.add( o ); break;
-			case 'joint': joint.add( o ); break;
-			default: 
-			    if ( !o.density && !o.kinematic ) solid.add( o );
-			    else body.add( o ); 
-			break;
-
-		}
-		
-	}
-
-	static remove ( o = {} ){
-
-		let b = this.byName( o.name );
-		if( b === null ) return;
-		let type = b.type;
-
-		switch( type ){
-			case 'contact': b = contact.clear( b ); break
-			case 'ray': b = ray.clear( b ); break;
-			case 'joint': b = joint.clear( b ); break;
-			case 'solid': b = solid.clear( b ); break;
-			case 'body': b = body.clear( b ); break;
-
-		}
-
-	}
-
-	static change ( o = {} ){
-
-		let b = this.byName( o.name );
-		if( b === null ) return;
-		let type = b.type;
-
-		switch( type ){
-			case 'ray': b = ray.set( o, b ); break;
-			case 'joint': b = joint.set( o, b ); break;
-			case 'solid': b = solid.set( o, b ); break;
-			case 'body': b = body.set( o, b ); break;
-		}
-
-	}
-
-	//static changes ( r = [] ){ for( let o in r ) this.change( r[o] ) }
 
 	static dispatch (){
 
@@ -275,6 +219,8 @@ export class engine {
 		//root.flow.tmp = [];
 		//root.flow.key = [];
 
+		if( outsideStep ) return;
+
 		
 
 		if( isTimeout ){
@@ -288,16 +234,22 @@ export class engine {
 
 	}
 
-	static step (){
+	static step ( stamp ){
 
-		if( isReset ){ engine.endReset(); return }
-		if( isStop || tmpStep === 2 ) return;
+		if( isReset ) engine.endReset();
+		if( isStop || tmpStep >= 2 ) return;
 
 		tmpStep = 2;
 
-		startTime = Time.now();
+		startTime = stamp || Time.now();
 		root.delta = ( startTime - lastTime ) * 0.001;
 		lastTime = startTime;
+
+		// timeStep - the amount of time in seconds to step the simulation by. Typically you're going to be passing it the time since you last called it.
+
+        // maxSubSteps - the maximum number of steps that Bullet is allowed to take each time you call it.
+
+        // fixedTimeStep - regulates resolution of the simulation. If your balls penetrates your walls instead of colliding with them try to decrease it.
 
 		///stepSimulation proceeds the simulation over 'timeStep', units in preferably in seconds.
 		///By default, Bullet will subdivide the timestep in constant substeps of each 'fixedTimeStep'.
@@ -314,15 +266,15 @@ export class engine {
 		For example, if you give (1.0, 100, 1/60) as an argument,
 		  "Simulate the state after 1 second by 1/60 seconds at a time. However, you can only calculate up to 100 times."
 		  It becomes. The unit is seconds, not milliseconds.
-		  */
+		 */
 
 		let n = substep;
-		//while( n-- ) root.world.stepSimulation( timestep / substep, 0 );
+		//while( n-- ) root.world.stepSimulation( timestep / substep, substep, timestep / substep );
 
 		//if ( fixe ) root.world.stepSimulation( 1.0, substep, timestep / substep )
 		//if ( fixe ) root.world.stepSimulation( timestep, 100, timestep / substep )
 		if ( fixe ) root.world.stepSimulation( timestep, substep, timestep / substep )//, timestep / substep );
-		//else root.world.stepSimulation( root.delta, substep, timestep / substep );
+		else root.world.stepSimulation( root.delta, substep, timestep / substep );
 
 		engine.stepItems()
 
@@ -332,15 +284,6 @@ export class engine {
 
 		if ( isBuffer ) engine.post( { m: 'step', reflow:root.reflow, Ar: Ar }, [ Ar.buffer ] );	
 		else engine.post( { m:'step', reflow:root.reflow, Ar:Ar } );
-
-	}
-
-	static stepItems () {
-
-		body.step( Ar, ArPos.body );
-		joint.step( Ar, ArPos.joint );
-		ray.step( Ar, ArPos.ray );
-		contact.step( Ar, ArPos.contact );
 
 	}
 
@@ -356,12 +299,8 @@ export class engine {
 
 		engine.stop();
 
-		body.reset();
-		solid.reset();
-		joint.reset();
-		ray.reset();
-		contact.reset();
-
+		engine.resetItems()
+		
 		// clear world
 		Ammo.destroy( root.world );
 		Ammo.destroy( Solver );
@@ -381,6 +320,7 @@ export class engine {
 
 		isStop = true;
 
+		if( outsideStep ) return;
 		if( timeout ) clearTimeout( timeout );
 		if( interval ) clearInterval( interval );
 		interval = null;
@@ -388,14 +328,89 @@ export class engine {
 
 	}
 
-	static pause (){
+	static pause( o ) {
 
-		if( !isStop ) this.stop();
-		else this.start();
+		let pause = o.value;
+		if( pause === isStop ) return
+		if( pause ) this.stop()
+		else this.start()
 
 	}
 
-	
+
+	//-----------------------
+	//
+	//  ITEMS
+	//
+	//-----------------------
+
+	static initItems () {
+
+		items = {
+			ray : new Ray(),
+		    body : new Body(),
+			solid : new Solid(),
+			joint : new Joint(),
+			contact : new Contact(),
+			character : new Character(),
+			vehicle : new Vehicle(),
+			terrain : new Terrain(),
+		}
+
+		// reference function for rigidbody
+		root.bodyRef = items.body
+		root.byName = engine.byName
+
+	}
+
+	static resetItems() {
+
+		for (const key in items) items[key].reset()
+
+	}
+
+	static stepItems() {
+
+	    for (const key in items) items[key].step( Ar, ArPos[key] )
+
+	}
+
+	static add ( o = {} ){
+
+		let type = getType( o )
+		items[type].add( o )
+		
+	}
+
+	static remove ( o = {} ){
+
+		let b = this.byName( o.name );
+		if( b === null ) return;
+		items[b.type].clear( b )
+
+	}
+
+	static change ( o = {} ){
+
+		let b = this.byName( o.name );
+		if( b === null ) return;
+		items[b.type].set( o, b )
+
+	}
+
+}
 
 
+//--------------
+//
+//  SOLID ONLY 
+//
+//--------------
+
+class Solid extends Body {
+	constructor () {
+		super()
+		this.type = 'solid'
+	}
+	step ( AR, N ) {}
 }

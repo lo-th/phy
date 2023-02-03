@@ -96,7 +96,6 @@ function makeChair ( x, y, z, r ) {
         shapes: chairShape,
         mesh:model.chair_1,
         sleep: true,
-       
     })
 
 }
@@ -117,6 +116,7 @@ function makeTable ( x, y, z, r ) {
         pos:[ x||0,(y||0)+0.38,z||0 ],
         rot:[ 0,r||0,0],
         shapes: tableShape,
+        //material:'debug',
         mesh:model.table_1,
         sleep: true,
     })

@@ -1,4 +1,6 @@
 import { Item } from '../core/Item.js';
+import { Num } from '../core/Config.js';
+
 import { Utils, root } from './root.js';
 
 export class Body extends Item {
@@ -9,6 +11,8 @@ export class Body extends Item {
 
 		this.Utils = Utils
 		this.type = 'body';
+		this.num = Num[this.type]
+		this.full = false
 
 		this.v = new Ammo.btVector3()
 		this.vv = new Ammo.btVector3()
@@ -21,26 +25,38 @@ export class Body extends Item {
 
 	}
 
+	setFull( full ){
+		this.num = Num[ full ? 'bodyFull':'body' ]
+		this.full = full
+	}
+
 	step ( AR, N ) {
 
-		let i = this.list.length, b, n, v;
+		let i = this.list.length, b, n, v, r;
 
 		while( i-- ){
 
 			b = this.list[i]
-			n = N + ( i * 11 )
+			n = N + ( i * this.num )
 
 			if( !b ){ 
 				AR[n]=AR[n+1]=AR[n+2]=AR[n+3]=AR[n+4]=AR[n+5]=AR[n+6]=AR[n+7]=0
 				continue
 			}
-
-			v = b.getLinearVelocity()
-			AR[ n ] = b.getMotionState() === 2 ? 0 : v.length() * 9.8; // speed km/h
+			
+			AR[ n ] = b.getMotionState() === 2 ? 0 : 1; 
 
 			b.getMotionState().getWorldTransform( this.t )
 			this.t.toArray( AR, n + 1 )
-			v.toArray( AR, n + 8 ) // velocity
+
+			if( this.full ){
+				v = b.getLinearVelocity()
+				v.toArray( AR, n + 8 ) // velocity
+				if( AR[ n ] === 1 ) AR[ n ] = v.length() * 9.8;// speed km/h
+				r = b.getAngularVelocity()
+				r.toArray( AR, n + 11 )
+			}
+			
 
 		}
 
@@ -54,58 +70,38 @@ export class Body extends Item {
 		let t = o.type || 'box'
 		let s = o.size || [1,1,1]
 
-		let i, n, volume = 1
+		let i, n
 
 		switch( t ){
 
 			case 'plane': g = new Ammo.btStaticPlaneShape( this.v.fromArray(o.dir || [ 0, 1, 0 ] ), 0 ); break;// 0 : planeConstant ?
-			case 'box' : g = new Ammo.btBoxShape( this.v.set(s[0] * 0.5, s[1] * 0.5, s[2] * 0.5) );
-			volume = 8 * this.v.mul()//s[0]*s[1]*s[2];
-			 break;
-			case 'sphere' : g = new Ammo.btSphereShape( s[0] )
-			volume = (4*Math.PI*s[0]*s[0]*s[0])/3
-			//volume = 4 / 3 * Math.PI * s[0] * s[0] * s[0]; 
-			break;
-			case 'cone' : 
-			//g = new Ammo.btConeShape( s[0] * 0.5, s[1] * 0.5 )
-			g = new Ammo.btConeShape( s[0], s[1] )
-			volume = Math.PI * s[0] * (s[1] * 0.5) * 2
-			//g.setSafeMargin(1,1)
-			//console.log(g)
-			break;
-			case 'cylinder' : 
-			g = new Ammo.btCylinderShape( this.v.set( s[0], s[1] * 0.5, s[0] ))
-			volume = Math.PI * s[0] * s[0] * (s[1] * 0.5) * 2
-			break;// def Y
+			case 'box' : g = new Ammo.btBoxShape( this.v.set(s[0] * 0.5, s[1] * 0.5, s[2] * 0.5) ); break;
+			case 'sphere' : g = new Ammo.btSphereShape( s[0] ); break;
+			case 'cone' : g = new Ammo.btConeShape( s[0], s[1] ); break;
+			case 'cylinder' : g = new Ammo.btCylinderShape( this.v.set( s[0], s[1] * 0.5, s[0] )); break;// def Y
 			//btCylinderShapeX( height, radius, 0 )
 			//btCylinderShapeZ( radius, 0, height )
-			case 'capsule' : 
-			g = new Ammo.btCapsuleShape( s[0], s[1] ); 
-			volume = ( (4*Math.PI*s[0]*s[0]*s[0])/3) + ( Math.PI * s[0] * s[0] * (s[1] * 0.5) * 2 )
-			break;
+			case 'capsule' : g = new Ammo.btCapsuleShape( s[0], s[1] );  break;
 			case 'convex' : 
 
-			    let optimize = o.optimize !== undefined ? o.optimize : true;
+			    //let optimize = o.optimize !== undefined ? o.optimize : false;
 
 			    g = new Ammo.btConvexHullShape();
+
+			    //console.log(g)
 
 			    i =  Math.floor( o.v.length/3 );
 			    while( i-- ){
 
 			    	n = i*3;
-			    	g.addPoint( this.v.fromArray( o.v, n ), true )
+			    	g.addPoint( this.v.fromArray( o.v, n ), false )
 
 			    }
 
-			    if( optimize ){
-			    	g.optimizeConvexHull()
-					g.recalcLocalAabb();
-					g.initializePolyhedralFeatures(1);
-				}
-
-				//console.log(g)
-
-				volume = Utils.getConvexVolume( o.v )
+		    	g.optimizeConvexHull()
+				g.recalcLocalAabb();
+				//g.initializePolyhedralFeatures(1);
+				
 
 			break;
 			case 'mesh':
@@ -113,7 +109,7 @@ export class Body extends Item {
 				let des = new Ammo.btTriangleMesh()
 				//let m = new Ammo.btIndexedMesh()
 				//let des = new Ammo.btTriangleIndexVertexArray()
-				//console.log(m, des)
+				//console.log( des)
 				
 				let removeDuplicateVertices = false
 				let v = o.v;
@@ -125,6 +121,9 @@ export class Body extends Item {
 
 				if( index !== null ){
 
+					//let tmpIndex = Utils.malloc( index )
+					//des.addIndex(tmpIndex)
+
 					max = v.length
 
 					for ( i = 0; i < max; i += 3 ) {
@@ -134,8 +133,8 @@ export class Body extends Item {
 					max = index.length
 
 					for ( i = 0; i < max; i += 3 ) {
-
-						des.addTriangleIndices( index[i], index[i+1], index[i+2] )
+						// only work on bullet3 !!
+						if( des.addTriangleIndices ) des.addTriangleIndices( index[i], index[i+1], index[i+2] )
 
 					}
 
@@ -153,24 +152,27 @@ export class Body extends Item {
 					}
 
 				}
-				
-				if ( this.type === 'solid' ) {
 
-					//, bool useQuantizedAabbCompression, bool buildBvh=true
+				
+				
+				if ( this.type === 'solid' || !Ammo.btGImpactMeshShape ) {
+
+					//bool useQuantizedAabbCompression, bool buildBvh=true
 
 					// btScaledBvhTriangleMeshShape -- if scaled instances
 					g = new Ammo.btBvhTriangleMeshShape( des, true, true );
 
 					//console.log(g)
-					volume = 1
-
 					
 				} else {
 
+					// only work on bullet2 !!
 					// btGimpactTriangleMeshShape -- complex?
 					// btConvexHullShape -- possibly better?
-					g = new Ammo.btConvexTriangleMeshShape( des, true );
-					volume = Utils.getConvexVolume( o.v )
+					g =  new Ammo.btGImpactMeshShape(des);//new Ammo.btConvexTriangleMeshShape( des, true );
+					g.setMargin(o.margin || 0.01);
+					//g.setLocalScaling(new Ammo.btVector3(scale.x, scale.y, scale.z));
+					//g.updateBound();
 
 				}
 
@@ -184,10 +186,7 @@ export class Body extends Item {
 
 		if( g.setMargin ) g.setMargin( o.margin || 0.0001 ) // )
 
-
-		g.volume = volume
-
-			//console.log( g.getMargin() )
+		g.volume = Utils.getVolume( t, s, o.v );
 
 		return g;
 
@@ -239,8 +238,6 @@ export class Body extends Item {
 
 				    g.addChildShape( this.t, s );
 
-
-
 				}
 
 			break;
@@ -290,6 +287,7 @@ export class Body extends Item {
 
 		b.first = true
 
+
 		delete( o.pos )
 		delete( o.quat )
 
@@ -321,7 +319,7 @@ export class Body extends Item {
 		if( o.pos || o.quat ){
 
 			if( !o.pos || !o.quat ) b.getMotionState().getWorldTransform( this.t )
-			if( !o.pos ) o.pos =  this.t.getPos()
+			if( !o.pos ) o.pos = this.t.getPos()
 			if( !o.quat ) o.quat = this.t.getQuat()
 			
 			this.t.fromArray( o.pos, o.quat )
@@ -334,9 +332,9 @@ export class Body extends Item {
 
 		if ( o.state !== undefined ) b.setActivationState( o.state );
 		if ( o.activate || o.wake ) b.activate();
-		if( o.neverSleep ){ 
-			b.setSleepingThresholds( 0, 0 )
-			b.setActivationState( 4 );
+		if( o.neverSleep !== undefined ){ // linear, angular
+			if( o.neverSleep ){ b.setSleepingThresholds( 0, 0 ); b.activate(); }
+			else{ b.setSleepingThresholds( 0.8, 1.0 ); }
 		}
 
 		if( o.sleep ) b.setActivationState( 2 )
@@ -382,7 +380,7 @@ export class Body extends Item {
 		if ( o.angularFactor !== undefined ) b.setAngularFactor( this.v.fromArray( o.angularFactor ) );
 
 		if ( o.anisotropic !== undefined ) b.setAnisotropicFriction( o.anisotropic[ 0 ], o.anisotropic[ 1 ] );
-		if ( o.massProps !== undefined ) b.setMassProps( o.massProps[ 0 ], o.massProps[ 1 ] );
+		if ( o.massProps !== undefined ) b.setMassProps( o.massProps[ 0 ], o.massProps[ 1 ])//vv);
 
 
 		// for high speed object like bullet

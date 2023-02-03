@@ -1,17 +1,30 @@
-function demo() {
+demo = () => {
 
-    phy.set({
-        substep:2,
-        gravity:[0,-9.81,0],
+    phy.view({
+         envmap:'basic',//envmap:0x604545,
+        ground:true
     })
 
-    phy.add({ type:'plane' });
+    phy.set({ substep:2, gravity:[0,-9.81,0] })
 
-    addTower({ radius:1, height:18, size:[0.1, 0.2], detail:16, density:0.4 });
+    phy.add({ type:'plane' });
+    //phy.add({ type:'box', size:[300,1,300], pos:[0, -0.5, 0], visible:false })
+
+    // add dynamic sphere
+    phy.add({ type:'highSphere', name:'sphere', size:[0.95], pos:[0,6,0], density:5, restitution:0.2, friction:0.2, sleep:true })
+
+    addTower({ radius:1, height:18, size:[0.1, 0.2], detail:16, density:0.3 });
+
+    phy.setTimeout( run, 1000 )
 
 };
 
-function addTower( o ){
+run = () => {
+    // phy.up is use for direct outside update
+    phy.up({ name:'sphere', wake:true })
+}
+
+addTower = ( o ) => {
 
     let tx, ty, tz;
     let detail =  o.detail === "undefined" ? 10 : o.detail;
@@ -40,15 +53,14 @@ function addTower( o ){
             phy.add({
 
                 type:"box",
-                radius:0.01,
+                radius:0.02,
                 size:[sx,sy,sz],
                 pos:[px,py,pz],
                 rot:[0,angle*(180 / Math.PI),0],
                 density:density,
-                restitution:0.1, 
-                friction:0.5,
+                restitution:0.6,
+                friction:0.4,
                 sleep:true,
-
 
             });
         }

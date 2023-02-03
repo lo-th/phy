@@ -1,173 +1,280 @@
-import * as THREE from '../build/three.module.js'
-import * as TWEEN from './jsm/libs/tween.esm.js'
-import * as UIL from './jsm/libs/uil.module.js'
+import * as THREE from 'three'
+import * as TWEEN from 'tween'
+import * as UIL from 'uil'
+import './libs/webgl-memory.js'
 
-import { OrbitControls } from './jsm/controls/OrbitControls.js'
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
 
-import { Composer } from './jsm/lth/Composer.js'
-import { Controller } from './jsm/lth/Controller.js'
+import { Composer } from './3TH/Composer.js'
+import { Controller } from './3TH/Controller.js'
+import { Shader } from './3TH/Shader.js'
+import { Pool } from './3TH/Pool.js'
+//import { math } from './3TH/math.js'
+import { Hub } from './3TH/Hub.js'
+import { Gui } from './3TH/Gui.js'
+import { Env } from './3TH/Env.js'
+import { Editor } from './3TH/Editor.js'
+// OBJECT
+import { Reflector } from './3TH/objects/Reflector.js'
+import { Landscape } from './3TH/objects/Landscape.js'
+import { Building } from './3TH/objects/Building.js'
+import { Diamond } from './3TH/objects/Diamond.js'
+import { Liquid } from './3TH/objects/Liquid.js'
+import { Fluid } from './3TH/objects/Fluid.js'
+import { Sparkle } from './3TH/objects/Sparkle.js'
 
-import { Shader } from './jsm/lth/Shader.js'
+import { DirectionalHelper } from './3TH/helpers/DirectionalHelper.js'
+// TEXTURE
+import { CarbonTexture } from './3TH/textures/CarbonTexture.js'
 
-import { Pool } from './jsm/lth/Pool.js'
-import { math } from './jsm/lth/math.js'
-import { Hub } from './jsm/lth/Hub.js'
-import { Env } from './jsm/lth/Env.js'
-import { Timer } from './jsm/lth/Timer.js'
-
-import { Reflector } from './jsm/lth/Reflector.js'
-import { Landscape } from './jsm/lth/Landscape.js'
-import { Building } from './jsm/lth/Building.js'
-import { Diamond } from './jsm/lth/Diamond.js'
-import { Sparkle } from './jsm/lth/Sparkle.js'
-
-import { Editor } from './editor/Editor.js'
-
+// MOTOR MAIN
 import { Motor } from './motor/Motor.js'
 
-import './jsm/libs/webgl-memory.js';
+// DRAW CALL ???
+import DrawCallInspector from './jsm/utils/DrawCallInspector.js'
 
+// MOTOR MAIN
+
+
+/** __
+*    _)_|_|_
+*   __) |_| | 2023
+*  @author lo.th / https://github.com/lo-th
+* 
+*  MAIN THREE.JS / PHY
+*/
+
+
+let drawCall = false
 let fullStat = false
-let devMode = false
 let debugLight = false
-let engineType, version, isWorker, introText
-let engineList = [ 'OIMO','AMMO' ]
+
+let oldPause = false;
+
+let engineName, version, introText
+let oldLeft = 0
+
+let video = null
+
+let childEditor = null
+let isExternEditor = false
+
+let maxFps = 60
+
+const cam = {
+	phy:38,
+	theta:0,
+	distance:12,
+	fov:50,
+	x:0,
+	y:2,
+	z:1,
+	time:0
+}
 
 const setting = {
 
-	envmap:'basic',
+	envmap:'clear',//'basic',
 	groundSize:[ 200, 200 ],
 	groundAlpha: true,
 	groundOpacity:1,
 	ground:true,
+	fog:false,
 
 }
 
 const options = {
 
+	mode:'HIGH',
+	quality: 2,
+
 	demo:'start',
-	envmap:'basic',
+	envmap:'null', //'basic',
 	substep:1,
 	fps:60,
 	gravity:[0,-9.81,0],
 
-	Exposure: 1.25,
-	EnvPower: 1,
+	tone:'ACESFilmic',
+	exposure: 1,
+	envPower: 1,
 
 	light_1: 3,
 	light_2: 1.5,
+
 	show_light: false,
 	show_stat: false,
 
-	Shadow:0.5,//0.25,
-	ShadowGamma:1,
-	ShadowLuma: 0.75,//0,
-    ShadowContrast: 2.5,//1,
+	shadow:0.5,//0.25,
+	shadowType:'PCSS',
+	shadowGamma:1,
+	shadowLuma: 0.75,//0,
+    shadowContrast: 2.5,//1,
 
+    reflect:0.8,
     renderMode:0,
-
-    shadowPCSS:true,
 
     lightSizeUV:1.3,
     nearPlane:9.5,
     rings:11,
     nSample:17,
 
+    composer:false,
+
 }
 
 
-let g1, g2
-let dom, camera, controls, scene, renderer, composer, content, dragPlane, followGroup, helperGroup, hideMat, stats, txt, light, light2 = null, ground = null, envui;
+let g1, g2, g3
+let dom, camera, controls, scene, renderer, loop = null, composer = null, content, dragPlane, hideMat, followGroup, helperGroup, stats, txt, light, light2 = null, ground = null, envui, dci;
 let ray, mouse, oldMouse, isActveMouse = false, mouseDown = false, mouseMove = false, firstSelect = false, selected = null, rayTest = false, controlFirst = true;
 
+let code = ''
 let editor = null
 let script = null
-let code = ''
 let isLoadCode = true
-let quality = 2
-
-let needResize = true;
-const Demos = [ 'start', 'basic', 'joint', 'capsule', 'compound', 'bridge', 'gears', 'raycast', 'terrain', 'character', 'car', 'collision', 'mesh', 'kinematic', 'add_remove', 'tower' ]
-const DemosA = [ 'diamond', 'ragdoll', 'chess', 'pinball', 'million', 'desk' ]
-
-Demos.sort();
-DemosA.sort();
-
-const Envs = [ 'basic', 'factory', 'studio', 'beach', 'tomoco', 'tatami', 'box', 'park', 'color', 'room', 'tokyo', 'gallery', 'river', 'cave', 'histo', 'bed', 'forest' ]
+let needResize = true
 
 //const timer = new Timer(60)
 const size = { w:0, h:0, r:0, left:0 }
 const tm = { now:0, delta:0, then:0, inter: 1000/60, tmp:0, n:0, dt:0, fps:0 }
 
+const toneMappingOptions = {
+	None: THREE.NoToneMapping,
+	Linear: THREE.LinearToneMapping,
+	Reinhard: THREE.ReinhardToneMapping,
+	Cineon: THREE.CineonToneMapping,
+	ACESFilmic: THREE.ACESFilmicToneMapping,
+	Uncharted2: THREE.CustomToneMapping
+}
+
+const shadowMapType = {
+	PCSS: THREE.BasicShadowMap,
+	PCF: THREE.PCFShadowMap,
+	PCFSoft: THREE.PCFSoftShadowMap,
+	VSM: THREE.VSMShadowMap
+}
+
+const Version = {
+    Oimo: '1.2.2',
+    Ammo: '3.0',
+    Physx: '5.1',
+    Rapier: '0.10.0'
+}
+const LinkWasm = {
+    Ammo:'build/ammo3.wasm.js',
+    Physx:'build/physx-js-webidl.js',
+}
 
 let memo = null
 
-export class Main {
+export const Main = {
 
-	static start ( option = {} ){
+	engineType:'',
+	isWorker:true,
+	devMode:false,
+	engineList: [ 'OIMO','AMMO', 'PHYSX'],//? 'RAPIER', 'CANNON' ],
 
-		let o = { ...option }
+	start: ( o = {} ) => {
 
-		engineType = o.type || 'OIMO'
-		version = o.version || '1.2.2'
+		const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+		if( isMobile ) options.mode = 'LOW'
 
-		isWorker = !o.direct
+		Main.engineType = o.type || 'PHYSX'
+		Main.isWorker = true;
 
-		introText = (isWorker ? 'WORKER ' : '') + engineType + ' ' + version 
-
-		let urlParams = new URLSearchParams(window.location.search)
-		//if( urlParams.has('dev') ) o.extra = true
-
-		if( urlParams.has('dev') ){
-		    devMode = true
-			engineList.push('HIDE')
-			Demos.push('empty')
-			//options.demo='empty'
+		let urlParams = new URLSearchParams( window.location.search )
+		if( urlParams.has('E') ){
+			let eng = urlParams.get('E');
+			Main.isWorker = eng.search('w_') !== -1;
+			Main.devMode = eng.search('dev_') !== -1;
+			Main.engineType = eng.substring( eng.lastIndexOf('_')+1 ).toUpperCase();
 		}
 
+		let n = Main.engineType.toLowerCase()
+		engineName = n.charAt(0).toUpperCase() + n.slice(1)
+
+		version = Version[ engineName ]
+
+		o.link = LinkWasm[ engineName ]
+		o.type = Main.engineType;
+		o.extraConvex = engineName === 'Physx';
 		o.callback = init
-	    Motor.engine = engineType
-		Motor.init( o )
 
-	}
+		introText = ( Main.isWorker ? 'WORKER ' : 'DIRECT ' ) + Main.engineType + ' ' + version;
 
-	static view ( o = {} ){
+		//console.log( introText )
 
-		if( o.envmap ){
-			if( o.envmap !== options.envmap ){
-				options.envmap = o.envmap
-				if( typeof o.envmap  === 'string' ){
-					envui.setValue( options.envmap )
-				    Env.load( './assets/textures/equirectangular/'+options.envmap+'.hdr' )
-				} else if (!isNaN(o.envmap)){
-					Env.setBackgroud( o.envmap )
-				}
-				
-			}
+		options.show_stat = Main.devMode
+
+		Motor.engine = Main.engineType
+		window.engine = Motor.engine
+
+		if( Main.isWorker ){
+			Motor.init( o )
+		} else {
+			if( o.link ) Main.loadScript( o, engineName, preLoad );
+			else preLoad( engineName, o )
 		}
+	
+	},
+
+	loadScript:( o, name, callback ) => {
+	
+	    let s = document.createElement("script")
+	    s.src = o.link;
+	    document.body.appendChild( s )
+	    s.onload = () => { callback( name, o ) };
+
+	},
+
+	/*view: ( o = {} ) => {
+
+		if( o.envmap ) setEnv( o.envmap, true )
+
+
+		if( o.fog ) scene.fog = new THREE.FogExp2( Env.getFogColor().getHex(), 0.01 )
+		else scene.fog = null
 
 		// reflect floor
-
 		if( o.ground ) addGround( o )
 		else removeGround()
+
+		if( isLoadCode ) controls.moveCam( {...cam, ...o })
 		
+	},*/
 
-	}
+    setComposer:( b ) => { setComposer(b) },
+    showDebugLight:( b ) => { showDebugLight(b) },
+    showStatistic:( b ) => { showStatistic(b) },
+    setShadow:( v ) => { setShadow(v) },
+    upShader:() => { upShader() },
 
-	static injectCode ( cc ){ inject(cc) }
+    getCode:() => ( code ),
+	getScene:() => ( scene ),
+	getRenderer:() => ( renderer ),
+	getControler:() => ( controls ),
+	getCodeName:() => ( options.demo ),
+	getGround:() => ( ground ),
+	getDemos:() => ( Pool.get('demos', 'json') ),
 
-	static getScene( ){ return scene }
-	static getRenderer( ){ return renderer }
-	static getControler( ){ return controls }
+	getOption:() => ( options ),
+	getSetting:() => ( setting ),
+	getComposer:() => ( composer ),
+	getToneMappingOptions:() => ( toneMappingOptions ),
 
-	static setLeft( x ){ size.left = x; onResize() }
+	setLeft:( x ) => { size.left = x; onResize() },
+	setCode:( code ) => { code = code },
+	getMouseDown:() => { return mouseDown },
+	externEditor:() => { externEditor() },
+	injectCode: ( cc ) => { inject(cc) },
 
-	static getCode(){ return code }
-	static getCodeName(){ return options.demo }
-	
-	static setCode( code ){ code = code }
-	
-	static getMouseDown(){ return mouseDown }
+	loadDemo: ( name ) => { loadDemo( name ) },
+
+	showEditor: ( b ) => { editor.show( b ) },
+	changeMode: ( v ) => {
+	    let low = options.mode === 'LOW'
+	    setShadow( low ? 0 : 0.5 )
+		setReflect( low ? 0 : 0.8 )
+	},
 
 }
 
@@ -176,30 +283,47 @@ export class Main {
 Motor.load = Pool.load;
 Motor.getMesh = Pool.getMesh;
 Motor.getGroup = Pool.getGroup;
-Motor.getMap = Pool.getMap;
+Motor.getMaterial = Pool.getMaterial;
+//Motor.getMap = Pool.getTexture;
+Motor.getTexture = Pool.getTexture;
 Motor.get = Pool.get;
 
-Pool.setExtraMaterial( function(m){ if( m ) Shader.add( m ) } );
-
 Motor.log = Hub.log;
-Motor.view = Main.view;
+
 
 window.phy = Motor
-window.math = math
+window.math = Motor.math()
 window.Main = Main
 
-window.THREE = THREE
 
+window.THREE = THREE
+window.hub = Hub
 window.Landscape = Landscape
 window.Building = Building
 window.Diamond = Diamond
 window.Sparkle = Sparkle
+window.Liquid = Liquid
+window.Fluid = Fluid
 
+async function preLoad( name, o ) {
+	
+    //let M = await import('./'+name+'.js');
+    let M = await import('../build/'+name+'.module.js');
+    o.direct = M.engine.message;
+    Motor.init( o )
 
-function init() {
+}
+
+const init = () => {
+
+	// https://threejs.org/docs/#api/en/renderers/WebGLRenderer
+
+	let powerPreference ='default'
+	//let powerPreference ='high-performance'
+	//let powerPreference ='low-power'// for mobile
 
 	let pixelRatio = window.devicePixelRatio
-	let AA = pixelRatio > 1 ? false : true
+	let antialias = pixelRatio > 1 ? false : true
 	if( pixelRatio > 2 ) pixelRatio = 2
 
 	content = Motor.getScene()
@@ -207,6 +331,7 @@ function init() {
 	mouse = new THREE.Vector2()
 	oldMouse = new THREE.Vector2()
 	ray = new THREE.Raycaster()
+	ray.far = 1000;
 
 	size.w = window.innerWidth
 	size.h = window.innerHeight
@@ -214,15 +339,14 @@ function init() {
 
 	// RENDERER
 
-	renderer = new THREE.WebGLRenderer( { antialias: AA,  powerPreference: "high-performance" } )
+	renderer = new THREE.WebGLRenderer( { antialias:antialias, powerPreference:powerPreference } )
 	renderer.setPixelRatio( pixelRatio )
 	renderer.setSize( size.w, size.h )
 
 	renderer.outputEncoding = THREE.sRGBEncoding
-	renderer.toneMapping = THREE.ACESFilmicToneMapping
+	renderer.toneMapping = toneMappingOptions[options.tone]
+	renderer.toneMappingExposure = options.exposure
 	renderer.physicallyCorrectLights = true
-	renderer.toneMappingExposure = 0
-	//renderer.info.autoReset = false
 
 	// DOM
     document.body.appendChild( renderer.domElement )
@@ -237,67 +361,38 @@ function init() {
 	// SCENE
 
 	scene = new THREE.Scene()
-	scene.background = new THREE.Color( 0x000000 )
+	renderer.setClearColor ( new THREE.Color( 0x272822 ) ) 
+	//scene.background = new THREE.Color( 0x272822 )
 
 	// GROUP
 
 	followGroup = new THREE.Group()
+	followGroup.name = 'followGroup'
 	scene.add( followGroup )
 
 	helperGroup = new THREE.Group()
+	helperGroup.name = 'helperGroup'
 	scene.add( helperGroup )
 
 	scene.helper = helperGroup
 
-	// LIGHT
-
-	light = new THREE.DirectionalLight( 0xFFFFFF, options.light_1 )
-	light.position.set( 1, 8, 0 )
-	light.distance = 20
-
-	let s = light.shadow
-	
-	s.mapSize.setScalar( 1024 * quality );
-	s.camera.top = s.camera.right = 20
-	s.camera.bottom = s.camera.left = -20
-	s.camera.near = 5
-	s.camera.far = 33
-
-	s.bias = -0.0005
-	s.normalBias = 0.0075//0.05
-	s.radius = 2
-	s.blurSamples = 8 // only for VSM !
-
-	light.castShadow = true
-	renderer.shadowMap.enabled = true
-	renderer.shadowMap.type = THREE.PCFSoftShadowMap
-	//renderer.shadowMap.type = THREE.VSMShadowMap
-
-	followGroup.add( light )
-	followGroup.add( light.target )
-
-	// light 2
-
-	light2 = new THREE.DirectionalLight( 0xFF0000, options.light_2 )
-	light2.position.set( -1, 0, 0 )
-	light2.distance = 18
-
-	followGroup.add( light2 )
-	followGroup.add( light2.target )
+	addLight()
 
 	// CAMERA / CONTROLER
 
-	camera = new THREE.PerspectiveCamera( 45, size.r, 1, 1000 )
+	camera = new THREE.PerspectiveCamera( 50, size.r, 0.1, 1000 )
 	camera.position.set( 0, 8, 10 )
 	camera.lookAt( 0, 2, 0 )
+	scene.add( camera )
 
 	controls = new Controller( camera, renderer.domElement, followGroup )
 	controls.target.y = 2
 	controls.minDistance = 1
     controls.maxDistance = 100
     controls.enableDamping = true // an animation loop is required when either damping or auto-rotation are enabled
-    controls.dampingFactor = 0.5//0.25;
+    controls.dampingFactor = 0.25//25//0.25;
     controls.screenSpacePanning = true
+    //controls.enable = false
     //controls.maxPolarAngle = Math.PI / 2
 	controls.update()
 
@@ -310,31 +405,57 @@ function init() {
 		}
 	})
 
-	scene.add( camera )
-
 	// POST PROCESS
 
-	composer = new Composer( renderer, scene, camera, controls, size );
+	//composer = new Composer( renderer, scene, camera, controls, size );
 
 	window.addEventListener( 'resize', onResize )
+	// avoid track run in background
+	document.addEventListener( 'visibilitychange', onVisible )
 
 	activeDragMouse( true )
+
+
 
 	Hub.init( camera, size, introText )
 
 	editor = new Editor()
 
-	Env.load( './assets/textures/equirectangular/'+options.envmap+'.hdr', next, renderer, scene, light, light2 )
+	Env.init( renderer, scene, light, light2 )
+
+	start()
+
+	Pool.load( 'demos.json', next )
 
 }
 
-function next () {
+const next = () => {
+
+	// add carbon texture
+	
+	/*const flakeTexture = new THREE.CanvasTexture( new CarbonTexture('rgb(69,69,69)', 'rgb(39,39,39)', true) )
+	flakeTexture.wrapS = flakeTexture.wrapT = THREE.RepeatWrapping
+	flakeTexture.repeat.x = flakeTexture.repeat.y = 2
+
+	const carbonTexture = new THREE.CanvasTexture( new CarbonTexture('#ffffff', '#CCCCCC') )
+	carbonTexture.wrapS = carbonTexture.wrapT = THREE.RepeatWrapping
+	carbonTexture.repeat.x = carbonTexture.repeat.y = 2
+	
+	
+
+	let carbonList = ['body', 'sleep', 'solid', 'hero', 'skin' ]
 
 	// custom shadow for default motor material
 	let mat = Motor.getMat()
-	for( let m in mat ) Shader.add( mat[m] )
+	for( let m in mat ){ 
+		if( carbonList.indexOf(m) !== -1 ){
+			mat[m].normalMap = flakeTexture
+			mat[m].map = carbonTexture
+		}
+		Shader.add( mat[m] )
+	}*/
 
-	hideMat = mat['hide']
+	hideMat = Motor.getHideMat()
 
     Motor.setContent( scene )
     Motor.setControl( controls )
@@ -342,68 +463,204 @@ function next () {
     Motor.setExtraTexture( function(o){ return Pool.directTexture( o.url, o ) } );
     Motor.setExtraMaterial( function(m){ if( m ) Shader.add( m ) } );
 
-	render()
 
-	var hash = location.hash.substr( 1 )
+	let hash = location.hash.substr( 1 )
     if( hash !== '' ) options.demo = hash
-
-    initGUI()
 
     Hub.endLoading()
 
-	new TWEEN.Tween( { a:0 } ).to( { a:options.Exposure }, 3000 ).onUpdate(function(o){ renderer.toneMappingExposure = math.toFixed(o.a,3) }).easing( TWEEN.Easing.Quadratic.In ).start()
+    Gui.init()
 
-	//loadDemo( options.demo )
+    //initGUI()
+	/*new TWEEN.Tween( { a:0 } )
+	.to( { a:options.exposure }, 3000 )
+	.onUpdate(function(o){ renderer.toneMappingExposure = math.toFixed(o.a,3) })
+	.easing( TWEEN.Easing.Quadratic.In )
+	.start()*/
 
-	Pool.load(['./assets/libs/esprima.hex'], testingScript )
+
+	loadDemo( options.demo )
+
+	if( options.show_stat ) showStatistic( true )
 
 }
 
-function addGround ( o ) {
+const start = () => {
+	if( loop === null ) render(0)
+}
+
+const upExpose = () => {
+	if( renderer.toneMappingExposure < options.exposure ) renderer.toneMappingExposure+=0.001
+}
+
+
+
+//--------------------
+//   LIGHT
+//--------------------
+
+const addLight = () => {
+
+	light = new THREE.DirectionalLight( 0xFFFFFF, options.light_1 )
+	//light.position.set( 5, 18, 5 )
+	light.distance = 20
+
+	const s = light.shadow
+	s.mapSize.setScalar( 1024 * options.quality )
+	s.camera.top = s.camera.right = 20
+	s.camera.bottom = s.camera.left = -20
+	s.camera.near = 5
+	s.camera.far = 33
+
+	s.bias = -0.0005
+	s.normalBias = 0.0075//0.05
+	s.radius = 2
+	s.blurSamples = 8 // only for VSM !
+
+
+	if( options.mode === 'LOW' ){
+		options.shadow = 0
+		options.reflect = 0
+	}
+
+	light.castShadow = options.shadow !== 0 
+	renderer.shadowMap.enabled = options.shadow !== 0 
+	renderer.shadowMap.type = shadowMapType[options.shadowType]
+
+	followGroup.add( light )
+	followGroup.add( light.target )
+
+	// light 2
+
+	light2 = new THREE.HemisphereLight( 0xFFFFFF, 0x808080, options.light_2 );
+	light2.position.set( 0, 5, 0 );
+	followGroup.add( light2 );
+
+}
+
+const clearLight = ( o ) => {
+	//if(!light) return
+ 
+	followGroup.remove( light )
+	followGroup.remove( light.target )
+	
+
+	followGroup.remove( light2 );
+
+	light.shadow.dispose()
+	light.shadow.map.texture.dispose()
+	light.shadow.map.texture = null;
+	light.shadow.map.dispose()
+	light.shadow.map = null;
+
+	light = null
+
+	
+
+	//light.shadow = new THREE.DirectionalLightShadow();
+	//light.shadow.mapSize.setScalar( 1024 * options.quality )
+
+
+}
+
+const resetLight = ( o ) => {
+
+	//renderer.shadowMap.autoUpdate = false;
+	//console.log(renderer.shadowMap)
+
+	/*clearLight()
+	addLight()
+
+	renderer.shadowMap.autoUpdate = true;*/
+
+	/*if(options.shadow) */
+	
+
+	light.position.set( 5, 18, 5 )
+	light.target.position.set( 0, 1, 0 )
+	light.color.setHex( 0xFFFFFF );
+
+	light2.color.setHex( 0xFFFFFF );
+	light2.groundColor.setHex( 0x808080 );
+
+}
+
+
+
+// 
+
+	
+//--------------------
+//   GROUND
+//--------------------
+
+const addGround = ( o ) => {
 
 	if( ground !== null ) return
+
+		/*let geometry = new THREE.PlaneGeometry( 1, 1, 1, 1 );
+	    geometry.rotateX( -Math.PI / 2 );
+	    geometry.scale( 200, 1, 200 )
+		geometry.setAttribute( 'uv2', geometry.attributes.uv );
+		ground = new THREE.Mesh(geometry)*/
+
+	//	console.log('ground is add')
 
 	// add reflect ground
 	ground = new Reflector({
 
-    	textureSize: 2048,
+    	textureSize: 1024 * options.quality,
         clipBias:0.003,
         encoding:true,
-        reflect:0.8,
-        color:0x6a8397,
-        round:true
+        reflect: options.reflect,
+        //color:0x6a8397,
+        round:true,
+        normal:true
 
     })
 
     ground.setSize( o.groundSize )
 	ground.setAlphaMap( o.groundAlpha )
 	ground.setOpacity( o.groundOpacity )
-    
     scene.add( ground )
-    scene.ground = ground
-    //reflector.renderDepth = 1
+
+    //console.log(ground)
+
 }
 
-function removeGround () {
+const removeGround = () => {
 
 	if( ground === null ) return
 
 	scene.remove( ground )
+	ground.dispose()
+	ground.geometry.dispose()
+    ground.material.dispose()
     ground = null
 
 }
 
-function testingScript( name ){
-
-	Pool.getCompactScript('esprima')
-	loadDemo( options.demo )
-
+const dispose = () => {
+	if(loop === null) return
+	//Env.dispose()
+    renderer.dispose()
+	renderer.renderLists.dispose()
+	cancelAnimationFrame( loop )
+	loop = null
+	
 }
 
-function loadDemo( name ){
 
-	if( DemosA.indexOf(name) !== -1 ) { g1.setValue(name); g1.reset() }
-	else { g2.setValue(name); g2.reset() }
+//--------------------
+//
+//   CODE SIDE
+//
+//--------------------
+
+const loadDemo = ( name ) => {
+
+	let findDemo = Gui.resetDemoGroup( name )
+	if(!findDemo) name = 'start'
 
 	unSelect()
 
@@ -414,8 +671,7 @@ function loadDemo( name ){
 
 }
 
-
-function inject ( newCode ) {
+const inject = ( newCode ) => {
 
 	isLoadCode = !newCode
 	code = isLoadCode ? Pool.getScript( options.demo ) : newCode
@@ -424,17 +680,27 @@ function inject ( newCode ) {
 		window['onReset']()
 		window['onReset'] = null
 	}
-	Hub.log()
 
-	Shader.reset()
+	//Hub.log()
+	Hub.reset()
+	
+	//Shader.reset()
+	//resetLight()
+	
 	phy.reset( refreshCode )
+
+	if( isLoadCode ){
+		Shader.reset()
+	    resetLight() 
+		Pool.dispose();
+	}
 
 }
 
-function refreshCode () {
+const refreshCode = () => {
 
 	if( script !== null){ 
-		document.body.removeChild( script )
+		script.remove()
 		script = null;
 	}
 		
@@ -442,260 +708,344 @@ function refreshCode () {
     script.language = "javascript"
     script.type = "text/javascript"
     script.id = "demo"
+    script.async = false;//true;
     script.innerHTML = '{' + code + '}'
     document.body.appendChild( script )
 
-    if( isLoadCode ) editor.set( code, options.demo )
+    if( isLoadCode ){ 
+    	if( isExternEditor ) send({ type:'set', code:code, name:options.demo })
+    	else editor.set( code, options.demo )
+    }
+
+    let ev = code.search( 'phy.view' )
+    let evh = code.search( '//phy.view' )
 	
-    if( code.search( 'phy.view' ) === -1 ) Main.view( setting )
+    if( ev === -1 || evh !== -1 ) view( setting )
+    /*else {
+
+    	let t = code.substring(ev+10, code.indexOf('})'))
+    	//let f = JSON.parse('{'+t+'}');
+    	console.log( t )
+    }*/
+    if( code.search( 'phy.set' ) === -1 ) Motor.set()
+
     window['demo']()
 
 }
 
 
-////
 
-function onResize() {
+//--------------------
+//   STOP ENGINE
+//--------------------
 
-	size.w = window.innerWidth - size.left;
-	size.h = window.innerHeight
-	size.r = size.w / size.h
-	needResize = true; 
+const onVisible = () => {
+
+	if( document.hidden ) {
+		oldPause = Motor.getPause()
+		Motor.pause( true )
+	}
+	else Motor.pause( oldPause )
 
 }
 
 
-function render ( stamp ) {
+//--------------------
+//   RESIZE
+//--------------------
 
-	requestAnimationFrame( render )
+const onResize = () => {
+
+	size.w = window.innerWidth - size.left
+	size.h = window.innerHeight
+	size.r = size.w / size.h
+	needResize = true
+
+}
+
+const doResize = () => {
+
+	//if( !needResize ) return
+	dom.style.left = size.left + 'px'
+	camera.aspect = size.r
+	camera.updateProjectionMatrix()
+	renderer.setSize( size.w, size.h )
+	if(composer) composer.resize( size )
+	Hub.resize( size )
+	needResize = false
+
+}
+
+
+//--------------------
+//   RENDER
+//--------------------
+
+const render = ( stamp = 0 ) => {
+
+	loop = requestAnimationFrame( render )
 
 	tm.now = stamp
 	tm.delta = tm.now - tm.then
-	tm.dt = tm.delta * 0.001
+	tm.dt = tm.delta * 0.001;
+
+	if( needResize ) doResize()
+
+	if( controls.enableDamping && controls.enable ) controls.update()
+
+	// UPDATE PHY
+	Motor.doStep( stamp );
+
+	// update follow camera
+	//controller.follow( root.delta );
+
+	TWEEN.update( stamp );
+
+	//if( dci ) dci.begin()
+
+	if( composer && composer.enabled ) composer.render( tm.dt )
+	else renderer.render( scene, camera )
+
+	Gui.update()
+
+	//if( dci ) dci.end()
+
+	upStat()
+
+}
+
+const upStat = () => {
+
+	// three fps
+	if ( tm.now - 1000 > tm.tmp ){ 
+		tm.tmp = tm.now; 
+		tm.fps = tm.n; 
+		tm.n = 0; 
+	}
+
+	tm.n++
+	tm.then = tm.now
+
+	if( tm.fps > maxFps ) {
+		maxFps = tm.fps
+		Motor.setMaxFps( maxFps )
+	}
+
+	Hub.setFps( 'T:' + tm.fps + ' | P:' + Motor.getFps() )
+	getFullStats()
+
+}
+
+//--------------------
+//   GUI FUCTION
+//--------------------
+
+//const gotoGithub = () => { window.open( 'https://github.com/lo-th/phy', '_blank' ) }
+const upShader = () => { Shader.up( options ) }
+
+const showGround = ( v ) => {
+
+	setting.ground = v
+
+	if(!ground) return
+	ground.visible = setting.ground;
+
+}
+
+const setReflect = ( v ) => {
+
+	options.reflect = v
+
+	if(!ground) return
+	ground.setReflect( options.reflect )
+
+}
+
+const setShadow = ( v ) => {
+
+	options.shadow = v
+
+	if( options.shadow === 0 ){
+		light.castShadow = false
+		renderer.shadowMap.enabled = false
+	} else {
+		if( !renderer.shadowMap.enabled ){
+			light.castShadow = true
+			renderer.shadowMap.enabled = true
+		}
+	}
+
+	if( light.shadowHelper ) light.shadowHelper.visible = options.shadow !== 0
+
+	Main.upShader()
+
+}
 
 
-	if( needResize ){
+function firstFunction() {
+      return new Promise((resolve, reject) => {
+          let y = 0
+          setTimeout(() => {
+            for (let i=0; i<10; i++) {
+               y++
+            }
+             console.log('Loop completed.')  
+             resolve(y)
+          }, 2000)
+      })
+    }
+
+const view = async ( o = {} ) => {
+
+	//console.log(o)
+
+	//const result = await firstFunction()
+
+	if( o.envmap ) setEnv( o.envmap, true )
+
+
+	if( o.fog ) scene.fog = new THREE.FogExp2( Env.getFogColor().getHex(), 0.01 )
+	else scene.fog = null
+
+	// reflect floor
+	if( o.ground ) addGround( o )
+	else removeGround()
+
+	if( isLoadCode ) controls.moveCam( {...cam, ...o })
+	
+}
+
+Motor.view = view;
+
+//async function setEnv( name, chageUI ) {
+const setEnv = ( name, chageUI ) => {
+
+	if( name !== options.envmap ){
+
+		if ( !isNaN(name) ) options.envmap = 'null'
+		else options.envmap = name
+
+
+		Env.set( name )
+
+		/*if( typeof o.envmap  === 'string' ){
+			
+		    Env.load( './assets/textures/equirectangular/'+options.envmap+'.hdr' )
+		} else if (!isNaN(o.envmap)){
+			Env.setBackgroud( o.envmap )
+		}*/
+
+		if( envui && chageUI ) envui.setValue( options.envmap )
 		
-		dom.style.left = size.left + 'px'
-		camera.aspect = size.r
-		camera.updateProjectionMatrix()
-		renderer.setSize( size.w, size.h )
-		composer.resize( size )
-		Hub.update( size, '' )
-		needResize = false
+	} else {
+		//console.log( 'is same')
+	}
+
+
+	//options.envmap = name
+	//Env.load( './assets/textures/equirectangular/'+options.envmap+'.hdr' )
+
+}
+
+//--------------------
+//   EXTERN EDITOR
+//--------------------
+
+const externEditor = () => {
+
+	if( !childEditor ){
+		let hash = location.hash
+		oldLeft = size.left || 500
+		isExternEditor = true
+		childEditor = window.open('editor.html'+hash, 'Editor', 'height='+size.h+', width='+oldLeft);
+	    window.addEventListener( 'message', message, false )
+
+	    //window.open('/pageaddress.html','winname','directories=no,titlebar=no,status=no,menubar=no,scrollbars=no,resizable=no,width=400,height=350');
+
+	    childEditor.onload = () => {
+	    	send( { type : 'connect' } ) 
+	    	editor.close()
+	    	size.left = 0
+	    	onResize()
+	    }
+
+	} 
+
+	/*if( isExternEditor ){
+		isExternEditor = false; 
+		size.left = oldLeft
+		send( { type : 'close' } )
+	}*/
+
+	
+
+}
+
+const message = ( e ) => {
+
+	switch( e.data.type ){
+
+		case 'connect' :
+
+            console.log('connect') 
+
+        break;
+
+        case 'inject' :
+
+           inject( e.data.code )
+
+        break;
+
+        case 'close' :
+           //console.log('close') 
+           send( { type : 'close' } )
+           window.removeEventListener( 'message', message, false )
+           childEditor = null
+           isExternEditor = false; 
+           editor.open()
+		   size.left = oldLeft
+        break;
 
 	}
 
-	//if( timer.up( stamp ) ){
+}
 
-		// update follow camera
-		//controller.follow( root.delta );
+const send = ( data ) => {
 
-		TWEEN.update( stamp )
-
-		if( composer.enabled ) composer.render( tm.dt )
-		else renderer.render( scene, camera )
-
-
-		// three fps
-		if ( tm.now - 1000 > tm.tmp ){ tm.tmp = tm.now; tm.fps = tm.n; tm.n = 0; }; tm.n++;
-
-		Hub.setFps( 'T: '+ tm.fps + ' | P: '+ Motor.getFps() )
-
-		getFullStats()
+	if( childEditor ) childEditor.postMessage( data,'*' )
 
 }
 
-function initGUI () {
 
-	UIL.Tools.setStyle({
+//--------------------
+//   MOUSE / RAY
+//--------------------
 
-		background:'none',
-		backgroundOver:'none',
-		fontShadow:'#000000',
-		fontFamily: 'Tahoma',
+const activeDragMouse = ( b ) => {
 
-	})
-
-	var ui = new UIL.Gui( { w:200, h:20, close:false, bottomText:['OPTIONS', 'CLOSE'] } )
-
-	ui.add( 'empty', {h:6})
-
-	ui.add('button', { name:'GITHUB / ABOUT', p:0, h:24 }).onChange( gotoGithub )
-
-	ui.add( 'empty', {h:6})
-
-	ui.add('selector', { values:engineList, selectable:true, p:0, h:24, value:engineType }).onChange( swapEngine )
-
-	ui.add('bool', { name:'WORKER', h:20, value:isWorker }).onChange( function(b){ isWorker = b } )
-	//ui.add('bool', { name:'TIMEOUT', h:20, value:Motor.getTimeout() }).onChange( function(b){ Motor.setTimeout( b ) } )
-
-	//ui.add( 'empty', {h:6})
-	ui.add( 'bool', { name:'SHOW CODE', onName:'HIDE CODE', h:24, mode:1 }).onChange( function(){ editor.show()} )
-	ui.add( 'bool', { name:'PAUSE', onName:'RUN', h:24, mode:1 }).onChange( Motor.pause )
-	ui.add( 'empty', {h:6})
-
-	// DISPLAY
-
-	let grV = ui.add('group', { name:'DISPLAY', h:30 })
-
-	grV.add( options, 'renderMode', { type:'selector', values:[0,1,2,3], selectable:true, p:0, h:24 }).onChange( function(n){ 
-
-		//if( camera.near!== 0.1 ){camera.near = 0.1; camera.updateProjectionMatrix();}
-		if( n!== 0 ) scene.helper.visible = false
-		if( n===1 ) { Env.setBackgroud(0x000000) /*camera.near = 1; camera.updateProjectionMatrix();*/}
-		else if( n===2 ) Env.setBackgroud(0x7777ff)
-		else if( n===3 ) Env.setBackgroud(0xffffff)
-		else {
-			Env.setBackgroud()
-			scene.helper.visible = true
-		}
-
-		Hub.setRenderMode(n)
-		Shader.up( options ) 
-	})
-
-	grV.add( options, 'Exposure', {min:0, max:4} ).onChange( function( v ){ renderer.toneMappingExposure = v } )
-	grV.add( options, 'EnvPower', {min:0, max:1} ).onChange( setEnvmapIntensity )
-
-	grV.add( options, 'light_1', {min:0, max:10} ).onChange( function( v ){ light.intensity = v } )
-	grV.add( options, 'light_2', {min:0, max:10} ).onChange( function( v ){ light2.intensity = v } )
-
-	grV.add( 'empty', {h:6})
-
-	grV.add( options, 'show_light', { type:'bool' }).onChange( function(b){ showDebugLight(b) } )
-	grV.add( options, 'show_stat', { type:'bool' }).onChange( function(b){ showStatistic(b) } )
-
-	grV.add( 'empty', {h:6})
-
-	grV.add( options, 'Shadow', {min:0, max:1} ).onChange( function(){ Shader.up( options ) } )
-
-	grV.add( options, 'lightSizeUV', {min:1, max:10, precision:4} ).onChange( function(){ Shader.up( options ) } )
-	grV.add( options, 'nearPlane', {min:1, max:20, precision:2} ).onChange( function(){ Shader.up( options ) } )
-	grV.add( options, 'rings', {min:1, max:30, precision:0} ).onChange( function(){ Shader.up( options ) } )
-	//grV.add( options, 'nSample', {min:2, max:32, precision:0} ).onChange( function(){ Shader.up( options ) } )
-
-	grV.add( 'empty', {h:6})
-
-	envui = grV.add( 'list', { list:Envs, value:options.envmap, path:'assets/textures/equirectangular/mini/', format:'.jpg', imageSize: [128,64], h:64,  p:0}).onChange( setEnv )//.listen()
-
-	grV.add( 'empty', {h:6})
-
-
-
-	let grC = ui.add('group', { name:'POST PROCESS', h:30 })
-
-	grC.add( composer, 'enabled', { type:'bool', rename:'POST PROCESS ON', onName:'POST PROCESS OFF', mode:1, h:30 })
-
-
-	/*grC.add( composer.pass.focus, 'enabled', { type:'bool', rename:'focus', onName:'focus' })
-	grC.add( composer.options, 'focus', {min:0, max:100} ).onChange( function(){ composer.update() } )
-	grC.add( composer.options, 'aperture', {min:0, max:10} ).onChange( function(){ composer.update() } )
-	grC.add( composer.options, 'maxblur', {min:0, max:10} ).onChange( function(){ composer.update() } )
-    grC.add( 'empty', {h:6})*/
-
-    grC.add( composer.pass.sao, 'enabled', { type:'bool', rename:'sao' })
-	grC.add( composer.options, 'saoBias', {min:-1, max:1} ).onChange( function(){ composer.update() } )
-	grC.add( composer.options, 'saoIntensity', {min:0, max:1} ).onChange( function(){ composer.update() } )
-	grC.add( composer.options, 'saoScale', {min:0, max:50} ).onChange( function(){ composer.update() } )
-	grC.add( composer.options, 'saoKernelRadius', {min:1, max:100} ).onChange( function(){ composer.update() } )
-	grC.add( composer.options, 'saoMinResolution', {min:0, max:1} ).onChange( function(){ composer.update() } )
-	grC.add( 'empty', {h:6})
-
-    //grV.add( composer.pass.bloom, 'enabled', { type:'bool', rename:'bloom' })
-    grC.add( composer.pass.bloom, 'enabled', { type:'bool', rename:'bloom' })
-	grC.add( composer.options, 'threshold', {min:0, max:1} ).onChange( function(){ composer.update() } )
-	grC.add( composer.options, 'strength', {min:0, max:10} ).onChange( function(){ composer.update() } )
-	grC.add( composer.options, 'bloomRadius', {min:0, max:1, step:0.01} ).onChange( function(){ composer.update() } )
-    grC.add( 'empty', {h:6})
-
-    grC.add( composer.pass.distortion, 'enabled', { type:'bool', rename:'distortion' })
-	grC.add( 'empty', {h:6})
-
-	grC.add( composer.pass.lut, 'enabled', { type:'bool', rename:'lut' })
-	grC.add('button', { name:'LOAD', p:10, h:25, drag:true }).onChange( function(a,b,c){ composer.changeLut(a,b,c) } )
-	grC.add( 'empty', {h:6})
-
-
-    grC.add( composer.pass.sharpen, 'enabled', { type:'bool', rename:'sharpen' })
-    grC.add( composer.options, 'power', {min:0, max:1} ).onChange( function(){ composer.update() } )
-    grC.add( 'empty', {h:6})
-
-    
-    /*grV.add( 'empty', {h:6})
-	grV.add( composer.options, 'kernelRadius', {min:0.01, max:1} ).onChange( function(){ composer.update() } )
-	grV.add( composer.options, 'minDistance', {min:0, max:0.001, precision:5} ).onChange( function(){ composer.update() } )
-	grV.add( composer.options, 'maxDistance', {min:0, max:20} ).onChange( function(){ composer.update() } )
-*/
-	// DEMOS
-
-	let grB = ui.add('group', { name:'BASIC', h:30 })
-	g1 = grB.add( options, 'demo', { type:'grid', values:Demos, selectable:true, h:20 } ).onChange( loadDemo )
-	grB.open()
-
-	let grA = ui.add('group', { name:'ADVANCED', h:30 })
-	g2 = grA.add( options, 'demo', { type:'grid', values:DemosA, selectable:true, h:20 } ).onChange( loadDemo )
-	grA.open()
-
-}
-
-function gotoGithub ( ) {
-	window.open( 'https://github.com/lo-th/phy', '_self' )
-}
-
-function swapEngine ( type ){
-
-	let name = type.toLowerCase()
-	let hash = location.hash
-	let variable = ''
-	let url = 'index'
-
-	if( name!=='oimo' ) url=name
-	if( !isWorker ) url += '_d'
-
-    if( devMode ) variable = '?dev'
-	
-	let w = window.open( url+'.html'+variable+hash, '_self')
-    
-    //w.focus()
-
-}
-
-function setEnv ( name ){
-
-	options.envmap = name
-	Env.load( './assets/textures/equirectangular/'+options.envmap+'.hdr' )
-
-}
-
-// MOUSE RAY
-
-function activeDragMouse ( b ) {
+	let dd = dom
 
 	if( b ){
-
 		if( !isActveMouse ){
-			dom.addEventListener( 'pointermove', mousemove, false )
-	        dom.addEventListener( 'pointerdown', mousedown, false )
+			dd.addEventListener( 'pointermove', mousemove, false )
+	        dd.addEventListener( 'pointerdown', mousedown, false )
 	        document.addEventListener( 'pointerup', mouseup, false )
 	        isActveMouse = true
 	        rayTest = true
 	    }
 
 	} else {
-
 		if( isActveMouse ){
-			dom.removeEventListener( 'pointermove', mousemove )
-		    dom.removeEventListener( 'pointerdown', mousedown )
+			dd.removeEventListener( 'pointermove', mousemove )
+		    dd.removeEventListener( 'pointerdown', mousedown )
 		    document.removeEventListener( 'pointerup', mouseup )
 		    isActveMouse = false
 		}
-
 	}
-
 }
 
-function mousedown ( e ) {
+const mousedown = ( e ) => {
 
 	if( !mouseDown ){
 		if( firstSelect ) firstSelect = false
@@ -707,15 +1057,15 @@ function mousedown ( e ) {
 
 }
 
-function mouseup ( e ) {
+const mouseup = ( e ) => {
 
-	mouseMove = oldMouse.distanceTo( mouse ) < 0.01 ? false : true;
-	mouseDown = false;
+	mouseMove = oldMouse.distanceTo( mouse ) < 0.01 ? false : true
+	mouseDown = false
 	unSelect();
 
 }
 
-function mousemove( e ) {
+const mousemove = ( e ) => {
 
 	mouse.x =   ( ( e.clientX - size.left ) / size.w ) * 2 - 1
 	mouse.y = - ( e.clientY / size.h ) * 2 + 1
@@ -723,9 +1073,9 @@ function mousemove( e ) {
 
 }
 
-function castray () {
+const castray = () => {
 
-	let inters, m, g, h, cursor = 'auto';
+	let inters, m, g, h, id, cursor = 'auto';
 
 	if( selected !== null ){
 
@@ -738,19 +1088,27 @@ function castray () {
 	if( !rayTest ) return;
 
 	ray.setFromCamera( mouse, camera )
-	inters = ray.intersectObjects( content.children, true )
+	inters = ray.intersectObjects( content.children, true)
 
 	if ( inters.length > 0 ) {
 
 		g = inters[ 0 ].object;
+		id = inters[ 0 ].instanceId;
 
-		if( g.parent !== content ){
-			h = g.parent;
-			if( h.parent !== content ) m = h.parent
-			else m = h;
-		} else m = g;
+		//console.log(inters[ 0 ])
 
-		if( m.type === 'body' ) cursor = select( m, inters[ 0 ].point )
+		if( id !== undefined ){
+			m = Motor.byName( g.name+id )
+		} else {
+			if( g.parent !== content ){
+				h = g.parent;
+				if( h.parent !== content ) m = h.parent
+				else m = h;
+			} else m = g;
+		}
+
+		//if( m.type === 'body' )
+		cursor = select( m, inters[ 0 ] )
 
 	}
 
@@ -758,13 +1116,21 @@ function castray () {
 
 }
 
-function select ( obj, pos ) {
+const select = ( obj, inters ) => {
 
 	if( !mouseDown || selected === obj ) return 'pointer'
+
+	let pos = inters.point
+    let quat = [0,0,0,1]
 	
 	selected = obj
+	if( selected.isInstance ) quat = selected.instance.getInfo(selected.id).quat;
+	else if( selected.isObject3D ){
+		selected.updateMatrix()
+		quat = selected.quaternion.toArray()
+	}
 
-	dragPlane = new THREE.Mesh( new THREE.PlaneBufferGeometry( 1, 1 ), hideMat )
+	dragPlane = new THREE.Mesh( new THREE.PlaneGeometry( 1, 1 ), hideMat )
     dragPlane.castShadow = false
     dragPlane.receiveShadow = false
     dragPlane.scale.set( 1, 1, 1 ).multiplyScalar( 200 )
@@ -776,11 +1142,12 @@ function select ( obj, pos ) {
     let p = pos.toArray()
 
 	//Motor.add({ name:'mouse', type:'sphere', size:[0.1], pos:p, mask:0 })
-	Motor.add({ name:'mouse', type:'null', size:[0.1], pos:p })
+	Motor.add({ name:'mouse', type:'null', size:[0.1], pos:p, quat:quat })
 	Motor.add({ 
-		name:'mouseJoint', type:'joint', mode:'spherical',
-		b1:selected.name, b2:'mouse', worldAnchor:p, sd:[4,1]
+		name:'mouseJoint', type:'joint', mode:'fixe',//mode:'spherical',
+		b1:selected.name, b2:'mouse', worldAnchor:p, //sd:[4,1]
 	})
+	Motor.up({ name:selected.name, neverSleep:true })
 
 	rayTest = false
 	controls.enabled = false
@@ -789,13 +1156,16 @@ function select ( obj, pos ) {
 
 }
 
-function unSelect () {
+const unSelect = () => {
 
 	if( selected === null ) return;
 
+	dragPlane.geometry.dispose()
+	//dragPlane.material.dispose()
 	scene.remove( dragPlane )
 	Motor.remove('mouseJoint')
 	Motor.remove('mouse')
+	Motor.up({ name:selected.name, neverSleep:false })
 	
 	rayTest = true
 	selected = null
@@ -804,7 +1174,12 @@ function unSelect () {
 
 }
 
-function setEnvmapIntensity (v) {
+
+//--------------------
+//   OPTION
+//--------------------
+
+const setEnvmapIntensity = ( v ) => {
 
 	let g = Motor.getScene()
 	g.traverse( function ( node ) {
@@ -814,9 +1189,7 @@ function setEnvmapIntensity (v) {
 
 }
 
-// OPTIONAL
-
-function showStatistic ( b ) {
+const showStatistic = ( b ) => {
 
 	if( b && !fullStat ){
 
@@ -835,16 +1208,20 @@ function showStatistic ( b ) {
 
 }
 
-function showDebugLight ( b ) {
+const showDebugLight = ( b ) => {
 
 	if( b && !debugLight ){
 
-		light.helper = new THREE.DirectionalLightHelper( light )
+		light.helper = new DirectionalHelper( light )
 		light.shadowHelper = new THREE.CameraHelper( light.shadow.camera )
-		light2.helper = new THREE.DirectionalLightHelper( light2 )
+		light.shadowHelper.setColors( light.color, new THREE.Color( 0x222222 ), new THREE.Color( 0x222222 ), light.color, new THREE.Color( 0x666666) )
+		light2.helper = new THREE.HemisphereLightHelper( light2, 0.5 )
+		light2.helper.material.wireframe = false
 		helperGroup.add( light.helper )
 		helperGroup.add( light2.helper )
 		helperGroup.add( light.shadowHelper )
+		light.shadowHelper.visible = options.shadow !== 0
+
 		debugLight = true;
 	}
 
@@ -855,9 +1232,11 @@ function showDebugLight ( b ) {
 		debugLight = false
 	}
 
+	Env.preview( debugLight )
+
 }
 
-function getFullStats() {
+const getFullStats = () => {
 
     if ( !fullStat ) return
 
@@ -879,8 +1258,36 @@ function getFullStats() {
 
     }
 
-    //renderer.info.reset()
-
     Hub.setStats( info )
     
 }
+
+
+//--------------------
+//   POST PROCESS
+//--------------------
+
+const setComposer = ( b ) => {
+
+	if(options.composer){
+		if( composer === null ) composer = new Composer( renderer, scene, camera, controls, size )
+		composer.enabled = true
+
+	} else {
+		if( composer ){
+			composer.dispose()
+			composer = null
+		} 
+	}
+
+	Gui.postprocess()
+
+}
+
+
+/*const indexFrom = ( s, chars)=>{
+    for (let i=0;i<s.length();i++)
+       if (chars.indexOf(s.charAt(i))>=0)
+          return i;
+    return -1;
+}*/

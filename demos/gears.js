@@ -1,4 +1,4 @@
-function demo() {
+demo = () => {
 
     // setting and start oimophysics
     phy.set( { substep:2, gravity:[0,-10,0] })
@@ -23,11 +23,11 @@ function demo() {
 
 }
 
-function createGear( center, radius, thickness, lm ) {
+createGear = ( center, radius, thickness, lm ) => {
 
     lm = lm || null
 
-    let local = true
+    let local = false
     let toothInterval = 0.4
     let toothLength = toothInterval / 1.5
     let numTeeth = Math.round( ( Math.PI * 2 ) * radius / toothInterval) + 1
@@ -45,18 +45,19 @@ function createGear( center, radius, thickness, lm ) {
         shapes.push( { type:'convex', v:toothVertices, rot:[0, r * i, 0 ], margin:0.001, restitution:0 })
     }
 
-    let g = phy.add({ type:'compound', shapes:shapes, pos:center, density:1, restitution:0, friction:0.5, rot:[-90,0,0], margin:0.01, neverSleep:true })
-    let f = phy.add({ type:'cylinder', size:[ toothInterval / 4, (thickness * 0.52)*2 ], pos:center, density:0, rot:[-90,0,0], restitution:0, friction:0.5 })
+    let g = phy.add({ type:'compound', shapes:shapes, pos:center, density:1, restitution:0, friction:0.5, rot:[-90,0,0], margin:0.01, neverSleep:true, material:'simple' })
+    //let f = phy.add({ type:'cylinder', size:[ toothInterval / 4, (thickness * 0.52)*2 ], pos:center, density:0, rot:[-90,0,0], restitution:0, friction:0.5 })
+    let f = phy.add({ type:'sphere', size:[ toothInterval / 4 ], pos:center, density:0, rot:[-90,0,0], restitution:0, friction:0.5 })
 
     if( local ) phy.add({ type:'joint', mode:'revolute', b1:f.name, b2:g.name, pos1:[0,0,0], pos2:[0,0,0], axis1:[0,1,0], axis2:[0,1,0], motor:lm, iteration:2 })
     else phy.add({ type:'joint', mode:'revolute', b1:f.name, b2:g.name, worldAnchor:center, worldAxis:[0,0,1], motor:lm })
 
 }
 
-function createGearTooth( hw, hh, hd, x ) {
+createGearTooth = ( hw, hh, hd, x ) => {
 
     var scale = 0.3
-    return [
+    return new Float32Array([
         x-hw, -hh, -hd,
         x-hw, -hh, hd,
         x-hw, hh, -hd,
@@ -65,6 +66,6 @@ function createGearTooth( hw, hh, hd, x ) {
         x+hw, -hh, hd * scale,
         x+hw, hh, -hd * scale,
         x+hw, hh, hd * scale
-    ]
+    ])
     
 }

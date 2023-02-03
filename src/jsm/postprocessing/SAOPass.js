@@ -19,7 +19,7 @@ import {
 	WebGLRenderTarget,
 	ZeroFactor,
 	sRGBEncoding
-} from '../../../build/three.module.js';
+} from 'three';
 import { Pass, FullScreenQuad } from '../postprocessing/Pass.js';
 import { SAOShader } from '../shaders/SAOShader.js';
 import { DepthLimitedBlurShader } from '../shaders/DepthLimitedBlurShader.js';

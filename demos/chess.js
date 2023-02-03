@@ -1,39 +1,34 @@
-var chess = ['king', 'queen', 'bishop', 'knight', 'rook', 'pawn'];
-var h = [ 3.785, 3.4, 2.716, 2.648, 2.138, 1.973 ];
-var chessSize = 0.25;
+const chess = ['king', 'queen', 'bishop', 'knight', 'rook', 'pawn']
+const h = [ 3.785, 3.4, 2.716, 2.648, 2.138, 1.973 ]
+const chessSize = 0.25
 
-function demo() {
+demo = () => {
 
     phy.view({ envmap:'room', ground:true })
 
     phy.set({ substep:2 })
 
-    let grid = new THREE.GridHelper( 8, 8, 0x000000, 0x000000 )
+    /*let grid = new THREE.GridHelper( 8, 8, 0x000000, 0x000000 )
     grid.material.opacity = 0.0001
     grid.position.y = 0.01
-    //grid.material.depthWrite = false
     grid.material.transparent = true
-
-    phy.addDirect( grid )
+    phy.addDirect( grid )*/
 
     // add static ground
     //phy.add({ type:'plane', size:[300,1,300], visible:false });
     phy.add({ type:'box', size:[300,1,300], pos:[0, -0.5, 0], visible:false })
 
-    phy.load(['./assets/models/chess.glb'], onComplete );
-
-
+    phy.load(['./assets/models/chess.glb'], onComplete )
 
 }
 
-function onComplete(){
+onComplete = () => {
 
-    const model = phy.getMesh('chess')
+    const model = phy.getMesh('chess');
 
     let m = phy.texture({ url:'./assets/textures/chess.jpg', flip:false, encoding:true })
     phy.material({ name:'B', color:0x343434, roughness: 0.2, metalness: 0.7, map:m })
     phy.material({ name:'W', color:0xcbad7b, roughness: 0.2, metalness: 0.7, map:m })
-
 
     let p = [
 
@@ -64,6 +59,7 @@ function onComplete(){
     { type:'pawn', id:7, black:true },
     { type:'pawn', id:8, black:true },
     { type:'rook', id:1, black:true },
+
     { type:'knight', id:1, black:true, rot:[0,-90,0] },
     { type:'bishop', id:1, black:true, rot:[0,180,0] },
     { type:'queen', id:0, black:true },
@@ -72,7 +68,7 @@ function onComplete(){
     { type:'knight', id:2, black:true, rot:[0,90,0] },
     { type:'rook', id:2, black:true }
 
-    ];
+    ]
 
     calculatePosition( p )
 
@@ -81,7 +77,7 @@ function onComplete(){
 
 }
 
-function calculatePosition ( items ) {
+calculatePosition = ( items ) => {
 
     let cell = [4,8]
     let space = [4,4]
@@ -111,7 +107,7 @@ function calculatePosition ( items ) {
     }
 }
 
-function addPiece ( o, i, model ) {
+addPiece = ( o, i, model ) => {
 
     var n = chess.indexOf( o.type )
 
@@ -136,8 +132,5 @@ function addPiece ( o, i, model ) {
     	//rolling:0.9,
     	//damping:[0, 0.5],
     	margin:0.000001,
-    	
     }
-	
-
-};
+}

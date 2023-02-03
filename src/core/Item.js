@@ -34,6 +34,7 @@ export class Item {
 
 		// clear old item if existe keep id
 		o.id = this.remove( name, true )
+		o.name = name
 
 		return name
 

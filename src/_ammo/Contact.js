@@ -1,4 +1,6 @@
 import { Item } from '../core/Item.js';
+import { Num } from '../core/Config.js';
+
 import { Utils, root } from './root.js'
 
 export class Contact extends Item {
@@ -22,7 +24,7 @@ export class Contact extends Item {
 			k = 0
 
 			c = this.list[i]
-			n = N + ( i * 8 )
+			n = N + ( i * Num.contact )
 
 			this.cb.addSingleResult = function ( ) { k = 1; }
 

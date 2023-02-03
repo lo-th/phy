@@ -1,4 +1,6 @@
 import { Item } from '../core/Item.js';
+import { Num } from '../core/Config.js';
+
 import { Utils, map, torad, Vec3, Quat, Mat3, Joints } from './root.js';
 
 export class Joint extends Item {
@@ -28,7 +30,7 @@ export class Joint extends Item {
 
 			j = this.list[i]
 
-			n = N + ( i * 16 )
+			n = N + ( i * Num.joint )
 
 			if( j.visible ){
 
@@ -66,7 +68,15 @@ export class Joint extends Item {
 		let b1 = this.byName(o.b1)
 		let b2 = this.byName(o.b2)
 
-		let mode = o.mode || 'revolute'
+
+		let mode = o.mode || 'revolute';
+
+		if( mode === 'fixe' ){ 
+			mode = 'revolute';
+			o.sd = [0,0]
+			o.lm = [0,0]
+		}
+
 
 		mode = mode.charAt(0).toUpperCase() + mode.slice(1)
 

@@ -1,29 +1,32 @@
 
-var py = 8
-var a = 0;
-var open1 = false;
-var open2 = false;
-var yellow = false;
-var timer = null
-var game = 'start';
-var result = []
-var balls = [];
-var startPos = []
-var model = null
+let py = 8
+let a = 0;
+let open1 = false;
+let open2 = false;
+let yellow = false;
+//var timer = null
+let game = 'start';
+let result = []
+let balls = [];
+let startPos = []
+let model = null
+let tmpTxt = []
 
-var tmpCanvas = document.createElement('canvas')
+let tmpCanvas = document.createElement('canvas')
 tmpCanvas.width = tmpCanvas.height = 128
 
 
-function demo() {
+demo = () => {
 
     phy.log( 'SPACE to restart' )
 
 	phy.view({
 		envmap:'beach',
+        ground:false,
+        phi:20, theta:-20, distance:14, x:4, y:6, z:0, fov:70
 	})
 
-	// setting and start oimophysics
+	// setting and start
 	phy.set({ 
 		substep:8,
 		gravity:[0,-9.81,0],
@@ -33,32 +36,32 @@ function demo() {
 
 }
 
-function onComplete(){
+onComplete = () => {
 
 	model = phy.getMesh('million')
 
     makeMachine()
     makeBall ()
 
-    timer = setTimeout( activeBall, 3000 );
+    phy.setTimeout( activeBall, 3000 )
+    //timer = setTimeout( activeBall, 3000 );
 
 }
 
-function activeBall () {
+activeBall = () => {
 
 	let i = balls.length, r = [];
 	while(i--){
-
 		r.push({ name: balls[i].name, wake:true })
-
 	}
 
 	phy.up( r )
 
-    timer = setTimeout( startSimulation, 3000 )
+    phy.setTimeout( startSimulation, 3000 )
+    //timer = setTimeout( startSimulation, 3000 )
 }
 
-function replay () {
+replay = () => {
 
     phy.setPostUpdate ( null )
 
@@ -91,20 +94,12 @@ function replay () {
 
     phy.up( r )
 
-    timer = setTimeout( activeBall, 3000 )
+    phy.setTimeout( activeBall, 3000 )
+    //timer = setTimeout( activeBall, 3000 )
 
 }
 
-function onReset () {
-
-	console.log( 'bye bye' )
-
-    if( timer !== null ) clearTimeout( timer )
-    timer = null
-
-}
-
-function update () {
+update = () => {
 
     let key = phy.getKey()
     if( key[4] === 1 ) replay()
@@ -113,10 +108,10 @@ function update () {
 
 	let r = [
 
-        { name:'L_pale1', rot:[0,0,a+45], reset:true },
-        { name:'L_pale2', rot:[0,0,-a],   reset:true },
-        { name:'M_pale1', rot:[0,0,a+45], reset:true },
-        { name:'M_pale2', rot:[0,0,-a],   reset:true },
+        { name:'L_pale1', rot:[0,0,a+45], /*reset:true*/ },
+        { name:'L_pale2', rot:[0,0,-a],   /*reset:true*/ },
+        { name:'M_pale1', rot:[0,0,a+45], /*reset:true*/ },
+        { name:'M_pale2', rot:[0,0,-a],   /*reset:true*/ },
 
         { name:'block1', pos:[ 0, -4.87+py, open1 ? -1 : 0 ] },
         { name:'block2', pos:[ 8.5, -4.87+py, open2 ? -1 : 0  ]}
@@ -139,24 +134,24 @@ function update () {
 
 }
 
-function startSimulation () {
+startSimulation = () => {
 
 	phy.setPostUpdate ( update )
-    timer = setTimeout( wantBall, 12000 );
+    phy.setTimeout( wantBall, 12000 )
+    //timer = setTimeout( wantBall, 12000 );
 
 }
 
-function wantBall () {
+wantBall = () => {
 
 	game = 'wantBall';
 
-    if( yellow ) open2 = true;
-    else open1 = true;
-	
+    if( yellow ) open2 = true
+    else open1 = true
 
 }
 
-function haveBall ( name ) {
+haveBall = ( name ) => {
 
 	game = 'haveBall'
 
@@ -166,46 +161,51 @@ function haveBall ( name ) {
 	result.push( name )
 
 	if( result.length<5 ){
-		timer = setTimeout( wantBall, 6000 )
+        phy.setTimeout( wantBall, 6000 )
+		//timer = setTimeout( wantBall, 6000 )
 	} else if(result.length<7){
         yellow = true
-        timer = setTimeout( wantBall, 6000 )
+        phy.setTimeout( wantBall, 6000 )
+        //timer = setTimeout( wantBall, 6000 )
     } else {
 		phy.log( result )
 	}
 
 }
 
-function makeMachine () {
+makeMachine = () => {
 
-    var friction = 0.5;
-    var bounce = 0.0;
+    let friction = 0.5;
+    let bounce = 0.3;
 
     let meshs = [ 
 	    'L_roll', 'L_back', 'L_front', 'L_rampe', 'L_pale1', 'L_pale2',
 	    'M_roll', 'M_back', 'M_front', 'M_rampe', 'M_pale1', 'M_pale2'
      ]
-    let i = meshs.length, name, p, d, m
+    let i = meshs.length, name, p, d, m, br
 
     phy.add({ 
-        name:'block1', type:'box', density:0, material:'glass',
+        name:'block1', type:'box', density:0, //material:'glass',
         size:[1,0.2,1], pos:[0,-4.87+py,0],
         friction: 0, restitution: 0,
-        renderOrder:2,
+        //renderOrder:2,
         shadow: false,
+        visible:false,
     })
 
     phy.add({ 
-        name:'block2', type:'box', density:0, material:'glass',
+        name:'block2', type:'box', density:0, //material:'glass',
         size:[1,0.2,1], pos:[8.5,-4.87+py,0],
         friction: 0, restitution: 0,
-        renderOrder:3,
+        //renderOrder:3,
         shadow: false,
+        visible:false,
     });
 
     while(i--){
 
     	name = meshs[i]
+        br = name==='L_pale1' || name==='M_pale1' || name==='L_pale2' || name==='M_pale2'
         p = name==='L_pale1' || name==='M_pale1'
         d = name==='M_rampe' ? 0 : -1.8
 
@@ -215,25 +215,35 @@ function makeMachine () {
 	        meshScale:[10],
 	        mesh:model[name],
 	        shape:model[name].geometry,
-	        material:'glass',
+	        material:br?'plexi':'glass',
 	        friction: friction, restitution: bounce,
 	        pos: i>5 ? [8.5,d+py,0] : [0,py,0],
 	        rot: p ? [0,0,45]:[0,0,0],
 	        renderOrder:4+i,
-	        shadow: false,
+	        //shadow: false,
 	    })
     }
 
 }
 
-function makeBall () {
+makeBall = () => {
 
-	let ballGeo = model.ball.geometry.clone()
-	ballGeo.scale(100,100,100) 
+    let ballGeo = model.ball.geometry.clone()
+    ballGeo.scale(100,100,100) 
 
+    const def = {
+        type:'sphere',
+        size: [0.25],
+        density: 0.65,
+        friction: 0.5, 
+        restitution: 0.3,
+        geometry: ballGeo,
+        sleep:true, 
+    }
+	
     // add red balls
     
-    var i, x, y, l, b, tmpMat, j = 0;
+    let i, x, y, l, b, tmpMat, j = 0;
 
     for( i = 0; i < 50; i++){
 
@@ -249,11 +259,12 @@ function makeBall () {
         y = 75 - (l*5.)
 
         b = phy.add({ 
-        	name:'b'+(i+1), type:'sphere', material: tmpMat, geometry:ballGeo,
-        	size:[0.25], pos:[x*0.1, (y*0.1)+py, -1.16], density:0.65,
-        	friction: 0.5, restitution: 0.3,
-        	sleep:true,
-        });
+        	name: 'b'+(i+1),
+            material: tmpMat,
+        	pos: [x*0.1, (y*0.1)+py, -1.16],
+        	...def
+        })
+
         balls.push( b )
         startPos.push( [x*0.1, (y*0.1)+py, -1.16] )
         j++;
@@ -278,11 +289,12 @@ function makeBall () {
         y = 25 - (l*5)
 
         b = phy.add({ 
-            name:'x'+(i+1), type:'sphere', material: tmpMat, geometry:ballGeo,
-            size:[0.25], pos:[x*0.1, (y*0.1)+py, -0.975], density:0.65,
-            friction: 0.5, restitution: 0.3, 
-            sleep:true,
+            name: 'x'+(i+1),  
+            material: tmpMat,
+            pos: [x*0.1, (y*0.1)+py, -0.975],
+            ...def
         })
+
         balls.push( b )
         startPos.push( [x*0.1, (y*0.1)+py, -0.975] )
         j++;
@@ -292,10 +304,14 @@ function makeBall () {
 
 }
 
+onReset = () => {
+
+    for(let m in tmpTxt) tmpTxt[m].dispose()
+        
+}
 
 
-
-function createBallTexture ( n, y ){
+createBallTexture = ( n, y) => {
 
     //var old = view.getTexture('ball_' + n + (y ? 'R':'Y'));
     //if( old !== null ) return old;
@@ -337,6 +353,7 @@ function createBallTexture ( n, y ){
     t.name = 'ball_' + n + (y ? 'R':'Y');
     t.encoding = THREE.sRGBEncoding;
 
+    tmpTxt.push( t )
 	return t;
 
 }

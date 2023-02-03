@@ -1,15 +1,19 @@
 function demo() {
 
     phy.view({
-        envmap:0x604545,
+        envmap:0x8aa4b8,
         ground:false
     })
 
     // config physics setting
-    //
-    phy.set( {substep:2, gravity:[0,-9.81,0]});
+   /*phy.add({ type:'plane', visible:false });
+    
 
-    // add static plane 
-    //phy.add({ type:'plane', visible:false });
+    //phy.add({ type:'box', size:[10,0.1,10], pos:[0,-3,0], density:0 });
+
+   
+    phy.add({ type:'sphere', size:[1], pos:[0,8,0], rot:[45,45,0], density:1 });
+  phy.add({ type:'box', size:[1,1,1], pos:[0,5,0], rot:[45,45,0], density:1 });
+  phy.add({ type:'box', size:[1,1,1], pos:[0,20,0], rot:[45,45,0], density:1 });*/
 
 }

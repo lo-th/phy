@@ -1,19 +1,24 @@
 <!DOCTYPE html>
 <html lang="en">
 	<head>
-		<title>Oimo / Three - worker</title>
+		<title>PHY</title>
 		<link rel="shortcut icon" href="favicon.ico">
 		<meta charset="utf-8">
-		<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 		<meta http-equiv="Pragma" content="no-cache">
 		
 	</head>
-	<body style="background-color:#000; margin:0; padding:0;  overflow:hidden;">
+	<body style="background-color:#000; margin:0; padding:0; overflow:hidden;">
+		<script async src="https://unpkg.com/es-module-shims@1.3.6/dist/es-module-shims.js"></script>
+		<script type="importmap">{ "imports": { 
+			"three": "./src/libs/three.module.js",
+			"three/addons/": "./src/jsm/",
+			"tween": "./src/libs/tween.esm.js", 
+			"uil": "./src/libs/uil.module.js"
+		}}</script>
 		<script type="module">
 
 		    import { Main } from './src/Main.js';
-		    //import { Main } from './build/phy.module.js';
-		    
 			Main.start();
 
 		</script>

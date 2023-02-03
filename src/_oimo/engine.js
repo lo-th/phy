@@ -1,27 +1,33 @@
-
 import { root, Utils, World, Vec3, Quat } from './root.js';
+import { getType } from '../core/Config.js';
 
 import { Body } from './Body.js';
-import { Solid } from './Solid.js';
 import { Joint } from './Joint.js';
 import { Ray } from './Ray.js';
 import { Contact } from './Contact.js';
+import { Character } from './Character.js';
 
-
-//--------------
-//  OIMO SIDE 
-//--------------
-
+/** __
+*    _)_|_|_
+*   __) |_| | 2023
+* @author lo.th / https://github.com/lo-th
+*
+*    OIMO ENGINE
+*/
 
 self.onmessage = function ( m ) { engine.message( m ) }
 
+
+let items;
+
 let isTimeout = false;
+let outsideStep = false;
 
 let Ar, ArPos, ArMax;
 let isBuffer = false;
 let returnMessage, isWorker;
 
-let body, solid, joint, ray, contact;
+//let body, solid, joint, ray, contact, character;
 
 const Time = typeof performance === 'undefined' ? Date : performance;
 
@@ -32,9 +38,8 @@ let substep = 10;
 let broadphase = 2;
 let fixe = true;
 
-let startTime = 0;
-let lastTime = 0;
-let isStop, isReset, tmpStep;
+let startTime = 0, lastTime = 0;
+let isStop = true, isReset, tmpStep;
 
 let interval = null;
 let timeout = null;
@@ -59,14 +64,9 @@ export class engine {
 	static message ( m ) {
 
 		let e = m.data;
-
 		if( e.Ar ) Ar = e.Ar;
 		if( e.flow ) root.flow = e.flow;
-
-		/*if ( e.m === 'add' ) tmpadd.push( e.o )
-		else if ( e.m === 'remove' ) tmpremove.push( e.o )
-		else */
-		//if(!engine[ e.m ]) console.log(e.m)
+		if(!engine[ e.m ])console.log(e.m)
 		if( e.m ) engine[ e.m ]( e.o )
 
 	}
@@ -83,10 +83,8 @@ export class engine {
 		isWorker = true;
 		isBuffer = o.isBuffer || false;
 
-		ArPos = o.ArPos;
-		ArMax = o.ArMax;
-
-		//Ar = new Float32Array( ArMax )
+		//ArPos = o.ArPos;
+		//ArMax = o.ArMax;
 
 
 		if( o.fps !== undefined ) timestep = 1 / o.fps;
@@ -98,26 +96,19 @@ export class engine {
 			isBuffer = false;
 		}
 
-		
-
 		engine.initItems()
 
 		engine.post( { m:'ready', o:{} } );
 
 	}
 
-	static initItems () {
-
-		body = new Body()
-		solid = new Solid()
-		joint = new Joint()
-		ray = new Ray()
-		contact = new Contact()
-
-	}
-
 	static set ( o = {} ){
 
+		ArPos = o.ArPos;
+		ArMax = o.ArMax;
+		items.body.setFull(o.full)
+
+		outsideStep = o.outsideStep || false;
 		isTimeout = o.isTimeout || false;
 
 		timestep = 1 / (o.fps || 60 );
@@ -143,10 +134,7 @@ export class engine {
 		    Ar = new Float32Array( ArMax )
 
 		    // create new world
-			root.world = new World( broadphase, gravity )
-
-			root.world.setNumVelocityIterations( 10 )
-			root.world.setNumPositionIterations( 5 )
+			engine.initWorld()
 
 		} 
 
@@ -155,59 +143,23 @@ export class engine {
 		lastTime = 0
 		tmpStep = 0
 
+		if( outsideStep ) return
+
 		if( isTimeout ) timeout = setTimeout( engine.step, 0 );
 		else interval = setInterval( engine.step, 1000 * timestep );
 		
-	}
-
-	static add ( o = {} ){
-
-		let type = o.type || 'box';
-
-		switch( type ){
-			case 'contact': contact.add( o ); break;
-			case 'ray': ray.add( o ); break;
-			case 'joint': joint.add( o ); break;
-			default: 
-			    if ( !o.density && !o.kinematic ) solid.add( o );
-			    else body.add( o ); 
-			break;
-
-		}
-		
-	}
-
-	static remove ( o = {} ){
-
-		let b = this.byName( o.name );
-		if( b === null ) return;
-		let type = b.type;
-
-		switch( type ){
-			case 'contact': b = contact.clear( b ); break
-			case 'ray': b = ray.clear( b ); break; 
-			case 'joint': b = joint.clear( b ); break;
-			case 'solid': b = solid.clear( b ); break;
-			case 'body': b = body.clear( b ); break;
-
-		}
 
 	}
 
-	static change ( o = {} ){
+	static initWorld () {
 
-		let b = this.byName( o.name );
-		if( b === null ) return;
-		let type = b.type;
+    	root.world = new World( broadphase, gravity )
+		root.world.setNumVelocityIterations( 10 )
+		root.world.setNumPositionIterations( 5 )
 
-		switch( type ){
+    }
 
-			case 'joint': b = joint.set( o, b ); break;
-			case 'solid': b = solid.set( o, b ); break;
-			case 'body': b = body.set( o, b ); break;
-		}
-
-	}
+	
 
 	//static changes ( r = [] ){ for( let o in r ) this.change( r[o] ) }
 
@@ -233,20 +185,7 @@ export class engine {
 
 		this.dispatch()
 
-		/*let i, n, flow = root.flow
-
-		// for update object
-		i = flow.tmp.length
-		while( i-- ) this.change( flow.tmp[i] )
-
-
-		root.flow = {
-			key:[],
-			add:[],
-			remove:[],
-			tmp:[]
-		}*/
-		//root.flow.key = [];
+		if( outsideStep ) return;//engine.step()
 
 		
 
@@ -255,29 +194,24 @@ export class engine {
 			// If the worker was faster delay the next timestep
             let delay = timestep * 1000 - ( Time.now() - startTime );
             if( delay < 0 ) delay = 0;
-
             timeout = setTimeout( engine.step, delay );
 
 		}
 
 	}
 
-	static step (){
-
-		if( isReset ){ engine.endReset(); return }
-		if( isStop || tmpStep === 2 ) return;
-
+	static step ( stamp ){
 		
+		if( isReset ) engine.endReset();
+		if( isStop || tmpStep >= 2 ) return;
 
 		tmpStep = 2;
 
-		//engine.stepItems()
-
-		startTime = Time.now();
+		startTime = stamp || Time.now();
 		root.delta = ( startTime - lastTime ) * 0.001;
 		lastTime = startTime;
 
-
+		//engine.stepItems()
 
 		let n = substep;
 		while( n-- ){ 
@@ -297,15 +231,6 @@ export class engine {
 
 	}
 
-	static stepItems () {
-
-		body.step( Ar, ArPos.body );
-		joint.step( Ar, ArPos.joint );
-		ray.step( Ar, ArPos.ray );
-		contact.step( Ar, ArPos.contact );
-
-	}
-
 	static byName ( name ){
 
 		return Utils.byName( name );
@@ -317,16 +242,12 @@ export class engine {
 
 	static endReset (){
 
-		engine.stop();
+		engine.stop()
 
-		body.reset();
-		solid.reset();
-		joint.reset();
-		ray.reset();
-		contact.reset();
+		engine.resetItems()
 
 		// clear world
-		root.world = null;
+		root.world = null
 
 		Utils.clear()
 
@@ -338,6 +259,7 @@ export class engine {
 
 		isStop = true;
 
+		if( outsideStep ) return;
 		if( timeout ) clearTimeout( timeout );
 		if( interval ) clearInterval( interval );
 		interval = null;
@@ -345,12 +267,83 @@ export class engine {
 
 	}
 
-	static pause (){
+	static pause( o ) {
 
-		if( !isStop ) this.stop();
-		else this.start();
+		let pause = o.value;
+		if( pause === isStop ) return
+		if( pause ) this.stop()
+		else this.start()
 
 	}
 
 
+	//-----------------------
+	//
+	//  ITEMS
+	//
+	//-----------------------
+
+	static initItems () {
+
+		items = {
+			ray : new Ray(),
+		    body : new Body(),
+			solid : new Solid(),
+			joint : new Joint(),
+			contact : new Contact(),
+			character : new Character()
+		}
+
+	}
+
+	static resetItems() {
+
+		for (const key in items) items[key].reset()
+
+	}
+
+	static stepItems () {
+
+		for (const key in items) items[key].step( Ar, ArPos[key] )
+
+	}
+
+	static add ( o = {} ){
+
+		let type = getType( o )
+		items[type].add( o )
+		
+	}
+
+	static remove ( o = {} ){
+
+		let b = this.byName( o.name );
+		if( b === null ) return;
+		items[b.type].clear( b )
+
+	}
+
+	static change ( o = {} ){
+
+		let b = this.byName( o.name );
+		if( b === null ) return;
+		items[b.type].set( o, b )
+
+	}
+
+}
+
+
+//--------------
+//
+//  SOLID ONLY 
+//
+//--------------
+
+class Solid extends Body {
+	constructor () {
+		super()
+		this.type = 'solid'
+	}
+	step ( AR, N ) {}
 }

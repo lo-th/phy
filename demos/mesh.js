@@ -19,7 +19,8 @@ function onComplete(){
         type:'mesh',
         shape: model['base'].geometry,
         restitution:0, friction:0.5,
-        margin: 0.0001
+        margin: 0.0001,
+        density:1
     })
 
     let i = 60, pos

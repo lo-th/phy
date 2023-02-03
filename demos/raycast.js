@@ -6,14 +6,14 @@ function demo() {
 
     phy.add({ type:'plane' })
 
-    phy.add({ type:'box', size:[2,0.2,6], rot:[10,0,0], pos:[0,0.85,0], friction:0.8, group:1, mask:2, radius:0.025 })
+    phy.add({ type:'box', size:[2,0.2,6], rot:[10,0,0], pos:[0,0.85,0], friction:0.8, radius:0.025 })
 
 
-    ball = phy.add({ type:'highSphere', name:'ball', size:[0.4], pos:[0,2,-2.5], density:2, friction:0.8, restitution:0.8, group:2, mask:1|2 })
+    ball = phy.add({ type:'highSphere', name:'ball', size:[0.3], pos:[0,2,-2.5], density:2, friction:0.8, restitution:0.8, group:2, mask:1|2 })
 
 
-    phy.add({ type:'box', name:'bb1', size:[2,3,2], pos:[2,1.5,0], density:2, friction:0.8, restitution:0.8, group:2, mask:1|2 })
-    phy.add({ type:'box', name:'bb2', size:[2,3,2], pos:[-2,1.5,0], density:2, friction:0.8, restitution:0.8, group:2, mask:1|2 })
+    //phy.add({ type:'box', name:'bb1', size:[2,3,2], pos:[2,1.5,0], density:2, friction:0.8, restitution:0.8, group:2, mask:1|2 })
+    //phy.add({ type:'box', name:'bb2', size:[2,3,2], pos:[-2,1.5,0], density:2, friction:0.8, restitution:0.8, group:2, mask:1|2 })
 
     // ray can be add to scene
     var i = 20, x;
@@ -24,18 +24,17 @@ function demo() {
 
 
     // or ray can be attach to any mesh
-
     var spherical = new THREE.Spherical();
     var p1 = new THREE.Vector3();
     var p2 = new THREE.Vector3();
 
-    var i = 60;
+    var i = 20;
 
     while( i-- ){
 
         var theta = math.rand( -180, 180 ) * math.torad;
         var phi = math.rand( -180, 180 )  * math.torad;
-        spherical.set(0.5, phi, theta);
+        spherical.set(0.4, phi, theta);
         p1.setFromSpherical(spherical);
         spherical.set(1, phi, theta);
         p2.setFromSpherical(spherical);

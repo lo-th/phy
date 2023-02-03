@@ -1,7 +1,7 @@
 {
   "name": "phy",
-  "version": "0.0.1",
-  "description": "JavaScript 3D library",
+  "version": "0.0.2",
+  "description": "JavaScript 3D Physics",
   "main": "build/Main.js",
   "repository": "lo-th/phy",
   "jsnext:main": "build/phy.module.js",
@@ -16,17 +16,22 @@
     "extends": "mdcs"
   },
   "scripts": {
-    "build": "npm run oimo && npm run ammo",
+    "build": "npm run main && npm run oimo && npm run ammo && npm run physx && npm run rapier",
     "main": "rollup -c rollup/rollup.config.js",
     "oimo": "rollup -c rollup/rollup.config.oimo.js",
     "ammo": "rollup -c rollup/rollup.config.ammo.js",
-    "hide": "rollup -c rollup/rollup.config.hide.js",
+    "physx": "rollup -c rollup/rollup.config.physx.js",
+    "rapier": "rollup -c rollup/rollup.config.rapier.js",
+    "cannon": "rollup -c rollup/rollup.config.cannon.js",
     "dev": "concurrently --names \"ROLLUP,HTTP\" -c \"bgBlue.bold,bgGreen.bold\" \"rollup -c rollup/rollup.config.js -w -m inline\" \"servez -p 8121 --index\"",
     "start": "concurrently --names \"ROLLUP,HTTP\" -c \"bgBlue.bold,bgGreen.bold\" \"rollup -c rollup/rollup.config.js -w -m inline\" \"http-server -c-1 -p 8121 -o index.html\""
   },
   "keywords": [
     "oimo",
     "ammo",
+    "physx",
+    "rapier",
+    "cannon",
     "three",
     "physics",
     "engine"

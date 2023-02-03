@@ -1,27 +1,38 @@
-
 import {
-    SphereGeometry,
-    PlaneGeometry,
-    CylinderGeometry,
-    BoxGeometry,
-    Euler,
-    Quaternion,
-    MeshStandardMaterial,
-    MeshPhysicalMaterial,
-    MeshBasicMaterial,
-    LineBasicMaterial,
-    Box3Helper,
-    DoubleSide,
-    CanvasTexture,
-    RepeatWrapping,
-    Vector2,
-} from '../../build/three.module.js';
+    SphereGeometry, PlaneGeometry, CylinderGeometry, BoxGeometry,
+    MeshStandardMaterial, MeshPhysicalMaterial, MeshBasicMaterial, LineBasicMaterial,
+    Matrix4, Euler, Quaternion, Vector3, Vector2, Color,
+    Box3Helper, DoubleSide,
+} from 'three';
 
-import { FlakesTexture } from '../jsm/textures/FlakesTexture.js';
-import { CheckTexture } from '../jsm/textures/CheckTexture.js';
-import { CarbonTexture } from '../jsm/textures/CarbonTexture.js';
 
-export const map = new Map();
+export const map = new Map()
+
+/*export const Max = {
+	body:2000,
+    joint:100,
+    contact:50,
+    vehicle:20,
+    character:20,
+    solver:20,
+    ray:50,
+}
+
+export const Num = {
+	body:11,
+    joint:16,
+    contact:8,
+    vehicle:64,
+    character:16,
+    solver:256,
+    ray:8,
+}*/
+
+//-------------------
+//
+//  ROOT
+//
+//-------------------
 
 export const root = {
 
@@ -29,9 +40,12 @@ export const root = {
 	scene : null,
 	scenePlus : null,
 	post : null,
+	up:null,
+	update:null,
+	add:null,
+	remove:null,
 	tmpMesh : [],
-	tmpGeo : [],
-	tmpMat : [],
+	instanceMesh : {},
 	tmpTex : [],
 	flow:{
 		tmp:[],
@@ -39,31 +53,64 @@ export const root = {
 		add:[],
 		remove:[]
 	},
-	
 	reflow:{
 		ray:[],
-		stat:{ fps:0, },
-	}
+		stat:{ fps:0 },
+	},
 
-};
+	extraMaterial:() => {},
+	
+	disposeTmp:() => {
+
+		// clear temporary mesh
+		let i, j, m
+		for( i in root.tmpMesh ) {
+			m = root.tmpMesh[i]
+			if( m.children ){
+				for( j in m.children ) root.disposeMesh( m.children[j] )
+			}
+			root.disposeMesh( m )
+			if( m.parent ) m.parent.remove( m )
+		}
+		root.tmpMesh = []
+
+		// clear temporary textures
+		for( i in root.tmpTex ) root.tmpTex[i].dispose()
+
+	},
+
+	disposeMesh:( m ) => {
+		if( m.geometry ) m.geometry.dispose()
+		if( m.dispose ) m.dispose()
+	},
+
+}
 
 
-export class Utils {
+//-------------------
+//
+//  UTILS
+//
+//-------------------
 
-	static byName ( name ) {
+export const Utils = {
+
+	byName: ( name ) => {
 
 		if ( !map.has( name ) ) return null;
 		return map.get( name );
 
-	}
+	},
 
-	static add ( b, parent ) {
+	add: ( b, parent ) => {
 
-		if( b.type !== 'contact'){
+		if( b.type !== 'contact' && !b.isInstance && b.isObject3D ){
+
+			//console.log('add', b.name, b.type )
 
 			if(!parent){
 				switch( b.type ){
-					case 'solid': case 'joint': case 'ray': root.scenePlus.add( b ); break;
+					case 'terrain': case 'solid': case 'joint': case 'ray': case 'articulation': root.scenePlus.add( b ); break;
 					default: root.scene.add( b ); break;
 				}
 			} else {
@@ -74,96 +121,231 @@ export class Utils {
 
 		map.set( b.name, b );
 
-	}
+	},
 
-	static remove ( b ) {
+	remove:( b ) => {
 
 		if( b.dispose ) b.dispose()
 		if( b.parent ) b.parent.remove( b )
-
+		if( b.instance ) b.instance.remove( b.id )
 		map.delete( b.name );
 
 	}
 
 }
 
-export const geo = {
 
-	plane: new PlaneGeometry(1,1),
-	box: new BoxGeometry(1,1,1),
-	sphere: new SphereGeometry( 1, 16, 12 ),
-	cylinder: new CylinderGeometry( 1, 1, 1 , 16 ),
-	cone: new CylinderGeometry( 0.001, 1, 1 , 16 ),
-	highSphere: new SphereGeometry( 1, 32, 24 ),
-	joint: new Box3Helper().geometry, //new BoxGeometry(0.1,0.1,0.1),
+//-------------------
+//
+//  GEOMETRY
+//
+//-------------------
 
-};
+let geoN = 0;
+let geo = {}
 
-geo.plane.rotateX( -Math.PI * 0.5 );
-geo.joint.scale( 0.05,0.05,0.05 );
+export const Geo = {
 
-const flakeTexture = new CanvasTexture( new CarbonTexture('rgb(69,69,69)', 'rgb(39,39,39)', true) )
-flakeTexture.wrapS = flakeTexture.wrapT = RepeatWrapping
-flakeTexture.repeat.x = flakeTexture.repeat.y = 2
+	unic: ( g ) => {
 
-const carbonTexture = new CanvasTexture( new CarbonTexture('#ffffff', '#CCCCCC') )
-carbonTexture.wrapS = carbonTexture.wrapT = RepeatWrapping
-carbonTexture.repeat.x = carbonTexture.repeat.y = 2
+		geo[ 'geo' + geoN++ ] = g
+
+	},
+
+	set: ( g ) => {
+
+		//console.log( g.name )
+		geo[g.name] = g
+
+	},
+
+	get: ( name, o = {} ) => {
+
+		if( !geo[name] ){
+			let g;
+			switch( name ){
+				case 'plane':    g = new PlaneGeometry(1,1); g.rotateX( -Math.PI * 0.5 ); break
+				case 'box':      g = new BoxGeometry(1,1,1); break
+				case 'sphere':   g = new SphereGeometry( 1, 16, 12 ); break
+				case 'cylinder': g = new CylinderGeometry( 1, 1, 1 , 16 ); break
+				//case 'wheel':    g = new CylinderGeometry( 1, 1, 1 , 16 ); g.rotateX( -Math.PI * 0.5 ); break
+				case 'cone':     g = new CylinderGeometry( 0.001, 1, 1 , 16 ); break
+				case 'joint':    g = new Box3Helper().geometry; g.scale( 0.05,0.05,0.05 ); break
+				default: return null;
+			}
+			geo[name] = g;
+		}
+
+		return geo[name]
+		
+	},
+
+	dispose: () => {
+		//console.log( geo )
+		for( let n in geo ) geo[n].dispose()
+		geo = {}
+		geoN = 0
+
+	}
+
+}
+
+
+
+//-------------------
+//
+//  MATERIAL
+//
+//-------------------
 
 const matExtra = {
 
-	clearcoat:1.0,
-	clearcoatRoughness:0.1,
-	metalness: 0.8,
-	roughness: 0.1,
-	normalMap: flakeTexture,
-	map:carbonTexture,
-	normalScale: new Vector2(0.25,0.25),
+	//clearcoat:1.0,
+	//clearcoatRoughness:0.1,
+	metalness: 0.6,
+	roughness: 0.3,
+	//normalScale: new Vector2(0.25,0.25),
 
 }
-//mat[m].
-		//mat[m].
 
-export const mat = {
+export const Colors = {
 
-	
+	body:new Color( 0xFF934F ).convertSRGBToLinear(),
+	sleep:new Color( 0x46B1C9 ).convertSRGBToLinear()
 
-	body: new MeshPhysicalMaterial({ name:'body', color:0xFF934F, ...matExtra }),
-	sleep: new MeshPhysicalMaterial({ name:'sleep', color:0x46B1C9, ...matExtra }),
-	solid: new MeshPhysicalMaterial({ name:'solid', color:0x3C474B, ...matExtra }),
-	hero: new MeshPhysicalMaterial({ name:'hero', color:0x00FF88, ...matExtra }),
-	skin: new MeshPhysicalMaterial({ name:'skin', color:0xB0A1BA, ...matExtra }),
-	glass: new MeshPhysicalMaterial({ name:'glass', color:0x9999ff, transparent:true, opacity:0.25,  depthTest:true, depthWrite:false, reflectivity:0.5, roughness:0., metalness:1, side:DoubleSide, premultipliedAlpha:true  }),
-	//glass: new MeshPhysicalMaterial({ name:'glass', color:0x9999ff, transparent:true, reflectivity:0.5, transmission:1, opacity:0.9, roughness:0, metalness:0, side:DoubleSide, premultipliedAlpha:true, depthTest:true, depthWrite:false }),
-	chrome: new MeshPhysicalMaterial({ name:'chrome', color:0x808080, metalness:1, roughness:0 }),
+}
+
+export const mat = {}
+
+export const Mat = {
+
+	set:( m ) => {
+
+		root.extraMaterial( m )
+		mat[m.name] = m
+
+	},
+
+	get:( name ) => {
+
+		if( !mat[name] ){
+			//console.log(name)
+			let m;
+			switch( name ){
+
+				case 'base':   m = new MeshStandardMaterial({ color:0xffffff, ...matExtra }); break
+				case 'simple': m = new MeshStandardMaterial({ color:0x808080, metalness: 0, roughness: 1 }); break
+				case 'body':   m = new MeshStandardMaterial({ color:0xFF934F, ...matExtra }); break
+				case 'sleep':  m = new MeshStandardMaterial({ color:0x46B1C9, ...matExtra }); break
+				case 'solid':  m = new MeshStandardMaterial({ color:0x3C474B, ...matExtra }); break
+				case 'hero':   m = new MeshStandardMaterial({ color:0x00FF88, ...matExtra }); break
+				case 'skin':   m = new MeshStandardMaterial({ color:0xe0ac69, ...matExtra }); break
+				case 'chrome': m = new MeshStandardMaterial({ color:0xCCCCCC, metalness: 1, roughness:0 }); break
+				case 'glass':  m = new MeshPhysicalMaterial({ color:0xFFFFff, transparent:true, opacity:0.8, depthTest:true, depthWrite:false, roughness:0.02, metalness:0.0, /*side:DoubleSide,*/ alphaToCoverage:true, premultipliedAlpha:true, transmission:1, clearcoat:1, thickness:0.02  }); break
+				case 'plexi':  m = new MeshPhysicalMaterial({ color:0xCCCCCCC, transparent:true, opacity:0.4  }); break
+				case 'glass2': m = new MeshPhysicalMaterial({ color:0xCCCCff, transparent:true, opacity:0.3  }); break
+
+				case 'joint':  m = new LineBasicMaterial( { color: 0x00FF00, toneMapped: false } ); break
+				case 'ray':    m = new LineBasicMaterial( { vertexColors: true, toneMapped: false } ); break	
+
+				case 'debug':  m = new MeshBasicMaterial({ color:0x000000, wireframe:true }); break
+				case 'debug2': m = new MeshBasicMaterial({ color:0x00FFFF, wireframe:true }); break
+
+				case 'hide': m = new MeshBasicMaterial({ visible:false }); break
+
+			}
+			m.name = name;
+			root.extraMaterial( m )
+			mat[name] = m
+		}
+
+		return mat[name]
+
+	},
+
+	dispose:() => {
+
+		for(let m in mat){
+			mat[m].dispose()
+			delete mat[m]
+		}
+
+	}
+
+}
 
 
-	joint: new LineBasicMaterial( { name:'joint', color: 0x00FF00, toneMapped: false } ),
-	ray: new LineBasicMaterial( { name:'ray', vertexColors: true, toneMapped: false } ),
+//-------------------
+//
+//  MATH
+//
+//-------------------
 
-	
-	//hide: new MeshBasicMaterial({ name:'hide', color:0x0088ff, transparent:true, opacity:0, depthTest:false, depthWrite:false  }),
-    debug: new MeshBasicMaterial({ name:'debug', color:0xffFF00, wireframe:true }),
-	debug2: new MeshBasicMaterial({ name:'debug2', color:0x00FFFF, wireframe:true }),
-	hide: new MeshBasicMaterial({ name:'hide', visible:false  }),
+export const torad = Math.PI / 180
+export const todeg = 180 / Math.PI
 
-};
+export const euler = new Euler()
+export const quat = new Quaternion()
 
+/*const tmpMtx = new Matrix4()
+const tmpP = new Vector3()
+const tmpS = new Vector3()
+const tmpQ = new Quaternion()
+*/
 
-export const torad = Math.PI / 180;
-export const todeg = 180 / Math.PI;
+export const math = {
 
-export const euler = new Euler();
-export const quat = new Quaternion();
+	torad: Math.PI / 180,
+	todeg: 180 / Math.PI,
+	Pi: Math.PI,
+	TwoPI: Math.PI*2,
+	PI90: Math.PI*0.5,
+	PI45: Math.PI*0.25,
+	PI270: (Math.PI*0.5)*3,
+	inv255: 0.003921569,
+	golden: 1.618033,
+	epsilon: Math.pow( 2, - 52 ),
 
-export class math {
+	tmpE: new Euler(),
+	tmpM: new Matrix4(),
+	tmpM2: new Matrix4(),
+	tmpQ: new Quaternion(),
+	tmpV: new Vector3(),
 
-	static int (x) { return Math.floor(x); }
-	static lerp ( x, y, t ) { return ( 1 - t ) * x + t * y; }
-	static rand ( low, high ) { return low + Math.random() * ( high - low ); }
-	static randInt ( low, high ) { return low + Math.floor( Math.random() * ( high - low + 1 ) ); }
+	clampA: ( v, min, max ) => { 
+		return Math.max( min, Math.min( max, v ))
+	},
 
-	static autoSize ( s = [ 1, 1, 1 ], type = 'box' ) {
+	clamp: ( v, min, max ) => { 
+		v = v < min ? min : v;
+	    v = v > max ? max : v;
+	    return v;
+	},
+
+	int: (x) => ( Math.floor(x) ),
+	toFixed: ( x, n = 3 ) => ( x.toFixed(n) * 1 ),
+
+	lerp: ( x, y, t ) => ( ( 1 - t ) * x + t * y ),
+	lerpAr: ( ar, arx, ary, t ) => {
+		let i = ar.length
+		while( i-- ) ar[i] = math.lerp( arx[i], ary[i], t )
+	},
+
+	randomSign: () => ( Math.random() < 0.5 ? -1 : 1 ),
+	randSpread: ( range ) => ( range * ( 0.5 - Math.random() ) ),
+	rand: ( low = 0, high = 1 ) => ( low + Math.random() * ( high - low ) ),
+	randInt: ( low, high ) => ( low + Math.floor( Math.random() * ( high - low + 1 ) ) ),
+
+	nearEquals: ( a, b, t ) => ( Math.abs(a - b) <= t ? true : false ),
+
+	angleDistance:(cur, prv)=> {
+		var diff = (cur - prv + 180) % 360 - 180;
+		return diff < -180 ? diff + 360 : diff;
+	},
+	unwrapDeg: ( r ) => (r - (Math.floor((r + 180)/360))*360), 
+	unwrapRad: ( r ) => (r - (Math.floor((r + Math.PI)/(2*Math.PI)))*2*Math.PI),
+
+	autoSize: ( s = [ 1, 1, 1 ], type = 'box' ) => {
 
 		//let s = o.size === undefined ? [ 1, 1, 1 ] : o.size;
 		if ( s.length === 1 ) s[ 1 ] = s[ 0 ];
@@ -178,48 +360,67 @@ export class math {
 	    if ( s.length === 2 ) s[ 2 ] = s[ 0 ];
 	    return s;
 
-	}
+	},
 
-	static toQuatArray ( rot = [0,0,0] ) { // rotation array in degree
+	toQuatArray: ( rot = [0,0,0] ) => { // rotation array in degree
 
 		return quat.setFromEuler( euler.fromArray( math.vectorad( rot ) ) ).toArray();
 
-	}
+	},
 
-	static toLocalQuatArray ( rot = [0,0,0], b ) { // rotation array in degree
+	toLocalQuatArray: ( rot = [0,0,0], b ) => { // rotation array in degree
 
 		quat.setFromEuler( euler.fromArray( math.vectorad( rot ) ) )
 		quat.premultiply( b.quaternion.invert() );
 		return quat.toArray();
 
-	}
+	},
 
-	static vecAdd ( a, b ) {
+	vecAdd: ( a, b ) => {
 
 		let i = a.length, r = [];
 	    while ( i -- ) r[i] = a[ i ] + b[ i ];
 	    return r;
 
-	}
+	},
 
-	static vectorad ( r ) {
+	vecSub: ( a, b ) => {
+
+		let i = a.length, r = [];
+	    while ( i -- ) r[i] = a[ i ] - b[ i ];
+	    return r;
+
+	},
+
+	addArray:( a, b ) => ( math.vecAdd(a,b) ),
+
+	vectorad: ( r ) => {
 
 		let i = 3, nr = [];
 	    while ( i -- ) nr[ i ] = r[ i ] * torad;
 	    nr[3] = r[3];
 	    return nr;
 
-	}
+	},
 
-	static getIndex ( g ) {
+	scaleArray: ( ar, scale ) => {
 
-		//console.log( 'i', g.index.array.length/3 )
+		var i = ar.length;
+		while( i-- ){ ar[i] *= scale };
+		return ar;
+
+	},
+
+	getIndex: ( g ) => {
+
+		//console.log( 'i', g.index )
+		//let c = new Uint32Array( g.index.array ) || null
 
 		return g.index.array || null
-	}
+	},
 
-	static getVertex ( g, noIndex ) {
-
+	getVertex: ( g, noIndex ) => {
+		
 		let c = g.attributes.position.array;
 
 		if( noIndex ){
@@ -227,11 +428,63 @@ export class math {
 			c = h.attributes.position.array;
 		}
 
-		//console.log( 'v', c.length/3 )
-
 		return c;
 
-	}
+	},
+
+	arCopy: ( a, b ) => { a = [...b] },
+
+	////////
+
+	fromTransformToQ: ( p, q, inv ) => {
+
+		inv = inv || false;
+		math.tmpM.compose( math.tmpV.fromArray( p ), math.tmpQ.fromArray( q ), { x:1, y:1, z:1 } );
+		math.tmpM.decompose( math.tmpV, math.tmpQ, { x:1, y:1, z:1 } );
+		if(inv) math.tmpQ.invert();
+		return math.tmpQ.toArray();
+
+	},
+
+	fromTransform: ( p, q, p2, q2, inv ) => {
+
+		inv = inv || false;
+		q2 = q2 || [0,0,0,1];
+
+		math.tmpM.compose( math.tmpV.fromArray( p ), math.tmpQ.fromArray( q ), { x:1, y:1, z:1 } );
+		math.tmpM2.compose( math.tmpV.fromArray( p2 ), math.tmpQ.fromArray( q2 ), { x:1, y:1, z:1 } );
+		if( inv ){
+			math.tmpM.invert();
+			math.tmpM.multiply( math.tmpM2 );
+		} else {
+			math.tmpM.multiply( math.tmpM2 );
+		}
+
+		math.tmpM.decompose( math.tmpV, math.tmpQ, { x:1, y:1, z:1 } );
+
+		return math.tmpV.toArray();
+
+	},
+
+	axisToQuatArray: ( r, isdeg ) => { // r[0] array in degree
+
+		isdeg = isdeg || false;
+		return math.tmpQ.setFromAxisAngle( math.tmpV.fromArray( r, 1 ), isdeg ? r[0]*math.torad : r[0]).normalize().toArray();
+
+	},
+
+	toQuatArray: ( rotation ) => { // rotation array in degree
+
+		return math.tmpQ.setFromEuler( math.tmpE.fromArray( math.vectorad( rotation ) ) ).toArray();
+
+	},
+
+	/*static transform ( p = [0,0,0], q = [0,0,0,1], s = [1,1,1] ) {
+
+		tmpMtx.compose( tmpP.fromArray(p), tmpQ.fromArray(q), tmpS.fromArray(s) )
+		return tmpMtx;
+
+	}*/
 
 
 }

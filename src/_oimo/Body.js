@@ -1,4 +1,6 @@
 import { Item } from '../core/Item.js';
+import { Num } from '../core/Config.js';
+
 import { 
 	Utils, Vec3, Quat, Transform, RigidBodyConfig, ShapeConfig, Shape, RigidBody,ContactCallback,
 	BoxGeometry, SphereGeometry, CylinderGeometry, CapsuleGeometry, ConeGeometry, ConvexHullGeometry
@@ -14,14 +16,22 @@ export class Body extends Item {
 		this.Utils = Utils
 
 		this.type = 'body'
+		this.num = Num[this.type]
+		this.full = false
 
 		this.p = new Vec3()
 		this.v = new Vec3()
+		this.r = new Vec3()
 		this.q = new Quat()
 		this.t = new Transform()
 
 		this.sc = new ShapeConfig()
 
+	}
+
+	setFull( full ){
+		this.num = Num[ full ? 'bodyFull':'body' ]
+		this.full = full
 	}
 
 	step ( AR, N ) {
@@ -31,23 +41,27 @@ export class Body extends Item {
 		while( i-- ){
 
 			b = this.list[i];
-			n = N + ( i * 11 )
+			n = N + ( i * this.num )
 
 			if( !b ){ 
 				AR[n]=AR[n+1]=AR[n+2]=AR[n+3]=AR[n+4]=AR[n+5]=AR[n+6]=AR[n+7] = 0
 				continue
 			}
 
-			b.getLinearVelocityTo( this.v )
-			AR[ n ] = b.isSleeping() ? 0 : this.v.length() * 9.8 // speed km/h
+			AR[ n ] = b.isSleeping() ? 0 : 1
 
 			b.getPositionTo( this.p )
 			b.getOrientationTo( this.q )
-
 			this.p.toArray( AR, n+1 )
 			this.q.toArray( AR, n+4 )
-			this.v.toArray( AR, n+8 ) // velocity
 
+			if( this.full ){
+				b.getLinearVelocityTo( this.v )
+			    b.getAngularVelocityTo( this.r )
+				this.v.toArray( AR, n+8 ) // velocity
+			    this.r.toArray( AR, n+11 ) // angular
+			    if( AR[ n ] === 1 ) AR[ n ] = v.length() * 9.8;// speed km/h
+			}
 		}
 
 	}
@@ -87,7 +101,7 @@ export class Body extends Item {
 		let t = o.type || 'box'
 		let s = o.size || [1,1,1];
 
-		let h, i, n;
+		let h, i, n, j;
 
 		switch( t ){
 
@@ -115,11 +129,13 @@ export class Body extends Item {
 			case 'capsule' : g = new CapsuleGeometry( s[0], s[1] * 0.5 ); break;
 			case 'convex' : 
 
-			    i =  Math.floor( o.v.length/3);
+			    i = Math.floor( o.v.length/3);
+			    j = 0
 			    h = [];
 			    while( i-- ){
-			    	n = i*3;
+			    	n = j*3;
 			    	h.push( this.v.fromArray( o.v, n ).clone() )
+			    	j++
 			    } 
 			    g = new ConvexHullGeometry( h );
 			    g._gjkMargin = o.margin || 0.0001 // default 0.05
@@ -274,10 +290,6 @@ export class Body extends Item {
 
 		}
 
-
-		
-
-
 		b.name = name
 		b.type = this.type
 
@@ -288,6 +300,8 @@ export class Body extends Item {
 
 		// add to world
 		this.addToWorld( b, o.id )
+
+		//if(o.isTrigger)console.log(b)
 
 	}
 
@@ -308,7 +322,10 @@ export class Body extends Item {
 
 		if( o.sleep ) b.sleep()
 		if( o.activate || o.wake ) b.wakeUp()
-		if( o.neverSleep !== undefined ) b.setAutoSleep( !o.neverSleep )
+		if( o.neverSleep !== undefined ){ 
+			b.setAutoSleep( !o.neverSleep )
+			if( o.neverSleep )  b.wakeUp()
+		}
 			
 
 		// Applies the force `force` to `positionInWorld` in world position. [ 0,0,0,   0,0,0 ]

@@ -1,53 +1,70 @@
 
 import {
     Group, MeshPhysicalMaterial, MeshBasicMaterial, Vector3
-} from '../../build/three.module.js';
+} from 'three';
 
-import { root, math, mat, Utils } from './root.js';
+import { root, math, Utils, Geo, Mat, mat } from './root.js';
+
+import { Max, Num, getType } from '../core/Config.js';
 
 import { Ray } from './Ray.js';
 import { Body } from './Body.js';
-import { Solid } from './Solid.js';
 import { Joint } from './Joint.js';
 import { Contact } from './Contact.js';
-
+import { Vehicle } from './Vehicle.js';
+import { Character } from './Character.js';
+import { Terrain } from './Terrain.js';
+import { Solver } from './Solver.js';
+import { Timer } from './Timer.js';
 import { User } from './User.js';
 
+/** __
+*    _)_|_|_
+*   __) |_| | 2023
+* @author lo.th / https://github.com/lo-th
+*
+*    THREE JS ENGINE
+*/
 
-//--------------
-//  THREE SIDE 
-//--------------
+let items
 
-let callback = null;
+let callback = null
 let Ar, ArPos = {}, ArMax = 0
-
+let maxFps = 60
 let worker = null
 let isWorker = false
 let isBuffer = false
-let isTimeout = true
+let isTimeout = false
+let outsideStep = true
+
+let isPause = false
 
 let directMessage = null
 let controls = null
 let first = true
 
-const ray = new Ray()
-const body = new Body()
-const solid = new Solid()
-const joint = new Joint()
-const contact = new Contact()
+let timout = null
+let timoutFunction = null
+let timoutTime = 0
+let elapsedTime = 0
 
 const user = new User()
+const timer = new Timer(60)
 
 let azimut = function(){ return 0 }
 let endReset = function(){}
 let postUpdate = function(){}
 let extraTexture = function(){}
-let extraMaterial = function(){}
+//let extraMaterial = function(){}
 
 export class Motor {
 
+	static setMaxFps ( v ) { maxFps = v }
+
 	static setExtraTexture ( f ) { extraTexture = f }
-	static setExtraMaterial ( f ) { extraMaterial = f }
+	//static setExtraMaterial ( f ) { extraMaterial = f }
+
+	static setExtraMaterial ( f ) { root.extraMaterial = f }
 
 	static setPostUpdate ( f ) { postUpdate = f !== null ? f : function(){} }
 	static setAzimut ( f ) { azimut = f }
@@ -55,6 +72,7 @@ export class Motor {
 	static getKey () { return user.key }
 	static getKey2 () { return user.key2 }
 	static getAzimut () { return azimut() }
+	static math () { return math }
 
 	static setContent ( Scene ) {
 
@@ -74,7 +92,10 @@ export class Motor {
 
 		let e = m.data;
 		if( e.Ar ) Ar = e.Ar;
-		if( e.reflow ) root.reflow = e.reflow
+		if( e.reflow ){
+			root.reflow = e.reflow
+			if(root.reflow.stat.delta) elapsedTime += root.reflow.stat.delta
+		}
 		Motor[ e.m ]( e.o )
 
 	}
@@ -83,7 +104,11 @@ export class Motor {
 
 		if( isWorker ){ 
 
-			if ( e.m === 'add' ) root.flow.add.push( e.o )
+			if ( e.m === 'add' ){ 
+				if( e.o.type === 'solver' ) worker.postMessage( e )// direct
+				else if( e.o.solver !== undefined ) worker.postMessage( e )// direct
+				else root.flow.add.push( e.o )// in temp 
+			}
 			else if ( e.m === 'remove' ) root.flow.remove.push( e.o )
 			else worker.postMessage( e, buffer )
 
@@ -101,7 +126,11 @@ export class Motor {
 
 	static getScene () { return root.scene; }
 
-	static getMat () { return mat; }
+	//static getMat ( mode ) { return mat; }
+
+	static getHideMat() { return Mat.get('hide'); }
+
+	//static getMat ( mode ) { return mode === 'HIGH' ? mat : matLow; }
 
 	static init ( o = {} ){
 
@@ -112,25 +141,35 @@ export class Motor {
 
 		let isFirefox = navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
 
-		body.extraConvex = o.extraConvex || false
+		root.engine = type
+
+		Motor.initItems()
+
+		items.body.extraConvex = o.extraConvex || false
+		items.solid.extraConvex = o.extraConvex || false
 
 		if( o.callback ){ 
 			callback = o.callback
 			delete ( o.callback )
 		}
 
-		this.initArray()
+		/*Motor.initArray()
 		o.ArPos = ArPos
-		o.ArMax = ArMax
+		o.ArMax = ArMax*/
 
 		root.scene = new Group()
+		root.scene.name = 'phy_scene'
 		root.scenePlus = new Group()
+		root.scenePlus.name = 'phy_scenePlus'
 
-		root.post = this.post
+		root.post = Motor.post
+		root.up = Motor.up
+		root.update = Motor.update
+
+		root.add = Motor.add
+		root.remove = Motor.remove
 
 		if( !o.direct ){ // is worker version
-
-			
 
 			switch( type ){
 
@@ -142,37 +181,19 @@ export class Motor {
 					        worker = new Worker('./build/'+mini+'.module.js', {type:'module'})
 						    st = 'ES6'
 						} catch (error) {
-						    worker = new Worker( './build/'+mini+'.min.js' )
+						    worker = new Worker( './build/'+mini+'.js' )
 						}
 				    }
 
 				break
-
-				/*case 'ODE':
-
-					name = type.toLowerCase()
-				    mini = name.charAt(0).toUpperCase() + name.slice(1)
-
-				    o.blob = document.location.href.replace(/\/[^/]*$/,"/") + './build/'+name+'.js'
-					worker = new Worker( './build/'+mini+'.min.js' );
-
-				break
-
-				case 'NRJ':
-
-					name = type.toLowerCase()
-				    mini = name.charAt(0).toUpperCase() + name.slice(1)
-
-				    o.blob = document.location.href.replace(/\/[^/]*$/,"/") + './build/energy.js'
-				    o.blob = document.location.href.replace(/\/[^/]*$/,"/") + './build/nrj.js'
-					worker = new Worker( './build/'+mini+'.min.js' );
-
-				break*/
 				
 				default :
+				    if( type === 'RAPIER' ) { name = 'rapier3d'; mini = 'rapier3d'; }
 
-				    o.blob = document.location.href.replace(/\/[^/]*$/,"/") + './build/'+name+'.wasm.js'
-					worker = new Worker( './build/'+mini+'.min.js' );
+				    // for wasm side
+				    if( o.link ) o.blob = document.location.href.replace(/\/[^/]*$/,"/") + o.link;
+
+					worker = new Worker( './build/'+mini+'.min.js' )
 
 				break
 
@@ -198,14 +219,22 @@ export class Motor {
 
 		}
 
-		root.engine = type
-		this.post({ m:'init', o:o });
+		
+		root.post({ m:'init', o:o });
 
 	}
+	
+	static getPause (){
+		return isPause
+	}
 
-	static pause (){
+	static pause ( v ){
 
-		this.post({ m:'pause' })
+		if( v === isPause ) return
+		isPause = v
+		if( isPause ) Motor.pausetimout()
+		else Motor.playtimout()
+		root.post({ m:'pause', o:{ value:isPause } })
 
 	}
 
@@ -223,52 +252,36 @@ export class Motor {
 			return
 		}
 
+		Motor.cleartimout()
+
 		if( controls ) controls.resetAll()
 
 		endReset = callback
 
 		postUpdate = function () {}
 
-		this.flowReset()
+		Motor.flowReset()
 
-		ray.reset()
-		body.reset()
-		solid.reset()
-		joint.reset()
-		contact.reset()
+		// clear instance
+	    Motor.clearInstance()
 
-		let i, name
-
-		// clear temporary mesh
-		for( i in root.tmpMesh ) {
-			if( root.tmpMesh[i].dispose ) root.tmpMesh[i].dispose()
-			else root.scene.remove( root.tmpMesh[i] )
-		}
-		root.tmpMesh = []
+	    // reset all items
+	    Motor.resetItems()
 
 		// clear temporary geometry
-		for( i in root.tmpGeo ) root.tmpGeo[i].dispose()
-		root.tmpGeo = []
+		Geo.dispose()
 
 	    // clear temporary material
-		for( i in root.tmpMat ){ 
-			name = root.tmpMat[i];
-			if( mat[name] ){
-				mat[name].dispose()
-				delete ( mat[name] )
-			}
-		}
-		root.tmpMat = []
+	    Mat.dispose()
 
-		// clear temporary textures
-		for( i in root.tmpTex ) root.tmpTex[i].dispose()
+	    // clear temporary mesh
+		root.disposeTmp();
+			
 		root.tmpTex = []
-
-
 	    root.scenePlus.children = []
 	    root.scene.children = []
 
-		this.post({ m:'reset' });
+		root.post({ m:'reset' });
 
 	}
 
@@ -287,7 +300,7 @@ export class Motor {
 
 	static start ( o = {} ){
 
-		Motor.post({ m:'start', o:o })
+		root.post({ m:'start', o:o })
 
 	}
 
@@ -296,19 +309,62 @@ export class Motor {
 
 	static set ( o = {} ){
 
+		if( o.full === undefined ) o.full = false
+
+		items.body.setFull(o.full)
+
+		Motor.initArray(o.full)
+		o.ArPos = ArPos
+		o.ArMax = ArMax
+
+		elapsedTime = 0
+
+		o.outsideStep = outsideStep;
 		o.isTimeout = isTimeout;
 		if(!o.gravity) o.gravity = [0,-9.81,0]
 		if(!o.substep) o.substep = 2
-		if(!o.fps) o.fps = 60
 
-		Motor.post({ m:'set', o:o });
+		if(o.fps){
+			if( o.fps < 0 ) o.fps = maxFps;
+		} else {
+			o.fps = 60;
+		}
+
+		//console.log( o.fps );
+
+		timer.setFramerate( o.fps )
+
+		
+		
+		root.post({ m:'set', o:o });
 
 	}
 
 	static getFps (){ return root.reflow.stat.fps }
-	static getDelta (){ return root.reflow.stat.delta }
+	
+	static getDelta2(){ return root.reflow.stat.delta }
+	static getElapsedTime2(){ return elapsedTime }
+	
+	static getDelta(){ return timer.delta }
+	static getElapsedTime(){ return timer.elapsedTime }
+
+	static doStep ( stamp ){
+
+		if(!outsideStep) return
+
+		if( timer.up( stamp ) ) {
+			root.post( { m:'step', o:stamp } )
+		}
+
+		/*if( isBuffer ) root.post( { m:'poststep', flow:root.flow, Ar:Ar }, [ Ar.buffer ] )
+		else root.post( { m:'poststep', flow:root.flow, Ar:Ar })
+		Motor.flowReset()*/
+
+	}
 
 	static step ( o ){
+
+		//console.time('step')
 
 		Motor.stepItems()
 
@@ -316,12 +372,15 @@ export class Motor {
 		root.flow.key = user.update()
 		//root.flow.tmp = []
 
-		postUpdate()
+		postUpdate( root.reflow.stat.delta )
+		//postUpdate( timer.delta )
 
 		// for update static object !!! 
 		//let i = root.flow.tmp.length;
 		//while( i-- ) this.change( root.flow.tmp[i], true )
-		this.changes( root.flow.tmp )
+		Motor.changes( root.flow.tmp )
+
+		//if( outsideStep ) return
 
 		// finally post flow change to physx
 		if( isBuffer ) root.post( { m:'poststep', flow:root.flow, Ar:Ar }, [ Ar.buffer ] )
@@ -329,43 +388,48 @@ export class Motor {
 
 		Motor.flowReset()
 
-	}
-
-	static stepItems () {
-
-		body.step( Ar, ArPos.body );
-		joint.step( Ar, ArPos.joint )
-		ray.step( Ar, ArPos.ray )
-		contact.step( Ar, ArPos.contact )
-
-		// update follow camera
-		if( controls ) controls.follow( this.getDelta() )
+	    //console.timeEnd('step')
 
 	}
+
+	
 
     static up ( list ) {
 
-		//if( list instanceof Array ) root.flow.tmp = root.flow.tmp.concat(list)
-		if( list instanceof Array ) this.changes( list, true )
-		else this.change( list, true )
+		if( list instanceof Array ) Motor.changes( list, true )
+		else Motor.change( list, true )
 
 	}
 
 	static update ( list ) {
 
-		//if( list instanceof Array ) root.flow.tmp = root.flow.tmp.concat(list)
 		if( list instanceof Array ) root.flow.tmp.push( ...list )
 		else root.flow.tmp.push( list )
 
 	}
 
-	static initArray ( max = {} ) {
+	static initArray ( full = false ) {
+
+		// dynamics array
+
+		ArMax = 0
+		ArPos = {}
 
 		let counts = {
-			body: ( max.body || 1000 ) * 11,
-            joint:( max.joint || 100 ) * 16,
-            ray:( max.ray || 50 ) * 8,
-            contact:( max.contact || 50 ) * 8
+			body: Max.body * ( full ? Num.bodyFull : Num.body ),
+            joint: Max.joint * Num.joint,
+            ray: Max.ray * Num.ray,
+            contact: Max.contact * Num.contact,
+            character: Max.character * Num.character
+		}
+
+		if( root.engine === 'PHYSX' || root.engine === 'AMMO' ){ 
+			counts['vehicle'] = Max.vehicle * Num.vehicle;
+			items['vehicle'] = new Vehicle()
+		}
+		if( root.engine === 'PHYSX' ){ 
+			counts['solver'] = Max.solver * Num.solver;
+			items['solver'] = new Solver()
 		}
 
         let prev = 0;
@@ -378,101 +442,34 @@ export class Motor {
 
         }
 
-	}
-
-	static adds ( r = [] ){ for( let o in r ) this.add( r[o] ) }
-
-	static add ( o = {} ){
-
-		if ( o.constructor === Array ) return this.adds( o )
-
-		let type = o.type || 'box', b;
-
-		if( o.mass !== undefined ) o.density = o.mass
-		if( o.bounce !== undefined ) o.restitution = o.bounce
-
-		switch( type ){
-
-			case 'ray': b = ray.add( o ); break;
-			case 'joint': b = joint.add( o ); break;
-			case 'contact': b = contact.add( o ); break;
-			default: 
-			    if ( !o.density && !o.kinematic ) b = solid.add( o );
-			    else b = body.add( o ); 
-			break;
-			
-		}
-
-		return b
+        //console.log( ArMax )
 
 	}
 
+    static upInstance() {
 
-	static removes ( r = [] ){ for( let o in r ) this.remove( r[o] ) }
-	
-	static remove ( name ){
+    	for( let n in root.instanceMesh ) root.instanceMesh[n].update()
 
-		if ( name.constructor === Array ) return this.removes( o )
+    }
 
-		let b = this.byName( name )
-		if( b === null ) return;
-		let type = b.type
+	static clearInstance() {
 
-		switch( type ){
-			
-			case 'ray': b = ray.clear( b ); break;
-			case 'joint': b = joint.clear( b ); break;
-			case 'contact': b = contact.clear( b ); break;
-			case 'solid': b = solid.clear( b ); break;
-			case 'body': b = body.clear( b ); break;
-
-		}
-		
-		root.post( { m:'remove', o:{ name:name, type:type } })
+    	for( let n in root.instanceMesh ) root.instanceMesh[n].dispose()
+    	root.instanceMesh = {}
 
 	}
 
-
-	static changes ( r = [], direct = false ){ for( let o in r ) this.change( r[o], direct ) }
-
-	static change ( o = {}, direct = false ){
-
-		//if ( o.constructor === Array ) return this.changes( o )
-
-		let b = this.byName( o.name );
-		if( b === null ) return null;
-		let type = b.type;
-
-		if( o.rot !== undefined ){ o.quat = math.toQuatArray( o.rot ); delete ( o.rot ); }
-		if( o.localRot !== undefined ){ 
-
-			o.quat = math.toLocalQuatArray( o.localRot, b ); delete ( o.localRot ); 
-		}
-
-		switch( type ){
-
-			//case 'joint': b = joint.set( o, b ); break;
-			case 'solid': b = solid.set( o, b ); break;
-			case 'ray': b = ray.set( o, b ); direct = false; break;
-			//case 'body': b = body.set( o, b ); break;
-
-		}
-		
-		if( direct ) root.post( { m:'change', o:o })
-
-	}
-
-	static addDirect ( b ){
+	static addDirect( b ) {
 
 		root.scene.add( b )
 		root.tmpMesh.push( b )
 
 	}
 
-	static texture ( o = {} ){
+	static texture( o = {} ) {
 
 		let t = extraTexture( o )
-		root.tmpTex.push( t )
+		//root.tmpTex.push( t )
 		return t
 	}
 
@@ -482,14 +479,13 @@ export class Motor {
 		if( o.isMaterial ) m = o
 		else m = new MeshPhysicalMaterial( o )
 
-		
 
 		if( mat[ m.name ] ) return null;
 
-		root.tmpMat.push( m.name );
-		mat[ m.name ] = m;
+	    Mat.set( m );
 
-		extraMaterial( m )
+		//mat[ m.name ] = m;
+		//root.extraMaterial( m )
 
 		return m;
 
@@ -503,7 +499,7 @@ export class Motor {
 
 	static getAllBody ( name ){
 
-		return body.list
+		return items.body.list
 
 	}
 
@@ -512,11 +508,11 @@ export class Motor {
 		let r = []
 	    let pos = new Vector3().fromArray( position )
 	    let dir = new Vector3()
-	    let i = body.list.length, b, scaling
+	    let i = items.body.list.length, b, scaling
 
 	    while( i-- ){
 
-	        b = body.list[i]
+	        b = items.body.list[i]
 	        dir.copy( b.position ).sub( pos )
 	        scaling = 1.0 - dir.length() / radius
 	        if ( scaling < 0 ) continue;
@@ -528,12 +524,122 @@ export class Motor {
 
 	    }
 
-		this.update( r )
+		Motor.update( r )
 
 	}
 
 
-	// CAMERA CONTROLS
+	//-----------------------
+	//  ITEMS
+	//-----------------------
+
+	static getBodyRef () {
+		return items.body
+	}
+
+	static initItems () {
+
+		items = {
+			ray : new Ray(), 
+			body : new Body(), 
+			solid : new Solid(), 
+			joint : new Joint(), 
+			contact : new Contact(), 
+			terrain : new Terrain(), 
+			character : new Character()
+		}
+
+	}
+
+	static resetItems() {
+
+		for (const key in items) items[key].reset()
+
+	}
+
+	static stepItems () {
+
+		for (const key in items) items[key].step( Ar, ArPos[key] )
+
+		Motor.upInstance()
+
+		// update follow camera
+		if( controls ) controls.follow( Motor.getDelta() )
+
+	}
+
+	static adds ( r = [] ){ for( let o in r ) Motor.add( r[o] ) }
+
+	static add ( o = {} ){
+
+		if ( o.constructor === Array ) return Motor.adds( o )
+
+		if( o.mass !== undefined ) o.density = o.mass
+		if( o.bounce !== undefined ) o.restitution = o.bounce
+		if( o.type === undefined ) o.type = 'box'
+
+		let type = getType( o );
+
+		return items[type].add( o );
+
+	}
+
+
+	static removes ( r = [] ){ for( let o in r ) Motor.remove( r[o] ) }
+	
+	static remove ( name ){
+
+		if ( name.constructor === Array ) return Motor.removes( o )
+
+		let b = Motor.byName( name )
+		if( b === null ) return;
+
+		// remove on three side
+		items[b.type].clear( b );
+		// remove on physics side
+		root.post( { m:'remove', o:{ name:name, type:b.type } })
+
+	}
+
+
+	static changes ( r = [], direct = false ){ for( let o in r ) Motor.change( r[o], direct ) }
+
+	static change ( o = {}, direct = false ){
+
+		//if ( o.constructor === Array ) return this.changes( o )
+
+		let b = Motor.byName( o.name );
+		if( b === null ) return null;
+		let type = b.type;
+		if( o.drivePosition ){
+			if( o.drivePosition.rot !== undefined ){  o.drivePosition.quat = math.toQuatArray( o.drivePosition.rot ); delete ( o.drivePosition.rot ); }
+		}
+		
+		if( o.rot !== undefined ){ o.quat = math.toQuatArray( o.rot ); delete ( o.rot ); }
+		if( o.localRot !== undefined ){ 
+			o.quat = math.toLocalQuatArray( o.localRot, b ); delete ( o.localRot ); 
+		}
+
+		switch( type ){
+
+			//case 'terrain': b = terrain.set( o, b ); break;
+			//case 'joint': b = joint.set( o, b ); break;
+			case 'solid': b = items.solid.set( o, b ); break;
+			case 'ray': b = items.ray.set( o, b ); direct = false; break;
+			//case 'body': b = body.set( o, b ); break;
+
+		}
+		
+		if( direct ){
+			root.post( { m:'change', o:o })
+		}
+
+	}
+
+
+	//-----------------------
+	//  CAMERA CONTROLS
+	//-----------------------
 
 	static setCamera ( o = {} ){
 
@@ -545,7 +651,7 @@ export class Motor {
 
 		let mesh = null;
 
-		if ( typeof m === 'string' || m instanceof String ) mesh = m === '' ? null : this.byName( m )
+		if ( typeof m === 'string' || m instanceof String ) mesh = m === '' ? null : Motor.byName( m )
 		else if ( m.isMesh || m.isGroup ) mesh = m
 
 		if( mesh === null ) controls.resetFollow()
@@ -554,4 +660,58 @@ export class Motor {
 	}
 
 
+    //-----------------------
+	// INTERN timout
+	//-----------------------
+
+	static setTimeout ( f, time ){
+
+		timoutFunction = f; 
+		timoutTime = time; 
+		timout = setTimeout( timoutFunction, timoutTime ) 
+
+	}
+
+	static playtimout (){
+
+		if( timoutFunction === null ) return
+		timout = setTimeout( timoutFunction, timoutTime ) 
+
+	}
+
+	static pausetimout (){
+
+		if( timout === null ) return
+		clearTimeout( timout ) 
+
+	}
+
+	static cleartimout ( f, time ){
+
+		if( timout === null ) return
+		timoutFunction = null
+		timoutTime = 0; 
+		clearTimeout( timout )
+		timout = null
+
+	}
+
+
+
+}
+
+
+
+//--------------
+//
+//  SOLID ONLY 
+//
+//--------------
+
+class Solid extends Body {
+	constructor () {
+		super()
+		this.type = 'solid'
+	}
+	step ( AR, N ) {}
 }

@@ -1,4 +1,6 @@
 import { Item } from '../core/Item.js';
+import { Num } from '../core/Config.js';
+
 import { Utils, root } from './root.js';
 
 export class Contact extends Item {
@@ -20,7 +22,7 @@ export class Contact extends Item {
 
 			c = this.list[i]
 
-			n = N + ( i * 8 )
+			n = N + ( i * Num.contact )
 
 			//c.update( AR.slice( n, n+8 ) )
 			c.update( AR, n )

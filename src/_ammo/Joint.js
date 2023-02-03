@@ -1,4 +1,6 @@
 import { Item } from '../core/Item.js';
+import { Num } from '../core/Config.js';
+
 import { Utils, root, torad } from './root.js';
 
 export class Joint extends Item {
@@ -34,13 +36,13 @@ export class Joint extends Item {
 
 			j = this.list[i];
 
-			n = N + ( i * 16 )
+			n = N + ( i * Num.joint )
 			if(j.visible){
-				this.t.copy( j.getRigidBodyA().getWorldTransform() ).op_mul( j.formA ).toArray( AR, n  )
-				this.t.copy( j.getRigidBodyB().getWorldTransform() ).op_mul( j.formB ).toArray( AR, n + 7 )
+				//this.t.copy( j.getRigidBodyA().getWorldTransform() ).op_mul( j.formA ).toArray( AR, n  )
+				//this.t.copy( j.getRigidBodyB().getWorldTransform() ).op_mul( j.formB ).toArray( AR, n + 7 )
 
-				//this.t.copy( j.B1.getWorldTransform() ).op_mul( j.formA ).toArray( AR, n  )
-				//this.t.copy( j.B2.getWorldTransform() ).op_mul( j.formB ).toArray( AR, n + 7 )
+				this.t.copy( j.B1.getWorldTransform() ).op_mul( j.formA ).toArray( AR, n  )
+				this.t.copy( j.B2.getWorldTransform() ).op_mul( j.formB ).toArray( AR, n + 7 )
 			}
 
 		}
@@ -170,10 +172,12 @@ export class Joint extends Item {
 		j.mode = mode
 		j.type = this.type
 
-		/*
+		//console.log(j)
+
+		/**/
 		j.B1 = b1
 		j.B2 = b2
-		*/
+		
 
 		j.formA = formA
 		j.formB = formB
@@ -214,7 +218,6 @@ export class Joint extends Item {
 
 			// low / high / _softness / _biasFactor / _relaxationFactor
 			if( o.lm ) j.setLimit( o.lm[0]*torad, o.lm[1]*torad, o.lm[2] || 0.9, o.lm[3] || 0.3, o.lm[4] || 1.0 )
-
 			if( o.motor ) j.enableAngularMotor( true, o.motor[0]*torad, o.motor[1] )
 			
 			
@@ -291,7 +294,7 @@ export class Joint extends Item {
 
 					k = o.sd[i]
 					n = idx.indexOf( k[0] )
-					console.log(j)
+					//console.log(j)
 					
 					j.setStiffness( n, k[1] ) // raideur
 					j.setDamping( n, k[2] ) // amortissement //1

@@ -1,8 +1,10 @@
-var r =0
+let r =0
+let sph = [];
 
 function demo() {
 
 	phy.set({ 
+        full:true,
 		substep:4,
         gravity:[0,-9.8, 0 ]
 	})
@@ -14,10 +16,6 @@ function demo() {
 function onComplete(){
 
     const model = phy.getMesh('fan')
-
-    //phy.mat( model.fan.material )
-
-
     const shapes = []
 
     let i = 7
@@ -38,13 +36,14 @@ function onComplete(){
         pos:[0,1,0],
         shapes:shapes,
         mesh:model.fan,
-        restitution:0, friction:0.1,
+        restitution:0, 
+        friction:0.1,
         kinematic:true
     })
 
     // add wall limiter
 
-    let j = 14, a = 0, d = 8, s
+    let j = 14, a = 0, d = 8, s, m
     let ar = (2*math.Pi)/j;
     while(j--){
         a += ar
@@ -63,18 +62,24 @@ function onComplete(){
 
     // add some ball
 
-    j = 200
+    j = 400
     while(j--){
 
-        s = math.rand( 0.2, 0.4 )
+        s = math.rand( 0.1, 0.4 )
         a = math.rand(-math.Pi, math.Pi)
         d = 2 + math.rand(0, 4)
-        phy.add({ 
+        m = phy.add({ 
+            instance:'sph',
+            material:'chrome',
             type:'sphere', size:[s], 
             pos:[ d * Math.sin(a), 5+j*0.6, d * Math.cos(a) ], 
-            density:1, friction:0.1, 
-            material:'chrome' 
+            density:s, friction:0.1,
+            color:[ s+0.5, s, 0 ] 
         })
+        
+        m.origin = [ d * Math.sin(a), 5+j*0.6, d * Math.cos(a) ]
+        m.speedMat = true
+        sph.push(m)
 
     }
 
@@ -90,9 +95,17 @@ function update () {
 
     let lr = key[0]
 
-    r+=2
+    r+=2+(lr*2)
 
-    phy.update( { name:'fan', rot:[0,r,0] } )
+    let up = [ { name:'fan', rot:[0,r,0] } ]
+
+    let i = sph.length, m
+    while(i--){
+        m = sph[i]
+        if( m.position.y<0 ) up.push( { name:m.name, pos:m.origin, reset:true } )
+    }
+
+    phy.update( up )
 
 
 }
