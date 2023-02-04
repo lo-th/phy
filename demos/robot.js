@@ -37,7 +37,7 @@ const angle = [
 demo = () => {
 
     phy.view({ 
-        envmap:'basic', ground:true,
+        envmap:'clear', ground:true,
         phi:20, theta:20, distance:14, x:4, y:6, z:0, fov:70 
     })
 

@@ -9,7 +9,7 @@
     ],
 
     "PHYSX": [
-        "solver", "vehicle" 
+        "solver", "vehicle" , "robot"
     ],
 
     "AMMO": [
