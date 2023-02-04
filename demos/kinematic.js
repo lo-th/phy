@@ -1,11 +1,13 @@
 let r =0
 let sph = [];
 
-function demo() {
+demo = () => {
+
+    phy.log('Q or A to stop<br>D to speed uo ')
 
 	phy.set({ 
         full:true,
-		substep:4,
+		substep:2,
         gravity:[0,-9.8, 0 ]
 	})
 
@@ -13,7 +15,7 @@ function demo() {
 
 }
 
-function onComplete(){
+onComplete = () => {
 
     const model = phy.getMesh('fan')
     const shapes = []
@@ -62,10 +64,10 @@ function onComplete(){
 
     // add some ball
 
-    j = 400
+    j = 600
     while(j--){
 
-        s = math.rand( 0.1, 0.4 )
+        s = 0.2//math.rand( 0.1, 0.4 )
         a = math.rand(-math.Pi, math.Pi)
         d = 2 + math.rand(0, 4)
         m = phy.add({ 
@@ -88,7 +90,7 @@ function onComplete(){
 
 }
 
-function update () {
+update = () => {
 
     let dt = phy.getDelta()
     let key = phy.getKey()
@@ -98,6 +100,7 @@ function update () {
     r+=2+(lr*2)
 
     let up = [ { name:'fan', rot:[0,r,0] } ]
+    //let up = [ { name:'fan', angularVelocity:[0,lr*2,0] } ] 
 
     let i = sph.length, m
     while(i--){

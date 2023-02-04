@@ -4,7 +4,8 @@ import {
 	WebGLRenderTarget,
 	LinearFilter,NearestFilter,
 	RGBAFormat,
-	sRGBEncoding
+	sRGBEncoding,
+	FloatType
 } from 'three';
 
 import { Shader } from './Shader.js';
@@ -22,7 +23,6 @@ import { BokehPass } from '../jsm/postprocessing/BokehPass.js';
 import { SSAOPass } from '../jsm/postprocessing/SSAOPass.js';
 import { SAOPass } from '../jsm/postprocessing/SAOPass.js';
 
-
 import { CopyShader } from '../jsm/shaders/CopyShader.js';
 import { FXAAShader } from '../jsm/shaders/FXAAShader.js';
 import { SharpenShader } from '../jsm/shaders/SharpenShader.js';
@@ -30,6 +30,8 @@ import { SharpenShader } from '../jsm/shaders/SharpenShader.js';
 import { GammaCorrectionShader } from '../jsm/shaders/GammaCorrectionShader.js';
 import { DistortionShader } from '../jsm/shaders/DistortionShader.js';
 import { BloomMix } from '../jsm/shaders/BloomMix.js';
+
+import { ToneMapShader } from '../jsm/shaders/ToneMapShader.js';
 
 import { LUTCubeLoader } from '../jsm/loaders/LUTCubeLoader.js';
 //import { LUT3dlLoader } from '../loaders/LUT3dlLoader.js';
@@ -45,13 +47,14 @@ export class Composer extends EffectComposer {
 		console.log( sizeFX, size.w*px, size.h*px )
 		//let RTClass = WebGLRenderTarget
 */
-		const renderTarget = new WebGLRenderTarget( size.w*px, size.h*px )/*, {
+		const renderTarget = new WebGLRenderTarget( size.w*px, size.h*px , {
 			minFilter: LinearFilter,
 			magFilter: LinearFilter,
-			format: RGBAFormat,
-			//encoding: sRGBEncoding//??? slow down
+			format: RGBAFormat,//??? slow down
+			encoding: sRGBEncoding,
+			type:FloatType ,
 		})
-*/
+
 		if( renderTarget.samples ){ 
 			//renderer.autoClear = false;
 			//renderTarget.samples = 4
@@ -98,14 +101,16 @@ export class Composer extends EffectComposer {
 
 		this.options = {
 
-			focus: 20.0,
-			aperture: 5,
-			maxblur: 1,
+			// focus
+			focus: 2.0,
+			aperture: 2.5,
+			maxblur: 0.01,
 
 			// bloom
 			threshold:0.85,
 			strength:1.5,
 			bloomRadius: 0,
+
 
 			// sao
 			saoBias:0.5,
@@ -180,11 +185,11 @@ export class Composer extends EffectComposer {
 		this.pass.sharpen.enabled = true
 		
 
-		/*
+		
 		this.pass.focus = new BokehPass( this.scene, this.camera, { focus: 20.0, aperture: 0.2, maxblur: 2, width: size.w, height: size.h } );
 		this.addPass( this.pass.focus )
 		this.pass.focus.enabled = false
-		*/
+		
 
 
 
@@ -224,12 +229,17 @@ export class Composer extends EffectComposer {
 		this.addPass( this.pass.sao )
 		this.addPass( this.pass.distortion )
 		this.addPass( this.pass.lut )
-		this.addPass( this.pass.sharpen )
 		
+		this.addPass( this.pass.sharpen )
+		this.addPass( this.pass.focus )
 
-		/*this.pass.gamma = new ShaderPass( GammaCorrectionShader )
+		/*this.pass.tone = new ShaderPass( ToneMapShader )
+		this.addPass( this.pass.tone )
+		this.pass.tone.enabled = true
+
+		this.pass.gamma = new ShaderPass( GammaCorrectionShader )
 		this.addPass( this.pass.gamma )
-		this.pass.gamma.enabled = false*/
+		this.pass.gamma.enabled = true*/
 
 
 		if( !this.isGl2 ){
@@ -311,12 +321,12 @@ export class Composer extends EffectComposer {
 
 	update (){
 
-		/*if( this.pass.focus ){
-			this.pass.focus.uniforms[ "focus" ].value = this.options.focus;
-			this.pass.focus.uniforms[ "aperture" ].value = this.options.aperture// * 0.00001;
-			this.pass.focus.uniforms[ "maxblur" ].value = this.options.maxblur// * 0.001;
-			this.pass.focus.uniforms[ "aspect" ].value = this.camera.aspect;
-		}*/
+		if( this.pass.focus ){
+			this.pass.focus.uniforms[ "focus" ].value = this.options.focus;//this.camera.dist //
+			this.pass.focus.uniforms[ "aperture" ].value = this.options.aperture * 0.001;
+			this.pass.focus.uniforms[ "maxblur" ].value = this.options.maxblur;
+			//this.pass.focus.uniforms[ "aspect" ].value = this.camera.aspect;
+		}
 
 		if( this.bloomPass ){
 			this.bloomPass.threshold = this.options.threshold;

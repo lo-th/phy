@@ -60,7 +60,7 @@ export class Body extends Item {
 			    b.getAngularVelocityTo( this.r )
 				this.v.toArray( AR, n+8 ) // velocity
 			    this.r.toArray( AR, n+11 ) // angular
-			    if( AR[ n ] === 1 ) AR[ n ] = v.length() * 9.8;// speed km/h
+			    if( AR[ n ] === 1 ) AR[ n ] = this.v.length() * 9.8;// speed km/h
 			}
 		}
 

@@ -229,13 +229,13 @@ export const Gui = {
 	    
 		
 		
-		/*
+		
 		g.add( composer.pass.focus, 'enabled', { type:'bool', rename:'focus', onName:'focus' })
 		g.add( composer.options, 'focus', {min:0, max:100} ).onChange( function(){ composer.update() } )
-		g.add( composer.options, 'aperture', {min:0, max:10} ).onChange( function(){ composer.update() } )
-		g.add( composer.options, 'maxblur', {min:0, max:10} ).onChange( function(){ composer.update() } )
+		g.add( composer.options, 'aperture', {min:0, max:5,  precision:2} ).onChange( function(){ composer.update() } )
+		g.add( composer.options, 'maxblur', {min:0, max:0.01,  step:0.001, precision:3} ).onChange( function(){ composer.update() } )
 	    g.add( 'empty', {h:6})
-	    */
+	    /**/
 
 	    g.add( composer.pass.sao, 'enabled', { type:'bool', rename:'sao' })
 		g.add( composer.options, 'saoBias', {min:-1, max:1, mode:mode} ).onChange( function(){ composer.update() } )

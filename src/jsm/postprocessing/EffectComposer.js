@@ -55,20 +55,6 @@ class EffectComposer {
 
 		this.passes = [];
 
-		// dependencies
-
-		if ( CopyShader === undefined ) {
-
-			console.error( 'THREE.EffectComposer relies on CopyShader' );
-
-		}
-
-		if ( ShaderPass === undefined ) {
-
-			console.error( 'THREE.EffectComposer relies on ShaderPass' );
-
-		}
-
 		this.copyPass = new ShaderPass( CopyShader );
 
 		this.clock = new Clock();

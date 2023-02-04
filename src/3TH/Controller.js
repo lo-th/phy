@@ -443,6 +443,8 @@ export class Controller extends OrbitControls {
         var c = this.object;
         var sph = this.getSpherical();
 
+        this.object.dist = sph.radius
+
         return {
 
             x:t.x, y:t.y, z:t.z,
