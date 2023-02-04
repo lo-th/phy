@@ -152,20 +152,7 @@ export class Env {
 
     }
 
-    static clearPmrem ( ) {
-
-    	if(!pmrem) return
-    	/*let i = pmrem._lodPlanes.length
-        while(i--){ 
-        	pmrem._lodPlanes[i].dispose()
-        }*/
-
-        pmrem._dispose()
-
-
-    }
-
-	static async load ( url, callback, Renderer, Scene, Light, Light2, autosun ) {
+	static async load ( url, callback ) {
 
 		data = {
 			pos: new Vector3(0,1,0),
@@ -174,83 +161,36 @@ export class Env {
 			envmap:null,
 		}
 
-		if( Renderer ) renderer = Renderer
-		if( Scene ) scene = Scene
-		if( Light ) light = Light
-		if( Light2 ) light2 = Light2
+		hdr = await hdrLoader.loadAsync( url );
 
+		Env.process()
+		
+		if( callback ) callback()
 
-		autosun = autosun !== undefined ? autosun : true;
+	}
 
-		hdr = await hdrLoader.loadAsync( url );//.setDataType(FloatType)
-		//hdr.mapping = EquirectangularReflectionMapping;
-
-		//hdr = hdrLoader.load( url, function(){ 
-
+	static process () {
 
 		if( usePmrem ){ 
-			//pmrem = new PMREMGenerator( renderer );
-			//pmrem.compileEquirectangularShader();
 			pm = pmrem.fromEquirectangular( hdr )
 			env = pm.texture;
 			pmrem.dispose()
-			//hdr.dispose()
-			//pmrem = null
-			//Env.clearPmrem ( )
-			//console.log(pmrem)
 		} else {
 			env = hdr;
 			env.mapping = EquirectangularReflectionMapping;
-			//texture.encoding = THREE.sRGBEncoding
-			//env = texture
 		}
-
-
-		//pmrem.fromEquirectangular( texture ).texture;
-
-
-
-		//console.log(texture.encoding, THREE.sRGBEncoding )
-
-		
-
-		//if( autosun ) Env.autoSun( texture.source.data, 'hdr', true );
 	
 		if( scene ) {
 			
-			
 			scene.environment = env;
-
-			
-
 			if( floor ) floor.map = env;
 			else scene.background = env;
-
 			if( scene.ground ) scene.ground.setColor( data.fog.getHex(), true )
-
-			//renderer.background = env;
-
-			//scene.background.visible = false
-
-			//console.log(scene.background)
 		}
 
-		if( autosun ) {
-			tt = 0
-			Env.up()
-		}
-
-		//texture.dispose()
-		/*if( usePmrem ){ 
-			pmrem.dispose()
-			//pm.dispose()
-		}*/
-
-		if( callback ) callback()
-
-
-		//})
-
+		// autosun
+		tt = 0
+		Env.up()
 
 	}
 

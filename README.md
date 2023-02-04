@@ -15,6 +15,8 @@ ES6, chamfer geometry, Glb manager, envmap and reflection, post process ...
 Phy main function is : add, remove and update.<br>
 You can see and edit demo code directlly on <a href="https://lo-th.github.io/phy/">webpage</a> 
 
+You can drag file directly on viewport ( code js or environement hdr ) 
+
 ## Todo
 
 Add character support, add more demos, fixe joint, vehicle...

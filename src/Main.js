@@ -9,7 +9,6 @@ import { Composer } from './3TH/Composer.js'
 import { Controller } from './3TH/Controller.js'
 import { Shader } from './3TH/Shader.js'
 import { Pool } from './3TH/Pool.js'
-//import { math } from './3TH/math.js'
 import { Hub } from './3TH/Hub.js'
 import { Gui } from './3TH/Gui.js'
 import { Env } from './3TH/Env.js'
@@ -408,9 +407,15 @@ const init = () => {
 
 	//composer = new Composer( renderer, scene, camera, controls, size );
 
-	window.addEventListener( 'resize', onResize )
+	
 	// avoid track run in background
 	document.addEventListener( 'visibilitychange', onVisible )
+
+	window.addEventListener( 'resize', onResize )
+	document.body.addEventListener( 'dragover', function(e){ e.preventDefault() }, false );
+    document.body.addEventListener( 'dragend', function(e){ e.preventDefault() }, false );
+    document.body.addEventListener( 'dragleave', function(e){ e.preventDefault()}, false );
+	document.body.addEventListener( 'drop', drop, false );
 
 	activeDragMouse( true )
 
@@ -425,6 +430,36 @@ const init = () => {
 	start()
 
 	Pool.load( 'demos.json', next )
+
+}
+
+const drop = (e) => {
+
+	e.preventDefault();
+	const file = e.dataTransfer.files[0]
+    const reader = new FileReader();
+    const name = file.name;
+    const type = name.substring(name.lastIndexOf('.')+1, name.length )
+    const finalName = name.substring( name.lastIndexOf('/')+1, name.lastIndexOf('.') )
+
+    //console.log(type, name)
+
+    switch(type){
+    	case 'js': reader.readAsText( file ); break;
+    	case 'fbx': case 'glb':  reader.readAsArrayBuffer( file ); break;
+    	case 'hdr' : 
+    	options.envmap = finalName
+    	Env.load( ( window.URL || window.webkitURL ).createObjectURL( file )); 
+    	break;
+    }
+
+    reader.onload = function ( e ) {
+
+    	switch(type){
+	    	case 'js': directDemo( finalName, e.target.result ); break;
+	    	
+	    }
+    }
 
 }
 
@@ -655,6 +690,17 @@ const dispose = () => {
 //   CODE SIDE
 //
 //--------------------
+const directDemo = ( name, result ) => {
+
+	let findDemo = Gui.resetDemoGroup( name )
+	unSelect()
+
+	options.demo = name
+	location.hash = name
+
+	inject( result )
+
+}
 
 const loadDemo = ( name ) => {
 
@@ -924,15 +970,7 @@ const setEnv = ( name, chageUI ) => {
 		if ( !isNaN(name) ) options.envmap = 'null'
 		else options.envmap = name
 
-
 		Env.set( name )
-
-		/*if( typeof o.envmap  === 'string' ){
-			
-		    Env.load( './assets/textures/equirectangular/'+options.envmap+'.hdr' )
-		} else if (!isNaN(o.envmap)){
-			Env.setBackgroud( o.envmap )
-		}*/
 
 		if( envui && chageUI ) envui.setValue( options.envmap )
 		
