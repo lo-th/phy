@@ -307,8 +307,7 @@ window.Fluid = Fluid
 
 async function preLoad( name, o ) {
 	
-    //let M = await import('./'+name+'.js');
-    let M = await import('../build/'+name+'.module.js');
+    let M = await import( Main.devMode ? './'+name+'.js' : '../build/'+name+'.module.js');
     o.direct = M.engine.message;
     Motor.init( o )
 
