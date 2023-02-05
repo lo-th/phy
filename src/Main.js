@@ -17,10 +17,10 @@ import { Editor } from './3TH/Editor.js'
 import { Reflector } from './3TH/objects/Reflector.js'
 import { Landscape } from './3TH/objects/Landscape.js'
 import { Building } from './3TH/objects/Building.js'
-import { Diamond } from './3TH/objects/Diamond.js'
-import { Liquid } from './3TH/objects/Liquid.js'
-import { Fluid } from './3TH/objects/Fluid.js'
 import { Sparkle } from './3TH/objects/Sparkle.js'
+// MATERIAL
+import { Diamond } from './3TH/materials/Diamond.js'
+import { Fluid } from './3TH/materials/Fluid.js'
 
 import { DirectionalHelper } from './3TH/helpers/DirectionalHelper.js'
 // TEXTURE
@@ -299,9 +299,9 @@ window.THREE = THREE
 window.hub = Hub
 window.Landscape = Landscape
 window.Building = Building
-window.Diamond = Diamond
 window.Sparkle = Sparkle
-window.Liquid = Liquid
+
+window.Diamond = Diamond
 window.Fluid = Fluid
 
 async function preLoad( name, o ) {

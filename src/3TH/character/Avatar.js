@@ -1,1512 +1,1720 @@
-import { math } from '../math.js';
-import { root } from '../root.js';
-import { } from './modules/AnimationPack.js';
-import { Animator } from './Animator.js';
-import { ExoSkeleton } from './ExoSkeleton.js';
-import { Weapon } from './Weapon.js';
-import { Pool } from '../Pool.js';
-import { BoneHelper } from './helpers/BoneHelper.js';
+import {
+	Object3D, Group, Mesh,SkinnedMesh,Texture,
+    Matrix4, Quaternion, Euler, Vector3, Vector2,
+    SphereGeometry, SkeletonHelper,
+    MeshStandardMaterial, MeshLambertMaterial, MeshPhongMaterial, MeshBasicMaterial,MeshPhysicalMaterial,
+    TextureLoader,AnimationMixer, AxesHelper,
+    FrontSide, BackSide, DoubleSide, Color, ShaderChunk, CanvasTexture,
+    VectorKeyframeTrack, QuaternionKeyframeTrack, AnimationClip, Skeleton, sRGBEncoding,
+    Float32BufferAttribute, EquirectangularReflectionMapping, LinearEncoding,
+    EqualDepth,LessDepth,LessEqualDepth,GreaterEqualDepth,GreaterDepth,NotEqualDepth,
+    CustomBlending, AddEquation, SubtractEquation, ReverseSubtractEquation, MinEquation, MaxEquation,
+    ZeroFactor, OneFactor, SrcColorFactor, OneMinusSrcColorFactor, SrcAlphaFactor, OneMinusSrcAlphaFactor, DstAlphaFactor, OneMinusDstAlphaFactor, DstColorFactor, OneMinusDstColorFactor, SrcAlphaSaturateFactor,
 
-/**   _  _____ _   _
-*    | ||_   _| |_| |
-*    | |_ | | |  _  |
-*    |___||_| |_| |_|
-*    @author lo.th / http://lo-th.github.io/labs/
+} from 'three';
+
+
+import { Pool } from '../Pool.js';
+import { Shader } from '../Shader.js';
+import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
+import * as SkeletonUtils from 'three/addons/utils/SkeletonUtils.js';
+
+import { LZMA } from '../../libs/lzma.js';
+import { Tension } from '../Tension.js';
+
+import { ExoSkeleton } from './ExoSkeleton.js';
+
+/** __
+*    _)_|_|_
+*   __) |_| | 2023
+*  @author lo.th / https://github.com/lo-th
+* 
+*  AVATAR
 */
 
-// left -Y
-// right -Z
 
-function Avatar( o ) {
+const FrameTime = 30;
+const TimeFrame = 1/30;
+const torad = Math.PI / 180;
+const todeg = 180 / Math.PI;
+const V = new Vector3();
 
-	THREE.Object3D.call( this );
+export class Avatar extends Group {
 
-    this.type = 'Avatar';
-    this.pathTexture = './assets/textures/avatar/';
-    this.skeletonBase = 'skeleton';
+	constructor( type ) {
 
-    this.rotateAll = o.fullRotation || false;
+        super();
 
-    this.extraUpdate = null;
+        this.matrixAutoUpdate = false;
+        this.isPause = true;
 
-    this.isFpsOnly = o.fpsOnly || false;
+        this.textureQuality = 2;
 
-    this.autoCenter = o.autoCenter !== undefined ? o.autoCenter : true;
+        this.model = type || 'man';
 
-    this.isPostUpdate = true;
-    this.lockHip = false;
+        this.size = 1;
 
-    this.handCorrect = false;
+        this.fullMorph = ['MUSCLE', 'LOW', 'BIG', 'MONSTER']
+        this.whithMorph = true;
 
-    this.isWithExoSkeleton = o.exoskeleton || false;
-
-    this.callback = o.callback || function (){};
-    this.gender = o.gender || '';
-    this.mode = o.mode || 'standard';
-    this.superTest = o.superTest || false;
-    this.prefix = o.prefix || '';
-    this.size = o.size || 1;
-
-    this.extraParts = [];
-
-    this.onToggle = false;
-
-
-
-    this.startAnimation = 'idle';
-
-    this.mesh = null;
-    this.skin = null;
-    this.helper = null;
-    this.axis = null;
-    this.template = null;
-
-    this.armTween = null;
-
-    this.armature = null;
-
-    this.exoskel = null;
-
-    this.angleV = 0;
-    this.angleH = 0;
-
-    this.offsets = {
-
-        abdomen:[ 0,-3,0],
-        chest:[ 0,-2.5,0],
-        neck:[ 0,32,0],
-        head:[ 0,-22,0],
+        this.skeleton = null;
+        //this.root = null;
+        this.mixer = null;
+        this.mesh = {};
+        this.bones = {};
+        this.done = false;
+        this.isClone = false;
         
-        // arm
-        //['lCollar', -3,-6,-3],
-        lCollar:[ -6.5,-6,-2],
-        lShldr:[ -11,-2, 45],
-        lForeArm:[ -1,-11,0],
-        lHand:[ -3,1,-1.5],
-        // finger
-        lThumb1:[ -70,35,-22],
-        //lThumb1:[ -45,30,-12],
-        lThumb2:[ 0,0,-16],
-        lThumb3:[ 0,0,10],
+        this.isBreath = true;
 
-        lIndex1:[ 0,-8, -5 ],
-        lMid1:[ 0,-14,-5],
-        lRing1:[ 0,-20,-5],
-        lPinky1:[ 0,-25,-6],
+        this.tensionTest = true;
+        this.tensionActive = false;
+
+        this.fixToe = false;
+        this.clipsToesFix = [];
+
+        this.n = Math.round(Math.random()*1000);
+
+        this.actions = new Map();
+        this.current = null;
+        this.old = null;
+
+        this.breath = 0;
+        this.breathSide = -1;
+
+        this.q = new Quaternion().setFromAxisAngle( {x:0, y:1, z:0}, Math.PI*0.5 );
+        this.headBoneLook = new Vector3();
+        this.eyeTarget = new Group()//new AxesHelper(0.01)//
+        this.eyeTarget.position.set(0, 1, 0);
+
+        this.tmpMtx = new Matrix4();
+        this.tmpQ = new Quaternion();
+
+        this.setting = {
+            mixRatio:0.,
+            threshold:0.1,
+            normal:0.4,
+            hair:0xa43412,
+
+            bow:0x100402,
+
+            sheen:2.25,
+            sheenRoughness:1.0,
+
+            metalness:1,
+            roughness:0.5,
+            wireframe:false,
+            vertexColors:false,
+
+            /*equation: 'add',
+            blendSrc:'srcAlpha',
+            blendDst:'zero',///'oneSrcAlpha'
+            equationA: 'add',
+            blendSrcA:'srcAlpha',
+            blendDstA:'oneSrcAlpha',*/
+            alphaTest:0.3,
+            h_metal:0.4,
+            h_rough:0.6,
+            
+        }
+
+        //this.initMaterial();
+
+        this.root = Pool.get( this.model, 'O' )
+
+        if( this.root ){
+            this.isClone = true;
+            this.tensionTest = false;
+            this.root = SkeletonUtils.clone( this.root );
+            this.init();
+        } else {
+            this.load()
+        }
+
+    }
+
+    load()
+    {
+
+        this.skin = Pool.getTexture('avatar_c')
+        if( !this.skin ){
+            const path = './assets/textures/avatar_' + this.textureQuality + 'k/'
+            const asset = [
+                'avatar_c.jpg', 'avatar_n.jpg', 'avatar_m.jpg', 'avatar_r.jpg', 'avatar_u.jpg',
+                'mouth_c.jpg', 'mouth_a.jpg', 'mouth_n.jpg', 
+                'eye_c.jpg', 'eye_n.jpg', 'hair.jpg', 'hair_a.jpg',
+                'eyelash_c.jpg', 'eyelash_a.jpg', 'eyelash_n.jpg',
+                'hair_man.jpg', 'hair_man_a.jpg'
+            ]
+            Pool.load( asset, this.loadModels.bind(this), path, 'loading images...' )
+        } else {
+            this.loadModels()
+        }
+
+    }
+
+    loadModels()
+    {
+
+        this.initMaterial()
+        const asset = [this.model+'.glb']
+        const path = './assets/model/'
+        if( this.whithMorph ) asset.push( this.model+'_morph.glb' )
+        Pool.load( asset, this.init.bind(this), path, 'loading models...' )
+
+    }
+
+    update( delta )
+    {
+
+        if( !this.done ) return;
+        if ( this.mixer ){
+
+            this.mixer.update( delta );
+
+            // blink
+            const n = this.n
+            if( n<=20) this.eyeControl((n*0.05))
+            if( n>10 && n<=40 ) this.eyeControl(1-((n-20)*0.05))
+            this.n ++
+            if( this.n===1000 ) this.n = 0
+
+            if( !this.isClone ){ 
+                this.look( delta*10 )
+                this.breathing()
+                this.autoToes()
+            }
+
+            if( this.tensionActive ){ 
+                this.tension1.update()
+                this.tension2.update()
+            }
+
+            if( window.gui && this.current ){ 
+                window.gui.updateTimeBarre( Math.round( this.current.time * FrameTime ), this.current.frameMax );
+            }
+        }
+
+    }
+
+    look( delta )
+    {
+
+        if(this.isPause) return
+
+        const v = window.mouse || {x:0, y:0};
+
+        if(delta>1) delta = 1
+
+        this.headBoneLook.lerp({ x:-(v.y*20)*torad, y:0, z:-(v.x*20)*torad }, delta );
+        this.eyeTarget.position.lerp({ x:v.x*0.5, y:1, z:-v.y*0.25 }, delta );
+
+        let e = this.headBoneLook;
+        this.tmpQ.setFromEuler( { _x:e.x, _y:e.y, _z:e.z, _order:'XYZ' }, false );
+        this.bones.head.quaternion.multiply(this.tmpQ)
+
+        let ER = this.bones.ER;
+        let EL = this.bones.EL;
+        let up = {x:0, y:0, z:1}
+
+        this.tmpMtx.lookAt( EL.position, this.eyeTarget.position.clone().add({x:0.03, y:0, z:-0.074}), up );
+        EL.quaternion.setFromRotationMatrix( this.tmpMtx ).multiply(this.q);
+
+        this.tmpMtx.lookAt( ER.position, this.eyeTarget.position.clone().add({x:-0.03, y:0, z:-0.074}), up );
+        ER.quaternion.setFromRotationMatrix( this.tmpMtx ).multiply(this.q);
+
+    }
+
+    breathing()
+    {
+
+        if( !this.isBreath )return;
+
+        let a = this.breath*0.01
+
+        if(this.breathSide > 0){
+            this.bones.chest.scalling.y = this.lerp (1,1.04, a);
+            this.bones.chest.scalling.x = this.lerp (1,1.02, a);
+            this.bones.abdomen.scalling.y = this.lerp (1,0.92, a);
+        }else{
+            this.bones.chest.scalling.y = this.lerp (1.04,1, a);
+            this.bones.chest.scalling.x = this.lerp (1.02,1, a);
+            this.bones.abdomen.scalling.y = this.lerp (0.92,1, a);
+        }
+
+        this.breath ++;
+        if( this.breath === 100 ){ this.breath = 0; this.breathSide = this.breathSide > 0 ? -1:1; }
+
+    }
+
+    setPosition( x, y, z )
+    {
+        this.position.set( x, y, z )
+        this.updateMatrix()
+    }
+
+    onReady(){}
+
+    /*load()
+    {
+        this.loader = new GLTFLoader().setDRACOLoader( new DRACOLoader().setDecoderPath( './src/libs/draco/' ) );
+        this.loader.load( './assets/model/'+this.model+'.glb', function ( glb ) {
+            //this.root = glb.scene;
+            //Pool.set( this.model, this.root );
+            Pool.set( this.model, glb.scene );
+            this.loadMorph();
+        }.bind(this))
+    }
+
+    loadMorph()
+    {
+        this.loader.load( './assets/model/' + this.model+'_morph.glb', function ( glb ) {
+            Pool.set( this.model+'_morph', glb.scene );
+            this.init();
+        }.bind(this))
+    }
+
+    loadExtra()
+    {
+        const self = this;
+        const list = []
+        this.loader.load( './assets/model/extra.glb', function ( glb ) {
+
+            glb.scene.traverse( function ( node ) {
+                if ( node.isMesh ){
+                    node.receiveShadow = true;
+                    node.castShadow = true;
+                    node.visible = false;
+                    node.material = self.material2;
+                    // remplace skeleton
+                    if( node.isSkinnedMesh ){
+                        node.skeleton.dispose();
+                        node.skeleton = self.skeleton;
+                    }
+                    self.mesh[node.name] = node;
+                    list.push(node.name);
+                }
+            })
+
+            // add new mesh to root
+            let i = list.length;
+            while( i-- ){
+                self.root.add( self.mesh[ list[i] ]);
+            }
+
+            //self.loadAnimationFbx('./assets/animation/Defeated.fbx');
+            self.loadAnimationGlb('./assets/animation/locomotion.glb')
+            //self.loadAnimationHex('./assets/animation/animation.hex')
+
+        })
+    }*/
+
+    /*texture( url, o = {} )
+    {
+
+        //const tx = new Texture()
+        if( !this.imgLoader ) this.imgLoader = new TextureLoader();
+        let path = './assets/textures/avatar_2k/'
+        const tx = this.imgLoader.load( path + url );
+
+        tx.encoding = o.rgbe ? sRGBEncoding : LinearEncoding;
+        tx.flipY = o.flipY !== undefined ? o.flipY : false;
+
+        return tx;
+    }
+
+    mats( type, o = {} ){
+
+    }*/
+
+    initMaterial()
+    {
+
+        if( Pool.getMaterial( 'body' ) ) return
+
+        const s = this.setting
+
+        // MOUTH
+
+        let m = new MeshStandardMaterial( { 
+            map:Pool.getTexture('mouth_c'),
+            roughness:0.6,//0.568,
+            metalness:0.6,
+            alphaMap:Pool.getTexture('mouth_a'),
+            alphaTest:0.5,
+            normalMap:Pool.getTexture('mouth_n')
+        });
+
+        Shader.add(m)
+        Pool.set( 'mouth', m );
+
+        // EYE
+
+        m = new MeshPhysicalMaterial( { 
+            //color:0x000000,
+            roughness:0,//0.568,
+            metalness:0,
+            ior:1.376,
+            //clearcoat:1.0,
+            //opacity:0.33,
+            //transparent:true,
+            transmission: 1,
+            thickness: 0.001,
+            envMapIntensity:0.01,
+            normalMap:Pool.getTexture('eye_n'),
+            normalScale:new Vector2( 2, -2),
+            envMap:Pool.get('reflect3', 'hdr')
+        });
+
+        Shader.add(m)
+        Pool.set( 'sub_eye', m );
 
 
-        // leg
-        lThigh:[ 0,0.5,8],
-        lShin:[ 0,-6,0],
-        lFoot:[ 16,5,-6],
+        m = new MeshStandardMaterial({ 
+            map:Pool.getTexture('eye_c'),
+            emissiveMap:Pool.getTexture('eye_c'),
+            emissive:0x101010,
+            roughness:0.7,
+            metalness:0.1,
+            normalMap:Pool.getTexture('eye_n'),
+            normalScale:new Vector2( 2, -2)
+            //opacity:0.2,
+            //transparent:true,
+            //transmission: 1,
+            //thickness: 0.5,
+        });
 
-    };
+        Shader.add(m)
+        Pool.set( 'eye', m );
 
-    this.oldOffests = {
 
-        abdomen:[ 0,-6,0],
-        chest:[ 0,-6,0],
-        neck:[ 0,25,0],
-        head:[ 0,-20,0],
-        // leg
-        lThigh:[ 0,0,8],
-        lFoot:[ 15,-2,-10],
-        // arm
-        lShldr:[ 0,-3,47],
-        lForeArm:[ 0,-7,0],
-        //finger
-        lThumb1:[ 0,15,5],
-        lIndex1:[ 0,0,5],
-        lMid1:[ 0,-5,3],
-        lRing1:[ 0,-10,2],
-        lPinky1:[ 0,-15,10],
+        // HAIR
+
+        m = new MeshStandardMaterial({
+            map:Pool.getTexture('hair'),
+            color:s.hair,
+            //emissiveMap:Pool.getTexture('hair'),
+            //emissive:this.setting.hair,
+            roughness:s.h_rough,
+            metalness:s.h_metal,
+            alphaMap:Pool.getTexture('hair_a'),
+            alphaTest:s.alphaTest,
+            
+            side: DoubleSide,
+            opacity:1.0,
+            
+            transparent:true,
+
+            blending:CustomBlending,
+            blendDst:ZeroFactor,
+            blendDstAlpha:SrcAlphaFactor,
+            //OneMinusSrcAlphaFactor
+            /*blendEquationAlpha:AddEquation,
+            blendSrcAlpha:SrcAlphaFactor,//SrcAlphaFactor
+            */
+            shadowSide:DoubleSide,
+
+            //depthTest:false,
+            //depthWrite:false,
+            alphaToCoverage:true,
+            //premultipliedAlpha:true,
+            //dithering:true,
+        });
+
+
+
+        Shader.add(m)
+        Pool.set( 'hair', m );
+
+        m = m.clone();
+        //m.map = m.emissiveMap = Pool.getTexture('hair_man')
+        m.color.setHex( s.hair )
+        m.map = Pool.getTexture('hair_man')
+        m.alphaMap = Pool.getTexture('hair_man_a')
+
+        Shader.add(m)
+        Pool.set( 'hair_man', m );
+
+        
+        m = new MeshStandardMaterial({
+            color:s.hair, //bow,
+            map:Pool.getTexture('eyelash_c'),
+            //emissiveMap:Pool.getTexture('eyelash_a'),
+            //emissive:s.bow,
+
+            roughness:s.h_rough,
+            metalness:s.h_metal,
+            //roughness:0.75,
+            //metalness:0.25,
+            alphaMap:Pool.getTexture('eyelash_a'),
+            alphaTest:s.alphaTest,
+            transparent:true,
+            side: DoubleSide,
+            alphaToCoverage:true,
+            polygonOffset: true,                
+            polygonOffsetFactor: - 4,
+            //premultipliedAlpha:true,
+            normalMap:Pool.getTexture('eyelash_n'),
+            normalScale:new Vector2( 1, -1)
+        });
+
+        Shader.add(m)
+        Pool.set( 'eyelash', m );
+
+        m = new MeshPhysicalMaterial({
+            map:Pool.getTexture('eyelash_c'),
+            //emissiveMap:eyea,
+            //emissive:this.setting.hair,
+            roughness:0.5,
+            metalness:0.5,
+            alphaMap:Pool.getTexture('eyelash_a'),
+            //alphaTest:0.5,
+            transparent:true,
+            alphaToCoverage:true,
+            opacity:1,
+            //thickness: 0.001,
+            //envMapIntensity:0.3,
+            //envMap:eyer
+            //premultipliedAlpha:true
+        });
+
+        Shader.add(m)
+        Pool.set( 'tear', m );
+
+        this.skin = Pool.getTexture('avatar_c')
+
+        m = new MeshPhysicalMaterial({
+
+            map: this.skin, 
+            normalMap:Pool.getTexture('avatar_n'),
+            roughness:this.setting.roughness, //1.0,
+            metalness:this.setting.metalness, //1.0,
+            metalnessMap:Pool.getTexture('avatar_m'),
+            //roughnessMap:Pool.getTexture('avatar_r'),
+           // alphaMap:alpha,
+           // alphaTest:0.0001,
+            normalScale:new Vector2( this.setting.normal, -this.setting.normal),
+            shadowSide:DoubleSide,
+            //transparent:true,
+            //aoMap:ao,
+            sheenColorMap:Pool.getTexture('avatar_u', {encoding:true}),
+            //sheenRoughnessMap:rough,
+            sheenRoughness:this.setting.sheenRoughness,
+            sheenColor:0xffffff,
+            sheen:this.setting.sheen,
+
+        });
+
+
+        /*const self = this;
+
+
+
+        m.onBeforeCompile = function ( shader ) {
+            Shader.modify( shader );
+            //console.log(  'bf', this )
+            /*shader.uniforms.mixRatio = { value: self.setting.mixRatio };
+            shader.uniforms.threshold = { value: self.setting.threshold };
+
+            //shader.vertexShader = shader.vertexShader.replace( `#include <morphtarget_vertex>`, morphFix )
+
+            shader.fragmentShader = 'uniform float mixRatio;\nuniform float threshold;\n' + shader.fragmentShader;
+            shader.fragmentShader = shader.fragmentShader.replace(
+            `#include <alphamap_fragment>`,`
+            #ifdef USE_ALPHAMAP
+                float vv = texture2D( alphaMap, vUv ).g;
+                float r = mixRatio * (1.0 + threshold * 2.0) - threshold;
+                float mixf = clamp((vv - r)*(1.0/threshold), 0.0, 1.0);
+                diffuseColor.a *= mixf;
+            #endif
+            `)
+            this.userData.shader = shader;*/
+        /*}
+
+        m.customProgramCacheKey = function () {
+            console.log(  'bf', this )
+            //return amount;
+        };*/
+
+
+        //if( this.tensionTest ) m = new MeshBasicMaterial({ vertexColors:true })
+        Shader.add(m)
+        Pool.set( 'body', m );
+
+        // LOW
+
+        m = new MeshBasicMaterial({ 
+            color:0x000000,
+            wireframe: true,
+        });
+
+        Shader.add(m)
+        Pool.set( 'low', m );
+
+    }
+
+    
+
+    /*correctNeck( name )
+    {
+        let h = this.mesh[name].geometry
+        let c = this.mesh['Neck'].geometry
+
+        let p = h.attributes.position.array;
+        let o = h.attributes.normal.array;
+        let i = h.attributes.position.count, j, n, m;
+
+        let pc = c.attributes.position.array;
+        let co = c.attributes.normal.array;
+
+        while( i-- ){
+            n = i*3;
+            j = c.attributes.position.count;
+            while( j-- ){
+                m = j*3;
+                if(pc[m] === p[n]){
+                    if(pc[m+1] === p[n+1]){
+                        if(pc[m+2] === p[n+2]){
+                            //console.log( o[n] + ' | '+o[n+1]+' | '+o[n+2]  +'    ', co[m] +' | '+co[m+1]+' | '+co[m+2]  )
+                            o[n] = co[m]
+                            o[n+1] = co[m+1]
+                            o[n+2] = co[m+2]
+                        }
+                    }
+                }
+            }
+
+        }
+
+        h.attributes.normal.needsUpdate  = true
+        
+    }
+
+    cloneHair( node )
+    {
+        let hair = node.clone();
+        hair.material = node.material.clone();
+        hair.material.side = BackSide;
+        hair.material.depthWrite = false;
+        node.renderOrder = 1;
+        node.parent.add(hair)
+    }*/
+
+
+    
+
+    /*setBlending()
+    {
+        const equation = {
+            'add':AddEquation,
+            'sub':SubtractEquation,
+            'rsub':ReverseSubtractEquation,
+            'min':MinEquation,
+            'max':MaxEquation,
+        }
+
+        const factors = {
+            'zero':ZeroFactor,
+            'one':OneFactor,
+            'srcColor':SrcColorFactor,
+            'oneSrcColor':OneMinusSrcColorFactor,
+            'srcAlpha':SrcAlphaFactor,
+            'oneSrcAlpha':OneMinusSrcAlphaFactor,
+            'dstAlpha':DstAlphaFactor,
+            'oneDstAlpha':OneMinusDstAlphaFactor,
+            'dstColor':DstColorFactor,
+            'oneDstColor':OneMinusDstColorFactor,
+            'saturate':SrcAlphaSaturateFactor,
+        }
+
+
+        let m = Pool.getMaterial( 'hair' )
+        m.blendEquation = equation[this.setting.equation]
+        m.blendSrc = factors[this.setting.blendSrc]
+        m.blendDst = factors[this.setting.blendDst]
+
+        m.blendEquationAlpha = equation[this.setting.equationA]
+        m.blendSrcAlpha = factors[this.setting.blendSrcA]
+        m.blendDstAlpha = factors[this.setting.blendDstA]
+
+        m.needsUpdate = true
+
+        m = Pool.getMaterial( 'hair_man' )
+        m.blendEquation = equation[this.setting.equation]
+        m.blendSrc = factors[this.setting.blendSrc]
+        m.blendDst = factors[this.setting.blendDst]
+
+        m.blendEquationAlpha = equation[this.setting.equationA]
+        m.blendSrcAlpha = factors[this.setting.blendSrcA]
+        m.blendDstAlpha = factors[this.setting.blendDstA]
+        
+        m.needsUpdate = true
+
+    }*/
+
+    setHair()
+    {
+
+        if( !Pool.getMaterial( 'hair' ) ) return
+        let c = this.setting.hair;
+        let m = Pool.getMaterial( 'hair' )
+        m.color.setHex( c ).convertSRGBToLinear()
+        m.alphaTest = this.setting.alphaTest
+        m.metalness = this.setting.h_metal
+        m.roughness = this.setting.h_rough
+        //m.emissive.setHex( c )
+        m = Pool.getMaterial( 'hair_man' )
+        m.color.setHex( c ).convertSRGBToLinear()
+        m.alphaTest = this.setting.alphaTest
+        m.metalness = this.setting.h_metal
+        m.roughness = this.setting.h_rough
+        //m.emissive.setHex( c )
+        m = Pool.getMaterial( 'eyelash' )
+        m.color.setHex( c ).convertSRGBToLinear()
+        m.alphaTest = this.setting.alphaTest
+        m.metalness = this.setting.h_metal
+        m.roughness = this.setting.h_rough
+        //m.emissive.setHex( c )
+    }
+
+    setMaterial()
+    {
+
+        if( !Pool.getMaterial( 'body' ) ) return
+
+        const m = Pool.getMaterial( 'body' );
+        const s = this.setting;
+
+        m.roughness = s.roughness;
+        m.metalness = s.metalness;
+        m.wireframe = s.wireframe;
+        m.vertexColors = s.vertexColors;
+
+        m.normalScale.set( s.normal, -s.normal )
+        m.sheen = s.sheen;
+        m.sheenRoughness = s.sheenRoughness;
+
+        if( s.vertexColors && m.map !== null ){ m.map = null; this.tensionActive = true; m.sheen = 0;}
+        if( !s.vertexColors && m.map === null ){ m.map = this.skin; this.tensionActive = false; }
+
+        const shader = m.userData.shader;
+        if( shader ){
+            shader.uniforms.mixRatio.value = s.mixRatio;
+            shader.uniforms.threshold.value = s.threshold;
+        }
+    }
+
+    init()
+    {
+
+        if( !this.isClone ) this.root = Pool.get( this.model, 'O' ) 
+
+
+        /*this.root.traverse( function ( node ) {
+            if ( node.isMesh ) this.mesh[node.name] = node;
+            if ( node.isBone ) this.bones[node.name] = node;
+        }.bind(this))
+
+        if( !this.isClone ) this.applyMorph( Pool.get( this.model +'_morph' ) );
+        */
+
+        if( !Pool.getMaterial( 'body' ) ) Pool.set( 'body', new MeshStandardMaterial() )
+        const def = Pool.getMaterial( 'body' );
+
+        this.root.traverse( function ( node ) {
+            if ( node.isMesh ){
+
+                // dispatch material 
+                switch( node.name ){
+                    case 'body': 
+                    
+                    node.material = def;
+                    node.receiveShadow = true;
+                    node.castShadow = true;
+                    node.matrixAutoUpdate = false;
+
+                    //this.symetric( node );
+                    //this.uv2( node )
+                    //node.bindMode = 'detached';'attached'
+                    this.skeleton = node.skeleton;
+                    if( this.skeleton.resetScalling ) this.skeleton.resetScalling()
+                    break;
+                    case 'body_low': 
+                        node.material = def//= Pool.getMaterial( 'low' ) || def;
+                        node.receiveShadow = false;
+                        node.castShadow = false;
+                        node.visible = false
+                    break;
+                    case 'Head': 
+                    node.material = def;
+                    node.receiveShadow = true;
+                    node.castShadow = true;
+                    //node.visible = false
+                    break;
+                    case 'mouth':
+                    node.material = Pool.getMaterial( 'mouth' ) || def;
+                    break;
+                    case 'eyelash':  case 'eyebrow':
+                    node.material = Pool.getMaterial( 'eyelash' ) || def;
+                    break;
+                    case 'tear': 
+                    node.material = Pool.getMaterial( 'tear' ) || def;
+                    break;
+                    case 'eye_l':case 'eye_r':
+                    node.material = Pool.getMaterial( 'eye' ) || def;
+                    break;
+                    case 'eye_l_s':case 'eye_r_s':
+                    node.material = Pool.getMaterial( 'sub_eye' ) || def;
+                    break;
+                    case 'hair': 
+                    node.material = Pool.getMaterial( this.model === 'man' ? 'hair_man': 'hair' ) || def;
+                    node.receiveShadow = true;
+                    node.castShadow = true;
+                    break;
+                    case 'hair_man': 
+                    node.material = Pool.getMaterial( 'hair_man' ) || def;
+                    node.name = 'hair'
+                    node.receiveShadow = true;
+                    node.castShadow = true;
+                    break;
+                }
+
+                //console.log(node.name, node.material.name)
+                // reset color
+                this.zeroColor(node)
+                // disable raycast
+                node.raycast = function(){}
+                this.mesh[node.name] = node;
+            }
+            if ( node.isBone ){ 
+                //console.log(node.name)
+                this.bones[node.name] = node;
+                if( node.name === 'neck' ) node.add( this.eyeTarget );
+                //if(node.name === 'ER') node.add(new AxesHelper(0.05));
+                //if(node.name === 'EL') node.add(new AxesHelper(0.05));
+            }
+            
+        }.bind(this))
+
+        
+
+
+        if( !this.isClone ){
+
+
+            // for extra skin
+            for( let m in this.mesh ){
+                if( this.mesh[m].isSkinnedMesh && m !== 'body' ){
+                    this.mesh[m].skeleton.dispose();
+                    this.mesh[m].skeleton = this.skeleton;
+                }
+            }
+
+            // add morph 
+            this.applyMorph( Pool.get( this.model+'_morph', 'O' ) );
+        }
+
+
+        if( this.size !== 1 ) this.root.scale.set(1,1,1).multiplyScalar(this.size);
+
+
+
+        if( this.tensionTest ) this.addTensionMap()
+
+        // animation
+        this.mixer = new AnimationMixer( this );
+
+
+        if( Pool.clip.length === 0 ){ 
+            // load animation include in json
+            this.loadAnimationJson('./assets/animation/animations.json', this.start.bind(this) )
+        } else {
+            let i = Pool.clip.length;
+            while(i--) this.addAction( Pool.clip[i] );
+            this.start()
+        }
+             
+    }
+
+    addTensionMap()
+    {
+        this.tension1 = new Tension( this.mesh.body );
+        this.tension2 = new Tension( this.mesh.Head );
+    }
+
+    setBounding( r )
+    {
+        for( let m in this.mesh ){
+            if(this.mesh[m].isMesh ){
+                this.mesh[m].geometry.boundingSphere.radius = r;
+            }
+        }
+
+    }
+
+    setBoneScale( v ){
+
+        const ingnor = [ 'head', 'lToes', 'rToes', 'rCollar', 'lCollar', 'rBreast', 'lBreast', 'neck'];
+        const center = ['hip', 'abdomen', 'chest'];
+        const legs = ['lThigh', 'rThigh', 'lShin', 'rShin'];
+        const b = this.bones
+
+        for( let n in b ){
+            if(ingnor.indexOf(n) === -1) {
+                if(center.indexOf(n) !== -1) b[n].scalling.z = v
+                else if(legs.indexOf(n) !== -1) b[n].scalling.z = v
+                else if( n === 'root' ) b[n].scalling.y = v
+                else if( n === 'rFoot' || n === 'lFoot') b[n].scalling.y = v
+                else b[n].scalling.x = v
+            } 
+        }
+
+        this.setBounding(v)
+    }
+
+
+    eyeControl( v )
+    {
+        this.setMorph('EyeBlink', v)
+    }
+
+    setMorph( name, v )
+    {
+        
+        this.morpher( 'eyelash', name, v);
+        this.morpher( 'eyebrow', name, v);
+        this.morpher( 'tear', name, v);
+        this.morpher( 'mouth', name, v);
+        this.morpher( 'body', name, v);
+        this.morpher( 'Head', name, v);
+
+        this.morpher( 'body_low', name, v);
+    }
+
+    morpher( obj, name, value )
+    {
+        if(!this.mesh[obj]) return
+        if(!this.mesh[obj].morphTargetInfluences) return
+        if(this.mesh[obj].morphTargetDictionary[name] === undefined ) return
+        this.mesh[obj].morphTargetInfluences[ this.mesh[obj].morphTargetDictionary[name] ] = value;
+    }
+
+    applyMorph( mod, normal = true, relative = false )
+    {
+        const morph = {};
+        
+        mod.traverse( function ( node ) { 
+            if ( node.isMesh && node.name.search('__M__') !== -1) morph[node.name] = node.geometry;
+        })
+
+
+        let target, tName, oName, id, g, gm, j, dp, dn, ar, nn, nb;
+
+        for ( let name in morph ){
+
+            oName = name.substring( 0, name.indexOf('__') )
+            tName = name.substring( name.lastIndexOf('__') + 2 );
+
+            target = this.mesh[ oName ];
+
+            if( target ){
+
+                g = target.geometry;
+                gm = morph[name];
+
+                g.morphTargetsRelative = relative;
+
+                if( g.attributes.position.count === gm.attributes.position.count ){
+
+                    if( !g.morphAttributes.position ){
+                        g.morphAttributes.position = [];
+                        if( normal ) g.morphAttributes.normal = [];
+                        target.morphTargetInfluences = [];
+                        target.morphTargetDictionary = {};
+                    }
+
+                    id = g.morphAttributes.position.length;
+
+                    // position
+                    
+                    if( relative ){
+
+                        j = gm.attributes.position.array.length;
+                        ar = []; 
+                        while(j--) ar[j] = gm.attributes.position.array[j] - g.attributes.position.array[j]
+                        dp = new Float32BufferAttribute( ar, 3 );
+                    } else {
+                        dp = new Float32BufferAttribute( gm.attributes.position.array, 3 );
+                    }
+
+                    g.morphAttributes.position.push( dp );
+
+                    // normal
+                    if( normal ){
+
+                        let onlyHead = this.fullMorph.indexOf(tName) === -1 ? true : false
+
+                        if( relative ){
+                            j = gm.attributes.normal.length;
+                            ar = [];
+                            //while(j--) ar[j] = onlyHead ? 0.0 : gm.attributes.normal.array[j] - g.attributes.normal.array[j]
+                            dn = new Float32BufferAttribute( gm.attributes.normal.array, 3 );
+                            //dn = new Float32BufferAttribute( ar, 3 );
+                        } else {
+                            dn = new Float32BufferAttribute( gm.attributes.normal.array, 3 );
+                        }
+
+                        g.morphAttributes.normal.push( dn );
+
+                    }
+
+                    target.morphTargetInfluences.push(0)
+                    target.morphTargetDictionary[ tName ] = id;
+
+                    // clear morph mesh
+                    //if( node.material ) node.material.dispose();
+                    gm.dispose();
+
+                    //console.log( target.name, tName)
+
+                } else {
+                    console.warn( 'Morph '+ tName + 'target is no good on ' + target.name )
+                }
+                
+            }
+
+        }
+
+    }
+
+    
+
+    lerp( x, y, t ) { return ( 1 - t ) * x + t * y; }
+
+    clone( type )
+    {
+        return new this.constructor( type, this );
+    }
+
+    dispose()
+    {
+
+        if( this.exoskel ) this.addExo()
+        if( this.helper ) this.addHelper()
+        this.stop();
+        this.mixer.uncacheRoot( this );
+        this.parent.remove(this);
+        this.skeleton.dispose();
+        if(!this.isClone){
+
+        }
+    }
+
+    start()
+    {
+
+        console.log('start', this.model)
+        if( this.done ) return
+
+        this.done = true;
+        this.add( this.root );
+        this.onReady();
+        let a = this.play('IDLE');
+        if(!a) this.play('idle');
+    }
+
+    addHelper()
+    {
+        if( this.helper ){
+            this.helper.dispose()
+            this.parent.remove( this.helper );
+            this.helper = null;
+        } else {
+            this.helper = new SkeletonHelper( this.root );
+            this.parent.add( this.helper );
+        }
+    }
+
+    addExo()
+    {
+        if( this.exoskel ){
+            this.exoskel.dispose()
+            this.parent.remove( this.exoskel );
+            this.exoskel = null;
+        } else {
+            this.exoskel = new ExoSkeleton( this.root, this.skeleton );
+            this.parent.add( this.exoskel );
+        }
+    }
+
+    attachToBone( m, b )
+    {
+        m.matrix = b.matrixWorld;
+        m.matrixAutoUpdate = false;
+    }
+
+    loadAnimationJson( url, callback )
+    {
+        const request = new XMLHttpRequest();
+        request.open('GET', url, true);
+        request.onreadystatechange = function() {
+            if ( request.readyState === 4 ) {
+                if ( request.status === 200 || request.status === 0 ) {
+                    let data = JSON.parse( request.responseText )
+                    this.urls = [];
+                    for( let g in data ){
+                        if( g === 'main' ) this.urls.push( ...data[g] );
+                        else this.urls.push( ...data[g].map( x => g+'/'+x ) );
+                    }
+                    this.endCallback = callback || function(){}; 
+                    this.loadOne();
+                }
+            }
+        }.bind(this)
+        request.send();
+    }
+
+    loadOne()
+    {
+        let name = this.urls[0];
+        this.loadAnimationFbx( './assets/animation/fbx/'+name+'.fbx', this.next.bind(this) );
+    }
+
+    next()
+    {
+        this.urls.shift();
+        if( this.urls.length === 0 ) this.endCallback();
+        else this.loadOne();
+    }
+
+    loadAnimationHex( url = './assets/animation/animation.hex' )
+    {
+        if(!this.lzma) this.lzma = new LZMA("./src/libs/lzma_worker.js");
+
+        var request = new XMLHttpRequest();
+        request.open('GET', url, true);
+        request.responseType = 'arraybuffer';
+
+        const glb = { animations : [] }
+        const self = this;
+
+        request.onload = function() {
+            self.lzma.decompress( new Uint8Array( request.response ), function (result) {
+                const data = JSON.parse(result);
+                for(let c in data) glb.animations.push( AnimationClip.parse( data[c] ) ); 
+                self.applydAnimation( glb );
+                self.start();
+            })
+        };
+        request.send();
+
+    }
+
+    loadAnimationGlb( url, callback )
+    {
+        let name = url.substring( url.lastIndexOf('/')+1, url.lastIndexOf('.') );
+        Pool.loaderGLTF().load( url, function ( glb ) {
+            this.applydAnimation( glb, name );
+            if( callback ) callback();
+        }.bind(this), null, callback );
+    }
+
+    directGlb( data, name )
+    {
+        Pool.loaderGLTF().parse( data, '', function ( glb ) {
+            this.stop();
+            this.applydAnimation( glb, name );
+        }.bind(this))
+    }
+
+    loadAnimationFbx( url, callback )
+    {
+        //if( !this.loaderFbx ) this.loaderFbx = new FBXLoader();
+        let name = url.substring( url.lastIndexOf('/')+1, url.lastIndexOf('.') );
+        Pool.loaderFBX().load( url, function ( node ) {
+            this.convertFbx( name, node.animations[ 0 ] );
+            if( callback ) callback();
+        }.bind(this), null, callback )
+    }
+
+    directFbx( data, name )
+    {
+        //if( !this.loaderFbx ) this.loaderFbx = new FBXLoader();
+        try {
+            let node = Pool.loaderFBX().parse( data, '' )
+            this.convertFbx( name, node.animations[ 0 ], true );
+        } catch ( e ) {
+            console.error( 'bug', e );
+        }
+    }
+
+    applydAnimation( glb, name )
+    {
+        let i = glb.animations.length, autoplay = false;
+        if( i === 1 ){
+            if( name ) glb.animations[0].name = name;
+            autoplay = true;
+        } 
+        while(i--){ 
+            this.addClip( clip );
+            this.addAction( glb.animations[i], autoplay );
+        }
+
+    }
+
+    addClip( clip )
+    {
+        let i = Pool.clip.length, removeId = -1;
+        while(i--){ if( Pool.clip[i].name === clip.name ) removeId = i; }
+        if( removeId !== -1 ) Pool.clip.slice( removeId, 1 );
+        //clip.optimize();
+        Pool.clip.push( clip );
+    }
+
+    addAction( clip, play )
+    {
+        const action = this.mixer.clipAction( clip );
+        action.frameMax = Math.round( clip.duration * FrameTime );
+        this.actions.set( clip.name, action );
+
+        if(clip.name.search('walk')!==-1) this.clipsToesFix.push(clip.name)
+        if(clip.name.search('run')!==-1) this.clipsToesFix.push(clip.name)
+        if(clip.name.search('strafe')!==-1) this.clipsToesFix.push(clip.name)
+        if(clip.name.search('jog')!==-1) this.clipsToesFix.push(clip.name)
+        if(clip.name.search('RUN')!==-1) this.clipsToesFix.push(clip.name)
+
+
+        //if(clip.name=='idle'){
+            //console.log( clip.toJSON() );
+            //console.log( action )
+        //}
+        
+
+        //
+        //
+        //console.log( this.getAnimInfo( clip.name ) )
+        //
+
+        //action.play();
+
+        //action.paused = true; //!play
+        if( window.gui ) window.gui.getAnimation()
+
+        if( play ) this.play( clip.name )
+
+             
+    }
+
+    exportAnimationLzma()
+    {
+
+        if(!this.lzma) this.lzma = new LZMA("./src/libs/lzma_worker.js");
+
+        let i = Pool.clip.length, n = 0, data = {}
+        while(i--){
+            data[n] = Pool.clip[n].toJSON();
+            //delete data[n].uuid
+            n++;
+        }
+
+        this.lzma.compress( JSON.stringify(data), 2, function(result) {
+            let link = document.createElement("a");
+            link.style.display = "none";
+            document.body.appendChild(link);
+            link.href = URL.createObjectURL( new Blob( [new Uint8Array(result)], {type: "application/octet-stream"} ) );
+            link.download = 'animation.hex';
+            link.click();
+        })
+    }
+
+    exportGLB()
+    {
+        if(!this.exporter) this.exporter = new GLTFExporter();
+        // export only uppercase anim
+        let animations = []
+        let i = Pool.clip.length, a
+        while(i--){
+            a = Pool.clip[i];
+            if( a.name === a.name.toUpperCase() ) animations.push(a);
+        }
+
+        this.exporter.parse( this.root, function( gltf ){
+
+            //console.log( gltf )
+
+            let link = document.createElement("a");
+            link.style.display = "none";
+            document.body.appendChild(link);
+            link.href = URL.createObjectURL( new Blob([gltf], { type: "application/octet-stream" }) );
+            link.download = 'mdl-emmet.glb';
+            link.click();
+
+            //self.loader.parse( JSON.stringify(glb, null, 2), '', function (r){ console.log(r) } )
+
+        }, null, { animations:animations, binary: true, onlyVisible: true } )
+
+    }
+
+    autoToes()
+    {
+        if(!this.fixToe) return
+        let r = this.getRot('rFoot')
+        let l = this.getRot('lFoot')
+        let v = this.getWorldPos('hip')
+        let v0 = this.getWorldPos('rToes')
+        let v1 = this.getWorldPos('lToes')
+        if(r[0]>0 && (v0.z-v.z)<0) this.setRot('rToes', -r[0]*1.5, 0,0 )
+        else if( r[0] !== 0 ) this.setRot('rToes', 0,0,0 )
+        if(l[0]>0 && (v1.z-v.z)<0) this.setRot('lToes', -l[0]*1.5, 0,0 )
+        else if( l[0] !== 0 ) this.setRot('lToes', 0,0,0 )
+    }
+
+    resetToes()
+    {
+        if(!this.fixToe) return
+        this.fixToe = false;
+        this.setRot('rToes', 0,0,0 )
+        this.setRot('lToes', 0,0,0 )
+    }
+
+    convertFbx( name, anim, autoplay )
+    {
+        const torad = Math.PI / 180;
+        let lockPosition = true;
+        let p = new Vector3();
+        let q = new Quaternion();
+        let RX = new Quaternion().setFromAxisAngle({x:1, y:0, z:0}, 90 * torad );
+
+        const baseTracks = anim.tracks;
+        const tracks = [];
+
+        let i = baseTracks.length, j, n, t, b, k = 0;
+
+        while(i--){
+            t = baseTracks[k]
+            b = t.name.substring(0, t.name.lastIndexOf('.') )
+
+            if( t.name === 'hip.position' ){
+                let rp = []
+                j = t.values.length / 3;
+                while(j--){
+                    n = j * 3;
+                    if( lockPosition ) p.set( t.values[n], t.values[n+1], 0).multiplyScalar(0.01);
+                    else p.set( t.values[n], t.values[n+1], t.values[n+2]).multiplyScalar(0.01);
+                    p.toArray( rp, n );
+                }
+                tracks.push( new VectorKeyframeTrack( t.name, t.times, rp ) );
+
+            } else {
+                let rq = []
+                j = t.values.length / 4 
+                while(j--){
+                    n = j * 4
+                    if( b==='hip') q.set(t.values[n], t.values[n+1], t.values[n+2], t.values[n+3]).multiply( RX );
+                    else q.set(t.values[n], t.values[n+2], -t.values[n+1], t.values[n+3]);
+                    q.toArray( rq, n );
+                }
+                tracks.push( new QuaternionKeyframeTrack( t.name, t.times, rq ) );
+            }
+
+            k++;
+        }
+
+        let clip = new AnimationClip( name, -1, tracks );
+        clip.duration = anim.duration;
+
+        this.stop();
+        this.addClip( clip );
+        this.addAction( clip, autoplay );
 
     }
 
 
-    this.items = {};
-    this.nodes = null;
-    this.animations = [];
-
-    this.isPlay = false;
-    this.isReady = false;
-
-    
-
-    this.materialReady = false;
-    this.animationReady = false;
-    this.modelReady = false;
-    this.isDisplay = false;
-
-    this.currentPlay = '';
-
-
-    this.animInfo_one = { name:'', time:0, frame:0, frameMax:0, frameTime:0, timeScale:0 };
-    this.animInfo_two = { name:'', time:0, frame:0, frameMax:0, frameTime:0, timeScale:0 };
- 
-
-    this.frameTime = 0;
-
-    this.center = new THREE.Vector3(0,1.4,0);
-    this.crouch = new THREE.Vector3(0,0,0);
-    this.tmpV = new THREE.Vector3();
-
-    this.isCrouch = false;
-
-
-    this.mtx = new THREE.Matrix4();
-    this.tmpQ = new THREE.Quaternion();
-    this.tmpE = new THREE.Euler();
-
-    this.armMask = [];
-    this.extraHelper = [];
-
-    this.rDecal = 0;
-
-    this.running = false;
-
-
-    this.isBestAlign = true;
-    this.decalArm = false;
-    this.fixeArm = false;
-    this.fixeHip = false;
-    
-
-    this.decal = [ 0, 0, 0 ];
-
-
-    this.decals_MM = [ [-17,-8,16], [ 0, 0, 0 ], [ -6,8,-25 ]];// mid shoulder
-
-
-    this.action = 0;
-    this.direction = [0,0];
-
-    this.prevAction = -1;
-    this.prevFront = 0
-    this.prevSide = 0;
-
-
-
-
-    // WEAPON
-    this.isWithWeapon = o.weapon || false;
-    this.startGun = o.startGun || 'none';
-    this.isNewGun = true;
-    this.weapons = null;
-
-
-    // for shooter_1
-    if( o.oldVersion ) this.oldVersion( true );
-
-
-    //let self = this;
-
-    //root.view.clearTmpPool();
-
-    //root.load(['avatar/'+this.skeletonBase+'.glb', 'avatar/man.glb', 'avatar/woman.glb', 'avatar/zombi.glb', 'avatar/lee.glb', 'avatar/ryder.glb'], function(){ this.init() }.bind(this) );
-
-    //root.load(['avatar/'+ self.skeletonBase +'.glb', 'avatar/man.glb', 'avatar/woman.glb', 'avatar/zombi.glb', 'avatar/lee.glb', 'avatar/ryder.glb'], function(){ self.init() } );
-
-    Pool.load([
-        './assets/models/avatar/'+ this.skeletonBase +'.glb', 
-        './assets/models/avatar/man.glb', 
-        './assets/models/avatar/woman.glb', 
-        './assets/models/avatar/zombi.glb', 
-        './assets/models/avatar/lee.glb', 
-        './assets/models/avatar/ryder.glb'
-        ], function(){ this.init() }.bind(this) );
-
-}
-
-Avatar.prototype = Object.assign( Object.create( THREE.Object3D.prototype ), {
-
-    constructor: Avatar,
-
-    isGroup: true,
-
-    oldVersion: function ( b ) {
-
-        this.decals_MM = [ [-8.7,13,5], [ -8, 14, 0 ], [ -10.8,15,-5 ]]; // mid shoulder
-
-        this.decalArm = b;
-        this.fixeArm = b;
-        this.fixeHip = b;
-        this.isNewGun = !b;
-        this.isBestAlign = !b;
-
-    },
-
-    setAction: function ( action, direction ) {
-
-        if( !this.isReady ) return;
-
-        var crouching = false;
-
-        this.action = action;
-        this.direction = direction || [0,0];
-
-        let front = this.direction[0], side = this.direction[1], offset = 0, anim = '', p, pn, nn, final;
-
-        if( ( this.prevAction !== this.action ) || ( this.prevFront !== front ) || ( this.prevSide !== side ) ){
-
-            // get prev anim info
-            p = this.mesh.getAnim();
-            pn = p.name.substring(3, 6);
-
-            this.prevAction = this.action;
-            this.prevFront = front;
-            this.prevSide = side;
-
-           
-
-            if( this.mode === "standard" ){
-
-                switch( this.action ){
-
-                    case 0 : anim = 'idle'; break;
-                    case 1 : anim = 'walk'; break;
-                    case 2 : anim = 'run'; break;
-                    case 3 : anim = 'walk'; break;
-
-                    case 4 : anim = 'jump'; break;
-                    case 5 : anim = 'crouch_idle'; this.isCrouch = true; break;
-
-                    case 16 : anim = 'left_turn'; break;
-                    case 17 : anim = 'right_turn'; break;
-
-
-                    case 20 : anim = 'hit'; break;
-                    case 21 : anim = 'die'; break;
-
-                }
-
-                anim = this.prefix + anim;
-
-                if(anim==='z_left_turn') anim = 'z_walk';
-                if(anim==='z_right_turn') anim = 'z_walk';
-              
-
-            } else if( this.mode === "fps" ){
-
-                switch( this.action ){
-
-                    case 0 : anim = 'idle'; break;
-                    case 1 : anim = 'walk'; break;
-                    case 2 : anim = 'jog'; break;
-                    case 3 : anim = 'crouch'; crouching = true; break;
-                    case 4 : anim = 'jump'; break;
-                    case 5 : anim = 'crouch_idle'; crouching = true; break;
-                    case 6 : anim = 'run'; break;
-
-                    case 16 : anim = 'walk'; break;
-                    case 17 : anim = 'walk'; break;
-
-                }
-
-                if( this.isCrouch !== crouching ) this.isCrouch = crouching; 
-
-                //this.running = anim ==='run' || anim ==='jog' ? true : false;
-
-                if( anim === 'walk' || anim ==='run' || anim ==='jog' || anim === 'crouch' ){
-
-                    if( front === 1 && side === 0 ) anim += '_F';
-                    if( front === -1 && side === 0 ) anim += '_B';
-                    if( front === 0 && side === 1 ) anim += '_L';
-                    if( front === 0 && side === -1 ) anim += '_R';
-
-                    if( front === 1 && side === 1 ) anim += '_FL';
-                    if( front === 1 && side === -1 ) anim += '_FR';
-                    if( front === -1 && side === 1 ) anim += '_BL';
-                    if( front === -1 && side === -1 ) anim += '_BR';
-
-                }
-
-                if( anim === 'jump' ) anim += '_up';
-
-
-                nn = anim.substring(0, 3);
-
-                if( nn === 'cro' ) nn = "wal";
-                if( pn === nn ) offset = p.time;
-                if( pn === 'wal' && nn === 'jog' ) offset = p.time*0.5;
-                if( pn === 'jog' && nn === 'wal' ) offset = p.time*2;
-
-                anim = this.prefix + anim;
-
-            }
-
-            if( anim !== '' ){
-
-	            
-
-                //if( final === 'm0_idle' ) final = 'idle';
-
-                //console.log( offset )
-
-	            //this.play( final, 0.333, offset );
-
-                if( !this.isFpsOnly ) this.play( anim, 0.25, offset );
-
-	        }
-
-        }
-
-    },
-
-    setPrefix: function ( n ){
-
-        this.prefix = 'm'+n+'_';
-
-    },
-
-    strictFPS: function ( b ) {
-
-        // reset root:
-        this.rotateAll = b;
-        this.isFpsOnly = b;
-        this.autoCenter = !b;
-        this.fixeHip = !b;
-        this.decalArm = !b;
-
-        
-
-        if(!b){
-
-            this.crouch.y = 0;
-
-            this.nodes.root.position.set(0,0,0);
-            this.nodes.root.quaternion.identity();
-            
-            this.prevAction = -1;
-            this.setAction( 0, this.direction );
-
+    //---------------------
+    //  ANIMATION CONTROL
+    //---------------------
+
+    prepareCrossFade( startAction, endAction, duration ) 
+    {
+        //singleStepMode = false;
+        this.unPause();
+        // If the current action is 'idle' (duration 4 sec), execute the crossfade immediately;
+        // else wait until the current action has finished its current loop
+
+        if ( startAction === idleAction ) {
+            this.executeCrossFade( startAction, endAction, duration );
         } else {
-
-            this.mesh.stopTrack();
-
-            
-            //this.setRotation( 'hip', -180, 0 , -90 )
-            this.setRotation( 'MA', 0, 0, 0 )
-            this.setRotation( 'MC', 0, 0, 0 )
-            this.setRotation( 'MM', 0, 0, 0 )
-            this.setRotation( 'MN', 0, 0, 0 )
-            this.setRotation( 'MH', 0, 0, 0 )
-
-            // reset hip
-            this.nodes.hip.position.set(0,0.92,0);
-            this.nodes.hip.quaternion.set(-0.706989,-0.707224, 0.0006767364, -0.000608732342 );
-
-            this.center.set( -0.1,1.38, 0 );
-
-            //console.log( this.nodes.hip.quaternion )
+            this.synchronize( startAction, endAction, duration );
         }
 
-    },
+    }
 
-    update: function ( delta ){
+    synchronize( startAction, endAction, duration ) {
 
-        if( !this.isReady ) return;
-
-
-
-        // update animation
-    	this.mesh.updateMixer( delta );
-
-
-        this.animInfo_one = this.mesh.getAnim('one');
-        this.animInfo_two = this.mesh.getAnim('two');
-
-        if( this.weapons !== null ) this.weapons.update( delta );
-
-        if( this.rotateAll ){
-            if( this.isCrouch ){
-                if (this.crouch.y > -0.6 ) this.crouch.y -= 0.03;
-                else if (this.crouch.y <= -0.6 ) this.crouch.y = -0.6; 
-            } else {
-                if (this.crouch.y < 0 ) this.crouch.y += 0.03;
-                else if (this.crouch.y >= 0 ) this.crouch.y = 0;
+        this.mixer.addEventListener( 'loop', onLoopFinished );
+        const self = this;
+        function onLoopFinished( event ) {
+            if ( event.action === startAction ) {
+                self.mixer.removeEventListener( 'loop', onLoopFinished );
+                self.executeCrossFade( startAction, endAction, duration );
             }
         }
 
-        this.updateMatrix();
+    }
 
+    executeCrossFade( startAction, endAction, duration ) 
+    {
+        // Not only the start action, but also the end action must get a weight of 1 before fading
+        // (concerning the start action this is already guaranteed in this place)
+        this.setWeight( endAction, 1 );
+        endAction.time = 0;
+        // Crossfade with warping - you can also try without warping by setting the third parameter to false
+        startAction.crossFadeTo( endAction, duration, true );
+    }
 
+    pause()
+    {
+        this.actions.forEach( function ( action ) { action.paused = true; });
+        this.isPause = true;
+    }
 
-        if( !this.isPostUpdate ) this.postUpdate();
+    unPause()
+    {
+        this.actions.forEach( function ( action ) { action.paused = false; });
+        this.isPause = false;
+    }
 
-        if( this.extraUpdate !== null ) this.extraUpdate();
+    setTimescale( action, timescale ) {
 
+        action.enabled = true;
+        action.setEffectiveTimeScale( timescale );
 
+    }
 
+    setWeight( action, weight ) {
 
+        action.enabled = true;
+        //action.setEffectiveTimeScale( 1 );
+        action.setEffectiveWeight( weight );
 
-        
+    }
 
-    },
+    getAnimInfo( name ){
 
-    postUpdate: function () {
-
-        if( this.lockHip ){
-
-            this.nodes.hip.position.x = 0;
-            this.nodes.hip.position.z = 0;
-
+        let action = this.getAction( name );
+        if ( !action ) return;
+        return {
+            name: name,
+            time: action.time,
+            frame: Math.round( action.time * FrameTime ),
+            frameMax: action.frameMax,
+            timeScale: action.timeScale,
         }
-
-        if( this.rotateAll ){
-
-            //this.nodes.root.position.set(0,0,0);
-            this.nodes.root.quaternion.identity();
-
-        }
-
-        // get head position
-        if( this.autoCenter ) this.getPos( this.nodes.MM, this.center, true );
-
-        //console.log(this.center)
-
-        if( this.prefix === 'm0_' ) return;
-
-        if( !this.rotateAll ){
-
-
-            if( this.mode === "fps" || this.superTest ){
-
-                var v =  Math.abs( this.angleV / 90 );
-                var side = this.angleV < 0 ? 1:-1;
-
-
-                //var erx = 0;//Math.abs( this.angleV * 0.5 );
-
-                var bend = this.angleV / 3;
-
-                //var dx = this.isNewGun ? 45 : 0;
-
-                //var d = [0,0,0];
-                if( this.decalArm ){
-
-                    if( side === 1 ) {
-                        math.lerpAr( this.decal, this.decals_MM[1], this.decals_MM[2], v );
-                    } else {
-                        math.lerpAr( this.decal, this.decals_MM[1], this.decals_MM[0], v );
-                    }
-
-                }
-
-                // reset hip rotation
-                if( this.fixeHip ){
-                    //this.m.copy( this.nodes.hip.matrix );
-                    //this.m.decompose( {x:0,y:0, z:0}, this.q, {x:0,y:0, z:0} );
-                    this.tmpQ.copy( this.nodes.hip.quaternion );
-                    this.setRotation( 'MA', bend, 180 , 90 ).premultiply(  this.tmpQ.invert() );
-                } else {
-                    this.setRotation( 'MA', 0, bend, 0 );
-                }
-
-                this.setRotation( 'MM', this.decal[0], bend + this.decal[1] , this.decal[2] );
-                
-                //this.setRotation( 'MC', this.decal2[0], bend + this.decal2[1] , this.decal2[2] );
-
-
-                //this.setRotation( 'MM', this.decal[0]+ this.decal2[0], this.angleV*0.5 + this.decal[1] + this.decal2[1], this.decal[2]+this.decal2[2] );
-                //this.setRotation( 'MC', this.decal[0], this.angleV*0.5 + this.decal[1] + erx, this.decal[2] );
-
-
-                //this.q.setFromAxisAngle( {x:0, y:1, z:0}, bend*math.torad );
-               // this.nodes.MC.quaternion.multiply( this.q );
-
-                //this.q.copy(this.nodes.abdomen.quaternion)
-                //this.nodes.MC.quaternion.setFromAxisAngle( {x:0, y:1, z:0}, this.angleV*math.torad ).premultiply( this.q.invert() );
-
-                this.setRotation( 'MC', 0, bend, 0 );
-                this.setRotation( 'MN', 0, bend*0.5, 0 );
-                this.setRotation( 'MH', 0, bend*0.5, 0 );
-
-                //*math.torad, 180*math.torad, 90*math.torad
-                //this.nodes.MA.quaternion.setFromEuler( this.e ).premultiply( this.q.inverse() );
-
-                // add rotation decal for tps view
-                this.nodes.MA.rotation.x += ( this.rDecal * math.torad );
-                
-
-            }
-
-        } else {
-
-            
-
-            /*this.tmpQ.copy( this.nodes.hip.quaternion );
-            this.setRotation( 'MA', 0, 180 , 90 ).premultiply(  this.tmpQ.invert() );
-            this.nodes.MA.rotation.x += ( this.rDecal * math.torad );*/
-
-            var axis = {x:1, y:0, z:0};
-            var theta = this.angleV * math.torad;
-
-            this.tmpV.copy( this.center ).add( this.crouch );
-
-            this.nodes.root.position.copy( this.crouch ).sub( this.tmpV ).applyAxisAngle( axis, theta ).add( this.tmpV ); 
-
-            //this.nodes.root.position.set( 0,0,0 ).sub( this.center ).applyAxisAngle( axis, theta ).add( this.center );
-            this.nodes.root.quaternion.setFromAxisAngle( axis, theta );
-
-
-            
-
-
-        }
-
-
-
-        if( this.axis !== null ) {
-
-            this.axis.position.copy( this.center );
-            this.axis.rotation.x = this.angleV * math.torad;
-            this.axis.rotation.y = this.rotation.y;
-
-        }
-    },
-
-
-
-
-    init: function () {
-
-        //console.log('Avatar init !!')
-
-        if(  this.mesh !== null ){
-            this.remove( this.mesh );
-            this.remove( this.revers );
-        }
-
-        if( !this.isBestAlign ) this.offsets = this.oldOffests;
-
-    	// first load armature skeleton
-  
-        Pool.get( this.skeletonBase ).traverse( function ( node ) {
-
-            if( node.type === 'SkinnedMesh' ) this.armature = node;
-
-        }.bind(this));
-
-        this.mesh = this.armature.clone( root.mat.skin, this.offsets, this.isBestAlign );
-        this.mesh.skeleton.getDimension();
-
-        this.mesh.castShadow = false
-        this.mesh.receiveShadow = false
-        this.mesh.visible = false
-
-        // you can change scale of model
-        this.mesh.scale.set(1,1,1).multiplyScalar( this.size );
-
-        // add animation mixer to mesh
-        this.mesh.addMixer();
-
-        this.add( this.mesh );
-
-        // extra object for easyer control
-
-        this.revers = new THREE.Group();
-        this.revers.matrixAutoUpdate = false;
-        this.add( this.revers );
-
-        // nodes is the list of bones by name
-        this.nodes = this.mesh.skeleton.nodes;
-
-        if( this.isPostUpdate ) this.mesh.skeleton.postUpdate = this.postUpdate.bind( this );
-
-        if( this.superTest  ) this.addAxis();
-
-
-        //this.makeMaterial();
-
-
-        /// load Animation
-
-        this.matrixAutoUpdate  = false;
-        this.modelReady = true;
-
-        // share animation between avatar
-
-        if( root.animator === null ){
-
-            let self = this;
-            //root.animator = new Animator( this.armature, this.offsets, this.isBestAlign, function() { self.animLoaded() } );
-
-            root.animator = new Animator( this.armature, this.offsets, this.isBestAlign, function() { this.animLoaded() }.bind(this) );
-
-        } else {
-
-            this.animLoaded();
-
-        }
-
-    },
-
-
-    animLoaded: function () {
-
-        // add all clip from Animator
-
-        for( var c in root.animator.clips ){
-
-            this.mesh.addAnimation( root.animator.clips[c] );
-            this.animations.push( c );
-
-        }
-
-        
-        this.animationReady = true;
-
-        this.makeMaterial();
-
-    },
-
-    makeSkin: function () {
-
-       //console.log('make skin !!')
-
-        this.isReady = true;
-
-        if( this.gender !== '' ){
-
-            if( this.startAnimationv && !this.isFpsOnly ) this.play( this.startAnimation );
-
-            this.setGender();
-            // hide skin at start
-            this.skin.visible = false;
-
-            this.display();
-
-        }
-
-        if( this.isWithWeapon ) this.weapons = new Weapon( { parent:this, newGun:this.isNewGun, callback:this.callback, startGun:this.startGun, fixeArm:this.fixeArm } );
-        else this.callback();
-
-    },
-
-    setGender: function ( gender ) {
-
-        this.clearSkin();
-
-        if( gender ) this.gender = gender;
-
-        var mm;
-
-        var h, l;
-
-        if( this.gender === 'z_man' || this.gender === 'z_woman' ){
-
-        	root.getPool( 'zombi_scene' ).traverse( function ( node ) { if( node.name === this.gender ) mm = node; }.bind(this) );
-
-        } else {
-
-        	root.getPool( this.gender + '_scene' ).traverse( function ( node ) {
-
-	            if( node.type === 'SkinnedMesh') mm = node;
-	            if( node.name === 'hair') h = node.clone();
-	            if( node.name === 'logo') l = node.clone();
-
-	        });
-
-        }
-
-        
-        this.skin = mm.clone();
-        //this.skin = new THREE.SkinnedMesh().copy( mm );
-
-
-        if( this.gender === 'man' || this.gender === 'woman') this.skin.material = this.material;
-
-        if( this.gender === 'z_man' || this.gender === 'z_woman'){ 
-            this.skin.material = this.zombiMaterial;
-            this.prefix = 'z_';
-        }
-
-
-        var autoResize = this.gender === 'man' ? false : true;
-
-        this.skin.skeleton.setReference( this.mesh.skeleton, this.revers, autoResize );
-
-        // for AO map
-        if( !this.skin.geometry.attributes.uv2 )
-        this.skin.geometry.setAttribute( 'uv2', this.skin.geometry.attributes.uv );
-
-
-        this.skin.castShadow = true;
-        this.skin.receiveShadow = true;
-
-
-        //this.add( this.skin );
-
-        // position adjustement
-        //this.mesh.skeleton.nodes.root.position.y = this.skin.skeleton.footPos;
-
-
-        if( this.gender === 'ryder' ){
-
-            this.extraParts.push('hair', 'logo');
-        	this.attachToBone( h, 'head', [0,0,0], [0,0,0], 1, true );
-        	this.attachToBone( l, 'chest', [0,0,0], [0,0,0], 1, true );
-
-        }
-
-
-        this.add( this.skin );
-
-        if( this.isWithExoSkeleton ) this.exoskeleton( true );
-
-
-        if( this.gender === 'man' || this.gender === 'woman') this.makeEye( 0.01 );
-
-    },
-
-    /*setRotationDecal: function ( a ) {
-
-        this.rDecal = a * math.torad;
-
-    },*/
-
-
-    setAngle: function ( h, v, force ) {
-
-        this.angleV = v;
-        this.angleH = h;
-
-    },
-
-    showOnlyArm: function ( b ) {
-
-        if( !this.isReady ) return;
-
-        if( this.gender === 'z_man' || this.gender === 'z_woman' ) return;
-
-        if( b ){
-
-            if( this.gender === 'lee' ){
-                var mat = this.skin.material;
-                mat.alphaMap = this.armMask[1];
-                mat.transparent = true;
-                mat.alphaTest = 0.9;
-                this.skin.material.needsUpdate = true;
-            } else {
-               this.skin.material = this.material_hide;
-            }
-
-            if( this.items.eyes ) this.items.eyes.visible = false;
-
-        } else {
-
-            if( this.gender === 'lee' ){
-                var mat = this.skin.material;
-                mat.alphaMap = null;
-                mat.transparent = false;
-                this.skin.material.needsUpdate = true;
-            } else {
-
-                 this.skin.material = this.material;
-
-            }
-
-            //this.eyes.visible = true;
-            if( this.items.eyes ) this.items.eyes.visible = true;
-
-        }
-
-    },
-
-
-    clearSkin: function () {
-
-        if( this.skin !== null ){
-
-            this.remove( this.skin );
-            this.skin.geometry.dispose();
-
-            var i = this.extraParts.length;
-            while( i-- ) this.clearItem( this.extraParts[i] );
-            this.extraParts = [];
-
-        }
-
-    },
-
-    clear: function () {
-
-        if( this.modelReady ){
-
-            this.mesh.stopAll();
-            this.mesh.clearMixer();
-
-            this.remove( this.mesh );
-            this.remove( this.revers );
-            this.clearSkin();
-
-        }
-    },
-
-    display: function () {
-
-        if( this.isDisplay ) return;
-
-        if( this.materialReady && this.animationReady && this.modelReady ){
-
-            this.material.needsUpdate = true;
-            this.zombiMaterial.needsUpdate = true;
-            this.skin.visible = true;
-            this.isDisplay = true;
-
-            if( this.items.eyes ){ 
-                this.items.eyes.visible = true;
-                this.eyeMaterial.needsUpdate = true;
-            }
-
-        }
-
-    },
-
-    // --------------------------
-    //
-    //  EXOSKELETON 
-    //  extra cdollision box
-    //
-    // --------------------------
-
-    exoskeleton: function ( b ) {
-
-        if(b){
-            if(this.exoskel === null ){
-                this.exoskel = new ExoSkeleton( this );
-                this.revers.add( this.exoskel );
-            }
-            
-        } else {
-
-            if( this.exoskel !== null ){
-                this.exoskel.clear();
-                this.revers.remove( this.exoskel );
-                this.exoskel = null;
-            }
-
-        }
-
-    },
-
-
-    // --------------------------
-    //
-    //  EYE
-    //
-    // --------------------------
-
-    makeEye: function ( s ) {
-
-        s = s || 1;
-
-    	var eyeDecal = this.gender === 'man' ?  [3.357*s, 10*s, 7.3*s ] : [3.391*s, 9.5*s, 7.3*s];
-
-        s *= 1.77;
-
-        if( !this.items.eyes ){
-
-            var eyeGeo = root.geo.sphere;
-
-            var eyes = new THREE.Group();
-            eyes.name = 'eyes';
-            var eyeR = new THREE.Mesh( eyeGeo, this.eyeMaterial );
-            var eyeL = new THREE.Mesh( eyeGeo, this.eyeMaterial );
-
-            eyeL.scale.set( s, s, s );
-            eyeR.scale.set( s, s, s );
-
-            eyeL.rotation.x = -10*math.torad;
-            eyeR.rotation.x = -10*math.torad;
-
-            eyeR.castShadow = false;
-            eyeL.castShadow = false;
-            eyeL.receiveShadow = true;
-            eyeR.receiveShadow = true;
-
-            eyeR.position.fromArray( eyeDecal );
-            eyeL.position.fromArray( eyeDecal );
-            eyeL.position.x *= -1;
-
-            eyes.add( eyeR );
-            eyes.add( eyeL );
-
-            //this.attachToBone( eyes, 'head', [180,0,90], [0,0,0], 1, this.isDisplay  );
-            this.attachToBone( eyes, 'head', [0,180,90], [0,0,0], 1, this.isDisplay  );
-            this.extraParts.push('eyes');
-
-        }
-
-    },
-
-
-
-    // --------------------------
-    //
-    //  WEAPON
-    //
-    // --------------------------
-
-    setWeaponAction: function ( action, force ) { if( this.weapons !== null ) this.weapons.setAction( action, force ); },
-
-    ejectBullet: function ( time ) { if( this.weapons !== null ) this.weapons.ejectBullet( time ); },
-
-    toggleWeapon: function ( d ) { if( this.weapons !== null ) return this.weapons.toggleWeapon( d ); },
-    ontoggleWeapon: function ( d ) { return this.weapons.onToggle; },
-
-    displayGun: function ( name ){ if( this.weapons !== null ) this.weapons.displayGun( name ); },
-
-    hideScope: function ( b ) { if( this.weapons !== null )  this.weapons.hideScope( b ); },
-
-    removeGun: function ( b ) { if( this.weapons !== null ) this.clearItem( 'GUNS' ); },
-
-
-
-    // --------------------------
-    //
-    //  ITEMS
-    //
-    // --------------------------
-
-    clearItem : function ( name ){
-
-        if( this.items[ name ] ){
-
-            var g = this.items[ name ];
-            g.remove( g.children[0] );
-            this.revers.remove( g );
-
-            delete this.items[ name ];
-            //this.items[ name ] = undefined;
-
-        }
-
-    },
-
-    getItem: function ( name, childName ){
-
-        var m = this.items[ name ].children[0];
-        if( childName ) {
-
-            let i = m.children.length;
-            while(i--){
-                if( m.children[i].name === childName ) { m = m.children[i]; break; }
-            }
-
-        }
-
-        m.userData.pos = m.position.toArray();
-        m.userData.rot = [ math.toFixed( m.rotation.x*math.todeg, 2),  math.toFixed(m.rotation.y*math.todeg, 2),  math.toFixed(m.rotation.z*math.todeg, 2) ];
-
-        return m;
-
-    },
-
-    setItem: function ( name, childName, pos, rot, size ){
-
-        if(name === 'GUNS') this.weapons.setItem( childName, pos, rot, size );
-
-    },
-
-    attachToBone: function ( mesh, bone, rot, pos, size, visible ){
-
-        var name = mesh.name;
-        var g = new THREE.Group();
-
-        
-
-        //var order = 'XYZ' 
-
-        var order = 'XYZ';
-
-        //console.log(mesh.name, order)
-
-        //g.userData.pos = pos;
-        //g.userData.rot = rot;
-
-        if( pos ) mesh.position.set( pos[0], pos[1], pos[2] );
-        if( rot ) mesh.quaternion.setFromEuler( new THREE.Euler( rot[0]*math.torad, rot[1]*math.torad, rot[2]*math.torad, order ) );//'YZX'//'ZYX'
-        if( size ) mesh.scale.set( 1,1,1 ).multiplyScalar( size || 1 );
-
-        //g.matrix = this.mesh.nodes[ bone ].matrixWorld;
-        g.matrix = this.mesh.skeleton.nodes[ bone ].matrixWorld;
-        g.matrixAutoUpdate = false;
-
-        //g.frustumCulled = false;
-
-        g.visible = visible || false;
-
-        g.add( mesh );
-        this.revers.add( g );
-
-        //this.skin.add( g );
-        this.items[ name ] = g;
-
-    },
-
-
-    // --------------------------
-    //
-    //  MATERIAL
-    //
-    // --------------------------
-
-    makeMaterial: function () {
-
-        this.testMat = new THREE.MeshBasicMaterial({ color:0x666666, wireframe:true, toneMapped:false, skinning:true });
-
-        this.material = root.prevMaterial('Avatar');
-        this.eyeMaterial = root.prevMaterial('Eyes');
-        this.zombiMaterial = root.prevMaterial('Zombi');
-
-        if( this.material !== null && this.eyeMaterial !== null && this.zombiMaterial !== null ){
-
-            this.materialReady = true;
-            this.makeSkin();
-            return;
-
-        }
-
-        this.nmap = 0;
-        //var mapcallback = function () { this.nmap ++; if( this.nmap === 7 ){ this.materialReady = true; this.display(); } }.bind(this)
-        var mapcallback = function () { this.nmap ++; if( this.nmap === 11 ){ this.materialReady = true; this.makeSkin(); } }.bind(this)
-
-        var encode = true;
-
-        this.armMask[0] = root.loadTextures( this.pathTexture + 'avatar_alpha.jpg', { flip:false });
-        this.armMask[1] = root.loadTextures( this.pathTexture + 'avatar_alpha_lee.jpg', { flip:false });
-
-    	var map = root.loadTextures( this.pathTexture + 'avatar_d.jpg', { flip:false, encoding:encode, callback:mapcallback });
-    	var normal = root.loadTextures( this.pathTexture + 'avatar_n.jpg', { flip:false, callback:mapcallback });
-    	var ao = root.loadTextures( this.pathTexture + 'avatar_ao.jpg', { flip:false, callback:mapcallback });
-    	var metal = root.loadTextures( this.pathTexture + 'avatar_m.jpg', { flip:false,  callback:mapcallback });
-    	var subdermal = root.loadTextures( this.pathTexture + 'avatar_u.jpg', { flip:false, encoding:encode, callback:mapcallback });
-
-    	var eyeMap = root.loadTextures( this.pathTexture + 'eye_d.jpg', { flip:false, repeat:[2,1], encoding:encode, callback:mapcallback });
-    	var eyeNormal = root.loadTextures( this.pathTexture + 'eye_n.jpg', { flip:false, repeat:[2,1], callback:mapcallback });
-
-    	this.material = new THREE.MeshStandardMaterial({name:'Avatar', skinning:true, map:map, normalMap: normal, aoMap: ao, metalnessMap:metal, roughness:1, metalness:1 });
-        //this.material_hide = new THREE.MeshStandardMaterial({name:'Avatar_hide', skinning:true, map:map, normalMap: normal, aoMap: ao, metalnessMap:metal, roughness:1, metalness:1, alphaMap:armMask, transparent:true, alphaTest:0.9 });
-    	this.eyeMaterial = new THREE.MeshStandardMaterial({ name:"Eyes", map:eyeMap, normalMap:eyeNormal, roughness:0.2, metalness:0.75 });
-
-
-    	var mapSkinFrag = [
-	        '#ifdef USE_MAP',
-	        'vec4 underColor = texture2D( subdermal, vUv );',
-	        'vec4 texelColor = texture2D( map, vUv );',
-	        'float mx = ((underColor.r + underColor.g)-underColor.b)*0.5;',
-	        'texelColor.xyz = mix( texelColor.xyz,vec3(0.0,underColor.g,underColor.b),  underColor.b*0.2 );',
-	        'texelColor = mapTexelToLinear( texelColor );',
-	        'diffuseColor *= texelColor;',
-	        '#endif',
-	    ].join("\n");
-
-    	this.material.onBeforeCompile = function ( shader ) {
-
-    		shader.uniforms['subdermal'] = { value: subdermal };
-
-    		var fragment = shader.fragmentShader;
-
-    		fragment = fragment.replace( 'varying vec3 vViewPosition;', ['varying vec3 vViewPosition;', 'uniform sampler2D subdermal;' ].join("\n") );
-
-    		fragment = fragment.replace( '#include <roughnessmap_fragment>', ['float roughnessFactor = roughness;', '#ifdef USE_METALNESSMAP', 'vec4 texelRoughness = vec4(1.0) - texture2D( metalnessMap, vUv );', 'roughnessFactor *= texelRoughness.g;', '#endif' ,''].join("\n") );
-            fragment = fragment.replace( '#include <metalnessmap_fragment>', ['float metalnessFactor = metalness;', '#ifdef USE_METALNESSMAP', 'vec4 texelMetalness = texture2D( metalnessMap, vUv );', 'metalnessFactor *= texelMetalness.b;', '#endif' ,''].join("\n") );
-
-            fragment = fragment.replace( '#include <map_fragment>', mapSkinFrag );
-
-    		shader.fragmentShader = fragment;
-
-    	};
-
-
-    	root.addMaterial( this.material );
-    	root.addMaterial( this.eyeMaterial );
-
-
-        this.material_hide = this.material.clone();
-        this.material_hide.name = 'avatar_mask';
-        this.material_hide.alphaMap = this.armMask[0];
-        this.material_hide.transparent = true;
-        this.material_hide.alphaTest = 0.9;
-        root.addMaterial( this.material_hide );
-
-
-        // zombi material
-
-        var zmap =  root.loadTextures( this.pathTexture + 'zombi/zombi_c.jpg', { flip:false, encoding:encode, callback:mapcallback });
-        var znormalMap = root.loadTextures( this.pathTexture + 'zombi/zombi_n.jpg', { flip:false, callback:mapcallback });
-        var zmetalnessMap = root.loadTextures( this.pathTexture + 'zombi/zombi_m.jpg', { flip:false, callback:mapcallback });
-        var zroughnessMap = root.loadTextures( this.pathTexture + 'zombi/zombi_r.jpg', { flip:false, callback:mapcallback });
-
-
-        this.zombiMaterial = new THREE.MeshStandardMaterial({
-            name: 'Zombi',
-            map: zmap,
-            normalMap: znormalMap,
-            metalnessMap: zmetalnessMap,
-            roughnessMap: zroughnessMap,
-            roughness:1,
-            metalness:1,
-            skinning:true,
-        });
-
-
-        root.addMaterial( this.zombiMaterial );
-
-
-    },
-
-
-
-    // --------------------------
-    //
-    //  ANIMATION
-    //
-    // --------------------------
-
-    resetAnimator: function ( callback ) {
-
-        if( root.animator !== null ){
-
-            root.animator = new Animator( this.armature, this.offsets, this.isBestAlign, function() { 
-
-                callback()
-
-             }.bind(this), true )
-
-        }
-
-    },
-
-    addAnimation: function ( o ) {
-
-        var name = o.name;
-
-        root.animator.addAnimation( o, function(){
-
-             this.mesh.addAnimation( root.animator.clips[name] );
-
-        }.bind(this) )
-
-    },
-
-    setTimeScale: function ( t ) {
-
-        this.mesh.setTimeScale( t );
-
-    },
-
-
-    setWeight: function ( name, weight ) {
-
-        this.mesh.setWeight( name, weight );
-
-    },
-
-    play: function ( name, crossfade, offset, weight, tracks ){
-
-        /*if( this.isFpsOnly ){
-            if(tracks !== 'two') return;
-        }*/
-
-
-        if( name === 'idle' ) offset = !offset ? math.rand( 0, 20 ) : offset;
-
-        //
-
-        var pr = name.substring( 0,3 );
-
-        //if( pr === 'w1_' || pr === 'w2_' ) this.handCorrection();
-
-        if( pr === 'm1_' || pr === 'm2_'|| pr === 'm0_' ){
-            if( pr !== this.prefix ){
-            	if(pr === 'm0_') this.setPrefix('0');
-                if(pr === 'm1_') this.setPrefix('1');
-                if(pr === 'm2_') this.setPrefix('2');
-
-            }
-
-        }
-
-        this.autoCorrect( pr );
-
-        this.currentPlay = name;
-
-        //this.unPause();
-        this.mesh.play( name, crossfade, offset, weight, tracks );
-
-    },
-
-    fadeAll: function ( crossFade ) {
-
-        this.mesh.fadeAll( crossFade );
-
-    },
-
-    playOne: function ( f ) {
-
-        this.mesh.playFrame( this.currentPlay, f, 1 )
-
-        /*var offset = f * this.frameTime;
-         this.mesh.play( this.currentPlay, 0, offset, 1 );
-         this.pause();*/
-
-    },
-
-    getAnimInfo: function (){
-
-        var anim = this.mesh.getAnim();
-
-        this.currentPlay = anim.name;
-        this.frameTime = anim.frameTime;
 
         //if( ui ) ui.updateTimeBarre( anim.frame, anim.frameTime, anim.frameMax );
 
-    },
+    }
 
-    pause: function () {
+    getAction( name )
+    {
+        //if ( !this.actions.has( name ) ) return;
+        return this.actions.get( name );
+    }
 
-        this.mesh.pauseAll();
-        this.isPlay = false;
+    play( name )
+    {
 
-    },
+        let action = this.getAction( name );
+        if ( !action ) return false;
 
-    unPause: function () {
-
-        this.mesh.unPauseAll();
-        this.isPlay = true;
-
-    },
-
-    
-    autoCorrect : function ( pr ){
-
-        switch( pr ){
-
-            case 'm2_' :
-                this.setRotation( 'LFO', 0, -12, 0 );
-                this.setRotation( 'RFO', 0, -12, 0 );
-            break;
-             case 'm1_' :
-                this.setRotation( 'LFO', 0, 0, 0 );
-                this.setRotation( 'RFO', 0, 0, 0 );
-            break;
-            case 'm0_' :
-                this.setRotation( 'LT0', 0, 30, 0 );
-                this.setRotation( 'RT0', 0, 30, 0 );
-                this.setRotation( 'LFO', 0, -12, 0 );
-                this.setRotation( 'RFO', 0, -12, 0 );
-                this.setRotation( 'MA', 0, -5, 0 );
-                //this.setRotation( 'LF', 0, 30, 0 );
-                //this.setRotation( 'RF', 0, 30, 0 );
-
-            break;
-
-            default:
-                /*if(!this.handCorrect){
-                    this.setRotation( 'LT0', 0, 0, 0 );
-                    this.setRotation( 'RT0', 0, 0, 0 );
-                    this.setRotation( 'LF', 0, 0, 0 );
-                    this.setRotation( 'RF', 0, 0, 0 );
-                }*/
-                this.setRotation( 'LFO', 0, 0, 0 );
-                this.setRotation( 'RFO', 0, 0, 0 );
-            break;
-
-        }
-
-
-    },
-
-
-    // --------------------------
-    //
-    //  BONES CONTROLE
-    //
-    // --------------------------
-
-    setRotation: function ( name, x, y, z ){
-
-    	var nodes = this.nodes;
-
-        nodes[name].rotation.set( x*math.torad, y*math.torad, z*math.torad, 'XYZ' );//'YZX'
-
-        nodes[name].updateMatrix();
-
-        return nodes[name].quaternion;
-
-    },
-
-    getRotation: function ( name, world ){
-
-        var r = this.nodes[name].rotation.toArray();
-
-        if( world ){
-            this.nodes[name].getWorldQuaternion(  this.tmpQ );
-            r = this.tmpE.setFromQuaternion( this.tmpQ ).toArray();
-        }
-
-        return [ Math.round(r[0]*math.todeg), Math.round(r[1]*math.todeg), Math.round(r[2]*math.todeg) ];
-
-    },
-
-    getPos: function ( m, v, local ){
-
-        m.getWorldPosition( v );
-        if( local ) v.applyMatrix4( this.mtx.copy(this.parent.matrixWorld).invert() )
-        //else 
-
-    },
-
-
-
-
-    // --------------------------
-    //
-    //  OPTION
-    //
-    // --------------------------
-
-    debug: function ( b ) {
-
-        if( b ){
-            if( this.helper === null ){
-                this.helper = new THREE.SkeletonHelper( this.mesh );
-                this.revers.add( this.helper );
-                this.extraDebug( b );
-            }
+        if(!this.current){
+            this.stop()
+            this.current = action;
+            action.play();
+            //console.log(name)
         } else {
-            if( this.helper !== null ){
-                this.revers.remove( this.helper );
-                this.helper.material.dispose();
-                this.helper.geometry.dispose();
-                this.helper = null;
-                this.extraDebug( b );
+            if( this.current !== action ){
+
+                this.old = this.current
+                this.current = action;
+                action.play();
+
+                if( this.clipsToesFix.indexOf(name) !== -1 ) this.fixToe = true;
+                else this.resetToes(); 
+
+
+                //console.log( name, this.fixToe )
+
+
+                this.executeCrossFade(this.old, this.current, 0.5  )
+
+               // this.stop()
+               //this.current = action;
+               //
+
             }
+        } 
+
+        this.isPause = false;
+
+        return true;
+    }
+
+    playFrame ( name, frame, weight = 1 ) {
+
+        let action = this.getAction( name );
+        if ( !action ) return;
+
+        action.time = frame * TimeFrame;
+        action.setEffectiveWeight( weight );
+        action.play();
+        action.paused = true;
+        this.isPause = true;
+
+    }
+
+    playOne ( frame, weight = 1 ) {
+
+        if ( !this.current ) return;
+
+        this.current.time = frame * TimeFrame;
+        this.current.setEffectiveWeight( weight );
+        this.current.play();
+        this.current.paused = true;
+        this.isPause = true;
+
+    }
+
+    stop()
+    {
+        this.mixer.stopAllAction()
+    }
+
+
+
+    // bone control
+
+    setRot( name, x, y, z )
+    {
+        let n = this.bones[name];
+        if(!n) return
+        n.rotation.set( x*torad, y*torad, z*torad, 'XYZ' );
+        n.updateMatrix();
+    }
+
+    getRot( name )
+    {
+        let n = this.bones[name];
+        if(!n) return
+        let r = n.rotation.toArray();
+        return [ Math.round(r[0]*todeg), Math.round(r[1]*todeg), Math.round(r[2]*todeg) ];
+    }
+
+    getWorldPos( name )
+    {
+        let n = this.bones[name];
+        if(!n) return
+        V.set(0,0,0)
+        n.localToWorld(V)
+        return { x:V.x, y:V.y, z:V.z };
+    }
+
+
+    //---------------------
+    //  HIDE PART OF BODY
+    //---------------------
+
+    bodyMask( o = {arm:true, leg:true, foot:true, chest:true } )
+    {
+        let s = 0.25;
+        if(!this.canvas) {
+            this.canvas = document.createElement( 'canvas' );
+            this.canvas.width = this.canvas.height = 1024*s;
+        }
+
+        const ctx = this.canvas.getContext( '2d' ); 
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fillRect(0, 0, 1024*s, 1024*s);
+        ctx.fillStyle = 'black';
+        if(o.arm) ctx.fillRect( 784*s, 448*s, 236*s, 186*s );
+        if(o.leg) ctx.fillRect( 512*s, 734*s, 287*s, 290*s );
+        if(o.foot) ctx.fillRect( 817*s, 822*s, 206*s, 200*s );
+        if(o.chest){ 
+            ctx.fillRect( 480*s, 576*s, 300*s, 160*s );
+            ctx.fillRect( 553*s, 466*s, 228*s, 110*s );
+            ctx.fillRect( 533*s, 531*s, 20*s, 45*s );
+        }
+
+        let img = new Image();
+        img.src = this.canvas.toDataURL()
+
+        if(this.mask) this.mask.dispose()
+        //this.mask = new CanvasTexture( this.canvas );
+
+        this.mask = new Texture( img );
+        this.mask.flipY = false;
+        this.mask.needsUpdate = true;
+        const m = Pool.getMaterial( 'body' );
+        m.alphaTest = 0.9
+        m.alphaMap = this.mask;
+        //m.needsUpdate = true;
+    }
+
+
+    //---------------------
+    //   TOOLS
+    //---------------------
+
+    zeroColor(g)
+    {
+        if( g.isMesh ) g = g.geometry;
+        let lng = g.attributes.position.array.length;
+        g.setAttribute( 'color', new Float32BufferAttribute( new Array(lng).fill(0), 3 ) );
+    }
+
+    symetric( g, uv2 = true, tangent = true ) {
+
+        if( g.isMesh ) g = g.geometry;
+
+        
+
+        //
+
+        /*let uv = g.attributes.uv.array;
+        let i = uv.length*0.5;
+        while( i-- ){ if( uv[i*2] < 0 ) uv[i*2]*=-1; }
+        g.attributes.uv.needsUpdate = true;
+        */
+
+        //if( tangent ){ 
+
+            //console.log(isReady)
+            //g.computeTangents();
+            //let MikkTSpace = { wasm:wasm, isReady:isReady, generateTangents:generateTangents }
+            //g=computeMikkTSpaceTangents(g,MikkTSpace)
+        //}
+
+        //
+
+        // for ao map
+        if( uv2 ) g.setAttribute( 'uv2', g.attributes.uv );
+
+    }
+
+    uv2( g, uv2 = true, tangent = true ) {
+
+        if( g.isMesh ) g = g.geometry;
+        g.setAttribute( 'uv2', g.attributes.uv );
+
+    }
+
+}
+
+
+
+
+//-----------------------------
+//
+//  SKELETON EXTAND
+//
+//-----------------------------
+
+const _offsetMatrix = new Matrix4();
+const _identityMatrix = new Matrix4();
+
+let K = Skeleton.prototype;
+
+K.resetScalling = function () {
+
+    for ( let i = 0, il = this.bones.length; i < il; i ++ ) {
+
+        this.bones[i].idx = i;
+        this.bones[i].scalling = new Vector3(1,1,1);
+        //console.log(this.bones[i].id, i)
+
+    }
+
+    //this.setScalling();
+
+}
+
+K.setScalling = function ( fingerPos ) {
+
+    let o, b, i, lng = this.bones.length;
+    let parent;
+
+    //this.resetPosition();
+
+    for ( i = 0; i < lng; i ++ ) {
+
+        b = this.bones[ i ];
+        parent = b.parent || null;
+
+        /*if( b.name==='root'){
+
+            b.position.y = this.footPos;
+            b.updateMatrixWorld( true );
+
+        }*/
+
+        if( parent !== null && parent.scalling && b.name!=='root'){
+
+            // finger position fix
+
+            /*if( fingerPos && this.isFinger( b ) ){
+
+                b.position.fromArray( fingerPos[ b.name ] );
+                b.children[0].position.set(0,0,0);
+
+            }*/
+
+            b.position.multiply( parent.scalling );
+            b.updateMatrixWorld( true );
 
         }
 
-    },
+    }
 
-    extraDebug: function ( b ) {
+    this.calculateInverses();
 
-        var list = [
-        'MA', 'MC', 'MM', 'MN', 'MH',
-        'LTH', 'RTH', 'LSH', 'RSH',
-        'RFO', 'LFO', 'LS', 'RS', 'LF', 'RF', 'LH', 'RH', 
-        //'LT0', 'RT0'
-        ]
-        var i, bone, ex;
+}
 
-        if( b ){
-            i = this.mesh.skeleton.bones.length
-            while(i--){
-                bone = this.mesh.skeleton.bones[i];
-                if( list.indexOf( bone.name ) !== -1 ){ 
+K.update = function () {
 
-                        ex = new BoneHelper(0.05);     
-                        ex.matrix = bone.matrixWorld;
-                        ex.matrixAutoUpdate = false;
-                        this.extraHelper.push( ex )
-                        this.revers.add( ex );
-                    
+    const bones = this.bones;
+    const boneInverses = this.boneInverses;
+    const boneMatrices = this.boneMatrices;
+    const boneTexture = this.boneTexture;
+
+    let scaleMatrix;
+    const decal = new Vector3();
+
+    // flatten bone matrices to array
+
+    for ( let i = 0, il = bones.length; i < il; i ++ ) {
+
+        // compute the offset between the current and the original transform
+
+        const matrix = bones[ i ] ? bones[ i ].matrixWorld : _identityMatrix;
+
+        if( bones[ i ].scalling !== undefined  ){ 
+            matrix.scale( bones[ i ].scalling );
+            for ( let j = 0, l = bones[ i ].children.length; j < l; j ++ ) {
+                    scaleMatrix = matrix.clone();
+                    scaleMatrix.multiply( bones[ i ].children[ j ].matrix );
+                    bones[ i ].children[ j ].matrixWorld.setPosition( decal.setFromMatrixPosition( scaleMatrix ) );
                 }
-            }
-        } else {
-            i = this.extraHelper.length;
-            while(i--){
-                ex = this.extraHelper[i];
-                this.revers.remove( ex );
-            }
         }
 
-    },
+        _offsetMatrix.multiplyMatrices( matrix, boneInverses[ i ] );
+        _offsetMatrix.toArray( boneMatrices, i * 16 );
 
+    }
 
+    if ( boneTexture !== null ) {
 
-    addTemplate: function ( b ) {
+        boneTexture.needsUpdate = true;
 
-        if( b ){
+    }
 
-            if( this.template === null ){
-                this.template = new THREE.Group();
-                var m = new THREE.MeshBasicMaterial({ color:0x000000, depthTest: false, depthWrite: false, toneMapped: false, transparent: true  })
-
-                var gg = new THREE.BoxBufferGeometry(0.002,2,0.002);
-                var gg2 = new THREE.BoxBufferGeometry(0.002,1,0.002);
-
-                var c = new THREE.Mesh( gg2, m );
-                c.position.y = 1.5;
-
-                var b = new THREE.Mesh( gg, m );
-                b.position.y = 1.466;
-                b.position.z = -0.015;
-                b.rotation.z = math.PI90;
-
-                this.template.add( c );
-                this.template.add( b );
-
-                var d = new THREE.Mesh( gg2, m );
-                d.position.y = 0.5;
-                d.position.x = 0.08738;
-                this.template.add( d );
-
-                var e = new THREE.Mesh( gg2, m );
-                e.position.y = 0.5;
-                e.position.x = -0.08738;
-                this.template.add( e );
-
-                this.add( this.template )
-
-            } else {
-                this.template.visible = true;
-            }
-        } else {
-            if( this.template !== null ) this.template.visible = false;
-        }
-
-    },
-
-    addAxis: function () {
-
-            var gg = new THREE.BoxBufferGeometry(0.002,0.002,1);
-            gg.translate( 0,0,0.5);
-
-            //var gg2 = new THREE.BoxBufferGeometry(0.006,0.006,1);
-            //gg2.translate( 0,0,0.5);
-
-            var gg3 = new THREE.BoxBufferGeometry(0.03,0.03,0.8);
-            gg3.translate( 0,0,0.4);
-
-
-            this.axis = new THREE.Mesh( gg );
-            var ball = new THREE.Mesh( new THREE.SphereBufferGeometry(0.01) );
-            /*var axx = new THREE.Mesh( gg2 );
-            axx.position.x = -0.055;
-            axx.position.y = 0.05;*/
-
-            var axx3 = new THREE.Mesh( gg3, new THREE.MeshBasicMaterial({ color: 0xFF0000 }) );
-            axx3.position.x = -0.139;
-            axx3.position.y = -0.06;
-
-            //var bb0 = new THREE.BoxHelper( axx, 0xFF8810 );
-            var bb = new THREE.BoxHelper( axx3, 0xFF0000 );
-            
-            ball.position.set(0,0,1.2);
-            this.axis.add( ball );
-            //this.axis.add( bb0 );
-            this.axis.add( bb );
-            this.revers.add( this.axis );
-
-            this.axis.visible = false;
-
-    },
-
-
-
-
-})
-
-export { Avatar };
+}
