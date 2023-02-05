@@ -47,7 +47,7 @@ export const Gui = {
 		//fontShadow:'#000006',
 		
 		border:'rgba(255,255,255,0.2)',//'none',
-		borderSize:0,
+		borderSize:1,
 		//overoff:'rgba(255,255,255,0.1)',
 		
 		groups:'rgba(255,255,255,0.1)',
@@ -62,12 +62,12 @@ export const Gui = {
 
 		UIL.Tools.setStyle(Gui.colors)
 
-		const b1 = UIL.add('button', { name:'O', w:40, h:40, bw:40, pos:{right:'5px', top:'5px', selectable:true}, simple:true }).onChange( Gui.showHide )
-		const b2 = UIL.add('button', { name:'P', w:40, h:40, bw:40, pos:{right:'50px', top:'5px'}, simple:true }).onChange( Gui.gotoGithub )
+		const b1 = UIL.add('button', { name:'O', w:40, h:40, bw:40, pos:{right:'14px', top:'5px'}, simple:true }).onChange( Gui.showHide )
+		const b2 = UIL.add('button', { name:'P', w:40, h:40, bw:40, pos:{right:'59px', top:'5px'}, simple:true }).onChange( Gui.gotoGithub )
 		b1.icon( UIL.Tools.icon('config', 'rgba(0,0,6,0.66)', 30 ) )
 		b2.icon( UIL.Tools.icon('phy', 'rgba(0,0,6,0.66)', 30 ) )
 
-		const ui = new UIL.Gui( { w:250, h:20, close:false, css:'top:50px; right:5px;', colors:Gui.colors } )
+		const ui = new UIL.Gui( { w:250, h:20, close:false, css:'top:48px; right:5px;', colors:Gui.colors } )
 
 
 
@@ -285,14 +285,26 @@ export const Gui = {
 
 		let data = Main.getDemos()
 
-		let grB = gg.add('group', { name:'BASIC', open:true, bg:'rgba(180,255,180,0.1)' })
+		/*let colors = [
+		'rgba(180,255,180,0.1)',
+		'rgba(255,255,180,0.1)',
+		'rgba(255,180,180,0.1)'
+		]*/
+
+		let colors = [
+		'rgba(255,255,255,0.1)',
+		'rgba(200,200,200,0.1)',
+		'rgba(150,150,150,0.1)'
+		]
+
+		let grB = gg.add('group', { name:'BASIC', open:true, bg:colors[0] })
 		Gui.g1 = grB.add( 'grid', { values:data.Basic, selectable:true } ).onChange( Main.loadDemo )
 
-		let grA = gg.add('group', { name:'ADVANCED', open:true, bg:'rgba(255,255,180,0.1)' })
+		let grA = gg.add('group', { name:'ADVANCED', open:true, bg:colors[1] })
 		Gui.g2 = grA.add( 'grid', { values:data.Advanced, selectable:true } ).onChange( Main.loadDemo )
 
 		if( data[Main.engineType] ){
-			let grC = gg.add('group', { name:'SPECIFIC', open:true, bg:'rgba(255,180,180,0.1)' })
+			let grC = gg.add('group', { name:'SPECIFIC', open:true, bg:colors[2] })
 			Gui.g3 = grC.add( 'grid', { values:data[Main.engineType], selectable:true } ).onChange( Main.loadDemo )
 		}
 
