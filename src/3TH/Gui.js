@@ -33,19 +33,12 @@ export const Gui = {
 		fontSize:12,
 		weight:'bold',
 
-		//groups:'rgba(50,50,50,0.3)',
-
-		//select:'#06A',
-
 		text:'rgba(0,0,6,1)',
 		title:'rgba(0,0,6,1)',
 		titleoff: '#000',
 		textOver: '#7fFF00',
 		textSelect: '#7fFF00',
 
-		//select:'#7fFF00',//rgba(0,255,255,0.6)',
-		//over:'rgba(255,255,255,0.6)',
-		//overoff:'rgba(255,255,255,0.3)',
 		button:'rgba(255,255,255,0.1)',
 		overoff : 'rgba(0,0,6,0.3)',
 		over:'rgba(0,0,6,0.2)',
@@ -67,15 +60,25 @@ export const Gui = {
 
 		const options = Main.getOption();
 
-		const ui = new UIL.Gui( { w:250, h:20, close:true, bottomText:['OPTIONS', 'CLOSE'], css:'right:5px;', colors:Gui.colors } )
+		UIL.Tools.setStyle(Gui.colors)
+
+		const b1 = UIL.add('button', { name:'O', w:40, h:40, bw:40, pos:{right:'5px', top:'5px', selectable:true}, simple:true }).onChange( Gui.showHide )
+		const b2 = UIL.add('button', { name:'P', w:40, h:40, bw:40, pos:{right:'50px', top:'5px'}, simple:true }).onChange( Gui.gotoGithub )
+		b1.icon( UIL.Tools.icon('config', 'rgba(0,0,6,0.66)', 30 ) )
+		b2.icon( UIL.Tools.icon('phy', 'rgba(0,0,6,0.66)', 30 ) )
+
+		const ui = new UIL.Gui( { w:250, h:20, close:false, css:'top:50px; right:5px;', colors:Gui.colors } )
+
+
+
 
 		ui.content.style.backdropFilter = 'blur(6px)'
 		//ui.content.style.boxShadow = '0 0px 10px rgba(2,4,24,0.25)'
 
-		ui.add( 'empty', {h:3})
+		//ui.add( 'empty', {h:3})
 
-		let bb = ui.add('button', { name:'GITHUB / ABOUT', h:40, bw:40 }).onChange( Gui.gotoGithub )
-		bb.icon( UIL.Tools.icon('phy', 'rgba(0,0,6,1)', 30 ) )
+		//let bb = ui.add('button', { name:'GITHUB / ABOUT', h:40, bw:40 }).onChange( Gui.gotoGithub )
+		//
 
 		if( Main.devMode ){
 			Main.engineList.push('RAPIER')
@@ -86,26 +89,26 @@ export const Gui = {
 
 		ui.add( 'bool', { name:'WORKER OFF', onName:'WORKER ON', value:Main.isWorker, mode:1 }).onChange( Gui.swapWorker )
 
-		ui.add( 'empty', {h:3})
+		//ui.add( 'empty', {h:3})
 
-		ui.add( 'bool', { name:'CAPTURE', onName:'STOP', value:false, mode:1 }).onChange( Gui.capture )
+		//ui.add( 'bool', { name:'CAPTURE', onName:'STOP', value:false, mode:1 }).onChange( Gui.capture )
 
 		//ui.add('button', { name:'CAMERA' }).onChange( function(){ console.log( controls.getInfo() )} )
 
 
 		//ui.add( 'empty', {h:6})
-		ui.add( options, 'mode', { type:'button', values:['LOW', 'HIGH'], selectable:true, p:0 }).onChange( Main.changeMode )
+		
 
-		ui.add( 'empty', {h:3})
+		//ui.add( 'empty', {h:3})
 
-		ui.add( 'button', { type:'button', values:['EDIT', 'REPLAY', 'PAUSE'], selectable:false, p:0 }).onChange( function(n){ 
+		ui.add( 'button', { type:'button', values:['EDIT', 'REPLAY', 'PAUSE'], selectable:false, p:0, h:30 }).onChange( function(n){ 
 			if(n === 'EDIT'){ Main.showEditor(true); this.switchValues(0, 'CLOSE' ); }
 			if(n === 'CLOSE'){ Main.showEditor(false); this.switchValues(0, 'EDIT' ); }
 			if(n === 'PAUSE'){ phy.pause( true ); this.switchValues(2, 'PLAY' ); }
 			if(n === 'PLAY'){ phy.pause( false ); this.switchValues(2, 'PAUSE' ); }
 			if(n === 'REPLAY') Main.injectCode( Main.getCode() )
 		})
-		ui.add( 'empty', {h:3})
+		
 
 		Gui.ui = ui;
 
@@ -113,6 +116,7 @@ export const Gui = {
 
 		const g2 = Gui.ui.add('group', { name:'DEMOS', open:true })
 		//Gui.camera()
+		//ui.add( 'empty', {h:3})
 		
 		Gui.demo(g2)
 
@@ -129,6 +133,8 @@ export const Gui = {
 		const toneMappingOptions = Main.getToneMappingOptions()
 
 		const g = Gui.ui.add('group', { name:'DISPLAY' })
+
+		g.add( options, 'mode', { type:'button', values:['LOW', 'HIGH'], selectable:true, p:0 }).onChange( Main.changeMode )
 
 
 		g.add( options, 'show_light', { type:'bool' }).onChange( Main.showDebugLight )
@@ -290,6 +296,10 @@ export const Gui = {
 			Gui.g3 = grC.add( 'grid', { values:data[Main.engineType], selectable:true } ).onChange( Main.loadDemo )
 		}
 
+		gg.add( 'empty', {h:3})
+
+
+
 		gg.reset()
 
 	},
@@ -312,6 +322,15 @@ export const Gui = {
 	},
 
 	gotoGithub: () => { window.open( 'https://github.com/lo-th/phy', '_blank' ) },
+
+	showHide: () => { 
+
+		if( Gui.ui.isOpen) Gui.ui.isOpen = false;
+		else Gui.ui.isOpen = true;
+		Gui.ui.calc()
+		Gui.ui.mode('def')
+
+	},
 
 	swapWorker: ( b ) => {
 		Main.isWorker = b
