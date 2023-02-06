@@ -19,6 +19,41 @@ export const Num = {
     solver:256,
 }
 
+export const getArray = function ( engine, full = false ){
+
+    let ArPos = {}
+
+    let counts = {
+        body: Max.body * ( full ? Num.bodyFull : Num.body ),
+        joint: Max.joint * Num.joint,
+        ray: Max.ray * Num.ray,
+        contact: Max.contact * Num.contact,
+        character: Max.character * Num.character
+    }
+
+    if( engine === 'PHYSX' || engine === 'AMMO' ){ 
+        counts['vehicle'] = Max.vehicle * Num.vehicle;
+    }
+
+    if( engine === 'PHYSX' ){ 
+        counts['solver'] = Max.solver * Num.solver;
+    }
+
+    let prev = 0;
+
+    for( let m in counts ){ 
+
+        ArPos[m] = prev
+        prev += counts[m]
+
+    }
+
+    ArPos['total'] = prev
+
+    return ArPos
+
+}
+
 export const getType = function (o){
     switch(o.type){
         case 'plane': case 'box': case 'sphere': case 'highSphere': case 'cylinder': 

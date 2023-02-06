@@ -1,5 +1,6 @@
 
 import { root, Utils, Vec3 } from './root.js';
+import { getType, getArray } from '../core/Config.js';
 
 import { Body } from './Body.js';
 import { Joint } from './Joint.js';
@@ -22,7 +23,7 @@ self.onmessage = function ( m ) { engine.message( m ) }
 let isTimeout = false;
 let outsideStep = false;
 
-let Ar, ArPos, ArMax;
+let Ar, ArPos;
 let isBuffer = false;
 let returnMessage, isWorker;
 
@@ -77,20 +78,14 @@ export class engine {
 
 	static init ( o = {} ){
 
-		isWorker = true;
-		isBuffer = o.isBuffer || false;
-
-		//ArPos = o.ArPos
-		//ArMax = o.ArMax
-
-		//Ar = new Float32Array( ArMax )
-
+		isWorker = true
+		isBuffer = o.isBuffer || false
 
 		if( o.fps !== undefined ) timestep = 1 / o.fps
 		if( o.substep !== undefined ) substep = o.substep
 
-		if( o.returnMessage ){ 
-			returnMessage = o.returnMessage;
+		if( o.message ){ 
+			returnMessage = o.message;
 			isWorker = false
 			isBuffer = false
 		}
@@ -129,8 +124,7 @@ export class engine {
 
 	static set ( o = {} ){
 
-		ArPos = o.ArPos;
-		ArMax = o.ArMax;
+		ArPos = o.ArPos || getArray('RAPIER', o.full)
 		body.setFull(o.full)
 
 		outsideStep = o.outsideStep || false;
@@ -157,7 +151,7 @@ export class engine {
 		if( root.world === null ){
 
 			// define transfer array
-		    Ar = new Float32Array( ArMax )
+		    Ar = new Float32Array( ArPos.total )
 
 		    // create new world
 			engine.initWorld()

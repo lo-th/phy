@@ -1,10 +1,12 @@
+import { Object3D, Vector3, Group, Mesh, BufferGeometry, CylinderGeometry, InstancedMesh, DynamicDrawUsage } from 'three';
+
 import { Item } from '../core/Item.js';
 import { Num } from '../core/Config.js';
 
 import { Basic3D } from '../core/Basic3D.js';
 import { Instance } from '../core/Instance.js';
 import { Utils, root, math, Mat, Geo, Colors, map } from './root.js';
-import { Object3D, Vector3, Group, Mesh, BufferGeometry, CylinderGeometry, CapsuleGeometry, InstancedMesh, DynamicDrawUsage } from 'three';
+
 import { SphereBox, Capsule, ChamferCyl, ChamferBox  } from '../3TH/Geometry.js';
 import { ConvexGeometry } from '../jsm/geometry/ConvexGeometry.js';
 

@@ -10,7 +10,7 @@ import {
     BoxGeometry,
     Vector2,
 } from 'three';
-import { mergeVertices, mergeBufferGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+import { mergeVertices, mergeBufferGeometries } from '../jsm/utils/BufferGeometryUtils.js';
 
 /** __
 *    _)_|_|_

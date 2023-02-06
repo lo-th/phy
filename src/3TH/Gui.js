@@ -24,7 +24,7 @@ export const Gui = {
 
 		sx: 4,
         sy: 2,
-        radius:4,
+        radius:3,
 
 		background:'none',
 		backgroundOver:'none',//'rgba(255,255,255,0.02)',
@@ -46,7 +46,7 @@ export const Gui = {
 		
 		//fontShadow:'#000006',
 		
-		border:'rgba(255,255,255,0.2)',//'none',
+		border:'rgba(255,255,255,0.2)',//
 		borderSize:1,
 		//overoff:'rgba(255,255,255,0.1)',
 		

@@ -1,5 +1,5 @@
 import {
-    ShaderChunk, DoubleSide, RGBAFormat, sRGBEncoding
+    ShaderChunk, DoubleSide, sRGBEncoding
 } from 'three';
 
 /** __

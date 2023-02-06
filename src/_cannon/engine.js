@@ -2,6 +2,8 @@
 import * as CANNON from '../libs/cannon-es.js'
 
 import { root, Utils, Vec3, Quat } from './root.js';
+import { getType, getArray } from '../core/Config.js';
+
 import { Body } from './Body.js';
 import { Joint } from './Joint.js';
 
@@ -16,7 +18,7 @@ self.onmessage = function ( m ) { engine.message( m ) }
 let isTimeout = false;
 let outsideStep = false;
 
-let Ar, ArPos, ArMax;
+let Ar, ArPos
 let isBuffer = false;
 let returnMessage, isWorker;
 
@@ -75,8 +77,8 @@ export class engine {
 		if( o.fps !== undefined ) timestep = 1 / o.fps;
 		if( o.substep !== undefined ) substep = o.substep;
 
-		if( o.returnMessage ){ 
-			returnMessage = o.returnMessage;
+		if( o.message ){ 
+			returnMessage = o.message;
 			isWorker = false;
 			isBuffer = false;
 		}
@@ -98,8 +100,7 @@ export class engine {
 
 	static set ( o = {} ){
 
-		ArPos = o.ArPos;
-		ArMax = o.ArMax;
+		ArPos = o.ArPos || getArray('CANNON', o.full)
 		body.setFull(o.full)
 
 		outsideStep = o.outsideStep || false;
@@ -129,7 +130,7 @@ export class engine {
 			// define transfer array
 			//const buffer = new ArrayBuffer(ArMax)
 			//Ar = new Float32Array( buffer )
-		    Ar = new Float32Array( ArMax )
+		    Ar = new Float32Array( ArPos.total )
 
 		    // create new world
 			engine.initWorld()

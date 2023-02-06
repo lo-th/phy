@@ -2,10 +2,10 @@ import {
     Texture, TextureLoader, sRGBEncoding, RepeatWrapping, NearestFilter, EquirectangularReflectionMapping
 } from 'three';
 
-import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
-import { FBXLoader } from 'three/addons/loaders/FBXLoader.js';
-import { RGBELoader } from 'three/addons/loaders/RGBELoader.js';
+import { GLTFLoader } from '../jsm/loaders/GLTFLoader.js';
+import { DRACOLoader } from '../jsm/loaders/DRACOLoader.js';
+import { FBXLoader } from '../jsm/loaders/FBXLoader.js';
+import { RGBELoader } from '../jsm/loaders/RGBELoader.js';
 import { LZMA } from '../libs/lzma.js';
 
 import { GlbTool } from './utils/GlbTool.js';

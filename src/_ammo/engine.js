@@ -1,5 +1,5 @@
 import { root, Utils } from './root.js'
-import { getType } from '../core/Config.js';
+import { getType, getArray } from '../core/Config.js';
 
 import { Ray } from './Ray.js'
 import { Body } from './Body.js'
@@ -25,7 +25,7 @@ let isTimeout = false;
 let outsideStep = false;
 let isSoft = true;
 
-let Ar, ArPos, ArMax;
+let Ar, ArPos;
 let isBuffer = false;
 let returnMessage, isWorker;
 
@@ -78,14 +78,11 @@ export class engine {
 		isWorker = true;
 		isBuffer = o.isBuffer || false;
 
-		//ArPos = o.ArPos;
-		//ArMax = o.ArMax;
-
 		if( o.fps !== undefined ) timestep = 1 / o.fps;
 		if( o.substep !== undefined ) substep = o.substep;
 
-		if( o.returnMessage ){ 
-			returnMessage = o.returnMessage;
+		if( o.message ){ 
+			returnMessage = o.message;
 			isWorker = false;
 			isBuffer = false;
 		}
@@ -107,8 +104,7 @@ export class engine {
 
 	static set ( o = {} ){
 
-		ArPos = o.ArPos;
-		ArMax = o.ArMax;
+		ArPos = o.ArPos || getArray('AMMO', o.full)
 		items.body.setFull(o.full)
 
 		outsideStep = o.outsideStep || false;
@@ -136,7 +132,7 @@ export class engine {
 		if( root.world  === null ){
 
 			// define transfer array
-		    Ar = new Float32Array( ArMax );
+		    Ar = new Float32Array( ArPos.total );
 
 		    // create new world
 		    engine.initWorld()

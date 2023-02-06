@@ -9,7 +9,7 @@ function polyfills() {
 
 		transform( code, filePath ) {
 
-			if ( filePath.endsWith( 'src/Main.js' ) || filePath.endsWith( 'src\\Main.js' ) ) {
+			if ( filePath.endsWith( 'src/Phy.js' ) || filePath.endsWith( 'src\\Phy.js' ) ) {
 
 				code = 'import \'regenerator-runtime\';\n' + code;
 
@@ -28,7 +28,8 @@ function polyfills() {
 
 export default [
 	{
-		input: 'src/Main.js',
+		input: 'src/Phy.js',
+		external: ['three'],
 		plugins: [
 			polyfills(),
 			nodeResolve(),
@@ -37,20 +38,20 @@ export default [
 		output: [
 			{
 				format: 'umd',
-				name: 'PHY',
-				file: 'build/phy.min.js'
+				name: 'phy',
+				file: 'build/Phy.min.js'
 			}
 		]
 	},
 	{
-		input: 'src/Main.js',
+		input: 'src/Phy.js',
+		external: ['three'],
 		plugins: [
-		    terser()
 		],
 		output: [
 			{
 				format: 'esm',
-				file: 'build/phy.module.js'
+				file: 'build/Phy.module.js'
 			}
 		]
 	}

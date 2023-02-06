@@ -16,8 +16,8 @@
     "extends": "mdcs"
   },
   "scripts": {
-    "build": "npm run main && npm run oimo && npm run ammo && npm run physx && npm run rapier",
-    "main": "rollup -c rollup/rollup.config.js",
+    "build": "npm run phy && npm run oimo && npm run ammo && npm run physx && npm run rapier && npm run cannon",
+    "phy": "rollup -c rollup/rollup.config.phy.js",
     "oimo": "rollup -c rollup/rollup.config.oimo.js",
     "ammo": "rollup -c rollup/rollup.config.ammo.js",
     "physx": "rollup -c rollup/rollup.config.physx.js",

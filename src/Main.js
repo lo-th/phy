@@ -195,7 +195,6 @@ export const Main = {
 
 		o.link = LinkWasm[ engineName ]
 		o.type = Main.engineType;
-		o.extraConvex = engineName === 'Physx';
 		o.callback = init
 
 		introText = ( Main.isWorker ? 'WORKER ' : 'DIRECT ' ) + Main.engineType + ' ' + version;

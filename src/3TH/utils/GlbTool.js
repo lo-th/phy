@@ -1,5 +1,5 @@
 import { Shader } from '../Shader.js'
-import { mergeBufferGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+import { mergeBufferGeometries } from '../../jsm/utils/BufferGeometryUtils.js';
 
 export const GlbTool = {
 

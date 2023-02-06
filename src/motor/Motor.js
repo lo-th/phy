@@ -5,7 +5,7 @@ import {
 
 import { root, math, Utils, Geo, Mat, mat } from './root.js';
 
-import { Max, Num, getType } from '../core/Config.js';
+import { Max, Num, getArray, getType } from '../core/Config.js';
 
 import { Ray } from './Ray.js';
 import { Body } from './Body.js';
@@ -29,7 +29,7 @@ import { User } from './User.js';
 let items
 
 let callback = null
-let Ar, ArPos = {}, ArMax = 0
+let Ar, ArPos = {}
 let maxFps = 60
 let worker = null
 let isWorker = false
@@ -134,7 +134,7 @@ export class Motor {
 
 	static init ( o = {} ){
 
-		let type = o.type || 'OIMO';
+		let type = o.type || 'PHYSX';
 		let name = type.toLowerCase()
 		let mini = name.charAt(0).toUpperCase() + name.slice(1)
 		let st = ''
@@ -145,8 +145,8 @@ export class Motor {
 
 		Motor.initItems()
 
-		items.body.extraConvex = o.extraConvex || false
-		items.solid.extraConvex = o.extraConvex || false
+		items.body.extraConvex = mini === 'Physx'
+		items.solid.extraConvex = mini === 'Physx'
 
 		if( o.callback ){ 
 			callback = o.callback
@@ -214,7 +214,7 @@ export class Motor {
 		} else { // is direct version
 
 			directMessage = o.direct;
-			o.returnMessage = Motor.message;
+			o.message = Motor.message;
 			console.log( type + ' is direct' );
 
 		}
@@ -311,11 +311,10 @@ export class Motor {
 
 		if( o.full === undefined ) o.full = false
 
-		items.body.setFull(o.full)
+		items.body.setFull( o.full )
 
-		Motor.initArray(o.full)
+		Motor.initArray( o.full )
 		o.ArPos = ArPos
-		o.ArMax = ArMax
 
 		elapsedTime = 0
 
@@ -410,39 +409,8 @@ export class Motor {
 
 	static initArray ( full = false ) {
 
-		// dynamics array
-
-		ArMax = 0
-		ArPos = {}
-
-		let counts = {
-			body: Max.body * ( full ? Num.bodyFull : Num.body ),
-            joint: Max.joint * Num.joint,
-            ray: Max.ray * Num.ray,
-            contact: Max.contact * Num.contact,
-            character: Max.character * Num.character
-		}
-
-		if( root.engine === 'PHYSX' || root.engine === 'AMMO' ){ 
-			counts['vehicle'] = Max.vehicle * Num.vehicle;
-			items['vehicle'] = new Vehicle()
-		}
-		if( root.engine === 'PHYSX' ){ 
-			counts['solver'] = Max.solver * Num.solver;
-			items['solver'] = new Solver()
-		}
-
-        let prev = 0;
-
-        for( let m in counts ){ 
-
-            ArPos[m] = prev
-            ArMax += counts[m]
-            prev += counts[m]
-
-        }
-
-        //console.log( ArMax )
+	    // dynamics array
+		ArPos = getArray( root.engine, full )
 
 	}
 
@@ -549,6 +517,14 @@ export class Motor {
 			character : new Character()
 		}
 
+		if( root.engine === 'PHYSX' || root.engine === 'AMMO' ){ 
+			items['vehicle'] = new Vehicle()
+		}
+
+		if( root.engine === 'PHYSX' ){ 
+			items['solver'] = new Solver()
+		}
+
 	}
 
 	static resetItems() {
@@ -564,8 +540,9 @@ export class Motor {
 		Motor.upInstance()
 
 		// update follow camera
-		if( controls ) controls.follow( Motor.getDelta() )
-
+		if( controls ){ 
+			if( controls.follow )controls.follow( Motor.getDelta() )
+		}
 	}
 
 	static adds ( r = [] ){ for( let o in r ) Motor.add( r[o] ) }

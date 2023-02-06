@@ -44,7 +44,7 @@ export default [
 	{
 		input: 'src/Physx.js',
 		plugins: [
-			terser()
+		    terser()
 		],
 		output: [
 			{
