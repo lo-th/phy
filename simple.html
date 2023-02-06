@@ -57,11 +57,11 @@
 			    controler.screenSpacePanning = true;
 			    controler.update();
 
-			    light = new THREE.PointLight(0xffffff);
+			    light = new THREE.PointLight(0xffffEE);
 			    light.position.set(0,50,0);
 			    scene.add(light);
-
-			    scene.add( new THREE.AmbientLight( 0x333333 ));
+			    scene.background = new THREE.Color( 0x101000 );
+			    scene.add( new THREE.AmbientLight( 0x202000 ));
 
 			    initEngine()
 
