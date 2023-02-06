@@ -211,7 +211,7 @@ const matExtra = {
 export const Colors = {
 
 	body:new Color( 0xFF934F ).convertSRGBToLinear(),
-	sleep:new Color( 0x46B1C9 ).convertSRGBToLinear()
+	sleep:new Color( 0x939393 ).convertSRGBToLinear()//0x46B1C9
 
 }
 
@@ -236,7 +236,7 @@ export const Mat = {
 				case 'base':   m = new MeshStandardMaterial({ color:0xffffff, ...matExtra }); break
 				case 'simple': m = new MeshStandardMaterial({ color:0x808080, metalness: 0, roughness: 1 }); break
 				case 'body':   m = new MeshStandardMaterial({ color:0xFF934F, ...matExtra }); break
-				case 'sleep':  m = new MeshStandardMaterial({ color:0x46B1C9, ...matExtra }); break
+				case 'sleep':  m = new MeshStandardMaterial({ color:0x939393, ...matExtra }); break//0x46B1C9
 				case 'solid':  m = new MeshStandardMaterial({ color:0x3C474B, ...matExtra }); break
 				case 'hero':   m = new MeshStandardMaterial({ color:0x00FF88, ...matExtra }); break
 				case 'skin':   m = new MeshStandardMaterial({ color:0xe0ac69, ...matExtra }); break

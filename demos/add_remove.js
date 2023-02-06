@@ -6,7 +6,7 @@ const dices = ['D20', 'D12', 'D10', 'D8', 'D6', 'D4']
 
 demo = () => {
 
-    phy.view({ envmap:'bed', ground:true })
+    //phy.view({ envmap:'bed', ground:true })
 
     // note one unit = one meter
     phy.log('look code')

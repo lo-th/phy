@@ -1,19 +1,12 @@
 demo = () => {
 
-    phy.view({
-         envmap:'basic',//envmap:0x604545,
-        ground:true
-    })
-
     phy.set({ substep:2, gravity:[0,-9.81,0] })
 
-    phy.add({ type:'plane' });
-    //phy.add({ type:'box', size:[300,1,300], pos:[0, -0.5, 0], visible:false })
+    phy.add({ type:'plane' })
 
-    // add dynamic sphere
-    phy.add({ type:'highSphere', name:'sphere', size:[0.95], pos:[0,6,0], density:5, restitution:0.2, friction:0.2, sleep:true })
+    phy.add({ type:'highSphere', name:'sphere', size:[0.90], pos:[0,6,0], density:5, restitution:0.2, friction:0.2, sleep:true })
 
-    addTower({ radius:1, height:18, size:[0.1, 0.2], detail:16, density:0.3 });
+    addTower({ radius:1, height:25, size:[0.1, 0.2], detail:18, density:0.3 });
 
     phy.setTimeout( run, 1000 )
 
