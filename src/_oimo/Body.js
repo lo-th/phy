@@ -340,8 +340,11 @@ export class Body extends Item {
 
 	    if( o.gravityScale ) b.setGravityScale( o.gravityScale );
 
-	    if( o.linearVelocity ) b.setLinearVelocity( this.v.fromArray( o.linearVelocity ) )
-	    if( o.angularVelocity ) b.setAngularVelocity( this.v.fromArray( o.angularVelocity ) )
+	    if( b.type === 'body' ){
+		    b.getOrientationTo( this.q )
+		    if( o.linearVelocity ) b.setLinearVelocity( this.v.fromArray( o.linearVelocity ).applyQuaternion( this.q ) )
+		    if( o.angularVelocity ) b.setAngularVelocity( this.v.fromArray( o.angularVelocity ).applyQuaternion( this.q ) )
+		}
 
 	    if( o.angularFactor ) b.setRotationFactor( this.v.fromArray( o.angularFactor ) )
 

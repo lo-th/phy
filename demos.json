@@ -2,7 +2,7 @@
     "Basic": [ 
         "start", "basic", "joint", "capsule", "compound", "bridge",
         "gears", "raycast", "terrain", "character", "car", "collision",
-        "mesh", "kinematic", "add_remove", "tower", "keva", "empty"
+        "mesh", "kinematic", "add_remove", "tower", "keva", "empty", "test"
     ],
     "Advanced" : [ 
         "diamond", "ragdoll", "chess", "pinball", "million", "desk" 

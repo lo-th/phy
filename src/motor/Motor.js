@@ -566,7 +566,7 @@ export class Motor {
 	
 	static remove ( name ){
 
-		if ( name.constructor === Array ) return Motor.removes( o )
+		if ( name.constructor === Array ) return Motor.removes( name )
 
 		let b = Motor.byName( name )
 		if( b === null ) return;
