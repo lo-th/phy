@@ -4,7 +4,7 @@ let tmp = []
 
 demo = () => {
 
-    phy.view({theta:-25, distance:30, x:0, ground:true, envmap:'clear'})
+    phy.view({ theta:-25, distance:30, x:0, ground:true, envmap:'clear' })
 
     phy.set({ substep:1, gravity:[0,-9.81,0] })
     phy.add({ type:'plane', name:'floor', size:[ 300,1,300 ], visible:false });

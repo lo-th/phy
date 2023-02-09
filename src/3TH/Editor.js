@@ -1,9 +1,10 @@
 import * as UIL from 'uil'
 import CodeFlask from '../libs/codeflask.module.js'
+import { CodeMirror } from '../libs/codemirror.module.js'
 
 /** __
 *    _)_|_|_
-*   __) |_| | 2022
+*   __) |_| | 2023
 * @author lo.th / https://github.com/lo-th
 */
 
@@ -20,6 +21,12 @@ export class Editor {
         this.source = null
         this.left = 0
         this.refresh = false
+        this.old = ''
+
+        this.useCodeMirror = true
+        this.errorLines = [];
+        this.widgets = [];
+
 
         if( this.isSolo ) this.open()
 
@@ -128,9 +135,14 @@ export class Editor {
 
         this.codeContent = document.createElement( 'div' )
         this.codeContent.style.cssText = text + 'position:absolute; margin:0; padding:0; top:30px; left:3px; width:calc( 100% - 6px); height:calc( 100% - 60px); border-top: 1px solid #3e4036; border-bottom: 1px solid #3e4036;'
-        this.code = new CodeFlask( this.codeContent, { language: 'js', handleTabs: true, lineNumbers: true })
-        //this.code.onUpdate( function ( code ){ this.onUpdate(code) }.bind(this) )
-        this.code.onUpdate( this.onUpdate.bind(this) )
+        
+        if(this.useCodeMirror){
+            this.code = CodeMirror( this.codeContent, { theme:'monokai', lineNumbers: true, matchBrackets: true, indentWithTabs: false, styleActiveLine: false, tabSize: 4, indentUnit: 4/*, highlightSelectionMatches: {showToken: /\w/}*/});
+            this.code.on('change', function () { this.onUpdate(this.code.getValue()) }.bind(this) );
+        } else {
+            this.code = new CodeFlask( this.codeContent, { language: 'js', handleTabs: true, lineNumbers: true })
+            this.code.onUpdate( this.onUpdate.bind(this) )
+        }
 
         this.content.appendChild( this.codeContent )
 
@@ -210,7 +222,7 @@ export class Editor {
         this.solo.addEventListener( 'pointerdown', this.detach.bind(this), false )
 
         if( Main ) {
-            this.code.updateCode( Main.getCode() )
+            this.setInternCode( Main.getCode() )
             this.setTitle( Main.getCodeName() )
         }
 
@@ -218,7 +230,7 @@ export class Editor {
             var hash = location.hash.substr( 1 )
             if( hash !== '' ) this.loadSrcipt('./demos/'+ hash + '.js')
         } else {
-            this.content.addEventListener( 'wheel', function(e){ this.code.wheel(e) }.bind(this) )
+           if(!this.useCodeMirror) this.content.addEventListener( 'wheel', function(e){ this.code.wheel(e) }.bind(this) )
         }
 
         this.content.addEventListener( 'dragover', function(e){ e.preventDefault() }, false );
@@ -244,7 +256,8 @@ export class Editor {
         document.removeEventListener('pointerup', this.midUp );
         document.removeEventListener('pointermove', this.midMove );
 
-        this.code.clear()
+        if( this.useCodeMirror ) this.code.setValue( '' );
+        else this.code.clear()
 
         this.content.innerHTML = ''
 
@@ -252,10 +265,12 @@ export class Editor {
         
     }
 
-    onUpdate ( code, refresh = false ){
+    onUpdate ( code ){
 
-        let b = this.validate( code )
-        if(!this.refresh) this.refresh = this.code.isEdit
+        let b = this.useCodeMirror ? this.validateMirror( code ) : this.validate( code )
+        
+        if( !this.refresh ) this.refresh = this.code.isEdit
+
         if( b && this.refresh ){ 
             if( Main ) Main.injectCode( code )
             if( this.source ) this.send({ type:'inject', code:code })
@@ -266,6 +281,8 @@ export class Editor {
 
     set ( code, name, refresh ){
 
+        console.log('editor set')
+
         if( !this.isOpen ) return
 
         this.setTitle( name )
@@ -273,13 +290,22 @@ export class Editor {
         if( this.isSolo ) location.hash = name
 
         if( refresh ) this.refresh = refresh
-        this.code.updateCode( code )
+
+        this.setInternCode( code )
+
+    }
+
+    setInternCode( code ) {
+
+        if( this.useCodeMirror ) this.code.setValue( code );
+        else this.code.updateCode( code )
+        this.code.isEdit = false;
 
     }
 
     get () {
 
-        return this.code.getCode()
+        return this.useCodeMirror ? this.code.getValue() : this.code.getCode()
 
     }
 
@@ -335,6 +361,54 @@ export class Editor {
             this.setInfo(e.toString(), 1)
             return false
         }
+
+    }
+
+    validateMirror ( value ) {
+
+        if( !value ) return
+        if( !this.esprimaReady ) return true
+
+        const code = this.code
+        const errorLines = this.errorLines
+        const widgets = this.widgets
+        let _selt = this
+
+        return code.operation( function () {
+            while ( errorLines.length > 0 ) code.removeLineClass( errorLines.shift(), 'background', 'errorLine' );
+            var i = widgets.length;
+            while(i--) code.removeLineWidget( widgets[ i ] );
+            widgets.length = 0;
+            var string = value//currentCode;
+            try {
+                var result = esprima.parse( string, { tolerant: true } ).errors;
+                i = result.length;
+                while(i--){
+                    var error = result[ i ];
+                    var m = document.createElement( 'div' );
+                    m.className = 'esprima-error';
+                    m.textContent = error.message.replace(/Line [0-9]+: /, '');
+                    var l = error.lineNumber - 1;
+                    errorLines.push( l );
+                    code.addLineClass( l, 'background', 'errorLine' );
+                    var widget = code.addLineWidget( l, m );
+                    widgets.push( widget );
+                }
+            } catch ( error ) {
+                var m = document.createElement( 'div' );
+                m.className = 'esprima-error';
+                m.textContent = error.message.replace(/Line [0-9]+: /, '');
+                var l = error.lineNumber - 1;
+                errorLines.push( l );
+                code.addLineClass( l, 'background', 'errorLine' );
+                var widget = code.addLineWidget( l, m );
+                widgets.push( widget );
+            }
+            let rs = errorLines.length ;
+            if( rs === 0) _selt.setInfo('&#2039;')
+            else _selt.setInfo('Invalid code. Total issues: ' + rs , 1)
+            return rs === 0
+        });
 
     }
 

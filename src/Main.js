@@ -689,6 +689,7 @@ const dispose = () => {
 //   CODE SIDE
 //
 //--------------------
+
 const directDemo = ( name, result ) => {
 
 	let findDemo = Gui.resetDemoGroup( name )
@@ -697,7 +698,7 @@ const directDemo = ( name, result ) => {
 	options.demo = name
 	location.hash = name
 
-	inject( result )
+	inject( result, true )
 
 }
 
@@ -715,10 +716,12 @@ const loadDemo = ( name ) => {
 
 }
 
-const inject = ( newCode ) => {
+const inject = ( newCode, force = false ) => {
 
 	isLoadCode = !newCode
 	code = isLoadCode ? Pool.getScript( options.demo ) : newCode
+
+	if(force) isLoadCode = true
 
 	if(window['onReset']){ 
 		window['onReset']()
@@ -728,13 +731,13 @@ const inject = ( newCode ) => {
 	//Hub.log()
 	Hub.reset()
 	
-	//Shader.reset()
+	Shader.reset()
 	//resetLight()
 	
 	phy.reset( refreshCode )
 
 	if( isLoadCode ){
-		Shader.reset()
+		//Shader.reset()
 	    resetLight() 
 		Pool.dispose();
 	}
@@ -756,10 +759,7 @@ const refreshCode = () => {
     script.innerHTML = '{' + code + '}'
     document.body.appendChild( script )
 
-    if( isLoadCode ){ 
-    	if( isExternEditor ) send({ type:'set', code:code, name:options.demo })
-    	else editor.set( code, options.demo )
-    }
+    if( isLoadCode ) changeEditorCode()
 
     let ev = code.search( 'phy.view' )
     let evh = code.search( '//phy.view' )
@@ -777,7 +777,12 @@ const refreshCode = () => {
 
 }
 
+const changeEditorCode = () => {
 
+	if( isExternEditor ) send({ type:'set', code:code, name:options.demo })
+    else editor.set( code, options.demo )
+
+}
 
 //--------------------
 //   STOP ENGINE
@@ -1177,11 +1182,15 @@ const select = ( obj, inters ) => {
 
     let p = pos.toArray()
 
-	//Motor.add({ name:'mouse', type:'sphere', size:[0.1], pos:p, mask:0 })
+	//Motor.add({ name:'mouse', type:'sphere', size:[0.1], pos:p, mask:0, density:1, noGravity:true, kinematic:true })
 	Motor.add({ name:'mouse', type:'null', size:[0.1], pos:p, quat:quat })
 	Motor.add({ 
 		name:'mouseJoint', type:'joint', mode:'fixe',//mode:'spherical',
 		b1:selected.name, b2:'mouse', worldAnchor:p, //sd:[4,1]
+		//tolerance:[1, 10],
+		//noPreProcess:true,
+		improveSlerp:true,
+		noFix:true,
 	})
 	Motor.up({ name:selected.name, neverSleep:true })
 

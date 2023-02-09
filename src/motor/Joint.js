@@ -46,7 +46,7 @@ export class Joint extends Item {
 
 	add ( o = {} ) {
 
-		let name = this.setName( o );
+		let name = this.setName( o )
 
 		if( o.b1 && typeof o.b1 !== 'string') o.b1 = o.b1.name;
 		if( o.b2 && typeof o.b2 !== 'string') o.b2 = o.b2.name;
