@@ -11,7 +11,23 @@ demo = () => {
     phy.set({ substep:2, gravity:[0,0,0], fps:60 })
 
     // add static planete
-    phy.add({ type:'highSphere', size:[2] });
+    const planet = new Planet({
+        radius:2,
+        height:3,
+        resolution:engine==='OIMO' ? 10 : 30,
+        frequency : [0.5,0.8], // frequency of noise
+        level : [0.3,0.1], // influence of octave
+        expo: 2,
+    });
+
+    phy.add({ 
+        type:'mesh',
+        name: 'planet',
+        shape: planet.geometry,
+        material: planet.material
+    });
+
+    //phy.add({ type:'highSphere', size:[2] });
 
     // add some dynamics
     let i = 200;

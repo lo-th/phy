@@ -7,7 +7,6 @@ import {
     Vector2,
     Quaternion,
     DoubleSide,
-    //VertexColors,
     MeshStandardMaterial,
     MeshBasicMaterial,
     sRGBEncoding
@@ -238,7 +237,7 @@ export class Landscape extends Mesh {
        // super( this.geometry, this.material );
 
         if(o.debuger){
-            var debuger = new Mesh( this.geometry, new MeshBasicMaterial({  vertexColors:VertexColors, wireframe:true, transparent:true, opacity:0.25 } ));
+            var debuger = new Mesh( this.geometry, new MeshBasicMaterial({ vertexColors:true, wireframe:true, transparent:true, opacity:0.25 } ));
             this.add( debuger );
         }
 
@@ -292,7 +291,7 @@ export class Landscape extends Mesh {
 
     	this.borderMaterial = new MeshStandardMaterial({ 
 
-    		vertexColors: VertexColors, 
+    		vertexColors: true, 
     		metalness: this.isWater ? 0.8 : 0.4, 
        		roughness: this.isWater ? 0.2 : 0.6, 
        

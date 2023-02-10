@@ -1,69 +1,79 @@
+import {
+    Mesh,
+    PlaneGeometry,
+    BufferAttribute,
+    Vector3,
+    Vector2,
+    MeshStandardMaterial,
+    BoxGeometry
+} from 'three';
+
 import { math } from '../math.js';
-import { root } from '../root.js';
+import { Pool } from '../Pool.js';
+import { Shader } from '../Shader.js';
 
-function Planet( o ) {
+export class Planet extends Mesh {
 
-    o = o == undefined ? {} : o;
+    constructor( o = {} ) {
 
-    this.radius = o.radius !== undefined ? o.radius : 100;
-    this.resolution = o.resolution !== undefined ? o.resolution : 10;
+        super();
 
-    this.data = {
-        level: o.level || [1,0.25],
-        frequency: o.frequency || [0.1,0.5],
-        expo: o.expo || 2,
-        height: o.height || 4,
+        o = o == undefined ? {} : o;
+
+        this.radius = o.radius !== undefined ? o.radius : 100;
+        this.resolution = o.resolution !== undefined ? o.resolution : 10;
+
+        this.data = {
+            level: o.level || [1,0.25],
+            frequency: o.frequency || [0.1,0.5],
+            expo: o.expo || 2,
+            height: o.height || 4,
+        }
+
+        this.uvx = o.uv || [1,1];
+
+        this.m1 = Pool.directTexture('./assets/textures/terrain/crater.jpg', { flip:false, repeat:this.uvx, encoding:true })
+        this.m2 = Pool.directTexture('./assets/textures/terrain/crater_n.jpg', { flip:false, repeat:this.uvx })
+
+        this.material = new MeshStandardMaterial({ 
+            name:'planet',
+            vertexColors:true, 
+            color:0x63605c, 
+            map:this.m1, 
+            normalMap:this.m2,
+            normalScale:new Vector2(2,2), 
+            roughness:0.75, 
+            metalness:0.5,
+         });
+
+        this.material.onBeforeCompile = function ( shader ) {
+            Shader.modify( shader )
+        }
+
+        
+
+        this.makeGeometry();
+
+        //root.garbage.push( this.geometry );
+
+        this.name = o.name || 'planet';
+
+        this.castShadow = true;
+        this.receiveShadow = true;
+
     }
 
-    this.uvx = o.uv || [4,4];
+    makeGeometry () {
 
-    this.m1 = root.loadTextures('./assets/textures/terrain/crater.jpg', { flip:false, repeat:this.uvx, encoding:true }), 
-    this.m2 = root.loadTextures('./assets/textures/terrain/crater_n.jpg', { flip:false, repeat:this.uvx }),
-
-
-    this.material = root.view.addMaterial({ 
-        name:'planet', 
-        vertexColors:THREE.VertexColors, 
-        color:0x63605c, 
-        map:this.m1, 
-        normalMap:this.m2,
-        normalScale:new THREE.Vector2(1,1), 
-        roughness:0.25, 
-        metalness:0.3,
-        //envMap:root.view.getEnvmap()
-     });
-
-    
-
-    this.makeGeometry();
-
-    root.garbage.push( this.geometry );
-
-
-    THREE.Mesh.call( this, this.geometry, this.material );
-
-    this.name = o.name || 'planet';
-
-    this.castShadow = true;
-    this.receiveShadow = true;
-
-};
-
-Planet.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
-
-    constructor: Planet,
-
-    makeGeometry: function () {
-
-        this.geometry = new THREE.BoxBufferGeometry( 1, 1, 1, this.resolution, this.resolution, this.resolution );
+        this.geometry = new BoxGeometry( 1, 1, 1, this.resolution, this.resolution, this.resolution );
 
         this.lng = this.geometry.attributes.position.count;
 
         this.colors = new Float32Array( this.lng * 3 );
-        this.geometry.setAttribute( 'color', new THREE.BufferAttribute( this.colors, 3 ) );
+        this.geometry.setAttribute( 'color', new BufferAttribute( this.colors, 3 ) );
 
 
-        var i = this.lng, n, w = new THREE.Vector3();
+        var i = this.lng, n, w = new Vector3();
         this.vertices = this.geometry.attributes.position.array;
         this.s = [];
 
@@ -79,11 +89,11 @@ Planet.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
 
         this.update();
 
-    },
+    }
 
-    update: function(){
+    update(){
 
-        var i = this.lng, v, c, f, hh, n, w = new THREE.Vector3()
+        var i = this.lng, v, c, f, hh, n, w = new Vector3()
 
         while(i--){
 
@@ -116,16 +126,12 @@ Planet.prototype = Object.assign( Object.create( THREE.Mesh.prototype ), {
         this.geometry.attributes.color.needsUpdate = true;
         this.geometry.computeVertexNormals();
 
-    },
+    }
 
-    dispose: function () {
+    dispose () {
 
         this.geometry.dispose();
         this.material.dispose();
         
-    },
-
-   
-});
-
-export { Planet };
+    }
+}

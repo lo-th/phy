@@ -16,6 +16,7 @@ import { Editor } from './3TH/Editor.js'
 // OBJECT
 import { Reflector } from './3TH/objects/Reflector.js'
 import { Landscape } from './3TH/objects/Landscape.js'
+import { Planet } from './3TH/objects/Planet.js'
 import { Building } from './3TH/objects/Building.js'
 import { Sparkle } from './3TH/objects/Sparkle.js'
 // MATERIAL
@@ -297,6 +298,7 @@ window.Main = Main
 window.THREE = THREE
 window.hub = Hub
 window.Landscape = Landscape
+window.Planet = Planet
 window.Building = Building
 window.Sparkle = Sparkle
 
