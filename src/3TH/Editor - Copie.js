@@ -1,6 +1,6 @@
 import * as UIL from 'uil'
 import CodeFlask from '../libs/codeflask.module.js'
-import { CodeMirror } from '../libs/cm6.module.js'
+import { CodeMirror } from '../libs/codemirror.module.js'
 
 /** __
 *    _)_|_|_
@@ -137,9 +137,8 @@ export class Editor {
         this.codeContent.style.cssText = text + 'position:absolute; margin:0; padding:0; top:30px; left:3px; width:calc( 100% - 6px); height:calc( 100% - 60px); border-top: 1px solid #3e4036; border-bottom: 1px solid #3e4036;'
         
         if(this.useCodeMirror){
-            this.code = CodeMirror( this.codeContent, this.onUpdate.bind(this) )
-            //this.code = CodeMirror( this.codeContent, { theme:'monokai', lineNumbers: true, matchBrackets: true, indentWithTabs: false, styleActiveLine: false, tabSize: 4, indentUnit: 4/*, highlightSelectionMatches: {showToken: /\w/}*/});
-            //this.code.on('change', function () { this.onUpdate(this.code.getValue()) }.bind(this) );
+            this.code = CodeMirror( this.codeContent, { theme:'monokai', lineNumbers: true, matchBrackets: true, indentWithTabs: false, styleActiveLine: false, tabSize: 4, indentUnit: 4/*, highlightSelectionMatches: {showToken: /\w/}*/});
+            this.code.on('change', function () { this.onUpdate(this.code.getValue()) }.bind(this) );
         } else {
             this.code = new CodeFlask( this.codeContent, { language: 'js', handleTabs: true, lineNumbers: true })
             this.code.onUpdate( this.onUpdate.bind(this) )
@@ -268,7 +267,7 @@ export class Editor {
 
     onUpdate ( code ){
 
-        let b = this.validate( code )//this.useCodeMirror ? this.validateMirror( code ) : this.validate( code )
+        let b = this.useCodeMirror ? this.validateMirror( code ) : this.validate( code )
         
         if( !this.refresh ) this.refresh = this.code.isEdit
 
