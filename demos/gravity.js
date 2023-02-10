@@ -24,7 +24,9 @@ demo = () => {
         type:'mesh',
         name: 'planet',
         shape: planet.geometry,
-        material: planet.material
+        material: planet.material,
+        friction:0.2, 
+        restitution:1,
     });
 
     //phy.add({ type:'highSphere', size:[2] });
@@ -32,27 +34,34 @@ demo = () => {
     // add some dynamics
     let i = 200;
 
-    let p = new THREE.Vector3()
+    let p = new THREE.Vector3(), s
 
     while( i-- ){
 
         p.setFromSphericalCoords(
-            math.rand(4, 100), 
+            math.rand(20, 100), 
             math.rand(-math.Pi, math.Pi), 
             math.rand(-math.Pi, math.Pi)
         )
 
+        s = math.rand(0.25, 0.5)
+
         box[i] = phy.add({ 
             name:'box'+i, 
-            type:'box', 
+            type:'compound', 
             radius:0.03,
-            size:[math.rand(0.1, 0.9),math.rand(0.1, 0.9),math.rand(0.1, 0.9)],
+            //size:[math.rand(0.1, 0.9),math.rand(0.1, 0.9),math.rand(0.1, 0.9)],
             rot:[math.rand(0, 360),math.rand(0, 360),math.rand(0, 360)],  
             pos:p.toArray(), 
-            density:1, 
-            friction:0.5, 
-            restitution:0.26,
-            material:'chrome'
+            shapes:[
+            { type:'cylinder', pos:[0,0,0], size:[ s*0.25,s,s*0.25 ] },
+            { type:'box', pos:[0,0,0], size:[ s*3,s*0.05,s*0.5 ] }
+            ],
+            density:s, 
+            friction:0.2, 
+            restitution:1,
+            damping:[0,0.8],
+            material:'sat'
         })
     }
 
@@ -65,7 +74,7 @@ update = () => {
 
     var p, m, r = [];
     box.forEach( function( b, id ) {
-        p = b.position.clone().negate().normalize().multiplyScalar(0.1);
+        p = b.position.clone().negate().normalize().multiplyScalar(0.01);
         r.push( { name:b.name, force:p.toArray() } );
     });
 

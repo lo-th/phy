@@ -244,6 +244,7 @@ export const Mat = {
 				case 'glass':  m = new MeshPhysicalMaterial({ color:0xFFFFff, transparent:true, opacity:0.8, depthTest:true, depthWrite:false, roughness:0.02, metalness:0.0, /*side:DoubleSide,*/ alphaToCoverage:true, premultipliedAlpha:true, transmission:1, clearcoat:1, thickness:0.02  }); break
 				case 'plexi':  m = new MeshPhysicalMaterial({ color:0xCCCCCCC, transparent:true, opacity:0.4  }); break
 				case 'glass2': m = new MeshPhysicalMaterial({ color:0xCCCCff, transparent:true, opacity:0.3  }); break
+				case 'sat': m = new MeshPhysicalMaterial({ color:0xffffff, metalness: 1, roughness:0, clearcoat:1  }); break
 
 				case 'joint':  m = new LineBasicMaterial( { color: 0x00FF00, toneMapped: false } ); break
 				case 'ray':    m = new LineBasicMaterial( { vertexColors: true, toneMapped: false } ); break	
