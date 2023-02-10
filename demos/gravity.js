@@ -3,7 +3,7 @@ let box = []
 demo = () => {
 
     phy.view({ 
-        ground:false, envmap:'clear',
+        ground:false, envmap:'alien', fog:true, fogDist:0.07,
         phi:0, theta:0, distance:10, x:0, y:0, z:0, fov:70 
     })
 
@@ -15,9 +15,9 @@ demo = () => {
         radius:2,
         height:3,
         resolution:engine==='OIMO' ? 10 : 30,
-        frequency : [0.5,0.8], // frequency of noise
-        level : [0.3,0.1], // influence of octave
-        expo: 2,
+        frequency : [2,0.3], // frequency of noise
+        level : [0.02,0.1], // influence of octave
+        expo: 1,
     });
 
     phy.add({ 
@@ -46,7 +46,7 @@ demo = () => {
             name:'box'+i, 
             type:'box', 
             radius:0.03,
-            size:[math.rand(0.1, 0.5),math.rand(0.1, 0.5),math.rand(0.1, 0.5)],
+            size:[math.rand(0.1, 0.9),math.rand(0.1, 0.9),math.rand(0.1, 0.9)],
             rot:[math.rand(0, 360),math.rand(0, 360),math.rand(0, 360)],  
             pos:p.toArray(), 
             density:1, 

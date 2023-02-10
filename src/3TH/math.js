@@ -265,6 +265,10 @@ export const math = {
 
 	perlin: null,
 
+	resetPerlin:()=>{
+		if( math.perlin !== null ) math.perlin = null
+	},
+
 	noise: ( v, o ) => {
 
 	    if( math.perlin === null ) math.perlin = new SimplexNoise();

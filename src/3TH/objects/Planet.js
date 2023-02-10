@@ -30,19 +30,22 @@ export class Planet extends Mesh {
             height: o.height || 4,
         }
 
-        this.uvx = o.uv || [1,1];
+        this.uvx = o.uv || [2,2];
 
-        this.m1 = Pool.directTexture('./assets/textures/terrain/crater.jpg', { flip:false, repeat:this.uvx, encoding:true })
-        this.m2 = Pool.directTexture('./assets/textures/terrain/crater_n.jpg', { flip:false, repeat:this.uvx })
+        let typer = ['cliff', 'crater', 'desert', 'ice', 'plate', 'rock', 'rock2', 'mud', 'snow']
+
+        const tname = typer[ math.randInt(0, typer.length-1) ]
+
+        this.m1 = Pool.directTexture('./assets/textures/terrain/'+tname+'.jpg', { flip:false, repeat:this.uvx, encoding:true })
+        this.m2 = Pool.directTexture('./assets/textures/terrain/'+tname+'_n.jpg', { flip:false, repeat:this.uvx })
 
         this.material = new MeshStandardMaterial({ 
             name:'planet',
-            vertexColors:true, 
-            color:0x63605c, 
+            vertexColors:true,
             map:this.m1, 
             normalMap:this.m2,
-            normalScale:new Vector2(2,2), 
-            roughness:0.75, 
+            normalScale:new Vector2(1,1), 
+            roughness:0.6, 
             metalness:0.5,
          });
 
@@ -125,6 +128,8 @@ export class Planet extends Mesh {
         this.geometry.attributes.position.needsUpdate = true;
         this.geometry.attributes.color.needsUpdate = true;
         this.geometry.computeVertexNormals();
+
+        math.resetPerlin()
 
     }
 

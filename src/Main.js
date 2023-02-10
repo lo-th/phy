@@ -955,7 +955,7 @@ const view = async ( o = {} ) => {
 	if( o.envmap ) setEnv( o.envmap, true )
 
 
-	if( o.fog ) scene.fog = new THREE.FogExp2( Env.getFogColor().getHex(), 0.01 )
+	if( o.fog ) scene.fog = new THREE.FogExp2( Env.getFogColor().getHex(), o.fogDist || 0.01 )
 	else scene.fog = null
 
 	// reflect floor
