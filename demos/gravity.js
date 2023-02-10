@@ -14,7 +14,7 @@ demo = () => {
     const planet = new Planet({
         radius:2,
         height:3,
-        resolution:engine==='OIMO' ? 10 : 30,
+        resolution:engine==='OIMO' ? 10 : 20,
         frequency : [2,0.3], // frequency of noise
         level : [0.02,0.1], // influence of octave
         expo: 1,
