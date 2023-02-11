@@ -137,7 +137,7 @@ export class Editor {
         this.codeContent.style.cssText = text + 'position:absolute; margin:0; padding:0; top:30px; left:3px; width:calc( 100% - 6px); height:calc( 100% - 60px); border-top: 1px solid #3e4036; border-bottom: 1px solid #3e4036;'
         
         if(this.useCodeMirror){
-            this.code = CodeMirror( this.codeContent, this.onUpdate.bind(this) )
+            this.code = new CodeMirror( this.codeContent, this.onUpdate.bind(this) )
             //this.code = CodeMirror( this.codeContent, { theme:'monokai', lineNumbers: true, matchBrackets: true, indentWithTabs: false, styleActiveLine: false, tabSize: 4, indentUnit: 4/*, highlightSelectionMatches: {showToken: /\w/}*/});
             //this.code.on('change', function () { this.onUpdate(this.code.getValue()) }.bind(this) );
         } else {
@@ -257,8 +257,7 @@ export class Editor {
         document.removeEventListener('pointerup', this.midUp );
         document.removeEventListener('pointermove', this.midMove );
 
-        if( this.useCodeMirror ) this.code.setValue( '' );
-        else this.code.clear()
+        this.code.clear()
 
         this.content.innerHTML = ''
 
