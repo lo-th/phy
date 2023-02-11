@@ -48,11 +48,11 @@ export class Composer extends EffectComposer {
 		//let RTClass = WebGLRenderTarget
 */
 		const renderTarget = new WebGLRenderTarget( size.w*px, size.h*px , {
-			minFilter: LinearFilter,
-			magFilter: LinearFilter,
-			format: RGBAFormat,//??? slow down
-			encoding: sRGBEncoding,
-			type:FloatType ,
+			//minFilter: LinearFilter,
+			//magFilter: LinearFilter,
+			//format: RGBAFormat,//??? slow down
+			//encoding: sRGBEncoding,
+			//type:FloatType ,
 		})
 
 		if( renderTarget.samples ){ 
@@ -229,7 +229,6 @@ export class Composer extends EffectComposer {
 		this.addPass( this.pass.sao )
 		this.addPass( this.pass.distortion )
 		this.addPass( this.pass.lut )
-		
 		this.addPass( this.pass.sharpen )
 		this.addPass( this.pass.focus )
 

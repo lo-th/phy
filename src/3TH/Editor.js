@@ -336,7 +336,7 @@ export class Editor {
 
     }
 
-    validate ( code ) {
+    /*validate ( code ) {
 
         if( !code ) return
         if( !this.esprimaReady ) return true
@@ -363,9 +363,33 @@ export class Editor {
             return false
         }
 
+    }*/
+
+    validate ( code ) {
+
+        if( !code ) return
+        if( !this.esprimaReady ) return true
+
+        let errorLines = []
+        let ee
+
+        try {
+            errorLines = esprima.parseModule( code, { tolerant: true, loc: true, range: true, jsx: true }).errors;
+        } catch ( e ) {
+            errorLines.push( e )
+        }
+
+        let j = errorLines.length;
+        if( j === 0) this.setInfo('&#2039;')
+        else this.setInfo('Invalid code. Total issues: ' + j , 1)
+
+        this.code.addError( errorLines );
+
+        return j === 0
+
     }
 
-    validateMirror ( value ) {
+    /*validateMirror ( value ) {
 
         if( !value ) return
         if( !this.esprimaReady ) return true
@@ -411,7 +435,7 @@ export class Editor {
             return rs === 0
         });
 
-    }
+    }*/
 
     drop ( e ) {
 
