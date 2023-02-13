@@ -10,7 +10,6 @@ import {
     EqualDepth,LessDepth,LessEqualDepth,GreaterEqualDepth,GreaterDepth,NotEqualDepth,
     CustomBlending, AddEquation, SubtractEquation, ReverseSubtractEquation, MinEquation, MaxEquation,
     ZeroFactor, OneFactor, SrcColorFactor, OneMinusSrcColorFactor, SrcAlphaFactor, OneMinusSrcAlphaFactor, DstAlphaFactor, OneMinusDstAlphaFactor, DstColorFactor, OneMinusDstColorFactor, SrcAlphaSaturateFactor,
-
 } from 'three';
 
 
@@ -41,7 +40,7 @@ const V = new Vector3();
 
 export class Avatar extends Group {
 
-	constructor( type ) {
+	constructor( o = { } ) {
 
         super();
 
@@ -50,12 +49,15 @@ export class Avatar extends Group {
 
         this.textureQuality = 2;
 
-        this.model = type || 'man';
+        this.model = o.type || 'man';
+        this.compact = o.compact !== undefined ? o.compact : true
+        this.haveMorph = o.morh !== undefined ? o.morph : true
+        this.fullMaterial = o.material !== undefined ? o.material : true
 
         this.size = 1;
 
         this.fullMorph = ['MUSCLE', 'LOW', 'BIG', 'MONSTER']
-        this.whithMorph = true;
+        
 
         this.skeleton = null;
         //this.root = null;
@@ -128,7 +130,8 @@ export class Avatar extends Group {
             this.root = SkeletonUtils.clone( this.root );
             this.init();
         } else {
-            this.load()
+            if(this.fullMaterial) this.load()
+            else this.loadModels()
         }
 
     }
@@ -155,13 +158,11 @@ export class Avatar extends Group {
 
     loadModels()
     {
-
         this.initMaterial()
         const asset = [this.model+'.glb']
-        const path = './assets/model/'
-        if( this.whithMorph ) asset.push( this.model+'_morph.glb' )
+        const path = './assets/models/avatar/'
+        if( this.haveMorph ) asset.push( this.model+'_morph.glb' )
         Pool.load( asset, this.init.bind(this), path, 'loading models...' )
-
     }
 
     update( delta )
@@ -330,7 +331,14 @@ export class Avatar extends Group {
     initMaterial()
     {
 
+
+
         if( Pool.getMaterial( 'body' ) ) return
+
+        if( !this.fullMaterial ){
+            Pool.set( 'body', new MeshStandardMaterial() )
+            return
+        } 
 
         const s = this.setting
 
@@ -718,7 +726,7 @@ export class Avatar extends Group {
         if( !this.isClone ) this.applyMorph( Pool.get( this.model +'_morph' ) );
         */
 
-        if( !Pool.getMaterial( 'body' ) ) Pool.set( 'body', new MeshStandardMaterial() )
+        
         const def = Pool.getMaterial( 'body' );
 
         this.root.traverse( function ( node ) {
@@ -811,13 +819,11 @@ export class Avatar extends Group {
             }
 
             // add morph 
-            this.applyMorph( Pool.get( this.model+'_morph', 'O' ) );
+            if( this.haveMorph ) this.applyMorph( Pool.get( this.model+'_morph', 'O' ) );
         }
 
 
         if( this.size !== 1 ) this.root.scale.set(1,1,1).multiplyScalar(this.size);
-
-
 
         if( this.tensionTest ) this.addTensionMap()
 
@@ -826,8 +832,11 @@ export class Avatar extends Group {
 
 
         if( Pool.clip.length === 0 ){ 
-            // load animation include in json
-            this.loadAnimationJson('./assets/animation/animations.json', this.start.bind(this) )
+
+            // load animation include in json or the compacted version
+            if( this.compact ) this.loadCompactAnimation('./assets/models/avatar/animations.bin')
+            else this.loadAnimationJson('./assets/animation/animations.json', this.start.bind(this) )
+
         } else {
             let i = Pool.clip.length;
             while(i--) this.addAction( Pool.clip[i] );
@@ -880,14 +889,13 @@ export class Avatar extends Group {
 
     setMorph( name, v )
     {
-        
+        if( !this.haveMorph ) return
         this.morpher( 'eyelash', name, v);
         this.morpher( 'eyebrow', name, v);
         this.morpher( 'tear', name, v);
         this.morpher( 'mouth', name, v);
         this.morpher( 'body', name, v);
         this.morpher( 'Head', name, v);
-
         this.morpher( 'body_low', name, v);
     }
 
@@ -991,9 +999,9 @@ export class Avatar extends Group {
 
     lerp( x, y, t ) { return ( 1 - t ) * x + t * y; }
 
-    clone( type )
+    clone( o )
     {
-        return new this.constructor( type, this );
+        return new this.constructor( {type:o.type}, this );
     }
 
     dispose()
@@ -1013,7 +1021,7 @@ export class Avatar extends Group {
     start()
     {
 
-        console.log('start', this.model)
+        //console.log('start', this.model)
         if( this.done ) return
 
         this.done = true;
@@ -1087,7 +1095,7 @@ export class Avatar extends Group {
         else this.loadOne();
     }
 
-    loadAnimationHex( url = './assets/animation/animation.hex' )
+    loadCompactAnimation( url = './assets/models/animations.bin' )
     {
         if(!this.lzma) this.lzma = new LZMA("./src/libs/lzma_worker.js");
 
@@ -1101,7 +1109,9 @@ export class Avatar extends Group {
         request.onload = function() {
             self.lzma.decompress( new Uint8Array( request.response ), function (result) {
                 const data = JSON.parse(result);
+                
                 for(let c in data) glb.animations.push( AnimationClip.parse( data[c] ) ); 
+                console.log( glb )
                 self.applydAnimation( glb );
                 self.start();
             })
@@ -1156,7 +1166,7 @@ export class Avatar extends Group {
             autoplay = true;
         } 
         while(i--){ 
-            this.addClip( clip );
+            this.addClip( glb.animations[i] );
             this.addAction( glb.animations[i], autoplay );
         }
 
@@ -1167,6 +1177,8 @@ export class Avatar extends Group {
         let i = Pool.clip.length, removeId = -1;
         while(i--){ if( Pool.clip[i].name === clip.name ) removeId = i; }
         if( removeId !== -1 ) Pool.clip.slice( removeId, 1 );
+
+
         //clip.optimize();
         Pool.clip.push( clip );
     }
@@ -1205,49 +1217,70 @@ export class Avatar extends Group {
              
     }
 
-    exportAnimationLzma()
+    getAnimation( toJson = false, fromPool = false )
+    {
+
+        let anim = [], n = 0
+        if(fromPool){
+            let i = Pool.clip.length
+            while(i--){
+
+                if( toJson ) anim[n] = Pool.clip[n].toJSON()
+                else anim[n] = Pool.clip[n]
+                // delete animations[n].uuid
+                n++;
+            }
+        } else {
+            this.actions.forEach( function ( action, key ) {
+                if( toJson ) anim[n] = action._clip.toJSON()
+                else anim[n] = action._clip
+                //delete data[n].uuid
+                n++;
+            })
+        }
+
+        return anim
+
+    }
+
+    exportAnimationLzma( callback )
     {
 
         if(!this.lzma) this.lzma = new LZMA("./src/libs/lzma_worker.js");
 
-        let i = Pool.clip.length, n = 0, data = {}
-        while(i--){
-            data[n] = Pool.clip[n].toJSON();
-            //delete data[n].uuid
-            n++;
-        }
+        const data = this.getAnimation( true )
 
         this.lzma.compress( JSON.stringify(data), 2, function(result) {
-            let link = document.createElement("a");
-            link.style.display = "none";
-            document.body.appendChild(link);
-            link.href = URL.createObjectURL( new Blob( [new Uint8Array(result)], {type: "application/octet-stream"} ) );
-            link.download = 'animation.hex';
-            link.click();
+
+            if(callback) callback( {name:'animations', data:new Uint8Array(result), type:'bin'}  )
+            else {
+                let link = document.createElement("a");
+                link.style.display = "none";
+                document.body.appendChild(link);
+                link.href = URL.createObjectURL( new Blob( [new Uint8Array(result)], {type: "application/octet-stream"} ) );
+                link.download = 'animations.bin';
+                link.click();
+            }
         })
     }
 
-    exportGLB()
+    exportGLB( callback )
     {
-        if(!this.exporter) this.exporter = new GLTFExporter();
-        // export only uppercase anim
-        let animations = []
-        let i = Pool.clip.length, a
-        while(i--){
-            a = Pool.clip[i];
-            if( a.name === a.name.toUpperCase() ) animations.push(a);
-        }
+        if( !this.exporter ) this.exporter = new GLTFExporter();
+        
+        const animations = this.getAnimation()
 
         this.exporter.parse( this.root, function( gltf ){
 
-            //console.log( gltf )
-
-            let link = document.createElement("a");
-            link.style.display = "none";
-            document.body.appendChild(link);
-            link.href = URL.createObjectURL( new Blob([gltf], { type: "application/octet-stream" }) );
-            link.download = 'mdl-emmet.glb';
-            link.click();
+            if( callback ) callback( {name:'model', data:gltf, type:'glb'}  )
+            else {
+                let link = document.createElement("a");
+                link.style.display = "none";
+                document.body.appendChild(link);
+                link.href = URL.createObjectURL( new Blob([gltf], { type: "application/octet-stream" }) );
+                link.download = 'model.glb';
+                link.click();
+            }
 
             //self.loader.parse( JSON.stringify(glb, null, 2), '', function (r){ console.log(r) } )
 

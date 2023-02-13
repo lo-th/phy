@@ -292,6 +292,8 @@ export const Pool = {
 
     loaderDRACO: () => {
 
+        if( Pool.dracoLoader ) return Pool.dracoLoader
+
         if( !Pool.dracoLoaderType ){
             if ( navigator.userAgentData ) Pool.dracoLoaderType = 'wasm'
             else {
@@ -308,7 +310,10 @@ export const Pool = {
 
     loaderGLTF: () => {
 
-        if( !Pool.GLTF ) Pool.GLTF = new GLTFLoader()
+        if( !Pool.GLTF ){
+            Pool.GLTF = new GLTFLoader()
+            Pool.GLTF.setDRACOLoader( Pool.loaderDRACO() )
+        }
         return Pool.GLTF
 
     },
@@ -331,9 +336,13 @@ export const Pool = {
 
     load_GLTF: ( url, name ) => {
 
-        Pool.loaderGLTF().setDRACOLoader( Pool.loaderDRACO() ).load( url, function ( gltf ) { 
+        /*Pool.loaderGLTF().setDRACOLoader( Pool.loaderDRACO() ).load( url, function ( gltf ) { 
             Pool.add( name, gltf.scene )
             Pool.dracoLoader.dispose()
+        })*/
+
+        Pool.loaderGLTF().load( url, function ( gltf ) { 
+            Pool.add( name, gltf.scene )
         })
 
     },
