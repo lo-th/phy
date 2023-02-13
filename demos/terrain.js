@@ -20,7 +20,7 @@ demo = () => {
     	sample: engine==='OIMO' ? [ 32, 32 ] : [256, 256],
     	frequency: engine==='OIMO' ? [0.05,0.25,0.75] : [0.016,0.05,0.2],
     	expo: 2,
-    	uv: engine==='OIMO' ? 10:30,
+    	uv: engine==='OIMO' ? 10:60,
     })
 
     //terrain.material.wireframe = true

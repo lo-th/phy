@@ -30,7 +30,7 @@ export class Landscape extends Mesh {
         this.name = o.name;
 
         this.mapN = 0;
-        this.mapMax = 6;
+        this.mapMax = 7;//7
 
         // terrain, water, road
         this.ttype = o.terrainType || 'terrain';
@@ -141,6 +141,8 @@ export class Landscape extends Mesh {
 
         }
 
+        txt['noise'] = Pool.directTexture('./assets/textures/terrain/noise.png', { flip:false, repeat:[1,1], encoding:false , callback: this.mapcallback.bind(this)  });
+
         this.txt = txt
 
         this.material = new MeshStandardMaterial({ name:'terrain', vertexColors:true, color:0xFFFFFF, map:txt[maps[0]], normalMap:txt[maps[0]+'_n'] });
@@ -181,8 +183,12 @@ export class Landscape extends Mesh {
                 uniforms['map1'] = { value: txt[maps[1]] };
                 uniforms['map2'] = { value: txt[maps[2]] };
 
+                uniforms['complexMix'] = { value: 1 };
+
                 uniforms['normalMap1'] = { value: txt[maps[1]+'_n'] };
                 uniforms['normalMap2'] = { value: txt[maps[2]+'_n'] };
+
+                uniforms['noise'] = { value: txt['noise'] };
 
                 shader.uniforms = uniforms;
 
@@ -297,7 +303,7 @@ export class Landscape extends Mesh {
        
             //envMap: view.getEnvMap(),
             //normalMap:this.wn,
-            normalScale:this.isWater ?  [0.25,0.25]:[-1,-1],
+            normalScale:this.isWater ?  [0.25,0.25]:[2,2],
             transparent:this.isWater ? true : false,
             opacity: this.isWater ? (o.opacity || 0.8) : 1,
             envMap: o.envmap || null, 
@@ -640,11 +646,17 @@ export class Landscape extends Mesh {
 
 // SHADERS
 
+// https://iquilezles.org/articles/texturerepetition/
+
 const TerrainShader = {
 
     baseRemplace : /* glsl */`
         uniform vec3 diffuse; 
         uniform vec4 clevels;
+
+        uniform float complexMix;
+
+        uniform sampler2D noise;
 
         uniform sampler2D normalMap1;
         uniform sampler2D normalMap2;
@@ -655,6 +667,41 @@ const TerrainShader = {
         uniform float aoMapIntensity;
         uniform sampler2D map1;
         uniform sampler2D map2;
+
+        float sum( vec3 v ) { return v.x+v.y+v.z; }
+
+        vec4 textureNoTile( sampler2D mapper, in vec2 uv ){
+
+            // sample variation pattern    
+            float k = texture2D( noise, 0.005*uv ).x; // cheap (cache friendly) lookup    
+            
+            // compute index    
+            float index = k*8.0;
+            float f = fract( index );
+
+            float ia = floor( index );
+            float ib = ia + 1.0;
+            // or
+            //float ia = floor(index+0.5); // suslik's method (see comments)
+            //float ib = floor(index);
+            //f = min(f, 1.0-f)*2.0;
+
+            // offsets for the different virtual patterns    
+            vec2 offa = sin(vec2(3.0,7.0)*ia); // can replace with any other hash    
+            vec2 offb = sin(vec2(3.0,7.0)*ib); // can replace with any other hash    
+
+            // compute derivatives for mip-mapping    
+            vec2 dx = dFdx(uv);
+            vec2 dy = dFdy(uv);
+            
+            // sample the two closest virtual patterns    
+            vec3 cola = textureGrad( mapper, uv + offa, dx, dy ).xyz;
+            vec3 colb = textureGrad( mapper, uv + offb, dx, dy ).xyz;
+
+            // interpolate between the two virtual patterns    
+            return vec4( mix( cola, colb, smoothstep(0.2,0.8,f-0.1*sum(cola-colb)) ), 1.0);
+
+        }
 
         vec4 MappingMix( float slope, vec4 level, vec4 rocks, vec4 grasss, vec4 sands ){
             vec4 cc = rocks;
@@ -671,9 +718,19 @@ const TerrainShader = {
         float metalnessFactor = metalness;
         #ifdef USE_ROUGHNESSMAP
 
-            vec4 sandR = texture2D( roughnessMap, vUv );
-            vec4 grassR = texture2D( roughnessMap1, vUv );
-            vec4 rockR = texture2D( roughnessMap2, vUv );
+            vec4 sandR = vec4(0.0);
+            vec4 grassR = vec4(0.0);
+            vec4 rockR = vec4(0.0);
+
+            if( complexMix == 1.0 ){
+                sandR = textureNoTile( roughnessMap, vUv );
+                grassR = textureNoTile( roughnessMap1, vUv );
+                rockR = textureNoTile( roughnessMap2, vUv );
+            } else {
+                sandR = texture2D( roughnessMap, vUv );
+                grassR = texture2D( roughnessMap1, vUv );
+                rockR = texture2D( roughnessMap2, vUv );
+            }
 
             vec4 baseColorR = MappingMix( vColor.r, clevels, rockR, grassR, sandR );
             // reads channel G, compatible with a combined OcclusionRoughnessMetallic (RGB) texture
@@ -697,9 +754,21 @@ const TerrainShader = {
 
     map : /* glsl */`
         #ifdef USE_MAP
-            vec4 sand = texture2D( map, vUv );
-            vec4 grass = texture2D( map1, vUv );
-            vec4 rock = texture2D( map2, vUv );
+
+            vec4 sand = vec4(0.0);
+            vec4 grass = vec4(0.0);
+            vec4 rock = vec4(0.0);
+
+            if( complexMix == 1.0 ){
+                sand = textureNoTile( map, vUv );
+                grass = textureNoTile( map1, vUv );
+                rock = textureNoTile( map2, vUv );
+            } else {
+                sand = texture2D( map, vUv );
+                grass = texture2D( map1, vUv );
+                rock = texture2D( map2, vUv );
+            }
+            
 
             vec4 baseColor = MappingMix(vColor.r, clevels, rock, grass, sand);
             diffuseColor *= baseColor;
@@ -711,9 +780,20 @@ const TerrainShader = {
 
     normal : /* glsl */`
         #ifdef USE_NORMALMAP
-            vec4 sandN =  texture2D( normalMap, vUv );
-            vec4 grassN = texture2D( normalMap1, vUv );
-            vec4 rockN = texture2D( normalMap2, vUv );
+
+            vec4 sandN = vec4(0.0);
+            vec4 grassN = vec4(0.0);
+            vec4 rockN = vec4(0.0);
+
+            if( complexMix == 1.0 ){
+                sandN = textureNoTile( normalMap, vUv );
+                grassN = textureNoTile( normalMap1, vUv );
+                rockN = textureNoTile( normalMap2, vUv );
+            } else {
+                sandN = texture2D( normalMap, vUv );
+                grassN = texture2D( normalMap1, vUv );
+                rockN = texture2D( normalMap2, vUv );
+            }
 
             vec3 extraNormal = MappingMix(vColor.r, clevels, rockN, grassN, sandN).xyz * 2.0 - 1.0;
             extraNormal.xy *= normalScale;
