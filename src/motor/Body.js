@@ -119,7 +119,7 @@ export class Body extends Item {
 			}			
 		}
 
-		if( o.radius ){
+		if( o.radius || !o.breakable ){
 			if( t === 'box' ) t = 'ChamferBox';
 		    if( t === 'cylinder' ) t = 'ChamferCyl';
 		}

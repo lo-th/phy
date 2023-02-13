@@ -106,9 +106,9 @@ const options = {
 
 	shadow:0.5,//0.25,
 	shadowType:'PCSS',
-	shadowGamma:1,
-	shadowLuma: 0.75,//0,
-    shadowContrast: 2.5,//1,
+	shadowGamma:0.25,//1,
+	shadowLuma:0, //0.75,//0,
+    shadowContrast:1,//2.5,//1,
 
     reflect:0.8,
     renderMode:0,
@@ -345,7 +345,8 @@ const init = () => {
 	renderer.outputEncoding = THREE.sRGBEncoding
 	renderer.toneMapping = toneMappingOptions[options.tone]
 	renderer.toneMappingExposure = options.exposure
-	renderer.physicallyCorrectLights = true
+	renderer.useLegacyLights = false
+	//renderer.physicallyCorrectLights = true
 
 	// DOM
     document.body.appendChild( renderer.domElement )

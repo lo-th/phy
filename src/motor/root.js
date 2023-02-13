@@ -51,7 +51,8 @@ export const root = {
 		tmp:[],
 		key:[],
 		add:[],
-		remove:[]
+		remove:[],
+		point:[]
 	},
 	reflow:{
 		ray:[],

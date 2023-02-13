@@ -1,3 +1,8 @@
+import {
+    Mesh, Line3, Plane, Vector3
+} from 'three';
+import { ConvexBufferGeometry } from 'three/addons/geometry/ConvexGeometry.js';
+
 /**
  * @author yomboprime https://github.com/yomboprime
  *
@@ -29,58 +34,53 @@
  *
 */
 
-import { ConvexBufferGeometry } from './Geometry.js';
 
-var ConvexObjectBreaker = function ( minSizeForBreak, smallDelta ) {
 
-	this.minSizeForBreak = minSizeForBreak || 1.4;
-	this.smallDelta = smallDelta || 0.0001;
+export class ConvexObjectBreaker {
 
-	this.tempLine1 = new THREE.Line3();
-	this.tempPlane1 = new THREE.Plane();
-	this.tempPlane2 = new THREE.Plane();
-	this.tempPlane_Cut = new THREE.Plane();
-	this.tempCM1 = new THREE.Vector3();
-	this.tempCM2 = new THREE.Vector3();
-	this.tempVector3 = new THREE.Vector3();
-	this.tempVector3_2 = new THREE.Vector3();
-	this.tempVector3_3 = new THREE.Vector3();
-	this.tempVector3_P0 = new THREE.Vector3();
-	this.tempVector3_P1 = new THREE.Vector3();
-	this.tempVector3_P2 = new THREE.Vector3();
-	this.tempVector3_N0 = new THREE.Vector3();
-	this.tempVector3_N1 = new THREE.Vector3();
-	this.tempVector3_AB = new THREE.Vector3();
-	this.tempVector3_CB = new THREE.Vector3();
-	this.tempResultObjects = { object1: null, object2: null };
+    constructor( minSizeForBreak, smallDelta ) {
 
-	this.segments = [];
-	var n = 30 * 30;
-	for ( var i = 0; i < n; i ++ ) this.segments[ i ] = false;
+		this.minSizeForBreak = minSizeForBreak || 1.4;
+		this.smallDelta = smallDelta || 0.0001;
 
-};
+		this.tempLine1 = new Line3();
+		this.tempPlane1 = new Plane();
+		this.tempPlane2 = new Plane();
+		this.tempPlane_Cut = new Plane();
+		this.tempCM1 = new Vector3();
+		this.tempCM2 = new Vector3();
+		this.tempVector3 = new Vector3();
+		this.tempVector3_2 = new Vector3();
+		this.tempVector3_3 = new Vector3();
+		this.tempVector3_P0 = new Vector3();
+		this.tempVector3_P1 = new Vector3();
+		this.tempVector3_P2 = new Vector3();
+		this.tempVector3_N0 = new Vector3();
+		this.tempVector3_N1 = new Vector3();
+		this.tempVector3_AB = new Vector3();
+		this.tempVector3_CB = new Vector3();
+		this.tempResultObjects = { object1: null, object2: null };
+		this.v1 = new Vector3();
 
-ConvexObjectBreaker.prototype = {
+		this.segments = [];
+		var n = 30 * 30;
+		for ( var i = 0; i < n; i ++ ) this.segments[ i ] = false;
 
-	constructor: ConvexObjectBreaker,
+	}
 
-	prepareBreakableObject: function ( object, mass, breakable ) {
+	prepareBreakableObject ( object, breakable ) {
 
 		// object is a Object3d (normally a Mesh), must have a BufferGeometry, and it must be convex.
 		// Its material property is propagated to its children (sub-pieces)
 		// mass must be > 0
 
-		if ( ! object.geometry.isBufferGeometry ) {
-
-			console.error( 'THREE.ConvexObjectBreaker.prepareBreakableObject(): Parameter object must have a BufferGeometry.' );
-
-		}
-
 		var userData = object.userData;
-		userData.mass = mass;
+		//userData.mass = mass;
+		//userData.velocity = velocity.clone();
+		//userData.angularVelocity = angularVelocity.clone();
 		userData.breakable = breakable;
 
-	},
+	}
 
 	/*
 	 * @param {int} maxRadialIterations Iterations for radial cuts.
@@ -88,12 +88,12 @@ ConvexObjectBreaker.prototype = {
 	 *
 	 * Returns the array of pieces
 	 */
-	subdivideByImpact: function ( object, PointOfImpact, Normal, maxRadialIterations, maxRandomIterations ) {
+	subdivideByImpact ( object, PointOfImpact, Normal, maxRadialIterations, maxRandomIterations ) {
 
 		var debris = [];
 
-		var pointOfImpact = new THREE.Vector3().fromArray( PointOfImpact );
-		var normal = new THREE.Vector3().fromArray( Normal )
+		var pointOfImpact = new Vector3().fromArray( PointOfImpact );
+		var normal = new Vector3().fromArray( Normal )
 
 		var tempPlane1 = this.tempPlane1;
 		var tempPlane2 = this.tempPlane2;
@@ -169,9 +169,9 @@ ConvexObjectBreaker.prototype = {
 
 		return debris;
 
-	},
+	}
 
-	cutByPlane: function ( object, plane, output ) {
+	cutByPlane ( object, plane, output ) {
 
 		// Returns breakable objects in output.object1 and output.object2 members, the resulting 2 pieces of the cut.
 		// object2 can be null if the plane doesn't cut the object.
@@ -271,7 +271,7 @@ ConvexObjectBreaker.prototype = {
 		// Transform the plane to object local space
 		var localPlane = this.tempPlane_Cut;
 		object.updateMatrix();
-		ConvexObjectBreaker.transformPlaneToLocalSpace( plane, object.matrix, localPlane );
+		this.transformPlaneToLocalSpace( plane, object.matrix, localPlane );
 
 		// Iterate through the faces adding points to both pieces
 		for ( var i = 0; i < numFaces; i ++ ) {
@@ -349,7 +349,7 @@ ConvexObjectBreaker.prototype = {
 					this.tempLine1.start.copy( p0 );
 					this.tempLine1.end.copy( p1 );
 
-					var intersection = new THREE.Vector3();
+					var intersection = new Vector3();
 					intersection = localPlane.intersectLine( this.tempLine1, intersection );
 
 					if ( intersection === undefined ) {
@@ -372,7 +372,7 @@ ConvexObjectBreaker.prototype = {
 		}
 
 		// Calculate debris mass (very fast and imprecise):
-		var newMass = object.userData.mass * 0.5;
+		//var newMass = object.userData.mass * 0.5;
 
 		// Calculate debris Center of Mass (again fast and imprecise)
 		this.tempCM1.set( 0, 0, 0 );
@@ -421,11 +421,11 @@ ConvexObjectBreaker.prototype = {
 
 		if ( numPoints1 > 4 ) {
 
-			object1 = new THREE.Mesh( new ConvexBufferGeometry( points1 ), object.material );
+			object1 = new Mesh( new ConvexBufferGeometry( points1 ), object.material );
 			object1.position.copy( this.tempCM1 );
 			object1.quaternion.copy( object.quaternion );
 
-			this.prepareBreakableObject( object1, newMass, 2 * radius1 > this.minSizeForBreak );
+			this.prepareBreakableObject( object1, 2 * radius1 > this.minSizeForBreak );
 
 			numObjects ++;
 
@@ -433,11 +433,11 @@ ConvexObjectBreaker.prototype = {
 
 		if ( numPoints2 > 4 ) {
 
-			object2 = new THREE.Mesh( new ConvexBufferGeometry( points2 ), object.material );
+			object2 = new Mesh( new ConvexBufferGeometry( points2 ), object.material );
 			object2.position.copy( this.tempCM2 );
 			object2.quaternion.copy( object.quaternion );
 
-			this.prepareBreakableObject( object2, newMass, 2 * radius2 > this.minSizeForBreak );
+			this.prepareBreakableObject( object2, 2 * radius2 > this.minSizeForBreak );
 
 			numObjects ++;
 
@@ -450,78 +450,69 @@ ConvexObjectBreaker.prototype = {
 
 	}
 
-};
+	transformFreeVector ( v, m ) {
 
-ConvexObjectBreaker.transformFreeVector = function ( v, m ) {
+		// input:
+		// vector interpreted as a free vector
+		// THREE.Matrix4 orthogonal matrix (matrix without scale)
 
-	// input:
-	// vector interpreted as a free vector
-	// THREE.Matrix4 orthogonal matrix (matrix without scale)
+		var x = v.x, y = v.y, z = v.z;
+		var e = m.elements;
 
-	var x = v.x, y = v.y, z = v.z;
-	var e = m.elements;
+		v.x = e[ 0 ] * x + e[ 4 ] * y + e[ 8 ] * z;
+		v.y = e[ 1 ] * x + e[ 5 ] * y + e[ 9 ] * z;
+		v.z = e[ 2 ] * x + e[ 6 ] * y + e[ 10 ] * z;
 
-	v.x = e[ 0 ] * x + e[ 4 ] * y + e[ 8 ] * z;
-	v.y = e[ 1 ] * x + e[ 5 ] * y + e[ 9 ] * z;
-	v.z = e[ 2 ] * x + e[ 6 ] * y + e[ 10 ] * z;
+		return v;
 
-	return v;
+	}
 
-};
+	transformFreeVectorInverse ( v, m ) {
 
-ConvexObjectBreaker.transformFreeVectorInverse = function ( v, m ) {
+		// input:
+		// vector interpreted as a free vector
+		// THREE.Matrix4 orthogonal matrix (matrix without scale)
 
-	// input:
-	// vector interpreted as a free vector
-	// THREE.Matrix4 orthogonal matrix (matrix without scale)
+		var x = v.x, y = v.y, z = v.z;
+		var e = m.elements;
 
-	var x = v.x, y = v.y, z = v.z;
-	var e = m.elements;
+		v.x = e[ 0 ] * x + e[ 1 ] * y + e[ 2 ] * z;
+		v.y = e[ 4 ] * x + e[ 5 ] * y + e[ 6 ] * z;
+		v.z = e[ 8 ] * x + e[ 9 ] * y + e[ 10 ] * z;
 
-	v.x = e[ 0 ] * x + e[ 1 ] * y + e[ 2 ] * z;
-	v.y = e[ 4 ] * x + e[ 5 ] * y + e[ 6 ] * z;
-	v.z = e[ 8 ] * x + e[ 9 ] * y + e[ 10 ] * z;
+		return v;
 
-	return v;
+	}
 
-};
+	transformTiedVectorInverse ( v, m ) {
 
-ConvexObjectBreaker.transformTiedVectorInverse = function ( v, m ) {
+		// input:
+		// vector interpreted as a tied (ordinary) vector
+		// THREE.Matrix4 orthogonal matrix (matrix without scale)
 
-	// input:
-	// vector interpreted as a tied (ordinary) vector
-	// THREE.Matrix4 orthogonal matrix (matrix without scale)
+		var x = v.x, y = v.y, z = v.z;
+		var e = m.elements;
 
-	var x = v.x, y = v.y, z = v.z;
-	var e = m.elements;
+		v.x = e[ 0 ] * x + e[ 1 ] * y + e[ 2 ] * z - e[ 12 ];
+		v.y = e[ 4 ] * x + e[ 5 ] * y + e[ 6 ] * z - e[ 13 ];
+		v.z = e[ 8 ] * x + e[ 9 ] * y + e[ 10 ] * z - e[ 14 ];
 
-	v.x = e[ 0 ] * x + e[ 1 ] * y + e[ 2 ] * z - e[ 12 ];
-	v.y = e[ 4 ] * x + e[ 5 ] * y + e[ 6 ] * z - e[ 13 ];
-	v.z = e[ 8 ] * x + e[ 9 ] * y + e[ 10 ] * z - e[ 14 ];
+		return v;
 
-	return v;
+	};
 
-};
-
-ConvexObjectBreaker.transformPlaneToLocalSpace = function () {
-
-	var v1 = new THREE.Vector3();
-
-	return function transformPlaneToLocalSpace( plane, m, resultPlane ) {
+	transformPlaneToLocalSpace ( plane, m, resultPlane ) {
 
 		resultPlane.normal.copy( plane.normal );
 		resultPlane.constant = plane.constant;
 
-		var referencePoint = ConvexObjectBreaker.transformTiedVectorInverse( plane.coplanarPoint( v1 ), m );
+		var referencePoint = this.transformTiedVectorInverse( plane.coplanarPoint( this.v1 ), m );
 
-		ConvexObjectBreaker.transformFreeVectorInverse( resultPlane.normal, m );
+		this.transformFreeVectorInverse( resultPlane.normal, m );
 
 		// recalculate constant (like in setFromNormalAndCoplanarPoint)
 		resultPlane.constant = - referencePoint.dot( resultPlane.normal );
 
+	}
 
-	};
-
-}();
-
-export { ConvexObjectBreaker };
+}

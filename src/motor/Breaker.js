@@ -1,21 +1,20 @@
 import { root, map } from './root.js';
-import { math } from './math.js';
-import { ConvexObjectBreaker } from './extend/ConvexObjectBreaker.js';
+import { ConvexObjectBreaker } from '../3TH/objects/ConvexObjectBreaker.js';
 
 /**
  * @author lo.th / https://github.com/lo-th
- */ 
+ */
+ 
+export class Breaker {
 
-function Breaker() {
+	constructor () {
 
-	this.convexBreaker = new ConvexObjectBreaker();
-	this.tmpI = new THREE.Vector3();
+		this.convexBreaker = new ConvexObjectBreaker();
+		this.tmpI = new THREE.Vector3();
 
-}
+	}
 
-Object.assign( Breaker.prototype, {
-
-	step: function () {
+	step () {
 
 		let p;
 
@@ -33,14 +32,10 @@ Object.assign( Breaker.prototype, {
 				this.makeBreak( p.b2, p.pos, p.normal, p.impulse, p.b2_velocity );
 				
 			} 
-
-
 		}
+	}
 
-		
-	},
-
-	makeBreak: function ( name, pos, normal, impulse, velocity ) {
+	makeBreak ( name, pos, normal, impulse, velocity ) {
 
 		let mesh = root.byName( name, true );
 
@@ -68,9 +63,9 @@ Object.assign( Breaker.prototype, {
 		let i = debris.length;
 		while ( i -- ) root.tmpAdd.push( this.addDebris( name, i, debris[ i ], breakOption, velocity ) );
 
-	},
+	}
 
-	addDebris: function ( name, id, mesh, breakOption, v ) {
+	addDebris ( name, id, mesh, breakOption, v ) {
 
 		let next = breakOption[ 3 ] > 0 ? true : false;
 
@@ -83,7 +78,7 @@ Object.assign( Breaker.prototype, {
 			size:[1,1,1],
 			pos: mesh.position.toArray(),
 			quat: mesh.quaternion.toArray(),
-			mass: mesh.userData.mass,
+			density: mesh.density,
 			linearVelocity: [v[0], v[1], v[2]],
 			angularVelocity: [v[3], v[4], v[5]],
 
@@ -91,10 +86,8 @@ Object.assign( Breaker.prototype, {
 			breakOption: next ? breakOption: null,
 			filter:next ? [ 1, -1, [1,3,10, 11,15], 0] : [ 1, -1, 0, 0],
 
-		};
+		}
 
-	},
+	}
 
-});
-
-export { Breaker };
+}

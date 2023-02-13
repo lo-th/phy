@@ -10,6 +10,7 @@ import {
     EqualDepth,LessDepth,LessEqualDepth,GreaterEqualDepth,GreaterDepth,NotEqualDepth,
     CustomBlending, AddEquation, SubtractEquation, ReverseSubtractEquation, MinEquation, MaxEquation,
     ZeroFactor, OneFactor, SrcColorFactor, OneMinusSrcColorFactor, SrcAlphaFactor, OneMinusSrcAlphaFactor, DstAlphaFactor, OneMinusDstAlphaFactor, DstColorFactor, OneMinusDstColorFactor, SrcAlphaSaturateFactor,
+
 } from 'three';
 
 
@@ -108,12 +109,6 @@ export class Avatar extends Group {
             wireframe:false,
             vertexColors:false,
 
-            /*equation: 'add',
-            blendSrc:'srcAlpha',
-            blendDst:'zero',///'oneSrcAlpha'
-            equationA: 'add',
-            blendSrcA:'srcAlpha',
-            blendDstA:'oneSrcAlpha',*/
             alphaTest:0.3,
             h_metal:0.4,
             h_rough:0.6,
@@ -256,78 +251,6 @@ export class Avatar extends Group {
 
     onReady(){}
 
-    /*load()
-    {
-        this.loader = new GLTFLoader().setDRACOLoader( new DRACOLoader().setDecoderPath( './src/libs/draco/' ) );
-        this.loader.load( './assets/model/'+this.model+'.glb', function ( glb ) {
-            //this.root = glb.scene;
-            //Pool.set( this.model, this.root );
-            Pool.set( this.model, glb.scene );
-            this.loadMorph();
-        }.bind(this))
-    }
-
-    loadMorph()
-    {
-        this.loader.load( './assets/model/' + this.model+'_morph.glb', function ( glb ) {
-            Pool.set( this.model+'_morph', glb.scene );
-            this.init();
-        }.bind(this))
-    }
-
-    loadExtra()
-    {
-        const self = this;
-        const list = []
-        this.loader.load( './assets/model/extra.glb', function ( glb ) {
-
-            glb.scene.traverse( function ( node ) {
-                if ( node.isMesh ){
-                    node.receiveShadow = true;
-                    node.castShadow = true;
-                    node.visible = false;
-                    node.material = self.material2;
-                    // remplace skeleton
-                    if( node.isSkinnedMesh ){
-                        node.skeleton.dispose();
-                        node.skeleton = self.skeleton;
-                    }
-                    self.mesh[node.name] = node;
-                    list.push(node.name);
-                }
-            })
-
-            // add new mesh to root
-            let i = list.length;
-            while( i-- ){
-                self.root.add( self.mesh[ list[i] ]);
-            }
-
-            //self.loadAnimationFbx('./assets/animation/Defeated.fbx');
-            self.loadAnimationGlb('./assets/animation/locomotion.glb')
-            //self.loadAnimationHex('./assets/animation/animation.hex')
-
-        })
-    }*/
-
-    /*texture( url, o = {} )
-    {
-
-        //const tx = new Texture()
-        if( !this.imgLoader ) this.imgLoader = new TextureLoader();
-        let path = './assets/textures/avatar_2k/'
-        const tx = this.imgLoader.load( path + url );
-
-        tx.encoding = o.rgbe ? sRGBEncoding : LinearEncoding;
-        tx.flipY = o.flipY !== undefined ? o.flipY : false;
-
-        return tx;
-    }
-
-    mats( type, o = {} ){
-
-    }*/
-
     initMaterial()
     {
 
@@ -345,6 +268,7 @@ export class Avatar extends Group {
         // MOUTH
 
         let m = new MeshStandardMaterial( { 
+            name: 'mouth',
             map:Pool.getTexture('mouth_c'),
             roughness:0.6,//0.568,
             metalness:0.6,
@@ -359,6 +283,7 @@ export class Avatar extends Group {
         // EYE
 
         m = new MeshPhysicalMaterial( { 
+            name: 'sub_eye',
             //color:0x000000,
             roughness:0,//0.568,
             metalness:0,
@@ -379,6 +304,7 @@ export class Avatar extends Group {
 
 
         m = new MeshStandardMaterial({ 
+            name: 'eye',
             map:Pool.getTexture('eye_c'),
             emissiveMap:Pool.getTexture('eye_c'),
             emissive:0x101010,
@@ -399,6 +325,7 @@ export class Avatar extends Group {
         // HAIR
 
         m = new MeshStandardMaterial({
+            name: 'hair',
             map:Pool.getTexture('hair'),
             color:s.hair,
             //emissiveMap:Pool.getTexture('hair'),
@@ -435,6 +362,7 @@ export class Avatar extends Group {
         Pool.set( 'hair', m );
 
         m = m.clone();
+        m.name = 'hair_man'
         //m.map = m.emissiveMap = Pool.getTexture('hair_man')
         m.color.setHex( s.hair )
         m.map = Pool.getTexture('hair_man')
@@ -445,6 +373,7 @@ export class Avatar extends Group {
 
         
         m = new MeshStandardMaterial({
+            name: 'eyelash',
             color:s.hair, //bow,
             map:Pool.getTexture('eyelash_c'),
             //emissiveMap:Pool.getTexture('eyelash_a'),
@@ -470,6 +399,7 @@ export class Avatar extends Group {
         Pool.set( 'eyelash', m );
 
         m = new MeshPhysicalMaterial({
+            name: 'tear',
             map:Pool.getTexture('eyelash_c'),
             //emissiveMap:eyea,
             //emissive:this.setting.hair,
@@ -492,7 +422,7 @@ export class Avatar extends Group {
         this.skin = Pool.getTexture('avatar_c')
 
         m = new MeshPhysicalMaterial({
-
+            name: 'body',
             map: this.skin, 
             normalMap:Pool.getTexture('avatar_n'),
             roughness:this.setting.roughness, //1.0,
@@ -513,45 +443,13 @@ export class Avatar extends Group {
 
         });
 
-
-        /*const self = this;
-
-
-
-        m.onBeforeCompile = function ( shader ) {
-            Shader.modify( shader );
-            //console.log(  'bf', this )
-            /*shader.uniforms.mixRatio = { value: self.setting.mixRatio };
-            shader.uniforms.threshold = { value: self.setting.threshold };
-
-            //shader.vertexShader = shader.vertexShader.replace( `#include <morphtarget_vertex>`, morphFix )
-
-            shader.fragmentShader = 'uniform float mixRatio;\nuniform float threshold;\n' + shader.fragmentShader;
-            shader.fragmentShader = shader.fragmentShader.replace(
-            `#include <alphamap_fragment>`,`
-            #ifdef USE_ALPHAMAP
-                float vv = texture2D( alphaMap, vUv ).g;
-                float r = mixRatio * (1.0 + threshold * 2.0) - threshold;
-                float mixf = clamp((vv - r)*(1.0/threshold), 0.0, 1.0);
-                diffuseColor.a *= mixf;
-            #endif
-            `)
-            this.userData.shader = shader;*/
-        /*}
-
-        m.customProgramCacheKey = function () {
-            console.log(  'bf', this )
-            //return amount;
-        };*/
-
-
-        //if( this.tensionTest ) m = new MeshBasicMaterial({ vertexColors:true })
         Shader.add(m)
         Pool.set( 'body', m );
 
         // LOW
 
         m = new MeshBasicMaterial({ 
+            name:'low',
             color:0x000000,
             wireframe: true,
         });
@@ -560,105 +458,6 @@ export class Avatar extends Group {
         Pool.set( 'low', m );
 
     }
-
-    
-
-    /*correctNeck( name )
-    {
-        let h = this.mesh[name].geometry
-        let c = this.mesh['Neck'].geometry
-
-        let p = h.attributes.position.array;
-        let o = h.attributes.normal.array;
-        let i = h.attributes.position.count, j, n, m;
-
-        let pc = c.attributes.position.array;
-        let co = c.attributes.normal.array;
-
-        while( i-- ){
-            n = i*3;
-            j = c.attributes.position.count;
-            while( j-- ){
-                m = j*3;
-                if(pc[m] === p[n]){
-                    if(pc[m+1] === p[n+1]){
-                        if(pc[m+2] === p[n+2]){
-                            //console.log( o[n] + ' | '+o[n+1]+' | '+o[n+2]  +'    ', co[m] +' | '+co[m+1]+' | '+co[m+2]  )
-                            o[n] = co[m]
-                            o[n+1] = co[m+1]
-                            o[n+2] = co[m+2]
-                        }
-                    }
-                }
-            }
-
-        }
-
-        h.attributes.normal.needsUpdate  = true
-        
-    }
-
-    cloneHair( node )
-    {
-        let hair = node.clone();
-        hair.material = node.material.clone();
-        hair.material.side = BackSide;
-        hair.material.depthWrite = false;
-        node.renderOrder = 1;
-        node.parent.add(hair)
-    }*/
-
-
-    
-
-    /*setBlending()
-    {
-        const equation = {
-            'add':AddEquation,
-            'sub':SubtractEquation,
-            'rsub':ReverseSubtractEquation,
-            'min':MinEquation,
-            'max':MaxEquation,
-        }
-
-        const factors = {
-            'zero':ZeroFactor,
-            'one':OneFactor,
-            'srcColor':SrcColorFactor,
-            'oneSrcColor':OneMinusSrcColorFactor,
-            'srcAlpha':SrcAlphaFactor,
-            'oneSrcAlpha':OneMinusSrcAlphaFactor,
-            'dstAlpha':DstAlphaFactor,
-            'oneDstAlpha':OneMinusDstAlphaFactor,
-            'dstColor':DstColorFactor,
-            'oneDstColor':OneMinusDstColorFactor,
-            'saturate':SrcAlphaSaturateFactor,
-        }
-
-
-        let m = Pool.getMaterial( 'hair' )
-        m.blendEquation = equation[this.setting.equation]
-        m.blendSrc = factors[this.setting.blendSrc]
-        m.blendDst = factors[this.setting.blendDst]
-
-        m.blendEquationAlpha = equation[this.setting.equationA]
-        m.blendSrcAlpha = factors[this.setting.blendSrcA]
-        m.blendDstAlpha = factors[this.setting.blendDstA]
-
-        m.needsUpdate = true
-
-        m = Pool.getMaterial( 'hair_man' )
-        m.blendEquation = equation[this.setting.equation]
-        m.blendSrc = factors[this.setting.blendSrc]
-        m.blendDst = factors[this.setting.blendDst]
-
-        m.blendEquationAlpha = equation[this.setting.equationA]
-        m.blendSrcAlpha = factors[this.setting.blendSrcA]
-        m.blendDstAlpha = factors[this.setting.blendDstA]
-        
-        m.needsUpdate = true
-
-    }*/
 
     setHair()
     {
@@ -716,16 +515,6 @@ export class Avatar extends Group {
     {
 
         if( !this.isClone ) this.root = Pool.get( this.model, 'O' ) 
-
-
-        /*this.root.traverse( function ( node ) {
-            if ( node.isMesh ) this.mesh[node.name] = node;
-            if ( node.isBone ) this.bones[node.name] = node;
-        }.bind(this))
-
-        if( !this.isClone ) this.applyMorph( Pool.get( this.model +'_morph' ) );
-        */
-
         
         const def = Pool.getMaterial( 'body' );
 
@@ -741,7 +530,6 @@ export class Avatar extends Group {
                     node.castShadow = true;
                     node.matrixAutoUpdate = false;
 
-                    //this.symetric( node );
                     //this.uv2( node )
                     //node.bindMode = 'detached';'attached'
                     this.skeleton = node.skeleton;
@@ -1195,21 +983,6 @@ export class Avatar extends Group {
         if(clip.name.search('jog')!==-1) this.clipsToesFix.push(clip.name)
         if(clip.name.search('RUN')!==-1) this.clipsToesFix.push(clip.name)
 
-
-        //if(clip.name=='idle'){
-            //console.log( clip.toJSON() );
-            //console.log( action )
-        //}
-        
-
-        //
-        //
-        //console.log( this.getAnimInfo( clip.name ) )
-        //
-
-        //action.play();
-
-        //action.paused = true; //!play
         if( window.gui ) window.gui.getAnimation()
 
         if( play ) this.play( clip.name )
@@ -1603,35 +1376,6 @@ export class Avatar extends Group {
         if( g.isMesh ) g = g.geometry;
         let lng = g.attributes.position.array.length;
         g.setAttribute( 'color', new Float32BufferAttribute( new Array(lng).fill(0), 3 ) );
-    }
-
-    symetric( g, uv2 = true, tangent = true ) {
-
-        if( g.isMesh ) g = g.geometry;
-
-        
-
-        //
-
-        /*let uv = g.attributes.uv.array;
-        let i = uv.length*0.5;
-        while( i-- ){ if( uv[i*2] < 0 ) uv[i*2]*=-1; }
-        g.attributes.uv.needsUpdate = true;
-        */
-
-        //if( tangent ){ 
-
-            //console.log(isReady)
-            //g.computeTangents();
-            //let MikkTSpace = { wasm:wasm, isReady:isReady, generateTangents:generateTangents }
-            //g=computeMikkTSpaceTangents(g,MikkTSpace)
-        //}
-
-        //
-
-        // for ao map
-        if( uv2 ) g.setAttribute( 'uv2', g.attributes.uv );
-
     }
 
     uv2( g, uv2 = true, tangent = true ) {

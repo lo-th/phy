@@ -21,21 +21,23 @@ const defines = {}
 
 const uniforms = {
 
-	renderMode: { value: 2 },
+	renderMode: { value: 0 },
     depthPacking: { value: 1 },
 
 	time: { value: 0.0 },
 
-	shadow: { value: 0.25 },
-    shadowLuma: { value: 0 },
-    shadowContrast: { value: 1 },
-    shadowGamma: { value: 0.25 },
+	shadow: { value: 0.5 },
+    shadowGamma: { value: 0.25 },//1
+    shadowLuma: { value: 0 },//0.75
+    shadowContrast: { value: 1 },//2.5
+    
 	//shadowAlpha: { value: 1.0 }
 
     lightSizeUV: { value: 1.3 },
     nearPlane: { value: 9.5 },
     rings:{ value: 11 },
     nSample:{ value: 17 },
+    
     noiseIntensity:{ value: 1 },
     softness:{ value: 3 },
     
@@ -46,6 +48,10 @@ export class Shader {
 
     static setGl2 ( b ) { isGL2 = b }
     static getGl2 ( b ) { return isGL2 }
+
+    static setting ( ) {
+        return uniforms
+    }
 
 	static init ( o = {} ) {
 
@@ -333,13 +339,13 @@ export class Shader {
 
     static add ( m ) {
 
-        //mats[m.name] = m
         let name = m.name;
         if ( materials.has( name ) ) { 
-            //console.log('already add', name)
+            console.log('already add', name)
             return 
         }
-       // else console.log('add', name)
+
+        //console.log('add', name)
         materials.set( name, true )
         
         m.shadowSide = DoubleSide;
