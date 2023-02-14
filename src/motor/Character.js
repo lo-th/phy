@@ -143,6 +143,8 @@ class Hero extends Basic3D {
 		o.noGravity = true
 		o.ray = false
 
+		if( o.callback ) delete o.callback
+
 		this.o = o
 
 		this.py = -(o.size[1]*0.5)-o.size[0]
