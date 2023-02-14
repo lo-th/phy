@@ -44,9 +44,11 @@ export const root = {
 	update:null,
 	add:null,
 	remove:null,
+	bodyRef:null,
 	tmpMesh : [],
 	instanceMesh : {},
 	tmpTex : [],
+	tmpMat : [],
 	flow:{
 		tmp:[],
 		key:[],
@@ -240,7 +242,7 @@ export const Mat = {
 				case 'sleep':  m = new MeshStandardMaterial({ color:0x939393, ...matExtra }); break//0x46B1C9
 				case 'solid':  m = new MeshStandardMaterial({ color:0x3C474B, ...matExtra }); break
 				case 'hero':   m = new MeshStandardMaterial({ color:0x00FF88, ...matExtra }); break
-				case 'skin':   m = new MeshStandardMaterial({ color:0xe0ac69, ...matExtra }); break
+				case 'skinny':   m = new MeshStandardMaterial({ color:0xe0ac69, ...matExtra }); break
 				case 'chrome': m = new MeshStandardMaterial({ color:0xCCCCCC, metalness: 1, roughness:0 }); break
 				case 'glass':  m = new MeshPhysicalMaterial({ color:0xFFFFff, transparent:true, opacity:0.8, depthTest:true, depthWrite:false, roughness:0.02, metalness:0.0, /*side:DoubleSide,*/ alphaToCoverage:true, premultipliedAlpha:true, transmission:1, clearcoat:1, thickness:0.02  }); break
 				case 'plexi':  m = new MeshPhysicalMaterial({ color:0xCCCCCCC, transparent:true, opacity:0.4  }); break
@@ -250,8 +252,9 @@ export const Mat = {
 				case 'joint':  m = new LineBasicMaterial( { color: 0x00FF00, toneMapped: false } ); break
 				case 'ray':    m = new LineBasicMaterial( { vertexColors: true, toneMapped: false } ); break	
 
-				case 'debug':  m = new MeshBasicMaterial({ color:0x000000, wireframe:true }); break
-				case 'debug2': m = new MeshBasicMaterial({ color:0x00FFFF, wireframe:true }); break
+				case 'debug':  m = new MeshBasicMaterial({ color:0x000000, wireframe:true, toneMapped: false }); break
+				case 'debug2': m = new MeshBasicMaterial({ color:0x00FFFF, wireframe:true, toneMapped: false }); break
+				case 'debug3':  m = new MeshBasicMaterial({ color:0x000000, wireframe:true, transparent:true, opacity:0.05, toneMapped: false, depthTest:true, depthWrite:false }); break
 
 				case 'hide': m = new MeshBasicMaterial({ visible:false }); break
 
@@ -271,6 +274,10 @@ export const Mat = {
 			mat[m].dispose()
 			delete mat[m]
 		}
+
+		let i = root.tmpMat.length
+		while( i-- ) root.tmpMat[i].dispose()
+		root.tmpMat = []
 
 	}
 
@@ -344,8 +351,12 @@ export const math = {
 		var diff = (cur - prv + 180) % 360 - 180;
 		return diff < -180 ? diff + 360 : diff;
 	},
+
+	nearAngle: ( s1, s2, deg = false ) => ( s2 + Math.atan2(Math.sin(s1-s2), Math.cos(s1-s2)) * (deg ? root.todeg : 1) ),
+
 	unwrapDeg: ( r ) => (r - (Math.floor((r + 180)/360))*360), 
-	unwrapRad: ( r ) => (r - (Math.floor((r + Math.PI)/(2*Math.PI)))*2*Math.PI),
+	//unwrapRad: ( r ) => (r - (Math.floor((r + Math.PI)/(2*Math.PI)))*2*Math.PI),
+	unwrapRad: ( r ) => ( Math.atan2(Math.sin(r), Math.cos(r)) ),
 
 	autoSize: ( s = [ 1, 1, 1 ], type = 'box' ) => {
 

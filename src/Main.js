@@ -106,9 +106,9 @@ const options = {
 
 	shadow:0.5,//0.25,
 	shadowType:'PCSS',
-	shadowGamma:0.25,//1,
-	shadowLuma:0, //0.75,//0,
-    shadowContrast:1,//2.5,//1,
+	shadowGamma:1,//0.25,//1,
+	shadowLuma:0.5, //0.75,//0,
+    shadowContrast:2,//2.5,//1,
 
     reflect:0.8,
     renderMode:0,
@@ -124,7 +124,7 @@ const options = {
 
 
 let g1, g2, g3
-let dom, camera, controls, scene, renderer, loop = null, composer = null, content, dragPlane, hideMat, followGroup, helperGroup, stats, txt, light, light2 = null, ground = null, envui, dci;
+let dom, camera, controls, scene, renderer, loop = null, composer = null, content, dragPlane, hideMat, followGroup, helperGroup, stats, txt, light, light2 = null, light3=null, ground = null, envui, dci;
 let ray, mouse, oldMouse, isActveMouse = false, mouseDown = false, mouseMove = false, firstSelect = false, selected = null, rayTest = false, controlFirst = true;
 
 let code = ''
@@ -427,7 +427,7 @@ const init = () => {
 
 	editor = new Editor()
 
-	Env.init( renderer, scene, light, light2 )
+	Env.init( renderer, scene, light, light2, light3 )
 
 	start()
 
@@ -537,21 +537,48 @@ const upExpose = () => {
 
 const addLight = () => {
 
-	light = new THREE.DirectionalLight( 0xFFFFFF, options.light_1 )
-	//light.position.set( 5, 18, 5 )
-	light.distance = 20
+	let s 
 
-	const s = light.shadow
+	light3 = new THREE.DirectionalLight( 0xFFFFFF,  options.light_1*0.7  )
+	//light.position.set( 5, 18, 5 )
+	light3.distance = 5
+
+	s = light3.shadow
 	s.mapSize.setScalar( 1024 * options.quality )
-	s.camera.top = s.camera.right = 20
-	s.camera.bottom = s.camera.left = -20
-	s.camera.near = 5
-	s.camera.far = 33
+
+	s.camera.top = s.camera.right = 4//20
+	s.camera.bottom = s.camera.left = -4
+	s.camera.near = 1//5
+	s.camera.far = 9//33
 
 	s.bias = -0.0005
-	s.normalBias = 0.0075//0.05
-	s.radius = 2
+	s.radius = 4//2
 	s.blurSamples = 8 // only for VSM !
+
+
+	light3.castShadow = options.shadow !== 0 
+
+	followGroup.add( light3 )
+	followGroup.add( light3.target )
+
+	/////
+
+	light = new THREE.DirectionalLight( 0xFFFFFF, options.light_1*0.3 )
+	//light.position.set( 5, 18, 5 )
+	light.distance = 20//20
+
+	s = light.shadow
+	s.mapSize.setScalar( 1024 * options.quality )
+
+	s.camera.top = s.camera.right = 20//20
+	s.camera.bottom = s.camera.left = -20
+	s.camera.near = 5//5
+	s.camera.far = 33//33
+
+	s.bias = -0.005
+	//s.normalBias = 0.0075//0.05
+	s.radius = 2
+	//s.blurSamples = 8 // only for VSM !
 
 
 	if( options.mode === 'LOW' ){
@@ -572,6 +599,12 @@ const addLight = () => {
 	light2.position.set( 0, 5, 0 );
 	followGroup.add( light2 );
 
+
+	////
+
+
+	
+
 }
 
 const clearLight = ( o ) => {
@@ -590,6 +623,16 @@ const clearLight = ( o ) => {
 	light.shadow.map = null;
 
 	light = null
+
+	if(light3){
+		light3.shadow.dispose()
+		light3.shadow.map.texture.dispose()
+		light3.shadow.map.texture = null;
+		light3.shadow.map.dispose()
+		light3.shadow.map = null;
+
+		light3 = null
+	}
 
 	
 
@@ -615,6 +658,7 @@ const resetLight = ( o ) => {
 	light.position.set( 5, 18, 5 )
 	light.target.position.set( 0, 1, 0 )
 	light.color.setHex( 0xFFFFFF );
+
 
 	light2.color.setHex( 0xFFFFFF );
 	light2.groundColor.setHex( 0x808080 );
@@ -843,10 +887,15 @@ const render = ( stamp = 0 ) => {
 
 	if( needResize ) doResize()
 
-	if( controls.enableDamping && controls.enable ) controls.update()
+	//if( controls.enableDamping && controls.enable ) controls.update()
 
 	// UPDATE PHY
 	Motor.doStep( stamp );
+
+	if( controls ){ 
+		if( controls.enableDamping && controls.enable ) controls.update()
+		if( controls.follow ) controls.follow( tm.dt )
+	}
 
 	// update follow camera
 	//controller.follow( root.delta );
@@ -1267,6 +1316,15 @@ const showDebugLight = ( b ) => {
 		light2.helper.material.wireframe = false
 		helperGroup.add( light.helper )
 		helperGroup.add( light2.helper )
+
+		if(light3){
+			light3.helper = new DirectionalHelper( light3 )
+		    light3.shadowHelper = new THREE.CameraHelper( light3.shadow.camera )
+		    light3.shadowHelper.setColors( light3.color, new THREE.Color( 0x222222 ), new THREE.Color( 0x222222 ), light3.color, new THREE.Color( 0x666666) )
+		    light3.shadowHelper.visible = options.shadow !== 0
+		    helperGroup.add( light3.helper )
+		}
+
 		helperGroup.add( light.shadowHelper )
 		light.shadowHelper.visible = options.shadow !== 0
 
@@ -1276,6 +1334,7 @@ const showDebugLight = ( b ) => {
 	if( !b && debugLight ){
 		helperGroup.remove( light.helper )
 		helperGroup.remove( light2.helper )
+		if(light3)helperGroup.remove( light3.helper )
 		helperGroup.remove( light.shadowHelper )
 		debugLight = false
 	}

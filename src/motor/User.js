@@ -7,7 +7,7 @@ export class User {
     // 3 : axe R | top:down    -1>1
     // 4 : bouton A             0-1  jump / space
     // 5 : bouton B             0-1  roulade / shift ctrl
-    // 6 : bouton X             0-1  arme principale
+    // 6 : bouton X             0-1  arme principale / E
     // 7 : bouton Y             0-1  arme secondaire
     // 8 : gachette L up        0-1  
     // 9 : gachette R up        0-1
@@ -32,7 +32,7 @@ export class User {
 		this.gamepad = new Gamepad( this.key ); 
 
 		this.useGamepad = false
-		this.sameAxis = false
+		this.sameAxis = true
 
 		document.addEventListener( 'keydown', function(e){this.keyDown(e)}.bind(this), false );
         document.addEventListener( 'keyup', function(e){this.keyUp(e)}.bind(this), false );
@@ -78,7 +78,7 @@ export class User {
 
                 case 32:          key[4] = 1; break; // space
                 case 17: case 67: key[5] = 1; break; // ctrl, C
-                case 69:          key[5] = 1; break; // E
+                case 69:          key[6] = 1; break; // E
                 
                 case 16:          key[7] = 1; break; // shift
                 //case 71:          view.hideGrid(); break; // G
@@ -103,7 +103,7 @@ export class User {
 
                 case 32:          key[4] = 1; break; // space
                 case 17: case 67: key[5] = 1; break; // ctrl, C
-                case 69:          key[5] = 1; break; // E
+                case 69:          key[6] = 1; break; // E
                 
                 case 16:          key[7] = 1; break; // shift
                 //case 121:         noui(); break; // f10
@@ -135,7 +135,7 @@ export class User {
 
                 case 32:          key[4] = 0; break; // space
                 case 17: case 67: key[5] = 0; break; // ctrl, C
-                case 69:          key[5] = 0; break; // E
+                case 69:          key[6] = 0; break; // E
                 
                 case 16:          key[7] = 0; break; // shift
             }
@@ -157,7 +157,7 @@ export class User {
 
                 case 32:          key[4] = 0; break; // space
                 case 17: case 67: key[5] = 0; break; // ctrl, C
-                case 69:          key[5] = 0; break; // E
+                case 69:          key[6] = 0; break; // E
                 
                 case 16:          key[7] = 0; break; // shift
 

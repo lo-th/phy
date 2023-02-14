@@ -297,6 +297,11 @@ export class Body extends Item {
 
     	if( !noScale ) m.scale.fromArray( o.size );
     	//if( unic ) m.unic = true
+
+    	// disable raycast
+    	if(o.ray !== undefined){
+    		if( !o.ray ) m.raycast = () => {return}
+    	}
     	
 
     	// add or not add
@@ -359,6 +364,11 @@ export class Body extends Item {
 	    	noMat = true
 	    	material = Mat.get( this.type ) //mat[this.type]
 	    	if( o.instance ) material = Mat.get( 'base' )
+	    }
+
+	    if( o.unicMat ) {
+	    	material = material.clone()
+	    	root.tmpMat.push( material )
 	    }
 
 	    if( o.material ) delete o.material

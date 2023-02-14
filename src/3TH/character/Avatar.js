@@ -4,7 +4,7 @@ import {
     SphereGeometry, SkeletonHelper,
     MeshStandardMaterial, MeshLambertMaterial, MeshPhongMaterial, MeshBasicMaterial,MeshPhysicalMaterial,
     TextureLoader,AnimationMixer, AxesHelper,
-    FrontSide, BackSide, DoubleSide, Color, ShaderChunk, CanvasTexture,
+    FrontSide, BackSide, DoubleSide, Color, ShaderChunk, CanvasTexture, LoopPingPong, LoopOnce,LoopRepeat,
     VectorKeyframeTrack, QuaternionKeyframeTrack, AnimationClip, Skeleton, sRGBEncoding,
     Float32BufferAttribute, EquirectangularReflectionMapping, LinearEncoding,
     EqualDepth,LessDepth,LessEqualDepth,GreaterEqualDepth,GreaterDepth,NotEqualDepth,
@@ -13,12 +13,12 @@ import {
 
 } from 'three';
 
-
-import { Pool } from '../Pool.js';
-import { Shader } from '../Shader.js';
 import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
 import * as SkeletonUtils from 'three/addons/utils/SkeletonUtils.js';
 
+
+import { Pool } from '../Pool.js';
+import { Shader } from '../Shader.js';
 import { LZMA } from '../../libs/lzma.js';
 import { Tension } from '../Tension.js';
 
@@ -45,14 +45,16 @@ export class Avatar extends Group {
 
         super();
 
+        this.callback = o.callback || function (){}
+
         this.matrixAutoUpdate = false;
         this.isPause = true;
 
-        this.textureQuality = 2;
+        this.textureQuality = o.quality || 1;
 
         this.model = o.type || 'man';
         this.compact = o.compact !== undefined ? o.compact : true
-        this.haveMorph = o.morh !== undefined ? o.morph : true
+        this.haveMorph = o.morph !== undefined ? o.morph : true
         this.fullMaterial = o.material !== undefined ? o.material : true
 
         this.size = 1;
@@ -70,7 +72,7 @@ export class Avatar extends Group {
         
         this.isBreath = true;
 
-        this.tensionTest = true;
+        this.tensionTest = false;
         this.tensionActive = false;
 
         this.fixToe = false;
@@ -94,9 +96,10 @@ export class Avatar extends Group {
         this.tmpQ = new Quaternion();
 
         this.setting = {
+
             mixRatio:0.,
             threshold:0.1,
-            normal:0.4,
+            normal:0.2,
             hair:0xa43412,
 
             bow:0x100402,
@@ -124,8 +127,9 @@ export class Avatar extends Group {
             this.tensionTest = false;
             this.root = SkeletonUtils.clone( this.root );
             this.init();
+
         } else {
-            if(this.fullMaterial) this.load()
+            if( this.fullMaterial ) this.load()
             else this.loadModels()
         }
 
@@ -142,7 +146,7 @@ export class Avatar extends Group {
                 'mouth_c.jpg', 'mouth_a.jpg', 'mouth_n.jpg', 
                 'eye_c.jpg', 'eye_n.jpg', 'hair.jpg', 'hair_a.jpg',
                 'eyelash_c.jpg', 'eyelash_a.jpg', 'eyelash_n.jpg',
-                'hair_man.jpg', 'hair_man_a.jpg'
+                'hair_man.jpg', 'hair_man_a.jpg', 'reflect3.hdr'
             ]
             Pool.load( asset, this.loadModels.bind(this), path, 'loading images...' )
         } else {
@@ -249,17 +253,25 @@ export class Avatar extends Group {
         this.updateMatrix()
     }
 
+    setRotation( x, y, z, a )
+    {
+        let r  = this.lerp( this.rotation.y, y, a)
+   
+        this.rotation.set( x, r, z )
+        this.updateMatrix()
+    }
+
+    lerp( x, y, t ) { return ( 1 - t ) * x + t * y }
+
     onReady(){}
 
     initMaterial()
     {
 
-
-
-        if( Pool.getMaterial( 'body' ) ) return
+        if( Pool.getMaterial( 'skin' ) ) return
 
         if( !this.fullMaterial ){
-            Pool.set( 'body', new MeshStandardMaterial() )
+            Pool.set( 'skin', new MeshStandardMaterial() )
             return
         } 
 
@@ -422,13 +434,13 @@ export class Avatar extends Group {
         this.skin = Pool.getTexture('avatar_c')
 
         m = new MeshPhysicalMaterial({
-            name: 'body',
+            name: 'skin',
             map: this.skin, 
             normalMap:Pool.getTexture('avatar_n'),
-            roughness:this.setting.roughness, //1.0,
-            metalness:this.setting.metalness, //1.0,
+            roughness:1,//this.setting.roughness, //1.0,
+            metalness:1,//this.setting.metalness, //1.0,
             metalnessMap:Pool.getTexture('avatar_m'),
-            //roughnessMap:Pool.getTexture('avatar_r'),
+            roughnessMap:Pool.getTexture('avatar_r'),
            // alphaMap:alpha,
            // alphaTest:0.0001,
             normalScale:new Vector2( this.setting.normal, -this.setting.normal),
@@ -444,7 +456,7 @@ export class Avatar extends Group {
         });
 
         Shader.add(m)
-        Pool.set( 'body', m );
+        Pool.set( 'skin', m );
 
         // LOW
 
@@ -487,9 +499,9 @@ export class Avatar extends Group {
     setMaterial()
     {
 
-        if( !Pool.getMaterial( 'body' ) ) return
+        if( !Pool.getMaterial( 'skin' ) ) return
 
-        const m = Pool.getMaterial( 'body' );
+        const m = Pool.getMaterial( 'skin' );
         const s = this.setting;
 
         m.roughness = s.roughness;
@@ -516,7 +528,7 @@ export class Avatar extends Group {
 
         if( !this.isClone ) this.root = Pool.get( this.model, 'O' ) 
         
-        const def = Pool.getMaterial( 'body' );
+        const def = Pool.getMaterial( 'skin' );
 
         this.root.traverse( function ( node ) {
             if ( node.isMesh ){
@@ -595,9 +607,9 @@ export class Avatar extends Group {
         
 
 
+        
+
         if( !this.isClone ){
-
-
             // for extra skin
             for( let m in this.mesh ){
                 if( this.mesh[m].isSkinnedMesh && m !== 'body' ){
@@ -608,6 +620,9 @@ export class Avatar extends Group {
 
             // add morph 
             if( this.haveMorph ) this.applyMorph( Pool.get( this.model+'_morph', 'O' ) );
+
+
+            Pool.set( this.model, this.root, 'O' )
         }
 
 
@@ -617,7 +632,6 @@ export class Avatar extends Group {
 
         // animation
         this.mixer = new AnimationMixer( this );
-
 
         if( Pool.clip.length === 0 ){ 
 
@@ -815,8 +829,14 @@ export class Avatar extends Group {
         this.done = true;
         this.add( this.root );
         this.onReady();
-        let a = this.play('IDLE');
-        if(!a) this.play('idle');
+
+        this.playAll()
+        this.callback()
+
+
+        //console.log('model is ready !!! ', this.onReady)
+        //let a = this.play('IDLE');
+        //if(!a) this.play('idle');
     }
 
     addHelper()
@@ -899,7 +919,7 @@ export class Avatar extends Group {
                 const data = JSON.parse(result);
                 
                 for(let c in data) glb.animations.push( AnimationClip.parse( data[c] ) ); 
-                console.log( glb )
+                //console.log( glb )
                 self.applydAnimation( glb );
                 self.start();
             })
@@ -975,6 +995,10 @@ export class Avatar extends Group {
     {
         const action = this.mixer.clipAction( clip );
         action.frameMax = Math.round( clip.duration * FrameTime );
+        action.enabled = true;
+        action.setEffectiveWeight( 0 );
+        if(clip.name === 'Jumping Up') action.loop = LoopPingPong
+        //action.play()
         this.actions.set( clip.name, action );
 
         if(clip.name.search('walk')!==-1) this.clipsToesFix.push(clip.name)
@@ -985,7 +1009,7 @@ export class Avatar extends Group {
 
         if( window.gui ) window.gui.getAnimation()
 
-        if( play ) this.play( clip.name )
+       // if( play ) this.play( clip.name )
 
              
     }
@@ -1025,7 +1049,7 @@ export class Avatar extends Group {
 
         this.lzma.compress( JSON.stringify(data), 2, function(result) {
 
-            if(callback) callback( {name:'animations', data:new Uint8Array(result), type:'bin'}  )
+            if( callback ) callback( {name:'animations', data:new Uint8Array(result), type:'bin'}  )
             else {
                 let link = document.createElement("a");
                 link.style.display = "none";
@@ -1190,6 +1214,27 @@ export class Avatar extends Group {
         this.isPause = false;
     }
 
+    playAll()
+    {
+        this.actions.forEach( function ( action ) { action.play(); });
+    }
+
+    timescale( timescale ) {
+
+
+        this.actions.forEach( function ( action ) { action.setEffectiveTimeScale( timescale ); });
+
+    }
+
+    syncro( name ) {
+
+        let action = this.getAction( name );
+        if ( !action ) return;
+        let time = action.time;
+        this.actions.forEach( function ( action ) { action.time = time; });
+
+    }
+
     setTimescale( action, timescale ) {
 
         action.enabled = true;
@@ -1199,11 +1244,19 @@ export class Avatar extends Group {
 
     setWeight( action, weight ) {
 
+        if( typeof action === 'string' ) action = this.getAction( action );
+        if ( !action ) return;
+
         action.enabled = true;
-        //action.setEffectiveTimeScale( 1 );
+        if(weight<0) weight = 0
+        if(weight>1) weight = 1
+        let old = action.getEffectiveWeight()
+        //if(old===0 && weight!== 0) action.time = 0;
+        //action.setEffectiveTimeScale( weight );
         action.setEffectiveWeight( weight );
 
     }
+
 
     getAnimInfo( name ){
 
@@ -1227,7 +1280,7 @@ export class Avatar extends Group {
         return this.actions.get( name );
     }
 
-    play( name )
+    play( name, fade = 0.5 )
     {
 
         let action = this.getAction( name );
@@ -1236,7 +1289,8 @@ export class Avatar extends Group {
         if(!this.current){
             this.stop()
             this.current = action;
-            action.play();
+            //action.play();
+            action.setEffectiveWeight( 1 )
             //console.log(name)
         } else {
             if( this.current !== action ){
@@ -1252,7 +1306,7 @@ export class Avatar extends Group {
                 //console.log( name, this.fixToe )
 
 
-                this.executeCrossFade(this.old, this.current, 0.5  )
+                this.executeCrossFade(this.old, this.current, fade  )
 
                // this.stop()
                //this.current = action;
@@ -1293,7 +1347,9 @@ export class Avatar extends Group {
 
     stop()
     {
-        this.mixer.stopAllAction()
+
+        this.actions.forEach( function ( action ) { action.setEffectiveWeight( 0 ) });
+        //this.mixer.stopAllAction()
     }
 
 
@@ -1360,7 +1416,7 @@ export class Avatar extends Group {
         this.mask = new Texture( img );
         this.mask.flipY = false;
         this.mask.needsUpdate = true;
-        const m = Pool.getMaterial( 'body' );
+        const m = Pool.getMaterial( 'skin' );
         m.alphaTest = 0.9
         m.alphaMap = this.mask;
         //m.needsUpdate = true;

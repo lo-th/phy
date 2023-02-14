@@ -525,6 +525,8 @@ export class Motor {
 			items['solver'] = new Solver()
 		}
 
+		root.bodyRef = items.body
+
 	}
 
 	static resetItems() {
@@ -540,9 +542,10 @@ export class Motor {
 		Motor.upInstance()
 
 		// update follow camera
-		if( controls ){ 
-			if( controls.follow )controls.follow( Motor.getDelta() )
-		}
+		/*if( controls ){ 
+			if( controls.enableDamping && controls.enable ) controls.update()
+			if( controls.follow ) controls.follow( Motor.getDelta() )
+		}*/
 	}
 
 	static adds ( r = [] ){ for( let o in r ) Motor.add( r[o] ) }

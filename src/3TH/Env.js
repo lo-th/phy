@@ -30,7 +30,7 @@ let pmrem = null
 let floor = null;
 let data = {};
 let color =  new Color();
-let light = null, scene = null, renderer = null, light2 = null;
+let light = null, light3 = null, scene = null, renderer = null, light2 = null;
 
 const s1 = new Spherical()
 const s2 = new Spherical()
@@ -134,12 +134,13 @@ export class Env {
 
 	}
 
-    static init ( Renderer, Scene, Light, Light2, autosun ) {
+    static init ( Renderer, Scene, Light, Light2, Light3, autosun ) {
 
     	if( Renderer ) renderer = Renderer;
 		if(Scene) scene = Scene
 		if(Light) light = Light
 		if(Light2) light2 = Light2
+		if(Light3) light3 = Light3
 		autosun = autosun !== undefined ? autosun : true;
 
 
@@ -453,17 +454,22 @@ export class Env {
 
 		if( scene.fog ) scene.fog.color.copy( data.fog )
 
-		//light.position.copy( data.pos ).multiplyScalar( light.distance || 20 );
+		//light.position.setFromSphericalCoords(light.distance, s1.phi, s1.theta )
 		light.position.setFromSpherical(s1).multiplyScalar( light.distance || 20 );
-
-		//console.log( light.position )
 		light.color.copy( data.sun );
-		//light.lookAt( 0, 0, 0 )
-
-		light.target.position.set( 0, 1, 0 )
+		light.target.position.set( 0, 0, 0 )
 		light.updateMatrixWorld();
 
 		if( light.helper ) light.helper.update()
+
+		if(light3){
+			//light3.position.setFromSphericalCoords(light3.distance, s1.phi, s1.theta )
+			light3.position.setFromSpherical(s1).multiplyScalar( light3.distance || 20 );
+			light3.color.copy( data.sun );
+			light3.target.position.set( 0, 0, 0 )
+			light3.updateMatrixWorld();
+			if( light3.helper ) light3.helper.update()
+		}
 
 		if( !light2 ) return
 

@@ -37,7 +37,9 @@ export const math = {
 	},
 
     unwrapDeg: ( r ) => (r - (Math.floor((r + 180)/360))*360), 
-	unwrapRad: ( r ) => (r - (Math.floor((r + Math.PI)/(2*Math.PI)))*2*Math.PI),
+	//unwrapRad: ( r ) => (r - (Math.floor((r + Math.PI)/(2*Math.PI)))*2*Math.PI),
+
+	unwrapRad: ( r ) => ( Math.atan2(Math.sin(r), Math.cos(r)) ),
 
 
 	scaleArray: ( ar, scale ) => {

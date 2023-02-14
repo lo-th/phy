@@ -87,7 +87,7 @@ ragdoll = ( o ) => {
             size:data[n].size, 
             pos:math.addArray( o.pos, data[n].pos ),
             rot:data[n].rot||[0,0,0],
-            material:debug? 'debug':'skin' 
+            material:debug? 'debug':'skinny' 
          })
 
     }
