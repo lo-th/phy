@@ -1822,7 +1822,7 @@ class Files {
 	static async load( o = {} ) {
 
         if (typeof window.showOpenFilePicker !== 'function') {
-            window.showOpenFilePicker = this.showOpenFilePickerPolyfill;
+            window.showOpenFilePicker = Files.showOpenFilePickerPolyfill;
         }
 
         try {
@@ -1835,7 +1835,7 @@ class Files {
                 //startIn:'./assets'
             };
 
-            options.types = this.autoTypes( type );
+            options.types = Files.autoTypes( type );
 
             // create a new handle
             const handle = await window.showOpenFilePicker( options );
@@ -1920,11 +1920,11 @@ class Files {
 
     static async save( o = {} ) {
 
-        this.usePoly = false;
+        let usePoly = false;
 
         if (typeof window.showSaveFilePicker !== 'function') {
-            window.showSaveFilePicker = this.showSaveFilePickerPolyfill;
-            this.usePoly = true;
+            window.showSaveFilePicker = Files.showSaveFilePickerPolyfill;
+            usePoly = true;
         }
 
         try {
@@ -1937,7 +1937,7 @@ class Files {
             };
 
 
-            options.types = this.autoTypes( type );
+            options.types = Files.autoTypes( type );
             options.finalType = Object.keys(options.types[0].accept )[0];
             options.suggestedName += options.types[0].accept[options.finalType][0];
 
@@ -1945,7 +1945,7 @@ class Files {
             // create a new handle
             const handle = await window.showSaveFilePicker( options );
 
-            if( this.usePoly ) return
+            if( usePoly ) return
 
             // create a FileSystemWritableFileStream to write to
             const file = await handle.createWritable();
