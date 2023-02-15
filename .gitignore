@@ -3,5 +3,10 @@ package-lock.json
 npm-debug.log
 prepa
 src/_physx
+assets/animation/animations.json
+assets/animation/fbx
+assets/textures/avatar_2k
+assets/textures/avatar_4k
 *.sh
 desktop.ini
+heroes.html

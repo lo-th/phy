@@ -3,7 +3,7 @@
 
 import { Vector3, Mesh } from 'three';
 
-import { Avatar } from '../3TH/character/avatar.js';
+import { Avatar } from '../3TH/character/Avatar.js';
 import { Item } from '../core/Item.js';
 import { Num } from '../core/Config.js';
 import { Basic3D } from '../core/Basic3D.js';
