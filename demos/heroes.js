@@ -1,10 +1,10 @@
-let bob, trigger
+let trigger
 
 
 
 demo = () => {
 
-    phy.log('use key WSAD or ZSQD<br>E to fight<br>C to crouch<br>SPACE to jumph<br>SHIFT to run')
+    phy.log('use key WSAD or ZSQD<br>E to fight<br>C to crouch<br>SPACE to jump<br>SHIFT to run')
 
 	// setting and start oimophysics
 	phy.set({ substep:2, gravity:[0,-9.81,0] })
@@ -12,32 +12,29 @@ demo = () => {
 
 	// add static plane 
 	//phy.add({ type:'plane', name:'floor', size:[ 300,1,300 ], visible:false });
-	phy.add({ type:'box', name:'floor', size:[300,1,300], pos:[0, -0.5, 0], visible:false, /*filter:[1,-1,[5,9], 0]*/ })
+	phy.add({ type:'box', name:'floor', size:[300,1,300], pos:[0, -0.5, 0], visible:false })
 
     // create character
-    let r = 0.3
-    bob = phy.add({ 
+    phy.add({ 
         type:'character',
         gender:'man',
-        name:'bob', 
-        size:[ r,1.8-(2*r) ], 
-        pos:[0,3,0], 
-
+        name:'bob',
+        // when asset loaded
         callback:next
-
     })
 
-    //next()
+    // camera follow character
+    phy.follow('bob', { direct:true, simple:true, decal:[0.3, 1, -0.3] })
 
+    // character is control by key
+    phy.control( 'bob' )
 
-    
+    // add cross in viewport
+    hub.addCross()
 
 }
 
 next = () => {
-
-    phy.follow('bob', { direct:true, simple:true, decal:[0.3, 1, -0.3] })
-
     
     //phy.add({ type:'box', name:'trigger', size:[2, 2, 2], pos:[0,-0.99,-3], material:'debug', mask:32 })
     trigger = phy.add({ type:'box', name:'trigger', size:[5, 1.8, 2], pos:[0,0.91,-3], material:'debug', isTrigger:true, unicMat:true  })//
@@ -57,11 +54,10 @@ next = () => {
 
     }
 
-    // update after physic step
-    phy.setPostUpdate ( update )
-
-    hub.addCross()
 }
+
+
+
 
 showContact = ( d ) => {
 
@@ -77,15 +73,4 @@ triggerContact = ( d ) => {
     else trigger.material.color.setHex( 0xFFFF00 )
 
     //console.log('bob collision on trigger')
-}
-
-update = () => {
-
-    let delta = phy.getDelta()
-    let azimut = phy.getAzimut()
-    let key = phy.getKey()
-
-
-    bob.move( key, delta, azimut )
-
 }

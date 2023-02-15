@@ -43,11 +43,9 @@ export class Character extends Item {
 		this.setName( o )
 		const hero = new Hero( o )
 
-		// add to world
-		this.addToWorld( hero, o.id )
+		
 
-        // add to physics
-        root.post({ m:'add', o:hero.o })
+        
 
 		return hero
 
@@ -68,16 +66,19 @@ export class Character extends Item {
 
 class Hero extends Basic3D {
 
-	constructor( o ) {
+	constructor( o = {} ) {
 
 		super()
 
 		this.type = 'character';
-		this.name = o.name;
+		this.name = o.name || 'hero';
 
-		this.isRay = false;
+		this.isRay = false
 
-		//this.oldAngle = 0
+		this.model = null
+
+		this.radius = 0.3
+		this.height = 1.8
 
 		this.tmpV1 = new Vector3()
 		this.tmpV2 = new Vector3()
@@ -103,7 +104,6 @@ class Hero extends Basic3D {
 
 		this.valheimStyle = true
 		
-
 		this.callback = o.callback || function (){}
 
 
@@ -115,24 +115,20 @@ class Hero extends Basic3D {
 
 	init( o ){
 
-		//if(o.debug){
-	    //let g = root.bodyRef.geometry( {...o, type:'capsule'} )
-	    //this.add( new Mesh( g, Mat.get('debug3')) )
-		//}
+		this.radius = o.radius || 0.3
+		this.height = o.height || 1.8
 
-		if(o.debug) root.bodyRef.geometry( { ...o, type:'capsule', ray:false }, this, Mat.get('debug3') )
+		if( o.radius ) delete o.radius
 
-		/*this.shape = root.add({ 
-			...o,
-			onlyMakeMesh:true, 
-		    name: this.name, 
-		    type:'capsule',
-		    ray:false,
-		    regular:true,
-		    material:'debug'
-		});*/
+	    if(!o.size) o.size = [ this.radius ,this.height-(2*this.radius) ]
+		if(!o.pos) o.pos = [0,o.size[1]*0.5,0]
+		this.py = -(o.size[1]*0.5)-o.size[0]
 
-		o.density = 2 
+
+		//if( o.debug ) 
+		root.bodyRef.geometry( { ...o, type:'capsule', ray:false }, this, Mat.get('debug3') )
+
+		o.density = o.density || 2 
         o.damping = [0.01,0] 
         o.friction = 0.5
 
@@ -140,27 +136,31 @@ class Hero extends Basic3D {
 		o.group = 32
 		o.regular = true
 		o.filter = [1,-1,[1, 3, 4,5,9], 0]
-		o.noGravity = true
+		//o.noGravity = true
 		o.ray = false
 
 		if( o.callback ) delete o.callback
 
-		this.o = o
 
-		this.py = -(o.size[1]*0.5)-o.size[0]
+		
 
-		this.model = new Avatar( { type:o.gender || 'woman', compact:true, material:true, morph:false, callback:this.callback } );
+		// add to world
+		root.characterRef.addToWorld( this, o.id )
+
+        // add to physics
+        root.post({ m:'add', o:o })
+
+        // add character model
+        if( o.gender ) this.addModel( o.gender )
+		
+	}
+
+	addModel( gender ){
+
+		this.model = new Avatar( { type:gender, compact:true, material:true, morph:false, callback:this.callback } );
 		this.add( this.model );
-		this.model.rotation.order = 'YXZ'
+		///this.model.rotation.order = 'YXZ'
 		this.model.setPosition(0,this.py,0)
-		/*this.model.onReady = function () {
-
-			console.log('model ready')
-			
-			
-			
-		}.bind(this)*/
-	    
 
 	}
 
@@ -181,13 +181,12 @@ class Hero extends Basic3D {
 	}
 
 	dispose(){
-		this.model.dispose()
+		this.callback = null
+		if( this.model ) this.model.dispose()
 		super.dispose()
 	}
 
 	move( key, delta, azimut ){
-
-		//console.log(key)
 
 		let anim = key[7] !== 0 ? 'run' : 'walk'
 	    if( key[0] === 0 && key[1] === 0 ) anim = 'idle'//*= 0.9
@@ -244,14 +243,7 @@ class Hero extends Basic3D {
 	    //if(this.jump) 
 	    //this.model.setWeight(, this.jump ? 1:0 )
 
-	    this.model.update( delta );
-	    if( this.jump ){
-	    	this.model.play( 'Jump', 0 )
-	    	this.model.timescale( 1 )
-	    }else {
-	    	this.model.play( mAnim, 0.25 )
-	    	this.model.timescale( 1.25 )
-	    }
+	    
 	    
 	    
 
@@ -283,17 +275,7 @@ class Hero extends Basic3D {
 
 	    //if(jj!== 0)
 
-	    //this.model.setWeight( 'idle', 1-jj )
-	    /*this.model.setWeight( 'Jog Forward', -this.ease.x )
-	    this.model.setWeight( 'Jog Backward', this.ease.x )
-	    this.model.setWeight( 'Jog Strafe Left',-this.ease.z )
-	    this.model.setWeight( 'Jog Strafe Right', this.ease.z )*/
 	    
-	   
-
-	    //if(anim!=='idle') this.model.syncro('Jog Forward')
-
-	    //console.log(tmpAcc)
 
 	    
 
@@ -306,11 +288,32 @@ class Hero extends Basic3D {
 	    //math.tmpV2.set( 0, rs, 0 );
 	    this.tmpV2.set( 0, 0, 0 );
 
-	    phy.update({ name:'bob', linearVelocity: this.tmpV1.toArray(), angularVelocity: this.tmpV2.toArray(), wake:true });
+	    phy.update({ name:this.name, linearVelocity: this.tmpV1.toArray(), angularVelocity: this.tmpV2.toArray(), wake:true/*, noGravity:true*/ });
 
 	   // if(anim!=='idle') this.model.setRotation( 0, azimut + Math.PI, 0, 0.25 )
         
-        //
+        if( !this.model ) return
+
+        //this.model.setWeight( 'idle', 1-jj )
+	    /*this.model.setWeight( 'Jog Forward', -this.ease.x )
+	    this.model.setWeight( 'Jog Backward', this.ease.x )
+	    this.model.setWeight( 'Jog Strafe Left',-this.ease.z )
+	    this.model.setWeight( 'Jog Strafe Right', this.ease.z )*/
+	    
+	   
+
+	    //if(anim!=='idle') this.model.syncro('Jog Forward')
+
+	    //console.log(tmpAcc)
+
+        this.model.update( delta );
+	    if( this.jump ){
+	    	this.model.play( 'Jump', 0 )
+	    	this.model.timescale( 1 )
+	    }else {
+	    	this.model.play( mAnim, 0.25 )
+	    	this.model.timescale( 1.25 )
+	    }
 
 	    if( anim !== 'idle' ){
 

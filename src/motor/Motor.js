@@ -27,7 +27,7 @@ import { User } from './User.js';
 */
 
 let items
-
+let currentContole = ''
 let callback = null
 let Ar, ArPos = {}
 let maxFps = 60
@@ -254,6 +254,8 @@ export class Motor {
 
 		Motor.cleartimout()
 
+		currentContole = null
+
 		if( controls ) controls.resetAll()
 
 		endReset = callback
@@ -371,6 +373,8 @@ export class Motor {
 		root.flow.key = user.update()
 		//root.flow.tmp = []
 
+		if( currentContole !== null ) currentContole.move( user.key, timer.delta, azimut() )
+
 		postUpdate( root.reflow.stat.delta )
 		//postUpdate( timer.delta )
 
@@ -459,6 +463,16 @@ export class Motor {
 
 	}
 
+	static control ( name ){ // for character and vehicle
+
+		if(currentContole!== null){
+			if( name !== currentContole.name ) currentContole = Motor.byName( name )
+		} else {
+			currentContole = Motor.byName( name )
+		}
+
+	}
+
 	static byName ( name ){
 
 		return Utils.byName( name )
@@ -526,6 +540,7 @@ export class Motor {
 		}
 
 		root.bodyRef = items.body
+		root.characterRef = items.character
 
 	}
 
@@ -632,7 +647,9 @@ export class Motor {
 		let mesh = null;
 
 		if ( typeof m === 'string' || m instanceof String ) mesh = m === '' ? null : Motor.byName( m )
-		else if ( m.isMesh || m.isGroup ) mesh = m
+		else if ( m.isObject3D ) mesh = m
+
+		//	console.log(m, mesh)
 
 		if( mesh === null ) controls.resetFollow()
 		else controls.startFollow( mesh, o )

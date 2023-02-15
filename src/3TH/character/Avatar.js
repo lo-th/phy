@@ -634,7 +634,6 @@ export class Avatar extends Group {
         this.mixer = new AnimationMixer( this );
 
         if( Pool.clip.length === 0 ){ 
-
             // load animation include in json or the compacted version
             if( this.compact ) this.loadCompactAnimation('./assets/animation/animations.bin')
             else this.loadAnimationJson('./assets/animation/animations.json', this.start.bind(this) )

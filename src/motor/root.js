@@ -45,6 +45,7 @@ export const root = {
 	add:null,
 	remove:null,
 	bodyRef:null,
+	characterRef:null,
 	tmpMesh : [],
 	instanceMesh : {},
 	tmpTex : [],
@@ -121,6 +122,8 @@ export const Utils = {
 			}
 
 		}
+
+		//console.log('add', b.name, b.type )
 
 		map.set( b.name, b );
 

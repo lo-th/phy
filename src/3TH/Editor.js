@@ -281,7 +281,7 @@ export class Editor {
 
     set ( code, name, refresh ){
 
-        console.log('editor set')
+        //console.log('editor set')
 
         if( !this.isOpen ) return
 

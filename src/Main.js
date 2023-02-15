@@ -1140,13 +1140,20 @@ const activeDragMouse = ( b ) => {
 
 const mousedown = ( e ) => {
 
+	
+	let button = 0
+
 	if( !mouseDown ){
 		if( firstSelect ) firstSelect = false
 		oldMouse.copy( mouse )
 	}
 
-    mouseDown = true
-    castray()
+	if ( e.pointerType !== 'touch' ) button = e.button
+
+    if( button === 0 ){
+	    mouseDown = true
+	    castray()
+	}
 
 }
 
