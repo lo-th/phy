@@ -173,7 +173,7 @@ function next(){
 
 	scene.environment = Pool.get( env, 'hdr' )
 
-	hero = new Avatar( { compact:false, quality:2 } );
+	hero = new Avatar( { compact:false, quality:1, compact:true } );
 	//hero = new Avatar( { compact:true, material:false, morph:false } );
 	scene.add( hero );
 	hero.setPosition(0.5,0,0)
