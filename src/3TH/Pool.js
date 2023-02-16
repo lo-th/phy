@@ -22,19 +22,57 @@ export const Pool = {
     clip:[],
     data: new Map(),
     tmp: [],
-    extraTexture: [],
+    //extraTexture: [],
     dracoLoader: null,
     dracoLoaderType:'js',
 
+    prefix:( type ) => {
+        let p = ''
+        switch( type ){
+            case 'S': case 'sound': case 'mp3': case 'wav': case 'ogg': p = 'S_';  break;
+            case 'I': case 'image': case 'jpg': case 'png': p = 'I_';  break;
+            case 'E': case 'hdr': case 'env': p = 'T_';  break;
+            case 'J': case 'json': p = 'J_';  break;
+            case 'JS': case 'js': p = 'JS_';  break;
+            
+            case 'O': case 'object3d': p = 'O_';  break;
+            case 'M': case 'material': p = 'M_';  break;
+            case 'T': case 'texture': p = 'T_';  break;
+        }
+        return p
+    },
+
     dispose:() => {
 
+        Pool.data.forEach( function( node, key ) {
+
+            if( node.isMaterial || node.isTexture ){ 
+                node.dispose()
+                Pool.data.delete( key )
+                //console.log( key + ' is delete')
+            }
+
+            if( node.isObject3D ){
+                node.traverse( function ( snode ) {
+                    if ( snode.isMesh ){
+                        if( snode.geometry ) snode.geometry.dispose()
+                        if( snode.material ) snode.material.dispose()
+                    }
+                })
+                Pool.data.delete( key )
+            }
+           
+
+        })
+
         //console.log('clear extra texture !!')
-        let i = Pool.extraTexture.length
+        /*let i = Pool.extraTexture.length
         while(i--){
-            Pool.get( Pool.extraTexture[i], 'T' ).dispose();
+            let p = Pool.get( Pool.extraTexture[i], 'T' )
+            if(p) p.dispose();
             Pool.delete( Pool.extraTexture[i], 'T' )
         }
-        Pool.extraTexture = [];
+        Pool.extraTexture = [];*/
     
     },
     
@@ -95,7 +133,7 @@ export const Pool = {
             Pool.setTextureOption( txt, o );
             //Pool.set( name , txt );
             Pool.data.set( 'T_' + name, txt );
-            Pool.extraTexture.push( name );
+            //Pool.extraTexture.push( name );
             if( o.callback ) o.callback()
             return txt
             
@@ -111,12 +149,15 @@ export const Pool = {
             if(!im) return null
             t = new Texture( im )
             if( name.search('_c') !== -1) o.encoding = true
+            Pool.data.set( 'T_' + name, t );
+            //Pool.extraTexture.push( name );
         }
         Pool.setTextureOption( t, o )
         return t
     },
 
     setTextureOption:( t, o = {} ) => {
+
         if( o.encoding ) t.encoding = sRGBEncoding;
         t.flipY = ( o.flipY || o.flip ) !== undefined ? o.flipY : false
         if( o.anisotropy !== undefined ) t.anisotropy = o.anisotropy
@@ -132,23 +173,10 @@ export const Pool = {
             }
         }
         t.needsUpdate = true;
+
     },
 
-    prefix:( type ) => {
-        let p = ''
-        switch( type ){
-            case 'S': case 'sound': case 'mp3': case 'wav': case 'ogg': p = 'S_';  break;
-            case 'I': case 'image': case 'jpg': case 'png': p = 'I_';  break;
-            case 'E': case 'hdr': case 'env': p = 'T_';  break;
-            case 'J': case 'json': p = 'J_';  break;
-            case 'JS': case 'js': p = 'JS_';  break;
-            
-            case 'O': case 'object3d': p = 'O_';  break;
-            case 'M': case 'material': p = 'M_';  break;
-            case 'T': case 'texture': p = 'T_';  break;
-        }
-        return p
-    },
+    
 
     ///
 

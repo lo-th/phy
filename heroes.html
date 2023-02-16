@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>AVATAR EDITOR</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+	</head>
+	<body style="background-color:#333; margin:0; padding:0; overflow:hidden;">
+
+		<!-- Import maps polyfill -->
+		<!-- Remove this when import maps will be widely supported -->
+		<script async src="https://unpkg.com/es-module-shims@1.3.6/dist/es-module-shims.js"></script>
+
+		<script type="importmap">
+			{
+				"imports": {
+					"uil": "./src/libs/uil.module.js",
+					"tween": "./src/libs/tween.esm.js", 
+					"three": "./src/libs/three.module.js",
+					"three/addons/": "./src/jsm/",
+					"3TH/": "./src/3TH/"
+				}
+			}
+		</script>
+
+<script type="module" >
+
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+import { Avatar } from '3TH/character/Avatar.js';
+import { Reflector } from '3TH/objects/Reflector.js';
+import { Shader } from '3TH/Shader.js';
+import { Pool } from '3TH/Pool.js';
+
+import { Gui } from '3TH/GuiAvatar.js';
+import { Logo } from '3TH/Logo.js';
+
+const env = 'river';
+let camera, controls, scene, renderer, logo;
+let hero, hero2, gui, water, dirLight, floor, mirror;
+let clone = 30;
+let heroes = [];
+
+const t = { now:0, delta:0, then:0, interval: 0, tmp:0, n:0, dt:0 }
+
+const vs = { w:window.innerWidth, h:window.innerHeight, r:window.innerWidth / window.innerHeight}
+//const clock = new THREE.Clock();
+let needResize = false;
+
+init();
+animate();
+
+
+function init() {
+
+	Shader.init()
+
+	scene = new THREE.Scene();
+
+	window.mouse = new THREE.Vector2();
+
+	const geometry = new THREE.PlaneGeometry( 5, 5 );
+	geometry.rotateX(-Math.PI*0.5)
+	floor = new THREE.Mesh( geometry, new THREE.ShadowMaterial( { opacity:0.3, depthWrite:false, transparent:true } ) );
+	floor.renderOrder = -1;
+	floor.receiveShadow = true;
+    floor.castShadow = false;
+
+
+    floor.material.onBeforeCompile = function ( shader ) {
+        Shader.modify( shader );
+        shader.fragmentShader = shader.fragmentShader.replace(
+            `gl_FragColor = vec4( color, opacity * ( 1.0 - getShadowMask() ) );`,`gl_FragColor = vec4( color, shadow * ( 1.0 - getShadowMask() ) );`)
+    }
+	scene.add( floor );
+
+	//const mesh2 = new THREE.GridHelper( 5, 5, 0x101010, 0x050505 );
+	//scene.add( mesh2 );
+
+	renderer = new THREE.WebGLRenderer( { antialias: true } );
+	renderer.setPixelRatio( window.devicePixelRatio );
+	renderer.setSize( vs.w, vs.h );
+	renderer.setClearColor( 0x1e1c1c, 1 );//212121
+	renderer.useLegacyLights = false
+	//renderer.physicallyCorrectLights = true
+
+	renderer.shadowMap.enabled = true;
+	//renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+	renderer.shadowMap.type = THREE.BasicShadowMap;
+	//renderer.shadowMap.type = THREE.VSMShadowMap;
+
+	//renderer.toneMapping = THREE.CustomToneMapping//
+	renderer.toneMapping = THREE.ACESFilmicToneMapping;
+	renderer.toneMappingExposure = 1.0;
+	renderer.outputEncoding = THREE.sRGBEncoding;
+
+
+	
+	
+	document.body.appendChild( renderer.domElement );
+
+	document.body.addEventListener( 'mousemove', move, false );
+	document.body.addEventListener( 'mouseleave', out, false );
+
+	/*const hemiLight = new THREE.HemisphereLight( 0xFFFFFF, 0x303030, 0.0 );
+	//const hemiLight = new THREE.HemisphereLight( 0xFF0000, 0x00FF00, 0.9 );
+	hemiLight.position.set( 0, 20, 0 );
+	scene.add( hemiLight );*/
+
+	dirLight = new THREE.DirectionalLight( 0xffffff, 3 );
+	dirLight.position.set( - 2.5, 5,  5 );
+	dirLight.castShadow = true;
+	dirLight.shadow.camera.top = 4;
+	dirLight.shadow.camera.bottom = - 4;
+	dirLight.shadow.camera.left = - 4;
+	dirLight.shadow.camera.right = 4;
+	dirLight.shadow.camera.near = 4;
+	dirLight.shadow.camera.far = 10;
+	dirLight.shadow.radius = 4;
+	dirLight.shadow.bias = -0.0005;
+	//dirLight.shadow.normalBias = 0.0075
+	//console.log( dirLight.shadow )//.radius = 4;
+	dirLight.shadow.mapSize.setScalar( 2048*2 )
+	scene.add( dirLight );
+
+	/*let map = new THREE.TextureLoader().load('./assets/textures/light.jpg');
+	map.encoding = THREE.sRGBEncoding
+	//map.magFilter = THREE.LinearFilter;
+	//map.minFilter = THREE.LinearFilter;
+
+	const spotLight = new THREE.SpotLight( 0xffffff, 0.3 );
+	spotLight.position.set( 2.5, 1, -5 );
+	spotLight.angle = Math.PI / 6;
+	spotLight.penumbra = 1;
+	spotLight.decay = 2;
+	spotLight.distance = 10;
+	spotLight.map = map
+	scene.add( spotLight )*/
+
+	camera = new THREE.PerspectiveCamera( 60, vs.r, 0.01, 200 );
+	camera.position.set( 0, 1.2, 3 );
+	controls = new OrbitControls( camera, renderer.domElement );
+	controls.target.set( 0, 1, 0 );
+	controls.update();
+
+
+	//
+
+	window.addEventListener( 'resize', onWindowResize );
+	document.body.addEventListener( 'dragover', function(e){ e.preventDefault() }, false );
+    document.body.addEventListener( 'dragend', function(e){ e.preventDefault() }, false );
+    document.body.addEventListener( 'dragleave', function(e){ e.preventDefault()}, false );
+    document.body.addEventListener( 'drop', drop, false );
+
+    logo = new Logo()
+    Pool.log = function (msg){ logo.log( msg ) };
+
+    preLoadEnvmap()
+
+}
+
+function preLoadEnvmap(){
+
+	const path = './assets/textures/equirectangular/'
+	const asset = [ env + '.hdr' ]
+	Pool.load( asset, next, path, 'loading envmap...' )
+
+}
+
+
+function next(){
+
+	scene.environment = Pool.get( env, 'hdr' )
+
+	hero = new Avatar( { compact:false, quality:2 } );
+	//hero = new Avatar( { compact:true, material:false, morph:false } );
+	scene.add( hero );
+	hero.setPosition(0.5,0,0)
+
+	console.time("man time");
+
+	//
+
+	hero.onReady = function () {
+
+		console.timeEnd("man time");
+		
+		hero2 = new Avatar({ type:'woman' });
+		//hero2 = new Avatar({ type:'woman', compact:true, material:false, morph:false });
+		scene.add( hero2 );
+		//hero2.position.x = -0.5
+		hero2.setPosition(-0.5,0,0)
+
+		console.time("woman time");
+
+		window.gui = new Gui( hero, hero2, cloneTest, addReflection );
+
+		hero2.onReady = function () {
+
+			console.timeEnd("woman time");
+			//console.log('ok')
+			//animate();
+			//addReflection()
+		}
+
+		
+
+		//window.gui = new Gui( hero, null, cloneTest );
+
+		//cloneTest( true )
+	}
+	
+}
+
+function addReflection( b ){
+
+	if(b){
+
+
+		scene.remove( floor );
+
+		if(!mirror){
+			mirror = new Reflector( {
+				clipBias: 0.003,
+				textureSize: window.innerHeight * window.devicePixelRatio*0.5,
+				//textureWidth: window.innerWidth * window.devicePixelRatio*0.25,
+				//textureHeight: window.innerHeight * window.devicePixelRatio*0.25,
+				color: 0x505050,//0x090909
+				reflect:1.0,
+				encoding:true,
+			});
+		}
+		//mirror.position.y = -0.01
+		scene.add( mirror );
+	} else {
+		if( mirror ) scene.remove(mirror)
+		scene.add( floor )
+	}
+}
+
+
+function rand ( low, high ) { return low + Math.random() * ( high - low ); }
+function randInt( low, high ) { return low + Math.floor( Math.random() * ( high - low + 1 ) ); }
+
+function cloneTest( b ){
+
+	var i = clone, h, n, model = 'brown', anim, s, r, d;
+
+		if( b ){
+
+			while(i--){
+
+			    r = rand(-Math.PI, Math.PI);
+			    d = rand(1, 5);
+
+			    n = randInt(0,3);
+			    n = randInt(0,2);
+			    switch( n ){
+			        case 0: anim = 'idle'; break;
+			        case 1: anim = 'Jog Forward'; break;
+			        case 2: anim = 'Standard Run'; break;
+			    }
+
+			    h = hero.clone({type:randInt(0,1) ? 'man': 'woman'} );
+			    //h.position.set( rand(-5, 5), 0, rand(-5, 5) )
+			    h.position.set( d * Math.sin(r), 0, d * Math.cos(r) )
+			    h.rotation.y = r;
+
+			    s = 1.2-d/5;
+			    h.scale.set( s, s, s );
+			    scene.add( h )
+			    h.updateMatrix();
+			    h.play( anim );
+			    //h.addExo(true)
+			    //h.addHelper(true)
+
+			    heroes.push( h );
+			}
+
+		} else {
+			i = heroes.length;
+
+			while(i--){
+			    h = heroes[i];
+			    h.dispose();
+			}
+
+			heroes = [];
+
+		}
+
+}
+
+function drop( e ) {
+
+	e.preventDefault();
+	//if ( !e.dataTransfer.items) return
+
+	const file = e.dataTransfer.files[0]
+    const reader = new FileReader();
+    const name = file.name;
+    const type = name.substring(name.lastIndexOf('.')+1, name.length )
+    const finalName = name.substring( name.lastIndexOf('/')+1, name.lastIndexOf('.') )
+
+    reader.readAsArrayBuffer( file )
+
+    reader.onload = function ( e ) {
+
+    	if( type==='fbx' ) hero.directFbx(e.target.result, finalName)
+    	if( type==='glb' ) hero.directGlb(e.target.result, finalName)
+
+    }.bind(this);
+
+}
+
+
+
+function onWindowResize() {
+	vs.w = window.innerWidth;
+	vs.h = window.innerHeight;
+	vs.r = vs.w / vs.h;
+	needResize = true
+}
+
+function resize() 
+{
+	if( !needResize ) return
+	camera.aspect = vs.r;
+	camera.updateProjectionMatrix();
+	renderer.setSize( vs.w, vs.h );
+	if( window.gui ) window.gui.resize();
+	needResize = false
+}
+
+function move(e) {
+	window.mouse.set( ( e.clientX / vs.w ) * 2 - 1, - ( e.clientY / vs.h ) * 2 + 1 );
+}
+
+function out(e) {
+	window.mouse.set( 0, 0 );
+}
+
+function animate( stamp = 0 ) {
+
+	requestAnimationFrame( animate );
+
+	t.now = stamp !== undefined ? stamp : Date.now();
+	t.dt = (t.now - t.then)
+	t.delta = t.dt * 0.001;
+	t.then = t.now;
+
+	if(t.delta > 1) t.delta = 0;
+
+	if ( t.now - 1000 > t.tmp && hero2 ){ t.tmp = t.now; logo.log( t.n ); t.n = 0; }; t.n++;
+
+
+	resize();
+	
+	if(hero){ 
+		hero.update( t.delta );
+		let i = heroes.length;
+		if(hero2) hero2.update( t.delta );
+		while(i--) heroes[i].update( t.delta );
+	}
+	if(water) water.material.uniforms[ 'time' ].value += 0.0002;
+	renderer.render( scene, camera );
+
+}
+
+</script>
+</body>
+</html>

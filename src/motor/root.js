@@ -42,6 +42,7 @@ export const root = {
 	post : null,
 	up:null,
 	update:null,
+	delta:0,
 	add:null,
 	remove:null,
 	bodyRef:null,

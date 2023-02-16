@@ -79,6 +79,7 @@ const setting = {
 	groundAlpha: true,
 	groundOpacity:1,
 	ground:true,
+	water:false,
 	fog:false,
 
 }
@@ -655,9 +656,15 @@ const resetLight = ( o ) => {
 	/*if(options.shadow) */
 	
 
-	light.position.set( 5, 18, 5 )
-	light.target.position.set( 0, 1, 0 )
+	light.position.set( 0.27, 1, 0.5 ).multiplyScalar(18)
+	light.target.position.set( 0, 0, 0 )
 	light.color.setHex( 0xFFFFFF );
+
+	if(light3){
+		light3.position.set( 0.27, 1, 0.5 ).multiplyScalar(5)
+		light3.target.position.set( 0, 0, 0 )
+		light3.color.setHex( 0xFFFFFF );
+	}
 
 
 	light2.color.setHex( 0xFFFFFF );
@@ -676,35 +683,30 @@ const resetLight = ( o ) => {
 
 const addGround = ( o ) => {
 
-	if( ground !== null ) return
+	
 
-		/*let geometry = new THREE.PlaneGeometry( 1, 1, 1, 1 );
-	    geometry.rotateX( -Math.PI / 2 );
-	    geometry.scale( 200, 1, 200 )
-		geometry.setAttribute( 'uv2', geometry.attributes.uv );
-		ground = new THREE.Mesh(geometry)*/
+	if( ground === null ){
 
-	//	console.log('ground is add')
+		// add reflect ground
+		ground = new Reflector({
 
-	// add reflect ground
-	ground = new Reflector({
+	    	textureSize: 1024 * options.quality,
+	        clipBias:0.003,
+	        encoding:true,
+	        reflect: options.reflect,
+	        water:o.water,
+	        //color:0x6a8397,
+	        round:true,
+	        normal:true
 
-    	textureSize: 1024 * options.quality,
-        clipBias:0.003,
-        encoding:true,
-        reflect: options.reflect,
-        //color:0x6a8397,
-        round:true,
-        normal:true
-
-    })
+	    })
+	}
 
     ground.setSize( o.groundSize )
 	ground.setAlphaMap( o.groundAlpha )
 	ground.setOpacity( o.groundOpacity )
+	ground.setWater( o.water )
     scene.add( ground )
-
-    //console.log(ground)
 
 }
 
@@ -712,10 +714,10 @@ const removeGround = () => {
 
 	if( ground === null ) return
 
-	scene.remove( ground )
+	//scene.remove( ground )
 	ground.dispose()
-	ground.geometry.dispose()
-    ground.material.dispose()
+	//ground.geometry.dispose()
+    //ground.material.dispose()
     ground = null
 
 }
@@ -768,7 +770,7 @@ const inject = ( newCode, force = false ) => {
 	isLoadCode = !newCode
 	code = isLoadCode ? Pool.getScript( options.demo ) : newCode
 
-	if(force) isLoadCode = true
+	if( force ) isLoadCode = true
 
 	if(window['onReset']){ 
 		window['onReset']()
@@ -777,17 +779,19 @@ const inject = ( newCode, force = false ) => {
 
 	//Hub.log()
 	Hub.reset()
-	
 	Shader.reset()
 	//resetLight()
 	
-	phy.reset( refreshCode )
+	
 
 	if( isLoadCode ){
+		//console.log('is full reset !!!')
 		//Shader.reset()
 	    resetLight() 
 		Pool.dispose();
 	}
+
+	phy.reset( refreshCode )
 
 }
 
@@ -995,10 +999,14 @@ function firstFunction() {
           }, 2000)
       })
     }
-
-const view = async ( o = {} ) => {
+//async 
+const view = ( o = {} ) => {
 
 	//console.log(o)
+
+	o = { ...setting, ...o }
+
+	//console.log('view', o)
 
 	//const result = await firstFunction()
 
@@ -1009,7 +1017,7 @@ const view = async ( o = {} ) => {
 	else scene.fog = null
 
 	// reflect floor
-	if( o.ground ) addGround( o )
+	if( o.ground  ) addGround( o )
 	else removeGround()
 
 	if( isLoadCode ) controls.moveCam( {...cam, ...o })

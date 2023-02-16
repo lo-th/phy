@@ -140,6 +140,7 @@ export class Avatar extends Group {
 
         this.skin = Pool.getTexture('avatar_c')
         if( !this.skin ){
+
             const path = './assets/textures/avatar_' + this.textureQuality + 'k/'
             const asset = [
                 'avatar_c.jpg', 'avatar_n.jpg', 'avatar_m.jpg', 'avatar_r.jpg', 'avatar_u.jpg',
@@ -157,7 +158,7 @@ export class Avatar extends Group {
 
     loadModels()
     {
-        this.initMaterial()
+        
         const asset = [this.model+'.glb']
         const path = './assets/models/avatar/'
         if( this.haveMorph ) asset.push( this.model+'_morph.glb' )
@@ -270,6 +271,8 @@ export class Avatar extends Group {
 
         if( Pool.getMaterial( 'skin' ) ) return
 
+            console.log('make material')
+
         if( !this.fullMaterial ){
             Pool.set( 'skin', new MeshStandardMaterial() )
             return
@@ -301,21 +304,22 @@ export class Avatar extends Group {
             metalness:0,
             ior:1.376,
             //clearcoat:1.0,
-            //opacity:0.33,
-            //transparent:true,
-            transmission: 1,
-            thickness: 0.001,
-            envMapIntensity:0.01,
+            opacity:0.03,
+            clearcoat:1,
+            transparent:true,
+            //transmission: 1,
+            //thickness: 0.001,
+            //envMapIntensity:0.01,
             normalMap:Pool.getTexture('eye_n'),
             normalScale:new Vector2( 2, -2),
-            envMap:Pool.get('reflect3', 'hdr')
+            //envMap:Pool.get('reflect3', 'hdr')
         });
 
         Shader.add(m)
         Pool.set( 'sub_eye', m );
 
 
-        m = new MeshStandardMaterial({ 
+        m = new MeshPhysicalMaterial({ 
             name: 'eye',
             map:Pool.getTexture('eye_c'),
             emissiveMap:Pool.getTexture('eye_c'),
@@ -323,7 +327,8 @@ export class Avatar extends Group {
             roughness:0.7,
             metalness:0.1,
             normalMap:Pool.getTexture('eye_n'),
-            normalScale:new Vector2( 2, -2)
+            normalScale:new Vector2( 2, -2),
+            clearcoat:1,
             //opacity:0.2,
             //transparent:true,
             //transmission: 1,
@@ -359,7 +364,7 @@ export class Avatar extends Group {
             /*blendEquationAlpha:AddEquation,
             blendSrcAlpha:SrcAlphaFactor,//SrcAlphaFactor
             */
-            shadowSide:DoubleSide,
+            //shadowSide:DoubleSide,
 
             //depthTest:false,
             //depthWrite:false,
@@ -444,7 +449,7 @@ export class Avatar extends Group {
            // alphaMap:alpha,
            // alphaTest:0.0001,
             normalScale:new Vector2( this.setting.normal, -this.setting.normal),
-            shadowSide:DoubleSide,
+            //shadowSide:DoubleSide,
             //transparent:true,
             //aoMap:ao,
             sheenColorMap:Pool.getTexture('avatar_u', {encoding:true}),
@@ -526,9 +531,13 @@ export class Avatar extends Group {
     init()
     {
 
+        this.initMaterial()
+
         if( !this.isClone ) this.root = Pool.get( this.model, 'O' ) 
         
         const def = Pool.getMaterial( 'skin' );
+
+        //console.log(this.root)
 
         this.root.traverse( function ( node ) {
             if ( node.isMesh ){
@@ -589,7 +598,7 @@ export class Avatar extends Group {
 
                 //console.log(node.name, node.material.name)
                 // reset color
-                this.zeroColor(node)
+                //this.zeroColor(node)
                 // disable raycast
                 node.raycast = function(){}
                 this.mesh[node.name] = node;
@@ -605,11 +614,7 @@ export class Avatar extends Group {
         }.bind(this))
 
         
-
-
-        
-
-        if( !this.isClone ){
+        //if( !this.isClone ){
             // for extra skin
             for( let m in this.mesh ){
                 if( this.mesh[m].isSkinnedMesh && m !== 'body' ){
@@ -618,6 +623,8 @@ export class Avatar extends Group {
                 }
             }
 
+        if( !this.isClone ){
+
             // add morph 
             if( this.haveMorph ) this.applyMorph( Pool.get( this.model+'_morph', 'O' ) );
 
@@ -625,10 +632,12 @@ export class Avatar extends Group {
             Pool.set( this.model, this.root, 'O' )
         }
 
+        //console.log(this.mesh['body'])
+
 
         if( this.size !== 1 ) this.root.scale.set(1,1,1).multiplyScalar(this.size);
 
-        if( this.tensionTest ) this.addTensionMap()
+        //if( this.tensionTest ) this.addTensionMap()
 
         // animation
         this.mixer = new AnimationMixer( this );
@@ -714,6 +723,9 @@ export class Avatar extends Group {
         
         mod.traverse( function ( node ) { 
             if ( node.isMesh && node.name.search('__M__') !== -1) morph[node.name] = node.geometry;
+
+            //if( node.material ) node.material.dispose();
+            //if( node.skeleton ) node.skeleton.dispose();
         })
 
 
@@ -781,7 +793,7 @@ export class Avatar extends Group {
                     target.morphTargetDictionary[ tName ] = id;
 
                     // clear morph mesh
-                    //if( node.material ) node.material.dispose();
+
                     gm.dispose();
 
                     //console.log( target.name, tName)
@@ -810,10 +822,17 @@ export class Avatar extends Group {
 
         if( this.exoskel ) this.addExo()
         if( this.helper ) this.addHelper()
+
         this.stop();
         this.mixer.uncacheRoot( this );
-        this.parent.remove(this);
+
+        //if(this.skeleton.boneTexture)this.skeleton.boneTexture.dispose();
+        this.remove( this.root );
         this.skeleton.dispose();
+        this.parent.remove(this);
+        
+
+        //console.log('hero remove')
         if(!this.isClone){
 
         }
@@ -834,8 +853,8 @@ export class Avatar extends Group {
 
 
         //console.log('model is ready !!! ', this.onReady)
-        //let a = this.play('IDLE');
-        //if(!a) this.play('idle');
+        let a = this.play('IDLE');
+        if(!a) this.play('idle');
     }
 
     addHelper()

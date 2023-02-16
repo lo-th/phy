@@ -1,8 +1,11 @@
 demo = () => {
 
-    //phy.view({ envmap:'basic', ground:false })
+    phy.view({
+        envmap:0x8aa4b8,
+        ground:true
+    })
 
-    const g = phy.getBodyRef().geometry({type:'capsule',size:[ 0.5, 0.75]})
+    /*const g = phy.getBodyRef().geometry({type:'capsule',size:[ 0.5, 0.75]})
     const material = new THREE.MeshStandardMaterial( { } );
 
     material.onBeforeCompile = function (shader){
@@ -14,7 +17,7 @@ demo = () => {
 
     const mesh = new THREE.Mesh(g, material)
     mesh.position.y = 0.5
-    phy.getScene().add(mesh)
+    phy.getScene().add(mesh)*/
 
 
 

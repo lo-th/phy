@@ -94,6 +94,8 @@ class Hero extends Basic3D {
 		this.oy = 0
 		this.vy = 0;
 
+		this.angle = ( o.angle || 0 ) * math.torad
+
 		this.speed = {
 		    idle:1,
 		    fight:1,
@@ -125,7 +127,7 @@ class Hero extends Basic3D {
 		this.py = -(o.size[1]*0.5)-o.size[0]
 
 
-		//if( o.debug ) 
+		if( o.debug ) 
 		root.bodyRef.geometry( { ...o, type:'capsule', ray:false }, this, Mat.get('debug3') )
 
 		o.density = o.density || 2 
@@ -141,9 +143,6 @@ class Hero extends Basic3D {
 
 		if( o.callback ) delete o.callback
 
-
-		
-
 		// add to world
 		root.characterRef.addToWorld( this, o.id )
 
@@ -151,16 +150,25 @@ class Hero extends Basic3D {
         root.post({ m:'add', o:o })
 
         // add character model
-        if( o.gender ) this.addModel( o.gender )
+        if( o.gender ) this.addModel( o )
 		
 	}
 
-	addModel( gender ){
+	addModel( o ){
 
-		this.model = new Avatar( { type:gender, compact:true, material:true, morph:false, callback:this.callback } );
+		this.model = new Avatar( { 
+			type:o.gender, 
+			compact:true, 
+			material:!o.noMat, 
+			morph:o.morph || false, 
+			callback:this.callback 
+		});
+
 		this.add( this.model );
 		///this.model.rotation.order = 'YXZ'
 		this.model.setPosition(0,this.py,0)
+		this.model.rotation.y = this.angle
+		this.model.updateMatrix()
 
 	}
 
@@ -174,9 +182,16 @@ class Hero extends Basic3D {
 		this.quaternion.fromArray( AR, n + 4 )
 		this.updateMatrix()
 
+		if(this.model) this.model.update( root.delta );
+
 	}
 
 	set ( o ) {
+
+		//console.log('set', o)
+		if(o.morph){
+			if(this.model) this.model.setMorph( o.morph, o.value )
+		}
 
 	}
 
@@ -186,7 +201,7 @@ class Hero extends Basic3D {
 		super.dispose()
 	}
 
-	move( key, delta, azimut ){
+	move( key, azimut ){
 
 		let anim = key[7] !== 0 ? 'run' : 'walk'
 	    if( key[0] === 0 && key[1] === 0 ) anim = 'idle'//*= 0.9
@@ -306,7 +321,7 @@ class Hero extends Basic3D {
 
 	    //console.log(tmpAcc)
 
-        this.model.update( delta );
+        
 	    if( this.jump ){
 	    	this.model.play( 'Jump', 0 )
 	    	this.model.timescale( 1 )

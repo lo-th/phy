@@ -3,7 +3,7 @@ export const Max = {
     joint:100,
     contact:50,
     ray:50,
-    character:20,
+    character:50,
     vehicle:20,
     solver:20,
 }

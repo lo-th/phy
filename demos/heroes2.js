@@ -3,6 +3,9 @@ demo = () => {
 
     phy.log('use key WSAD or ZSQD<br>E to fight<br>C to crouch<br>SPACE to jump<br>SHIFT to run')
 
+    
+    //phy.view({ envmap:0x909090, ground:true })
+
 	// setting and start oimophysics
 	phy.set({ substep:2, gravity:[0,-9.81,0] })
 
@@ -16,8 +19,11 @@ demo = () => {
         type:'character',
         gender:'woman',
         name:'gina',
-        callback:next,
-        debug:true,
+        callback:terrainTest,
+        pos:[0.6,0,0],
+        //noMat:true,
+        //morph:true,
+        //debug:true,
     })
 
     phy.follow('gina', { direct:true, simple:true, decal:[0.3, 1, -0.3] })
@@ -26,13 +32,60 @@ demo = () => {
 
 }
 
-next = () => {
+addMan = () => {
 
+    phy.add({ 
+        type:'character',
+        gender:'man',
+        name:'bob',
+        callback:cloneTest,
+        pos:[-0.6,0,0],
+        //noMat:true,
+        //morph:true,
+        //debug:true,
+    })
     
+}
 
-    
-    
+cloneTest = () => {
 
+    let i = 39
+
+    while(i--){
+        phy.add({ 
+            type:'character',
+            gender:math.randInt(0,1)? 'man': 'woman',
+            name:'hero'+i,
+            //callback:next,
+            pos:[math.rand(-6, 6), 0, math.rand(-6, 6)],
+            angle:math.rand(-180, 180),
+
+            //noMat:true,
+            //morph:true,
+            //debug:true,
+        })
+    }
+    
+}
+
+terrainTest = () => {
+
+    let terrain = phy.add({
+        type:'terrain',
+        name:'terra',
+        friction: 0.1, 
+        staticFriction:0.1,
+        restitution: 0.1,
+        pos: engine==='OIMO' ? [ 0, -2, 0 ] :[0,-5,0],
+        size: engine==='OIMO' ? [ 20, 6, 20 ] : [256, 20, 256],
+        sample: engine==='OIMO' ? [ 32, 32 ] : [256, 256],
+        frequency: engine==='OIMO' ? [0.05,0.25,0.75] : [0.016,0.05,0.2],
+        expo: 2,
+        uv: engine==='OIMO' ? 10:60,
+    })
+
+    phy.up( { name:'gina', pos:[0,terrain.getHeight( 0, 0 )+1,0] } )
+    //phy.remove( 'floor' )
     
 }
 

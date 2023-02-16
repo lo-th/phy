@@ -19,6 +19,7 @@ demo = () => {
         type:'character',
         gender:'man',
         name:'bob',
+        morph:true,
         // when asset loaded
         callback:next
     })
@@ -35,6 +36,9 @@ demo = () => {
 }
 
 next = () => {
+
+    phy.up({ name:'bob', morph:'MUSCLE', value:1 })
+    phy.up({ name:'bob', morph:'SmileOpen', value:1 })
     
     //phy.add({ type:'box', name:'trigger', size:[2, 2, 2], pos:[0,-0.99,-3], material:'debug', mask:32 })
     trigger = phy.add({ type:'box', name:'trigger', size:[5, 1.8, 2], pos:[0,0.91,-3], material:'debug', isTrigger:true, unicMat:true  })//

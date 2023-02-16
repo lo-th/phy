@@ -107,7 +107,7 @@ export class Gui {
         g4.add('button', { name:'SAVE ANIMATION' }).onChange( function(){  ref.exportAnimationLzma( UIL.Files.save ) })
         g4.add('button', { name:'SAVE MODEL' }).onChange( function(){  ref.exportGLB( UIL.Files.save ) })
 
-        g4.add('button', { name:'LOAD ANIMATION' }).onChange( function(){  ref.loadCompactAnimation() })
+        //g4.add('button', { name:'LOAD ANIMATION' }).onChange( function(){  ref.loadCompactAnimation() })
 		
 
 		this.timebarre = new Timebarre( document.body, '#ff4545', ref, ref2 );

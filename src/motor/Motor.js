@@ -27,7 +27,7 @@ import { User } from './User.js';
 */
 
 let items
-let currentContole = ''
+let currentContole = null
 let callback = null
 let Ar, ArPos = {}
 let maxFps = 60
@@ -367,13 +367,15 @@ export class Motor {
 
 		//console.time('step')
 
+		root.delta = timer.delta;
+
 		Motor.stepItems()
 
 		// user key interaction 
 		root.flow.key = user.update()
 		//root.flow.tmp = []
 
-		if( currentContole !== null ) currentContole.move( user.key, timer.delta, azimut() )
+		if( currentContole !== null ) currentContole.move( user.key, azimut() )
 
 		postUpdate( root.reflow.stat.delta )
 		//postUpdate( timer.delta )
@@ -619,6 +621,7 @@ export class Motor {
 
 			//case 'terrain': b = terrain.set( o, b ); break;
 			//case 'joint': b = joint.set( o, b ); break;
+			case 'character': b = items.character.set( o, b ); break;
 			case 'solid': b = items.solid.set( o, b ); break;
 			case 'ray': b = items.ray.set( o, b ); direct = false; break;
 			//case 'body': b = body.set( o, b ); break;

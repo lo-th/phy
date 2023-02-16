@@ -266,6 +266,8 @@ export class Landscape extends Mesh {
         this.castShadow = true
         this.receiveShadow = true
 
+        Pool.set( 'terrain' + this.name, this.material );
+
         this.update()
 
     }

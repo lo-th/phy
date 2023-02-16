@@ -25,6 +25,7 @@ import {
 
 } from 'three';
 import { Shader } from '../Shader.js';
+import { Pool } from '../Pool.js';
 
 
 /**
@@ -71,18 +72,28 @@ export class Reflector extends Mesh {
 		this.map = o.map || null;
 		this.color = o.color || 0x808080
 		this.reflect = o.reflect !== undefined ? o.reflect : 0.35;
-		this.opacity = o.opacity !== undefined ? o.opacity : 1;
+		//this.opacity = o.opacity !== undefined ? o.opacity : 1;
 		this.isWater = o.water !== undefined ? o.water : false;
 		this.uv = o.uv || 1;
 		this.normalScale = o.normalScale || 1;
 
-		this.normalMap = null
 
-		if(o.normal){
-			this.normalMap = new TextureLoader().load( './assets/textures/floor.png' );
-			this.normalMap.wrapS = this.normalMap.wrapT = RepeatWrapping
-			this.normalMap.repeat.x = this.normalMap.repeat.y = 200
-		}
+
+		/*if( this.isWater ){ 
+			this.material.normalMap = Pool.directTexture('./assets/textures/terrain/water_n.jpg', { flip:false, repeat:[30,30] });
+			this.reflect = 1
+			//this.opacity = 0.5
+		} else {
+			this.normalMap = Pool.directTexture('./assets/textures/floor.png', { flip:false, repeat:[200,200] });
+		}*/
+
+		//this.normalMap = null
+
+		//if(o.normal){
+			//new TextureLoader().load( './assets/textures/floor.png' );
+			//this.normalMap.wrapS = this.normalMap.wrapT = RepeatWrapping
+			//this.normalMap.repeat.x = this.normalMap.repeat.y = 200
+		//}
 		
 		//normalMap.offset.x=normalMap.offset.y=0.5
 
@@ -121,7 +132,7 @@ export class Reflector extends Mesh {
 			opacity:1,
 			transparent:true,
 			depthWrite:false,
-			normalMap: this.normalMap,
+			normalMap: null,//this.normalMap,
 			//blending:AdditiveBlending,
 			///blending:MultiplyBlending,
 			//aoMap: normalMap,
@@ -137,7 +148,7 @@ export class Reflector extends Mesh {
 		this.groundAlpha();
 		this.renderOrder = -1;
 
-		if( this.isWater ) this.setWater();
+		//if( this.isWater ) this.setWater();
 
 		this.material.userData = {
 			reflectif: { value: this.reflect },
@@ -147,7 +158,7 @@ export class Reflector extends Mesh {
 
 		this.setTarget();
 
-		var _this = this;
+		const self = this;
 
 		this.material.onBeforeCompile = function ( shader ) {
 
@@ -203,12 +214,12 @@ export class Reflector extends Mesh {
 		this.onBeforeRender = function ( renderer, scene, camera ) {
 
 			if( !this.isShow ) return;
-			if( _this.reflect === 0 ) return;
+			if( self.reflect === 0 ) return;
 
-			//if( _this.isWater ) {
-			//	_this.material.normalMap.offset.x+=0.0005;
-			//	_this.material.normalMap.offset.y+=0.00025;
-			//}
+			if( self.isWater ) {
+				self.material.normalMap.offset.x+=0.0005;
+				self.material.normalMap.offset.y+=0.00025;
+			}
 
 			reflectorWorldPosition.setFromMatrixPosition( scope.matrixWorld );
 			cameraWorldPosition.setFromMatrixPosition( camera.matrixWorld );
@@ -338,19 +349,14 @@ export class Reflector extends Mesh {
 
 		this.onBeforeRender = function (){}
 
-
 		if( this.material.map ) this.material.map.dispose()
 		if( this.material.alphaMap ) this.material.alphaMap.dispose()
 		if( this.material.normalMap ) this.material.normalMap.dispose()
-		//if( this.material.userData ) if( this.material.userData.mirrorMap.value ) this.material.userData.mirrorMap.value.dispose()
-		
 		if( this.renderTarget ) this.renderTarget.dispose();
 
-		//if(this.parent) this.parent.remove(this)
-		//this.geometry.dispose()
-		//this.material.dispose()
-
-		//console.log('ground is dispose')
+		if(this.parent) this.parent.remove(this)
+		this.geometry.dispose()
+		this.material.dispose()
 
 	}
 
@@ -425,15 +431,18 @@ export class Reflector extends Mesh {
 		if( b!==undefined ) this.isWater = b;
 
 		if( this.isWater ) {
+			this.uv = 30
 			var r = repeat !== undefined ? repeat : this.uv;
 			var s = scale !== undefined ? scale : this.normalScale;
-			this.material.normalMap = null;//Tools.loadTextures('./textures/terrain/water_n.jpg', { repeat:[r,r], anisotropy:4, generateMipmaps:true });
+			this.material.normalMap = Pool.directTexture('./assets/textures/terrain/water_n.jpg', { flip:false, repeat:[r,r] });//null;//Tools.loadTextures('./textures/terrain/water_n.jpg', { repeat:[r,r], anisotropy:4, generateMipmaps:true });
 			this.material.normalScale.set( s, s );
-			this.material.roughness = 0.1;
-			this.material.metalness = 0.6;
+			this.material.roughness = 0.;
+			this.material.metalness = 0.;
+			this.material.opacity = 0.8;
 			this.material.side = DoubleSide;
 			//console.log('water')
 		} else {
+			this.material.normalMap = Pool.directTexture('./assets/textures/floor.png', { flip:false, repeat:[200,200] });
 			//this.material.normalMap = null;
 			this.material.roughness = 0.9;
 			this.material.metalness = 0.1;
@@ -476,7 +485,7 @@ export class Reflector extends Mesh {
 		c.width = c.height = 512;
         let ctx = c.getContext('2d');
 
-        let grd = ctx.createRadialGradient( 256,256,60, 256,256,250 );
+        let grd = ctx.createRadialGradient( 256,256, 60, 256,256,250 );
 
 		grd.addColorStop(0, 'white');
 		grd.addColorStop(.2, 'white');
@@ -489,18 +498,19 @@ export class Reflector extends Mesh {
 	    img.src = c.toDataURL( 'image/png' )
 
 	    this.alphaMap = new Texture( img )
-	    this.alphaMap.wrapS = this.alphaMap.wrapT = RepeatWrapping
-		this.alphaMap.repeat.x = this.alphaMap.repeat.y = 1
+	    this.alphaMap.needsUpdate = true;
+	    //this.alphaMap.wrapS = this.alphaMap.wrapT = RepeatWrapping
+		//this.alphaMap.repeat.x = this.alphaMap.repeat.y = 1
 
 		this.material.alphaMap = this.alphaMap;//new Texture( img );
 		this.material.aoMap = this.alphaMap;//new Texture( img );
 
-		let _this = this;
+		/*const self = this;
 
 		img.onload = function(){
-			//_this.material.alphaMap = _this.alphaMap;
-		    if(_this.material.alphaMap !== null)_this.material.alphaMap.needsUpdate = true; 
-		 }
+			//self.material.alphaMap = self.alphaMap;
+		    if(self.material.alphaMap !== null) self.material.alphaMap.needsUpdate = true; 
+		}*/
 
 
 	}
