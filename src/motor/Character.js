@@ -77,8 +77,14 @@ class Hero extends Basic3D {
 
 		this.model = null
 
+
 		this.radius = 0.3
 		this.height = 1.8
+
+		this.fall = false
+		this.floor = true
+
+		this.contact = false
 
 		this.tmpV1 = new Vector3()
 		this.tmpV2 = new Vector3()
@@ -127,18 +133,19 @@ class Hero extends Basic3D {
 		this.py = -(o.size[1]*0.5)-o.size[0]
 
 
-		if( o.debug ) 
-		root.bodyRef.geometry( { ...o, type:'capsule', ray:false }, this, Mat.get('debug3') )
+		if( o.debug ) root.bodyRef.geometry( { ...o, type:'capsule', ray:false }, this, Mat.get('debug3') )
 
-		o.density = o.density || 2 
+		o.density = o.density || 70 
         o.damping = [0.01,0] 
         o.friction = 0.5
 
 		o.angularFactor = [0,0,0]
+		//o.maxDamping = 1000
 		o.group = 32
 		o.regular = true
 		o.filter = [1,-1,[1, 3, 4,5,9], 0]
-		//o.noGravity = true
+		//o.kinematic = true
+		o.noGravity = true
 		o.ray = false
 
 		if( o.callback ) delete o.callback
@@ -149,10 +156,18 @@ class Hero extends Basic3D {
         // add to physics
         root.post({ m:'add', o:o })
 
+        //root.add({ type:'contact', b1:this.name,  callback: this.hit.bind(this) })
+
         // add character model
         if( o.gender ) this.addModel( o )
 		
 	}
+
+    hit( d ){
+    	this.contact = d
+
+    	//console.log(this.contact)
+    }
 
 	addModel( o ){
 
@@ -180,6 +195,9 @@ class Hero extends Basic3D {
 
 		this.position.fromArray( AR, n + 1 )
 		this.quaternion.fromArray( AR, n + 4 )
+		this.fall = this.position.y < this.oy
+		this.floor = math.nearEquals(this.position.y, this.oy, 0.1)
+		this.oy = this.position.y;
 		this.updateMatrix()
 
 		if(this.model) this.model.update( root.delta );
@@ -226,13 +244,14 @@ class Hero extends Basic3D {
 	        this.vy-=1;
 	        if(this.vy <= 0 ){ 
 	            this.vy = 0; 
+	            if( this.floor ) this.jump = false;
 
-	            if(math.nearEquals(this.position.y,this.oy, 0.1)) this.jump = false;
+	            //if( math.nearEquals(this.position.y, this.oy, 0.1)) this.jump = false;
 	             //this.position.y === this.oy 
 	        }
 	    }
 
-	    this.oy = this.position.y;
+	    //this.oy = this.position.y;
 
 	    /*if(this.crouch){
 	    	if( anim==='run' || anim==='walk' ) anim = 'crouch'
@@ -284,26 +303,40 @@ class Hero extends Basic3D {
 
 	    let angle = math.unwrapRad( (Math.atan2(this.ease.z, this.ease.x)) + azimut );
 
-	    //let jj = ((Math.abs(this.ease.x) + Math.abs(this.ease.z)))
+	    let acc = this.ease.length() //((Math.abs(this.ease.x) + Math.abs(this.ease.z)))
 
-	    //console.log(jj)
+	    //console.log(jj, this.ease.length() )
 
 	    //if(jj!== 0)
 
-	    
+	    // help climb montagne
+	    if( !this.jump ){ 
+	    	if( !this.fall ) this.vy = acc*8
+	    	else this.vy = 0
+	    }
 
 	    
 
+	    
+        //if(anim==='walk' || anim==='run')
 
 
 	    // gravity
-	    let g = (-9.81) + this.vy;
+	    let g = this.vy - 9.81;
 
 	    this.tmpV1.set( this.rs, g, this.ts ).applyAxisAngle( { x:0, y:1, z:0 }, azimut );
 	    //math.tmpV2.set( 0, rs, 0 );
 	    this.tmpV2.set( 0, 0, 0 );
 
-	    phy.update({ name:this.name, linearVelocity: this.tmpV1.toArray(), angularVelocity: this.tmpV2.toArray(), wake:true/*, noGravity:true*/ });
+	    phy.update({ 
+		    name:this.name, 
+		    //force: this.tmpV1.toArray(), forceMode:'velocity', 
+		    linearVelocity: this.tmpV1.toArray(), 
+		    /*angularVelocity: this.tmpV2.toArray(),*/ 
+		    wake:true/*, 
+		    noGravity:true*/ 
+		});
+
 
 	   // if(anim!=='idle') this.model.setRotation( 0, azimut + Math.PI, 0, 0.25 )
         

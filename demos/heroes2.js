@@ -11,7 +11,7 @@ demo = () => {
 
 
 	// add static plane 
-	phy.add({ type:'plane', name:'floor', size:[ 300,1,300 ], visible:false });
+	phy.add({ type:'plane', name:'floor', size:[ 300,1,300 ], visible:false, friction: 0.5,  });
 	//phy.add({ type:'box', name:'floor', size:[300,1,300], pos:[0, -0.5, 0], visible:false, /*filter:[1,-1,[5,9], 0]*/ })
 
     // create character
@@ -42,7 +42,7 @@ addMan = () => {
         pos:[-0.6,0,0],
         //noMat:true,
         //morph:true,
-        //debug:true,
+        debug:true,
     })
     
 }
@@ -73,9 +73,9 @@ terrainTest = () => {
     let terrain = phy.add({
         type:'terrain',
         name:'terra',
-        friction: 0.1, 
-        staticFriction:0.1,
-        restitution: 0.1,
+        friction: 0.5, 
+        //staticFriction:0.5,
+        restitution: 0.0,
         pos: engine==='OIMO' ? [ 0, -2, 0 ] :[0,-5,0],
         size: engine==='OIMO' ? [ 20, 6, 20 ] : [256, 20, 256],
         sample: engine==='OIMO' ? [ 32, 32 ] : [256, 256],
@@ -84,7 +84,10 @@ terrainTest = () => {
         uv: engine==='OIMO' ? 10:60,
     })
 
-    phy.up( { name:'gina', pos:[0,terrain.getHeight( 0, 0 )+1,0] } )
+    let py = terrain.getHeight( 0, 0 )+1
+    if(py<1) py = 1
+
+    phy.up( { name:'gina', pos:[0,py,0] } )
     //phy.remove( 'floor' )
     
 }
