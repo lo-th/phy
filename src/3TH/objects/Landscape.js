@@ -517,20 +517,21 @@ export class Landscape extends Mesh {
 
     }
 
-    update ( wait ) {
-
+    updateUv () {
 
         if( this.isWater ){ 
             this.material.normalMap.offset.x+=0.002;
             this.material.normalMap.offset.y+=0.001;
         } else {
-
             if(this.material.map){
                 this.material.map.offset.x = this.local.x * this.ruvx;
                 this.material.map.offset.y = this.local.z * this.ruvy;
             }
-            
         }
+
+    }
+
+    update ( wait ) {
 
         let v = this.pp;
         let cc = [1,1,1];
@@ -662,7 +663,8 @@ export class Landscape extends Mesh {
         this.geometry.attributes.color.needsUpdate = true;
         this.geometry.computeVertexNormals();
 
- 
+        this.updateUv()
+
         if( this.isBorder ){
         	this.borderGeometry.attributes.position.needsUpdate = true;
             this.borderGeometry.attributes.color.needsUpdate = true;
