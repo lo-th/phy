@@ -6,6 +6,7 @@ export const Max = {
     character:50,
     vehicle:20,
     solver:20,
+    //terrain:10,
 }
 
 export const Num = {
@@ -17,6 +18,7 @@ export const Num = {
     character:16,
     vehicle:64,
     solver:256,
+    //terrain:1,
 }
 
 export const getArray = function ( engine, full = false ){

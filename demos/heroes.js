@@ -68,7 +68,7 @@ showContact = ( d ) => {
     //if( d.hit ) bob.material.color.setHex( 0x00FF00 )
     //else bob.material.color.setHex( 0x00FF88 ) 
 
-    if( d.hit )console.log('bob collision on floor')
+    if( d.hit ) console.log('bob collision on floor')
 }
 
 triggerContact = ( d ) => {

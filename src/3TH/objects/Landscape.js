@@ -25,6 +25,7 @@ export class Landscape extends Mesh {
         super();
 
         this.ready = false;
+        this.needUpdate = false;
 
         this.type = 'terrain';
         this.name = o.name;
@@ -414,6 +415,8 @@ export class Landscape extends Mesh {
 
     }
 
+    
+
     getTri (){
 
         return this.geometry
@@ -495,6 +498,22 @@ export class Landscape extends Mesh {
 
             //console.log(i, this.findId( x, sz - z ), (this.lng-1)-this.findId( z, x ))
         }
+
+    }
+
+    set( o ) {
+
+        if( o.ease ) this.easing( o.key, o.azimut )
+        if( o.decal ) this.decal( o.decal, true )
+
+    }
+
+    decal( v, wait ){
+
+        this.local.x += v[0]
+        this.local.y += v[1]
+        this.local.z += v[2]
+        this.update( wait );
 
     }
 
@@ -618,16 +637,23 @@ export class Landscape extends Mesh {
 
         }
 
-        this.updateGeometry();
+        if( wait ) this.needUpdate = true
+        else this.updateGeometry();
 
         
 
-        if(this.ready) this.physicsUpdate( this.heightData )
+        if( this.ready ) this.physicsUpdate( this.name, this.heightData )
 
         this.ready = true;
 
         //if( phy ) root.view.update( { name:'terra', heightData:this.heightData, sample:this.sample } );
 
+    }
+
+    step (n) {
+        if( !this.needUpdate ) return
+        this.updateGeometry()
+        this.needUpdate = false
     }
 
     updateGeometry () {

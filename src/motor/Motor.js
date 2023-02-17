@@ -603,24 +603,24 @@ export class Motor {
 
 	static change ( o = {}, direct = false ){
 
+		if( o.heightData ) return
+
 		//if ( o.constructor === Array ) return this.changes( o )
 
 		let b = Motor.byName( o.name );
 		if( b === null ) return null;
 		let type = b.type;
+
 		if( o.drivePosition ){
 			if( o.drivePosition.rot !== undefined ){  o.drivePosition.quat = math.toQuatArray( o.drivePosition.rot ); delete ( o.drivePosition.rot ); }
 		}
-		
 		if( o.rot !== undefined ){ o.quat = math.toQuatArray( o.rot ); delete ( o.rot ); }
-		if( o.localRot !== undefined ){ 
-			o.quat = math.toLocalQuatArray( o.localRot, b ); delete ( o.localRot ); 
-		}
+		if( o.localRot !== undefined ){ o.quat = math.toLocalQuatArray( o.localRot, b ); delete ( o.localRot ); }
 
 		switch( type ){
 
-			//case 'terrain': b = terrain.set( o, b ); break;
-			//case 'joint': b = joint.set( o, b ); break;
+			case 'terrain': b = items.terrain.set( o, b ); direct = false; break;
+			//case 'joint': b = items.joint.set( o, b ); break;
 			case 'character': b = items.character.set( o, b ); break;
 			case 'solid': b = items.solid.set( o, b ); break;
 			case 'ray': b = items.ray.set( o, b ); direct = false; break;

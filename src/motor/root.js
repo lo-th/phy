@@ -379,6 +379,15 @@ export const math = {
 
 	},
 
+	distance: ( a, b ) => { // rotation array in degree
+
+		const dx = a.x ? a.x - b.x : 0
+		const dy = a.y ? a.y - b.y : 0
+		const dz = a.z ? a.z - b.z : 0
+		return Math.sqrt( dx * dx + dy * dy + dz * dz );
+
+	},
+
 	toQuatArray: ( rot = [0,0,0] ) => { // rotation array in degree
 
 		return quat.setFromEuler( euler.fromArray( math.vectorad( rot ) ) ).toArray();

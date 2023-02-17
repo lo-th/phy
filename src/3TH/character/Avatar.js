@@ -271,8 +271,6 @@ export class Avatar extends Group {
 
         if( Pool.getMaterial( 'skin' ) ) return
 
-            console.log('make material')
-
         if( !this.fullMaterial ){
             Pool.set( 'skin', new MeshStandardMaterial() )
             return
@@ -330,7 +328,7 @@ export class Avatar extends Group {
             normalMap:Pool.getTexture('eye_n'),
             normalScale:new Vector2( 2, -2),
             clearcoat:0.25,
-            clearcoatRougness:0.5,
+            clearcoatRoughness:0.5,
             //opacity:0.2,
             //transparent:true,
             //transmission: 1,

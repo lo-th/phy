@@ -1,6 +1,6 @@
 import { Item } from '../core/Item.js';
 import { Utils, root, math } from './root.js';
-
+import { Num } from '../core/Config.js';
 import { Landscape } from '../3TH/objects/Landscape.js';
 
 // THREE TERRAIN
@@ -13,6 +13,21 @@ export class Terrain extends Item {
 
 		this.Utils = Utils
 		this.type = 'terrain'
+		this.num = Num[this.type]
+
+	}
+
+	step ( AR, N ) {
+
+		let i = this.list.length, n, s, j, k=0, m;
+
+		while( i-- ){
+
+			s = this.list[i];
+			//n = N + ( i * this.num );
+			s.step()// AR[n] );
+
+		}
 
 	}
 
@@ -26,6 +41,12 @@ export class Terrain extends Item {
 		}
 
 		const t = new Landscape( o )
+
+		t.physicsUpdate = ( name, h ) =>{
+
+			root.flow.tmp.push( { name:name, heightData:h } )
+			//root.post({m:'change', o:{ name:'terra', heightData:h }})
+		}
 
 		// add to world
 		this.addToWorld( t, o.id )
@@ -41,6 +62,8 @@ export class Terrain extends Item {
 
 		if( b === null ) b = this.byName( o.name )
 		if( b === null ) return
+
+		b.set(o)
 
 	}
 	

@@ -25,9 +25,9 @@ demo = () => {
 
     //terrain.material.wireframe = true
 
-    terrain.physicsUpdate = ( h ) => {
+    /*terrain.physicsUpdate = ( h ) => {
     	phy.update({ name:'terra', heightData:h })
-    }
+    }*/
 
     if(engine!=='OIMO') addRandomTree()
     addRandomObject()
@@ -69,8 +69,10 @@ addRandomObject = () => {
 
 update = () => {
 
-	let key = phy.getKey()
+	phy.up({name:'terra', ease:true, key:phy.getKey(), azimut:phy.getAzimut() })
+
+	/*let key = phy.getKey()
 	let r = phy.getAzimut()
-	terrain.easing( key, r )
+	terrain.easing( key, r )*/
 
 }
