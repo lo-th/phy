@@ -673,8 +673,6 @@ const TerrainShader = {
 
         float sum( vec3 v ) { return v.x+v.y+v.z; }
 
-        
-
         vec4 textureNoTile( sampler2D mapper, in vec2 uv ){
 
             // sample variation pattern    

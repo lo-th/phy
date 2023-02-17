@@ -6,7 +6,7 @@ import {
     TextureLoader,AnimationMixer, AxesHelper,
     FrontSide, BackSide, DoubleSide, Color, ShaderChunk, CanvasTexture, LoopPingPong, LoopOnce,LoopRepeat,
     VectorKeyframeTrack, QuaternionKeyframeTrack, AnimationClip, Skeleton, sRGBEncoding,
-    Float32BufferAttribute, EquirectangularReflectionMapping, LinearEncoding,
+    Float32BufferAttribute, EquirectangularReflectionMapping, LinearEncoding,AdditiveBlending,
     EqualDepth,LessDepth,LessEqualDepth,GreaterEqualDepth,GreaterDepth,NotEqualDepth,
     CustomBlending, AddEquation, SubtractEquation, ReverseSubtractEquation, MinEquation, MaxEquation,
     ZeroFactor, OneFactor, SrcColorFactor, OneMinusSrcColorFactor, SrcAlphaFactor, OneMinusSrcAlphaFactor, DstAlphaFactor, OneMinusDstAlphaFactor, DstColorFactor, OneMinusDstColorFactor, SrcAlphaSaturateFactor,
@@ -147,7 +147,7 @@ export class Avatar extends Group {
                 'mouth_c.jpg', 'mouth_a.jpg', 'mouth_n.jpg', 
                 'eye_c.jpg', 'eye_n.jpg', 'hair.jpg', 'hair_a.jpg',
                 'eyelash_c.jpg', 'eyelash_a.jpg', 'eyelash_n.jpg',
-                'hair_man.jpg', 'hair_man_a.jpg', 'reflect3.hdr'
+                'hair_man.jpg', 'hair_man_a.jpg'
             ]
             Pool.load( asset, this.loadModels.bind(this), path, 'loading images...' )
         } else {
@@ -280,6 +280,8 @@ export class Avatar extends Group {
 
         const s = this.setting
 
+
+
         // MOUTH
 
         let m = new MeshStandardMaterial( { 
@@ -297,22 +299,21 @@ export class Avatar extends Group {
 
         // EYE
 
+        this.eyeMap = Pool.getTexture('reflect', {repeat:[2,2]})
+
         m = new MeshPhysicalMaterial( { 
             name: 'sub_eye',
             //color:0x000000,
             roughness:0,//0.568,
-            metalness:0,
+            metalness:1,
             ior:1.376,
-            //clearcoat:1.0,
-            opacity:0.03,
+            opacity:1,
+            blending:AdditiveBlending,
             clearcoat:1,
             transparent:true,
-            //transmission: 1,
-            //thickness: 0.001,
-            //envMapIntensity:0.01,
-            normalMap:Pool.getTexture('eye_n'),
-            normalScale:new Vector2( 2, -2),
-            //envMap:Pool.get('reflect3', 'hdr')
+            envMapIntensity:0,
+            //normalMap:Pool.getTexture('eye_n'),
+            //normalScale:new Vector2( 2, -2),
         });
 
         Shader.add(m)
@@ -322,13 +323,14 @@ export class Avatar extends Group {
         m = new MeshPhysicalMaterial({ 
             name: 'eye',
             map:Pool.getTexture('eye_c'),
-            emissiveMap:Pool.getTexture('eye_c'),
-            emissive:0x101010,
+            //emissiveMap:Pool.getTexture('eye_c'),
+            //emissive:0x101010,
             roughness:0.7,
-            metalness:0.1,
+            metalness:0.15,
             normalMap:Pool.getTexture('eye_n'),
             normalScale:new Vector2( 2, -2),
-            clearcoat:1,
+            clearcoat:0.25,
+            clearcoatRougness:0.5,
             //opacity:0.2,
             //transparent:true,
             //transmission: 1,
