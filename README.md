@@ -19,7 +19,7 @@ You can drag file directly on viewport ( code js or environement hdr )
 
 ## Todo
 
-Add character support, add more demos, fixe joint, vehicle...
+Add more demos, fixe joint, vehicle...
 
 ## About
 

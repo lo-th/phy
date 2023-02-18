@@ -46,6 +46,8 @@ export class Landscape extends Mesh {
         this.sample = o.sample == undefined ? [128,128] : o.sample;
         this.size = o.size === undefined ? [100,30,100] : o.size;
 
+        this.zone = o.zone || 1;
+
         this.data = {
             level: o.level || [1,0.2,0.05],
             frequency: o.frequency || [0.016,0.05,0.2],
@@ -562,8 +564,6 @@ export class Landscape extends Mesh {
             c = c<0 ? 0:c;
             
             
-
-
             if( this.ttype === 'road' ) {
 
                 if(oldz === z){
@@ -587,8 +587,6 @@ export class Landscape extends Mesh {
             this.heightData[ id ] = result;
 
             ccY = (c * this.size[ 1 ]) + this.deep;
-
-            
 
             this.vertices[ n + 1 ] = ccY;
 
@@ -652,9 +650,11 @@ export class Landscape extends Mesh {
     }
 
     step (n) {
+
         if( !this.needUpdate ) return
         this.updateGeometry()
         this.needUpdate = false
+        
     }
 
     updateGeometry () {

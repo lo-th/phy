@@ -82,6 +82,7 @@ const toPhysics = function( t ) {
 		o.type = 'terrain'
 		o.size = t.size
 		o.sample = t.sample
+		o.zone = t.zone
 		o.heightData = t.heightData
 	} else {
 		o.type = 'mesh'
