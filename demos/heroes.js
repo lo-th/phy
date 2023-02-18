@@ -43,7 +43,7 @@ next = () => {
     //phy.add({ type:'box', name:'trigger', size:[2, 2, 2], pos:[0,-0.99,-3], material:'debug', mask:32 })
     trigger = phy.add({ type:'box', name:'trigger', size:[5, 1.8, 2], pos:[0,0.91,-3], material:'debug', isTrigger:true, unicMat:true  })//
 
-    phy.add({ type:'contact', b1:'bob', b2:'floor', simple:true, callback: showContact })
+    //phy.add({ type:'contact', b1:'bob', b2:'floor', simple:true, callback: showContact })
     phy.add({ type:'contact', b1:'bob', b2:'trigger', callback: triggerContact })
 
     let i = 200, s,a,d;
@@ -68,7 +68,7 @@ showContact = ( d ) => {
     //if( d.hit ) bob.material.color.setHex( 0x00FF00 )
     //else bob.material.color.setHex( 0x00FF88 ) 
 
-    if( d.hit ) console.log('bob collision on floor')
+    //if( d.hit ) console.log('bob collision on floor')
 }
 
 triggerContact = ( d ) => {

@@ -17,14 +17,25 @@ import { GlbTool } from './utils/GlbTool.js';
 */
 
 export const Pool = {
+
     msg:'',
     inLoad:false,
+
     clip:[],
     data: new Map(),
     tmp: [],
     //extraTexture: [],
     dracoLoader: null,
     dracoLoaderType:'js',
+
+    onLoad:() => {},
+    onEnd:() => {},
+    log: ( msg ) => {},
+
+    setLoadEvent:( onload, onend ) => {
+        Pool.onLoad = onload
+        Pool.onEnd = onend
+    },
 
     prefix:( type ) => {
         let p = ''
@@ -180,7 +191,7 @@ export const Pool = {
 
     ///
 
-    log: ( msg ) => {},
+    
 
     ///
 
@@ -204,6 +215,7 @@ export const Pool = {
     loadOne: () => {
 
         Pool.inLoad = true;
+        Pool.onLoad()
 
         let url = Pool.tmp[0].path + Pool.tmp[0].urls[0];
         let name = url.substring( url.lastIndexOf('/')+1, url.lastIndexOf('.') );
@@ -228,7 +240,10 @@ export const Pool = {
             Pool.tmp.shift();
 
             if( Pool.tmp.length > 0 ) Pool.loadOne();
-            else Pool.inLoad = false;
+            else {
+                Pool.inLoad = false;
+                Pool.onEnd()
+            }
 
         } else {
 

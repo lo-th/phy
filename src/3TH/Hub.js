@@ -7,6 +7,7 @@ import {
 import * as TWEEN from 'tween'
 import { Tools } from 'uil';
 import { math } from './math.js';
+import { Pool } from './Pool.js';
 
 /** __
 *    _)_|_|_
@@ -177,7 +178,16 @@ export class Hub {
     static endLoading () {
 
         content.removeChild( loader )
-        content.removeChild( txt )
+        
+        //content.removeChild( txt )
+        txt.style.top = '50px'
+        txt.textContent ='load...';
+        //txt.style.display = 'none'
+
+        Pool.setLoadEvent(
+            function(){ txt.style.display = 'block'; },
+            function(){ txt.style.display = 'none'; }
+        )
 
         /*let logo0 = `<svg xmlns='http://www.w3.org/2000/svg' version='1.1' xmlns:xlink='http://www.w3.org/1999/xlink' style='pointer-events:none;' 
         preserveAspectRatio='xMinYMax meet' x='0px' y='0px' width='60px' height='30px' viewBox='0 0 100 50'>
