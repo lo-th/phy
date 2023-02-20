@@ -43,10 +43,6 @@ export class Character extends Item {
 		this.setName( o )
 		const hero = new Hero( o )
 
-		
-
-        
-
 		return hero
 
 	}
@@ -133,7 +129,7 @@ class Hero extends Basic3D {
 		this.py = -(o.size[1]*0.5)-o.size[0]
 
 
-		if( o.debug ) root.bodyRef.geometry( { ...o, type:'capsule', ray:false }, this, Mat.get('debug3') )
+		if( o.debug ) root.items.body.geometry( { ...o, type:'capsule', ray:false }, this, Mat.get('debug3') )
 
 		o.density = o.density || 70 
         o.damping = [0.01,0] 
@@ -151,7 +147,7 @@ class Hero extends Basic3D {
 		if( o.callback ) delete o.callback
 
 		// add to world
-		root.characterRef.addToWorld( this, o.id )
+		root.items.character.addToWorld( this, o.id )
 
         // add to physics
         root.post({ m:'add', o:o })

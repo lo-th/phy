@@ -40,6 +40,11 @@ export class Terrain extends Item {
 			o.isTurned = true
 		}
 
+		if( root.engine !== 'OIMO'){
+			o.zone = 0.25
+			//o.debuger = true
+		}
+
 		const t = new Landscape( o )
 
 		t.physicsUpdate = ( name, h ) =>{
@@ -80,8 +85,8 @@ const toPhysics = function( t ) {
 
 	if( root.engine === 'PHYSX' || root.engine === 'AMMO' ){
 		o.type = 'terrain'
-		o.size = t.size
-		o.sample = t.sample
+		o.size = t.sizeZ
+		o.sample = t.sampleZ
 		o.zone = t.zone
 		o.heightData = t.heightData
 	} else {

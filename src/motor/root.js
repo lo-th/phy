@@ -45,8 +45,9 @@ export const root = {
 	delta:0,
 	add:null,
 	remove:null,
-	bodyRef:null,
-	characterRef:null,
+	items:null,
+	//bodyRef:null,
+	//characterRef:null,
 	tmpMesh : [],
 	instanceMesh : {},
 	tmpTex : [],
@@ -243,13 +244,14 @@ export const Mat = {
 				case 'base':   m = new MeshStandardMaterial({ color:0xffffff, ...matExtra }); break
 				case 'simple': m = new MeshStandardMaterial({ color:0x808080, metalness: 0, roughness: 1 }); break
 				case 'body':   m = new MeshStandardMaterial({ color:0xFF934F, ...matExtra }); break
+				case 'clear':   m = new MeshStandardMaterial({ color:0xFFFFFF, metalness: 0.5, roughness: 0 }); break
 				case 'sleep':  m = new MeshStandardMaterial({ color:0x939393, ...matExtra }); break//0x46B1C9
 				case 'solid':  m = new MeshStandardMaterial({ color:0x3C474B, ...matExtra }); break
 				case 'hero':   m = new MeshStandardMaterial({ color:0x00FF88, ...matExtra }); break
 				case 'skinny':   m = new MeshStandardMaterial({ color:0xe0ac69, ...matExtra }); break
 				case 'chrome': m = new MeshStandardMaterial({ color:0xCCCCCC, metalness: 1, roughness:0 }); break
 				case 'glass':  m = new MeshPhysicalMaterial({ color:0xFFFFff, transparent:true, opacity:0.8, depthTest:true, depthWrite:false, roughness:0.02, metalness:0.0, /*side:DoubleSide,*/ alphaToCoverage:true, premultipliedAlpha:true, transmission:1, clearcoat:1, thickness:0.02  }); break
-				case 'plexi':  m = new MeshPhysicalMaterial({ color:0xCCCCCCC, transparent:true, opacity:0.4  }); break
+				case 'plexi':  m = new MeshPhysicalMaterial({ color:0xFFFFff, transparent:true, opacity:0.4, metalness: 1, roughness:0, clearcoat:1 }); break
 				case 'glass2': m = new MeshPhysicalMaterial({ color:0xCCCCff, transparent:true, opacity:0.3  }); break
 				case 'sat': m = new MeshPhysicalMaterial({ color:0xffffff, metalness: 1, roughness:0, clearcoat:1  }); break
 
@@ -260,6 +262,7 @@ export const Mat = {
 				case 'debug2': m = new MeshBasicMaterial({ color:0x00FFFF, wireframe:true, toneMapped: false }); break
 				case 'debug3':  m = new MeshBasicMaterial({ color:0x000000, wireframe:true, transparent:true, opacity:0.05, toneMapped: false, depthTest:true, depthWrite:false }); break
 
+				case 'shadows': m = new MeshBasicMaterial({ transparent:true, opacity:0.01 }); break
 				case 'hide': m = new MeshBasicMaterial({ visible:false }); break
 
 			}

@@ -1,3 +1,7 @@
+import {
+	Float32BufferAttribute
+} from 'three';
+
 import { Shader } from '../Shader.js'
 import { mergeBufferGeometries } from '../../jsm/utils/BufferGeometryUtils.js';
 
@@ -93,79 +97,93 @@ export const GlbTool = {
     },
 
 
-    autoMorph: ( meshName, fullAttribute ) => {
+    autoMorph: ( mod, meshs, normal = true, relative = false ) => {
 
-		let m, name, tName, target, id, g;
+    	let morph = {};
+    	let tmpMesh = [];
+        mod.traverse( function ( node ) { 
+            if ( node.isMesh && node.name.search('__M__') !== -1){ 
+            	morph[ node.name ] = node.geometry;
+            	tmpMesh.push(node)
+            }
+        })
 
-		// get mesh list
-		let meshs = Pool.getMesh( meshName );
-
+		let oName, tName, target, id, g, gm, j, dp, dn, ar;
 		
-		for( let n in meshs ){
 
-			m = meshs[n];
-			name = m.name;
+		for ( let name in morph ){
 
-			if( name.search("__morph__") !== -1  ) {
+			oName = name.substring( 0, name.indexOf('__') )
+            tName = name.substring( name.lastIndexOf('__') + 2 );
 
-				target = meshs[ name.substring( 0, name.indexOf('__') ) ];
-				tName = name.substring( name.lastIndexOf('__') + 2 );
+            target = meshs[ oName ];
 
-				// apply Morph
+			if( target ){
 
-				if( target ){
+				g = target.geometry;
+				gm = morph[name];
 
-					if( !target.userData.morph ){
-						target.userData['morph'] = {};
-						target.material.morphTargets = true;
-					}
+				g.morphTargetsRelative = relative;
 
-					g = target.geometry;
+				if( g.attributes.position.count === gm.attributes.position.count ){
 
-					//console.log( g.attributes.position.count, m.geometry.attributes.position.count )
+					if( !g.morphAttributes.position ){
+                        g.morphAttributes.position = [];
+                        if( normal ) g.morphAttributes.normal = [];
+                        target.morphTargetInfluences = [];
+                        target.morphTargetDictionary = {};
+                    }
 
-					if( g.attributes.position.count === m.geometry.attributes.position.count ){
+                    id = g.morphAttributes.position.length;
 
-						if( !g.morphAttributes.position ) g.morphAttributes.position = [];
-						id = g.morphAttributes.position.length;
-						g.morphAttributes.position.push( m.geometry.attributes.position );
+                    // position
+                    if( relative ){
+                        j = gm.attributes.position.array.length;
+                        ar = []; 
+                        while(j--) ar[j] = gm.attributes.position.array[j] - g.attributes.position.array[j]
+                        dp = new Float32BufferAttribute( ar, 3 );
+                    } else {
+                        dp = new Float32BufferAttribute( gm.attributes.position.array, 3 );
+                    }
 
-						// extra attribute
+                    g.morphAttributes.position.push( dp );
 
-						if( fullAttribute ){
+                    // normal
+                    if( normal ){
+                        if( relative ){
+                            j = gm.attributes.normal.length;
+                            ar = [];
+                            while(j--) ar[j] = gm.attributes.normal.array[j] - g.attributes.normal.array[j]
+                            dn = new Float32BufferAttribute( ar, 3 );
+                        } else {
+                            dn = new Float32BufferAttribute( gm.attributes.normal.array, 3 );
+                        }
 
-							for( let a in  m.geometry.attributes ){
-								if( a !== 'position' && g.attributes[a] ){
-									if( !g.morphAttributes[a] ) g.morphAttributes[a] = [];
-									g.morphAttributes[a][id] = m.geometry.attributes[a];
-								}
-							}
+                        g.morphAttributes.normal.push( dn );
 
-						}
+                    }
 
-						// clear morph mesh
-					    m.parent.remove( m );
-					    m.material.dispose();
-						m.geometry.dispose();
+                    target.morphTargetInfluences.push(0)
+                    target.morphTargetDictionary[ tName ] = id;
 
-						// update target
-						target.updateMorphTargets();
+                    //console.log( target.name + ' have morph call '+ tName )
 
-						// add morph reference by name
-						target.userData.morph[ tName ] = id;
-
-					} else {
-
-						console.warn('this morph target is not good : ', tName)
-
-					}
-
+				} else {
+					console.warn( 'Morph '+ tName + ' target is no good on ' + target.name )
 				}
 
 			}
 
 		}
 
+		morph = {}
+		// claer garbege
+		j = tmpMesh.length;
+		while(j--){
+			if( tmpMesh.parent ) tmpMesh.parent.remove( tmpMesh );
+			if( tmpMesh.material ) tmpMesh.material.dispose()
+			if( tmpMesh.geometry ) tmpMesh.geometry.dispose()
+		}
 
 	},
 

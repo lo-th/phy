@@ -16,11 +16,11 @@ import {
 import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
 import * as SkeletonUtils from 'three/addons/utils/SkeletonUtils.js';
 
-
 import { Pool } from '../Pool.js';
 import { Shader } from '../Shader.js';
 import { LZMA } from '../../libs/lzma.js';
 import { Tension } from '../Tension.js';
+import { GlbTool } from '../utils/GlbTool.js';
 
 import { ExoSkeleton } from './ExoSkeleton.js';
 
@@ -626,10 +626,10 @@ export class Avatar extends Group {
         if( !this.isClone ){
 
             // add morph 
-            if( this.haveMorph ) this.applyMorph( Pool.get( this.model+'_morph', 'O' ) );
-
+            if( this.haveMorph ) Pool.applyMorph( this.model+'_morph', this.mesh, true, false );
 
             Pool.set( this.model, this.root, 'O' )
+            
         }
 
         //console.log(this.mesh['body'])
@@ -716,99 +716,6 @@ export class Avatar extends Group {
         if(this.mesh[obj].morphTargetDictionary[name] === undefined ) return
         this.mesh[obj].morphTargetInfluences[ this.mesh[obj].morphTargetDictionary[name] ] = value;
     }
-
-    applyMorph( mod, normal = true, relative = false )
-    {
-        const morph = {};
-        
-        mod.traverse( function ( node ) { 
-            if ( node.isMesh && node.name.search('__M__') !== -1) morph[node.name] = node.geometry;
-
-            //if( node.material ) node.material.dispose();
-            //if( node.skeleton ) node.skeleton.dispose();
-        })
-
-
-        let target, tName, oName, id, g, gm, j, dp, dn, ar, nn, nb;
-
-        for ( let name in morph ){
-
-            oName = name.substring( 0, name.indexOf('__') )
-            tName = name.substring( name.lastIndexOf('__') + 2 );
-
-            target = this.mesh[ oName ];
-
-            if( target ){
-
-                g = target.geometry;
-                gm = morph[name];
-
-                g.morphTargetsRelative = relative;
-
-                if( g.attributes.position.count === gm.attributes.position.count ){
-
-                    if( !g.morphAttributes.position ){
-                        g.morphAttributes.position = [];
-                        if( normal ) g.morphAttributes.normal = [];
-                        target.morphTargetInfluences = [];
-                        target.morphTargetDictionary = {};
-                    }
-
-                    id = g.morphAttributes.position.length;
-
-                    // position
-                    
-                    if( relative ){
-
-                        j = gm.attributes.position.array.length;
-                        ar = []; 
-                        while(j--) ar[j] = gm.attributes.position.array[j] - g.attributes.position.array[j]
-                        dp = new Float32BufferAttribute( ar, 3 );
-                    } else {
-                        dp = new Float32BufferAttribute( gm.attributes.position.array, 3 );
-                    }
-
-                    g.morphAttributes.position.push( dp );
-
-                    // normal
-                    if( normal ){
-
-                        let onlyHead = this.fullMorph.indexOf(tName) === -1 ? true : false
-
-                        if( relative ){
-                            j = gm.attributes.normal.length;
-                            ar = [];
-                            //while(j--) ar[j] = onlyHead ? 0.0 : gm.attributes.normal.array[j] - g.attributes.normal.array[j]
-                            dn = new Float32BufferAttribute( gm.attributes.normal.array, 3 );
-                            //dn = new Float32BufferAttribute( ar, 3 );
-                        } else {
-                            dn = new Float32BufferAttribute( gm.attributes.normal.array, 3 );
-                        }
-
-                        g.morphAttributes.normal.push( dn );
-
-                    }
-
-                    target.morphTargetInfluences.push(0)
-                    target.morphTargetDictionary[ tName ] = id;
-
-                    // clear morph mesh
-
-                    gm.dispose();
-
-                    //console.log( target.name, tName)
-
-                } else {
-                    console.warn( 'Morph '+ tName + 'target is no good on ' + target.name )
-                }
-                
-            }
-
-        }
-
-    }
-
-    
 
     lerp( x, y, t ) { return ( 1 - t ) * x + t * y; }
 

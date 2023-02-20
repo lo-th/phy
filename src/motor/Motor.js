@@ -126,7 +126,7 @@ export class Motor {
 
 	static getScene () { return root.scene; }
 
-	//static getMat ( mode ) { return mat; }
+	static getMat () { return Mat; }
 
 	static getHideMat() { return Mat.get('hide'); }
 
@@ -541,8 +541,10 @@ export class Motor {
 			items['solver'] = new Solver()
 		}
 
-		root.bodyRef = items.body
-		root.characterRef = items.character
+		root.items = items
+
+		//root.bodyRef = items.body
+		
 
 	}
 

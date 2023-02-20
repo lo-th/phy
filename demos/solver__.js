@@ -274,8 +274,7 @@ createScissorLift = () => {
 				type:'revolute', bone:leftLink.name, 
 				pos1:leftAnchorLocation, quat1:leftParentRot, 
 				pos2:[ 0, 0, -1 ], quat2:rightRot,  
-				motions:[['twist', 'limited']], limits:[['twist', -180, angleDeg ]],
-				noFix:true 
+				motions:[['twist', 'limited']], limits:[['twist', -180, angleDeg ]] 
 			});
 
 			leftParentRot = leftRot;
@@ -294,8 +293,7 @@ createScissorLift = () => {
 				type:'revolute', bone:rightLink.name, 
 				pos1:rightAnchorLocation, quat1:rightParentRot,
 				pos2:[ 0, 0, 1 ],  quat2:leftRot, 
-				motions:[['twist', 'limited']], limits:[['twist', -angleDeg, 180 ]],
-				noFix:true
+				motions:[['twist', 'limited']], limits:[['twist', -angleDeg, 180 ]]
 			});
 
 			rightParentRot = rightRot;
@@ -303,8 +301,7 @@ createScissorLift = () => {
 			phy.add({ 
 		        type:'joint', jointType:'d6', 
 		        b1:leftLink.name, b2:rightLink.name, 
-		        motions:[ ['swing1', 'free'], ['swing2', 'free'], ['twist', 'free'] ],
-		        noFix:true
+		        motions:[ ['swing1', 'free'], ['swing2', 'free'], ['twist', 'free'] ]
 		    });
 
 			currLeft = rightLink;
@@ -332,8 +329,8 @@ createScissorLift = () => {
 			//phy.add({ type:'box', name:'rightTop', pos:pr, quat:rightParentRot, size:[ 0.8*2, 0.05*2, 0.05*2 ], density:1, solver:'scissor', linked: currRight.name, filter:[1,-1,1,0],dmv:[0.2,0.2,100,20] });
 			phy.add({ type:'capsule', name:'rightTop', pos:pr, quat:rightParentRot, size:[ 0.05, 0.8*2 ], density:1, solver:'scissor', linked: currRight.name, filter:[1,-1,1,0],dmv:[0.2,0.2,100,20] });
 
-			solver.addJoint( { type:'revolute', bone:'leftTop', pos1:[ 0, 0, -1 ], pos2:[ 0.5, 0, 0 ], quat1:ql, quat2:ql2, motions:[['twist', 'free']], noFix:true } );
-			solver.addJoint( { type:'revolute', bone:'rightTop', pos1:[ 0, 0, 1 ], pos2:[ 0.5, 0, 0 ], quat1:qr, quat2:qr2, motions:[['twist', 'free']], noFix:true } );
+			solver.addJoint( { type:'revolute', bone:'leftTop', pos1:[ 0, 0, -1 ], pos2:[ 0.5, 0, 0 ], quat1:ql, quat2:ql2, motions:[['twist', 'free']] } );
+			solver.addJoint( { type:'revolute', bone:'rightTop', pos1:[ 0, 0, 1 ], pos2:[ 0.5, 0, 0 ], quat1:qr, quat2:qr2, motions:[['twist', 'free']] } );
 
 		}
 
@@ -343,16 +340,14 @@ createScissorLift = () => {
         type:'joint', jointType:'d6', 
         b1:currLeft.name, b2:'leftTop', 
         pos1:[ 0, 0, -1 ], pos2:[ -0.5, 0, 0 ],
-        motions:[ ['swing1', 'free'], ['swing2', 'free'], ['twist', 'free'] ],
-        noFix:true
+        motions:[ ['swing1', 'free'], ['swing2', 'free'], ['twist', 'free'] ]
     });
 
     phy.add({ 
         type:'joint', jointType:'d6', 
         b1:currRight.name, b2:'rightTop', 
         pos1:[ 0, 0, 1 ], pos2:[ -0.5, 0, 0 ],
-        motions:[ ['swing1', 'free'], ['swing2', 'free'], ['twist', 'free'] ],
-        noFix:true
+        motions:[ ['swing1', 'free'], ['swing2', 'free'], ['twist', 'free'] ]
     });
 
     phy.add({ type:'box', name:'top', pos:[0, pl[1]+0.15, 0 ], size:[ 0.5*2, 0.1*2, 1.5*2 ], density:1, solver:'scissor', linked:'leftTop', filter:[1,-1,1,0],dmv:[0.2,0.2,100,20] });

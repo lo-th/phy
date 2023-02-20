@@ -30,6 +30,8 @@ export class Landscape extends Mesh {
         this.type = 'terrain';
         this.name = o.name;
 
+        this.folder = o.folder || './assets/textures/terrain/'
+
         this.mapN = 0;
         this.mapMax = 7;//7
 
@@ -46,7 +48,37 @@ export class Landscape extends Mesh {
         this.sample = o.sample == undefined ? [128,128] : o.sample;
         this.size = o.size === undefined ? [100,30,100] : o.size;
 
+        let sx = this.sample[0] - 1;
+        let sz = this.sample[1] - 1;
+
+        this.rx = sx / this.size[0];
+        this.rz = sz / this.size[2];
+
         this.zone = o.zone || 1;
+
+        // why ??
+        /*let pp = 0
+        if( this.zone === 0.5 ) pp=2
+        if( this.zone === 0.25 ) pp=3
+        if( this.zone === 0.125 ) pp=7*/
+        let square = [this.size[0]/sx, this.size[2]/sz]
+        //let dx = (this.size[0]/sx)//*pp
+        //let dz = (this.size[2]/sz)//**pp
+
+        
+
+        this.sampleZ = [o.sample[0] * this.zone, o.sample[1] * this.zone];
+        //this.sizeZ = [(o.size[0]-dx) * this.zone, o.size[1], (o.size[2]-dz) * this.zone];
+
+        this.sizeZ = [(this.sampleZ[0]-1) * square[0], o.size[1], ((this.sampleZ[1]-1)) * square[1]];
+
+        this.lng = this.sample[0] * this.sample[1];
+        this.lngZ = this.sampleZ[0] * this.sampleZ[1];
+
+        //console.log(  this.sample, this.sampleZ)
+
+        this.getZid()
+
 
         this.data = {
             level: o.level || [1,0.2,0.05],
@@ -82,25 +114,24 @@ export class Landscape extends Mesh {
 
         this.pp = new Vector3();
 
-        this.lng = this.sample[0] * this.sample[1];
-        var sx = this.sample[0] - 1;
-        var sz = this.sample[1] - 1;
-        this.rx = sx / this.size[0];
-        this.rz = sz / this.size[2];
+        
+
+        this.ratioZ = 1 / this.sampleZ[0];
         this.ratio = 1 / this.sample[0];
         this.ruvx =  1.0 / ( this.size[0] / this.uvx[0] );
         this.ruvy = - ( 1.0 / ( this.size[2] / this.uvx[1] ) );
 
         this.is64 = o.is64 || false;
-
         this.isTurn = o.turn || false;
 
-        this.heightData = new Float32Array( this.lng )//[]//new Float64Array( this.lng )//[];//this.is64 ? new Float64Array( this.lng ) : new Float32Array( this.lng );
+        this.heightData = new Float32Array( this.lngZ )
         this.height = []
 
+        // for physx 
         this.isAbsolute = o.isAbsolute || false;
-        this.isReverse = o.isReverse || false;
         this.isTurned = o.isTurned || false;
+
+        this.isReverse = o.isReverse || false;
 
         this.changeId = this.isReverse || this.isTurned
        // console.log(this.changeId)
@@ -122,6 +153,10 @@ export class Landscape extends Mesh {
         //this.geometry.setAttribute( 'uv2', this.geometry.attributes.uv );
         this.vertices = this.geometry.attributes.position.array;
 
+        
+
+
+        
 
 
 
@@ -138,19 +173,19 @@ export class Landscape extends Mesh {
 
             name = maps[i]
 
-            txt[name] = Pool.directTexture('./assets/textures/terrain/'+name+'.jpg', { flip:false, repeat:this.uvx, encoding:o.encoding || true , callback: this.mapcallback.bind(this)  });
-            txt[name+'_n'] = Pool.directTexture('./assets/textures/terrain/'+name+'_n.jpg', { flip:false, repeat:this.uvx, callback: this.mapcallback.bind(this) });
+            txt[name] = Pool.directTexture(this.folder + name +'.jpg', { flip:false, repeat:this.uvx, encoding:o.encoding || true , callback: this.mapcallback.bind(this)  });
+            txt[name+'_n'] = Pool.directTexture(this.folder + name +'_n.jpg', { flip:false, repeat:this.uvx, callback: this.mapcallback.bind(this) });
            // if( isORM )txt[name+'_n'] = Pool.directTexture('./assets/textures/terrain/'+name+'_n.jpg', { flip:false, repeat:this.uvx, callback: this.mapcallback.bind(this) });
 
         }
 
-        txt['noise'] = Pool.directTexture('./assets/textures/terrain/noise.png', { flip:false, repeat:[1,1], encoding:false , callback: this.mapcallback.bind(this)  });
+        txt['noise'] = Pool.directTexture(this.folder + 'noise.png', { flip:false, repeat:[1,1], encoding:false , callback: this.mapcallback.bind(this)  });
 
         this.txt = txt
 
         this.material = new MeshStandardMaterial({ name:'terrain', vertexColors:true, color:0xFFFFFF, map:txt[maps[0]], normalMap:txt[maps[0]+'_n'] });
 
-        if( o.envmap !== undefined ) this.material.envMap = o.envmap 
+        if( o.envmap !== undefined ) this.material.envMap = o.envmap
 
         if( this.isWater ){
             this.material.transparent = true;
@@ -245,9 +280,8 @@ export class Landscape extends Mesh {
 
        // super( this.geometry, this.material );
 
-        if(o.debuger){
-            var debuger = new Mesh( this.geometry, new MeshBasicMaterial({ vertexColors:true, wireframe:true, transparent:true, opacity:0.25 } ));
-            this.add( debuger );
+        if(o.debug){
+            this.debugZone(o)
         }
 
         //root.garbage.push( this.geometry );
@@ -256,7 +290,8 @@ export class Landscape extends Mesh {
         if( this.wantBorder ) this.addBorder( o );
         if( this.wantBottom ) this.addBottom( o );
 
-        if( o.pos ) this.position.fromArray( o.pos );
+        if( o.pos )this.position.fromArray( o.pos );
+
 
         // rotation is in degree or Quaternion
         o.quat = o.quat === undefined ? [ 0, 0, 0, 1 ] : o.quat;
@@ -272,6 +307,35 @@ export class Landscape extends Mesh {
         Pool.set( 'terrain' + this.name, this.material );
 
         this.update()
+
+    }
+
+    getZid(){
+
+        this.zid = {}
+
+        let lx = (this.sample[0] - this.sampleZ[0])*0.5
+        let lz = (this.sample[1] - this.sampleZ[1])*0.5
+        let first = (this.sample[0] * lz) + lx
+        let line = 0
+        for (let j = 0; j<this.lngZ; j++ ){
+            //line = j % this.sampleZ[0];
+            line = Math.floor(j / this.sampleZ[0]);
+            this.zid[ first + j + (line*((lx*2))) ] = j
+        }
+    }
+
+    debugZone(o) {
+
+        this.geometryZ = new PlaneGeometry( this.sizeZ[0], this.sizeZ[2], this.sampleZ[0] - 1, this.sampleZ[1] - 1 );
+        this.geometryZ.rotateX( -math.PI90 );
+        this.verticesZ = this.geometryZ.attributes.position.array;
+        
+        const debuger = new Mesh( this.geometryZ, new MeshBasicMaterial({color:0xff0000, wireframe:true } ));
+        if( o.pos ) debuger.position.fromArray( o.pos );
+        this.add( debuger );
+
+        
 
     }
 
@@ -452,6 +516,12 @@ export class Landscape extends Mesh {
 
     }
 
+    findIdZ( x, z ){
+
+        return x+(z*this.sampleZ[1]) //|| 1;
+
+    }
+
     findId( x, z ){
 
         return x+(z*this.sample[1]) //|| 1;
@@ -464,11 +534,11 @@ export class Landscape extends Mesh {
 
     }
 
-    findId3( x, z ){
+    /*findId3( x, z ){
 
         return z+(x*this.sample[0]) //|| 1;
 
-    }
+    }*/
 
     findPoint( x, z ){
 
@@ -486,17 +556,18 @@ export class Landscape extends Mesh {
 
         this.invId = [];
 
-        let i = this.lng, n, x, z
-        const sz = this.sample[1] - 1;
-        const sx = this.sample[0] - 1;
+        let i = this.lngZ, n, x, z
+        const sz = this.sampleZ[1] - 1;
+        const sx = this.sampleZ[0] - 1;
 
         while(i--){
-            x = i % this.sample[0];
-            z = Math.floor( i * this.ratio );
+
+            x = i % this.sampleZ[0];
+            z = Math.floor( i * this.ratioZ );
             if( this.isReverse ) z = sz - z;
             //xr = sx - x;
             //this.invId[i] = this.findId( x, sz - z )//
-            this.invId[i] = this.isTurned ?  (this.lng-1)-this.findId( z, x ) : this.findId( x, z );
+            this.invId[i] = this.isTurned ?  (this.lngZ-1)-this.findIdZ( z, x ) : this.findIdZ( x, z );
 
             //console.log(i, this.findId( x, sz - z ), (this.lng-1)-this.findId( z, x ))
         }
@@ -537,7 +608,7 @@ export class Landscape extends Mesh {
 
         let v = this.pp;
         let cc = [1,1,1];
-        let i = this.lng, n, x, z,  c, l=0, id, result;
+        let i = this.lng, n, nz, x, z,  c, l=0, id, result, idz;
         let oldz, oldh, ccY, ccc, ee;
 
         while( i-- ){
@@ -572,7 +643,6 @@ export class Landscape extends Mesh {
                 } else { 
                     oldz = z;
                     oldh = c;
-
                 }
 
                 //console.log(x)
@@ -580,15 +650,30 @@ export class Landscape extends Mesh {
 
             this.height[ i ] = c;
 
-            id = this.changeId ? this.invId[i] : i;
+            ccY = (c * this.size[ 1 ]) + this.deep;
+            this.vertices[ n + 1 ] = ccY;
+
+            //id = this.changeId ? this.invId[i] : i;
             result = this.isAbsolute ? c : c * this.size[1];
 
+            if( this.zid[ i ] !== undefined ){
+                idz = this.zid[ i ]
+                id = this.changeId ? this.invId[idz] : idz;
+
+                 // for physics
+                this.heightData[ id ] = result;
+
+                // for debug
+                if(this.verticesZ) this.verticesZ[ ( idz * 3 ) + 1 ] = ccY
+
+            }
+
             // for physics
-            this.heightData[ id ] = result;
+            //this.heightData[ id ] = result;
 
-            ccY = (c * this.size[ 1 ]) + this.deep;
+            
 
-            this.vertices[ n + 1 ] = ccY;
+            
 
             if( this.isWater ){
 
@@ -664,6 +749,8 @@ export class Landscape extends Mesh {
         this.geometry.computeVertexNormals();
 
         this.updateUv()
+
+        if(this.geometryZ) this.geometryZ.attributes.position.needsUpdate = true;
 
         if( this.isBorder ){
         	this.borderGeometry.attributes.position.needsUpdate = true;

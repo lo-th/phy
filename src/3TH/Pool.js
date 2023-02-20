@@ -121,6 +121,15 @@ export const Pool = {
         return GlbTool.getGroup( obj, autoMesh, autoMaterial )
     },
 
+    applyMorph( modelName, meshs = null, normal = true, relative = true ){
+
+        const model = Pool.get( modelName, 'O' )
+        if( !meshs ) meshs = Pool.getMesh( modelName );
+        if( !model || !meshs ) return 
+        GlbTool.autoMorph( model, meshs, normal, relative )
+
+    },
+
     add: ( name, node, type ) => {
         Pool.set( name, node, type );
         Pool.next();
