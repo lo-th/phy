@@ -1,7 +1,7 @@
 import { Item } from '../core/Item.js';
 import { Num } from '../core/Config.js';
 
-import { Utils, root, math, mat } from './root.js';
+import { Utils, root, math, Mat, mat } from './root.js';
 import { Basic3D } from '../core/Basic3D.js';
 
 
@@ -69,6 +69,8 @@ class Car extends Basic3D {//extends Object3D {
 
 		this.type = 'vehicle';
 		this.name = o.name || 'car';
+
+		this.isRay = false
 		//this.withBody = false;
 		this.actif = false;
 		//this.position = new THREE.Vector3();
@@ -78,6 +80,10 @@ class Car extends Basic3D {//extends Object3D {
 
 	drive () {
 
+	}
+
+	raycast(){
+		return
 	}
 
 	init ( o ) {
@@ -135,21 +141,18 @@ class Car extends Basic3D {//extends Object3D {
 
 		const scale = o.meshScale || 1
 
-		//console.log(this.wheelsPosition)
 
 		const chassisShapes = [];// { type:'convex', shape:bodyShape, pos:[0,0,0], flag:8|2|1 } ];//, isExclusive:true
 
 		//if( o.chassisShape ) chassisShapes.push( { type:'convex', shape:o.chassisShape, pos:[0,0,0], flag:8|2|1 } );
 		//else chassisShapes.push( { type:'box', size:this.size, pos:[0,0,0], flag:8|2|1 } );
 
-		if( o.chassisShape ) chassisShapes.push( { type:'convex', shape:o.chassisShape, size:[scale], pos:this.chassisPos, filter:[1, -1, 0, 0], isExclusive:true  } );
-		else chassisShapes.push( { type:'box', size:this.size, pos:this.chassisPos } );
-
-		let wType = 'cylinder'//'wheel'
+		if( o.chassisShape ) chassisShapes.push( { type:'convex', shape:o.chassisShape, size:[scale], pos:this.chassisPos, filter:[1, -1, 0, 0], isExclusive:true, ray:false  } );
+		else chassisShapes.push( { type:'box', size:this.size, pos:this.chassisPos } ); 
 
 		for( let i=0; i < this.numWheel; i++ ){
-	    	if( i < 2 ) chassisShapes.push({ type:wType, size:[ this.radius, this.deep ], isWheel:true, radius:0.05 , shadow:false});
-	    	else chassisShapes.push({ type:wType, size:[ this.radiusBack, this.deepBack ], isWheel:true, radius:0.05 , shadow:false });
+	    	if( i < 2 ) chassisShapes.push({ type:'cylinder', size:[ this.radius, this.deep ], isWheel:true, radius:0.05 , shadow:false, ray:false });
+	    	else chassisShapes.push({ type:'cylinder', size:[ this.radiusBack, this.deepBack ], isWheel:true, radius:0.05 , shadow:false, ray:false  });
 	    	
 	    }
 
@@ -167,34 +170,26 @@ class Car extends Basic3D {//extends Object3D {
 
 	    }*/
 
-	    var material = 'debug3'//o.debug ? 'debug' : (o.body === undefined ? 'body' : 'hide');
+	    var material = Mat.get( 'debug3' )//'debug3'//o.debug ? 'debug' : (o.body === undefined ? 'body' : 'hide');
 	    //if( o.body === undefined ) material = 'move';
 
-		this.kinematic = o.kinematic;
-		this.chassis = root.add({ 
-			onlyMakeMesh:true, 
-		    name:this.name + '_chassis', 
-		    type:'compound', 
-		    shapes:chassisShapes, 
-		    pos:o.pos, 
-		    rot:o.rot, 
-		    ray:false,
-		    //mass:1,
-		    /*mass:o.mass + o.wheelMass * o.numWheel, */
-		    material:material,
-		    //shadow:false,
-		    //kinematic: o.kinematic,
-			//noGravity:true
-		});
-		
-		this.chassis.car = this;
+	    let n
+
+	    for ( let i = 0; i < chassisShapes.length; i ++ ) {
+	    	n = chassisShapes[i]
+	    	if( n.pos ) n.localPos = n.pos;
+	    	n.size = math.autoSize( n.size, n.type );
+	    	root.items.body.geometry( n, this, material )
+	    }
+
 
 		let m
 
 		if(o.chassisMesh){
 			m = o.chassisMesh.clone()
+			Utils.noRay( m )
 			m.scale.set( scale, scale, scale )
-			this.chassis.children[0].add( m )
+			this.children[0].add( m )
 			delete o.chassisMesh;
 
 			//this.chassis.children[0].castShadow = false;
@@ -205,9 +200,10 @@ class Car extends Basic3D {//extends Object3D {
 		if( o.wheelMesh ){
 			for( let i = 1; i<this.numWheel+1; i++ ) {
 				m = o.wheelMesh.clone()
+				Utils.noRay( m )
 				if(i==2 || i ==4) m.scale.set( -scale, scale, scale )
 				else m.scale.set( scale, scale, scale )
-				this.chassis.children[i].add( m )
+				this.children[i].add( m )
 
 			    //this.chassis.children[i].castShadow = false;
 			    //this.chassis.children[i].receiveShadow = false;
@@ -223,52 +219,18 @@ class Car extends Basic3D {//extends Object3D {
 			for( let i = 1; i<this.numWheel+1; i++ ) {
 
 				m = o.suspensionMesh.clone()
+				Utils.noRay( m )
 				m.position.fromArray(this.wheelsPosition[i-1])
 				m.position.x = 0
 				if(i==2 || i ==4) m.scale.set( scale, scale, scale )
 				else m.scale.set( -scale, scale, scale )
-				this.chassis.children[0].add( m )
+				this.children[0].add( m )
 			    this.suspension.push( m )
 
 			}
 			delete o.suspensionMesh;
 
 		}
-
-		/*if( o.body ){
-
-			this.withBody = true;
-
-			this.body = o.noClone ? o.body : o.body.clone();
-			this.body.matrixAutoUpdate = false;
-
-			this.chassisName = o.chassisName || "chassis";
-			this.wheelNamePrefix = o.wheelNamePrefix || "wheel_";
-
-			if( this.body.scale.x!==o.bodyScale ) this.body.scale.multiplyScalar(o.bodyScale);
-
-			this.invScale = 1/o.bodyScale;
-
-			root.content.add( this.body );
-
-			var i = this.body.children.length;
-			this.bodys = {};
-			while (i--){
-				var child = this.body.children[i];
-				var name = child.name;
-				this.bodys[ name ] = child;
-				
-				//if(child.name.startsWith(this.wheelNamePrefix))
-				//	child.rotation.order = "YXZ";
-			}
-			
-			var chassisMesh = this.bodys[this.chassisName];
-			if(this.kinematic && chassisMesh) chassisMesh.position.y -= this.decal;
-
-			//console.log( this.wheelsPosition, this.bodys )
-
-			delete ( o.body )
-		}*/
 
 		o.size = this.size
 		o.numWheel = this.numWheel
@@ -295,11 +257,19 @@ class Car extends Basic3D {//extends Object3D {
 		o.respawn = true;
 		o.name = this.name;
 
-		if( o.keepRotation ) o.quat = this.chassis.quaternion.toArray();
+		if( o.keepRotation ) o.quat = this.quaternion.toArray();
 
 
 		root.view.up( o );
 
+	}
+
+	move( key, azimut ){
+
+		phy.update({ 
+		    name:this.name,
+		    key: key
+		});
 	}
 
 	dispose (){
@@ -308,7 +278,7 @@ class Car extends Basic3D {//extends Object3D {
 			root.content.remove( this.body );
 		}*/
 
-		root.remove( this.name + '_chassis' );
+		//root.remove( this.name + '_chassis' );
 	}
 
 	step ( AR, n ) {
@@ -319,9 +289,9 @@ class Car extends Basic3D {//extends Object3D {
 			else this.actif = true;
 		}
 
-		this.chassis.position.fromArray( AR, n + 1 )
-		this.chassis.quaternion.fromArray( AR, n + 4 )
-		this.chassis.updateMatrix()
+		this.position.fromArray( AR, n + 1 )
+		this.quaternion.fromArray( AR, n + 4 )
+		this.updateMatrix()
 
 		//console.log(AR)
 
@@ -365,7 +335,7 @@ class Car extends Basic3D {//extends Object3D {
 
 
 
-			mesh = this.chassis.children[i];
+			mesh = this.children[i];
 
 			if( mesh && i>0 ){
 

@@ -1,5 +1,5 @@
-let gina, maxDistance = 50;
-let start = { x:0.6, y:0, z:0 }
+let gina;
+
 demo = () => {
 
     phy.log('use key WSAD or ZSQD<br>E to fight<br>C to crouch<br>SPACE to jump<br>SHIFT to run')
@@ -21,7 +21,7 @@ demo = () => {
         gender:'woman',
         name:'gina',
         callback:terrainTest,
-        pos:[start.x,0,start.z],
+        pos:[0.6,0,0],
         //noMat:true,
         //morph:true,
         //debug:true,
@@ -101,10 +101,8 @@ terrainTest = () => {
 update = () => {
 
     let p = gina.position;
-    let d = math.distance( p, start );
-    if( d > maxDistance ){
-        //start = { x:gina.position.x, y:gina.position.y, z:gina.position.z }
-        //console.log( 'limite' )
+    let d = math.distance({ x:p.x, z:p.z });
+    if( d > 50 ){
         phy.up([
             { name:'terra', decal:[p.x,0,p.z] },
             { name:'gina', pos:[0,p.y,0] },

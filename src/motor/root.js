@@ -138,6 +138,16 @@ export const Utils = {
 		if( b.instance ) b.instance.remove( b.id )
 		map.delete( b.name );
 
+	},
+
+	noRay:( b ) => {
+		if( b.isObject3D ){
+			b.raycast = () => {return}
+			b.traverse( ( child ) => {
+				if ( child.isObject3D ) child.raycast = () => {return}
+			})
+
+		}
 	}
 
 }
@@ -382,7 +392,7 @@ export const math = {
 
 	},
 
-	distance: ( a, b ) => { // rotation array in degree
+	distance: ( a, b = { x:0, y:0, z:0 } ) => { // rotation array in degree
 
 		const dx = a.x ? a.x - b.x : 0
 		const dy = a.y ? a.y - b.y : 0

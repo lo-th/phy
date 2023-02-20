@@ -97,6 +97,8 @@ class Car {
 
 		this.isRay = true;
 
+		this.tr = new Ammo.btTransform();
+
 		this.data = {
 
 			mass: o.mass || 2000, // 100
@@ -495,7 +497,12 @@ class Car {
 
         if( o.key ) this.key = o.key
 
-            //console.log(this.key)
+        if( o.pos || o.quat ) {
+            this.body.getMotionState().getWorldTransform( this.tr )
+            if(o.pos) this.tr.setOrigin( this.tr.getOrigin().fromArray( o.pos ) );
+            if(o.quat) this.tr.setRotation( this.tr.getRotation().fromArray( o.quat ) )
+            this.body.setWorldTransform( this.tr );
+        }
 
 	}
 

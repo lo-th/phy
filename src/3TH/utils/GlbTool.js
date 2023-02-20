@@ -9,7 +9,7 @@ export const GlbTool = {
 
 	getMesh:(scene) => {
         let meshs = {};
-        scene.traverse( function ( child ) {
+        scene.traverse( ( child ) => {
             if ( child.isMesh ) meshs[ child.name ] = child;
         })
         return meshs;
@@ -18,7 +18,7 @@ export const GlbTool = {
     getGroup:( scene, autoMesh, autoMaterial ) => {
         const groups = {};
         let mats = null
-        scene.traverse( function ( child ) {
+        scene.traverse( ( child ) => {
             if ( child.isGroup ){ 
             	if( autoMaterial ) mats = GlbTool.getMaterial( scene, true ) 
             	groups[ child.name ] = autoMesh ? GlbTool.groupToMesh(child, mats) : child;
@@ -35,7 +35,7 @@ export const GlbTool = {
     	const Mats = {}
         const mats = [] 
         let m, n
-        scene.traverse( function ( child ) {
+        scene.traverse( ( child ) => {
             if ( child.isMesh ){ 
             	m = child.material;
             	if( !Mats[m.name] ){
@@ -101,7 +101,7 @@ export const GlbTool = {
 
     	let morph = {};
     	let tmpMesh = [];
-        mod.traverse( function ( node ) { 
+        mod.traverse( ( node ) => { 
             if ( node.isMesh && node.name.search('__M__') !== -1){ 
             	morph[ node.name ] = node.geometry;
             	tmpMesh.push(node)
