@@ -150,14 +150,16 @@ export const GlbTool = {
 
                     // normal
                     if( normal ){
-                        if( relative ){
+                        /*if( relative ){
                             j = gm.attributes.normal.length;
                             ar = [];
                             while(j--) ar[j] = gm.attributes.normal.array[j] - g.attributes.normal.array[j]
                             dn = new Float32BufferAttribute( ar, 3 );
                         } else {
                             dn = new Float32BufferAttribute( gm.attributes.normal.array, 3 );
-                        }
+                        }*/
+
+                        dn = new Float32BufferAttribute( gm.attributes.normal.array, 3 );
 
                         g.morphAttributes.normal.push( dn );
 

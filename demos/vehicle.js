@@ -18,7 +18,7 @@ demo = () => {
 
 onComplete = () => {
 
-    phy.applyMorph('buggy');
+    phy.applyMorph('buggy', null, true);
 
     const model = phy.getMesh('buggy');
 

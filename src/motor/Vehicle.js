@@ -289,6 +289,8 @@ class Car extends Basic3D {//extends Object3D {
 			else this.actif = true;
 		}
 
+		
+
 		this.position.fromArray( AR, n + 1 )
 		this.quaternion.fromArray( AR, n + 4 )
 		this.updateMatrix()
@@ -315,11 +317,15 @@ class Car extends Basic3D {//extends Object3D {
 		let mx2 = new Matrix4().copy( this.chassis.matrixWorld ).invert()
 		let mp = new Vector3()
 		let mq = new Quaternion()*/
+		let sp = []
 
 		var k = 0;
 		for( var i = 0; i<num; i++ ){
 
 			k = (i*8) + n //( i*5 ) + n;
+
+
+
 
 			//m = i * 8;
 
@@ -336,8 +342,11 @@ class Car extends Basic3D {//extends Object3D {
 
 
 			mesh = this.children[i];
+			
 
 			if( mesh && i>0 ){
+
+				sp[i-1] = this.wheelsPosition[i-1][1] - AR[k+2]
 
 				/*if(isGlobal){
 					mx.compose( {x:AR[k+1], y:AR[k+2], z:AR[k+3]}, {_x:AR[k+4], _y:AR[k+5], _z:AR[k+6], _w:AR[k+7]}, {x:1, y:1, z:1})
@@ -361,6 +370,7 @@ class Car extends Basic3D {//extends Object3D {
 				//mesh.position.y += this.massCenter[1]
 				mesh.quaternion.fromArray( AR, k + 4 )
 
+				 
 
 
 				//mesh.quaternion.fromArray( AR, n + 4 )//.premultiply(this.q)
@@ -372,6 +382,8 @@ class Car extends Basic3D {//extends Object3D {
 
 
 			}
+
+			
 
 			
 			//mesh.quaternion.fromArray( AR, k + 4 );
@@ -411,6 +423,22 @@ class Car extends Basic3D {//extends Object3D {
 
 
 		}
+
+		if(this.suspension){
+				let k = 4, v, ratio = 1/0.2
+				while(k--){
+					v = sp[k]*ratio//( AR[ n + 56 + k ] ) * ratio;
+					v = math.clamp( v, -1, 1 )
+					if ( v > 0 ) {
+					    this.suspension[k].children[0].morphTargetInfluences[ this.suspension[k].children[0].morphTargetDictionary['low'] ] = v;
+					    this.suspension[k].children[0].morphTargetInfluences[ this.suspension[k].children[0].morphTargetDictionary['top'] ] = 0;
+					} else {
+						this.suspension[k].children[0].morphTargetInfluences[ this.suspension[k].children[0].morphTargetDictionary['low'] ] = 0;
+					    this.suspension[k].children[0].morphTargetInfluences[ this.suspension[k].children[0].morphTargetDictionary['top'] ] = -v;
+					}
+
+				} 
+			}
 
 		//console.log(acc)
 

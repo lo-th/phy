@@ -475,7 +475,7 @@ class Car {
 			//t.sub(trans)
 
 			// supension info
-			Ar[ n + 56 + j ] = this.chassis.getWheelInfo( j ).get_m_raycastInfo().get_m_suspensionLength();
+			//Ar[ n + 56 + j ] = this.chassis.getWheelInfo( j ).get_m_raycastInfo().get_m_suspensionLength();
 
 			w = 8 * ( j + 1 );
 			t.toArray( Ar, n + w + 1 );
