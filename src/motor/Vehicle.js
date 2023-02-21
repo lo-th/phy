@@ -211,10 +211,12 @@ class Car extends Basic3D {//extends Object3D {
 			delete o.wheelMesh;
 		}
 
-		this.suspension = []
+		
 
-		// wheel model
+		// suspension model
 		if( o.suspensionMesh ){
+
+			this.suspension = []
 
 			for( let i = 1; i<this.numWheel+1; i++ ) {
 
@@ -229,6 +231,26 @@ class Car extends Basic3D {//extends Object3D {
 
 			}
 			delete o.suspensionMesh;
+
+		}
+
+		// suspension model
+		if( o.brakeMesh ){
+
+			this.brake = []
+
+			for( let i = 1; i<this.numWheel+1; i++ ) {
+
+				m = o.brakeMesh.clone()
+				Utils.noRay( m )
+				m.position.fromArray(this.wheelsPosition[i-1])
+				if(i==2 || i ==4) m.scale.set( -scale, scale, i==2? -scale : scale )
+				else m.scale.set( scale, scale, i==1? -scale : scale )
+				this.children[0].add( m )
+			    this.brake.push( m )
+
+			}
+			delete o.brakeMesh;
 
 		}
 
@@ -369,6 +391,11 @@ class Car extends Basic3D {//extends Object3D {
 				mesh.position.fromArray( AR, k + 1 );
 				//mesh.position.y += this.massCenter[1]
 				mesh.quaternion.fromArray( AR, k + 4 )
+
+				if(this.brake){
+					this.brake[i-1].position.copy( mesh.position )
+					if(i==1 || i==2) this.brake[i-1].rotation.y = AR[k]
+				}
 
 				 
 

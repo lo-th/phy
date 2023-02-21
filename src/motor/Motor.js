@@ -1,6 +1,6 @@
 
 import {
-    Group, MeshPhysicalMaterial, MeshBasicMaterial, Vector3
+    Group, MeshPhysicalMaterial, MeshBasicMaterial, Vector3, Vector2
 } from 'three';
 
 import { root, math, Utils, Geo, Mat, mat } from './root.js';
@@ -450,17 +450,14 @@ export class Motor {
 	static material ( o = {} ){
 
 		let m
+		if(o.normalScale){
+			if( !o.normalScale.isVector2 ) o.normalScale = new Vector2().fromArray(o.normalScale)
+		}
 		if( o.isMaterial ) m = o
 		else m = new MeshPhysicalMaterial( o )
-
-
 		if( mat[ m.name ] ) return null;
 
 	    Mat.set( m );
-
-		//mat[ m.name ] = m;
-		//root.extraMaterial( m )
-
 		return m;
 
 	}

@@ -18,53 +18,26 @@ demo = () => {
 
 onComplete = () => {
 
+    
+
     phy.applyMorph('buggy', null, true);
 
     const model = phy.getMesh('buggy');
-
-    const wheel = model['h_wheel']
-
-    const suspension = model['h_susp_base']
-
-
-    let Mat = phy.getMat()
-    let clear = Mat.get('clear')
-
-    for( let o in model ){
-
-        model[o].castShadow = true;
-        model[o].receiveShadow = true;
-        model[o].material = clear;
-
-    }
+    applyMaterial( model )
 
     const body = model['h_chassis']
-    let k = body.children.length, m;
+    const wheel = model['h_wheel']
+    const suspension = model['h_susp_base']
+    const brake = model['h_brake']
 
-
-    while(k--){
-
-        m = body.children[k];
-        if( m.name === 'h_glasses' ){ 
-            m.material = Mat.get('plexi');
-            m.castShadow = false
-            m.receiveShadow = false
-        }
-        
-    }
-
-    k = wheel.children.length;
-    
-    while(k--){
-
-        m = wheel.children[k];
-        
-    }
-
-
-
+    // add top wheel
+    let wtop = wheel.clone()
+    wtop.position.set(0,0.0125,-0.0113)
+    wtop.rotation.z = -90 * math.torad
+    body.add( wtop )
 
     buggy = phy.add( { 
+
         type:'vehicle', 
         name:'buggy',  
         //size:[ 1.3, 0.4, 3.5 ], // chassis size
@@ -79,6 +52,7 @@ onComplete = () => {
         meshScale:100,
         chassisMesh:body,
         wheelMesh: wheel,
+        brakeMesh: brake,
         suspensionMesh: suspension,
 
         s_travel:0.4,
@@ -141,3 +115,105 @@ update = () => {
     //phy.update( { name:'buggy', key:key } )
 
 }
+
+applyMaterial = ( model ) => {
+
+    const mat = {}
+
+    let Mat = phy.getMat()
+    let clear = Mat.get('clear')
+
+    const path = './assets/textures/buggy/'
+
+    mat['plexi'] = Mat.get('plexi');
+
+    mat['body'] = phy.material({
+        name:'body',
+        roughness: 0.1,
+        metalness: 0.9,
+        envMapIntensity: 1.35,
+        map: phy.texture({ url:path + 'body_c.jpg', flip:false }),
+    });
+
+    mat['extra'] = phy.material({
+        name:'extra',
+        roughness: 0.1,
+        metalness: 0.6,
+        map: phy.texture({ url:path + 'extra_c.jpg', flip:false }),
+        normalMap: phy.texture({ url:path + 'extra_n.jpg', flip:false }),
+        normalScale: [ 1, -1 ],
+    });
+
+    mat['pilote'] = phy.material({
+        name:'pilote',
+        roughness: 0.4,
+        metalness: 0.6,
+        map: phy.texture({ url:path + 'pilote_c.jpg', flip:false }),
+    });
+
+    let wheel_map = phy.texture({ url:path + 'wheel_c.jpg', flip:false })
+    let wheel_normal = phy.texture({ url:path + 'wheel_n.jpg', flip:false })
+
+    mat['wheel'] = phy.material({
+        name:'wheel',
+        roughness: 0.1,
+        metalness: 0.6,
+        map: wheel_map,
+        normalMap: wheel_normal,
+        normalScale: [ 1, -1 ],
+    });
+
+    mat['pneu'] = phy.material({
+        name:'pneu',
+        roughness: 0.7,
+        metalness: 0.1,
+        map: wheel_map,
+        normalMap: wheel_normal,
+        normalScale: [ 2, -2 ],
+    });
+
+    mat['susp'] = phy.material({
+        name:'susp',
+        roughness: 0.6,
+        metalness: 0.4,
+        map: phy.texture({ url:path + 'suspension_c.jpg', flip:false }),
+    });
+
+    mat['brake'] = phy.material({
+        name:'brake',
+        transparent:true, 
+        opacity:0.2,
+        color: 0xdd3f03,
+    });
+
+    let m
+    for( let o in model ){
+        m = model[o]
+        m.castShadow = true
+        m.receiveShadow = true
+        switch(o){
+            case 'h_glasses': 
+            m.material = mat.plexi; 
+            m.castShadow = false
+            m.receiveShadow = false
+            break;
+            case 'h_pilote': m.material = mat.pilote; break;
+            case 'h_pneu': m.material = mat.pneu; break;
+            case 'h_hot': m.material = mat.brake; break;
+            case 'h_brake': case 'h_wheel': case 'h_brake_disk': case 'h_brake': m.material = mat.wheel; break;
+            case 'h_susp_base': case 'h_suspension': m.material = mat.susp; break;
+            case 'h_steering_wheel': case 'h_sit_R': case 'h_sit_L': 
+            case 'h_extra': case 'h_pot': case 'h_license': m.material = mat.extra; break;
+            default:
+            m.material = mat.body;
+            break;
+
+        }
+
+        
+
+    }
+
+}
+
+
