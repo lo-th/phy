@@ -74,6 +74,9 @@ class Car extends Basic3D {//extends Object3D {
 		//this.withBody = false;
 		this.actif = false;
 		//this.position = new THREE.Vector3();
+		this.steering = 0
+		this.suspension = []
+		this.rolling = []
 		this.init( o );
 
 	}
@@ -88,6 +91,8 @@ class Car extends Basic3D {//extends Object3D {
 
 	init ( o ) {
 
+		this.mass = o.mass || 2000
+
 		//this.decal = o.bodyDecalY || 0;
 		//this.circum = (Math.PI * 2 * o.radius);// in metter
 
@@ -95,6 +100,9 @@ class Car extends Basic3D {//extends Object3D {
 		this.size = o.size || [0.85*2, 0.5*2, 2.5*2];
 		this.massCenter = o.massCenter || [0, 0.55, 1.594]
 		this.chassisPos = o.chassisPos || [0, 0.83, 0]
+
+		this.maxSteering = o.maxSteering || 24
+		this.incSteering = o.incSteering || 2
 
 
 		//this.diff = math.vecSub( this.chassisPos, this.massCenter )
@@ -111,19 +119,25 @@ class Car extends Basic3D {//extends Object3D {
 
 		if( o.wPos ){
 
-			var p, wp = o.wPos, pp = [], s=1;
+			var p, wp = o.wPos, pp = [], s=1, b=0, y, x;
 			var limz = wp.length === 3 ? true : false;
 			var pz = 1;
 
 			for( var i=0; i < this.numWheel; i++ ){
 
 				s = i%2 === 0 ? -1 : 1;
+				b = i>1 ? 1:0
+				y = wp[ 1 ]
+				if(y===0) y = b ? this.radiusBack : this.radius
+				x = wp[ 0 ]
+				if(x===0) x = (b ? this.deepBack : this.deep)*0.5
+
 				if(s === -1) pz++;
 
 				if(limz){
-					p = [ wp[ 0 ] * s, wp[ 1 ], i<2 ? wp[ 2 ] : -wp[ 2 ] ]
+					p = [ x * s, y, i<2 ? wp[ 2 ] : -wp[ 2 ] ]
 				} else {
-					p = [ wp[ 0 ] * s, wp[ 1 ],  -wp[ pz ] ];
+					p = [ x * s, y,  -wp[ pz ] ];
 				}
 
 				pp.push( p );
@@ -139,6 +153,8 @@ class Car extends Basic3D {//extends Object3D {
 
 		}
 
+		//console.log(this.wheelsPosition)
+
 		const scale = o.meshScale || 1
 
 
@@ -151,13 +167,10 @@ class Car extends Basic3D {//extends Object3D {
 		else chassisShapes.push( { type:'box', size:this.size, pos:this.chassisPos } ); 
 
 		for( let i=0; i < this.numWheel; i++ ){
-	    	if( i < 2 ) chassisShapes.push({ type:'cylinder', size:[ this.radius, this.deep ], isWheel:true, radius:0.05 , shadow:false, ray:false });
-	    	else chassisShapes.push({ type:'cylinder', size:[ this.radiusBack, this.deepBack ], isWheel:true, radius:0.05 , shadow:false, ray:false  });
+	    	if( i < 2 ) chassisShapes.push({ type:'cylinder', size:[ this.radius, this.deep ], isWheel:true, radius:o.rad || 0.05 , shadow:false, ray:false });
+	    	else chassisShapes.push({ type:'cylinder', size:[ this.radiusBack, this.deepBack ], isWheel:true, radius:o.rad || 0.05 , shadow:false, ray:false  });
 	    	
 	    }
-
-	    ///console.log( chassisShapes )
-
 
 	    /*for( var i=0; i < o.numWheel; i++ ){
 
@@ -182,11 +195,13 @@ class Car extends Basic3D {//extends Object3D {
 	    	root.items.body.geometry( n, this, material )
 	    }
 
+	    //if( o.chassisShape ) console.log(  )
+
 
 		let m
 
 		if(o.chassisMesh){
-			m = o.chassisMesh.clone()
+			m = o.noClone ? o.chassisMesh : o.chassisMesh.clone()
 			Utils.noRay( m )
 			m.scale.set( scale, scale, scale )
 			this.children[0].add( m )
@@ -216,7 +231,7 @@ class Car extends Basic3D {//extends Object3D {
 		// suspension model
 		if( o.suspensionMesh ){
 
-			this.suspension = []
+			this.suspensionMesh = []
 
 			for( let i = 1; i<this.numWheel+1; i++ ) {
 
@@ -227,7 +242,7 @@ class Car extends Basic3D {//extends Object3D {
 				if(i==2 || i ==4) m.scale.set( scale, scale, scale )
 				else m.scale.set( -scale, scale, scale )
 				this.children[0].add( m )
-			    this.suspension.push( m )
+			    this.suspensionMesh.push( m )
 
 			}
 			delete o.suspensionMesh;
@@ -254,7 +269,9 @@ class Car extends Basic3D {//extends Object3D {
 
 		}
 
-		o.size = this.size
+		o.mass = this.mass
+
+		o.size = o.chassisShape ? chassisShapes[0].boxSize : this.size
 		o.numWheel = this.numWheel
 		o.wheelsPosition = this.wheelsPosition
 		o.radius = this.radius
@@ -263,6 +280,10 @@ class Car extends Basic3D {//extends Object3D {
 		o.deepBack = this.deepBack;
 
 		o.chassisShape = chassisShapes[0]
+
+		o.maxSteering = this.maxSteering;
+		o.incSteering = this.incSteering;
+		//o.s_travel = this.s_travel || 5;
 
 		o.massCenter = this.massCenter
 		o.chassisPos = this.chassisPos
@@ -317,52 +338,21 @@ class Car extends Basic3D {//extends Object3D {
 		this.quaternion.fromArray( AR, n + 4 )
 		this.updateMatrix()
 
-		//console.log(AR)
-
-		/*if( this.withBody ){
-			this.body.position.copy( this.chassis.position );
-		    this.body.quaternion.copy( this.chassis.quaternion );
-		    this.body.updateMatrix();
-		}*/
-
-		//this.position.copy( this.chassis.position );
-		
-		//if(this.kinematic) return;
-
-		var num = this.numWheel+1;
-
-		var m = 0, mesh, acc, sr, real;
-
-		/*let isGlobal = false
-
-		let mx = new Matrix4()
-		let mx2 = new Matrix4().copy( this.chassis.matrixWorld ).invert()
-		let mp = new Vector3()
-		let mq = new Quaternion()*/
+		let num = this.numWheel+1;
+		let ratio = 1/0.2
+		let m = 0, mesh, acc, real;
+		let s1 = 0, s2 = 0
 		let sp = []
+		let k = 0;
 
-		var k = 0;
 		for( var i = 0; i<num; i++ ){
 
-			k = (i*8) + n //( i*5 ) + n;
+			k = (i*8) + n
 
-
-
-
-			//m = i * 8;
-
-			sr = 0;
-
-			//if(i===0) acc = -( AR[ m+n ] * this.circum );
 			if(i===0)  acc = ( ( AR[ k ] ) / this.circum  );
-			//else wroll =
-			//if(i===0) acc = -( AR[ m+n ] / (this.circum)  );
-			if(i===1) sr = AR[ k ];
-			if(i===2) sr = AR[ k ];
-
-
-
-
+			if(i===1) s1 = AR[ k ]
+			if(i===2) s2 = AR[ k ] 
+			
 			mesh = this.children[i];
 			
 
@@ -370,103 +360,44 @@ class Car extends Basic3D {//extends Object3D {
 
 				sp[i-1] = this.wheelsPosition[i-1][1] - AR[k+2]
 
-				/*if(isGlobal){
-					mx.compose( {x:AR[k+1], y:AR[k+2], z:AR[k+3]}, {_x:AR[k+4], _y:AR[k+5], _z:AR[k+6], _w:AR[k+7]}, {x:1, y:1, z:1})
-					mx.premultiply( mx2 )
-					mx.decompose(mp, mq, {x:1, y:1, z:1})
-					mp.toArray( AR, k + 1 )
-					mq.toArray( AR, k + 4 )
-				}*/
-
-				
-				
-
-				//mesh.rotation.order = 'YXZ'
-				/*mesh.position.copy(mp)//fromArray( AR, k + 1 );
-				mesh.position.y += this.massCenter[1]
-				mesh.quaternion.copy(mq)//fromArray( AR, k + 4 )*/
-
 				// local
 				
 				mesh.position.fromArray( AR, k + 1 );
 				//mesh.position.y += this.massCenter[1]
 				mesh.quaternion.fromArray( AR, k + 4 )
 
+				this.rolling[i-1] = mesh.rotation.x
+
 				if(this.brake){
 					this.brake[i-1].position.copy( mesh.position )
 					if(i==1 || i==2) this.brake[i-1].rotation.y = AR[k]
 				}
 
-				 
-
-
-				//mesh.quaternion.fromArray( AR, n + 4 )//.premultiply(this.q)
-				//mesh.rotation.order = 'YXZ';
-				/*mesh.rotation.order = 'YZX';
-				mesh.rotation.y = AR[k+4];
-				mesh.rotation.x = AR[k+5];
-				mesh.rotation.z = AR[k+6];*/
-
-
 			}
-
-			
-
-			
-			//mesh.quaternion.fromArray( AR, k + 4 );
-
-			/*if( this.withBody ){
-
-				if( i > 0 ) real = this.bodys[ this.wheelNamePrefix + ( i-1 ) ];
-			    else real = this.bodys[ this.chassisName ];
-
-				if(real) {
-					real.position.fromArray( AR, k + 1 ).multiplyScalar(this.invScale);
-					//real.quaternion.fromArray( AR, k + 4 );
-					if(real.name === this.chassisName) real.position.y-= this.decal;
-				}
-			}*/
-
-
-
-			/*if(i>0){
-
-				var roll = AR[ k+4 ]
-
-				mesh.rotation.order = 'YXZ';
-				mesh.rotation.y = sr;
-				mesh.rotation.x += acc/Math.PI;
-				mesh.rotation.x = roll;
-
-				if( this.withBody && real ){
-			        if(!this.disableSteerAnimation) real.rotation.y = sr;
-				    //real.rotation.x += acc/Math.PI;
-				    real.rotation.x = roll;
-				}
-
-
-			}*/
-
-
 
 		}
 
-		if(this.suspension){
-				let k = 4, v, ratio = 1/0.2
-				while(k--){
-					v = sp[k]*ratio//( AR[ n + 56 + k ] ) * ratio;
-					v = math.clamp( v, -1, 1 )
-					if ( v > 0 ) {
-					    this.suspension[k].children[0].morphTargetInfluences[ this.suspension[k].children[0].morphTargetDictionary['low'] ] = v;
-					    this.suspension[k].children[0].morphTargetInfluences[ this.suspension[k].children[0].morphTargetDictionary['top'] ] = 0;
-					} else {
-						this.suspension[k].children[0].morphTargetInfluences[ this.suspension[k].children[0].morphTargetDictionary['low'] ] = 0;
-					    this.suspension[k].children[0].morphTargetInfluences[ this.suspension[k].children[0].morphTargetDictionary['top'] ] = -v;
-					}
+		
+		k = 4
+		while(k--){
 
-				} 
+			this.suspension[k] = math.clamp( sp[k]*ratio, -1, 1 )
+			
+			if(this.suspensionMesh ){
+				if ( this.suspension[k] > 0 ) {
+					Utils.morph( this.suspensionMesh[k].children[0], 'low', this.suspension[k] )
+					Utils.morph( this.suspensionMesh[k].children[0], 'top', 0 )
+				} else {
+					Utils.morph( this.suspensionMesh[k].children[0], 'low', 0 )
+					Utils.morph( this.suspensionMesh[k].children[0], 'top', -this.suspension[k] )
+				}
 			}
 
+		} 
+
+		this.steering = Math.round(((s1+s2)*0.5)*math.todeg) / this.maxSteering
+		
+		//console.log(this.steering)
 		//console.log(acc)
 
 

@@ -10,11 +10,11 @@
     ],
 
     "PHYSX": [
-        "solver", "vehicle" , "robot", "gears2"
+        "solver", "vehicle" , "vehicle2", "robot", "gears2"
     ],
 
     "AMMO": [
-        "vehicle" 
+        "vehicle", "vehicle2"
     ],
 
     "Envmap": [ 

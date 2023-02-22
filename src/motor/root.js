@@ -148,7 +148,15 @@ export const Utils = {
 			})
 
 		}
-	}
+	},
+
+    morph: ( obj, name, value ) => {
+        
+        if(!obj.morphTargetInfluences) return
+        if(obj.morphTargetDictionary[name] === undefined ) return
+        obj.morphTargetInfluences[ obj.morphTargetDictionary[name] ] = value;
+    
+    },
 
 }
 

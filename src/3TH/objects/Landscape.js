@@ -173,7 +173,7 @@ export class Landscape extends Mesh {
 
             name = maps[i]
 
-            txt[name] = Pool.directTexture(this.folder + name +'.jpg', { flip:false, repeat:this.uvx, encoding:o.encoding || true , callback: this.mapcallback.bind(this)  });
+            txt[name+'_c'] = Pool.directTexture(this.folder + name +'_c.jpg', { flip:false, repeat:this.uvx, encoding:o.encoding || true , callback: this.mapcallback.bind(this)  });
             txt[name+'_n'] = Pool.directTexture(this.folder + name +'_n.jpg', { flip:false, repeat:this.uvx, callback: this.mapcallback.bind(this) });
            // if( isORM )txt[name+'_n'] = Pool.directTexture('./assets/textures/terrain/'+name+'_n.jpg', { flip:false, repeat:this.uvx, callback: this.mapcallback.bind(this) });
 
@@ -183,7 +183,7 @@ export class Landscape extends Mesh {
 
         this.txt = txt
 
-        this.material = new MeshStandardMaterial({ name:'terrain', vertexColors:true, color:0xFFFFFF, map:txt[maps[0]], normalMap:txt[maps[0]+'_n'] });
+        this.material = new MeshStandardMaterial({ name:'terrain', vertexColors:true, color:0xFFFFFF, map:txt[maps[0]+'_c'], normalMap:txt[maps[0]+'_n'] });
 
         if( o.envmap !== undefined ) this.material.envMap = o.envmap
 
@@ -191,13 +191,13 @@ export class Landscape extends Mesh {
             this.material.transparent = true;
             this.material.opacity = o.opacity || 0.4;
             this.material.side = DoubleSide;
-            this.material.alphaMap = txt[maps[0]];
+            this.material.alphaMap = txt[maps[0]+'_c'];
             this.material.map = null;
-            this.material.metalnes  = 0.9;
+            this.material.metalness  = 0.9;
             this.material.roughness = 0.1;
         } else {
-            this.material.metalnes  = 0.25;
-            this.material.roughness = 0.7; 
+            this.material.metalness = o.metalness || 0.25;
+            this.material.roughness = o.roughness || 0.7; 
         }
 
         if( isORM ){
@@ -218,8 +218,8 @@ export class Landscape extends Mesh {
 
                 uniforms['clevels'] = { value: clevels };
 
-                uniforms['map1'] = { value: txt[maps[1]] };
-                uniforms['map2'] = { value: txt[maps[2]] };
+                uniforms['map1'] = { value: txt[maps[1]+'_c'] };
+                uniforms['map2'] = { value: txt[maps[2]+'_c'] };
 
                 uniforms['complexMix'] = { value: 1 };
 

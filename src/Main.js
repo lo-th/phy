@@ -289,6 +289,7 @@ Motor.getTexture = Pool.getTexture;
 Motor.get = Pool.get;
 
 Motor.applyMorph = Pool.applyMorph;
+Motor.uv2 = Pool.uv2;
 
 Motor.log = Hub.log;
 

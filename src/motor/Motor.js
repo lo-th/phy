@@ -341,6 +341,8 @@ export class Motor {
 
 	}
 
+	static morph ( obj, name, value ){ Utils.morph( obj, name, value ) }
+
 	static getFps (){ return root.reflow.stat.fps }
 	
 	static getDelta2(){ return root.reflow.stat.delta }

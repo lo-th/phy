@@ -55,6 +55,7 @@ onComplete = () => {
         brakeMesh: brake,
         suspensionMesh: suspension,
 
+        maxSteering:14,
         s_travel:0.4,
         w_attach:0.215,
 
@@ -88,7 +89,7 @@ terrainTest = () => {
         expo: 2,
     })
 
-    let py = terrain.getHeight( 0, 0 )+1
+    let py = terrain.getHeight( 0, 0 )+3
     if(py<1) py = 1
 
     phy.up( { name:'buggy', pos:[0,py,0] } )
@@ -132,15 +133,15 @@ applyMaterial = ( model ) => {
         roughness: 0.1,
         metalness: 0.9,
         envMapIntensity: 1.35,
-        map: phy.texture({ url:path + 'body_c.jpg', flip:false }),
+        map: phy.texture({ url:path + 'body_c.jpg' }),
     });
 
     mat['extra'] = phy.material({
         name:'extra',
         roughness: 0.1,
         metalness: 0.6,
-        map: phy.texture({ url:path + 'extra_c.jpg', flip:false }),
-        normalMap: phy.texture({ url:path + 'extra_n.jpg', flip:false }),
+        map: phy.texture({ url:path + 'extra_c.jpg' }),
+        normalMap: phy.texture({ url:path + 'extra_n.jpg' }),
         normalScale: [ 1, -1 ],
     });
 
@@ -148,11 +149,11 @@ applyMaterial = ( model ) => {
         name:'pilote',
         roughness: 0.4,
         metalness: 0.6,
-        map: phy.texture({ url:path + 'pilote_c.jpg', flip:false }),
+        map: phy.texture({ url:path + 'pilote_c.jpg' }),
     });
 
-    let wheel_map = phy.texture({ url:path + 'wheel_c.jpg', flip:false })
-    let wheel_normal = phy.texture({ url:path + 'wheel_n.jpg', flip:false })
+    let wheel_map = phy.texture({ url:path + 'wheel_c.jpg' })
+    let wheel_normal = phy.texture({ url:path + 'wheel_n.jpg' })
 
     mat['wheel'] = phy.material({
         name:'wheel',
@@ -176,7 +177,7 @@ applyMaterial = ( model ) => {
         name:'susp',
         roughness: 0.6,
         metalness: 0.4,
-        map: phy.texture({ url:path + 'suspension_c.jpg', flip:false }),
+        map: phy.texture({ url:path + 'suspension_c.jpg' }),
     });
 
     mat['brake'] = phy.material({

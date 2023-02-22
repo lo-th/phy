@@ -1,5 +1,5 @@
 import {
-    Texture, TextureLoader, sRGBEncoding, RepeatWrapping, NearestFilter, EquirectangularReflectionMapping
+    Texture, TextureLoader, sRGBEncoding, RepeatWrapping, NearestFilter, EquirectangularReflectionMapping, AnimationMixer
 } from 'three';
 
 import { GLTFLoader } from '../jsm/loaders/GLTFLoader.js';
@@ -123,11 +123,18 @@ export const Pool = {
 
     applyMorph( modelName, meshs = null, normal = true, relative = true ){
 
-        const model = Pool.get( modelName, 'O' )
+        let model
+        if( modelName.isObject3D ) model = modelName
+        else model = Pool.get( modelName, 'O' )
+
         if( !meshs ) meshs = Pool.getMesh( modelName );
         if( !model || !meshs ) return 
         GlbTool.autoMorph( model, meshs, normal, relative )
 
+    },
+
+    uv2( model ){
+        GlbTool.uv2( model )
     },
 
     add: ( name, node, type ) => {
@@ -168,7 +175,7 @@ export const Pool = {
             let im = Pool.data.get( 'I_' + name )
             if(!im) return null
             t = new Texture( im )
-            if( name.search('_c') !== -1) o.encoding = true
+            if( name.search('_c') !== -1 || name.search('_l') !== -1 ) o.encoding = true
             Pool.data.set( 'T_' + name, t );
             //Pool.extraTexture.push( name );
         }
@@ -393,8 +400,22 @@ export const Pool = {
             Pool.dracoLoader.dispose()
         })*/
 
-        Pool.loaderGLTF().load( url, function ( gltf ) { 
-            Pool.add( name, gltf.scene )
+        Pool.loaderGLTF().load( url, function ( gltf ) {
+
+            const model = gltf.scene;
+
+            if( gltf.animations ){ 
+                const animations = gltf.animations
+                const mixer = new AnimationMixer( gltf.scene )
+                model.mixer = mixer
+                model.actions = {}
+                for ( let i = 0; i < animations.length; i ++ ) {
+                    let anim = animations[ i ];
+                    model.actions[ anim.name ] = mixer.clipAction( anim );
+                }
+            }
+            
+            Pool.add( name, model )
         })
 
     },

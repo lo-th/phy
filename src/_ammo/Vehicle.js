@@ -101,7 +101,7 @@ class Car {
 
 		this.data = {
 
-			mass: o.mass || 2000, // 100
+			mass: 0, //o.mass || 2000, // 100
 
 			incSteering: o.incSteering || 2,
 			maxSteering: o.maxSteering || 24,
@@ -153,6 +153,7 @@ class Car {
 	init ( o ) {
 
 		this.wpos = o.wPos;
+		this.size = o.size || [0.85*2, 0.5*2, 2.5*2]
 
 		
 
@@ -211,7 +212,7 @@ class Car {
 
 		//console.log(o.masscenter)
 
-		this.chassisShape = o.chassisShape ? root.bodyRef.shape( o.chassisShape ) : new Ammo.btBoxShape( p0.set(0.85, 0.65, 2.5) );
+		this.chassisShape = o.chassisShape ? root.bodyRef.shape( o.chassisShape ) : new Ammo.btBoxShape( p0.set(this.size[0]*0.5, this.size[1]*0.5, this.size[2]*0.5) );
 
 
 		// move center of mass
@@ -230,6 +231,8 @@ class Car {
 		compound.calculateLocalInertia( data.mass, p0 );
 		var motionState = new Ammo.btDefaultMotionState( this.startPose );
 		var rbInfo = new Ammo.btRigidBodyConstructionInfo( data.mass, motionState, compound, p0 );
+		// chassisMOI
+		console.log( p0.toArray() )
 
 		// car body
 		this.body = new Ammo.btRigidBody( rbInfo );
@@ -514,6 +517,7 @@ class Car {
 		this.body.getCollisionShape().calculateLocalInertia( this.data.mass, p0 );
 		this.body.setMassProps( m, p0 );
 		this.body.updateInertiaTensor();
+		
 		p0.free();
 
 	}

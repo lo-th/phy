@@ -108,7 +108,7 @@ export const GlbTool = {
             }
         })
 
-		let oName, tName, target, id, g, gm, j, dp, dn, ar;
+		let oName, tName, target, id, g, gm, j, dp, dn, ar, m;
 		
 
 		for ( let name in morph ){
@@ -168,6 +168,16 @@ export const GlbTool = {
                     target.morphTargetInfluences.push(0)
                     target.morphTargetDictionary[ tName ] = id;
 
+                    /*if( !target.morph ) {
+                        target.morph = function ( name, value ){
+                            //console.log(this.morphTargetInfluences)
+                            if(!this.morphTargetInfluences) return
+                            if(this.morphTargetDictionary[name] === undefined ) return
+                            this.morphTargetInfluences[ this.morphTargetDictionary[name] ] = value;
+                        }
+
+                        
+                    }*/
                     //console.log( target.name + ' have morph call '+ tName )
 
 				} else {
@@ -179,17 +189,17 @@ export const GlbTool = {
 		}
 
 		morph = {}
+
 		// claer garbege
-		j = tmpMesh.length;
+		j = tmpMesh.length
 		while(j--){
-			if( tmpMesh.parent ) tmpMesh.parent.remove( tmpMesh );
-			if( tmpMesh.material ) tmpMesh.material.dispose()
-			if( tmpMesh.geometry ) tmpMesh.geometry.dispose()
+            m = tmpMesh[j]
+			if( m.parent ) m.parent.remove( m );
+			if( m.material ) m.material.dispose()
+			if( m.geometry ) m.geometry.dispose()
 		}
 
 	},
-
-
 
 
 }

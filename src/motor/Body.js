@@ -171,6 +171,7 @@ export class Body extends Item {
 			}
 
 			if( o.shape ){
+
 				g = o.shape.clone();
 				if( o.size ) g.scale( o.size[0], o.size[0], o.size[0] );
 				//o.v = g.attributes.position.array;
@@ -180,6 +181,12 @@ export class Body extends Item {
 				unic = true;
 				noScale = true;
 			}
+
+			if(!g.boundingBox) g.computeBoundingBox()
+			let bx = g.boundingBox
+		    o.boxSize = [ -bx.min.x + bx.max.x, -bx.min.y + bx.max.y, -bx.min.z + bx.max.z ]
+
+			//console.log(g)
 
 			break;
 
