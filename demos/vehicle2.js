@@ -2,6 +2,8 @@ let bike, model, meshes, maxDistance = 50, oldv = 0, w1, w2;
 const TimeFrame = 1/30;
 
 demo = () => {
+    
+    phy.log('use key WSAD or ZSQD<br>SPACE to handbrake')
 
     phy.view({ envmap:'pendora', ground:false, fog:true, fogDist:0.01 })
 
@@ -89,7 +91,7 @@ terrainTest = () => {
         //staticFriction:0.5,
         friction: 0.5,
         restitution: 0.0,
-        uv: 100,
+        uv: 150,
         pos: [0,-5,0],
         size:[512, 6, 512],
         sample: [512, 512],
@@ -188,7 +190,7 @@ applyMaterial = ( model ) => {
     const ao = 1
 
     let Mat = phy.getMat()
-    mat['plexi'] = Mat.get('plexi');
+    mat['carGlass'] = Mat.get('carGlass');
 
     mat['kaneda'] = phy.material({
         name:'kaneda',
@@ -215,6 +217,7 @@ applyMaterial = ( model ) => {
         aoMap: phy.texture({ url:path + 'bike_1_a.jpg' }),
         normalScale: [ 1, -1 ],
         aoMapIntensity:ao,
+        clearcoat: 1.0, clearcoatRoughness: 0.03, sheen: 0.5,
     });
 
     mat['bike2'] = phy.material({
@@ -226,6 +229,7 @@ applyMaterial = ( model ) => {
         roughnessMap: phy.texture({ url:path + 'bike_2_r.jpg' }),
         aoMap: phy.texture({ url:path + 'bike_2_a.jpg' }),
         aoMapIntensity:ao,
+        clearcoat: 1.0, clearcoatRoughness: 0.03, sheen: 0.5,
     });
 
     mat['bike3'] = phy.material({
@@ -241,6 +245,7 @@ applyMaterial = ( model ) => {
         normalMap: phy.texture({ url:path + 'bike_3_n.jpg' }),
         normalScale: [ 1, -1 ],
         aoMapIntensity:ao,
+        clearcoat: 1.0, clearcoatRoughness: 0.03, sheen: 0.5
     });
 
     mat['tire'] = phy.material({
@@ -260,9 +265,8 @@ applyMaterial = ( model ) => {
         m.receiveShadow = true
         switch(o){
             case 'ak_glass': case 'ak_glass_white':case 'ak_pane_g': case 'ka_glass':
-            m.material = mat.plexi; 
+            m.material = mat.carGlass; 
             m.castShadow = false
-            m.receiveShadow = false
             break;
             case 'ak_tire_av': case 'ak_tire_ar': m.material = mat.tire; break;
             case 'ka_body': case 'ka_eye_l': case 'ka_eye_r': case 'ka_eyes': case 'ka_hair':

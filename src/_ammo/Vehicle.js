@@ -111,7 +111,6 @@ class Car {
 			//radius: 0.5,
 			wWidth: 0.25,
 			nWheel: o.nWheel || 4,
-			wPos: [ 1, 0, 1.6 ], // wheels position on chassis
 			// drive setting
 			engine: 1000,
 			acceleration: 10,
@@ -152,7 +151,6 @@ class Car {
 
 	init ( o ) {
 
-		this.wpos = o.wPos;
 		this.size = o.size || [0.85*2, 0.5*2, 2.5*2]
 
 		
@@ -253,106 +251,20 @@ class Car {
 
 		// wheels
 
-		/*var radius = o.radius || 0.4;
-		var radiusBack = o.radiusBack || radius;
-		var wPos = o.wPos || [ 1, 0, 1.6 ];
-
-		wPos = math.vectomult( wPos, root.invScale );
-		radius = radius * root.invScale;
-		radiusBack = radiusBack * root.invScale;
+	
 
 
+		//console.log(p)
 
-		wPos[ 1 ] -= o.masscenter[ 1 ];
+		const NW = this.numWheel;
 
-		var n = data.nWheel, p, fw;
-		var by = o.decalYBack || 0;
+		for ( let i = 0; i < NW; i ++ ) {
 
-		for ( var i = 0; i < n; i ++ ) {
+			let fw = 1<2;
 
-
-
-			//if ( i === 2 && wPos[ 4 ] ) wPos[ 0 ] += wPos[ 4 ];
-			if ( i === 0 ) {
-
-				p = [ wPos[ 0 ], wPos[ 1 ], wPos[ 2 ] ]; fw = true;
-
-			}
-			if ( i === 1 ) {
-
-				p = [ - wPos[ 0 ], wPos[ 1 ], wPos[ 2 ] ]; fw = true;
-
-			}
-			if ( i === 2 ) {
-
-				p = [ - wPos[ 0 ], wPos[ 1 ] + by, - wPos[ 2 ] ]; fw = false;
-
-			}
-			if ( i === 3 ) {
-
-				p = [ wPos[ 0 ], wPos[ 1 ] + by, - wPos[ 2 ] ]; fw = false;
-
-			}
-			if ( i === 4 ) {
-
-				p = [ - wPos[ 0 ], wPos[ 1 ] + by, - wPos[ 3 ] ]; fw = false;
-
-			}
-			if ( i === 5 ) {
-
-				p = [ wPos[ 0 ], wPos[ 1 ] + by, - wPos[ 3 ] ]; fw = false;
-
-			}
-
-			if ( n === 2 ) { // moto
-
-				if ( i === 0 ) {
-
-					p = [ 0, wPos[ 1 ], wPos[ 2 ] ]; fw = true;
-
-				}
-
-				if ( i === 1 ) {
-
-					p = [ 0, wPos[ 1 ] + by, - wPos[ 2 ] ]; fw = false;
-
-				}
-
-			}
-
-			if ( n === 3 ) { // moto
-
-				if ( i === 0 ) {
-
-					p = [ 0, wPos[ 1 ], wPos[ 2 ] ]; fw = true;
-
-				}
-
-				if ( i === 1 ) {
-
-					p = [ wPos[ 0 ], wPos[ 1 ] + by, - wPos[ 2 ] ]; fw = false;
-
-				}
-
-				if ( i === 2 ) {
-
-					p = [ -wPos[ 0 ], wPos[ 1 ] + by, - wPos[ 2 ] ]; fw = false;
-
-				}
-
-			}*/
-
-			//console.log(p)
-
-			const NW = this.numWheel;
-
-			for ( let i = 0; i < NW; i ++ ) {
-
-				let fw = 1<2;
-
-				p1.fromArray( this.wheelsPosition[i] ); // position
-				p2.setValue( 0, - 1, 0 ); // wheelDir
-				p3.setValue( - 1, 0, 0 ); // wheelAxe
+			p1.fromArray( this.wheelsPosition[i] ); // position
+			p2.setValue( 0, - 1, 0 ); // wheelDir
+			p3.setValue( - 1, 0, 0 ); // wheelAxe
 
 			/*var m = i*3;
 			if(o.wheelDir){
@@ -592,14 +504,16 @@ class Car {
 		let angle_l, angle_r
 
 		// Ackermann steering principle
+
+		this.wheelSide = this.wheelsPosition[1][0]// * 2
+        this.wheelBase = this.wheelsPosition[1][2] * 2
+
 		if ( this.numWheel > 3 ){
 
-			let lng = (this.wpos[2]*2);
-			let w = this.wpos[0];
-			let turn_point = lng / Math.tan( this.steering*torad );
+			let turn_point = this.wheelBase / Math.tan( this.steering*torad );
 
-			angle_l = Math.atan2( lng, w + turn_point);
-			angle_r = Math.atan2( lng, -w + turn_point);
+			angle_l = Math.atan2( this.wheelBase, this.wheelSide + turn_point);
+			angle_r = Math.atan2( this.wheelBase, -this.wheelSide + turn_point);
 			if(turn_point<0){
 				angle_l-=Math.PI;
 				angle_r-=Math.PI;

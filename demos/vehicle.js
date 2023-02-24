@@ -2,6 +2,8 @@ let buggy, maxDistance = 50;
 
 demo = () => {
 
+    phy.log('use key WSAD or ZSQD<br>SPACE to handbrake')
+
     phy.view({ envmap:'basic', ground:false, fog:true, fogDist:0.01 })
 
     phy.set( {substep:2, gravity:[0,-9.81,0]})
@@ -126,14 +128,15 @@ applyMaterial = ( model ) => {
 
     const path = './assets/textures/buggy/'
 
-    mat['plexi'] = Mat.get('plexi');
+    mat['carGlass'] = Mat.get('carGlass');
 
     mat['body'] = phy.material({
         name:'body',
-        roughness: 0.1,
-        metalness: 0.9,
+        roughness: 0.5,
+        metalness: 1.0,
         envMapIntensity: 1.35,
         map: phy.texture({ url:path + 'body_c.jpg' }),
+        clearcoat: 1.0, clearcoatRoughness: 0.03, sheen: 0.5,
     });
 
     mat['extra'] = phy.material({
@@ -157,11 +160,12 @@ applyMaterial = ( model ) => {
 
     mat['wheel'] = phy.material({
         name:'wheel',
-        roughness: 0.1,
-        metalness: 0.6,
+        roughness: 0.5,
+        metalness: 1.0,
         map: wheel_map,
         normalMap: wheel_normal,
         normalScale: [ 1, -1 ],
+        clearcoat: 1.0, clearcoatRoughness: 0.03, sheen: 0.5,
     });
 
     mat['pneu'] = phy.material({
@@ -194,9 +198,8 @@ applyMaterial = ( model ) => {
         m.receiveShadow = true
         switch(o){
             case 'h_glasses': 
-            m.material = mat.plexi; 
+            m.material = mat.carGlass; 
             m.castShadow = false
-            m.receiveShadow = false
             break;
             case 'h_pilote': m.material = mat.pilote; break;
             case 'h_pneu': m.material = mat.pneu; break;

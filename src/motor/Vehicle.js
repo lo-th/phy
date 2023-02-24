@@ -121,6 +121,7 @@ class Car extends Basic3D {//extends Object3D {
 
 			var p, wp = o.wPos, pp = [], s=1, b=0, y, x;
 			var limz = wp.length === 3 ? true : false;
+			var limx = wp.length === 4 ? true : false;
 			var pz = 1;
 
 			for( var i=0; i < this.numWheel; i++ ){
@@ -145,13 +146,15 @@ class Car extends Basic3D {//extends Object3D {
 			}
 
 			this.wheelsPosition = pp;
-			//delete o.wPos;
+			delete o.wPos;
 
 		} else {
 
-			this.wheelsPosition = o.wheelsPosition;
+			 ;
 
 		}
+
+		if(o.wheelsPosition) this.wheelsPosition = o.wheelsPosition
 
 		//console.log(this.wheelsPosition)
 
@@ -202,6 +205,7 @@ class Car extends Basic3D {//extends Object3D {
 
 		if(o.chassisMesh){
 			m = o.noClone ? o.chassisMesh : o.chassisMesh.clone()
+			m.position.set( 0, 0, 0 )
 			Utils.noRay( m )
 			m.scale.set( scale, scale, scale )
 			this.children[0].add( m )
@@ -211,11 +215,19 @@ class Car extends Basic3D {//extends Object3D {
 			//this.chassis.children[0].receiveShadow = false;
 		}
 
+
+		let back = false, pzz
+
 		// wheel model
 		if( o.wheelMesh ){
+			
+			
 			for( let i = 1; i<this.numWheel+1; i++ ) {
-				m = o.wheelMesh.clone()
+				back = i > 2
+				if( o.wheelMeshBack ) m = back ? o.wheelMeshBack.clone() : o.wheelMesh.clone()
+				else m = o.wheelMesh.clone()
 				Utils.noRay( m )
+				m.position.set( 0, 0, 0 )
 				if(i==2 || i ==4) m.scale.set( -scale, scale, scale )
 				else m.scale.set( scale, scale, scale )
 				this.children[i].add( m )
@@ -237,6 +249,7 @@ class Car extends Basic3D {//extends Object3D {
 
 				m = o.suspensionMesh.clone()
 				Utils.noRay( m )
+				m.position.set( 0, 0, 0 )
 				m.position.fromArray(this.wheelsPosition[i-1])
 				m.position.x = 0
 				if(i==2 || i ==4) m.scale.set( scale, scale, scale )
@@ -255,12 +268,16 @@ class Car extends Basic3D {//extends Object3D {
 			this.brake = []
 
 			for( let i = 1; i<this.numWheel+1; i++ ) {
-
-				m = o.brakeMesh.clone()
+				back = i > 2
+				if( o.brakeMeshBack ) m = back ? o.brakeMeshBack.clone() : o.brakeMesh.clone()
+				else m = o.brakeMesh.clone()
 				Utils.noRay( m )
+				m.position.set( 0, 0, 0 )
 				m.position.fromArray(this.wheelsPosition[i-1])
-				if(i==2 || i ==4) m.scale.set( -scale, scale, i==2? -scale : scale )
-				else m.scale.set( scale, scale, i==1? -scale : scale )
+				if( o.brakeMeshBack ) pzz = scale
+				else pzz = back ? scale : -scale
+				if(i==2 || i ==4) m.scale.set( -scale, scale, pzz )
+				else m.scale.set( scale, scale, pzz )
 				this.children[0].add( m )
 			    this.brake.push( m )
 
