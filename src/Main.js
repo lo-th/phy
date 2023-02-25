@@ -59,6 +59,7 @@ let video = null
 let childEditor = null
 let isExternEditor = false
 
+
 let maxFps = 60
 
 const cam = {
@@ -126,7 +127,7 @@ const options = {
 
 let g1, g2, g3
 let dom, camera, controls, scene, renderer, loop = null, composer = null, content, dragPlane, hideMat, followGroup, helperGroup, stats, txt, light, light2 = null, light3=null, ground = null, envui, dci;
-let ray, mouse, oldMouse, isActveMouse = false, mouseDown = false, mouseMove = false, firstSelect = false, selected = null, rayTest = false, controlFirst = true;
+let ray, mouse, oldMouse, isActveMouse = false, mouseDown = false, mouseDown2 = false, mouseMove = false, firstSelect = false, selected = null, rayTest = false, controlFirst = true;
 
 let code = ''
 let editor = null
@@ -1166,12 +1167,18 @@ const mousedown = ( e ) => {
 	    castray()
 	}
 
+	if( button === 2 ){
+	    mouseDown2 = true
+	    castray()
+	}
+
 }
 
 const mouseup = ( e ) => {
 
 	mouseMove = oldMouse.distanceTo( mouse ) < 0.01 ? false : true
 	mouseDown = false
+	mouseDown2 = false
 	unSelect();
 
 }
@@ -1206,7 +1213,7 @@ const castray = () => {
 		g = inters[ 0 ].object;
 		id = inters[ 0 ].instanceId;
 
-		//console.log(inters[ 0 ])
+		///console.log(inters[ 0 ])
 
 		if( id !== undefined ){
 			m = Motor.byName( g.name+id )
@@ -1218,7 +1225,11 @@ const castray = () => {
 			} else m = g;
 		}
 
-		//if( m.type === 'body' )
+		if(mouseDown2){
+			if(m.extra) m.extra( m.name )
+			//console.log(m)
+		}
+
 		cursor = select( m, inters[ 0 ] )
 
 	}
@@ -1252,14 +1263,14 @@ const select = ( obj, inters ) => {
 
     let p = pos.toArray()
 
-	//Motor.add({ name:'mouse', type:'sphere', size:[0.1], pos:p, mask:0, density:1, noGravity:true, kinematic:true })
-	Motor.add({ name:'mouse', type:'null', size:[0.1], pos:p, quat:quat })
+	Motor.add({ name:'mouse', type:'sphere', size:[0.1], pos:p, mask:0, density:1, noGravity:true, kinematic:true })
+	//Motor.add({ name:'mouse', type:'null', size:[0.1], pos:p, quat:quat })
 	Motor.add({ 
 		name:'mouseJoint', type:'joint', mode:'fixe',//mode:'spherical',
 		b1:selected.name, b2:'mouse', worldAnchor:p, //sd:[4,1]
 		//tolerance:[1, 10],
 		//noPreProcess:true,
-		improveSlerp:true,
+		//improveSlerp:true,
 		noFix:true,
 	})
 	Motor.up({ name:selected.name, neverSleep:true })
@@ -1280,7 +1291,7 @@ const unSelect = () => {
 	scene.remove( dragPlane )
 	Motor.remove('mouseJoint')
 	Motor.remove('mouse')
-	Motor.up({ name:selected.name, neverSleep:false })
+	Motor.up({ name:selected.name, neverSleep:false, wake:true })
 	
 	rayTest = true
 	selected = null

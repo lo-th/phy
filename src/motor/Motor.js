@@ -468,8 +468,10 @@ export class Motor {
 
 	static control ( name ){ // for character and vehicle
 
-		if(currentContole!== null){
-			if( name !== currentContole.name ) currentContole = Motor.byName( name )
+		if(currentContole !== null){
+			if( name !== currentContole.name ){ 
+				currentContole = Motor.byName( name )
+			}
 		} else {
 			currentContole = Motor.byName( name )
 		}

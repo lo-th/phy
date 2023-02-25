@@ -65,8 +65,11 @@ export class Joint extends Item {
 		// define body b1 and b2 is string body name
         // note: b1 / b2 can be null
 
-		const b1 = this.byName(o.b1)
-		const b2 = this.byName(o.b2)
+		let b1 = this.byName(o.b1)
+		let b2 = this.byName(o.b2)
+
+		if( b1.type === 'vehicle' ) b1 = b1.body
+		if( b2.type === 'vehicle' ) b2 = b2.body
 
 		let posA = this.v1.fromArray( o.pos1 || [0,0,0])
 		let posB = this.v2.fromArray( o.pos2 || [0,0,0])

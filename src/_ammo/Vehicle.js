@@ -221,7 +221,7 @@ class Car {
 		compound.addChildShape( trans, this.chassisShape );
 
 		// position rotation of car
-		this.startPose = new Ammo.btTransform().fromArray( this.startPosition, this.startQuaternion )
+		this.startPose = new Ammo.btTransform().fromArray( o.pos||[0,1,0], o.quat||[0,0,0,1] )
 		//trans.fromArray( data.pos.concat( data.quat ) );
 
 		// mass of vehicle in kg

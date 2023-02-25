@@ -67,10 +67,15 @@ class Car extends Basic3D {//extends Object3D {
 
 		super();
 
+		// extra function // ex car selection
+		if(o.extra){
+			this.extra = o.extra
+			delete o.extra;
+		}
+
 		this.type = 'vehicle';
 		this.name = o.name || 'car';
-
-		this.isRay = false
+		this.isRay = o.ray || false
 		//this.withBody = false;
 		this.actif = false;
 		//this.position = new THREE.Vector3();
@@ -166,7 +171,7 @@ class Car extends Basic3D {//extends Object3D {
 		//if( o.chassisShape ) chassisShapes.push( { type:'convex', shape:o.chassisShape, pos:[0,0,0], flag:8|2|1 } );
 		//else chassisShapes.push( { type:'box', size:this.size, pos:[0,0,0], flag:8|2|1 } );
 
-		if( o.chassisShape ) chassisShapes.push( { type:'convex', shape:o.chassisShape, size:[scale], pos:this.chassisPos, filter:[1, -1, 0, 0], isExclusive:true, ray:false  } );
+		if( o.chassisShape ) chassisShapes.push( { type:'convex', shape:o.chassisShape, size:[scale], pos:this.chassisPos, filter:[1, -1, 0, 0], isExclusive:true, ray:this.isRay  } );
 		else chassisShapes.push( { type:'box', size:this.size, pos:this.chassisPos } ); 
 
 		for( let i=0; i < this.numWheel; i++ ){

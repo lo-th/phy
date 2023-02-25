@@ -21,7 +21,7 @@ const CARS = [
 
 demo = () => {
 
-    phy.log('use key WSAD or ZSQD<br>SPACE to handbrake')
+    phy.log('use key WSAD or ZSQD<br>SPACE to handbrake<br>Right click to select drive car')
 
     phy.view({ envmap:'puresky', ground:true, fog:true, fogDist:0.01 })
 
@@ -48,14 +48,13 @@ onComplete = () => {
 
     phy.add( g );
 
-    phy.follow( 'fordM', { direct:true, simple:true, decal:[0, 1, 0] })
-    phy.control( 'fordM' )
-
-
-    //terrainTest()
-    //phy.setPostUpdate ( update )
+    select('fordM')
     
+}
 
+select = ( name ) => {
+    phy.follow( name, { direct:true, simple:true, decal:[0, 1, 0] })
+    phy.control( name )
 }
 
 vehicle = ( id, pos ) => {
@@ -74,12 +73,14 @@ vehicle = ( id, pos ) => {
         chassisPos:[0,0,0],
         massCenter:[0,0,0],
         meshScale:100,
+        ray:true,
         s_force: mass*10,
         s_compression : 0.84,
         s_damping : 0.88,
         s_stiffness : 40,
         s_travel:0.2,
         w_attach:0.1,
+        extra:select,
 
     }
 
