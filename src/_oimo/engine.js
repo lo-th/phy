@@ -50,6 +50,9 @@ let tmpadd = []
 let tmpremove = []
 let tmpchange = []
 
+let flow = {}
+let current = ''
+
 
 //--------------
 //
@@ -65,7 +68,7 @@ export class engine {
 
 		let e = m.data;
 		if( e.Ar ) Ar = e.Ar;
-		if( e.flow ) root.flow = e.flow;
+		if( e.flow ) flow = e.flow;
 		if(!engine[ e.m ])console.log(e.m)
 		if( e.m ) engine[ e.m ]( e.o )
 
@@ -156,21 +159,33 @@ export class engine {
 
 	
 
-	//static changes ( r = [] ){ for( let o in r ) this.change( r[o] ) }
+	static controle ( name ) {
 
-	static dispatch (){
+		if( name === current ) return
+		this.enable( current, false )
+		current = name;
+		this.enable( current, true )
 
-		tmpremove = root.flow.remove
-		tmpadd = root.flow.add
-		tmpchange = root.flow.tmp
+	}
 
-		while ( tmpremove.length > 0 ) this.remove( tmpremove.shift() )
-		while ( tmpadd.length > 0 ) this.add( tmpadd.shift() )
-		while ( tmpchange.length > 0 ) this.change( tmpchange.shift() )
+	static enable ( name, value ) {
 
-		root.flow = { key:[], add:[], remove:[], tmp:[] }
+		if( name === '' ) return
+		let b = engine.byName( name )
+		if( b === null ) return
+		b.enable = value
+
+	}
+
+	static dispatch () {
+
+		root.key = flow.key
+		if( flow.remove ) while ( flow.remove.length > 0 ) this.remove( flow.remove.shift() )
+		if( flow.add ) while ( flow.add.length > 0 ) this.add( flow.add.shift() )
+		if( flow.tmp ) while ( flow.tmp.length > 0 ) this.change( flow.tmp.shift() )
+		this.controle( flow.current )
 		
-	} 
+	}
 
 	static poststep (){
 
@@ -243,6 +258,7 @@ export class engine {
 
 		// clear world
 		root.world = null
+		current = ''
 
 		Utils.clear()
 

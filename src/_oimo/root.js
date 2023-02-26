@@ -6,11 +6,7 @@ export const root = {
 
 	world : null,
 	delta : 0,
-
-	flow:{
-		tmp:[],
-		key:[],
-	},
+	key:[],
 
 	reflow:{
 		ray:[],

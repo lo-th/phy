@@ -209,13 +209,16 @@ class Hero extends Basic3D {
 
 	}
 
-	dispose(){
+	dispose () {
 		this.callback = null
 		if( this.model ) this.model.dispose()
 		super.dispose()
 	}
 
-	move( key, azimut ){
+	move () {
+
+		const key = root.motor.getKey()
+		const azimut = root.motor.getAzimut()
 
 		let anim = key[7] !== 0 ? 'run' : 'walk'
 	    if( key[0] === 0 && key[1] === 0 ) anim = 'idle'//*= 0.9

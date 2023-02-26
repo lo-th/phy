@@ -9,10 +9,7 @@ export const root = {
 	delta : 0,
 	substep:1,
 
-	flow:{
-		tmp:[],
-		key:[],
-	},
+	key:[],
 
 	reflow:{
 		ray:[],

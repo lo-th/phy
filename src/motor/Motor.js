@@ -27,7 +27,7 @@ import { User } from './User.js';
 */
 
 let items
-let currentContole = null
+let currentControle = null
 let callback = null
 let Ar, ArPos = {}
 let maxFps = 60
@@ -165,9 +165,10 @@ export class Motor {
 		root.post = Motor.post
 		root.up = Motor.up
 		root.update = Motor.update
-
 		root.add = Motor.add
 		root.remove = Motor.remove
+
+		root.motor = this
 
 		if( !o.direct ){ // is worker version
 
@@ -240,7 +241,14 @@ export class Motor {
 
 	static flowReset ( ){
 
-		root.flow = { tmp:[], key:[], add:[], remove:[] }
+		root.flow = { 
+			current:'',
+			tmp:[],
+			key:[],
+			add:[],
+			remove:[],
+			point:[] 
+		}
 
 	}
 
@@ -254,7 +262,7 @@ export class Motor {
 
 		Motor.cleartimout()
 
-		currentContole = null
+		currentControle = null
 
 		if( controls ) controls.resetAll()
 
@@ -375,9 +383,10 @@ export class Motor {
 
 		// user key interaction 
 		root.flow.key = user.update()
+		root.flow.current = currentControle !== null ? currentControle.name : ''
 		//root.flow.tmp = []
 
-		if( currentContole !== null ) currentContole.move( user.key, azimut() )
+		if( currentControle !== null ) currentControle.move( user.key, azimut() )
 
 		postUpdate( root.reflow.stat.delta )
 		//postUpdate( timer.delta )
@@ -468,12 +477,12 @@ export class Motor {
 
 	static control ( name ){ // for character and vehicle
 
-		if(currentContole !== null){
-			if( name !== currentContole.name ){ 
-				currentContole = Motor.byName( name )
+		if(currentControle !== null){
+			if( name !== currentControle.name ){ 
+				currentControle = Motor.byName( name )
 			}
 		} else {
-			currentContole = Motor.byName( name )
+			currentControle = Motor.byName( name )
 		}
 
 	}

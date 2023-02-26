@@ -1263,8 +1263,8 @@ const select = ( obj, inters ) => {
 
     let p = pos.toArray()
 
-	Motor.add({ name:'mouse', type:'sphere', size:[0.1], pos:p, mask:0, density:1, noGravity:true, kinematic:true })
-	//Motor.add({ name:'mouse', type:'null', size:[0.1], pos:p, quat:quat })
+	//Motor.add({ name:'mouse', type:'sphere', size:[0.01], pos:p, quat:quat, mask:0, density:0, noGravity:true, kinematic:true, flags:'noCollision' })
+	Motor.add({ name:'mouse', type:'null', pos:p, quat:quat })
 	Motor.add({ 
 		name:'mouseJoint', type:'joint', mode:'fixe',//mode:'spherical',
 		b1:selected.name, b2:'mouse', worldAnchor:p, //sd:[4,1]

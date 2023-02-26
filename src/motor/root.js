@@ -37,6 +37,7 @@ export const Num = {
 export const root = {
 
 	engine:'OIMO',
+	motor: null,
 	scene : null,
 	scenePlus : null,
 	post : null,
@@ -46,13 +47,12 @@ export const root = {
 	add:null,
 	remove:null,
 	items:null,
-	//bodyRef:null,
-	//characterRef:null,
 	tmpMesh : [],
 	instanceMesh : {},
 	tmpTex : [],
 	tmpMat : [],
 	flow:{
+		current:'',
 		tmp:[],
 		key:[],
 		add:[],

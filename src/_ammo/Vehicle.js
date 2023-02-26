@@ -53,7 +53,6 @@ export class Vehicle extends Item {
 }
 
 
-
 class Car {
 
 	constructor ( o ) {
@@ -66,6 +65,8 @@ class Car {
 
 		this.type = 'vehicle'
 		this.name = o.name
+
+		this.enable = false;
 
 		// wheel
         this.numWheel = o.numWheel || 4
@@ -230,7 +231,7 @@ class Car {
 		var motionState = new Ammo.btDefaultMotionState( this.startPose );
 		var rbInfo = new Ammo.btRigidBodyConstructionInfo( data.mass, motionState, compound, p0 );
 		// chassisMOI
-		console.log( p0.toArray() )
+		//console.log( p0.toArray() )
 
 		// car body
 		this.body = new Ammo.btRigidBody( rbInfo );
@@ -464,10 +465,10 @@ class Car {
 
 	drive () {
 
-		const data = this.data;
-		const k = this.key
+		if(!this.enable) return
 
-		
+		const data = this.data;
+		const k = root.key
 
 		// steering
 

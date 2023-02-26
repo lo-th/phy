@@ -371,7 +371,7 @@ class Car extends Basic3D {//extends Object3D {
 
 			k = (i*8) + n
 
-			if(i===0)  acc = ( ( AR[ k ] ) / this.circum  );
+			if(i===0)  acc = ( ( AR[ k ] ) / this.circum );
 			if(i===1) s1 = AR[ k ]
 			if(i===2) s2 = AR[ k ] 
 			
