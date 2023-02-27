@@ -124,42 +124,40 @@ class Car extends Basic3D {//extends Object3D {
 
 		if( o.wPos ){
 
-			var p, wp = o.wPos, pp = [], s=1, b=0, y, x;
+			var p, wp = o.wPos, axe, pp = [], s=1, back=0, y, x, z, pzz;
 			var limz = wp.length === 3 ? true : false;
 			var limx = wp.length === 4 ? true : false;
-			var pz = 1;
 
-			for( var i=0; i < this.numWheel; i++ ){
+			for( let i=0; i < this.numWheel; i++ ){
 
 				s = i%2 === 0 ? -1 : 1;
-				b = i>1 ? 1:0
+				axe = Math.floor(i * 0.5)
+				back = i>1 ? 1:0
+				if(this.numWheel<4) back = i>0 ? 1:0
 				y = wp[ 1 ]
-				if(y===0) y = b ? this.radiusBack : this.radius
+				if(y===0) y = back ? this.radiusBack : this.radius
 				x = wp[ 0 ]
-				if(x===0) x = (b ? this.deepBack : this.deep)*0.5
+				//if( x === 0 ) x = (back ? this.deepBack : this.deep)*0.5
+				if( x instanceof Array ) x = wp[0][axe]
 
-				if(s === -1) pz++;
+				z = back ? -wp[2] : wp[2]
+			    if( wp[2] instanceof Array ) z = wp[2][axe]
 
-				if(limz){
-					p = [ x * s, y, i<2 ? wp[ 2 ] : -wp[ 2 ] ]
-				} else {
-					p = [ x * s, y,  -wp[ pz ] ];
-				}
+
+				p = [ x * s, y, z ]
 
 				pp.push( p );
 
 			}
 
+			//console.log(this.name, pp)
+
 			this.wheelsPosition = pp;
 			delete o.wPos;
 
-		} else {
-
-			 ;
-
 		}
 
-		if(o.wheelsPosition) this.wheelsPosition = o.wheelsPosition
+		if( o.wheelsPosition ) this.wheelsPosition = o.wheelsPosition
 
 		//console.log(this.wheelsPosition)
 
@@ -221,7 +219,7 @@ class Car extends Basic3D {//extends Object3D {
 		}
 
 
-		let back = false, pzz
+		//let back = false, 
 
 		// wheel model
 		if( o.wheelMesh ){
@@ -329,12 +327,12 @@ class Car extends Basic3D {//extends Object3D {
 
 	}
 
-	move( key, azimut ){
+	move(){
 
-		phy.update({ 
+		/*phy.update({ 
 		    name:this.name,
 		    key: key
-		});
+		});*/
 	}
 
 	dispose (){
@@ -367,11 +365,11 @@ class Car extends Basic3D {//extends Object3D {
 		let sp = []
 		let k = 0;
 
-		for( var i = 0; i<num; i++ ){
+		for( let i = 0; i<num; i++ ){
 
 			k = (i*8) + n
 
-			if(i===0)  acc = ( ( AR[ k ] ) / this.circum );
+			if(i===0) acc = ( ( AR[ k ] ) / this.circum );
 			if(i===1) s1 = AR[ k ]
 			if(i===2) s2 = AR[ k ] 
 			

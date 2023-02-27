@@ -111,7 +111,6 @@ class Car {
 			// wheels
 			//radius: 0.5,
 			wWidth: 0.25,
-			nWheel: o.nWheel || 4,
 			// drive setting
 			engine: 1000,
 			acceleration: 10,
@@ -205,7 +204,7 @@ class Car {
 		data.pos = o.pos === undefined ? [ 0, 0, 0 ] : o.pos;
 		data.quat = o.quat === undefined ? [ 0, 0, 0, 1 ] : o.quat;
 
-		data.nWheel = o.nWheel || 4;
+		//data.nWheel = o.nWheel || 4;
 
 		// car shape
 
@@ -261,7 +260,7 @@ class Car {
 
 		for ( let i = 0; i < NW; i ++ ) {
 
-			let fw = 1<2;
+			let fw = i<2;
 
 			p1.fromArray( this.wheelsPosition[i] ); // position
 			p2.setValue( 0, - 1, 0 ); // wheelDir
@@ -378,7 +377,7 @@ class Car {
 		trans.toArray( Ar, n + 1 );
 		trans = trans.inverse()
 
-		var j = this.data.nWheel, w, t;
+		var j = this.numWheel, w, t;
 
 		while ( j -- ) {
 
@@ -404,8 +403,8 @@ class Car {
 
 		}
 
-		Ar[ n + 62 ] = this.chassis.getWheelInfo( 0 ).m_rotation;
-		Ar[ n + 63 ] = this.chassis.getWheelInfo( 1 ).m_rotation;
+		//Ar[ n + 62 ] = this.chassis.getWheelInfo( 0 ).m_rotation;
+		//Ar[ n + 63 ] = this.chassis.getWheelInfo( 1 ).m_rotation;
 
 	}
 
@@ -453,7 +452,7 @@ class Car {
 		//world.getBroadphase().getOverlappingPairCache().cleanProxyFromPairs( this.body.getBroadphaseHandle(), world.getDispatcher() );
 
 		this.chassis.resetSuspension();
-		var n = this.data.nWheel;
+		var n = this.numWheel;
 		while ( n -- ) this.chassis.updateWheelTransform( n, true );
 
 		trans.free();
@@ -612,7 +611,7 @@ class Car {
             //console.log( data.s_damping, data.s_compression )
 		}
 
-		var n = data.nWheel, w;
+		var n = this.numWheel, w;
 
 		while ( n -- ) {
 

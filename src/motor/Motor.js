@@ -386,7 +386,7 @@ export class Motor {
 		root.flow.current = currentControle !== null ? currentControle.name : ''
 		//root.flow.tmp = []
 
-		if( currentControle !== null ) currentControle.move( user.key, azimut() )
+		if( currentControle !== null ) currentControle.move()
 
 		postUpdate( root.reflow.stat.delta )
 		//postUpdate( timer.delta )

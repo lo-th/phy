@@ -3,6 +3,7 @@ const TimeFrame = 1/30;
 
 
 const CARS = [
+    { n:'000', name:'moto'   , radius:0.36, numWheel:2, w:'1', mass:800,  wPos:[0, 0, 0.8] },
     { n:'001', name:'fordM'  , radius:0.36, numWheel:4, w:'1', mass:1109,  wPos:[0.76, 0, 1.46] },
     { n:'002', name:'vaz'    , radius:0.36, numWheel:4, w:'1', mass:1003,  wPos:[0.72, 0, 1.31] },
     { n:'003', name:'coupe'  , radius:0.36, numWheel:4, w:'1', mass:900,   wPos:[0.96, 0, 1.49] },
@@ -13,10 +14,11 @@ const CARS = [
     { n:'008', name:'police' , radius:0.40, numWheel:4, w:'2', mass:1400,  wPos:[0.96, 0, 1.67] },
     { n:'009', name:'van1'   , radius:0.46, numWheel:4, w:'3', mass:2000,  wPos:[1.14, 0, 1.95] },
     { n:'010', name:'van2'   , radius:0.40, numWheel:4, w:'2', mass:2400,  wPos:[0.89, 0, 2.10] },
-    { n:'011', name:'van3'   , radius:0.46, numWheel:4, w:'3', mass:2400,  wPos:[0.90, 0, 1.83] },//, 0, 0.26] },
-    //{ n:'012', name:'truck1' , radius:0.57, numWheel:6, w:'4', mass:10000, wPos:[1.00, 0, 2.58, 1.23, 0.18] },
-    //{ n:'013', name:'truck2' , radius:0.57, numWheel:6, w:'4', mass:14000, wPos:[1.17, 0, 3.64, 2.37] },
+    { n:'011', name:'van3'   , radius:0.46, numWheel:4, w:'3', mass:2400,  wPos:[[0.90, 1.2], 0, 1.83] },//, 0, 0.26] },
+    { n:'012', name:'truck1' , radius:0.57, numWheel:6, w:'4', mass:10000, wPos:[[1.0, 1.18, 1.18], 0, [2.58, -2.58, -1.23]] },
+    { n:'013', name:'truck2' , radius:0.57, numWheel:6, w:'4', mass:14000, wPos:[1.17, 0, [3.64, -3.64, -2.37]] },
     { n:'014', name:'bus'    , radius:0.64, numWheel:4, w:'5', mass:11450, wPos:[1.25, 0, 2.49] },
+    { n:'015', name:'vbci'   , radius:0.57, numWheel:8, w:'4', mass:9000, wPos:[1.2, 0, [2.2, 0.9, -0.7, -2.2]] },
 ];
 
 demo = () => {
@@ -48,7 +50,7 @@ onComplete = () => {
 
     phy.add( g );
 
-    select('fordM')
+    //select('fordM')
     
 }
 

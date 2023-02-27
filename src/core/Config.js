@@ -4,7 +4,7 @@ export const Max = {
     contact:50,
     ray:50,
     character:50,
-    vehicle:20,
+    vehicle:50,
     solver:20,
     //terrain:10,
 }
@@ -16,7 +16,7 @@ export const Num = {
     contact:8,
     ray:8,
     character:16,
-    vehicle:64,
+    vehicle:72,//max 8 wheels
     solver:256,
     //terrain:1,
 }
