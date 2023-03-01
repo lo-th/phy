@@ -102,7 +102,7 @@ class Car {
 
 		this.data = {
 
-			mass: 0, //o.mass || 2000, // 100
+			mass: o.mass || 2000,// mass of vehicle in kg
 
 			incSteering: o.incSteering || 2,
 			maxSteering: o.maxSteering || 24,
@@ -112,8 +112,8 @@ class Car {
 			//radius: 0.5,
 			wWidth: 0.25,
 			// drive setting
-			engine: 1000,
-			acceleration: 10,
+			engine: 1000,// Maximum driving force of the vehicle
+			acceleration: 10,// engine increment 
 			breaking: 100,
 
 			// position / rotation / size
@@ -133,17 +133,31 @@ class Car {
 			compValue: 0.2, //(lower than damp!)
 			dampValue: 0.3,
 			// suspension
-			s_stiffness: 20,
-			s_compression: 2.3,
-			s_damping: 4.4, //2.4
-			s_travel: 5,
-			s_force: 6000,
-			s_length: 0.2,
-			// wheel
+
+			s_stiffness: o.s_stiffness || 20,// 10 = Offroad buggy, 50 = Sports car, 200 = F1 Car 
+			s_damping: o.s_damping || 4.4, //The damping coefficient for when the suspension is expanding. default : 0.88 // 2.3
+			s_compression: o.s_compression ||  2.3,// 0.1 to 0.3 are real values default 0.84 // 4.4
+			s_travel: o.s_travel || 0.4,//5
+			s_force: 6000,// Maximum suspension force
+			//s_length: 0.2,
+			// wheel setting
+
+	        // friction: The constant friction of the wheels on the surface.
+	        // For realistic TS It should be around 0.8. 
+	        // But may be greatly increased to improve controllability (1000 and more)
+	        // Set large (10000.0) for kart racers
 			w_friction: 10.5, //1000,
+			// roll: reduces torque from the wheels
+	        // reducing vehicle barrel chance
+	        // 0 - no torque, 1 - the actual physical behavior
 			w_roll: 0.001,
 
 		};
+
+		let sprungMass = Math.round( this.data.mass / this.numWheel )
+		// Damping relaxation should be slightly larger than compression
+		if(!o.s_compression) this.data.s_compression = this.data.s_damping * 0.6
+		if(!o.s_force) this.data.s_force = sprungMass* 25
 
 		this.init( o );
 
@@ -196,7 +210,7 @@ class Car {
 		let p2 = new Ammo.btVector3();
 		let p3 = new Ammo.btVector3();
 
-		this.isRay = o.isRay === undefined ? true : o.isRay;
+		//this.isRay = o.isRay === undefined ? true : o.isRay;
 
 		data.mass = o.mass === undefined ? 800 : o.mass;
 		//o.masscenter = o.masscenter === undefined ? [ 0, 0, 0 ] : o.masscenter;
@@ -274,7 +288,7 @@ class Car {
 				p3.setValue( o.wheelAxe[m], o.wheelAxe[m+1], o.wheelAxe[m+2] );
 			}*/
 
-			//if( this.isRay ){
+			if( this.isRay ){
 
 				//console.log(fw ? radius : radiusBack)
 				
@@ -285,7 +299,7 @@ class Car {
 
 			    //this.transforms.push( this.chassis.getWheelTransformWS( i ) )
 
-			/*} else {
+			} else {
 
 				trans.identity();
 				trans.setOrigin( p1 );
@@ -331,7 +345,7 @@ class Car {
 			//	this.wheelJoint[i] = joint;
 
 
-			//}
+			}
 			
 
 		}
@@ -608,10 +622,11 @@ class Car {
 			data.s_compression = data.compValue * 2 * sqrt;
 			data.s_damping = data.dampValue * 2 * sqrt;
             
-            //console.log( data.s_damping, data.s_compression )
+            console.log( sqrt, data.s_damping, data.s_compression )
 		}
 
 		var n = this.numWheel, w;
+		
 
 		while ( n -- ) {
 
@@ -624,7 +639,8 @@ class Car {
 			w.set_m_maxSuspensionTravelCm( data.s_travel * 100  );
 			//console.log( 'travel', w.get_m_maxSuspensionTravelCm() );
 			
-			w.set_m_suspensionRestLength1( data.s_length  );
+			//w.set_m_suspensionRestLength1( data.s_length );
+			w.set_m_suspensionRestLength1( data.s_travel * 0.5 );
 			w.set_m_maxSuspensionForce( data.s_force );
 
 			w.set_m_rollInfluence( data.w_roll );

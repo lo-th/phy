@@ -109,6 +109,10 @@ class Car extends Basic3D {//extends Object3D {
 		this.maxSteering = o.maxSteering || 24
 		this.incSteering = o.incSteering || 2
 
+		this.s_travel = o.s_travel || 0.4
+		this.s_ratio = 1 / ( this.s_travel * 0.5 )
+		this.decaly = root.engine === 'PHYSX' ? this.s_travel * 0.5 : 0
+
 
 		//this.diff = math.vecSub( this.chassisPos, this.massCenter )
 		//this.diff[2] = 0
@@ -303,7 +307,7 @@ class Car extends Basic3D {//extends Object3D {
 
 		o.maxSteering = this.maxSteering;
 		o.incSteering = this.incSteering;
-		//o.s_travel = this.s_travel || 5;
+		o.s_travel = this.s_travel;
 
 		o.massCenter = this.massCenter
 		o.chassisPos = this.chassisPos
@@ -359,7 +363,6 @@ class Car extends Basic3D {//extends Object3D {
 		this.updateMatrix()
 
 		let num = this.numWheel+1;
-		let ratio = 1/0.2
 		let m = 0, mesh, acc, real;
 		let s1 = 0, s2 = 0
 		let sp = []
@@ -378,7 +381,8 @@ class Car extends Basic3D {//extends Object3D {
 
 			if( mesh && i>0 ){
 
-				sp[i-1] = this.wheelsPosition[i-1][1] - AR[k+2]
+				//sp[i-1] = this.wheelsPosition[i-1][1] - AR[k+2]
+				sp[i-1] = (this.wheelsPosition[i-1][1] - this.decaly ) - AR[k+2]
 
 				// local
 				
@@ -401,7 +405,7 @@ class Car extends Basic3D {//extends Object3D {
 		k = 4
 		while(k--){
 
-			this.suspension[k] = math.clamp( sp[k]*ratio, -1, 1 )
+			this.suspension[k] = math.clamp( sp[k]*this.s_ratio, -1, 1 )
 			
 			if(this.suspensionMesh ){
 				if ( this.suspension[k] > 0 ) {

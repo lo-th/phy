@@ -63,7 +63,7 @@ onComplete = () => {
         maxSteering:12,
 
         s_travel:0.4,
-        w_attach:0.215,
+        //w_attach:0.215,
 
     })
 

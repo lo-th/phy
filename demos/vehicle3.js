@@ -56,7 +56,7 @@ onComplete = () => {
         incSteering:0.25,
 
         s_travel:0.1,
-        w_attach:0.05,//0.215,
+        //w_attach:0.05,//0.215,
 
     })
 

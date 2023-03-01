@@ -1,10 +1,11 @@
+const debug = 0
 let buggy, maxDistance = 50;
 
 demo = () => {
 
     phy.log('use key WSAD or ZSQD<br>SPACE to handbrake')
 
-    phy.view({ envmap:'basic', ground:false, fog:true, fogDist:0.01 })
+    phy.view({ envmap:'basic', ground:debug, fog:true, fogDist:0.01 })
 
     phy.set( {substep:2, gravity:[0,-9.81,0]})
 
@@ -41,9 +42,8 @@ onComplete = () => {
     buggy = phy.add( { 
 
         type:'vehicle', 
-        name:'buggy',  
-        //size:[ 1.3, 0.4, 3.5 ], // chassis size
-
+        name:'buggy', 
+        ray:debug,
         radius:0.43,// wheels radius
         deep:0.3, // wheels deep only for three cylinder
         wPos:[ 0.838, 0.43, 1.37 ], // wheels position on chassis
@@ -57,11 +57,12 @@ onComplete = () => {
         brakeMesh: brake,
         suspensionMesh: suspension,
 
-        maxSteering:14,
-        s_travel:0.4,
-        w_attach:0.215,
+        maxSteering:14,// the max steer angle in degree
+        s_travel:0.4,// the total length of suspension
 
     })
+
+    if( debug ) return
 
     terrainTest()
 
