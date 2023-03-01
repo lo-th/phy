@@ -1,1 +1,1 @@
-export { Smoke } from './3TH/smoke/Smoke.js';
+export { Smoke } from './3TH/_smoke/Smoke.js';

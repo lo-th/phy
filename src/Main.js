@@ -25,15 +25,18 @@ import { Fluid } from './3TH/materials/Fluid.js'
 
 import { DirectionalHelper } from './3TH/helpers/DirectionalHelper.js'
 // TEXTURE
-import { CarbonTexture } from './3TH/textures/CarbonTexture.js'
+//import { CarbonTexture } from './3TH/textures/CarbonTexture.js'
 
 // MOTOR MAIN
 import { Motor } from './motor/Motor.js'
 
 // DRAW CALL ???
-import DrawCallInspector from './jsm/utils/DrawCallInspector.js'
+//import DrawCallInspector from './jsm/utils/DrawCallInspector.js'
 
-// MOTOR MAIN
+// PARTICLE
+import { Smoke } from '../build/smoke.module.js'
+
+
 
 
 /** __
@@ -58,6 +61,7 @@ let video = null
 
 let childEditor = null
 let isExternEditor = false
+let particles = null
 
 
 let maxFps = 60
@@ -413,6 +417,9 @@ const init = () => {
 	// POST PROCESS
 
 	//composer = new Composer( renderer, scene, camera, controls, size );
+
+	// PARTICLE
+	
 
 	
 	// avoid track run in background
@@ -785,6 +792,8 @@ const inject = ( newCode, force = false ) => {
 	Hub.reset()
 	Shader.reset()
 	//resetLight()
+
+	if( particles ) particles.dispose()
 	
 	
 
@@ -863,6 +872,7 @@ const onResize = () => {
 	size.w = window.innerWidth - size.left
 	size.h = window.innerHeight
 	size.r = size.w / size.h
+
 	needResize = true
 
 }
@@ -875,6 +885,7 @@ const doResize = () => {
 	camera.updateProjectionMatrix()
 	renderer.setSize( size.w, size.h )
 	if(composer) composer.resize( size )
+	if(particles) particles.onresize( size.h )
 	Hub.resize( size )
 	needResize = false
 
@@ -889,35 +900,33 @@ const render = ( stamp = 0 ) => {
 
 	loop = requestAnimationFrame( render )
 
+	// TIME
 	tm.now = stamp
 	tm.delta = tm.now - tm.then
-	tm.dt = tm.delta * 0.001;
+	tm.dt = tm.delta * 0.001
 
 	if( needResize ) doResize()
 
-	//if( controls.enableDamping && controls.enable ) controls.update()
+    // UPDATE PARTICLE
+    if( particles ) particles.update( stamp )
 
 	// UPDATE PHY
-	Motor.doStep( stamp );
+	Motor.doStep( stamp )
 
+	// UPDATE CAMERA
 	if( controls ){ 
 		if( controls.enableDamping && controls.enable ) controls.update()
 		if( controls.follow ) controls.follow( tm.dt )
 	}
 
-	// update follow camera
-	//controller.follow( root.delta );
-
+    // UPDATE TWEEN
 	TWEEN.update( stamp );
 
-	//if( dci ) dci.begin()
-
+	// RENDER
 	if( composer && composer.enabled ) composer.render( tm.dt )
 	else renderer.render( scene, camera )
 
 	Gui.update()
-
-	//if( dci ) dci.end()
 
 	upStat()
 
@@ -1421,9 +1430,12 @@ const setComposer = ( b ) => {
 }
 
 
-/*const indexFrom = ( s, chars)=>{
-    for (let i=0;i<s.length();i++)
-       if (chars.indexOf(s.charAt(i))>=0)
-          return i;
-    return -1;
-}*/
+//--------------------
+//  PARTICLE
+//--------------------
+
+const addParticle = () => {
+
+   if( !particles ) particles = new Smoke( scene, renderer );
+
+}

@@ -3,7 +3,7 @@ package-lock.json
 npm-debug.log
 prepa
 src/_physx
-src/3TH/smoke
+src/3TH/_smoke
 assets/animation/animations.json
 assets/animation/fbx
 assets/textures/avatar_2k
