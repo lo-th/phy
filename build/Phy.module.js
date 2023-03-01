@@ -1,4 +1,7 @@
-import { Color, Euler, Quaternion, Matrix4, Vector3, Box3Helper, CylinderGeometry, SphereGeometry, BoxGeometry, PlaneGeometry, MeshBasicMaterial, LineBasicMaterial, MeshPhysicalMaterial, MeshStandardMaterial, Line, BufferGeometry, Float32BufferAttribute, EventDispatcher, MathUtils, Layers, InstancedMesh, InstancedBufferAttribute, DynamicDrawUsage, BufferAttribute, TrianglesDrawMode, TriangleFanDrawMode, TriangleStripDrawMode, CircleGeometry, Vector2, Line3, Plane, Triangle, Mesh, LineSegments, Loader, LoaderUtils, FileLoader, SpotLight, PointLight, DirectionalLight, sRGBEncoding, Object3D, TextureLoader, ImageBitmapLoader, InterleavedBuffer, InterleavedBufferAttribute, LinearFilter, LinearMipmapLinearFilter, RepeatWrapping, PointsMaterial, Material, DoubleSide, PropertyBinding, SkinnedMesh, LineLoop, Points, Group, PerspectiveCamera, OrthographicCamera, Skeleton, InterpolateLinear, AnimationClip, Bone, NearestFilter, NearestMipmapNearestFilter, LinearMipmapNearestFilter, NearestMipmapLinearFilter, ClampToEdgeWrapping, MirroredRepeatWrapping, InterpolateDiscrete, FrontSide, Texture, VectorKeyframeTrack, QuaternionKeyframeTrack, NumberKeyframeTrack, Box3, Sphere, Interpolant, Vector4, Curve, MeshPhongMaterial, MeshLambertMaterial, EquirectangularReflectionMapping, AmbientLight, Uint16BufferAttribute, Matrix3, DataTextureLoader, HalfFloatType, FloatType, DataUtils, LinearEncoding, ShaderChunk } from 'three';
+import { Color, Euler, Quaternion, Matrix4, Vector3, Box3Helper, CylinderGeometry, SphereGeometry, BoxGeometry, PlaneGeometry, MeshBasicMaterial, LineBasicMaterial, MeshPhysicalMaterial, MeshStandardMaterial, Line, BufferGeometry, Float32BufferAttribute, EventDispatcher, MathUtils, Layers, InstancedMesh, InstancedBufferAttribute, DynamicDrawUsage, CircleGeometry, Vector2, Line3, Plane, Triangle, Mesh, LineSegments, BufferAttribute, TrianglesDrawMode, TriangleFanDrawMode, TriangleStripDrawMode, Loader, LoaderUtils, FileLoader, SpotLight, PointLight, DirectionalLight, sRGBEncoding, Object3D, TextureLoader, ImageBitmapLoader, InterleavedBuffer, InterleavedBufferAttribute, LinearFilter, LinearMipmapLinearFilter, RepeatWrapping, PointsMaterial, Material, DoubleSide, PropertyBinding, SkinnedMesh, LineLoop, Points, Group, PerspectiveCamera, OrthographicCamera, Skeleton, InterpolateLinear, AnimationClip, Bone, NearestFilter, NearestMipmapNearestFilter, LinearMipmapNearestFilter, NearestMipmapLinearFilter, ClampToEdgeWrapping, MirroredRepeatWrapping, InterpolateDiscrete, FrontSide, Texture, VectorKeyframeTrack, QuaternionKeyframeTrack, NumberKeyframeTrack, Box3, Sphere, Interpolant, SRGBColorSpace, LinearSRGBColorSpace, Vector4, Curve, MeshPhongMaterial, MeshLambertMaterial, EquirectangularReflectionMapping, AmbientLight, Uint16BufferAttribute, Matrix3, DataTextureLoader, HalfFloatType, FloatType, DataUtils, LinearEncoding, ShaderChunk, AnimationMixer, AdditiveBlending, CustomBlending, ZeroFactor, SrcAlphaFactor, SkeletonHelper, LoopPingPong } from 'three';
+import { mergeVertices as mergeVertices$1, mergeBufferGeometries as mergeBufferGeometries$1 } from 'three/addons/utils/BufferGeometryUtils.js';
+import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
+import * as SkeletonUtils from 'three/addons/utils/SkeletonUtils.js';
 
 const map = new Map();
 
@@ -31,21 +34,27 @@ export const Num = {
 const root = {
 
 	engine:'OIMO',
+	motor: null,
 	scene : null,
 	scenePlus : null,
 	post : null,
 	up:null,
 	update:null,
+	delta:0,
 	add:null,
 	remove:null,
+	items:null,
 	tmpMesh : [],
 	instanceMesh : {},
 	tmpTex : [],
+	tmpMat : [],
 	flow:{
+		current:'',
 		tmp:[],
 		key:[],
 		add:[],
-		remove:[]
+		remove:[],
+		point:[]
 	},
 	reflow:{
 		ray:[],
@@ -113,6 +122,8 @@ const Utils = {
 
 		}
 
+		//console.log('add', b.name, b.type )
+
 		map.set( b.name, b );
 
 	},
@@ -124,7 +135,25 @@ const Utils = {
 		if( b.instance ) b.instance.remove( b.id );
 		map.delete( b.name );
 
-	}
+	},
+
+	noRay:( b ) => {
+		if( b.isObject3D ){
+			b.raycast = () => {return};
+			b.traverse( ( child ) => {
+				if ( child.isObject3D ) child.raycast = () => {return};
+			});
+
+		}
+	},
+
+    morph: ( obj, name, value ) => {
+        
+        if(!obj.morphTargetInfluences) return
+        if(obj.morphTargetDictionary[name] === undefined ) return
+        obj.morphTargetInfluences[ obj.morphTargetDictionary[name] ] = value;
+    
+    },
 
 };
 
@@ -205,7 +234,7 @@ const matExtra = {
 const Colors = {
 
 	body:new Color( 0xFF934F ).convertSRGBToLinear(),
-	sleep:new Color( 0x46B1C9 ).convertSRGBToLinear()
+	sleep:new Color( 0x939393 ).convertSRGBToLinear()//0x46B1C9
 
 };
 
@@ -230,21 +259,28 @@ const Mat = {
 				case 'base':   m = new MeshStandardMaterial({ color:0xffffff, ...matExtra }); break
 				case 'simple': m = new MeshStandardMaterial({ color:0x808080, metalness: 0, roughness: 1 }); break
 				case 'body':   m = new MeshStandardMaterial({ color:0xFF934F, ...matExtra }); break
-				case 'sleep':  m = new MeshStandardMaterial({ color:0x46B1C9, ...matExtra }); break
+				case 'clear':   m = new MeshStandardMaterial({ color:0xFFFFFF, metalness: 0.5, roughness: 0 }); break
+				case 'sleep':  m = new MeshStandardMaterial({ color:0x939393, ...matExtra }); break//0x46B1C9
 				case 'solid':  m = new MeshStandardMaterial({ color:0x3C474B, ...matExtra }); break
 				case 'hero':   m = new MeshStandardMaterial({ color:0x00FF88, ...matExtra }); break
-				case 'skin':   m = new MeshStandardMaterial({ color:0xe0ac69, ...matExtra }); break
+				case 'skinny':   m = new MeshStandardMaterial({ color:0xe0ac69, ...matExtra }); break
 				case 'chrome': m = new MeshStandardMaterial({ color:0xCCCCCC, metalness: 1, roughness:0 }); break
 				case 'glass':  m = new MeshPhysicalMaterial({ color:0xFFFFff, transparent:true, opacity:0.8, depthTest:true, depthWrite:false, roughness:0.02, metalness:0.0, /*side:DoubleSide,*/ alphaToCoverage:true, premultipliedAlpha:true, transmission:1, clearcoat:1, thickness:0.02  }); break
-				case 'plexi':  m = new MeshPhysicalMaterial({ color:0xCCCCCCC, transparent:true, opacity:0.4  }); break
+				case 'plexi':  m = new MeshPhysicalMaterial({ color:0xFFFFff, transparent:true, opacity:0.4, metalness: 1, roughness:0, clearcoat:1 }); break
 				case 'glass2': m = new MeshPhysicalMaterial({ color:0xCCCCff, transparent:true, opacity:0.3  }); break
+				case 'sat': m = new MeshPhysicalMaterial({ color:0xffffff, metalness: 1, roughness:0, clearcoat:1  }); break
+				
+				case 'car':   m = new MeshPhysicalMaterial({ color:0x303030, metalness: 1.0, roughness: 0.5, clearcoat: 1.0, clearcoatRoughness: 0.03, sheen: 0.5 }); break
+				case 'carGlass':   m = new MeshPhysicalMaterial({ color: 0xffffff, metalness: 0.25, roughness: 0, transmission: 1.0 }); break
 
 				case 'joint':  m = new LineBasicMaterial( { color: 0x00FF00, toneMapped: false } ); break
 				case 'ray':    m = new LineBasicMaterial( { vertexColors: true, toneMapped: false } ); break	
 
-				case 'debug':  m = new MeshBasicMaterial({ color:0x000000, wireframe:true }); break
-				case 'debug2': m = new MeshBasicMaterial({ color:0x00FFFF, wireframe:true }); break
+				case 'debug':  m = new MeshBasicMaterial({ color:0x000000, wireframe:true, toneMapped: false }); break
+				case 'debug2': m = new MeshBasicMaterial({ color:0x00FFFF, wireframe:true, toneMapped: false }); break
+				case 'debug3':  m = new MeshBasicMaterial({ color:0x000000, wireframe:true, transparent:true, opacity:0.05, toneMapped: false, depthTest:true, depthWrite:false }); break
 
+				case 'shadows': m = new MeshBasicMaterial({ transparent:true, opacity:0.01 }); break
 				case 'hide': m = new MeshBasicMaterial({ visible:false }); break
 
 			}
@@ -264,6 +300,10 @@ const Mat = {
 			delete mat[m];
 		}
 
+		let i = root.tmpMat.length;
+		while( i-- ) root.tmpMat[i].dispose();
+		root.tmpMat = [];
+
 	}
 
 };
@@ -275,7 +315,7 @@ const Mat = {
 //
 //-------------------
 
-const torad = Math.PI / 180;
+const torad$1 = Math.PI / 180;
 
 const euler = new Euler();
 const quat = new Quaternion();
@@ -335,8 +375,12 @@ const math$1 = {
 		var diff = (cur - prv + 180) % 360 - 180;
 		return diff < -180 ? diff + 360 : diff;
 	},
+
+	nearAngle: ( s1, s2, deg = false ) => ( s2 + Math.atan2(Math.sin(s1-s2), Math.cos(s1-s2)) * (deg ? root.todeg : 1) ),
+
 	unwrapDeg: ( r ) => (r - (Math.floor((r + 180)/360))*360), 
-	unwrapRad: ( r ) => (r - (Math.floor((r + Math.PI)/(2*Math.PI)))*2*Math.PI),
+	//unwrapRad: ( r ) => (r - (Math.floor((r + Math.PI)/(2*Math.PI)))*2*Math.PI),
+	unwrapRad: ( r ) => ( Math.atan2(Math.sin(r), Math.cos(r)) ),
 
 	autoSize: ( s = [ 1, 1, 1 ], type = 'box' ) => {
 
@@ -352,6 +396,15 @@ const math$1 = {
 
 	    if ( s.length === 2 ) s[ 2 ] = s[ 0 ];
 	    return s;
+
+	},
+
+	distance: ( a, b = { x:0, y:0, z:0 } ) => { // rotation array in degree
+
+		const dx = a.x ? a.x - b.x : 0;
+		const dy = a.y ? a.y - b.y : 0;
+		const dz = a.z ? a.z - b.z : 0;
+		return Math.sqrt( dx * dx + dy * dy + dz * dz );
 
 	},
 
@@ -390,7 +443,7 @@ const math$1 = {
 	vectorad: ( r ) => {
 
 		let i = 3, nr = [];
-	    while ( i -- ) nr[ i ] = r[ i ] * torad;
+	    while ( i -- ) nr[ i ] = r[ i ] * torad$1;
 	    nr[3] = r[3];
 	    return nr;
 
@@ -486,9 +539,10 @@ const Max = {
     joint:100,
     contact:50,
     ray:50,
-    character:20,
-    vehicle:20,
+    character:50,
+    vehicle:50,
     solver:20,
+    //terrain:10,
 };
 
 const Num = {
@@ -498,8 +552,9 @@ const Num = {
     contact:8,
     ray:8,
     character:16,
-    vehicle:64,
+    vehicle:72,//max 8 wheels
     solver:256,
+    //terrain:1,
 };
 
 const getArray = function ( engine, full = false ){
@@ -1611,297 +1666,6 @@ class Basic3D extends EventDispatcher {
 
 	}
 
-	/*toJSON( meta ) {
-
-		// meta is a string when called from JSON.stringify
-		const isRootObject = ( meta === undefined || typeof meta === 'string' );
-
-		const output = {};
-
-		// meta is a hash used to collect geometries, materials.
-		// not providing it implies that this is the root object
-		// being serialized.
-		if ( isRootObject ) {
-
-			// initialize meta obj
-			meta = {
-				geometries: {},
-				materials: {},
-				textures: {},
-				images: {},
-				shapes: {},
-				skeletons: {},
-				animations: {},
-				nodes: {}
-			};
-
-			output.metadata = {
-				version: 4.5,
-				type: 'Object',
-				generator: 'Object3D.toJSON'
-			};
-
-		}
-
-		// standard Object3D serialization
-
-		const object = {};
-
-		object.uuid = this.uuid;
-		object.type = this.type;
-
-		if ( this.name !== '' ) object.name = this.name;
-		if ( this.castShadow === true ) object.castShadow = true;
-		if ( this.receiveShadow === true ) object.receiveShadow = true;
-		if ( this.visible === false ) object.visible = false;
-		if ( this.frustumCulled === false ) object.frustumCulled = false;
-		if ( this.renderOrder !== 0 ) object.renderOrder = this.renderOrder;
-		if ( JSON.stringify( this.userData ) !== '{}' ) object.userData = this.userData;
-
-		object.layers = this.layers.mask;
-		object.matrix = this.matrix.toArray();
-
-		if ( this.matrixAutoUpdate === false ) object.matrixAutoUpdate = false;
-
-		// object specific properties
-
-		if ( this.isInstancedMesh ) {
-
-			object.type = 'InstancedMesh';
-			object.count = this.count;
-			object.instanceMatrix = this.instanceMatrix.toJSON();
-			if ( this.instanceColor !== null ) object.instanceColor = this.instanceColor.toJSON();
-
-		}
-
-		//
-
-		function serialize( library, element ) {
-
-			if ( library[ element.uuid ] === undefined ) {
-
-				library[ element.uuid ] = element.toJSON( meta );
-
-			}
-
-			return element.uuid;
-
-		}
-
-		if ( this.isScene ) {
-
-			if ( this.background ) {
-
-				if ( this.background.isColor ) {
-
-					object.background = this.background.toJSON();
-
-				} else if ( this.background.isTexture ) {
-
-					object.background = this.background.toJSON( meta ).uuid;
-
-				}
-
-			}
-
-			if ( this.environment && this.environment.isTexture ) {
-
-				object.environment = this.environment.toJSON( meta ).uuid;
-
-			}
-
-		} else if ( this.isMesh || this.isLine || this.isPoints ) {
-
-			object.geometry = serialize( meta.geometries, this.geometry );
-
-			const parameters = this.geometry.parameters;
-
-			if ( parameters !== undefined && parameters.shapes !== undefined ) {
-
-				const shapes = parameters.shapes;
-
-				if ( Array.isArray( shapes ) ) {
-
-					for ( let i = 0, l = shapes.length; i < l; i ++ ) {
-
-						const shape = shapes[ i ];
-
-						serialize( meta.shapes, shape );
-
-					}
-
-				} else {
-
-					serialize( meta.shapes, shapes );
-
-				}
-
-			}
-
-		}
-
-		if ( this.isSkinnedMesh ) {
-
-			object.bindMode = this.bindMode;
-			object.bindMatrix = this.bindMatrix.toArray();
-
-			if ( this.skeleton !== undefined ) {
-
-				serialize( meta.skeletons, this.skeleton );
-
-				object.skeleton = this.skeleton.uuid;
-
-			}
-
-		}
-
-		if ( this.material !== undefined ) {
-
-			if ( Array.isArray( this.material ) ) {
-
-				const uuids = [];
-
-				for ( let i = 0, l = this.material.length; i < l; i ++ ) {
-
-					uuids.push( serialize( meta.materials, this.material[ i ] ) );
-
-				}
-
-				object.material = uuids;
-
-			} else {
-
-				object.material = serialize( meta.materials, this.material );
-
-			}
-
-		}
-
-		//
-
-		if ( this.children.length > 0 ) {
-
-			object.children = [];
-
-			for ( let i = 0; i < this.children.length; i ++ ) {
-
-				object.children.push( this.children[ i ].toJSON( meta ).object );
-
-			}
-
-		}
-
-		//
-
-		if ( this.animations.length > 0 ) {
-
-			object.animations = [];
-
-			for ( let i = 0; i < this.animations.length; i ++ ) {
-
-				const animation = this.animations[ i ];
-
-				object.animations.push( serialize( meta.animations, animation ) );
-
-			}
-
-		}
-
-		if ( isRootObject ) {
-
-			const geometries = extractFromCache( meta.geometries );
-			const materials = extractFromCache( meta.materials );
-			const textures = extractFromCache( meta.textures );
-			const images = extractFromCache( meta.images );
-			const shapes = extractFromCache( meta.shapes );
-			const skeletons = extractFromCache( meta.skeletons );
-			const animations = extractFromCache( meta.animations );
-			const nodes = extractFromCache( meta.nodes );
-
-			if ( geometries.length > 0 ) output.geometries = geometries;
-			if ( materials.length > 0 ) output.materials = materials;
-			if ( textures.length > 0 ) output.textures = textures;
-			if ( images.length > 0 ) output.images = images;
-			if ( shapes.length > 0 ) output.shapes = shapes;
-			if ( skeletons.length > 0 ) output.skeletons = skeletons;
-			if ( animations.length > 0 ) output.animations = animations;
-			if ( nodes.length > 0 ) output.nodes = nodes;
-
-		}
-
-		output.object = object;
-
-		return output;
-
-		// extract data from the cache hash
-		// remove metadata on each item
-		// and return as array
-		function extractFromCache( cache ) {
-
-			const values = [];
-			for ( const key in cache ) {
-
-				const data = cache[ key ];
-				delete data.metadata;
-				values.push( data );
-
-			}
-
-			return values;
-
-		}
-
-	}*/
-
-	/*clone( recursive ) {
-
-		return new this.constructor().copy( this, recursive );
-
-	}
-
-	copy( source, recursive = true ) {
-
-		this.name = source.name;
-
-		this.up.copy( source.up );
-
-		this.position.copy( source.position );
-		this.rotation.order = source.rotation.order;
-		this.quaternion.copy( source.quaternion );
-		this.scale.copy( source.scale );
-
-		this.matrix.copy( source.matrix );
-		this.matrixWorld.copy( source.matrixWorld );
-
-		this.matrixAutoUpdate = source.matrixAutoUpdate;
-		this.matrixWorldNeedsUpdate = source.matrixWorldNeedsUpdate;
-
-		this.layers.mask = source.layers.mask;
-		this.visible = source.visible;
-
-		this.castShadow = source.castShadow;
-		this.receiveShadow = source.receiveShadow;
-
-		this.frustumCulled = source.frustumCulled;
-		this.renderOrder = source.renderOrder;
-
-		this.userData = JSON.parse( JSON.stringify( source.userData ) );
-
-		if ( recursive === true ) {
-
-			for ( let i = 0; i < source.children.length; i ++ ) {
-
-				const child = source.children[ i ];
-				this.add( child.clone() );
-
-			}
-
-		}
-
-		return this;
-
-	}*/
-
 }
 
 class Instance extends InstancedMesh {
@@ -2020,536 +1784,6 @@ class Instance extends InstancedMesh {
 }
 
 /**
- * @param  {Array<BufferGeometry>} geometries
- * @param  {Boolean} useGroups
- * @return {BufferGeometry}
- */
-function mergeBufferGeometries( geometries, useGroups = false ) {
-
-	const isIndexed = geometries[ 0 ].index !== null;
-
-	const attributesUsed = new Set( Object.keys( geometries[ 0 ].attributes ) );
-	const morphAttributesUsed = new Set( Object.keys( geometries[ 0 ].morphAttributes ) );
-
-	const attributes = {};
-	const morphAttributes = {};
-
-	const morphTargetsRelative = geometries[ 0 ].morphTargetsRelative;
-
-	const mergedGeometry = new BufferGeometry();
-
-	let offset = 0;
-
-	for ( let i = 0; i < geometries.length; ++ i ) {
-
-		const geometry = geometries[ i ];
-		let attributesCount = 0;
-
-		// ensure that all geometries are indexed, or none
-
-		if ( isIndexed !== ( geometry.index !== null ) ) {
-
-			console.error( 'THREE.BufferGeometryUtils: .mergeBufferGeometries() failed with geometry at index ' + i + '. All geometries must have compatible attributes; make sure index attribute exists among all geometries, or in none of them.' );
-			return null;
-
-		}
-
-		// gather attributes, exit early if they're different
-
-		for ( const name in geometry.attributes ) {
-
-			if ( ! attributesUsed.has( name ) ) {
-
-				console.error( 'THREE.BufferGeometryUtils: .mergeBufferGeometries() failed with geometry at index ' + i + '. All geometries must have compatible attributes; make sure "' + name + '" attribute exists among all geometries, or in none of them.' );
-				return null;
-
-			}
-
-			if ( attributes[ name ] === undefined ) attributes[ name ] = [];
-
-			attributes[ name ].push( geometry.attributes[ name ] );
-
-			attributesCount ++;
-
-		}
-
-		// ensure geometries have the same number of attributes
-
-		if ( attributesCount !== attributesUsed.size ) {
-
-			console.error( 'THREE.BufferGeometryUtils: .mergeBufferGeometries() failed with geometry at index ' + i + '. Make sure all geometries have the same number of attributes.' );
-			return null;
-
-		}
-
-		// gather morph attributes, exit early if they're different
-
-		if ( morphTargetsRelative !== geometry.morphTargetsRelative ) {
-
-			console.error( 'THREE.BufferGeometryUtils: .mergeBufferGeometries() failed with geometry at index ' + i + '. .morphTargetsRelative must be consistent throughout all geometries.' );
-			return null;
-
-		}
-
-		for ( const name in geometry.morphAttributes ) {
-
-			if ( ! morphAttributesUsed.has( name ) ) {
-
-				console.error( 'THREE.BufferGeometryUtils: .mergeBufferGeometries() failed with geometry at index ' + i + '.  .morphAttributes must be consistent throughout all geometries.' );
-				return null;
-
-			}
-
-			if ( morphAttributes[ name ] === undefined ) morphAttributes[ name ] = [];
-
-			morphAttributes[ name ].push( geometry.morphAttributes[ name ] );
-
-		}
-
-		if ( useGroups ) {
-
-			let count;
-
-			if ( isIndexed ) {
-
-				count = geometry.index.count;
-
-			} else if ( geometry.attributes.position !== undefined ) {
-
-				count = geometry.attributes.position.count;
-
-			} else {
-
-				console.error( 'THREE.BufferGeometryUtils: .mergeBufferGeometries() failed with geometry at index ' + i + '. The geometry must have either an index or a position attribute' );
-				return null;
-
-			}
-
-			mergedGeometry.addGroup( offset, count, geometry.forceMatId || i );
-
-			offset += count;
-
-		}
-
-	}
-
-	// merge indices
-
-	if ( isIndexed ) {
-
-		let indexOffset = 0;
-		const mergedIndex = [];
-
-		for ( let i = 0; i < geometries.length; ++ i ) {
-
-			const index = geometries[ i ].index;
-
-			for ( let j = 0; j < index.count; ++ j ) {
-
-				mergedIndex.push( index.getX( j ) + indexOffset );
-
-			}
-
-			indexOffset += geometries[ i ].attributes.position.count;
-
-		}
-
-		mergedGeometry.setIndex( mergedIndex );
-
-	}
-
-	// merge attributes
-
-	for ( const name in attributes ) {
-
-		const mergedAttribute = mergeBufferAttributes( attributes[ name ] );
-
-		if ( ! mergedAttribute ) {
-
-			console.error( 'THREE.BufferGeometryUtils: .mergeBufferGeometries() failed while trying to merge the ' + name + ' attribute.' );
-			return null;
-
-		}
-
-		mergedGeometry.setAttribute( name, mergedAttribute );
-
-	}
-
-	// merge morph attributes
-
-	for ( const name in morphAttributes ) {
-
-		const numMorphTargets = morphAttributes[ name ][ 0 ].length;
-
-		if ( numMorphTargets === 0 ) break;
-
-		mergedGeometry.morphAttributes = mergedGeometry.morphAttributes || {};
-		mergedGeometry.morphAttributes[ name ] = [];
-
-		for ( let i = 0; i < numMorphTargets; ++ i ) {
-
-			const morphAttributesToMerge = [];
-
-			for ( let j = 0; j < morphAttributes[ name ].length; ++ j ) {
-
-				morphAttributesToMerge.push( morphAttributes[ name ][ j ][ i ] );
-
-			}
-
-			const mergedMorphAttribute = mergeBufferAttributes( morphAttributesToMerge );
-
-			if ( ! mergedMorphAttribute ) {
-
-				console.error( 'THREE.BufferGeometryUtils: .mergeBufferGeometries() failed while trying to merge the ' + name + ' morphAttribute.' );
-				return null;
-
-			}
-
-			mergedGeometry.morphAttributes[ name ].push( mergedMorphAttribute );
-
-		}
-
-	}
-
-	return mergedGeometry;
-
-}
-
-/**
- * @param {Array<BufferAttribute>} attributes
- * @return {BufferAttribute}
- */
-function mergeBufferAttributes( attributes ) {
-
-	let TypedArray;
-	let itemSize;
-	let normalized;
-	let arrayLength = 0;
-
-	for ( let i = 0; i < attributes.length; ++ i ) {
-
-		const attribute = attributes[ i ];
-
-		if ( attribute.isInterleavedBufferAttribute ) {
-
-			console.error( 'THREE.BufferGeometryUtils: .mergeBufferAttributes() failed. InterleavedBufferAttributes are not supported.' );
-			return null;
-
-		}
-
-		if ( TypedArray === undefined ) TypedArray = attribute.array.constructor;
-		if ( TypedArray !== attribute.array.constructor ) {
-
-			console.error( 'THREE.BufferGeometryUtils: .mergeBufferAttributes() failed. BufferAttribute.array must be of consistent array types across matching attributes.' );
-			return null;
-
-		}
-
-		if ( itemSize === undefined ) itemSize = attribute.itemSize;
-		if ( itemSize !== attribute.itemSize ) {
-
-			console.error( 'THREE.BufferGeometryUtils: .mergeBufferAttributes() failed. BufferAttribute.itemSize must be consistent across matching attributes.' );
-			return null;
-
-		}
-
-		if ( normalized === undefined ) normalized = attribute.normalized;
-		if ( normalized !== attribute.normalized ) {
-
-			console.error( 'THREE.BufferGeometryUtils: .mergeBufferAttributes() failed. BufferAttribute.normalized must be consistent across matching attributes.' );
-			return null;
-
-		}
-
-		arrayLength += attribute.array.length;
-
-	}
-
-	const array = new TypedArray( arrayLength );
-	let offset = 0;
-
-	for ( let i = 0; i < attributes.length; ++ i ) {
-
-		array.set( attributes[ i ].array, offset );
-
-		offset += attributes[ i ].array.length;
-
-	}
-
-	return new BufferAttribute( array, itemSize, normalized );
-
-}
-
-/**
- * @param {BufferGeometry} geometry
- * @param {number} tolerance
- * @return {BufferGeometry}
- */
-function mergeVertices( geometry, tolerance = 1e-4 ) {
-
-	tolerance = Math.max( tolerance, Number.EPSILON );
-
-	// Generate an index buffer if the geometry doesn't have one, or optimize it
-	// if it's already available.
-	const hashToIndex = {};
-	const indices = geometry.getIndex();
-	const positions = geometry.getAttribute( 'position' );
-	const vertexCount = indices ? indices.count : positions.count;
-
-	// next value for triangle indices
-	let nextIndex = 0;
-
-	// attributes and new attribute arrays
-	const attributeNames = Object.keys( geometry.attributes );
-	const tmpAttributes = {};
-	const tmpMorphAttributes = {};
-	const newIndices = [];
-	const getters = [ 'getX', 'getY', 'getZ', 'getW' ];
-	const setters = [ 'setX', 'setY', 'setZ', 'setW' ];
-
-	// Initialize the arrays, allocating space conservatively. Extra
-	// space will be trimmed in the last step.
-	for ( let i = 0, l = attributeNames.length; i < l; i ++ ) {
-
-		const name = attributeNames[ i ];
-		const attr = geometry.attributes[ name ];
-
-		tmpAttributes[ name ] = new BufferAttribute(
-			new attr.array.constructor( attr.count * attr.itemSize ),
-			attr.itemSize,
-			attr.normalized
-		);
-
-		const morphAttr = geometry.morphAttributes[ name ];
-		if ( morphAttr ) {
-
-			tmpMorphAttributes[ name ] = new BufferAttribute(
-				new morphAttr.array.constructor( morphAttr.count * morphAttr.itemSize ),
-				morphAttr.itemSize,
-				morphAttr.normalized
-			);
-
-		}
-
-	}
-
-	// convert the error tolerance to an amount of decimal places to truncate to
-	const decimalShift = Math.log10( 1 / tolerance );
-	const shiftMultiplier = Math.pow( 10, decimalShift );
-	for ( let i = 0; i < vertexCount; i ++ ) {
-
-		const index = indices ? indices.getX( i ) : i;
-
-		// Generate a hash for the vertex attributes at the current index 'i'
-		let hash = '';
-		for ( let j = 0, l = attributeNames.length; j < l; j ++ ) {
-
-			const name = attributeNames[ j ];
-			const attribute = geometry.getAttribute( name );
-			const itemSize = attribute.itemSize;
-
-			for ( let k = 0; k < itemSize; k ++ ) {
-
-				// double tilde truncates the decimal value
-				hash += `${ ~ ~ ( attribute[ getters[ k ] ]( index ) * shiftMultiplier ) },`;
-
-			}
-
-		}
-
-		// Add another reference to the vertex if it's already
-		// used by another index
-		if ( hash in hashToIndex ) {
-
-			newIndices.push( hashToIndex[ hash ] );
-
-		} else {
-
-			// copy data to the new index in the temporary attributes
-			for ( let j = 0, l = attributeNames.length; j < l; j ++ ) {
-
-				const name = attributeNames[ j ];
-				const attribute = geometry.getAttribute( name );
-				const morphAttr = geometry.morphAttributes[ name ];
-				const itemSize = attribute.itemSize;
-				const newarray = tmpAttributes[ name ];
-				const newMorphArrays = tmpMorphAttributes[ name ];
-
-				for ( let k = 0; k < itemSize; k ++ ) {
-
-					const getterFunc = getters[ k ];
-					const setterFunc = setters[ k ];
-					newarray[ setterFunc ]( nextIndex, attribute[ getterFunc ]( index ) );
-
-					if ( morphAttr ) {
-
-						for ( let m = 0, ml = morphAttr.length; m < ml; m ++ ) {
-
-							newMorphArrays[ m ][ setterFunc ]( nextIndex, morphAttr[ m ][ getterFunc ]( index ) );
-
-						}
-
-					}
-
-				}
-
-			}
-
-			hashToIndex[ hash ] = nextIndex;
-			newIndices.push( nextIndex );
-			nextIndex ++;
-
-		}
-
-	}
-
-	// generate result BufferGeometry
-	const result = geometry.clone();
-	for ( const name in geometry.attributes ) {
-
-		const tmpAttribute = tmpAttributes[ name ];
-
-		result.setAttribute( name, new BufferAttribute(
-			tmpAttribute.array.slice( 0, nextIndex * tmpAttribute.itemSize ),
-			tmpAttribute.itemSize,
-			tmpAttribute.normalized,
-		) );
-
-		if ( ! ( name in tmpMorphAttributes ) ) continue;
-
-		for ( let j = 0; j < tmpMorphAttributes[ name ].length; j ++ ) {
-
-			const tmpMorphAttribute = tmpMorphAttributes[ name ][ j ];
-
-			result.morphAttributes[ name ][ j ] = new BufferAttribute(
-				tmpMorphAttribute.array.slice( 0, nextIndex * tmpMorphAttribute.itemSize ),
-				tmpMorphAttribute.itemSize,
-				tmpMorphAttribute.normalized,
-			);
-
-		}
-
-	}
-
-	// indices
-
-	result.setIndex( newIndices );
-
-	return result;
-
-}
-
-/**
- * @param {BufferGeometry} geometry
- * @param {number} drawMode
- * @return {BufferGeometry}
- */
-function toTrianglesDrawMode( geometry, drawMode ) {
-
-	if ( drawMode === TrianglesDrawMode ) {
-
-		console.warn( 'THREE.BufferGeometryUtils.toTrianglesDrawMode(): Geometry already defined as triangles.' );
-		return geometry;
-
-	}
-
-	if ( drawMode === TriangleFanDrawMode || drawMode === TriangleStripDrawMode ) {
-
-		let index = geometry.getIndex();
-
-		// generate index if not present
-
-		if ( index === null ) {
-
-			const indices = [];
-
-			const position = geometry.getAttribute( 'position' );
-
-			if ( position !== undefined ) {
-
-				for ( let i = 0; i < position.count; i ++ ) {
-
-					indices.push( i );
-
-				}
-
-				geometry.setIndex( indices );
-				index = geometry.getIndex();
-
-			} else {
-
-				console.error( 'THREE.BufferGeometryUtils.toTrianglesDrawMode(): Undefined position attribute. Processing not possible.' );
-				return geometry;
-
-			}
-
-		}
-
-		//
-
-		const numberOfTriangles = index.count - 2;
-		const newIndices = [];
-
-		if ( drawMode === TriangleFanDrawMode ) {
-
-			// gl.TRIANGLE_FAN
-
-			for ( let i = 1; i <= numberOfTriangles; i ++ ) {
-
-				newIndices.push( index.getX( 0 ) );
-				newIndices.push( index.getX( i ) );
-				newIndices.push( index.getX( i + 1 ) );
-
-			}
-
-		} else {
-
-			// gl.TRIANGLE_STRIP
-
-			for ( let i = 0; i < numberOfTriangles; i ++ ) {
-
-				if ( i % 2 === 0 ) {
-
-					newIndices.push( index.getX( i ) );
-					newIndices.push( index.getX( i + 1 ) );
-					newIndices.push( index.getX( i + 2 ) );
-
-				} else {
-
-					newIndices.push( index.getX( i + 2 ) );
-					newIndices.push( index.getX( i + 1 ) );
-					newIndices.push( index.getX( i ) );
-
-				}
-
-			}
-
-		}
-
-		if ( ( newIndices.length / 3 ) !== numberOfTriangles ) {
-
-			console.error( 'THREE.BufferGeometryUtils.toTrianglesDrawMode(): Unable to generate correct amount of triangles.' );
-
-		}
-
-		// build final geometry
-
-		const newGeometry = geometry.clone();
-		newGeometry.setIndex( newIndices );
-		newGeometry.clearGroups();
-
-		return newGeometry;
-
-	} else {
-
-		console.error( 'THREE.BufferGeometryUtils.toTrianglesDrawMode(): Unknown draw mode:', drawMode );
-		return geometry;
-
-	}
-
-}
-
-/**
 * SPHERE BOX GEOMETRY
 */
 class SphereBox extends BufferGeometry {
@@ -2638,7 +1872,7 @@ class Capsule extends BufferGeometry {
         m2.applyMatrix4( mtx2 );
 
 
-        let g = mergeVertices( mergeBufferGeometries( [ m0, m1, m2] ) );
+        let g = mergeVertices$1( mergeBufferGeometries$1( [ m0, m1, m2] ) );
         this.copy( g );
 
         /*m0.dispose()
@@ -2802,7 +2036,7 @@ class ChamferCyl extends BufferGeometry {
 
         scaleUV( c1, 0, 1-sy, 1, sy );
 
-        let top = mergeBufferGeometries( [ c1, c2 ] );
+        let top = mergeBufferGeometries$1( [ c1, c2 ] );
 
         mr.makeTranslation( 0,0,( (height*0.5) - filet) );
         mt.makeRotationX( -p90 );
@@ -2821,7 +2055,7 @@ class ChamferCyl extends BufferGeometry {
 
         scaleUV( c1, 0, 1-sy, 1, sy, true );
 
-        let low = mergeBufferGeometries( [ c1, c2 ] );
+        let low = mergeBufferGeometries$1( [ c1, c2 ] );
 
         mr.makeTranslation( 0,0,( (height*0.5) - filet) );
         mt.makeRotationX( p90 );
@@ -2830,7 +2064,7 @@ class ChamferCyl extends BufferGeometry {
         /*c1.dispose();
         c2.dispose();*/
 
-        let g = mergeVertices( mergeBufferGeometries( [ top, mid, low ] ) );
+        let g = mergeVertices$1( mergeBufferGeometries$1( [ top, mid, low ] ) );
 
         /*mid.dispose();
         top.dispose();
@@ -2906,7 +2140,7 @@ class ChamferBox extends BufferGeometry {
         mp.makeRotationY( -p90 );
         s2.applyMatrix4( mt.multiply(mr).multiply(mp) );
 
-        let tra = mergeBufferGeometries( [ c2, s1, s2 ] );
+        let tra = mergeBufferGeometries$1( [ c2, s1, s2 ] );
         let trc = tra.clone();
 
         /*c2.dispose();
@@ -2933,7 +2167,7 @@ class ChamferBox extends BufferGeometry {
         mr.makeRotationZ( -p90 );
         c3.applyMatrix4( mt.multiply(mr) );
 
-        let rf = mergeBufferGeometries( [ c1, c3, f, tra, trc ] );
+        let rf = mergeBufferGeometries$1( [ c1, c3, f, tra, trc ] );
         let rg = rf.clone();
 
         mt.makeTranslation( 0, 0, midDepth );
@@ -2966,7 +2200,7 @@ class ChamferBox extends BufferGeometry {
         c3.applyMatrix4( mt.multiply(mr) );
 
 
-        let rr = mergeBufferGeometries( [ c1, c3, f ] );
+        let rr = mergeBufferGeometries$1( [ c1, c3, f ] );
         let rb = rr.clone();
 
         /*f.dispose();
@@ -3001,7 +2235,7 @@ class ChamferBox extends BufferGeometry {
         mr.makeRotationX( p90 );
         f2.applyMatrix4( mt.multiply(mr) );
 
-        let g = mergeVertices( mergeBufferGeometries( [ rf, rg, rr, rb, f, f2 ] ) );
+        let g = mergeVertices$1( mergeBufferGeometries$1( [ rf, rg, rr, rb, f, f2 ] ) );
 
         /*rf.dispose();
         rg.dispose();
@@ -4779,8 +4013,10 @@ class Body extends Item {
 		}
 
 		if( o.radius ){
-			if( t === 'box' ) t = 'ChamferBox';
-		    if( t === 'cylinder' ) t = 'ChamferCyl';
+			if( !o.breakable ){
+				if( t === 'box' ) t = 'ChamferBox';
+				if( t === 'cylinder' ) t = 'ChamferCyl';
+			}
 		}
 
 		if( o.geometry ){
@@ -4828,6 +4064,7 @@ class Body extends Item {
 			}
 
 			if( o.shape ){
+
 				g = o.shape.clone();
 				if( o.size ) g.scale( o.size[0], o.size[0], o.size[0] );
 				//o.v = g.attributes.position.array;
@@ -4837,6 +4074,12 @@ class Body extends Item {
 				unic = true;
 				noScale = true;
 			}
+
+			if(!g.boundingBox) g.computeBoundingBox();
+			let bx = g.boundingBox;
+		    o.boxSize = [ -bx.min.x + bx.max.x, -bx.min.y + bx.max.y, -bx.min.z + bx.max.z ];
+
+			//console.log(g)
 
 			break;
 
@@ -4954,6 +4197,11 @@ class Body extends Item {
 
     	if( !noScale ) m.scale.fromArray( o.size );
     	//if( unic ) m.unic = true
+
+    	// disable raycast
+    	if(o.ray !== undefined){
+    		if( !o.ray ) m.raycast = () => {return};
+    	}
     	
 
     	// add or not add
@@ -5016,6 +4264,11 @@ class Body extends Item {
 	    	noMat = true;
 	    	material = Mat.get( this.type ); //mat[this.type]
 	    	if( o.instance ) material = Mat.get( 'base' );
+	    }
+
+	    if( o.unicMat ) {
+	    	material = material.clone();
+	    	root.tmpMat.push( material );
 	    }
 
 	    if( o.material ) delete o.material;
@@ -5543,18 +4796,27 @@ class Vehicle extends Item {
 
 // CAR
 
-class Car {//extends Object3D {
+class Car extends Basic3D {//extends Object3D {
 
 	constructor( o ) {
 
-		//super();
+		super();
+
+		// extra function // ex car selection
+		if(o.extra){
+			this.extra = o.extra;
+			delete o.extra;
+		}
 
 		this.type = 'vehicle';
-		this.isCar = true;
-		this.name = o.name;
-		this.withBody = false;
+		this.name = o.name || 'car';
+		this.isRay = o.ray || false;
+		//this.withBody = false;
 		this.actif = false;
 		//this.position = new THREE.Vector3();
+		this.steering = 0;
+		this.suspension = [];
+		this.rolling = [];
 		this.init( o );
 
 	}
@@ -5563,7 +4825,13 @@ class Car {//extends Object3D {
 
 	}
 
+	raycast(){
+		return
+	}
+
 	init ( o ) {
+
+		this.mass = o.mass || 2000;
 
 		//this.decal = o.bodyDecalY || 0;
 		//this.circum = (Math.PI * 2 * o.radius);// in metter
@@ -5572,6 +4840,13 @@ class Car {//extends Object3D {
 		this.size = o.size || [0.85*2, 0.5*2, 2.5*2];
 		this.massCenter = o.massCenter || [0, 0.55, 1.594];
 		this.chassisPos = o.chassisPos || [0, 0.83, 0];
+
+		this.maxSteering = o.maxSteering || 24;
+		this.incSteering = o.incSteering || 2;
+
+		this.s_travel = o.s_travel || 0.4;
+		this.s_ratio = 1 / ( this.s_travel * 0.5 );
+		this.decaly = root.engine === 'PHYSX' ? this.s_travel * 0.5 : 0;
 
 
 		//this.diff = math.vecSub( this.chassisPos, this.massCenter )
@@ -5588,55 +4863,59 @@ class Car {//extends Object3D {
 
 		if( o.wPos ){
 
-			var p, wp = o.wPos, pp = [], s=1;
-			var limz = wp.length === 3 ? true : false;
-			var pz = 1;
+			var p, wp = o.wPos, axe, pp = [], s=1, back=0, y, x, z, pzz;
+			wp.length === 3 ? true : false;
+			wp.length === 4 ? true : false;
 
-			for( var i=0; i < this.numWheel; i++ ){
+			for( let i=0; i < this.numWheel; i++ ){
 
 				s = i%2 === 0 ? -1 : 1;
-				if(s === -1) pz++;
+				axe = Math.floor(i * 0.5);
+				back = i>1 ? 1:0;
+				if(this.numWheel<4) back = i>0 ? 1:0;
+				y = wp[ 1 ];
+				if(y===0) y = back ? this.radiusBack : this.radius;
+				x = wp[ 0 ];
+				//if( x === 0 ) x = (back ? this.deepBack : this.deep)*0.5
+				if( x instanceof Array ) x = wp[0][axe];
 
-				if(limz){
-					p = [ wp[ 0 ] * s, wp[ 1 ], i<2 ? wp[ 2 ] : -wp[ 2 ] ];
-				} else {
-					p = [ wp[ 0 ] * s, wp[ 1 ],  -wp[ pz ] ];
-				}
+				z = back ? -wp[2] : wp[2];
+			    if( wp[2] instanceof Array ) z = wp[2][axe];
+
+
+				p = [ x * s, y, z ];
 
 				pp.push( p );
 
 			}
 
+			//console.log(this.name, pp)
+
 			this.wheelsPosition = pp;
-			//delete o.wPos;
-
-		} else {
-
-			this.wheelsPosition = o.wheelsPosition;
+			delete o.wPos;
 
 		}
 
+		if( o.wheelsPosition ) this.wheelsPosition = o.wheelsPosition;
+
 		//console.log(this.wheelsPosition)
+
+		const scale = o.meshScale || 1;
+
 
 		const chassisShapes = [];// { type:'convex', shape:bodyShape, pos:[0,0,0], flag:8|2|1 } ];//, isExclusive:true
 
 		//if( o.chassisShape ) chassisShapes.push( { type:'convex', shape:o.chassisShape, pos:[0,0,0], flag:8|2|1 } );
 		//else chassisShapes.push( { type:'box', size:this.size, pos:[0,0,0], flag:8|2|1 } );
 
-		if( o.chassisShape ) chassisShapes.push( { type:'convex', shape:o.chassisShape, filter:[1, -1, 0, 0], isExclusive:true  } );
-		else chassisShapes.push( { type:'box', size:this.size, pos:this.chassisPos } );
-
-		let wType = 'cylinder';//'wheel'
+		if( o.chassisShape ) chassisShapes.push( { type:'convex', shape:o.chassisShape, size:[scale], pos:this.chassisPos, filter:[1, -1, 0, 0], isExclusive:true, ray:this.isRay  } );
+		else chassisShapes.push( { type:'box', size:this.size, pos:this.chassisPos } ); 
 
 		for( let i=0; i < this.numWheel; i++ ){
-
-	    	if( i < 2 ) chassisShapes.push({ type:wType, size:[ this.radius, this.deep ], isWheel:true, radius:0.05 /*pos:this.wheelsPosition[i], filter:[2, 4, 0, 0], isExclusive:true */ });
-	    	else chassisShapes.push({ type:wType, size:[ this.radiusBack, this.deepBack ], isWheel:true, radius:0.05 /*pos:this.wheelsPosition[i], filter:[2, 4, 0, 0], isExclusive:true*/  });
+	    	if( i < 2 ) chassisShapes.push({ type:'cylinder', size:[ this.radius, this.deep ], isWheel:true, radius:o.rad || 0.05 , shadow:false, ray:false });
+	    	else chassisShapes.push({ type:'cylinder', size:[ this.radiusBack, this.deepBack ], isWheel:true, radius:o.rad || 0.05 , shadow:false, ray:false  });
 	    	
 	    }
-
-	    ///console.log( chassisShapes )
-
 
 	    /*for( var i=0; i < o.numWheel; i++ ){
 
@@ -5649,63 +4928,109 @@ class Car {//extends Object3D {
 
 	    }*/
 
-	    var material = 'debug';//o.debug ? 'debug' : (o.body === undefined ? 'body' : 'hide');
+	    var material = Mat.get( 'debug3' );//'debug3'//o.debug ? 'debug' : (o.body === undefined ? 'body' : 'hide');
 	    //if( o.body === undefined ) material = 'move';
 
-		this.kinematic = o.kinematic;
-		this.chassis = root.add({ 
-			onlyMakeMesh:true, 
-		    name:this.name + '_chassis', 
-		    type:'compound', 
-		    shapes:chassisShapes, 
-		    pos:o.pos, 
-		    rot:o.rot, 
-		    ray:false,
-		    //mass:1,
-		    /*mass:o.mass + o.wheelMass * o.numWheel, */
-		    material:material, 
-		    //kinematic: o.kinematic,
-			//noGravity:true
-		});
-		
-		this.chassis.car = this;
+	    let n;
 
-		if( o.body ){
+	    for ( let i = 0; i < chassisShapes.length; i ++ ) {
+	    	n = chassisShapes[i];
+	    	if( n.pos ) n.localPos = n.pos;
+	    	n.size = math$1.autoSize( n.size, n.type );
+	    	root.items.body.geometry( n, this, material );
+	    }
 
-			this.withBody = true;
+	    //if( o.chassisShape ) console.log(  )
 
-			this.body = o.noClone ? o.body : o.body.clone();
-			this.body.matrixAutoUpdate = false;
 
-			this.chassisName = o.chassisName || "chassis";
-			this.wheelNamePrefix = o.wheelNamePrefix || "wheel_";
+		let m;
 
-			if( this.body.scale.x!==o.bodyScale ) this.body.scale.multiplyScalar(o.bodyScale);
+		if(o.chassisMesh){
+			m = o.noClone ? o.chassisMesh : o.chassisMesh.clone();
+			m.position.set( 0, 0, 0 );
+			Utils.noRay( m );
+			m.scale.set( scale, scale, scale );
+			this.children[0].add( m );
+			delete o.chassisMesh;
 
-			this.invScale = 1/o.bodyScale;
-
-			root.content.add( this.body );
-
-			var i = this.body.children.length;
-			this.bodys = {};
-			while (i--){
-				var child = this.body.children[i];
-				var name = child.name;
-				this.bodys[ name ] = child;
-				
-				//if(child.name.startsWith(this.wheelNamePrefix))
-				//	child.rotation.order = "YXZ";
-			}
-			
-			var chassisMesh = this.bodys[this.chassisName];
-			if(this.kinematic && chassisMesh) chassisMesh.position.y -= this.decal;
-
-			//console.log( this.wheelsPosition, this.bodys )
-
-			delete ( o.body );
+			//this.chassis.children[0].castShadow = false;
+			//this.chassis.children[0].receiveShadow = false;
 		}
 
-		o.size = this.size;
+
+		//let back = false, 
+
+		// wheel model
+		if( o.wheelMesh ){
+			
+			
+			for( let i = 1; i<this.numWheel+1; i++ ) {
+				back = i > 2;
+				if( o.wheelMeshBack ) m = back ? o.wheelMeshBack.clone() : o.wheelMesh.clone();
+				else m = o.wheelMesh.clone();
+				Utils.noRay( m );
+				m.position.set( 0, 0, 0 );
+				if(i==2 || i ==4) m.scale.set( -scale, scale, scale );
+				else m.scale.set( scale, scale, scale );
+				this.children[i].add( m );
+
+			    //this.chassis.children[i].castShadow = false;
+			    //this.chassis.children[i].receiveShadow = false;
+			}
+			delete o.wheelMesh;
+		}
+
+		
+
+		// suspension model
+		if( o.suspensionMesh ){
+
+			this.suspensionMesh = [];
+
+			for( let i = 1; i<this.numWheel+1; i++ ) {
+
+				m = o.suspensionMesh.clone();
+				Utils.noRay( m );
+				m.position.set( 0, 0, 0 );
+				m.position.fromArray(this.wheelsPosition[i-1]);
+				m.position.x = 0;
+				if(i==2 || i ==4) m.scale.set( scale, scale, scale );
+				else m.scale.set( -scale, scale, scale );
+				this.children[0].add( m );
+			    this.suspensionMesh.push( m );
+
+			}
+			delete o.suspensionMesh;
+
+		}
+
+		// suspension model
+		if( o.brakeMesh ){
+
+			this.brake = [];
+
+			for( let i = 1; i<this.numWheel+1; i++ ) {
+				back = i > 2;
+				if( o.brakeMeshBack ) m = back ? o.brakeMeshBack.clone() : o.brakeMesh.clone();
+				else m = o.brakeMesh.clone();
+				Utils.noRay( m );
+				m.position.set( 0, 0, 0 );
+				m.position.fromArray(this.wheelsPosition[i-1]);
+				if( o.brakeMeshBack ) pzz = scale;
+				else pzz = back ? scale : -scale;
+				if(i==2 || i ==4) m.scale.set( -scale, scale, pzz );
+				else m.scale.set( scale, scale, pzz );
+				this.children[0].add( m );
+			    this.brake.push( m );
+
+			}
+			delete o.brakeMesh;
+
+		}
+
+		o.mass = this.mass;
+
+		o.size = o.chassisShape ? chassisShapes[0].boxSize : this.size;
 		o.numWheel = this.numWheel;
 		o.wheelsPosition = this.wheelsPosition;
 		o.radius = this.radius;
@@ -5714,6 +5039,10 @@ class Car {//extends Object3D {
 		o.deepBack = this.deepBack;
 
 		o.chassisShape = chassisShapes[0];
+
+		o.maxSteering = this.maxSteering;
+		o.incSteering = this.incSteering;
+		o.s_travel = this.s_travel;
 
 		o.massCenter = this.massCenter;
 		o.chassisPos = this.chassisPos;
@@ -5730,20 +5059,28 @@ class Car {//extends Object3D {
 		o.respawn = true;
 		o.name = this.name;
 
-		if( o.keepRotation ) o.quat = this.chassis.quaternion.toArray();
+		if( o.keepRotation ) o.quat = this.quaternion.toArray();
 
 
 		root.view.up( o );
 
 	}
 
+	move(){
+
+		/*phy.update({ 
+		    name:this.name,
+		    key: key
+		});*/
+	}
+
 	dispose (){
 
-		if(this.withBody){
+		/*if(this.withBody){
 			root.content.remove( this.body );
-		}
+		}*/
 
-		root.remove( this.name + '_chassis' );
+		//root.remove( this.name + '_chassis' );
 	}
 
 	step ( AR, n ) {
@@ -5754,63 +5091,33 @@ class Car {//extends Object3D {
 			else this.actif = true;
 		}
 
-		this.chassis.position.fromArray( AR, n + 1 );
-		this.chassis.quaternion.fromArray( AR, n + 4 );
-		this.chassis.updateMatrix();
-
-		//console.log(AR)
-
-		if( this.withBody ){
-			this.body.position.copy( this.chassis.position );
-		    this.body.quaternion.copy( this.chassis.quaternion );
-		    this.body.updateMatrix();
-		}
-
-		//this.position.copy( this.chassis.position );
 		
-		//if(this.kinematic) return;
 
-		var num = this.numWheel+1;
+		this.position.fromArray( AR, n + 1 );
+		this.quaternion.fromArray( AR, n + 4 );
+		this.updateMatrix();
 
-		var mesh;
+		let num = this.numWheel+1;
+		let mesh;
+		let s1 = 0, s2 = 0;
+		let sp = [];
+		let k = 0;
 
-		/*let isGlobal = false
+		for( let i = 0; i<num; i++ ){
 
-		let mx = new Matrix4()
-		let mx2 = new Matrix4().copy( this.chassis.matrixWorld ).invert()
-		let mp = new Vector3()
-		let mq = new Quaternion()*/
+			k = (i*8) + n;
 
-		var k = 0;
-		for( var i = 0; i<num; i++ ){
-
-			k = (i*8) + n; //( i*5 ) + n;
-
-			//if(i===0) acc = -( AR[ m+n ] * this.circum );
-			if(i===0)  ( ( AR[ k ] ) / this.circum  );
-
-
-
-
-			mesh = this.chassis.children[i];
+			if(i===0) ( ( AR[ k ] ) / this.circum );
+			if(i===1) s1 = AR[ k ];
+			if(i===2) s2 = AR[ k ]; 
+			
+			mesh = this.children[i];
+			
 
 			if( mesh && i>0 ){
 
-				/*if(isGlobal){
-					mx.compose( {x:AR[k+1], y:AR[k+2], z:AR[k+3]}, {_x:AR[k+4], _y:AR[k+5], _z:AR[k+6], _w:AR[k+7]}, {x:1, y:1, z:1})
-					mx.premultiply( mx2 )
-					mx.decompose(mp, mq, {x:1, y:1, z:1})
-					mp.toArray( AR, k + 1 )
-					mq.toArray( AR, k + 4 )
-				}*/
-
-				
-				
-
-				//mesh.rotation.order = 'YXZ'
-				/*mesh.position.copy(mp)//fromArray( AR, k + 1 );
-				mesh.position.y += this.massCenter[1]
-				mesh.quaternion.copy(mq)//fromArray( AR, k + 4 )*/
+				//sp[i-1] = this.wheelsPosition[i-1][1] - AR[k+2]
+				sp[i-1] = (this.wheelsPosition[i-1][1] - this.decaly ) - AR[k+2];
 
 				// local
 				
@@ -5818,57 +5125,38 @@ class Car {//extends Object3D {
 				//mesh.position.y += this.massCenter[1]
 				mesh.quaternion.fromArray( AR, k + 4 );
 
+				this.rolling[i-1] = mesh.rotation.x;
 
-
-				//mesh.quaternion.fromArray( AR, n + 4 )//.premultiply(this.q)
-				//mesh.rotation.order = 'YXZ';
-				/*mesh.rotation.order = 'YZX';
-				mesh.rotation.y = AR[k+4];
-				mesh.rotation.x = AR[k+5];
-				mesh.rotation.z = AR[k+6];*/
-
+				if(this.brake){
+					this.brake[i-1].position.copy( mesh.position );
+					if(i==1 || i==2) this.brake[i-1].rotation.y = AR[k];
+				}
 
 			}
 
-			
-			//mesh.quaternion.fromArray( AR, k + 4 );
-
-			/*if( this.withBody ){
-
-				if( i > 0 ) real = this.bodys[ this.wheelNamePrefix + ( i-1 ) ];
-			    else real = this.bodys[ this.chassisName ];
-
-				if(real) {
-					real.position.fromArray( AR, k + 1 ).multiplyScalar(this.invScale);
-					//real.quaternion.fromArray( AR, k + 4 );
-					if(real.name === this.chassisName) real.position.y-= this.decal;
-				}
-			}*/
-
-
-
-			/*if(i>0){
-
-				var roll = AR[ k+4 ]
-
-				mesh.rotation.order = 'YXZ';
-				mesh.rotation.y = sr;
-				mesh.rotation.x += acc/Math.PI;
-				mesh.rotation.x = roll;
-
-				if( this.withBody && real ){
-			        if(!this.disableSteerAnimation) real.rotation.y = sr;
-				    //real.rotation.x += acc/Math.PI;
-				    real.rotation.x = roll;
-				}
-
-
-			}*/
-
-
-
 		}
 
+		
+		k = 4;
+		while(k--){
+
+			this.suspension[k] = math$1.clamp( sp[k]*this.s_ratio, -1, 1 );
+			
+			if(this.suspensionMesh ){
+				if ( this.suspension[k] > 0 ) {
+					Utils.morph( this.suspensionMesh[k].children[0], 'low', this.suspension[k] );
+					Utils.morph( this.suspensionMesh[k].children[0], 'top', 0 );
+				} else {
+					Utils.morph( this.suspensionMesh[k].children[0], 'low', 0 );
+					Utils.morph( this.suspensionMesh[k].children[0], 'top', -this.suspension[k] );
+				}
+			}
+
+		} 
+
+		this.steering = Math.round(((s1+s2)*0.5)*math$1.todeg) / this.maxSteering;
+		
+		//console.log(this.steering)
 		//console.log(acc)
 
 
@@ -5877,719 +5165,532 @@ class Car {//extends Object3D {
 	}
 }
 
-// THREE CHARACTER
+/**
+ * @param  {Array<BufferGeometry>} geometries
+ * @param  {Boolean} useGroups
+ * @return {BufferGeometry}
+ */
+function mergeBufferGeometries( geometries, useGroups = false ) {
 
-class Character extends Item {
+	const isIndexed = geometries[ 0 ].index !== null;
 
-	constructor() {
+	const attributesUsed = new Set( Object.keys( geometries[ 0 ].attributes ) );
+	const morphAttributesUsed = new Set( Object.keys( geometries[ 0 ].morphAttributes ) );
 
-		super();
+	const attributes = {};
+	const morphAttributes = {};
 
-		this.Utils = Utils;
-		this.type = 'character';
+	const morphTargetsRelative = geometries[ 0 ].morphTargetsRelative;
 
-	}
+	const mergedGeometry = new BufferGeometry();
 
-	step ( AR, N ) {
+	let offset = 0;
 
-		let i = this.list.length, n, s;
+	for ( let i = 0; i < geometries.length; ++ i ) {
 
-		while( i-- ){
+		const geometry = geometries[ i ];
+		let attributesCount = 0;
 
-			s = this.list[i];
-			n = N + ( i * Num.character );
-			s.step( AR, n );
+		// ensure that all geometries are indexed, or none
+
+		if ( isIndexed !== ( geometry.index !== null ) ) {
+
+			console.error( 'THREE.BufferGeometryUtils: .mergeBufferGeometries() failed with geometry at index ' + i + '. All geometries must have compatible attributes; make sure index attribute exists among all geometries, or in none of them.' );
+			return null;
+
+		}
+
+		// gather attributes, exit early if they're different
+
+		for ( const name in geometry.attributes ) {
+
+			if ( ! attributesUsed.has( name ) ) {
+
+				console.error( 'THREE.BufferGeometryUtils: .mergeBufferGeometries() failed with geometry at index ' + i + '. All geometries must have compatible attributes; make sure "' + name + '" attribute exists among all geometries, or in none of them.' );
+				return null;
+
+			}
+
+			if ( attributes[ name ] === undefined ) attributes[ name ] = [];
+
+			attributes[ name ].push( geometry.attributes[ name ] );
+
+			attributesCount ++;
+
+		}
+
+		// ensure geometries have the same number of attributes
+
+		if ( attributesCount !== attributesUsed.size ) {
+
+			console.error( 'THREE.BufferGeometryUtils: .mergeBufferGeometries() failed with geometry at index ' + i + '. Make sure all geometries have the same number of attributes.' );
+			return null;
+
+		}
+
+		// gather morph attributes, exit early if they're different
+
+		if ( morphTargetsRelative !== geometry.morphTargetsRelative ) {
+
+			console.error( 'THREE.BufferGeometryUtils: .mergeBufferGeometries() failed with geometry at index ' + i + '. .morphTargetsRelative must be consistent throughout all geometries.' );
+			return null;
+
+		}
+
+		for ( const name in geometry.morphAttributes ) {
+
+			if ( ! morphAttributesUsed.has( name ) ) {
+
+				console.error( 'THREE.BufferGeometryUtils: .mergeBufferGeometries() failed with geometry at index ' + i + '.  .morphAttributes must be consistent throughout all geometries.' );
+				return null;
+
+			}
+
+			if ( morphAttributes[ name ] === undefined ) morphAttributes[ name ] = [];
+
+			morphAttributes[ name ].push( geometry.morphAttributes[ name ] );
+
+		}
+
+		if ( useGroups ) {
+
+			let count;
+
+			if ( isIndexed ) {
+
+				count = geometry.index.count;
+
+			} else if ( geometry.attributes.position !== undefined ) {
+
+				count = geometry.attributes.position.count;
+
+			} else {
+
+				console.error( 'THREE.BufferGeometryUtils: .mergeBufferGeometries() failed with geometry at index ' + i + '. The geometry must have either an index or a position attribute' );
+				return null;
+
+			}
+
+			mergedGeometry.addGroup( offset, count, geometry.forceMatId || i );
+
+			offset += count;
 
 		}
 
 	}
 
-	add ( o = {} ) {
+	// merge indices
 
-		this.setName( o );
+	if ( isIndexed ) {
 
-		const hero = new Hero( o );
+		let indexOffset = 0;
+		const mergedIndex = [];
 
-		// add to world
-		this.addToWorld( hero, o.id );
+		for ( let i = 0; i < geometries.length; ++ i ) {
 
-        // add to physics
-        root.post({ m:'add', o:hero.o });
+			const index = geometries[ i ].index;
 
-		return hero
+			for ( let j = 0; j < index.count; ++ j ) {
+
+				mergedIndex.push( index.getX( j ) + indexOffset );
+
+			}
+
+			indexOffset += geometries[ i ].attributes.position.count;
+
+		}
+
+		mergedGeometry.setIndex( mergedIndex );
 
 	}
 
-	set ( o = {}, b = null ) {
+	// merge attributes
 
-		if( b === null ) b = this.byName( o.name );
-		if( b === null ) return
+	for ( const name in attributes ) {
 
-		b.set(o);
+		const mergedAttribute = mergeBufferAttributes( attributes[ name ] );
+
+		if ( ! mergedAttribute ) {
+
+			console.error( 'THREE.BufferGeometryUtils: .mergeBufferGeometries() failed while trying to merge the ' + name + ' attribute.' );
+			return null;
+
+		}
+
+		mergedGeometry.setAttribute( name, mergedAttribute );
 
 	}
-	
+
+	// merge morph attributes
+
+	for ( const name in morphAttributes ) {
+
+		const numMorphTargets = morphAttributes[ name ][ 0 ].length;
+
+		if ( numMorphTargets === 0 ) break;
+
+		mergedGeometry.morphAttributes = mergedGeometry.morphAttributes || {};
+		mergedGeometry.morphAttributes[ name ] = [];
+
+		for ( let i = 0; i < numMorphTargets; ++ i ) {
+
+			const morphAttributesToMerge = [];
+
+			for ( let j = 0; j < morphAttributes[ name ].length; ++ j ) {
+
+				morphAttributesToMerge.push( morphAttributes[ name ][ j ][ i ] );
+
+			}
+
+			const mergedMorphAttribute = mergeBufferAttributes( morphAttributesToMerge );
+
+			if ( ! mergedMorphAttribute ) {
+
+				console.error( 'THREE.BufferGeometryUtils: .mergeBufferGeometries() failed while trying to merge the ' + name + ' morphAttribute.' );
+				return null;
+
+			}
+
+			mergedGeometry.morphAttributes[ name ].push( mergedMorphAttribute );
+
+		}
+
+	}
+
+	return mergedGeometry;
+
 }
 
-// HERO
+/**
+ * @param {Array<BufferAttribute>} attributes
+ * @return {BufferAttribute}
+ */
+function mergeBufferAttributes( attributes ) {
 
-class Hero {
+	let TypedArray;
+	let itemSize;
+	let normalized;
+	let arrayLength = 0;
 
-	constructor( o ) {
+	for ( let i = 0; i < attributes.length; ++ i ) {
 
-		this.type = 'character';
-		this.name = o.name;
+		const attribute = attributes[ i ];
 
-		//this.position = new THREE.Vector3();
-		this.init( o );
+		if ( attribute.isInterleavedBufferAttribute ) {
+
+			console.error( 'THREE.BufferGeometryUtils: .mergeBufferAttributes() failed. InterleavedBufferAttributes are not supported.' );
+			return null;
+
+		}
+
+		if ( TypedArray === undefined ) TypedArray = attribute.array.constructor;
+		if ( TypedArray !== attribute.array.constructor ) {
+
+			console.error( 'THREE.BufferGeometryUtils: .mergeBufferAttributes() failed. BufferAttribute.array must be of consistent array types across matching attributes.' );
+			return null;
+
+		}
+
+		if ( itemSize === undefined ) itemSize = attribute.itemSize;
+		if ( itemSize !== attribute.itemSize ) {
+
+			console.error( 'THREE.BufferGeometryUtils: .mergeBufferAttributes() failed. BufferAttribute.itemSize must be consistent across matching attributes.' );
+			return null;
+
+		}
+
+		if ( normalized === undefined ) normalized = attribute.normalized;
+		if ( normalized !== attribute.normalized ) {
+
+			console.error( 'THREE.BufferGeometryUtils: .mergeBufferAttributes() failed. BufferAttribute.normalized must be consistent across matching attributes.' );
+			return null;
+
+		}
+
+		arrayLength += attribute.array.length;
 
 	}
 
-	init( o ){
+	const array = new TypedArray( arrayLength );
+	let offset = 0;
 
-		this.shape = root.add({ 
-			onlyMakeMesh:true, 
-		    name:this.name + '_shape', 
-		    type:'capsule', 
-		    size:o.size,
-		    pos:o.pos, 
-		    rot:o.rot,
-		    ray:false,
-		    material:'hero'
-		});
+	for ( let i = 0; i < attributes.length; ++ i ) {
+
+		array.set( attributes[ i ].array, offset );
+
+		offset += attributes[ i ].array.length;
 
 	}
 
-	step ( AR, n ) {
-
-		this.shape.position.fromArray( AR, n + 1 );
-		this.shape.quaternion.fromArray( AR, n + 4 );
-		this.shape.updateMatrix();
-
-	}
-
-	set ( o ) {
-
-	}
-
+	return new BufferAttribute( array, itemSize, normalized );
 
 }
 
-const math = {
+/**
+ * @param {BufferGeometry} geometry
+ * @param {number} tolerance
+ * @return {BufferGeometry}
+ */
+function mergeVertices( geometry, tolerance = 1e-4 ) {
 
-	torad: Math.PI / 180,
-	todeg: 180 / Math.PI,
-	Pi: Math.PI,
-	TwoPI: Math.PI*2,
-	PI90: Math.PI*0.5,
-	PI45: Math.PI*0.25,
-	PI270: (Math.PI*0.5)*3,
-	inv255: 0.003921569,
-	golden: 1.618033,
-	epsilon: Math.pow( 2, - 52 ),
+	tolerance = Math.max( tolerance, Number.EPSILON );
 
-	randomSign: () => ( Math.random() < 0.5 ? -1 : 1 ),
-	randSpread: ( range ) => ( range * ( 0.5 - Math.random() ) ),
-	rand: ( low = 0, high = 1 ) => ( low + Math.random() * ( high - low ) ),
-	randInt: ( low, high ) => ( low + Math.floor( Math.random() * ( high - low + 1 ) ) ),
-	toFixed: ( x, n = 3 ) => ( x.toFixed(n) * 1 ),
-	int: ( x ) => ( Math.floor(x) ),
-	lerp: ( x, y, t ) => ( ( 1 - t ) * x + t * y ),
-	clamp: ( v, min, max ) => ( Math.max( min, Math.min( max, v )) ),
-	nearEquals: ( a, b, t ) => ( Math.abs(a - b) <= t ? true : false ),
-	lerpAr: ( ar, arx, ary, t ) => {
-		let i = ar.length;
-		while( i-- ) ar[i] = math.lerp( arx[i], ary[i], t );
-	},
+	// Generate an index buffer if the geometry doesn't have one, or optimize it
+	// if it's already available.
+	const hashToIndex = {};
+	const indices = geometry.getIndex();
+	const positions = geometry.getAttribute( 'position' );
+	const vertexCount = indices ? indices.count : positions.count;
 
-    unwrapDeg: ( r ) => (r - (Math.floor((r + 180)/360))*360), 
-	unwrapRad: ( r ) => (r - (Math.floor((r + Math.PI)/(2*Math.PI)))*2*Math.PI),
+	// next value for triangle indices
+	let nextIndex = 0;
 
+	// attributes and new attribute arrays
+	const attributeNames = Object.keys( geometry.attributes );
+	const tmpAttributes = {};
+	const tmpMorphAttributes = {};
+	const newIndices = [];
+	const getters = [ 'getX', 'getY', 'getZ', 'getW' ];
+	const setters = [ 'setX', 'setY', 'setZ', 'setW' ];
 
-	scaleArray: ( ar, scale ) => {
+	// Initialize the arrays, allocating space conservatively. Extra
+	// space will be trimmed in the last step.
+	for ( let i = 0, l = attributeNames.length; i < l; i ++ ) {
 
-		var i = ar.length;
-		while( i-- ){ ar[i] *= scale; }		return ar;
+		const name = attributeNames[ i ];
+		const attr = geometry.attributes[ name ];
 
-	},
+		tmpAttributes[ name ] = new BufferAttribute(
+			new attr.array.constructor( attr.count * attr.itemSize ),
+			attr.itemSize,
+			attr.normalized
+		);
 
-	addArray: ( ar, ar2 ) => {
+		const morphAttr = geometry.morphAttributes[ name ];
+		if ( morphAttr ) {
 
-		var r = [];
-		var i = ar.length;
-		while( i-- ){ r[i] = ar[i] + ar2[i]; }		return r;
+			tmpMorphAttributes[ name ] = new BufferAttribute(
+				new morphAttr.array.constructor( morphAttr.count * morphAttr.itemSize ),
+				morphAttr.itemSize,
+				morphAttr.normalized
+			);
 
-	},
+		}
 
-	angleDistance:(cur, prv)=> {
-		var diff = (cur - prv + 180) % 360 - 180;
-		return diff < -180 ? diff + 360 : diff;
-	},
+	}
 
+	// convert the error tolerance to an amount of decimal places to truncate to
+	const decimalShift = Math.log10( 1 / tolerance );
+	const shiftMultiplier = Math.pow( 10, decimalShift );
+	for ( let i = 0; i < vertexCount; i ++ ) {
 
+		const index = indices ? indices.getX( i ) : i;
 
+		// Generate a hash for the vertex attributes at the current index 'i'
+		let hash = '';
+		for ( let j = 0, l = attributeNames.length; j < l; j ++ ) {
 
-	/*map: ( value, in_min, in_max, out_min, out_max ) => ( (value - in_min) * (out_max - out_min) / (in_max - in_min) + out_min ),
-	
-	smoothLerp: ( a, b, c, t, k ) => {
+			const name = attributeNames[ j ];
+			const attribute = geometry.getAttribute( name );
+			const itemSize = attribute.itemSize;
 
-        var f = a - b + (c - b) / (k * t);
-        return c - (c - b) / ( k * t ) + f * Math.exp(-k*t);
+			for ( let k = 0; k < itemSize; k ++ ) {
 
-    },
+				// double tilde truncates the decimal value
+				hash += `${ ~ ~ ( attribute[ getters[ k ] ]( index ) * shiftMultiplier ) },`;
 
-    smoothLerpV: ( a, b, c, t, k ) => {
+			}
 
-    	let x = math.smoothLerp( a.x, b.x, c.x, t, k );
-    	let y = math.smoothLerp( a.y, b.y, c.y, t, k );
-    	let z = math.smoothLerp( a.z, b.z, c.z, t, k );
+		}
 
-    	return { x:x, y:y, z:z }
+		// Add another reference to the vertex if it's already
+		// used by another index
+		if ( hash in hashToIndex ) {
 
-    },
+			newIndices.push( hashToIndex[ hash ] );
 
-	minValue: ( ar ) => {
-
-		let v = ar[0];
-		for (let i = 1, l=ar.length; i<l; i++){ if( ar[i] < v ) v = ar[i]; }
-		return v;
-
-	},
-
-	clamp: function (v, min, max) {
-
-		//return Math.max( min, Math.min( max, value ) );
-	    v = v < min ? min : v;
-	    v = v > max ? max : v;
-	    return v;
-	},
-
-	autoSize: ( o ) => {
-
-		let s = o.size === undefined ? [ 1, 1, 1 ] : o.size;
-		if ( s.length === 1 ) s[ 1 ] = s[ 0 ];
-
-		let type = o.type === undefined ? 'box' : o.type;
-		let radius = o.radius === undefined ? s[0] : o.radius;
-		let height = o.height === undefined ? s[1] : o.height;
-
-		if( type === 'sphere' ) s = [ radius, radius, radius ];
-		if( type === 'cylinder' || type === 'wheel' || type === 'capsule' ) s = [ radius, height, radius ];
-		if( type === 'cone' || type === 'pyramid' ) s = [ radius, height, 0 ];
-
-	    if ( s.length === 2 ) s[ 2 ] = s[ 0 ];
-	    return s;
-
-	},
-
-	correctSize: ( s ) => {
-
-		if ( s.length === 1 ) s[ 1 ] = s[ 0 ];
-	    if ( s.length === 2 ) s[ 2 ] = s[ 0 ];
-	    return s;
-
-	},*/
-
-	tmpE: new Euler(),
-	tmpM: new Matrix4(),
-	tmpM2: new Matrix4(),
-	tmpV: new Vector3(),
-	tmpQ: new Quaternion(),
-
-	fromTransformToQ: ( p, q, inv ) => {
-
-		inv = inv || false;
-
-		math.tmpM.compose( math.tmpV.fromArray( p ), math.tmpQ.fromArray( q ), { x:1, y:1, z:1 } );
-		math.tmpM.decompose( math.tmpV, math.tmpQ, { x:1, y:1, z:1 } );
-
-		//math.tmpQ.fromArray( q )
-
-		if(inv) math.tmpQ.invert();
-
-		return math.tmpQ.toArray();
-
-	},
-
-	fromTransform: ( p, q, p2, q2, inv ) => {
-
-		inv = inv || false;
-		q2 = q2 || [0,0,0,1];
-
-		math.tmpM.compose( math.tmpV.fromArray( p ), math.tmpQ.fromArray( q ), { x:1, y:1, z:1 } );
-		math.tmpM2.compose( math.tmpV.fromArray( p2 ), math.tmpQ.fromArray( q2 ), { x:1, y:1, z:1 } );
-		if( inv ){
-			//math.tmpM.getInverse( math.tmpM );
-			math.tmpM.invert();
-			math.tmpM.multiply( math.tmpM2 );
 		} else {
-			math.tmpM.multiply( math.tmpM2 );
+
+			// copy data to the new index in the temporary attributes
+			for ( let j = 0, l = attributeNames.length; j < l; j ++ ) {
+
+				const name = attributeNames[ j ];
+				const attribute = geometry.getAttribute( name );
+				const morphAttr = geometry.morphAttributes[ name ];
+				const itemSize = attribute.itemSize;
+				const newarray = tmpAttributes[ name ];
+				const newMorphArrays = tmpMorphAttributes[ name ];
+
+				for ( let k = 0; k < itemSize; k ++ ) {
+
+					const getterFunc = getters[ k ];
+					const setterFunc = setters[ k ];
+					newarray[ setterFunc ]( nextIndex, attribute[ getterFunc ]( index ) );
+
+					if ( morphAttr ) {
+
+						for ( let m = 0, ml = morphAttr.length; m < ml; m ++ ) {
+
+							newMorphArrays[ m ][ setterFunc ]( nextIndex, morphAttr[ m ][ getterFunc ]( index ) );
+
+						}
+
+					}
+
+				}
+
+			}
+
+			hashToIndex[ hash ] = nextIndex;
+			newIndices.push( nextIndex );
+			nextIndex ++;
+
 		}
 
-		math.tmpM.decompose( math.tmpV, math.tmpQ, { x:1, y:1, z:1 } );
-
-		return math.tmpV.toArray();
-
-	},
-
-	arCopy: ( a, b ) => {
-
-		[...b];
-
-		//for( var i = 0; i< b.length; i++ ) a[i] = b[i];
-
-	},
-
-	axisToQuatArray: ( r, isdeg ) => { // r[0] array in degree
-
-		isdeg = isdeg || false;
-		return math.tmpQ.setFromAxisAngle( math.tmpV.fromArray( r, 1 ), isdeg ? r[0]*math.torad : r[0]).normalize().toArray();
-
-	},
-
-	toQuatArray: ( rotation ) => { // rotation array in degree
-
-		return math.tmpQ.setFromEuler( math.tmpE.fromArray( math.vectorad( rotation ) ) ).toArray();
-
-	},
-
-	vectorad: ( r ) => {
-
-		let i = 3, nr = [];
-	    while ( i -- ) nr[ i ] = r[ i ] * math.torad;
-	    nr[3] = r[3];
-	    return nr;
-
-	},
-/*
-	directionVector: ( a, b ) => {
-
-	    var x = b.x-a.x;
-	    var y = b.y-a.y;
-	    var z = b.z-a.z;
-	    var d = math.tmpV.set( x, 0, z ).normalize().toArray();
-	    return d;
-
-	},
-
-	distanceVector: ( a, b ) => {
-
-	    var x = b.x-a.x;
-	    var y = b.y-a.y;
-	    var z = b.z-a.z;
-	    var d = Math.sqrt( x*x + y*y + z*z );
-	    return d;
-
-	},*/
-
-
-	//--------------------
-	//   COLORS
-	//--------------------
-
-	rgbToHex: ( rgb ) => {
-
-	    return '0x' + ( '000000' + ( ( rgb[0] * 255 ) << 16 ^ ( rgb[1] * 255 ) << 8 ^ ( rgb[2] * 255 ) << 0 ).toString( 16 ) ).slice( - 6 );
-
-	},
-
-	hexToRgb: ( hex ) => {
-
-	    hex = Math.floor( hex );
-	    var r = ( hex >> 16 & 255 ) / 255;
-	    var g = ( hex >> 8 & 255 ) / 255;
-	    var b = ( hex & 255 ) / 255;
-	    return [ r, g, b ];
-
-	},
-
-	htmlToHex: ( v ) => {
-
-	    return v.toUpperCase().replace("#", "0x");
-
-	},
-
-	hexToHtml: ( v ) => {
-
-	    v = v === undefined ? 0x000000 : v;
-	    return "#" + ("000000" + v.toString(16)).substr(-6);
-
-	},
-
-	rgbToHtml: ( rgb ) => {
-
-	    return '#' + ( '000000' + ( ( rgb[0] * 255 ) << 16 ^ ( rgb[1] * 255 ) << 8 ^ ( rgb[2] * 255 ) << 0 ).toString( 16 ) ).slice( - 6 );
-
-	},
-
-
-	//--------------------
-	//   NOISE
-	//--------------------
-
-	perlin: null,
-
-	noise: ( v, o ) => {
-
-	    if( math.perlin === null ) math.perlin = new SimplexNoise();
-
-	    o = o || {};
-
-	    let level = o.level || [1,0.2,0.05];
-	    let frequency  = o.frequency  || [0.016,0.05,0.2];
-
-	    let i, f, c=0, d=0;
-
-	    for(i=0; i<level.length; i++){
-
-	        f = frequency [i];
-	        c += level[i] * ( 0.5 + math.perlin.noise3d( v.x*f, v.y*f, v.z*f ) * 0.5 );
-	        d += level[i];
-
-	    }
-
-	    c/=d;
-
-	    return c;
-
-	},
-
-	/*radArray: (arr) => {
-		var ret = [];
-		for(var i = 0; i < 3; i++)
-			ret[i] = arr[i] * math.torad;
-
-		return ret;
-	},
-
-	degArray: (arr) => {
-		var ret = [];
-		for(var i = 0; i < 3; i++)
-			ret[i] = arr[i] * math.todeg;
-
-		return ret;
-	},
-
-	angleDistance: (cur, prv) =>{
-		var diff = (cur - prv + 180) % 360 - 180;
-		return diff < -180 ? diff + 360 : diff;
-	}*/
-
-};
-
-class SimplexNoise {
-
-	constructor ( r ) {
-
-		if (r == undefined) r = Math;
-		this.grad3 = [[ 1,1,0 ],[ -1,1,0 ],[ 1,-1,0 ],[ -1,-1,0 ],
-	        [ 1,0,1 ],[ -1,0,1 ],[ 1,0,-1 ],[ -1,0,-1 ],
-	        [ 0,1,1 ],[ 0,-1,1 ],[ 0,1,-1 ],[ 0,-1,-1 ]];
-
-		this.grad4 = [[ 0,1,1,1 ], [ 0,1,1,-1 ], [ 0,1,-1,1 ], [ 0,1,-1,-1 ],
-		     [ 0,-1,1,1 ], [ 0,-1,1,-1 ], [ 0,-1,-1,1 ], [ 0,-1,-1,-1 ],
-		     [ 1,0,1,1 ], [ 1,0,1,-1 ], [ 1,0,-1,1 ], [ 1,0,-1,-1 ],
-		     [ -1,0,1,1 ], [ -1,0,1,-1 ], [ -1,0,-1,1 ], [ -1,0,-1,-1 ],
-		     [ 1,1,0,1 ], [ 1,1,0,-1 ], [ 1,-1,0,1 ], [ 1,-1,0,-1 ],
-		     [ -1,1,0,1 ], [ -1,1,0,-1 ], [ -1,-1,0,1 ], [ -1,-1,0,-1 ],
-		     [ 1,1,1,0 ], [ 1,1,-1,0 ], [ 1,-1,1,0 ], [ 1,-1,-1,0 ],
-		     [ -1,1,1,0 ], [ -1,1,-1,0 ], [ -1,-1,1,0 ], [ -1,-1,-1,0 ]];
-
-		this.p = [];
-		for (var i = 0; i < 256; i ++) {
-			this.p[i] = Math.floor(r.random() * 256);
-		}
-	  // To remove the need for index wrapping, double the permutation table length
-		this.perm = [];
-		for (var i = 0; i < 512; i ++) {
-			this.perm[i] = this.p[i & 255];
-		}
-
-	  // A lookup table to traverse the simplex around a given point in 4D.
-	  // Details can be found where this table is used, in the 4D noise method.
-		this.simplex = [
-	    [ 0,1,2,3 ],[ 0,1,3,2 ],[ 0,0,0,0 ],[ 0,2,3,1 ],[ 0,0,0,0 ],[ 0,0,0,0 ],[ 0,0,0,0 ],[ 1,2,3,0 ],
-	    [ 0,2,1,3 ],[ 0,0,0,0 ],[ 0,3,1,2 ],[ 0,3,2,1 ],[ 0,0,0,0 ],[ 0,0,0,0 ],[ 0,0,0,0 ],[ 1,3,2,0 ],
-	    [ 0,0,0,0 ],[ 0,0,0,0 ],[ 0,0,0,0 ],[ 0,0,0,0 ],[ 0,0,0,0 ],[ 0,0,0,0 ],[ 0,0,0,0 ],[ 0,0,0,0 ],
-	    [ 1,2,0,3 ],[ 0,0,0,0 ],[ 1,3,0,2 ],[ 0,0,0,0 ],[ 0,0,0,0 ],[ 0,0,0,0 ],[ 2,3,0,1 ],[ 2,3,1,0 ],
-	    [ 1,0,2,3 ],[ 1,0,3,2 ],[ 0,0,0,0 ],[ 0,0,0,0 ],[ 0,0,0,0 ],[ 2,0,3,1 ],[ 0,0,0,0 ],[ 2,1,3,0 ],
-	    [ 0,0,0,0 ],[ 0,0,0,0 ],[ 0,0,0,0 ],[ 0,0,0,0 ],[ 0,0,0,0 ],[ 0,0,0,0 ],[ 0,0,0,0 ],[ 0,0,0,0 ],
-	    [ 2,0,1,3 ],[ 0,0,0,0 ],[ 0,0,0,0 ],[ 0,0,0,0 ],[ 3,0,1,2 ],[ 3,0,2,1 ],[ 0,0,0,0 ],[ 3,1,2,0 ],
-	    [ 2,1,0,3 ],[ 0,0,0,0 ],[ 0,0,0,0 ],[ 0,0,0,0 ],[ 3,1,0,2 ],[ 0,0,0,0 ],[ 3,2,0,1 ],[ 3,2,1,0 ]];
 	}
 
-	dot (g, x, y) {
-		return g[0] * x + g[1] * y;
+	// generate result BufferGeometry
+	const result = geometry.clone();
+	for ( const name in geometry.attributes ) {
+
+		const tmpAttribute = tmpAttributes[ name ];
+
+		result.setAttribute( name, new BufferAttribute(
+			tmpAttribute.array.slice( 0, nextIndex * tmpAttribute.itemSize ),
+			tmpAttribute.itemSize,
+			tmpAttribute.normalized,
+		) );
+
+		if ( ! ( name in tmpMorphAttributes ) ) continue;
+
+		for ( let j = 0; j < tmpMorphAttributes[ name ].length; j ++ ) {
+
+			const tmpMorphAttribute = tmpMorphAttributes[ name ][ j ];
+
+			result.morphAttributes[ name ][ j ] = new BufferAttribute(
+				tmpMorphAttribute.array.slice( 0, nextIndex * tmpMorphAttribute.itemSize ),
+				tmpMorphAttribute.itemSize,
+				tmpMorphAttribute.normalized,
+			);
+
+		}
+
 	}
 
-	dot3 (g, x, y, z) {
-		return g[0] * x + g[1] * y + g[2] * z;
+	// indices
+
+	result.setIndex( newIndices );
+
+	return result;
+
+}
+
+/**
+ * @param {BufferGeometry} geometry
+ * @param {number} drawMode
+ * @return {BufferGeometry}
+ */
+function toTrianglesDrawMode( geometry, drawMode ) {
+
+	if ( drawMode === TrianglesDrawMode ) {
+
+		console.warn( 'THREE.BufferGeometryUtils.toTrianglesDrawMode(): Geometry already defined as triangles.' );
+		return geometry;
+
 	}
 
-	dot4 (g, x, y, z, w) {
-		return g[0] * x + g[1] * y + g[2] * z + g[3] * w;
-	}
+	if ( drawMode === TriangleFanDrawMode || drawMode === TriangleStripDrawMode ) {
 
-	noise (xin, yin) {
-		var n0, n1, n2; // Noise contributions from the three corners
-	  // Skew the input space to determine which simplex cell we're in
-		var F2 = 0.5 * (Math.sqrt(3.0) - 1.0);
-		var s = (xin + yin) * F2; // Hairy factor for 2D
-		var i = Math.floor(xin + s);
-		var j = Math.floor(yin + s);
-		var G2 = (3.0 - Math.sqrt(3.0)) / 6.0;
-		var t = (i + j) * G2;
-		var X0 = i - t; // Unskew the cell origin back to (x,y) space
-		var Y0 = j - t;
-		var x0 = xin - X0; // The x,y distances from the cell origin
-		var y0 = yin - Y0;
-	  // For the 2D case, the simplex shape is an equilateral triangle.
-	  // Determine which simplex we are in.
-		var i1, j1; // Offsets for second (middle) corner of simplex in (i,j) coords
-		if (x0 > y0) {i1 = 1; j1 = 0;} // lower triangle, XY order: (0,0)->(1,0)->(1,1)
-		else {i1 = 0; j1 = 1;}      // upper triangle, YX order: (0,0)->(0,1)->(1,1)
-	  // A step of (1,0) in (i,j) means a step of (1-c,-c) in (x,y), and
-	  // a step of (0,1) in (i,j) means a step of (-c,1-c) in (x,y), where
-	  // c = (3-sqrt(3))/6
-		var x1 = x0 - i1 + G2; // Offsets for middle corner in (x,y) unskewed coords
-		var y1 = y0 - j1 + G2;
-		var x2 = x0 - 1.0 + 2.0 * G2; // Offsets for last corner in (x,y) unskewed coords
-		var y2 = y0 - 1.0 + 2.0 * G2;
-	  // Work out the hashed gradient indices of the three simplex corners
-		var ii = i & 255;
-		var jj = j & 255;
-		var gi0 = this.perm[ii + this.perm[jj]] % 12;
-		var gi1 = this.perm[ii + i1 + this.perm[jj + j1]] % 12;
-		var gi2 = this.perm[ii + 1 + this.perm[jj + 1]] % 12;
-	  // Calculate the contribution from the three corners
-		var t0 = 0.5 - x0 * x0 - y0 * y0;
-		if (t0 < 0) n0 = 0.0;
-		else {
-			t0 *= t0;
-			n0 = t0 * t0 * this.dot(this.grad3[gi0], x0, y0);  // (x,y) of grad3 used for 2D gradient
-		}
-		var t1 = 0.5 - x1 * x1 - y1 * y1;
-		if (t1 < 0) n1 = 0.0;
-		else {
-			t1 *= t1;
-			n1 = t1 * t1 * this.dot(this.grad3[gi1], x1, y1);
-		}
-		var t2 = 0.5 - x2 * x2 - y2 * y2;
-		if (t2 < 0) n2 = 0.0;
-		else {
-			t2 *= t2;
-			n2 = t2 * t2 * this.dot(this.grad3[gi2], x2, y2);
-		}
-	  // Add contributions from each corner to get the final noise value.
-	  // The result is scaled to return values in the interval [-1,1].
-		return 70.0 * (n0 + n1 + n2);
-	}
+		let index = geometry.getIndex();
 
-	// 3D simplex noise
-	noise3d (xin, yin, zin) {
-		var n0, n1, n2, n3; // Noise contributions from the four corners
-	  // Skew the input space to determine which simplex cell we're in
-		var F3 = 1.0 / 3.0;
-		var s = (xin + yin + zin) * F3; // Very nice and simple skew factor for 3D
-		var i = Math.floor(xin + s);
-		var j = Math.floor(yin + s);
-		var k = Math.floor(zin + s);
-		var G3 = 1.0 / 6.0; // Very nice and simple unskew factor, too
-		var t = (i + j + k) * G3;
-		var X0 = i - t; // Unskew the cell origin back to (x,y,z) space
-		var Y0 = j - t;
-		var Z0 = k - t;
-		var x0 = xin - X0; // The x,y,z distances from the cell origin
-		var y0 = yin - Y0;
-		var z0 = zin - Z0;
-	  // For the 3D case, the simplex shape is a slightly irregular tetrahedron.
-	  // Determine which simplex we are in.
-		var i1, j1, k1; // Offsets for second corner of simplex in (i,j,k) coords
-		var i2, j2, k2; // Offsets for third corner of simplex in (i,j,k) coords
-		if (x0 >= y0) {
-			if (y0 >= z0)
-	      { i1 = 1; j1 = 0; k1 = 0; i2 = 1; j2 = 1; k2 = 0; } // X Y Z order
-	      else if (x0 >= z0) { i1 = 1; j1 = 0; k1 = 0; i2 = 1; j2 = 0; k2 = 1; } // X Z Y order
-			else { i1 = 0; j1 = 0; k1 = 1; i2 = 1; j2 = 0; k2 = 1; } // Z X Y order
-		}
-		else { // x0<y0
-			if (y0 < z0) { i1 = 0; j1 = 0; k1 = 1; i2 = 0; j2 = 1; k2 = 1; } // Z Y X order
-	    else if (x0 < z0) { i1 = 0; j1 = 1; k1 = 0; i2 = 0; j2 = 1; k2 = 1; } // Y Z X order
-			else { i1 = 0; j1 = 1; k1 = 0; i2 = 1; j2 = 1; k2 = 0; } // Y X Z order
-		}
-	  // A step of (1,0,0) in (i,j,k) means a step of (1-c,-c,-c) in (x,y,z),
-	  // a step of (0,1,0) in (i,j,k) means a step of (-c,1-c,-c) in (x,y,z), and
-	  // a step of (0,0,1) in (i,j,k) means a step of (-c,-c,1-c) in (x,y,z), where
-	  // c = 1/6.
-		var x1 = x0 - i1 + G3; // Offsets for second corner in (x,y,z) coords
-		var y1 = y0 - j1 + G3;
-		var z1 = z0 - k1 + G3;
-		var x2 = x0 - i2 + 2.0 * G3; // Offsets for third corner in (x,y,z) coords
-		var y2 = y0 - j2 + 2.0 * G3;
-		var z2 = z0 - k2 + 2.0 * G3;
-		var x3 = x0 - 1.0 + 3.0 * G3; // Offsets for last corner in (x,y,z) coords
-		var y3 = y0 - 1.0 + 3.0 * G3;
-		var z3 = z0 - 1.0 + 3.0 * G3;
-	  // Work out the hashed gradient indices of the four simplex corners
-		var ii = i & 255;
-		var jj = j & 255;
-		var kk = k & 255;
-		var gi0 = this.perm[ii + this.perm[jj + this.perm[kk]]] % 12;
-		var gi1 = this.perm[ii + i1 + this.perm[jj + j1 + this.perm[kk + k1]]] % 12;
-		var gi2 = this.perm[ii + i2 + this.perm[jj + j2 + this.perm[kk + k2]]] % 12;
-		var gi3 = this.perm[ii + 1 + this.perm[jj + 1 + this.perm[kk + 1]]] % 12;
-	  // Calculate the contribution from the four corners
-		var t0 = 0.6 - x0 * x0 - y0 * y0 - z0 * z0;
-		if (t0 < 0) n0 = 0.0;
-		else {
-			t0 *= t0;
-			n0 = t0 * t0 * this.dot3(this.grad3[gi0], x0, y0, z0);
-		}
-		var t1 = 0.6 - x1 * x1 - y1 * y1 - z1 * z1;
-		if (t1 < 0) n1 = 0.0;
-		else {
-			t1 *= t1;
-			n1 = t1 * t1 * this.dot3(this.grad3[gi1], x1, y1, z1);
-		}
-		var t2 = 0.6 - x2 * x2 - y2 * y2 - z2 * z2;
-		if (t2 < 0) n2 = 0.0;
-		else {
-			t2 *= t2;
-			n2 = t2 * t2 * this.dot3(this.grad3[gi2], x2, y2, z2);
-		}
-		var t3 = 0.6 - x3 * x3 - y3 * y3 - z3 * z3;
-		if (t3 < 0) n3 = 0.0;
-		else {
-			t3 *= t3;
-			n3 = t3 * t3 * this.dot3(this.grad3[gi3], x3, y3, z3);
-		}
-	  // Add contributions from each corner to get the final noise value.
-	  // The result is scaled to stay just inside [-1,1]
-		return 32.0 * (n0 + n1 + n2 + n3);
-	}
+		// generate index if not present
 
-	// 4D simplex noise
-	noise4d ( x, y, z, w ) {
-		// For faster and easier lookups
-		var grad4 = this.grad4;
-		var simplex = this.simplex;
-		var perm = this.perm;
+		if ( index === null ) {
 
-	   // The skewing and unskewing factors are hairy again for the 4D case
-		var F4 = (Math.sqrt(5.0) - 1.0) / 4.0;
-		var G4 = (5.0 - Math.sqrt(5.0)) / 20.0;
-		var n0, n1, n2, n3, n4; // Noise contributions from the five corners
-	   // Skew the (x,y,z,w) space to determine which cell of 24 simplices we're in
-		var s = (x + y + z + w) * F4; // Factor for 4D skewing
-		var i = Math.floor(x + s);
-		var j = Math.floor(y + s);
-		var k = Math.floor(z + s);
-		var l = Math.floor(w + s);
-		var t = (i + j + k + l) * G4; // Factor for 4D unskewing
-		var X0 = i - t; // Unskew the cell origin back to (x,y,z,w) space
-		var Y0 = j - t;
-		var Z0 = k - t;
-		var W0 = l - t;
-		var x0 = x - X0;  // The x,y,z,w distances from the cell origin
-		var y0 = y - Y0;
-		var z0 = z - Z0;
-		var w0 = w - W0;
+			const indices = [];
 
-	   // For the 4D case, the simplex is a 4D shape I won't even try to describe.
-	   // To find out which of the 24 possible simplices we're in, we need to
-	   // determine the magnitude ordering of x0, y0, z0 and w0.
-	   // The method below is a good way of finding the ordering of x,y,z,w and
-	   // then find the correct traversal order for the simplex we’re in.
-	   // First, six pair-wise comparisons are performed between each possible pair
-	   // of the four coordinates, and the results are used to add up binary bits
-	   // for an integer index.
-		var c1 = (x0 > y0) ? 32 : 0;
-		var c2 = (x0 > z0) ? 16 : 0;
-		var c3 = (y0 > z0) ? 8 : 0;
-		var c4 = (x0 > w0) ? 4 : 0;
-		var c5 = (y0 > w0) ? 2 : 0;
-		var c6 = (z0 > w0) ? 1 : 0;
-		var c = c1 + c2 + c3 + c4 + c5 + c6;
-		var i1, j1, k1, l1; // The integer offsets for the second simplex corner
-		var i2, j2, k2, l2; // The integer offsets for the third simplex corner
-		var i3, j3, k3, l3; // The integer offsets for the fourth simplex corner
-	   // simplex[c] is a 4-vector with the numbers 0, 1, 2 and 3 in some order.
-	   // Many values of c will never occur, since e.g. x>y>z>w makes x<z, y<w and x<w
-	   // impossible. Only the 24 indices which have non-zero entries make any sense.
-	   // We use a thresholding to set the coordinates in turn from the largest magnitude.
-	   // The number 3 in the "simplex" array is at the position of the largest coordinate.
-		i1 = simplex[c][0] >= 3 ? 1 : 0;
-		j1 = simplex[c][1] >= 3 ? 1 : 0;
-		k1 = simplex[c][2] >= 3 ? 1 : 0;
-		l1 = simplex[c][3] >= 3 ? 1 : 0;
-	   // The number 2 in the "simplex" array is at the second largest coordinate.
-		i2 = simplex[c][0] >= 2 ? 1 : 0;
-		j2 = simplex[c][1] >= 2 ? 1 : 0;    k2 = simplex[c][2] >= 2 ? 1 : 0;
-		l2 = simplex[c][3] >= 2 ? 1 : 0;
-	   // The number 1 in the "simplex" array is at the second smallest coordinate.
-		i3 = simplex[c][0] >= 1 ? 1 : 0;
-		j3 = simplex[c][1] >= 1 ? 1 : 0;
-		k3 = simplex[c][2] >= 1 ? 1 : 0;
-		l3 = simplex[c][3] >= 1 ? 1 : 0;
-	   // The fifth corner has all coordinate offsets = 1, so no need to look that up.
-		var x1 = x0 - i1 + G4; // Offsets for second corner in (x,y,z,w) coords
-		var y1 = y0 - j1 + G4;
-		var z1 = z0 - k1 + G4;
-		var w1 = w0 - l1 + G4;
-		var x2 = x0 - i2 + 2.0 * G4; // Offsets for third corner in (x,y,z,w) coords
-		var y2 = y0 - j2 + 2.0 * G4;
-		var z2 = z0 - k2 + 2.0 * G4;
-		var w2 = w0 - l2 + 2.0 * G4;
-		var x3 = x0 - i3 + 3.0 * G4; // Offsets for fourth corner in (x,y,z,w) coords
-		var y3 = y0 - j3 + 3.0 * G4;
-		var z3 = z0 - k3 + 3.0 * G4;
-		var w3 = w0 - l3 + 3.0 * G4;
-		var x4 = x0 - 1.0 + 4.0 * G4; // Offsets for last corner in (x,y,z,w) coords
-		var y4 = y0 - 1.0 + 4.0 * G4;
-		var z4 = z0 - 1.0 + 4.0 * G4;
-		var w4 = w0 - 1.0 + 4.0 * G4;
-	   // Work out the hashed gradient indices of the five simplex corners
-		var ii = i & 255;
-		var jj = j & 255;
-		var kk = k & 255;
-		var ll = l & 255;
-		var gi0 = perm[ii + perm[jj + perm[kk + perm[ll]]]] % 32;
-		var gi1 = perm[ii + i1 + perm[jj + j1 + perm[kk + k1 + perm[ll + l1]]]] % 32;
-		var gi2 = perm[ii + i2 + perm[jj + j2 + perm[kk + k2 + perm[ll + l2]]]] % 32;
-		var gi3 = perm[ii + i3 + perm[jj + j3 + perm[kk + k3 + perm[ll + l3]]]] % 32;
-		var gi4 = perm[ii + 1 + perm[jj + 1 + perm[kk + 1 + perm[ll + 1]]]] % 32;
-	   // Calculate the contribution from the five corners
-		var t0 = 0.6 - x0 * x0 - y0 * y0 - z0 * z0 - w0 * w0;
-		if (t0 < 0) n0 = 0.0;
-		else {
-			t0 *= t0;
-			n0 = t0 * t0 * this.dot4(grad4[gi0], x0, y0, z0, w0);
+			const position = geometry.getAttribute( 'position' );
+
+			if ( position !== undefined ) {
+
+				for ( let i = 0; i < position.count; i ++ ) {
+
+					indices.push( i );
+
+				}
+
+				geometry.setIndex( indices );
+				index = geometry.getIndex();
+
+			} else {
+
+				console.error( 'THREE.BufferGeometryUtils.toTrianglesDrawMode(): Undefined position attribute. Processing not possible.' );
+				return geometry;
+
+			}
+
 		}
-		var t1 = 0.6 - x1 * x1 - y1 * y1 - z1 * z1 - w1 * w1;
-		if (t1 < 0) n1 = 0.0;
-		else {
-			t1 *= t1;
-			n1 = t1 * t1 * this.dot4(grad4[gi1], x1, y1, z1, w1);
+
+		//
+
+		const numberOfTriangles = index.count - 2;
+		const newIndices = [];
+
+		if ( drawMode === TriangleFanDrawMode ) {
+
+			// gl.TRIANGLE_FAN
+
+			for ( let i = 1; i <= numberOfTriangles; i ++ ) {
+
+				newIndices.push( index.getX( 0 ) );
+				newIndices.push( index.getX( i ) );
+				newIndices.push( index.getX( i + 1 ) );
+
+			}
+
+		} else {
+
+			// gl.TRIANGLE_STRIP
+
+			for ( let i = 0; i < numberOfTriangles; i ++ ) {
+
+				if ( i % 2 === 0 ) {
+
+					newIndices.push( index.getX( i ) );
+					newIndices.push( index.getX( i + 1 ) );
+					newIndices.push( index.getX( i + 2 ) );
+
+				} else {
+
+					newIndices.push( index.getX( i + 2 ) );
+					newIndices.push( index.getX( i + 1 ) );
+					newIndices.push( index.getX( i ) );
+
+				}
+
+			}
+
 		}
-		var t2 = 0.6 - x2 * x2 - y2 * y2 - z2 * z2 - w2 * w2;
-		if (t2 < 0) n2 = 0.0;
-		else {
-			t2 *= t2;
-			n2 = t2 * t2 * this.dot4(grad4[gi2], x2, y2, z2, w2);
-		}   var t3 = 0.6 - x3 * x3 - y3 * y3 - z3 * z3 - w3 * w3;
-		if (t3 < 0) n3 = 0.0;
-		else {
-			t3 *= t3;
-			n3 = t3 * t3 * this.dot4(grad4[gi3], x3, y3, z3, w3);
+
+		if ( ( newIndices.length / 3 ) !== numberOfTriangles ) {
+
+			console.error( 'THREE.BufferGeometryUtils.toTrianglesDrawMode(): Unable to generate correct amount of triangles.' );
+
 		}
-		var t4 = 0.6 - x4 * x4 - y4 * y4 - z4 * z4 - w4 * w4;
-		if (t4 < 0) n4 = 0.0;
-		else {
-			t4 *= t4;
-			n4 = t4 * t4 * this.dot4(grad4[gi4], x4, y4, z4, w4);
-		}
-	   // Sum up and scale the result to cover the range [-1,1]
-		return 27.0 * (n0 + n1 + n2 + n3 + n4);
+
+		// build final geometry
+
+		const newGeometry = geometry.clone();
+		newGeometry.setIndex( newIndices );
+		newGeometry.clearGroups();
+
+		return newGeometry;
+
+	} else {
+
+		console.error( 'THREE.BufferGeometryUtils.toTrianglesDrawMode(): Unknown draw mode:', drawMode );
+		return geometry;
+
 	}
 
 }
@@ -8852,7 +7953,7 @@ function getImageURIMimeType( uri ) {
 
 }
 
-const _identityMatrix = new Matrix4();
+const _identityMatrix$1 = new Matrix4();
 
 /* GLTF PARSER */
 
@@ -10098,10 +9199,9 @@ class GLTFParser {
 						? new SkinnedMesh( geometry, material )
 						: new Mesh( geometry, material );
 
-					if ( mesh.isSkinnedMesh === true && ! mesh.geometry.attributes.skinWeight.normalized ) {
+					if ( mesh.isSkinnedMesh === true ) {
 
-						// we normalize floating point skin weight array to fix malformed assets (see #15319)
-						// it's important to skip this for non-float32 data since normalizeSkinWeights assumes non-normalized inputs
+						// normalize skin weights to fix malformed assets (see #15319)
 						mesh.normalizeSkinWeights();
 
 					}
@@ -10511,30 +9611,26 @@ class GLTFParser {
 
 		const nodeDef = json.nodes[ nodeIndex ];
 
-		return ( function () {
+		const nodePending = parser._loadNodeShallow( nodeIndex );
 
-			const nodePending = parser._loadNodeShallow( nodeIndex );
+		const childPending = [];
+		const childrenDef = nodeDef.children || [];
 
-			const childPending = [];
-			const childrenDef = nodeDef.children || [];
+		for ( let i = 0, il = childrenDef.length; i < il; i ++ ) {
 
-			for ( let i = 0, il = childrenDef.length; i < il; i ++ ) {
+			childPending.push( parser.getDependency( 'node', childrenDef[ i ] ) );
 
-				childPending.push( parser.getDependency( 'node', childrenDef[ i ] ) );
+		}
 
-			}
+		const skeletonPending = nodeDef.skin === undefined
+			? Promise.resolve( null )
+			: parser.getDependency( 'skin', nodeDef.skin );
 
-			const skeletonPending = nodeDef.skin === undefined
-				? Promise.resolve( null )
-				: parser.getDependency( 'skin', nodeDef.skin );
-
-			return Promise.all( [
-				nodePending,
-				Promise.all( childPending ),
-				skeletonPending
-			] );
-
-		}() ).then( function ( results ) {
+		return Promise.all( [
+			nodePending,
+			Promise.all( childPending ),
+			skeletonPending
+		] ).then( function ( results ) {
 
 			const node = results[ 0 ];
 			const children = results[ 1 ];
@@ -10548,7 +9644,7 @@ class GLTFParser {
 
 					if ( ! mesh.isSkinnedMesh ) return;
 
-					mesh.bind( skeleton, _identityMatrix );
+					mesh.bind( skeleton, _identityMatrix$1 );
 
 				} );
 
@@ -10588,45 +9684,41 @@ class GLTFParser {
 		// reserve node's name before its dependencies, so the root has the intended name.
 		const nodeName = nodeDef.name ? parser.createUniqueName( nodeDef.name ) : '';
 
-		this.nodeCache[ nodeIndex ] = ( function () {
+		const pending = [];
 
-			const pending = [];
+		const meshPromise = parser._invokeOne( function ( ext ) {
 
-			const meshPromise = parser._invokeOne( function ( ext ) {
+			return ext.createNodeMesh && ext.createNodeMesh( nodeIndex );
 
-				return ext.createNodeMesh && ext.createNodeMesh( nodeIndex );
+		} );
 
-			} );
+		if ( meshPromise ) {
 
-			if ( meshPromise ) {
+			pending.push( meshPromise );
 
-				pending.push( meshPromise );
+		}
 
-			}
+		if ( nodeDef.camera !== undefined ) {
 
-			if ( nodeDef.camera !== undefined ) {
+			pending.push( parser.getDependency( 'camera', nodeDef.camera ).then( function ( camera ) {
 
-				pending.push( parser.getDependency( 'camera', nodeDef.camera ).then( function ( camera ) {
+				return parser._getNodeRef( parser.cameraCache, nodeDef.camera, camera );
 
-					return parser._getNodeRef( parser.cameraCache, nodeDef.camera, camera );
+			} ) );
 
-				} ) );
+		}
 
-			}
+		parser._invokeAll( function ( ext ) {
 
-			parser._invokeAll( function ( ext ) {
+			return ext.createNodeAttachment && ext.createNodeAttachment( nodeIndex );
 
-				return ext.createNodeAttachment && ext.createNodeAttachment( nodeIndex );
+		} ).forEach( function ( promise ) {
 
-			} ).forEach( function ( promise ) {
+			pending.push( promise );
 
-				pending.push( promise );
+		} );
 
-			} );
-
-			return Promise.all( pending );
-
-		}() ).then( function ( objects ) {
+		this.nodeCache[ nodeIndex ] = Promise.all( pending ).then( function ( objects ) {
 
 			let node;
 
@@ -11037,18 +10129,25 @@ class DRACOLoader extends Loader {
 
 		loader.load( url, ( buffer ) => {
 
-			this.decodeDracoFile( buffer, onLoad ).catch( onError );
+			this.parse( buffer, onLoad, onError );
 
 		}, onProgress, onError );
 
 	}
 
-	decodeDracoFile( buffer, callback, attributeIDs, attributeTypes ) {
+	parse ( buffer, onLoad, onError ) {
+
+		this.decodeDracoFile( buffer, onLoad, null, null, SRGBColorSpace ).catch( onError );
+
+	}
+
+	decodeDracoFile( buffer, callback, attributeIDs, attributeTypes, vertexColorSpace = LinearSRGBColorSpace ) {
 
 		const taskConfig = {
 			attributeIDs: attributeIDs || this.defaultAttributeIDs,
 			attributeTypes: attributeTypes || this.defaultAttributeTypes,
-			useUniqueIDs: !! attributeIDs
+			useUniqueIDs: !! attributeIDs,
+			vertexColorSpace: vertexColorSpace,
 		};
 
 		return this.decodeGeometry( buffer, taskConfig ).then( callback );
@@ -11152,16 +10251,44 @@ class DRACOLoader extends Loader {
 
 		for ( let i = 0; i < geometryData.attributes.length; i ++ ) {
 
-			const attribute = geometryData.attributes[ i ];
-			const name = attribute.name;
-			const array = attribute.array;
-			const itemSize = attribute.itemSize;
+			const result = geometryData.attributes[ i ];
+			const name = result.name;
+			const array = result.array;
+			const itemSize = result.itemSize;
 
-			geometry.setAttribute( name, new BufferAttribute( array, itemSize ) );
+			const attribute = new BufferAttribute( array, itemSize );
+
+			if ( name === 'color' ) {
+
+				this._assignVertexColorSpace( attribute, result.vertexColorSpace );
+
+			}
+
+			geometry.setAttribute( name, attribute );
 
 		}
 
 		return geometry;
+
+	}
+
+	_assignVertexColorSpace( attribute, inputColorSpace ) {
+
+		// While .drc files do not specify colorspace, the only 'official' tooling
+		// is PLY and OBJ converters, which use sRGB. We'll assume sRGB when a .drc
+		// file is passed into .load() or .parse(). GLTFLoader uses internal APIs
+		// to decode geometry, and vertex colors are already Linear-sRGB in there.
+
+		if ( inputColorSpace !== SRGBColorSpace ) return;
+
+		const _color = new Color();
+
+		for ( let i = 0, il = attribute.count; i < il; i ++ ) {
+
+			_color.fromBufferAttribute( attribute, i ).convertSRGBToLinear();
+			attribute.setXYZ( i, _color.r, _color.g, _color.b );
+
+		}
 
 	}
 
@@ -11315,6 +10442,12 @@ class DRACOLoader extends Loader {
 
 		this.workerPool.length = 0;
 
+		if ( this.workerSourceURL !== '' ) {
+
+			URL.revokeObjectURL( this.workerSourceURL );
+
+		}
+
 		return this;
 
 	}
@@ -11357,12 +10490,10 @@ function DRACOWorker() {
 
 					const draco = module.draco;
 					const decoder = new draco.Decoder();
-					const decoderBuffer = new draco.DecoderBuffer();
-					decoderBuffer.Init( new Int8Array( buffer ), buffer.byteLength );
 
 					try {
 
-						const geometry = decodeGeometry( draco, decoder, decoderBuffer, taskConfig );
+						const geometry = decodeGeometry( draco, decoder, new Int8Array( buffer ), taskConfig );
 
 						const buffers = geometry.attributes.map( ( attr ) => attr.array.buffer );
 
@@ -11378,7 +10509,6 @@ function DRACOWorker() {
 
 					} finally {
 
-						draco.destroy( decoderBuffer );
 						draco.destroy( decoder );
 
 					}
@@ -11390,7 +10520,7 @@ function DRACOWorker() {
 
 	};
 
-	function decodeGeometry( draco, decoder, decoderBuffer, taskConfig ) {
+	function decodeGeometry( draco, decoder, array, taskConfig ) {
 
 		const attributeIDs = taskConfig.attributeIDs;
 		const attributeTypes = taskConfig.attributeTypes;
@@ -11398,17 +10528,17 @@ function DRACOWorker() {
 		let dracoGeometry;
 		let decodingStatus;
 
-		const geometryType = decoder.GetEncodedGeometryType( decoderBuffer );
+		const geometryType = decoder.GetEncodedGeometryType( array );
 
 		if ( geometryType === draco.TRIANGULAR_MESH ) {
 
 			dracoGeometry = new draco.Mesh();
-			decodingStatus = decoder.DecodeBufferToMesh( decoderBuffer, dracoGeometry );
+			decodingStatus = decoder.DecodeArrayToMesh( array, array.byteLength, dracoGeometry );
 
 		} else if ( geometryType === draco.POINT_CLOUD ) {
 
 			dracoGeometry = new draco.PointCloud();
-			decodingStatus = decoder.DecodeBufferToPointCloud( decoderBuffer, dracoGeometry );
+			decodingStatus = decoder.DecodeArrayToPointCloud( array, array.byteLength, dracoGeometry );
 
 		} else {
 
@@ -11451,7 +10581,15 @@ function DRACOWorker() {
 
 			}
 
-			geometry.attributes.push( decodeAttribute( draco, decoder, dracoGeometry, attributeName, attributeType, attribute ) );
+			const attributeResult = decodeAttribute( draco, decoder, dracoGeometry, attributeName, attributeType, attribute );
+
+			if ( attributeName === 'color' ) {
+
+				attributeResult.vertexColorSpace = taskConfig.vertexColorSpace;
+
+			}
+
+			geometry.attributes.push( attributeResult );
 
 		}
 
@@ -11528,35 +10666,14 @@ fflate - fast JavaScript compression/decompression
 Licensed under MIT. https://github.com/101arrowz/fflate/blob/master/LICENSE
 version 0.6.9
 */
-
-// DEFLATE is a complex format; to read this code, you should probably check the RFC first:
-// https://tools.ietf.org/html/rfc1951
-// You may also wish to take a look at the guide I made about this program:
-// https://gist.github.com/101arrowz/253f31eb5abc3d9275ab943003ffecad
-// Some of the following code is similar to that of UZIP.js:
-// https://github.com/photopea/UZIP.js
-// However, the vast majority of the codebase has diverged from UZIP.js to increase performance and reduce bundle size.
-// Sometimes 0 will appear where -1 would be more appropriate. This is because using a uint
-// is better for memory in most engines (I *think*).
-var ch2 = {};
 var durl = function (c) { return URL.createObjectURL(new Blob([c], { type: 'text/javascript' })); };
-var cwk = function (u) { return new Worker(u); };
 try {
     URL.revokeObjectURL(durl(''));
 }
 catch (e) {
     // We're in Deno or a very old browser
     durl = function (c) { return 'data:application/javascript;charset=UTF-8,' + encodeURI(c); };
-    // If Deno, this is necessary; if not, this changes nothing
-    cwk = function (u) { return new Worker(u, { type: 'module' }); };
 }
-var wk = (function (c, id, msg, transfer, cb) {
-    var w = cwk(ch2[id] || (ch2[id] = durl(c)));
-    w.onerror = function (e) { return cb(e.error, null); };
-    w.onmessage = function (e) { return cb(null, e.data); };
-    w.postMessage(msg, transfer);
-    return w;
-});
 
 // aliases for shorter compressed code (most minifers don't do this)
 var u8 = Uint8Array, u16 = Uint16Array, u32 = Uint32Array;
@@ -11585,7 +10702,7 @@ var freb = function (eb, start) {
 var _a = freb(fleb, 2), fl = _a[0], revfl = _a[1];
 // we can ignore the fact that the other numbers are wrong; they never happen anyway
 fl[28] = 258, revfl[258] = 28;
-var _b = freb(fdeb, 0), fd = _b[0], revfd = _b[1];
+var _b = freb(fdeb, 0), fd = _b[0];
 // map of value to reverse (assuming 16 bits)
 var rev = new u16(32768);
 for (var i = 0; i < 32768; ++i) {
@@ -11660,9 +10777,9 @@ var fdt = new u8(32);
 for (var i = 0; i < 32; ++i)
     fdt[i] = 5;
 // fixed length map
-var flm = /*#__PURE__*/ hMap(flt, 9, 0), flrm = /*#__PURE__*/ hMap(flt, 9, 1);
+var flrm = /*#__PURE__*/ hMap(flt, 9, 1);
 // fixed distance map
-var fdm = /*#__PURE__*/ hMap(fdt, 5, 0), fdrm = /*#__PURE__*/ hMap(fdt, 5, 1);
+var fdrm = /*#__PURE__*/ hMap(fdt, 5, 1);
 // find max of array
 var max = function (a) {
     var m = a[0];
@@ -11875,569 +10992,8 @@ var inflt = function (dat, buf, st) {
     } while (!final);
     return bt == buf.length ? buf : slc(buf, 0, bt);
 };
-// starting at p, write the minimum number of bits that can hold v to d
-var wbits = function (d, p, v) {
-    v <<= p & 7;
-    var o = (p / 8) | 0;
-    d[o] |= v;
-    d[o + 1] |= v >>> 8;
-};
-// starting at p, write the minimum number of bits (>8) that can hold v to d
-var wbits16 = function (d, p, v) {
-    v <<= p & 7;
-    var o = (p / 8) | 0;
-    d[o] |= v;
-    d[o + 1] |= v >>> 8;
-    d[o + 2] |= v >>> 16;
-};
-// creates code lengths from a frequency table
-var hTree = function (d, mb) {
-    // Need extra info to make a tree
-    var t = [];
-    for (var i = 0; i < d.length; ++i) {
-        if (d[i])
-            t.push({ s: i, f: d[i] });
-    }
-    var s = t.length;
-    var t2 = t.slice();
-    if (!s)
-        return [et, 0];
-    if (s == 1) {
-        var v = new u8(t[0].s + 1);
-        v[t[0].s] = 1;
-        return [v, 1];
-    }
-    t.sort(function (a, b) { return a.f - b.f; });
-    // after i2 reaches last ind, will be stopped
-    // freq must be greater than largest possible number of symbols
-    t.push({ s: -1, f: 25001 });
-    var l = t[0], r = t[1], i0 = 0, i1 = 1, i2 = 2;
-    t[0] = { s: -1, f: l.f + r.f, l: l, r: r };
-    // efficient algorithm from UZIP.js
-    // i0 is lookbehind, i2 is lookahead - after processing two low-freq
-    // symbols that combined have high freq, will start processing i2 (high-freq,
-    // non-composite) symbols instead
-    // see https://reddit.com/r/photopea/comments/ikekht/uzipjs_questions/
-    while (i1 != s - 1) {
-        l = t[t[i0].f < t[i2].f ? i0++ : i2++];
-        r = t[i0 != i1 && t[i0].f < t[i2].f ? i0++ : i2++];
-        t[i1++] = { s: -1, f: l.f + r.f, l: l, r: r };
-    }
-    var maxSym = t2[0].s;
-    for (var i = 1; i < s; ++i) {
-        if (t2[i].s > maxSym)
-            maxSym = t2[i].s;
-    }
-    // code lengths
-    var tr = new u16(maxSym + 1);
-    // max bits in tree
-    var mbt = ln(t[i1 - 1], tr, 0);
-    if (mbt > mb) {
-        // more algorithms from UZIP.js
-        // TODO: find out how this code works (debt)
-        //  ind    debt
-        var i = 0, dt = 0;
-        //    left            cost
-        var lft = mbt - mb, cst = 1 << lft;
-        t2.sort(function (a, b) { return tr[b.s] - tr[a.s] || a.f - b.f; });
-        for (; i < s; ++i) {
-            var i2_1 = t2[i].s;
-            if (tr[i2_1] > mb) {
-                dt += cst - (1 << (mbt - tr[i2_1]));
-                tr[i2_1] = mb;
-            }
-            else
-                break;
-        }
-        dt >>>= lft;
-        while (dt > 0) {
-            var i2_2 = t2[i].s;
-            if (tr[i2_2] < mb)
-                dt -= 1 << (mb - tr[i2_2]++ - 1);
-            else
-                ++i;
-        }
-        for (; i >= 0 && dt; --i) {
-            var i2_3 = t2[i].s;
-            if (tr[i2_3] == mb) {
-                --tr[i2_3];
-                ++dt;
-            }
-        }
-        mbt = mb;
-    }
-    return [new u8(tr), mbt];
-};
-// get the max length and assign length codes
-var ln = function (n, l, d) {
-    return n.s == -1
-        ? Math.max(ln(n.l, l, d + 1), ln(n.r, l, d + 1))
-        : (l[n.s] = d);
-};
-// length codes generation
-var lc = function (c) {
-    var s = c.length;
-    // Note that the semicolon was intentional
-    while (s && !c[--s])
-        ;
-    var cl = new u16(++s);
-    //  ind      num         streak
-    var cli = 0, cln = c[0], cls = 1;
-    var w = function (v) { cl[cli++] = v; };
-    for (var i = 1; i <= s; ++i) {
-        if (c[i] == cln && i != s)
-            ++cls;
-        else {
-            if (!cln && cls > 2) {
-                for (; cls > 138; cls -= 138)
-                    w(32754);
-                if (cls > 2) {
-                    w(cls > 10 ? ((cls - 11) << 5) | 28690 : ((cls - 3) << 5) | 12305);
-                    cls = 0;
-                }
-            }
-            else if (cls > 3) {
-                w(cln), --cls;
-                for (; cls > 6; cls -= 6)
-                    w(8304);
-                if (cls > 2)
-                    w(((cls - 3) << 5) | 8208), cls = 0;
-            }
-            while (cls--)
-                w(cln);
-            cls = 1;
-            cln = c[i];
-        }
-    }
-    return [cl.subarray(0, cli), s];
-};
-// calculate the length of output from tree, code lengths
-var clen = function (cf, cl) {
-    var l = 0;
-    for (var i = 0; i < cl.length; ++i)
-        l += cf[i] * cl[i];
-    return l;
-};
-// writes a fixed block
-// returns the new bit pos
-var wfblk = function (out, pos, dat) {
-    // no need to write 00 as type: TypedArray defaults to 0
-    var s = dat.length;
-    var o = shft(pos + 2);
-    out[o] = s & 255;
-    out[o + 1] = s >>> 8;
-    out[o + 2] = out[o] ^ 255;
-    out[o + 3] = out[o + 1] ^ 255;
-    for (var i = 0; i < s; ++i)
-        out[o + i + 4] = dat[i];
-    return (o + 4 + s) * 8;
-};
-// writes a block
-var wblk = function (dat, out, final, syms, lf, df, eb, li, bs, bl, p) {
-    wbits(out, p++, final);
-    ++lf[256];
-    var _a = hTree(lf, 15), dlt = _a[0], mlb = _a[1];
-    var _b = hTree(df, 15), ddt = _b[0], mdb = _b[1];
-    var _c = lc(dlt), lclt = _c[0], nlc = _c[1];
-    var _d = lc(ddt), lcdt = _d[0], ndc = _d[1];
-    var lcfreq = new u16(19);
-    for (var i = 0; i < lclt.length; ++i)
-        lcfreq[lclt[i] & 31]++;
-    for (var i = 0; i < lcdt.length; ++i)
-        lcfreq[lcdt[i] & 31]++;
-    var _e = hTree(lcfreq, 7), lct = _e[0], mlcb = _e[1];
-    var nlcc = 19;
-    for (; nlcc > 4 && !lct[clim[nlcc - 1]]; --nlcc)
-        ;
-    var flen = (bl + 5) << 3;
-    var ftlen = clen(lf, flt) + clen(df, fdt) + eb;
-    var dtlen = clen(lf, dlt) + clen(df, ddt) + eb + 14 + 3 * nlcc + clen(lcfreq, lct) + (2 * lcfreq[16] + 3 * lcfreq[17] + 7 * lcfreq[18]);
-    if (flen <= ftlen && flen <= dtlen)
-        return wfblk(out, p, dat.subarray(bs, bs + bl));
-    var lm, ll, dm, dl;
-    wbits(out, p, 1 + (dtlen < ftlen)), p += 2;
-    if (dtlen < ftlen) {
-        lm = hMap(dlt, mlb, 0), ll = dlt, dm = hMap(ddt, mdb, 0), dl = ddt;
-        var llm = hMap(lct, mlcb, 0);
-        wbits(out, p, nlc - 257);
-        wbits(out, p + 5, ndc - 1);
-        wbits(out, p + 10, nlcc - 4);
-        p += 14;
-        for (var i = 0; i < nlcc; ++i)
-            wbits(out, p + 3 * i, lct[clim[i]]);
-        p += 3 * nlcc;
-        var lcts = [lclt, lcdt];
-        for (var it = 0; it < 2; ++it) {
-            var clct = lcts[it];
-            for (var i = 0; i < clct.length; ++i) {
-                var len = clct[i] & 31;
-                wbits(out, p, llm[len]), p += lct[len];
-                if (len > 15)
-                    wbits(out, p, (clct[i] >>> 5) & 127), p += clct[i] >>> 12;
-            }
-        }
-    }
-    else {
-        lm = flm, ll = flt, dm = fdm, dl = fdt;
-    }
-    for (var i = 0; i < li; ++i) {
-        if (syms[i] > 255) {
-            var len = (syms[i] >>> 18) & 31;
-            wbits16(out, p, lm[len + 257]), p += ll[len + 257];
-            if (len > 7)
-                wbits(out, p, (syms[i] >>> 23) & 31), p += fleb[len];
-            var dst = syms[i] & 31;
-            wbits16(out, p, dm[dst]), p += dl[dst];
-            if (dst > 3)
-                wbits16(out, p, (syms[i] >>> 5) & 8191), p += fdeb[dst];
-        }
-        else {
-            wbits16(out, p, lm[syms[i]]), p += ll[syms[i]];
-        }
-    }
-    wbits16(out, p, lm[256]);
-    return p + ll[256];
-};
-// deflate options (nice << 13) | chain
-var deo = /*#__PURE__*/ new u32([65540, 131080, 131088, 131104, 262176, 1048704, 1048832, 2114560, 2117632]);
 // empty
 var et = /*#__PURE__*/ new u8(0);
-// compresses data into a raw DEFLATE buffer
-var dflt = function (dat, lvl, plvl, pre, post, lst) {
-    var s = dat.length;
-    var o = new u8(pre + s + 5 * (1 + Math.ceil(s / 7000)) + post);
-    // writing to this writes to the output buffer
-    var w = o.subarray(pre, o.length - post);
-    var pos = 0;
-    if (!lvl || s < 8) {
-        for (var i = 0; i <= s; i += 65535) {
-            // end
-            var e = i + 65535;
-            if (e < s) {
-                // write full block
-                pos = wfblk(w, pos, dat.subarray(i, e));
-            }
-            else {
-                // write final block
-                w[i] = lst;
-                pos = wfblk(w, pos, dat.subarray(i, s));
-            }
-        }
-    }
-    else {
-        var opt = deo[lvl - 1];
-        var n = opt >>> 13, c = opt & 8191;
-        var msk_1 = (1 << plvl) - 1;
-        //    prev 2-byte val map    curr 2-byte val map
-        var prev = new u16(32768), head = new u16(msk_1 + 1);
-        var bs1_1 = Math.ceil(plvl / 3), bs2_1 = 2 * bs1_1;
-        var hsh = function (i) { return (dat[i] ^ (dat[i + 1] << bs1_1) ^ (dat[i + 2] << bs2_1)) & msk_1; };
-        // 24576 is an arbitrary number of maximum symbols per block
-        // 424 buffer for last block
-        var syms = new u32(25000);
-        // length/literal freq   distance freq
-        var lf = new u16(288), df = new u16(32);
-        //  l/lcnt  exbits  index  l/lind  waitdx  bitpos
-        var lc_1 = 0, eb = 0, i = 0, li = 0, wi = 0, bs = 0;
-        for (; i < s; ++i) {
-            // hash value
-            // deopt when i > s - 3 - at end, deopt acceptable
-            var hv = hsh(i);
-            // index mod 32768    previous index mod
-            var imod = i & 32767, pimod = head[hv];
-            prev[imod] = pimod;
-            head[hv] = imod;
-            // We always should modify head and prev, but only add symbols if
-            // this data is not yet processed ("wait" for wait index)
-            if (wi <= i) {
-                // bytes remaining
-                var rem = s - i;
-                if ((lc_1 > 7000 || li > 24576) && rem > 423) {
-                    pos = wblk(dat, w, 0, syms, lf, df, eb, li, bs, i - bs, pos);
-                    li = lc_1 = eb = 0, bs = i;
-                    for (var j = 0; j < 286; ++j)
-                        lf[j] = 0;
-                    for (var j = 0; j < 30; ++j)
-                        df[j] = 0;
-                }
-                //  len    dist   chain
-                var l = 2, d = 0, ch_1 = c, dif = (imod - pimod) & 32767;
-                if (rem > 2 && hv == hsh(i - dif)) {
-                    var maxn = Math.min(n, rem) - 1;
-                    var maxd = Math.min(32767, i);
-                    // max possible length
-                    // not capped at dif because decompressors implement "rolling" index population
-                    var ml = Math.min(258, rem);
-                    while (dif <= maxd && --ch_1 && imod != pimod) {
-                        if (dat[i + l] == dat[i + l - dif]) {
-                            var nl = 0;
-                            for (; nl < ml && dat[i + nl] == dat[i + nl - dif]; ++nl)
-                                ;
-                            if (nl > l) {
-                                l = nl, d = dif;
-                                // break out early when we reach "nice" (we are satisfied enough)
-                                if (nl > maxn)
-                                    break;
-                                // now, find the rarest 2-byte sequence within this
-                                // length of literals and search for that instead.
-                                // Much faster than just using the start
-                                var mmd = Math.min(dif, nl - 2);
-                                var md = 0;
-                                for (var j = 0; j < mmd; ++j) {
-                                    var ti = (i - dif + j + 32768) & 32767;
-                                    var pti = prev[ti];
-                                    var cd = (ti - pti + 32768) & 32767;
-                                    if (cd > md)
-                                        md = cd, pimod = ti;
-                                }
-                            }
-                        }
-                        // check the previous match
-                        imod = pimod, pimod = prev[imod];
-                        dif += (imod - pimod + 32768) & 32767;
-                    }
-                }
-                // d will be nonzero only when a match was found
-                if (d) {
-                    // store both dist and len data in one Uint32
-                    // Make sure this is recognized as a len/dist with 28th bit (2^28)
-                    syms[li++] = 268435456 | (revfl[l] << 18) | revfd[d];
-                    var lin = revfl[l] & 31, din = revfd[d] & 31;
-                    eb += fleb[lin] + fdeb[din];
-                    ++lf[257 + lin];
-                    ++df[din];
-                    wi = i + l;
-                    ++lc_1;
-                }
-                else {
-                    syms[li++] = dat[i];
-                    ++lf[dat[i]];
-                }
-            }
-        }
-        pos = wblk(dat, w, lst, syms, lf, df, eb, li, bs, i - bs, pos);
-        // this is the easiest way to avoid needing to maintain state
-        if (!lst && pos & 7)
-            pos = wfblk(w, pos + 1, et);
-    }
-    return slc(o, 0, pre + shft(pos) + post);
-};
-// CRC32 table
-var crct = /*#__PURE__*/ (function () {
-    var t = new u32(256);
-    for (var i = 0; i < 256; ++i) {
-        var c = i, k = 9;
-        while (--k)
-            c = ((c & 1) && 0xEDB88320) ^ (c >>> 1);
-        t[i] = c;
-    }
-    return t;
-})();
-// CRC32
-var crc = function () {
-    var c = -1;
-    return {
-        p: function (d) {
-            // closures have awful performance
-            var cr = c;
-            for (var i = 0; i < d.length; ++i)
-                cr = crct[(cr & 255) ^ d[i]] ^ (cr >>> 8);
-            c = cr;
-        },
-        d: function () { return ~c; }
-    };
-};
-// Alder32
-var adler = function () {
-    var a = 1, b = 0;
-    return {
-        p: function (d) {
-            // closures have awful performance
-            var n = a, m = b;
-            var l = d.length;
-            for (var i = 0; i != l;) {
-                var e = Math.min(i + 2655, l);
-                for (; i < e; ++i)
-                    m += n += d[i];
-                n = (n & 65535) + 15 * (n >> 16), m = (m & 65535) + 15 * (m >> 16);
-            }
-            a = n, b = m;
-        },
-        d: function () {
-            a %= 65521, b %= 65521;
-            return (a & 255) << 24 | (a >>> 8) << 16 | (b & 255) << 8 | (b >>> 8);
-        }
-    };
-};
-// deflate with opts
-var dopt = function (dat, opt, pre, post, st) {
-    return dflt(dat, opt.level == null ? 6 : opt.level, opt.mem == null ? Math.ceil(Math.max(8, Math.min(13, Math.log(dat.length))) * 1.5) : (12 + opt.mem), pre, post, !st);
-};
-// Walmart object spread
-var mrg = function (a, b) {
-    var o = {};
-    for (var k in a)
-        o[k] = a[k];
-    for (var k in b)
-        o[k] = b[k];
-    return o;
-};
-// worker clone
-// This is possibly the craziest part of the entire codebase, despite how simple it may seem.
-// The only parameter to this function is a closure that returns an array of variables outside of the function scope.
-// We're going to try to figure out the variable names used in the closure as strings because that is crucial for workerization.
-// We will return an object mapping of true variable name to value (basically, the current scope as a JS object).
-// The reason we can't just use the original variable names is minifiers mangling the toplevel scope.
-// This took me three weeks to figure out how to do.
-var wcln = function (fn, fnStr, td) {
-    var dt = fn();
-    var st = fn.toString();
-    var ks = st.slice(st.indexOf('[') + 1, st.lastIndexOf(']')).replace(/ /g, '').split(',');
-    for (var i = 0; i < dt.length; ++i) {
-        var v = dt[i], k = ks[i];
-        if (typeof v == 'function') {
-            fnStr += ';' + k + '=';
-            var st_1 = v.toString();
-            if (v.prototype) {
-                // for global objects
-                if (st_1.indexOf('[native code]') != -1) {
-                    var spInd = st_1.indexOf(' ', 8) + 1;
-                    fnStr += st_1.slice(spInd, st_1.indexOf('(', spInd));
-                }
-                else {
-                    fnStr += st_1;
-                    for (var t in v.prototype)
-                        fnStr += ';' + k + '.prototype.' + t + '=' + v.prototype[t].toString();
-                }
-            }
-            else
-                fnStr += st_1;
-        }
-        else
-            td[k] = v;
-    }
-    return [fnStr, td];
-};
-var ch = [];
-// clone bufs
-var cbfs = function (v) {
-    var tl = [];
-    for (var k in v) {
-        if (v[k] instanceof u8 || v[k] instanceof u16 || v[k] instanceof u32)
-            tl.push((v[k] = new v[k].constructor(v[k])).buffer);
-    }
-    return tl;
-};
-// use a worker to execute code
-var wrkr = function (fns, init, id, cb) {
-    var _a;
-    if (!ch[id]) {
-        var fnStr = '', td_1 = {}, m = fns.length - 1;
-        for (var i = 0; i < m; ++i)
-            _a = wcln(fns[i], fnStr, td_1), fnStr = _a[0], td_1 = _a[1];
-        ch[id] = wcln(fns[m], fnStr, td_1);
-    }
-    var td = mrg({}, ch[id][1]);
-    return wk(ch[id][0] + ';onmessage=function(e){for(var k in e.data)self[k]=e.data[k];onmessage=' + init.toString() + '}', id, td, cbfs(td), cb);
-};
-// base async inflate fn
-var bInflt = function () { return [u8, u16, u32, fleb, fdeb, clim, fl, fd, flrm, fdrm, rev, hMap, max, bits, bits16, shft, slc, inflt, inflateSync, pbf, gu8]; };
-var bDflt = function () { return [u8, u16, u32, fleb, fdeb, clim, revfl, revfd, flm, flt, fdm, fdt, rev, deo, et, hMap, wbits, wbits16, hTree, ln, lc, clen, wfblk, wblk, shft, slc, dflt, dopt, deflateSync, pbf]; };
-// gzip extra
-var gze = function () { return [gzh, gzhl, wbytes, crc, crct]; };
-// gunzip extra
-var guze = function () { return [gzs, gzl]; };
-// zlib extra
-var zle = function () { return [zlh, wbytes, adler]; };
-// unzlib extra
-var zule = function () { return [zlv]; };
-// post buf
-var pbf = function (msg) { return postMessage(msg, [msg.buffer]); };
-// get u8
-var gu8 = function (o) { return o && o.size && new u8(o.size); };
-// async helper
-var cbify = function (dat, opts, fns, init, id, cb) {
-    var w = wrkr(fns, init, id, function (err, dat) {
-        w.terminate();
-        cb(err, dat);
-    });
-    w.postMessage([dat, opts], opts.consume ? [dat.buffer] : []);
-    return function () { w.terminate(); };
-};
-// auto stream
-var astrm = function (strm) {
-    strm.ondata = function (dat, final) { return postMessage([dat, final], [dat.buffer]); };
-    return function (ev) { return strm.push(ev.data[0], ev.data[1]); };
-};
-// async stream attach
-var astrmify = function (fns, strm, opts, init, id) {
-    var t;
-    var w = wrkr(fns, init, id, function (err, dat) {
-        if (err)
-            w.terminate(), strm.ondata.call(strm, err);
-        else {
-            if (dat[1])
-                w.terminate();
-            strm.ondata.call(strm, err, dat[0], dat[1]);
-        }
-    });
-    w.postMessage(opts);
-    strm.push = function (d, f) {
-        if (t)
-            throw 'stream finished';
-        if (!strm.ondata)
-            throw 'no stream handler';
-        w.postMessage([d, t = f], [d.buffer]);
-    };
-    strm.terminate = function () { w.terminate(); };
-};
-// read 2 bytes
-var b2 = function (d, b) { return d[b] | (d[b + 1] << 8); };
-// read 4 bytes
-var b4 = function (d, b) { return (d[b] | (d[b + 1] << 8) | (d[b + 2] << 16) | (d[b + 3] << 24)) >>> 0; };
-var b8 = function (d, b) { return b4(d, b) + (b4(d, b + 4) * 4294967296); };
-// write bytes
-var wbytes = function (d, b, v) {
-    for (; v; ++b)
-        d[b] = v, v >>>= 8;
-};
-// gzip header
-var gzh = function (c, o) {
-    var fn = o.filename;
-    c[0] = 31, c[1] = 139, c[2] = 8, c[8] = o.level < 2 ? 4 : o.level == 9 ? 2 : 0, c[9] = 3; // assume Unix
-    if (o.mtime != 0)
-        wbytes(c, 4, Math.floor(new Date(o.mtime || Date.now()) / 1000));
-    if (fn) {
-        c[3] = 8;
-        for (var i = 0; i <= fn.length; ++i)
-            c[i + 10] = fn.charCodeAt(i);
-    }
-};
-// gzip footer: -8 to -4 = CRC, -4 to -0 is length
-// gzip start
-var gzs = function (d) {
-    if (d[0] != 31 || d[1] != 139 || d[2] != 8)
-        throw 'invalid gzip data';
-    var flg = d[3];
-    var st = 10;
-    if (flg & 4)
-        st += d[10] | (d[11] << 8) + 2;
-    for (var zs = (flg >> 3 & 1) + (flg >> 4 & 1); zs > 0; zs -= !d[st++])
-        ;
-    return st + (flg & 2);
-};
-// gzip length
-var gzl = function (d) {
-    var l = d.length;
-    return ((d[l - 4] | d[l - 3] << 8 | d[l - 2] << 16) | (d[l - 1] << 24)) >>> 0;
-};
-// gzip header length
-var gzhl = function (o) { return 10 + ((o.filename && (o.filename.length + 1)) || 0); };
-// zlib header
-var zlh = function (c, o) {
-    var lv = o.level, fl = lv == 0 ? 0 : lv < 6 ? 1 : lv == 9 ? 3 : 2;
-    c[0] = 120, c[1] = (fl << 6) | (fl ? (32 - 2 * fl) : 1);
-};
 // zlib valid
 var zlv = function (d) {
     if ((d[0] & 15) != 8 || (d[0] >>> 4) > 7 || ((d[0] << 8 | d[1]) % 31))
@@ -12445,437 +11001,6 @@ var zlv = function (d) {
     if (d[1] & 32)
         throw 'invalid zlib data: preset dictionaries not supported';
 };
-function AsyncCmpStrm(opts, cb) {
-    if (!cb && typeof opts == 'function')
-        cb = opts, opts = {};
-    this.ondata = cb;
-    return opts;
-}
-// zlib footer: -4 to -0 is Adler32
-/**
- * Streaming DEFLATE compression
- */
-var Deflate = /*#__PURE__*/ (function () {
-    function Deflate(opts, cb) {
-        if (!cb && typeof opts == 'function')
-            cb = opts, opts = {};
-        this.ondata = cb;
-        this.o = opts || {};
-    }
-    Deflate.prototype.p = function (c, f) {
-        this.ondata(dopt(c, this.o, 0, 0, !f), f);
-    };
-    /**
-     * Pushes a chunk to be deflated
-     * @param chunk The chunk to push
-     * @param final Whether this is the last chunk
-     */
-    Deflate.prototype.push = function (chunk, final) {
-        if (this.d)
-            throw 'stream finished';
-        if (!this.ondata)
-            throw 'no stream handler';
-        this.d = final;
-        this.p(chunk, final || false);
-    };
-    return Deflate;
-}());
-/**
- * Asynchronous streaming DEFLATE compression
- */
-var AsyncDeflate = /*#__PURE__*/ (function () {
-    function AsyncDeflate(opts, cb) {
-        astrmify([
-            bDflt,
-            function () { return [astrm, Deflate]; }
-        ], this, AsyncCmpStrm.call(this, opts, cb), function (ev) {
-            var strm = new Deflate(ev.data);
-            onmessage = astrm(strm);
-        }, 6);
-    }
-    return AsyncDeflate;
-}());
-function deflate(data, opts, cb) {
-    if (!cb)
-        cb = opts, opts = {};
-    if (typeof cb != 'function')
-        throw 'no callback';
-    return cbify(data, opts, [
-        bDflt,
-    ], function (ev) { return pbf(deflateSync(ev.data[0], ev.data[1])); }, 0, cb);
-}
-/**
- * Compresses data with DEFLATE without any wrapper
- * @param data The data to compress
- * @param opts The compression options
- * @returns The deflated version of the data
- */
-function deflateSync(data, opts) {
-    return dopt(data, opts || {}, 0, 0);
-}
-/**
- * Streaming DEFLATE decompression
- */
-var Inflate = /*#__PURE__*/ (function () {
-    /**
-     * Creates an inflation stream
-     * @param cb The callback to call whenever data is inflated
-     */
-    function Inflate(cb) {
-        this.s = {};
-        this.p = new u8(0);
-        this.ondata = cb;
-    }
-    Inflate.prototype.e = function (c) {
-        if (this.d)
-            throw 'stream finished';
-        if (!this.ondata)
-            throw 'no stream handler';
-        var l = this.p.length;
-        var n = new u8(l + c.length);
-        n.set(this.p), n.set(c, l), this.p = n;
-    };
-    Inflate.prototype.c = function (final) {
-        this.d = this.s.i = final || false;
-        var bts = this.s.b;
-        var dt = inflt(this.p, this.o, this.s);
-        this.ondata(slc(dt, bts, this.s.b), this.d);
-        this.o = slc(dt, this.s.b - 32768), this.s.b = this.o.length;
-        this.p = slc(this.p, (this.s.p / 8) | 0), this.s.p &= 7;
-    };
-    /**
-     * Pushes a chunk to be inflated
-     * @param chunk The chunk to push
-     * @param final Whether this is the final chunk
-     */
-    Inflate.prototype.push = function (chunk, final) {
-        this.e(chunk), this.c(final);
-    };
-    return Inflate;
-}());
-/**
- * Asynchronous streaming DEFLATE decompression
- */
-var AsyncInflate = /*#__PURE__*/ (function () {
-    /**
-     * Creates an asynchronous inflation stream
-     * @param cb The callback to call whenever data is deflated
-     */
-    function AsyncInflate(cb) {
-        this.ondata = cb;
-        astrmify([
-            bInflt,
-            function () { return [astrm, Inflate]; }
-        ], this, 0, function () {
-            var strm = new Inflate();
-            onmessage = astrm(strm);
-        }, 7);
-    }
-    return AsyncInflate;
-}());
-function inflate(data, opts, cb) {
-    if (!cb)
-        cb = opts, opts = {};
-    if (typeof cb != 'function')
-        throw 'no callback';
-    return cbify(data, opts, [
-        bInflt
-    ], function (ev) { return pbf(inflateSync(ev.data[0], gu8(ev.data[1]))); }, 1, cb);
-}
-/**
- * Expands DEFLATE data with no wrapper
- * @param data The data to decompress
- * @param out Where to write the data. Saves memory if you know the decompressed size and provide an output buffer of that length.
- * @returns The decompressed version of the data
- */
-function inflateSync(data, out) {
-    return inflt(data, out);
-}
-// before you yell at me for not just using extends, my reason is that TS inheritance is hard to workerize.
-/**
- * Streaming GZIP compression
- */
-var Gzip = /*#__PURE__*/ (function () {
-    function Gzip(opts, cb) {
-        this.c = crc();
-        this.l = 0;
-        this.v = 1;
-        Deflate.call(this, opts, cb);
-    }
-    /**
-     * Pushes a chunk to be GZIPped
-     * @param chunk The chunk to push
-     * @param final Whether this is the last chunk
-     */
-    Gzip.prototype.push = function (chunk, final) {
-        Deflate.prototype.push.call(this, chunk, final);
-    };
-    Gzip.prototype.p = function (c, f) {
-        this.c.p(c);
-        this.l += c.length;
-        var raw = dopt(c, this.o, this.v && gzhl(this.o), f && 8, !f);
-        if (this.v)
-            gzh(raw, this.o), this.v = 0;
-        if (f)
-            wbytes(raw, raw.length - 8, this.c.d()), wbytes(raw, raw.length - 4, this.l);
-        this.ondata(raw, f);
-    };
-    return Gzip;
-}());
-/**
- * Asynchronous streaming GZIP compression
- */
-var AsyncGzip = /*#__PURE__*/ (function () {
-    function AsyncGzip(opts, cb) {
-        astrmify([
-            bDflt,
-            gze,
-            function () { return [astrm, Deflate, Gzip]; }
-        ], this, AsyncCmpStrm.call(this, opts, cb), function (ev) {
-            var strm = new Gzip(ev.data);
-            onmessage = astrm(strm);
-        }, 8);
-    }
-    return AsyncGzip;
-}());
-function gzip(data, opts, cb) {
-    if (!cb)
-        cb = opts, opts = {};
-    if (typeof cb != 'function')
-        throw 'no callback';
-    return cbify(data, opts, [
-        bDflt,
-        gze,
-        function () { return [gzipSync]; }
-    ], function (ev) { return pbf(gzipSync(ev.data[0], ev.data[1])); }, 2, cb);
-}
-/**
- * Compresses data with GZIP
- * @param data The data to compress
- * @param opts The compression options
- * @returns The gzipped version of the data
- */
-function gzipSync(data, opts) {
-    if (!opts)
-        opts = {};
-    var c = crc(), l = data.length;
-    c.p(data);
-    var d = dopt(data, opts, gzhl(opts), 8), s = d.length;
-    return gzh(d, opts), wbytes(d, s - 8, c.d()), wbytes(d, s - 4, l), d;
-}
-/**
- * Streaming GZIP decompression
- */
-var Gunzip = /*#__PURE__*/ (function () {
-    /**
-     * Creates a GUNZIP stream
-     * @param cb The callback to call whenever data is inflated
-     */
-    function Gunzip(cb) {
-        this.v = 1;
-        Inflate.call(this, cb);
-    }
-    /**
-     * Pushes a chunk to be GUNZIPped
-     * @param chunk The chunk to push
-     * @param final Whether this is the last chunk
-     */
-    Gunzip.prototype.push = function (chunk, final) {
-        Inflate.prototype.e.call(this, chunk);
-        if (this.v) {
-            var s = this.p.length > 3 ? gzs(this.p) : 4;
-            if (s >= this.p.length && !final)
-                return;
-            this.p = this.p.subarray(s), this.v = 0;
-        }
-        if (final) {
-            if (this.p.length < 8)
-                throw 'invalid gzip stream';
-            this.p = this.p.subarray(0, -8);
-        }
-        // necessary to prevent TS from using the closure value
-        // This allows for workerization to function correctly
-        Inflate.prototype.c.call(this, final);
-    };
-    return Gunzip;
-}());
-/**
- * Asynchronous streaming GZIP decompression
- */
-var AsyncGunzip = /*#__PURE__*/ (function () {
-    /**
-     * Creates an asynchronous GUNZIP stream
-     * @param cb The callback to call whenever data is deflated
-     */
-    function AsyncGunzip(cb) {
-        this.ondata = cb;
-        astrmify([
-            bInflt,
-            guze,
-            function () { return [astrm, Inflate, Gunzip]; }
-        ], this, 0, function () {
-            var strm = new Gunzip();
-            onmessage = astrm(strm);
-        }, 9);
-    }
-    return AsyncGunzip;
-}());
-function gunzip(data, opts, cb) {
-    if (!cb)
-        cb = opts, opts = {};
-    if (typeof cb != 'function')
-        throw 'no callback';
-    return cbify(data, opts, [
-        bInflt,
-        guze,
-        function () { return [gunzipSync]; }
-    ], function (ev) { return pbf(gunzipSync(ev.data[0])); }, 3, cb);
-}
-/**
- * Expands GZIP data
- * @param data The data to decompress
- * @param out Where to write the data. GZIP already encodes the output size, so providing this doesn't save memory.
- * @returns The decompressed version of the data
- */
-function gunzipSync(data, out) {
-    return inflt(data.subarray(gzs(data), -8), out || new u8(gzl(data)));
-}
-/**
- * Streaming Zlib compression
- */
-var Zlib = /*#__PURE__*/ (function () {
-    function Zlib(opts, cb) {
-        this.c = adler();
-        this.v = 1;
-        Deflate.call(this, opts, cb);
-    }
-    /**
-     * Pushes a chunk to be zlibbed
-     * @param chunk The chunk to push
-     * @param final Whether this is the last chunk
-     */
-    Zlib.prototype.push = function (chunk, final) {
-        Deflate.prototype.push.call(this, chunk, final);
-    };
-    Zlib.prototype.p = function (c, f) {
-        this.c.p(c);
-        var raw = dopt(c, this.o, this.v && 2, f && 4, !f);
-        if (this.v)
-            zlh(raw, this.o), this.v = 0;
-        if (f)
-            wbytes(raw, raw.length - 4, this.c.d());
-        this.ondata(raw, f);
-    };
-    return Zlib;
-}());
-/**
- * Asynchronous streaming Zlib compression
- */
-var AsyncZlib = /*#__PURE__*/ (function () {
-    function AsyncZlib(opts, cb) {
-        astrmify([
-            bDflt,
-            zle,
-            function () { return [astrm, Deflate, Zlib]; }
-        ], this, AsyncCmpStrm.call(this, opts, cb), function (ev) {
-            var strm = new Zlib(ev.data);
-            onmessage = astrm(strm);
-        }, 10);
-    }
-    return AsyncZlib;
-}());
-function zlib(data, opts, cb) {
-    if (!cb)
-        cb = opts, opts = {};
-    if (typeof cb != 'function')
-        throw 'no callback';
-    return cbify(data, opts, [
-        bDflt,
-        zle,
-        function () { return [zlibSync]; }
-    ], function (ev) { return pbf(zlibSync(ev.data[0], ev.data[1])); }, 4, cb);
-}
-/**
- * Compress data with Zlib
- * @param data The data to compress
- * @param opts The compression options
- * @returns The zlib-compressed version of the data
- */
-function zlibSync(data, opts) {
-    if (!opts)
-        opts = {};
-    var a = adler();
-    a.p(data);
-    var d = dopt(data, opts, 2, 4);
-    return zlh(d, opts), wbytes(d, d.length - 4, a.d()), d;
-}
-/**
- * Streaming Zlib decompression
- */
-var Unzlib = /*#__PURE__*/ (function () {
-    /**
-     * Creates a Zlib decompression stream
-     * @param cb The callback to call whenever data is inflated
-     */
-    function Unzlib(cb) {
-        this.v = 1;
-        Inflate.call(this, cb);
-    }
-    /**
-     * Pushes a chunk to be unzlibbed
-     * @param chunk The chunk to push
-     * @param final Whether this is the last chunk
-     */
-    Unzlib.prototype.push = function (chunk, final) {
-        Inflate.prototype.e.call(this, chunk);
-        if (this.v) {
-            if (this.p.length < 2 && !final)
-                return;
-            this.p = this.p.subarray(2), this.v = 0;
-        }
-        if (final) {
-            if (this.p.length < 4)
-                throw 'invalid zlib stream';
-            this.p = this.p.subarray(0, -4);
-        }
-        // necessary to prevent TS from using the closure value
-        // This allows for workerization to function correctly
-        Inflate.prototype.c.call(this, final);
-    };
-    return Unzlib;
-}());
-/**
- * Asynchronous streaming Zlib decompression
- */
-var AsyncUnzlib = /*#__PURE__*/ (function () {
-    /**
-     * Creates an asynchronous Zlib decompression stream
-     * @param cb The callback to call whenever data is deflated
-     */
-    function AsyncUnzlib(cb) {
-        this.ondata = cb;
-        astrmify([
-            bInflt,
-            zule,
-            function () { return [astrm, Inflate, Unzlib]; }
-        ], this, 0, function () {
-            var strm = new Unzlib();
-            onmessage = astrm(strm);
-        }, 11);
-    }
-    return AsyncUnzlib;
-}());
-function unzlib(data, opts, cb) {
-    if (!cb)
-        cb = opts, opts = {};
-    if (typeof cb != 'function')
-        throw 'no callback';
-    return cbify(data, opts, [
-        bInflt,
-        zule,
-        function () { return [unzlibSync]; }
-    ], function (ev) { return pbf(unzlibSync(ev.data[0], gu8(ev.data[1]))); }, 5, cb);
-}
 /**
  * Expands Zlib data
  * @param data The data to decompress
@@ -12885,114 +11010,6 @@ function unzlib(data, opts, cb) {
 function unzlibSync(data, out) {
     return inflt((zlv(data), data.subarray(2, -4)), out);
 }
-/**
- * Streaming GZIP, Zlib, or raw DEFLATE decompression
- */
-var Decompress = /*#__PURE__*/ (function () {
-    /**
-     * Creates a decompression stream
-     * @param cb The callback to call whenever data is decompressed
-     */
-    function Decompress(cb) {
-        this.G = Gunzip;
-        this.I = Inflate;
-        this.Z = Unzlib;
-        this.ondata = cb;
-    }
-    /**
-     * Pushes a chunk to be decompressed
-     * @param chunk The chunk to push
-     * @param final Whether this is the last chunk
-     */
-    Decompress.prototype.push = function (chunk, final) {
-        if (!this.ondata)
-            throw 'no stream handler';
-        if (!this.s) {
-            if (this.p && this.p.length) {
-                var n = new u8(this.p.length + chunk.length);
-                n.set(this.p), n.set(chunk, this.p.length);
-            }
-            else
-                this.p = chunk;
-            if (this.p.length > 2) {
-                var _this_1 = this;
-                var cb = function () { _this_1.ondata.apply(_this_1, arguments); };
-                this.s = (this.p[0] == 31 && this.p[1] == 139 && this.p[2] == 8)
-                    ? new this.G(cb)
-                    : ((this.p[0] & 15) != 8 || (this.p[0] >> 4) > 7 || ((this.p[0] << 8 | this.p[1]) % 31))
-                        ? new this.I(cb)
-                        : new this.Z(cb);
-                this.s.push(this.p, final);
-                this.p = null;
-            }
-        }
-        else
-            this.s.push(chunk, final);
-    };
-    return Decompress;
-}());
-/**
- * Asynchronous streaming GZIP, Zlib, or raw DEFLATE decompression
- */
-var AsyncDecompress = /*#__PURE__*/ (function () {
-    /**
-   * Creates an asynchronous decompression stream
-   * @param cb The callback to call whenever data is decompressed
-   */
-    function AsyncDecompress(cb) {
-        this.G = AsyncGunzip;
-        this.I = AsyncInflate;
-        this.Z = AsyncUnzlib;
-        this.ondata = cb;
-    }
-    /**
-     * Pushes a chunk to be decompressed
-     * @param chunk The chunk to push
-     * @param final Whether this is the last chunk
-     */
-    AsyncDecompress.prototype.push = function (chunk, final) {
-        Decompress.prototype.push.call(this, chunk, final);
-    };
-    return AsyncDecompress;
-}());
-function decompress(data, opts, cb) {
-    if (!cb)
-        cb = opts, opts = {};
-    if (typeof cb != 'function')
-        throw 'no callback';
-    return (data[0] == 31 && data[1] == 139 && data[2] == 8)
-        ? gunzip(data, opts, cb)
-        : ((data[0] & 15) != 8 || (data[0] >> 4) > 7 || ((data[0] << 8 | data[1]) % 31))
-            ? inflate(data, opts, cb)
-            : unzlib(data, opts, cb);
-}
-/**
- * Expands compressed GZIP, Zlib, or raw DEFLATE data, automatically detecting the format
- * @param data The data to decompress
- * @param out Where to write the data. Saves memory if you know the decompressed size and provide an output buffer of that length.
- * @returns The decompressed version of the data
- */
-function decompressSync(data, out) {
-    return (data[0] == 31 && data[1] == 139 && data[2] == 8)
-        ? gunzipSync(data, out)
-        : ((data[0] & 15) != 8 || (data[0] >> 4) > 7 || ((data[0] << 8 | data[1]) % 31))
-            ? inflateSync(data, out)
-            : unzlibSync(data, out);
-}
-// flatten a directory structure
-var fltn = function (d, p, t, o) {
-    for (var k in d) {
-        var val = d[k], n = p + k;
-        if (val instanceof u8)
-            t[n] = [val, o];
-        else if (Array.isArray(val))
-            t[n] = [val[0], mrg(o, val[1])];
-        else
-            fltn(val, n + '/', t, o);
-    }
-};
-// text encoder
-var te = typeof TextEncoder != 'undefined' && /*#__PURE__*/ new TextEncoder();
 // text decoder
 var td = typeof TextDecoder != 'undefined' && /*#__PURE__*/ new TextDecoder();
 // text decoder stream
@@ -13002,1020 +11019,6 @@ try {
     tds = 1;
 }
 catch (e) { }
-// decode UTF8
-var dutf8 = function (d) {
-    for (var r = '', i = 0;;) {
-        var c = d[i++];
-        var eb = (c > 127) + (c > 223) + (c > 239);
-        if (i + eb > d.length)
-            return [r, slc(d, i - 1)];
-        if (!eb)
-            r += String.fromCharCode(c);
-        else if (eb == 3) {
-            c = ((c & 15) << 18 | (d[i++] & 63) << 12 | (d[i++] & 63) << 6 | (d[i++] & 63)) - 65536,
-                r += String.fromCharCode(55296 | (c >> 10), 56320 | (c & 1023));
-        }
-        else if (eb & 1)
-            r += String.fromCharCode((c & 31) << 6 | (d[i++] & 63));
-        else
-            r += String.fromCharCode((c & 15) << 12 | (d[i++] & 63) << 6 | (d[i++] & 63));
-    }
-};
-/**
- * Streaming UTF-8 decoding
- */
-var DecodeUTF8 = /*#__PURE__*/ (function () {
-    /**
-     * Creates a UTF-8 decoding stream
-     * @param cb The callback to call whenever data is decoded
-     */
-    function DecodeUTF8(cb) {
-        this.ondata = cb;
-        if (tds)
-            this.t = new TextDecoder();
-        else
-            this.p = et;
-    }
-    /**
-     * Pushes a chunk to be decoded from UTF-8 binary
-     * @param chunk The chunk to push
-     * @param final Whether this is the last chunk
-     */
-    DecodeUTF8.prototype.push = function (chunk, final) {
-        if (!this.ondata)
-            throw 'no callback';
-        final = !!final;
-        if (this.t) {
-            this.ondata(this.t.decode(chunk, { stream: true }), final);
-            if (final) {
-                if (this.t.decode().length)
-                    throw 'invalid utf-8 data';
-                this.t = null;
-            }
-            return;
-        }
-        if (!this.p)
-            throw 'stream finished';
-        var dat = new u8(this.p.length + chunk.length);
-        dat.set(this.p);
-        dat.set(chunk, this.p.length);
-        var _a = dutf8(dat), ch = _a[0], np = _a[1];
-        if (final) {
-            if (np.length)
-                throw 'invalid utf-8 data';
-            this.p = null;
-        }
-        else
-            this.p = np;
-        this.ondata(ch, final);
-    };
-    return DecodeUTF8;
-}());
-/**
- * Streaming UTF-8 encoding
- */
-var EncodeUTF8 = /*#__PURE__*/ (function () {
-    /**
-     * Creates a UTF-8 decoding stream
-     * @param cb The callback to call whenever data is encoded
-     */
-    function EncodeUTF8(cb) {
-        this.ondata = cb;
-    }
-    /**
-     * Pushes a chunk to be encoded to UTF-8
-     * @param chunk The string data to push
-     * @param final Whether this is the last chunk
-     */
-    EncodeUTF8.prototype.push = function (chunk, final) {
-        if (!this.ondata)
-            throw 'no callback';
-        if (this.d)
-            throw 'stream finished';
-        this.ondata(strToU8(chunk), this.d = final || false);
-    };
-    return EncodeUTF8;
-}());
-/**
- * Converts a string into a Uint8Array for use with compression/decompression methods
- * @param str The string to encode
- * @param latin1 Whether or not to interpret the data as Latin-1. This should
- *               not need to be true unless decoding a binary string.
- * @returns The string encoded in UTF-8/Latin-1 binary
- */
-function strToU8(str, latin1) {
-    if (latin1) {
-        var ar_1 = new u8(str.length);
-        for (var i = 0; i < str.length; ++i)
-            ar_1[i] = str.charCodeAt(i);
-        return ar_1;
-    }
-    if (te)
-        return te.encode(str);
-    var l = str.length;
-    var ar = new u8(str.length + (str.length >> 1));
-    var ai = 0;
-    var w = function (v) { ar[ai++] = v; };
-    for (var i = 0; i < l; ++i) {
-        if (ai + 5 > ar.length) {
-            var n = new u8(ai + 8 + ((l - i) << 1));
-            n.set(ar);
-            ar = n;
-        }
-        var c = str.charCodeAt(i);
-        if (c < 128 || latin1)
-            w(c);
-        else if (c < 2048)
-            w(192 | (c >> 6)), w(128 | (c & 63));
-        else if (c > 55295 && c < 57344)
-            c = 65536 + (c & 1023 << 10) | (str.charCodeAt(++i) & 1023),
-                w(240 | (c >> 18)), w(128 | ((c >> 12) & 63)), w(128 | ((c >> 6) & 63)), w(128 | (c & 63));
-        else
-            w(224 | (c >> 12)), w(128 | ((c >> 6) & 63)), w(128 | (c & 63));
-    }
-    return slc(ar, 0, ai);
-}
-/**
- * Converts a Uint8Array to a string
- * @param dat The data to decode to string
- * @param latin1 Whether or not to interpret the data as Latin-1. This should
- *               not need to be true unless encoding to binary string.
- * @returns The original UTF-8/Latin-1 string
- */
-function strFromU8(dat, latin1) {
-    if (latin1) {
-        var r = '';
-        for (var i = 0; i < dat.length; i += 16384)
-            r += String.fromCharCode.apply(null, dat.subarray(i, i + 16384));
-        return r;
-    }
-    else if (td)
-        return td.decode(dat);
-    else {
-        var _a = dutf8(dat), out = _a[0], ext = _a[1];
-        if (ext.length)
-            throw 'invalid utf-8 data';
-        return out;
-    }
-}
-// deflate bit flag
-var dbf = function (l) { return l == 1 ? 3 : l < 6 ? 2 : l == 9 ? 1 : 0; };
-// skip local zip header
-var slzh = function (d, b) { return b + 30 + b2(d, b + 26) + b2(d, b + 28); };
-// read zip header
-var zh = function (d, b, z) {
-    var fnl = b2(d, b + 28), fn = strFromU8(d.subarray(b + 46, b + 46 + fnl), !(b2(d, b + 8) & 2048)), es = b + 46 + fnl, bs = b4(d, b + 20);
-    var _a = z && bs == 4294967295 ? z64e(d, es) : [bs, b4(d, b + 24), b4(d, b + 42)], sc = _a[0], su = _a[1], off = _a[2];
-    return [b2(d, b + 10), sc, su, fn, es + b2(d, b + 30) + b2(d, b + 32), off];
-};
-// read zip64 extra field
-var z64e = function (d, b) {
-    for (; b2(d, b) != 1; b += 4 + b2(d, b + 2))
-        ;
-    return [b8(d, b + 12), b8(d, b + 4), b8(d, b + 20)];
-};
-// extra field length
-var exfl = function (ex) {
-    var le = 0;
-    if (ex) {
-        for (var k in ex) {
-            var l = ex[k].length;
-            if (l > 65535)
-                throw 'extra field too long';
-            le += l + 4;
-        }
-    }
-    return le;
-};
-// write zip header
-var wzh = function (d, b, f, fn, u, c, ce, co) {
-    var fl = fn.length, ex = f.extra, col = co && co.length;
-    var exl = exfl(ex);
-    wbytes(d, b, ce != null ? 0x2014B50 : 0x4034B50), b += 4;
-    if (ce != null)
-        d[b++] = 20, d[b++] = f.os;
-    d[b] = 20, b += 2; // spec compliance? what's that?
-    d[b++] = (f.flag << 1) | (c == null && 8), d[b++] = u && 8;
-    d[b++] = f.compression & 255, d[b++] = f.compression >> 8;
-    var dt = new Date(f.mtime == null ? Date.now() : f.mtime), y = dt.getFullYear() - 1980;
-    if (y < 0 || y > 119)
-        throw 'date not in range 1980-2099';
-    wbytes(d, b, (y << 25) | ((dt.getMonth() + 1) << 21) | (dt.getDate() << 16) | (dt.getHours() << 11) | (dt.getMinutes() << 5) | (dt.getSeconds() >>> 1)), b += 4;
-    if (c != null) {
-        wbytes(d, b, f.crc);
-        wbytes(d, b + 4, c);
-        wbytes(d, b + 8, f.size);
-    }
-    wbytes(d, b + 12, fl);
-    wbytes(d, b + 14, exl), b += 16;
-    if (ce != null) {
-        wbytes(d, b, col);
-        wbytes(d, b + 6, f.attrs);
-        wbytes(d, b + 10, ce), b += 14;
-    }
-    d.set(fn, b);
-    b += fl;
-    if (exl) {
-        for (var k in ex) {
-            var exf = ex[k], l = exf.length;
-            wbytes(d, b, +k);
-            wbytes(d, b + 2, l);
-            d.set(exf, b + 4), b += 4 + l;
-        }
-    }
-    if (col)
-        d.set(co, b), b += col;
-    return b;
-};
-// write zip footer (end of central directory)
-var wzf = function (o, b, c, d, e) {
-    wbytes(o, b, 0x6054B50); // skip disk
-    wbytes(o, b + 8, c);
-    wbytes(o, b + 10, c);
-    wbytes(o, b + 12, d);
-    wbytes(o, b + 16, e);
-};
-/**
- * A pass-through stream to keep data uncompressed in a ZIP archive.
- */
-var ZipPassThrough = /*#__PURE__*/ (function () {
-    /**
-     * Creates a pass-through stream that can be added to ZIP archives
-     * @param filename The filename to associate with this data stream
-     */
-    function ZipPassThrough(filename) {
-        this.filename = filename;
-        this.c = crc();
-        this.size = 0;
-        this.compression = 0;
-    }
-    /**
-     * Processes a chunk and pushes to the output stream. You can override this
-     * method in a subclass for custom behavior, but by default this passes
-     * the data through. You must call this.ondata(err, chunk, final) at some
-     * point in this method.
-     * @param chunk The chunk to process
-     * @param final Whether this is the last chunk
-     */
-    ZipPassThrough.prototype.process = function (chunk, final) {
-        this.ondata(null, chunk, final);
-    };
-    /**
-     * Pushes a chunk to be added. If you are subclassing this with a custom
-     * compression algorithm, note that you must push data from the source
-     * file only, pre-compression.
-     * @param chunk The chunk to push
-     * @param final Whether this is the last chunk
-     */
-    ZipPassThrough.prototype.push = function (chunk, final) {
-        if (!this.ondata)
-            throw 'no callback - add to ZIP archive before pushing';
-        this.c.p(chunk);
-        this.size += chunk.length;
-        if (final)
-            this.crc = this.c.d();
-        this.process(chunk, final || false);
-    };
-    return ZipPassThrough;
-}());
-// I don't extend because TypeScript extension adds 1kB of runtime bloat
-/**
- * Streaming DEFLATE compression for ZIP archives. Prefer using AsyncZipDeflate
- * for better performance
- */
-var ZipDeflate = /*#__PURE__*/ (function () {
-    /**
-     * Creates a DEFLATE stream that can be added to ZIP archives
-     * @param filename The filename to associate with this data stream
-     * @param opts The compression options
-     */
-    function ZipDeflate(filename, opts) {
-        var _this_1 = this;
-        if (!opts)
-            opts = {};
-        ZipPassThrough.call(this, filename);
-        this.d = new Deflate(opts, function (dat, final) {
-            _this_1.ondata(null, dat, final);
-        });
-        this.compression = 8;
-        this.flag = dbf(opts.level);
-    }
-    ZipDeflate.prototype.process = function (chunk, final) {
-        try {
-            this.d.push(chunk, final);
-        }
-        catch (e) {
-            this.ondata(e, null, final);
-        }
-    };
-    /**
-     * Pushes a chunk to be deflated
-     * @param chunk The chunk to push
-     * @param final Whether this is the last chunk
-     */
-    ZipDeflate.prototype.push = function (chunk, final) {
-        ZipPassThrough.prototype.push.call(this, chunk, final);
-    };
-    return ZipDeflate;
-}());
-/**
- * Asynchronous streaming DEFLATE compression for ZIP archives
- */
-var AsyncZipDeflate = /*#__PURE__*/ (function () {
-    /**
-     * Creates a DEFLATE stream that can be added to ZIP archives
-     * @param filename The filename to associate with this data stream
-     * @param opts The compression options
-     */
-    function AsyncZipDeflate(filename, opts) {
-        var _this_1 = this;
-        if (!opts)
-            opts = {};
-        ZipPassThrough.call(this, filename);
-        this.d = new AsyncDeflate(opts, function (err, dat, final) {
-            _this_1.ondata(err, dat, final);
-        });
-        this.compression = 8;
-        this.flag = dbf(opts.level);
-        this.terminate = this.d.terminate;
-    }
-    AsyncZipDeflate.prototype.process = function (chunk, final) {
-        this.d.push(chunk, final);
-    };
-    /**
-     * Pushes a chunk to be deflated
-     * @param chunk The chunk to push
-     * @param final Whether this is the last chunk
-     */
-    AsyncZipDeflate.prototype.push = function (chunk, final) {
-        ZipPassThrough.prototype.push.call(this, chunk, final);
-    };
-    return AsyncZipDeflate;
-}());
-// TODO: Better tree shaking
-/**
- * A zippable archive to which files can incrementally be added
- */
-var Zip = /*#__PURE__*/ (function () {
-    /**
-     * Creates an empty ZIP archive to which files can be added
-     * @param cb The callback to call whenever data for the generated ZIP archive
-     *           is available
-     */
-    function Zip(cb) {
-        this.ondata = cb;
-        this.u = [];
-        this.d = 1;
-    }
-    /**
-     * Adds a file to the ZIP archive
-     * @param file The file stream to add
-     */
-    Zip.prototype.add = function (file) {
-        var _this_1 = this;
-        if (this.d & 2)
-            throw 'stream finished';
-        var f = strToU8(file.filename), fl = f.length;
-        var com = file.comment, o = com && strToU8(com);
-        var u = fl != file.filename.length || (o && (com.length != o.length));
-        var hl = fl + exfl(file.extra) + 30;
-        if (fl > 65535)
-            throw 'filename too long';
-        var header = new u8(hl);
-        wzh(header, 0, file, f, u);
-        var chks = [header];
-        var pAll = function () {
-            for (var _i = 0, chks_1 = chks; _i < chks_1.length; _i++) {
-                var chk = chks_1[_i];
-                _this_1.ondata(null, chk, false);
-            }
-            chks = [];
-        };
-        var tr = this.d;
-        this.d = 0;
-        var ind = this.u.length;
-        var uf = mrg(file, {
-            f: f,
-            u: u,
-            o: o,
-            t: function () {
-                if (file.terminate)
-                    file.terminate();
-            },
-            r: function () {
-                pAll();
-                if (tr) {
-                    var nxt = _this_1.u[ind + 1];
-                    if (nxt)
-                        nxt.r();
-                    else
-                        _this_1.d = 1;
-                }
-                tr = 1;
-            }
-        });
-        var cl = 0;
-        file.ondata = function (err, dat, final) {
-            if (err) {
-                _this_1.ondata(err, dat, final);
-                _this_1.terminate();
-            }
-            else {
-                cl += dat.length;
-                chks.push(dat);
-                if (final) {
-                    var dd = new u8(16);
-                    wbytes(dd, 0, 0x8074B50);
-                    wbytes(dd, 4, file.crc);
-                    wbytes(dd, 8, cl);
-                    wbytes(dd, 12, file.size);
-                    chks.push(dd);
-                    uf.c = cl, uf.b = hl + cl + 16, uf.crc = file.crc, uf.size = file.size;
-                    if (tr)
-                        uf.r();
-                    tr = 1;
-                }
-                else if (tr)
-                    pAll();
-            }
-        };
-        this.u.push(uf);
-    };
-    /**
-     * Ends the process of adding files and prepares to emit the final chunks.
-     * This *must* be called after adding all desired files for the resulting
-     * ZIP file to work properly.
-     */
-    Zip.prototype.end = function () {
-        var _this_1 = this;
-        if (this.d & 2) {
-            if (this.d & 1)
-                throw 'stream finishing';
-            throw 'stream finished';
-        }
-        if (this.d)
-            this.e();
-        else
-            this.u.push({
-                r: function () {
-                    if (!(_this_1.d & 1))
-                        return;
-                    _this_1.u.splice(-1, 1);
-                    _this_1.e();
-                },
-                t: function () { }
-            });
-        this.d = 3;
-    };
-    Zip.prototype.e = function () {
-        var bt = 0, l = 0, tl = 0;
-        for (var _i = 0, _a = this.u; _i < _a.length; _i++) {
-            var f = _a[_i];
-            tl += 46 + f.f.length + exfl(f.extra) + (f.o ? f.o.length : 0);
-        }
-        var out = new u8(tl + 22);
-        for (var _b = 0, _c = this.u; _b < _c.length; _b++) {
-            var f = _c[_b];
-            wzh(out, bt, f, f.f, f.u, f.c, l, f.o);
-            bt += 46 + f.f.length + exfl(f.extra) + (f.o ? f.o.length : 0), l += f.b;
-        }
-        wzf(out, bt, this.u.length, tl, l);
-        this.ondata(null, out, true);
-        this.d = 2;
-    };
-    /**
-     * A method to terminate any internal workers used by the stream. Subsequent
-     * calls to add() will fail.
-     */
-    Zip.prototype.terminate = function () {
-        for (var _i = 0, _a = this.u; _i < _a.length; _i++) {
-            var f = _a[_i];
-            f.t();
-        }
-        this.d = 2;
-    };
-    return Zip;
-}());
-function zip(data, opts, cb) {
-    if (!cb)
-        cb = opts, opts = {};
-    if (typeof cb != 'function')
-        throw 'no callback';
-    var r = {};
-    fltn(data, '', r, opts);
-    var k = Object.keys(r);
-    var lft = k.length, o = 0, tot = 0;
-    var slft = lft, files = new Array(lft);
-    var term = [];
-    var tAll = function () {
-        for (var i = 0; i < term.length; ++i)
-            term[i]();
-    };
-    var cbf = function () {
-        var out = new u8(tot + 22), oe = o, cdl = tot - o;
-        tot = 0;
-        for (var i = 0; i < slft; ++i) {
-            var f = files[i];
-            try {
-                var l = f.c.length;
-                wzh(out, tot, f, f.f, f.u, l);
-                var badd = 30 + f.f.length + exfl(f.extra);
-                var loc = tot + badd;
-                out.set(f.c, loc);
-                wzh(out, o, f, f.f, f.u, l, tot, f.m), o += 16 + badd + (f.m ? f.m.length : 0), tot = loc + l;
-            }
-            catch (e) {
-                return cb(e, null);
-            }
-        }
-        wzf(out, o, files.length, cdl, oe);
-        cb(null, out);
-    };
-    if (!lft)
-        cbf();
-    var _loop_1 = function (i) {
-        var fn = k[i];
-        var _a = r[fn], file = _a[0], p = _a[1];
-        var c = crc(), size = file.length;
-        c.p(file);
-        var f = strToU8(fn), s = f.length;
-        var com = p.comment, m = com && strToU8(com), ms = m && m.length;
-        var exl = exfl(p.extra);
-        var compression = p.level == 0 ? 0 : 8;
-        var cbl = function (e, d) {
-            if (e) {
-                tAll();
-                cb(e, null);
-            }
-            else {
-                var l = d.length;
-                files[i] = mrg(p, {
-                    size: size,
-                    crc: c.d(),
-                    c: d,
-                    f: f,
-                    m: m,
-                    u: s != fn.length || (m && (com.length != ms)),
-                    compression: compression
-                });
-                o += 30 + s + exl + l;
-                tot += 76 + 2 * (s + exl) + (ms || 0) + l;
-                if (!--lft)
-                    cbf();
-            }
-        };
-        if (s > 65535)
-            cbl('filename too long', null);
-        if (!compression)
-            cbl(null, file);
-        else if (size < 160000) {
-            try {
-                cbl(null, deflateSync(file, p));
-            }
-            catch (e) {
-                cbl(e, null);
-            }
-        }
-        else
-            term.push(deflate(file, p, cbl));
-    };
-    // Cannot use lft because it can decrease
-    for (var i = 0; i < slft; ++i) {
-        _loop_1(i);
-    }
-    return tAll;
-}
-/**
- * Synchronously creates a ZIP file. Prefer using `zip` for better performance
- * with more than one file.
- * @param data The directory structure for the ZIP archive
- * @param opts The main options, merged with per-file options
- * @returns The generated ZIP archive
- */
-function zipSync(data, opts) {
-    if (!opts)
-        opts = {};
-    var r = {};
-    var files = [];
-    fltn(data, '', r, opts);
-    var o = 0;
-    var tot = 0;
-    for (var fn in r) {
-        var _a = r[fn], file = _a[0], p = _a[1];
-        var compression = p.level == 0 ? 0 : 8;
-        var f = strToU8(fn), s = f.length;
-        var com = p.comment, m = com && strToU8(com), ms = m && m.length;
-        var exl = exfl(p.extra);
-        if (s > 65535)
-            throw 'filename too long';
-        var d = compression ? deflateSync(file, p) : file, l = d.length;
-        var c = crc();
-        c.p(file);
-        files.push(mrg(p, {
-            size: file.length,
-            crc: c.d(),
-            c: d,
-            f: f,
-            m: m,
-            u: s != fn.length || (m && (com.length != ms)),
-            o: o,
-            compression: compression
-        }));
-        o += 30 + s + exl + l;
-        tot += 76 + 2 * (s + exl) + (ms || 0) + l;
-    }
-    var out = new u8(tot + 22), oe = o, cdl = tot - o;
-    for (var i = 0; i < files.length; ++i) {
-        var f = files[i];
-        wzh(out, f.o, f, f.f, f.u, f.c.length);
-        var badd = 30 + f.f.length + exfl(f.extra);
-        out.set(f.c, f.o + badd);
-        wzh(out, o, f, f.f, f.u, f.c.length, f.o, f.m), o += 16 + badd + (f.m ? f.m.length : 0);
-    }
-    wzf(out, o, files.length, cdl, oe);
-    return out;
-}
-/**
- * Streaming pass-through decompression for ZIP archives
- */
-var UnzipPassThrough = /*#__PURE__*/ (function () {
-    function UnzipPassThrough() {
-    }
-    UnzipPassThrough.prototype.push = function (data, final) {
-        this.ondata(null, data, final);
-    };
-    UnzipPassThrough.compression = 0;
-    return UnzipPassThrough;
-}());
-/**
- * Streaming DEFLATE decompression for ZIP archives. Prefer AsyncZipInflate for
- * better performance.
- */
-var UnzipInflate = /*#__PURE__*/ (function () {
-    /**
-     * Creates a DEFLATE decompression that can be used in ZIP archives
-     */
-    function UnzipInflate() {
-        var _this_1 = this;
-        this.i = new Inflate(function (dat, final) {
-            _this_1.ondata(null, dat, final);
-        });
-    }
-    UnzipInflate.prototype.push = function (data, final) {
-        try {
-            this.i.push(data, final);
-        }
-        catch (e) {
-            this.ondata(e, data, final);
-        }
-    };
-    UnzipInflate.compression = 8;
-    return UnzipInflate;
-}());
-/**
- * Asynchronous streaming DEFLATE decompression for ZIP archives
- */
-var AsyncUnzipInflate = /*#__PURE__*/ (function () {
-    /**
-     * Creates a DEFLATE decompression that can be used in ZIP archives
-     */
-    function AsyncUnzipInflate(_, sz) {
-        var _this_1 = this;
-        if (sz < 320000) {
-            this.i = new Inflate(function (dat, final) {
-                _this_1.ondata(null, dat, final);
-            });
-        }
-        else {
-            this.i = new AsyncInflate(function (err, dat, final) {
-                _this_1.ondata(err, dat, final);
-            });
-            this.terminate = this.i.terminate;
-        }
-    }
-    AsyncUnzipInflate.prototype.push = function (data, final) {
-        if (this.i.terminate)
-            data = slc(data, 0);
-        this.i.push(data, final);
-    };
-    AsyncUnzipInflate.compression = 8;
-    return AsyncUnzipInflate;
-}());
-/**
- * A ZIP archive decompression stream that emits files as they are discovered
- */
-var Unzip = /*#__PURE__*/ (function () {
-    /**
-     * Creates a ZIP decompression stream
-     * @param cb The callback to call whenever a file in the ZIP archive is found
-     */
-    function Unzip(cb) {
-        this.onfile = cb;
-        this.k = [];
-        this.o = {
-            0: UnzipPassThrough
-        };
-        this.p = et;
-    }
-    /**
-     * Pushes a chunk to be unzipped
-     * @param chunk The chunk to push
-     * @param final Whether this is the last chunk
-     */
-    Unzip.prototype.push = function (chunk, final) {
-        var _this_1 = this;
-        if (!this.onfile)
-            throw 'no callback';
-        if (!this.p)
-            throw 'stream finished';
-        if (this.c > 0) {
-            var len = Math.min(this.c, chunk.length);
-            var toAdd = chunk.subarray(0, len);
-            this.c -= len;
-            if (this.d)
-                this.d.push(toAdd, !this.c);
-            else
-                this.k[0].push(toAdd);
-            chunk = chunk.subarray(len);
-            if (chunk.length)
-                return this.push(chunk, final);
-        }
-        else {
-            var f = 0, i = 0, is = void 0, buf = void 0;
-            if (!this.p.length)
-                buf = chunk;
-            else if (!chunk.length)
-                buf = this.p;
-            else {
-                buf = new u8(this.p.length + chunk.length);
-                buf.set(this.p), buf.set(chunk, this.p.length);
-            }
-            var l = buf.length, oc = this.c, add = oc && this.d;
-            var _loop_2 = function () {
-                var _a;
-                var sig = b4(buf, i);
-                if (sig == 0x4034B50) {
-                    f = 1, is = i;
-                    this_1.d = null;
-                    this_1.c = 0;
-                    var bf = b2(buf, i + 6), cmp_1 = b2(buf, i + 8), u = bf & 2048, dd = bf & 8, fnl = b2(buf, i + 26), es = b2(buf, i + 28);
-                    if (l > i + 30 + fnl + es) {
-                        var chks_2 = [];
-                        this_1.k.unshift(chks_2);
-                        f = 2;
-                        var sc_1 = b4(buf, i + 18), su_1 = b4(buf, i + 22);
-                        var fn_1 = strFromU8(buf.subarray(i + 30, i += 30 + fnl), !u);
-                        if (sc_1 == 4294967295) {
-                            _a = dd ? [-2] : z64e(buf, i), sc_1 = _a[0], su_1 = _a[1];
-                        }
-                        else if (dd)
-                            sc_1 = -1;
-                        i += es;
-                        this_1.c = sc_1;
-                        var d_1;
-                        var file_1 = {
-                            name: fn_1,
-                            compression: cmp_1,
-                            start: function () {
-                                if (!file_1.ondata)
-                                    throw 'no callback';
-                                if (!sc_1)
-                                    file_1.ondata(null, et, true);
-                                else {
-                                    var ctr = _this_1.o[cmp_1];
-                                    if (!ctr)
-                                        throw 'unknown compression type ' + cmp_1;
-                                    d_1 = sc_1 < 0 ? new ctr(fn_1) : new ctr(fn_1, sc_1, su_1);
-                                    d_1.ondata = function (err, dat, final) { file_1.ondata(err, dat, final); };
-                                    for (var _i = 0, chks_3 = chks_2; _i < chks_3.length; _i++) {
-                                        var dat = chks_3[_i];
-                                        d_1.push(dat, false);
-                                    }
-                                    if (_this_1.k[0] == chks_2 && _this_1.c)
-                                        _this_1.d = d_1;
-                                    else
-                                        d_1.push(et, true);
-                                }
-                            },
-                            terminate: function () {
-                                if (d_1 && d_1.terminate)
-                                    d_1.terminate();
-                            }
-                        };
-                        if (sc_1 >= 0)
-                            file_1.size = sc_1, file_1.originalSize = su_1;
-                        this_1.onfile(file_1);
-                    }
-                    return "break";
-                }
-                else if (oc) {
-                    if (sig == 0x8074B50) {
-                        is = i += 12 + (oc == -2 && 8), f = 3, this_1.c = 0;
-                        return "break";
-                    }
-                    else if (sig == 0x2014B50) {
-                        is = i -= 4, f = 3, this_1.c = 0;
-                        return "break";
-                    }
-                }
-            };
-            var this_1 = this;
-            for (; i < l - 4; ++i) {
-                var state_1 = _loop_2();
-                if (state_1 === "break")
-                    break;
-            }
-            this.p = et;
-            if (oc < 0) {
-                var dat = f ? buf.subarray(0, is - 12 - (oc == -2 && 8) - (b4(buf, is - 16) == 0x8074B50 && 4)) : buf.subarray(0, i);
-                if (add)
-                    add.push(dat, !!f);
-                else
-                    this.k[+(f == 2)].push(dat);
-            }
-            if (f & 2)
-                return this.push(buf.subarray(i), final);
-            this.p = buf.subarray(i);
-        }
-        if (final) {
-            if (this.c)
-                throw 'invalid zip file';
-            this.p = null;
-        }
-    };
-    /**
-     * Registers a decoder with the stream, allowing for files compressed with
-     * the compression type provided to be expanded correctly
-     * @param decoder The decoder constructor
-     */
-    Unzip.prototype.register = function (decoder) {
-        this.o[decoder.compression] = decoder;
-    };
-    return Unzip;
-}());
-/**
- * Asynchronously decompresses a ZIP archive
- * @param data The raw compressed ZIP file
- * @param cb The callback to call with the decompressed files
- * @returns A function that can be used to immediately terminate the unzipping
- */
-function unzip(data, cb) {
-    if (typeof cb != 'function')
-        throw 'no callback';
-    var term = [];
-    var tAll = function () {
-        for (var i = 0; i < term.length; ++i)
-            term[i]();
-    };
-    var files = {};
-    var e = data.length - 22;
-    for (; b4(data, e) != 0x6054B50; --e) {
-        if (!e || data.length - e > 65558) {
-            cb('invalid zip file', null);
-            return;
-        }
-    }
-    var lft = b2(data, e + 8);
-    if (!lft)
-        cb(null, {});
-    var c = lft;
-    var o = b4(data, e + 16);
-    var z = o == 4294967295;
-    if (z) {
-        e = b4(data, e - 12);
-        if (b4(data, e) != 0x6064B50) {
-            cb('invalid zip file', null);
-            return;
-        }
-        c = lft = b4(data, e + 32);
-        o = b4(data, e + 48);
-    }
-    var _loop_3 = function (i) {
-        var _a = zh(data, o, z), c_1 = _a[0], sc = _a[1], su = _a[2], fn = _a[3], no = _a[4], off = _a[5], b = slzh(data, off);
-        o = no;
-        var cbl = function (e, d) {
-            if (e) {
-                tAll();
-                cb(e, null);
-            }
-            else {
-                files[fn] = d;
-                if (!--lft)
-                    cb(null, files);
-            }
-        };
-        if (!c_1)
-            cbl(null, slc(data, b, b + sc));
-        else if (c_1 == 8) {
-            var infl = data.subarray(b, b + sc);
-            if (sc < 320000) {
-                try {
-                    cbl(null, inflateSync(infl, new u8(su)));
-                }
-                catch (e) {
-                    cbl(e, null);
-                }
-            }
-            else
-                term.push(inflate(infl, { size: su }, cbl));
-        }
-        else
-            cbl('unknown compression type ' + c_1, null);
-    };
-    for (var i = 0; i < c; ++i) {
-        _loop_3();
-    }
-    return tAll;
-}
-/**
- * Synchronously decompresses a ZIP archive. Prefer using `unzip` for better
- * performance with more than one file.
- * @param data The raw compressed ZIP file
- * @returns The decompressed files
- */
-function unzipSync(data) {
-    var files = {};
-    var e = data.length - 22;
-    for (; b4(data, e) != 0x6054B50; --e) {
-        if (!e || data.length - e > 65558)
-            throw 'invalid zip file';
-    }
-    var c = b2(data, e + 8);
-    if (!c)
-        return {};
-    var o = b4(data, e + 16);
-    var z = o == 4294967295;
-    if (z) {
-        e = b4(data, e - 12);
-        if (b4(data, e) != 0x6064B50)
-            throw 'invalid zip file';
-        c = b4(data, e + 32);
-        o = b4(data, e + 48);
-    }
-    for (var i = 0; i < c; ++i) {
-        var _a = zh(data, o, z), c_2 = _a[0], sc = _a[1], su = _a[2], fn = _a[3], no = _a[4], off = _a[5], b = slzh(data, off);
-        o = no;
-        if (!c_2)
-            files[fn] = slc(data, b, b + sc);
-        else if (c_2 == 8)
-            files[fn] = inflateSync(data.subarray(b, b + sc), new u8(su));
-        else
-            throw 'unknown compression type ' + c_2;
-    }
-    return files;
-}
-
-var fflate = /*#__PURE__*/Object.freeze({
-	__proto__: null,
-	Deflate: Deflate,
-	AsyncDeflate: AsyncDeflate,
-	deflate: deflate,
-	deflateSync: deflateSync,
-	Inflate: Inflate,
-	AsyncInflate: AsyncInflate,
-	inflate: inflate,
-	inflateSync: inflateSync,
-	Gzip: Gzip,
-	AsyncGzip: AsyncGzip,
-	gzip: gzip,
-	gzipSync: gzipSync,
-	Gunzip: Gunzip,
-	AsyncGunzip: AsyncGunzip,
-	gunzip: gunzip,
-	gunzipSync: gunzipSync,
-	Zlib: Zlib,
-	AsyncZlib: AsyncZlib,
-	zlib: zlib,
-	zlibSync: zlibSync,
-	Unzlib: Unzlib,
-	AsyncUnzlib: AsyncUnzlib,
-	unzlib: unzlib,
-	unzlibSync: unzlibSync,
-	compress: gzip,
-	AsyncCompress: AsyncGzip,
-	compressSync: gzipSync,
-	Compress: Gzip,
-	Decompress: Decompress,
-	AsyncDecompress: AsyncDecompress,
-	decompress: decompress,
-	decompressSync: decompressSync,
-	DecodeUTF8: DecodeUTF8,
-	EncodeUTF8: EncodeUTF8,
-	strToU8: strToU8,
-	strFromU8: strFromU8,
-	ZipPassThrough: ZipPassThrough,
-	ZipDeflate: ZipDeflate,
-	AsyncZipDeflate: AsyncZipDeflate,
-	Zip: Zip,
-	zip: zip,
-	zipSync: zipSync,
-	UnzipPassThrough: UnzipPassThrough,
-	UnzipInflate: UnzipInflate,
-	AsyncUnzipInflate: AsyncUnzipInflate,
-	Unzip: Unzip,
-	unzip: unzip,
-	unzipSync: unzipSync
-});
 
 /**
  * NURBS utils
@@ -16408,6 +13411,8 @@ class GeometryParser {
 
 			if ( endOfFace ) {
 
+				if ( faceLength > 4 ) console.warn( 'THREE.FBXLoader: Polygons with more than four sides are not supported. Make sure to triangulate the geometry during export.' );
+
 				scope.genFace( buffers, geoInfo, facePositionIndexes, materialIndex, faceNormals, faceColors, faceUVs, faceWeights, faceWeightIndices, faceLength );
 
 				polygonIndex ++;
@@ -16733,13 +13738,6 @@ class GeometryParser {
 
 	// Generate a NurbGeometry from a node in FBXTree.Objects.Geometry
 	parseNurbsGeometry( geoNode ) {
-
-		if ( NURBSCurve === undefined ) {
-
-			console.error( 'THREE.FBXLoader: The loader relies on NURBSCurve for any nurbs present in the model. Nurbs will show up as empty geometry.' );
-			return new BufferGeometry();
-
-		}
 
 		const order = parseInt( geoNode.Order );
 
@@ -18021,13 +15019,7 @@ class BinaryParser {
 
 				}
 
-				if ( typeof fflate === 'undefined' ) {
-
-					console.error( 'THREE.FBXLoader: External library fflate.min.js required.' );
-
-				}
-
-				const data = unzlibSync( new Uint8Array( reader.getArrayBuffer( compressedLength ) ) ); // eslint-disable-line no-undef
+				const data = unzlibSync( new Uint8Array( reader.getArrayBuffer( compressedLength ) ) );
 				const reader2 = new BinaryReader( data.buffer );
 
 				switch ( type ) {
@@ -18068,6 +15060,7 @@ class BinaryReader {
 		this.dv = new DataView( buffer );
 		this.offset = 0;
 		this.littleEndian = ( littleEndian !== undefined ) ? littleEndian : true;
+		this._textDecoder = new TextDecoder();
 
 	}
 
@@ -18286,19 +15279,15 @@ class BinaryReader {
 
 	getString( size ) {
 
-		// note: safari 9 doesn't support Uint8Array.indexOf; create intermediate array instead
-		let a = [];
+		const start = this.offset;
+		let a = new Uint8Array( this.dv.buffer, start, size );
 
-		for ( let i = 0; i < size; i ++ ) {
-
-			a[ i ] = this.getUint8();
-
-		}
+		this.skip( size );
 
 		const nullByte = a.indexOf( 0 );
-		if ( nullByte >= 0 ) a = a.slice( 0, nullByte );
+		if ( nullByte >= 0 ) a = new Uint8Array( this.dv.buffer, start, nullByte );
 
-		return LoaderUtils.decodeText( new Uint8Array( a ) );
+		return this._textDecoder.decode( a );
 
 	}
 
@@ -18444,7 +15433,7 @@ function generateTransform( transformData ) {
 	if ( transformData.preRotation ) {
 
 		const array = transformData.preRotation.map( MathUtils.degToRad );
-		array.push( transformData.eulerOrder || Euler.DefaultOrder );
+		array.push( transformData.eulerOrder || Euler.DEFAULT_ORDER );
 		lPreRotationM.makeRotationFromEuler( tempEuler.fromArray( array ) );
 
 	}
@@ -18452,7 +15441,7 @@ function generateTransform( transformData ) {
 	if ( transformData.rotation ) {
 
 		const array = transformData.rotation.map( MathUtils.degToRad );
-		array.push( transformData.eulerOrder || Euler.DefaultOrder );
+		array.push( transformData.eulerOrder || Euler.DEFAULT_ORDER );
 		lRotationM.makeRotationFromEuler( tempEuler.fromArray( array ) );
 
 	}
@@ -18460,7 +15449,7 @@ function generateTransform( transformData ) {
 	if ( transformData.postRotation ) {
 
 		const array = transformData.postRotation.map( MathUtils.degToRad );
-		array.push( transformData.eulerOrder || Euler.DefaultOrder );
+		array.push( transformData.eulerOrder || Euler.DEFAULT_ORDER );
 		lPostRotationM.makeRotationFromEuler( tempEuler.fromArray( array ) );
 		lPostRotationM.invert();
 
@@ -18580,7 +15569,7 @@ function convertArrayBufferToString( buffer, from, to ) {
 	if ( from === undefined ) from = 0;
 	if ( to === undefined ) to = buffer.byteLength;
 
-	return LoaderUtils.decodeText( new Uint8Array( buffer, from, to ) );
+	return new TextDecoder().decode( new Uint8Array( buffer, from, to ) );
 
 }
 
@@ -19071,6 +16060,78 @@ class RGBELoader extends DataTextureLoader {
 
 }
 
+var action_compress   = 1, action_decompress = 2, action_progress   = 3;
+
+  class LZMA {
+
+    constructor( lzma_path ) {
+   // export class LZMA = function (lzma_path) {
+        
+            
+            this.callback_obj = {};
+            
+            ///NOTE: Node.js needs something like "./" or "../" at the beginning.
+            this.lzma_worker = new Worker(lzma_path || "./lzma_worker-min.js");
+        
+        this.lzma_worker.onmessage = function onmessage(e) {
+            if (e.data.action === action_progress) {
+                if (this.callback_obj[e.data.cbn] && typeof this.callback_obj[e.data.cbn].on_progress === "function") {
+                    this.callback_obj[e.data.cbn].on_progress(e.data.result);
+                }
+            } else {
+                if (this.callback_obj[e.data.cbn] && typeof this.callback_obj[e.data.cbn].on_finish === "function") {
+                    this.callback_obj[e.data.cbn].on_finish(e.data.result, e.data.error);
+                    
+                    /// Since the (de)compression is complete, the callbacks are no longer needed.
+                    delete this.callback_obj[e.data.cbn];
+                }
+            }
+        }.bind(this);
+        
+        /// Very simple error handling.
+        this.lzma_worker.onerror = function(event) {
+            var err = new Error(event.message + " (" + event.filename + ":" + event.lineno + ")");
+            
+            for (var cbn in this.callback_obj) {
+                this.callback_obj[cbn].on_finish(null, err);
+            }
+            
+            console.error('Uncaught error in lzma_worker', err);
+        }.bind(this);
+        
+    }
+
+    send_to_worker(action, data, mode, on_finish, on_progress) {
+        var cbn;
+        
+        do {
+            cbn = Math.floor(Math.random() * (10000000));
+        } while(typeof this.callback_obj[cbn] !== "undefined");
+        
+        this.callback_obj[cbn] = {
+            on_finish:   on_finish,
+            on_progress: on_progress
+        };
+        
+        this.lzma_worker.postMessage({
+            action: action, /// action_compress = 1, action_decompress = 2, action_progress = 3
+            cbn:    cbn,    /// callback number
+            data:   data,
+            mode:   mode
+        });
+    }
+
+    compress(mixed, mode, on_finish, on_progress) {
+        this.send_to_worker(action_compress, mixed, mode, on_finish, on_progress);
+    }
+    decompress(byte_arr, on_finish, on_progress) {
+        this.send_to_worker(action_decompress, byte_arr, false, on_finish, on_progress);
+    }
+    worker() {
+        return this.lzma_worker;
+    }
+}
+
 /** __
 *    _)_|_|_
 *   __) |_| | 2022
@@ -19086,21 +16147,23 @@ const materials = new Map();
 
 const uniforms = {
 
-	renderMode: { value: 2 },
+	renderMode: { value: 0 },
     depthPacking: { value: 1 },
 
 	time: { value: 0.0 },
 
-	shadow: { value: 0.25 },
-    shadowLuma: { value: 0 },
-    shadowContrast: { value: 1 },
-    shadowGamma: { value: 0.25 },
+	shadow: { value: 0.5 },
+    shadowGamma: { value: 0.25 },//1
+    shadowLuma: { value: 0 },//0.75
+    shadowContrast: { value: 1 },//2.5
+    
 	//shadowAlpha: { value: 1.0 }
 
     lightSizeUV: { value: 1.3 },
     nearPlane: { value: 9.5 },
     rings:{ value: 11 },
     nSample:{ value: 17 },
+    
     noiseIntensity:{ value: 1 },
     softness:{ value: 3 },
     
@@ -19111,6 +16174,10 @@ class Shader {
 
     static setGl2 ( b ) { isGL2 = b; }
     static getGl2 ( b ) { return isGL2 }
+
+    static setting ( ) {
+        return uniforms
+    }
 
 	static init ( o = {} ) {
 
@@ -19396,13 +16463,13 @@ class Shader {
 
     static add ( m ) {
 
-        //mats[m.name] = m
         let name = m.name;
         if ( materials.has( name ) ) { 
-            //console.log('already add', name)
+            console.log('already add', name);
             return 
         }
-       // else console.log('add', name)
+
+        //console.log('add', name)
         materials.set( name, true );
         
         m.shadowSide = DoubleSide;
@@ -19655,7 +16722,7 @@ const GlbTool = {
 
 	getMesh:(scene) => {
         let meshs = {};
-        scene.traverse( function ( child ) {
+        scene.traverse( ( child ) => {
             if ( child.isMesh ) meshs[ child.name ] = child;
         });
         return meshs;
@@ -19664,7 +16731,7 @@ const GlbTool = {
     getGroup:( scene, autoMesh, autoMaterial ) => {
         const groups = {};
         let mats = null;
-        scene.traverse( function ( child ) {
+        scene.traverse( ( child ) => {
             if ( child.isGroup ){ 
             	if( autoMaterial ) mats = GlbTool.getMaterial( scene, true ); 
             	groups[ child.name ] = autoMesh ? GlbTool.groupToMesh(child, mats) : child;
@@ -19681,7 +16748,7 @@ const GlbTool = {
     	const Mats = {};
         const mats = []; 
         let m, n;
-        scene.traverse( function ( child ) {
+        scene.traverse( ( child ) => {
             if ( child.isMesh ){ 
             	m = child.material;
             	if( !Mats[m.name] ){
@@ -19743,83 +16810,109 @@ const GlbTool = {
     },
 
 
-    autoMorph: ( meshName, fullAttribute ) => {
+    autoMorph: ( mod, meshs, normal = true, relative = false ) => {
 
-		let m, name, tName, target, id, g;
+    	let morph = {};
+    	let tmpMesh = [];
+        mod.traverse( ( node ) => { 
+            if ( node.isMesh && node.name.search('__M__') !== -1){ 
+            	morph[ node.name ] = node.geometry;
+            	tmpMesh.push(node);
+            }
+        });
 
-		// get mesh list
-		let meshs = Pool.getMesh( meshName );
-
+		let oName, tName, target, id, g, gm, j, dp, dn, ar, m;
 		
-		for( let n in meshs ){
 
-			m = meshs[n];
-			name = m.name;
+		for ( let name in morph ){
 
-			if( name.search("__morph__") !== -1  ) {
+			oName = name.substring( 0, name.indexOf('__') );
+            tName = name.substring( name.lastIndexOf('__') + 2 );
 
-				target = meshs[ name.substring( 0, name.indexOf('__') ) ];
-				tName = name.substring( name.lastIndexOf('__') + 2 );
+            target = meshs[ oName ];
 
-				// apply Morph
+			if( target ){
 
-				if( target ){
+				g = target.geometry;
+				gm = morph[name];
 
-					if( !target.userData.morph ){
-						target.userData['morph'] = {};
-						target.material.morphTargets = true;
-					}
+				g.morphTargetsRelative = relative;
 
-					g = target.geometry;
+				if( g.attributes.position.count === gm.attributes.position.count ){
 
-					//console.log( g.attributes.position.count, m.geometry.attributes.position.count )
+					if( !g.morphAttributes.position ){
+                        g.morphAttributes.position = [];
+                        if( normal ) g.morphAttributes.normal = [];
+                        target.morphTargetInfluences = [];
+                        target.morphTargetDictionary = {};
+                    }
 
-					if( g.attributes.position.count === m.geometry.attributes.position.count ){
+                    id = g.morphAttributes.position.length;
 
-						if( !g.morphAttributes.position ) g.morphAttributes.position = [];
-						id = g.morphAttributes.position.length;
-						g.morphAttributes.position.push( m.geometry.attributes.position );
+                    // position
+                    if( relative ){
+                        j = gm.attributes.position.array.length;
+                        ar = []; 
+                        while(j--) ar[j] = gm.attributes.position.array[j] - g.attributes.position.array[j];
+                        dp = new Float32BufferAttribute( ar, 3 );
+                    } else {
+                        dp = new Float32BufferAttribute( gm.attributes.position.array, 3 );
+                    }
 
-						// extra attribute
+                    g.morphAttributes.position.push( dp );
 
-						if( fullAttribute ){
+                    // normal
+                    if( normal ){
+                        /*if( relative ){
+                            j = gm.attributes.normal.length;
+                            ar = [];
+                            while(j--) ar[j] = gm.attributes.normal.array[j] - g.attributes.normal.array[j]
+                            dn = new Float32BufferAttribute( ar, 3 );
+                        } else {
+                            dn = new Float32BufferAttribute( gm.attributes.normal.array, 3 );
+                        }*/
 
-							for( let a in  m.geometry.attributes ){
-								if( a !== 'position' && g.attributes[a] ){
-									if( !g.morphAttributes[a] ) g.morphAttributes[a] = [];
-									g.morphAttributes[a][id] = m.geometry.attributes[a];
-								}
-							}
+                        dn = new Float32BufferAttribute( gm.attributes.normal.array, 3 );
 
-						}
+                        g.morphAttributes.normal.push( dn );
 
-						// clear morph mesh
-					    m.parent.remove( m );
-					    m.material.dispose();
-						m.geometry.dispose();
+                    }
 
-						// update target
-						target.updateMorphTargets();
+                    target.morphTargetInfluences.push(0);
+                    target.morphTargetDictionary[ tName ] = id;
 
-						// add morph reference by name
-						target.userData.morph[ tName ] = id;
+                    /*if( !target.morph ) {
+                        target.morph = function ( name, value ){
+                            //console.log(this.morphTargetInfluences)
+                            if(!this.morphTargetInfluences) return
+                            if(this.morphTargetDictionary[name] === undefined ) return
+                            this.morphTargetInfluences[ this.morphTargetDictionary[name] ] = value;
+                        }
 
-					} else {
+                        
+                    }*/
+                    //console.log( target.name + ' have morph call '+ tName )
 
-						console.warn('this morph target is not good : ', tName);
-
-					}
-
+				} else {
+					console.warn( 'Morph '+ tName + ' target is no good on ' + target.name );
 				}
 
 			}
 
 		}
 
+		morph = {};
+
+		// claer garbege
+		j = tmpMesh.length;
+		while(j--){
+            m = tmpMesh[j];
+			if( m.parent ) m.parent.remove( m );
+			if( m.material ) m.material.dispose();
+			if( m.geometry ) m.geometry.dispose();
+		}
 
 	},
-
-
 
 
 };
@@ -19830,122 +16923,25 @@ const GlbTool = {
 * @author lo.th / https://github.com/lo-th
 */
 
-const Pool$1 = {
+const Pool = {
+
     msg:'',
     inLoad:false,
+
     clip:[],
     data: new Map(),
     tmp: [],
-    extraTexture: [],
+    //extraTexture: [],
     dracoLoader: null,
     dracoLoaderType:'js',
 
-    dispose:() => {
+    onLoad:() => {},
+    onEnd:() => {},
+    log: ( msg ) => {},
 
-        //console.log('clear extra texture !!')
-        let i = Pool$1.extraTexture.length;
-        while(i--){
-            Pool$1.get( Pool$1.extraTexture[i], 'T' ).dispose();
-            Pool$1.delete( Pool$1.extraTexture[i], 'T' );
-        }
-        Pool$1.extraTexture = [];
-    
-    },
-    
-    createElementNS: ( name ) => ( document.createElementNS( 'http://www.w3.org/1999/xhtml', name ) ),
-    exist: ( name, type = '' ) => ( Pool$1.get( name, type ) ? true : false ),
-    delete: ( name, type = '' ) => ( Pool$1.data.delete( Pool$1.prefix( type ) + name ) ),
-    get: ( name, type = '' ) => ( Pool$1.data.get( Pool$1.prefix( type ) + name ) ),
-
-    set: ( name, node, type = '' ) => {
-        if( node.isMaterial ){ 
-            type = 'material';
-            node.name = name;
-        }
-        if( node.isTexture ) type = 'texture';
-        if( node.isObject3D ) type = 'object3d';
-        
-        if( Pool$1.get( name, type ) ) return
-        Pool$1.data.set( Pool$1.prefix( type ) + name, node );
-    },
-
-    getScript: ( name ) => ( Pool$1.data.get( Pool$1.prefix( 'js' ) + name ) ),
-
-    getMaterials:( obj, toArray ) => {
-        if( typeof obj === 'string' ) obj = Pool$1.get( obj, 'O' );
-        return GlbTool.getMaterial( obj, toArray )
-    },
-
-    getMesh:( obj ) => {
-        if( typeof obj === 'string' ) obj = Pool$1.get( obj, 'O' );
-        return GlbTool.getMesh( obj )
-    },
-
-    getGroup:( obj, autoMesh, autoMaterial ) => {
-        if( typeof obj === 'string' ) obj = Pool$1.get( obj, 'O' );
-        return GlbTool.getGroup( obj, autoMesh, autoMaterial )
-    },
-
-    add: ( name, node, type ) => {
-        Pool$1.set( name, node, type );
-        Pool$1.next();
-        //console.log( name, type )
-    },
-
-    getMaterial:( name ) => ( Pool$1.data.get( 'M_' + name ) ),
-
-    //getMap:( name, o = {} ) => ( Pool.getTexture(name, o) ),
-
-    directTexture:( url, o = {} ) => {
-
-        if( !Pool$1.loaderMap ) Pool$1.loaderMap = new TextureLoader();
-
-        let name = url.substring( url.lastIndexOf('/')+1, url.lastIndexOf('.') );
-
-        if( Pool$1.exist( name, 'texture') ) return Pool$1.get( name, 'texture' );
-            
-        return Pool$1.loaderMap.load( url, function ( txt ) { 
-
-            Pool$1.setTextureOption( txt, o );
-            //Pool.set( name , txt );
-            Pool$1.data.set( 'T_' + name, txt );
-            Pool$1.extraTexture.push( name );
-            if( o.callback ) o.callback();
-            return txt
-            
-        })
-
-    },
-
-    getTexture:( name, o = {} ) => {
-
-        let t = Pool$1.get( name, 'texture' );
-        if(!t){
-            let im = Pool$1.data.get( 'I_' + name );
-            if(!im) return null
-            t = new Texture( im );
-            if( name.search('_c') !== -1) o.encoding = true;
-        }
-        Pool$1.setTextureOption( t, o );
-        return t
-    },
-
-    setTextureOption:( t, o = {} ) => {
-        if( o.encoding ) t.encoding = sRGBEncoding;
-        t.flipY = ( o.flipY || o.flip ) !== undefined ? o.flipY : false;
-        if( o.anisotropy !== undefined ) t.anisotropy = o.anisotropy;
-        if( o.generateMipmaps !== undefined ) t.generateMipmaps = o.generateMipmaps;
-        if( o.repeat ){
-            t.repeat.fromArray( o.repeat );
-            t.wrapS = t.wrapT = RepeatWrapping;
-        }
-        if( o.filter ){
-            if( o.filter === 'near' ){
-                t.minFilter = NearestFilter;
-                t.magFilter = NearestFilter;
-            }
-        }
-        t.needsUpdate = true;
+    setLoadEvent:( onload, onend ) => {
+        Pool.onLoad = onload;
+        Pool.onEnd = onend;
     },
 
     prefix:( type ) => {
@@ -19964,15 +16960,167 @@ const Pool$1 = {
         return p
     },
 
+    dispose:() => {
+
+        Pool.data.forEach( function( node, key ) {
+
+            if( node.isMaterial || node.isTexture ){ 
+                node.dispose();
+                Pool.data.delete( key );
+                //console.log( key + ' is delete')
+            }
+
+            if( node.isObject3D ){
+                node.traverse( function ( snode ) {
+                    if ( snode.isMesh ){
+                        if( snode.geometry ) snode.geometry.dispose();
+                        if( snode.material ) snode.material.dispose();
+                    }
+                });
+                Pool.data.delete( key );
+            }
+           
+
+        });
+
+        //console.log('clear extra texture !!')
+        /*let i = Pool.extraTexture.length
+        while(i--){
+            let p = Pool.get( Pool.extraTexture[i], 'T' )
+            if(p) p.dispose();
+            Pool.delete( Pool.extraTexture[i], 'T' )
+        }
+        Pool.extraTexture = [];*/
+    
+    },
+    
+    createElementNS: ( name ) => ( document.createElementNS( 'http://www.w3.org/1999/xhtml', name ) ),
+    exist: ( name, type = '' ) => ( Pool.get( name, type ) ? true : false ),
+    delete: ( name, type = '' ) => ( Pool.data.delete( Pool.prefix( type ) + name ) ),
+    get: ( name, type = '' ) => ( Pool.data.get( Pool.prefix( type ) + name ) ),
+
+    set: ( name, node, type = '' ) => {
+        if( node.isMaterial ){ 
+            type = 'material';
+            node.name = name;
+        }
+        if( node.isTexture ) type = 'texture';
+        if( node.isObject3D ) type = 'object3d';
+        
+        if( Pool.get( name, type ) ) return
+        Pool.data.set( Pool.prefix( type ) + name, node );
+    },
+
+    getScript: ( name ) => ( Pool.data.get( Pool.prefix( 'js' ) + name ) ),
+
+    getMaterials:( obj, toArray ) => {
+        if( typeof obj === 'string' ) obj = Pool.get( obj, 'O' );
+        return GlbTool.getMaterial( obj, toArray )
+    },
+
+    getMesh:( obj ) => {
+        if( typeof obj === 'string' ) obj = Pool.get( obj, 'O' );
+        return GlbTool.getMesh( obj )
+    },
+
+    getGroup:( obj, autoMesh, autoMaterial ) => {
+        if( typeof obj === 'string' ) obj = Pool.get( obj, 'O' );
+        return GlbTool.getGroup( obj, autoMesh, autoMaterial )
+    },
+
+    applyMorph( modelName, meshs = null, normal = true, relative = true ){
+
+        let model;
+        if( modelName.isObject3D ) model = modelName;
+        else model = Pool.get( modelName, 'O' );
+
+        if( !meshs ) meshs = Pool.getMesh( modelName );
+        if( !model || !meshs ) return 
+        GlbTool.autoMorph( model, meshs, normal, relative );
+
+    },
+
+    uv2( model ){
+        GlbTool.uv2( model );
+    },
+
+    add: ( name, node, type ) => {
+        Pool.set( name, node, type );
+        Pool.next();
+        //console.log( name, type )
+    },
+
+    getMaterial:( name ) => ( Pool.data.get( 'M_' + name ) ),
+
+    //getMap:( name, o = {} ) => ( Pool.getTexture(name, o) ),
+
+    directTexture:( url, o = {} ) => {
+
+        if( !Pool.loaderMap ) Pool.loaderMap = new TextureLoader();
+
+        let name = url.substring( url.lastIndexOf('/')+1, url.lastIndexOf('.') );
+
+        if( Pool.exist( name, 'texture') ) return Pool.get( name, 'texture' );
+            
+        return Pool.loaderMap.load( url, function ( txt ) { 
+
+            Pool.setTextureOption( txt, o );
+            //Pool.set( name , txt );
+            Pool.data.set( 'T_' + name, txt );
+            //Pool.extraTexture.push( name );
+            if( o.callback ) o.callback();
+            return txt
+            
+        })
+
+    },
+
+    getTexture:( name, o = {} ) => {
+
+        let t = Pool.get( name, 'texture' );
+        if(!t){
+            let im = Pool.data.get( 'I_' + name );
+            if(!im) return null
+            t = new Texture( im );
+            if( name.search('_c') !== -1 || name.search('_l') !== -1 ) o.encoding = true;
+            Pool.data.set( 'T_' + name, t );
+            //Pool.extraTexture.push( name );
+        }
+        Pool.setTextureOption( t, o );
+        return t
+    },
+
+    setTextureOption:( t, o = {} ) => {
+
+        if( o.encoding ) t.encoding = sRGBEncoding;
+        t.flipY = ( o.flipY || o.flip ) !== undefined ? o.flipY : false;
+        if( o.anisotropy !== undefined ) t.anisotropy = o.anisotropy;
+        if( o.generateMipmaps !== undefined ) t.generateMipmaps = o.generateMipmaps;
+        if( o.repeat ){
+            t.repeat.fromArray( o.repeat );
+            t.wrapS = t.wrapT = RepeatWrapping;
+        }
+        if( o.filter ){
+            if( o.filter === 'near' ){
+                t.minFilter = NearestFilter;
+                t.magFilter = NearestFilter;
+            }
+        }
+        t.needsUpdate = true;
+
+    },
+
+    
+
     ///
 
-    log: ( msg ) => {},
+    
 
     ///
 
     load: ( Urls, Callback, Path = '', msg = '' ) => {
 
-        Pool$1.msg = msg;
+        Pool.msg = msg;
 
         let urls = [];
         let callback = Callback || function(){};
@@ -19981,44 +17129,48 @@ const Pool$1 = {
         if ( typeof Urls === 'string' || Urls instanceof String ) urls.push( Urls );
         else urls = urls.concat( Urls );
 
-        Pool$1.tmp.push( { urls:urls, path:Path, callback:callback, start:start } );
+        Pool.tmp.push( { urls:urls, path:Path, callback:callback, start:start } );
 
-        if( !Pool$1.inLoad ) Pool$1.loadOne();
+        if( !Pool.inLoad ) Pool.loadOne();
 
     },
 
     loadOne: () => {
 
-        Pool$1.inLoad = true;
+        Pool.inLoad = true;
+        Pool.onLoad();
 
-        let url = Pool$1.tmp[0].path + Pool$1.tmp[0].urls[0];
+        let url = Pool.tmp[0].path + Pool.tmp[0].urls[0];
         let name = url.substring( url.lastIndexOf('/')+1, url.lastIndexOf('.') );
         let type = url.substring( url.lastIndexOf('.')+1 ).toLowerCase();
 
-        if( Pool$1.exist( name, type ) ) Pool$1.next();
-        else Pool$1.loading( url, name, type );
+        if( Pool.exist( name, type ) ) Pool.next();
+        else Pool.loading( url, name, type );
 
     },
 
     next: () => {
 
-        Pool$1.tmp[0].urls.shift();
+        Pool.tmp[0].urls.shift();
 
-        if( Pool$1.tmp[0].urls.length === 0 ){
+        if( Pool.tmp[0].urls.length === 0 ){
 
-            Math.floor(( typeof performance === 'undefined' ? Date : performance ).now() - Pool$1.tmp[0].start);
+            Math.floor(( typeof performance === 'undefined' ? Date : performance ).now() - Pool.tmp[0].start);
 
             //if( end !== 0 ) console.log( 'pool load time:', end, 'ms' );
             
-            Pool$1.tmp[0].callback();
-            Pool$1.tmp.shift();
+            Pool.tmp[0].callback();
+            Pool.tmp.shift();
 
-            if( Pool$1.tmp.length > 0 ) Pool$1.loadOne();
-            else Pool$1.inLoad = false;
+            if( Pool.tmp.length > 0 ) Pool.loadOne();
+            else {
+                Pool.inLoad = false;
+                Pool.onEnd();
+            }
 
         } else {
 
-            Pool$1.loadOne();
+            Pool.loadOne();
 
         }
 
@@ -20026,19 +17178,21 @@ const Pool$1 = {
 
     loading: ( url, name, type ) => {
 
+        Pool.log( Pool.msg );
+
         switch( type ){
-            case 'glb': case 'gltf': Pool$1.load_GLTF( url, name );  break;
-            case 'fbx': case 'FBX': Pool$1.load_FBX( url, name ); break;
-            case 'hdr': Pool$1.load_RGBE( url, name ); break;
-            default: Pool$1.extand( url, name, type );
+            case 'glb': case 'gltf': Pool.load_GLTF( url, name );  break;
+            case 'fbx': case 'FBX': Pool.load_FBX( url, name ); break;
+            case 'hdr': Pool.load_RGBE( url, name ); break;
+            default: Pool.extand( url, name, type );
         }
 
     },
 
     extand: ( url, name, type ) => {
 
-        if( !Pool$1.XHTTP ) Pool$1.XHTTP = new XMLHttpRequest();
-        const xml = Pool$1.XHTTP;
+        if( !Pool.XHTTP ) Pool.XHTTP = new XMLHttpRequest();
+        const xml = Pool.XHTTP;
 
         xml.open('GET', url, true );
         if(type === "json") xml.overrideMimeType( "application/json");
@@ -20056,7 +17210,7 @@ const Pool$1 = {
             	if (xml.status >= 300) {
                     console.log("Error, status code = " + xml.status);
                 } else {
-                	Pool$1.direct( xml.response, name, type );
+                	Pool.direct( xml.response, name, type );
                     //Pool.add( name, JSON.parse( xhr.responseText ), 'json' )
                 }
                 //if ( Pool.XML.status === 200 || Pool.XML.status === 0 ) Pool.load_direct( Pool.XML.response, name, type );
@@ -20079,22 +17233,22 @@ const Pool$1 = {
 
         switch( type ){
         	case 'jpg': case 'png':
-        	    let img = Pool$1.createElementNS('img');
+        	    let img = Pool.createElementNS('img');
 	            img.src = window.URL.createObjectURL( new Blob([response]) );
-	            Pool$1.add( name, img, 'image' );
+	            Pool.add( name, img, 'image' );
         	break;
             case 'mp3': case 'wav': case 'ogg':
                 AudioContext.getContext().decodeAudioData(
                     response.slice( 0 ),
-                    function( buffer ){ Pool$1.add( name, buffer, 'sound' ); },
+                    function( buffer ){ Pool.add( name, buffer, 'sound' ); },
                     function( error ){ console.error('decodeAudioData error', error); }
                 );
             break;
-            case 'hex': LzmaUnpack.parse( response, function ( result ) { Pool$1.add( name, result, type ); }); break;
-            case 'wasm': Pool$1.add( name, new Uint8Array( response ), type ); break;
-            case 'json': Pool$1.add( name, JSON.parse( response ), type ); break;
-            case 'js': Pool$1.add( name, response, type ); break;
-            default: Pool$1.add( name, response, type );
+            case 'hex': LzmaUnpack.parse( response, function ( result ) { Pool.add( name, result, type ); }); break;
+            case 'wasm': Pool.add( name, new Uint8Array( response ), type ); break;
+            case 'json': Pool.add( name, JSON.parse( response ), type ); break;
+            case 'js': Pool.add( name, response, type ); break;
+            default: Pool.add( name, response, type );
 
         }
 
@@ -20104,30 +17258,43 @@ const Pool$1 = {
 
     loaderDRACO: () => {
 
-        Pool$1.dracoLoader = new DRACOLoader().setDecoderPath( './src/libs/draco/' );
-        Pool$1.dracoLoader.setDecoderConfig( { type: Pool$1.dracoLoaderType } );
-        return Pool$1.dracoLoader
+        if( Pool.dracoLoader ) return Pool.dracoLoader
+
+        if( !Pool.dracoLoaderType ){
+            if ( navigator.userAgentData ) Pool.dracoLoaderType = 'wasm';
+            else {
+              let ua = navigator.userAgent.toLowerCase();
+              Pool.dracoLoaderType = (ua.indexOf('safari') !== -1 && ua.indexOf('chrome') === -1) ? 'js' : 'wasm';
+            }
+        }
+
+        Pool.dracoLoader = new DRACOLoader().setDecoderPath( './src/libs/draco/' );
+        Pool.dracoLoader.setDecoderConfig( { type: Pool.dracoLoaderType } );
+        return Pool.dracoLoader
 
     },
 
     loaderGLTF: () => {
 
-        if( !Pool$1.GLTF ) Pool$1.GLTF = new GLTFLoader();
-        return Pool$1.GLTF
+        if( !Pool.GLTF ){
+            Pool.GLTF = new GLTFLoader();
+            Pool.GLTF.setDRACOLoader( Pool.loaderDRACO() );
+        }
+        return Pool.GLTF
 
     },
 
     loaderFBX: () => {
 
-        if( !Pool$1.FBX ) Pool$1.FBX = new FBXLoader();
-        return Pool$1.FBX
+        if( !Pool.FBX ) Pool.FBX = new FBXLoader();
+        return Pool.FBX
 
     },
 
     loaderRGBE: () => {
 
-        if( !Pool$1.RGBE ) Pool$1.RGBE = new RGBELoader();
-        return Pool$1.RGBE
+        if( !Pool.RGBE ) Pool.RGBE = new RGBELoader();
+        return Pool.RGBE
 
     },
 
@@ -20135,29 +17302,2922 @@ const Pool$1 = {
 
     load_GLTF: ( url, name ) => {
 
-        Pool$1.loaderGLTF().setDRACOLoader( Pool$1.loaderDRACO() ).load( url, function ( gltf ) { 
-            Pool$1.add( name, gltf.scene );
-            Pool$1.dracoLoader.dispose();
+        /*Pool.loaderGLTF().setDRACOLoader( Pool.loaderDRACO() ).load( url, function ( gltf ) { 
+            Pool.add( name, gltf.scene )
+            Pool.dracoLoader.dispose()
+        })*/
+
+        Pool.loaderGLTF().load( url, function ( gltf ) {
+
+            const model = gltf.scene;
+
+            if( gltf.animations ){ 
+                const animations = gltf.animations;
+                const mixer = new AnimationMixer( gltf.scene );
+                model.mixer = mixer;
+                model.actions = {};
+                for ( let i = 0; i < animations.length; i ++ ) {
+                    let anim = animations[ i ];
+                    model.actions[ anim.name ] = mixer.clipAction( anim );
+                }
+            }
+            
+            Pool.add( name, model );
         });
 
     },
 
     load_FBX: ( url, name ) => {
 
-        Pool$1.loaderFBX().load( url, function ( node ) { Pool$1.add( name, node ); });
+        Pool.loaderFBX().load( url, function ( node ) { Pool.add( name, node ); });
 
     },
 
     load_RGBE: ( url, name ) => {
 
-        Pool$1.loaderRGBE().load( url, function ( texture ) {
+        Pool.loaderRGBE().load( url, function ( texture ) {
             texture.mapping = EquirectangularReflectionMapping; 
-            Pool$1.add( name, texture ); 
+            Pool.add( name, texture ); 
         });
 
     }
 
 };
+
+class Tension {
+
+	constructor( origin, target ) {
+
+
+		this.target = target || origin;
+
+		this.baseGeometry = origin.geometry;
+		this.geometry = this.target.geometry;
+
+		this.V = [ new Vector3(), new Vector3(), new Vector3() ];
+		this.X = [ new Vector4(), new Vector4(), new Matrix4() ];
+		this.M = [ new Vector3(), new Vector3(), new Vector3() ];
+
+		this.isMorph = this.target.morphTargetInfluences ? true : false;
+		this.isSkin = this.target.isSkinnedMesh ? true : false;
+
+		this.init();
+
+	}
+
+	init(){
+
+		if( this.geometry.attributes.position.count !== this.baseGeometry.attributes.position.count ){
+			console.log('object not have same number of vertices !!');
+			return
+		}
+
+		this.length = this.baseGeometry.attributes.position.count;
+		this.indexLength = this.baseGeometry.index.count / 3 ;
+
+		//console.log( this.length, this.indexLength )
+		
+
+		this.originEdges = new Array(this.length).fill(0);
+		this.targetEdges = new Array(this.length).fill(0);
+
+		if( this.isSkin || this.isMorph) this.back = new Array( this.length * 3 ).fill(0);
+		this.num = new Array( this.length ).fill(0);
+
+		this.getEdge( this.baseGeometry, this.originEdges );
+		this.addColor();
+
+		setTimeout( this.start.bind(this), 100 );
+
+	}
+
+	start(){
+		this.ready = true;
+		this.update();
+	}
+
+	addColor(){
+
+		const g = this.geometry;
+		//if( g.attributes.color ) return;
+		let lng = g.attributes.position.array.length;
+		g.setAttribute( 'color', new Float32BufferAttribute( new Array(lng).fill(0), 3 ) );
+
+	}
+
+	resetEdge( edges )
+	{
+		let j = edges.length;
+		while(j--) edges[j] = 0;
+	}
+
+	getEdge( g, edges, isSkin = false, isMorph = false ) 
+	{
+		let positions = g.attributes.position.array;
+		const indices = g.index.array;
+		let vA = this.V[0], vB = this.V[1], vC = this.V[2];
+		let j, i=0, a, b, c, ab, ac, bc;
+
+		if( isMorph ) positions = this.getMorph();
+		if( isSkin ) positions = this.getSkinned( positions );
+		if( isSkin || isMorph ) this.resetEdge( edges );
+		
+		j = this.indexLength;
+
+		while( j-- )
+		{
+		    a = indices[i];
+		    b = indices[i+1];
+		    c = indices[i+2];
+		    vA.fromArray( positions, a * 3 );
+		    vB.fromArray( positions, b * 3 );
+		    vC.fromArray( positions, c * 3 );
+
+		    ab = vA.distanceTo(vB);
+		    ac = vA.distanceTo(vC);
+		    bc = vB.distanceTo(vC);
+	    
+		    
+		    edges[a] += (ab + ac)*0.5;
+			edges[b] += (ab + bc)*0.5;
+			edges[c] += (ac + bc)*0.5;
+			
+			/*
+			edges[a] += (ab + ac);
+			edges[b] += (ab + bc);
+			edges[c] += (ac + bc);
+
+			num[a] += 2;
+			num[b] += 2;
+			num[c] += 2;
+			*/
+
+			i+=3;
+		}
+
+		//j = this.length;
+		//while( j-- ){ edges[j] /= num[j]; }
+	}
+
+	isZero(v){
+
+		if(v.x===0 && v.y===0 && v.z ===0 ) return true
+		return false
+
+	}
+
+	getMorph()
+	{
+		const morphInfluences = this.target.morphTargetInfluences;
+		const morphRef = this.geometry.morphAttributes.position;
+		const morphsMax = morphInfluences.length;
+		const position = this.geometry.attributes.position.array;
+		let lng = this.geometry.attributes.position.count, id, i, j;
+		let vertex = this.M[0];
+		let base = this.M[1];
+		let temp = this.M[2];
+		let relative = this.geometry.morphTargetsRelative;
+		let data;
+
+		 // the following code section is normally implemented in the vertex shader
+
+		i = lng;
+	    while(i--)
+	    {
+			id = i*3;
+			base.fromArray( position, id );
+			vertex.set( 0,0,0 );
+			j = morphsMax;
+			while(j--){
+
+				if ( morphInfluences[ j ] != 0.0 ){
+					data =  morphRef[j].data ? morphRef[j].data.array : morphRef[j].array;
+					if( relative ) vertex.addScaledVector( temp.fromArray( data, id ), morphInfluences[ j ] );
+					else vertex.addScaledVector( temp.fromArray( data, id ).sub(base), morphInfluences[ j ] );
+				}
+
+			}
+			base.add( vertex );
+			base.toArray( this.back, id );
+		}
+		return this.back
+
+	}
+
+	getSkinned( position )
+	{
+
+		const skeleton = this.target.skeleton;
+	    skeleton.boneMatrices;
+	    const geometry = this.geometry;
+	    //const position = geometry.attributes.position.array;
+	    const skinIndex = geometry.attributes.skinIndex.array;
+	    const skinWeigth = geometry.attributes.skinWeight.array;
+
+	    const bindMatrix = this.target.bindMatrix;
+	    const bindMatrixInverse = this.target.bindMatrixInverse;
+
+	    let vertex = this.V[0];
+	    let skin = this.V[1];
+	    let temp = this.V[2];
+	    let skinIndices = this.X[0];
+	    let skinWeights = this.X[1];
+	    let boneMatrix = this.X[2];
+
+	    let lng = geometry.attributes.position.count;
+	    let i, j, boneIndex, weight, id;
+
+	    // the following code section is normally implemented in the vertex shader
+	    i = lng;
+	    while(i--)
+	    {
+			id = i*3;
+            skinIndices.fromArray( skinIndex, i*4 );
+            skinWeights.fromArray( skinWeigth, i*4 );
+            vertex.fromArray( position, id ).applyMatrix4( bindMatrix ); // transform to bind space
+            skin.set( 0, 0, 0 );
+            j = 4;
+            while(j--)
+            {
+                weight = skinWeights.getComponent( j );
+                if ( weight > 0 ) {
+                	boneIndex = skinIndices.getComponent( j );
+	                boneMatrix.multiplyMatrices( skeleton.bones[ boneIndex ].matrixWorld, skeleton.boneInverses[ boneIndex ] );
+	                // weighted vertex transformation
+	                skin.addScaledVector( temp.copy( vertex ).applyMatrix4( boneMatrix ), weight );
+	            }
+
+            }
+
+            skin.applyMatrix4( bindMatrixInverse ); // back to local space
+            skin.toArray( this.back, id );
+        }
+        return this.back
+	}
+
+	update() 
+	{
+
+		if(!this.ready) return
+
+		this.getEdge( this.geometry, this.targetEdges, this.isSkin, this.isMorph );
+		const color = this.geometry.attributes.color.array;
+		let o, delta, n, i = this.length;
+
+		while( i-- )
+		{
+			o = this.originEdges[i];
+			delta = ( ( o - this.targetEdges[i] ) / o ) + 0.5;
+			n = i*3;
+			color[n] = delta > 0.5 ? (delta-0.5)*2 : 0;
+			color[n+1] = 0;
+			color[n+2] = delta < 0.5 ? (1-(delta*2)) : 0;
+		}
+		this.geometry.attributes.color.needsUpdate = true;
+	}
+
+}
+
+class ExoSkeleton extends Object3D {
+
+    constructor( object, skeleton ) {
+
+        super();
+
+        this.isReady = false;
+
+        this.skeleton = skeleton;
+
+        this.bones = this.skeleton.bones;//getBoneList( object );
+        this.root = object;
+
+        this.box = new BoxGeometry();
+
+        //console.log(this.bones)
+
+        //this.avatar = avatar;
+        //this.nodes = [];
+        this.mtxr = new Matrix4();
+        this.mtx0 = new Matrix4();
+        this.mtx1 = new Matrix4();
+
+        this.mtx = new Matrix4();
+        this.mtx2 = new Matrix4();
+
+        this.p = new Vector3();
+        this.s = new Vector3();
+        this.q = new Quaternion();
+        this.e = new Euler();
+
+        this.mat = new MeshStandardMaterial({ color:0xFF3300, wireframe:true });//root.mat.skinCollider;
+
+        this.init();
+
+        this.matrix = object.matrixWorld;
+        this.matrixAutoUpdate = false;
+
+    }
+
+    updateMatrixWorld ( force ) {
+
+        if( !this.isReady ) return;
+
+        //THREE.Object3D.prototype.updateMatrixWorld.call( this, force );
+
+        let nodes = this.children;
+        let i = nodes.length, node, bone;
+
+        this.mtxr.copy( this.root.matrixWorld ).invert();
+
+        //console.log('up', i)
+
+        while( i-- ){
+
+            node = nodes[i];
+            bone = node.userData.bone;
+
+            //this.mtx1.fromArray( this.skeleton.boneMatrices, bone.idx )
+
+            this.mtx0.multiplyMatrices(this.mtxr, bone.matrixWorld );
+            //this.mtx0.scale( bone.scalling );
+
+            this.mtx.multiplyMatrices( this.mtx0, node.userData.decal );
+            //this.mtx.multiplyMatrices( this.mtx1, this.mtx );
+
+
+            this.mtx.decompose( this.p, this.q, this.s );
+
+
+            node.position.copy( this.p );
+            node.quaternion.copy( this.q );
+
+            node.updateMatrix();
+
+        }
+
+        super.updateMatrixWorld( force );
+
+    }
+
+    init () {
+
+        this.mtxr.copy( this.root.matrixWorld ).invert();
+
+        // get character bones
+        const bones = this.bones; //object.skeleton.bones;
+        //let nodes = [];
+
+        let p1 = new Vector3();
+        let p2 = new Vector3();
+
+        let i, lng = bones.length, name, n, bone, parent;
+        let size, dist, type, translate, rot, fx;
+
+        for( i = 0; i < lng; i++ ){
+
+            type = null;
+            bone = bones[i];
+            name = bone.name;
+            parent = bone.parent;
+
+            if( parent ) {
+
+                n = parent.name;
+
+                p1.setFromMatrixPosition( this.mtx.multiplyMatrices(this.mtxr, parent.matrixWorld ) ); //parent.matrixWorld );
+                p2.setFromMatrixPosition( this.mtx.multiplyMatrices(this.mtxr, bone.matrixWorld ) ); //bone.matrixWorld );
+                dist = p1.distanceTo( p2 );
+
+                translate = [ 0, 0, dist * 0.5 ];
+                size = [ dist, 1, 1 ];
+                rot = [0,0,0];
+
+                fx = '_C';
+
+                if( n==='head' && name === 'End_head' ){ type = 'box'; size = [ 0.16, 0.2, dist ]; translate = [ 0, 0.025, -dist * 0.5 ]; }
+                if( n==='chest' && name==='neck' ){ type = 'box'; size = [  0.30, 0.28, dist ]; translate = [ 0, 0, -dist * 0.5 ]; }
+                if( n==='abdomen' ){ type = 'box'; size = [ 0.28, 0.24,  dist+0.14 ]; rot[2] = 0; translate = [ 0, 0, -dist * 0.5 ];translate[2] += 0.07;}
+
+                 // legs
+                if( n==='rThigh' ){ type = 'box'; size = [  0.15, 0.15, dist ];  }
+                if( n==='lThigh' ){ type = 'box'; size = [  0.15, 0.15 , dist];  }
+                if( n==='rShin' ){ type = 'box'; size = [  0.12, 0.12, dist+ 0.1, ]; translate[2] += 0.05; }
+                if( n==='lShin' ){ type = 'box'; size = [  0.12, 0.12, dist+ 0.1, ]; translate[2] += 0.05; }
+
+                // arm
+                if( n==='rShldr'  ){ type = 'box'; size = [   dist+ 0.06, 0.12, 0.12  ]; translate[0] = -translate[2]+0.03; translate[2]=0; }
+                if( n==='lShldr'  ){ type = 'box'; size = [  dist+ 0.06,0.12,   0.12, ];  translate[0] = translate[2]-0.03; translate[2]=0; }
+                if( n==='rForeArm' ){ type = 'box'; size = [  dist + 0.1,0.1,  0.1 ];  translate[0] = -translate[2]-0.05; translate[2]=0; }
+                if( n==='lForeArm' ){ type = 'box'; size = [  dist + 0.1,0.1,  0.1]; translate[0] = translate[2]+0.05; translate[2]=0; }
+
+                if( type !== null ) this.addMesh( parent, type, size, translate, rot, fx );
+
+            }
+        }
+
+        this.isReady = true;
+
+    }
+
+    addMesh ( parent, type, size, translate, rot, fx ) {
+
+        // translation
+        //this.mtx.makeTranslation( translate[0], translate[1], translate[2] );
+        this.mtx.makeTranslation( translate[0], translate[1], translate[2] );
+        // rotation
+        //this.mtx2.makeRotationFromEuler( this.e.set( rot[0]*math.torad, rot[1]*math.torad, rot[2]*math.torad ) );
+        //this.mtx.multiply( this.mtx2 );
+
+       //let box = new BoxGeometry( size[0], size[1], size[2])
+
+
+        var mesh = new Mesh( this.box, this.mat );
+        mesh.scale.set( size[0], size[1], size[2] );
+
+        //mesh.name = fx;
+        mesh.userData.decal = this.mtx.clone();
+        mesh.userData.bone = parent;
+
+
+        this.add( mesh );
+
+        //mesh.userData.avatar = this.avatar;
+
+    }
+
+    dispose () {
+        this.children = [];
+        this.box.dispose();
+        this.mat.dispose();
+        this.isReady = false;
+    }
+
+}
+
+/*
+function getBoneList( object ) {
+
+    const boneList = [];
+
+    if ( object.isBone === true ) {
+
+        boneList.push( object );
+
+    }
+
+    for ( let i = 0; i < object.children.length; i ++ ) {
+
+        boneList.push.apply( boneList, getBoneList( object.children[ i ] ) );
+
+    }
+
+    return boneList;
+
+}*/
+
+/** __
+*    _)_|_|_
+*   __) |_| | 2023
+*  @author lo.th / https://github.com/lo-th
+* 
+*  AVATAR
+*/
+
+
+const FrameTime = 30;
+const TimeFrame = 1/30;
+const torad = Math.PI / 180;
+const todeg = 180 / Math.PI;
+const V = new Vector3();
+
+class Avatar extends Group {
+
+	constructor( o = { } ) {
+
+        super();
+
+        this.callback = o.callback || function (){};
+
+        this.matrixAutoUpdate = false;
+        this.isPause = true;
+
+        this.textureQuality = o.quality || 1;
+
+        this.model = o.type || 'man';
+        this.compact = o.compact !== undefined ? o.compact : true;
+        this.haveMorph = o.morph !== undefined ? o.morph : true;
+        this.fullMaterial = o.material !== undefined ? o.material : true;
+
+        this.size = 1;
+
+        this.fullMorph = ['MUSCLE', 'LOW', 'BIG', 'MONSTER'];
+        
+
+        this.skeleton = null;
+        //this.root = null;
+        this.mixer = null;
+        this.mesh = {};
+        this.bones = {};
+        this.done = false;
+        this.isClone = false;
+        
+        this.isBreath = true;
+
+        this.tensionTest = false;
+        this.tensionActive = false;
+
+        this.fixToe = false;
+        this.clipsToesFix = [];
+
+        this.n = Math.round(Math.random()*1000);
+
+        this.actions = new Map();
+        this.current = null;
+        this.old = null;
+
+        this.breath = 0;
+        this.breathSide = -1;
+
+        this.q = new Quaternion().setFromAxisAngle( {x:0, y:1, z:0}, Math.PI*0.5 );
+        this.headBoneLook = new Vector3();
+        this.eyeTarget = new Group();//new AxesHelper(0.01)//
+        this.eyeTarget.position.set(0, 1, 0);
+
+        this.tmpMtx = new Matrix4();
+        this.tmpQ = new Quaternion();
+
+        this.setting = {
+
+            mixRatio:0.,
+            threshold:0.1,
+            normal:0.2,
+            hair:0xa43412,
+
+            bow:0x100402,
+
+            sheen:2.25,
+            sheenRoughness:1.0,
+
+            metalness:1,
+            roughness:0.5,
+            wireframe:false,
+            vertexColors:false,
+
+            alphaTest:0.3,
+            h_metal:0.4,
+            h_rough:0.6,
+            
+        };
+
+        //this.initMaterial();
+
+        this.root = Pool.get( this.model, 'O' );
+
+        if( this.root ){
+            this.isClone = true;
+            this.tensionTest = false;
+            this.root = SkeletonUtils.clone( this.root );
+            this.init();
+
+        } else {
+            if( this.fullMaterial ) this.load();
+            else this.loadModels();
+        }
+
+    }
+
+    load()
+    {
+
+        this.skin = Pool.getTexture('avatar_c');
+        if( !this.skin ){
+
+            const path = './assets/textures/avatar_' + this.textureQuality + 'k/';
+            const asset = [
+                'avatar_c.jpg', 'avatar_n.jpg', 'avatar_m.jpg', 'avatar_r.jpg', 'avatar_u.jpg',
+                'mouth_c.jpg', 'mouth_a.jpg', 'mouth_n.jpg', 
+                'eye_c.jpg', 'eye_n.jpg', 'hair.jpg', 'hair_a.jpg',
+                'eyelash_c.jpg', 'eyelash_a.jpg', 'eyelash_n.jpg',
+                'hair_man.jpg', 'hair_man_a.jpg'
+            ];
+            Pool.load( asset, this.loadModels.bind(this), path, 'loading images...' );
+        } else {
+            this.loadModels();
+        }
+
+    }
+
+    loadModels()
+    {
+        
+        const asset = [this.model+'.glb'];
+        const path = './assets/models/avatar/';
+        if( this.haveMorph ) asset.push( this.model+'_morph.glb' );
+        Pool.load( asset, this.init.bind(this), path, 'loading models...' );
+    }
+
+    update( delta )
+    {
+
+        if( !this.done ) return;
+        if ( this.mixer ){
+
+            this.mixer.update( delta );
+
+            // blink
+            const n = this.n;
+            if( n<=20) this.eyeControl((n*0.05));
+            if( n>10 && n<=40 ) this.eyeControl(1-((n-20)*0.05));
+            this.n ++;
+            if( this.n===1000 ) this.n = 0;
+
+            if( !this.isClone ){ 
+                this.look( delta*10 );
+                this.breathing();
+                this.autoToes();
+            }
+
+            if( this.tensionActive ){ 
+                this.tension1.update();
+                this.tension2.update();
+            }
+
+            if( window.gui && this.current ){ 
+                window.gui.updateTimeBarre( Math.round( this.current.time * FrameTime ), this.current.frameMax );
+            }
+        }
+
+    }
+
+    look( delta )
+    {
+
+        if(this.isPause) return
+
+        const v = window.mouse || {x:0, y:0};
+
+        if(delta>1) delta = 1;
+
+        this.headBoneLook.lerp({ x:-(v.y*20)*torad, y:0, z:-(v.x*20)*torad }, delta );
+        this.eyeTarget.position.lerp({ x:v.x*0.5, y:1, z:-v.y*0.25 }, delta );
+
+        let e = this.headBoneLook;
+        this.tmpQ.setFromEuler( { _x:e.x, _y:e.y, _z:e.z, _order:'XYZ' }, false );
+        this.bones.head.quaternion.multiply(this.tmpQ);
+
+        let ER = this.bones.ER;
+        let EL = this.bones.EL;
+        let up = {x:0, y:0, z:1};
+
+        this.tmpMtx.lookAt( EL.position, this.eyeTarget.position.clone().add({x:0.03, y:0, z:-0.074}), up );
+        EL.quaternion.setFromRotationMatrix( this.tmpMtx ).multiply(this.q);
+
+        this.tmpMtx.lookAt( ER.position, this.eyeTarget.position.clone().add({x:-0.03, y:0, z:-0.074}), up );
+        ER.quaternion.setFromRotationMatrix( this.tmpMtx ).multiply(this.q);
+
+    }
+
+    breathing()
+    {
+
+        if( !this.isBreath )return;
+
+        let a = this.breath*0.01;
+
+        if(this.breathSide > 0){
+            this.bones.chest.scalling.y = this.lerp (1,1.04, a);
+            this.bones.chest.scalling.x = this.lerp (1,1.02, a);
+            this.bones.abdomen.scalling.y = this.lerp (1,0.92, a);
+        }else {
+            this.bones.chest.scalling.y = this.lerp (1.04,1, a);
+            this.bones.chest.scalling.x = this.lerp (1.02,1, a);
+            this.bones.abdomen.scalling.y = this.lerp (0.92,1, a);
+        }
+
+        this.breath ++;
+        if( this.breath === 100 ){ this.breath = 0; this.breathSide = this.breathSide > 0 ? -1:1; }
+
+    }
+
+    setPosition( x, y, z )
+    {
+        this.position.set( x, y, z );
+        this.updateMatrix();
+    }
+
+    setRotation( x, y, z, a )
+    {
+        let r  = this.lerp( this.rotation.y, y, a);
+   
+        this.rotation.set( x, r, z );
+        this.updateMatrix();
+    }
+
+    lerp( x, y, t ) { return ( 1 - t ) * x + t * y }
+
+    onReady(){}
+
+    initMaterial()
+    {
+
+        if( Pool.getMaterial( 'skin' ) ) return
+
+        if( !this.fullMaterial ){
+            Pool.set( 'skin', new MeshStandardMaterial() );
+            return
+        } 
+
+        const s = this.setting;
+
+
+
+        // MOUTH
+
+        let m = new MeshStandardMaterial( { 
+            name: 'mouth',
+            map:Pool.getTexture('mouth_c'),
+            roughness:0.6,//0.568,
+            metalness:0.6,
+            alphaMap:Pool.getTexture('mouth_a'),
+            alphaTest:0.5,
+            normalMap:Pool.getTexture('mouth_n')
+        });
+
+        Shader.add(m);
+        Pool.set( 'mouth', m );
+
+        // EYE
+
+        this.eyeMap = Pool.getTexture('reflect', {repeat:[2,2]});
+
+        m = new MeshPhysicalMaterial( { 
+            name: 'sub_eye',
+            //color:0x000000,
+            roughness:0,//0.568,
+            metalness:1,
+            ior:1.376,
+            opacity:1,
+            blending:AdditiveBlending,
+            clearcoat:1,
+            transparent:true,
+            envMapIntensity:0,
+            //normalMap:Pool.getTexture('eye_n'),
+            //normalScale:new Vector2( 2, -2),
+        });
+
+        Shader.add(m);
+        Pool.set( 'sub_eye', m );
+
+
+        m = new MeshPhysicalMaterial({ 
+            name: 'eye',
+            map:Pool.getTexture('eye_c'),
+            //emissiveMap:Pool.getTexture('eye_c'),
+            //emissive:0x101010,
+            roughness:0.7,
+            metalness:0.15,
+            normalMap:Pool.getTexture('eye_n'),
+            normalScale:new Vector2( 2, -2),
+            clearcoat:0.25,
+            clearcoatRoughness:0.5,
+            //opacity:0.2,
+            //transparent:true,
+            //transmission: 1,
+            //thickness: 0.5,
+        });
+
+        Shader.add(m);
+        Pool.set( 'eye', m );
+
+
+        // HAIR
+
+        m = new MeshStandardMaterial({
+            name: 'hair',
+            map:Pool.getTexture('hair'),
+            color:s.hair,
+            //emissiveMap:Pool.getTexture('hair'),
+            //emissive:this.setting.hair,
+            roughness:s.h_rough,
+            metalness:s.h_metal,
+            alphaMap:Pool.getTexture('hair_a'),
+            alphaTest:s.alphaTest,
+            
+            side: DoubleSide,
+            opacity:1.0,
+            
+            transparent:true,
+
+            blending:CustomBlending,
+            blendDst:ZeroFactor,
+            blendDstAlpha:SrcAlphaFactor,
+            //OneMinusSrcAlphaFactor
+            /*blendEquationAlpha:AddEquation,
+            blendSrcAlpha:SrcAlphaFactor,//SrcAlphaFactor
+            */
+            //shadowSide:DoubleSide,
+
+            //depthTest:false,
+            //depthWrite:false,
+            alphaToCoverage:true,
+            //premultipliedAlpha:true,
+            //dithering:true,
+        });
+
+
+
+        Shader.add(m);
+        Pool.set( 'hair', m );
+
+        m = m.clone();
+        m.name = 'hair_man';
+        //m.map = m.emissiveMap = Pool.getTexture('hair_man')
+        m.color.setHex( s.hair );
+        m.map = Pool.getTexture('hair_man');
+        m.alphaMap = Pool.getTexture('hair_man_a');
+
+        Shader.add(m);
+        Pool.set( 'hair_man', m );
+
+        
+        m = new MeshStandardMaterial({
+            name: 'eyelash',
+            color:s.hair, //bow,
+            map:Pool.getTexture('eyelash_c'),
+            //emissiveMap:Pool.getTexture('eyelash_a'),
+            //emissive:s.bow,
+
+            roughness:s.h_rough,
+            metalness:s.h_metal,
+            //roughness:0.75,
+            //metalness:0.25,
+            alphaMap:Pool.getTexture('eyelash_a'),
+            alphaTest:s.alphaTest,
+            transparent:true,
+            side: DoubleSide,
+            alphaToCoverage:true,
+            polygonOffset: true,                
+            polygonOffsetFactor: - 4,
+            //premultipliedAlpha:true,
+            normalMap:Pool.getTexture('eyelash_n'),
+            normalScale:new Vector2( 1, -1)
+        });
+
+        Shader.add(m);
+        Pool.set( 'eyelash', m );
+
+        m = new MeshPhysicalMaterial({
+            name: 'tear',
+            map:Pool.getTexture('eyelash_c'),
+            //emissiveMap:eyea,
+            //emissive:this.setting.hair,
+            roughness:0.5,
+            metalness:0.5,
+            alphaMap:Pool.getTexture('eyelash_a'),
+            //alphaTest:0.5,
+            transparent:true,
+            alphaToCoverage:true,
+            opacity:1,
+            //thickness: 0.001,
+            //envMapIntensity:0.3,
+            //envMap:eyer
+            //premultipliedAlpha:true
+        });
+
+        Shader.add(m);
+        Pool.set( 'tear', m );
+
+        this.skin = Pool.getTexture('avatar_c');
+
+        m = new MeshPhysicalMaterial({
+            name: 'skin',
+            map: this.skin, 
+            normalMap:Pool.getTexture('avatar_n'),
+            roughness:1,//this.setting.roughness, //1.0,
+            metalness:1,//this.setting.metalness, //1.0,
+            metalnessMap:Pool.getTexture('avatar_m'),
+            roughnessMap:Pool.getTexture('avatar_r'),
+           // alphaMap:alpha,
+           // alphaTest:0.0001,
+            normalScale:new Vector2( this.setting.normal, -this.setting.normal),
+            //shadowSide:DoubleSide,
+            //transparent:true,
+            //aoMap:ao,
+            sheenColorMap:Pool.getTexture('avatar_u', {encoding:true}),
+            //sheenRoughnessMap:rough,
+            sheenRoughness:this.setting.sheenRoughness,
+            sheenColor:0xffffff,
+            sheen:this.setting.sheen,
+
+        });
+
+        Shader.add(m);
+        Pool.set( 'skin', m );
+
+        // LOW
+
+        m = new MeshBasicMaterial({ 
+            name:'low',
+            color:0x000000,
+            wireframe: true,
+        });
+
+        Shader.add(m);
+        Pool.set( 'low', m );
+
+    }
+
+    setHair()
+    {
+
+        if( !Pool.getMaterial( 'hair' ) ) return
+        let c = this.setting.hair;
+        let m = Pool.getMaterial( 'hair' );
+        m.color.setHex( c ).convertSRGBToLinear();
+        m.alphaTest = this.setting.alphaTest;
+        m.metalness = this.setting.h_metal;
+        m.roughness = this.setting.h_rough;
+        //m.emissive.setHex( c )
+        m = Pool.getMaterial( 'hair_man' );
+        m.color.setHex( c ).convertSRGBToLinear();
+        m.alphaTest = this.setting.alphaTest;
+        m.metalness = this.setting.h_metal;
+        m.roughness = this.setting.h_rough;
+        //m.emissive.setHex( c )
+        m = Pool.getMaterial( 'eyelash' );
+        m.color.setHex( c ).convertSRGBToLinear();
+        m.alphaTest = this.setting.alphaTest;
+        m.metalness = this.setting.h_metal;
+        m.roughness = this.setting.h_rough;
+        //m.emissive.setHex( c )
+    }
+
+    setMaterial()
+    {
+
+        if( !Pool.getMaterial( 'skin' ) ) return
+
+        const m = Pool.getMaterial( 'skin' );
+        const s = this.setting;
+
+        m.roughness = s.roughness;
+        m.metalness = s.metalness;
+        m.wireframe = s.wireframe;
+        m.vertexColors = s.vertexColors;
+
+        m.normalScale.set( s.normal, -s.normal );
+        m.sheen = s.sheen;
+        m.sheenRoughness = s.sheenRoughness;
+
+        if( s.vertexColors && m.map !== null ){ m.map = null; this.tensionActive = true; m.sheen = 0;}
+        if( !s.vertexColors && m.map === null ){ m.map = this.skin; this.tensionActive = false; }
+
+        const shader = m.userData.shader;
+        if( shader ){
+            shader.uniforms.mixRatio.value = s.mixRatio;
+            shader.uniforms.threshold.value = s.threshold;
+        }
+    }
+
+    init()
+    {
+
+        this.initMaterial();
+
+        if( !this.isClone ) this.root = Pool.get( this.model, 'O' ); 
+        
+        const def = Pool.getMaterial( 'skin' );
+
+        //console.log(this.root)
+
+        this.root.traverse( function ( node ) {
+            if ( node.isMesh ){
+
+                // dispatch material 
+                switch( node.name ){
+                    case 'body': 
+                    
+                    node.material = def;
+                    node.receiveShadow = true;
+                    node.castShadow = true;
+                    node.matrixAutoUpdate = false;
+
+                    //this.uv2( node )
+                    //node.bindMode = 'detached';'attached'
+                    this.skeleton = node.skeleton;
+                    if( this.skeleton.resetScalling ) this.skeleton.resetScalling();
+                    break;
+                    case 'body_low': 
+                        node.material = def;//= Pool.getMaterial( 'low' ) || def;
+                        node.receiveShadow = false;
+                        node.castShadow = false;
+                        node.visible = false;
+                    break;
+                    case 'Head': 
+                    node.material = def;
+                    node.receiveShadow = true;
+                    node.castShadow = true;
+                    //node.visible = false
+                    break;
+                    case 'mouth':
+                    node.material = Pool.getMaterial( 'mouth' ) || def;
+                    break;
+                    case 'eyelash':  case 'eyebrow':
+                    node.material = Pool.getMaterial( 'eyelash' ) || def;
+                    break;
+                    case 'tear': 
+                    node.material = Pool.getMaterial( 'tear' ) || def;
+                    break;
+                    case 'eye_l':case 'eye_r':
+                    node.material = Pool.getMaterial( 'eye' ) || def;
+                    break;
+                    case 'eye_l_s':case 'eye_r_s':
+                    node.material = Pool.getMaterial( 'sub_eye' ) || def;
+                    break;
+                    case 'hair': 
+                    node.material = Pool.getMaterial( this.model === 'man' ? 'hair_man': 'hair' ) || def;
+                    node.receiveShadow = true;
+                    node.castShadow = true;
+                    break;
+                    case 'hair_man': 
+                    node.material = Pool.getMaterial( 'hair_man' ) || def;
+                    node.name = 'hair';
+                    node.receiveShadow = true;
+                    node.castShadow = true;
+                    break;
+                }
+
+                //console.log(node.name, node.material.name)
+                // reset color
+                //this.zeroColor(node)
+                // disable raycast
+                node.raycast = function(){};
+                this.mesh[node.name] = node;
+            }
+            if ( node.isBone ){ 
+                //console.log(node.name)
+                this.bones[node.name] = node;
+                if( node.name === 'neck' ) node.add( this.eyeTarget );
+                //if(node.name === 'ER') node.add(new AxesHelper(0.05));
+                //if(node.name === 'EL') node.add(new AxesHelper(0.05));
+            }
+            
+        }.bind(this));
+
+        
+        //if( !this.isClone ){
+            // for extra skin
+            for( let m in this.mesh ){
+                if( this.mesh[m].isSkinnedMesh && m !== 'body' ){
+                    this.mesh[m].skeleton.dispose();
+                    this.mesh[m].skeleton = this.skeleton;
+                }
+            }
+
+        if( !this.isClone ){
+
+            // add morph 
+            if( this.haveMorph ) Pool.applyMorph( this.model+'_morph', this.mesh, true, false );
+
+            Pool.set( this.model, this.root, 'O' );
+            
+        }
+
+        //console.log(this.mesh['body'])
+
+
+        if( this.size !== 1 ) this.root.scale.set(1,1,1).multiplyScalar(this.size);
+
+        //if( this.tensionTest ) this.addTensionMap()
+
+        // animation
+        this.mixer = new AnimationMixer( this );
+
+        if( Pool.clip.length === 0 ){ 
+            // load animation include in json or the compacted version
+            if( this.compact ) this.loadCompactAnimation('./assets/animation/animations.bin');
+            else this.loadAnimationJson('./assets/animation/animations.json', this.start.bind(this) );
+
+        } else {
+            let i = Pool.clip.length;
+            while(i--) this.addAction( Pool.clip[i] );
+            this.start();
+        }
+             
+    }
+
+    addTensionMap()
+    {
+        this.tension1 = new Tension( this.mesh.body );
+        this.tension2 = new Tension( this.mesh.Head );
+    }
+
+    setBounding( r )
+    {
+        for( let m in this.mesh ){
+            if(this.mesh[m].isMesh ){
+                this.mesh[m].geometry.boundingSphere.radius = r;
+            }
+        }
+
+    }
+
+    setBoneScale( v ){
+
+        const ingnor = [ 'head', 'lToes', 'rToes', 'rCollar', 'lCollar', 'rBreast', 'lBreast', 'neck'];
+        const center = ['hip', 'abdomen', 'chest'];
+        const legs = ['lThigh', 'rThigh', 'lShin', 'rShin'];
+        const b = this.bones;
+
+        for( let n in b ){
+            if(ingnor.indexOf(n) === -1) {
+                if(center.indexOf(n) !== -1) b[n].scalling.z = v;
+                else if(legs.indexOf(n) !== -1) b[n].scalling.z = v;
+                else if( n === 'root' ) b[n].scalling.y = v;
+                else if( n === 'rFoot' || n === 'lFoot') b[n].scalling.y = v;
+                else b[n].scalling.x = v;
+            } 
+        }
+
+        this.setBounding(v);
+    }
+
+
+    eyeControl( v )
+    {
+        this.setMorph('EyeBlink', v);
+    }
+
+    setMorph( name, v )
+    {
+        if( !this.haveMorph ) return
+        this.morpher( 'eyelash', name, v);
+        this.morpher( 'eyebrow', name, v);
+        this.morpher( 'tear', name, v);
+        this.morpher( 'mouth', name, v);
+        this.morpher( 'body', name, v);
+        this.morpher( 'Head', name, v);
+        this.morpher( 'body_low', name, v);
+    }
+
+    morpher( obj, name, value )
+    {
+        if(!this.mesh[obj]) return
+        if(!this.mesh[obj].morphTargetInfluences) return
+        if(this.mesh[obj].morphTargetDictionary[name] === undefined ) return
+        this.mesh[obj].morphTargetInfluences[ this.mesh[obj].morphTargetDictionary[name] ] = value;
+    }
+
+    lerp( x, y, t ) { return ( 1 - t ) * x + t * y; }
+
+    clone( o )
+    {
+        return new this.constructor( {type:o.type}, this );
+    }
+
+    dispose()
+    {
+
+        if( this.exoskel ) this.addExo();
+        if( this.helper ) this.addHelper();
+
+        this.stop();
+        this.mixer.uncacheRoot( this );
+
+        //if(this.skeleton.boneTexture)this.skeleton.boneTexture.dispose();
+        this.remove( this.root );
+        this.skeleton.dispose();
+        this.parent.remove(this);
+        
+
+        //console.log('hero remove')
+        if(!this.isClone);
+    }
+
+    start()
+    {
+
+        //console.log('start', this.model)
+        if( this.done ) return
+
+        this.done = true;
+        this.add( this.root );
+        this.onReady();
+
+        this.playAll();
+        this.callback();
+
+
+        //console.log('model is ready !!! ', this.onReady)
+        let a = this.play('IDLE');
+        if(!a) this.play('idle');
+    }
+
+    addHelper()
+    {
+        if( this.helper ){
+            this.helper.dispose();
+            this.parent.remove( this.helper );
+            this.helper = null;
+        } else {
+            this.helper = new SkeletonHelper( this.root );
+            this.parent.add( this.helper );
+        }
+    }
+
+    addExo()
+    {
+        if( this.exoskel ){
+            this.exoskel.dispose();
+            this.parent.remove( this.exoskel );
+            this.exoskel = null;
+        } else {
+            this.exoskel = new ExoSkeleton( this.root, this.skeleton );
+            this.parent.add( this.exoskel );
+        }
+    }
+
+    attachToBone( m, b )
+    {
+        m.matrix = b.matrixWorld;
+        m.matrixAutoUpdate = false;
+    }
+
+    loadAnimationJson( url, callback )
+    {
+        const request = new XMLHttpRequest();
+        request.open('GET', url, true);
+        request.onreadystatechange = function() {
+            if ( request.readyState === 4 ) {
+                if ( request.status === 200 || request.status === 0 ) {
+                    let data = JSON.parse( request.responseText );
+                    this.urls = [];
+                    for( let g in data ){
+                        if( g === 'main' ) this.urls.push( ...data[g] );
+                        else this.urls.push( ...data[g].map( x => g+'/'+x ) );
+                    }
+                    this.endCallback = callback || function(){}; 
+                    this.loadOne();
+                }
+            }
+        }.bind(this);
+        request.send();
+    }
+
+    loadOne()
+    {
+        let name = this.urls[0];
+        this.loadAnimationFbx( './assets/animation/fbx/'+name+'.fbx', this.next.bind(this) );
+    }
+
+    next()
+    {
+        this.urls.shift();
+        if( this.urls.length === 0 ) this.endCallback();
+        else this.loadOne();
+    }
+
+    loadCompactAnimation( url = './assets/models/animations.bin' )
+    {
+        if(!this.lzma) this.lzma = new LZMA("./src/libs/lzma_worker.js");
+
+        var request = new XMLHttpRequest();
+        request.open('GET', url, true);
+        request.responseType = 'arraybuffer';
+
+        const glb = { animations : [] };
+        const self = this;
+
+        request.onload = function() {
+            self.lzma.decompress( new Uint8Array( request.response ), function (result) {
+                const data = JSON.parse(result);
+                
+                for(let c in data) glb.animations.push( AnimationClip.parse( data[c] ) ); 
+                //console.log( glb )
+                self.applydAnimation( glb );
+                self.start();
+            });
+        };
+        request.send();
+
+    }
+
+    loadAnimationGlb( url, callback )
+    {
+        let name = url.substring( url.lastIndexOf('/')+1, url.lastIndexOf('.') );
+        Pool.loaderGLTF().load( url, function ( glb ) {
+            this.applydAnimation( glb, name );
+            if( callback ) callback();
+        }.bind(this), null, callback );
+    }
+
+    directGlb( data, name )
+    {
+        Pool.loaderGLTF().parse( data, '', function ( glb ) {
+            this.stop();
+            this.applydAnimation( glb, name );
+        }.bind(this));
+    }
+
+    loadAnimationFbx( url, callback )
+    {
+        //if( !this.loaderFbx ) this.loaderFbx = new FBXLoader();
+        let name = url.substring( url.lastIndexOf('/')+1, url.lastIndexOf('.') );
+        Pool.loaderFBX().load( url, function ( node ) {
+            this.convertFbx( name, node.animations[ 0 ] );
+            if( callback ) callback();
+        }.bind(this), null, callback );
+    }
+
+    directFbx( data, name )
+    {
+        //if( !this.loaderFbx ) this.loaderFbx = new FBXLoader();
+        try {
+            let node = Pool.loaderFBX().parse( data, '' );
+            this.convertFbx( name, node.animations[ 0 ], true );
+        } catch ( e ) {
+            console.error( 'bug', e );
+        }
+    }
+
+    applydAnimation( glb, name )
+    {
+        let i = glb.animations.length, autoplay = false;
+        if( i === 1 ){
+            if( name ) glb.animations[0].name = name;
+            autoplay = true;
+        } 
+        while(i--){ 
+            this.addClip( glb.animations[i] );
+            this.addAction( glb.animations[i], autoplay );
+        }
+
+    }
+
+    addClip( clip )
+    {
+        let i = Pool.clip.length, removeId = -1;
+        while(i--){ if( Pool.clip[i].name === clip.name ) removeId = i; }
+        if( removeId !== -1 ) Pool.clip.slice( removeId, 1 );
+
+
+        //clip.optimize();
+        Pool.clip.push( clip );
+    }
+
+    addAction( clip, play )
+    {
+        const action = this.mixer.clipAction( clip );
+        action.frameMax = Math.round( clip.duration * FrameTime );
+        action.enabled = true;
+        action.setEffectiveWeight( 0 );
+        if(clip.name === 'Jumping Up') action.loop = LoopPingPong;
+        //action.play()
+        this.actions.set( clip.name, action );
+
+        if(clip.name.search('walk')!==-1) this.clipsToesFix.push(clip.name);
+        if(clip.name.search('run')!==-1) this.clipsToesFix.push(clip.name);
+        if(clip.name.search('strafe')!==-1) this.clipsToesFix.push(clip.name);
+        if(clip.name.search('jog')!==-1) this.clipsToesFix.push(clip.name);
+        if(clip.name.search('RUN')!==-1) this.clipsToesFix.push(clip.name);
+
+        if( window.gui ) window.gui.getAnimation();
+
+       // if( play ) this.play( clip.name )
+
+             
+    }
+
+    getAnimation( toJson = false, fromPool = false )
+    {
+
+        let anim = [], n = 0;
+        if(fromPool){
+            let i = Pool.clip.length;
+            while(i--){
+
+                if( toJson ) anim[n] = Pool.clip[n].toJSON();
+                else anim[n] = Pool.clip[n];
+                // delete animations[n].uuid
+                n++;
+            }
+        } else {
+            this.actions.forEach( function ( action, key ) {
+                if( toJson ) anim[n] = action._clip.toJSON();
+                else anim[n] = action._clip;
+                //delete data[n].uuid
+                n++;
+            });
+        }
+
+        return anim
+
+    }
+
+    exportAnimationLzma( callback )
+    {
+
+        if(!this.lzma) this.lzma = new LZMA("./src/libs/lzma_worker.js");
+
+        const data = this.getAnimation( true );
+
+        this.lzma.compress( JSON.stringify(data), 2, function(result) {
+
+            if( callback ) callback( {name:'animations', data:new Uint8Array(result), type:'bin'}  );
+            else {
+                let link = document.createElement("a");
+                link.style.display = "none";
+                document.body.appendChild(link);
+                link.href = URL.createObjectURL( new Blob( [new Uint8Array(result)], {type: "application/octet-stream"} ) );
+                link.download = 'animations.bin';
+                link.click();
+            }
+        });
+    }
+
+    exportGLB( callback )
+    {
+        if( !this.exporter ) this.exporter = new GLTFExporter();
+        
+        const animations = this.getAnimation();
+
+        this.exporter.parse( this.root, function( gltf ){
+
+            if( callback ) callback( {name:'model', data:gltf, type:'glb'}  );
+            else {
+                let link = document.createElement("a");
+                link.style.display = "none";
+                document.body.appendChild(link);
+                link.href = URL.createObjectURL( new Blob([gltf], { type: "application/octet-stream" }) );
+                link.download = 'model.glb';
+                link.click();
+            }
+
+            //self.loader.parse( JSON.stringify(glb, null, 2), '', function (r){ console.log(r) } )
+
+        }, null, { animations:animations, binary: true, onlyVisible: true } );
+
+    }
+
+    autoToes()
+    {
+        if(!this.fixToe) return
+        let r = this.getRot('rFoot');
+        let l = this.getRot('lFoot');
+        let v = this.getWorldPos('hip');
+        let v0 = this.getWorldPos('rToes');
+        let v1 = this.getWorldPos('lToes');
+        if(r[0]>0 && (v0.z-v.z)<0) this.setRot('rToes', -r[0]*1.5, 0,0 );
+        else if( r[0] !== 0 ) this.setRot('rToes', 0,0,0 );
+        if(l[0]>0 && (v1.z-v.z)<0) this.setRot('lToes', -l[0]*1.5, 0,0 );
+        else if( l[0] !== 0 ) this.setRot('lToes', 0,0,0 );
+    }
+
+    resetToes()
+    {
+        if(!this.fixToe) return
+        this.fixToe = false;
+        this.setRot('rToes', 0,0,0 );
+        this.setRot('lToes', 0,0,0 );
+    }
+
+    convertFbx( name, anim, autoplay )
+    {
+        const torad = Math.PI / 180;
+        let p = new Vector3();
+        let q = new Quaternion();
+        let RX = new Quaternion().setFromAxisAngle({x:1, y:0, z:0}, 90 * torad );
+
+        const baseTracks = anim.tracks;
+        const tracks = [];
+
+        let i = baseTracks.length, j, n, t, b, k = 0;
+
+        while(i--){
+            t = baseTracks[k];
+            b = t.name.substring(0, t.name.lastIndexOf('.') );
+
+            if( t.name === 'hip.position' ){
+                let rp = [];
+                j = t.values.length / 3;
+                while(j--){
+                    n = j * 3;
+                    p.set( t.values[n], t.values[n+1], 0).multiplyScalar(0.01);
+                    p.toArray( rp, n );
+                }
+                tracks.push( new VectorKeyframeTrack( t.name, t.times, rp ) );
+
+            } else {
+                let rq = [];
+                j = t.values.length / 4; 
+                while(j--){
+                    n = j * 4;
+                    if( b==='hip') q.set(t.values[n], t.values[n+1], t.values[n+2], t.values[n+3]).multiply( RX );
+                    else q.set(t.values[n], t.values[n+2], -t.values[n+1], t.values[n+3]);
+                    q.toArray( rq, n );
+                }
+                tracks.push( new QuaternionKeyframeTrack( t.name, t.times, rq ) );
+            }
+
+            k++;
+        }
+
+        let clip = new AnimationClip( name, -1, tracks );
+        clip.duration = anim.duration;
+
+        this.stop();
+        this.addClip( clip );
+        this.addAction( clip, autoplay );
+
+    }
+
+
+    //---------------------
+    //  ANIMATION CONTROL
+    //---------------------
+
+    prepareCrossFade( startAction, endAction, duration ) 
+    {
+        //singleStepMode = false;
+        this.unPause();
+        // If the current action is 'idle' (duration 4 sec), execute the crossfade immediately;
+        // else wait until the current action has finished its current loop
+
+        if ( startAction === idleAction ) {
+            this.executeCrossFade( startAction, endAction, duration );
+        } else {
+            this.synchronize( startAction, endAction, duration );
+        }
+
+    }
+
+    synchronize( startAction, endAction, duration ) {
+
+        this.mixer.addEventListener( 'loop', onLoopFinished );
+        const self = this;
+        function onLoopFinished( event ) {
+            if ( event.action === startAction ) {
+                self.mixer.removeEventListener( 'loop', onLoopFinished );
+                self.executeCrossFade( startAction, endAction, duration );
+            }
+        }
+
+    }
+
+    executeCrossFade( startAction, endAction, duration ) 
+    {
+        // Not only the start action, but also the end action must get a weight of 1 before fading
+        // (concerning the start action this is already guaranteed in this place)
+        this.setWeight( endAction, 1 );
+        endAction.time = 0;
+        // Crossfade with warping - you can also try without warping by setting the third parameter to false
+        startAction.crossFadeTo( endAction, duration, true );
+    }
+
+    pause()
+    {
+        this.actions.forEach( function ( action ) { action.paused = true; });
+        this.isPause = true;
+    }
+
+    unPause()
+    {
+        this.actions.forEach( function ( action ) { action.paused = false; });
+        this.isPause = false;
+    }
+
+    playAll()
+    {
+        this.actions.forEach( function ( action ) { action.play(); });
+    }
+
+    timescale( timescale ) {
+
+
+        this.actions.forEach( function ( action ) { action.setEffectiveTimeScale( timescale ); });
+
+    }
+
+    syncro( name ) {
+
+        let action = this.getAction( name );
+        if ( !action ) return;
+        let time = action.time;
+        this.actions.forEach( function ( action ) { action.time = time; });
+
+    }
+
+    setTimescale( action, timescale ) {
+
+        action.enabled = true;
+        action.setEffectiveTimeScale( timescale );
+
+    }
+
+    setWeight( action, weight ) {
+
+        if( typeof action === 'string' ) action = this.getAction( action );
+        if ( !action ) return;
+
+        action.enabled = true;
+        if(weight<0) weight = 0;
+        if(weight>1) weight = 1;
+        action.getEffectiveWeight();
+        //if(old===0 && weight!== 0) action.time = 0;
+        //action.setEffectiveTimeScale( weight );
+        action.setEffectiveWeight( weight );
+
+    }
+
+
+    getAnimInfo( name ){
+
+        let action = this.getAction( name );
+        if ( !action ) return;
+        return {
+            name: name,
+            time: action.time,
+            frame: Math.round( action.time * FrameTime ),
+            frameMax: action.frameMax,
+            timeScale: action.timeScale,
+        }
+
+        //if( ui ) ui.updateTimeBarre( anim.frame, anim.frameTime, anim.frameMax );
+
+    }
+
+    getAction( name )
+    {
+        //if ( !this.actions.has( name ) ) return;
+        return this.actions.get( name );
+    }
+
+    play( name, fade = 0.5 )
+    {
+
+        let action = this.getAction( name );
+        if ( !action ) return false;
+
+        if(!this.current){
+            this.stop();
+            this.current = action;
+            //action.play();
+            action.setEffectiveWeight( 1 );
+            //console.log(name)
+        } else {
+            if( this.current !== action ){
+
+                this.old = this.current;
+                this.current = action;
+                action.play();
+
+                if( this.clipsToesFix.indexOf(name) !== -1 ) this.fixToe = true;
+                else this.resetToes(); 
+
+
+                //console.log( name, this.fixToe )
+
+
+                this.executeCrossFade(this.old, this.current, fade  );
+
+               // this.stop()
+               //this.current = action;
+               //
+
+            }
+        } 
+
+        this.isPause = false;
+
+        return true;
+    }
+
+    playFrame ( name, frame, weight = 1 ) {
+
+        let action = this.getAction( name );
+        if ( !action ) return;
+
+        action.time = frame * TimeFrame;
+        action.setEffectiveWeight( weight );
+        action.play();
+        action.paused = true;
+        this.isPause = true;
+
+    }
+
+    playOne ( frame, weight = 1 ) {
+
+        if ( !this.current ) return;
+
+        this.current.time = frame * TimeFrame;
+        this.current.setEffectiveWeight( weight );
+        this.current.play();
+        this.current.paused = true;
+        this.isPause = true;
+
+    }
+
+    stop()
+    {
+
+        this.actions.forEach( function ( action ) { action.setEffectiveWeight( 0 ); });
+        //this.mixer.stopAllAction()
+    }
+
+
+
+    // bone control
+
+    setRot( name, x, y, z )
+    {
+        let n = this.bones[name];
+        if(!n) return
+        n.rotation.set( x*torad, y*torad, z*torad, 'XYZ' );
+        n.updateMatrix();
+    }
+
+    getRot( name )
+    {
+        let n = this.bones[name];
+        if(!n) return
+        let r = n.rotation.toArray();
+        return [ Math.round(r[0]*todeg), Math.round(r[1]*todeg), Math.round(r[2]*todeg) ];
+    }
+
+    getWorldPos( name )
+    {
+        let n = this.bones[name];
+        if(!n) return
+        V.set(0,0,0);
+        n.localToWorld(V);
+        return { x:V.x, y:V.y, z:V.z };
+    }
+
+
+    //---------------------
+    //  HIDE PART OF BODY
+    //---------------------
+
+    bodyMask( o = {arm:true, leg:true, foot:true, chest:true } )
+    {
+        let s = 0.25;
+        if(!this.canvas) {
+            this.canvas = document.createElement( 'canvas' );
+            this.canvas.width = this.canvas.height = 1024*s;
+        }
+
+        const ctx = this.canvas.getContext( '2d' ); 
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fillRect(0, 0, 1024*s, 1024*s);
+        ctx.fillStyle = 'black';
+        if(o.arm) ctx.fillRect( 784*s, 448*s, 236*s, 186*s );
+        if(o.leg) ctx.fillRect( 512*s, 734*s, 287*s, 290*s );
+        if(o.foot) ctx.fillRect( 817*s, 822*s, 206*s, 200*s );
+        if(o.chest){ 
+            ctx.fillRect( 480*s, 576*s, 300*s, 160*s );
+            ctx.fillRect( 553*s, 466*s, 228*s, 110*s );
+            ctx.fillRect( 533*s, 531*s, 20*s, 45*s );
+        }
+
+        let img = new Image();
+        img.src = this.canvas.toDataURL();
+
+        if(this.mask) this.mask.dispose();
+        //this.mask = new CanvasTexture( this.canvas );
+
+        this.mask = new Texture( img );
+        this.mask.flipY = false;
+        this.mask.needsUpdate = true;
+        const m = Pool.getMaterial( 'skin' );
+        m.alphaTest = 0.9;
+        m.alphaMap = this.mask;
+        //m.needsUpdate = true;
+    }
+
+
+    //---------------------
+    //   TOOLS
+    //---------------------
+
+    zeroColor(g)
+    {
+        if( g.isMesh ) g = g.geometry;
+        let lng = g.attributes.position.array.length;
+        g.setAttribute( 'color', new Float32BufferAttribute( new Array(lng).fill(0), 3 ) );
+    }
+
+    uv2( g, uv2 = true, tangent = true ) {
+
+        if( g.isMesh ) g = g.geometry;
+        g.setAttribute( 'uv2', g.attributes.uv );
+
+    }
+
+}
+
+
+
+
+//-----------------------------
+//
+//  SKELETON EXTAND
+//
+//-----------------------------
+
+const _offsetMatrix = new Matrix4();
+const _identityMatrix = new Matrix4();
+
+let K = Skeleton.prototype;
+
+K.resetScalling = function () {
+
+    for ( let i = 0, il = this.bones.length; i < il; i ++ ) {
+
+        this.bones[i].idx = i;
+        this.bones[i].scalling = new Vector3(1,1,1);
+        //console.log(this.bones[i].id, i)
+
+    }
+
+    //this.setScalling();
+
+};
+
+K.setScalling = function ( fingerPos ) {
+
+    let b, i, lng = this.bones.length;
+    let parent;
+
+    //this.resetPosition();
+
+    for ( i = 0; i < lng; i ++ ) {
+
+        b = this.bones[ i ];
+        parent = b.parent || null;
+
+        /*if( b.name==='root'){
+
+            b.position.y = this.footPos;
+            b.updateMatrixWorld( true );
+
+        }*/
+
+        if( parent !== null && parent.scalling && b.name!=='root'){
+
+            // finger position fix
+
+            /*if( fingerPos && this.isFinger( b ) ){
+
+                b.position.fromArray( fingerPos[ b.name ] );
+                b.children[0].position.set(0,0,0);
+
+            }*/
+
+            b.position.multiply( parent.scalling );
+            b.updateMatrixWorld( true );
+
+        }
+
+    }
+
+    this.calculateInverses();
+
+};
+
+K.update = function () {
+
+    const bones = this.bones;
+    const boneInverses = this.boneInverses;
+    const boneMatrices = this.boneMatrices;
+    const boneTexture = this.boneTexture;
+
+    let scaleMatrix;
+    const decal = new Vector3();
+
+    // flatten bone matrices to array
+
+    for ( let i = 0, il = bones.length; i < il; i ++ ) {
+
+        // compute the offset between the current and the original transform
+
+        const matrix = bones[ i ] ? bones[ i ].matrixWorld : _identityMatrix;
+
+        if( bones[ i ].scalling !== undefined  ){ 
+            matrix.scale( bones[ i ].scalling );
+            for ( let j = 0, l = bones[ i ].children.length; j < l; j ++ ) {
+                    scaleMatrix = matrix.clone();
+                    scaleMatrix.multiply( bones[ i ].children[ j ].matrix );
+                    bones[ i ].children[ j ].matrixWorld.setPosition( decal.setFromMatrixPosition( scaleMatrix ) );
+                }
+        }
+
+        _offsetMatrix.multiplyMatrices( matrix, boneInverses[ i ] );
+        _offsetMatrix.toArray( boneMatrices, i * 16 );
+
+    }
+
+    if ( boneTexture !== null ) {
+
+        boneTexture.needsUpdate = true;
+
+    }
+
+};
+
+// THREE CHARACTER
+
+class Character extends Item {
+
+	constructor() {
+
+		super();
+
+		this.Utils = Utils;
+		this.type = 'character';
+		this.num = Num[this.type];
+
+	}
+
+	step ( AR, N ) {
+
+		let i = this.list.length, n, s;
+
+		while( i-- ){
+
+			s = this.list[i];
+			n = N + ( i * this.num );
+			s.step( AR, n );
+
+		}
+
+	}
+
+	add ( o = {} ) {
+
+		this.setName( o );
+		const hero = new Hero( o );
+
+		return hero
+
+	}
+
+	set ( o = {}, b = null ) {
+
+		if( b === null ) b = this.byName( o.name );
+		if( b === null ) return
+
+		b.set(o);
+
+	}
+	
+}
+
+// HERO
+
+class Hero extends Basic3D {
+
+	constructor( o = {} ) {
+
+		super();
+
+		this.type = 'character';
+		this.name = o.name || 'hero';
+
+		this.isRay = false;
+
+		this.model = null;
+
+
+		this.radius = 0.3;
+		this.height = 1.8;
+
+		this.fall = false;
+		this.floor = true;
+
+		this.contact = false;
+
+		this.tmpV1 = new Vector3();
+		this.tmpV2 = new Vector3();
+		this.ease = new Vector3();
+		this.tmpAcc = 0;
+		this.rs = 0;
+		this.ts = 0;
+		this.diagonal = 1/Math.sqrt(2);
+
+		this.jump = false;
+		this.crouch = false;
+		this.toggle = true;
+		this.oy = 0;
+		this.vy = 0;
+
+		this.angle = ( o.angle || 0 ) * math$1.torad;
+
+		this.speed = {
+		    idle:1,
+		    fight:1,
+		    walk:8,
+		    crouch:6,
+		    run:12,
+		};
+
+		this.valheimStyle = true;
+		
+		this.callback = o.callback || function (){};
+
+
+
+		//this.position = new THREE.Vector3();
+		this.init( o );
+
+	}
+
+	init( o ){
+
+		this.radius = o.radius || 0.3;
+		this.height = o.height || 1.8;
+
+		if( o.radius ) delete o.radius;
+
+	    if(!o.size) o.size = [ this.radius ,this.height-(2*this.radius) ];
+		if(!o.pos) o.pos = [0,o.size[1]*0.5,0];
+		this.py = -(o.size[1]*0.5)-o.size[0];
+
+
+		if( o.debug ) root.items.body.geometry( { ...o, type:'capsule', ray:false }, this, Mat.get('debug3') );
+
+		o.density = o.density || 70; 
+        o.damping = [0.01,0]; 
+        o.friction = 0.5;
+
+		o.angularFactor = [0,0,0];
+		//o.maxDamping = 1000
+		o.group = 32;
+		o.regular = true;
+		o.filter = [1,-1,[1, 3, 4,5,9], 0];
+		//o.kinematic = true
+		o.noGravity = true;
+		o.ray = false;
+
+		if( o.callback ) delete o.callback;
+
+		// add to world
+		root.items.character.addToWorld( this, o.id );
+
+        // add to physics
+        root.post({ m:'add', o:o });
+
+        //root.add({ type:'contact', b1:this.name,  callback: this.hit.bind(this) })
+
+        // add character model
+        if( o.gender ) this.addModel( o );
+		
+	}
+
+    hit( d ){
+    	this.contact = d;
+
+    	//console.log(this.contact)
+    }
+
+	addModel( o ){
+
+		this.model = new Avatar( { 
+			type:o.gender, 
+			compact:true, 
+			material:!o.noMat, 
+			morph:o.morph || false, 
+			callback:this.callback 
+		});
+
+		this.add( this.model );
+		///this.model.rotation.order = 'YXZ'
+		this.model.setPosition(0,this.py,0);
+		this.model.rotation.y = this.angle;
+		this.model.updateMatrix();
+
+	}
+
+	raycast(){
+		return
+	}
+
+	step ( AR, n ) {
+
+		this.position.fromArray( AR, n + 1 );
+		this.quaternion.fromArray( AR, n + 4 );
+		this.fall = this.position.y < this.oy;
+		this.floor = math$1.nearEquals(this.position.y, this.oy, 0.1);
+		this.oy = this.position.y;
+		this.updateMatrix();
+
+		if(this.model) this.model.update( root.delta );
+
+	}
+
+	set ( o ) {
+
+		//console.log('set', o)
+		if(o.morph){
+			if(this.model) this.model.setMorph( o.morph, o.value );
+		}
+
+	}
+
+	dispose () {
+		this.callback = null;
+		if( this.model ) this.model.dispose();
+		super.dispose();
+	}
+
+	move () {
+
+		const key = root.motor.getKey();
+		const azimut = root.motor.getAzimut();
+
+		let anim = key[7] !== 0 ? 'run' : 'walk';
+	    if( key[0] === 0 && key[1] === 0 ) anim = 'idle';//*= 0.9
+	    let m = key[0] !== 0 && key[1] !== 0 ? this.diagonal : 1;
+
+	    if( key[5] && this.toggle ){ 
+	    	this.crouch = !this.crouch;
+	    	this.toggle = false;
+	    }
+
+	    if( key[5] === 0 ) this.toggle = true;
+
+	    if( (anim==='walk' || anim==='run') && this.crouch ) anim = 'crouch';
+
+	    if( key[6] === 1 ) anim = 'fight';
+
+
+
+	    if( !this.jump && key[4] ){ this.vy = 22; this.jump = true; } // SPACE KEY
+
+	    if( this.jump ){
+	        this.vy-=1;
+	        if(this.vy <= 0 ){ 
+	            this.vy = 0; 
+	            if( this.floor ) this.jump = false;
+
+	            //if( math.nearEquals(this.position.y, this.oy, 0.1)) this.jump = false;
+	             //this.position.y === this.oy 
+	        }
+	    }
+
+	    //this.oy = this.position.y;
+
+	    /*if(this.crouch){
+	    	if( anim==='run' || anim==='walk' ) anim = 'crouch'
+	    	if( anim==='idle' ) anim = 'crouchIdle'
+	    }*/
+
+
+	    let mAnim = 'idle';
+	    switch( anim ){
+	    	case 'idle':
+	    	   mAnim = this.crouch ? 'Crouch Idle' : 'idle';
+	    	   //if( key[6] === 1 ) mAnim = 'Attack';
+	    	break;
+	    	case 'walk':
+	    	    mAnim = 'Jog Forward';
+	    	break;
+	    	case 'run': mAnim = 'Standard Run'; break;
+	    	case 'crouch': mAnim = 'Crouch Walk'; break;
+	    	case 'fight': mAnim = 'Attack'; break;
+	    	//case 'crouchIdle': mAnim = 'Crouch Idle'; break;
+	    }
+
+	    //if(this.jump) 
+	    //this.model.setWeight(, this.jump ? 1:0 )
+
+	    
+	    
+	    
+
+	    if( key[0] !== 0 || key[1] !== 0 ){ 
+
+	        this.tmpAcc += 0.2;//math.lerp( tmpAcc, 1, delta/10 )
+	        this.tmpAcc = math$1.clamp( this.tmpAcc, 1, this.speed[anim] );
+
+	        this.rs += key[0] * this.tmpAcc;//* delta
+	        this.ts += key[1] * this.tmpAcc;//* delta
+	    }
+
+	    if( key[0] === 0 && key[1] === 0 ) this.tmpAcc = 0;//*= 0.9
+	    if( key[0] === 0 ) this.rs = 0;
+	    if( key[1] === 0 ) this.ts = 0;
+
+	    //dir.multiplyScalar(tmpAcc)
+
+	    this.rs = math$1.clamp( this.rs, -this.speed[anim], this.speed[anim] ) * m;
+	    this.ts = math$1.clamp( this.ts, -this.speed[anim], this.speed[anim] ) * m;
+
+	    this.ease.set( this.ts/this.speed[anim], 0, this.rs/this.speed[anim] );
+
+	    let angle = math$1.unwrapRad( (Math.atan2(this.ease.z, this.ease.x)) + azimut );
+
+	    let acc = this.ease.length(); //((Math.abs(this.ease.x) + Math.abs(this.ease.z)))
+
+	    //console.log(jj, this.ease.length() )
+
+	    //if(jj!== 0)
+
+	    // help climb montagne
+	    if( !this.jump ){ 
+	    	if( !this.fall ) this.vy = acc*8;
+	    	else this.vy = 0;
+	    }
+
+	    
+
+	    
+        //if(anim==='walk' || anim==='run')
+
+
+	    // gravity
+	    let g = this.vy - 9.81;
+
+	    this.tmpV1.set( this.rs, g, this.ts ).applyAxisAngle( { x:0, y:1, z:0 }, azimut );
+	    //math.tmpV2.set( 0, rs, 0 );
+	    this.tmpV2.set( 0, 0, 0 );
+
+	    phy.update({ 
+		    name:this.name, 
+		    //force: this.tmpV1.toArray(), forceMode:'velocity', 
+		    linearVelocity: this.tmpV1.toArray(), 
+		    /*angularVelocity: this.tmpV2.toArray(),*/ 
+		    wake:true/*, 
+		    noGravity:true*/ 
+		});
+
+
+	   // if(anim!=='idle') this.model.setRotation( 0, azimut + Math.PI, 0, 0.25 )
+        
+        if( !this.model ) return
+
+        //this.model.setWeight( 'idle', 1-jj )
+	    /*this.model.setWeight( 'Jog Forward', -this.ease.x )
+	    this.model.setWeight( 'Jog Backward', this.ease.x )
+	    this.model.setWeight( 'Jog Strafe Left',-this.ease.z )
+	    this.model.setWeight( 'Jog Strafe Right', this.ease.z )*/
+	    
+	   
+
+	    //if(anim!=='idle') this.model.syncro('Jog Forward')
+
+	    //console.log(tmpAcc)
+
+        
+	    if( this.jump ){
+	    	this.model.play( 'Jump', 0 );
+	    	this.model.timescale( 1 );
+	    }else {
+	    	this.model.play( mAnim, 0.25 );
+	    	this.model.timescale( 1.25 );
+	    }
+
+	    if( anim !== 'idle' ){
+
+	    	let pp = math$1.unwrapRad( this.model.rotation.y );
+	    	//if( anim === 'fight' ) pp = math.unwrapRad( azimut + Math.PI )
+	    	let aa = math$1.nearAngle( angle, pp );
+	    	this.model.rotation.y = anim === 'fight' ? (azimut + Math.PI) : math$1.lerp( pp, aa, 0.25 );
+	    	this.model.updateMatrix();
+	    }
+
+
+	    
+
+	    
+
+	}
+
+
+}
+
+const math = {
+
+	torad: Math.PI / 180,
+	todeg: 180 / Math.PI,
+	Pi: Math.PI,
+	TwoPI: Math.PI*2,
+	PI90: Math.PI*0.5,
+	PI45: Math.PI*0.25,
+	PI270: (Math.PI*0.5)*3,
+	inv255: 0.003921569,
+	golden: 1.618033,
+	epsilon: Math.pow( 2, - 52 ),
+
+	randomSign: () => ( Math.random() < 0.5 ? -1 : 1 ),
+	randSpread: ( range ) => ( range * ( 0.5 - Math.random() ) ),
+	rand: ( low = 0, high = 1 ) => ( low + Math.random() * ( high - low ) ),
+	randInt: ( low, high ) => ( low + Math.floor( Math.random() * ( high - low + 1 ) ) ),
+	toFixed: ( x, n = 3 ) => ( x.toFixed(n) * 1 ),
+	int: ( x ) => ( Math.floor(x) ),
+	lerp: ( x, y, t ) => ( ( 1 - t ) * x + t * y ),
+	clamp: ( v, min, max ) => ( Math.max( min, Math.min( max, v )) ),
+	nearEquals: ( a, b, t ) => ( Math.abs(a - b) <= t ? true : false ),
+	lerpAr: ( ar, arx, ary, t ) => {
+		let i = ar.length;
+		while( i-- ) ar[i] = math.lerp( arx[i], ary[i], t );
+	},
+
+    unwrapDeg: ( r ) => (r - (Math.floor((r + 180)/360))*360), 
+	//unwrapRad: ( r ) => (r - (Math.floor((r + Math.PI)/(2*Math.PI)))*2*Math.PI),
+	unwrapRad: ( r ) => ( Math.atan2(Math.sin(r), Math.cos(r)) ),
+
+
+	scaleArray: ( ar, scale ) => {
+
+		var i = ar.length;
+		while( i-- ){ ar[i] *= scale; }		return ar;
+
+	},
+
+	addArray: ( ar, ar2 ) => {
+
+		var r = [];
+		var i = ar.length;
+		while( i-- ){ r[i] = ar[i] + ar2[i]; }		return r;
+
+	},
+
+	angleDistance:(cur, prv)=> {
+		var diff = (cur - prv + 180) % 360 - 180;
+		return diff < -180 ? diff + 360 : diff;
+	},
+
+
+
+
+	/*map: ( value, in_min, in_max, out_min, out_max ) => ( (value - in_min) * (out_max - out_min) / (in_max - in_min) + out_min ),
+	
+	smoothLerp: ( a, b, c, t, k ) => {
+
+        var f = a - b + (c - b) / (k * t);
+        return c - (c - b) / ( k * t ) + f * Math.exp(-k*t);
+
+    },
+
+    smoothLerpV: ( a, b, c, t, k ) => {
+
+    	let x = math.smoothLerp( a.x, b.x, c.x, t, k );
+    	let y = math.smoothLerp( a.y, b.y, c.y, t, k );
+    	let z = math.smoothLerp( a.z, b.z, c.z, t, k );
+
+    	return { x:x, y:y, z:z }
+
+    },
+
+	minValue: ( ar ) => {
+
+		let v = ar[0];
+		for (let i = 1, l=ar.length; i<l; i++){ if( ar[i] < v ) v = ar[i]; }
+		return v;
+
+	},
+
+	clamp: function (v, min, max) {
+
+		//return Math.max( min, Math.min( max, value ) );
+	    v = v < min ? min : v;
+	    v = v > max ? max : v;
+	    return v;
+	},
+
+	autoSize: ( o ) => {
+
+		let s = o.size === undefined ? [ 1, 1, 1 ] : o.size;
+		if ( s.length === 1 ) s[ 1 ] = s[ 0 ];
+
+		let type = o.type === undefined ? 'box' : o.type;
+		let radius = o.radius === undefined ? s[0] : o.radius;
+		let height = o.height === undefined ? s[1] : o.height;
+
+		if( type === 'sphere' ) s = [ radius, radius, radius ];
+		if( type === 'cylinder' || type === 'wheel' || type === 'capsule' ) s = [ radius, height, radius ];
+		if( type === 'cone' || type === 'pyramid' ) s = [ radius, height, 0 ];
+
+	    if ( s.length === 2 ) s[ 2 ] = s[ 0 ];
+	    return s;
+
+	},
+
+	correctSize: ( s ) => {
+
+		if ( s.length === 1 ) s[ 1 ] = s[ 0 ];
+	    if ( s.length === 2 ) s[ 2 ] = s[ 0 ];
+	    return s;
+
+	},*/
+
+	tmpE: new Euler(),
+	tmpM: new Matrix4(),
+	tmpM2: new Matrix4(),
+	tmpV: new Vector3(),
+	tmpQ: new Quaternion(),
+
+	fromTransformToQ: ( p, q, inv ) => {
+
+		inv = inv || false;
+
+		math.tmpM.compose( math.tmpV.fromArray( p ), math.tmpQ.fromArray( q ), { x:1, y:1, z:1 } );
+		math.tmpM.decompose( math.tmpV, math.tmpQ, { x:1, y:1, z:1 } );
+
+		//math.tmpQ.fromArray( q )
+
+		if(inv) math.tmpQ.invert();
+
+		return math.tmpQ.toArray();
+
+	},
+
+	fromTransform: ( p, q, p2, q2, inv ) => {
+
+		inv = inv || false;
+		q2 = q2 || [0,0,0,1];
+
+		math.tmpM.compose( math.tmpV.fromArray( p ), math.tmpQ.fromArray( q ), { x:1, y:1, z:1 } );
+		math.tmpM2.compose( math.tmpV.fromArray( p2 ), math.tmpQ.fromArray( q2 ), { x:1, y:1, z:1 } );
+		if( inv ){
+			//math.tmpM.getInverse( math.tmpM );
+			math.tmpM.invert();
+			math.tmpM.multiply( math.tmpM2 );
+		} else {
+			math.tmpM.multiply( math.tmpM2 );
+		}
+
+		math.tmpM.decompose( math.tmpV, math.tmpQ, { x:1, y:1, z:1 } );
+
+		return math.tmpV.toArray();
+
+	},
+
+	arCopy: ( a, b ) => {
+
+		[...b];
+
+		//for( var i = 0; i< b.length; i++ ) a[i] = b[i];
+
+	},
+
+	axisToQuatArray: ( r, isdeg ) => { // r[0] array in degree
+
+		isdeg = isdeg || false;
+		return math.tmpQ.setFromAxisAngle( math.tmpV.fromArray( r, 1 ), isdeg ? r[0]*math.torad : r[0]).normalize().toArray();
+
+	},
+
+	toQuatArray: ( rotation ) => { // rotation array in degree
+
+		return math.tmpQ.setFromEuler( math.tmpE.fromArray( math.vectorad( rotation ) ) ).toArray();
+
+	},
+
+	vectorad: ( r ) => {
+
+		let i = 3, nr = [];
+	    while ( i -- ) nr[ i ] = r[ i ] * math.torad;
+	    nr[3] = r[3];
+	    return nr;
+
+	},
+/*
+	directionVector: ( a, b ) => {
+
+	    var x = b.x-a.x;
+	    var y = b.y-a.y;
+	    var z = b.z-a.z;
+	    var d = math.tmpV.set( x, 0, z ).normalize().toArray();
+	    return d;
+
+	},
+
+	distanceVector: ( a, b ) => {
+
+	    var x = b.x-a.x;
+	    var y = b.y-a.y;
+	    var z = b.z-a.z;
+	    var d = Math.sqrt( x*x + y*y + z*z );
+	    return d;
+
+	},*/
+
+
+	//--------------------
+	//   COLORS
+	//--------------------
+
+	rgbToHex: ( rgb ) => {
+
+	    return '0x' + ( '000000' + ( ( rgb[0] * 255 ) << 16 ^ ( rgb[1] * 255 ) << 8 ^ ( rgb[2] * 255 ) << 0 ).toString( 16 ) ).slice( - 6 );
+
+	},
+
+	hexToRgb: ( hex ) => {
+
+	    hex = Math.floor( hex );
+	    var r = ( hex >> 16 & 255 ) / 255;
+	    var g = ( hex >> 8 & 255 ) / 255;
+	    var b = ( hex & 255 ) / 255;
+	    return [ r, g, b ];
+
+	},
+
+	htmlToHex: ( v ) => {
+
+	    return v.toUpperCase().replace("#", "0x");
+
+	},
+
+	hexToHtml: ( v ) => {
+
+	    v = v === undefined ? 0x000000 : v;
+	    return "#" + ("000000" + v.toString(16)).substr(-6);
+
+	},
+
+	rgbToHtml: ( rgb ) => {
+
+	    return '#' + ( '000000' + ( ( rgb[0] * 255 ) << 16 ^ ( rgb[1] * 255 ) << 8 ^ ( rgb[2] * 255 ) << 0 ).toString( 16 ) ).slice( - 6 );
+
+	},
+
+
+	//--------------------
+	//   NOISE
+	//--------------------
+
+	perlin: null,
+
+	resetPerlin:()=>{
+		if( math.perlin !== null ) math.perlin = null;
+	},
+
+	noise: ( v, o ) => {
+
+	    if( math.perlin === null ) math.perlin = new SimplexNoise();
+
+	    o = o || {};
+
+	    let level = o.level || [1,0.2,0.05];
+	    let frequency  = o.frequency  || [0.016,0.05,0.2];
+
+	    let i, f, c=0, d=0;
+
+	    for(i=0; i<level.length; i++){
+
+	        f = frequency [i];
+	        c += level[i] * ( 0.5 + math.perlin.noise3d( v.x*f, v.y*f, v.z*f ) * 0.5 );
+	        d += level[i];
+
+	    }
+
+	    c/=d;
+
+	    return c;
+
+	},
+
+	/*radArray: (arr) => {
+		var ret = [];
+		for(var i = 0; i < 3; i++)
+			ret[i] = arr[i] * math.torad;
+
+		return ret;
+	},
+
+	degArray: (arr) => {
+		var ret = [];
+		for(var i = 0; i < 3; i++)
+			ret[i] = arr[i] * math.todeg;
+
+		return ret;
+	},
+
+	angleDistance: (cur, prv) =>{
+		var diff = (cur - prv + 180) % 360 - 180;
+		return diff < -180 ? diff + 360 : diff;
+	}*/
+
+};
+
+class SimplexNoise {
+
+	constructor ( r ) {
+
+		if (r == undefined) r = Math;
+		this.grad3 = [[ 1,1,0 ],[ -1,1,0 ],[ 1,-1,0 ],[ -1,-1,0 ],
+	        [ 1,0,1 ],[ -1,0,1 ],[ 1,0,-1 ],[ -1,0,-1 ],
+	        [ 0,1,1 ],[ 0,-1,1 ],[ 0,1,-1 ],[ 0,-1,-1 ]];
+
+		this.grad4 = [[ 0,1,1,1 ], [ 0,1,1,-1 ], [ 0,1,-1,1 ], [ 0,1,-1,-1 ],
+		     [ 0,-1,1,1 ], [ 0,-1,1,-1 ], [ 0,-1,-1,1 ], [ 0,-1,-1,-1 ],
+		     [ 1,0,1,1 ], [ 1,0,1,-1 ], [ 1,0,-1,1 ], [ 1,0,-1,-1 ],
+		     [ -1,0,1,1 ], [ -1,0,1,-1 ], [ -1,0,-1,1 ], [ -1,0,-1,-1 ],
+		     [ 1,1,0,1 ], [ 1,1,0,-1 ], [ 1,-1,0,1 ], [ 1,-1,0,-1 ],
+		     [ -1,1,0,1 ], [ -1,1,0,-1 ], [ -1,-1,0,1 ], [ -1,-1,0,-1 ],
+		     [ 1,1,1,0 ], [ 1,1,-1,0 ], [ 1,-1,1,0 ], [ 1,-1,-1,0 ],
+		     [ -1,1,1,0 ], [ -1,1,-1,0 ], [ -1,-1,1,0 ], [ -1,-1,-1,0 ]];
+
+		this.p = [];
+		for (var i = 0; i < 256; i ++) {
+			this.p[i] = Math.floor(r.random() * 256);
+		}
+	  // To remove the need for index wrapping, double the permutation table length
+		this.perm = [];
+		for (var i = 0; i < 512; i ++) {
+			this.perm[i] = this.p[i & 255];
+		}
+
+	  // A lookup table to traverse the simplex around a given point in 4D.
+	  // Details can be found where this table is used, in the 4D noise method.
+		this.simplex = [
+	    [ 0,1,2,3 ],[ 0,1,3,2 ],[ 0,0,0,0 ],[ 0,2,3,1 ],[ 0,0,0,0 ],[ 0,0,0,0 ],[ 0,0,0,0 ],[ 1,2,3,0 ],
+	    [ 0,2,1,3 ],[ 0,0,0,0 ],[ 0,3,1,2 ],[ 0,3,2,1 ],[ 0,0,0,0 ],[ 0,0,0,0 ],[ 0,0,0,0 ],[ 1,3,2,0 ],
+	    [ 0,0,0,0 ],[ 0,0,0,0 ],[ 0,0,0,0 ],[ 0,0,0,0 ],[ 0,0,0,0 ],[ 0,0,0,0 ],[ 0,0,0,0 ],[ 0,0,0,0 ],
+	    [ 1,2,0,3 ],[ 0,0,0,0 ],[ 1,3,0,2 ],[ 0,0,0,0 ],[ 0,0,0,0 ],[ 0,0,0,0 ],[ 2,3,0,1 ],[ 2,3,1,0 ],
+	    [ 1,0,2,3 ],[ 1,0,3,2 ],[ 0,0,0,0 ],[ 0,0,0,0 ],[ 0,0,0,0 ],[ 2,0,3,1 ],[ 0,0,0,0 ],[ 2,1,3,0 ],
+	    [ 0,0,0,0 ],[ 0,0,0,0 ],[ 0,0,0,0 ],[ 0,0,0,0 ],[ 0,0,0,0 ],[ 0,0,0,0 ],[ 0,0,0,0 ],[ 0,0,0,0 ],
+	    [ 2,0,1,3 ],[ 0,0,0,0 ],[ 0,0,0,0 ],[ 0,0,0,0 ],[ 3,0,1,2 ],[ 3,0,2,1 ],[ 0,0,0,0 ],[ 3,1,2,0 ],
+	    [ 2,1,0,3 ],[ 0,0,0,0 ],[ 0,0,0,0 ],[ 0,0,0,0 ],[ 3,1,0,2 ],[ 0,0,0,0 ],[ 3,2,0,1 ],[ 3,2,1,0 ]];
+	}
+
+	dot (g, x, y) {
+		return g[0] * x + g[1] * y;
+	}
+
+	dot3 (g, x, y, z) {
+		return g[0] * x + g[1] * y + g[2] * z;
+	}
+
+	dot4 (g, x, y, z, w) {
+		return g[0] * x + g[1] * y + g[2] * z + g[3] * w;
+	}
+
+	noise (xin, yin) {
+		var n0, n1, n2; // Noise contributions from the three corners
+	  // Skew the input space to determine which simplex cell we're in
+		var F2 = 0.5 * (Math.sqrt(3.0) - 1.0);
+		var s = (xin + yin) * F2; // Hairy factor for 2D
+		var i = Math.floor(xin + s);
+		var j = Math.floor(yin + s);
+		var G2 = (3.0 - Math.sqrt(3.0)) / 6.0;
+		var t = (i + j) * G2;
+		var X0 = i - t; // Unskew the cell origin back to (x,y) space
+		var Y0 = j - t;
+		var x0 = xin - X0; // The x,y distances from the cell origin
+		var y0 = yin - Y0;
+	  // For the 2D case, the simplex shape is an equilateral triangle.
+	  // Determine which simplex we are in.
+		var i1, j1; // Offsets for second (middle) corner of simplex in (i,j) coords
+		if (x0 > y0) {i1 = 1; j1 = 0;} // lower triangle, XY order: (0,0)->(1,0)->(1,1)
+		else {i1 = 0; j1 = 1;}      // upper triangle, YX order: (0,0)->(0,1)->(1,1)
+	  // A step of (1,0) in (i,j) means a step of (1-c,-c) in (x,y), and
+	  // a step of (0,1) in (i,j) means a step of (-c,1-c) in (x,y), where
+	  // c = (3-sqrt(3))/6
+		var x1 = x0 - i1 + G2; // Offsets for middle corner in (x,y) unskewed coords
+		var y1 = y0 - j1 + G2;
+		var x2 = x0 - 1.0 + 2.0 * G2; // Offsets for last corner in (x,y) unskewed coords
+		var y2 = y0 - 1.0 + 2.0 * G2;
+	  // Work out the hashed gradient indices of the three simplex corners
+		var ii = i & 255;
+		var jj = j & 255;
+		var gi0 = this.perm[ii + this.perm[jj]] % 12;
+		var gi1 = this.perm[ii + i1 + this.perm[jj + j1]] % 12;
+		var gi2 = this.perm[ii + 1 + this.perm[jj + 1]] % 12;
+	  // Calculate the contribution from the three corners
+		var t0 = 0.5 - x0 * x0 - y0 * y0;
+		if (t0 < 0) n0 = 0.0;
+		else {
+			t0 *= t0;
+			n0 = t0 * t0 * this.dot(this.grad3[gi0], x0, y0);  // (x,y) of grad3 used for 2D gradient
+		}
+		var t1 = 0.5 - x1 * x1 - y1 * y1;
+		if (t1 < 0) n1 = 0.0;
+		else {
+			t1 *= t1;
+			n1 = t1 * t1 * this.dot(this.grad3[gi1], x1, y1);
+		}
+		var t2 = 0.5 - x2 * x2 - y2 * y2;
+		if (t2 < 0) n2 = 0.0;
+		else {
+			t2 *= t2;
+			n2 = t2 * t2 * this.dot(this.grad3[gi2], x2, y2);
+		}
+	  // Add contributions from each corner to get the final noise value.
+	  // The result is scaled to return values in the interval [-1,1].
+		return 70.0 * (n0 + n1 + n2);
+	}
+
+	// 3D simplex noise
+	noise3d (xin, yin, zin) {
+		var n0, n1, n2, n3; // Noise contributions from the four corners
+	  // Skew the input space to determine which simplex cell we're in
+		var F3 = 1.0 / 3.0;
+		var s = (xin + yin + zin) * F3; // Very nice and simple skew factor for 3D
+		var i = Math.floor(xin + s);
+		var j = Math.floor(yin + s);
+		var k = Math.floor(zin + s);
+		var G3 = 1.0 / 6.0; // Very nice and simple unskew factor, too
+		var t = (i + j + k) * G3;
+		var X0 = i - t; // Unskew the cell origin back to (x,y,z) space
+		var Y0 = j - t;
+		var Z0 = k - t;
+		var x0 = xin - X0; // The x,y,z distances from the cell origin
+		var y0 = yin - Y0;
+		var z0 = zin - Z0;
+	  // For the 3D case, the simplex shape is a slightly irregular tetrahedron.
+	  // Determine which simplex we are in.
+		var i1, j1, k1; // Offsets for second corner of simplex in (i,j,k) coords
+		var i2, j2, k2; // Offsets for third corner of simplex in (i,j,k) coords
+		if (x0 >= y0) {
+			if (y0 >= z0)
+	      { i1 = 1; j1 = 0; k1 = 0; i2 = 1; j2 = 1; k2 = 0; } // X Y Z order
+	      else if (x0 >= z0) { i1 = 1; j1 = 0; k1 = 0; i2 = 1; j2 = 0; k2 = 1; } // X Z Y order
+			else { i1 = 0; j1 = 0; k1 = 1; i2 = 1; j2 = 0; k2 = 1; } // Z X Y order
+		}
+		else { // x0<y0
+			if (y0 < z0) { i1 = 0; j1 = 0; k1 = 1; i2 = 0; j2 = 1; k2 = 1; } // Z Y X order
+	    else if (x0 < z0) { i1 = 0; j1 = 1; k1 = 0; i2 = 0; j2 = 1; k2 = 1; } // Y Z X order
+			else { i1 = 0; j1 = 1; k1 = 0; i2 = 1; j2 = 1; k2 = 0; } // Y X Z order
+		}
+	  // A step of (1,0,0) in (i,j,k) means a step of (1-c,-c,-c) in (x,y,z),
+	  // a step of (0,1,0) in (i,j,k) means a step of (-c,1-c,-c) in (x,y,z), and
+	  // a step of (0,0,1) in (i,j,k) means a step of (-c,-c,1-c) in (x,y,z), where
+	  // c = 1/6.
+		var x1 = x0 - i1 + G3; // Offsets for second corner in (x,y,z) coords
+		var y1 = y0 - j1 + G3;
+		var z1 = z0 - k1 + G3;
+		var x2 = x0 - i2 + 2.0 * G3; // Offsets for third corner in (x,y,z) coords
+		var y2 = y0 - j2 + 2.0 * G3;
+		var z2 = z0 - k2 + 2.0 * G3;
+		var x3 = x0 - 1.0 + 3.0 * G3; // Offsets for last corner in (x,y,z) coords
+		var y3 = y0 - 1.0 + 3.0 * G3;
+		var z3 = z0 - 1.0 + 3.0 * G3;
+	  // Work out the hashed gradient indices of the four simplex corners
+		var ii = i & 255;
+		var jj = j & 255;
+		var kk = k & 255;
+		var gi0 = this.perm[ii + this.perm[jj + this.perm[kk]]] % 12;
+		var gi1 = this.perm[ii + i1 + this.perm[jj + j1 + this.perm[kk + k1]]] % 12;
+		var gi2 = this.perm[ii + i2 + this.perm[jj + j2 + this.perm[kk + k2]]] % 12;
+		var gi3 = this.perm[ii + 1 + this.perm[jj + 1 + this.perm[kk + 1]]] % 12;
+	  // Calculate the contribution from the four corners
+		var t0 = 0.6 - x0 * x0 - y0 * y0 - z0 * z0;
+		if (t0 < 0) n0 = 0.0;
+		else {
+			t0 *= t0;
+			n0 = t0 * t0 * this.dot3(this.grad3[gi0], x0, y0, z0);
+		}
+		var t1 = 0.6 - x1 * x1 - y1 * y1 - z1 * z1;
+		if (t1 < 0) n1 = 0.0;
+		else {
+			t1 *= t1;
+			n1 = t1 * t1 * this.dot3(this.grad3[gi1], x1, y1, z1);
+		}
+		var t2 = 0.6 - x2 * x2 - y2 * y2 - z2 * z2;
+		if (t2 < 0) n2 = 0.0;
+		else {
+			t2 *= t2;
+			n2 = t2 * t2 * this.dot3(this.grad3[gi2], x2, y2, z2);
+		}
+		var t3 = 0.6 - x3 * x3 - y3 * y3 - z3 * z3;
+		if (t3 < 0) n3 = 0.0;
+		else {
+			t3 *= t3;
+			n3 = t3 * t3 * this.dot3(this.grad3[gi3], x3, y3, z3);
+		}
+	  // Add contributions from each corner to get the final noise value.
+	  // The result is scaled to stay just inside [-1,1]
+		return 32.0 * (n0 + n1 + n2 + n3);
+	}
+
+	// 4D simplex noise
+	noise4d ( x, y, z, w ) {
+		// For faster and easier lookups
+		var grad4 = this.grad4;
+		var simplex = this.simplex;
+		var perm = this.perm;
+
+	   // The skewing and unskewing factors are hairy again for the 4D case
+		var F4 = (Math.sqrt(5.0) - 1.0) / 4.0;
+		var G4 = (5.0 - Math.sqrt(5.0)) / 20.0;
+		var n0, n1, n2, n3, n4; // Noise contributions from the five corners
+	   // Skew the (x,y,z,w) space to determine which cell of 24 simplices we're in
+		var s = (x + y + z + w) * F4; // Factor for 4D skewing
+		var i = Math.floor(x + s);
+		var j = Math.floor(y + s);
+		var k = Math.floor(z + s);
+		var l = Math.floor(w + s);
+		var t = (i + j + k + l) * G4; // Factor for 4D unskewing
+		var X0 = i - t; // Unskew the cell origin back to (x,y,z,w) space
+		var Y0 = j - t;
+		var Z0 = k - t;
+		var W0 = l - t;
+		var x0 = x - X0;  // The x,y,z,w distances from the cell origin
+		var y0 = y - Y0;
+		var z0 = z - Z0;
+		var w0 = w - W0;
+
+	   // For the 4D case, the simplex is a 4D shape I won't even try to describe.
+	   // To find out which of the 24 possible simplices we're in, we need to
+	   // determine the magnitude ordering of x0, y0, z0 and w0.
+	   // The method below is a good way of finding the ordering of x,y,z,w and
+	   // then find the correct traversal order for the simplex we’re in.
+	   // First, six pair-wise comparisons are performed between each possible pair
+	   // of the four coordinates, and the results are used to add up binary bits
+	   // for an integer index.
+		var c1 = (x0 > y0) ? 32 : 0;
+		var c2 = (x0 > z0) ? 16 : 0;
+		var c3 = (y0 > z0) ? 8 : 0;
+		var c4 = (x0 > w0) ? 4 : 0;
+		var c5 = (y0 > w0) ? 2 : 0;
+		var c6 = (z0 > w0) ? 1 : 0;
+		var c = c1 + c2 + c3 + c4 + c5 + c6;
+		var i1, j1, k1, l1; // The integer offsets for the second simplex corner
+		var i2, j2, k2, l2; // The integer offsets for the third simplex corner
+		var i3, j3, k3, l3; // The integer offsets for the fourth simplex corner
+	   // simplex[c] is a 4-vector with the numbers 0, 1, 2 and 3 in some order.
+	   // Many values of c will never occur, since e.g. x>y>z>w makes x<z, y<w and x<w
+	   // impossible. Only the 24 indices which have non-zero entries make any sense.
+	   // We use a thresholding to set the coordinates in turn from the largest magnitude.
+	   // The number 3 in the "simplex" array is at the position of the largest coordinate.
+		i1 = simplex[c][0] >= 3 ? 1 : 0;
+		j1 = simplex[c][1] >= 3 ? 1 : 0;
+		k1 = simplex[c][2] >= 3 ? 1 : 0;
+		l1 = simplex[c][3] >= 3 ? 1 : 0;
+	   // The number 2 in the "simplex" array is at the second largest coordinate.
+		i2 = simplex[c][0] >= 2 ? 1 : 0;
+		j2 = simplex[c][1] >= 2 ? 1 : 0;    k2 = simplex[c][2] >= 2 ? 1 : 0;
+		l2 = simplex[c][3] >= 2 ? 1 : 0;
+	   // The number 1 in the "simplex" array is at the second smallest coordinate.
+		i3 = simplex[c][0] >= 1 ? 1 : 0;
+		j3 = simplex[c][1] >= 1 ? 1 : 0;
+		k3 = simplex[c][2] >= 1 ? 1 : 0;
+		l3 = simplex[c][3] >= 1 ? 1 : 0;
+	   // The fifth corner has all coordinate offsets = 1, so no need to look that up.
+		var x1 = x0 - i1 + G4; // Offsets for second corner in (x,y,z,w) coords
+		var y1 = y0 - j1 + G4;
+		var z1 = z0 - k1 + G4;
+		var w1 = w0 - l1 + G4;
+		var x2 = x0 - i2 + 2.0 * G4; // Offsets for third corner in (x,y,z,w) coords
+		var y2 = y0 - j2 + 2.0 * G4;
+		var z2 = z0 - k2 + 2.0 * G4;
+		var w2 = w0 - l2 + 2.0 * G4;
+		var x3 = x0 - i3 + 3.0 * G4; // Offsets for fourth corner in (x,y,z,w) coords
+		var y3 = y0 - j3 + 3.0 * G4;
+		var z3 = z0 - k3 + 3.0 * G4;
+		var w3 = w0 - l3 + 3.0 * G4;
+		var x4 = x0 - 1.0 + 4.0 * G4; // Offsets for last corner in (x,y,z,w) coords
+		var y4 = y0 - 1.0 + 4.0 * G4;
+		var z4 = z0 - 1.0 + 4.0 * G4;
+		var w4 = w0 - 1.0 + 4.0 * G4;
+	   // Work out the hashed gradient indices of the five simplex corners
+		var ii = i & 255;
+		var jj = j & 255;
+		var kk = k & 255;
+		var ll = l & 255;
+		var gi0 = perm[ii + perm[jj + perm[kk + perm[ll]]]] % 32;
+		var gi1 = perm[ii + i1 + perm[jj + j1 + perm[kk + k1 + perm[ll + l1]]]] % 32;
+		var gi2 = perm[ii + i2 + perm[jj + j2 + perm[kk + k2 + perm[ll + l2]]]] % 32;
+		var gi3 = perm[ii + i3 + perm[jj + j3 + perm[kk + k3 + perm[ll + l3]]]] % 32;
+		var gi4 = perm[ii + 1 + perm[jj + 1 + perm[kk + 1 + perm[ll + 1]]]] % 32;
+	   // Calculate the contribution from the five corners
+		var t0 = 0.6 - x0 * x0 - y0 * y0 - z0 * z0 - w0 * w0;
+		if (t0 < 0) n0 = 0.0;
+		else {
+			t0 *= t0;
+			n0 = t0 * t0 * this.dot4(grad4[gi0], x0, y0, z0, w0);
+		}
+		var t1 = 0.6 - x1 * x1 - y1 * y1 - z1 * z1 - w1 * w1;
+		if (t1 < 0) n1 = 0.0;
+		else {
+			t1 *= t1;
+			n1 = t1 * t1 * this.dot4(grad4[gi1], x1, y1, z1, w1);
+		}
+		var t2 = 0.6 - x2 * x2 - y2 * y2 - z2 * z2 - w2 * w2;
+		if (t2 < 0) n2 = 0.0;
+		else {
+			t2 *= t2;
+			n2 = t2 * t2 * this.dot4(grad4[gi2], x2, y2, z2, w2);
+		}   var t3 = 0.6 - x3 * x3 - y3 * y3 - z3 * z3 - w3 * w3;
+		if (t3 < 0) n3 = 0.0;
+		else {
+			t3 *= t3;
+			n3 = t3 * t3 * this.dot4(grad4[gi3], x3, y3, z3, w3);
+		}
+		var t4 = 0.6 - x4 * x4 - y4 * y4 - z4 * z4 - w4 * w4;
+		if (t4 < 0) n4 = 0.0;
+		else {
+			t4 *= t4;
+			n4 = t4 * t4 * this.dot4(grad4[gi4], x4, y4, z4, w4);
+		}
+	   // Sum up and scale the result to cover the range [-1,1]
+		return 27.0 * (n0 + n1 + n2 + n3 + n4);
+	}
+
+}
 
 class Landscape extends Mesh {
 
@@ -20166,12 +20226,15 @@ class Landscape extends Mesh {
         super();
 
         this.ready = false;
+        this.needUpdate = false;
 
         this.type = 'terrain';
         this.name = o.name;
 
+        this.folder = o.folder || './assets/textures/terrain/';
+
         this.mapN = 0;
-        this.mapMax = 6;
+        this.mapMax = 7;//7
 
         // terrain, water, road
         this.ttype = o.terrainType || 'terrain';
@@ -20185,6 +20248,38 @@ class Landscape extends Mesh {
 
         this.sample = o.sample == undefined ? [128,128] : o.sample;
         this.size = o.size === undefined ? [100,30,100] : o.size;
+
+        let sx = this.sample[0] - 1;
+        let sz = this.sample[1] - 1;
+
+        this.rx = sx / this.size[0];
+        this.rz = sz / this.size[2];
+
+        this.zone = o.zone || 1;
+
+        // why ??
+        /*let pp = 0
+        if( this.zone === 0.5 ) pp=2
+        if( this.zone === 0.25 ) pp=3
+        if( this.zone === 0.125 ) pp=7*/
+        let square = [this.size[0]/sx, this.size[2]/sz];
+        //let dx = (this.size[0]/sx)//*pp
+        //let dz = (this.size[2]/sz)//**pp
+
+        
+
+        this.sampleZ = [o.sample[0] * this.zone, o.sample[1] * this.zone];
+        //this.sizeZ = [(o.size[0]-dx) * this.zone, o.size[1], (o.size[2]-dz) * this.zone];
+
+        this.sizeZ = [(this.sampleZ[0]-1) * square[0], o.size[1], ((this.sampleZ[1]-1)) * square[1]];
+
+        this.lng = this.sample[0] * this.sample[1];
+        this.lngZ = this.sampleZ[0] * this.sampleZ[1];
+
+        //console.log(  this.sample, this.sampleZ)
+
+        this.getZid();
+
 
         this.data = {
             level: o.level || [1,0.2,0.05],
@@ -20220,25 +20315,24 @@ class Landscape extends Mesh {
 
         this.pp = new Vector3();
 
-        this.lng = this.sample[0] * this.sample[1];
-        var sx = this.sample[0] - 1;
-        var sz = this.sample[1] - 1;
-        this.rx = sx / this.size[0];
-        this.rz = sz / this.size[2];
+        
+
+        this.ratioZ = 1 / this.sampleZ[0];
         this.ratio = 1 / this.sample[0];
         this.ruvx =  1.0 / ( this.size[0] / this.uvx[0] );
         this.ruvy = - ( 1.0 / ( this.size[2] / this.uvx[1] ) );
 
         this.is64 = o.is64 || false;
-
         this.isTurn = o.turn || false;
 
-        this.heightData = new Float32Array( this.lng );//[]//new Float64Array( this.lng )//[];//this.is64 ? new Float64Array( this.lng ) : new Float32Array( this.lng );
+        this.heightData = new Float32Array( this.lngZ );
         this.height = [];
 
+        // for physx 
         this.isAbsolute = o.isAbsolute || false;
-        this.isReverse = o.isReverse || false;
         this.isTurned = o.isTurned || false;
+
+        this.isReverse = o.isReverse || false;
 
         this.changeId = this.isReverse || this.isTurned;
        // console.log(this.changeId)
@@ -20271,29 +20365,31 @@ class Landscape extends Mesh {
 
             name = maps[i];
 
-            txt[name] = Pool$1.directTexture('./assets/textures/terrain/'+name+'.jpg', { flip:false, repeat:this.uvx, encoding:o.encoding || true , callback: this.mapcallback.bind(this)  });
-            txt[name+'_n'] = Pool$1.directTexture('./assets/textures/terrain/'+name+'_n.jpg', { flip:false, repeat:this.uvx, callback: this.mapcallback.bind(this) });
+            txt[name+'_c'] = Pool.directTexture(this.folder + name +'_c.jpg', { flip:false, repeat:this.uvx, encoding:o.encoding || true , callback: this.mapcallback.bind(this)  });
+            txt[name+'_n'] = Pool.directTexture(this.folder + name +'_n.jpg', { flip:false, repeat:this.uvx, callback: this.mapcallback.bind(this) });
            // if( isORM )txt[name+'_n'] = Pool.directTexture('./assets/textures/terrain/'+name+'_n.jpg', { flip:false, repeat:this.uvx, callback: this.mapcallback.bind(this) });
 
         }
 
+        txt['noise'] = Pool.directTexture(this.folder + 'noise.png', { flip:false, repeat:[1,1], encoding:false , callback: this.mapcallback.bind(this)  });
+
         this.txt = txt;
 
-        this.material = new MeshStandardMaterial({ name:'terrain', vertexColors:true, color:0xFFFFFF, map:txt[maps[0]], normalMap:txt[maps[0]+'_n'] });
+        this.material = new MeshStandardMaterial({ name:'terrain', vertexColors:true, color:0xFFFFFF, map:txt[maps[0]+'_c'], normalMap:txt[maps[0]+'_n'] });
 
-        if( o.envmap !== undefined ) this.material.envMap = o.envmap; 
+        if( o.envmap !== undefined ) this.material.envMap = o.envmap;
 
         if( this.isWater ){
             this.material.transparent = true;
             this.material.opacity = o.opacity || 0.4;
             this.material.side = DoubleSide;
-            this.material.alphaMap = txt[maps[0]];
+            this.material.alphaMap = txt[maps[0]+'_c'];
             this.material.map = null;
-            this.material.metalnes  = 0.9;
+            this.material.metalness  = 0.9;
             this.material.roughness = 0.1;
         } else {
-            this.material.metalnes  = 0.25;
-            this.material.roughness = 0.7; 
+            this.material.metalness = o.metalness || 0.25;
+            this.material.roughness = o.roughness || 0.7; 
         }
 
         var ns = o.nScale || 1;
@@ -20309,11 +20405,15 @@ class Landscape extends Mesh {
 
                 uniforms['clevels'] = { value: clevels };
 
-                uniforms['map1'] = { value: txt[maps[1]] };
-                uniforms['map2'] = { value: txt[maps[2]] };
+                uniforms['map1'] = { value: txt[maps[1]+'_c'] };
+                uniforms['map2'] = { value: txt[maps[2]+'_c'] };
+
+                uniforms['complexMix'] = { value: 1 };
 
                 uniforms['normalMap1'] = { value: txt[maps[1]+'_n'] };
                 uniforms['normalMap2'] = { value: txt[maps[2]+'_n'] };
+
+                uniforms['noise'] = { value: txt['noise'] };
 
                 shader.uniforms = uniforms;
 
@@ -20352,9 +20452,8 @@ class Landscape extends Mesh {
 
        // super( this.geometry, this.material );
 
-        if(o.debuger){
-            var debuger = new Mesh( this.geometry, new MeshBasicMaterial({  vertexColors:VertexColors, wireframe:true, transparent:true, opacity:0.25 } ));
-            this.add( debuger );
+        if(o.debug){
+            this.debugZone(o);
         }
 
         //root.garbage.push( this.geometry );
@@ -20363,7 +20462,8 @@ class Landscape extends Mesh {
         if( this.wantBorder ) this.addBorder( o );
         if( this.wantBottom ) this.addBottom( o );
 
-        if( o.pos ) this.position.fromArray( o.pos );
+        if( o.pos )this.position.fromArray( o.pos );
+
 
         // rotation is in degree or Quaternion
         o.quat = o.quat === undefined ? [ 0, 0, 0, 1 ] : o.quat;
@@ -20376,7 +20476,38 @@ class Landscape extends Mesh {
         this.castShadow = true;
         this.receiveShadow = true;
 
+        Pool.set( 'terrain' + this.name, this.material );
+
         this.update();
+
+    }
+
+    getZid(){
+
+        this.zid = {};
+
+        let lx = (this.sample[0] - this.sampleZ[0])*0.5;
+        let lz = (this.sample[1] - this.sampleZ[1])*0.5;
+        let first = (this.sample[0] * lz) + lx;
+        let line = 0;
+        for (let j = 0; j<this.lngZ; j++ ){
+            //line = j % this.sampleZ[0];
+            line = Math.floor(j / this.sampleZ[0]);
+            this.zid[ first + j + (line*((lx*2))) ] = j;
+        }
+    }
+
+    debugZone(o) {
+
+        this.geometryZ = new PlaneGeometry( this.sizeZ[0], this.sizeZ[2], this.sampleZ[0] - 1, this.sampleZ[1] - 1 );
+        this.geometryZ.rotateX( -math.PI90 );
+        this.verticesZ = this.geometryZ.attributes.position.array;
+        
+        const debuger = new Mesh( this.geometryZ, new MeshBasicMaterial({color:0xff0000, wireframe:true } ));
+        if( o.pos ) debuger.position.fromArray( o.pos );
+        this.add( debuger );
+
+        
 
     }
 
@@ -20407,13 +20538,13 @@ class Landscape extends Mesh {
 
     	this.borderMaterial = new MeshStandardMaterial({ 
 
-    		vertexColors: VertexColors, 
+    		vertexColors: true, 
     		metalness: this.isWater ? 0.8 : 0.4, 
        		roughness: this.isWater ? 0.2 : 0.6, 
        
             //envMap: view.getEnvMap(),
             //normalMap:this.wn,
-            normalScale:this.isWater ?  [0.25,0.25]:[-1,-1],
+            normalScale:this.isWater ?  [0.25,0.25]:[2,2],
             transparent:this.isWater ? true : false,
             opacity: this.isWater ? (o.opacity || 0.8) : 1,
             envMap: o.envmap || null, 
@@ -20522,6 +20653,8 @@ class Landscape extends Mesh {
 
     }
 
+    
+
     getTri (){
 
         return this.geometry
@@ -20555,6 +20688,12 @@ class Landscape extends Mesh {
 
     }
 
+    findIdZ( x, z ){
+
+        return x+(z*this.sampleZ[1]) //|| 1;
+
+    }
+
     findId( x, z ){
 
         return x+(z*this.sample[1]) //|| 1;
@@ -20567,11 +20706,11 @@ class Landscape extends Mesh {
 
     }
 
-    findId3( x, z ){
+    /*findId3( x, z ){
 
         return z+(x*this.sample[0]) //|| 1;
 
-    }
+    }*/
 
     findPoint( x, z ){
 
@@ -20589,41 +20728,59 @@ class Landscape extends Mesh {
 
         this.invId = [];
 
-        let i = this.lng, x, z;
-        const sz = this.sample[1] - 1;
-        this.sample[0] - 1;
+        let i = this.lngZ, x, z;
+        const sz = this.sampleZ[1] - 1;
+        this.sampleZ[0] - 1;
 
         while(i--){
-            x = i % this.sample[0];
-            z = Math.floor( i * this.ratio );
+
+            x = i % this.sampleZ[0];
+            z = Math.floor( i * this.ratioZ );
             if( this.isReverse ) z = sz - z;
             //xr = sx - x;
             //this.invId[i] = this.findId( x, sz - z )//
-            this.invId[i] = this.isTurned ?  (this.lng-1)-this.findId( z, x ) : this.findId( x, z );
+            this.invId[i] = this.isTurned ?  (this.lngZ-1)-this.findIdZ( z, x ) : this.findIdZ( x, z );
 
             //console.log(i, this.findId( x, sz - z ), (this.lng-1)-this.findId( z, x ))
         }
 
     }
 
-    update ( wait ) {
+    set( o ) {
 
+        if( o.ease ) this.easing( o.key, o.azimut );
+        if( o.decal ) this.decal( o.decal, true );
+
+    }
+
+    decal( v, wait ){
+
+        this.local.x += v[0];
+        this.local.y += v[1];
+        this.local.z += v[2];
+        this.update( wait );
+
+    }
+
+    updateUv () {
 
         if( this.isWater ){ 
             this.material.normalMap.offset.x+=0.002;
             this.material.normalMap.offset.y+=0.001;
         } else {
-
             if(this.material.map){
                 this.material.map.offset.x = this.local.x * this.ruvx;
                 this.material.map.offset.y = this.local.z * this.ruvy;
             }
-            
         }
+
+    }
+
+    update ( wait ) {
 
         let v = this.pp;
         let cc = [1,1,1];
-        let i = this.lng, n, x, z,  c, id, result;
+        let i = this.lng, n, x, z,  c, id, result, idz;
         let oldz, oldh, ccY, ccc;
 
         while( i-- ){
@@ -20650,8 +20807,6 @@ class Landscape extends Mesh {
             c = c<0 ? 0:c;
             
             
-
-
             if( this.ttype === 'road' ) {
 
                 if(oldz === z){
@@ -20660,7 +20815,6 @@ class Landscape extends Mesh {
                 } else { 
                     oldz = z;
                     oldh = c;
-
                 }
 
                 //console.log(x)
@@ -20668,17 +20822,30 @@ class Landscape extends Mesh {
 
             this.height[ i ] = c;
 
-            id = this.changeId ? this.invId[i] : i;
+            ccY = (c * this.size[ 1 ]) + this.deep;
+            this.vertices[ n + 1 ] = ccY;
+
+            //id = this.changeId ? this.invId[i] : i;
             result = this.isAbsolute ? c : c * this.size[1];
 
-            // for physics
-            this.heightData[ id ] = result;
+            if( this.zid[ i ] !== undefined ){
+                idz = this.zid[ i ];
+                id = this.changeId ? this.invId[idz] : idz;
 
-            ccY = (c * this.size[ 1 ]) + this.deep;
+                 // for physics
+                this.heightData[ id ] = result;
+
+                // for debug
+                if(this.verticesZ) this.verticesZ[ ( idz * 3 ) + 1 ] = ccY;
+
+            }
+
+            // for physics
+            //this.heightData[ id ] = result;
 
             
 
-            this.vertices[ n + 1 ] = ccY;
+            
 
             if( this.isWater ){
 
@@ -20723,16 +20890,25 @@ class Landscape extends Mesh {
 
         }
 
-        this.updateGeometry();
+        if( wait ) this.needUpdate = true;
+        else this.updateGeometry();
 
         
 
-        if(this.ready) this.physicsUpdate( this.heightData );
+        if( this.ready ) this.physicsUpdate( this.name, this.heightData );
 
         this.ready = true;
 
         //if( phy ) root.view.update( { name:'terra', heightData:this.heightData, sample:this.sample } );
 
+    }
+
+    step (n) {
+
+        if( !this.needUpdate ) return
+        this.updateGeometry();
+        this.needUpdate = false;
+        
     }
 
     updateGeometry () {
@@ -20741,7 +20917,10 @@ class Landscape extends Mesh {
         this.geometry.attributes.color.needsUpdate = true;
         this.geometry.computeVertexNormals();
 
- 
+        this.updateUv();
+
+        if(this.geometryZ) this.geometryZ.attributes.position.needsUpdate = true;
+
         if( this.isBorder ){
         	this.borderGeometry.attributes.position.needsUpdate = true;
             this.borderGeometry.attributes.color.needsUpdate = true;
@@ -20753,11 +20932,18 @@ class Landscape extends Mesh {
 
 // SHADERS
 
+// about no tiles
+// https://iquilezles.org/articles/texturerepetition/
+
 const TerrainShader = {
 
     baseRemplace : /* glsl */`
         uniform vec3 diffuse; 
         uniform vec4 clevels;
+
+        uniform float complexMix;
+
+        uniform sampler2D noise;
 
         uniform sampler2D normalMap1;
         uniform sampler2D normalMap2;
@@ -20768,6 +20954,46 @@ const TerrainShader = {
         uniform float aoMapIntensity;
         uniform sampler2D map1;
         uniform sampler2D map2;
+
+        float sum( vec3 v ) { return v.x+v.y+v.z; }
+
+        vec4 textureNoTile( sampler2D mapper, in vec2 uv ){
+
+            // sample variation pattern    
+            float k = texture2D( noise, 0.005*uv ).x; // cheap (cache friendly) lookup    
+            
+            // compute index    
+            float index = k*8.0;
+            float f = fract( index );
+
+            float ia = floor( index );
+            float ib = ia + 1.0;
+            // or
+            //float ia = floor(index+0.5); // suslik's method (see comments)
+            //float ib = floor(index);
+            //f = min(f, 1.0-f)*2.0;
+
+            // offsets for the different virtual patterns    
+            vec2 offa = sin(vec2(3.0,7.0)*ia); // can replace with any other hash    
+            vec2 offb = sin(vec2(3.0,7.0)*ib); // can replace with any other hash    
+
+            // compute derivatives for mip-mapping    
+            vec2 dx = dFdx(uv);
+            vec2 dy = dFdy(uv);
+            
+            // sample the two closest virtual patterns    
+            vec3 cola = textureGrad( mapper, uv + offa, dx, dy ).xyz;
+            vec3 colb = textureGrad( mapper, uv + offb, dx, dy ).xyz;
+
+            // interpolate between the two virtual patterns    
+            return vec4( mix( cola, colb, smoothstep(0.2,0.8,f-0.1*sum(cola-colb)) ), 1.0);
+
+        }
+
+        vec4 textureMAP( sampler2D mapper, in vec2 uv ){
+            if( complexMix == 1.0 ) return textureNoTile( mapper, uv );
+            else return texture2D( mapper, uv );
+        }
 
         vec4 MappingMix( float slope, vec4 level, vec4 rocks, vec4 grasss, vec4 sands ){
             vec4 cc = rocks;
@@ -20784,9 +21010,9 @@ const TerrainShader = {
         float metalnessFactor = metalness;
         #ifdef USE_ROUGHNESSMAP
 
-            vec4 sandR = texture2D( roughnessMap, vUv );
-            vec4 grassR = texture2D( roughnessMap1, vUv );
-            vec4 rockR = texture2D( roughnessMap2, vUv );
+            vec4 sandR = textureMAP( roughnessMap, vUv );
+            vec4 grassR = textureMAP( roughnessMap1, vUv );
+            vec4 rockR = textureMAP( roughnessMap2, vUv );
 
             vec4 baseColorR = MappingMix( vColor.r, clevels, rockR, grassR, sandR );
             // reads channel G, compatible with a combined OcclusionRoughnessMetallic (RGB) texture
@@ -20810,9 +21036,10 @@ const TerrainShader = {
 
     map : /* glsl */`
         #ifdef USE_MAP
-            vec4 sand = texture2D( map, vUv );
-            vec4 grass = texture2D( map1, vUv );
-            vec4 rock = texture2D( map2, vUv );
+
+            vec4 sand = textureMAP( map, vUv );
+            vec4 grass = textureMAP( map1, vUv );
+            vec4 rock = textureMAP( map2, vUv ); 
 
             vec4 baseColor = MappingMix(vColor.r, clevels, rock, grass, sand);
             diffuseColor *= baseColor;
@@ -20824,9 +21051,10 @@ const TerrainShader = {
 
     normal : /* glsl */`
         #ifdef USE_NORMALMAP
-            vec4 sandN =  texture2D( normalMap, vUv );
-            vec4 grassN = texture2D( normalMap1, vUv );
-            vec4 rockN = texture2D( normalMap2, vUv );
+
+            vec4 sandN = textureMAP( normalMap, vUv );
+            vec4 grassN = textureMAP( normalMap1, vUv );
+            vec4 rockN = textureMAP( normalMap2, vUv );
 
             vec3 extraNormal = MappingMix(vColor.r, clevels, rockN, grassN, sandN).xyz * 2.0 - 1.0;
             extraNormal.xy *= normalScale;
@@ -20852,6 +21080,21 @@ class Terrain extends Item {
 
 		this.Utils = Utils;
 		this.type = 'terrain';
+		this.num = Num[this.type];
+
+	}
+
+	step ( AR, N ) {
+
+		let i = this.list.length, s;
+
+		while( i-- ){
+
+			s = this.list[i];
+			//n = N + ( i * this.num );
+			s.step();// AR[n] );
+
+		}
 
 	}
 
@@ -20864,7 +21107,18 @@ class Terrain extends Item {
 			o.isTurned = true;
 		}
 
+		if( root.engine !== 'OIMO'){
+			o.zone = 0.25;
+			//o.debuger = true
+		}
+
 		const t = new Landscape( o );
+
+		t.physicsUpdate = ( name, h ) =>{
+
+			root.flow.tmp.push( { name:name, heightData:h } );
+			//root.post({m:'change', o:{ name:'terra', heightData:h }})
+		};
 
 		// add to world
 		this.addToWorld( t, o.id );
@@ -20881,6 +21135,8 @@ class Terrain extends Item {
 		if( b === null ) b = this.byName( o.name );
 		if( b === null ) return
 
+		b.set(o);
+
 	}
 	
 }
@@ -20896,8 +21152,9 @@ const toPhysics = function( t ) {
 
 	if( root.engine === 'PHYSX' || root.engine === 'AMMO' ){
 		o.type = 'terrain';
-		o.size = t.size;
-		o.sample = t.sample;
+		o.size = t.sizeZ;
+		o.sample = t.sampleZ;
+		o.zone = t.zone;
 		o.heightData = t.heightData;
 	} else {
 		o.type = 'mesh';
@@ -21248,7 +21505,7 @@ class User {
     // 3 : axe R | top:down    -1>1
     // 4 : bouton A             0-1  jump / space
     // 5 : bouton B             0-1  roulade / shift ctrl
-    // 6 : bouton X             0-1  arme principale
+    // 6 : bouton X             0-1  arme principale / E
     // 7 : bouton Y             0-1  arme secondaire
     // 8 : gachette L up        0-1  
     // 9 : gachette R up        0-1
@@ -21273,7 +21530,7 @@ class User {
 		this.gamepad = new Gamepad( this.key ); 
 
 		this.useGamepad = false;
-		this.sameAxis = false;
+		this.sameAxis = true;
 
 		document.addEventListener( 'keydown', function(e){this.keyDown(e);}.bind(this), false );
         document.addEventListener( 'keyup', function(e){this.keyUp(e);}.bind(this), false );
@@ -21319,7 +21576,7 @@ class User {
 
                 case 32:          key[4] = 1; break; // space
                 case 17: case 67: key[5] = 1; break; // ctrl, C
-                case 69:          key[5] = 1; break; // E
+                case 69:          key[6] = 1; break; // E
                 
                 case 16:          key[7] = 1; break; // shift
                 //case 71:          view.hideGrid(); break; // G
@@ -21344,7 +21601,7 @@ class User {
 
                 case 32:          key[4] = 1; break; // space
                 case 17: case 67: key[5] = 1; break; // ctrl, C
-                case 69:          key[5] = 1; break; // E
+                case 69:          key[6] = 1; break; // E
                 
                 case 16:          key[7] = 1; break; // shift
                 //case 121:         noui(); break; // f10
@@ -21376,7 +21633,7 @@ class User {
 
                 case 32:          key[4] = 0; break; // space
                 case 17: case 67: key[5] = 0; break; // ctrl, C
-                case 69:          key[5] = 0; break; // E
+                case 69:          key[6] = 0; break; // E
                 
                 case 16:          key[7] = 0; break; // shift
             }
@@ -21398,7 +21655,7 @@ class User {
 
                 case 32:          key[4] = 0; break; // space
                 case 17: case 67: key[5] = 0; break; // ctrl, C
-                case 69:          key[5] = 0; break; // E
+                case 69:          key[6] = 0; break; // E
                 
                 case 16:          key[7] = 0; break; // shift
 
@@ -21498,7 +21755,7 @@ class Gamepad {
 */
 
 let items;
-
+let currentControle = null;
 let callback = null;
 let Ar, ArPos = {};
 let maxFps = 60;
@@ -21597,7 +21854,7 @@ class Motor {
 
 	static getScene () { return root.scene; }
 
-	//static getMat ( mode ) { return mat; }
+	static getMat () { return Mat; }
 
 	static getHideMat() { return Mat.get('hide'); }
 
@@ -21636,9 +21893,10 @@ class Motor {
 		root.post = Motor.post;
 		root.up = Motor.up;
 		root.update = Motor.update;
-
 		root.add = Motor.add;
 		root.remove = Motor.remove;
+
+		root.motor = this;
 
 		if( !o.direct ){ // is worker version
 
@@ -21711,7 +21969,14 @@ class Motor {
 
 	static flowReset ( ){
 
-		root.flow = { tmp:[], key:[], add:[], remove:[] };
+		root.flow = { 
+			current:'',
+			tmp:[],
+			key:[],
+			add:[],
+			remove:[],
+			point:[] 
+		};
 
 	}
 
@@ -21724,6 +21989,8 @@ class Motor {
 		}
 
 		Motor.cleartimout();
+
+		currentControle = null;
 
 		if( controls ) controls.resetAll();
 
@@ -21810,6 +22077,8 @@ class Motor {
 
 	}
 
+	static morph ( obj, name, value ){ Utils.morph( obj, name, value ); }
+
 	static getFps (){ return root.reflow.stat.fps }
 	
 	static getDelta2(){ return root.reflow.stat.delta }
@@ -21834,11 +22103,16 @@ class Motor {
 
 		//console.time('step')
 
+		root.delta = timer.delta;
+
 		Motor.stepItems();
 
 		// user key interaction 
 		root.flow.key = user.update();
+		root.flow.current = currentControle !== null ? currentControle.name : '';
 		//root.flow.tmp = []
+
+		if( currentControle !== null ) currentControle.move();
 
 		postUpdate( root.reflow.stat.delta );
 		//postUpdate( timer.delta )
@@ -21913,18 +22187,29 @@ class Motor {
 	static material ( o = {} ){
 
 		let m;
+		let isphy = false; 
+		if( o.thickness || o.sheen || o.clearcoat || o.transmission ) isphy = true;
+		if(o.normalScale){
+			if( !o.normalScale.isVector2 ) o.normalScale = new Vector2().fromArray(o.normalScale);
+		}
 		if( o.isMaterial ) m = o;
-		else m = new MeshPhysicalMaterial( o );
-
-
+		else m = isphy ? new MeshPhysicalMaterial( o ) : new MeshStandardMaterial( o );
 		if( mat[ m.name ] ) return null;
 
 	    Mat.set( m );
-
-		//mat[ m.name ] = m;
-		//root.extraMaterial( m )
-
 		return m;
+
+	}
+
+	static control ( name ){ // for character and vehicle
+
+		if(currentControle !== null){
+			if( name !== currentControle.name ){ 
+				currentControle = Motor.byName( name );
+			}
+		} else {
+			currentControle = Motor.byName( name );
+		}
 
 	}
 
@@ -21994,6 +22279,11 @@ class Motor {
 			items['solver'] = new Solver();
 		}
 
+		root.items = items;
+
+		//root.bodyRef = items.body
+		
+
 	}
 
 	static resetItems() {
@@ -22009,9 +22299,10 @@ class Motor {
 		Motor.upInstance();
 
 		// update follow camera
-		if( controls ){ 
-			if( controls.follow )controls.follow( Motor.getDelta() );
-		}
+		/*if( controls ){ 
+			if( controls.enableDamping && controls.enable ) controls.update()
+			if( controls.follow ) controls.follow( Motor.getDelta() )
+		}*/
 	}
 
 	static adds ( r = [] ){ for( let o in r ) Motor.add( r[o] ); }
@@ -22035,7 +22326,7 @@ class Motor {
 	
 	static remove ( name ){
 
-		if ( name.constructor === Array ) return Motor.removes( o )
+		if ( name.constructor === Array ) return Motor.removes( name )
 
 		let b = Motor.byName( name );
 		if( b === null ) return;
@@ -22052,24 +22343,25 @@ class Motor {
 
 	static change ( o = {}, direct = false ){
 
+		if( o.heightData ) return
+
 		//if ( o.constructor === Array ) return this.changes( o )
 
 		let b = Motor.byName( o.name );
 		if( b === null ) return null;
 		let type = b.type;
+
 		if( o.drivePosition ){
 			if( o.drivePosition.rot !== undefined ){  o.drivePosition.quat = math$1.toQuatArray( o.drivePosition.rot ); delete ( o.drivePosition.rot ); }
 		}
-		
 		if( o.rot !== undefined ){ o.quat = math$1.toQuatArray( o.rot ); delete ( o.rot ); }
-		if( o.localRot !== undefined ){ 
-			o.quat = math$1.toLocalQuatArray( o.localRot, b ); delete ( o.localRot ); 
-		}
+		if( o.localRot !== undefined ){ o.quat = math$1.toLocalQuatArray( o.localRot, b ); delete ( o.localRot ); }
 
 		switch( type ){
 
-			//case 'terrain': b = terrain.set( o, b ); break;
-			//case 'joint': b = joint.set( o, b ); break;
+			case 'terrain': b = items.terrain.set( o, b ); direct = false; break;
+			//case 'joint': b = items.joint.set( o, b ); break;
+			case 'character': b = items.character.set( o, b ); break;
 			case 'solid': b = items.solid.set( o, b ); break;
 			case 'ray': b = items.ray.set( o, b ); direct = false; break;
 			//case 'body': b = body.set( o, b ); break;
@@ -22098,7 +22390,9 @@ class Motor {
 		let mesh = null;
 
 		if ( typeof m === 'string' || m instanceof String ) mesh = m === '' ? null : Motor.byName( m );
-		else if ( m.isMesh || m.isGroup ) mesh = m;
+		else if ( m.isObject3D ) mesh = m;
+
+		//	console.log(m, mesh)
 
 		if( mesh === null ) controls.resetFollow();
 		else controls.startFollow( mesh, o );
@@ -22162,6 +22456,6 @@ class Solid extends Body {
 	step ( AR, N ) {}
 }
 
-const phy = Motor;
+const phy$1 = Motor;
 
-export { phy };
+export { phy$1 as phy };

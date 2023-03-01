@@ -1,5 +1,3 @@
-//import buble from 'rollup-plugin-buble';
-//import babel from '@rollup/plugin-babel';
 import { nodeResolve } from '@rollup/plugin-node-resolve';
 import { terser } from 'rollup-plugin-terser';
 
@@ -9,7 +7,7 @@ function polyfills() {
 
 		transform( code, filePath ) {
 
-			if ( filePath.endsWith( 'src/Phy.js' ) || filePath.endsWith( 'src\\Phy.js' ) ) {
+			if ( filePath.endsWith( 'src/Smoke.js' ) || filePath.endsWith( 'src\\Smoke.js' ) ) {
 
 				code = 'import \'regenerator-runtime\';\n' + code;
 
@@ -26,9 +24,10 @@ function polyfills() {
 
 }
 
+
 export default [
 	{
-		input: 'src/Phy.js',
+		input: 'src/Smoke.js',
 		external: ['three'],
 		plugins: [
 			polyfills(),
@@ -38,20 +37,21 @@ export default [
 		output: [
 			{
 				format: 'umd',
-				name: 'Phy',
-				file: 'build/Phy.min.js'
+				name: 'Smoke',
+				file: 'build/smoke.min.js'
 			}
 		]
 	},
 	{
-		input: 'src/Phy.js',
+		input: 'src/Smoke.js',
 		external: ['three'],
 		plugins: [
+			terser()
 		],
 		output: [
 			{
 				format: 'esm',
-				file: 'build/Phy.module.js'
+				file: 'build/smoke.module.js'
 			}
 		]
 	}
