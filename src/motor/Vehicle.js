@@ -124,9 +124,13 @@ class Car extends Basic3D {//extends Object3D {
 		this.deep = o.deep || 0.3;
 		this.deepBack = o.deepBack || this.deep;
 
+		let byAxe = this.numWheel < 4 ? 1 : 2
+
 		if(!o.wPos) o.wPos = [0.8, 0.1, 1.4]
 
 		if( o.wPos ){
+
+			this.wPos = o.wPos
 
 			var p, wp = o.wPos, axe, pp = [], s=1, back=0, y, x, z, pzz;
 			var limz = wp.length === 3 ? true : false;
@@ -136,16 +140,19 @@ class Car extends Basic3D {//extends Object3D {
 
 				s = i%2 === 0 ? -1 : 1;
 				axe = Math.floor(i * 0.5)
-				back = i>1 ? 1:0
-				if(this.numWheel<4) back = i>0 ? 1:0
+				back = i >= byAxe ? true: false
+				
 				y = wp[ 1 ]
-				if(y===0) y = back ? this.radiusBack : this.radius
+				if( y===0 ) y = back ? this.radiusBack : this.radius
+
 				x = wp[ 0 ]
 				//if( x === 0 ) x = (back ? this.deepBack : this.deep)*0.5
 				if( x instanceof Array ) x = wp[0][axe]
 
 				z = back ? -wp[2] : wp[2]
 			    if( wp[2] instanceof Array ) z = wp[2][axe]
+
+			    	
 
 
 				p = [ x * s, y, z ]
@@ -177,7 +184,7 @@ class Car extends Basic3D {//extends Object3D {
 		else chassisShapes.push( { type:'box', size:this.size, pos:this.chassisPos } ); 
 
 		for( let i=0; i < this.numWheel; i++ ){
-	    	if( i < 2 ) chassisShapes.push({ type:'cylinder', size:[ this.radius, this.deep ], isWheel:true, radius:o.rad || 0.05 , shadow:false, ray:false });
+	    	if( i < byAxe ) chassisShapes.push({ type:'cylinder', size:[ this.radius, this.deep ], isWheel:true, radius:o.rad || 0.05 , shadow:false, ray:false });
 	    	else chassisShapes.push({ type:'cylinder', size:[ this.radiusBack, this.deepBack ], isWheel:true, radius:o.rad || 0.05 , shadow:false, ray:false  });
 	    	
 	    }
@@ -230,7 +237,7 @@ class Car extends Basic3D {//extends Object3D {
 			
 			
 			for( let i = 1; i<this.numWheel+1; i++ ) {
-				back = i > 2
+				back = i >= byAxe+1
 				if( o.wheelMeshBack ) m = back ? o.wheelMeshBack.clone() : o.wheelMesh.clone()
 				else m = o.wheelMesh.clone()
 				Utils.noRay( m )

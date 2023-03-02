@@ -1,4 +1,10 @@
-let bike, model, meshes, maxDistance = 50, oldv = 0, w1, w2;
+let currentCar = null;
+
+let meshes, maxDistance = 50, oldv = 0, trail = null;
+let tmpPose = new THREE.Vector3()
+let tmpPose2 = new THREE.Vector3()
+let tmpPose3 = new THREE.Vector3()
+let oldPose = new THREE.Vector3()
 const TimeFrame = 1/30;
 
 
@@ -33,6 +39,9 @@ demo = () => {
     //phy.add({ pos:[0,20,0], rot:[0,0,0], size:[0.5,0.5,0.5], mass:30})
     //phy.add({ type:'box', size:[4,1,6], rot:[1,0,0], pos:[0,0.5,0],  radius:0.025 })
 
+
+    
+
     phy.load(['./assets/models/cars.glb'], onComplete )
 
 }
@@ -51,12 +60,69 @@ onComplete = () => {
     phy.add( g );
 
     select('fordM')
+
+    phy.addParticle({
+        name:'yoo', 
+        //model:'smoke',
+        colors:[
+            0.5, 0.5, 0.5, 0,
+            0.5, 0.5, 0.5, 1,
+            0.5, 0.5, 0.5, 0
+        ],
+        position:[-20,-0.2,-5],
+        numParticles: 120,
+        lifeTime: 2,
+        timeRange: 2,
+        startSize: 2,
+        endSize: 5,
+        velocity: [ 0, 2, 0 ], 
+        velocityRange: [ 0.6, 1, 0.6 ],
+        //accelerationRange:[0.25,0,0.25],
+        tween:"inOutQuad",
+        blending:"normal",
+    })
+
+    phy.setPostUpdate( updateTest )
     
+}
+
+
+updateTest = () => {
+
+    if(!currentCar) return
+
+     ///   tmpPose.copy( currentCar.position ).add({x:0.5, y:0.1, z:-2}).applyQuaternion( currentCar.quaternion )
+    tmpPose.set( 0.5, 0.1,-2).applyQuaternion( currentCar.quaternion ).add( currentCar.position )
+    tmpPose2.set( currentCar.wPos[0], 0,-currentCar.wPos[2]).applyQuaternion( currentCar.quaternion ).add( currentCar.position )
+    tmpPose3.set( -currentCar.wPos[0], 0,-currentCar.wPos[2]).applyQuaternion( currentCar.quaternion ).add( currentCar.position )
+
+    let p = currentCar.position;
+    let d = math.distance( p, oldPose );
+    oldPose.copy( p )
+
+    if( d > 0 ){
+        let t
+        t = phy.getParticle('carSmoke')
+        if( t ) t.birthParticles( tmpPose.toArray() );
+        else t = phy.addParticle({ name:'carSmoke', model:'vehicleMove' })
+
+        t = phy.getParticle('carTrack1')
+        if( t ) t.birthParticles( tmpPose2.toArray() );
+        else t = phy.addParticle({ name:'carTrack1', model:'vehicleTrack' })
+
+        t = phy.getParticle('carTrack2')
+        if( t ) t.birthParticles( tmpPose3.toArray() );
+        else t = phy.addParticle({ name:'carTrack2', model:'vehicleTrack' })
+        
+    }
+
 }
 
 select = ( name ) => {
     phy.follow( name, { direct:true, simple:true, decal:[0, 1, 0] })
     phy.control( name )
+    currentCar = phy.byName( name )
+    oldPose.copy( currentCar.position )
 }
 
 vehicle = ( id, pos ) => {
@@ -89,6 +155,7 @@ vehicle = ( id, pos ) => {
     }
 
 }
+
 
 terrainTest = () => {
 

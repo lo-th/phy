@@ -161,19 +161,14 @@ export class Shader {
         ShaderChunk.common = s;
 
 
-        /**/
-
-        s = ShaderChunk.fog_vertex;
-
-        s = s.replace( '#ifdef USE_FOG', `
-            vZW = gl_Position.zw;
-            #ifdef USE_FOG
-        `);
-
-        ShaderChunk.fog_vertex = s;
 
 
-        
+
+        ShaderChunk.begin_vertex = `
+        vZW = gl_Position.zw;
+        vec3 transformed = vec3( position );
+        `;
+
 
         
 

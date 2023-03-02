@@ -30,22 +30,6 @@ export default [
 		input: 'src/Smoke.js',
 		external: ['three'],
 		plugins: [
-			polyfills(),
-			nodeResolve(),
-			terser()
-		],
-		output: [
-			{
-				format: 'umd',
-				name: 'Smoke',
-				file: 'build/smoke.min.js'
-			}
-		]
-	},
-	{
-		input: 'src/Smoke.js',
-		external: ['three'],
-		plugins: [
 			terser()
 		],
 		output: [

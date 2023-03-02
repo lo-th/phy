@@ -125,8 +125,8 @@ class Car {
 			// car body physics
 			friction: 0.6,
 			restitution: 0.1,
-			linear: 0,
-			angular: 0,
+			//linear: 0,
+			//angular: 0,
 			rolling: 0,
 			// auto compess
 			autoSuspension: false,
@@ -157,7 +157,7 @@ class Car {
 		let sprungMass = Math.round( this.data.mass / this.numWheel )
 		// Damping relaxation should be slightly larger than compression
 		if(!o.s_compression) this.data.s_compression = this.data.s_damping * 0.6
-		if(!o.s_force) this.data.s_force = sprungMass* 25
+		if(!o.s_force) this.data.s_force = sprungMass * 25
 
 		this.init( o );
 
@@ -248,6 +248,7 @@ class Car {
 
 		// car body
 		this.body = new Ammo.btRigidBody( rbInfo );
+		
 		this.body.name = this.name;
 		//this.body.isRigidBody = true;
 		//this.body.isBody = true;
@@ -315,7 +316,7 @@ class Car {
 
 				var wheel = new Ammo.btRigidBody( rbInfo );
 
-				wheel.setFriction( 1110 );
+				wheel.setFriction( 1 );
 				wheel.setActivationState( 4 );
 				root.world.addRigidBody( wheel, 1, - 1 );
 
@@ -601,8 +602,10 @@ class Car {
 		// body
 		this.body.setFriction( data.friction );
 		this.body.setRestitution( data.restitution );
-		this.body.setDamping( data.linear, data.angular );// def 0,0
+		//this.body.setDamping( data.linear, data.angular );// def 0,0
 		this.body.setRollingFriction( data.rolling );
+
+		if ( o.damping !== undefined ) this.body.setDamping( o.damping[ 0 ], o.damping[ 1 ] );
 
 		if ( o.limitAngular !== undefined ) this.limitAngular = o.limitAngular;
 
@@ -640,7 +643,7 @@ class Car {
 			//console.log( 'travel', w.get_m_maxSuspensionTravelCm() );
 			
 			//w.set_m_suspensionRestLength1( data.s_length );
-			w.set_m_suspensionRestLength1( data.s_travel * 0.5 );
+			w.set_m_suspensionRestLength1( (data.s_travel * 0.5) );
 			w.set_m_maxSuspensionForce( data.s_force );
 
 			w.set_m_rollInfluence( data.w_roll );

@@ -1,3 +1,4 @@
+const debug = 1
 let bike, model, meshes, maxDistance = 50, oldv = 0, w1, w2;
 const TimeFrame = 1/30;
 
@@ -5,11 +6,11 @@ demo = () => {
     
     phy.log('use key WSAD or ZSQD<br>SPACE to handbrake')
 
-    phy.view({ envmap:'pendora', ground:false, fog:true, fogDist:0.01 })
+    phy.view({ envmap:'pendora', ground:debug, fog:true, fogDist:0.01 })
 
-    phy.set( {substep:2, gravity:[0,-9.81,0]})
+    phy.set( {substep:4, gravity:[0,-9.81,0]})
 
-    phy.add({ type:'plane', name:'floor', size:[300,1,300], visible:false });
+    phy.add({ type:'plane', name:'floor', size:[300,1,300], visible:false, friction:1.0 });
     //phy.add({ pos:[0,20,0], rot:[0,0,0], size:[0.5,0.5,0.5], mass:30})
     //phy.add({ type:'box', size:[4,1,6], rot:[1,0,0], pos:[0,0.5,0],  radius:0.025 })
 
@@ -28,22 +29,28 @@ onComplete = () => {
 
     model = phy.get('akira', 'O')
     model.rotation.y = -90 * math.torad
-    model.position.y = -0.05
+   // model.position.y = -0.05
+
+    //model.scale.set(0.1,0.1,0.1)
+
+    //phy.getScene().add(model)
 
     w1 = meshes.ak_tire_av
     w2 = meshes.ak_tire_ar
+
+
 
     //openShell(1)
 
     frontSusp(0)
     backSusp(0)
 
-    
+    //return
 
     bike = phy.add( {
         type:'vehicle', 
         name:'bike',
-        rad:0.09,
+        rad:0.02,
         radius:0.36,// wheels radius
         radiusBack:0.39,
         deep:0.2, // wheels deep only for three cylinder
@@ -52,28 +59,54 @@ onComplete = () => {
         chassisPos:[0,0,0],
         massCenter:[0,0,0],
 
+        ray:debug,
+
+        mass:1000,
+
+
         chassisShape:meshes.a_shape,
         meshScale:0.1,
         noClone:true,
-        chassisMesh:model,
+
+        //chassisMesh:model,
         //wheelMesh: wheel,
         //brakeMesh: brake,
         //suspensionMesh: suspension,
 
+        //damping:[0.0,0.99],
+
+        numWheel:2,
+
         maxSteering:12,
 
-        s_travel:0.4,
-        //w_attach:0.215,
+        s_travel:0.1,
+        s_stiffness:50,//32,
+        s_damping:1,//8,
+        s_force:10000,
+
+        longStiff: 25,
+        latStiffX: 0.00001,
+        latStiffY: 120,
+        camberStiff : 0,
+        restLoad : 5.5,
+
+        dampingRate: 0.5,//0.25,
+        wMass: 25,
 
     })
+
+    phy.control( 'bike' )
+    phy.setPostUpdate ( update )
+
+    if(debug) return
 
     terrainTest()
 
     // update after physic step
-    phy.setPostUpdate ( update )
+    
 
     phy.follow( 'bike', { direct:true, simple:true, decal:[0, 1, 0] })
-    phy.control( 'bike' )
+    //phy.control( 'bike' )
     
 
 }
@@ -155,8 +188,8 @@ updateAnimation = () => {
 
     //console.log( bike.suspension[0] )
 
-    frontSusp( (-(bike.suspension[0]+bike.suspension[1])+0.5)*0.4 )
-    backSusp( (-(bike.suspension[2]+bike.suspension[3])*0.5)*0.4 )
+    frontSusp( (-(bike.suspension[0])+0.5)*0.4 )
+    backSusp( (-(bike.suspension[1])*0.5)*0.4 )
 }
 
 update = () => {
@@ -170,9 +203,9 @@ update = () => {
     let d = math.distance({ x:p.x, z:p.z });
 
     w1.rotation.x = bike.rolling[0]
-    w2.rotation.z = -bike.rolling[2]
+    w2.rotation.z = -bike.rolling[1]
 
-
+    if(debug) return
 
     if( d > 50 ){
         phy.up([

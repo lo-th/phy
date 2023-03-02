@@ -272,6 +272,9 @@ export const Main = {
 	externEditor:() => { externEditor() },
 	injectCode: ( cc ) => { inject(cc) },
 
+	addParticle: ( o ) => { return addParticle( o ) },
+	getParticle: ( name ) => { return getParticle( name ) },
+
 	loadDemo: ( name ) => { loadDemo( name ) },
 
 	showEditor: ( b ) => { editor.show( b ) },
@@ -298,10 +301,14 @@ Motor.uv2 = Pool.uv2;
 
 Motor.log = Hub.log;
 
+Motor.addParticle = Main.addParticle
+Motor.getParticle = Main.getParticle
+
 
 window.phy = Motor
 window.math = Motor.math()
 window.Main = Main
+
 
 
 window.THREE = THREE
@@ -1434,8 +1441,16 @@ const setComposer = ( b ) => {
 //  PARTICLE
 //--------------------
 
-const addParticle = () => {
+const addParticle = ( o ) => {
 
    if( !particles ) particles = new Smoke( scene, renderer );
+   return particles.add( o )
+
+}
+
+const getParticle = ( name ) => {
+	
+	if( !particles ) particles = new Smoke( scene, renderer );
+   return particles.get( name )
 
 }
