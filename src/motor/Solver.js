@@ -111,6 +111,12 @@ export class Articulation extends Object3D {
 
 	}
 
+	stop (){
+
+		root.post({ m:'stopArticulation', o:{ name:this.name } });
+
+	}
+
 	commonInit (){
 
 		root.post({ m:'commonInitArticulation', o:{ name:this.name } });
@@ -123,6 +129,9 @@ export class Articulation extends Object3D {
 
 		o.name = o.name || ( this.name + '_Joint_' + this.jid );
 		o.solver = this.name;
+
+		if( o.rot1 !== undefined ){ o.quat1 = math.toQuatArray( o.rot1 ); delete ( o.rot1 ); }
+		if( o.rot2 !== undefined ){ o.quat2 = math.toQuatArray( o.rot2 ); delete ( o.rot2 ); }
 		
 		this.joints.push( new SolverJoint( o, this ) );
 
