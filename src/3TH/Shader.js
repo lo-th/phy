@@ -55,6 +55,8 @@ export class Shader {
 
 	static init ( o = {} ) {
 
+        const fogtest = false
+
         // Set CustomToneMapping to Uncharted2
         // source: http://filmicworlds.com/blog/filmic-tonemapping-operators/
 
@@ -118,6 +120,10 @@ export class Shader {
             uniform int depthPacking;
 
             varying vec2 vZW;
+            varying vec3 rayDir;
+            varying vec3 rayDir2;
+            varying vec3 rayOri;
+            //varying float fDist;
 
             float shadowValue = 1.0;
             float shadowTmp = 1.0;
@@ -164,39 +170,20 @@ export class Shader {
 
 
 
-        ShaderChunk.begin_vertex = `
+        /*ShaderChunk.begin_vertex = `
         vZW = gl_Position.zw;
         vec3 transformed = vec3( position );
+        `;*/
+
+
+        ShaderChunk.clipping_planes_vertex = `
+            #if NUM_CLIPPING_PLANES > 0
+                vClipPosition = - mvPosition.xyz;
+            #endif
+            vZW = gl_Position.zw;
         `;
 
-
-        
-
         s = ShaderChunk.lights_fragment_begin;
-/*
-        // point
-        s = s.replace( 'directLight.color *= all( bvec2( directLight.visible, receiveShadow ) ) ? getPointShadow( pointShadowMap[ i ], pointLightShadow.shadowMapSize, pointLightShadow.shadowBias, pointLightShadow.shadowRadius, vPointShadowCoord[ i ], pointLightShadow.shadowCameraNear, pointLightShadow.shadowCameraFar ) : 1.0;', `
-        	shadowTmp = 1.0;
-        	shadowTmp *= all( bvec2( directLight.visible, receiveShadow ) ) ? getPointShadow( pointShadowMap[ i ], pointLightShadow.shadowMapSize, pointLightShadow.shadowBias, pointLightShadow.shadowRadius, vPointShadowCoord[ i ], pointLightShadow.shadowCameraNear, pointLightShadow.shadowCameraFar ) : 1.0;
-        	//directLight.color *= shadowTmp;
-            shadowValue *= shadowTmp;
-        `)
-
-        // spot
-        s = s.replace( 'directLight.color *= all( bvec2( directLight.visible, receiveShadow ) ) ? getShadow( spotShadowMap[ i ], spotLightShadow.shadowMapSize, spotLightShadow.shadowBias, spotLightShadow.shadowRadius, vSpotShadowCoord[ i ] ) : 1.0;', `
-            shadowTmp = 1.0;
-        	shadowTmp *= all( bvec2( directLight.visible, receiveShadow ) ) ? getShadow( spotShadowMap[ i ], spotLightShadow.shadowMapSize, spotLightShadow.shadowBias, spotLightShadow.shadowRadius, vSpotShadowCoord[ i ] ) : 1.0;
-        	//directLight.color *= shadowTmp;
-            shadowValue *= shadowTmp;
-        `)
-
-        // direct
-        s = s.replace( 'directLight.color *= all( bvec2( directLight.visible, receiveShadow ) ) ? getShadow( directionalShadowMap[ i ], directionalLightShadow.shadowMapSize, directionalLightShadow.shadowBias, directionalLightShadow.shadowRadius, vDirectionalShadowCoord[ i ] ) : 1.0;', `
-            shadowTmp = 1.0;
-            shadowTmp *= all( bvec2( directLight.visible, receiveShadow ) ) ? getShadow( directionalShadowMap[ i ], directionalLightShadow.shadowMapSize, directionalLightShadow.shadowBias, directionalLightShadow.shadowRadius, vDirectionalShadowCoord[ i ] ) : 1.0;
-            //directLight.color *= shadowTmp;
-            shadowValue *= shadowTmp;
-        `)*/
 
         // point
         s = s.replace( 'directLight.color *= ( directLight.visible && receiveShadow ) ? getPointShadow( pointShadowMap[ i ], pointLightShadow.shadowMapSize, pointLightShadow.shadowBias, pointLightShadow.shadowRadius, vPointShadowCoord[ i ], pointLightShadow.shadowCameraNear, pointLightShadow.shadowCameraFar ) : 1.0;', `
@@ -235,14 +222,18 @@ export class Shader {
 
         ShaderChunk.tonemapping_fragment = s;*/
 
+        if(fogtest){
+            ShaderChunk.fog_vertex = FogVertex
+            ShaderChunk.fog_fragment = FogFragment
+        }
 
-        //s = ShaderChunk.fog_fragment;
+        
+        
+
+
+
+
         s = ShaderChunk.output_fragment;
-
-
-
-        //s = s.replace( '#ifndef saturate', `
-        //s = ShaderChunk.tonemapping_fragment;
 
         s = s.replace( 'gl_FragColor = vec4( outgoingLight, diffuseColor.a );', `
 
@@ -462,6 +453,66 @@ export class Shader {
 
 }
 
+
+// https://iquilezles.org/articles/fog/
+const FogVertex = `
+#ifdef USE_FOG
+
+    vFogDepth = - mvPosition.z;
+    rayDir2 = normalize( worldPosition.xyz - cameraPosition );
+    rayDir = normalize( mvPosition.xyz );
+    rayOri = cameraPosition.xyz;
+    //rayOri = worldPosition.xyz; //( cameraPosition-worldPosition.xyz  );
+
+    //vec3 tt = vec3(cameraPosition-mvPosition);
+    //float fDist = sqrt(tt.x*tt.x+tt.y*tt.y+tt.z*tt.z);
+
+    //fDist = distance(cameraPosition.xyz, mvPosition.xyz);
+
+#endif
+`
+
+const FogFragment = `
+#ifdef USE_FOG
+
+    #ifdef FOG_EXP2
+
+        float fogFactor = 1.0 - exp( - fogDensity * fogDensity * vFogDepth * vFogDepth );
+
+    #else
+
+        float fogFactor = smoothstep( fogNear, fogFar, vFogDepth );
+
+    #endif
+
+    vec3 fcolor = fogColor;
+
+    #if ( NUM_DIR_LIGHTS > 0 ) && defined( RE_Direct )
+
+        
+        float aa = fogDensity * fogDensity;
+        float bb = fogDensity * fogDensity * 12.0;
+        //bb = pow(bb, 0.8);
+        float distance = vFogDepth * vFogDepth;
+
+        fogFactor = 1.0 - exp( -distance*bb );
+        fogFactor = (aa/bb) * exp(-rayOri.y*bb) * (1.0-exp( -distance*rayDir2.y*bb ))/rayDir2.y;
+        fogFactor = clamp( fogFactor, 0.0, 1.0 );
+
+        vec3 sunDir = normalize( directionalLights[ 0 ].direction );
+        vec3 sunColor = directionalLights[ 0 ].color;
+        float sunAmount = max( dot( rayDir, sunDir ), 0.0 );
+        float sunAdd = clamp( pow(sunAmount, 60.0), 0.0, 1.0 );
+        fcolor = mix( fogColor, sunColor, sunAdd ); // 8.0
+
+    #endif
+
+    //gl_FragColor.rgb = mix( gl_FragColor.rgb, fogColor, fogFactor );
+    gl_FragColor.rgb = gl_FragColor.rgb * (1.0-fogFactor) + fcolor * fogFactor;
+    
+
+#endif
+`
 
 
 const shadowPCSS = `

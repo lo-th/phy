@@ -36,9 +36,6 @@ import { Motor } from './motor/Motor.js'
 // PARTICLE
 import { Smoke } from '../build/smoke.module.js'
 
-
-
-
 /** __
 *    _)_|_|_
 *   __) |_| | 2023
@@ -354,7 +351,13 @@ const init = () => {
 
 	// RENDERER
 
-	renderer = new THREE.WebGLRenderer( { antialias:antialias, powerPreference:powerPreference } )
+	renderer = new THREE.WebGLRenderer( { 
+		antialias:antialias, 
+		powerPreference:powerPreference,
+		premultipliedAlpha: false,
+		stencil: false,
+		alpha: false,
+	})
 	renderer.setPixelRatio( pixelRatio )
 	renderer.setSize( size.w, size.h )
 
@@ -897,6 +900,7 @@ const doResize = () => {
 	needResize = false
 
 }
+
 
 
 //--------------------

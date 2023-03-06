@@ -7,20 +7,39 @@ import { mergeBufferGeometries } from '../../jsm/utils/BufferGeometryUtils.js';
 
 export const GlbTool = {
 
-	getMesh:(scene) => {
+	getMesh:( scene, keepMaterial ) => {
         let meshs = {};
+        if( keepMaterial ) GlbTool.keepMaterial( scene )
         scene.traverse( ( child ) => {
             if ( child.isMesh ) meshs[ child.name ] = child;
         })
         return meshs;
     },
 
+    keepMaterial: ( scene ) => {
+
+        let Mats = {}, m 
+
+        scene.traverse( ( child ) => {
+            if ( child.isMesh ){ 
+                m = child.material;
+                if( !Mats[m.name] ){
+                    Shader.add( m );
+                    //console.log(m.name)
+                    Mats[m.name] = true;
+                }
+            }
+        })
+
+    },
+
     getGroup:( scene, autoMesh, autoMaterial ) => {
         const groups = {};
         let mats = null
+        if( autoMaterial ) mats = GlbTool.getMaterial( scene, true ) 
         scene.traverse( ( child ) => {
             if ( child.isGroup ){ 
-            	if( autoMaterial ) mats = GlbTool.getMaterial( scene, true ) 
+            	//if( autoMaterial ) mats = GlbTool.getMaterial( scene, true ) 
             	groups[ child.name ] = autoMesh ? GlbTool.groupToMesh(child, mats) : child;
             }
         })
@@ -39,7 +58,7 @@ export const GlbTool = {
             if ( child.isMesh ){ 
             	m = child.material;
             	if( !Mats[m.name] ){
-            		Shader.add( m )
+            		Shader.add( m );
             		Mats[m.name] = m;
             		n = Number( m.name.substring( 0, m.name.lastIndexOf('_') )  )
             		mats[n] = m

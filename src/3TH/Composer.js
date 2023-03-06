@@ -34,7 +34,7 @@ import { BloomMix } from 'three/addons/shaders/BloomMix.js';
 import { ToneMapShader } from 'three/addons/shaders/ToneMapShader.js';
 
 import { LUTCubeLoader } from 'three/addons/loaders/LUTCubeLoader.js';
-//import { LUT3dlLoader } from '../loaders/LUT3dlLoader.js';
+import { LUT3dlLoader } from 'three/addons/loaders/LUT3dlLoader.js';
 
 export class Composer extends EffectComposer {
 
@@ -78,7 +78,7 @@ export class Composer extends EffectComposer {
 	    //this.saoEnable = true
 
 	    this.lutCubeLoader = null;
-	    //this.lut3DLoader = null;
+	    this.lut3DLoader = null;
 
 
 		this.v = new Vector3();
@@ -160,7 +160,8 @@ export class Composer extends EffectComposer {
 
 		this.lutMap = null
 		this.pass.lut = new LUTPass()
-		this.loadLut( 'premium' )
+		//this.loadLut( 'premium', 'cube' )
+		this.loadLut( 'realism', '3dl' )
 
 		this.pass.lut.intensity = this.options.lutIntensity
 		
@@ -371,28 +372,44 @@ export class Composer extends EffectComposer {
 
 		type = type.toLowerCase()
 
-		if( type !== 'cube' ) return
-
 		if( this.lutMap !== null ){
-			this.lutMap.texture.dispose()
-			this.lutMap.texture3D.dispose()
+			if(this.lutMap.texture)this.lutMap.texture.dispose()
+			if(this.lutMap.texture3D)this.lutMap.texture3D.dispose()
 		}
 
-		if( this.lutCubeLoader === null ) this.lutCubeLoader = new LUTCubeLoader();
-		this.lutMap = this.lutCubeLoader.parse( txt )
+		switch(type){
+			case 'cube':
+				if( this.lutCubeLoader === null ) this.lutCubeLoader = new LUTCubeLoader();
+				this.lutMap = this.lutCubeLoader.parse( txt )
+			break;
+			case '3dl':
+				if( this.lut3DLoader === null ) this.lut3DLoader = new LUT3dlLoader();
+				this.lutMap = this.lut3DLoader.parse( txt )
+			break;
+		}
 
 		this.setLut()
 
 	}
 
-	loadLut ( name ){
+	loadLut ( name, type ){
 
-		if( this.lutCubeLoader === null ) this.lutCubeLoader = new LUTCubeLoader();
-
-		this.lutCubeLoader.load( 'assets/luts/' + name + '.cube', function ( result ) {
-			this.lutMap = result
-			this.setLut()
-		}.bind(this) );
+		switch(type){
+			case 'cube':
+				if( this.lutCubeLoader === null ) this.lutCubeLoader = new LUTCubeLoader();
+				this.lutCubeLoader.load( 'assets/luts/' + name + '.cube', function ( result ) {
+					this.lutMap = result
+					this.setLut()
+				}.bind(this) );
+			break;
+			case '3dl':
+				if( this.lut3DLoader === null ) this.lut3DLoader = new LUT3dlLoader();
+				this.lut3DLoader.load( 'assets/luts/' + name + '.3dl', function ( result ) {
+						this.lutMap = result
+						this.setLut()
+				}.bind(this) );
+			break;
+		}
 
 	}
 

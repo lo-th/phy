@@ -262,7 +262,8 @@ export const Gui = {
 		g.add( 'empty', {h:6})
 
 		g.add( composer.pass.lut, 'enabled', { type:'bool', rename:'lut' })
-		g.add('button', { name:'LOAD', p:10, drag:true }).onChange( function(a,b,c){ composer.changeLut(a,b,c) } )
+		//g.add('button', { name:'LOAD', p:10, drag:true }).onChange( function(a,b,c){ composer.changeLut(a,b,c) } )
+		g.add('button', { name:'LOAD', p:10 }).onChange( function(a,b,c){ UIL.Files.load( { callback:function(a,b,c){ composer.changeLut(a,b,c) }, type:'lut' } ) } )
 		g.add( 'empty', {h:6})
 
 	    g.add( composer.pass.sharpen, 'enabled', { type:'bool', rename:'sharpen' })

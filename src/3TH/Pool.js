@@ -111,9 +111,9 @@ export const Pool = {
         return GlbTool.getMaterial( obj, toArray )
     },
 
-    getMesh:( obj ) => {
+    getMesh:( obj, keepMaterial ) => {
         if( typeof obj === 'string' ) obj = Pool.get( obj, 'O' );
-        return GlbTool.getMesh( obj )
+        return GlbTool.getMesh( obj, keepMaterial )
     },
 
     getGroup:( obj, autoMesh, autoMaterial ) => {

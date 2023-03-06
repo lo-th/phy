@@ -18,7 +18,7 @@ onComplete = () => {
 
     let pos = [0, 2, 0]
 
-    const meshes = phy.getMesh('spider');
+    const meshes = phy.getMesh('spider', true );
 
     let solver = phy.add({ type:'solver', name:'spider', iteration:32, fix:false, needData:true, neverSleep:true })
 
@@ -56,7 +56,7 @@ onComplete = () => {
     const d = [
         [0.55, 0, 0],
         [0.55, 0, 0],
-        [-0.55, 0,0],
+        [-0.55, 0, 0],
         [-0.55, 0, 0],
     ]
 
@@ -102,11 +102,10 @@ onComplete = () => {
     //    JOINT
     //-----------------------------------------
 
-    const stiffness = 100000000;
-    const damping = 0;
-    const forceLimit = Infinity;
+    const stiffness = 1000//100000000;
+    const damping = 100; // 0
+    const forceLimit = 1000//Infinity;
     const acceleration = false;
-    const forceLimit2 = 100;
 
     solver.addJoint({
             name:'A'+i, bone:'top',
@@ -139,7 +138,7 @@ onComplete = () => {
 
         solver.addJoint({
             name:'A'+i, bone:'earm'+i,
-            pos1:[0.716, -0.0544, 0], pos2:[ 0, 0, 0 ],
+            pos1:[0.716, -0.06, 0], pos2:[ 0, 0, 0 ],
             type:'fixe',
         });
 
@@ -152,10 +151,10 @@ onComplete = () => {
     solver.start();
 
     //-----------------------------------------
-    //    IK
+    //    ID Inverse Dynamics Computations
     //-----------------------------------------
 
-    solver.commonInit();
+    //solver.commonInit();
 
 
 }

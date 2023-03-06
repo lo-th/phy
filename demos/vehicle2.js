@@ -1,4 +1,4 @@
-const debug = 1
+const debug = 0
 let bike, model, meshes, maxDistance = 50, oldv = 0, w1, w2;
 const TimeFrame = 1/30;
 
@@ -61,36 +61,36 @@ onComplete = () => {
 
         ray:debug,
 
-        mass:1000,
+        mass:1600,
 
 
         chassisShape:meshes.a_shape,
         meshScale:0.1,
         noClone:true,
 
-        //chassisMesh:model,
+        chassisMesh:model,
         //wheelMesh: wheel,
         //brakeMesh: brake,
         //suspensionMesh: suspension,
 
-        //damping:[0.0,0.99],
+        damping:[0.0,0.9],
 
         numWheel:2,
 
         maxSteering:12,
 
         s_travel:0.1,
-        s_stiffness:50,//32,
-        s_damping:1,//8,
+        s_stiffness:16,//32,
+        s_damping:4,//8,
         s_force:10000,
 
-        longStiff: 25,
+        longStiff: 10,
         latStiffX: 0.00001,
-        latStiffY: 120,
+        latStiffY: 6,
         camberStiff : 0,
         restLoad : 5.5,
 
-        dampingRate: 0.5,//0.25,
+        dampingRate: 0.1,//0.25,
         wMass: 25,
 
     })
@@ -123,7 +123,7 @@ terrainTest = () => {
         metalness:0.4,
         //staticFriction:0.5,
         friction: 0.5,
-        restitution: 0.0,
+        restitution: 0,
         uv: 150,
         pos: [0,-5,0],
         size:[512, 6, 512],

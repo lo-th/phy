@@ -7,7 +7,7 @@
  * @author lth / https://github.com/lo-th
  */
 
-const REVISION = '4.2.7';
+const REVISION = '4.2.8';
 
 // INTENAL FUNCTION
 
@@ -1789,7 +1789,7 @@ class Files {
             case 'mp4':
             t = [ { accept: { 'video/mp4': '.mp4'} }, ];
             break;
-            case 'bin':case 'hex':
+            case 'bin': case 'hex':
             t = [ { description: 'Binary Files', accept: { 'application/octet-stream': ['.bin', '.hex'] } }, ];
             break;
             case 'text':
@@ -1806,6 +1806,9 @@ class Files {
             break;
             case 'icon':
             t = [ { description: 'Icons', accept: { 'image/x-ico': ['.ico'] } }, ];
+            break;
+            case 'lut':
+            t = [ { description: 'Lut', accept: { 'text/plain': ['.cube', '.3dl'] } }, ];
             break;
 
         }
@@ -1863,15 +1866,15 @@ class Files {
                     case 'image':
                         let img = new Image;
                         img.onload = function() {
-                            if( o.callback ) o.callback( img, fname );
+                            if( o.callback ) o.callback( img, fname, ftype );
                         };
                         img.src = content;
                     break;
                     case 'json':
-                        if( o.callback ) o.callback( JSON.parse( content ), fname );
+                        if( o.callback ) o.callback( JSON.parse( content ), fname, ftype );
                     break;
                     default:
-                        if( o.callback ) o.callback( content, fname );
+                        if( o.callback ) o.callback( content, fname, ftype );
                     break;
                 }
 
@@ -1936,9 +1939,8 @@ class Files {
                 data: o.data || ''
             };
 
-
             options.types = Files.autoTypes( type );
-            options.finalType = Object.keys(options.types[0].accept )[0];
+            options.finalType = Object.keys( options.types[0].accept )[0];
             options.suggestedName += options.types[0].accept[options.finalType][0];
 
 

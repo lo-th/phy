@@ -98,6 +98,8 @@ class Car extends Basic3D {//extends Object3D {
 
 		this.mass = o.mass || 2000
 
+		this.model = null
+
 		//this.decal = o.bodyDecalY || 0;
 		//this.circum = (Math.PI * 2 * o.radius);// in metter
 
@@ -223,6 +225,7 @@ class Car extends Basic3D {//extends Object3D {
 			Utils.noRay( m )
 			m.scale.set( scale, scale, scale )
 			this.children[0].add( m )
+			this.model = m
 			delete o.chassisMesh;
 
 			//this.chassis.children[0].castShadow = false;

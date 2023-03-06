@@ -6,12 +6,21 @@ import { Mesh, IcosahedronGeometry, ShaderMaterial, DoubleSide } from 'three';
  */
 export class GroundProjectedEnv extends Mesh {
 
-	constructor( texture, options = {} ) {
+	constructor( texture, options ) {
 
 		const isCubeMap = texture.isCubeTexture;
+		const w = ( isCubeMap ? texture.image[ 0 ]?.width : texture.image.width ) ?? 1024;
+		const cubeSize = w / 4;
+		const _lodMax = Math.floor( Math.log2( cubeSize ) );
+		const _cubeSize = Math.pow( 2, _lodMax );
+		const width = 3 * Math.max( _cubeSize, 16 * 7 );
+		const height = 4 * _cubeSize;
 
 		const defines = [
-			isCubeMap ? '#define ENVMAP_TYPE_CUBE' : ''
+			isCubeMap ? '#define ENVMAP_TYPE_CUBE' : '',
+			`#define CUBEUV_TEXEL_WIDTH ${1.0 / width}`,
+			`#define CUBEUV_TEXEL_HEIGHT ${1.0 / height}`,
+			`#define CUBEUV_MAX_MIP ${_lodMax}.0`,
 		];
 
 		const vertexShader = /* glsl */ `
@@ -28,6 +37,7 @@ export class GroundProjectedEnv extends Mesh {
         }
         `;
 		const fragmentShader = defines.join( '\n' ) + /* glsl */ `
+        #define ENVMAP_TYPE_CUBE_UV
 
         varying vec3 vWorldPosition;
 
@@ -103,6 +113,7 @@ export class GroundProjectedEnv extends Mesh {
         }
 
         #include <common>
+        #include <cube_uv_reflection_fragment>
 
         void main() 
         {
@@ -131,8 +142,8 @@ export class GroundProjectedEnv extends Mesh {
 
 		const uniforms = {
 			map: { value: texture },
-			height: { value: options.height || 15 },
-			radius: { value: options.radius || 100 },
+			height: { value: options?.height || 15 },
+			radius: { value: options?.radius || 100 },
 		};
 
 		const geometry = new IcosahedronGeometry( 1, 16 );
@@ -146,6 +157,18 @@ export class GroundProjectedEnv extends Mesh {
 		super( geometry, material );
 
 	}
+
+    set map( tx ) {
+
+        this.material.uniforms.map.value = tx;
+
+    }
+
+    get map() {
+
+        return this.material.uniformss.map.value;
+
+    }
 
 	set radius( radius ) {
 

@@ -218,10 +218,10 @@ onComplete = () => {
     solver.start();
 
     //-----------------------------------------
-    //    IK
+    //    ID Inverse Dynamics Computations
     //-----------------------------------------
 
-    solver.commonInit();
+    //solver.commonInit();
 
 
     //-----------------------------------------

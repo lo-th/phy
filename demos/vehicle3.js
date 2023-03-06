@@ -44,7 +44,7 @@ onComplete = () => {
 
         chassisShape:meshes.g_shape,
         meshScale:1,
-        noClone:true,
+        //noClone:true,
         chassisMesh:meshes.g_chassis,
         wheelMesh: meshes.g_wheel_front,
         wheelMeshBack: meshes.g_wheel_back,

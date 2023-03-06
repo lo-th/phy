@@ -25,11 +25,12 @@ launchBullet = () => {
     while(i--){
         x = math.rand(-4,4);
         phy.add({ 
-            type:'capsule', size:[r,r*2,r], pos:[x, 5 ,100+(i*3)], mass:0.2, linearVelocity:[0,0,-1000],
+            type:'capsule', size:[r,r*2,r], pos:[x, 5 ,100+(i*3)], mass:1, linearVelocity:[0,0,-1000],
             ccdThreshold:0.0000001,
             ccdRadius:0.1,
             enableCCD:true,
             //minCCD:0.0000001,
+            //ccdMaxContact:true
             //rollingFriction:0.9,
         });
     }

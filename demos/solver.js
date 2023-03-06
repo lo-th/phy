@@ -386,6 +386,6 @@ createScissorLift = () => {
 
 	solver.start();
 
-	console.log(solver)
+	//console.log(solver)
 
 }

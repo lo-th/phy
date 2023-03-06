@@ -21,8 +21,6 @@ demo = () => {
 
 onComplete = () => {
 
-    
-
     phy.applyMorph('buggy', null, true);
 
     const model = phy.getMesh('buggy');
@@ -33,11 +31,7 @@ onComplete = () => {
     const suspension = model['h_susp_base']
     const brake = model['h_brake']
 
-    // add top wheel
-    let wtop = wheel.clone()
-    wtop.position.set(0,0.0125,-0.0113)
-    wtop.rotation.z = -90 * math.torad
-    body.add( wtop )
+    
 
     buggy = phy.add( { 
 
@@ -61,6 +55,12 @@ onComplete = () => {
         s_travel:0.4,// the total length of suspension
 
     })
+
+    // add top spare wheel
+    let wtop = wheel.clone()
+    wtop.position.set(0,0.0125,-0.0113)
+    wtop.rotation.z = -90 * math.torad
+    buggy.model.add( wtop )
 
     if( debug ) return
 
@@ -214,8 +214,6 @@ applyMaterial = ( model ) => {
             break;
 
         }
-
-        
 
     }
 
