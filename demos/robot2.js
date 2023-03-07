@@ -86,7 +86,7 @@ class Robot {
 
         phy.add({
             type:'box', name:'base'+ this.id, linked:'null',
-            pos:pos, size:[ 0.7, 0.15, 1.3 ], density:1,//1.28
+            pos:pos, size:[ 0.8, 0.12, 0.8 ], localPos:[0, 0.015, 0], density:1,//1.28
             mesh:meshes.base,
             ...def
         });
