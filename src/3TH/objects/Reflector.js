@@ -299,11 +299,15 @@ export class Reflector extends Mesh {
 
 			scope.visible = false;
 
+			const currentFog = scene.fog;
+
 			const currentRenderTarget = renderer.getRenderTarget();
 			const currentXrEnabled = renderer.xr.enabled;
 			const currentShadowAutoUpdate = renderer.shadowMap.autoUpdate;
 			const currentOutputEncoding = renderer.outputEncoding;
 			const currentToneMapping = renderer.toneMapping;
+
+			scene.fog = null
 
 			renderer.xr.enabled = false; // Avoid camera modification and recursion
 			renderer.shadowMap.autoUpdate = false; // Avoid re-computing shadows
@@ -322,6 +326,7 @@ export class Reflector extends Mesh {
 			renderer.shadowMap.autoUpdate = currentShadowAutoUpdate;
 			renderer.outputEncoding = currentOutputEncoding;
 			renderer.toneMapping = currentToneMapping;
+			scene.fog = currentFog;
 
 			renderer.setRenderTarget( currentRenderTarget );
 
