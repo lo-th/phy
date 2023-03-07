@@ -17,7 +17,7 @@ export const Num = {
     ray:8,
     character:16,
     vehicle:72,//max 8 wheels
-    solver:256,
+    solver:128,//256,
     //terrain:1,
 }
 

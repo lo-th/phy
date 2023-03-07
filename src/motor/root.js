@@ -281,7 +281,7 @@ export const Mat = {
 
 				case 'debug':  m = new MeshBasicMaterial({ color:0x000000, wireframe:true, toneMapped: false }); break
 				case 'debug2': m = new MeshBasicMaterial({ color:0x00FFFF, wireframe:true, toneMapped: false }); break
-				case 'debug3':  m = new MeshBasicMaterial({ color:0x000000, wireframe:true, transparent:true, opacity:0.05, toneMapped: false, depthTest:true, depthWrite:false }); break
+				case 'debug3':  m = new MeshBasicMaterial({ color:0x000000, wireframe:true, transparent:true, opacity:0.1, toneMapped: false, depthTest:true, depthWrite:false }); break
 
 				case 'shadows': m = new MeshBasicMaterial({ transparent:true, opacity:0.01 }); break
 				case 'hide': m = new MeshBasicMaterial({ visible:false }); break

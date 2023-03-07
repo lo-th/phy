@@ -133,7 +133,10 @@ export class Articulation extends Object3D {
 		if( o.rot1 !== undefined ){ o.quat1 = math.toQuatArray( o.rot1 ); delete ( o.rot1 ); }
 		if( o.rot2 !== undefined ){ o.quat2 = math.toQuatArray( o.rot2 ); delete ( o.rot2 ); }
 		
-		this.joints.push( new SolverJoint( o, this ) );
+		if(o.type!=='fixe') {
+			this.joints.push( new SolverJoint( o, this ) );
+			//console.log(o.name)
+		}
 
 		root.post({ m:'addSolverJoint', o:o });
 

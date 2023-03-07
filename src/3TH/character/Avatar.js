@@ -1,20 +1,22 @@
 import {
-	Object3D, Group, Mesh,SkinnedMesh,Texture,
+	Object3D, Group, Mesh, SkinnedMesh, Texture,
     Matrix4, Quaternion, Euler, Vector3, Vector2,
     SphereGeometry, SkeletonHelper,
     MeshStandardMaterial, MeshLambertMaterial, MeshPhongMaterial, MeshBasicMaterial,MeshPhysicalMaterial,
-    TextureLoader,AnimationMixer, AxesHelper,
-    FrontSide, BackSide, DoubleSide, Color, ShaderChunk, CanvasTexture, LoopPingPong, LoopOnce,LoopRepeat,
+    TextureLoader,AnimationMixer,
+    FrontSide, DoubleSide, Color, ShaderChunk, 
     VectorKeyframeTrack, QuaternionKeyframeTrack, AnimationClip, Skeleton, sRGBEncoding,
     Float32BufferAttribute, EquirectangularReflectionMapping, LinearEncoding,AdditiveBlending,
-    EqualDepth,LessDepth,LessEqualDepth,GreaterEqualDepth,GreaterDepth,NotEqualDepth,
-    CustomBlending, AddEquation, SubtractEquation, ReverseSubtractEquation, MinEquation, MaxEquation,
-    ZeroFactor, OneFactor, SrcColorFactor, OneMinusSrcColorFactor, SrcAlphaFactor, OneMinusSrcAlphaFactor, DstAlphaFactor, OneMinusDstAlphaFactor, DstColorFactor, OneMinusDstColorFactor, SrcAlphaSaturateFactor,
+    //EqualDepth,LessDepth,LessEqualDepth,GreaterEqualDepth,GreaterDepth,NotEqualDepth,
+    CustomBlending,// AddEquation, SubtractEquation, ReverseSubtractEquation, MinEquation, MaxEquation,
+    ZeroFactor,//, OneFactor, SrcColorFactor, OneMinusSrcColorFactor, 
+    SrcAlphaFactor,// OneMinusSrcAlphaFactor, DstAlphaFactor, OneMinusDstAlphaFactor, DstColorFactor, OneMinusDstColorFactor, SrcAlphaSaturateFactor,
+    //CanvasTexture, LoopPingPong, LoopOnce,LoopRepeat, AxesHelper,
 
 } from 'three';
 
-import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
-import * as SkeletonUtils from 'three/addons/utils/SkeletonUtils.js';
+import { GLTFExporter } from '../../jsm/exporters/GLTFExporter.js';
+import * as SkeletonUtils from '../../jsm/utils/SkeletonUtils.js';
 
 import { Pool } from '../Pool.js';
 import { Shader } from '../Shader.js';

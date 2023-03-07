@@ -296,6 +296,9 @@ export class Body extends Item {
     		return g
     	}
 
+    	if( o.meshRemplace && o.debug ) material = Mat.get( 'debug3' )
+
+
 		let m = new Mesh( g, material )
 
 		if( o.localRot ) o.localQuat = math.toQuatArray( o.localRot );
