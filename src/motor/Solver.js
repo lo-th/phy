@@ -32,7 +32,6 @@ export class Solver extends Item {
 
 				k = s.joints.length
 
-				//for( j of s.joints ){
 				while(k--){
 
 					m = n + (k*7);
@@ -48,8 +47,6 @@ export class Solver extends Item {
 					j.data.target.swing2 = Math.round( AR[ m + 5] );
 
 					j.data.target.count = AR[ m + 6];
-
-					//k++;
 
 				}
 
