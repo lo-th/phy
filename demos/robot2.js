@@ -62,9 +62,9 @@ class Robot {
         //   0 ____ 2 
 
         this.angles = [ 
-            90, 30, -90, -30, 
-            -90, -50, -90, -50,
-            -90, -50, -90, -50
+            30, 30, -30, -30, 
+            30, 30, 30, 30,
+            -125, -125, -125, -125
         ];
         this.init()
 
@@ -229,7 +229,7 @@ class Robot {
         solver.start();
         this.solver = solver;
 
-       // this.solver.setAngles( this.angles, 2 )//.then()//() => autoCommand( movementCount++ ) );
+        this.solver.setAngles( this.angles, 2 )//.then()//() => autoCommand( movementCount++ ) );
 
     }
 }
