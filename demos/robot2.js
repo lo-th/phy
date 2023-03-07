@@ -118,6 +118,7 @@ class Bot {
             type:'box', name:id+'_base', linked:'null',
             pos:pos, size:[ 0.8, 0.12, 0.8 ], localPos:[0, 0.015, 0],
             mesh:meshes.base,
+            density:10,
         })
 
         phy.add({
