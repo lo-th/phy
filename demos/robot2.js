@@ -18,7 +18,7 @@ onComplete = () => {
 
     meshes = phy.getMesh('spider', true );
 
-    let i = 20
+    let i = 10
     let x = 0, z = 0, n = 0, l = 0
     while(i--){
         x = -8 + n*4
