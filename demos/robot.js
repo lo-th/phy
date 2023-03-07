@@ -246,7 +246,7 @@ onComplete = () => {
 
 update = ( dt ) => {
 
-    if( isAuto ){
+    /*if( isAuto ){
 
         anglular.A1 = solver.joints[0].data.target.swing1;
         anglular.A2 = solver.joints[1].data.target.swing2;
@@ -257,7 +257,7 @@ update = ( dt ) => {
 
         anglular.G = (solver.joints[7].data.target.z*10)/3;
 
-    }
+    }*/
 
     solver.driveJoints( dt );
 

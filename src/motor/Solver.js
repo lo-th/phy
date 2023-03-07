@@ -30,9 +30,14 @@ export class Solver extends Item {
 
 			if( s.needData ){
 
-				for( j of s.joints ){
+				k = s.joints.length
+
+				//for( j of s.joints ){
+				while(k--){
 
 					m = n + (k*7);
+
+					j = s.joints[k]
 
 					j.data.target.x = AR[ m + 0];
 					j.data.target.y = AR[ m + 1];
@@ -44,7 +49,7 @@ export class Solver extends Item {
 
 					j.data.target.count = AR[ m + 6];
 
-					k++;
+					//k++;
 
 				}
 
@@ -133,7 +138,7 @@ export class Articulation extends Object3D {
 		if( o.rot1 !== undefined ){ o.quat1 = math.toQuatArray( o.rot1 ); delete ( o.rot1 ); }
 		if( o.rot2 !== undefined ){ o.quat2 = math.toQuatArray( o.rot2 ); delete ( o.rot2 ); }
 		
-		if(o.type!=='fixe') {
+		if(o.type !== 'fixe') {
 			this.joints.push( new SolverJoint( o, this ) );
 			//console.log(o.name)
 		}
@@ -202,6 +207,13 @@ export class SolverJoint {
 		this.solver = solver;
 		this.type = 'solverJoint';
 		this.isDrive = false;
+		//this.inverse = o.inverse || false
+
+		this.current = 0;
+		this.tmp = 0;
+		this.target = 0;
+		this.start = 0
+		this.time = 0;
 
 		this.data = {
 
@@ -210,24 +222,26 @@ export class SolverJoint {
 		}
 
 		if( o.limits ){
+			this.driveType = o.limits[0][0];
 			this.min = o.limits[0][1];
 			this.max = o.limits[0][2];
-			this.driveType = o.limits[0][0];
 		}
 
+		if( o.position ){
+			let i = o.position.length, t
 
-		
-		
+			while(i--){
+				t = o.position[i];
+				this.data.target[ t[0] ] = t[1];
+				//if(t[0]===this.driveType)  this.current = t[1]
+
+			}
+		}
+
 		//stiffness, damping, forceLimit, acceleration drive flag
 		//o.drives = [[this.driveType, 100000, 0, Infinity, true ]];
 		//solver.addJoint(o);
 		
-		this.current = 0;
-		this.tmp = 0;
-		this.target = 0;
-		this.start = 0
-		this.time = 0;
-
 	}
 
 	start (){

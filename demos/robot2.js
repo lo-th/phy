@@ -33,6 +33,10 @@ onComplete = () => {
 
     }
 
+    //bots[0] = new Robot({id:10, pos:[0,0.5,0]})
+
+    //console.log(bots[0].solver)
+
     //let m1 = 
     //let m2 = new Robot({id:2,pos:[0,0.5,0]})
     //let m3 = new Robot({id:3,pos:[4,0.5,0]})
@@ -51,48 +55,82 @@ class Robot {
     constructor ( o = {} ) {
 
         this.id = o.id || 0
+        this.speed = 1
+        this.frame = 0
         this.name = o.name || 'bot' + this.id
         this.solver = null
         this.pos = o.pos || [0, 2, 0]
 
-        //   front right is reverse
         //   1 ____ 3
         //   |      |
         //   |      | 
         //   0 ____ 2 
 
-        this.angles = [ 
-            30, 30, -30, -30, 
+        /*this.angle = [ 
+            90, 90, 90, 90, 
             30, 30, 30, 30,
             -125, -125, -125, -125
+        ];*/
+
+        /*this.angle = [ 
+            45, 45, 45, 45, 
+            -60, -60, -60, -60,
+            -30, -30, -30, -30
         ];
+
+        this.angles = [ 
+            45, -45, -45, 45, 
+            90, 30, 30, 30,
+            -125, -125, -125, -125
+        ];*/
+
+        this.anims = {
+            walk: [ 
+                [ 45, -45, -45, 45,    50, 0, 0, 0,    -90, -90, -90, -90  ],
+                [ 0, -45, -45, 45,     50, 0, 0, 0,    -90, -90, -90, -90  ]
+                //[ 0, 0, 0, 0,   30, 0, 0, 0,   0, 0, 0, 0],
+            ],
+            jump: [ 
+                [  35, 35, 35, 35,   -90, -90, -90, -90, 0, 0, 0, 0 ],
+                [  45, 45, 45, 45,    30, 30, 30, 30, -125, -125, -125, -125 ]
+                //[ 0, 0, 0, 0,   30, 0, 0, 0,   0, 0, 0, 0],
+            ]
+        }
+        
+
         this.init()
+
 
     }
 
     init(){
 
         const pos = this.pos;
+        const id = this.id
 
-        let solver = phy.add({ type:'solver', name:this.name, iteration:16, fix:false, needData:true, neverSleep:true })
+        let solver = phy.add({ type:'solver', name:this.name, iteration:1, fix:false, needData:true, neverSleep:true })
 
         //-----------------------------------------
         //    BONES
         //-----------------------------------------
 
         let def = {
-            filter:[2,-1,1,0], dmv:[0.2,0.2,100,20], debug:debug, meshSize:10, solver:this.name
+            //filter:[2,-1,1,0], 
+            //dmv:[0.2,0.2,100,20], 
+            debug:debug, 
+            meshSize:10, 
+            solver:this.name
         }
 
         phy.add({
-            type:'box', name:'base'+ this.id, linked:'null',
+            type:'box', name:id+'_base', linked:'null',
             pos:pos, size:[ 0.8, 0.12, 0.8 ], localPos:[0, 0.015, 0], density:1,//1.28
             mesh:meshes.base,
             ...def
         });
 
         phy.add({
-            type:'sphere', name:'top'+ this.id, linked:'base'+ this.id,
+            type:'sphere', name:id+'_top', linked:id+'_base',
             pos:math.vecAdd( pos, [0,0.2,0] ), size:[ 0.33 ], density:1,//1.28
             mesh:meshes.top,
             ...def
@@ -130,7 +168,9 @@ class Robot {
         while(i--){
 
             phy.add({
-                type:'box', name:'barm'+i+ this.id, linked:'base'+ this.id,
+                type:'box', 
+                name:id+'_barm'+i, 
+                linked:id+'_base',
                 size:[ 0.3, 0.4, 0.2 ], localPos:[0.152, 0, 0], 
                 pos: math.vecAdd( pos, p[i] ), rot:[0,i>1? 180: 0,0], density:1,
                 mesh:i == 1 ? meshes.barm_002 : meshes.barm_001,
@@ -138,7 +178,9 @@ class Robot {
             });
 
             phy.add({
-                type:'box', name:'darm'+i+ this.id, linked:'barm'+i+ this.id,
+                type:'box', 
+                name:id+'_darm'+i, 
+                linked:id+'_barm'+i,
                 size:[ 0.04, 0.1, 0.4 ], localPos:[0.25, 0, 0], 
                 pos: math.vecAdd( math.vecAdd( pos, p[i] ), d[i]), rot:[0,i>1? 180: 0,0], density:1,
                 mesh: meshes.darm_001,
@@ -146,7 +188,9 @@ class Robot {
             });
 
             phy.add({
-                type:'box', name:'farm'+i+ this.id, linked:'darm'+i+ this.id,
+                type:'box', 
+                name:id+'_farm'+i, 
+                linked:id+'_darm'+i,
                 size:[ 0.4, 0.22, 0.2 ], localPos:[0.095, 0, 0], 
                 pos: math.vecAdd( math.vecAdd( pos, p[i] ), math.vecAdd(c[i], d[i])), rot:[0,i>1? 180: 0,0], density:1,
                 mesh: i == 1 ? meshes.farm_002 : meshes.farm_001,
@@ -154,7 +198,9 @@ class Robot {
             });
 
             phy.add({
-                type:'sphere', name:'earm'+i+ this.id, linked:'farm'+i+ this.id,
+                type:'sphere', 
+                name:id+'_earm'+i, 
+                linked:id+'_farm'+i,
                 size:[ 0.04 ], 
                 pos:math.vecAdd( pos, e[i] ), rot:[0,i>1? 180: 0,0], density:1,
                 mesh:meshes.earm_001,
@@ -167,26 +213,21 @@ class Robot {
         //    JOINT
         //-----------------------------------------
 
-        const stiffness = 1000//100000000;
+        const stiffness = 1000;
         const damping = 100; // 0
         const forceLimit = 1000//Infinity;
         const acceleration = false;
 
-        solver.addJoint({
-                name:'A'+i, bone:'top'+ this.id,
-                pos1:[0, 0.2, 0], pos2:[ 0, 0, 0 ],
-                type:'fixe',
-        });
-
         i = 4
         while(i--){
             solver.addJoint({
-                name:this.id+'A'+i, bone:'barm'+i + this.id,
+                name:id+'_A'+i, bone:id+'_barm'+i,
                 pos1:p[i], pos2:[ 0, 0, 0 ],
                 type:'revolute',
                 rot1: [0,i>1? 180: 0,0],
                 limits: [['swing1', -90, 90 ]],
-                drivesTarget: [['swing1', i==0 || i==3? 30 : -30 ]],
+                inverse : i == 1 || i==2 ? true : false,
+                position: [['swing1', 45 ]],
                 drives: [['swing1', stiffness, damping, forceLimit, acceleration ]],
             });
         }
@@ -194,11 +235,11 @@ class Robot {
         i = 4
         while(i--){
             solver.addJoint({
-                name:this.id+'A'+i, bone:'darm'+i + this.id,
+                name:id+'_A'+(4+i), bone:id+'_darm'+i,
                 pos1:[0.25, 0, 0], pos2:[ 0, 0, 0 ],
                 type:'revolute',
                 limits: [['swing2', -90, 90 ]],
-                drivesTarget: [['swing2', 30 ]],
+                position: [['swing2', 30 ]],
                 drives: [['swing2', stiffness, damping, forceLimit, acceleration ]],
             });
         }
@@ -206,37 +247,69 @@ class Robot {
         i = 4
         while(i--){
             solver.addJoint({
-                name:this.id+'A'+(4+i), bone:'farm'+i + this.id,
+                name:id+'_A'+(8+i), bone:id+'_farm'+i,
                 pos1:[0.45, 0, 0], pos2:[ 0, 0, 0 ],
                 type:'revolute',
                 limits: [['swing2', -125, 125 ]], //i>1? [['swing2', 90, 270 ]] : [['swing2', -90, 90 ]],
-                drivesTarget:[['swing2', -125 ]],
+                position:[['swing2', -125 ]],
                 drives: [['swing2', stiffness, damping, forceLimit, acceleration ]],
-            });
-
-            solver.addJoint({
-                name:'BB'+i, bone:'earm'+i+ this.id,
-                pos1:[0.716, -0.06, 0], pos2:[ 0, 0, 0 ],
-                type:'fixe',
-            });
+            })
 
         }
+
+
+        i = 4
+        while(i--){
+            solver.addJoint({
+                name:id+'_BB'+(i+12), bone:id+'_earm'+i,
+                pos1:[0.716, -0.06, 0], pos2:[ 0, 0, 0 ],
+                type:'fixe',
+            })
+        }
+
+        solver.addJoint({
+                name:id+'_AAA', bone:id+'_top',
+                pos1:[0, 0.2, 0], pos2:[ 0, 0, 0 ],
+                type:'fixe',
+        });
 
         //-----------------------------------------
         //    START
         //-----------------------------------------
 
         solver.start();
+
+        solver.commonInit();
+
+
         this.solver = solver;
 
-        this.solver.setAngles( this.angles, 2 )//.then()//() => autoCommand( movementCount++ ) );
+
+        //this.solver.setAngles( this.angle, 0.01 )//.then(() => this.play() );
+
+        this.current = 'jump'
+        this.play()
 
     }
+
+    play(){
+
+        const name = this.current
+        if( this.frame >= this.anims[name].length ) this.frame = 0
+        this.solver.setAngles( this.anims[name][this.frame], this.speed ).then( this.play.bind(this) );
+        this.frame++
+
+    }
+
+    update( dt ){
+        this.solver.driveJoints( dt );
+    }
+
 }
 
 update = ( dt ) => {
 
     let i = bots.length
-    while(i--) bots[i].solver.driveJoints( dt );
+    while(i--) bots[i].update( dt )
 
 }
