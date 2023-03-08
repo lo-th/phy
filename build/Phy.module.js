@@ -10322,8 +10322,6 @@ class GLTFMeshGpuInstancing {
 				// Just in case
 				Object3D.prototype.copy.call( instancedMesh, mesh );
 
-				// https://github.com/mrdoob/three.js/issues/18334
-				instancedMesh.frustumCulled = false;
 				this.parser.assignFinalMaterial( instancedMesh );
 
 				instancedMeshes.push( instancedMesh );
@@ -24237,39 +24235,12 @@ class Solver extends Item {
 
 	step ( AR, N ) {
 
-		let i = this.list.length, n, s, j, k=0, m;
+		let i = this.list.length, n;
 
 		while( i-- ){
 
-			s = this.list[i];
 			n = N + ( i * Num[this.type] );
-
-			if( s.needData ){
-
-				k = s.joints.length;
-
-				//for( j of s.joints ){
-				while(k--){
-
-					m = n + (k*7);
-
-					j = s.joints[k];
-
-					j.data.target.x = AR[ m + 0];
-					j.data.target.y = AR[ m + 1];
-					j.data.target.z = AR[ m + 2];
-
-					j.data.target.twiwt = Math.round( AR[ m + 3] );
-					j.data.target.swing1 = Math.round( AR[ m + 4] );
-					j.data.target.swing2 = Math.round( AR[ m + 5] );
-
-					j.data.target.count = AR[ m + 6];
-
-					//k++;
-
-				}
-
-			}
+			this.list[i].update( AR, n );
 
 		}
 
@@ -24288,9 +24259,6 @@ class Solver extends Item {
 
         // add to worker
         root.post({ m:'add', o:o });
-        //root.post({ m:'addSolver', o:o });
-
-        //console.log( 'solver is add', o )
 
         return solver;
 
@@ -24305,24 +24273,43 @@ class Solver extends Item {
 
 // ARTICULATION SOLVER
 
-class Articulation extends Object3D {
+class Articulation {//extends Basic3D 
 
 	constructor( o ) {
 
-		super();
+		//super();
 
 		this.name = o.name;
 		this.type = 'solver';
-
 		this.needData = o.needData || false;
-
-		this.chain = new THREE.Group();
 		this.joints = [];
 		this.jid = 0;
 
-		this.add( this.chain );
+	}
 
-		//this.bones = {};
+	update ( AR, n ){
+
+		if( !this.needData ) return
+
+		let k = this.joints.length, j, m;
+
+		while(k--){
+
+			m = n + (k*7);
+
+			j = this.joints[k];
+
+			j.data.target.x = AR[ m + 0];
+			j.data.target.y = AR[ m + 1];
+			j.data.target.z = AR[ m + 2];
+
+			j.data.target.twiwt = Math.round( AR[ m + 3] );
+			j.data.target.swing1 = Math.round( AR[ m + 4] );
+			j.data.target.swing2 = Math.round( AR[ m + 5] );
+
+			j.data.target.count = AR[ m + 6 ];
+
+		}
 
 	}
 
@@ -24356,51 +24343,52 @@ class Articulation extends Object3D {
 		
 		if(o.type !== 'fixe') {
 			this.joints.push( new SolverJoint( o, this ) );
-			//console.log(o.name)
 		}
 
 		root.post({ m:'addSolverJoint', o:o });
 
 	}
 
-	addBone ( mesh ) {
+	/*addBone ( mesh ) {
 
-		this.chain.add( mesh );
-		//this.bones[ mesh.name ] = mesh;
+		console.log('bone is add')
 
-	}
+		this.add( mesh );
 
-	release () {
-
-		root.destroy( this.chain );
-
-	}
+	}*/
 
 	driveJoints ( dt ) {
 
 		let isInDrive = false;
 
-		for( let j of this.joints ){ 
+		let k = this.joints.length, j, d, nup = [];
 
+		while(k--){ 
+
+			j = this.joints[k];
 			j.update( dt );
-			isInDrive = j.isDrive ? true : isInDrive;
+			d = j.isDrive;
+			if( d ) nup.push( j.nup );
+			isInDrive = d ? true : isInDrive;
 
 		}
 
-		if( this.resolve && !isInDrive ) {
-			this.resolve();
-			delete this.resolve;
+		// update or die
+		if( isInDrive ) root.update( nup );
+		else {
+			if(this.resolve){
+				this.resolve();
+				delete this.resolve;
+			}
 		}
 
 	}
 
     setAngles ( angles, time ){
 
-    	//console.log(angles, time)
-
     	if(!angles) return
 
-    	var j = this.joints.length;
+    	let j = this.joints.length;
 
     	while(j--){ 
     		this.joints[j].pose( angles[j] !== undefined ?  angles[j] : 0, time !== undefined ? time : 5 );
@@ -24430,6 +24418,7 @@ class SolverJoint {
 		this.target = 0;
 		this.start = 0;
 		this.time = 0;
+		this.nup = null;
 
 		this.data = {
 
@@ -24501,37 +24490,20 @@ class SolverJoint {
 	
 	update( dt ){
 
-
-
-		// linear target need to be clamp ?!
-		/*this.current = math.clamp( this.data.target[ this.driveType ], this.min, this.max );
-
-		if( this.current === this.target ){
-
-			this.isDrive = false;
-
-		} else {*/
-
 		if( this.isDrive ){
 
 			this.tmp += dt;
 			let t = this.tmp / this.time;
 			t = (t > 1) ? 1 : t;
 			let move = math$1.lerp( this.start, this.target, t );//this.current + (this.target - this.current) * t;
-			
-		    root.update({ name:this.name, drivesTarget: [[ this.driveType, move ]] });
 
-		    //console.log('yoo',{ name:this.name, drivesTarget: [[ this.driveType, move ]] } )
-
-		    //root.flow.tmp.push( { name:this.name, drivesTarget: [[ this.driveType, move ]] } )
+			this.nup = { name:this.name, drivesTarget: [[ this.driveType, move ]] };
 
 		    if( t === 1 ) this.isDrive = false;
 
 		}
 
-
 	}
-
 
 }
 
