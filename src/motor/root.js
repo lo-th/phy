@@ -442,6 +442,12 @@ export const math = {
 
 	},
 
+	vecZero: ( ar, n, i ) => {
+
+	    while ( i -- ) ar[n+i] = 0;
+
+	},
+
 	addArray:( a, b ) => ( math.vecAdd(a,b) ),
 
 	vectorad: ( r ) => {

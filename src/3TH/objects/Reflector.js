@@ -439,7 +439,7 @@ export class Reflector extends Mesh {
 			this.uv = 30
 			var r = repeat !== undefined ? repeat : this.uv;
 			var s = scale !== undefined ? scale : this.normalScale;
-			this.material.normalMap = Pool.directTexture('./assets/textures/terrain/water_n.jpg', { flip:false, repeat:[r,r] });//null;//Tools.loadTextures('./textures/terrain/water_n.jpg', { repeat:[r,r], anisotropy:4, generateMipmaps:true });
+			this.material.normalMap = Pool.texture( { url:'./assets/textures/terrain/water_n.jpg', flip:false, repeat:[r,r] });//null;//Tools.loadTextures('./textures/terrain/water_n.jpg', { repeat:[r,r], anisotropy:4, generateMipmaps:true });
 			this.material.normalScale.set( s, s );
 			this.material.roughness = 0.;
 			this.material.metalness = 0.;
@@ -447,7 +447,7 @@ export class Reflector extends Mesh {
 			this.material.side = DoubleSide;
 			//console.log('water')
 		} else {
-			this.material.normalMap = Pool.directTexture('./assets/textures/floor.png', { flip:false, repeat:[200,200] });
+			this.material.normalMap = Pool.texture( { url:'./assets/textures/floor.png', flip:false, repeat:[200,200] });
 			//this.material.normalMap = null;
 			this.material.roughness = 0.9;
 			this.material.metalness = 0.1;

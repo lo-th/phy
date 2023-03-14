@@ -43,8 +43,9 @@ export class Body extends Item {
 			b = this.list[i];
 			n = N + ( i * this.num )
 
-			if( !b ){ 
-				AR[n]=AR[n+1]=AR[n+2]=AR[n+3]=AR[n+4]=AR[n+5]=AR[n+6]=AR[n+7] = 0
+			if( !b ){
+				this.vecZero( AR, n, this.num )
+				//AR[n]=AR[n+1]=AR[n+2]=AR[n+3]=AR[n+4]=AR[n+5]=AR[n+6]=AR[n+7] = 0
 				continue
 			}
 

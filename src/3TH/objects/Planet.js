@@ -36,8 +36,8 @@ export class Planet extends Mesh {
 
         const tname = typer[ math.randInt(0, typer.length-1) ]
 
-        this.m1 = Pool.directTexture('./assets/textures/terrain/'+tname+'_c.jpg', { flip:false, repeat:this.uvx, encoding:true })
-        this.m2 = Pool.directTexture('./assets/textures/terrain/'+tname+'_n.jpg', { flip:false, repeat:this.uvx })
+        this.m1 = Pool.texture({ url:'./assets/textures/terrain/'+tname+'_c.jpg', flip:false, repeat:this.uvx, encoding:true })
+        this.m2 = Pool.texture({ url:'./assets/textures/terrain/'+tname+'_n.jpg', flip:false, repeat:this.uvx })
 
         this.material = new MeshStandardMaterial({ 
             name:'planet',

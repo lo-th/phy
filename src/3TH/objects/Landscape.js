@@ -173,13 +173,17 @@ export class Landscape extends Mesh {
 
             name = maps[i]
 
-            txt[name+'_c'] = Pool.directTexture(this.folder + name +'_c.jpg', { flip:false, repeat:this.uvx, encoding:o.encoding || true , callback: this.mapcallback.bind(this)  });
-            txt[name+'_n'] = Pool.directTexture(this.folder + name +'_n.jpg', { flip:false, repeat:this.uvx, callback: this.mapcallback.bind(this) });
+            txt[name+'_c'] = Pool.texture({ url:this.folder + name +'_c.jpg', flip:false, repeat:this.uvx, encoding:o.encoding || true , callback: this.mapcallback.bind(this)  });
+            txt[name+'_n'] = Pool.texture({ url:this.folder + name +'_n.jpg', flip:false, repeat:this.uvx, callback: this.mapcallback.bind(this) });
+
+            //txt[name+'_c'] = Pool.directTexture(this.folder + name +'_c.jpg', { flip:false, repeat:this.uvx, encoding:o.encoding || true , callback: this.mapcallback.bind(this)  });
+            //txt[name+'_n'] = Pool.directTexture(this.folder + name +'_n.jpg', { flip:false, repeat:this.uvx, callback: this.mapcallback.bind(this) });
            // if( isORM )txt[name+'_n'] = Pool.directTexture('./assets/textures/terrain/'+name+'_n.jpg', { flip:false, repeat:this.uvx, callback: this.mapcallback.bind(this) });
 
         }
 
-        txt['noise'] = Pool.directTexture(this.folder + 'noise.png', { flip:false, repeat:[1,1], encoding:false , callback: this.mapcallback.bind(this)  });
+        //txt['noise'] = Pool.directTexture(this.folder + 'noise.png', { flip:false, repeat:[1,1], encoding:false , callback: this.mapcallback.bind(this)  });
+        txt['noise'] = Pool.texture({ url:this.folder + 'noise.png', flip:false, repeat:[1,1], encoding:false , callback: this.mapcallback.bind(this)  });
 
         this.txt = txt
 

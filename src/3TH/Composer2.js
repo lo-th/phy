@@ -12,11 +12,16 @@ import {
 import { Shader } from './Shader.js';
 import { Env } from './Env.js'
 
-import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { EffectComposer, RenderPass, ShaderPass, EffectPass, LUT3dlLoader, LUTCubeLoader, LUT3DEffect, BloomEffect, VignetteEffect, KernelSize } from '../libs/postprocessing.esm.js'
+
+import { SSGIEffect, MotionBlurEffect, TRAAEffect, VelocityDepthNormalPass } from '../libs/realism.js'
+
+/*import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
+*/
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
-import { LUTPass } from 'three/addons/postprocessing/LUTPass.js';
+//import { LUTPass } from 'three/addons/postprocessing/LUTPass.js';
 //import { ClearPass } from '../postprocessing/ClearPass.js';
 //import { TexturePass } from '../postprocessing/TexturePass.js';
 import { BokehPass } from 'three/addons/postprocessing/BokehPass.js';
@@ -34,8 +39,8 @@ import { BloomMix } from 'three/addons/shaders/BloomMix.js';
 
 import { ToneMapShader } from 'three/addons/shaders/ToneMapShader.js';
 
-import { LUTCubeLoader } from 'three/addons/loaders/LUTCubeLoader.js';
-import { LUT3dlLoader } from 'three/addons/loaders/LUT3dlLoader.js';
+//import { LUTCubeLoader } from 'three/addons/loaders/LUTCubeLoader.js';
+//import { LUT3dlLoader } from 'three/addons/loaders/LUT3dlLoader.js';
 
 export class Composer extends EffectComposer {
 
@@ -44,11 +49,104 @@ export class Composer extends EffectComposer {
 		let isGl2 = renderer.capabilities.isWebGL2
 		let px = renderer.getPixelRatio()
 
+		super( renderer );
+
+		renderer.autoClear = false
+
+		this.enabled = false
+
+		this.renderPass = new RenderPass(scene, camera)
+
+		//this.addPass(this.renderPass)
+
+		const options = {
+			threeVue:false,
+			distance: 2.7200000000000104,
+			thickness: 1.2999999999999972,
+			autoThickness: false,
+			importanceSampling:true,
+			maxRoughness: 1,
+			blend: 0.95,
+			denoiseIterations: 3,
+			denoiseKernel: 3,
+			denoiseDiffuse: 25,
+			denoiseSpecular: 25.54,
+			depthPhi: 5,
+			normalPhi: 28,
+			roughnessPhi: 18.75,
+			envBlur: 0.55,
+			importanceSampling: true,
+			directLightMultiplier: 1,
+			maxEnvLuminance: 50,
+			steps: 20,
+			refineSteps: 4,
+			spp: 1,
+			resolutionScale: 1,
+			missedRays: false
+		}
+
+		const pass = {}
+
+
+		pass.velocity = new VelocityDepthNormalPass(scene, camera)
+		this.addPass( pass.velocity )
+
+		
+
+        
+
+		this.bloomEffect = new BloomEffect({
+			intensity: 1,
+			mipmapBlur: true,
+			luminanceSmoothing: 0.75,
+			luminanceThreshold: 0.75,
+			kernelSize: KernelSize.HUGE
+		})
+
+		this.vignetteEffect = new VignetteEffect({
+			darkness: 0.8,
+			offset: 0.3
+		})
+
+		
+
+		this.motionBlurEffect = new MotionBlurEffect(pass.velocity, {
+			jitter: 1
+		})
+
+
+
+		this.traaEffect = new TRAAEffect(scene, camera, pass.velocity, {})
+		this.traaPass = new EffectPass(camera, this.traaEffect)
+
+
+
+		this.ssgiEffect = new SSGIEffect(scene, camera, pass.velocity, options)
+		pass.ssgi = new EffectPass(camera, this.ssgiEffect)
+		this.addPass(pass.ssgi)
+
+
+		new LUT3dlLoader().load('./assets/luts/realism.3dl').then(lutTexture => {
+
+			
+			pass.lut = new LUT3DEffect(lutTexture);
+			this.addPass( new EffectPass(camera, this.motionBlurEffect, this.bloomEffect, this.vignetteEffect, pass.lut) )
+	    })
+
+
+
+	    this.pass = pass
+
+
+
+
+		//
+
 		/*const sizeFX = renderer.getDrawingBufferSize( new THREE.Vector2() );
 		console.log( sizeFX, size.w*px, size.h*px )
 		//let RTClass = WebGLRenderTarget
 */
-		const renderTarget = new WebGLRenderTarget( size.w*px, size.h*px , {
+		/*const renderTarget = new WebGLRenderTarget( size.w*px, size.h*px , {
 			//minFilter: LinearFilter,
 			//magFilter: LinearFilter,
 			//format: RGBAFormat,//??? slow down
@@ -133,7 +231,7 @@ export class Composer extends EffectComposer {
 
 		}
 
-		this.pass = {}
+		
 
 		this.pass.render = new RenderPass( scene, camera )
 		this.addPass( this.pass.render )
@@ -182,7 +280,7 @@ export class Composer extends EffectComposer {
 		this.addPass( this.pass.ssao );*/
 
 		
-		this.pass.sharpen = new ShaderPass( SharpenShader )
+		/*this.pass.sharpen = new ShaderPass( SharpenShader )
 		this.pass.sharpen.setSize = function (w,h){ this.uniforms[ 'resolution' ].value.set(w,h) }	
 		this.pass.sharpen.enabled = true
 		
@@ -206,7 +304,7 @@ export class Composer extends EffectComposer {
 		
 		this.pass.bloom.enabled = true*/
 
-		this.bloomPass = new UnrealBloomPass( new Vector2( size.w, size.h ), this.options.strength, this.options.bloomRadius, this.options.threshold, true )
+		/*this.bloomPass = new UnrealBloomPass( new Vector2( size.w, size.h ), this.options.strength, this.options.bloomRadius, this.options.threshold, true )
 		this.bloomPass.enabled = true
 
 		this.bloomComposer = new EffectComposer( renderer, renderTarget )
@@ -243,17 +341,17 @@ export class Composer extends EffectComposer {
 		this.pass.gamma.enabled = true*/
 
 
-		if( !this.isGl2 ){
+	/*	if( !this.isGl2 ){
 			this.pass.fxaa = new ShaderPass( FXAAShader );
 			this.pass.fxaa.setSize = function (w,h){ this.uniforms[ 'resolution' ].value.set(1/w,1/h) }
 			this.addPass( this.pass.fxaa )
 		}
 
 
-		
+		*/
 
 		//this.setSize( this.size.w, this.size.h );
-		this.update()
+		//this.update()
 		
 	}
 
@@ -426,7 +524,7 @@ export class Composer extends EffectComposer {
 
 		this.size = size;
 		this.setSize( this.size.w, this.size.h )
-		this.bloomComposer.setSize( this.size.w, this.size.h )
+		//this.bloomComposer.setSize( this.size.w, this.size.h )
 
 	}
 
@@ -437,7 +535,7 @@ export class Composer extends EffectComposer {
 	render ( deltaTime ) {
 
 
-		if( this.pass.bloom.enabled ){ 
+		/*if( this.pass.bloom.enabled ){ 
 			this.bloomPass.enabled = true
 
 			Env.setBackgroud(0x000000)
@@ -457,7 +555,7 @@ export class Composer extends EffectComposer {
 	       // this.renderDepth()
 	        this.renderBeauty()
 
-		}
+		}*/
 
 
 

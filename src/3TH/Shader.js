@@ -325,6 +325,8 @@ export class Shader {
 
     static add ( m ) {
 
+        if( !m ) return
+
         let name = m.name;
         if ( materials.has( name ) ) { 
             console.log('already add', name)
@@ -335,7 +337,6 @@ export class Shader {
         materials.set( name, true )
         
         m.shadowSide = DoubleSide;
-
 
         //m.format = sRGBEncoding;
         if(!m.isEncod){

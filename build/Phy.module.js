@@ -435,6 +435,12 @@ const math$1 = {
 
 	},
 
+	vecZero: ( ar, n, i ) => {
+
+	    while ( i -- ) ar[n+i] = 0;
+
+	},
+
 	addArray:( a, b ) => ( math$1.vecAdd(a,b) ),
 
 	vectorad: ( r ) => {
@@ -672,6 +678,8 @@ class Item {
 		if( b !== null ) this.Utils.remove( b );
 
 	}
+
+    vecZero ( ar, n, i ) { while ( i -- ) ar[n+i] = 0; }
 
 	add ( o = {} ) { }
 
@@ -1676,6 +1684,8 @@ class Instance extends InstancedMesh {
         this.tmpMatrix = new Matrix4();
         this.tmpQuat = new Quaternion();
 
+        this.needSphereUp = false;
+
         this.isRay = true; 
         
     }
@@ -1751,6 +1761,7 @@ class Instance extends InstancedMesh {
     setTransformAt( index, p, q, s ) {
         this.tmpMatrix.compose({x:p[0], y:p[1], z:p[2]}, {_x:q[0], _y:q[1], _z:q[2], _w:q[3]}, {x:s[0], y:s[1], z:s[2]});
         this.tmpMatrix.toArray( this.instanceMatrix.array, index * 16 );
+        this.needSphereUp = true;
     }
 
     dispose() {
@@ -1774,8 +1785,10 @@ class Instance extends InstancedMesh {
     }
 
     update(){
+        if( this.needSphereUp ) this.computeBoundingSphere();
         if( this.instanceMatrix ) this.instanceMatrix.needsUpdate = true;
         if( this.instanceColor ) this.instanceColor.needsUpdate = true;
+        this.needSphereUp = false;
     }
 
 }
@@ -19501,6 +19514,8 @@ class Shader {
 
     static add ( m ) {
 
+        if( !m ) return
+
         let name = m.name;
         if ( materials.has( name ) ) { 
             console.log('already add', name);
@@ -19511,7 +19526,6 @@ class Shader {
         materials.set( name, true );
         
         m.shadowSide = DoubleSide;
-
 
         //m.format = sRGBEncoding;
         if(!m.isEncod){
@@ -20110,22 +20124,25 @@ const Pool = {
 
     //getMap:( name, o = {} ) => ( Pool.getTexture(name, o) ),
 
-    directTexture:( url, o = {} ) => {
+
+    //--------------------
+    //   TEXTURES
+    //--------------------
+
+    texture:( o = {} ) => {
 
         if( !Pool.loaderMap ) Pool.loaderMap = new TextureLoader();
 
-        let name = url.substring( url.lastIndexOf('/')+1, url.lastIndexOf('.') );
+        let name = o.url.substring( o.url.lastIndexOf('/')+1, o.url.lastIndexOf('.') );
 
         if( Pool.exist( name, 'texture') ) return Pool.get( name, 'texture' );
             
-        return Pool.loaderMap.load( url, function ( txt ) { 
+        return Pool.loaderMap.load( o.url, function ( t ) { 
 
-            Pool.setTextureOption( txt, o );
-            //Pool.set( name , txt );
-            Pool.data.set( 'T_' + name, txt );
-            //Pool.extraTexture.push( name );
+            Pool.setTextureOption( t, o );
+            Pool.data.set( 'T_' + name, t );
             if( o.callback ) o.callback();
-            return txt
+            return t
             
         })
 
@@ -20140,7 +20157,6 @@ const Pool = {
             t = new Texture( im );
             if( name.search('_c') !== -1 || name.search('_l') !== -1 ) o.encoding = true;
             Pool.data.set( 'T_' + name, t );
-            //Pool.extraTexture.push( name );
         }
         Pool.setTextureOption( t, o );
         return t
@@ -23421,13 +23437,17 @@ class Landscape extends Mesh {
 
             name = maps[i];
 
-            txt[name+'_c'] = Pool.directTexture(this.folder + name +'_c.jpg', { flip:false, repeat:this.uvx, encoding:o.encoding || true , callback: this.mapcallback.bind(this)  });
-            txt[name+'_n'] = Pool.directTexture(this.folder + name +'_n.jpg', { flip:false, repeat:this.uvx, callback: this.mapcallback.bind(this) });
+            txt[name+'_c'] = Pool.texture({ url:this.folder + name +'_c.jpg', flip:false, repeat:this.uvx, encoding:o.encoding || true , callback: this.mapcallback.bind(this)  });
+            txt[name+'_n'] = Pool.texture({ url:this.folder + name +'_n.jpg', flip:false, repeat:this.uvx, callback: this.mapcallback.bind(this) });
+
+            //txt[name+'_c'] = Pool.directTexture(this.folder + name +'_c.jpg', { flip:false, repeat:this.uvx, encoding:o.encoding || true , callback: this.mapcallback.bind(this)  });
+            //txt[name+'_n'] = Pool.directTexture(this.folder + name +'_n.jpg', { flip:false, repeat:this.uvx, callback: this.mapcallback.bind(this) });
            // if( isORM )txt[name+'_n'] = Pool.directTexture('./assets/textures/terrain/'+name+'_n.jpg', { flip:false, repeat:this.uvx, callback: this.mapcallback.bind(this) });
 
         }
 
-        txt['noise'] = Pool.directTexture(this.folder + 'noise.png', { flip:false, repeat:[1,1], encoding:false , callback: this.mapcallback.bind(this)  });
+        //txt['noise'] = Pool.directTexture(this.folder + 'noise.png', { flip:false, repeat:[1,1], encoding:false , callback: this.mapcallback.bind(this)  });
+        txt['noise'] = Pool.texture({ url:this.folder + 'noise.png', flip:false, repeat:[1,1], encoding:false , callback: this.mapcallback.bind(this)  });
 
         this.txt = txt;
 
@@ -25234,10 +25254,7 @@ class Motor {
 	}
 
 	static texture( o = {} ) {
-
-		let t = extraTexture( o );
-		//root.tmpTex.push( t )
-		return t
+		return extraTexture( o )
 	}
 
 	static material ( o = {} ){

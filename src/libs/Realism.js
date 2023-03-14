@@ -1,6 +1,6 @@
-import { Pass, Effect, RenderPass, Selection } from 'postprocessing';
-import { DataTexture, RGBAFormat, FloatType, ShaderChunk, ShaderLib, UniformsUtils, Texture, WebGLMultipleRenderTargets, ShaderMaterial, GLSL3, Uniform, Vector2, Matrix4, Vector3, Clock, Quaternion, LinearFilter, HalfFloatType, NearestFilter, Color, Matrix3, TangentSpaceNormalMap, RepeatWrapping, RedFormat, MeshDepthMaterial, RGBADepthPacking, BackSide, WebGLRenderTarget, TextureLoader, LinearEncoding, DepthTexture, sRGBEncoding, NoToneMapping, EquirectangularReflectionMapping, LinearMipMapLinearFilter, UnsignedByteType } from 'three';
-import { GroundProjectedEnv } from 'three/addons/objects/GroundProjectedEnv.js';
+import { Pass, Effect, RenderPass, Selection } from './postprocessing.esm.js';
+import { DataTexture, RGBAFormat, FloatType, ShaderChunk, ShaderLib, UniformsUtils, WebGLMultipleRenderTargets, ShaderMaterial, GLSL3, Uniform, Vector2, Matrix4, Vector3, Clock, Quaternion, LinearFilter, HalfFloatType, NearestFilter, Color, Matrix3, TangentSpaceNormalMap, RepeatWrapping, RedFormat, MeshDepthMaterial, RGBADepthPacking, BackSide, WebGLRenderTarget, TextureLoader, LinearEncoding, DepthTexture, sRGBEncoding, Texture, NoToneMapping, EquirectangularReflectionMapping, LinearMipMapLinearFilter, UnsignedByteType, FramebufferTexture } from 'three';
+import { GroundProjectedSkybox } from 'three/addons/objects/GroundProjectedSkybox.js';
 
 const getVisibleChildren = object => {
   const queue = [object];
@@ -170,18 +170,11 @@ function loopReplacer(match, start, end, snippet) {
 
   return string;
 } //
-let tmpTex = new Texture();
-let tmpGroundProjectedEnv = new GroundProjectedEnv(tmpTex);
-const tmpGroundProjectedEnvFragmentShader = tmpGroundProjectedEnv.material.fragmentShader;
-tmpGroundProjectedEnv.material.dispose();
-tmpGroundProjectedEnv.geometry.dispose();
-tmpTex.dispose();
-tmpTex = null;
-tmpGroundProjectedEnv = null;
-const isChildMaterialRenderable = material => {
-  var _material$fragmentSha;
-
-  return material.visible && material.depthWrite && material.depthTest && (!material.transparent || material.opacity > 0) && !((_material$fragmentSha = material.fragmentShader) != null && _material$fragmentSha.includes(tmpGroundProjectedEnvFragmentShader));
+const isGroundProjectedEnv = c => {
+  return c instanceof GroundProjectedSkybox;
+};
+const isChildMaterialRenderable = (c, material = c.material) => {
+  return material.visible && material.depthWrite && material.depthTest && (!material.transparent || material.opacity > 0) && !isGroundProjectedEnv(c);
 };
 const copyNecessaryProps = (originalMaterial, newMaterial) => {
   const keys = ["vertexTangent", "vertexColors", "vertexAlphas", "vertexUvs", "uvsVertexOnly", "supportsVertexTextures", "instancing", "instancingColor", "side", "flatShading", "skinning", "doubleSided", "flipSided"];
@@ -194,6 +187,7 @@ var vertexShader = "#define GLSLIFY 1\nvarying vec2 vUv;void main(){vUv=position
 class CopyPass extends Pass {
   constructor(textureCount = 1) {
     super("CopyPass");
+    this.needsSwap = false;
     this.renderTarget = new WebGLMultipleRenderTargets(1, 1, 1, {
       depthBuffer: false
     });
@@ -257,9 +251,9 @@ class CopyPass extends Pass {
 
 }
 
-var fragmentShader$2 = "#define GLSLIFY 1\nvarying vec2 vUv;uniform sampler2D velocityTexture;uniform sampler2D depthTexture;uniform sampler2D lastDepthTexture;uniform sampler2D normalTexture;uniform sampler2D lastNormalTexture;uniform float blend;uniform bool constantBlend;uniform bool fullAccumulate;uniform vec2 invTexSize;uniform mat4 projectionMatrix;uniform mat4 projectionMatrixInverse;uniform mat4 cameraMatrixWorld;uniform vec3 cameraPos;uniform mat4 prevViewMatrix;uniform mat4 prevCameraMatrixWorld;uniform mat4 prevProjectionMatrix;uniform mat4 prevProjectionMatrixInverse;uniform bool reset;uniform float delta;\n#define EPSILON 0.00001\n#include <packing>\n#include <reproject>\nvoid main(){vec4 depthTexel;float depth;getDepthAndDilatedUVOffset(depthTexture,vUv,depth,dilatedDepth,depthTexel);vec2 dilatedUv=vUv+dilatedUvOffset;if(dot(depthTexel.rgb,depthTexel.rgb)==0.0){\n#ifdef neighborhoodClamping\n#pragma unroll_loop_start\nfor(int i=0;i<textureCount;i++){gOutput[i]=textureLod(inputTexture[i],vUv,0.0);}\n#pragma unroll_loop_end\n#else\ndiscard;\n#endif\nreturn;}vec4 inputTexel[textureCount];vec4 accumulatedTexel[textureCount];\n#pragma unroll_loop_start\nfor(int i=0;i<textureCount;i++){inputTexel[i]=textureLod(inputTexture[i],vUv,0.0);transformColor(inputTexel[i].rgb);}\n#pragma unroll_loop_end\nvec4 normalTexel=textureLod(normalTexture,dilatedUv,0.);vec3 worldNormal=unpackRGBToNormal(normalTexel.rgb);worldNormal=normalize((vec4(worldNormal,1.)*viewMatrix).xyz);vec3 worldPos=screenSpaceToWorldSpace(vUv,dilatedDepth,cameraMatrixWorld,projectionMatrixInverse);vec2 reprojectedUvDiffuse=vec2(-10.0);vec2 reprojectedUvSpecular[textureCount];vec2 reprojectedUv;bool reprojectHitPoint;vec3 clampedColor;\n#pragma unroll_loop_start\nfor(int i=0;i<textureCount;i++){reprojectHitPoint=reprojectSpecular[i]&&inputTexel[i].a>0.0;if(reprojectHitPoint){reprojectedUvSpecular[i]=getReprojectedUV(vUv,neighborhoodClamping[i],depth,worldPos,worldNormal,inputTexel[i].a);}else{reprojectedUvSpecular[i]=vec2(-1.0);}if(reprojectedUvDiffuse.x==-10.0&&reprojectedUvSpecular[i].x<0.0){reprojectedUvDiffuse=getReprojectedUV(vUv,neighborhoodClamping[i],depth,worldPos,worldNormal,0.0);}reprojectedUv=reprojectedUvSpecular[i].x>=0.0 ? reprojectedUvSpecular[i]: reprojectedUvDiffuse;if(reprojectedUv.x<0.0){accumulatedTexel[i]=vec4(inputTexel[i].rgb,1.0);}else{accumulatedTexel[i]=sampleReprojectedTexture(accumulatedTexture[i],reprojectedUv,catmullRomSampling[i]);transformColor(accumulatedTexel[i].rgb);if(dot(inputTexel[i].rgb,inputTexel[i].rgb)==0.0){inputTexel[i].rgb=accumulatedTexel[i].rgb;}else{accumulatedTexel[i].a++;}if(neighborhoodClamping[i]){clampedColor=accumulatedTexel[i].rgb;clampNeighborhood(inputTexture[i],clampedColor,inputTexel[i].rgb);accumulatedTexel[i].rgb=clampedColor;}}}\n#pragma unroll_loop_end\nvec2 deltaUv=vUv-reprojectedUv;bool didMove=dot(deltaUv,deltaUv)>=0.0000000001;float maxValue=(fullAccumulate&&!didMove)? 1.0 : blend;vec3 outputColor;float temporalReprojectMix;float m=1.-delta/(1./60.);float fpsAdjustedBlend=blend+max(0.,(1.-blend)*m);\n#pragma unroll_loop_start\nfor(int i=0;i<textureCount;i++){temporalReprojectMix=fpsAdjustedBlend;if(reset)accumulatedTexel[i].a=0.0;if(!constantBlend)temporalReprojectMix=min(1.-1./(accumulatedTexel[i].a+1.0),maxValue);outputColor=mix(inputTexel[i].rgb,accumulatedTexel[i].rgb,temporalReprojectMix);undoColorTransform(outputColor);gOutput[i]=vec4(outputColor,accumulatedTexel[i].a);}\n#pragma unroll_loop_end\n#ifdef useCustomComposeShader\ncustomComposeShader\n#endif\n}"; // eslint-disable-line
+var fragmentShader$2 = "#define GLSLIFY 1\nvarying vec2 vUv;uniform sampler2D velocityTexture;uniform sampler2D depthTexture;uniform sampler2D lastDepthTexture;uniform float blend;uniform bool constantBlend;uniform bool fullAccumulate;uniform vec2 invTexSize;uniform mat4 projectionMatrix;uniform mat4 projectionMatrixInverse;uniform mat4 cameraMatrixWorld;uniform vec3 cameraPos;uniform mat4 prevViewMatrix;uniform mat4 prevCameraMatrixWorld;uniform mat4 prevProjectionMatrix;uniform mat4 prevProjectionMatrixInverse;uniform bool reset;uniform float delta;\n#define EPSILON 0.00001\n#include <packing>\n#include <reproject>\nvoid main(){vec4 depthTexel;float depth;getDepthAndDilatedUVOffset(depthTexture,vUv,depth,dilatedDepth,depthTexel);vec2 dilatedUv=vUv+dilatedUvOffset;if(dot(depthTexel.rgb,depthTexel.rgb)==0.0){\n#ifdef neighborhoodClamping\n#pragma unroll_loop_start\nfor(int i=0;i<textureCount;i++){gOutput[i]=textureLod(inputTexture[i],vUv,0.0);}\n#pragma unroll_loop_end\n#else\ndiscard;\n#endif\nreturn;}vec4 inputTexel[textureCount];vec4 accumulatedTexel[textureCount];bool textureSampledThisFrame[textureCount];\n#pragma unroll_loop_start\nfor(int i=0;i<textureCount;i++){inputTexel[i]=textureLod(inputTexture[i],vUv,0.0);doColorTransform[i]=luminance(inputTexel[i].rgb)>0.0;textureSampledThisFrame[i]=inputTexel[i].r>=0.;if(textureSampledThisFrame[i]){transformColor(inputTexel[i].rgb);}else{inputTexel[i].rgb=vec3(0.0);}texIndex++;}\n#pragma unroll_loop_end\ntexIndex=0;velocityTexel=textureLod(velocityTexture,vUv,0.0);bool didMove=dot(velocityTexel.xy,velocityTexel.xy)>0.000000001;\n#ifdef dilation\nvec2 octahedronEncodedNormal=textureLod(velocityTexture,dilatedUv,0.0).ba;\n#else\nvec2 octahedronEncodedNormal=velocityTexel.ba;\n#endif\nvec3 worldNormal=Decode(octahedronEncodedNormal);vec3 worldPos=screenSpaceToWorldSpace(vUv,depth,cameraMatrixWorld,projectionMatrixInverse);vec2 reprojectedUvDiffuse=vec2(-10.0);vec2 reprojectedUvSpecular[textureCount];vec2 reprojectedUv;bool reprojectHitPoint;bool useBlockySampling;\n#pragma unroll_loop_start\nfor(int i=0;i<textureCount;i++){reprojectHitPoint=reprojectSpecular[i]&&inputTexel[i].a>0.0;if(reprojectHitPoint){reprojectedUvSpecular[i]=getReprojectedUV(neighborhoodClamping[i],neighborhoodClampingDisocclusionTest[i],depth,worldPos,worldNormal,inputTexel[i].a);}else{reprojectedUvSpecular[i]=vec2(-1.0);}if(reprojectedUvDiffuse.x==-10.0&&reprojectedUvSpecular[i].x<0.0){reprojectedUvDiffuse=getReprojectedUV(neighborhoodClamping[i],neighborhoodClampingDisocclusionTest[i],depth,worldPos,worldNormal,0.0);}reprojectedUv=reprojectedUvSpecular[i].x>=0.0 ? reprojectedUvSpecular[i]: reprojectedUvDiffuse;if(reprojectedUv.x<0.0){accumulatedTexel[i]=vec4(inputTexel[i].rgb,0.0);}else{useBlockySampling=blockySampling[texIndex]&&didMove;accumulatedTexel[i]=sampleReprojectedTexture(accumulatedTexture[i],reprojectedUv,catmullRomSampling[i],useBlockySampling);transformColor(accumulatedTexel[i].rgb);if(textureSampledThisFrame[i]){accumulatedTexel[i].a++;if(neighborhoodClamping[i])clampNeighborhood(inputTexture[i],accumulatedTexel[i].rgb,inputTexel[i].rgb);}else{inputTexel[i].rgb=accumulatedTexel[i].rgb;}}texIndex++;}\n#pragma unroll_loop_end\ntexIndex=0;float m=1.-delta/(1./60.);float fpsAdjustedBlend=blend+max(0.,(1.-blend)*m);float maxValue=(fullAccumulate&&!didMove)? 1.0 : fpsAdjustedBlend;vec3 outputColor;float temporalReprojectMix;\n#pragma unroll_loop_start\nfor(int i=0;i<textureCount;i++){if(constantBlend){temporalReprojectMix=accumulatedTexel[i].a==0.0 ? 0.0 : fpsAdjustedBlend;}else{temporalReprojectMix=fpsAdjustedBlend;if(reset)accumulatedTexel[i].a=0.0;temporalReprojectMix=min(1.-1./(accumulatedTexel[i].a+1.0),maxValue);}outputColor=mix(inputTexel[i].rgb,accumulatedTexel[i].rgb,temporalReprojectMix);undoColorTransform(outputColor);gOutput[i]=vec4(outputColor,accumulatedTexel[i].a);texIndex++;}\n#pragma unroll_loop_end\n#ifdef useCustomComposeShader\ncustomComposeShader\n#endif\n}"; // eslint-disable-line
 
-var reproject = "#define GLSLIFY 1\n#define luminance(a) dot(vec3(0.2125, 0.7154, 0.0721), a)\nfloat dilatedDepth;vec2 dilatedUvOffset;vec3 screenSpaceToWorldSpace(const vec2 uv,const float depth,mat4 curMatrixWorld,const mat4 projMatrixInverse){vec4 ndc=vec4((uv.x-0.5)*2.0,(uv.y-0.5)*2.0,(depth-0.5)*2.0,1.0);vec4 clip=projMatrixInverse*ndc;vec4 view=curMatrixWorld*(clip/clip.w);return view.xyz;}vec2 viewSpaceToScreenSpace(const vec3 position,const mat4 projMatrix){vec4 projectedCoord=projMatrix*vec4(position,1.0);projectedCoord.xy/=projectedCoord.w;projectedCoord.xy=projectedCoord.xy*0.5+0.5;return projectedCoord.xy;}\n#ifdef logTransform\nvoid transformColor(inout vec3 color){float diff=min(1.0,luminance(color)-0.99);if(diff>0.0){color=vec3(diff*0.1);return;}color=log(max(color,vec3(EPSILON)));}void undoColorTransform(inout vec3 color){color=exp(color);}\n#else\n#define transformColor\n#define undoColorTransform\n#endif\nvoid getNeighborhoodAABB(const sampler2D tex,inout vec3 minNeighborColor,inout vec3 maxNeighborColor){for(int x=-2;x<=2;x++){for(int y=-2;y<=2;y++){if(x!=0||y!=0){vec2 offset=vec2(x,y)*invTexSize;vec2 neighborUv=vUv+offset;vec4 neighborTexel=textureLod(tex,neighborUv,0.0);transformColor(neighborTexel.rgb);minNeighborColor=min(neighborTexel.rgb,minNeighborColor);maxNeighborColor=max(neighborTexel.rgb,maxNeighborColor);}}}}void clampNeighborhood(const sampler2D tex,inout vec3 color,const vec3 inputColor){vec3 minNeighborColor=inputColor;vec3 maxNeighborColor=inputColor;getNeighborhoodAABB(tex,minNeighborColor,maxNeighborColor);color=clamp(color,minNeighborColor,maxNeighborColor);}\n#ifdef dilation\nvec2 getDilatedDepthUVOffset(const sampler2D tex,const vec2 centerUv,out float depth,out float dilatedDepth,out vec4 closestDepthTexel){float closestDepth=0.0;vec2 dilatedUvOffset;for(int x=-1;x<=1;x++){for(int y=-1;y<=1;y++){vec2 offset=vec2(x,y)*invTexSize;vec2 neighborUv=centerUv+offset;vec4 neighborDepthTexel=textureLod(tex,neighborUv,0.0);float neighborDepth=unpackRGBAToDepth(neighborDepthTexel);if(x==0&&y==0)depth=neighborDepth;if(neighborDepth>closestDepth){closestDepth=depth;closestDepthTexel=neighborDepthTexel;dilatedUvOffset=offset;}}}dilatedDepth=closestDepth;return dilatedUvOffset;}\n#endif\nvoid getDepthAndDilatedUVOffset(sampler2D depthTex,vec2 uv,out float depth,out float dilatedDepth,out vec4 depthTexel){\n#ifdef dilation\ndilatedUvOffset=getDilatedDepthUVOffset(depthTex,uv,depth,dilatedDepth,depthTexel);\n#else\ndepthTexel=textureLod(depthTex,uv,0.);depth=unpackRGBAToDepth(depthTexel);dilatedDepth=depth;\n#endif\n}bool planeDistanceDisocclusionCheck(const vec3 worldPos,const vec3 lastWorldPos,const vec3 worldNormal,const float worldDistFactor){vec3 toCurrent=worldPos-lastWorldPos;float distToPlane=abs(dot(toCurrent,worldNormal));return distToPlane>depthDistance*worldDistFactor;}bool worldDistanceDisocclusionCheck(const vec3 worldPos,const vec3 lastWorldPos,const float depth,const float worldDistFactor){return distance(worldPos,lastWorldPos)>worldDistance*worldDistFactor;}bool validateReprojectedUV(const vec2 reprojectedUv,const bool neighborhoodClamp,const float depth,const vec3 worldPos,const vec3 worldNormal){if(any(lessThan(reprojectedUv,vec2(0.)))||any(greaterThan(reprojectedUv,vec2(1.))))return false;if(neighborhoodClamp)return true;vec3 dilatedWorldPos=worldPos;float dilatedLastDepth,lastDepth;vec4 lastDepthTexel;\n#ifdef dilation\ngetDepthAndDilatedUVOffset(lastDepthTexture,reprojectedUv,lastDepth,dilatedLastDepth,lastDepthTexel);dilatedWorldPos=screenSpaceToWorldSpace(vUv+dilatedUvOffset,dilatedDepth,cameraMatrixWorld,projectionMatrixInverse);\n#else\nlastDepthTexel=textureLod(lastDepthTexture,reprojectedUv,0.);lastDepth=unpackRGBAToDepth(lastDepthTexel);dilatedLastDepth=lastDepth;\n#endif\nvec2 dilatedReprojectedUv=reprojectedUv+dilatedUvOffset;vec3 lastWorldPos=screenSpaceToWorldSpace(dilatedReprojectedUv,dilatedLastDepth,prevCameraMatrixWorld,prevProjectionMatrixInverse);float worldDistFactor=clamp((50.0+distance(dilatedWorldPos,cameraPos))/100.,0.25,1.);if(worldDistanceDisocclusionCheck(dilatedWorldPos,lastWorldPos,dilatedDepth,worldDistFactor))return false;vec4 lastNormalTexel=textureLod(lastNormalTexture,reprojectedUv+dilatedUvOffset,0.);vec3 lastNormal=unpackRGBToNormal(lastNormalTexel.xyz);vec3 lastWorldNormal=normalize((vec4(lastNormal,1.)*viewMatrix).xyz);return!planeDistanceDisocclusionCheck(dilatedWorldPos,lastWorldPos,worldNormal,worldDistFactor);}vec2 reprojectVelocity(const vec2 sampleUv){vec4 velocity=textureLod(velocityTexture,sampleUv,0.0);return vUv-velocity.xy;}vec2 reprojectHitPoint(const vec3 rayOrig,const float rayLength,const float depth){vec3 cameraRay=normalize(rayOrig-cameraPos);float cameraRayLength=distance(rayOrig,cameraPos);vec3 parallaxHitPoint=cameraPos+cameraRay*(cameraRayLength+rayLength);vec4 reprojectedParallaxHitPoint=prevViewMatrix*vec4(parallaxHitPoint,1.0);vec2 hitPointUv=viewSpaceToScreenSpace(reprojectedParallaxHitPoint.xyz,prevProjectionMatrix);return hitPointUv;}vec2 getReprojectedUV(const vec2 uv,const bool neighborhoodClamp,const float depth,const vec3 worldPos,const vec3 worldNormal,const float rayLength){if(rayLength!=0.0){vec2 reprojectedUv=reprojectHitPoint(worldPos,rayLength,depth);if(validateReprojectedUV(reprojectedUv,neighborhoodClamp,depth,worldPos,worldNormal)){return reprojectedUv;}return vec2(-1.);}vec2 reprojectedUv=reprojectVelocity(uv);if(validateReprojectedUV(reprojectedUv,neighborhoodClamp,depth,worldPos,worldNormal)){return reprojectedUv;}return vec2(-1.);}vec4 SampleTextureCatmullRom(const sampler2D tex,const vec2 uv,const vec2 texSize){vec2 samplePos=uv*texSize;vec2 texPos1=floor(samplePos-0.5f)+0.5f;vec2 f=samplePos-texPos1;vec2 w0=f*(-0.5f+f*(1.0f-0.5f*f));vec2 w1=1.0f+f*f*(-2.5f+1.5f*f);vec2 w2=f*(0.5f+f*(2.0f-1.5f*f));vec2 w3=f*f*(-0.5f+0.5f*f);vec2 w12=w1+w2;vec2 offset12=w2/(w1+w2);vec2 texPos0=texPos1-1.;vec2 texPos3=texPos1+2.;vec2 texPos12=texPos1+offset12;texPos0/=texSize;texPos3/=texSize;texPos12/=texSize;vec4 result=vec4(0.0);result+=textureLod(tex,vec2(texPos0.x,texPos0.y),0.0f)*w0.x*w0.y;result+=textureLod(tex,vec2(texPos12.x,texPos0.y),0.0f)*w12.x*w0.y;result+=textureLod(tex,vec2(texPos3.x,texPos0.y),0.0f)*w3.x*w0.y;result+=textureLod(tex,vec2(texPos0.x,texPos12.y),0.0f)*w0.x*w12.y;result+=textureLod(tex,vec2(texPos12.x,texPos12.y),0.0f)*w12.x*w12.y;result+=textureLod(tex,vec2(texPos3.x,texPos12.y),0.0f)*w3.x*w12.y;result+=textureLod(tex,vec2(texPos0.x,texPos3.y),0.0f)*w0.x*w3.y;result+=textureLod(tex,vec2(texPos12.x,texPos3.y),0.0f)*w12.x*w3.y;result+=textureLod(tex,vec2(texPos3.x,texPos3.y),0.0f)*w3.x*w3.y;result=max(result,vec4(0.));return result;}vec4 getTexel(const sampler2D tex,vec2 p){p=p/invTexSize+0.5;vec2 i=floor(p);vec2 f=p-i;f=f*f*f*(f*(f*6.0-15.0)+10.0);p=i+f;p=(p-0.5)*invTexSize;return textureLod(tex,p,0.0);}vec4 sampleReprojectedTexture(const sampler2D tex,const vec2 reprojectedUv,const bool useCatmullRom){if(useCatmullRom){return SampleTextureCatmullRom(tex,reprojectedUv,1.0/invTexSize);}return textureLod(tex,reprojectedUv,0.);}"; // eslint-disable-line
+var reproject = "#define GLSLIFY 1\nvec4 velocityTexel;float dilatedDepth;vec2 dilatedUvOffset;int texIndex;\n#define luminance(a) dot(vec3(0.2125, 0.7154, 0.0721), a)\nvec3 screenSpaceToWorldSpace(const vec2 uv,const float depth,mat4 curMatrixWorld,const mat4 projMatrixInverse){vec4 ndc=vec4((uv.x-0.5)*2.0,(uv.y-0.5)*2.0,(depth-0.5)*2.0,1.0);vec4 clip=projMatrixInverse*ndc;vec4 view=curMatrixWorld*(clip/clip.w);return view.xyz;}vec2 viewSpaceToScreenSpace(const vec3 position,const mat4 projMatrix){vec4 projectedCoord=projMatrix*vec4(position,1.0);projectedCoord.xy/=projectedCoord.w;projectedCoord.xy=projectedCoord.xy*0.5+0.5;return projectedCoord.xy;}bool doColorTransform[textureCount];\n#ifdef logTransform\nvoid transformColor(inout vec3 color){if(!doColorTransform[texIndex])return;float lum=luminance(color);float diff=min(1.0,lum-0.99);if(diff>0.0){color=vec3(diff*0.1);return;}color=log(max(color,vec3(EPSILON)));}void undoColorTransform(inout vec3 color){if(!doColorTransform[texIndex])return;color=exp(color);}\n#else\n#define transformColor\n#define undoColorTransform\n#endif\nvoid getNeighborhoodAABB(const sampler2D tex,inout vec3 minNeighborColor,inout vec3 maxNeighborColor){for(int x=-2;x<=2;x++){for(int y=-2;y<=2;y++){if(x!=0||y!=0){vec2 offset=vec2(x,y)*invTexSize;vec2 neighborUv=vUv+offset;vec4 neighborTexel=textureLod(tex,neighborUv,0.0);transformColor(neighborTexel.rgb);minNeighborColor=min(neighborTexel.rgb,minNeighborColor);maxNeighborColor=max(neighborTexel.rgb,maxNeighborColor);}}}}\n#ifdef logClamp\nvoid clampNeighborhood(const sampler2D tex,inout vec3 color,vec3 inputColor){transformColor(inputColor);vec3 minNeighborColor=inputColor;vec3 maxNeighborColor=inputColor;getNeighborhoodAABB(tex,minNeighborColor,maxNeighborColor);transformColor(color);color=clamp(color,minNeighborColor,maxNeighborColor);undoColorTransform(color);}\n#else\nvoid clampNeighborhood(const sampler2D tex,inout vec3 color,const vec3 inputColor){vec3 minNeighborColor=inputColor;vec3 maxNeighborColor=inputColor;getNeighborhoodAABB(tex,minNeighborColor,maxNeighborColor);color=clamp(color,minNeighborColor,maxNeighborColor);}\n#endif\n#ifdef dilation\nvoid getDilatedDepthUVOffset(const sampler2D tex,const vec2 centerUv,out float depth,out float dilatedDepth,out vec4 closestDepthTexel){float closestDepth=0.0;for(int x=-1;x<=1;x++){for(int y=-1;y<=1;y++){vec2 offset=vec2(x,y)*invTexSize;vec2 neighborUv=centerUv+offset;vec4 neighborDepthTexel=textureLod(tex,neighborUv,0.0);float neighborDepth=unpackRGBAToDepth(neighborDepthTexel);if(x==0&&y==0)depth=neighborDepth;if(neighborDepth>closestDepth){closestDepth=neighborDepth;closestDepthTexel=neighborDepthTexel;dilatedUvOffset=offset;}}}dilatedDepth=closestDepth;}\n#endif\nvoid getDepthAndDilatedUVOffset(sampler2D depthTex,vec2 uv,out float depth,out float dilatedDepth,out vec4 depthTexel){\n#ifdef dilation\ngetDilatedDepthUVOffset(depthTex,uv,depth,dilatedDepth,depthTexel);\n#else\ndepthTexel=textureLod(depthTex,uv,0.);depth=unpackRGBAToDepth(depthTexel);dilatedDepth=depth;\n#endif\n}bool planeDistanceDisocclusionCheck(const vec3 worldPos,const vec3 lastWorldPos,const vec3 worldNormal,const float worldDistFactor){if(abs(dot(worldNormal,worldPos))==0.0)return false;vec3 toCurrent=worldPos-lastWorldPos;float distToPlane=abs(dot(toCurrent,worldNormal));return distToPlane>depthDistance*worldDistFactor;}bool worldDistanceDisocclusionCheck(const vec3 worldPos,const vec3 lastWorldPos,const float worldDistFactor){return distance(worldPos,lastWorldPos)>worldDistance*worldDistFactor;}bool validateReprojectedUV(const vec2 reprojectedUv,const bool neighborhoodClamp,const bool neighborhoodClampDisocclusionTest,const float depth,const vec3 worldPos,const vec3 worldNormal){if(any(lessThan(reprojectedUv,vec2(0.)))||any(greaterThan(reprojectedUv,vec2(1.))))return false;if(neighborhoodClamp&&!neighborhoodClampDisocclusionTest)return true;vec3 dilatedWorldPos=worldPos;vec3 lastWorldPos;float dilatedLastDepth,lastDepth;vec4 lastDepthTexel;vec2 dilatedReprojectedUv;\n#ifdef dilation\ndilatedWorldPos=screenSpaceToWorldSpace(vUv+dilatedUvOffset,dilatedDepth,cameraMatrixWorld,projectionMatrixInverse);getDepthAndDilatedUVOffset(lastDepthTexture,reprojectedUv,lastDepth,dilatedLastDepth,lastDepthTexel);dilatedReprojectedUv=reprojectedUv+dilatedUvOffset;\n#else\nlastDepthTexel=textureLod(lastDepthTexture,reprojectedUv,0.);lastDepth=unpackRGBAToDepth(lastDepthTexel);dilatedLastDepth=lastDepth;dilatedReprojectedUv=reprojectedUv;\n#endif\nlastWorldPos=screenSpaceToWorldSpace(dilatedReprojectedUv,dilatedLastDepth,prevCameraMatrixWorld,prevProjectionMatrixInverse);float worldDistFactor=clamp((50.0+distance(dilatedWorldPos,cameraPos))/100.,0.25,1.);if(worldDistanceDisocclusionCheck(dilatedWorldPos,lastWorldPos,worldDistFactor))return false;return!planeDistanceDisocclusionCheck(dilatedWorldPos,lastWorldPos,worldNormal,worldDistFactor);}vec2 reprojectHitPoint(const vec3 rayOrig,const float rayLength,const float depth){vec3 cameraRay=normalize(rayOrig-cameraPos);float cameraRayLength=distance(rayOrig,cameraPos);vec3 parallaxHitPoint=cameraPos+cameraRay*(cameraRayLength+rayLength);vec4 reprojectedParallaxHitPoint=prevViewMatrix*vec4(parallaxHitPoint,1.0);vec2 hitPointUv=viewSpaceToScreenSpace(reprojectedParallaxHitPoint.xyz,prevProjectionMatrix);return hitPointUv;}vec2 getReprojectedUV(const bool neighborhoodClamp,const bool neighborhoodClampDisocclusionTest,const float depth,const vec3 worldPos,const vec3 worldNormal,const float rayLength){if(rayLength!=0.0){vec2 reprojectedUv=reprojectHitPoint(worldPos,rayLength,depth);if(validateReprojectedUV(reprojectedUv,neighborhoodClamp,neighborhoodClampDisocclusionTest,depth,worldPos,worldNormal)){return reprojectedUv;}return vec2(-1.);}vec2 reprojectedUv=vUv-velocityTexel.rg;if(validateReprojectedUV(reprojectedUv,neighborhoodClamp,neighborhoodClampDisocclusionTest,depth,worldPos,worldNormal)){return reprojectedUv;}return vec2(-1.);}vec4 SampleTextureCatmullRom(const sampler2D tex,const vec2 uv,const vec2 texSize){vec2 samplePos=uv*texSize;vec2 texPos1=floor(samplePos-0.5f)+0.5f;vec2 f=samplePos-texPos1;vec2 w0=f*(-0.5f+f*(1.0f-0.5f*f));vec2 w1=1.0f+f*f*(-2.5f+1.5f*f);vec2 w2=f*(0.5f+f*(2.0f-1.5f*f));vec2 w3=f*f*(-0.5f+0.5f*f);vec2 w12=w1+w2;vec2 offset12=w2/(w1+w2);vec2 texPos0=texPos1-1.;vec2 texPos3=texPos1+2.;vec2 texPos12=texPos1+offset12;texPos0/=texSize;texPos3/=texSize;texPos12/=texSize;vec4 result=vec4(0.0);result+=textureLod(tex,vec2(texPos0.x,texPos0.y),0.0f)*w0.x*w0.y;result+=textureLod(tex,vec2(texPos12.x,texPos0.y),0.0f)*w12.x*w0.y;result+=textureLod(tex,vec2(texPos3.x,texPos0.y),0.0f)*w3.x*w0.y;result+=textureLod(tex,vec2(texPos0.x,texPos12.y),0.0f)*w0.x*w12.y;result+=textureLod(tex,vec2(texPos12.x,texPos12.y),0.0f)*w12.x*w12.y;result+=textureLod(tex,vec2(texPos3.x,texPos12.y),0.0f)*w3.x*w12.y;result+=textureLod(tex,vec2(texPos0.x,texPos3.y),0.0f)*w0.x*w3.y;result+=textureLod(tex,vec2(texPos12.x,texPos3.y),0.0f)*w12.x*w3.y;result+=textureLod(tex,vec2(texPos3.x,texPos3.y),0.0f)*w3.x*w3.y;result=max(result,vec4(0.));return result;}vec4 getTexel(const sampler2D tex,vec2 p){p=p/invTexSize+0.5;vec2 i=floor(p);vec2 f=p-i;f=f*f*f*(f*(f*6.0-15.0)+10.0);p=i+f;p=(p-0.5)*invTexSize;return textureLod(tex,p,0.0);}vec2 sampleBlocky(vec2 p){vec2 d=vec2(dFdx(p.x),dFdy(p.y))/invTexSize;p/=invTexSize;vec2 fA=p-0.5*d,iA=floor(fA);vec2 fB=p+0.5*d,iB=floor(fB);return(iA+(iB-iA)*(fB-iB)/d+0.5)*invTexSize;}vec4 sampleReprojectedTexture(const sampler2D tex,const vec2 reprojectedUv,bool useCatmullRomSampling,bool useBlockySampling){vec2 p=useBlockySampling ? sampleBlocky(reprojectedUv): reprojectedUv;if(useCatmullRomSampling){return SampleTextureCatmullRom(tex,p,1.0/invTexSize);}return textureLod(tex,p,0.);}vec3 Decode(vec2 f){f=f*2.0-1.0;vec3 n=vec3(f.x,f.y,1.0-abs(f.x)-abs(f.y));float t=max(-n.z,0.0);n.x+=n.x>=0.0 ?-t : t;n.y+=n.y>=0.0 ?-t : t;return normalize(n);}"; // eslint-disable-line
 
 class TemporalReprojectMaterial extends ShaderMaterial {
   constructor(textureCount = 1, customComposeShader = "") {
@@ -311,8 +305,6 @@ class TemporalReprojectMaterial extends ShaderMaterial {
         velocityTexture: new Uniform(null),
         depthTexture: new Uniform(null),
         lastDepthTexture: new Uniform(null),
-        normalTexture: new Uniform(null),
-        lastNormalTexture: new Uniform(null),
         blend: new Uniform(0),
         constantBlend: new Uniform(false),
         fullAccumulate: new Uniform(false),
@@ -369,19 +361,23 @@ const defaultTemporalReprojectPassOptions = {
   constantBlend: false,
   fullAccumulate: false,
   catmullRomSampling: true,
+  blockySampling: true,
   neighborhoodClamping: false,
+  neighborhoodClampingDisocclusionTest: true,
   logTransform: false,
+  logClamp: false,
   depthDistance: 0.25,
   worldDistance: 0.375,
   reprojectSpecular: false,
   customComposeShader: null,
   renderTarget: null
 };
-const tmpProjectionMatrix = new Matrix4();
-const tmpProjectionMatrixInverse = new Matrix4();
+const tmpProjectionMatrix$1 = new Matrix4();
+const tmpProjectionMatrixInverse$1 = new Matrix4();
 class TemporalReprojectPass extends Pass {
-  constructor(scene, camera, velocityPass, textureCount = 1, options = defaultTemporalReprojectPassOptions) {
+  constructor(scene, camera, velocityDepthNormalPass, textureCount = 1, options = defaultTemporalReprojectPassOptions) {
     super("TemporalReprojectPass");
+    this.needsSwap = false;
     this.clock = new Clock();
     this.r2Sequence = [];
     this.pointsIndex = 0;
@@ -406,6 +402,7 @@ class TemporalReprojectPass extends Pass {
     if (options.dilation) this.fullscreenMaterial.defines.dilation = "";
     if (options.neighborhoodClamping) this.fullscreenMaterial.defines.neighborhoodClamping = "";
     if (options.logTransform) this.fullscreenMaterial.defines.logTransform = "";
+    if (options.logClamp) this.fullscreenMaterial.defines.logClamp = "";
     this.fullscreenMaterial.defines.depthDistance = options.depthDistance.toPrecision(5);
     this.fullscreenMaterial.defines.worldDistance = options.worldDistance.toPrecision(5);
     this.fullscreenMaterial.uniforms.blend.value = options.blend;
@@ -421,55 +418,31 @@ class TemporalReprojectPass extends Pass {
     this.fullscreenMaterial.uniforms.prevProjectionMatrix.value = camera.projectionMatrix.clone();
     this.fullscreenMaterial.uniforms.prevProjectionMatrixInverse.value = camera.projectionMatrixInverse.clone(); // init copy pass to save the accumulated textures and the textures from the last frame
 
-    this.copyPass = new CopyPass(2 + textureCount);
+    this.copyPass = new CopyPass(textureCount);
 
     for (let i = 0; i < textureCount; i++) {
-      const accumulatedTexture = this.copyPass.renderTarget.texture[2 + i];
+      const accumulatedTexture = this.copyPass.renderTarget.texture[i];
       accumulatedTexture.type = HalfFloatType;
       accumulatedTexture.minFilter = LinearFilter;
       accumulatedTexture.magFilter = LinearFilter;
       accumulatedTexture.needsUpdate = true;
     }
 
-    const lastDepthTexture = this.copyPass.renderTarget.texture[0];
-    lastDepthTexture.minFilter = NearestFilter;
-    lastDepthTexture.magFilter = NearestFilter;
-    lastDepthTexture.needsUpdate = true;
-    this.fullscreenMaterial.uniforms.lastDepthTexture.value = lastDepthTexture;
-    const lastNormalTexture = this.copyPass.renderTarget.texture[1];
-    lastNormalTexture.type = HalfFloatType;
-    lastNormalTexture.minFilter = NearestFilter;
-    lastNormalTexture.magFilter = NearestFilter;
-    lastNormalTexture.needsUpdate = true;
-    this.fullscreenMaterial.uniforms.lastNormalTexture.value = lastNormalTexture;
-    this.fullscreenMaterial.uniforms.velocityTexture.value = velocityPass.texture;
-    this.fullscreenMaterial.uniforms.depthTexture.value = velocityPass.depthTexture;
-    this.fullscreenMaterial.uniforms.normalTexture.value = velocityPass.normalTexture;
+    this.fullscreenMaterial.uniforms.velocityTexture.value = velocityDepthNormalPass.texture;
+    this.fullscreenMaterial.uniforms.depthTexture.value = velocityDepthNormalPass.depthTexture;
 
-    if (typeof options.reprojectSpecular === "boolean") {
-      options.reprojectSpecular = Array(textureCount).fill(options.reprojectSpecular);
+    for (const opt of ["catmullRomSampling", "blockySampling", "reprojectSpecular", "neighborhoodClamping", "neighborhoodClampingDisocclusionTest"]) {
+      if (typeof options[opt] === "boolean") {
+        options[opt] = Array(textureCount).fill(options[opt]);
+      }
+
+      this.fullscreenMaterial.defines[opt] =
+      /* glsl */
+      `bool[](${options[opt].join(", ")})`;
     }
 
-    this.fullscreenMaterial.defines.reprojectSpecular =
-    /* glsl */
-    `bool[](${options.reprojectSpecular.join(", ")})`;
-
-    if (typeof options.catmullRomSampling === "boolean") {
-      options.catmullRomSampling = Array(textureCount).fill(options.catmullRomSampling);
-    }
-
-    this.fullscreenMaterial.defines.catmullRomSampling =
-    /* glsl */
-    `bool[](${options.catmullRomSampling.join(", ")})`;
-
-    if (typeof options.neighborhoodClamping === "boolean") {
-      options.neighborhoodClamping = Array(textureCount).fill(options.neighborhoodClamping);
-    }
-
-    this.fullscreenMaterial.defines.neighborhoodClamping =
-    /* glsl */
-    `bool[](${options.neighborhoodClamping.join(", ")})`;
     this.options = options;
+    this.velocityDepthNormalPass = velocityDepthNormalPass;
   }
 
   dispose() {
@@ -496,30 +469,28 @@ class TemporalReprojectPass extends Pass {
   render(renderer) {
     const delta = Math.min(1 / 10, this.clock.getDelta());
     this.fullscreenMaterial.uniforms.delta.value = delta;
-    tmpProjectionMatrix.copy(this._camera.projectionMatrix);
-    tmpProjectionMatrixInverse.copy(this._camera.projectionMatrixInverse);
+    tmpProjectionMatrix$1.copy(this._camera.projectionMatrix);
+    tmpProjectionMatrixInverse$1.copy(this._camera.projectionMatrixInverse);
     if (this._camera.view) this._camera.view.enabled = false;
 
     this._camera.updateProjectionMatrix();
 
     this.fullscreenMaterial.uniforms.projectionMatrix.value.copy(this._camera.projectionMatrix);
     this.fullscreenMaterial.uniforms.projectionMatrixInverse.value.copy(this._camera.projectionMatrixInverse);
+    this.fullscreenMaterial.uniforms.lastDepthTexture.value = this.velocityDepthNormalPass.lastDepthTexture;
     if (this._camera.view) this._camera.view.enabled = true;
 
-    this._camera.projectionMatrix.copy(tmpProjectionMatrix);
+    this._camera.projectionMatrix.copy(tmpProjectionMatrix$1);
 
-    this._camera.projectionMatrixInverse.copy(tmpProjectionMatrixInverse);
+    this._camera.projectionMatrixInverse.copy(tmpProjectionMatrixInverse$1);
 
     renderer.setRenderTarget(this.renderTarget);
     renderer.render(this.scene, this.camera);
-    this.fullscreenMaterial.uniforms.reset.value = false; // save the last depth and normal buffers
-
-    this.copyPass.fullscreenMaterial.uniforms.inputTexture0.value = this.fullscreenMaterial.uniforms.depthTexture.value;
-    this.copyPass.fullscreenMaterial.uniforms.inputTexture1.value = this.fullscreenMaterial.uniforms.normalTexture.value;
+    this.fullscreenMaterial.uniforms.reset.value = false;
 
     for (let i = 0; i < this.textureCount; i++) {
-      this.copyPass.fullscreenMaterial.uniforms["inputTexture" + (2 + i)].value = this.renderTarget.texture[i];
-      this.fullscreenMaterial.uniforms["accumulatedTexture" + i].value = this.copyPass.renderTarget.texture[2 + i];
+      this.copyPass.fullscreenMaterial.uniforms["inputTexture" + i].value = this.renderTarget.texture[i];
+      this.fullscreenMaterial.uniforms["accumulatedTexture" + i].value = this.copyPass.renderTarget.texture[i];
     }
 
     this.copyPass.render(renderer); // save last transformations
@@ -551,15 +522,18 @@ class TemporalReprojectPass extends Pass {
 var compose$1 = "#define GLSLIFY 1\nuniform sampler2D inputTexture;void mainImage(const in vec4 inputColor,const in vec2 uv,out vec4 outputColor){vec4 accumulatedTexel=textureLod(inputTexture,vUv,0.);outputColor=vec4(accumulatedTexel.rgb,1.);}"; // eslint-disable-line
 
 const defaultTRAAOptions = {
-  blend: 0.7,
+  blend: 0.8,
   constantBlend: true,
   dilation: true,
-  catmullRomSampling: true,
-  logTransform: true,
+  blockySampling: false,
+  logTransform: false,
+  // ! todo: check if can use logTransform withoutt artifacts
+  depthDistance: 10,
+  worldDistance: 5,
   neighborhoodClamping: true
 };
 class TRAAEffect extends Effect {
-  constructor(scene, camera, velocityPass, options = defaultTRAAOptions) {
+  constructor(scene, camera, velocityDepthNormalPass, options = defaultTRAAOptions) {
     super("TRAAEffect", compose$1, {
       type: "FinalTRAAEffectMaterial",
       uniforms: new Map([["inputTexture", new Uniform(null)]])
@@ -569,7 +543,7 @@ class TRAAEffect extends Effect {
     options = { ...defaultTRAAOptions,
       ...options
     };
-    this.temporalReprojectPass = new TemporalReprojectPass(scene, camera, velocityPass, 1, options);
+    this.temporalReprojectPass = new TemporalReprojectPass(scene, camera, velocityDepthNormalPass, 1, options);
     this.uniforms.get("inputTexture").value = this.temporalReprojectPass.texture;
     this.setSize(options.width, options.height);
   }
@@ -584,15 +558,14 @@ class TRAAEffect extends Effect {
   }
 
   update(renderer, inputBuffer) {
-    // TODO: FIX RIGGED MESHES ISSUE
     this.temporalReprojectPass.unjitter();
     this.unjitteredProjectionMatrix = this._camera.projectionMatrix.clone();
 
     this._camera.projectionMatrix.copy(this.unjitteredProjectionMatrix);
 
-    const visibleMeshes = getVisibleChildren(this._scene);
+    const noJitterMeshes = getVisibleChildren(this._scene).filter(c => isGroundProjectedEnv(c));
 
-    for (const mesh of visibleMeshes) {
+    for (const mesh of noJitterMeshes) {
       const renderData = renderer.properties.get(mesh.material);
       if (!(renderData != null && renderData.programs)) continue;
       const uniforms = Array.from(renderData.programs.values())[0].getUniforms();
@@ -631,7 +604,7 @@ class TRAAEffect extends Effect {
 }
 TRAAEffect.DefaultOptions = defaultTRAAOptions;
 
-var fragmentShader$1 = "#define GLSLIFY 1\nvarying vec2 vUv;uniform sampler2D depthTexture;uniform sampler2D normalTexture;uniform sampler2D momentTexture;uniform vec2 invTexSize;uniform bool horizontal;uniform bool blurHorizontal;uniform float denoise[textureCount];uniform float depthPhi;uniform float normalPhi;uniform float roughnessPhi;uniform float denoiseKernel;uniform float stepSize;uniform mat4 projectionMatrixInverse;uniform mat4 projectionMatrix;uniform mat4 cameraMatrixWorld;uniform bool isFirstIteration;uniform bool isLastIteration;\n#include <packing>\n#define EPSILON 0.00001\n#define M_PI 3.1415926535897932384626433832795\n#define PI M_PI\n#define luminance(a) dot(a, vec3(0.2125, 0.7154, 0.0721))\n#include <customComposeShaderFunctions>\nvec3 screenSpaceToWorldSpace(const vec2 uv,const float depth,const mat4 curMatrixWorld){vec4 ndc=vec4((uv.x-0.5)*2.0,(uv.y-0.5)*2.0,(depth-0.5)*2.0,1.0);vec4 clip=projectionMatrixInverse*ndc;vec4 view=curMatrixWorld*(clip/clip.w);return view.xyz;}float distToPlane(const vec3 worldPos,const vec3 neighborWorldPos,const vec3 worldNormal){vec3 toCurrent=worldPos-neighborWorldPos;float distToPlane=abs(dot(toCurrent,worldNormal));return distToPlane;}void tap(const vec2 neighborVec,const vec2 pixelStepOffset,const float depth,const vec3 normal,const float roughness,const float roughnessSqrt,const vec3 worldPos,const float luma[textureCount],const float colorPhi[textureCount],inout vec3 denoisedColor[textureCount],inout float totalWeight[textureCount],inout float sumVariance[textureCount]){vec2 fullNeighborUv=neighborVec*pixelStepOffset;vec2 neighborUvNearest=vUv+fullNeighborUv;vec2 neighborUv=vUv+fullNeighborUv;vec2 neighborUvRoughness=vUv+fullNeighborUv*roughnessSqrt;float basicWeight=1.0;\n#ifdef useDepth\nvec4 neighborDepthTexel=textureLod(depthTexture,neighborUvNearest,0.);float neighborDepth=unpackRGBAToDepth(neighborDepthTexel);vec3 neighborWorldPos=screenSpaceToWorldSpace(neighborUvNearest,neighborDepth,cameraMatrixWorld);float depthDiff=(1.-distToPlane(worldPos,neighborWorldPos,normal));float depthSimilarity=max(depthDiff/depthPhi,0.);if(depthSimilarity<EPSILON)return;basicWeight*=depthSimilarity;\n#endif\n#if defined(useNormal) || defined(useRoughness)\nvec4 neighborNormalTexel=textureLod(normalTexture,neighborUvNearest,0.);\n#endif\n#ifdef useNormal\nvec3 neighborNormal=unpackRGBToNormal(neighborNormalTexel.rgb);neighborNormal=normalize((vec4(neighborNormal,1.0)*viewMatrix).xyz);float normalDiff=dot(neighborNormal,normal);float normalSimilarity=pow(max(0.,normalDiff),normalPhi);if(normalSimilarity<EPSILON)return;basicWeight*=normalSimilarity;\n#endif\n#ifdef useRoughness\nfloat neighborRoughness=neighborNormalTexel.a;neighborRoughness*=neighborRoughness;float roughnessDiff=abs(roughness-neighborRoughness);float roughnessSimilarity=exp(-roughnessDiff*roughnessPhi);if(roughnessSimilarity<EPSILON)return;basicWeight*=roughnessSimilarity;\n#endif\nvec4 neighborInputTexel[textureCount];vec3 neighborColor;float neighborLuma,lumaDiff,lumaSimilarity;float weight[textureCount];\n#pragma unroll_loop_start\nfor(int i=0;i<textureCount;i++){neighborInputTexel[i]=textureLod(texture[i],roughnessDependent[i]? neighborUvRoughness : neighborUv,0.);neighborColor=neighborInputTexel[i].rgb;neighborLuma=luminance(neighborColor);lumaDiff=abs(luma[i]-neighborLuma);lumaSimilarity=max(1.0-lumaDiff/colorPhi[i],0.0);weight[i]=min(basicWeight*lumaSimilarity,1.0);denoisedColor[i]+=neighborColor*weight[i];totalWeight[i]+=weight[i];}\n#pragma unroll_loop_end\n#ifdef useMoment\nif(isFirstIteration){vec4 neighborMoment=textureLod(momentTexture,neighborUvNearest,0.);neighborInputTexel[0].a=max(0.0,neighborMoment.g-neighborMoment.r*neighborMoment.r);sumVariance[0]+=weight[0]*weight[0]*neighborInputTexel[0].a;\n#if momentTextureCount > 1\nneighborInputTexel[1].a=max(0.0,neighborMoment.a-neighborMoment.b*neighborMoment.b);sumVariance[1]+=weight[1]*weight[1]*neighborInputTexel[1].a;\n#endif\n}\n#endif\n#pragma unroll_loop_start\nfor(int i=0;i<momentTextureCount;i++){\n#ifndef useMoment\nif(isFirstIteration)neighborInputTexel[i].a=1.0;\n#endif\nsumVariance[i]+=weight[i]*weight[i]*neighborInputTexel[i].a;}\n#pragma unroll_loop_end\n}void main(){vec4 depthTexel=textureLod(depthTexture,vUv,0.);if(dot(depthTexel.rgb,depthTexel.rgb)==0.){discard;return;}float depth=unpackRGBAToDepth(depthTexel);vec4 normalTexel=textureLod(normalTexture,vUv,0.);vec3 viewNormal=unpackRGBToNormal(normalTexel.rgb);vec3 normal=normalize((vec4(viewNormal,1.0)*viewMatrix).xyz);vec3 worldPos=screenSpaceToWorldSpace(vUv,depth,cameraMatrixWorld);float roughness=normalTexel.a;roughness*=roughness;vec3 denoisedColor[textureCount];vec4 texel[textureCount];float luma[textureCount];float sumVariance[textureCount];float totalWeight[textureCount];float colorPhi[textureCount];\n#pragma unroll_loop_start\nfor(int i=0;i<textureCount;i++){totalWeight[i]=1.0;texel[i]=textureLod(texture[i],vUv,0.);denoisedColor[i]=texel[i].rgb;luma[i]=luminance(texel[i].rgb);}\n#pragma unroll_loop_end\n#ifdef useMoment\nif(isFirstIteration){vec4 moment=textureLod(momentTexture,vUv,0.);texel[0].a=max(0.0,moment.g-moment.r*moment.r);\n#if momentTextureCount > 1\ntexel[1].a=max(0.0,moment.a-moment.b*moment.b);\n#endif\n}\n#endif\n#pragma unroll_loop_start\nfor(int i=0;i<momentTextureCount;i++){\n#ifndef useMoment\nif(isFirstIteration)texel[i].a=1.0;\n#endif\nsumVariance[i]=texel[i].a;if(roughnessDependent[i]){colorPhi[i]=denoise[i]*sqrt(basicVariance[i]*roughness+sumVariance[i]);}else{colorPhi[i]=denoise[i]*sqrt(basicVariance[i]+sumVariance[i]);}}\n#pragma unroll_loop_end\nvec2 pixelStepOffset=invTexSize*stepSize;float roughnessSqrt=max(0.05,sqrt(roughness));if(denoiseKernel>EPSILON){if(blurHorizontal){for(float i=-denoiseKernel;i<=denoiseKernel;i++){if(i!=0.){vec2 neighborVec=horizontal ? vec2(i,0.): vec2(0.,i);tap(neighborVec,pixelStepOffset,depth,normal,roughness,roughnessSqrt,worldPos,luma,colorPhi,denoisedColor,totalWeight,sumVariance);}}}else{for(float i=-denoiseKernel;i<=denoiseKernel;i++){if(i!=0.){vec2 neighborVec=horizontal ? vec2(-i,-i): vec2(i,-i);tap(neighborVec,pixelStepOffset,depth,normal,roughness,roughnessSqrt,worldPos,luma,colorPhi,denoisedColor,totalWeight,sumVariance);}}}\n#pragma unroll_loop_start\nfor(int i=0;i<textureCount;i++){sumVariance[i]/=totalWeight[i]*totalWeight[i];denoisedColor[i]/=totalWeight[i];}\n#pragma unroll_loop_end\n}if(isLastIteration){\n#include <customComposeShader>\n}\n#include <outputShader>\n}"; // eslint-disable-line
+var fragmentShader$1 = "#define GLSLIFY 1\nvarying vec2 vUv;uniform sampler2D depthTexture;uniform sampler2D normalTexture;uniform sampler2D momentTexture;uniform vec2 invTexSize;uniform bool horizontal;uniform bool blurHorizontal;uniform float denoise[textureCount];uniform float depthPhi;uniform float normalPhi;uniform float roughnessPhi;uniform float denoiseKernel;uniform float stepSize;uniform mat4 projectionMatrixInverse;uniform mat4 projectionMatrix;uniform mat4 cameraMatrixWorld;uniform bool isFirstIteration;uniform bool isLastIteration;\n#include <packing>\n#define EPSILON 0.00001\n#define M_PI 3.1415926535897932384626433832795\n#define PI M_PI\n#define luminance(a) dot(a, vec3(0.2125, 0.7154, 0.0721))\n#include <customComposeShaderFunctions>\nvec3 screenSpaceToWorldSpace(const vec2 uv,const float depth,const mat4 curMatrixWorld){vec4 ndc=vec4((uv.x-0.5)*2.0,(uv.y-0.5)*2.0,(depth-0.5)*2.0,1.0);vec4 clip=projectionMatrixInverse*ndc;vec4 view=curMatrixWorld*(clip/clip.w);return view.xyz;}float distToPlane(const vec3 worldPos,const vec3 neighborWorldPos,const vec3 worldNormal){vec3 toCurrent=worldPos-neighborWorldPos;float distToPlane=abs(dot(toCurrent,worldNormal));return distToPlane;}void tap(const vec2 neighborVec,const vec2 pixelStepOffset,const float depth,const vec3 normal,const float roughness,const float roughnessSqrt,const vec3 worldPos,const float luma[textureCount],const float colorPhi[textureCount],inout vec3 denoisedColor[textureCount],inout float totalWeight[textureCount],inout float sumVariance[textureCount]){vec2 fullNeighborUv=neighborVec*pixelStepOffset;vec2 neighborUvNearest=vUv+fullNeighborUv;vec2 neighborUv=vUv+fullNeighborUv;vec2 neighborUvRoughness=vUv+fullNeighborUv*roughnessSqrt;float basicWeight=1.0;\n#ifdef useDepth\nvec4 neighborDepthTexel=textureLod(depthTexture,neighborUvNearest,0.);float neighborDepth=unpackRGBAToDepth(neighborDepthTexel);vec3 neighborWorldPos=screenSpaceToWorldSpace(neighborUvNearest,neighborDepth,cameraMatrixWorld);float depthDiff=(1.-distToPlane(worldPos,neighborWorldPos,normal));float depthSimilarity=max(depthDiff/depthPhi,0.);if(depthSimilarity<EPSILON)return;basicWeight*=depthSimilarity;\n#endif\n#if defined(useNormal) || defined(useRoughness)\nvec4 neighborNormalTexel=textureLod(normalTexture,neighborUvNearest,0.);\n#endif\n#ifdef useNormal\nvec3 neighborNormal=neighborNormalTexel.rgb;float normalDiff=dot(neighborNormal,normal);float normalSimilarity=pow(max(0.,normalDiff),normalPhi);if(normalSimilarity<EPSILON)return;basicWeight*=normalSimilarity;\n#endif\n#ifdef useRoughness\nfloat neighborRoughness=neighborNormalTexel.a;neighborRoughness*=neighborRoughness;float roughnessDiff=abs(roughness-neighborRoughness);float roughnessSimilarity=exp(-roughnessDiff*roughnessPhi);if(roughnessSimilarity<EPSILON)return;basicWeight*=roughnessSimilarity;\n#endif\nvec4 neighborInputTexel[textureCount];vec3 neighborColor;float neighborLuma,lumaDiff,lumaSimilarity;float weight[textureCount];\n#pragma unroll_loop_start\nfor(int i=0;i<textureCount;i++){neighborInputTexel[i]=textureLod(texture[i],roughnessDependent[i]? neighborUvRoughness : neighborUv,0.);neighborColor=neighborInputTexel[i].rgb;neighborLuma=luminance(neighborColor);lumaDiff=abs(luma[i]-neighborLuma);lumaSimilarity=max(1.0-lumaDiff/colorPhi[i],0.0);weight[i]=min(basicWeight*lumaSimilarity,1.0);denoisedColor[i]+=neighborColor*weight[i];totalWeight[i]+=weight[i];}\n#pragma unroll_loop_end\n#ifdef useMoment\nif(isFirstIteration){vec4 neighborMoment=textureLod(momentTexture,neighborUvNearest,0.);neighborInputTexel[0].a=max(0.0,neighborMoment.g-neighborMoment.r*neighborMoment.r);sumVariance[0]+=weight[0]*weight[0]*neighborInputTexel[0].a;\n#if momentTextureCount > 1\nneighborInputTexel[1].a=max(0.0,neighborMoment.a-neighborMoment.b*neighborMoment.b);sumVariance[1]+=weight[1]*weight[1]*neighborInputTexel[1].a;\n#endif\n}\n#endif\n#pragma unroll_loop_start\nfor(int i=0;i<momentTextureCount;i++){\n#ifndef useMoment\nif(isFirstIteration)neighborInputTexel[i].a=1.0;\n#endif\nsumVariance[i]+=weight[i]*weight[i]*neighborInputTexel[i].a;}\n#pragma unroll_loop_end\n}void main(){vec4 depthTexel=textureLod(depthTexture,vUv,0.);if(dot(depthTexel.rgb,depthTexel.rgb)==0.){discard;return;}float depth=unpackRGBAToDepth(depthTexel);vec3 worldPos=screenSpaceToWorldSpace(vUv,depth,cameraMatrixWorld);vec4 normalTexel=textureLod(normalTexture,vUv,0.);vec3 normal=normalTexel.rgb;float roughness=normalTexel.a;roughness*=roughness;vec3 denoisedColor[textureCount];vec4 texel[textureCount];float luma[textureCount];float sumVariance[textureCount];float totalWeight[textureCount];float colorPhi[textureCount];\n#pragma unroll_loop_start\nfor(int i=0;i<textureCount;i++){totalWeight[i]=1.0;texel[i]=textureLod(texture[i],vUv,0.);denoisedColor[i]=texel[i].rgb;luma[i]=luminance(texel[i].rgb);}\n#pragma unroll_loop_end\n#ifdef useMoment\nif(isFirstIteration){vec4 moment=textureLod(momentTexture,vUv,0.);texel[0].a=max(0.0,moment.g-moment.r*moment.r);\n#if momentTextureCount > 1\ntexel[1].a=max(0.0,moment.a-moment.b*moment.b);\n#endif\n}\n#endif\n#pragma unroll_loop_start\nfor(int i=0;i<momentTextureCount;i++){\n#ifndef useMoment\nif(isFirstIteration)texel[i].a=1.0;\n#endif\nsumVariance[i]=texel[i].a;if(roughnessDependent[i]){colorPhi[i]=denoise[i]*sqrt(basicVariance[i]*roughness+sumVariance[i]);}else{colorPhi[i]=denoise[i]*sqrt(basicVariance[i]+sumVariance[i]);}}\n#pragma unroll_loop_end\nvec2 pixelStepOffset=invTexSize*stepSize;float roughnessSqrt=max(0.05,sqrt(roughness));if(denoiseKernel>EPSILON){if(blurHorizontal){for(float i=-denoiseKernel;i<=denoiseKernel;i++){if(i!=0.){vec2 neighborVec=horizontal ? vec2(i,0.): vec2(0.,i);tap(neighborVec,pixelStepOffset,depth,normal,roughness,roughnessSqrt,worldPos,luma,colorPhi,denoisedColor,totalWeight,sumVariance);}}}else{for(float i=-denoiseKernel;i<=denoiseKernel;i++){if(i!=0.){vec2 neighborVec=horizontal ? vec2(-i,-i): vec2(i,-i);tap(neighborVec,pixelStepOffset,depth,normal,roughness,roughnessSqrt,worldPos,luma,colorPhi,denoisedColor,totalWeight,sumVariance);}}}\n#pragma unroll_loop_start\nfor(int i=0;i<textureCount;i++){sumVariance[i]/=totalWeight[i]*totalWeight[i];denoisedColor[i]/=totalWeight[i];}\n#pragma unroll_loop_end\n}if(isLastIteration){\n#include <customComposeShader>\n}\n#include <outputShader>\n}"; // eslint-disable-line
 
 // https://diharaw.github.io/post/adventures_in_hybrid_rendering/
 // https://github.com/NVIDIAGameWorks/Falcor/tree/master/Source/RenderPasses/SVGFPass
@@ -805,7 +778,7 @@ class DenoisePass extends Pass {
 
 }
 
-var svgf_temporal_reproject = "#define GLSLIFY 1\nvec4 moment,historyMoment;bool lastReprojectedUvSpecular,isReprojectedUvSpecular;\n#pragma unroll_loop_start\nfor(int i=0;i<momentTextureCount;i++){isReprojectedUvSpecular=reprojectSpecular[i]&&inputTexel[i].a!=0.0&&reprojectedUvSpecular[i].x>=0.0;reprojectedUv=isReprojectedUvSpecular ? reprojectedUvSpecular[i]: reprojectedUvDiffuse;if(i==0){historyMoment=SampleTextureCatmullRom(lastMomentTexture,reprojectedUv,1.0/invTexSize);}else if(lastReprojectedUvSpecular!=isReprojectedUvSpecular){historyMoment.ba=SampleTextureCatmullRom(lastMomentTexture,reprojectedUv,1.0/invTexSize).ba;}lastReprojectedUvSpecular=isReprojectedUvSpecular;}\n#pragma unroll_loop_end\nif(reprojectedUvDiffuse.x>=0.0||reprojectedUvSpecular[0].x>=0.0){moment.r=luminance(gOutput[0].rgb);moment.g=moment.r*moment.r;\n#if textureCount > 1\nmoment.b=luminance(gOutput[1].rgb);moment.a=moment.b*moment.b;\n#endif\n}else{moment.rg=vec2(0.,100.);moment.ba=vec2(0.,100.);gMoment=moment;return;}float momentTemporalReprojectMix=max(fpsAdjustedBlend,0.8);gMoment=mix(moment,historyMoment,0.8);"; // eslint-disable-line
+var svgf_temporal_reproject = "#define GLSLIFY 1\nvec4 moment;if(!reset&&reprojectedUvDiffuse.x>=0.0){vec4 historyMoment=sampleReprojectedTexture(lastMomentTexture,reprojectedUvDiffuse,true,didMove);moment.r=luminance(gOutput[0].rgb);moment.g=moment.r*moment.r;\n#if textureCount > 1\nmoment.b=luminance(gOutput[1].rgb);moment.a=moment.b*moment.b;\n#endif\ngMoment=mix(moment,historyMoment,0.8);}else{moment.rg=vec2(0.,5000.);moment.ba=vec2(0.,5000.);gMoment=moment;return;}"; // eslint-disable-line
 
 /* eslint-disable camelcase */
 const defaultSVGFTemporalReprojectPassOptions = {
@@ -813,11 +786,11 @@ const defaultSVGFTemporalReprojectPassOptions = {
   customComposeShader: svgf_temporal_reproject
 };
 class SVGFTemporalReprojectPass extends TemporalReprojectPass {
-  constructor(scene, camera, velocityPass, textureCount = 1, options = defaultSVGFTemporalReprojectPassOptions) {
+  constructor(scene, camera, velocityDepthNormalPass, textureCount = 1, options = defaultSVGFTemporalReprojectPassOptions) {
     options = { ...defaultSVGFTemporalReprojectPassOptions,
       ...options
     };
-    super(scene, camera, velocityPass, textureCount, options); // moment
+    super(scene, camera, velocityDepthNormalPass, textureCount, options); // moment
 
     this.momentTexture = this.renderTarget.texture[0].clone();
     this.momentTexture.isRenderTargetTexture = true;
@@ -839,7 +812,7 @@ class SVGFTemporalReprojectPass extends TemporalReprojectPass {
         lastMomentTexture: new Uniform(null)
       }
     };
-    const copyPassTextureCount = 2 + textureCount + 1;
+    const copyPassTextureCount = textureCount + 1;
     this.copyPass.setTextureCount(copyPassTextureCount);
     this.copyPass.fullscreenMaterial.uniforms["inputTexture" + (copyPassTextureCount - 1)].value = this.momentTexture;
     const lastMomentTexture = this.copyPass.renderTarget.texture[copyPassTextureCount - 1];
@@ -855,12 +828,12 @@ class SVGFTemporalReprojectPass extends TemporalReprojectPass {
 }
 
 class SVGF {
-  constructor(scene, camera, velocityPass, textureCount = 1, denoiseComposeShader = "", denoiseComposeFunctions = "", options = {}) {
-    this.svgfTemporalReprojectPass = new SVGFTemporalReprojectPass(scene, camera, velocityPass, textureCount, options);
+  constructor(scene, camera, velocityDepthNormalPass, textureCount = 1, denoiseComposeShader = "", denoiseComposeFunctions = "", options = {}) {
+    this.svgfTemporalReprojectPass = new SVGFTemporalReprojectPass(scene, camera, velocityDepthNormalPass, textureCount, options);
     const textures = this.svgfTemporalReprojectPass.renderTarget.texture.slice(0, textureCount);
     this.denoisePass = new DenoisePass(camera, textures, denoiseComposeShader, denoiseComposeFunctions, options);
     this.denoisePass.fullscreenMaterial.uniforms.momentTexture.value = this.svgfTemporalReprojectPass.momentTexture;
-    this.setNonJitteredGBuffers(velocityPass.depthTexture, velocityPass.normalTexture);
+    this.setNonJitteredDepthTexture(velocityDepthNormalPass.depthTexture);
   } // the denoised texture
 
 
@@ -878,9 +851,8 @@ class SVGF {
     this.denoisePass.fullscreenMaterial.uniforms.normalTexture.value = normalTexture;
   }
 
-  setNonJitteredGBuffers(depthTexture, normalTexture) {
+  setNonJitteredDepthTexture(depthTexture) {
     this.svgfTemporalReprojectPass.fullscreenMaterial.uniforms.depthTexture.value = depthTexture;
-    this.svgfTemporalReprojectPass.fullscreenMaterial.uniforms.normalTexture.value = normalTexture;
   }
 
   setVelocityTexture(texture) {
@@ -921,13 +893,18 @@ class MRTMaterial extends ShaderMaterial {
         roughnessMap: new Uniform(null),
         metalnessMap: new Uniform(null),
         emissiveMap: new Uniform(null),
+        alphaMap: new Uniform(null),
         normalMap: new Uniform(null),
         normalScale: new Uniform(new Vector2(1, 1)),
         roughness: new Uniform(0),
         metalness: new Uniform(0),
         emissiveIntensity: new Uniform(0),
         uvTransform: new Uniform(new Matrix3()),
-        boneTexture: new Uniform(null)
+        boneTexture: new Uniform(null),
+        blueNoiseTexture: new Uniform(null),
+        blueNoiseRepeat: new Uniform(new Vector2(1, 1)),
+        texSize: new Uniform(new Vector2(1, 1)),
+        frame: new Uniform(0)
       },
       vertexShader:
       /* glsl */
@@ -948,6 +925,8 @@ class MRTMaterial extends ShaderMaterial {
                 #include <clipping_planes_pars_vertex>
                 #include <skinning_pars_vertex>
                 #include <color_pars_vertex>
+
+                varying vec2 screenUv;
 
                 void main() {
                     #include <uv_vertex>
@@ -975,6 +954,8 @@ class MRTMaterial extends ShaderMaterial {
                         vViewPosition = - mvPosition.xyz;
                     #endif
 
+                    screenUv = gl_Position.xy * 0.5 + 0.5;
+
                     vHighPrecisionZW = gl_Position.zw;
                 }
             `,
@@ -993,6 +974,7 @@ class MRTMaterial extends ShaderMaterial {
                 #include <logdepthbuf_pars_fragment>
                 #include <clipping_planes_pars_fragment>
                 #include <color_pars_fragment>
+                #include <alphamap_pars_fragment>
                 
                 layout(location = 0) out vec4 gDepth;
                 layout(location = 1) out vec4 gNormal;
@@ -1014,7 +996,61 @@ class MRTMaterial extends ShaderMaterial {
                 uniform vec3 emissive;
                 uniform float emissiveIntensity;
 
+#ifdef USE_ALPHAMAP
+                uniform sampler2D blueNoiseTexture;
+                uniform vec2 blueNoiseRepeat;
+                uniform vec2 texSize;
+                uniform int frame;
+
+                varying vec2 screenUv;
+
+                const float g = 1.6180339887498948482;
+                const float a1 = 1.0 / g;
+
+                // reference: https://extremelearning.com.au/unreasonable-effectiveness-of-quasirandom-sequences/
+                float r1(float n) {
+                    // 7th harmonious number
+                    return fract(1.1127756842787055 + a1 * n);
+                }
+
+                const vec4 hn = vec4(0.618033988749895, 0.3247179572447458, 0.2207440846057596, 0.1673039782614187);
+
+                vec4 sampleBlueNoise(vec2 uv, int seed) {
+                    vec2 size = uv * texSize;
+                    vec2 blueNoiseSize = texSize / blueNoiseRepeat;
+                    float blueNoiseIndex = floor(floor(size.y / blueNoiseSize.y) * blueNoiseRepeat.x) + floor(size.x / blueNoiseSize.x);
+
+                    // get the offset of this pixel's blue noise tile
+                    int blueNoiseTileOffset = int(r1(blueNoiseIndex + 1.0) * 65536.);
+
+                    vec2 blueNoiseUv = uv * blueNoiseRepeat;
+
+                    // fetch blue noise for this pixel
+                    vec4 blueNoise = textureLod(blueNoiseTexture, blueNoiseUv, 0.);
+
+                    // animate blue noise
+                    blueNoise = fract(blueNoise + hn * float(seed + blueNoiseTileOffset));
+
+                    blueNoise.r = (blueNoise.r > 0.5 ? 1.0 - blueNoise.r : blueNoise.r) * 2.0;
+                    blueNoise.g = (blueNoise.g > 0.5 ? 1.0 - blueNoise.g : blueNoise.g) * 2.0;
+                    blueNoise.b = (blueNoise.b > 0.5 ? 1.0 - blueNoise.b : blueNoise.b) * 2.0;
+                    blueNoise.a = (blueNoise.a > 0.5 ? 1.0 - blueNoise.a : blueNoise.a) * 2.0;
+
+                    return blueNoise;
+                }
+#endif
+
                 void main() {
+                    #ifdef USE_ALPHAMAP
+                    float alpha = textureLod( alphaMap, vUv, 0. ).g;
+
+                    float alphaThreshold = sampleBlueNoise(screenUv, frame).a;
+                    if(alpha < alphaThreshold){
+                        discard;
+                        return;
+                    }
+                    #endif
+
                     #include <clipping_planes_fragment>
                     #include <logdepthbuf_fragment>
                     #include <normal_fragment_begin>
@@ -1036,8 +1072,8 @@ class MRTMaterial extends ShaderMaterial {
                         // roughness of 1.0 is reserved for deselected meshes
                         roughnessFactor = min(0.99, roughnessFactor);
 
-                        vec3 normalColor = packNormalToRGB( normal );
-                        gNormal = vec4( normalColor, roughnessFactor );
+                        vec3 worldNormal = normalize((vec4(normal, 1.) * viewMatrix).xyz);
+                        gNormal = vec4( worldNormal, roughnessFactor );
                     }
                     
 
@@ -1078,7 +1114,7 @@ class MRTMaterial extends ShaderMaterial {
 
 }
 
-var fragmentShader = "#define GLSLIFY 1\n#if !defined(diffuseOnly) && !defined(specularOnly)\nlayout(location=0)out vec4 gDiffuse;layout(location=1)out vec4 gSpecular;\n#else\n#ifdef diffuseOnly\nlayout(location=0)out vec4 gDiffuse;\n#else\nlayout(location=0)out vec4 gSpecular;\n#endif\n#endif\nvarying vec2 vUv;uniform sampler2D directLightTexture;uniform sampler2D accumulatedTexture;uniform sampler2D normalTexture;uniform sampler2D depthTexture;uniform sampler2D diffuseTexture;uniform sampler2D emissiveTexture;uniform sampler2D blueNoiseTexture;uniform sampler2D velocityTexture;\n#ifdef autoThickness\nuniform sampler2D backSideDepthTexture;\n#endif\nuniform mat4 projectionMatrix;uniform mat4 inverseProjectionMatrix;uniform mat4 cameraMatrixWorld;uniform float cameraNear;uniform float cameraFar;uniform float maxEnvMapMipLevel;uniform vec3 cameraPos;uniform float rayDistance;uniform float maxRoughness;uniform float thickness;uniform float envBlur;uniform float maxEnvLuminance;uniform int frame;uniform vec2 texSize;uniform vec2 blueNoiseRepeat;struct EquirectHdrInfo{sampler2D marginalWeights;sampler2D conditionalWeights;sampler2D map;vec2 size;float totalSumWhole;float totalSumDecimal;};uniform EquirectHdrInfo envMapInfo;\n#define INVALID_RAY_COORDS vec2(-1.0);\n#define EPSILON 0.00001\n#define ONE_MINUS_EPSILON 1.0 - EPSILON\nfloat nearMinusFar;float nearMulFar;float farMinusNear;vec2 invTexSize;\n#include <packing>\n#include <utils>\nvec2 RayMarch(inout vec3 dir,inout vec3 hitPos);vec2 BinarySearch(inout vec3 dir,inout vec3 hitPos);float fastGetViewZ(const float depth);vec3 doSample(const vec3 viewPos,const vec3 viewDir,const vec3 viewNormal,const vec3 worldPosition,const float metalness,const float roughness,const bool isDiffuseSample,const bool isMisSample,const float NoV,const float NoL,const float NoH,const float LoH,const float VoH,const vec2 random,inout vec3 l,inout vec3 hitPos,out bool isMissedRay,out vec3 brdf,out float pdf);void main(){vec4 depthTexel=textureLod(depthTexture,vUv,0.0);if(dot(depthTexel.rgb,depthTexel.rgb)==0.){discard;return;}vec4 normalTexel=textureLod(normalTexture,vUv,0.0);float roughness=normalTexel.a;if(roughness==1.0||roughness>maxRoughness){discard;return;}invTexSize=1./texSize;roughness=clamp(roughness*roughness,0.0001,1.0);float unpackedDepth=unpackRGBAToDepth(depthTexel);normalTexel.xyz=unpackRGBToNormal(normalTexel.rgb);nearMinusFar=cameraNear-cameraFar;nearMulFar=cameraNear*cameraFar;farMinusNear=cameraFar-cameraNear;float depth=fastGetViewZ(unpackedDepth);vec3 viewPos=getViewPosition(depth);vec3 viewDir=normalize(viewPos);vec3 viewNormal=normalTexel.xyz;vec3 worldPos=vec4(vec4(viewPos,1.)*viewMatrix).xyz;vec4 diffuseTexel=textureLod(diffuseTexture,vUv,0.);vec3 diffuse=diffuseTexel.rgb;float metalness=diffuseTexel.a;vec3 n=viewNormal;vec3 v=-viewDir;float NoV=max(EPSILON,dot(n,v));vec3 V=(vec4(v,1.)*viewMatrix).xyz;vec3 N=(vec4(n,1.)*viewMatrix).xyz;bool isMissedRay;vec3 SSGI,diffuseGI,specularGI,brdf,hitPos,T,B;float pdf;Onb(N,T,B);V=ToLocal(T,B,N,V);float diffuseSamples,specularSamples;vec3 f0=mix(vec3(0.04),diffuse,metalness);vec4 velocity=textureLod(velocityTexture,vUv,0.0);for(int s=0;s<spp;s++){vec4 blueNoise=sampleBlueNoise(frame+s);vec3 H=SampleGGXVNDF(V,roughness,roughness,blueNoise.r,blueNoise.g);if(H.z<0.0)H=-H;vec3 l=normalize(reflect(-V,H));l=ToWorld(T,B,N,l);l=(vec4(l,1.)*cameraMatrixWorld).xyz;l=normalize(l);vec3 h=normalize(v+l);float NoL=clamp(dot(n,l),EPSILON,ONE_MINUS_EPSILON);float NoH=clamp(dot(n,h),EPSILON,ONE_MINUS_EPSILON);float LoH=clamp(dot(l,h),EPSILON,ONE_MINUS_EPSILON);float VoH=clamp(dot(v,h),EPSILON,ONE_MINUS_EPSILON);\n#if !defined(diffuseOnly) && !defined(specularOnly)\nvec3 F=F_Schlick(f0,VoH);float diffW=(1.-metalness)*luminance(diffuse);float specW=luminance(F);diffW=max(diffW,EPSILON);specW=max(specW,EPSILON);float invW=1./(diffW+specW);diffW*=invW;specW*=invW;bool isDiffuseSample=blueNoise.b<diffW;\n#else\n#ifdef diffuseOnly\nconst bool isDiffuseSample=true;\n#else\nconst bool isDiffuseSample=false;\n#endif\n#endif\nvec3 envMisDir=vec3(0.0);float envPdf=0.0;\n#ifdef importanceSampling\nenvPdf=sampleEquirectProbability(envMapInfo,blueNoise.rg,envMisDir);envMisDir=normalize((vec4(envMisDir,1.)*cameraMatrixWorld).xyz);\n#endif\nbool valid=blueNoise.a<0.25+dot(envMisDir,viewNormal)*0.5;if(!valid)envPdf=0.0;if(isDiffuseSample){if(envPdf==0.0){l=cosineSampleHemisphere(viewNormal,blueNoise.rg);}else{l=envMisDir;}h=normalize(v+l);NoL=clamp(dot(n,l),EPSILON,ONE_MINUS_EPSILON);NoH=clamp(dot(n,h),EPSILON,ONE_MINUS_EPSILON);LoH=clamp(dot(l,h),EPSILON,ONE_MINUS_EPSILON);VoH=clamp(dot(v,h),EPSILON,ONE_MINUS_EPSILON);vec3 gi=doSample(viewPos,viewDir,viewNormal,worldPos,metalness,roughness,isDiffuseSample,envPdf!=0.0,NoV,NoL,NoH,LoH,VoH,blueNoise.rg,l,hitPos,isMissedRay,brdf,pdf);gi*=brdf;if(envPdf==0.0){gi/=pdf;}else{gi*=misHeuristic(envPdf,pdf);gi/=envPdf;}diffuseSamples++;diffuseGI=mix(diffuseGI,gi,1./diffuseSamples);}else{if(envPdf!=0.0&&roughness>=0.025){l=envMisDir;h=normalize(v+l);NoL=clamp(dot(n,l),EPSILON,ONE_MINUS_EPSILON);NoH=clamp(dot(n,h),EPSILON,ONE_MINUS_EPSILON);LoH=clamp(dot(l,h),EPSILON,ONE_MINUS_EPSILON);VoH=clamp(dot(v,h),EPSILON,ONE_MINUS_EPSILON);}else{envPdf=0.0;}vec3 gi=doSample(viewPos,viewDir,viewNormal,worldPos,metalness,roughness,isDiffuseSample,envPdf!=0.0,NoV,NoL,NoH,LoH,VoH,blueNoise.rg,l,hitPos,isMissedRay,brdf,pdf);gi*=brdf;if(envPdf==0.0){gi/=pdf;}else{gi*=misHeuristic(envPdf,pdf);gi/=envPdf;}specularSamples++;specularGI=mix(specularGI,gi,1./specularSamples);}}roughness=sqrt(roughness);\n#ifndef specularOnly\ngDiffuse=vec4(diffuseGI,roughness);\n#endif\n#ifndef diffuseOnly\nfloat rayLength=0.0;if(!isMissedRay&&roughness<0.375&&getCurvature(viewNormal,depth)<0.001){vec3 hitPosWS=(vec4(hitPos,1.)*viewMatrix).xyz;rayLength=distance(worldPos,hitPosWS);}gSpecular=vec4(specularGI,rayLength);\n#endif\n}vec3 doSample(const vec3 viewPos,const vec3 viewDir,const vec3 viewNormal,const vec3 worldPosition,const float metalness,const float roughness,const bool isDiffuseSample,const bool isMisSample,const float NoV,const float NoL,const float NoH,const float LoH,const float VoH,const vec2 random,inout vec3 l,inout vec3 hitPos,out bool isMissedRay,out vec3 brdf,out float pdf){float cosTheta=max(0.0,dot(viewNormal,l));if(isDiffuseSample){vec3 diffuseBrdf=vec3(evalDisneyDiffuse(NoL,NoV,LoH,roughness,metalness));pdf=NoL/M_PI;pdf=max(EPSILON,pdf);brdf=diffuseBrdf;}else{vec3 specularBrdf=evalDisneySpecular(roughness,NoH,NoV,NoL);pdf=GGXVNDFPdf(NoH,NoV,roughness);pdf=max(EPSILON,pdf);brdf=specularBrdf;}brdf*=cosTheta;hitPos=viewPos;\n#if steps == 0\nhitPos+=l;vec2 coords=viewSpaceToScreenSpace(hitPos);\n#else\nvec2 coords=RayMarch(l,hitPos);\n#endif\nbool allowMissedRays=false;\n#ifdef missedRays\nallowMissedRays=true;\n#endif\nisMissedRay=coords.x==-1.0;vec3 envMapSample=vec3(0.);\n#ifdef USE_ENVMAP\nif(isMissedRay||allowMissedRays){vec4 reflectedWS=vec4(l,1.)*viewMatrix;reflectedWS.xyz=normalize(reflectedWS.xyz);\n#ifdef BOX_PROJECTED_ENV_MAP\nfloat depth=unpackRGBAToDepth(textureLod(depthTexture,vUv,0.));reflectedWS.xyz=parallaxCorrectNormal(reflectedWS.xyz,envMapSize,envMapPosition,worldPosition);reflectedWS.xyz=normalize(reflectedWS.xyz);\n#endif\nfloat mip=envBlur*maxEnvMapMipLevel;if(!isDiffuseSample)mip*=sqrt(roughness);vec3 sampleDir=reflectedWS.xyz;envMapSample=sampleEquirectEnvMapColor(sampleDir,envMapInfo.map,mip);float maxEnvLum=isMisSample ? maxEnvLuminance : 5.0;if(maxEnvLum!=0.0){float envLum=luminance(envMapSample);if(envLum>maxEnvLum){envMapSample*=maxEnvLum/envLum;}}return envMapSample;}\n#endif\nvec4 velocity=textureLod(velocityTexture,coords.xy,0.0);vec2 reprojectedUv=coords.xy-velocity.xy;vec3 SSGI;bvec4 reprojectedUvInScreen=bvec4(greaterThanEqual(reprojectedUv,vec2(0.)),lessThanEqual(reprojectedUv,vec2(1.)));if(all(reprojectedUvInScreen)){vec4 emissiveTexel=textureLod(emissiveTexture,coords.xy,0.);vec3 emissiveColor=emissiveTexel.rgb*10.;vec3 reprojectedGI=getTexel(accumulatedTexture,reprojectedUv,0.).rgb;SSGI=reprojectedGI+emissiveColor;\n#ifdef useDirectLight\nSSGI+=textureLod(directLightTexture,coords.xy,0.).rgb*directLightMultiplier;\n#endif\n}else{SSGI=textureLod(directLightTexture,vUv,0.).rgb;}if(allowMissedRays){float ssgiLum=luminance(SSGI);float envLum=luminance(envMapSample);if(envLum>ssgiLum)SSGI=envMapSample;}return SSGI;}vec2 RayMarch(inout vec3 dir,inout vec3 hitPos){float stepsFloat=float(steps);float rayHitDepthDifference;dir*=rayDistance/float(steps);vec2 uv;for(int i=1;i<steps;i++){hitPos+=dir;if(hitPos.z>0.0)return INVALID_RAY_COORDS;uv=viewSpaceToScreenSpace(hitPos);\n#ifndef missedRays\nif(any(lessThan(uv,vec2(0.)))||any(greaterThan(uv,vec2(1.))))return INVALID_RAY_COORDS;\n#endif\nfloat unpackedDepth=unpackRGBAToDepth(textureLod(depthTexture,uv,0.0));float depth=fastGetViewZ(unpackedDepth);\n#ifdef autoThickness\nfloat unpackedBackSideDepth=unpackRGBAToDepth(textureLod(backSideDepthTexture,uv,0.0));float backSideDepth=fastGetViewZ(unpackedBackSideDepth);float currentThickness=max(abs(depth-backSideDepth),thickness);\n#else\nfloat currentThickness=thickness;\n#endif\nrayHitDepthDifference=depth-hitPos.z;if(rayHitDepthDifference>=0.0&&rayHitDepthDifference<currentThickness){\n#if refineSteps == 0\nreturn uv;\n#else\nreturn BinarySearch(dir,hitPos);\n#endif\n}}\n#ifndef missedRays\nreturn INVALID_RAY_COORDS;\n#endif\nreturn uv;}vec2 BinarySearch(inout vec3 dir,inout vec3 hitPos){float rayHitDepthDifference;vec2 uv;dir*=0.5;hitPos-=dir;for(int i=0;i<refineSteps;i++){uv=viewSpaceToScreenSpace(hitPos);float unpackedDepth=unpackRGBAToDepth(textureLod(depthTexture,uv,0.0));float depth=fastGetViewZ(unpackedDepth);rayHitDepthDifference=depth-hitPos.z;dir*=0.5;hitPos+=rayHitDepthDifference>0.0 ?-dir : dir;}uv=viewSpaceToScreenSpace(hitPos);return uv;}float fastGetViewZ(const float depth){\n#ifdef PERSPECTIVE_CAMERA\nreturn nearMulFar/(farMinusNear*depth-cameraFar);\n#else\nreturn depth*nearMinusFar-cameraNear;\n#endif\n}"; // eslint-disable-line
+var fragmentShader = "#define GLSLIFY 1\n#if !defined(diffuseOnly) && !defined(specularOnly)\nlayout(location=0)out vec4 gDiffuse;layout(location=1)out vec4 gSpecular;\n#else\n#ifdef diffuseOnly\nlayout(location=0)out vec4 gDiffuse;\n#else\nlayout(location=0)out vec4 gSpecular;\n#endif\n#endif\nvarying vec2 vUv;uniform sampler2D directLightTexture;uniform sampler2D accumulatedTexture;uniform sampler2D normalTexture;uniform sampler2D depthTexture;uniform sampler2D diffuseTexture;uniform sampler2D emissiveTexture;uniform sampler2D blueNoiseTexture;uniform sampler2D velocityTexture;\n#ifdef autoThickness\nuniform sampler2D backSideDepthTexture;\n#endif\nuniform mat4 projectionMatrix;uniform mat4 inverseProjectionMatrix;uniform mat4 cameraMatrixWorld;uniform float cameraNear;uniform float cameraFar;uniform float maxEnvMapMipLevel;uniform vec3 cameraPos;uniform float rayDistance;uniform float maxRoughness;uniform float thickness;uniform float envBlur;uniform float maxEnvLuminance;uniform int frame;uniform vec2 texSize;uniform vec2 blueNoiseRepeat;struct EquirectHdrInfo{sampler2D marginalWeights;sampler2D conditionalWeights;sampler2D map;vec2 size;float totalSumWhole;float totalSumDecimal;};uniform EquirectHdrInfo envMapInfo;\n#define INVALID_RAY_COORDS vec2(-1.0);\n#define EPSILON 0.00001\n#define ONE_MINUS_EPSILON 1.0 - EPSILON\nfloat nearMinusFar;float nearMulFar;float farMinusNear;vec2 invTexSize;\n#include <packing>\n#include <utils>\nvec2 RayMarch(inout vec3 dir,inout vec3 hitPos);vec2 BinarySearch(inout vec3 dir,inout vec3 hitPos);float fastGetViewZ(const float depth);vec3 doSample(const vec3 viewPos,const vec3 viewDir,const vec3 viewNormal,const vec3 worldPosition,const float metalness,const float roughness,const bool isDiffuseSample,const bool isMisSample,const float NoV,const float NoL,const float NoH,const float LoH,const float VoH,const vec2 random,inout vec3 l,inout vec3 hitPos,out bool isMissedRay,out vec3 brdf,out float pdf);void main(){vec4 depthTexel=textureLod(depthTexture,vUv,0.0);if(dot(depthTexel.rgb,depthTexel.rgb)==0.){discard;return;}vec4 normalTexel=textureLod(normalTexture,vUv,0.0);float roughness=normalTexel.a;if(roughness==1.0||roughness>maxRoughness){discard;return;}invTexSize=1./texSize;roughness=clamp(roughness*roughness,0.0001,1.0);nearMinusFar=cameraNear-cameraFar;nearMulFar=cameraNear*cameraFar;farMinusNear=cameraFar-cameraNear;float unpackedDepth=unpackRGBAToDepth(depthTexel);float depth=fastGetViewZ(unpackedDepth);vec3 viewPos=getViewPosition(depth);vec3 viewDir=normalize(viewPos);vec3 worldNormal=normalTexel.xyz;vec3 viewNormal=normalize((vec4(worldNormal,1.)*cameraMatrixWorld).xyz);vec3 worldPos=vec4(vec4(viewPos,1.)*viewMatrix).xyz;vec4 diffuseTexel=textureLod(diffuseTexture,vUv,0.);vec3 diffuse=diffuseTexel.rgb;float metalness=diffuseTexel.a;vec3 n=viewNormal;vec3 v=-viewDir;float NoV=max(EPSILON,dot(n,v));vec3 V=(vec4(v,1.)*viewMatrix).xyz;vec3 N=worldNormal;vec4 blueNoise;vec3 H,l,h,F,T,B,envMisDir,gi;vec3 SSGI,diffuseGI,specularGI,brdf,hitPos;Onb(N,T,B);V=ToLocal(T,B,N,V);vec3 f0=mix(vec3(0.04),diffuse,metalness);float NoL,NoH,LoH,VoH,diffW,specW,invW,pdf,envPdf,diffuseSamples,specularSamples;bool isDiffuseSample,valid,isMissedRay;int sampleCounter=0;\n#pragma unroll_loop_start\nfor(int i=0;i<spp;i++){blueNoise=sampleBlueNoise(frame+sampleCounter++);H=SampleGGXVNDF(V,roughness,roughness,blueNoise.r,blueNoise.g);if(H.z<0.0)H=-H;l=normalize(reflect(-V,H));l=ToWorld(T,B,N,l);l=(vec4(l,1.)*cameraMatrixWorld).xyz;l=normalize(l);h=normalize(v+l);NoL=clamp(dot(n,l),EPSILON,ONE_MINUS_EPSILON);NoH=clamp(dot(n,h),EPSILON,ONE_MINUS_EPSILON);LoH=clamp(dot(l,h),EPSILON,ONE_MINUS_EPSILON);VoH=clamp(dot(v,h),EPSILON,ONE_MINUS_EPSILON);\n#if !defined(diffuseOnly) && !defined(specularOnly)\nF=F_Schlick(f0,VoH);diffW=(1.-metalness)*luminance(diffuse);specW=luminance(F);diffW=max(diffW,EPSILON);specW=max(specW,EPSILON);invW=1./(diffW+specW);diffW*=invW;specW*=invW;isDiffuseSample=blueNoise.b<diffW;\n#else\n#ifdef diffuseOnly\nisDiffuseSample=true;\n#else\nisDiffuseSample=false;\n#endif\n#endif\nenvMisDir=vec3(0.0);envPdf=0.0;\n#ifdef importanceSampling\nenvPdf=sampleEquirectProbability(envMapInfo,blueNoise.rg,envMisDir);envMisDir=normalize((vec4(envMisDir,1.)*cameraMatrixWorld).xyz);\n#endif\nvalid=blueNoise.a<0.25+dot(envMisDir,viewNormal)*0.5;if(!valid)envPdf=0.0;if(isDiffuseSample){if(envPdf==0.0){l=cosineSampleHemisphere(viewNormal,blueNoise.rg);}else{l=envMisDir;}h=normalize(v+l);NoL=clamp(dot(n,l),EPSILON,ONE_MINUS_EPSILON);NoH=clamp(dot(n,h),EPSILON,ONE_MINUS_EPSILON);LoH=clamp(dot(l,h),EPSILON,ONE_MINUS_EPSILON);VoH=clamp(dot(v,h),EPSILON,ONE_MINUS_EPSILON);gi=doSample(viewPos,viewDir,viewNormal,worldPos,metalness,roughness,isDiffuseSample,envPdf!=0.0,NoV,NoL,NoH,LoH,VoH,blueNoise.rg,l,hitPos,isMissedRay,brdf,pdf);gi*=brdf;if(envPdf==0.0){gi/=pdf;}else{gi*=misHeuristic(envPdf,pdf);gi/=envPdf;}diffuseSamples++;diffuseGI=mix(diffuseGI,gi,1./diffuseSamples);}else{if(envPdf!=0.0&&roughness>=0.025){l=envMisDir;h=normalize(v+l);NoL=clamp(dot(n,l),EPSILON,ONE_MINUS_EPSILON);NoH=clamp(dot(n,h),EPSILON,ONE_MINUS_EPSILON);LoH=clamp(dot(l,h),EPSILON,ONE_MINUS_EPSILON);VoH=clamp(dot(v,h),EPSILON,ONE_MINUS_EPSILON);}else{envPdf=0.0;}gi=doSample(viewPos,viewDir,viewNormal,worldPos,metalness,roughness,isDiffuseSample,envPdf!=0.0,NoV,NoL,NoH,LoH,VoH,blueNoise.rg,l,hitPos,isMissedRay,brdf,pdf);gi*=brdf;if(envPdf==0.0){gi/=pdf;}else{gi*=misHeuristic(envPdf,pdf);gi/=envPdf;}specularSamples++;specularGI=mix(specularGI,gi,1./specularSamples);}}\n#pragma unroll_loop_end\nroughness=sqrt(roughness);\n#ifndef specularOnly\nif(diffuseSamples==0.0)diffuseGI=vec3(-1.0);gDiffuse=vec4(diffuseGI,roughness);\n#endif\n#ifndef diffuseOnly\nfloat rayLength=0.0;if(!isMissedRay&&roughness<0.375&&getCurvature(viewNormal,depth)<0.001){vec3 hitPosWS=(vec4(hitPos,1.)*viewMatrix).xyz;rayLength=distance(worldPos,hitPosWS);}if(specularSamples==0.0)specularGI=vec3(-1.0);gSpecular=vec4(specularGI,rayLength);\n#endif\n}vec3 doSample(const vec3 viewPos,const vec3 viewDir,const vec3 viewNormal,const vec3 worldPosition,const float metalness,const float roughness,const bool isDiffuseSample,const bool isMisSample,const float NoV,const float NoL,const float NoH,const float LoH,const float VoH,const vec2 random,inout vec3 l,inout vec3 hitPos,out bool isMissedRay,out vec3 brdf,out float pdf){float cosTheta=max(0.0,dot(viewNormal,l));if(isDiffuseSample){vec3 diffuseBrdf=vec3(evalDisneyDiffuse(NoL,NoV,LoH,roughness,metalness));pdf=NoL/M_PI;pdf=max(EPSILON,pdf);brdf=diffuseBrdf;}else{vec3 specularBrdf=evalDisneySpecular(roughness,NoH,NoV,NoL);pdf=GGXVNDFPdf(NoH,NoV,roughness);pdf=max(EPSILON,pdf);brdf=specularBrdf;}brdf*=cosTheta;hitPos=viewPos;\n#if steps == 0\nhitPos+=l;vec2 coords=viewSpaceToScreenSpace(hitPos);\n#else\nvec2 coords=RayMarch(l,hitPos);\n#endif\nbool allowMissedRays=false;\n#ifdef missedRays\nallowMissedRays=true;\n#endif\nisMissedRay=coords.x==-1.0;vec3 envMapSample=vec3(0.);\n#ifdef USE_ENVMAP\nif(isMissedRay||allowMissedRays){vec3 reflectedWS=normalize((vec4(l,1.)*viewMatrix).xyz);\n#ifdef BOX_PROJECTED_ENV_MAP\nfloat depth=unpackRGBAToDepth(textureLod(depthTexture,vUv,0.));reflectedWS=parallaxCorrectNormal(reflectedWS.xyz,envMapSize,envMapPosition,worldPosition);reflectedWS=normalize(reflectedWS.xyz);\n#endif\nfloat mip=envBlur*maxEnvMapMipLevel;if(!isDiffuseSample)mip*=sqrt(roughness);envMapSample=sampleEquirectEnvMapColor(reflectedWS,envMapInfo.map,mip);float maxEnvLum=isMisSample ? maxEnvLuminance : 5.0;if(maxEnvLum!=0.0){float envLum=luminance(envMapSample);if(envLum>maxEnvLum){envMapSample*=maxEnvLum/envLum;}}return envMapSample;}\n#endif\nvec4 velocity=textureLod(velocityTexture,coords.xy,0.0);vec2 reprojectedUv=coords.xy-velocity.xy;vec3 SSGI;bvec4 reprojectedUvInScreen=bvec4(greaterThanEqual(reprojectedUv,vec2(0.)),lessThanEqual(reprojectedUv,vec2(1.)));if(all(reprojectedUvInScreen)){vec4 emissiveTexel=textureLod(emissiveTexture,coords.xy,0.);vec3 emissiveColor=emissiveTexel.rgb*10.;vec3 reprojectedGI=getTexel(accumulatedTexture,reprojectedUv,0.).rgb;SSGI=reprojectedGI+emissiveColor;\n#ifdef useDirectLight\nSSGI+=textureLod(directLightTexture,coords.xy,0.).rgb*directLightMultiplier;\n#endif\n}else{SSGI=textureLod(directLightTexture,vUv,0.).rgb;}if(allowMissedRays){float ssgiLum=luminance(SSGI);float envLum=luminance(envMapSample);if(envLum>ssgiLum)SSGI=envMapSample;}return SSGI;}vec2 RayMarch(inout vec3 dir,inout vec3 hitPos){float stepsFloat=float(steps);float rayHitDepthDifference;dir*=rayDistance/float(steps);vec2 uv;for(int i=1;i<steps;i++){hitPos+=dir;if(hitPos.z>0.0)return INVALID_RAY_COORDS;uv=viewSpaceToScreenSpace(hitPos);\n#ifndef missedRays\nif(any(lessThan(uv,vec2(0.)))||any(greaterThan(uv,vec2(1.))))return INVALID_RAY_COORDS;\n#endif\nfloat unpackedDepth=unpackRGBAToDepth(textureLod(depthTexture,uv,0.0));float depth=fastGetViewZ(unpackedDepth);\n#ifdef autoThickness\nfloat unpackedBackSideDepth=unpackRGBAToDepth(textureLod(backSideDepthTexture,uv,0.0));float backSideDepth=fastGetViewZ(unpackedBackSideDepth);float currentThickness=max(abs(depth-backSideDepth),thickness);\n#else\nfloat currentThickness=thickness;\n#endif\nrayHitDepthDifference=depth-hitPos.z;if(rayHitDepthDifference>=0.0&&rayHitDepthDifference<currentThickness){\n#if refineSteps == 0\nreturn uv;\n#else\nreturn BinarySearch(dir,hitPos);\n#endif\n}}\n#ifndef missedRays\nreturn INVALID_RAY_COORDS;\n#endif\nreturn uv;}vec2 BinarySearch(inout vec3 dir,inout vec3 hitPos){float rayHitDepthDifference;vec2 uv;dir*=0.5;hitPos-=dir;for(int i=0;i<refineSteps;i++){uv=viewSpaceToScreenSpace(hitPos);float unpackedDepth=unpackRGBAToDepth(textureLod(depthTexture,uv,0.0));float depth=fastGetViewZ(unpackedDepth);rayHitDepthDifference=depth-hitPos.z;dir*=0.5;hitPos+=rayHitDepthDifference>0.0 ?-dir : dir;}uv=viewSpaceToScreenSpace(hitPos);return uv;}float fastGetViewZ(const float depth){\n#ifdef PERSPECTIVE_CAMERA\nreturn nearMulFar/(farMinusNear*depth-cameraFar);\n#else\nreturn depth*nearMinusFar-cameraNear;\n#endif\n}"; // eslint-disable-line
 
 var ssgi_utils = "#define GLSLIFY 1\n#define PI M_PI\n#define luminance(a) dot(vec3(0.2125, 0.7154, 0.0721), a)\nvec4 getTexel(const sampler2D tex,vec2 p,const float mip){p=p/invTexSize+0.5;vec2 i=floor(p);vec2 f=p-i;f=f*f*f*(f*(f*6.0-15.0)+10.0);p=i+f;p=(p-0.5)*invTexSize;return textureLod(tex,p,mip);}vec3 getViewPosition(const float depth){float clipW=projectionMatrix[2][3]*depth+projectionMatrix[3][3];vec4 clipPosition=vec4((vec3(vUv,depth)-0.5)*2.0,1.0);clipPosition*=clipW;return(inverseProjectionMatrix*clipPosition).xyz;}vec3 screenSpaceToWorldSpace(vec2 uv,float depth,mat4 camMatrixWorld){vec3 viewPos=getViewPosition(depth);return vec4(camMatrixWorld*vec4(viewPos,1.)).xyz;}float getViewZ(const float depth){\n#ifdef PERSPECTIVE_CAMERA\nreturn perspectiveDepthToViewZ(depth,cameraNear,cameraFar);\n#else\nreturn orthographicDepthToViewZ(depth,cameraNear,cameraFar);\n#endif\n}vec2 viewSpaceToScreenSpace(const vec3 position){vec4 projectedCoord=projectionMatrix*vec4(position,1.0);projectedCoord.xy/=projectedCoord.w;projectedCoord.xy=projectedCoord.xy*0.5+0.5;return projectedCoord.xy;}vec2 worldSpaceToScreenSpace(const vec3 worldPos){vec4 vsPos=vec4(worldPos,1.0)*cameraMatrixWorld;return viewSpaceToScreenSpace(vsPos.xyz);}\n#ifdef BOX_PROJECTED_ENV_MAP\nuniform vec3 envMapSize;uniform vec3 envMapPosition;vec3 parallaxCorrectNormal(const vec3 v,const vec3 cubeSize,const vec3 cubePos,const vec3 worldPosition){vec3 nDir=normalize(v);vec3 rbmax=(.5*cubeSize+cubePos-worldPosition)/nDir;vec3 rbmin=(-.5*cubeSize+cubePos-worldPosition)/nDir;vec3 rbminmax;rbminmax.x=(nDir.x>0.)? rbmax.x : rbmin.x;rbminmax.y=(nDir.y>0.)? rbmax.y : rbmin.y;rbminmax.z=(nDir.z>0.)? rbmax.z : rbmin.z;float correction=min(min(rbminmax.x,rbminmax.y),rbminmax.z);vec3 boxIntersection=worldPosition+nDir*correction;return boxIntersection-cubePos;}\n#endif\n#define M_PI 3.1415926535897932384626433832795\nvec2 equirectDirectionToUv(const vec3 direction){vec2 uv=vec2(atan(direction.z,direction.x),acos(direction.y));uv/=vec2(2.0*M_PI,M_PI);uv.x+=0.5;uv.y=1.0-uv.y;return uv;}vec3 equirectUvToDirection(vec2 uv){uv.x-=0.5;uv.y=1.0-uv.y;float theta=uv.x*2.0*PI;float phi=uv.y*PI;float sinPhi=sin(phi);return vec3(sinPhi*cos(theta),cos(phi),sinPhi*sin(theta));}vec3 sampleEquirectEnvMapColor(const vec3 direction,const sampler2D map,const float lod){return getTexel(map,equirectDirectionToUv(direction),lod).rgb;}mat3 getBasisFromNormal(const vec3 normal){vec3 other;if(abs(normal.x)>0.5){other=vec3(0.0,1.0,0.0);}else{other=vec3(1.0,0.0,0.0);}vec3 ortho=normalize(cross(normal,other));vec3 ortho2=normalize(cross(normal,ortho));return mat3(ortho2,ortho,normal);}vec3 F_Schlick(const vec3 f0,const float theta){return f0+(1.-f0)*pow(1.0-theta,5.);}float F_Schlick(const float f0,const float f90,const float theta){return f0+(f90-f0)*pow(1.0-theta,5.0);}float D_GTR(const float roughness,const float NoH,const float k){float a2=pow(roughness,2.);return a2/(PI*pow((NoH*NoH)*(a2*a2-1.)+1.,k));}float SmithG(const float NDotV,const float alphaG){float a=alphaG*alphaG;float b=NDotV*NDotV;return(2.0*NDotV)/(NDotV+sqrt(a+b-a*b));}float GGXVNDFPdf(const float NoH,const float NoV,const float roughness){float D=D_GTR(roughness,NoH,2.);float G1=SmithG(NoV,roughness*roughness);return(D*G1)/max(0.00001,4.0f*NoV);}float GeometryTerm(const float NoL,const float NoV,const float roughness){float a2=roughness*roughness;float G1=SmithG(NoV,a2);float G2=SmithG(NoL,a2);return G1*G2;}float evalDisneyDiffuse(const float NoL,const float NoV,const float LoH,const float roughness,const float metalness){float FD90=0.5+2.*roughness*pow(LoH,2.);float a=F_Schlick(1.,FD90,NoL);float b=F_Schlick(1.,FD90,NoV);return(a*b/PI)*(1.-metalness);}vec3 evalDisneySpecular(const float roughness,const float NoH,const float NoV,const float NoL){float D=D_GTR(roughness,NoH,2.);float G=GeometryTerm(NoL,NoV,pow(0.5+roughness*.5,2.));vec3 spec=vec3(D*G/(4.*NoL*NoV));return spec;}vec3 SampleGGXVNDF(const vec3 V,const float ax,const float ay,const float r1,const float r2){vec3 Vh=normalize(vec3(ax*V.x,ay*V.y,V.z));float lensq=Vh.x*Vh.x+Vh.y*Vh.y;vec3 T1=lensq>0. ? vec3(-Vh.y,Vh.x,0.)*inversesqrt(lensq): vec3(1.,0.,0.);vec3 T2=cross(Vh,T1);float r=sqrt(r1);float phi=2.0*PI*r2;float t1=r*cos(phi);float t2=r*sin(phi);float s=0.5*(1.0+Vh.z);t2=(1.0-s)*sqrt(1.0-t1*t1)+s*t2;vec3 Nh=t1*T1+t2*T2+sqrt(max(0.0,1.0-t1*t1-t2*t2))*Vh;return normalize(vec3(ax*Nh.x,ay*Nh.y,max(0.0,Nh.z)));}void Onb(const vec3 N,inout vec3 T,inout vec3 B){vec3 up=abs(N.z)<0.9999999 ? vec3(0,0,1): vec3(1,0,0);T=normalize(cross(up,N));B=cross(N,T);}vec3 ToLocal(const vec3 X,const vec3 Y,const vec3 Z,const vec3 V){return vec3(dot(V,X),dot(V,Y),dot(V,Z));}vec3 ToWorld(const vec3 X,const vec3 Y,const vec3 Z,const vec3 V){return V.x*X+V.y*Y+V.z*Z;}vec3 cosineSampleHemisphere(const vec3 n,const vec2 u){float r=sqrt(u.x);float theta=2.0*PI*u.y;vec3 b=normalize(cross(n,vec3(0.0,1.0,1.0)));vec3 t=cross(b,n);return normalize(r*sin(theta)*b+sqrt(1.0-u.x)*n+r*cos(theta)*t);}float equirectDirectionPdf(vec3 direction){vec2 uv=equirectDirectionToUv(direction);float theta=uv.y*PI;float sinTheta=sin(theta);if(sinTheta==0.0){return 0.0;}return 1.0/(2.0*PI*PI*sinTheta);}float sampleEquirectProbability(EquirectHdrInfo info,vec2 r,out vec3 direction){float v=textureLod(info.marginalWeights,vec2(r.x,0.0),0.).x;float u=textureLod(info.conditionalWeights,vec2(r.y,v),0.).x;vec2 uv=vec2(u,v);vec3 derivedDirection=equirectUvToDirection(uv);direction=derivedDirection;vec3 color=texture(info.map,uv).rgb;float totalSum=info.totalSumWhole+info.totalSumDecimal;float lum=luminance(color);float pdf=lum/totalSum;return info.size.x*info.size.y*pdf;}float misHeuristic(float a,float b){float aa=a*a;float bb=b*b;return aa/(aa+bb);}const float g=1.6180339887498948482;const float a1=1.0/g;float r1(float n){return fract(1.1127756842787055+a1*n);}const vec4 hn=vec4(0.618033988749895,0.3247179572447458,0.2207440846057596,0.1673039782614187);vec4 sampleBlueNoise(int seed){vec2 size=vUv*texSize;vec2 blueNoiseSize=texSize/blueNoiseRepeat;float blueNoiseIndex=floor(floor(size.y/blueNoiseSize.y)*blueNoiseRepeat.x)+floor(size.x/blueNoiseSize.x);int blueNoiseTileOffset=int(r1(blueNoiseIndex+1.0)*65536.);vec2 blueNoiseUv=vUv*blueNoiseRepeat;vec4 blueNoise=textureLod(blueNoiseTexture,blueNoiseUv,0.);blueNoise=fract(blueNoise+hn*float(seed+blueNoiseTileOffset));blueNoise.r=(blueNoise.r>0.5 ? 1.0-blueNoise.r : blueNoise.r)*2.0;blueNoise.g=(blueNoise.g>0.5 ? 1.0-blueNoise.g : blueNoise.g)*2.0;blueNoise.b=(blueNoise.b>0.5 ? 1.0-blueNoise.b : blueNoise.b)*2.0;blueNoise.a=(blueNoise.a>0.5 ? 1.0-blueNoise.a : blueNoise.a)*2.0;return blueNoise;}float getCurvature(const vec3 n,const float depth){vec3 dx=dFdx(n);vec3 dy=dFdy(n);vec3 xneg=n-dx;vec3 xpos=n+dx;vec3 yneg=n-dy;vec3 ypos=n+dy;float curvature=(cross(xneg,xpos).y-cross(yneg,ypos).x)*4.0/depth;return curvature;}"; // eslint-disable-line
 
@@ -1526,7 +1562,7 @@ const overrideMaterial = new MeshDepthMaterial({
 });
 class BackSideDepthPass extends Pass {
   constructor(scene, camera) {
-    super("VelocityPass");
+    super("BackSideDepthPass");
     this._scene = scene;
     this._camera = camera;
     this.renderTarget = new WebGLRenderTarget(1, 1, {
@@ -1565,6 +1601,8 @@ const backgroundColor$1 = new Color(0);
 class SSGIPass extends Pass {
   constructor(ssgiEffect, options) {
     super("SSGIPass");
+    this.needsSwap = false;
+    this.defaultFragmentShader = "";
     this.frame = 0;
     this.cachedMaterials = new WeakMap();
     this.visibleMeshes = [];
@@ -1572,6 +1610,7 @@ class SSGIPass extends Pass {
     this._scene = ssgiEffect._scene;
     this._camera = ssgiEffect._camera;
     this.fullscreenMaterial = new SSGIMaterial();
+    this.defaultFragmentShader = this.fullscreenMaterial.fragmentShader;
     const bufferCount = !options.diffuseOnly && !options.specularOnly ? 2 : 1;
     this.renderTarget = new WebGLMultipleRenderTargets(1, 1, bufferCount, {
       type: HalfFloatType,
@@ -1696,7 +1735,21 @@ class SSGIPass extends Pass {
       keepMaterialMapUpdated(mrtMaterial, originalMaterial, "metalnessMap", "USE_	METALNESSMAP", true);
       keepMaterialMapUpdated(mrtMaterial, originalMaterial, "map", "USE_MAP", true);
       keepMaterialMapUpdated(mrtMaterial, originalMaterial, "emissiveMap", "USE_EMISSIVEMAP", true);
-      c.visible = isChildMaterialRenderable(originalMaterial);
+      keepMaterialMapUpdated(mrtMaterial, originalMaterial, "alphaMap", "USE_ALPHAMAP", true);
+      const noiseTexture = this.fullscreenMaterial.uniforms.blueNoiseTexture.value;
+
+      if (noiseTexture) {
+        const {
+          width,
+          height
+        } = noiseTexture.source.data;
+        mrtMaterial.uniforms.blueNoiseTexture.value = noiseTexture;
+        mrtMaterial.uniforms.blueNoiseRepeat.value.set(this.renderTarget.width / width, this.renderTarget.height / height);
+      }
+
+      mrtMaterial.uniforms.texSize.value.set(this.renderTarget.width, this.renderTarget.height);
+      mrtMaterial.uniforms.frame.value = this.frame;
+      c.visible = isChildMaterialRenderable(c, originalMaterial);
       const origRoughness = typeof originalMaterial.roughness === "number" ? originalMaterial.roughness : 1;
       mrtMaterial.uniforms.roughness.value = this.ssgiEffect.selection.size === 0 || this.ssgiEffect.selection.has(c) ? origRoughness : 10e10;
       mrtMaterial.uniforms.metalness.value = c.material.metalness || 0;
@@ -1715,6 +1768,7 @@ class SSGIPass extends Pass {
   }
 
   render(renderer) {
+    this.frame = (this.frame + this.ssgiEffect.spp) % 65536;
     const {
       background
     } = this._scene;
@@ -1723,8 +1777,7 @@ class SSGIPass extends Pass {
     renderer.setRenderTarget(this.gBuffersRenderTarget);
     renderer.render(this._scene, this._camera);
     this.unsetMRTMaterialInScene();
-    if (this.ssgiEffect.autoThickness) this.backSideDepthPass.render(renderer);
-    this.frame = (this.frame + this.ssgiEffect.spp) % 65536; // update uniforms
+    if (this.ssgiEffect.autoThickness) this.backSideDepthPass.render(renderer); // update uniforms
 
     this.fullscreenMaterial.uniforms.frame.value = this.frame;
     this.fullscreenMaterial.uniforms.cameraNear.value = this._camera.near;
@@ -1748,9 +1801,9 @@ class SSGIPass extends Pass {
 
 }
 
-var compose = "#define GLSLIFY 1\nuniform sampler2D inputTexture;uniform sampler2D sceneTexture;uniform sampler2D depthTexture;uniform int toneMapping;\n#include <tonemapping_pars_fragment>\n#pragma tonemapping_pars_fragment\nvoid mainImage(const in vec4 inputColor,const in vec2 uv,out vec4 outputColor){vec4 ssgiTexel=textureLod(inputTexture,uv,0.);vec3 ssgiClr=ssgiTexel.rgb;switch(toneMapping){case 1:ssgiClr=LinearToneMapping(ssgiClr);break;case 2:ssgiClr=ReinhardToneMapping(ssgiClr);break;case 3:ssgiClr=OptimizedCineonToneMapping(ssgiClr);break;case 4:ssgiClr=ACESFilmicToneMapping(ssgiClr);break;case 5:ssgiClr=CustomToneMapping(ssgiClr);break;}ssgiClr*=toneMappingExposure;vec4 depthTexel=textureLod(depthTexture,uv,0.);if(dot(depthTexel.rgb,depthTexel.rgb)==0.){ssgiClr=textureLod(sceneTexture,uv,0.).rgb;}outputColor=vec4(ssgiClr,1.0);}"; // eslint-disable-line
+var compose = "#define GLSLIFY 1\nuniform sampler2D inputTexture;uniform sampler2D sceneTexture;uniform sampler2D depthTexture;uniform int toneMapping;\n#include <tonemapping_pars_fragment>\n#pragma tonemapping_pars_fragment\nvoid mainImage(const in vec4 inputColor,const in vec2 uv,out vec4 outputColor){vec4 depthTexel=textureLod(depthTexture,uv,0.);vec3 ssgiClr;if(dot(depthTexel.rgb,depthTexel.rgb)==0.){ssgiClr=textureLod(sceneTexture,uv,0.).rgb;}else{ssgiClr=textureLod(inputTexture,uv,0.).rgb;switch(toneMapping){case 1:ssgiClr=LinearToneMapping(ssgiClr);break;case 2:ssgiClr=ReinhardToneMapping(ssgiClr);break;case 3:ssgiClr=OptimizedCineonToneMapping(ssgiClr);break;case 4:ssgiClr=ACESFilmicToneMapping(ssgiClr);break;case 5:ssgiClr=CustomToneMapping(ssgiClr);break;}ssgiClr*=toneMappingExposure;}outputColor=vec4(ssgiClr,1.0);}"; // eslint-disable-line
 
-var denoise_compose = "#define GLSLIFY 1\n{roughness*=roughness;vec3 viewPos=getViewPosition(depth);vec3 viewDir=normalize(viewPos);vec3 T,B;vec3 n=viewNormal;vec3 v=viewDir;vec3 V=(vec4(v,1.)*viewMatrix).xyz;vec3 N=(vec4(n,1.)*viewMatrix).xyz;Onb(N,T,B);V=ToLocal(T,B,N,V);vec3 H=SampleGGXVNDF(V,roughness,roughness,0.25,0.25);if(H.z<0.0)H=-H;vec3 l=normalize(reflect(-V,H));l=ToWorld(T,B,N,l);l=(vec4(l,1.)*cameraMatrixWorld).xyz;l=normalize(l);if(dot(viewNormal,l)<0.)l=-l;vec3 h=normalize(v+l);float VoH=max(EPSILON,dot(v,h));VoH=pow(VoH,0.875);vec4 diffuseTexel=textureLod(diffuseTexture,vUv,0.);vec3 diffuse=diffuseTexel.rgb;float metalness=diffuseTexel.a;vec3 f0=mix(vec3(0.04),diffuse,metalness);vec3 F=F_Schlick(f0,VoH);vec3 directLight=textureLod(directLightTexture,vUv,0.).rgb;\n#ifdef ssgi\nvec3 diffuseLightingColor=denoisedColor[0];vec3 diffuseComponent=diffuse*(1.-metalness)*(1.-F)*diffuseLightingColor;vec3 specularLightingColor=denoisedColor[1];vec3 specularComponent=specularLightingColor*F;denoisedColor[0]=diffuseComponent+specularComponent;\n#endif\n#ifdef ssdgi\nvec3 diffuseLightingColor=denoisedColor[0];vec3 diffuseComponent=diffuse*(1.-metalness)*(1.-F)*diffuseLightingColor;denoisedColor[0]=diffuseComponent;\n#endif\n#ifdef ssr\nvec3 specularLightingColor=denoisedColor[0];vec3 specularComponent=specularLightingColor*F;denoisedColor[0]=specularComponent;\n#endif\n#ifdef useDirectLight\ndenoisedColor[0]+=directLight;\n#endif\n}"; // eslint-disable-line
+var denoise_compose = "#define GLSLIFY 1\n{vec3 viewNormal=normalize((vec4(normal,1.)*cameraMatrixWorld).xyz);roughness*=roughness;vec3 viewPos=getViewPosition(depth);vec3 viewDir=normalize(viewPos);vec3 T,B;vec3 n=viewNormal;vec3 v=viewDir;vec3 V=(vec4(v,1.)*viewMatrix).xyz;vec3 N=(vec4(n,1.)*viewMatrix).xyz;Onb(N,T,B);V=ToLocal(T,B,N,V);vec3 H=SampleGGXVNDF(V,roughness,roughness,0.25,0.25);if(H.z<0.0)H=-H;vec3 l=normalize(reflect(-V,H));l=ToWorld(T,B,N,l);l=(vec4(l,1.)*cameraMatrixWorld).xyz;l=normalize(l);if(dot(viewNormal,l)<0.)l=-l;vec3 h=normalize(v+l);float VoH=max(EPSILON,dot(v,h));VoH=pow(VoH,0.875);vec4 diffuseTexel=textureLod(diffuseTexture,vUv,0.);vec3 diffuse=diffuseTexel.rgb;float metalness=diffuseTexel.a;vec3 f0=mix(vec3(0.04),diffuse,metalness);vec3 F=F_Schlick(f0,VoH);vec3 directLight=textureLod(directLightTexture,vUv,0.).rgb;\n#ifdef ssgi\nvec3 diffuseLightingColor=denoisedColor[0];vec3 diffuseComponent=diffuse*(1.-metalness)*(1.-F)*diffuseLightingColor;vec3 specularLightingColor=denoisedColor[1];vec3 specularComponent=specularLightingColor*F;denoisedColor[0]=diffuseComponent+specularComponent;\n#endif\n#ifdef ssdgi\nvec3 diffuseLightingColor=denoisedColor[0];vec3 diffuseComponent=diffuse*(1.-metalness)*(1.-F)*diffuseLightingColor;denoisedColor[0]=diffuseComponent;\n#endif\n#ifdef ssr\nvec3 specularLightingColor=denoisedColor[0];vec3 specularComponent=specularLightingColor*F;denoisedColor[0]=specularComponent;\n#endif\n#ifdef useDirectLight\ndenoisedColor[0]+=directLight;\n#endif\n}"; // eslint-disable-line
 
 var denoise_compose_functions = "#define GLSLIFY 1\nuniform sampler2D diffuseTexture;uniform sampler2D directLightTexture;vec3 getViewPosition(const float depth){float clipW=projectionMatrix[2][3]*depth+projectionMatrix[3][3];vec4 clipPosition=vec4((vec3(vUv,depth)-0.5)*2.0,1.0);clipPosition*=clipW;return(projectionMatrixInverse*clipPosition).xyz;}vec3 F_Schlick(const vec3 f0,const float theta){return f0+(1.-f0)*pow(1.0-theta,5.);}vec3 SampleGGXVNDF(const vec3 V,const float ax,const float ay,const float r1,const float r2){vec3 Vh=normalize(vec3(ax*V.x,ay*V.y,V.z));float lensq=Vh.x*Vh.x+Vh.y*Vh.y;vec3 T1=lensq>0. ? vec3(-Vh.y,Vh.x,0.)*inversesqrt(lensq): vec3(1.,0.,0.);vec3 T2=cross(Vh,T1);float r=sqrt(r1);float phi=2.0*PI*r2;float t1=r*cos(phi);float t2=r*sin(phi);float s=0.5*(1.0+Vh.z);t2=(1.0-s)*sqrt(1.0-t1*t1)+s*t2;vec3 Nh=t1*T1+t2*T2+sqrt(max(0.0,1.0-t1*t1-t2*t2))*Vh;return normalize(vec3(ax*Nh.x,ay*Nh.y,max(0.0,Nh.z)));}void Onb(const vec3 N,inout vec3 T,inout vec3 B){vec3 up=abs(N.z)<0.9999999 ? vec3(0,0,1): vec3(1,0,0);T=normalize(cross(up,N));B=cross(N,T);}vec3 ToLocal(const vec3 X,const vec3 Y,const vec3 Z,const vec3 V){return vec3(dot(V,X),dot(V,Y),dot(V,Z));}vec3 ToWorld(const vec3 X,const vec3 Y,const vec3 Z,const vec3 V){return V.x*X+V.y*Y+V.z*Z;}"; // eslint-disable-line
 
@@ -1818,10 +1871,10 @@ class SSGIEffect extends Effect {
   /**
    * @param {THREE.Scene} scene The scene of the SSGI effect
    * @param {THREE.Camera} camera The camera with which SSGI is being rendered
-   * @param {VelocityPass} velocityPass Required velocity pass
+   * @param {velocityDepthNormalPass} velocityDepthNormalPass Required velocity pass
    * @param {SSGIOptions} [options] The optional options for the SSGI effect
    */
-  constructor(scene, camera, velocityPass, options = defaultSSGIOptions) {
+  constructor(scene, camera, velocityDepthNormalPass, options = defaultSSGIOptions) {
     options = { ...defaultSSGIOptions,
       ...options
     };
@@ -1838,15 +1891,15 @@ class SSGIEffect extends Effect {
     if (options.diffuseOnly) {
       definesName = "ssdgi";
       options.reprojectSpecular = false;
-      options.neighborhoodClamping = false;
       options.roughnessDependent = false;
       options.basicVariance = 0.00025;
+      options.neighborhoodClamping = false;
     } else if (options.specularOnly) {
       definesName = "ssr";
       options.reprojectSpecular = true;
-      options.neighborhoodClamping = true;
       options.roughnessDependent = true;
       options.basicVariance = 0.00025;
+      options.neighborhoodClamping = true;
     } else {
       definesName = "ssgi";
       options.reprojectSpecular = [false, true];
@@ -1856,24 +1909,16 @@ class SSGIEffect extends Effect {
     }
 
     const textureCount = options.diffuseOnly || options.specularOnly ? 1 : 2;
-    this.svgf = new SVGF(scene, camera, velocityPass, textureCount, denoise_compose, denoise_compose_functions, options);
+    this.svgf = new SVGF(scene, camera, velocityDepthNormalPass, textureCount, denoise_compose, denoise_compose_functions, options);
 
     if (definesName === "ssgi") {
       this.svgf.svgfTemporalReprojectPass.fullscreenMaterial.fragmentShader = this.svgf.svgfTemporalReprojectPass.fullscreenMaterial.fragmentShader.replace("accumulatedTexel[ 1 ].rgb = clampedColor;", `
 						float roughness = inputTexel[ 0 ].a;
-						accumulatedTexel[ 1 ].rgb = mix(accumulatedTexel[1].rgb, clampedColor, 1. - sqrt(roughness));
-						`).replace("outputColor = mix(inputTexel[ 1 ].rgb, accumulatedTexel[ 1 ].rgb, temporalReprojectMix);",
-      /* glsl */
-      `
-				float roughness = inputTexel[0].a;
-				float glossines = max(0., 0.025 - roughness) / 0.025;
-				temporalReprojectMix *= 1. - glossines * glossines;
-				
-				outputColor = mix(inputTexel[ 1 ].rgb, accumulatedTexel[ 1 ].rgb, temporalReprojectMix);
-				`);
+						accumulatedTexel[ 1 ].rgb = mix(accumulatedTexel[ 1 ].rgb, clampedColor, 1. - sqrt(roughness));
+						`);
     } else if (definesName === "ssr") {
       this.svgf.svgfTemporalReprojectPass.fullscreenMaterial.fragmentShader = this.svgf.svgfTemporalReprojectPass.fullscreenMaterial.fragmentShader.replace("accumulatedTexel[ 0 ].rgb = clampedColor;", `
-					accumulatedTexel[ 0 ].rgb = mix(accumulatedTexel[1].rgb, clampedColor, 0.75);
+					accumulatedTexel[ 0 ].rgb = mix(accumulatedTexel[ 0 ].rgb, clampedColor, 0.5);
 					`);
     }
 
@@ -1888,12 +1933,8 @@ class SSGIEffect extends Effect {
     } else {
       this.svgf.svgfTemporalReprojectPass.fullscreenMaterial.uniforms.inputTexture0.value = this.ssgiPass.texture;
       this.svgf.svgfTemporalReprojectPass.fullscreenMaterial.uniforms.inputTexture1.value = this.ssgiPass.specularTexture;
-    } // the denoiser always uses the same G-buffers as the SSGI pass
+    }
 
-
-    const denoisePassUniforms = this.svgf.denoisePass.fullscreenMaterial.uniforms;
-    denoisePassUniforms.depthTexture.value = this.ssgiPass.depthTexture;
-    denoisePassUniforms.normalTexture.value = this.ssgiPass.normalTexture;
     this.svgf.setJitteredGBuffers(this.ssgiPass.depthTexture, this.ssgiPass.normalTexture); // patch the denoise pass
 
     this.svgf.denoisePass.fullscreenMaterial.uniforms = { ...this.svgf.denoisePass.fullscreenMaterial.uniforms,
@@ -1917,7 +1958,7 @@ class SSGIEffect extends Effect {
     this.renderPass.renderToScreen = false;
     this.setSize(options.width, options.height);
     const th = this;
-    const ssgiRenderPass = this.renderPass;
+    const ssgiRenderPass = this.renderPass; // eslint-disable-next-line space-before-function-paren
 
     RenderPass.prototype.render = function (...args) {
       if (this !== ssgiRenderPass) {
@@ -1989,9 +2030,19 @@ class SSGIEffect extends Effect {
               break;
             // defines
 
+            case "spp":
+              this.ssgiPass.fullscreenMaterial.fragmentShader = this.ssgiPass.defaultFragmentShader.replaceAll("spp", value);
+
+              if (value !== 1) {
+                this.ssgiPass.fullscreenMaterial.fragmentShader = unrollLoops(this.ssgiPass.fullscreenMaterial.fragmentShader.replace("#pragma unroll_loop_start", "").replace("#pragma unroll_loop_end", ""));
+              }
+
+              this.ssgiPass.fullscreenMaterial.needsUpdate = needsUpdate;
+              temporalReprojectPass.reset();
+              break;
+
             case "steps":
             case "refineSteps":
-            case "spp":
               this.ssgiPass.fullscreenMaterial.defines[key] = parseInt(value);
               this.ssgiPass.fullscreenMaterial.needsUpdate = needsUpdate;
               temporalReprojectPass.reset();
@@ -2056,12 +2107,6 @@ class SSGIEffect extends Effect {
     };
   }
 
-  setVelocityPass(velocityPass) {
-    this.ssgiPass.fullscreenMaterial.uniforms.velocityTexture.value = velocityPass.texture;
-    this.svgf.svgfTemporalReprojectPass.fullscreenMaterial.uniforms.velocityTexture.value = velocityPass.texture;
-    this.svgf.setNonJitteredGBuffers(velocityPass.depthTexture, velocityPass.normalTexture);
-  }
-
   dispose() {
     super.dispose();
     this.ssgiPass.dispose();
@@ -2118,7 +2163,7 @@ class SSGIEffect extends Effect {
 
       for (const c of getVisibleChildren(this._scene)) {
         if (c.isScene) return;
-        c.visible = !isChildMaterialRenderable(c.material);
+        c.visible = !isChildMaterialRenderable(c);
         c.visible ? hideMeshes.push(c) : children.push(c);
       }
 
@@ -2163,23 +2208,23 @@ class SSGIEffect extends Effect {
 SSGIEffect.DefaultOptions = defaultSSGIOptions;
 
 class SSREffect extends SSGIEffect {
-  constructor(scene, camera, velocityPass, options = defaultSSGIOptions) {
+  constructor(scene, camera, velocityDepthNormalPass, options = defaultSSGIOptions) {
     options = { ...defaultSSGIOptions,
       ...options
     };
     options.specularOnly = true;
-    super(scene, camera, velocityPass, options);
+    super(scene, camera, velocityDepthNormalPass, options);
   }
 
 }
 
 class SSDGIEffect extends SSGIEffect {
-  constructor(scene, camera, velocityPass, options = defaultSSGIOptions) {
+  constructor(scene, camera, velocityDepthNormalPass, options = defaultSSGIOptions) {
     options = { ...defaultSSGIOptions,
       ...options
     };
     options.diffuseOnly = true;
-    super(scene, camera, velocityPass, options);
+    super(scene, camera, velocityDepthNormalPass, options);
   }
 
 }
@@ -2435,9 +2480,8 @@ class VelocityDepthNormalMaterial extends ShaderMaterial {
 					#endif
 
 					#ifdef renderDepthNormal
-					layout(location = 0) out vec4 gVelocity;
-					layout(location = 1) out vec4 gDepth;
-					layout(location = 2) out vec4 gNormal;
+					layout(location = 0) out vec4 gDepth;
+					layout(location = 1) out vec4 gVelocity;
 					#else
 					#define gVelocity gl_FragColor
 					#endif
@@ -2448,16 +2492,31 @@ class VelocityDepthNormalMaterial extends ShaderMaterial {
 					#include <uv_pars_fragment>
 					#include <normal_pars_fragment>
 
+					// source: https://knarkowicz.wordpress.com/2014/04/16/octahedron-normal-vector-encoding/
+					vec2 OctWrap( vec2 v ) {
+						vec2 w = 1.0 - abs( v.yx );
+						if (v.x < 0.0) w.x = -w.x;
+						if (v.y < 0.0) w.y = -w.y;
+						return w;
+					}
+
+					vec2 Encode( vec3 n ) {
+						n /= ( abs( n.x ) + abs( n.y ) + abs( n.z ) );
+						n.xy = n.z > 0.0 ? n.xy : OctWrap( n.xy );
+						n.xy = n.xy * 0.5 + 0.5;
+						return n.xy;
+					}
+
                     void main() {
 						#include <normal_fragment_begin>
                     	#include <normal_fragment_maps>
 
 						${velocity_fragment_main.replaceAll("gl_FragColor", "gVelocity")}
+						vec3 worldNormal = normalize((vec4(normal, 1.) * viewMatrix).xyz);
+						gVelocity.ba = Encode(worldNormal);
 
 						#ifdef renderDepthNormal
 						gDepth = packDepthToRGBA(fragCoordZ);
-
-						gNormal = vec4(packNormalToRGB( normal ), 0.);
 						#endif
                     }`
     });
@@ -2467,28 +2526,30 @@ class VelocityDepthNormalMaterial extends ShaderMaterial {
 }
 
 const backgroundColor = new Color(0);
+const zeroVec2 = new Vector2();
+const tmpProjectionMatrix = new Matrix4();
+const tmpProjectionMatrixInverse = new Matrix4();
 class VelocityDepthNormalPass extends Pass {
   constructor(scene, camera, renderDepthNormal = true) {
-    super("VelocityPass");
+    super("velocityDepthNormalPass");
     this.cachedMaterials = new WeakMap();
     this.visibleMeshes = [];
+    this.needsSwap = false;
     this._scene = scene;
     this._camera = camera;
-    const bufferCount = renderDepthNormal ? 3 : 1;
+    const bufferCount = renderDepthNormal ? 2 : 1;
     this.renderTarget = new WebGLMultipleRenderTargets(1, 1, bufferCount, {
       minFilter: NearestFilter,
       magFilter: NearestFilter
     });
     this.renderTarget.depthTexture = new DepthTexture(1, 1);
     this.renderTarget.depthTexture.type = FloatType;
-    this.renderTarget.texture[0].type = FloatType;
-    this.renderTarget.texture[0].needsUpdate = true;
 
     if (renderDepthNormal) {
-      this.renderTarget.texture[1].type = UnsignedByteType;
+      this.renderTarget.texture[0].type = UnsignedByteType;
+      this.renderTarget.texture[0].needsUpdate = true;
+      this.renderTarget.texture[1].type = FloatType;
       this.renderTarget.texture[1].needsUpdate = true;
-      this.renderTarget.texture[2].type = HalfFloatType;
-      this.renderTarget.texture[2].needsUpdate = true;
     }
 
     this.renderDepthNormal = renderDepthNormal;
@@ -2512,7 +2573,7 @@ class VelocityDepthNormalPass extends Pass {
       }
 
       c.material = velocityDepthNormalMaterial;
-      c.visible = isChildMaterialRenderable(originalMaterial);
+      c.visible = isChildMaterialRenderable(c, originalMaterial);
       if (this.renderDepthNormal) velocityDepthNormalMaterial.defines.renderDepthNormal = "";
       const map = originalMaterial.map || originalMaterial.normalMap || originalMaterial.roughnessMap || originalMaterial.metalnessMap;
       if (map) velocityDepthNormalMaterial.uniforms.uvTransform.value = map.matrix;
@@ -2529,7 +2590,13 @@ class VelocityDepthNormalPass extends Pass {
   }
 
   setSize(width, height) {
+    var _this$lastDepthTextur;
+
     this.renderTarget.setSize(width, height);
+    (_this$lastDepthTextur = this.lastDepthTexture) == null ? void 0 : _this$lastDepthTextur.dispose();
+    this.lastDepthTexture = new FramebufferTexture(width, height, RGBAFormat);
+    this.lastDepthTexture.minFilter = NearestFilter;
+    this.lastDepthTexture.magFilter = NearestFilter;
   }
 
   dispose() {
@@ -2538,19 +2605,19 @@ class VelocityDepthNormalPass extends Pass {
   }
 
   get texture() {
-    return Array.isArray(this.renderTarget.texture) ? this.renderTarget.texture[0] : this.renderTarget.texture;
+    return Array.isArray(this.renderTarget.texture) ? this.renderTarget.texture[1] : this.renderTarget.texture;
   }
 
   get depthTexture() {
-    return this.renderTarget.texture[1];
-  }
-
-  get normalTexture() {
-    return this.renderTarget.texture[2];
+    return this.renderTarget.texture[0];
   }
 
   render(renderer) {
-    this._camera.clearViewOffset();
+    tmpProjectionMatrix.copy(this._camera.projectionMatrix);
+    tmpProjectionMatrixInverse.copy(this._camera.projectionMatrixInverse);
+    if (this._camera.view) this._camera.view.enabled = false;
+
+    this._camera.updateProjectionMatrix();
 
     this.setVelocityDepthNormalMaterialInScene();
     const {
@@ -2558,14 +2625,24 @@ class VelocityDepthNormalPass extends Pass {
     } = this._scene;
     this._scene.background = backgroundColor;
     renderer.setRenderTarget(this.renderTarget);
+    renderer.copyFramebufferToTexture(zeroVec2, this.lastDepthTexture);
     renderer.render(this._scene, this._camera);
     this._scene.background = background;
     this.unsetVelocityDepthNormalMaterialInScene();
     if (this._camera.view) this._camera.view.enabled = true;
 
-    this._camera.updateProjectionMatrix();
+    this._camera.projectionMatrix.copy(tmpProjectionMatrix);
+
+    this._camera.projectionMatrixInverse.copy(tmpProjectionMatrixInverse);
   }
 
 }
 
-export { MotionBlurEffect, SSDGIEffect, SSGIEffect, SSREffect, TRAAEffect, VelocityDepthNormalPass };
+class VelocityPass extends VelocityDepthNormalPass {
+  constructor(scene, camera) {
+    super(scene, camera, false);
+  }
+
+}
+
+export { MotionBlurEffect, SSDGIEffect, SSGIEffect, SSREffect, SVGF, TRAAEffect, TemporalReprojectPass, VelocityDepthNormalPass, VelocityPass };

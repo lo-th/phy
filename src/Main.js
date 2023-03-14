@@ -6,6 +6,7 @@ import './libs/webgl-memory.js'
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
 
 import { Composer } from './3TH/Composer.js'
+
 import { Controller } from './3TH/Controller.js'
 import { Shader } from './3TH/Shader.js'
 import { Pool } from './3TH/Pool.js'
@@ -36,6 +37,9 @@ import { Motor } from './motor/Motor.js'
 // PARTICLE
 import { Smoke } from '../build/smoke.module.js'
 
+
+import { SpiderRobot } from './3TH/utils/SpiderRobot.js'
+
 /** __
 *    _)_|_|_
 *   __) |_| | 2023
@@ -43,7 +47,6 @@ import { Smoke } from '../build/smoke.module.js'
 * 
 *  MAIN THREE.JS / PHY
 */
-
 
 let drawCall = false
 let fullStat = false
@@ -289,7 +292,6 @@ Motor.load = Pool.load;
 Motor.getMesh = Pool.getMesh;
 Motor.getGroup = Pool.getGroup;
 Motor.getMaterial = Pool.getMaterial;
-//Motor.getMap = Pool.getTexture;
 Motor.getTexture = Pool.getTexture;
 Motor.get = Pool.get;
 
@@ -306,8 +308,6 @@ window.phy = Motor
 window.math = Motor.math()
 window.Main = Main
 
-
-
 window.THREE = THREE
 window.hub = Hub
 window.Landscape = Landscape
@@ -317,6 +317,8 @@ window.Sparkle = Sparkle
 
 window.Diamond = Diamond
 window.Fluid = Fluid
+
+window.SpiderRobot = SpiderRobot
 
 async function preLoad( name, o ) {
 	
@@ -424,13 +426,6 @@ const init = () => {
 		}
 	})
 
-	// POST PROCESS
-
-	//composer = new Composer( renderer, scene, camera, controls, size );
-
-	// PARTICLE
-	
-
 	
 	// avoid track run in background
 	document.addEventListener( 'visibilitychange', onVisible )
@@ -442,8 +437,6 @@ const init = () => {
 	document.body.addEventListener( 'drop', drop, false );
 
 	activeDragMouse( true )
-
-
 
 	Hub.init( camera, size, introText )
 
@@ -517,9 +510,8 @@ const next = () => {
 
     Motor.setContent( scene )
     Motor.setControl( controls )
-
-    Motor.setExtraTexture( function(o){ return Pool.directTexture( o.url, o ) } );
-    Motor.setExtraMaterial( function(m){ if( m ) Shader.add( m ) } );
+    Motor.setExtraTexture( Pool.texture )
+    Motor.setExtraMaterial( Shader.add )
 
 
 	let hash = location.hash.substr( 1 )
@@ -623,9 +615,6 @@ const addLight = () => {
 
 
 	////
-
-
-	
 
 }
 
@@ -1436,7 +1425,7 @@ const setComposer = ( b ) => {
 		} 
 	}
 
-	Gui.postprocess()
+	//Gui.postprocess()
 
 }
 

@@ -452,10 +452,7 @@ export class Motor {
 	}
 
 	static texture( o = {} ) {
-
-		let t = extraTexture( o )
-		//root.tmpTex.push( t )
-		return t
+		return extraTexture( o )
 	}
 
 	static material ( o = {} ){

@@ -147,22 +147,25 @@ export const Pool = {
 
     //getMap:( name, o = {} ) => ( Pool.getTexture(name, o) ),
 
-    directTexture:( url, o = {} ) => {
+
+    //--------------------
+    //   TEXTURES
+    //--------------------
+
+    texture:( o = {} ) => {
 
         if( !Pool.loaderMap ) Pool.loaderMap = new TextureLoader();
 
-        let name = url.substring( url.lastIndexOf('/')+1, url.lastIndexOf('.') );
+        let name = o.url.substring( o.url.lastIndexOf('/')+1, o.url.lastIndexOf('.') );
 
         if( Pool.exist( name, 'texture') ) return Pool.get( name, 'texture' );
             
-        return Pool.loaderMap.load( url, function ( txt ) { 
+        return Pool.loaderMap.load( o.url, function ( t ) { 
 
-            Pool.setTextureOption( txt, o );
-            //Pool.set( name , txt );
-            Pool.data.set( 'T_' + name, txt );
-            //Pool.extraTexture.push( name );
+            Pool.setTextureOption( t, o );
+            Pool.data.set( 'T_' + name, t );
             if( o.callback ) o.callback()
-            return txt
+            return t
             
         })
 
@@ -177,7 +180,6 @@ export const Pool = {
             t = new Texture( im )
             if( name.search('_c') !== -1 || name.search('_l') !== -1 ) o.encoding = true
             Pool.data.set( 'T_' + name, t );
-            //Pool.extraTexture.push( name );
         }
         Pool.setTextureOption( t, o )
         return t

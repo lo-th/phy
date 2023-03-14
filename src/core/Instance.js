@@ -14,6 +14,8 @@ export class Instance extends InstancedMesh {
         this.tmpMatrix = new Matrix4();
         this.tmpQuat = new Quaternion();
 
+        this.needSphereUp = false
+
         this.isRay = true; 
         
     }
@@ -89,6 +91,7 @@ export class Instance extends InstancedMesh {
     setTransformAt( index, p, q, s ) {
         this.tmpMatrix.compose({x:p[0], y:p[1], z:p[2]}, {_x:q[0], _y:q[1], _z:q[2], _w:q[3]}, {x:s[0], y:s[1], z:s[2]})
         this.tmpMatrix.toArray( this.instanceMatrix.array, index * 16 );
+        this.needSphereUp = true
     }
 
     dispose() {
@@ -112,8 +115,10 @@ export class Instance extends InstancedMesh {
     }
 
     update(){
+        if( this.needSphereUp ) this.computeBoundingSphere();
         if( this.instanceMatrix ) this.instanceMatrix.needsUpdate = true;
         if( this.instanceColor ) this.instanceColor.needsUpdate = true;
+        this.needSphereUp = false
     }
 
 }

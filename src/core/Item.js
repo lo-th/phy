@@ -72,6 +72,8 @@ export class Item {
 
 	}
 
+    vecZero ( ar, n, i ) { while ( i -- ) ar[n+i] = 0; }
+
 	add ( o = {} ) { }
 
 	set ( o = {} ) { }
