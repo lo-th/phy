@@ -80,7 +80,7 @@ export class Editor {
             //document.getElementsByTagName('head')[0].removeChild(this.extraCode[i]);
         }
         this.extraCode = []
-        console.log('extra is reset')
+        //console.log('extra is reset')
 
     }
 
