@@ -8,7 +8,7 @@ demo = () => {
 
     phy.log('use key WSAD or ZSQD to move')
 
-    phy.view({ envmap:'factory', ground:true, fog:true, fogDist:0.04 })
+    phy.view({ envmap:'factory', ground:true, fog:true, fogDist:0.02 })
 
     phy.set({ substep:1, gravity:[0,-9.81,0] })
 

@@ -1,39 +1,10 @@
-/* -----------------------------------------------------------------------------
-  - Project: Remote control Crawling robot
-  - Author:  panerqiang@sunfounder.com
-  - Date:  2015/1/27
-   -----------------------------------------------------------------------------
-  - Overview
-  - This project was written for the Crawling robot desigened by Sunfounder.
-    This version of the robot has 4 legs, and each leg is driven by 3 servos.
-  This robot is driven by a Ardunio Nano Board with an expansion Board.
-  We recommend that you view the product documentation before using.
-  - Request
-  - This project requires some library files, which you can find in the head of
-    this file. Make sure you have installed these files.
-  - How to
-  - Before use,you must to adjust the robot,in order to make it more accurate.
-    - Adjustment operation
-    1.uncomment ADJUST, make and run
-    2.comment ADJUST, uncomment VERIFY
-    3.measure real sites and set to real_site[4][3], make and run
-    4.comment VERIFY, make and run
-  The document describes in detail how to operate.
-   ---------------------------------------------------------------------------*/
 
-// modified by Regis for spider project, 2015-09-26
-// add remote control by HC-06 bluetooth module
-
-// modified by Anuchit for spider project, 2015-11-28
-// add remote control with android app for bluetooth spp
-// add test robot function for command mode
-// add sonar to measure distance between robot and obstacle
-// add free walk mode use ultrasonic to a obstacle like vaccuum robot
 
 // https://github.com/anoochit/arduino-quadruped-robot
-
-
 // https://www.youtube.com/watch?v=fvUhFBq7Z4g
+
+/* Servos --------------------------------------------------------------------*/
+// 12 servos for 4 legs
 
 //   1 ____ 3
 //   |      |
@@ -46,17 +17,6 @@
 //  3--2--4 ____ 10--8--9 
 
 
-/* Servos --------------------------------------------------------------------*/
-//define 12 servos for 4 legs
-//Servo servo[4][3];
-//const servo = [[0,0,0], [0,0,0], [0,0,0]];
-const ff = []
-const servo = [ 0,0,0,0,  0,0,0,0,  0,0,0,0 ];
-const servoOld = [ 0,0,0,0,  0,0,0,0,  0,0,0,0 ];
-//define servos' ports
-// left front / left back // right front / right back
-//const int servo_pin[4][3] = { {2, 3, 4}, {5, 6, 7}, {8, 9, 10}, {11, 12, 13} };
-//const servo_pin = [ [2, 3, 4], [5, 6, 7], [8, 9, 10], [11, 12, 13] ];
 /* Size of the robot ---------------------------------------------------------*/
 const length_a = 55;
 const length_b = 77.5;
@@ -68,10 +28,6 @@ const z_default = -50, z_up = -30, z_boot = z_absolute;
 const x_default = 62, x_offset = 0;
 const y_start = 0, y_step = 40;
 const y_default = x_default;
-/* variables for movement ----------------------------------------------------*/
-let site_now = [[0,0,0], [0,0,0], [0,0,0], [0,0,0]];   //real-time coordinates of the end of each leg
-let site_expect = [[0,0,0], [0,0,0], [0,0,0], [0,0,0]]; //expected coordinates of the end of each leg
-let temp_speed = [[0,0,0], [0,0,0], [0,0,0], [0,0,0]];  //each axis' speed, needs to be recalculated before each movement
 
 let move_speed = 1;     //movement speed
 let speed_multiple = 1; //movement speed multiple
@@ -79,11 +35,8 @@ const spot_turn_speed = 0.1;
 const leg_move_speed = 1//8;
 const body_move_speed = 1//3;
 const stand_seat_speed = 1;
-let rest_counter = 0;      //+1/0.02s, for automatic rest
 //functions' parameter
 const KEEP = 255;
-//define PI for calculation
-const pi = 3.1415926;
 /* Constants for turn --------------------------------------------------------*/
 //temp length
 const temp_a = Math.sqrt(Math.pow(2 * x_default + length_side, 2) + Math.pow(y_step, 2));
@@ -96,8 +49,6 @@ const turn_y1 = y_start + y_step / 2;
 const turn_x0 = turn_x1 - temp_b * Math.cos(temp_alpha);
 const turn_y0 = temp_b * Math.sin(temp_alpha) - turn_y1 - length_side;
 
-
-
 /* Constants for Ultasonic------------------------------------------------------------- */
 //#define TRIGGER_PIN  A1
 //#define ECHO_PIN     A2
@@ -105,23 +56,10 @@ const MAX_DISTANCE = 200
 const sonar_mode = false;
 const freewalk_mode = false;
 const a_dist = 25;
-//NewPing sonar(TRIGGER_PIN, ECHO_PIN, MAX_DISTANCE);
 /* ---------------------------------------------------------------------------*/
 const torad = Math.PI / 180
 const todeg = 180 / Math.PI
 // RegisHsu
-// w 0 1: stand
-// w 0 0: sit
-// w 1 x: forward x step
-// w 2 x: back x step
-// w 3 x: right turn x step
-// w 4 x: left turn x step
-// w 5 x: hand shake x times
-// w 6 x: hand wave x times
-// Anuchit
-// w 7 0: sonar_mode
-// w 8 0: freewalk mode
-// w 9 0: leg init
 const W_SIT = -1
 const W_STAND = 0
 const W_FORWARD   = 1
@@ -135,10 +73,7 @@ const W_FREEWALK  = 8
 const W_LEG_INIT  = 9
 
 let timeout = null
-//let pause = false
-/*
-  - setup function
-   ---------------------------------------------------------------------------*/
+
 
 
 export class SpiderRobot {
@@ -175,27 +110,6 @@ export class SpiderRobot {
         //Serial.begin(9600);
         console.log("SpiderRobot starts initialization");
 
-        this.alpha = 0
-        this.beta = 0
-        this.gamma = 0
-
-        // RegisHsu, remote control
-        // Setup callbacks for SerialCommand commands
-        // action command 0-6,
-        // w 0 1: stand
-        // w 0 0: sit
-        // w 1 x: forward x step
-        // w 2 x: back x step
-        // w 3 x: right turn x step
-        // w 4 x: left turn x step
-        // w 5 x: hand shake x times
-        // w 6 x: hand wave x times
-        // Anuchit
-        // w 7 0: sonar_mode
-        // w 8 0: freewalk mode
-        // w 9 0: leg init
-        //SCmd.addCommand("w", action_cmd);
-        //SCmd.setDefaultHandler(unrecognized);
 
         
 
@@ -242,7 +156,7 @@ export class SpiderRobot {
     /*copySite(){
         for (let i = 0; i < 4; i++){
             for (let j = 0; j < 3; j++){
-                site_now[i][j] = site_expect[i][j];
+                this.site[i][j] = site_expect[i][j];
             }
         }
     }*/
@@ -299,14 +213,8 @@ export class SpiderRobot {
 
             if(same) return
             this.ready = false
-            //this.solver.setAngles( servo, move_speed ).then( this.next.bind(this) );
-            //this.solver.setAngles( servo, 0.05 ).then( this.next.bind(this) );
-            this.solver.setAngles( this.servo, dt*6 ).then( this.next.bind(this) );
+            this.solver.setAngles( this.servo, 0.1 ).then( this.next.bind(this) );
 
-            
-            //console.log(this.count)
-
-           // if(same)console.log(ff)
         }
         
 
@@ -331,11 +239,11 @@ export class SpiderRobot {
 
         /* for (let i = 0; i < 4; i++){
             /*for (let j = 0; j < 3; j++){
-                if (Math.abs(site_now[i][j] - site_expect[i][j]) >= Math.abs(temp_speed[i][j])) site_now[i][j] += temp_speed[i][j];
-                else site_now[i][j] = site_expect[i][j];
+                if (Math.abs(this.site[i][j] - site_expect[i][j]) >= Math.abs(temp_speed[i][j])) this.site[i][j] += temp_speed[i][j];
+                else this.site[i][j] = site_expect[i][j];
             }
 
-            //this.cartesian_to_polar( site_now[i][0], site_now[i][1], site_now[i][2] );
+            //this.cartesian_to_polar( this.site[i][0], this.site[i][1], this.site[i][2] );
             this.cartesian_to_polar( site_expect[i][0], site_expect[i][1], site_expect[i][2] );
             this.polar_to_servo(i);
         }
@@ -365,12 +273,12 @@ export class SpiderRobot {
     wait_reach( leg ) {
 
         /*while (1)
-        if (site_now[leg][0] == site_expect[leg][0])
-          if (site_now[leg][1] == site_expect[leg][1])
-            if (site_now[leg][2] == site_expect[leg][2])
+        if (this.site[leg][0] == site_expect[leg][0])
+          if (this.site[leg][1] == site_expect[leg][1])
+            if (this.site[leg][2] == site_expect[leg][2])
               break;*/
         //while (1){
-        //if (site_now[leg][0] == site_expect[leg][0] && site_now[leg][1] == site_expect[leg][1] && site_now[leg][2] == site_expect[leg][2]) return 0
+        //if (this.site[leg][0] == site_expect[leg][0] && this.site[leg][1] == site_expect[leg][1] && this.site[leg][2] == site_expect[leg][2]) return 0
         //else return 1
            
         //}
@@ -648,22 +556,16 @@ export class SpiderRobot {
         this.wait_all_reach();
     }
 
-    /*
-    - is_stand
-    ---------------------------------------------------------------------------*/
+
     is_stand(){
 
         return this.up
 
-        //if (site_now[0][2] == z_default) return true;
-      /*  if ( site_now[0][2] === z_default) return true;
+        //if (this.site[0][2] == z_default) return true;
+      /*  if ( this.site[0][2] === z_default) return true;
         else return false;*/
     }
 
-    /*
-    - sit
-    - blocking function
-    ---------------------------------------------------------------------------*/
     sit(){
 
         this.countMax = 1
@@ -675,13 +577,8 @@ export class SpiderRobot {
         }
         this.up = false
         this.wait_all_reach();
-
     }
 
-    /*
-    - stand
-    - blocking function
-    ---------------------------------------------------------------------------*/
     stand(){
 
         this.countMax = 1
@@ -697,18 +594,13 @@ export class SpiderRobot {
 
     }
 
-
-    /*
-    - spot turn to left
-    - blocking function
-    - parameter step steps wanted to turn
-    ---------------------------------------------------------------------------*/
+    // spot turn to left
 
     turn_left( step ){
 
         move_speed = spot_turn_speed;
         this.countMax = 12
-        //if (site_now[3][1] == y_start){
+        //if (this.site[3][1] == y_start){
         switch( this.count ){
             //leg 3&1 move
             case 0: 
@@ -772,16 +664,14 @@ export class SpiderRobot {
         this.wait_all_reach();
     }
 
-    /*
-    - spot turn to right
-    - blocking function
-    - parameter step steps wanted to turn
-    ---------------------------------------------------------------------------*/
+    
+    // spot turn to right
+
     turn_right(step){
 
         move_speed = spot_turn_speed;
         this.countMax = 12
-        //if (site_now[2][1] == y_start) {
+        //if (this.site[2][1] == y_start) {
         switch( this.count ){
             //leg 2&0 move
             case 0: 
@@ -845,171 +735,13 @@ export class SpiderRobot {
         this.wait_all_reach();
     }
 
-    /*
-    turn_left( step ){
-
-        move_speed = spot_turn_speed;
-        this.countMax = 14
-        //if (site_now[3][1] == y_start){
-        switch( this.count ){
-            //leg 3&1 move
-            case 0: 
-                this.set_site(3, x_default + x_offset, y_start, z_up);
-            break;
-            case 1: 
-                this.set_site(0, turn_x1 - x_offset, turn_y1, z_default);
-                this.set_site(1, turn_x0 - x_offset, turn_y0, z_default);
-                this.set_site(2, turn_x1 + x_offset, turn_y1, z_default);
-                this.set_site(3, turn_x0 + x_offset, turn_y0, z_up); 
-            break;
-            case 2: 
-                this.set_site(3, turn_x0 + x_offset, turn_y0, z_default);
-            break;
-            case 3: 
-                this.set_site(0, turn_x1 + x_offset, turn_y1, z_default);
-                this.set_site(1, turn_x0 + x_offset, turn_y0, z_default);
-                this.set_site(2, turn_x1 - x_offset, turn_y1, z_default);
-                this.set_site(3, turn_x0 - x_offset, turn_y0, z_default); 
-            break;
-            case 4:  
-                this.set_site(1, turn_x0 + x_offset, turn_y0, z_up);
-            break;
-            case 5:  
-                this.set_site(0, x_default + x_offset, y_start, z_default);
-                this.set_site(1, x_default + x_offset, y_start, z_up);
-                this.set_site(2, x_default - x_offset, y_start + y_step, z_default);
-                this.set_site(3, x_default - x_offset, y_start + y_step, z_default);
-            break;
-            case 6:  
-                this.set_site(1, x_default + x_offset, y_start, z_default);
-            break;
-            ////
-            //leg 0&2 move
-            case 7: 
-                this.set_site(0, x_default + x_offset, y_start, z_up);
-            break;
-            case 8: 
-                this.set_site(0, turn_x0 + x_offset, turn_y0, z_up);
-                this.set_site(1, turn_x1 + x_offset, turn_y1, z_default);
-                this.set_site(2, turn_x0 - x_offset, turn_y0, z_default);
-                this.set_site(3, turn_x1 - x_offset, turn_y1, z_default);
-            break;
-            case 9: 
-                this.set_site(0, turn_x0 + x_offset, turn_y0, z_default);
-            break;
-            case 10: 
-                this.set_site(0, turn_x0 - x_offset, turn_y0, z_default);
-                this.set_site(1, turn_x1 - x_offset, turn_y1, z_default);
-                this.set_site(2, turn_x0 + x_offset, turn_y0, z_default);
-                this.set_site(3, turn_x1 + x_offset, turn_y1, z_default);
-            break;
-            case 11:  
-                this.set_site(2, turn_x0 + x_offset, turn_y0, z_up);
-            break;
-            case 12:  
-                this.set_site(0, x_default - x_offset, y_start + y_step, z_default);
-                this.set_site(1, x_default - x_offset, y_start + y_step, z_default);
-                this.set_site(2, x_default + x_offset, y_start, z_up);
-                this.set_site(3, x_default + x_offset, y_start, z_default);
-            break;
-            case 13:  
-                this.set_site(2, x_default + x_offset, y_start, z_default);
-            break;
-        }
-
-        this.wait_all_reach();
-    }
-
-    /*
-    - spot turn to right
-    - blocking function
-    - parameter step steps wanted to turn
-    ---------------------------------------------------------------------------*/
-   /* turn_right(step){
-
-        move_speed = spot_turn_speed;
-        this.countMax = 14
-        //if (site_now[2][1] == y_start) {
-        switch( this.count ){
-            //leg 2&0 move
-            case 0: 
-                this.set_site(2, x_default + x_offset, y_start, z_up);
-            break;
-            case 1: 
-                this.set_site(0, turn_x0 - x_offset, turn_y0, z_default);
-                this.set_site(1, turn_x1 - x_offset, turn_y1, z_default);
-                this.set_site(2, turn_x0 + x_offset, turn_y0, z_up);
-                this.set_site(3, turn_x1 + x_offset, turn_y1, z_default); 
-            break;
-            case 2: 
-                this.set_site(2, turn_x0 + x_offset, turn_y0, z_default);
-            break;
-            case 3: 
-                this.set_site(0, turn_x0 + x_offset, turn_y0, z_default);
-                this.set_site(1, turn_x1 + x_offset, turn_y1, z_default);
-                this.set_site(2, turn_x0 - x_offset, turn_y0, z_default);
-                this.set_site(3, turn_x1 - x_offset, turn_y1, z_default); 
-            break;
-            case 4:  
-                this.set_site(0, turn_x0 + x_offset, turn_y0, z_up);
-            break;
-            case 5:  
-                this.set_site(0, x_default + x_offset, y_start, z_up);
-                this.set_site(1, x_default + x_offset, y_start, z_default);
-                this.set_site(2, x_default - x_offset, y_start + y_step, z_default);
-                this.set_site(3, x_default - x_offset, y_start + y_step, z_default);
-            break;
-            case 6:  
-                this.set_site(0, x_default + x_offset, y_start, z_default);
-            break;
-            ////
-            //leg 1&3 move
-            case 7: 
-                this.set_site(1, x_default + x_offset, y_start, z_up);
-            break;
-            case 8: 
-                this.set_site(0, turn_x1 + x_offset, turn_y1, z_default);
-                this.set_site(1, turn_x0 + x_offset, turn_y0, z_up);
-                this.set_site(2, turn_x1 - x_offset, turn_y1, z_default);
-                this.set_site(3, turn_x0 - x_offset, turn_y0, z_default); 
-            break;
-            case 9: 
-                this.set_site(1, turn_x0 + x_offset, turn_y0, z_default); 
-            break;
-            case 10: 
-                this.set_site(0, turn_x1 - x_offset, turn_y1, z_default);
-                this.set_site(1, turn_x0 - x_offset, turn_y0, z_default);
-                this.set_site(2, turn_x1 + x_offset, turn_y1, z_default);
-                this.set_site(3, turn_x0 + x_offset, turn_y0, z_default);
-            break;
-            case 11:  
-                this.set_site(3, turn_x0 + x_offset, turn_y0, z_up);
-            break;
-            case 12:  
-                this.set_site(0, x_default - x_offset, y_start + y_step, z_default);
-                this.set_site(1, x_default - x_offset, y_start + y_step, z_default);
-                this.set_site(2, x_default + x_offset, y_start, z_default);
-                this.set_site(3, x_default + x_offset, y_start, z_up);
-            break;
-            case 13:  
-                this.set_site(3, x_default + x_offset, y_start, z_default);
-            break;
-        }
-
-        this.wait_all_reach();
-    }
-
-    /*
-    - go forward
-    - blocking function
-    - parameter step steps wanted to go
-    ---------------------------------------------------------------------------*/
+    // go forward
 
     step_forward(){
 
         this.countMax = 14
 
-        //if ( site_now[2][1] === y_start ) {
+        //if ( this.site[2][1] === y_start ) {
           //  console.log('2/1move')
             switch( this.count ){
                 case 0: 
@@ -1079,11 +811,7 @@ export class SpiderRobot {
         this.wait_all_reach();
     }
 
-    /*
-    - go back
-    - blocking function
-    - parameter step steps wanted to go
-    ---------------------------------------------------------------------------*/
+    // go back
 
     step_back(step){
 
@@ -1157,158 +885,197 @@ export class SpiderRobot {
 
     body_left(i){
 
-        this.set_site(0, site_now[0][0] + i, KEEP, KEEP);
-        this.set_site(1, site_now[1][0] + i, KEEP, KEEP);
-        this.set_site(2, site_now[2][0] - i, KEEP, KEEP);
-        this.set_site(3, site_now[3][0] - i, KEEP, KEEP);
+        this.set_site(0, this.site[0][0] + i, KEEP, KEEP);
+        this.set_site(1, this.site[1][0] + i, KEEP, KEEP);
+        this.set_site(2, this.site[2][0] - i, KEEP, KEEP);
+        this.set_site(3, this.site[3][0] - i, KEEP, KEEP);
         this.wait_all_reach();
 
     }
 
     body_right ( i ) {
 
-        this.set_site(0, site_now[0][0] - i, KEEP, KEEP);
-        this.set_site(1, site_now[1][0] - i, KEEP, KEEP);
-        this.set_site(2, site_now[2][0] + i, KEEP, KEEP);
-        this.set_site(3, site_now[3][0] + i, KEEP, KEEP);
+        this.set_site(0, this.site[0][0] - i, KEEP, KEEP);
+        this.set_site(1, this.site[1][0] - i, KEEP, KEEP);
+        this.set_site(2, this.site[2][0] + i, KEEP, KEEP);
+        this.set_site(3, this.site[3][0] + i, KEEP, KEEP);
         this.wait_all_reach();
     }
 
     hand_wave ( i ) {
 
-        let x_tmp;
-        let y_tmp;
-        let z_tmp;
-        move_speed = 1;
-        if (site_now[3][1] == y_start){
-            this.body_right(15);
-            x_tmp = site_now[2][0];
-            y_tmp = site_now[2][1];
-            z_tmp = site_now[2][2];
-            move_speed = body_move_speed;
-            for (let j = 0; j < i; j++){
-                this.set_site(2, turn_x1, turn_y1, 50);
-                this.wait_all_reach();
-                this.set_site(2, turn_x0, turn_y0, 50);
-                this.wait_all_reach();
-            }
-            this.set_site(2, x_tmp, y_tmp, z_tmp);
-            this.wait_all_reach();
-            move_speed = 1;
-            this.body_left(15);
-        } else {
-            this.body_left(15);
-            x_tmp = site_now[0][0];
-            y_tmp = site_now[0][1];
-            z_tmp = site_now[0][2];
-            move_speed = body_move_speed;
-            for (let j = 0; j < i; j++){
-                this.set_site(0, turn_x1, turn_y1, 50);
-                this.wait_all_reach();
-                this.set_site(0, turn_x0, turn_y0, 50);
-                this.wait_all_reach();
-            }
-            this.set_site(0, x_tmp, y_tmp, z_tmp);
-            this.wait_all_reach();
-            move_speed = 1;
-            this.body_right(15);
+        this.countMax = 8
+
+        let x_tmp, y_tmp, z_tmp;
+
+        switch( this.count ){
+            //if (this.site[3][1] == y_start){
+            case 0: 
+                x_tmp = this.site[2][0];
+                y_tmp = this.site[2][1];
+                z_tmp = this.site[2][2];
+                for (let j = 0; j < i; j++){
+                    this.set_site(2, turn_x1, turn_y1, 50);
+                }
+            break;
+            case 1: 
+                for (let j = 0; j < i; j++){
+                    this.set_site(2, turn_x0, turn_y0, 50);
+                }
+            break;
+            case 2: 
+                this.set_site(2, x_tmp, y_tmp, z_tmp);
+            break;
+            case 3: 
+                this.body_left(15);
+            break;
+            ////
+            case 4: 
+                x_tmp = this.site[2][0];
+                y_tmp = this.site[2][1];
+                z_tmp = this.site[2][2];
+                for (let j = 0; j < i; j++){
+                    this.set_site(0, turn_x1, turn_y1, 50);
+                }
+            break;
+            case 5: 
+                for (let j = 0; j < i; j++){
+                    this.set_site(0, turn_x0, turn_y0, 50);
+                }
+            break;
+            case 6: 
+                this.set_site(0, x_tmp, y_tmp, z_tmp);
+            break;
+            case 7: 
+                this.body_right(15);
+            break;
         }
+
+        this.wait_all_reach();
+
     }
 
     hand_shake ( i ) {
 
-        let x_tmp;
-        let y_tmp;
-        let z_tmp;
-        move_speed = 1;
-        if (site_now[3][1] == y_start){
-            this.body_right(15);
-            x_tmp = site_now[2][0];
-            y_tmp = site_now[2][1];
-            z_tmp = site_now[2][2];
-            move_speed = body_move_speed;
-            for (let j = 0; j < i; j++){
-                this.set_site(2, x_default - 30, y_start + 2 * y_step, 55);
-                this.wait_all_reach();
-                this.set_site(2, x_default - 30, y_start + 2 * y_step, 10);
-                this.wait_all_reach();
-            }
-            this.set_site(2, x_tmp, y_tmp, z_tmp);
-            this.wait_all_reach();
-            move_speed = 1;
-            this.body_left(15);
-        } else {
-            this.body_left(15);
-            x_tmp = site_now[0][0];
-            y_tmp = site_now[0][1];
-            z_tmp = site_now[0][2];
-            move_speed = body_move_speed;
-            for (let j = 0; j < i; j++){
-                this.set_site(0, x_default - 30, y_start + 2 * y_step, 55);
-                this.wait_all_reach();
-                this.set_site(0, x_default - 30, y_start + 2 * y_step, 10);
-                this.wait_all_reach();
-            }
-            this.set_site(0, x_tmp, y_tmp, z_tmp);
-            this.wait_all_reach();
-            move_speed = 1;
-            this.body_right(15);
+        this.countMax = 8
+
+        let x_tmp, y_tmp, z_tmp;
+
+        switch( this.count ){
+            //if (this.site[3][1] == y_start){
+            case 0: 
+                x_tmp = this.site[2][0];
+                y_tmp = this.site[2][1];
+                z_tmp = this.site[2][2];
+                for (let j = 0; j < i; j++){
+                    this.set_site(2, x_default - 30, y_start + 2 * y_step, 55);
+                }
+            break;
+            case 1: 
+                for (let j = 0; j < i; j++){
+                    this.set_site(2, x_default - 30, y_start + 2 * y_step, 10);
+                }
+            break;
+            case 2: 
+                this.set_site(2, x_tmp, y_tmp, z_tmp)
+            break;
+            case 3: 
+                this.body_left(15);
+            break;
+            ////
+            case 4: 
+                x_tmp = this.site[2][0];
+                y_tmp = this.site[2][1];
+                z_tmp = this.site[2][2];
+                for (let j = 0; j < i; j++){
+                    this.set_site(0, x_default - 30, y_start + 2 * y_step, 55);
+                }
+            break;
+            case 5: 
+                for (let j = 0; j < i; j++){
+                    this.set_site(0, x_default - 30, y_start + 2 * y_step, 10);
+                }
+            break;
+            case 6: 
+                this.set_site(0, x_tmp, y_tmp, z_tmp);
+            break;
+            case 7: 
+                this.body_right(15);
+            break;
         }
+
+        this.wait_all_reach();
+
     }
 
     head_up ( i ) {
-        this.set_site(0, KEEP, KEEP, site_now[0][2] - i);
-        this.set_site(1, KEEP, KEEP, site_now[1][2] + i);
-        this.set_site(2, KEEP, KEEP, site_now[2][2] - i);
-        this.set_site(3, KEEP, KEEP, site_now[3][2] + i);
+        this.set_site(0, KEEP, KEEP, this.site[0][2] - i);
+        this.set_site(1, KEEP, KEEP, this.site[1][2] + i);
+        this.set_site(2, KEEP, KEEP, this.site[2][2] - i);
+        this.set_site(3, KEEP, KEEP, this.site[3][2] + i);
         this.wait_all_reach();
     }
 
     head_down ( i ) {
-        this.set_site(0, KEEP, KEEP, site_now[0][2] + i);
-        this.set_site(1, KEEP, KEEP, site_now[1][2] - i);
-        this.set_site(2, KEEP, KEEP, site_now[2][2] + i);
-        this.set_site(3, KEEP, KEEP, site_now[3][2] - i);
+        this.set_site(0, KEEP, KEEP, this.site[0][2] + i);
+        this.set_site(1, KEEP, KEEP, this.site[1][2] - i);
+        this.set_site(2, KEEP, KEEP, this.site[2][2] + i);
+        this.set_site(3, KEEP, KEEP, this.site[3][2] - i);
         this.wait_all_reach();
     }
 
     body_dance ( i ){
 
-        let x_tmp;
-        let y_tmp;
-        let z_tmp;
-        let body_dance_speed = 2;
-        this.sit();
-        move_speed = 1;
-        this.set_site(0, x_default, y_default, KEEP);
-        this.set_site(1, x_default, y_default, KEEP);
-        this.set_site(2, x_default, y_default, KEEP);
-        this.set_site(3, x_default, y_default, KEEP);
-        this.wait_all_reach();
-        //stand();
-        this.set_site(0, x_default, y_default, z_default - 20);
-        this.set_site(1, x_default, y_default, z_default - 20);
-        this.set_site(2, x_default, y_default, z_default - 20);
-        this.set_site(3, x_default, y_default, z_default - 20);
-        this.wait_all_reach();
-        move_speed = body_dance_speed;
-        this.head_up(30);
-        for (let j = 0; j < i; j++){
-            if (j > i / 4) move_speed = body_dance_speed * 2;
-            if (j > i / 2) move_speed = body_dance_speed * 3;
-            this.set_site(0, KEEP, y_default - 20, KEEP);
-            this.set_site(1, KEEP, y_default + 20, KEEP);
-            this.set_site(2, KEEP, y_default - 20, KEEP);
-            this.set_site(3, KEEP, y_default + 20, KEEP);
-            this.wait_all_reach();
-            this.set_site(0, KEEP, y_default + 20, KEEP);
-            this.set_site(1, KEEP, y_default - 20, KEEP);
-            this.set_site(2, KEEP, y_default + 20, KEEP);
-            this.set_site(3, KEEP, y_default - 20, KEEP);
-            this.wait_all_reach();
+        this.countMax = 8
+
+        let x_tmp, y_tmp, z_tmp;
+
+        switch( this.count ){
+            //if (this.site[3][1] == y_start){
+            case 0: 
+                this.sit();
+            break;
+            case 1: 
+                this.set_site(0, x_default, y_default, KEEP);
+                this.set_site(1, x_default, y_default, KEEP);
+                this.set_site(2, x_default, y_default, KEEP);
+                this.set_site(3, x_default, y_default, KEEP);
+            break;
+            case 2: 
+                this.set_site(0, x_default, y_default, z_default - 20);
+                this.set_site(1, x_default, y_default, z_default - 20);
+                this.set_site(2, x_default, y_default, z_default - 20);
+                this.set_site(3, x_default, y_default, z_default - 20);
+            break;
+            case 3: 
+                this.head_up(30);
+            break;
+            ////
+            case 4: 
+            break;
+            case 5: 
+                for (let j = 0; j < i; j++){
+                    this.set_site(0, KEEP, y_default - 20, KEEP);
+                    this.set_site(1, KEEP, y_default + 20, KEEP);
+                    this.set_site(2, KEEP, y_default - 20, KEEP);
+                    this.set_site(3, KEEP, y_default + 20, KEEP);
+                }
+            break;
+            case 6: 
+                for (let j = 0; j < i; j++){
+                    this.set_site(0, KEEP, y_default + 20, KEEP);
+                    this.set_site(1, KEEP, y_default - 20, KEEP);
+                    this.set_site(2, KEEP, y_default + 20, KEEP);
+                    this.set_site(3, KEEP, y_default - 20, KEEP);
+                }
+            break;
+            case 7: 
+                this.head_down(30);
+            break;
         }
-        move_speed = body_dance_speed;
-        this.head_down(30);
+
+        this.wait_all_reach();
+
     }
 
 
@@ -1320,18 +1087,20 @@ export class SpiderRobot {
     ---------------------------------------------------------------------------*/
     set_site( leg, x, y, z ) {
 
-        /*let length_x = 0, length_y = 0, length_z = 0;
+        /*
+        let length_x = 0, length_y = 0, length_z = 0;
 
-        if (x != KEEP) length_x = x - site_now[leg][0];
-        if (y != KEEP) length_y = y - site_now[leg][1];
-        if (z != KEEP) length_z = z - site_now[leg][2];
+        if (x != KEEP) length_x = x - this.site[leg][0];
+        if (y != KEEP) length_y = y - this.site[leg][1];
+        if (z != KEEP) length_z = z - this.site[leg][2];
 
         //let length = Math.sqrt(Math.pow(length_x, 2) + Math.pow(length_y, 2) + Math.pow(length_z, 2));
         let length = Math.sqrt( length_x*length_x + length_y*length_y + length_z*length_z );
 
         temp_speed[leg][0] = length_x / length * move_speed * speed_multiple;
         temp_speed[leg][1] = length_y / length * move_speed * speed_multiple;
-        temp_speed[leg][2] = length_z / length * move_speed * speed_multiple;*/
+        temp_speed[leg][2] = length_z / length * move_speed * speed_multiple;
+        */
 
         if (x !== KEEP) this.site[leg][0] = x;
         if (y !== KEEP) this.site[leg][1] = y;
@@ -1344,13 +1113,13 @@ export class SpiderRobot {
 
     
 
-    /*
-    - trans site from cartesian to polar
-    - mathematical model 2/2
-    ---------------------------------------------------------------------------*/
-    cartesian_to_polar( x, y, z ) {
-        //calculate w-z degree
+    
+    //  trans site from cartesian to polar
+    //  mathematical model 2/2
 
+    cartesian_to_polar( x, y, z ) {
+
+        //calculate w-z degree
         let v, w, pv, pz, pa, pb, a, b, g;
         w = (x >= 0 ? 1 : -1) * (Math.sqrt(x*x + y*y));
         v = w - length_c;
@@ -1364,35 +1133,20 @@ export class SpiderRobot {
         //calculate x-y-z degree
         g = (w >= 0) ? Math.atan2(y, x) : Math.atan2(-y, -x);
  
-
         //return [ alpha, beta, gamma ]
         return [ Math.round( a * todeg ), Math.round( b * todeg ), Math.round( g * todeg ) ]
+
     }
 
-    /*
-    - trans site from polar to microservos
-    - mathematical model map to fact
-    - the errors saved in eeprom will be add
-    ---------------------------------------------------------------------------*/
     polar_to_servo( leg, r ) {
 
         if( leg === 1 ) leg = 2
         else if( leg === 2 ) leg = 1
-
 
         this.servo[leg+4] = r[0]-10 //alpha
         this.servo[leg+8] = r[1]-170// beta;
         this.servo[leg+0] = r[2] //gamma;
 
     }
-
-
-    /*getServo(){
-        return servo
-    }
-
-    getSpeed(){
-        return move_speed
-    }*/
 
 }
