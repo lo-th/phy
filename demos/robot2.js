@@ -1,9 +1,16 @@
+const Botsetting = {
+    speed: 0.1,
+    stiffness: 1000,
+    damping: 100,
+    forceLimit: 1000,
+    legMass:1,
+    bodyMass:8,
+}
 const debug = 0;
 const single = 0;
 const bots = []
 let meshes
-//http://regishsu.blogspot.com/search/label/0.SpiderRobot%E8%9C%98%E8%9B%9B
-//https://github.com/anoochit/arduino-quadruped-robot
+
 demo = () => {
 
     phy.log('use key WSAD or ZSQD to move')
@@ -19,6 +26,11 @@ demo = () => {
 }
 
 onComplete = () => {
+    // load extra script
+    phy.extraCode( './demos/extra/SpiderAi.js', initRobot );
+}
+
+initRobot = () => {
 
     meshes = phy.getMesh('spider', true );
 
@@ -27,31 +39,22 @@ onComplete = () => {
     if(single) i = 1
 
     while(i--){
+
         x = -8 + n*4
         z = -l*4
         n++
         if(n===5){  n = 0; l++; }
-        if(single){
-            x = 0
-            z = 0
-        }
+        if(single){ x = 0; z = 0; }
 
         bots[i] = new Bot({id:i, pos:[x,0.5,z]})
-    }
 
-    /*let sr = new SpiderRobot()
-    bots[0].anims.test.push( sr.getServo() )
-    bots[0].current = "test"
-    bots[0].play()*/
+    }
     
     //-----------------------------------------
     //    UPDATE
     //-----------------------------------------
 
     phy.setPostUpdate( update )
-
-    //bots[0].ai.do_test()
-
 
 }
 
@@ -66,7 +69,6 @@ update = ( dt ) => {
     if( key[1] === 1 ) action = 2
     if( key[0] === 1 ) action = 3
     if( key[0] === -1 ) action = 4
-    //if( key[0] === 0 && key[1] === 0 ) anim = 0//*= 0.9
 
     let i = bots.length
     while(i--){ 
@@ -83,45 +85,35 @@ class Bot {
 
     constructor ( o = {} ) {
 
+        this.setting = { ...Botsetting }
+
         this.id = o.id || 0
-        this.speed = 1
-        this.frame = 0
         this.name = o.name || 'bot' + this.id
         this.solver = null
         this.pos = o.pos || [0, 2, 0]
 
-        //   2 ____ 3
-        //   |      |
-        //   |  \/  | 
-        //   0 ____ 1 
+        // angle array order is from middle to out
 
-        // angle order is from middle to out
-
-        this.anims = {
-            test: [],
-            walk: [ 
-            [59, 59, 63, 63, 44, 44, 34, 34, -57, -57, -90, -90]
-              //  [  30, 30, 30, 30,    30, 30, 30, 30,     -120, -120, -120, -120  ],
-              //  [  30, 30, 30, 30,    60, 30, 30, 30,      -125, -120, -120, -120  ]
-                //[  45, 70, 30, 45,    60, 40, 40, 40,      -60, -125, -125, -125  ]
-                //[ 0, 0, 0, 0,   30, 0, 0, 0,   0, 0, 0, 0],
-            ],
-            jump: [ 
-                [  35, 35, 35, 35,   -90, -90, -90, -90,    0, 0, 0, 0 ],
-                [  45, 45, 45, 45,    30, 30, 30, 30,      -125, -125, -125, -125 ]
-                //[ 0, 0, 0, 0,   30, 0, 0, 0,   0, 0, 0, 0],
-            ]
-        }
-        
+        //   2 ____ 3   //  10--6--2 ____ 3--7--11
+        //   |      |   //         |      |
+        //   |  \/  |   //         |  \/  |  
+        //   0 ____ 1   //   8--4--0 ____ 1--5--9  
 
         this.init()
 
-        this.ai = new SpiderRobot( this.solver )
-        //this.ai.setAngle = this.solver.setAngles
+        // add arduino move programme
+        this.ai = window.SpiderAi( this.solver )
 
         //-----------------------------------------
-        //    ANIMATION
+        //    DIRECT ANIMATION
         //-----------------------------------------
+        //this.frame = 0
+        /*this.anims = {
+            jump: [ 
+                [  35, 35, 35, 35,   -90, -90, -90, -90,    0, 0, 0, 0 ],
+                [  45, 45, 45, 45,    30, 30, 30, 30,      -125, -125, -125, -125 ]
+            ]
+        }*/
 
         //this.current = 'walk'
         //this.play()
@@ -133,7 +125,9 @@ class Bot {
         const pos = this.pos;
         const id = this.id
 
-        let solver = phy.add({ type:'solver', name:this.name, iteration:4, fix:false, needData:true, neverSleep:true })
+        const solver = phy.add({ type:'solver', name:this.name, iteration:4, fix:false, needData:true, neverSleep:true })
+
+        solver.speed = this.setting.speed
 
         //-----------------------------------------
         //    BONES
@@ -145,7 +139,7 @@ class Bot {
             debug:debug, 
             meshSize:10, 
             solver:this.name,
-            density:1,
+            density:this.setting.legMass,
         }
 
         phy.add({
@@ -153,7 +147,7 @@ class Bot {
             type:'box', name:id+'_base', linked:'null',
             pos:pos, size:[ 0.6, 0.25, 0.8 ], localPos:[0, 0.125, 0],
             mesh:meshes.base,
-            density:4,
+            density:this.setting.bodyMass*0.5,
         })
 
         phy.add({
@@ -161,7 +155,7 @@ class Bot {
             type:'sphere', name:id+'_top', linked:id+'_base',
             pos:math.vecAdd( pos, [0,0.245,0] ), size:[ 0.33 ], 
             mesh:meshes.top,
-            density:4,
+            density:this.setting.bodyMass*0.5,
         })
 
         // legs position
@@ -231,14 +225,13 @@ class Bot {
 
         }
 
-       // return
         //-----------------------------------------
         //    JOINT
         //-----------------------------------------
 
-        const stiffness = 1000;
-        const damping = 100; // 0
-        const forceLimit = 1000;
+        const stiffness = this.setting.stiffness;
+        const damping = this.setting.damping; // 0
+        const forceLimit = this.setting.forceLimit;
         const acceleration = false;
 
         i = 4
@@ -310,36 +303,23 @@ class Bot {
 
     }
 
-    action( n, step ){
-        this.ai.action( n, step )
+    update( dt, action = -1 ){
+        
+        this.ai.action = action
+        this.ai.update()
+        this.solver.driveJoints( dt );
+
     }
 
-    play(){
+    /*play(){
 
         const name = this.current
         if( this.frame >= this.anims[name].length ) this.frame = 0
         this.solver.setAngles( this.anims[name][this.frame], this.speed ).then( this.play.bind(this) );
         this.frame++
 
-    }
+    }*/
 
-    update( dt, action=0 ){
-        
-        this.ai.action = action
-        this.ai.update( dt )
-
-        //if( this.ai.done ) this.solver.setAngles( this.ai.getServo(), 1 )//.then( function(){ this.ai.waiting = false }.bind(this) );
-
-        //if( this.ai.command ) this.solver.setAngles( this.ai.getServo(), 1 ).then( this.ai.next.bind(this) );
-
-        this.solver.driveJoints( dt );
-
-    }
-
-    set( angles, callback, speed = 1 ){
-
-        this.solver.setAngles( angles, speed ).then( callback );
-
-    }
+    
 
 }

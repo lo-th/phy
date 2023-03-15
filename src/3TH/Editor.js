@@ -23,6 +23,8 @@ export class Editor {
         this.refresh = false
         this.old = ''
 
+        this.extraCode = []
+
         this.useCodeMirror = true
         this.errorLines = [];
         this.widgets = [];
@@ -66,6 +68,22 @@ export class Editor {
 
     }
 
+    reset(){
+
+        //let extra = document.getElementById("extra");
+        //if(extra)document.head.removeChild(extra);//Remooves main.js from the DOM tree
+
+        
+        let i = this.extraCode.length
+        while( i-- ){
+            this.extraCode[i].remove() 
+            //document.getElementsByTagName('head')[0].removeChild(this.extraCode[i]);
+        }
+        this.extraCode = []
+        console.log('extra is reset')
+
+    }
+
     loadSrcipt ( url ) {
 
         const name = url.substring( url.lastIndexOf('/')+1, url.lastIndexOf('.') )
@@ -76,6 +94,33 @@ export class Editor {
             if ( xml.readyState === 4 ) {
                 if ( xml.status === 200 || xml.status === 0 ) {
                     this.set( xml.responseText, name )
+                }
+                else console.error( "Couldn't load ["+ name + "] [" + xml.status + "]" );
+            }
+        }.bind(this)
+        xml.send()
+
+    }
+
+    loadExtra ( url, callback ) {
+
+        const name = url.substring( url.lastIndexOf('/')+1, url.lastIndexOf('.') )
+        var xml = new XMLHttpRequest();
+        xml.open('GET', url );
+        xml.overrideMimeType( "text/javascript" );
+        xml.onreadystatechange = function() {
+            if ( xml.readyState === 4 ) {
+                if ( xml.status === 200 || xml.status === 0 ) {
+                    let n = document.createElement("script");
+                    n.language = "javascript"
+                    n.type = "text/javascript";
+                    n.charset = "utf-8";
+                    n.async = false;
+                    n.innerHTML =  '{' + xml.responseText + '}'
+                    this.extraCode.push(n)
+                    document.getElementsByTagName('head')[0].appendChild(n);
+                    //document.head.appendChild(n)
+                    callback()
                 }
                 else console.error( "Couldn't load ["+ name + "] [" + xml.status + "]" );
             }

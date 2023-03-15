@@ -38,7 +38,7 @@ import { Motor } from './motor/Motor.js'
 import { Smoke } from '../build/smoke.module.js'
 
 
-import { SpiderRobot } from './3TH/utils/SpiderRobot.js'
+//import { SpiderRobot } from './3TH/utils/SpiderRobot.js'
 
 /** __
 *    _)_|_|_
@@ -276,6 +276,7 @@ export const Main = {
 	getParticle: ( name ) => { return getParticle( name ) },
 
 	loadDemo: ( name ) => { loadDemo( name ) },
+	extraCode: ( url, callback ) => { editor.loadExtra( url, callback ); },
 
 	showEditor: ( b ) => { editor.show( b ) },
 	changeMode: ( v ) => {
@@ -303,6 +304,8 @@ Motor.log = Hub.log;
 Motor.addParticle = Main.addParticle
 Motor.getParticle = Main.getParticle
 
+Motor.extraCode = Main.extraCode;
+
 
 window.phy = Motor
 window.math = Motor.math()
@@ -318,7 +321,7 @@ window.Sparkle = Sparkle
 window.Diamond = Diamond
 window.Fluid = Fluid
 
-window.SpiderRobot = SpiderRobot
+//window.SpiderRobot = SpiderRobot
 
 async function preLoad( name, o ) {
 	
@@ -790,12 +793,12 @@ const inject = ( newCode, force = false ) => {
 	//Hub.log()
 	Hub.reset()
 	Shader.reset()
+	editor.reset()
 	//resetLight()
 
 	if( particles ) particles.dispose()
 	
 	
-
 	if( isLoadCode ){
 		//console.log('is full reset !!!')
 		//Shader.reset()

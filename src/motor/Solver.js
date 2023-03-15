@@ -65,6 +65,7 @@ export class Articulation {//extends Basic3D
 		this.needData = o.needData || false
 		this.joints = []
 		this.jid = 0
+		this.speed = 1
 
 	}
 
@@ -172,7 +173,7 @@ export class Articulation {//extends Basic3D
     	let j = this.joints.length;
 
     	while(j--){ 
-    		this.joints[j].pose( angles[j] !== undefined ?  angles[j] : 0, time !== undefined ? time : 5 );
+    		this.joints[j].pose( angles[j] !== undefined ?  angles[j] : 0, time !== undefined ? time : this.speed );
     	}
 
     	return new Promise((resolve) => this.resolve = resolve );
