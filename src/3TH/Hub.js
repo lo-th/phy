@@ -35,6 +35,8 @@ let maxHeight = 0
 let sh=0 ,  range = 0
 let maxListItem = 10
 
+let currentMenu = ''
+
 const listdata = {
     logo : ['About', 'Github'],
     engine : [],
@@ -248,10 +250,11 @@ export class Hub {
         </g></svg>`
 
         let bg = 'none'//'rgba(255,255,255,0.1)'
-        let bg2 = 'none'//'rgba(255,0,0,0.1)'
+        let bg2 = 'rgba(127,255,0,0.2)'
 
         zoning = document.createElement( 'div' );
-        zoning.style.cssText = 'position:absolute; top:5px; background:'+bg2+'; left:60px; pointer-events:auto;'
+        zoning.style.cssText = 'position:absolute; top:0px; background:'+bg2+'; left:60px; pointer-events:auto;'
+        zoning.id = 'zone'
         content.appendChild( zoning )
 
         menu = document.createElement( 'div' );
@@ -266,13 +269,14 @@ export class Hub {
         innerMenu.style.cssText = 'position:absolute; top:0px; left:0px; top:0px; overflow:hidden;  background:'+bg+'; display:flex; flex-direction: column; '
         downMenu.appendChild( innerMenu )
 
-        zoning.addEventListener("mouseout", (e) => {
+        zoning.addEventListener("pointerleave", (e) => {
             lock = false
-             timeout = setTimeout( function(){if(!lock) Hub.hideMenu() }, 100 )
+           // Hub.hideMenu()
+            timeout = setTimeout( function(){if(!lock) Hub.hideMenu() }, 100 )
         });
-        zoning.addEventListener("mouseover", (e) => { lock = true });
+        //zoning.addEventListener("pointerdown", (e) => { lock = true });
 
-        zoning.addEventListener("mousemove", Hub.moving );
+        zoning.addEventListener("pointermove", Hub.moving );
 
         /*pin = document.createElement( 'div' );
         pin.style.cssText = 'position:absolute; left:-20px; top:53px; background:none; width:20px; height:1px;' //transition: all .1s ease-in-out;
@@ -322,13 +326,22 @@ export class Hub {
         innerMenu.innerHTML = '';
         zoning.style.width = '0px'
         zoning.style.height = '0px'
+        currentMenu = ''
     }
 
-    static showMenu ( type, left ) {
+    static showMenu ( target ) {
+
+        
+        let type = target.id
+
+        if(currentMenu === type) return
 
         Hub.hideMenu()
 
-        downMenu.style.left = left + 'px'
+        currentMenu = type
+
+        let rect = target.getBoundingClientRect();
+        downMenu.style.left = rect.left + 'px'
 
 
         let list = listdata[type]
@@ -357,7 +370,7 @@ export class Hub {
         }
 
         
-        let rect = innerMenu.getBoundingClientRect();
+        rect = innerMenu.getBoundingClientRect();
 
         let max = maxListItem * itemH
         let maxH = n * itemH 
@@ -413,30 +426,19 @@ export class Hub {
 
         dom.classList.add("menu");
 
-        dom.addEventListener("mouseover", (e) => { 
 
-            if(!item){ 
-                let rect = e.target.getBoundingClientRect();
-                Hub.showMenu(e.target.id, rect.left)
-            }
+        dom.addEventListener("pointermove", Hub.moving );
 
-            e.target.style.textDecoration = 'underline #7fFF00';
-            lock = true
+        dom.addEventListener( 'pointerleave', (e) => {
+            e.target.style.textDecoration = 'none';
+            //lock = false
+            //timeout = setTimeout( function(){ if(!lock) Hub.hideMenu() }, 1000 )
         })
 
-        dom.addEventListener("mouseout", (e) => {
-            dom.classList.remove("over");
-            e.target.style.textDecoration = 'none';
-            lock = false
-            timeout = setTimeout( function(){ if(!lock) Hub.hideMenu() }, 100 )
+        if( item ) dom.addEventListener("pointerdown", (e) => {
+            // Hub.showMenu(e.target.id)
+            Hub.onClick( e.target.id )
         });
-
-        dom.addEventListener("click", (e) => {
-            if(!item) Hub.showMenu(e.target.id)
-            else Hub.onClick( e.target.id )
-        });
-
-        if(item) dom.addEventListener("mousemove", Hub.moving );
 
     }
 
@@ -466,6 +468,16 @@ export class Hub {
     }
 
     static moving ( e ) {
+
+        lock = true
+        if( e.target.id === 'zone') return
+
+        e.target.style.textDecoration = 'underline #7fFF00';
+
+        if( e.target.id === 'logo' || e.target.id === 'engine' || e.target.id === 'demo' ){ 
+            Hub.showMenu( e.target )
+            return 
+        }
 
         if( ratio!==1 ){
             let my = e.clientY - listTop
