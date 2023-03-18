@@ -206,7 +206,7 @@ export const Main = {
 		}
 
 		Main.engineType = o.type || 'PHYSX'
-		Main.isWorker = true;
+		Main.isWorker = false;//true;
 
 		let urlParams = new URLSearchParams( window.location.search )
 		if( urlParams.has('E') ){

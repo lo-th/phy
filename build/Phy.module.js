@@ -24304,6 +24304,7 @@ class Articulation {//extends Basic3D
 		this.needData = o.needData || false;
 		this.joints = [];
 		this.jid = 0;
+		this.speed = 1;
 
 	}
 
@@ -24411,7 +24412,7 @@ class Articulation {//extends Basic3D
     	let j = this.joints.length;
 
     	while(j--){ 
-    		this.joints[j].pose( angles[j] !== undefined ?  angles[j] : 0, time !== undefined ? time : 5 );
+    		this.joints[j].pose( angles[j] !== undefined ?  angles[j] : 0, time !== undefined ? time : this.speed );
     	}
 
     	return new Promise((resolve) => this.resolve = resolve );
@@ -24613,6 +24614,9 @@ class User {
 
 	}
 
+    setKey( i, v ){
+        this.key[i] = v;
+    }
 
 	update () {
 
@@ -24859,6 +24863,9 @@ let azimut = function(){ return 0 };
 let endReset = function(){};
 let postUpdate = function(){};
 let extraTexture = function(){};
+
+let addControl = function(){};
+
 //let extraMaterial = function(){}
 
 class Motor {
@@ -24866,13 +24873,16 @@ class Motor {
 	static setMaxFps ( v ) { maxFps = v; }
 
 	static setExtraTexture ( f ) { extraTexture = f; }
-	//static setExtraMaterial ( f ) { extraMaterial = f }
 
 	static setExtraMaterial ( f ) { root.extraMaterial = f; }
+	//static setExtraMaterial ( f ) { extraMaterial = f }
+
+	static setAddControl ( f ) { addControl = f; }
 
 	static setPostUpdate ( f ) { postUpdate = f !== null ? f : function(){}; }
 	static setAzimut ( f ) { azimut = f; }
 
+	static setKey (i, v) { return user.setKey(i,v) }
 	static getKey () { return user.key }
 	static getKey2 () { return user.key2 }
 	static getAzimut () { return azimut() }
@@ -25124,6 +25134,8 @@ class Motor {
 	static set ( o = {} ){
 
 		if( o.full === undefined ) o.full = false;
+
+		if( o.key ) addControl();
 
 		items.body.setFull( o.full );
 
