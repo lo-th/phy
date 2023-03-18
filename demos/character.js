@@ -18,7 +18,7 @@ demo = () => {
     phy.log('use key WSAD or ZSQD<br>SPACE for jump')
 
 	// setting and start oimophysics
-	phy.set({ substep:4, gravity:[0,-9.81,0] })
+	phy.set({ substep:4, gravity:[0,-9.81,0], key:true })
 
 
 	// add static plane 
@@ -27,12 +27,13 @@ demo = () => {
 
     // create character
     let r = 0.3
+
     bob = phy.add({ 
         type:'capsule', 
         name:'bob', 
         material:'hero', 
 
-        size:[ r,1.8-(2*r) ], pos:[0,3,0], angularFactor:[0,1,0], 
+        size:[ r,1.8-(2*r) ], pos:[0,3,0], angularFactor:[0,0,0], 
         density:2, damping:[0.01,0], friction:0.5, group:32,
         //material:'debug',
         //order:'YXZ',
@@ -93,6 +94,8 @@ update = () => {
     let delta = phy.getDelta()
     let r = phy.getAzimut()
     let key = phy.getKey()
+
+    //phy.log(Math.floor( r*math.todeg) )
 
 
     let anim = key[7] !== 0 ? 'run' : 'walk'

@@ -4,10 +4,12 @@ import {
     Mesh,
     PlaneGeometry
 } from 'three';
+import * as UIL from 'uil'
 import * as TWEEN from 'tween'
-import { Tools } from 'uil';
 import { math } from './math.js';
 import { Pool } from './Pool.js';
+import { Motor } from '../motor/Motor.js'
+import { Main } from '../Main.js'
 
 /** __
 *    _)_|_|_
@@ -15,13 +17,30 @@ import { Pool } from './Pool.js';
 * @author lo.th / https://github.com/lo-th
 */
 
-let svg = Tools.dom;
-let setSvg = Tools.setSvg;
-let grad = Tools.makeGradiant;
+let svg = UIL.Tools.dom;
+let setSvg = UIL.Tools.setSvg;
+let grad = UIL.Tools.makeGradiant;
 
 let parent;
-let content, cross = null, border, counter, counter2, zone, path, txt, info, loader, textRight, textLeft, textLeft2, title, menu;
+let content, cross = null, border, counter, counter2, zone, path, txt, info, loader, textRight, textLeft, textLeft2;
 let unselectable = '-o-user-select:none; -ms-user-select:none; -khtml-user-select:none; -webkit-user-select:none; -moz-user-select: none; pointer-events:none; ';
+
+let menu, pin, title, engine, demo, downMenu, innerMenu, zoning
+
+
+let ratio = 1
+let listHeight = 0
+let listTop = 54
+let maxHeight = 0
+let sh=0 ,  range = 0
+let maxListItem = 10
+
+const listdata = {
+    logo : ['About', 'Github'],
+    engine : [],
+    demo:[],
+    visited:[],
+}
 
 let isDisplay = false;
 
@@ -40,6 +59,11 @@ let debug = null;
 
 let isPanel3D = false;
 
+let joy = null
+
+let lock = false
+let timeout = null
+
 
 let setting = {
     cross:4,
@@ -56,6 +80,8 @@ export class Hub {
         Hub.log()
         if( cross ) content.removeChild( cross )
         cross = null
+
+        if( joy ) this.removeJoystick()
         
     }
 
@@ -63,6 +89,7 @@ export class Hub {
 
         content.style.left = s.left + "px"
         content.style.width = s.left !== 0 ? 'calc(100% - ' + s.left + 'px)' : '100%'
+        if( joy !== null ) joy.rezone()
 
     }
 
@@ -72,11 +99,10 @@ export class Hub {
 
         camera = Camera;
         size = Size;
-
         parent = Parent || document.body;
 
         content = document.createElement( 'div' );
-        content.style.cssText = unselectable + "position:absolute; margin:0; padding:0; top:0px; left:0px; width:100%; height:100%; display:block; font-family: 'Roboto Mono', 'Source Code Pro', Consolas, monospace; color:rgba(0,0,6,1); "; //color:#DDD; text-shadow: 1px 1px 1px #000010;
+        content.style.cssText = unselectable + "position:absolute; margin:0; padding:0; top:0px; left:0px; width:100%; height:100%; display:block; ; color:rgba(0,0,6,1); font-family: Mulish,sans-serif;"//font-family: 'Roboto Mono', 'Source Code Pro', Consolas, monospace"; //color:#DDD; text-shadow: 1px 1px 1px #000010;
         parent.appendChild( content );
         
         txt = document.createElement( 'div' );
@@ -91,6 +117,7 @@ export class Hub {
         
 
         //loader.textContent = 'load...';
+        //this.addJoystick()
 
         //this.addBorder()
         //this.init3dHub()
@@ -98,6 +125,22 @@ export class Hub {
         isDisplay = true
         isReady = true
 
+    }
+
+    static removeJoystick() {
+        if(joy === null ) return
+        joy.dispose()
+        joy = null
+    }
+
+    static addJoystick () {
+        let colors = {
+            joyOut: 'rgba(255,255,255,0.25)',
+            joyOver:'rgba(127,255,0,0.5)',
+            joySelect: '#7fFF00',
+        }
+        joy = UIL.add('Joystick', {  w:160, mode:1, text:false, precision:1, pos:{left:'10px', bottom:'10px' }, target:content, simple:true, ...colors }).onChange( function(v){ Motor.setKey(0, v[0]); Motor.setKey(1, v[1]) } )
+        //joy.neverlock = true
     }
 
     static snipperMode ( b ) {
@@ -196,36 +239,249 @@ export class Hub {
         44 35 L 44 23 70 23 70 32.75 Q 70.1 28.75 72.95 25.9 75.75 23.1 79.75 23 M 70 48 L 70 32.75 M 21 23 Q 24.4 23.25 27.05 25.9 30 28.85 30 33 30 37.1 27.05 40.05 24.15 43 20 43 
         15.85 43 12.95 40.05 10 37.1 10 33 M 16 23 L 21 23'/></g></svg>`*/
 
-        /*menu = document.createElement( 'div' );
-        menu.style.cssText = 'position:absolute; top:0px; right:0px; width:270px; height:100%; background:rgba(0,0,6,0.1);; '
-        content.appendChild( menu )*/
+        
 
-        /*let logo = `<svg xmlns='http://www.w3.org/2000/svg' version='1.1' xmlns:xlink='http://www.w3.org/1999/xlink' style='pointer-events:none;' 
-        preserveAspectRatio='xMinYMax meet' x='0px' y='0px' width='80px' height='40px' viewBox='0 0 100 50'>
-        <g><path id='PHY' stroke='#000006' stroke-width='10' style='stroke-opacity: .3;' fill='none' d='M 19 7 L 24 7 Q 31.05 7 36 10.5 41 14.05 41 19 41 23.95 36 27.45 31.05 
-        31 24 31 L 24 48 M 24 31 Q 16.95 31 11.95 27.45 7 23.95 7 19 7 14.05 11.95 10.5 12.3 10.25 12.675 10.025 M 24 31 L 24 7'/></g></svg>`
+        let logo = `<svg xmlns='http://www.w3.org/2000/svg' version='1.1' xmlns:xlink='http://www.w3.org/1999/xlink' style='pointer-events:none;' 
+        preserveAspectRatio='xMinYMax meet' x='0px' y='0px' width='20px' height='20px' viewBox='0 0 256 256'>
+        <g><path id='PHY' stroke='#000006' stroke-width='30' style='stroke-opacity: 1;'  stroke-linejoin='round' stroke-linecap='round' 
+        fill='none' d='M 72.85 52.85 Q 70.9 53.8 69.15 55 45 72.35 45 96.5 45 120.65 69.15 137.7 93.55 155 127.95 155 L 127.95 37.95 Q 162.35 37.95 186.5 55 210.9 72.35 210.9 96.5 210.9 120.65 186.5 137.7 162.35 155 127.95 155 L 127.95 237.95'/>
+        </g></svg>`
+
+        let bg = 'none'//'rgba(255,255,255,0.1)'
+        let bg2 = 'none'//'rgba(255,0,0,0.1)'
+
+        zoning = document.createElement( 'div' );
+        zoning.style.cssText = 'position:absolute; top:5px; background:'+bg2+'; left:60px; pointer-events:auto;'
+        content.appendChild( zoning )
+
+        menu = document.createElement( 'div' );
+        menu.style.cssText = 'position:absolute; top:25px; background:'+bg+'; left:80px; display:flex; align-self: stretch; justify-content: flex-start; gap: 10px 20px; align-items:baseline; '
+        content.appendChild( menu )
+
+        downMenu = document.createElement( 'div' );
+        downMenu.style.cssText = 'position:absolute; top:54px; left:80px; overflow:hidden; background:'+bg+'; height:0px; width:0px;'//' width:0px;' //transition: all .1s ease-in-out;
+        content.appendChild( downMenu )
+
+        innerMenu = document.createElement( 'div' );
+        innerMenu.style.cssText = 'position:absolute; top:0px; left:0px; top:0px; overflow:hidden;  background:'+bg+'; display:flex; flex-direction: column; '
+        downMenu.appendChild( innerMenu )
+
+        zoning.addEventListener("mouseout", (e) => {
+            lock = false
+             timeout = setTimeout( function(){if(!lock) Hub.hideMenu() }, 100 )
+        });
+        zoning.addEventListener("mouseover", (e) => { lock = true });
+
+        zoning.addEventListener("mousemove", Hub.moving );
+
+        /*pin = document.createElement( 'div' );
+        pin.style.cssText = 'position:absolute; left:-20px; top:53px; background:none; width:20px; height:1px;' //transition: all .1s ease-in-out;
+        content.appendChild( pin )*/
 
         title = document.createElement( 'div' );
-        title.style.cssText = 'position:absolute; top:7px; left:-4px;'
-        content.appendChild( title )
-        title.innerHTML = logo;*/
+        //title.style.cssText = ' left:40px;'
+        menu.appendChild( title )
+        title.id = 'logo'
+        title.innerHTML = logo;
+
+        engine = document.createElement( 'div' );
+        engine.style.cssText = 'font-size:18px; font-weight:700; '
+        engine.id = 'engine'
+        menu.appendChild( engine )
+        
+        demo = document.createElement( 'div' );
+        demo.style.cssText = 'font-size:16px; font-weight:600;'
+        demo.id = 'demo'
+        menu.appendChild( demo )
+        
+        this.effect(title)
+        this.effect(engine)
+        this.effect(demo)
 
         fps = document.createElement( 'div' );
         //fps.style.cssText = 'position: absolute; bottom:3px; left:10px; font-size:12px; font-family:Tahoma; color:#dcdcdc; text-shadow: 1px 1px 1px #000;'
-        fps.style.cssText = 'position:absolute; bottom:3px; left:10px; font-size:12px; font-weight:bold; '
+        fps.style.cssText = 'position:absolute; top:24px; right:105px; text-align:right; font-size:12px; font-weight:300;'
         content.appendChild( fps )
 
         debug = document.createElement( 'div' );
         //debug.style.cssText = 'position: absolute; bottom:20px; left:10px; font-size:14px; font-family:Tahoma; color:#dcdcdc; text-shadow: 1px 1px 1px #000;  width:400px; vertical-align:bottom;'
-        debug.style.cssText = 'position:absolute; bottom:20px; left:10px; font-size:13px;  width:400px; vertical-align:bottom;'
+        debug.style.cssText = 'position:absolute; bottom:25px; left:80px; font-size:13px;  width:400px;'//' vertical-align:bottom;'
         content.appendChild( debug )
 
 
         statistics = document.createElement( 'div' );
         //statistics.style.cssText = 'position: absolute; top:3px; left:10px; font-size:14px; font-family:Tahoma; color:#00ff33; text-shadow: 1px 1px 1px #000; width:200px; white-space: pre;'
-        statistics.style.cssText = 'position:absolute; top:0px; left:-10px; font-size:14px; font-weight:bold; width:200px; white-space: pre; line-height:18px;'
+        statistics.style.cssText = 'position:absolute; top:100px; left:10px; font-size:14px; font-weight:500; width:200px; white-space: pre; line-height:20px;'
         
         content.appendChild( statistics )
+
+    }
+
+    static hideMenu () {
+        downMenu.style.height = '0px'
+        innerMenu.innerHTML = '';
+        zoning.style.width = '0px'
+        zoning.style.height = '0px'
+    }
+
+    static showMenu ( type, left ) {
+
+        Hub.hideMenu()
+
+        downMenu.style.left = left + 'px'
+
+
+        let list = listdata[type]
+        /*type === 'demo' ?  demolist : engineList
+        if( type === 'logo') list = ['Github', 'About']*/
+        let i = list.length, m, n=0, itemH = 0, name
+
+        innerMenu.style.top = '0px'
+        
+        while(i--){
+            name = list[n]
+            m = document.createElement( 'div' );
+            innerMenu.appendChild( m )
+            m.classList.add("down");
+            
+            m.style.cssText = type === 'demo' ? 'font-size:16px; font-weight:600;' : 'font-size:18px; font-weight:700;'
+            m.id = name
+            m.textContent = name;
+
+            if( listdata.visited.indexOf(name) !== -1 )  m.style.color = '#556'
+
+            if(n===0) itemH =  m.offsetHeight
+            
+            this.effect( m, true )
+            n++
+        }
+
+        
+        let rect = innerMenu.getBoundingClientRect();
+
+        let max = maxListItem * itemH
+        let maxH = n * itemH 
+        maxHeight = maxH > max ? max : rect.height
+
+        ratio = maxHeight / maxH 
+        sh = maxHeight * ratio
+        range = maxHeight - sh
+
+
+        //console.log(range, ratio)
+
+        downMenu.style.width = rect.width + 'px'
+        downMenu.style.height = maxHeight + 'px'
+
+        zoning.style.left = (rect.left-20) + 'px'
+        zoning.style.width = (rect.width + 40) + 'px'
+        zoning.style.height = (maxHeight + 70) + 'px'
+
+    }
+
+    static upMenu () {
+
+        engine.textContent = this.reformat(Main.engineType)
+        demo.textContent = this.reformat(Main.currentDemo)
+
+        listdata.visited.push( demo.textContent )
+
+        let data = Main.getDemos()
+        let list = [ ...data.Basic, ...data.Advanced, ...data[Main.engineType] ]
+        list.splice(list.indexOf(Main.currentDemo), 1);
+        list.sort();
+        list = list.map(x => Hub.reformat(x) );
+
+        listdata.demo = list
+
+        list = [...Main.engineList]
+        list.sort();
+        list.splice(list.indexOf(Main.engineType), 1);
+        list = list.map(x => Hub.reformat(x) );
+
+        listdata.engine = list
+
+    }
+
+    static reformat ( n ) {
+
+        return n.toUpperCase().substring(0,1) + n.substring(1).toLowerCase();
+
+    }
+
+    static effect ( dom, item ) {
+
+        dom.classList.add("menu");
+
+        dom.addEventListener("mouseover", (e) => { 
+
+            if(!item){ 
+                let rect = e.target.getBoundingClientRect();
+                Hub.showMenu(e.target.id, rect.left)
+            }
+
+            e.target.style.textDecoration = 'underline #7fFF00';
+            lock = true
+        })
+
+        dom.addEventListener("mouseout", (e) => {
+            dom.classList.remove("over");
+            e.target.style.textDecoration = 'none';
+            lock = false
+            timeout = setTimeout( function(){ if(!lock) Hub.hideMenu() }, 100 )
+        });
+
+        dom.addEventListener("click", (e) => {
+            if(!item) Hub.showMenu(e.target.id)
+            else Hub.onClick( e.target.id )
+        });
+
+        if(item) dom.addEventListener("mousemove", Hub.moving );
+
+    }
+
+    static onClick ( name ) {
+
+        lock = false
+        Hub.hideMenu()
+        
+        timeout = setTimeout( function(){ 
+            if( listdata.engine.indexOf(name) !== -1 ) Hub.swapEngine( name )
+            else if( listdata.logo.indexOf(name) !== -1 ) console.log( name )
+            else Main.loadDemo( name.toLowerCase() ) 
+        }, 100 ) 
+
+    }
+
+    static swapEngine ( type ) {
+        if( !type ) type = Main.engineType
+        let name = type.toLowerCase()
+        let hash = location.hash
+        let url = 'index';
+        let param = 'E='
+        if( Main.devMode ) param += 'dev_'
+        if( Main.isWorker ) param += 'w_'
+        param += name;
+        let w = window.open( url+'.html?'+param+hash, '_self')
+    }
+
+    static moving ( e ) {
+
+        if( ratio!==1 ){
+            let my = e.clientY - listTop
+            my = my < 0 ? 0 : my;
+            my = my > maxHeight ? maxHeight : my;
+            let y = my - (sh*0.5)
+
+            y = y < 0 ? 0 : y;
+            y = y > range ? range : y;
+
+            //let step = Math.floor( y / ratio )/28
+            //if( step === Math.floor( step )) innerMenu.style.top = -( step * 28 ) + 'px'
+
+            innerMenu.style.top = -Math.floor( y / ratio ) + 'px'
+
+        }
 
     }
 

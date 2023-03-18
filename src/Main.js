@@ -2,6 +2,7 @@ import * as THREE from 'three'
 import * as TWEEN from 'tween'
 import * as UIL from 'uil'
 import './libs/webgl-memory.js'
+import { getGPUTier } from './libs/detect-gpu.esm.js';
 
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
 
@@ -91,6 +92,8 @@ const setting = {
 
 const options = {
 
+	key: false,
+
 	mode:'HIGH',
 	quality: 2,
 
@@ -162,9 +165,10 @@ const shadowMapType = {
 const Version = {
     Oimo: '1.2.2',
     Ammo: '3.0',
-    Physx: '5.1',
-    Rapier: '0.10.0'
+    Physx: '5.01.03',
+    Rapier: '0.10.0',
 }
+
 const LinkWasm = {
     Ammo:'build/ammo3.wasm.js',
     Physx:'build/physx-js-webidl.js',
@@ -172,17 +176,34 @@ const LinkWasm = {
 
 let memo = null
 
+let isMobile = false
+
 export const Main = {
 
 	engineType:'',
+	currentDemmo:'',
 	isWorker:true,
 	devMode:false,
 	engineList: [ 'OIMO','AMMO', 'PHYSX'],//? 'RAPIER', 'CANNON' ],
 
-	start: ( o = {} ) => {
+	start: async ( o = {} ) => {
 
-		const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-		if( isMobile ) options.mode = 'LOW'
+		const gpuTier = await getGPUTier();
+	    const perf = gpuTier
+	    console.log(perf)
+
+	    isMobile = perf.isMobile
+
+		if( isMobile || perf.fps < 60 ){ 
+			options.mode = 'LOW'
+			options.quality = 1
+		}
+
+		switch(perf.tier){
+			case 1: options.fps = 15; break
+			case 2: options.fps = 30; break
+			case 3: options.fps = 60; break
+		}
 
 		Main.engineType = o.type || 'PHYSX'
 		Main.isWorker = true;
@@ -206,9 +227,7 @@ export const Main = {
 
 		introText = ( Main.isWorker ? 'WORKER ' : 'DIRECT ' ) + Main.engineType + ' ' + version;
 
-		//console.log( introText )
-
-		options.show_stat = Main.devMode
+		//options.show_stat = Main.devMode
 
 		Motor.engine = Main.engineType
 		window.engine = Motor.engine
@@ -332,6 +351,8 @@ async function preLoad( name, o ) {
 }
 
 const init = () => {
+
+	
 
 	// https://threejs.org/docs/#api/en/renderers/WebGLRenderer
 
@@ -515,6 +536,9 @@ const next = () => {
     Motor.setControl( controls )
     Motor.setExtraTexture( Pool.texture )
     Motor.setExtraMaterial( Shader.add )
+    Motor.setAddControl( addControl )
+
+
 
 
 	let hash = location.hash.substr( 1 )
@@ -534,7 +558,7 @@ const next = () => {
 
 	loadDemo( options.demo )
 
-	if( options.show_stat ) showStatistic( true )
+	//if( options.show_stat ) showStatistic( true )
 
 }
 
@@ -546,7 +570,9 @@ const upExpose = () => {
 	if( renderer.toneMappingExposure < options.exposure ) renderer.toneMappingExposure+=0.001
 }
 
-
+const addControl = () => {
+	if(isMobile) Hub.addJoystick()
+}
 
 //--------------------
 //   LIGHT
@@ -755,10 +781,14 @@ const dispose = () => {
 const directDemo = ( name, result ) => {
 
 	let findDemo = Gui.resetDemoGroup( name )
+
 	unSelect()
 
+	Main.currentDemo = name;
 	options.demo = name
 	location.hash = name
+
+	Hub.upMenu()
 
 	inject( result, true )
 
@@ -770,9 +800,12 @@ const loadDemo = ( name ) => {
 	if(!findDemo) name = 'start'
 
 	unSelect()
-
+    
+    Main.currentDemo = name;
 	options.demo = name
 	location.hash = name
+
+	Hub.upMenu()
 
 	Pool.load( './demos/' + options.demo + '.js', inject )
 
@@ -952,7 +985,8 @@ const upStat = () => {
 		Motor.setMaxFps( maxFps )
 	}
 
-	Hub.setFps( 'T:' + tm.fps + ' | P:' + Motor.getFps() )
+	//Hub.setFps( 'T:' + tm.fps + ' | P:' + Motor.getFps() )
+	Hub.setFps(  tm.fps + ' / ' + Motor.getFps() )
 	getFullStats()
 
 }

@@ -39,6 +39,9 @@ export class User {
 
 	}
 
+    setKey( i, v ){
+        this.key[i] = v
+    }
 
 	update () {
 

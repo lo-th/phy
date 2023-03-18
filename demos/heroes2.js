@@ -8,7 +8,7 @@ demo = () => {
     phy.view({ envmap:'basic', ground:false, fog:true, fogDist:0.01 })
 
 	// setting and start oimophysics
-	phy.set({ substep:2, gravity:[0,-9.81,0] })
+	phy.set({ substep:2, gravity:[0,-9.81,0], key:true })
 
 
 	// add static plane 

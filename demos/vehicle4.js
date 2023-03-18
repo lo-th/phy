@@ -33,7 +33,7 @@ demo = () => {
 
     phy.view({ envmap:'puresky', ground:true, fog:true, fogDist:0.01 })
 
-    phy.set( {substep:2, gravity:[0,-9.81,0]})
+    phy.set( {substep:2, gravity:[0,-9.81,0], key:true })
 
     phy.add({ type:'plane', name:'floor', size:[300,1,300], visible:false, friction:1 });
     //phy.add({ pos:[0,20,0], rot:[0,0,0], size:[0.5,0.5,0.5], mass:30})

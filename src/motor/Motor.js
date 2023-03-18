@@ -55,6 +55,9 @@ let azimut = function(){ return 0 }
 let endReset = function(){}
 let postUpdate = function(){}
 let extraTexture = function(){}
+
+let addControl = function(){}
+
 //let extraMaterial = function(){}
 
 export class Motor {
@@ -62,13 +65,16 @@ export class Motor {
 	static setMaxFps ( v ) { maxFps = v }
 
 	static setExtraTexture ( f ) { extraTexture = f }
-	//static setExtraMaterial ( f ) { extraMaterial = f }
 
 	static setExtraMaterial ( f ) { root.extraMaterial = f }
+	//static setExtraMaterial ( f ) { extraMaterial = f }
+
+	static setAddControl ( f ) { addControl = f }
 
 	static setPostUpdate ( f ) { postUpdate = f !== null ? f : function(){} }
 	static setAzimut ( f ) { azimut = f }
 
+	static setKey (i, v) { return user.setKey(i,v) }
 	static getKey () { return user.key }
 	static getKey2 () { return user.key2 }
 	static getAzimut () { return azimut() }
@@ -320,6 +326,8 @@ export class Motor {
 	static set ( o = {} ){
 
 		if( o.full === undefined ) o.full = false
+
+		if( o.key ) addControl()
 
 		items.body.setFull( o.full )
 

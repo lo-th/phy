@@ -17,7 +17,7 @@ demo = () => {
 
     phy.view({ envmap:'factory', ground:true, fog:true, fogDist:0.02 })
 
-    phy.set({ substep:1, gravity:[0,-9.81,0] })
+    phy.set({ substep:1, gravity:[0,-9.81,0], key:true })
 
     phy.add({ type:'plane', size:[300,1,300], visible:false, friction:1 });
 

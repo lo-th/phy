@@ -17,6 +17,10 @@
         "vehicle", "vehicle2", "vehicle3", "vehicle4"
     ],
 
+    "OIMO": [],
+    "RAPIER": [],
+    "CANNON": [],
+
     "Envmap": [ 
         "null", "basic", "factory", "studio", "beach", "tomoco",
         "tatami", "box", "park", "color", "room", "tokyo",

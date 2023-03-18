@@ -14,6 +14,8 @@ import { math } from './math.js';
 const usePmrem = true
 const autoSize = 0.25
 
+const useHalfFloat = true
+
 let sunColor = new Color()
 let fogColor = new Color()
 let skyColor = new Color()
@@ -46,7 +48,7 @@ const hdrLoader = new RGBELoader();
 
 // https://discourse.threejs.org/t/how-to-dispose-scene-background-with-webglrendertarget/19935
 
-let plane, sceneR, cameraR, targetR = null, read = null
+let plane, sceneR, cameraR, targetR = null, read = null, read16 = null
 
 export class Env {
 
@@ -206,9 +208,12 @@ export class Env {
 		sceneR = new Scene()
 		sceneR.add( plane )
 		cameraR = new OrthographicCamera( - 2, 2, 1, - 1, 0, 1 )
-		targetR = new WebGLRenderTarget( 1, 1, { /*format: RGBAFormat,*/ type:FloatType } )
+		//targetR = new WebGLRenderTarget( 1, 1, { /*format: RGBAFormat,*/ type:FloatType } )
+		targetR = new WebGLRenderTarget( 1, 1, { format: RGBAFormat, type:useHalfFloat ? HalfFloatType : FloatType } )
 		targetR.setSize( w, h )
-		read = new Float32Array( w * h * 4 )
+		//read = new Float32Array( w * h * 4 )
+	    read = new Float32Array( w * h * 4 )
+		if(useHalfFloat) read16 = new Uint16Array( w * h * 4 )
 
 	}
 
@@ -229,6 +234,7 @@ export class Env {
 		cameraR = null
 		targetR = null
 		read = null
+		read16 = null
 
 	}
 
@@ -274,8 +280,23 @@ export class Env {
 		//renderer.outputEncoding = sRGBEncoding
 
 		//let read = new Float32Array( w * h * 4 )
-		renderer.readRenderTargetPixels( targetR, 0, 0, w, h, read )
-		read = read.map( x => Math.round(x * 255) )
+		renderer.readRenderTargetPixels( targetR, 0, 0, w, h, useHalfFloat ? read16 : read )
+		if(!useHalfFloat) read = read.map( x => Math.round(x * 255) )
+		else {
+			//read8 = read.map( x => x  )
+			let i = read.length/4, n
+			
+			while(i--) {
+				n = i * 4
+
+				read[n] = this.float16ToNumber(read16[n]) * 255
+				read[n+1] = this.float16ToNumber(read16[n+1]) * 255
+				read[n+2] = this.float16ToNumber(read16[n+2]) * 255
+				read[n+3] = this.float16ToNumber(read16[n+3]) * 255
+			}
+		//	while(i--) read8[i] = (read[i])
+		}
+		
 
 		//this.clearTargetRender()
 
@@ -478,6 +499,48 @@ export class Env {
 		if( light2.helper ) light2.helper.update()
 
 	
+	}
+
+	static float16ToNumber (input) {
+	    // Create a 32 bit DataView to store the input
+	    const arr = new ArrayBuffer(4);
+	    const dv = new DataView(arr);
+
+	    // Set the Float16 into the last 16 bits of the dataview
+	    // So our dataView is [00xx]
+	    dv.setUint16(2, input, false);
+
+	    // Get all 32 bits as a 32 bit integer
+	    // (JS bitwise operations are performed on 32 bit signed integers)
+	    const asInt32 = dv.getInt32(0, false);
+
+	    // All bits aside from the sign
+	    let rest = asInt32 & 0x7fff;
+	    // Sign bit
+	    let sign = asInt32 & 0x8000;
+	    // Exponent bits
+	    const exponent = asInt32 & 0x7c00;
+
+	    // Shift the non-sign bits into place for a 32 bit Float
+	    rest <<= 13;
+	    // Shift the sign bit into place for a 32 bit Float
+	    sign <<= 16;
+
+	    // Adjust bias
+	    // https://en.wikipedia.org/wiki/Half-precision_floating-point_format#Exponent_encoding
+	    rest += 0x38000000;
+	    // Denormals-as-zero
+	    rest = (exponent === 0 ? 0 : rest);
+	    // Re-insert sign bit
+	    rest |= sign;
+
+	    // Set the adjusted float32 (stored as int32) back into the dataview
+	    dv.setInt32(0, rest, false);
+
+	    // Get it back out as a float32 (which js will convert to a Number)
+	    const asFloat32 = dv.getFloat32(0, false);
+
+	    return asFloat32;
 	}
 
 }

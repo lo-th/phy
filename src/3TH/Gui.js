@@ -7,7 +7,7 @@ import { Hub } from './Hub.js'
 import { Shader } from './Shader.js'
 /** __
 *    _)_|_|_
-*   __) |_| | 2022
+*   __) |_| | 2023
 * @author lo.th / https://github.com/lo-th
 */
 
@@ -20,6 +20,8 @@ export const Gui = {
 	gp:null,
 	video:null,
 
+	joy:null,
+
 	colors:{
 
 		sx: 4,
@@ -29,9 +31,10 @@ export const Gui = {
 		background:'none',
 		backgroundOver:'none',//'rgba(255,255,255,0.02)',
 
-		font:"'Roboto Mono', 'Source Code Pro', Consolas, monospace", 
-		fontSize:12,
-		weight:'bold',
+		//font:"'Roboto Mono', 'Source Code Pro', Consolas, monospace", 
+		font:"font-family: Mulish, sans-serif;", 
+		fontSize:14,
+		weight:'400',
 
 		text:'rgba(0,0,6,1)',
 		title:'rgba(0,0,6,1)',
@@ -52,6 +55,10 @@ export const Gui = {
 		
 		groups:'rgba(255,255,255,0.1)',
 		gborder:'rgba(255,255,255,0.2)',
+
+		joyOut: 'rgba(255,255,255,0.1)',
+		joyOver:'rgba(127,255,0,0.2)',
+        joySelect: '#7fFF00',
 		//fontFamily: 'Tahoma',
 
 	},
@@ -63,16 +70,16 @@ export const Gui = {
 		UIL.Tools.setStyle(Gui.colors)
 
 		const b1 = UIL.add('button', { name:'O', w:40, h:40, bw:40, pos:{right:'14px', top:'5px'}, simple:true }).onChange( Gui.showHide )
-		const b2 = UIL.add('button', { name:'P', w:40, h:40, bw:40, pos:{right:'59px', top:'5px'}, simple:true }).onChange( Gui.gotoGithub )
+		//const b2 = UIL.add('button', { name:'P', w:40, h:40, bw:40, pos:{right:'59px', top:'5px'}, simple:true }).onChange( Gui.gotoGithub )
 		b1.icon( UIL.Tools.icon('config', 'rgba(0,0,6,0.66)', 30 ) )
-		b2.icon( UIL.Tools.icon('phy', 'rgba(0,0,6,0.66)', 30 ) )
+		//b2.icon( UIL.Tools.icon('phy', 'rgba(0,0,6,0.66)', 30 ) )
 
 		const ui = new UIL.Gui( { w:250, h:20, close:false, css:'top:48px; right:5px;', colors:Gui.colors } )
 
 
 
 
-		ui.content.style.backdropFilter = 'blur(6px)'
+		if( options.mode==='HIGH' ) ui.content.style.backdropFilter = 'blur(4px)'
 		//ui.content.style.boxShadow = '0 0px 10px rgba(2,4,24,0.25)'
 
 		//ui.add( 'empty', {h:3})
@@ -113,6 +120,8 @@ export const Gui = {
 		Gui.ui = ui;
 
 		Gui.display()
+
+		//Gui.addJoystick()
 
 		const g2 = Gui.ui.add('group', { name:'DEMOS', open:true })
 		//Gui.camera()
@@ -377,5 +386,9 @@ export const Gui = {
     update: () => {
 		if( Gui.video ) Gui.video.update(  )
 	},
+
+    /*addJoystick:() => {
+    	Gui.joy = UIL.add('Joystick', {  w:160, mode:1, text:false, pos:{left:'10px', bottom:'30px' }, simple:true })//.onChange( callbackSize )
+    }*/
 
 }
