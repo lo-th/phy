@@ -74,7 +74,7 @@ export const Gui = {
 		b1.icon( UIL.Tools.icon('config', 'rgba(0,0,6,0.66)', 30 ) )
 		//b2.icon( UIL.Tools.icon('phy', 'rgba(0,0,6,0.66)', 30 ) )
 
-		const ui = new UIL.Gui( { w:250, h:20, close:false, css:'top:48px; right:5px;', colors:Gui.colors } )
+		const ui = new UIL.Gui( { w:250, h:20, open:false, close:false, css:'top:48px; right:5px;', colors:Gui.colors } )
 
 
 
