@@ -182,7 +182,7 @@ export const Main = {
 
 	engineType:'',
 	currentDemmo:'',
-	isWorker:true,
+	isWorker:false,
 	devMode:false,
 	engineList: [ 'OIMO','AMMO', 'PHYSX'],
 	demoList:[],
@@ -281,11 +281,13 @@ export const Main = {
 	getControler:() => ( controls ),
 	getCodeName:() => ( options.demo ),
 	getGround:() => ( ground ),
+	//getWorker:() => ( 'Worker' + (Main.isWorker ? ' On' : ' Off') ),
 	getDemos:() => { 
 		let d = Pool.get('demos', 'json') 
 		Main.demoList = [ ...d.Basic, ...d.Advanced, ...d[Main.engineType] ]
 		//return Main.demoList
 	},
+
 
 	getOption:() => ( options ),
 	getSetting:() => ( setting ),

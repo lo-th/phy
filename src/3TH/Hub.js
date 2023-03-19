@@ -39,7 +39,7 @@ let full = true
 let currentMenu = ''
 
 const listdata = {
-    logo : ['About', 'Github'],
+    home : ['Worker', 'Github'],
     engine : [],
     demo:[],
     visited:[],
@@ -291,7 +291,7 @@ export class Hub {
         title = document.createElement( 'div' );
         //title.style.cssText = ' left:40px;'
         menu.appendChild( title )
-        title.id = 'logo'
+        title.id = 'home'
         title.innerHTML = logo;
 
         engine = document.createElement( 'div' );
@@ -337,10 +337,9 @@ export class Hub {
 
     static showMenu ( target ) {
 
-        
         let type = target.id
 
-        if(currentMenu === type) return
+        if( currentMenu === type ) return
 
         Hub.hideMenu()
 
@@ -349,8 +348,10 @@ export class Hub {
         let rect = target.getBoundingClientRect();
         downMenu.style.left = rect.left + 'px'
 
+        //if(type==='home') list.
 
-        let list = listdata[type]
+
+        let list = listdata[ type ]
         /*type === 'demo' ?  demolist : engineList
         if( type === 'logo') list = ['Github', 'About']*/
         let i = list.length, m, n=0, itemH = 0, name
@@ -363,6 +364,7 @@ export class Hub {
         const bb = []
         
         while(i--){
+
             name = list[n]
             m = document.createElement( 'div' );
             innerMenu.appendChild( m )
@@ -372,9 +374,10 @@ export class Hub {
             m.id = name
             m.textContent = name;
 
-            if( listdata.visited.indexOf(name) !== -1 )  m.style.color = colorVisite
+            if( listdata.visited.indexOf(name) !== -1 ) m.style.color = colorVisite
+            if( name === 'Worker' ) m.style.color = Main.isWorker ? color : colorVisite
 
-            if(n===0) itemH = m.offsetHeight
+            if( n===0 ) itemH = m.offsetHeight
             //bb[n] = m
             
             this.effect( m, true )
@@ -421,10 +424,12 @@ export class Hub {
 
     }
 
+
+
     static upMenu () {
 
-        engine.textContent = this.reformat(Main.engineType)
-        demo.textContent = this.reformat(Main.currentDemo)
+        engine.textContent = this.reformat( Main.engineType )
+        demo.textContent = this.reformat( Main.currentDemo )
 
         listdata.visited.push( demo.textContent )
 
@@ -464,7 +469,7 @@ export class Hub {
 
         dom.addEventListener("pointerdown", (e) => {
             e.target.style.textDecoration = 'underline ' + color;
-            if( e.target.id === 'logo' || e.target.id === 'engine' || e.target.id === 'demo' ) Hub.showMenu(e.target)
+            if( e.target.id === 'home' || e.target.id === 'engine' || e.target.id === 'demo' ) Hub.showMenu(e.target)
             else Hub.onClick( e.target.id )
         });
 
@@ -477,7 +482,7 @@ export class Hub {
         
         timeout = setTimeout( function(){ 
             if( listdata.engine.indexOf(name) !== -1 ) Hub.swapEngine( name )
-            else if( listdata.logo.indexOf(name) !== -1 ) Hub.homeLink( name )
+            else if( listdata.home.indexOf(name) !== -1 ) Hub.homeLink( name )
             else Main.loadDemo( name.toLowerCase() ) 
         }, 100 ) 
 
@@ -485,8 +490,14 @@ export class Hub {
 
     static homeLink ( type ) {
         switch(type){
-            case 'Github':window.open( 'https://github.com/lo-th/phy', '_blank'); break;
+            case 'Github': window.open( 'https://github.com/lo-th/phy', '_blank'); break;
+            case 'Worker': Hub.swapWorker(); break;
         }
+    }
+
+    static swapWorker () {
+        Main.isWorker = !Main.isWorker
+        Hub.swapEngine()
     }
 
     static swapEngine ( type ) {
@@ -508,7 +519,7 @@ export class Hub {
 
         e.target.style.textDecoration = 'underline '+color;
 
-        if( e.target.id === 'logo' || e.target.id === 'engine' || e.target.id === 'demo' ){ 
+        if( e.target.id === 'home' || e.target.id === 'engine' || e.target.id === 'demo' ){ 
             Hub.showMenu( e.target )
             return 
         }
