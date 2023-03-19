@@ -21,6 +21,8 @@ export const Gui = {
 	video:null,
 
 	joy:null,
+	p0: 'M 0.5 1.5 L 9.5 1.5 M 0.5 5.5 L 9.5 5.5 M 0.5 9.5 L 9.5 9.5',
+	p1: 'M 1.5 0.5 L 1.5 9.5 M 5.5 0.5 L 5.5 9.5 M 9.5 0.5 L 9.5 9.5',
 
 	colors:{
 
@@ -69,6 +71,13 @@ export const Gui = {
 
 		if( Gui.ui.isOpen ) Gui.ui.isOpen = false;
 		else Gui.ui.isOpen = true;
+
+
+		document.querySelector("#path").setAttributeNS(null, 'd', Gui.ui.isOpen ? Gui.p1 : Gui.p0)
+
+
+		///Gui.button.childNodes[0].childNodes[ 0 ].setAttributeNS(null, 'd', Gui.ui.isOpen ? Gui.p1 : Gui.p0)
+
 		Gui.ui.calc()
 		Gui.ui.mode('def')
 
@@ -76,23 +85,23 @@ export const Gui = {
 
 	init: () => {
 
-        /*let option = `<svg xmlns='http://www.w3.org/2000/svg' version='1.1' xmlns:xlink='http://www.w3.org/1999/xlink' style='pointer-events:none;' 
-        preserveAspectRatio='xMinYMax meet' x='0px' y='0px' width='10px' height='10px' viewBox='0 0 10 10'>
-        <g><path id='OPTION' stroke='#000006' stroke-width='1' fill='none' d='M 4.5 4.5 L 5.5 4.5 5.5 5.5 4.5 5.5 4.5 4.5 Z M 9.5 5 Q 9.5 6.85 8.15 8.15 
-        6.85 9.5 5 9.5 3.15 9.5 1.8 8.15 0.5 6.85 0.5 5 0.5 3.15 1.8 1.8 3.15 0.5 5 0.5 6.85 0.5 8.15 1.8 9.5 3.15 9.5 5 Z'/></g></svg>`*/
 
-        let option = `<svg xmlns='http://www.w3.org/2000/svg' version='1.1' xmlns:xlink='http://www.w3.org/1999/xlink' style='pointer-events:none;' 
+
+        let svg = `<svg xmlns='http://www.w3.org/2000/svg' version='1.1' xmlns:xlink='http://www.w3.org/1999/xlink' style='pointer-events:none;' 
         preserveAspectRatio='xMinYMax meet' x='0px' y='0px' width='10px' height='10px' viewBox='0 0 10 10'>
-        <g><path id='OPTION' stroke='#000006' stroke-width='1' fill='none' d='M 0.5 1.5 L 9.5 1.5 M 0.5 5.5 L 9.5 5.5 M 0.5 9.5 L 9.5 9.5'/></g></svg>`
+        <path stroke='#000006' id='path' stroke-width='1' fill='none' d='M 0.5 1.5 L 9.5 1.5 M 0.5 5.5 L 9.5 5.5 M 0.5 9.5 L 9.5 9.5'/></svg>`
 
 
 		let button = document.createElement( 'div' );
         button.style.cssText = 'position:absolute; right:80px;  top:30px; pointer-events:auto; cursor: pointer;'
         document.body.appendChild( button )
         //title.id = 'home'
-        button.innerHTML = option;
+        button.innerHTML = svg;
+        
 
+        
         button.addEventListener("pointerdown", Gui.showHide );
+
 
 		
 
