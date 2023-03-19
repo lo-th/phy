@@ -176,7 +176,7 @@ const LinkWasm = {
 
 let memo = null
 
-let isMobile = false
+//let isMobile = false
 
 export const Main = {
 
@@ -184,7 +184,9 @@ export const Main = {
 	currentDemmo:'',
 	isWorker:true,
 	devMode:false,
-	engineList: [ 'OIMO','AMMO', 'PHYSX'],//? 'RAPIER', 'CANNON' ],
+	engineList: [ 'OIMO','AMMO', 'PHYSX'],
+	demoList:[],
+	isMobile:false,
 
 	start: async ( o = {} ) => {
 
@@ -192,9 +194,9 @@ export const Main = {
 	    const perf = gpuTier
 	    console.log(perf)
 
-	    isMobile = perf.isMobile
+	    Main.isMobile = perf.isMobile
 
-		if( isMobile || perf.fps < 60 ){ 
+		if( Main.isMobile || perf.fps < 60 ){ 
 			options.mode = 'LOW'
 			options.quality = 1
 		}
@@ -206,6 +208,7 @@ export const Main = {
 		}
 
 		Main.engineType = o.type || 'PHYSX'
+
 		Main.isWorker = false;//true;
 
 		let urlParams = new URLSearchParams( window.location.search )
@@ -278,7 +281,11 @@ export const Main = {
 	getControler:() => ( controls ),
 	getCodeName:() => ( options.demo ),
 	getGround:() => ( ground ),
-	getDemos:() => ( Pool.get('demos', 'json') ),
+	getDemos:() => { 
+		let d = Pool.get('demos', 'json') 
+		Main.demoList = [ ...d.Basic, ...d.Advanced, ...d[Main.engineType] ]
+		//return Main.demoList
+	},
 
 	getOption:() => ( options ),
 	getSetting:() => ( setting ),
@@ -506,6 +513,8 @@ const drop = (e) => {
 
 const next = () => {
 
+	Main.getDemos()
+
 	// add carbon texture
 	
 	/*const flakeTexture = new THREE.CanvasTexture( new CarbonTexture('rgb(69,69,69)', 'rgb(39,39,39)', true) )
@@ -571,7 +580,7 @@ const upExpose = () => {
 }
 
 const addControl = () => {
-	if(isMobile) Hub.addJoystick()
+	if(Main.isMobile) Hub.addJoystick()
 }
 
 //--------------------
@@ -796,8 +805,10 @@ const directDemo = ( name, result ) => {
 
 const loadDemo = ( name ) => {
 
-	let findDemo = Gui.resetDemoGroup( name )
-	if(!findDemo) name = 'start'
+	if( Main.demoList.indexOf(name) === -1 ) name = 'start'
+
+	//let findDemo = Gui.resetDemoGroup( name )
+	//if(!findDemo) name = 'start'
 
 	unSelect()
     

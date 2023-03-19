@@ -34,6 +34,7 @@ let listTop = 54
 let maxHeight = 0
 let sh=0 ,  range = 0
 let maxListItem = 10
+let full = true
 
 let currentMenu = ''
 
@@ -66,6 +67,8 @@ let joy = null
 let lock = false
 let timeout = null
 
+let color = '#001'
+let colorVisite = '#006'
 
 let setting = {
     cross:4,
@@ -104,7 +107,7 @@ export class Hub {
         parent = Parent || document.body;
 
         content = document.createElement( 'div' );
-        content.style.cssText = unselectable + "position:absolute; margin:0; padding:0; top:0px; left:0px; width:100%; height:100%; display:block; ; color:rgba(0,0,6,1); font-family: Mulish,sans-serif;"//font-family: 'Roboto Mono', 'Source Code Pro', Consolas, monospace"; //color:#DDD; text-shadow: 1px 1px 1px #000010;
+        content.style.cssText = unselectable + 'position:absolute; margin:0; padding:0; top:0px; left:0px; width:100%; height:100%; display:block; ; color:'+color+'; font-family: Mulish,sans-serif;'//font-family: 'Roboto Mono', 'Source Code Pro', Consolas, monospace"; //color:#DDD; text-shadow: 1px 1px 1px #000010;
         parent.appendChild( content );
         
         txt = document.createElement( 'div' );
@@ -222,16 +225,18 @@ export class Hub {
 
     static endLoading () {
 
-        content.removeChild( loader )
+        loader.style.top = '35px'
+        loader.style.left = '90px'
+        //content.removeChild( loader )
         
-        //content.removeChild( txt )
-        txt.style.top = '50px'
-        txt.textContent ='load...';
+        content.removeChild( txt )
+        //txt.style.top = '50px'
+        //txt.textContent ='';
         //txt.style.display = 'none'
 
         Pool.setLoadEvent(
-            function(){ txt.style.display = 'block'; },
-            function(){ txt.style.display = 'none'; }
+            function(){ loader.style.display = 'block'; },
+            function(){ loader.style.display = 'none'; }
         )
 
         /*let logo0 = `<svg xmlns='http://www.w3.org/2000/svg' version='1.1' xmlns:xlink='http://www.w3.org/1999/xlink' style='pointer-events:none;' 
@@ -250,10 +255,11 @@ export class Hub {
         </g></svg>`
 
         let bg = 'none'//'rgba(255,255,255,0.1)'
-        let bg2 = 'rgba(127,255,0,0.2)'
+        let bg2 = 'none'//'rgba(255,255,255,0.01)'
+        let bg3 = 'rgba(127,0,0,0.2)'
 
         zoning = document.createElement( 'div' );
-        zoning.style.cssText = 'position:absolute; top:0px; background:'+bg2+'; left:60px; pointer-events:auto;'
+        zoning.style.cssText = 'position:absolute; top:0px; background:'+bg2+'; left:60px; pointer-events:auto; '
         zoning.id = 'zone'
         content.appendChild( zoning )
 
@@ -266,7 +272,7 @@ export class Hub {
         content.appendChild( downMenu )
 
         innerMenu = document.createElement( 'div' );
-        innerMenu.style.cssText = 'position:absolute; top:0px; left:0px; top:0px; overflow:hidden;  background:'+bg+'; display:flex; flex-direction: column; '
+        innerMenu.style.cssText = 'position:absolute; top:0px; left:0px; top:0px; overflow:hidden; background:'+bg+'; display:flex; flex-wrap:warp;'//flex-direction: column; '
         downMenu.appendChild( innerMenu )
 
         zoning.addEventListener("pointerleave", (e) => {
@@ -304,7 +310,7 @@ export class Hub {
 
         fps = document.createElement( 'div' );
         //fps.style.cssText = 'position: absolute; bottom:3px; left:10px; font-size:12px; font-family:Tahoma; color:#dcdcdc; text-shadow: 1px 1px 1px #000;'
-        fps.style.cssText = 'position:absolute; top:24px; right:105px; text-align:right; font-size:12px; font-weight:300;'
+        fps.style.cssText = 'position:absolute; top:31px; right:80px; text-align:right; font-size:16px; font-weight:600;'
         content.appendChild( fps )
 
         debug = document.createElement( 'div' );
@@ -350,6 +356,11 @@ export class Hub {
         let i = list.length, m, n=0, itemH = 0, name
 
         innerMenu.style.top = '0px'
+        innerMenu.style.width = 'auto'
+        innerMenu.style.display = 'flex';
+        innerMenu.style.flexDirection = 'column';
+
+        const bb = []
         
         while(i--){
             name = list[n]
@@ -361,9 +372,10 @@ export class Hub {
             m.id = name
             m.textContent = name;
 
-            if( listdata.visited.indexOf(name) !== -1 )  m.style.color = '#556'
+            if( listdata.visited.indexOf(name) !== -1 )  m.style.color = colorVisite
 
-            if(n===0) itemH =  m.offsetHeight
+            if(n===0) itemH = m.offsetHeight
+            //bb[n] = m
             
             this.effect( m, true )
             n++
@@ -375,20 +387,37 @@ export class Hub {
         let max = maxListItem * itemH
         let maxH = n * itemH 
         maxHeight = maxH > max ? max : rect.height
-
         ratio = maxHeight / maxH 
         sh = maxHeight * ratio
         range = maxHeight - sh
 
+        if( ratio !== 1 && full ){
 
-        //console.log(range, ratio)
+            innerMenu.style.display = 'grid';
+            innerMenu.style.gridTemplateColumns = 'repeat(auto-fill, 120px)'
+            //innerMenu.style.flexDirection = 'row';
+            // innerMenu.style.margin = '6px';
+            innerMenu.style.justifyContent = 'space-between';
+            //innerMenu.style.flexWrap = 'row wrap';
+            //innerMenu.style.gap = '0px 10px';
+            //innerMenu.style.flexFlow = 'column wrap';
 
-        downMenu.style.width = rect.width + 'px'
-        downMenu.style.height = maxHeight + 'px'
+            downMenu.style.left = 80 + 'px'
+            downMenu.style.width = 'calc(100% - 160px)'
+            innerMenu.style.width = '100%'
+            rect = innerMenu.getBoundingClientRect();
+            
+            downMenu.style.height = rect.height+'px'//maxHeight + 'px'
+
+
+        } else {
+            downMenu.style.width = rect.width + 'px'
+            downMenu.style.height = maxHeight + 'px'
+        }
 
         zoning.style.left = (rect.left-20) + 'px'
         zoning.style.width = (rect.width + 40) + 'px'
-        zoning.style.height = (maxHeight + 70) + 'px'
+        zoning.style.height = (rect.height + 70) + 'px'
 
     }
 
@@ -399,18 +428,17 @@ export class Hub {
 
         listdata.visited.push( demo.textContent )
 
-        let data = Main.getDemos()
-        let list = [ ...data.Basic, ...data.Advanced, ...data[Main.engineType] ]
+        let list = [...Main.demoList]
         list.splice(list.indexOf(Main.currentDemo), 1);
         list.sort();
-        list = list.map(x => Hub.reformat(x) );
+        list = list.map( x => Hub.reformat(x) );
 
         listdata.demo = list
 
         list = [...Main.engineList]
         list.sort();
         list.splice(list.indexOf(Main.engineType), 1);
-        list = list.map(x => Hub.reformat(x) );
+        list = list.map( x => Hub.reformat(x) );
 
         listdata.engine = list
 
@@ -426,8 +454,7 @@ export class Hub {
 
         dom.classList.add("menu");
 
-
-        dom.addEventListener("pointermove", Hub.moving );
+        if(!Main.isMobile) dom.addEventListener("pointermove", Hub.moving );
 
         dom.addEventListener( 'pointerleave', (e) => {
             e.target.style.textDecoration = 'none';
@@ -435,9 +462,10 @@ export class Hub {
             //timeout = setTimeout( function(){ if(!lock) Hub.hideMenu() }, 1000 )
         })
 
-        if( item ) dom.addEventListener("pointerdown", (e) => {
-            // Hub.showMenu(e.target.id)
-            Hub.onClick( e.target.id )
+        dom.addEventListener("pointerdown", (e) => {
+            e.target.style.textDecoration = 'underline ' + color;
+            if( e.target.id === 'logo' || e.target.id === 'engine' || e.target.id === 'demo' ) Hub.showMenu(e.target)
+            else Hub.onClick( e.target.id )
         });
 
     }
@@ -449,10 +477,16 @@ export class Hub {
         
         timeout = setTimeout( function(){ 
             if( listdata.engine.indexOf(name) !== -1 ) Hub.swapEngine( name )
-            else if( listdata.logo.indexOf(name) !== -1 ) console.log( name )
+            else if( listdata.logo.indexOf(name) !== -1 ) Hub.homeLink( name )
             else Main.loadDemo( name.toLowerCase() ) 
         }, 100 ) 
 
+    }
+
+    static homeLink ( type ) {
+        switch(type){
+            case 'Github':window.open( 'https://github.com/lo-th/phy', '_blank'); break;
+        }
     }
 
     static swapEngine ( type ) {
@@ -472,12 +506,14 @@ export class Hub {
         lock = true
         if( e.target.id === 'zone') return
 
-        e.target.style.textDecoration = 'underline #7fFF00';
+        e.target.style.textDecoration = 'underline '+color;
 
         if( e.target.id === 'logo' || e.target.id === 'engine' || e.target.id === 'demo' ){ 
             Hub.showMenu( e.target )
             return 
         }
+
+        if(full) return 
 
         if( ratio!==1 ){
             let my = e.clientY - listTop

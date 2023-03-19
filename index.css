@@ -5,13 +5,12 @@ html{
 font-family:ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica Neue,Arial,Noto Sans,sans-serif,Apple Color Emoji,Segoe UI Emoji,Segoe UI Symbol,Noto Color Emoji;
 font-feature-settings:normal
 }
-body{background-color:#000; margin:0; padding:0; overflow:hidden;}
+body{ background-color:#000; margin:0; padding:0; overflow:hidden;}
 
 
 
 
 .menu {
-	box-sizing: border-box
 	flex:1; 
 	pointer-events:auto; 
 	cursor: pointer;
@@ -20,14 +19,17 @@ body{background-color:#000; margin:0; padding:0; overflow:hidden;}
 }
 
 .down {
-	box-sizing: border-box
-	flex: 0 0 0;
-	width:auto;
+	flex:1;
+	/*flex: 1 1 120px;*/
 	pointer-events:auto; 
 	cursor: pointer;
 	padding: 4px 0px;
 	white-space: nowrap;
 	text-underline-offset: 6px;
-	//align-self: flex-start;
-	//border: solid 1px black;
+	
+	/*
+	flex-grow: 1;
+	align-self: flex-start;
+	border: solid 1px black;
+	*/
 }

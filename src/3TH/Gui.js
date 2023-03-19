@@ -69,17 +69,17 @@ export const Gui = {
 
 		UIL.Tools.setStyle(Gui.colors)
 
-		const b1 = UIL.add('button', { name:'O', w:40, h:40, bw:40, pos:{right:'14px', top:'5px'}, simple:true }).onChange( Gui.showHide )
+		const b1 = UIL.add('button', { name:'O', w:20, h:22, bw:20, pos:{right:'14px', top:'5px'}, simple:true }).onChange( Gui.showHide )
 		//const b2 = UIL.add('button', { name:'P', w:40, h:40, bw:40, pos:{right:'59px', top:'5px'}, simple:true }).onChange( Gui.gotoGithub )
-		b1.icon( UIL.Tools.icon('config', 'rgba(0,0,6,0.66)', 30 ) )
+		b1.icon( UIL.Tools.icon('config', 'rgba(0,0,6,0.66)', 20 ) )
 		//b2.icon( UIL.Tools.icon('phy', 'rgba(0,0,6,0.66)', 30 ) )
 
-		const ui = new UIL.Gui( { w:250, h:20, open:false, close:false, css:'top:48px; right:5px;', colors:Gui.colors } )
+		const ui = new UIL.Gui( { w:250, h:20, open:false, close:false, css:'top:54px; right:5px;', colors:Gui.colors } )
 
 
 
 
-		if( options.mode==='HIGH' ) ui.content.style.backdropFilter = 'blur(4px)'
+		if( options.mode === 'HIGH' ) ui.content.style.backdropFilter = 'blur(4px)'
 		//ui.content.style.boxShadow = '0 0px 10px rgba(2,4,24,0.25)'
 
 		//ui.add( 'empty', {h:3})
@@ -87,12 +87,9 @@ export const Gui = {
 		//let bb = ui.add('button', { name:'GITHUB / ABOUT', h:40, bw:40 }).onChange( Gui.gotoGithub )
 		//
 
-		if( Main.devMode ){
-			Main.engineList.push('RAPIER')
-			Main.engineList.push('CANNON')
-		}
 
-		ui.add('button', { values:Main.engineList, selectable:true, value:Main.engineType, h:30 }).onChange( Gui.swapEngine )
+		ui.add('button', { values:Main.engineList, selectable:true, value:Main.engineType  }).onChange( Gui.swapEngine )
+		if( Main.devMode ) ui.add('button', { values:['RAPIER','CANNON'], selectable:true, value:Main.engineType }).onChange( Gui.swapEngine )
 
 		ui.add( 'bool', { name:'WORKER OFF', onName:'WORKER ON', value:Main.isWorker, mode:1 }).onChange( Gui.swapWorker )
 
@@ -123,11 +120,11 @@ export const Gui = {
 
 		//Gui.addJoystick()
 
-		const g2 = Gui.ui.add('group', { name:'DEMOS', open:true })
+		//const g2 = Gui.ui.add('group', { name:'DEMOS', open:true })
 		//Gui.camera()
 		//ui.add( 'empty', {h:3})
 		
-		Gui.demo(g2)
+		//Gui.demo(g2)
 
 	},
 
@@ -141,22 +138,23 @@ export const Gui = {
 		const scene = Main.getScene()
 		const toneMappingOptions = Main.getToneMappingOptions()
 
-		const g = Gui.ui.add('group', { name:'DISPLAY' })
+		//const g = Gui.ui.add('group', { name:'DISPLAY' })
+		const ui = Gui.ui
 
-		g.add( options, 'mode', { type:'button', values:['LOW', 'HIGH'], selectable:true, p:0 }).onChange( Main.changeMode )
+		ui.add( options, 'mode', { type:'button', values:['LOW', 'HIGH'], selectable:true, p:0 }).onChange( Main.changeMode )
 
 
-		g.add( options, 'show_light', { type:'bool' }).onChange( Main.showDebugLight )
-		g.add( options, 'show_stat', { type:'bool' }).onChange( Main.showStatistic )
-		g.add( options, 'exposure', { min:0, max:4, mode:mode } ).onChange( function( v ){ 
+		ui.add( options, 'show_light', { type:'bool' }).onChange( Main.showDebugLight )
+		ui.add( options, 'show_stat', { type:'bool' }).onChange( Main.showStatistic )
+		ui.add( options, 'exposure', { min:0, max:4, mode:mode } ).onChange( function( v ){ 
 			renderer.toneMappingExposure = v 
 			Env.up()
 		})
 
-		g.add( options, 'shadow', { min:0, max:1, mode:mode } ).onChange( Main.setShadow ).listen()
+		ui.add( options, 'shadow', { min:0, max:1, mode:mode } ).onChange( Main.setShadow ).listen()
 
 
-		g.add( options, 'renderMode', { type:'selector', values:[0,1,2,3], selectable:true, p:0, h:24 }).onChange( function(n){ 
+		ui.add( options, 'renderMode', { type:'selector', values:[0,1,2,3], selectable:true, p:0, h:24 }).onChange( function(n){ 
 
 			if( n!== 0 ) scene.helper.visible = false
 			if( n===1 ) { Env.setBackgroud(0x000000) /*camera.near = 1; camera.updateProjectionMatrix();*/}
@@ -170,8 +168,8 @@ export const Gui = {
 			Shader.up( options ) 
 		})
 
-		Gui.camera(g)
-		Gui.postprocess(g)
+		Gui.camera(ui)
+		Gui.postprocess(ui)
 		
 		return
 
@@ -293,6 +291,8 @@ export const Gui = {
 
 	demo:(gg) => {
 
+		return
+
 		let data = Main.getDemos()
 
 		/*let colors = [
@@ -327,6 +327,8 @@ export const Gui = {
 	},
 
 	resetDemoGroup: ( name ) => {
+
+		return
 
 		let cc1 = false, cc2 = false, cc3 = false;
 
