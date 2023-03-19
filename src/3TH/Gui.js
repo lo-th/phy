@@ -349,7 +349,7 @@ export const Gui = {
 
 	showHide: () => { 
 
-		if( Gui.ui.isOpen) Gui.ui.isOpen = false;
+		if( Gui.ui.isOpen ) Gui.ui.isOpen = false;
 		else Gui.ui.isOpen = true;
 		Gui.ui.calc()
 		Gui.ui.mode('def')

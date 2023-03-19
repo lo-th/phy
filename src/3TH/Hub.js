@@ -39,7 +39,7 @@ let full = true
 let currentMenu = ''
 
 const listdata = {
-    home : ['Worker', 'Github'],
+    home : ['Code', 'Worker', 'Github'],
     engine : [],
     demo:[],
     visited:[],
@@ -68,7 +68,7 @@ let lock = false
 let timeout = null
 
 let color = '#001'
-let colorVisite = '#006'
+let colorVisite = '#335'
 
 let setting = {
     cross:4,
@@ -116,7 +116,7 @@ export class Hub {
         content.appendChild( txt );
 
         loader = document.createElement( 'div' );
-        loader.style.cssText = "position:absolute; top:50%; left:50%; width:50px; height:50px; margin-left:-25px; margin-top:-25px; display:block; ";
+        loader.style.cssText = "position:absolute; top:50%; left:50%; width:60px; height:60px; margin-left:-30px; margin-top:-30px; display:block; ";
         content.appendChild( loader );
         this.loadSvg( './assets/textures/loader.svg', loader );
         
@@ -310,12 +310,12 @@ export class Hub {
 
         fps = document.createElement( 'div' );
         //fps.style.cssText = 'position: absolute; bottom:3px; left:10px; font-size:12px; font-family:Tahoma; color:#dcdcdc; text-shadow: 1px 1px 1px #000;'
-        fps.style.cssText = 'position:absolute; top:31px; right:80px; text-align:right; font-size:16px; font-weight:600;'
+        fps.style.cssText = 'position:absolute; top:33px; right:80px; text-align:right; font-size:14px; font-weight:500; '
         content.appendChild( fps )
 
         debug = document.createElement( 'div' );
         //debug.style.cssText = 'position: absolute; bottom:20px; left:10px; font-size:14px; font-family:Tahoma; color:#dcdcdc; text-shadow: 1px 1px 1px #000;  width:400px; vertical-align:bottom;'
-        debug.style.cssText = 'position:absolute; bottom:25px; left:80px; font-size:13px;  width:400px;'//' vertical-align:bottom;'
+        debug.style.cssText = 'position:absolute; background:'+bg+'; width:300px; margin-left:-150px; bottom:25px; left:50%; font-size:14px; font-weight:500; vertical-align:bottom; text-align:center;'
         content.appendChild( debug )
 
 
@@ -345,8 +345,7 @@ export class Hub {
 
         currentMenu = type
 
-        let rect = target.getBoundingClientRect();
-        downMenu.style.left = rect.left + 'px'
+        downMenu.style.left = (type==='engine' ? 120:80) + 'px'
 
         //if(type==='home') list.
 
@@ -376,6 +375,7 @@ export class Hub {
 
             if( listdata.visited.indexOf(name) !== -1 ) m.style.color = colorVisite
             if( name === 'Worker' ) m.style.color = Main.isWorker ? color : colorVisite
+            if( name === 'Code' ) m.style.color = Main.isEditor ? color : colorVisite
 
             if( n===0 ) itemH = m.offsetHeight
             //bb[n] = m
@@ -385,7 +385,7 @@ export class Hub {
         }
 
         
-        rect = innerMenu.getBoundingClientRect();
+        let rect = innerMenu.getBoundingClientRect();
 
         let max = maxListItem * itemH
         let maxH = n * itemH 
@@ -394,7 +394,8 @@ export class Hub {
         sh = maxHeight * ratio
         range = maxHeight - sh
 
-        if( ratio !== 1 && full ){
+        //if( ratio !== 1 && full ){
+        if( type === 'demo' ){
 
             innerMenu.style.display = 'grid';
             innerMenu.style.gridTemplateColumns = 'repeat(auto-fill, 120px)'
@@ -423,8 +424,6 @@ export class Hub {
         zoning.style.height = (rect.height + 70) + 'px'
 
     }
-
-
 
     static upMenu () {
 
@@ -492,12 +491,18 @@ export class Hub {
         switch(type){
             case 'Github': window.open( 'https://github.com/lo-th/phy', '_blank'); break;
             case 'Worker': Hub.swapWorker(); break;
+            case 'Code': Hub.swapCode(); break;
         }
     }
 
     static swapWorker () {
         Main.isWorker = !Main.isWorker
         Hub.swapEngine()
+    }
+
+    static swapCode () {
+        Main.isEditor = !Main.isEditor
+        Main.showEditor(Main.isEditor);
     }
 
     static swapEngine ( type ) {

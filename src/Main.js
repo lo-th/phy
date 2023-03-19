@@ -187,6 +187,7 @@ export const Main = {
 	engineList: [ 'OIMO','AMMO', 'PHYSX'],
 	demoList:[],
 	isMobile:false,
+	isEditor:false,
 
 	start: async ( o = {} ) => {
 
@@ -999,7 +1000,7 @@ const upStat = () => {
 	}
 
 	//Hub.setFps( 'T:' + tm.fps + ' | P:' + Motor.getFps() )
-	Hub.setFps(  tm.fps + ' / ' + Motor.getFps() )
+	Hub.setFps(  tm.fps + ' | ' + Motor.getFps() )
 	getFullStats()
 
 }

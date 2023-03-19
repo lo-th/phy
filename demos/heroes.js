@@ -4,7 +4,7 @@ let trigger
 
 demo = () => {
 
-    phy.log('use key WSAD or ZSQD<br>E to fight<br>C to crouch<br>SPACE to jump<br>SHIFT to run')
+    phy.log('use key WSAD or ZSQD<br>E to fight / C to crouch<br>SPACE to jump / SHIFT to run')
 
 	// setting and start oimophysics
 	phy.set({ substep:2, gravity:[0,-9.81,0], key:true })
