@@ -310,7 +310,7 @@ export class Hub {
 
         fps = document.createElement( 'div' );
         //fps.style.cssText = 'position: absolute; bottom:3px; left:10px; font-size:12px; font-family:Tahoma; color:#dcdcdc; text-shadow: 1px 1px 1px #000;'
-        fps.style.cssText = 'position:absolute; top:33px; right:80px; text-align:right; font-size:14px; font-weight:500; '
+        fps.style.cssText = 'position:absolute; top:33px; right:95px; text-align:right; font-size:14px; font-weight:500; '
         content.appendChild( fps )
 
         debug = document.createElement( 'div' );

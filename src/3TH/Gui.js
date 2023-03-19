@@ -63,40 +63,59 @@ export const Gui = {
 
 	},
 
+	showHide: () => { 
+
+		if( Gui.ui===null ) Gui.initUi()
+
+		if( Gui.ui.isOpen ) Gui.ui.isOpen = false;
+		else Gui.ui.isOpen = true;
+		Gui.ui.calc()
+		Gui.ui.mode('def')
+
+	},
+
 	init: () => {
 
-		const options = Main.getOption();
+        /*let option = `<svg xmlns='http://www.w3.org/2000/svg' version='1.1' xmlns:xlink='http://www.w3.org/1999/xlink' style='pointer-events:none;' 
+        preserveAspectRatio='xMinYMax meet' x='0px' y='0px' width='10px' height='10px' viewBox='0 0 10 10'>
+        <g><path id='OPTION' stroke='#000006' stroke-width='1' fill='none' d='M 4.5 4.5 L 5.5 4.5 5.5 5.5 4.5 5.5 4.5 4.5 Z M 9.5 5 Q 9.5 6.85 8.15 8.15 
+        6.85 9.5 5 9.5 3.15 9.5 1.8 8.15 0.5 6.85 0.5 5 0.5 3.15 1.8 1.8 3.15 0.5 5 0.5 6.85 0.5 8.15 1.8 9.5 3.15 9.5 5 Z'/></g></svg>`*/
+
+        let option = `<svg xmlns='http://www.w3.org/2000/svg' version='1.1' xmlns:xlink='http://www.w3.org/1999/xlink' style='pointer-events:none;' 
+        preserveAspectRatio='xMinYMax meet' x='0px' y='0px' width='10px' height='10px' viewBox='0 0 10 10'>
+        <g><path id='OPTION' stroke='#000006' stroke-width='1' fill='none' d='M 0.5 1.5 L 9.5 1.5 M 0.5 5.5 L 9.5 5.5 M 0.5 9.5 L 9.5 9.5'/></g></svg>`
+
+
+		let button = document.createElement( 'div' );
+        button.style.cssText = 'position:absolute; right:80px;  top:30px; pointer-events:auto; cursor: pointer;'
+        document.body.appendChild( button )
+        //title.id = 'home'
+        button.innerHTML = option;
+
+        button.addEventListener("pointerdown", Gui.showHide );
+
+		
+
+		//const b1 = UIL.add('button', { name:'O', w:14, h:20, pos:{right:'80px', top:'30px'}, simple:true, button:'none', over:'none' }).onChange( Gui.showHide )
+		//b1.icon( UIL.Tools.icon('config', '#001', 20 ) )
+
+	},
+
+	initUi:() => {
 
 		UIL.Tools.setStyle(Gui.colors)
 
-		const b1 = UIL.add('button', { name:'O', w:20, h:22, bw:20, pos:{right:'14px', top:'5px'}, simple:true }).onChange( Gui.showHide )
-		//const b2 = UIL.add('button', { name:'P', w:40, h:40, bw:40, pos:{right:'59px', top:'5px'}, simple:true }).onChange( Gui.gotoGithub )
-		b1.icon( UIL.Tools.icon('config', 'rgba(0,0,6,0.66)', 20 ) )
-		//b2.icon( UIL.Tools.icon('phy', 'rgba(0,0,6,0.66)', 30 ) )
+		const options = Main.getOption();
 
 		const ui = new UIL.Gui( { w:250, h:20, open:false, close:false, css:'top:54px; right:5px;', colors:Gui.colors } )
-
-
-
-
 		if( options.mode === 'HIGH' ) ui.content.style.backdropFilter = 'blur(4px)'
-		//ui.content.style.boxShadow = '0 0px 10px rgba(2,4,24,0.25)'
-
-		//ui.add( 'empty', {h:3})
-
-		//let bb = ui.add('button', { name:'GITHUB / ABOUT', h:40, bw:40 }).onChange( Gui.gotoGithub )
-		//
-
-
 		ui.add('button', { values:Main.engineList, selectable:true, value:Main.engineType  }).onChange( Gui.swapEngine )
 		if( Main.devMode ) ui.add('button', { values:['RAPIER','CANNON'], selectable:true, value:Main.engineType }).onChange( Gui.swapEngine )
-
 		ui.add( 'bool', { name:'WORKER OFF', onName:'WORKER ON', value:Main.isWorker, mode:1 }).onChange( Gui.swapWorker )
 
 		//ui.add( 'empty', {h:3})
 
 		//ui.add( 'bool', { name:'CAPTURE', onName:'STOP', value:false, mode:1 }).onChange( Gui.capture )
-
 		//ui.add('button', { name:'CAMERA' }).onChange( function(){ console.log( controls.getInfo() )} )
 
 
@@ -117,14 +136,6 @@ export const Gui = {
 		Gui.ui = ui;
 
 		Gui.display()
-
-		//Gui.addJoystick()
-
-		//const g2 = Gui.ui.add('group', { name:'DEMOS', open:true })
-		//Gui.camera()
-		//ui.add( 'empty', {h:3})
-		
-		//Gui.demo(g2)
 
 	},
 
@@ -347,14 +358,7 @@ export const Gui = {
 
 	gotoGithub: () => { window.open( 'https://github.com/lo-th/phy', '_blank' ) },
 
-	showHide: () => { 
-
-		if( Gui.ui.isOpen ) Gui.ui.isOpen = false;
-		else Gui.ui.isOpen = true;
-		Gui.ui.calc()
-		Gui.ui.mode('def')
-
-	},
+	
 
 	swapWorker: ( b ) => {
 		Main.isWorker = b
