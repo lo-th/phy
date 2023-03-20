@@ -2,7 +2,7 @@ let gina;
 
 demo = () => {
 
-    phy.log('use key WSAD or ZSQD<br>E to fight<br>C to crouch<br>SPACE to jump<br>SHIFT to run')
+    phy.log('use key WSAD or ZSQD<br>E to fight / C to crouch<br>SPACE to jump / SHIFT to run')
 
     
     phy.view({ envmap:'basic', ground:false, fog:true, fogDist:0.01 })

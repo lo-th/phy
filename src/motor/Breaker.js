@@ -1,9 +1,5 @@
-import { root, map } from './root.js';
+import { root, map, Utils } from './root.js';
 import { ConvexObjectBreaker } from '../3TH/objects/ConvexObjectBreaker.js';
-
-/**
- * @author lo.th / https://github.com/lo-th
- */
  
 export class Breaker {
 
@@ -37,7 +33,7 @@ export class Breaker {
 
 	makeBreak ( name, pos, normal, impulse, velocity ) {
 
-		let mesh = root.byName( name, true );
+		let mesh = Utils.byName( name );
 
 		if ( !mesh ) return;
 		if ( !mesh.breakable ) return;
@@ -57,11 +53,18 @@ export class Breaker {
 		
 		
 		// remove original object
-		root.remove( name );
-		//root.tmpRemove.push( name );
+		root.motor.remove( name );
+		//root.flow.remove.push( name )
 
+		// add debris
+		let list = []
 		let i = debris.length;
-		while ( i -- ) root.tmpAdd.push( this.addDebris( name, i, debris[ i ], breakOption, velocity ) );
+		while ( i -- ){ 
+			//root.flow.add.push( this.addDebris( name, i, debris[ i ], breakOption, velocity ) );
+			list.push( this.addDebris( name, i, debris[ i ], breakOption, velocity ) );
+		}
+
+		root.motor.add( list )
 
 	}
 

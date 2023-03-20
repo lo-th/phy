@@ -37,7 +37,6 @@ export class Contact extends Item {
 
 		let c = new Pair( o );
 
-
 		if( o.callback ) delete ( o.callback );
 
 		// add to world

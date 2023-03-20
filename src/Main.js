@@ -314,6 +314,8 @@ export const Main = {
 		setReflect( low ? 0 : 0.8 )
 	},
 
+	showGui: () => { Gui.showHide() },
+
 }
 
 
@@ -362,8 +364,6 @@ async function preLoad( name, o ) {
 
 const init = () => {
 
-	
-
 	// https://threejs.org/docs/#api/en/renderers/WebGLRenderer
 
 	let powerPreference ='default'
@@ -394,6 +394,7 @@ const init = () => {
 		stencil: false,
 		alpha: false,
 	})
+	
 	renderer.setPixelRatio( pixelRatio )
 	renderer.setSize( size.w, size.h )
 
@@ -558,7 +559,7 @@ const next = () => {
 
     Hub.endLoading()
 
-    Gui.init()
+    //Gui.init()
 
     //initGUI()
 	/*new TWEEN.Tween( { a:0 } )

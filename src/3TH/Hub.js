@@ -25,7 +25,7 @@ let parent;
 let content, cross = null, border, counter, counter2, zone, path, txt, info, loader, textRight, textLeft, textLeft2;
 let unselectable = '-o-user-select:none; -ms-user-select:none; -khtml-user-select:none; -webkit-user-select:none; -moz-user-select: none; pointer-events:none; ';
 
-let menu, pin, title, engine, demo, downMenu, innerMenu, zoning
+let menu, pin, title, engine, demo, downMenu, innerMenu, zoning, guiButton
 
 
 let ratio = 1
@@ -75,10 +75,29 @@ let setting = {
     border:'#020206',
 }
 
+let p0 = 'M 0.5 1.5 L 9.5 1.5 M 0.5 5.5 L 9.5 5.5 M 0.5 9.5 L 9.5 9.5'
+let p1 = 'M 1.5 0.5 L 1.5 9.5 M 5.5 0.5 L 5.5 9.5 M 9.5 0.5 L 9.5 9.5'
+
 const old = { f:0, z:0, w:0, h:0, ratio:1 }
 let size = {};
 
 export class Hub {
+
+    static colors( day ) {
+
+        if(day){
+            color = '#001'
+            colorVisite = '#335'
+        } else {
+            color = '#FFE'
+            colorVisite = '#DDC'
+        }
+
+        content.style.color = color
+        document.querySelector("#svgLogo").setAttributeNS(null, 'stroke', color )
+        document.querySelector("#guiPath").setAttributeNS(null, 'stroke', color )
+
+    }
 
     static reset() {
 
@@ -107,7 +126,7 @@ export class Hub {
         parent = Parent || document.body;
 
         content = document.createElement( 'div' );
-        content.style.cssText = unselectable + 'position:absolute; margin:0; padding:0; top:0px; left:0px; width:100%; height:100%; display:block; ; color:'+color+'; font-family: Mulish,sans-serif;'//font-family: 'Roboto Mono', 'Source Code Pro', Consolas, monospace"; //color:#DDD; text-shadow: 1px 1px 1px #000010;
+        content.style.cssText = unselectable + 'position:absolute; margin:0; padding:0; top:0px; left:0px; width:100%; height:100%; display:block; color:'+color+'; font-family: Mulish,sans-serif;'
         parent.appendChild( content );
         
         txt = document.createElement( 'div' );
@@ -144,7 +163,7 @@ export class Hub {
             joyOver:'rgba(127,255,0,0.5)',
             joySelect: '#7fFF00',
         }
-        joy = UIL.add('Joystick', {  w:160, mode:1, text:false, precision:1, pos:{left:'10px', bottom:'10px' }, target:content, simple:true, ...colors }).onChange( function(v){ Motor.setKey(0, v[0]); Motor.setKey(1, v[1]) } )
+        joy = UIL.add('Joystick', {  w:120, mode:1, text:false, precision:1, pos:{left:'10px', bottom:'10px' }, target:content, simple:true, ...colors }).onChange( function(v){ Motor.setKey(0, v[0]); Motor.setKey(1, v[1]) } )
         //joy.neverlock = true
     }
 
@@ -239,20 +258,11 @@ export class Hub {
             function(){ loader.style.display = 'none'; }
         )
 
-        /*let logo0 = `<svg xmlns='http://www.w3.org/2000/svg' version='1.1' xmlns:xlink='http://www.w3.org/1999/xlink' style='pointer-events:none;' 
-        preserveAspectRatio='xMinYMax meet' x='0px' y='0px' width='60px' height='30px' viewBox='0 0 100 50'>
-        <g><path id='3TH' stroke='#000006' stroke-width='10' style='stroke-opacity: .3;' fill='none' d='M 70 8 L 70 23 79.75 23 80 23 Q 84.15 23 87.05 25.9 90 28.85 90 33 L 90 48 M 12 
-        5 Q 12 11.73 14.35 9.4 16.7 7.05 20 7.05 23.35 7.05 25.7 9.4 27.1 11.73 28 15 28 18.35 25.7 20.7 23.7 22.7 21 23 L 44 23 44 8 M 61 43 L 52 43 Q 48.7 43.05 46.35 40.7 44 38.35 
-        44 35 L 44 23 70 23 70 32.75 Q 70.1 28.75 72.95 25.9 75.75 23.1 79.75 23 M 70 48 L 70 32.75 M 21 23 Q 24.4 23.25 27.05 25.9 30 28.85 30 33 30 37.1 27.05 40.05 24.15 43 20 43 
-        15.85 43 12.95 40.05 10 37.1 10 33 M 16 23 L 21 23'/></g></svg>`*/
-
-        
-
         let logo = `<svg xmlns='http://www.w3.org/2000/svg' version='1.1' xmlns:xlink='http://www.w3.org/1999/xlink' style='pointer-events:none;' 
         preserveAspectRatio='xMinYMax meet' x='0px' y='0px' width='20px' height='20px' viewBox='0 0 256 256'>
-        <g><path id='PHY' stroke='#000006' stroke-width='30' style='stroke-opacity: 1;'  stroke-linejoin='round' stroke-linecap='round' 
-        fill='none' d='M 72.85 52.85 Q 70.9 53.8 69.15 55 45 72.35 45 96.5 45 120.65 69.15 137.7 93.55 155 127.95 155 L 127.95 37.95 Q 162.35 37.95 186.5 55 210.9 72.35 210.9 96.5 210.9 120.65 186.5 137.7 162.35 155 127.95 155 L 127.95 237.95'/>
-        </g></svg>`
+        <path id='svgLogo' stroke='${color}' stroke-width='30' style='stroke-opacity: 1;' stroke-linejoin='round' stroke-linecap='round' 
+        fill='none' d='M 72.85 52.85 Q 70.9 53.8 69.15 55 45 72.35 45 96.5 45 120.65 69.15 137.7 93.55 155 127.95 155 L 127.95 37.95 Q 
+        162.35 37.95 186.5 55 210.9 72.35 210.9 96.5 210.9 120.65 186.5 137.7 162.35 155 127.95 155 L 127.95 237.95'/></svg>`
 
         let bg = 'none'//'rgba(255,255,255,0.1)'
         let bg2 = 'none'//'rgba(255,255,255,0.01)'
@@ -284,10 +294,6 @@ export class Hub {
 
         zoning.addEventListener("pointermove", Hub.moving );
 
-        /*pin = document.createElement( 'div' );
-        pin.style.cssText = 'position:absolute; left:-20px; top:53px; background:none; width:20px; height:1px;' //transition: all .1s ease-in-out;
-        content.appendChild( pin )*/
-
         title = document.createElement( 'div' );
         //title.style.cssText = ' left:40px;'
         menu.appendChild( title )
@@ -309,21 +315,36 @@ export class Hub {
         this.effect(demo)
 
         fps = document.createElement( 'div' );
-        //fps.style.cssText = 'position: absolute; bottom:3px; left:10px; font-size:12px; font-family:Tahoma; color:#dcdcdc; text-shadow: 1px 1px 1px #000;'
         fps.style.cssText = 'position:absolute; top:33px; right:95px; text-align:right; font-size:14px; font-weight:500; '
         content.appendChild( fps )
 
         debug = document.createElement( 'div' );
-        //debug.style.cssText = 'position: absolute; bottom:20px; left:10px; font-size:14px; font-family:Tahoma; color:#dcdcdc; text-shadow: 1px 1px 1px #000;  width:400px; vertical-align:bottom;'
         debug.style.cssText = 'position:absolute; background:'+bg+'; width:300px; margin-left:-150px; bottom:25px; left:50%; font-size:14px; font-weight:500; vertical-align:bottom; text-align:center;'
         content.appendChild( debug )
 
-
         statistics = document.createElement( 'div' );
-        //statistics.style.cssText = 'position: absolute; top:3px; left:10px; font-size:14px; font-family:Tahoma; color:#00ff33; text-shadow: 1px 1px 1px #000; width:200px; white-space: pre;'
         statistics.style.cssText = 'position:absolute; top:100px; left:10px; font-size:14px; font-weight:500; width:200px; white-space: pre; line-height:20px;'
-        
         content.appendChild( statistics )
+
+
+        guiButton = document.createElement( 'div' );
+        guiButton.style.cssText = 'position:absolute; right:80px;  top:30px; pointer-events:auto; cursor: pointer;'
+        content.appendChild( guiButton )
+        guiButton.innerHTML = `<svg xmlns='http://www.w3.org/2000/svg' version='1.1' xmlns:xlink='http://www.w3.org/1999/xlink' style='pointer-events:none;' 
+        preserveAspectRatio='xMinYMax meet' x='0px' y='0px' width='10px' height='10px' viewBox='0 0 10 10'>
+        <path stroke='${color}' id='guiPath' stroke-width='1' fill='none' d='${p0}'/></svg>`;
+        guiButton.addEventListener("pointerdown", Main.showGui );
+
+
+        //Hub.colors(false)
+
+    }
+
+    static switchGuiButton(b){
+
+        document.querySelector("#guiPath").setAttributeNS(null, 'd', b ? p1 : p0)
+
+        
 
     }
 
@@ -601,9 +622,6 @@ export class Hub {
         content.appendChild( border );
 
     }
-
-    
-
 
 
     //-------------------------

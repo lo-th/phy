@@ -5222,7 +5222,6 @@ class Contact extends Item {
 
 		let c = new Pair( o );
 
-
 		if( o.callback ) delete ( o.callback );
 
 		// add to world
@@ -24845,6 +24844,7 @@ let isBuffer = false;
 let isTimeout = false;
 let outsideStep = true;
 
+
 let isPause = false;
 
 let directMessage = null;
@@ -24910,6 +24910,7 @@ class Motor {
 			root.reflow = e.reflow;
 			if(root.reflow.stat.delta) elapsedTime += root.reflow.stat.delta;
 		}
+	
 		Motor[ e.m ]( e.o );
 
 	}
@@ -24967,20 +24968,16 @@ class Motor {
 			delete ( o.callback );
 		}
 
-		/*Motor.initArray()
-		o.ArPos = ArPos
-		o.ArMax = ArMax*/
-
 		root.scene = new Group();
 		root.scene.name = 'phy_scene';
 		root.scenePlus = new Group();
 		root.scenePlus.name = 'phy_scenePlus';
 
-		root.post = Motor.post;
-		root.up = Motor.up;
 		root.update = Motor.update;
-		root.add = Motor.add;
 		root.remove = Motor.remove;
+		root.post = Motor.post;
+		root.add = Motor.add;
+		root.up = Motor.up;
 
 		root.motor = this;
 
@@ -25198,7 +25195,6 @@ class Motor {
 		// user key interaction 
 		root.flow.key = user.update();
 		root.flow.current = currentControle !== null ? currentControle.name : '';
-		//root.flow.tmp = []
 
 		if( currentControle !== null ) currentControle.move();
 
@@ -25520,6 +25516,16 @@ class Motor {
 		timoutTime = 0; 
 		clearTimeout( timout );
 		timout = null;
+
+	}
+
+	//-----------------------
+	// BREAK
+	//-----------------------
+
+	static addBreakableEvent () {
+
+		return;
 
 	}
 

@@ -7,9 +7,6 @@ font-feature-settings:normal
 }
 body{ background-color:#000; margin:0; padding:0; overflow:hidden;}
 
-
-
-
 .menu {
 	flex:1; 
 	pointer-events:auto; 
@@ -20,16 +17,9 @@ body{ background-color:#000; margin:0; padding:0; overflow:hidden;}
 
 .down {
 	flex:1;
-	/*flex: 1 1 120px;*/
-	pointer-events:auto; 
+	pointer-events:auto;
 	cursor: pointer;
 	padding: 4px 0px;
 	white-space: nowrap;
 	text-underline-offset: 6px;
-	
-	/*
-	flex-grow: 1;
-	align-self: flex-start;
-	border: solid 1px black;
-	*/
 }

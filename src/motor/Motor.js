@@ -4,7 +4,6 @@ import {
 } from 'three';
 
 import { root, math, Utils, Geo, Mat, mat } from './root.js';
-
 import { Max, Num, getArray, getType } from '../core/Config.js';
 
 import { Ray } from './Ray.js';
@@ -17,6 +16,8 @@ import { Terrain } from './Terrain.js';
 import { Solver } from './Solver.js';
 import { Timer } from './Timer.js';
 import { User } from './User.js';
+
+import { Breaker } from './Breaker.js';
 
 /** __
 *    _)_|_|_
@@ -36,6 +37,9 @@ let isWorker = false
 let isBuffer = false
 let isTimeout = false
 let outsideStep = true
+
+let breaker = null;
+
 
 let isPause = false
 
@@ -102,6 +106,7 @@ export class Motor {
 			root.reflow = e.reflow
 			if(root.reflow.stat.delta) elapsedTime += root.reflow.stat.delta
 		}
+	
 		Motor[ e.m ]( e.o )
 
 	}
@@ -159,20 +164,16 @@ export class Motor {
 			delete ( o.callback )
 		}
 
-		/*Motor.initArray()
-		o.ArPos = ArPos
-		o.ArMax = ArMax*/
-
 		root.scene = new Group()
 		root.scene.name = 'phy_scene'
 		root.scenePlus = new Group()
 		root.scenePlus.name = 'phy_scenePlus'
 
-		root.post = Motor.post
-		root.up = Motor.up
 		root.update = Motor.update
-		root.add = Motor.add
 		root.remove = Motor.remove
+		root.post = Motor.post
+		root.add = Motor.add
+		root.up = Motor.up
 
 		root.motor = this
 
@@ -292,6 +293,8 @@ export class Motor {
 
 	    // clear temporary mesh
 		root.disposeTmp();
+
+		if( breaker !== null ) breaker = null
 			
 		root.tmpTex = []
 	    root.scenePlus.children = []
@@ -393,6 +396,8 @@ export class Motor {
 		root.flow.key = user.update()
 		root.flow.current = currentControle !== null ? currentControle.name : ''
 		//root.flow.tmp = []
+
+		if( breaker !== null ) breaker.step();
 
 		if( currentControle !== null ) currentControle.move()
 
@@ -714,6 +719,20 @@ export class Motor {
 		timoutTime = 0; 
 		clearTimeout( timout )
 		timout = null
+
+	}
+
+	//-----------------------
+	// BREAK
+	//-----------------------
+
+	static addBreakableEvent () {
+
+		if( breaker === null ) return;
+
+		breaker = new Breaker();
+
+		root.post({ m:'addEventCallback', o:{ isBreak: true } });
 
 	}
 

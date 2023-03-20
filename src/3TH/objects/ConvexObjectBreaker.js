@@ -1,8 +1,7 @@
 import {
     Mesh, Line3, Plane, Vector3
 } from 'three';
-import { ConvexBufferGeometry } from 'three/addons/geometry/ConvexGeometry.js';
-
+import { ConvexGeometry } from '../../jsm/geometry/ConvexGeometry.js';
 /**
  * @author yomboprime https://github.com/yomboprime
  *
@@ -23,7 +22,7 @@ import { ConvexBufferGeometry } from 'three/addons/geometry/ConvexGeometry.js';
  *  - Vertex normals must be planar (not smoothed)
  *
  *  - The geometry must be convex (this is not checked in the library). You can create convex
- *  geometries with ConvexBufferGeometry. The BoxBufferGeometry, SphereBufferGeometry and other convex primitives
+ *  geometries with ConvexGeometry. The BoxBufferGeometry, SphereBufferGeometry and other convex primitives
  *  can also be used.
  *
  * Note: This lib adds member variables to object's userData member (see prepareBreakableObject function)
@@ -421,7 +420,7 @@ export class ConvexObjectBreaker {
 
 		if ( numPoints1 > 4 ) {
 
-			object1 = new Mesh( new ConvexBufferGeometry( points1 ), object.material );
+			object1 = new Mesh( new ConvexGeometry( points1 ), object.material );
 			object1.position.copy( this.tempCM1 );
 			object1.quaternion.copy( object.quaternion );
 
@@ -433,7 +432,7 @@ export class ConvexObjectBreaker {
 
 		if ( numPoints2 > 4 ) {
 
-			object2 = new Mesh( new ConvexBufferGeometry( points2 ), object.material );
+			object2 = new Mesh( new ConvexGeometry( points2 ), object.material );
 			object2.position.copy( this.tempCM2 );
 			object2.quaternion.copy( object.quaternion );
 

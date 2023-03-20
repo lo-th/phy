@@ -75,7 +75,9 @@ demo = () => {
 
 showContact = ( d ) => {
 
-    if( d.hit ) bob.material.color.setHex( 0x00FF00 )
+    if( d.hit ) { bob.material.color.setHex( 0x00FF00 ) 
+       // console.log(d)
+    }
     else bob.material.color.setHex( 0x00FF88 ) 
 
     //console.log('bob collision on floor')

@@ -67,13 +67,17 @@ export const Gui = {
 
 	showHide: () => { 
 
-		if( Gui.ui===null ) Gui.initUi()
+		if( Gui.ui===null ) Gui.init()
 
 		if( Gui.ui.isOpen ) Gui.ui.isOpen = false;
 		else Gui.ui.isOpen = true;
 
+		Hub.switchGuiButton( Gui.ui.isOpen )
 
-		document.querySelector("#path").setAttributeNS(null, 'd', Gui.ui.isOpen ? Gui.p1 : Gui.p0)
+		//UIL.Tools.setSvg( )
+
+
+		//document.querySelector("#path").setAttributeNS(null, 'd', Gui.ui.isOpen ? Gui.p1 : Gui.p0)
 
 
 		///Gui.button.childNodes[0].childNodes[ 0 ].setAttributeNS(null, 'd', Gui.ui.isOpen ? Gui.p1 : Gui.p0)
@@ -83,34 +87,7 @@ export const Gui = {
 
 	},
 
-	init: () => {
-
-
-
-        let svg = `<svg xmlns='http://www.w3.org/2000/svg' version='1.1' xmlns:xlink='http://www.w3.org/1999/xlink' style='pointer-events:none;' 
-        preserveAspectRatio='xMinYMax meet' x='0px' y='0px' width='10px' height='10px' viewBox='0 0 10 10'>
-        <path stroke='#000006' id='path' stroke-width='1' fill='none' d='M 0.5 1.5 L 9.5 1.5 M 0.5 5.5 L 9.5 5.5 M 0.5 9.5 L 9.5 9.5'/></svg>`
-
-
-		let button = document.createElement( 'div' );
-        button.style.cssText = 'position:absolute; right:80px;  top:30px; pointer-events:auto; cursor: pointer;'
-        document.body.appendChild( button )
-        //title.id = 'home'
-        button.innerHTML = svg;
-        
-
-        
-        button.addEventListener("pointerdown", Gui.showHide );
-
-
-		
-
-		//const b1 = UIL.add('button', { name:'O', w:14, h:20, pos:{right:'80px', top:'30px'}, simple:true, button:'none', over:'none' }).onChange( Gui.showHide )
-		//b1.icon( UIL.Tools.icon('config', '#001', 20 ) )
-
-	},
-
-	initUi:() => {
+	init:() => {
 
 		UIL.Tools.setStyle(Gui.colors)
 
