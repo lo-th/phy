@@ -1,4 +1,4 @@
-import { root, Utils } from './root.js'
+import { root, Utils, math } from './root.js'
 import { getType, getArray } from '../core/Config.js';
 
 import { Ray } from './Ray.js'
@@ -34,6 +34,7 @@ const Time = typeof performance === 'undefined' ? Date : performance;
 const t = { tmp:0, n:0, dt:0, fps:0 };
 
 let timestep = 1/60;
+let interval = 16.67;
 let substep = 4;
 let fixe = true;
 let broadphase = 2;
@@ -41,8 +42,9 @@ let broadphase = 2;
 let startTime = 0, lastTime = 0;
 let isStop = true, isReset, tmpStep;
 
-let interval = null;
+let intertime = null;
 let timeout = null;
+
 let gravity = null;
 let penetration = null;
 
@@ -110,6 +112,8 @@ export class engine {
 		isTimeout = o.isTimeout || false;
 
 		timestep = 1 / (o.fps || 60 );
+		interval = math.toFixed(timestep*1000, 2)
+
 		substep = o.substep || 1;
 		fixe = o.fixe !== undefined ? o.fixe : true;
 		broadphase = o.broadphase || 2;
@@ -145,8 +149,11 @@ export class engine {
 
 		if( outsideStep ) return
 		
-		if( isTimeout ) engine.step();
-		else interval = setInterval( engine.step, 1000 * timestep )
+		if( isTimeout ){
+			if( timeout ) clearTimeout( timeout ); 
+			timeout = setTimeout( engine.step, 0 );
+		}
+		else intertime = setInterval( engine.step, interval )
 		
 	}
 
@@ -234,10 +241,12 @@ export class engine {
 
 		if( isTimeout ){
 
+			if( timeout ) clearTimeout( timeout );
+
 			// If the worker was faster delay the next timestep
-            let delay = timestep * 1000 - ( Time.now() - startTime );
-            if( delay < 0 ) engine.step();
-            else timeout = setTimeout( engine.step, delay );
+            let delay = interval - ( Time.now() - lastTime );
+            if( delay < 0 ) delay = 0;
+            timeout = setTimeout( engine.step, delay );
 
 		}
 
@@ -332,8 +341,8 @@ export class engine {
 
 		if( outsideStep ) return;
 		if( timeout ) clearTimeout( timeout );
-		if( interval ) clearInterval( interval );
-		interval = null;
+		if( intertime ) clearInterval( intertime );
+		intertime = null;
 		timeout = null;
 
 	}

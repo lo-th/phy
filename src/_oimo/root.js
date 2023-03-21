@@ -21,6 +21,16 @@ export const root = {
 export const torad = Math.PI / 180;
 export const todeg = 180 / Math.PI;
 
+export const math = {
+	clamp: ( v, min, max ) => { 
+		//Math.max( min, Math.min( max, v )) 
+		v = v < min ? min : v;
+	    v = v > max ? max : v;
+	    return v;
+	},
+	toFixed: ( x, n = 3 ) => ( x.toFixed(n) * 1 ),
+}
+
 export class Utils {
 
 	static clear() {

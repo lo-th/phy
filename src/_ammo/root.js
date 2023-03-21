@@ -30,7 +30,9 @@ export const math = {
 		v = v < min ? min : v;
 	    v = v > max ? max : v;
 	    return v;
-	}
+	},
+	
+	toFixed: ( x, n = 3 ) => ( x.toFixed(n) * 1 ),
 }
 
 export const Utils = {
