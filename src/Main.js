@@ -193,7 +193,7 @@ export const Main = {
 
 		const gpuTier = await getGPUTier();
 	    const perf = gpuTier
-	    console.log(perf)
+	    //console.log(perf)
 
 	    Main.isMobile = perf.isMobile
 
