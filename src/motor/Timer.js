@@ -6,8 +6,9 @@ export class Timer {
 		this.fps = 0
 		this.delta = 0
 		this.elapsedTime = 0
-		this.unlimited = true
+		this.unlimited = false
 		this.setFramerate( framerate )
+		this.force = false
 
 	} 
 
@@ -15,15 +16,23 @@ export class Timer {
 
 		let t = this.time;
 
-		t.now = stamp !== undefined ? stamp : Date.now();
+		if(this.unlimited) this.force = true
+
+		t.now = stamp// !== undefined ? stamp : Date.now();
 		t.delta = t.now - t.then;
+
+		if( this.force ) {
+			t.delta = t.interval
+			this.force = false
+		}
 		
-		if ( t.delta > t.interval || this.unlimited ) {
+		if ( t.delta >= t.interval || this.unlimited ) {
 
 		    t.then = this.unlimited ? t.now : t.now - ( t.delta % t.interval )
 		    this.delta = t.delta * 0.001
 		    this.elapsedTime += this.delta;
-		    if ( t.now - 1000 > t.tmp ){ t.tmp = t.now; this.fps = t.n; t.n = 0; }; t.n++;
+		    
+		    //if ( t.now - 1000 > t.tmp ){ t.tmp = t.now; this.fps = t.n; t.n = 0; }; t.n++;
 			return true
 
 		}
@@ -38,6 +47,7 @@ export class Timer {
 		this.framerate = framerate;
 		this.unlimited = this.framerate < 0;
 		this.time.interval = 1000 / framerate;
+		if( framerate === 60 ) this.time.interval = 16.67
 
 	}
 	

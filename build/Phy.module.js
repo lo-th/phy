@@ -2,6 +2,7 @@ import { Color, Euler, Quaternion, Matrix4, Vector3, Box3Helper, CylinderGeometr
 
 const map = new Map();
 
+
 /*export const Max = {
 	body:2000,
     joint:100,
@@ -30,6 +31,8 @@ export const Num = {
 
 const root = {
 
+	AR:null,
+
 	engine:'OIMO',
 	motor: null,
 	scene : null,
@@ -46,12 +49,13 @@ const root = {
 	tmpTex : [],
 	tmpMat : [],
 	flow:{
+		stamp:0,
 		current:'',
-		tmp:[],
 		key:[],
+		tmp:[],
 		add:[],
 		remove:[],
-		point:[]
+		//point:[]
 	},
 	reflow:{
 		ray:[],
@@ -24535,8 +24539,9 @@ class Timer {
 		this.fps = 0;
 		this.delta = 0;
 		this.elapsedTime = 0;
-		this.unlimited = true;
+		this.unlimited = false;
 		this.setFramerate( framerate );
+		this.force = false;
 
 	} 
 
@@ -24544,15 +24549,23 @@ class Timer {
 
 		let t = this.time;
 
-		t.now = stamp !== undefined ? stamp : Date.now();
+		if(this.unlimited) this.force = true;
+
+		t.now = stamp;// !== undefined ? stamp : Date.now();
 		t.delta = t.now - t.then;
+
+		if( this.force ) {
+			t.delta = t.interval;
+			this.force = false;
+		}
 		
-		if ( t.delta > t.interval || this.unlimited ) {
+		if ( t.delta >= t.interval || this.unlimited ) {
 
 		    t.then = this.unlimited ? t.now : t.now - ( t.delta % t.interval );
 		    this.delta = t.delta * 0.001;
 		    this.elapsedTime += this.delta;
-		    if ( t.now - 1000 > t.tmp ){ t.tmp = t.now; this.fps = t.n; t.n = 0; } t.n++;
+		    
+		    //if ( t.now - 1000 > t.tmp ){ t.tmp = t.now; this.fps = t.n; t.n = 0; }; t.n++;
 			return true
 
 		}
@@ -24567,6 +24580,7 @@ class Timer {
 		this.framerate = framerate;
 		this.unlimited = this.framerate < 0;
 		this.time.interval = 1000 / framerate;
+		if( framerate === 60 ) this.time.interval = 16.67;
 
 	}
 	
@@ -24836,13 +24850,20 @@ class Gamepad {
 let items;
 let currentControle = null;
 let callback = null;
-let Ar, ArPos = {};
+let Ar = null, ArPos = {};
 let maxFps = 60;
 let worker = null;
 let isWorker = false;
 let isBuffer = false;
 let isTimeout = false;
 let outsideStep = true;
+
+let timetest = {
+	t1:0,
+	t2:0,
+	t3:0,
+	t4:0,
+};
 
 
 let isPause = false;
@@ -24869,6 +24890,8 @@ let addControl = function(){};
 //let extraMaterial = function(){}
 
 class Motor {
+
+	static getTimeTest () { return timetest }
 
 	static setMaxFps ( v ) { maxFps = v; }
 
@@ -24905,7 +24928,7 @@ class Motor {
 	static message ( m ){
 
 		let e = m.data;
-		if( e.Ar ) Ar = e.Ar;
+		if( e.Ar ) Ar = e.Ar;//new Float32Array( e.Ar )//;
 		if( e.reflow ){
 			root.reflow = e.reflow;
 			if(root.reflow.stat.delta) elapsedTime += root.reflow.stat.delta;
@@ -25002,26 +25025,41 @@ class Motor {
 				default :
 				    if( type === 'RAPIER' ) { name = 'rapier3d'; mini = 'rapier3d'; }
 
+					//let coep = '?coep=require-corp&coop=same-origin&corp=same-origin&'
+					// https://cross-origin-isolation.glitch.me/?coep=require-corp&coop=same-origin&corp=same-origin&
 				    // for wasm side
 				    if( o.link ) o.blob = document.location.href.replace(/\/[^/]*$/,"/") + o.link;
 
 					worker = new Worker( './build/'+mini+'.min.js' );
+					//worker = new Worker( 'http://localhost:8612/build/'+mini+'.min.js'+coep )
 
 				break
 
 			}
 
+
+
 			worker.postMessage = worker.webkitPostMessage || worker.postMessage;
 			worker.onmessage = Motor.message;
 
 			let ab = new ArrayBuffer( 1 );
-			worker.postMessage( { m: 'test', ab: ab }, [ ab ] );
+			worker.postMessage( { m: 'test', ab:ab }, [ ab ] );
 			isBuffer = ab.byteLength ? false : true;
+
 
 			o.isBuffer = isBuffer;
 			console.log( st  + ' Worker '+ type + (o.isBuffer ? ' with Shared Buffer' : '') );
 
+
+			/// ???
+			//Cross-Origin-Embedder-Policy: require-corp
+			//Cross-Origin-Opener-Policy: same-origin
+			//const buffer = new SharedArrayBuffer( 1024  );
+
+			//console.log(crossOriginIsolated)
+
 			isWorker = true;
+
 
 		} else { // is direct version
 
@@ -25053,12 +25091,13 @@ class Motor {
 	static flowReset ( ){
 
 		root.flow = { 
+			stamp:0,
 			current:'',
-			tmp:[],
 			key:[],
+			tmp:[],
 			add:[],
 			remove:[],
-			point:[] 
+			//point:[]
 		};
 
 	}
@@ -25141,8 +25180,13 @@ class Motor {
 
 		elapsedTime = 0;
 
-		o.outsideStep = outsideStep;
+		isTimeout = isWorker;
+		outsideStep = !isTimeout;
+		///o.realtime = realtime;
 		o.isTimeout = isTimeout;
+		o.outsideStep = outsideStep;
+		
+
 		if(!o.gravity) o.gravity = [0,-9.81,0];
 		if(!o.substep) o.substep = 2;
 
@@ -25154,7 +25198,7 @@ class Motor {
 
 		//console.log( o.fps );
 
-		timer.setFramerate( o.fps );
+		if(outsideStep) timer.setFramerate( o.fps );
 
 		
 		
@@ -25174,6 +25218,10 @@ class Motor {
 
 	static doStep ( stamp ){
 
+		if( !outsideStep ) return
+
+        //if( isWorker && realtime ) return
+
 		if( timer.up( stamp ) ) {
 			root.post( { m:'step', o:stamp } );
 		}
@@ -25184,15 +25232,25 @@ class Motor {
 
 	}
 
-	static step ( o ){
+	static step (){
+
+		//let stamp = root.reflow.stat.stamp 
+		//timetest.t1 = root.reflow.stat.time 
+		//timetest.t2 = root.reflow.stat.endTime 
+
+		/*if( root.reflow.stat.time > timer.time.interval ){ 
+			//timer.force = true
+			timetest.t2++
+		}*/
 
 		//console.time('step')
 
-		root.delta = timer.delta;
+		root.delta = outsideStep ? timer.delta : root.reflow.stat.delta;
 
 		Motor.stepItems();
-
+    
 		// user key interaction 
+		
 		root.flow.key = user.update();
 		root.flow.current = currentControle !== null ? currentControle.name : '';
 
@@ -25210,15 +25268,11 @@ class Motor {
 
 		// finally post flow change to physx
 		if( isBuffer ) root.post( { m:'poststep', flow:root.flow, Ar:Ar }, [ Ar.buffer ] );
-		else root.post( { m:'poststep', flow:root.flow, Ar:Ar });
+		else root.post( { m:'poststep', flow:root.flow });
 
 		Motor.flowReset();
 
-	    //console.timeEnd('step')
-
 	}
-
-	
 
     static up ( list ) {
 
@@ -25374,6 +25428,8 @@ class Motor {
 	}
 
 	static stepItems () {
+
+		if(Ar===null) return
 
 		for (const key in items) items[key].step( Ar, ArPos[key] );
 

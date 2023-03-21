@@ -1,7 +1,7 @@
 demo = () => {
 
     // config physics setting
-    phy.set({ substep:4, gravity:[0,-9.81,0], fps:-1/*, fixe:false*/ })
+    phy.set({ substep:4, gravity:[0,-9.81,0], fps:60/*, fixe:false*/ })
 
     // add static ground
     phy.add({ type:'plane', size:[300,1,300], visible:false });

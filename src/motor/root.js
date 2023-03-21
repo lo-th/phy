@@ -8,6 +8,7 @@ import {
 
 export const map = new Map()
 
+
 /*export const Max = {
 	body:2000,
     joint:100,
@@ -36,6 +37,8 @@ export const Num = {
 
 export const root = {
 
+	AR:null,
+
 	engine:'OIMO',
 	motor: null,
 	scene : null,
@@ -52,12 +55,13 @@ export const root = {
 	tmpTex : [],
 	tmpMat : [],
 	flow:{
+		stamp:0,
 		current:'',
-		tmp:[],
 		key:[],
+		tmp:[],
 		add:[],
 		remove:[],
-		point:[]
+		//point:[]
 	},
 	reflow:{
 		ray:[],

@@ -213,6 +213,15 @@ export class Hub {
 
     }
 
+    static showTimeTest ( t ) {
+
+        if( statistics === null ) return;
+        let txt = JSON.stringify(t, null, 2)
+        txt = txt.replace(/[",*+?^${}()|[\]\\]/g, '')
+        statistics.textContent = txt
+
+    }
+
     static setStats ( t = '' ) {
 
         if( statistics === null ) return;

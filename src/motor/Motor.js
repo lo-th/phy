@@ -30,7 +30,7 @@ import { Breaker } from './Breaker.js';
 let items
 let currentControle = null
 let callback = null
-let Ar, ArPos = {}
+let Ar = null, ArPos = {}
 let maxFps = 60
 let worker = null
 let isWorker = false
@@ -38,7 +38,17 @@ let isBuffer = false
 let isTimeout = false
 let outsideStep = true
 
+let realtime = true
+
+
 let breaker = null;
+
+let timetest = {
+	t1:0,
+	t2:0,
+	t3:0,
+	t4:0,
+}
 
 
 let isPause = false
@@ -65,6 +75,8 @@ let addControl = function(){}
 //let extraMaterial = function(){}
 
 export class Motor {
+
+	static getTimeTest () { return timetest }
 
 	static setMaxFps ( v ) { maxFps = v }
 
@@ -100,8 +112,8 @@ export class Motor {
 
 	static message ( m ){
 
-		let e = m.data;
-		if( e.Ar ) Ar = e.Ar;
+		let e = m.data
+		if( e.Ar ) Ar = e.Ar;//new Float32Array( e.Ar )//;
 		if( e.reflow ){
 			root.reflow = e.reflow
 			if(root.reflow.stat.delta) elapsedTime += root.reflow.stat.delta
@@ -198,26 +210,41 @@ export class Motor {
 				default :
 				    if( type === 'RAPIER' ) { name = 'rapier3d'; mini = 'rapier3d'; }
 
+					//let coep = '?coep=require-corp&coop=same-origin&corp=same-origin&'
+					// https://cross-origin-isolation.glitch.me/?coep=require-corp&coop=same-origin&corp=same-origin&
 				    // for wasm side
 				    if( o.link ) o.blob = document.location.href.replace(/\/[^/]*$/,"/") + o.link;
 
 					worker = new Worker( './build/'+mini+'.min.js' )
+					//worker = new Worker( 'http://localhost:8612/build/'+mini+'.min.js'+coep )
 
 				break
 
 			}
 
+
+
 			worker.postMessage = worker.webkitPostMessage || worker.postMessage;
 			worker.onmessage = Motor.message;
 
 			let ab = new ArrayBuffer( 1 );
-			worker.postMessage( { m: 'test', ab: ab }, [ ab ] );
+			worker.postMessage( { m: 'test', ab:ab }, [ ab ] );
 			isBuffer = ab.byteLength ? false : true;
+
 
 			o.isBuffer = isBuffer;
 			console.log( st  + ' Worker '+ type + (o.isBuffer ? ' with Shared Buffer' : '') );
 
+
+			/// ???
+			//Cross-Origin-Embedder-Policy: require-corp
+			//Cross-Origin-Opener-Policy: same-origin
+			//const buffer = new SharedArrayBuffer( 1024  );
+
+			//console.log(crossOriginIsolated)
+
 			isWorker = true;
+
 
 		} else { // is direct version
 
@@ -249,12 +276,13 @@ export class Motor {
 	static flowReset ( ){
 
 		root.flow = { 
+			stamp:0,
 			current:'',
-			tmp:[],
 			key:[],
+			tmp:[],
 			add:[],
 			remove:[],
-			point:[] 
+			//point:[]
 		}
 
 	}
@@ -339,8 +367,13 @@ export class Motor {
 
 		elapsedTime = 0
 
-		o.outsideStep = outsideStep;
+		isTimeout = isWorker
+		outsideStep = !isTimeout
+		///o.realtime = realtime;
 		o.isTimeout = isTimeout;
+		o.outsideStep = outsideStep;
+		
+
 		if(!o.gravity) o.gravity = [0,-9.81,0]
 		if(!o.substep) o.substep = 2
 
@@ -352,7 +385,7 @@ export class Motor {
 
 		//console.log( o.fps );
 
-		timer.setFramerate( o.fps )
+		if(outsideStep) timer.setFramerate( o.fps )
 
 		
 		
@@ -372,7 +405,9 @@ export class Motor {
 
 	static doStep ( stamp ){
 
-		if(!outsideStep) return
+		if( !outsideStep ) return
+
+        //if( isWorker && realtime ) return
 
 		if( timer.up( stamp ) ) {
 			root.post( { m:'step', o:stamp } )
@@ -384,15 +419,25 @@ export class Motor {
 
 	}
 
-	static step ( o ){
+	static step (){
+
+		//let stamp = root.reflow.stat.stamp 
+		//timetest.t1 = root.reflow.stat.time 
+		//timetest.t2 = root.reflow.stat.endTime 
+
+		/*if( root.reflow.stat.time > timer.time.interval ){ 
+			//timer.force = true
+			timetest.t2++
+		}*/
 
 		//console.time('step')
 
-		root.delta = timer.delta;
+		root.delta = outsideStep ? timer.delta : root.reflow.stat.delta;
 
 		Motor.stepItems()
-
+    
 		// user key interaction 
+		
 		root.flow.key = user.update()
 		root.flow.current = currentControle !== null ? currentControle.name : ''
 		//root.flow.tmp = []
@@ -413,15 +458,11 @@ export class Motor {
 
 		// finally post flow change to physx
 		if( isBuffer ) root.post( { m:'poststep', flow:root.flow, Ar:Ar }, [ Ar.buffer ] )
-		else root.post( { m:'poststep', flow:root.flow, Ar:Ar })
+		else root.post( { m:'poststep', flow:root.flow })
 
 		Motor.flowReset()
 
-	    //console.timeEnd('step')
-
 	}
-
-	
 
     static up ( list ) {
 
@@ -577,6 +618,8 @@ export class Motor {
 	}
 
 	static stepItems () {
+
+		if(Ar===null) return
 
 		for (const key in items) items[key].step( Ar, ArPos[key] )
 

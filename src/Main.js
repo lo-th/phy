@@ -182,7 +182,7 @@ export const Main = {
 
 	engineType:'',
 	currentDemmo:'',
-	isWorker:false,
+	isWorker:true,
 	devMode:false,
 	engineList: [ 'OIMO','AMMO', 'PHYSX'],
 	demoList:[],
@@ -210,7 +210,7 @@ export const Main = {
 
 		Main.engineType = o.type || 'PHYSX'
 
-		Main.isWorker = false;//true;
+		Main.isWorker = true;
 
 		let urlParams = new URLSearchParams( window.location.search )
 		if( urlParams.has('E') ){
@@ -949,8 +949,10 @@ const doResize = () => {
 
 const render = ( stamp = 0 ) => {
 
-	loop = requestAnimationFrame( render )
+	
 
+	
+    //console.time('step')
 	// TIME
 	tm.now = stamp
 	tm.delta = tm.now - tm.then
@@ -981,9 +983,18 @@ const render = ( stamp = 0 ) => {
 
 	upStat()
 
+	//console.timeEnd('step')
+
+
+	loop = requestAnimationFrame( render )
+
+	
+
 }
 
 const upStat = () => {
+
+	//Hub.showTimeTest( Motor.getTimeTest() )
 
 	// three fps
 	if ( tm.now - 1000 > tm.tmp ){ 
