@@ -15,25 +15,7 @@ function demo() {
 
 function onComplete(){
 
-    model = phy.getGroup('furniture');
-
-    let m = model.table_1;
-    let j = m.children.length
-    while( j-- ){
-        m.children[j].castShadow = true;
-        m.children[j].receiveShadow = true;
-        phy.material( m.children[j].material );
-    }
-
-    m = model.chair_1;
-    j = m.children.length
-    while( j-- ){
-         m.children[j].castShadow = true;
-         m.children[j].receiveShadow = true;
-         phy.material( m.children[j].material );
-    }
-
-
+    model = phy.getGroup('furniture', false, true );
 
     let px = math.rand( -6, 6 );
 

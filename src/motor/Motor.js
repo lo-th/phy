@@ -19,6 +19,8 @@ import { User } from './User.js';
 
 import { Breaker } from './Breaker.js';
 
+import { Pool } from '../3TH/Pool.js';
+
 /** __
 *    _)_|_|_
 *   __) |_| | 2023
@@ -779,7 +781,42 @@ export class Motor {
 
 	}
 
+	//-----------------------
+	// FROM POOL
+	//-----------------------
 
+	static load ( Urls, Callback, Path = '', msg = '' ){
+		Pool.load( Urls, Callback, Path = '', msg = '' )
+	}
+	static applyMorph ( modelName, meshs = null, normal = true, relative = true ){
+		Pool.applyMorph( modelName, meshs = null, normal = true, relative = true )
+	}
+	static uv2 ( model ){
+		Pool.uv2( model )
+	}
+
+	static getMesh ( obj, keepMaterial ){
+		return Pool.getMesh( obj, keepMaterial )
+	}
+	static getGroup ( obj, autoMesh, autoMaterial ){
+		return Pool.getGroup( obj, autoMesh, autoMaterial )
+	}
+	static getMaterial ( name ){
+		return Pool.getMaterial( name )
+	}
+	static getTexture ( name, o ){
+		return Pool.getTexture( obj, autoMesh, autoMaterial )
+	}
+	static getScript ( name ){
+		return Pool.getScript( name )
+	}
+	static get ( name, type ){
+		return Pool.get( name, type )
+	}
+
+	static poolDispose (){
+		return Pool.dispose()
+	}
 
 }
 

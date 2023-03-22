@@ -5,18 +5,19 @@ import './libs/webgl-memory.js'
 import { getGPUTier } from './libs/detect-gpu.esm.js';
 
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
-import { Controller } from './3TH/Controller.js'
 
+import { Composer } from './3TH/Composer.js'
+
+import { Controller } from './3TH/Controller.js'
 import { Shader } from './3TH/Shader.js'
+import { Pool } from './3TH/Pool.js'
 import { Hub } from './3TH/Hub.js'
 import { Gui } from './3TH/Gui.js'
 import { Env } from './3TH/Env.js'
 import { Editor } from './3TH/Editor.js'
-import { Composer } from './3TH/Composer.js'
-
 // OBJECT
 import { Reflector } from './3TH/objects/Reflector.js'
-//import { Landscape } from './3TH/objects/Landscape.js'
+import { Landscape } from './3TH/objects/Landscape.js'
 import { Planet } from './3TH/objects/Planet.js'
 import { Building } from './3TH/objects/Building.js'
 import { Sparkle } from './3TH/objects/Sparkle.js'
@@ -283,7 +284,7 @@ export const Main = {
 	getGround:() => ( ground ),
 	//getWorker:() => ( 'Worker' + (Main.isWorker ? ' On' : ' Off') ),
 	getDemos:() => { 
-		let d = Motor.get('demos', 'json') 
+		let d = Pool.get('demos', 'json') 
 		Main.demoList = [ ...d.Basic, ...d.Advanced, ...d[Main.engineType] ]
 		//return Main.demoList
 	},
@@ -317,10 +318,22 @@ export const Main = {
 
 }
 
+
+// import from pool
+/*Motor.load = Pool.load;
+Motor.getMesh = Pool.getMesh;
+Motor.getGroup = Pool.getGroup;
+Motor.getMaterial = Pool.getMaterial;
+Motor.getTexture = Pool.getTexture;
+Motor.get = Pool.get;
+Motor.applyMorph = Pool.applyMorph;
+Motor.uv2 = Pool.uv2;*/
+
 Motor.log = Hub.log;
 
 Motor.addParticle = Main.addParticle
 Motor.getParticle = Main.getParticle
+
 Motor.extraCode = Main.extraCode;
 
 
@@ -330,7 +343,7 @@ window.Main = Main
 
 window.THREE = THREE
 window.hub = Hub
-//window.Landscape = Landscape
+window.Landscape = Landscape
 window.Planet = Planet
 window.Building = Building
 window.Sparkle = Sparkle
@@ -467,7 +480,7 @@ const init = () => {
 
 	start()
 
-	Motor.load( 'demos.json', next )
+	Pool.load( 'demos.json', next )
 
 }
 
@@ -533,7 +546,7 @@ const next = () => {
 
     Motor.setContent( scene )
     Motor.setControl( controls )
-    Motor.setExtraTexture( Motor.texture )
+    Motor.setExtraTexture( Pool.texture )
     Motor.setExtraMaterial( Shader.add )
     Motor.setAddControl( addControl )
 
@@ -808,14 +821,14 @@ const loadDemo = ( name ) => {
 
 	Hub.upMenu()
 
-	Motor.load( './demos/' + options.demo + '.js', inject )
+	Pool.load( './demos/' + options.demo + '.js', inject )
 
 }
 
 const inject = ( newCode, force = false ) => {
 
 	isLoadCode = !newCode
-	code = isLoadCode ? Motor.getScript( options.demo ) : newCode
+	code = isLoadCode ? Pool.getScript( options.demo ) : newCode
 
 	if( force ) isLoadCode = true
 
@@ -837,7 +850,7 @@ const inject = ( newCode, force = false ) => {
 		//console.log('is full reset !!!')
 		//Shader.reset()
 	    resetLight() 
-		Motor.poolDispose();
+		Pool.dispose();
 	}
 
 	phy.reset( refreshCode )
