@@ -34,9 +34,9 @@ export const Gui = {
 		backgroundOver:'none',//'rgba(255,255,255,0.02)',
 
 		//font:"'Roboto Mono', 'Source Code Pro', Consolas, monospace", 
-		font:"font-family: Mulish, sans-serif;", 
+		font:"Mulish, sans-serif", 
 		fontSize:14,
-		weight:'400',
+		weight:'500',
 
 		text:'rgba(0,0,6,1)',
 		title:'rgba(0,0,6,1)',

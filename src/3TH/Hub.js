@@ -310,12 +310,12 @@ export class Hub {
         title.innerHTML = logo;
 
         engine = document.createElement( 'div' );
-        engine.style.cssText = 'font-size:18px; font-weight:700; '
+        engine.style.cssText = 'font-size:16px; font-weight:700; '
         engine.id = 'engine'
         menu.appendChild( engine )
         
         demo = document.createElement( 'div' );
-        demo.style.cssText = 'font-size:16px; font-weight:600;'
+        demo.style.cssText = 'font-size:16px; font-weight:500;'
         demo.id = 'demo'
         menu.appendChild( demo )
         
@@ -332,12 +332,12 @@ export class Hub {
         content.appendChild( debug )
 
         statistics = document.createElement( 'div' );
-        statistics.style.cssText = 'position:absolute; top:100px; left:10px; font-size:14px; font-weight:500; width:200px; white-space: pre; line-height:20px;'
+        statistics.style.cssText = 'position:absolute; top:100px; left:10px; font-size:14px; font-weight:500; width:400px; white-space: pre; line-height:20px;'
         content.appendChild( statistics )
 
 
         guiButton = document.createElement( 'div' );
-        guiButton.style.cssText = 'position:absolute; right:80px;  top:30px; pointer-events:auto; cursor: pointer;'
+        guiButton.style.cssText = 'position:absolute; right:80px;  top:31px; pointer-events:auto; cursor: pointer;'
         content.appendChild( guiButton )
         guiButton.innerHTML = `<svg xmlns='http://www.w3.org/2000/svg' version='1.1' xmlns:xlink='http://www.w3.org/1999/xlink' style='pointer-events:none;' 
         preserveAspectRatio='xMinYMax meet' x='0px' y='0px' width='10px' height='10px' viewBox='0 0 10 10'>
@@ -399,7 +399,7 @@ export class Hub {
             innerMenu.appendChild( m )
             m.classList.add("down");
             
-            m.style.cssText = type === 'demo' ? 'font-size:16px; font-weight:600;' : 'font-size:18px; font-weight:700;'
+            m.style.cssText = type === 'demo' ? 'font-size:16px; font-weight:500;' : 'font-size:16px; font-weight:700;'
             m.id = name
             m.textContent = name;
 
