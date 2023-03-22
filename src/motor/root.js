@@ -438,6 +438,14 @@ export const math = {
 
 	},
 
+	vecMul: ( a, s ) => {
+
+		let i = a.length;
+	    while ( i -- ) a[i] *= s;
+	    return a;
+
+	},
+
 	vecSub: ( a, b ) => {
 
 		let i = a.length, r = [];
