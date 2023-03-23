@@ -8,11 +8,13 @@ export const root = {
 	byName: null,
 	delta : 0,
 	substep:1,
+	numBreak:0,
 
 	key:[],
 
 	reflow:{
 		ray:[],
+		point:{},
 		stat:{
 			fps:0,
 			delta:0,

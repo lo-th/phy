@@ -28,7 +28,6 @@ function demo() {
   /*  phy.add({ type:'ray' })
     phy.add({ type:'ray', begin:[1,4,0], end:[1,0.1,0] })*/
     phy.add({ type:'ray', begin:[-1,4,0], end:[-1,0.1,0] })
-
     phy.add({ type:'ray', begin:[-0.6,0,0.3], end:[-3,0,0.3], parent:'box' })
     
 

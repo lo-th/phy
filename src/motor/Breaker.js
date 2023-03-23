@@ -1,5 +1,6 @@
 import { root, map, Utils } from './root.js';
-import { ConvexObjectBreaker } from '../3TH/objects/ConvexObjectBreaker.js';
+//import { ConvexObjectBreaker } from '../3TH/objects/ConvexObjectBreaker.js';
+import { ConvexObjectBreaker } from '../jsm/misc/ConvexObjectBreaker.js';
  
 export class Breaker {
 
@@ -8,45 +9,54 @@ export class Breaker {
 		this.convexBreaker = new ConvexObjectBreaker();
 		this.tmpI = new THREE.Vector3();
 
+		this.tpos = new THREE.Vector3();
+		this.tnormal = new THREE.Vector3();
+
 	}
 
 	step () {
 
 		let p;
 
-		for( let n in root.flow.point ){
+		for( let n in root.reflow.point ){
 
-			p = root.flow.point[n];
+			p = root.reflow.point[n];
 
 			//if ( !b1.breakable && !b2.breakable ) continue;
 
-			//console.log( p )
+			
 
 			if ( p.distance !== 0 ) {
 
-				this.makeBreak( p.b1, p.pos, p.normal, p.impulse, p.b1_velocity );
-				this.makeBreak( p.b2, p.pos, p.normal, p.impulse, p.b2_velocity );
+
+
+				this.makeBreak( p.b1, p.pos, p.normal, p.impulse, p.v1 );
+				this.makeBreak( p.b2, p.pos, p.normal, p.impulse, p.v2 );
 				
 			} 
 		}
 	}
 
-	makeBreak ( name, pos, normal, impulse, velocity ) {
+	makeBreak ( name, pos, normal, impulse, v ) {
 
 		let mesh = Utils.byName( name );
+
+		//console.log( name, mesh )
 
 		if ( !mesh ) return;
 		if ( !mesh.breakable ) return;
 
-		let breakOption = mesh.breakOption;
-		let imp = this.tmpI.fromArray( impulse ).length();
 
-		//console.log( name, imp )
+
+		let breakOption = mesh.breakOption;
+		//let imp = this.tmpI.fromArray( impulse ).length();
+
+		//console.log( name, pos )
 
 		// not enoputh impulse to break
-		if ( imp < breakOption[ 0 ] ) return;
+		if ( impulse < breakOption[ 0 ] ) return;
 
-		let debris = this.convexBreaker.subdivideByImpact( mesh, pos, normal, breakOption[ 1 ], breakOption[ 2 ] );
+		let debris = this.convexBreaker.subdivideByImpact( mesh, this.tpos.fromArray(pos), this.tnormal.fromArray(normal), breakOption[ 1 ], breakOption[ 2 ] );
 
 		// remove one level
 		breakOption[ 3 ] -= 1;
@@ -56,38 +66,45 @@ export class Breaker {
 		root.motor.remove( name );
 		//root.flow.remove.push( name )
 
+		const eritage = {
+			material: mesh.material,
+			linearVelocity: [v[0], v[1], v[2]],
+			angularVelocity: [v[3], v[4], v[5]],
+			density: mesh.density,
+
+		}
+
 		// add debris
 		let list = []
 		let i = debris.length;
 		while ( i -- ){ 
 			//root.flow.add.push( this.addDebris( name, i, debris[ i ], breakOption, velocity ) );
-			list.push( this.addDebris( name, i, debris[ i ], breakOption, velocity ) );
+			list.push( this.addDebris( name, i, debris[ i ], breakOption, eritage ) );
 		}
+
+		//console.log(list[0])
+		//root.motor.add( list[0] )
 
 		root.motor.add( list )
 
 	}
 
-	addDebris ( name, id, mesh, breakOption, v ) {
+	addDebris ( name, id, mesh, breakOption, eritage ) {
 
 		let next = breakOption[ 3 ] > 0 ? true : false;
 
 		return {
 
+			...eritage,
+
 			name: name + '_debris' + id,
-			material: mesh.material,
 			type: 'convex',
 			shape: mesh.geometry,
 			size:[1,1,1],
 			pos: mesh.position.toArray(),
 			quat: mesh.quaternion.toArray(),
-			density: mesh.density,
-			linearVelocity: [v[0], v[1], v[2]],
-			angularVelocity: [v[3], v[4], v[5]],
-
 			breakable: next,
-			breakOption: next ? breakOption: null,
-			filter:next ? [ 1, -1, [1,3,10, 11,15], 0] : [ 1, -1, 0, 0],
+			breakOption:breakOption,
 
 		}
 

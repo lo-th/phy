@@ -771,13 +771,10 @@ export class Motor {
 	// BREAK
 	//-----------------------
 
-	static addBreakableEvent () {
+	static addBreaker() {
 
-		if( breaker === null ) return;
-
+		if( breaker !== null ) return;
 		breaker = new Breaker();
-
-		root.post({ m:'addEventCallback', o:{ isBreak: true } });
 
 	}
 

@@ -293,6 +293,7 @@ export class Body extends Item {
 
 		b.name = name
 		b.type = this.type
+		b.breakable = o.breakable || false
 
 		b.first = true
 

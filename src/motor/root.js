@@ -60,12 +60,12 @@ export const root = {
 		key:[],
 		tmp:[],
 		add:[],
-		remove:[],
-		//point:[]
+		remove:[]
 	},
 	reflow:{
 		ray:[],
 		stat:{ fps:0 },
+		point:{},
 	},
 
 	extraMaterial:() => {},
@@ -483,6 +483,7 @@ export const math = {
 
 		//console.log( 'i', g.index )
 		//let c = new Uint32Array( g.index.array ) || null
+		if(!g.index) return null
 
 		return g.index.array || null
 	},

@@ -286,15 +286,19 @@ export class engine {
 		  It becomes. The unit is seconds, not milliseconds.
 		 */
 
-		let n = substep;
-		//while( n-- ) root.world.stepSimulation( timestep / substep, substep, timestep / substep );
+		let n = substep, st = fixe ? timestep/substep : root.delta/substep;
+		//while( n-- ) root.world.stepSimulation( timestep / substep, 0, timestep / substep );
 
 		//if ( fixe ) root.world.stepSimulation( 1.0, substep, timestep / substep )
 		//if ( fixe ) root.world.stepSimulation( timestep, 100, timestep / substep )
-		if ( fixe ) root.world.stepSimulation( timestep, substep, timestep / substep )//, timestep / substep );
-		else root.world.stepSimulation( root.delta, substep, timestep / substep );
+		if ( fixe ) root.world.stepSimulation( timestep, n, st )
+		else root.world.stepSimulation( root.delta, n, st )
+
+		//root.world.stepSimulation( timestep / substep, substep, timestep / substep )
 
 		engine.stepItems()
+
+		if ( root.numBreak > 0 ) this.stepBreak();
 
 		// get simulation stat
 		if ( startTime - 1000 > t.tmp ){ t.tmp = startTime; root.reflow.stat.fps = t.n; t.n = 0; }; t.n++;
@@ -302,6 +306,8 @@ export class engine {
 
 		if ( isBuffer ) engine.post( { m: 'step', reflow:root.reflow, Ar: Ar }, [ Ar.buffer ] );	
 		else engine.post( { m:'step', reflow:root.reflow, Ar:Ar } );
+
+		root.reflow.point = {}
 
 	}
 
@@ -318,6 +324,8 @@ export class engine {
 		engine.stop();
 
 		engine.resetItems()
+		engine.clearReFlow()
+		root.numBreak = 0
 		
 		// clear world
 		Ammo.destroy( root.world );
@@ -353,6 +361,105 @@ export class engine {
 		if( pause === isStop ) return
 		if( pause ) this.stop()
 		else this.start()
+
+	}
+
+	static clearReFlow () {
+
+		root.reflow = { 
+			ray:[],
+			stat:{ fps:0, delta:0 },
+			point:{} 
+		};
+
+	}
+
+	//-----------------------------
+	//
+	//   BREAKABLE
+	//
+	//-----------------------------
+
+	static stepBreak () {
+
+		let manifold, p, contact, maxImpulse, pos, distance;
+		let normal, b1, b2, body0, body1;
+
+		for ( let i = 0, il = Dispatcher.getNumManifolds(); i < il; i ++ ) {
+
+			manifold = Dispatcher.getManifoldByIndexInternal( i );
+
+			body0 = Ammo.castObject( manifold.getBody0(), Ammo.btRigidBody );
+			body1 = Ammo.castObject( manifold.getBody1(), Ammo.btRigidBody );
+
+			b1 = body0.name;
+			b2 = body1.name;
+
+			if ( ! body0.breakable && ! body1.breakable ) continue;
+
+			if ( !body0.breakable && body1.breakable ){
+
+			contact = false;
+			//maxImpulse = 0;
+			for ( let j = 0, jl = manifold.getNumContacts(); j < jl; j ++ ) {
+
+				p = manifold.getContactPoint( j );
+				distance = math.toFixed( p.getDistance(), 3)
+
+				if ( distance < -0.01 ) {
+
+					//console.log(p)
+
+					//if(body0.breakable) pos = p.get_m_positionWorldOnA().toArray()
+					//if(body1.breakable) pos = p.get_m_positionWorldOnB().toArray()
+
+					contact = true;
+					//impulse = p.getAppliedImpulse();
+
+					//if ( impulse > maxImpulse ) {
+
+						//maxImpulse = impulse
+
+						let data =  {
+							distance: distance,
+							//pos: pos,
+							pos: p.get_m_positionWorldOnB().toArray(),
+							normal: p.get_m_normalWorldOnB().toArray(),
+							impulse:p.getAppliedImpulse()*20,
+							v1: engine.getVelocity( body0 ),
+							v2: engine.getVelocity( body1 ),
+						}
+
+						root.reflow.point[ b1+'_'+b2 + '_' +i+'_'+j ] = { b1:b1, b2:b2, hit:distance < 0, ...data }
+
+						//console.log( root.reflow.point[ b1+'_'+b2 + '_' +i+'_'+j ] )
+
+
+					//}
+
+					
+
+					//break;
+
+				}
+
+			}}
+
+			// If no point has contact, abort
+			//if ( !contact ) continue;
+
+
+		}
+
+	}
+
+	static getVelocity ( b ) {
+
+		if( b && b.breakable ){
+			let lin = b.getLinearVelocity().toArray();
+			let ang = b.getAngularVelocity().toArray();
+			return [ ...lin, ...ang ]
+		} else return [ 0,0,0, 0,0,0 ];
 
 	}
 

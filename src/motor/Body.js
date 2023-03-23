@@ -263,7 +263,13 @@ export class Body extends Item {
 			break;
 
 			default:
-			    g = Geo.get(t); //geo[ t ];
+			    if( !o.breakable ) g = Geo.get(t); //geo[ t ];
+			    else {
+			    	g = Geo.get(t).clone();
+			    	g.scale( s[0], s[1], s[2] )
+			    	unic = true
+			    	noScale = true;
+			    }
 			break;
 
 		}
@@ -546,6 +552,22 @@ export class Body extends Item {
 
 	    if( o.instance ) delete o.instance
 	    if( o.mesh ) delete o.mesh
+
+
+    	if( o.breakable ){
+    		root.motor.addBreaker()
+			let child = b.children[0];
+			b.remove(child);
+			b = child;
+			b.name = name;
+			b.type = this.type
+			b.density = o.density;
+			b.breakable = true;
+			b.breakOption = o.breakOption !== undefined ? o.breakOption : [ 250, 1, 2, 1 ];
+			//b.userData.mass = o.mass;
+		}
+
+
 
 		// add to world
 		this.addToWorld( b, o.id )

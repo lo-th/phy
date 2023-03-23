@@ -26,7 +26,7 @@ export class Contact extends Item {
 			c = this.list[i]
 			n = N + ( i * Num.contact )
 
-			this.cb.addSingleResult = function ( ) { k = 1; }
+			this.cb.addSingleResult = function () { k = 1; }
 
 			if ( c.b2 !== null ) root.world.contactPairTest( c.b1, c.b2, this.cb )
 			else root.world.contactTest( c.b1, this.cb )

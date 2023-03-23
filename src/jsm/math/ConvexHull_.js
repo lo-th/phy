@@ -46,6 +46,10 @@ class ConvexHull {
 
 	setFromPoints( points ) {
 
+		
+
+		//console.log(points)
+
 		// The algorithm needs at least four points.
 
 		if ( points.length >= 4 ) {
@@ -78,17 +82,26 @@ class ConvexHull {
 
 			if ( geometry !== undefined ) {
 
-				const attribute = geometry.attributes.position;
+				if ( geometry.isGeometry ) {
 
-				if ( attribute !== undefined ) {
+					console.error( 'THREE.ConvexHull no longer supports Geometry. Use THREE.BufferGeometry instead.' );
+					return;
 
-					for ( let i = 0, l = attribute.count; i < l; i ++ ) {
+				} else if ( geometry.isBufferGeometry ) {
 
-						const point = new Vector3();
+					const attribute = geometry.attributes.position;
 
-						point.fromBufferAttribute( attribute, i ).applyMatrix4( node.matrixWorld );
+					if ( attribute !== undefined ) {
 
-						points.push( point );
+						for ( let i = 0, l = attribute.count; i < l; i ++ ) {
+
+							const point = new Vector3();
+
+							point.fromBufferAttribute( attribute, i ).applyMatrix4( node.matrixWorld );
+
+							points.push( point );
+
+						}
 
 					}
 
@@ -122,7 +135,7 @@ class ConvexHull {
 
 	intersectRay( ray, target ) {
 
-		// based on "Fast Ray-Convex Polyhedron Intersection" by Eric Haines, GRAPHICS GEMS II
+		// based on "Fast Ray-Convex Polyhedron Intersection"  by Eric Haines, GRAPHICS GEMS II
 
 		const faces = this.faces;
 
@@ -156,7 +169,7 @@ class ConvexHull {
 
 			if ( vD > 0 ) {
 
-				// plane faces away from the ray, so this plane is a back-face
+				//  plane faces away from the ray, so this plane is a back-face
 
 				tFar = Math.min( t, tFar );
 
@@ -263,7 +276,7 @@ class ConvexHull {
 
 	}
 
-	// Removes all the visible vertices that a given face is able to see which are stored in the 'assigned' vertex list
+	// Removes all the visible vertices that a given face is able to see which are stored in the 'assigned' vertext list
 
 	removeAllVerticesFromFace( face ) {
 
@@ -1268,4 +1281,4 @@ class VertexList {
 
 }
 
-export { ConvexHull, Face, HalfEdge, VertexNode, VertexList };
+export { ConvexHull };

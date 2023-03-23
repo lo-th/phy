@@ -285,6 +285,9 @@ export class Body extends Item {
 		b.type = this.type
 		b.isKinematic = o.kinematic || false
 		b.isGhost = false
+		b.breakable = o.breakable || false
+
+		if( b.breakable ) root.numBreak++
 
 		b.group = group
 		b.mask = mask
