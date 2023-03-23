@@ -130,13 +130,14 @@ export class Shader {
             vec3 shadowColor = vec3(1.0);
 
             
-            /*
+            
             float color_distance( vec3 a, vec3 b){
                 vec3 s = vec3( a - b );
                 float dist = sqrt( s.r * s.r + s.g * s.g + s.b * s.b );
                 return clamp(dist, 0.0, 1.0);
             }
 
+            /*
             vec3 rgb2hsv(vec3 c){
                 vec4 K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);
                 vec4 p = mix(vec4(c.bg, K.wz), vec4(c.gb, K.xy), step(c.b, c.g));
@@ -161,6 +162,7 @@ export class Shader {
                 return vec3(pow(abs(value.r), param),pow(abs(value.g), param),pow(abs(value.b), param));
             }
             */
+            
 
         `);
 
@@ -247,27 +249,33 @@ export class Shader {
 
             shadowColor = vec3( shadowValue );
 
+            ///shadowColor = vec3( 0.0,0.0,1.0-shadowValue );
+
+            //vec3 sColor = vec3( 0.1, 0.1, 0.8 );
+            //shadowColor.b += 1.0-shadowValue ;
 
 
 
-            
-            /*
-            vec3 invColor = vec3(1.0 - gl_FragColor.rgb);
-            vec3 cc = rgb2hsv( invColor );
-            cc.r += 0.1; // teint
-            cc.g *= 1.0; // saturation
-            cc.b *= 0.5; // luma
-            invColor = hsv2rgb( cc );
+            // TODO find better shadow variation
 
-            shadowColor = shadowColor + invColor;
-            shadowColor = clamp( shadowColor, 0.0, 1.0 );
-            */
-            
+            vec3 invert = vec3( 1.0 - gl_FragColor.rgb );
+            vec3 dd = vec3(0.38,0.42,0.63);
+            float gray = ((gl_FragColor.r + gl_FragColor.g + gl_FragColor.b) / 3.0);
+            vec3 invColor = gray * dd;
+            invColor = invColor * mix( invColor, invert, 1.0-gray*0.5 );
+
+
+
+
+                    
 
 
             //gl_FragColor.rgb = mix( gl_FragColor.rgb, gl_FragColor.rgb * shadowColor, (1.0-shadowValue) * shadow );
 
-            gl_FragColor.rgb *= ((1.0-shadowValue) * (1.0-shadow)) + shadowColor;
+            //gl_FragColor.rgb *= ((1.0-shadowValue) * (1.0-shadow)) + shadowColor;
+
+            //gl_FragColor.rgb = mix( gl_FragColor.rgb, gl_FragColor.rgb * invColor, (1.0-shadowValue) * shadow );
+            gl_FragColor.rgb =mix( gl_FragColor.rgb, invColor, (1.0-shadowValue) * shadow );
 
 
         	#endif

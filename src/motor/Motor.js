@@ -70,7 +70,7 @@ const timer = new Timer(60)
 let azimut = function(){ return 0 }
 let endReset = function(){}
 let postUpdate = function(){}
-let extraTexture = function(){}
+//let extraTexture = function(){}
 
 let addControl = function(){}
 
@@ -82,7 +82,7 @@ export class Motor {
 
 	static setMaxFps ( v ) { maxFps = v }
 
-	static setExtraTexture ( f ) { extraTexture = f }
+	//static setExtraTexture ( f ) { extraTexture = f }
 
 	static setExtraMaterial ( f ) { root.extraMaterial = f }
 	//static setExtraMaterial ( f ) { extraMaterial = f }
@@ -508,7 +508,7 @@ export class Motor {
 	}
 
 	static texture( o = {} ) {
-		return extraTexture( o )
+		return Pool.texture( o )//extraTexture( o )
 	}
 
 	static material ( o = {} ){

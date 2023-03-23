@@ -112,7 +112,7 @@ const options = {
 	show_light: false,
 	show_stat: false,
 
-	shadow:0.5,//0.25,
+	shadow:0.7,//0.25,
 	shadowType:'PCSS',
 	shadowGamma:1,//0.25,//1,
 	shadowLuma:0.5, //0.75,//0,
@@ -533,7 +533,7 @@ const next = () => {
 
     Motor.setContent( scene )
     Motor.setControl( controls )
-    Motor.setExtraTexture( Motor.texture )
+    //Motor.setExtraTexture( Motor.texture )
     Motor.setExtraMaterial( Shader.add )
     Motor.setAddControl( addControl )
 
