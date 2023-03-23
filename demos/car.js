@@ -110,6 +110,7 @@ s
             sd:[[ 'y',20,0.01, true]],
            // sd : front ? [['ry',1,1, true]]: [],
             acc:true,
+            noFix:true,
 
             //lm: front ? [ ['ry',-45,45],['y',-0.05,0.05]] : [['y',-0.05,0.05]],
             //lm: front ? [ ['y', -0.1, 0.1], ['ry', -30, 30]] : [ss['y', -0.1, 0.1]],
@@ -133,6 +134,7 @@ s
             motions: [['rx', 'free']] ,
             drive:[ ['rx', 1,1000]],
             acc:true,
+            noFix:true,
         })
 
     }

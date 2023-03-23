@@ -21,7 +21,8 @@ function demo() {
         //sd:[ ['x', 0.5, 0.1] ],
         // motor: speed / torque 
        //motor:[ ['rx', 6, 6] ],
-       collision:true
+       collision:true,
+       noFix:true,
     })
 
   /*  phy.add({ type:'ray' })
