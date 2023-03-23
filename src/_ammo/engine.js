@@ -298,7 +298,7 @@ export class engine {
 
 		engine.stepItems()
 
-		if ( root.numBreak > 0 ) this.stepBreak();
+		if ( root.numBreak > 0 ) engine.stepBreak();
 
 		// get simulation stat
 		if ( startTime - 1000 > t.tmp ){ t.tmp = startTime; root.reflow.stat.fps = t.n; t.n = 0; }; t.n++;
@@ -399,51 +399,52 @@ export class engine {
 
 			if ( !body0.breakable && body1.breakable ){
 
-			contact = false;
-			//maxImpulse = 0;
-			for ( let j = 0, jl = manifold.getNumContacts(); j < jl; j ++ ) {
+				//contact = false;
+				//maxImpulse = 0;
+				for ( let j = 0, jl = manifold.getNumContacts(); j < jl; j ++ ) {
 
-				p = manifold.getContactPoint( j );
-				distance = math.toFixed( p.getDistance(), 3)
+					p = manifold.getContactPoint( j );
+					distance = math.toFixed( p.getDistance(), 3)
 
-				if ( distance < -0.01 ) {
+					if ( distance < -0.01 ) {
 
-					//console.log(p)
+						//console.log(p)
 
-					//if(body0.breakable) pos = p.get_m_positionWorldOnA().toArray()
-					//if(body1.breakable) pos = p.get_m_positionWorldOnB().toArray()
+						//if(body0.breakable) pos = p.get_m_positionWorldOnA().toArray()
+						//if(body1.breakable) pos = p.get_m_positionWorldOnB().toArray()
 
-					contact = true;
-					//impulse = p.getAppliedImpulse();
+						//contact = true;
+						//impulse = p.getAppliedImpulse();
 
-					//if ( impulse > maxImpulse ) {
+						//if ( impulse > maxImpulse ) {
 
-						//maxImpulse = impulse
+							//maxImpulse = impulse
 
-						let data =  {
-							distance: distance,
-							//pos: pos,
-							pos: p.get_m_positionWorldOnB().toArray(),
-							normal: p.get_m_normalWorldOnB().toArray(),
-							impulse:p.getAppliedImpulse()*20,
-							v1: engine.getVelocity( body0 ),
-							v2: engine.getVelocity( body1 ),
-						}
+							let data =  {
+								distance: distance,
+								//pos: pos,
+								pos: p.get_m_positionWorldOnB().toArray(),
+								normal: p.get_m_normalWorldOnB().toArray(),
+								impulse:p.getAppliedImpulse()*20,
+								v1: engine.getVelocity( body0 ),
+								v2: engine.getVelocity( body1 ),
+							}
 
-						root.reflow.point[ b1+'_'+b2 + '_' +i+'_'+j ] = { b1:b1, b2:b2, hit:distance < 0, ...data }
+							root.reflow.point[ b1+'_'+b2 + '_' +i+'_'+j ] = { b1:b1, b2:b2, hit:distance < 0, ...data }
 
-						//console.log( root.reflow.point[ b1+'_'+b2 + '_' +i+'_'+j ] )
+							//console.log( root.reflow.point[ b1+'_'+b2 + '_' +i+'_'+j ] )
 
 
-					//}
+						//}
 
-					
+						
 
-					//break;
+						//break;
+
+					}
 
 				}
-
-			}}
+			}
 
 			// If no point has contact, abort
 			//if ( !contact ) continue;
