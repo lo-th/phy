@@ -887,6 +887,10 @@ export class Motor {
 		return Pool.dispose()
 	}
 
+	static setDracoPath ( src ){
+		return Pool.dracoPath = src
+	}
+
 }
 
 

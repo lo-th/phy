@@ -27,6 +27,7 @@ export const Pool = {
     //extraTexture: [],
     dracoLoader: null,
     dracoLoaderType:'js',
+    dracoPath:'./src/libs/draco/',
 
     onLoad:() => {},
     onEnd:() => {},
@@ -363,7 +364,7 @@ export const Pool = {
             }
         }
 
-        Pool.dracoLoader = new DRACOLoader().setDecoderPath( './src/libs/draco/' )
+        Pool.dracoLoader = new DRACOLoader().setDecoderPath( Pool.dracoPath )
         Pool.dracoLoader.setDecoderConfig( { type: Pool.dracoLoaderType } )
         return Pool.dracoLoader
 

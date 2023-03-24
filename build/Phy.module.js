@@ -20031,6 +20031,7 @@ const Pool = {
     //extraTexture: [],
     dracoLoader: null,
     dracoLoaderType:'js',
+    dracoPath:'./src/libs/draco/',
 
     onLoad:() => {},
     onEnd:() => {},
@@ -20367,7 +20368,7 @@ const Pool = {
             }
         }
 
-        Pool.dracoLoader = new DRACOLoader().setDecoderPath( './src/libs/draco/' );
+        Pool.dracoLoader = new DRACOLoader().setDecoderPath( Pool.dracoPath );
         Pool.dracoLoader.setDecoderConfig( { type: Pool.dracoLoaderType } );
         return Pool.dracoLoader
 
@@ -26401,6 +26402,10 @@ class Motor {
 
 	static poolDispose (){
 		return Pool.dispose()
+	}
+
+	static setDracoPath ( src ){
+		return Pool.dracoPath = src
 	}
 
 }
