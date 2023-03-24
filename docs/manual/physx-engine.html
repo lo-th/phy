@@ -10,7 +10,9 @@
 
 		<h1>[name]</h1>
 
-		<p class="desc">[name] start example.</p>
+		<p class="desc">[name] version 5.01.03</p>
+
+		<p>Powefull, fast with articulation joint for robotics.</p>
 
 		<iframe id="scene" src="scenes/engines.html#PHYSX"></iframe>
 
@@ -44,27 +46,20 @@ phy.init({
 })
 </code>
 
-		<h2>phy.init({})</h2>
-
-		<h3>phy.init({ [param:String type], [param:Boolean worker], [param:Function callback], [param:Object3D scene]}, [param:string path]} )</h3>
-		<p>
-		type — the physics engine type<br />
-		worker — run in worker or not<br />
-		callback — function start after physics engine init<br />
-		scene — the three.js main scene<br />
-		path — set default resource path<br />
-		</p>
-
-		<h2>Resources</h2>
+		<h2>Resources need</h2>
 
 		<p>
-		/build/Physx.module.js for direct version<br/>
-		/build/Physx.min.js for worker version<br/>
-		/build/physx-js-webidl.js for wasm<br/>
-		/build/physx-js-webidl.wasm the wasm file<br/>
+		<b>Physx.module.js</b> __ direct version<br/>
+		<b>Physx.min.js</b> __ worker version<br/>
+		<b>physx-js-webidl.js</b> __ wasm bridge to javascript<br/>
+		<b>physx-js-webidl.wasm</b> __ wasm file<br/><br/>
+		Find resource pack in /build folder
 		</p>
 
-
-
-	</body>
+<h2>About</h2>
+<p>
+I use wasm built by [link:https://github.com/fabmax/physx-js-webidl Fabmax] <br/>
+[https://pybullet.org/wordpress/ Bullet] info
+</p>
+</body>
 </html>

@@ -10,9 +10,12 @@
 
 		<h1>[name]</h1>
 
-		<p class="desc">[name] start example.</p>
+		<p class="desc">[name] version 3.0</p>
+
+		<p>Powefull, soft body, use for complex simulation and game.</p>
 
 		<iframe id="scene" src="scenes/engines.html#AMMO"></iframe>
+
 
 		<script>
 
@@ -44,27 +47,21 @@ phy.init({
 })
 </code>
 
-		<h2>phy.init({})</h2>
-
-		<h3>phy.init({ [param:String type], [param:Boolean worker], [param:Function callback], [param:Object3D scene]}, [param:string path]} )</h3>
-		<p>
-		type — the physics engine type<br />
-		worker — run in worker or not<br />
-		callback — function start after physics engine init<br />
-		scene — the three.js main scene<br />
-		path — set default resource path<br />
-		</p>
-
-		<h2>Resources</h2>
+		<h2>Resources need</h2>
 
 		<p>
-		/build/Ammo.module.js for direct version<br/>
-		/build/Ammo.min.js for worker version<br/>
-		/build/ammo3.wasm.js for wasm<br/>
-		/build/ammo3.wasm.wasm the wasm file<br/>
+		<b>Ammo.module.js</b> __ direct version<br/>
+		<b>Ammo.min.js</b> __ worker version<br/>
+		<b>ammo3.wasm.js</b> __ wasm bridge to javascript<br/>
+		<b>ammo3.wasm.wasm</b> __ wasm file<br/><br/>
+		Find resource pack in /build folder
 		</p>
 
-
+<h2>About</h2>
+<p>
+I use special wasm version of bullet 3.0 find in repro ammo by [link:https://github.com/kripken/ammo.js Kripken] <br/>
+[link:https://nvidia-omniverse.github.io/PhysX/physx/5.1.3/index.html Physx doc] from nvidia
+</p>
 
 	</body>
 </html>

@@ -39,7 +39,7 @@ let full = true
 let currentMenu = ''
 
 const listdata = {
-    home : ['Code', 'Worker', 'Github'],
+    home : ['Code', 'Worker', 'Github', 'Docs'],
     engine : [],
     demo:[],
     visited:[],
@@ -520,6 +520,7 @@ export class Hub {
     static homeLink ( type ) {
         switch(type){
             case 'Github': window.open( 'https://github.com/lo-th/phy', '_blank'); break;
+            case 'Docs': window.open( './docs/index.html#manual/Welcome', '_blank'); break;
             case 'Worker': Hub.swapWorker(); break;
             case 'Code': Hub.swapCode(); break;
         }
