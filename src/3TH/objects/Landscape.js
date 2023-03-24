@@ -885,15 +885,42 @@ const TerrainShader = {
     // normal
 
     normal : /* glsl */`
-        #ifdef USE_NORMALMAP
+
+        #ifdef OBJECTSPACE_NORMALMAP
+
+            normal = texture2D( normalMap, vUv ).xyz * 2.0 - 1.0; // overrides both flatShading and attribute normals
+
+            #ifdef FLIP_SIDED
+
+                normal = - normal;
+
+            #endif
+
+            #ifdef DOUBLE_SIDED
+
+                normal = normal * faceDirection;
+
+            #endif
+
+            normal = normalize( normalMatrix * normal );
+
+        #elif defined( TANGENTSPACE_NORMALMAP )
 
             vec4 sandN = textureMAP( normalMap, vUv );
             vec4 grassN = textureMAP( normalMap1, vUv );
             vec4 rockN = textureMAP( normalMap2, vUv );
 
-            vec3 extraNormal = MappingMix(vColor.r, clevels, rockN, grassN, sandN).xyz * 2.0 - 1.0;
-            extraNormal.xy *= normalScale;
-            normal = perturbNormal2Arb( -vViewPosition, normal, extraNormal, faceDirection );
+            vec3 mapN = MappingMix(vColor.r, clevels, rockN, grassN, sandN).xyz * 2.0 - 1.0;
+
+            //vec3 mapN = texture2D( normalMap, vUv ).xyz * 2.0 - 1.0;
+            mapN.xy *= normalScale;
+
+            normal = normalize( tbn * mapN );
+
+        #elif defined( USE_BUMPMAP )
+
+            normal = perturbNormalArb( - vViewPosition, normal, dHdxy_fwd(), faceDirection );
+
         #endif
     `,
 

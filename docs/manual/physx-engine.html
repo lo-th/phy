@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<base href="../" />
+		<script src="page.js"></script>
+		<link type="text/css" rel="stylesheet" href="page.css" />
+	</head>
+	<body>
+
+		<h1>[name]</h1>
+
+		<p class="desc">[name] start example.</p>
+
+		<iframe id="scene" src="scenes/engines.html#PHYSX"></iframe>
+
+		<script>
+
+		// iOS iframe auto-resize workaround
+
+		if ( /(iPad|iPhone|iPod)/g.test( navigator.userAgent ) ) {
+
+			const scene = document.getElementById( 'scene' );
+
+			scene.style.width = getComputedStyle( scene ).width;
+			scene.style.height = getComputedStyle( scene ).height;
+			scene.setAttribute( 'scrolling', 'no' );
+
+		}
+
+		</script>
+
+		<h2>Code Example</h2>
+
+<code>
+import { phy } from './build/Phy.module.js';
+
+phy.init({ 
+	type:'PHYSX', 
+	worker:false, 
+	callback:startDemo, 
+	scene:scene,
+	path:'./build/'
+})
+</code>
+
+		<h2>phy.init({})</h2>
+
+		<h3>phy.init({ [param:String type], [param:Boolean worker], [param:Function callback], [param:Object3D scene]}, [param:string path]} )</h3>
+		<p>
+		type — the physics engine type<br />
+		worker — run in worker or not<br />
+		callback — function start after physics engine init<br />
+		scene — the three.js main scene<br />
+		path — set default resource path<br />
+		</p>
+
+		<h2>Resources</h2>
+
+		<p>
+		/build/Physx.module.js for direct version<br/>
+		/build/Physx.min.js for worker version<br/>
+		/build/physx-js-webidl.js for wasm<br/>
+		/build/physx-js-webidl.wasm the wasm file<br/>
+		</p>
+
+
+
+	</body>
+</html>

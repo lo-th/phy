@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<base href="../" />
+		<script src="page.js"></script>
+		<link type="text/css" rel="stylesheet" href="page.css" />
+	</head>
+	<body>
+
+		<h1>phy.set()</h1>
+
+		<p class="desc">set physics engine option</p>
+
+		<h2>Code Example</h2>
+
+<code>
+phy.set({ 
+	fps:60, 
+	substep:2, 
+	gravity:[0,-9.81,0]
+})
+</code>
+
+        <h2>Command</h2>
+
+		<h3>phy.set( [param:Object parameters] )</h3>
+
+		<h2>Parameters</h2>
+<p>	
+		[param:Int fps] — choose engine number of frame by seconde. Default is 60<br />
+		[param:Int substep] — how many pass loop will make, is increase accuraty but also calculation. Default is 2<br />
+		[param:Array gravity] — the gravity vector [x,y,z] <br />
+	</p>
+
+
+	</body>
+</html>

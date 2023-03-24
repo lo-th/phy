@@ -8,14 +8,12 @@ demo = () => {
 
 }
 
-function onComplete(){
+onComplete = () => {
 
     model = phy.getMesh('phy', true);
     let option = {
         density:1, restitution:0.5, friction:0.5, radius:0.03
     }
-
-    
 
     // add phy logo
     const logoShape = []

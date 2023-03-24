@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<base href="../" />
+		<script src="page.js"></script>
+		<link type="text/css" rel="stylesheet" href="page.css" />
+	</head>
+	<body>
+
+		<h1>phy.add()</h1>
+
+		<p class="desc">add object to simulation</p>
+
+		<h2>Code Example</h2>
+
+<code>
+phy.add({ 
+	name:'yo',
+	type:'box', 
+	density:1,
+	size:[2,2,2], 
+	pos:[0,2,0], 
+	rot:[0,0,0]
+})
+</code>
+
+        <h2>Command</h2>
+
+		<h3>phy.add( [param:Object parameters] )</h3>
+		<h3>phy.add( [param:Array list] )</h3>
+
+		<h2>Parameters</h2>
+<p>	
+	[param:String name] — name of object is automatic if not set<br />
+		[param:String type] — type of object<br />
+		[param:Float density] — is the density of object mass = density * volume <br />
+		[param:Array size] — size of object<br />
+		[param:Array pos] — position of object<br />
+		[param:Array rot] — rotation of object in degrée <br />
+	</p>
+
+
+	</body>
+</html>

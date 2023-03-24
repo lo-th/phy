@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<base href="../" />
+		<script src="page.js"></script>
+		<link type="text/css" rel="stylesheet" href="page.css" />
+	</head>
+	<body>
+		<h1>[name]</h1>
+
+		<h2>Init modules</h2>
+
+		<p>
+			Phy need three.js libs to run. Start with three.js Import from a CDN
+		</p>
+
+		<code>
+&lt;script async src="https://unpkg.com/es-module-shims@1.6.3/dist/es-module-shims.js">&lt;/script>
+
+&lt;script type="importmap">
+  {
+    "imports": {
+      "three": "./build/three.module.js",
+      "three/addons/": "./examples/jsm/"
+    }
+  }
+&lt;/script>
+
+&lt;script type="module">
+
+  import * as THREE from 'three';
+  import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+  import { phy } from './build/Phy.module.js';
+
+&lt;/script>
+        </code>
+
+        <h2>Init engine</h2>
+<code>
+phy.init({ 
+	type:'PHYSX', 
+	worker:false,
+	scene:scene,
+	callback:startDemo, 
+	path:'../../build/' 
+})
+</code>
+
+		<h2>Make your Demo</h2>
+
+<code>
+function startDemo() {
+
+	// set physics engine option
+	phy.set({ substep:2, gravity:[0,-9.81,0], fps:60 })
+
+	// add static ground
+	phy.add({ type:'plane', size:[300,1,300], visible:false });
+
+	// add some box
+	let i = 100
+	while(i--) phy.add({ type:'box', size:[1,1,1], pos:[0, 5 + i*2, 0], density:1, material:material, radius:0.1 });
+	
+}
+</code>
+
+<h2>Update engine in three render loop</h2>
+
+<p>
+	note: worker version don't need this because is update internally.
+</p>
+<code>
+function animate( stamp = 0 ) {
+
+	requestAnimationFrame( animate );
+	phy.doStep( stamp );
+	renderer.render( scene, camera );
+
+}
+</code>
+
+</body>
+</html>

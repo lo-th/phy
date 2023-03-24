@@ -29,6 +29,13 @@ import { Pool } from '../3TH/Pool.js';
 *    THREE JS ENGINE
 */
 
+const Version = {
+    Oimo: '1.2.2',
+    Ammo: '3.0',
+    Physx: '5.01.03',
+    Rapier: '0.10.0',
+}
+
 let items
 let currentControle = null
 let callback = null
@@ -41,6 +48,8 @@ let isTimeout = false
 let outsideStep = true
 
 let realtime = true
+
+let engineReady = false
 
 
 let breaker = null;
@@ -67,12 +76,23 @@ let elapsedTime = 0
 const user = new User()
 const timer = new Timer(60)
 
+const threeScene = null
+
 let azimut = function(){ return 0 }
 let endReset = function(){}
 let postUpdate = function(){}
 //let extraTexture = function(){}
 
 let addControl = function(){}
+
+/*const preload = async ( name, o ) => {
+	
+    let M = await import( o.devMode ? '../'+name+'.js' : './'+name+'.module.js');
+    directMessage = M.engine.message
+	o.message = Motor.message
+	Motor.initPhysics( o )
+
+}*/
 
 //let extraMaterial = function(){}
 
@@ -99,10 +119,8 @@ export class Motor {
 	static math () { return math }
 
 	static setContent ( Scene ) {
-
 		Scene.add( root.scene )
 		Scene.add( root.scenePlus )
-
 	}
 
 	static setControl ( Controls ) { 
@@ -157,7 +175,14 @@ export class Motor {
 
 	//static getMat ( mode ) { return mode === 'HIGH' ? mat : matLow; }
 
-	static init ( o = {} ){
+	static init ( o = {} ) {
+
+		const path = o.path || './build/';
+
+		const wasmLink = {
+		    Ammo: path + 'ammo3.wasm.js',
+		    Physx: path + 'physx-js-webidl.js',
+		}
 
 		let type = o.type || 'PHYSX';
 		let name = type.toLowerCase()
@@ -167,6 +192,8 @@ export class Motor {
 		let isFirefox = navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
 
 		root.engine = type
+
+		
 
 		Motor.initItems()
 
@@ -178,10 +205,17 @@ export class Motor {
 			delete ( o.callback )
 		}
 
+		isWorker = o.worker || false;
+
 		root.scene = new Group()
 		root.scene.name = 'phy_scene'
 		root.scenePlus = new Group()
 		root.scenePlus.name = 'phy_scenePlus'
+
+		if(o.scene){ 
+			Motor.setContent( o.scene )
+			delete ( o.scene )
+		}
 
 		root.update = Motor.update
 		root.remove = Motor.remove
@@ -191,19 +225,19 @@ export class Motor {
 
 		root.motor = this
 
-		if( !o.direct ){ // is worker version
+		if( isWorker ){ // is worker version
 
 			switch( type ){
 
 				case 'OIMO':
 
-				    if( isFirefox ) worker = new Worker( './build/'+mini+'.min.js' )
+				    if( isFirefox ) worker = new Worker( path + mini + '.min.js' )
 				    else {
 				    	try {
-					        worker = new Worker('./build/'+mini+'.module.js', {type:'module'})
+					        worker = new Worker( path + mini + '.module.js', {type:'module'})
 						    st = 'ES6'
 						} catch (error) {
-						    worker = new Worker( './build/'+mini+'.js' )
+						    worker = new Worker( path + mini + '.js' )
 						}
 				    }
 
@@ -215,9 +249,10 @@ export class Motor {
 					//let coep = '?coep=require-corp&coop=same-origin&corp=same-origin&'
 					// https://cross-origin-isolation.glitch.me/?coep=require-corp&coop=same-origin&corp=same-origin&
 				    // for wasm side
-				    if( o.link ) o.blob = document.location.href.replace(/\/[^/]*$/,"/") + o.link;
+				    if( wasmLink[mini] ) o.blob = document.location.href.replace(/\/[^/]*$/,"/") + wasmLink[mini];
 
-					worker = new Worker( './build/'+mini+'.min.js' )
+				    //worker = new Worker( path + mini + '.module.js', {type:'module'})
+					worker = new Worker( path + mini + '.min.js' )
 					//worker = new Worker( 'http://localhost:8612/build/'+mini+'.min.js'+coep )
 
 				break
@@ -238,6 +273,9 @@ export class Motor {
 			console.log( st  + ' Worker '+ type + (o.isBuffer ? ' with Shared Buffer' : '') );
 
 
+			Motor.initPhysics( o )
+
+
 			/// ???
 			//Cross-Origin-Embedder-Policy: require-corp
 			//Cross-Origin-Opener-Policy: same-origin
@@ -245,24 +283,57 @@ export class Motor {
 
 			//console.log(crossOriginIsolated)
 
-			isWorker = true;
+			//isWorker = true;
 
 
 		} else { // is direct version
 
-			directMessage = o.direct;
+			if( wasmLink[mini] ) Motor.loadWasmDirect( wasmLink[mini], o, mini )
+			else Motor.preLoad( mini, o )
+
+			/*directMessage = o.direct;
 			o.message = Motor.message;
-			console.log( type + ' is direct' );
+			console.log( type + ' is direct' );*/
 
 		}
 
-		
-		root.post({ m:'init', o:o });
+		//Motor.initPhysics( o )
+
+	}
+
+	static loadWasmDirect( link, o, name ) {
+	
+	    let s = document.createElement("script")
+	    s.src = link;
+	    document.body.appendChild( s )
+	    s.onload = () => { 
+	    	Motor.preLoad( name, o )
+	    }
+
+	}
+
+	static async preLoad( name, o ) {
+	
+	    let M = await import( o.devMode ? '../'+name+'.js' : './'+name+'.module.js');
+	    directMessage = M.engine.message
+		o.message = Motor.message
+		Motor.initPhysics( o )
+
+	}
+
+	////
+
+	static initPhysics( o ) {
+	
+	    root.post({ m:'init', o:o });
+	    engineReady = true
 
 	}
 	
 	static getPause (){
+
 		return isPause
+
 	}
 
 	static pause ( v ){
@@ -342,7 +413,7 @@ export class Motor {
 
 	static ready (){
 
-		console.log( 'Motor is ready !!' )
+		console.log( (isWorker? 'Worker ': 'Direct ') + root.engine + ' is ready !' )
 		if( callback ) callback()
 
 	}
@@ -407,6 +478,7 @@ export class Motor {
 
 	static doStep ( stamp ){
 
+		if( !engineReady ) return
 		if( !outsideStep ) return
 
         //if( isWorker && realtime ) return

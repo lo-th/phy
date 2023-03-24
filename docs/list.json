@@ -1,0 +1,31 @@
+{
+
+	"en": {
+
+		"Manual": {
+
+			"Getting Started": {
+				"Welcome": "manual/Welcome",
+				"The basic": "manual/The-basics"
+			},
+
+			"Engine": {
+				"Oimo": "manual/Oimo-engine",
+				"Physx": "manual/Physx-engine",
+				"Ammo": "manual/Ammo-engine"
+			},
+
+			"Command": {
+				"phy.init": "manual/phy-init",
+				"phy.set": "manual/phy-set",
+				"phy.load": "manual/phy-load",
+				"phy.add": "manual/phy-add",
+				"phy.change": "manual/phy-change",
+				"phy.remove": "manual/phy-remove"
+				
+			}
+
+		}
+
+	}
+}

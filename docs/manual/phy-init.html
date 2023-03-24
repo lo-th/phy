@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<base href="../" />
+		<script src="page.js"></script>
+		<link type="text/css" rel="stylesheet" href="page.css" />
+	</head>
+	<body>
+
+		<h1>phy.init()</h1>
+
+		<p class="desc">initialise physics engine</p>
+
+		<iframe id="scene" src="scenes/engines.html#OIMO"></iframe>
+
+		<script>
+
+		// iOS iframe auto-resize workaround
+
+		if ( /(iPad|iPhone|iPod)/g.test( navigator.userAgent ) ) {
+
+			const scene = document.getElementById( 'scene' );
+
+			scene.style.width = getComputedStyle( scene ).width;
+			scene.style.height = getComputedStyle( scene ).height;
+			scene.setAttribute( 'scrolling', 'no' );
+
+		}
+
+		</script>
+
+		<h2>Code Example</h2>
+
+<code>
+import { phy } from './build/Phy.module.js';
+
+phy.init({ 
+	type:'OIMO', 
+	worker:false, 
+	callback:startDemo, 
+	scene:scene,
+	path:'./build/'
+})
+</code>
+
+        <h2>Command</h2>
+
+		<h3>phy.init( [param:Object parameters] )</h3>
+
+		<h2>Parameters</h2>
+<p>	
+		[param:String type] — the physics engine type can be 'OIMO', 'AMMO', 'PHYSX'<br />
+		[param:Boolean worker] — run in worker or not ( worker free resource for three )<br />
+		[param:Function callback] — function start after physics engine init<br />
+		[param:Object3d scene] — the three.js main scene<br />
+		[param:String path] — set default resource path<br />
+	</p>
+
+
+	</body>
+</html>

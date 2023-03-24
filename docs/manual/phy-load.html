@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<base href="../" />
+		<script src="page.js"></script>
+		<link type="text/css" rel="stylesheet" href="page.css" />
+	</head>
+	<body>
+
+		<h1>phy.load()</h1>
+
+		<p class="desc">load resource</p>
+
+		<h2>Code Example</h2>
+
+<code>
+phy.load(
+    'dices.glb', 
+    onComplete 
+)
+
+phy.load(
+    ['dices.glb', 'yo.jpg'], 
+    onComplete 
+)
+</code>
+
+        <h2>Command</h2>
+
+		<h3>phy.load( [param:String name], [param:Function callback] )</h3>
+		<h3>phy.load( [param:Array list], [param:Function callback] )</h3>
+
+		<h2>Parameters</h2>
+<p>	
+		[param:String name] — load one object by name <br />
+		[param:Array list] — load list of objects name <br />
+		[param:Function callback] — on loading complete <br />
+	</p>
+
+
+	</body>
+</html>

@@ -1,43 +1,49 @@
 <!DOCTYPE html>
 <html lang="en">
 	<head>
-		<title>simple</title>
 		<meta charset="utf-8">
-		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		<title>phy engines</title>
+		<link rel="shortcut icon" href="../../favicon.ico" />
+		<link rel="stylesheet" type="text/css" href="../../assets/css/docs.css">
 	</head>
-	<body style="background-color:#000; margin:0; padding:0; overflow:hidden;">
+	<body>
 
 		<!-- Import maps polyfill -->
 		<!-- Remove this when import maps will be widely supported -->
-		<script async src="https://unpkg.com/es-module-shims@1.3.6/dist/es-module-shims.js"></script>
+		<script async src="https://unpkg.com/es-module-shims@1.6.3/dist/es-module-shims.js"></script>
 
 		<script type="importmap">
 			{
 				"imports": {
-					"three": "./src/libs/three.module.js",
-					"three/addons/": "./src/jsm/"
+					"three": "../../src/libs/three.module.js",
+					"three/addons/": "../../src/jsm/"
 				}
 			}
 		</script>
 
-		<script type="module">
+		<a id='newWindow' href='./engines.html' target='_blank'>Open in New Window</a>
 
+		<script type="module">
 			import * as THREE from 'three';
 			import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
-			import { phy } from './build/Phy.module.js';
+			import { phy } from '../../build/Phy.module.js';
+
+			const engine = window.location.hash.substring( 1 );
+			document.getElementById( 'newWindow' ).href += '#' + engine;
 
 			let camera, scene, renderer, controler, light;
 			let material;
 
 			init();
+			initEngine()
 			animate();
 
 			function init() {
 
 				scene = new THREE.Scene();
 
-				const texture = new THREE.TextureLoader().load( './assets/textures/check.jpg' );
+				const texture = new THREE.TextureLoader().load( '../../assets/textures/check.jpg' );
 				material = new THREE.MeshStandardMaterial( { map: texture } );
 
 				renderer = new THREE.WebGLRenderer( { antialias: true } );
@@ -58,8 +64,6 @@
 			    scene.add(light);
 			    scene.background = new THREE.Color( 0x101000 );
 			    scene.add( new THREE.AmbientLight( 0x202000 ));
-
-			    initEngine()
 
 				window.addEventListener( 'resize', onWindowResize );
 
@@ -85,9 +89,13 @@
 
 			function initEngine() {
 
-				phy.init( { type:'PHYSX', worker:false, callback:startDemo } )
-				// add phy container to three scene
-				phy.setContent( scene )
+				phy.init( { 
+					type:engine, 
+					worker:false,
+					scene:scene,
+					callback:startDemo, 
+					path:'../../build/'
+				})
 
 			}
 
@@ -105,9 +113,6 @@
 
 			}
 
-
-
 		</script>
-
 	</body>
 </html>

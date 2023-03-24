@@ -168,10 +168,10 @@ const Version = {
     Rapier: '0.10.0',
 }
 
-const LinkWasm = {
-    Ammo:'build/ammo3.wasm.js',
-    Physx:'build/physx-js-webidl.js',
-}
+/*const LinkWasm = {
+    Ammo:'./build/ammo3.wasm.js',
+    Physx:'./build/physx-js-webidl.js',
+}*/
 
 let memo = null
 
@@ -224,50 +224,24 @@ export const Main = {
 
 		version = Version[ engineName ]
 
-		o.link = LinkWasm[ engineName ]
-		o.type = Main.engineType;
+		//o.link = LinkWasm[ engineName ]
+		o.type = Main.engineType
+		o.devMode = Main.devMode
+		o.worker = Main.isWorker
 		o.callback = init
 
 		introText = ( Main.isWorker ? 'WORKER ' : 'DIRECT ' ) + Main.engineType + ' ' + version;
 
 		//options.show_stat = Main.devMode
 
-		Motor.engine = Main.engineType
-		window.engine = Motor.engine
+		//Motor.engine = Main.engineType
+		window.engine = Main.engineType//Motor.engine
 
-		if( Main.isWorker ){
-			Motor.init( o )
-		} else {
-			if( o.link ) Main.loadScript( o, engineName, preLoad );
-			else preLoad( engineName, o )
-		}
+
+		Motor.init( o )
 	
 	},
 
-	loadScript:( o, name, callback ) => {
-	
-	    let s = document.createElement("script")
-	    s.src = o.link;
-	    document.body.appendChild( s )
-	    s.onload = () => { callback( name, o ) };
-
-	},
-
-	/*view: ( o = {} ) => {
-
-		if( o.envmap ) setEnv( o.envmap, true )
-
-
-		if( o.fog ) scene.fog = new THREE.FogExp2( Env.getFogColor().getHex(), 0.01 )
-		else scene.fog = null
-
-		// reflect floor
-		if( o.ground ) addGround( o )
-		else removeGround()
-
-		if( isLoadCode ) controls.moveCam( {...cam, ...o })
-		
-	},*/
 
     setComposer:( b ) => { setComposer(b) },
     showDebugLight:( b ) => { showDebugLight(b) },
@@ -340,13 +314,13 @@ window.Fluid = Fluid
 
 //window.SpiderRobot = SpiderRobot
 
-async function preLoad( name, o ) {
+/*async function preLoad( name, o ) {
 	
     let M = await import( Main.devMode ? './'+name+'.js' : '../build/'+name+'.module.js');
     o.direct = M.engine.message;
     Motor.init( o )
 
-}
+}*/
 
 const init = () => {
 
@@ -533,11 +507,8 @@ const next = () => {
 
     Motor.setContent( scene )
     Motor.setControl( controls )
-    //Motor.setExtraTexture( Motor.texture )
     Motor.setExtraMaterial( Shader.add )
     Motor.setAddControl( addControl )
-
-
 
 
 	let hash = location.hash.substr( 1 )
@@ -1474,7 +1445,7 @@ const setComposer = ( b ) => {
 		} 
 	}
 
-	//Gui.postprocess()
+	Gui.postprocess()
 
 }
 

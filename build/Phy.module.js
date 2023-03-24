@@ -1,4 +1,4 @@
-import { Color, Euler, Quaternion, Matrix4, Vector3, Box3Helper, CylinderGeometry, SphereGeometry, BoxGeometry, PlaneGeometry, MeshBasicMaterial, LineBasicMaterial, MeshPhysicalMaterial, MeshStandardMaterial, Line, BufferGeometry, Float32BufferAttribute, EventDispatcher, MathUtils, Layers, InstancedMesh, InstancedBufferAttribute, DynamicDrawUsage, BufferAttribute, TrianglesDrawMode, TriangleFanDrawMode, TriangleStripDrawMode, CircleGeometry, Vector2, Line3, Plane, Triangle, Mesh, LineSegments, NearestFilter, NearestMipmapNearestFilter, NearestMipmapLinearFilter, LinearFilter, LinearMipmapNearestFilter, LinearMipmapLinearFilter, ClampToEdgeWrapping, RepeatWrapping, MirroredRepeatWrapping, PropertyBinding, InterpolateLinear, Source, LinearEncoding, RGBAFormat, DoubleSide, InterpolateDiscrete, Scene, sRGBEncoding, Loader, LoaderUtils, FileLoader, SpotLight, PointLight, DirectionalLight, Object3D, TextureLoader, ImageBitmapLoader, InterleavedBuffer, InterleavedBufferAttribute, PointsMaterial, Material, SkinnedMesh, LineLoop, Points, Group, PerspectiveCamera, OrthographicCamera, Skeleton, AnimationClip, Bone, FrontSide, Texture, VectorKeyframeTrack, QuaternionKeyframeTrack, NumberKeyframeTrack, Box3, Sphere, Interpolant, SRGBColorSpace, LinearSRGBColorSpace, Vector4, Curve, MeshPhongMaterial, MeshLambertMaterial, EquirectangularReflectionMapping, AmbientLight, Uint16BufferAttribute, Matrix3, DataTextureLoader, HalfFloatType, FloatType, DataUtils, ShaderChunk, AnimationMixer, AdditiveBlending, CustomBlending, ZeroFactor, SrcAlphaFactor, SkeletonHelper } from 'three';
+import { Color, Euler, Quaternion, Matrix4, Vector3, Box3Helper, CylinderGeometry, SphereGeometry, BoxGeometry, PlaneGeometry, MeshBasicMaterial, LineBasicMaterial, MeshPhysicalMaterial, DoubleSide, MeshStandardMaterial, Line, BufferGeometry, Float32BufferAttribute, EventDispatcher, MathUtils, Layers, InstancedMesh, InstancedBufferAttribute, DynamicDrawUsage, BufferAttribute, TrianglesDrawMode, TriangleFanDrawMode, TriangleStripDrawMode, CircleGeometry, Vector2, Line3, Plane, Triangle, Mesh, LineSegments, NearestFilter, NearestMipmapNearestFilter, NearestMipmapLinearFilter, LinearFilter, LinearMipmapNearestFilter, LinearMipmapLinearFilter, ClampToEdgeWrapping, RepeatWrapping, MirroredRepeatWrapping, PropertyBinding, InterpolateLinear, Source, LinearEncoding, RGBAFormat, InterpolateDiscrete, Scene, sRGBEncoding, Loader, LoaderUtils, FileLoader, SpotLight, PointLight, DirectionalLight, Object3D, TextureLoader, ImageBitmapLoader, InterleavedBuffer, InterleavedBufferAttribute, PointsMaterial, Material, SkinnedMesh, LineLoop, Points, Group, PerspectiveCamera, OrthographicCamera, Skeleton, AnimationClip, Bone, FrontSide, Texture, VectorKeyframeTrack, QuaternionKeyframeTrack, NumberKeyframeTrack, Box3, Sphere, Interpolant, SRGBColorSpace, LinearSRGBColorSpace, Vector4, Curve, MeshPhongMaterial, MeshLambertMaterial, EquirectangularReflectionMapping, AmbientLight, Uint16BufferAttribute, Matrix3, DataTextureLoader, HalfFloatType, FloatType, DataUtils, ShaderChunk, AnimationMixer, AdditiveBlending, CustomBlending, ZeroFactor, SrcAlphaFactor, SkeletonHelper } from 'three';
 
 const map = new Map();
 
@@ -267,7 +267,7 @@ const Mat = {
 				case 'skinny':   m = new MeshStandardMaterial({ color:0xe0ac69, ...matExtra }); break
 				case 'chrome': m = new MeshStandardMaterial({ color:0xCCCCCC, metalness: 1, roughness:0 }); break
 				case 'glass':  m = new MeshPhysicalMaterial({ color:0xFFFFff, transparent:true, opacity:0.8, depthTest:true, depthWrite:false, roughness:0.02, metalness:0.0, /*side:DoubleSide,*/ alphaToCoverage:true, premultipliedAlpha:true, transmission:1, clearcoat:1, thickness:0.02  }); break
-				case 'plexi':  m = new MeshPhysicalMaterial({ color:0xFFFFff, transparent:true, opacity:0.4, metalness: 1, roughness:0, clearcoat:1 }); break
+				case 'plexi':  m = new MeshPhysicalMaterial({ color:0xFFFFff, transparent:true, opacity:0.4, metalness:1, roughness:0, clearcoat:1, side:DoubleSide }); break
 				case 'glass2': m = new MeshPhysicalMaterial({ color:0xCCCCff, transparent:true, opacity:0.3  }); break
 				case 'sat': m = new MeshPhysicalMaterial({ color:0xffffff, metalness: 1, roughness:0, clearcoat:1  }); break
 				
@@ -24153,15 +24153,42 @@ const TerrainShader = {
     // normal
 
     normal : /* glsl */`
-        #ifdef USE_NORMALMAP
+
+        #ifdef OBJECTSPACE_NORMALMAP
+
+            normal = texture2D( normalMap, vUv ).xyz * 2.0 - 1.0; // overrides both flatShading and attribute normals
+
+            #ifdef FLIP_SIDED
+
+                normal = - normal;
+
+            #endif
+
+            #ifdef DOUBLE_SIDED
+
+                normal = normal * faceDirection;
+
+            #endif
+
+            normal = normalize( normalMatrix * normal );
+
+        #elif defined( TANGENTSPACE_NORMALMAP )
 
             vec4 sandN = textureMAP( normalMap, vUv );
             vec4 grassN = textureMAP( normalMap1, vUv );
             vec4 rockN = textureMAP( normalMap2, vUv );
 
-            vec3 extraNormal = MappingMix(vColor.r, clevels, rockN, grassN, sandN).xyz * 2.0 - 1.0;
-            extraNormal.xy *= normalScale;
-            normal = perturbNormal2Arb( -vViewPosition, normal, extraNormal, faceDirection );
+            vec3 mapN = MappingMix(vColor.r, clevels, rockN, grassN, sandN).xyz * 2.0 - 1.0;
+
+            //vec3 mapN = texture2D( normalMap, vUv ).xyz * 2.0 - 1.0;
+            mapN.xy *= normalScale;
+
+            normal = normalize( tbn * mapN );
+
+        #elif defined( USE_BUMPMAP )
+
+            normal = perturbNormalArb( - vViewPosition, normal, dHdxy_fwd(), faceDirection );
+
         #endif
     `,
 
@@ -25529,14 +25556,6 @@ class Breaker {
 
 }
 
-/** __
-*    _)_|_|_
-*   __) |_| | 2023
-* @author lo.th / https://github.com/lo-th
-*
-*    THREE JS ENGINE
-*/
-
 let items;
 let currentControle = null;
 let callback = null;
@@ -25547,6 +25566,8 @@ let isWorker = false;
 let isBuffer = false;
 let isTimeout = false;
 let outsideStep = true;
+
+let engineReady = false;
 
 
 let breaker = null;
@@ -25580,6 +25601,15 @@ let postUpdate = function(){};
 
 let addControl = function(){};
 
+/*const preload = async ( name, o ) => {
+	
+    let M = await import( o.devMode ? '../'+name+'.js' : './'+name+'.module.js');
+    directMessage = M.engine.message
+	o.message = Motor.message
+	Motor.initPhysics( o )
+
+}*/
+
 //let extraMaterial = function(){}
 
 class Motor {
@@ -25605,10 +25635,8 @@ class Motor {
 	static math () { return math$1 }
 
 	static setContent ( Scene ) {
-
 		Scene.add( root.scene );
 		Scene.add( root.scenePlus );
-
 	}
 
 	static setControl ( Controls ) { 
@@ -25663,7 +25691,14 @@ class Motor {
 
 	//static getMat ( mode ) { return mode === 'HIGH' ? mat : matLow; }
 
-	static init ( o = {} ){
+	static init ( o = {} ) {
+
+		const path = o.path || './build/';
+
+		const wasmLink = {
+		    Ammo: path + 'ammo3.wasm.js',
+		    Physx: path + 'physx-js-webidl.js',
+		};
 
 		let type = o.type || 'PHYSX';
 		let name = type.toLowerCase();
@@ -25673,6 +25708,8 @@ class Motor {
 		let isFirefox = navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
 
 		root.engine = type;
+
+		
 
 		Motor.initItems();
 
@@ -25684,10 +25721,17 @@ class Motor {
 			delete ( o.callback );
 		}
 
+		isWorker = o.worker || false;
+
 		root.scene = new Group();
 		root.scene.name = 'phy_scene';
 		root.scenePlus = new Group();
 		root.scenePlus.name = 'phy_scenePlus';
+
+		if(o.scene){ 
+			Motor.setContent( o.scene );
+			delete ( o.scene );
+		}
 
 		root.update = Motor.update;
 		root.remove = Motor.remove;
@@ -25697,19 +25741,19 @@ class Motor {
 
 		root.motor = this;
 
-		if( !o.direct ){ // is worker version
+		if( isWorker ){ // is worker version
 
 			switch( type ){
 
 				case 'OIMO':
 
-				    if( isFirefox ) worker = new Worker( './build/'+mini+'.min.js' );
+				    if( isFirefox ) worker = new Worker( path + mini + '.min.js' );
 				    else {
 				    	try {
-					        worker = new Worker('./build/'+mini+'.module.js', {type:'module'});
+					        worker = new Worker( path + mini + '.module.js', {type:'module'});
 						    st = 'ES6';
 						} catch (error) {
-						    worker = new Worker( './build/'+mini+'.js' );
+						    worker = new Worker( path + mini + '.js' );
 						}
 				    }
 
@@ -25721,9 +25765,10 @@ class Motor {
 					//let coep = '?coep=require-corp&coop=same-origin&corp=same-origin&'
 					// https://cross-origin-isolation.glitch.me/?coep=require-corp&coop=same-origin&corp=same-origin&
 				    // for wasm side
-				    if( o.link ) o.blob = document.location.href.replace(/\/[^/]*$/,"/") + o.link;
+				    if( wasmLink[mini] ) o.blob = document.location.href.replace(/\/[^/]*$/,"/") + wasmLink[mini];
 
-					worker = new Worker( './build/'+mini+'.min.js' );
+				    //worker = new Worker( path + mini + '.module.js', {type:'module'})
+					worker = new Worker( path + mini + '.min.js' );
 					//worker = new Worker( 'http://localhost:8612/build/'+mini+'.min.js'+coep )
 
 				break
@@ -25744,6 +25789,9 @@ class Motor {
 			console.log( st  + ' Worker '+ type + (o.isBuffer ? ' with Shared Buffer' : '') );
 
 
+			Motor.initPhysics( o );
+
+
 			/// ???
 			//Cross-Origin-Embedder-Policy: require-corp
 			//Cross-Origin-Opener-Policy: same-origin
@@ -25751,24 +25799,57 @@ class Motor {
 
 			//console.log(crossOriginIsolated)
 
-			isWorker = true;
+			//isWorker = true;
 
 
 		} else { // is direct version
 
-			directMessage = o.direct;
+			if( wasmLink[mini] ) Motor.loadWasmDirect( wasmLink[mini], o, mini );
+			else Motor.preLoad( mini, o );
+
+			/*directMessage = o.direct;
 			o.message = Motor.message;
-			console.log( type + ' is direct' );
+			console.log( type + ' is direct' );*/
 
 		}
 
-		
-		root.post({ m:'init', o:o });
+		//Motor.initPhysics( o )
+
+	}
+
+	static loadWasmDirect( link, o, name ) {
+	
+	    let s = document.createElement("script");
+	    s.src = link;
+	    document.body.appendChild( s );
+	    s.onload = () => { 
+	    	Motor.preLoad( name, o );
+	    };
+
+	}
+
+	static async preLoad( name, o ) {
+	
+	    let M = await import( o.devMode ? '../'+name+'.js' : './'+name+'.module.js');
+	    directMessage = M.engine.message;
+		o.message = Motor.message;
+		Motor.initPhysics( o );
+
+	}
+
+	////
+
+	static initPhysics( o ) {
+	
+	    root.post({ m:'init', o:o });
+	    engineReady = true;
 
 	}
 	
 	static getPause (){
+
 		return isPause
+
 	}
 
 	static pause ( v ){
@@ -25848,7 +25929,7 @@ class Motor {
 
 	static ready (){
 
-		console.log( 'Motor is ready !!' );
+		console.log( (isWorker? 'Worker ': 'Direct ') + root.engine + ' is ready !' );
 		if( callback ) callback();
 
 	}
@@ -25913,6 +25994,7 @@ class Motor {
 
 	static doStep ( stamp ){
 
+		if( !engineReady ) return
 		if( !outsideStep ) return
 
         //if( isWorker && realtime ) return
