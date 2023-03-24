@@ -19,7 +19,11 @@ You can drag file directly on viewport ( code js or environement hdr )
 
 ## Todo
 
-Add more demos, fixe joint, vehicle...
+Add more demos, fixe joint...
+
+## Docs
+
+<a href="https://lo-th.github.io/phy/docs/index.html#manual/Welcomet">docs</a> in progress...
 
 ## About
 
