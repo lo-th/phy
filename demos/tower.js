@@ -14,7 +14,7 @@ demo = () => {
 
 run = () => {
     // phy.up is use for direct outside update
-    phy.up({ name:'sphere', wake:true })
+    phy.change({ name:'sphere', wake:true })
 }
 
 addTower = ( o ) => {
@@ -49,7 +49,7 @@ addTower = ( o ) => {
                 radius:0.02,
                 size:[sx,sy,sz],
                 pos:[px,py,pz],
-                rot:[0,angle*(180 / Math.PI),0],
+                rot  :[0,angle*(180 / Math.PI),0],
                 density:density,
                 restitution:0.6,
                 friction:0.4,

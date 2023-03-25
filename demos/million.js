@@ -41,7 +41,7 @@ onComplete = () => {
 	model = phy.getMesh('million')
 
     makeMachine()
-    makeBall ()
+    makeBall()
 
     phy.setTimeout( activeBall, 3000 )
     //timer = setTimeout( activeBall, 3000 );
@@ -55,7 +55,7 @@ activeBall = () => {
 		r.push({ name: balls[i].name, wake:true })
 	}
 
-	phy.up( r )
+	phy.change( r )
 
     phy.setTimeout( startSimulation, 3000 )
     //timer = setTimeout( startSimulation, 3000 )
@@ -92,7 +92,7 @@ replay = () => {
         r.push({ name: balls[i].name, sleep:true, pos:startPos[i], rot:[0,0,0], reset:true })
     }
 
-    phy.up( r )
+    phy.change( r )
 
     phy.setTimeout( activeBall, 3000 )
     //timer = setTimeout( activeBall, 3000 )
@@ -118,7 +118,7 @@ update = () => {
 
     ]
 
-    phy.update( r )
+    phy.change( r )
 
     if( game !== 'wantBall' ) return
 

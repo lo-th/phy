@@ -69,7 +69,7 @@ addRandomObject = () => {
 
 update = () => {
 
-	phy.up({name:'terra', ease:true, key:phy.getKey(), azimut:phy.getAzimut() })
+	phy.change({name:'terra', ease:true, key:phy.getKey(), azimut:phy.getAzimut() }, true )
 
 	/*let key = phy.getKey()
 	let r = phy.getAzimut()

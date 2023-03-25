@@ -108,7 +108,7 @@ update = () => {
         if( m.position.y<0 ) up.push( { name:m.name, pos:m.origin, reset:true } )
     }
 
-    phy.update( up )
+    phy.change( up )
 
 
 }

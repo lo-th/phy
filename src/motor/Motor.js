@@ -3,6 +3,7 @@ import {
     Group, MeshPhysicalMaterial, MeshStandardMaterial, MeshBasicMaterial, Vector3, Vector2
 } from 'three';
 
+
 import { root, math, Utils, Geo, Mat, mat } from './root.js';
 import { Max, Num, getArray, getType } from '../core/Config.js';
 
@@ -81,22 +82,13 @@ const threeScene = null
 let azimut = function(){ return 0 }
 let endReset = function(){}
 let postUpdate = function(){}
-//let extraTexture = function(){}
-
 let addControl = function(){}
 
-/*const preload = async ( name, o ) => {
-	
-    let M = await import( o.devMode ? '../'+name+'.js' : './'+name+'.module.js');
-    directMessage = M.engine.message
-	o.message = Motor.message
-	Motor.initPhysics( o )
 
-}*/
-
-//let extraMaterial = function(){}
 
 export class Motor {
+
+	static math = math
 
 	static getTimeTest () { return timetest }
 
@@ -116,7 +108,7 @@ export class Motor {
 	static getKey () { return user.key }
 	static getKey2 () { return user.key2 }
 	static getAzimut () { return azimut() }
-	static math () { return math }
+	//static math () { return math }
 
 	static setContent ( Scene ) {
 		Scene.add( root.scene )
@@ -217,11 +209,12 @@ export class Motor {
 			delete ( o.scene )
 		}
 
-		root.update = Motor.update
+		//root.update = Motor.update
+		//root.change = Motor.change
 		root.remove = Motor.remove
 		root.post = Motor.post
 		root.add = Motor.add
-		root.up = Motor.up
+		//root.up = Motor.up
 
 		root.motor = this
 
@@ -538,19 +531,7 @@ export class Motor {
 
 	}
 
-    static up ( list ) {
-
-		if( list instanceof Array ) Motor.changes( list, true )
-		else Motor.change( list, true )
-
-	}
-
-	static update ( list ) {
-
-		if( list instanceof Array ) root.flow.tmp.push( ...list )
-		else root.flow.tmp.push( list )
-
-	}
+    
 
 	static initArray ( full = false ) {
 
@@ -695,7 +676,7 @@ export class Motor {
 
 		if(Ar===null) return
 
-		for (const key in items) items[key].step( Ar, ArPos[key] )
+		for ( const key in items ) items[key].step( Ar, ArPos[key] )
 
 		Motor.upInstance()
 
@@ -740,13 +721,45 @@ export class Motor {
 	}
 
 
-	static changes ( r = [], direct = false ){ for( let o in r ) Motor.change( r[o], direct ) }
 
-	static change ( o = {}, direct = false ){
+	static up ( list ) {
+
+		console.log('up is old')
+		Motor.change( list, true )
+
+		//if( list instanceof Array ) Motor.changes( list, true )
+		//else Motor.changeOne( list, true )
+
+	}
+
+	static update ( list ) {
+
+		console.log('update is old')
+		Motor.change( list )
+
+		//if( list instanceof Array ) root.flow.tmp.push( ...list )
+		//else root.flow.tmp.push( list )
+
+	}
+
+    static change ( o, direct = false ) {
+
+    	if( direct ){
+    		if( o instanceof Array ) Motor.changes( o, true )
+    		else Motor.changeOne( o, true )
+    	} else {
+    		if( o instanceof Array ) root.flow.tmp.push( ...o )
+    		else root.flow.tmp.push( o )
+    	}
+
+	}
+
+
+	static changes ( r = [], direct = false ){ for( let o in r ) Motor.changeOne( r[o], direct ) }
+
+	static changeOne ( o = {}, direct = false ){
 
 		if( o.heightData ) return
-
-		//if ( o.constructor === Array ) return this.changes( o )
 
 		let b = Motor.byName( o.name );
 		if( b === null ) return null;
@@ -867,18 +880,23 @@ export class Motor {
 	static getMesh ( obj, keepMaterial ){
 		return Pool.getMesh( obj, keepMaterial )
 	}
+
 	static getGroup ( obj, autoMesh, autoMaterial ){
 		return Pool.getGroup( obj, autoMesh, autoMaterial )
 	}
+
 	static getMaterial ( name ){
 		return Pool.getMaterial( name )
 	}
+
 	static getTexture ( name, o ){
 		return Pool.getTexture( obj, autoMesh, autoMaterial )
 	}
+
 	static getScript ( name ){
 		return Pool.getScript( name )
 	}
+
 	static get ( name, type ){
 		return Pool.get( name, type )
 	}

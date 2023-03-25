@@ -58,7 +58,7 @@ function Yoch( o ){
 function up () {
 
     // if ball position y is under 10, ball is replaved and velocity reset
-    if( ball.position.y<0.38 ) phy.update( { name:'ball', pos: [ math.rand(-0.4,0.4),2,-2.5 ], rot:[math.randInt(-180,180),0,math.randInt(-180,180)], reset:true } )
+    if( ball.position.y<0.38 ) phy.change( { name:'ball', pos: [ math.rand(-0.4,0.4),2,-2.5 ], rot:[math.randInt(-180,180),0,math.randInt(-180,180)], reset:true } )
 
 
 

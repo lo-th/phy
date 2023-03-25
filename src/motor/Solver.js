@@ -156,7 +156,7 @@ export class Articulation {//extends Basic3D
 		}
 
 		// update or die
-		if( isInDrive ) root.update( nup )
+		if( isInDrive ) root.motor.change( nup )
 		else {
 			if(this.resolve){
 				this.resolve();

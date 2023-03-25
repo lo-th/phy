@@ -24,7 +24,7 @@ onUpdate = () => {
             {name:'j3', driveFree:true}
         ]);
     }else{*/
-        phy.update([
+        phy.change([
             {name:'j1', motor:[r]},
             {name:'j2', motor:[r]},
             {name:'j3', motor:[r]}

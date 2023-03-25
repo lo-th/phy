@@ -20,7 +20,7 @@ demo = () => {
 
 run = () => {
     // phy.up is use for direct outside update
-    phy.up({ name:'sphere', wake:true })
+    phy.change({ name:'sphere', wake:true })
 }
 
 building = ( o ) => {

@@ -185,7 +185,7 @@ update = () => {
 
     //phy.update( { name:'bob', linearVelocity: math.tmpV1.toArray(), angularVelocity: math.tmpV2.toArray(), inTime: true, forceWake:true } );
 
-    phy.update({ name:'bob', linearVelocity: tmpV1.toArray(), angularVelocity: tmpV2.toArray(), /*rot:[0,r*math.todeg, 0],*/ wake:true });
+    phy.change({ name:'bob', linearVelocity: tmpV1.toArray(), angularVelocity: tmpV2.toArray(), /*rot:[0,r*math.todeg, 0],*/ wake:true });
 
     oy = bob.position.y;
 

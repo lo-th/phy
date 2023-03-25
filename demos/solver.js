@@ -42,7 +42,7 @@ update = () => {
 	if( gClosing ) driveValue -= dt*0.25; 
 	else driveValue += dt*0.25;
 
-	phy.update( { name:'driveJoint', drivesTarget:[[ 'z', driveValue ]] } );
+	phy.change( { name:'driveJoint', drivesTarget:[[ 'z', driveValue ]] } );
 
 }
 

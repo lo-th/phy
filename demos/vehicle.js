@@ -95,7 +95,7 @@ terrainTest = () => {
     let py = terrain.getHeight( 0, 0 )+3
     if(py<1) py = 1
 
-    phy.up( { name:'buggy', pos:[0,py,0] } )
+    phy.change({ name:'buggy', pos:[0,py,0] })
     phy.remove( 'floor' )
 
     // update after physic step
@@ -109,7 +109,7 @@ update = () => {
     let d = math.distance({ x:p.x, z:p.z });
 
     if( d > 50 ){
-        phy.up([
+        phy.change([
             { name:'terra', decal:[p.x,0,p.z] },
             { name:'buggy', pos:[0,p.y,0] },
         ])

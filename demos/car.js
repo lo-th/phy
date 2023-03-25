@@ -188,6 +188,6 @@ function update () {
 
     }
 
-    phy.update( r )
+    phy.change( r )
 
 }

@@ -327,7 +327,7 @@ class Hero extends Basic3D {
 	    //math.tmpV2.set( 0, rs, 0 );
 	    this.tmpV2.set( 0, 0, 0 );
 
-	    phy.update({ 
+	    root.motor.change({ 
 		    name:this.name, 
 		    //force: this.tmpV1.toArray(), forceMode:'velocity', 
 		    linearVelocity: this.tmpV1.toArray(), 

@@ -118,7 +118,7 @@ addPhysics = ( groups ) => {
 
         phy.add({
             name:'A'+i, type:'joint', mode:'revolute',
-            b1:'playfield', b2:'paddle_'+i,
+            b1:'playfield', b2:'paddle_'+i, 
             worldAnchor:ppos[i], worldAxis:[0,1,0],
             //projection:0.1,//??
             //driveFree:true,
@@ -148,7 +148,7 @@ addPhysics = ( groups ) => {
 
     phy.add({
         name:'L', type:'joint', mode:'prismatic',
-        b1:'playfield', b2:'launcher',
+        b1:'playfield', b2:'launcher', //noFix:true,
         worldAnchor:[2.2481, 0.135, 5.0575], worldAxis:[0,0,1],
         lm:[ -0.01, 0.7, 2000, 100, 0.1 ],  sd:[10, 1]
      
@@ -343,6 +343,6 @@ update = () => {
     while(i--) r.push( { name:ball[i].name, force:[0,0,0.3] } )
     
 
-    phy.update( r )
+    phy.change( r )
 
 }

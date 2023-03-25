@@ -78,6 +78,6 @@ update = () => {
         r.push( { name:b.name, force:p.toArray() } );
     });
 
-    phy.update( r )
+    phy.change( r )
 
 }

@@ -299,7 +299,7 @@ Motor.extraCode = Main.extraCode;
 
 
 window.phy = Motor
-window.math = Motor.math()
+window.math = Motor.math//()
 window.Main = Main
 
 window.THREE = THREE
@@ -1302,7 +1302,7 @@ const select = ( obj, inters ) => {
 		//improveSlerp:true,
 		noFix:true,
 	})
-	Motor.up({ name:selected.name, neverSleep:true })
+	Motor.change({ name:selected.name, neverSleep:true })
 
 	rayTest = false
 	controls.enabled = false
@@ -1320,7 +1320,7 @@ const unSelect = () => {
 	scene.remove( dragPlane )
 	Motor.remove('mouseJoint')
 	Motor.remove('mouse')
-	Motor.up({ name:selected.name, neverSleep:false, wake:true })
+	Motor.change({ name:selected.name, neverSleep:false, wake:true })
 	
 	rayTest = true
 	selected = null
