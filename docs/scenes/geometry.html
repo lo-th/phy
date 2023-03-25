@@ -31,9 +31,6 @@
 			import { Reflector } from '3th/objects/Reflector.js';
 			import { Env } from '3th/Env.js';
 
-			const engine = window.location.hash.substring( 1 );
-			document.getElementById( 'newWindow' ).href += '#' + engine;
-
 
 			let container, controls;
 			let camera, scene, renderer, mesh = null, mesh2, mat1, mat2, gr1, ui, fog, light;
@@ -41,7 +38,6 @@
 			let current = '';
 			let encoding = true;
 			let toneMapping = true;
-
 
 			const options = {
 

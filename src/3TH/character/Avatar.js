@@ -47,6 +47,10 @@ export class Avatar extends Group {
 
         super();
 
+        this.rootPath = o.path || './'
+        this.lzmaPath = this.rootPath + 'src/libs/lzma_worker.js'
+        Pool.dracoPath =  this.rootPath + 'src/libs/draco/'
+
         this.callback = o.callback || function (){}
 
         this.matrixAutoUpdate = false;
@@ -143,7 +147,7 @@ export class Avatar extends Group {
         this.skin = Pool.getTexture('avatar_c')
         if( !this.skin ){
 
-            const path = './assets/textures/avatar_' + this.textureQuality + 'k/'
+            const path = this.rootPath + 'assets/textures/avatar_' + this.textureQuality + 'k/'
             const asset = [
                 'avatar_c.jpg', 'avatar_n.jpg', 'avatar_m.jpg', 'avatar_r.jpg', 'avatar_u.jpg',
                 'mouth_c.jpg', 'mouth_a.jpg', 'mouth_n.jpg', 
@@ -162,7 +166,7 @@ export class Avatar extends Group {
     {
         
         const asset = [this.model+'.glb']
-        const path = './assets/models/avatar/'
+        const path = this.rootPath + 'assets/models/avatar/'
         if( this.haveMorph ) asset.push( this.model+'_morph.glb' )
         Pool.load( asset, this.init.bind(this), path, 'loading models...' )
     }
@@ -646,8 +650,8 @@ export class Avatar extends Group {
 
         if( Pool.clip.length === 0 ){ 
             // load animation include in json or the compacted version
-            if( this.compact ) this.loadCompactAnimation('./assets/animation/animations.bin')
-            else this.loadAnimationJson('./assets/animation/animations.json', this.start.bind(this) )
+            if( this.compact ) this.loadCompactAnimation(this.rootPath +'assets/animation/animations.bin')
+            else this.loadAnimationJson(this.rootPath +'assets/animation/animations.json', this.start.bind(this) )
 
         } else {
             let i = Pool.clip.length;
@@ -820,7 +824,7 @@ export class Avatar extends Group {
     loadOne()
     {
         let name = this.urls[0];
-        this.loadAnimationFbx( './assets/animation/fbx/'+name+'.fbx', this.next.bind(this) );
+        this.loadAnimationFbx( this.rootPath + 'assets/animation/fbx/'+name+'.fbx', this.next.bind(this) );
     }
 
     next()
@@ -832,7 +836,7 @@ export class Avatar extends Group {
 
     loadCompactAnimation( url = './assets/models/animations.bin' )
     {
-        if(!this.lzma) this.lzma = new LZMA("./src/libs/lzma_worker.js");
+        if(!this.lzma) this.lzma = new LZMA(this.lzmaPath);
 
         var request = new XMLHttpRequest();
         request.open('GET', url, true);
@@ -970,7 +974,7 @@ export class Avatar extends Group {
     exportAnimationLzma( callback )
     {
 
-        if(!this.lzma) this.lzma = new LZMA("./src/libs/lzma_worker.js");
+        if(!this.lzma) this.lzma = new LZMA(this.lzmaPath);
 
         const data = this.getAnimation( true )
 

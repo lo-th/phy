@@ -15,7 +15,48 @@ export class Gui {
 	    this.debug.style.cssText = unselectable + "font-family: monospace; position:absolute; top:10px; left:10px; width:200px; height:200px; pointer-events:none; color:#CCC;";
 	    document.body.appendChild(this.debug);
 
-		const ui = new UIL.Gui({})
+	    let colors = {
+
+			sx: 4,
+	        sy: 2,
+	        radius:3,
+
+			background:'none',
+			backgroundOver:'none',//'rgba(255,255,255,0.02)',
+
+			//font:"'Roboto Mono', 'Source Code Pro', Consolas, monospace", 
+			font:"Mulish, sans-serif", 
+			fontSize:14,
+			weight:'500',
+
+			/*text:'rgba(0,0,6,1)',
+			title:'rgba(0,0,6,1)',
+			titleoff: '#000',
+			textOver: '#7fFF00',
+			textSelect: '#7fFF00',
+
+			button:'rgba(255,255,255,0.1)',
+			overoff : 'rgba(0,0,6,0.3)',
+			over:'rgba(0,0,6,0.2)',
+			select:'rgba(0,0,6,0.75)',
+			
+			//fontShadow:'#000006',
+			
+			border:'rgba(255,255,255,0.2)',//
+			borderSize:1,
+			//overoff:'rgba(255,255,255,0.1)',
+			
+			groups:'rgba(255,255,255,0.1)',
+			gborder:'rgba(255,255,255,0.2)',
+
+			joyOut: 'rgba(255,255,255,0.1)',
+			joyOver:'rgba(127,255,0,0.2)',
+	        joySelect: '#7fFF00',
+			//fontFamily: 'Tahoma',*/
+
+		}
+
+		const ui = new UIL.Gui({ colors:colors })
 		ui.add( 'title',  { name:'AVATAR 3.0', h:30, align:'center' })
 
 		//ui.add('button', { name:'EXPORT ANIMATION', h:30 }).onChange( function (b){ ref.export(); } )
@@ -103,9 +144,9 @@ export class Gui {
         	this.groupMorph.add('slide', { min:0, max:1, name:morphlist[i] }).onChange( function (v){ ref.setMorph(this.name, v); if(ref2)ref2.setMorph(this.name, v); } )
         }
 
-        const g4 = ui.add('group', { name:'SAVE', h:30 })
+        /*const g4 = ui.add('group', { name:'SAVE', h:30 })
         g4.add('button', { name:'SAVE ANIMATION' }).onChange( function(){  ref.exportAnimationLzma( UIL.Files.save ) })
-        g4.add('button', { name:'SAVE MODEL' }).onChange( function(){  ref.exportGLB( UIL.Files.save ) })
+        g4.add('button', { name:'SAVE MODEL' }).onChange( function(){  ref.exportGLB( UIL.Files.save ) })*/
 
         //g4.add('button', { name:'LOAD ANIMATION' }).onChange( function(){  ref.loadCompactAnimation() })
 		
@@ -195,7 +236,7 @@ class Timebarre {
 	    this.parent.appendChild( this.content );
 
 	    this.timeInfo = document.createElement('div');
-	    this.timeInfo.style.cssText = unselectable + "font-family: monospace; position:absolute; bottom:36px; left:60px; width:200px; height:10px; pointer-events:none; color:#CCC;";
+	    this.timeInfo.style.cssText = unselectable + "font-family: Mulish, sans-serif; position:absolute; bottom:36px; left:60px; width:200px; height:10px; pointer-events:none; color:#CCC;";
 	    this.content.appendChild(this.timeInfo);
 
 	    this.timeline = document.createElement('div');
@@ -207,7 +248,7 @@ class Timebarre {
 	    this.timeline.appendChild(this.framer);
 
 	    this.playButton = document.createElement('div');
-	    this.playButton.style.cssText = "position:absolute; top:5px; left:10px; width:18px; height:18px; pointer-events:auto; cursor:pointer; border:3px solid rgba(255,255,255,0.2); padding: 5px 5px;";
+	    this.playButton.style.cssText = "position:absolute; top:5px; left:10px; width:18px; height:18px; pointer-events:auto; cursor:pointer; border:3px solid rgba(255,255,255,0.2); padding: 5px 5px;box-sizing: content-box;";
 	    this.content.appendChild( this.playButton );
 
 	    this.playButton.innerHTML = this.playing ? this.playIcon : this.pauseIcon;

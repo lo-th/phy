@@ -11,7 +11,8 @@
 
 			"Features": {
 				"Geometry": "manual/Geometry",
-				"Particle": "manual/Particle"
+				"Particle": "manual/Particle",
+				"Character": "manual/Character"
 			},
 
 			"Engine": {

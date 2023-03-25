@@ -1,10 +1,10 @@
 export class Logo { 
 
-    constructor( Color = '#ff4545' )
+    constructor( Color = '#ff4545', link )
     {
         let color = Color;
         const bottomLogo = document.createElement( 'a' );
-        bottomLogo.href = 'https://github.com/lo-th';
+        bottomLogo.href = link || 'https://github.com/lo-th';
         bottomLogo.target = '_blank';
         bottomLogo.style.cssText = 'position:absolute; width:60px; height:30px; left:10px; top:13px; pointer-events:auto; cursor:pointer;'
         bottomLogo.innerHTML = this.icon( '3TH', '#CCCCCC' );
@@ -13,7 +13,7 @@ export class Logo {
         let unselectable = '-o-user-select:none; -ms-user-select:none; -khtml-user-select:none; -webkit-user-select:none; -moz-user-select: none; pointer-events:none; '
         
         this.info = document.createElement('div');
-        this.info.style.cssText = unselectable + "font-family: monospace; position:absolute; top:30px; left:80px; width:200px; height:200px; pointer-events:none; color:#CCC;";
+        this.info.style.cssText = unselectable + "font-family: Mulish, sans-serif; position:absolute; top:25px; left:80px; width:200px; height:200px; pointer-events:none; color:#CCC;";
         document.body.appendChild(this.info);
 
         this.info.innerHTML = 'yoo'
