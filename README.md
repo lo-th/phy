@@ -28,6 +28,5 @@ Add more demos, fixe joint...
 ## About
 
 Phy is under active development<br>
-You can help me improve phy engine
+You can help me improve phy engine with Sponsor
 
-[![paypal](https://www.paypalobjects.com/en_US/i/btn/btn_donate_LG.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=8KTXA987XHYNQ)
