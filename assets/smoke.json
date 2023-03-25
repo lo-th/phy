@@ -1,0 +1,109 @@
+{
+    "flame": {
+        "type":"star",
+        "numParticles": 20,
+        "position":[0,0,0],
+        "colors":[
+            1, 1, 0, 0,
+            1, 1, 0, 1,
+            1, 0, 0, 1,
+            1, 0, 0, 1,
+            1, 0, 0, 0.5,
+            0, 0, 0, 0
+        ],
+        "lifeTime": 2,
+        "timeRange": 2,
+        "startSize": 0.3,
+        "endSize": 0.9,
+        "velocity": [ 0, 0.8, 0 ], 
+        "velocityRange": [ 0.15, 0.15, 0.15 ],
+        "gravity": [ 0, -0.20, 0 ],
+        "spinSpeedRange": 4
+        
+    },
+    "Gaz": {
+        "type":"basic",
+        "numParticles": 20,
+        "position":[-1,0,0],
+        "colors":[
+            0.2, 0.2, 1, 0,
+            0.2, 0.2, 1, 1,
+            0.2, 0.2, 1, 1,
+            0, 0, 1, 1,
+            0, 0, 1, 0.5,
+            0, 0, 1, 0
+        ],
+        "lifeTime": 2,
+        "timeRange": 2,
+        "startSize": 0.5,
+        "endSize": 0.2,
+        "velocity": [ 0, 0.8, 0 ],
+        "gravity": [ 0, -0.20, 0 ],
+        "spinSpeedRange": 4
+    },
+    "Smoke": {
+        "position":[-2,-0.2,0],
+        "colors":[
+            0, 0, 0, 0,
+            0, 0, 0, 1,
+            0, 0, 0, 1,
+            0, 0, 0, 1,
+            0, 0, 0, 0
+        ],
+        "numParticles": 20,
+        "lifeTime": 2,
+        "timeRange": 2,
+        "startSize": 0.5,
+        "endSize": 2,
+        "velocity": [ 0, 1.6, 0 ], 
+        "velocityRange": [ 0.2, 0, 0.2 ],
+        "gravity": [ 0, -0.25, 0 ],
+        "spinSpeedRange": 4,
+        "blending":"normal"
+    },
+    "Dust": {
+        "position":[1.5, 0, -1.5],
+        "colors":[
+            1, 1, 1, 1,
+            1, 1, 1, 0
+        ],
+        "numParticles": 200,
+        "lifeTime": 2,
+        "timeRange": 2,
+        "startSize": 0.1,
+        "endSize": 1,
+        "positionRange": [ 1, 0, 1 ],
+        "velocityRange": [ 0.20, 0, 0.20 ],
+        "gravity": [ 0, 0.5, 0 ]
+    },
+    "Rain": {
+        "position":[-1.5, 2, -1.5],
+        "colors":[
+            0.7, 0.8, 1, 1 
+        ],
+        "numParticles": 800,
+        "lifeTime": 1,
+        "timeRange": 1,
+        "startSize": 0.05,
+        "endSize": 0.05,
+        "positionRange": [ 1, 0, 1 ],
+        "velocity": [ 0, -2.0, 0 ],
+        "blending":"normal"
+    },
+    "riples": {
+        "type":"donut",
+        "numParticles": 200,
+        "position":[-1.5, 0, -1.5],
+        "colors":[
+            0.7, 0.8, 1, 1,
+            0.7, 0.8, 1, 0
+        ],
+        "lifeTime": 2,
+        "timeRange": 2,
+        "startSize": 0,
+        "endSize": 0.3,
+        "positionRange": [ 1, 0, 1 ],
+        "oriented":true
+    }
+
+}

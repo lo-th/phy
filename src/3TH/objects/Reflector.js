@@ -503,12 +503,14 @@ export class Reflector extends Mesh {
 	    img.src = c.toDataURL( 'image/png' )
 
 	    this.alphaMap = new Texture( img )
-	    this.alphaMap.needsUpdate = true;
-	    //this.alphaMap.wrapS = this.alphaMap.wrapT = RepeatWrapping
-		//this.alphaMap.repeat.x = this.alphaMap.repeat.y = 1
-
-		this.material.alphaMap = this.alphaMap;//new Texture( img );
+	    this.material.alphaMap = this.alphaMap;//new Texture( img );
 		this.material.aoMap = this.alphaMap;//new Texture( img );
+
+	    img.onload = function (){
+		    this.alphaMap.needsUpdate = true;
+	    }.bind(this)
+
+	    
 
 		/*const self = this;
 

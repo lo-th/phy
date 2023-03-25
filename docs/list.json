@@ -9,6 +9,11 @@
 				"Create a scene": "manual/Create-a-scene"
 			},
 
+			"Features": {
+				"Geometry": "manual/Geometry",
+				"Particle": "manual/Particle"
+			},
+
 			"Engine": {
 				"Oimo": "manual/Oimo-engine",
 				"Physx": "manual/Physx-engine",

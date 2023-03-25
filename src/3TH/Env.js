@@ -164,6 +164,13 @@ export class Env {
 			envmap:null,
 		}
 
+		/*hdr = hdrLoader.load( url, ()=>{
+
+			Env.process()
+			if( callback ) callback()
+
+		});*/
+
 		hdr = await hdrLoader.loadAsync( url );
 
 		Env.process()
