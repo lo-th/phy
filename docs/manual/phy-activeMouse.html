@@ -8,7 +8,7 @@
 	</head>
 	<body>
 
-		<h1>phy.set()</h1>
+		<h1>phy.activeMouse()</h1>
 
 		<p class="desc">active mouse interaction</p>
 
@@ -20,13 +20,21 @@ phy.activeMouse( controler, 'drag' )
 
         <h2>Command</h2>
 
-		<h3>phy.set( [param:EventDispatcher controler], [param:String mode] )</h3>
+		<h3>phy.activeMouse( [param:EventDispatcher controler], [param:String mode] )</h3>
 
 		<h2>Properties</h2>
-<p>	
+        <p>	
 		[param:EventDispatcher controler] — the current camera controller for example OrbitControls<br />
 		[param:String mode] — mouse mode default is 'drag'<br />
 	</p>
+
+	<h1>phy.mouseMode()</h1>
+	<p class="desc">change mouse mode</p>
+	<h2>Code Example</h2>
+
+<code>
+phy.mouseMode( 'drag' )
+</code>
 
 
 	</body>

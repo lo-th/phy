@@ -97,7 +97,7 @@ export class Motor {
 		if( !mouseTool ) mouseTool = new MouseTool( controler, mode ) 
 	}
 
-    static setMouseMode ( mode ) { 
+    static mouseMode ( mode ) { 
 		if( !mouseTool ) mouseTool.setMode( mode ) 
 	}
 
