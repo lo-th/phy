@@ -1,4 +1,4 @@
-import { Color, Euler, Quaternion, Matrix4, Vector3, Box3Helper, CylinderGeometry, SphereGeometry, BoxGeometry, PlaneGeometry, MeshBasicMaterial, LineBasicMaterial, MeshPhysicalMaterial, DoubleSide, MeshStandardMaterial, Line, BufferGeometry, Float32BufferAttribute, EventDispatcher, MathUtils, Layers, InstancedMesh, InstancedBufferAttribute, DynamicDrawUsage, BufferAttribute, TrianglesDrawMode, TriangleFanDrawMode, TriangleStripDrawMode, CircleGeometry, Vector2, Line3, Plane, Triangle, Mesh, LineSegments, NearestFilter, NearestMipmapNearestFilter, NearestMipmapLinearFilter, LinearFilter, LinearMipmapNearestFilter, LinearMipmapLinearFilter, ClampToEdgeWrapping, RepeatWrapping, MirroredRepeatWrapping, PropertyBinding, InterpolateLinear, Source, LinearEncoding, RGBAFormat, InterpolateDiscrete, Scene, sRGBEncoding, Loader, LoaderUtils, FileLoader, SpotLight, PointLight, DirectionalLight, Object3D, TextureLoader, ImageBitmapLoader, InterleavedBuffer, InterleavedBufferAttribute, PointsMaterial, Material, SkinnedMesh, LineLoop, Points, Group, PerspectiveCamera, OrthographicCamera, Skeleton, AnimationClip, Bone, FrontSide, Texture, VectorKeyframeTrack, QuaternionKeyframeTrack, NumberKeyframeTrack, Box3, Sphere, Interpolant, SRGBColorSpace, LinearSRGBColorSpace, Vector4, Curve, MeshPhongMaterial, MeshLambertMaterial, EquirectangularReflectionMapping, AmbientLight, Uint16BufferAttribute, Matrix3, DataTextureLoader, HalfFloatType, FloatType, DataUtils, ShaderChunk, AnimationMixer, AdditiveBlending, CustomBlending, ZeroFactor, SrcAlphaFactor, SkeletonHelper } from 'three';
+import { Color, Euler, Quaternion, Matrix4, Vector3, Box3Helper, CylinderGeometry, SphereGeometry, BoxGeometry, PlaneGeometry, MeshBasicMaterial, LineBasicMaterial, MeshPhysicalMaterial, DoubleSide, MeshStandardMaterial, Line, BufferGeometry, Float32BufferAttribute, EventDispatcher, MathUtils, Layers, InstancedMesh, InstancedBufferAttribute, DynamicDrawUsage, BufferAttribute, TrianglesDrawMode, TriangleFanDrawMode, TriangleStripDrawMode, CircleGeometry, Vector2, Line3, Plane, Triangle, Mesh, LineSegments, NearestFilter, NearestMipmapNearestFilter, NearestMipmapLinearFilter, LinearFilter, LinearMipmapNearestFilter, LinearMipmapLinearFilter, ClampToEdgeWrapping, RepeatWrapping, MirroredRepeatWrapping, PropertyBinding, InterpolateLinear, Source, LinearEncoding, RGBAFormat, InterpolateDiscrete, Scene, sRGBEncoding, Loader, LoaderUtils, FileLoader, SpotLight, PointLight, DirectionalLight, Object3D, TextureLoader, ImageBitmapLoader, InterleavedBuffer, InterleavedBufferAttribute, PointsMaterial, Material, SkinnedMesh, LineLoop, Points, Group, PerspectiveCamera, OrthographicCamera, Skeleton, AnimationClip, Bone, FrontSide, Texture, VectorKeyframeTrack, QuaternionKeyframeTrack, NumberKeyframeTrack, Box3, Sphere, Interpolant, SRGBColorSpace, LinearSRGBColorSpace, Vector4, Curve, MeshPhongMaterial, MeshLambertMaterial, EquirectangularReflectionMapping, AmbientLight, Uint16BufferAttribute, Matrix3, DataTextureLoader, HalfFloatType, FloatType, DataUtils, ShaderChunk, AnimationMixer, AdditiveBlending, CustomBlending, ZeroFactor, SrcAlphaFactor, SkeletonHelper, Raycaster } from 'three';
 
 const map = new Map();
 
@@ -37,6 +37,7 @@ const root = {
 	motor: null,
 	scene : null,
 	scenePlus : null,
+	threeScene : null,
 	post : null,
 	//up:null,
 	//update:null,
@@ -20897,6 +20898,10 @@ class Avatar extends Group {
 
         super();
 
+        this.rootPath = o.path || './';
+        this.lzmaPath = this.rootPath + 'src/libs/lzma_worker.js';
+        Pool.dracoPath =  this.rootPath + 'src/libs/draco/';
+
         this.callback = o.callback || function (){};
 
         this.matrixAutoUpdate = false;
@@ -20993,7 +20998,7 @@ class Avatar extends Group {
         this.skin = Pool.getTexture('avatar_c');
         if( !this.skin ){
 
-            const path = './assets/textures/avatar_' + this.textureQuality + 'k/';
+            const path = this.rootPath + 'assets/textures/avatar_' + this.textureQuality + 'k/';
             const asset = [
                 'avatar_c.jpg', 'avatar_n.jpg', 'avatar_m.jpg', 'avatar_r.jpg', 'avatar_u.jpg',
                 'mouth_c.jpg', 'mouth_a.jpg', 'mouth_n.jpg', 
@@ -21012,7 +21017,7 @@ class Avatar extends Group {
     {
         
         const asset = [this.model+'.glb'];
-        const path = './assets/models/avatar/';
+        const path = this.rootPath + 'assets/models/avatar/';
         if( this.haveMorph ) asset.push( this.model+'_morph.glb' );
         Pool.load( asset, this.init.bind(this), path, 'loading models...' );
     }
@@ -21496,8 +21501,8 @@ class Avatar extends Group {
 
         if( Pool.clip.length === 0 ){ 
             // load animation include in json or the compacted version
-            if( this.compact ) this.loadCompactAnimation('./assets/animation/animations.bin');
-            else this.loadAnimationJson('./assets/animation/animations.json', this.start.bind(this) );
+            if( this.compact ) this.loadCompactAnimation(this.rootPath +'assets/animation/animations.bin');
+            else this.loadAnimationJson(this.rootPath +'assets/animation/animations.json', this.start.bind(this) );
 
         } else {
             let i = Pool.clip.length;
@@ -21668,7 +21673,7 @@ class Avatar extends Group {
     loadOne()
     {
         let name = this.urls[0];
-        this.loadAnimationFbx( './assets/animation/fbx/'+name+'.fbx', this.next.bind(this) );
+        this.loadAnimationFbx( this.rootPath + 'assets/animation/fbx/'+name+'.fbx', this.next.bind(this) );
     }
 
     next()
@@ -21680,7 +21685,7 @@ class Avatar extends Group {
 
     loadCompactAnimation( url = './assets/models/animations.bin' )
     {
-        if(!this.lzma) this.lzma = new LZMA("./src/libs/lzma_worker.js");
+        if(!this.lzma) this.lzma = new LZMA(this.lzmaPath);
 
         var request = new XMLHttpRequest();
         request.open('GET', url, true);
@@ -21818,7 +21823,7 @@ class Avatar extends Group {
     exportAnimationLzma( callback )
     {
 
-        if(!this.lzma) this.lzma = new LZMA("./src/libs/lzma_worker.js");
+        if(!this.lzma) this.lzma = new LZMA(this.lzmaPath);
 
         const data = this.getAnimation( true );
 
@@ -25558,6 +25563,239 @@ class Breaker {
 
 }
 
+class MouseTool {
+
+	constructor ( controler, mode = 'drag' ) {
+
+		this.mode = mode;
+
+		this.controler = controler;
+		this.dom = this.controler.domElement;
+
+		this.selected = null;
+
+		this.isActive = false;
+		this.rayTest = false;
+		this.firstSelect = false;
+		this.mouseDown = false;
+		this.mouseDown2 = false;
+		this.mouseMove = false;
+		this.controlFirst = true;
+
+		this.mouse = new Vector2();
+		this.oldMouse = new Vector2();
+		this.ray = new Raycaster();
+		this.ray.far = 1000;
+
+
+		this.dragPlane = new Mesh( new PlaneGeometry( 1, 1 ), new MeshBasicMaterial({ visible:false, toneMapped: false }) );
+	    this.dragPlane.castShadow = false;
+	    this.dragPlane.receiveShadow = false;
+	    this.dragPlane.scale.set( 1, 1, 1 ).multiplyScalar( 200 );
+
+	    if( this.mode === 'drag' ) this.activeDragMouse( true );
+
+	}
+
+    setMode ( mode ) {
+
+    	if( mode !== this.mode )
+    	this.mode = mode;
+
+    }
+
+	activeDragMouse ( b ) {
+
+		if( b ){
+			if( !this.isActive ){
+				this.dom.addEventListener( 'pointermove', this.mousemove.bind(this), false );
+		        this.dom.addEventListener( 'pointerdown', this.mousedown.bind(this), false );
+		        document.addEventListener( 'pointerup', this.mouseup.bind(this), false );
+
+		        this.controler.addEventListener( 'end', this.controleEnd.bind(this), false );
+		        this.controler.addEventListener( 'change', this.controleChange.bind(this), false );
+
+		        this.isActive = true;
+		        this.rayTest = true;
+		    }
+
+		} else {
+			if( this.isActive ){
+				this.dom.removeEventListener( 'pointermove', this.mousemove.bind(this) );
+			    this.dom.removeEventListener( 'pointerdown', this.mousedown.bind(this) );
+			    document.removeEventListener( 'pointerup', this.mouseup.bind(this) );
+
+			    this.controler.removeEventListener( 'end', this.controleEnd.bind(this) );
+		        this.controler.removeEventListener( 'change', this.controleChange.bind(this) );
+
+			    this.isActive = false;
+			}
+		}
+	}
+
+	controleEnd ( e ) {
+		this.controlFirst = true;
+		this.rayTest = true;
+	}
+
+	controleChange ( e ) {
+		let state = this.controler.getState();
+		if( state !== -1 ){
+			if( this.controlFirst ) this.controlFirst = false;
+			else this.rayTest = false;
+		}
+	}
+
+	mousedown ( e ) {
+
+		let button = 0;
+
+		if( !this.mouseDown ){
+			if( this.firstSelect ) this.firstSelect = false;
+			this.oldMouse.copy( this.mouse );
+		}
+
+		if ( e.pointerType !== 'touch' ) button = e.button;
+
+	    if( button === 0 ){
+		    this.mouseDown = true;
+		    this.castray();
+		}
+
+		if( button === 2 ){
+		    this.mouseDown2 = true;
+		    this.castray();
+		}
+
+	}
+
+	mouseup ( e ) {
+
+		this.mouseMove = this.oldMouse.distanceTo( this.mouse ) < 0.01 ? false : true;
+		this.mouseDown = false;
+		this.mouseDown2 = false;
+		this.unSelect();
+
+	}
+
+	mousemove ( e ) {
+
+		this.mouse.x =   ( e.offsetX / this.dom.clientWidth ) * 2 - 1;
+		this.mouse.y = - ( e.offsetY / this.dom.clientHeight ) * 2 + 1;
+
+		//console.log(this.mouse)
+		this.castray();
+
+	}
+
+	castray () {
+
+		let inters, m, g, h, id, cursor = 'auto';
+
+		if( this.selected !== null ){
+
+			this.ray.setFromCamera( this.mouse, this.controler.object );
+			inters = this.ray.intersectObject( this.dragPlane );
+			if ( inters.length ) root.motor.change({ name:'mouse', pos:inters[0].point.toArray() }, true );
+
+		}
+
+		if( !this.rayTest ) return;
+
+		this.ray.setFromCamera( this.mouse, this.controler.object );
+		inters = this.ray.intersectObjects( root.scene.children, true );
+
+		if ( inters.length > 0 ) {
+
+			g = inters[ 0 ].object;
+			id = inters[ 0 ].instanceId;
+
+			///console.log(inters[ 0 ])
+
+			if( id !== undefined ){
+				m = root.motor.byName( g.name+id );
+			} else {
+				if( g.parent !== root.scene ){
+					h = g.parent;
+					if( h.parent !== root.scene ) m = h.parent;
+					else m = h;
+				} else m = g;
+			}
+
+			if( this.mouseDown2 ){
+				if( m.extra ) m.extra( m.name );
+				//console.log(m)
+			}
+
+			cursor = this.select( m, inters[ 0 ] );
+
+		}
+
+		document.body.style.cursor = cursor;
+
+	}
+
+	select ( obj, inters ) {
+
+		if( !this.mouseDown || this.selected === obj ) return 'pointer'
+
+		let pos = inters.point;
+	    let quat = [0,0,0,1];
+		
+		this.selected = obj;
+		if( this.selected.isInstance ) quat = this.selected.instance.getInfo(this.selected.id).quat;
+		else if( this.selected.isObject3D ){
+			this.selected.updateMatrix();
+			quat = this.selected.quaternion.toArray();
+		}
+
+		
+	    root.scenePlus.add( this.dragPlane );
+	    this.dragPlane.rotation.set( 0, this.controler.getAzimuthalAngle(), 0 );
+	    this.dragPlane.position.copy( pos );
+
+	    let p = pos.toArray();
+
+		//Motor.add({ name:'mouse', type:'sphere', size:[0.01], pos:p, quat:quat, mask:0, density:0, noGravity:true, kinematic:true, flags:'noCollision' })
+		root.motor.add({ name:'mouse', type:'null', pos:p, quat:quat });
+		root.motor.add({ 
+			name:'mouseJoint', type:'joint', mode:'fixe',//mode:'spherical',
+			b1:this.selected.name, b2:'mouse', worldAnchor:p, //sd:[4,1]
+			//tolerance:[1, 10],
+			//noPreProcess:true,
+			//improveSlerp:true,
+			visible:false,
+			noFix:true,
+		});
+		root.motor.change({ name:this.selected.name, neverSleep:true });
+
+		this.rayTest = false;
+		this.controler.enabled = false;
+
+		return 'move'
+
+	}
+
+	unSelect () {
+
+		if( this.selected === null ) return;
+
+		this.dragPlane.geometry.dispose();
+		root.scenePlus.remove( this.dragPlane );
+		root.motor.remove('mouseJoint');
+		root.motor.remove('mouse');
+		root.motor.change({ name:this.selected.name, neverSleep:false, wake:true });
+		
+		this.rayTest = true;
+		this.selected = null;
+		this.firstSelect = true;
+		this.controler.enabled = true;
+
+	}
+
+
+}
+
 let items;
 let currentControle = null;
 let callback = null;
@@ -25581,6 +25819,8 @@ let timetest = {
 	t4:0,
 };
 
+let mouseTool = null;
+
 
 let isPause = false;
 
@@ -25596,6 +25836,8 @@ let elapsedTime = 0;
 const user = new User();
 const timer = new Timer(60);
 
+//const threeScene = null
+
 let azimut = function(){ return 0 };
 let endReset = function(){};
 let postUpdate = function(){};
@@ -25606,6 +25848,15 @@ let addControl = function(){};
 class Motor {
 
 	static math = math$1
+
+	static activeMouse ( controler, mode ) { 
+		if( !mouseTool ) mouseTool = new MouseTool( controler, mode ); 
+	}
+
+    static setMouseMode ( mode ) { 
+		if( !mouseTool ) mouseTool.setMode( mode ); 
+	}
+
 
 	static getTimeTest () { return timetest }
 
@@ -25628,6 +25879,7 @@ class Motor {
 	//static math () { return math }
 
 	static setContent ( Scene ) {
+		root.threeScene = Scene;
 		Scene.add( root.scene );
 		Scene.add( root.scenePlus );
 	}
@@ -25883,6 +26135,7 @@ class Motor {
 		currentControle = null;
 
 		if( controls ) controls.resetAll();
+		if( mouseTool ) mouseTool.unSelect();
 
 		endReset = callback;
 

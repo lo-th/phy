@@ -336,6 +336,8 @@ export class Reflector extends Mesh {
 
 			if ( viewport !== undefined ) renderer.state.viewport( viewport );
 
+
+
 			scope.visible = true;
 
 		}

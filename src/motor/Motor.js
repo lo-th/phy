@@ -19,6 +19,7 @@ import { Timer } from './Timer.js';
 import { User } from './User.js';
 
 import { Breaker } from './Breaker.js';
+import { MouseTool } from './MouseTool.js';
 
 import { Pool } from '../3TH/Pool.js';
 
@@ -62,6 +63,8 @@ let timetest = {
 	t4:0,
 }
 
+let mouseTool = null;
+
 
 let isPause = false
 
@@ -77,7 +80,7 @@ let elapsedTime = 0
 const user = new User()
 const timer = new Timer(60)
 
-const threeScene = null
+//const threeScene = null
 
 let azimut = function(){ return 0 }
 let endReset = function(){}
@@ -89,6 +92,15 @@ let addControl = function(){}
 export class Motor {
 
 	static math = math
+
+	static activeMouse ( controler, mode ) { 
+		if( !mouseTool ) mouseTool = new MouseTool( controler, mode ) 
+	}
+
+    static setMouseMode ( mode ) { 
+		if( !mouseTool ) mouseTool.setMode( mode ) 
+	}
+
 
 	static getTimeTest () { return timetest }
 
@@ -111,6 +123,7 @@ export class Motor {
 	//static math () { return math }
 
 	static setContent ( Scene ) {
+		root.threeScene = Scene;
 		Scene.add( root.scene )
 		Scene.add( root.scenePlus )
 	}
@@ -366,6 +379,7 @@ export class Motor {
 		currentControle = null
 
 		if( controls ) controls.resetAll()
+		if( mouseTool ) mouseTool.unSelect()
 
 		endReset = callback
 

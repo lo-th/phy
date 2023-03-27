@@ -133,7 +133,6 @@ const options = {
 
 let g1, g2, g3
 let dom, camera, controls, scene, renderer, loop = null, composer = null, content, dragPlane, hideMat, followGroup, helperGroup, stats, txt, light, light2 = null, light3=null, ground = null, envui, dci;
-let ray, mouse, oldMouse, isActveMouse = false, mouseDown = false, mouseDown2 = false, mouseMove = false, firstSelect = false, selected = null, rayTest = false, controlFirst = true;
 
 let code = ''
 let editor = null
@@ -336,11 +335,6 @@ const init = () => {
 
 	content = Motor.getScene()
 
-	mouse = new THREE.Vector2()
-	oldMouse = new THREE.Vector2()
-	ray = new THREE.Raycaster()
-	ray.far = 1000;
-
 	size.w = window.innerWidth
 	size.h = window.innerHeight
 	size.r = size.w / size.h
@@ -412,15 +406,6 @@ const init = () => {
     //controls.maxPolarAngle = Math.PI / 2
 	controls.update()
 
-	controls.addEventListener( 'end', function ( e ){ controlFirst = true; rayTest = true; } );
-	controls.addEventListener( 'change',  function ( e ){
-		let state = controls.getState();
-		if( state !== -1 ){
-			if( controlFirst ) controlFirst = false;
-			else rayTest = false;
-		}
-	})
-
 	
 	// avoid track run in background
 	document.addEventListener( 'visibilitychange', onVisible )
@@ -431,7 +416,6 @@ const init = () => {
     document.body.addEventListener( 'dragleave', function(e){ e.preventDefault()}, false );
 	document.body.addEventListener( 'drop', drop, false );
 
-	activeDragMouse( true )
 
 	Hub.init( camera, size, introText )
 
@@ -509,6 +493,9 @@ const next = () => {
     Motor.setControl( controls )
     Motor.setExtraMaterial( Shader.add )
     Motor.setAddControl( addControl )
+
+    // activate mouse drag
+    Motor.activeMouse( controls, 'drag' )
 
 
 	let hash = location.hash.substr( 1 )
@@ -752,7 +739,7 @@ const directDemo = ( name, result ) => {
 
 	let findDemo = Gui.resetDemoGroup( name )
 
-	unSelect()
+	//unSelect()
 
 	Main.currentDemo = name;
 	options.demo = name
@@ -771,7 +758,7 @@ const loadDemo = ( name ) => {
 	//let findDemo = Gui.resetDemoGroup( name )
 	//if(!findDemo) name = 'start'
 
-	unSelect()
+	//unSelect()
     
     Main.currentDemo = name;
 	options.demo = name
@@ -895,6 +882,8 @@ const doResize = () => {
 	if(particles) particles.onresize( size.h )
 	Hub.resize( size )
 	needResize = false
+
+	//console.log(dom.clientLeft)
 
 }
 
@@ -1148,184 +1137,6 @@ const message = ( e ) => {
 const send = ( data ) => {
 
 	if( childEditor ) childEditor.postMessage( data,'*' )
-
-}
-
-
-//--------------------
-//   MOUSE / RAY
-//--------------------
-
-const activeDragMouse = ( b ) => {
-
-	let dd = dom
-
-	if( b ){
-		if( !isActveMouse ){
-			dd.addEventListener( 'pointermove', mousemove, false )
-	        dd.addEventListener( 'pointerdown', mousedown, false )
-	        document.addEventListener( 'pointerup', mouseup, false )
-	        isActveMouse = true
-	        rayTest = true
-	    }
-
-	} else {
-		if( isActveMouse ){
-			dd.removeEventListener( 'pointermove', mousemove )
-		    dd.removeEventListener( 'pointerdown', mousedown )
-		    document.removeEventListener( 'pointerup', mouseup )
-		    isActveMouse = false
-		}
-	}
-}
-
-const mousedown = ( e ) => {
-
-	
-	let button = 0
-
-	if( !mouseDown ){
-		if( firstSelect ) firstSelect = false
-		oldMouse.copy( mouse )
-	}
-
-	if ( e.pointerType !== 'touch' ) button = e.button
-
-    if( button === 0 ){
-	    mouseDown = true
-	    castray()
-	}
-
-	if( button === 2 ){
-	    mouseDown2 = true
-	    castray()
-	}
-
-}
-
-const mouseup = ( e ) => {
-
-	mouseMove = oldMouse.distanceTo( mouse ) < 0.01 ? false : true
-	mouseDown = false
-	mouseDown2 = false
-	unSelect();
-
-}
-
-const mousemove = ( e ) => {
-
-	mouse.x =   ( ( e.clientX - size.left ) / size.w ) * 2 - 1
-	mouse.y = - ( e.clientY / size.h ) * 2 + 1
-	castray();
-
-}
-
-const castray = () => {
-
-	let inters, m, g, h, id, cursor = 'auto';
-
-	if( selected !== null ){
-
-		ray.setFromCamera( mouse, camera )
-		inters = ray.intersectObject( dragPlane )
-		if ( inters.length ) Motor.change({ name:'mouse', pos:inters[0].point.toArray() }, true )
-
-	}
-
-	if( !rayTest ) return;
-
-	ray.setFromCamera( mouse, camera )
-	inters = ray.intersectObjects( content.children, true)
-
-	if ( inters.length > 0 ) {
-
-		g = inters[ 0 ].object;
-		id = inters[ 0 ].instanceId;
-
-		///console.log(inters[ 0 ])
-
-		if( id !== undefined ){
-			m = Motor.byName( g.name+id )
-		} else {
-			if( g.parent !== content ){
-				h = g.parent;
-				if( h.parent !== content ) m = h.parent
-				else m = h;
-			} else m = g;
-		}
-
-		if(mouseDown2){
-			if(m.extra) m.extra( m.name )
-			//console.log(m)
-		}
-
-		cursor = select( m, inters[ 0 ] )
-
-	}
-
-	document.body.style.cursor = cursor
-
-}
-
-const select = ( obj, inters ) => {
-
-	if( !mouseDown || selected === obj ) return 'pointer'
-
-	let pos = inters.point
-    let quat = [0,0,0,1]
-	
-	selected = obj
-	if( selected.isInstance ) quat = selected.instance.getInfo(selected.id).quat;
-	else if( selected.isObject3D ){
-		selected.updateMatrix()
-		quat = selected.quaternion.toArray()
-	}
-
-	dragPlane = new THREE.Mesh( new THREE.PlaneGeometry( 1, 1 ), hideMat )
-    dragPlane.castShadow = false
-    dragPlane.receiveShadow = false
-    dragPlane.scale.set( 1, 1, 1 ).multiplyScalar( 200 )
-    scene.add( dragPlane )
-
-    dragPlane.rotation.set( 0, controls.getAzimuthalAngle(), 0 )
-    dragPlane.position.copy( pos )
-
-    let p = pos.toArray()
-
-	//Motor.add({ name:'mouse', type:'sphere', size:[0.01], pos:p, quat:quat, mask:0, density:0, noGravity:true, kinematic:true, flags:'noCollision' })
-	Motor.add({ name:'mouse', type:'null', pos:p, quat:quat })
-	Motor.add({ 
-		name:'mouseJoint', type:'joint', mode:'fixe',//mode:'spherical',
-		b1:selected.name, b2:'mouse', worldAnchor:p, //sd:[4,1]
-		//tolerance:[1, 10],
-		//noPreProcess:true,
-		//improveSlerp:true,
-		noFix:true,
-	})
-	Motor.change({ name:selected.name, neverSleep:true })
-
-	rayTest = false
-	controls.enabled = false
-
-	return 'move'
-
-}
-
-const unSelect = () => {
-
-	if( selected === null ) return;
-
-	dragPlane.geometry.dispose()
-	//dragPlane.material.dispose()
-	scene.remove( dragPlane )
-	Motor.remove('mouseJoint')
-	Motor.remove('mouse')
-	Motor.change({ name:selected.name, neverSleep:false, wake:true })
-	
-	rayTest = true
-	selected = null
-	firstSelect = true
-	controls.enabled = true
 
 }
 

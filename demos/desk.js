@@ -19,10 +19,10 @@ function demo() {
 
     let a = 0; d=5, k = (math.Pi*2)/12, p = 1;
     for(let i =0; i<12; i++){
-        if(i===0 || i===4 || i===8) p = 1.5
-        else p = 1
+        if(i===0 || i===4 || i===8) p = 2
+        else p = 2
         phy.material({ name:'c'+i, color:paintlColor[i], roughness:1, metalness:0, toneMapped:false })
-        phy.add({ name:'box'+i, size:[p,2,p], pos:[ d * Math.sin(a), 1, d * Math.cos(a)],rot:[0,a*math.todeg,0], radius:0.1, density:1, restitution:0.5, friction:0.9, material:'c'+i })
+        phy.add({ name:'box'+i, size:[p,0.2,p], pos:[ d * Math.sin(a), 1, d * Math.cos(a)],rot:[0,a*math.todeg,0], radius:0.02, density:1, restitution:0.5, friction:0.9, material:'c'+i })
         a -= k
     }
 

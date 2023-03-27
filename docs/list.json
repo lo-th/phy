@@ -29,6 +29,10 @@
 				"phy.change": "manual/phy-change",
 				"phy.remove": "manual/phy-remove"
 				
+			},
+
+			"Option": {
+				"phy.activeMouse": "manual/phy-activeMouse"
 			}
 
 		}
