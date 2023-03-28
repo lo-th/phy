@@ -1,4 +1,4 @@
-import { Color, Euler, Quaternion, Matrix4, Vector3, Box3Helper, CylinderGeometry, SphereGeometry, BoxGeometry, PlaneGeometry, MeshBasicMaterial, LineBasicMaterial, MeshPhysicalMaterial, DoubleSide, MeshStandardMaterial, Line, BufferGeometry, Float32BufferAttribute, EventDispatcher, MathUtils, Layers, InstancedMesh, InstancedBufferAttribute, DynamicDrawUsage, BufferAttribute, TrianglesDrawMode, TriangleFanDrawMode, TriangleStripDrawMode, CircleGeometry, Vector2, Line3, Plane, Triangle, Mesh, LineSegments, NearestFilter, NearestMipmapNearestFilter, NearestMipmapLinearFilter, LinearFilter, LinearMipmapNearestFilter, LinearMipmapLinearFilter, ClampToEdgeWrapping, RepeatWrapping, MirroredRepeatWrapping, PropertyBinding, InterpolateLinear, Source, LinearEncoding, RGBAFormat, InterpolateDiscrete, Scene, sRGBEncoding, Loader, LoaderUtils, FileLoader, SpotLight, PointLight, DirectionalLight, Object3D, TextureLoader, ImageBitmapLoader, InterleavedBuffer, InterleavedBufferAttribute, PointsMaterial, Material, SkinnedMesh, LineLoop, Points, Group, PerspectiveCamera, OrthographicCamera, Skeleton, AnimationClip, Bone, FrontSide, Texture, VectorKeyframeTrack, QuaternionKeyframeTrack, NumberKeyframeTrack, Box3, Sphere, Interpolant, SRGBColorSpace, LinearSRGBColorSpace, Vector4, Curve, MeshPhongMaterial, MeshLambertMaterial, EquirectangularReflectionMapping, AmbientLight, Uint16BufferAttribute, Matrix3, DataTextureLoader, HalfFloatType, FloatType, DataUtils, ShaderChunk, AnimationMixer, AdditiveBlending, CustomBlending, ZeroFactor, SrcAlphaFactor, SkeletonHelper, Raycaster } from 'three';
+import { Color, Euler, Quaternion, Matrix4, Vector3, Box3Helper, CylinderGeometry, SphereGeometry, BoxGeometry, PlaneGeometry, MeshBasicMaterial, LineBasicMaterial, MeshPhysicalMaterial, DoubleSide, MeshStandardMaterial, Line, BufferGeometry, Float32BufferAttribute, EventDispatcher, MathUtils, Layers, InstancedMesh, InstancedBufferAttribute, DynamicDrawUsage, BufferAttribute, TrianglesDrawMode, TriangleFanDrawMode, TriangleStripDrawMode, CircleGeometry, Box3, Vector2, Line3, Plane, Triangle, Mesh, LineSegments, NearestFilter, NearestMipmapNearestFilter, NearestMipmapLinearFilter, LinearFilter, LinearMipmapNearestFilter, LinearMipmapLinearFilter, ClampToEdgeWrapping, RepeatWrapping, MirroredRepeatWrapping, PropertyBinding, InterpolateLinear, Source, LinearEncoding, RGBAFormat, InterpolateDiscrete, Scene, sRGBEncoding, Loader, LoaderUtils, FileLoader, SpotLight, PointLight, DirectionalLight, Object3D, TextureLoader, ImageBitmapLoader, InterleavedBuffer, InterleavedBufferAttribute, PointsMaterial, Material, SkinnedMesh, LineLoop, Points, Group, PerspectiveCamera, OrthographicCamera, Skeleton, AnimationClip, Bone, FrontSide, Texture, VectorKeyframeTrack, QuaternionKeyframeTrack, NumberKeyframeTrack, Sphere, Interpolant, SRGBColorSpace, LinearSRGBColorSpace, Vector4, Curve, MeshPhongMaterial, MeshLambertMaterial, EquirectangularReflectionMapping, AmbientLight, Uint16BufferAttribute, Matrix3, DataTextureLoader, HalfFloatType, FloatType, DataUtils, ShaderChunk, AnimationMixer, AdditiveBlending, CustomBlending, ZeroFactor, SrcAlphaFactor, SkeletonHelper, Raycaster } from 'three';
 
 const map = new Map();
 
@@ -267,7 +267,7 @@ const Mat = {
 				case 'solid':  m = new MeshStandardMaterial({ color:0x3C474B, ...matExtra }); break
 				case 'hero':   m = new MeshStandardMaterial({ color:0x00FF88, ...matExtra }); break
 				case 'skinny':   m = new MeshStandardMaterial({ color:0xe0ac69, ...matExtra }); break
-				case 'chrome': m = new MeshStandardMaterial({ color:0xCCCCCC, metalness: 1, roughness:0 }); break
+				case 'chrome': m = new MeshStandardMaterial({ color:0xCCCCCC, metalness: 1, roughness:0.2 }); break
 				case 'glass':  m = new MeshPhysicalMaterial({ color:0xFFFFff, transparent:true, opacity:0.8, depthTest:true, depthWrite:false, roughness:0.02, metalness:0.0, /*side:DoubleSide,*/ alphaToCoverage:true, premultipliedAlpha:true, transmission:1, clearcoat:1, thickness:0.02  }); break
 				case 'plexi':  m = new MeshPhysicalMaterial({ color:0xFFFFff, transparent:true, opacity:0.4, metalness:1, roughness:0, clearcoat:1, side:DoubleSide }); break
 				case 'glass2': m = new MeshPhysicalMaterial({ color:0xCCCCff, transparent:true, opacity:0.3  }); break
@@ -2951,26 +2951,26 @@ function scaleUV( geometry, x=0, y=0, dx=1, dy=1, reverse ) {
 
 }
 
-function createUV( geometry, type = 'sphere', transformMatrix, boxSize ) {
+function createUV( geometry, type = 'sphere', boxSize, pos = [0,0,0], quat = [0,0,0,1], transformMatrix ) {
 
     //type = type || 'sphere';
 
     if ( transformMatrix === undefined ) transformMatrix = new Matrix4();
-  
-    //if ( boxSize === undefined ) {
+    transformMatrix.compose( {x:pos[0], y:pos[1], z:pos[2] }, { _x:quat[0], _y:quat[1], _z:quat[2], _w:quat[3] }, {x:1, y:1, z:1 });
 
-        geometry.computeBoundingBox();
+
+
+    if ( boxSize === undefined ) {
+        if( !geometry.boundingBox ) geometry.computeBoundingBox();
         let bbox = geometry.boundingBox;
         boxSize = Math.max( bbox.max.x - bbox.min.x, bbox.max.y - bbox.min.y, bbox.max.z - bbox.min.z );
+    }
 
-       //geometry.computeBoundingSphere()
-       //transformMatrix.multiplyScalar(geometry.boundingSphere.radiu*2)
-
-    //}
-
-    let uvBbox = bbox;//.expandByScalar(0.9);//new THREE.Box3( new THREE.Vector3(-boxSize / 2, -boxSize / 2, -boxSize / 2), new THREE.Vector3(boxSize / 2, boxSize / 2, boxSize / 2));
+    //.expandByScalar(0.9);//new THREE.Box3( new THREE.Vector3(-boxSize / 2, -boxSize / 2, -boxSize / 2), new THREE.Vector3(boxSize / 2, boxSize / 2, boxSize / 2));
     //_applyBoxUV( bufferGeometry, transformMatrix, uvBbox, boxSize );
 
+    let uvBbox = new Box3(new Vector3(-boxSize / 2, -boxSize / 2, -boxSize / 2), new Vector3(boxSize / 2, boxSize / 2, boxSize / 2));
+    //let uvBbox = bbox
     
 
 
@@ -2978,11 +2978,9 @@ function createUV( geometry, type = 'sphere', transformMatrix, boxSize ) {
     //coords.length = 2 * geometry.attributes.position.array.length / 3;
     coords.length = 2 * geometry.attributes.position.count;
 
-    if ( geometry.attributes.uv === undefined ) geometry.addAttribute('uv', new Float32BufferAttribute(coords, 2));
+    //if ( geometry.attributes.uv === undefined ) geometry.addAttribute('uv', new Float32BufferAttribute(coords, 2));
+    if ( geometry.attributes.uv === undefined ) geometry.setAttribute('uv', new Float32BufferAttribute(coords, 2));
     
-
-
-
     let makeSphereUVs = function( v0, v1, v2 ) {
 
         //pre-rotate the model so that cube sides match world axis
@@ -3069,7 +3067,7 @@ function createUV( geometry, type = 'sphere', transformMatrix, boxSize ) {
     const positionAttribute = geometry.getAttribute( 'position' );
     geometry.getAttribute( 'normal' );
 
-    if ( geometry.index ) { // is it indexed buffer geometry?
+    if ( geometry.index ) { // is it indexed buffer geometry
 
         for (i = 0; i < geometry.index.count; i+=3 ) {
 
@@ -4397,7 +4395,7 @@ class VertexList {
 
 }
 
-class ConvexGeometry$1 extends BufferGeometry {
+class ConvexGeometry extends BufferGeometry {
 
 	constructor( points = [] ) {
 
@@ -4549,7 +4547,7 @@ class Body extends Item {
 				if( o.shape.isMesh ) o.shape = o.shape.geometry;
 			} else {
 				if( o.mesh && !o.v ) o.shape = o.mesh.geometry;
-			}			
+			}	
 		}
 
 		if( o.radius ){
@@ -4597,7 +4595,7 @@ class Body extends Item {
 						n = i*3;
 						vv.push( new Vector3( o.v[n], o.v[n+1], o.v[n+2] ) );
 					}
-					g = new ConvexGeometry$1( vv );
+					g = new ConvexGeometry( vv );
 				}
 				unic = true;
 				noScale = true;
@@ -4713,6 +4711,12 @@ class Body extends Item {
 		// clear untranspherable variable for phy
     	if( o.shape ) delete o.shape;
     	if( o.geometry ) delete o.geometry;
+
+
+    	if ( g.attributes.uv === undefined || o.autoUV ){
+				//console.log(o.shape)
+				createUV(g, 'box', 5.0, o.pos, o.quat );
+		}
 
 
     	// reuse complex geometry
@@ -5636,7 +5640,8 @@ class Car extends Basic3D {//extends Object3D {
 		if( o.keepRotation ) o.quat = this.quaternion.toArray();
 
 
-		root.view.up( o );
+		//root.view.up( o );
+		root.motor.change( o );
 
 	}
 
@@ -24897,52 +24902,6 @@ class Gamepad {
 
 }
 
-class ConvexGeometry extends BufferGeometry {
-
-	constructor( points = [] ) {
-
-		super();
-
-		// buffers
-
-		const vertices = [];
-		const normals = [];
-
-		const convexHull = new ConvexHull().setFromPoints( points );
-
-		// generate vertices and normals
-
-		const faces = convexHull.faces;
-
-		for ( let i = 0; i < faces.length; i ++ ) {
-
-			const face = faces[ i ];
-			let edge = face.edge;
-
-			// we move along a doubly-connected edge list to access all face points (see HalfEdge docs)
-
-			do {
-
-				const point = edge.head().point;
-
-				vertices.push( point.x, point.y, point.z );
-				normals.push( face.normal.x, face.normal.y, face.normal.z );
-
-				edge = edge.next;
-
-			} while ( edge !== face.edge );
-
-		}
-
-		// build geometry
-
-		this.setAttribute( 'position', new Float32BufferAttribute( vertices, 3 ) );
-		this.setAttribute( 'normal', new Float32BufferAttribute( normals, 3 ) );
-
-	}
-
-}
-
 /**
  * @fileoverview This class can be used to subdivide a convex Geometry object into pieces.
  *
@@ -25507,6 +25466,9 @@ class Breaker {
 		// not enoputh impulse to break
 		if ( impulse < breakOption[ 0 ] ) return;
 
+
+		//let parentMatrix = mesh.matrix.clone().invert()
+
 		let debris = this.convexBreaker.subdivideByImpact( mesh, this.tpos.fromArray(pos), this.tnormal.fromArray(normal), breakOption[ 1 ], breakOption[ 2 ] );
 
 		// remove one level
@@ -25522,7 +25484,6 @@ class Breaker {
 			linearVelocity: [v[0], v[1], v[2]],
 			angularVelocity: [v[3], v[4], v[5]],
 			density: mesh.density,
-
 		};
 
 		// add debris
@@ -25599,7 +25560,7 @@ class MouseTool {
 
     setMode ( mode ) {
 
-    	if( mode !== this.mode )
+    	if( mode === this.mode ) return
     	this.mode = mode;
 
     }
@@ -25682,8 +25643,6 @@ class MouseTool {
 
 		this.mouse.x =   ( e.offsetX / this.dom.clientWidth ) * 2 - 1;
 		this.mouse.y = - ( e.offsetY / this.dom.clientHeight ) * 2 + 1;
-
-		//console.log(this.mouse)
 		this.castray();
 
 	}
@@ -25756,18 +25715,22 @@ class MouseTool {
 
 	    let p = pos.toArray();
 
+	    root.motor.change({ name:this.selected.name, neverSleep:true, wake:true });
 		//Motor.add({ name:'mouse', type:'sphere', size:[0.01], pos:p, quat:quat, mask:0, density:0, noGravity:true, kinematic:true, flags:'noCollision' })
-		root.motor.add({ name:'mouse', type:'null', pos:p, quat:quat });
-		root.motor.add({ 
-			name:'mouseJoint', type:'joint', mode:'fixe',//mode:'spherical',
-			b1:this.selected.name, b2:'mouse', worldAnchor:p, //sd:[4,1]
-			//tolerance:[1, 10],
-			//noPreProcess:true,
-			//improveSlerp:true,
-			visible:false,
-			noFix:true,
-		});
-		root.motor.change({ name:this.selected.name, neverSleep:true });
+		//root.motor.add({ name:'mouse', type:'null', pos:p, quat:quat })
+		root.motor.add([
+			{ name:'mouse', type:'null', pos:p, quat:quat },
+			{ 
+				name:'mouseJoint', type:'joint', mode:'fixe',//mode:'spherical',
+				b1:this.selected.name, b2:'mouse', worldAnchor:p, //sd:[4,1]
+				//tolerance:[1, 10],
+				//noPreProcess:true,
+				//improveSlerp:true,
+				visible:false,
+				noFix:true,
+			}
+		]);
+		
 
 		this.rayTest = false;
 		this.controler.enabled = false;
@@ -25778,12 +25741,11 @@ class MouseTool {
 
 	unSelect () {
 
-		if( this.selected === null ) return;
+		if( this.selected === null ) return
 
 		this.dragPlane.geometry.dispose();
 		root.scenePlus.remove( this.dragPlane );
-		root.motor.remove('mouseJoint');
-		root.motor.remove('mouse');
+		root.motor.remove(['mouseJoint','mouse']);
 		root.motor.change({ name:this.selected.name, neverSleep:false, wake:true });
 		
 		this.rayTest = true;
@@ -25853,7 +25815,7 @@ class Motor {
 		if( !mouseTool ) mouseTool = new MouseTool( controler, mode ); 
 	}
 
-    static setMouseMode ( mode ) { 
+    static mouseMode ( mode ) { 
 		if( !mouseTool ) mouseTool.setMode( mode ); 
 	}
 
@@ -25980,12 +25942,11 @@ class Motor {
 
 		//root.update = Motor.update
 		//root.change = Motor.change
-		root.remove = Motor.remove;
+		//root.remove = Motor.remove
 		root.post = Motor.post;
-		root.add = Motor.add;
-		//root.up = Motor.up
+		//root.add = Motor.add
 
-		root.motor = this;
+		root.motor = Motor;
 
 		if( isWorker ){ // is worker version
 
@@ -26286,12 +26247,9 @@ class Motor {
 		postUpdate( root.reflow.stat.delta );
 		//postUpdate( timer.delta )
 
-		// for update static object !!! 
-		//let i = root.flow.tmp.length;
-		//while( i-- ) this.change( root.flow.tmp[i], true )
+		//  update static object for this side !
 		Motor.changes( root.flow.tmp );
 
-		//if( outsideStep ) return
 
 		// finally post flow change to physx
 		if( isBuffer ) root.post( { m:'poststep', flow:root.flow, Ar:Ar }, [ Ar.buffer ] );

@@ -40,8 +40,8 @@ export class MouseTool {
 
     setMode ( mode ) {
 
-    	if( mode !== this.mode )
-    	this.mode = mode
+    	if( mode === this.mode ) return
+    	this.mode = mode;
 
     }
 
@@ -115,7 +115,7 @@ export class MouseTool {
 		this.mouseMove = this.oldMouse.distanceTo( this.mouse ) < 0.01 ? false : true
 		this.mouseDown = false
 		this.mouseDown2 = false
-		this.unSelect();
+		this.unSelect()
 
 	}
 
@@ -123,15 +123,13 @@ export class MouseTool {
 
 		this.mouse.x =   ( e.offsetX / this.dom.clientWidth ) * 2 - 1
 		this.mouse.y = - ( e.offsetY / this.dom.clientHeight ) * 2 + 1
-
-		//console.log(this.mouse)
-		this.castray();
+		this.castray()
 
 	}
 
 	castray () {
 
-		let inters, m, g, h, id, cursor = 'auto';
+		let inters, m, g, h, id, cursor = 'auto'
 
 		if( this.selected !== null ){
 
@@ -148,8 +146,8 @@ export class MouseTool {
 
 		if ( inters.length > 0 ) {
 
-			g = inters[ 0 ].object;
-			id = inters[ 0 ].instanceId;
+			g = inters[ 0 ].object
+			id = inters[ 0 ].instanceId
 
 			///console.log(inters[ 0 ])
 
@@ -197,18 +195,22 @@ export class MouseTool {
 
 	    let p = pos.toArray()
 
+	    root.motor.change({ name:this.selected.name, neverSleep:true, wake:true })
 		//Motor.add({ name:'mouse', type:'sphere', size:[0.01], pos:p, quat:quat, mask:0, density:0, noGravity:true, kinematic:true, flags:'noCollision' })
-		root.motor.add({ name:'mouse', type:'null', pos:p, quat:quat })
-		root.motor.add({ 
-			name:'mouseJoint', type:'joint', mode:'fixe',//mode:'spherical',
-			b1:this.selected.name, b2:'mouse', worldAnchor:p, //sd:[4,1]
-			//tolerance:[1, 10],
-			//noPreProcess:true,
-			//improveSlerp:true,
-			visible:false,
-			noFix:true,
-		})
-		root.motor.change({ name:this.selected.name, neverSleep:true })
+		//root.motor.add({ name:'mouse', type:'null', pos:p, quat:quat })
+		root.motor.add([
+			{ name:'mouse', type:'null', pos:p, quat:quat },
+			{ 
+				name:'mouseJoint', type:'joint', mode:'fixe',//mode:'spherical',
+				b1:this.selected.name, b2:'mouse', worldAnchor:p, //sd:[4,1]
+				//tolerance:[1, 10],
+				//noPreProcess:true,
+				//improveSlerp:true,
+				visible:false,
+				noFix:true,
+			}
+		])
+		
 
 		this.rayTest = false
 		this.controler.enabled = false
@@ -219,12 +221,11 @@ export class MouseTool {
 
 	unSelect () {
 
-		if( this.selected === null ) return;
+		if( this.selected === null ) return
 
 		this.dragPlane.geometry.dispose()
 		root.scenePlus.remove( this.dragPlane )
-		root.motor.remove('mouseJoint')
-		root.motor.remove('mouse')
+		root.motor.remove(['mouseJoint','mouse'])
 		root.motor.change({ name:this.selected.name, neverSleep:false, wake:true })
 		
 		this.rayTest = true

@@ -6,12 +6,18 @@ demo = () => {
     // add static plane 
     phy.add({ type:'plane', visible:false })
 
-    phy.add({ name:'ball1', type:'sphere', density:35, state:4, size:[0.5], pos:[0,60,0], friction:0.5, ccdThreshold:0.00001 });
+    phy.add({ name:'ball1', type:'sphere', density:35, state:4, size:[0.5], pos:[0,60,0], friction:0.5, ccdThreshold:0.00001, material:'chrome' })
 
 
 
 
-    phy.add({ name:'boom', type:'box', density:1, size:[2,4,2], pos:[0,2,0], friction:0.5, breakable:true, material:'plexi' });
+    phy.material({ name:'B', color:0xFFFFFF, roughness: 0.6, metalness: 0.3, 
+        map:phy.texture({ url:'./assets/textures/wood_c.jpg', repeat:[2,2] }),
+        normalMap:phy.texture({ url:'./assets/textures/wood_n.jpg', repeat:[2,2] }) 
+    })
+
+    phy.add({ name:'boom', type:'box', density:1, size:[2,4,2], pos:[0,2,0], friction:0.5, breakable:true, material:'B', autoUV:true });
+    //phy.add({ name:'boom', type:'cylinder', density:1, size:[1,4,1], pos:[0,2,0], friction:0.5, breakable:true, material:'B', autoUV:true });
 
     /*phy.add({ name:'ball2', type:'sphere', mass:35, state:4, size:[1], pos:[0,300,0], friction:0.5, ccdThreshold:0.00001 });
     phy.add({ name:'ball3', type:'sphere', mass:35, state:4, size:[1], pos:[0,1000,0],  friction:0.5, ccdThreshold:0.00001 });

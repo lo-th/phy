@@ -253,7 +253,7 @@ export class Hub {
 
     static endLoading () {
 
-        loader.style.top = '35px'
+        loader.style.top = '38px'
         loader.style.left = '90px'
         //content.removeChild( loader )
         
@@ -267,11 +267,21 @@ export class Hub {
             function(){ loader.style.display = 'none'; }
         )
 
-        let logo = `<svg xmlns='http://www.w3.org/2000/svg' version='1.1' xmlns:xlink='http://www.w3.org/1999/xlink' style='pointer-events:none;' 
+        
+
+
+        /*let logo = `<svg xmlns='http://www.w3.org/2000/svg' version='1.1' xmlns:xlink='http://www.w3.org/1999/xlink' style='pointer-events:none;' 
         preserveAspectRatio='xMinYMax meet' x='0px' y='0px' width='20px' height='20px' viewBox='0 0 256 256'>
         <path id='svgLogo' stroke='${color}' stroke-width='30' style='stroke-opacity: 1;' stroke-linejoin='round' stroke-linecap='round' 
         fill='none' d='M 72.85 52.85 Q 70.9 53.8 69.15 55 45 72.35 45 96.5 45 120.65 69.15 137.7 93.55 155 127.95 155 L 127.95 37.95 Q 
-        162.35 37.95 186.5 55 210.9 72.35 210.9 96.5 210.9 120.65 186.5 137.7 162.35 155 127.95 155 L 127.95 237.95'/></svg>`
+        162.35 37.95 186.5 55 210.9 72.35 210.9 96.5 210.9 120.65 186.5 137.7 162.35 155 127.95 155 L 127.95 237.95'/></svg>`*/
+
+        /*let logo = `<svg xmlns='http://www.w3.org/2000/svg' version='1.1' xmlns:xlink='http://www.w3.org/1999/xlink' style='pointer-events:none;' 
+        preserveAspectRatio='xMinYMax meet' x='0px' y='0px' width='20px' height='20px' viewBox='0 0 40 40'>
+        <path id='svgLogo' stroke='${color}' stroke-width='4' transform='translate(0, 4)' stroke-linejoin='round' stroke-linecap='round' 
+        fill='none' d='${iLogo}''></svg>`*/
+
+
 
         let bg = 'none'//'rgba(255,255,255,0.1)'
         let bg2 = 'none'//'rgba(255,255,255,0.01)'
@@ -304,10 +314,9 @@ export class Hub {
         zoning.addEventListener("pointermove", Hub.moving );
 
         title = document.createElement( 'div' );
-        //title.style.cssText = ' left:40px;'
         menu.appendChild( title )
         title.id = 'home'
-        title.innerHTML = logo;
+        title.innerHTML = Hub.miniIcon('logo', color );
 
         engine = document.createElement( 'div' );
         engine.style.cssText = 'font-size:16px; font-weight:700; '
@@ -323,9 +332,7 @@ export class Hub {
         this.effect(engine)
         this.effect(demo)
 
-        fps = document.createElement( 'div' );
-        fps.style.cssText = 'position:absolute; top:33px; right:95px; text-align:right; font-size:14px; font-weight:500; '
-        content.appendChild( fps )
+        
 
         debug = document.createElement( 'div' );
         debug.style.cssText = 'position:absolute; background:'+bg+'; width:300px; margin-left:-150px; bottom:25px; left:50%; font-size:14px; font-weight:500; vertical-align:bottom; text-align:center;'
@@ -336,16 +343,46 @@ export class Hub {
         content.appendChild( statistics )
 
 
+
+        fps = document.createElement( 'div' );
+        fps.style.cssText = 'position:absolute; top:33px; right:100px; text-align:right; font-size:14px; font-weight:500; '
+        content.appendChild( fps )
+
+
         guiButton = document.createElement( 'div' );
         guiButton.style.cssText = 'position:absolute; right:80px;  top:31px; pointer-events:auto; cursor: pointer;'
         content.appendChild( guiButton )
         guiButton.innerHTML = `<svg xmlns='http://www.w3.org/2000/svg' version='1.1' xmlns:xlink='http://www.w3.org/1999/xlink' style='pointer-events:none;' 
         preserveAspectRatio='xMinYMax meet' x='0px' y='0px' width='10px' height='10px' viewBox='0 0 10 10'>
         <path stroke='${color}' id='guiPath' stroke-width='1' fill='none' d='${p0}'/></svg>`;
-        guiButton.addEventListener("pointerdown", Main.showGui );
+        guiButton.addEventListener("pointerdown", Main.showGui )
+
+        /*let mouse = document.createElement( 'div' );
+        mouse.style.cssText = 'position:absolute; right:80px;  top:27px; pointer-events:auto; cursor: pointer;'
+        content.appendChild( mouse )
+        mouse.id = 'mouse'
+        mouse.innerHTML = Hub.miniIcon('drag', color );*/
 
 
         //Hub.colors(false)
+
+    }
+
+    static miniIcon( name, color ){
+
+        let p
+
+        switch(name){
+            case 'logo' : p = 'M 11.2 7.3 Q 10.9 7.45 10.6 7.7 6.75 10.45 6.75 14.35 6.75 18.15 10.6 20.9 14.5 23.65 20 23.65 L 20 4.95 Q 25.5 4.95 29.4 7.7 33.25 10.45 33.25 14.35 33.25 18.15 29.4 20.9 25.5 23.65 20 23.65 L 20 35'; break
+            case 'drag' : p = 'M 23.975 7.025 Q 21.93 5 19 5 L 5 5 M 12 19 L 5 19 M 19 12 L 19 35 35.15 28.9 19 12 Z'; break
+            case 'build' : p = 'M 20 20 L 20 5 35 5 35 20 35 35 20 35 5 35 5 20 20 20 35 20 M 20 20 L 20 35'; break
+            case 'cible' : p = 'M 27.05 12.95 Q 30 15.8 30 20 30 24.1 27.05 27.05 24.1 30 20 30 15.8 30 12.95 27.05 10 24.1 10 20 10 15.8 12.95 12.95 15.8 10 20 10 24.1 10 27.05 12.95 Z M 35 20 L 32 20 M 20 5 L 20 8 M 8 20 L 5 20 M 20 32 L 20 35'; break
+        }
+
+        return `<svg xmlns='http://www.w3.org/2000/svg' version='1.1' xmlns:xlink='http://www.w3.org/1999/xlink' style='pointer-events:none;' 
+        preserveAspectRatio='xMinYMax meet' x='0px' y='0px' width='20px' height='20px' viewBox='0 0 40 40'>
+        <path id='svgLogo' stroke='${color}' stroke-width='4' transform='translate(0, 4)' stroke-linejoin='round' stroke-linecap='round' 
+        fill='none' d='${p}''></svg>`
 
     }
 

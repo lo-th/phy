@@ -7,8 +7,8 @@ import { Basic3D } from '../core/Basic3D.js';
 import { Instance } from '../core/Instance.js';
 import { Utils, root, math, Mat, Geo, Colors, map } from './root.js';
 
-import { SphereBox, Capsule, ChamferCyl, ChamferBox  } from '../3TH/Geometry.js';
-import { ConvexGeometry } from '../jsm/geometry/ConvexGeometry.js';
+import { SphereBox, Capsule, ChamferCyl, ChamferBox, createUV  } from '../3TH/Geometry.js';
+import { ConvexGeometry } from '../jsm/geometries/ConvexGeometry.js';
 
 
 // THREE BODY
@@ -117,7 +117,7 @@ export class Body extends Item {
 				if( o.shape.isMesh ) o.shape = o.shape.geometry
 			} else {
 				if( o.mesh && !o.v ) o.shape = o.mesh.geometry
-			}			
+			}	
 		}
 
 		if( o.radius ){
@@ -281,6 +281,12 @@ export class Body extends Item {
 		// clear untranspherable variable for phy
     	if( o.shape ) delete o.shape
     	if( o.geometry ) delete o.geometry
+
+
+    	if ( g.attributes.uv === undefined || o.autoUV ){
+				//console.log(o.shape)
+				createUV(g, 'box', 5.0, o.pos, o.quat )
+		}
 
 
     	// reuse complex geometry

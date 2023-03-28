@@ -8,6 +8,7 @@ import {
     CylinderGeometry,
     CircleGeometry,
     BoxGeometry,
+    Box3,
     Vector2,
 } from 'three';
 import { mergeVertices, mergeBufferGeometries } from '../jsm/utils/BufferGeometryUtils.js';
@@ -685,26 +686,26 @@ export function scaleUV( geometry, x=0, y=0, dx=1, dy=1, reverse ) {
 
 }
 
-export function createUV( geometry, type = 'sphere', transformMatrix, boxSize ) {
+export function createUV( geometry, type = 'sphere', boxSize, pos = [0,0,0], quat = [0,0,0,1], transformMatrix ) {
 
     //type = type || 'sphere';
 
     if ( transformMatrix === undefined ) transformMatrix = new Matrix4();
-  
-    //if ( boxSize === undefined ) {
+    transformMatrix.compose( {x:pos[0], y:pos[1], z:pos[2] }, { _x:quat[0], _y:quat[1], _z:quat[2], _w:quat[3] }, {x:1, y:1, z:1 })
 
-        geometry.computeBoundingBox();
+
+
+    if ( boxSize === undefined ) {
+        if( !geometry.boundingBox ) geometry.computeBoundingBox();
         let bbox = geometry.boundingBox;
         boxSize = Math.max( bbox.max.x - bbox.min.x, bbox.max.y - bbox.min.y, bbox.max.z - bbox.min.z );
+    }
 
-       //geometry.computeBoundingSphere()
-       //transformMatrix.multiplyScalar(geometry.boundingSphere.radiu*2)
-
-    //}
-
-    let uvBbox = bbox//.expandByScalar(0.9);//new THREE.Box3( new THREE.Vector3(-boxSize / 2, -boxSize / 2, -boxSize / 2), new THREE.Vector3(boxSize / 2, boxSize / 2, boxSize / 2));
+    //.expandByScalar(0.9);//new THREE.Box3( new THREE.Vector3(-boxSize / 2, -boxSize / 2, -boxSize / 2), new THREE.Vector3(boxSize / 2, boxSize / 2, boxSize / 2));
     //_applyBoxUV( bufferGeometry, transformMatrix, uvBbox, boxSize );
 
+    let uvBbox = new Box3(new Vector3(-boxSize / 2, -boxSize / 2, -boxSize / 2), new Vector3(boxSize / 2, boxSize / 2, boxSize / 2));
+    //let uvBbox = bbox
     
 
 
@@ -712,11 +713,9 @@ export function createUV( geometry, type = 'sphere', transformMatrix, boxSize ) 
     //coords.length = 2 * geometry.attributes.position.array.length / 3;
     coords.length = 2 * geometry.attributes.position.count;
 
-    if ( geometry.attributes.uv === undefined ) geometry.addAttribute('uv', new Float32BufferAttribute(coords, 2));
+    //if ( geometry.attributes.uv === undefined ) geometry.addAttribute('uv', new Float32BufferAttribute(coords, 2));
+    if ( geometry.attributes.uv === undefined ) geometry.setAttribute('uv', new Float32BufferAttribute(coords, 2));
     
-
-
-
     let makeSphereUVs = function( v0, v1, v2 ) {
 
         //pre-rotate the model so that cube sides match world axis
@@ -807,7 +806,7 @@ export function createUV( geometry, type = 'sphere', transformMatrix, boxSize ) 
     const positionAttribute = geometry.getAttribute( 'position' );
     const normalAttribute = geometry.getAttribute( 'normal' );
 
-    if ( geometry.index ) { // is it indexed buffer geometry?
+    if ( geometry.index ) { // is it indexed buffer geometry
 
         for (i = 0; i < geometry.index.count; i+=3 ) {
 

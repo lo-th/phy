@@ -93,11 +93,11 @@ export const Gui = {
 
 		const options = Main.getOption();
 
-		const ui = new UIL.Gui( { w:250, h:20, open:false, close:false, css:'top:54px; right:5px;', colors:Gui.colors } )
+		const ui = new UIL.Gui( { w:250, h:24, open:false, close:false, css:'top:54px; right:5px;', colors:Gui.colors } )
 		if( options.mode === 'HIGH' ) ui.content.style.backdropFilter = 'blur(4px)'
-		ui.add('button', { values:Main.engineList, selectable:true, value:Main.engineType  }).onChange( Gui.swapEngine )
-		if( Main.devMode ) ui.add('button', { values:['RAPIER','CANNON'], selectable:true, value:Main.engineType }).onChange( Gui.swapEngine )
-		ui.add( 'bool', { name:'WORKER OFF', onName:'WORKER ON', value:Main.isWorker, mode:1 }).onChange( Gui.swapWorker )
+		//ui.add('button', { values:Main.engineList, selectable:true, value:Main.engineType  }).onChange( Gui.swapEngine )
+		//if( Main.devMode ) ui.add('button', { values:['RAPIER','CANNON'], selectable:true, value:Main.engineType }).onChange( Gui.swapEngine )
+		//ui.add( 'bool', { name:'WORKER OFF', onName:'WORKER ON', value:Main.isWorker, mode:1 }).onChange( Gui.swapWorker )
 
 		//ui.add( 'empty', {h:3})
 
@@ -106,15 +106,19 @@ export const Gui = {
 
 
 		//ui.add( 'empty', {h:6})
+
+		ui.add( 'button', { type:'button', values:['DRAG', 'SHOT', 'BUILD'], value:'DRAG', selectable:true, p:0 }).onChange( function(n){ 
+			phy.mouseMode( n.toLowerCase() );
+		})
 		
 
 		//ui.add( 'empty', {h:3})
 
-		ui.add( 'button', { type:'button', values:['EDIT', 'REPLAY', 'PAUSE'], selectable:false, p:0, h:30 }).onChange( function(n){ 
-			if(n === 'EDIT'){ Main.showEditor(true); this.switchValues(0, 'CLOSE' ); }
-			if(n === 'CLOSE'){ Main.showEditor(false); this.switchValues(0, 'EDIT' ); }
-			if(n === 'PAUSE'){ phy.pause( true ); this.switchValues(2, 'PLAY' ); }
-			if(n === 'PLAY'){ phy.pause( false ); this.switchValues(2, 'PAUSE' ); }
+		ui.add( 'button', { type:'button', values:['REPLAY', 'PAUSE'], selectable:false, p:0 }).onChange( function(n){ 
+			//if(n === 'EDIT'){ Main.showEditor(true); this.switchValues(0, 'CLOSE' ); }
+			//if(n === 'CLOSE'){ Main.showEditor(false); this.switchValues(0, 'EDIT' ); }
+			if(n === 'PAUSE'){ phy.pause( true ); this.switchValues(1, 'PLAY' ); }
+			if(n === 'PLAY'){ phy.pause( false ); this.switchValues(1, 'PAUSE' ); }
 			if(n === 'REPLAY') Main.injectCode( Main.getCode() )
 		})
 		

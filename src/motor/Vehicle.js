@@ -337,7 +337,8 @@ class Car extends Basic3D {//extends Object3D {
 		if( o.keepRotation ) o.quat = this.quaternion.toArray();
 
 
-		root.view.up( o );
+		//root.view.up( o );
+		root.motor.change( o );
 
 	}
 

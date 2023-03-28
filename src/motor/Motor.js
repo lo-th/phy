@@ -224,12 +224,11 @@ export class Motor {
 
 		//root.update = Motor.update
 		//root.change = Motor.change
-		root.remove = Motor.remove
+		//root.remove = Motor.remove
 		root.post = Motor.post
-		root.add = Motor.add
-		//root.up = Motor.up
+		//root.add = Motor.add
 
-		root.motor = this
+		root.motor = Motor
 
 		if( isWorker ){ // is worker version
 
@@ -530,12 +529,9 @@ export class Motor {
 		postUpdate( root.reflow.stat.delta )
 		//postUpdate( timer.delta )
 
-		// for update static object !!! 
-		//let i = root.flow.tmp.length;
-		//while( i-- ) this.change( root.flow.tmp[i], true )
+		//  update static object for this side !
 		Motor.changes( root.flow.tmp )
 
-		//if( outsideStep ) return
 
 		// finally post flow change to physx
 		if( isBuffer ) root.post( { m:'poststep', flow:root.flow, Ar:Ar }, [ Ar.buffer ] )

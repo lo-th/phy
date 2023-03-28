@@ -223,6 +223,8 @@ export const Main = {
 
 		version = Version[ engineName ]
 
+		if( Main.devMode ) Main.engineList.push('RAPIER', 'CANNON')
+
 		//o.link = LinkWasm[ engineName ]
 		o.type = Main.engineType
 		o.devMode = Main.devMode

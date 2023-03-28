@@ -56,6 +56,9 @@ export class Breaker {
 		// not enoputh impulse to break
 		if ( impulse < breakOption[ 0 ] ) return;
 
+
+		//let parentMatrix = mesh.matrix.clone().invert()
+
 		let debris = this.convexBreaker.subdivideByImpact( mesh, this.tpos.fromArray(pos), this.tnormal.fromArray(normal), breakOption[ 1 ], breakOption[ 2 ] );
 
 		// remove one level
@@ -71,7 +74,6 @@ export class Breaker {
 			linearVelocity: [v[0], v[1], v[2]],
 			angularVelocity: [v[3], v[4], v[5]],
 			density: mesh.density,
-
 		}
 
 		// add debris
