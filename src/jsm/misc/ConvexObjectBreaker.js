@@ -2,7 +2,9 @@ import {
 	Line3,
 	Mesh,
 	Plane,
-	Vector3
+	Vector3,
+	Box3,
+	Sphere,
 } from 'three';
 import { ConvexGeometry } from '../geometries/ConvexGeometry.js';
 
@@ -61,6 +63,17 @@ class ConvexObjectBreaker {
 		this.tempVector3_AB = new Vector3();
 		this.tempVector3_CB = new Vector3();
 		this.tempResultObjects = { object1: null, object2: null };
+
+		this.box1 = new Box3();
+		this.box2 = new Box3();
+
+		this.sph1 = new Sphere();
+		this.sph2 = new Sphere();
+
+		this.tt = new Vector3();
+		this.s1 = new Vector3();
+		this.s2 = new Vector3();
+
 
 		this.segments = [];
 		const n = 30 * 30;
@@ -169,6 +182,8 @@ class ConvexObjectBreaker {
 	}
 
 	cutByPlane( object, plane, output ) {
+
+		let k
 
 		// Returns breakable objects in output.object1 and output.object2 members, the resulting 2 pieces of the cut.
 		// object2 can be null if the plane doesn't cut the object.
@@ -371,47 +386,81 @@ class ConvexObjectBreaker {
 		// Calculate debris mass (very fast and imprecise):
 		const newMass = object.userData.mass * 0.5;
 
-		// Calculate debris Center of Mass (again fast and imprecise)
-		this.tempCM1.set( 0, 0, 0 );
-		let radius1 = 0;
-		const numPoints1 = points1.length;
+		let box1 = this.box1
+		let box2 = this.box2
+		let numPoints1 = points1.length;
+		let numPoints2 = points2.length;
 
-		if ( numPoints1 > 0 ) {
+		// reset box3
+		box1.makeEmpty()
+		box2.makeEmpty()
+		
+		// expand box3
+		k = numPoints1
+		while(k--) box1.expandByPoint(points1[ k ])
 
-			for ( let i = 0; i < numPoints1; i ++ ) this.tempCM1.add( points1[ i ] );
+		k = numPoints2
+		while(k--) box2.expandByPoint(points2[ k ])
+	
+		box1.getBoundingSphere(this.sph1)
+		box2.getBoundingSphere(this.sph2)
 
-			this.tempCM1.divideScalar( numPoints1 );
-			for ( let i = 0; i < numPoints1; i ++ ) {
+		// Calculate debris Center of Mass Fastest
+		this.tempCM1.copy(this.sph1.center)
+		this.tempCM2.copy(this.sph2.center)
+		k = numPoints1
+		while ( k-- ) points1[ k ].sub( this.tempCM1 )
+		k = numPoints2
+		while ( k-- ) points2[ k ].sub( this.tempCM2 )
 
-				const p = points1[ i ];
-				p.sub( this.tempCM1 );
-				radius1 = Math.max( radius1, p.x, p.y, p.z );
+		this.tempCM1.add(object.position)
+		this.tempCM2.add(object.position)
 
-			}
+		box1.getSize(this.s1)
+		box2.getSize(this.s2)
 
-			this.tempCM1.add( object.position );
+		// avoid too low radius
+		if(2 * this.sph1.radius < this.minSizeForBreak) numPoints1 = 0
+		if(2 * this.sph2.radius < this.minSizeForBreak) numPoints2 = 0
 
-		}
+		// avoid too low size
+		if(this.testSize(this.s1)) numPoints1 = 0
+		if(this.testSize(this.s2)) numPoints2 = 0
 
-		this.tempCM2.set( 0, 0, 0 );
-		let radius2 = 0;
-		const numPoints2 = points2.length;
-		if ( numPoints2 > 0 ) {
+		//this.tempCM1.add( object.position );
+		//this.tempCM2.add( object.position )
 
-			for ( let i = 0; i < numPoints2; i ++ ) this.tempCM2.add( points2[ i ] );
+		//let sizer1 = this.tt.copy(box1.max).add(box1.min).manhattanLength()
+		//let sizer2 = this.tt.copy(box2.max).add(box2.min).manhattanLength()
 
-			this.tempCM2.divideScalar( numPoints2 );
-			for ( let i = 0; i < numPoints2; i ++ ) {
+		//if(sizer1<s) numPoints1 = 0
+		//if(sizer2<s) numPoints2 = 0
+	    //box1 = {x:Math.abs(box1.x), y:Math.abs(box1.y), z:Math.abs(box1.z)}
+	    //box2 = {x:Math.abs(box2.x), y:Math.abs(box2.y), z:Math.abs(box2.z)}
 
-				const p = points2[ i ];
-				p.sub( this.tempCM2 );
-				radius2 = Math.max( radius2, p.x, p.y, p.z );
+	    //console.log(radius1, radius2)
+	    //console.log(box1.manhattanLength(), box2.manhattanLength())
 
-			}
+	    //console.log(box1, box2)
 
-			this.tempCM2.add( object.position );
 
-		}
+
+	    //console.log(sizer1, sizer2)
+
+
+		//if( box1.x<s || box1.y<s || box1.z<s ) numPoints1 = 0
+		//if( box2.x<s || box2.y<s || box2.z<s ) numPoints2 = 0
+
+			//if( box1.x+box1.y+box1.z<s ) numPoints1 = 0
+			//if( box2.x+box2.y+box2.z<s ) numPoints1 = 0
+		//if( box1.manhattanLength()<s ) numPoints1 = 0
+		//if( box2.manhattanLength()<s ) numPoints2 = 0
+
+		//if( box1.length()<s ) numPoints1 = 0
+		//if( box2.length()<s ) numPoints2 = 0
+
+
+	
 
 		let object1 = null;
 		let object2 = null;
@@ -432,6 +481,7 @@ class ConvexObjectBreaker {
 
 		if ( numPoints2 > 4 ) {
 
+
 			object2 = new Mesh( new ConvexGeometry( points2 ), object.material );
 			object2.position.copy( this.tempCM2 );
 			object2.quaternion.copy( object.quaternion );
@@ -447,6 +497,14 @@ class ConvexObjectBreaker {
 
 		return numObjects;
 
+	}
+
+	testSize( s ) {
+		let n = 0
+		if(s.x < 0.01 ) n++ 
+		if(s.y < 0.01 ) n++ 
+		if(s.z < 0.01 ) n++
+		return n>1 
 	}
 
 	static transformFreeVector( v, m ) {

@@ -1,5 +1,5 @@
 import {
-    Mesh, PlaneGeometry, Raycaster, Vector2, MeshBasicMaterial
+    Mesh, PlaneGeometry, Raycaster, Vector2, Vector3, MeshBasicMaterial
 } from 'three';
 
 import { root, math } from './root.js';
@@ -15,8 +15,11 @@ export class MouseTool {
 
 		this.selected = null
 
+		this.numBullet = 0
+		this.maxBullet = 10
+
 		this.isActive = false
-		this.rayTest = false
+		this.raycastTest = false
 		this.firstSelect = false
 		this.mouseDown = false
 		this.mouseDown2 = false
@@ -25,8 +28,11 @@ export class MouseTool {
 
 		this.mouse = new Vector2()
 		this.oldMouse = new Vector2()
-		this.ray = new Raycaster()
-		this.ray.far = 1000;
+		this.raycast = new Raycaster()
+		this.raycast.far = 1000;
+
+		this.pos = new Vector3()
+		this.velocity = new Vector3()
 
 
 		this.dragPlane = new Mesh( new PlaneGeometry( 1, 1 ), new MeshBasicMaterial({ visible:false, toneMapped: false }) )
@@ -34,7 +40,8 @@ export class MouseTool {
 	    this.dragPlane.receiveShadow = false
 	    this.dragPlane.scale.set( 1, 1, 1 ).multiplyScalar( 200 )
 
-	    if( this.mode === 'drag' ) this.activeDragMouse( true )
+	    //if( this.mode === 'drag' ) 
+	    this.activeDragMouse( true )
 
 	}
 
@@ -57,7 +64,7 @@ export class MouseTool {
 		        this.controler.addEventListener( 'change', this.controleChange.bind(this), false )
 
 		        this.isActive = true
-		        this.rayTest = true
+		        this.raycastTest = true
 		    }
 
 		} else {
@@ -76,37 +83,57 @@ export class MouseTool {
 
 	controleEnd ( e ) {
 		this.controlFirst = true
-		this.rayTest = true
+		this.raycastTest = true
 	}
 
 	controleChange ( e ) {
 		let state = this.controler.getState();
 		if( state !== -1 ){
 			if( this.controlFirst ) this.controlFirst = false;
-			else this.rayTest = false;
+			else this.raycastTest = false;
 		}
+	}
+
+	getMouse ( e ) {
+
+		this.mouse.x =   ( e.offsetX / this.dom.clientWidth ) * 2 - 1
+		this.mouse.y = - ( e.offsetY / this.dom.clientHeight ) * 2 + 1
+
 	}
 
 	mousedown ( e ) {
 
-		let button = 0
+		this.getMouse( e )
 
-		if( !this.mouseDown ){
-			if( this.firstSelect ) this.firstSelect = false
-			this.oldMouse.copy( this.mouse )
+		switch( this.mode ){
+
+			case 'drag':
+			let button = 0
+
+			if( !this.mouseDown ){
+				if( this.firstSelect ) this.firstSelect = false
+				this.oldMouse.copy( this.mouse )
+			}
+
+			if ( e.pointerType !== 'touch' ) button = e.button
+
+		    if( button === 0 ){
+			    this.mouseDown = true
+			    this.castray()
+			}
+
+			if( button === 2 ){
+			    this.mouseDown2 = true
+			    this.castray()
+			}
+			break
+
+			case 'shoot':
+			this.shoot()
+			break
 		}
 
-		if ( e.pointerType !== 'touch' ) button = e.button
-
-	    if( button === 0 ){
-		    this.mouseDown = true
-		    this.castray()
-		}
-
-		if( button === 2 ){
-		    this.mouseDown2 = true
-		    this.castray()
-		}
+		
 
 	}
 
@@ -121,9 +148,14 @@ export class MouseTool {
 
 	mousemove ( e ) {
 
-		this.mouse.x =   ( e.offsetX / this.dom.clientWidth ) * 2 - 1
-		this.mouse.y = - ( e.offsetY / this.dom.clientHeight ) * 2 + 1
-		this.castray()
+		switch( this.mode ){
+
+			case 'drag':
+			this.getMouse( e )
+		    this.castray()
+			break
+
+		}
 
 	}
 
@@ -133,16 +165,17 @@ export class MouseTool {
 
 		if( this.selected !== null ){
 
-			this.ray.setFromCamera( this.mouse, this.controler.object )
-			inters = this.ray.intersectObject( this.dragPlane )
+			this.raycast.setFromCamera( this.mouse, this.controler.object )
+			inters = this.raycast.intersectObject( this.dragPlane )
 			if ( inters.length ) root.motor.change({ name:'mouse', pos:inters[0].point.toArray() }, true )
 
 		}
 
-		if( !this.rayTest ) return;
+		if( !this.raycastTest ) return;
 
-		this.ray.setFromCamera( this.mouse, this.controler.object )
-		inters = this.ray.intersectObjects( root.scene.children, true )
+		this.raycast.setFromCamera( this.mouse, this.controler.object )
+
+		inters = this.raycast.intersectObjects( root.scene.children, true )
 
 		if ( inters.length > 0 ) {
 
@@ -171,6 +204,31 @@ export class MouseTool {
 		}
 
 		document.body.style.cursor = cursor
+
+	}
+
+	shoot (){
+
+		this.raycast.setFromCamera( this.mouse, this.controler.object )
+
+		this.pos.copy( this.raycast.ray.direction ).add(  this.raycast.ray.origin );
+		this.velocity.copy( this.raycast.ray.direction ).multiplyScalar( 60 )
+
+		root.motor.add({
+			name: 'bullet_' + this.numBullet,
+			type:'sphere',
+			density:20,
+			size:[0.2], 
+			material:'chrome',
+			pos:this.pos.toArray(),
+			linearVelocity:this.velocity.toArray(),
+			bullet:true,
+			/*ccdThreshold:0.0000001,
+            ccdRadius:0.1,*/
+		})
+
+		this.numBullet++
+		if(this.numBullet > this.maxBullet) this.numBullet = 0
 
 	}
 
@@ -212,7 +270,7 @@ export class MouseTool {
 		])
 		
 
-		this.rayTest = false
+		this.raycastTest = false
 		this.controler.enabled = false
 
 		return 'move'
@@ -228,7 +286,7 @@ export class MouseTool {
 		root.motor.remove(['mouseJoint','mouse'])
 		root.motor.change({ name:this.selected.name, neverSleep:false, wake:true })
 		
-		this.rayTest = true
+		this.raycastTest = true
 		this.selected = null
 		this.firstSelect = true
 		this.controler.enabled = true

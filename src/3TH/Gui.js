@@ -107,14 +107,14 @@ export const Gui = {
 
 		//ui.add( 'empty', {h:6})
 
-		ui.add( 'button', { type:'button', values:['DRAG', 'SHOT', 'BUILD'], value:'DRAG', selectable:true, p:0 }).onChange( function(n){ 
+		ui.add( 'button', { type:'button', values:['DRAG', 'SHOOT', 'BUILD'], value:'DRAG', selectable:true, p:0 }).onChange( (n)=>{ 
 			phy.mouseMode( n.toLowerCase() );
 		})
 		
 
 		//ui.add( 'empty', {h:3})
 
-		ui.add( 'button', { type:'button', values:['REPLAY', 'PAUSE'], selectable:false, p:0 }).onChange( function(n){ 
+		ui.add( 'button', { type:'button', values:['REPLAY', 'PAUSE'], selectable:false, p:0 }).onChange( (n)=>{ 
 			//if(n === 'EDIT'){ Main.showEditor(true); this.switchValues(0, 'CLOSE' ); }
 			//if(n === 'CLOSE'){ Main.showEditor(false); this.switchValues(0, 'EDIT' ); }
 			if(n === 'PAUSE'){ phy.pause( true ); this.switchValues(1, 'PLAY' ); }

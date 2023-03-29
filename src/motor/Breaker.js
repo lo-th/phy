@@ -12,6 +12,9 @@ export class Breaker {
 		this.tpos = new THREE.Vector3();
 		this.tnormal = new THREE.Vector3();
 
+		this.nDebris = 0
+		this.maxDebris = 300
+
 	}
 
 	step () {
@@ -51,7 +54,7 @@ export class Breaker {
 		let breakOption = mesh.breakOption;
 		//let imp = this.tmpI.fromArray( impulse ).length();
 
-		//console.log( name, pos )
+		//console.log( name, impulse )
 
 		// not enoputh impulse to break
 		if ( impulse < breakOption[ 0 ] ) return;
@@ -61,12 +64,15 @@ export class Breaker {
 
 		let debris = this.convexBreaker.subdivideByImpact( mesh, this.tpos.fromArray(pos), this.tnormal.fromArray(normal), breakOption[ 1 ], breakOption[ 2 ] );
 
+		//console.log( debris.length )
+
+		if(debris.length<1) return
+
 		// remove one level
 		breakOption[ 3 ] -= 1;
 		
 		
-		// remove original object
-		root.motor.remove( name );
+		
 		//root.flow.remove.push( name )
 
 		const eritage = {
@@ -81,25 +87,29 @@ export class Breaker {
 		let i = debris.length;
 		while ( i -- ){ 
 			//root.flow.add.push( this.addDebris( name, i, debris[ i ], breakOption, velocity ) );
-			list.push( this.addDebris( name, i, debris[ i ], breakOption, eritage ) );
+			list.push( this.addDebris( debris[ i ], breakOption, eritage ) );
 		}
 
-		//console.log(list[0])
-		//root.motor.add( list[0] )
+        // remove original object and add debrit
 
-		root.motor.add( list )
+        //setTimeout( ()=>{
+        	root.motor.remove( name )
+		    root.motor.add( list )
+        //}, 0 )
+		
 
 	}
 
-	addDebris ( name, id, mesh, breakOption, eritage ) {
+	addDebris ( mesh, breakOption, eritage ) {
 
 		let next = breakOption[ 3 ] > 0 ? true : false;
 
-		return {
+		let deb = {
 
 			...eritage,
 
-			name: name + '_debris' + id,
+			//name: name + 'debris_' + id,
+			name: 'debris_' + this.nDebris,
 			type: 'convex',
 			shape: mesh.geometry,
 			size:[1,1,1],
@@ -109,6 +119,12 @@ export class Breaker {
 			breakOption:breakOption,
 
 		}
+
+		this.nDebris++
+		if(this.nDebris>this.maxDebris) this.nDebris = 0
+
+
+		return deb
 
 	}
 

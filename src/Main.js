@@ -497,7 +497,7 @@ const next = () => {
     Motor.setAddControl( addControl )
 
     // activate mouse drag
-    Motor.activeMouse( controls, 'drag' )
+    Motor.activeMouse( controls )
 
 
 	let hash = location.hash.substr( 1 )
@@ -800,6 +800,7 @@ const inject = ( newCode, force = false ) => {
 		Motor.poolDispose();
 	}
 
+	phy.mouseMode('drag')
 	phy.reset( refreshCode )
 
 }

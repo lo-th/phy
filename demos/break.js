@@ -1,12 +1,16 @@
 demo = () => {
 
+    phy.log('click to shoot')
+
     // config physics setting
-    phy.set({ substep:2, gravity:[0,-9.81,0] })
+    phy.set({ substep:2, gravity:[0,-9.81,0], ccd:true })
 
     // add static plane 
     phy.add({ type:'plane', visible:false })
 
-    phy.add({ name:'ball1', type:'sphere', density:35, state:4, size:[0.5], pos:[0,60,0], friction:0.5, ccdThreshold:0.00001, material:'chrome' })
+    phy.mouseMode('shoot')
+
+    //phy.add({ name:'ball1', type:'sphere', density:35, size:[0.5], pos:[0,60,0], ccdThreshold:0.00001, material:'chrome' })
 
 
 
@@ -16,7 +20,14 @@ demo = () => {
         normalMap:phy.texture({ url:'./assets/textures/wood_n.jpg', repeat:[2,2] }) 
     })
 
-    phy.add({ name:'boom', type:'box', density:1, size:[2,4,2], pos:[0,2,0], friction:0.5, breakable:true, material:'B', autoUV:true });
+    phy.add({ name:'boom', type:'box', density:10, size:[2,4,2], pos:[0,2,0], 
+        breakable:true, 
+        // breakOption: [ maxImpulse, maxRadial, maxRandom, levelOfSubdivision ]
+        breakOption:[ 50, 1, 2, 2 ], 
+        material:'B', 
+        autoUV:true 
+    });
+
     //phy.add({ name:'boom', type:'cylinder', density:1, size:[1,4,1], pos:[0,2,0], friction:0.5, breakable:true, material:'B', autoUV:true });
 
     /*phy.add({ name:'ball2', type:'sphere', mass:35, state:4, size:[1], pos:[0,300,0], friction:0.5, ccdThreshold:0.00001 });
