@@ -188,7 +188,7 @@ export class Reflector extends Mesh {
 			fragment = fragment.replace( '#include <map_fragment>', ReflectShader.map_fragment );
 			fragment = fragment.replace( '#include <fog_fragment>', ReflectShader.fog_fragment );
 
-			fragment = fragment.replace( '#include <alphamap_fragment>', ReflectShader.alphamap_fragment );
+			//fragment = fragment.replace( '#include <alphamap_fragment>', ReflectShader.alphamap_fragment );
 
 			//fragment = fragment.replace( '#include <normal_fragment_maps>', ReflectShader.normal_fragment_maps );
 
@@ -441,7 +441,7 @@ export class Reflector extends Mesh {
 			this.uv = 30
 			var r = repeat !== undefined ? repeat : this.uv;
 			var s = scale !== undefined ? scale : this.normalScale;
-			this.material.normalMap = Pool.texture( { url:'./assets/textures/terrain/water_n.jpg', flip:false, repeat:[r,r] });//null;//Tools.loadTextures('./textures/terrain/water_n.jpg', { repeat:[r,r], anisotropy:4, generateMipmaps:true });
+			this.material.normalMap = Pool.texture( { url:'./assets/textures/terrain/water_n.jpg', flip:false, repeat:[r,r], channel:1 });//null;//Tools.loadTextures('./textures/terrain/water_n.jpg', { repeat:[r,r], anisotropy:4, generateMipmaps:true });
 			this.material.normalScale.set( s, s );
 			this.material.roughness = 0.;
 			this.material.metalness = 0.;
@@ -449,7 +449,8 @@ export class Reflector extends Mesh {
 			this.material.side = DoubleSide;
 			//console.log('water')
 		} else {
-			this.material.normalMap = Pool.texture( { url:'./assets/textures/floor.png', flip:false, repeat:[200,200] });
+			this.material.normalMap = Pool.texture( { url:'./assets/textures/floor.png', flip:false, repeat:[200,200], channel:1 });
+			//this.material.normalMap.channel = 1;
 			//this.material.normalMap = null;
 			this.material.roughness = 0.9;
 			this.material.metalness = 0.1;
@@ -505,8 +506,8 @@ export class Reflector extends Mesh {
 	    img.src = c.toDataURL( 'image/png' )
 
 	    this.alphaMap = new Texture( img )
+	    this.alphaMap.channel = 1;
 	    this.material.alphaMap = this.alphaMap;//new Texture( img );
-		this.material.aoMap = this.alphaMap;//new Texture( img );
 
 	    img.onload = function (){
 		    this.alphaMap.needsUpdate = true;
@@ -599,7 +600,7 @@ const ReflectShader = {
 	normal_fragment_maps:/* glsl */`
 	#ifdef OBJECTSPACE_NORMALMAP
 
-		normal = texture2D( normalMap, vUv2 ).xyz * 2.0 - 1.0; // overrides both flatShading and attribute normals
+		normal = texture2D( normalMap, vNormalMapUv ).xyz * 2.0 - 1.0; // overrides both flatShading and attribute normals
 
 		#ifdef FLIP_SIDED
 
@@ -617,7 +618,7 @@ const ReflectShader = {
 
 	#elif defined( TANGENTSPACE_NORMALMAP )
 
-		vec3 mapN = texture2D( normalMap, vUv2 ).xyz * 2.0 - 1.0;
+		vec3 mapN = texture2D( normalMap, vNormalMapUv ).xyz * 2.0 - 1.0;
 		mapN.xy *= normalScale;
 
 		#ifdef USE_TANGENT
@@ -633,14 +634,6 @@ const ReflectShader = {
 	#elif defined( USE_BUMPMAP )
 
 		normal = perturbNormalArb( - vViewPosition, normal, dHdxy_fwd(), faceDirection );
-
-	#endif
-   `,
-
-   alphamap_fragment:/* glsl */`
-   #ifdef USE_ALPHAMAP
-
-		diffuseColor.a *= texture2D( alphaMap, vUv2 ).g;
 
 	#endif
    `,

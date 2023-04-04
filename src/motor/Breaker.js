@@ -91,11 +91,10 @@ export class Breaker {
 		}
 
         // remove original object and add debrit
-
-        //setTimeout( ()=>{
-        	root.motor.remove( name )
+        root.motor.remove( name, true )
+        setTimeout( ()=>{
 		    root.motor.add( list )
-        //}, 0 )
+        }, 0 )
 		
 
 	}

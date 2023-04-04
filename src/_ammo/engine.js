@@ -9,6 +9,8 @@ import { Vehicle } from './Vehicle.js'
 import { Terrain } from './Terrain.js'
 import { Character } from './Character.js'
 
+//import Ammo from '../../build/ammo3.wasm.js';
+
 /** __
 *    _)_|_|_
 *   __) |_| | 2023

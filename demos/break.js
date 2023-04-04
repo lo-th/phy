@@ -20,7 +20,15 @@ demo = () => {
         normalMap:phy.texture({ url:'./assets/textures/wood_n.jpg', repeat:[2,2] }) 
     })
 
-    phy.add({ name:'boom', type:'box', density:10, size:[2,4,2], pos:[0,2,0], 
+    phy.add({ name:'boom1', type:'box', density:10, size:[2,4,2], pos:[0,2,0], 
+        breakable:true, 
+        // breakOption: [ maxImpulse, maxRadial, maxRandom, levelOfSubdivision ]
+        breakOption:[ 50, 1, 2, 2 ], 
+        material:'B', 
+        autoUV:true 
+    });
+
+    phy.add({ name:'boom2', type:'box', density:10, size:[10,1,10], pos:[0,40,0], 
         breakable:true, 
         // breakOption: [ maxImpulse, maxRadial, maxRandom, levelOfSubdivision ]
         breakOption:[ 50, 1, 2, 2 ], 

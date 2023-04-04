@@ -202,6 +202,8 @@ export const Pool = {
                 t.magFilter = NearestFilter;
             }
         }
+
+        if( o.channel ) t.channel = o.channel
         t.needsUpdate = true;
 
     },

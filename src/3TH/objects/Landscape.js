@@ -840,14 +840,16 @@ const TerrainShader = {
         }
     `,
 
+    // roughnessmap_fragment
+
     rough : /* glsl */`
         float roughnessFactor = roughness;
         float metalnessFactor = metalness;
         #ifdef USE_ROUGHNESSMAP
 
-            vec4 sandR = textureMAP( roughnessMap, vUv );
-            vec4 grassR = textureMAP( roughnessMap1, vUv );
-            vec4 rockR = textureMAP( roughnessMap2, vUv );
+            vec4 sandR = textureMAP( roughnessMap, vRoughnessMapUv );
+            vec4 grassR = textureMAP( roughnessMap1, vRoughnessMapUv );
+            vec4 rockR = textureMAP( roughnessMap2, vRoughnessMapUv );
 
             vec4 baseColorR = MappingMix( vColor.r, clevels, rockR, grassR, sandR );
             // reads channel G, compatible with a combined OcclusionRoughnessMetallic (RGB) texture
@@ -857,7 +859,7 @@ const TerrainShader = {
         #endif
     `,
 
-    // ao
+    // aomap_fragment
 
     ao : /* glsl */`
         reflectedLight.indirectDiffuse *= ambientOcclusion;
@@ -867,14 +869,14 @@ const TerrainShader = {
         #endif
     `,
 
-    // map
+    // map_fragment.glsl
 
     map : /* glsl */`
         #ifdef USE_MAP
 
-            vec4 sand = textureMAP( map, vUv );
-            vec4 grass = textureMAP( map1, vUv );
-            vec4 rock = textureMAP( map2, vUv ); 
+            vec4 sand = textureMAP( map, vMapUv );
+            vec4 grass = textureMAP( map1, vMapUv );
+            vec4 rock = textureMAP( map2, vMapUv ); 
 
             vec4 baseColor = MappingMix(vColor.r, clevels, rock, grass, sand);
             diffuseColor *= baseColor;
@@ -882,13 +884,13 @@ const TerrainShader = {
         #endif
     `,
 
-    // normal
+    // normal_fragment_maps
 
     normal : /* glsl */`
 
         #ifdef OBJECTSPACE_NORMALMAP
 
-            normal = texture2D( normalMap, vUv ).xyz * 2.0 - 1.0; // overrides both flatShading and attribute normals
+            normal = texture2D( normalMap, vNormalMapUv ).xyz * 2.0 - 1.0; // overrides both flatShading and attribute normals
 
             #ifdef FLIP_SIDED
 
@@ -906,13 +908,13 @@ const TerrainShader = {
 
         #elif defined( TANGENTSPACE_NORMALMAP )
 
-            vec4 sandN = textureMAP( normalMap, vUv );
-            vec4 grassN = textureMAP( normalMap1, vUv );
-            vec4 rockN = textureMAP( normalMap2, vUv );
+            vec4 sandN = textureMAP( normalMap, vNormalMapUv );
+            vec4 grassN = textureMAP( normalMap1, vNormalMapUv );
+            vec4 rockN = textureMAP( normalMap2, vNormalMapUv );
 
             vec3 mapN = MappingMix(vColor.r, clevels, rockN, grassN, sandN).xyz * 2.0 - 1.0;
 
-            //vec3 mapN = texture2D( normalMap, vUv ).xyz * 2.0 - 1.0;
+            //vec3 mapN = texture2D( normalMap, vNormalMapUv ).xyz * 2.0 - 1.0;
             mapN.xy *= normalScale;
 
             normal = normalize( tbn * mapN );
@@ -926,7 +928,7 @@ const TerrainShader = {
 
     alphamap : /* glsl */`
         #ifdef USE_ALPHAMAP
-            diffuseColor.a = opacity +( texture2D( alphaMap, vUv ).g * opacity) * (1.0-opacity);
+            diffuseColor.a = opacity +( texture2D( alphaMap, vAlphaMapUv ).g * opacity) * (1.0-opacity);
         #endif
     `,
     

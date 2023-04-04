@@ -148,16 +148,66 @@ export class Motor {
 
 	}
 
-	static post ( e, buffer ){
+	static post ( e, buffer=null, direct = false ){
+
+		if( isWorker ){
+
+		    if(e.o)if( e.o.type === 'solver' || e.o.solver !== undefined) direct = true
+		    if(!direct){
+		    	if ( e.m === 'add' ) root.flow.add.push( e.o )
+		    	else if ( e.m === 'remove' ) root.flow.remove.push( e.o )
+		    	else worker.postMessage( e, buffer )
+		    } else {
+		    	worker.postMessage( e, buffer )
+		    }
+
+			/*if ( e.m === 'add' ){ 
+				if( e.o.type === 'solver' ) worker.postMessage( e )// direct
+				else if( e.o.solver !== undefined ) worker.postMessage( e )// direct
+				else{ 
+					if( direct ) worker.postMessage( e ) 
+				    else root.flow.add.push( e.o )// in temp 
+			    }
+			}
+			else if ( e.m === 'remove' ){ 
+				if( direct ) worker.postMessage( e ) 
+				else root.flow.remove.push( e.o )
+			}
+			else worker.postMessage( e, buffer )*/
+
+		} else {
+
+			/*if(e.o)if( e.o.type === 'solver' || e.o.solver !== undefined) direct = true
+		    if(!direct){
+		    	if ( e.m === 'add' ) root.flow.add.push( e.o )
+		    	else if ( e.m === 'remove' ) root.flow.remove.push( e.o )
+		    	else directMessage( { data : e } )
+		    } else {
+		    	directMessage( { data : e } )
+		    }*/
+
+			directMessage( { data : e } )
+
+		}
+
+	}
+
+	/*static post ( e, buffer, direct = false ){
 
 		if( isWorker ){ 
 
 			if ( e.m === 'add' ){ 
 				if( e.o.type === 'solver' ) worker.postMessage( e )// direct
 				else if( e.o.solver !== undefined ) worker.postMessage( e )// direct
-				else root.flow.add.push( e.o )// in temp 
+				else{ 
+					if( direct ) worker.postMessage( e ) 
+				    else root.flow.add.push( e.o )// in temp 
+			    }
 			}
-			else if ( e.m === 'remove' ) root.flow.remove.push( e.o )
+			else if ( e.m === 'remove' ){ 
+				if( direct ) worker.postMessage( e ) 
+				else root.flow.remove.push( e.o )
+			}
 			else worker.postMessage( e, buffer )
 
 		} else {
@@ -166,7 +216,7 @@ export class Motor {
 
 		}
 
-	}
+	}*/
 
 	static makeView () {
 
@@ -181,6 +231,8 @@ export class Motor {
 	//static getMat ( mode ) { return mode === 'HIGH' ? mat : matLow; }
 
 	static init ( o = {} ) {
+
+		const rootURL = document.location.href.replace(/\/[^/]*$/,"/")
 
 		const path = o.path || './build/';
 
@@ -254,7 +306,7 @@ export class Motor {
 					//let coep = '?coep=require-corp&coop=same-origin&corp=same-origin&'
 					// https://cross-origin-isolation.glitch.me/?coep=require-corp&coop=same-origin&corp=same-origin&
 				    // for wasm side
-				    if( wasmLink[mini] ) o.blob = document.location.href.replace(/\/[^/]*$/,"/") + wasmLink[mini];
+				    if( wasmLink[mini] ) o.blob = rootURL + wasmLink[mini];
 
 				    //worker = new Worker( path + mini + '.module.js', {type:'module'})
 					worker = new Worker( path + mini + '.min.js' )
@@ -452,7 +504,6 @@ export class Motor {
 		o.isTimeout = isTimeout;
 		o.outsideStep = outsideStep;
 		
-
 		if(!o.gravity) o.gravity = [0,-9.81,0]
 		if(!o.substep) o.substep = 2
 
@@ -466,8 +517,6 @@ export class Motor {
 
 		if(outsideStep) timer.setFramerate( o.fps )
 
-		
-		
 		root.post({ m:'set', o:o });
 
 	}
@@ -697,11 +746,11 @@ export class Motor {
 		}*/
 	}
 
-	static adds ( r = [] ){ for( let o in r ) Motor.add( r[o] ) }
+	static adds ( r = [], direct ){ for( let o in r ) Motor.add( r[o], direct ) }
 
-	static add ( o = {} ){
+	static add ( o = {}, direct = false ){
 
-		if ( o.constructor === Array ) return Motor.adds( o )
+		if ( o.constructor === Array ) return Motor.adds( o, direct )
 
 		if( o.mass !== undefined ) o.density = o.mass
 		if( o.bounce !== undefined ) o.restitution = o.bounce
@@ -714,11 +763,11 @@ export class Motor {
 	}
 
 
-	static removes ( r = [] ){ for( let o in r ) Motor.remove( r[o] ) }
+	static removes ( r = [], direct ){ for( let o in r ) Motor.remove( r[o], direct ) }
 	
-	static remove ( name ){
+	static remove ( name, direct = false ){
 
-		if ( name.constructor === Array ) return Motor.removes( name )
+		if ( name.constructor === Array ) return Motor.removes( name, direct )
 
 		let b = Motor.byName( name )
 		if( b === null ) return;
@@ -726,7 +775,7 @@ export class Motor {
 		// remove on three side
 		items[b.type].clear( b );
 		// remove on physics side
-		root.post( { m:'remove', o:{ name:name, type:b.type } })
+		root.post( { m:'remove', o:{ name:name, type:b.type } }, null, direct )
 
 	}
 
