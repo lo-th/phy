@@ -38,6 +38,12 @@ import { Motor } from './motor/Motor.js'
 import { Smoke } from '../build/smoke.module.js'
 
 
+// WEBGPU test
+import WebGPU from 'three/addons/capabilities/WebGPU.js';
+import WebGPURenderer from 'three/addons/renderers/webgpu/WebGPURenderer.js';
+
+
+
 //import { SpiderRobot } from './3TH/utils/SpiderRobot.js'
 
 /** __
@@ -48,11 +54,14 @@ import { Smoke } from '../build/smoke.module.js'
 *  MAIN THREE.JS / PHY
 */
 
+const activeWebGPU = false
+let isWebGPU = false
+
 let drawCall = false
 let fullStat = false
 let debugLight = false
 
-let oldPause = false;
+let oldPause = false
 
 let engineName, version, introText
 let oldLeft = 0
@@ -130,7 +139,7 @@ const options = {
 
 }
 
-
+let renderStart = false
 let g1, g2, g3
 let dom, camera, controls, scene, renderer, loop = null, composer = null, content, dragPlane, hideMat, followGroup, helperGroup, stats, txt, light, light2 = null, light3=null, ground = null, envui, dci;
 
@@ -325,6 +334,11 @@ window.Fluid = Fluid
 
 const init = () => {
 
+	isWebGPU = activeWebGPU ? WebGPU.isAvailable() : false
+ 
+	if( isWebGPU ) console.log('use webgpu !!')
+
+
 	// https://threejs.org/docs/#api/en/renderers/WebGLRenderer
 
 	let powerPreference ='default'
@@ -343,7 +357,8 @@ const init = () => {
 
 	// RENDERER
 
-	renderer = new THREE.WebGLRenderer( { 
+	if( isWebGPU ) renderer = new WebGPURenderer()
+	else renderer = new THREE.WebGLRenderer( { 
 		antialias:antialias, 
 		powerPreference:powerPreference,
 		premultipliedAlpha: false,
@@ -354,7 +369,8 @@ const init = () => {
 	renderer.setPixelRatio( pixelRatio )
 	renderer.setSize( size.w, size.h )
 
-	renderer.outputEncoding = THREE.sRGBEncoding
+	//renderer.outputColorSpace = THREE.sRGBEncoding
+	renderer.outputColorSpace = THREE.SRGBColorSpace;
 	renderer.toneMapping = toneMappingOptions[options.tone]
 	renderer.toneMappingExposure = options.exposure
 	renderer.useLegacyLights = false
@@ -367,7 +383,7 @@ const init = () => {
 
 	// SHADER
 
-	Shader.setGl2( renderer.capabilities.isWebGL2 )
+	Shader.setGl2(  isWebGPU ? false : renderer.capabilities.isWebGL2 )
 	Shader.init( options )
 
 	// SCENE
@@ -505,6 +521,8 @@ const next = () => {
 
     Hub.endLoading()
 
+    
+
     //Gui.init()
 
     //initGUI()
@@ -522,7 +540,10 @@ const next = () => {
 }
 
 const start = () => {
-	if( loop === null ) render(0)
+	if(renderStart) return
+	if( isWebGPU ) renderer.setAnimationLoop( render );
+	else { if( loop === null) render(0) }
+	renderStart = true
 }
 
 const upExpose = () => {
@@ -589,17 +610,23 @@ const addLight = () => {
 	}
 
 	light.castShadow = options.shadow !== 0 
-	renderer.shadowMap.enabled = options.shadow !== 0 
-	renderer.shadowMap.type = shadowMapType[options.shadowType]
+	if(!isWebGPU){
+		renderer.shadowMap.enabled = options.shadow !== 0 
+		renderer.shadowMap.type = shadowMapType[options.shadowType]
+	}
 
 	followGroup.add( light )
 	followGroup.add( light.target )
 
 	// light 2
 
-	light2 = new THREE.HemisphereLight( 0xFFFFFF, 0x808080, options.light_2 );
-	light2.position.set( 0, 5, 0 );
-	followGroup.add( light2 );
+	if(!isWebGPU){
+		light2 = new THREE.HemisphereLight( 0xFFFFFF, 0x808080, options.light_2 );
+		light2.position.set( 0, 5, 0 );
+		followGroup.add( light2 );
+	}
+
+	
 
 
 	////
@@ -612,9 +639,6 @@ const clearLight = ( o ) => {
 	followGroup.remove( light )
 	followGroup.remove( light.target )
 	
-
-	followGroup.remove( light2 );
-
 	light.shadow.dispose()
 	light.shadow.map.texture.dispose()
 	light.shadow.map.texture = null;
@@ -622,6 +646,9 @@ const clearLight = ( o ) => {
 	light.shadow.map = null;
 
 	light = null
+
+	if(light2) followGroup.remove( light2 );
+	light2 = null
 
 	if(light3){
 		light3.shadow.dispose()
@@ -664,9 +691,13 @@ const resetLight = ( o ) => {
 		light3.color.setHex( 0xFFFFFF );
 	}
 
+	if(light2){
+		light2.color.setHex( 0xFFFFFF );
+	    light2.groundColor.setHex( 0x808080 );
+	}
 
-	light2.color.setHex( 0xFFFFFF );
-	light2.groundColor.setHex( 0x808080 );
+
+	
 
 }
 
@@ -681,7 +712,7 @@ const resetLight = ( o ) => {
 
 const addGround = ( o ) => {
 
-	
+	//if( isWebGPU ) return
 
 	if( ground === null ){
 
@@ -721,6 +752,7 @@ const removeGround = () => {
 }
 
 const dispose = () => {
+	renderStart = false
 	if(loop === null) return
 	//Env.dispose()
     renderer.dispose()
@@ -898,9 +930,6 @@ const doResize = () => {
 
 const render = ( stamp = 0 ) => {
 
-	
-
-	
     //console.time('step')
 	// TIME
 	tm.now = stamp
@@ -935,7 +964,7 @@ const render = ( stamp = 0 ) => {
 	//console.timeEnd('step')
 
 
-	loop = requestAnimationFrame( render )
+	if( !isWebGPU ) loop = requestAnimationFrame( render )
 
 	
 
@@ -992,6 +1021,8 @@ const setReflect = ( v ) => {
 }
 
 const setShadow = ( v ) => {
+
+	if( isWebGPU ) return
 
 	options.shadow = v
 
@@ -1053,6 +1084,8 @@ Motor.view = view;
 
 //async function setEnv( name, chageUI ) {
 const setEnv = ( name, chageUI ) => {
+
+	//if(isWebGPU) return
 
 	if( name !== options.envmap ){
 

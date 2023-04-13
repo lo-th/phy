@@ -15,6 +15,8 @@ export class Breaker {
 		this.nDebris = 0
 		this.maxDebris = 300
 
+		this.tt = null
+
 	}
 
 	step () {
@@ -31,8 +33,6 @@ export class Breaker {
 
 			if ( p.distance !== 0 ) {
 
-
-
 				this.makeBreak( p.b1, p.pos, p.normal, p.impulse, p.v1 );
 				this.makeBreak( p.b2, p.pos, p.normal, p.impulse, p.v2 );
 				
@@ -43,8 +43,6 @@ export class Breaker {
 	makeBreak ( name, pos, normal, impulse, v ) {
 
 		let mesh = Utils.byName( name );
-
-		//console.log( name, mesh )
 
 		if ( !mesh ) return;
 		if ( !mesh.breakable ) return;
@@ -71,10 +69,6 @@ export class Breaker {
 		// remove one level
 		breakOption[ 3 ] -= 1;
 		
-		
-		
-		//root.flow.remove.push( name )
-
 		const eritage = {
 			material: mesh.material,
 			linearVelocity: [v[0], v[1], v[2]],
@@ -84,15 +78,16 @@ export class Breaker {
 
 		// add debris
 		let list = []
-		let i = debris.length;
+		let i = debris.length, n = 0;
 		while ( i -- ){ 
-			//root.flow.add.push( this.addDebris( name, i, debris[ i ], breakOption, velocity ) );
-			list.push( this.addDebris( debris[ i ], breakOption, eritage ) );
+			list.push( this.addDebris( debris[ n ], breakOption, eritage ) );
+			n++
 		}
 
         // remove original object and add debrit
-        root.motor.remove( name, true )
-        setTimeout( ()=>{
+        //root.motor.remove( name, true )
+        this.tt = setTimeout( ()=>{
+        	root.motor.remove( name )
 		    root.motor.add( list )
         }, 0 )
 		
@@ -101,26 +96,27 @@ export class Breaker {
 
 	addDebris ( mesh, breakOption, eritage ) {
 
-		let next = breakOption[ 3 ] > 0 ? true : false;
+		let breakable = breakOption[ 3 ] > 0 ? true : false;
+
+		let name = 'debris_' + (this.nDebris++)
 
 		let deb = {
 
 			...eritage,
 
-			//name: name + 'debris_' + id,
-			name: 'debris_' + this.nDebris,
+			name: name,
 			type: 'convex',
 			shape: mesh.geometry,
-			size:[1,1,1],
+			//size:[1,1,1],
 			pos: mesh.position.toArray(),
 			quat: mesh.quaternion.toArray(),
-			breakable: next,
+			breakable: breakable,
 			breakOption:breakOption,
 
 		}
 
-		this.nDebris++
-		if(this.nDebris>this.maxDebris) this.nDebris = 0
+		//this.nDebris++
+		if( this.nDebris>this.maxDebris ) this.nDebris = 0
 
 
 		return deb

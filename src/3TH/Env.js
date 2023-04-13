@@ -1,7 +1,7 @@
 import {
 	PMREMGenerator,
 	HalfFloatType,
-	UnsignedByteType, sRGBEncoding, LinearEncoding,
+	UnsignedByteType, LinearEncoding,
 	Vector3, Vector2, Spherical,
 	Color, Mesh, PlaneGeometry, MeshBasicMaterial, Scene, OrthographicCamera, WebGLRenderTarget,
 	RGBAFormat, FloatType, EquirectangularReflectionMapping, NoToneMapping
@@ -11,10 +11,16 @@ import { RGBELoader } from 'three/addons/loaders/RGBELoader.js';
 import { GroundProjectedEnv } from 'three/addons/objects/GroundProjectedEnv.js';
 import { math } from './math.js';
 
-const usePmrem = true
+import { texture, equirectUV } from 'three/nodes';
+
+
 const autoSize = 0.25
 
 const useHalfFloat = true
+
+let usePmrem = true
+let isWebGPU = false
+let autosun = true
 
 let sunColor = new Color()
 let fogColor = new Color()
@@ -61,7 +67,7 @@ export class Env {
 	    //if( scene.environment && scene.environment.dispose ){ scene.environment.dispose(); console.log("env dispose !!") } //
 	    this.clearTargetRender()
 
-		if( env ) env.dispose()
+		if( env && !isWebGPU ) env.dispose()
 		if( hdr ) hdr.dispose()
 		if( pm ) pm.dispose()
 		//
@@ -136,19 +142,25 @@ export class Env {
 
 	}
 
-    static init ( Renderer, Scene, Light, Light2, Light3, autosun ) {
+    static init ( Renderer, Scene, Light, Light2, Light3, Autosun ) {
 
-    	if( Renderer ) renderer = Renderer;
+    	if( Renderer ){ 
+    		renderer = Renderer;
+    		isWebGPU = renderer.isWebGPURenderer || false
+    		usePmrem = isWebGPU ? false : usePmrem
+    	}
 		if(Scene) scene = Scene
 		if(Light) light = Light
 		if(Light2) light2 = Light2
 		if(Light3) light3 = Light3
-		autosun = autosun !== undefined ? autosun : true;
+		autosun = Autosun !== undefined ? Autosun : true;
+	    if( isWebGPU ) autosun = false
 
 
 	    if( usePmrem ){
 			pmrem = new PMREMGenerator( renderer );
 			pmrem.compileEquirectangularShader();
+
 		}
 
 	    //this.initTargetRender()
@@ -186,13 +198,16 @@ export class Env {
 			env = pm.texture;
 			pmrem.dispose()
 		} else {
-			env = hdr;
-			env.mapping = EquirectangularReflectionMapping;
+			if( isWebGPU ) {
+				env = texture( hdr, equirectUV(), 0 );
+			} else {
+				env = hdr;
+			    env.mapping = EquirectangularReflectionMapping;
+			}
 		}
 	
 		if( scene ) {
-			
-			scene.environment = env;
+			if( !isWebGPU ) scene.environment = env;
 			if( floor ) floor.map = env;
 			else scene.background = env;
 			if( scene.ground ) scene.ground.setColor( data.fog.getHex(), true )
@@ -200,7 +215,7 @@ export class Env {
 
 		// autosun
 		tt = 0
-		Env.up()
+		if(autosun)Env.up()
 
 	}
 

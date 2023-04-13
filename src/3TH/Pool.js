@@ -1,5 +1,5 @@
 import {
-    Texture, TextureLoader, sRGBEncoding, RepeatWrapping, NearestFilter, EquirectangularReflectionMapping, AnimationMixer
+    Texture, TextureLoader, SRGBColorSpace, RepeatWrapping, NearestFilter, EquirectangularReflectionMapping, AnimationMixer
 } from 'three';
 
 import { GLTFLoader } from '../jsm/loaders/GLTFLoader.js';
@@ -188,7 +188,7 @@ export const Pool = {
 
     setTextureOption:( t, o = {} ) => {
 
-        if( o.encoding ) t.encoding = sRGBEncoding;
+        if( o.encoding ) t.colorSpace = SRGBColorSpace;
         t.flipY = ( o.flipY || o.flip ) !== undefined ? o.flipY : false
         if( o.anisotropy !== undefined ) t.anisotropy = o.anisotropy
         if( o.generateMipmaps !== undefined ) t.generateMipmaps = o.generateMipmaps

@@ -1,4 +1,4 @@
-import { Color, Euler, Quaternion, Matrix4, Vector3, Box3Helper, CylinderGeometry, SphereGeometry, BoxGeometry, PlaneGeometry, MeshBasicMaterial, LineBasicMaterial, MeshPhysicalMaterial, DoubleSide, MeshStandardMaterial, Line, BufferGeometry, Float32BufferAttribute, EventDispatcher, MathUtils, Layers, InstancedMesh, InstancedBufferAttribute, DynamicDrawUsage, BufferAttribute, TrianglesDrawMode, TriangleFanDrawMode, TriangleStripDrawMode, CircleGeometry, Box3, Vector2, Line3, Plane, Triangle, Mesh, LineSegments, NearestFilter, NearestMipmapNearestFilter, NearestMipmapLinearFilter, LinearFilter, LinearMipmapNearestFilter, LinearMipmapLinearFilter, ClampToEdgeWrapping, RepeatWrapping, MirroredRepeatWrapping, PropertyBinding, InterpolateLinear, Source, LinearEncoding, RGBAFormat, InterpolateDiscrete, Scene, sRGBEncoding, Loader, LoaderUtils, FileLoader, SpotLight, PointLight, DirectionalLight, Object3D, TextureLoader, ImageBitmapLoader, InterleavedBuffer, InterleavedBufferAttribute, PointsMaterial, Material, SkinnedMesh, LineLoop, Points, Group, PerspectiveCamera, OrthographicCamera, Skeleton, AnimationClip, Bone, FrontSide, Texture, VectorKeyframeTrack, QuaternionKeyframeTrack, NumberKeyframeTrack, Sphere, Interpolant, SRGBColorSpace, LinearSRGBColorSpace, Vector4, Curve, MeshPhongMaterial, MeshLambertMaterial, EquirectangularReflectionMapping, AmbientLight, Uint16BufferAttribute, Matrix3, DataTextureLoader, HalfFloatType, FloatType, DataUtils, ShaderChunk, AnimationMixer, AdditiveBlending, CustomBlending, ZeroFactor, SrcAlphaFactor, SkeletonHelper, Raycaster } from 'three';
+import { Color, Euler, Quaternion, Matrix4, Vector3, Box3Helper, CylinderGeometry, SphereGeometry, BoxGeometry, PlaneGeometry, MeshBasicMaterial, LineBasicMaterial, MeshPhysicalMaterial, DoubleSide, MeshStandardMaterial, Line, BufferGeometry, Float32BufferAttribute, EventDispatcher, MathUtils, Layers, InstancedMesh, InstancedBufferAttribute, DynamicDrawUsage, BufferAttribute, TrianglesDrawMode, TriangleFanDrawMode, TriangleStripDrawMode, CircleGeometry, Box3, Vector2, Line3, Plane, Triangle, Mesh, LineSegments, NearestFilter, NearestMipmapNearestFilter, NearestMipmapLinearFilter, LinearFilter, LinearMipmapNearestFilter, LinearMipmapLinearFilter, ClampToEdgeWrapping, RepeatWrapping, MirroredRepeatWrapping, PropertyBinding, InterpolateLinear, Source, LinearEncoding, RGBAFormat, InterpolateDiscrete, Scene, sRGBEncoding, Loader, LoaderUtils, FileLoader, SpotLight, PointLight, DirectionalLight, SRGBColorSpace, Object3D, TextureLoader, ImageBitmapLoader, InterleavedBuffer, InterleavedBufferAttribute, PointsMaterial, Material, SkinnedMesh, LineLoop, Points, Group, PerspectiveCamera, OrthographicCamera, Skeleton, AnimationClip, Bone, FrontSide, Texture, VectorKeyframeTrack, QuaternionKeyframeTrack, NumberKeyframeTrack, Sphere, Interpolant, LinearSRGBColorSpace, Vector4, Curve, MeshPhongMaterial, MeshLambertMaterial, EquirectangularReflectionMapping, AmbientLight, Uint16BufferAttribute, Matrix3, DataTextureLoader, HalfFloatType, FloatType, DataUtils, NoColorSpace, ShaderChunk, AnimationMixer, AdditiveBlending, CustomBlending, ZeroFactor, SrcAlphaFactor, SkeletonHelper, Raycaster } from 'three';
 
 const map = new Map();
 
@@ -1705,7 +1705,7 @@ class Instance extends InstancedMesh {
         
     }
 
-    getInfo(id)
+    getInfo( id )
     {
         this.tmpMatrix.fromArray( this.instanceMatrix.array, id*16 );
         let pos = {x:0, y:0, z:0 };
@@ -9406,7 +9406,7 @@ class GLTFMaterialsUnlitExtension {
 
 			if ( metallicRoughness.baseColorTexture !== undefined ) {
 
-				pending.push( parser.assignTexture( materialParams, 'map', metallicRoughness.baseColorTexture, sRGBEncoding ) );
+				pending.push( parser.assignTexture( materialParams, 'map', metallicRoughness.baseColorTexture, SRGBColorSpace ) );
 
 			}
 
@@ -9687,7 +9687,7 @@ class GLTFMaterialsSheenExtension {
 
 		if ( extension.sheenColorTexture !== undefined ) {
 
-			pending.push( parser.assignTexture( materialParams, 'sheenColorMap', extension.sheenColorTexture, sRGBEncoding ) );
+			pending.push( parser.assignTexture( materialParams, 'sheenColorMap', extension.sheenColorTexture, SRGBColorSpace ) );
 
 		}
 
@@ -9920,7 +9920,7 @@ class GLTFMaterialsSpecularExtension {
 
 		if ( extension.specularColorTexture !== undefined ) {
 
-			pending.push( parser.assignTexture( materialParams, 'specularColorMap', extension.specularColorTexture, sRGBEncoding ) );
+			pending.push( parser.assignTexture( materialParams, 'specularColorMap', extension.specularColorTexture, SRGBColorSpace ) );
 
 		}
 
@@ -10555,13 +10555,10 @@ class GLTFTextureTransformExtension {
 
 	extendTexture( texture, transform ) {
 
-		if ( transform.texCoord !== undefined ) {
-
-			console.warn( 'THREE.GLTFLoader: Custom UV sets in "' + this.name + '" extension not yet supported.' );
-
-		}
-
-		if ( transform.offset === undefined && transform.rotation === undefined && transform.scale === undefined ) {
+		if ( ( transform.texCoord === undefined || transform.texCoord === texture.channel )
+			&& transform.offset === undefined
+			&& transform.rotation === undefined
+			&& transform.scale === undefined ) {
 
 			// See https://github.com/mrdoob/three.js/issues/21819.
 			return texture;
@@ -10569,6 +10566,12 @@ class GLTFTextureTransformExtension {
 		}
 
 		texture = texture.clone();
+
+		if ( transform.texCoord !== undefined ) {
+
+			texture.channel = transform.texCoord;
+
+		}
 
 		if ( transform.offset !== undefined ) {
 
@@ -11857,7 +11860,7 @@ class GLTFParser {
 	 * @param {Object} mapDef
 	 * @return {Promise<Texture>}
 	 */
-	assignTexture( materialParams, mapName, mapDef, encoding ) {
+	assignTexture( materialParams, mapName, mapDef, colorSpace ) {
 
 		const parser = this;
 
@@ -11865,11 +11868,10 @@ class GLTFParser {
 
 			if ( ! texture ) return null;
 
-			// Materials sample aoMap from UV set 1 and other maps from UV set 0 - this can't be configured
-			// However, we will copy UV set 0 to UV set 1 on demand for aoMap
-			if ( mapDef.texCoord !== undefined && mapDef.texCoord != 0 && ! ( mapName === 'aoMap' && mapDef.texCoord == 1 ) ) {
+			if ( mapDef.texCoord !== undefined && mapDef.texCoord > 0 ) {
 
-				console.warn( 'THREE.GLTFLoader: Custom UV set ' + mapDef.texCoord + ' for texture ' + mapName + ' not yet supported.' );
+				texture = texture.clone();
+				texture.channel = mapDef.texCoord;
 
 			}
 
@@ -11887,9 +11889,9 @@ class GLTFParser {
 
 			}
 
-			if ( encoding !== undefined ) {
+			if ( colorSpace !== undefined ) {
 
-				texture.encoding = encoding;
+				texture.colorSpace = colorSpace;
 
 			}
 
@@ -11995,14 +11997,6 @@ class GLTFParser {
 
 		}
 
-		// workarounds for mesh and geometry
-
-		if ( material.aoMap && geometry.attributes.uv2 === undefined && geometry.attributes.uv !== undefined ) {
-
-			geometry.setAttribute( 'uv2', geometry.attributes.uv );
-
-		}
-
 		mesh.material = material;
 
 	}
@@ -12058,7 +12052,7 @@ class GLTFParser {
 
 			if ( metallicRoughness.baseColorTexture !== undefined ) {
 
-				pending.push( parser.assignTexture( materialParams, 'map', metallicRoughness.baseColorTexture, sRGBEncoding ) );
+				pending.push( parser.assignTexture( materialParams, 'map', metallicRoughness.baseColorTexture, SRGBColorSpace ) );
 
 			}
 
@@ -12149,7 +12143,7 @@ class GLTFParser {
 
 		if ( materialDef.emissiveTexture !== undefined && materialType !== MeshBasicMaterial ) {
 
-			pending.push( parser.assignTexture( materialParams, 'emissiveMap', materialDef.emissiveTexture, sRGBEncoding ) );
+			pending.push( parser.assignTexture( materialParams, 'emissiveMap', materialDef.emissiveTexture, SRGBColorSpace ) );
 
 		}
 
@@ -13253,7 +13247,7 @@ class DRACOLoader extends Loader {
 
 	}
 
-	parse ( buffer, onLoad, onError ) {
+	parse( buffer, onLoad, onError ) {
 
 		this.decodeDracoFile( buffer, onLoad, null, null, SRGBColorSpace ).catch( onError );
 
@@ -15130,12 +15124,12 @@ class FBXTreeParser {
 
 		if ( materialNode.Diffuse ) {
 
-			parameters.color = new Color().fromArray( materialNode.Diffuse.value );
+			parameters.color = new Color().fromArray( materialNode.Diffuse.value ).convertSRGBToLinear();
 
 		} else if ( materialNode.DiffuseColor && ( materialNode.DiffuseColor.type === 'Color' || materialNode.DiffuseColor.type === 'ColorRGB' ) ) {
 
 			// The blender exporter exports diffuse here instead of in materialNode.Diffuse
-			parameters.color = new Color().fromArray( materialNode.DiffuseColor.value );
+			parameters.color = new Color().fromArray( materialNode.DiffuseColor.value ).convertSRGBToLinear();
 
 		}
 
@@ -15147,12 +15141,12 @@ class FBXTreeParser {
 
 		if ( materialNode.Emissive ) {
 
-			parameters.emissive = new Color().fromArray( materialNode.Emissive.value );
+			parameters.emissive = new Color().fromArray( materialNode.Emissive.value ).convertSRGBToLinear();
 
 		} else if ( materialNode.EmissiveColor && ( materialNode.EmissiveColor.type === 'Color' || materialNode.EmissiveColor.type === 'ColorRGB' ) ) {
 
 			// The blender exporter exports emissive color here instead of in materialNode.Emissive
-			parameters.emissive = new Color().fromArray( materialNode.EmissiveColor.value );
+			parameters.emissive = new Color().fromArray( materialNode.EmissiveColor.value ).convertSRGBToLinear();
 
 		}
 
@@ -15188,12 +15182,12 @@ class FBXTreeParser {
 
 		if ( materialNode.Specular ) {
 
-			parameters.specular = new Color().fromArray( materialNode.Specular.value );
+			parameters.specular = new Color().fromArray( materialNode.Specular.value ).convertSRGBToLinear();
 
 		} else if ( materialNode.SpecularColor && materialNode.SpecularColor.type === 'Color' ) {
 
 			// The blender exporter exports specular color here instead of in materialNode.Specular
-			parameters.specular = new Color().fromArray( materialNode.SpecularColor.value );
+			parameters.specular = new Color().fromArray( materialNode.SpecularColor.value ).convertSRGBToLinear();
 
 		}
 
@@ -15217,7 +15211,7 @@ class FBXTreeParser {
 					parameters.map = scope.getTexture( textureMap, child.ID );
 					if ( parameters.map !== undefined ) {
 
-						parameters.map.encoding = sRGBEncoding;
+						parameters.map.colorSpace = SRGBColorSpace;
 
 					}
 
@@ -15231,7 +15225,7 @@ class FBXTreeParser {
 					parameters.emissiveMap = scope.getTexture( textureMap, child.ID );
 					if ( parameters.emissiveMap !== undefined ) {
 
-						parameters.emissiveMap.encoding = sRGBEncoding;
+						parameters.emissiveMap.colorSpace = SRGBColorSpace;
 
 					}
 
@@ -15247,7 +15241,7 @@ class FBXTreeParser {
 					if ( parameters.envMap !== undefined ) {
 
 						parameters.envMap.mapping = EquirectangularReflectionMapping;
-						parameters.envMap.encoding = sRGBEncoding;
+						parameters.envMap.colorSpace = SRGBColorSpace;
 
 					}
 
@@ -15257,7 +15251,7 @@ class FBXTreeParser {
 					parameters.specularMap = scope.getTexture( textureMap, child.ID );
 					if ( parameters.specularMap !== undefined ) {
 
-						parameters.specularMap.encoding = sRGBEncoding;
+						parameters.specularMap.colorSpace = SRGBColorSpace;
 
 					}
 
@@ -15741,7 +15735,7 @@ class FBXTreeParser {
 
 			if ( lightAttribute.Color !== undefined ) {
 
-				color = new Color().fromArray( lightAttribute.Color.value );
+				color = new Color().fromArray( lightAttribute.Color.value ).convertSRGBToLinear();
 
 			}
 
@@ -16057,7 +16051,7 @@ class FBXTreeParser {
 
 			if ( r !== 0 || g !== 0 || b !== 0 ) {
 
-				const color = new Color( r, g, b );
+				const color = new Color( r, g, b ).convertSRGBToLinear();
 				sceneGraph.add( new AmbientLight( color, 1 ) );
 
 			}
@@ -16803,6 +16797,12 @@ class GeometryParser {
 
 		}
 
+		for ( let i = 0, c = new Color(); i < buffer.length; i += 4 ) {
+
+			c.fromArray( buffer, i ).convertSRGBToLinear().toArray( buffer, i );
+
+		}
+
 		return {
 			dataSize: 4,
 			buffer: buffer,
@@ -17027,7 +17027,7 @@ class AnimationParser {
 
 					curveNodesMap.get( animationCurveID ).curves[ 'z' ] = animationCurve;
 
-				} else if ( animationCurveRelationship.match( /d|DeformPercent/ ) && curveNodesMap.has( animationCurveID ) ) {
+				} else if ( animationCurveRelationship.match( /DeformPercent/ ) && curveNodesMap.has( animationCurveID ) ) {
 
 					curveNodesMap.get( animationCurveID ).curves[ 'morph' ] = animationCurve;
 
@@ -19158,7 +19158,7 @@ class RGBELoader extends DataTextureLoader {
 				case FloatType:
 				case HalfFloatType:
 
-					texture.encoding = LinearEncoding;
+					texture.colorSpace = NoColorSpace;
 					texture.minFilter = LinearFilter;
 					texture.magFilter = LinearFilter;
 					texture.generateMipmaps = false;
@@ -19571,7 +19571,7 @@ class Shader {
 
         //m.format = sRGBEncoding;
         if(!m.isEncod){
-            if( m.map ) m.map.encoding = sRGBEncoding;
+            if( m.map ) m.map.colorSpace = SRGBColorSpace;
             m.color.convertSRGBToLinear();
             m.isEncod = true;
         }
@@ -20207,7 +20207,7 @@ const Pool = {
 
     setTextureOption:( t, o = {} ) => {
 
-        if( o.encoding ) t.encoding = sRGBEncoding;
+        if( o.encoding ) t.colorSpace = SRGBColorSpace;
         t.flipY = ( o.flipY || o.flip ) !== undefined ? o.flipY : false;
         if( o.anisotropy !== undefined ) t.anisotropy = o.anisotropy;
         if( o.generateMipmaps !== undefined ) t.generateMipmaps = o.generateMipmaps;
@@ -20221,6 +20221,8 @@ const Pool = {
                 t.magFilter = NearestFilter;
             }
         }
+
+        if( o.channel ) t.channel = o.channel;
         t.needsUpdate = true;
 
     },
@@ -24128,14 +24130,16 @@ const TerrainShader = {
         }
     `,
 
+    // roughnessmap_fragment
+
     rough : /* glsl */`
         float roughnessFactor = roughness;
         float metalnessFactor = metalness;
         #ifdef USE_ROUGHNESSMAP
 
-            vec4 sandR = textureMAP( roughnessMap, vUv );
-            vec4 grassR = textureMAP( roughnessMap1, vUv );
-            vec4 rockR = textureMAP( roughnessMap2, vUv );
+            vec4 sandR = textureMAP( roughnessMap, vRoughnessMapUv );
+            vec4 grassR = textureMAP( roughnessMap1, vRoughnessMapUv );
+            vec4 rockR = textureMAP( roughnessMap2, vRoughnessMapUv );
 
             vec4 baseColorR = MappingMix( vColor.r, clevels, rockR, grassR, sandR );
             // reads channel G, compatible with a combined OcclusionRoughnessMetallic (RGB) texture
@@ -24145,7 +24149,7 @@ const TerrainShader = {
         #endif
     `,
 
-    // ao
+    // aomap_fragment
 
     ao : /* glsl */`
         reflectedLight.indirectDiffuse *= ambientOcclusion;
@@ -24155,14 +24159,14 @@ const TerrainShader = {
         #endif
     `,
 
-    // map
+    // map_fragment.glsl
 
     map : /* glsl */`
         #ifdef USE_MAP
 
-            vec4 sand = textureMAP( map, vUv );
-            vec4 grass = textureMAP( map1, vUv );
-            vec4 rock = textureMAP( map2, vUv ); 
+            vec4 sand = textureMAP( map, vMapUv );
+            vec4 grass = textureMAP( map1, vMapUv );
+            vec4 rock = textureMAP( map2, vMapUv ); 
 
             vec4 baseColor = MappingMix(vColor.r, clevels, rock, grass, sand);
             diffuseColor *= baseColor;
@@ -24170,13 +24174,13 @@ const TerrainShader = {
         #endif
     `,
 
-    // normal
+    // normal_fragment_maps
 
     normal : /* glsl */`
 
         #ifdef OBJECTSPACE_NORMALMAP
 
-            normal = texture2D( normalMap, vUv ).xyz * 2.0 - 1.0; // overrides both flatShading and attribute normals
+            normal = texture2D( normalMap, vNormalMapUv ).xyz * 2.0 - 1.0; // overrides both flatShading and attribute normals
 
             #ifdef FLIP_SIDED
 
@@ -24194,13 +24198,13 @@ const TerrainShader = {
 
         #elif defined( TANGENTSPACE_NORMALMAP )
 
-            vec4 sandN = textureMAP( normalMap, vUv );
-            vec4 grassN = textureMAP( normalMap1, vUv );
-            vec4 rockN = textureMAP( normalMap2, vUv );
+            vec4 sandN = textureMAP( normalMap, vNormalMapUv );
+            vec4 grassN = textureMAP( normalMap1, vNormalMapUv );
+            vec4 rockN = textureMAP( normalMap2, vNormalMapUv );
 
             vec3 mapN = MappingMix(vColor.r, clevels, rockN, grassN, sandN).xyz * 2.0 - 1.0;
 
-            //vec3 mapN = texture2D( normalMap, vUv ).xyz * 2.0 - 1.0;
+            //vec3 mapN = texture2D( normalMap, vNormalMapUv ).xyz * 2.0 - 1.0;
             mapN.xy *= normalScale;
 
             normal = normalize( tbn * mapN );
@@ -24214,7 +24218,7 @@ const TerrainShader = {
 
     alphamap : /* glsl */`
         #ifdef USE_ALPHAMAP
-            diffuseColor.a = opacity +( texture2D( alphaMap, vUv ).g * opacity) * (1.0-opacity);
+            diffuseColor.a = opacity +( texture2D( alphaMap, vAlphaMapUv ).g * opacity) * (1.0-opacity);
         #endif
     `,
     
@@ -25489,6 +25493,8 @@ class Breaker {
 		this.nDebris = 0;
 		this.maxDebris = 300;
 
+		this.tt = null;
+
 	}
 
 	step () {
@@ -25505,8 +25511,6 @@ class Breaker {
 
 			if ( p.distance !== 0 ) {
 
-
-
 				this.makeBreak( p.b1, p.pos, p.normal, p.impulse, p.v1 );
 				this.makeBreak( p.b2, p.pos, p.normal, p.impulse, p.v2 );
 				
@@ -25517,8 +25521,6 @@ class Breaker {
 	makeBreak ( name, pos, normal, impulse, v ) {
 
 		let mesh = Utils.byName( name );
-
-		//console.log( name, mesh )
 
 		if ( !mesh ) return;
 		if ( !mesh.breakable ) return;
@@ -25545,10 +25547,6 @@ class Breaker {
 		// remove one level
 		breakOption[ 3 ] -= 1;
 		
-		
-		
-		//root.flow.remove.push( name )
-
 		const eritage = {
 			material: mesh.material,
 			linearVelocity: [v[0], v[1], v[2]],
@@ -25558,15 +25556,16 @@ class Breaker {
 
 		// add debris
 		let list = [];
-		let i = debris.length;
+		let i = debris.length, n = 0;
 		while ( i -- ){ 
-			//root.flow.add.push( this.addDebris( name, i, debris[ i ], breakOption, velocity ) );
-			list.push( this.addDebris( debris[ i ], breakOption, eritage ) );
+			list.push( this.addDebris( debris[ n ], breakOption, eritage ) );
+			n++;
 		}
 
         // remove original object and add debrit
-        root.motor.remove( name, true );
-        setTimeout( ()=>{
+        //root.motor.remove( name, true )
+        this.tt = setTimeout( ()=>{
+        	root.motor.remove( name );
 		    root.motor.add( list );
         }, 0 );
 		
@@ -25575,26 +25574,27 @@ class Breaker {
 
 	addDebris ( mesh, breakOption, eritage ) {
 
-		let next = breakOption[ 3 ] > 0 ? true : false;
+		let breakable = breakOption[ 3 ] > 0 ? true : false;
+
+		let name = 'debris_' + (this.nDebris++);
 
 		let deb = {
 
 			...eritage,
 
-			//name: name + 'debris_' + id,
-			name: 'debris_' + this.nDebris,
+			name: name,
 			type: 'convex',
 			shape: mesh.geometry,
-			size:[1,1,1],
+			//size:[1,1,1],
 			pos: mesh.position.toArray(),
 			quat: mesh.quaternion.toArray(),
-			breakable: next,
+			breakable: breakable,
 			breakOption:breakOption,
 
 		};
 
-		this.nDebris++;
-		if(this.nDebris>this.maxDebris) this.nDebris = 0;
+		//this.nDebris++
+		if( this.nDebris>this.maxDebris ) this.nDebris = 0;
 
 
 		return deb
@@ -26087,6 +26087,8 @@ class Motor {
 
 	static init ( o = {} ) {
 
+		const rootURL = document.location.href.replace(/\/[^/]*$/,"/");
+
 		const path = o.path || './build/';
 
 		const wasmLink = {
@@ -26159,7 +26161,7 @@ class Motor {
 					//let coep = '?coep=require-corp&coop=same-origin&corp=same-origin&'
 					// https://cross-origin-isolation.glitch.me/?coep=require-corp&coop=same-origin&corp=same-origin&
 				    // for wasm side
-				    if( wasmLink[mini] ) o.blob = document.location.href.replace(/\/[^/]*$/,"/") + wasmLink[mini];
+				    if( wasmLink[mini] ) o.blob = rootURL + wasmLink[mini];
 
 				    //worker = new Worker( path + mini + '.module.js', {type:'module'})
 					worker = new Worker( path + mini + '.min.js' );

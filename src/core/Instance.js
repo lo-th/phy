@@ -20,7 +20,7 @@ export class Instance extends InstancedMesh {
         
     }
 
-    getInfo(id)
+    getInfo( id )
     {
         this.tmpMatrix.fromArray( this.instanceMatrix.array, id*16 )
         let pos = {x:0, y:0, z:0 }
