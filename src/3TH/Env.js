@@ -209,7 +209,10 @@ export class Env {
 		if( scene ) {
 			if( !isWebGPU ) scene.environment = env;
 			if( floor ) floor.map = env;
-			else scene.background = env;
+			else { 
+				if( isWebGPU ) scene.backgroundNode = env;
+				else scene.background = env;
+			}
 			if( scene.ground ) scene.ground.setColor( data.fog.getHex(), true )
 		}
 
@@ -463,10 +466,10 @@ export class Env {
 		y = Math.floor((maxId-x)/w);
 
 
-		sunColor.setRGB( color[0] * rs, color[1] * rs, color[1] * rs ).convertSRGBToLinear()
+		sunColor.setRGB( color[0] * rs, color[1] * rs, color[1] * rs )//.convertSRGBToLinear()
 		fogColor.setRGB( (fr/w)*rs, (fg/w)*rs, (fb/w)*rs )//.convertSRGBToLinear()
-		skyColor.setRGB( (cr/w)*rs, (cg/w)*rs, (cb/w)*rs ).convertSRGBToLinear()
-		groundColor.setRGB( (br/w)*rs, (bg/w)*rs, (bb/w)*rs ).convertSRGBToLinear()
+		skyColor.setRGB( (cr/w)*rs, (cg/w)*rs, (cb/w)*rs )//.convertSRGBToLinear()
+		groundColor.setRGB( (br/w)*rs, (bg/w)*rs, (bb/w)*rs )//.convertSRGBToLinear()
 
 		//let sunColor = new Color( color[0] * rs, color[1] * rs, color[1] * rs);
 		//let fogColor = new Color( (fr/w)*rs, (fg/w)*rs, (fb/w)*rs )

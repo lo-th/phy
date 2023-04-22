@@ -239,6 +239,7 @@ export class Motor {
 		const wasmLink = {
 		    Ammo: path + 'ammo3.wasm.js',
 		    Physx: path + 'physx-js-webidl.js',
+		    Havok: path + 'HavokPhysics.js',
 		}
 
 		let type = o.type || 'PHYSX';

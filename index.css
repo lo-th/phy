@@ -1,6 +1,6 @@
-/*@import url("https://fonts.googleapis.com/css2?family=Mulish:wght@200;300;400;500;600;700;800&display=swap");*/
+@import url("https://fonts.googleapis.com/css2?family=Mulish:wght@500;700&display=swap");
 
-@font-face {
+/*@font-face {
 	font-family: 'Mulish';
 	src: local('Mulish bold'), local('Mulish-Bold'), url('./assets/fonts/Mulish-700-Bold.woff2') format('woff2');
 	font-style: normal;
@@ -12,7 +12,7 @@
 	src: local('Mulish Medium'), local('Mulish-Medium'), url('./assets/fonts/Mulish-500-Medium.woff2') format('woff2');
 	font-style: normal;
 	font-weight: 500;
-}
+}*/
 
 
 html{

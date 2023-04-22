@@ -54,7 +54,7 @@ import WebGPURenderer from 'three/addons/renderers/webgpu/WebGPURenderer.js';
 *  MAIN THREE.JS / PHY
 */
 
-const activeWebGPU = false
+const activeWebGPU = true
 let isWebGPU = false
 
 let drawCall = false
@@ -370,11 +370,10 @@ const init = () => {
 	renderer.setSize( size.w, size.h )
 
 	//renderer.outputColorSpace = THREE.sRGBEncoding
-	renderer.outputColorSpace = THREE.SRGBColorSpace;
+	//renderer.outputColorSpace = THREE.SRGBColorSpace;
 	renderer.toneMapping = toneMappingOptions[options.tone]
 	renderer.toneMappingExposure = options.exposure
 	renderer.useLegacyLights = false
-	//renderer.physicallyCorrectLights = true
 
 	// DOM
     document.body.appendChild( renderer.domElement )
@@ -383,8 +382,10 @@ const init = () => {
 
 	// SHADER
 
-	Shader.setGl2(  isWebGPU ? false : renderer.capabilities.isWebGL2 )
-	Shader.init( options )
+	if( !isWebGPU ){
+		Shader.setGl2(  isWebGPU ? false : renderer.capabilities.isWebGL2 )
+		Shader.init( options )
+	}
 
 	// SCENE
 
@@ -575,11 +576,12 @@ const addLight = () => {
 	s.camera.far = 9//33
 
 	s.bias = -0.0005
+	//s.bias = 0.0005
 	s.radius = 4//2
 	s.blurSamples = 8 // only for VSM !
 
 
-	light3.castShadow = options.shadow !== 0 
+	if(!isWebGPU) light3.castShadow = options.shadow !== 0 
 
 	followGroup.add( light3 )
 	followGroup.add( light3.target )
@@ -591,16 +593,22 @@ const addLight = () => {
 	light.distance = 20//20
 
 	s = light.shadow
-	s.mapSize.setScalar( 1024 * options.quality )
+	if(!isWebGPU){
+		s.mapSize.setScalar( 1024 * options.quality )
+	} else {
+		s.mapSize.width = s.mapSize.height = 1024 * options.quality;
+	}
+	
 
 	s.camera.top = s.camera.right = 20//20
 	s.camera.bottom = s.camera.left = -20
 	s.camera.near = 5//5
 	s.camera.far = 33//33
 
-	s.bias = -0.005
+	s.bias = !isWebGPU ? -0.005 : 0.005
+	//s.bias = 0.005
 	//s.normalBias = 0.0075//0.05
-	s.radius = 2
+	//s.radius = 2
 	//s.blurSamples = 8 // only for VSM !
 
 
@@ -609,7 +617,8 @@ const addLight = () => {
 		options.reflect = 0
 	}
 
-	light.castShadow = options.shadow !== 0 
+	if(!isWebGPU) light.castShadow = options.shadow !== 0 
+
 	if(!isWebGPU){
 		renderer.shadowMap.enabled = options.shadow !== 0 
 		renderer.shadowMap.type = shadowMapType[options.shadowType]
@@ -1028,11 +1037,11 @@ const setShadow = ( v ) => {
 
 	if( options.shadow === 0 ){
 		light.castShadow = false
-		renderer.shadowMap.enabled = false
+		if( !isWebGPU )renderer.shadowMap.enabled = false
 	} else {
 		if( !renderer.shadowMap.enabled ){
 			light.castShadow = true
-			renderer.shadowMap.enabled = true
+			if( !isWebGPU )renderer.shadowMap.enabled = true
 		}
 	}
 

@@ -36,11 +36,11 @@
 
 }
 
-@font-face {
+/*@font-face {
 	font-family: 'Mulish';
-	src: local('Mulish Medium'), local('Mulish-Medium'), url('../fonts/Mulish-400-Regular.woff2') format('woff2');
+	src: local('Mulish bold'), local('Mulish-Bold'), url('./assets/fonts/Mulish-700-Bold.woff2') format('woff2');
 	font-style: normal;
-	font-weight: 400;
+	font-weight: 700;
 }
 
 @font-face {
@@ -48,7 +48,7 @@
 	src: local('Mulish Medium'), local('Mulish-Medium'), url('../fonts/Mulish-500-Medium.woff2') format('woff2');
 	font-style: normal;
 	font-weight: 500;
-}
+}*/
 
 * {
 	box-sizing: border-box;
@@ -318,7 +318,7 @@ h1 a {
 
 	        #panel #content h3 {
 			color: var(--text-color);
-			font-weight: 900;
+			font-weight: 700;
 		}
 
 		#panel #content a {

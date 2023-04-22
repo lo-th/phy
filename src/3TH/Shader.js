@@ -9,6 +9,7 @@ import {
 */
 
 let isGL2 = true;
+let isInit = false;
 //let mode = ''
 
 //const mats = {}
@@ -54,6 +55,8 @@ export class Shader {
     }
 
 	static init ( o = {} ) {
+
+       
 
         const fogtest = false
 
@@ -203,6 +206,7 @@ export class Shader {
             shadowValue *= shadowTmp;
         `)
 
+        // directional
         s = s.replace( 'directLight.color *= ( directLight.visible && receiveShadow ) ? getShadow( directionalShadowMap[ i ], directionalLightShadow.shadowMapSize, directionalLightShadow.shadowBias, directionalLightShadow.shadowRadius, vDirectionalShadowCoord[ i ] ) : 1.0;', `
             shadowTmp = 1.0;
             shadowTmp *= ( directLight.visible && receiveShadow ) ? getShadow( directionalShadowMap[ i ], directionalLightShadow.shadowMapSize, directionalLightShadow.shadowBias, directionalLightShadow.shadowRadius, vDirectionalShadowCoord[ i ] ) : 1.0;
@@ -322,6 +326,9 @@ export class Shader {
         ShaderChunk.color_vertex = s;
 
 
+        isInit = true
+
+
 
 
 
@@ -332,6 +339,8 @@ export class Shader {
 	}
 
     static add ( m ) {
+
+        if( !isInit ) return
 
         if( !m ) return
 
@@ -394,6 +403,8 @@ export class Shader {
 
 
     static modify ( s ) {
+
+        if( !isInit ) return
 
        // if( mode === 'LOW' ) return
 
