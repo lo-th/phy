@@ -18,7 +18,8 @@
 			"Engine": {
 				"Oimo": "manual/Oimo-engine",
 				"Physx": "manual/Physx-engine",
-				"Ammo": "manual/Ammo-engine"
+				"Ammo": "manual/Ammo-engine",
+				"Havok": "manual/Havok-engine"
 			},
 
 			"Command": {
