@@ -161,6 +161,10 @@ export class Body extends Item {
 
 		if( o.density ) havok.HP_Shape_SetDensity( g, o.density )
 
+		
+
+		//
+
 		this.setMaterial( g, o )
 
 		//havok.HP_Shape_SetFilterInfo(g, arg1)
@@ -258,7 +262,7 @@ export class Body extends Item {
 
 		const motionType = this.type === 'body' ? ( o.kinematic ? "KINEMATIC" : "DYNAMIC" ) : "STATIC";
 
-		let b = havok.HP_Body_Create()[1];
+		let b = havok.HP_Body_Create()[1], g;
 
 		//let b = new RigidBody( bodyConfig ); 
 
@@ -283,7 +287,7 @@ export class Body extends Item {
 
 					n = o.shapes[ i ];
 
-			        //if( o.density !== undefined ) n.density = o.density
+			        if( o.density !== undefined ) n.density = o.density
 			        if( o.friction !== undefined ) n.friction = o.friction
 			        if( o.restitution !== undefined ) n.restitution = o.restitution
 			        if( o.mask !== undefined ) n.collisionMask = o.mask
@@ -303,14 +307,21 @@ export class Body extends Item {
 
 				}
 
-				if( o.density ) havok.HP_Shape_SetDensity( cc, o.density )
+				
+				this.setMass( b, cc )
 
 				havok.HP_Body_SetShape( b, cc )
 
 			break;
 			default:
 
-			havok.HP_Body_SetShape( b, this.shape( o ) )
+			g = this.shape( o )
+
+			
+
+			havok.HP_Body_SetShape( b, g )
+
+			this.setMass( b, g )
 
 			   // b.addShape( this.shape( o ) );
 
@@ -333,13 +344,43 @@ export class Body extends Item {
 		//havok.HP_World_AddBody(root.world, b, false);
         havok.HP_Body_SetMotionType(b, havok.MotionType[motionType]);
 
+       // havok.HP_World_AddBody(root.world, b, o.sleep || false );
+
+        havok.HP_World_AddBody(root.world, b,false );
+
+
+
 		// add to world
 		this.addToWorld( b, o.id )
 
+		//console.log( havok.HP_Body_GetWorldTransformOffset(b) )
 
-		//console.log( havok.HP_Body_GetQTransform(b)[1] )
+
+		//console.log( havok.HP_World_GetBodyBuffer(b) )
 
 		//if(o.isTrigger)console.log(b)
+
+	}
+
+	setMass ( b, g ) {
+
+	    // [ center, mass, inertia, inertiaOrientation ]);
+		let massProperties = [[0, 0, 0], 1, [1, 1, 1], [0, 0, 0, 1]]
+
+		if( g ){
+			const shapeMass = havok.HP_Shape_BuildMassProperties(g);
+			if ( shapeMass[0] == havok.Result.RESULT_OK ){ 
+				massProperties = shapeMass[1]
+
+			}
+		}
+
+	    if( this.type === 'body' ){ 
+	    	//console.log(massProperties)
+			havok.HP_Body_SetMassProperties( b, massProperties );
+		}
+
+
 
 	}
 

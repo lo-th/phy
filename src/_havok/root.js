@@ -52,7 +52,7 @@ export const Utils = {
 			switch( b.type ){
 				//case 'terrain': break;
 				//case 'joint':/* havok.HP_World_AddBody(root.world, b, false);*/ break;
-				default: havok.HP_World_AddBody(root.world, b, false); break;
+				//default: havok.HP_World_AddBody(root.world, b, false); break;
 			}
 		}
 
@@ -210,6 +210,7 @@ HP_Constraint_SetParentBody(arg0, arg1)
 
 HP_DebugGeometry_GetInfo(arg0)
 HP_DebugGeometry_Release(arg0)
+
 HP_Debug_StartRecordingStats(arg0)
 HP_Debug_StopRecordingStats(arg0, arg1)
 HP_Event_AsCollision(arg0)
