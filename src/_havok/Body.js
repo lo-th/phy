@@ -270,16 +270,15 @@ export class Body extends Item {
 
 		switch( o.type ){
 
-			case 'null': 
-			//havok.HP_Body_SetShape( b, this.shape( { type:'sphere', size:[0.01] } ) )
+			case 'null':
 
-			havok.HP_Body_SetShape( b, havok.HP_Shape_CreateContainer()[1] )
+				havok.HP_Body_SetShape( b, havok.HP_Shape_CreateContainer()[1] )
 
 			break;
 			
 			case 'compound':
 
-			    let cc = havok.HP_Shape_CreateContainer()[1]
+			    g = havok.HP_Shape_CreateContainer()[1]
 
 				let gs = [], n;
 
@@ -303,27 +302,20 @@ export class Body extends Item {
 				    ]
 
 					//b.addShape( this.shape( n ) )
-				    havok.HP_Shape_AddChild(cc, this.shape( n ), trans)
+				    havok.HP_Shape_AddChild(g, this.shape( n ), trans)
 
 				}
 
 				
-				this.setMass( b, cc )
-
-				havok.HP_Body_SetShape( b, cc )
+				this.applyMass( b, g )
+				havok.HP_Body_SetShape( b, g )
 
 			break;
 			default:
 
-			g = this.shape( o )
-
-			
-
-			havok.HP_Body_SetShape( b, g )
-
-			this.setMass( b, g )
-
-			   // b.addShape( this.shape( o ) );
+				g = this.shape( o )
+				havok.HP_Body_SetShape( b, g )
+				this.applyMass( b, g )
 
 			break;
 
@@ -344,13 +336,14 @@ export class Body extends Item {
 		//havok.HP_World_AddBody(root.world, b, false);
         havok.HP_Body_SetMotionType(b, havok.MotionType[motionType]);
 
-       // havok.HP_World_AddBody(root.world, b, o.sleep || false );
+        //havok.HP_World_AddBody(root.world, b, o.sleep || false );
 
-        havok.HP_World_AddBody(root.world, b,false );
+        // add to world
+        havok.HP_World_AddBody( root.world, b, false );
 
 
 
-		// add to world
+		// add to reference
 		this.addToWorld( b, o.id )
 
 		//console.log( havok.HP_Body_GetWorldTransformOffset(b) )
@@ -362,7 +355,9 @@ export class Body extends Item {
 
 	}
 
-	setMass ( b, g ) {
+	applyMass ( b, g ) {
+
+		if( this.type === 'solid' ) return
 
 	    // [ center, mass, inertia, inertiaOrientation ]);
 		let massProperties = [[0, 0, 0], 1, [1, 1, 1], [0, 0, 0, 1]]
@@ -371,16 +366,10 @@ export class Body extends Item {
 			const shapeMass = havok.HP_Shape_BuildMassProperties(g);
 			if ( shapeMass[0] == havok.Result.RESULT_OK ){ 
 				massProperties = shapeMass[1]
-
 			}
 		}
 
-	    if( this.type === 'body' ){ 
-	    	//console.log(massProperties)
-			havok.HP_Body_SetMassProperties( b, massProperties );
-		}
-
-
+	    havok.HP_Body_SetMassProperties( b, massProperties );
 
 	}
 
@@ -411,7 +400,20 @@ export class Body extends Item {
 		}
 
 		if( o.gavityFactor ) havok.HP_Body_SetGravityFactor(b, o.gavityFactor)
-		/*// state
+
+		// impulse - The impulse vector to apply.
+	    // location - The location in world space to apply the impulse.
+		/*if( o.impulse ) havok.HP_Body_ApplyImpulse(b, location, o.impulse );
+		if( o.force ){ 
+			havok.HP_Body_ApplyImpulse(b, location, o.force );
+		}*/
+		
+
+
+
+		/*
+
+
 
 		if( o.sleep ) b.sleep()
 		if( o.activate || o.wake ) b.wakeUp()
@@ -447,12 +449,12 @@ export class Body extends Item {
 	    if( o.damping ){
 		     b.setLinearDamping( o.damping[0] )
 		     b.setAngularDamping( o.damping[1] )
-		 }
+		 }*/
 
 		if( o.reset ){ 
-			b.setLinearVelocity( this.v.set( 0, 0, 0) )
-			b.setAngularVelocity( this.v.set( 0, 0, 0) )
-		}*/
+			havok.HP_Body_SetLinearVelocity(b, [0,0,0])
+			havok.HP_Body_SetAngularVelocity(b, [0,0,0])
+		}
 
 	}
 

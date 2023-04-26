@@ -1,10 +1,12 @@
 import { oimo } from '../libs/OimoPhysics.js';
 
 export const map = new Map();
+export const mapId = new Map();
 
 export const root = {
 
 	world : null,
+	queryCollector: null,
 	delta : 0,
 	key:[],
 
@@ -35,6 +37,7 @@ export const Utils = {
 
 	clear:() => {
 
+		mapId.clear()
 		map.clear()
 
 	},
@@ -43,6 +46,13 @@ export const Utils = {
 
 		if ( !map.has( name ) ) return null;
 		return map.get( name );
+
+	},
+
+	byId:( id ) => {
+
+		if ( !mapId.has( id ) ) return null;
+		return mapId.get( id );
 
 	},
 
@@ -56,7 +66,11 @@ export const Utils = {
 			}
 		}
 
-		map.set( b.name, b );
+		if(b.type === 'body' || b.type === 'solid' ){
+			mapId.set( b[0], b )
+		}
+
+		map.set( b.name, b )
 
 	},
 

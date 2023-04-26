@@ -73,7 +73,7 @@ export class LandScape {
 		pos[0] = pos[0]+(this.squarSize[0]*0.5)
 		pos[2] = pos[2]+(this.squarSize[1]*0.5)
 
-		console.log(pos)
+		//console.log(pos)
 
 		havok.HP_Body_SetPosition( this.body, pos )
 		if( o.quat ) havok.HP_Body_SetOrientation( this.body, o.quat )
@@ -87,19 +87,20 @@ export class LandScape {
 	}
 
 	getVertices ( ar ) {
-        const nFloats = ar.length //* 3;
+        const nFloats = ar.length;
         const bytesPerFloat = 4;
         const nBytes = nFloats * bytesPerFloat;
         const bufferBegin = havok._malloc(nBytes);
 
         const ret = new Float32Array(havok.HEAPU8.buffer, bufferBegin, nFloats);
-        /*for (let i = 0; i < ar.length; i++) {
-        	ret[i] = ar[i];
-        }*/
-        let lng = ar.length
+        //const ret = new Int32Array(havok.HEAPU8.buffer, bufferBegin, nFloats);
+      
+        let lng = ar.length, p2=0
         let i = ar.length
         while(i--){
-        	ret[lng-i] = ar[i];
+        	//havok.HEAPF32[ (bufferBegin) + p2 >> 2 ] = ar[lng-i];
+        	//p2 += 4
+            ret[lng-i] = ar[i];
         }
         return ret;
     }
@@ -125,7 +126,8 @@ export class LandScape {
 		const heightData = this.getVertices( o.heightData );
 		const divid = o.sample ? o.sample : this.sample
 		//let scale = [this.squarSize[0], this.size[1], this.squarSize[1]]
-		let scale = [this.squarSize[0], 1, this.squarSize[1]]
+		let scale = [this.squarSize[0], this.size[1], this.squarSize[1]]
+		//let scale = [this.squarSize[0], 1*0.0001, this.squarSize[1]]
 		//let scale = [1, 1, 1]
 
 		///console.log(this.size, divid, this.squarSize)

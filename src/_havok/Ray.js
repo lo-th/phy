@@ -10,50 +10,60 @@ export class Ray extends Item {
 		super();
 
 		this.Utils = Utils
-
-		this.type = 'ray';
-
-		//this.callback = new RayCastClosest();
-
+		this.type = 'ray'
 
 	}
 
 	step ( AR, N ) {
 
-	/*	root.reflow.ray = [];
+		root.reflow.ray = [];
 
-		let i = this.list.length, r, n;
-		let cb = this.callback;
+		let i = this.list.length, r, n, b, query
+		let queryMembership, queryCollideWith
+		let pos, normal, hitData
 
 		while( i-- ){
 
-			n = N + ( i * Num.ray );
+			n = N + ( i * Num.ray )
 
-			r = this.list[i];
+			r = this.list[i]
 
-			r.begin.fromArray(  AR, n+1 )
-			r.end.fromArray(  AR, n+4 )
+			r.begin = [AR[n+1], AR[n+2], AR[n+3]]
+			r.end = [AR[n+4], AR[n+5], AR[n+6]]
+
+			queryMembership = ~0;
+			queryCollideWith = ~0;
+			query = [r.begin, r.end, [queryMembership, queryCollideWith]];
 
 			AR[n] = 0;
 
-			cb.clear();
+			havok.HP_World_CastRayWithCollector( root.world, root.queryCollector, query );
 
-			root.world.rayCast( r.begin, r.end, cb );
+			if ( havok.HP_QueryCollector_GetNumHits(root.queryCollector)[1] > 0) {
 
-			if ( cb.hit ) {
+				hitData = havok.HP_QueryCollector_GetCastRayResult(root.queryCollector, 0)[1]
+				pos = hitData[1][3]
+                normal = hitData[1][4]
 
-				AR[n] = 1;
-				cb.position.toArray( AR, n+1 );
-				cb.normal.toArray( AR, n+4 );
+				AR[n] = 1
+				AR[n+1] = pos[0]
+				AR[n+2] = pos[1]
+				AR[n+3] = pos[2]
 
-				if( cb.shape ){ 
+				AR[n+4] = normal[0]
+				AR[n+5] = normal[1]
+				AR[n+6] = normal[2]
+
+				b = Utils.byId( hitData[1][0][0] )
+
+				if( b ){ 
 					// get name of hit rigidbody
-					root.reflow.ray[i] = cb.shape.getRigidBody().name;
+					root.reflow.ray[i] = b.name;
 				}
 
 			}
 
-		}*/
+		}
 
 	}
 
@@ -61,14 +71,14 @@ export class Ray extends Item {
 
 	add ( o = {} ) {
 
-		/*let name = this.setName( o );
+		let name = this.setName( o );
 		let r = new ExtraRay( o ); 
 
 		// apply option
 		//this.set( o, r );
 
 		// add to world
-		this.addToWorld( r, o.id );*/
+		this.addToWorld( r, o.id );
 
 	}
 
@@ -87,18 +97,16 @@ export class Ray extends Item {
 }
 
 
-/*
+
 export class ExtraRay {
 
 	constructor( o = {} ) {
 
-	    this.type = 'ray';
-
-	    this.name = o.name;
-
-	    this.begin = new Vec3();
-	    this.end = new Vec3();
+	    this.type = 'ray'
+	    this.name = o.name
+	    this.begin = []
+	    this.end = []
 
 	}
 
-}*/
+}

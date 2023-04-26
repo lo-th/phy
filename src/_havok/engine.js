@@ -131,7 +131,7 @@ export class engine {
 
 		substep = o.substep || 1;
 		// broadphase 1:BRUTE_FORCE 2:BVH
-		broadphase = o.broadphase || 2;
+		//broadphase = o.broadphase || 2;
 		fixe = o.fixe !== undefined ? o.fixe : true;
 
 		gravity =  o.gravity || [ 0, -9.80665, 0 ];
@@ -174,6 +174,9 @@ export class engine {
 	static initWorld () {
 
     	root.world = havok.HP_World_Create()[1];
+    	root.queryCollector = havok.HP_QueryCollector_Create(1)[1];
+
+
     	havok.HP_World_SetGravity( root.world, gravity );
 
     }
@@ -279,8 +282,11 @@ export class engine {
 
 		engine.resetItems()
 
+		// clear raycast
+		havok.HP_QueryCollector_Release(root.queryCollector)
 		// clear world
 		havok.HP_World_Release(root.world);
+		
 		root.world = null
 		current = ''
 

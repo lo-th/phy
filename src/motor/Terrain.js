@@ -41,7 +41,7 @@ export class Terrain extends Item {
 		}
 
 		if( root.engine === 'HAVOK'){
-			o.isAbsolute = false
+			o.isAbsolute = true
 			o.isTurned = true
 			o.isReverse = false
 		}
