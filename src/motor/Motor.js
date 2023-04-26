@@ -36,6 +36,7 @@ const Version = {
     Ammo: '3.0',
     Physx: '5.01.03',
     Rapier: '0.10.0',
+    Havok: '0.10.0',
 }
 
 let items
@@ -251,12 +252,10 @@ export class Motor {
 
 		root.engine = type
 
-		
-
 		Motor.initItems()
 
-		items.body.extraConvex = mini === 'Physx'
-		items.solid.extraConvex = mini === 'Physx'
+		//items.body.extraConvex = mini === 'Physx'
+		//items.solid.extraConvex = mini === 'Physx'
 
 		if( o.callback ){ 
 			callback = o.callback

@@ -358,7 +358,7 @@ export class Shader {
         //m.format = sRGBEncoding;
         if(!m.isEncod){
             if( m.map ) m.map.colorSpace = SRGBColorSpace
-            m.color.convertSRGBToLinear()
+            //m.color.convertSRGBToLinear()
             m.isEncod = true
         }
 

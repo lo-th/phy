@@ -133,10 +133,27 @@ export class Body extends Item {
 		} 
 
 
-		if( this.extraConvex && ( o.type==='cylinder' || o.type==='cone' ) ){
+		/*if( this.extraConvex && ( o.type==='cylinder' || o.type==='cone' ) ){
 			// convert geometry to convex if not in physics
 	    	let geom = new CylinderGeometry( o.type === 'cone' ? 0 : o.size[ 0 ], o.size[ 0 ], o.size[ 1 ], seg, 1 );//24
 	    	if( o.isWheel ) geom.rotateZ( -math.PI90 );
+	    	o.v = math.getVertex( geom )
+	    	o.type = 'convex';
+
+	    }*/
+
+	    if( root.engine === 'PHYSX' && ( o.type==='cylinder' || o.type==='cone' ) ){
+			// convert geometry to convex if not in physics
+	    	let geom = new CylinderGeometry( o.type === 'cone' ? 0 : o.size[ 0 ], o.size[ 0 ], o.size[ 1 ], seg, 1 );//24
+	    	if( o.isWheel ) geom.rotateZ( -math.PI90 );
+	    	o.v = math.getVertex( geom )
+	    	o.type = 'convex';
+
+	    }
+
+	    if( root.engine === 'HAVOK' && o.type==='cone' ){
+	    	// convert geometry to convex if not in physics
+	    	let geom = new CylinderGeometry( o.type === 'cone' ? 0 : o.size[ 0 ], o.size[ 0 ], o.size[ 1 ], seg, 1 );//24
 	    	o.v = math.getVertex( geom )
 	    	o.type = 'convex';
 

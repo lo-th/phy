@@ -174,6 +174,7 @@ const Version = {
     Ammo: '3.0',
     Physx: '5.01.03',
     Rapier: '0.10.0',
+    Havok: '0.10.0',
 }
 
 /*const LinkWasm = {
@@ -191,7 +192,7 @@ export const Main = {
 	currentDemmo:'',
 	isWorker:true,
 	devMode:false,
-	engineList: [ 'OIMO','AMMO', 'PHYSX'],
+	engineList: [ 'OIMO','AMMO', 'PHYSX', 'HAVOK'],
 	demoList:[],
 	isMobile:false,
 	isEditor:false,
@@ -372,7 +373,7 @@ const init = () => {
 	//renderer.outputColorSpace = THREE.sRGBEncoding
 	//renderer.outputColorSpace = THREE.SRGBColorSpace;
 	renderer.toneMapping = toneMappingOptions[options.tone]
-	renderer.toneMappingExposure = options.exposure
+	renderer.toneMappingExposure = options.exposure//Math.pow( options.exposure, 5.0 );//
 	renderer.useLegacyLights = false
 
 	// DOM

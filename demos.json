@@ -20,6 +20,7 @@
     "OIMO": [],
     "RAPIER": [],
     "CANNON": [],
+    "HAVOK": [],
 
     "Envmap": [ 
         "null", "basic", "factory", "studio", "beach", "tomoco",

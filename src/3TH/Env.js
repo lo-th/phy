@@ -4,7 +4,7 @@ import {
 	UnsignedByteType, LinearEncoding,
 	Vector3, Vector2, Spherical,
 	Color, Mesh, PlaneGeometry, MeshBasicMaterial, Scene, OrthographicCamera, WebGLRenderTarget,
-	RGBAFormat, FloatType, EquirectangularReflectionMapping, NoToneMapping
+	RGBAFormat, FloatType, EquirectangularReflectionMapping, NoToneMapping, SRGBColorSpace
 } from 'three';
 
 import { RGBELoader } from 'three/addons/loaders/RGBELoader.js';
@@ -466,10 +466,10 @@ export class Env {
 		y = Math.floor((maxId-x)/w);
 
 
-		sunColor.setRGB( color[0] * rs, color[1] * rs, color[1] * rs )//.convertSRGBToLinear()
-		fogColor.setRGB( (fr/w)*rs, (fg/w)*rs, (fb/w)*rs )//.convertSRGBToLinear()
-		skyColor.setRGB( (cr/w)*rs, (cg/w)*rs, (cb/w)*rs )//.convertSRGBToLinear()
-		groundColor.setRGB( (br/w)*rs, (bg/w)*rs, (bb/w)*rs )//.convertSRGBToLinear()
+		sunColor.setRGB( color[0] * rs, color[1] * rs, color[1] * rs, SRGBColorSpace )//.convertSRGBToLinear()
+		fogColor.setRGB( (fr/w)*rs, (fg/w)*rs, (fb/w)*rs, SRGBColorSpace )//.convertSRGBToLinear()
+		skyColor.setRGB( (cr/w)*rs, (cg/w)*rs, (cb/w)*rs, SRGBColorSpace )//.convertSRGBToLinear()
+		groundColor.setRGB( (br/w)*rs, (bg/w)*rs, (bb/w)*rs, SRGBColorSpace )//.convertSRGBToLinear()
 
 		//let sunColor = new Color( color[0] * rs, color[1] * rs, color[1] * rs);
 		//let fogColor = new Color( (fr/w)*rs, (fg/w)*rs, (fb/w)*rs )

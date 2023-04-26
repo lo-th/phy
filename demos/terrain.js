@@ -20,8 +20,28 @@ demo = () => {
     	sample: engine==='OIMO' ? [ 32, 32 ] : [256, 256],
     	frequency: engine==='OIMO' ? [0.05,0.25,0.75] : [0.016,0.05,0.2],
     	expo: 2,
+    	zone:0.25,
     	uv: engine==='OIMO' ? 10:60,
     })
+
+    //let G = new THREE.Quaternion().setFromAxisAngle( {x:0,y:1,z:0}, 90 * math.torad )
+    //console.log( G.toArray() )
+
+    /*terrain = phy.add({
+        type:'terrain',
+        name:'terra',
+        friction: 0.5, 
+        staticFriction:0.5,
+        restitution: 0.1,
+        pos: [ 0, 0, 0 ],
+    	size: [ 100, 6, 100 ],
+    	sample: [ 256, 256 ] ,
+    	frequency:  [0.05,0.25,0.75],
+    	expo: 2,
+    	zone:0.5,
+    	uv: 10,
+    	debug:true,
+    })*/
 
     //terrain.material.wireframe = true
 
@@ -54,7 +74,7 @@ addRandomTree = () => {
 addRandomObject = () => {
 
 	let setting = { density:1, friction:0.1, staticFriction:0.1, restitution: 0.1, neverSleep:true }
-	let j = 20, s, p;
+	let j = 100, s, p;
 	let d = engine==='OIMO' ?10:20
 	let h = 30
 	while(j--){

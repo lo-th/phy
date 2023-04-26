@@ -99,7 +99,7 @@ export class Reflector extends Mesh {
 		
 		//normalMap.offset.x=normalMap.offset.y=0.5
 
-		this.encoding = o.encoding || false;
+		//this.encoding = o.encoding || false;
 
 		this.textureSize = o.textureSize || 512;
 
@@ -144,7 +144,7 @@ export class Reflector extends Mesh {
 
 		})
 
-		this.material.color.convertSRGBToLinear();
+		//this.material.color.convertSRGBToLinear();
 
 
 		this.groundAlpha();
@@ -318,7 +318,7 @@ export class Reflector extends Mesh {
 			const currentRenderTarget = renderer.getRenderTarget();
 			let currentXrEnabled = isWebGPU ? false : renderer.xr.enabled;
 			let currentShadowAutoUpdate = isWebGPU ? false : renderer.shadowMap.autoUpdate;
-			const currentOutputEncoding = renderer.outputColorSpace;
+			//const currentOutputEncoding = renderer.outputColorSpace;
 			const currentToneMapping = renderer.toneMapping;
 
 			scene.fog = null
@@ -327,7 +327,7 @@ export class Reflector extends Mesh {
 				renderer.xr.enabled = false; // Avoid camera modification and recursion
 				renderer.shadowMap.autoUpdate = false; // Avoid re-computing shadows
 			}
-			renderer.outputColorSpace = LinearEncoding;
+			//renderer.outputColorSpace = LinearEncoding;
 			renderer.toneMapping = NoToneMapping;
 
 			if( !isWebGPU ){
@@ -346,7 +346,7 @@ export class Reflector extends Mesh {
 				renderer.xr.enabled = currentXrEnabled;
 				renderer.shadowMap.autoUpdate = currentShadowAutoUpdate;
 			}
-			renderer.outputColorSpace = currentOutputEncoding;
+			//renderer.outputColorSpace = currentOutputEncoding;
 			renderer.toneMapping = currentToneMapping;
 			scene.fog = currentFog;
 
@@ -402,7 +402,7 @@ export class Reflector extends Mesh {
 			magFilter: LinearFilter,
 			//format: RGBFormat,
 			stencilBuffer: false,
-			colorSpace : this.encoding ? SRGBColorSpace : LinearEncoding,
+			//colorSpace : this.encoding ? SRGBColorSpace : LinearEncoding,
 			generateMipmaps:true,
 		};
 

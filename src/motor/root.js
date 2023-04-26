@@ -242,8 +242,8 @@ const matExtra = {
 
 export const Colors = {
 
-	body:new Color( 0xFF934F ).convertSRGBToLinear(),
-	sleep:new Color( 0x939393 ).convertSRGBToLinear()//0x46B1C9
+	body:new Color( 0xFF934F ),//.convertSRGBToLinear(),
+	sleep:new Color( 0x939393 )//.convertSRGBToLinear()//0x46B1C9
 
 }
 

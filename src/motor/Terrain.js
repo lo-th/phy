@@ -35,13 +35,19 @@ export class Terrain extends Item {
 
 		this.setName( o )
 
-		if( root.engine === 'PHYSX'){
+		if( root.engine === 'PHYSX' ){
 			o.isAbsolute = true
 			o.isTurned = true
 		}
 
+		if( root.engine === 'HAVOK'){
+			o.isAbsolute = false
+			o.isTurned = true
+			o.isReverse = false
+		}
+
 		if( root.engine !== 'OIMO'){
-			o.zone = 0.25
+			o.zone = o.zone || 0.25
 			//o.debuger = true
 		}
 
@@ -83,7 +89,7 @@ const toPhysics = function( t ) {
 		quat:root.engine === 'PHYSX' ? [0,0,0,1]:t.quaternion.toArray(), // physx terrain can't turn !!
 	}
 
-	if( root.engine === 'PHYSX' || root.engine === 'AMMO' ){
+	if( root.engine === 'PHYSX' || root.engine === 'AMMO' || root.engine === 'HAVOK' ){
 		o.type = 'terrain'
 		o.size = t.sizeZ
 		o.sample = t.sampleZ
