@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<base href="../" />
+		<script src="page.js"></script>
+		<link type="text/css" rel="stylesheet" href="page.css" />
+	</head>
+	<body>
+
+		<h1>[name]</h1>
+
+		<p class="desc">[name] version 5.01.03</p>
+
+		<p>Powefull, fast with articulation joint for robotics.</p>
+
+		<iframe id="scene" src="scenes/engines.html#PHYSX"></iframe>
+
+		<script>
+
+		// iOS iframe auto-resize workaround
+
+		if ( /(iPad|iPhone|iPod)/g.test( navigator.userAgent ) ) {
+
+			const scene = document.getElementById( 'scene' );
+
+			scene.style.width = getComputedStyle( scene ).width;
+			scene.style.height = getComputedStyle( scene ).height;
+			scene.setAttribute( 'scrolling', 'no' );
+
+		}
+
+		</script>
+
+		<h2>Code Example</h2>
+
+<code>
+import { phy } from './build/Phy.module.js';
+
+phy.init({ 
+	type:'PHYSX', 
+	worker:false, 
+	callback:startDemo, 
+	scene:scene,
+	path:'./build/'
+})
+</code>
+
+		<h2>Resources need</h2>
+
+		<p>
+		<b>Physx.module.js</b> __ direct version<br/>
+		<b>Physx.min.js</b> __ worker version<br/>
+		<b>physx-js-webidl.js</b> __ wasm bridge to javascript<br/>
+		<b>physx-js-webidl.wasm</b> __ wasm file<br/><br/>
+		Find resource pack in /build folder
+		</p>
+
+<h2>About</h2>
+<p>
+I use wasm built by [link:https://github.com/fabmax/physx-js-webidl Fabmax] <br/>
+[link:https://nvidia-omniverse.github.io/PhysX/physx/5.1.3/index.html Physx doc] from nvidia
+</p>
+</body>
+</html>
