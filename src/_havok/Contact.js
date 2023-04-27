@@ -28,7 +28,7 @@ export class Contact extends Item {
 			k = 0
 
 			//k = c.b1.getNumContectLinks()
-			l = c.b1.getContactLinkList()
+			/*l = c.b1.getContactLinkList()
 
 
 
@@ -46,7 +46,7 @@ export class Contact extends Item {
 
 			}
 
-		    AR[n] = k;
+		    AR[n] = k;*/
 
 
 		}

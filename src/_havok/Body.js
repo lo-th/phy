@@ -283,7 +283,7 @@ export class Body extends Item {
 				}
 
 				
-				this.applyMass( b, g )
+				this.applyMass( b, g, o )
 				havok.HP_Body_SetShape( b, g )
 
 			break;
@@ -291,7 +291,7 @@ export class Body extends Item {
 
 				g = this.shape( o )
 				havok.HP_Body_SetShape( b, g )
-				this.applyMass( b, g )
+				this.applyMass( b, g, o )
 
 			break;
 
@@ -337,7 +337,7 @@ export class Body extends Item {
 
 	}
 
-	applyMass ( b, g ) {
+	applyMass ( b, g, o ) {
 
 		if( this.type === 'solid' ) return
 
@@ -350,6 +350,8 @@ export class Body extends Item {
 				massProperties = shapeMass[1]
 			}
 		}
+
+		if(o.inertia) massProperties[2] = o.inertia
 
 	    havok.HP_Body_SetMassProperties( b, massProperties );
 

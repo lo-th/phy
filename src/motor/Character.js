@@ -140,6 +140,7 @@ class Hero extends Basic3D {
 		o.group = 32
 		o.regular = true
 		o.filter = [1,-1,[1, 3, 4,5,9], 0]
+		o.inertia = [0,0,0] 
 		//o.kinematic = true
 		o.noGravity = true
 		o.ray = false

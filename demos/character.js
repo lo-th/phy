@@ -36,6 +36,7 @@ demo = () => {
         size:[ r,1.8-(2*r) ], pos:[0,3,0], angularFactor:[0,0,0], 
         density:2, damping:[0.01,0], friction:0.5, group:32,
         //material:'debug',
+        inertia:[0,0,0],
         //order:'YXZ',
         regular:true,
         //filter:[1,-1,[4,5, 11], 0]
