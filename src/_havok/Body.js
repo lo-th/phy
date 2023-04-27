@@ -383,18 +383,26 @@ export class Body extends Item {
 		if( o.angularVelocity ) havok.HP_Body_SetAngularVelocity(b, o.angularVelocity)
 		
 		if( o.damping ){
-			havok.HP_Body_SetAngularDamping(b, o.damping[0])
-			havok.HP_Body_SetLinearDamping(b, o.damping[1])
+			// This function is useful for controlling the angular velocity of a physics body.
+			// By setting the angular damping, the body's angular velocity will be reduced over time, allowing for more realistic physics simulations.
+			havok.HP_Body_SetAngularDamping(b, o.damping[0]) // def 0.1
+			// Linear damping is a force that opposes the motion of the body, and is proportional to the velocity of the body.
+			havok.HP_Body_SetLinearDamping(b, o.damping[1]) // def 0
 		}
 
-		if( o.gavityFactor ) havok.HP_Body_SetGravityFactor(b, o.gavityFactor)
+		
+
+		if( o.gavityFactor ) havok.HP_Body_SetGravityFactor(b, o.gavityFactor) // def 1
 
 		// impulse - The impulse vector to apply.
 	    // location - The location in world space to apply the impulse.
-		/*if( o.impulse ) havok.HP_Body_ApplyImpulse(b, location, o.impulse );
-		if( o.force ){ 
-			havok.HP_Body_ApplyImpulse(b, location, o.force );
-		}*/
+		/*if( o.impulse ) havok.HP_Body_ApplyImpulse(b, location, o.impulse );*/
+		if( o.force ){
+		    if(!o.location) o.location = [0,0,0];
+		    if(!o.local) o.location = havok.HP_Body_GetPosition(b)[1];
+		    this.multiplyScalar( o.force, root.delta, 3 )
+			havok.HP_Body_ApplyImpulse(b, o.location, o.force );
+		}
 		
 
 
@@ -449,13 +457,13 @@ export class Body extends Item {
 	freeze ( b, v ){
 
 		if(v){
-			havok.HP_Body_SetGravityFactor(b, [0,0,0])
+			havok.HP_Body_SetGravityFactor(b, 0)
 			havok.HP_Body_SetLinearVelocity(b, [0,0,0])
 			havok.HP_Body_SetAngularVelocity(b, [0,0,0])
 			b.sleep = true
 		} else {
 			if(b.sleep){
-				havok.HP_Body_SetGravityFactor(b, [1,1,1])
+				havok.HP_Body_SetGravityFactor(b, 1)
 				b.sleep = false
 			}
 		}

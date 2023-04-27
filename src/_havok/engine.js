@@ -58,7 +58,7 @@ let current = ''
 
 //--------------
 //
-//  OIMO SIDE 
+//  HAVOK SIDE 
 //
 //--------------
 
@@ -247,12 +247,13 @@ export class engine {
 		root.delta = ( startTime - lastTime ) * 0.001;
 		lastTime = startTime;
 
+		root.deltaTime = fixe ? timestep / substep : root.delta/substep
+
 		//engine.stepItems()
 
 		let n = substep;
 		while( n-- ){ 
-			if( fixe ) havok.HP_World_Step( root.world, timestep / substep );//root.world.step( timestep / substep );
-			else havok.HP_World_Step( root.world, root.delta/substep );//root.world.step( root.delta/substep )
+			havok.HP_World_Step( root.world, root.deltaTime )
 		}
 
 		engine.stepItems()

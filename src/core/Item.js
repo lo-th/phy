@@ -86,6 +86,17 @@ export class Item {
     	return v
     }
 
+    multiplyScalar ( ar, v, i ) { 
+    	i = i ?? ar.length
+    	while(i--) ar[i] *= v
+    }
+
+    divideScalar ( ar, v, i ) { 
+    	this.multiplyScalar( ar, 1/v, i )
+    }
+
+
+
 	add ( o = {} ) { }
 
 	set ( o = {} ) { }

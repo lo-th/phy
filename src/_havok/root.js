@@ -8,6 +8,7 @@ export const root = {
 	world : null,
 	queryCollector: null,
 	delta : 0,
+	deltaTime : 0,
 	key:[],
 
 	reflow:{
