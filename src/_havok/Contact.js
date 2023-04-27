@@ -60,9 +60,16 @@ export class Contact extends Item {
 		o.b1 = this.byName( o.b1 )
 		o.b2 = this.byName( o.b2 )
 
+
+
 		if( o.b1 === null ) return
 
 		let c = new Pair( o )
+
+	    root.bodyRef.addCollisionCallback(o.b1, true)
+		//root.bodyRef.addCollisionCallback(o.b2, true)
+
+		//console.log('collision add', o.b1, o.b2)
 
 		// add to world
 		this.addToWorld( c, o.id );

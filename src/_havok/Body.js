@@ -328,6 +328,8 @@ export class Body extends Item {
 		// add to reference
 		this.addToWorld( b, o.id )
 
+		//this.addCollisionCallback(b.name, true)
+
 		//console.log( havok.HP_Body_GetWorldTransformOffset(b) )
 
 
@@ -452,6 +454,18 @@ export class Body extends Item {
 			havok.HP_Body_SetAngularVelocity(b, [0,0,0])
 		}
 
+	}
+
+	addCollisionCallback( b, enabled ){
+
+		//const b = this.byName( name )
+		//if( b === null ) return
+// 5440976n
+		//console.log(b, typeof b)
+
+		const collideEvents = havok.EventType.COLLISION_STARTED.value | havok.EventType.COLLISION_CONTINUED.value | havok.EventType.COLLISION_FINISHED.value;
+		havok.HP_Body_SetEventMask( b, enabled ? collideEvents : 0)
+       
 	}
 
 	freeze ( b, v ){

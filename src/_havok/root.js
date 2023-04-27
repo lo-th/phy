@@ -6,6 +6,7 @@ export const mapId = new Map();
 export const root = {
 
 	world : null,
+	bodyRef: null,
 	queryCollector: null,
 	delta : 0,
 	deltaTime : 0,

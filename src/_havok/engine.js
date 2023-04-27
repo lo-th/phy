@@ -211,6 +211,85 @@ export class engine {
 		
 	}
 
+	static readToRef ( buffer, offset ) {
+        const intBuf = new Int32Array( buffer, offset );
+        const floatBuf = new Float32Array (buffer, offset );
+        const offA = 2;
+        const offB = 18;
+
+        let b1 = Utils.byId( BigInt(intBuf[offA]) )
+        let b2 = Utils.byId( BigInt(intBuf[offB]) )
+
+        if(!b1 || !b2) return null
+        
+        return {
+        	b1:b1.name,
+        	b2:b2.name,
+        	pos1:[ floatBuf[offA + 8], floatBuf[offA + 9], floatBuf[offA + 10] ],
+        	normal1:[ floatBuf[offA + 11], floatBuf[offA + 12], floatBuf[offA + 13] ],
+        	pos2:[ floatBuf[offB + 8], floatBuf[offB + 9], floatBuf[offB + 10] ],
+        	normal2:[ floatBuf[offB + 11], floatBuf[offB + 12], floatBuf[offB + 13] ],
+        	impulse:floatBuf[offB + 13 + 2],
+        }
+    }
+
+	static notifyCollisions () {
+
+        let eventAddress = havok.HP_World_GetCollisionEvents(root.world)[1], data;
+        const worldAddr = Number(root.world);
+
+        while ( eventAddress ) {
+
+        	data = engine.readToRef( havok.HEAPU8.buffer, eventAddress )
+
+        	//if( data ) console.log(data)
+
+        	/*if( data.b1 && data.b2 ){
+
+        		if(data.b1.name === 'bob') console.log(data)
+        		if(data.b2.name === 'bob') console.log(data)
+
+
+        	}
+            //CollisionEvent.readToRef( havok.HEAPU8.buffer, eventAddress, event );
+            //event.contactOnB.position.subtractToRef(event.contactOnA.position, this._tmpVec3[0]);
+            /*const distance = Vector3.Dot(this._tmpVec3[0], event.contactOnA.normal);
+            const bodyInfoA = this._bodies.get(event.contactOnA.bodyId)!;
+            const bodyInfoB = this._bodies.get(event.contactOnB.bodyId)!;
+            const collisionInfo = {
+                collider: bodyInfoA.body,
+                colliderIndex: bodyInfoA.index,
+                collidedAgainst: bodyInfoB.body,
+                collidedAgainstIndex: bodyInfoB.index,
+                point: event.contactOnA.position,
+                distance: distance,
+                impulse: event.impulseApplied,
+                normal: event.contactOnA.normal,
+            };*/
+            /*this.onCollisionObservable.notifyObservers(collisionInfo);
+
+            if (this._bodyCollisionObservable.size) {
+                const observableA = this._bodyCollisionObservable.get(event.contactOnA.bodyId);
+                const observableB = this._bodyCollisionObservable.get(event.contactOnB.bodyId);
+
+                if (observableA) {
+                    observableA.notifyObservers(collisionInfo);
+                } else if (observableB) {
+                    //<todo This seems like it would give unexpected results when both bodies have observers?
+                    // Flip collision info:
+                    collisionInfo.collider = bodyInfoB.body;
+                    collisionInfo.colliderIndex = bodyInfoB.index;
+                    collisionInfo.collidedAgainst = bodyInfoA.body;
+                    collisionInfo.collidedAgainstIndex = bodyInfoA.index;
+                    collisionInfo.normal = event.contactOnB.normal;
+                    observableB.notifyObservers(collisionInfo);
+                }
+            }*/
+
+            eventAddress = havok.HP_World_GetNextCollisionEvent(worldAddr, eventAddress);
+        }
+    }
+
 	static poststep (){
 
 		if( isStop ) return;
@@ -252,12 +331,11 @@ export class engine {
 		//engine.stepItems()
 
 		let n = substep;
-		while( n-- ){ 
-			havok.HP_World_Step( root.world, root.deltaTime )
-		}
+		while( n-- ) havok.HP_World_Step( root.world, root.deltaTime )
 
 		engine.stepItems()
 
+	    engine.notifyCollisions()
 
 		// get simulation stat
 		if ( startTime - 1000 > t.tmp ){ t.tmp = startTime; root.reflow.stat.fps = t.n; t.n = 0; }; t.n++;
@@ -337,6 +415,8 @@ export class engine {
 			terrain : new Terrain(),
 		}
 
+		root.bodyRef = items.body
+
 	}
 
 	static resetItems() {
@@ -390,3 +470,7 @@ class Solid extends Body {
 	}
 	step ( AR, N ) {}
 }
+
+
+
+
