@@ -25,7 +25,7 @@ export class Body extends Item {
 
 	step ( AR, N ) {
 
-		let i = this.list.length, b, n, ar;
+		let i = this.list.length, b, n, ar, lv, av;
 
 		while( i-- ){
 
@@ -37,31 +37,30 @@ export class Body extends Item {
 				continue
 			}
 
-			AR[ n ] = 1//b.isSleeping() ? 0 : 1
+			lv = havok.HP_Body_GetLinearVelocity(b)[1];
+
+		    AR[ n ] = b.up ? 1 : this.arLength(lv) * 9.8;// speed km/h
 
 			ar = havok.HP_Body_GetQTransform(b)[1]
 
-			AR[ n+1 ] = ar[0][0]
+			this.fillArray( ar[0], AR, n+1, 3 ) 
+			this.fillArray( ar[1], AR, n+4, 4 ) 
+
+			/*AR[ n+1 ] = ar[0][0]
 			AR[ n+2 ] = ar[0][1]
 			AR[ n+3 ] = ar[0][2]
 
 			AR[ n+4 ] = ar[1][0]
 			AR[ n+5 ] = ar[1][1]
 			AR[ n+6 ] = ar[1][2]
-			AR[ n+7 ] = ar[1][3]
+			AR[ n+7 ] = ar[1][3]*/
 
-			/*b.getPositionTo( this.p )
-			b.getOrientationTo( this.q )
-			this.p.toArray( AR, n+1 )
-			this.q.toArray( AR, n+4 )
 
 			if( this.full ){
-				b.getLinearVelocityTo( this.v )
-			    b.getAngularVelocityTo( this.r )
-				this.v.toArray( AR, n+8 ) // velocity
-			    this.r.toArray( AR, n+11 ) // angular
-			    if( AR[ n ] === 1 ) AR[ n ] = this.v.length() * 9.8;// speed km/h
-			}*/
+			    av = havok.HP_Body_GetAngularVelocity(b)[1];
+			    this.fillArray( lv, AR, n+8, 3 )
+			    this.fillArray( av, AR, n+11, 3 )
+			}
 		}
 
 	}
@@ -69,33 +68,6 @@ export class Body extends Item {
 	///
 
 	shape ( o = {} ) {
-
-		//let sc = this.sc;// new ShapeConfig();
-		// The density of the shape, usually in Kg/m^3. def = 1
-        /*if( o.density !== undefined ) sc.density = o.density;
-        if( o.mass !== undefined ) sc.density = o.mass; // extra mass for static body test ??
-        // The coefficient of friction of the shape. def = 0.2
-        if( o.friction !== undefined ) sc.friction = o.friction;
-        // The coefficient of restitution of the shape. def = 0.2
-        if( o.restitution !== undefined ) sc.restitution = o.restitution;
-        // The bits of the collision groups to which the shape belongs. def = 1
-        sc.collisionMask = -1
-        if( o.mask !== undefined ) sc.collisionMask = o.mask
-        // The bits of the collision groups with which the shape collides. def = 1
-        sc.collisionGroup = this.type === 'body' ? 1 : 2
-        if( o.group !== undefined ) sc.collisionGroup = o.group
-        // e contact callback of the shape
-        //if( o.callback !== undefined ) sc.contactCallback = o.callback;
-        /*if( o.contactCallback !== undefined ){ 
-        	sc.contactCallback = new ContactCallback()
-        	console.log( sc.contactCallback )
-
-        	sc.contactCallback.preSolve = function (c){
-        		console.log('contact ', c)
-        	}
-        }*/
-
-
 
 		let g;
 		let t = o.type || 'box'
@@ -157,18 +129,12 @@ export class Body extends Item {
 
 		}
 
-		//console.log(havok.HP_Shape_CreateBox)
-
 		if( o.density ) havok.HP_Shape_SetDensity( g, o.density )
-
-		
 
 		//
 
 		this.setMaterial( g, o )
-
-		//havok.HP_Shape_SetFilterInfo(g, arg1)
-		//havok.HP_Shape_SetMaterial(g, arg1)
+		this.setFilter( g, o )
 
 		//havok.HP_Shape_AddChild(arg0, arg1, arg2)
 		//havok.HP_Shape_BuildMassProperties(arg0)
@@ -185,9 +151,6 @@ export class Body extends Item {
 		HP_Shape_PathIterator_GetNext(arg0)
 		HP_Shape_Release(arg0)
 		HP_Shape_RemoveChild(arg0, arg1)
-		HP_Shape_SetDensity(arg0, arg1)
-		HP_Shape_SetFilterInfo(arg0, arg1)
-		HP_Shape_SetMaterial(arg0, arg1)
 		*/
 
 		//console.log(m)
@@ -197,17 +160,30 @@ export class Body extends Item {
 
 	}
 
+	setFilter ( shape, o ) {
+
+		if(!o.mask) o.mask = -1
+		if(!o.group) o.group = this.type === 'body' ? 1 : 2
+
+		/*const selfMask = o.group !== undefined ? o.group : havok.HP_Shape_GetFilterInfo(shape)[1][0];
+		const collideMask = o.mask !== undefined ? o.mask : havok.HP_Shape_GetFilterInfo(shape)[1][1];
+		havok.HP_Shape_SetFilterInfo(shape, [ selfMask, collideMask ]);*/
+
+		havok.HP_Shape_SetFilterInfo(shape, [ o.group, o.mask ]);
+
+    }
+
 	setMaterial ( shape, o ) {
 
-		if(!o.friction && !o.restitution) return
-		if(o.friction === 0.5 && !o.restitution === 0 ) return
-        const dynamicFriction = o.friction ?? 0.5;
-        const staticFriction = o.staticFriction ?? dynamicFriction;
+		//if(!o.friction && !o.restitution) return
+		//if(o.friction === 0.5 && !o.restitution === 0 ) return
+        const friction = o.friction !== undefined ? o.friction : 0.5;
+        const staticFriction = o.staticFriction  !== undefined ?  o.staticFriction : friction;
         const restitution = o.restitution ?? 0.0;
         const frictionCombine = o.frictionCombine ?? 'MINIMUM';
         const restitutionCombine = o.restitutionCombine ?? 'MAXIMUM';
 
-        const hpMaterial = [staticFriction, dynamicFriction, restitution, this.materialCombine(frictionCombine), this.materialCombine(restitutionCombine)];
+        const hpMaterial = [staticFriction, friction, restitution, this.materialCombine(frictionCombine), this.materialCombine(restitutionCombine)];
         havok.HP_Shape_SetMaterial(shape, hpMaterial);
 
     }
@@ -327,11 +303,17 @@ export class Body extends Item {
 		b.name = name
 		b.type = this.type
 		b.breakable = o.breakable || false
+		b.sleep = o.sleep || false
+		b.up = false
+		//b.forceSleep = false
 
-		b.first = true
+
+		//b.first = true
 
 		// apply option
 		this.set( o, b )
+
+		
 
 		//havok.HP_World_AddBody(root.world, b, false);
         havok.HP_Body_SetMotionType(b, havok.MotionType[motionType]);
@@ -378,6 +360,10 @@ export class Body extends Item {
 
 		if( b === null ) b = this.byName( o.name )
 		if( b === null ) return
+
+		//if( o.sleep ) b.forceSleep = true;
+		//if( o.activate || o.wake ) b.up = true
+		if( o.neverSleep !== undefined ) b.up = o.neverSleep 
 
 		//if( o.noGravity ) b.setGravityScale( 0 )
 
@@ -456,6 +442,21 @@ export class Body extends Item {
 			havok.HP_Body_SetAngularVelocity(b, [0,0,0])
 		}
 
+	}
+
+	freeze ( b, v ){
+
+		if(v){
+			havok.HP_Body_SetGravityFactor(b, [0,0,0])
+			havok.HP_Body_SetLinearVelocity(b, [0,0,0])
+			havok.HP_Body_SetAngularVelocity(b, [0,0,0])
+			b.sleep = true
+		} else {
+			if(b.sleep){
+				havok.HP_Body_SetGravityFactor(b, [1,1,1])
+				b.sleep = false
+			}
+		}
 	}
 
 	setShapes ( o = {}, b = null  ){

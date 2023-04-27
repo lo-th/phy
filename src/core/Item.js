@@ -74,6 +74,18 @@ export class Item {
 
     vecZero ( ar, n, i ) { while ( i -- ) ar[n+i] = 0; }
 
+    fillArray ( ar, ar2, n, i ) { 
+    	n = n || 0;
+    	i = i ?? ar.length
+    	while(i--) ar2[n+i] = ar[i]
+    }
+
+    arLength ( ar ) { 
+    	let v = Math.sqrt( ar[0] * ar[0] + ar[1] * ar[1] + ar[2] * ar[2] )
+    	if( v < 0.001 ) v = 0
+    	return v
+    }
+
 	add ( o = {} ) { }
 
 	set ( o = {} ) { }
