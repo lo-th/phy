@@ -175,13 +175,12 @@ export class Body extends Item {
 
 	setMaterial ( shape, o ) {
 
-		//if(!o.friction && !o.restitution) return
 		//if(o.friction === 0.5 && !o.restitution === 0 ) return
         const friction = o.friction !== undefined ? o.friction : 0.5;
         const staticFriction = o.staticFriction  !== undefined ?  o.staticFriction : friction;
-        const restitution = o.restitution ?? 0.0;
+        const restitution = o.restitution !== undefined ? o.restitution : 0.0;
         const frictionCombine = o.frictionCombine ?? 'MINIMUM';
-        const restitutionCombine = o.restitutionCombine ?? 'MAXIMUM';
+        const restitutionCombine = o.restitutionCombine ?? 'MINIMUM'//'MAXIMUM';
 
         const hpMaterial = [staticFriction, friction, restitution, this.materialCombine(frictionCombine), this.materialCombine(restitutionCombine)];
         havok.HP_Shape_SetMaterial(shape, hpMaterial);

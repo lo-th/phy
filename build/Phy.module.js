@@ -696,6 +696,29 @@ class Item {
 
     vecZero ( ar, n, i ) { while ( i -- ) ar[n+i] = 0; }
 
+    fillArray ( ar, ar2, n, i ) { 
+    	n = n || 0;
+    	i = i ?? ar.length;
+    	while(i--) ar2[n+i] = ar[i];
+    }
+
+    arLength ( ar ) { 
+    	let v = Math.sqrt( ar[0] * ar[0] + ar[1] * ar[1] + ar[2] * ar[2] );
+    	if( v < 0.001 ) v = 0;
+    	return v
+    }
+
+    multiplyScalar ( ar, v, i ) { 
+    	i = i ?? ar.length;
+    	while(i--) ar[i] *= v;
+    }
+
+    divideScalar ( ar, v, i ) { 
+    	this.multiplyScalar( ar, 1/v, i );
+    }
+
+
+
 	add ( o = {} ) { }
 
 	set ( o = {} ) { }
@@ -21909,6 +21932,7 @@ class Hero extends Basic3D {
 		o.group = 32;
 		o.regular = true;
 		o.filter = [1,-1,[1, 3, 4,5,9], 0];
+		o.inertia = [0,0,0]; 
 		//o.kinematic = true
 		o.noGravity = true;
 		o.ray = false;
@@ -23692,7 +23716,7 @@ class Terrain extends Item {
 		}
 
 		if( root.engine === 'HAVOK'){
-			o.isAbsolute = false;
+			o.isAbsolute = true;
 			o.isTurned = true;
 			o.isReverse = false;
 		}

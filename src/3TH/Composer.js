@@ -197,7 +197,6 @@ export class Composer extends EffectComposer {
 
 		this.pass.distortion = new ShaderPass( DistortionShader );
 		this.setDistortion()
-		
 		this.pass.distortion.enabled = true
 
 
