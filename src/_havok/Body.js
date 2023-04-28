@@ -124,10 +124,9 @@ export class Body extends Item {
 			   g = havok.HP_Shape_CreateMesh( vertices.byteOffset, numVertices, triangles.byteOffset, numTri )[1];
 			break;
 
-			
-			
-
 		}
+
+		//
 
 		if( o.density ) havok.HP_Shape_SetDensity( g, o.density )
 

@@ -229,13 +229,12 @@ export class engine {
 		root.delta = ( startTime - lastTime ) * 0.001;
 		lastTime = startTime;
 
+		root.deltaTime = fixe ? timestep / substep : root.delta / substep
+
 		//engine.stepItems()
 
 		let n = substep;
-		while( n-- ){ 
-			if( fixe ) root.world.step( timestep / substep );
-			else root.world.step( root.delta/substep )
-		}
+		while( n-- ) root.world.step( root.deltaTime );
 
 		engine.stepItems()
 

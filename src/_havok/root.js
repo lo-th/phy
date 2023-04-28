@@ -166,6 +166,18 @@ export class Matrix4 {
 
 
 /*
+
+HEAP8: Int8Array(29097984)
+HEAP16: Int16Array(14548992)
+HEAP32: Int32Array(7274496)
+HEAP64: BigInt64Array(3637248) 
+HEAPF32: Float32Array(7274496) 
+HEAPF64: Float64Array(3637248) 
+HEAPU8: Uint8Array(29097984) 
+HEAPU16: Uint16Array(14548992)
+HEAPU32: Uint32Array(7274496) 
+HEAPU64: BigUint64Array(3637248)
+
 HP_Body_ApplyImpulse(arg0, arg1, arg2)
 HP_Body_Create()
 

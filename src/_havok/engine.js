@@ -103,9 +103,7 @@ export class engine {
 
 			self.havok = havok;
 
-			console.log(havok)
-
-			Utils.extends()
+			//Utils.extends()
 			engine.initItems()
 
 			engine.post( { m:'ready', o:{} } )
@@ -326,9 +324,7 @@ export class engine {
 		root.delta = ( startTime - lastTime ) * 0.001;
 		lastTime = startTime;
 
-		root.deltaTime = fixe ? timestep / substep : root.delta/substep
-
-		//engine.stepItems()
+		root.deltaTime = fixe ? timestep / substep : root.delta / substep
 
 		let n = substep;
 		while( n-- ) havok.HP_World_Step( root.world, root.deltaTime )
