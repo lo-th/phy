@@ -39,7 +39,7 @@ onComplete = () => {
         shapes:shapes,
         mesh:model.fan,
         restitution:0, 
-        friction:0.1,
+        friction:0.5,
         kinematic:true
     })
 

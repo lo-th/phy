@@ -301,9 +301,21 @@ export class Body extends Item {
 		b.name = name
 		b.type = this.type
 		b.breakable = o.breakable || false
+		b.isKinematic = o.kinematic || false
 		b.sleep = o.sleep || false
 		b.up = false
+
+		// save start state
+		b.pos = o.pos || [0,0,0];
+		b.quat = o.quat || [0,0,0,1];
+		if(o.pos) delete o.pos
+		if(o.quat) delete o.quat
 		//b.forceSleep = false
+
+		//if( o.pos ){ havok.HP_Body_SetPosition(b, o.pos);  ; }
+		//if( o.quat ) { havok.HP_Body_SetOrientation(b, o.quat); b.quat = o.quat; delete o.quat }
+
+		havok.HP_Body_SetQTransform( b, [ b.pos, b.quat ] )
 
 
 		//b.first = true
@@ -314,9 +326,17 @@ export class Body extends Item {
 		
 
 		//havok.HP_World_AddBody(root.world, b, false);
+
+
         havok.HP_Body_SetMotionType(b, havok.MotionType[motionType]);
 
+
+
+        //console.log(havok.HP_Body_GetMotionType(b)[1])
+
         //havok.HP_World_AddBody(root.world, b, o.sleep || false );
+
+
 
         // add to world
         havok.HP_World_AddBody( root.world, b, false );
@@ -374,9 +394,23 @@ export class Body extends Item {
 
 		// position / rotation
 
-		//if( o.pos ) havok.HP_Body_SetQTransform( b, [ o.pos || [0, 0, 0], o.quat || [0, 0, 0, 1] ] )
-		if( o.pos ) havok.HP_Body_SetPosition(b, o.pos)
-		if( o.quat ) havok.HP_Body_SetOrientation(b, o.quat)
+		//if( o.pos || o.quat) havok.HP_Body_SetQTransform( b, [ o.pos || [0, 0, 0], o.quat || [0, 0, 0, 1] ] )
+		//if( o.pos ) havok.HP_Body_SetPosition(b, o.pos)
+		//if( o.quat ) havok.HP_Body_SetOrientation(b, o.quat)
+
+		if( o.pos || o.quat ){
+
+			if(o.pos) b.pos = o.pos
+			if(o.quat) b.quat = o.quat
+
+			//let pos = o.pos || b.pos;
+			//let quat = o.quat || b.quat;
+//
+			if( b.isKinematic ) havok.HP_Body_SetTargetQTransform( b, [ b.pos, b.quat ] )
+			else havok.HP_Body_SetQTransform( b, [ b.pos, b.quat ] )
+			
+
+		}
 
 
 		if( o.linearVelocity ) havok.HP_Body_SetLinearVelocity(b, o.linearVelocity)

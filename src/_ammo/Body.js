@@ -309,8 +309,6 @@ export class Body extends Item {
 
 	set ( o = {}, b = null ) {
 
-
-
 		if( b === null ) b = this.byName( o.name );
 		if( b === null ) return;
 
@@ -331,7 +329,8 @@ export class Body extends Item {
 			
 			this.t.fromArray( o.pos, o.quat )
 			if ( b.isKinematic ) b.getMotionState().setWorldTransform( this.t )
-			else b.setWorldTransform( this.t )
+			//else
+			 b.setWorldTransform( this.t )
 
 		}
 

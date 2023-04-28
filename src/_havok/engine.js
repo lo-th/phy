@@ -89,7 +89,7 @@ export class engine {
 		isBuffer = o.isBuffer || false;
 
 		if( o.fps !== undefined ) timestep = 1 / o.fps;
-		if( o.substep !== undefined ) substep = o.substep;
+		//if( o.substep !== undefined ) substep = o.substep;
 
 		if( o.message ){ 
 			returnMessage = o.message;
@@ -127,7 +127,7 @@ export class engine {
 		timestep = 1 / (o.fps || 60 );
 		interval = math.toFixed(timestep*1000, 2)
 
-		substep = o.substep || 1;
+		substep = 1//o.substep || 1;
 		// broadphase 1:BRUTE_FORCE 2:BVH
 		//broadphase = o.broadphase || 2;
 		fixe = o.fixe !== undefined ? o.fixe : true;

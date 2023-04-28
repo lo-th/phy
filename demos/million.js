@@ -65,6 +65,8 @@ replay = () => {
 
     phy.setPostUpdate ( null )
 
+
+
     game = 'start'
 
     a = 0
@@ -181,8 +183,8 @@ makeMachine = () => {
     let meshs = [ 
 	    'L_roll', 'L_back', 'L_front', 'L_rampe', 'L_pale1', 'L_pale2',
 	    'M_roll', 'M_back', 'M_front', 'M_rampe', 'M_pale1', 'M_pale2'
-     ]
-    let i = meshs.length, name, p, d, m, br
+    ]
+    let i = meshs.length, name, p, d, m, br, k
 
     phy.add({ 
         name:'block1', type:'box', density:0, //material:'glass',
@@ -190,7 +192,8 @@ makeMachine = () => {
         friction: 0, restitution: 0,
         //renderOrder:2,
         shadow: false,
-        visible:false,
+        //visible:false,
+        kinematic:true,
     })
 
     phy.add({ 
@@ -199,7 +202,8 @@ makeMachine = () => {
         friction: 0, restitution: 0,
         //renderOrder:3,
         shadow: false,
-        visible:false,
+        //visible:false,
+        kinematic:true,
     });
 
     while(i--){
@@ -208,6 +212,7 @@ makeMachine = () => {
         br = name==='L_pale1' || name==='M_pale1' || name==='L_pale2' || name==='M_pale2'
         p = name==='L_pale1' || name==='M_pale1'
         d = name==='M_rampe' ? 0 : -1.8
+        k = br ? true : false;
 
     	phy.add({ 
 	        name:name, type:'mesh', density:0,
@@ -220,6 +225,7 @@ makeMachine = () => {
 	        pos: i>5 ? [8.5,d+py,0] : [0,py,0],
 	        rot: p ? [0,0,45]:[0,0,0],
 	        renderOrder:4+i,
+            kinematic:k,
 	        //shadow: false,
 	    })
     }
@@ -351,7 +357,7 @@ createBallTexture = ( n, y) => {
 	t.needsUpdate = true;
 	t.flipY = false;
     t.name = 'ball_' + n + (y ? 'R':'Y');
-    t.encoding = THREE.sRGBEncoding;
+    //t.encoding = THREE.sRGBEncoding;
 
     tmpTxt.push( t )
 	return t;
