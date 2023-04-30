@@ -62,7 +62,7 @@ function init() {
 
 	window.mouse = new THREE.Vector2();
 
-	const geometry = new THREE.PlaneGeometry( 5, 5 );
+	const geometry = new THREE.PlaneGeometry( 40, 40 );
 	geometry.rotateX(-Math.PI*0.5)
 	floor = new THREE.Mesh( geometry, new THREE.ShadowMaterial( { opacity:0.3, depthWrite:false, transparent:true } ) );
 	floor.renderOrder = -1;
@@ -110,15 +110,17 @@ function init() {
 	hemiLight.position.set( 0, 20, 0 );
 	scene.add( hemiLight );*/
 
+	let ld = 8
+
 	dirLight = new THREE.DirectionalLight( 0xffffff, 3 );
-	dirLight.position.set( - 2.5, 5,  5 );
+	dirLight.position.set( - 2.5, 10,  5 );
 	dirLight.castShadow = true;
-	dirLight.shadow.camera.top = 4;
-	dirLight.shadow.camera.bottom = - 4;
-	dirLight.shadow.camera.left = - 4;
-	dirLight.shadow.camera.right = 4;
+	dirLight.shadow.camera.top = ld;
+	dirLight.shadow.camera.bottom = - ld;
+	dirLight.shadow.camera.left = - ld;
+	dirLight.shadow.camera.right = ld;
 	dirLight.shadow.camera.near = 4;
-	dirLight.shadow.camera.far = 10;
+	dirLight.shadow.camera.far = 30;
 	dirLight.shadow.radius = 4;
 	dirLight.shadow.bias = -0.0005;
 	//dirLight.shadow.normalBias = 0.0075
