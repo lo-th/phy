@@ -12,6 +12,22 @@ export class Joint extends Item {
 		this.Utils = Utils
 		this.type = 'joint'
 
+		this.LimitMode = {
+			FREE: havok.ConstraintAxisLimitMode.FREE,
+			LOCKED: havok.ConstraintAxisLimitMode.LOCKED,
+			LIMITED: havok.ConstraintAxisLimitMode.LIMITED,
+		}
+
+		this.ConstraintAxis = {
+			LINEAR_X: havok.ConstraintAxis.LINEAR_X,
+			LINEAR_Y: havok.ConstraintAxis.LINEAR_Y,
+			LINEAR_Z: havok.ConstraintAxis.LINEAR_Z,
+			ANGULAR_X: havok.ConstraintAxis.ANGULAR_X,
+			ANGULAR_Y: havok.ConstraintAxis.ANGULAR_Y,
+			ANGULAR_Z: havok.ConstraintAxis.ANGULAR_Z,
+			LINEAR_DISTANCE: havok.ConstraintAxis.LINEAR_DISTANCE,
+		}
+
 	}
 
 	step ( AR, N ) {
@@ -99,48 +115,58 @@ export class Joint extends Item {
 
 		let mode = o.mode || 'revolute';
 
+		const CA = this.ConstraintAxis;
+		const LM = this.LimitMode
+
 		switch ( mode ) {
 			case 'fixe':
-			havok.HP_Constraint_SetAxisMode(j, havok.ConstraintAxis.LINEAR_X, havok.ConstraintAxisLimitMode.LOCKED);
-            havok.HP_Constraint_SetAxisMode(j, havok.ConstraintAxis.LINEAR_Y, havok.ConstraintAxisLimitMode.LOCKED);
-            havok.HP_Constraint_SetAxisMode(j, havok.ConstraintAxis.LINEAR_Z, havok.ConstraintAxisLimitMode.LOCKED);
-            havok.HP_Constraint_SetAxisMode(j, havok.ConstraintAxis.ANGULAR_X, havok.ConstraintAxisLimitMode.LOCKED);
-            havok.HP_Constraint_SetAxisMode(j, havok.ConstraintAxis.ANGULAR_Y, havok.ConstraintAxisLimitMode.LOCKED);
-            havok.HP_Constraint_SetAxisMode(j, havok.ConstraintAxis.ANGULAR_Z, havok.ConstraintAxisLimitMode.LOCKED)
+			havok.HP_Constraint_SetAxisMode(j, CA.LINEAR_X, LM.LOCKED)
+            havok.HP_Constraint_SetAxisMode(j, CA.LINEAR_Y, LM.LOCKED)
+            havok.HP_Constraint_SetAxisMode(j, CA.LINEAR_Z, LM.LOCKED)
+            havok.HP_Constraint_SetAxisMode(j, CA.ANGULAR_X, LM.LOCKED)
+            havok.HP_Constraint_SetAxisMode(j, CA.ANGULAR_Y, LM.LOCKED)
+            havok.HP_Constraint_SetAxisMode(j, CA.ANGULAR_Z, LM.LOCKED)
 			break;
 			case 'hinge': case "revolute":
-			havok.HP_Constraint_SetAxisMode(j, havok.ConstraintAxis.LINEAR_X, havok.ConstraintAxisLimitMode.LOCKED);
-            havok.HP_Constraint_SetAxisMode(j, havok.ConstraintAxis.LINEAR_Y, havok.ConstraintAxisLimitMode.LOCKED);
-            havok.HP_Constraint_SetAxisMode(j, havok.ConstraintAxis.LINEAR_Z, havok.ConstraintAxisLimitMode.LOCKED);
-            havok.HP_Constraint_SetAxisMode(j, havok.ConstraintAxis.ANGULAR_Y, havok.ConstraintAxisLimitMode.LOCKED);
-            havok.HP_Constraint_SetAxisMode(j, havok.ConstraintAxis.ANGULAR_Z, havok.ConstraintAxisLimitMode.LOCKED);
+			havok.HP_Constraint_SetAxisMode(j, CA.LINEAR_X, LM.LOCKED)
+            havok.HP_Constraint_SetAxisMode(j, CA.LINEAR_Y, LM.LOCKED)
+            havok.HP_Constraint_SetAxisMode(j, CA.LINEAR_Z, LM.LOCKED)
+            havok.HP_Constraint_SetAxisMode(j, CA.ANGULAR_Y, LM.LOCKED)
+            havok.HP_Constraint_SetAxisMode(j, CA.ANGULAR_Z, LM.LOCKED)
             break;
             case 'prismatic':
-			havok.HP_Constraint_SetAxisMode(j, havok.ConstraintAxis.LINEAR_Y, havok.ConstraintAxisLimitMode.LOCKED);
-            havok.HP_Constraint_SetAxisMode(j, havok.ConstraintAxis.LINEAR_Z, havok.ConstraintAxisLimitMode.LOCKED);
-            havok.HP_Constraint_SetAxisMode(j, havok.ConstraintAxis.ANGULAR_X, havok.ConstraintAxisLimitMode.LOCKED);
-            havok.HP_Constraint_SetAxisMode(j, havok.ConstraintAxis.ANGULAR_Y, havok.ConstraintAxisLimitMode.LOCKED);
-            havok.HP_Constraint_SetAxisMode(j, havok.ConstraintAxis.ANGULAR_Z, havok.ConstraintAxisLimitMode.LOCKED);
+			havok.HP_Constraint_SetAxisMode(j, CA.LINEAR_Y, LM.LOCKED)
+            havok.HP_Constraint_SetAxisMode(j, CA.LINEAR_Z, LM.LOCKED)
+            havok.HP_Constraint_SetAxisMode(j, CA.ANGULAR_X, LM.LOCKED)
+            havok.HP_Constraint_SetAxisMode(j, CA.ANGULAR_Y, LM.LOCKED)
+            havok.HP_Constraint_SetAxisMode(j, CA.ANGULAR_Z, LM.LOCKED)
             break;
             case 'slider':
-			havok.HP_Constraint_SetAxisMode(j, havok.ConstraintAxis.LINEAR_Y, havok.ConstraintAxisLimitMode.LOCKED);
-            havok.HP_Constraint_SetAxisMode(j, havok.ConstraintAxis.LINEAR_Z, havok.ConstraintAxisLimitMode.LOCKED);
-            havok.HP_Constraint_SetAxisMode(j, havok.ConstraintAxis.ANGULAR_Y, havok.ConstraintAxisLimitMode.LOCKED);
-            havok.HP_Constraint_SetAxisMode(j, havok.ConstraintAxis.ANGULAR_Z, havok.ConstraintAxisLimitMode.LOCKED);
+			havok.HP_Constraint_SetAxisMode(j, CA.LINEAR_Y, LM.LOCKED)
+            havok.HP_Constraint_SetAxisMode(j, CA.LINEAR_Z, LM.LOCKED)
+            havok.HP_Constraint_SetAxisMode(j, CA.ANGULAR_Y, LM.LOCKED)
+            havok.HP_Constraint_SetAxisMode(j, CA.ANGULAR_Z, LM.LOCKED)
             break;
             case 'spherical':
-			havok.HP_Constraint_SetAxisMode(j, havok.ConstraintAxis.LINEAR_X, havok.ConstraintAxisLimitMode.LOCKED);
-            havok.HP_Constraint_SetAxisMode(j, havok.ConstraintAxis.LINEAR_Y, havok.ConstraintAxisLimitMode.LOCKED);
-            havok.HP_Constraint_SetAxisMode(j, havok.ConstraintAxis.LINEAR_Z, havok.ConstraintAxisLimitMode.LOCKED);
+			havok.HP_Constraint_SetAxisMode(j, CA.LINEAR_X, LM.LOCKED)
+            havok.HP_Constraint_SetAxisMode(j, CA.LINEAR_Y, LM.LOCKED)
+            havok.HP_Constraint_SetAxisMode(j, CA.LINEAR_Z, LM.LOCKED)
             break;
             case 'distance':
             const distance = o.maxDistance || 0;
-            const dist3d = havok.ConstraintAxis.LINEAR_DISTANCE;
-            havok.HP_Constraint_SetAxisMode(j, dist3d, havok.ConstraintAxisLimitMode.LIMITED);
-            havok.HP_Constraint_SetAxisMinLimit(j, dist3d, distance);
-            havok.HP_Constraint_SetAxisMaxLimit(j, dist3d, distance);
+            const dist3d = CA.LINEAR_DISTANCE;
+            havok.HP_Constraint_SetAxisMode(j, dist3d, LM.LIMITED)
+            havok.HP_Constraint_SetAxisMinLimit(j, dist3d, distance)
+            havok.HP_Constraint_SetAxisMaxLimit(j, dist3d, distance)
             break;
             case "dof": case "d6": case 'ragdoll':
+//console.log(j)
+            havok.HP_Constraint_SetAxisMode(j, CA.LINEAR_X, LM.LIMITED)
+            havok.HP_Constraint_SetAxisMode(j, CA.LINEAR_Y, LM.LOCKED)
+            havok.HP_Constraint_SetAxisMode(j, CA.LINEAR_Z, LM.LOCKED)
+            havok.HP_Constraint_SetAxisMode(j, CA.ANGULAR_X, LM.FREE)
+            havok.HP_Constraint_SetAxisMode(j, CA.ANGULAR_Y, LM.FREE)
+            havok.HP_Constraint_SetAxisMode(j, CA.ANGULAR_Z, LM.FREE)
             /*const sixdofData: Physics6DoFConstraint = <Physics6DoFConstraint>constraint;
             for (const l of sixdofData.limits) {
                 const axId = this._constraintAxisToNative(l.axis);
@@ -160,6 +186,8 @@ export class Joint extends Item {
             }*/
             break;
 		}
+
+
 
 
 

@@ -8,26 +8,26 @@ demo = () => {
     phy.add({ type:'box', size:[300,1,300], pos:[0, -0.5, 0], visible:false })
 
     // add dynamic sphere
-    phy.add({ type:'highSphere', name:'sphere', size:[0.4], pos:[0,6,0], density:5, restitution:0.2, friction:0.2, sleep:true })
+    phy.add({ type:'highSphere', name:'sphere', size:[0.4], pos:[0,6,0], density:5, restitution:0.2, friction:0.2, sleep:true, startSleep:true, })
 
     // creat building
     building({ block:0.3, height:10, length:5, deep:5 })
 
     // intern timeout
-    phy.setTimeout( run, 1000 )
+    phy.setTimeout( run, 2000 )
 
 }
 
 run = () => {
     // phy.up is use for direct outside update
-    phy.change({ name:'sphere', wake:true })
+    phy.change({ name:'sphere', wake:true, force:[0,-0.0001,0] })
 }
 
 building = ( o ) => {
 
     let i, j, k, pos;
     let s = o.block || 1;
-    let space = o.space || 0;
+    let space = o.space || 0//0.06;
     let d = s + space;
     let x = o.length || 6, y = o.height || 10, z = o.deep || 6;
 
@@ -48,6 +48,7 @@ building = ( o ) => {
             friction:0.4,
             restitution:0.6,
             sleep:true,
+            startSleep:true,
         })
     }}}
 

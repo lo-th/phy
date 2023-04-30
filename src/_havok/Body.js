@@ -339,7 +339,7 @@ export class Body extends Item {
 
 
         // add to world
-        havok.HP_World_AddBody( root.world, b, false );
+        havok.HP_World_AddBody( root.world, b, o.startSleep || false );
 
 
 
@@ -490,10 +490,12 @@ export class Body extends Item {
 
 	addCollisionCallback( b, enabled ){
 
+		//https://www.youtube.com/watch?v=Uv7DWq6KFbk at 23:30
+
 		//const b = this.byName( name )
 		//if( b === null ) return
 // 5440976n
-		//console.log(b, typeof b)
+		//console.log(havok.EventType.COLLISION_STARTED)
 
 		const collideEvents = havok.EventType.COLLISION_STARTED.value | havok.EventType.COLLISION_CONTINUED.value | havok.EventType.COLLISION_FINISHED.value;
 		havok.HP_Body_SetEventMask( b, enabled ? collideEvents : 0)

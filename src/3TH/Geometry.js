@@ -11,7 +11,7 @@ import {
     Box3,
     Vector2,
 } from 'three';
-import { mergeVertices, mergeBufferGeometries } from '../jsm/utils/BufferGeometryUtils.js';
+import { mergeVertices, mergeGeometries } from '../jsm/utils/BufferGeometryUtils.js';
 
 /** __
 *    _)_|_|_
@@ -162,7 +162,7 @@ export class Capsule extends BufferGeometry {
         m2.applyMatrix4( mtx2 )
 
 
-        let g = mergeVertices( mergeBufferGeometries( [ m0, m1, m2] ) );
+        let g = mergeVertices( mergeGeometries( [ m0, m1, m2] ) );
         this.copy( g );
 
         /*m0.dispose()
@@ -326,7 +326,7 @@ export class ChamferCyl extends BufferGeometry {
 
         scaleUV( c1, 0, 1-sy, 1, sy )
 
-        let top = mergeBufferGeometries( [ c1, c2 ] );
+        let top = mergeGeometries( [ c1, c2 ] );
 
         mr.makeTranslation( 0,0,( (height*0.5) - filet) );
         mt.makeRotationX( -p90 );
@@ -345,7 +345,7 @@ export class ChamferCyl extends BufferGeometry {
 
         scaleUV( c1, 0, 1-sy, 1, sy, true )
 
-        let low = mergeBufferGeometries( [ c1, c2 ] );
+        let low = mergeGeometries( [ c1, c2 ] );
 
         mr.makeTranslation( 0,0,( (height*0.5) - filet) );
         mt.makeRotationX( p90 );
@@ -354,7 +354,7 @@ export class ChamferCyl extends BufferGeometry {
         /*c1.dispose();
         c2.dispose();*/
 
-        let g = mergeVertices( mergeBufferGeometries( [ top, mid, low ] ) );
+        let g = mergeVertices( mergeGeometries( [ top, mid, low ] ) );
 
         /*mid.dispose();
         top.dispose();
@@ -430,7 +430,7 @@ export class ChamferBox extends BufferGeometry {
         mp.makeRotationY( -p90 );
         s2.applyMatrix4( mt.multiply(mr).multiply(mp) );
 
-        let tra = mergeBufferGeometries( [ c2, s1, s2 ] );
+        let tra = mergeGeometries( [ c2, s1, s2 ] );
         let trc = tra.clone();
 
         /*c2.dispose();
@@ -457,7 +457,7 @@ export class ChamferBox extends BufferGeometry {
         mr.makeRotationZ( -p90 );
         c3.applyMatrix4( mt.multiply(mr) );
 
-        let rf = mergeBufferGeometries( [ c1, c3, f, tra, trc ] );
+        let rf = mergeGeometries( [ c1, c3, f, tra, trc ] );
         let rg = rf.clone();
 
         mt.makeTranslation( 0, 0, midDepth );
@@ -490,7 +490,7 @@ export class ChamferBox extends BufferGeometry {
         c3.applyMatrix4( mt.multiply(mr) );
 
 
-        let rr = mergeBufferGeometries( [ c1, c3, f ] );
+        let rr = mergeGeometries( [ c1, c3, f ] );
         let rb = rr.clone();
 
         /*f.dispose();
@@ -525,7 +525,7 @@ export class ChamferBox extends BufferGeometry {
         mr.makeRotationX( p90 );
         f2.applyMatrix4( mt.multiply(mr) );
 
-        let g = mergeVertices( mergeBufferGeometries( [ rf, rg, rr, rb, f, f2 ] ) );
+        let g = mergeVertices( mergeGeometries( [ rf, rg, rr, rb, f, f2 ] ) );
 
         /*rf.dispose();
         rg.dispose();

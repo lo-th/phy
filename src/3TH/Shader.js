@@ -356,11 +356,11 @@ export class Shader {
         m.shadowSide = DoubleSide;
 
         //m.format = sRGBEncoding;
-        if(!m.isEncod){
+        /*if(!m.isEncod){
             if( m.map ) m.map.colorSpace = SRGBColorSpace
-            //m.color.convertSRGBToLinear()
+            m.color.convertSRGBToLinear()
             m.isEncod = true
-        }
+        }*/
 
         m.onBeforeCompile = function ( shader ) {
             Shader.modify( shader );

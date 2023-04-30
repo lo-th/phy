@@ -54,6 +54,7 @@ addTower = ( o ) => {
                 restitution:0.6,
                 friction:0.4,
                 sleep:true,
+                startSleep:true,
 
             });
         }

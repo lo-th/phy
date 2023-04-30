@@ -26,6 +26,9 @@ import { GlbTool } from '../utils/GlbTool.js';
 
 import { ExoSkeleton } from './ExoSkeleton.js';
 
+import { Human } from './Human.js';
+import { Eva } from './Eva.js';
+
 /** __
 *    _)_|_|_
 *   __) |_| | 2023
@@ -43,7 +46,7 @@ const V = new Vector3();
 
 export class Avatar extends Group {
 
-	constructor( o = { } ) {
+	constructor( o = {} ) {
 
         super();
 
@@ -59,13 +62,22 @@ export class Avatar extends Group {
         this.textureQuality = o.quality || 1;
 
         this.model = o.type || 'man';
+
+        this.ref = null
+
+        switch( this.model ){
+            case 'man': case 'woman': this.ref = Human; break;
+            case 'eva00': case 'eva01': this.ref = Eva; break;
+        }
+
+
         this.compact = o.compact !== undefined ? o.compact : true
         this.haveMorph = o.morph !== undefined ? o.morph : true
         this.fullMaterial = o.material !== undefined ? o.material : true
 
-        this.size = 1;
+        this.size = o.size || 1;
 
-        this.fullMorph = ['MUSCLE', 'LOW', 'BIG', 'MONSTER']
+        this.fullMorph = this.ref.fullMorph
         
 
         this.skeleton = null;
@@ -76,7 +88,8 @@ export class Avatar extends Group {
         this.done = false;
         this.isClone = false;
         
-        this.isBreath = true;
+        this.isBreath = this.ref.isBreath;
+        this.isEyeMove = this.ref.isEyeMove;
 
         this.tensionTest = false;
         this.tensionActive = false;
@@ -126,7 +139,7 @@ export class Avatar extends Group {
 
         //this.initMaterial();
 
-        this.root = Pool.get( this.model, 'O' )
+        this.root = Pool.get( this.ref.forceModel ? this.ref.forceModel : this.model, 'O' )
 
         if( this.root ){
             this.isClone = true;
@@ -141,34 +154,31 @@ export class Avatar extends Group {
 
     }
 
-    load()
-    {
+    load(){
 
-        this.skin = Pool.getTexture('avatar_c')
+        this.skin = Pool.getTexture(this.ref.textureRef)
         if( !this.skin ){
 
-            const path = this.rootPath + 'assets/textures/avatar_' + this.textureQuality + 'k/'
-            const asset = [
-                'avatar_c.jpg', 'avatar_n.jpg', 'avatar_m.jpg', 'avatar_r.jpg', 'avatar_u.jpg',
-                'mouth_c.jpg', 'mouth_a.jpg', 'mouth_n.jpg', 
-                'eye_c.jpg', 'eye_n.jpg', 'hair.jpg', 'hair_a.jpg',
-                'eyelash_c.jpg', 'eyelash_a.jpg', 'eyelash_n.jpg',
-                'hair_man.jpg', 'hair_man_a.jpg'
-            ]
-            Pool.load( asset, this.loadModels.bind(this), path, 'loading images...' )
+            const path = this.rootPath + this.ref.texturePath + (this.ref.haveQuality ? this.textureQuality + 'k/' : '')
+            Pool.load( this.ref.textures, this.loadModels.bind(this), path, 'loading images...' )
+
         } else {
+
             this.loadModels()
+
         }
 
     }
 
-    loadModels()
-    {
+    loadModels(){
+
+        const model = this.ref.forceModel ? this.ref.forceModel : this.model;
         
-        const asset = [this.model+'.glb']
-        const path = this.rootPath + 'assets/models/avatar/'
-        if( this.haveMorph ) asset.push( this.model+'_morph.glb' )
+        const asset = [model+'.glb']
+        const path = this.rootPath + this.ref.modelPath
+        if( this.ref.haveMorph ) asset.push( model+'_morph.glb' )
         Pool.load( asset, this.init.bind(this), path, 'loading models...' )
+
     }
 
     update( delta )
@@ -206,7 +216,7 @@ export class Avatar extends Group {
 
     look( delta )
     {
-
+        if(!this.isEyeMove) return
         if(this.isPause) return
 
         const v = window.mouse || {x:0, y:0};
@@ -272,374 +282,93 @@ export class Avatar extends Group {
 
     onReady(){}
 
-    initMaterial()
+    initMaterial() 
     {
 
-        if( Pool.getMaterial( 'skin' ) ) return
+        if( Pool.getMaterial( this.ref.materialRef ) ) return
 
         if( !this.fullMaterial ){
-            Pool.set( 'skin', new MeshStandardMaterial() )
+            Pool.set( this.ref.materialRef, new MeshStandardMaterial() )
             return
-        } 
-
-        const s = this.setting
-
-
-
-        // MOUTH
-
-        let m = new MeshStandardMaterial( { 
-            name: 'mouth',
-            map:Pool.getTexture('mouth_c'),
-            roughness:0.6,//0.568,
-            metalness:0.6,
-            alphaMap:Pool.getTexture('mouth_a'),
-            alphaTest:0.5,
-            normalMap:Pool.getTexture('mouth_n')
-        });
-
-        Shader.add(m)
-        Pool.set( 'mouth', m );
-
-        // EYE
-
-        this.eyeMap = Pool.getTexture('reflect', {repeat:[2,2]})
-
-        m = new MeshPhysicalMaterial( { 
-            name: 'sub_eye',
-            //color:0x000000,
-            roughness:0,//0.568,
-            metalness:1,
-            ior:1.376,
-            opacity:1,
-            blending:AdditiveBlending,
-            clearcoat:1,
-            transparent:true,
-            envMapIntensity:0,
-            //normalMap:Pool.getTexture('eye_n'),
-            //normalScale:new Vector2( 2, -2),
-        });
-
-        Shader.add(m)
-        Pool.set( 'sub_eye', m );
-
-
-        m = new MeshPhysicalMaterial({ 
-            name: 'eye',
-            map:Pool.getTexture('eye_c'),
-            //emissiveMap:Pool.getTexture('eye_c'),
-            //emissive:0x101010,
-            roughness:0.7,
-            metalness:0.15,
-            normalMap:Pool.getTexture('eye_n'),
-            normalScale:new Vector2( 2, -2),
-            clearcoat:0.25,
-            clearcoatRoughness:0.5,
-            //opacity:0.2,
-            //transparent:true,
-            //transmission: 1,
-            //thickness: 0.5,
-        });
-
-        Shader.add(m)
-        Pool.set( 'eye', m );
-
-
-        // HAIR
-
-        m = new MeshStandardMaterial({
-            name: 'hair',
-            map:Pool.getTexture('hair'),
-            color:s.hair,
-            //emissiveMap:Pool.getTexture('hair'),
-            //emissive:this.setting.hair,
-            roughness:s.h_rough,
-            metalness:s.h_metal,
-            alphaMap:Pool.getTexture('hair_a'),
-            alphaTest:s.alphaTest,
-            
-            side: DoubleSide,
-            opacity:1.0,
-            
-            transparent:true,
-
-            blending:CustomBlending,
-            blendDst:ZeroFactor,
-            blendDstAlpha:SrcAlphaFactor,
-            //OneMinusSrcAlphaFactor
-            /*blendEquationAlpha:AddEquation,
-            blendSrcAlpha:SrcAlphaFactor,//SrcAlphaFactor
-            */
-            //shadowSide:DoubleSide,
-
-            //depthTest:false,
-            //depthWrite:false,
-            alphaToCoverage:true,
-            //premultipliedAlpha:true,
-            //dithering:true,
-        });
-
-
-
-        Shader.add(m)
-        Pool.set( 'hair', m );
-
-        m = m.clone();
-        m.name = 'hair_man'
-        //m.map = m.emissiveMap = Pool.getTexture('hair_man')
-        m.color.setHex( s.hair )
-        m.map = Pool.getTexture('hair_man')
-        m.alphaMap = Pool.getTexture('hair_man_a')
-
-        Shader.add(m)
-        Pool.set( 'hair_man', m );
-
-        
-        m = new MeshStandardMaterial({
-            name: 'eyelash',
-            color:s.hair, //bow,
-            map:Pool.getTexture('eyelash_c'),
-            //emissiveMap:Pool.getTexture('eyelash_a'),
-            //emissive:s.bow,
-
-            roughness:s.h_rough,
-            metalness:s.h_metal,
-            //roughness:0.75,
-            //metalness:0.25,
-            alphaMap:Pool.getTexture('eyelash_a'),
-            alphaTest:s.alphaTest,
-            transparent:true,
-            side: DoubleSide,
-            alphaToCoverage:true,
-            polygonOffset: true,                
-            polygonOffsetFactor: - 4,
-            //premultipliedAlpha:true,
-            normalMap:Pool.getTexture('eyelash_n'),
-            normalScale:new Vector2( 1, -1)
-        });
-
-        Shader.add(m)
-        Pool.set( 'eyelash', m );
-
-        m = new MeshPhysicalMaterial({
-            name: 'tear',
-            map:Pool.getTexture('eyelash_c'),
-            //emissiveMap:eyea,
-            //emissive:this.setting.hair,
-            roughness:0.5,
-            metalness:0.5,
-            alphaMap:Pool.getTexture('eyelash_a'),
-            //alphaTest:0.5,
-            transparent:true,
-            alphaToCoverage:true,
-            opacity:1,
-            //thickness: 0.001,
-            //envMapIntensity:0.3,
-            //envMap:eyer
-            //premultipliedAlpha:true
-        });
-
-        Shader.add(m)
-        Pool.set( 'tear', m );
-
-        this.skin = Pool.getTexture('avatar_c')
-
-        m = new MeshPhysicalMaterial({
-            name: 'skin',
-            map: this.skin, 
-            normalMap:Pool.getTexture('avatar_n'),
-            roughness:1,//this.setting.roughness, //1.0,
-            metalness:1,//this.setting.metalness, //1.0,
-            metalnessMap:Pool.getTexture('avatar_m'),
-            roughnessMap:Pool.getTexture('avatar_r'),
-           // alphaMap:alpha,
-           // alphaTest:0.0001,
-            normalScale:new Vector2( this.setting.normal, -this.setting.normal),
-            //shadowSide:DoubleSide,
-            //transparent:true,
-            //aoMap:ao,
-            sheenColorMap:Pool.getTexture('avatar_u', {encoding:true}),
-            //sheenRoughnessMap:rough,
-            sheenRoughness:this.setting.sheenRoughness,
-            sheenColor:0xffffff,
-            sheen:this.setting.sheen,
-
-        });
-
-        Shader.add(m)
-        Pool.set( 'skin', m );
-
-        // LOW
-
-        m = new MeshBasicMaterial({ 
-            name:'low',
-            color:0x000000,
-            wireframe: true,
-        });
-
-        Shader.add(m)
-        Pool.set( 'low', m );
-
-    }
-
-    setHair()
-    {
-
-        if( !Pool.getMaterial( 'hair' ) ) return
-        let c = this.setting.hair;
-        let m = Pool.getMaterial( 'hair' )
-        m.color.setHex( c ).convertSRGBToLinear()
-        m.alphaTest = this.setting.alphaTest
-        m.metalness = this.setting.h_metal
-        m.roughness = this.setting.h_rough
-        //m.emissive.setHex( c )
-        m = Pool.getMaterial( 'hair_man' )
-        m.color.setHex( c ).convertSRGBToLinear()
-        m.alphaTest = this.setting.alphaTest
-        m.metalness = this.setting.h_metal
-        m.roughness = this.setting.h_rough
-        //m.emissive.setHex( c )
-        m = Pool.getMaterial( 'eyelash' )
-        m.color.setHex( c ).convertSRGBToLinear()
-        m.alphaTest = this.setting.alphaTest
-        m.metalness = this.setting.h_metal
-        m.roughness = this.setting.h_rough
-        //m.emissive.setHex( c )
-    }
-
-    setMaterial()
-    {
-
-        if( !Pool.getMaterial( 'skin' ) ) return
-
-        const m = Pool.getMaterial( 'skin' );
-        const s = this.setting;
-
-        m.roughness = s.roughness;
-        m.metalness = s.metalness;
-        m.wireframe = s.wireframe;
-        m.vertexColors = s.vertexColors;
-
-        m.normalScale.set( s.normal, -s.normal )
-        m.sheen = s.sheen;
-        m.sheenRoughness = s.sheenRoughness;
-
-        if( s.vertexColors && m.map !== null ){ m.map = null; this.tensionActive = true; m.sheen = 0;}
-        if( !s.vertexColors && m.map === null ){ m.map = this.skin; this.tensionActive = false; }
-
-        const shader = m.userData.shader;
-        if( shader ){
-            shader.uniforms.mixRatio.value = s.mixRatio;
-            shader.uniforms.threshold.value = s.threshold;
         }
+
+        let m, type, data
+
+        for( const name in this.ref.materials ){
+
+            data = this.ref.materials[name]
+            type = data.type
+            delete data.type
+            for( const t in data ){
+                if(t==='map' || t.search('Map')!==-1 ) data[t] = Pool.getTexture(data[t])
+            }
+            if(type==='Basic') m = new MeshBasicMaterial( data )
+            else if(type==='Standard') m = new MeshStandardMaterial( data )
+            else if(type==='Physical') m = new MeshPhysicalMaterial( data )
+            m.name = name
+            Shader.add( m )
+            Pool.set( name, m )
+        }
+
+        this.setting = this.ref.setting;
+
     }
 
-    init()
-    {
+
+    setMaterial(){
+
+        this.ref.changeMaterial()
+
+    }
+
+    init(){
 
         this.initMaterial()
 
-        if( !this.isClone ) this.root = Pool.get( this.model, 'O' ) 
-        
-        const def = Pool.getMaterial( 'skin' );
+        if( !this.isClone ) {
+            this.root = Pool.get( this.ref.forceModel ? this.ref.forceModel : this.model, 'O' ) 
+            this.ref.applyMaterial( this.root, this.model )
+        }
 
-        //console.log(this.root)
+        if( this.ref.forceModel && this.isClone ) this.ref.applyMaterial( this.root, this.model )
 
+        // get data
         this.root.traverse( function ( node ) {
             if ( node.isMesh ){
-
-                // dispatch material 
-                switch( node.name ){
-                    case 'body': 
-                    
-                    node.material = def;
-                    node.receiveShadow = true;
-                    node.castShadow = true;
+                if(node.name === this.ref.skeletonRef){
                     node.matrixAutoUpdate = false;
-
-                    //this.uv2( node )
-                    //node.bindMode = 'detached';'attached'
                     this.skeleton = node.skeleton;
                     if( this.skeleton.resetScalling ) this.skeleton.resetScalling()
-                    break;
-                    case 'body_low': 
-                        node.material = def//= Pool.getMaterial( 'low' ) || def;
-                        node.receiveShadow = false;
-                        node.castShadow = false;
-                        node.visible = false
-                    break;
-                    case 'Head': 
-                    node.material = def;
-                    node.receiveShadow = true;
-                    node.castShadow = true;
-                    //node.visible = false
-                    break;
-                    case 'mouth':
-                    node.material = Pool.getMaterial( 'mouth' ) || def;
-                    break;
-                    case 'eyelash':  case 'eyebrow':
-                    node.material = Pool.getMaterial( 'eyelash' ) || def;
-                    break;
-                    case 'tear': 
-                    node.material = Pool.getMaterial( 'tear' ) || def;
-                    break;
-                    case 'eye_l':case 'eye_r':
-                    node.material = Pool.getMaterial( 'eye' ) || def;
-                    break;
-                    case 'eye_l_s':case 'eye_r_s':
-                    node.material = Pool.getMaterial( 'sub_eye' ) || def;
-                    break;
-                    case 'hair': 
-                    node.material = Pool.getMaterial( this.model === 'man' ? 'hair_man': 'hair' ) || def;
-                    node.receiveShadow = true;
-                    node.castShadow = true;
-                    break;
-                    case 'hair_man': 
-                    node.material = Pool.getMaterial( 'hair_man' ) || def;
-                    node.name = 'hair'
-                    node.receiveShadow = true;
-                    node.castShadow = true;
-                    break;
                 }
-
-                //console.log(node.name, node.material.name)
-                // reset color
-                //this.zeroColor(node)
-                // disable raycast
                 node.raycast = function(){}
                 this.mesh[node.name] = node;
             }
-            if ( node.isBone ){ 
-                //console.log(node.name)
+            if ( node.isBone ){
                 this.bones[node.name] = node;
-                if( node.name === 'neck' ) node.add( this.eyeTarget );
-                //if(node.name === 'ER') node.add(new AxesHelper(0.05));
-                //if(node.name === 'EL') node.add(new AxesHelper(0.05));
             }
-            
         }.bind(this))
+
+        if( this.ref.isEyeMove ){
+            this.bones.neck.add( this.eyeTarget )
+        }
 
         
         //if( !this.isClone ){
-            // for extra skin
-            for( let m in this.mesh ){
-                if( this.mesh[m].isSkinnedMesh && m !== 'body' ){
-                    this.mesh[m].skeleton.dispose();
-                    this.mesh[m].skeleton = this.skeleton;
-                }
+        // for extra skin
+        for( let m in this.mesh ){
+            if( this.mesh[m].isSkinnedMesh && m !== this.ref.skeletonRef ){
+                this.mesh[m].skeleton.dispose();
+                this.mesh[m].skeleton = this.skeleton;
             }
+        }
 
         if( !this.isClone ){
 
             // add morph 
             if( this.haveMorph ) Pool.applyMorph( this.model+'_morph', this.mesh, true, false );
-
             Pool.set( this.model, this.root, 'O' )
             
         }
-
-        //console.log(this.mesh['body'])
-
 
         if( this.size !== 1 ) this.root.scale.set(1,1,1).multiplyScalar(this.size);
 
@@ -661,14 +390,14 @@ export class Avatar extends Group {
              
     }
 
-    addTensionMap()
-    {
+    addTensionMap(){
+
         this.tension1 = new Tension( this.mesh.body );
         this.tension2 = new Tension( this.mesh.Head );
     }
 
-    setBounding( r )
-    {
+    setBounding( r ){
+
         for( let m in this.mesh ){
             if(this.mesh[m].isMesh ){
                 this.mesh[m].geometry.boundingSphere.radius = r;
@@ -698,13 +427,14 @@ export class Avatar extends Group {
     }
 
 
-    eyeControl( v )
-    {
+    eyeControl( v ){
+
         this.setMorph('EyeBlink', v)
+    
     }
 
-    setMorph( name, v )
-    {
+    setMorph( name, v ){
+
         if( !this.haveMorph ) return
         this.morpher( 'eyelash', name, v);
         this.morpher( 'eyebrow', name, v);
@@ -715,8 +445,8 @@ export class Avatar extends Group {
         this.morpher( 'body_low', name, v);
     }
 
-    morpher( obj, name, value )
-    {
+    morpher( obj, name, value ){
+
         if(!this.mesh[obj]) return
         if(!this.mesh[obj].morphTargetInfluences) return
         if(this.mesh[obj].morphTargetDictionary[name] === undefined ) return
@@ -725,13 +455,13 @@ export class Avatar extends Group {
 
     lerp( x, y, t ) { return ( 1 - t ) * x + t * y; }
 
-    clone( o )
-    {
+    clone( o ){
+
         return new this.constructor( {type:o.type}, this );
+    
     }
 
-    dispose()
-    {
+    dispose(){
 
         if( this.exoskel ) this.addExo()
         if( this.helper ) this.addHelper()
@@ -751,8 +481,7 @@ export class Avatar extends Group {
         }
     }
 
-    start()
-    {
+    start(){
 
         //console.log('start', this.model)
         if( this.done ) return
@@ -770,8 +499,8 @@ export class Avatar extends Group {
         if(!a) this.play('idle');
     }
 
-    addHelper()
-    {
+    addHelper(){
+
         if( this.helper ){
             this.helper.dispose()
             this.parent.remove( this.helper );
@@ -1365,12 +1094,12 @@ export class Avatar extends Group {
         g.setAttribute( 'color', new Float32BufferAttribute( new Array(lng).fill(0), 3 ) );
     }
 
-    uv2( g, uv2 = true, tangent = true ) {
+    /*uv2( g, uv2 = true, tangent = true ) {
 
         if( g.isMesh ) g = g.geometry;
         g.setAttribute( 'uv2', g.attributes.uv );
 
-    }
+    }*/
 
 }
 

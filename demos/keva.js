@@ -47,6 +47,7 @@ buildBlock = ( halfExtents, shift, numx, numy, numz ) => {
 
     let option = {
         density:0.1, margin:0.001, friction:0.5, restitution:0, sleep:true, radius:0.04, //material:'simple'
+        startSleep:true,
     }
 
     let half_extents_zyx = {x: halfExtents.z, y: halfExtents.y, z: halfExtents.x};
@@ -85,7 +86,13 @@ buildBlock = ( halfExtents, shift, numx, numy, numz ) => {
             // Build the rigid body.
             //phy.add({ type:'box', size:[dim.x, dim.y, dim.z], pos:[(i * dim.x * 2.0 + dim.x + shift.x)*0.5, (dim.y + shift.y + blockHeight)*0.5, (j * dim.z * 2.0 + dim.z + shift.z)*0.5], density:1, margin:0.001, radius:0.01 })
            
-            phy.add({ instance:'keva', type:'box', size:[dim.x, dim.y, dim.z], pos:[(i * dim.x * 2.0 + dim.x + shift.x)*0.5, (dim.y + shift.y + blockHeight)*0.5, (j * dim.z * 2.0 + dim.z + shift.z)*0.5], ...option })
+            phy.add({ 
+                instance:'keva', 
+                type:'box', 
+                size:[dim.x, dim.y, dim.z], 
+                pos:[(i * dim.x * 2.0 + dim.x + shift.x)*0.5, (dim.y + shift.y + blockHeight)*0.5, (j * dim.z * 2.0 + dim.z + shift.z)*0.5],
+                ...option 
+            })
             n++
         }
     }

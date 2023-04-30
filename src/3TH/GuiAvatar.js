@@ -5,10 +5,11 @@ import { Shader } from './Shader.js';
 
 export class Gui {
 
-	constructor( ref, ref2, fun, fun2 ) {
+	constructor( ref, ref2, fun, fun2, fun3 ) {
 
 		this.ref = ref;
 		this.ref2 = ref2;
+		this.playAnim = fun3
 
 		let unselectable = '-o-user-select:none; -ms-user-select:none; -khtml-user-select:none; -webkit-user-select:none; -moz-user-select: none; pointer-events:none; '
 		this.debug = document.createElement('div');
@@ -89,8 +90,8 @@ export class Gui {
 
 		//setting = ref.setting
 
-		this.groupMaterial.add(ref.setting, 'mixRatio', { min:0, max:1 }).onChange( function (b){ ref.setMaterial(); } )
-		this.groupMaterial.add(ref.setting, 'threshold', { min:0, max:1 }).onChange( function (b){ ref.setMaterial(); } )
+		//this.groupMaterial.add(ref.setting, 'mixRatio', { min:0, max:1 }).onChange( function (b){ ref.setMaterial(); } )
+		//this.groupMaterial.add(ref.setting, 'threshold', { min:0, max:1 }).onChange( function (b){ ref.setMaterial(); } )
 		this.groupMaterial.add(ref.setting, 'normal', { min:0, max:1 }).onChange( function (b){ ref.setMaterial(); } )
 		
 
@@ -105,7 +106,7 @@ export class Gui {
 
 
 		this.groupMaterial.add('empty', { h:20 } )
-		this.groupMaterial.add(ref.setting, 'hair', { type:'color' } ).onChange( function( c ){ ref.setHair(); } )
+		this.groupMaterial.add(ref.setting, 'hair', { type:'color' } ).onChange( function( c ){ ref.setMaterial(); } )
 		/*let l2 = ['zero', 'one', 'srcColor', 'oneSrcColor', 'srcAlpha', 'oneSrcAlpha', 'dstAlpha', 'oneDstAlpha', 'dstColor', 'oneDstColor', 'saturate']
 		let l3 = ['zero', 'one', 'srcColor', 'oneSrcColor', 'srcAlpha', 'oneSrcAlpha', 'dstAlpha', 'oneDstAlpha', 'dstColor', 'oneDstColor']
 		this.groupMaterial.add(ref.setting, 'equation', { type:'list', list:['add', 'sub', 'rsub', 'min', 'max'] }).onChange( function (b){ ref.setBlending(); } )
@@ -114,9 +115,9 @@ export class Gui {
 		this.groupMaterial.add(ref.setting, 'equationA', { type:'list', list:['add', 'sub', 'rsub', 'min', 'max'] }).onChange( function (b){ ref.setBlending(); } )
 		this.groupMaterial.add(ref.setting, 'blendSrcA', { type:'list', list:l2, full:true }).onChange( function (b){ ref.setBlending(); } )
 		this.groupMaterial.add(ref.setting, 'blendDstA', { type:'list', list:l3, full:true }).onChange( function (b){ ref.setBlending(); } )*/
-		this.groupMaterial.add(ref.setting, 'alphaTest', { min:0, max:1 }).onChange( function (b){ ref.setHair(); } )
-		this.groupMaterial.add(ref.setting, 'h_metal', { min:0, max:1 }).onChange( function (b){ ref.setHair(); } )
-		this.groupMaterial.add(ref.setting, 'h_rough', { min:0, max:1 }).onChange( function (b){ ref.setHair(); } )
+		this.groupMaterial.add(ref.setting, 'alphaTest', { min:0, max:1 }).onChange( function (b){ ref.setMaterial(); } )
+		this.groupMaterial.add(ref.setting, 'h_metal', { min:0, max:1 }).onChange( function (b){ ref.setMaterial(); } )
+		this.groupMaterial.add(ref.setting, 'h_rough', { min:0, max:1 }).onChange( function (b){ ref.setMaterial(); } )
 
 
 
@@ -176,7 +177,10 @@ export class Gui {
 
 		if( this.an ) this.an.dispose()
 
-		this.an = this.groupAnim.add( 'grid', { values:list, selectable:true, value:this.ref.current? this.ref.current.name:'IDLE', bsize:[110, 20] }).onChange( function(s){ this.ref.play(s); this.ref2.play(s); }.bind(this) )
+		this.an = this.groupAnim.add( 'grid', { values:list, selectable:true, value:this.ref.current? this.ref.current.name:'IDLE', bsize:[110, 20] }).onChange( function(s){ 
+			this.ref.play(s); this.ref2.play(s); 
+			this.playAnim(s)
+		}.bind(this) )
 	    this.groupAnim.open()
 
 	}
