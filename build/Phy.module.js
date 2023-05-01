@@ -25754,8 +25754,8 @@ class Motor {
 
 		} else { // is direct version
 
-			if( wasmLink[mini] ) Motor.loadWasmDirect( wasmLink[mini], o, mini );
-			else Motor.preLoad( mini, o );
+			if( wasmLink[mini] ) Motor.loadWasmDirect( wasmLink[mini], o, mini, rootURL );
+			else Motor.preLoad( mini, o, rootURL );
 
 			/*directMessage = o.direct;
 			o.message = Motor.message;
@@ -25767,20 +25767,22 @@ class Motor {
 
 	}
 
-	static loadWasmDirect( link, o, name ) {
+	static loadWasmDirect( link, o, name, rootURL ) {
+
+		console.log(rootURL + link);
 	
 	    let s = document.createElement("script");
-	    s.src = link;
+	    s.src = rootURL + link;
 	    document.body.appendChild( s );
 	    s.onload = () => { 
-	    	Motor.preLoad( name, o );
+	    	Motor.preLoad( name, o, rootURL );
 	    };
 
 	}
 
-	static async preLoad( name, o ) {
+	static async preLoad( name, o, rootURL ) {
 	
-	    let M = await import( o.devMode ? '../'+name+'.js' : './'+name+'.module.js');
+	    let M = await import( o.devMode ? rootURL + 'src/'+name+'.js' : rootURL + 'build/'+name+'.module.js');
 	    directMessage = M.engine.message;
 		o.message = Motor.message;
 		Motor.initPhysics( o );
