@@ -235,7 +235,7 @@ export class Motor {
 
 		const rootURL = document.location.href.replace(/\/[^/]*$/,"/")
 
-		const path = o.path || './build/';
+		const path = o.path || 'build/';
 
 		const wasmLink = {
 		    Ammo: path + 'ammo3.wasm.js',
@@ -284,9 +284,11 @@ export class Motor {
 
 		if( isWorker ){ // is worker version
 
-			switch( type ){
+			/*switch( type ){
 
 				case 'OIMO':
+
+				    worker = new Worker( path + mini + '.min.js' )
 
 				    if( isFirefox ) worker = new Worker( path + mini + '.min.js' )
 				    else {
@@ -301,6 +303,7 @@ export class Motor {
 				break
 				
 				default :
+
 				    if( type === 'RAPIER' ) { name = 'rapier3d'; mini = 'rapier3d'; }
 
 					//let coep = '?coep=require-corp&coop=same-origin&corp=same-origin&'
@@ -308,13 +311,24 @@ export class Motor {
 				    // for wasm side
 				    if( wasmLink[mini] ) o.blob = rootURL + wasmLink[mini];
 
+				    console.log(rootURL +path + mini + '.min.js')
+
 				    //worker = new Worker( path + mini + '.module.js', {type:'module'})
-					worker = new Worker( path + mini + '.min.js' )
+					worker = new Worker( rootURL + path + mini + '.min.js' )
 					//worker = new Worker( 'http://localhost:8612/build/'+mini+'.min.js'+coep )
 
 				break
 
-			}
+			}*/
+
+
+			 if( type === 'RAPIER' ) { name = 'rapier3d'; mini = 'rapier3d'; }
+
+		    // for wasm side
+		    if( wasmLink[mini] ) o.blob = rootURL + wasmLink[mini];
+
+		    //worker = new Worker( path + mini + '.module.js', {type:'module'})
+			worker = new Worker( rootURL + path + mini + '.min.js' )
 
 
 
