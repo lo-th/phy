@@ -5,6 +5,7 @@
 		<meta charset="utf-8">
 		<link rel="shortcut icon" href="../../favicon.ico" />
 		<link rel="stylesheet" type="text/css" href="../../assets/css/docs.css">
+		<meta name="viewport" content="width=device-width, minimum-scale=1, initial-scale=1.0"/>
 	</head>
 	<body>
 
@@ -81,7 +82,7 @@ function init() {
 	//scene.add( mesh2 );
 
 	renderer = new THREE.WebGLRenderer( { antialias: true } );
-	renderer.setPixelRatio( window.devicePixelRatio );
+	renderer.setPixelRatio( 1 );
 	renderer.setSize( vs.w, vs.h );
 	renderer.setClearColor( 0x1e1c1c, 1 );//212121
 	renderer.useLegacyLights = false

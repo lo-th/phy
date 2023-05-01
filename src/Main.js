@@ -39,8 +39,8 @@ import { Smoke } from '../build/smoke.module.js'
 
 
 // WEBGPU test
-import WebGPU from 'three/addons/capabilities/WebGPU.js';
-import WebGPURenderer from 'three/addons/renderers/webgpu/WebGPURenderer.js';
+//import WebGPU from 'three/addons/capabilities/WebGPU.js';
+//import WebGPURenderer from 'three/addons/renderers/webgpu/WebGPURenderer.js';
 
 
 
@@ -335,7 +335,7 @@ window.Fluid = Fluid
 
 const init = () => {
 
-	isWebGPU = activeWebGPU ? WebGPU.isAvailable() : false
+	isWebGPU = false//activeWebGPU ? WebGPU.isAvailable() : false
  
 	if( isWebGPU ) console.log('use webgpu !!')
 
@@ -358,8 +358,9 @@ const init = () => {
 
 	// RENDERER
 
-	if( isWebGPU ) renderer = new WebGPURenderer()
-	else renderer = new THREE.WebGLRenderer( { 
+	/*if( isWebGPU ) renderer = new WebGPURenderer()
+	else*/ 
+	renderer = new THREE.WebGLRenderer( { 
 		antialias:antialias, 
 		powerPreference:powerPreference,
 		premultipliedAlpha: false,
