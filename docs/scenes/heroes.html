@@ -41,7 +41,7 @@ import { Logo } from '3TH/Logo.js';
 
 const env = 'river';
 let camera, controls, scene, renderer, logo;
-let hero, hero2, hero3, hero4, gui, water, dirLight, floor, mirror;
+let hero, hero2, hero3, hero4, hero5, gui, water, dirLight, floor, mirror;
 let clone = 30;
 let heroes = [];
 
@@ -218,6 +218,11 @@ function next(){
 				hero4 = new Avatar({ type:'eva01', path:'../../', size:2 });
 				scene.add( hero4 );
 				hero4.setPosition(1,0,-2)
+
+
+				hero5 = new Avatar({ type:'eva02', path:'../../', size:2 });
+				scene.add( hero5 );
+				hero5.setPosition(-3,0,-2)
 			}
 			//console.log('ok')
 			//animate();
@@ -236,6 +241,7 @@ function next(){
 function playAnim( s ){
 	if(hero3)hero3.play(s);
 	if(hero4)hero4.play(s);
+	if(hero5)hero5.play(s);
 }
 
 function addReflection( b ){
@@ -391,6 +397,7 @@ function animate( stamp = 0 ) {
 
 	if(hero3) hero3.update( t.delta );
 	if(hero4) hero4.update( t.delta );
+	if(hero5) hero5.update( t.delta )
 
 	if(water) water.material.uniforms[ 'time' ].value += 0.0002;
 	renderer.render( scene, camera );

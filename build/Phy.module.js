@@ -20646,7 +20646,7 @@ const Eva = {
 	haveQuality: false,
 	skinRef:'eva_00',
 	texturePath: 'assets/textures/eva/',
-	textures: ['eva00_c.jpg', 'eva01_c.jpg'],
+	textures: ['eva00_c.jpg', 'eva01_c.jpg', 'eva02_c.jpg'],
 
     modelPath: 'assets/models/',
     forceModel:'eva',
@@ -20659,13 +20659,19 @@ const Eva = {
             type:'Standard',
             map: 'eva00_c', 
             roughness:0.5,
-            metalness:0.5
+            metalness:0.8
         },
         eva01:{
             type:'Standard',
             map: 'eva01_c', 
             roughness:0.5,
-            metalness:0.5
+            metalness:0.8
+        },
+        eva02:{
+            type:'Standard',
+            map: 'eva02_c', 
+            roughness:0.5,
+            metalness:0.8
         }
     },
 
@@ -20686,12 +20692,25 @@ const Eva = {
                 node.castShadow = true;
 
                 switch( node.name ){
-                    case 'eva_HEAD':case 'eva_L_COLLAR':case 'eva_R_COLLAR': case 'eva_MACHOIR': 
+
+                    case 'eva_2_head':case 'eva_2_mach': 
+                    node.visible = model === 'eva02' ? true : false;
+                    break;
+
+                    case 'eva_L_COLLAR':case 'eva_R_COLLAR': 
+                    node.visible = model === 'eva00' ? false : true;
+                    break;
+
+                    case 'eva_HEAD': case 'eva_MACHOIR': 
                     node.visible = model === 'eva01' ? true : false;
                     break;
 
-                    case 'eva_0_R_COLLAR':case 'eva_0_L_COLLAR':case 'eva_0_head': case 'eva_0_head2': case 'eva_0_CHEST2':
+                    case 'eva_0_R_COLLAR':case 'eva_0_L_COLLAR':case 'eva_0_head': case 'eva_0_head2':
                     node.visible = model === 'eva00' ? true : false;
+                    break;
+
+                    case 'eva_0_CHEST2':
+                    node.visible = model === 'eva01' ? false : true;
                     break;
                 }
             }
@@ -20743,7 +20762,7 @@ class Avatar extends Group {
 
         switch( this.model ){
             case 'man': case 'woman': this.ref = Human; break;
-            case 'eva00': case 'eva01': this.ref = Eva; break;
+            case 'eva00': case 'eva01': case 'eva02': this.ref = Eva; break;
         }
 
 

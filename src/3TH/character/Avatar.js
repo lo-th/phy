@@ -67,7 +67,7 @@ export class Avatar extends Group {
 
         switch( this.model ){
             case 'man': case 'woman': this.ref = Human; break;
-            case 'eva00': case 'eva01': this.ref = Eva; break;
+            case 'eva00': case 'eva01': case 'eva02': this.ref = Eva; break;
         }
 
 
