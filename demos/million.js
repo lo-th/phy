@@ -357,7 +357,7 @@ createBallTexture = ( n, y) => {
 	t.needsUpdate = true;
 	t.flipY = false;
     t.name = 'ball_' + n + (y ? 'R':'Y');
-    //t.encoding = THREE.sRGBEncoding;
+    t.colorSpace = THREE.SRGBColorSpace;
 
     tmpTxt.push( t )
 	return t;
