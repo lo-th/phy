@@ -5,11 +5,12 @@ import { Shader } from './Shader.js';
 
 export class Gui {
 
-	constructor( ref, ref2, fun, fun2, fun3 ) {
+	constructor( ref, ref2, fun, fun2, fun3, fun4 ) {
 
 		this.ref = ref;
 		this.ref2 = ref2;
 		this.playAnim = fun3
+		this.upMaterial = fun4
 
 		let unselectable = '-o-user-select:none; -ms-user-select:none; -khtml-user-select:none; -webkit-user-select:none; -moz-user-select: none; pointer-events:none; '
 		this.debug = document.createElement('div');
@@ -92,21 +93,22 @@ export class Gui {
 
 		//this.groupMaterial.add(ref.setting, 'mixRatio', { min:0, max:1 }).onChange( function (b){ ref.setMaterial(); } )
 		//this.groupMaterial.add(ref.setting, 'threshold', { min:0, max:1 }).onChange( function (b){ ref.setMaterial(); } )
-		this.groupMaterial.add(ref.setting, 'normal', { min:0, max:1 }).onChange( function (b){ ref.setMaterial(); } )
+		this.groupMaterial.add(ref.setting, 'normal', { min:0, max:1 }).onChange( function (b){ ref.setMaterial(); this.upMaterial(ref.setting);}.bind(this) )
 		
 
-		this.groupMaterial.add(ref.setting, 'roughness', { min:0, max:1 }).onChange( function (b){ ref.setMaterial(); } )
-		this.groupMaterial.add(ref.setting, 'metalness', { min:0, max:1 }).onChange( function (b){ ref.setMaterial(); } )
+		this.groupMaterial.add(ref.setting, 'roughness', { min:0, max:1 }).onChange( function (b){ ref.setMaterial(); this.upMaterial(ref.setting);}.bind(this) )
+		this.groupMaterial.add(ref.setting, 'metalness', { min:0, max:1 }).onChange( function (b){ ref.setMaterial(); this.upMaterial(ref.setting);}.bind(this) )
+		this.groupMaterial.add(ref.setting, 'clearcoat', { min:0, max:1 }).onChange( function (b){ ref.setMaterial(); this.upMaterial(ref.setting);}.bind(this) )
 
-		this.groupMaterial.add(ref.setting, 'sheen', { min:0, max:5 }).onChange( function (b){ ref.setMaterial(); } )
-		this.groupMaterial.add(ref.setting, 'sheenRoughness', { min:0, max:1 }).onChange( function (b){ ref.setMaterial(); } )
+		this.groupMaterial.add(ref.setting, 'sheen', { min:0, max:5 }).onChange( function (b){ ref.setMaterial(); this.upMaterial(ref.setting);}.bind(this) )
+		this.groupMaterial.add(ref.setting, 'sheenRoughness', { min:0, max:1 }).onChange( function (b){ ref.setMaterial();this.upMaterial(ref.setting); }.bind(this) )
 
-		this.groupMaterial.add(ref.setting, 'wireframe', { type:'bool' }).onChange( function (b){ ref.setMaterial(); } )
-		this.groupMaterial.add(ref.setting, 'vertexColors', { type:'bool' }).onChange( function (b){ ref.setMaterial(); } )
+		this.groupMaterial.add(ref.setting, 'wireframe', { type:'bool' }).onChange( function (b){ ref.setMaterial();this.upMaterial(ref.setting); }.bind(this) )
+		this.groupMaterial.add(ref.setting, 'vertexColors', { type:'bool' }).onChange( function (b){ ref.setMaterial(); this.upMaterial(ref.setting);}.bind(this) )
 
 
 		this.groupMaterial.add('empty', { h:20 } )
-		this.groupMaterial.add(ref.setting, 'hair', { type:'color' } ).onChange( function( c ){ ref.setMaterial(); } )
+		this.groupMaterial.add(ref.setting, 'hair', { type:'color' } ).onChange( function( c ){ ref.setMaterial(); this.upMaterial(ref.setting); }.bind(this) )
 		/*let l2 = ['zero', 'one', 'srcColor', 'oneSrcColor', 'srcAlpha', 'oneSrcAlpha', 'dstAlpha', 'oneDstAlpha', 'dstColor', 'oneDstColor', 'saturate']
 		let l3 = ['zero', 'one', 'srcColor', 'oneSrcColor', 'srcAlpha', 'oneSrcAlpha', 'dstAlpha', 'oneDstAlpha', 'dstColor', 'oneDstColor']
 		this.groupMaterial.add(ref.setting, 'equation', { type:'list', list:['add', 'sub', 'rsub', 'min', 'max'] }).onChange( function (b){ ref.setBlending(); } )
@@ -115,9 +117,9 @@ export class Gui {
 		this.groupMaterial.add(ref.setting, 'equationA', { type:'list', list:['add', 'sub', 'rsub', 'min', 'max'] }).onChange( function (b){ ref.setBlending(); } )
 		this.groupMaterial.add(ref.setting, 'blendSrcA', { type:'list', list:l2, full:true }).onChange( function (b){ ref.setBlending(); } )
 		this.groupMaterial.add(ref.setting, 'blendDstA', { type:'list', list:l3, full:true }).onChange( function (b){ ref.setBlending(); } )*/
-		this.groupMaterial.add(ref.setting, 'alphaTest', { min:0, max:1 }).onChange( function (b){ ref.setMaterial(); } )
-		this.groupMaterial.add(ref.setting, 'h_metal', { min:0, max:1 }).onChange( function (b){ ref.setMaterial(); } )
-		this.groupMaterial.add(ref.setting, 'h_rough', { min:0, max:1 }).onChange( function (b){ ref.setMaterial(); } )
+		this.groupMaterial.add(ref.setting, 'alphaTest', { min:0, max:1 }).onChange( function (b){ ref.setMaterial(); this.upMaterial(ref.setting);}.bind(this) )
+		this.groupMaterial.add(ref.setting, 'h_metal', { min:0, max:1 }).onChange( function (b){ ref.setMaterial(); this.upMaterial(ref.setting);}.bind(this) )
+		this.groupMaterial.add(ref.setting, 'h_rough', { min:0, max:1 }).onChange( function (b){ ref.setMaterial(); this.upMaterial(ref.setting);}.bind(this) )
 
 
 

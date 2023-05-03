@@ -315,9 +315,9 @@ export class Avatar extends Group {
     }
 
 
-    setMaterial(){
+    setMaterial(s){
 
-        this.ref.changeMaterial()
+        this.ref.changeMaterial(s)
 
     }
 

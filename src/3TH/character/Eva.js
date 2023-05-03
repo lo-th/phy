@@ -15,6 +15,14 @@ import {
 } from 'three';
 import { Pool } from '../Pool.js';
 
+const setting = {
+
+    metalness:0.6,
+    roughness:0.4,
+    clearcoat:1.0,
+    wireframe:false,
+    
+}
 
 export const Eva = {
 
@@ -34,33 +42,63 @@ export const Eva = {
     modelPath: 'assets/models/',
     forceModel:'eva',
 
-    setting:{},
+    setting:setting,
 
     materialRef:'eva00',
     materials:{
         eva00:{
-            type:'Standard',
+            type:'Physical',
             map: 'eva00_c', 
-            roughness:0.5,
-            metalness:0.8
+            roughness:setting.roughness,
+            metalness:setting.metalness,
+            wireframe:setting.wireframe,
+            clearcoat:setting.clearcoat,
         },
         eva01:{
-            type:'Standard',
+            type:'Physical',
             map: 'eva01_c', 
-            roughness:0.5,
-            metalness:0.8
+            roughness:setting.roughness,
+            metalness:setting.metalness,
+            wireframe:setting.wireframe,
+            clearcoat:setting.clearcoat,
         },
         eva02:{
-            type:'Standard',
+            type:'Physical',
             map: 'eva02_c', 
-            roughness:0.5,
-            metalness:0.8
+            roughness:setting.roughness,
+            metalness:setting.metalness,
+            wireframe:setting.wireframe,
+            clearcoat:setting.clearcoat,
         }
     },
 
-    changeMaterial:() => {},
+    changeMaterial:( Setting ) => {
 
-    
+        const s = Eva.setting;
+
+        if(Setting){
+            for(let o in Setting){
+                if( s[o] !== undefined) s[o] = Setting[o]
+            }
+        }
+        
+        let m = Pool.getMaterial( 'eva00' );
+        m.roughness = s.roughness;
+        m.metalness = s.metalness;
+        m.wireframe = s.wireframe;
+        m.clearcoat = s.clearcoat;
+        m = Pool.getMaterial( 'eva01' );
+        m.roughness = s.roughness;
+        m.metalness = s.metalness;
+        m.wireframe = s.wireframe;
+        m.clearcoat = s.clearcoat;
+        m = Pool.getMaterial( 'eva02' );
+        m.roughness = s.roughness;
+        m.metalness = s.metalness;
+        m.wireframe = s.wireframe;
+        m.clearcoat = s.clearcoat;
+
+    },
 
     applyMaterial:( root, model ) => {
 

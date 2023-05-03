@@ -203,7 +203,7 @@ function next(){
 
 		console.time("woman time");
 
-		window.gui = new Gui( hero, hero2, cloneTest, addReflection, playAnim );
+		window.gui = new Gui( hero, hero2, cloneTest, addReflection, playAnim, upMaterial );
 
 		hero2.onReady = function () {
 
@@ -239,9 +239,15 @@ function next(){
 }
 
 function playAnim( s ){
-	if(hero3)hero3.play(s);
-	if(hero4)hero4.play(s);
-	if(hero5)hero5.play(s);
+	if(hero3) hero3.play(s);
+	if(hero4) hero4.play(s);
+	if(hero5) hero5.play(s);
+}
+
+function upMaterial( s ){
+	if(hero3) hero3.setMaterial(s);
+	if(hero4) hero4.setMaterial(s);
+	if(hero5) hero5.setMaterial(s);
 }
 
 function addReflection( b ){

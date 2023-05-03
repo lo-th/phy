@@ -23,13 +23,14 @@ const setting = {
     bow:0x100402,
     sheen:2.25,
     sheenRoughness:1.0,
-    metalness:1,
-    roughness:0.5,
+    metalness:0.6,
+    roughness:0.4,
     wireframe:false,
     vertexColors:false,
     alphaTest:0.3,
     h_metal:0.4,
     h_rough:0.6,
+    clearcoat:1.0,
     
 }
 
