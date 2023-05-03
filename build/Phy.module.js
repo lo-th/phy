@@ -20373,7 +20373,7 @@ function getBoneList( object ) {
 
 }*/
 
-const setting = {
+const setting$1 = {
 
     mixRatio:0.0,
     threshold:0.1,
@@ -20382,13 +20382,14 @@ const setting = {
     bow:0x100402,
     sheen:2.25,
     sheenRoughness:1.0,
-    metalness:1,
-    roughness:0.5,
+    metalness:0.6,
+    roughness:0.4,
     wireframe:false,
     vertexColors:false,
     alphaTest:0.3,
     h_metal:0.4,
     h_rough:0.6,
+    clearcoat:1.0,
     
 };
 
@@ -20415,7 +20416,7 @@ const Human = {
     modelPath: 'assets/models/avatar/',
     forceModel: null,
 
-    setting:setting,
+    setting:setting$1,
 
     materialRef:'skin',
     materials:{
@@ -20427,11 +20428,11 @@ const Human = {
             metalness:1,
             metalnessMap:'avatar_m',
             roughnessMap:'avatar_r',
-            normalScale:new Vector2( setting.normal, -setting.normal),
+            normalScale:new Vector2( setting$1.normal, -setting$1.normal),
             sheenColorMap:'avatar_u',
-            sheenRoughness:setting.sheenRoughness,
+            sheenRoughness:setting$1.sheenRoughness,
             sheenColor:0xffffff,
-            sheen:setting.sheen,
+            sheen:setting$1.sheen,
         },
     	mouth:{
             type:'Standard',
@@ -20466,11 +20467,11 @@ const Human = {
         hair:{
             type:'Standard',
         	map:'hair',
-            color:setting.hair,
-            roughness:setting.h_rough,
-            metalness:setting.h_metal,
+            color:setting$1.hair,
+            roughness:setting$1.h_rough,
+            metalness:setting$1.h_metal,
             alphaMap:'hair_a',
-            alphaTest:setting.alphaTest,
+            alphaTest:setting$1.alphaTest,
             side: DoubleSide,
             opacity:1.0,
             transparent:true,
@@ -20482,11 +20483,11 @@ const Human = {
         hair_man:{
             type:'Standard',
         	map:'hair_man',
-            color:setting.hair,
-            roughness:setting.h_rough,
-            metalness:setting.h_metal,
+            color:setting$1.hair,
+            roughness:setting$1.h_rough,
+            metalness:setting$1.h_metal,
             alphaMap:'hair_man_a',
-            alphaTest:setting.alphaTest,
+            alphaTest:setting$1.alphaTest,
             side: DoubleSide,
             opacity:1.0,
             transparent:true,
@@ -20497,12 +20498,12 @@ const Human = {
         },
         eyelash:{
             type:'Standard',
-        	color:setting.hair,
+        	color:setting$1.hair,
             map:'eyelash_c',
-            roughness:setting.h_rough,
-            metalness:setting.h_metal,
+            roughness:setting$1.h_rough,
+            metalness:setting$1.h_metal,
             alphaMap:'eyelash_a',
-            alphaTest:setting.alphaTest,
+            alphaTest:setting$1.alphaTest,
             transparent:true,
             side: DoubleSide,
             alphaToCoverage:true,
@@ -20633,6 +20634,15 @@ const Human = {
 
 };
 
+const setting = {
+
+    metalness:0.6,
+    roughness:0.4,
+    clearcoat:1.0,
+    wireframe:false,
+    
+};
+
 const Eva = {
 
 	isBreath:false,
@@ -20646,38 +20656,74 @@ const Eva = {
 	haveQuality: false,
 	skinRef:'eva_00',
 	texturePath: 'assets/textures/eva/',
-	textures: ['eva00_c.jpg', 'eva01_c.jpg', 'eva02_c.jpg'],
+	textures: ['eva00_c.jpg', 'eva01_c.jpg', 'eva02_c.jpg', 'eva_l.jpg'],
 
     modelPath: 'assets/models/',
     forceModel:'eva',
 
-    setting:{},
+    setting:setting,
 
     materialRef:'eva00',
     materials:{
         eva00:{
-            type:'Standard',
+            type:'Physical',
             map: 'eva00_c', 
-            roughness:0.5,
-            metalness:0.8
+            emissiveMap:'eva_l',
+            emissive:0xffffff,
+            roughness:setting.roughness,
+            metalness:setting.metalness,
+            wireframe:setting.wireframe,
+            clearcoat:setting.clearcoat,
         },
         eva01:{
-            type:'Standard',
-            map: 'eva01_c', 
-            roughness:0.5,
-            metalness:0.8
+            type:'Physical',
+            map: 'eva01_c',
+            emissiveMap:'eva_l',
+            emissive:0xffffff,
+            roughness:setting.roughness,
+            metalness:setting.metalness,
+            wireframe:setting.wireframe,
+            clearcoat:setting.clearcoat,
         },
         eva02:{
-            type:'Standard',
+            type:'Physical',
             map: 'eva02_c', 
-            roughness:0.5,
-            metalness:0.8
+            emissiveMap:'eva_l',
+            emissive:0xffffff,
+            roughness:setting.roughness,
+            metalness:setting.metalness,
+            wireframe:setting.wireframe,
+            clearcoat:setting.clearcoat,
         }
     },
 
-    changeMaterial:() => {},
+    changeMaterial:( Setting ) => {
 
-    
+        const s = Eva.setting;
+
+        if(Setting){
+            for(let o in Setting){
+                if( s[o] !== undefined) s[o] = Setting[o];
+            }
+        }
+        
+        let m = Pool.getMaterial( 'eva00' );
+        m.roughness = s.roughness;
+        m.metalness = s.metalness;
+        m.wireframe = s.wireframe;
+        m.clearcoat = s.clearcoat;
+        m = Pool.getMaterial( 'eva01' );
+        m.roughness = s.roughness;
+        m.metalness = s.metalness;
+        m.wireframe = s.wireframe;
+        m.clearcoat = s.clearcoat;
+        m = Pool.getMaterial( 'eva02' );
+        m.roughness = s.roughness;
+        m.metalness = s.metalness;
+        m.wireframe = s.wireframe;
+        m.clearcoat = s.clearcoat;
+
+    },
 
     applyMaterial:( root, model ) => {
 
@@ -21009,9 +21055,9 @@ class Avatar extends Group {
     }
 
 
-    setMaterial(){
+    setMaterial(s){
 
-        this.ref.changeMaterial();
+        this.ref.changeMaterial(s);
 
     }
 

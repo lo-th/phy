@@ -44,6 +44,8 @@ export class LandScape {
 
 		this.needUpdate = false
 		this.heightField = null
+		this.geometry = null
+		this.heights = null
 
 		this.init(o)
 
@@ -62,8 +64,6 @@ export class LandScape {
 		// height data
 		this.setData( o )
 
-		
-		
 
 		this.body = havok.HP_Body_Create()[1];
 		havok.HP_Body_SetShape( this.body, this.geometry )
@@ -87,22 +87,21 @@ export class LandScape {
 	}
 
 	getVertices ( ar ) {
-        const nFloats = ar.length;
-        const bytesPerFloat = 4;
-        const nBytes = nFloats * bytesPerFloat;
-        const bufferBegin = havok._malloc(nBytes);
 
-        const ret = new Float32Array(havok.HEAPU8.buffer, bufferBegin, nFloats);
-        //const ret = new Int32Array(havok.HEAPU8.buffer, bufferBegin, nFloats);
+		if( !this.heights ){
+	        const nFloats = ar.length
+	        const bytesPerFloat = 4
+	        const nBytes = nFloats * bytesPerFloat
+	        const bufferBegin = havok._malloc(nBytes)
+	        this.heights = new Float32Array( havok.HEAPU8.buffer, bufferBegin, nFloats )
+	    }
       
-        let lng = ar.length, p2=0
-        let i = ar.length
+        let i = ar.length, n = 0
         while(i--){
-        	//havok.HEAPF32[ (bufferBegin) + p2 >> 2 ] = ar[lng-i];
-        	//p2 += 4
-            ret[lng-i] = ar[i];
+            this.heights[i] = ar[n]
+            n++
         }
-        return ret;
+
     }
 
     setMaterial ( shape, o ) {
@@ -122,48 +121,13 @@ export class LandScape {
 
 	setData ( o ) {
 
-		let sample, samples
-		const heightData = this.getVertices( o.heightData );
-		const divid = o.sample ? o.sample : this.sample
-		//let scale = [this.squarSize[0], this.size[1], this.squarSize[1]]
-		let scale = [this.squarSize[0], this.size[1], this.squarSize[1]]
-		//let scale = [this.squarSize[0], 1*0.0001, this.squarSize[1]]
-		//let scale = [1, 1, 1]
-
-		///console.log(this.size, divid, this.squarSize)
-		/*const decal = o.decal ? o.decal : [0,0]
-		const reverseEdge = o.reverse || false
-		const shrinkBounds = o.shrink || false
-
-		sample = new PhysX.PxHeightFieldSample()
-		samples = new PhysX.Vector_PxHeightFieldSample()
-		
-		let i = heightData.length
-
-		while(i--){
-			sample.height = heightData[i]*10000
-			if( reverseEdge ) sample.setTessFlag()
-			samples.push_back( sample )	
-		}
-
-		const desc = new PhysX.PxHeightFieldDesc();
-		desc.format = PhysX._emscripten_enum_PxHeightFieldFormatEnum_eS16_TM()
-		desc.nbColumns = divid[0]
-	    desc.nbRows = divid[1]
-		desc.samples.stride = 4
-        desc.samples.data = samples.data()
-		
-	    if( this.heightField ) this.heightField.modifySamples( decal[0], decal[1], desc, shrinkBounds );
-	    else this.heightField = root.cooking.createHeightField( desc, root.world.getPhysicsInsertionCallback() );
-	    //console.log(desc)
-	    PhysX.destroy(desc)
-    	PhysX.destroy(samples)
-		PhysX.destroy(sample)*/
-
-		//console.log(havok.HP_Shape_CreateHeightField)
+		this.getVertices( o.heightData )
+		this.divid = o.sample ? o.sample : this.sample
+		this.scale = [this.squarSize[0], this.size[1], this.squarSize[1]]
 
 		// int, int, Vector3, unsigned long
-		this.geometry = havok.HP_Shape_CreateHeightField( divid[0], divid[1], scale, heightData.byteOffset )[1]
+		this.geometry = havok.HP_Shape_CreateHeightField( this.divid[0], this.divid[1], this.scale, this.heights.byteOffset )[1]
+		console.log(this.geometry)
 		this.setMaterial( this.geometry, o )
 
 	}
@@ -221,6 +185,14 @@ export class LandScape {
 	set (o) {
 
 		if( o.heightData ){
+
+			if(this.geometry) havok.HP_Shape_Release(this.geometry)
+			this.getVertices( o.heightData )
+			this.geometry = havok.HP_Shape_CreateHeightField( this.divid[0], this.divid[1], this.scale, this.heights.byteOffset )[1]
+			this.setMaterial( this.geometry, o )
+			havok.HP_Body_SetShape( this.body, this.geometry )
+
+			console.log('want update !!!')
 
 			//this.setData(o)
 			//this.setDataTest( o )
