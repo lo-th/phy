@@ -132,48 +132,12 @@ export class LandScape {
 
 	}
 
-	setDataTest ( o ) {
-
-		/*let tmpIndex, index64
-		let heightData = o.heightData
-		const divid = o.sample ? o.sample : this.sample
-		const decal = o.decal ? o.decal : [0,0]
-		const shrinkBounds = o.shrink || false
-
-		index64 = new Uint32Array( heightData.length ) 
-		
-		let i = heightData.length, n=0, p
-
-		while(i--){
-			index64[i] = heightData[n]*10000
-			n++
-		}
-
-		const desc = new PhysX.PxHeightFieldDesc()
-		desc.format = PhysX._emscripten_enum_PxHeightFieldFormatEnum_eS16_TM()
-		desc.nbColumns = divid[0]
-	    desc.nbRows = divid[1]
-		
-		tmpIndex = Utils.malloc( index64 )
-		desc.samples.stride = index64.BYTES_PER_ELEMENT
-		desc.samples.data = tmpIndex
-
-	    if( this.heightField ) this.heightField.modifySamples( decal[0], decal[1], desc, shrinkBounds );
-	    else this.heightField = root.cooking.createHeightField( desc, root.world.getPhysicsInsertionCallback() )
-	
-	    //console.log(desc.samples.data)
-
-	    PhysX.destroy(desc);
-		Utils.free( tmpIndex )*/
-
-	}
-
 	release () {
 
 		havok.HP_World_RemoveBody(root.world, this.body); 
 		havok.HP_Body_Release(this.body)
 
-		console.log('terrain release')
+		//console.log('terrain release')
 
 		//console.log('release Terrain !!')
 		//removeActor (PxActor &actor, bool wakeOnLostTouch=true)=0
@@ -192,7 +156,7 @@ export class LandScape {
 			this.setMaterial( this.geometry, o )
 			havok.HP_Body_SetShape( this.body, this.geometry )
 
-			console.log('want update !!!')
+			
 
 			//this.setData(o)
 			//this.setDataTest( o )
