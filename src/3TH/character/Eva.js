@@ -37,7 +37,7 @@ export const Eva = {
 	haveQuality: false,
 	skinRef:'eva_00',
 	texturePath: 'assets/textures/eva/',
-	textures: ['eva00_c.jpg', 'eva01_c.jpg', 'eva02_c.jpg'],
+	textures: ['eva00_c.jpg', 'eva01_c.jpg', 'eva02_c.jpg', 'eva_l.jpg'],
 
     modelPath: 'assets/models/',
     forceModel:'eva',
@@ -49,6 +49,8 @@ export const Eva = {
         eva00:{
             type:'Physical',
             map: 'eva00_c', 
+            emissiveMap:'eva_l',
+            emissive:0xffffff,
             roughness:setting.roughness,
             metalness:setting.metalness,
             wireframe:setting.wireframe,
@@ -56,7 +58,9 @@ export const Eva = {
         },
         eva01:{
             type:'Physical',
-            map: 'eva01_c', 
+            map: 'eva01_c',
+            emissiveMap:'eva_l',
+            emissive:0xffffff,
             roughness:setting.roughness,
             metalness:setting.metalness,
             wireframe:setting.wireframe,
@@ -65,6 +69,8 @@ export const Eva = {
         eva02:{
             type:'Physical',
             map: 'eva02_c', 
+            emissiveMap:'eva_l',
+            emissive:0xffffff,
             roughness:setting.roughness,
             metalness:setting.metalness,
             wireframe:setting.wireframe,
