@@ -39,8 +39,8 @@ import { Smoke } from '../build/smoke.module.js'
 
 
 // WEBGPU test
-//import WebGPU from 'three/addons/capabilities/WebGPU.js';
-//import WebGPURenderer from 'three/addons/renderers/webgpu/WebGPURenderer.js';
+import WebGPU from 'three/addons/capabilities/WebGPU.js';
+import WebGPURenderer from 'three/addons/renderers/webgpu/WebGPURenderer.js';
 
 
 
@@ -54,7 +54,7 @@ import { Smoke } from '../build/smoke.module.js'
 *  MAIN THREE.JS / PHY
 */
 
-const activeWebGPU = true
+let activeWebGPU = false
 let isWebGPU = false
 
 let drawCall = false
@@ -199,6 +199,8 @@ export const Main = {
 
 	start: async ( o = {} ) => {
 
+		activeWebGPU = o.webGPU || false;
+
 		const gpuTier = await getGPUTier();
 	    const perf = gpuTier
 	    //console.log(perf)
@@ -335,7 +337,7 @@ window.Fluid = Fluid
 
 const init = () => {
 
-	isWebGPU = false//activeWebGPU ? WebGPU.isAvailable() : false
+	isWebGPU = activeWebGPU ? WebGPU.isAvailable() : false
  
 	if( isWebGPU ) console.log('use webgpu !!')
 
@@ -358,9 +360,8 @@ const init = () => {
 
 	// RENDERER
 
-	/*if( isWebGPU ) renderer = new WebGPURenderer()
-	else*/ 
-	renderer = new THREE.WebGLRenderer( { 
+	if( isWebGPU ) renderer = new WebGPURenderer()
+	else renderer = new THREE.WebGLRenderer( { 
 		antialias:antialias, 
 		powerPreference:powerPreference,
 		premultipliedAlpha: false,

@@ -1,4 +1,4 @@
-import { GPUIndexFormat, GPUTextureFormat, GPUFeatureName } from './constants.js';
+import { GPUIndexFormat, GPUTextureFormat, GPUFeatureName, GPULoadOp } from './constants.js';
 import WebGPUAnimation from './WebGPUAnimation.js';
 import WebGPURenderObjects from './WebGPURenderObjects.js';
 import WebGPUAttributes from './WebGPUAttributes.js';
@@ -14,70 +14,69 @@ import WebGPUTextures from './WebGPUTextures.js';
 import WebGPUBackground from './WebGPUBackground.js';
 import WebGPUNodes from './nodes/WebGPUNodes.js';
 import WebGPUUtils from './WebGPUUtils.js';
-
 import { Frustum, Matrix4, Vector3, Color, SRGBColorSpace, NoToneMapping, DepthFormat } from 'three';
 
 //console.info( 'THREE.WebGPURenderer: Modified Matrix4.makePerspective() and Matrix4.makeOrtographic() to work with WebGPU, see https://github.com/mrdoob/three.js/issues/20276.' );
 const changeMatrix = () => {
-Matrix4.prototype.makePerspective = function ( left, right, top, bottom, near, far ) {
+	Matrix4.prototype.makePerspective = function ( left, right, top, bottom, near, far ) {
 
-	const te = this.elements;
-	const x = 2 * near / ( right - left );
-	const y = 2 * near / ( top - bottom );
+		const te = this.elements;
+		const x = 2 * near / ( right - left );
+		const y = 2 * near / ( top - bottom );
 
-	const a = ( right + left ) / ( right - left );
-	const b = ( top + bottom ) / ( top - bottom );
-	const c = - far / ( far - near );
-	const d = - far * near / ( far - near );
+		const a = ( right + left ) / ( right - left );
+		const b = ( top + bottom ) / ( top - bottom );
+		const c = - far / ( far - near );
+		const d = - far * near / ( far - near );
 
-	te[ 0 ] = x;	te[ 4 ] = 0;	te[ 8 ] = a;	te[ 12 ] = 0;
-	te[ 1 ] = 0;	te[ 5 ] = y;	te[ 9 ] = b;	te[ 13 ] = 0;
-	te[ 2 ] = 0;	te[ 6 ] = 0;	te[ 10 ] = c;	te[ 14 ] = d;
-	te[ 3 ] = 0;	te[ 7 ] = 0;	te[ 11 ] = - 1;	te[ 15 ] = 0;
+		te[ 0 ] = x;	te[ 4 ] = 0;	te[ 8 ] = a;	te[ 12 ] = 0;
+		te[ 1 ] = 0;	te[ 5 ] = y;	te[ 9 ] = b;	te[ 13 ] = 0;
+		te[ 2 ] = 0;	te[ 6 ] = 0;	te[ 10 ] = c;	te[ 14 ] = d;
+		te[ 3 ] = 0;	te[ 7 ] = 0;	te[ 11 ] = - 1;	te[ 15 ] = 0;
 
-	return this;
+		return this;
 
-};
+	};
 
-Matrix4.prototype.makeOrthographic = function ( left, right, top, bottom, near, far ) {
+	Matrix4.prototype.makeOrthographic = function ( left, right, top, bottom, near, far ) {
 
-	const te = this.elements;
-	const w = 1.0 / ( right - left );
-	const h = 1.0 / ( top - bottom );
-	const p = 1.0 / ( far - near );
+		const te = this.elements;
+		const w = 1.0 / ( right - left );
+		const h = 1.0 / ( top - bottom );
+		const p = 1.0 / ( far - near );
 
-	const x = ( right + left ) * w;
-	const y = ( top + bottom ) * h;
-	const z = near * p;
+		const x = ( right + left ) * w;
+		const y = ( top + bottom ) * h;
+		const z = near * p;
 
-	te[ 0 ] = 2 * w;	te[ 4 ] = 0;		te[ 8 ] = 0;		te[ 12 ] = - x;
-	te[ 1 ] = 0;		te[ 5 ] = 2 * h;	te[ 9 ] = 0;		te[ 13 ] = - y;
-	te[ 2 ] = 0;		te[ 6 ] = 0;		te[ 10 ] = - 1 * p;	te[ 14 ] = - z;
-	te[ 3 ] = 0;		te[ 7 ] = 0;		te[ 11 ] = 0;		te[ 15 ] = 1;
+		te[ 0 ] = 2 * w;	te[ 4 ] = 0;		te[ 8 ] = 0;		te[ 12 ] = - x;
+		te[ 1 ] = 0;		te[ 5 ] = 2 * h;	te[ 9 ] = 0;		te[ 13 ] = - y;
+		te[ 2 ] = 0;		te[ 6 ] = 0;		te[ 10 ] = - 1 * p;	te[ 14 ] = - z;
+		te[ 3 ] = 0;		te[ 7 ] = 0;		te[ 11 ] = 0;		te[ 15 ] = 1;
 
-	return this;
+		return this;
 
-};
+	};
 
-Frustum.prototype.setFromProjectionMatrix = function ( m ) {
+	Frustum.prototype.setFromProjectionMatrix = function ( m ) {
 
-	const planes = this.planes;
-	const me = m.elements;
-	const me0 = me[ 0 ], me1 = me[ 1 ], me2 = me[ 2 ], me3 = me[ 3 ];
-	const me4 = me[ 4 ], me5 = me[ 5 ], me6 = me[ 6 ], me7 = me[ 7 ];
-	const me8 = me[ 8 ], me9 = me[ 9 ], me10 = me[ 10 ], me11 = me[ 11 ];
-	const me12 = me[ 12 ], me13 = me[ 13 ], me14 = me[ 14 ], me15 = me[ 15 ];
+		const planes = this.planes;
+		const me = m.elements;
+		const me0 = me[ 0 ], me1 = me[ 1 ], me2 = me[ 2 ], me3 = me[ 3 ];
+		const me4 = me[ 4 ], me5 = me[ 5 ], me6 = me[ 6 ], me7 = me[ 7 ];
+		const me8 = me[ 8 ], me9 = me[ 9 ], me10 = me[ 10 ], me11 = me[ 11 ];
+		const me12 = me[ 12 ], me13 = me[ 13 ], me14 = me[ 14 ], me15 = me[ 15 ];
 
-	planes[ 0 ].setComponents( me3 - me0, me7 - me4, me11 - me8, me15 - me12 ).normalize();
-	planes[ 1 ].setComponents( me3 + me0, me7 + me4, me11 + me8, me15 + me12 ).normalize();
-	planes[ 2 ].setComponents( me3 + me1, me7 + me5, me11 + me9, me15 + me13 ).normalize();
-	planes[ 3 ].setComponents( me3 - me1, me7 - me5, me11 - me9, me15 - me13 ).normalize();
-	planes[ 4 ].setComponents( me3 - me2, me7 - me6, me11 - me10, me15 - me14 ).normalize();
-	planes[ 5 ].setComponents( me2, me6, me10, me14 ).normalize();
+		planes[ 0 ].setComponents( me3 - me0, me7 - me4, me11 - me8, me15 - me12 ).normalize();
+		planes[ 1 ].setComponents( me3 + me0, me7 + me4, me11 + me8, me15 + me12 ).normalize();
+		planes[ 2 ].setComponents( me3 + me1, me7 + me5, me11 + me9, me15 + me13 ).normalize();
+		planes[ 3 ].setComponents( me3 - me1, me7 - me5, me11 - me9, me15 - me13 ).normalize();
+		planes[ 4 ].setComponents( me3 - me2, me7 - me6, me11 - me10, me15 - me14 ).normalize();
+		planes[ 5 ].setComponents( me2, me6, me10, me14 ).normalize();
 
-	return this;
+		return this;
 
-};
+	};
 }
 const _frustum = new Frustum();
 const _projScreenMatrix = new Matrix4();
@@ -142,7 +141,6 @@ class WebGPURenderer {
 
 		this._currentRenderState = null;
 
-		this._currentRenderList = null;
 		this._opaqueSort = null;
 		this._transparentSort = null;
 
@@ -154,6 +152,7 @@ class WebGPURenderer {
 		this._renderTarget = null;
 
 		this._initialized = false;
+		this._initPromise = null;
 
 		// some parameters require default values other than "undefined"
 
@@ -187,79 +186,90 @@ class WebGPURenderer {
 
 		}
 
-		const parameters = this._parameters;
+		if ( this._initPromise !== null ) {
 
-		const adapterOptions = {
-			powerPreference: parameters.powerPreference
-		};
-
-		const adapter = await navigator.gpu.requestAdapter( adapterOptions );
-
-		if ( adapter === null ) {
-
-			throw new Error( 'WebGPURenderer: Unable to create WebGPU adapter.' );
+			return this._initPromise;
 
 		}
 
-		// feature support
+		this._initPromise = new Promise( async ( resolve, reject ) => {
 
-		const features = Object.values( GPUFeatureName );
+			const parameters = this._parameters;
 
-		const supportedFeatures = [];
+			const adapterOptions = {
+				powerPreference: parameters.powerPreference
+			};
 
-		for ( const name of features ) {
+			const adapter = await navigator.gpu.requestAdapter( adapterOptions );
 
-			if ( adapter.features.has( name ) ) {
+			if ( adapter === null ) {
 
-				supportedFeatures.push( name );
+				reject( new Error( 'WebGPURenderer: Unable to create WebGPU adapter.' ) );
+				return;
 
 			}
 
-		}
+			// feature support
 
-		const deviceDescriptor = {
-			requiredFeatures: supportedFeatures,
-			requiredLimits: parameters.requiredLimits
-		};
+			const features = Object.values( GPUFeatureName );
 
-		const device = await adapter.requestDevice( deviceDescriptor );
+			const supportedFeatures = [];
 
-		const context = ( parameters.context !== undefined ) ? parameters.context : this.domElement.getContext( 'webgpu' );
+			for ( const name of features ) {
 
-		context.configure( {
-			device,
-			format: GPUTextureFormat.BGRA8Unorm, // this is the only valid context format right now (r121)
-			alphaMode: 'premultiplied'
+				if ( adapter.features.has( name ) ) {
+
+					supportedFeatures.push( name );
+
+				}
+
+			}
+
+			const deviceDescriptor = {
+				requiredFeatures: supportedFeatures,
+				requiredLimits: parameters.requiredLimits
+			};
+
+			const device = await adapter.requestDevice( deviceDescriptor );
+
+			const context = ( parameters.context !== undefined ) ? parameters.context : this.domElement.getContext( 'webgpu' );
+
+			this._adapter = adapter;
+			this._device = device;
+			this._context = context;
+
+			this._configureContext();
+
+			this._info = new WebGPUInfo();
+			this._properties = new WebGPUProperties();
+			this._attributes = new WebGPUAttributes( device );
+			this._geometries = new WebGPUGeometries( this._attributes, this._properties, this._info );
+			this._textures = new WebGPUTextures( device, this._properties, this._info );
+			this._utils = new WebGPUUtils( this );
+			this._nodes = new WebGPUNodes( this, this._properties );
+			this._objects = new WebGPURenderObjects( this, this._nodes, this._geometries, this._info );
+			this._computePipelines = new WebGPUComputePipelines( device, this._nodes );
+			this._renderPipelines = new WebGPURenderPipelines( device, this._nodes, this._utils );
+			this._bindings = this._renderPipelines.bindings = new WebGPUBindings( device, this._info, this._properties, this._textures, this._renderPipelines, this._computePipelines, this._attributes, this._nodes );
+			this._renderLists = new WebGPURenderLists();
+			this._renderStates = new WebGPURenderStates();
+			this._background = new WebGPUBackground( this, this._properties );
+
+			//
+
+			this._setupColorBuffer();
+			this._setupDepthBuffer();
+
+			this._animation.setNodes( this._nodes );
+			this._animation.start();
+
+			this._initialized = true;
+
+			resolve();
+
 		} );
 
-		this._adapter = adapter;
-		this._device = device;
-		this._context = context;
-
-		this._info = new WebGPUInfo();
-		this._properties = new WebGPUProperties();
-		this._attributes = new WebGPUAttributes( device );
-		this._geometries = new WebGPUGeometries( this._attributes, this._properties, this._info );
-		this._textures = new WebGPUTextures( device, this._properties, this._info );
-		this._utils = new WebGPUUtils( this );
-		this._nodes = new WebGPUNodes( this, this._properties );
-		this._objects = new WebGPURenderObjects( this, this._nodes, this._geometries, this._info );
-		this._computePipelines = new WebGPUComputePipelines( device, this._nodes );
-		this._renderPipelines = new WebGPURenderPipelines( device, this._nodes, this._utils );
-		this._bindings = this._renderPipelines.bindings = new WebGPUBindings( device, this._info, this._properties, this._textures, this._renderPipelines, this._computePipelines, this._attributes, this._nodes );
-		this._renderLists = new WebGPURenderLists();
-		this._renderStates = new WebGPURenderStates();
-		this._background = new WebGPUBackground( this, this._properties );
-
-		//
-
-		this._setupColorBuffer();
-		this._setupDepthBuffer();
-
-		this._animation.setNodes( this._nodes );
-		this._animation.start();
-
-		this._initialized = true;
+		return this._initPromise;
 
 	}
 
@@ -267,12 +277,23 @@ class WebGPURenderer {
 
 		if ( this._initialized === false ) await this.init();
 
-		//
+		// preserve render tree
 
 		const nodeFrame = this._nodes.nodeFrame;
 
 		const previousRenderId = nodeFrame.renderId;
+		const previousRenderState = this._currentRenderState;
+
+		//
+
+		const renderState = this._renderStates.get( scene, camera );
+		const renderTarget = this._renderTarget;
+
+		this._currentRenderState = renderState;
+
 		nodeFrame.renderId ++;
+
+		//
 
 		if ( this._animation.isAnimating === false ) nodeFrame.update();
 
@@ -285,25 +306,22 @@ class WebGPURenderer {
 		_projScreenMatrix.multiplyMatrices( camera.projectionMatrix, camera.matrixWorldInverse );
 		_frustum.setFromProjectionMatrix( _projScreenMatrix );
 
-		this._currentRenderList = this._renderLists.get( scene, camera );
-		this._currentRenderList.init();
+		const renderList = this._renderLists.get( scene, camera );
+		renderList.init();
 
-		this._currentRenderState = this._renderStates.get( scene, camera );
-		this._currentRenderState.init();
+		this._projectObject( scene, camera, 0, renderList );
 
-		this._projectObject( scene, camera, 0 );
-
-		this._currentRenderList.finish();
+		renderList.finish();
 
 		if ( this.sortObjects === true ) {
 
-			this._currentRenderList.sort( this._opaqueSort, this._transparentSort );
+			renderList.sort( this._opaqueSort, this._transparentSort );
 
 		}
 
 		// prepare render pass descriptor
 
-		const renderPassDescriptor = {
+		renderState.descriptorGPU = {
 			colorAttachments: [ {
 				view: null
 			} ],
@@ -312,15 +330,8 @@ class WebGPURenderer {
 			}
 		};
 
-		const renderAttachments = {
-			depth: true,
-			stencil: true
-		};
-
-		const colorAttachment = renderPassDescriptor.colorAttachments[ 0 ];
-		const depthStencilAttachment = renderPassDescriptor.depthStencilAttachment;
-
-		const renderTarget = this._renderTarget;
+		const colorAttachment = renderState.descriptorGPU.colorAttachments[ 0 ];
+		const depthStencilAttachment = renderState.descriptorGPU.depthStencilAttachment;
 
 		if ( renderTarget !== null ) {
 
@@ -333,7 +344,7 @@ class WebGPURenderer {
 			colorAttachment.view = renderTargetProperties.colorTextureGPU.createView();
 			depthStencilAttachment.view = renderTargetProperties.depthTextureGPU.createView();
 
-			renderAttachments.stencil = renderTarget.depthTexture ? renderTarget.depthTexture.format !== DepthFormat : true;
+			renderState.stencil = renderTarget.depthTexture ? renderTarget.depthTexture.format !== DepthFormat : true;
 
 		} else {
 
@@ -362,13 +373,14 @@ class WebGPURenderer {
 
 		//
 
-		this._background.update( this._currentRenderList, scene, renderPassDescriptor, renderAttachments );
+		this._background.update( scene, renderList, renderState );
 
 		// start render pass
 
 		const device = this._device;
-		const cmdEncoder = device.createCommandEncoder( {} );
-		const passEncoder = cmdEncoder.beginRenderPass( renderPassDescriptor );
+
+		renderState.encoderGPU = device.createCommandEncoder( {} );
+		renderState.currentPassGPU = renderState.encoderGPU.beginRenderPass( renderState.descriptorGPU );
 
 		// global rasterization settings for all renderable objects
 
@@ -379,7 +391,7 @@ class WebGPURenderer {
 			const width = Math.floor( vp.width * this._pixelRatio );
 			const height = Math.floor( vp.height * this._pixelRatio );
 
-			passEncoder.setViewport( vp.x, vp.y, width, height, vp.minDepth, vp.maxDepth );
+			renderState.currentPassGPU.setViewport( vp.x, vp.y, width, height, vp.minDepth, vp.maxDepth );
 
 		}
 
@@ -390,28 +402,29 @@ class WebGPURenderer {
 			const width = Math.floor( sc.width * this._pixelRatio );
 			const height = Math.floor( sc.height * this._pixelRatio );
 
-			passEncoder.setScissorRect( sc.x, sc.y, width, height );
+			renderState.currentPassGPU.setScissorRect( sc.x, sc.y, width, height );
 
 		}
 
-		// lights node
-
-		const lightsNode = this._currentRenderState.getLightsNode();
-
 		// process render lists
 
-		const opaqueObjects = this._currentRenderList.opaque;
-		const transparentObjects = this._currentRenderList.transparent;
+		const opaqueObjects = renderList.opaque;
+		const transparentObjects = renderList.transparent;
+		const lightsNode = renderList.lightsNode;
 
-		if ( opaqueObjects.length > 0 ) this._renderObjects( opaqueObjects, camera, scene, lightsNode, passEncoder );
-		if ( transparentObjects.length > 0 ) this._renderObjects( transparentObjects, camera, scene, lightsNode, passEncoder );
+		if ( opaqueObjects.length > 0 ) this._renderObjects( opaqueObjects, camera, scene, lightsNode, renderState );
+		if ( transparentObjects.length > 0 ) this._renderObjects( transparentObjects, camera, scene, lightsNode, renderState );
 
 		// finish render pass
 
-		passEncoder.end();
-		device.queue.submit( [ cmdEncoder.finish() ] );
+		renderState.currentPassGPU.end();
+
+		device.queue.submit( [ renderState.encoderGPU.finish() ] );
+
+		// restore render tree
 
 		nodeFrame.renderId = previousRenderId;
+		this._currentRenderState = previousRenderState;
 
 	}
 
@@ -543,6 +556,42 @@ class WebGPURenderer {
 			};
 
 		}
+
+	}
+
+	copyFramebufferToRenderTarget( renderTarget ) {
+
+		const renderState = this._currentRenderState;
+		const { encoderGPU, descriptorGPU } = renderState;
+
+		const texture = renderTarget.texture;
+		texture.internalFormat = GPUTextureFormat.BGRA8Unorm;
+
+		this._textures.initRenderTarget( renderTarget );
+
+		const sourceGPU = this._context.getCurrentTexture();
+		const destinationGPU = this._textures.getTextureGPU( texture );
+
+		renderState.currentPassGPU.end();
+
+		encoderGPU.copyTextureToTexture(
+			{
+			  texture: sourceGPU
+			},
+			{
+			  texture: destinationGPU
+			},
+			[
+				texture.image.width,
+				texture.image.height
+			]
+		);
+
+		descriptorGPU.colorAttachments[ 0 ].loadOp = GPULoadOp.Load;
+		if ( renderState.depth ) descriptorGPU.depthStencilAttachment.depthLoadOp = GPULoadOp.Load;
+		if ( renderState.stencil ) descriptorGPU.depthStencilAttachment.stencilLoadOp = GPULoadOp.Load;
+
+		renderState.currentPassGPU = encoderGPU.beginRenderPass( descriptorGPU );
 
 	}
 
@@ -735,10 +784,7 @@ class WebGPURenderer {
 
 	}
 
-	_projectObject( object, camera, groupOrder ) {
-
-		const currentRenderList = this._currentRenderList;
-		const currentRenderState = this._currentRenderState;
+	_projectObject( object, camera, groupOrder, renderList ) {
 
 		if ( object.visible === false ) return;
 
@@ -756,13 +802,7 @@ class WebGPURenderer {
 
 			} else if ( object.isLight ) {
 
-				currentRenderState.pushLight( object );
-
-				if ( object.castShadow ) {
-
-					//currentRenderState.pushShadow( object );
-
-				}
+				renderList.pushLight( object );
 
 			} else if ( object.isSprite ) {
 
@@ -779,7 +819,7 @@ class WebGPURenderer {
 
 					if ( material.visible ) {
 
-						currentRenderList.push( object, geometry, material, groupOrder, _vector3.z, null );
+						renderList.push( object, geometry, material, groupOrder, _vector3.z, null );
 
 					}
 
@@ -793,14 +833,19 @@ class WebGPURenderer {
 
 				if ( ! object.frustumCulled || _frustum.intersectsObject( object ) ) {
 
-					if ( this.sortObjects === true ) {
-
-						_vector3.setFromMatrixPosition( object.matrixWorld ).applyMatrix4( _projScreenMatrix );
-
-					}
-
 					const geometry = object.geometry;
 					const material = object.material;
+
+					if ( this.sortObjects === true ) {
+
+						if ( geometry.boundingSphere === null ) geometry.computeBoundingSphere();
+
+						_vector3
+							.copy( geometry.boundingSphere.center )
+							.applyMatrix4( object.matrixWorld )
+							.applyMatrix4( _projScreenMatrix );
+
+					}
 
 					if ( Array.isArray( material ) ) {
 
@@ -813,7 +858,7 @@ class WebGPURenderer {
 
 							if ( groupMaterial && groupMaterial.visible ) {
 
-								currentRenderList.push( object, geometry, groupMaterial, groupOrder, _vector3.z, group );
+								renderList.push( object, geometry, groupMaterial, groupOrder, _vector3.z, group );
 
 							}
 
@@ -821,7 +866,7 @@ class WebGPURenderer {
 
 					} else if ( material.visible ) {
 
-						currentRenderList.push( object, geometry, material, groupOrder, _vector3.z, null );
+						renderList.push( object, geometry, material, groupOrder, _vector3.z, null );
 
 					}
 
@@ -835,13 +880,13 @@ class WebGPURenderer {
 
 		for ( let i = 0, l = children.length; i < l; i ++ ) {
 
-			this._projectObject( children[ i ], camera, groupOrder );
+			this._projectObject( children[ i ], camera, groupOrder, renderList );
 
 		}
 
 	}
 
-	_renderObjects( renderList, camera, scene, lightsNode, passEncoder ) {
+	_renderObjects( renderList, camera, scene, lightsNode ) {
 
 		// process renderable objects
 
@@ -868,9 +913,9 @@ class WebGPURenderer {
 						const minDepth = ( vp.minDepth === undefined ) ? 0 : vp.minDepth;
 						const maxDepth = ( vp.maxDepth === undefined ) ? 1 : vp.maxDepth;
 
-						passEncoder.setViewport( vp.x, vp.y, vp.width, vp.height, minDepth, maxDepth );
+						this._currentRenderState.currentPassGPU.setViewport( vp.x, vp.y, vp.width, vp.height, minDepth, maxDepth );
 
-						this._renderObject( object, scene, camera2, geometry, material, group, lightsNode, passEncoder );
+						this._renderObject( object, scene, camera2, geometry, material, group, lightsNode );
 
 					}
 
@@ -878,7 +923,7 @@ class WebGPURenderer {
 
 			} else {
 
-				this._renderObject( object, scene, camera, geometry, material, group, lightsNode, passEncoder );
+				this._renderObject( object, scene, camera, geometry, material, group, lightsNode );
 
 			}
 
@@ -886,9 +931,7 @@ class WebGPURenderer {
 
 	}
 
-	_renderObject( object, scene, camera, geometry, material, group, lightsNode, passEncoder ) {
-
-		const info = this._info;
+	_renderObject( object, scene, camera, geometry, material, group, lightsNode ) {
 
 		material = scene.overrideMaterial !== null ? scene.overrideMaterial : material;
 
@@ -903,6 +946,11 @@ class WebGPURenderer {
 		//
 
 		this._nodes.updateBefore( renderObject );
+
+		//
+
+		const passEncoder = this._currentRenderState.currentPassGPU;
+		const info = this._info;
 
 		//
 
@@ -1057,7 +1105,7 @@ class WebGPURenderer {
 				},
 				sampleCount: this._parameters.sampleCount,
 				format: GPUTextureFormat.BGRA8Unorm,
-				usage: GPUTextureUsage.RENDER_ATTACHMENT
+				usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.COPY_SRC
 			} );
 
 		}
@@ -1081,7 +1129,7 @@ class WebGPURenderer {
 				},
 				sampleCount: this._parameters.sampleCount,
 				format: GPUTextureFormat.Depth24PlusStencil8,
-				usage: GPUTextureUsage.RENDER_ATTACHMENT
+				usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.COPY_SRC
 			} );
 
 		}
@@ -1097,7 +1145,7 @@ class WebGPURenderer {
 			this._context.configure( {
 				device: device,
 				format: GPUTextureFormat.BGRA8Unorm,
-				usage: GPUTextureUsage.RENDER_ATTACHMENT,
+				usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.COPY_SRC,
 				alphaMode: 'premultiplied'
 			} );
 

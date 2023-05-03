@@ -1,6 +1,6 @@
 import { GPULoadOp, GPUStoreOp } from './constants.js';
 import { Color, Mesh, BoxGeometry, BackSide } from 'three';
-import { context, positionWorldDirection, MeshBasicNodeMaterial } from 'three/nodes';
+import { context, positionWorldDirection, MeshBasicNodeMaterial } from '../../nodes/Nodes.js';
 
 let _clearAlpha;
 const _clearColor = new Color();
@@ -25,7 +25,7 @@ class WebGPUBackground {
 
 	}
 
-	update( renderList, scene, renderPassDescriptor, renderAttachments ) {
+	update( scene, renderList, renderState ) {
 
 		const renderer = this.renderer;
 		const background = ( scene.isScene === true ) ? scene.backgroundNode || this.properties.get( scene ).backgroundNode || scene.background : null;
@@ -72,10 +72,13 @@ class WebGPUBackground {
 				nodeMaterial.fog = false;
 
 				this.boxMesh = boxMesh = new Mesh( new BoxGeometry( 1, 1, 1 ), nodeMaterial );
+				boxMesh.frustumCulled = false;
 
 				boxMesh.onBeforeRender = function ( renderer, scene, camera ) {
 
-					this.matrixWorld.copyPosition( camera.matrixWorld );
+					const scale = camera.far;
+
+					this.matrixWorld.makeScale( scale, scale, scale ).copyPosition( camera.matrixWorld );
 
 				};
 
@@ -83,13 +86,13 @@ class WebGPUBackground {
 
 			const backgroundCacheKey = backgroundNode.getCacheKey();
 
-			if ( sceneProperties.backgroundMeshCacheKey !== backgroundCacheKey ) {
+			if ( sceneProperties.backgroundCacheKey !== backgroundCacheKey ) {
 
 				this.boxMeshNode.node = backgroundNode;
 
 				boxMesh.material.needsUpdate = true;
 
-				sceneProperties.backgroundMeshCacheKey = backgroundCacheKey;
+				sceneProperties.backgroundCacheKey = backgroundCacheKey;
 
 			}
 
@@ -103,8 +106,8 @@ class WebGPUBackground {
 
 		// configure render pass descriptor
 
-		const colorAttachment = renderPassDescriptor.colorAttachments[ 0 ];
-		const depthStencilAttachment = renderPassDescriptor.depthStencilAttachment;
+		const colorAttachment = renderState.descriptorGPU.colorAttachments[ 0 ];
+		const depthStencilAttachment = renderState.descriptorGPU.depthStencilAttachment;
 
 		if ( renderer.autoClear === true || forceClear === true ) {
 
@@ -123,7 +126,7 @@ class WebGPUBackground {
 
 			}
 
-			if ( renderAttachments.depth ) {
+			if ( renderState.depth ) {
 
 				if ( renderer.autoClearDepth === true ) {
 
@@ -140,7 +143,7 @@ class WebGPUBackground {
 
 			}
 
-			if ( renderAttachments.stencil ) {
+			if ( renderState.stencil ) {
 
 				if ( renderer.autoClearStencil === true ) {
 
@@ -162,14 +165,14 @@ class WebGPUBackground {
 			colorAttachment.loadOp = GPULoadOp.Load;
 			colorAttachment.storeOp = GPUStoreOp.Store;
 
-			if ( renderAttachments.depth ) {
+			if ( renderState.depth ) {
 
 				depthStencilAttachment.depthLoadOp = GPULoadOp.Load;
 				depthStencilAttachment.depthStoreOp = GPUStoreOp.Store;
 
 			}
 
-			if ( renderAttachments.stencil ) {
+			if ( renderState.stencil ) {
 
 				depthStencilAttachment.stencilLoadOp = GPULoadOp.Load;
 				depthStencilAttachment.stencilStoreOp = GPUStoreOp.Store;

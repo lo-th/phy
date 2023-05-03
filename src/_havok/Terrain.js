@@ -127,7 +127,6 @@ export class LandScape {
 
 		// int, int, Vector3, unsigned long
 		this.geometry = havok.HP_Shape_CreateHeightField( this.divid[0], this.divid[1], this.scale, this.heights.byteOffset )[1]
-		console.log(this.geometry)
 		this.setMaterial( this.geometry, o )
 
 	}

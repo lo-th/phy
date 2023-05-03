@@ -45,6 +45,7 @@ export { default as ConvertNode } from './utils/ConvertNode.js';
 export { default as DiscardNode, discard } from './utils/DiscardNode.js';
 export { default as EquirectUVNode, equirectUV } from './utils/EquirectUVNode.js';
 export { default as JoinNode } from './utils/JoinNode.js';
+export { default as LoopNode, loop } from './utils/LoopNode.js';
 export { default as MatcapUVNode, matcapUV } from './utils/MatcapUVNode.js';
 export { default as MaxMipLevelNode, maxMipLevel } from './utils/MaxMipLevelNode.js';
 export { default as OscNode, oscSine, oscSquare, oscTriangle, oscSawtooth } from './utils/OscNode.js';
@@ -93,6 +94,8 @@ export { default as NormalMapNode, normalMap, TBNViewMatrix } from './display/No
 export { default as PosterizeNode, posterize } from './display/PosterizeNode.js';
 export { default as ToneMappingNode, toneMapping } from './display/ToneMappingNode.js';
 export { default as ViewportNode, viewportCoordinate, viewportResolution, viewportTopLeft, viewportBottomLeft, viewportTopRight, viewportBottomRight } from './display/ViewportNode.js';
+export { default as ViewportTextureNode, viewportTexture } from './display/ViewportTextureNode.js';
+export { default as ViewportSharedTextureNode, viewportSharedTexture } from './display/ViewportSharedTextureNode.js';
 
 // code
 export { default as ExpressionNode, expression } from './code/ExpressionNode.js';

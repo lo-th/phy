@@ -12,7 +12,7 @@ import { getVectorLength, getStrideLength } from '../WebGPUBufferUtils.js';
 
 import WebGPURenderTarget from '../WebGPURenderTarget.js';
 
-import { NodeBuilder, WGSLNodeParser, CodeNode, NodeMaterial } from 'three/nodes';
+import { NodeBuilder, WGSLNodeParser, CodeNode, NodeMaterial } from '../../../nodes/Nodes.js';
 
 const gpuShaderStageLib = {
 	'vertex': GPUShaderStage.VERTEX,
@@ -465,6 +465,12 @@ class WebGPUNodeBuilder extends NodeBuilder {
 
 	}
 
+	getVar( type, name ) {
+
+		return `var ${ name } : ${ this.getType( type ) }`;
+
+	}
+
 	getVars( shaderStage ) {
 
 		const snippets = [];
@@ -472,10 +478,7 @@ class WebGPUNodeBuilder extends NodeBuilder {
 
 		for ( const variable of vars ) {
 
-			const name = variable.name;
-			const type = this.getType( variable.type );
-
-			snippets.push( `\tvar ${name} : ${type};` );
+			snippets.push( `\t${ this.getVar( variable.type, variable.name ) };` );
 
 		}
 

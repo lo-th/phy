@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charSet="utf-8"/>
+        <meta name="language" content="english"/>
+        <meta http-equiv="content-type" content="text/html"/>
+        <meta name="author" content="lo-th"/>
+        <meta name="designer" content="lo-th"/>
+        <meta name="publisher" content="lo-th"/>
+		<title>PHY</title>
+		<meta name="description" content="Physics engine for three.js"/>
+		<meta name="keywords" content="Physics,Ammo,Physx,Oimo,Digital Artist,Visual Artist,Creative Developer,Real Time,Creative Coding,Javascript,ThreeJS,Three.js"/>
+		<meta name="robots" content="index"/>
+		
+		<meta name="distribution" content="web"/>
+        <meta property="og:title" content="PHY"/>
+        <meta property="og:type" content="site"/>
+        <meta property="og:url" content="https://lo-th.github.io/phy/"/>
+        <meta property="og:image" content="https://lo-th.github.io/phy/assets/textures/logo_4.png"/>
+        <meta property="og:site_name" content="Physics engine for three.js"/>
+        <meta property="og:description" content="Creative developer and visual artist working with real-time physics engines"/>
+
+		<!--<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">-->
+		<meta name="viewport" content="width=device-width, minimum-scale=1, initial-scale=1.0"/>
+		<link rel="shortcut icon" href="favicon.ico">
+
+        <!--
+        <link rel="preload" href="/assets/fonts/Mulish-700-Bold.woff2" as="font" type="font/woff2" crossorigin>
+        <link rel="preload" href="/assets/fonts/Mulish-500-Medium.woff2" as="font" type="font/woff2" crossorigin>
+		<meta name="sharedArrayBuffer" description="using cross-orgiin-isolation in the web browser">
+		<meta http-equiv="Pragma" content="no-cache">
+	    -->
+        <link rel="stylesheet" href="index.css">
+		
+	</head>
+	<body style="background-color:#000; margin:0; padding:0; overflow:hidden;">
+		<script async src="https://unpkg.com/es-module-shims@1.3.6/dist/es-module-shims.js"></script>
+		<script type="importmap">{ "imports": { 
+			"three": "./src/libs/three.module.js",
+			"three/addons/": "./src/jsm/",
+			"three/nodes": "./src/jsm/nodes/Nodes.js",
+			"tween": "./src/libs/tween.esm.js", 
+			"uil": "./src/libs/uil.module.js"
+		}}</script>
+		<script type="module">
+
+		    import { Main } from './src/Main.js';
+			Main.start({ webGPU:true });
+
+		</script>
+	</body>
+</html>
