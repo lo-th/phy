@@ -22,6 +22,7 @@ import { Breaker } from './Breaker.js';
 import { MouseTool } from './MouseTool.js';
 
 import { Pool } from '../3TH/Pool.js';
+import { sk } from '../3TH/character/SkeletonExtand.js'
 
 /** __
 *    _)_|_|_

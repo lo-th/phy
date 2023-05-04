@@ -1,4 +1,4 @@
-import { Color, Euler, Quaternion, Matrix4, Vector3, Box3Helper, CylinderGeometry, SphereGeometry, BoxGeometry, PlaneGeometry, MeshBasicMaterial, LineBasicMaterial, MeshPhysicalMaterial, DoubleSide, MeshStandardMaterial, Line, BufferGeometry, Float32BufferAttribute, EventDispatcher, MathUtils, Layers, InstancedMesh, InstancedBufferAttribute, DynamicDrawUsage, TrianglesDrawMode, TriangleFanDrawMode, TriangleStripDrawMode, BufferAttribute, CircleGeometry, Box3, Vector2, Line3, Plane, Triangle, Mesh, LineSegments, NearestFilter, NearestMipmapNearestFilter, NearestMipmapLinearFilter, LinearFilter, LinearMipmapNearestFilter, LinearMipmapLinearFilter, ClampToEdgeWrapping, RepeatWrapping, MirroredRepeatWrapping, PropertyBinding, InterpolateLinear, Source, LinearEncoding, RGBAFormat, InterpolateDiscrete, Scene, sRGBEncoding, Loader, LoaderUtils, FileLoader, SpotLight, PointLight, DirectionalLight, SRGBColorSpace, Object3D, TextureLoader, ImageBitmapLoader, InterleavedBuffer, InterleavedBufferAttribute, PointsMaterial, Material, SkinnedMesh, LineLoop, Points, Group, PerspectiveCamera, OrthographicCamera, Skeleton, AnimationClip, Bone, FrontSide, Texture, VectorKeyframeTrack, QuaternionKeyframeTrack, NumberKeyframeTrack, Sphere, Interpolant, LinearSRGBColorSpace, Vector4, Curve, MeshPhongMaterial, MeshLambertMaterial, EquirectangularReflectionMapping, AmbientLight, Uint16BufferAttribute, Matrix3, DataTextureLoader, HalfFloatType, FloatType, DataUtils, NoColorSpace, AnimationMixer, AdditiveBlending, CustomBlending, ZeroFactor, SrcAlphaFactor, SkeletonHelper, Raycaster } from 'three';
+import { Color, Euler, Quaternion, Matrix4, Vector3, Box3Helper, CylinderGeometry, SphereGeometry, BoxGeometry, PlaneGeometry, MeshBasicMaterial, LineBasicMaterial, MeshPhysicalMaterial, DoubleSide, MeshStandardMaterial, Line, BufferGeometry, Float32BufferAttribute, EventDispatcher, MathUtils, Layers, InstancedMesh, InstancedBufferAttribute, DynamicDrawUsage, TrianglesDrawMode, TriangleFanDrawMode, TriangleStripDrawMode, BufferAttribute, CircleGeometry, Box3, Vector2, Line3, Plane, Triangle, Mesh, LineSegments, NearestFilter, NearestMipmapNearestFilter, NearestMipmapLinearFilter, LinearFilter, LinearMipmapNearestFilter, LinearMipmapLinearFilter, ClampToEdgeWrapping, RepeatWrapping, MirroredRepeatWrapping, PropertyBinding, InterpolateLinear, Source, LinearEncoding, RGBAFormat, InterpolateDiscrete, Scene, sRGBEncoding, Loader, LoaderUtils, FileLoader, SpotLight, PointLight, DirectionalLight, SRGBColorSpace, Object3D, TextureLoader, ImageBitmapLoader, InterleavedBuffer, InterleavedBufferAttribute, PointsMaterial, Material, SkinnedMesh, LineLoop, Points, Group, PerspectiveCamera, OrthographicCamera, Skeleton, AnimationClip, Bone, FrontSide, Texture, VectorKeyframeTrack, QuaternionKeyframeTrack, NumberKeyframeTrack, Sphere, Interpolant, LinearSRGBColorSpace, Vector4, Curve, MeshPhongMaterial, MeshLambertMaterial, EquirectangularReflectionMapping, AmbientLight, Uint16BufferAttribute, Matrix3, DataTextureLoader, HalfFloatType, FloatType, DataUtils, AnimationMixer, AdditiveBlending, CustomBlending, ZeroFactor, SrcAlphaFactor, SkeletonHelper, Raycaster } from 'three';
 
 const map = new Map();
 
@@ -10818,7 +10818,9 @@ const ATTRIBUTES = {
 	NORMAL: 'normal',
 	TANGENT: 'tangent',
 	TEXCOORD_0: 'uv',
-	TEXCOORD_1: 'uv2',
+	TEXCOORD_1: 'uv1',
+	TEXCOORD_2: 'uv2',
+	TEXCOORD_3: 'uv3',
 	COLOR_0: 'color',
 	WEIGHTS_0: 'skinWeight',
 	JOINTS_0: 'skinIndex',
@@ -11040,8 +11042,9 @@ function updateMorphTargets( mesh, meshDef ) {
 
 function createPrimitiveKey( primitiveDef ) {
 
-	const dracoExtension = primitiveDef.extensions && primitiveDef.extensions[ EXTENSIONS.KHR_DRACO_MESH_COMPRESSION ];
 	let geometryKey;
+
+	const dracoExtension = primitiveDef.extensions && primitiveDef.extensions[ EXTENSIONS.KHR_DRACO_MESH_COMPRESSION ];
 
 	if ( dracoExtension ) {
 
@@ -11052,6 +11055,16 @@ function createPrimitiveKey( primitiveDef ) {
 	} else {
 
 		geometryKey = primitiveDef.indices + ':' + createAttributesKey( primitiveDef.attributes ) + ':' + primitiveDef.mode;
+
+	}
+
+	if ( primitiveDef.targets !== undefined ) {
+
+		for ( let i = 0, il = primitiveDef.targets.length; i < il; i ++ ) {
+
+			geometryKey += ':' + createAttributesKey( primitiveDef.targets[ i ] );
+
+		}
 
 	}
 
@@ -12214,17 +12227,17 @@ class GLTFParser {
 
 		const sanitizedName = PropertyBinding.sanitizeNodeName( originalName || '' );
 
-		let name = sanitizedName;
+		if ( sanitizedName in this.nodeNamesUsed ) {
 
-		for ( let i = 1; this.nodeNamesUsed[ name ]; ++ i ) {
+			return sanitizedName + '_' + ( ++ this.nodeNamesUsed[ sanitizedName ] );
 
-			name = sanitizedName + '_' + i;
+		} else {
+
+			this.nodeNamesUsed[ sanitizedName ] = 0;
+
+			return sanitizedName;
 
 		}
-
-		this.nodeNamesUsed[ name ] = true;
-
-		return name;
 
 	}
 
@@ -19202,7 +19215,7 @@ class RGBELoader extends DataTextureLoader {
 				case FloatType:
 				case HalfFloatType:
 
-					texture.colorSpace = NoColorSpace;
+					texture.colorSpace = LinearSRGBColorSpace;
 					texture.minFilter = LinearFilter;
 					texture.magFilter = LinearFilter;
 					texture.generateMipmaps = false;
@@ -20983,8 +20996,7 @@ class Avatar extends Group {
 
     }
 
-    breathing()
-    {
+    breathing(){
 
         if( !this.isBreath )return;
 
@@ -21005,26 +21017,26 @@ class Avatar extends Group {
 
     }
 
-    setPosition( x, y, z )
-    {
+    setPosition( x, y, z ){
+
         this.position.set( x, y, z );
         this.updateMatrix();
+
     }
 
-    setRotation( x, y, z, a )
-    {
+    setRotation( x, y, z, a ){
+
         let r  = this.lerp( this.rotation.y, y, a);
-   
         this.rotation.set( x, r, z );
         this.updateMatrix();
+
     }
 
     lerp( x, y, t ) { return ( 1 - t ) * x + t * y }
 
     onReady(){}
 
-    initMaterial() 
-    {
+    initMaterial(){
 
         if( Pool.getMaterial( this.ref.materialRef ) ) return
 
@@ -21037,7 +21049,7 @@ class Avatar extends Group {
 
         for( const name in this.ref.materials ){
 
-            data = this.ref.materials[name];
+            data = {...this.ref.materials[name]};
             type = data.type;
             delete data.type;
             for( const t in data ){
@@ -21838,115 +21850,6 @@ class Avatar extends Group {
     }*/
 
 }
-
-
-
-
-//-----------------------------
-//
-//  SKELETON EXTAND
-//
-//-----------------------------
-
-const _offsetMatrix = new Matrix4();
-const _identityMatrix = new Matrix4();
-
-let K = Skeleton.prototype;
-
-K.resetScalling = function () {
-
-    for ( let i = 0, il = this.bones.length; i < il; i ++ ) {
-
-        this.bones[i].idx = i;
-        this.bones[i].scalling = new Vector3(1,1,1);
-        //console.log(this.bones[i].id, i)
-
-    }
-
-    //this.setScalling();
-
-};
-
-K.setScalling = function ( fingerPos ) {
-
-    let b, i, lng = this.bones.length;
-    let parent;
-
-    //this.resetPosition();
-
-    for ( i = 0; i < lng; i ++ ) {
-
-        b = this.bones[ i ];
-        parent = b.parent || null;
-
-        /*if( b.name==='root'){
-
-            b.position.y = this.footPos;
-            b.updateMatrixWorld( true );
-
-        }*/
-
-        if( parent !== null && parent.scalling && b.name!=='root'){
-
-            // finger position fix
-
-            /*if( fingerPos && this.isFinger( b ) ){
-
-                b.position.fromArray( fingerPos[ b.name ] );
-                b.children[0].position.set(0,0,0);
-
-            }*/
-
-            b.position.multiply( parent.scalling );
-            b.updateMatrixWorld( true );
-
-        }
-
-    }
-
-    this.calculateInverses();
-
-};
-
-K.update = function () {
-
-    const bones = this.bones;
-    const boneInverses = this.boneInverses;
-    const boneMatrices = this.boneMatrices;
-    const boneTexture = this.boneTexture;
-
-    let scaleMatrix;
-    const decal = new Vector3();
-
-    // flatten bone matrices to array
-
-    for ( let i = 0, il = bones.length; i < il; i ++ ) {
-
-        // compute the offset between the current and the original transform
-
-        const matrix = bones[ i ] ? bones[ i ].matrixWorld : _identityMatrix;
-
-        if( bones[ i ].scalling !== undefined  ){ 
-            matrix.scale( bones[ i ].scalling );
-            for ( let j = 0, l = bones[ i ].children.length; j < l; j ++ ) {
-                    scaleMatrix = matrix.clone();
-                    scaleMatrix.multiply( bones[ i ].children[ j ].matrix );
-                    bones[ i ].children[ j ].matrixWorld.setPosition( decal.setFromMatrixPosition( scaleMatrix ) );
-                }
-        }
-
-        _offsetMatrix.multiplyMatrices( matrix, boneInverses[ i ] );
-        _offsetMatrix.toArray( boneMatrices, i * 16 );
-
-    }
-
-    if ( boneTexture !== null ) {
-
-        boneTexture.needsUpdate = true;
-
-    }
-
-};
 
 // THREE CHARACTER
 
@@ -25500,6 +25403,95 @@ class MouseTool {
 
 
 }
+
+const _offsetMatrix = new Matrix4();
+const _identityMatrix = new Matrix4();
+const _decal = new Vector3();
+
+let K = Skeleton.prototype;
+
+K.resetScalling = function () {
+
+    for ( let i = 0, il = this.bones.length; i < il; i ++ ) {
+
+        this.bones[i].idx = i;
+        this.bones[i].scalling = new Vector3(1,1,1);
+        //console.log(this.bones[i].id, i)
+
+    }
+
+    //this.setScalling();
+
+};
+
+K.setScalling = function ( fingerPos ) {
+
+    let b, i, lng = this.bones.length;
+    let parent;
+
+    for ( i = 0; i < lng; i ++ ) {
+
+        b = this.bones[ i ];
+        parent = b.parent || null;
+
+        if( parent !== null && parent.scalling && b.name!=='root'){
+
+            b.position.multiply( parent.scalling );
+            b.updateMatrixWorld( true );
+
+        }
+
+    }
+
+    this.calculateInverses();
+
+};
+
+K.update = function () {
+
+    const bones = this.bones;
+    const boneInverses = this.boneInverses;
+    const boneMatrices = this.boneMatrices;
+    const boneTexture = this.boneTexture;
+
+    let scaleMatrix;
+    
+    // flatten bone matrices to array
+
+    let i = bones.length, n=0, j, k;
+
+    //for ( let i = 0, il = bones.length; i < il; i ++ ) {
+    while(i--){
+
+        // compute the offset between the current and the original transform
+
+        const matrix = bones[ n ] ? bones[ n ].matrixWorld : _identityMatrix;
+
+        if( bones[ n ].scalling !== undefined  ){ 
+            matrix.scale( bones[ n ].scalling );
+            j = bones[ n ].children.length;
+            k = 0; 
+            while(j--){
+                scaleMatrix = matrix.clone();
+                scaleMatrix.multiply( bones[ n ].children[ k ].matrix );
+                bones[ n ].children[ k ].matrixWorld.setPosition( _decal.setFromMatrixPosition( scaleMatrix ) );
+                k++;
+            }
+        }
+
+        _offsetMatrix.multiplyMatrices( matrix, boneInverses[ n ] );
+        _offsetMatrix.toArray( boneMatrices, n * 16 );
+        n++;
+
+    }
+
+    if ( boneTexture !== null ) {
+
+        boneTexture.needsUpdate = true;
+
+    }
+
+};
 
 let items;
 let currentControle = null;

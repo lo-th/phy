@@ -5,7 +5,7 @@ import {
     MeshStandardMaterial, MeshLambertMaterial, MeshPhongMaterial, MeshBasicMaterial,MeshPhysicalMaterial,
     TextureLoader,AnimationMixer,
     FrontSide, DoubleSide, Color, ShaderChunk, 
-    VectorKeyframeTrack, QuaternionKeyframeTrack, AnimationClip, Skeleton, sRGBEncoding,
+    VectorKeyframeTrack, QuaternionKeyframeTrack, AnimationClip, Skeleton,
     Float32BufferAttribute, EquirectangularReflectionMapping, LinearEncoding,AdditiveBlending,
     //EqualDepth,LessDepth,LessEqualDepth,GreaterEqualDepth,GreaterDepth,NotEqualDepth,
     CustomBlending,// AddEquation, SubtractEquation, ReverseSubtractEquation, MinEquation, MaxEquation,
@@ -242,8 +242,7 @@ export class Avatar extends Group {
 
     }
 
-    breathing()
-    {
+    breathing(){
 
         if( !this.isBreath )return;
 
@@ -264,26 +263,26 @@ export class Avatar extends Group {
 
     }
 
-    setPosition( x, y, z )
-    {
+    setPosition( x, y, z ){
+
         this.position.set( x, y, z )
         this.updateMatrix()
+
     }
 
-    setRotation( x, y, z, a )
-    {
+    setRotation( x, y, z, a ){
+
         let r  = this.lerp( this.rotation.y, y, a)
-   
         this.rotation.set( x, r, z )
         this.updateMatrix()
+
     }
 
     lerp( x, y, t ) { return ( 1 - t ) * x + t * y }
 
     onReady(){}
 
-    initMaterial() 
-    {
+    initMaterial(){
 
         if( Pool.getMaterial( this.ref.materialRef ) ) return
 
@@ -296,7 +295,7 @@ export class Avatar extends Group {
 
         for( const name in this.ref.materials ){
 
-            data = this.ref.materials[name]
+            data = {...this.ref.materials[name]}
             type = data.type
             delete data.type
             for( const t in data ){
@@ -1100,114 +1099,5 @@ export class Avatar extends Group {
         g.setAttribute( 'uv2', g.attributes.uv );
 
     }*/
-
-}
-
-
-
-
-//-----------------------------
-//
-//  SKELETON EXTAND
-//
-//-----------------------------
-
-const _offsetMatrix = new Matrix4();
-const _identityMatrix = new Matrix4();
-
-let K = Skeleton.prototype;
-
-K.resetScalling = function () {
-
-    for ( let i = 0, il = this.bones.length; i < il; i ++ ) {
-
-        this.bones[i].idx = i;
-        this.bones[i].scalling = new Vector3(1,1,1);
-        //console.log(this.bones[i].id, i)
-
-    }
-
-    //this.setScalling();
-
-}
-
-K.setScalling = function ( fingerPos ) {
-
-    let o, b, i, lng = this.bones.length;
-    let parent;
-
-    //this.resetPosition();
-
-    for ( i = 0; i < lng; i ++ ) {
-
-        b = this.bones[ i ];
-        parent = b.parent || null;
-
-        /*if( b.name==='root'){
-
-            b.position.y = this.footPos;
-            b.updateMatrixWorld( true );
-
-        }*/
-
-        if( parent !== null && parent.scalling && b.name!=='root'){
-
-            // finger position fix
-
-            /*if( fingerPos && this.isFinger( b ) ){
-
-                b.position.fromArray( fingerPos[ b.name ] );
-                b.children[0].position.set(0,0,0);
-
-            }*/
-
-            b.position.multiply( parent.scalling );
-            b.updateMatrixWorld( true );
-
-        }
-
-    }
-
-    this.calculateInverses();
-
-}
-
-K.update = function () {
-
-    const bones = this.bones;
-    const boneInverses = this.boneInverses;
-    const boneMatrices = this.boneMatrices;
-    const boneTexture = this.boneTexture;
-
-    let scaleMatrix;
-    const decal = new Vector3();
-
-    // flatten bone matrices to array
-
-    for ( let i = 0, il = bones.length; i < il; i ++ ) {
-
-        // compute the offset between the current and the original transform
-
-        const matrix = bones[ i ] ? bones[ i ].matrixWorld : _identityMatrix;
-
-        if( bones[ i ].scalling !== undefined  ){ 
-            matrix.scale( bones[ i ].scalling );
-            for ( let j = 0, l = bones[ i ].children.length; j < l; j ++ ) {
-                    scaleMatrix = matrix.clone();
-                    scaleMatrix.multiply( bones[ i ].children[ j ].matrix );
-                    bones[ i ].children[ j ].matrixWorld.setPosition( decal.setFromMatrixPosition( scaleMatrix ) );
-                }
-        }
-
-        _offsetMatrix.multiplyMatrices( matrix, boneInverses[ i ] );
-        _offsetMatrix.toArray( boneMatrices, i * 16 );
-
-    }
-
-    if ( boneTexture !== null ) {
-
-        boneTexture.needsUpdate = true;
-
-    }
 
 }
