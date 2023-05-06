@@ -13,7 +13,7 @@ demo = () => {
 
 	// add static plane 
 	phy.add({ type:'plane', name:'floor', size:[ 300,1,300 ], visible:false, friction: 0.5,  });
-	//phy.add({ type:'box', name:'floor', size:[300,1,300], pos:[0, -0.5, 0], visible:false, /*filter:[1,-1,[5,9], 0]*/ })
+	//phy.add({ type:'box', name:'j', size:[0.1,0.01,0.1], pos:[0, 0.005, 0], material:'body' /*filter:[1,-1,[5,9], 0]*/ })
 
     let n = math.randInt(0,2)
     // create character
@@ -22,7 +22,7 @@ demo = () => {
         gender:'eva0'+n,
         name:'gina',
         callback:terrainTest,
-        pos:[0.6,0,0],
+        pos:[0,0,0],
         //noMat:true,
         //morph:true,
         //debug:true,

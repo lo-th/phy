@@ -420,7 +420,10 @@ export class Body extends Item {
 
 		//if( o.torque ) b.applyTorqueImpulse( this.v.fromArray( o.torque ) );
 	    // Applies the impulse `impulse` to the rigid body at `positionInWorld` in world position. [ 0,0,0,   0,0,0 ]
-	    if( o.linearImpulse ) o.impulseCentral = o.linearImpulse
+	    if( o.linearImpulse ) { 
+	    	o.impulseCentral = o.linearImpulse
+	    	this.multiplyScalar( o.impulseCentral, root.delta, 3 )
+	    }
 	    if( o.impulseCentral ) b.applyCentralImpulse( this.v.fromArray( o.impulseCentral ) );
 	    if( o.impulse ) b.applyImpulse( this.v.fromArray( o.impulse ), this.v.fromArray( o.impulse, 3 ) );
 	    //if( o.linearImpulse ) b.applyLinearImpulse( this.v.fromArray( o.linearImpulse ) );

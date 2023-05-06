@@ -2,7 +2,7 @@ import { Item } from '../core/Item.js';
 import { Num } from '../core/Config.js';
 
 import { 
-	Utils, Vec3, Quat, Transform, RigidBodyConfig, ShapeConfig, Shape, RigidBody,ContactCallback,
+	root, Utils, Vec3, Quat, Transform, RigidBodyConfig, ShapeConfig, Shape, RigidBody,ContactCallback,
 	BoxGeometry, SphereGeometry, CylinderGeometry, CapsuleGeometry, ConeGeometry, ConvexHullGeometry
 } from './root.js';
 
@@ -337,7 +337,10 @@ export class Body extends Item {
 
 	    // Applies the impulse `impulse` to the rigid body at `positionInWorld` in world position. [ 0,0,0,   0,0,0 ]
 	    if( o.impulse ) b.applyImpulse( this.v.fromArray( o.impulse ), this.v.fromArray( o.impulse, 3 ) )
-	    if( o.linearImpulse ) b.applyLinearImpulse( this.v.fromArray( o.linearImpulse ) )
+	    if( o.linearImpulse ) {
+	    	this.multiplyScalar( o.linearImpulse, root.delta, 3 )
+	    	b.applyLinearImpulse( this.v.fromArray( o.linearImpulse ) )
+	    }
 	    if( o.angularImpulse ) b.applyAngularImpulse( this.v.fromArray( o.angularImpulse ) )
 
 	    if( o.gravityScale ) b.setGravityScale( o.gravityScale );

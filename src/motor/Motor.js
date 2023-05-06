@@ -18,11 +18,17 @@ import { Solver } from './Solver.js';
 import { Timer } from './Timer.js';
 import { User } from './User.js';
 
+import { Button } from './Button.js';
+import { Textfield } from './Textfield.js';
+
 import { Breaker } from './Breaker.js';
 import { MouseTool } from './MouseTool.js';
 
 import { Pool } from '../3TH/Pool.js';
 import { sk } from '../3TH/character/SkeletonExtand.js'
+
+// PARTICLE
+//import { Smoke } from '../../build/smoke.module.js'
 
 /** __
 *    _)_|_|_
@@ -82,6 +88,9 @@ let elapsedTime = 0
 const user = new User()
 const timer = new Timer(60)
 
+
+//let particles = null
+
 //const threeScene = null
 
 let azimut = function(){ return 0 }
@@ -89,6 +98,11 @@ let endReset = function(){}
 let postUpdate = function(){}
 let addControl = function(){}
 
+
+
+
+let buttons = []
+let textfields = []
 
 
 export class Motor {
@@ -99,8 +113,8 @@ export class Motor {
 		if( !mouseTool ) mouseTool = new MouseTool( controler, mode ) 
 	}
 
-    static mouseMode ( mode ) { 
-		if( mouseTool ) mouseTool.setMode( mode ) 
+    static mouseMode ( mode, o ) { 
+		if( mouseTool ) mouseTool.setMode( mode, o )
 	}
 
 
@@ -442,6 +456,10 @@ export class Motor {
 			return
 		}
 
+		buttons = []
+
+		Motor.clearText()
+
 		Motor.cleartimout()
 
 		currentControle = null
@@ -580,6 +598,8 @@ export class Motor {
 
 		root.delta = outsideStep ? timer.delta : root.reflow.stat.delta;
 
+
+
 		Motor.stepItems()
     
 		// user key interaction 
@@ -684,25 +704,64 @@ export class Motor {
 	static explosion ( position = [0,0,0], radius = 10, force = 100 ){
 
 		let r = []
-	    let pos = new Vector3().fromArray( position )
+	    let pos = new Vector3()
+
+	    //console.log( position)
+
+	    if(position){
+	    	if( position.isVector3 ) pos.copy(position)
+	    	else pos.fromArray( position )
+	    }
+	    
 	    let dir = new Vector3()
 	    let i = items.body.list.length, b, scaling
 
+//
 	    while( i-- ){
 
 	        b = items.body.list[i]
 	        dir.copy( b.position ).sub( pos )
 	        scaling = 1.0 - dir.length() / radius
+
+	        if( b.isKinematic ) continue;
 	        if ( scaling < 0 ) continue;
-	        dir.setLength( scaling )
-	        dir.multiplyScalar( force )
+	        
+
+
+	       // if ( scaling < 0 ){
+	        	dir.setLength( scaling )
+	            dir.multiplyScalar( force )
+	       // }
+	        
 
 	        //r.push({ name:b.name, impulse: [ ...pos.toArray(), ...dir.toArray()] })
-	        r.push({ name:b.name, linearImpulse: dir.toArray() })
+	        r.push({ name:b.name, linearImpulse: dir.toArray(), wake:true })
+	        //r.push({ name:b.name, force: dir.toArray(), forceMode:'impulse' })
+
 
 	    }
 
-		Motor.update( r )
+	    //console.log( r.length)
+
+		Motor.change( r )
+
+	}
+
+	//-----------------------
+	//  BUTTON
+	//-----------------------
+
+	static addButton (o) {
+
+		let b = new Button( o )
+		buttons.push( b )
+		return b.b
+
+	}
+
+	static upButton (o) {
+
+		for ( const key in buttons ) buttons[key].update()
 
 	}
 
@@ -751,6 +810,8 @@ export class Motor {
 	static stepItems () {
 
 		if(Ar===null) return
+
+		Motor.upButton()
 
 		for ( const key in items ) items[key].step( Ar, ArPos[key] )
 
@@ -983,6 +1044,38 @@ export class Motor {
 
 	static setDracoPath ( src ){
 		return Pool.dracoPath = src
+	}
+
+
+	//-----------------------
+	// PARTICLE
+	//-----------------------
+
+	static initParticle (){}
+	static addParticle (){}
+	static getParticle (){}
+
+	//-----------------------
+	// TEXT
+	//-----------------------
+
+	static addText ( o ){ 
+		let t = new Textfield(o)
+
+		if( o.parent ) o.parent.add( t )
+		else root.scenePlus.add( t )
+		textfields.push(t)
+		return t
+	}
+
+	static clearText () { 
+
+		let i = textfields.length
+		while( i-- ) textfields[i].dispose()
+
+		//for( let n in textfields ) textfields[n].dispose()
+    	textfields = []
+		
 	}
 
 }

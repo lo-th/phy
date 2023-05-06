@@ -56,6 +56,8 @@ export const root = {
 	instanceMesh : {},
 	tmpTex : [],
 	tmpMat : [],
+
+	mouseDown:false,
 	flow:{
 		stamp:0,
 		current:'',
@@ -121,10 +123,14 @@ export const Utils = {
 			//console.log('add', b.name, b.type )
 
 			if(!parent){
-				switch( b.type ){
-					case 'terrain': case 'solid': case 'joint': case 'ray': case 'articulation': root.scenePlus.add( b ); break;
-					default: root.scene.add( b ); break;
+				if(b.isButton){ root.scene.add( b ); }
+				else {
+					switch( b.type ){
+						case 'terrain': case 'solid': case 'joint': case 'ray': case 'articulation': root.scenePlus.add( b ); break;
+						default: root.scene.add( b ); break;
+					}
 				}
+				
 			} else {
 				parent.add( b );
 			}
@@ -291,6 +297,9 @@ export const Mat = {
 
 				case 'shadows': m = new MeshBasicMaterial({ transparent:true, opacity:0.01 }); break
 				case 'hide': m = new MeshBasicMaterial({ visible:false }); break
+
+
+				case 'button':  m = new MeshStandardMaterial({ color:0xFF404B, ...matExtra }); break
 
 			}
 			m.name = name;

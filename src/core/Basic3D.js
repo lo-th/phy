@@ -71,7 +71,7 @@ class Basic3D extends EventDispatcher {
 
 		//this.animations = [];
 
-		//this.userData = {};
+		this.userData = {};
 
 		
 		this.shapetype = 'box'

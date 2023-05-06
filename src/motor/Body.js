@@ -499,14 +499,19 @@ export class Body extends Item {
 
 	    }
 
+
+
 	    
 	    b.type = this.type
 	    b.size = o.size
 		b.shapetype = o.type
 		b.isKinematic = o.kinematic || false
 
+		// for buttton only
+		if( o.button ) b.isButton = true
+
 	    // enable or disable raycast
-	    b.isRay = b.type === 'body' ? true : false
+	    b.isRay = true//b.type === 'body' || b.isButton ? true : false
 	    if( o.ray !== undefined ) b.isRay = o.ray; 
 	    if( !o.instance ) b.setRaycast()
 	    
@@ -589,6 +594,9 @@ export class Body extends Item {
 			b.breakOption = o.breakOption !== undefined ? o.breakOption : [ 250, 1, 2, 1 ];
 			//b.userData.mass = o.mass;
 		}
+
+
+		
 
 
 

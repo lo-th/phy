@@ -43,6 +43,9 @@ export class Body extends Item {
 
 			ar = havok.HP_Body_GetQTransform(b)[1]
 
+			b.pos = ar[0]
+			b.quat = ar[1]
+
 			this.fillArray( ar[0], AR, n+1, 3 ) 
 			this.fillArray( ar[1], AR, n+4, 4 ) 
 
@@ -305,6 +308,8 @@ export class Body extends Item {
 		b.sleep = o.sleep || false
 		b.up = false
 
+		b.button = o.button || false
+
 		// save start state
 		b.pos = o.pos || [0,0,0];
 		b.quat = o.quat || [0,0,0,1];
@@ -400,14 +405,16 @@ export class Body extends Item {
 
 		if( o.pos || o.quat ){
 
-			if(o.pos) b.pos = o.pos
-			if(o.quat) b.quat = o.quat
+			if( o.pos ) b.pos = o.pos
+			if( o.quat ) b.quat = o.quat
+
+			let u = [ o.pos || b.pos, o.quat || b.quat ]
 
 			//let pos = o.pos || b.pos;
 			//let quat = o.quat || b.quat;
 //
-			if( b.isKinematic ) havok.HP_Body_SetTargetQTransform( b, [ b.pos, b.quat ] )
-			else havok.HP_Body_SetQTransform( b, [ b.pos, b.quat ] )
+			if( b.isKinematic && !b.button) havok.HP_Body_SetTargetQTransform( b, u )
+			else havok.HP_Body_SetQTransform( b, u )
 			
 
 		}
@@ -435,7 +442,12 @@ export class Body extends Item {
 		    if(!o.location) o.location = [0,0,0];
 		    if(!o.local) o.location = havok.HP_Body_GetPosition(b)[1];
 		    this.multiplyScalar( o.force, root.delta, 3 )
-			havok.HP_Body_ApplyImpulse(b, o.location, o.force );
+			havok.HP_Body_ApplyImpulse( b, o.location, o.force );
+		}
+
+		if( o.linearImpulse ){
+			this.multiplyScalar( o.linearImpulse, root.delta, 3 )
+			havok.HP_Body_ApplyImpulse( b, b.pos, o.linearImpulse );
 		}
 		
 

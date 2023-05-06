@@ -289,6 +289,7 @@ export const Main = {
 
 	addParticle: ( o ) => { return addParticle( o ) },
 	getParticle: ( name ) => { return getParticle( name ) },
+	initParticle: () => { return initParticle() },
 
 	loadDemo: ( name ) => { loadDemo( name ) },
 	extraCode: ( url, callback ) => { editor.loadExtra( url, callback ); },
@@ -306,8 +307,12 @@ export const Main = {
 
 Motor.log = Hub.log;
 
+
+Motor.initParticle = Main.initParticle
 Motor.addParticle = Main.addParticle
 Motor.getParticle = Main.getParticle
+
+
 Motor.extraCode = Main.extraCode;
 
 
@@ -950,11 +955,13 @@ const render = ( stamp = 0 ) => {
 
 	if( needResize ) doResize()
 
-    // UPDATE PARTICLE
-    if( particles ) particles.update( stamp )
+    
 
 	// UPDATE PHY
 	Motor.doStep( stamp )
+
+	// UPDATE PARTICLE
+    if( particles ) particles.update( stamp )
 
 	// UPDATE CAMERA
 	if( controls ){ 
@@ -1313,7 +1320,13 @@ const setComposer = ( b ) => {
 //  PARTICLE
 //--------------------
 
-const addParticle = ( o ) => {
+const initParticle = ( ) => {
+
+   if( !particles ) particles = new Smoke( scene, renderer );
+
+}
+
+const addParticle = ( o = {} ) => {
 
    if( !particles ) particles = new Smoke( scene, renderer );
    return particles.add( o )

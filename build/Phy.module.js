@@ -1,4 +1,4 @@
-import { Color, Euler, Quaternion, Matrix4, Vector3, Box3Helper, CylinderGeometry, SphereGeometry, BoxGeometry, PlaneGeometry, MeshBasicMaterial, LineBasicMaterial, MeshPhysicalMaterial, DoubleSide, MeshStandardMaterial, Line, BufferGeometry, Float32BufferAttribute, EventDispatcher, MathUtils, Layers, InstancedMesh, InstancedBufferAttribute, DynamicDrawUsage, TrianglesDrawMode, TriangleFanDrawMode, TriangleStripDrawMode, BufferAttribute, CircleGeometry, Box3, Vector2, Line3, Plane, Triangle, Mesh, LineSegments, NearestFilter, NearestMipmapNearestFilter, NearestMipmapLinearFilter, LinearFilter, LinearMipmapNearestFilter, LinearMipmapLinearFilter, ClampToEdgeWrapping, RepeatWrapping, MirroredRepeatWrapping, PropertyBinding, InterpolateLinear, Source, LinearEncoding, RGBAFormat, InterpolateDiscrete, Scene, sRGBEncoding, Loader, LoaderUtils, FileLoader, SpotLight, PointLight, DirectionalLight, SRGBColorSpace, Object3D, TextureLoader, ImageBitmapLoader, InterleavedBuffer, InterleavedBufferAttribute, PointsMaterial, Material, SkinnedMesh, LineLoop, Points, Group, PerspectiveCamera, OrthographicCamera, Skeleton, AnimationClip, Bone, FrontSide, Texture, VectorKeyframeTrack, QuaternionKeyframeTrack, NumberKeyframeTrack, Sphere, Interpolant, LinearSRGBColorSpace, Vector4, Curve, MeshPhongMaterial, MeshLambertMaterial, EquirectangularReflectionMapping, AmbientLight, Uint16BufferAttribute, Matrix3, DataTextureLoader, HalfFloatType, FloatType, DataUtils, AnimationMixer, AdditiveBlending, CustomBlending, ZeroFactor, SrcAlphaFactor, SkeletonHelper, Raycaster } from 'three';
+import { Color, Euler, Quaternion, Matrix4, Vector3, Box3Helper, CylinderGeometry, SphereGeometry, BoxGeometry, PlaneGeometry, MeshStandardMaterial, MeshBasicMaterial, LineBasicMaterial, MeshPhysicalMaterial, DoubleSide, Line, BufferGeometry, Float32BufferAttribute, EventDispatcher, MathUtils, Layers, InstancedMesh, InstancedBufferAttribute, DynamicDrawUsage, TrianglesDrawMode, TriangleFanDrawMode, TriangleStripDrawMode, BufferAttribute, CircleGeometry, Box3, Vector2, Line3, Plane, Triangle, Mesh, LineSegments, NearestFilter, NearestMipmapNearestFilter, NearestMipmapLinearFilter, LinearFilter, LinearMipmapNearestFilter, LinearMipmapLinearFilter, ClampToEdgeWrapping, RepeatWrapping, MirroredRepeatWrapping, PropertyBinding, InterpolateLinear, Source, LinearEncoding, RGBAFormat, InterpolateDiscrete, Scene, sRGBEncoding, Loader, LoaderUtils, FileLoader, SpotLight, PointLight, DirectionalLight, SRGBColorSpace, Object3D, TextureLoader, ImageBitmapLoader, InterleavedBuffer, InterleavedBufferAttribute, PointsMaterial, Material, SkinnedMesh, LineLoop, Points, Group, PerspectiveCamera, OrthographicCamera, Skeleton, AnimationClip, Bone, FrontSide, Texture, VectorKeyframeTrack, QuaternionKeyframeTrack, NumberKeyframeTrack, Sphere, Interpolant, LinearSRGBColorSpace, Vector4, Curve, MeshPhongMaterial, MeshLambertMaterial, EquirectangularReflectionMapping, AmbientLight, Uint16BufferAttribute, Matrix3, DataTextureLoader, HalfFloatType, FloatType, DataUtils, AnimationMixer, AdditiveBlending, CustomBlending, ZeroFactor, SrcAlphaFactor, SkeletonHelper, CanvasTexture, Raycaster } from 'three';
 
 const map = new Map();
 
@@ -50,6 +50,8 @@ const root = {
 	instanceMesh : {},
 	tmpTex : [],
 	tmpMat : [],
+
+	mouseDown:false,
 	flow:{
 		stamp:0,
 		current:'',
@@ -115,10 +117,14 @@ const Utils = {
 			//console.log('add', b.name, b.type )
 
 			if(!parent){
-				switch( b.type ){
-					case 'terrain': case 'solid': case 'joint': case 'ray': case 'articulation': root.scenePlus.add( b ); break;
-					default: root.scene.add( b ); break;
+				if(b.isButton){ root.scene.add( b ); }
+				else {
+					switch( b.type ){
+						case 'terrain': case 'solid': case 'joint': case 'ray': case 'articulation': root.scenePlus.add( b ); break;
+						default: root.scene.add( b ); break;
+					}
 				}
+				
 			} else {
 				parent.add( b );
 			}
@@ -285,6 +291,9 @@ const Mat = {
 
 				case 'shadows': m = new MeshBasicMaterial({ transparent:true, opacity:0.01 }); break
 				case 'hide': m = new MeshBasicMaterial({ visible:false }); break
+
+
+				case 'button':  m = new MeshStandardMaterial({ color:0xFF404B, ...matExtra }); break
 
 			}
 			m.name = name;
@@ -1042,7 +1051,7 @@ class Basic3D extends EventDispatcher {
 
 		//this.animations = [];
 
-		//this.userData = {};
+		this.userData = {};
 
 		
 		this.shapetype = 'box';
@@ -4959,14 +4968,19 @@ class Body extends Item {
 
 	    }
 
+
+
 	    
 	    b.type = this.type;
 	    b.size = o.size;
 		b.shapetype = o.type;
 		b.isKinematic = o.kinematic || false;
 
+		// for buttton only
+		if( o.button ) b.isButton = true;
+
 	    // enable or disable raycast
-	    b.isRay = b.type === 'body' ? true : false;
+	    b.isRay = true;//b.type === 'body' || b.isButton ? true : false
 	    if( o.ray !== undefined ) b.isRay = o.ray; 
 	    if( !o.instance ) b.setRaycast();
 	    
@@ -5049,6 +5063,9 @@ class Body extends Item {
 			b.breakOption = o.breakOption !== undefined ? o.breakOption : [ 250, 1, 2, 1 ];
 			//b.userData.mass = o.mass;
 		}
+
+
+		
 
 
 
@@ -12435,11 +12452,15 @@ class GLTFParser {
 
 			if ( meshes.length === 1 ) {
 
+				if ( meshDef.extensions ) addUnknownExtensionsToUserData( extensions, meshes[ 0 ], meshDef );
+
 				return meshes[ 0 ];
 
 			}
 
 			const group = new Group();
+
+			if ( meshDef.extensions ) addUnknownExtensionsToUserData( extensions, group, meshDef );
 
 			parser.associations.set( group, { meshes: meshIndex } );
 
@@ -21517,8 +21538,8 @@ class Avatar extends Group {
         this.setRot('lToes', 0,0,0 );
     }
 
-    convertFbx( name, anim, autoplay )
-    {
+    convertFbx( name, anim, autoplay ) {
+
         const torad = Math.PI / 180;
         let p = new Vector3();
         let q = new Quaternion();
@@ -21572,8 +21593,7 @@ class Avatar extends Group {
     //  ANIMATION CONTROL
     //---------------------
 
-    prepareCrossFade( startAction, endAction, duration ) 
-    {
+    prepareCrossFade( startAction, endAction, duration )  {
         //singleStepMode = false;
         this.unPause();
         // If the current action is 'idle' (duration 4 sec), execute the crossfade immediately;
@@ -21600,8 +21620,7 @@ class Avatar extends Group {
 
     }
 
-    executeCrossFade( startAction, endAction, duration ) 
-    {
+    executeCrossFade( startAction, endAction, duration ) {
         // Not only the start action, but also the end action must get a weight of 1 before fading
         // (concerning the start action this is already guaranteed in this place)
         this.setWeight( endAction, 1 );
@@ -21610,14 +21629,12 @@ class Avatar extends Group {
         startAction.crossFadeTo( endAction, duration, true );
     }
 
-    pause()
-    {
+    pause() {
         this.actions.forEach( function ( action ) { action.paused = true; });
         this.isPause = true;
     }
 
-    unPause()
-    {
+    unPause() {
         this.actions.forEach( function ( action ) { action.paused = false; });
         this.isPause = false;
     }
@@ -21682,14 +21699,12 @@ class Avatar extends Group {
 
     }
 
-    getAction( name )
-    {
+    getAction( name ) {
         //if ( !this.actions.has( name ) ) return;
         return this.actions.get( name );
     }
 
-    play( name, fade = 0.5 )
-    {
+    play( name, fade = 0.5 ) {
 
         let action = this.getAction( name );
         if ( !action ) return false;
@@ -24423,6 +24438,235 @@ class Gamepad {
 
 }
 
+let Nb = 0;
+
+class Button {
+
+	constructor ( o={} ) {
+
+		this.down = false;
+
+
+
+		this.time = o.time || 250;
+
+		this.p = o.pos || [0,0,0];
+
+		this.type = o.type || 'box';
+		this.name = o.name || 'button' + Nb++;
+		this.pos = o.pos || [0,0,0];
+		this.size = o.size || [1,1,1];
+		this.radius = o.radius || 0;
+		this.axe = o.axe !== undefined ? o.axe : 1; 
+
+
+		this.decal = this.type === 'sphere'? this.size[1]*0.5 : (this.size[1]*0.5) - this.radius;
+
+		if( this.type !== 'sphere' ) this.pos[this.axe]+=this.decal;
+
+
+		this.origin = this.pos[this.axe];
+
+		this.range = [ this.origin-this.decal - (this.radius*2), this.origin ];
+
+		this.value = this.origin;
+		this.target = this.origin;
+
+		this.speed = (this.size[this.axe]/3) / (this.size[this.axe]);
+
+	
+
+		this.callback = function(){ 
+			console.log("action down"); 
+		};
+
+		if( o.callback ){ 
+			this.callback = o.callback; 
+			delete o.callback;
+		}
+
+		o.button = true;
+		o.pos = this.pos; 
+		if(!o.material) o.material = 'button';
+		o.kinematic = true;
+		o.mask = 1;
+
+		this.timeout = null;
+
+		this.b = root.motor.add( o );
+
+		this.b.userData['action'] = this.action.bind(this);
+		this.b.userData['out'] = this.out.bind(this);
+
+	}
+
+	action( p ){
+
+		if(this.down) return// this.out()
+		this.down = true;
+
+	    this.target = this.range[0];//this.origin - this.decal
+
+	    
+	    root.motor.explosion( p || this.p, this.size[0]*2, 0.01 );
+	   // this.pos[this.axe] -= this.decal
+		//root.motor.change( { name:this.b.name, pos:this.pos } );
+		this.callback();
+		
+
+		//this.timeout =  setTimeout( this.out.bind(this), this.time )
+
+	}
+
+	out(){
+		if(!this.down) return
+		this.down = false;
+	    this.target = this.range[1];//this.origin + this.decal
+	    root.motor.explosion( this.p, this.size[0]*2, 0.01 );
+
+	    //this.pos[this.axe] += this.decal
+		//root.motor.change( {name:this.b.name, pos:this.pos} );
+	}
+
+	dispose(){
+		//if( this.timeout ) clearTimeout( this.timeout );
+	}
+
+	update(){
+
+		if( this.value !== this.target ){
+
+			//let side = this.target > this.value ? 1 : -1
+
+			this.value = math$1.lerp( this.value, this.target, this.speed );
+
+			//this.value += 0.1 * side
+
+			let t = math$1.nearEquals( this.value, this.target, 0.01);
+
+			if(!t){
+			    this.pos[this.axe] = this.value;
+			    root.motor.change( {name:this.b.name, pos:this.pos} );
+			} else {
+				this.value = this.target;
+			}
+
+
+		}
+
+
+	}
+
+}
+
+class Textfield extends Mesh {
+
+	constructor( o={} ) {
+
+		super(new PlaneGeometry(), new MeshBasicMaterial({polygonOffset: true, polygonOffsetFactor: -4}));
+
+		this.name = o.nam || 'text';
+		this.canvas = null;
+
+		this.w = o.w || 0;
+		this.h = o.h || 0;
+
+		this.weight = o.weight ?? 700;
+
+		this.font = o.font ?? "'Mulish', sans-serif";
+		this.fontSize = o.fontSize ?? 32;
+		this.backgroundColor = o.backgroundColor ?? "#00000000";
+		this.fontColor = o.fontColor ?? "#FFFFFF";
+		this.material.alphaTest = 0.5;
+		this.set( o.text );
+		
+		if( o.pos ) this.position.fromArray(o.pos);
+		if( o.rot ) this.quaternion.fromArray( math$1.toQuatArray( o.rot ) );
+		
+	}
+
+	set( str ){
+
+		if(!this.canvas) this.canvas = document.createElement("canvas");
+		let ctx = this.canvas.getContext("2d"), w, h, r;
+		
+		ctx.font = this.weight + " " + this.fontSize + "px " + this.font;
+		
+
+		let metrics = ctx.measureText( str );
+
+		//resize to nearest power of 2
+		w = 2 ** Math.ceil(Math.log2(metrics.width));
+		h = 2 ** Math.ceil(Math.log2(ctx.measureText('M').width));
+
+
+
+		
+		this.canvas.width = w;
+		this.canvas.height = h;
+
+		ctx.fillStyle = this.backgroundColor;
+		ctx.fillRect(0, 0, w, h);
+		//var backgroundAlpha = ctx.getImageData(0, 0, 1, 1).data[3];
+
+        ctx.fillStyle = this.fontColor;
+		//ctx.font = this.fontSize + "px " + this.font;
+		ctx.font = this.weight + " " + this.fontSize + "px " + this.font;
+		ctx.textAlign = "center";
+		ctx.textBaseline = 'middle';
+		
+		ctx.fillText( str, w*0.5, h*0.5 );
+
+		this.material.map = new CanvasTexture(this.canvas);
+		//
+
+		//if(this.w===0) this.w = w*0.02
+
+		if( this.h !== 0 ){
+			r = this.h / h;
+			this.scale.set(w*r,this.h,0);
+		}
+
+		else if( this.w !== 0 ){
+			r = this.w / h;
+			this.scale.set(this.w,h*r,0);
+		}
+
+		else {
+			this.scale.set(w*0.025,h*0.025,0);
+		}
+
+
+		//this.scale.set(this.w,h*r,0)
+
+		/*let img = new Image(w, h);
+        img.src = canvas.toDataURL( 'image/png' );
+
+        let self = this
+
+        img.onload = ()=>{
+
+			//
+			self.material.map = new Texture(img);
+			self.material.map.needsUpdate = true
+			//self.material.needsUpdate = true
+
+			self.scale.set(w*0.05,h*0.05,0)
+		}*/
+
+	}
+
+	dispose(){
+
+		this.parent.remove(this);
+		this.material.map.dispose();
+		this.material.dispose();
+		this.geometry.dispose();
+
+	}
+
+}
+
 /**
  * @fileoverview This class can be used to subdivide a convex Geometry object into pieces.
  *
@@ -25117,11 +25361,13 @@ class MouseTool {
 	constructor ( controler, mode = 'drag' ) {
 
 		this.mode = mode;
+		this.option = {};
 
 		this.controler = controler;
 		this.dom = this.controler.domElement;
 
 		this.selected = null;
+		this.buttonRef = null;
 
 		this.numBullet = 0;
 		this.maxBullet = 10;
@@ -25153,10 +25399,13 @@ class MouseTool {
 
 	}
 
-    setMode ( mode ) {
+    setMode ( mode, o={} ) {
 
     	if( mode === this.mode ) return
     	this.mode = mode;
+        this.option = o;
+
+        if(this.mode === 'blast' && this.option.visible ) root.motor.initParticle();
 
     }
 
@@ -25227,6 +25476,7 @@ class MouseTool {
 
 		    if( button === 0 ){
 			    this.mouseDown = true;
+			    root.mouseDown = true;
 			    this.castray();
 			}
 
@@ -25239,6 +25489,10 @@ class MouseTool {
 			case 'shoot':
 			this.shoot();
 			break
+
+			case 'blast':
+			this.blast();
+			break
 		}
 
 		
@@ -25247,10 +25501,20 @@ class MouseTool {
 
 	mouseup ( e ) {
 
+		/*if( this.buttonRef ){
+			if( this.buttonRef.userData.out ) this.buttonRef.userData.out()
+			this.buttonRef = null
+		}*/
+
 		this.mouseMove = this.oldMouse.distanceTo( this.mouse ) < 0.01 ? false : true;
 		this.mouseDown = false;
 		this.mouseDown2 = false;
+
+		root.mouseDown = false;
 		this.unSelect();
+		this.resetButton();
+
+
 
 	}
 
@@ -25307,7 +25571,8 @@ class MouseTool {
 				//console.log(m)
 			}
 
-			cursor = this.select( m, inters[ 0 ] );
+			if( !m.isButton ) cursor = this.select( m, inters[ 0 ] );
+			else cursor = this.actionButton( m, inters[ 0 ] );
 
 		}
 
@@ -25315,10 +25580,51 @@ class MouseTool {
 
 	}
 
-	shoot (){
+	blast () {
+
+		let hit = null;
+		this.raycast.setFromCamera( this.mouse, this.controler.object );
+		let inters = this.raycast.intersectObjects( root.scene.children, true );
+
+		if ( inters.length > 0 ) {hit = inters[ 0 ];
+		} else {
+			inters = this.raycast.intersectObjects( root.scenePlus.children, true );
+			if ( inters.length > 0 ) hit = inters[ 0 ];
+		}
+
+		if(hit){ 
+			root.motor.explosion( hit.point, 5, 3 );
+			if(this.option.visible ) root.motor.addParticle({
+				name:'blast',
+				type:"cube",
+				position:hit.point.toArray(),
+				numParticles: 30,
+				radius:0.2,
+				radiusRange:0.1,
+				accelerationRange:[0.3,0.3,0.3],
+				acceleration:[5*10,5,5*10],
+				lifeTime: 0.5,
+		        endTime: 0.5,
+		        startTime: 0,
+		        gravity:[0,0.2,0],
+		        startSize: 0.5,
+		        endSize: 0.1,
+		        //spinSpeedRange:2,
+		        tween:"outQuad",
+		        //velocityRange: [ 0.6, 0.6, 0.6 ]
+		        //lifeTimeRange:1,
+		        //startTime: 0,
+		        //startSize: 0.1,
+
+			});
+		}
+		
+
+	}
+
+	shoot () {
 
 		this.raycast.setFromCamera( this.mouse, this.controler.object );
-
 		this.pos.copy( this.raycast.ray.direction ).add(  this.raycast.ray.origin );
 		this.velocity.copy( this.raycast.ray.direction ).multiplyScalar( 60 );
 
@@ -25340,6 +25646,42 @@ class MouseTool {
 
 	}
 
+    resetButton () {
+
+		if( this.buttonRef ){
+			if( this.buttonRef.userData.out ) this.buttonRef.userData.out();
+			this.buttonRef = null;
+		}
+
+		this.raycastTest = true;
+		this.selected = null;
+		this.firstSelect = true;
+		this.controler.enabled = true;
+
+	}
+
+	actionButton ( obj, inters ) {
+
+		if( this.buttonRef ){
+			if( this.buttonRef.name !== obj.name ){ 
+				if( this.buttonRef.userData.out ) this.buttonRef.userData.out();
+				this.buttonRef = obj;
+			}
+		} else {
+			if( this.mouseDown ) this.buttonRef = obj;
+		}
+		if( this.mouseDown && this.buttonRef.userData.action ){ 
+			let pos = inters.point;
+			this.buttonRef.userData.action( pos );
+		}
+
+		if( this.mouseDown ) this.controler.enabled = false;
+		   
+		//return 'grab'
+	    return 'pointer'
+
+	}
+
 	select ( obj, inters ) {
 
 		if( !this.mouseDown || this.selected === obj ) return 'pointer'
@@ -25353,6 +25695,17 @@ class MouseTool {
 			this.selected.updateMatrix();
 			quat = this.selected.quaternion.toArray();
 		}
+
+		/*if( this.selected.isButton ){
+			if( this.buttonRef ){
+				if(this.buttonRef.name !== this.selected.name ) this.buttonRef = obj
+			} else {
+				this.buttonRef = obj
+			}
+			if( this.buttonRef.userData.action ) this.buttonRef.userData.action()
+			    this.unSelect ()
+			return 'grab'
+		}*/
 
 		
 	    root.scenePlus.add( this.dragPlane );
@@ -25387,17 +25740,25 @@ class MouseTool {
 
 	unSelect () {
 
+		
+
 		if( this.selected === null ) return
 
-		this.dragPlane.geometry.dispose();
-		root.scenePlus.remove( this.dragPlane );
-		root.motor.remove(['mouseJoint','mouse']);
-		root.motor.change({ name:this.selected.name, neverSleep:false, wake:true });
+		/*if( this.selected.isButton ){
+			if( this.selected.userData.out ) this.selected.userData.out()
+		} else {*/
+			this.dragPlane.geometry.dispose();
+			root.scenePlus.remove( this.dragPlane );
+			root.motor.remove(['mouseJoint','mouse']);
+			root.motor.change({ name:this.selected.name, neverSleep:false, wake:true });
+		//}
+
 		
 		this.raycastTest = true;
 		this.selected = null;
 		this.firstSelect = true;
 		this.controler.enabled = true;
+		
 
 	}
 
@@ -25533,6 +25894,9 @@ let elapsedTime = 0;
 const user = new User();
 const timer = new Timer(60);
 
+
+//let particles = null
+
 //const threeScene = null
 
 let azimut = function(){ return 0 };
@@ -25540,6 +25904,11 @@ let endReset = function(){};
 let postUpdate = function(){};
 let addControl = function(){};
 
+
+
+
+let buttons = [];
+let textfields = [];
 
 
 class Motor {
@@ -25550,8 +25919,8 @@ class Motor {
 		if( !mouseTool ) mouseTool = new MouseTool( controler, mode ); 
 	}
 
-    static mouseMode ( mode ) { 
-		if( mouseTool ) mouseTool.setMode( mode ); 
+    static mouseMode ( mode, o ) { 
+		if( mouseTool ) mouseTool.setMode( mode, o );
 	}
 
 
@@ -25893,6 +26262,10 @@ class Motor {
 			return
 		}
 
+		buttons = [];
+
+		Motor.clearText();
+
 		Motor.cleartimout();
 
 		currentControle = null;
@@ -26031,6 +26404,8 @@ class Motor {
 
 		root.delta = outsideStep ? timer.delta : root.reflow.stat.delta;
 
+
+
 		Motor.stepItems();
     
 		// user key interaction 
@@ -26135,25 +26510,64 @@ class Motor {
 	static explosion ( position = [0,0,0], radius = 10, force = 100 ){
 
 		let r = [];
-	    let pos = new Vector3().fromArray( position );
+	    let pos = new Vector3();
+
+	    //console.log( position)
+
+	    if(position){
+	    	if( position.isVector3 ) pos.copy(position);
+	    	else pos.fromArray( position );
+	    }
+	    
 	    let dir = new Vector3();
 	    let i = items.body.list.length, b, scaling;
 
+//
 	    while( i-- ){
 
 	        b = items.body.list[i];
 	        dir.copy( b.position ).sub( pos );
 	        scaling = 1.0 - dir.length() / radius;
+
+	        if( b.isKinematic ) continue;
 	        if ( scaling < 0 ) continue;
-	        dir.setLength( scaling );
-	        dir.multiplyScalar( force );
+	        
+
+
+	       // if ( scaling < 0 ){
+	        	dir.setLength( scaling );
+	            dir.multiplyScalar( force );
+	       // }
+	        
 
 	        //r.push({ name:b.name, impulse: [ ...pos.toArray(), ...dir.toArray()] })
-	        r.push({ name:b.name, linearImpulse: dir.toArray() });
+	        r.push({ name:b.name, linearImpulse: dir.toArray(), wake:true });
+	        //r.push({ name:b.name, force: dir.toArray(), forceMode:'impulse' })
+
 
 	    }
 
-		Motor.update( r );
+	    //console.log( r.length)
+
+		Motor.change( r );
+
+	}
+
+	//-----------------------
+	//  BUTTON
+	//-----------------------
+
+	static addButton (o) {
+
+		let b = new Button( o );
+		buttons.push( b );
+		return b.b
+
+	}
+
+	static upButton (o) {
+
+		for ( const key in buttons ) buttons[key].update();
 
 	}
 
@@ -26202,6 +26616,8 @@ class Motor {
 	static stepItems () {
 
 		if(Ar===null) return
+
+		Motor.upButton();
 
 		for ( const key in items ) items[key].step( Ar, ArPos[key] );
 
@@ -26434,6 +26850,38 @@ class Motor {
 
 	static setDracoPath ( src ){
 		return Pool.dracoPath = src
+	}
+
+
+	//-----------------------
+	// PARTICLE
+	//-----------------------
+
+	static initParticle (){}
+	static addParticle (){}
+	static getParticle (){}
+
+	//-----------------------
+	// TEXT
+	//-----------------------
+
+	static addText ( o ){ 
+		let t = new Textfield(o);
+
+		if( o.parent ) o.parent.add( t );
+		else root.scenePlus.add( t );
+		textfields.push(t);
+		return t
+	}
+
+	static clearText () { 
+
+		let i = textfields.length;
+		while( i-- ) textfields[i].dispose();
+
+		//for( let n in textfields ) textfields[n].dispose()
+    	textfields = [];
+		
 	}
 
 }

@@ -9,11 +9,13 @@ export class MouseTool {
 	constructor ( controler, mode = 'drag' ) {
 
 		this.mode = mode
+		this.option = {}
 
 		this.controler = controler
 		this.dom = this.controler.domElement
 
 		this.selected = null
+		this.buttonRef = null
 
 		this.numBullet = 0
 		this.maxBullet = 10
@@ -45,10 +47,13 @@ export class MouseTool {
 
 	}
 
-    setMode ( mode ) {
+    setMode ( mode, o={} ) {
 
     	if( mode === this.mode ) return
     	this.mode = mode;
+        this.option = o
+
+        if(this.mode === 'blast' && this.option.visible ) root.motor.initParticle()
 
     }
 
@@ -119,6 +124,7 @@ export class MouseTool {
 
 		    if( button === 0 ){
 			    this.mouseDown = true
+			    root.mouseDown = true
 			    this.castray()
 			}
 
@@ -131,6 +137,10 @@ export class MouseTool {
 			case 'shoot':
 			this.shoot()
 			break
+
+			case 'blast':
+			this.blast()
+			break
 		}
 
 		
@@ -139,10 +149,20 @@ export class MouseTool {
 
 	mouseup ( e ) {
 
+		/*if( this.buttonRef ){
+			if( this.buttonRef.userData.out ) this.buttonRef.userData.out()
+			this.buttonRef = null
+		}*/
+
 		this.mouseMove = this.oldMouse.distanceTo( this.mouse ) < 0.01 ? false : true
 		this.mouseDown = false
 		this.mouseDown2 = false
+
+		root.mouseDown = false
 		this.unSelect()
+		this.resetButton()
+
+
 
 	}
 
@@ -199,7 +219,8 @@ export class MouseTool {
 				//console.log(m)
 			}
 
-			cursor = this.select( m, inters[ 0 ] )
+			if( !m.isButton ) cursor = this.select( m, inters[ 0 ] )
+			else cursor = this.actionButton( m, inters[ 0 ] )
 
 		}
 
@@ -207,10 +228,51 @@ export class MouseTool {
 
 	}
 
-	shoot (){
+	blast () {
+
+		let hit = null
+		this.raycast.setFromCamera( this.mouse, this.controler.object )
+		let inters = this.raycast.intersectObjects( root.scene.children, true )
+
+		if ( inters.length > 0 ) {hit = inters[ 0 ]
+		} else {
+			inters = this.raycast.intersectObjects( root.scenePlus.children, true )
+			if ( inters.length > 0 ) hit = inters[ 0 ]
+		}
+
+		if(hit){ 
+			root.motor.explosion( hit.point, 5, 3 )
+			if(this.option.visible ) root.motor.addParticle({
+				name:'blast',
+				type:"cube",
+				position:hit.point.toArray(),
+				numParticles: 30,
+				radius:0.2,
+				radiusRange:0.1,
+				accelerationRange:[0.3,0.3,0.3],
+				acceleration:[5*10,5,5*10],
+				lifeTime: 0.5,
+		        endTime: 0.5,
+		        startTime: 0,
+		        gravity:[0,0.2,0],
+		        startSize: 0.5,
+		        endSize: 0.1,
+		        //spinSpeedRange:2,
+		        tween:"outQuad",
+		        //velocityRange: [ 0.6, 0.6, 0.6 ]
+		        //lifeTimeRange:1,
+		        //startTime: 0,
+		        //startSize: 0.1,
+
+			})
+		}
+		
+
+	}
+
+	shoot () {
 
 		this.raycast.setFromCamera( this.mouse, this.controler.object )
-
 		this.pos.copy( this.raycast.ray.direction ).add(  this.raycast.ray.origin );
 		this.velocity.copy( this.raycast.ray.direction ).multiplyScalar( 60 )
 
@@ -232,6 +294,42 @@ export class MouseTool {
 
 	}
 
+    resetButton () {
+
+		if( this.buttonRef ){
+			if( this.buttonRef.userData.out ) this.buttonRef.userData.out()
+			this.buttonRef = null
+		}
+
+		this.raycastTest = true
+		this.selected = null
+		this.firstSelect = true
+		this.controler.enabled = true
+
+	}
+
+	actionButton ( obj, inters ) {
+
+		if( this.buttonRef ){
+			if( this.buttonRef.name !== obj.name ){ 
+				if( this.buttonRef.userData.out ) this.buttonRef.userData.out()
+				this.buttonRef = obj
+			}
+		} else {
+			if( this.mouseDown ) this.buttonRef = obj
+		}
+		if( this.mouseDown && this.buttonRef.userData.action ){ 
+			let pos = inters.point
+			this.buttonRef.userData.action( pos )
+		}
+
+		if( this.mouseDown ) this.controler.enabled = false
+		   
+		//return 'grab'
+	    return 'pointer'
+
+	}
+
 	select ( obj, inters ) {
 
 		if( !this.mouseDown || this.selected === obj ) return 'pointer'
@@ -245,6 +343,17 @@ export class MouseTool {
 			this.selected.updateMatrix()
 			quat = this.selected.quaternion.toArray()
 		}
+
+		/*if( this.selected.isButton ){
+			if( this.buttonRef ){
+				if(this.buttonRef.name !== this.selected.name ) this.buttonRef = obj
+			} else {
+				this.buttonRef = obj
+			}
+			if( this.buttonRef.userData.action ) this.buttonRef.userData.action()
+			    this.unSelect ()
+			return 'grab'
+		}*/
 
 		
 	    root.scenePlus.add( this.dragPlane )
@@ -279,17 +388,25 @@ export class MouseTool {
 
 	unSelect () {
 
+		
+
 		if( this.selected === null ) return
 
-		this.dragPlane.geometry.dispose()
-		root.scenePlus.remove( this.dragPlane )
-		root.motor.remove(['mouseJoint','mouse'])
-		root.motor.change({ name:this.selected.name, neverSleep:false, wake:true })
+		/*if( this.selected.isButton ){
+			if( this.selected.userData.out ) this.selected.userData.out()
+		} else {*/
+			this.dragPlane.geometry.dispose()
+			root.scenePlus.remove( this.dragPlane )
+			root.motor.remove(['mouseJoint','mouse'])
+			root.motor.change({ name:this.selected.name, neverSleep:false, wake:true })
+		//}
+
 		
 		this.raycastTest = true
 		this.selected = null
 		this.firstSelect = true
 		this.controler.enabled = true
+		
 
 	}
 

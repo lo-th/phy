@@ -3,20 +3,20 @@ let n = 0
 demo = () => {
 
     phy.view({ 
-        envmap:'clear', ground:true,
-        phi:20, theta:20, distance:20, x:0, y:6, z:0, fov:70 
+        envmap:'clear', ground:true,  groundSize:[ 14, 14 ],groundAlpha:false,
+        phi:10, theta:0, distance:30, x:0, y:6, z:0, fov:60 
     })
 
     // config physics setting
     phy.set( {substep:1, gravity:[0,-9.81,0]})
 
     // add static plane
-    //phy.add({ type:'plane', size:[300,1,300], visible:false })
-    phy.add({ type:'box', size:[50,1,50], pos:[0, -0.5, 0], visible:false, friction:0.5, restitution:0 })
-
+    //
+    phy.add({ type:'box', size:[15,3,15], pos:[0, -1.5, 0], visible:false,  friction:0.5, restitution:0 })
+phy.add({ type:'plane', size:[300,1,300], pos:[0, -3, 0], visible:false })
     // Keva tower.
-    let halfExtents = {x:0.1, y:0.5, z:2.0};
-    //let halfExtents = {x:0.15, y:0.475, z:2.85};
+    let halfExtents = {x:0.15, y:0.5, z:2.0};
+
     let blockHeight = 0.0;
     // These should only be set to odd values otherwise
     // the blocks won't align in the nicest way.

@@ -766,8 +766,8 @@ export class Avatar extends Group {
         this.setRot('lToes', 0,0,0 )
     }
 
-    convertFbx( name, anim, autoplay )
-    {
+    convertFbx( name, anim, autoplay ) {
+
         const torad = Math.PI / 180;
         let lockPosition = true;
         let p = new Vector3();
@@ -823,8 +823,7 @@ export class Avatar extends Group {
     //  ANIMATION CONTROL
     //---------------------
 
-    prepareCrossFade( startAction, endAction, duration ) 
-    {
+    prepareCrossFade( startAction, endAction, duration )  {
         //singleStepMode = false;
         this.unPause();
         // If the current action is 'idle' (duration 4 sec), execute the crossfade immediately;
@@ -851,8 +850,7 @@ export class Avatar extends Group {
 
     }
 
-    executeCrossFade( startAction, endAction, duration ) 
-    {
+    executeCrossFade( startAction, endAction, duration ) {
         // Not only the start action, but also the end action must get a weight of 1 before fading
         // (concerning the start action this is already guaranteed in this place)
         this.setWeight( endAction, 1 );
@@ -861,14 +859,12 @@ export class Avatar extends Group {
         startAction.crossFadeTo( endAction, duration, true );
     }
 
-    pause()
-    {
+    pause() {
         this.actions.forEach( function ( action ) { action.paused = true; });
         this.isPause = true;
     }
 
-    unPause()
-    {
+    unPause() {
         this.actions.forEach( function ( action ) { action.paused = false; });
         this.isPause = false;
     }
@@ -933,14 +929,12 @@ export class Avatar extends Group {
 
     }
 
-    getAction( name )
-    {
+    getAction( name ) {
         //if ( !this.actions.has( name ) ) return;
         return this.actions.get( name );
     }
 
-    play( name, fade = 0.5 )
-    {
+    play( name, fade = 0.5 ) {
 
         let action = this.getAction( name );
         if ( !action ) return false;
