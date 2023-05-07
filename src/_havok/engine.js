@@ -425,7 +425,7 @@ export class engine {
 
 	static stepItems () {
 
-		for (const key in items) items[key].step( Ar, ArPos[key] )
+		for ( const key in items ) items[key].step( Ar, ArPos[key] )
 
 	}
 

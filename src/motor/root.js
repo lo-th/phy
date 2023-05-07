@@ -170,6 +170,37 @@ export const Utils = {
     
     },
 
+
+    toLocal: ( v, obj, isAxe = false ) => {
+
+    	obj.updateWorldMatrix( true, false )
+    	// apply position
+    	if(!isAxe) v.sub( obj.position )
+    	// apply invers rotation
+    	let q = obj.quaternion
+    	v.applyQuaternion({x:-q.x, y:-q.y, z:-q.z, w:q.w})
+    	return v
+
+    },
+
+    refAxis:( m, axe ) => {
+
+    	let zAxis = new Vector3().fromArray(axe)
+	    let xAxis = new Vector3(1, 0, 0);
+	    let yAxis = new Vector3(0, 1, 0);
+	    if ( Math.abs( axe[1] ) > 0.9999 ){
+			yAxis.copy( xAxis ).cross( zAxis ).normalize();
+		} else {
+			xAxis.copy( zAxis ).cross( yAxis ).normalize();
+			yAxis.copy( xAxis ).cross( zAxis ).normalize();
+		}
+
+		m.makeBasis( xAxis, yAxis, zAxis );
+
+    }
+
+
+
 }
 
 
@@ -288,7 +319,7 @@ export const Mat = {
 				case 'car':   m = new MeshPhysicalMaterial({ color:0x303030, metalness: 1.0, roughness: 0.5, clearcoat: 1.0, clearcoatRoughness: 0.03, sheen: 0.5 }); break
 				case 'carGlass':   m = new MeshPhysicalMaterial({ color: 0xffffff, metalness: 0.25, roughness: 0, transmission: 1.0 }); break
 
-				case 'joint':  m = new LineBasicMaterial( { color: 0x00FF00, toneMapped: false } ); break
+				case 'joint':  m = new LineBasicMaterial( { color: 0xFF8800, toneMapped: false } ); break
 				case 'ray':    m = new LineBasicMaterial( { vertexColors: true, toneMapped: false } ); break	
 
 				case 'debug':  m = new MeshBasicMaterial({ color:0x000000, wireframe:true, toneMapped: false }); break

@@ -253,11 +253,11 @@ export class Body extends Item {
 
 			case 'ChamferBox':
 
-			    gName = 'ChamferBox_' + s[ 0 ] +'_'+ s[ 1 ] +'_'+ s[ 2 ] + '_' + o.radius + '_' + seg; 
+			    gName = 'ChamferBox_' + s[ 0 ] +'_'+ s[ 1 ] +'_'+ s[ 2 ] + '_' + o.radius; 
 
 			    g = Geo.get( gName )
 			    if(!g){
-					g = new ChamferBox( s[ 0 ], s[ 1 ], s[ 2 ], o.radius, seg );
+					g = new ChamferBox( s[ 0 ], s[ 1 ], s[ 2 ], o.radius );
 					g.name = gName
 				} else {
 					gName = ''

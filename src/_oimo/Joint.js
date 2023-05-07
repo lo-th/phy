@@ -93,6 +93,8 @@ export class Joint extends Item {
 				v.fromArray( o.worldAnchor );
 				b1.getLocalPointTo( v, jc.localAnchor1 )
 			 	b2.getLocalPointTo( v, jc.localAnchor2 )
+
+			 	console.log('oimo pos', jc.localAnchor1, jc.localAnchor2)
 			}
 
 			 if ( o.worldAxis ) {
@@ -101,6 +103,8 @@ export class Joint extends Item {
 			 	if( jc.localAxis1 && jc.localAxis2 ){
 			 		b1.getLocalVectorTo( v, jc.localAxis1 )
 			 	    b2.getLocalVectorTo( v, jc.localAxis2 )
+
+			 	    console.log('oimo axe', jc.localAxis1, jc.localAxis2)
 			 	}
 
 			 	if( jc.localBasis1 && jc.localBasis2 ){ // generic joint

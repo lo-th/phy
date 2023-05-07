@@ -1,7 +1,7 @@
 import { Item } from '../core/Item.js';
 import { Num } from '../core/Config.js';
 
-import { Utils, root, map } from './root.js';
+import { Utils, root, map, torad } from './root.js';
 
 export class Joint extends Item {
 
@@ -27,6 +27,14 @@ export class Joint extends Item {
 			ANGULAR_Z: havok.ConstraintAxis.ANGULAR_Z,
 			LINEAR_DISTANCE: havok.ConstraintAxis.LINEAR_DISTANCE,
 		}
+
+		this.MotorType = {
+			POSITION: havok.ConstraintMotorType.POSITION,
+			VELOCITY: havok.ConstraintMotorType.VELOCITY,
+			NONE: havok.ConstraintMotorType.NONE,
+		}
+
+		this.angulars = ['ANGULAR_X', 'ANGULAR_Y', 'ANGULAR_Z']
 
 	}
 
@@ -68,6 +76,7 @@ export class Joint extends Item {
 	// Creates a vector normal (perpendicular) to the current Vector3
 
 	getNormalToRef(v) {
+
         const radius = Math.sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]);
         let theta = Math.acos(v[1] / radius);
         const phi = Math.atan2(v[2], v[0]);
@@ -112,7 +121,6 @@ export class Joint extends Item {
         const perpAxisB = this.getNormalToRef(axisB);
         havok.HP_Constraint_SetAnchorInChild(j, pivotB, axisB, perpAxisB);
 
-
 		let mode = o.mode || 'revolute';
 
 		const CA = this.ConstraintAxis;
@@ -133,6 +141,8 @@ export class Joint extends Item {
             havok.HP_Constraint_SetAxisMode(j, CA.LINEAR_Z, LM.LOCKED)
             havok.HP_Constraint_SetAxisMode(j, CA.ANGULAR_Y, LM.LOCKED)
             havok.HP_Constraint_SetAxisMode(j, CA.ANGULAR_Z, LM.LOCKED)
+
+
             break;
             case 'prismatic':
 			havok.HP_Constraint_SetAxisMode(j, CA.LINEAR_Y, LM.LOCKED)
@@ -189,95 +199,6 @@ export class Joint extends Item {
 
 
 
-
-
-		/*if( mode === 'fixe' ){ 
-			mode = 'revolute';
-			o.sd = [0,0]
-			o.lm = [0,0]
-		}
-
-
-		mode = mode.charAt(0).toUpperCase() + mode.slice(1)
-
-		if( mode === 'D6' ) mode = 'Generic'
-
-		const jc = new Joints[ mode + 'JointConfig' ]()
-
-		jc.rigidBody1 = b1
-		jc.rigidBody2 = b2
-
-		if( b1 && b2 ){
-
-			if ( o.worldAnchor ) {
-				v.fromArray( o.worldAnchor );
-				b1.getLocalPointTo( v, jc.localAnchor1 )
-			 	b2.getLocalPointTo( v, jc.localAnchor2 )
-			}
-
-			 if ( o.worldAxis ) {
-			 	v.fromArray( o.worldAxis );
-
-			 	if( jc.localAxis1 && jc.localAxis2 ){
-			 		b1.getLocalVectorTo( v, jc.localAxis1 )
-			 	    b2.getLocalVectorTo( v, jc.localAxis2 )
-			 	}
-
-			 	if( jc.localBasis1 && jc.localBasis2 ){ // generic joint
-
-			 		// ??
-			 		//b1.getLocalVectorTo( v, jc.localAxis1 );
-			 	    //b2.getLocalVectorTo( v, jc.localAxis2 );
-			 	}
-			 	
-			 }
-
-		}
-
-		if( o.pos1 ) jc.localAnchor1.fromArray( o.pos1 || [0,0,0] )
-		if( o.pos2 ) jc.localAnchor2.fromArray( o.pos2 || [0,0,0] )
-
-		if( jc.localAxis1 && o.axis1 ) jc.localAxis1.fromArray( o.axis1 )
-		if( jc.localAxis2 && o.axis2 ) jc.localAxis2.fromArray( o.axis2 )
-
-		//if( jc.localBasis1 && o.axis1 ) jc.localBasis1.fromQuat( o.axis1 );
-		//if( jc.localBasis2 && o.axis2 ) jc.localBasis2.fromQuat( o.axis2 );
-
-		//console.log(jc.localAxis2)
-
-		switch ( mode ) {
-
-			case 'Ragdoll':
-
-			    if( o.worldTwistAxis ){
-			    	v.fromArray( o.worldTwistAxis );
-			    	b1.getLocalVectorTo( v, jc.localTwistAxis1);
-			    	b2.getLocalVectorTo( v, jc.localTwistAxis2);
-			    }
-			    if( o.worldSwingAxis ){
-			    	v.fromArray( o.worldSwingAxis );
-			    	b1.getLocalVectorTo( v, jc.localSwingAxis1);
-			    }
-
-
-			    if( o.axis1 ) jc.localTwistAxis1.fromArray( o.axis1 || [1,0,0] );
-			    if( o.axis2 ) jc.localTwistAxis2.fromArray( o.axis2 || [1,0,0] );
-			    if( o.axis3 ) jc.localSwingAxis1.fromArray( o.axis3 || [0,1,0] );
-
-			    /*if (o.twistSd ) this.spring( jc.twistSpringDamper, o.twistSd );
-			    if (o.swingSd ) this.spring( jc.swingSpringDamper, o.swingSd );
-				if (o.twistLm ) this.limit( jc.twistLimitMotor, o.twistLm );*/
-				
-				//jc.maxSwingAngle1 = (o.maxSwing1 !== undefined ? o.maxSwing1 : 180) * torad;
-				//jc.maxSwingAngle2 = (o.maxSwing2 !== undefined ? o.maxSwing2 : 180) * torad;
-
-		/*	break;
-			case 'Generic':
-			
-			break;
-
-		}*/
-
 		let collisionEnabled = o.collision !== undefined ? o.collision : false;
 
 		havok.HP_Constraint_SetCollisionsEnabled(j, collisionEnabled);
@@ -308,14 +229,56 @@ export class Joint extends Item {
 		if( j === null ) j = this.byName( o.name );
 		if( j === null ) return;
 
+		const CA = this.ConstraintAxis;
+		const LM = this.LimitMode
 
 
-		if( o.enable!== undefined ) havok.HP_Constraint_SetEnabled(j, o.enable);
+
+		if( o.enable !== undefined ) havok.HP_Constraint_SetEnabled(j, o.enable);
+
+		switch(j.mode ){
+
+			case 'hinge': case "revolute":
+			if( o.lm ) this.setLimit( j, o.lm, 'ANGULAR_X' )
+			break;
+
+		}
+
+		
 
 		//havok.HP_Constraint_SetAxisFriction( j, this._constraintAxisToNative(axis), friction);
 
 
 
+
+	}
+
+	setLimit( j, lm, axe ){
+
+		let r = this.angulars.indexOf(axe) !== -1 ? torad : 1
+		const axis = this.ConstraintAxis[ axe ];
+		havok.HP_Constraint_SetAxisMode( j, axis, this.LimitMode.LIMITED )
+		havok.HP_Constraint_SetAxisMinLimit( j, axis, lm[0]*r );
+		havok.HP_Constraint_SetAxisMaxLimit( j, axis, lm[1]*r );
+
+	}
+
+	setMotor( j, target, maxForce, axe ){
+
+		let r = this.angulars.indexOf(axe) !== -1 ? torad : 1
+		const axis = this.ConstraintAxis[ axe ];
+
+		havok.HP_Constraint_SetAxisMotorType( j, axis, this.MotorType['VELOCITY'] );
+		havok.HP_Constraint_SetAxisMotorTarget( j, axis, target);
+		havok.HP_Constraint_SetAxisMotorMaxForce( j, axis, maxForce);
+
+	}
+
+	setFriction( j, friction, axe ){
+
+		let r = this.angulars.indexOf(axe) !== -1 ? torad : 1
+		const axis = this.ConstraintAxis[ axe ];
+		havok.HP_Constraint_SetAxisFriction( j, axis, friction )
 
 	}
 
