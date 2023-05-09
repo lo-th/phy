@@ -34,42 +34,43 @@ export class Joint extends Item {
 			NONE: havok.ConstraintMotorType.NONE,
 		}
 
+		// z and x is revese ?
+
+		this.convert = {
+			x:'LINEAR_X',
+			y:'LINEAR_Y',
+			z:'LINEAR_Z',
+			rx:'ANGULAR_X',
+			ry:'ANGULAR_Y',
+			rz:'ANGULAR_Z',
+			twist:'ANGULAR_X',
+			swing1:'ANGULAR_Y',
+			swing2:'ANGULAR_Z',
+			free:'FREE',
+			locked:'LOCKED',
+			limited:'LIMITED',
+		}
+
+		/*this.convert = {
+			z:'LINEAR_X',
+			y:'LINEAR_Y',
+			x:'LINEAR_Z',
+			rz:'ANGULAR_X',
+			ry:'ANGULAR_Y',
+			rx:'ANGULAR_Z',
+			twist:'ANGULAR_X',
+			swing1:'ANGULAR_Y',
+			swing2:'ANGULAR_Z',
+			free:'FREE',
+			locked:'LOCKED',
+			limited:'LIMITED',
+		}*/
+
 		this.angulars = ['ANGULAR_X', 'ANGULAR_Y', 'ANGULAR_Z']
 
 	}
 
 	step ( AR, N ) {
-
-		let i = this.list.length, j, n
-		const v = this.v
-		const q = this.q
-		const m = this.m
-
-		while( i-- ){
-
-			j = this.list[i]
-
-			n = N + ( i * Num.joint )
-
-			/*if( j.visible ){
-
-				j.getAnchor1To( v )
-				v.toArray( AR, n )
-
-				j.getBasis1To( m )
-				q.fromMat3( m )
-				q.toArray( AR, n+3 )
-
-				j.getAnchor2To( v )
-				v.toArray( AR, n+7 )
-
-				j.getBasis2To( m )
-				q.fromMat3( m )
-				q.toArray( AR, n+10 )
-				
-			}*/
-
-		}
 
 	}
 
@@ -79,17 +80,32 @@ export class Joint extends Item {
 
         const radius = Math.sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]);
         let theta = Math.acos(v[1] / radius);
-        const phi = Math.atan2(v[2], v[0]);
+        const phi = Math.atan2(v[2], v[0])
         //makes angle 90 degs to current vector
-        if (theta > Math.PI * 0.5)  theta -= Math.PI * 0.5;
-        else  theta += Math.PI * 0.5;
+        if( theta > Math.PI * 0.5 ) theta -= Math.PI * 0.5;
+        else theta += Math.PI * 0.5;
         
         //Calculates resutant normal vector from spherical coordinate of perpendicular vector
         const x = radius * Math.sin(theta) * Math.cos(phi);
         const y = radius * Math.cos(theta);
         const z = radius * Math.sin(theta) * Math.sin(phi);
+
         return [x, y, z];
+
     }
+
+    crossVectors( a, b ) {
+
+		const ax = a[0], ay = a[1], az = a[2];
+		const bx = b[0], by = b[1], bz = b[2];
+
+		let x = ay * bz - az * by;
+		let y = az * bx - ax * bz;
+		let z = ax * by - ay * bx;
+
+		return [x, y, z];
+
+	}
 
 	///
 
@@ -112,14 +128,16 @@ export class Joint extends Item {
         if(b2!==null) havok.HP_Constraint_SetChildBody(j, b2);
 
         // anchors
-        const pivotA = o.pos1 ? o.pos1 : [0,0,0];
+        const posA = o.pos1 ? o.pos1 : [0,0,0];
         const axisA = o.axis1 ? o.axis1 : [1,0,0];
         const perpAxisA = this.getNormalToRef(axisA);
-        havok.HP_Constraint_SetAnchorInParent(j, pivotA, axisA, perpAxisA);
-        const pivotB = o.pos2 ? o.pos2 : [0,0,0];
+        havok.HP_Constraint_SetAnchorInParent(j, posA, axisA, perpAxisA);
+        const posB = o.pos2 ? o.pos2 : [0,0,0];
         const axisB = o.axis2 ? o.axis2 : [1,0,0];
-        const perpAxisB = this.getNormalToRef(axisB);
-        havok.HP_Constraint_SetAnchorInChild(j, pivotB, axisB, perpAxisB);
+        const perpAxisB =  this.getNormalToRef(axisB);
+        havok.HP_Constraint_SetAnchorInChild(j, posB, axisB, perpAxisB);
+
+        //console.log(axisA, axisB, perpAxisA, perpAxisB)
 
 		let mode = o.mode || 'revolute';
 
@@ -141,8 +159,6 @@ export class Joint extends Item {
             havok.HP_Constraint_SetAxisMode(j, CA.LINEAR_Z, LM.LOCKED)
             havok.HP_Constraint_SetAxisMode(j, CA.ANGULAR_Y, LM.LOCKED)
             havok.HP_Constraint_SetAxisMode(j, CA.ANGULAR_Z, LM.LOCKED)
-
-
             break;
             case 'prismatic':
 			havok.HP_Constraint_SetAxisMode(j, CA.LINEAR_Y, LM.LOCKED)
@@ -151,7 +167,7 @@ export class Joint extends Item {
             havok.HP_Constraint_SetAxisMode(j, CA.ANGULAR_Y, LM.LOCKED)
             havok.HP_Constraint_SetAxisMode(j, CA.ANGULAR_Z, LM.LOCKED)
             break;
-            case 'slider':
+            case 'slider': case 'cylindrical':
 			havok.HP_Constraint_SetAxisMode(j, CA.LINEAR_Y, LM.LOCKED)
             havok.HP_Constraint_SetAxisMode(j, CA.LINEAR_Z, LM.LOCKED)
             havok.HP_Constraint_SetAxisMode(j, CA.ANGULAR_Y, LM.LOCKED)
@@ -169,14 +185,14 @@ export class Joint extends Item {
             havok.HP_Constraint_SetAxisMinLimit(j, dist3d, distance)
             havok.HP_Constraint_SetAxisMaxLimit(j, dist3d, distance)
             break;
-            case "dof": case "d6": case 'ragdoll':
+            case "dof": case "d6": case 'ragdoll': case 'universal':
 //console.log(j)
-            havok.HP_Constraint_SetAxisMode(j, CA.LINEAR_X, LM.LIMITED)
+            havok.HP_Constraint_SetAxisMode(j, CA.LINEAR_X, LM.LOCKED)
             havok.HP_Constraint_SetAxisMode(j, CA.LINEAR_Y, LM.LOCKED)
             havok.HP_Constraint_SetAxisMode(j, CA.LINEAR_Z, LM.LOCKED)
-            havok.HP_Constraint_SetAxisMode(j, CA.ANGULAR_X, LM.FREE)
-            havok.HP_Constraint_SetAxisMode(j, CA.ANGULAR_Y, LM.FREE)
-            havok.HP_Constraint_SetAxisMode(j, CA.ANGULAR_Z, LM.FREE)
+            havok.HP_Constraint_SetAxisMode(j, CA.ANGULAR_X, LM.LOCKED)
+            havok.HP_Constraint_SetAxisMode(j, CA.ANGULAR_Y, LM.LOCKED)
+            havok.HP_Constraint_SetAxisMode(j, CA.ANGULAR_Z, LM.LOCKED)/**/
             /*const sixdofData: Physics6DoFConstraint = <Physics6DoFConstraint>constraint;
             for (const l of sixdofData.limits) {
                 const axId = this._constraintAxisToNative(l.axis);
@@ -231,6 +247,7 @@ export class Joint extends Item {
 
 		const CA = this.ConstraintAxis;
 		const LM = this.LimitMode
+		let i 
 
 
 
@@ -242,6 +259,40 @@ export class Joint extends Item {
 			if( o.lm ) this.setLimit( j, o.lm, 'ANGULAR_X' )
 			break;
 
+		    case "prismatic":
+			if( o.lm ) this.setLimit( j, o.lm, 'LINEAR_X' )
+			break;
+
+		    case 'slider': case 'cylindrical':
+			if( o.lm ) this.setLimit( j, o.lm, 'LINEAR_X' )
+			if( o.lmr ) this.setLimit( j, o.lmr, 'ANGULAR_X' )
+			break;
+
+		    case 'dof': case 'd6': case 'ragdoll': case 'universal':
+
+
+		    if( o.motion ){ 
+				i = o.motion.length
+				while(i--){
+					this.setLimitMode( j, this.convert[ o.motion[i][0] ] , this.convert[ o.motion[i][1] ] )
+				}
+			}
+
+			if( o.lm ){ 
+				i = o.lm.length
+				while(i--){
+					this.setLimit( j, [o.lm[i][1], o.lm[i][2]], this.convert[ o.lm[i][0] ] )
+				}
+			}
+			if( o.motor ){ 
+				i = o.motor.length
+				while(i--){
+					this.setMotor( j, o.motor[i][1], o.motor[i][2], this.convert[ o.motor[i][0] ] )
+				}
+			}
+			
+			break;
+
 		}
 
 		
@@ -250,6 +301,12 @@ export class Joint extends Item {
 
 
 
+
+	}
+
+	setLimitMode( j, axe, type ){
+
+		havok.HP_Constraint_SetAxisMode( j, this.ConstraintAxis[ axe ], this.LimitMode[type] )
 
 	}
 
@@ -276,7 +333,7 @@ export class Joint extends Item {
 
 	setFriction( j, friction, axe ){
 
-		let r = this.angulars.indexOf(axe) !== -1 ? torad : 1
+		//let r = this.angulars.indexOf(axe) !== -1 ? torad : 1
 		const axis = this.ConstraintAxis[ axe ];
 		havok.HP_Constraint_SetAxisFriction( j, axis, friction )
 

@@ -37,7 +37,8 @@ export class Joint extends Item {
 
 			n = N + ( i * Num.joint );
 
-			j.update( AR, n );
+			//j.update( AR, n );
+			j.update();
 
 			//j.update( AR.slice( n, 16 ) );
 
@@ -69,6 +70,7 @@ export class Joint extends Item {
 
 		// world to local
 
+		if ( o.worldPos ) o.worldAnchor = o.worldPos
 		if ( o.worldAnchor ){
 
 			this.v1.fromArray( o.worldAnchor ) 
@@ -89,9 +91,17 @@ export class Joint extends Item {
 			o.axis1 = body1 ? Utils.toLocal( this.v1, body1, true ).normalize().toArray():o.worldAxis
 			o.axis2 = body2 ? Utils.toLocal( this.v2, body2, true ).normalize().toArray():o.worldAxis
 
+			//o.quat1 = new Quaternion().setFromUnitVectors( new Vector3(1, 0, 0), new Vector3().fromArray(o.axis1).normalize() ).toArray();
+		    //o.quat2 = new Quaternion().setFromUnitVectors( new Vector3(1, 0, 0), new Vector3().fromArray(o.axis2).normalize() ).toArray();
+
+			//console.log(o.worldAxis, o.axis1, o.axis2)
+
 			delete o.worldAxis
 
 		}
+
+		//if( !o.axis1 ) o.axis1 = [0,0,1]
+		//if( !o.axis2 ) o.axis2 = [0,0,1]
 
 		if( !o.axis1 ) o.axis1 = [1,0,0]
 		if( !o.axis2 ) o.axis2 = [1,0,0]
@@ -106,6 +116,9 @@ export class Joint extends Item {
 		if( o.rot1 !== undefined ){ o.quat1 = math.toQuatArray( o.rot1 ); delete ( o.rot1 ); }
 		if( o.rot2 !== undefined ){ o.quat2 = math.toQuatArray( o.rot2 ); delete ( o.rot2 ); }
 
+		if( !o.quat1 ) o.quat1 = new Quaternion().setFromUnitVectors( new Vector3(1, 0, 0), new Vector3().fromArray(o.axis1).normalize() ).toArray();
+		if( !o.quat2 ) o.quat2 = new Quaternion().setFromUnitVectors( new Vector3(1, 0, 0), new Vector3().fromArray(o.axis2).normalize() ).toArray();
+
 		if( o.drivePosition) if( o.drivePosition.rot !== undefined ){ o.drivePosition.quat = math.toQuatArray( o.drivePosition.rot ); delete ( o.drivePosition.rot ); }
 
 		let j = new ExtraJoint( Geo.get('joint'), Mat.get('joint'), o );
@@ -113,17 +126,16 @@ export class Joint extends Item {
 
 		j.visible = false; // joint is visible after first update
 		j.isVisible = o.visible !== undefined ? o.visible : true;
-
 		j.body1 = body1
 		j.body2 = body2
 
 		// add to world
-		this.addToWorld( j, o.id );
+		this.addToWorld( j, o.id )
 
 		// add to worker 
-		root.post( { m:'add', o:o } );
+		root.post( { m:'add', o:o } )
 
-		return j;
+		return j
 
 	}
 

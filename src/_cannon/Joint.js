@@ -27,7 +27,7 @@ export class Joint extends Item {
 
 	step ( AR, N ) {
 
-		let i = this.list.length, j, n
+		/*let i = this.list.length, j, n
 		const v = this.v
 		const q = this.q
 		const m = this.m
@@ -43,7 +43,7 @@ export class Joint extends Item {
 				
 			}
 
-		}
+		}*/
 
 	}
 

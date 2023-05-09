@@ -60,6 +60,11 @@ ragdoll = ( o ) => {
         armR2: { size:[armRadius, lowerArm], pos:[bodyRadius + upperArm + lowerArm / 2, lowerBody + upperBody, 0], rot:[0,0,90] },
     }
 
+    /*upperLeg*=0.9
+    lowerLeg*=0.9
+    lowerArm*=0.9
+    upperArm*=0.9*/
+
     const dataP = {
         head: { size:[ headHeight / 2 * 0.8, (headHeight / 2 * 0.2)*2], pos:[0, lowerBody + upperBody + bodyRadius + headHeight / 2, 0] },
         body1: { size:[bodyRadius, upperBody-bodyRadius], pos:[0,  lowerBody + upperBody / 2, 0] },
@@ -81,10 +86,10 @@ ragdoll = ( o ) => {
     for( let n in data ){
         b[ n ] = phy.add({ 
             type:'capsule', 
-            density:0.1, restitution:0.2, friction:0.5, 
+            density:0.1, restitution:0.1, friction:0.4, 
             phySize:dataP[n].size, 
             phyPos:math.addArray( o.pos, dataP[n].pos ),
-            size:data[n].size, 
+            size: debug ? dataP[n].size : data[n].size, 
             pos:math.addArray( o.pos, data[n].pos ),
             rot:data[n].rot||[0,0,0],
             material:debug? 'debug':'skinny' 
@@ -114,8 +119,9 @@ ragdoll = ( o ) => {
         twistLm:[-90,90],
         swingLimit:[90,90, 10,1],
         //twistLimit:[-45,45],
-        lm:[ ['swing1', 90, 90]],
-        motion:[['twist','locked'], ['swing1','limited'], ['swing2','limited']],
+        lm:[ ['twist', -90, 90], ['swing1', -90, 90], ['swing2', -70, 70] ],
+        //lm:[ ['swing1', -90, 90]],
+        //motion:[['twist','locked'], ['swing1','limited'], ['swing2','limited']],
 
         
     })
@@ -133,8 +139,8 @@ ragdoll = ( o ) => {
         twistLm:[-45,45],
         swingLimit:[90,90, 10,1],
         //twistLimit:[-45,45],
-        lm:[ ['swing1', 90, 90]],
-        motion:[['twist','locked'], ['swing1','limited'], ['swing2','limited']],
+        lm:[ ['twist', -45, 45], ['swing1', -60, 60], ['swing2', -45, 45] ],
+        //motion:[['twist','locked'], ['swing1','limited'], ['swing2','limited']],
         collision:0
     })
 
@@ -157,7 +163,8 @@ ragdoll = ( o ) => {
         //mainAxis:[1,0,0],
         //mainDeg: 0,
         //motion:[['twist','locked'], ['swing1','free'], ['swing2','free']],
-        motion:[['twist','locked'], ['swing1','limited'], ['swing2','limited']],
+        lm:[ ['twist', -90, 90], ['swing1', -90, 90], ['swing2', -90, 90] ],
+        //motion:[['twist','locked'], ['swing1','limited'], ['swing2','limited']],
     })
     phy.add({ 
         ...defJoint,
@@ -170,7 +177,8 @@ ragdoll = ( o ) => {
         swingSd:[10, 1],
         twistSd:[10, 1],
         twistLm:[-90,90],
-        motion:[['twist','locked'], ['swing1','limited'], ['swing2','limited']],
+        //motion:[['twist','locked'], ['swing1','limited'], ['swing2','limited']],
+        lm:[ ['twist', -90, 90], ['swing1', -90, 90], ['swing2', -90, 90] ],
     })
 
     phy.add({ 
@@ -204,12 +212,15 @@ ragdoll = ( o ) => {
         worldAnchor:math.addArray( o.pos, [-legInterval, -legInterval, 0]), 
         worldTwistAxis:[0,1,0],
         worldSwingAxis:[1,0,0],
-        axis1:[0,0,-1],
+        //axis1:[0,0,-1],
         maxSwing1:90, maxSwing2:70,
         swingSd:[10, 1],
         twistSd:[10, 1],
         twistLm:[-90,90],
-        motion:[['twist','locked'], ['swing1','limited'], ['swing2','limited']],
+
+        lm:[ ['twist', -90, 90], ['swing1', -90, 90], ['swing2', -70, 70] ],
+        //lm:[['twist','locked'], ['swing1','limited'], ['swing2','limited']]
+        //motion:[['twist','locked'], ['swing1','limited'], ['swing2','limited']],
     })
 
 
@@ -220,12 +231,14 @@ ragdoll = ( o ) => {
         worldAnchor:math.addArray( o.pos, [legInterval, -legInterval, 0]), 
         worldTwistAxis:[0,1,0],
         worldSwingAxis:[1,0,0],
-        axis1:[0,0,-1],
+        //axis1:[0,0,-1],
         maxSwing1:90, maxSwing2:70,
         swingSd:[10, 1],
         twistSd:[10, 1],
         twistLm:[-90,90],
-        motion:[['twist','locked'], ['swing1','limited'], ['swing2','limited']],
+
+        lm:[ ['twist', -90, 90], ['swing1', -90, 90], ['swing2', -70, 70] ],
+        //motion:[['twist','locked'], ['swing1','limited'], ['swing2','limited']],
     })
 
 

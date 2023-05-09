@@ -31,7 +31,7 @@ export class Joint extends Item {
 
 	step ( AR, N ) {
 
-		let i = this.list.length, j, n;
+		/*let i = this.list.length, j, n;
 
 		while( i-- ){
 
@@ -55,7 +55,7 @@ export class Joint extends Item {
 
 			}
 
-		}
+		}*/
 
 	}
 

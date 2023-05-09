@@ -30,7 +30,7 @@ export class Joint extends Item {
 
 	step ( AR, N ) {
 
-		let i = this.list.length, j, n;
+		/*let i = this.list.length, j, n;
 
 		while( i-- ){
 
@@ -45,7 +45,7 @@ export class Joint extends Item {
 				this.t.copy( j.B2.getWorldTransform() ).op_mul( j.formB ).toArray( AR, n + 7 )
 			}
 
-		}
+		}*/
 
 	}
 
@@ -80,11 +80,11 @@ export class Joint extends Item {
 		//let axeA = this.p1.fromArray( o.axis1 || [1,0,0])
 		//let axeB = this.p2.fromArray( o.axis2 || [1,0,0])
 
-		let axeA = this.p1.fromArray( o.axis1 || [0,0,1])
-		let axeB = this.p2.fromArray( o.axis2 || [0,0,1])
+		let axisA = this.p1.fromArray( o.axis1 || [0,0,1])
+		let axisB = this.p2.fromArray( o.axis2 || [0,0,1])
 
-		if(!o.quat1) quatA.fromAxis( axeA )
-		if(!o.quat2) quatB.fromAxis( axeB )
+		if(!o.quat1) quatA.fromAxis( axisA )
+		if(!o.quat2) quatB.fromAxis( axisB )
 
 		//console.log(quatA.toArray())
 
@@ -93,7 +93,7 @@ export class Joint extends Item {
 
 		const useA = o.useA || false;
 
-		if( o.worldAnchor || o.worldAxis ){
+		/*if( o.worldAnchor || o.worldAxis ){
 
 			if(b1){ 
 				b1.activate()
@@ -132,7 +132,7 @@ export class Joint extends Item {
 		    quatA.fromAxis( axeA )
 		    quatB.fromAxis( axeB )
 
-		}
+		}*/
 
 		const formA = new Ammo.btTransform().set( posA, quatA )
 		const formB = new Ammo.btTransform().set( posB, quatB )
@@ -140,8 +140,8 @@ export class Joint extends Item {
 		let j
 
 		let mode = o.mode || 'revolute';
-		if( mode==='d6') mode = 'dof'
-		if( mode==='slider') mode='prismatic'
+		if( mode==='d6' || mode==='universal' || mode==='generic') mode = 'dof'
+		if( mode==='slider' || mode==='cylindrical') mode = 'prismatic'
 		if( mode==='joint_p2p') mode='spherical'
 		if( mode==='conetwist') mode='ragdoll'
 
@@ -154,7 +154,7 @@ export class Joint extends Item {
 				if ( o.damping ) j.get_m_setting().set_m_damping( o.damping );
 				if ( o.impulse ) j.get_m_setting().set_m_impulseClamp( o.impulse );
 			break;
-			case "hinge2":  j = new Ammo.btHinge2Constraint( b1, b2, posA, axeA, axeB ); break;
+			case "hinge2":  j = new Ammo.btHinge2Constraint( b1, b2, posA, axisA, axisB ); break;
 			case "hinge": case "revolute": j = new Ammo.btHingeConstraint( b1, b2, formA, formB, useA ); break;
 			case "prismatic":  j = new Ammo.btSliderConstraint( b1, b2, formA, formB, useA ); break;
 			case 'ragdoll': j = new Ammo.btConeTwistConstraint( b1, b2, formA, formB ); break;
@@ -166,7 +166,7 @@ export class Joint extends Item {
 		    j.setAngularUpperLimit( this.v1.fromArray([0,0,0]))
 			 break;
 			case "fixe": j = new Ammo.btFixedConstraint( b1, b2, formA, formB ); break;
-            case "gear": j = new Ammo.btGearConstraint( b1, b2, axeA, axeB, o.ratio || 1); break;
+            case "gear": j = new Ammo.btGearConstraint( b1, b2, axisA, axisB, o.ratio || 1); break;
             //case "universal": j = new Ammo.btUniversalConstraint( b1, b2, formA, axeA, axeB); break;// missing
 		}
 

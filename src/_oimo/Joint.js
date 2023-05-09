@@ -21,7 +21,7 @@ export class Joint extends Item {
 
 	step ( AR, N ) {
 
-		let i = this.list.length, j, n
+		/*let i = this.list.length, j, n
 		const v = this.v
 		const q = this.q
 		const m = this.m
@@ -50,7 +50,7 @@ export class Joint extends Item {
 				
 			}
 
-		}
+		}*/
 
 	}
 
@@ -73,65 +73,75 @@ export class Joint extends Item {
 
 		if( mode === 'fixe' ){ 
 			mode = 'revolute';
-			o.sd = [0,0]
-			o.lm = [0,0]
+			//o.sd = [0,0]
+			//o.lm = [0,0]
 		}
 
+		if( mode === 'd6' ) mode = 'generic'
 
-		mode = mode.charAt(0).toUpperCase() + mode.slice(1)
+		const modeName = mode.charAt(0).toUpperCase() + mode.slice(1)
 
-		if( mode === 'D6' ) mode = 'Generic'
-
-		const jc = new Joints[ mode + 'JointConfig' ]()
+			
+		const jc = new Joints[ modeName + 'JointConfig' ]()
 
 		jc.rigidBody1 = b1
 		jc.rigidBody2 = b2
 
-		if( b1 && b2 ){
+		if( o.pos1 ) jc.localAnchor1.fromArray( o.pos1 || [0,0,0] )
+		if( o.pos2 ) jc.localAnchor2.fromArray( o.pos2 || [0,0,0] )
+
+		
+
+		//if( jc.localBasis1 && o.quat1 ) jc.localBasis1.fromQuat( o.quat1 );
+		//if( jc.localBasis2 && o.quat2 ) jc.localBasis2.fromQuat( o.quat2 );
+
+		if( jc.localAxis1 && o.axis1 ) jc.localAxis1.fromArray( o.axis1 )
+		if( jc.localAxis2 && o.axis2 ) jc.localAxis2.fromArray( o.axis2 )
+
+		/*if( b1 && b2 ){
 
 			if ( o.worldAnchor ) {
 				v.fromArray( o.worldAnchor );
 				b1.getLocalPointTo( v, jc.localAnchor1 )
 			 	b2.getLocalPointTo( v, jc.localAnchor2 )
 
-			 	console.log('oimo pos', jc.localAnchor1, jc.localAnchor2)
+			 	//console.log('oimo pos', jc.localAnchor1, jc.localAnchor2)
 			}
 
-			 if ( o.worldAxis ) {
+			if ( o.worldAxis ) {
 			 	v.fromArray( o.worldAxis );
 
-			 	if( jc.localAxis1 && jc.localAxis2 ){
-			 		b1.getLocalVectorTo( v, jc.localAxis1 )
-			 	    b2.getLocalVectorTo( v, jc.localAxis2 )
-
-			 	    console.log('oimo axe', jc.localAxis1, jc.localAxis2)
-			 	}
+			 	if( jc.localAxis1 ) b1.getLocalVectorTo( v, jc.localAxis1 ) 
+			 	if( jc.localAxis2 ) b2.getLocalVectorTo( v, jc.localAxis2 )
 
 			 	if( jc.localBasis1 && jc.localBasis2 ){ // generic joint
+			 		console.log('oimo axe',jc.localBasis1)
 
 			 		// ??
 			 		//b1.getLocalVectorTo( v, jc.localAxis1 );
 			 	    //b2.getLocalVectorTo( v, jc.localAxis2 );
 			 	}
+
 			 	
-			 }
+			 	
+			}
 
-		}
+			if ( o.worldAxis2 ) {
+				v.fromArray( o.worldAxis2 );
+				if( jc.localAxis2 ) b2.getLocalVectorTo( v, jc.localAxis2 )
+			}
 
-		if( o.pos1 ) jc.localAnchor1.fromArray( o.pos1 || [0,0,0] )
-		if( o.pos2 ) jc.localAnchor2.fromArray( o.pos2 || [0,0,0] )
+			
 
-		if( jc.localAxis1 && o.axis1 ) jc.localAxis1.fromArray( o.axis1 )
-		if( jc.localAxis2 && o.axis2 ) jc.localAxis2.fromArray( o.axis2 )
+		}*/
 
-		//if( jc.localBasis1 && o.axis1 ) jc.localBasis1.fromQuat( o.axis1 );
-		//if( jc.localBasis2 && o.axis2 ) jc.localBasis2.fromQuat( o.axis2 );
+		
 
-		//console.log(jc.localAxis2)
+		//console.log(jc.localAxis1, o.axis1)
 
 		switch ( mode ) {
 
-			case 'Ragdoll':
+			case 'ragdoll':
 
 			    if( o.worldTwistAxis ){
 			    	v.fromArray( o.worldTwistAxis );
@@ -156,13 +166,13 @@ export class Joint extends Item {
 				//jc.maxSwingAngle2 = (o.maxSwing2 !== undefined ? o.maxSwing2 : 180) * torad;
 
 			break;
-			case 'Generic':
+			case 'generic':
 			
 			break;
 
 		}
 
-		const j = new Joints[ mode + 'Joint' ](jc);
+		const j = new Joints[ modeName + 'Joint' ](jc);
 		j.name = name;
 		j.type = this.type;
 		j.mode = mode;
@@ -193,7 +203,7 @@ export class Joint extends Item {
 
 		switch ( j.mode ) {
 
-			case 'Ragdoll':
+			case 'ragdoll':
 
 			    /*if( o.worldTwistAxis ){
 			    	v.fromArray( o.worldTwistAxis );
@@ -222,26 +232,28 @@ export class Joint extends Item {
 
 			break;
 			
-			case 'Prismatic': case 'Revolute': // one degree of freedom
+			case 'prismatic': case 'revolute': // one degree of freedom
 
 				if( o.sd ) this.spring( j.getSpringDamper(), o.sd )
-			    if( o.lm ) this.limit( j.getLimitMotor(), o.lm, j.mode === 'Prismatic' )
-			    if( o.motor ) this.motor( j.getLimitMotor(), o.motor, j.mode === 'Prismatic' )
+			    if( o.lm ) this.limit( j.getLimitMotor(), o.lm, j.mode === 'prismatic' )
+			    if( o.motor ) this.motor( j.getLimitMotor(), o.motor, j.mode === 'prismatic' )
 
 			break;
 
-			case 'Cylindrical': // two degrees of freedom
+			case 'cylindrical': // two degrees of freedom
 
-			    if ( o.rsd ) this.spring( j.getRotationalSpringDamper(), o.rsd )
-				if ( o.tsd ) this.spring( j.translationalSpringDamper(), o.tsd )
-				if ( o.rlm ) this.limit( j.getRotationalLimitMotor(), o.rlm )
-				if ( o.tlm ) this.limit( j.getTranslationalLimitMotor(), o.tlm, true )
+			    if ( o.sdr ) this.spring( j.getRotationalSpringDamper(), o.sdr )
+			    if ( o.lmr ) this.limit( j.getRotationalLimitMotor(), o.lmr )
+
+				if ( o.sd ) this.spring( j.getTranslationalSpringDamper(), o.sd )	
+				if ( o.lm ) this.limit( j.getTranslationalLimitMotor(), o.lm, true )
+
 				if ( o.rmotor ) this.motor( j.getRotationalLimitMotor(), o.rmotor )
 				if ( o.tmotor) this.motor( j.getTranslationalLimitMotor(), o.tmotor, true )
 
 			break;
 
-			case 'Universal': // two degrees of freedom
+			case 'universal': // two degrees of freedom
 
 			    if ( o.sd1 ) this.spring( j.getSpringDamper1(), o.sd1 )
 			    if ( o.sd2 ) this.spring( j.getSpringDamper2(), o.sd2 )
@@ -252,7 +264,7 @@ export class Joint extends Item {
 
 			break;
 
-			case 'Generic': // six degrees of freedom
+			case 'generic': // six degrees of freedom
 
 			/*if( o.setAxis ){
 				i = o.axis.length
