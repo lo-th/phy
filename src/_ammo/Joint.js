@@ -159,7 +159,7 @@ export class Joint extends Item {
 			j = new Ammo.btHingeConstraint( b1, b2, formA, formB, useA );
 			j.setAxis( axisA )
 			 break;
-			case "prismatic":  j = new Ammo.btSliderConstraint( b1, b2, formA, formB, useA ); break;
+			case "prismatic":  j = new Ammo.btSliderConstraint( b1, b2, formA, formB, useA ); console.log(j); break;
 			case 'ragdoll': j = new Ammo.btConeTwistConstraint( b1, b2, formA, formB ); break;
 			//case "dof": j = new Ammo.btGeneric6DofConstraint( b1, b2, formA, formB, useA ); break;
 			case "dof": 
@@ -216,6 +216,26 @@ export class Joint extends Item {
 		switch( j.mode ){
 
 			case "prismatic" : 
+
+			if( o.lm ){
+				j.setLowerLinLimit(o.lm[0])
+				j.setUpperLinLimit(o.lm[1])
+			}
+			if( o.lmr ){ // cylindrical / slider 
+				j.setLowerAngLimit(o.lmr[0] * torad )
+				j.setUpperAngLimit(o.lmr[1] * torad )
+			}
+
+			if(o.motor){
+				j.setTargetLinMotorVelocity(o.motor[0])
+				j.setMaxLinMotorForce(o.motor[1])
+			}
+
+			if(o.amotor){
+				j.setTargetAngMotorVelocity(o.amotor[0]*torad)
+				j.setMaxAngMotorForce(o.amotor[1])
+			}
+				
 			break;
 
 			case "hinge": case "revolute": 
@@ -226,11 +246,8 @@ export class Joint extends Item {
 			if( o.lm ) j.setLimit( o.lm[0]*torad, o.lm[1]*torad, o.lm[2] || 0.9, o.lm[3] || 0.3, o.lm[4] || 1.0 )
 			if( o.motor ) j.enableAngularMotor( true, o.motor[0]*torad, o.motor[1] )
 			
-			
-
-			
-
 			break;
+
 
 			case "dof" : case "sdof" :			
 
