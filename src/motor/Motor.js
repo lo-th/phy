@@ -249,8 +249,12 @@ export class Motor {
 	static init ( o = {} ) {
 
 		let rootURL = document.location.href.replace(/\/[^/]*$/,"/")
+
+
 		var arr = rootURL.split("/");
 		rootURL = arr[0] + "//" + arr[2] + '/'
+
+		console.log('link', rootURL)
 
 		const path = o.path || 'build/';
 

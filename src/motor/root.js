@@ -173,7 +173,7 @@ export const Utils = {
 
     toLocal: ( v, obj, isAxe = false ) => {
 
-    	obj.updateWorldMatrix( true, false )
+    	if( obj.isObject3D ) obj.updateWorldMatrix( true, false )
     	// apply position
     	if(!isAxe) v.sub( obj.position )
     	// apply invers rotation

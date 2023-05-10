@@ -265,7 +265,7 @@ const Utils = {
 
     toLocal: ( v, obj, isAxe = false ) => {
 
-    	obj.updateWorldMatrix( true, false );
+    	if( obj.isObject3D ) obj.updateWorldMatrix( true, false );
     	// apply position
     	if(!isAxe) v.sub( obj.position );
     	// apply invers rotation
@@ -4691,6 +4691,7 @@ class Body extends Item {
 		    	if( b.speedMat ) b.instance.setColorAt(b.id, [ Math.abs(AR[n+8])*0.5, Math.abs(AR[n+9])*0.5, Math.abs(AR[n+10])*0.5] );
 		    	b.instance.setTransformAt( b.id, [AR[n+1],AR[n+2],AR[n+3]], [AR[n+4],AR[n+5],AR[n+6],AR[n+7]], b.noScale ? [1,1,1] : b.size );
 		    	b.position = {x:AR[n+1], y:AR[n+2], z:AR[n+3]};
+		    	b.quaternion = {x:AR[n+4], y:AR[n+5], z:AR[n+6], w:AR[n+7]};
 		    	if( this.full ){
 		    		b.velocity = {x:AR[n+8], y:AR[n+9], z:AR[n+10]};
 		    		b.angular = {x:AR[n+11], y:AR[n+12], z:AR[n+13]};
@@ -5161,6 +5162,7 @@ class Body extends Item {
 			b.instance.add( o.pos, o.quat, b.noScale ? [1,1,1] : b.size, color );
 
 			b.position = {x:o.pos[0], y:o.pos[1], z:o.pos[2]};
+			b.quaternion = {x:o.quat[0], y:o.quat[1], z:o.quat[2], w:o.quat[3]};
 		    b.velocity = {x:0, y:0, z:0};
 		    b.angular = {x:0, y:0, z:0};
 
@@ -5351,8 +5353,10 @@ class Joint extends Item {
 			this.v1.fromArray( o.worldAnchor ); 
 			this.v2.fromArray( o.worldAnchor );
 
-			o.pos1 = body1 ? Utils.toLocal( this.v1, body1 ).toArray():o.worldAnchor;
-			o.pos2 = body2 ? Utils.toLocal( this.v2, body2 ).toArray():o.worldAnchor;
+			console.log(body1,body2);
+
+			o.pos1 = body1 ? Utils.toLocal( this.v1, body1 ).toArray() : o.worldAnchor;
+			o.pos2 = body2 ? Utils.toLocal( this.v2, body2 ).toArray() : o.worldAnchor;
 
 			delete o.worldAnchor;
 
@@ -26320,8 +26324,12 @@ class Motor {
 	static init ( o = {} ) {
 
 		let rootURL = document.location.href.replace(/\/[^/]*$/,"/");
+
+
 		var arr = rootURL.split("/");
 		rootURL = arr[0] + "//" + arr[2] + '/';
+
+		console.log('link', rootURL);
 
 		const path = o.path || 'build/';
 
