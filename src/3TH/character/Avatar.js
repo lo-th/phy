@@ -244,7 +244,9 @@ export class Avatar extends Group {
 
     breathing(){
 
-        if( !this.isBreath )return;
+        if( !this.isBreath ) return;
+        if( !this.bones ) return;
+        if( !this.bones.chest.scalling ) return;
 
         let a = this.breath*0.01
 

@@ -248,7 +248,11 @@ export class Motor {
 
 	static init ( o = {} ) {
 
-		const rootURL = document.location.href.replace(/\/[^/]*$/,"/")
+		let rootURL = document.location.href.replace(/\/[^/]*$/,"/")
+		var arr = rootURL.split("/");
+		rootURL = arr[0] + "//" + arr[2] + '/'
+
+				console.log('yoo', rootURL)
 
 		const path = o.path || 'build/';
 
@@ -389,7 +393,7 @@ export class Motor {
 
 	static loadWasmDirect( link, o, name, rootURL ) {
 
-		console.log(rootURL + link)
+
 	
 	    let s = document.createElement("script")
 	    s.src = rootURL + link;
