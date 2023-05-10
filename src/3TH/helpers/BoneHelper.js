@@ -1,4 +1,9 @@
-class BoneHelper extends THREE.LineSegments {
+
+import {
+	LineSegments, BufferGeometry, Float32BufferAttribute, LineBasicMaterial
+} from 'three';
+
+class BoneHelper extends LineSegments {
 
 	constructor( size = 1 ) {
 
@@ -73,12 +78,12 @@ class BoneHelper extends THREE.LineSegments {
 		}
 
 
-		const geometry = new THREE.BufferGeometry();
+		const geometry = new BufferGeometry();
 		//geometry.setIndex( new THREE.BufferAttribute( indices, 1 ) );
-		geometry.setAttribute( 'position', new THREE.Float32BufferAttribute( vertices, 3 ) );
-		geometry.setAttribute( 'color', new THREE.Float32BufferAttribute( colors, 3 ) );
+		geometry.setAttribute( 'position', new Float32BufferAttribute( vertices, 3 ) );
+		geometry.setAttribute( 'color', new Float32BufferAttribute( colors, 3 ) );
 
-		const material = new THREE.LineBasicMaterial( { vertexColors: true, depthTest: false, depthWrite: false, toneMapped: false, transparent: true } );
+		const material = new LineBasicMaterial( { vertexColors: true, depthTest: false, depthWrite: false, toneMapped: false, transparent: true } );
 
 		super( geometry, material );
 

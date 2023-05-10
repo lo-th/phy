@@ -86,8 +86,8 @@ export class Joint extends Item {
 		let quatA = this.q1.fromArray( o.quat1 || [0,0,0,1] )
 		let quatB = this.q2.fromArray( o.quat2 || [0,0,0,1] )
 
-		let axeA = this.p1.fromArray( o.axis1 || [-1,0,0] )
-		let axeB = this.p2.fromArray( o.axis2 || [-1,0,0] )
+		let axeA = this.p1.fromArray( o.axis1 || [1,0,0] )
+		let axeB = this.p2.fromArray( o.axis2 || [1,0,0] )
 
 
 		/*this.q3.fromAxisAngle([0,1,0], Math.PI*0.5 )
@@ -163,7 +163,7 @@ export class Joint extends Item {
 		const formA = new PhysX.PxTransform([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]).set( posA, quatA );
 		const formB = new PhysX.PxTransform([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]).set( posB, quatB );*/
 
-		if( o.worldAnchor ){
+		/*if( o.worldAnchor ){
 
 		    posA = this.v1.fromArray( o.worldAnchor ).sub( b1.translation() )
 		    posB = this.v2.fromArray( o.worldAnchor ).sub( b2.translation() )
@@ -176,7 +176,7 @@ export class Joint extends Item {
 		    //posA.applyMatrix3( this.t1 )
 		    //posB.applyMatrix3( this.t2 )
 
-		}
+		}*/
 
 		let j
 
@@ -214,12 +214,15 @@ export class Joint extends Item {
 		this.set( o, j );
 
 		// add to world
-		let collision = o.collision !== undefined ? o.collision : false;
+		//let collision = o.collision !== undefined ? o.collision : false;
+		let collisionEnabled = o.collision !== undefined ? o.collision : false;
 		//j.setConstraintFlag( PhysX._emscripten_enum_PxConstraintFlagEnum_eCOLLISION_ENABLED(), collision )
 
-		const jv = root.world.createImpulseJoint( j, b1, b2, collision )
-		console.log(jv)
-		//jv.contactsEnabled = false
+		const jv = root.world.createImpulseJoint( j, b1, b2, collisionEnabled )
+		jv.setContactsEnabled( collisionEnabled )
+
+		//console.log(jv)
+		//jv.contactsEnabled = collisionEnabled
 
 		//j.handle = jv.handle
 

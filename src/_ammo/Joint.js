@@ -77,9 +77,6 @@ export class Joint extends Item {
 		let quatA = this.q1.fromArray( o.quat1 || [0,0,0,1])
 		let quatB = this.q2.fromArray( o.quat2 || [0,0,0,1])
 
-		//let axeA = this.p1.fromArray( o.axis1 || [1,0,0])
-		//let axeB = this.p2.fromArray( o.axis2 || [1,0,0])
-
 		let axisA = this.p1.fromArray( o.axis1 || [0,0,1])
 		let axisB = this.p2.fromArray( o.axis2 || [0,0,1])
 
@@ -88,8 +85,8 @@ export class Joint extends Item {
 
 		//console.log(quatA.toArray())
 
-		this.t1.identity()
-		this.t2.identity()
+		//this.t1.identity()
+		//this.t2.identity()
 
 		const useA = o.useA || false;
 
@@ -154,8 +151,14 @@ export class Joint extends Item {
 				if ( o.damping ) j.get_m_setting().set_m_damping( o.damping );
 				if ( o.impulse ) j.get_m_setting().set_m_impulseClamp( o.impulse );
 			break;
-			case "hinge2":  j = new Ammo.btHinge2Constraint( b1, b2, posA, axisA, axisB ); break;
-			case "hinge": case "revolute": j = new Ammo.btHingeConstraint( b1, b2, formA, formB, useA ); break;
+			case "hinge2": 
+			 j = new Ammo.btHinge2Constraint( b1, b2, posA, axisA, axisB );
+			 j.setAxis( this.v1.fromArray( [0,0,1]))
+			  break;
+			case "hinge": case "revolute": 
+			j = new Ammo.btHingeConstraint( b1, b2, formA, formB, useA );
+			j.setAxis( axisA )
+			 break;
 			case "prismatic":  j = new Ammo.btSliderConstraint( b1, b2, formA, formB, useA ); break;
 			case 'ragdoll': j = new Ammo.btConeTwistConstraint( b1, b2, formA, formB ); break;
 			//case "dof": j = new Ammo.btGeneric6DofConstraint( b1, b2, formA, formB, useA ); break;

@@ -160,14 +160,23 @@ export class ExtraJoint extends Basic3D {
 	    this.isJoint = true;
 
 	    //this.mtx = new Matrix4();
-
+	    this.size = o.helperSize || 0.1
+	    g = g.clone() 
+	    g.scale( this.size, this.size, this.size)
 	    this.m1 = new LineSegments( g, material )
+	    
 	    this.add(this.m1)
+	    
 	    this.m1.matrixAutoUpdate = false;
 
 	    this.m2 = new LineSegments( g, material )
+	    //this.m2.scale.set( this.size, this.size, this.size)
 	    this.add( this.m2 );
+
 	    this.m2.matrixAutoUpdate = false;
+
+	    this.m2.updateMatrix()
+	    this.m1.updateMatrix()
 
 	    this.body1 = null
 	    this.body2 = null
@@ -185,8 +194,10 @@ export class ExtraJoint extends Basic3D {
 	    
 	    
 	    const positions = [ 0, 0, 0, 0, 0, 0 ]
+	    const colors = [ 1, 0, 0, 1, 0, 0 ]
 	    const gline = new BufferGeometry();
 	    gline.setAttribute( 'position', new Float32BufferAttribute( positions, 3 ) );
+	    gline.setAttribute( 'color', new Float32BufferAttribute( colors, 3 ) );
 	    gline.computeBoundingSphere();
 
 

@@ -252,8 +252,6 @@ export class Motor {
 		var arr = rootURL.split("/");
 		rootURL = arr[0] + "//" + arr[2] + '/'
 
-				console.log('yoo', rootURL)
-
 		const path = o.path || 'build/';
 
 		const wasmLink = {

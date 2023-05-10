@@ -146,17 +146,15 @@ export class Joint extends Item {
 
 		switch ( mode ) {
 			case 'fixe':
-			havok.HP_Constraint_SetAxisMode(j, CA.LINEAR_X, LM.LOCKED)
-            havok.HP_Constraint_SetAxisMode(j, CA.LINEAR_Y, LM.LOCKED)
-            havok.HP_Constraint_SetAxisMode(j, CA.LINEAR_Z, LM.LOCKED)
-            havok.HP_Constraint_SetAxisMode(j, CA.ANGULAR_X, LM.LOCKED)
-            havok.HP_Constraint_SetAxisMode(j, CA.ANGULAR_Y, LM.LOCKED)
-            havok.HP_Constraint_SetAxisMode(j, CA.ANGULAR_Z, LM.LOCKED)
+			for(let t in CA){
+            	if(t!=='LINEAR_DISTANCE')havok.HP_Constraint_SetAxisMode(j, CA[t], LM.LOCKED)
+            }
 			break;
 			case 'hinge': case "revolute":
 			havok.HP_Constraint_SetAxisMode(j, CA.LINEAR_X, LM.LOCKED)
             havok.HP_Constraint_SetAxisMode(j, CA.LINEAR_Y, LM.LOCKED)
             havok.HP_Constraint_SetAxisMode(j, CA.LINEAR_Z, LM.LOCKED)
+            //havok.HP_Constraint_SetAxisMode(j, CA.ANGULAR_X, LM.LOCKED)
             havok.HP_Constraint_SetAxisMode(j, CA.ANGULAR_Y, LM.LOCKED)
             havok.HP_Constraint_SetAxisMode(j, CA.ANGULAR_Z, LM.LOCKED)
             break;
@@ -186,30 +184,10 @@ export class Joint extends Item {
             havok.HP_Constraint_SetAxisMaxLimit(j, dist3d, distance)
             break;
             case "dof": case "d6": case 'ragdoll': case 'universal':
-//console.log(j)
-            havok.HP_Constraint_SetAxisMode(j, CA.LINEAR_X, LM.LOCKED)
-            havok.HP_Constraint_SetAxisMode(j, CA.LINEAR_Y, LM.LOCKED)
-            havok.HP_Constraint_SetAxisMode(j, CA.LINEAR_Z, LM.LOCKED)
-            havok.HP_Constraint_SetAxisMode(j, CA.ANGULAR_X, LM.LOCKED)
-            havok.HP_Constraint_SetAxisMode(j, CA.ANGULAR_Y, LM.LOCKED)
-            havok.HP_Constraint_SetAxisMode(j, CA.ANGULAR_Z, LM.LOCKED)/**/
-            /*const sixdofData: Physics6DoFConstraint = <Physics6DoFConstraint>constraint;
-            for (const l of sixdofData.limits) {
-                const axId = this._constraintAxisToNative(l.axis);
-                if ((l.minLimit ?? -1) == 0 && (l.maxLimit ?? -1) == 0) {
-                    havok.HP_Constraint_SetAxisMode(j, axId, havok.ConstraintAxisLimitMode.LOCKED);
-                } else {
-                    if (l.minLimit != undefined) {
-                        havok.HP_Constraint_SetAxisMode(j, axId, havok.ConstraintAxisLimitMode.LIMITED);
-                        havok.HP_Constraint_SetAxisMinLimit(j, axId, l.minLimit);
-                    }
 
-                    if (l.maxLimit != undefined) {
-                        havok.HP_Constraint_SetAxisMode(j, axId, havok.ConstraintAxisLimitMode.LIMITED);
-                        havok.HP_Constraint_SetAxisMaxLimit(j, axId, l.maxLimit);
-                    }
-                }
-            }*/
+            for(let t in CA){
+            	if(t!=='LINEAR_DISTANCE')havok.HP_Constraint_SetAxisMode(j, CA[t], LM.LOCKED)
+            }
             break;
 		}
 
@@ -257,6 +235,7 @@ export class Joint extends Item {
 
 			case 'hinge': case "revolute":
 			if( o.lm ) this.setLimit( j, o.lm, 'ANGULAR_X' )
+			//if( o.lm ) this.setLimit( j, o.lm, 'ANGULAR_Z' )
 			break;
 
 		    case "prismatic":
@@ -288,6 +267,12 @@ export class Joint extends Item {
 				i = o.motor.length
 				while(i--){
 					this.setMotor( j, o.motor[i][1], o.motor[i][2], this.convert[ o.motor[i][0] ] )
+				}
+			}
+			if( o.friction ){ 
+				i = o.friction.length
+				while(i--){
+					this.setFriction( j, o.friction[i][1], this.convert[ o.friction[i][0] ] )
 				}
 			}
 			
@@ -326,8 +311,20 @@ export class Joint extends Item {
 		const axis = this.ConstraintAxis[ axe ];
 
 		havok.HP_Constraint_SetAxisMotorType( j, axis, this.MotorType['VELOCITY'] );
-		havok.HP_Constraint_SetAxisMotorTarget( j, axis, target);
-		havok.HP_Constraint_SetAxisMotorMaxForce( j, axis, maxForce);
+		//havok.HP_Constraint_SetAxisMotorType( j, axis, this.MotorType['POSITION'] );
+		havok.HP_Constraint_SetAxisMotorTarget( j, axis, target*r);
+		havok.HP_Constraint_SetAxisMotorMaxForce( j, axis, target*r);//0
+
+		//havok.HP_Constraint_SetAxisMode( j, axis, this.LimitMode.FREE )
+
+	//	console.log(j, axis.value);
+
+		/*j.setAxisMotorType(axis.value, this.MotorType['VELOCITY']);
+       j.setAxisMotorMaxForce(axis.value, 1000);
+        j.setAxisMotorTarget(axis.value, Math.PI * 0.5)*/
+
+		//console.log(havok.HP_Constraint_GetAxisMotorMaxForce( j, axis)[1]);
+		//havok.HP_Constraint_SetAxisMotorMaxForce( j, axis, maxForce);
 
 	}
 
@@ -336,6 +333,8 @@ export class Joint extends Item {
 		//let r = this.angulars.indexOf(axe) !== -1 ? torad : 1
 		const axis = this.ConstraintAxis[ axe ];
 		havok.HP_Constraint_SetAxisFriction( j, axis, friction )
+
+		//console.log(havok.HP_Constraint_GetAxisFriction( j, axis)[1]);
 
 	}
 

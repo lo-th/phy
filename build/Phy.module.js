@@ -1,4 +1,102 @@
-import { Color, Euler, Quaternion, Matrix4, Vector3, Box3Helper, CylinderGeometry, SphereGeometry, BoxGeometry, PlaneGeometry, MeshStandardMaterial, MeshBasicMaterial, LineBasicMaterial, MeshPhysicalMaterial, DoubleSide, Line, BufferGeometry, Float32BufferAttribute, EventDispatcher, MathUtils, Layers, InstancedMesh, InstancedBufferAttribute, DynamicDrawUsage, TrianglesDrawMode, TriangleFanDrawMode, TriangleStripDrawMode, BufferAttribute, CircleGeometry, Box3, Vector2, Line3, Plane, Triangle, Mesh, LineSegments, NearestFilter, NearestMipmapNearestFilter, NearestMipmapLinearFilter, LinearFilter, LinearMipmapNearestFilter, LinearMipmapLinearFilter, ClampToEdgeWrapping, RepeatWrapping, MirroredRepeatWrapping, PropertyBinding, InterpolateLinear, Source, LinearEncoding, RGBAFormat, InterpolateDiscrete, Scene, sRGBEncoding, Loader, LoaderUtils, FileLoader, SpotLight, PointLight, DirectionalLight, SRGBColorSpace, Object3D, TextureLoader, ImageBitmapLoader, InterleavedBuffer, InterleavedBufferAttribute, PointsMaterial, Material, SkinnedMesh, LineLoop, Points, Group, PerspectiveCamera, OrthographicCamera, Skeleton, AnimationClip, Bone, FrontSide, Texture, VectorKeyframeTrack, QuaternionKeyframeTrack, NumberKeyframeTrack, Sphere, Interpolant, LinearSRGBColorSpace, Vector4, Curve, MeshPhongMaterial, MeshLambertMaterial, EquirectangularReflectionMapping, AmbientLight, Uint16BufferAttribute, Matrix3, DataTextureLoader, HalfFloatType, FloatType, DataUtils, AnimationMixer, AdditiveBlending, CustomBlending, ZeroFactor, SrcAlphaFactor, SkeletonHelper, CanvasTexture, Raycaster } from 'three';
+import { LineSegments, BufferGeometry, BufferAttribute, Float32BufferAttribute, LineBasicMaterial, Color, Euler, Quaternion, Matrix4, Vector3, CylinderGeometry, SphereGeometry, BoxGeometry, PlaneGeometry, MeshStandardMaterial, MeshBasicMaterial, MeshPhysicalMaterial, DoubleSide, Line, EventDispatcher, MathUtils, Layers, InstancedMesh, InstancedBufferAttribute, DynamicDrawUsage, TrianglesDrawMode, TriangleFanDrawMode, TriangleStripDrawMode, CircleGeometry, Box3, Vector2, Line3, Plane, Triangle, Mesh, NearestFilter, NearestMipmapNearestFilter, NearestMipmapLinearFilter, LinearFilter, LinearMipmapNearestFilter, LinearMipmapLinearFilter, ClampToEdgeWrapping, RepeatWrapping, MirroredRepeatWrapping, PropertyBinding, InterpolateLinear, Source, LinearEncoding, RGBAFormat, InterpolateDiscrete, Scene, sRGBEncoding, Loader, LoaderUtils, FileLoader, SpotLight, PointLight, DirectionalLight, SRGBColorSpace, Object3D, TextureLoader, ImageBitmapLoader, InterleavedBuffer, InterleavedBufferAttribute, PointsMaterial, Material, SkinnedMesh, LineLoop, Points, Group, PerspectiveCamera, OrthographicCamera, Skeleton, AnimationClip, Bone, FrontSide, Texture, VectorKeyframeTrack, QuaternionKeyframeTrack, NumberKeyframeTrack, Sphere, Interpolant, LinearSRGBColorSpace, Vector4, Curve, MeshPhongMaterial, MeshLambertMaterial, EquirectangularReflectionMapping, AmbientLight, Uint16BufferAttribute, Matrix3, DataTextureLoader, HalfFloatType, FloatType, DataUtils, AnimationMixer, AdditiveBlending, CustomBlending, ZeroFactor, SrcAlphaFactor, SkeletonHelper, CanvasTexture, Raycaster } from 'three';
+
+class CircleHelper extends LineSegments {
+
+	constructor( box, color = 0xffff00 ) {
+
+		const indices = new Uint16Array( [ 
+			0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 0,   
+			6, 7, 7, 8, 8, 9, 9, 10, 10, 11, 11, 6,
+			12, 13, 13, 14, 14, 15, 15, 16, 16, 17, 17, 12
+			] );
+		const positions = [
+		 0.5, 0.0, 0.0,
+		0.25, 0.433, 0.0,
+		-0.25, 0.433, 0.0,
+		-0.5, 0.0, 0.0,
+		-0.25, -0.433, 0.0,
+		0.25, -0.433, 0.0, 
+
+		 0.5, 0.0,0.0, 
+		0.25,  0.0,0.433,
+		-0.25,  0.0,0.433,
+		-0.5, 0.0, 0.0,
+		-0.25,0.0, -0.433, 
+		0.25, 0.0, -0.433, 
+
+		  0.0,0.5, 0.0,
+		0.0,0.25, 0.433, 
+		0.0,-0.25, 0.433, 
+		0.0,-0.5, 0.0, 
+		0.0,-0.25, -0.433, 
+		0.0,0.25, -0.433, 
+		];
+
+		const colors = [
+		1, 0, 0,
+		1, 0, 0,
+		1, 0, 0,
+		1, 0, 0,
+		1, 0, 0,
+		1, 0, 0,
+
+		0, 1, 0,
+		0, 1, 0,
+		0, 1, 0,
+		0, 1, 0,
+		0, 1, 0,
+		0, 1, 0,
+
+
+		0, 0.3, 1,
+		0, 0.3, 1,
+		0, 0.3, 1,
+		0, 0.3, 1,
+		0, 0.3, 1,
+		0, 0.3, 1,
+		];
+
+		const geometry = new BufferGeometry();
+
+		geometry.setIndex( new BufferAttribute( indices, 1 ) );
+
+		geometry.setAttribute( 'position', new Float32BufferAttribute( positions, 3 ) );
+		geometry.setAttribute( 'color', new Float32BufferAttribute( colors, 3 ) );
+
+		super( geometry, new LineBasicMaterial( { color: color, toneMapped: false } ) );
+
+		this.box = box;
+
+		this.type = 'Box3Helper';
+
+		this.geometry.computeBoundingSphere();
+
+	}
+
+	updateMatrixWorld( force ) {
+
+		const box = this.box;
+
+		if ( box.isEmpty() ) return;
+
+		box.getCenter( this.position );
+
+		box.getSize( this.scale );
+
+		this.scale.multiplyScalar( 0.5 );
+
+		super.updateMatrixWorld( force );
+
+	}
+
+	dispose() {
+
+		this.geometry.dispose();
+		this.material.dispose();
+
+	}
+
+}
 
 const map = new Map();
 
@@ -233,7 +331,9 @@ const Geo = {
 				case 'cylinder': g = new CylinderGeometry( 1, 1, 1 , 16 ); break
 				//case 'wheel':    g = new CylinderGeometry( 1, 1, 1 , 16 ); g.rotateX( -Math.PI * 0.5 ); break
 				case 'cone':     g = new CylinderGeometry( 0.001, 1, 1 , 16 ); break
-				case 'joint':    g = new Box3Helper().geometry; g.scale( 0.05,0.05,0.05 ); break
+				//case 'joint':    g = new Box3Helper().geometry; g.scale( 0.05,0.05,0.05 ); break
+
+				case 'joint':    g = new CircleHelper().geometry; break
 				default: return null;
 			}
 			geo[name] = g;
@@ -313,7 +413,7 @@ const Mat = {
 				case 'car':   m = new MeshPhysicalMaterial({ color:0x303030, metalness: 1.0, roughness: 0.5, clearcoat: 1.0, clearcoatRoughness: 0.03, sheen: 0.5 }); break
 				case 'carGlass':   m = new MeshPhysicalMaterial({ color: 0xffffff, metalness: 0.25, roughness: 0, transmission: 1.0 }); break
 
-				case 'joint':  m = new LineBasicMaterial( { color: 0xFF8800, toneMapped: false } ); break
+				case 'joint':  m = new LineBasicMaterial( {  vertexColors: true } ); break
 				case 'ray':    m = new LineBasicMaterial( { vertexColors: true, toneMapped: false } ); break	
 
 				case 'debug':  m = new MeshBasicMaterial({ color:0x000000, wireframe:true, toneMapped: false }); break
@@ -594,7 +694,7 @@ const math$1 = {
 
 const Max = {
 	body:2000,
-    joint:100,
+    joint:0,//100
     contact:50,
     ray:50,
     character:50,
@@ -606,7 +706,7 @@ const Max = {
 const Num = {
 	bodyFull:14,
     body:8,
-    joint:16,
+    joint:0,//16,
     contact:8,
     ray:8,
     character:16,
@@ -5335,14 +5435,23 @@ class ExtraJoint extends Basic3D {
 	    this.isJoint = true;
 
 	    //this.mtx = new Matrix4();
-
+	    this.size = o.helperSize || 0.1;
+	    g = g.clone(); 
+	    g.scale( this.size, this.size, this.size);
 	    this.m1 = new LineSegments( g, material );
+	    
 	    this.add(this.m1);
+	    
 	    this.m1.matrixAutoUpdate = false;
 
 	    this.m2 = new LineSegments( g, material );
+	    //this.m2.scale.set( this.size, this.size, this.size)
 	    this.add( this.m2 );
+
 	    this.m2.matrixAutoUpdate = false;
+
+	    this.m2.updateMatrix();
+	    this.m1.updateMatrix();
 
 	    this.body1 = null;
 	    this.body2 = null;
@@ -5360,8 +5469,10 @@ class ExtraJoint extends Basic3D {
 	    
 	    
 	    const positions = [ 0, 0, 0, 0, 0, 0 ];
+	    const colors = [ 1, 0, 0, 1, 0, 0 ];
 	    const gline = new BufferGeometry();
 	    gline.setAttribute( 'position', new Float32BufferAttribute( positions, 3 ) );
+	    gline.setAttribute( 'color', new Float32BufferAttribute( colors, 3 ) );
 	    gline.computeBoundingSphere();
 
 
@@ -26211,8 +26322,6 @@ class Motor {
 		let rootURL = document.location.href.replace(/\/[^/]*$/,"/");
 		var arr = rootURL.split("/");
 		rootURL = arr[0] + "//" + arr[2] + '/';
-
-				console.log('yoo', rootURL);
 
 		const path = o.path || 'build/';
 

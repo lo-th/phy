@@ -98,6 +98,8 @@ s
 
             drive:front ?[ ['ry', 1,1000, Infinity, false]]:[],
 
+           // friction:[ ['rx', 1], ['ry', 1], ['rz', 1], ['y', 0.2]],
+
 
             //rot1:[0,0,90],
             //rot2:[0,0,90],
@@ -110,7 +112,7 @@ s
             sd:[[ 'y',20,0.01, true]],
            // sd : front ? [['ry',1,1, true]]: [],
             acc:true,
-            noFix:true,
+            //noFix:true,
 
             //lm: front ? [ ['ry',-45,45],['y',-0.05,0.05]] : [['y',-0.05,0.05]],
             //lm: front ? [ ['y', -0.1, 0.1], ['ry', -30, 30]] : [ss['y', -0.1, 0.1]],
@@ -133,8 +135,9 @@ s
 
             motions: [['rx', 'free']] ,
             drive:[ ['rx', 1,1000]],
+            //friction:[ ['rx', 0], ['ry', 1], ['rz', 1]],
             acc:true,
-            noFix:true,
+            //noFix:true,
         })
 
     }
@@ -169,7 +172,8 @@ function update () {
 
         //if( f ) 
         //r.push( { name:'axis'+i+'_'+ current, localRot:[0,-rs * 25 ,0]/*, reset:true*/ } )
-        r.push({ name:'axe'+i+'_'+ current, motor:[['ry',f ? -rs*360 : 0, 200, 10 ]],
+        r.push({ name:'axe'+i+'_'+ current,
+              motor:[['ry',f ? -rs*360 : 0, 200, 10 ]],
               //drivePosition:{pos:w1, rot:[0,f ? -rs*25 : 0, 0]},
               driveVelocity:[[0,0,0], [ 0 , f ? rs*360 :0,0]],
         })
@@ -177,8 +181,8 @@ function update () {
         //r.push( { name:'wheel'+i+'_'+ current, torque:[ts*300, 0 ,0 ] } )
 
         r.push({ name:'joint'+i+'_'+ current, 
-            motor:[['rx',ts*360*2, 360 ]], 
-            driveVelocity:[[0,0,0], [ -ts*30,0,0]] 
+            motor:[['rx',ts*360*2, 360 ]], // ammo // oimo
+            driveVelocity:[[0,0,0], [ -ts*30,0,0]] // physx
         })
        //r.push( { name:'joint'+i+'_'+ current, motor:[['rx',-ts*200,-ts*2000 ]] } )
 

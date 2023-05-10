@@ -4,7 +4,7 @@ import {
     Matrix4, Euler, Quaternion, Vector3, Vector2, Color,
     Box3Helper, DoubleSide,
 } from 'three';
-
+import { CircleHelper } from '../3TH/helpers/CircleHelper.js';
 
 export const map = new Map()
 
@@ -239,7 +239,9 @@ export const Geo = {
 				case 'cylinder': g = new CylinderGeometry( 1, 1, 1 , 16 ); break
 				//case 'wheel':    g = new CylinderGeometry( 1, 1, 1 , 16 ); g.rotateX( -Math.PI * 0.5 ); break
 				case 'cone':     g = new CylinderGeometry( 0.001, 1, 1 , 16 ); break
-				case 'joint':    g = new Box3Helper().geometry; g.scale( 0.05,0.05,0.05 ); break
+				//case 'joint':    g = new Box3Helper().geometry; g.scale( 0.05,0.05,0.05 ); break
+
+				case 'joint':    g = new CircleHelper().geometry; break
 				default: return null;
 			}
 			geo[name] = g;
@@ -319,7 +321,7 @@ export const Mat = {
 				case 'car':   m = new MeshPhysicalMaterial({ color:0x303030, metalness: 1.0, roughness: 0.5, clearcoat: 1.0, clearcoatRoughness: 0.03, sheen: 0.5 }); break
 				case 'carGlass':   m = new MeshPhysicalMaterial({ color: 0xffffff, metalness: 0.25, roughness: 0, transmission: 1.0 }); break
 
-				case 'joint':  m = new LineBasicMaterial( { color: 0xFF8800, toneMapped: false } ); break
+				case 'joint':  m = new LineBasicMaterial( {  vertexColors: true } ); break
 				case 'ray':    m = new LineBasicMaterial( { vertexColors: true, toneMapped: false } ); break	
 
 				case 'debug':  m = new MeshBasicMaterial({ color:0x000000, wireframe:true, toneMapped: false }); break

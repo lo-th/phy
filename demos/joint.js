@@ -25,7 +25,7 @@ demo = () => {
     phy.add({ 
         type:'joint', mode:'d6', b1:b1, b2:b2, pos1:[1,0,0], pos2:[-1,0,0], 
 
-        axis1:[1,0,0], axis2:[1,0,0],
+        //axis1:[1,0,0], axis2:[1,0,0],
         
         // limite : down / up
         lm:[['x', 0, 2], ['rx', -180, 180 ] ],
@@ -135,8 +135,8 @@ createHingeChain = ( from, radius, num, axis  ) => {
             from[2]+= math.rand(-0.001, 0.001)
         }
         b2 = phy.add({ type:'box', size:[radius, radius * 0.9 *2, radius * 0.9*2], pos:[from[0], y, from[2]],  density:1 })
-        if(i===num-1) phy.add({ type:'joint', mode:'revolute', b1:b1, b2:b2, pos1:[0,0,0], pos2:[0,-radius*2,0] })
-        else phy.add({ type:'joint', mode:'revolute', b1:b1, b2:b2, pos1:[0,radius,0], pos2:[0,-radius,0] })
+        if(i===num-1) phy.add({ type:'joint', mode:'revolute', b1:b1, b2:b2, pos1:[0,0,0], pos2:[0,-radius*2,0], worldAxis:axis })
+        else phy.add({ type:'joint', mode:'revolute', b1:b1, b2:b2, pos1:[0,radius,0], pos2:[0,-radius,0], worldAxis:axis })
         b1 = b2
     }
 }
