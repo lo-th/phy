@@ -5353,7 +5353,7 @@ class Joint extends Item {
 			this.v1.fromArray( o.worldAnchor ); 
 			this.v2.fromArray( o.worldAnchor );
 
-			console.log(body1,body2);
+			//console.log(body1,body2)
 
 			o.pos1 = body1 ? Utils.toLocal( this.v1, body1 ).toArray() : o.worldAnchor;
 			o.pos2 = body2 ? Utils.toLocal( this.v2, body2 ).toArray() : o.worldAnchor;
@@ -26323,15 +26323,14 @@ class Motor {
 
 	static init ( o = {} ) {
 
+		// TODO find better solution
 		let rootURL = document.location.href.replace(/\/[^/]*$/,"/");
-
-
 		var arr = rootURL.split("/");
 		rootURL = arr[0] + "//" + arr[2] + '/';
 
 		if( rootURL === 'https://lo-th.github.io/' ) rootURL = 'https://lo-th.github.io/phy/';
 
-		console.log('link', rootURL);
+		//console.log('link', rootURL)
 
 		const path = o.path || 'build/';
 

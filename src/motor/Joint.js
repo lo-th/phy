@@ -76,7 +76,7 @@ export class Joint extends Item {
 			this.v1.fromArray( o.worldAnchor ) 
 			this.v2.fromArray( o.worldAnchor )
 
-			console.log(body1,body2)
+			//console.log(body1,body2)
 
 			o.pos1 = body1 ? Utils.toLocal( this.v1, body1 ).toArray() : o.worldAnchor
 			o.pos2 = body2 ? Utils.toLocal( this.v2, body2 ).toArray() : o.worldAnchor
