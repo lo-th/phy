@@ -111,7 +111,7 @@ export class Body extends Item {
 
 			case 'box' : g = havok.HP_Shape_CreateBox( center, qq, s )[1]; break;
 			case 'sphere' : g = havok.HP_Shape_CreateSphere( center, s[0] )[1]; break;
-			case 'cone' : g = havok.HP_Shape_CreateCylinder( p1, p2, s[0])[1]; break;
+			//case 'cone' : g = havok.HP_Shape_CreateCylinder( p1, p2, s[0])[1]; break;
 			case 'cylinder' : g = havok.HP_Shape_CreateCylinder( p1, p2, s[0])[1]; break;
 			case 'capsule' : g = havok.HP_Shape_CreateCapsule( p1, p2, s[0])[1]; break;
 			case 'convex' :
@@ -205,7 +205,7 @@ export class Body extends Item {
     }
 
 	getVertices ( ar ) {
-        const nFloats = ar.length// * 3;
+        const nFloats = ar.length * 3;
         const bytesPerFloat = 4;
         const nBytes = nFloats * bytesPerFloat;
         const bufferBegin = havok._malloc(nBytes);
@@ -257,9 +257,9 @@ export class Body extends Item {
 
 			    g = havok.HP_Shape_CreateContainer()[1]
 
-				let gs = [], n;
+				let gs = [], n, tt;
 
-				for ( var i = 0; i < o.shapes.length; i ++ ) {
+				for ( let i = 0; i < o.shapes.length; i ++ ) {
 
 					n = o.shapes[ i ];
 
@@ -269,14 +269,21 @@ export class Body extends Item {
 			        if( o.mask !== undefined ) n.collisionMask = o.mask
 			        if( o.group !== undefined ) n.collisionGroup = o.group
 
-					if( n.pos ) n.localPos = n.pos
-					if( n.quat ) n.localQuat = n.quat
+					
 
-				    let trans = [
-				      [0,0,0],
-				      [0,0,0,1],
-				      [1,1,1]
-				    ]
+					let trans = [ [0,0,0], n.quat || [0,0,0,1], [1,1,1] ]
+
+					tt = n.type||'box'
+
+					if( tt !== 'convex' && tt !== 'mesh'){
+						if( n.pos ) n.localPos = n.pos
+						//if( n.quat ) n.localQuat = n.quat
+					} else {
+						trans = [ n.pos || [0,0,0], n.quat || [0,0,0,1], [1,1,1] ]
+					}
+
+
+				    
 
 					//b.addShape( this.shape( n ) )
 				    havok.HP_Shape_AddChild(g, this.shape( n ), trans)

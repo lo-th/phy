@@ -34,7 +34,7 @@ demo = () => {
         // motor: speed / torque 
       // motor:[ ['rx', 6, 6] ],
        collision:true,
-       noFix:true,
+       //noFix:true,
     })
 
 
@@ -60,9 +60,8 @@ demo = () => {
     b1 = phy.add({ type:'box', size:[0.4], pos:[ pos[0],pos[1]+length,pos[2] ], density:0, kinematic:true, angularVelocity:[0,1.5,0], material:'debug' })
     b2 = phy.add({ type:'box', size:[0.4,1,0.4], pos:[ pos[0],pos[1]-length,pos[2] ], density:1 })
     phy.add({ 
-        type:'joint', mode:'ragdoll', b1:b1, b2:b2, 
-        lmp:[-1,1], lmr:[-180,180], sdp:[4,0.7], sdr:[0,0], worldPos:pos, worldAxis:[0,0,1],
-
+        type:'joint', mode:'ragdoll', b1:b1, b2:b2, worldPos:pos, worldAxis:[0,0,1],
+        lmp:[-1,1], lmr:[-180,180], sdp:[4,0.7], sdr:[0,0], 
         lm:[  ['ry',-90*0.4, 90*0.4],  ['rz',-90*0.4, 90*0.4]], 
     })
 
@@ -73,8 +72,7 @@ demo = () => {
     b2 = phy.add({ type:'box', size:[0.4,1,0.4], pos:[ pos[0],pos[1]-length,pos[2] ], density:1 })
     phy.add({ 
         type:'joint', mode:'universal', b1:b1, b2:b2, 
-        worldPos:pos, 
-        worldAxis:[1,0,0], worldAxis2:[0,0,1],
+        worldPos:pos,  worldAxis:[1,0,0], worldAxis2:[0,0,1],
 
         lm1:[-90*0.5, 90*0.5 ],
         lm2:[-90*0.8, 90*0.8 ],

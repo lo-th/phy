@@ -370,11 +370,14 @@ export class Body extends Item {
 
         if( b.type === 'body' ){
 
-	        b.getMotionState().getWorldTransform( this.t )
+	        /*b.getMotionState().getWorldTransform( this.t )
 	        let q = this.t.getRotation()
 
 	        if ( o.linearVelocity !== undefined ) b.setLinearVelocity( this.v.fromArray( o.linearVelocity ).applyQuaternion( q ) );
-			if ( o.angularVelocity !== undefined ) b.setAngularVelocity( this.v.fromArray( o.angularVelocity ).applyQuaternion( q ) );// radian
+			if ( o.angularVelocity !== undefined ) b.setAngularVelocity( this.v.fromArray( o.angularVelocity ).applyQuaternion( q ) );// radian*/
+
+		    if ( o.linearVelocity !== undefined ) b.setLinearVelocity( this.v.fromArray( o.linearVelocity ) );
+			if ( o.angularVelocity !== undefined ) b.setAngularVelocity( this.v.fromArray( o.angularVelocity ) );// radian
 		}
 
 

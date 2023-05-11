@@ -238,6 +238,8 @@ export class Joint extends Item {
 			    if( o.lm ) this.limit( j.getLimitMotor(), o.lm, j.mode === 'prismatic' )
 			    if( o.motor ) this.motor( j.getLimitMotor(), o.motor, j.mode === 'prismatic' )
 
+			    	console.log(j.getLimitMotor())
+
 			break;
 
 			case 'cylindrical': // two degrees of freedom

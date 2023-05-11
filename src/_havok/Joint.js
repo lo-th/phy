@@ -235,6 +235,8 @@ export class Joint extends Item {
 
 			case 'hinge': case "revolute":
 			if( o.lm ) this.setLimit( j, o.lm, 'ANGULAR_X' )
+			if( o.motor ) this.setMotor( j, o.motor[1], o.motor[2], 'ANGULAR_X' )
+			if( o.friction !== undefined ) this.setFriction( j, o.friction, 'ANGULAR_X' )
 			//if( o.lm ) this.setLimit( j, o.lm, 'ANGULAR_Z' )
 			break;
 
@@ -313,7 +315,7 @@ export class Joint extends Item {
 		havok.HP_Constraint_SetAxisMotorType( j, axis, this.MotorType['VELOCITY'] );
 		//havok.HP_Constraint_SetAxisMotorType( j, axis, this.MotorType['POSITION'] );
 		havok.HP_Constraint_SetAxisMotorTarget( j, axis, target*r);
-		havok.HP_Constraint_SetAxisMotorMaxForce( j, axis, target*r);//0
+		havok.HP_Constraint_SetAxisMotorMaxForce( j, axis, maxForce*r);//0
 
 		//havok.HP_Constraint_SetAxisMode( j, axis, this.LimitMode.FREE )
 

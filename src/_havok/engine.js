@@ -89,7 +89,7 @@ export class engine {
 		isBuffer = o.isBuffer || false;
 
 		if( o.fps !== undefined ) timestep = 1 / o.fps;
-		//if( o.substep !== undefined ) substep = o.substep;
+		if( o.substep !== undefined ) substep = o.substep;
 
 		if( o.message ){ 
 			returnMessage = o.message;
@@ -106,8 +106,6 @@ export class engine {
 			//Utils.extends()
 			engine.initItems()
 
-			
-
 			engine.post( { m:'ready', o:{} } )
 
 		})
@@ -120,6 +118,8 @@ export class engine {
 
 	static set ( o = {} ){
 
+		console.log("set")
+
 		ArPos = o.ArPos || getArray('HAVOK', o.full)
 		items.body.setFull(o.full)
 
@@ -129,9 +129,8 @@ export class engine {
 		timestep = 1 / (o.fps || 60 );
 		interval = math.toFixed(timestep*1000, 2)
 
-		substep = 1//o.substep || 1;
-		// broadphase 1:BRUTE_FORCE 2:BVH
-		//broadphase = o.broadphase || 2;
+		substep = o.substep || 1;
+		
 		fixe = o.fixe !== undefined ? o.fixe : true;
 
 		gravity =  o.gravity || [ 0, -9.80665, 0 ];
@@ -329,7 +328,10 @@ export class engine {
 		root.deltaTime = fixe ? timestep / substep : root.delta / substep
 
 		let n = substep;
-		while( n-- ) havok.HP_World_Step( root.world, root.deltaTime )
+		while( n-- ) {
+			havok.HP_World_Step( root.world, root.deltaTime )
+			tmpStep++
+		}
 
 		engine.stepItems()
 

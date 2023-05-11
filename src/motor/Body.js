@@ -184,6 +184,9 @@ export class Body extends Item {
 						vv.push( new Vector3( o.v[n], o.v[n+1], o.v[n+2] ) )
 					}
 					g = new ConvexGeometry( vv );
+					//o.v = math.getVertex( g )
+					//o.index = math.getIndex( g )
+					//console.log(o.v, o.index)
 				}
 				unic = true;
 				noScale = true;
