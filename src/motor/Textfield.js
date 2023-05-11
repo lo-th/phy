@@ -9,7 +9,7 @@ export class Textfield extends Mesh {
 
 	constructor( o={} ) {
 
-		super(new PlaneGeometry(), new MeshBasicMaterial({polygonOffset: true, polygonOffsetFactor: -4}))
+		super( new PlaneGeometry(), new MeshBasicMaterial({polygonOffset: true, polygonOffsetFactor: -4}))
 
 		this.name = o.nam || 'text'
 		this.canvas = null

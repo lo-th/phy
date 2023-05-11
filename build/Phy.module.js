@@ -406,6 +406,8 @@ const Mat = {
 				case 'skinny':   m = new MeshStandardMaterial({ color:0xe0ac69, ...matExtra }); break
 				case 'chrome': m = new MeshStandardMaterial({ color:0xCCCCCC, metalness: 1, roughness:0.2 }); break
 				case 'glass':  m = new MeshPhysicalMaterial({ color:0xFFFFff, transparent:true, opacity:0.8, depthTest:true, depthWrite:false, roughness:0.02, metalness:0.0, /*side:DoubleSide,*/ alphaToCoverage:true, premultipliedAlpha:true, transmission:1, clearcoat:1, thickness:0.02  }); break
+				case 'glassX':  m = new MeshPhysicalMaterial({ color:0xFFFFff, transparent:true, opacity:1.0, roughness:0.1, metalness:0.2, transmission:1.0, clearcoat:1, thickness:0.25, ior:1.5, envMapIntensity:1.5 }); break
+				
 				case 'plexi':  m = new MeshPhysicalMaterial({ color:0xFFFFff, transparent:true, opacity:0.4, metalness:1, roughness:0, clearcoat:1, side:DoubleSide }); break
 				case 'glass2': m = new MeshPhysicalMaterial({ color:0xCCCCff, transparent:true, opacity:0.3  }); break
 				case 'sat': m = new MeshPhysicalMaterial({ color:0xffffff, metalness: 1, roughness:0, clearcoat:1  }); break
@@ -24710,132 +24712,11 @@ class Gamepad {
 
 }
 
-let Nb = 0;
-
-class Button {
-
-	constructor ( o={} ) {
-
-		this.down = false;
-
-
-
-		this.time = o.time || 250;
-
-		this.p = o.pos || [0,0,0];
-
-		this.type = o.type || 'box';
-		this.name = o.name || 'button' + Nb++;
-		this.pos = o.pos || [0,0,0];
-		this.size = o.size || [1,1,1];
-		this.radius = o.radius || 0;
-		this.axe = o.axe !== undefined ? o.axe : 1; 
-
-
-		this.decal = this.type === 'sphere'? this.size[1]*0.5 : (this.size[1]*0.5) - this.radius;
-
-		if( this.type !== 'sphere' ) this.pos[this.axe]+=this.decal;
-
-
-		this.origin = this.pos[this.axe];
-
-		this.range = [ this.origin-this.decal - (this.radius*2), this.origin ];
-
-		this.value = this.origin;
-		this.target = this.origin;
-
-		this.speed = (this.size[this.axe]/3) / (this.size[this.axe]);
-
-	
-
-		this.callback = function(){ 
-			console.log("action down"); 
-		};
-
-		if( o.callback ){ 
-			this.callback = o.callback; 
-			delete o.callback;
-		}
-
-		o.button = true;
-		o.pos = this.pos; 
-		if(!o.material) o.material = 'button';
-		o.kinematic = true;
-		o.mask = 1;
-
-		this.timeout = null;
-
-		this.b = root.motor.add( o );
-
-		this.b.userData['action'] = this.action.bind(this);
-		this.b.userData['out'] = this.out.bind(this);
-
-	}
-
-	action( p ){
-
-		if(this.down) return// this.out()
-		this.down = true;
-
-	    this.target = this.range[0];//this.origin - this.decal
-
-	    
-	    root.motor.explosion( p || this.p, this.size[0]*2, 0.01 );
-	   // this.pos[this.axe] -= this.decal
-		//root.motor.change( { name:this.b.name, pos:this.pos } );
-		this.callback();
-		
-
-		//this.timeout =  setTimeout( this.out.bind(this), this.time )
-
-	}
-
-	out(){
-		if(!this.down) return
-		this.down = false;
-	    this.target = this.range[1];//this.origin + this.decal
-	    root.motor.explosion( this.p, this.size[0]*2, 0.01 );
-
-	    //this.pos[this.axe] += this.decal
-		//root.motor.change( {name:this.b.name, pos:this.pos} );
-	}
-
-	dispose(){
-		//if( this.timeout ) clearTimeout( this.timeout );
-	}
-
-	update(){
-
-		if( this.value !== this.target ){
-
-			//let side = this.target > this.value ? 1 : -1
-
-			this.value = math$1.lerp( this.value, this.target, this.speed );
-
-			//this.value += 0.1 * side
-
-			let t = math$1.nearEquals( this.value, this.target, 0.01);
-
-			if(!t){
-			    this.pos[this.axe] = this.value;
-			    root.motor.change( {name:this.b.name, pos:this.pos} );
-			} else {
-				this.value = this.target;
-			}
-
-
-		}
-
-
-	}
-
-}
-
 class Textfield extends Mesh {
 
 	constructor( o={} ) {
 
-		super(new PlaneGeometry(), new MeshBasicMaterial({polygonOffset: true, polygonOffsetFactor: -4}));
+		super( new PlaneGeometry(), new MeshBasicMaterial({polygonOffset: true, polygonOffsetFactor: -4}));
 
 		this.name = o.nam || 'text';
 		this.canvas = null;
@@ -24935,6 +24816,137 @@ class Textfield extends Mesh {
 		this.material.dispose();
 		this.geometry.dispose();
 
+	}
+
+}
+
+let Nb = 0;
+
+class Button {
+
+	constructor ( o={} ) {
+
+		this.down = false;
+
+
+
+		this.time = o.time || 250;
+
+		this.p = o.pos || [0,0,0];
+
+		this.type = o.type || 'box';
+		this.name = o.name || 'button' + Nb++;
+		this.pos = o.pos || [0,0,0];
+		this.size = o.size || [1,1,1];
+		this.radius = o.radius || 0;
+		this.axe = o.axe !== undefined ? o.axe : 1;
+
+		this.fontSize = o.fontSize || 0.8; 
+
+		this.extraForce = true; 
+
+
+		this.decal = this.type === 'sphere'? this.size[1]*0.5 : (this.size[1]*0.5) - this.radius;
+
+		if( this.type !== 'sphere' ) this.pos[ this.axe ] += this.decal;
+
+
+		this.origin = this.pos[this.axe];
+
+		this.range = [ this.origin-this.decal - (this.radius*2), this.origin ];
+
+		this.value = this.origin;
+		this.target = this.origin;
+
+		this.speed = (this.size[this.axe]/3) / (this.size[this.axe]);
+
+	
+
+		this.callback = function(){ 
+			console.log("action down"); 
+		};
+
+		if( o.callback ){ 
+			this.callback = o.callback; 
+			delete o.callback;
+		}
+
+		o.button = true;
+		o.pos = this.pos; 
+		if(!o.material) o.material = 'button';
+		o.kinematic = true;
+		o.mask = 1;
+
+		
+
+		this.timeout = null;
+
+		// add model & physics
+		this.b = root.motor.add( o );
+
+		this.b.userData['action'] = this.action.bind(this);
+		this.b.userData['out'] = this.out.bind(this);
+
+		// extra text on top 
+		if( o.text ) this.addText( o.text );
+
+	}
+
+	addText( txt, size ){
+
+		this.txt = new Textfield({ text:txt, pos:[ 0,this.size[1]*0.5,0 ], rot:[-90,0,0], h:this.fontSize });
+		this.b.add( this.txt );
+
+	}
+
+	action( p ){
+
+		if(this.down) return
+
+		this.down = true;
+	    this.target = this.range[0];
+	    if(this.extraForce) root.motor.explosion( p || this.p, this.size[0]*2, 0.01 );
+		this.callback();
+
+	}
+
+	out(){
+
+		if(!this.down) return
+
+		this.down = false;
+	    this.target = this.range[1];
+	    if(this.extraForce) root.motor.explosion( this.p, this.size[0]*2, 0.01 );
+
+	}
+
+	update(){
+
+		if( this.value !== this.target ){
+
+			//let side = this.target > this.value ? 1 : -1
+
+			this.value = math$1.lerp( this.value, this.target, this.speed );
+
+			//this.value += 0.1 * side
+
+			let t = math$1.nearEquals( this.value, this.target, 0.01);
+
+			if(!t){
+			    this.pos[this.axe] = this.value;
+			    root.motor.change( {name:this.b.name, pos:this.pos} );
+			} else {
+				this.value = this.target;
+			}
+
+
+		}
+
+	}
+
+	dispose(){
+
+		if(this.txt) this.txt.dispose();
 	}
 
 }

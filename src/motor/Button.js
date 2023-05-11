@@ -1,5 +1,5 @@
 import { root, math } from './root.js';
-
+import { Textfield } from './Textfield.js';
 
 let Nb = 0
 
@@ -20,12 +20,16 @@ export class Button {
 		this.pos = o.pos || [0,0,0]
 		this.size = o.size || [1,1,1];
 		this.radius = o.radius || 0;
-		this.axe = o.axe !== undefined ? o.axe : 1 
+		this.axe = o.axe !== undefined ? o.axe : 1
+
+		this.fontSize = o.fontSize || 0.8 
+
+		this.extraForce = true 
 
 
 		this.decal = this.type === 'sphere'? this.size[1]*0.5 : (this.size[1]*0.5) - this.radius
 
-		if( this.type !== 'sphere' ) this.pos[this.axe]+=this.decal
+		if( this.type !== 'sphere' ) this.pos[ this.axe ] += this.decal
 
 
 		this.origin = this.pos[this.axe]
@@ -54,45 +58,47 @@ export class Button {
 		o.kinematic = true
 		o.mask = 1
 
+		
+
 		this.timeout = null
 
+		// add model & physics
 		this.b = root.motor.add( o )
 
 		this.b.userData['action'] = this.action.bind(this)
 		this.b.userData['out'] = this.out.bind(this)
 
+		// extra text on top 
+		if( o.text ) this.addText( o.text )
+
+	}
+
+	addText( txt, size ){
+
+		this.txt = new Textfield({ text:txt, pos:[ 0,this.size[1]*0.5,0 ], rot:[-90,0,0], h:this.fontSize })
+		this.b.add( this.txt )
+
 	}
 
 	action( p ){
 
-		if(this.down) return// this.out()
+		if(this.down) return
+
 		this.down = true
-
-	    this.target = this.range[0]//this.origin - this.decal
-
-	    
-	    root.motor.explosion( p || this.p, this.size[0]*2, 0.01 )
-	   // this.pos[this.axe] -= this.decal
-		//root.motor.change( { name:this.b.name, pos:this.pos } );
+	    this.target = this.range[0]
+	    if(this.extraForce) root.motor.explosion( p || this.p, this.size[0]*2, 0.01 )
 		this.callback()
-		
-
-		//this.timeout =  setTimeout( this.out.bind(this), this.time )
 
 	}
 
 	out(){
+
 		if(!this.down) return
+
 		this.down = false
-	    this.target = this.range[1]//this.origin + this.decal
-	    root.motor.explosion( this.p, this.size[0]*2, 0.01 )
+	    this.target = this.range[1]
+	    if(this.extraForce) root.motor.explosion( this.p, this.size[0]*2, 0.01 )
 
-	    //this.pos[this.axe] += this.decal
-		//root.motor.change( {name:this.b.name, pos:this.pos} );
-	}
-
-	dispose(){
-		//if( this.timeout ) clearTimeout( this.timeout );
 	}
 
 	update(){
@@ -117,7 +123,11 @@ export class Button {
 
 		}
 
+	}
 
+	dispose(){
+
+		if(this.txt) this.txt.dispose()
 	}
 
 }

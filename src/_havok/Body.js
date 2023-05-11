@@ -43,8 +43,8 @@ export class Body extends Item {
 
 			ar = havok.HP_Body_GetQTransform(b)[1]
 
-			b.pos = ar[0]
-			b.quat = ar[1]
+			//b.pos = ar[0]
+			//b.quat = ar[1]
 
 			this.fillArray( ar[0], AR, n+1, 3 ) 
 			this.fillArray( ar[1], AR, n+4, 4 ) 
@@ -92,18 +92,19 @@ export class Body extends Item {
 			if( s[0]===1 ) s = [300,0,300]
 
 			s[1] = 0
-		    g = havok.HP_Shape_CreateBox( center, qq, s )[1];
+		    //g = havok.HP_Shape_CreateBox( center, qq, s )[1];
 
-			/*h = [
+			h = [
 			    s[0]*0.5, 0, s[2]*0.5 ,
-			    s[0]*0.5, 0, -s[2]*0.5 ,
+			    s[0]*0.5, 0, -s[2]*0.5,
 			    -s[0]*0.5, 0, -s[2]*0.5,
 			    -s[0]*0.5, 0, s[2]*0.5,
 			]
 
 			vertices = this.getVertices(h)
 			
-			g = havok.HP_Shape_CreateConvexHull( vertices, h.length/3 )[1]*/
+			g = havok.HP_Shape_CreateConvexHull( vertices.byteOffset, 4 )[1]
+			/**/
 			//g._gjkMargin = o.margin || 0.0001;// default 0.05
 			//g._useGjkRayCast = o.ray || false;
 
@@ -185,7 +186,7 @@ export class Body extends Item {
         const restitutionCombine = o.restitutionCombine ?? 'MINIMUM'//'MAXIMUM';
 
         const hpMaterial = [staticFriction, friction, restitution, this.materialCombine(frictionCombine), this.materialCombine(restitutionCombine)];
-        havok.HP_Shape_SetMaterial(shape, hpMaterial);
+        havok.HP_Shape_SetMaterial( shape, hpMaterial );
 
     }
 
@@ -293,8 +294,6 @@ export class Body extends Item {
 
 		}
 
-		
-        
 
 		b.name = name
 		b.type = this.type
@@ -315,6 +314,8 @@ export class Body extends Item {
 		//if( o.pos ){ havok.HP_Body_SetPosition(b, o.pos);  ; }
 		//if( o.quat ) { havok.HP_Body_SetOrientation(b, o.quat); b.quat = o.quat; delete o.quat }
 
+		//if( b.isKinematic ) havok.HP_Body_SetTargetQTransform( b, [ b.pos, b.quat ] )
+		//else 
 		havok.HP_Body_SetQTransform( b, [ b.pos, b.quat ] )
 
 
@@ -322,10 +323,6 @@ export class Body extends Item {
 
 		// apply option
 		this.set( o, b )
-
-		
-
-		//havok.HP_World_AddBody(root.world, b, false);
 
 
         havok.HP_Body_SetMotionType(b, havok.MotionType[motionType]);
@@ -350,7 +347,6 @@ export class Body extends Item {
 
 		//console.log( havok.HP_Body_GetWorldTransformOffset(b) )
 
-
 		//console.log( havok.HP_World_GetBodyBuffer(b) )
 
 		//if(o.isTrigger)console.log(b)
@@ -360,6 +356,7 @@ export class Body extends Item {
 	applyMass ( b, g, o ) {
 
 		if( this.type === 'solid' ) return
+		if( o.kinematic ) return
 
 	    // [ center, mass, inertia, inertiaOrientation ]);
 		let massProperties = [[0, 0, 0], 1, [1, 1, 1], [0, 0, 0, 1]]
@@ -387,7 +384,9 @@ export class Body extends Item {
 		//if( o.activate || o.wake ) b.up = true
 		if( o.neverSleep !== undefined ) b.up = o.neverSleep 
 
-		//if( o.noGravity ) b.setGravityScale( 0 )
+		//if( o.gravityScale !== undefined ) b.setGravityScale( o.gravityScale )
+
+	    if(o.gravityFactor!== undefined) havok.HP_Body_SetGravityFactor(b, o.gravityFactor)
 
 	    //havok.HP_Body_SetEventMask(b, arg1)
 	    //havok.HP_Body_SetMassProperties(b, arg1)
@@ -400,15 +399,29 @@ export class Body extends Item {
 
 		if( o.pos || o.quat ){
 
-			if( o.pos ) b.pos = o.pos
-			if( o.quat ) b.quat = o.quat
+			//if( o.pos ) b.pos = o.pos
+			//if( o.quat ) b.quat = o.quat
 
-			let u = [ o.pos || b.pos, o.quat || b.quat ]
+			if( !o.pos ) o.pos = b.pos
+			if( !o.quat ) o.quat = b.quat
+
+			let u = [ o.pos, o.quat ]
+
+		   // let u = [ o.pos || b.pos, o.quat || [0, 0, 0, 1] ]
+		    //let u = [ b.pos,  b.quat ]
 
 			//let pos = o.pos || b.pos;
 			//let quat = o.quat || b.quat;
 //
-			if( b.isKinematic && !b.button) havok.HP_Body_SetTargetQTransform( b, u )
+			//if( b.isKinematic && !b.button) havok.HP_Body_SetTargetQTransform( b, u )
+			if( b.isKinematic && !b.button ){ 
+				//u[0] = [o.pos[0]-b.pos[0], o.pos[1]-b.pos[1], o.pos[2]-b.pos[2]]
+				//u[0] = [b.pos[0]-o.pos[0], b.pos[1]-o.pos[1], b.pos[2]-o.pos[2]]
+				
+				//console.log(u[0])
+				havok.HP_Body_SetTargetQTransform( b, u ); // BUG on position !!!
+				//havok.HP_Body_SetQTransform( b, u )
+			}
 			else havok.HP_Body_SetQTransform( b, u )
 			
 

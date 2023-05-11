@@ -1,6 +1,6 @@
 demo = () => {
     // config physics setting
-    phy.set({ substep:2, gravity:[0,-9.81,0], fps:60 })
+    phy.set({ substep:4, gravity:[0,-9.81,0], fps:60, fixe:true })
     // add static ground
     phy.add({ type:'plane', size:[300,1,300], visible:false })
     // load logo model
@@ -12,7 +12,8 @@ onComplete = () => {
 
     model = phy.getMesh('phy', true);
     let option = {
-        density:1, restitution:0.5, friction:0.5, radius:0.03
+        density:1, restitution:0.5, friction:0.5, radius:0.03,
+        gravityFactor:1
     }
 
     // add phy logo
