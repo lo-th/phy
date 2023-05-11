@@ -25,10 +25,10 @@ demo = () => {
         
         if( isLocal ){ // local joint
             x = (length + gap) * 0.5
-            phy.add({ type:'joint', name:'j'+i, b1:'b'+i, b2:'b'+(i+1), pos1:[x,0,0], pos2:[-x,0,0], worldAxis:[0,0,1]/*, axis1:[0,0,1], axis2:[0,0,1]*/ })
+            phy.add({ type:'joint', name:'j'+i, b1:'b'+i, b2:'b'+(i+1), pos1:[x,0,0], pos2:[-x,0,0], worldAxis:[0,0,1], lm:[-10,10] })
         } else { // world joint
             x = (i - (num - 1) * 0.5) * (length + gap)
-            phy.add({ type:'joint', name:'j'+i, b1:'b'+i, b2:'b'+(i+1), worldAnchor:[x+(length*0.5),4,0], worldAxis:[0,0,1] })
+            phy.add({ type:'joint', name:'j'+i, b1:'b'+i, b2:'b'+(i+1), worldAnchor:[x+(length*0.5),4,0], worldAxis:[0,0,1], lm:[-10,10 ], sd:[20,1, 0, 0.5, -1] })
         }
         
     }

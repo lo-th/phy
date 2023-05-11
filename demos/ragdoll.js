@@ -186,7 +186,7 @@ ragdoll = ( o ) => {
         mode:'revolute', 
         b1:b.armL1, b2:b.armL2, 
         worldAnchor:math.addArray( o.pos, [-bodyRadius - upperArm, lowerBody + upperBody, 0]), 
-        worldAxis:[0,1,0],
+        //worldAxis:[0,1,0],
         lm:[0,160],
         sd:[10, 1],
     })
@@ -196,7 +196,7 @@ ragdoll = ( o ) => {
         mode:'revolute', 
         b1:b.armR1, b2:b.armR2, 
         worldAnchor:math.addArray( o.pos, [bodyRadius + upperArm, lowerBody + upperBody, 0]), 
-        worldAxis:[0,-1,0],
+        //worldAxis:[0,-1,0],
         lm:[0,160],
         sd:[10, 1],
     })
@@ -237,7 +237,7 @@ ragdoll = ( o ) => {
         twistSd:[10, 1],
         twistLm:[-90,90],
 
-        lm:[ ['twist', -90, 90], ['swing1', -90, 90], ['swing2', -70, 70] ],
+        lm:[ ['twist', -90, 90], ['swing1', -20, 20], ['swing2', -20, 20] ],
         //motion:[['twist','locked'], ['swing1','limited'], ['swing2','limited']],
     })
 
@@ -248,8 +248,8 @@ ragdoll = ( o ) => {
         b1:b.legL1, b2:b.legL2, 
         worldAnchor:math.addArray( o.pos, [-legInterval, -legInterval - upperLeg, 0]), 
         worldAxis:[1,0,0],
-        lm:[0,160],
-        sd:[10, 1],
+        lm:[1,160],
+        //sd:[10, 1],
     })
 
     phy.add({ 
@@ -257,9 +257,9 @@ ragdoll = ( o ) => {
         mode:'revolute', 
         b1:b.legR1, b2:b.legR2, 
         worldAnchor:math.addArray( o.pos, [legInterval, -legInterval - upperLeg, 0]), 
-        worldAxis:[1,0,0],
-        lm:[0,160],
-        sd:[10, 1],
+        worldA1xis:[1,0,0],
+        lm:[1,160],
+        //sd:[10, 1],
     })
 
 }

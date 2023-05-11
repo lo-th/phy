@@ -118,8 +118,6 @@ export class engine {
 
 	static set ( o = {} ){
 
-		console.log("set")
-
 		ArPos = o.ArPos || getArray('HAVOK', o.full)
 		items.body.setFull(o.full)
 
@@ -327,6 +325,8 @@ export class engine {
 
 		root.deltaTime = fixe ? timestep / substep : root.delta / substep
 
+		
+
 		let n = substep;
 		while( n-- ) {
 			havok.HP_World_Step( root.world, root.deltaTime )
@@ -334,7 +334,6 @@ export class engine {
 		}
 
 		engine.stepItems()
-
 	    engine.notifyCollisions()
 
 		// get simulation stat

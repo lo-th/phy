@@ -1,6 +1,6 @@
 demo = () => {
     // config physics setting
-    phy.set({ substep:4, gravity:[0,-9.81,0], fps:60 })
+    phy.set({ substep:2, gravity:[0,-9.81,0], fps:60 })
     // add static ground
     phy.add({ type:'plane', size:[300,1,300], visible:false })
     // load logo model

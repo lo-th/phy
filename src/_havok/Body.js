@@ -269,31 +269,19 @@ export class Body extends Item {
 			        if( o.mask !== undefined ) n.collisionMask = o.mask
 			        if( o.group !== undefined ) n.collisionGroup = o.group
 
-					
+					if(n.localQuat) delete n.localQuat
+					if(n.localPos) delete n.localPos
 
-					let trans = [ [0,0,0], n.quat || [0,0,0,1], [1,1,1] ]
-
-					tt = n.type||'box'
-
-					if( tt !== 'convex' && tt !== 'mesh'){
-						if( n.pos ) n.localPos = n.pos
-						//if( n.quat ) n.localQuat = n.quat
-					} else {
-						trans = [ n.pos || [0,0,0], n.quat || [0,0,0,1], [1,1,1] ]
-					}
-
-
-				    
+					let trans = [ n.pos || [0,0,0], n.quat || [0,0,0,1], [1,1,1] ]
 
 					//b.addShape( this.shape( n ) )
-				    havok.HP_Shape_AddChild(g, this.shape( n ), trans)
+				    havok.HP_Shape_AddChild( g, this.shape( n ), trans )
 
 				}
 
-				
-				this.applyMass( b, g, o )
 				havok.HP_Body_SetShape( b, g )
-
+				this.applyMass( b, g, o )
+				
 			break;
 			default:
 
