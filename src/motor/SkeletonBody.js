@@ -152,6 +152,7 @@ export class SkeletonBody extends Object3D {
                         restitution:0.1,
                         group:1,
                         mask:1|2,
+                        material:'bones',
                         //neverSleep: true,
 
                         /*bone:parent,

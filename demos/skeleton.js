@@ -17,7 +17,7 @@ demo = () => {
         type:'character',
         //gender:'man',
         gender:'eva0'+n,
-        anim:'none',
+        //anim:'none',
         name:'eva',
         callback:done,
         mask:2
@@ -32,14 +32,16 @@ const done = () => {
 
 	//eva.model.addHelper()
 	exo = eva.model.addExo()
-	eva.model.play('Standard Run')
+	//eva.model.play('Standard Run')
 
 	eva.addSkeleton()
 
 	let k = 200
 	while(k--) phy.add({type:'sphere', pos:[math.rand(-5,5), 2, math.rand(-5,5)], size:[math.rand(0.1,0.3)], density:1, mask:2})
 
-    phy.setTimeout( next, 10000 )
+	phy.control( 'eva' )
+
+    //phy.setTimeout( next, 10000 )
 
 }
 
