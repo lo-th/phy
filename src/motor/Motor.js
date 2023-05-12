@@ -21,6 +21,8 @@ import { User } from './User.js';
 import { Button } from './Button.js';
 import { Textfield } from './Textfield.js';
 
+//import { SkeletonBody } from './SkeletonBody.js';
+
 import { Breaker } from './Breaker.js';
 import { MouseTool } from './MouseTool.js';
 
@@ -103,6 +105,7 @@ let addControl = function(){}
 
 let buttons = []
 let textfields = []
+//let skeletons = []
 
 
 export class Motor {
@@ -466,6 +469,7 @@ export class Motor {
 		buttons = []
 
 		Motor.clearText()
+		//Motor.clearSkeleton()
 
 		Motor.cleartimout()
 
@@ -524,8 +528,8 @@ export class Motor {
 
 	}
 
-	static setTimeout ( b ){ isTimeout = b; }
-	static getTimeout ( b ){ return isTimeout }
+	//static setTimeout ( b ){ isTimeout = b; }
+	//static getTimeout ( b ){ return isTimeout }
 
 	static set ( o = {} ){
 
@@ -557,7 +561,7 @@ export class Motor {
 
 		//console.log( o.fps );
 
-		if(outsideStep) timer.setFramerate( o.fps )
+		if( outsideStep ) timer.setFramerate( o.fps )
 
 		root.post({ m:'set', o:o });
 
@@ -581,6 +585,9 @@ export class Motor {
         //if( isWorker && realtime ) return
 
 		if( timer.up( stamp ) ) {
+
+
+			
 			root.post( { m:'step', o:stamp } )
 		}
 
@@ -622,6 +629,8 @@ export class Motor {
 		postUpdate( root.reflow.stat.delta )
 		//postUpdate( timer.delta )
 
+		//items.character.prestep()
+
 		//  update static object for this side !
 		Motor.changes( root.flow.tmp )
 
@@ -629,6 +638,10 @@ export class Motor {
 		// finally post flow change to physx
 		if( isBuffer ) root.post( { m:'poststep', flow:root.flow, Ar:Ar }, [ Ar.buffer ] )
 		else root.post( { m:'poststep', flow:root.flow })
+
+		//	Motor.stepItems()
+
+
 
 		Motor.flowReset()
 
@@ -824,6 +837,8 @@ export class Motor {
 
 		Motor.upInstance()
 
+
+
 		// update follow camera
 		/*if( controls ){ 
 			if( controls.enableDamping && controls.enable ) controls.update()
@@ -924,7 +939,11 @@ export class Motor {
 			case 'character': b = items.character.set( o, b ); break;
 			case 'solid': b = items.solid.set( o, b ); break;
 			case 'ray': b = items.ray.set( o, b ); direct = false; break;
-			//case 'body': b = body.set( o, b ); break;
+			case 'body':
+			if( b.isKinematic ) items.body.set( o, b );
+
+			//b = body.set( o, b ); 
+			break;
 
 		}
 		
@@ -964,7 +983,7 @@ export class Motor {
 	// INTERN timout
 	//-----------------------
 
-	static setTimeout ( f, time ){
+	static setTimeout ( f, time = 0 ){
 
 		timoutFunction = f; 
 		timoutTime = time; 
@@ -1084,6 +1103,30 @@ export class Motor {
     	textfields = []
 		
 	}
+
+	//-----------------------
+	// SKELETON
+	//-----------------------
+
+	/*static addSkeleton ( o ){ 
+
+		let t = new SkeletonBody(o)
+		if( o.parent ) o.parent.add( t )
+		else root.scenePlus.add( t )
+		skeletons.push(t)
+		return t
+
+	}
+
+	static clearSkeleton () { 
+
+		let i = skeletons.length
+		while( i-- ) skeletons[i].dispose()
+
+		//for( let n in textfields ) textfields[n].dispose()
+    	skeletons = []
+		
+	}*/
 
 }
 

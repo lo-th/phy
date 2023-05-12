@@ -414,7 +414,7 @@ export class Body extends Item {
 			//let quat = o.quat || b.quat;
 //
 			//if( b.isKinematic && !b.button) havok.HP_Body_SetTargetQTransform( b, u )
-			if( b.isKinematic && !b.button ){ 
+			if( b.isKinematic && root.tmpStep===(2*root.substep) ){ 
 				//u[0] = [o.pos[0]-b.pos[0], o.pos[1]-b.pos[1], o.pos[2]-b.pos[2]]
 				//u[0] = [b.pos[0]-o.pos[0], b.pos[1]-o.pos[1], b.pos[2]-o.pos[2]]
 				

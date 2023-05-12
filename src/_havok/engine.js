@@ -41,7 +41,7 @@ let broadphase = 2;
 let fixe = true;
 
 let startTime = 0, lastTime = 0, elapsed = 0;
-let isStop = true, isReset, tmpStep;
+let isStop = true, isReset;
 
 let intertime = null;
 let timeout = null;
@@ -128,6 +128,7 @@ export class engine {
 		interval = math.toFixed(timestep*1000, 2)
 
 		substep = o.substep || 1;
+		root.substep = substep
 		
 		fixe = o.fixe !== undefined ? o.fixe : true;
 
@@ -155,7 +156,7 @@ export class engine {
 		isStop = false
 		isReset = false
 		lastTime = 0
-		tmpStep = 0
+		root.tmpStep = 0
 
 		if( outsideStep ) return
 
@@ -291,7 +292,7 @@ export class engine {
 
 		if( isStop ) return;
 
-		tmpStep = 1;
+		root.tmpStep = 1;
 
 		this.dispatch()
 
@@ -315,9 +316,9 @@ export class engine {
 	static step ( stamp ){
 		
 		if( isReset ) engine.endReset();
-		if( isStop || tmpStep >= 2 ) return;
+		if( isStop || root.tmpStep >= 2 ) return;
 
-		tmpStep = 2;
+		root.tmpStep = 2;
 
 		startTime = stamp || Time.now();
 		root.delta = ( startTime - lastTime ) * 0.001;
@@ -325,12 +326,10 @@ export class engine {
 
 		root.deltaTime = fixe ? timestep / substep : root.delta / substep
 
-		
-
 		let n = substep;
 		while( n-- ) {
 			havok.HP_World_Step( root.world, root.deltaTime )
-			tmpStep++
+			root.tmpStep++
 		}
 
 		engine.stepItems()

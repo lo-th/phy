@@ -10,6 +10,8 @@ export const root = {
 	queryCollector: null,
 	delta : 0,
 	deltaTime : 0,
+	tmpStep:0,
+	substep:1,
 	key:[],
 
 	reflow:{

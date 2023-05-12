@@ -17,6 +17,7 @@ import {
 
 import { GLTFExporter } from '../../jsm/exporters/GLTFExporter.js';
 import * as SkeletonUtils from '../../jsm/utils/SkeletonUtils.js';
+import { Basic3D } from '../../core/Basic3D.js';
 
 import { Pool } from '../Pool.js';
 import { Shader } from '../Shader.js';
@@ -62,6 +63,7 @@ export class Avatar extends Group {
         this.textureQuality = o.quality || 1;
 
         this.model = o.type || 'man';
+        this.startAnimation = o.anim || 'idle'
 
         this.ref = null
 
@@ -181,8 +183,7 @@ export class Avatar extends Group {
 
     }
 
-    update( delta )
-    {
+    update( delta ){
 
         if( !this.done ) return;
         if ( this.mixer ){
@@ -214,8 +215,8 @@ export class Avatar extends Group {
 
     }
 
-    look( delta )
-    {
+    look( delta ){
+
         if(!this.isEyeMove) return
         if(this.isPause) return
 
@@ -490,25 +491,32 @@ export class Avatar extends Group {
         this.done = true;
         this.add( this.root );
         this.onReady();
-
         this.playAll()
-        this.callback()
+        
 
 
         //console.log('model is ready !!! ', this.onReady)
-        let a = this.play('IDLE');
-        if(!a) this.play('idle');
+        
+        this.play( this.startAnimation );
+
+
+        setTimeout( this.callback, 0 ) 
+
+
+        //this.callback()
     }
 
     addHelper(){
 
         if( this.helper ){
             this.helper.dispose()
-            this.parent.remove( this.helper );
+            this.remove( this.helper );
             this.helper = null;
         } else {
             this.helper = new SkeletonHelper( this.root );
-            this.parent.add( this.helper );
+            this.helper.raycast = function (){}
+            this.helper.matrix = this.root.matrix
+            this.add( this.helper );
         }
     }
 
@@ -516,12 +524,15 @@ export class Avatar extends Group {
     {
         if( this.exoskel ){
             this.exoskel.dispose()
-            this.parent.remove( this.exoskel );
+            this.remove( this.exoskel );
             this.exoskel = null;
         } else {
             this.exoskel = new ExoSkeleton( this.root, this.skeleton );
-            this.parent.add( this.exoskel );
+            this.exoskel.matrix = this.root.matrix
+            this.add( this.exoskel );
+
         }
+        return this.exoskel
     }
 
     attachToBone( m, b )

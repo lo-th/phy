@@ -4,11 +4,13 @@
 import { Vector3, Mesh } from 'three';
 
 import { Avatar } from '../3TH/character/Avatar.js';
+
+
 import { Item } from '../core/Item.js';
 import { Num } from '../core/Config.js';
 import { Basic3D } from '../core/Basic3D.js';
 import { Utils, root, math, Mat } from './root.js';
-
+import { SkeletonBody } from './SkeletonBody.js';
 
 // THREE CHARACTER
 
@@ -23,6 +25,18 @@ export class Character extends Item {
 		this.num = Num[this.type]
 
 	}
+
+	/*prestep () {
+
+		let i = this.list.length;
+
+		while( i-- ){
+
+			this.list[i].preStep( );
+
+		}
+
+	}*/
 
 	step ( AR, N ) {
 
@@ -110,6 +124,8 @@ class Hero extends Basic3D {
 		
 		this.callback = o.callback || function (){}
 
+		if( o.callback ) delete o.callback
+
 
 
 		//this.position = new THREE.Vector3();
@@ -138,6 +154,7 @@ class Hero extends Basic3D {
 		o.angularFactor = [0,0,0]
 		//o.maxDamping = 1000
 		o.group = 32
+		o.mask = o.mask !== undefined ? o.mask : 1|2
 		o.regular = true
 		o.filter = [1,-1,[1, 3, 4,5,9], 0]
 		o.inertia = [0,0,0] 
@@ -145,7 +162,7 @@ class Hero extends Basic3D {
 		o.noGravity = true
 		o.ray = false
 
-		if( o.callback ) delete o.callback
+		//if( o.callback ) delete o.callback
 
 		// add to world
 		root.items.character.addToWorld( this, o.id )
@@ -166,10 +183,18 @@ class Hero extends Basic3D {
     	//console.log(this.contact)
     }
 
+    addSkeleton( o ){
+
+    	this.skeletonBody = new SkeletonBody( this )
+    	this.model.add( this.skeletonBody )
+
+    }
+
 	addModel( o ){
 
 		this.model = new Avatar( { 
 			type:o.gender, 
+			anim: o.anim !== undefined ? o.anim : 'idle', 
 			compact:true, 
 			material:!o.noMat, 
 			morph:o.morph || false, 
@@ -185,10 +210,16 @@ class Hero extends Basic3D {
 	}
 
 	raycast(){
-		return
+		//return
 	}
 
+	/*preStep(){
+		if(this.skeletonBody) this.skeletonBody.update()
+	}*/
+
 	step ( AR, n ) {
+
+		
 
 		this.position.fromArray( AR, n + 1 )
 		this.quaternion.fromArray( AR, n + 4 )
@@ -198,6 +229,7 @@ class Hero extends Basic3D {
 		this.updateMatrix()
 
 		if(this.model) this.model.update( root.delta );
+		//if(this.skeletonBody) this.skeletonBody.update()
 
 	}
 
@@ -213,6 +245,8 @@ class Hero extends Basic3D {
 	dispose () {
 		this.callback = null
 		if( this.model ) this.model.dispose()
+		if( this.skeletonBody ) this.skeletonBody.dispose()
+
 		super.dispose()
 	}
 
@@ -371,6 +405,8 @@ class Hero extends Basic3D {
 	    	this.model.rotation.y = anim === 'fight' ? (azimut + Math.PI) : math.lerp( pp, aa, 0.25 )
 	    	this.model.updateMatrix()
 	    }
+
+
 
 
 	    

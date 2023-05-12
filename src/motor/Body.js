@@ -588,6 +588,7 @@ export class Body extends Item {
 
 
     	if( o.breakable ){
+
     		root.motor.addBreaker()
 			let child = b.children[0];
 			b.remove(child);
@@ -599,6 +600,20 @@ export class Body extends Item {
 			b.breakOption = o.breakOption !== undefined ? o.breakOption : [ 250, 1, 2, 1 ];
 			//b.userData.mass = o.mass;
 		}
+
+		// for skeleton mesh
+
+		/*if( o.bone ){
+
+			b.userData.decal = o.decal;
+            b.userData.decalinv = o.decalinv;
+            b.userData.bone = o.bone;
+		    
+
+		    delete o.bone
+		    delete o.decal
+		    delete o.decalinv
+		}*/
 
 
 		

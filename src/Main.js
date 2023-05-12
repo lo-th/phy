@@ -1062,7 +1062,7 @@ const setShadow = ( v ) => {
 }
 
 
-function firstFunction() {
+/*function firstFunction() {
       return new Promise((resolve, reject) => {
           let y = 0
           setTimeout(() => {
@@ -1073,7 +1073,7 @@ function firstFunction() {
              resolve(y)
           }, 2000)
       })
-    }
+    }*/
 //async 
 const view = ( o = {} ) => {
 

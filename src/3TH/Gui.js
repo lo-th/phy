@@ -114,11 +114,11 @@ export const Gui = {
 
 		//ui.add( 'empty', {h:3})
 
-		ui.add( 'button', { type:'button', values:['REPLAY', 'PAUSE'], selectable:false, p:0 }).onChange( (n)=>{ 
+		let rrr = ui.add( 'button', { type:'button', values:['REPLAY', 'PAUSE'], selectable:false, p:0 }).onChange( (n)=>{ 
 			//if(n === 'EDIT'){ Main.showEditor(true); this.switchValues(0, 'CLOSE' ); }
 			//if(n === 'CLOSE'){ Main.showEditor(false); this.switchValues(0, 'EDIT' ); }
-			if(n === 'PAUSE'){ phy.pause( true ); this.switchValues(1, 'PLAY' ); }
-			if(n === 'PLAY'){ phy.pause( false ); this.switchValues(1, 'PAUSE' ); }
+			if(n === 'PAUSE'){ phy.pause( true ); rrr.switchValues(1, 'PLAY' ); }
+			if(n === 'PLAY'){ phy.pause( false ); rrr.switchValues(1, 'PAUSE' ); }
 			if(n === 'REPLAY') Main.injectCode( Main.getCode() )
 		})
 		

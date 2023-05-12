@@ -202,7 +202,7 @@ export class MouseTool {
 			g = inters[ 0 ].object
 			id = inters[ 0 ].instanceId
 
-			///console.log(inters[ 0 ])
+			//console.log(inters[ 0 ])
 
 			if( id !== undefined ){
 				m = root.motor.byName( g.name+id )

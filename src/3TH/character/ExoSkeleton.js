@@ -6,6 +6,7 @@ import {
     Quaternion,
     Euler,
     MeshStandardMaterial,
+    MeshBasicMaterial,
     BoxGeometry
 } from 'three';
 
@@ -40,7 +41,7 @@ export class ExoSkeleton extends Object3D {
         this.q = new Quaternion();
         this.e = new Euler();
 
-        this.mat = new MeshStandardMaterial({ color:0xFF3300, wireframe:true });//root.mat.skinCollider;
+        this.mat = new MeshBasicMaterial({ color:0xCCCC80, wireframe:true, toneMapped:false });//root.mat.skinCollider;
 
         this.init();
 
@@ -111,13 +112,23 @@ export class ExoSkeleton extends Object3D {
             name = bone.name;
             parent = bone.parent;
 
+            //bone.updateMatrix()
+
+
             if( parent ) {
+
+                //parent.updateMatrix()
 
                 n = parent.name;
 
-                p1.setFromMatrixPosition( this.mtx.multiplyMatrices(this.mtxr, parent.matrixWorld ) ) //parent.matrixWorld );
-                p2.setFromMatrixPosition( this.mtx.multiplyMatrices(this.mtxr, bone.matrixWorld ) ) //bone.matrixWorld );
+                p1.setFromMatrixPosition( parent.matrixWorld );
+                p2.setFromMatrixPosition( bone.matrixWorld );
+
+                //p1.setFromMatrixPosition( this.mtx.multiplyMatrices(this.mtxr, parent.matrixWorld ) ) //parent.matrixWorld );
+                //p2.setFromMatrixPosition( this.mtx.multiplyMatrices(this.mtxr, bone.matrixWorld ) ) //bone.matrixWorld );
                 dist = p1.distanceTo( p2 );
+
+                //console.log(n, dist)
 
                 translate = [ 0, 0, dist * 0.5 ];
                 size = [ dist, 1, 1 ];
@@ -163,11 +174,12 @@ export class ExoSkeleton extends Object3D {
 
 
         var mesh = new Mesh( this.box, this.mat );
-        mesh.scale.set( size[0], size[1], size[2] );
+        mesh.scale.fromArray(size);
 
         //mesh.name = fx;
         mesh.userData.decal = this.mtx.clone();
         mesh.userData.bone = parent;
+        mesh.userData.size = size;
 
 
         this.add( mesh );
