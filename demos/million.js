@@ -28,7 +28,7 @@ demo = () => {
 
 	// setting and start
 	phy.set({ 
-		substep:8,
+		substep:engine==='OIMO' || engine==='AMMO'?8:2,
 		gravity:[0,-9.81,0],
 	})
 
@@ -245,6 +245,9 @@ makeBall = () => {
         restitution: 0.3,
         geometry: ballGeo,
         sleep:true, 
+        /*ccdThreshold:0.0000001,
+        ccdRadius:0.1,
+        enableCCD:true,*/
     }
 	
     // add red balls

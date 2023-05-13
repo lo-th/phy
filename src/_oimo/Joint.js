@@ -84,8 +84,8 @@ export class Joint extends Item {
 			
 		const jc = new Joints[ modeName + 'JointConfig' ]()
 
-		jc.rigidBody1 = b1
-		jc.rigidBody2 = b2
+		if(b1) jc.rigidBody1 = b1
+		if(b2) jc.rigidBody2 = b2
 
 		if( o.pos1 ) jc.localAnchor1.fromArray( o.pos1 || [0,0,0] )
 		if( o.pos2 ) jc.localAnchor2.fromArray( o.pos2 || [0,0,0] )

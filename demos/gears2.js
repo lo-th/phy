@@ -24,11 +24,14 @@ onUpdate = () => {
             {name:'j3', driveFree:true}
         ]);
     }else{*/
-        phy.change([
-            {name:'j1', motor:[r]},
-            {name:'j2', motor:[r]},
-            {name:'j3', motor:[r]}
-        ]);
+        
+            phy.change([
+                {name:'j1', motor:[r, 200]},
+                {name:'j2', motor:[r, 200]},
+                {name:'j3', motor:[r, 200]}
+            ]);
+        
+        
     //}
     
 
@@ -38,7 +41,7 @@ onComplete = () => {
 
     const model = phy.getMesh('gears');
 
-    let center, c, g
+    let center, c, g, b
 
     let def = {
         type:'convex',
@@ -50,7 +53,23 @@ onComplete = () => {
         //size:[100],
     }
 
+    let def0 = {
+        type:'cylinder',
+        size:[0.23, 0.6],
+        restitution:0, friction:0.5,
+        density:0,
+        material:'simple'
+        //size:[100],
+    }
+
     center = [0,2,0]
+
+    b = phy.add( {
+        ...def0,
+        name:'b1',
+        pos:center,
+        rot:[90,0,0],
+    })
 
     g = phy.add( {
         ...def,
@@ -61,9 +80,16 @@ onComplete = () => {
         pos:center,
     })
 
-    phy.add({ type:'joint', name:'j1', mode:'revolute', b1:null, b2:g.name, worldAnchor:center, motor:[ 200 ], gearRatio:1, noFix:0 })
+    phy.add({ type:'joint', name:'j1', mode:'revolute', b1:b.name, b2:g.name, worldAnchor:center, worldAxis:[0,0,1], gearRatio:1, driveFree:true })  //, motor:[ 200 ], noFix:0 
 
     center = [0.8,2,0.8]
+
+    b = phy.add( {
+        ...def0,
+        name:'b2',
+        pos:center,
+        rot:[0,0,90],
+    })
 
     g = phy.add( {
         ...def,
@@ -72,9 +98,16 @@ onComplete = () => {
         pos:center,
     })
 
-    phy.add({ type:'joint', name:'j2', mode:'revolute', b1:null, b2:g.name, worldAnchor:center, worldAxis:[0,0,1], motor:[ 0 ], gearRatio:1, noFix:1 })
+    phy.add({ type:'joint', name:'j2', mode:'revolute', b1:b.name, b2:g.name, worldAnchor:center, worldAxis:[1,0,0], gearRatio:1, driveFree:true }) //, noFix:1
 
     center = [-0.8,2,0.8]
+
+    b = phy.add( {
+        ...def0,
+        name:'b3',
+        pos:center,
+        rot:[0,0,90],
+    })
 
     g = phy.add( {
         ...def,
@@ -83,8 +116,8 @@ onComplete = () => {
         pos:center,
     })
 
-    phy.add({ type:'joint', name:'j3', mode:'revolute', b1:null, b2:g.name, worldAnchor:center, worldAxis:[0,0,1], motor:[ 0 ], gearRatio:-1, noFix:1 })
+    phy.add({ type:'joint', name:'j3', mode:'revolute', b1:b.name, b2:g.name, worldAnchor:center, worldAxis:[1,0,0], gearRatio:-1, driveFree:true }) //, , noFix:1
 
-    phy.setPostUpdate ( onUpdate )
+    //phy.setPostUpdate ( onUpdate )
 
 }

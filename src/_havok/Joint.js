@@ -255,7 +255,7 @@ export class Joint extends Item {
 		    if( o.motion ){ 
 				i = o.motion.length
 				while(i--){
-					this.setLimitMode( j, this.convert[ o.motion[i][0] ] , this.convert[ o.motion[i][1] ] )
+					this.setLimitMode( j, this.convert[ o.motion[i][0] ], this.convert[ o.motion[i][1] ] )
 				}
 			}
 
@@ -271,7 +271,11 @@ export class Joint extends Item {
 					this.setMotor( j, o.motor[i][1], o.motor[i][2], this.convert[ o.motor[i][0] ] )
 				}
 			}
-			if( o.friction ){ 
+			if( o.friction  ){ 
+				if(! o.friction instanceof Array){
+					let f = o.friction
+					o.friction = [['x', f], ['y', f], ['z', f], ['rx', f], ['ry', f], ['rz', f]]
+				}
 				i = o.friction.length
 				while(i--){
 					this.setFriction( j, o.friction[i][1], this.convert[ o.friction[i][0] ] )
@@ -301,6 +305,7 @@ export class Joint extends Item {
 
 		let r = this.angulars.indexOf(axe) !== -1 ? torad : 1
 		const axis = this.ConstraintAxis[ axe ];
+		
 		havok.HP_Constraint_SetAxisMode( j, axis, this.LimitMode.LIMITED )
 		havok.HP_Constraint_SetAxisMinLimit( j, axis, lm[0]*r );
 		havok.HP_Constraint_SetAxisMaxLimit( j, axis, lm[1]*r );
@@ -315,7 +320,7 @@ export class Joint extends Item {
 		havok.HP_Constraint_SetAxisMotorType( j, axis, this.MotorType['VELOCITY'] );
 		//havok.HP_Constraint_SetAxisMotorType( j, axis, this.MotorType['POSITION'] );
 		havok.HP_Constraint_SetAxisMotorTarget( j, axis, target*r);
-		havok.HP_Constraint_SetAxisMotorMaxForce( j, axis, maxForce*r);//0
+		if( maxForce ) havok.HP_Constraint_SetAxisMotorMaxForce( j, axis, maxForce);//0
 
 		//havok.HP_Constraint_SetAxisMode( j, axis, this.LimitMode.FREE )
 

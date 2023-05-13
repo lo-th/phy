@@ -362,19 +362,26 @@ export class MouseTool {
 
 	    let p = pos.toArray()
 
-	    root.motor.change({ name:this.selected.name, neverSleep:true, wake:true })
+	    root.motor.change({ name: this.selected.name, neverSleep:true, wake:true })
 		//Motor.add({ name:'mouse', type:'sphere', size:[0.01], pos:p, quat:quat, mask:0, density:0, noGravity:true, kinematic:true, flags:'noCollision' })
 		//root.motor.add({ name:'mouse', type:'null', pos:p, quat:quat })
+
+		let def = [-0.03, 0.03, 60, 5]
+		let def2 = [-3, 3, 60, 5]
 		root.motor.add([
 			{ name:'mouse', type:'null', pos:p, quat:quat },
 			{ 
-				name:'mouseJoint', type:'joint', mode:'fixe',//mode:'spherical',
-				b1:this.selected.name, b2:'mouse', worldAnchor:p, //sd:[4,1]
+				name:'mouseJoint', type:'joint',mode:'d6',//mode:'spherical', //lm:[-0.2, 0.2],
+				lm:[['x',...def], ['y',...def], ['z',...def], ['rx',...def2], ['ry',...def2], ['rz',...def2]],
+				b2:this.selected.name, b1:'mouse', 
+				worldAnchor:p, //sd:[4,1]
+				worldAxis:[1,0,0],
+				friction:1000,
 				//tolerance:[1, 10],
 				//noPreProcess:true,
 				//improveSlerp:true,
 				visible:false,
-				noFix:true,
+				//noFix:true,
 			}
 		])
 		

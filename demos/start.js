@@ -33,6 +33,7 @@ onComplete = () => {
         pos:[ 0,43*0.05,0 ],
         mesh:model.logo,
         meshSize:5,
+        material:'glassX',
         ...option
     })
 

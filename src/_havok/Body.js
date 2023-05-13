@@ -386,7 +386,7 @@ export class Body extends Item {
 
 		//if( o.gravityScale !== undefined ) b.setGravityScale( o.gravityScale )
 
-	    if(o.gravityFactor!== undefined) havok.HP_Body_SetGravityFactor(b, o.gravityFactor)
+	    if( o.gravityFactor !== undefined ) havok.HP_Body_SetGravityFactor(b, o.gravityFactor)
 
 	    //havok.HP_Body_SetEventMask(b, arg1)
 	    //havok.HP_Body_SetMassProperties(b, arg1)
@@ -399,31 +399,13 @@ export class Body extends Item {
 
 		if( o.pos || o.quat ){
 
-			//if( o.pos ) b.pos = o.pos
-			//if( o.quat ) b.quat = o.quat
-
 			if( !o.pos ) o.pos = b.pos
 			if( !o.quat ) o.quat = b.quat
 
 			let u = [ o.pos, o.quat ]
 
-		   // let u = [ o.pos || b.pos, o.quat || [0, 0, 0, 1] ]
-		    //let u = [ b.pos,  b.quat ]
-
-			//let pos = o.pos || b.pos;
-			//let quat = o.quat || b.quat;
-//
-			//if( b.isKinematic && !b.button) havok.HP_Body_SetTargetQTransform( b, u )
-			if( b.isKinematic && root.tmpStep===(2*root.substep) ){ 
-				//u[0] = [o.pos[0]-b.pos[0], o.pos[1]-b.pos[1], o.pos[2]-b.pos[2]]
-				//u[0] = [b.pos[0]-o.pos[0], b.pos[1]-o.pos[1], b.pos[2]-o.pos[2]]
-				
-				//console.log(u[0])
-				havok.HP_Body_SetTargetQTransform( b, u ); // BUG on position !!!
-				//havok.HP_Body_SetQTransform( b, u )
-			}
+			if( b.isKinematic && root.tmpStep===(2*root.substep) ) havok.HP_Body_SetTargetQTransform( b, u ); // !! only on one step
 			else havok.HP_Body_SetQTransform( b, u )
-			
 
 		}
 
@@ -441,7 +423,6 @@ export class Body extends Item {
 
 		
 
-		if( o.gavityFactor ) havok.HP_Body_SetGravityFactor(b, o.gavityFactor) // def 1
 
 		// impulse - The impulse vector to apply.
 	    // location - The location in world space to apply the impulse.
@@ -457,49 +438,6 @@ export class Body extends Item {
 			this.multiplyScalar( o.linearImpulse, root.delta, 3 )
 			havok.HP_Body_ApplyImpulse( b, b.pos, o.linearImpulse );
 		}
-		
-
-
-
-		/*
-
-
-
-		if( o.sleep ) b.sleep()
-		if( o.activate || o.wake ) b.wakeUp()
-		if( o.neverSleep !== undefined ){ 
-			b.setAutoSleep( !o.neverSleep )
-			if( o.neverSleep )  b.wakeUp()
-		}
-			
-
-		// Applies the force `force` to `positionInWorld` in world position. [ 0,0,0,   0,0,0 ]
-		if( o.worldForce ) b.applyForce( this.v.fromArray( o.worldForce ), this.v.fromArray( o.worldForce, 3 ) )
-		if( o.force ) b.applyForceToCenter( this.v.fromArray( o.force ) )
-		if( o.torque ) b.applyTorque( this.v.fromArray( o.torque ) )
-
-	    // Applies the impulse `impulse` to the rigid body at `positionInWorld` in world position. [ 0,0,0,   0,0,0 ]
-	    if( o.impulse ) b.applyImpulse( this.v.fromArray( o.impulse ), this.v.fromArray( o.impulse, 3 ) )
-	    if( o.linearImpulse ) b.applyLinearImpulse( this.v.fromArray( o.linearImpulse ) )
-	    if( o.angularImpulse ) b.applyAngularImpulse( this.v.fromArray( o.angularImpulse ) )
-
-	    if( o.gravityScale ) b.setGravityScale( o.gravityScale );
-
-	    if( b.type === 'body' ){
-		    b.getOrientationTo( this.q )
-		    if( o.linearVelocity ) b.setLinearVelocity( this.v.fromArray( o.linearVelocity ).applyQuaternion( this.q ) )
-		    if( o.angularVelocity ) b.setAngularVelocity( this.v.fromArray( o.angularVelocity ).applyQuaternion( this.q ) )
-		}
-
-
-
-	    if( o.angularFactor ) b.setRotationFactor( this.v.fromArray( o.angularFactor ) )
-
-	    // Sets the linear and angular damping. [ 0,0 ]
-	    if( o.damping ){
-		     b.setLinearDamping( o.damping[0] )
-		     b.setAngularDamping( o.damping[1] )
-		 }*/
 
 		if( o.reset ){ 
 			havok.HP_Body_SetLinearVelocity(b, [0,0,0])

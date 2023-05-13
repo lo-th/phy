@@ -7,10 +7,10 @@ demo = () => {
     phy.add({ type:'plane', size:[ 300,1,300 ], visible:false })
 
     // add gears
-    createGear( [1, 3, 0.5], 1.0, 0.3 )
-    createGear( [3, 3, 0.5], 1.0, 0.3 )
+    createGear( [1, 3, 0.5], 1.0, 0.5 )
+    createGear( [3, 3, 0.5], 1.0, 0.5 )
     createGear( [-0.5, 3, 0], 0.5, 1.6 )
-    createGear( [1.5, 3, -0.5], 1.5, 0.3 )
+    createGear( [1.5, 3, -0.5], 1.5, 0.5 )
     createGear( [-2, 3, 0], 1.0, 0.3, [ 180, 180 ])
     createGear( [-3.5, 3, 0], 0.5, 0.3 )
 
@@ -50,7 +50,7 @@ createGear = ( center, radius, thickness, lm ) => {
     let f = phy.add({ type:'sphere', size:[ toothInterval / 4 ], pos:center, density:0, rot:[-90,0,0], restitution:0, friction:0.5 })
 
     if( local ) phy.add({ type:'joint', mode:'revolute', b1:f.name, b2:g.name, pos1:[0,0,0], pos2:[0,0,0], axis1:[0,1,0], axis2:[0,1,0], motor:lm, iteration:2, friction:0 })
-    else phy.add({ type:'joint', mode:'revolute', b1:f.name, b2:g.name, worldAnchor:center, worldAxis:[0,0,1], motor:lm, friction:0  })
+    else phy.add({ type:'joint', mode:'revolute', b1:f.name, b2:g.name, worldAnchor:center, worldAxis:[0,0,1], motor:lm, friction:1  })
 
 }
 
