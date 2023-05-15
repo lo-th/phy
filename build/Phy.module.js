@@ -5418,7 +5418,7 @@ class Joint extends Item {
 		if ( o.worldQuat ){
 
 			o.quat1 = Utils.quatLocal(o.worldQuat, body1);
-			o.quat2 = Utils.quatLocal(o.worldQuat, body2);//
+			o.quat2 = Utils.quatLocal(o.worldQuat, body2);
 
 			/*this.v1.fromArray( o.worldAxis ) 
 			this.v2.fromArray( o.worldAxis )
@@ -22476,7 +22476,7 @@ class SkeletonBody extends Object3D {
         data.push({ ...sett, b1:p+'rThigh', b2:p+'rShin', worldPos:this.posRef[p+'rShin'], lm:[['rx',0,160,...sp]], worldQuat:this.quatRef[p+'rShin'] });
         data.push({ ...sett, b1:p+'lThigh', b2:p+'lShin', worldPos:this.posRef[p+'lShin'], lm:[['rx',0,160,...sp]], worldQuat:this.quatRef[p+'lShin'] });
 
-        console.log(data);
+        //console.log(data)
 
         root.motor.add( data );
 

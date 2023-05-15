@@ -105,7 +105,7 @@ export class Joint extends Item {
 		if ( o.worldQuat ){
 
 			o.quat1 = Utils.quatLocal(o.worldQuat, body1)
-			o.quat2 = Utils.quatLocal(o.worldQuat, body2)//
+			o.quat2 = Utils.quatLocal(o.worldQuat, body2)
 
 			/*this.v1.fromArray( o.worldAxis ) 
 			this.v2.fromArray( o.worldAxis )
