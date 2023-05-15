@@ -33,12 +33,13 @@ class CircleHelper extends LineSegments {
 		];
 
 		const colors = [
-		1, 0, 0,
-		1, 0, 0,
-		1, 0, 0,
-		1, 0, 0,
-		1, 0, 0,
-		1, 0, 0,
+		0, 0.3, 1,
+		0, 0.3, 1,
+		0, 0.3, 1,
+		0, 0.3, 1,
+		0, 0.3, 1,
+		0, 0.3, 1,
+		
 
 		0, 1, 0,
 		0, 1, 0,
@@ -47,13 +48,13 @@ class CircleHelper extends LineSegments {
 		0, 1, 0,
 		0, 1, 0,
 
-
-		0, 0.3, 1,
-		0, 0.3, 1,
-		0, 0.3, 1,
-		0, 0.3, 1,
-		0, 0.3, 1,
-		0, 0.3, 1,
+        1, 0, 0,
+		1, 0, 0,
+		1, 0, 0,
+		1, 0, 0,
+		1, 0, 0,
+		1, 0, 0,
+		
 		];
 
 		const geometry = new BufferGeometry();
@@ -275,6 +276,20 @@ const Utils = {
 
     },
 
+    quatLocal: ( q, obj ) => {
+
+    	if( obj.isObject3D ) obj.updateWorldMatrix( true, false );
+    	// apply position
+    	//if(!isAxe) v.sub( obj.position )
+    	// apply invers rotation
+    	let q1 = new Quaternion().fromArray(q);
+    	let q2 = obj.quaternion.clone().invert();
+    	q1.premultiply(q2);
+    	//v.applyQuaternion({x:-q.x, y:-q.y, z:-q.z, w:q.w})
+    	return q1.normalize().toArray()
+
+    },
+
     refAxis:( m, axe ) => {
 
     	let zAxis = new Vector3().fromArray(axe);
@@ -421,7 +436,7 @@ const Mat = {
 				case 'debug':  m = new MeshBasicMaterial({ color:0x000000, wireframe:true, toneMapped: false }); break
 				case 'debug2': m = new MeshBasicMaterial({ color:0x00FFFF, wireframe:true, toneMapped: false }); break
 				case 'debug3':  m = new MeshBasicMaterial({ color:0x000000, wireframe:true, transparent:true, opacity:0.1, toneMapped: false, depthTest:true, depthWrite:false }); break
-				case 'bones':  m = new MeshStandardMaterial({ color:0xCCCC88, transparent:true, opacity:0.3 }); break
+				case 'bones':  m = new MeshStandardMaterial({ color:0xCCAA33,  wireframe:true }); break
 
 				case 'shadows': m = new MeshBasicMaterial({ transparent:true, opacity:0.01 }); break
 				case 'hide': m = new MeshBasicMaterial({ visible:false }); break
@@ -5400,6 +5415,26 @@ class Joint extends Item {
 
 		}
 
+		if ( o.worldQuat ){
+
+			o.quat1 = Utils.quatLocal(o.worldQuat, body1);
+			o.quat2 = Utils.quatLocal(o.worldQuat, body2);//
+
+			/*this.v1.fromArray( o.worldAxis ) 
+			this.v2.fromArray( o.worldAxis )
+
+			o.axis1 = body1 ? Utils.toLocal( this.v1, body1, true ).normalize().toArray():o.worldAxis
+			o.axis2 = body2 ? Utils.toLocal( this.v2, body2, true ).normalize().toArray():o.worldAxis*/
+
+			//o.quat1 = new Quaternion().setFromUnitVectors( new Vector3(1, 0, 0), new Vector3().fromArray(o.axis1).normalize() ).toArray();
+		    //o.quat2 = new Quaternion().setFromUnitVectors( new Vector3(1, 0, 0), new Vector3().fromArray(o.axis2).normalize() ).toArray();
+
+			//console.log(o.worldQuat, o.quat1, o.quat2)
+
+			delete o.worldQuat;
+
+		}
+
 		//if( !o.axis1 ) o.axis1 = [0,0,1]
 		//if( !o.axis2 ) o.axis2 = [0,0,1]
 
@@ -5486,8 +5521,12 @@ class ExtraJoint extends Basic3D {
 	    this.end = new Vector3();
 
 	    // experimental rotation ?
-	    Utils.refAxis( this.mat1, o.axis1 );
-	    Utils.refAxis( this.mat2, o.axis2 );
+	    //Utils.refAxis( this.mat1, o.axis1 )
+	    //Utils.refAxis( this.mat2, o.axis2 )
+
+	    let qq = new Quaternion();
+	    if(o.quat1) this.mat1.makeRotationFromQuaternion(qq.fromArray(o.quat1));
+	    if(o.quat2) this.mat2.makeRotationFromQuaternion(qq.fromArray(o.quat2));
 
 	    this.mat1.setPosition( o.pos1[0], o.pos1[1], o.pos1[2] );
 	    this.mat2.setPosition( o.pos2[0], o.pos2[1], o.pos2[2] );
@@ -21111,7 +21150,6 @@ const Eva = {
 *  AVATAR
 */
 
-
 const FrameTime = 30;
 const TimeFrame = 1/30;
 const torad = Math.PI / 180;
@@ -21318,21 +21356,22 @@ class Avatar extends Group {
 
     breathing(){
 
-        if( !this.isBreath ) return;
         if( !this.bones ) return;
-        if( !this.bones.chest.scalling ) return;
+        if( !this.isBreath ) return;
 
         let a = this.breath*0.01;
 
         if(this.breathSide > 0){
-            this.bones.chest.scalling.y = this.lerp (1,1.04, a);
-            this.bones.chest.scalling.x = this.lerp (1,1.02, a);
-            this.bones.abdomen.scalling.y = this.lerp (1,0.92, a);
+            this.skeleton.setScalling( this.bones.chest, this.lerp (1,1.02, a), this.lerp (1,1.04, a), 1 );
+            this.skeleton.setScalling( this.bones.abdomen, 1, this.lerp (1,0.92, a), 1 );
         }else {
-            this.bones.chest.scalling.y = this.lerp (1.04,1, a);
-            this.bones.chest.scalling.x = this.lerp (1.02,1, a);
-            this.bones.abdomen.scalling.y = this.lerp (0.92,1, a);
+            this.skeleton.setScalling( this.bones.chest, this.lerp (1.02,1, a), this.lerp (1.04,1, a), 1 );
+            this.skeleton.setScalling( this.bones.abdomen, 1, this.lerp (0.92,1, a), 1 );
         }
+
+        // !! just for testing 
+        //this.skeleton.setScalling( this.bones.lShldr, 1.3, 2, 2 )
+        //this.skeleton.setScalling( this.bones.lForeArm, 1.3, 2, 2 )
 
         this.breath ++;
         if( this.breath === 100 ){ this.breath = 0; this.breathSide = this.breathSide > 0 ? -1:1; }
@@ -21480,25 +21519,25 @@ class Avatar extends Group {
 
     }
 
-    setBoneScale( v ){
+    /*setBoneScale( v ){
 
         const ingnor = [ 'head', 'lToes', 'rToes', 'rCollar', 'lCollar', 'rBreast', 'lBreast', 'neck'];
         const center = ['hip', 'abdomen', 'chest'];
         const legs = ['lThigh', 'rThigh', 'lShin', 'rShin'];
-        const b = this.bones;
+        const b = this.bones
 
         for( let n in b ){
             if(ingnor.indexOf(n) === -1) {
-                if(center.indexOf(n) !== -1) b[n].scalling.z = v;
-                else if(legs.indexOf(n) !== -1) b[n].scalling.z = v;
-                else if( n === 'root' ) b[n].scalling.y = v;
-                else if( n === 'rFoot' || n === 'lFoot') b[n].scalling.y = v;
-                else b[n].scalling.x = v;
+                if(center.indexOf(n) !== -1) b[n].scalling.z = v
+                else if(legs.indexOf(n) !== -1) b[n].scalling.z = v
+                else if( n === 'root' ) b[n].scalling.y = v
+                else if( n === 'rFoot' || n === 'lFoot') b[n].scalling.y = v
+                else b[n].scalling.x = v
             } 
         }
 
-        this.setBounding(v);
-    }
+        this.setBounding(v)
+    }*/
 
 
     eyeControl( v ){
@@ -21558,6 +21597,8 @@ class Avatar extends Group {
         //console.log('start', this.model)
         if( this.done ) return
 
+        //this.updateMatrix()
+
         this.done = true;
         this.add( this.root );
         this.onReady();
@@ -21570,7 +21611,7 @@ class Avatar extends Group {
         this.play( this.startAnimation );
 
 
-        setTimeout( this.callback, 0 ); 
+        setTimeout( this.callback, 10 ); 
 
 
         //this.callback()
@@ -22177,7 +22218,6 @@ class Avatar extends Group {
 
 }
 
-const _rootMatrix = /*@__PURE__*/ new Matrix4();
 const _endMatrix = /*@__PURE__*/ new Matrix4();
 const _p = /*@__PURE__*/ new Vector3();
 const _q = /*@__PURE__*/ new Quaternion();
@@ -22189,20 +22229,45 @@ class SkeletonBody extends Object3D {
 
 		super();
 
-		this.prefix = 'yoo_';
+		this.prefix = character.name || 'yoo_';
 
+        this.mode = 'follow';
+
+        this.nodes = [];
 		this.bones = character.model.skeleton.bones;
 		this.model = character.model.root;
+        this.posRef = {};
+        this.quatRef = {};
 
 		this.init();
 
 	}
 
+    setMode( mode ){
+        if(mode === this.mode ) return
+        this.mode = mode;
+        const meshData = [];
+
+        let kinematic = this.mode === 'follow';
+
+        let i = this.nodes.length, node;
+        while( i-- ){
+
+            node = this.nodes[i];
+
+            meshData.push( { name : node.name, kinematic:kinematic } );
+            node.kinematic = kinematic;
+            node.bone.isPhysics = !kinematic;
+        }
+
+        root.motor.change( meshData );
+
+    }
+
 
 	init(){
 
-		this.meshData = [];
-		this.nodes = [];
+		const meshData = [];
 
         // get character bones var bones = character.skeleton.bones;
         
@@ -22218,6 +22283,8 @@ class SkeletonBody extends Object3D {
 
         let p1 = new Vector3();
         let p2 = new Vector3();
+
+        //let headDone = false
 
         let i, lng = this.bones.length, name, n, bone, parent;///, child, o, parentName;
         let size, dist, rot, type, kinematic, translate;
@@ -22245,18 +22312,21 @@ class SkeletonBody extends Object3D {
 
                 // body
                 if( n==='head' && name === 'End_head' ){ type = 'box'; size = [ 0.16, 0.2, dist ]; translate = [ 0, 0.025, -dist * 0.5 ]; }
-	            if( n==='chest' && name==='neck' ){ type = 'box'; size = [  0.30, 0.28, dist ]; translate = [ 0, 0, -dist * 0.5 ]; }
-	            if( n==='abdomen' ){ type = 'box'; size = [ 0.28, 0.24,  dist+0.14 ]; rot[2] = 0; translate = [ 0, 0, -dist * 0.5 ];translate[2] += 0.07;}
+                //if( n==='head' && !headDone ){ console.log(name); headDone = true; type = 'sphere'; dist=0.08; size = [ 0.08, 0.2, dist ]; translate = [ 0, 0.025, -0.08 ]; }
+
+	            if( n==='chest' && name==='neck' ){ type = 'box'; size = [  0.28, 0.24, dist ]; translate = [ 0, 0, -dist * 0.5 ]; }
+	            if( n==='abdomen' && name==='chest'  ){ type = 'box'; size = [ 0.24, 0.20,  dist ]; rot[2] = 0; translate = [ 0, 0, -dist * 0.5 ]; }//translate[2] += 0.07;
+                if( n==='hip' && name==='abdomen' ){ type = 'box'; size = [  0.28, 0.24, dist ]; translate = [ 0, 0, -dist * 0.5 ]; }
 
 	             // legs
-	            if( n==='rThigh' ){ type = 'box'; size = [  0.15, 0.15, dist ];  }
-	            if( n==='lThigh' ){ type = 'box'; size = [  0.15, 0.15 , dist];  }
-	            if( n==='rShin' ){ type = 'box'; size = [  0.12, 0.12, dist+ 0.1, ]; translate[2] += 0.05; }
-	            if( n==='lShin' ){ type = 'box'; size = [  0.12, 0.12, dist+ 0.1, ]; translate[2] += 0.05; }
+	            if( n==='rThigh' ){ type = 'box'; size = [  0.13, 0.13, dist ];  }
+	            if( n==='lThigh' ){ type = 'box'; size = [  0.13, 0.13 , dist ];  }
+	            if( n==='rShin' ){ type = 'box'; size = [  0.12, 0.12, dist+ 0.05, ]; translate[2] += 0.025; }
+	            if( n==='lShin' ){ type = 'box'; size = [  0.12, 0.12, dist+ 0.05, ]; translate[2] += 0.025; }
 
 	            // arm
-	            if( n==='rShldr'  ){ type = 'box'; size = [   dist+ 0.06, 0.12, 0.12  ]; translate[0] = -translate[2]+0.03; translate[2]=0; }
-	            if( n==='lShldr'  ){ type = 'box'; size = [  dist+ 0.06,0.12,   0.12, ];  translate[0] = translate[2]-0.03; translate[2]=0; }
+	            if( n==='rShldr' ){ type = 'box'; size = [   dist+ 0.06, 0.12, 0.12  ]; translate[0] = -translate[2]+0.03; translate[2]=0; }
+	            if( n==='lShldr' ){ type = 'box'; size = [  dist+ 0.06,0.12,   0.12, ];  translate[0] = translate[2]-0.03; translate[2]=0; }
 	            if( n==='rForeArm' ){ type = 'box'; size = [  dist + 0.1,0.1,  0.1 ];  translate[0] = -translate[2]-0.05; translate[2]=0; }
 	            if( n==='lForeArm' ){ type = 'box'; size = [  dist + 0.1,0.1,  0.1]; translate[0] = translate[2]+0.05; translate[2]=0; }
 
@@ -22302,6 +22372,17 @@ class SkeletonBody extends Object3D {
                         tmpMtxR.makeRotationFromEuler( e.set( 0, 0, r*torad ) );
                         tmpMtx.multiply( tmpMtxR );
                     }*/
+
+                    mtx.copy( parent.matrixWorld );
+                    mtx.decompose( p, q, s );
+
+                    this.posRef[this.prefix + n] = p.toArray();
+                    if( n==='lForeArm' || n==='rForeArm' ){
+                        _q.setFromAxisAngle( {x:0, y:1, z:0}, -90*torad$1 );
+                        q.multiply( _q );
+                    } 
+
+                    this.quatRef[this.prefix + n] = q.toArray();
                      
                     mtx.multiplyMatrices( parent.matrixWorld, tmpMtx );
                     mtx.decompose( p, q, s );
@@ -22329,12 +22410,14 @@ class SkeletonBody extends Object3D {
                         
                     };
 
-                    this.meshData.push( data );
+                    meshData.push( data );
+                    //this.posRef[this.prefix + n] = p.toArray()
                     this.nodes.push({
                     	name: this.prefix + n,
+                        kinematic:kinematic,
                     	bone:parent,
                         decal:tmpMtx.clone(),
-                        //decalinv:tmpMtx.clone().invert(),
+                        decalinv:tmpMtx.clone().invert(),
                         quat:q.toArray(),
                         pos:p.toArray(),
                     });
@@ -22343,49 +22426,150 @@ class SkeletonBody extends Object3D {
             }
         }
 
-        //console.log( this.meshData )
+        //console.log( this.posRef )
 
-        root.motor.add( this.meshData );
+        root.motor.add( meshData );
+        this.addLink ();
 
 	}
+
+    addLink () {
+
+
+        let sp = [10,1];
+        let p = this.prefix;
+        let data = [];
+        let sett = {
+            type:'joint', 
+            mode:'d6',
+            visible:true,
+            lm:[  ['ry',-180,180,...sp], ['rz',-180,180,...sp] ],
+
+            collision:false,
+
+            //worldAxis:[1,0,0]
+
+        };
+        
+
+        data.push({ ...sett, b1:p+'hip', b2:p+'abdomen', worldPos:this.posRef[p+'abdomen'], worldQuat:this.quatRef[p+'hip'], lm:[ ['rx',-20,20,...sp], ['ry',-20,20,...sp], ['rz',-20,20,...sp]] });
+        data.push({ ...sett, b1:p+'abdomen', b2:p+'chest', worldPos:this.posRef[p+'chest'], worldQuat:this.quatRef[p+'chest'], lm:[ ['rx',-20,20,...sp], ['ry',-20,20,...sp], ['rz',-20,20,...sp]] });
+        data.push({ ...sett, b1:p+'chest', b2:p+'head', worldPos:this.posRef[p+'head'], worldQuat:this.quatRef[p+'head'], lm:[ ['rx',-60,60,...sp], ['ry',-1,1,...sp], ['rz',-30,30,...sp]] });
+        //data.push({ type:'joint', mode:'d6', b1:this.prefix*'chest', b2:this.prefix*'abdomen' })
+
+        // arm
+
+        data.push({ ...sett, b1:p+'chest', b2:p+'rShldr', worldPos:this.posRef[p+'rShldr'], worldQuat:this.quatRef[p+'rShldr'] });
+        data.push({ ...sett, b1:p+'chest', b2:p+'lShldr', worldPos:this.posRef[p+'lShldr'], worldQuat:this.quatRef[p+'lShldr'] });
+
+        data.push({ ...sett, b1:p+'rShldr', b2:p+'rForeArm', worldPos:this.posRef[p+'rForeArm'], worldQuat:this.quatRef[p+'rForeArm'], lm:[['rx',0,160,...sp]] });
+        data.push({ ...sett, b1:p+'lShldr', b2:p+'lForeArm', worldPos:this.posRef[p+'lForeArm'], worldQuat:this.quatRef[p+'lForeArm'], lm:[['rx',0,160,...sp]] });
+
+        //data.push({ ...sett, b1:p+'rShldr', b2:p+'rForeArm', worldPos:this.posRef[p+'rForeArm'], worldAxis:[1,0,0], lm:[['rx',-120, 0]] })
+        //data.push({ ...sett, b1:p+'lShldr', b2:p+'lForeArm', worldPos:this.posRef[p+'lForeArm'], worldAxis:[1,0,0], lm:[['rx',-120, 0]] })
+
+        // leg
+
+        data.push({ ...sett, b1:p+'hip', b2:p+'rThigh', worldPos:this.posRef[p+'rThigh'], worldQuat:this.quatRef[p+'rThigh'] });
+        data.push({ ...sett, b1:p+'hip', b2:p+'lThigh', worldPos:this.posRef[p+'lThigh'], worldQuat:this.quatRef[p+'lThigh'] });
+
+        data.push({ ...sett, b1:p+'rThigh', b2:p+'rShin', worldPos:this.posRef[p+'rShin'], lm:[['rx',0,160,...sp]], worldQuat:this.quatRef[p+'rShin'] });
+        data.push({ ...sett, b1:p+'lThigh', b2:p+'lShin', worldPos:this.posRef[p+'lShin'], lm:[['rx',0,160,...sp]], worldQuat:this.quatRef[p+'lShin'] });
+
+        console.log(data);
+
+        root.motor.add( data );
+
+    }
+
+
+
+    /*makeLink () {
+
+        let p = this.prefix;
+        let data = []
+        data.push({ type:'joint', mode:'d6', b1:p+'hip', b2:p+'abdomen', visible:true })
+        data.push({ type:'joint', mode:'d6', b1:p+'abdomen', b2:p+'chest', visible:true })
+        //data.push({ type:'joint', mode:'d6', b1:this.prefix*'chest', b2:this.prefix*'abdomen' })
+
+        //console.log(this.prefix, data)
+
+        root.motor.add( data )
+
+    }*/
 
 	updateMatrixWorld( force ){
-		this.update(force);
-	}
-
-	update( force ){
 
 		let up = [];
 
-		_rootMatrix.identity();//copy( this.matrixWorld ).invert();
+		//_rootMatrix.identity()//copy( this.matrixWorld ).invert();
+
+
 
 		const nodes = this.nodes;
-		let i = nodes.length, node, bone;
+		let i = nodes.length, node, bone, body;
+
 
 		while( i-- ){
 
             node = nodes[i];
             bone = node.bone;
 
-            //_tmpMatrix.multiplyMatrices( _rootMatrix, bone.matrixWorld );
-            _endMatrix.multiplyMatrices( bone.matrixWorld, node.decal );
-            _endMatrix.decompose( _p, _q, _s );
+            if( node.kinematic ){
+                //_tmpMatrix.multiplyMatrices( _rootMatrix, bone.matrixWorld );
+                _endMatrix.multiplyMatrices( bone.matrixWorld, node.decal );
+                _endMatrix.decompose( _p, _q, _s );
 
-            node.pos = _p.toArray();
-            node.quat = _q.toArray();
+                node.pos = _p.toArray();
+                node.quat = _q.toArray();
 
-            up.push({ name:node.name, pos:node.pos, quat:node.quat });
+                up.push({ name:node.name, pos:node.pos, quat:node.quat });
 
-            //node.updateMatrix()
+            } else {
+
+                body = Utils.byName( node.name );
+
+                if(body){
+
+                    _endMatrix.copy( body.matrixWorld ).multiply( node.decalinv );
+
+                    //_endMatrix.multiplyMatrices( node.decalinv, bone.matrixWorld );
+
+                    //_endMatrix
+                    //.copy( body.matrixWorld )
+                    //.decompose( _p, _q, _s )
+                    //.compose( _p, _q, _s.set( 1, 1, 1 ) )
+                    //.multiply( node.decalinv );
+
+                    /*if ( bone.parent && bone.parent.isBone ) {
+
+                        //_tmpMatrix.getInverse( bone.parent.matrixWorld );
+                        _tmpMatrix.copy( bone.parent.matrixWorld ).invert()
+                        _tmpMatrix.multiply( _endMatrix );
+
+                    } else {
+
+                        _tmpMatrix.copy( _endMatrix );
+
+                    }*/
+
+                    bone.phyMtx.copy( _endMatrix );
+                    bone.isPhysics = true;// .copy( _endMatrix );
+                }
+            }
 
         }
 
-        root.motor.change( up, true );
+        if( node.kinematic ) root.motor.change( up, true );
+
+        
+
 
 	}
 
 	dispose(){
 
+        this.nodes = [];
 		this.parent.remove(this);
 		
 	}
@@ -22521,8 +22705,9 @@ class Hero extends Basic3D {
 		if( o.radius ) delete o.radius;
 
 	    if(!o.size) o.size = [ this.radius ,this.height-(2*this.radius) ];
-		if(!o.pos) o.pos = [0,o.size[1]*0.5,0];
-		this.py = -(o.size[1]*0.5)-o.size[0];
+		if(!o.pos) o.pos = [0,this.height*0.5,0];
+		this.py = -this.height*0.5;//(o.size[1]*0.5)-o.size[0]
+
 
 
 		if( o.debug ) root.items.body.geometry( { ...o, type:'capsule', ray:false }, this, Mat.get('debug3') );
@@ -22567,6 +22752,15 @@ class Hero extends Basic3D {
 
     	this.skeletonBody = new SkeletonBody( this );
     	this.model.add( this.skeletonBody );
+
+    }
+
+    setMode( name ){
+
+    	if(this.skeletonBody) this.skeletonBody.setMode( name );
+
+    	//this.skeletonBody = new SkeletonBody( this )
+    	//this.model.add( this.skeletonBody )
 
     }
 
@@ -25180,6 +25374,7 @@ class Button {
 
 	addText( txt, size ){
 
+		this.fontSize = this.size[1] * 0.8;
 		this.txt = new Textfield({ text:txt, pos:[ 0,this.size[1]*0.5,0 ], rot:[-90,0,0], h:this.fontSize });
 		this.b.add( this.txt );
 
@@ -26344,25 +26539,54 @@ class MouseTool {
 
 const _offsetMatrix = new Matrix4();
 const _identityMatrix = new Matrix4();
-const _decal = new Vector3();
+new Vector3();
 
 let K = Skeleton.prototype;
 
-K.resetScalling = function () {
+K.setScalling = function ( bone, x, y, z ) {
 
-    for ( let i = 0, il = this.bones.length; i < il; i ++ ) {
-
-        this.bones[i].idx = i;
-        this.bones[i].scalling = new Vector3(1,1,1);
-        //console.log(this.bones[i].id, i)
-
-    }
-
-    //this.setScalling();
+    if( !this.scalled ) this.scalled = true;
+    bone.scalling.set(x, y, z);
 
 };
 
-K.setScalling = function ( fingerPos ) {
+K.resetScalling = function () {
+
+    this.scalled = false;
+
+    for ( let i = 0, il = this.bones.length; i < il; i ++ ) {
+
+        this.bones[i].scalling = new Vector3(1,1,1);
+
+        this.bones[i].isPhysics = false;
+        this.bones[i].phyMtx = new Matrix4();
+
+    }
+
+    this.applyScalling();
+
+};
+
+K.childScale = function ( bone, matrix ) {
+
+    if( !this.scalled ) return
+
+    if( bone.scalling ) matrix.scale( bone.scalling );
+    let j = bone.children.length, k = 0, child, scaleMatrix;
+    while(j--){
+        child = bone.children[ k ];
+        scaleMatrix = matrix.clone();
+        scaleMatrix.multiply( child.matrix );
+        child.matrixWorld.copy( scaleMatrix );
+        //child.matrixWorld.setPosition( _decal.setFromMatrixPosition( scaleMatrix ) );
+        //child.matrixWorld.setPosition( _decal.setFromMatrixPosition( scaleMatrix ) );
+        k++;
+    }
+
+};
+
+
+K.applyScalling = function ( fingerPos ) {
 
     let b, i, lng = this.bones.length;
     let parent;
@@ -26385,6 +26609,7 @@ K.setScalling = function ( fingerPos ) {
 
 };
 
+
 K.update = function () {
 
     const bones = this.bones;
@@ -26392,30 +26617,23 @@ K.update = function () {
     const boneMatrices = this.boneMatrices;
     const boneTexture = this.boneTexture;
 
-    let scaleMatrix;
-    
     // flatten bone matrices to array
 
-    let i = bones.length, n=0, j, k;
+    let i = bones.length, bone, n=0;
 
-    //for ( let i = 0, il = bones.length; i < il; i ++ ) {
-    while(i--){
+    while( i-- ){
+
+        bone = bones[ n ];
 
         // compute the offset between the current and the original transform
 
-        const matrix = bones[ n ] ? bones[ n ].matrixWorld : _identityMatrix;
+        const matrix = bone ? ( bone.isPhysics ? bone.phyMtx : bone.matrixWorld ) : _identityMatrix;
 
-        if( bones[ n ].scalling !== undefined  ){ 
-            matrix.scale( bones[ n ].scalling );
-            j = bones[ n ].children.length;
-            k = 0; 
-            while(j--){
-                scaleMatrix = matrix.clone();
-                scaleMatrix.multiply( bones[ n ].children[ k ].matrix );
-                bones[ n ].children[ k ].matrixWorld.setPosition( _decal.setFromMatrixPosition( scaleMatrix ) );
-                k++;
-            }
+        if( bone.isPhysics ){
+            this.scalled = true;
         }
+
+        this.childScale( bone, matrix );
 
         _offsetMatrix.multiplyMatrices( matrix, boneInverses[ n ] );
         _offsetMatrix.toArray( boneMatrices, n * 16 );
@@ -27156,7 +27374,7 @@ class Motor {
 
 		let b = new Button( o );
 		buttons.push( b );
-		return b.b
+		return b//.b
 
 	}
 

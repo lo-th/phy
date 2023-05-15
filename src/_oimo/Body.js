@@ -297,11 +297,15 @@ export class Body extends Item {
 
 		b.first = true
 
+		if(o.kinematic) delete o.kinematic
+
 		// apply option
 		this.set( o, b )
 
 		// add to world
 		this.addToWorld( b, o.id )
+
+		//console.log(b)
 
 		//if(o.isTrigger)console.log(b)
 
@@ -312,6 +316,11 @@ export class Body extends Item {
 
 		if( b === null ) b = this.byName( o.name )
 		if( b === null ) return
+
+		if(o.kinematic !== undefined){
+			b.setType(o.kinematic ? 2 : 0);
+		}
+
 
 		if( o.noGravity ) b.setGravityScale( 0 )
 

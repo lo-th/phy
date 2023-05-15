@@ -141,8 +141,9 @@ class Hero extends Basic3D {
 		if( o.radius ) delete o.radius
 
 	    if(!o.size) o.size = [ this.radius ,this.height-(2*this.radius) ]
-		if(!o.pos) o.pos = [0,o.size[1]*0.5,0]
-		this.py = -(o.size[1]*0.5)-o.size[0]
+		if(!o.pos) o.pos = [0,this.height*0.5,0]
+		this.py = -this.height*0.5//(o.size[1]*0.5)-o.size[0]
+
 
 
 		if( o.debug ) root.items.body.geometry( { ...o, type:'capsule', ray:false }, this, Mat.get('debug3') )
@@ -187,6 +188,15 @@ class Hero extends Basic3D {
 
     	this.skeletonBody = new SkeletonBody( this )
     	this.model.add( this.skeletonBody )
+
+    }
+
+    setMode( name ){
+
+    	if(this.skeletonBody) this.skeletonBody.setMode( name )
+
+    	//this.skeletonBody = new SkeletonBody( this )
+    	//this.model.add( this.skeletonBody )
 
     }
 

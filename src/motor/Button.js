@@ -75,6 +75,7 @@ export class Button {
 
 	addText( txt, size ){
 
+		this.fontSize = this.size[1] * 0.8
 		this.txt = new Textfield({ text:txt, pos:[ 0,this.size[1]*0.5,0 ], rot:[-90,0,0], h:this.fontSize })
 		this.b.add( this.txt )
 

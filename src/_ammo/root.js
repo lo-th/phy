@@ -4,6 +4,7 @@ export const map = new Map();
 export const root = {
 
 	world : null,
+	gravity : null,
 	bodyRef: null,
 	byName: null,
 	delta : 0,

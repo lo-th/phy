@@ -183,6 +183,20 @@ export const Utils = {
 
     },
 
+    quatLocal: ( q, obj ) => {
+
+    	if( obj.isObject3D ) obj.updateWorldMatrix( true, false )
+    	// apply position
+    	//if(!isAxe) v.sub( obj.position )
+    	// apply invers rotation
+    	let q1 = new Quaternion().fromArray(q)
+    	let q2 = obj.quaternion.clone().invert()
+    	q1.premultiply(q2)
+    	//v.applyQuaternion({x:-q.x, y:-q.y, z:-q.z, w:q.w})
+    	return q1.normalize().toArray()
+
+    },
+
     refAxis:( m, axe ) => {
 
     	let zAxis = new Vector3().fromArray(axe)
@@ -329,7 +343,7 @@ export const Mat = {
 				case 'debug':  m = new MeshBasicMaterial({ color:0x000000, wireframe:true, toneMapped: false }); break
 				case 'debug2': m = new MeshBasicMaterial({ color:0x00FFFF, wireframe:true, toneMapped: false }); break
 				case 'debug3':  m = new MeshBasicMaterial({ color:0x000000, wireframe:true, transparent:true, opacity:0.1, toneMapped: false, depthTest:true, depthWrite:false }); break
-				case 'bones':  m = new MeshStandardMaterial({ color:0xCCCC88, transparent:true, opacity:0.3 }); break
+				case 'bones':  m = new MeshStandardMaterial({ color:0xCCAA33,  wireframe:true }); break
 
 				case 'shadows': m = new MeshBasicMaterial({ transparent:true, opacity:0.01 }); break
 				case 'hide': m = new MeshBasicMaterial({ visible:false }); break

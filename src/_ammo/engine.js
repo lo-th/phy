@@ -126,6 +126,8 @@ export class engine {
 
 		gravity = new Ammo.btVector3().fromArray( o.gravity || [ 0, -9.8, 0 ] )
 
+		root.gravity = gravity
+
 		if ( o.penetration ) penetration = o.penetration
 
 		if( root.world === null ) engine.start();

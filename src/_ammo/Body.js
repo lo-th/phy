@@ -281,6 +281,10 @@ export class Body extends Item {
 
 		Ammo.destroy( rbInfo );
 
+		b.mass = mass
+		b.g = g
+	
+
 		b.name = name
 		b.type = this.type
 		b.isKinematic = o.kinematic || false
@@ -304,6 +308,10 @@ export class Body extends Item {
 		// add to world
 		this.addToWorld( b, o.id )
 
+		
+
+		//console.log(b)
+
 	}
 
 
@@ -311,6 +319,19 @@ export class Body extends Item {
 
 		if( b === null ) b = this.byName( o.name );
 		if( b === null ) return;
+
+		/*if ( o.density !== undefined ){
+
+		    let mass =  ( o.density || 0 ) * b.g.volume
+		    if ( mass !== 0 ) b.g.calculateLocalInertia( mass, this.v )
+			b.setMassProps( mass, this.v )
+		}*/
+
+		if ( o.kinematic !== undefined ){ 
+			b.setCollisionFlags( o.kinematic ? 2 : 0 ); 
+			b.isKinematic = o.kinematic;
+			if(!b.isKinematic) b.setGravity( root.gravity ) 
+		}
 
 		if ( o.flag !== undefined ){ 
 			b.setCollisionFlags( o.flag ); 

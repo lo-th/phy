@@ -775,7 +775,7 @@ export class Motor {
 
 		let b = new Button( o )
 		buttons.push( b )
-		return b.b
+		return b//.b
 
 	}
 

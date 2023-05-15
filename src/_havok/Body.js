@@ -319,13 +319,14 @@ export class Body extends Item {
 		havok.HP_Body_SetQTransform( b, [ b.pos, b.quat ] )
 
 
+		havok.HP_Body_SetMotionType(b, havok.MotionType[motionType])
+		if(o.kinematic) delete o.kinematic
+
+
 		//b.first = true
 
 		// apply option
 		this.set( o, b )
-
-
-        havok.HP_Body_SetMotionType(b, havok.MotionType[motionType]);
 
 
 
@@ -356,7 +357,7 @@ export class Body extends Item {
 	applyMass ( b, g, o ) {
 
 		if( this.type === 'solid' ) return
-		if( o.kinematic ) return
+		//if( o.kinematic ) return
 
 	    // [ center, mass, inertia, inertiaOrientation ]);
 		let massProperties = [[0, 0, 0], 1, [1, 1, 1], [0, 0, 0, 1]]
@@ -379,6 +380,10 @@ export class Body extends Item {
 
 		if( b === null ) b = this.byName( o.name )
 		if( b === null ) return
+
+		if(o.kinematic !== undefined){
+			havok.HP_Body_SetMotionType(b, havok.MotionType[o.kinematic ? "KINEMATIC" : "DYNAMIC"]);
+		}
 
 		//if( o.sleep ) b.forceSleep = true;
 		//if( o.activate || o.wake ) b.up = true

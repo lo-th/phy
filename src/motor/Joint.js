@@ -102,6 +102,26 @@ export class Joint extends Item {
 
 		}
 
+		if ( o.worldQuat ){
+
+			o.quat1 = Utils.quatLocal(o.worldQuat, body1)
+			o.quat2 = Utils.quatLocal(o.worldQuat, body2)//
+
+			/*this.v1.fromArray( o.worldAxis ) 
+			this.v2.fromArray( o.worldAxis )
+
+			o.axis1 = body1 ? Utils.toLocal( this.v1, body1, true ).normalize().toArray():o.worldAxis
+			o.axis2 = body2 ? Utils.toLocal( this.v2, body2, true ).normalize().toArray():o.worldAxis*/
+
+			//o.quat1 = new Quaternion().setFromUnitVectors( new Vector3(1, 0, 0), new Vector3().fromArray(o.axis1).normalize() ).toArray();
+		    //o.quat2 = new Quaternion().setFromUnitVectors( new Vector3(1, 0, 0), new Vector3().fromArray(o.axis2).normalize() ).toArray();
+
+			//console.log(o.worldQuat, o.quat1, o.quat2)
+
+			delete o.worldQuat
+
+		}
+
 		//if( !o.axis1 ) o.axis1 = [0,0,1]
 		//if( !o.axis2 ) o.axis2 = [0,0,1]
 
@@ -188,8 +208,12 @@ export class ExtraJoint extends Basic3D {
 	    this.end = new Vector3()
 
 	    // experimental rotation ?
-	    Utils.refAxis( this.mat1, o.axis1 )
-	    Utils.refAxis( this.mat2, o.axis2 )
+	    //Utils.refAxis( this.mat1, o.axis1 )
+	    //Utils.refAxis( this.mat2, o.axis2 )
+
+	    let qq = new Quaternion()
+	    if(o.quat1) this.mat1.makeRotationFromQuaternion(qq.fromArray(o.quat1))
+	    if(o.quat2) this.mat2.makeRotationFromQuaternion(qq.fromArray(o.quat2))
 
 	    this.mat1.setPosition( o.pos1[0], o.pos1[1], o.pos1[2] )
 	    this.mat2.setPosition( o.pos2[0], o.pos2[1], o.pos2[2] )

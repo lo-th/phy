@@ -27,6 +27,7 @@ import { GlbTool } from '../utils/GlbTool.js';
 
 import { ExoSkeleton } from './ExoSkeleton.js';
 
+// ready model
 import { Human } from './Human.js';
 import { Eva } from './Eva.js';
 
@@ -37,7 +38,6 @@ import { Eva } from './Eva.js';
 * 
 *  AVATAR
 */
-
 
 const FrameTime = 30;
 const TimeFrame = 1/30;
@@ -245,21 +245,22 @@ export class Avatar extends Group {
 
     breathing(){
 
-        if( !this.isBreath ) return;
         if( !this.bones ) return;
-        if( !this.bones.chest.scalling ) return;
+        if( !this.isBreath ) return;
 
         let a = this.breath*0.01
 
         if(this.breathSide > 0){
-            this.bones.chest.scalling.y = this.lerp (1,1.04, a);
-            this.bones.chest.scalling.x = this.lerp (1,1.02, a);
-            this.bones.abdomen.scalling.y = this.lerp (1,0.92, a);
+            this.skeleton.setScalling( this.bones.chest, this.lerp (1,1.02, a), this.lerp (1,1.04, a), 1 )
+            this.skeleton.setScalling( this.bones.abdomen, 1, this.lerp (1,0.92, a), 1 )
         }else{
-            this.bones.chest.scalling.y = this.lerp (1.04,1, a);
-            this.bones.chest.scalling.x = this.lerp (1.02,1, a);
-            this.bones.abdomen.scalling.y = this.lerp (0.92,1, a);
+            this.skeleton.setScalling( this.bones.chest, this.lerp (1.02,1, a), this.lerp (1.04,1, a), 1 )
+            this.skeleton.setScalling( this.bones.abdomen, 1, this.lerp (0.92,1, a), 1 )
         }
+
+        // !! just for testing 
+        //this.skeleton.setScalling( this.bones.lShldr, 1.3, 2, 2 )
+        //this.skeleton.setScalling( this.bones.lForeArm, 1.3, 2, 2 )
 
         this.breath ++;
         if( this.breath === 100 ){ this.breath = 0; this.breathSide = this.breathSide > 0 ? -1:1; }
@@ -408,7 +409,7 @@ export class Avatar extends Group {
 
     }
 
-    setBoneScale( v ){
+    /*setBoneScale( v ){
 
         const ingnor = [ 'head', 'lToes', 'rToes', 'rCollar', 'lCollar', 'rBreast', 'lBreast', 'neck'];
         const center = ['hip', 'abdomen', 'chest'];
@@ -426,7 +427,7 @@ export class Avatar extends Group {
         }
 
         this.setBounding(v)
-    }
+    }*/
 
 
     eyeControl( v ){
@@ -488,6 +489,8 @@ export class Avatar extends Group {
         //console.log('start', this.model)
         if( this.done ) return
 
+        //this.updateMatrix()
+
         this.done = true;
         this.add( this.root );
         this.onReady();
@@ -500,7 +503,7 @@ export class Avatar extends Group {
         this.play( this.startAnimation );
 
 
-        setTimeout( this.callback, 0 ) 
+        setTimeout( this.callback, 10 ) 
 
 
         //this.callback()
