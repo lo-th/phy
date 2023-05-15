@@ -46,7 +46,7 @@ const done = () => {
 	let k = 200
 	//while(k--) phy.add({type:'sphere', pos:[math.rand(-5,5), 2, math.rand(-5,5)], size:[math.rand(0.1,0.3)], density:1, mask:2})
 
-	//phy.control( 'eva' )
+	phy.control( 'eva' )
 
     //phy.setTimeout( next, 10000 )
 
@@ -70,5 +70,5 @@ const ab1 = () => {
 
     eva.setMode( mode )
 
-    //phy.control( mode === 'follow' ? 'eva' : '' )
+    phy.control( mode === 'follow' ? 'eva' : '' )
 }
