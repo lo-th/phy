@@ -171,11 +171,17 @@ export const Human = {
 
     },
 
-    changeMaterial:() => {
+    changeMaterial:( sx ) => {
 
         if( !Pool.getMaterial( 'skin' ) ) return
 
         const s = Human.setting;
+
+        if(sx){
+            for(let v in sx){
+                if(s[v]!== undefined) s[v] = sx[v]
+            }
+        }
         
         let m = Pool.getMaterial( 'skin' );
         

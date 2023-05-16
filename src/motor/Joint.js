@@ -147,7 +147,8 @@ export class Joint extends Item {
 		j.name = name;
 
 		j.visible = false; // joint is visible after first update
-		j.isVisible = o.visible !== undefined ? o.visible : true;
+		//j.isVisible = o.visible !== undefined ? o.visible : true;
+		j.visible = o.visible !== undefined ? o.visible : true;
 		j.body1 = body1
 		j.body2 = body2
 
@@ -237,7 +238,8 @@ export class ExtraJoint extends Basic3D {
 
 	update ( r, n = 0 ) {
 
-		if( !this.isVisible ) return
+		//if( !this.isVisible ) return
+		if( !this.visible ) return
 
 		if(this.body1){
 			this.matrix.copy( this.body1.matrixWorld ).multiply( this.mat1 );

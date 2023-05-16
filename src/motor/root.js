@@ -1,6 +1,6 @@
 import {
     SphereGeometry, PlaneGeometry, CylinderGeometry, BoxGeometry,
-    MeshStandardMaterial, MeshPhysicalMaterial, MeshBasicMaterial, LineBasicMaterial,
+    MeshPhongMaterial, MeshLambertMaterial, MeshStandardMaterial, MeshPhysicalMaterial, MeshBasicMaterial, LineBasicMaterial,
     Matrix4, Euler, Quaternion, Vector3, Vector2, Color,
     Box3Helper, DoubleSide,
 } from 'three';
@@ -197,6 +197,13 @@ export const Utils = {
 
     },
 
+   /* matrixToAxix: ( m ) => {
+
+    	let p = new Vector3(1,0,0).transformDirection( m )
+    	return p.toArray()
+
+    },*/
+
     refAxis:( m, axe ) => {
 
     	let zAxis = new Vector3().fromArray(axe)
@@ -337,16 +344,20 @@ export const Mat = {
 				case 'car':   m = new MeshPhysicalMaterial({ color:0x303030, metalness: 1.0, roughness: 0.5, clearcoat: 1.0, clearcoatRoughness: 0.03, sheen: 0.5 }); break
 				case 'carGlass':   m = new MeshPhysicalMaterial({ color: 0xffffff, metalness: 0.25, roughness: 0, transmission: 1.0 }); break
 
-				case 'joint':  m = new LineBasicMaterial( {  vertexColors: true } ); break
+				case 'joint':  m = new LineBasicMaterial( { vertexColors: true, depthTest: false, depthWrite: false, toneMapped: false, transparent: true } ); break
 				case 'ray':    m = new LineBasicMaterial( { vertexColors: true, toneMapped: false } ); break	
 
 				case 'debug':  m = new MeshBasicMaterial({ color:0x000000, wireframe:true, toneMapped: false }); break
 				case 'debug2': m = new MeshBasicMaterial({ color:0x00FFFF, wireframe:true, toneMapped: false }); break
-				case 'debug3':  m = new MeshBasicMaterial({ color:0x000000, wireframe:true, transparent:true, opacity:0.1, toneMapped: false, depthTest:true, depthWrite:false }); break
+				case 'debug3':  m = new MeshBasicMaterial({ color:0x000000, wireframe:true, transparent:true, opacity:0.1, toneMapped: false, depthTest:true }); break
+
 				case 'bones':  m = new MeshStandardMaterial({ color:0xCCAA33,  wireframe:true }); break
+				case 'bones2':  m = new MeshPhongMaterial({ color:0x7da2ff, shininess:200 }); break
 
 				case 'shadows': m = new MeshBasicMaterial({ transparent:true, opacity:0.01 }); break
 				case 'hide': m = new MeshBasicMaterial({ visible:false }); break
+
+				//case 'helper': m = new LineBasicMaterial( { vertexColors: true, depthTest: false, depthWrite: false, toneMapped: false, transparent: true } ); break
 
 
 				case 'button':  m = new MeshStandardMaterial({ color:0xFF404B, ...matExtra }); break
@@ -565,6 +576,20 @@ export const math = {
 	arCopy: ( a, b ) => { a = [...b] },
 
 	////////
+
+	quadToAxisArray: ( q ) => {
+	   if (q[3] > 1) q = math.tmpQ.fromArray(q).normalise().toArray(); // if w>1 acos and sqrt will produce errors, this cant happen if quaternion is normalised
+	   let angle = 2 * Math.acos(q[3]);
+	   let s = Math.sqrt(1-q[3]*q[3]); // assuming quaternion normalised then w is less than 1, so term always positive.
+	   if (s < 0.001) { // test to avoid divide by zero, s is always positive due to sqrt
+	        // if s close to zero then direction of axis not important
+	        // if it is important that axis is normalised then replace with x=1; y=z=0;
+	        return [1,0,0]
+	   } else {
+	        //x = q[0] / s; // normalise axis
+	        return [q[0] / s,q[1] / s,q[2] / s]
+	   }
+	},
 
 	fromTransformToQ: ( p, q, inv ) => {
 

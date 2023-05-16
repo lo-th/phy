@@ -38,11 +38,14 @@ export class SkeletonBody extends Object3D {
         this.posRef = {}
         this.quatRef = {}
 
+        this.nameList = []
+
 		this.init()
 
 	}
 
     setMode( mode ){
+
         if(mode === this.mode ) return
         this.mode = mode
         const meshData = []
@@ -60,6 +63,16 @@ export class SkeletonBody extends Object3D {
         }
 
         root.motor.change( meshData )
+
+    }
+
+    isVisible( v ){
+
+        //let i = this.nodes.length, node
+        //while( i-- ) Utils.byName( this.nodes[i].name ).visible = v
+
+        let i = this.nameList.length, node
+        while( i-- ) Utils.byName( this.nameList[i] ).visible = v
 
     }
 
@@ -88,7 +101,7 @@ export class SkeletonBody extends Object3D {
         //let headDone = false
 
         let i, lng = this.bones.length, name, n, boneId, bone, parent;///, child, o, parentName;
-        let size, dist, rot, type, mesh, r, kinematic, translate;
+        let size, dist, rot, type, mesh, r, kinematic, translate, phyName;
 
         for( i = 0; i < lng; i++ ){
 
@@ -108,28 +121,51 @@ export class SkeletonBody extends Object3D {
 	            //translate = [ -dist * 0.5, 0, 0 ];
 	            translate = [ 0, 0, dist * 0.5 ];
                 size = [ dist, 1, 1 ];
-                rot = [0,0,0];
+                rot = null;//[0,0,0];
                 kinematic = true;
 
                 // body
-                if( n==='head' && name === 'End_head' ){ type = 'box'; size = [ 0.16, 0.2, dist ]; translate = [ 0, 0.025, -dist * 0.5 ]; }
+                //if( n==='head' && name === 'End_head' ){ type = 'box'; size = [ 0.16, 0.2, dist ]; translate = [ 0, 0.025, -dist * 0.5 ]; }
+                if( n==='head' && name === 'End_head' ){ type = 'capsule'; size = [ 0.1, dist-0.17 ]; translate = [ 0, 0.02, (-dist * 0.5)+0.02 ];rot = [90,0,0]; }
+                if( n==='neck' && name === 'head' ){ type = 'capsule'; size = [ 0.06, dist ]; translate = [ 0, 0, -dist * 0.5 ];rot = [90,0,0]; }
                 //if( n==='head' && !headDone ){ console.log(name); headDone = true; type = 'sphere'; dist=0.08; size = [ 0.08, 0.2, dist ]; translate = [ 0, 0.025, -0.08 ]; }
 
-	            if( n==='chest' && name==='neck' ){ type = 'box'; size = [  0.28, 0.24, dist ]; translate = [ 0, 0, -dist * 0.5 ]; }
-	            if( n==='abdomen' && name==='chest'  ){ type = 'box'; size = [ 0.24, 0.20,  dist ]; rot[2] = 0; translate = [ 0, 0, -dist * 0.5 ]; }//translate[2] += 0.07;
-                if( n==='hip' && name==='abdomen' ){ type = 'box'; size = [  0.28, 0.24, dist ]; translate = [ 0, 0, -dist * 0.5 ]; }
+	            /*if( n==='chest' && name==='neck' ){ type = 'box'; size = [  0.28, 0.24, dist ]; translate = [ 0, 0, -dist * 0.5 ]; }
+	            if( n==='abdomen' && name==='chest'  ){ type = 'box'; size = [ 0.24, 0.20,  dist ]; translate = [ 0, 0, -dist * 0.5 ]; }
+                if( n==='hip' && name==='abdomen' ){ type = 'box'; size = [  0.28, 0.24, dist ]; translate = [ 0, 0, -dist * 0.5 ]; }*/
+
+                if( n==='chest' && name==='neck' ){ type = 'capsule'; size = [  dist*0.46, 0.08  ]; translate = [ 0, 0, (-dist * 0.5)-0.02 ]; rot = [0,0,90]; }
+                if( n==='abdomen' && name==='chest'  ){ type = 'capsule'; size = [ dist*0.7, 0.08   ]; translate = [ 0, 0, (-dist * 0.5)-0.06 ]; rot = [0,0,90]; }
+                if( n==='hip' && name==='abdomen' ){ type = 'capsule'; size = [  dist*1.8, 0.08 ]; translate = [ 0, 0, -dist * 0.5 ]; rot = [0,0,90];}
 
 	             // legs
-	            if( n==='rThigh' ){ type = 'box'; size = [  0.13, 0.13, dist ];  }
-	            if( n==='lThigh' ){ type = 'box'; size = [  0.13, 0.13 , dist ];  }
-	            if( n==='rShin' ){ type = 'box'; size = [  0.12, 0.12, dist+ 0.05, ]; translate[2] += 0.025; }
-	            if( n==='lShin' ){ type = 'box'; size = [  0.12, 0.12, dist+ 0.05, ]; translate[2] += 0.025; }
+	            //if( n==='rThigh' ){ type = 'box'; size = [  0.13, 0.13, dist ];  }
+	            //if( n==='rShin' ){ type = 'box'; size = [  0.12, 0.12, dist+ 0.05, ]; translate[2] += 0.025; }
+
+                //if( n==='lThigh' ){ type = 'box'; size = [  0.13, 0.13 , dist ];  }
+	            //if( n==='lShin' ){ type = 'box'; size = [  0.12, 0.12, dist+ 0.05, ]; translate[2] += 0.025; }
+
+                if( n==='rThigh' ){ type = 'capsule'; size = [  0.08, dist ]; rot = [90,0,0]; }
+                if( n==='rShin' ){ type = 'capsule'; size = [  0.065, dist ]; rot = [90,0,0]; }
+                if( n==='rFoot' ){ type = 'box'; size = [  0.1, dist*1.4, 0.08 ]; translate = [0, (dist * 0.5)-0.025, 0.06 ]; }
+
+                if( n==='lThigh' ){ type = 'capsule'; size = [  0.08, dist ]; rot = [90,0,0]; }
+                if( n==='lShin' ){ type = 'capsule'; size = [  0.065, dist ]; rot = [90,0,0]; }
+                if( n==='lFoot' ){ type = 'box'; size = [  0.1, dist*1.4, 0.08 ]; translate = [0, (dist * 0.5)-0.025, 0.06 ]; }
 
 	            // arm
-	            if( n==='rShldr' ){ type = 'box'; size = [   dist+ 0.06, 0.12, 0.12  ]; translate[0] = -translate[2]+0.03; translate[2]=0; }
+	            /*if( n==='rShldr' ){ type = 'box'; size = [   dist+ 0.06, 0.12, 0.12  ]; translate[0] = -translate[2]+0.03; translate[2]=0; }
 	            if( n==='lShldr' ){ type = 'box'; size = [  dist+ 0.06,0.12,   0.12, ];  translate[0] = translate[2]-0.03; translate[2]=0; }
 	            if( n==='rForeArm' ){ type = 'box'; size = [  dist + 0.1,0.1,  0.1 ];  translate[0] = -translate[2]-0.05; translate[2]=0; }
-	            if( n==='lForeArm' ){ type = 'box'; size = [  dist + 0.1,0.1,  0.1]; translate[0] = translate[2]+0.05; translate[2]=0; }
+	            if( n==='lForeArm' ){ type = 'box'; size = [  dist + 0.1,0.1,  0.1]; translate[0] = translate[2]+0.05; translate[2]=0; }*/
+
+                if( n==='rShldr' ){ type = 'capsule'; size = [  0.05, dist ]; translate = [-dist * 0.5, 0, 0 ]; rot = [0,0,90];}
+                if( n==='rForeArm' && name==='rHand' ){ type = 'capsule'; size = [ 0.04, dist ]; translate = [-dist * 0.5, 0, 0 ]; rot = [0,0,90];}
+                if( n==='rHand' && name==='rMid1'){ type = 'box'; size = [ dist*2, 0.09, 0.05 ]; translate = [-dist, 0, 0 ]; }
+
+                if( n==='lShldr' ){ type = 'capsule'; size = [  0.05, dist ]; translate = [dist * 0.5, 0, 0 ]; rot = [0,0,90];}
+                if( n==='lForeArm' && name==='lHand'){ type = 'capsule'; size = [ 0.04, dist ]; translate = [dist * 0.5, 0, 0 ]; rot = [0,0,90];}
+                if( n==='lHand' && name==='lMid1'){ type = 'box'; size = [ dist*2, 0.09, 0.05 ]; translate = [dist, 0, 0 ];  }
 
                 /*if( n==='head' ){ type = 'capsule'; size = [ 7.5, 8.6, 7.5 ]; r = 90; }
                 if( n==='neck' && name==='head' ){    type = 'box'; size = [ dist, 6, 6 ]; r = 0; }
@@ -166,31 +202,33 @@ export class SkeletonBody extends Object3D {
 
                 if( type !== null ){
 
+                    phyName = this.prefix +'_bone_'+n
+
                 	// translation
                     tmpMtx.makeTranslation( translate[0], translate[1], translate[2] );
                     // rotation
-                    /*if( r!==0 ){
-                        tmpMtxR.makeRotationFromEuler( e.set( 0, 0, r*torad ) );
+                    if( rot ){
+                        tmpMtxR.makeRotationFromEuler( e.set( rot[0]*torad, rot[1]*torad, rot[2]*torad ) );
                         tmpMtx.multiply( tmpMtxR );
-                    }*/
+                    }
 
                     mtx.copy( parent.matrixWorld );
                     mtx.decompose( p, q, s );
 
-                    this.posRef[this.prefix + n] = p.toArray()
+                    this.posRef[phyName] = p.toArray()
                     if( n==='lForeArm' || n==='rForeArm' ){
                         _q.setFromAxisAngle( {x:0, y:1, z:0}, -90*torad )
                         q.multiply( _q )
                     } 
 
-                    this.quatRef[this.prefix + n] = q.toArray()
+                    this.quatRef[phyName] = q.toArray()
                      
                     mtx.multiplyMatrices( parent.matrixWorld, tmpMtx );
                     mtx.decompose( p, q, s );
 
                 	let data = {
 
-                        name: this.prefix + n,
+                        name: phyName,
                         density:1,
                         type: type,
                         size: math.vecMul(size,1),
@@ -202,8 +240,9 @@ export class SkeletonBody extends Object3D {
                         restitution:0.1,
                         group:1,
                         mask:1|2,
-                        material:'bones',
-                        //neverSleep: true,
+                        material:'bones2',
+                        neverSleep: true,
+
 
                         /*bone:parent,
                         decal:tmpMtx.clone(),
@@ -212,9 +251,11 @@ export class SkeletonBody extends Object3D {
                     }
 
                     meshData.push( data )
+
+                    this.nameList.push( data.name )
                     //this.posRef[this.prefix + n] = p.toArray()
                     this.nodes.push({
-                    	name: this.prefix + n,
+                    	name: phyName,
                         kinematic:kinematic,
                     	bone:parent,
                         decal:tmpMtx.clone(),
@@ -238,15 +279,16 @@ export class SkeletonBody extends Object3D {
 
 
         let sp = [10,1]
-        let p = this.prefix;
+        let p = this.prefix+'_bone_';
         let data = []
         let sett = {
             type:'joint', 
             mode:'d6',
-            visible:true,
+            visible:false,
             lm:[  ['ry',-180,180,...sp], ['rz',-180,180,...sp] ],
 
             collision:false,
+            helperSize:0.05,
 
             //worldAxis:[1,0,0]
 
@@ -255,7 +297,8 @@ export class SkeletonBody extends Object3D {
 
         data.push({ ...sett, b1:p+'hip', b2:p+'abdomen', worldPos:this.posRef[p+'abdomen'], worldQuat:this.quatRef[p+'hip'], lm:[ ['rx',-20,20,...sp], ['ry',-20,20,...sp], ['rz',-20,20,...sp]] })
         data.push({ ...sett, b1:p+'abdomen', b2:p+'chest', worldPos:this.posRef[p+'chest'], worldQuat:this.quatRef[p+'chest'], lm:[ ['rx',-20,20,...sp], ['ry',-20,20,...sp], ['rz',-20,20,...sp]] })
-        data.push({ ...sett, b1:p+'chest', b2:p+'head', worldPos:this.posRef[p+'head'], worldQuat:this.quatRef[p+'head'], lm:[ ['rx',-60,60,...sp], ['ry',-1,1,...sp], ['rz',-30,30,...sp]] })
+        data.push({ ...sett, b1:p+'chest', b2:p+'neck', worldPos:this.posRef[p+'neck'], worldQuat:this.quatRef[p+'neck'], lm:[ ['rx',-60,60,...sp], ['ry',-1,1,...sp], ['rz',-30,30,...sp]] })
+        data.push({ ...sett, b1:p+'neck', b2:p+'head', worldPos:this.posRef[p+'head'], worldQuat:this.quatRef[p+'head'], lm:[ ['rx',-60,60,...sp], ['ry',-1,1,...sp], ['rz',-30,30,...sp]] })
         //data.push({ type:'joint', mode:'d6', b1:this.prefix*'chest', b2:this.prefix*'abdomen' })
 
         // arm
@@ -265,6 +308,9 @@ export class SkeletonBody extends Object3D {
 
         data.push({ ...sett, b1:p+'rShldr', b2:p+'rForeArm', worldPos:this.posRef[p+'rForeArm'], worldQuat:this.quatRef[p+'rForeArm'], lm:[['rx',0,160,...sp]] })
         data.push({ ...sett, b1:p+'lShldr', b2:p+'lForeArm', worldPos:this.posRef[p+'lForeArm'], worldQuat:this.quatRef[p+'lForeArm'], lm:[['rx',0,160,...sp]] })
+
+        data.push({ ...sett, b1:p+'rForeArm', b2:p+'rHand', worldPos:this.posRef[p+'rHand'], worldQuat:this.quatRef[p+'rHand'], lm:[['rx',0,160,...sp]] })
+        data.push({ ...sett, b1:p+'lForeArm', b2:p+'lHand', worldPos:this.posRef[p+'lHand'], worldQuat:this.quatRef[p+'lHand'], lm:[['rx',0,160,...sp]] })
 
         //data.push({ ...sett, b1:p+'rShldr', b2:p+'rForeArm', worldPos:this.posRef[p+'rForeArm'], worldAxis:[1,0,0], lm:[['rx',-120, 0]] })
         //data.push({ ...sett, b1:p+'lShldr', b2:p+'lForeArm', worldPos:this.posRef[p+'lForeArm'], worldAxis:[1,0,0], lm:[['rx',-120, 0]] })
@@ -277,11 +323,24 @@ export class SkeletonBody extends Object3D {
         data.push({ ...sett, b1:p+'rThigh', b2:p+'rShin', worldPos:this.posRef[p+'rShin'], lm:[['rx',0,160,...sp]], worldQuat:this.quatRef[p+'rShin'] })
         data.push({ ...sett, b1:p+'lThigh', b2:p+'lShin', worldPos:this.posRef[p+'lShin'], lm:[['rx',0,160,...sp]], worldQuat:this.quatRef[p+'lShin'] })
 
+        data.push({ ...sett, b1:p+'rShin', b2:p+'rFoot', worldPos:this.posRef[p+'rFoot'], lm:[['rx',0,160,...sp]], worldQuat:this.quatRef[p+'rFoot'] })
+        data.push({ ...sett, b1:p+'lShin', b2:p+'lFoot', worldPos:this.posRef[p+'lFoot'], lm:[['rx',0,160,...sp]], worldQuat:this.quatRef[p+'lFoot'] })
+
         //console.log(data)
+        let x = 0
+        for( let j in data ){
+            data[j].name = this.prefix + '_joint_'+ x
+            this.nameList.push( data[j].name )
+            x++
+        }
 
         root.motor.add( data )
 
+        //console.log(this.nameList)
+
     }
+
+
 
 
 
@@ -370,8 +429,10 @@ export class SkeletonBody extends Object3D {
 
 	dispose(){
 
+        root.motor.remove( this.nameList )
+
         this.nodes = []
-		this.parent.remove(this);
+		this.parent.remove( this );
 		
 	}
 

@@ -39,12 +39,12 @@ class CircleHelper extends LineSegments {
 		];
 
 		const colors = [
-		0, 0.3, 1,
-		0, 0.3, 1,
-		0, 0.3, 1,
-		0, 0.3, 1,
-		0, 0.3, 1,
-		0, 0.3, 1,
+		0, 0, 1,
+		0, 0, 1,
+		0, 0, 1,
+		0, 0, 1,
+		0, 0, 1,
+		0, 0, 1,
 		
 
 		0, 1, 0,
@@ -70,7 +70,7 @@ class CircleHelper extends LineSegments {
 		geometry.setAttribute( 'position', new Float32BufferAttribute( positions, 3 ) );
 		geometry.setAttribute( 'color', new Float32BufferAttribute( colors, 3 ) );
 
-		super( geometry, new LineBasicMaterial( { color: color, toneMapped: false } ) );
+		super( geometry, new LineBasicMaterial( { color: color, depthTest: false, depthWrite: false, toneMapped: false, transparent: true } ) );
 
 		this.box = box;
 

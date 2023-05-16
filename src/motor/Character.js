@@ -187,13 +187,24 @@ class Hero extends Basic3D {
     addSkeleton( o ){
 
     	this.skeletonBody = new SkeletonBody( this )
-    	this.model.add( this.skeletonBody )
+    	//this.model.add( this.skeletonBody )
+    	//root.scene.add( this.skeletonBody )
+    	this.add( this.skeletonBody )
+    	this.skeletonBody.isVisible(false)
+
+    }
+
+    debugMode( v ){
+
+    	this.skeletonBody.isVisible(v)
+    	this.model.setMaterial( {wireframe: v})
+    	//this.model.visible = !v
 
     }
 
     setMode( name ){
 
-    	if(this.skeletonBody) this.skeletonBody.setMode( name )
+    	if( this.skeletonBody ) this.skeletonBody.setMode( name )
 
     	//this.skeletonBody = new SkeletonBody( this )
     	//this.model.add( this.skeletonBody )
@@ -253,9 +264,12 @@ class Hero extends Basic3D {
 	}
 
 	dispose () {
+
 		this.callback = null
 		if( this.model ) this.model.dispose()
 		if( this.skeletonBody ) this.skeletonBody.dispose()
+
+		//console.log('model remove')
 
 		super.dispose()
 	}

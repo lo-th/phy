@@ -34,7 +34,7 @@ export class Button {
 
 		this.origin = this.pos[this.axe]
 
-		this.range = [ this.origin-this.decal - (this.radius*2), this.origin ]
+		this.range = [ this.origin - this.decal - (this.radius*2), this.origin + this.decal - this.radius]
 
 		this.value = this.origin
 		this.target = this.origin

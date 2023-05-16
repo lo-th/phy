@@ -103,7 +103,7 @@ export class Gui {
 		this.groupMaterial.add(ref.setting, 'sheen', { min:0, max:5 }).onChange( function (b){ ref.setMaterial(); this.upMaterial(ref.setting);}.bind(this) )
 		this.groupMaterial.add(ref.setting, 'sheenRoughness', { min:0, max:1 }).onChange( function (b){ ref.setMaterial();this.upMaterial(ref.setting); }.bind(this) )
 
-		this.groupMaterial.add(ref.setting, 'wireframe', { type:'bool' }).onChange( function (b){ ref.setMaterial();this.upMaterial(ref.setting); }.bind(this) )
+		this.groupMaterial.add(ref.setting, 'wireframe', { type:'bool' }).onChange( function (b){ ref.setMaterial(); this.upMaterial(ref.setting); }.bind(this) )
 		this.groupMaterial.add(ref.setting, 'vertexColors', { type:'bool' }).onChange( function (b){ ref.setMaterial(); this.upMaterial(ref.setting);}.bind(this) )
 
 

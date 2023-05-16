@@ -628,6 +628,8 @@ export class Body extends Item {
 		if(o.phySize) o.size = o.phySize
 		if(o.phyPos) o.pos = o.phyPos
 
+		if(o.parent) delete o.parent
+
 		// add to physic worker 
 		root.post( { m:'add', o:o } )
 
