@@ -156,8 +156,8 @@ export class SkeletonBody extends Object3D {
                 if( n==='hip' && name==='abdomen' ){ type = 'capsule'; size = [  dist*1.8, 0.08 ]; translate = [ 0, 0, -dist * 0.5 ]; rot = [0,0,90];}
 
 
-                if( n==='chest' && name==='rBreast' ){n='rBreast'; parent = bone; type = 'sphere'; size = [ 0.07 ]; translate = [ 0.07,0,0 ]; this.breast=true; motion = true; }
-                if( n==='chest' && name==='lBreast' ){n='lBreast'; parent = bone; type = 'sphere'; size = [ 0.07 ]; translate = [ 0.07,0,0 ]; this.breast=true; motion = true; }
+                if( n==='chest' && name==='rBreast' && root.engine!=='HAVOK' ){n='rBreast'; parent = bone; type = 'sphere'; size = [ 0.07 ]; translate = [ 0.07,0,0 ]; this.breast=true; motion = true; }
+                if( n==='chest' && name==='lBreast' && root.engine!=='HAVOK' ){n='lBreast'; parent = bone; type = 'sphere'; size = [ 0.07 ]; translate = [ 0.07,0,0 ]; this.breast=true; motion = true; }
                 
 
 	             // legs
@@ -262,7 +262,7 @@ export class SkeletonBody extends Object3D {
                         restitution:0.1,
                         group:1,
                         mask:1|2,
-                        material:'bones',
+                        material:'bones2',
                         neverSleep: true,
 
 
