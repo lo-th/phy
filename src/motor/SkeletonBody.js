@@ -40,6 +40,8 @@ export class SkeletonBody extends Object3D {
 
         this.nameList = []
 
+        this.breast = false
+
 		this.init()
 
 	}
@@ -60,10 +62,24 @@ export class SkeletonBody extends Object3D {
             meshData.push( { name : node.name, kinematic:kinematic } )
             node.kinematic = kinematic
             node.bone.isPhysics = !kinematic;
+
+            
         }
 
         root.motor.change( meshData )
 
+    }
+
+    freeBone(node){
+        if(!node.kinematic) return
+        node.cc++
+        if(node.cc=== 20 ){
+            node.cc = 0
+            node.kinematic = false
+            node.bone.isPhysics = true;
+            root.motor.change( { name : node.name, kinematic:false } )
+        }
+        
     }
 
     isVisible( v ){
@@ -101,7 +117,7 @@ export class SkeletonBody extends Object3D {
         //let headDone = false
 
         let i, lng = this.bones.length, name, n, boneId, bone, parent;///, child, o, parentName;
-        let size, dist, rot, type, mesh, r, kinematic, translate, phyName;
+        let size, dist, rot, type, mesh, r, kinematic, translate, phyName, motion;
 
         for( i = 0; i < lng; i++ ){
 
@@ -123,6 +139,7 @@ export class SkeletonBody extends Object3D {
                 size = [ dist, 1, 1 ];
                 rot = null;//[0,0,0];
                 kinematic = true;
+                motion = false;
 
                 // body
                 //if( n==='head' && name === 'End_head' ){ type = 'box'; size = [ 0.16, 0.2, dist ]; translate = [ 0, 0.025, -dist * 0.5 ]; }
@@ -137,6 +154,11 @@ export class SkeletonBody extends Object3D {
                 if( n==='chest' && name==='neck' ){ type = 'capsule'; size = [  dist*0.46, 0.08  ]; translate = [ 0, 0, (-dist * 0.5)-0.02 ]; rot = [0,0,90]; }
                 if( n==='abdomen' && name==='chest'  ){ type = 'capsule'; size = [ dist*0.7, 0.08   ]; translate = [ 0, 0, (-dist * 0.5)-0.06 ]; rot = [0,0,90]; }
                 if( n==='hip' && name==='abdomen' ){ type = 'capsule'; size = [  dist*1.8, 0.08 ]; translate = [ 0, 0, -dist * 0.5 ]; rot = [0,0,90];}
+
+
+                if( n==='chest' && name==='rBreast' ){n='rBreast'; parent = bone; type = 'sphere'; size = [ 0.07 ]; translate = [ 0.07,0,0 ]; this.breast=true; motion = true; }
+                if( n==='chest' && name==='lBreast' ){n='lBreast'; parent = bone; type = 'sphere'; size = [ 0.07 ]; translate = [ 0.07,0,0 ]; this.breast=true; motion = true; }
+                
 
 	             // legs
 	            //if( n==='rThigh' ){ type = 'box'; size = [  0.13, 0.13, dist ];  }
@@ -159,11 +181,11 @@ export class SkeletonBody extends Object3D {
 	            if( n==='rForeArm' ){ type = 'box'; size = [  dist + 0.1,0.1,  0.1 ];  translate[0] = -translate[2]-0.05; translate[2]=0; }
 	            if( n==='lForeArm' ){ type = 'box'; size = [  dist + 0.1,0.1,  0.1]; translate[0] = translate[2]+0.05; translate[2]=0; }*/
 
-                if( n==='rShldr' ){ type = 'capsule'; size = [  0.05, dist ]; translate = [-dist * 0.5, 0, 0 ]; rot = [0,0,90];}
+                if( n==='rShldr' && name==='rForeArm'){ type = 'capsule'; size = [  0.05, dist ]; translate = [-dist * 0.5, 0, 0 ]; rot = [0,0,90];}
                 if( n==='rForeArm' && name==='rHand' ){ type = 'capsule'; size = [ 0.04, dist ]; translate = [-dist * 0.5, 0, 0 ]; rot = [0,0,90];}
                 if( n==='rHand' && name==='rMid1'){ type = 'box'; size = [ dist*2, 0.09, 0.05 ]; translate = [-dist, 0, 0 ]; }
 
-                if( n==='lShldr' ){ type = 'capsule'; size = [  0.05, dist ]; translate = [dist * 0.5, 0, 0 ]; rot = [0,0,90];}
+                if( n==='lShldr' && name==='lForeArm'){ type = 'capsule'; size = [  0.05, dist ]; translate = [dist * 0.5, 0, 0 ]; rot = [0,0,90];}
                 if( n==='lForeArm' && name==='lHand'){ type = 'capsule'; size = [ 0.04, dist ]; translate = [dist * 0.5, 0, 0 ]; rot = [0,0,90];}
                 if( n==='lHand' && name==='lMid1'){ type = 'box'; size = [ dist*2, 0.09, 0.05 ]; translate = [dist, 0, 0 ];  }
 
@@ -240,7 +262,7 @@ export class SkeletonBody extends Object3D {
                         restitution:0.1,
                         group:1,
                         mask:1|2,
-                        material:'bones2',
+                        material:'bones',
                         neverSleep: true,
 
 
@@ -256,12 +278,14 @@ export class SkeletonBody extends Object3D {
                     //this.posRef[this.prefix + n] = p.toArray()
                     this.nodes.push({
                     	name: phyName,
-                        kinematic:kinematic,
+                        kinematic: kinematic,
+                        motion:motion,// auto move
                     	bone:parent,
                         decal:tmpMtx.clone(),
                         decalinv:tmpMtx.clone().invert(),
                         quat:q.toArray(),
                         pos:p.toArray(),
+                        cc:0,
                     })
                 }
 
@@ -293,6 +317,8 @@ export class SkeletonBody extends Object3D {
             //worldAxis:[1,0,0]
 
         }
+
+        let breastMotion = [-0.001, 0.001, 100,0.2, 0.5]
         
 
         data.push({ ...sett, b1:p+'hip', b2:p+'abdomen', worldPos:this.posRef[p+'abdomen'], worldQuat:this.quatRef[p+'hip'], lm:[ ['rx',-20,20,...sp], ['ry',-20,20,...sp], ['rz',-20,20,...sp]] })
@@ -325,6 +351,11 @@ export class SkeletonBody extends Object3D {
 
         data.push({ ...sett, b1:p+'rShin', b2:p+'rFoot', worldPos:this.posRef[p+'rFoot'], lm:[['rx',0,160,...sp]], worldQuat:this.quatRef[p+'rFoot'] })
         data.push({ ...sett, b1:p+'lShin', b2:p+'lFoot', worldPos:this.posRef[p+'lFoot'], lm:[['rx',0,160,...sp]], worldQuat:this.quatRef[p+'lFoot'] })
+
+        if(this.breast){
+            data.push({ ...sett, b1:p+'chest', b2:p+'rBreast', worldPos:this.posRef[p+'rBreast'], worldQuat:this.quatRef[p+'rBreast'], lm:[['x',...breastMotion], ['y',...breastMotion], ['z',...breastMotion]] })
+            data.push({ ...sett, b1:p+'chest', b2:p+'lBreast', worldPos:this.posRef[p+'lBreast'], worldQuat:this.quatRef[p+'lBreast'], lm:[['x',...breastMotion], ['y',...breastMotion], ['z',...breastMotion]] })
+        }
 
         //console.log(data)
         let x = 0
@@ -376,6 +407,8 @@ export class SkeletonBody extends Object3D {
             bone = node.bone;
 
             if( node.kinematic ){
+
+
                 //_tmpMatrix.multiplyMatrices( _rootMatrix, bone.matrixWorld );
                 _endMatrix.multiplyMatrices( bone.matrixWorld, node.decal );
                 _endMatrix.decompose( _p, _q, _s );
@@ -384,6 +417,8 @@ export class SkeletonBody extends Object3D {
                 node.quat = _q.toArray();
 
                 up.push({ name:node.name, pos:node.pos, quat:node.quat })
+
+                if( node.motion ) this.freeBone(node)
 
             } else {
 

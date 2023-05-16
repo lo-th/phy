@@ -60,6 +60,7 @@ const done = () => {
 	//eva.model.addExo()
 	//eva.model.play('Standard Run')
 
+	eva.static = true
 	eva.addSkeleton()
 	phy.control( 'eva' )
 

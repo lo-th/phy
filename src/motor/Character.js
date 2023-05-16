@@ -86,6 +86,7 @@ class Hero extends Basic3D {
 		this.isRay = false
 
 		this.model = null
+		this.static = false
 
 
 		this.radius = 0.3
@@ -196,8 +197,8 @@ class Hero extends Basic3D {
 
     debugMode( v ){
 
-    	this.skeletonBody.isVisible(v)
-    	this.model.setMaterial( {wireframe: v})
+    	if(this.skeletonBody) this.skeletonBody.isVisible(v)
+    	if(this.model) this.model.setMaterial( {wireframe: v})
     	//this.model.visible = !v
 
     }
@@ -377,6 +378,8 @@ class Hero extends Basic3D {
 
 	    
         //if(anim==='walk' || anim==='run')
+
+        if(this.static) this.ts=this.rs=0
 
 
 	    // gravity
