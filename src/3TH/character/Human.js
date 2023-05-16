@@ -37,8 +37,8 @@ const setting = {
 export const Human = {
 
 	isBreath:true,
-	isEyeMove:true,
-	haveMorph:true,
+	isEyeMove:false,
+	haveMorph:false,
 
     skeletonRef:'body',
 	fullMorph: ['MUSCLE', 'LOW', 'BIG', 'MONSTER'],

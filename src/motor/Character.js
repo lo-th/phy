@@ -185,12 +185,14 @@ class Hero extends Basic3D {
     	//console.log(this.contact)
     }
 
-    addSkeleton( o ){
+    addSkeleton(){
+
+    	if(this.skeletonBody) return
 
     	this.skeletonBody = new SkeletonBody( this )
     	//this.model.add( this.skeletonBody )
-    	//root.scene.add( this.skeletonBody )
-    	this.add( this.skeletonBody )
+    	root.scene.add( this.skeletonBody )
+    	//this.add( this.skeletonBody )
     	this.skeletonBody.isVisible(false)
 
     }
@@ -250,7 +252,7 @@ class Hero extends Basic3D {
 		this.oy = this.position.y;
 		this.updateMatrix()
 
-		if(this.model) this.model.update( root.delta );
+		if( this.model ) this.model.update( root.delta );
 		//if(this.skeletonBody) this.skeletonBody.update()
 
 	}

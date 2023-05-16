@@ -20818,8 +20818,8 @@ const setting$1 = {
 const Human = {
 
 	isBreath:true,
-	isEyeMove:true,
-	haveMorph:true,
+	isEyeMove:false,
+	haveMorph:false,
 
     skeletonRef:'body',
 	fullMorph: ['MUSCLE', 'LOW', 'BIG', 'MONSTER'],
@@ -21358,26 +21358,26 @@ class Avatar extends Group {
             this.mixer.update( delta );
 
             // blink
-            const n = this.n;
-            if( n<=20) this.eyeControl((n*0.05));
-            if( n>10 && n<=40 ) this.eyeControl(1-((n-20)*0.05));
-            this.n ++;
-            if( this.n===1000 ) this.n = 0;
+            /*const n = this.n
+            if( n<=20) this.eyeControl((n*0.05))
+            if( n>10 && n<=40 ) this.eyeControl(1-((n-20)*0.05))
+            this.n ++
+            if( this.n===1000 ) this.n = 0
 
             if( !this.isClone ){ 
-                this.look( delta*10 );
-                this.breathing();
-                this.autoToes();
+                this.look( delta*10 )
+                this.breathing()
+                this.autoToes()
             }
 
             if( this.tensionActive ){ 
-                this.tension1.update();
-                this.tension2.update();
+                this.tension1.update()
+                this.tension2.update()
             }
 
             if( window.gui && this.current ){ 
                 window.gui.updateTimeBarre( Math.round( this.current.time * FrameTime ), this.current.frameMax );
-            }
+            }*/
         }
 
     }
@@ -21504,7 +21504,7 @@ class Avatar extends Group {
         // get data
         this.root.traverse( function ( node ) {
             if ( node.isMesh ){
-                if(node.name === this.ref.skeletonRef){
+                if( node.name === this.ref.skeletonRef ){
                     node.matrixAutoUpdate = false;
                     this.skeleton = node.skeleton;
                     if( this.skeleton.resetScalling ) this.skeleton.resetScalling();
@@ -22901,12 +22901,14 @@ class Hero extends Basic3D {
     	//console.log(this.contact)
     }
 
-    addSkeleton( o ){
+    addSkeleton(){
+
+    	if(this.skeletonBody) return
 
     	this.skeletonBody = new SkeletonBody( this );
     	//this.model.add( this.skeletonBody )
-    	//root.scene.add( this.skeletonBody )
-    	this.add( this.skeletonBody );
+    	root.scene.add( this.skeletonBody );
+    	//this.add( this.skeletonBody )
     	this.skeletonBody.isVisible(false);
 
     }
@@ -22966,7 +22968,7 @@ class Hero extends Basic3D {
 		this.oy = this.position.y;
 		this.updateMatrix();
 
-		if(this.model) this.model.update( root.delta );
+		if( this.model ) this.model.update( root.delta );
 		//if(this.skeletonBody) this.skeletonBody.update()
 
 	}
@@ -26741,15 +26743,29 @@ K.childScale = function ( bone, matrix ) {
     if( !this.scalled ) return
 
     if( bone.scalling ) matrix.scale( bone.scalling );
-    let j = bone.children.length, k = 0, child, scaleMatrix;
+    if(!bone.isBone) return
+    let j = bone.children.length, child;
     while(j--){
-        child = bone.children[ k ];
-        scaleMatrix = matrix.clone();
-        scaleMatrix.multiply( child.matrix );
-        child.matrixWorld.copy( scaleMatrix );
+        child = bone.children[ j ];
+        //if( child.matrixAutoUpdate ) child.matrixAutoUpdate = false
+        //if( child.matrixWorldAutoUpdate ) child.matrixWorldAutoUpdate = false
+        //child.matrixWorldNeedsUpdate = false;
+        child.matrixWorld.copy( child.matrix ).premultiply( matrix );
+
+
+        //scaleMatrix = matrix.clone()
+        //scaleMatrix.multiply( child.matrix )
+        //child.matrixWorld.copy( scaleMatrix )
+
+       // if( child.isBone ) 
+            //child.matrix.premultiply(matrix)
+            //child.matrixWorld.copy( child.matrix );
+            
+            ///child.matrixWorldNeedsUpdate = true;
+        //child.matrix.premultiply(matrix)
         //child.matrixWorld.setPosition( _decal.setFromMatrixPosition( scaleMatrix ) );
         //child.matrixWorld.setPosition( _decal.setFromMatrixPosition( scaleMatrix ) );
-        k++;
+        //k++
     }
 
 };

@@ -46,15 +46,29 @@ K.childScale = function ( bone, matrix ) {
     if( !this.scalled ) return
 
     if( bone.scalling ) matrix.scale( bone.scalling );
-    let j = bone.children.length, k = 0, child, scaleMatrix;
+    if(!bone.isBone) return
+    let j = bone.children.length, k = 0, child;
     while(j--){
-        child = bone.children[ k ]
-        scaleMatrix = matrix.clone()
-        scaleMatrix.multiply( child.matrix )
-        child.matrixWorld.copy( scaleMatrix )
+        child = bone.children[ j ]
+        //if( child.matrixAutoUpdate ) child.matrixAutoUpdate = false
+        //if( child.matrixWorldAutoUpdate ) child.matrixWorldAutoUpdate = false
+        //child.matrixWorldNeedsUpdate = false;
+        child.matrixWorld.copy( child.matrix ).premultiply( matrix )
+
+
+        //scaleMatrix = matrix.clone()
+        //scaleMatrix.multiply( child.matrix )
+        //child.matrixWorld.copy( scaleMatrix )
+
+       // if( child.isBone ) 
+            //child.matrix.premultiply(matrix)
+            //child.matrixWorld.copy( child.matrix );
+            
+            ///child.matrixWorldNeedsUpdate = true;
+        //child.matrix.premultiply(matrix)
         //child.matrixWorld.setPosition( _decal.setFromMatrixPosition( scaleMatrix ) );
         //child.matrixWorld.setPosition( _decal.setFromMatrixPosition( scaleMatrix ) );
-        k++
+        //k++
     }
 
 }
