@@ -191,7 +191,7 @@ export class Avatar extends Group {
             this.mixer.update( delta );
 
             // blink
-            /*const n = this.n
+            const n = this.n
             if( n<=20) this.eyeControl((n*0.05))
             if( n>10 && n<=40 ) this.eyeControl(1-((n-20)*0.05))
             this.n ++
@@ -210,7 +210,7 @@ export class Avatar extends Group {
 
             if( window.gui && this.current ){ 
                 window.gui.updateTimeBarre( Math.round( this.current.time * FrameTime ), this.current.frameMax );
-            }*/
+            }
         }
 
     }
