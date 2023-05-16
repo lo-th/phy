@@ -20818,8 +20818,8 @@ const setting$1 = {
 const Human = {
 
 	isBreath:true,
-	isEyeMove:false,
-	haveMorph:false,
+	isEyeMove:true,
+	haveMorph:true,
 
     skeletonRef:'body',
 	fullMorph: ['MUSCLE', 'LOW', 'BIG', 'MONSTER'],
@@ -21358,26 +21358,26 @@ class Avatar extends Group {
             this.mixer.update( delta );
 
             // blink
-            /*const n = this.n
-            if( n<=20) this.eyeControl((n*0.05))
-            if( n>10 && n<=40 ) this.eyeControl(1-((n-20)*0.05))
-            this.n ++
-            if( this.n===1000 ) this.n = 0
+            const n = this.n;
+            if( n<=20) this.eyeControl((n*0.05));
+            if( n>10 && n<=40 ) this.eyeControl(1-((n-20)*0.05));
+            this.n ++;
+            if( this.n===1000 ) this.n = 0;
 
             if( !this.isClone ){ 
-                this.look( delta*10 )
-                this.breathing()
-                this.autoToes()
+                this.look( delta*10 );
+                this.breathing();
+                this.autoToes();
             }
 
             if( this.tensionActive ){ 
-                this.tension1.update()
-                this.tension2.update()
+                this.tension1.update();
+                this.tension2.update();
             }
 
             if( window.gui && this.current ){ 
                 window.gui.updateTimeBarre( Math.round( this.current.time * FrameTime ), this.current.frameMax );
-            }*/
+            }
         }
 
     }
