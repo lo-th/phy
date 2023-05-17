@@ -350,8 +350,8 @@ export class Body extends Item {
 			
 			this.t.fromArray( o.pos, o.quat )
 			if ( b.isKinematic ) b.getMotionState().setWorldTransform( this.t )
-			//else
-			 b.setWorldTransform( this.t )
+			//else 
+				b.setWorldTransform( this.t )
 
 		}
 

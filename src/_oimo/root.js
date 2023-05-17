@@ -4,6 +4,10 @@ export const map = new Map();
 
 export const root = {
 
+
+	deltaTime : 0,
+	invDelta : 0,
+
 	world : null,
 	delta : 0,
 	key:[],
@@ -27,6 +31,16 @@ export const math = {
 		v = v < min ? min : v;
 	    v = v > max ? max : v;
 	    return v;
+	},
+	velocityArray:( a, b, m = 1 ) => {
+		let ar = [0,0,0]
+		let i = a.length
+		while(i--){ 
+			ar[i] = a[i]-b[i] 
+			if(ar[i]!==0) ar[i] *= m
+		}
+	    //b = a
+	    return ar
 	},
 	toFixed: ( x, n = 3 ) => ( x.toFixed(n) * 1 ),
 }

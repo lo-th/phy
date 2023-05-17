@@ -2,7 +2,7 @@ import { Item } from '../core/Item.js';
 import { Num } from '../core/Config.js';
 
 import { 
-	root, Utils, Vec3, Quat, Transform, RigidBodyConfig, ShapeConfig, Shape, RigidBody,ContactCallback,
+	root, math, Utils, Vec3, Quat, Transform, RigidBodyConfig, ShapeConfig, Shape, RigidBody,ContactCallback,
 	BoxGeometry, SphereGeometry, CylinderGeometry, CapsuleGeometry, ConeGeometry, ConvexHullGeometry
 } from './root.js';
 
@@ -23,7 +23,9 @@ export class Body extends Item {
 		this.v = new Vec3()
 		this.r = new Vec3()
 		this.q = new Quat()
-		this.t = new Transform()
+		//this.t = new Transform()
+
+		//console.log(this.t)
 
 		this.sc = new ShapeConfig()
 
@@ -294,8 +296,11 @@ export class Body extends Item {
 		b.name = name
 		b.type = this.type
 		b.breakable = o.breakable || false
+		b.isKinematic = o.kinematic || false
 
 		b.first = true
+
+		if( o.kinematic ) b.pos = o.pos || [0,0,0]
 
 		if(o.kinematic) delete o.kinematic
 
@@ -307,7 +312,7 @@ export class Body extends Item {
 
 		//console.log(b)
 
-		//if(o.isTrigger)console.log(b)
+		
 
 	}
 
@@ -319,6 +324,7 @@ export class Body extends Item {
 
 		if(o.kinematic !== undefined){
 			b.setType(o.kinematic ? 2 : 0);
+			b.isKinematic = o.kinematic
 		}
 
 
@@ -326,8 +332,49 @@ export class Body extends Item {
 
 		// position / rotation
 
-		if( o.pos ) b.setPosition( this.v.fromArray( o.pos ) )
-		if( o.quat ) b.setOrientation( this.q.fromArray( o.quat ) )
+	
+	//console.log(t)
+
+	    /*if( !o.pos ){ 
+	    	o.pos = [0,0,0] 
+	    	b.getPositionTo( this.p )
+	    	this.p.toArray( o.pos )
+	    }
+		if( !o.quat ) { 
+	    	o.quat = [0,0,0,1] 
+	    	b.getOrientationTo( this.q )
+			this.q.toArray( o.quat )
+	    }*/
+
+	    /*{
+
+		    let t = b.getTransform()
+		    if( o.pos ) t.setPosition( this.v.fromArray( o.pos ) )
+		    if( o.quat ) t.setOrientation( this.q.fromArray( o.quat ) )
+		    b.setTransform( t )
+
+		}*/
+
+	    //this.t.fromArray( o.pos, o.quat )
+	    if( o.pos || o.quat ){
+
+
+
+	    	if( o.pos ){ 
+	    		
+	    		if(b.isKinematic){
+	    			let pp = math.velocityArray( o.pos, b.pos, root.invDelta )
+	    			b.setLinearVelocity( this.v.fromArray( pp ) )
+	    			b.pos = o.pos
+	    		}
+
+	    		b.setPosition( this.v.fromArray( o.pos ) )
+
+	    	}
+		    if( o.quat ) b.setOrientation( this.q.fromArray( o.quat ) )
+	    }
+
+		
 
 		// state
 

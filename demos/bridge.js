@@ -49,11 +49,11 @@ demo = () => {
     }
 
     // platform test
-    phy.add({ type:'box', name:'kine', size:[3,0.2,3], pos:[ px, 1, 3 ], radius:0.02, kinematic:true, friction:1 });
-    phy.add({ type:'box', name:'truc', size:[1,1,1], pos:[ px, 1.7, 3 ], radius:0.02, density: 1, friction:1, neverSleep:true });
+    phy.add({ type:'box', name:'kine', size:[3,0.2,3], pos:[ px, 1, 3 ], radius:0.02, kinematic:true, density: 1, friction:1 });
+    phy.add({ type:'box', name:'truc', size:[1,1,1], pos:[ px, 1.7, 3 ], radius:0.02, density: 0.1, friction:1 });
 
     phy.setPostUpdate ( update )
-    phy.setTimeout( go, 2000 )
+    phy.setTimeout( go, 4000 )
 
 }
 
@@ -75,5 +75,6 @@ update = () => {
     
 
     phy.change({name:'kine', pos:[ px, 1, 3 ]})
+    //phy.change({name:'kine', linearVelocity:[ 0.3 * side, 0,0 ]})
 
 }

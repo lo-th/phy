@@ -163,8 +163,6 @@ export class engine {
 
     }
 
-	
-
 	static controle ( name ) {
 
 		if( name === current ) return
@@ -230,6 +228,8 @@ export class engine {
 		lastTime = startTime;
 
 		root.deltaTime = fixe ? timestep / substep : root.delta / substep
+
+		root.invDelta = 1 / (fixe ? timestep : root.delta);
 
 		//engine.stepItems()
 
