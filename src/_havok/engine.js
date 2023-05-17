@@ -127,7 +127,7 @@ export class engine {
 		timestep = 1 / (o.fps || 60 );
 		interval = math.toFixed(timestep*1000, 2)
 
-		substep = o.substep || 1;
+		substep = 1//o.substep || 1;
 		root.substep = substep
 		
 		fixe = o.fixe !== undefined ? o.fixe : true;
@@ -324,13 +324,19 @@ export class engine {
 		root.delta = ( startTime - lastTime ) * 0.001;
 		lastTime = startTime;
 
-		root.deltaTime = fixe ? timestep / substep : root.delta / substep
+		root.deltaTime = fixe ? timestep : root.delta
+		
+		havok.HP_World_Step( root.world, root.deltaTime )
+		root.tmpStep++
+		
+
+		/*root.deltaTime = fixe ? timestep / substep : root.delta / substep
 
 		let n = substep;
 		while( n-- ) {
 			havok.HP_World_Step( root.world, root.deltaTime )
 			root.tmpStep++
-		}
+		}*/
 
 		engine.stepItems()
 	    engine.notifyCollisions()

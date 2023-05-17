@@ -4,6 +4,11 @@ demo = () => {
 
     phy.view({})
 
+    // config physics setting
+    phy.set( {substep:1, gravity:[0,-9.81,0]} )
+
+    
+
     phy.add({ type:'plane', visible:false });
 
     phy.addButton({ type:'box', pos:[-2.5,0,0], size:[3,1,2], radius:0.2, callback:ab1, text:'PUSH' })

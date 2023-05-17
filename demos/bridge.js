@@ -1,3 +1,8 @@
+let px = 5
+let side = 0
+let ready = false
+
+
 demo = () => {
     
     // config physics setting
@@ -42,5 +47,33 @@ demo = () => {
         phy.add({ type:'sphere', size:[ rand( 0.3,  0.8 ) ], pos:[ rand( -8, 8 ), rand( 8, 10 ), rand( -1, 1 ) ], density: 0.3 })
         phy.add({ type:'cone', size:[ rand( 0.4,  0.6 ), rand( 0.4,  0.8 ) ], pos:[ rand( -8, 8 ), rand( 8, 10 ), rand( -1, 1 ) ], density: 0.3 })
     }
+
+    // platform test
+    phy.add({ type:'box', name:'kine', size:[3,0.2,3], pos:[ px, 1, 3 ], radius:0.02, kinematic:true, friction:1 });
+    phy.add({ type:'box', name:'truc', size:[1,1,1], pos:[ px, 1.7, 3 ], radius:0.02, density: 1, friction:1, neverSleep:true });
+
+    phy.setPostUpdate ( update )
+    phy.setTimeout( go, 2000 )
+
+}
+
+go = () => {
+
+    side = -1
+    ready = true
+
+}
+
+
+update = () => {
+
+    if(!ready) return
+
+    px += 0.03 * side
+    if(px<=-5) side = 1
+    if(px>=5) side = -1
+    
+
+    phy.change({name:'kine', pos:[ px, 1, 3 ]})
 
 }

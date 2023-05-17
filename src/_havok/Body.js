@@ -1,7 +1,7 @@
 import { Item } from '../core/Item.js';
 import { Num } from '../core/Config.js';
 
-import { Utils, root, map } from './root.js';
+import { Utils, root, math, map } from './root.js';
 
 
 export class Body extends Item {
@@ -306,7 +306,10 @@ export class Body extends Item {
 
 		// save start state
 		b.pos = o.pos || [0,0,0];
-		b.quat = o.quat || [0,0,0,1];
+		b.quat = o.quat || [0,0,0,1]
+
+		b.oldp = o.pos || [0,0,0];
+
 		if(o.pos) delete o.pos
 		if(o.quat) delete o.quat
 		//b.forceSleep = false
@@ -407,9 +410,26 @@ export class Body extends Item {
 			if( !o.pos ) o.pos = b.pos
 			if( !o.quat ) o.quat = b.quat
 
-			let u = [ o.pos, o.quat ]
+			let move = true
 
-			if( b.isKinematic && root.tmpStep===(2*root.substep) ) havok.HP_Body_SetTargetQTransform( b, u ); // !! only on one step
+			if( b.isKinematic ){
+
+				if( math.equalArray( b.oldp, o.pos )  ) move = false
+				else  b.oldp = o.pos 
+
+			}
+			/*9if( b.oldp !== o.pos ){ 
+				move = true
+
+			}*/
+
+			//if( !o.pos ) o.pos = b.pos
+			//if( !o.quat ) o.quat = b.quat
+
+			let u = [ o.pos, o.quat || [0,0,0,1] ]
+
+			//if( b.isKinematic && root.tmpStep===(2*root.substep) ) havok.HP_Body_SetTargetQTransform( b, u ); // !! only on one step
+			if( b.isKinematic && move ) havok.HP_Body_SetTargetQTransform( b, u ); // !! only on one step
 			else havok.HP_Body_SetQTransform( b, u )
 
 		}

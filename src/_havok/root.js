@@ -34,6 +34,12 @@ export const math = {
 	    v = v > max ? max : v;
 	    return v;
 	},
+	equalArray:(a, b)=>{
+		let i = a.length
+		while(i--){ if(a[i]!==b[i]) return false }
+	    return true
+	},
+
 	toFixed: ( x, n = 3 ) => ( x.toFixed(n) * 1 ),
 }
 
