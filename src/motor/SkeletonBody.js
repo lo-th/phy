@@ -169,11 +169,11 @@ export class SkeletonBody extends Object3D {
 
                 if( n==='rThigh' ){ type = 'capsule'; size = [  0.08, dist ]; rot = [90,0,0]; }
                 if( n==='rShin' ){ type = 'capsule'; size = [  0.065, dist ]; rot = [90,0,0]; }
-                if( n==='rFoot' ){ type = 'box'; size = [  0.1, dist*1.4, 0.08 ]; translate = [0, (dist * 0.5)-0.025, 0.06 ]; }
+                if( n==='rFoot' ){ type = 'box'; size = [  0.1, dist*1.4, 0.06 ]; translate = [0, (dist * 0.5)-0.025, 0.06 ]; }
 
                 if( n==='lThigh' ){ type = 'capsule'; size = [  0.08, dist ]; rot = [90,0,0]; }
                 if( n==='lShin' ){ type = 'capsule'; size = [  0.065, dist ]; rot = [90,0,0]; }
-                if( n==='lFoot' ){ type = 'box'; size = [  0.1, dist*1.4, 0.08 ]; translate = [0, (dist * 0.5)-0.025, 0.06 ]; }
+                if( n==='lFoot' ){ type = 'box'; size = [  0.1, dist*1.4, 0.06 ]; translate = [0, (dist * 0.5)-0.025, 0.06 ]; }
 
 	            // arm
 	            /*if( n==='rShldr' ){ type = 'box'; size = [   dist+ 0.06, 0.12, 0.12  ]; translate[0] = -translate[2]+0.03; translate[2]=0; }
@@ -301,8 +301,17 @@ export class SkeletonBody extends Object3D {
 
     addLink () {
 
+        // Stiffness / Damping
+        let sp = [0.05,1]
+        if(root.engine==='PHYSX'){
+            // stiffness / damping / restitution / bounceThreshold / contactDistance
+            // raideur / amortissement
+            sp = [0.05,1]
+        }
 
-        let sp = [10,1]
+
+
+
         let p = this.prefix+'_bone_';
         let data = []
         let sett = {
@@ -314,11 +323,13 @@ export class SkeletonBody extends Object3D {
             collision:false,
             helperSize:0.05,
 
-            //worldAxis:[1,0,0]
+           //worldAxis:[1,0,0],
+
+           autoDrive: true,
 
         }
 
-        let breastMotion = [-0.001, 0.001, 100,0.2, 0.5]
+        let breastMotion = [-0.001, 0.001, 100, 0.2, 0.5]
         
 
         data.push({ ...sett, b1:p+'hip', b2:p+'abdomen', worldPos:this.posRef[p+'abdomen'], worldQuat:this.quatRef[p+'hip'], lm:[ ['rx',-20,20,...sp], ['ry',-20,20,...sp], ['rz',-20,20,...sp]] })

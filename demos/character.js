@@ -62,7 +62,6 @@ demo = () => {
         s = math.rand( 0.2, 2 )
         a = math.rand(-math.Pi, math.Pi)
         d = 10 + math.rand(1, 5)
-        
         phy.add({ type:'box', size:[s], pos:[ d * Math.sin(a), (s*0.5), d * Math.cos(a)], rot:[0,a*math.todeg,0], density:math.randInt(0,1)? 0: s })
 
     }

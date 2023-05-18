@@ -7,7 +7,7 @@ demo = () => {
 
 	phy.set({ 
         full:true,
-		substep:2,
+		substep:1,
         gravity:[0,-9.8, 0 ]
 	})
 
@@ -64,7 +64,7 @@ onComplete = () => {
 
     // add some ball
 
-    j = 600
+    j = 300
     while(j--){
 
         s = 0.2//math.rand( 0.1, 0.4 )

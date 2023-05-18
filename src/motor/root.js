@@ -173,12 +173,15 @@ export const Utils = {
 
     toLocal: ( v, obj, isAxe = false ) => {
 
-    	if( obj.isObject3D ) obj.updateWorldMatrix( true, false )
+    	//if( obj.isObject3D ) obj.updateWorldMatrix( true, false )
     	// apply position
     	if(!isAxe) v.sub( obj.position )
     	// apply invers rotation
     	let q = obj.quaternion
-    	v.applyQuaternion({x:-q.x, y:-q.y, z:-q.z, w:q.w})
+    	//v.applyQuaternion(q.clone().invert())
+    	//v.applyQuaternion({x:-q.x, y:-q.y, z:-q.z, w:q.w})
+    	v.applyQuaternion({x:-q._x, y:-q._y, z:-q._z, w:q._w})
+    	//if(isAxe) v.normalize()
     	return v
 
     },
@@ -194,6 +197,57 @@ export const Utils = {
     	q1.premultiply(q2)
     	//v.applyQuaternion({x:-q.x, y:-q.y, z:-q.z, w:q.w})
     	return q1.normalize().toArray()
+
+    },
+
+
+    quatToAngular: ( qb, qa ) => {
+
+    	/*const qq1 = new Quaternion().fromArray(qa);
+    	const qq2 = new Quaternion().fromArray(qb);
+    	//qq1.normalize()
+    	//qq2.normalize();
+
+
+
+    	qq2.multiply( qq1.invert() )*/
+
+    	// invert
+    	qa[0] *= -1
+    	qa[1] *= -1
+    	qa[2] *= -1
+
+    	let x = qa[0] * qb[3] + qa[3] * qb[0] + qa[1] * qb[2] - qa[2] * qb[1];
+		let y = qa[1] * qb[3] + qa[3] * qb[1] + qa[2] * qb[0] - qa[0] * qb[2];
+		let z = qa[2] * qb[3] + qa[3] * qb[2] + qa[0] * qb[1] - qa[1] * qb[0];
+		let w = qa[3] * qb[3] - qa[0] * qb[0] - qa[1] * qb[1] - qa[2] * qb[2];
+
+    	let angle = 2 * Math.acos(w), ax;
+	    let s = Math.sqrt(1-w*w); // assuming quaternion normalised then w is less than 1, so term always positive.
+	    if (s < 0.001) { // test to avoid divide by zero, s is always positive due to sqrt
+	        // if s close to zero then direction of axis not important
+	        // if it is important that axis is normalised then replace with x=1; y=z=0;
+	        ax = [0,0,0]
+	    } else {
+	        //x = q[0] / s; // normalise axis
+	        ax =  [x / s,y / s,z / s]
+        }
+
+
+
+    	/*const matrix1 = new Matrix4().makeRotationFromQuaternion(qq1);
+    	const matrix2 = new Matrix4().makeRotationFromQuaternion(qq2);
+
+    	matrix2.multiply(matrix1.invert())
+
+    	const v = new Vector3().applyMatrix4(matrix2);
+    	const angle = Math.acos((matrix2.elements[0] + matrix2.elements[5] + matrix2.elements[10] - 1) / 2);
+*/
+        const v = new Vector3().fromArray(ax)
+    	const timeDiff = 1//time2 - time1;
+    	const angularVelocity = v.multiplyScalar( angle / timeDiff );
+
+    	console.log('result',v)
 
     },
 
@@ -578,7 +632,8 @@ export const math = {
 	////////
 
 	quadToAxisArray: ( q ) => {
-	   if (q[3] > 1) q = math.tmpQ.fromArray(q).normalise().toArray(); // if w>1 acos and sqrt will produce errors, this cant happen if quaternion is normalised
+		//q = math.tmpQ.fromArray(q).normalize().toArray();
+	  // if (q[3] > 1) q = math.tmpQ.fromArray(q).normalize().toArray(); // if w>1 acos and sqrt will produce errors, this cant happen if quaternion is normalised
 	   let angle = 2 * Math.acos(q[3]);
 	   let s = Math.sqrt(1-q[3]*q[3]); // assuming quaternion normalised then w is less than 1, so term always positive.
 	   if (s < 0.001) { // test to avoid divide by zero, s is always positive due to sqrt
@@ -586,8 +641,9 @@ export const math = {
 	        // if it is important that axis is normalised then replace with x=1; y=z=0;
 	        return [1,0,0]
 	   } else {
-	        //x = q[0] / s; // normalise axis
-	        return [q[0] / s,q[1] / s,q[2] / s]
+	        //x = q[0] / s; // normalize axis
+	        //return [(q[0] / s)*angle,(q[1] / s)*angle,(q[2] / s)*angle]
+	        return [(q[0] / s),(q[1] / s),(q[2] / s)]
 	   }
 	},
 

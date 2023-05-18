@@ -30,22 +30,24 @@ export class Joint extends Item {
 
 	step ( AR, N ) {
 
-		/*let i = this.list.length, j, n;
+		if( Num.joint!==16 ) return
+
+		let i = this.list.length, j, n;
 
 		while( i-- ){
 
 			j = this.list[i];
 
 			n = N + ( i * Num.joint )
-			if(j.visible){
+			//if(j.visible){
 				//this.t.copy( j.getRigidBodyA().getWorldTransform() ).op_mul( j.formA ).toArray( AR, n  )
 				//this.t.copy( j.getRigidBodyB().getWorldTransform() ).op_mul( j.formB ).toArray( AR, n + 7 )
 
 				this.t.copy( j.B1.getWorldTransform() ).op_mul( j.formA ).toArray( AR, n  )
 				this.t.copy( j.B2.getWorldTransform() ).op_mul( j.formB ).toArray( AR, n + 7 )
-			}
+			//}
 
-		}*/
+		}
 
 	}
 
@@ -88,7 +90,7 @@ export class Joint extends Item {
 		//this.t1.identity()
 		//this.t2.identity()
 
-		const useA = o.useA || false;
+		const useA = o.useA || true;
 
 		/*if( o.worldAnchor || o.worldAxis ){
 
@@ -165,8 +167,8 @@ export class Joint extends Item {
 			case "dof": 
 			j = new Ammo.btGeneric6DofSpringConstraint( b1, b2, formA, formB, useA );
 			// by default i lock all angle
-			j.setAngularLowerLimit( this.v1.fromArray([0,0,0]))
-		    j.setAngularUpperLimit( this.v1.fromArray([0,0,0]))
+			//j.setAngularLowerLimit( this.v1.fromArray([0,0,0]))
+		    //j.setAngularUpperLimit( this.v1.fromArray([0,0,0]))
 			 break;
 			case "fixe": j = new Ammo.btFixedConstraint( b1, b2, formA, formB ); break;
             case "gear": j = new Ammo.btGearConstraint( b1, b2, axisA, axisB, o.ratio || 1); break;
@@ -288,13 +290,28 @@ export class Joint extends Item {
 				i = o.lm.length
 				while(i--){
 					k = o.lm[i]
-					if( k[0]==='rx' ) { m[0][0] = k[1] * torad; m[1][0] = k[2] * torad; }// X -PI PI
-					if( k[0]==='ry' ) { m[0][1] = k[1] * torad; m[1][1] = k[2] * torad; }// Y -PI/2 PI/2
-					if( k[0]==='rz' ) { m[0][2] = k[1] * torad; m[1][2] = k[2] * torad; }// Z -PI PI
+					if( k[0]==='rx' ) { m[0][0] = -k[2] * torad; m[1][0] = -k[1] * torad; }// X -PI PI
+					if( k[0]==='ry' ) { m[0][1] = -k[2] * torad; m[1][1] = -k[1] * torad; }// Y -PI/2 PI/2
+					if( k[0]==='rz' ) { m[0][2] = -k[2] * torad; m[1][2] = -k[1] * torad; }// Z -PI PI
+					//if( k[0]==='rx' ) { m[0][0] = k[1] * torad; m[1][0] = k[2] * torad; }// X -PI PI
+					//if( k[0]==='ry' ) { m[0][1] = k[1] * torad; m[1][1] = k[2] * torad; }// Y -PI/2 PI/2
+					//if( k[0]==='rz' ) { m[0][2] = k[1] * torad; m[1][2] = k[2] * torad; }// Z -PI PI
 					if( k[0]==='x' )  { m[2][0] = k[1]; m[3][0] = k[2]; }
 					if( k[0]==='y' )  { m[2][1] = k[1]; m[3][1] = k[2]; }
 					if( k[0]==='z' )  { m[2][2] = k[1]; m[3][2] = k[2]; }
+
+					if( k.length>3) {
+						//console.log( k[3])
+						n = idx.indexOf( k[0] )
+						j.enableSpring( n,  k[3]!==0 )
+						j.setStiffness( n, k[3] || 0 )
+						j.setDamping( n, k[4] || 0)
+					}
 				}
+
+				
+
+				//console.log(j.name, m)
 
 				// setting the lower limit above the upper one.
 
@@ -308,7 +325,7 @@ export class Joint extends Item {
 
 			// SPRING DAMPER
 
-			if( o.sd ){
+			/*if( o.sd ){
 
 				i = o.sd.length
 
@@ -319,14 +336,14 @@ export class Joint extends Item {
 					n = idx.indexOf( k[0] )
 					//console.log(j)
 					
-					j.setStiffness( n, k[1] ) // raideur
+					j.setStiffness( n, k[1] || 0 ) // raideur
 					j.setDamping( n, k[2] ) // amortissement //1
 					j.enableSpring( n, true )
 					if( k[3] ) j.setEquilibriumPoint(n) // lock the spring ?
 						//j.set_m_bounce( )//0
 				}
 
-			}
+			}*/
 
 
 			break;

@@ -2,7 +2,7 @@ import { Item } from '../core/Item.js';
 import { Num } from '../core/Config.js';
 
 import { 
-	root, math, Utils, Vec3, Quat, Transform, RigidBodyConfig, ShapeConfig, Shape, RigidBody,ContactCallback,
+	root, math, torad, Utils, Vec3, Quat, Transform, RigidBodyConfig, ShapeConfig, Shape, RigidBody,ContactCallback,
 	BoxGeometry, SphereGeometry, CylinderGeometry, CapsuleGeometry, ConeGeometry, ConvexHullGeometry
 } from './root.js';
 
@@ -300,7 +300,10 @@ export class Body extends Item {
 
 		b.first = true
 
-		if( o.kinematic ) b.pos = o.pos || [0,0,0]
+		if( o.kinematic ){ 
+			b.pos = o.pos || [0,0,0]
+			b.quat = o.quat || [0,0,0,1]
+		}
 
 		if(o.kinematic) delete o.kinematic
 
@@ -362,7 +365,7 @@ export class Body extends Item {
 
 	    	if( o.pos ){ 
 	    		
-	    		if(b.isKinematic){
+	    		if(b.isKinematic && o.acc){
 	    			let pp = math.velocityArray( o.pos, b.pos, root.invDelta )
 	    			b.setLinearVelocity( this.v.fromArray( pp ) )
 	    			b.pos = o.pos
@@ -371,7 +374,14 @@ export class Body extends Item {
 	    		b.setPosition( this.v.fromArray( o.pos ) )
 
 	    	}
-		    if( o.quat ) b.setOrientation( this.q.fromArray( o.quat ) )
+		    if( o.quat ){
+		    	if(b.isKinematic && o.acc){
+	    			let pp = math.angularArray( o.quat, b.quat, root.invDelta*torad )
+	    			b.setAngularVelocity( this.v.fromArray( pp ) )
+	    			b.quat = o.quat
+	    		}
+		        b.setOrientation( this.q.fromArray( o.quat ) )
+		    }
 	    }
 
 		

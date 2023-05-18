@@ -32,6 +32,7 @@ export const math = {
 	    v = v > max ? max : v;
 	    return v;
 	},
+
 	velocityArray:( a, b, m = 1 ) => {
 		let ar = [0,0,0]
 		let i = a.length
@@ -42,6 +43,36 @@ export const math = {
 	    //b = a
 	    return ar
 	},
+
+	angularArray:( qb, qa, m = 1 ) => {
+		let ar = [0,0,0]
+		qa[0] *= -1
+    	qa[1] *= -1
+    	qa[2] *= -1
+    	let x = qa[0] * qb[3] + qa[3] * qb[0] + qa[1] * qb[2] - qa[2] * qb[1];
+		let y = qa[1] * qb[3] + qa[3] * qb[1] + qa[2] * qb[0] - qa[0] * qb[2];
+		let z = qa[2] * qb[3] + qa[3] * qb[2] + qa[0] * qb[1] - qa[1] * qb[0];
+		let w = qa[3] * qb[3] - qa[0] * qb[0] - qa[1] * qb[1] - qa[2] * qb[2];
+
+    	let angle = 2 * Math.acos(w), ax;
+	    let s = Math.sqrt(1-w*w); // assuming quaternion normalised then w is less than 1, so term always positive.
+	    if (s < 0.001) { // test to avoid divide by zero, s is always positive due to sqrt
+	        // if s close to zero then direction of axis not important
+	        // if it is important that axis is normalised then replace with x=1; y=z=0;
+	        ar = [0,0,0]
+	    } else {
+	        //x = q[0] / s; // normalise axis
+	        ar =  [ x / s, y / s, z / s ]
+        }
+
+        let i = ar.length
+		while(i--){ 
+			if(ar[i]!==0) ar[i] *= m
+		}
+
+        return ar
+	},
+
 	toFixed: ( x, n = 3 ) => ( x.toFixed(n) * 1 ),
 }
 

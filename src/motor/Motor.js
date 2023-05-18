@@ -1,6 +1,6 @@
 
 import {
-    Group, MeshPhysicalMaterial, MeshStandardMaterial, MeshBasicMaterial, Vector3, Vector2
+    Group, MeshPhysicalMaterial, MeshStandardMaterial, MeshBasicMaterial, Vector3, Vector2, Quaternion
 } from 'three';
 
 
@@ -250,6 +250,11 @@ export class Motor {
 	//static getMat ( mode ) { return mode === 'HIGH' ? mat : matLow; }
 
 	static init ( o = {} ) {
+
+		/*let q1 = new Quaternion().setFromAxisAngle({x:1, y:0, z:0}, 45*math.torad)
+		let q2 = new Quaternion().setFromAxisAngle({x:1, y:0, z:0}, 90*math.torad)
+
+		Utils.quatToAngular( q1.toArray(), q2.toArray() ) */
 
 		// TODO find better solution
 		let rootURL = document.location.href.replace(/\/[^/]*$/,"/")
@@ -940,7 +945,7 @@ export class Motor {
 			case 'solid': b = items.solid.set( o, b ); break;
 			case 'ray': b = items.ray.set( o, b ); direct = false; break;
 			case 'body':
-			if( b.isKinematic ) items.body.set( o, b );
+			 if( b.isKinematic ) items.body.set( o, b );
 
 			//b = body.set( o, b ); 
 			break;

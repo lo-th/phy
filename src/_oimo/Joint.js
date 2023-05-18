@@ -21,7 +21,7 @@ export class Joint extends Item {
 
 	step ( AR, N ) {
 
-		/*let i = this.list.length, j, n
+		let i = this.list.length, j, n
 		const v = this.v
 		const q = this.q
 		const m = this.m
@@ -32,7 +32,7 @@ export class Joint extends Item {
 
 			n = N + ( i * Num.joint )
 
-			if( j.visible ){
+			if(  Num.joint===16 ){
 
 				j.getAnchor1To( v )
 				v.toArray( AR, n )
@@ -50,7 +50,7 @@ export class Joint extends Item {
 				
 			}
 
-		}*/
+		}
 
 	}
 

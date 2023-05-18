@@ -299,8 +299,12 @@ export class Body extends Item {
 		b.first = true
 
 
-		delete( o.pos )
-		delete( o.quat )
+		delete o.pos
+		delete o.quat 
+		if( o.kinematic ){ 
+			o.neverSleep = true
+			delete o.kinematic
+		}
 
 		// apply option
 		this.set( o, b );
@@ -344,14 +348,15 @@ export class Body extends Item {
 
 		if( o.pos || o.quat ){
 
+			//b.getWorldTransform( this.t )
+
 			if( !o.pos || !o.quat ) b.getMotionState().getWorldTransform( this.t )
 			if( !o.pos ) o.pos = this.t.getPos()
 			if( !o.quat ) o.quat = this.t.getQuat()
 			
 			this.t.fromArray( o.pos, o.quat )
 			if ( b.isKinematic ) b.getMotionState().setWorldTransform( this.t )
-			//else 
-				b.setWorldTransform( this.t )
+			else b.setWorldTransform( this.t )
 
 		}
 

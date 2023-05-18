@@ -1,6 +1,6 @@
 export const Max = {
 	body:2000,
-    joint:0,//100
+    joint:100,
     contact:50,
     ray:50,
     character:50,
@@ -12,7 +12,7 @@ export const Max = {
 export const Num = {
 	bodyFull:14,
     body:8,
-    joint:0,//16,
+    joint:16,
     contact:8,
     ray:8,
     character:16,
@@ -39,6 +39,10 @@ export const getArray = function ( engine, full = false ){
 
     if( engine === 'PHYSX' ){ 
         counts['solver'] = Max.solver * Num.solver;
+    }
+
+    if( engine === 'HAVOK' ){ 
+        Num.joint = 0;
     }
 
     let prev = 0;

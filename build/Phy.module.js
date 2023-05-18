@@ -287,12 +287,15 @@ const Utils = {
 
     toLocal: ( v, obj, isAxe = false ) => {
 
-    	if( obj.isObject3D ) obj.updateWorldMatrix( true, false );
+    	//if( obj.isObject3D ) obj.updateWorldMatrix( true, false )
     	// apply position
     	if(!isAxe) v.sub( obj.position );
     	// apply invers rotation
     	let q = obj.quaternion;
-    	v.applyQuaternion({x:-q.x, y:-q.y, z:-q.z, w:q.w});
+    	//v.applyQuaternion(q.clone().invert())
+    	//v.applyQuaternion({x:-q.x, y:-q.y, z:-q.z, w:q.w})
+    	v.applyQuaternion({x:-q._x, y:-q._y, z:-q._z, w:q._w});
+    	//if(isAxe) v.normalize()
     	return v
 
     },
@@ -308,6 +311,57 @@ const Utils = {
     	q1.premultiply(q2);
     	//v.applyQuaternion({x:-q.x, y:-q.y, z:-q.z, w:q.w})
     	return q1.normalize().toArray()
+
+    },
+
+
+    quatToAngular: ( qb, qa ) => {
+
+    	/*const qq1 = new Quaternion().fromArray(qa);
+    	const qq2 = new Quaternion().fromArray(qb);
+    	//qq1.normalize()
+    	//qq2.normalize();
+
+
+
+    	qq2.multiply( qq1.invert() )*/
+
+    	// invert
+    	qa[0] *= -1;
+    	qa[1] *= -1;
+    	qa[2] *= -1;
+
+    	let x = qa[0] * qb[3] + qa[3] * qb[0] + qa[1] * qb[2] - qa[2] * qb[1];
+		let y = qa[1] * qb[3] + qa[3] * qb[1] + qa[2] * qb[0] - qa[0] * qb[2];
+		let z = qa[2] * qb[3] + qa[3] * qb[2] + qa[0] * qb[1] - qa[1] * qb[0];
+		let w = qa[3] * qb[3] - qa[0] * qb[0] - qa[1] * qb[1] - qa[2] * qb[2];
+
+    	let angle = 2 * Math.acos(w), ax;
+	    let s = Math.sqrt(1-w*w); // assuming quaternion normalised then w is less than 1, so term always positive.
+	    if (s < 0.001) { // test to avoid divide by zero, s is always positive due to sqrt
+	        // if s close to zero then direction of axis not important
+	        // if it is important that axis is normalised then replace with x=1; y=z=0;
+	        ax = [0,0,0];
+	    } else {
+	        //x = q[0] / s; // normalise axis
+	        ax =  [x / s,y / s,z / s];
+        }
+
+
+
+    	/*const matrix1 = new Matrix4().makeRotationFromQuaternion(qq1);
+    	const matrix2 = new Matrix4().makeRotationFromQuaternion(qq2);
+
+    	matrix2.multiply(matrix1.invert())
+
+    	const v = new Vector3().applyMatrix4(matrix2);
+    	const angle = Math.acos((matrix2.elements[0] + matrix2.elements[5] + matrix2.elements[10] - 1) / 2);
+*/
+        const v = new Vector3().fromArray(ax);
+    	const timeDiff = 1;//time2 - time1;
+    	v.multiplyScalar( angle / timeDiff );
+
+    	console.log('result',v);
 
     },
 
@@ -690,7 +744,8 @@ const math$1 = {
 	////////
 
 	quadToAxisArray: ( q ) => {
-	   if (q[3] > 1) q = math$1.tmpQ.fromArray(q).normalise().toArray(); // if w>1 acos and sqrt will produce errors, this cant happen if quaternion is normalised
+		//q = math.tmpQ.fromArray(q).normalize().toArray();
+	  // if (q[3] > 1) q = math.tmpQ.fromArray(q).normalize().toArray(); // if w>1 acos and sqrt will produce errors, this cant happen if quaternion is normalised
 	   2 * Math.acos(q[3]);
 	   let s = Math.sqrt(1-q[3]*q[3]); // assuming quaternion normalised then w is less than 1, so term always positive.
 	   if (s < 0.001) { // test to avoid divide by zero, s is always positive due to sqrt
@@ -698,8 +753,9 @@ const math$1 = {
 	        // if it is important that axis is normalised then replace with x=1; y=z=0;
 	        return [1,0,0]
 	   } else {
-	        //x = q[0] / s; // normalise axis
-	        return [q[0] / s,q[1] / s,q[2] / s]
+	        //x = q[0] / s; // normalize axis
+	        //return [(q[0] / s)*angle,(q[1] / s)*angle,(q[2] / s)*angle]
+	        return [(q[0] / s),(q[1] / s),(q[2] / s)]
 	   }
 	},
 
@@ -758,7 +814,7 @@ const math$1 = {
 
 const Max = {
 	body:2000,
-    joint:0,//100
+    joint:100,
     contact:50,
     ray:50,
     character:50,
@@ -770,7 +826,7 @@ const Max = {
 const Num = {
 	bodyFull:14,
     body:8,
-    joint:0,//16,
+    joint:16,
     contact:8,
     ray:8,
     character:16,
@@ -797,6 +853,10 @@ const getArray = function ( engine, full = false ){
 
     if( engine === 'PHYSX' ){ 
         counts['solver'] = Max.solver * Num.solver;
+    }
+
+    if( engine === 'HAVOK' ){ 
+        Num.joint = 0;
     }
 
     let prev = 0;
@@ -5392,14 +5452,16 @@ class Joint extends Item {
 
 	step ( AR, N ) {
 
-		let i = this.list.length, j;
+		let i = this.list.length, j, n;
 		
 		while( i-- ){
 
 			j = this.list[i];
 
-			//j.update( AR, n );
-			j.update();
+			n = N + ( i * Num.joint );
+
+			if( Num.joint === 16 ) j.updateFromPhy( AR, n );
+			else j.update();
 
 			//j.update( AR.slice( n, 16 ) );
 
@@ -5451,8 +5513,8 @@ class Joint extends Item {
 			this.v1.fromArray( o.worldAxis ); 
 			this.v2.fromArray( o.worldAxis );
 
-			o.axis1 = body1 ? Utils.toLocal( this.v1, body1, true ).normalize().toArray():o.worldAxis;
-			o.axis2 = body2 ? Utils.toLocal( this.v2, body2, true ).normalize().toArray():o.worldAxis;
+			o.axis1 = body1 ? Utils.toLocal( this.v1, body1, true ).toArray():o.worldAxis;
+			o.axis2 = body2 ? Utils.toLocal( this.v2, body2, true ).toArray():o.worldAxis;
 
 			//o.quat1 = new Quaternion().setFromUnitVectors( new Vector3(1, 0, 0), new Vector3().fromArray(o.axis1).normalize() ).toArray();
 		    //o.quat2 = new Quaternion().setFromUnitVectors( new Vector3(1, 0, 0), new Vector3().fromArray(o.axis2).normalize() ).toArray();
@@ -5468,12 +5530,21 @@ class Joint extends Item {
 			o.quat1 = Utils.quatLocal(o.worldQuat, body1);
 			o.quat2 = Utils.quatLocal(o.worldQuat, body2);
 
+			if(root.engine === 'OIMO' || root.engine === 'HAVOK'){
+
+				this.v1.fromArray( math$1.quadToAxisArray( o.worldQuat ) ).normalize();
+				this.v2.fromArray( math$1.quadToAxisArray( o.worldQuat ) ).normalize();
+
+				o.axis1 = body1 ? Utils.toLocal( this.v1, body1, true ).toArray():[1,0,0];
+				o.axis2 = body2 ? Utils.toLocal( this.v2, body2, true ).toArray():[1,0,0];
+
+			}
 			/*this.v1.fromArray( o.worldAxis ) 
 			this.v2.fromArray( o.worldAxis )
 
 			o.axis1 = body1 ? Utils.toLocal( this.v1, body1, true ).normalize().toArray():o.worldAxis
-			o.axis2 = body2 ? Utils.toLocal( this.v2, body2, true ).normalize().toArray():o.worldAxis*/
-
+			o.axis2 = body2 ? Utils.toLocal( this.v2, body2, true ).normalize().toArray():o.worldAxis
+*/
 			//o.quat1 = new Quaternion().setFromUnitVectors( new Vector3(1, 0, 0), new Vector3().fromArray(o.axis1).normalize() ).toArray();
 		    //o.quat2 = new Quaternion().setFromUnitVectors( new Vector3(1, 0, 0), new Vector3().fromArray(o.axis2).normalize() ).toArray();
 
@@ -5543,7 +5614,7 @@ class ExtraJoint extends Basic3D {
 	    this.mode = 'revolute';
 	    this.isJoint = true;
 
-	    //this.mtx = new Matrix4();
+	    this.mtx = new Matrix4();
 	    this.size = o.helperSize || 0.1;
 	    g = g.clone(); 
 	    g.scale( this.size, this.size, this.size);
@@ -5597,7 +5668,7 @@ class ExtraJoint extends Basic3D {
 
 	}
 
-	update ( r, n = 0 ) {
+	update () {
 
 		//if( !this.isVisible ) return
 		if( !this.visible ) return
@@ -5638,6 +5709,36 @@ class ExtraJoint extends Basic3D {
 		//position.setXYZ(1, this.m2.position.x, this.m2.position.y, this.m2.position.z)
 
 		this.pp.setXYZ(1, this.end.x, this.end.y, this.end.z);
+		this.pp.needsUpdate = true;
+
+		if( !this.visible ) this.visible = true;
+
+	}
+
+	updateFromPhy ( r, n = 0 ) {
+
+		//if( !this.isVisible ) return
+		if( !this.visible ) return
+
+
+		//m.matrix = b.matrixWorld;
+        //m.matrixAutoUpdate = false;
+
+		this.position.fromArray( r, n );
+		this.quaternion.fromArray( r, n + 3 );
+
+		this.updateMatrix();
+
+		this.m2.position.fromArray( r, n+7 );
+		this.m2.quaternion.fromArray( r, n+10 );
+		this.m2.matrix.compose( this.m2.position, this.m2.quaternion, {x:1,y:1,z:1} );
+
+		this.mtx.copy( this.matrix ).invert().multiply( this.m2.matrix );
+		this.mtx.decompose( this.m2.position, this.m2.quaternion, {x:1,y:1,z:1} );
+		this.m2.updateMatrix();
+
+
+		this.pp.setXYZ(1, this.m2.position.x, this.m2.position.y, this.m2.position.z);
 		this.pp.needsUpdate = true;
 
 		if( !this.visible ) this.visible = true;
@@ -22424,11 +22525,11 @@ class SkeletonBody extends Object3D {
 
                 if( n==='rThigh' ){ type = 'capsule'; size = [  0.08, dist ]; rot = [90,0,0]; }
                 if( n==='rShin' ){ type = 'capsule'; size = [  0.065, dist ]; rot = [90,0,0]; }
-                if( n==='rFoot' ){ type = 'box'; size = [  0.1, dist*1.4, 0.08 ]; translate = [0, (dist * 0.5)-0.025, 0.06 ]; }
+                if( n==='rFoot' ){ type = 'box'; size = [  0.1, dist*1.4, 0.06 ]; translate = [0, (dist * 0.5)-0.025, 0.06 ]; }
 
                 if( n==='lThigh' ){ type = 'capsule'; size = [  0.08, dist ]; rot = [90,0,0]; }
                 if( n==='lShin' ){ type = 'capsule'; size = [  0.065, dist ]; rot = [90,0,0]; }
-                if( n==='lFoot' ){ type = 'box'; size = [  0.1, dist*1.4, 0.08 ]; translate = [0, (dist * 0.5)-0.025, 0.06 ]; }
+                if( n==='lFoot' ){ type = 'box'; size = [  0.1, dist*1.4, 0.06 ]; translate = [0, (dist * 0.5)-0.025, 0.06 ]; }
 
 	            // arm
 	            /*if( n==='rShldr' ){ type = 'box'; size = [   dist+ 0.06, 0.12, 0.12  ]; translate[0] = -translate[2]+0.03; translate[2]=0; }
@@ -22556,8 +22657,17 @@ class SkeletonBody extends Object3D {
 
     addLink () {
 
+        // Stiffness / Damping
+        let sp = [0.05,1];
+        if(root.engine==='PHYSX'){
+            // stiffness / damping / restitution / bounceThreshold / contactDistance
+            // raideur / amortissement
+            sp = [0.05,1];
+        }
 
-        let sp = [10,1];
+
+
+
         let p = this.prefix+'_bone_';
         let data = [];
         let sett = {
@@ -22569,11 +22679,13 @@ class SkeletonBody extends Object3D {
             collision:false,
             helperSize:0.05,
 
-            //worldAxis:[1,0,0]
+           //worldAxis:[1,0,0],
+
+           autoDrive: true,
 
         };
 
-        let breastMotion = [-0.001, 0.001, 100,0.2, 0.5];
+        let breastMotion = [-0.001, 0.001, 100, 0.2, 0.5];
         
 
         data.push({ ...sett, b1:p+'hip', b2:p+'abdomen', worldPos:this.posRef[p+'abdomen'], worldQuat:this.quatRef[p+'hip'], lm:[ ['rx',-20,20,...sp], ['ry',-20,20,...sp], ['rz',-20,20,...sp]] });
@@ -27035,6 +27147,11 @@ class Motor {
 
 	static init ( o = {} ) {
 
+		/*let q1 = new Quaternion().setFromAxisAngle({x:1, y:0, z:0}, 45*math.torad)
+		let q2 = new Quaternion().setFromAxisAngle({x:1, y:0, z:0}, 90*math.torad)
+
+		Utils.quatToAngular( q1.toArray(), q2.toArray() ) */
+
 		// TODO find better solution
 		let rootURL = document.location.href.replace(/\/[^/]*$/,"/");
 		var arr = rootURL.split("/");
@@ -27724,7 +27841,7 @@ class Motor {
 			case 'solid': b = items.solid.set( o, b ); break;
 			case 'ray': b = items.ray.set( o, b ); direct = false; break;
 			case 'body':
-			if( b.isKinematic ) items.body.set( o, b );
+			 if( b.isKinematic ) items.body.set( o, b );
 
 			//b = body.set( o, b ); 
 			break;

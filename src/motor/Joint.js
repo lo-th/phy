@@ -37,8 +37,8 @@ export class Joint extends Item {
 
 			n = N + ( i * Num.joint );
 
-			//j.update( AR, n );
-			j.update();
+			if( Num.joint === 16 ) j.updateFromPhy( AR, n );
+			else j.update();
 
 			//j.update( AR.slice( n, 16 ) );
 
@@ -90,8 +90,8 @@ export class Joint extends Item {
 			this.v1.fromArray( o.worldAxis ) 
 			this.v2.fromArray( o.worldAxis )
 
-			o.axis1 = body1 ? Utils.toLocal( this.v1, body1, true ).normalize().toArray():o.worldAxis
-			o.axis2 = body2 ? Utils.toLocal( this.v2, body2, true ).normalize().toArray():o.worldAxis
+			o.axis1 = body1 ? Utils.toLocal( this.v1, body1, true ).toArray():o.worldAxis
+			o.axis2 = body2 ? Utils.toLocal( this.v2, body2, true ).toArray():o.worldAxis
 
 			//o.quat1 = new Quaternion().setFromUnitVectors( new Vector3(1, 0, 0), new Vector3().fromArray(o.axis1).normalize() ).toArray();
 		    //o.quat2 = new Quaternion().setFromUnitVectors( new Vector3(1, 0, 0), new Vector3().fromArray(o.axis2).normalize() ).toArray();
@@ -107,12 +107,21 @@ export class Joint extends Item {
 			o.quat1 = Utils.quatLocal(o.worldQuat, body1)
 			o.quat2 = Utils.quatLocal(o.worldQuat, body2)
 
+			if(root.engine === 'OIMO' || root.engine === 'HAVOK'){
+
+				this.v1.fromArray( math.quadToAxisArray( o.worldQuat ) ).normalize()
+				this.v2.fromArray( math.quadToAxisArray( o.worldQuat ) ).normalize()
+
+				o.axis1 = body1 ? Utils.toLocal( this.v1, body1, true ).toArray():[1,0,0]
+				o.axis2 = body2 ? Utils.toLocal( this.v2, body2, true ).toArray():[1,0,0]
+
+			}
 			/*this.v1.fromArray( o.worldAxis ) 
 			this.v2.fromArray( o.worldAxis )
 
 			o.axis1 = body1 ? Utils.toLocal( this.v1, body1, true ).normalize().toArray():o.worldAxis
-			o.axis2 = body2 ? Utils.toLocal( this.v2, body2, true ).normalize().toArray():o.worldAxis*/
-
+			o.axis2 = body2 ? Utils.toLocal( this.v2, body2, true ).normalize().toArray():o.worldAxis
+*/
 			//o.quat1 = new Quaternion().setFromUnitVectors( new Vector3(1, 0, 0), new Vector3().fromArray(o.axis1).normalize() ).toArray();
 		    //o.quat2 = new Quaternion().setFromUnitVectors( new Vector3(1, 0, 0), new Vector3().fromArray(o.axis2).normalize() ).toArray();
 
@@ -182,7 +191,7 @@ export class ExtraJoint extends Basic3D {
 	    this.mode = 'revolute';
 	    this.isJoint = true;
 
-	    //this.mtx = new Matrix4();
+	    this.mtx = new Matrix4();
 	    this.size = o.helperSize || 0.1
 	    g = g.clone() 
 	    g.scale( this.size, this.size, this.size)
@@ -236,7 +245,7 @@ export class ExtraJoint extends Basic3D {
 
 	}
 
-	update ( r, n = 0 ) {
+	update () {
 
 		//if( !this.isVisible ) return
 		if( !this.visible ) return
@@ -277,6 +286,36 @@ export class ExtraJoint extends Basic3D {
 		//position.setXYZ(1, this.m2.position.x, this.m2.position.y, this.m2.position.z)
 
 		this.pp.setXYZ(1, this.end.x, this.end.y, this.end.z)
+		this.pp.needsUpdate = true
+
+		if( !this.visible ) this.visible = true;
+
+	}
+
+	updateFromPhy ( r, n = 0 ) {
+
+		//if( !this.isVisible ) return
+		if( !this.visible ) return
+
+
+		//m.matrix = b.matrixWorld;
+        //m.matrixAutoUpdate = false;
+
+		this.position.fromArray( r, n );
+		this.quaternion.fromArray( r, n + 3 );
+
+		this.updateMatrix();
+
+		this.m2.position.fromArray( r, n+7 );
+		this.m2.quaternion.fromArray( r, n+10 );
+		this.m2.matrix.compose( this.m2.position, this.m2.quaternion, {x:1,y:1,z:1} );
+
+		this.mtx.copy( this.matrix ).invert().multiply( this.m2.matrix );
+		this.mtx.decompose( this.m2.position, this.m2.quaternion, {x:1,y:1,z:1} );
+		this.m2.updateMatrix();
+
+
+		this.pp.setXYZ(1, this.m2.position.x, this.m2.position.y, this.m2.position.z)
 		this.pp.needsUpdate = true
 
 		if( !this.visible ) this.visible = true;
