@@ -84,19 +84,24 @@ export class Joint extends Item {
 			
 		const jc = new Joints[ modeName + 'JointConfig' ]()
 
-		if(b1) jc.rigidBody1 = b1
-		if(b2) jc.rigidBody2 = b2
+		if( b1 ) jc.rigidBody1 = b1
+		if( b2 ) jc.rigidBody2 = b2
 
 		if( o.pos1 ) jc.localAnchor1.fromArray( o.pos1 || [0,0,0] )
 		if( o.pos2 ) jc.localAnchor2.fromArray( o.pos2 || [0,0,0] )
 
-		
+		if( jc.localAxis1 && o.axis1 ) jc.localAxis1.fromArray( o.axis1 )
+		if( jc.localAxis2 && o.axis2 ) jc.localAxis2.fromArray( o.axis2 )
+
+		if( jc.localBasis1 && o.quat1 ) jc.localBasis1.fromQuat( this.q.fromArray(o.quat1) )
+		if( jc.localBasis2 && o.quat2 ) jc.localBasis2.fromQuat( this.q.fromArray(o.quat2) )
 
 		//if( jc.localBasis1 && o.quat1 ) jc.localBasis1.fromQuat( o.quat1 );
 		//if( jc.localBasis2 && o.quat2 ) jc.localBasis2.fromQuat( o.quat2 );
 
-		if( jc.localAxis1 && o.axis1 ) jc.localAxis1.fromArray( o.axis1 )
-		if( jc.localAxis2 && o.axis2 ) jc.localAxis2.fromArray( o.axis2 )
+		
+
+		//	console.log( o.axis1, o.axis2 )
 
 		/*if( b1 && b2 ){
 

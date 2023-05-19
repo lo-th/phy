@@ -107,13 +107,16 @@ export class Joint extends Item {
 			o.quat1 = Utils.quatLocal(o.worldQuat, body1)
 			o.quat2 = Utils.quatLocal(o.worldQuat, body2)
 
-			if(root.engine === 'OIMO' || root.engine === 'HAVOK'){
+			if( root.engine === 'OIMO' || root.engine === 'HAVOK' ){
 
-				this.v1.fromArray( math.quadToAxisArray( o.worldQuat ) ).normalize()
-				this.v2.fromArray( math.quadToAxisArray( o.worldQuat ) ).normalize()
+				//this.v1.fromArray( math.quadToAxisArray( o.worldQuat ) ).normalize()
+				//this.v2.fromArray( math.quadToAxisArray( o.worldQuat ) ).normalize()
 
-				o.axis1 = body1 ? Utils.toLocal( this.v1, body1, true ).toArray():[1,0,0]
-				o.axis2 = body2 ? Utils.toLocal( this.v2, body2, true ).toArray():[1,0,0]
+				o.axis1 = Utils.axisLocal( math.quadToAxisArray( o.worldQuat ), body1)//this.v1.fromArray( math.quadToAxisArray( o.quat1 ) ).normalize().toArray()
+				o.axis2 = Utils.axisLocal( math.quadToAxisArray( o.worldQuat ), body2)//this.v2.fromArray( math.quadToAxisArray( o.quat2 ) ).normalize().toArray()
+
+				//o.axis1 = body1 ? Utils.toLocal( this.v1, body1, true ).toArray():[1,0,0]
+				//o.axis2 = body2 ? Utils.toLocal( this.v2, body2, true ).toArray():[1,0,0]
 
 			}
 			/*this.v1.fromArray( o.worldAxis ) 

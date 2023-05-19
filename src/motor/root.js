@@ -1,7 +1,7 @@
 import {
     SphereGeometry, PlaneGeometry, CylinderGeometry, BoxGeometry,
     MeshPhongMaterial, MeshLambertMaterial, MeshStandardMaterial, MeshPhysicalMaterial, MeshBasicMaterial, LineBasicMaterial,
-    Matrix4, Euler, Quaternion, Vector3, Vector2, Color,
+    Matrix4, Euler, Quaternion, Vector3, Vector2, Matrix3, Color,
     Box3Helper, DoubleSide,
 } from 'three';
 import { CircleHelper } from '../3TH/helpers/CircleHelper.js';
@@ -197,6 +197,21 @@ export const Utils = {
     	q1.premultiply(q2)
     	//v.applyQuaternion({x:-q.x, y:-q.y, z:-q.z, w:q.w})
     	return q1.normalize().toArray()
+
+    },
+
+    axisLocal: ( v, obj ) => {
+
+    	if( obj.isObject3D ) obj.updateWorldMatrix( true, false )
+    	// apply position
+
+        let m3 = new Matrix3().setFromMatrix4( obj.matrixWorld )//.invert()
+        //m3.invert()
+        let vv = new Vector3().fromArray(v).applyMatrix3( m3 )
+
+        //let vv = new Vector3().fromArray(v).applyMatrix4( obj.matrixWorld.clone().invert() );
+
+    	return vv.toArray()
 
     },
 
@@ -632,18 +647,25 @@ export const math = {
 	////////
 
 	quadToAxisArray: ( q ) => {
+
+		//math.tmpV( 1,0,0 ).applyMatrix3( )
 		//q = math.tmpQ.fromArray(q).normalize().toArray();
-	  // if (q[3] > 1) q = math.tmpQ.fromArray(q).normalize().toArray(); // if w>1 acos and sqrt will produce errors, this cant happen if quaternion is normalised
+	   if (q[3] > 1) q = math.tmpQ.fromArray(q).normalize().toArray(); // if w>1 acos and sqrt will produce errors, this cant happen if quaternion is normalised
 	   let angle = 2 * Math.acos(q[3]);
-	   let s = Math.sqrt(1-q[3]*q[3]); // assuming quaternion normalised then w is less than 1, so term always positive.
-	   if (s < 0.001) { // test to avoid divide by zero, s is always positive due to sqrt
+	   let s = Math.sqrt(1-q[3]*q[3]); // assuming quaternion normalised then w is less than 1, so term always positive
+
+	   if (s < 0.001) { 
+	       // console.log(s)
+	        // test to avoid divide by zero, s is always positive due to sqrt
 	        // if s close to zero then direction of axis not important
 	        // if it is important that axis is normalised then replace with x=1; y=z=0;
 	        return [1,0,0]
+
+	        //return [q[0],q[1],q[2]]
 	   } else {
 	        //x = q[0] / s; // normalize axis
-	        //return [(q[0] / s)*angle,(q[1] / s)*angle,(q[2] / s)*angle]
-	        return [(q[0] / s),(q[1] / s),(q[2] / s)]
+	        return [(q[0] / s)*angle, (q[1] / s)*angle, (q[2] / s)*angle]
+	        //return [(q[0] / s),(q[1] / s),(q[2] / s)]
 	   }
 	},
 

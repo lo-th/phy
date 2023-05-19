@@ -306,6 +306,9 @@ export class Joint extends Item {
 						j.enableSpring( n,  k[3]!==0 )
 						j.setStiffness( n, k[3] || 0 )
 						j.setDamping( n, k[4] || 0)
+						//j.setEquilibriumPoint(n,0)
+						//j.setFrames(n,c)
+						//console.log(j)
 					}
 				}
 

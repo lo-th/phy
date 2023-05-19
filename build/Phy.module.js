@@ -1,4 +1,4 @@
-import { LineSegments, BufferGeometry, BufferAttribute, Float32BufferAttribute, LineBasicMaterial, Color, Euler, Quaternion, Matrix4, Vector3, CylinderGeometry, SphereGeometry, BoxGeometry, PlaneGeometry, MeshStandardMaterial, MeshBasicMaterial, MeshPhongMaterial, MeshPhysicalMaterial, DoubleSide, Line, EventDispatcher, MathUtils, Layers, InstancedMesh, InstancedBufferAttribute, DynamicDrawUsage, TrianglesDrawMode, TriangleFanDrawMode, TriangleStripDrawMode, CircleGeometry, Box3, Vector2, Line3, Plane, Triangle, Mesh, NearestFilter, NearestMipmapNearestFilter, NearestMipmapLinearFilter, LinearFilter, LinearMipmapNearestFilter, LinearMipmapLinearFilter, ClampToEdgeWrapping, RepeatWrapping, MirroredRepeatWrapping, PropertyBinding, InterpolateLinear, Source, LinearEncoding, RGBAFormat, InterpolateDiscrete, Scene, sRGBEncoding, Loader, LoaderUtils, FileLoader, SpotLight, PointLight, DirectionalLight, SRGBColorSpace, Object3D, TextureLoader, ImageBitmapLoader, InterleavedBuffer, InterleavedBufferAttribute, PointsMaterial, Material, SkinnedMesh, LineLoop, Points, Group, PerspectiveCamera, OrthographicCamera, Skeleton, AnimationClip, Bone, FrontSide, Texture, VectorKeyframeTrack, QuaternionKeyframeTrack, NumberKeyframeTrack, Sphere, Interpolant, LinearSRGBColorSpace, Vector4, Curve, MeshLambertMaterial, EquirectangularReflectionMapping, AmbientLight, Uint16BufferAttribute, Matrix3, DataTextureLoader, HalfFloatType, FloatType, DataUtils, AnimationMixer, AdditiveBlending, CustomBlending, ZeroFactor, SrcAlphaFactor, SkeletonHelper, CanvasTexture, Raycaster } from 'three';
+import { LineSegments, BufferGeometry, BufferAttribute, Float32BufferAttribute, LineBasicMaterial, Color, Euler, Quaternion, Matrix4, Vector3, Matrix3, CylinderGeometry, SphereGeometry, BoxGeometry, PlaneGeometry, MeshStandardMaterial, MeshBasicMaterial, MeshPhongMaterial, MeshPhysicalMaterial, DoubleSide, Line, EventDispatcher, MathUtils, Layers, InstancedMesh, InstancedBufferAttribute, DynamicDrawUsage, TrianglesDrawMode, TriangleFanDrawMode, TriangleStripDrawMode, CircleGeometry, Box3, Vector2, Line3, Plane, Triangle, Mesh, NearestFilter, NearestMipmapNearestFilter, NearestMipmapLinearFilter, LinearFilter, LinearMipmapNearestFilter, LinearMipmapLinearFilter, ClampToEdgeWrapping, RepeatWrapping, MirroredRepeatWrapping, PropertyBinding, InterpolateLinear, Source, LinearEncoding, RGBAFormat, InterpolateDiscrete, Scene, sRGBEncoding, Loader, LoaderUtils, FileLoader, SpotLight, PointLight, DirectionalLight, SRGBColorSpace, Object3D, TextureLoader, ImageBitmapLoader, InterleavedBuffer, InterleavedBufferAttribute, PointsMaterial, Material, SkinnedMesh, LineLoop, Points, Group, PerspectiveCamera, OrthographicCamera, Skeleton, AnimationClip, Bone, FrontSide, Texture, VectorKeyframeTrack, QuaternionKeyframeTrack, NumberKeyframeTrack, Sphere, Interpolant, LinearSRGBColorSpace, Vector4, Curve, MeshLambertMaterial, EquirectangularReflectionMapping, AmbientLight, Uint16BufferAttribute, DataTextureLoader, HalfFloatType, FloatType, DataUtils, AnimationMixer, AdditiveBlending, CustomBlending, ZeroFactor, SrcAlphaFactor, SkeletonHelper, CanvasTexture, Raycaster } from 'three';
 
 class CircleHelper extends LineSegments {
 
@@ -311,6 +311,21 @@ const Utils = {
     	q1.premultiply(q2);
     	//v.applyQuaternion({x:-q.x, y:-q.y, z:-q.z, w:q.w})
     	return q1.normalize().toArray()
+
+    },
+
+    axisLocal: ( v, obj ) => {
+
+    	if( obj.isObject3D ) obj.updateWorldMatrix( true, false );
+    	// apply position
+
+        let m3 = new Matrix3().setFromMatrix4( obj.matrixWorld );//.invert()
+        //m3.invert()
+        let vv = new Vector3().fromArray(v).applyMatrix3( m3 );
+
+        //let vv = new Vector3().fromArray(v).applyMatrix4( obj.matrixWorld.clone().invert() );
+
+    	return vv.toArray()
 
     },
 
@@ -744,18 +759,25 @@ const math$1 = {
 	////////
 
 	quadToAxisArray: ( q ) => {
+
+		//math.tmpV( 1,0,0 ).applyMatrix3( )
 		//q = math.tmpQ.fromArray(q).normalize().toArray();
-	  // if (q[3] > 1) q = math.tmpQ.fromArray(q).normalize().toArray(); // if w>1 acos and sqrt will produce errors, this cant happen if quaternion is normalised
-	   2 * Math.acos(q[3]);
-	   let s = Math.sqrt(1-q[3]*q[3]); // assuming quaternion normalised then w is less than 1, so term always positive.
-	   if (s < 0.001) { // test to avoid divide by zero, s is always positive due to sqrt
+	   if (q[3] > 1) q = math$1.tmpQ.fromArray(q).normalize().toArray(); // if w>1 acos and sqrt will produce errors, this cant happen if quaternion is normalised
+	   let angle = 2 * Math.acos(q[3]);
+	   let s = Math.sqrt(1-q[3]*q[3]); // assuming quaternion normalised then w is less than 1, so term always positive
+
+	   if (s < 0.001) { 
+	       // console.log(s)
+	        // test to avoid divide by zero, s is always positive due to sqrt
 	        // if s close to zero then direction of axis not important
 	        // if it is important that axis is normalised then replace with x=1; y=z=0;
 	        return [1,0,0]
+
+	        //return [q[0],q[1],q[2]]
 	   } else {
 	        //x = q[0] / s; // normalize axis
-	        //return [(q[0] / s)*angle,(q[1] / s)*angle,(q[2] / s)*angle]
-	        return [(q[0] / s),(q[1] / s),(q[2] / s)]
+	        return [(q[0] / s)*angle, (q[1] / s)*angle, (q[2] / s)*angle]
+	        //return [(q[0] / s),(q[1] / s),(q[2] / s)]
 	   }
 	},
 
@@ -5530,13 +5552,16 @@ class Joint extends Item {
 			o.quat1 = Utils.quatLocal(o.worldQuat, body1);
 			o.quat2 = Utils.quatLocal(o.worldQuat, body2);
 
-			if(root.engine === 'OIMO' || root.engine === 'HAVOK'){
+			if( root.engine === 'OIMO' || root.engine === 'HAVOK' ){
 
-				this.v1.fromArray( math$1.quadToAxisArray( o.worldQuat ) ).normalize();
-				this.v2.fromArray( math$1.quadToAxisArray( o.worldQuat ) ).normalize();
+				//this.v1.fromArray( math.quadToAxisArray( o.worldQuat ) ).normalize()
+				//this.v2.fromArray( math.quadToAxisArray( o.worldQuat ) ).normalize()
 
-				o.axis1 = body1 ? Utils.toLocal( this.v1, body1, true ).toArray():[1,0,0];
-				o.axis2 = body2 ? Utils.toLocal( this.v2, body2, true ).toArray():[1,0,0];
+				o.axis1 = Utils.axisLocal( math$1.quadToAxisArray( o.worldQuat ), body1);//this.v1.fromArray( math.quadToAxisArray( o.quat1 ) ).normalize().toArray()
+				o.axis2 = Utils.axisLocal( math$1.quadToAxisArray( o.worldQuat ), body2);//this.v2.fromArray( math.quadToAxisArray( o.quat2 ) ).normalize().toArray()
+
+				//o.axis1 = body1 ? Utils.toLocal( this.v1, body1, true ).toArray():[1,0,0]
+				//o.axis2 = body2 ? Utils.toLocal( this.v2, body2, true ).toArray():[1,0,0]
 
 			}
 			/*this.v1.fromArray( o.worldAxis ) 
@@ -22499,21 +22524,21 @@ class SkeletonBody extends Object3D {
 
                 // body
                 //if( n==='head' && name === 'End_head' ){ type = 'box'; size = [ 0.16, 0.2, dist ]; translate = [ 0, 0.025, -dist * 0.5 ]; }
-                if( n==='head' && name === 'End_head' ){ type = 'capsule'; size = [ 0.1, dist-0.17 ]; translate = [ 0, 0.02, (-dist * 0.5)+0.02 ];rot = [90,0,0]; }
-                if( n==='neck' && name === 'head' ){ type = 'capsule'; size = [ 0.06, dist ]; translate = [ 0, 0, -dist * 0.5 ];rot = [90,0,0]; }
+                if( n==='head' && name === 'End_head' ){ type = 'capsule'; size = [ 0.1, dist-0.17 ]; translate = [ 0, 0.02, (-dist * 0.5)+0.02 ]; rot = [90,0,0]; }
+                if( n==='neck' && name === 'head' ){ type = 'capsule'; size = [ 0.06, dist ]; translate = [ 0, 0, -dist * 0.5 ]; rot = [90,0,0]; }
                 //if( n==='head' && !headDone ){ console.log(name); headDone = true; type = 'sphere'; dist=0.08; size = [ 0.08, 0.2, dist ]; translate = [ 0, 0.025, -0.08 ]; }
 
 	            /*if( n==='chest' && name==='neck' ){ type = 'box'; size = [  0.28, 0.24, dist ]; translate = [ 0, 0, -dist * 0.5 ]; }
 	            if( n==='abdomen' && name==='chest'  ){ type = 'box'; size = [ 0.24, 0.20,  dist ]; translate = [ 0, 0, -dist * 0.5 ]; }
                 if( n==='hip' && name==='abdomen' ){ type = 'box'; size = [  0.28, 0.24, dist ]; translate = [ 0, 0, -dist * 0.5 ]; }*/
 
-                if( n==='chest' && name==='neck' ){ type = 'capsule'; size = [  dist*0.46, 0.08  ]; translate = [ 0, 0, (-dist * 0.5)-0.02 ]; rot = [0,0,90]; }
-                if( n==='abdomen' && name==='chest'  ){ type = 'capsule'; size = [ dist*0.7, 0.08   ]; translate = [ 0, 0, (-dist * 0.5)-0.06 ]; rot = [0,0,90]; }
-                if( n==='hip' && name==='abdomen' ){ type = 'capsule'; size = [  dist*1.8, 0.08 ]; translate = [ 0, 0, -dist * 0.5 ]; rot = [0,0,90];}
+                if( n==='chest' && name==='neck' ){ type = 'capsule'; size = [  dist*0.4, 0.04  ]; translate = [ 0, 0, (-dist * 0.5)-0.02 ]; rot = [0,0,90]; }
+                if( n==='abdomen' && name==='chest'  ){ type = 'capsule'; size = [ dist*0.7, 0.08   ]; translate = [ 0, 0, (-dist * 0.5)-0.06 ]; rot = [90,0,0]; }
+                if( n==='hip' && name==='abdomen' ){ type = 'capsule'; size = [  dist*1.8, 0.08 ]; translate = [ 0, 0, -dist * 0.5 ]; rot = [0,0,90]; }
 
 
-                if( n==='chest' && name==='rBreast' && root.engine!=='HAVOK' ){n='rBreast'; parent = bone; type = 'sphere'; size = [ 0.07 ]; translate = [ 0.07,0,0 ]; this.breast=true; motion = true; }
-                if( n==='chest' && name==='lBreast' && root.engine!=='HAVOK' ){n='lBreast'; parent = bone; type = 'sphere'; size = [ 0.07 ]; translate = [ 0.07,0,0 ]; this.breast=true; motion = true; }
+                if( n==='chest' && name==='rBreast' && root.engine!=='HAVOK' ){ n='rBreast'; parent = bone; type = 'sphere'; size = [ 0.065 ]; translate = [ 0.065,0,0 ]; this.breast=true; motion = true; }
+                if( n==='chest' && name==='lBreast' && root.engine!=='HAVOK' ){ n='lBreast'; parent = bone; type = 'sphere'; size = [ 0.065 ]; translate = [ 0.065,0,0 ]; this.breast=true; motion = true; }
                 
 
 	             // legs
@@ -22525,25 +22550,26 @@ class SkeletonBody extends Object3D {
 
                 if( n==='rThigh' ){ type = 'capsule'; size = [  0.08, dist ]; rot = [90,0,0]; }
                 if( n==='rShin' ){ type = 'capsule'; size = [  0.065, dist ]; rot = [90,0,0]; }
-                if( n==='rFoot' ){ type = 'box'; size = [  0.1, dist*1.4, 0.06 ]; translate = [0, (dist * 0.5)-0.025, 0.06 ]; }
+                //if( n==='rFoot' ){ type = 'box'; size = [  0.1, dist*1.4, 0.06 ]; translate = [0, (dist * 0.5)-0.025, 0.06 ]; }
+                if( n==='rFoot' ){ type = 'capsule'; size = [  0.05, dist*1.4 ]; translate = [0, (dist * 0.5)-0.025, 0.06 ]; }
 
                 if( n==='lThigh' ){ type = 'capsule'; size = [  0.08, dist ]; rot = [90,0,0]; }
                 if( n==='lShin' ){ type = 'capsule'; size = [  0.065, dist ]; rot = [90,0,0]; }
-                if( n==='lFoot' ){ type = 'box'; size = [  0.1, dist*1.4, 0.06 ]; translate = [0, (dist * 0.5)-0.025, 0.06 ]; }
+                //if( n==='lFoot' ){ type = 'box'; size = [  0.1, dist*1.4, 0.06 ]; translate = [0, (dist * 0.5)-0.025, 0.06 ]; }
+                if( n==='lFoot' ){ type = 'capsule'; size = [  0.05, dist*1.4 ]; translate = [0, (dist * 0.5)-0.025, 0.06 ]; }
 
 	            // arm
-	            /*if( n==='rShldr' ){ type = 'box'; size = [   dist+ 0.06, 0.12, 0.12  ]; translate[0] = -translate[2]+0.03; translate[2]=0; }
-	            if( n==='lShldr' ){ type = 'box'; size = [  dist+ 0.06,0.12,   0.12, ];  translate[0] = translate[2]-0.03; translate[2]=0; }
-	            if( n==='rForeArm' ){ type = 'box'; size = [  dist + 0.1,0.1,  0.1 ];  translate[0] = -translate[2]-0.05; translate[2]=0; }
-	            if( n==='lForeArm' ){ type = 'box'; size = [  dist + 0.1,0.1,  0.1]; translate[0] = translate[2]+0.05; translate[2]=0; }*/
 
+                if( n==='rCollar' && name==='rShldr'){ type = 'capsule'; size = [  0.05, dist*0.3 ]; translate = [-dist*0.6, 0, 0 ]; rot = [0,0,90];}
                 if( n==='rShldr' && name==='rForeArm'){ type = 'capsule'; size = [  0.05, dist ]; translate = [-dist * 0.5, 0, 0 ]; rot = [0,0,90];}
                 if( n==='rForeArm' && name==='rHand' ){ type = 'capsule'; size = [ 0.04, dist ]; translate = [-dist * 0.5, 0, 0 ]; rot = [0,0,90];}
                 if( n==='rHand' && name==='rMid1'){ type = 'box'; size = [ dist*2, 0.09, 0.05 ]; translate = [-dist, 0, 0 ]; }
 
+                if( n==='lCollar' && name==='lShldr'){ type = 'capsule'; size = [  0.05, dist*0.3 ]; translate = [dist*0.6 , 0, 0 ]; rot = [0,0,90];}
                 if( n==='lShldr' && name==='lForeArm'){ type = 'capsule'; size = [  0.05, dist ]; translate = [dist * 0.5, 0, 0 ]; rot = [0,0,90];}
                 if( n==='lForeArm' && name==='lHand'){ type = 'capsule'; size = [ 0.04, dist ]; translate = [dist * 0.5, 0, 0 ]; rot = [0,0,90];}
                 if( n==='lHand' && name==='lMid1'){ type = 'box'; size = [ dist*2, 0.09, 0.05 ]; translate = [dist, 0, 0 ];  }
+
 
                 /*if( n==='head' ){ type = 'capsule'; size = [ 7.5, 8.6, 7.5 ]; r = 90; }
                 if( n==='neck' && name==='head' ){    type = 'box'; size = [ dist, 6, 6 ]; r = 0; }
@@ -22620,6 +22646,7 @@ class SkeletonBody extends Object3D {
                         mask:1|2,
                         material:'bones2',
                         neverSleep: true,
+                        //iterations:[4,4],
 
 
                         /*bone:parent,
@@ -22658,11 +22685,14 @@ class SkeletonBody extends Object3D {
     addLink () {
 
         // Stiffness / Damping
-        let sp = [0.05,1];
+        // raideur / amortissement
+        //let sp = [0.05,1]
+        let sp = [0.05, 1, 0];
         if(root.engine==='PHYSX'){
             // stiffness / damping / restitution / bounceThreshold / contactDistance
+            //[0,0, 0, 0.5]
             // raideur / amortissement
-            sp = [0.05,1];
+            sp = [50,10, 0, 0.5];
         }
 
 
@@ -22679,9 +22709,11 @@ class SkeletonBody extends Object3D {
             collision:false,
             helperSize:0.05,
 
+            //acc:true,
+
            //worldAxis:[1,0,0],
 
-           autoDrive: true,
+            autoDrive: true,
 
         };
 
@@ -22696,8 +22728,14 @@ class SkeletonBody extends Object3D {
 
         // arm
 
-        data.push({ ...sett, b1:p+'chest', b2:p+'rShldr', worldPos:this.posRef[p+'rShldr'], worldQuat:this.quatRef[p+'rShldr'] });
-        data.push({ ...sett, b1:p+'chest', b2:p+'lShldr', worldPos:this.posRef[p+'lShldr'], worldQuat:this.quatRef[p+'lShldr'] });
+        data.push({ ...sett, b1:p+'chest', b2:p+'rCollar', worldPos:this.posRef[p+'rCollar'],  worldQuat:this.quatRef[p+'rCollar'], lm:[ ['rx',-10,10,...sp], ['ry',-10,10,...sp], ['rz',-10,10,...sp]] });
+        data.push({ ...sett, b1:p+'chest', b2:p+'lCollar', worldPos:this.posRef[p+'lCollar'],  worldQuat:this.quatRef[p+'lCollar'], lm:[ ['rx',-10,10,...sp], ['ry',-10,10,...sp], ['rz',-10,10,...sp]] });
+
+        data.push({ ...sett, b1:p+'rCollar', b2:p+'rShldr', worldPos:this.posRef[p+'rShldr'],  worldQuat:this.quatRef[p+'rShldr'] });
+        data.push({ ...sett, b1:p+'lCollar', b2:p+'lShldr', worldPos:this.posRef[p+'lShldr'],  worldQuat:this.quatRef[p+'lShldr'] });
+
+       //data.push({ ...sett, b1:p+'chest', b2:p+'rShldr', worldPos:this.posRef[p+'rShldr'], worldQuat:this.quatRef[p+'rShldr'] })
+        //data.push({ ...sett, b1:p+'chest', b2:p+'lShldr', worldPos:this.posRef[p+'lShldr'], worldQuat:this.quatRef[p+'lShldr'] })
 
         data.push({ ...sett, b1:p+'rShldr', b2:p+'rForeArm', worldPos:this.posRef[p+'rForeArm'], worldQuat:this.quatRef[p+'rForeArm'], lm:[['rx',0,160,...sp]] });
         data.push({ ...sett, b1:p+'lShldr', b2:p+'lForeArm', worldPos:this.posRef[p+'lForeArm'], worldQuat:this.quatRef[p+'lForeArm'], lm:[['rx',0,160,...sp]] });
@@ -22710,14 +22748,14 @@ class SkeletonBody extends Object3D {
 
         // leg
 
-        data.push({ ...sett, b1:p+'hip', b2:p+'rThigh', worldPos:this.posRef[p+'rThigh'], worldQuat:this.quatRef[p+'rThigh'] });
-        data.push({ ...sett, b1:p+'hip', b2:p+'lThigh', worldPos:this.posRef[p+'lThigh'], worldQuat:this.quatRef[p+'lThigh'] });
+        data.push({ ...sett, b1:p+'hip', b2:p+'rThigh', worldPos:this.posRef[p+'rThigh'],  worldQuat:this.quatRef[p+'rThigh'] });
+        data.push({ ...sett, b1:p+'hip', b2:p+'lThigh', worldPos:this.posRef[p+'lThigh'],  worldQuat:this.quatRef[p+'lThigh'] });
 
         data.push({ ...sett, b1:p+'rThigh', b2:p+'rShin', worldPos:this.posRef[p+'rShin'], lm:[['rx',0,160,...sp]], worldQuat:this.quatRef[p+'rShin'] });
         data.push({ ...sett, b1:p+'lThigh', b2:p+'lShin', worldPos:this.posRef[p+'lShin'], lm:[['rx',0,160,...sp]], worldQuat:this.quatRef[p+'lShin'] });
 
-        data.push({ ...sett, b1:p+'rShin', b2:p+'rFoot', worldPos:this.posRef[p+'rFoot'], lm:[['rx',0,160,...sp]], worldQuat:this.quatRef[p+'rFoot'] });
-        data.push({ ...sett, b1:p+'lShin', b2:p+'lFoot', worldPos:this.posRef[p+'lFoot'], lm:[['rx',0,160,...sp]], worldQuat:this.quatRef[p+'lFoot'] });
+        data.push({ ...sett, b1:p+'rShin', b2:p+'rFoot', worldPos:this.posRef[p+'rFoot'], lm:[['rx',-10,30,...sp], ['rz',-10,10,...sp]], worldQuat:this.quatRef[p+'rFoot'] });
+        data.push({ ...sett, b1:p+'lShin', b2:p+'lFoot', worldPos:this.posRef[p+'lFoot'], lm:[['rx',-10,30,...sp], ['rz',-10,10,...sp]], worldQuat:this.quatRef[p+'lFoot'] });
 
         if(this.breast){
             data.push({ ...sett, b1:p+'chest', b2:p+'rBreast', worldPos:this.posRef[p+'rBreast'], worldQuat:this.quatRef[p+'rBreast'], lm:[['x',...breastMotion], ['y',...breastMotion], ['z',...breastMotion]] });
