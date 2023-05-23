@@ -1,7 +1,9 @@
 import { Item } from '../core/Item.js';
-import { Num } from '../core/Config.js';
+import { Num, MathTool } from '../core/Config.js';
 
 import { Utils, root } from './root.js';
+
+// AMMO RAY
 
 export class Ray extends Item {
 
@@ -13,6 +15,7 @@ export class Ray extends Item {
 		this.type = 'ray'
 
 		this.callback = new Ammo.ClosestRayResultCallback()
+		this.t = new Ammo.btTransform()
 
 
 	}
@@ -21,7 +24,7 @@ export class Ray extends Item {
 
 		root.reflow.ray = [];
 
-		let i = this.list.length, r, n, name;
+		let i = this.list.length, r, n, name, pp, ph;
 		let cb = this.callback;
 
 		while( i-- ){
@@ -30,28 +33,35 @@ export class Ray extends Item {
 
 			r = this.list[i];
 
-			//r.begin.fromArray( AR, n+1 )
-			//r.end.fromArray( AR, n+4 )
-
 			AR[n] = 0;
 			
 			cb.set_m_collisionObject( null );
 
-			// Set ray callback option
-			cb.get_m_rayFromWorld().fromArray( AR, n+1 )
-			cb.get_m_rayToWorld().fromArray( AR, n+4 )
+			pp = r.getPoint( this.t )
+
+			cb.get_m_rayFromWorld().fromArray( pp[0] )
+			cb.get_m_rayToWorld().fromArray( pp[1] )
 			cb.set_m_collisionFilterGroup( r.group );
 			cb.set_m_collisionFilterMask( r.mask );
 			cb.set_m_closestHitFraction( r.precision );
-
 
 			root.world.rayTest( cb.get_m_rayFromWorld(), cb.get_m_rayToWorld(), cb );
 
 			if ( cb.hasHit() ) {
 
 				AR[n] = 1;
-				cb.get_m_hitPointWorld().toArray( AR, n+1 )
-				cb.get_m_hitNormalWorld().toArray( AR, n+4 )
+
+				ph = cb.get_m_hitPointWorld().toArray()
+				AR[n+1] = MathTool.distanceArray( pp[0], ph )
+				AR[n+2] = pp[0][0]
+				AR[n+3] = pp[0][1]
+				AR[n+4] = pp[0][2]
+
+				AR[n+5] = ph[0]
+				AR[n+6] = ph[1]
+				AR[n+7] = ph[2]
+
+				cb.get_m_hitNormalWorld().toArray( AR, n+8 )
 
 				name = Ammo.castObject( cb.get_m_collisionObject(), Ammo.btRigidBody ).name;
 				if ( name === undefined ) name = Ammo.castObject( ray.get_m_collisionObject(), Ammo.btSoftBody ).name;
@@ -63,31 +73,23 @@ export class Ray extends Item {
 
 	}
 
-	///
-
 	add ( o = {} ) {
 
 		let name = this.setName( o )
 		let r = new ExtraRay( o )
-
-		// apply option
-		//this.set( o, r );
-
 		// add to world
 		this.addToWorld( r, o.id )
 
 	}
 
 	set ( o = {}, r = null ) {
-
-		/*
+		
 		if( r === null ) r = this.byName( o.name );
 		if( r === null ) return;
 
-		if( o.begin !== undefined ) r.begin.fromrray( o.begin || [0,1,0] )
-		if( o.end !== undefined ) r.end.fromrray( o.end || [0,0,0] )
-		*/
-
+		if(o.begin) r.begin = o.begin
+		if(o.end) r.end = o.end
+		
 	}
 
 }
@@ -101,11 +103,33 @@ export class ExtraRay {
 	    this.type = 'ray';
 
 	    this.name = o.name;
+	    this.parent = o.parent || ''
+
+	    this.begin = o.begin || [0,0,0]
+	    this.end = o.end || [0,0,1]
 
 	    this.precision = o.precision || 1;
 	    this.group = o.group !== undefined || 1
 	    this.mask = o.mask !== undefined || -1
 
+	}
+
+	getPoint( t ){
+		if( this.parent ){
+			const b = Utils.byName( this.parent )
+			if(b){
+				b.getMotionState().getWorldTransform( t )
+				//const t = b.getGlobalPose()
+				const p = t.getOrigin().toArray()
+				const q = t.getRotation().toArray()
+				return [
+				    MathTool.applyTransformArray( this.begin, p, q ),
+				    MathTool.applyTransformArray( this.end, p, q )
+				]
+
+			} 
+		}
+		return [ this.begin, this.end ]
 	}
 
 }

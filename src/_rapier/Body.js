@@ -17,9 +17,7 @@ export class Body extends Item {
 		this.full = false
 
 		this.p = new Vec3()
-		
 		this.q = new Quat()
-
 		this.v = new Vec3()
 		this.r = new Vec3()
 		//this.t = new Transform()

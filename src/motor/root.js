@@ -5,7 +5,7 @@ import {
     Box3Helper, DoubleSide,
 } from 'three';
 import { CircleHelper } from '../3TH/helpers/CircleHelper.js';
-
+//import { LineMaterial } from 'three/addons/lines/LineMaterial.js';
 export const map = new Map()
 
 
@@ -399,7 +399,8 @@ export const Mat = {
 				case 'body':   m = new MeshStandardMaterial({ color:0xFF934F, ...matExtra }); break
 				case 'clear':   m = new MeshStandardMaterial({ color:0xFFFFFF, metalness: 0.5, roughness: 0 }); break
 				case 'sleep':  m = new MeshStandardMaterial({ color:0x939393, ...matExtra }); break//0x46B1C9
-				case 'solid':  m = new MeshStandardMaterial({ color:0x3C474B, ...matExtra }); break
+				case 'solid':  m = new MeshStandardMaterial({ color:0xDDDDDD, ...matExtra }); break
+				//case 'solid':  m = new MeshStandardMaterial({ color:0x3C474B, ...matExtra }); break
 				case 'hero':   m = new MeshStandardMaterial({ color:0x00FF88, ...matExtra }); break
 				case 'skinny':   m = new MeshStandardMaterial({ color:0xe0ac69, ...matExtra }); break
 				case 'chrome': m = new MeshStandardMaterial({ color:0xCCCCCC, metalness: 1, roughness:0.2 }); break
@@ -415,6 +416,7 @@ export const Mat = {
 
 				case 'joint':  m = new LineBasicMaterial( { vertexColors: true, depthTest: false, depthWrite: false, toneMapped: false, transparent: true } ); break
 				case 'ray':    m = new LineBasicMaterial( { vertexColors: true, toneMapped: false } ); break	
+				//case 'ray2':    m = new LineMaterial( { vertexColors: true, toneMapped: false, linewidth: 0.1, dashed: false, alphaToCoverage: true } ); break	
 
 				case 'debug':  m = new MeshBasicMaterial({ color:0x000000, wireframe:true, toneMapped: false }); break
 				case 'debug2': m = new MeshBasicMaterial({ color:0x00FFFF, wireframe:true, toneMapped: false }); break

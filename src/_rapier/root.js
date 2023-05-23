@@ -239,6 +239,7 @@ export class Quat {
 		this.y = v.y;
 		this.z = v.z;
 		this.w = v.w;
+		return this
 	}
 
 	toArray ( r, n ){

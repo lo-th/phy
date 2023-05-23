@@ -8,6 +8,10 @@ import {
     Matrix4, Quaternion, Vector3
 } from 'three';
 
+
+import { LineGeometry } from 'three/addons/lines/LineGeometry.js';
+import { Line2 } from 'three/addons/lines/Line2.js';
+
 // THREE RAY
 
 export class Ray extends Item {
@@ -18,6 +22,8 @@ export class Ray extends Item {
 
 		this.Utils = Utils
 		this.type = 'ray'
+		//this.mtx = new Matrix4()
+		//this.mtx2 = new Matrix4()
 
 	}
 
@@ -28,21 +34,34 @@ export class Ray extends Item {
 		while( i-- ){
 
 			r = this.list[i];
+
 			n = N + ( i * Num.ray );
+
 			r.update( AR, n, root.reflow.ray[i] || null );
+
+			// re send start end
+			//r.begin.toArray( AR, n+1 );
+			//r.end.toArray( AR, n+4 );
 
 		}
 
 	}
 
+	/// 0, 0,  0,0,0,   0,0,0,   0,0,0
+
 	add ( o = {} ) {
 
 		let name = this.setName( o );
+
+		
+
+		//if( o.link && typeof o.link !== 'string') o.link = o.link.name;
 
 		let r = new ExtraRay( o, Mat.get('ray') );
 
 		r.visible = o.visible !== undefined ? o.visible : true
 
+		
 
 		// add to world
 		this.addToWorld( r, o.id )
@@ -69,12 +88,15 @@ export class Ray extends Item {
 
 		r.setRay(o)
 
+		//if( o.begin !== undefined ) r._begin.fromArray( o.begin )
+		//if( o.end !== undefined ) r._end.fromArray( o.end )
+
 	}
 
 }
 
 
-export class ExtraRay extends Line {
+export class ExtraRay extends Line2 {
 
 	constructor( o = {}, material = undefined ) {
 
@@ -104,7 +126,7 @@ export class ExtraRay extends Line {
 		this.c0 = [ 0.1, 0.1, 0.3 ];
 		this.c1 = [ 0.1, 0.4, 0.6 ];
 		this.c2 = [ 1.0, 0.1, 0.1 ];
-		this.c3 = [ 0.1, 1.0, 0.1 ];
+		this.c3 = [ 1.0, 0.8, 0.1 ];
 
 	    this.begin = new Vector3()
 	    this.end = new Vector3(0,1,0)
@@ -117,15 +139,32 @@ export class ExtraRay extends Line {
 	    
 	    const positions = [0,0,0, 0,0,0, 0,0,0];
 	    const colors = [0,0,0, 0,0,0, 0,0,0];
-
+        this.vertices = positions;
+	    this.colors = colors;
 	    //this.geometry = new BufferGeometry();
-	    this.geometry.setAttribute( 'position', new Float32BufferAttribute( positions, 3 ) );
-	    this.geometry.setAttribute( 'color', new Float32BufferAttribute( colors, 3 ) );
+	    this.geometry = new LineGeometry()
+
+	    this.geometry.setPositions( this.vertices );
+		this.geometry.setColors( this.colors );
+		this.computeLineDistances();
+	    
+	   // this.geometry.setAttribute( 'position', new Float32BufferAttribute( positions, 3 ) );
+	   // this.geometry.setAttribute( 'color', new Float32BufferAttribute( colors, 3 ) );
 	    //this.geometry.computeBoundingSphere();
 
-	    this.vertices = this.geometry.attributes.position;
-	    this.colors = this.geometry.attributes.color;
+	    
 	    this.local = [ 0, 0, 0, 0, 0, 0, 0, 0, 0 ];
+
+	   /* this.line = new MeshLine();
+	    this.line.setPoints(this.local);
+
+	    this.mat = new MeshLineMaterial({lineWidth:0.1});
+
+	   
+        var mesh = new THREE.Mesh( this.line, this.mat );
+        this.add(mesh)
+        mesh.frustumCulled = false;*/
+	    //this.updateGeometry()
 
 	    this.matrixAutoUpdate = false;
 	    this.frustumCulled = false;
@@ -134,8 +173,8 @@ export class ExtraRay extends Line {
 
 	setRay( o ){
 
-		if( o.begin ) this.begin.fromArray( o.begin );
-	    if( o.end ) this.end.fromArray( o.end );
+		if(o.begin) this.begin.fromArray( o.begin );
+	    if(o.end) this.end.fromArray( o.end );
 	    this.fullDistance = this.begin.distanceTo( this.end )
 
 	}
@@ -175,7 +214,6 @@ export class ExtraRay extends Line {
 			} else {
 				this.begin.toArray( this.local, 0 );
 				this.end.toArray( this.local, 3 );
-				this.end.toArray( this.local, 6 )
 			}
 		}
 
@@ -198,8 +236,10 @@ export class ExtraRay extends Line {
 
 		if ( !this.visible ) return;
 
-		let v = this.vertices.array;
-		let c = this.colors.array;
+		//if(this.line) this.line.setPoints(this.local);
+
+		let v = this.vertices//.array;
+		let c = this.colors//.array;
 		let l = this.local;
 		let hit = this.data.hit
 		let n, d, i;
@@ -226,8 +266,13 @@ export class ExtraRay extends Line {
 		v[ 7 ] = l[ 7 ];
 		v[ 8 ] = l[ 8 ];
 
-		this.vertices.needsUpdate = true;
-	    this.colors.needsUpdate = true;
+		this.geometry.setPositions( this.vertices );
+		this.geometry.setColors( this.colors );
+
+		//this.vertices.needsUpdate = true;
+	    //this.colors.needsUpdate = true;
+
+	    
 	}
 
 }

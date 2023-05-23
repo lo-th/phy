@@ -335,37 +335,13 @@ export class Body extends Item {
 
 		// position / rotation
 
-	
-	//console.log(t)
-
-	    /*if( !o.pos ){ 
-	    	o.pos = [0,0,0] 
-	    	b.getPositionTo( this.p )
-	    	this.p.toArray( o.pos )
-	    }
-		if( !o.quat ) { 
-	    	o.quat = [0,0,0,1] 
-	    	b.getOrientationTo( this.q )
-			this.q.toArray( o.quat )
-	    }*/
-
-	    /*{
-
-		    let t = b.getTransform()
-		    if( o.pos ) t.setPosition( this.v.fromArray( o.pos ) )
-		    if( o.quat ) t.setOrientation( this.q.fromArray( o.quat ) )
-		    b.setTransform( t )
-
-		}*/
-
-	    //this.t.fromArray( o.pos, o.quat )
 	    if( o.pos || o.quat ){
 
 
 
 	    	if( o.pos ){ 
 	    		
-	    		if(b.isKinematic && o.acc){
+	    		if(b.isKinematic){
 	    			let pp = math.velocityArray( o.pos, b.pos, root.invDelta )
 	    			b.setLinearVelocity( this.v.fromArray( pp ) )
 	    			b.pos = o.pos
@@ -375,11 +351,12 @@ export class Body extends Item {
 
 	    	}
 		    if( o.quat ){
-		    	if(b.isKinematic && o.acc){
+		    	if(b.isKinematic){
 	    			let pp = math.angularArray( o.quat, b.quat, root.invDelta*torad )
 	    			b.setAngularVelocity( this.v.fromArray( pp ) )
 	    			b.quat = o.quat
 	    		}
+	    		
 		        b.setOrientation( this.q.fromArray( o.quat ) )
 		    }
 	    }

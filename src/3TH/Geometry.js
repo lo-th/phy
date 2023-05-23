@@ -71,7 +71,100 @@ export function geometryInfo( g, type, Size ) {
     return {v:g.realVertices, f:g.realIndices };*/
 
 }
+export class Stair extends BufferGeometry {
 
+    constructor( size, d=0.3 ) {
+
+        super();
+
+        this.type = 'Stair';
+        this.name = 'Stair_' + size[0] +'_'+size[1]+'_'+size[2];
+
+        //let g = new BoxGeometry( size[0],size[1],size[2], 2, 1, 1 )
+
+        let g = new PlaneGeometry( size[0], size[2], 1, 1 )
+        g.rotateX( -Math.PI * 0.5 )
+
+        let ar = g.attributes.position.array, n;
+
+        let dz = size[2]*d
+        let dy = size[1]*d
+       
+
+        /*for ( let i = 0, l = g.attributes.position.count; i < l; i ++ ) {
+
+            n = i*3;
+
+            if(ar[n+1] === size[1]*0.5 && ar[n+2] === size[2]*0.5) ar[n+1]=(-size[1]*0.5) //+ (size[1]*0.01)
+            else if( ar[n+1] === -size[1]*0.5 ) {
+                //if( ar[n+2] === size[2]*0.5 ) ar[n+1]-=(size[1]*d)
+                if( ar[n+2] === size[2]*0.5 ) ar[n+2]-=dz
+                else ar[n+1] = (size[1]*0.5) - dy
+            }
+           
+
+              
+
+        }*/
+
+        for ( let i = 0, l = g.attributes.position.count; i < l; i ++ ) {
+
+            n = i*3;
+
+            if(ar[n+2] === size[2]*0.5) ar[n+1]=(-size[1]*0.5) //+ (size[1]*0.01)
+            else ar[n+1]=(size[1]*0.5) //+ (size[1]*0.01)
+          
+           
+
+
+        }
+
+
+        //let g2 = mergeVertices( g );
+
+
+
+        //console.log(g.attributes.position.count, g2.attributes.position.count)
+
+
+
+        //radius = radius || 1;
+
+        // segments
+
+        /*widthSegs = Math.floor( widthSegs );
+        heightSegs = Math.floor( heightSegs );
+        depthSegs = Math.floor( depthSegs );;
+        
+        let g = new BoxGeometry( 1,1,1, widthSegs, heightSegs, depthSegs ), v = new Vector3(), r = new Vector3(), n;
+
+        let ar = g.attributes.position.array;
+        let nm = g.attributes.normal.array;
+
+        for ( let i = 0, l = g.attributes.position.count; i < l; i ++ ) {
+
+            n = i*3;
+            v.set( ar[n], ar[n+1], ar[n+2] )
+            r.copy( v ).normalize()
+
+            v.lerp( r, roundness ).multiplyScalar( radius )
+
+            ar[n] = v.x
+            ar[n+1] = v.y
+            ar[n+2] = v.z
+
+            v.normalize()
+
+            nm[n] = v.x
+            nm[n+1] = v.y
+            nm[n+2] = v.z
+            
+        }*/
+
+        this.copy(g)
+
+    }
+}
 /**
 * SPHERE BOX GEOMETRY
 */

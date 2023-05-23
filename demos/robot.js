@@ -145,48 +145,48 @@ onComplete = () => {
         name:'A1', bone:'axis_1',
         pos1:[0, 2.24, 0], pos2:[ 0, 0, 0 ],
         type:'revolute',
-        limits:[['swing1', -170, 170 ]],
-        drives: [['swing1', stiffness, damping, forceLimit, acceleration ]],
+        limits:[['ry', -170, 170 ]],
+        drives: [['ry', stiffness, damping, forceLimit, acceleration ]],
     });
 
     solver.addJoint({
         name:'A2', bone:'axis_2',
         pos1:[0.25, 1.76, 0], pos2:[ 0, 0, 0 ],// rot1:[0,90,0],
         type:'revolute',
-        limits:[['swing2', -135, 100 ]],
-        drives: [['swing2', stiffness, damping, forceLimit, acceleration ]],
+        limits:[['rz', -135, 100 ]],
+        drives: [['rz', stiffness, damping, forceLimit, acceleration ]],
     });
 
     solver.addJoint({
         name:'A3', bone:'axis_3',
         pos1:[0, 5.6, 0], pos2:[ 0, 0, 0 ],
         type:'revolute',
-        limits:[['swing2', -156, 120 ]],
-        drives: [['swing2', stiffness, damping, forceLimit, acceleration ]],
+        limits:[['rz', -156, 120 ]],
+        drives: [['rz', stiffness, damping, forceLimit, acceleration ]],
     });
 
     solver.addJoint({
         name:'A4', bone:'axis_4',
         pos1:[-0.35, 1.17, 0], pos2:[ 0, 0, 0 ],
         type:'revolute',
-        limits:[['swing1', -185, 185 ]],
-        drives: [['swing1', stiffness, damping, forceLimit, acceleration ]],
+        limits:[['ry', -185, 185 ]],
+        drives: [['ry', stiffness, damping, forceLimit, acceleration ]],
     });
 
     solver.addJoint({
         name:'A5', bone:'axis_5',
         pos1:[0, 3.978, 0], pos2:[ 0, 0, 0 ],
         type:'revolute',
-        limits:[['swing2', -120, 120 ]],
-        drives: [['swing2', stiffness, damping, forceLimit, acceleration ]],
+        limits:[['rz', -120, 120 ]],
+        drives: [['rz', stiffness, damping, forceLimit, acceleration ]],
     });
 
     solver.addJoint({
         name:'A6', bone:'axis_6',
         pos1:[0, 0.665, 0], pos2:[ 0, 0, 0 ],
         type:'revolute',
-        limits:[['swing1', -350, 350 ]],
-        drives: [['swing1', stiffness, damping, forceLimit, acceleration ]],
+        limits:[['ry', -350, 350 ]],
+        drives: [['ry', stiffness, damping, forceLimit, acceleration ]],
     });
 
     // gripper

@@ -85,9 +85,13 @@ export class Articulation {//extends Basic3D
 			j.data.target.y = AR[ m + 1]
 			j.data.target.z = AR[ m + 2]
 
-			j.data.target.twiwt = Math.round( AR[ m + 3] )
+			j.data.target.rx = Math.round( AR[ m + 3] )
+			j.data.target.ry = Math.round( AR[ m + 4] )
+			j.data.target.rz = Math.round( AR[ m + 5] )
+
+			/*j.data.target.twiwt = Math.round( AR[ m + 3] )
 			j.data.target.swing1 = Math.round( AR[ m + 4] )
-			j.data.target.swing2 = Math.round( AR[ m + 5] )
+			j.data.target.swing2 = Math.round( AR[ m + 5] )*/
 
 			j.data.target.count = AR[ m + 6 ]
 
@@ -204,7 +208,9 @@ export class SolverJoint {
 
 		this.data = {
 
-			target:{ x:0, y:0, z:0, twist:0, swing1:0, swing2:0, count:0 },
+			target:{ x:0, y:0, z:0, rx:0, ry:0, rz:0, count:0 },
+
+			//target:{ x:0, y:0, z:0, twist:0, swing1:0, swing2:0, count:0 },
 
 		}
 

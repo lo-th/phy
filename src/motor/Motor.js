@@ -591,8 +591,6 @@ export class Motor {
 
 		if( timer.up( stamp ) ) {
 
-
-			
 			root.post( { m:'step', o:stamp } )
 		}
 
@@ -802,13 +800,15 @@ export class Motor {
 	static initItems () {
 
 		items = {
-			ray : new Ray(), 
 			body : new Body(), 
 			solid : new Solid(), 
+			character : new Character(),
+			ray : new Ray(),
 			joint : new Joint(), 
 			contact : new Contact(), 
 			terrain : new Terrain(), 
-			character : new Character()
+			
+			
 		}
 
 		if( root.engine === 'PHYSX' || root.engine === 'AMMO' ){ 
@@ -851,7 +851,14 @@ export class Motor {
 		}*/
 	}
 
-	static adds ( r = [], direct ){ for( let o in r ) Motor.add( r[o], direct ) }
+	static adds ( r = [], direct ){ 
+		let i = r.length, n = 0
+		while(i--){
+			 Motor.add( r[n], direct ) 
+			 n++
+		}
+		//for( let o in r ) Motor.add( r[o], direct ) 
+	}
 
 	static add ( o = {}, direct = false ){
 

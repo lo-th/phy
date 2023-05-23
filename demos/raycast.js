@@ -28,13 +28,13 @@ function demo() {
     var p1 = new THREE.Vector3();
     var p2 = new THREE.Vector3();
 
-    var i = 20;
+    var i = 60;
 
     while( i-- ){
 
         var theta = math.rand( -180, 180 ) * math.torad;
         var phi = math.rand( -180, 180 )  * math.torad;
-        spherical.set(0.4, phi, theta);
+        spherical.set(0.31, phi, theta);
         p1.setFromSpherical(spherical);
         spherical.set(1, phi, theta);
         p2.setFromSpherical(spherical);

@@ -5,9 +5,9 @@ import { Num } from '../core/Config.js';
 
 import { Basic3D } from '../core/Basic3D.js';
 import { Instance } from '../core/Instance.js';
-import { Utils, root, math, Mat, Geo, Colors, map } from './root.js';
+import { Utils, root, math, Mat, Geo, Colors, map, todeg } from './root.js';
 
-import { SphereBox, Capsule, ChamferCyl, ChamferBox, createUV  } from '../3TH/Geometry.js';
+import { SphereBox, Capsule, ChamferCyl, ChamferBox, createUV, Stair  } from '../3TH/Geometry.js';
 import { ConvexGeometry } from '../jsm/geometries/ConvexGeometry.js';
 
 
@@ -160,6 +160,32 @@ export class Body extends Item {
 
 	    }
 
+	    if( o.type==='stair' ){
+
+	    	//let h = s[1]
+	    	//s[1] = h * 0.2
+	    	//o.rot = [0, 40, 0]
+
+
+	    	// convert geometry to convex if not in physics
+	    	//let geom = new Stair( o.size );//24
+	    	//o.v = math.getVertex( geom )
+	    	o.type = 'box';
+
+	    	t = 'box';
+
+	    }
+
+	    /*if( o.type==='stair' ){
+
+	    	// convert geometry to convex if not in physics
+	    	let geom = new Stair( o.size );//24
+	    	o.v = math.getVertex( geom )
+	    	o.type = 'convex';
+	    	t = 'convex';
+
+	    }*/
+
 		switch( t ){
 
 			case 'direct':
@@ -169,7 +195,18 @@ export class Body extends Item {
 			    unic = true
 			    noScale = true
 
+
 			break;
+
+			/*case 'stair':
+
+			    g = new Stair( o.size );//24
+	    	    o.v = math.getVertex( g )
+	    	    o.type = 'convex';
+	    	    unic = true;
+				noScale = true;
+
+			break;*/
 
 			case 'convex':
 
@@ -365,6 +402,23 @@ export class Body extends Item {
 		o.type = o.type === undefined ? 'box' : o.type;
 
 		if( o.type === 'plane' && !o.visible ) o.visible = false;
+
+
+		if( o.type === 'stair'){ 
+
+			let v1 = new Vector3(0,0,o.size[2])
+			let v2 = new Vector3(0, o.size[1]*0.5,o.size[2]*0.5)
+			let angle = v1.angleTo(v2)
+			let dist = v1.distanceTo(v2)
+			o.rot = [angle * todeg,0,0]
+			o.size[1] *= o.div || 0.2
+			o.size[2] = dist*2
+		
+		    let p1 = new Vector3(0,-o.size[1]*0.5,0)
+		    p1.applyAxisAngle({x:1, y:0, z:0},angle)
+			o.pos[1] += p1.y
+			o.pos[2] += p1.z
+		}
 
 		// change default center of mass 
 		if( o.massCenter && root.engine !== 'PHYSX'){

@@ -1,7 +1,9 @@
 import { Item } from '../core/Item.js';
-import { Num } from '../core/Config.js';
+import { Num, MathTool } from '../core/Config.js';
 
 import { Utils, root, map } from './root.js';
+
+// HAVOK RAY
 
 export class Ray extends Item {
 
@@ -18,9 +20,9 @@ export class Ray extends Item {
 
 		root.reflow.ray = [];
 
-		let i = this.list.length, r, n, b, query
+		let i = this.list.length, r, n, b, query, pp, ph
 		let queryMembership, queryCollideWith
-		let pos, normal, hitData
+		let normal, hitData
 
 		while( i-- ){
 
@@ -28,12 +30,11 @@ export class Ray extends Item {
 
 			r = this.list[i]
 
-			r.begin = [AR[n+1], AR[n+2], AR[n+3]]
-			r.end = [AR[n+4], AR[n+5], AR[n+6]]
+			pp = r.getPoint()
 
 			queryMembership = ~0;
 			queryCollideWith = ~0;
-			query = [r.begin, r.end, [queryMembership, queryCollideWith]];
+			query = [pp[0], pp[1], [queryMembership, queryCollideWith]];
 
 			AR[n] = 0;
 
@@ -42,17 +43,22 @@ export class Ray extends Item {
 			if ( havok.HP_QueryCollector_GetNumHits(root.queryCollector)[1] > 0) {
 
 				hitData = havok.HP_QueryCollector_GetCastRayResult(root.queryCollector, 0)[1]
-				pos = hitData[1][3]
+				ph = hitData[1][3]
                 normal = hitData[1][4]
 
 				AR[n] = 1
-				AR[n+1] = pos[0]
-				AR[n+2] = pos[1]
-				AR[n+3] = pos[2]
+				AR[n+1] = MathTool.distanceArray( pp[0], ph )
+				AR[n+2] = pp[0][0]
+				AR[n+3] = pp[0][1]
+				AR[n+4] = pp[0][2]
 
-				AR[n+4] = normal[0]
-				AR[n+5] = normal[1]
-				AR[n+6] = normal[2]
+				AR[n+5] = ph[0]
+				AR[n+6] = ph[1]
+				AR[n+7] = ph[2]
+
+				AR[n+8] = normal[0]
+				AR[n+9] = normal[1]
+				AR[n+10] = normal[2]
 
 				b = Utils.byId( hitData[1][0][0] )
 
@@ -84,13 +90,11 @@ export class Ray extends Item {
 
 	set ( o = {}, r = null ) {
 
-		/*
 		if( r === null ) r = this.byName( o.name );
 		if( r === null ) return;
 
-		if( o.begin !== undefined ) r.begin.fromrray( o.begin || [0,1,0] )
-		if( o.end !== undefined ) r.end.fromrray( o.end || [0,0,0] )
-		*/
+		if(o.begin) r.begin = o.begin
+		if(o.end) r.end = o.end
 
 	}
 
@@ -104,9 +108,29 @@ export class ExtraRay {
 
 	    this.type = 'ray'
 	    this.name = o.name
-	    this.begin = []
-	    this.end = []
+	    this.parent = o.parent || ''
 
+	    this.begin = o.begin || [0,0,0]
+	    this.end = o.end || [0,0,1]
+
+
+	}
+
+	getPoint(){
+		if( this.parent ){
+			const b = Utils.byName( this.parent )
+			if(b){
+				const ar = havok.HP_Body_GetQTransform(b)[1]
+				const p = ar[0]
+				const q = ar[1]
+				return [
+				    MathTool.applyTransformArray( this.begin, p, q ),
+				    MathTool.applyTransformArray( this.end, p, q )
+				]
+
+			} 
+		}
+		return [ this.begin, this.end ]
 	}
 
 }

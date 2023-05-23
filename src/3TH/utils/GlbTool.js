@@ -3,7 +3,7 @@ import {
 } from 'three';
 
 import { Shader } from '../Shader.js'
-import { mergeBufferGeometries } from '../../jsm/utils/BufferGeometryUtils.js';
+import { mergeGeometries } from '../../jsm/utils/BufferGeometryUtils.js';
 
 export const GlbTool = {
 
@@ -87,7 +87,7 @@ export const GlbTool = {
 			g[i].forceMatId = n;
 		}
 
-		let mesh = new THREE.Mesh( new mergeBufferGeometries( g, true ), autoMaterial )
+		let mesh = new THREE.Mesh( new mergeGeometries( g, true ), autoMaterial )
 		mesh.name = group.name
 
 		return mesh

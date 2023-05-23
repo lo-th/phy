@@ -244,10 +244,10 @@ class Bot {
                 pos1:p[i], pos2:[ 0, 0, 0 ],
                 type:'revolute',
                 rot1: [0,left? 0: 180,0],
-                limits: [['swing1', -180, 180 ]],
+                limits: [['ry', -180, 180 ]],
                 inverse : i==1 || i==2 ? true : false,
-                position: [['swing1', 45 ]],
-                drives: [['swing1', stiffness, damping, forceLimit, acceleration ]],
+                position: [['ry', 45 ]],
+                drives: [['ry', stiffness, damping, forceLimit, acceleration ]],
             });
         }
 
@@ -257,9 +257,9 @@ class Bot {
                 name:id+'_A'+(4+i), bone:id+'_darm'+i,
                 pos1:[d[0][0], 0, 0], pos2:[ 0, 0, 0 ],
                 type:'revolute',
-                limits: [['swing2', -180, 180 ]],
-                position: [['swing2', 30 ]],
-                drives: [['swing2', stiffness, damping, forceLimit, acceleration ]],
+                limits: [['rz', -180, 180 ]],
+                position: [['rz', 30 ]],
+                drives: [['rz', stiffness, damping, forceLimit, acceleration ]],
             });
         }
 
@@ -269,9 +269,9 @@ class Bot {
                 name:id+'_A'+(8+i), bone:id+'_farm'+i,
                 pos1:[c[0][0], 0, 0], pos2:[ 0, 0, 0 ],
                 type:'revolute',
-                limits: [['swing2', -180, 180 ]], //i>1? [['swing2', 90, 270 ]] : [['swing2', -90, 90 ]],
-                position:[['swing2', -125 ]],
-                drives: [['swing2', stiffness, damping, forceLimit, acceleration ]],
+                limits: [['rz', -180, 180 ]], //i>1? [['swing2', 90, 270 ]] : [['swing2', -90, 90 ]],
+                position:[['rz', -125 ]],
+                drives: [['rz', stiffness, damping, forceLimit, acceleration ]],
             })
 
         }

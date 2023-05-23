@@ -120,6 +120,7 @@ class CircleHelper extends LineSegments {
 
 }
 
+//import { LineMaterial } from 'three/addons/lines/LineMaterial.js';
 const map = new Map();
 
 
@@ -513,7 +514,8 @@ const Mat = {
 				case 'body':   m = new MeshStandardMaterial({ color:0xFF934F, ...matExtra }); break
 				case 'clear':   m = new MeshStandardMaterial({ color:0xFFFFFF, metalness: 0.5, roughness: 0 }); break
 				case 'sleep':  m = new MeshStandardMaterial({ color:0x939393, ...matExtra }); break//0x46B1C9
-				case 'solid':  m = new MeshStandardMaterial({ color:0x3C474B, ...matExtra }); break
+				case 'solid':  m = new MeshStandardMaterial({ color:0xDDDDDD, ...matExtra }); break
+				//case 'solid':  m = new MeshStandardMaterial({ color:0x3C474B, ...matExtra }); break
 				case 'hero':   m = new MeshStandardMaterial({ color:0x00FF88, ...matExtra }); break
 				case 'skinny':   m = new MeshStandardMaterial({ color:0xe0ac69, ...matExtra }); break
 				case 'chrome': m = new MeshStandardMaterial({ color:0xCCCCCC, metalness: 1, roughness:0.2 }); break
@@ -529,6 +531,7 @@ const Mat = {
 
 				case 'joint':  m = new LineBasicMaterial( { vertexColors: true, depthTest: false, depthWrite: false, toneMapped: false, transparent: true } ); break
 				case 'ray':    m = new LineBasicMaterial( { vertexColors: true, toneMapped: false } ); break	
+				//case 'ray2':    m = new LineMaterial( { vertexColors: true, toneMapped: false, linewidth: 0.1, dashed: false, alphaToCoverage: true } ); break	
 
 				case 'debug':  m = new MeshBasicMaterial({ color:0x000000, wireframe:true, toneMapped: false }); break
 				case 'debug2': m = new MeshBasicMaterial({ color:0x00FFFF, wireframe:true, toneMapped: false }); break
@@ -578,6 +581,7 @@ const Mat = {
 //-------------------
 
 const torad$1 = Math.PI / 180;
+const todeg$1 = 180 / Math.PI;
 
 const euler = new Euler();
 const quat = new Quaternion();
@@ -838,7 +842,7 @@ const Max = {
 	body:2000,
     joint:100,
     contact:50,
-    ray:50,
+    ray:100,
     character:50,
     vehicle:50,
     solver:20,
@@ -850,7 +854,7 @@ const Num = {
     body:8,
     joint:16,
     contact:8,
-    ray:8,
+    ray:11,
     character:16,
     vehicle:72,//max 8 wheels
     solver:128,//256,
@@ -898,7 +902,7 @@ const getArray = function ( engine, full = false ){
 
 const getType = function (o){
     switch(o.type){
-        case 'plane': case 'box': case 'sphere': case 'highSphere': case 'cylinder': 
+        case 'plane': case 'box': case 'sphere': case 'highSphere': case 'cylinder': case 'stair':
         case 'cone': case 'capsule': case 'mesh': case 'convex': case 'compound': case 'null':
         if ( !o.density && !o.kinematic ) return 'solid'
         else return 'body'
@@ -1013,6 +1017,8 @@ class Item {
 
 }
 
+// THREE RAY
+
 class Ray extends Item {
 
 	constructor () {
@@ -1021,8 +1027,6 @@ class Ray extends Item {
 
 		this.Utils = Utils;
 		this.type = 'ray';
-		//this.mtx = new Matrix4()
-		//this.mtx2 = new Matrix4()
 
 	}
 
@@ -1033,36 +1037,32 @@ class Ray extends Item {
 		while( i-- ){
 
 			r = this.list[i];
-
 			n = N + ( i * Num.ray );
-
 			r.update( AR, n, root.reflow.ray[i] || null );
-
-			// re send start end
-			r.begin.toArray( AR, n+1 );
-			r.end.toArray( AR, n+4 );
 
 		}
 
 	}
 
-	///
-
 	add ( o = {} ) {
 
 		this.setName( o );
-
-		if( o.link && typeof o.link !== 'string') o.link = o.link.name;
 
 		let r = new ExtraRay( o, Mat.get('ray') );
 
 		r.visible = o.visible !== undefined ? o.visible : true;
 
+
 		// add to world
 		this.addToWorld( r, o.id );
 
-		if( o.parent ) delete o.parent;
+		if(o.parent){
+			if( typeof o.parent !== 'string' ) o.parent = o.parent.name;
+		}
+
 		if( o.callback ) delete o.callback;
+
+		
 
 		// add to worker 
 		root.post( { m:'add', o:o } );
@@ -1076,8 +1076,7 @@ class Ray extends Item {
 		if( r === null ) r = this.byName( o.name );
 		if( r === null ) return;
 
-		if( o.begin !== undefined ) r._begin.fromrray( o.begin );
-		if( o.end !== undefined ) r._end.fromrray( o.end );
+		r.setRay(o);
 
 	}
 
@@ -1103,31 +1102,24 @@ class ExtraRay extends Line {
 	    this.type = 'ray';
 	    this.name = o.name;
 
-	    if( typeof o.parent === 'string' ) o.parent = Utils.byName( o.parent );
-
-
-	    this.linked = o.parent !== undefined ? true : false;
- 
-	    if( this.linked ) this.parent = o.parent;
+	    this.parentMesh = null;
+	    if(o.parent){
+	    	this.parentMesh = typeof o.parent === 'string' ?  Utils.byName( o.parent ) : o.parent;
+	    }
 
 	    this.callback = o.callback || function () {};
-
-	    this.matrix = this.linked ? this.parent.matrixWorld : new Matrix4();
-	    this.inv = new Matrix4();
 
 	    // color
 		this.c0 = [ 0.1, 0.1, 0.3 ];
 		this.c1 = [ 0.1, 0.4, 0.6 ];
 		this.c2 = [ 1.0, 0.1, 0.1 ];
-		this.c3 = [ 0.4, 0.1, 0.1 ];
+		this.c3 = [ 0.1, 1.0, 0.1 ];
 
-		// local
-		this._begin = new Vector3().fromArray( o.begin || [0,3,0] );
-	    this._end = new Vector3().fromArray( o.end || [0,0,0] );
+	    this.begin = new Vector3();
+	    this.end = new Vector3(0,1,0);
+	    this.fullDistance = 0;
 
-	    // global
-	    this.begin = new Vector3().copy( this._begin );
-	    this.end = new Vector3().copy( this._end );
+	    this.setRay( o );
 
 	    this.tmp = new Vector3();
 	    this.normal = new Vector3();
@@ -1142,62 +1134,62 @@ class ExtraRay extends Line {
 
 	    this.vertices = this.geometry.attributes.position;
 	    this.colors = this.geometry.attributes.color;
-	    this.local = [ 0, 0, 0, 0, 0, 0 ];
-
-
-
-
-
-	    //this.m = new LineSegments( this.geometry, material )
-	    //this.add(this.m)
-
-	    this.updateGeometry();
+	    this.local = [ 0, 0, 0, 0, 0, 0, 0, 0, 0 ];
 
 	    this.matrixAutoUpdate = false;
+	    this.frustumCulled = false;
+
+	}
+
+	setRay( o ){
+
+		if( o.begin ) this.begin.fromArray( o.begin );
+	    if( o.end ) this.end.fromArray( o.end );
+	    this.fullDistance = this.begin.distanceTo( this.end );
 
 	}
 
 	update ( r, n = 0, body = null ) {
 
-		if( this.linked ){
-			this.inv.copy( this.matrix ).invert();
-			this.begin.copy( this._begin ).applyMatrix4( this.matrix );
-			this.end.copy( this._end ).applyMatrix4( this.matrix );
-
-		} else {
-			this.updateMatrix();
-		}
-
 		this.data.hit = r[n] !== 0 ? true : false;
 		this.data.body = body ? body : '';
 
+		this.data.distance = r[n+1];
+
 		if( this.data.hit ){
 
-			this.tmp.fromArray( r, n+1 );
-			this.normal.fromArray( r, n+4 );//.normalize();
+			this.local[0] = r[n+2];
+			this.local[1] = r[n+3];
+			this.local[2] = r[n+4];
 
-			if( this.linked ){
-				this.tmp.applyMatrix4( this.inv );
-				this.inv.extractRotation( this.inv );
-				this.normal.applyMatrix4( this.inv );//.normalize()
-			}
+			this.tmp.fromArray( r, n+5 );
+			this.normal.fromArray( r, n+8 );
 
 			this.data.point = this.tmp.toArray();
 			this.data.normal = this.normal.toArray();
-			this.data.distance = this._begin.distanceTo( this.tmp );
+			//this.data.distance = this._begin.distanceTo( this.tmp )
 
-			this.tmp.toArray( this.local, 0 );
-			
-			let d = this.tmp.distanceTo( this._end );
-			
-			this.tmp.addScaledVector( this.normal, d );
 			this.tmp.toArray( this.local, 3 );
+			this.tmp.addScaledVector( this.normal, this.fullDistance - this.data.distance );
+			this.tmp.toArray( this.local, 6 );
 
+		} else {
+			if( this.parentMesh ){
+				//this.parentMesh.updateWorldMatrix(false,false )
+				const mtx = this.parentMesh.matrixWorld;
+				this.tmp.copy( this.begin ).applyMatrix4(mtx).toArray( this.local, 0 );
+				this.tmp.copy( this.end ).applyMatrix4(mtx);
+				this.tmp.toArray( this.local, 3 );
+				this.tmp.toArray( this.local, 6 );
+			} else {
+				this.begin.toArray( this.local, 0 );
+				this.end.toArray( this.local, 3 );
+				this.end.toArray( this.local, 6 );
+			}
 		}
 
-
 		this.updateGeometry();
-
+		//this.updateMatrix()
 
 		this.callback( this.data );
 
@@ -1207,57 +1199,40 @@ class ExtraRay extends Line {
 		this.geometry.dispose();
 	}
 
-	updateGeometry (){
+	raycast(){
+		return
+	}
 
-		if ( ! this.visible ) return;
+	updateGeometry(){
+
+		if ( !this.visible ) return;
 
 		let v = this.vertices.array;
 		let c = this.colors.array;
 		let l = this.local;
-		let n, d, i;
+		let hit = this.data.hit;
+		let c1 = hit ? this.c2 : this.c1;
+		let c2 = hit ? this.c3 : this.c1;
 
-		if ( this.data.hit ) {
+		c[ 3 ] = c1[0];
+		c[ 4 ] = c1[1];
+		c[ 5 ] = c1[2];
 
-			c[ 3 ] = c[ 6 ] = this.c2[ 0 ];
-			c[ 4 ] = c[ 7 ] = this.c2[ 1 ];
-			c[ 5 ] = c[ 8 ] = this.c2[ 2 ];
+		c[ 6 ] = c2[0];
+		c[ 7 ] = c2[1];
+		c[ 8 ] = c2[2];
 
-			c[ 6 ] = this.c3[ 0 ];
-			c[ 7 ] = this.c3[ 1 ];
-			c[ 8 ] = this.c3[ 2 ];
+		v[ 0 ] = l[ 0 ];
+		v[ 1 ] = l[ 1 ];
+		v[ 2 ] = l[ 2 ];
 
-			v[ 0 ] = this._begin.x;
-			v[ 1 ] = this._begin.y;
-			v[ 2 ] = this._begin.z;
-
-			v[ 3 ] = l[ 0 ];
-			v[ 4 ] = l[ 1 ];
-			v[ 5 ] = l[ 2 ];
-			
-			v[ 6 ] = l[ 3 ];
-			v[ 7 ] = l[ 4 ];
-			v[ 8 ] = l[ 5 ];
-
-		} else {
-
-			i = 3;
-
-			while ( i -- ) {
-
-				n = i * 3;
-				d = i === 0 ? true : false;
-
-				c[ n ] = d ? this.c0[ 0 ] : this.c1[ 0 ];
-				c[ n + 1 ] = d ? this.c0[ 1 ] : this.c1[ 1 ];
-				c[ n + 2 ] = d ? this.c0[ 2 ] : this.c1[ 2 ];
-
-				v[ n ] = d ? this._begin.x : this._end.x;
-				v[ n + 1 ] = d ? this._begin.y : this._end.y;
-				v[ n + 2 ] = d ? this._begin.z : this._end.z;
-
-			}
-
-		}
+		v[ 3 ] = l[ 3 ];
+		v[ 4 ] = l[ 4 ];
+		v[ 5 ] = l[ 5 ];
+		
+		v[ 6 ] = l[ 6 ];
+		v[ 7 ] = l[ 7 ];
+		v[ 8 ] = l[ 8 ];
 
 		this.vertices.needsUpdate = true;
 	    this.colors.needsUpdate = true;
@@ -4922,6 +4897,32 @@ class Body extends Item {
 
 	    }
 
+	    if( o.type==='stair' ){
+
+	    	//let h = s[1]
+	    	//s[1] = h * 0.2
+	    	//o.rot = [0, 40, 0]
+
+
+	    	// convert geometry to convex if not in physics
+	    	//let geom = new Stair( o.size );//24
+	    	//o.v = math.getVertex( geom )
+	    	o.type = 'box';
+
+	    	t = 'box';
+
+	    }
+
+	    /*if( o.type==='stair' ){
+
+	    	// convert geometry to convex if not in physics
+	    	let geom = new Stair( o.size );//24
+	    	o.v = math.getVertex( geom )
+	    	o.type = 'convex';
+	    	t = 'convex';
+
+	    }*/
+
 		switch( t ){
 
 			case 'direct':
@@ -4931,7 +4932,18 @@ class Body extends Item {
 			    unic = true;
 			    noScale = true;
 
+
 			break;
+
+			/*case 'stair':
+
+			    g = new Stair( o.size );//24
+	    	    o.v = math.getVertex( g )
+	    	    o.type = 'convex';
+	    	    unic = true;
+				noScale = true;
+
+			break;*/
 
 			case 'convex':
 
@@ -5127,6 +5139,23 @@ class Body extends Item {
 		o.type = o.type === undefined ? 'box' : o.type;
 
 		if( o.type === 'plane' && !o.visible ) o.visible = false;
+
+
+		if( o.type === 'stair'){ 
+
+			let v1 = new Vector3(0,0,o.size[2]);
+			let v2 = new Vector3(0, o.size[1]*0.5,o.size[2]*0.5);
+			let angle = v1.angleTo(v2);
+			let dist = v1.distanceTo(v2);
+			o.rot = [angle * todeg$1,0,0];
+			o.size[1] *= o.div || 0.2;
+			o.size[2] = dist*2;
+		
+		    let p1 = new Vector3(0,-o.size[1]*0.5,0);
+		    p1.applyAxisAngle({x:1, y:0, z:0},angle);
+			o.pos[1] += p1.y;
+			o.pos[2] += p1.z;
+		}
 
 		// change default center of mass 
 		if( o.massCenter && root.engine !== 'PHYSX'){
@@ -19911,7 +19940,7 @@ const GlbTool = {
 			g[i].forceMatId = n;
 		}
 
-		let mesh = new THREE.Mesh( new mergeBufferGeometries( g, true ), autoMaterial );
+		let mesh = new THREE.Mesh( new mergeGeometries( g, true ), autoMaterial );
 		mesh.name = group.name;
 
 		return mesh
@@ -22421,9 +22450,14 @@ class SkeletonBody extends Object3D {
         this.posRef = {};
         this.quatRef = {};
 
+        this.useSolver = false; 
+        if( root.engine!=='PHYSX' ) this.useSolver = false;
+
         this.nameList = [];
 
         this.breast = false;
+
+
 
 		this.init();
 
@@ -22454,6 +22488,7 @@ class SkeletonBody extends Object3D {
     }
 
     freeBone(node){
+
         if(!node.kinematic) return
         node.cc++;
         if(node.cc=== 20 ){
@@ -22478,6 +22513,11 @@ class SkeletonBody extends Object3D {
 
 	init(){
 
+        if( this.useSolver ) this.solver = root.motor.add({ 
+            type:'solver', name:this.prefix+'_solver', iteration:32,
+            fix:true, needData:true
+        });
+
 		const meshData = [];
 
         // get character bones var bones = character.skeleton.bones;
@@ -22498,7 +22538,7 @@ class SkeletonBody extends Object3D {
         //let headDone = false
 
         let i, lng = this.bones.length, name, n, bone, parent;///, child, o, parentName;
-        let size, dist, rot, type, kinematic, translate, phyName, motion;
+        let size, dist, rot, type, kinematic, translate, phyName, motion, link;
 
         for( i = 0; i < lng; i++ ){
 
@@ -22521,88 +22561,67 @@ class SkeletonBody extends Object3D {
                 rot = null;//[0,0,0];
                 kinematic = true;
                 motion = false;
+                link = 'null';
+
 
                 // body
-                //if( n==='head' && name === 'End_head' ){ type = 'box'; size = [ 0.16, 0.2, dist ]; translate = [ 0, 0.025, -dist * 0.5 ]; }
-                if( n==='head' && name === 'End_head' ){ type = 'capsule'; size = [ 0.1, dist-0.17 ]; translate = [ 0, 0.02, (-dist * 0.5)+0.02 ]; rot = [90,0,0]; }
-                if( n==='neck' && name === 'head' ){ type = 'capsule'; size = [ 0.06, dist ]; translate = [ 0, 0, -dist * 0.5 ]; rot = [90,0,0]; }
+
+                if( n==='hip' && name==='abdomen' ){ type = 'capsule'; size = [  dist*1.8, 0.08 ]; translate = [ 0, 0, -dist * 0.5 ]; rot = [0,0,90]; link='null';}
+                if( n==='abdomen' && name==='chest'  ){ type = 'capsule'; size = [ dist*0.7, 0.08   ]; translate = [ 0, 0, (-dist * 0.5)-0.06 ]; rot = [90,0,0]; link='hip';}
+                if( n==='chest' && name==='neck' ){ type = 'capsule'; size = [  dist*0.4, 0.04  ]; translate = [ 0, 0, (-dist * 0.5)-0.02 ]; rot = [0,0,90]; link='abdomen';}
+                if( n==='neck' && name === 'head' ){ type = 'capsule'; size = [ 0.06, dist ]; translate = [ 0, 0, -dist * 0.5 ]; rot = [90,0,0]; link='chest'; }
+                if( n==='head' && name === 'End_head' ){ type = 'capsule'; size = [ 0.1, dist-0.17 ]; translate = [ 0, 0.02, (-dist * 0.5)+0.02 ]; rot = [90,0,0]; link='neck'; }
+                
                 //if( n==='head' && !headDone ){ console.log(name); headDone = true; type = 'sphere'; dist=0.08; size = [ 0.08, 0.2, dist ]; translate = [ 0, 0.025, -0.08 ]; }
 
 	            /*if( n==='chest' && name==='neck' ){ type = 'box'; size = [  0.28, 0.24, dist ]; translate = [ 0, 0, -dist * 0.5 ]; }
 	            if( n==='abdomen' && name==='chest'  ){ type = 'box'; size = [ 0.24, 0.20,  dist ]; translate = [ 0, 0, -dist * 0.5 ]; }
                 if( n==='hip' && name==='abdomen' ){ type = 'box'; size = [  0.28, 0.24, dist ]; translate = [ 0, 0, -dist * 0.5 ]; }*/
 
-                if( n==='chest' && name==='neck' ){ type = 'capsule'; size = [  dist*0.4, 0.04  ]; translate = [ 0, 0, (-dist * 0.5)-0.02 ]; rot = [0,0,90]; }
-                if( n==='abdomen' && name==='chest'  ){ type = 'capsule'; size = [ dist*0.7, 0.08   ]; translate = [ 0, 0, (-dist * 0.5)-0.06 ]; rot = [90,0,0]; }
-                if( n==='hip' && name==='abdomen' ){ type = 'capsule'; size = [  dist*1.8, 0.08 ]; translate = [ 0, 0, -dist * 0.5 ]; rot = [0,0,90]; }
-
-
-                if( n==='chest' && name==='rBreast' && root.engine!=='HAVOK' ){ n='rBreast'; parent = bone; type = 'sphere'; size = [ 0.065 ]; translate = [ 0.065,0,0 ]; this.breast=true; motion = true; }
-                if( n==='chest' && name==='lBreast' && root.engine!=='HAVOK' ){ n='lBreast'; parent = bone; type = 'sphere'; size = [ 0.065 ]; translate = [ 0.065,0,0 ]; this.breast=true; motion = true; }
+                
+                
                 
 
-	             // legs
-	            //if( n==='rThigh' ){ type = 'box'; size = [  0.13, 0.13, dist ];  }
-	            //if( n==='rShin' ){ type = 'box'; size = [  0.12, 0.12, dist+ 0.05, ]; translate[2] += 0.025; }
 
-                //if( n==='lThigh' ){ type = 'box'; size = [  0.13, 0.13 , dist ];  }
-	            //if( n==='lShin' ){ type = 'box'; size = [  0.12, 0.12, dist+ 0.05, ]; translate[2] += 0.025; }
+                if( n==='chest' && name==='rBreast' && root.engine!=='HAVOK' ){ n='rBreast'; parent = bone; type = 'sphere'; size = [ 0.065 ]; translate = [ 0.065,0,0 ]; this.breast=true; motion = true; link='chest'; }
+                if( n==='chest' && name==='lBreast' && root.engine!=='HAVOK' ){ n='lBreast'; parent = bone; type = 'sphere'; size = [ 0.065 ]; translate = [ 0.065,0,0 ]; this.breast=true; motion = true; link='chest'; }
+                
 
-                if( n==='rThigh' ){ type = 'capsule'; size = [  0.08, dist ]; rot = [90,0,0]; }
-                if( n==='rShin' ){ type = 'capsule'; size = [  0.065, dist ]; rot = [90,0,0]; }
-                //if( n==='rFoot' ){ type = 'box'; size = [  0.1, dist*1.4, 0.06 ]; translate = [0, (dist * 0.5)-0.025, 0.06 ]; }
-                if( n==='rFoot' ){ type = 'capsule'; size = [  0.05, dist*1.4 ]; translate = [0, (dist * 0.5)-0.025, 0.06 ]; }
+                // arm
 
-                if( n==='lThigh' ){ type = 'capsule'; size = [  0.08, dist ]; rot = [90,0,0]; }
-                if( n==='lShin' ){ type = 'capsule'; size = [  0.065, dist ]; rot = [90,0,0]; }
-                //if( n==='lFoot' ){ type = 'box'; size = [  0.1, dist*1.4, 0.06 ]; translate = [0, (dist * 0.5)-0.025, 0.06 ]; }
-                if( n==='lFoot' ){ type = 'capsule'; size = [  0.05, dist*1.4 ]; translate = [0, (dist * 0.5)-0.025, 0.06 ]; }
+                if( n==='lCollar' && name==='lShldr'){ type = 'capsule'; size = [  0.05, dist*0.3 ]; translate = [dist*0.6 , 0, 0 ]; rot = [0,0,90]; link='chest'; }
+                if( n==='lShldr' && name==='lForeArm'){ type = 'capsule'; size = [  0.05, dist ]; translate = [dist * 0.5, 0, 0 ]; rot = [0,0,90]; link='lCollar'; }
+                if( n==='lForeArm' && name==='lHand'){ type = 'capsule'; size = [ 0.04, dist ]; translate = [dist * 0.5, 0, 0 ]; rot = [0,0,90]; link='lShldr'; }
+                if( n==='lHand' && name==='lMid1'){ type = 'box'; size = [ dist*2, 0.09, 0.05 ]; translate = [dist, 0, 0 ]; link='lForeArm'; }
 
-	            // arm
+                if( n==='rCollar' && name==='rShldr'){ type = 'capsule'; size = [  0.05, dist*0.3 ]; translate = [-dist*0.6, 0, 0 ]; rot = [0,0,90]; link='chest'; }
+                if( n==='rShldr' && name==='rForeArm'){ type = 'capsule'; size = [  0.05, dist ]; translate = [-dist * 0.5, 0, 0 ]; rot = [0,0,90]; link='rCollar'; }
+                if( n==='rForeArm' && name==='rHand' ){ type = 'capsule'; size = [ 0.04, dist ]; translate = [-dist * 0.5, 0, 0 ]; rot = [0,0,90]; link='rShldr'; }
+                if( n==='rHand' && name==='rMid1'){ type = 'box'; size = [ dist*2, 0.09, 0.05 ]; translate = [-dist, 0, 0 ]; link='rForeArm'; }
 
-                if( n==='rCollar' && name==='rShldr'){ type = 'capsule'; size = [  0.05, dist*0.3 ]; translate = [-dist*0.6, 0, 0 ]; rot = [0,0,90];}
-                if( n==='rShldr' && name==='rForeArm'){ type = 'capsule'; size = [  0.05, dist ]; translate = [-dist * 0.5, 0, 0 ]; rot = [0,0,90];}
-                if( n==='rForeArm' && name==='rHand' ){ type = 'capsule'; size = [ 0.04, dist ]; translate = [-dist * 0.5, 0, 0 ]; rot = [0,0,90];}
-                if( n==='rHand' && name==='rMid1'){ type = 'box'; size = [ dist*2, 0.09, 0.05 ]; translate = [-dist, 0, 0 ]; }
-
-                if( n==='lCollar' && name==='lShldr'){ type = 'capsule'; size = [  0.05, dist*0.3 ]; translate = [dist*0.6 , 0, 0 ]; rot = [0,0,90];}
-                if( n==='lShldr' && name==='lForeArm'){ type = 'capsule'; size = [  0.05, dist ]; translate = [dist * 0.5, 0, 0 ]; rot = [0,0,90];}
-                if( n==='lForeArm' && name==='lHand'){ type = 'capsule'; size = [ 0.04, dist ]; translate = [dist * 0.5, 0, 0 ]; rot = [0,0,90];}
-                if( n==='lHand' && name==='lMid1'){ type = 'box'; size = [ dist*2, 0.09, 0.05 ]; translate = [dist, 0, 0 ];  }
+                
 
 
-                /*if( n==='head' ){ type = 'capsule'; size = [ 7.5, 8.6, 7.5 ]; r = 90; }
-                if( n==='neck' && name==='head' ){    type = 'box'; size = [ dist, 6, 6 ]; r = 0; }
-                if( n==='chest' && name==='neck' ){   type = 'box'; size = [ dist, 15, 13 ]; r = 0; }
-                if( n==='abdomen' && name==='chest'){ type = 'box'; size = [ dist, 14, 12 ]; r = 0; }
-                //if( n==='hip' && name==='abdomen' ){  type = 'box'; size = [ dist, 13, 11 ]; r = 0; }
-                if( n==='hip' && name==='abdomen' ){  type = 'capsule'; size = [ 4, 24.4, 4 ]; r = 0; translate = [ 0, 0, 0 ]}
-                // arms
-                if( n==='lCollar' || n==='rCollar' ){    type = 'cylinder'; size = [ 3, dist, 3 ]; }
-                if( n==='rShldr' && name==='rForeArm' ){ type = 'cylinder'; size = [ 3, dist, 3 ]; }
-                if( n==='lShldr' && name==='lForeArm' ){ type = 'cylinder'; size = [ 3, dist, 3 ]; }
-                if( n==='rForeArm' && name==='rHand' ){  type = 'cylinder'; size = [ 2.6, dist, 2.6 ]; }
-                if( n==='lForeArm' && name==='lHand' ){  type = 'cylinder'; size = [ 2.6, dist, 2.6 ]; }
-                // hand
-                if( n==='rHand' && name==='rMid1' ){  type = 'box'; size = [ dist, 2, 4 ]; r = -5; translate = [ -dist * 0.5, 0.5, 0 ]}
-                if( n==='lHand' && name==='lMid1' ){  type = 'box'; size = [ dist, 2, 4 ]; r = 5; translate = [ -dist * 0.5, -0.5, 0 ]}
-                // fingers
-                let f = n.substring( 1, n.length-1 );
-                let fnum = 4 - Number(n.substring( n.length-1 ));
-                if( fingers.indexOf(f) !== -1 ){
-                    let sx = f === 'Thumb' ? 1+(fnum*0.25) : 1+(fnum*0.1);
-                    type = 'box'; size = [ dist, sx, sx ]; r=0; 
-                }
-                // legs
-                if( n==='rThigh' && name==='rShin' ){ type = 'cylinder'; size = [ 4, dist, 4 ]; }
-                if( n==='lThigh' && name==='lShin' ){ type = 'cylinder'; size = [ 4, dist, 4 ]; }
-                if( n==='rShin' && name==='rFoot' ){  type = 'cylinder'; size = [ 3, dist, 3 ]; }
-                if( n==='lShin' && name==='lFoot' ){  type = 'cylinder'; size = [ 3, dist, 3 ]; }
-                // foot
-                if( n==='rFoot' && name==='rToes' ){ type = 'box'; size = [ 4, 5, 9 ]; r = 0; translate = [ -1, 0, -2.5 ]; }
-                if( n==='lFoot' && name==='lToes' ){ type = 'box'; size = [ 4, 5, 9 ]; r = 0; translate = [ -1, 0, -2.5 ]; }
-                if( n==='rToes' ){ type = 'box'; size = [ dist+1, 5, 3 ]; r = 0; translate = [ (-dist * 0.5)-0.5, 0, -1.5 ];}
-                if( n==='lToes' ){ type = 'box'; size = [ dist+1, 5, 3 ]; r = 0; translate = [ (-dist * 0.5)-0.5, 0, -1.5 ];}*/
+	            // legs
+
+                if( n==='lThigh' ){ type = 'capsule'; size = [  0.08, dist ]; rot = [90,0,0]; link='hip'; }
+                if( n==='lShin' ){ type = 'capsule'; size = [  0.065, dist ]; rot = [90,0,0]; link='lThigh'; }
+                //if( n==='lFoot' ){ type = 'box'; size = [  0.1, dist*1.4, 0.06 ]; translate = [0, (dist * 0.5)-0.025, 0.06 ]; link:'lShin'; }
+                if( n==='lFoot' ){ type = 'capsule'; size = [  0.05, dist ]; translate = [0, (dist * 0.5)-0.025, 0.04 ]; link='lShin'; }
+
+                if( n==='rThigh' ){ type = 'capsule'; size = [  0.08, dist ]; rot = [90,0,0]; link='hip'; }
+                if( n==='rShin' ){ type = 'capsule'; size = [  0.065, dist ]; rot = [90,0,0]; link='rThigh'; }
+                //if( n==='rFoot' ){ type = 'box'; size = [  0.1, dist*1.4, 0.06 ]; translate = [0, (dist * 0.5)-0.025, 0.06 ]; link:'rShin';}
+                if( n==='rFoot' ){ type = 'capsule'; size = [  0.05, dist ]; translate = [0, (dist * 0.5)-0.025, 0.04 ]; link='rShin'; }
+
+
+
+                //if( n==='rFoot' && name==='lToes' ){ n='lToes'; parent = bone; type = 'capsule'; size = [  0.05, 0.1 ]; translate = [0, 0, 0 ]; link='rFoot'; rot = [0,0,0]; }
+                //if( n==='lFoot' && name==='rToes' ){ n='rToes'; parent = bone; type = 'capsule'; size = [  0.05, 0.1 ]; translate = [0, 0, 0 ]; link='rFoot'; rot = [0,0,0]; }
+
+                
+
+	            
 
                 if( type !== null ){
 
@@ -22646,6 +22665,8 @@ class SkeletonBody extends Object3D {
                         mask:1|2,
                         material:'bones2',
                         neverSleep: true,
+
+                        //linked:link,
                         //iterations:[4,4],
 
 
@@ -22654,6 +22675,12 @@ class SkeletonBody extends Object3D {
                         decalinv:tmpMtx.clone().invert(),*/
                         
                     };
+
+                    if( this.useSolver ){
+                        data['solver'] = this.prefix+'_solver';
+                        data['linked'] = this.prefix+'_bone_'+link;
+                        data['kinematic'] = false;
+                    }
 
                     meshData.push( data );
 
@@ -22675,9 +22702,12 @@ class SkeletonBody extends Object3D {
             }
         }
 
-        //console.log( this.posRef )
+        //console.log( meshData )
 
         root.motor.add( meshData );
+
+        if( this.useSolver ) this.solver.start();
+       
         this.addLink ();
 
 	}
@@ -22770,6 +22800,11 @@ class SkeletonBody extends Object3D {
             x++;
         }
 
+
+        /*if( this.useSolver ){
+        } else {
+            
+        }*/
         root.motor.add( data );
 
         //console.log(this.nameList)
@@ -25001,9 +25036,13 @@ class Articulation {//extends Basic3D
 			j.data.target.y = AR[ m + 1];
 			j.data.target.z = AR[ m + 2];
 
-			j.data.target.twiwt = Math.round( AR[ m + 3] );
-			j.data.target.swing1 = Math.round( AR[ m + 4] );
-			j.data.target.swing2 = Math.round( AR[ m + 5] );
+			j.data.target.rx = Math.round( AR[ m + 3] );
+			j.data.target.ry = Math.round( AR[ m + 4] );
+			j.data.target.rz = Math.round( AR[ m + 5] );
+
+			/*j.data.target.twiwt = Math.round( AR[ m + 3] )
+			j.data.target.swing1 = Math.round( AR[ m + 4] )
+			j.data.target.swing2 = Math.round( AR[ m + 5] )*/
 
 			j.data.target.count = AR[ m + 6 ];
 
@@ -25120,7 +25159,9 @@ class SolverJoint {
 
 		this.data = {
 
-			target:{ x:0, y:0, z:0, twist:0, swing1:0, swing2:0, count:0 },
+			target:{ x:0, y:0, z:0, rx:0, ry:0, rz:0, count:0 },
+
+			//target:{ x:0, y:0, z:0, twist:0, swing1:0, swing2:0, count:0 },
 
 		};
 
@@ -27525,8 +27566,6 @@ class Motor {
 
 		if( timer.up( stamp ) ) {
 
-
-			
 			root.post( { m:'step', o:stamp } );
 		}
 
@@ -27736,13 +27775,15 @@ class Motor {
 	static initItems () {
 
 		items = {
-			ray : new Ray(), 
 			body : new Body(), 
 			solid : new Solid(), 
+			character : new Character(),
+			ray : new Ray(),
 			joint : new Joint(), 
 			contact : new Contact(), 
 			terrain : new Terrain(), 
-			character : new Character()
+			
+			
 		};
 
 		if( root.engine === 'PHYSX' || root.engine === 'AMMO' ){ 
@@ -27785,7 +27826,14 @@ class Motor {
 		}*/
 	}
 
-	static adds ( r = [], direct ){ for( let o in r ) Motor.add( r[o], direct ); }
+	static adds ( r = [], direct ){ 
+		let i = r.length, n = 0;
+		while(i--){
+			 Motor.add( r[n], direct ); 
+			 n++;
+		}
+		//for( let o in r ) Motor.add( r[o], direct ) 
+	}
 
 	static add ( o = {}, direct = false ){
 

@@ -1,17 +1,25 @@
 let px = 5
 let side = 0
+let onFloor = 0
 let ready = false
 let bob = null
+let distance = 0
+let maxY = 0
 
 
 demo = () => {
 
     phy.view({
-        distance:20
+        distance:30
     })
     
     // config physics setting
-    phy.set( {substep:1, gravity:[0,-9.81,0]} )
+    phy.set( {
+        substep:1, 
+        gravity:[0,-9.81,0],
+        //pcm:false, // bug in physx on stair ? 
+
+    })
 
     // add static ground
     phy.add({ type:'plane', size:[300,1,300], visible:false })
@@ -20,6 +28,12 @@ demo = () => {
     phy.add({ type:'box', size:[4,4,4], pos:[-9,2,0] })
     phy.add({ type:'box', size:[4,2,4], pos:[9,1,4] })
     phy.add({ type:'box', size:[4,2,4], pos:[-9,1,4] })
+
+    phy.add({ type:'stair', size:[2,2,3], pos:[-9,1,7.5], friction:0 })
+    phy.add({ type:'stair', size:[2,2,3], pos:[9,1,7.5], friction:0 })
+
+    phy.add({ type:'stair', size:[2,2,3], pos:[-9,3,3.5], friction:0 })
+    phy.add({ type:'stair', size:[2,2,3], pos:[9,3,3.5], friction:0 })
 
     addBridge()
 
@@ -34,13 +48,15 @@ demo = () => {
     }
 
     // platform test
-    phy.add({ type:'box', name:'kine', size:[4,0.4,4], pos:[ px, 1.8, 4 ], radius:0.02, kinematic:true, density: 0, friction:1, neverSleep:true });
-    phy.add({ type:'box', name:'truc', size:[1,1,1], pos:[ px, 2.9, 4 ], radius:0.02, density: 0.1, friction:1 });
-
-    phy.setPostUpdate ( update )
-    phy.setTimeout( go, 4000 )
+    phy.add({ type:'box', name:'kine', size:[4,0.4,4], pos:[ px, 1.8, 4 ], radius:0.04,  density:1, kinematic:true, density: 0, friction:1 });
+    phy.add({ type:'box', name:'truc', size:[1,1,1], pos:[ px, 2.9, 4 ], radius:0.02, density:1, friction:1 });
 
     addCharacter()
+
+    phy.setPostUpdate ( update )
+    phy.setTimeout( go, 0 )
+
+    
 
 }
 
@@ -55,7 +71,7 @@ const addBridge = ( width = 4, height = 0.3, length = 0.7 ) => {
     
     while( i-- ){
         x = (i - (num - 1) * 0.5) * (length + gap);
-        data.push({ type:'box', name:'b'+i, size:size, pos:[ x, 4-(height*0.5), 0 ], radius:0.02, density: i == 0 || i == num - 1? 0 : 1 });
+        data.push({ type:'box', name:'b'+i, size:size, pos:[ x, 4-(height*0.5), 0 ], radius:0.02, density: i == 0 || i == num - 1? 0 : 10 });
     }
 
     i = num-1
@@ -80,8 +96,6 @@ const go = () => {
     side = -1
     ready = true
 
-    
-
 }
 
 const update = () => {
@@ -93,9 +107,9 @@ const update = () => {
     if(px>=5) side = -1
     
 
-    phy.change({name:'kine', pos:[ px, 1.8, 4 ], acc:true})
+    phy.change({name:'kine', pos:[ px, 1.8, 4 ], rot:[ 0, (px-5)*18, 0 ] })
 
-   if(bob) updateCharacter()
+   if( bob ) updateCharacter()
 
 }
 
@@ -118,37 +132,58 @@ const addCharacter = () => {
 
     let r = 0.35
     let h = 1.8-(2*r)
+    let py = (h*0.5)+r
 
     bob = phy.add({ 
         type:'capsule', 
         name:'bob', 
         material:'hero', 
 
-        size:[ r, h ], pos:[-9,h*0.5,7], angularFactor:[0,0,0], 
+        size:[ r, h ], pos:[-9,py,10], angularFactor:[0,0,0], 
         density:1,  friction:0.5, group:32,
         //damping:[0.01,0],
-        //material:'debug',
+        material:'debug',
         inertia:[0,0,0],
         //order:'YXZ',
         regular:true,
         //filter:[1,-1,[4,5, 11], 0]
-        filter:[1,-1,[1, 3, 4,5,9], 0],
+        //filter:[1,-1,[1, 3, 4,5,9], 0],
         //ray:false,
         noGravity:true,
     })
 
+    maxY = r//py
+
+    phy.add({ type:'ray', name:'bob_ray', begin:[0,-h*0.5,0], end:[0,-5, 0], callback:bobRay, visible:true, parent:'bob' })
+
     //phy.follow('bob', { direct:true, simple:true, decal:[0.3, 1, -0.3] })
+
+}
+
+const bobRay = ( b) => {
+
+    //console.log(b)
+    if(b.hit) distance = b.distance
+    else distance = maxY
+
+    //if(b.hit) 
+     //   console.log(distance>=maxY)
+
 
 }
 
 const updateCharacter = () => {
 
     let delta = phy.getDelta()
-    let r = phy.getAzimut()
+    let r = 0//phy.getAzimut()
     let key = phy.getKey()
 
     let anim = key[7] !== 0 ? 'run' : 'walk'
     if( key[0] === 0 && key[1] === 0 ) anim = 'idle'
+
+    let py = bob.position.y-oy
+
+    let up = py>0 && py<0.1
 
     let m = key[0] !== 0 && key[1] !== 0 ? diagonal : 1
     
@@ -157,11 +192,14 @@ const updateCharacter = () => {
         tmpAcc += 0.2//math.lerp( tmpAcc, 1, delta/10 )
         tmpAcc = math.clamp( tmpAcc, 1, speed[anim] )
 
+        if(jump)tmpAcc = 0
+
         rs += key[0] * tmpAcc//* delta
         ts += key[1] * tmpAcc//* delta
-    } //else {
-    //    tmpAcc -= 0.01
-    //}
+    } /*else {
+       tmpAcc += 0.01
+    }*/
+
     if( key[0] === 0 && key[1] === 0 ) tmpAcc = 0//*= 0.9
     if( key[0] === 0 ) rs = 0
     if( key[1] === 0 ) ts = 0
@@ -178,10 +216,16 @@ const updateCharacter = () => {
             vy = 0; 
             if( bob.position.y === oy ) jump = false;
         }
+            
+        
+        
     }
 
     // gravity
-    let g = (-9.81) + vy;
+    let g = vy//(-9.81) + vy;
+
+    if(distance > maxY) g -= 9.81
+    //if(up&&!jump) g = -1
 
 
     tmpV1.set( rs, g, ts ).applyAxisAngle( { x:0, y:1, z:0 }, r );
