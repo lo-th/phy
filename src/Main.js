@@ -115,13 +115,13 @@ const options = {
 	exposure: 1,
 	envPower: 1,
 
-	light_1: 3,
-	light_2: 1.5,
+	light_1: 2.5,
+	light_2: 1,
 
 	show_light: false,
 	show_stat: false,
 
-	shadow:0.7,//0.25,
+	shadow:0.5,//0.25,
 	shadowType:'PCSS',
 	shadowGamma:1,//0.25,//1,
 	shadowLuma:0.5, //0.75,//0,

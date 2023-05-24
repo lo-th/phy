@@ -60,10 +60,12 @@ export class Avatar extends Group {
         this.matrixAutoUpdate = false;
         this.isPause = true;
 
-        this.textureQuality = o.quality || 1;
+        this.textureQuality = o.quality || 2;
 
         this.model = o.type || 'man';
         this.startAnimation = o.anim || 'idle'
+
+        
 
         this.ref = null
 
@@ -74,7 +76,7 @@ export class Avatar extends Group {
 
 
         this.compact = o.compact !== undefined ? o.compact : true
-        this.haveMorph = o.morph !== undefined ? o.morph : true
+        this.haveMorph = o.morph !== undefined ? o.morph : false
         this.fullMaterial = o.material !== undefined ? o.material : true
 
         this.size = o.size || 1;
@@ -92,6 +94,8 @@ export class Avatar extends Group {
         
         this.isBreath = this.ref.isBreath;
         this.isEyeMove = this.ref.isEyeMove;
+
+        this.decalY = this.ref.decalY || 0
 
         this.tensionTest = false;
         this.tensionActive = false;
@@ -178,7 +182,7 @@ export class Avatar extends Group {
         
         const asset = [model+'.glb']
         const path = this.rootPath + this.ref.modelPath
-        if( this.ref.haveMorph ) asset.push( model+'_morph.glb' )
+        if( this.ref.haveMorph && this.haveMorph ) asset.push( model+'_morph.glb' )
         Pool.load( asset, this.init.bind(this), path, 'loading models...' )
 
     }
@@ -247,6 +251,7 @@ export class Avatar extends Group {
 
         if( !this.bones ) return;
         if( !this.isBreath ) return;
+        if( !this.skeleton.setScalling ) return;
 
         let a = this.breath*0.01
 
@@ -257,6 +262,7 @@ export class Avatar extends Group {
             this.skeleton.setScalling( this.bones.chest, this.lerp (1.02,1, a), this.lerp (1.04,1, a), 1 )
             this.skeleton.setScalling( this.bones.abdomen, 1, this.lerp (0.92,1, a), 1 )
         }
+
 
         // !! just for testing 
         //this.skeleton.setScalling( this.bones.lShldr, 1.3, 2, 2 )
@@ -324,6 +330,10 @@ export class Avatar extends Group {
 
     }
 
+    getMaterial( name ){
+        return Pool.getMaterial( name )
+    }
+
     init(){
 
         this.initMaterial()
@@ -343,7 +353,7 @@ export class Avatar extends Group {
                     this.skeleton = node.skeleton;
                     if( this.skeleton.resetScalling ) this.skeleton.resetScalling()
                 }
-                node.raycast = function(){}
+                node.raycast = function(){ return }
                 this.mesh[node.name] = node;
             }
             if ( node.isBone ){
@@ -366,7 +376,6 @@ export class Avatar extends Group {
         }
 
         if( !this.isClone ){
-
             // add morph 
             if( this.haveMorph ) Pool.applyMorph( this.model+'_morph', this.mesh, true, false );
             Pool.set( this.model, this.root, 'O' )
@@ -470,10 +479,12 @@ export class Avatar extends Group {
         if( this.helper ) this.addHelper()
 
         this.stop();
+        //if( this.skeleton.resetScalling ) this.skeleton.resetScalling()
         this.mixer.uncacheRoot( this );
 
         //if(this.skeleton.boneTexture)this.skeleton.boneTexture.dispose();
         this.remove( this.root );
+
         this.skeleton.dispose();
         this.parent.remove(this);
         
@@ -890,7 +901,7 @@ export class Avatar extends Group {
         this.actions.forEach( function ( action ) { action.play(); });
     }
 
-    timescale( timescale ) {
+    setTimescale( timescale ) {
 
 
         this.actions.forEach( function ( action ) { action.setEffectiveTimeScale( timescale ); });
@@ -906,12 +917,12 @@ export class Avatar extends Group {
 
     }
 
-    setTimescale( action, timescale ) {
+    /*setTimescale( action, timescale ) {
 
         action.enabled = true;
         action.setEffectiveTimeScale( timescale );
 
-    }
+    }*/
 
     setWeight( action, weight ) {
 

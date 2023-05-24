@@ -32,6 +32,8 @@ export class SkeletonBody extends Object3D {
 
         this.mode = 'follow'
 
+        this.withFinger = false
+
         this.nodes = []
 		this.bones = character.model.skeleton.bones;
 		this.model = character.model.root;
@@ -45,7 +47,7 @@ export class SkeletonBody extends Object3D {
 
         this.breast = false
 
-
+        this.ready = false
 
 		this.init()
 
@@ -53,29 +55,30 @@ export class SkeletonBody extends Object3D {
 
     setMode( mode ){
 
-        if(mode === this.mode ) return
+        if( mode === this.mode ) return
+
         this.mode = mode
-        const meshData = []
+        const data = []
 
         let kinematic = this.mode === 'follow'
 
         let i = this.nodes.length, node
+
         while( i-- ){
 
             node = this.nodes[i]
 
-            meshData.push( { name : node.name, kinematic:kinematic } )
+            data.push( { name : node.name, kinematic:kinematic } )
             node.kinematic = kinematic
             node.bone.isPhysics = !kinematic;
-
             
         }
 
-        root.motor.change( meshData )
+        root.motor.change( data )
 
     }
 
-    freeBone(node){
+    freeBone( node ){
 
         if(!node.kinematic) return
         node.cc++
@@ -106,7 +109,7 @@ export class SkeletonBody extends Object3D {
             fix:true, needData:true
         });
 
-		const meshData = []
+		const data = []
         
         const fingers = [ 'Thumb', 'Index', 'Mid', 'Ring', 'Pinky' ];
 
@@ -209,6 +212,22 @@ export class SkeletonBody extends Object3D {
                 //if( n==='rFoot' && name==='lToes' ){ n='lToes'; parent = bone; type = 'capsule'; size = [  0.05, 0.1 ]; translate = [0, 0, 0 ]; link='rFoot'; rot = [0,0,0]; }
                 //if( n==='lFoot' && name==='rToes' ){ n='rToes'; parent = bone; type = 'capsule'; size = [  0.05, 0.1 ]; translate = [0, 0, 0 ]; link='rFoot'; rot = [0,0,0]; }
 
+                if( this.withFinger ) {
+
+                    if( n==='lHand' && name==='lMid1'){ type = 'box'; size = [ dist, 0.09, 0.05 ]; translate = [dist*0.5, 0, 0 ]; link='lForeArm'; }
+                    if( n==='rHand' && name==='rMid1'){ type = 'box'; size = [ dist, 0.09, 0.05 ]; translate = [-dist*0.5, 0, 0 ]; link='rForeArm'; }
+
+
+                    if( n==='rThumb1' && name==='rThumb2' ){ type = 'capsule'; size = [  0.02, dist ]; rot = [0,0,90]; link='rHand'; }
+                    if( n==='rThumb2' && name==='rThumb3' ){ type = 'capsule'; size = [  0.02, dist ]; rot = [0,0,90]; link='rHand'; }
+
+
+                    if( n==='rHand' && name==='rMid1' ){ type = 'capsule'; size = [  0.02, dist ]; rot = [0,0,90];translate = [-dist*0.6, 0, 0 ]; link='rHand'; }
+                    if( n==='rMid1' && name==='rMid2' ){ type = 'capsule'; size = [  0.02, dist ]; rot = [0,0,90];translate = [-dist*0.6, 0, 0 ]; link='rHand'; }
+                    if( n==='rMid2' && name==='rMid3' ){ type = 'capsule'; size = [  0.02, dist ]; rot = [0,0,90];translate = [-dist*0.6, 0, 0 ]; link='rHand'; }
+
+                }
+
                 
 
 	            
@@ -239,7 +258,7 @@ export class SkeletonBody extends Object3D {
                     mtx.multiplyMatrices( parent.matrixWorld, tmpMtx );
                     mtx.decompose( p, q, s );
 
-                	let data = {
+                	let physicData = {
 
                         name: phyName,
                         density:1,
@@ -266,16 +285,16 @@ export class SkeletonBody extends Object3D {
                         
                     }
 
-                    if( this.useSolver ){
-                        data['solver'] = this.prefix+'_solver'
-                        data['linked'] = this.prefix+'_bone_'+link
-                        data['kinematic'] = false
-                    }
+                    /*if( this.useSolver ){
+                        physicData['solver'] = this.prefix+'_solver'
+                        physicData['linked'] = this.prefix+'_bone_'+link
+                        physicData['kinematic'] = false
+                    }*/
 
-                    meshData.push( data )
+                    data.push( physicData )
 
-                    this.nameList.push( data.name )
-                    //this.posRef[this.prefix + n] = p.toArray()
+                    this.nameList.push( phyName )
+
                     this.nodes.push({
                     	name: phyName,
                         kinematic: kinematic,
@@ -292,13 +311,15 @@ export class SkeletonBody extends Object3D {
             }
         }
 
-        //console.log( meshData )
+        //console.log( data )
 
-        root.motor.add( meshData )
+        root.motor.add( data )
 
-        if( this.useSolver ) this.solver.start();
+        //if( this.useSolver ) this.solver.start();
        
-        this.addLink ()
+        this.addLink()
+
+        this.ready = true
 
 	}
 
@@ -360,8 +381,8 @@ export class SkeletonBody extends Object3D {
         data.push({ ...sett, b1:p+'rShldr', b2:p+'rForeArm', worldPos:this.posRef[p+'rForeArm'], worldQuat:this.quatRef[p+'rForeArm'], lm:[['rx',0,160,...sp]] })
         data.push({ ...sett, b1:p+'lShldr', b2:p+'lForeArm', worldPos:this.posRef[p+'lForeArm'], worldQuat:this.quatRef[p+'lForeArm'], lm:[['rx',0,160,...sp]] })
 
-        data.push({ ...sett, b1:p+'rForeArm', b2:p+'rHand', worldPos:this.posRef[p+'rHand'], worldQuat:this.quatRef[p+'rHand'], lm:[['rx',0,160,...sp]] })
-        data.push({ ...sett, b1:p+'lForeArm', b2:p+'lHand', worldPos:this.posRef[p+'lHand'], worldQuat:this.quatRef[p+'lHand'], lm:[['rx',0,160,...sp]] })
+        data.push({ ...sett, b1:p+'rForeArm', b2:p+'rHand', worldPos:this.posRef[p+'rHand'], worldQuat:this.quatRef[p+'rHand'], lm:[['rx',0,160,...sp], ['ry',-10,10,...sp]] })
+        data.push({ ...sett, b1:p+'lForeArm', b2:p+'lHand', worldPos:this.posRef[p+'lHand'], worldQuat:this.quatRef[p+'lHand'], lm:[['rx',0,160,...sp], ['ry',-10,10,...sp]] })
 
         //data.push({ ...sett, b1:p+'rShldr', b2:p+'rForeArm', worldPos:this.posRef[p+'rForeArm'], worldAxis:[1,0,0], lm:[['rx',-120, 0]] })
         //data.push({ ...sett, b1:p+'lShldr', b2:p+'lForeArm', worldPos:this.posRef[p+'lForeArm'], worldAxis:[1,0,0], lm:[['rx',-120, 0]] })
@@ -382,7 +403,6 @@ export class SkeletonBody extends Object3D {
             data.push({ ...sett, b1:p+'chest', b2:p+'lBreast', worldPos:this.posRef[p+'lBreast'], worldQuat:this.quatRef[p+'lBreast'], lm:[['x',...breastMotion], ['y',...breastMotion], ['z',...breastMotion]] })
         }
 
-        //console.log(data)
         let x = 0
         for( let j in data ){
             data[j].name = this.prefix + '_joint_'+ x
@@ -391,13 +411,7 @@ export class SkeletonBody extends Object3D {
         }
 
 
-        /*if( this.useSolver ){
-        } else {
-            
-        }*/
         root.motor.add( data )
-
-        //console.log(this.nameList)
 
     }
 
@@ -421,11 +435,9 @@ export class SkeletonBody extends Object3D {
 
 	updateMatrixWorld( force ){
 
+        if(!this.ready) return
+
 		let up = []
-
-		//_rootMatrix.identity()//copy( this.matrixWorld ).invert();
-
-
 
 		const nodes = this.nodes;
 		let i = nodes.length, node, bone, body;
@@ -485,10 +497,7 @@ export class SkeletonBody extends Object3D {
 
         }
 
-        if( node.kinematic ) root.motor.change( up, true )
-
-        
-
+        if( up.length !== 0 ) root.motor.change( up, true )
 
 	}
 
@@ -497,6 +506,8 @@ export class SkeletonBody extends Object3D {
         root.motor.remove( this.nameList )
 
         this.nodes = []
+        this.posRef = {}
+        this.quatRef = {}
 		this.parent.remove( this );
 		
 	}

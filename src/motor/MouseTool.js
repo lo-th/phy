@@ -53,7 +53,7 @@ export class MouseTool {
     	this.mode = mode;
         this.option = o
 
-        if(this.mode === 'blast' && this.option.visible ) root.motor.initParticle()
+        if( this.mode === 'blast' && this.option.visible ) root.motor.initParticle()
 
     }
 
@@ -338,11 +338,17 @@ export class MouseTool {
 	    let quat = [0,0,0,1]
 		
 		this.selected = obj
-		if( this.selected.isInstance ) quat = this.selected.instance.getInfo(this.selected.id).quat;
+		if( this.selected.isInstance ) quat = this.selected.instance.getInfo( this.selected.id ).quat;
 		else if( this.selected.isObject3D ){
 			this.selected.updateMatrix()
 			quat = this.selected.quaternion.toArray()
 		}
+
+
+		/*if( this.selected.isInstance ){
+			console.log(this.selected)
+			return
+		}*/
 
 		/*if( this.selected.isButton ){
 			if( this.buttonRef ){
@@ -376,11 +382,11 @@ export class MouseTool {
 				b2:this.selected.name, b1:'mouse', 
 				worldAnchor:p, //sd:[4,1]
 				worldAxis:[1,0,0],
-				friction:1000,
+				//friction:0.5,
 				//tolerance:[1, 10],
 				//noPreProcess:true,
 				//improveSlerp:true,
-				visible:false,
+				visible:true,
 				//noFix:true,
 			}
 		])

@@ -279,7 +279,13 @@ export class Shader {
             //gl_FragColor.rgb *= ((1.0-shadowValue) * (1.0-shadow)) + shadowColor;
 
             //gl_FragColor.rgb = mix( gl_FragColor.rgb, gl_FragColor.rgb * invColor, (1.0-shadowValue) * shadow );
-            gl_FragColor.rgb =mix( gl_FragColor.rgb, invColor, (1.0-shadowValue) * shadow );
+            gl_FragColor.rgb = mix( gl_FragColor.rgb, invColor, (1.0-shadowValue) * shadow );
+
+            //gl_FragColor.rgb = invColor;
+
+            //gl_FragColor.rgb = gl_FragColor.rgb * shadowColor;
+
+            //gl_FragColor.rgb *= ((1.0-shadowValue) * shadow) * invColor;
 
 
         	#endif

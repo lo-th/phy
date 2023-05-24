@@ -1,5 +1,5 @@
 import {
-    Texture, TextureLoader, SRGBColorSpace, RepeatWrapping, NearestFilter, EquirectangularReflectionMapping, AnimationMixer
+    Texture, TextureLoader, SRGBColorSpace, RepeatWrapping, NearestFilter, EquirectangularReflectionMapping, AnimationMixer, Float32BufferAttribute,
 } from 'three';
 
 import { GLTFLoader } from '../jsm/loaders/GLTFLoader.js';
@@ -179,7 +179,7 @@ export const Pool = {
             let im = Pool.data.get( 'I_' + name )
             if(!im) return null
             t = new Texture( im )
-            if( name.search('_c') !== -1 || name.search('_l') !== -1 ) o.encoding = true
+            if( name.search('_c') !== -1 || name.search('_l') !== -1 || name.search('_u') !== -1|| name.search('_ao') !== -1) o.encoding = true
             Pool.data.set( 'T_' + name, t );
         }
         Pool.setTextureOption( t, o )
@@ -438,6 +438,14 @@ export const Pool = {
             Pool.add( name, texture ) 
         })
 
-    }
+    },
+
+    /*addUv2: ( mesh ) => {
+        if(mesh.geometry){
+            mesh.geometry.setAttribute( 'uv2', mesh.geometry.attributes.uv );
+
+            //console.log('uv2',  mesh.geometry)
+        }
+    },*/
 
 }

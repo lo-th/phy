@@ -253,13 +253,13 @@ export class ExtraJoint extends Basic3D {
 		//if( !this.isVisible ) return
 		if( !this.visible ) return
 
-		if(this.body1){
+		if( this.body1 ){
 			this.matrix.copy( this.body1.matrixWorld ).multiply( this.mat1 );
 		} else {
 			this.matrix.copy( this.mat1 );
 		}
 
-		if(this.body2){
+		if( this.body2 ){
 			this.m2.matrix.copy( this.body2.matrixWorld ).multiply( this.mat2 );
 		} else {
 			this.m2.matrix.copy( this.mat2 )

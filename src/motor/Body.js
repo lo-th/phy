@@ -1,4 +1,4 @@
-import { Object3D, Vector3, Group, Mesh, BufferGeometry, CylinderGeometry, InstancedMesh, DynamicDrawUsage } from 'three';
+import { Object3D, Vector3, Group, Mesh, BufferGeometry, CylinderGeometry, InstancedMesh, DynamicDrawUsage, Matrix4 } from 'three';
 
 import { Item } from '../core/Item.js';
 import { Num } from '../core/Config.js';
@@ -75,7 +75,9 @@ export class Body extends Item {
 		    	if( b.speedMat ) b.instance.setColorAt(b.id, [ Math.abs(AR[n+8])*0.5, Math.abs(AR[n+9])*0.5, Math.abs(AR[n+10])*0.5] )
 		    	b.instance.setTransformAt( b.id, [AR[n+1],AR[n+2],AR[n+3]], [AR[n+4],AR[n+5],AR[n+6],AR[n+7]], b.noScale ? [1,1,1] : b.size )
 		    	b.position = {x:AR[n+1], y:AR[n+2], z:AR[n+3]}
-		    	b.quaternion = {x:AR[n+4], y:AR[n+5], z:AR[n+6], w:AR[n+7]}
+		    	///b.quaternion = {x:AR[n+4], y:AR[n+5], z:AR[n+6], w:AR[n+7]}
+		    	b.quaternion = {_x:AR[n+4], _y:AR[n+5], _z:AR[n+6], _w:AR[n+7]}
+		    	//b.matrixWorld.compose( b.position, b.quaternion, {x:1, y:1, z:1}) 
 		    	if( this.full ){
 		    		b.velocity = {x:AR[n+8], y:AR[n+9], z:AR[n+10]}
 		    		b.angular = {x:AR[n+11], y:AR[n+12], z:AR[n+13]}
@@ -603,9 +605,10 @@ export class Body extends Item {
 			b.instance.add( o.pos, o.quat, b.noScale ? [1,1,1] : b.size, color );
 
 			b.position = {x:o.pos[0], y:o.pos[1], z:o.pos[2]}
-			b.quaternion = {x:o.quat[0], y:o.quat[1], z:o.quat[2], w:o.quat[3]}
+			b.quaternion = {_x:o.quat[0], _y:o.quat[1], _z:o.quat[2], _w:o.quat[3]}
 		    b.velocity = {x:0, y:0, z:0}
 		    b.angular = {x:0, y:0, z:0}
+		    //b.matrixWorld = new Matrix4()
 
 			// for convex
 			if(b.instance.v) o.v = b.instance.v

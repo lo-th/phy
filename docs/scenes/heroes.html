@@ -39,6 +39,8 @@ import { Pool } from '3TH/Pool.js';
 import { Gui } from '3TH/GuiAvatar.js';
 import { Logo } from '3TH/Logo.js';
 
+import { sk } from '3TH/character/SkeletonExtand.js'
+
 const env = 'river';
 let camera, controls, scene, renderer, logo;
 let hero, hero2, hero3, hero4, hero5, gui, water, dirLight, floor, mirror;
@@ -239,15 +241,19 @@ function next(){
 }
 
 function playAnim( s ){
+	if(hero) hero3.play(s);
+	if(hero2) hero4.play(s)
 	if(hero3) hero3.play(s);
 	if(hero4) hero4.play(s);
 	if(hero5) hero5.play(s);
 }
 
 function upMaterial( s ){
-	if(hero3) hero3.setMaterial(s);
-	if(hero4) hero4.setMaterial(s);
-	if(hero5) hero5.setMaterial(s);
+	if( hero ) hero3.setMaterial(s);
+	if( hero2 ) hero4.setMaterial(s);
+	if( hero3 ) hero3.setMaterial(s);
+	if( hero4 ) hero4.setMaterial(s);
+	if( hero5 ) hero5.setMaterial(s);
 }
 
 function addReflection( b ){

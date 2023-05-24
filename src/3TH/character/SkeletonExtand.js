@@ -24,20 +24,21 @@ K.setScalling = function ( bone, x, y, z ) {
 
 }
 
-K.resetScalling = function () {
+K.resetScalling = function (b) {
+
+    this.pose()
 
     this.scalled = false
 
     for ( let i = 0, il = this.bones.length; i < il; i ++ ) {
 
         this.bones[i].scalling = new Vector3(1,1,1);
-
         this.bones[i].isPhysics = false;
         this.bones[i].phyMtx = new Matrix4();
 
     }
 
-    this.applyScalling()
+    if(!b) this.applyScalling()
 
 }
 
@@ -46,14 +47,17 @@ K.childScale = function ( bone, matrix ) {
     if( !this.scalled ) return
 
     if( bone.scalling ) matrix.scale( bone.scalling );
-    if(!bone.isBone) return
-    let j = bone.children.length, k = 0, child;
+    //if( !bone.isBone ) return
+    let j = bone.children.length, child;
     while(j--){
         child = bone.children[ j ]
         //if( child.matrixAutoUpdate ) child.matrixAutoUpdate = false
         //if( child.matrixWorldAutoUpdate ) child.matrixWorldAutoUpdate = false
         //child.matrixWorldNeedsUpdate = false;
-        child.matrixWorld.copy( child.matrix ).premultiply( matrix )
+        //child.matrixWorld.copy( child.matrix ).premultiply( matrix )
+
+        //child.matrixWorld.copy( matrix ).multiply( child.matrix )
+        child.matrixWorld.multiplyMatrices( matrix, child.matrix )
 
 
         //scaleMatrix = matrix.clone()

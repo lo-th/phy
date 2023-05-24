@@ -50,7 +50,7 @@ export class Ray extends Item {
 			this.ray.origin = this.v1
 			this.ray.dir = this.v2
 
-			root.world.intersectionsWithRay( this.ray, distance, r.solid, r.group, (hit) => {
+			root.world.intersectionsWithRay( this.ray, distance, r.solid,  (hit) => {
 
 				AR[n] = 1
 				let hitPoint = this.ray.pointAt(hit.toi)

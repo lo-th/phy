@@ -24,12 +24,13 @@ export class Instance extends InstancedMesh {
     {
         this.tmpMatrix.fromArray( this.instanceMatrix.array, id*16 )
         let pos = {x:0, y:0, z:0 }
-        let scale = {x:0, y:0, z:0 }
+        let scale = { x:0, y:0, z:0 }
         this.tmpMatrix.decompose( pos, this.tmpQuat, scale )
         return{
             pos:[pos.x, pos.y, pos.z],
             quat:this.tmpQuat.toArray(),
-            scale:[scale.x, scale.y, scale.z]
+            scale:[scale.x, scale.y, scale.z],
+            //worldMatrix:this.tmpMatrix.toArray(),
         }
     }
 

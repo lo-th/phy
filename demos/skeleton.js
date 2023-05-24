@@ -1,6 +1,6 @@
 let eva, bb, ba, bc
 let mode = 'follow'
-let type = 'eva'
+let type = 'hero'
 let debug = false
 
 demo = () => {
@@ -54,11 +54,22 @@ const addModel = ( type ) => {
 
 const done = () => {
 
+	//let m = eva.model.getMaterial('skin')
+	//console.log(m)
+	//m.lightMapIntensity = 0.5
+
+    //m.iridescenceIOR = 0
+
+	//m.envMapIntensity = 0.5
+	//m.envMapIntensity = 0.5
+
 	//eva.model.setMaterial( {wireframe: true})
 	//eva.model.visible = false
 	//eva.model.addHelper()
 	//eva.model.addExo()
 	//eva.model.play('Standard Run')
+
+	//eva.model.setMaterial( {wireframe: true})
 
 	eva.static = true
 	eva.addSkeleton()

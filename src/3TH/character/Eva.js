@@ -26,6 +26,8 @@ const setting = {
 
 export const Eva = {
 
+    decalY:0.02,
+
 	isBreath:false,
 	isEyeMove:false,
 	haveMorph:false,

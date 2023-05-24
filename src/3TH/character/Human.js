@@ -18,11 +18,11 @@ const setting = {
 
     mixRatio:0.0,
     threshold:0.1,
-    normal:0.2,
+    normal:0.25,
     hair:0xa43412,
     bow:0x100402,
-    sheen:2.25,
-    sheenRoughness:1.0,
+    sheen:2,//2.25,
+    sheenRoughness:1.0,//1.0,
     metalness:0.6,
     roughness:0.4,
     wireframe:false,
@@ -36,9 +36,10 @@ const setting = {
 
 export const Human = {
 
-	isBreath:true,
+	isBreath:false,
 	isEyeMove:true,
 	haveMorph:true,
+    
 
     skeletonRef:'body',
 	fullMorph: ['MUSCLE', 'LOW', 'BIG', 'MONSTER'],
@@ -51,7 +52,7 @@ export const Human = {
         'mouth_c.jpg', 'mouth_a.jpg', 'mouth_n.jpg', 
         'eye_c.jpg', 'eye_n.jpg', 'hair.jpg', 'hair_a.jpg',
         'eyelash_c.jpg', 'eyelash_a.jpg', 'eyelash_n.jpg',
-        'hair_man.jpg', 'hair_man_a.jpg'
+        'hair_man.jpg', 'hair_man_a.jpg', //'avatar_ao.jpg',
     ],
 
     modelPath: 'assets/models/avatar/',
@@ -69,11 +70,19 @@ export const Human = {
             metalness:1,
             metalnessMap:'avatar_m',
             roughnessMap:'avatar_r',
-            normalScale:new Vector2( setting.normal, -setting.normal),
-            sheenColorMap:'avatar_u',
+            normalScale: new Vector2( setting.normal, -setting.normal),
+            
+            sheen:setting.sheen,
             sheenRoughness:setting.sheenRoughness,
             sheenColor:0xffffff,
-            sheen:setting.sheen,
+            sheenColorMap:'avatar_u',
+
+            /*aoMap:'avatar_ao',
+            aoMapIntensity:1,*/
+
+
+            //envMapIntensity:1,
+            
         },
     	mouth:{
             type:'Standard',
@@ -94,6 +103,7 @@ export const Human = {
             clearcoat:1,
             transparent:true,
             envMapIntensity:0,
+            //wireframe:true
         },
         eye:{
             type:'Physical',
@@ -103,7 +113,7 @@ export const Human = {
             normalMap:'eye_n',
             normalScale:new Vector2( 2, -2),
             clearcoat:0.25,
-            clearcoatRoughness:0.5,
+            //clearcoatRoughness:0.5,
         },
         hair:{
             type:'Standard',
@@ -150,8 +160,8 @@ export const Human = {
             alphaToCoverage:true,
             polygonOffset: true,                
             polygonOffsetFactor: - 4,
-            normalMap:'eyelash_n',
-            normalScale:new Vector2( 1, -1)
+            //normalMap:'eyelash_n',
+            //normalScale:new Vector2( 1, -1)
         },
         tear:{
             type:'Physical',
@@ -182,18 +192,22 @@ export const Human = {
                 if(s[v]!== undefined) s[v] = sx[v]
             }
         }
+
+        let m
         
-        let m = Pool.getMaterial( 'skin' );
+        /*
+         m = Pool.getMaterial( 'skin' );
         
-        m.roughness = s.roughness;
-        m.metalness = s.metalness;
+        //m.roughness = s.roughness;
+        //m.metalness = s.metalness;
         m.wireframe = s.wireframe;
         m.vertexColors = s.vertexColors;
         m.normalScale.set( s.normal, -s.normal )
         m.sheen = s.sheen;
         m.sheenRoughness = s.sheenRoughness;
+        */
 
-        let c = s.hair;
+       /* let c = s.hair;
         m = Pool.getMaterial( 'hair' )
         m.color.setHex( c )
         m.alphaTest = s.alphaTest
@@ -208,7 +222,7 @@ export const Human = {
         m.color.setHex( c )
         m.alphaTest = s.alphaTest
         m.metalness = s.h_metal
-        m.roughness = s.h_rough
+        m.roughness = s.h_rough*/
 
         //if( s.vertexColors && m.map !== null ){ m.map = null; this.tensionActive = true; m.sheen = 0;}
         ///if( !s.vertexColors && m.map === null ){ m.map = this.skin; this.tensionActive = false; }
@@ -228,6 +242,8 @@ export const Human = {
             if ( node.isMesh ){
                 switch( node.name ){
                     case 'body':
+
+                    //Pool.addUv2( node )
                     node.material = def;
                     node.receiveShadow = true;
                     node.castShadow = true;
@@ -239,24 +255,36 @@ export const Human = {
                         node.visible = false
                     break;
                     case 'Head': 
+                    //Pool.addUv2( node )
                     node.material = def;
                     node.receiveShadow = true;
                     node.castShadow = true;
                     break;
                     case 'mouth':
                     node.material = Pool.getMaterial( 'mouth' ) || def;
+                    node.receiveShadow = false;
+                    node.castShadow = false;
                     break;
                     case 'eyelash':  case 'eyebrow':
                     node.material = Pool.getMaterial( 'eyelash' ) || def;
+                    node.receiveShadow = false;
+                    node.castShadow = false;
                     break;
                     case 'tear': 
                     node.material = Pool.getMaterial( 'tear' ) || def;
+                    node.receiveShadow = false;
+                    node.castShadow = false;
                     break;
                     case 'eye_l':case 'eye_r':
                     node.material = Pool.getMaterial( 'eye' ) || def;
+                    node.receiveShadow = false;
+                    node.castShadow = false;
                     break;
                     case 'eye_l_s':case 'eye_r_s':
                     node.material = Pool.getMaterial( 'sub_eye' ) || def;
+                    node.receiveShadow = false;
+                    node.castShadow = false;
+                    //node.visible = false
                     break;
                     case 'hair': 
                     node.material = Pool.getMaterial( 'hair' ) || def;

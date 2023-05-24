@@ -4,13 +4,14 @@
 import { Vector3, Mesh } from 'three';
 
 import { Avatar } from '../3TH/character/Avatar.js';
-
+import { CapsuleHelper } from '../3TH/helpers/CapsuleHelper.js';
 
 import { Item } from '../core/Item.js';
 import { Num } from '../core/Config.js';
 import { Basic3D } from '../core/Basic3D.js';
 import { Utils, root, math, Mat } from './root.js';
 import { SkeletonBody } from './SkeletonBody.js';
+
 
 // THREE CHARACTER
 
@@ -116,8 +117,8 @@ class Hero extends Basic3D {
 		this.speed = {
 		    idle:1,
 		    fight:1,
-		    walk:8,
-		    crouch:6,
+		    walk:7.8,
+		    crouch:7,
 		    run:12,
 		}
 
@@ -143,6 +144,7 @@ class Hero extends Basic3D {
 
 	    if(!o.size) o.size = [ this.radius ,this.height-(2*this.radius) ]
 		if(!o.pos) o.pos = [0,this.height*0.5,0]
+
 		this.py = -this.height*0.5//(o.size[1]*0.5)-o.size[0]
 
 
@@ -164,7 +166,6 @@ class Hero extends Basic3D {
 		o.noGravity = true
 		o.ray = false
 
-		//if( o.callback ) delete o.callback
 
 		// add to world
 		root.items.character.addToWorld( this, o.id )
@@ -172,7 +173,6 @@ class Hero extends Basic3D {
         // add to physics
         root.post({ m:'add', o:o })
 
-        //root.add({ type:'contact', b1:this.name,  callback: this.hit.bind(this) })
 
         // add character model
         if( o.gender ) this.addModel( o )
@@ -181,8 +181,23 @@ class Hero extends Basic3D {
 
     hit( d ){
     	this.contact = d
+    }
 
-    	//console.log(this.contact)
+    showHelper( b ){
+
+    	if(b){
+    		if(!this.helper){
+    			this.helper = new CapsuleHelper(this.radius, this.height, true)
+		        this.add(this.helper)
+    		}
+    	} else {
+    		if(this.helper){
+    			this.remove(this.helper)
+    			this.helper.dispose()
+    			this.helper = null
+    		}
+    	}
+
     }
 
     addSkeleton(){
@@ -201,7 +216,7 @@ class Hero extends Basic3D {
 
     	if(this.skeletonBody) this.skeletonBody.isVisible(v)
     	if(this.model) this.model.setMaterial( {wireframe: v})
-    	//this.model.visible = !v
+    	this.showHelper( v )
 
     }
 
@@ -227,14 +242,14 @@ class Hero extends Basic3D {
 
 		this.add( this.model );
 		///this.model.rotation.order = 'YXZ'
-		this.model.setPosition(0,this.py,0)
+		this.model.setPosition(0, this.py+this.model.decalY, 0)
 		this.model.rotation.y = this.angle
 		this.model.updateMatrix()
 
 	}
 
 	raycast(){
-		//return
+		return
 	}
 
 	/*preStep(){
@@ -244,7 +259,6 @@ class Hero extends Basic3D {
 	step ( AR, n ) {
 
 		
-
 		this.position.fromArray( AR, n + 1 )
 		this.quaternion.fromArray( AR, n + 4 )
 		this.fall = this.position.y < this.oy
@@ -269,8 +283,9 @@ class Hero extends Basic3D {
 	dispose () {
 
 		this.callback = null
-		if( this.model ) this.model.dispose()
 		if( this.skeletonBody ) this.skeletonBody.dispose()
+		if( this.model ) this.model.dispose()
+		if( this.helper ) this.showHelper()
 
 		//console.log('model remove')
 
@@ -281,6 +296,8 @@ class Hero extends Basic3D {
 
 		const key = root.motor.getKey()
 		const azimut = root.motor.getAzimut()
+		const delta = root.delta
+
 
 		let anim = key[7] !== 0 ? 'run' : 'walk'
 	    if( key[0] === 0 && key[1] === 0 ) anim = 'idle'//*= 0.9
@@ -293,7 +310,7 @@ class Hero extends Basic3D {
 
 	    if( key[5] === 0 ) this.toggle = true
 
-	    if( (anim==='walk' || anim==='run') && this.crouch ) anim = 'crouch'
+	    if( ( anim==='walk' || anim==='run') && this.crouch ) anim = 'crouch'
 
 	    if( key[6] === 1 ) anim = 'fight'
 
@@ -338,31 +355,47 @@ class Hero extends Basic3D {
 	    //if(this.jump) 
 	    //this.model.setWeight(, this.jump ? 1:0 )
 
+	    const genSpeed = 1.0
+
+	    let speed = this.speed[anim] * genSpeed
+
 	    
-	    
+	    //this.tmpAcc *= 0.9
 	    
 
 	    if( key[0] !== 0 || key[1] !== 0 ){ 
 
-	        this.tmpAcc += 0.2//math.lerp( tmpAcc, 1, delta/10 )
-	        this.tmpAcc = math.clamp( this.tmpAcc, 1, this.speed[anim] )
+	        this.tmpAcc += delta*4//math.lerp( tmpAcc, 1, delta/10 )
+	        //this.tmpAcc += math.lerp( this.tmpAcc, 1, delta/10 )
+	        //this.tmpAcc = math.clamp( this.tmpAcc, 1, speed )
 
-	        this.rs += key[0] * this.tmpAcc//* delta
-	        this.ts += key[1] * this.tmpAcc//* delta
+	        //this.rs += key[0] //* this.tmpAcc 
+	        //this.ts += key[1] //* this.tmpAcc
+
+	        this.rs = key[0] * speed//* this.tmpAcc 
+	        this.ts = key[1] * speed//* this.tmpAcc
 	    }
 
 	    if( key[0] === 0 && key[1] === 0 ) this.tmpAcc = 0//*= 0.9
-	    if( key[0] === 0 ) this.rs = 0
-	    if( key[1] === 0 ) this.ts = 0
+	    //if( key[0] === 0 ) this.rs = 0
+	    //if( key[1] === 0 ) this.ts = 0
+
+	    //if( key[0] === 0 ) this.rs *= 0.9
+	    //if( key[1] === 0 ) this.ts *= 0.9
+
+	    if(this.tmpAcc>1) this.tmpAcc = 1
 
 	    //dir.multiplyScalar(tmpAcc)
 
-	    this.rs = math.clamp( this.rs, -this.speed[anim], this.speed[anim] ) * m
-	    this.ts = math.clamp( this.ts, -this.speed[anim], this.speed[anim] ) * m
+	    //this.rs = math.clamp( this.rs, -speed, speed ) 
+	    //this.ts = math.clamp( this.ts, -speed, speed ) 
 
-	    this.ease.set( this.ts/this.speed[anim], 0, this.rs/this.speed[anim] )
+	    //this.ease.set( this.ts/speed, 0, this.rs/speed )
+	    //this.ease.set( this.rs/speed, 0, this.ts/speed )
+	    this.ease.set( this.rs, 0, this.ts ).multiplyScalar( this.tmpAcc * m )
 
-	    let angle = math.unwrapRad( (Math.atan2(this.ease.z, this.ease.x)) + azimut );
+	    //let angle = math.unwrapRad( (Math.atan2(this.ease.z, this.ease.x)) + azimut );
+	    let angle = math.unwrapRad( (Math.atan2(this.ease.x, this.ease.z)) + azimut );
 
 	    let acc = this.ease.length() //((Math.abs(this.ease.x) + Math.abs(this.ease.z)))
 
@@ -371,28 +404,33 @@ class Hero extends Basic3D {
 	    //if(jj!== 0)
 
 	    // help climb montagne
-	    if( !this.jump ){ 
+	   /* if( !this.jump ){ 
 	    	if( !this.fall ) this.vy = acc*8
 	    	else this.vy = 0
-	    }
+	    }*/
 
 	    
 
 	    
         //if(anim==='walk' || anim==='run')
 
-        if(this.static) this.ts=this.rs=0
+        //if(this.static) this.ts = this.rs = 0
+        if(this.static) this.ease.x = this.ease.z = 0
 
 
 	    // gravity
 	    let g = this.vy - 9.81;
 
-	    this.tmpV1.set( this.rs, g, this.ts ).applyAxisAngle( { x:0, y:1, z:0 }, azimut );
+	    this.ease.y = g
+
+	    //this.tmpV1.set( this.rs, g, this.ts ).applyAxisAngle( { x:0, y:1, z:0 }, azimut );
+
+	    this.tmpV1.copy( this.ease ).applyAxisAngle( { x:0, y:1, z:0 }, azimut );
 	    //math.tmpV2.set( 0, rs, 0 );
 	    this.tmpV2.set( 0, 0, 0 );
 
 	    root.motor.change({ 
-		    name:this.name, 
+		    name:this.name,
 		    //force: this.tmpV1.toArray(), forceMode:'velocity', 
 		    linearVelocity: this.tmpV1.toArray(), 
 		    /*angularVelocity: this.tmpV2.toArray(),*/ 
@@ -401,9 +439,19 @@ class Hero extends Basic3D {
 		});
 
 
+		if( this.helper ){ 
+
+			//this.helper.updateMatrix()
+			this.helper.cone.rotation.y = angle
+
+		}
+
+
 	   // if(anim!=='idle') this.model.setRotation( 0, azimut + Math.PI, 0, 0.25 )
         
         if( !this.model ) return
+
+        //this.model.setTimescale(this.tmpAcc)
 
         //this.model.setWeight( 'idle', 1-jj )
 	    /*this.model.setWeight( 'Jog Forward', -this.ease.x )
@@ -420,10 +468,11 @@ class Hero extends Basic3D {
         
 	    if( this.jump ){
 	    	this.model.play( 'Jump', 0 )
-	    	this.model.timescale( 1 )
+	    	this.model.setTimescale( 1 )
 	    }else {
 	    	this.model.play( mAnim, 0.25 )
-	    	this.model.timescale( 1.25 )
+	    	//this.model.setTimescale( 1.25 )
+	    	this.model.setTimescale( 1 )
 	    }
 
 	    if( anim !== 'idle' ){
@@ -431,16 +480,13 @@ class Hero extends Basic3D {
 	    	let pp = math.unwrapRad( this.model.rotation.y )
 	    	//if( anim === 'fight' ) pp = math.unwrapRad( azimut + Math.PI )
 	    	let aa = math.nearAngle( angle, pp )
-	    	this.model.rotation.y = anim === 'fight' ? (azimut + Math.PI) : math.lerp( pp, aa, 0.25 )
+	    	//this.model.rotation.y = anim === 'fight' ? (azimut + Math.PI) : math.lerp( pp, aa, 0.25 )
+	    	this.model.rotation.y = anim === 'fight' ? (azimut + Math.PI) : math.lerp( pp, aa, 0.1 )
 	    	this.model.updateMatrix()
+	    	this.model.setTimescale( this.tmpAcc * (1*genSpeed) )
 	    }
 
-
-
-
-	    
-
-	    
+	    if( this.helper ) this.helper.setDirection( this.model.rotation.y )
 
 	}
 
