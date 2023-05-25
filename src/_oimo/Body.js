@@ -1,8 +1,10 @@
 import { Item } from '../core/Item.js';
 import { Num } from '../core/Config.js';
+import { MathTool } from '../core/MathTool.js';
+
 
 import { 
-	root, math, torad, Utils, Vec3, Quat, Transform, RigidBodyConfig, ShapeConfig, Shape, RigidBody,ContactCallback,
+	root, Utils, Vec3, Quat, Transform, RigidBodyConfig, ShapeConfig, Shape, RigidBody,ContactCallback,
 	BoxGeometry, SphereGeometry, CylinderGeometry, CapsuleGeometry, ConeGeometry, ConvexHullGeometry
 } from './root.js';
 
@@ -337,12 +339,12 @@ export class Body extends Item {
 
 	    if( o.pos || o.quat ){
 
-
-
 	    	if( o.pos ){ 
 	    		
 	    		if(b.isKinematic){
-	    			let pp = math.velocityArray( o.pos, b.pos, root.invDelta )
+
+	    			let pp = MathTool.subArray(o.pos, b.pos)
+	    			pp = MathTool.mulArray(pp, root.invDelta)
 	    			b.setLinearVelocity( this.v.fromArray( pp ) )
 	    			b.pos = o.pos
 	    		}
@@ -352,8 +354,13 @@ export class Body extends Item {
 	    	}
 		    if( o.quat ){
 		    	if(b.isKinematic){
-	    			let pp = math.angularArray( o.quat, b.quat, root.invDelta*torad )
-	    			b.setAngularVelocity( this.v.fromArray( pp ) )
+
+		    		let qqq = MathTool.quatMultiply( o.quat, MathTool.quatInvert( b.quat ) )
+		    		let mtx = MathTool.composeMatrixArray( [0,0,0], qqq, [1,1,1])
+		    		let eee = MathTool.eulerFromMatrix( mtx )
+		    		eee = MathTool.mulArray(eee, root.invDelta )
+
+	    			b.setAngularVelocity( this.v.fromArray( eee ) )
 	    			b.quat = o.quat
 	    		}
 	    		

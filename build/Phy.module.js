@@ -881,7 +881,7 @@ const getArray = function ( engine, full = false ){
         counts['solver'] = Max.solver * Num.solver;
     }
 
-    if( engine === 'HAVOK' ){ 
+    if( engine === 'HAVOK' || engine === 'RAPIER' ){ 
         Num.joint = 0;
     }
 
@@ -4762,6 +4762,7 @@ class Body extends Item {
 		this.num = Num[this.type];
 		this.full = false;
 		this.extraConvex = false;
+		this.needMatrix = root.engine ==='RAPIER';
 
 	}
 
@@ -4815,7 +4816,7 @@ class Body extends Item {
 		    	b.position = {x:AR[n+1], y:AR[n+2], z:AR[n+3]};
 		    	///b.quaternion = {x:AR[n+4], y:AR[n+5], z:AR[n+6], w:AR[n+7]}
 		    	b.quaternion = {_x:AR[n+4], _y:AR[n+5], _z:AR[n+6], _w:AR[n+7]};
-		    	//b.matrixWorld.compose( b.position, b.quaternion, {x:1, y:1, z:1}) 
+		    	if( this.needMatrix ) b.matrixWorld.compose( b.position, b.quaternion, {x:1, y:1, z:1}); 
 		    	if( this.full ){
 		    		b.velocity = {x:AR[n+8], y:AR[n+9], z:AR[n+10]};
 		    		b.angular = {x:AR[n+11], y:AR[n+12], z:AR[n+13]};
@@ -5279,8 +5280,6 @@ class Body extends Item {
 					if( n.rot !== undefined ){ n.quat = math$1.toQuatArray( n.rot ); delete n.rot; }
 					if( n.quat ) n.localQuat = n.quat;
 
-
-					
 					n.debug = o.debug || false;
 					n.meshRemplace = o.meshRemplace || false;
 
@@ -5346,7 +5345,7 @@ class Body extends Item {
 			b.quaternion = {_x:o.quat[0], _y:o.quat[1], _z:o.quat[2], _w:o.quat[3]};
 		    b.velocity = {x:0, y:0, z:0};
 		    b.angular = {x:0, y:0, z:0};
-		    //b.matrixWorld = new Matrix4()
+		    if( this.needMatrix ) b.matrixWorld = new Matrix4();
 
 			// for convex
 			if(b.instance.v) o.v = b.instance.v;
@@ -5518,8 +5517,6 @@ class Joint extends Item {
 			if( Num.joint === 16 ) j.updateFromPhy( AR, n );
 			else j.update();
 
-			//j.update( AR.slice( n, 16 ) );
-
 		}
 
 	}
@@ -5642,6 +5639,9 @@ class Joint extends Item {
 		j.body1 = body1;
 		j.body2 = body2;
 
+		// apply option
+		this.set( o, j );
+
 		// add to world
 		this.addToWorld( j, o.id );
 
@@ -5652,7 +5652,12 @@ class Joint extends Item {
 
 	}
 
-	set ( o = {} ) {
+	set ( o = {}, j = null ) {
+
+		if( j === null ) j = this.byName( o.name );
+		if( j === null ) return
+
+		if( o.visible !== undefined ) j.visible = o.visible;
 
 	}
 
@@ -5728,7 +5733,6 @@ class ExtraJoint extends Basic3D {
 
 	update () {
 
-		//if( !this.isVisible ) return
 		if( !this.visible ) return
 
 		if( this.body1 ){
@@ -22721,6 +22725,7 @@ class SkeletonBody extends Object3D {
         if( root.engine!=='PHYSX' ) this.useSolver = false;
 
         this.nameList = [];
+        this.jointList = [];
 
         this.breast = false;
 
@@ -22775,6 +22780,11 @@ class SkeletonBody extends Object3D {
 
         let i = this.nameList.length;
         while( i-- ) Utils.byName( this.nameList[i] ).visible = v;
+
+        let data = [];
+        i = this.jointList.length;
+        while( i-- ) data.push( { name:this.jointList[i], visible:v } );
+        root.motor.change( data );
 
     }
 
@@ -23081,6 +23091,7 @@ class SkeletonBody extends Object3D {
         for( let j in data ){
             data[j].name = this.prefix + '_joint_'+ x;
             this.nameList.push( data[j].name );
+            this.jointList.push( data[j].name );
             x++;
         }
 
@@ -23183,6 +23194,9 @@ class SkeletonBody extends Object3D {
         this.posRef = {};
         this.quatRef = {};
 		this.parent.remove( this );
+
+        this.nameList = [];
+        this.jointList = [];
 		
 	}
 
@@ -26819,6 +26833,8 @@ class MouseTool {
 		this.numBullet = 0;
 		this.maxBullet = 10;
 
+		this.sticky = false;
+
 		this.isActive = false;
 		this.raycastTest = false;
 		this.firstSelect = false;
@@ -26863,6 +26879,7 @@ class MouseTool {
 				this.dom.addEventListener( 'pointermove', this.mousemove.bind(this), false );
 		        this.dom.addEventListener( 'pointerdown', this.mousedown.bind(this), false );
 		        document.addEventListener( 'pointerup', this.mouseup.bind(this), false );
+		        document.addEventListener( 'contextmenu', this.contextmenu.bind(this), false );
 
 		        this.controler.addEventListener( 'end', this.controleEnd.bind(this), false );
 		        this.controler.addEventListener( 'change', this.controleChange.bind(this), false );
@@ -26891,6 +26908,7 @@ class MouseTool {
 	}
 
 	controleChange ( e ) {
+
 		let state = this.controler.getState();
 		if( state !== -1 ){
 			if( this.controlFirst ) this.controlFirst = false;
@@ -26905,16 +26923,32 @@ class MouseTool {
 
 	}
 
+	contextmenu ( e ) {
+		e.preventDefault();
+		if( this.mouseDown ){
+			console.log('yo ');
+		}
+	}
+
 	mousedown ( e ) {
+
+		if( this.sticky ){ 
+			this.unSelect();
+			console.log('unstick');
+		}
 
 		this.getMouse( e );
 
 		switch( this.mode ){
 
 			case 'drag':
+
 			let button = 0;
 
+			
+
 			if( !this.mouseDown ){
+
 				if( this.firstSelect ) this.firstSelect = false;
 				this.oldMouse.copy( this.mouse );
 			}
@@ -26948,20 +26982,14 @@ class MouseTool {
 
 	mouseup ( e ) {
 
-		/*if( this.buttonRef ){
-			if( this.buttonRef.userData.out ) this.buttonRef.userData.out()
-			this.buttonRef = null
-		}*/
-
 		this.mouseMove = this.oldMouse.distanceTo( this.mouse ) < 0.01 ? false : true;
 		this.mouseDown = false;
 		this.mouseDown2 = false;
-
 		root.mouseDown = false;
+
+		if( this.sticky ) { this.controler.enabled = true; return; }
 		this.unSelect();
 		this.resetButton();
-
-
 
 	}
 
@@ -26986,7 +27014,8 @@ class MouseTool {
 
 			this.raycast.setFromCamera( this.mouse, this.controler.object );
 			inters = this.raycast.intersectObject( this.dragPlane );
-			if ( inters.length ) root.motor.change({ name:'mouse', pos:inters[0].point.toArray() }, true );
+			if ( inters.length && this.mouseDown ) root.motor.change({ name:'mouse', pos:inters[0].point.toArray() }, true );
+			return
 
 		}
 
@@ -27137,11 +27166,14 @@ class MouseTool {
 	    let quat = [0,0,0,1];
 		
 		this.selected = obj;
-		if( this.selected.isInstance ) quat = this.selected.instance.getInfo( this.selected.id ).quat;
+		/*if( this.selected.isInstance ) quat = this.selected.instance.getInfo( this.selected.id ).quat;
 		else if( this.selected.isObject3D ){
-			this.selected.updateMatrix();
-			quat = this.selected.quaternion.toArray();
-		}
+			this.selected.updateMatrix()
+			quat = this.selected.quaternion.toArray()
+		}*/
+
+		let q = this.selected.quaternion;
+		quat = [ q._x, q._y, q._z, q._w ];
 
 
 		/*if( this.selected.isInstance ){
@@ -27171,15 +27203,26 @@ class MouseTool {
 		//Motor.add({ name:'mouse', type:'sphere', size:[0.01], pos:p, quat:quat, mask:0, density:0, noGravity:true, kinematic:true, flags:'noCollision' })
 		//root.motor.add({ name:'mouse', type:'null', pos:p, quat:quat })
 
-		let def = [-0.03, 0.03, 60, 5];
-		let def2 = [-3, 3, 60, 5];
+		//let def = [-0.03, 0.03, 60, 5]
+		//let defr = [-3, 3, 60, 5]
+
+		//let def = [-0.03, 0.03, 60, 2]
+		//let defr = [-3, 3, 60, 2]
+
+		let def = [-0.1, 0.1, 60, 1];
+		let defr = [-3, 3, 60, 1];
+
+		let notUseKinematic = root.engine ==='OIMO' || root.engine ==='RAPIER';
+
 		root.motor.add([
-			{ name:'mouse', type:'null', pos:p, quat:quat },
+			{ name:'mouse', type:'null', pos:p, quat:quat, kinematic:notUseKinematic ? false : true },
 			{ 
 				name:'mouseJoint', type:'joint',mode:'d6',//mode:'spherical', //lm:[-0.2, 0.2],
-				lm:[['x',...def], ['y',...def], ['z',...def], ['rx',...def2], ['ry',...def2], ['rz',...def2]],
+				lm:[['x',...def], ['y',...def], ['z',...def], 
+				['rx',...defr], ['ry',...defr], ['rz',...defr]],
+				autoDrive: true,
 				b2:this.selected.name, b1:'mouse', 
-				worldAnchor:p, //sd:[4,1]
+				worldAnchor: p, 
 				worldAxis:[1,0,0],
 				//friction:0.5,
 				//tolerance:[1, 10],
@@ -28256,6 +28299,7 @@ class Motor {
 			case 'character': b = items.character.set( o, b ); break;
 			case 'solid': b = items.solid.set( o, b ); break;
 			case 'ray': b = items.ray.set( o, b ); direct = false; break;
+			case 'joint': b = items.joint.set( o, b );  break;
 			case 'body':
 			 if( b.isKinematic ) items.body.set( o, b );
 

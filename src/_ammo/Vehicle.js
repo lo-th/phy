@@ -1,7 +1,8 @@
 import { Item } from '../core/Item.js';
 import { Num } from '../core/Config.js';
+import { MathTool, torad, todeg } from '../core/MathTool.js';
 
-import { Utils, root, map, math, torad, todeg } from './root.js';
+import { Utils, root, map } from './root.js';
 
 /** __
 *    _)_|_|_
@@ -99,6 +100,9 @@ class Car {
 		this.isRay = true;
 
 		this.tr = new Ammo.btTransform();
+
+		this.tmpT = new Ammo.btTransform();
+		this.tmpV = new Ammo.btVector3();
 
 		this.data = {
 
@@ -438,7 +442,7 @@ class Car {
 
 	setMass ( m ) {
 
-		var p0 = math.vector3();
+		var p0 = this.tmpV//math.vector3();
 		this.data.mass = m;
 		p0.setValue( 0, 0, 0 );
 		this.body.getCollisionShape().calculateLocalInertia( this.data.mass, p0 );
@@ -455,13 +459,13 @@ class Car {
 		this.breaking = 0;
 		this.motor = 0;
 
-		var trans = math.transform();
-		trans.identity().fromArray( this.data.pos.concat( this.data.quat ) );
-		var p0 = math.vector3().set( 0, 0, 0 );
+		//var trans = math.transform();
+		this.tmpT.identity().fromArray( this.data.pos.concat( this.data.quat ) );
+		var p0 = this.tmpV.set( 0, 0, 0 );//math.vector3()
 
 		this.body.setAngularVelocity( p0 );
 		this.body.setLinearVelocity( p0 );
-		this.body.setWorldTransform( trans );
+		this.body.setWorldTransform( this.tmpT );
 		//this.body.activate();
 
 		//world.getBroadphase().getOverlappingPairCache().cleanProxyFromPairs( this.body.getBroadphaseHandle(), world.getDispatcher() );
@@ -470,8 +474,8 @@ class Car {
 		var n = this.numWheel;
 		while ( n -- ) this.chassis.updateWheelTransform( n, true );
 
-		trans.free();
-		p0.free();
+		//trans.free();
+		//p0.free();
 
 		//console.log( world, world.getPairCache(), world.getDispatcher() )
 
@@ -488,7 +492,7 @@ class Car {
 
         if ( k[ 0 ] === 0 ) this.steering *= 0.9;
         else this.steering -= data.incSteering * k[ 0 ];
-        this.steering = math.clamp( this.steering, - data.maxSteering, data.maxSteering );
+        this.steering = MathTool.clamp( this.steering, - data.maxSteering, data.maxSteering );
 
         // engine
         if ( k[ 1 ] === 0 ){ 
@@ -499,7 +503,7 @@ class Car {
 			this.breaking = 0;
 		}
 
-		this.motor = math.clamp( this.motor, - data.engine, data.engine );
+		this.motor = MathTool.clamp( this.motor, - data.engine, data.engine );
 		//if ( this.motor > data.engine ) this.motor = data.engine;
 		//if ( this.motor < - data.engine ) this.motor = - data.engine;
 

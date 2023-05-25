@@ -24,7 +24,7 @@ export const root = {
 
 };
 
-export const torad = Math.PI / 180;
+/*export const torad = Math.PI / 180;
 export const todeg = 180 / Math.PI;
 
 export const math = {
@@ -41,7 +41,7 @@ export const math = {
 	},
 
 	toFixed: ( x, n = 3 ) => ( x.toFixed(n) * 1 ),
-}
+}*/
 
 export const Utils = {
 

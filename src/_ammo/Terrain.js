@@ -1,5 +1,5 @@
 import { Item } from '../core/Item.js';
-import { Utils, root, math } from './root.js';
+import { Utils, root } from './root.js';
 
 // AMMO TERRAIN
 

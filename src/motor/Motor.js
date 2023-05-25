@@ -951,6 +951,7 @@ export class Motor {
 			case 'character': b = items.character.set( o, b ); break;
 			case 'solid': b = items.solid.set( o, b ); break;
 			case 'ray': b = items.ray.set( o, b ); direct = false; break;
+			case 'joint': b = items.joint.set( o, b );  break;
 			case 'body':
 			 if( b.isKinematic ) items.body.set( o, b );
 

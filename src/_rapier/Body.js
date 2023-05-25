@@ -1,5 +1,6 @@
 import { Item } from '../core/Item.js';
 import { Num } from '../core/Config.js';
+import { MathTool } from '../core/MathTool.js';
 
 import { root, Utils, Vec3, Quat, mapCollider } from './root.js';
 
@@ -208,8 +209,9 @@ export class Body extends Item {
 		switch( this.type ){
 			case 'body':
 			if( o.kinematic ){ 
-				if( o.velocityBased ) bodyDesc = RAPIER.RigidBodyDesc.kinematicVelocityBased()
-				else bodyDesc = RAPIER.RigidBodyDesc.kinematicPositionBased()
+				bodyDesc = RAPIER.RigidBodyDesc.kinematicVelocityBased()
+				//if( o.velocityBased ) bodyDesc = RAPIER.RigidBodyDesc.kinematicVelocityBased()
+				//else bodyDesc = RAPIER.RigidBodyDesc.kinematicPositionBased()
 			} else bodyDesc = RAPIER.RigidBodyDesc.dynamic()
 			break;
 			case 'solid':
@@ -270,6 +272,12 @@ export class Body extends Item {
 		b.collid = collider
 
 		b.isSensor = o.isTrigger ? o.isTrigger : false
+		b.isKinematic = o.kinematic || false
+
+		if( o.kinematic ){ 
+			b.pos = o.pos || [0,0,0]
+			b.quat = o.quat || [0,0,0,1]
+		}
 
 
 
@@ -301,13 +309,43 @@ export class Body extends Item {
 		if( o.noGravity ) b.setGravityScale( 0 )
 
 		// position / rotation
-		if( o.pos ) b.setTranslation( this.v.fromArray( o.pos ), autowake )
-		if( o.quat ) b.setRotation( this.q.fromArray( o.quat ), autowake )
+	    if( o.pos || o.quat ){
+	    	if( o.pos ){ 
+	    		
+	    		if( b.isKinematic ){
+
+	    			let pp = MathTool.subArray(o.pos, b.pos)
+	    			pp = MathTool.mulArray( pp, root.invDelta )
+	    			b.setLinvel( this.v.fromArray( pp ) )
+	    			b.pos = o.pos
+	    		}
+
+	    		b.setTranslation( this.v.fromArray( o.pos ), autowake )
+
+	    	}
+		    if( o.quat ){
+		    	if( b.isKinematic ){
+
+		    		let qqq = MathTool.quatMultiply( o.quat, MathTool.quatInvert( b.quat ) )
+		    		let mtx = MathTool.composeMatrixArray( [0,0,0], qqq, [1,1,1])
+		    		let eee = MathTool.eulerFromMatrix( mtx )
+		    		eee = MathTool.mulArray( eee, root.invDelta )
+
+	    			b.setAngvel( this.v.fromArray( eee ) )
+	    			b.quat = o.quat
+	    		}
+	    		
+		        b.setRotation( this.q.fromArray( o.quat ), autowake )
+		    }
+
+	    }
+		//if( o.pos ) b.setTranslation( this.v.fromArray( o.pos ), autowake )
+		//if( o.quat ) b.setRotation( this.q.fromArray( o.quat ), autowake )
 
 		// Applies the force `force` to `positionInWorld` in world position. [ 0,0,0,   0,0,0 ]
-		if( o.worldForce ) b.applyForceAtPoint( this.v.fromArray( o.worldForce ), this.v.fromArray( o.worldForce, 3 ), autowake )
-		if( o.force ) b.applyForce( this.v.fromArray( o.force ), autowake )
-		if( o.torque ) b.applyTorque( this.v.fromArray( o.torque ), autowake )
+		if( o.force ) b.addForce( this.v.fromArray( o.force ), autowake )
+		if( o.worldForce ) b.addForceAtPoint( this.v.fromArray( o.worldForce ), this.v.fromArray( o.worldForce, 3 ), autowake )
+		if( o.torque ) b.addTorque( this.v.fromArray( o.torque ), autowake )
 
 	    // Applies the impulse `impulse` to the rigid body at `positionInWorld` in world position. [ 0,0,0,   0,0,0 ]
 	    if( o.impulse ) b.applyImpulseAtPoint( this.v.fromArray( o.impulse ), this.v.fromArray( o.impulse, 3 ), autowake )

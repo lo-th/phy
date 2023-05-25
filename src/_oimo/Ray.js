@@ -1,7 +1,8 @@
 import { Item } from '../core/Item.js';
-import { Num, MathTool } from '../core/Config.js';
+import { Num } from '../core/Config.js';
+import { MathTool, torad } from '../core/MathTool.js';
 
-import { Utils, root, map, torad, Vec3, Quat, Mat3, RayCastClosest } from './root.js';
+import { Utils, root, map, Vec3, Quat, Mat3, RayCastClosest } from './root.js';
 
 // OIMO RAY
 

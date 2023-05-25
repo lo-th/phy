@@ -1,82 +1,13 @@
-export const Max = {
-	body:2000,
-    joint:100,
-    contact:50,
-    ray:100,
-    character:50,
-    vehicle:50,
-    solver:20,
-    //terrain:10,
-}
 
-export const Num = {
-	bodyFull:14,
-    body:8,
-    joint:16,
-    contact:8,
-    ray:11,
-    character:16,
-    vehicle:72,//max 8 wheels
-    solver:128,//256,
-    //terrain:1,
-}
-
-export const getArray = function ( engine, full = false ){
-
-    let ArPos = {}
-
-    let counts = {
-        body: Max.body * ( full ? Num.bodyFull : Num.body ),
-        joint: Max.joint * Num.joint,
-        ray: Max.ray * Num.ray,
-        contact: Max.contact * Num.contact,
-        character: Max.character * Num.character
-    }
-
-    if( engine === 'PHYSX' || engine === 'AMMO' ){ 
-        counts['vehicle'] = Max.vehicle * Num.vehicle;
-    }
-
-    if( engine === 'PHYSX' ){ 
-        counts['solver'] = Max.solver * Num.solver;
-    }
-
-    if( engine === 'HAVOK' || engine === 'RAPIER' ){ 
-        Num.joint = 0;
-    }
-
-    let prev = 0;
-
-    for( let m in counts ){ 
-
-        ArPos[m] = prev
-        prev += counts[m]
-
-    }
-
-    ArPos['total'] = prev
-
-    return ArPos
-
-}
-
-export const getType = function (o){
-    switch(o.type){
-        case 'plane': case 'box': case 'sphere': case 'highSphere': case 'cylinder': case 'stair':
-        case 'cone': case 'capsule': case 'mesh': case 'convex': case 'compound': case 'null':
-        if ( !o.density && !o.kinematic ) return 'solid'
-        else return 'body'
-        break;
-        default: 
-            return o.type 
-        break;
-    }
-}
+export const torad = Math.PI / 180;
+export const todeg = 180 / Math.PI;
+export const max32 = Number.MAX_SAFE_INTEGER;
+export const EPSILON = 0.00001;
 
 export const MathTool = {
 
-    torad: Math.PI / 180,
-    todeg: 180 / Math.PI,
+    //torad: Math.PI / 180,
+    //todeg: 180 / Math.PI,
 
     toFixed: ( x, n = 3 ) => ( x.toFixed(n) * 1 ),
 
@@ -94,7 +25,7 @@ export const MathTool = {
         return true
     },
 
-    composeArray: ( p, q, s = [1,1,1] ) => {
+    composeMatrixArray: ( p, q, s = [1,1,1] ) => {
         const x = q[0], y = q[1], z = q[2], w = q[3];
         const x2 = x + x,  y2 = y + y, z2 = z + z;
         const xx = x * x2, xy = x * y2, xz = x * z2;
@@ -109,8 +40,10 @@ export const MathTool = {
         ]
     },
 
+    // for physx substep 
+
     applyTransformArray: ( v, p, q, s = [1,1,1] ) => {
-        const e = MathTool.composeArray( p, q, s )
+        const e = MathTool.composeMatrixArray( p, q, s )
         const x = v[0], y = v[1], z = v[2];
         const w = 1 / ( e[ 3 ] * x + e[ 7 ] * y + e[ 11 ] * z + e[ 15 ] );
         return [
@@ -193,6 +126,63 @@ export const MathTool = {
             l = 1 / l;
             return MathTool.mulArray(q, l)
         }
+    },
+
+    quatInvert:( q ) => {
+        return [-q[0],-q[1],-q[2], q[3]]
+    },
+
+    quatMultiply:( a, b ) => {
+        const qax = a[0], qay = a[1], qaz = a[2], qaw = a[3];
+        const qbx = b[0], qby = b[1], qbz = b[2], qbw = b[3];
+        return [
+            qax * qbw + qaw * qbx + qay * qbz - qaz * qby,
+            qay * qbw + qaw * qby + qaz * qbx - qax * qbz,
+            qaz * qbw + qaw * qbz + qax * qby - qay * qbx,
+            qaw * qbw - qax * qbx - qay * qby - qaz * qbz
+        ]
+    },
+
+    quatToAxis:( q ) => {
+
+        let w = 2 * Math.acos( q[3] );
+        const s = Math.sqrt( 1 - q[3] * q[3] );
+        if ( s < 0.0001 ) {
+            return [1,0,0]
+        } else {
+             return [ q[0] / s, q[1] / s, q[2] / s, w ]
+        }
+    },
+
+    eulerFromMatrix: (te) => {
+
+        const m11 = te[ 0 ], m12 = te[ 4 ], m13 = te[ 8 ];
+        const m21 = te[ 1 ], m22 = te[ 5 ], m23 = te[ 9 ];
+        const m31 = te[ 2 ], m32 = te[ 6 ], m33 = te[ 10 ];
+
+        let ar = [0,0,0]
+        ar[1] = Math.asin( MathTool.clamp( m13, - 1, 1 ) );
+        if ( Math.abs( m13 ) < 0.9999999 ) {
+            ar[0] = Math.atan2( - m23, m33 );
+            ar[2] = Math.atan2( - m12, m11 );
+        } else {
+            ar[0] = Math.atan2( m32, m22 );
+            ar[2] = 0;
+        }
+        return ar
+
+    },
+
+    angleTo:( a, b ) => {
+
+        return 2 * Math.acos( Math.abs( MathTool.clamp( MathTool.dotArray(a,b), - 1, 1 ) ) );
+
+    },
+
+    dotArray: ( a, b ) => {
+        let i = a.length, r = 0;
+        while ( i -- ) r += a[ i ] * b[ i ];
+        return r;
     },
 
     addArray: ( a, b ) => {

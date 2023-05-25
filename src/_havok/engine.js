@@ -1,5 +1,6 @@
-import { root, Utils, math } from './root.js';
+import { root, Utils } from './root.js';
 import { getType, getArray } from '../core/Config.js';
+import { MathTool } from '../core/MathTool.js';
 
 import { Body } from './Body.js';
 import { Joint } from './Joint.js';
@@ -125,7 +126,7 @@ export class engine {
 		isTimeout = o.isTimeout || false;
 
 		timestep = 1 / (o.fps || 60 );
-		interval = math.toFixed(timestep*1000, 2)
+		interval = MathTool.toFixed(timestep*1000, 2)
 
 		substep = 1//o.substep || 1;
 		root.substep = substep

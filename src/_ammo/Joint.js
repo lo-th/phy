@@ -1,7 +1,10 @@
 import { Item } from '../core/Item.js';
 import { Num } from '../core/Config.js';
+import { torad } from '../core/MathTool.js';
 
-import { Utils, root, torad } from './root.js';
+import { Utils, root } from './root.js';
+
+// AMMO JOINT
 
 export class Joint extends Item {
 
@@ -39,13 +42,10 @@ export class Joint extends Item {
 			j = this.list[i];
 
 			n = N + ( i * Num.joint )
-			//if(j.visible){
-				//this.t.copy( j.getRigidBodyA().getWorldTransform() ).op_mul( j.formA ).toArray( AR, n  )
-				//this.t.copy( j.getRigidBodyB().getWorldTransform() ).op_mul( j.formB ).toArray( AR, n + 7 )
-
+			if( j.visible ){
 				this.t.copy( j.B1.getWorldTransform() ).op_mul( j.formA ).toArray( AR, n  )
 				this.t.copy( j.B2.getWorldTransform() ).op_mul( j.formB ).toArray( AR, n + 7 )
-			//}
+			}
 
 		}
 
@@ -189,7 +189,7 @@ export class Joint extends Item {
 
 		j.formA = formA
 		j.formB = formB
-		j.visible = o.visible !== undefined ? o.visible : true;
+		j.visible = false;
 		j.collision = o.collision || false; 
 
 		// apply option
@@ -205,6 +205,8 @@ export class Joint extends Item {
 
 		if( j === null ) j = this.byName( o.name );
 		if( j === null ) return;
+
+		if( o.visible !== undefined ) j.visible = o.visible;
 
 		if ( o.breaking && j.setBreakingImpulseThreshold ) j.setBreakingImpulseThreshold( o.breaking );
 		if ( o.iteration && j.setOverrideNumSolverIterations ) j.setOverrideNumSolverIterations( o.iteration ) // -1
@@ -251,7 +253,10 @@ export class Joint extends Item {
 			break;
 
 
-			case "dof" : case "sdof" :			
+			case "dof" : case "sdof" :
+
+
+			// https://pybullet.org/Bullet/BulletFull/classbtGeneric6DofSpring2Constraint.html#a38a394ba85aa31aa53ff4236ac22cd1c	
 
 			// MOTOR
 			// translation motor not exist in ammo !!
@@ -259,22 +264,35 @@ export class Joint extends Item {
 			if( o.motor ){
 				//console.log( j)
 				i = o.motor.length
+				let trans = false
 				while(i--){
 					k = o.motor[i]
-					if( k[0]==='rx' ) { m = j.getRotationalLimitMotor(0); }
-					if( k[0]==='ry' ) { m = j.getRotationalLimitMotor(1); }
-					if( k[0]==='rz' ) { m = j.getRotationalLimitMotor(2); }
 
+					if( k[0]==='rx' ) m = j.getRotationalLimitMotor(0)
+					else if( k[0]==='ry' ) m = j.getRotationalLimitMotor(1)
+					else if( k[0]==='rz' ) m = j.getRotationalLimitMotor(2)
+					else {
+						m = getTranslationalLimitMotor()
+						trans = true
+					}
 					//console.log(m)
 
 					//m.m_enableMotor = k[1] ? true : false; 
 					//m.m_targetVelocity = k[1] /// root.substep;// def 0 
 					//m.m_maxMotorForce = k[2] /// root.substep;
 					if(m){
-						m.set_m_enableMotor( true)//k[1] !== 0 )
-						m.set_m_targetVelocity( -k[1]*torad )// is reverse why ??
-						m.set_m_maxMotorForce(k[2])// def 6
-						//m.set_m_maxLimitForce(k[2])
+
+						if(!trans){
+							m.set_m_enableMotor( true )//k[1] !== 0 )
+							m.set_m_targetVelocity( -k[1]*torad )// is reverse why ??
+							m.set_m_maxMotorForce(k[2])// def 6
+							//m.set_m_maxLimitForce(k[2])
+						} else {
+							//m_lowerLimit         .setValue(0.f , 0.f , 0.f );
+							//m_upperLimit         .setValue(0.f , 0.f , 0.f );
+							//m_bounce             .setValue(0.f , 0.f , 0.f );
+						}
+						
 					}
 					
 
@@ -301,18 +319,35 @@ export class Joint extends Item {
 					if( k[0]==='z' )  { m[2][2] = k[1]; m[3][2] = k[2]; }
 
 					if( k.length>3) {
-						//console.log( k[3])
+						
 						n = idx.indexOf( k[0] )
-						j.enableSpring( n,  k[3]!==0 )
-						j.setStiffness( n, k[3] || 0 )
-						j.setDamping( n, k[4] || 0)
+						j.enableSpring( n,  k[3] !== 0 )
+						//j.setStiffness( n, k[3] || 0 )
+						//j.setDamping( n, k[4] || 0)
+
+						j.setStiffness( n, 1/k[3] || 0 )
+						j.setDamping( n, 1/k[4] || 0)
 						//j.setEquilibriumPoint(n,0)
 						//j.setFrames(n,c)
-						//console.log(j)
+						
 					}
 				}
 
-				
+			/*	 for ( int i = 0; i < 3; ++i )
+			   {
+			      pGen6DOFSpring->enableSpring( i, true );
+			      pGen6DOFSpring->setStiffness( i, 1 );
+			      pGen6DOFSpring->setStiffness( i + 3, 1 );
+			      pGen6DOFSpring->setDamping( i, btScalar( 0.99 ) );
+			      pGen6DOFSpring->setDamping( i + 3, btScalar( 0.99 ) );
+			      pGen6DOFSpring->setParam( BT_CONSTRAINT_STOP_CFM, btScalar( (1.0E-5) ), i );
+			      pGen6DOFSpring->setParam( BT_CONSTRAINT_STOP_CFM, btScalar( ( 1.0E-5 ) ), i + 3 );
+			      pGen6DOFSpring->setParam( BT_CONSTRAINT_CFM, btScalar( ( 1.0E-5 ) ), i );
+			      pGen6DOFSpring->setParam( BT_CONSTRAINT_CFM, btScalar( ( 1.0E-5 ) ), i+3 );
+			   }
+			   pGen6DOFSpring->setEquilibriumPoint( );
+
+			*/	
 
 				//console.log(j.name, m)
 
@@ -324,7 +359,13 @@ export class Joint extends Item {
 			    j.setLinearLowerLimit( this.v1.fromArray(m[2]) )
 			    j.setLinearUpperLimit( this.v1.fromArray(m[3]) )
 
+
+			    //console.log(j)
+
 			}
+
+			//j.setEnabled(b)
+			///j.setBreakingImpulseThreshold(b)
 
 			// SPRING DAMPER
 

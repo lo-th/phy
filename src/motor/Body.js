@@ -24,6 +24,7 @@ export class Body extends Item {
 		this.num = Num[this.type]
 		this.full = false
 		this.extraConvex = false
+		this.needMatrix = root.engine ==='RAPIER'
 
 	}
 
@@ -77,7 +78,7 @@ export class Body extends Item {
 		    	b.position = {x:AR[n+1], y:AR[n+2], z:AR[n+3]}
 		    	///b.quaternion = {x:AR[n+4], y:AR[n+5], z:AR[n+6], w:AR[n+7]}
 		    	b.quaternion = {_x:AR[n+4], _y:AR[n+5], _z:AR[n+6], _w:AR[n+7]}
-		    	//b.matrixWorld.compose( b.position, b.quaternion, {x:1, y:1, z:1}) 
+		    	if( this.needMatrix ) b.matrixWorld.compose( b.position, b.quaternion, {x:1, y:1, z:1}) 
 		    	if( this.full ){
 		    		b.velocity = {x:AR[n+8], y:AR[n+9], z:AR[n+10]}
 		    		b.angular = {x:AR[n+11], y:AR[n+12], z:AR[n+13]}
@@ -541,8 +542,6 @@ export class Body extends Item {
 					if( n.rot !== undefined ){ n.quat = math.toQuatArray( n.rot ); delete n.rot; }
 					if( n.quat ) n.localQuat = n.quat;
 
-
-					
 					n.debug = o.debug || false;
 					n.meshRemplace = o.meshRemplace || false;
 
@@ -608,7 +607,7 @@ export class Body extends Item {
 			b.quaternion = {_x:o.quat[0], _y:o.quat[1], _z:o.quat[2], _w:o.quat[3]}
 		    b.velocity = {x:0, y:0, z:0}
 		    b.angular = {x:0, y:0, z:0}
-		    //b.matrixWorld = new Matrix4()
+		    if( this.needMatrix ) b.matrixWorld = new Matrix4()
 
 			// for convex
 			if(b.instance.v) o.v = b.instance.v

@@ -1,8 +1,12 @@
 
 import { Item } from '../core/Item.js';
 import { Num } from '../core/Config.js';
+import { MathTool, torad } from '../core/MathTool.js';
 
-import { Utils, root, torad, Vec3, Quat } from './root.js';
+
+import { Utils, root, Vec3, Quat } from './root.js';
+
+// RAPIER JOINT
 
 export class Joint extends Item {
 
@@ -13,9 +17,6 @@ export class Joint extends Item {
 		this.Utils = Utils
 
 		this.type = 'joint';
-
-		//this.t1 = new PhysX.PxTransform([ 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1 ])
-		//this.t2 = new PhysX.PxTransform([ 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1 ])
 
 		this.v1 = new Vec3()
 		this.v2 = new Vec3()
@@ -31,7 +32,7 @@ export class Joint extends Item {
 
 	step ( AR, N ) {
 
-		/*let i = this.list.length, j, n;
+		let i = this.list.length, j, n, mtx1, mtx2;
 
 		while( i-- ){
 
@@ -43,25 +44,29 @@ export class Joint extends Item {
 
 			if( j.visible ){
 
-				//this.p1.copy( j.anchor1 ).toArray( AR, n  )
-				//this.p2.copy( j.anchor2 ).toArray( AR, n+7  )
+				/*if(j.b1){
+					this.p1.copy( j.b1.translation() )
+					this.q1.copy( j.b1.rotation() )
+					mtx1 = MathTool.composeMatrixArray(this.p1.toArray(), this.q1.toArray())
+				}
 
-				this.v1.copy( j.b1.translation() ).toArray( AR, n  )
-				this.v2.copy( j.b2.translation() ).toArray( AR, n+7  )
+				if(j.b2){
+					this.p2.copy( j.b2.translation() )
+					this.q2.copy( j.b2.rotation() )
+					mtx2 = MathTool.composeMatrixArray(this.p2.toArray(), this.q2.toArray())
+					//MathTool.composeMatrixArray
+				}
 
-
-				//this.v1.copy( j.b1.translation() ).sub(j.anchor1).toArray( AR, n  )
-				//this.v2.copy( j.b2.translation() ).sub(j.anchor2).toArray( AR, n+7 )
+				this.v1.copy( j.b1.translation() ).add({x:j.p1[0], y:j.p1[1], z:j.p1[2]}).toArray( AR, n  )
+				this.v2.copy( j.b2.translation() ).add({x:j.p2[0], y:j.p2[1], z:j.p2[2]}).toArray( AR, n+7  )*/
 
 			}
 
-		}*/
+		}
 
 	}
 
 	// https://rapier.rs/docs/user_guides/javascript/joints
-
-	///
 
 	add ( o = {} ) {
 
@@ -178,55 +183,49 @@ export class Joint extends Item {
 
 		}*/
 
-		let j
+		let data
 
 		switch ( mode ) {
 
-			case 'spherical': j = RAPIER.JointData.spherical( posA, posB ); break;
-			case "hinge": case "revolute": j = RAPIER.JointData.revolute( posA, posB, axeA ); break;
-			case "slider":case "prismatic":  j = RAPIER.JointData.prismatic( posA, posB, axeA ); break;
-			case "fixe": j = RAPIER.JointData.fixed( posA, quatA, posB, quatB ); break;
-			default: j = RAPIER.JointData.spherical( posA, posB ); break;
+			case 'spherical': data = RAPIER.JointData.spherical( posA, posB ); break;
+			case "hinge": case "revolute": data = RAPIER.JointData.revolute( posA, posB, axeA ); break;
+			case "slider":case "prismatic":  data = RAPIER.JointData.prismatic( posA, posB, axeA ); break;
+			case "fixe": data = RAPIER.JointData.fixed( posA, quatA, posB, quatB ); break;
+			default: data = RAPIER.JointData.spherical( posA, posB ); break;
 
 		}
 
 		//console.log(j)
 
 		
+
+		// add to world
+		//let collision = o.collision !== undefined ? o.collision : false;
+		let collisionEnabled = o.collision !== undefined ? o.collision : false;
+
+		const j = root.world.createImpulseJoint( data, b1, b2, collisionEnabled )
+
+		j.data = data
 		j.name = name
 		j.mode = mode
 		j.type = this.type
 
 		j.b1 = b1
 		j.b2 = b2
-		//j.p1 = posA
-		//j.p2 = posB
-		//j.formA = formA
-		//j.formB = formB
 
-		j.visible = o.visible !== undefined ? o.visible : true; 
+		j.visible = false; 
 
-		
-
-		
 
 		// apply option
 		this.set( o, j );
-
-		// add to world
-		//let collision = o.collision !== undefined ? o.collision : false;
-		let collisionEnabled = o.collision !== undefined ? o.collision : false;
-		//j.setConstraintFlag( PhysX._emscripten_enum_PxConstraintFlagEnum_eCOLLISION_ENABLED(), collision )
-
-		const jv = root.world.createImpulseJoint( j, b1, b2, collisionEnabled )
-		jv.setContactsEnabled( collisionEnabled )
+		//j.setContactsEnabled( collisionEnabled )
 
 		//console.log(jv)
 		//jv.contactsEnabled = collisionEnabled
 
 		//j.handle = jv.handle
 
-		//console.log(jv)
+		//console.log(j.jtype, j.type())
 
 		this.addToWorld( j, o.id )
 		
@@ -246,8 +245,10 @@ export class Joint extends Item {
 		if( j === null ) j = this.byName( o.name );
 		if( j === null ) return;
 
+		if( o.visible !== undefined ) j.visible = o.visible;
 
-		if( o.lm ) this.limit( j, o.lm, j.mode === 'prismatic' || j.mode === 'slider' )
+
+		if( o.lm ) this.limit( j.data, o.lm, j.mode === 'prismatic' || j.mode === 'slider' )
 
 
 		

@@ -44,6 +44,7 @@ export class SkeletonBody extends Object3D {
         if( root.engine!=='PHYSX' ) this.useSolver = false
 
         this.nameList = []
+        this.jointList = []
 
         this.breast = false
 
@@ -98,6 +99,11 @@ export class SkeletonBody extends Object3D {
 
         let i = this.nameList.length, node
         while( i-- ) Utils.byName( this.nameList[i] ).visible = v
+
+        let data = []
+        i = this.jointList.length
+        while( i-- ) data.push( { name:this.jointList[i], visible:v } )
+        root.motor.change( data )
 
     }
 
@@ -407,6 +413,7 @@ export class SkeletonBody extends Object3D {
         for( let j in data ){
             data[j].name = this.prefix + '_joint_'+ x
             this.nameList.push( data[j].name )
+            this.jointList.push( data[j].name )
             x++
         }
 
@@ -509,6 +516,9 @@ export class SkeletonBody extends Object3D {
         this.posRef = {}
         this.quatRef = {}
 		this.parent.remove( this );
+
+        this.nameList = []
+        this.jointList = []
 		
 	}
 

@@ -40,8 +40,6 @@ export class Joint extends Item {
 			if( Num.joint === 16 ) j.updateFromPhy( AR, n );
 			else j.update();
 
-			//j.update( AR.slice( n, 16 ) );
-
 		}
 
 	}
@@ -164,6 +162,9 @@ export class Joint extends Item {
 		j.body1 = body1
 		j.body2 = body2
 
+		// apply option
+		this.set( o, j )
+
 		// add to world
 		this.addToWorld( j, o.id )
 
@@ -174,7 +175,12 @@ export class Joint extends Item {
 
 	}
 
-	set ( o = {} ) {
+	set ( o = {}, j = null ) {
+
+		if( j === null ) j = this.byName( o.name )
+		if( j === null ) return
+
+		if( o.visible !== undefined ) j.visible = o.visible;
 
 	}
 
@@ -250,7 +256,6 @@ export class ExtraJoint extends Basic3D {
 
 	update () {
 
-		//if( !this.isVisible ) return
 		if( !this.visible ) return
 
 		if( this.body1 ){

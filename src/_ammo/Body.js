@@ -3,6 +3,8 @@ import { Num } from '../core/Config.js';
 
 import { Utils, root } from './root.js';
 
+// AMMO BODY
+
 export class Body extends Item {
 
 	constructor () {

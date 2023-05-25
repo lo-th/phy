@@ -279,6 +279,8 @@ export class engine {
 		root.delta = ( startTime - lastTime ) * 0.001;
 		lastTime = startTime;
 
+		root.invDelta = 1 / (fixe ? root.world.timestep : root.delta);
+
 		let n = substep;
 		while( n-- ){
 			if( !fixe ) root.world.timestep = root.delta/substep

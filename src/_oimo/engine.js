@@ -1,5 +1,6 @@
-import { root, Utils, World, Vec3, Quat, math } from './root.js';
+import { root, Utils, World, Vec3, Quat } from './root.js';
 import { getType, getArray } from '../core/Config.js';
+import { MathTool } from '../core/MathTool.js';
 
 import { Body } from './Body.js';
 import { Joint } from './Joint.js';
@@ -111,7 +112,7 @@ export class engine {
 		isTimeout = o.isTimeout || false;
 
 		timestep = 1 / (o.fps || 60 );
-		interval = math.toFixed(timestep*1000, 2)
+		interval = MathTool.toFixed(timestep*1000, 2)
 
 		substep = o.substep || 1;
 		// broadphase 1:BRUTE_FORCE 2:BVH

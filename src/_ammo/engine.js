@@ -1,5 +1,6 @@
-import { root, Utils, math } from './root.js'
+import { root, Utils } from './root.js'
 import { getType, getArray } from '../core/Config.js';
+import { MathTool } from '../core/MathTool.js';
 
 import { Ray } from './Ray.js'
 import { Body } from './Body.js'
@@ -114,7 +115,7 @@ export class engine {
 		isTimeout = o.isTimeout || false;
 
 		timestep = 1 / (o.fps || 60 );
-		interval = math.toFixed(timestep*1000, 2)
+		interval = MathTool.toFixed(timestep*1000, 2)
 
 		substep = o.substep || 1;
 		fixe = o.fixe !== undefined ? o.fixe : true;
@@ -408,7 +409,7 @@ export class engine {
 				for ( let j = 0, jl = manifold.getNumContacts(); j < jl; j ++ ) {
 
 					p = manifold.getContactPoint( j );
-					distance = math.toFixed( p.getDistance(), 3)
+					distance = MathTool.toFixed( p.getDistance(), 3)
 
 					if ( distance < -0.01 ) {
 

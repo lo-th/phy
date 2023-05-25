@@ -1,5 +1,7 @@
 import { Item } from '../core/Item.js';
-import { Num, MathTool } from '../core/Config.js';
+import { Num } from '../core/Config.js';
+import { MathTool } from '../core/MathTool.js';
+
 
 import { Utils, root, map } from './root.js';
 

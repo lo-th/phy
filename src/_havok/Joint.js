@@ -1,7 +1,8 @@
 import { Item } from '../core/Item.js';
 import { Num } from '../core/Config.js';
+import { torad } from '../core/MathTool.js';
 
-import { Utils, root, map, torad } from './root.js';
+import { Utils, root, map } from './root.js';
 
 export class Joint extends Item {
 

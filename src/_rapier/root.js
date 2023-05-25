@@ -5,6 +5,7 @@ export const root = {
 
 	world : null,
 	delta : 0,
+	invDelta :0,
 
 	flow:{
 		tmp:[],
@@ -30,8 +31,8 @@ export const root = {
 
 };
 
-export const torad = Math.PI / 180;
-export const todeg = 180 / Math.PI;
+//export const torad = Math.PI / 180;
+//export const todeg = 180 / Math.PI;
 
 export class Utils {
 
@@ -67,6 +68,8 @@ export class Utils {
 		if( b.type !== 'ray' &&  b.type !== 'contact' ){
 			switch( b.type ){
 				case 'joint': 
+
+				//console.log('joint remove', b)
 
 				//root.world.getImpulseJoint( b )
 				root.world.removeImpulseJoint( b ) 

@@ -20,6 +20,8 @@ export class MouseTool {
 		this.numBullet = 0
 		this.maxBullet = 10
 
+		this.sticky = false
+
 		this.isActive = false
 		this.raycastTest = false
 		this.firstSelect = false
@@ -64,6 +66,7 @@ export class MouseTool {
 				this.dom.addEventListener( 'pointermove', this.mousemove.bind(this), false )
 		        this.dom.addEventListener( 'pointerdown', this.mousedown.bind(this), false )
 		        document.addEventListener( 'pointerup', this.mouseup.bind(this), false )
+		        document.addEventListener( 'contextmenu', this.contextmenu.bind(this), false )
 
 		        this.controler.addEventListener( 'end', this.controleEnd.bind(this), false )
 		        this.controler.addEventListener( 'change', this.controleChange.bind(this), false )
@@ -92,6 +95,7 @@ export class MouseTool {
 	}
 
 	controleChange ( e ) {
+
 		let state = this.controler.getState();
 		if( state !== -1 ){
 			if( this.controlFirst ) this.controlFirst = false;
@@ -106,16 +110,32 @@ export class MouseTool {
 
 	}
 
+	contextmenu ( e ) {
+		e.preventDefault()
+		if( this.mouseDown ){
+			console.log('yo ')
+		}
+	}
+
 	mousedown ( e ) {
+
+		if( this.sticky ){ 
+			this.unSelect()
+			console.log('unstick')
+		}
 
 		this.getMouse( e )
 
 		switch( this.mode ){
 
 			case 'drag':
+
 			let button = 0
 
+			
+
 			if( !this.mouseDown ){
+
 				if( this.firstSelect ) this.firstSelect = false
 				this.oldMouse.copy( this.mouse )
 			}
@@ -149,20 +169,14 @@ export class MouseTool {
 
 	mouseup ( e ) {
 
-		/*if( this.buttonRef ){
-			if( this.buttonRef.userData.out ) this.buttonRef.userData.out()
-			this.buttonRef = null
-		}*/
-
 		this.mouseMove = this.oldMouse.distanceTo( this.mouse ) < 0.01 ? false : true
 		this.mouseDown = false
 		this.mouseDown2 = false
-
 		root.mouseDown = false
+
+		if( this.sticky ) { this.controler.enabled = true; return; }
 		this.unSelect()
 		this.resetButton()
-
-
 
 	}
 
@@ -187,7 +201,8 @@ export class MouseTool {
 
 			this.raycast.setFromCamera( this.mouse, this.controler.object )
 			inters = this.raycast.intersectObject( this.dragPlane )
-			if ( inters.length ) root.motor.change({ name:'mouse', pos:inters[0].point.toArray() }, true )
+			if ( inters.length && this.mouseDown ) root.motor.change({ name:'mouse', pos:inters[0].point.toArray() }, true )
+			return
 
 		}
 
@@ -338,11 +353,14 @@ export class MouseTool {
 	    let quat = [0,0,0,1]
 		
 		this.selected = obj
-		if( this.selected.isInstance ) quat = this.selected.instance.getInfo( this.selected.id ).quat;
+		/*if( this.selected.isInstance ) quat = this.selected.instance.getInfo( this.selected.id ).quat;
 		else if( this.selected.isObject3D ){
 			this.selected.updateMatrix()
 			quat = this.selected.quaternion.toArray()
-		}
+		}*/
+
+		let q = this.selected.quaternion
+		quat = [ q._x, q._y, q._z, q._w ]
 
 
 		/*if( this.selected.isInstance ){
@@ -372,15 +390,26 @@ export class MouseTool {
 		//Motor.add({ name:'mouse', type:'sphere', size:[0.01], pos:p, quat:quat, mask:0, density:0, noGravity:true, kinematic:true, flags:'noCollision' })
 		//root.motor.add({ name:'mouse', type:'null', pos:p, quat:quat })
 
-		let def = [-0.03, 0.03, 60, 5]
-		let def2 = [-3, 3, 60, 5]
+		//let def = [-0.03, 0.03, 60, 5]
+		//let defr = [-3, 3, 60, 5]
+
+		//let def = [-0.03, 0.03, 60, 2]
+		//let defr = [-3, 3, 60, 2]
+
+		let def = [-0.1, 0.1, 60, 1]
+		let defr = [-3, 3, 60, 1]
+
+		let notUseKinematic = root.engine ==='OIMO' || root.engine ==='RAPIER'
+
 		root.motor.add([
-			{ name:'mouse', type:'null', pos:p, quat:quat },
+			{ name:'mouse', type:'null', pos:p, quat:quat, kinematic:notUseKinematic ? false : true },
 			{ 
 				name:'mouseJoint', type:'joint',mode:'d6',//mode:'spherical', //lm:[-0.2, 0.2],
-				lm:[['x',...def], ['y',...def], ['z',...def], ['rx',...def2], ['ry',...def2], ['rz',...def2]],
+				lm:[['x',...def], ['y',...def], ['z',...def], 
+				['rx',...defr], ['ry',...defr], ['rz',...defr]],
+				autoDrive: true,
 				b2:this.selected.name, b1:'mouse', 
-				worldAnchor:p, //sd:[4,1]
+				worldAnchor: p, 
 				worldAxis:[1,0,0],
 				//friction:0.5,
 				//tolerance:[1, 10],

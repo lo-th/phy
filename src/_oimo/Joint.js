@@ -1,7 +1,8 @@
 import { Item } from '../core/Item.js';
 import { Num } from '../core/Config.js';
+import { torad } from '../core/MathTool.js';
 
-import { Utils, map, torad, Vec3, Quat, Mat3, Joints } from './root.js';
+import { Utils, map, Vec3, Quat, Mat3, Joints } from './root.js';
 
 export class Joint extends Item {
 
@@ -34,19 +35,23 @@ export class Joint extends Item {
 
 			if(  Num.joint===16 ){
 
-				j.getAnchor1To( v )
-				v.toArray( AR, n )
+				if( j.visible ){
 
-				j.getBasis1To( m )
-				q.fromMat3( m )
-				q.toArray( AR, n+3 )
+					j.getAnchor1To( v )
+					v.toArray( AR, n )
 
-				j.getAnchor2To( v )
-				v.toArray( AR, n+7 )
+					j.getBasis1To( m )
+					q.fromMat3( m )
+					q.toArray( AR, n+3 )
 
-				j.getBasis2To( m )
-				q.fromMat3( m )
-				q.toArray( AR, n+10 )
+					j.getAnchor2To( v )
+					v.toArray( AR, n+7 )
+
+					j.getBasis2To( m )
+					q.fromMat3( m )
+					q.toArray( AR, n+10 )
+
+				}
 				
 			}
 
@@ -181,7 +186,7 @@ export class Joint extends Item {
 		j.name = name;
 		j.type = this.type;
 		j.mode = mode;
-		j.visible = o.visible !== undefined ? o.visible : true; 
+		j.visible = false; 
 
 		//if( j.mode ==='Generic' ) console.log( j.getAxisY() )
 
@@ -201,6 +206,8 @@ export class Joint extends Item {
 
 		if( j === null ) j = this.byName( o.name );
 		if( j === null ) return;
+
+		if( o.visible !== undefined ) j.visible = o.visible;
 
 		if( o.collision !== undefined ) j.setAllowCollision( o.collision )
 		if( o.breakForce !== undefined ) j.setBreakForce( o.breakForce )

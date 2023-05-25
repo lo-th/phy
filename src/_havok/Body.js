@@ -1,7 +1,8 @@
 import { Item } from '../core/Item.js';
 import { Num } from '../core/Config.js';
+import { MathTool } from '../core/MathTool.js';
 
-import { Utils, root, math, map } from './root.js';
+import { Utils, root, map } from './root.js';
 
 
 export class Body extends Item {
@@ -414,7 +415,7 @@ export class Body extends Item {
 
 			if( b.isKinematic ){
 
-				if( math.equalArray( b.oldp, o.pos )  ) move = false
+				if( MathTool.equalArray( b.oldp, o.pos )  ) move = false
 				else  b.oldp = o.pos 
 
 			}

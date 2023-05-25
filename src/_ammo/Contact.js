@@ -3,6 +3,8 @@ import { Num } from '../core/Config.js';
 
 import { Utils, root } from './root.js'
 
+// AMMO CONTACT
+
 export class Contact extends Item {
 
 	constructor () {
