@@ -1,7 +1,6 @@
-import { root, math } from './root.js';
-import {
-    Mesh, PlaneGeometry, Vector3, MeshBasicMaterial, CanvasTexture, Texture
-} from 'three';
+import { MathTool } from '../core/MathTool.js';
+import { root } from './root.js';
+import { Mesh, PlaneGeometry, Vector3, MeshBasicMaterial, CanvasTexture, Texture } from 'three';
 
 let Nb = 0
 
@@ -27,7 +26,7 @@ export class Textfield extends Mesh {
 		this.set( o.text )
 		
 		if( o.pos ) this.position.fromArray(o.pos)
-		if( o.rot ) this.quaternion.fromArray( math.toQuatArray( o.rot ) )
+		if( o.rot ) this.quaternion.fromArray( MathTool.quatFromEuler( o.rot ) )
 		
 	}
 

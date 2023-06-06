@@ -9,7 +9,7 @@ function demo() {
     phy.set({})
 
     // add static plane 
-    phy.add({ type:'plane', name:'floor', size:[ 2,1,2 ], visible:true, friction: 0.5,  });
+    phy.add({ type:'plane', name:'floor', size:[ 2,1,2 ], visible:false, friction: 0.5,  });
 
 
 

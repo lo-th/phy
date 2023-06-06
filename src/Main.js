@@ -188,14 +188,19 @@ let memo = null
 
 export const Main = {
 
+	Hub:Hub,
+
 	engineType:'',
 	currentDemmo:'',
 	isWorker:true,
 	devMode:false,
-	engineList: [ 'OIMO','AMMO', 'PHYSX', 'HAVOK'],
+	engineList: [ 'OIMO', 'AMMO', 'PHYSX', 'HAVOK', 'RAPIER'],
 	demoList:[],
+	envList:[],
 	isMobile:false,
 	isEditor:false,
+
+	motor:Motor,
 
 	start: async ( o = {} ) => {
 
@@ -235,7 +240,7 @@ export const Main = {
 
 		version = Version[ engineName ]
 
-		if( Main.devMode ) Main.engineList.push('RAPIER', 'CANNON')
+		//if( Main.devMode ) Main.engineList.push('RAPIER')//, 'CANNON')
 
 		//o.link = LinkWasm[ engineName ]
 		o.type = Main.engineType
@@ -245,7 +250,7 @@ export const Main = {
 
 		introText = ( Main.isWorker ? 'WORKER ' : 'DIRECT ' ) + Main.engineType + ' ' + version;
 
-		//options.show_stat = Main.devMode
+		options.show_stat = Main.devMode
 
 		//Motor.engine = Main.engineType
 		window.engine = Main.engineType//Motor.engine
@@ -272,8 +277,12 @@ export const Main = {
 	getDemos:() => { 
 		let d = Motor.get('demos', 'json') 
 		Main.demoList = [ ...d.Basic, ...d.Advanced, ...d[Main.engineType] ]
+		Main.envList = [...d.Envmap]
 		//return Main.demoList
 	},
+
+	lightIntensity:() => { lightIntensity() },
+	envmapIntensity:() => { setEnvmapIntensity() },
 
 
 	getOption:() => ( options ),
@@ -302,6 +311,7 @@ export const Main = {
 	},
 
 	showGui: () => { Gui.showHide() },
+	setEnv: (name, chageUI) => { setEnv(name, chageUI) },
 
 }
 
@@ -544,7 +554,7 @@ const next = () => {
 
 	loadDemo( options.demo )
 
-	//if( options.show_stat ) showStatistic( true )
+	if( options.show_stat ) showStatistic( true )
 
 }
 
@@ -566,6 +576,13 @@ const addControl = () => {
 //--------------------
 //   LIGHT
 //--------------------
+const lightIntensity = (a,b) => {
+	if( a ) options.light_1 = a
+	if( b ) options.light_2 = b
+	if(light) light.intensity = options.light_1*0.3
+	if(light3) light3.intensity = options.light_1*0.7
+	if(light2) light2.intensity = options.light_2
+}
 
 const addLight = () => {
 
@@ -837,6 +854,7 @@ const inject = ( newCode, force = false ) => {
 	Hub.reset()
 	Shader.reset()
 	editor.reset()
+
 	//resetLight()
 
 	if( particles ) particles.dispose()
@@ -884,6 +902,8 @@ const refreshCode = () => {
     if( code.search( 'phy.set' ) === -1 ) Motor.set()
 
     window['demo']()
+
+    Gui.reset()
 
 }
 
@@ -1202,11 +1222,18 @@ const send = ( data ) => {
 
 const setEnvmapIntensity = ( v ) => {
 
-	let g = Motor.getScene()
+	Motor.setEnvmapIntensity( options.envPower )
+
+	/*let g = Motor.getScene()
 	g.traverse( function ( node ) {
-		if( node.isMesh ) node.material.envMapIntensity = v
-	})
-	ground.material.envMapIntensity = v
+		if( node.isMesh ){ 
+			if( !node.material.userData.envp ) node.material.userData.envp = node.material.envMapIntensity
+			node.material.envMapIntensity = node.material.userData.envp * options.envPower
+		}
+	})*/
+
+	//if(!ground.material.userData.envp) ground.material.userData.envp = ground.material.envMapIntensity
+	//ground.material.envMapIntensity = ground.material.userData.envp * options.envPower
 
 }
 

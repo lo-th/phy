@@ -23,6 +23,7 @@ export class Body extends Item {
 
 		this.p = new Vec3()
 		this.v = new Vec3()
+		this.v2 = new Vec3()
 		this.r = new Vec3()
 		this.q = new Quat()
 		//this.t = new Transform()
@@ -76,9 +77,9 @@ export class Body extends Item {
 	shape ( o = {} ) {
 
 		let sc = this.sc;// new ShapeConfig();
-		// The density of the shape, usually in Kg/m^3. def = 1
-        if( o.density !== undefined ) sc.density = o.density;
-        if( o.mass !== undefined ) sc.density = o.mass; // extra mass for static body test ??
+		
+        
+        //if( o.mass !== undefined ) sc.density = o.mass; // extra mass for static body test ??
         // The coefficient of friction of the shape. def = 0.2
         if( o.friction !== undefined ) sc.friction = o.friction;
         // The coefficient of restitution of the shape. def = 0.2
@@ -150,12 +151,26 @@ export class Body extends Item {
 
 		}
 
-		sc.geometry = g;
+		//console.log(g._volume, o.volume)
 
+		//g.volume = MathTool.getVolume( t, s, o.v );
+
+		sc.geometry = g;
 		sc.position.fromArray( o.localPos || [0,0,0] );
 		sc.rotation.fromQuat( this.q.fromArray( o.localQuat || [0,0,0,1] ) );
 
-		return new Shape( sc );
+
+		// The density of the shape, usually in Kg/m^3. def = 1
+		//if( o.mass && o.density ) delete o.density
+        sc.density = o.density || 0;
+        if( o.mass !== undefined ) sc.density = MathTool.densityFromMass( o.mass, MathTool.getVolume( t, s, o.v ) )
+
+
+		let shape = new Shape( sc );
+
+
+
+		return shape
 
 	}
 
@@ -309,15 +324,13 @@ export class Body extends Item {
 
 		if(o.kinematic) delete o.kinematic
 
-		// apply option
-		this.set( o, b )
+		
 
 		// add to world
 		this.addToWorld( b, o.id )
 
-		//console.log(b)
-
-		
+		// apply option
+		this.set( o, b )
 
 	}
 
@@ -327,7 +340,7 @@ export class Body extends Item {
 		if( b === null ) b = this.byName( o.name )
 		if( b === null ) return
 
-		if(o.kinematic !== undefined){
+		if( o.kinematic !== undefined ){
 			b.setType(o.kinematic ? 2 : 0);
 			b.isKinematic = o.kinematic
 		}
@@ -385,12 +398,21 @@ export class Body extends Item {
 		if( o.force ) b.applyForceToCenter( this.v.fromArray( o.force ) )
 		if( o.torque ) b.applyTorque( this.v.fromArray( o.torque ) )
 
+
+
 	    // Applies the impulse `impulse` to the rigid body at `positionInWorld` in world position. [ 0,0,0,   0,0,0 ]
-	    if( o.impulse ) b.applyImpulse( this.v.fromArray( o.impulse ), this.v.fromArray( o.impulse, 3 ) )
-	    if( o.linearImpulse ) {
-	    	this.multiplyScalar( o.linearImpulse, root.delta, 3 )
-	    	b.applyLinearImpulse( this.v.fromArray( o.linearImpulse ) )
+
+	    if(o.impulse){
+	    	if( o.impulseCenter ) b.applyImpulse( this.v.fromArray( o.impulse ), this.v2.fromArray( o.impulseCenter ) );
+	    	else b.applyLinearImpulse( this.v.fromArray( o.impulse ) );
 	    }
+	    /*if( o.impulse ) b.applyImpulse( this.v.fromArray( o.impulse ), this.v.fromArray( o.impulse, 3 ) )
+	    if( o.linearImpulse ) {
+	    	//this.multiplyScalar( o.linearImpulse, root.delta, 3 )
+	    	b.applyLinearImpulse( this.v.fromArray( o.linearImpulse ) )
+	    }*/
+
+
 	    if( o.angularImpulse ) b.applyAngularImpulse( this.v.fromArray( o.angularImpulse ) )
 
 	    if( o.gravityScale ) b.setGravityScale( o.gravityScale );
@@ -402,6 +424,9 @@ export class Body extends Item {
 
 		    if( o.linearVelocity ) b.setLinearVelocity( this.v.fromArray( o.linearVelocity ) )
 		    if( o.angularVelocity ) b.setAngularVelocity( this.v.fromArray( o.angularVelocity ) )
+
+		    if( o.addLinearVelocity ) b.addLinearVelocity( this.v.fromArray( o.linearVelocity ) )
+		    if( o.addAngularVelocity ) b.addAngularVelocity( this.v.fromArray( o.angularVelocity ) )
 		}
 
 	    if( o.angularFactor ) b.setRotationFactor( this.v.fromArray( o.angularFactor ) )
@@ -426,6 +451,8 @@ export class Body extends Item {
 		while(i--){
 
 			s = shapes[i]
+
+
 
 			if( o.density !== undefined ) s.setDensity( o.density )
 		    if( o.friction !== undefined ) s.setFriction( o.friction )

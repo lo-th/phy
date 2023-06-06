@@ -57,6 +57,7 @@ export const Eva = {
             metalness:setting.metalness,
             wireframe:setting.wireframe,
             clearcoat:setting.clearcoat,
+            iridescence:0.5,
         },
         eva01:{
             type:'Physical',
@@ -67,6 +68,7 @@ export const Eva = {
             metalness:setting.metalness,
             wireframe:setting.wireframe,
             clearcoat:setting.clearcoat,
+            iridescence:0.5,
         },
         eva02:{
             type:'Physical',
@@ -77,6 +79,7 @@ export const Eva = {
             metalness:setting.metalness,
             wireframe:setting.wireframe,
             clearcoat:setting.clearcoat,
+            iridescence:0.5,
         }
     },
 

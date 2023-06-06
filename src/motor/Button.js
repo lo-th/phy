@@ -1,4 +1,5 @@
-import { root, math } from './root.js';
+import { MathTool } from '../core/MathTool.js';
+import { root } from './root.js';
 import { Textfield } from './Textfield.js';
 
 let Nb = 0
@@ -108,11 +109,11 @@ export class Button {
 
 			//let side = this.target > this.value ? 1 : -1
 
-			this.value = math.lerp( this.value, this.target, this.speed )
+			this.value = MathTool.lerp( this.value, this.target, this.speed )
 
 			//this.value += 0.1 * side
 
-			let t = math.nearEquals( this.value, this.target, 0.01)
+			let t = MathTool.nearEquals( this.value, this.target, 0.01)
 
 			if(!t){
 			    this.pos[this.axe] = this.value

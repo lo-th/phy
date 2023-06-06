@@ -359,7 +359,7 @@ export class Shader {
         //console.log('add', name)
         materials.set( name, true )
         
-        m.shadowSide = DoubleSide;
+        if( m.shadowSide === null ) m.shadowSide = DoubleSide;
 
         //m.format = sRGBEncoding;
         /*if(!m.isEncod){

@@ -125,7 +125,7 @@ export class Reflector extends Mesh {
 
 
 		this.material = new MeshStandardMaterial({ //new MeshStandardMaterial({ 
-			name:'floor', 
+			name:'Ground', 
 			color:this.color,
 			//emissive:0xFFFFFF,
 			//map:this.map, 
@@ -144,6 +144,11 @@ export class Reflector extends Mesh {
 
 		})
 
+
+		
+
+		//this.material.reflect = o.reflect !== undefined ? o.reflect : 0.35;
+
 		//this.material.color.convertSRGBToLinear();
 
 
@@ -157,6 +162,12 @@ export class Reflector extends Mesh {
 			mirrorMap:{ value: null },
 			blackAll:{ value: 0 }
 		}
+
+
+		Object.defineProperty( this.material, 'reflectif', {
+			  get() { return this.userData.reflectif.value; },
+			  set( value ) { this.userData.reflectif.value = value; }
+		});
 
 		this.textureRenderer = null
 
@@ -175,6 +186,7 @@ export class Reflector extends Mesh {
 			//uniforms[ "mirrorPower" ] = { value: scope.reflect };
 			uniforms[ "textureMatrix" ] = { value: textureMatrix };
 			uniforms[ "reflectif" ] =  this.userData.reflectif;
+
 			uniforms[ "blackAll" ] = this.userData.blackAll;
 			//uniforms[ "shadowPower" ] =  { value: 0.01 };
 			shader.uniforms = uniforms;
@@ -213,7 +225,11 @@ export class Reflector extends Mesh {
 		}
 
 
+
+
 		Shader.setDefines( this.material )
+
+		Pool.set( 'Ground', this.material, 'material', true );
 		
 		this.onBeforeRender = function ( renderer, scene, camera ) {
 
@@ -474,7 +490,7 @@ export class Reflector extends Mesh {
 			this.material.normalMap = Pool.texture( { url:'./assets/textures/floor.png', flip:false, repeat:[200,200] });
 			//this.material.normalMap.channel = 1;
 			//this.material.normalMap = null;
-			this.material.roughness = 0.9;
+			this.material.roughness = 0.5;
 			this.material.metalness = 0.1;
 			this.material.side = FrontSide;
 		}

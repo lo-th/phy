@@ -1,7 +1,8 @@
 import { Item } from '../core/Item.js';
 import { Num } from '../core/Config.js';
+import { MathTool, todeg } from '../core/MathTool.js';
 
-import { Utils, root, math, Mat, mat } from './root.js';
+import { Utils, root, Mat, mat } from './root.js';
 import { Basic3D } from '../core/Basic3D.js';
 
 
@@ -210,7 +211,7 @@ class Car extends Basic3D {//extends Object3D {
 	    for ( let i = 0; i < chassisShapes.length; i ++ ) {
 	    	n = chassisShapes[i]
 	    	if( n.pos ) n.localPos = n.pos;
-	    	n.size = math.autoSize( n.size, n.type );
+	    	n.size = MathTool.autoSize( n.size, n.type );
 	    	root.items.body.geometry( n, this, material )
 	    }
 
@@ -416,7 +417,7 @@ class Car extends Basic3D {//extends Object3D {
 		k = 4
 		while(k--){
 
-			this.suspension[k] = math.clamp( sp[k]*this.s_ratio, -1, 1 )
+			this.suspension[k] = MathTool.clamp( sp[k]*this.s_ratio, -1, 1 )
 			
 			if(this.suspensionMesh ){
 				if ( this.suspension[k] > 0 ) {
@@ -430,7 +431,7 @@ class Car extends Basic3D {//extends Object3D {
 
 		} 
 
-		this.steering = Math.round(((s1+s2)*0.5)*math.todeg) / this.maxSteering
+		this.steering = Math.round(((s1+s2)*0.5)*todeg) / this.maxSteering
 		
 		//console.log(this.steering)
 		//console.log(acc)

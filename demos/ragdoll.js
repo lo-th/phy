@@ -12,6 +12,8 @@ demo = () => {
     //phy.add({ type:'plane', size:[300,1,300], visible:false })
     phy.add({ type:'box', size:[30,1,30], pos:[0, -0.5, 0], visible:false })
 
+    
+
     if(debug){
         ragdoll({ pos:[0, 2, 0] })
     } else {

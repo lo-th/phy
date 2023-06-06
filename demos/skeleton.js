@@ -1,12 +1,15 @@
 let eva, bb, ba, bc
 let mode = 'follow'
-let type = 'hero'
+let type = 'lee'
 let debug = false
+
+let modelList = ['hero', 'eva', 'lee']
+let listN = modelList.indexOf( type )
 
 demo = () => {
 
 	phy.view({
-        phi:20, theta:0, distance:3, x:0, y:0.7, z:0, fov:53
+        envmap:'bed', phi:20, theta:0, distance:3, x:0, y:0.7, z:0, fov:53
 	})
 
 	phy.set({
@@ -16,6 +19,7 @@ demo = () => {
 
 	// add static plane 
 	phy.add({ type:'plane', name:'floor', size:[ 300,1,300 ], visible:false, friction: 0.5,  });
+	phy.add({ type:'box', name:'wall', pos:[0,1.25,-1.1], size:[ 2,2.5,0.2 ], friction: 0.5,  });
 
 	//let k = 200
 	//while(k--) phy.add({type:'sphere', pos:[math.rand(-5,5), 2, math.rand(-5,5)], size:[math.rand(0.1,0.3)], density:1, mask:2})
@@ -34,11 +38,16 @@ const addModel = ( type ) => {
 		phy.control( '' )
 		mode = 'follow'
 		bb.txt.set( mode )
-        //phy.remove( 'eva' )
+        phy.remove( 'eva' )
     }
 
 	let n = type === 'eva' ? math.randInt(0,2) : math.randInt(0,1)
-	let gender = type === 'eva' ? 'eva0'+n : (n === 1 ? 'woman' : 'man')
+
+	let gender = type;
+	switch(type){
+		case 'eva': gender = 'eva0'+n; break
+		case 'hero': gender = n === 1 ? 'woman' : 'man'; break
+	}
 
     eva = phy.add({ 
         type:'character',
@@ -71,7 +80,7 @@ const done = () => {
 
 	//eva.model.setMaterial( {wireframe: true})
 
-	eva.static = true
+	//eva.static = true
 	eva.addSkeleton()
 	phy.control( 'eva' )
 
@@ -84,8 +93,13 @@ const done = () => {
 
 const switchModel = () => { 
 
-	if( type === 'eva' ) type = 'hero'
-	else if ( type === 'hero' ) type = 'eva'
+	listN++
+	if(listN>=modelList.length)listN=0
+
+	type = modelList[listN]
+
+	//if( type === 'eva' ) type = 'hero'
+	//else if ( type === 'hero' ) type = 'eva'
 	ba.txt.set( type )
     debug = false
 

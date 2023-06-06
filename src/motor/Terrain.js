@@ -1,5 +1,6 @@
 import { Item } from '../core/Item.js';
-import { Utils, root, math } from './root.js';
+import { MathTool } from '../core/MathTool.js';
+import { Utils, root } from './root.js';
 import { Num } from '../core/Config.js';
 import { Landscape } from '../3TH/objects/Landscape.js';
 
@@ -97,8 +98,8 @@ const toPhysics = function( t ) {
 		o.heightData = t.heightData
 	} else {
 		o.type = 'mesh'
-		o.v = math.getVertex( t.geometry, root.engine === 'OIMO' )
-		o.index = root.engine === 'OIMO' ? null : math.getIndex( t.geometry )
+		o.v = MathTool.getVertex( t.geometry, root.engine === 'OIMO' )
+		o.index = root.engine === 'OIMO' ? null : MathTool.getIndex( t.geometry )
 	}
 
 	return o

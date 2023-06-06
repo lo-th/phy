@@ -3,7 +3,7 @@ demo = () => {
     let b1, b2, pos, length
 
     // config physics setting
-    phy.set({ substep:1, gravity:[0,-9.81,0] })
+    phy.set({ substep:1, gravity:[0,-9.81,0], jointVisible:true })
 
     // add static ground
     phy.add({ type:'plane', name:'floor', size:[300,1,300], visible:false })

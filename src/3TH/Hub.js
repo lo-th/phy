@@ -27,7 +27,7 @@ let unselectable = '-o-user-select:none; -ms-user-select:none; -khtml-user-selec
 
 let menu, pin, title, engine, demo, downMenu, innerMenu, zoning, guiButton
 
-
+let top = null
 let ratio = 1
 let listHeight = 0
 let listTop = 54
@@ -35,6 +35,8 @@ let maxHeight = 0
 let sh=0 ,  range = 0
 let maxListItem = 10
 let full = true
+
+let guiOpen = false
 
 let currentMenu = ''
 
@@ -97,6 +99,8 @@ export class Hub {
         document.querySelector("#svgLogo").setAttributeNS(null, 'stroke', color )
         document.querySelector("#guiPath").setAttributeNS(null, 'stroke', color )
 
+
+
     }
 
     static reset() {
@@ -104,6 +108,7 @@ export class Hub {
         Hub.log()
         if( cross ) content.removeChild( cross )
         cross = null
+        //guiOpen = false
 
         if( joy ) this.removeJoystick()
         
@@ -343,10 +348,17 @@ export class Hub {
         content.appendChild( statistics )
 
 
+        top = document.createElement( 'div' )
+        top.style.cssText = unselectable + "position:absolute; top:0px; right:5px; width:250px; height:54px; background:rgba(33,33,33,0.5); display:none;"
+        content.appendChild( top )
+
+
 
         fps = document.createElement( 'div' );
         fps.style.cssText = 'position:absolute; top:33px; right:100px; text-align:right; font-size:14px; font-weight:500; '
         content.appendChild( fps )
+
+
 
 
         guiButton = document.createElement( 'div' );
@@ -389,6 +401,14 @@ export class Hub {
     static switchGuiButton(b){
 
         document.querySelector("#guiPath").setAttributeNS(null, 'd', b ? p1 : p0)
+
+        guiOpen = b
+
+        top.style.display = b ? 'block':'none'
+
+        let color = b ? '#FFE' : '#001'
+        document.querySelector("#guiPath").setAttributeNS(null, 'stroke', color )
+        fps.style.color = color
 
         
 
@@ -472,9 +492,10 @@ export class Hub {
             //innerMenu.style.flexWrap = 'row wrap';
             //innerMenu.style.gap = '0px 10px';
             //innerMenu.style.flexFlow = 'column wrap';
+            let dw = guiOpen ? (255+80) : 160 
 
             downMenu.style.left = 80 + 'px'
-            downMenu.style.width = 'calc(100% - 160px)'
+            downMenu.style.width = 'calc(100% - '+dw+'px)'
             innerMenu.style.width = '100%'
             rect = innerMenu.getBoundingClientRect();
             

@@ -1,7 +1,7 @@
 demo = () => {
 
     // setting and start oimophysics
-    phy.set( { substep:2, gravity:[0,-10,0], fixe:false })
+    phy.set( { substep:2, gravity:[0,-10,0] })
 
     // add static plane
     phy.add({ type:'plane', size:[ 300,1,300 ], visible:false })

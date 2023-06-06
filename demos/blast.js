@@ -1,9 +1,9 @@
 demo = () => {
 
-    phy.log('down to blast')
+    phy.log('click to blast')
 
     // config physics setting
-    phy.set({ substep:2, gravity:[0,-9.81,0] })
+    phy.set({ substep:1, gravity:[0,-9.81,0] })
 
     // add static plane 
     //phy.add({ type:'plane', visible:false })

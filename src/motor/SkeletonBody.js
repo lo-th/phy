@@ -1,7 +1,6 @@
-import { root, Utils, math, torad } from './root.js';
-import {
-    Object3D, Vector3, Quaternion, Euler, Matrix4,
-} from 'three';
+import { MathTool, torad } from '../core/MathTool.js';
+import { root, Utils } from './root.js';
+import { Object3D, Vector3, Quaternion, Euler, Matrix4 } from 'three';
 
 /** __
 *    _)_|_|_
@@ -268,8 +267,9 @@ export class SkeletonBody extends Object3D {
 
                         name: phyName,
                         density:1,
+                        //mass:1,
                         type: type,
-                        size: math.vecMul(size,1),
+                        size: MathTool.scaleArray(size,1,3),
                         pos: p.toArray(),
                         //rot: rot,
                         quat: q.toArray(),
@@ -279,6 +279,7 @@ export class SkeletonBody extends Object3D {
                         group:1,
                         mask:1|2,
                         material:'bones2',
+                        shadow:false,
                         neverSleep: true,
 
                         //linked:link,

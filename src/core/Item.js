@@ -72,6 +72,9 @@ export class Item {
 
 	}
 
+
+
+
     vecZero ( ar, n, i ) { while ( i -- ) ar[n+i] = 0; }
 
     fillArray ( ar, ar2, n, i ) { 

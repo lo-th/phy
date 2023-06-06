@@ -4,9 +4,9 @@ const chessSize = 0.25
 
 demo = () => {
 
-    phy.view({ envmap:'room', ground:true })
+    phy.view({ envmap:'river', ground:true })
 
-    phy.set({ substep:2 })
+    phy.set({ substep:1 })
 
     /*let grid = new THREE.GridHelper( 8, 8, 0x000000, 0x000000 )
     grid.material.opacity = 0.0001
@@ -27,8 +27,11 @@ onComplete = () => {
     const model = phy.getMesh('chess');
 
     let m = phy.texture({ url:'./assets/textures/chess.jpg', flip:false, encoding:true })
-    phy.material({ name:'B', color:0x343434, roughness: 0.2, metalness: 0.7, map:m })
-    phy.material({ name:'W', color:0xcbad7b, roughness: 0.2, metalness: 0.7, map:m })
+    let defMat = {
+        roughness: 0.3, metalness: 0.4, map:m, aoMap:m, envMapIntensity:2.2 
+    }
+    phy.material({ name:'Black', color:0x343434, ...defMat })
+    phy.material({ name:'White', color:0xcbad7b, ...defMat })
 
     let p = [
 
@@ -121,7 +124,7 @@ addPiece = ( o, i, model ) => {
     	shape: model[ o.type + '_shape' ].geometry,
     	mesh: model[ o.type ],
     	meshScale: [ chessSize ],
-    	material: o.black ? 'B' : 'W', 
+    	material: o.black ? 'Black' : 'White', 
     	type: 'convex', 
     	size: [ chessSize ], 
     	pos: [ o.pos[0] || 0,( o.pos[1] || 0) + h[n]*chessSize, o.pos[2] || 0 ], 

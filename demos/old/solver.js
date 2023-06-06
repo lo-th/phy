@@ -200,9 +200,6 @@ createScissorLift = () => {
 	const solver = phy.add({ type:'solver', name:'scissor', iteration:32 });
 
 
-	//console.log( solver )
-
-	
 
 	let runnerLength = 2.0;
 	let placementDistance = 1.8;
@@ -214,8 +211,8 @@ createScissorLift = () => {
 
 	let angleDeg = angle * (180 / Math.PI)
 
-	let leftRot = math.axisToQuatArray( [ -angle, 1, 0, 0] );
-	let rightRot = math.axisToQuatArray( [ angle, 1, 0, 0] );
+	let leftRot = math.quatFromAxis( [ 1, 0, 0], -angle );//math.axisToQuatArray( [ -angle, 1, 0, 0] );
+	let rightRot = math.quatFromAxis( [ 1, 0, 0], angle );//math.axisToQuatArray( [ angle, 1, 0, 0] );
 
 	//(1) Create base...
 	phy.add({ type:'box', name:'base', pos:[0, 0.25, 0], size:[ 0.5*2, 0.2*2, 1.5*2 ], density:3, solver:'scissor', linked:'null', filter:[1,-1,1,0], dmv:[0.2,0.2,100,20] });

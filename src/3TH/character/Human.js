@@ -76,6 +76,7 @@ export const Human = {
             sheenRoughness:setting.sheenRoughness,
             sheenColor:0xffffff,
             sheenColorMap:'avatar_u',
+            iridescence:0.5,
 
             /*aoMap:'avatar_ao',
             aoMapIntensity:1,*/

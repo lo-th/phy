@@ -134,6 +134,7 @@ export class Body extends Item {
 		//
 
 		if( o.density ) havok.HP_Shape_SetDensity( g, o.density )
+			//if( o.density ) havok.HP_Shape_SetDensity( g, o.density )
 
 		//
 
@@ -158,6 +159,8 @@ export class Body extends Item {
 		*/
 
 		//console.log(m)
+
+		g.volume = MathTool.getVolume( t, s, o.v );
 
 
 		return g
@@ -329,8 +332,7 @@ export class Body extends Item {
 
 		//b.first = true
 
-		// apply option
-		this.set( o, b )
+		
 
 
 
@@ -347,6 +349,9 @@ export class Body extends Item {
 
 		// add to reference
 		this.addToWorld( b, o.id )
+
+		// apply option
+		this.set( o, b )
 
 		//this.addCollisionCallback(b.name, true)
 
@@ -373,7 +378,11 @@ export class Body extends Item {
 			}
 		}
 
-		if(o.inertia) massProperties[2] = o.inertia
+		
+		if( o.mass ) massProperties[1] = o.mass
+		if( o.inertia ) massProperties[2] = o.inertia
+
+		//	console.log(massProperties)
 
 	    havok.HP_Body_SetMassProperties( b, massProperties );
 
@@ -456,14 +465,19 @@ export class Body extends Item {
 		if( o.force ){
 		    if(!o.location) o.location = [0,0,0];
 		    if(!o.local) o.location = havok.HP_Body_GetPosition(b)[1];
-		    this.multiplyScalar( o.force, root.delta, 3 )
+		    //this.multiplyScalar( o.force, root.delta, 3 )
 			havok.HP_Body_ApplyImpulse( b, o.location, o.force );
 		}
 
-		if( o.linearImpulse ){
-			this.multiplyScalar( o.linearImpulse, root.delta, 3 )
+		if( o.impulse ){
+	    	if( o.impulseCenter ) havok.HP_Body_ApplyImpulse( b, o.impulseCenter, o.impulse )
+	    	else havok.HP_Body_ApplyImpulse( b, b.pos, o.impulse )
+	    }
+
+		/*if( o.linearImpulse ){
+			//this.multiplyScalar( o.linearImpulse, root.delta, 3 )
 			havok.HP_Body_ApplyImpulse( b, b.pos, o.linearImpulse );
-		}
+		}*/
 
 		if( o.reset ){ 
 			havok.HP_Body_SetLinearVelocity(b, [0,0,0])

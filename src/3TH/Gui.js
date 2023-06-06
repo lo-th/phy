@@ -1,10 +1,10 @@
 import * as UIL from 'uil'
 import { Main } from '../Main.js'
-
 import { Video } from './Video.js'
 import { Env } from './Env.js'
 import { Hub } from './Hub.js'
 import { Shader } from './Shader.js'
+import { Pool } from './Pool.js'
 /** __
 *    _)_|_|_
 *   __) |_| | 2023
@@ -20,25 +20,45 @@ export const Gui = {
 	gp:null,
 	video:null,
 
+	envui:null,
+
+	mat:null,
+	currentMat:'',
+
+
+	imageMap: ['map', 'map1', 'map2', 'emissiveMap', 'sheenColorMap'],
+	imageNormal: [ 'normalMap', 'normalMap1','normalMap2','aoMap', 'metalnessMap', 'roughnessMap', 'alphaMap', ],
+	
+	MaterialMesh:[ 'Basic', 'Physical', 'Standard', 'Toon', 'Lambert', 'Phong', 'Shader' ],
+
 	joy:null,
 	p0: 'M 0.5 1.5 L 9.5 1.5 M 0.5 5.5 L 9.5 5.5 M 0.5 9.5 L 9.5 9.5',
 	p1: 'M 1.5 0.5 L 1.5 9.5 M 5.5 0.5 L 5.5 9.5 M 9.5 0.5 L 9.5 9.5',
 
+	bg:'rgba(33,33,33,0.5)',
+
+	
+
 	colors:{
 
-		sx: 4,
-        sy: 2,
-        radius:3,
+		//sx: 4,
+        //sy: 4,
+        radius:0,
 
-		background:'none',
+        showOver:0,
+
+		background:'none', //'none',
 		backgroundOver:'none',//'rgba(255,255,255,0.02)',
 
 		//font:"'Roboto Mono', 'Source Code Pro', Consolas, monospace", 
 		font:"Mulish, sans-serif", 
-		fontSize:14,
+		fontSize:12,
 		weight:'500',
 
-		text:'rgba(0,0,6,1)',
+		text:'#fff',
+		title:'#eee',
+
+		/*text:'rgba(0,0,6,1)',
 		title:'rgba(0,0,6,1)',
 		titleoff: '#000',
 		textOver: '#7fFF00',
@@ -53,26 +73,32 @@ export const Gui = {
 		
 		border:'rgba(255,255,255,0.2)',//
 		borderSize:1,
-		//overoff:'rgba(255,255,255,0.1)',
+		//overoff:'rgba(255,255,255,0.1)',*/
+
 		
-		groups:'rgba(255,255,255,0.1)',
-		gborder:'rgba(255,255,255,0.2)',
+		borderSize:0,
+		
+		//groups:'rgba(255,255,255,0.1)',
+		//gborder:'rgba(255,255,255,0.2)',
 
 		joyOut: 'rgba(255,255,255,0.1)',
 		joyOver:'rgba(127,255,0,0.2)',
         joySelect: '#7fFF00',
-		//fontFamily: 'Tahoma',
 
 	},
 
+	
+
+
 	showHide: () => { 
 
-		if( Gui.ui===null ) Gui.init()
+		if( Gui.ui === null ) Gui.init()
 
 		if( Gui.ui.isOpen ) Gui.ui.isOpen = false;
 		else Gui.ui.isOpen = true;
 
 		Hub.switchGuiButton( Gui.ui.isOpen )
+		//Hub.switchColor( Gui.ui.isOpen )
 
 		//UIL.Tools.setSvg( )
 
@@ -89,11 +115,25 @@ export const Gui = {
 
 	init:() => {
 
+		Gui.colors.content = Gui.bg
+
+		//Gui.colors.background = Gui.bg
+		//Gui.colors.backgroundOver = Gui.bg
+		//Gui.colors.groups = Gui.bg
+		//Gui.colors.gborder = Gui.bg
+
 		UIL.Tools.setStyle(Gui.colors)
 
 		const options = Main.getOption();
 
-		const ui = new UIL.Gui( { w:250, h:24, open:false, close:false, css:'top:54px; right:5px;', colors:Gui.colors } )
+		const ui = new UIL.Gui( { w:250, h:25, open:false, close:false, css:'top:54px; right:5px;', colors:Gui.colors } )
+
+		/*let unselectable = '-o-user-select:none; -ms-user-select:none; -khtml-user-select:none; -webkit-user-select:none; -moz-user-select: none; pointer-events:none; '
+
+
+		*/
+
+		//console.log(ui)
 		if( options.mode === 'HIGH' ) ui.content.style.backdropFilter = 'blur(4px)'
 		//ui.add('button', { values:Main.engineList, selectable:true, value:Main.engineType  }).onChange( Gui.swapEngine )
 		//if( Main.devMode ) ui.add('button', { values:['RAPIER','CANNON'], selectable:true, value:Main.engineType }).onChange( Gui.swapEngine )
@@ -131,7 +171,7 @@ export const Gui = {
 
 	display:() => {
 
-		const mode = 0
+		const mode = 2
 
 		const options = Main.getOption()
 		const setting = Main.getSetting()
@@ -155,6 +195,14 @@ export const Gui = {
 		ui.add( options, 'shadow', { min:0, max:1, mode:mode } ).onChange( Main.setShadow ).listen()
 
 
+		
+
+		ui.add( options, 'light_1', { rename:'Light Direct', min:0, max:10, mode:mode, color:'#ff0' } ).onChange( Main.lightIntensity )
+		ui.add( options, 'light_2', { rename:'Light Sphere', min:0, max:10, mode:mode, color:'#ff0' } ).onChange( Main.lightIntensity )
+		ui.add( options, 'envPower', { min:0, max:1, mode:mode, color:'#ff0' } ).onChange( Main.envmapIntensity )
+
+		Gui.envui = ui.add( 'list', { name:'Envmap', list:Main.envList, value:options.envmap, path:'assets/textures/equirectangular/mini/', format:'.jpg', m:0, imageSize: [128,64], h:40}).onChange( Main.setEnv )
+
 		ui.add( options, 'renderMode', { type:'selector', values:[0,1,2,3], selectable:true, p:0, h:24 }).onChange( function(n){ 
 
 			if( n!== 0 ) scene.helper.visible = false
@@ -171,6 +219,7 @@ export const Gui = {
 
 		Gui.camera(ui)
 		Gui.postprocess(ui)
+		Gui.material()
 		
 		return
 
@@ -180,10 +229,8 @@ export const Gui = {
 		})
 
 		
-		g.add( options, 'envPower', { min:0, max:2, mode:mode} ).onChange( setEnvmapIntensity )
-
-		g.add( options, 'light_1', { min:0, max:10, mode:mode } ).onChange( function( v ){ light.intensity = v } )
-		g.add( options, 'light_2', { min:0, max:10, mode:mode } ).onChange( function( v ){ light2.intensity = v } )
+		//g.add( options, 'envPower', { min:0, max:2, mode:mode} ).onChange( setEnvmapIntensity )
+		
 
 		g.add( 'empty', {h:6})
 
@@ -209,11 +256,7 @@ export const Gui = {
 		g.add( options, 'rings', { min:1, max:30, precision:0, mode:mode} ).onChange( upShader )
 		//grV.add( options, 'nSample', {min:2, max:32, precision:0} ).onChange( function(){ Shader.up( options ) } )
 
-		g.add( 'empty', {h:6})
-
-		envui = g.add( 'list', { name:'envmap', list:Envs, value:options.envmap, path:'assets/textures/equirectangular/mini/', format:'.jpg', m:0, imageSize: [128,64], h:64}).onChange( setEnv )//.listen()
-
-		g.add( 'empty', {h:6})
+		
 
 	},
 
@@ -226,6 +269,8 @@ export const Gui = {
 
 		if(Gui.gp) { Gui.gp.clear() }
 		else Gui.gp = gg.add('group', { name:'POST PROCESS' })
+
+
 
 		const options = Main.getOption()
 		const mode = 0
@@ -240,10 +285,6 @@ export const Gui = {
 
 		let g = Gui.gp
 
-	    
-		
-		
-		
 		g.add( composer.pass.focus, 'enabled', { type:'bool', rename:'focus', onName:'focus' })
 		g.add( composer.options, 'focus', {min:0, max:100} ).onChange( function(){ composer.update() } )
 		g.add( composer.options, 'aperture', {min:0, max:5,  precision:2} ).onChange( function(){ composer.update() } )
@@ -327,6 +368,14 @@ export const Gui = {
 
 	},
 
+	reset: ( name ) => {
+
+		if( Gui.ui===null ) return
+		if( !Gui.ui.isOpen ) return
+
+		Gui.materialEdit( '' )
+	},
+
 	resetDemoGroup: ( name ) => {
 
 		return
@@ -386,5 +435,146 @@ export const Gui = {
     /*addJoystick:() => {
     	Gui.joy = UIL.add('Joystick', {  w:160, mode:1, text:false, pos:{left:'10px', bottom:'30px' }, simple:true })//.onChange( callbackSize )
     }*/
+
+    material:() => {
+
+    	if( Gui.mat ) { Gui.mat.clear() }
+		else Gui.mat = Gui.ui.add('group', { name:'MATERIAL' })
+
+
+		//return
+
+		//let g = Gui.ui.add('group', { name:'MATERIAL' })
+
+		let mats = Main.motor.getMaterialList()
+		let matList = Gui.mat.add( 'list', { name:'', list:mats, p:0, value:Gui.currentMat, h:30 }).onChange( Gui.materialEdit )
+
+		if(!Gui.currentMat){ 
+			matList.text('Select Material')
+			return
+		}
+
+
+		
+		let m = mats[ Gui.currentMat ]
+
+		let type = m.type
+		if( type.search( 'Mesh' )!==-1 ) type = type.substring( 4 ) 
+
+		let mm = type.search( 'Material' )
+		type = type.substring( 0, mm )
+
+		Gui.mat.add( 'list', { name:'', list:Gui.MaterialMesh, p:0, value:type, h:30 }).onChange()
+
+		console.log()
+
+	    if(m.color!==undefined){
+		    m.cc = m.color.getHex()
+		    Gui.mat.add( m, 'cc', { type:'color', rename:'color' } ).onChange( function( c ){ m.color.setHex( c ); } )
+		}
+
+		if(m.emissive!==undefined){
+		    m.em = m.emissive.getHex()
+		    Gui.mat.add( m, 'em', { type:'color', rename:'emissive' } ).onChange( function( c ){ m.emissive.setHex( c ); } )
+		}
+
+
+	    let images = [...Gui.imageMap, ...Gui.imageNormal ], t, str
+
+	    for( let i = 0; i<images.length; i++ ){
+	    	t = images[i]
+	    	name = 'null'
+	    	if(m[t]){
+	    		str = m[t].source.data.currentSrc;
+	    	    name = str.substring( str.lastIndexOf('/')+1 )
+	    	} 
+	    	if(m[t]!==undefined) Gui.mat.add( 'bitmap',  { name:t, value:name, type:'bitmap' }).onChange( function( file, img, name ){ Gui.setTexure(file, img, name, m ) } )
+
+	    }
+
+	    if(m.randomUv!==undefined) Gui.mat.add( m, 'randomUv', {  })
+		if(m.wireframe!==undefined) Gui.mat.add( m, 'wireframe', {  })
+		if(m.vertexColors!==undefined) Gui.mat.add( m, 'vertexColors', {  })
+		if(m.forceSinglePass!==undefined) Gui.mat.add( m, 'forceSinglePass', { rename:'singlePass' })
+		if(m.visible!==undefined) Gui.mat.add( m, 'visible', {  })
+		if(m.depthTest!==undefined) Gui.mat.add( m, 'depthTest', {  })
+		if(m.depthWrite!==undefined) Gui.mat.add( m, 'depthWrite', {  })
+		if(m.alphaToCoverage!==undefined) Gui.mat.add( m, 'alphaToCoverage', {  })
+		if(m.premultipliedAlpha!==undefined) Gui.mat.add( m, 'premultipliedAlpha', {  })
+		if(m.transparent!==undefined) Gui.mat.add( m, 'transparent', {  })
+
+		if(m.side!==undefined) Gui.mat.add( m, 'side', { type:'list', list:{ front:0, back:1, double:2 } }).onChange( function( c ){ m.side = this.list.indexOf(c) })
+		if(m.shadowSide!==undefined) Gui.mat.add( m, 'shadowSide', { type:'list', list:{ front:0, back:1, double:2 } }).onChange( function( c ){ m.shadowSide = this.list.indexOf(c) })
+
+
+	    if(m.metalness!==undefined) Gui.mat.add( m, 'metalness', { min:0, max:1 })
+		if(m.roughness!==undefined) Gui.mat.add( m, 'roughness', { min:0, max:1 })
+
+		if(m.specularIntensity!==undefined) Gui.mat.add( m, 'specularIntensity', { min:0, max:1 })
+		if(m.aoMapIntensity!==undefined) Gui.mat.add( m, 'aoMapIntensity', { min:0, max:1 })
+		if(m.emissiveIntensity!==undefined) Gui.mat.add( m, 'emissiveIntensity', { min:0, max:1 })
+
+		if(m.opacity!==undefined) Gui.mat.add( m, 'opacity', { min:0, max:1 })
+		if(m.reflectivity!==undefined) Gui.mat.add( m, 'reflectivity', {min:0, max:1})
+
+		if(m.reflectif!==undefined) Gui.mat.add( m, 'reflectif', { min:0, max:1 })
+
+	    if(m.envMapIntensity!==undefined) Gui.mat.add( m, 'envMapIntensity', { rename:'env', min:0, max:4 })
+	    if(m.thickness!==undefined) Gui.mat.add( m, 'thickness', { min:-4, max:4 })
+	    if(m.clearcoat!==undefined) Gui.mat.add( m, 'clearcoat', { min:0, max:4 })
+	    if(m.clearcoatRoughness!==undefined) Gui.mat.add( m, 'clearcoatRoughness', { min:0, max:4 })
+
+	    if(m.sheen!==undefined){ 
+	    	Gui.mat.add( m, 'sheen', {min:0, max:4})
+	    	Gui.mat.add( m, 'sheenRoughness', {min:0, max:1})
+	    	m.ss = m.sheenColor.getHex()
+	    	Gui.mat.add( m, 'ss', { type:'color', rename:'sheen' } ).onChange( function( c ){ m.sheenColor.setHex( c ); } )
+	    }
+
+	    if(m.iridescence!==undefined) Gui.mat.add( m, 'iridescence', {min:0, max:1})
+
+	    if(m.anisotropy!==undefined) Gui.mat.add( m, 'anisotropy', {min:0, max:1})
+	    if(m.anisotropyRotation!==undefined) Gui.mat.add( m, 'anisotropyRotation', {min:0, max:1})
+
+	    if(m.ior!==undefined) Gui.mat.add( m, 'ior', { min:0, max:4 })
+	    if(m.transmission!==undefined) Gui.mat.add( m, 'transmission', { min:0, max:1 })
+
+
+		Gui.mat.open()
+
+		//
+
+	},
+
+	setTexure:( file, img, name, mat, o = {} ) => {
+
+		let ref = mat[name]
+		if(ref){
+			o.repeat = ref.repeat.toArray()
+		}
+
+		o.encoding = Gui.imageMap.indexOf(name) !== -1
+		
+		let fileName = file.substring( 0, file.lastIndexOf('.') );
+		let im = new Image()
+		 
+		im.src = img
+		im.onload = function (){
+
+			Pool.data.set( 'I_' + fileName, im )
+		    mat[name] = Pool.getTexture( fileName, o )
+
+		}
+
+	},
+
+	materialEdit:( name ) => {
+
+		if( name === Gui.currentMat ) return
+
+		Gui.currentMat = name
+	    Gui.material();
+
+	},
 
 }

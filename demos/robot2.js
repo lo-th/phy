@@ -153,7 +153,7 @@ class Bot {
         phy.add({
             ...def,
             type:'sphere', name:id+'_top', linked:id+'_base',
-            pos:math.vecAdd( pos, [0,0.245,0] ), size:[ 0.33 ], 
+            pos:math.addArray( pos, [0,0.245,0] ), size:[ 0.33 ], 
             mesh:meshes.top,
             density:this.setting.bodyMass*0.5,
         })
@@ -184,7 +184,7 @@ class Bot {
                 name:id+'_barm'+i, 
                 linked:id+'_base',
                 size:[ 0.275, 0.4, 0.15 ], localPos:[0.1375, -0.055, 0], 
-                pos: math.vecAdd( pos, p[i] ), rot:rot,
+                pos: math.addArray( pos, p[i] ), rot:rot,
                 mesh:rev ? meshes.barm_002 : meshes.barm_001,  
             })
 
@@ -194,7 +194,7 @@ class Bot {
                 name:id+'_darm'+i, 
                 linked:id+'_barm'+i,
                 size:[ 0.04, 0.1, 0.4 ], localPos:[0.25, 0, 0], 
-                pos: math.vecAdd( math.vecAdd( pos, p[i] ), d[i]), rot:rot,
+                pos: math.addArray( math.addArray( pos, p[i] ), d[i]), rot:rot,
                 mesh: meshes.darm_001,
             })
 
@@ -204,7 +204,7 @@ class Bot {
                 name:id+'_farm'+i, 
                 linked:id+'_darm'+i,
                 size:[ 0.4, 0.22, 0.15 ], localPos:[0.095, 0, 0], 
-                pos: math.vecAdd( math.vecAdd( pos, p[i] ), math.vecAdd(c[i], d[i])), rot:rot,
+                pos: math.addArray( math.addArray( pos, p[i] ), math.addArray(c[i], d[i])), rot:rot,
                 mesh: rev ? meshes.farm_002 : meshes.farm_001,
             })
 
@@ -218,7 +218,7 @@ class Bot {
                 //size:[ 0.08, 0.08, 0.12 ],
                 size:[ 0.04, 0.12 ],
                 localRot:[90,0,0],
-                pos:math.vecAdd( pos, e[i] ), rot:rot,
+                pos:math.addArray( pos, e[i] ), rot:rot,
                 mesh:meshes.earm_001,
                 friction:1,
             })

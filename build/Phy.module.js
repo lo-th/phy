@@ -1,4 +1,416 @@
-import { LineSegments, BufferGeometry, BufferAttribute, Float32BufferAttribute, LineBasicMaterial, Color, Euler, Quaternion, Matrix4, Vector3, Matrix3, CylinderGeometry, SphereGeometry, BoxGeometry, PlaneGeometry, MeshStandardMaterial, MeshBasicMaterial, MeshPhongMaterial, MeshPhysicalMaterial, DoubleSide, Line, EventDispatcher, MathUtils, Layers, InstancedMesh, InstancedBufferAttribute, DynamicDrawUsage, TrianglesDrawMode, TriangleFanDrawMode, TriangleStripDrawMode, CircleGeometry, Box3, Vector2, Line3, Plane, Triangle, Mesh, NearestFilter, NearestMipmapNearestFilter, NearestMipmapLinearFilter, LinearFilter, LinearMipmapNearestFilter, LinearMipmapLinearFilter, ClampToEdgeWrapping, RepeatWrapping, MirroredRepeatWrapping, PropertyBinding, InterpolateLinear, Source, LinearEncoding, RGBAFormat, InterpolateDiscrete, Scene, sRGBEncoding, Loader, LoaderUtils, FileLoader, SpotLight, PointLight, DirectionalLight, SRGBColorSpace, Object3D, TextureLoader, ImageBitmapLoader, InterleavedBuffer, InterleavedBufferAttribute, PointsMaterial, Material, SkinnedMesh, LineLoop, Points, Group, PerspectiveCamera, OrthographicCamera, Skeleton, AnimationClip, Bone, FrontSide, Texture, VectorKeyframeTrack, QuaternionKeyframeTrack, NumberKeyframeTrack, Sphere, Interpolant, LinearSRGBColorSpace, Vector4, Curve, MeshLambertMaterial, EquirectangularReflectionMapping, AmbientLight, Uint16BufferAttribute, DataTextureLoader, HalfFloatType, FloatType, DataUtils, AnimationMixer, AdditiveBlending, CustomBlending, ZeroFactor, SrcAlphaFactor, SkeletonHelper, CanvasTexture, Raycaster } from 'three';
+import { LineSegments, BufferGeometry, BufferAttribute, Float32BufferAttribute, LineBasicMaterial, Color, Quaternion, Matrix3, Vector3, CylinderGeometry, SphereGeometry, BoxGeometry, PlaneGeometry, MeshBasicMaterial, MeshStandardMaterial, MeshPhysicalMaterial, DoubleSide, Line, EventDispatcher, MathUtils, Matrix4, Layers, InstancedMesh, InstancedBufferAttribute, DynamicDrawUsage, TrianglesDrawMode, TriangleFanDrawMode, TriangleStripDrawMode, CircleGeometry, Box3, Vector2, Line3, Plane, Triangle, Mesh, NearestFilter, NearestMipmapNearestFilter, NearestMipmapLinearFilter, LinearFilter, LinearMipmapNearestFilter, LinearMipmapLinearFilter, ClampToEdgeWrapping, RepeatWrapping, MirroredRepeatWrapping, PropertyBinding, InterpolateLinear, Source, LinearEncoding, RGBAFormat, InterpolateDiscrete, Scene, sRGBEncoding, Loader, LoaderUtils, FileLoader, SpotLight, PointLight, DirectionalLight, SRGBColorSpace, Object3D, TextureLoader, ImageBitmapLoader, InterleavedBuffer, InterleavedBufferAttribute, PointsMaterial, Material, SkinnedMesh, LineLoop, Points, Group, PerspectiveCamera, OrthographicCamera, Skeleton, AnimationClip, Bone, FrontSide, Texture, VectorKeyframeTrack, QuaternionKeyframeTrack, NumberKeyframeTrack, Sphere, Interpolant, LinearSRGBColorSpace, Vector4, Curve, Euler, MeshPhongMaterial, MeshLambertMaterial, EquirectangularReflectionMapping, AmbientLight, Uint16BufferAttribute, DataTextureLoader, HalfFloatType, FloatType, DataUtils, AnimationMixer, AdditiveBlending, CustomBlending, ZeroFactor, SrcAlphaFactor, SkeletonHelper, AnimationUtils, CanvasTexture, Raycaster } from 'three';
+
+const PI = Math.PI;
+const torad$1 = PI / 180;
+const todeg$1 = 180 / PI;
+const EPSILON = Number.EPSILON;//0.00001;
+const PI90 = PI*0.5;
+
+
+const MathTool = {
+
+    todeg:todeg$1,
+    torad:torad$1,
+
+
+    toFixed: ( x, n = 3 ) => ( x.toFixed(n) * 1 ),
+
+    clamp: ( v, min, max ) => {
+        v = v < min ? min : v;
+        v = v > max ? max : v;
+        return v;
+    },
+
+    clampA: ( v, min, max ) => { 
+        return Math.max( min, Math.min( max, v ))
+    },
+
+    lerp: ( x, y, t ) => ( ( 1 - t ) * x + t * y ),
+    damp: ( x, y, lambda, dt ) => ( MathTool.lerp( x, y, 1 - Math.exp( - lambda * dt ) ) ),
+
+    nearAngle: ( s1, s2, deg = false ) => ( s2 + Math.atan2(Math.sin(s1-s2), Math.cos(s1-s2)) * (deg ? todeg$1 : 1) ),
+
+    unwrapDeg: ( r ) => ( r - (Math.floor((r + 180)/360))*360 ), 
+    //unwrapRad: ( r ) => (r - (Math.floor((r + Math.PI)/(2*Math.PI)))*2*Math.PI),
+    unwrapRad: ( r ) => ( Math.atan2(Math.sin(r), Math.cos(r)) ),
+
+    nearEquals: ( a, b, t ) => ( Math.abs(a - b) <= t ? true : false ),
+
+    autoSize: ( s = [ 1, 1, 1 ], type = 'box' ) => {
+
+        if ( s.length === 1 ) s[ 1 ] = s[ 0 ];
+        let radius = s[0];
+        let height = s[1];
+        if( type === 'sphere' ) s = [ radius, radius, radius ];
+        if( type === 'cylinder' || type === 'wheel' || type === 'capsule' ) s = [ radius, height, radius ];
+        if( type === 'cone' || type === 'pyramid' ) s = [ radius, height, radius ];
+        if ( s.length === 2 ) s[ 2 ] = s[ 0 ];
+        return s;
+
+    },
+
+    /*distance: ( a, b = { x:0, y:0, z:0 } ) => { // rotation array in degree
+
+        const dx = a.x ? a.x - b.x : 0
+        const dy = a.y ? a.y - b.y : 0
+        const dz = a.z ? a.z - b.z : 0
+        return Math.sqrt( dx * dx + dy * dy + dz * dz );
+
+    },*/
+
+    // RANDOM
+
+    randomSign: () => ( Math.random() < 0.5 ? -1 : 1 ),
+    randSpread: ( range ) => ( range * ( 0.5 - Math.random() ) ),
+    rand: ( low = 0, high = 1 ) => ( low + Math.random() * ( high - low ) ),
+    randInt: ( low, high ) => ( low + Math.floor( Math.random() * ( high - low + 1 ) ) ),
+
+    // ARRAY
+
+    equalArray:(a, b)=>{
+        let i = a.length;
+        while(i--){ if(a[i]!==b[i]) return false }
+        return true
+    },
+
+    // MATRIX
+
+    composeMatrixArray: ( p, q, s = [1,1,1] ) => {
+        const x = q[0], y = q[1], z = q[2], w = q[3];
+        const x2 = x + x,  y2 = y + y, z2 = z + z;
+        const xx = x * x2, xy = x * y2, xz = x * z2;
+        const yy = y * y2, yz = y * z2, zz = z * z2;
+        const wx = w * x2, wy = w * y2, wz = w * z2;
+        const sx = s[0], sy = s[1], sz = s[2];
+        return [
+            ( 1 - ( yy + zz ) ) * sx, ( xy + wz ) * sx, ( xz - wy ) * sx, 0,
+            ( xy - wz ) * sy, ( 1 - ( xx + zz ) ) * sy, ( yz + wx ) * sy, 0,
+            ( xz + wy ) * sz, ( yz - wx ) * sz, ( 1 - ( xx + yy ) ) * sz, 0,
+            p[0], p[1], p[2], 1
+        ]
+    },
+
+    decomposeMatrixArray: ( m ) => {
+
+        return [
+            m[12],m[13],m[14],
+            
+        ]
+    },
+
+    // for physx substep 
+
+    applyTransformArray: ( v, p, q, s = [1,1,1] ) => {
+        const e = MathTool.composeMatrixArray( p, q, s );
+        const x = v[0], y = v[1], z = v[2];
+        const w = 1 / ( e[ 3 ] * x + e[ 7 ] * y + e[ 11 ] * z + e[ 15 ] );
+        return [
+            ( e[ 0 ] * x + e[ 4 ] * y + e[ 8 ] * z + e[ 12 ] ) * w, 
+            ( e[ 1 ] * x + e[ 5 ] * y + e[ 9 ] * z + e[ 13 ] ) * w,
+            ( e[ 2 ] * x + e[ 6 ] * y + e[ 10 ] * z + e[ 14 ] ) * w
+        ]
+    },
+
+    equalArray:( a, b ) => {
+        let i = a.length;
+        while(i--){ if(a[i]!==b[i]) return false }
+        return true
+    },
+    
+    lerpArray:( a, b, t ) => {
+        if ( t === 0 ) return a;
+        if ( t === 1 ) return b;
+        let i = a.length;
+        let r = [];
+        while(i--){ r[i] = a[i]; r[i] += ( b[i] - r[i] ) * t; }
+        return r 
+    },
+
+    slerpQuatArray:( a, b, t ) => {
+
+        if ( t === 0 ) return a;
+        if ( t === 1 ) return b;
+        let r = [...a];
+        const x = a[0], y = a[1], z = a[2], w = a[3];
+        const qx = b[0], qy = b[1], qz = b[2], qw = b[3];
+        let cosHalfTheta = w * qw + x * qx + y * qy + z * qz;
+
+        if ( cosHalfTheta < 0 ) {
+            r = [ -qx, -qy, -qz, -qw ];
+            cosHalfTheta = - cosHalfTheta;
+        } else {
+            r = [...b];
+        }
+
+        if ( cosHalfTheta >= 1.0 ) return a
+        
+        const sqrSinHalfTheta = 1.0 - cosHalfTheta * cosHalfTheta;
+
+        if ( sqrSinHalfTheta <= EPSILON ) {
+
+            const s = 1 - t;
+            r[3] = s * w + t * r[3];
+            r[0] = s * x + t * r[0];
+            r[1] = s * y + t * r[1];
+            r[2] = s * z + t * r[2];
+            return MathTool.quatNomalize(r);
+
+        }
+
+        const sinHalfTheta = Math.sqrt( sqrSinHalfTheta );
+        const halfTheta = Math.atan2( sinHalfTheta, cosHalfTheta );
+        const ratioA = Math.sin( ( 1 - t ) * halfTheta ) / sinHalfTheta, ratioB = Math.sin( t * halfTheta ) / sinHalfTheta;
+
+        r[3] = ( w * ratioA + r[3] * ratioB );
+        r[0] = ( x * ratioA + r[0] * ratioB );
+        r[1] = ( y * ratioA + r[1] * ratioB );
+        r[2] = ( z * ratioA + r[2] * ratioB );
+
+        return r;
+
+    },
+
+    // QUAT
+
+    toLocalQuatArray: ( rot = [0,0,0], b ) => { // rotation array in degree
+
+        let q1 = MathTool.quatFromEuler( rot );
+        let q2 = MathTool.quatInvert( b.quaternion.toArray() );
+        return MathTool.quatMultiply( q2, q1 )
+
+        /*quat.setFromEuler( euler.fromArray( math.vectorad( rot ) ) )
+        quat.premultiply( b.quaternion.invert() );
+        return quat.toArray();*/
+
+    },
+
+    quatFromEuler:( r = [0,0,0], isDeg = true ) => {
+
+        const cos = Math.cos;
+        const sin = Math.sin;
+        const n = isDeg ? torad$1 : 1; 
+        const x = (r[0]*n) * 0.5, y = (r[1]*n) * 0.5, z = (r[2]*n) * 0.5;
+        const c1 = cos( x ), c2 = cos( y ), c3 = cos( z );
+        const s1 = sin( x ), s2 = sin( y ), s3 = sin( z );
+
+        return [
+            s1 * c2 * c3 + c1 * s2 * s3,
+            c1 * s2 * c3 - s1 * c2 * s3,
+            c1 * c2 * s3 + s1 * s2 * c3,
+            c1 * c2 * c3 - s1 * s2 * s3
+        ]
+        
+    },
+
+    quatFromAxis:( r = [0,0,0], angle, isDeg = true ) => {
+
+        const n = isDeg ? torad$1 : 1; 
+        const halfAngle = (angle * 0.5) * n, s = Math.sin( halfAngle );
+        return [
+            r[0] * s,
+            r[1] * s,
+            r[2] * s,
+            Math.cos( halfAngle )
+        ]
+        
+    },
+
+    quatNomalize:( q ) => {
+        let l = MathTool.lengthArray( q );
+        if ( l === 0 ) {
+            return [0,0,0,1]
+        } else {
+            l = 1 / l;
+            return MathTool.scaleArray(q, l, 4)
+        }
+    },
+
+    quatInvert:( q ) => {
+        return [-q[0],-q[1],-q[2], q[3]]
+    },
+
+    quatMultiply:( a, b ) => {
+        const qax = a[0], qay = a[1], qaz = a[2], qaw = a[3];
+        const qbx = b[0], qby = b[1], qbz = b[2], qbw = b[3];
+        return [
+            qax * qbw + qaw * qbx + qay * qbz - qaz * qby,
+            qay * qbw + qaw * qby + qaz * qbx - qax * qbz,
+            qaz * qbw + qaw * qbz + qax * qby - qay * qbx,
+            qaw * qbw - qax * qbx - qay * qby - qaz * qbz
+        ]
+    },
+
+    quatToAxis:( q ) => {
+
+        let w = 2 * Math.acos( q[3] );
+        const s = Math.sqrt( 1 - q[3] * q[3] );
+        if ( s < 0.0001 ) {
+            return [1,0,0]
+        } else {
+             return [ q[0] / s, q[1] / s, q[2] / s, w ]
+        }
+    },
+
+    eulerFromMatrix: (te) => {
+
+        const m11 = te[ 0 ], m12 = te[ 4 ], m13 = te[ 8 ];
+        te[ 1 ]; const m22 = te[ 5 ], m23 = te[ 9 ];
+        te[ 2 ]; const m32 = te[ 6 ], m33 = te[ 10 ];
+
+        let ar = [0,0,0];
+        ar[1] = Math.asin( MathTool.clamp( m13, - 1, 1 ) );
+        if ( Math.abs( m13 ) < 0.9999999 ) {
+            ar[0] = Math.atan2( - m23, m33 );
+            ar[2] = Math.atan2( - m12, m11 );
+        } else {
+            ar[0] = Math.atan2( m32, m22 );
+            ar[2] = 0;
+        }
+        return ar
+
+    },
+
+    angleTo:( a, b ) => {
+
+        return 2 * Math.acos( Math.abs( MathTool.clamp( MathTool.dotArray(a,b), - 1, 1 ) ) );
+
+    },
+
+    lengthArray:( r ) => {
+        let i = r.length, l=0;
+        while(i--) l += r[i] * r[i];
+        return Math.sqrt( l )
+    },
+
+    dotArray: ( a, b ) => {
+        let i = a.length, r = 0;
+        while ( i -- ) r += a[ i ] * b[ i ];
+        return r;
+    },
+
+    addArray: ( a, b, i ) => {
+        i = i ?? a.length;
+        let r = [];
+        while ( i -- ) r[i] = a[ i ] + b[ i ];
+        return r
+    },
+
+    subArray: ( a, b, i ) => {
+        i = i ?? a.length; 
+        let r = [];
+        while ( i -- ) r[i] = a[ i ] - b[ i ];
+        return r
+    },
+
+    //
+
+    mulArray: ( r, s, i ) => {
+        i = i ?? r.length;
+        while ( i -- ) r[i] *= s;
+        return r
+    },
+
+    divArray: ( r, s, i ) => {
+        return MathTool.scaleArray( r, 1/s, i )
+    },
+
+
+    scaleArray: ( r, scale, i ) => {
+        i = i ?? r.length;
+        while( i-- ) r[i] *= scale;
+        return r
+    },
+
+    fillArray ( ar, ar2, n, i ) { 
+        n = n || 0;
+        i = i ?? ar.length;
+        while(i--) ar2[n+i] = ar[i];
+    },
+
+    copyArray: ( a, b ) => {
+        [...b];
+    },
+
+    //
+
+    distanceArray: ( a, b = [0,0,0] ) => ( MathTool.lengthArray( MathTool.subArray( a, b ) ) ),
+
+
+
+    // VOLUME
+
+    getVolume: ( type, size, vertex = null ) => {
+
+        let volume = 1;
+        let s = size;
+
+        switch(type){
+            
+            case 'sphere' : volume = (4*Math.PI*s[0]*s[0]*s[0])/3; break;
+            case 'cone' : volume = Math.PI * s[0] * (s[1] * 0.5) * 2; break;
+            case 'box' : volume = 8 * (s[0]*0.5)*(s[1]*0.5)*(s[2]*0.5); break;
+            case 'cylinder' : volume = Math.PI * s[0] * s[0] * (s[1] * 0.5) * 2; break;
+            case 'capsule' : volume = ( (4*Math.PI*s[0]*s[0]*s[0])/3) + ( Math.PI * s[0] * s[0] * (s[1] * 0.5) * 2 ); break;
+            case 'convex' : case 'mesh' : volume = MathTool.getConvexVolume( vertex ); break;
+
+        }
+
+        return volume;
+
+    },
+
+    getConvexVolume: ( v ) => {
+
+        let i = v.length / 3, n;
+        let min = [0, 0, 0];
+        let max = [0, 0, 0];
+
+        while(i--){
+
+            n = i*3;
+            if ( v[n] < min[0] ) min[0] = v[n];
+            else if (v[n] > max[0]) max[0] = v[n];
+            if ( v[n+1] < min[1] ) min[1] = v[n+1];
+            else if (v[n+1] > max[1]) max[1] = v[n+1];
+            if ( v[n+2] < min[2] ) min[2] = v[n+2];
+            else if (v[n+2] > max[2]) max[2] = v[n+2];
+
+        }
+
+        let s = [ max[0]-min[0], max[1]-min[1], max[2]-min[2] ];
+
+        return 8 * (s[0]*0.5)*(s[1]*0.5)*(s[2]*0.5);
+        //return (max[0]-min[0])*(max[1]-min[1])*(max[2]-min[2])
+
+    },
+
+    massFromDensity: ( density, volume ) =>  ( density * volume ),
+    densityFromMass: ( mass, volume ) =>  ( mass / volume ),
+
+
+    // GEOMETRY
+
+    getIndex: ( g ) => {
+
+        if(!g.index) return null
+        return g.index.array || null
+
+    },
+
+    getVertex: ( g, noIndex ) => {
+        
+        let c = g.attributes.position.array;
+
+        if( noIndex ){
+            let h = g.clone().toNonIndexed();
+            c = h.attributes.position.array;
+        }
+
+        return c;
+
+    },
+
+};
 
 class CircleHelper extends LineSegments {
 
@@ -123,27 +535,6 @@ class CircleHelper extends LineSegments {
 //import { LineMaterial } from 'three/addons/lines/LineMaterial.js';
 const map = new Map();
 
-
-/*export const Max = {
-	body:2000,
-    joint:100,
-    contact:50,
-    vehicle:20,
-    character:20,
-    solver:20,
-    ray:50,
-}
-
-export const Num = {
-	body:11,
-    joint:16,
-    contact:8,
-    vehicle:64,
-    character:16,
-    solver:256,
-    ray:8,
-}*/
-
 //-------------------
 //
 //  ROOT
@@ -163,6 +554,7 @@ const root = {
 	//up:null,
 	//update:null,
 	//change:null,
+	jointVisible:false,
 	delta:0,
 	add:null,
 	remove:null,
@@ -171,6 +563,9 @@ const root = {
 	instanceMesh : {},
 	tmpTex : [],
 	tmpMat : [],
+
+	hideMaterial: null,
+	lineMaterial: null,
 
 	mouseDown:false,
 	flow:{
@@ -495,10 +890,12 @@ const mat = {};
 
 const Mat = {
 
-	set:( m ) => {
+	set:( m, direct ) => {
 
-		root.extraMaterial( m );
+		if(!direct) root.extraMaterial( m );
 		mat[m.name] = m;
+
+		//console.log( m.name )
 
 	},
 
@@ -515,12 +912,12 @@ const Mat = {
 				case 'clear':   m = new MeshStandardMaterial({ color:0xFFFFFF, metalness: 0.5, roughness: 0 }); break
 				case 'sleep':  m = new MeshStandardMaterial({ color:0x939393, ...matExtra }); break//0x46B1C9
 				case 'solid':  m = new MeshStandardMaterial({ color:0xDDDDDD, ...matExtra }); break
-				//case 'solid':  m = new MeshStandardMaterial({ color:0x3C474B, ...matExtra }); break
-				case 'hero':   m = new MeshStandardMaterial({ color:0x00FF88, ...matExtra }); break
+				
+				//case 'hero':   m = new MeshStandardMaterial({ color:0x00FF88, ...matExtra }); break
 				case 'skinny':   m = new MeshStandardMaterial({ color:0xe0ac69, ...matExtra }); break
 				case 'chrome': m = new MeshStandardMaterial({ color:0xCCCCCC, metalness: 1, roughness:0.2 }); break
 				case 'glass':  m = new MeshPhysicalMaterial({ color:0xFFFFff, transparent:true, opacity:0.8, depthTest:true, depthWrite:false, roughness:0.02, metalness:0.0, /*side:DoubleSide,*/ alphaToCoverage:true, premultipliedAlpha:true, transmission:1, clearcoat:1, thickness:0.02  }); break
-				case 'glassX':  m = new MeshPhysicalMaterial({ color:0xFFFFff, transparent:true, opacity:1.0, roughness:0.1, metalness:0.2, transmission:1.0, clearcoat:1, thickness:0.25, ior:1.5, envMapIntensity:1.5 }); break
+				case 'glassX':  m = new MeshPhysicalMaterial({ color:0xFFFFff, transparent:false, opacity:1.0, roughness:0.1, metalness:0, side:DoubleSide, transmission:1.0, clearcoat:1, thickness:0.1, ior:1.5, envMapIntensity:2.2, shadowSide:1, reflectivity:0.5, iridescence:0.5 }); break
 				
 				case 'plexi':  m = new MeshPhysicalMaterial({ color:0xFFFFff, transparent:true, opacity:0.4, metalness:1, roughness:0, clearcoat:1, side:DoubleSide }); break
 				case 'glass2': m = new MeshPhysicalMaterial({ color:0xCCCCff, transparent:true, opacity:0.3  }); break
@@ -529,36 +926,57 @@ const Mat = {
 				case 'car':   m = new MeshPhysicalMaterial({ color:0x303030, metalness: 1.0, roughness: 0.5, clearcoat: 1.0, clearcoatRoughness: 0.03, sheen: 0.5 }); break
 				case 'carGlass':   m = new MeshPhysicalMaterial({ color: 0xffffff, metalness: 0.25, roughness: 0, transmission: 1.0 }); break
 
-				case 'joint':  m = new LineBasicMaterial( { vertexColors: true, depthTest: false, depthWrite: false, toneMapped: false, transparent: true } ); break
-				case 'ray':    m = new LineBasicMaterial( { vertexColors: true, toneMapped: false } ); break	
-				//case 'ray2':    m = new LineMaterial( { vertexColors: true, toneMapped: false, linewidth: 0.1, dashed: false, alphaToCoverage: true } ); break	
 
 				case 'debug':  m = new MeshBasicMaterial({ color:0x000000, wireframe:true, toneMapped: false }); break
 				case 'debug2': m = new MeshBasicMaterial({ color:0x00FFFF, wireframe:true, toneMapped: false }); break
 				case 'debug3':  m = new MeshBasicMaterial({ color:0x000000, wireframe:true, transparent:true, opacity:0.1, toneMapped: false, depthTest:true }); break
 
 				case 'bones':  m = new MeshStandardMaterial({ color:0xCCAA33,  wireframe:true }); break
-				case 'bones2':  m = new MeshPhongMaterial({ color:0x7da2ff, shininess:200 }); break
+				case 'bones2':  m = new MeshStandardMaterial({ color:0x7777ff }); break
 
 				case 'shadows': m = new MeshBasicMaterial({ transparent:true, opacity:0.01 }); break
-				case 'hide': m = new MeshBasicMaterial({ visible:false }); break
-
-				//case 'helper': m = new LineBasicMaterial( { vertexColors: true, depthTest: false, depthWrite: false, toneMapped: false, transparent: true } ); break
-
-
 				case 'button':  m = new MeshStandardMaterial({ color:0xFF404B, ...matExtra }); break
+				//case 'hide': m = new MeshBasicMaterial({ visible:false }); break
+
+				case 'line': 
+					if( !root.lineMaterial ) root.lineMaterial = new LineBasicMaterial( { vertexColors: true, toneMapped: false } );
+					return root.lineMaterial; 
+				case 'hide': 
+					if( !root.hideMaterial ) root.hideMaterial = new MeshBasicMaterial({ visible:false });
+					return root.hideMaterial; 
+
+
+				
 
 			}
-			m.name = name;
-			root.extraMaterial( m );
-			mat[name] = m;
+
+			if(m){
+				m.name = name;
+				root.extraMaterial( m );
+				mat[name] = m;
+			}
+			
 		}
 
+		//console.log(DoubleSide)
+
 		return mat[name]
+
+
 
 	},
 
 	dispose:() => {
+
+		if( root.lineMaterial ){
+			root.lineMaterial.dispose();
+			root.lineMaterial = null;
+		}
+
+		if( root.hideMaterial ){
+			root.hideMaterial.dispose();
+			root.hideMaterial = null;
+		}
 
 		for(let m in mat){
 			mat[m].dispose();
@@ -566,7 +984,7 @@ const Mat = {
 		}
 
 		let i = root.tmpMat.length;
-		while( i-- ) root.tmpMat[i].dispose();
+		while( i-- ) { root.tmpMat[i].dispose(); root.tmpMat[i] = null; }
 		root.tmpMat = [];
 
 	}
@@ -579,20 +997,20 @@ const Mat = {
 //  MATH
 //
 //-------------------
+/*
+export const torad = Math.PI / 180
+export const todeg = 180 / Math.PI
 
-const torad$1 = Math.PI / 180;
-const todeg$1 = 180 / Math.PI;
-
-const euler = new Euler();
-const quat = new Quaternion();
-
+export const euler = new Euler()
+export const quat = new Quaternion()
+*/
 /*const tmpMtx = new Matrix4()
 const tmpP = new Vector3()
 const tmpS = new Vector3()
 const tmpQ = new Quaternion()
 */
-
-const math$1 = {
+/*
+export const math = {
 
 	torad: Math.PI / 180,
 	todeg: 180 / Math.PI,
@@ -626,8 +1044,8 @@ const math$1 = {
 
 	lerp: ( x, y, t ) => ( ( 1 - t ) * x + t * y ),
 	lerpAr: ( ar, arx, ary, t ) => {
-		let i = ar.length;
-		while( i-- ) ar[i] = math$1.lerp( arx[i], ary[i], t );
+		let i = ar.length
+		while( i-- ) ar[i] = math.lerp( arx[i], ary[i], t )
 	},
 
 	randomSign: () => ( Math.random() < 0.5 ? -1 : 1 ),
@@ -667,22 +1085,22 @@ const math$1 = {
 
 	distance: ( a, b = { x:0, y:0, z:0 } ) => { // rotation array in degree
 
-		const dx = a.x ? a.x - b.x : 0;
-		const dy = a.y ? a.y - b.y : 0;
-		const dz = a.z ? a.z - b.z : 0;
+		const dx = a.x ? a.x - b.x : 0
+		const dy = a.y ? a.y - b.y : 0
+		const dz = a.z ? a.z - b.z : 0
 		return Math.sqrt( dx * dx + dy * dy + dz * dz );
 
 	},
 
 	toQuatArray: ( rot = [0,0,0] ) => { // rotation array in degree
 
-		return quat.setFromEuler( euler.fromArray( math$1.vectorad( rot ) ) ).toArray();
+		return quat.setFromEuler( euler.fromArray( math.vectorad( rot ) ) ).toArray();
 
 	},
 
 	toLocalQuatArray: ( rot = [0,0,0], b ) => { // rotation array in degree
 
-		quat.setFromEuler( euler.fromArray( math$1.vectorad( rot ) ) );
+		quat.setFromEuler( euler.fromArray( math.vectorad( rot ) ) )
 		quat.premultiply( b.quaternion.invert() );
 		return quat.toArray();
 
@@ -718,12 +1136,12 @@ const math$1 = {
 
 	},
 
-	addArray:( a, b ) => ( math$1.vecAdd(a,b) ),
+	addArray:( a, b ) => ( math.vecAdd(a,b) ),
 
 	vectorad: ( r ) => {
 
 		let i = 3, nr = [];
-	    while ( i -- ) nr[ i ] = r[ i ] * torad$1;
+	    while ( i -- ) nr[ i ] = r[ i ] * torad;
 	    nr[3] = r[3];
 	    return nr;
 
@@ -732,14 +1150,13 @@ const math$1 = {
 	scaleArray: ( ar, scale ) => {
 
 		var i = ar.length;
-		while( i-- ){ ar[i] *= scale; }		return ar;
+		while( i-- ){ ar[i] *= scale };
+		return ar;
 
 	},
 
-	getIndex: ( g ) => {
+	/*getIndex: ( g ) => {
 
-		//console.log( 'i', g.index )
-		//let c = new Uint32Array( g.index.array ) || null
 		if(!g.index) return null
 
 		return g.index.array || null
@@ -750,15 +1167,15 @@ const math$1 = {
 		let c = g.attributes.position.array;
 
 		if( noIndex ){
-			let h = g.clone().toNonIndexed();
+			let h = g.clone().toNonIndexed()
 			c = h.attributes.position.array;
 		}
 
 		return c;
 
-	},
-
-	arCopy: ( a, b ) => { [...b]; },
+	},*/
+/*
+	arCopy: ( a, b ) => { a = [...b] },
 
 	////////
 
@@ -766,11 +1183,11 @@ const math$1 = {
 
 		//math.tmpV( 1,0,0 ).applyMatrix3( )
 		//q = math.tmpQ.fromArray(q).normalize().toArray();
-	   if (q[3] > 1) q = math$1.tmpQ.fromArray(q).normalize().toArray(); // if w>1 acos and sqrt will produce errors, this cant happen if quaternion is normalised
+	   if (q[3] > 1) q = math.tmpQ.fromArray(q).normalize().toArray(); // if w>1 acos and sqrt will produce errors, this cant happen if quaternion is normalised
 	   let angle = 2 * Math.acos(q[3]);
 	   let s = Math.sqrt(1-q[3]*q[3]); // assuming quaternion normalised then w is less than 1, so term always positive
 
-	   if (s < 0.001) { 
+	   if (s < 0.001) {   
 	       // console.log(s)
 	        // test to avoid divide by zero, s is always positive due to sqrt
 	        // if s close to zero then direction of axis not important
@@ -788,10 +1205,10 @@ const math$1 = {
 	fromTransformToQ: ( p, q, inv ) => {
 
 		inv = inv || false;
-		math$1.tmpM.compose( math$1.tmpV.fromArray( p ), math$1.tmpQ.fromArray( q ), { x:1, y:1, z:1 } );
-		math$1.tmpM.decompose( math$1.tmpV, math$1.tmpQ, { x:1, y:1, z:1 } );
-		if(inv) math$1.tmpQ.invert();
-		return math$1.tmpQ.toArray();
+		math.tmpM.compose( math.tmpV.fromArray( p ), math.tmpQ.fromArray( q ), { x:1, y:1, z:1 } );
+		math.tmpM.decompose( math.tmpV, math.tmpQ, { x:1, y:1, z:1 } );
+		if(inv) math.tmpQ.invert();
+		return math.tmpQ.toArray();
 
 	},
 
@@ -800,31 +1217,33 @@ const math$1 = {
 		inv = inv || false;
 		q2 = q2 || [0,0,0,1];
 
-		math$1.tmpM.compose( math$1.tmpV.fromArray( p ), math$1.tmpQ.fromArray( q ), { x:1, y:1, z:1 } );
-		math$1.tmpM2.compose( math$1.tmpV.fromArray( p2 ), math$1.tmpQ.fromArray( q2 ), { x:1, y:1, z:1 } );
+		math.tmpM.compose( math.tmpV.fromArray( p ), math.tmpQ.fromArray( q ), { x:1, y:1, z:1 } );
+		math.tmpM2.compose( math.tmpV.fromArray( p2 ), math.tmpQ.fromArray( q2 ), { x:1, y:1, z:1 } );
 		if( inv ){
-			math$1.tmpM.invert();
-			math$1.tmpM.multiply( math$1.tmpM2 );
+			math.tmpM.invert();
+			math.tmpM.multiply( math.tmpM2 );
 		} else {
-			math$1.tmpM.multiply( math$1.tmpM2 );
+			math.tmpM.multiply( math.tmpM2 );
 		}
 
-		math$1.tmpM.decompose( math$1.tmpV, math$1.tmpQ, { x:1, y:1, z:1 } );
+		math.tmpM.decompose( math.tmpV, math.tmpQ, { x:1, y:1, z:1 } );
 
-		return math$1.tmpV.toArray();
+		return math.tmpV.toArray();
 
 	},
 
 	axisToQuatArray: ( r, isdeg ) => { // r[0] array in degree
 
 		isdeg = isdeg || false;
-		return math$1.tmpQ.setFromAxisAngle( math$1.tmpV.fromArray( r, 1 ), isdeg ? r[0]*math$1.torad : r[0]).normalize().toArray();
+		return math.tmpQ.setFromAxisAngle( math.tmpV.fromArray( r, 1 ), isdeg ? r[0]*math.torad : r[0]).normalize().toArray();
 
 	},
 
 	toQuatArray: ( rotation ) => { // rotation array in degree
 
-		return math$1.tmpQ.setFromEuler( math$1.tmpE.fromArray( math$1.vectorad( rotation ) ) ).toArray();
+		math.tmpE.fromArray( math.vectorad( rotation ) )
+		console.log(math.tmpE)
+		return math.tmpQ.setFromEuler( math.tmpE ).toArray();
 
 	},
 
@@ -836,7 +1255,7 @@ const math$1 = {
 	}*/
 
 
-};
+//}*/
 
 const Max = {
 	body:2000,
@@ -904,7 +1323,7 @@ const getType = function (o){
     switch(o.type){
         case 'plane': case 'box': case 'sphere': case 'highSphere': case 'cylinder': case 'stair':
         case 'cone': case 'capsule': case 'mesh': case 'convex': case 'compound': case 'null':
-        if ( !o.density && !o.kinematic ) return 'solid'
+        if ( !o.mass && !o.density && !o.kinematic ) return 'solid'
         else return 'body'
         default: 
             return o.type 
@@ -984,6 +1403,9 @@ class Item {
 
 	}
 
+
+
+
     vecZero ( ar, n, i ) { while ( i -- ) ar[n+i] = 0; }
 
     fillArray ( ar, ar2, n, i ) { 
@@ -1048,7 +1470,7 @@ class Ray extends Item {
 
 		this.setName( o );
 
-		let r = new ExtraRay( o, Mat.get('ray') );
+		let r = new ExtraRay( o );
 
 		r.visible = o.visible !== undefined ? o.visible : true;
 
@@ -1085,9 +1507,9 @@ class Ray extends Item {
 
 class ExtraRay extends Line {
 
-	constructor( o = {}, material = undefined ) {
+	constructor( o = {} ) {
 
-	    super(  new BufferGeometry(), material);
+	    super(  new BufferGeometry(), Mat.get('line') );
 
 	    this.data = {
 
@@ -1096,6 +1518,7 @@ class ExtraRay extends Line {
 			point: [0,0,0],
 			normal: [0,0,0],
 			distance: 0,
+			angle:0
 
 		};
 
@@ -1123,6 +1546,10 @@ class ExtraRay extends Line {
 
 	    this.tmp = new Vector3();
 	    this.normal = new Vector3();
+
+
+	    this.vv1 = new Vector3();
+	    this.vv2 = new Vector3();
 	    
 	    const positions = [0,0,0, 0,0,0, 0,0,0];
 	    const colors = [0,0,0, 0,0,0, 0,0,0];
@@ -1170,8 +1597,16 @@ class ExtraRay extends Line {
 			//this.data.distance = this._begin.distanceTo( this.tmp )
 
 			this.tmp.toArray( this.local, 3 );
+			this.vv1.fromArray( this.local ).sub(this.tmp).normalize(); 
 			this.tmp.addScaledVector( this.normal, this.fullDistance - this.data.distance );
 			this.tmp.toArray( this.local, 6 );
+
+			
+			//vv1.fromArray( r, n+5 ); 
+
+			this.data.angle = Math.floor( MathTool.angleTo( this.vv1.toArray(), this.data.normal ) * todeg$1 );
+			//let angle = MathTool.angleTo( [this.local[0], this.local[2], this.local[2]], [this.local[3], this.local[4], this.local[5]] ) * todeg
+			//console.log(this.data.angle)
 
 		} else {
 			if( this.parentMesh ){
@@ -4763,6 +5198,7 @@ class Body extends Item {
 		this.full = false;
 		this.extraConvex = false;
 		this.needMatrix = root.engine ==='RAPIER';
+		//this.tmpVolume = 0
 
 	}
 
@@ -4798,7 +5234,7 @@ class Body extends Item {
 	        if( b.defMat ){
 
 	        	if( b.isInstance ){
-	        		b.instance.setColorAt(b.id, b.sleep ? Colors.sleep : Colors.body );
+	        		b.instance.setColorAt( b.id, b.sleep ? Colors.sleep : Colors.body );
 	        	} else {
 	        		if ( !b.sleep && b.material.name === 'sleep' ) b.material = Mat.get('body');
 			        if ( b.sleep && b.material.name === 'body' ) b.material = Mat.get('sleep');
@@ -4875,20 +5311,11 @@ class Body extends Item {
 		} 
 
 
-		/*if( this.extraConvex && ( o.type==='cylinder' || o.type==='cone' ) ){
-			// convert geometry to convex if not in physics
-	    	let geom = new CylinderGeometry( o.type === 'cone' ? 0 : o.size[ 0 ], o.size[ 0 ], o.size[ 1 ], seg, 1 );//24
-	    	if( o.isWheel ) geom.rotateZ( -math.PI90 );
-	    	o.v = math.getVertex( geom )
-	    	o.type = 'convex';
-
-	    }*/
-
 	    if( root.engine === 'PHYSX' && ( o.type==='cylinder' || o.type==='cone' ) ){
 			// convert geometry to convex if not in physics
 	    	let geom = new CylinderGeometry( o.type === 'cone' ? 0 : o.size[ 0 ], o.size[ 0 ], o.size[ 1 ], seg, 1 );//24
-	    	if( o.isWheel ) geom.rotateZ( -math$1.PI90 );
-	    	o.v = math$1.getVertex( geom );
+	    	if( o.isWheel ) geom.rotateZ( -PI90 );
+	    	o.v = MathTool.getVertex( geom );
 	    	o.type = 'convex';
 
 	    }
@@ -4896,36 +5323,15 @@ class Body extends Item {
 	    if( root.engine === 'HAVOK' && o.type==='cone' ){
 	    	// convert geometry to convex if not in physics
 	    	let geom = new CylinderGeometry( o.type === 'cone' ? 0 : o.size[ 0 ], o.size[ 0 ], o.size[ 1 ], seg, 1 );//24
-	    	o.v = math$1.getVertex( geom );
+	    	o.v = MathTool.getVertex( geom );
 	    	o.type = 'convex';
 
 	    }
 
 	    if( o.type==='stair' ){
-
-	    	//let h = s[1]
-	    	//s[1] = h * 0.2
-	    	//o.rot = [0, 40, 0]
-
-
-	    	// convert geometry to convex if not in physics
-	    	//let geom = new Stair( o.size );//24
-	    	//o.v = math.getVertex( geom )
 	    	o.type = 'box';
-
 	    	t = 'box';
-
 	    }
-
-	    /*if( o.type==='stair' ){
-
-	    	// convert geometry to convex if not in physics
-	    	let geom = new Stair( o.size );//24
-	    	o.v = math.getVertex( geom )
-	    	o.type = 'convex';
-	    	t = 'convex';
-
-	    }*/
 
 		switch( t ){
 
@@ -4936,18 +5342,7 @@ class Body extends Item {
 			    unic = true;
 			    noScale = true;
 
-
 			break;
-
-			/*case 'stair':
-
-			    g = new Stair( o.size );//24
-	    	    o.v = math.getVertex( g )
-	    	    o.type = 'convex';
-	    	    unic = true;
-				noScale = true;
-
-			break;*/
 
 			case 'convex':
 
@@ -4975,8 +5370,8 @@ class Body extends Item {
 				g = o.shape.clone();
 				if( o.size ) g.scale( o.size[0], o.size[0], o.size[0] );
 				//o.v = g.attributes.position.array;
-				o.v = math$1.getVertex( g );
-				o.index = math$1.getIndex( g );
+				o.v = MathTool.getVertex( g );
+				o.index = MathTool.getIndex( g );
 
 				unic = true;
 				noScale = true;
@@ -4995,8 +5390,8 @@ class Body extends Item {
 				g = o.shape.clone();
 				if( o.size ) g.scale( o.size[0], o.size[0], o.size[0] );
 				
-				o.v = math$1.getVertex( g, root.engine === 'OIMO' );
-				o.index = root.engine === 'OIMO' ? null : math$1.getIndex( g );
+				o.v = MathTool.getVertex( g, root.engine === 'OIMO' );
+				o.index = root.engine === 'OIMO' ? null : MathTool.getIndex( g );
 				
 				unic = true;
 				noScale = true;
@@ -5073,9 +5468,9 @@ class Body extends Item {
 
 		}
 
-		if(o.translate) g.translate( o.translate[0], o.translate[1], o.translate[2]);
 
-		
+		if( o.translate ) g.translate( o.translate[0], o.translate[1], o.translate[2]);
+
 
 		// clear untranspherable variable for phy
     	if( o.shape ) delete o.shape;
@@ -5093,7 +5488,7 @@ class Body extends Item {
 
     	if( o.isWheel ){
     		g = g.clone();
-    		g.rotateZ( -math$1.PI90 );
+    		g.rotateZ( -PI90 );
     		unic = true;
     	}
     	
@@ -5101,7 +5496,7 @@ class Body extends Item {
     	if( unic ) Geo.unic(g);
 
     	
-    	
+
 
     	if( b === null && material === null ){
     		g.noScale = noScale; 
@@ -5110,10 +5505,9 @@ class Body extends Item {
 
     	if( o.meshRemplace && o.debug ) material = Mat.get( 'debug3' );
 
-
 		let m = new Mesh( g, material );
 
-		if( o.localRot ) o.localQuat = math$1.toQuatArray( o.localRot );
+		if( o.localRot ) o.localQuat = MathTool.quatFromEuler(o.localRot); //math.toQuatArray( o.localRot )
 		if( o.localPos ) m.position.fromArray( o.localPos );
 		if( o.localQuat ) m.quaternion.fromArray( o.localQuat );
 
@@ -5124,7 +5518,6 @@ class Body extends Item {
     	if(o.ray !== undefined){
     		if( !o.ray ) m.raycast = () => {return};
     	}
-    	
 
     	// add or not add
     	if( !o.meshRemplace || o.debug ) b.add( m );
@@ -5133,17 +5526,17 @@ class Body extends Item {
 
 	add ( o = {} ) {
 
+		//this.tmpVolume = 0
+
 		//console.log('add', o.type )
 
 		let i, n, name;
 
 		if( !o.instance ) name = this.setName( o );
 
-
 		o.type = o.type === undefined ? 'box' : o.type;
 
 		if( o.type === 'plane' && !o.visible ) o.visible = false;
-
 
 		if( o.type === 'stair'){ 
 
@@ -5187,21 +5580,25 @@ class Body extends Item {
 
 		// rotation is in degree or Quaternion
 	    o.quat = o.quat === undefined ? [ 0, 0, 0, 1 ] : o.quat;
-	    if( o.rot !== undefined ){ o.quat = math$1.toQuatArray( o.rot ); delete o.rot; }
-	    if( o.meshRot !== undefined ){ o.meshQuat = math$1.toQuatArray( o.meshRot ); delete o.meshRot; }
+	    if( o.rot !== undefined ){ o.quat = MathTool.quatFromEuler(o.rot); delete o.rot; }
+	    if( o.meshRot !== undefined ){ o.meshQuat = MathTool.quatFromEuler(o.meshRot); delete o.meshRot; }
+	    //if( o.rot !== undefined ){ o.quat =  math.toQuatArray( o.rot ); delete o.rot; }
+	    //if( o.meshRot !== undefined ){ o.meshQuat = math.toQuatArray( o.meshRot ); delete o.meshRot; }
 
 	    //o.size = o.size == undefined ? [ 1, 1, 1 ] : math.correctSize( o.size );
-	    o.size = math$1.autoSize( o.size, o.type );
-	    if( o.meshScale ) o.meshScale = math$1.autoSize( o.meshScale );
+	    o.size = MathTool.autoSize( o.size, o.type );
+	    if( o.meshScale ) o.meshScale = MathTool.autoSize( o.meshScale );
 
 	    let material, noMat = false;
 
+	    if( o.visible === false ) o.material = 'hide';
+
 	    if ( o.material !== undefined ) {
-	    	if ( o.material.constructor === String ) material = Mat.get(o.material);
+	    	if ( o.material.constructor === String ) material = Mat.get( o.material );
 	    	else material = o.material;
 	    } else {
 	    	noMat = true;
-	    	material = Mat.get( this.type ); //mat[this.type]
+	    	material = Mat.get( this.type );
 	    	if( o.instance ) material = Mat.get( 'base' );
 	    }
 
@@ -5211,30 +5608,6 @@ class Body extends Item {
 	    }
 
 	    if( o.material ) delete o.material;
-
-
-
-
-	    //if( o.makeInstance ) return this.addInstance( o, material )
-	    /*{
-
-	    	let bb = new Instance( this.geometry( o ), material, 0 )
-	    	bb.matrixAutoUpdate = false
-	    	bb.instanceMatrix.setUsage( DynamicDrawUsage )
-	    	bb.receiveShadow = o.shadow !== undefined ? o.shadow : true;
-	    	bb.castShadow = o.shadow !== undefined ? o.shadow : true;
-
-	    	bb.name = name || 'inst' + root.instanceMesh.length
-	    	//bb.n = 0
-			root.scene.add( bb )
-			root.instanceMesh.push( bb )
-
-	    	return bb
-
-	    }*/
-
-
-
 
 
 	    //let b = new Basic3D( o.instance )
@@ -5248,7 +5621,8 @@ class Body extends Item {
 	    	let mm = o.noClone ? o.mesh : o.mesh.clone();
 
 	    	mm.position.fromArray( o.meshPos || [0,0,0]);
-	    	if( o.meshRot ) { o.meshQuat = math$1.toQuatArray( o.meshRot ); delete o.meshRot; }
+	    	if( o.meshRot ) { o.meshQuat = MathTool.quatFromEuler(o.meshRot); delete o.meshRot; }
+	    	//if( o.meshRot ) { o.meshQuat = math.toQuatArray( o.meshRot ); delete o.meshRot; }
 	    	if( o.meshQuat ) mm.quaternion.fromArray( o.meshQuat );
 	    	if( o.meshSize ) mm.scale.set(1,1,1).multiplyScalar(o.meshSize);
 	    	if( o.meshScale ) mm.scale.fromArray( o.meshScale );
@@ -5274,17 +5648,18 @@ class Body extends Item {
 
 					n.type = n.type === undefined ? 'box' : n.type;
 					//n.size = n.size === undefined ? [ 1, 1, 1 ] : math.correctSize( n.size );
-					n.size = math$1.autoSize( n.size, n.type );
+					n.size = MathTool.autoSize( n.size, n.type );
 
 					if( n.pos ) n.localPos = n.pos;
-					if( n.rot !== undefined ){ n.quat = math$1.toQuatArray( n.rot ); delete n.rot; }
+
+					if( n.rot !== undefined ){ n.quat = MathTool.quatFromEuler(n.rot); delete n.rot; }
+					//if( n.rot !== undefined ){ n.quat = math.toQuatArray( n.rot ); delete n.rot; }
 					if( n.quat ) n.localQuat = n.quat;
 
 					n.debug = o.debug || false;
 					n.meshRemplace = o.meshRemplace || false;
 
 					if( !o.instance ) this.geometry( n, b, material );
-
 				}
 
 	    	break;
@@ -5333,7 +5708,7 @@ class Body extends Item {
 			o.name = b.name;
 			b.noScale = false;//o.type!=='box' || o.type!=='ChamferBox' || o.type!=='sphere';
 			//if(o.type === 'sphere') b.noScale = false
-		    if(o.type === 'capsule') b.noScale = true;
+		    if( o.type === 'capsule' ) b.noScale = true;
 			/*if(o.radius) b.noScale = true*/
 
 			let color = o.color;
@@ -5409,6 +5784,8 @@ class Body extends Item {
 		    delete o.decalinv
 		}*/
 
+		//o.volume = this.tmpVolume
+
 
 		
 
@@ -5463,6 +5840,8 @@ class Body extends Item {
 
 	addInstance ( o, material ) {
 
+		//console.log(o)
+
 		let bb = new Instance( this.geometry( o ), material, 0 );
 
 		if(o.v) bb.v = o.v;
@@ -5475,9 +5854,9 @@ class Body extends Item {
     	bb.castShadow = o.shadow !== undefined ? o.shadow : true;
 
     	bb.name = o.instance;
-    	//bb.n = 0
 		root.scene.add( bb );
 		root.instanceMesh[ o.instance ] = bb;
+
 
 		//console.log(bb.name+" is add")
 
@@ -5486,8 +5865,6 @@ class Body extends Item {
 	}
 
 }
-
-//import { Item } from './Item.js';
 
 class Joint extends Item {
 
@@ -5587,8 +5964,11 @@ class Joint extends Item {
 				//this.v1.fromArray( math.quadToAxisArray( o.worldQuat ) ).normalize()
 				//this.v2.fromArray( math.quadToAxisArray( o.worldQuat ) ).normalize()
 
-				o.axis1 = Utils.axisLocal( math$1.quadToAxisArray( o.worldQuat ), body1);//this.v1.fromArray( math.quadToAxisArray( o.quat1 ) ).normalize().toArray()
-				o.axis2 = Utils.axisLocal( math$1.quadToAxisArray( o.worldQuat ), body2);//this.v2.fromArray( math.quadToAxisArray( o.quat2 ) ).normalize().toArray()
+				//o.axis1 = Utils.axisLocal( math.quadToAxisArray( o.worldQuat ), body1)//this.v1.fromArray( math.quadToAxisArray( o.quat1 ) ).normalize().toArray()
+				//o.axis2 = Utils.axisLocal( math.quadToAxisArray( o.worldQuat ), body2)//this.v2.fromArray( math.quadToAxisArray( o.quat2 ) ).normalize().toArray()
+
+				o.axis1 = Utils.axisLocal( MathTool.quatToAxis( o.worldQuat ), body1);
+				o.axis2 = Utils.axisLocal( MathTool.quatToAxis( o.worldQuat ), body2);
 
 				//o.axis1 = body1 ? Utils.toLocal( this.v1, body1, true ).toArray():[1,0,0]
 				//o.axis2 = body2 ? Utils.toLocal( this.v2, body2, true ).toArray():[1,0,0]
@@ -5622,18 +6002,20 @@ class Joint extends Item {
 		if( o.b1 && typeof o.b1 !== 'string') o.b1 = o.b1.name;
 		if( o.b2 && typeof o.b2 !== 'string') o.b2 = o.b2.name;*/
 
-		if( o.rot1 !== undefined ){ o.quat1 = math$1.toQuatArray( o.rot1 ); delete ( o.rot1 ); }
-		if( o.rot2 !== undefined ){ o.quat2 = math$1.toQuatArray( o.rot2 ); delete ( o.rot2 ); }
+		if( o.rot1 !== undefined ){ o.quat1 = MathTool.quatFromEuler( o.rot1 ); delete ( o.rot1 ); }
+		if( o.rot2 !== undefined ){ o.quat2 = MathTool.quatFromEuler( o.rot2 ); delete ( o.rot2 ); }
 
 		if( !o.quat1 ) o.quat1 = new Quaternion().setFromUnitVectors( new Vector3(1, 0, 0), new Vector3().fromArray(o.axis1).normalize() ).toArray();
 		if( !o.quat2 ) o.quat2 = new Quaternion().setFromUnitVectors( new Vector3(1, 0, 0), new Vector3().fromArray(o.axis2).normalize() ).toArray();
 
-		if( o.drivePosition) if( o.drivePosition.rot !== undefined ){ o.drivePosition.quat = math$1.toQuatArray( o.drivePosition.rot ); delete ( o.drivePosition.rot ); }
+		if( o.drivePosition) if( o.drivePosition.rot !== undefined ){ o.drivePosition.quat = MathTool.quatFromEuler( o.drivePosition.rot ); delete ( o.drivePosition.rot ); }
 
-		let j = new ExtraJoint( Geo.get('joint'), Mat.get('joint'), o );
+		let j = new ExtraJoint( Geo.get('joint'), o );
 		j.name = name;
 
-		j.visible = false; // joint is visible after first update
+		j.visible = root.jointVisible || false; // joint is visible after first update
+
+		if(!o.visible) o.visible = j.visible;
 		//j.isVisible = o.visible !== undefined ? o.visible : true;
 		j.visible = o.visible !== undefined ? o.visible : true;
 		j.body1 = body1;
@@ -5669,9 +6051,11 @@ class Joint extends Item {
 
 class ExtraJoint extends Basic3D {
 
-	constructor( g, material = undefined, o ) {
+	constructor( g, o ) {
 
 	    super();
+
+	    let material = Mat.get('line');
 
 	    this.type = 'joint';
 	    this.mode = 'revolute';
@@ -6117,7 +6501,7 @@ class Car extends Basic3D {//extends Object3D {
 	    for ( let i = 0; i < chassisShapes.length; i ++ ) {
 	    	n = chassisShapes[i];
 	    	if( n.pos ) n.localPos = n.pos;
-	    	n.size = math$1.autoSize( n.size, n.type );
+	    	n.size = MathTool.autoSize( n.size, n.type );
 	    	root.items.body.geometry( n, this, material );
 	    }
 
@@ -6323,7 +6707,7 @@ class Car extends Basic3D {//extends Object3D {
 		k = 4;
 		while(k--){
 
-			this.suspension[k] = math$1.clamp( sp[k]*this.s_ratio, -1, 1 );
+			this.suspension[k] = MathTool.clamp( sp[k]*this.s_ratio, -1, 1 );
 			
 			if(this.suspensionMesh ){
 				if ( this.suspension[k] > 0 ) {
@@ -6337,7 +6721,7 @@ class Car extends Basic3D {//extends Object3D {
 
 		} 
 
-		this.steering = Math.round(((s1+s2)*0.5)*math$1.todeg) / this.maxSteering;
+		this.steering = Math.round(((s1+s2)*0.5)*todeg$1) / this.maxSteering;
 		
 		//console.log(this.steering)
 		//console.log(acc)
@@ -20180,6 +20564,8 @@ const Pool = {
     onEnd:() => {},
     log: ( msg ) => {},
 
+    materialRoot:(n) => {console.log( n );},
+
     setLoadEvent:( onload, onend ) => {
         Pool.onLoad = onload;
         Pool.onEnd = onend;
@@ -20240,10 +20626,12 @@ const Pool = {
     delete: ( name, type = '' ) => ( Pool.data.delete( Pool.prefix( type ) + name ) ),
     get: ( name, type = '' ) => ( Pool.data.get( Pool.prefix( type ) + name ) ),
 
-    set: ( name, node, type = '' ) => {
+    set: ( name, node, type = '', direct ) => {
         if( node.isMaterial ){ 
             type = 'material';
             node.name = name;
+
+            Pool.materialRoot( node, direct );
         }
         if( node.isTexture ) type = 'texture';
         if( node.isObject3D ) type = 'object3d';
@@ -20335,6 +20723,7 @@ const Pool = {
 
     setTextureOption:( t, o = {} ) => {
 
+        //if( o.colorSpace ) t.colorSpace = o.colorSpace;
         if( o.encoding ) t.colorSpace = SRGBColorSpace;
         t.flipY = ( o.flipY || o.flip ) !== undefined ? o.flipY : false;
         if( o.anisotropy !== undefined ) t.anisotropy = o.anisotropy;
@@ -21039,7 +21428,7 @@ function getBoneList( object ) {
 
 }*/
 
-const setting$1 = {
+const setting$2 = {
 
     mixRatio:0.0,
     threshold:0.1,
@@ -21083,7 +21472,7 @@ const Human = {
     modelPath: 'assets/models/avatar/',
     forceModel: null,
 
-    setting:setting$1,
+    setting:setting$2,
 
     materialRef:'skin',
     materials:{
@@ -21095,12 +21484,13 @@ const Human = {
             metalness:1,
             metalnessMap:'avatar_m',
             roughnessMap:'avatar_r',
-            normalScale: new Vector2( setting$1.normal, -setting$1.normal),
+            normalScale: new Vector2( setting$2.normal, -setting$2.normal),
             
-            sheen:setting$1.sheen,
-            sheenRoughness:setting$1.sheenRoughness,
+            sheen:setting$2.sheen,
+            sheenRoughness:setting$2.sheenRoughness,
             sheenColor:0xffffff,
             sheenColorMap:'avatar_u',
+            iridescence:0.5,
 
             /*aoMap:'avatar_ao',
             aoMapIntensity:1,*/
@@ -21143,11 +21533,11 @@ const Human = {
         hair:{
             type:'Standard',
         	map:'hair',
-            color:setting$1.hair,
-            roughness:setting$1.h_rough,
-            metalness:setting$1.h_metal,
+            color:setting$2.hair,
+            roughness:setting$2.h_rough,
+            metalness:setting$2.h_metal,
             alphaMap:'hair_a',
-            alphaTest:setting$1.alphaTest,
+            alphaTest:setting$2.alphaTest,
             side: DoubleSide,
             opacity:1.0,
             transparent:true,
@@ -21159,11 +21549,11 @@ const Human = {
         hair_man:{
             type:'Standard',
         	map:'hair_man',
-            color:setting$1.hair,
-            roughness:setting$1.h_rough,
-            metalness:setting$1.h_metal,
+            color:setting$2.hair,
+            roughness:setting$2.h_rough,
+            metalness:setting$2.h_metal,
             alphaMap:'hair_man_a',
-            alphaTest:setting$1.alphaTest,
+            alphaTest:setting$2.alphaTest,
             side: DoubleSide,
             opacity:1.0,
             transparent:true,
@@ -21174,12 +21564,12 @@ const Human = {
         },
         eyelash:{
             type:'Standard',
-        	color:setting$1.hair,
+        	color:setting$2.hair,
             map:'eyelash_c',
-            roughness:setting$1.h_rough,
-            metalness:setting$1.h_metal,
+            roughness:setting$2.h_rough,
+            metalness:setting$2.h_metal,
             alphaMap:'eyelash_a',
-            alphaTest:setting$1.alphaTest,
+            alphaTest:setting$2.alphaTest,
             transparent:true,
             side: DoubleSide,
             alphaToCoverage:true,
@@ -21332,7 +21722,7 @@ const Human = {
 
 };
 
-const setting = {
+const setting$1 = {
 
     metalness:0.6,
     roughness:0.4,
@@ -21361,7 +21751,7 @@ const Eva = {
     modelPath: 'assets/models/',
     forceModel:'eva',
 
-    setting:setting,
+    setting:setting$1,
 
     materialRef:'eva00',
     materials:{
@@ -21370,30 +21760,33 @@ const Eva = {
             map: 'eva00_c', 
             emissiveMap:'eva_l',
             emissive:0xffffff,
-            roughness:setting.roughness,
-            metalness:setting.metalness,
-            wireframe:setting.wireframe,
-            clearcoat:setting.clearcoat,
+            roughness:setting$1.roughness,
+            metalness:setting$1.metalness,
+            wireframe:setting$1.wireframe,
+            clearcoat:setting$1.clearcoat,
+            iridescence:0.5,
         },
         eva01:{
             type:'Physical',
             map: 'eva01_c',
             emissiveMap:'eva_l',
             emissive:0xffffff,
-            roughness:setting.roughness,
-            metalness:setting.metalness,
-            wireframe:setting.wireframe,
-            clearcoat:setting.clearcoat,
+            roughness:setting$1.roughness,
+            metalness:setting$1.metalness,
+            wireframe:setting$1.wireframe,
+            clearcoat:setting$1.clearcoat,
+            iridescence:0.5,
         },
         eva02:{
             type:'Physical',
             map: 'eva02_c', 
             emissiveMap:'eva_l',
             emissive:0xffffff,
-            roughness:setting.roughness,
-            metalness:setting.metalness,
-            wireframe:setting.wireframe,
-            clearcoat:setting.clearcoat,
+            roughness:setting$1.roughness,
+            metalness:setting$1.metalness,
+            wireframe:setting$1.wireframe,
+            clearcoat:setting$1.clearcoat,
+            iridescence:0.5,
         }
     },
 
@@ -21470,6 +21863,110 @@ const Eva = {
 
 };
 
+const setting = {
+
+    metalness:0.2,
+    roughness:0.8,
+    wireframe:false,
+    
+};
+
+const Lee = {
+
+    decalY:-0.06,
+
+	isBreath:false,
+	isEyeMove:false,
+	haveMorph:false,
+
+	skeletonRef:'leeSkin',
+
+	fullMorph: [],
+
+	haveQuality: false,
+	//skinRef:'leeSkin',
+	texturePath: 'assets/textures/',
+	textures: ['lee_c.jpg', 'lee_ao.jpg'],
+
+    modelPath: 'assets/models/',
+    forceModel:'lee',
+
+    setting:setting,
+
+    materialRef:'lee_material',
+    materials:{
+        lee_material:{
+            type:'Physical',
+            map: 'lee_c', 
+
+            roughness:0.3,
+            metalness:0.08,
+            //aoMap: 'lee_ao',
+            wireframe:setting.wireframe,
+            sheen:2.2,
+            //emissive:0xFFFFFF,
+            //emissiveMap:'lee_c',
+            sheenColorMap:'lee_c',
+            sheenColor:0xFFFFFF,
+            sheenRoughness:0.4,
+            envMapIntensity:1,
+            //aoMapIntensity:0.5,
+            //emissiveIntensity:0.25,
+
+        },
+    },
+
+    changeMaterial:( Setting ) => {
+
+        const s = Lee.setting;
+
+        if(Setting){
+            for(let o in Setting){
+                if( s[o] !== undefined) s[o] = Setting[o];
+            }
+        }
+        
+        let m = Pool.getMaterial( 'lee_material' );
+        m.roughness = s.roughness;
+        m.metalness = s.metalness;
+        m.wireframe = s.wireframe;
+
+    },
+
+    applyMaterial:( root, model ) => {
+
+    	const def = Pool.getMaterial( 'lee_material' );
+
+        root.traverse( ( node ) => {
+
+            if ( node.isMesh ){
+            	
+            	node.material = def;
+                node.receiveShadow = true;
+                node.castShadow = true;
+
+            }
+
+        });
+
+    },
+
+    adjustment:() => {
+
+        return [
+            //{name:'lShldr', values:[0,-70,0]},
+            {name:'lHand', values:[-60,0,0]},
+            //{name:'rShldr', values:[0,70,0]},
+            {name:'rHand', values:[-60,0,0]}
+        ]
+
+    }
+
+
+
+
+};
+
 /** __
 *    _)_|_|_
 *   __) |_| | 2023
@@ -21509,6 +22006,7 @@ class Avatar extends Group {
         this.ref = null;
 
         switch( this.model ){
+            case 'lee': this.ref = Lee; break;
             case 'man': case 'woman': this.ref = Human; break;
             case 'eva00': case 'eva01': case 'eva02': this.ref = Eva; break;
         }
@@ -21531,8 +22029,8 @@ class Avatar extends Group {
         this.done = false;
         this.isClone = false;
         
-        this.isBreath = this.ref.isBreath;
-        this.isEyeMove = this.ref.isEyeMove;
+        this.isBreath = this.ref.isBreath || false;
+        this.isEyeMove = this.ref.isEyeMove || false;
 
         this.decalY = this.ref.decalY || 0;
 
@@ -21651,6 +22149,15 @@ class Avatar extends Group {
                 this.tension2.update();
             }
 
+            /*if( this.ref.adjustment && !this.isClone ) {
+                let dt = this.ref.adjustment()
+                let m = dt.length, l
+                while(m--){
+                    l = dt[m]
+                    this.setRot2( l.name, l.x, l.y, l.z )
+                }
+            }*/
+
             if( window.gui && this.current ){ 
                 window.gui.updateTimeBarre( Math.round( this.current.time * FrameTime ), this.current.frameMax );
             }
@@ -21748,12 +22255,16 @@ class Avatar extends Group {
             type = data.type;
             delete data.type;
             for( const t in data ){
-                if(t==='map' || t.search('Map')!==-1 ) data[t] = Pool.getTexture(data[t]);
+
+                if(t!=='envMapIntensity')if(t==='map' || t.search('Map')!==-1 ) data[t] = Pool.getTexture(data[t]);
             }
             if(type==='Basic') m = new MeshBasicMaterial( data );
             else if(type==='Standard') m = new MeshStandardMaterial( data );
             else if(type==='Physical') m = new MeshPhysicalMaterial( data );
             m.name = name;
+
+            //console.log(m)
+            //Shader.add( m )
             Pool.set( name, m );
         }
 
@@ -21786,6 +22297,7 @@ class Avatar extends Group {
         // get data
         this.root.traverse( function ( node ) {
             if ( node.isMesh ){
+
                 if( node.name === this.ref.skeletonRef ){
                     node.matrixAutoUpdate = false;
                     this.skeleton = node.skeleton;
@@ -21796,14 +22308,15 @@ class Avatar extends Group {
             }
             if ( node.isBone ){
                 this.bones[node.name] = node;
+                //if(node.name==='rShldr' ) node.rotation.x = 80 * torad
+               // console.log(node.name, node.rotation.x*todeg, node.rotation.y*todeg, node.rotation.z*todeg)
             }
         }.bind(this));
 
         if( this.ref.isEyeMove ){
             this.bones.neck.add( this.eyeTarget );
         }
-
-        
+    
         //if( !this.isClone ){
         // for extra skin
         for( let m in this.mesh ){
@@ -21824,8 +22337,12 @@ class Avatar extends Group {
 
         //if( this.tensionTest ) this.addTensionMap()
 
+
+
         // animation
         this.mixer = new AnimationMixer( this );
+
+        
 
         if( Pool.clip.length === 0 ){ 
             // load animation include in json or the compacted version
@@ -21837,6 +22354,8 @@ class Avatar extends Group {
             while(i--) this.addAction( Pool.clip[i] );
             this.start();
         }
+
+        
              
     }
 
@@ -21933,21 +22452,26 @@ class Avatar extends Group {
 
     start(){
 
+
+
         //console.log('start', this.model)
         if( this.done ) return
 
         //this.updateMatrix()
 
         this.done = true;
+ 
         this.add( this.root );
+
         this.onReady();
         this.playAll();
         
-
-
-        //console.log('model is ready !!! ', this.onReady)
-        
         this.play( this.startAnimation );
+
+
+        if( this.ref.adjustment ){
+            this.makePoseTrack('adjustment', this.ref.adjustment() );
+        }
 
 
         setTimeout( this.callback, 10 ); 
@@ -21985,14 +22509,14 @@ class Avatar extends Group {
         return this.exoskel
     }
 
-    attachToBone( m, b )
-    {
+    attachToBone( m, b ){
+
         m.matrix = b.matrixWorld;
         m.matrixAutoUpdate = false;
     }
 
-    loadAnimationJson( url, callback )
-    {
+    loadAnimationJson( url, callback ){
+
         const request = new XMLHttpRequest();
         request.open('GET', url, true);
         request.onreadystatechange = function() {
@@ -22010,23 +22534,26 @@ class Avatar extends Group {
             }
         }.bind(this);
         request.send();
+
     }
 
-    loadOne()
-    {
+    loadOne(){
+
         let name = this.urls[0];
         this.loadAnimationFbx( this.rootPath + 'assets/animation/fbx/'+name+'.fbx', this.next.bind(this) );
+
     }
 
-    next()
-    {
+    next(){
+
         this.urls.shift();
         if( this.urls.length === 0 ) this.endCallback();
         else this.loadOne();
+
     }
 
-    loadCompactAnimation( url = './assets/models/animations.bin' )
-    {
+    loadCompactAnimation( url = './assets/models/animations.bin' ){
+
         if(!this.lzma) this.lzma = new LZMA(this.lzmaPath);
 
         var request = new XMLHttpRequest();
@@ -22050,8 +22577,8 @@ class Avatar extends Group {
 
     }
 
-    loadAnimationGlb( url, callback )
-    {
+    loadAnimationGlb( url, callback ){
+
         let name = url.substring( url.lastIndexOf('/')+1, url.lastIndexOf('.') );
         Pool.loaderGLTF().load( url, function ( glb ) {
             this.applydAnimation( glb, name );
@@ -22059,16 +22586,16 @@ class Avatar extends Group {
         }.bind(this), null, callback );
     }
 
-    directGlb( data, name )
-    {
+    directGlb( data, name ){
+
         Pool.loaderGLTF().parse( data, '', function ( glb ) {
             this.stop();
             this.applydAnimation( glb, name );
         }.bind(this));
     }
 
-    loadAnimationFbx( url, callback )
-    {
+    loadAnimationFbx( url, callback ){
+
         //if( !this.loaderFbx ) this.loaderFbx = new FBXLoader();
         let name = url.substring( url.lastIndexOf('/')+1, url.lastIndexOf('.') );
         Pool.loaderFBX().load( url, function ( node ) {
@@ -22077,8 +22604,8 @@ class Avatar extends Group {
         }.bind(this), null, callback );
     }
 
-    directFbx( data, name )
-    {
+    directFbx( data, name ){
+
         //if( !this.loaderFbx ) this.loaderFbx = new FBXLoader();
         try {
             let node = Pool.loaderFBX().parse( data, '' );
@@ -22088,8 +22615,8 @@ class Avatar extends Group {
         }
     }
 
-    applydAnimation( glb, name )
-    {
+    applydAnimation( glb, name ){
+
         let i = glb.animations.length, autoplay = false;
         if( i === 1 ){
             if( name ) glb.animations[0].name = name;
@@ -22102,8 +22629,16 @@ class Avatar extends Group {
 
     }
 
-    addClip( clip )
-    {
+    addClip( clip, additive = false ){
+
+        // Make the clip additive and remove the reference frame
+        if( additive ){ 
+            AnimationUtils.makeClipAdditive( clip );
+            //clip = AnimationUtils.subclip( clip, clip.name, 2, 3, 30 );
+        }
+
+        ///console.log(clip)
+
         let i = Pool.clip.length, removeId = -1;
         while(i--){ if( Pool.clip[i].name === clip.name ) removeId = i; }
         if( removeId !== -1 ) Pool.clip.slice( removeId, 1 );
@@ -22113,8 +22648,8 @@ class Avatar extends Group {
         Pool.clip.push( clip );
     }
 
-    addAction( clip, play )
-    {
+    addAction( clip, play ){
+
         const action = this.mixer.clipAction( clip );
         action.frameMax = Math.round( clip.duration * FrameTime );
         action.enabled = true;
@@ -22136,8 +22671,10 @@ class Avatar extends Group {
              
     }
 
-    getAnimation( toJson = false, fromPool = false )
-    {
+
+    /// EXPORT
+
+    getAnimation( toJson = false, fromPool = false ){
 
         let anim = [], n = 0;
         if(fromPool){
@@ -22162,8 +22699,7 @@ class Avatar extends Group {
 
     }
 
-    exportAnimationLzma( callback )
-    {
+    exportAnimationLzma( callback ){
 
         if(!this.lzma) this.lzma = new LZMA(this.lzmaPath);
 
@@ -22183,8 +22719,8 @@ class Avatar extends Group {
         });
     }
 
-    exportGLB( callback )
-    {
+    exportGLB( callback ){
+
         if( !this.exporter ) this.exporter = new GLTFExporter();
         
         const animations = this.getAnimation();
@@ -22207,8 +22743,12 @@ class Avatar extends Group {
 
     }
 
-    autoToes()
-    {
+    armAngle(){
+
+    }
+
+    autoToes(){
+
         if(!this.fixToe) return
         let r = this.getRot('rFoot');
         let l = this.getRot('lFoot');
@@ -22221,8 +22761,8 @@ class Avatar extends Group {
         else if( l[0] !== 0 ) this.setRot('lToes', 0,0,0 );
     }
 
-    resetToes()
-    {
+    resetToes(){
+
         if(!this.fixToe) return
         this.fixToe = false;
         this.setRot('rToes', 0,0,0 );
@@ -22266,16 +22806,98 @@ class Avatar extends Group {
                 }
                 tracks.push( new QuaternionKeyframeTrack( t.name, t.times, rq ) );
             }
-
             k++;
         }
 
         let clip = new AnimationClip( name, -1, tracks );
         clip.duration = anim.duration;
 
+
+
         this.stop();
         this.addClip( clip );
         this.addAction( clip, autoplay );
+
+    }
+
+    makePoseTrack( name, data ){
+
+        const torad = Math.PI / 180;
+        //let lockPosition = true;
+        //let p = new Vector3();
+        let q = new Quaternion();
+        //let RX = new Quaternion().setFromAxisAngle({x:1, y:0, z:0}, 90 * torad );
+
+        const baseTracks = data;// anim.tracks;
+        const tracks = [];
+
+        let i = baseTracks.length, j, n, n2, t, k = 0;
+
+        let numFrame = 3;//3
+
+   
+
+        while(i--){
+            t = baseTracks[i];
+
+            /*if( t.name === 'hip.position' ){
+                let rp = []
+                j = t.values.length / 3;
+                while(j--){
+                    n = j * 3;
+                    if( lockPosition ) p.set( t.values[n], t.values[n+1], 0).multiplyScalar(0.01);
+                    else p.set( t.values[n], t.values[n+1], t.values[n+2]).multiplyScalar(0.01);
+                    p.toArray( rp, n );
+                }
+                tracks.push( new VectorKeyframeTrack( t.name, t.times, rp ) );
+
+            } else {*/
+                let rq = [];
+                let tt = [];
+                k = 0;
+                j = numFrame;//t.values.length / 3 
+                while(j--){
+                    n = 0;//j * 3
+                    n2 = k * 4;
+
+                    tt.push( k * 0.03333333507180214 );
+                    //if( b==='hip') q.set(t.values[n], t.values[n+1], t.values[n+2], t.values[n+3]).multiply( RX );
+                    //else q.set(t.values[n], t.values[n+2], -t.values[n+1], t.values[n+3]);
+                    q.setFromEuler( {_x:t.values[n]*torad, _y:t.values[n+1]*torad, _z:t.values[n+2]*torad, _order:'XYZ'});
+                    q.toArray( rq, n2 );
+                    k++;
+                }
+                tracks.push( new QuaternionKeyframeTrack( t.name+'.quaternion', tt, rq ) );
+            //}
+            
+        }
+
+
+
+        let clip = new AnimationClip( name, -1, tracks );
+        clip.duration = numFrame * 0.03333333507180214;//anim.duration;
+
+        // additive not work???
+        //clip = AnimationUtils.makeClipAdditive( clip, 0, this.getAction( 'idle' ).clip, 30 )
+        //clip = THREE.AnimationUtils.subclip( clip, clip.name, 2, 3, 30 );
+
+        //console.log(clip)
+
+        const action = this.mixer.clipAction( clip );
+        //action.frameMax = numFrame;
+        action.enabled = true;
+        //action.time = 0;
+        action.setEffectiveTimeScale( 1 );
+        action.setEffectiveWeight( 1 );
+        action.play();
+
+        //console.log(action)
+        //action.paused = true;
+        //this.actions.set( clip.name, action );
+
+        //this.stop();
+        //this.addClip( clip, true );
+        //this.addAction( clip, autoplay );
 
     }
 
@@ -22459,8 +23081,7 @@ class Avatar extends Group {
 
     }
 
-    stop()
-    {
+    stop(){
 
         this.actions.forEach( function ( action ) { action.setEffectiveWeight( 0 ); });
         //this.mixer.stopAllAction()
@@ -22470,24 +23091,36 @@ class Avatar extends Group {
 
     // bone control
 
-    setRot( name, x, y, z )
-    {
+    setRot( name, x, y, z ){
+
         let n = this.bones[name];
         if(!n) return
         n.rotation.set( x*torad, y*torad, z*torad, 'XYZ' );
         n.updateMatrix();
     }
 
-    getRot( name )
-    {
+    setRot2( name, x, y, z ){
+
+        let n = this.bones[name];
+        if(!n) return
+        //let q1 = n.quaternion
+        let q2 = new Quaternion().setFromEuler( {_x:x*todeg, _y:y*todeg, _z:z*todeg, _order:'XYZ'}).invert();
+     
+        n.quaternion.premultiply(q2);
+       // n.rotation.set( x*torad, y*torad, z*torad, 'XYZ' );
+        n.updateMatrix();
+    }
+
+    getRot( name ){
+
         let n = this.bones[name];
         if(!n) return
         let r = n.rotation.toArray();
         return [ Math.round(r[0]*todeg), Math.round(r[1]*todeg), Math.round(r[2]*todeg) ];
     }
 
-    getWorldPos( name )
-    {
+    getWorldPos( name ){
+
         let n = this.bones[name];
         if(!n) return
         V.set(0,0,0);
@@ -22500,8 +23133,8 @@ class Avatar extends Group {
     //  HIDE PART OF BODY
     //---------------------
 
-    bodyMask( o = {arm:true, leg:true, foot:true, chest:true } )
-    {
+    bodyMask( o = {arm:true, leg:true, foot:true, chest:true } ){
+
         let s = 0.25;
         if(!this.canvas) {
             this.canvas = document.createElement( 'canvas' );
@@ -22541,11 +23174,12 @@ class Avatar extends Group {
     //   TOOLS
     //---------------------
 
-    zeroColor(g)
-    {
+    zeroColor(g){
+
         if( g.isMesh ) g = g.geometry;
         let lng = g.attributes.position.array.length;
         g.setAttribute( 'color', new Float32BufferAttribute( new Array(lng).fill(0), 3 ) );
+
     }
 
     /*uv2( g, uv2 = true, tangent = true ) {
@@ -22559,7 +23193,7 @@ class Avatar extends Group {
 
 class CapsuleHelper extends Object3D {
 
-	constructor( r, h, useDir ) {
+	constructor( r, h, useDir, material ) {
 
 		super();
 
@@ -22613,9 +23247,16 @@ class CapsuleHelper extends Object3D {
 
 		}
 
-		geometry.setAttribute( 'position', new Float32BufferAttribute( positions, 3 ) );
+		let colors = [];
+		let cc = positions.length/3;
+		while(cc--){
+			colors.push(0,1,0);
+		}
 
-		const material = new LineBasicMaterial( { color:0x00ff00, fog: false, toneMapped: false } );
+		geometry.setAttribute( 'position', new Float32BufferAttribute( positions, 3 ) );
+		geometry.setAttribute( 'color', new Float32BufferAttribute( colors, 3 ) );
+
+		//const material = new LineBasicMaterial( { color:0x00ff00, fog: false, toneMapped: false } );
 
 		this.cone = new LineSegments( geometry, material );
 		this.cone.raycast = function(){return};
@@ -22637,11 +23278,18 @@ class CapsuleHelper extends Object3D {
 		    dir, -py, r+dir , 0, -py, r+dir*2 ,
 		];
 
+		colors = [];
+		cc = positions2.length/3;
+		while(cc--){
+			colors.push(1,0,0);
+		}
+
 		geometry2.setAttribute( 'position', new Float32BufferAttribute( positions2, 3 ) );
+		geometry2.setAttribute( 'color', new Float32BufferAttribute( colors, 3 ) );
 
-		const material2 = new LineBasicMaterial( { color:0xFF0000, fog: false, toneMapped: false } );
+		//const material2 = new LineBasicMaterial( { color:0xFF0000, fog: false, toneMapped: false } );
 
-		this.direction = new LineSegments( geometry2, material2 );
+		this.direction = new LineSegments( geometry2, material );
 		this.direction.raycast = function(){return};
 		this.add( this.direction );
 
@@ -22657,11 +23305,11 @@ class CapsuleHelper extends Object3D {
 	dispose() {
 
 		this.cone.geometry.dispose();
-		this.cone.material.dispose();
+		//this.cone.material.dispose();
 
 		if(this.direction){
 			this.direction.geometry.dispose();
-			this.direction.material.dispose();
+			//this.direction.material.dispose();
 		}
 
 	}
@@ -22946,8 +23594,9 @@ class SkeletonBody extends Object3D {
 
                         name: phyName,
                         density:1,
+                        //mass:1,
                         type: type,
-                        size: math$1.vecMul(size,1),
+                        size: MathTool.scaleArray(size,1,3),
                         pos: p.toArray(),
                         //rot: rot,
                         quat: q.toArray(),
@@ -22957,6 +23606,7 @@ class SkeletonBody extends Object3D {
                         group:1,
                         mask:1|2,
                         material:'bones2',
+                        shadow:false,
                         neverSleep: true,
 
                         //linked:link,
@@ -23272,18 +23922,26 @@ class Hero extends Basic3D {
 
 		this.type = 'character';
 		this.name = o.name || 'hero';
+		o.name = this.name;
 
 		this.isRay = false;
 
+		this.ray = null;
 		this.model = null;
 		this.static = false;
 
-
-		this.radius = 0.3;
-		this.height = 1.8;
+		this.radius = o.radius || 0.3;
+		this.height = o.height || 1.8;
+		if( o.radius ) delete o.radius;
 
 		this.fall = false;
 		this.floor = true;
+
+		this.distance = 0;
+		this.rayAngle = 0;
+		this.rayStart = -(this.height*0.5)+this.radius;
+		this.rayEnd = this.rayStart - this.height; 
+		this.maxRayDistance = this.height;
 
 		this.contact = false;
 
@@ -23301,7 +23959,7 @@ class Hero extends Basic3D {
 		this.oy = 0;
 		this.vy = 0;
 
-		this.angle = ( o.angle || 0 ) * math$1.torad;
+		this.angle = ( o.angle || 0 ) * torad$1;
 
 		this.speed = {
 		    idle:1,
@@ -23312,61 +23970,69 @@ class Hero extends Basic3D {
 		};
 
 		this.valheimStyle = true;
-		
+		this.globalRay = o.ray || false;
+
 		this.callback = o.callback || function (){};
 
 		if( o.callback ) delete o.callback;
 
-
-
-		//this.position = new THREE.Vector3();
 		this.init( o );
 
 	}
 
 	init( o ){
 
-		this.radius = o.radius || 0.3;
-		this.height = o.height || 1.8;
-
-		if( o.radius ) delete o.radius;
-
 	    if(!o.size) o.size = [ this.radius ,this.height-(2*this.radius) ];
 		if(!o.pos) o.pos = [0,this.height*0.5,0];
 
 		this.py = -this.height*0.5;//(o.size[1]*0.5)-o.size[0]
 
+		if( this.globalRay ) root.items.body.geometry( { ...o, type:'capsule', ray:true }, this, Mat.get('hide') );
 
-
-		if( o.debug ) root.items.body.geometry( { ...o, type:'capsule', ray:false }, this, Mat.get('debug3') );
-
-		o.density = o.density || 70; 
-        o.damping = [0.01,0]; 
+		o.density = o.density || 1; 
+        //o.damping = [0.01,0] 
         o.friction = 0.5;
 
 		o.angularFactor = [0,0,0];
 		//o.maxDamping = 1000
-		o.group = 32;
-		o.mask = o.mask !== undefined ? o.mask : 1|2;
+		o.group = 16;
+		//o.mask = o.mask !== undefined ? o.mask : 1|2
 		o.regular = true;
 		o.filter = [1,-1,[1, 3, 4,5,9], 0];
 		o.inertia = [0,0,0]; 
 		//o.kinematic = true
 		o.noGravity = true;
-		o.ray = false;
 
+		o.volume = MathTool.getVolume( 'capsule', o.size );
+	
 
 		// add to world
 		root.items.character.addToWorld( this, o.id );
 
-        // add to physics
+        // add capsule to physics
         root.post({ m:'add', o:o });
 
 
-        // add character model
+        this.ray = root.motor.add({ type:'ray', name:this.name + '_ray', begin:[0,this.rayStart,0], end:[0,this.rayEnd, 0], callback:this.selfRay.bind(this), visible:false, parent:this.name });
+
+
+        // add skinning character model
         if( o.gender ) this.addModel( o );
+        else this.showHelper( true );
 		
 	}
+
+    selfRay( r ){
+
+    	if( r.hit ){ 
+    		this.distance = MathTool.toFixed(r.distance-this.radius);
+    		this.rayAngle = r.angle;
+    	} else { 
+	        this.distance = this.maxRayDistance;
+	        this.rayAngle = 0;
+	    }
+
+    }
 
     hit( d ){
     	this.contact = d;
@@ -23376,7 +24042,7 @@ class Hero extends Basic3D {
 
     	if(b){
     		if(!this.helper){
-    			this.helper = new CapsuleHelper(this.radius, this.height, true);
+    			this.helper = new CapsuleHelper(this.radius, this.height, true, Mat.get('line') );
 		        this.add(this.helper);
     		}
     	} else {
@@ -23387,25 +24053,26 @@ class Hero extends Basic3D {
     		}
     	}
 
+    	if(this.ray) this.ray.visible = b;
+
     }
 
     addSkeleton(){
 
-    	if(this.skeletonBody) return
+    	if( this.skeletonBody ) return
 
     	this.skeletonBody = new SkeletonBody( this );
-    	//this.model.add( this.skeletonBody )
     	root.scene.add( this.skeletonBody );
-    	//this.add( this.skeletonBody )
-    	this.skeletonBody.isVisible(false);
+    	this.skeletonBody.isVisible( false );
 
     }
 
     debugMode( v ){
 
-    	if(this.skeletonBody) this.skeletonBody.isVisible(v);
-    	if(this.model) this.model.setMaterial( {wireframe: v});
+    	if( this.skeletonBody ) this.skeletonBody.isVisible(v);
+    	if( this.model ) this.model.setMaterial( {wireframe: v});
     	this.showHelper( v );
+        
 
     }
 
@@ -23420,7 +24087,7 @@ class Hero extends Basic3D {
 
 	addModel( o ){
 
-		this.model = new Avatar( { 
+		this.model = new Avatar({ 
 			type:o.gender, 
 			anim: o.anim !== undefined ? o.anim : 'idle', 
 			compact:true, 
@@ -23446,12 +24113,11 @@ class Hero extends Basic3D {
 	}*/
 
 	step ( AR, n ) {
-
 		
 		this.position.fromArray( AR, n + 1 );
 		this.quaternion.fromArray( AR, n + 4 );
 		this.fall = this.position.y < this.oy;
-		this.floor = math$1.nearEquals(this.position.y, this.oy, 0.1);
+		this.floor = MathTool.nearEquals(this.position.y, this.oy, 0.1);
 		this.oy = this.position.y;
 		this.updateMatrix();
 
@@ -23476,7 +24142,7 @@ class Hero extends Basic3D {
 		if( this.model ) this.model.dispose();
 		if( this.helper ) this.showHelper();
 
-		//console.log('model remove')
+		console.log('model remove');
 
 		super.dispose();
 	}
@@ -23513,7 +24179,7 @@ class Hero extends Basic3D {
 	            this.vy = 0; 
 	            if( this.floor ) this.jump = false;
 
-	            //if( math.nearEquals(this.position.y, this.oy, 0.1)) this.jump = false;
+	            //if( MathTool.nearEquals(this.position.y, this.oy, 0.1)) this.jump = false;
 	             //this.position.y === this.oy 
 	        }
 	    }
@@ -23554,9 +24220,9 @@ class Hero extends Basic3D {
 
 	    if( key[0] !== 0 || key[1] !== 0 ){ 
 
-	        this.tmpAcc += delta*4;//math.lerp( tmpAcc, 1, delta/10 )
-	        //this.tmpAcc += math.lerp( this.tmpAcc, 1, delta/10 )
-	        //this.tmpAcc = math.clamp( this.tmpAcc, 1, speed )
+	        this.tmpAcc += delta*4;//MathTool.lerp( tmpAcc, 1, delta/10 )
+	        //this.tmpAcc += MathTool.lerp( this.tmpAcc, 1, delta/10 )
+	        //this.tmpAcc = MathTool.clamp( this.tmpAcc, 1, speed )
 
 	        //this.rs += key[0] //* this.tmpAcc 
 	        //this.ts += key[1] //* this.tmpAcc
@@ -23576,15 +24242,15 @@ class Hero extends Basic3D {
 
 	    //dir.multiplyScalar(tmpAcc)
 
-	    //this.rs = math.clamp( this.rs, -speed, speed ) 
-	    //this.ts = math.clamp( this.ts, -speed, speed ) 
+	    //this.rs = MathTool.clamp( this.rs, -speed, speed ) 
+	    //this.ts = MathTool.clamp( this.ts, -speed, speed ) 
 
 	    //this.ease.set( this.ts/speed, 0, this.rs/speed )
 	    //this.ease.set( this.rs/speed, 0, this.ts/speed )
 	    this.ease.set( this.rs, 0, this.ts ).multiplyScalar( this.tmpAcc * m );
 
 	    //let angle = math.unwrapRad( (Math.atan2(this.ease.z, this.ease.x)) + azimut );
-	    let angle = math$1.unwrapRad( (Math.atan2(this.ease.x, this.ease.z)) + azimut );
+	    let angle = MathTool.unwrapRad( ( Math.atan2(this.ease.x, this.ease.z)) + azimut );
 
 	    this.ease.length(); //((Math.abs(this.ease.x) + Math.abs(this.ease.z)))
 
@@ -23604,11 +24270,14 @@ class Hero extends Basic3D {
         //if(anim==='walk' || anim==='run')
 
         //if(this.static) this.ts = this.rs = 0
-        if(this.static) this.ease.x = this.ease.z = 0;
+        if( this.static ) this.ease.x = this.ease.z = 0;
 
 
 	    // gravity
+	    //let g = this.vy - (this.distance>0.1 ? 9.81 : 0);
 	    let g = this.vy - 9.81;
+
+	   // console.log(this.distance)
 
 	    this.ease.y = g;
 
@@ -23631,7 +24300,8 @@ class Hero extends Basic3D {
 		if( this.helper ){ 
 
 			//this.helper.updateMatrix()
-			this.helper.cone.rotation.y = angle;
+			this.helper.cone.rotation.y = azimut;//angle
+			if( anim !== 'idle' ) this.helper.setDirection( angle ); 
 
 		}
 
@@ -23666,16 +24336,16 @@ class Hero extends Basic3D {
 
 	    if( anim !== 'idle' ){
 
-	    	let pp = math$1.unwrapRad( this.model.rotation.y );
+	    	let pp = MathTool.unwrapRad( this.model.rotation.y );
 	    	//if( anim === 'fight' ) pp = math.unwrapRad( azimut + Math.PI )
-	    	let aa = math$1.nearAngle( angle, pp );
+	    	let aa = MathTool.nearAngle( angle, pp );
 	    	//this.model.rotation.y = anim === 'fight' ? (azimut + Math.PI) : math.lerp( pp, aa, 0.25 )
-	    	this.model.rotation.y = anim === 'fight' ? (azimut + Math.PI) : math$1.lerp( pp, aa, 0.1 );
+	    	this.model.rotation.y = anim === 'fight' ? (azimut + Math.PI) : MathTool.lerp( pp, aa, 0.1 );
 	    	this.model.updateMatrix();
 	    	this.model.setTimescale( this.tmpAcc * (1*genSpeed) );
 	    }
 
-	    if( this.helper ) this.helper.setDirection( this.model.rotation.y );
+	    //if( this.helper ) this.helper.setDirection( this.model.rotation.y )
 
 	}
 
@@ -24499,7 +25169,7 @@ class Landscape extends Mesh {
                 uniforms['map1'] = { value: txt[maps[1]+'_c'] };
                 uniforms['map2'] = { value: txt[maps[2]+'_c'] };
 
-                uniforms['complexMix'] = { value: 1 };
+                uniforms['randomUv'] = { value: 1 };
 
                 uniforms['normalMap1'] = { value: txt[maps[1]+'_n'] };
                 uniforms['normalMap2'] = { value: txt[maps[2]+'_n'] };
@@ -24518,7 +25188,35 @@ class Landscape extends Mesh {
                 
                 shader.fragmentShader = fragment;
 
+                this.userData.shader = shader;
+
             };
+
+
+            Object.defineProperty( this.material, 'randomUv', {
+                  get() { return this.userData.shader.uniforms.randomUv.value ? true : false; },
+                  set( value ) { this.userData.shader.uniforms.randomUv.value = value ? 1 : 0; }
+            });
+
+            Object.defineProperty( this.material, 'map1', {
+                  get() { return this.userData.shader.uniforms.map1.value; },
+                  set( value ) { this.userData.shader.uniforms.map1.value = value; }
+            });
+
+            Object.defineProperty( this.material, 'map2', {
+                  get() { return this.userData.shader.uniforms.map2.value; },
+                  set( value ) { this.userData.shader.uniforms.map2.value = value; }
+            });
+
+            Object.defineProperty( this.material, 'normalMap1', {
+                  get() { return this.userData.shader.uniforms.normalMap1.value; },
+                  set( value ) { this.userData.shader.uniforms.normalMap1.value = value; }
+            });
+
+            Object.defineProperty( this.material, 'normalMap2', {
+                  get() { return this.userData.shader.uniforms.normalMap2.value; },
+                  set( value ) { this.userData.shader.uniforms.normalMap2.value = value; }
+            });
 
         } else {
 
@@ -24549,7 +25247,7 @@ class Landscape extends Mesh {
         if( this.wantBorder ) this.addBorder( o );
         if( this.wantBottom ) this.addBottom( o );
 
-        if( o.pos )this.position.fromArray( o.pos );
+        if( o.pos ) this.position.fromArray( o.pos );
 
 
         // rotation is in degree or Quaternion
@@ -24563,7 +25261,7 @@ class Landscape extends Mesh {
         this.castShadow = true;
         this.receiveShadow = true;
 
-        Pool.set( 'terrain' + this.name, this.material );
+        Pool.set( 'terrain' + this.name, this.material, 'material', true );
 
         this.update();
 
@@ -25028,7 +25726,7 @@ const TerrainShader = {
         uniform vec3 diffuse; 
         uniform vec4 clevels;
 
-        uniform float complexMix;
+        uniform float randomUv;
 
         uniform sampler2D noise;
 
@@ -25078,7 +25776,7 @@ const TerrainShader = {
         }
 
         vec4 textureMAP( sampler2D mapper, in vec2 uv ){
-            if( complexMix == 1.0 ) return textureNoTile( mapper, uv );
+            if( randomUv == 1.0 ) return textureNoTile( mapper, uv );
             else return texture2D( mapper, uv );
         }
 
@@ -25280,8 +25978,8 @@ const toPhysics = function( t ) {
 		o.heightData = t.heightData;
 	} else {
 		o.type = 'mesh';
-		o.v = math$1.getVertex( t.geometry, root.engine === 'OIMO' );
-		o.index = root.engine === 'OIMO' ? null : math$1.getIndex( t.geometry );
+		o.v = MathTool.getVertex( t.geometry, root.engine === 'OIMO' );
+		o.index = root.engine === 'OIMO' ? null : MathTool.getIndex( t.geometry );
 	}
 
 	return o
@@ -25409,8 +26107,8 @@ class Articulation {//extends Basic3D
 		o.name = o.name || ( this.name + '_Joint_' + this.jid );
 		o.solver = this.name;
 
-		if( o.rot1 !== undefined ){ o.quat1 = math$1.toQuatArray( o.rot1 ); delete ( o.rot1 ); }
-		if( o.rot2 !== undefined ){ o.quat2 = math$1.toQuatArray( o.rot2 ); delete ( o.rot2 ); }
+		if( o.rot1 !== undefined ){ o.quat1 = MathTool.quatFromEuler( o.rot1 ); delete ( o.rot1 ); }
+		if( o.rot2 !== undefined ){ o.quat2 = MathTool.quatFromEuler( o.rot2 ); delete ( o.rot2 ); }
 		
 		if(o.type !== 'fixe') {
 			this.joints.push( new SolverJoint( o, this ) );
@@ -25531,9 +26229,9 @@ class SolverJoint {
 
 
 		// linear target need to be clamp ?!
-		this.target = math$1.clamp( target, this.min, this.max );
+		this.target = MathTool.clamp( target, this.min, this.max );
 		//this.current = this.data.target[ this.driveType ];
-		this.current = math$1.clamp( this.data.target[ this.driveType ], this.min, this.max );
+		this.current = MathTool.clamp( this.data.target[ this.driveType ], this.min, this.max );
 
 		//console.log( this.target, this.current )
 
@@ -25568,7 +26266,7 @@ class SolverJoint {
 			this.tmp += dt;
 			let t = this.tmp / this.time;
 			t = (t > 1) ? 1 : t;
-			let move = math$1.lerp( this.start, this.target, t );//this.current + (this.target - this.current) * t;
+			let move = MathTool.lerp( this.start, this.target, t );//this.current + (this.target - this.current) * t;
 
 			this.nup = { name:this.name, drivesTarget: [[ this.driveType, move ]] };
 
@@ -25910,7 +26608,7 @@ class Textfield extends Mesh {
 		this.set( o.text );
 		
 		if( o.pos ) this.position.fromArray(o.pos);
-		if( o.rot ) this.quaternion.fromArray( math$1.toQuatArray( o.rot ) );
+		if( o.rot ) this.quaternion.fromArray( MathTool.quatFromEuler( o.rot ) );
 		
 	}
 
@@ -26103,11 +26801,11 @@ class Button {
 
 			//let side = this.target > this.value ? 1 : -1
 
-			this.value = math$1.lerp( this.value, this.target, this.speed );
+			this.value = MathTool.lerp( this.value, this.target, this.speed );
 
 			//this.value += 0.1 * side
 
-			let t = math$1.nearEquals( this.value, this.target, 0.01);
+			let t = MathTool.nearEquals( this.value, this.target, 0.01);
 
 			if(!t){
 			    this.pos[this.axe] = this.value;
@@ -26124,6 +26822,81 @@ class Button {
 	dispose(){
 
 		if(this.txt) this.txt.dispose();
+	}
+
+}
+
+class Container {
+
+	constructor ( o = {} ) {
+
+		this.isCompound = true;
+
+		this.init(o);
+
+	}
+
+	init ( o ) {
+
+
+		let s = o.size || [5,3,8];
+		let p = o.pos || [0,2,0];
+		let w = 0.1;
+		let mw = w * 0.5;
+		let xw = w * 2;
+
+		let geometry = new ChamferBox( s[ 0 ], s[ 1 ], s[ 2 ], o.radius || mw );
+		//let geometry = new BoxGeometry( s[ 0 ], s[ 1 ], s[ 2 ] );
+		let mesh = new Mesh( geometry );
+
+
+		let size = [
+
+		    [w, s[1]-xw, s[2]],
+			[w, s[1]-xw, s[2]],
+
+			[s[0], w, s[2]],
+			[s[0], w, s[2]],
+
+			[s[0]-xw, s[1]-xw, w],
+			[s[0]-xw, s[1]-xw, w],
+
+		];
+
+		let pos = [
+
+		    [mw-s[0]*0.5, 0, 0 ],
+			[s[0]*0.5-mw, 0, 0 ],
+
+			[0, mw-s[1]*0.5, 0 ],
+			[0, s[1]*0.5-mw, 0 ],
+
+			[0, 0, mw-s[2]*0.5],
+			[0, 0, s[2]*0.5-mw],
+
+		];
+
+		const faces = [];
+		let i = 6, n=0, pp;
+		while( i-- ){
+
+			pp = this.isCompound ? pos[n] : MathTool.addArray(p, pos[n]);
+			faces.push( { type:'box', size:size[n], pos:pp, material:o.material } );
+			n++;
+
+		}
+
+		if(this.isCompound){
+			root.motor.add({
+				...o,
+				shapes:faces,
+				mesh:mesh,
+		        type:'compound',
+		    });	
+		} else {
+			root.motor.add( faces );
+		}
+		
 	}
 
 }
@@ -27069,7 +27842,7 @@ class MouseTool {
 		}
 
 		if(hit){ 
-			root.motor.explosion( hit.point, 5, 3 );
+			root.motor.explosion( hit.point, 3, 0.1 );
 			if(this.option.visible ) root.motor.addParticle({
 				name:'blast',
 				type:"cube",
@@ -27274,10 +28047,71 @@ new Vector3();
 
 let K = Skeleton.prototype;
 
-K.setScalling = function ( bone, x, y, z ) {
+K.byName = function ( name ) {
 
-    if( !this.scalled ) this.scalled = true;
-    bone.scalling.set(x, y, z);
+    let i = this.bones.length;
+    while(i--) if( this.bones[i].name === name ) return this.bones[i]
+    return null
+
+};
+
+K.getId = function ( name ) {
+
+    let i = this.bones.length;
+    while(i--) if( this.bones[i].name === name ) return i
+    return null
+
+};
+
+K.setExtraRotation = function ( b, x, y, z ) {
+
+    //this.pose()
+
+    /*let name = b.isBone ? b.name : b
+    let degtorad = MathUtils.DEG2RAD
+
+    let bone = this.byName( name )
+    if( !bone ) return
+
+    let id = this.getId( name )
+    let tt = new Matrix4().makeRotationFromEuler( {x:x*degtorad, y:y*degtorad, z:z*degtorad, order:'XYZ'});
+
+    //bone.matrixWorld.multiply( tt );
+    bone.matrix.multiply( tt );
+    bone.matrixWorld.multiplyMatrices( bone.parent.matrixWorld, bone.matrix );
+    bone.matrix.decompose( bone.position, bone.quaternion, bone.scale );
+    //bone.updateMatrixWorld( true )
+
+    //bone.updateWorldMatrix( true, true )
+
+    let j = bone.children.length, child;
+    while(j--){
+        child = bone.children[ j ]
+        child.matrixWorld.multiplyMatrices( bone.matrixWorld, child.matrix )
+    }
+
+
+
+    this.calculateInverses()*/
+//this.pose()
+
+
+    let bone = b.isBone ? b : this.byName( b );
+    if( !bone ) return
+    MathUtils.DEG2RAD;
+    
+    //bone.extraRotation = new Matrix4().makeRotationFromEuler( {x:x*degtorad, y:y*degtorad, z:z*degtorad, order:'XYZ'});
+    //bone.extraRotation = new Quaternion().setFromEuler( {_x:x*degtorad, _y:y*degtorad, _z:z*degtorad, _order:'XYZ'}).invert();
+
+    //this.applyScalling()
+
+};
+
+K.setScalling = function ( b, x, y, z ) {
+
+    let bone = b.isBone ? b : this.byName( b );
+    if( !bone ) return
+    bone.scalling = new Vector3(x, y, z);
 
 };
 
@@ -27285,11 +28119,11 @@ K.resetScalling = function (b) {
 
     this.pose();
 
-    this.scalled = false;
+    this.scalled = true;
 
     for ( let i = 0, il = this.bones.length; i < il; i ++ ) {
 
-        this.bones[i].scalling = new Vector3(1,1,1);
+        //this.bones[i].scalling = new Vector3(1,1,1);
         this.bones[i].isPhysics = false;
         this.bones[i].phyMtx = new Matrix4();
 
@@ -27304,6 +28138,7 @@ K.childScale = function ( bone, matrix ) {
     if( !this.scalled ) return
 
     if( bone.scalling ) matrix.scale( bone.scalling );
+    //if( bone.extraRotation ) matrix.multiply( bone.extraRotation );
     //if( !bone.isBone ) return
     let j = bone.children.length, child;
     while(j--){
@@ -27345,9 +28180,10 @@ K.applyScalling = function ( fingerPos ) {
         b = this.bones[ i ];
         parent = b.parent || null;
 
-        if( parent !== null && parent.scalling && b.name!=='root'){
+        if( parent !== null && parent.scalling && b.name!=='root'){//
 
-            b.position.multiply( parent.scalling );
+            if(parent.scalling) b.position.multiply( parent.scalling );
+            //if(parent.extraRotation) b.quaternion.premultiply( parent.extraRotation );
             b.updateMatrixWorld( true );
 
         }
@@ -27378,10 +28214,8 @@ K.update = function () {
 
         const matrix = bone ? ( bone.isPhysics ? bone.phyMtx : bone.matrixWorld ) : _identityMatrix;
 
-        if( bone.isPhysics ){
-            this.scalled = true;
-        }
-
+        if( bone.isPhysics ) this.scalled = true;
+        
         this.childScale( bone, matrix );
 
         _offsetMatrix.multiplyMatrices( matrix, boneInverses[ n ] );
@@ -27458,7 +28292,7 @@ let textfields = [];
 
 class Motor {
 
-	static math = math$1
+	static math = MathTool//math
 
 	static activeMouse ( controler, mode ) { 
 		if( !mouseTool ) mouseTool = new MouseTool( controler, mode ); 
@@ -27487,7 +28321,6 @@ class Motor {
 	static getKey () { return user.key }
 	static getKey2 () { return user.key2 }
 	static getAzimut () { return azimut() }
-	//static math () { return math }
 
 	static setContent ( Scene ) {
 		root.threeScene = Scene;
@@ -27599,6 +28432,8 @@ class Motor {
 
 	static init ( o = {} ) {
 
+
+
 		/*let q1 = new Quaternion().setFromAxisAngle({x:1, y:0, z:0}, 45*math.torad)
 		let q2 = new Quaternion().setFromAxisAngle({x:1, y:0, z:0}, 90*math.torad)
 
@@ -27631,6 +28466,9 @@ class Motor {
 		root.engine = type;
 
 		Motor.initItems();
+
+		// garbage material
+		Pool.materialRoot = Mat.set;//Motor.getMaterialRoot
 
 		//items.body.extraConvex = mini === 'Physx'
 		//items.solid.extraConvex = mini === 'Physx'
@@ -27902,6 +28740,8 @@ class Motor {
 		///o.realtime = realtime;
 		o.isTimeout = isTimeout;
 		o.outsideStep = outsideStep;
+
+		root.jointVisible = o.jointVisible || false;
 		
 		if(!o.gravity) o.gravity = [0,-9.81,0];
 		if(!o.substep) o.substep = 2;
@@ -28031,6 +28871,28 @@ class Motor {
 		return Pool.texture( o )//extraTexture( o )
 	}
 
+	static getMaterialList(){
+		return mat
+	}
+
+	static getOneMaterial( name ){
+		return Mat.get( name )
+	}
+
+	static addMaterial( m, direct ){
+		return Pool.set( m.name, m, 'material', direct )
+	}
+
+	static setEnvmapIntensity (v) { 
+		let m;
+		for(let name in mat){
+			m = mat[name];
+			if( !m.userData.envp ) m.userData.envp = m.envMapIntensity;
+			m.envMapIntensity = m.userData.envp * v;
+		}
+		
+	}
+
 	static material ( o = {} ){
 
 		let m;
@@ -28072,14 +28934,12 @@ class Motor {
 
 	}
 
-	static explosion ( position = [0,0,0], radius = 10, force = 100 ){
+	static explosion ( position = [0,0,0], radius = 10, force = 1 ){
 
 		let r = [];
 	    let pos = new Vector3();
 
-	    //console.log( position)
-
-	    if(position){
+	    if( position ){
 	    	if( position.isVector3 ) pos.copy(position);
 	    	else pos.fromArray( position );
 	    }
@@ -28105,15 +28965,12 @@ class Motor {
 	       // }
 	        
 
-	        //r.push({ name:b.name, impulse: [ ...pos.toArray(), ...dir.toArray()] })
-	        r.push({ name:b.name, linearImpulse: dir.toArray(), wake:true });
-	        //r.push({ name:b.name, force: dir.toArray(), forceMode:'impulse' })
+	        r.push({ name:b.name, impulse:dir.toArray(), wake:true });
+	        //r.push({ name:b.name, impulse:[0,0.01,0], impulseCenter:pos.toArray(), wake:true })
 
 
 	    }
-
-	    //console.log( r.length)
-
+	    
 		Motor.change( r );
 
 	}
@@ -28212,7 +29069,10 @@ class Motor {
 
 		if ( o.constructor === Array ) return Motor.adds( o, direct )
 
-		if( o.mass !== undefined ) o.density = o.mass;
+		if( o.type === 'container' ) return new Container( o )
+		
+
+		//if( o.mass !== undefined ) o.density = o.mass
 		if( o.bounce !== undefined ) o.restitution = o.bounce;
 		if( o.type === undefined ) o.type = 'box';
 
@@ -28285,12 +29145,12 @@ class Motor {
 		let type = b.type;
 
 		if( o.drivePosition ){
-			if( o.drivePosition.rot !== undefined ){  o.drivePosition.quat = math$1.toQuatArray( o.drivePosition.rot ); delete ( o.drivePosition.rot ); }
+			if( o.drivePosition.rot !== undefined ){  o.drivePosition.quat = MathTool.quatFromEuler( o.drivePosition.rot ); delete ( o.drivePosition.rot ); }
 		}
-		if( o.rot !== undefined ){ o.quat = math$1.toQuatArray( o.rot ); delete ( o.rot ); }
+		if( o.rot !== undefined ){ o.quat = MathTool.quatFromEuler( o.rot ); delete ( o.rot ); }
 		//if( o.rot1 !== undefined ){ o.quat1 = math.toQuatArray( o.rot1 ); delete ( o.rot1 ); }
 		//if( o.rot2 !== undefined ){ o.quat2 = math.toQuatArray( o.rot2 ); delete ( o.rot2 ); }
-		if( o.localRot !== undefined ){ o.quat = math$1.toLocalQuatArray( o.localRot, b ); delete ( o.localRot ); }
+		if( o.localRot !== undefined ){ o.quat = MathTool.toLocalQuatArray( o.localRot, b ); delete ( o.localRot ); }
 
 		switch( type ){
 

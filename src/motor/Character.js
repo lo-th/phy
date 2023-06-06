@@ -1,15 +1,17 @@
-
-
+import { Item } from '../core/Item.js';
+import { Num } from '../core/Config.js';
+import { Basic3D } from '../core/Basic3D.js';
+import { MathTool, torad } from '../core/MathTool.js';
 
 import { Vector3, Mesh } from 'three';
+
 
 import { Avatar } from '../3TH/character/Avatar.js';
 import { CapsuleHelper } from '../3TH/helpers/CapsuleHelper.js';
 
-import { Item } from '../core/Item.js';
-import { Num } from '../core/Config.js';
-import { Basic3D } from '../core/Basic3D.js';
-import { Utils, root, math, Mat } from './root.js';
+
+
+import { Utils, root, Mat } from './root.js';
 import { SkeletonBody } from './SkeletonBody.js';
 
 
@@ -83,18 +85,26 @@ class Hero extends Basic3D {
 
 		this.type = 'character';
 		this.name = o.name || 'hero';
+		o.name = this.name
 
 		this.isRay = false
 
+		this.ray = null
 		this.model = null
 		this.static = false
 
-
-		this.radius = 0.3
-		this.height = 1.8
+		this.radius = o.radius || 0.3
+		this.height = o.height || 1.8
+		if( o.radius ) delete o.radius
 
 		this.fall = false
 		this.floor = true
+
+		this.distance = 0
+		this.rayAngle = 0
+		this.rayStart = -(this.height*0.5)+this.radius
+		this.rayEnd = this.rayStart - this.height 
+		this.maxRayDistance = this.height
 
 		this.contact = false
 
@@ -112,7 +122,7 @@ class Hero extends Basic3D {
 		this.oy = 0
 		this.vy = 0;
 
-		this.angle = ( o.angle || 0 ) * math.torad
+		this.angle = ( o.angle || 0 ) * torad
 
 		this.speed = {
 		    idle:1,
@@ -123,61 +133,69 @@ class Hero extends Basic3D {
 		}
 
 		this.valheimStyle = true
-		
+		this.globalRay = o.ray || false
+
 		this.callback = o.callback || function (){}
 
 		if( o.callback ) delete o.callback
 
-
-
-		//this.position = new THREE.Vector3();
 		this.init( o );
 
 	}
 
 	init( o ){
 
-		this.radius = o.radius || 0.3
-		this.height = o.height || 1.8
-
-		if( o.radius ) delete o.radius
-
 	    if(!o.size) o.size = [ this.radius ,this.height-(2*this.radius) ]
 		if(!o.pos) o.pos = [0,this.height*0.5,0]
 
 		this.py = -this.height*0.5//(o.size[1]*0.5)-o.size[0]
 
+		if( this.globalRay ) root.items.body.geometry( { ...o, type:'capsule', ray:true }, this, Mat.get('hide') )
 
-
-		if( o.debug ) root.items.body.geometry( { ...o, type:'capsule', ray:false }, this, Mat.get('debug3') )
-
-		o.density = o.density || 70 
-        o.damping = [0.01,0] 
+		o.density = o.density || 1 
+        //o.damping = [0.01,0] 
         o.friction = 0.5
 
 		o.angularFactor = [0,0,0]
 		//o.maxDamping = 1000
-		o.group = 32
-		o.mask = o.mask !== undefined ? o.mask : 1|2
+		o.group = 16
+		//o.mask = o.mask !== undefined ? o.mask : 1|2
 		o.regular = true
 		o.filter = [1,-1,[1, 3, 4,5,9], 0]
 		o.inertia = [0,0,0] 
 		//o.kinematic = true
 		o.noGravity = true
-		o.ray = false
 
+		o.volume = MathTool.getVolume( 'capsule', o.size )
+	
 
 		// add to world
 		root.items.character.addToWorld( this, o.id )
 
-        // add to physics
+        // add capsule to physics
         root.post({ m:'add', o:o })
 
 
-        // add character model
+        this.ray = root.motor.add({ type:'ray', name:this.name + '_ray', begin:[0,this.rayStart,0], end:[0,this.rayEnd, 0], callback:this.selfRay.bind(this), visible:false, parent:this.name })
+
+
+        // add skinning character model
         if( o.gender ) this.addModel( o )
+        else this.showHelper( true )
 		
 	}
+
+    selfRay( r ){
+
+    	if( r.hit ){ 
+    		this.distance = MathTool.toFixed(r.distance-this.radius)
+    		this.rayAngle = r.angle
+    	} else { 
+	        this.distance = this.maxRayDistance
+	        this.rayAngle = 0
+	    }
+
+    }
 
     hit( d ){
     	this.contact = d
@@ -187,7 +205,7 @@ class Hero extends Basic3D {
 
     	if(b){
     		if(!this.helper){
-    			this.helper = new CapsuleHelper(this.radius, this.height, true)
+    			this.helper = new CapsuleHelper(this.radius, this.height, true, Mat.get('line') )
 		        this.add(this.helper)
     		}
     	} else {
@@ -198,25 +216,26 @@ class Hero extends Basic3D {
     		}
     	}
 
+    	if(this.ray) this.ray.visible = b
+
     }
 
     addSkeleton(){
 
-    	if(this.skeletonBody) return
+    	if( this.skeletonBody ) return
 
     	this.skeletonBody = new SkeletonBody( this )
-    	//this.model.add( this.skeletonBody )
     	root.scene.add( this.skeletonBody )
-    	//this.add( this.skeletonBody )
-    	this.skeletonBody.isVisible(false)
+    	this.skeletonBody.isVisible( false )
 
     }
 
     debugMode( v ){
 
-    	if(this.skeletonBody) this.skeletonBody.isVisible(v)
-    	if(this.model) this.model.setMaterial( {wireframe: v})
+    	if( this.skeletonBody ) this.skeletonBody.isVisible(v)
+    	if( this.model ) this.model.setMaterial( {wireframe: v})
     	this.showHelper( v )
+        
 
     }
 
@@ -231,7 +250,7 @@ class Hero extends Basic3D {
 
 	addModel( o ){
 
-		this.model = new Avatar( { 
+		this.model = new Avatar({ 
 			type:o.gender, 
 			anim: o.anim !== undefined ? o.anim : 'idle', 
 			compact:true, 
@@ -257,12 +276,11 @@ class Hero extends Basic3D {
 	}*/
 
 	step ( AR, n ) {
-
 		
 		this.position.fromArray( AR, n + 1 )
 		this.quaternion.fromArray( AR, n + 4 )
 		this.fall = this.position.y < this.oy
-		this.floor = math.nearEquals(this.position.y, this.oy, 0.1)
+		this.floor = MathTool.nearEquals(this.position.y, this.oy, 0.1)
 		this.oy = this.position.y;
 		this.updateMatrix()
 
@@ -287,7 +305,7 @@ class Hero extends Basic3D {
 		if( this.model ) this.model.dispose()
 		if( this.helper ) this.showHelper()
 
-		//console.log('model remove')
+		console.log('model remove')
 
 		super.dispose()
 	}
@@ -324,7 +342,7 @@ class Hero extends Basic3D {
 	            this.vy = 0; 
 	            if( this.floor ) this.jump = false;
 
-	            //if( math.nearEquals(this.position.y, this.oy, 0.1)) this.jump = false;
+	            //if( MathTool.nearEquals(this.position.y, this.oy, 0.1)) this.jump = false;
 	             //this.position.y === this.oy 
 	        }
 	    }
@@ -365,9 +383,9 @@ class Hero extends Basic3D {
 
 	    if( key[0] !== 0 || key[1] !== 0 ){ 
 
-	        this.tmpAcc += delta*4//math.lerp( tmpAcc, 1, delta/10 )
-	        //this.tmpAcc += math.lerp( this.tmpAcc, 1, delta/10 )
-	        //this.tmpAcc = math.clamp( this.tmpAcc, 1, speed )
+	        this.tmpAcc += delta*4//MathTool.lerp( tmpAcc, 1, delta/10 )
+	        //this.tmpAcc += MathTool.lerp( this.tmpAcc, 1, delta/10 )
+	        //this.tmpAcc = MathTool.clamp( this.tmpAcc, 1, speed )
 
 	        //this.rs += key[0] //* this.tmpAcc 
 	        //this.ts += key[1] //* this.tmpAcc
@@ -387,15 +405,15 @@ class Hero extends Basic3D {
 
 	    //dir.multiplyScalar(tmpAcc)
 
-	    //this.rs = math.clamp( this.rs, -speed, speed ) 
-	    //this.ts = math.clamp( this.ts, -speed, speed ) 
+	    //this.rs = MathTool.clamp( this.rs, -speed, speed ) 
+	    //this.ts = MathTool.clamp( this.ts, -speed, speed ) 
 
 	    //this.ease.set( this.ts/speed, 0, this.rs/speed )
 	    //this.ease.set( this.rs/speed, 0, this.ts/speed )
 	    this.ease.set( this.rs, 0, this.ts ).multiplyScalar( this.tmpAcc * m )
 
 	    //let angle = math.unwrapRad( (Math.atan2(this.ease.z, this.ease.x)) + azimut );
-	    let angle = math.unwrapRad( (Math.atan2(this.ease.x, this.ease.z)) + azimut );
+	    let angle = MathTool.unwrapRad( ( Math.atan2(this.ease.x, this.ease.z)) + azimut );
 
 	    let acc = this.ease.length() //((Math.abs(this.ease.x) + Math.abs(this.ease.z)))
 
@@ -415,11 +433,14 @@ class Hero extends Basic3D {
         //if(anim==='walk' || anim==='run')
 
         //if(this.static) this.ts = this.rs = 0
-        if(this.static) this.ease.x = this.ease.z = 0
+        if( this.static ) this.ease.x = this.ease.z = 0
 
 
 	    // gravity
+	    //let g = this.vy - (this.distance>0.1 ? 9.81 : 0);
 	    let g = this.vy - 9.81;
+
+	   // console.log(this.distance)
 
 	    this.ease.y = g
 
@@ -442,7 +463,8 @@ class Hero extends Basic3D {
 		if( this.helper ){ 
 
 			//this.helper.updateMatrix()
-			this.helper.cone.rotation.y = angle
+			this.helper.cone.rotation.y = azimut//angle
+			if( anim !== 'idle' ) this.helper.setDirection( angle ) 
 
 		}
 
@@ -477,16 +499,16 @@ class Hero extends Basic3D {
 
 	    if( anim !== 'idle' ){
 
-	    	let pp = math.unwrapRad( this.model.rotation.y )
+	    	let pp = MathTool.unwrapRad( this.model.rotation.y )
 	    	//if( anim === 'fight' ) pp = math.unwrapRad( azimut + Math.PI )
-	    	let aa = math.nearAngle( angle, pp )
+	    	let aa = MathTool.nearAngle( angle, pp )
 	    	//this.model.rotation.y = anim === 'fight' ? (azimut + Math.PI) : math.lerp( pp, aa, 0.25 )
-	    	this.model.rotation.y = anim === 'fight' ? (azimut + Math.PI) : math.lerp( pp, aa, 0.1 )
+	    	this.model.rotation.y = anim === 'fight' ? (azimut + Math.PI) : MathTool.lerp( pp, aa, 0.1 )
 	    	this.model.updateMatrix()
 	    	this.model.setTimescale( this.tmpAcc * (1*genSpeed) )
 	    }
 
-	    if( this.helper ) this.helper.setDirection( this.model.rotation.y )
+	    //if( this.helper ) this.helper.setDirection( this.model.rotation.y )
 
 	}
 

@@ -40,6 +40,8 @@ onComplete = () => {
 
         d.push( m )
 
+        phy.addMaterial( mat[m], true )
+
         n++
 
     }

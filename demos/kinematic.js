@@ -46,7 +46,7 @@ onComplete = () => {
     // add wall limiter
 
     let j = 14, a = 0, d = 8, s, m
-    let ar = (2*math.Pi)/j;
+    let ar = (2*Math.PI)/j;
     while(j--){
         a += ar
         phy.add({
@@ -68,7 +68,7 @@ onComplete = () => {
     while(j--){
 
         s = 0.2//math.rand( 0.1, 0.4 )
-        a = math.rand(-math.Pi, math.Pi)
+        a = math.rand(-Math.PI, Math.PI)
         d = 2 + math.rand(0, 4)
         m = phy.add({ 
             instance:'sph',

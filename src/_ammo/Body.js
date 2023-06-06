@@ -1,5 +1,6 @@
 import { Item } from '../core/Item.js';
 import { Num } from '../core/Config.js';
+import { MathTool } from '../core/MathTool.js';
 
 import { Utils, root } from './root.js';
 
@@ -192,7 +193,7 @@ export class Body extends Item {
 
 		if( g.setMargin ) g.setMargin( o.margin || 0.0001 ) // )
 
-		g.volume = Utils.getVolume( t, s, o.v );
+		g.volume = MathTool.getVolume( t, s, o.v );
 
 		return g;
 
@@ -261,14 +262,22 @@ export class Body extends Item {
 		this.v.set(0,0,0)
 
 		
+		let mass = 0;
+		if( o.mass && o.density ) delete o.density
+		if( o.density ) mass = MathTool.massFromDensity( o.density || 0, g.volume )
+		if( o.mass ) mass = o.mass
 
-		let mass = ( o.density || 0 ) * g.volume
+			//mass = mass *0.1
 
-		//console.log(name, o.density, mass)
+		//	console.log(mass, o.density, o.volume)
 
-		//var mass:Float = s._density * g._volume;
+
+		//mass = o.density || 0//o.density //* g.volume;
 		//if ( o.density ) g.calculateLocalInertia( o.density, this.v );
-		if ( mass !== 0 ) g.calculateLocalInertia( mass, this.v )
+		if ( mass !== 0 ){ 
+			g.calculateLocalInertia( mass, this.v )
+			//console.log('inertia', this.v.toArray() )
+		}
 
 		let motionState = new Ammo.btDefaultMotionState( this.t )
 		//var rbInfo = new Ammo.btRigidBodyConstructionInfo( o.density || 0, motionState, g, this.v )
@@ -308,11 +317,13 @@ export class Body extends Item {
 			delete o.kinematic
 		}
 
+		
+		// add to world
+		this.addToWorld( b, o.id )
+
 		// apply option
 		this.set( o, b );
 
-		// add to world
-		this.addToWorld( b, o.id )
 
 		
 
@@ -451,12 +462,18 @@ export class Body extends Item {
 
 		//if( o.torque ) b.applyTorqueImpulse( this.v.fromArray( o.torque ) );
 	    // Applies the impulse `impulse` to the rigid body at `positionInWorld` in world position. [ 0,0,0,   0,0,0 ]
-	    if( o.linearImpulse ) { 
+	    /*if( o.linearImpulse ) { 
 	    	o.impulseCentral = o.linearImpulse
-	    	this.multiplyScalar( o.impulseCentral, root.delta, 3 )
+	    	//this.multiplyScalar( o.impulseCentral, root.delta, 3 )
 	    }
 	    if( o.impulseCentral ) b.applyCentralImpulse( this.v.fromArray( o.impulseCentral ) );
-	    if( o.impulse ) b.applyImpulse( this.v.fromArray( o.impulse ), this.v.fromArray( o.impulse, 3 ) );
+	    if( o.impulse ) b.applyImpulse( this.v.fromArray( o.impulse ), this.v.fromArray( o.impulse, 3 ) );*/
+
+
+	    if( o.impulse ){
+	    	if( o.impulseCenter ) b.applyImpulse( this.v.fromArray( o.impulse ), this.v2.fromArray( o.impulseCenter ) )
+	    	else b.applyCentralImpulse( this.v.fromArray( o.impulse ) )
+	    }
 	    //if( o.linearImpulse ) b.applyLinearImpulse( this.v.fromArray( o.linearImpulse ) );
 	   // if( o.angularImpulse ) b.applyAngularImpulse( this.v.fromArray( o.angularImpulse ) );
 

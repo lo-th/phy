@@ -1,16 +1,15 @@
 import { Item } from '../core/Item.js';
 import { Num } from '../core/Config.js';
+import { MathTool } from '../core/MathTool.js';
 
 import { Basic3D } from '../core/Basic3D.js';
-import { Utils, root, math, Mat, Geo } from './root.js';
+import { Utils, root, Mat, Geo } from './root.js';
 
 import {
 	LineSegments, BufferGeometry,
     Object3D, Line, Float32BufferAttribute,
     Matrix4, Quaternion, Vector3
 } from 'three';
-
-//import { Item } from './Item.js';
 
 export class Joint extends Item {
 
@@ -110,8 +109,11 @@ export class Joint extends Item {
 				//this.v1.fromArray( math.quadToAxisArray( o.worldQuat ) ).normalize()
 				//this.v2.fromArray( math.quadToAxisArray( o.worldQuat ) ).normalize()
 
-				o.axis1 = Utils.axisLocal( math.quadToAxisArray( o.worldQuat ), body1)//this.v1.fromArray( math.quadToAxisArray( o.quat1 ) ).normalize().toArray()
-				o.axis2 = Utils.axisLocal( math.quadToAxisArray( o.worldQuat ), body2)//this.v2.fromArray( math.quadToAxisArray( o.quat2 ) ).normalize().toArray()
+				//o.axis1 = Utils.axisLocal( math.quadToAxisArray( o.worldQuat ), body1)//this.v1.fromArray( math.quadToAxisArray( o.quat1 ) ).normalize().toArray()
+				//o.axis2 = Utils.axisLocal( math.quadToAxisArray( o.worldQuat ), body2)//this.v2.fromArray( math.quadToAxisArray( o.quat2 ) ).normalize().toArray()
+
+				o.axis1 = Utils.axisLocal( MathTool.quatToAxis( o.worldQuat ), body1)
+				o.axis2 = Utils.axisLocal( MathTool.quatToAxis( o.worldQuat ), body2)
 
 				//o.axis1 = body1 ? Utils.toLocal( this.v1, body1, true ).toArray():[1,0,0]
 				//o.axis2 = body2 ? Utils.toLocal( this.v2, body2, true ).toArray():[1,0,0]
@@ -145,18 +147,20 @@ export class Joint extends Item {
 		if( o.b1 && typeof o.b1 !== 'string') o.b1 = o.b1.name;
 		if( o.b2 && typeof o.b2 !== 'string') o.b2 = o.b2.name;*/
 
-		if( o.rot1 !== undefined ){ o.quat1 = math.toQuatArray( o.rot1 ); delete ( o.rot1 ); }
-		if( o.rot2 !== undefined ){ o.quat2 = math.toQuatArray( o.rot2 ); delete ( o.rot2 ); }
+		if( o.rot1 !== undefined ){ o.quat1 = MathTool.quatFromEuler( o.rot1 ); delete ( o.rot1 ); }
+		if( o.rot2 !== undefined ){ o.quat2 = MathTool.quatFromEuler( o.rot2 ); delete ( o.rot2 ); }
 
 		if( !o.quat1 ) o.quat1 = new Quaternion().setFromUnitVectors( new Vector3(1, 0, 0), new Vector3().fromArray(o.axis1).normalize() ).toArray();
 		if( !o.quat2 ) o.quat2 = new Quaternion().setFromUnitVectors( new Vector3(1, 0, 0), new Vector3().fromArray(o.axis2).normalize() ).toArray();
 
-		if( o.drivePosition) if( o.drivePosition.rot !== undefined ){ o.drivePosition.quat = math.toQuatArray( o.drivePosition.rot ); delete ( o.drivePosition.rot ); }
+		if( o.drivePosition) if( o.drivePosition.rot !== undefined ){ o.drivePosition.quat = MathTool.quatFromEuler( o.drivePosition.rot ); delete ( o.drivePosition.rot ); }
 
-		let j = new ExtraJoint( Geo.get('joint'), Mat.get('joint'), o );
+		let j = new ExtraJoint( Geo.get('joint'), o );
 		j.name = name;
 
-		j.visible = false; // joint is visible after first update
+		j.visible = root.jointVisible || false; // joint is visible after first update
+
+		if(!o.visible) o.visible = j.visible
 		//j.isVisible = o.visible !== undefined ? o.visible : true;
 		j.visible = o.visible !== undefined ? o.visible : true;
 		j.body1 = body1
@@ -192,9 +196,11 @@ export class Joint extends Item {
 
 export class ExtraJoint extends Basic3D {
 
-	constructor( g, material = undefined, o ) {
+	constructor( g, o ) {
 
 	    super()
+
+	    let material = Mat.get('line')
 
 	    this.type = 'joint';
 	    this.mode = 'revolute';

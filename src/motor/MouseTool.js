@@ -2,7 +2,7 @@ import {
     Mesh, PlaneGeometry, Raycaster, Vector2, Vector3, MeshBasicMaterial
 } from 'three';
 
-import { root, math } from './root.js';
+import { root } from './root.js';
 
 export class MouseTool {
 
@@ -256,7 +256,7 @@ export class MouseTool {
 		}
 
 		if(hit){ 
-			root.motor.explosion( hit.point, 5, 3 )
+			root.motor.explosion( hit.point, 3, 0.1 )
 			if(this.option.visible ) root.motor.addParticle({
 				name:'blast',
 				type:"cube",

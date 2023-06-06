@@ -97,7 +97,8 @@ updateTest = () => {
     tmpPose3.set( -currentCar.wPos[0], 0,-currentCar.wPos[2]).applyQuaternion( currentCar.quaternion ).add( currentCar.position )
 
     let p = currentCar.position;
-    let d = math.distance( p, oldPose );
+    //let d = math.distance( p, oldPose );
+    let d = math.distanceArray(p.toArray(), oldPose.toArray())
     oldPose.copy( p )
 
     if( d > 0 ){
@@ -152,57 +153,6 @@ vehicle = ( id, pos ) => {
         //s_length:0.1,
         extra:select,
 
-    }
-
-}
-
-
-terrainTest = () => {
-
-    let terrain = phy.add({
-        type:'terrain',
-        name:'terra',
-         
-        maps:['road2', 'road3', 'asph'],
-        ns:4,
-        roughness:0.4,
-        metalness:0.4,
-        //staticFriction:0.5,
-        friction: 0.5,
-        restitution: 0.0,
-        uv: 150,
-        pos: [0,-5,0],
-        size:[512, 2, 512],
-        sample: [512, 512],
-        frequency: [0.016,0.05,0.2],
-        level:[ 1, 0.2, 0.05 ],
-        expo: 2,
-    })
-
-    let py = terrain.getHeight( 0, 0 )+1
-    if(py<1) py = 1
-
-    phy.change( { name:'supercar', pos:[0,py,0] } )
-    phy.remove( 'floor' )
-
-    // update after physic step
-    phy.setPostUpdate( update )
-
-}
-
-
-update = () => {
-
-
-    let p = supercar.position;
-    let d = math.distance({ x:p.x, z:p.z });
-
-
-    if( d > 50 ){
-        phy.change([
-            { name:'terra', decal:[p.x,0,p.z] },
-            { name:'supercar', pos:[0,p.y,0] },
-        ])
     }
 
 }

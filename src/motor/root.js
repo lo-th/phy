@@ -8,27 +8,6 @@ import { CircleHelper } from '../3TH/helpers/CircleHelper.js';
 //import { LineMaterial } from 'three/addons/lines/LineMaterial.js';
 export const map = new Map()
 
-
-/*export const Max = {
-	body:2000,
-    joint:100,
-    contact:50,
-    vehicle:20,
-    character:20,
-    solver:20,
-    ray:50,
-}
-
-export const Num = {
-	body:11,
-    joint:16,
-    contact:8,
-    vehicle:64,
-    character:16,
-    solver:256,
-    ray:8,
-}*/
-
 //-------------------
 //
 //  ROOT
@@ -48,6 +27,7 @@ export const root = {
 	//up:null,
 	//update:null,
 	//change:null,
+	jointVisible:false,
 	delta:0,
 	add:null,
 	remove:null,
@@ -56,6 +36,9 @@ export const root = {
 	instanceMesh : {},
 	tmpTex : [],
 	tmpMat : [],
+
+	hideMaterial: null,
+	lineMaterial: null,
 
 	mouseDown:false,
 	flow:{
@@ -380,10 +363,12 @@ export const mat = {}
 
 export const Mat = {
 
-	set:( m ) => {
+	set:( m, direct ) => {
 
-		root.extraMaterial( m )
+		if(!direct) root.extraMaterial( m )
 		mat[m.name] = m
+
+		//console.log( m.name )
 
 	},
 
@@ -400,12 +385,12 @@ export const Mat = {
 				case 'clear':   m = new MeshStandardMaterial({ color:0xFFFFFF, metalness: 0.5, roughness: 0 }); break
 				case 'sleep':  m = new MeshStandardMaterial({ color:0x939393, ...matExtra }); break//0x46B1C9
 				case 'solid':  m = new MeshStandardMaterial({ color:0xDDDDDD, ...matExtra }); break
-				//case 'solid':  m = new MeshStandardMaterial({ color:0x3C474B, ...matExtra }); break
-				case 'hero':   m = new MeshStandardMaterial({ color:0x00FF88, ...matExtra }); break
+				
+				//case 'hero':   m = new MeshStandardMaterial({ color:0x00FF88, ...matExtra }); break
 				case 'skinny':   m = new MeshStandardMaterial({ color:0xe0ac69, ...matExtra }); break
 				case 'chrome': m = new MeshStandardMaterial({ color:0xCCCCCC, metalness: 1, roughness:0.2 }); break
 				case 'glass':  m = new MeshPhysicalMaterial({ color:0xFFFFff, transparent:true, opacity:0.8, depthTest:true, depthWrite:false, roughness:0.02, metalness:0.0, /*side:DoubleSide,*/ alphaToCoverage:true, premultipliedAlpha:true, transmission:1, clearcoat:1, thickness:0.02  }); break
-				case 'glassX':  m = new MeshPhysicalMaterial({ color:0xFFFFff, transparent:true, opacity:1.0, roughness:0.1, metalness:0.2, transmission:1.0, clearcoat:1, thickness:0.25, ior:1.5, envMapIntensity:1.5 }); break
+				case 'glassX':  m = new MeshPhysicalMaterial({ color:0xFFFFff, transparent:false, opacity:1.0, roughness:0.1, metalness:0, side:DoubleSide, transmission:1.0, clearcoat:1, thickness:0.1, ior:1.5, envMapIntensity:2.2, shadowSide:1, reflectivity:0.5, iridescence:0.5 }); break
 				
 				case 'plexi':  m = new MeshPhysicalMaterial({ color:0xFFFFff, transparent:true, opacity:0.4, metalness:1, roughness:0, clearcoat:1, side:DoubleSide }); break
 				case 'glass2': m = new MeshPhysicalMaterial({ color:0xCCCCff, transparent:true, opacity:0.3  }); break
@@ -414,36 +399,59 @@ export const Mat = {
 				case 'car':   m = new MeshPhysicalMaterial({ color:0x303030, metalness: 1.0, roughness: 0.5, clearcoat: 1.0, clearcoatRoughness: 0.03, sheen: 0.5 }); break
 				case 'carGlass':   m = new MeshPhysicalMaterial({ color: 0xffffff, metalness: 0.25, roughness: 0, transmission: 1.0 }); break
 
-				case 'joint':  m = new LineBasicMaterial( { vertexColors: true, depthTest: false, depthWrite: false, toneMapped: false, transparent: true } ); break
-				case 'ray':    m = new LineBasicMaterial( { vertexColors: true, toneMapped: false } ); break	
-				//case 'ray2':    m = new LineMaterial( { vertexColors: true, toneMapped: false, linewidth: 0.1, dashed: false, alphaToCoverage: true } ); break	
 
 				case 'debug':  m = new MeshBasicMaterial({ color:0x000000, wireframe:true, toneMapped: false }); break
 				case 'debug2': m = new MeshBasicMaterial({ color:0x00FFFF, wireframe:true, toneMapped: false }); break
 				case 'debug3':  m = new MeshBasicMaterial({ color:0x000000, wireframe:true, transparent:true, opacity:0.1, toneMapped: false, depthTest:true }); break
 
 				case 'bones':  m = new MeshStandardMaterial({ color:0xCCAA33,  wireframe:true }); break
-				case 'bones2':  m = new MeshPhongMaterial({ color:0x7da2ff, shininess:200 }); break
+				case 'bones2':  m = new MeshStandardMaterial({ color:0x7777ff }); break
 
 				case 'shadows': m = new MeshBasicMaterial({ transparent:true, opacity:0.01 }); break
-				case 'hide': m = new MeshBasicMaterial({ visible:false }); break
-
-				//case 'helper': m = new LineBasicMaterial( { vertexColors: true, depthTest: false, depthWrite: false, toneMapped: false, transparent: true } ); break
-
-
 				case 'button':  m = new MeshStandardMaterial({ color:0xFF404B, ...matExtra }); break
+				//case 'hide': m = new MeshBasicMaterial({ visible:false }); break
+
+				case 'line': 
+					if( !root.lineMaterial ) root.lineMaterial = new LineBasicMaterial( { vertexColors: true, toneMapped: false } )
+					return root.lineMaterial; 
+			    break
+				case 'hide': 
+					if( !root.hideMaterial ) root.hideMaterial = new MeshBasicMaterial({ visible:false })
+					return root.hideMaterial; 
+			    break
+
+
+				
 
 			}
-			m.name = name;
-			root.extraMaterial( m )
-			mat[name] = m
+
+			if(m){
+				m.name = name;
+				root.extraMaterial( m )
+				mat[name] = m
+			}
+			
 		}
 
+		//console.log(DoubleSide)
+
 		return mat[name]
+
+
 
 	},
 
 	dispose:() => {
+
+		if( root.lineMaterial ){
+			root.lineMaterial.dispose()
+			root.lineMaterial = null
+		}
+
+		if( root.hideMaterial ){
+			root.hideMaterial.dispose()
+			root.hideMaterial = null
+		}
 
 		for(let m in mat){
 			mat[m].dispose()
@@ -451,7 +459,7 @@ export const Mat = {
 		}
 
 		let i = root.tmpMat.length
-		while( i-- ) root.tmpMat[i].dispose()
+		while( i-- ) { root.tmpMat[i].dispose(); root.tmpMat[i] = null; }
 		root.tmpMat = []
 
 	}
@@ -464,19 +472,19 @@ export const Mat = {
 //  MATH
 //
 //-------------------
-
+/*
 export const torad = Math.PI / 180
 export const todeg = 180 / Math.PI
 
 export const euler = new Euler()
 export const quat = new Quaternion()
-
+*/
 /*const tmpMtx = new Matrix4()
 const tmpP = new Vector3()
 const tmpS = new Vector3()
 const tmpQ = new Quaternion()
 */
-
+/*
 export const math = {
 
 	torad: Math.PI / 180,
@@ -622,10 +630,8 @@ export const math = {
 
 	},
 
-	getIndex: ( g ) => {
+	/*getIndex: ( g ) => {
 
-		//console.log( 'i', g.index )
-		//let c = new Uint32Array( g.index.array ) || null
 		if(!g.index) return null
 
 		return g.index.array || null
@@ -642,8 +648,8 @@ export const math = {
 
 		return c;
 
-	},
-
+	},*/
+/*
 	arCopy: ( a, b ) => { a = [...b] },
 
 	////////
@@ -656,7 +662,7 @@ export const math = {
 	   let angle = 2 * Math.acos(q[3]);
 	   let s = Math.sqrt(1-q[3]*q[3]); // assuming quaternion normalised then w is less than 1, so term always positive
 
-	   if (s < 0.001) { 
+	   if (s < 0.001) {   
 	       // console.log(s)
 	        // test to avoid divide by zero, s is always positive due to sqrt
 	        // if s close to zero then direction of axis not important
@@ -710,7 +716,9 @@ export const math = {
 
 	toQuatArray: ( rotation ) => { // rotation array in degree
 
-		return math.tmpQ.setFromEuler( math.tmpE.fromArray( math.vectorad( rotation ) ) ).toArray();
+		math.tmpE.fromArray( math.vectorad( rotation ) )
+		console.log(math.tmpE)
+		return math.tmpQ.setFromEuler( math.tmpE ).toArray();
 
 	},
 
@@ -722,4 +730,4 @@ export const math = {
 	}*/
 
 
-}
+//}*/

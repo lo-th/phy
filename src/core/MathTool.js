@@ -1,13 +1,23 @@
-
-export const torad = Math.PI / 180;
-export const todeg = 180 / Math.PI;
+export const PI = Math.PI;
+export const torad = PI / 180;
+export const todeg = 180 / PI;
 export const max32 = Number.MAX_SAFE_INTEGER;
-export const EPSILON = 0.00001;
+export const EPSILON = Number.EPSILON;//0.00001;
+
+export const TwoPI = PI * 2;
+export const PI90 = PI*0.5;
+export const PI45 = PI*0.25;
+export const PI270 = (PI*0.5)*3;
+
+export const inv255 = 0.003921569;
+export const GOLD = 1.618033;
+
 
 export const MathTool = {
 
-    //torad: Math.PI / 180,
-    //todeg: 180 / Math.PI,
+    todeg:todeg,
+    torad:torad,
+
 
     toFixed: ( x, n = 3 ) => ( x.toFixed(n) * 1 ),
 
@@ -17,6 +27,50 @@ export const MathTool = {
         return v;
     },
 
+    clampA: ( v, min, max ) => { 
+        return Math.max( min, Math.min( max, v ))
+    },
+
+    lerp: ( x, y, t ) => ( ( 1 - t ) * x + t * y ),
+    damp: ( x, y, lambda, dt ) => ( MathTool.lerp( x, y, 1 - Math.exp( - lambda * dt ) ) ),
+
+    nearAngle: ( s1, s2, deg = false ) => ( s2 + Math.atan2(Math.sin(s1-s2), Math.cos(s1-s2)) * (deg ? todeg : 1) ),
+
+    unwrapDeg: ( r ) => ( r - (Math.floor((r + 180)/360))*360 ), 
+    //unwrapRad: ( r ) => (r - (Math.floor((r + Math.PI)/(2*Math.PI)))*2*Math.PI),
+    unwrapRad: ( r ) => ( Math.atan2(Math.sin(r), Math.cos(r)) ),
+
+    nearEquals: ( a, b, t ) => ( Math.abs(a - b) <= t ? true : false ),
+
+    autoSize: ( s = [ 1, 1, 1 ], type = 'box' ) => {
+
+        if ( s.length === 1 ) s[ 1 ] = s[ 0 ];
+        let radius = s[0];
+        let height = s[1];
+        if( type === 'sphere' ) s = [ radius, radius, radius ];
+        if( type === 'cylinder' || type === 'wheel' || type === 'capsule' ) s = [ radius, height, radius ];
+        if( type === 'cone' || type === 'pyramid' ) s = [ radius, height, radius ];
+        if ( s.length === 2 ) s[ 2 ] = s[ 0 ];
+        return s;
+
+    },
+
+    /*distance: ( a, b = { x:0, y:0, z:0 } ) => { // rotation array in degree
+
+        const dx = a.x ? a.x - b.x : 0
+        const dy = a.y ? a.y - b.y : 0
+        const dz = a.z ? a.z - b.z : 0
+        return Math.sqrt( dx * dx + dy * dy + dz * dz );
+
+    },*/
+
+    // RANDOM
+
+    randomSign: () => ( Math.random() < 0.5 ? -1 : 1 ),
+    randSpread: ( range ) => ( range * ( 0.5 - Math.random() ) ),
+    rand: ( low = 0, high = 1 ) => ( low + Math.random() * ( high - low ) ),
+    randInt: ( low, high ) => ( low + Math.floor( Math.random() * ( high - low + 1 ) ) ),
+
     // ARRAY
 
     equalArray:(a, b)=>{
@@ -24,6 +78,8 @@ export const MathTool = {
         while(i--){ if(a[i]!==b[i]) return false }
         return true
     },
+
+    // MATRIX
 
     composeMatrixArray: ( p, q, s = [1,1,1] ) => {
         const x = q[0], y = q[1], z = q[2], w = q[3];
@@ -37,6 +93,14 @@ export const MathTool = {
             ( xy - wz ) * sy, ( 1 - ( xx + zz ) ) * sy, ( yz + wx ) * sy, 0,
             ( xz + wy ) * sz, ( yz - wx ) * sz, ( 1 - ( xx + yy ) ) * sz, 0,
             p[0], p[1], p[2], 1
+        ]
+    },
+
+    decomposeMatrixArray: ( m ) => {
+
+        return [
+            m[12],m[13],m[14],
+            
         ]
     },
 
@@ -112,10 +176,49 @@ export const MathTool = {
 
     },
 
-    lengthArray:( r ) => {
-        let i = r.length, l=0
-        while(i--) l += r[i] * r[i]
-        return Math.sqrt( l ) 
+    // QUAT
+
+    toLocalQuatArray: ( rot = [0,0,0], b ) => { // rotation array in degree
+
+        let q1 = MathTool.quatFromEuler( rot );
+        let q2 = MathTool.quatInvert( b.quaternion.toArray() )
+        return MathTool.quatMultiply( q2, q1 )
+
+        /*quat.setFromEuler( euler.fromArray( math.vectorad( rot ) ) )
+        quat.premultiply( b.quaternion.invert() );
+        return quat.toArray();*/
+
+    },
+
+    quatFromEuler:( r = [0,0,0], isDeg = true ) => {
+
+        const cos = Math.cos
+        const sin = Math.sin
+        const n = isDeg ? torad : 1 
+        const x = (r[0]*n) * 0.5, y = (r[1]*n) * 0.5, z = (r[2]*n) * 0.5
+        const c1 = cos( x ), c2 = cos( y ), c3 = cos( z );
+        const s1 = sin( x ), s2 = sin( y ), s3 = sin( z );
+
+        return [
+            s1 * c2 * c3 + c1 * s2 * s3,
+            c1 * s2 * c3 - s1 * c2 * s3,
+            c1 * c2 * s3 + s1 * s2 * c3,
+            c1 * c2 * c3 - s1 * s2 * s3
+        ]
+        
+    },
+
+    quatFromAxis:( r = [0,0,0], angle, isDeg = true ) => {
+
+        const n = isDeg ? torad : 1 
+        const halfAngle = (angle * 0.5) * n, s = Math.sin( halfAngle );
+        return [
+            r[0] * s,
+            r[1] * s,
+            r[2] * s,
+            Math.cos( halfAngle )
+        ]
+        
     },
 
     quatNomalize:( q ) => {
@@ -124,7 +227,7 @@ export const MathTool = {
             return [0,0,0,1]
         } else {
             l = 1 / l;
-            return MathTool.mulArray(q, l)
+            return MathTool.scaleArray(q, l, 4)
         }
     },
 
@@ -179,30 +282,138 @@ export const MathTool = {
 
     },
 
+    lengthArray:( r ) => {
+        let i = r.length, l=0
+        while(i--) l += r[i] * r[i]
+        return Math.sqrt( l )
+    },
+
     dotArray: ( a, b ) => {
         let i = a.length, r = 0;
         while ( i -- ) r += a[ i ] * b[ i ];
         return r;
     },
 
-    addArray: ( a, b ) => {
-        let i = a.length, r = [];
-        while ( i -- ) r[i] = a[ i ] + b[ i ];
-        return r;
+    addArray: ( a, b, i ) => {
+        i = i ?? a.length
+        let r = []
+        while ( i -- ) r[i] = a[ i ] + b[ i ]
+        return r
     },
 
-    subArray: ( a, b ) => {
-        let i = a.length, r = [];
-        while ( i -- ) r[i] = a[ i ] - b[ i ];
-        return r;
+    subArray: ( a, b, i ) => {
+        i = i ?? a.length 
+        let r = [];
+        while ( i -- ) r[i] = a[ i ] - b[ i ]
+        return r
     },
 
-    mulArray: ( r, s ) => {
-        let i = r.length;
-        while ( i -- ) r[i] *= s;
-        return r;
+    //
+
+    mulArray: ( r, s, i ) => {
+        i = i ?? r.length
+        while ( i -- ) r[i] *= s
+        return r
     },
 
-    distanceArray: ( a, b ) => ( MathTool.lengthArray( MathTool.subArray( a, b ) ) ),
+    divArray: ( r, s, i ) => {
+        return MathTool.scaleArray( r, 1/s, i )
+    },
+
+
+    scaleArray: ( r, scale, i ) => {
+        i = i ?? r.length
+        while( i-- ) r[i] *= scale
+        return r
+    },
+
+    fillArray ( ar, ar2, n, i ) { 
+        n = n || 0;
+        i = i ?? ar.length
+        while(i--) ar2[n+i] = ar[i]
+    },
+
+    copyArray: ( a, b ) => {
+        a = [...b]
+    },
+
+    //
+
+    distanceArray: ( a, b = [0,0,0] ) => ( MathTool.lengthArray( MathTool.subArray( a, b ) ) ),
+
+
+
+    // VOLUME
+
+    getVolume: ( type, size, vertex = null ) => {
+
+        let volume = 1
+        let s = size
+
+        switch(type){
+            
+            case 'sphere' : volume = (4*Math.PI*s[0]*s[0]*s[0])/3; break;
+            case 'cone' : volume = Math.PI * s[0] * (s[1] * 0.5) * 2; break;
+            case 'box' : volume = 8 * (s[0]*0.5)*(s[1]*0.5)*(s[2]*0.5); break;
+            case 'cylinder' : volume = Math.PI * s[0] * s[0] * (s[1] * 0.5) * 2; break;
+            case 'capsule' : volume = ( (4*Math.PI*s[0]*s[0]*s[0])/3) + ( Math.PI * s[0] * s[0] * (s[1] * 0.5) * 2 ); break;
+            case 'convex' : case 'mesh' : volume = MathTool.getConvexVolume( vertex ); break;
+
+        }
+
+        return volume;
+
+    },
+
+    getConvexVolume: ( v ) => {
+
+        let i = v.length / 3, n;
+        let min = [0, 0, 0]
+        let max = [0, 0, 0]
+
+        while(i--){
+
+            n = i*3
+            if ( v[n] < min[0] ) min[0] = v[n]
+            else if (v[n] > max[0]) max[0] = v[n]
+            if ( v[n+1] < min[1] ) min[1] = v[n+1]
+            else if (v[n+1] > max[1]) max[1] = v[n+1]
+            if ( v[n+2] < min[2] ) min[2] = v[n+2]
+            else if (v[n+2] > max[2]) max[2] = v[n+2]
+
+        }
+
+        let s = [ max[0]-min[0], max[1]-min[1], max[2]-min[2] ]
+
+        return 8 * (s[0]*0.5)*(s[1]*0.5)*(s[2]*0.5);
+        //return (max[0]-min[0])*(max[1]-min[1])*(max[2]-min[2])
+
+    },
+
+    massFromDensity: ( density, volume ) =>  ( density * volume ),
+    densityFromMass: ( mass, volume ) =>  ( mass / volume ),
+
+
+    // GEOMETRY
+
+    getIndex: ( g ) => {
+
+        if(!g.index) return null
+        return g.index.array || null
+
+    },
+
+    getVertex: ( g, noIndex ) => {
+        
+        let c = g.attributes.position.array;
+
+        if( noIndex ){
+            let h = g.clone().toNonIndexed()
+            c = h.attributes.position.array;
+        }
+
+        return c;
+
+    },
 
 }

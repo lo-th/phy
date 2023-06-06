@@ -15,4 +15,6 @@ export class Character extends Body {
 		super.add( o )
 
 	}
+	remove( o = {} ) {}
+	dispose ( b ) {}
 }

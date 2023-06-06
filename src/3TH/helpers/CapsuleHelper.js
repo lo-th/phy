@@ -6,7 +6,7 @@ const _vector = /*@__PURE__*/ new Vector3();
 
 class CapsuleHelper extends Object3D {
 
-	constructor( r, h, useDir ) {
+	constructor( r, h, useDir, material ) {
 
 		super();
 
@@ -60,9 +60,16 @@ class CapsuleHelper extends Object3D {
 
 		}
 
-		geometry.setAttribute( 'position', new Float32BufferAttribute( positions, 3 ) );
+		let colors = []
+		let cc = positions.length/3
+		while(cc--){
+			colors.push(0,1,0)
+		}
 
-		const material = new LineBasicMaterial( { color:0x00ff00, fog: false, toneMapped: false } );
+		geometry.setAttribute( 'position', new Float32BufferAttribute( positions, 3 ) );
+		geometry.setAttribute( 'color', new Float32BufferAttribute( colors, 3 ) );
+
+		//const material = new LineBasicMaterial( { color:0x00ff00, fog: false, toneMapped: false } );
 
 		this.cone = new LineSegments( geometry, material );
 		this.cone.raycast = function(){return}
@@ -84,11 +91,18 @@ class CapsuleHelper extends Object3D {
 		    dir, -py, r+dir , 0, -py, r+dir*2 ,
 		];
 
+		colors = []
+		cc = positions2.length/3
+		while(cc--){
+			colors.push(1,0,0)
+		}
+
 		geometry2.setAttribute( 'position', new Float32BufferAttribute( positions2, 3 ) );
+		geometry2.setAttribute( 'color', new Float32BufferAttribute( colors, 3 ) );
 
-		const material2 = new LineBasicMaterial( { color:0xFF0000, fog: false, toneMapped: false } );
+		//const material2 = new LineBasicMaterial( { color:0xFF0000, fog: false, toneMapped: false } );
 
-		this.direction = new LineSegments( geometry2, material2 );
+		this.direction = new LineSegments( geometry2, material );
 		this.direction.raycast = function(){return}
 		this.add( this.direction );
 
@@ -104,11 +118,11 @@ class CapsuleHelper extends Object3D {
 	dispose() {
 
 		this.cone.geometry.dispose();
-		this.cone.material.dispose();
+		//this.cone.material.dispose();
 
 		if(this.direction){
 			this.direction.geometry.dispose();
-			this.direction.material.dispose();
+			//this.direction.material.dispose();
 		}
 
 	}

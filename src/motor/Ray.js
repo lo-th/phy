@@ -1,7 +1,8 @@
 import { Item } from '../core/Item.js';
 import { Num } from '../core/Config.js';
+import { MathTool, todeg } from '../core/MathTool.js';
 
-import { Utils, root, math, Mat } from './root.js';
+import { Utils, root, Mat } from './root.js';
 import {
 	Line, LineSegments, BufferGeometry,
     Object3D, Float32BufferAttribute,
@@ -39,7 +40,7 @@ export class Ray extends Item {
 
 		let name = this.setName( o );
 
-		let r = new ExtraRay( o, Mat.get('ray') );
+		let r = new ExtraRay( o );
 
 		r.visible = o.visible !== undefined ? o.visible : true
 
@@ -76,9 +77,9 @@ export class Ray extends Item {
 
 export class ExtraRay extends Line {
 
-	constructor( o = {}, material = undefined ) {
+	constructor( o = {} ) {
 
-	    super(  new BufferGeometry(), material);
+	    super(  new BufferGeometry(), Mat.get('line') );
 
 	    this.data = {
 
@@ -87,6 +88,7 @@ export class ExtraRay extends Line {
 			point: [0,0,0],
 			normal: [0,0,0],
 			distance: 0,
+			angle:0
 
 		};
 
@@ -114,6 +116,10 @@ export class ExtraRay extends Line {
 
 	    this.tmp = new Vector3();
 	    this.normal = new Vector3();
+
+
+	    this.vv1 = new Vector3();
+	    this.vv2 = new Vector3();
 	    
 	    const positions = [0,0,0, 0,0,0, 0,0,0];
 	    const colors = [0,0,0, 0,0,0, 0,0,0];
@@ -161,8 +167,16 @@ export class ExtraRay extends Line {
 			//this.data.distance = this._begin.distanceTo( this.tmp )
 
 			this.tmp.toArray( this.local, 3 );
+			this.vv1.fromArray( this.local ).sub(this.tmp).normalize(); 
 			this.tmp.addScaledVector( this.normal, this.fullDistance - this.data.distance );
 			this.tmp.toArray( this.local, 6 )
+
+			
+			//vv1.fromArray( r, n+5 ); 
+
+			this.data.angle = Math.floor( MathTool.angleTo( this.vv1.toArray(), this.data.normal ) * todeg )
+			//let angle = MathTool.angleTo( [this.local[0], this.local[2], this.local[2]], [this.local[3], this.local[4], this.local[5]] ) * todeg
+			//console.log(this.data.angle)
 
 		} else {
 			if( this.parentMesh ){

@@ -6,6 +6,7 @@ import { Body } from './Body.js';
 import { Joint } from './Joint.js';
 import { Ray } from './Ray.js';
 import { Contact } from './Contact.js';
+import { Character } from './Character.js';
 
 //import('../../build/rapier3d').then(RAPIER => { })
 //import RAPIER from '../../build/rapier3d';
@@ -20,6 +21,8 @@ import RAPIER from '../libs/rapier3d-compat.js';
 
 self.onmessage = function ( m ) { engine.message( m ) }
 
+let items;
+
 let isTimeout = false;
 let outsideStep = false;
 
@@ -27,7 +30,7 @@ let Ar, ArPos;
 let isBuffer = false;
 let returnMessage, isWorker;
 
-let body, solid, joint, ray, contact;
+//let body, solid, joint, ray, contact, character;
 
 const Time = typeof performance === 'undefined' ? Date : performance;
 
@@ -114,18 +117,30 @@ export class engine {
 
 	static initItems () {
 
-		body = new Body()
+		items = {
+			body : new Body(),
+			solid : new Solid(),
+			joint : new Joint(),
+			ray : new Ray(),
+			contact : new Contact(),
+			character : new Character(),
+		}
+
+		/*body = new Body()
 		solid = new Solid()
 		joint = new Joint()
 		ray = new Ray()
 		contact = new Contact()
+		character = new Character()*/
 
 	}
 
 	static set ( o = {} ){
 
 		ArPos = o.ArPos || getArray('RAPIER', o.full)
-		body.setFull(o.full)
+
+		items.body.setFull(o.full)
+		//body.setFull(o.full)
 
 		outsideStep = o.outsideStep || false;
 		isTimeout = o.isTimeout || false;
@@ -183,18 +198,8 @@ export class engine {
 
 	static add ( o = {} ){
 
-		let type = o.type || 'box'
-
-		switch( type ){
-			case 'contact': contact.add( o ); break;
-			case 'ray': ray.add( o ); break;
-			case 'joint': joint.add( o ); break;
-			default: 
-			    if ( !o.density && !o.kinematic ) solid.add( o );
-			    else body.add( o ); 
-			break;
-
-		}
+		let type = getType( o )
+		items[type].add( o )
 		
 	}
 
@@ -202,16 +207,7 @@ export class engine {
 
 		let b = this.byName( o.name )
 		if( b === null ) return
-		let type = b.type
-
-		switch( type ){
-			case 'contact': b = contact.clear( b ); break
-			case 'ray': b = ray.clear( b ); break; 
-			case 'joint': b = joint.clear( b ); break;
-			case 'solid': b = solid.clear( b ); break;
-			case 'body': b = body.clear( b ); break;
-
-		}
+		items[b.type].clear( b )
 
 	}
 
@@ -219,14 +215,7 @@ export class engine {
 
 		let b = this.byName( o.name );
 		if( b === null ) return;
-		let type = b.type;
-
-		switch( type ){
-
-			case 'joint': b = joint.set( o, b ); break;
-			case 'solid': b = solid.set( o, b ); break;
-			case 'body': b = body.set( o, b ); break;
-		}
+		items[b.type].set( o, b )
 
 	}
 
@@ -302,10 +291,13 @@ export class engine {
 
 	static stepItems () {
 
-		body.step( Ar, ArPos.body );
-		joint.step( Ar, ArPos.joint );
-		ray.step( Ar, ArPos.ray );
-		contact.step( Ar, ArPos.contact );
+		for (const key in items) items[key].step( Ar, ArPos[key] )
+
+	}
+
+	static resetItems() {
+
+		for ( const key in items ) items[key].reset()
 
 	}
 
@@ -322,11 +314,13 @@ export class engine {
 
 		engine.stop();
 
-		body.reset();
+		engine.resetItems()
+
+		/*body.reset();
 		solid.reset();
 		joint.reset();
 		ray.reset();
-		contact.reset();
+		contact.reset();*/
 
 		// clear world
 		root.world.free()

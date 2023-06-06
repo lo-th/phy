@@ -23,7 +23,8 @@ export class Diamond extends MeshPhysicalMaterial {
 		
 		o.envMapIntensity = 1
         o.reflectivity = 1.0
-        o.envMapIntensity = 1.7
+        o.envMapIntensity = 2.2
+        //o.iridescence = 1.0
         //o.ior=1.7
 
         //o.transparent = true
@@ -31,7 +32,7 @@ export class Diamond extends MeshPhysicalMaterial {
 
 
         //o.transmission = 1
-        o.thickness = 2.5
+        //o.thickness = 2.5
 
         //o.depthTest = false
         //o.depthWrite = false
@@ -46,7 +47,7 @@ export class Diamond extends MeshPhysicalMaterial {
 
         this.normal = this.cubeNormal( extra );
 
-        this.color.convertSRGBToLinear();
+        //this.color.convertSRGBToLinear();
 
 		this.onBeforeCompile = function ( shader ) {
 
@@ -136,7 +137,6 @@ export class Diamond extends MeshPhysicalMaterial {
     dispose() {
         this.normal.dispose()
         this.dispatchEvent( { type: 'dispose' } );
-
     }
 
 }

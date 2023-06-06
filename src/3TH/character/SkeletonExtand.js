@@ -1,4 +1,4 @@
-import { Skeleton, Matrix4, Vector3 } from 'three';
+import { Skeleton, Matrix4, Vector3, MathUtils, Quaternion } from 'three';
 
 /** __
 *    _)_|_|_
@@ -17,10 +17,71 @@ const _decal = new Vector3();
 
 let K = Skeleton.prototype;
 
-K.setScalling = function ( bone, x, y, z ) {
+K.byName = function ( name ) {
 
-    if( !this.scalled ) this.scalled = true
-    bone.scalling.set(x, y, z)
+    let i = this.bones.length
+    while(i--) if( this.bones[i].name === name ) return this.bones[i]
+    return null
+
+}
+
+K.getId = function ( name ) {
+
+    let i = this.bones.length
+    while(i--) if( this.bones[i].name === name ) return i
+    return null
+
+}
+
+K.setExtraRotation = function ( b, x, y, z ) {
+
+    //this.pose()
+
+    /*let name = b.isBone ? b.name : b
+    let degtorad = MathUtils.DEG2RAD
+
+    let bone = this.byName( name )
+    if( !bone ) return
+
+    let id = this.getId( name )
+    let tt = new Matrix4().makeRotationFromEuler( {x:x*degtorad, y:y*degtorad, z:z*degtorad, order:'XYZ'});
+
+    //bone.matrixWorld.multiply( tt );
+    bone.matrix.multiply( tt );
+    bone.matrixWorld.multiplyMatrices( bone.parent.matrixWorld, bone.matrix );
+    bone.matrix.decompose( bone.position, bone.quaternion, bone.scale );
+    //bone.updateMatrixWorld( true )
+
+    //bone.updateWorldMatrix( true, true )
+
+    let j = bone.children.length, child;
+    while(j--){
+        child = bone.children[ j ]
+        child.matrixWorld.multiplyMatrices( bone.matrixWorld, child.matrix )
+    }
+
+
+
+    this.calculateInverses()*/
+//this.pose()
+
+
+    let bone = b.isBone ? b : this.byName( b )
+    if( !bone ) return
+    let degtorad = MathUtils.DEG2RAD
+    
+    //bone.extraRotation = new Matrix4().makeRotationFromEuler( {x:x*degtorad, y:y*degtorad, z:z*degtorad, order:'XYZ'});
+    //bone.extraRotation = new Quaternion().setFromEuler( {_x:x*degtorad, _y:y*degtorad, _z:z*degtorad, _order:'XYZ'}).invert();
+
+    //this.applyScalling()
+
+}
+
+K.setScalling = function ( b, x, y, z ) {
+
+    let bone = b.isBone ? b : this.byName( b )
+    if( !bone ) return
+    bone.scalling = new Vector3(x, y, z);
 
 }
 
@@ -28,11 +89,11 @@ K.resetScalling = function (b) {
 
     this.pose()
 
-    this.scalled = false
+    this.scalled = true
 
     for ( let i = 0, il = this.bones.length; i < il; i ++ ) {
 
-        this.bones[i].scalling = new Vector3(1,1,1);
+        //this.bones[i].scalling = new Vector3(1,1,1);
         this.bones[i].isPhysics = false;
         this.bones[i].phyMtx = new Matrix4();
 
@@ -47,6 +108,7 @@ K.childScale = function ( bone, matrix ) {
     if( !this.scalled ) return
 
     if( bone.scalling ) matrix.scale( bone.scalling );
+    //if( bone.extraRotation ) matrix.multiply( bone.extraRotation );
     //if( !bone.isBone ) return
     let j = bone.children.length, child;
     while(j--){
@@ -88,9 +150,10 @@ K.applyScalling = function ( fingerPos ) {
         b = this.bones[ i ];
         parent = b.parent || null;
 
-        if( parent !== null && parent.scalling && b.name!=='root'){
+        if( parent !== null && parent.scalling && b.name!=='root'){//
 
-            b.position.multiply( parent.scalling );
+            if(parent.scalling) b.position.multiply( parent.scalling );
+            //if(parent.extraRotation) b.quaternion.premultiply( parent.extraRotation );
             b.updateMatrixWorld( true );
 
         }
@@ -121,10 +184,8 @@ K.update = function () {
 
         const matrix = bone ? ( bone.isPhysics ? bone.phyMtx : bone.matrixWorld ) : _identityMatrix;
 
-        if( bone.isPhysics ){
-            this.scalled = true
-        }
-
+        if( bone.isPhysics ) this.scalled = true
+        
         this.childScale( bone, matrix )
 
         _offsetMatrix.multiplyMatrices( matrix, boneInverses[ n ] );

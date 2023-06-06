@@ -225,7 +225,7 @@ export class Landscape extends Mesh {
                 uniforms['map1'] = { value: txt[maps[1]+'_c'] };
                 uniforms['map2'] = { value: txt[maps[2]+'_c'] };
 
-                uniforms['complexMix'] = { value: 1 };
+                uniforms['randomUv'] = { value: 1 };
 
                 uniforms['normalMap1'] = { value: txt[maps[1]+'_n'] };
                 uniforms['normalMap2'] = { value: txt[maps[2]+'_n'] };
@@ -259,11 +259,39 @@ export class Landscape extends Mesh {
                 
                 shader.fragmentShader = fragment;
 
+                this.userData.shader = shader;
+
                 //if( o.shader ) o.shader.modify( shader );
 
                 Shader.modify( shader );
 
             }
+
+
+            Object.defineProperty( this.material, 'randomUv', {
+                  get() { return this.userData.shader.uniforms.randomUv.value ? true : false; },
+                  set( value ) { this.userData.shader.uniforms.randomUv.value = value ? 1 : 0; }
+            });
+
+            Object.defineProperty( this.material, 'map1', {
+                  get() { return this.userData.shader.uniforms.map1.value; },
+                  set( value ) { this.userData.shader.uniforms.map1.value = value; }
+            });
+
+            Object.defineProperty( this.material, 'map2', {
+                  get() { return this.userData.shader.uniforms.map2.value; },
+                  set( value ) { this.userData.shader.uniforms.map2.value = value; }
+            });
+
+            Object.defineProperty( this.material, 'normalMap1', {
+                  get() { return this.userData.shader.uniforms.normalMap1.value; },
+                  set( value ) { this.userData.shader.uniforms.normalMap1.value = value; }
+            });
+
+            Object.defineProperty( this.material, 'normalMap2', {
+                  get() { return this.userData.shader.uniforms.normalMap2.value; },
+                  set( value ) { this.userData.shader.uniforms.normalMap2.value = value; }
+            });
 
         } else {
 
@@ -294,7 +322,7 @@ export class Landscape extends Mesh {
         if( this.wantBorder ) this.addBorder( o );
         if( this.wantBottom ) this.addBottom( o );
 
-        if( o.pos )this.position.fromArray( o.pos );
+        if( o.pos ) this.position.fromArray( o.pos );
 
 
         // rotation is in degree or Quaternion
@@ -308,7 +336,7 @@ export class Landscape extends Mesh {
         this.castShadow = true
         this.receiveShadow = true
 
-        Pool.set( 'terrain' + this.name, this.material );
+        Pool.set( 'terrain' + this.name, this.material, 'material', true );
 
         this.update()
 
@@ -776,7 +804,7 @@ const TerrainShader = {
         uniform vec3 diffuse; 
         uniform vec4 clevels;
 
-        uniform float complexMix;
+        uniform float randomUv;
 
         uniform sampler2D noise;
 
@@ -826,7 +854,7 @@ const TerrainShader = {
         }
 
         vec4 textureMAP( sampler2D mapper, in vec2 uv ){
-            if( complexMix == 1.0 ) return textureNoTile( mapper, uv );
+            if( randomUv == 1.0 ) return textureNoTile( mapper, uv );
             else return texture2D( mapper, uv );
         }
 

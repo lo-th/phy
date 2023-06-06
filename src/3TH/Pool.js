@@ -33,6 +33,8 @@ export const Pool = {
     onEnd:() => {},
     log: ( msg ) => {},
 
+    materialRoot:(n) => {console.log( n )},
+
     setLoadEvent:( onload, onend ) => {
         Pool.onLoad = onload
         Pool.onEnd = onend
@@ -93,10 +95,12 @@ export const Pool = {
     delete: ( name, type = '' ) => ( Pool.data.delete( Pool.prefix( type ) + name ) ),
     get: ( name, type = '' ) => ( Pool.data.get( Pool.prefix( type ) + name ) ),
 
-    set: ( name, node, type = '' ) => {
+    set: ( name, node, type = '', direct ) => {
         if( node.isMaterial ){ 
             type = 'material';
             node.name = name;
+
+            Pool.materialRoot( node, direct )
         }
         if( node.isTexture ) type = 'texture';
         if( node.isObject3D ) type = 'object3d'
@@ -188,6 +192,7 @@ export const Pool = {
 
     setTextureOption:( t, o = {} ) => {
 
+        //if( o.colorSpace ) t.colorSpace = o.colorSpace;
         if( o.encoding ) t.colorSpace = SRGBColorSpace;
         t.flipY = ( o.flipY || o.flip ) !== undefined ? o.flipY : false
         if( o.anisotropy !== undefined ) t.anisotropy = o.anisotropy

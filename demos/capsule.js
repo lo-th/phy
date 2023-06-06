@@ -1,4 +1,4 @@
-const num = 200
+const num = 100
 const capsules = []
 const temp = []
 const setting = {
@@ -156,8 +156,8 @@ update = () => {
 
     	instance.setColorAt( c.id, [wx, py, wz])
 
-    	temp[i][0] = math.clampA( (c.velocity.x + c.angular.z * 0.2) * s.maxWobble , -s.maxWobble, s.maxWobble )
-    	temp[i][1] = math.clampA( (c.velocity.z + c.angular.x * 0.2) * s.maxWobble , -s.maxWobble, s.maxWobble )
+    	temp[i][0] = math.clamp( (c.velocity.x + c.angular.z * 0.2) * s.maxWobble , -s.maxWobble, s.maxWobble )
+    	temp[i][1] = math.clamp( (c.velocity.z + c.angular.x * 0.2) * s.maxWobble , -s.maxWobble, s.maxWobble )
 
     	//if(i===0)console.log(c.velocity.x , c.angular.z)
     }

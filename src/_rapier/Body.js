@@ -20,6 +20,7 @@ export class Body extends Item {
 		this.p = new Vec3()
 		this.q = new Quat()
 		this.v = new Vec3()
+		this.v2 = new Vec3()
 		this.r = new Vec3()
 		//this.t = new Transform()
 
@@ -126,20 +127,27 @@ export class Body extends Item {
 
 
 		let p = o.localPos || [0,0,0]
-		g.setTranslation(p[0], p[1], p[2])
+		//this.p.fromArray( o.localPos || [0,0,0] ) 
+		g.setTranslation( p[0], p[1], p[2] )
 
 		this.q.fromArray( o.localQuat || [0,0,0,1] )
 		g.setRotation( this.q )
 
 
 		// The density of the shape, usually in Kg/m^3. def = 1
-        g.setDensity( o.density || 0 ) 
-        //if( o.mass !== undefined ) sc.density = o.mass; // extra mass for static body test ??
+		let density = o.density || 0;
+        if( o.mass !== undefined ) density = MathTool.densityFromMass( o.mass, MathTool.getVolume( t, s, o.v ) )
+
+        g.setDensity( density ) 
+
 
         //g.setMassProperties(mass: number, centerOfMass: Vector, principalAngularInertia: Vector, angularInertiaLocalFrame: Rotation)
 
         // The coefficient of friction of the shape. def = 0.2
-        if( o.friction !== undefined ) g.setFriction( o.friction )
+        if( o.friction !== undefined ){ 
+        	if( o.friction === 0 ) o.friction = 0.00001 // bug with impulse && lock rotation ??
+        	g.setFriction( o.friction );
+        }
         
         // The coefficient of restitution of the shape. def = 0
         if( o.restitution !== undefined ) g.setRestitution( o.restitution )
@@ -347,14 +355,23 @@ export class Body extends Item {
 		if( o.worldForce ) b.addForceAtPoint( this.v.fromArray( o.worldForce ), this.v.fromArray( o.worldForce, 3 ), autowake )
 		if( o.torque ) b.addTorque( this.v.fromArray( o.torque ), autowake )
 
-	    // Applies the impulse `impulse` to the rigid body at `positionInWorld` in world position. [ 0,0,0,   0,0,0 ]
-	    if( o.impulse ) b.applyImpulseAtPoint( this.v.fromArray( o.impulse ), this.v.fromArray( o.impulse, 3 ), autowake )
-	    if( o.linearImpulse ) b.applyImpulse( this.v.fromArray( o.linearImpulse ), autowake )
+	    // Applies the impulse `impulse` 
+	    if( o.impulse ){ 
+	    	if( o.impulseCenter ) b.applyImpulseAtPoint( this.v.fromArray( o.impulse ), this.v2.fromArray( o.impulseCenter ), autowake )
+	    	else b.applyImpulse( this.v.fromArray( o.impulse ), autowake )
+	    }
+
+	    //if( o.linearImpulse ) b.applyImpulse( this.v.fromArray( o.linearImpulse ), autowake )
 	    if( o.angularImpulse ) b.applyTorqueImpulse( this.v.fromArray( o.angularImpulse ), autowake )
 
 	    // lock
 	    if ( o.linearFactor !== undefined ) b.restrictTranslations( o.linearFactor[0] ? true:false, o.linearFactor[1] ? true:false, o.linearFactor[2] ? true:false, autowake )
-	    if ( o.angularFactor !== undefined ) b.restrictRotations( o.angularFactor[0] ? true:false, o.angularFactor[1] ? true:false, o.angularFactor[2] ? true:false, autowake );
+	    if ( o.angularFactor !== undefined ){ 
+	    	b.restrictRotations( o.angularFactor[0]!==0 ? true:false, o.angularFactor[1]!==0 ? true:false, o.angularFactor[2]!==0 ? true:false, autowake );
+	    	//console.log( o.angularFactor[0]===0 ? true:false, o.angularFactor[1]===0 ? true:false, o.angularFactor[2]===0 ? true:false, autowake );
+	    }
+
+
 
 	    if ( o.lockPosition !== undefined ) b.lockTranslations( o.lockRotation, autowake )
 	    if ( o.lockRotation !== undefined ) b.lockRotations( o.lockRotation, autowake )
@@ -381,7 +398,7 @@ export class Body extends Item {
 			b.setAngvel( this.v.set( 0, 0, 0), false )
 		}
 
-		if( o.enableCCD !== undefined ) b.setCcdEnabled( o.enableCCD );
+		//if( o.enableCCD !== undefined ) b.setCcdEnabled( o.enableCCD );
 
 	}
 

@@ -2,9 +2,9 @@
 import {
     Group, MeshPhysicalMaterial, MeshStandardMaterial, MeshBasicMaterial, Vector3, Vector2, Quaternion
 } from 'three';
+import { MathTool } from '../core/MathTool.js';
 
-
-import { root, math, Utils, Geo, Mat, mat } from './root.js';
+import { root, Utils, Geo, Mat, mat } from './root.js';
 import { Max, Num, getArray, getType } from '../core/Config.js';
 
 import { Ray } from './Ray.js';
@@ -20,6 +20,7 @@ import { User } from './User.js';
 
 import { Button } from './Button.js';
 import { Textfield } from './Textfield.js';
+import { Container } from './Container.js';
 
 //import { SkeletonBody } from './SkeletonBody.js';
 
@@ -110,7 +111,7 @@ let textfields = []
 
 export class Motor {
 
-	static math = math
+	static math = MathTool//math
 
 	static activeMouse ( controler, mode ) { 
 		if( !mouseTool ) mouseTool = new MouseTool( controler, mode ) 
@@ -139,7 +140,6 @@ export class Motor {
 	static getKey () { return user.key }
 	static getKey2 () { return user.key2 }
 	static getAzimut () { return azimut() }
-	//static math () { return math }
 
 	static setContent ( Scene ) {
 		root.threeScene = Scene;
@@ -251,6 +251,8 @@ export class Motor {
 
 	static init ( o = {} ) {
 
+
+
 		/*let q1 = new Quaternion().setFromAxisAngle({x:1, y:0, z:0}, 45*math.torad)
 		let q2 = new Quaternion().setFromAxisAngle({x:1, y:0, z:0}, 90*math.torad)
 
@@ -283,6 +285,9 @@ export class Motor {
 		root.engine = type
 
 		Motor.initItems()
+
+		// garbage material
+		Pool.materialRoot = Mat.set//Motor.getMaterialRoot
 
 		//items.body.extraConvex = mini === 'Physx'
 		//items.solid.extraConvex = mini === 'Physx'
@@ -554,6 +559,8 @@ export class Motor {
 		///o.realtime = realtime;
 		o.isTimeout = isTimeout;
 		o.outsideStep = outsideStep;
+
+		root.jointVisible = o.jointVisible || false
 		
 		if(!o.gravity) o.gravity = [0,-9.81,0]
 		if(!o.substep) o.substep = 2
@@ -683,6 +690,28 @@ export class Motor {
 		return Pool.texture( o )//extraTexture( o )
 	}
 
+	static getMaterialList(){
+		return mat
+	}
+
+	static getOneMaterial( name ){
+		return Mat.get( name )
+	}
+
+	static addMaterial( m, direct ){
+		return Pool.set( m.name, m, 'material', direct )
+	}
+
+	static setEnvmapIntensity (v) { 
+		let m
+		for(let name in mat){
+			m = mat[name]
+			if( !m.userData.envp ) m.userData.envp = m.envMapIntensity
+			m.envMapIntensity = m.userData.envp * v
+		}
+		
+	}
+
 	static material ( o = {} ){
 
 		let m
@@ -724,14 +753,12 @@ export class Motor {
 
 	}
 
-	static explosion ( position = [0,0,0], radius = 10, force = 100 ){
+	static explosion ( position = [0,0,0], radius = 10, force = 1 ){
 
 		let r = []
 	    let pos = new Vector3()
 
-	    //console.log( position)
-
-	    if(position){
+	    if( position ){
 	    	if( position.isVector3 ) pos.copy(position)
 	    	else pos.fromArray( position )
 	    }
@@ -757,15 +784,12 @@ export class Motor {
 	       // }
 	        
 
-	        //r.push({ name:b.name, impulse: [ ...pos.toArray(), ...dir.toArray()] })
-	        r.push({ name:b.name, linearImpulse: dir.toArray(), wake:true })
-	        //r.push({ name:b.name, force: dir.toArray(), forceMode:'impulse' })
+	        r.push({ name:b.name, impulse:dir.toArray(), wake:true })
+	        //r.push({ name:b.name, impulse:[0,0.01,0], impulseCenter:pos.toArray(), wake:true })
 
 
 	    }
-
-	    //console.log( r.length)
-
+	    
 		Motor.change( r )
 
 	}
@@ -864,7 +888,10 @@ export class Motor {
 
 		if ( o.constructor === Array ) return Motor.adds( o, direct )
 
-		if( o.mass !== undefined ) o.density = o.mass
+		if( o.type === 'container' ) return new Container( o )
+		
+
+		//if( o.mass !== undefined ) o.density = o.mass
 		if( o.bounce !== undefined ) o.restitution = o.bounce
 		if( o.type === undefined ) o.type = 'box'
 
@@ -937,12 +964,12 @@ export class Motor {
 		let type = b.type;
 
 		if( o.drivePosition ){
-			if( o.drivePosition.rot !== undefined ){  o.drivePosition.quat = math.toQuatArray( o.drivePosition.rot ); delete ( o.drivePosition.rot ); }
+			if( o.drivePosition.rot !== undefined ){  o.drivePosition.quat = MathTool.quatFromEuler( o.drivePosition.rot ); delete ( o.drivePosition.rot ); }
 		}
-		if( o.rot !== undefined ){ o.quat = math.toQuatArray( o.rot ); delete ( o.rot ); }
+		if( o.rot !== undefined ){ o.quat = MathTool.quatFromEuler( o.rot ); delete ( o.rot ); }
 		//if( o.rot1 !== undefined ){ o.quat1 = math.toQuatArray( o.rot1 ); delete ( o.rot1 ); }
 		//if( o.rot2 !== undefined ){ o.quat2 = math.toQuatArray( o.rot2 ); delete ( o.rot2 ); }
-		if( o.localRot !== undefined ){ o.quat = math.toLocalQuatArray( o.localRot, b ); delete ( o.localRot ); }
+		if( o.localRot !== undefined ){ o.quat = MathTool.toLocalQuatArray( o.localRot, b ); delete ( o.localRot ); }
 
 		switch( type ){
 

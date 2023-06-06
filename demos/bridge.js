@@ -17,8 +17,7 @@ demo = () => {
     phy.set( {
         substep:1, 
         gravity:[0,-9.81,0],
-        //pcm:false, // bug in physx on stair ? 
-
+        jointVisible:false
     })
 
     // add static ground
@@ -55,8 +54,6 @@ demo = () => {
 
     phy.setPostUpdate ( update )
     phy.setTimeout( go, 0 )
-
-    
 
 }
 
@@ -154,9 +151,18 @@ const addCharacter = () => {
 
     maxY = r//py
 
-    phy.add({ type:'ray', name:'bob_ray', begin:[0,-h*0.5,0], end:[0,-5, 0], callback:bobRay, visible:true, parent:'bob' })
+    //phy.add({ type:'ray', name:'bob_ray', begin:[0,-h*0.5,0], end:[0,-5, 0], callback:bobRay, visible:true, parent:'bob' })
 
     //phy.follow('bob', { direct:true, simple:true, decal:[0.3, 1, -0.3] })
+
+
+    let test = phy.add({ 
+        type:'character',
+        name:'boby2',
+        pos:[9,py,10],
+        ray:true
+    })
+    phy.control( 'boby2' )
 
 }
 

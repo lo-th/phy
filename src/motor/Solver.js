@@ -1,7 +1,8 @@
 import { Item } from '../core/Item.js';
 import { Num } from '../core/Config.js';
+import { MathTool } from '../core/MathTool.js';
 //import { Basic3D } from '../core/Basic3D.js';
-import { Utils, root, math, mat } from './root.js';
+import { Utils, root, mat } from './root.js';
 
 export class Solver extends Item {
 
@@ -124,8 +125,8 @@ export class Articulation {//extends Basic3D
 		o.name = o.name || ( this.name + '_Joint_' + this.jid );
 		o.solver = this.name;
 
-		if( o.rot1 !== undefined ){ o.quat1 = math.toQuatArray( o.rot1 ); delete ( o.rot1 ); }
-		if( o.rot2 !== undefined ){ o.quat2 = math.toQuatArray( o.rot2 ); delete ( o.rot2 ); }
+		if( o.rot1 !== undefined ){ o.quat1 = MathTool.quatFromEuler( o.rot1 ); delete ( o.rot1 ); }
+		if( o.rot2 !== undefined ){ o.quat2 = MathTool.quatFromEuler( o.rot2 ); delete ( o.rot2 ); }
 		
 		if(o.type !== 'fixe') {
 			this.joints.push( new SolverJoint( o, this ) );
@@ -246,9 +247,9 @@ export class SolverJoint {
 
 
 		// linear target need to be clamp ?!
-		this.target = math.clamp( target, this.min, this.max );
+		this.target = MathTool.clamp( target, this.min, this.max );
 		//this.current = this.data.target[ this.driveType ];
-		this.current = math.clamp( this.data.target[ this.driveType ], this.min, this.max );
+		this.current = MathTool.clamp( this.data.target[ this.driveType ], this.min, this.max );
 
 		//console.log( this.target, this.current )
 
@@ -283,7 +284,7 @@ export class SolverJoint {
 			this.tmp += dt;
 			let t = this.tmp / this.time;
 			t = (t > 1) ? 1 : t;
-			let move = math.lerp( this.start, this.target, t );//this.current + (this.target - this.current) * t;
+			let move = MathTool.lerp( this.start, this.target, t );//this.current + (this.target - this.current) * t;
 
 			this.nup = { name:this.name, drivesTarget: [[ this.driveType, move ]] }
 

@@ -101,7 +101,8 @@ terrainTest = () => {
 update = () => {
 
     let p = gina.position;
-    let d = math.distance({ x:p.x, z:p.z });
+    // get distance from position zero
+    let d = math.distanceArray([p.x, 0, p.z])
     if( d > 50 ){
         phy.change([
             { name:'terra', decal:[p.x,0,p.z] },

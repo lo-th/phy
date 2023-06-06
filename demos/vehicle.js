@@ -106,7 +106,8 @@ terrainTest = () => {
 update = () => {
 
     let p = buggy.position;
-    let d = math.distance({ x:p.x, z:p.z });
+    //let d = math.distance({ x:p.x, z:p.z });
+    let d = math.distanceArray([p.x, 0, p.z])
 
     if( d > 50 ){
         phy.change([

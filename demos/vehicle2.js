@@ -200,7 +200,8 @@ update = () => {
 
 
     let p = bike.position;
-    let d = math.distance({ x:p.x, z:p.z });
+    //let d = math.distance({ x:p.x, z:p.z });
+    let d = math.distanceArray([p.x, 0, p.z])
 
     w1.rotation.x = bike.rolling[0]
     w2.rotation.z = -bike.rolling[1]
@@ -208,7 +209,7 @@ update = () => {
     if(debug) return
 
     if( d > 50 ){
-        phy.up([
+        phy.change([
             { name:'terra', decal:[p.x,0,p.z] },
             { name:'bike', pos:[0,p.y,0] },
         ])
