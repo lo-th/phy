@@ -40,8 +40,8 @@ demo = () => {
 
         p.setFromSphericalCoords(
             math.rand(20, 100), 
-            math.rand(-math.Pi, math.Pi), 
-            math.rand(-math.Pi, math.Pi)
+            math.rand(-Math.PI, Math.PI), 
+            math.rand(-Math.PI, Math.PI)
         )
 
         s = math.rand(0.25, 0.5)
