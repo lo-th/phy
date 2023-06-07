@@ -112,7 +112,7 @@ export class Body extends Item {
 		let noScale = false, unic = false;
 		let seg = o.seg || 16;
 
-		if( o.instance && t!== 'capsule'&& !o.radius) s = o.instanceSize || [1,1,1]
+		//if( o.instance && t!== 'capsule'&& !o.radius) s = o.instanceSize || [1,1,1]
 
 		if( o.instance && t=== 'compound'){ 
 			t = o.shapes[0].type
@@ -542,6 +542,7 @@ export class Body extends Item {
 			b.name = b.instance.name + b.id;
 			o.name = b.name;
 			b.noScale = b.instance.noScale//false//o.type!=='box' || o.type!=='ChamferBox' || o.type!=='sphere';
+			if(o.sizeByInstance) b.noScale = false
 			//if(o.type === 'sphere') b.noScale = false
 		    //if( o.type === 'capsule' ) b.noScale = true
 		    //if( o.type === 'box' ) b.noScale = true
@@ -681,7 +682,9 @@ export class Body extends Item {
 	addInstance ( o, material ) {
 
 		//console.log(o)
+		if( o.sizeByInstance ) o.size = [1,1,1]
 		let g = this.geometry( o )
+
 		if(o.mesh) {
 			g = o.mesh.geometry
 		}

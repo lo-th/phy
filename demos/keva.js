@@ -47,6 +47,7 @@ buildBlock = ( halfExtents, shift, numx, numy, numz ) => {
 
     let option = {
         density:0.1, margin:0.001, friction:0.5, restitution:0, sleep:true, radius:0.04, //material:'simple'
+        sizeByInstance:true,
         startSleep:true,
     }
 
