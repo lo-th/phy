@@ -353,9 +353,10 @@ const matExtra = {
 }
 
 export const Colors = {
-
-	body:new Color( 0xFF934F ),//.convertSRGBToLinear(),
-	sleep:new Color( 0x939393 )//.convertSRGBToLinear()//0x46B1C9
+    body:new Color( 0xefefd4 ),//.convertSRGBToLinear(),
+    base:new Color( 0xFFFFFF ),
+	sleep:new Color( 0xBFBFAD ),//.convertSRGBToLinear()//0x46B1C9//0x939393
+	solid:new Color( 0xDDDDDD ).convertSRGBToLinear()
 
 }
 
@@ -379,12 +380,13 @@ export const Mat = {
 			let m;
 			switch( name ){
 
-				case 'base':   m = new MeshStandardMaterial({ color:0xffffff, ...matExtra }); break
 				case 'simple': m = new MeshStandardMaterial({ color:0x808080, metalness: 0, roughness: 1 }); break
-				case 'body':   m = new MeshStandardMaterial({ color:0xFF934F, ...matExtra }); break
-				case 'clear':   m = new MeshStandardMaterial({ color:0xFFFFFF, metalness: 0.5, roughness: 0 }); break
-				case 'sleep':  m = new MeshStandardMaterial({ color:0x939393, ...matExtra }); break//0x46B1C9
-				case 'solid':  m = new MeshStandardMaterial({ color:0xDDDDDD, ...matExtra }); break
+
+				case 'base':   m = new MeshStandardMaterial({ color:Colors.base, ...matExtra }); break
+				case 'body':   m = new MeshStandardMaterial({ color:Colors.body, ...matExtra }); break//0xFFF1D2
+				case 'sleep':  m = new MeshStandardMaterial({ color:Colors.sleep, ...matExtra }); break//0x46B1C9
+				case 'solid':  m = new MeshStandardMaterial({ color:Colors.solid, ...matExtra }); break
+				case 'clear':  m = new MeshStandardMaterial({ color:0xFFFFFF, metalness: 0.5, roughness: 0 }); break
 				
 				//case 'hero':   m = new MeshStandardMaterial({ color:0x00FF88, ...matExtra }); break
 				case 'skinny':   m = new MeshStandardMaterial({ color:0xe0ac69, ...matExtra }); break
@@ -411,11 +413,11 @@ export const Mat = {
 				case 'button':  m = new MeshStandardMaterial({ color:0xFF404B, ...matExtra }); break
 				//case 'hide': m = new MeshBasicMaterial({ visible:false }); break
 
-				case 'line': 
+				case 'line':
 					if( !root.lineMaterial ) root.lineMaterial = new LineBasicMaterial( { vertexColors: true, toneMapped: false } )
 					return root.lineMaterial; 
 			    break
-				case 'hide': 
+				case 'hide':
 					if( !root.hideMaterial ) root.hideMaterial = new MeshBasicMaterial({ visible:false })
 					return root.hideMaterial; 
 			    break

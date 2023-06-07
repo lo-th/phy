@@ -184,7 +184,7 @@ export const Gui = {
 
 		ui.add( options, 'mode', { type:'button', values:['LOW', 'HIGH'], selectable:true, p:0 }).onChange( Main.changeMode )
 
-
+		ui.add( options, 'harmony', { type:'bool' }).onChange( Hub.harmony )
 		ui.add( options, 'show_light', { type:'bool' }).onChange( Main.showDebugLight )
 		ui.add( options, 'show_stat', { type:'bool' }).onChange( Main.showStatistic )
 		ui.add( options, 'exposure', { min:0, max:4, mode:mode } ).onChange( function( v ){ 
@@ -194,8 +194,6 @@ export const Gui = {
 
 		ui.add( options, 'shadow', { min:0, max:1, mode:mode } ).onChange( Main.setShadow ).listen()
 
-
-		
 
 		ui.add( options, 'light_1', { rename:'Light Direct', min:0, max:10, mode:mode, color:'#ff0' } ).onChange( Main.lightIntensity )
 		ui.add( options, 'light_2', { rename:'Light Sphere', min:0, max:10, mode:mode, color:'#ff0' } ).onChange( Main.lightIntensity )

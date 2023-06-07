@@ -255,16 +255,20 @@ export class MouseTool {
 			if ( inters.length > 0 ) hit = inters[ 0 ]
 		}
 
+	    const o = this.option
+
 		if(hit){ 
-			root.motor.explosion( hit.point, 3, 0.1 )
-			if(this.option.visible ) root.motor.addParticle({
+
+			root.motor.explosion( hit.point, o.radius || 3, o.power || 0.1 )
+
+			if( o.visible ) root.motor.addParticle({
 				name:'blast',
 				type:"cube",
 				position:hit.point.toArray(),
-				numParticles: 30,
+				numParticles: 60,
 				radius:0.2,
 				radiusRange:0.1,
-				accelerationRange:[0.3,0.3,0.3],
+				//accelerationRange:[0.3,0.3,0.3],
 				acceleration:[5*10,5,5*10],
 				lifeTime: 0.5,
 		        endTime: 0.5,

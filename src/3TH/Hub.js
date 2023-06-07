@@ -40,6 +40,8 @@ let guiOpen = false
 
 let currentMenu = ''
 
+let h1,h2
+
 const listdata = {
     home : ['Code', 'Worker', 'Github', 'Docs'],
     engine : [],
@@ -378,6 +380,29 @@ export class Hub {
 
         //Hub.colors(false)
 
+    }
+
+    static harmony ( v ) {
+
+        if(v ){
+            if(!h1 && !h2){
+                h1 = document.createElement( 'div' );
+                h1.style.cssText = 'position:absolute; top:33.33%; width:100%; height:33.33%; border-top:1px solid #000; border-bottom:1px solid #000;'
+                content.appendChild( h1 )
+
+                h2 = document.createElement( 'div' );
+                h2.style.cssText = 'position:absolute; left:33.33%; height:100%; width:33.33%; border-left:1px solid #000; border-right:1px solid #000;'
+                content.appendChild( h2 )
+            }
+        } else {
+            if(h1 && h2){
+                content.removeChild( h1 )
+                content.removeChild( h2 )
+                h1 = null
+                h2 = null
+            }
+        }
+        
     }
 
     static miniIcon( name, color ){

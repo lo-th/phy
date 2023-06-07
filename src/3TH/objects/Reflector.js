@@ -487,7 +487,7 @@ export class Reflector extends Mesh {
 			this.material.side = DoubleSide;
 			//console.log('water')
 		} else {
-			this.material.normalMap = Pool.texture( { url:'./assets/textures/floor.png', flip:false, repeat:[200,200] });
+			//this.material.normalMap = Pool.texture( { url:'./assets/textures/floor.png', flip:false, repeat:[200,200] });
 			//this.material.normalMap.channel = 1;
 			//this.material.normalMap = null;
 			this.material.roughness = 0.5;

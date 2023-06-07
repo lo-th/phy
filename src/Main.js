@@ -428,7 +428,7 @@ const init = () => {
 	// CAMERA / CONTROLER
 
 	camera = new THREE.PerspectiveCamera( 50, size.r, 0.1, 1000 )
-	camera.position.set( 0, 8, 10 )
+	camera.position.set( 0, 4, 10 )
 	camera.lookAt( 0, 2, 0 )
 	scene.add( camera )
 
@@ -554,7 +554,7 @@ const next = () => {
 
 	loadDemo( options.demo )
 
-	if( options.show_stat ) showStatistic( true )
+	//if( options.show_stat ) showStatistic( true )
 
 }
 

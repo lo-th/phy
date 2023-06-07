@@ -880,9 +880,10 @@ const matExtra = {
 };
 
 const Colors = {
-
-	body:new Color( 0xFF934F ),//.convertSRGBToLinear(),
-	sleep:new Color( 0x939393 )//.convertSRGBToLinear()//0x46B1C9
+    body:new Color( 0xefefd4 ),//.convertSRGBToLinear(),
+    base:new Color( 0xFFFFFF ),
+	sleep:new Color( 0xBFBFAD ),//.convertSRGBToLinear()//0x46B1C9//0x939393
+	solid:new Color( 0xDDDDDD ).convertSRGBToLinear()
 
 };
 
@@ -906,12 +907,13 @@ const Mat = {
 			let m;
 			switch( name ){
 
-				case 'base':   m = new MeshStandardMaterial({ color:0xffffff, ...matExtra }); break
 				case 'simple': m = new MeshStandardMaterial({ color:0x808080, metalness: 0, roughness: 1 }); break
-				case 'body':   m = new MeshStandardMaterial({ color:0xFF934F, ...matExtra }); break
-				case 'clear':   m = new MeshStandardMaterial({ color:0xFFFFFF, metalness: 0.5, roughness: 0 }); break
-				case 'sleep':  m = new MeshStandardMaterial({ color:0x939393, ...matExtra }); break//0x46B1C9
-				case 'solid':  m = new MeshStandardMaterial({ color:0xDDDDDD, ...matExtra }); break
+
+				case 'base':   m = new MeshStandardMaterial({ color:Colors.base, ...matExtra }); break
+				case 'body':   m = new MeshStandardMaterial({ color:Colors.body, ...matExtra }); break//0xFFF1D2
+				case 'sleep':  m = new MeshStandardMaterial({ color:Colors.sleep, ...matExtra }); break//0x46B1C9
+				case 'solid':  m = new MeshStandardMaterial({ color:Colors.solid, ...matExtra }); break
+				case 'clear':  m = new MeshStandardMaterial({ color:0xFFFFFF, metalness: 0.5, roughness: 0 }); break
 				
 				//case 'hero':   m = new MeshStandardMaterial({ color:0x00FF88, ...matExtra }); break
 				case 'skinny':   m = new MeshStandardMaterial({ color:0xe0ac69, ...matExtra }); break
@@ -938,10 +940,10 @@ const Mat = {
 				case 'button':  m = new MeshStandardMaterial({ color:0xFF404B, ...matExtra }); break
 				//case 'hide': m = new MeshBasicMaterial({ visible:false }); break
 
-				case 'line': 
+				case 'line':
 					if( !root.lineMaterial ) root.lineMaterial = new LineBasicMaterial( { vertexColors: true, toneMapped: false } );
 					return root.lineMaterial; 
-				case 'hide': 
+				case 'hide':
 					if( !root.hideMaterial ) root.hideMaterial = new MeshBasicMaterial({ visible:false });
 					return root.hideMaterial; 
 
@@ -5275,6 +5277,8 @@ class Body extends Item {
 
 	geometry ( o = {}, b = null, material = null ) {
 
+		//console.log("geometry is add")
+
 		//console.log( 'geometry', o, b, material)
 
 		let g, i, n, s = o.size, gName='';
@@ -5282,7 +5286,7 @@ class Body extends Item {
 		let noScale = false, unic = false;
 		let seg = o.seg || 16;
 
-		if( o.instance && t!== 'capsule') s = o.instanceSize || [1,1,1];
+		if( o.instance && t!== 'capsule'&& !o.radius) s = o.instanceSize || [1,1,1];
 
 		if( o.instance && t=== 'compound'){ 
 			t = o.shapes[0].type;
@@ -5432,6 +5436,7 @@ class Body extends Item {
 
 			    gName = 'ChamferBox_' + s[ 0 ] +'_'+ s[ 1 ] +'_'+ s[ 2 ] + '_' + o.radius; 
 
+			    //console.log(s, o.radius)
 			    g = Geo.get( gName );
 			    if(!g){
 					g = new ChamferBox( s[ 0 ], s[ 1 ], s[ 2 ], o.radius );
@@ -5445,6 +5450,8 @@ class Body extends Item {
 			case 'ChamferCyl':
 
 			    gName = 'ChamferCyl_' + s[ 0 ] +'_'+ s[ 1 ] +'_'+ s[ 2 ] + '_' + o.radius + '_' + seg;
+
+
 
 			    g = Geo.get( gName );
 			    if(!g){
@@ -5504,6 +5511,8 @@ class Body extends Item {
     	}
 
     	if( o.meshRemplace && o.debug ) material = Mat.get( 'debug3' );
+
+    	//if( o.instance ) return
 
 		let m = new Mesh( g, material );
 
@@ -5613,7 +5622,7 @@ class Body extends Item {
 	    //let b = new Basic3D( o.instance )
 	    let b = o.instance ? {} : new Basic3D();
 
-	    if( o.mesh ){
+	    if( o.mesh && !o.instance ){
 
 	    	//if( o.isTerrain ) o.noClone = true
 	    	if( o.mesh.type === 'terrain' ) o.noClone = true;
@@ -5706,10 +5715,11 @@ class Body extends Item {
 			
 			b.name = b.instance.name + b.id;
 			o.name = b.name;
-			b.noScale = false;//o.type!=='box' || o.type!=='ChamferBox' || o.type!=='sphere';
+			b.noScale = b.instance.noScale;//false//o.type!=='box' || o.type!=='ChamferBox' || o.type!=='sphere';
 			//if(o.type === 'sphere') b.noScale = false
-		    if( o.type === 'capsule' ) b.noScale = true;
-			/*if(o.radius) b.noScale = true*/
+		    //if( o.type === 'capsule' ) b.noScale = true
+		    //if( o.type === 'box' ) b.noScale = true
+			//if(o.radius) b.noScale = true
 
 			let color = o.color;
 			if( b.defMat ) color = o.sleep ? Colors.sleep : Colors.body;
@@ -5722,10 +5732,14 @@ class Body extends Item {
 		    b.angular = {x:0, y:0, z:0};
 		    if( this.needMatrix ) b.matrixWorld = new Matrix4();
 
+
+
 			// for convex
 			if(b.instance.v) o.v = b.instance.v;
 			if(b.instance.index) o.index = b.instance.index;
 		    o.type = b.instance.type;
+
+		    //console.log(o.v)
 
 			/*if( this.extraConvex && ( o.type==='cylinder' || o.type==='cone') ){
 		    	o.v = b.instance.v;
@@ -5841,12 +5855,23 @@ class Body extends Item {
 	addInstance ( o, material ) {
 
 		//console.log(o)
+		let g = this.geometry( o );
+		if(o.mesh) {
+			g = o.mesh.geometry;
+		}
 
-		let bb = new Instance( this.geometry( o ), material, 0 );
+		let bb = new Instance( g, material, 0 );
 
-		if(o.v) bb.v = o.v;
-		if(o.index) bb.index = o.index;
 		bb.type = o.type;
+		bb.noScale = g.noScale;
+
+		//console.log(o)
+
+		if( bb.type === 'convex' ) bb.v = o.v;
+		if( o.index ) bb.index = o.index;
+		
+
+		//if( bb.type==='convex' ) bb.v = MathTool.getVertex( bb.geometry )
 
     	//bb.matrixAutoUpdate = false
     	//bb.instanceMatrix.setUsage( DynamicDrawUsage )
@@ -27841,16 +27866,20 @@ class MouseTool {
 			if ( inters.length > 0 ) hit = inters[ 0 ];
 		}
 
+	    const o = this.option;
+
 		if(hit){ 
-			root.motor.explosion( hit.point, 3, 0.1 );
-			if(this.option.visible ) root.motor.addParticle({
+
+			root.motor.explosion( hit.point, o.radius || 3, o.power || 0.1 );
+
+			if( o.visible ) root.motor.addParticle({
 				name:'blast',
 				type:"cube",
 				position:hit.point.toArray(),
-				numParticles: 30,
+				numParticles: 60,
 				radius:0.2,
 				radiusRange:0.1,
-				accelerationRange:[0.3,0.3,0.3],
+				//accelerationRange:[0.3,0.3,0.3],
 				acceleration:[5*10,5,5*10],
 				lifeTime: 0.5,
 		        endTime: 0.5,

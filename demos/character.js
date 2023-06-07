@@ -31,7 +31,7 @@ demo = () => {
     bob = phy.add({ 
         type:'capsule', 
         name:'bob', 
-        material:'hero', 
+        material:'skinny', 
 
         size:[ r,1.8-(2*r) ], pos:[0,3,0], angularFactor:[0,0,0], 
         density:2, damping:[0.01,0], friction:0.5, group:32,

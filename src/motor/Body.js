@@ -103,6 +103,8 @@ export class Body extends Item {
 
 	geometry ( o = {}, b = null, material = null ) {
 
+		//console.log("geometry is add")
+
 		//console.log( 'geometry', o, b, material)
 
 		let g, i, n, s = o.size, gName=''
@@ -110,7 +112,7 @@ export class Body extends Item {
 		let noScale = false, unic = false;
 		let seg = o.seg || 16;
 
-		if( o.instance && t!== 'capsule') s = o.instanceSize || [1,1,1]
+		if( o.instance && t!== 'capsule'&& !o.radius) s = o.instanceSize || [1,1,1]
 
 		if( o.instance && t=== 'compound'){ 
 			t = o.shapes[0].type
@@ -260,6 +262,7 @@ export class Body extends Item {
 
 			    gName = 'ChamferBox_' + s[ 0 ] +'_'+ s[ 1 ] +'_'+ s[ 2 ] + '_' + o.radius; 
 
+			    //console.log(s, o.radius)
 			    g = Geo.get( gName )
 			    if(!g){
 					g = new ChamferBox( s[ 0 ], s[ 1 ], s[ 2 ], o.radius );
@@ -273,6 +276,8 @@ export class Body extends Item {
 			case 'ChamferCyl':
 
 			    gName = 'ChamferCyl_' + s[ 0 ] +'_'+ s[ 1 ] +'_'+ s[ 2 ] + '_' + o.radius + '_' + seg;
+
+
 
 			    g = Geo.get( gName )
 			    if(!g){
@@ -332,6 +337,8 @@ export class Body extends Item {
     	}
 
     	if( o.meshRemplace && o.debug ) material = Mat.get( 'debug3' )
+
+    	//if( o.instance ) return
 
 		let m = new Mesh( g, material )
 
@@ -441,7 +448,7 @@ export class Body extends Item {
 	    //let b = new Basic3D( o.instance )
 	    let b = o.instance ? {} : new Basic3D()
 
-	    if( o.mesh ){
+	    if( o.mesh && !o.instance ){
 
 	    	//if( o.isTerrain ) o.noClone = true
 	    	if( o.mesh.type === 'terrain' ) o.noClone = true;
@@ -534,10 +541,11 @@ export class Body extends Item {
 			
 			b.name = b.instance.name + b.id;
 			o.name = b.name;
-			b.noScale = false//o.type!=='box' || o.type!=='ChamferBox' || o.type!=='sphere';
+			b.noScale = b.instance.noScale//false//o.type!=='box' || o.type!=='ChamferBox' || o.type!=='sphere';
 			//if(o.type === 'sphere') b.noScale = false
-		    if( o.type === 'capsule' ) b.noScale = true
-			/*if(o.radius) b.noScale = true*/
+		    //if( o.type === 'capsule' ) b.noScale = true
+		    //if( o.type === 'box' ) b.noScale = true
+			//if(o.radius) b.noScale = true
 
 			let color = o.color;
 			if( b.defMat ) color = o.sleep ? Colors.sleep : Colors.body;
@@ -550,10 +558,14 @@ export class Body extends Item {
 		    b.angular = {x:0, y:0, z:0}
 		    if( this.needMatrix ) b.matrixWorld = new Matrix4()
 
+
+
 			// for convex
 			if(b.instance.v) o.v = b.instance.v
 			if(b.instance.index) o.index = b.instance.index;
 		    o.type = b.instance.type;
+
+		    //console.log(o.v)
 
 			/*if( this.extraConvex && ( o.type==='cylinder' || o.type==='cone') ){
 		    	o.v = b.instance.v;
@@ -669,12 +681,23 @@ export class Body extends Item {
 	addInstance ( o, material ) {
 
 		//console.log(o)
+		let g = this.geometry( o )
+		if(o.mesh) {
+			g = o.mesh.geometry
+		}
 
-		let bb = new Instance( this.geometry( o ), material, 0 )
+		let bb = new Instance( g, material, 0 )
 
-		if(o.v) bb.v = o.v;
-		if(o.index) bb.index = o.index;
 		bb.type = o.type;
+		bb.noScale = g.noScale
+
+		//console.log(o)
+
+		if( bb.type === 'convex' ) bb.v = o.v;
+		if( o.index ) bb.index = o.index;
+		
+
+		//if( bb.type==='convex' ) bb.v = MathTool.getVertex( bb.geometry )
 
     	//bb.matrixAutoUpdate = false
     	//bb.instanceMatrix.setUsage( DynamicDrawUsage )
