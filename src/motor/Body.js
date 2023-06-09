@@ -169,6 +169,7 @@ export class Body extends Item {
 
 			    g = o.geometry.clone();
 			    if( o.size ) g.scale( o.size[0], o.size[1], o.size[2] );
+
 			    unic = true
 			    noScale = true
 
@@ -199,6 +200,7 @@ export class Body extends Item {
 
 				g = o.shape.clone();
 				if( o.size ) g.scale( o.size[0], o.size[0], o.size[0] );
+				if( o.shapeScale ) g.scale( o.shapeScale[0], o.shapeScale[1], o.shapeScale[2] );
 				//o.v = g.attributes.position.array;
 				o.v = MathTool.getVertex( g )
 				o.index = MathTool.getIndex( g )
@@ -685,9 +687,15 @@ export class Body extends Item {
 		if( o.sizeByInstance ) o.size = [1,1,1]
 		let g = this.geometry( o )
 
-		if(o.mesh) {
-			g = o.mesh.geometry
-		}
+	//console.log(g)
+
+		if( o.mesh ) {
+			g = o.mesh.isObject3D ? o.mesh.geometry.clone() : o.mesh.clone()
+			if( o.meshScale ) g.scale( o.meshScale[0], o.meshScale[1], o.meshScale[2] )
+			g.noScale = true
+		}/* else {
+			g = this.geometry( o )
+		}*/
 
 		let bb = new Instance( g, material, 0 )
 
@@ -695,7 +703,6 @@ export class Body extends Item {
 		bb.noScale = g.noScale
 
 		//console.log(o)
-
 		if( bb.type === 'convex' ) bb.v = o.v;
 		if( o.index ) bb.index = o.index;
 		

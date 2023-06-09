@@ -46,7 +46,7 @@ phy.add({ type:'plane', size:[300,1,300], pos:[0, -3, 0], visible:false })
 buildBlock = ( halfExtents, shift, numx, numy, numz ) => {
 
     let option = {
-        density:0.1, margin:0.001, friction:0.5, restitution:0, sleep:true, radius:0.04, //material:'simple'
+        density:0.1, margin:0.001, friction:0.5, restitution:0, sleep:true, radius:0.04, 
         sizeByInstance:true,
         startSleep:true,
     }

@@ -2,20 +2,20 @@ const Values = {
     density:0.3,
     friction:0.5,
     restitution:0,
-    sleep:true,
-    startSleep:true,
+    //sleep:true,
+    //startSleep:true,
 }
 
 demo = () => {
 
-    phy.log('click to blast')
+    //phy.log('click to blast')
 
     phy.view({
-        phi:-12, theta:0, distance:9, x:0, y:3, z:0, fov:70
+        phi:-12.5, theta:0, distance:9, x:0, y:3, z:0, fov:70,//envmap:'render',
     })
 
     // config physics setting
-    phy.set({ substep:1, gravity:[0,-9.81,0] })
+    phy.set({ substep:2, gravity:[0,-9.81,0] })
 
     // add static plane 
     //phy.add({ type:'plane', visible:false })
@@ -37,14 +37,19 @@ onComplete = () => {
     const models = phy.getMesh('arch')
     buildArch({ block:0.4, height:16, length:4, deep:4, pos:[0,3.2,0] }, models )
     // creat building
-    building({ block:0.4, height:8, length:4, deep:4, pos:[-2.037,0,0] })
-    building({ block:0.4, height:8, length:4, deep:4, pos:[2.037,0,0] })
+    building({ block:0.4, height:8, length:4, deep:4, pos:[-2.037,0,0] }, models)
+    building({ block:0.4, height:8, length:4, deep:4, pos:[2.037,0,0] }, models)
 
-    phy.add({ type:'highSphere', name:'sphere', size:[1], pos:[0.8,1,-2], density:1, restitution:0.2, friction:0.2, sleep:true, startSleep:true, material:'chrome' })
+    phy.add({ type:'box', size:[0.05,4,1.2], pos:[2.862, 2, 0], visible:false })
+    phy.add({ type:'box', size:[0.05,4,1.2], pos:[-2.862, 2, 0], visible:false })
+
+    //phy.add({ type:'highSphere', name:'sphere', size:[1], pos:[0.8,1,-2], density:1, restitution:0.2, friction:0.2, sleep:true, startSleep:true, material:'chrome' })
 
 }
 
-building = ( o ) => {
+building = ( o, models ) => {
+
+    let scale = 1
 
     const tmp = []
     let i, j, k, pos;
@@ -64,9 +69,11 @@ building = ( o ) => {
             ...Values,
             instance:'boxbase',
             type:'box',
-            radius:0.025,// box chanfer
+            //radius:0.1,// box chanfer
             size:[s,s,s],
-            pos:pos
+            pos:pos,
+            mesh: models ? models.box_0:null,
+            meshScale:[scale,scale,scale]
         })
     }}}
 
@@ -78,9 +85,9 @@ buildArch = ( o, models ) => {
 
     const tmp = []
 
-    let i, j, k, g, g2, pos, rot, name;
+    let scale = 1
 
-    console.log(models)
+    let i, j, k, g, g2, pos, rot, name;
 
     const model = []
     let names = ['arc_0', 'arc_1', 'arc_2', 'arc_3']
@@ -89,16 +96,14 @@ buildArch = ( o, models ) => {
 
     for(i=0; i<names.length; i++){
         name = names[i]
-        g = models[name].geometry
-        g.scale(100,100,100)
-        g2 = models[mesh[i]].geometry
-        g2.scale(100,100,100)
         
         model.push({  
             instance:name,
             type:'convex', 
-            shape:g, 
-            mesh:models[mesh[i]],
+            shape:models[name].geometry, 
+            mesh:models[mesh[i]].geometry,
+            meshScale:[scale,scale,scale],
+            shapeScale:[scale,scale,scale],
         })
     }
 
@@ -130,9 +135,6 @@ buildArch = ( o, models ) => {
             ...model[i],
             pos:pos,
             rot:rot,
-            //sleep:true,
-            //startSleep:true,
-
         })
     }}}
 

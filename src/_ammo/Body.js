@@ -56,7 +56,7 @@ export class Body extends Item {
 			if( this.full ){
 				v = b.getLinearVelocity()
 				v.toArray( AR, n + 8 ) // velocity
-				if( AR[ n ] === 1 ) AR[ n ] = v.length() * 9.8;// speed km/h
+				if( AR[ n ] === 1 )AR[ n ] = v.length() * 9.8;// speed km/h
 				r = b.getAngularVelocity()
 				r.toArray( AR, n + 11 )
 			}
@@ -95,7 +95,7 @@ export class Body extends Item {
 
 			    g = new Ammo.btConvexHullShape();
 
-			    //console.log(g)
+
 
 			    i =  Math.floor( o.v.length/3 );
 			    while( i-- ){
@@ -105,9 +105,19 @@ export class Body extends Item {
 
 			    }
 
+			    //g.batchedUnitVectorGetSupportingVertexWithoutMargin()
+
+
 		    	g.optimizeConvexHull()
 				g.recalcLocalAabb();
 				//g.initializePolyhedralFeatures(1);
+				//g.localGetSupportingVertexWithoutMargin( this.v.fromArray( 0,0,0 ) )
+
+				//if( o.margin !== undefined ) g.setMargin( o.margin )
+
+
+				//console.log(g.getNumPoints())
+			    //console.log(g.getMarginNonVirtual())
 				
 
 			break;

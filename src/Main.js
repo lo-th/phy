@@ -1338,7 +1338,7 @@ const setComposer = ( b ) => {
 		} 
 	}
 
-	Gui.postprocess()
+	Gui.postprocessEdit()
 
 }
 

@@ -26,16 +26,19 @@ import { SAOPass } from 'three/addons/postprocessing/SAOPass.js';
 
 import { CopyShader } from 'three/addons/shaders/CopyShader.js';
 import { FXAAShader } from 'three/addons/shaders/FXAAShader.js';
-import { SharpenShader } from 'three/addons/shaders/SharpenShader.js';
+
 //import { BokehShader, BokehDepthShader } from '../shaders/BokehShader2.js';
 import { GammaCorrectionShader } from 'three/addons/shaders/GammaCorrectionShader.js';
-import { DistortionShader } from 'three/addons/shaders/DistortionShader.js';
+
 import { BloomMix } from 'three/addons/shaders/BloomMix.js';
 
 import { ToneMapShader } from 'three/addons/shaders/ToneMapShader.js';
 
 import { LUTCubeLoader } from 'three/addons/loaders/LUTCubeLoader.js';
 import { LUT3dlLoader } from 'three/addons/loaders/LUT3dlLoader.js';
+
+import { DistortionShader } from './shaders/DistortionShader.js';
+import { SharpenShader } from './shaders/SharpenShader.js';
 
 export class Composer extends EffectComposer {
 
@@ -125,6 +128,12 @@ export class Composer extends EffectComposer {
 			minDistance:0.0001,
 			maxDistance:2,
 
+			// distortion
+			horizontal: 100,
+			distortion:0.5,
+			cylindrical: 1,
+
+
 			// lut
 			lutIntensity:1,
 
@@ -184,7 +193,7 @@ export class Composer extends EffectComposer {
 		
 		this.pass.sharpen = new ShaderPass( SharpenShader )
 		this.pass.sharpen.setSize = function (w,h){ this.uniforms[ 'resolution' ].value.set(w,h) }	
-		this.pass.sharpen.enabled = true
+		this.pass.sharpen.enabled = false
 		
 
 		
@@ -196,7 +205,6 @@ export class Composer extends EffectComposer {
 
 
 		this.pass.distortion = new ShaderPass( DistortionShader );
-		this.setDistortion()
 		this.pass.distortion.enabled = true
 
 
@@ -299,25 +307,9 @@ export class Composer extends EffectComposer {
 
 	}
 
-	setDistortion () {
+	
 
-		//console.log(this.camera.fov)
-
-		let horizontalFOV = 100;//140
-		let strength = 0.5;
-		let cylindricalRatio = 2;
-		let height = Math.tan( ( horizontalFOV * this.torad ) *0.5 ) / this.camera.aspect;
-
-		//this.camera.fov = Math.floor( Math.atan(height) * 2 * this.todeg );
-		//this.camera.updateProjectionMatrix();
-		//console.log(this.camera.fov)
-
-		this.pass.distortion.uniforms[ "strength" ].value = strength;
-		this.pass.distortion.uniforms[ "height" ].value = height;
-		this.pass.distortion.uniforms[ "aspectRatio" ].value = this.camera.ratio;
-		this.pass.distortion.uniforms[ "cylindricalRatio" ].value = cylindricalRatio;
-
-	}
+	
 
 	update (){
 
@@ -358,6 +350,8 @@ export class Composer extends EffectComposer {
 			this.pass.sharpen.uniforms[ "power" ].value = this.options.power
 		}
 
+		this.setDistortion()
+
 		
 
 		/*if(this.pass.ssaoPass){
@@ -367,6 +361,34 @@ export class Composer extends EffectComposer {
 		}*/
 
 	}
+
+
+	setDistortion () {
+
+		if(!this.pass.distortion) return
+
+		const o = this.options
+
+	    //console.log(this.camera, this.camera.ratio)
+
+		let horizontalFOV = o.horizontal;
+		let strength = o.distortion;
+		let cylindricalRatio = o.cylindrical;
+		let height = Math.tan( ( horizontalFOV * this.torad ) * 0.5 ) / this.camera.aspect;
+
+		//this.camera.fov = Math.floor( Math.atan(height) * 2 * this.todeg );
+		//this.camera.updateProjectionMatrix();
+		//console.log(this.camera.fov)
+
+		this.pass.distortion.uniforms[ "strength" ].value = strength;
+		this.pass.distortion.uniforms[ "height" ].value = height;
+		this.pass.distortion.uniforms[ "aspectRatio" ].value = this.camera.aspect//this.camera.ratio;
+		this.pass.distortion.uniforms[ "cylindricalRatio" ].value = cylindricalRatio;
+
+	}
+
+
+
 
 	changeLut ( txt, name, type ) {
 
