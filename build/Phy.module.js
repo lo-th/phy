@@ -28577,7 +28577,7 @@ class Motor {
 			}*/
 
 
-			 if( type === 'RAPIER' ) { name = 'rapier3d'; mini = 'rapier3d'; }
+			// if( type === 'RAPIER' ) { name = 'rapier3d'; mini = 'rapier3d'; }
 
 		    // for wasm side
 		    if( wasmLink[mini] ) o.blob = rootURL + wasmLink[mini];

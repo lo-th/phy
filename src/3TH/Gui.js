@@ -36,7 +36,7 @@ export const Gui = {
 	p0: 'M 0.5 1.5 L 9.5 1.5 M 0.5 5.5 L 9.5 5.5 M 0.5 9.5 L 9.5 9.5',
 	p1: 'M 1.5 0.5 L 1.5 9.5 M 5.5 0.5 L 5.5 9.5 M 9.5 0.5 L 9.5 9.5',
 
-	bg:'rgba(33,33,33,0.5)',
+	bg:'rgba(0,0,8,0.5)',
 
 
 	startMode:'ENV',
@@ -46,12 +46,13 @@ export const Gui = {
 
 	colors:{
 
+		content:'rgba(0,0,8,0.5)',
+		fontShadow:'#000',
 		//sx: 4,
         //sy: 4,
         radius:0,
 
         showOver:0,
-
 		background:'none', //'none',
 		backgroundOver:'none',//'rgba(255,255,255,0.02)',
 
@@ -81,7 +82,7 @@ export const Gui = {
 		//overoff:'rgba(255,255,255,0.1)',*/
 
 		
-		borderSize:0,
+		borderSize:1,
 		
 		//groups:'rgba(255,255,255,0.1)',
 		//gborder:'rgba(255,255,255,0.2)',
@@ -125,7 +126,7 @@ export const Gui = {
 
 	init:() => {
 
-		Gui.colors.content = Gui.bg
+		//Gui.colors.content = Gui.bg
 
 		//Gui.colors.background = Gui.bg
 		//Gui.colors.backgroundOver = Gui.bg

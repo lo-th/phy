@@ -351,7 +351,7 @@ export class Hub {
 
 
         top = document.createElement( 'div' )
-        top.style.cssText = unselectable + "position:absolute; top:0px; right:5px; width:250px; height:54px; background:rgba(33,33,33,0.5); display:none;"
+        top.style.cssText = unselectable + "position:absolute; top:0px; right:5px; width:250px; height:54px; background:rgba(0,0,8,0.5); display:none;"
         content.appendChild( top )
 
 
@@ -384,14 +384,16 @@ export class Hub {
 
     static harmony ( v ) {
 
+        let lineColor = 'rgba(0,0,0,0.5)'
+
         if(v ){
             if(!h1 && !h2){
                 h1 = document.createElement( 'div' );
-                h1.style.cssText = 'position:absolute; top:33.33%; width:100%; height:33.33%; border-top:1px solid #000; border-bottom:1px solid #000;'
+                h1.style.cssText = 'position:absolute; top:33.33%; width:100%; height:33.33%; border-top:1px dashed '+lineColor+'; border-bottom:1px dashed '+lineColor+';'
                 content.appendChild( h1 )
 
                 h2 = document.createElement( 'div' );
-                h2.style.cssText = 'position:absolute; left:33.33%; height:100%; width:33.33%; border-left:1px solid #000; border-right:1px solid #000;'
+                h2.style.cssText = 'position:absolute; left:33.33%; height:100%; width:33.33%; border-left:1px dashed '+lineColor+'; border-right:1px dashed '+lineColor+';'
                 content.appendChild( h2 )
             }
         } else {
