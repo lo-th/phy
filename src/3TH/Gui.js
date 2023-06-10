@@ -174,8 +174,7 @@ export const Gui = {
 
 		//ui.add( 'empty', {h:3})
 
-		//ui.add( 'bool', { name:'CAPTURE', onName:'STOP', value:false, mode:1 }).onChange( Gui.capture )
-		//ui.add('button', { name:'CAMERA' }).onChange( function(){ console.log( controls.getInfo() )} )
+		
 
 
 		//ui.add( 'empty', {h:6})
@@ -236,7 +235,8 @@ export const Gui = {
 			Env.up()
 		})
 
-		ui.add( options, 'shadow', { min:0, max:1, mode:mode } ).onChange( Main.setShadow ).listen()
+		ui.add( options, 'shadow', { min:0, max:1, mode:mode } ).onChange( Main.setShadow )//.listen()
+		ui.add( options, 'reflect', { min:0, max:1, mode:mode } ).onChange( Main.setReflect )//.listen()
 
 
 		ui.add( options, 'light_1', { rename:'Light Direct', min:0, max:10, mode:mode, color:'#ff0' } ).onChange( Main.lightIntensity )
@@ -285,8 +285,6 @@ export const Gui = {
 		if( Gui.mode !== 'PHY' ) return
 		const ui = Gui.ui2
 
-	    //ui.add('title', { name:Main.engineType, align:'center', h:30})
-
 	    ui.add('button', { values:Main.engineList, selectable:true, value:Main.engineType, h:30  }).onChange( Gui.swapEngine )
 		//if( Main.devMode ) ui.add('button', { values:['RAPIER','CANNON'], selectable:true, value:Main.engineType }).onChange( Gui.swapEngine )
 		ui.add( 'bool', { name:'WORKER OFF', onName:'WORKER ON', value:Main.isWorker, mode:1 }).onChange( Gui.swapWorker )
@@ -304,12 +302,17 @@ export const Gui = {
 			if(n === 'REPLAY') Main.injectCode( Main.getCode() )
 		})
 
+		ui.add( 'number', { name:'Gravity', value:[0,-9.81,0] })
+
 	},
 
 	camera:() => {
 
 		if( Gui.mode !== 'CAM' ) return
 		const ui = Gui.ui2
+
+	    //ui.add( 'bool', { name:'CAPTURE', onName:'STOP', value:false, mode:1 }).onChange( Gui.capture )
+		//ui.add('button', { name:'CAMERA' }).onChange( function(){ console.log( controls.getInfo() )} )
 
 	},
 

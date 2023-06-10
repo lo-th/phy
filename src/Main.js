@@ -255,7 +255,6 @@ export const Main = {
 		//Motor.engine = Main.engineType
 		window.engine = Main.engineType//Motor.engine
 
-
 		Motor.init( o )
 	
 	},
@@ -283,6 +282,7 @@ export const Main = {
 
 	lightIntensity:() => { lightIntensity() },
 	envmapIntensity:() => { setEnvmapIntensity() },
+	setReflect:() => { setReflect() },
 
 
 	getOption:() => ( options ),
@@ -1052,7 +1052,7 @@ const showGround = ( v ) => {
 
 const setReflect = ( v ) => {
 
-	options.reflect = v
+	//options.reflect = v
 
 	if(!ground) return
 	ground.setReflect( options.reflect )
