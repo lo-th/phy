@@ -70,7 +70,9 @@ export class Controller extends OrbitControls {
         this.tmpE = new Euler();
         this.tmpV = new Vector3();
 
-        this.info = this.getInfo();
+        this.info = { x:0, y:0, z:0, distance: 0, phi: 0, theta:0, fov: 0, zoom: 0 }
+
+        this.getInfo();
 
         this.isFree = true;
 
@@ -443,25 +445,19 @@ export class Controller extends OrbitControls {
         var c = this.object;
         var sph = this.getSpherical();
 
+        this.info.x = t.x
+        this.info.y = t.y
+        this.info.z = t.z
+
         this.object.dist = sph.radius
 
-        return {
+        this.info.distance = sph.radius
 
-            x:t.x, y:t.y, z:t.z,
+        this.info.phi = math.unwrapDeg(-Math.floor( sph.phi * math.todeg ) + 90)
+        this.info.theta = math.unwrapDeg(Math.floor( sph.theta * math.todeg ))
 
-            //distance: Math.floor( c.position.distanceTo( t ) ),
-            //phi: -Math.floor( this.getPolarAngle() * math.todeg ) + 90,
-            //theta: Math.floor( this.getAzimuthalAngle() * math.todeg ),
-
-            distance: sph.radius,
-            phi: math.unwrapDeg(-Math.floor( sph.phi * math.todeg ) + 90),
-            theta: math.unwrapDeg(Math.floor( sph.theta * math.todeg )),
-
-            fov: c.fov,
-            zoom: c.zoom,
-
-        };
-
+        this.info.fov = c.fov
+        this.info.zoom = c.zoom
 
     }
 
@@ -474,7 +470,7 @@ export class Controller extends OrbitControls {
         }
 
         this.camTween = [];
-        this.info = this.getInfo();
+        this.getInfo();
 
     }
 
@@ -483,7 +479,7 @@ export class Controller extends OrbitControls {
         if( this.followTarget ) this.resetFollow();
 
     	var self = this;
-        this.info = this.getInfo();
+        this.getInfo();
 
         data = data || {};
 
@@ -497,14 +493,16 @@ export class Controller extends OrbitControls {
         if( data.h !== undefined ) o.theta = data.h;
         if( data.d !== undefined ) o.distance = data.d;
 
+        if( data.fov !== undefined ) o.fov = data.fov;
+        if( data.zoom !== undefined ) o.zoom = data.zoom;
+
         if( data.x !== undefined ) o.x = data.x;
         if( data.y !== undefined ) o.y = data.y;
         if( data.z !== undefined ) o.z = data.z;
 
-        if( data.fov !== undefined ) o.fov = data.fov;
-        if( data.zoom !== undefined ) o.zoom = data.zoom;
-
         /*if( data.target ){
+            //console.log(data.target)
+            //o.target = data.target
             o.x = data.target[0];
             o.y = data.target[1];
             o.z = data.target[2];

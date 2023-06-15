@@ -51,13 +51,13 @@ export class Reflector extends Mesh {
 		//console.log('ground is add')
 
 		this.settings = {
-			size: [200,200],
+			size: [30,30],
 			gAlpha:true,
 			opacity:1,
 
 		}
 
-		this.scale.set( 200, 200, 1 )
+		//this.scale.set( 30, 30, 1 )
 		
 		this.rotateX( -Math.PI / 2 );
 		this.castShadow = false;
@@ -73,7 +73,7 @@ export class Reflector extends Mesh {
 
 		this.map = o.map || null;
 		this.color = o.color || 0x808080
-		this.reflect = o.reflect !== undefined ? o.reflect : 0.35;
+		this.reflect = o.reflect !== undefined ? o.reflect : 0.4;
 		//this.opacity = o.opacity !== undefined ? o.opacity : 1;
 		this.isWater = o.water !== undefined ? o.water : false;
 		this.uv = o.uv || 1;
@@ -129,8 +129,8 @@ export class Reflector extends Mesh {
 			color:this.color,
 			//emissive:0xFFFFFF,
 			//map:this.map, 
-			//roughness:1,//0.25, 
-			//metalness:0,//1, 
+			roughness:0.2,//0.25, 
+			metalness:0,//1, 
 			opacity:1,
 			transparent:true,
 			depthWrite:false,
@@ -229,7 +229,7 @@ export class Reflector extends Mesh {
 
 		Shader.setDefines( this.material )
 
-		Pool.set( 'Ground', this.material, 'material', true );
+		//Pool.set( 'Ground', this.material, 'material', true );
 		
 		this.onBeforeRender = function ( renderer, scene, camera ) {
 
@@ -531,7 +531,7 @@ export class Reflector extends Mesh {
 		c.width = c.height = 512;
         let ctx = c.getContext('2d');
 
-        let grd = ctx.createRadialGradient( 256,256, 60, 256,256,250 );
+        let grd = ctx.createRadialGradient( 256,256, 128, 256,256,256 );
 
 		grd.addColorStop(0, 'white');
 		grd.addColorStop(.2, 'white');

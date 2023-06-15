@@ -26,7 +26,7 @@ export class Body extends Item {
 
 	step ( AR, N ) {
 
-		let i = this.list.length, b, n, ar, lv, av;
+		let i = this.list.length, b, n, t, lv, av;
 
 		while( i-- ){
 
@@ -42,23 +42,13 @@ export class Body extends Item {
 
 		    AR[ n ] = b.up ? 1 : this.arLength(lv) * 9.8;// speed km/h
 
-			ar = havok.HP_Body_GetQTransform(b)[1]
+			t = havok.HP_Body_GetQTransform(b)[1]
 
-			//b.pos = ar[0]
-			//b.quat = ar[1]
+			b.pos = t[0]
+			b.quat = t[1]
 
-			this.fillArray( ar[0], AR, n+1, 3 ) 
-			this.fillArray( ar[1], AR, n+4, 4 ) 
-
-			/*AR[ n+1 ] = ar[0][0]
-			AR[ n+2 ] = ar[0][1]
-			AR[ n+3 ] = ar[0][2]
-
-			AR[ n+4 ] = ar[1][0]
-			AR[ n+5 ] = ar[1][1]
-			AR[ n+6 ] = ar[1][2]
-			AR[ n+7 ] = ar[1][3]*/
-
+			this.fillArray( t[0], AR, n+1, 3 ) 
+			this.fillArray( t[1], AR, n+4, 4 ) 
 
 			if( this.full ){
 			    av = havok.HP_Body_GetAngularVelocity(b)[1];
@@ -406,6 +396,8 @@ export class Body extends Item {
 
 	    if( o.gravityFactor !== undefined ) havok.HP_Body_SetGravityFactor(b, o.gravityFactor)
 
+	    if( o.gravity !== undefined ) havok.HP_Body_SetGravityFactor(b, o.gravity ? 1 : 0 )
+
 	    //havok.HP_Body_SetEventMask(b, arg1)
 	    //havok.HP_Body_SetMassProperties(b, arg1)
 
@@ -436,7 +428,7 @@ export class Body extends Item {
 			//if( !o.pos ) o.pos = b.pos
 			//if( !o.quat ) o.quat = b.quat
 
-			let u = [ o.pos, o.quat || [0,0,0,1] ]
+			let u = [ o.pos, o.quat ]
 
 			//if( b.isKinematic && root.tmpStep===(2*root.substep) ) havok.HP_Body_SetTargetQTransform( b, u ); // !! only on one step
 			if( b.isKinematic && move ) havok.HP_Body_SetTargetQTransform( b, u ); // !! only on one step

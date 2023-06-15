@@ -368,6 +368,9 @@ export class Avatar extends Group {
                     node.matrixAutoUpdate = false;
                     this.skeleton = node.skeleton;
                     if( this.skeleton.resetScalling ) this.skeleton.resetScalling()
+
+                    //console.log( node.geometry.boundingSphere, node.geometry.boundingBox, node.frustumCulled )
+                    //node.geometry.boundingSphere.radius = 0.1;
                 }
                 node.raycast = function(){ return }
                 this.mesh[node.name] = node;

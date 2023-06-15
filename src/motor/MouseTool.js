@@ -1,12 +1,24 @@
 import {
-    Mesh, PlaneGeometry, Raycaster, Vector2, Vector3, MeshBasicMaterial
+    Mesh, PlaneGeometry, Raycaster, Vector2, Vector3, MeshBasicMaterial, Line, BufferGeometry, Float32BufferAttribute
 } from 'three';
 
-import { root } from './root.js';
+import { root, Mat } from './root.js';
+
+//let needRay = false;
 
 export class MouseTool {
 
 	constructor ( controler, mode = 'drag' ) {
+
+		this.needRay = true;
+
+		//this.tmpSelected = null
+
+		//root.viewSize = { w:window.innerWidth, h:window.innerHeight, r:0}
+		//root.viewSize.r = root.viewSize.w/root.viewSize.h
+
+		this.moveDirect = false
+		this.moveDeep = false
 
 		this.mode = mode
 		this.option = {}
@@ -22,24 +34,37 @@ export class MouseTool {
 
 		this.sticky = false
 
+		this.pz = 0
+
 		this.isActive = false
 		this.raycastTest = false
 		this.firstSelect = false
 		this.mouseDown = false
 		this.mouseDown2 = false
 		this.mouseMove = false
-		this.controlFirst = true;
+		//this.controlFirst = true;
+
+		this.decal = new Vector3()
+		this.tmpPos = new Vector3()
+		this.tmpD = new Vector3()
 
 		this.mouse = new Vector2()
 		this.oldMouse = new Vector2()
 		this.raycast = new Raycaster()
 		this.raycast.far = 1000;
 
+		this.button = 0
+
 		this.pos = new Vector3()
 		this.velocity = new Vector3()
+		this.angle = 0
 
+		this.helper = new MoveHelper()
 
-		this.dragPlane = new Mesh( new PlaneGeometry( 1, 1 ), new MeshBasicMaterial({ visible:false, toneMapped: false }) )
+		this.dragPlane = new Mesh( new PlaneGeometry( 1, 1 ), Mat.get('hide') )
+
+		//this.dragPlane = new Mesh( new PlaneGeometry( 1, 1 ), new MeshBasicMaterial({ visible:false, toneMapped: false }) )
+		//this.dragPlane = new Mesh( new PlaneGeometry( 1, 1, 2, 2 ), new MeshBasicMaterial({ color:0xFF0000, wireframe:true, toneMapped: false }) )
 	    this.dragPlane.castShadow = false
 	    this.dragPlane.receiveShadow = false
 	    this.dragPlane.scale.set( 1, 1, 1 ).multiplyScalar( 200 )
@@ -90,31 +115,55 @@ export class MouseTool {
 	}
 
 	controleEnd ( e ) {
-		this.controlFirst = true
+		//this.controlFirst = true
 		this.raycastTest = true
+		this.controler.getInfo();
 	}
 
 	controleChange ( e ) {
 
+		//console.log('change')
+
 		let state = this.controler.getState();
+
+		if( state !== -1 ) this.raycastTest = false;
+
+		/*let state = this.controler.getState();
+		console.log(state)
 		if( state !== -1 ){
 			if( this.controlFirst ) this.controlFirst = false;
 			else this.raycastTest = false;
-		}
+		}*/
+
+		//this.controler.getInfo();
 	}
 
 	getMouse ( e ) {
 
-		this.mouse.x =   ( e.offsetX / this.dom.clientWidth ) * 2 - 1
-		this.mouse.y = - ( e.offsetY / this.dom.clientHeight ) * 2 + 1
+		if(root.viewSize){
+			this.mouse.x =   ( e.offsetX / root.viewSize.w ) * 2 - 1
+		    this.mouse.y = - ( e.offsetY / root.viewSize.h ) * 2 + 1
+		} else {
+			this.mouse.x =   ( e.offsetX / this.dom.clientWidth ) * 2 - 1
+			this.mouse.y = - ( e.offsetY / this.dom.clientHeight ) * 2 + 1
+		}
+
+		//console.log(e.button)
+		
+		this.button = e.pointerType !== 'touch' ? e.button : 0
+		//if(this.button===2)this.moveDeep = !this.moveDeep
 
 	}
 
 	contextmenu ( e ) {
 		e.preventDefault()
-		if( this.mouseDown ){
+		//this.mouseDown2 = true
+		//this.controler.enabled = false;
+		/*if( this.mouseDown ){
+
+			//this.moveDeep = true
 			console.log('yo ')
-		}
+		}*/
 	}
 
 	mousedown ( e ) {
@@ -128,42 +177,11 @@ export class MouseTool {
 
 		switch( this.mode ){
 
-			case 'drag':
+			case 'drag': this.drag(); break;
+			case 'shoot': this.shoot(); break;
+			case 'blast': this.blast(); break;
 
-			let button = 0
-
-			
-
-			if( !this.mouseDown ){
-
-				if( this.firstSelect ) this.firstSelect = false
-				this.oldMouse.copy( this.mouse )
-			}
-
-			if ( e.pointerType !== 'touch' ) button = e.button
-
-		    if( button === 0 ){
-			    this.mouseDown = true
-			    root.mouseDown = true
-			    this.castray()
-			}
-
-			if( button === 2 ){
-			    this.mouseDown2 = true
-			    this.castray()
-			}
-			break
-
-			case 'shoot':
-			this.shoot()
-			break
-
-			case 'blast':
-			this.blast()
-			break
 		}
-
-		
 
 	}
 
@@ -186,7 +204,8 @@ export class MouseTool {
 
 			case 'drag':
 			this.getMouse( e )
-		    this.castray()
+			this.needRay = true;
+		    //this.castray()
 			break
 
 		}
@@ -201,45 +220,89 @@ export class MouseTool {
 
 			this.raycast.setFromCamera( this.mouse, this.controler.object )
 			inters = this.raycast.intersectObject( this.dragPlane )
-			if ( inters.length && this.mouseDown ) root.motor.change({ name:'mouse', pos:inters[0].point.toArray() }, true )
-			return
+			if ( inters.length && this.mouseDown ){ 
+				this.moveSelect( inters[0].point )
+				//if( this.moveDirect ) root.motor.change({ name:this.selected.name, pos:inters[0].point.toArray() }, true )
+				//else root.motor.change({ name:'mouse', pos:inters[0].point.toArray() }, true )
+			}
+			//return
+		} else {
 
-		}
+			if( !this.raycastTest ) return;
 
-		if( !this.raycastTest ) return;
+			//this.controler.enabled = false
 
-		this.raycast.setFromCamera( this.mouse, this.controler.object )
+			this.controler.enableRotate = false
+			this.controler.enablePan = false
 
-		inters = this.raycast.intersectObjects( root.scene.children, true )
+			this.raycast.setFromCamera( this.mouse, this.controler.object )
 
-		if ( inters.length > 0 ) {
+			inters = this.raycast.intersectObjects( root.scene.children, true )
 
-			g = inters[ 0 ].object
-			id = inters[ 0 ].instanceId
+			this.tmpSelected = null
 
-			//console.log(inters[ 0 ])
+			if ( inters.length > 0 ) {
 
-			if( id !== undefined ){
-				m = root.motor.byName( g.name+id )
-			} else {
-				if( g.parent !== root.scene ){
-					h = g.parent;
-					if( h.parent !== root.scene ) m = h.parent
-					else m = h;
-				} else m = g;
+				g = inters[ 0 ].object
+				id = inters[ 0 ].instanceId
+
+				//console.log(inters[ 0 ])
+
+				if( id !== undefined ){
+					m = root.motor.byName( g.name+id )
+				} else {
+					if( g.parent !== root.scene ){
+						h = g.parent;
+						if( h.parent !== root.scene ) m = h.parent
+						else m = h;
+					} else m = g;
+				}
+
+				if( this.mouseDown2 ){
+					if( m.extra ) m.extra( m.name )
+					//console.log(m)
+				}
+
+				if( !m.isButton ){ 
+					cursor = this.select( m, inters[ 0 ].point )
+					//this.tmpSelected = m
+					//this.tmpPoint = inters[ 0 ].point
+				}
+				else cursor = this.actionButton( m, inters[ 0 ] )
+
+			}else {
+				this.controler.enableRotate = true
+				this.controler.enablePan = true
+				//this.controler.enabled = true
 			}
 
-			if( this.mouseDown2 ){
-				if( m.extra ) m.extra( m.name )
-				//console.log(m)
-			}
+			document.body.style.cursor = cursor
+		} 
 
-			if( !m.isButton ) cursor = this.select( m, inters[ 0 ] )
-			else cursor = this.actionButton( m, inters[ 0 ] )
+	}
 
+	drag () {
+
+		if( !this.mouseDown ){
+			if( this.firstSelect ) this.firstSelect = false
+			this.oldMouse.copy( this.mouse )
 		}
 
-		document.body.style.cursor = cursor
+		if( this.button === 2 ){
+		    this.mouseDown2 = true
+		    //this.castray()
+		}
+
+	    //if( this.button === 0 ){
+		    this.mouseDown = true
+		    root.mouseDown = true
+		    this.needRay = true;
+
+		    //if(this.tmpSelected!== null) this.select(this.tmpSelected, this.tmpPoint )
+		    //this.castray()
+		//}
+
+		
 
 	}
 
@@ -323,7 +386,9 @@ export class MouseTool {
 		this.raycastTest = true
 		this.selected = null
 		this.firstSelect = true
-		this.controler.enabled = true
+		//this.controler.enabled = true
+		this.controler.enableRotate = true
+		this.controler.enablePan = true
 
 	}
 
@@ -342,26 +407,42 @@ export class MouseTool {
 			this.buttonRef.userData.action( pos )
 		}
 
-		if( this.mouseDown ) this.controler.enabled = false
+		//if( this.mouseDown ) this.controler.enabled = false
 		   
 		//return 'grab'
 	    return 'pointer'
 
 	}
 
-	select ( obj, inters ) {
+	
+
+	select ( obj, point ) {
+
+		//this.controler.enabled = false
+
+		//if( this.selected !== null ) return 'pointer'
+		//if( !this.mouseDown ) return 'pointer'
 
 		if( !this.mouseDown || this.selected === obj ) return 'pointer'
 
-		let pos = inters.point
+		this.pz = 0
+
+		let pos = point
 	    let quat = [0,0,0,1]
-		
+
 		this.selected = obj
 		/*if( this.selected.isInstance ) quat = this.selected.instance.getInfo( this.selected.id ).quat;
 		else if( this.selected.isObject3D ){
 			this.selected.updateMatrix()
 			quat = this.selected.quaternion.toArray()
 		}*/
+
+		this.decal.copy( pos ).sub( this.selected.position )
+		this.tmpPos.copy( pos ).sub( this.decal )
+		this.angle = this.controler.getAzimuthalAngle()
+
+
+		
 
 		let q = this.selected.quaternion
 		quat = [ q._x, q._y, q._z, q._w ]
@@ -383,10 +464,14 @@ export class MouseTool {
 			return 'grab'
 		}*/
 
-		
+		root.scenePlus.add( this.helper )
 	    root.scenePlus.add( this.dragPlane )
-	    this.dragPlane.rotation.set( 0, this.controler.getAzimuthalAngle(), 0 )
+
+	    this.dragPlane.rotation.set( 0, this.angle, 0 )
 	    this.dragPlane.position.copy( pos )
+	    this.dragPlane.position.y = 0
+
+	    this.helper.position.copy( pos )
 
 	    let p = pos.toArray()
 
@@ -400,61 +485,152 @@ export class MouseTool {
 		//let def = [-0.03, 0.03, 60, 2]
 		//let defr = [-3, 3, 60, 2]
 
-		let def = [-0.1, 0.1, 60, 1]
-		let defr = [-3, 3, 60, 1]
+		if( this.moveDirect ){
+			root.motor.change({ name:this.selected.name, kinematic:false, gravity:false, damping:[0.9,0.9]  })
+		} else {
+			let def = [-0.01, 0.01, 60, 1]
+			let defr = [-0.1, 0.1, 60, 1]
+			let notUseKinematic = root.engine === 'OIMO' || root.engine ==='RAPIER' || root.engine ==='HAVOK'
+			let jtype = root.engine ==='HAVOK' ? 'fixe' : 'd6'
 
-		let notUseKinematic = root.engine ==='OIMO' || root.engine ==='RAPIER'
+			root.motor.add([
+				{ name:'mouse', type:'null', pos:p, quat:quat, kinematic:notUseKinematic ? false : true },
+				{ 
+					name:'mouseJoint', type:'joint',
+					mode:jtype,//mode:'spherical', //lm:[-0.2, 0.2],
+					lm:[['x',...def], ['y',...def], ['z',...def], 
+					['rx',...defr], ['ry',...defr], ['rz',...defr]],
+					autoDrive: true,
+					b1:'mouse',
+					b2:this.selected.name,  
+					worldAnchor: p, 
+					worldAxis:[1,0,0],
+					//friction:0.5,
+					//tolerance:[1, 10],
+					//noPreProcess:true,
+					//improveSlerp:true,
+					visible:true,
+					//noFix:true,
+				}
+			])
 
-		root.motor.add([
-			{ name:'mouse', type:'null', pos:p, quat:quat, kinematic:notUseKinematic ? false : true },
-			{ 
-				name:'mouseJoint', type:'joint',mode:'d6',//mode:'spherical', //lm:[-0.2, 0.2],
-				lm:[['x',...def], ['y',...def], ['z',...def], 
-				['rx',...defr], ['ry',...defr], ['rz',...defr]],
-				autoDrive: true,
-				b2:this.selected.name, b1:'mouse', 
-				worldAnchor: p, 
-				worldAxis:[1,0,0],
-				//friction:0.5,
-				//tolerance:[1, 10],
-				//noPreProcess:true,
-				//improveSlerp:true,
-				visible:true,
-				//noFix:true,
-			}
-		])
+		}
 		
 
-		this.raycastTest = false
-		this.controler.enabled = false
+		//this.raycastTest = false
+		//this.controler.enabled = false
+
+		//document.body.style.cursor = 'move'
 
 		return 'move'
 
 	}
 
-	unSelect () {
-
-		
+	moveSelect ( point ) {
 
 		if( this.selected === null ) return
 
-		/*if( this.selected.isButton ){
-			if( this.selected.userData.out ) this.selected.userData.out()
-		} else {*/
-			this.dragPlane.geometry.dispose()
-			root.scenePlus.remove( this.dragPlane )
+		if( point ){ 
+			this.tmpPos.copy( point ).sub( this.decal ) 
+		}
+
+		if( this.moveDeep ){ // Z deep move
+
+			let y = this.selected.position.y
+			let diff  = y-this.tmpPos.y
+			this.tmpPos.y = y
+			this.tmpD.set(0,0,diff).applyAxisAngle({x:0, y:1, z:0}, this.angle)
+			this.tmpPos.add( this.tmpD )
+
+		}
+
+		this.helper.position.copy( this.tmpPos )
+		let pos = this.tmpPos.toArray()
+
+		if( this.moveDirect ){ 
+			root.motor.change({ name:this.selected.name, pos:pos, reset:true })
+		} else {
+			root.motor.change({ name:'mouse', pos:point.toArray() }, true )
+		}
+	}
+
+	unSelect () {
+
+		if( this.selected === null ) return
+
+		//this.dragPlane.geometry.dispose()
+		root.scenePlus.remove( this.dragPlane )
+		root.scenePlus.remove( this.helper )
+
+		if( this.moveDirect ){
+			root.motor.change({ name:this.selected.name, kinematic:false, wake:true, gravity:true, damping:[0,0.1] })
+		} else {
 			root.motor.remove(['mouseJoint','mouse'])
 			root.motor.change({ name:this.selected.name, neverSleep:false, wake:true })
-		//}
-
+		}
 		
 		this.raycastTest = true
 		this.selected = null
 		this.firstSelect = true
-		this.controler.enabled = true
+		//this.controler.enabled = true
+
+	}
+
+	step(){
+
+		if( this.needRay ) this.castray()
+	    this.needRay = false
+
+		if( this.selected === null ) return
+
+		let key = root.flow.key
+
+
+		if( key[1] !== 0 ){
+			let pz = key[1] * 0.1
+			this.dragPlane.translateZ(pz)
+			this.needRay = true;
+		}
+
+
+
+		//this.castray()
+		if( this.moveDirect ) this.moveSelect()
+
 		
 
 	}
 
 
+}
+
+
+
+
+
+
+class MoveHelper extends Line {
+
+	constructor( o = {} ) {
+
+		super( new BufferGeometry(), Mat.get('line') );
+
+		let c = 0.75
+
+		const positions = [0,0,0, 0,-100,0]
+	    const colors = [c,c,c, 0,0,0]
+
+	    //this.geometry = new BufferGeometry();
+	    this.geometry.setAttribute( 'position', new Float32BufferAttribute( positions, 3 ) );
+	    this.geometry.setAttribute( 'color', new Float32BufferAttribute( colors, 3 ) );
+	    //this.geometry.computeBoundingSphere();
+
+	    this.vertices = this.geometry.attributes.position;
+	    this.colors = this.geometry.attributes.color;
+	    this.local = [ 0, 0, 0, 0, 0, 0, 0, 0, 0 ];
+
+	    //this.matrixAutoUpdate = false;
+	    this.frustumCulled = false;
+
+	}
 }

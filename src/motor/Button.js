@@ -113,7 +113,7 @@ export class Button {
 
 			//this.value += 0.1 * side
 
-			let t = MathTool.nearEquals( this.value, this.target, 0.01)
+			let t = MathTool.nearEquals( this.value, this.target, 0.0001)
 
 			if(!t){
 			    this.pos[this.axe] = this.value

@@ -133,10 +133,17 @@ export class engine {
 		
 		fixe = o.fixe !== undefined ? o.fixe : true;
 
-		gravity =  o.gravity || [ 0, -9.80665, 0 ];
+		root.gravity =  o.gravity || [ 0, -9.80665, 0 ];
 
 		if( root.world === null ) engine.start();
 		//else root.world.setGravity( gravity );
+
+	}
+
+	static setGravity( o ) {
+		
+		root.gravity = o.gravity;
+		if( root.world ) havok.HP_World_SetGravity( root.world, root.gravity );//root.world._gravity.fromArray( o.gravity )
 
 	}
 	
@@ -176,7 +183,7 @@ export class engine {
     	root.queryCollector = havok.HP_QueryCollector_Create(1)[1];
 
 
-    	havok.HP_World_SetGravity( root.world, gravity );
+    	havok.HP_World_SetGravity( root.world, root.gravity );
 
     }
 

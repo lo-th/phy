@@ -12,7 +12,7 @@ demo = () => {
     phy.log('look code')
 
     // config physics setting
-    phy.set( {substep:2, gravity:[0,-9.81,0]})
+    phy.set( {substep:2, gravity:[0,-20,0]})
 
     // add static plane 
     phy.add({ type:'plane', size:[300,1,300], visible:false, friction:friction, restitution:bounce })

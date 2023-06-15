@@ -318,6 +318,7 @@ export class Body extends Item {
 
 		// position / rotation
 	    if( o.pos || o.quat ){
+	    	
 	    	if( o.pos ){ 
 	    		
 	    		if( b.isKinematic ){
@@ -331,6 +332,7 @@ export class Body extends Item {
 	    		b.setTranslation( this.v.fromArray( o.pos ), autowake )
 
 	    	}
+
 		    if( o.quat ){
 		    	if( b.isKinematic ){
 
@@ -381,6 +383,8 @@ export class Body extends Item {
 	    if( o.angularVelocity ) b.setAngvel( this.v.fromArray( o.angularVelocity ), autowake )
 
 	    if( o.gravityScale ) b.setGravityScale( o.gravityScale, autowake );
+
+	    if( o.gravity !== undefined ) b.setGravityScale( o.gravity ? 1 : 0 );
 
 	    // Each rigid-body is part of a dominance group in [-127; 127] (the default group is 0).
 	    // damping coefficients

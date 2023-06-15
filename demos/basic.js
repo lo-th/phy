@@ -54,7 +54,7 @@ building = ( o ) => {
             pos:pos,
             density:0.3,
             friction:0.4,
-            restitution:0.6,
+            restitution:0.1,
             sleep:true,
             startSleep:true,
         })

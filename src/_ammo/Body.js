@@ -56,7 +56,7 @@ export class Body extends Item {
 			if( this.full ){
 				v = b.getLinearVelocity()
 				v.toArray( AR, n + 8 ) // velocity
-				if( AR[ n ] === 1 )AR[ n ] = v.length() * 9.8;// speed km/h
+				if( AR[ n ] === 1 ) AR[ n ] = v.length() * 9.8;// speed km/h
 				r = b.getAngularVelocity()
 				r.toArray( AR, n + 11 )
 			}
@@ -453,7 +453,9 @@ export class Body extends Item {
 		if ( o.ccdThreshold !== undefined ) b.setCcdMotionThreshold( o.ccdThreshold );// 1e-7
 		if ( o.ccdRadius !== undefined ) b.setCcdSweptSphereRadius( o.ccdRadius ); // 0.2 // 0.0 by default
 
-		if ( o.gravity !== undefined ) b.setGravity( this.v.fromArray( o.gravity ) );
+		if ( o.selfGravity !== undefined ) b.setGravity( this.v.fromArray( o.selfGravity ) );
+
+		if ( o.gravity !== undefined ) b.setGravity( o.gravity ? root.gravity : this.v.fromArray( [0,0,0] ) );
 
 
 

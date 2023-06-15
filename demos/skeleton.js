@@ -1,6 +1,6 @@
 let eva, bb, ba, bc
 let mode = 'follow'
-let type = 'lee'
+let type = 'hero'
 let debug = false
 
 let modelList = ['hero', 'eva', 'lee']
@@ -19,7 +19,7 @@ demo = () => {
 
 	// add static plane 
 	phy.add({ type:'plane', name:'floor', size:[ 300,1,300 ], visible:false, friction: 0.5,  });
-	phy.add({ type:'box', name:'wall', pos:[0,1.25,-1.1], size:[ 2,2.5,0.2 ], friction: 0.5,  });
+	//phy.add({ type:'box', name:'wall', pos:[0,1.25,-1.1], size:[ 2,2.5,0.2 ], friction: 0.5,  });
 
 	//let k = 200
 	//while(k--) phy.add({type:'sphere', pos:[math.rand(-5,5), 2, math.rand(-5,5)], size:[math.rand(0.1,0.3)], density:1, mask:2})

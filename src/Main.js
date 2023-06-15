@@ -75,21 +75,22 @@ let particles = null
 
 let maxFps = 60
 
-const cam = {
-	phy:38,
+const CameraBase = {
+	
 	theta:0,
+	phi:12,
 	distance:12,
 	fov:50,
 	x:0,
 	y:2,
-	z:1,
+	z:0,
 	time:0
 }
 
 const setting = {
 
 	envmap:'clear',//'basic',
-	groundSize:[ 200, 200 ],
+	groundSize:[ 60, 60 ],
 	groundAlpha: true,
 	groundOpacity:1,
 	ground:true,
@@ -127,8 +128,9 @@ const options = {
 	shadowLuma:0.5, //0.75,//0,
     shadowContrast:2,//2.5,//1,
 
-    reflect:0.8,
+    reflect:0.4,
     renderMode:0,
+    fogMode:0,
 
     lightSizeUV:1.3,
     nearPlane:9.5,
@@ -266,6 +268,9 @@ export const Main = {
     setShadow:( v ) => { setShadow(v) },
     upShader:() => { upShader() },
 
+    getCamera:() => ( controls.info ),
+    setCamera:(o) => { setCamera(o) },
+
     getCode:() => ( code ),
 	getScene:() => ( scene ),
 	getRenderer:() => ( renderer ),
@@ -311,7 +316,20 @@ export const Main = {
 	},
 
 	showGui: () => { Gui.showHide() },
+	resetGui: () => { Gui.reset() },
 	setEnv: (name, chageUI) => { setEnv(name, chageUI) },
+
+	setColors: (palette) => {
+
+
+		if( ground ) ground.setColor( Gui.tool.htmlToHex( palette.ground ), true )
+
+		let c = Gui.tool.htmlRgba(palette.darkMuted, 0.4)
+		//console.log(c)
+
+		Hub.setTopColor( Gui.tool.htmlRgba(palette.darkMuted, 0.4) )
+
+	}
 
 }
 
@@ -428,20 +446,23 @@ const init = () => {
 	// CAMERA / CONTROLER
 
 	camera = new THREE.PerspectiveCamera( 50, size.r, 0.1, 1000 )
-	camera.position.set( 0, 4, 10 )
-	camera.lookAt( 0, 2, 0 )
+	//camera.position.set( 0, 4, 10 )
+	//camera.lookAt( 0, 2, 0 )
 	scene.add( camera )
 
 	controls = new Controller( camera, renderer.domElement, followGroup )
-	controls.target.y = 2
-	controls.minDistance = 1
+	//controls.target.y = 2
+	controls.minDistance = 0.1
     controls.maxDistance = 100
     controls.enableDamping = true // an animation loop is required when either damping or auto-rotation are enabled
     controls.dampingFactor = 0.25//25//0.25;
     controls.screenSpacePanning = true
     //controls.enable = false
     //controls.maxPolarAngle = Math.PI / 2
-	controls.update()
+
+    //setCamera()
+
+	//controls.update()
 
 	
 	// avoid track run in background
@@ -771,6 +792,13 @@ const addGround = ( o ) => {
 	ground.setWater( o.water )
     scene.add( ground )
 
+
+    Motor.addMaterial( ground.material,  true )
+
+    //Pool.set( 'Ground',  );
+
+    //Gui.reset()
+
 }
 
 const removeGround = () => {
@@ -903,7 +931,9 @@ const refreshCode = () => {
 
     window['demo']()
 
-    Gui.reset()
+    Gui.doReset()
+
+
 
 }
 
@@ -938,7 +968,6 @@ const onResize = () => {
 	size.w = window.innerWidth - size.left
 	size.h = window.innerHeight
 	size.r = size.w / size.h
-
 	needResize = true
 
 }
@@ -953,6 +982,7 @@ const doResize = () => {
 	if(composer) composer.resize( size )
 	if(particles) particles.onresize( size.h )
 	Hub.resize( size )
+    Motor.resize( size )
 	needResize = false
 
 	//console.log(dom.clientLeft)
@@ -1115,8 +1145,19 @@ const view = ( o = {} ) => {
 	if( o.ground  ) addGround( o )
 	else removeGround()
 
-	if( isLoadCode ) controls.moveCam( {...cam, ...o })
+	//if( isLoadCode ) controls.moveCam( {...cam, ...o })
+
+	if( isLoadCode ) setCamera( o )
 	
+}
+
+const setCamera = ( o ) => {
+
+	//if(o) for( let i in o ){ if( cam[i] !== undefined ) cam[i] = o[i] }
+
+    controls.moveCam( {...CameraBase, ...o } )
+    controls.update()
+
 }
 
 Motor.view = view;

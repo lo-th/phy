@@ -25,7 +25,7 @@ export class Body extends Item {
 		this.num = Num[this.type]
 		this.full = false
 		this.extraConvex = false
-		this.needMatrix = root.engine ==='RAPIER'
+		this.needMatrix = root.engine ==='RAPIER' || root.engine ==='HAVOK'
 		//this.tmpVolume = 0
 
 	}

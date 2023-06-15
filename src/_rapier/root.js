@@ -6,6 +6,7 @@ export const root = {
 	world : null,
 	delta : 0,
 	invDelta :0,
+	gravity:null,
 
 	flow:{
 		tmp:[],

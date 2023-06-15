@@ -10,6 +10,7 @@ export const root = {
 
 	world : null,
 	delta : 0,
+	gravity:null,
 	key:[],
 
 	reflow:{

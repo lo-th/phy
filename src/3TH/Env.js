@@ -9,7 +9,10 @@ import {
 
 import { RGBELoader } from 'three/addons/loaders/RGBELoader.js';
 import { GroundProjectedEnv } from 'three/addons/objects/GroundProjectedEnv.js';
+import { ImgTool } from './utils/ImgTool.js';
 import { math } from './math.js';
+//import { Hub } from './Hub.js'
+import { Main } from '../Main.js'
 
 import { texture, equirectUV } from 'three/nodes';
 
@@ -28,7 +31,9 @@ let skyColor = new Color()
 let groundColor = new Color()
 
 let previewCanvas = null
+let previewPalette = null
 let isPreviewDisplay = false
+let isPaletteDisplay = false
 let previewData = null
 
 let pm = null
@@ -37,6 +42,7 @@ let hdr = null
 let pmrem = null
 let floor = null;
 let data = {};
+let palette = {};
 let color =  new Color();
 let light = null, light3 = null, scene = null, renderer = null, light2 = null;
 
@@ -213,7 +219,7 @@ export class Env {
 				if( isWebGPU ) scene.backgroundNode = env;
 				else scene.background = env;
 			}
-			if( scene.ground ) scene.ground.setColor( data.fog.getHex(), true )
+			//if( scene.ground ) scene.ground.setColor( data.fog.getHex(), true )
 		}
 
 		// autosun
@@ -340,17 +346,48 @@ export class Env {
 		
 	}
 
+	static getCanvas () {
+
+		const ref = previewData
+
+		if( previewCanvas === null ) previewCanvas = document.createElement("canvas");
+		previewCanvas.style.cssText = 'position:absolute; left:10px; bottom:20px; width:'+ref.w+'px; height:'+ref.h+'px; border:1px solid #222;';
+        previewCanvas.width = ref.w;
+        previewCanvas.height = ref.h;
+        let ctx = previewCanvas.getContext("2d")
+		let dt = ctx.createImageData( ref.w, ref.h )
+		let k = dt.data.length
+		while(k--) dt.data[k] = ref.data[k]
+		ctx.putImageData( dt, 0, 0 )
+		/*ctx.lineWidth = 2;
+		ctx.strokeStyle = 'red';
+		ctx.beginPath();
+		ctx.arc(ref.x, ref.y, 20*autoSize, 0, 2 * Math.PI);
+		ctx.stroke()*/
+		
+	}
+
+	static getPalette () {
+
+		return palette;//ImgTool.getPalette( previewData )
+		
+	}
+
 	static preview ( b ) {
+
+		Env.palettePreview( b )
 
 		const ref = previewData;
 		if( ref === null ) return
 		if(b){
 			if( previewCanvas === null ) previewCanvas = document.createElement("canvas");
-			previewCanvas.style.cssText = 'position:absolute; left:10px; bottom:20px; width:'+ref.w+'px; height:'+ref.h+'px; border:1px solid #222;';
+			previewCanvas.style.cssText = 'position:absolute; left:10px; bottom:10px; width:'+ref.w+'px; height:'+ref.h+'px; border:1px solid #222;';
 	        previewCanvas.width = ref.w;
 	        previewCanvas.height = ref.h;
 	        let ctx = previewCanvas.getContext("2d")
 			let dt = ctx.createImageData( ref.w, ref.h )
+
+			//dt.data = [...ref.data]
 			let k = dt.data.length
 			while(k--) dt.data[k] = ref.data[k]
 			ctx.putImageData( dt, 0, 0 )
@@ -371,6 +408,57 @@ export class Env {
 				isPreviewDisplay = false
 			}
 		}
+	}
+
+	static palettePreview ( b ) {
+		
+		let size = 25.6
+		let n = 0, y = 0, x = 0, d = 5
+		//let num = 10 + 4 
+		let w = (size * 3) + d
+		let h = size * 5
+		
+
+		if(b){
+			if( previewPalette === null ) previewPalette = document.createElement("canvas");;
+			previewPalette.style.cssText = 'position:absolute; left:271px; bottom:10px; width:'+w+'px; height:'+h+'px; border:1px solid #222;';
+			previewPalette.width = w;
+	        previewPalette.height = h;
+	        const ctx = previewPalette.getContext("2d");
+
+	        ctx.fillStyle = '#000'
+			ctx.fillRect(0, 0, w, h);
+;
+			for(let m in palette){
+				
+				if(palette[m]!==undefined){
+
+					x = Math.floor( n / 5 )
+					y = (n - (x*5)) 
+					
+					ctx.fillStyle = palette[m]
+					ctx.fillRect(x*size+(x>0? d : 0), y* size, size, size);
+					
+				}
+				
+				n++
+
+			}
+
+			if( !isPaletteDisplay ) {
+				document.body.appendChild( previewPalette )
+				isPaletteDisplay = true;
+			}
+
+		} else {
+
+			if( isPaletteDisplay ){
+				document.body.removeChild( previewPalette )
+				isPaletteDisplay = false
+			}
+
+		}
+
 	}
 
 	static autoSun () {
@@ -485,6 +573,34 @@ export class Env {
 		data['ground'] = groundColor
 
 		previewData = { data:dt, x:x, y:y, w:w, h:h }
+
+		palette = ImgTool.getPalette( previewData )//Env.getPalette()
+
+		let extra = {
+
+			sun: '#' + sunColor.getHexString(),
+			fog: '#' + fogColor.getHexString(),
+			m: undefined,
+			sky: '#' + skyColor.getHexString(),
+			ground: '#' + groundColor.getHexString()
+
+		}
+
+		palette = {...extra, ...palette }
+
+
+		Main.setColors( palette )
+		
+
+		/*palette['sun'] = '#' + sunColor.getHexString()
+		palette['fog'] = '#' + fogColor.getHexString()
+		palette['m'] = undefined
+		palette['sky'] = '#' + skyColor.getHexString()
+		palette['ground'] = '#' + groundColor.getHexString()*/
+
+		//console.log(palette)
+
+		//Env.palettePreview( true )
 
 		Env.preview( isPreviewDisplay )
 

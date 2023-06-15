@@ -9,7 +9,7 @@ export const GlbTool = {
 
 	getMesh:( scene, keepMaterial ) => {
         let meshs = {};
-        if( keepMaterial ) GlbTool.keepMaterial( scene )
+        //if( keepMaterial ) GlbTool.keepMaterial( scene )
         scene.traverse( ( child ) => {
             if ( child.isMesh ) meshs[ child.name ] = child;
         })

@@ -13,6 +13,7 @@ export const root = {
 	tmpStep:0,
 	substep:1,
 	key:[],
+	gravity:[0,9.81,0],
 
 	reflow:{
 		ray:[],

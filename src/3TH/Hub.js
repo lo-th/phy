@@ -351,7 +351,9 @@ export class Hub {
 
 
         top = document.createElement( 'div' )
-        top.style.cssText = unselectable + "position:absolute; top:0px; right:5px; width:250px; height:54px; background:rgba(0,0,8,0.5); display:none;"
+        top.style.cssText = unselectable + "position:absolute; top:0px; right:0px; width:260px; height:100%; background:rgba(0,0,0,0.4); display:none;"
+        //top.style.cssText = unselectable + "position:absolute; top:0px; right:5px; width:250px; height:100%; background:#000008; display:none; opacity: 0.7;"
+        top.style.backdropFilter = 'blur(4px)'
         content.appendChild( top )
 
 
@@ -380,6 +382,10 @@ export class Hub {
 
         //Hub.colors(false)
 
+    }
+
+    static setTopColor ( c = '#000000' ) {
+        top.style.background = c
     }
 
     static harmony ( v ) {

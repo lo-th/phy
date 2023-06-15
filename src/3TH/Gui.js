@@ -13,40 +13,40 @@ import { Pool } from './Pool.js'
 
 export const Gui = {
 
+	tool:UIL.Tools,
+
+	open:false,
+	isInit:false,
+
 	ui:null,
-	ui2:null,
-	g1:null,
-	g2:null,
-	g3:null,
 	gp:null,
 	video:null,
-
 	envui:null,
 
-	//mat:null,
-	currentMat:'',
 
+
+	CameraOptions:[],
+
+	//mat:null,
+	startMode:'ENV',
+	mode:'',
+	currentMat:'',
+	matList:null,
 
 	imageMap: ['map', 'map1', 'map2', 'emissiveMap', 'sheenColorMap'],
 	imageNormal: [ 'normalMap', 'normalMap1','normalMap2','aoMap', 'metalnessMap', 'roughnessMap', 'alphaMap', ],
 	
 	MaterialMesh:[ 'Basic', 'Physical', 'Standard', 'Toon', 'Lambert', 'Phong', 'Shader' ],
 
-	joy:null,
+	joy: null,
 	p0: 'M 0.5 1.5 L 9.5 1.5 M 0.5 5.5 L 9.5 5.5 M 0.5 9.5 L 9.5 9.5',
 	p1: 'M 1.5 0.5 L 1.5 9.5 M 5.5 0.5 L 5.5 9.5 M 9.5 0.5 L 9.5 9.5',
 
 	bg:'rgba(0,0,8,0.5)',
 
-
-	startMode:'ENV',
-	mode:'',
-
-	
-
 	colors:{
 
-		content:'rgba(0,0,8,0.5)',
+		//content:'rgba(0,0,8,0.5)',
 		fontShadow:'#000',
 		//sx: 4,
         //sy: 4,
@@ -98,15 +98,20 @@ export const Gui = {
 
 	showHide: () => { 
 
-		if( Gui.ui === null ) Gui.init()
+		if( !Gui.isInit ) Gui.init()
 
-		if( Gui.ui.isOpen ) Gui.ui.isOpen = false;
-		else Gui.ui.isOpen = true;
+		if( Gui.open ) Gui.open = false;
+		else Gui.open = true;
 
-		Gui.ui2.isOpen = Gui.ui.isOpen
+		//if( Gui.ui.isOpen ) Gui.ui.isOpen = false;
+		//else Gui.ui.isOpen = true;
 
-		Hub.switchGuiButton( Gui.ui.isOpen )
+		Gui.ui.isOpen = Gui.open
+
+		Hub.switchGuiButton( Gui.open )
 		//Hub.switchColor( Gui.ui.isOpen )
+
+		Gui.menu.display( Gui.open )
 
 		//UIL.Tools.setSvg( )
 
@@ -116,11 +121,11 @@ export const Gui = {
 
 		///Gui.button.childNodes[0].childNodes[ 0 ].setAttributeNS(null, 'd', Gui.ui.isOpen ? Gui.p1 : Gui.p0)
 
+		//Gui.ui.calc()
+		//Gui.ui.mode('def')
+
 		Gui.ui.calc()
 		Gui.ui.mode('def')
-
-		Gui.ui2.calc()
-		Gui.ui2.mode('def')
 
 	},
 
@@ -139,25 +144,29 @@ export const Gui = {
 
 		
 
-		const ui = new UIL.Gui( { w:250, h:25, open:false, close:false, css:'top:54px; right:5px;', colors:Gui.colors, transition:0 } )
+		//const ui = new UIL.Gui( { w:250, h:25, open:false, close:false, css:'top:54px; right:5px;', colors:Gui.colors, transition:0 } )
 
-		ui.add( 'empty', {h:6})
+		//ui.add( 'empty', {h:6})
 
-		ui.add( 'button', { type:'button', values:['ENV', 'PHY', 'CAM', 'POST', 'MAT'], value:Gui.startMode, selectable:true, unselect:false, p:0, h:40, radius:4 }).onChange( Gui.setMode )
+		Gui.menu = UIL.add( 'button', { type:'button', values:['ENV', 'PHY', 'CAM', 'POST', 'MAT'], value:Gui.startMode, selectable:true, unselect:false, p:0, h:30,w:250, radius:4, pos:{right:'5px', top:'60px'} }).onChange( Gui.setMode )
 
-		ui.add( 'empty', {h:6})
+		Gui.menu.icon( iconUI('env'), 0, 2 )
+		Gui.menu.icon( iconUI('phy'), 0, 3 )
+		Gui.menu.icon( iconUI('cam'), 0, 4 )
+		Gui.menu.icon( iconUI('post'), 0, 5 )
+		Gui.menu.icon( iconUI('mat'), 0, 6 )
 
-		Gui.ui = ui;
-
-		Gui.ui2 = new UIL.Gui( { w:250, h:25, open:false, close:false, css:'top:112px; right:5px;', colors:Gui.colors, transition:0 } )
+		Gui.ui = new UIL.Gui( { w:250, h:25, open:false, close:false, css:'top:97px; right:5px;', colors:Gui.colors, transition:0 } )//
 
 
 		//Gui.display()
 
 		Gui.setMode(Gui.startMode)
 
+		Gui.isInit = true
 
-		return
+
+		//return
 
 		/*let unselectable = '-o-user-select:none; -ms-user-select:none; -khtml-user-select:none; -webkit-user-select:none; -moz-user-select: none; pointer-events:none; '
 
@@ -197,7 +206,7 @@ export const Gui = {
 
 		if(Gui.mode === name) return
 		Gui.mode = name;
-	    Gui.ui2.clear()
+	    Gui.ui.clear()
 
 	    switch(Gui.mode){
 	    	case 'ENV': Gui.display(); break;
@@ -207,17 +216,42 @@ export const Gui = {
 	    	case 'MAT': Gui.material(); break;
 	    }
 
-	    Gui.ui2.add( 'empty', {h:6})
+	    Gui.ui.add( 'empty', {h:6})
 
 	},
 
+	doReset: () => {
+
+		if( !Gui.isInit ) return
+		if( !Gui.open ) return
+		setTimeout( Gui.reset, 0 ) 
+
+	},
+
+	reset: () => {
+
+		if( !Gui.isInit ) return
+		if( !Gui.open ) return
+
+		let oldMode = Gui.mode;
+	    Gui.mode = ''
+	    Gui.currentMat = ''
+	    if(oldMode) Gui.setMode(oldMode)
+
+	},
+
+
+
+
+
+
 	display:() => {
 
-		const ui = Gui.ui2
+		if( Gui.mode !== 'ENV' ) return
+
+		const ui = Gui.ui
 
 		const mode = 2
-
-		
 
 		const options = Main.getOption()
 		const setting = Main.getSetting()
@@ -230,13 +264,16 @@ export const Gui = {
 		ui.add( options, 'harmony', { type:'bool' }).onChange( Hub.harmony )
 		ui.add( options, 'show_light', { type:'bool' }).onChange( Main.showDebugLight )
 		ui.add( options, 'show_stat', { type:'bool' }).onChange( Main.showStatistic )
+
+		ui.add( options, 'fogMode', { type:'selector', values:[0,1], selectable:true, unselect:false, h:24 }).onChange( function(n){ Shader.up( options ) })
+
 		ui.add( options, 'exposure', { min:0, max:4, mode:mode } ).onChange( function( v ){ 
 			renderer.toneMappingExposure = v 
 			Env.up()
 		})
 
-		ui.add( options, 'shadow', { min:0, max:1, mode:mode } ).onChange( Main.setShadow )//.listen()
-		ui.add( options, 'reflect', { min:0, max:1, mode:mode } ).onChange( Main.setReflect )//.listen()
+		ui.add( options, 'shadow', { min:0, max:1, mode:mode, color:'#8ff' } ).onChange( Main.setShadow )//.listen()
+		ui.add( options, 'reflect', { min:0, max:1, mode:mode, color:'#8ff' } ).onChange( Main.setReflect )//.listen()
 
 
 		ui.add( options, 'light_1', { rename:'Light Direct', min:0, max:10, mode:mode, color:'#ff0' } ).onChange( Main.lightIntensity )
@@ -283,16 +320,15 @@ export const Gui = {
 	physics:() => {
 
 		if( Gui.mode !== 'PHY' ) return
-		const ui = Gui.ui2
+
+		const ui = Gui.ui
+
+	    const setting = Main.motor.getSetting()
 
 	    ui.add('button', { values:Main.engineList, selectable:true, value:Main.engineType, h:30  }).onChange( Gui.swapEngine )
 		//if( Main.devMode ) ui.add('button', { values:['RAPIER','CANNON'], selectable:true, value:Main.engineType }).onChange( Gui.swapEngine )
 		ui.add( 'bool', { name:'WORKER OFF', onName:'WORKER ON', value:Main.isWorker, mode:1 }).onChange( Gui.swapWorker )
-		ui.add( 'empty', {h:6})
-
-	    ui.add( 'button', { type:'button', values:['DRAG', 'SHOOT', 'BUILD'], value:'DRAG', selectable:true, unselect:false, p:0 }).onChange( (n)=>{ 
-			phy.mouseMode( n.toLowerCase() );
-		})
+		
 
 	    let rrr = ui.add( 'button', { type:'button', values:['REPLAY', 'PAUSE'], p:0 }).onChange( (n)=>{ 
 			//if(n === 'EDIT'){ Main.showEditor(true); this.switchValues(0, 'CLOSE' ); }
@@ -302,14 +338,54 @@ export const Gui = {
 			if(n === 'REPLAY') Main.injectCode( Main.getCode() )
 		})
 
-		ui.add( 'number', { name:'Gravity', value:[0,-9.81,0] })
+
+
+		ui.add( 'empty', {h:6})
+
+	    ui.add( 'button', { type:'button', values:['DRAG', 'SHOOT', 'BUILD'], value:'DRAG', selectable:true, unselect:false, p:0 }).onChange( (n)=>{ 
+			phy.mouseMode( n.toLowerCase() );
+		})
+
+		//ui.add( 'number', { name:'Gravity', value:[0,-9.81,0] })
+
+		ui.add( setting, 'gravity', { type:'number' }).onChange( Main.motor.setGravity )
+		//ui.add( setting, 'substep', { type:'number' })
+		//ui.add( setting, 'fps', { type:'number' })
 
 	},
 
 	camera:() => {
 
 		if( Gui.mode !== 'CAM' ) return
-		const ui = Gui.ui2
+
+		const ui = Gui.ui
+
+	    const controler = Main.getControler()
+
+	    //Gui.CameraOptions = 
+	    const up = function(){ 
+	    	Main.setCamera( {...controler.info } )
+	    }
+	    const mode = 2
+
+	    //console.log(options)
+
+	    
+	    ui.add( 'empty', {h:6})
+	    ui.add( controler.info, 'phi', {min:-90, max:90, precision:1, mode:mode, color:'#ff0' }).onChange( up ).listen()
+	    ui.add( controler.info, 'theta', {min:-180, max:180, precision:1, mode:mode, color:'#ff0'  }).onChange( up ).listen()
+	    ui.add( 'empty', {h:6})
+	    ui.add( controler.info, 'fov', {min:1, max:180, precision:1, mode:mode, color:'#8ff' }).onChange( up ).listen()
+	    ui.add( controler.info, 'zoom', {min:0.1, max:10, precision:1, mode:mode, color:'#8ff'  }).onChange( up ).listen()
+	    ui.add( 'empty', {h:6})
+
+	    //ui.add( controler.info, 'target', { type:'number' }).onChange( up ).listen()
+	    ui.add( controler.info, 'distance', { type:'number', min:0, max:100, mode:mode} ).onChange( up ).listen()
+	    ui.add( controler.info, 'x', { type:'number', min:-50, max:50, precision:2, mode:mode }).onChange( up ).listen()
+	    ui.add( controler.info, 'y', { type:'number', min:-50, max:50, precision:2, mode:mode  }).onChange( up ).listen()
+	    ui.add( controler.info, 'z', { type:'number', min:-50, max:50, precision:2, mode:mode }).onChange( up ).listen()
+
+	   
 
 	    //ui.add( 'bool', { name:'CAPTURE', onName:'STOP', value:false, mode:1 }).onChange( Gui.capture )
 		//ui.add('button', { name:'CAMERA' }).onChange( function(){ console.log( controls.getInfo() )} )
@@ -319,9 +395,10 @@ export const Gui = {
 	postprocess:( direct ) => {
 
 		if( Gui.mode !== 'POST' ) return
-    	const ui = Gui.ui2
+
+    	const ui = Gui.ui
+
         const options = Main.getOption()
-         
 
         if(!direct){
         	ui.clear() 
@@ -436,13 +513,7 @@ export const Gui = {
 
 	},*/
 
-	reset: ( name ) => {
-
-		if( Gui.ui===null ) return
-		if( !Gui.ui.isOpen ) return
-
-		Gui.materialEdit( '' )
-	},
+	
 
 	/*resetDemoGroup: ( name ) => {
 
@@ -507,19 +578,24 @@ export const Gui = {
     material:() => {
 
     	if( Gui.mode !== 'MAT' ) return
-    	const ui = Gui.ui2
+
+    	const ui = Gui.ui
+
         ui.clear()
 
-
 		let mats = Main.motor.getMaterialList()
-		let matList = ui.add( 'list', { name:'', list:mats, p:0, value:Gui.currentMat, h:40 }).onChange( Gui.materialEdit )
+		const matList = ui.add( 'list', { name:'', list:mats, p:0, value:Gui.currentMat, h:40 }).onChange( Gui.materialEdit )
 
-		if(! Gui.currentMat ) { 
-			matList.text('Select Material') 
+		if( !Gui.currentMat ) {
+
+			matList.text('Select Material')
 			return
+
 		}
 		
 		let m = mats[ Gui.currentMat ]
+
+		console.log(m)
 
 		let type = m.type
 		if( type.search( 'Mesh' )!==-1 ) type = type.substring( 4 ) 
@@ -527,19 +603,34 @@ export const Gui = {
 		let mm = type.search( 'Material' )
 		type = type.substring( 0, mm )
 
-		ui.add( 'list', { name:'', list:Gui.MaterialMesh, p:0, value:type, h:30 }).onChange()
+		ui.add( 'list', { name:'Type', list:Gui.MaterialMesh, value:type, h:30 }).onChange()
+
+		if(m.side!==undefined) ui.add( m, 'side', { type:'list', list:{ front:0, back:1, double:2 } }).onChange( function( c ){ m.side = this.list.indexOf(c) })
+		if(m.shadowSide!==undefined) ui.add( m, 'shadowSide', { type:'list', list:{ front:0, back:1, double:2 } }).onChange( function( c ){ m.shadowSide = this.list.indexOf(c) })
 
 		//return
 
+		let g0 = ui.add('group', { name:'COLORS', open:true })
+
 	    if(m.color!==undefined){
 		    m.cc = m.color.getHex()
-		    ui.add( m, 'cc', { type:'color', rename:'color' } ).onChange( function( c ){ m.color.setHex( c ); } )
+		    g0.add( m, 'cc', { type:'color', rename:'color' } ).onChange( function( c ){ m.color.setHex( c ); } )
 		}
 
 		if(m.emissive!==undefined){
 		    m.em = m.emissive.getHex()
-		    ui.add( m, 'em', { type:'color', rename:'emissive' } ).onChange( function( c ){ m.emissive.setHex( c ); } )
+		    g0.add( m, 'em', { type:'color', rename:'emissive' } ).onChange( function( c ){ m.emissive.setHex( c ); } )
 		}
+
+		if(m.sheen!==undefined){
+	    	m.ss = m.sheenColor.getHex()
+	    	g0.add( m, 'ss', { type:'color', rename:'sheen' } ).onChange( function( c ){ m.sheenColor.setHex( c ); } )
+	    } 
+
+
+		let g1 = ui.add('group', { name:'IMAGES' })
+
+
 
 
 	    let images = [...Gui.imageMap, ...Gui.imageNormal ], t, str
@@ -548,59 +639,68 @@ export const Gui = {
 	    	t = images[i]
 	    	name = 'null'
 	    	if(m[t]){
-	    		str = m[t].source.data.currentSrc;
+	    		str = m[t].source.data.currentSrc || 'Direct';
 	    	    name = str.substring( str.lastIndexOf('/')+1 )
 	    	} 
-	    	if(m[t]!==undefined) ui.add( 'bitmap',  { name:t, value:name, type:'bitmap' }).onChange( function( file, img, name ){ Gui.setTexure(file, img, name, m ) } )
+	    	if(m[t]!==undefined) g1.add( 'bitmap',  { name:t, value:name, type:'bitmap' }).onChange( function( file, img, name ){ Gui.setTexure(file, img, name, m ) } )
 
 	    }
 
-	    if(m.randomUv!==undefined) ui.add( m, 'randomUv', {  })
-		if(m.wireframe!==undefined) ui.add( m, 'wireframe', {  })
-		if(m.vertexColors!==undefined) ui.add( m, 'vertexColors', {  })
-		if(m.forceSinglePass!==undefined) ui.add( m, 'forceSinglePass', { rename:'singlePass' })
-		if(m.visible!==undefined) ui.add( m, 'visible', {  })
-		if(m.depthTest!==undefined) ui.add( m, 'depthTest', {  })
-		if(m.depthWrite!==undefined) ui.add( m, 'depthWrite', {  })
-		if(m.alphaToCoverage!==undefined) ui.add( m, 'alphaToCoverage', {  })
-		if(m.premultipliedAlpha!==undefined) ui.add( m, 'premultipliedAlpha', {  })
-		if(m.transparent!==undefined) ui.add( m, 'transparent', {  })
+	    let g2 = ui.add('group', { name:'OPTIONS' })
 
-		if(m.side!==undefined) ui.add( m, 'side', { type:'list', list:{ front:0, back:1, double:2 } }).onChange( function( c ){ m.side = this.list.indexOf(c) })
-		if(m.shadowSide!==undefined) ui.add( m, 'shadowSide', { type:'list', list:{ front:0, back:1, double:2 } }).onChange( function( c ){ m.shadowSide = this.list.indexOf(c) })
+	    if(m.randomUv!==undefined) g2.add( m, 'randomUv', {  })
+		if(m.wireframe!==undefined) g2.add( m, 'wireframe', {  })
+		if(m.vertexColors!==undefined) g2.add( m, 'vertexColors', {  })
+		if(m.forceSinglePass!==undefined) g2.add( m, 'forceSinglePass', { rename:'singlePass' })
+		if(m.visible!==undefined) g2.add( m, 'visible', {  })
+		if(m.depthTest!==undefined) g2.add( m, 'depthTest', {  })
+		if(m.depthWrite!==undefined) g2.add( m, 'depthWrite', {  })
+		if(m.alphaToCoverage!==undefined) g2.add( m, 'alphaToCoverage', {  })
+		if(m.premultipliedAlpha!==undefined) g2.add( m, 'premultipliedAlpha', {  })
+		if(m.transparent!==undefined) g2.add( m, 'transparent', {  })
+
+		let g3 = ui.add('group', { name:'VALUES', open:true })
+
+		if(m.normalScale!==undefined){
+			g3.add( m.normalScale, 'x', { min:-10, max:10, precision:1 })
+			g3.add( m.normalScale, 'y', { min:-10, max:10, precision:1 })
+		}
+
+		
 
 
-	    if(m.metalness!==undefined) ui.add( m, 'metalness', { min:0, max:1 })
-		if(m.roughness!==undefined) ui.add( m, 'roughness', { min:0, max:1 })
+	    if(m.metalness!==undefined) g3.add( m, 'metalness', { min:0, max:1 })
+		if(m.roughness!==undefined) g3.add( m, 'roughness', { min:0, max:1 })
 
-		if(m.specularIntensity!==undefined) ui.add( m, 'specularIntensity', { min:0, max:1 })
-		if(m.aoMapIntensity!==undefined) ui.add( m, 'aoMapIntensity', { min:0, max:1 })
-		if(m.emissiveIntensity!==undefined) ui.add( m, 'emissiveIntensity', { min:0, max:1 })
+		if(m.specularIntensity!==undefined) g3.add( m, 'specularIntensity', { min:0, max:1 })
+		if(m.aoMapIntensity!==undefined) g3.add( m, 'aoMapIntensity', { min:0, max:1 })
+		if(m.emissiveIntensity!==undefined) g3.add( m, 'emissiveIntensity', { min:0, max:1 })
 
-		if(m.opacity!==undefined) ui.add( m, 'opacity', { min:0, max:1 })
-		if(m.reflectivity!==undefined) ui.add( m, 'reflectivity', {min:0, max:1})
+		if(m.opacity!==undefined) g3.add( m, 'opacity', { min:0, max:1 })
+		if(m.reflectivity!==undefined) g3.add( m, 'reflectivity', {min:0, max:1})
 
-		if(m.reflectif!==undefined) ui.add( m, 'reflectif', { min:0, max:1 })
+		if(m.reflectif!==undefined) g3.add( m, 'reflectif', { min:0, max:1 })
 
-	    if(m.envMapIntensity!==undefined) ui.add( m, 'envMapIntensity', { rename:'env', min:0, max:4 })
-	    if(m.thickness!==undefined) ui.add( m, 'thickness', { min:-4, max:4 })
-	    if(m.clearcoat!==undefined) ui.add( m, 'clearcoat', { min:0, max:4 })
-	    if(m.clearcoatRoughness!==undefined) ui.add( m, 'clearcoatRoughness', { min:0, max:4 })
+	    if(m.envMapIntensity!==undefined) g3.add( m, 'envMapIntensity', { rename:'env', min:0, max:4 })
+	    if(m.thickness!==undefined) g3.add( m, 'thickness', { min:-4, max:4 })
+	    if(m.clearcoat!==undefined) g3.add( m, 'clearcoat', { min:0, max:4 })
+	    if(m.clearcoatRoughness!==undefined) g3.add( m, 'clearcoatRoughness', { min:0, max:4 })
+
+
 
 	    if(m.sheen!==undefined){ 
-	    	ui.add( m, 'sheen', {min:0, max:4})
-	    	ui.add( m, 'sheenRoughness', {min:0, max:1})
-	    	m.ss = m.sheenColor.getHex()
-	    	ui.add( m, 'ss', { type:'color', rename:'sheen' } ).onChange( function( c ){ m.sheenColor.setHex( c ); } )
+	    	g3.add( m, 'sheen', {min:0, max:4})
+	    	g3.add( m, 'sheenRoughness', {min:0, max:1})
+	    	
 	    }
 
-	    if(m.iridescence!==undefined) ui.add( m, 'iridescence', {min:0, max:1})
+	    if(m.iridescence!==undefined) g3.add( m, 'iridescence', {min:0, max:1})
 
-	    if(m.anisotropy!==undefined) ui.add( m, 'anisotropy', {min:0, max:1})
-	    if(m.anisotropyRotation!==undefined) ui.add( m, 'anisotropyRotation', {min:0, max:1})
+	    if(m.anisotropy!==undefined) g3.add( m, 'anisotropy', {min:0, max:1})
+	    if(m.anisotropyRotation!==undefined) g3.add( m, 'anisotropyRotation', {min:0, max:1})
 
-	    if(m.ior!==undefined) ui.add( m, 'ior', { min:0, max:4 })
-	    if(m.transmission!==undefined) ui.add( m, 'transmission', { min:0, max:1 })
+	    if(m.ior!==undefined) g3.add( m, 'ior', { min:0, max:4 })
+	    if(m.transmission!==undefined) g3.add( m, 'transmission', { min:0, max:1 })
 
 
 		//Gui.mat.open()
@@ -619,15 +719,26 @@ export const Gui = {
 		o.encoding = Gui.imageMap.indexOf(name) !== -1
 		
 		let fileName = file.substring( 0, file.lastIndexOf('.') );
-		let im = new Image()
-		 
-		im.src = img
-		im.onload = function (){
+		let fileType = file.substring( file.lastIndexOf('.')+1 );
+		
 
-			Pool.data.set( 'I_' + fileName, im )
-		    mat[name] = Pool.getTexture( fileName, o )
+		if(fileType==='exr'){
+			//console.log(img)
+			//mat[name] = 
+			Pool.load_EXR( file, fileName, function(t){mat[name] = t} )
+		} else {
+			let im = new Image()
+			im.src = img
+			im.onload = function (){
 
+				Pool.data.set( 'I_' + fileName, im )
+			    mat[name] = Pool.getTexture( fileName, o )
+
+			}
 		}
+
+
+		
 
 	},
 
@@ -650,5 +761,84 @@ export const Gui = {
 	    //setTimeout( Gui.postprocess, 100 )
 
 	},
+
+}
+
+
+
+
+
+
+
+const iconUI =  function ( type, over = false ){
+
+    var viewBox = '0 0 30 26';
+    var d = '';
+
+    var c = over ? ['#baabfb', '#9e87fb', '#7463b8', '#221d36'] : ['#E5E5E5', '#D1D1D1', '#999999', '#383838'];
+
+    var t = ["<svg xmlns='http://www.w3.org/2000/svg' version='1.1' xmlns:xlink='http://www.w3.org/1999/xlink' style='pointer-events:none; margin-top:0px;' preserveAspectRatio='none' x='0px' y='0px' width='30px' height='26px' viewBox='"+viewBox+"'><g>"];
+    switch(type){
+
+        case 'phy':
+        d = 'M 22.2 11.35 Q 21.95 10.15 21.25 9.1 L 22.45 7.85 Q 21.95 7.2 21.4 6.65 20.8 6 20.1 5.55 L 18.95 6.75 Q 17.9 6.05 16.65 5.8 L 16.65 4.15 Q 15.9 4 15.05 4 14.2 4 13.4 4.2 L 13.4 5.8 Q 12.15 6.05 11.15 6.75 L 9.95 5.55 Q 9.25 6 8.65 6.65 8.1 7.2 7.65 7.9 L 8.8 9.05 Q 8.1 10.1 7.85 11.35 L 6.2 11.35 Q 6.1 12.15 6.1 13 6.1 13.85 6.2 14.65 L 7.85 14.65 Q 8.1 15.85 8.8 16.9 L 7.6 18.05 Q 8.1 18.7 8.7 19.3 9.25 19.9 9.95 20.4 L 11.1 19.25 Q 12.15 19.9 13.4 20.2 L 13.4 21.85 Q 14.2 21.95 15.05 21.95 15.9 21.95 16.65 21.85 L 16.65 20.2 Q 17.9 19.9 19 19.25 L 20.15 20.4 Q 20.8 19.95 21.4 19.35 22 18.75 22.45 18.05 L 21.25 16.85 Q 21.95 15.85 22.2 14.65 L 23.95 14.65 Q 24.05 13.85 24.05 13 24.05 12.15 23.95 11.35 L 22.2 11.35 M 13.25 11.3 Q 14 10.55 15.05 10.55 16 10.55 16.75 11.3 17.5 12 17.5 13 17.5 14.05 16.75 14.7 16 15.45 15.05 15.45 14 15.45 13.25 14.7 12.6 14.05 12.6 13 12.6 12 13.25 11.3 Z';
+        t[1]="<path stroke="+c[3]+" stroke-width='2' stroke-linejoin='round' stroke-linecap='round' fill='none' d='"+d+"'/>";
+        t[1]+="<path fill="+c[1]+" stroke='none' d='"+d+"'/>";
+       break;
+
+       case 'env':
+        d = 'M 7.95 18.65 L 9.35 20.05 10.75 18.65 9.35 17.25 7.95 18.65 M 9.35 5.95 L 7.95 7.35 9.35 8.75 10.75 7.35 9.35 5.95 M 20.65 20.05 L 22.05 18.65 20.65 17.25 19.25 18.65 20.65 20.05 M 20.65 8.75 L 22.05 7.35 20.65 5.95 19.25 7.35 20.65 8.75 M 14 22 L 16 22 16 20 14 20 14 22 M 16 6 L 16 4 14 4 14 6 16 6 M 24 12 L 22 12 22 14 24 14 24 12 M 8 12 L 6 12 6 14 8 14 8 12 M 19.3 17.3 Q 21.05 15.55 21.05 13.05 21.05 10.5 19.3 8.75 17.55 7.05 15.05 7.05 12.55 7.05 10.8 8.75 9.05 10.5 9.05 13.05 9.05 15.55 10.8 17.3 12.55 19.05 15.05 19.05 17.55 19.05 19.3 17.3 Z';
+        t[1]="<path stroke="+c[3]+" stroke-width='2' stroke-linejoin='round' stroke-linecap='round' fill='none' d='"+d+"'/>";
+        t[1]+="<path fill="+c[1]+" stroke='none' d='"+d+"'/>";
+       break;
+
+       case 'post':
+        d = 'M 24 22 L 24 8 20 8 20 4 6 4 6 18 10 18 10 22 24 22 Z';
+        t[1]="<path stroke="+c[3]+" stroke-width='2' stroke-linejoin='round' stroke-linecap='round' fill='none' d='"+d+"'/>";
+        t[1]+="<path fill="+c[1]+" stroke='none' d='"+d+"'/>";
+        t[1]+="<path fill="+c[2]+" stroke='none' d='M 20 8 L 20 4 6 4 6 18 10 18 10 8 20 8 Z'/>";
+        break;
+
+        case 'cam':
+        d = 'M 23 20 L 24 20 24 6 23 6 19 10 18.05 10 18.05 6.05 6.05 6.05 6.05 20.3 18.05 20.3 18.05 16 19 16 23 20 Z';
+        t[1]="<path stroke="+c[3]+" stroke-width='2' stroke-linejoin='round' stroke-linecap='round' fill='none' d='"+d+"'/>";
+        t[1]+="<path fill="+c[2]+" stroke='none' d='"+d+"'/>";
+        t[1]+="<path fill="+c[1]+" stroke='none' d='M 23 20 L 24 20 24 6 23 6 19 10 19 16 23 20 M 18 6.05 L 8 6.05 8 18.15 18 18.15 18 6.05 Z'/>";
+        //t[1]+="<path fill="+c[0]+" stroke='none' d='M 10 4 L 6 8 19 8 24 4 10 4 Z'/>";
+        break;
+
+        /*case 'post':
+        d = 'M 24 15 L 24 11 17 11 17 4 13 4 13 11 6 11 6 15 13 15 13 22 17 22 17 15 24 15 Z';
+        t[1]="<path stroke="+c[3]+" stroke-width='2' stroke-linejoin='round' stroke-linecap='round' fill='none' d='"+d+"'/>";
+        t[1]+="<path fill="+c[1]+" stroke='none' d='"+d+"'/>";
+        break;*/
+
+        case 'mat':
+        d = 'M 24 4 L 6 4 6 22 24 22 24 4 Z';
+        t[1]="<path stroke="+c[3]+" stroke-width='2' stroke-linejoin='round' stroke-linecap='round' fill='none' d='"+d+"'/>";
+        t[1]+="<path fill="+c[2]+" stroke='none' d='"+d+"'/>";
+        t[1]+="<path fill="+c[1]+" stroke='none' d='M 15 4 L 6 4 6 13 15 13 15 4 M 24 13 L 15 13 15 22 24 22 24 13 Z'/>";
+        break;
+
+        /*case 'cam':
+        d = 'M 24 18 L 24 4 10 4 6 8 6 22 19 22 24 18 Z';
+        t[1]="<path stroke="+c[3]+" stroke-width='2' stroke-linejoin='round' stroke-linecap='round' fill='none' d='"+d+"'/>";
+        t[1]+="<path fill="+c[2]+" stroke='none' d='"+d+"'/>";
+        t[1]+="<path fill="+c[1]+" stroke='none' d='M 19 8 L 6 8 6 22 19 22 19 8 Z'/>";
+        t[1]+="<path fill="+c[0]+" stroke='none' d='M 10 4 L 6 8 19 8 24 4 10 4 Z'/>";
+        break;
+
+        case 'asset':
+        d = 'M 24 19.8 L 24 14.2 19.5 11.95 19.5 6.3 15 4.05 10.5 6.3 10.5 11.95 6 14.2 6 19.8 10.5 22.05 15 19.8 19.5 22.05 24 19.8 Z';
+        t[1]="<path stroke="+c[3]+" stroke-width='2' stroke-linejoin='round' stroke-linecap='round' fill='none' d='"+d+"'/>";
+        t[1]+="<path fill="+c[2]+" stroke='none' d='"+d+"'/>";
+        t[1]+="<path fill="+c[1]+" stroke='none' d='M 6 14.2 L 6 19.8 10.5 22.05 10.5 16.45 6 14.2 M 19.5 22.05 L 19.5 16.45 15 14.2 15 19.8 19.5 22.05 M 15 8.55 L 10.5 6.3 10.5 11.95 15 14.2 15 8.55 Z'/>";
+        t[1]+="<path fill="+c[0]+" stroke='none' d='M 15 14.2 L 19.5 16.45 24 14.2 19.5 11.95 15 14.2 M 10.5 16.45 L 15 14.2 10.5 11.95 6 14.2 10.5 16.45 M 10.5 6.3 L 15 8.55 19.5 6.3 15 4.05 10.5 6.3 Z'/>";
+        break;*/
+
+
+    }
+    t[2] = "</g></svg>";
+    return t.join("\n");
 
 }

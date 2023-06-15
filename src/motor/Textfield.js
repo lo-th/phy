@@ -63,7 +63,6 @@ export class Textfield extends Mesh {
 		ctx.fillText( str, w*0.5, h*0.5 );
 
 		this.material.map = new CanvasTexture(this.canvas);
-		//
 
 		//if(this.w===0) this.w = w*0.02
 

@@ -45,7 +45,6 @@ let isStop = true, isReset, tmpStep;
 
 let interval = null
 let timeout = null
-let gravity = null
 
 let tmpadd = []
 let tmpremove = []
@@ -149,7 +148,7 @@ export class engine {
 		substep = o.substep || 1;
 		fixe = o.fixe !== undefined ? o.fixe : true;
 
-		gravity = new Vec3().fromArray( o.gravity || [ 0, -9.80665, 0 ] );
+		root.gravity = new Vec3().fromArray( o.gravity || [ 0, -9.81, 0 ] );
 
 		if( root.world === null ) engine.start();
 		else {
@@ -157,7 +156,12 @@ export class engine {
 			//root.world.maxStabilizationIterations = substep
 		}
 		
-		//else root.world.setGravity( gravity );
+
+	}
+
+	static setGravity( o ) {
+		
+		root.gravity.fromArray( o.gravity );
 
 	}
 	
@@ -187,12 +191,14 @@ export class engine {
 
 	static initWorld() {
 
-    	root.world = new RAPIER.World( gravity )
+    	root.world = new RAPIER.World( root.gravity )
 		root.world.maxStabilizationIterations = 1
 		root.world.maxVelocityFrictionIterations = 8//8
 		root.world.maxPositionIterations = 1
 		root.world.maxVelocityIterations = 4 //4
 		root.world.timestep = timestep / substep
+
+		//console.log( root.world )
 
     }
 

@@ -6,6 +6,7 @@ import { GLTFLoader } from '../jsm/loaders/GLTFLoader.js';
 import { DRACOLoader } from '../jsm/loaders/DRACOLoader.js';
 import { FBXLoader } from '../jsm/loaders/FBXLoader.js';
 import { RGBELoader } from '../jsm/loaders/RGBELoader.js';
+import { EXRLoader } from '../jsm/loaders/EXRLoader.js';
 import { LZMA } from '../libs/lzma.js';
 
 import { GlbTool } from './utils/GlbTool.js';
@@ -163,6 +164,8 @@ export const Pool = {
 
         let name = o.url.substring( o.url.lastIndexOf('/')+1, o.url.lastIndexOf('.') );
 
+        if( name.search('_c') !== -1 || name.search('_l') !== -1 || name.search('_u') !== -1|| name.search('_d') !== -1) o.encoding = true
+
         if( Pool.exist( name, 'texture') ) return Pool.get( name, 'texture' );
             
         return Pool.loaderMap.load( o.url, function ( t ) { 
@@ -183,7 +186,7 @@ export const Pool = {
             let im = Pool.data.get( 'I_' + name )
             if(!im) return null
             t = new Texture( im )
-            if( name.search('_c') !== -1 || name.search('_l') !== -1 || name.search('_u') !== -1|| name.search('_ao') !== -1) o.encoding = true
+            if( name.search('_c') !== -1 || name.search('_d') !== -1 || name.search('_l') !== -1 || name.search('_u') !== -1 ) o.encoding = true
             Pool.data.set( 'T_' + name, t );
         }
         Pool.setTextureOption( t, o )
@@ -287,6 +290,7 @@ export const Pool = {
             case 'glb': case 'gltf': Pool.load_GLTF( url, name );  break;
             case 'fbx': case 'FBX': Pool.load_FBX( url, name ); break;
             case 'hdr': Pool.load_RGBE( url, name ); break;
+            case 'exr': Pool.load_EXR( url, name ); break;
             default: Pool.extand( url, name, type );
         }
 
@@ -401,6 +405,13 @@ export const Pool = {
 
     },
 
+    loaderEXR: () => {
+
+        if( !Pool.EXR ) Pool.EXR = new EXRLoader()
+        return Pool.EXR
+
+    },
+
     //////////////////////////////////
 
     load_GLTF: ( url, name ) => {
@@ -445,12 +456,25 @@ export const Pool = {
 
     },
 
-    /*addUv2: ( mesh ) => {
-        if(mesh.geometry){
-            mesh.geometry.setAttribute( 'uv2', mesh.geometry.attributes.uv );
+    load_EXR: ( url, name, cb ) => {
 
-            //console.log('uv2',  mesh.geometry)
-        }
-    },*/
+        Pool.loaderEXR().load( url, function ( texture ) {
+            //Pool.add( name, texture ) 
+            console.log(texture)
+            if(cb) cb(texture)
+            return texture
+        })
+
+    },
+
+    direct_EXR: ( data, name ) => {
+
+        Pool.loaderEXR().parse( url, function ( texture ) {
+            Pool.add( name, texture ) 
+
+            return texture
+        })
+
+    },
 
 }

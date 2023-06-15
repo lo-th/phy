@@ -10,6 +10,7 @@ import {
 
 let isGL2 = true;
 let isInit = false;
+const EnhanceLighting = true
 //let mode = ''
 
 //const mats = {}
@@ -23,6 +24,7 @@ const defines = {}
 const uniforms = {
 
 	renderMode: { value: 0 },
+    fogMode: { value: 0 },
     depthPacking: { value: 1 },
 
 	time: { value: 0.0 },
@@ -58,7 +60,8 @@ export class Shader {
 
        
 
-        const fogtest = false
+        const fogtest = true
+        const activeShadowPCSS = true
 
         // Set CustomToneMapping to Uncharted2
         // source: http://filmicworlds.com/blog/filmic-tonemapping-operators/
@@ -73,7 +76,7 @@ export class Shader {
             }`
         );
 
-        let activeShadowPCSS = true
+        
 
         //mode = o.mode
 
@@ -120,6 +123,7 @@ export class Shader {
             uniform float shadowGamma;
 
             uniform int renderMode;
+            uniform int fogMode;
             uniform int depthPacking;
 
             varying vec2 vZW;
@@ -131,13 +135,39 @@ export class Shader {
             float shadowValue = 1.0;
             float shadowTmp = 1.0;
             vec3 shadowColor = vec3(1.0);
-
-            
             
             float color_distance( vec3 a, vec3 b){
                 vec3 s = vec3( a - b );
                 float dist = sqrt( s.r * s.r + s.g * s.g + s.b * s.b );
                 return clamp(dist, 0.0, 1.0);
+            }
+
+            vec3 adjustContrast(vec3 color, float value) {
+                const vec3 zero = vec3(0.);
+                return max(zero, 0.5 + value * (color - 0.5));
+            }
+
+            vec3 hsv2rgb(vec3 c){
+                vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
+                vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);
+                return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
+            }
+
+            vec3 rgb2hsv(vec3 rgb) {
+                float Cmax = max(rgb.r, max(rgb.g, rgb.b));
+                float Cmin = min(rgb.r, min(rgb.g, rgb.b));
+                float delta = Cmax - Cmin;
+                vec3 hsv = vec3(0., 0., Cmax);
+                if (Cmax > Cmin) {
+                    hsv.y = delta / Cmax;
+                    if (rgb.r == Cmax) hsv.x = (rgb.g - rgb.b) / delta;
+                    else {
+                        if (rgb.g == Cmax) hsv.x = 2. + (rgb.b - rgb.r) / delta;
+                        else hsv.x = 4. + (rgb.r - rgb.g) / delta;
+                    }
+                    hsv.x = fract(hsv.x / 6.);
+                }
+                return hsv;
             }
 
             /*
@@ -149,12 +179,6 @@ export class Shader {
                 float d = q.x - min(q.w, q.y);
                 float e = 1.0e-10;
                 return vec3(abs(q.z + (q.w - q.y) / (6.0 * d + e)), d / (q.x + e), q.x);
-            }
-
-            vec3 hsv2rgb(vec3 c){
-                vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
-                vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);
-                return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
             }
 
             vec3 brightnessContrastCorrection(vec3 value, float brightness, float contrast){
@@ -485,14 +509,14 @@ const FogVertex = `
 #ifdef USE_FOG
 
     vFogDepth = - mvPosition.z;
+
     rayDir2 = normalize( worldPosition.xyz - cameraPosition );
     rayDir = normalize( mvPosition.xyz );
     rayOri = cameraPosition.xyz;
-    //rayOri = worldPosition.xyz; //( cameraPosition-worldPosition.xyz  );
 
+    //rayOri = worldPosition.xyz; //( cameraPosition-worldPosition.xyz  );
     //vec3 tt = vec3(cameraPosition-mvPosition);
     //float fDist = sqrt(tt.x*tt.x+tt.y*tt.y+tt.z*tt.z);
-
     //fDist = distance(cameraPosition.xyz, mvPosition.xyz);
 
 #endif
@@ -511,31 +535,38 @@ const FogFragment = `
 
     #endif
 
-    vec3 fcolor = fogColor;
+    if( fogMode == 0 ){
+        gl_FragColor.rgb = mix( gl_FragColor.rgb, fogColor, fogFactor );
+    } 
 
-    #if ( NUM_DIR_LIGHTS > 0 ) && defined( RE_Direct )
+    if( fogMode == 1 ){
 
-        
-        float aa = fogDensity * fogDensity;
-        float bb = fogDensity * fogDensity * 12.0;
-        //bb = pow(bb, 0.8);
-        float distance = vFogDepth * vFogDepth;
+        vec3 fcolor = fogColor;
 
-        fogFactor = 1.0 - exp( -distance*bb );
-        fogFactor = (aa/bb) * exp(-rayOri.y*bb) * (1.0-exp( -distance*rayDir2.y*bb ))/rayDir2.y;
-        fogFactor = clamp( fogFactor, 0.0, 1.0 );
+        #if ( NUM_DIR_LIGHTS > 0 ) && defined( RE_Direct )
 
-        vec3 sunDir = normalize( directionalLights[ 0 ].direction );
-        vec3 sunColor = directionalLights[ 0 ].color;
-        float sunAmount = max( dot( rayDir, sunDir ), 0.0 );
-        float sunAdd = clamp( pow(sunAmount, 60.0), 0.0, 1.0 );
-        fcolor = mix( fogColor, sunColor, sunAdd ); // 8.0
+            float aa = fogDensity * fogDensity * 1.0;
+            float bb = fogDensity * fogDensity * 12.0;
+            //bb = pow(bb, 0.8);
+            float distance = vFogDepth * vFogDepth;
 
-    #endif
+            fogFactor = 1.0 - exp( -distance*bb );
+            fogFactor = (aa/bb) * exp(-rayOri.y*bb) * (1.0-exp( -distance*rayDir2.y*bb ))/rayDir2.y;
+            fogFactor = clamp( fogFactor, 0.0, 1.0 );
 
-    //gl_FragColor.rgb = mix( gl_FragColor.rgb, fogColor, fogFactor );
-    gl_FragColor.rgb = gl_FragColor.rgb * (1.0-fogFactor) + fcolor * fogFactor;
-    
+            vec3 sunDir = normalize( directionalLights[ 0 ].direction );
+            vec3 sunColor = directionalLights[ 0 ].color;
+            // sunColor = vec3(1,0,0);
+            float sunAmount = max( dot( rayDir, sunDir ), 0.0 );
+            //float sunAdd = clamp( pow(sunAmount, 60.0), 0.0, 1.0 );
+            float sunAdd = pow(sunAmount, 8.0);
+            fcolor = mix( fogColor, sunColor, sunAdd ); // 8.0
+
+        #endif
+
+        gl_FragColor.rgb = gl_FragColor.rgb * (1.0-fogFactor) + fcolor * fogFactor;
+
+    }
 
 #endif
 `

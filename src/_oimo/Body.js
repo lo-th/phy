@@ -417,6 +417,8 @@ export class Body extends Item {
 
 	    if( o.gravityScale ) b.setGravityScale( o.gravityScale );
 
+	    if( o.gravity !== undefined ) b.setGravityScale( o.gravity ? 1 : 0 );
+
 	    if( b.type === 'body' ){
 		    //b.getOrientationTo( this.q )
 		    //if( o.linearVelocity ) b.setLinearVelocity( this.v.fromArray( o.linearVelocity ).applyQuaternion( this.q ) )

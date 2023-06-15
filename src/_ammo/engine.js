@@ -48,7 +48,6 @@ let isStop = true, isReset, tmpStep;
 let intertime = null;
 let timeout = null;
 
-let gravity = null;
 let penetration = null;
 
 let flow = {}
@@ -125,14 +124,19 @@ export class engine {
 
 		isSoft = o.soft === undefined ? true : o.soft;
 
-		gravity = new Ammo.btVector3().fromArray( o.gravity || [ 0, -9.8, 0 ] )
-
-		root.gravity = gravity
+		root.gravity = new Ammo.btVector3().fromArray( o.gravity || [ 0, -9.8, 0 ] )
 
 		if ( o.penetration ) penetration = o.penetration
 
 		if( root.world === null ) engine.start();
 		
+	}
+
+	static setGravity( o ) {
+		
+		root.gravity.fromArray( o.gravity );
+		if( root.world ) root.world.setGravity( root.gravity )
+
 	}
 
 	static start (){
@@ -180,10 +184,10 @@ export class engine {
 
 		root.world = isSoft ? new Ammo.btSoftRigidDynamicsWorld( Dispatcher, Broadphase, Solver, CollisionConfig, SolverSoft ) : new Ammo.btDiscreteDynamicsWorld( Dispatcher, Broadphase, Solver, CollisionConfig );
 
-		root.world.setGravity( gravity );
+		root.world.setGravity( root.gravity );
 		if ( isSoft ) {
 			var worldInfo = root.world.getWorldInfo();
-			worldInfo.set_m_gravity( gravity );
+			worldInfo.set_m_gravity( root.gravity );
 		}
 
 		if ( penetration ) {

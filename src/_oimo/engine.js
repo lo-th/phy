@@ -46,8 +46,6 @@ let isStop = true, isReset, tmpStep;
 let intertime = null;
 let timeout = null;
 
-let gravity = null;
-
 let tmpadd = []
 let tmpremove = []
 let tmpchange = []
@@ -119,10 +117,17 @@ export class engine {
 		broadphase = o.broadphase || 2;
 		fixe = o.fixe !== undefined ? o.fixe : true;
 
-		gravity = new Vec3().fromArray( o.gravity || [ 0, -9.80665, 0 ] );
+		root.gravity = new Vec3().fromArray( o.gravity || [ 0, -9.80665, 0 ] );
 
 		if( root.world === null ) engine.start();
 		//else root.world.setGravity( gravity );
+
+	}
+
+	static setGravity( o ) {
+		
+		root.gravity.fromArray( o.gravity );
+		if( root.world ) root.world._gravity.fromArray( o.gravity )
 
 	}
 	
@@ -158,9 +163,11 @@ export class engine {
 
 	static initWorld () {
 
-    	root.world = new World( broadphase, gravity )
+    	root.world = new World( broadphase, root.gravity )
 		root.world.setNumVelocityIterations( 10 )
 		root.world.setNumPositionIterations( 5 )
+
+		//console.log( root.world )
 
     }
 

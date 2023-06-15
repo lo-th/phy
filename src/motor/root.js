@@ -18,6 +18,8 @@ export const root = {
 
 	AR:null,
 
+	viewSize:null,
+
 	engine:'OIMO',
 	motor: null,
 	scene : null,

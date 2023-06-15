@@ -2,6 +2,7 @@
 import {
     Group, MeshPhysicalMaterial, MeshStandardMaterial, MeshBasicMaterial, Vector3, Vector2, Quaternion
 } from 'three';
+
 import { MathTool } from '../core/MathTool.js';
 
 import { root, Utils, Geo, Mat, mat } from './root.js';
@@ -108,8 +109,70 @@ let buttons = []
 let textfields = []
 //let skeletons = []
 
+const settings = {
+
+	//full:false,
+	//jointVisible:false,
+
+
+	fps: 60,
+	fixe: true,
+	full: false,
+	substep: 2,
+	gravity: [0,-9.81,0],
+	
+
+}
+
 
 export class Motor {
+
+	static getSetting () { return settings; }
+
+	static setGravity(){
+
+		root.post({ m:'setGravity', o:{ gravity:settings.gravity } });
+
+	}
+
+	static set ( o = {} ){
+
+
+		settings.fixe = o.fixe !== undefined ? o.fixe : true
+		settings.full = o.full !== undefined ? o.full : false
+		settings.gravity = o.gravity ? o.gravity : [0,-9.81,0]
+	    settings.substep = o.substep ? o.substep : 2
+	    settings.fps = o.fps ? o.fps : 60
+
+
+	    //console.log(settings)
+
+		//if( o.full === undefined ) o.full = false
+
+		if( o.key ) addControl()
+
+		items.body.setFull( settings.full )
+		Motor.initArray( settings.full )
+
+		elapsedTime = 0
+
+		isTimeout = isWorker
+		outsideStep = !isTimeout
+
+	    root.jointVisible = o.jointVisible || false
+
+		if( outsideStep ) timer.setFramerate( settings.fps )
+
+		const data = {
+			...settings,
+			ArPos:ArPos,
+			isTimeout:isTimeout,
+			outsideStep:outsideStep,
+		}
+
+		root.post({ m:'set', o:data });
+
+	}
 
 	static math = MathTool//math
 
@@ -247,9 +310,14 @@ export class Motor {
 
 	static getHideMat() { return Mat.get('hide'); }
 
+	static resize ( size ) { root.viewSize = size; }
+
 	//static getMat ( mode ) { return mode === 'HIGH' ? mat : matLow; }
 
 	static init ( o = {} ) {
+
+		//root.viewSize = {w:window.innerWidth, h:window.innerHeight, r:0}
+		//root.viewSize.r = root.viewSize.w/root.viewSize.h
 
 
 
@@ -409,8 +477,6 @@ export class Motor {
 
 	static loadWasmDirect( link, o, name, rootURL ) {
 
-
-	
 	    let s = document.createElement("script")
 	    s.src = rootURL + link;
 	    document.body.appendChild( s )
@@ -541,43 +607,9 @@ export class Motor {
 	//static setTimeout ( b ){ isTimeout = b; }
 	//static getTimeout ( b ){ return isTimeout }
 
-	static set ( o = {} ){
+	
 
-		if( o.full === undefined ) o.full = false
-
-		if( o.key ) addControl()
-
-		items.body.setFull( o.full )
-
-		Motor.initArray( o.full )
-		o.ArPos = ArPos
-
-		elapsedTime = 0
-
-		isTimeout = isWorker
-		outsideStep = !isTimeout
-		///o.realtime = realtime;
-		o.isTimeout = isTimeout;
-		o.outsideStep = outsideStep;
-
-		root.jointVisible = o.jointVisible || false
-		
-		if(!o.gravity) o.gravity = [0,-9.81,0]
-		if(!o.substep) o.substep = 2
-
-		if(o.fps){
-			if( o.fps < 0 ) o.fps = maxFps;
-		} else {
-			o.fps = 60;
-		}
-
-		//console.log( o.fps );
-
-		if( outsideStep ) timer.setFramerate( o.fps )
-
-		root.post({ m:'set', o:o });
-
-	}
+	
 
 	static morph ( obj, name, value ){ Utils.morph( obj, name, value ) }
 
@@ -636,6 +668,8 @@ export class Motor {
 
 		if( currentControle !== null ) currentControle.move()
 
+		if( mouseTool ) mouseTool.step()
+
 		postUpdate( root.reflow.stat.delta )
 		//postUpdate( timer.delta )
 
@@ -650,8 +684,6 @@ export class Motor {
 		else root.post( { m:'poststep', flow:root.flow })
 
 		//	Motor.stepItems()
-
-
 
 		Motor.flowReset()
 
@@ -687,7 +719,7 @@ export class Motor {
 	}
 
 	static texture( o = {} ) {
-		return Pool.texture( o )//extraTexture( o )
+		return Pool.texture( o )
 	}
 
 	static getMaterialList(){
@@ -698,9 +730,7 @@ export class Motor {
 		return Mat.get( name )
 	}
 
-	static addMaterial( m, direct ){
-		return Pool.set( m.name, m, 'material', direct )
-	}
+	
 
 	static setEnvmapIntensity (v) { 
 		let m
@@ -1081,7 +1111,17 @@ export class Motor {
 	}
 
 	static getMesh ( obj, keepMaterial ){
+		if(keepMaterial){
+			let mm = Pool.getMaterials(obj)
+			for( let m in mm ){
+				Motor.addMaterial( mm[m] )
+			}
+		}
 		return Pool.getMesh( obj, keepMaterial )
+	}
+
+	static addMaterial( m, direct ){
+		return Pool.set( m.name, m, 'material', direct )
 	}
 
 	static getGroup ( obj, autoMesh, autoMaterial ){
