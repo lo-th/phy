@@ -263,7 +263,7 @@ export class Shader {
 
 
 
-        s = ShaderChunk.output_fragment;
+        s = ShaderChunk.opaque_fragment//output_fragment;
 
         s = s.replace( 'gl_FragColor = vec4( outgoingLight, diffuseColor.a );', `
 
@@ -317,7 +317,7 @@ export class Shader {
         `);
 
         //ShaderChunk.fog_fragment = s;
-        ShaderChunk.output_fragment = s
+        ShaderChunk.opaque_fragment = s//output_fragment = s
 
       //  ShaderChunk.tonemapping_fragment = s;
 

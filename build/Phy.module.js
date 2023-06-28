@@ -24401,7 +24401,7 @@ class Avatar extends Group {
         this.matrixAutoUpdate = false;
         this.isPause = true;
 
-        this.textureQuality = o.quality || 2;
+        this.textureQuality = o.quality || 1;
 
         this.model = o.type || 'man';
         this.startAnimation = o.anim || 'idle';
@@ -25071,6 +25071,8 @@ class Avatar extends Group {
         if(clip.name.search('strafe')!==-1) this.clipsToesFix.push(clip.name);
         if(clip.name.search('jog')!==-1) this.clipsToesFix.push(clip.name);
         if(clip.name.search('RUN')!==-1) this.clipsToesFix.push(clip.name);
+
+        //console.log(clip)
 
         if( window.gui ) window.gui.getAnimation();
 
