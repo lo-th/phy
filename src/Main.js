@@ -75,6 +75,8 @@ let particles = null
 
 let maxFps = 60
 
+let groundAutoColor = true;
+
 const CameraBase = {
 	
 	theta:0,
@@ -93,6 +95,7 @@ const setting = {
 	groundSize:[ 60, 60 ],
 	groundAlpha: true,
 	groundOpacity:1,
+	groundReflect:0.4,
 	ground:true,
 	water:false,
 	fog:false,
@@ -287,7 +290,7 @@ export const Main = {
 
 	lightIntensity:() => { lightIntensity() },
 	envmapIntensity:() => { setEnvmapIntensity() },
-	setReflect:() => { setReflect() },
+	setReflect:(v) => { setReflect(v) },
 
 
 	getOption:() => ( options ),
@@ -322,7 +325,7 @@ export const Main = {
 	setColors: (palette) => {
 
 
-		if( ground ) ground.setColor( Gui.tool.htmlToHex( palette.ground ), true )
+		if( ground && groundAutoColor ) ground.setColor( Gui.tool.htmlToHex( palette.ground ), true )
 
 		let c = Gui.tool.htmlRgba(palette.darkMuted, 0.4)
 		//console.log(c)
@@ -339,9 +342,12 @@ Motor.log = Hub.log;
 Motor.initParticle = Main.initParticle
 Motor.addParticle = Main.addParticle
 Motor.getParticle = Main.getParticle
-
+Motor.getGround = Main.getGround;
 
 Motor.extraCode = Main.extraCode;
+
+
+
 
 
 window.phy = Motor
@@ -767,6 +773,9 @@ const resetLight = ( o ) => {
 
 const addGround = ( o ) => {
 
+	if( o.groundColor ) groundAutoColor = false
+    if( o.groundReflect ) options.reflect = o.groundReflect
+
 	//if( isWebGPU ) return
 
 	if( ground === null ){
@@ -787,15 +796,15 @@ const addGround = ( o ) => {
 	}
 
     ground.setSize( o.groundSize )
+    if(o.groundColor) ground.setColor( o.groundColor )
 	ground.setAlphaMap( o.groundAlpha )
 	ground.setOpacity( o.groundOpacity )
+	ground.setReflect( o.groundReflect )
 	ground.setWater( o.water )
     scene.add( ground )
 
 
     Motor.addMaterial( ground.material,  true )
-
-    //Pool.set( 'Ground',  );
 
     //Gui.reset()
 
@@ -1082,7 +1091,7 @@ const showGround = ( v ) => {
 
 const setReflect = ( v ) => {
 
-	//options.reflect = v
+	if(v) options.reflect = v
 
 	if(!ground) return
 	ground.setReflect( options.reflect )

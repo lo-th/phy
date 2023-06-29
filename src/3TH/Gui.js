@@ -10,7 +10,14 @@ import { Pool } from './Pool.js'
 *   __) |_| | 2023
 * @author lo.th / https://github.com/lo-th
 */
-
+const toneMappingOptions = {
+	None: 0,
+	Linear: 1,
+	Reinhard: 2,
+	Cineon: 3,
+	ACESFilmic: 4,
+	Uncharted2: 5
+}
 export const Gui = {
 
 	tool:UIL.Tools,
@@ -272,6 +279,10 @@ export const Gui = {
 			Env.up()
 		})
 
+		ui.add( options, 'tone',  { type:'list', list:toneMappingOptions, full:true }).onChange( function(v){
+			renderer.toneMapping  = toneMappingOptions[ options.tone ]
+		})
+
 		ui.add( options, 'shadow', { min:0, max:1, mode:mode, color:'#8ff' } ).onChange( Main.setShadow )//.listen()
 		ui.add( options, 'reflect', { min:0, max:1, mode:mode, color:'#8ff' } ).onChange( Main.setReflect )//.listen()
 
@@ -290,11 +301,9 @@ export const Gui = {
 		
 
 		
-		/*g.add( options, 'tone',  { type:'list', list:toneMappingOptions, full:true }).onChange( function(v){
-			renderer.toneMapping  = toneMappingOptions[ options.tone ]
-		})
+		
 
-		g.add( 'bool', { name:'ground', value:setting.ground }).onChange( showGround )
+		/*g.add( 'bool', { name:'ground', value:setting.ground }).onChange( showGround )
 
 		g.add( 'bool', { name:'floor', value:false }).onChange( Env.addFloor )
 		g.add( 'slide', { name:'height', min:1, max:100, precision:0, value:10, mode:mode } ).onChange( Env.setFloorHeight )

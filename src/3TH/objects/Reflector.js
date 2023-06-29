@@ -22,6 +22,7 @@ import {
 	NoToneMapping,
 	AdditiveBlending,
 	MultiplyBlending,
+	Color,
 
 } from 'three';
 import { Shader } from '../Shader.js';
@@ -72,7 +73,7 @@ export class Reflector extends Mesh {
 		o = o || {};
 
 		this.map = o.map || null;
-		this.color = o.color || 0x808080
+		this.color = o.color || 0x808080;
 		this.reflect = o.reflect !== undefined ? o.reflect : 0.4;
 		//this.opacity = o.opacity !== undefined ? o.opacity : 1;
 		this.isWater = o.water !== undefined ? o.water : false;
@@ -490,8 +491,8 @@ export class Reflector extends Mesh {
 			//this.material.normalMap = Pool.texture( { url:'./assets/textures/floor.png', flip:false, repeat:[200,200] });
 			//this.material.normalMap.channel = 1;
 			//this.material.normalMap = null;
-			this.material.roughness = 0.5;
-			this.material.metalness = 0.1;
+			this.material.roughness = 0.8;
+			this.material.metalness = 0.2;
 			this.material.side = FrontSide;
 		}
 
@@ -576,30 +577,18 @@ const ReflectShader = {
 
 	map_fragment :/* glsl */`
 
-	vec4 reflector = texture2DProj( mirrorMap, vUvR );
+	
 
 	#ifdef USE_MAP
-
-	    vec4 sampledDiffuseColor = texture2D( map, vUv );
-	    diffuseColor *= sampledDiffuseColor;
-
-		//vec4 texelColor = texture2D( map, vUv );
-
-		//texelColor = mapTexelToLinear( texelColor );
-
-		//texelColor.rgb = mix( texelColor.rgb, reflector.rgb, reflectif );
-		//texelColor.rgb *= mix( vec3(1.0), reflector.rgb, reflectif );
-		//diffuseColor *= texelColor;
-
-	#else
-
-	//diffuseColor.rgb *= mix( vec3(1.0), reflector.rgb, reflectif );
-	///if( reflectif != 0.0 ) diffuseColor.rgb *= reflectif + reflector.rgb;
-	//if( reflectif != 0.0 ) diffuseColor.rgb += reflectif * reflector.rgb;
-	if( reflectif != 0.0 ) diffuseColor.rgb = mix( diffuseColor.rgb, diffuseColor.rgb * reflector.rgb, reflectif );
+	    
+	    diffuseColor *= texture2D( map, vMapUv );
 
 	#endif
-	//if( blackAll == 1 ) diffuseColor = vec4(0.0, 0.0, 0.0, 1.0);
+
+	if( reflectif != 0.0 ){
+		vec4 reflector = texture2DProj( mirrorMap, vUvR );
+	    diffuseColor.rgb = mix( diffuseColor.rgb, diffuseColor.rgb + reflector.rgb, reflectif );
+	}
 	`,
 
 	fog_fragment :/* glsl */`
@@ -635,45 +624,6 @@ const ReflectShader = {
 
 	}`,
 
-	normal_fragment_maps:/* glsl */`
-	#ifdef OBJECTSPACE_NORMALMAP
-
-		normal = texture2D( normalMap, vNormalMapUv ).xyz * 2.0 - 1.0; // overrides both flatShading and attribute normals
-
-		#ifdef FLIP_SIDED
-
-			normal = - normal;
-
-		#endif
-
-		#ifdef DOUBLE_SIDED
-
-			normal = normal * faceDirection;
-
-		#endif
-
-		normal = normalize( normalMatrix * normal );
-
-	#elif defined( TANGENTSPACE_NORMALMAP )
-
-		vec3 mapN = texture2D( normalMap, vNormalMapUv ).xyz * 2.0 - 1.0;
-		mapN.xy *= normalScale;
-
-		#ifdef USE_TANGENT
-
-			normal = normalize( vTBN * mapN );
-
-		#else
-
-			normal = perturbNormal2Arb( - vViewPosition, normal, mapN, faceDirection );
-
-		#endif
-
-	#elif defined( USE_BUMPMAP )
-
-		normal = perturbNormalArb( - vViewPosition, normal, dHdxy_fwd(), faceDirection );
-
-	#endif
-   `,
+	
 
 }
