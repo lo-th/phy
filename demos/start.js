@@ -13,7 +13,24 @@ demo = () => {
     // add static ground
     phy.add({ type:'plane', size:[300,1,300], visible:false })
 
+    phy.getGround().material.visible = false
+
     
+    // preLoad
+    const maps = [
+    'textures/floor_c.jpg', 'textures/floor_n.jpg',
+    'textures/stucco_c.jpg',
+    'textures/model/sofa_c.jpg', 'textures/model/sofa_n.jpg', 'textures/model/sofa_r.jpg',
+    'textures/model/baseball_c.jpg', 'textures/model/baseball_n.jpg', 'textures/model/baseball_r.jpg',
+    'textures/model/cardboard_c.jpg', 'textures/model/cardboard_n.jpg', 'textures/model/cardboard_r.jpg',
+    ]
+
+    const models = ['models/phy.glb','models/sofa.glb'];
+    phy.load([...maps, ...models], onComplete, './assets/' )
+
+}
+
+onComplete = () => {
 
     makeMaterial()
 
@@ -29,17 +46,12 @@ demo = () => {
     g.material.normalMap = phy.texture({ url:'./assets/textures/floor_n.jpg', repeat:[7,8] })
     //g.material.roughnessMap = phy.texture({ url:'./assets/textures/floor_r.jpg', repeat:[7,8] })
     g.material.normalScale.set(-0.6,-0.6)
+    g.material.visible = true
+
+    g.material.needsUpdate = true
 
 
-    
-    // load logo model
-    phy.load(['./assets/models/phy.glb','./assets/models/sofa.glb'], onComplete )
-
-
-
-}
-
-onComplete = () => {
+    ////
 
     let sofaModel = phy.getMesh('sofa');
 
@@ -59,7 +71,8 @@ onComplete = () => {
         mesh:sofaModel.sofa,
         material:'sofa',
         //meshPos:[0,0,0],
-        density:4,
+        //density:4,
+        mass:80,
     })
 
     model = phy.getMesh('phy');
@@ -86,6 +99,7 @@ onComplete = () => {
         pos:[ 0, 0.8,0 ],
         mesh:model.logo,
         meshSize:1,
+        mass:20,
         material:'glassX',
         ...option
     })
@@ -146,13 +160,16 @@ onComplete = () => {
 
 }
 
+
+
 makeMaterial = () => {
+
     phy.material({ name:'wall', color:0xFFFFFF, roughness: 1, metalness: 0, //color:0x8cc0e5,
         map:phy.texture({ url:'./assets/textures/stucco_c.jpg', repeat:[3,1.5], srgb:true }),
         //normalMap:phy.texture({ url:'./assets/textures/model/sofa_n.jpg' }),
         //roughnessMap:phy.texture({ url:'./assets/textures/model/sofa_r.jpg' }),
         roughness:0.88,
-        normalScale:[0.3,-0.3], 
+        normalScale:[0.3,-0.3],
     })
 
     phy.material({ name:'sofa', color:0xFFFFFF, roughness: 1, metalness: 0, 

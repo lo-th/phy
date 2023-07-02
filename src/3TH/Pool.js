@@ -164,9 +164,10 @@ export const Pool = {
 
         let name = o.url.substring( o.url.lastIndexOf('/')+1, o.url.lastIndexOf('.') );
 
-        if( name.search('_c') !== -1 || name.search('_l') !== -1 || name.search('_u') !== -1|| name.search('_d') !== -1) o.encoding = true
+        if( name.search('_c') !== -1 || name.search('_l') !== -1 || name.search('_u') !== -1|| name.search('_d') !== -1) o.srgb = true
 
-        if( Pool.exist( name, 'texture') ) return Pool.get( name, 'texture' );
+        if( Pool.exist( name, 'texture') ) return get( name, 'texture' );
+        if( Pool.exist( name, 'image') ) return Pool.getTexture( name, o );
             
         return Pool.loaderMap.load( o.url, function ( t ) { 
 
@@ -186,7 +187,7 @@ export const Pool = {
             let im = Pool.data.get( 'I_' + name )
             if(!im) return null
             t = new Texture( im )
-            if( name.search('_c') !== -1 || name.search('_d') !== -1 || name.search('_l') !== -1 || name.search('_u') !== -1 ) o.encoding = true
+            if( name.search('_c') !== -1 || name.search('_d') !== -1 || name.search('_l') !== -1 || name.search('_u') !== -1 ) o.srgb = true
             Pool.data.set( 'T_' + name, t );
         }
         Pool.setTextureOption( t, o )

@@ -118,6 +118,7 @@ const options = {
 	tone:'ACESFilmic',
 	exposure: 1,
 	envPower: 1,
+	legacy:false,
 
 	light_1: 2.5,
 	light_2: 1,
@@ -415,7 +416,7 @@ const init = () => {
 	//renderer.outputColorSpace = THREE.SRGBColorSpace;
 	renderer.toneMapping = toneMappingOptions[options.tone]
 	renderer.toneMappingExposure = options.exposure//Math.pow( options.exposure, 5.0 );//
-	renderer.useLegacyLights = false
+	renderer.useLegacyLights = options.legacy;
 
 	// DOM
     document.body.appendChild( renderer.domElement )

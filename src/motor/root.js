@@ -356,10 +356,10 @@ const matExtra = {
 
 export const Colors = {
     body:new Color( 0xefefd4 ),//.convertSRGBToLinear(),
+    sleep:new Color( 0xBFBFAD ),//.convertSRGBToLinear()//0x46B1C9//0x939393
+    solid:new Color( 0x6C6A68 ),
     base:new Color( 0xFFFFFF ),
-	sleep:new Color( 0xBFBFAD ),//.convertSRGBToLinear()//0x46B1C9//0x939393
-	solid:new Color( 0xDDDDDD ).convertSRGBToLinear()
-
+    black:new Color( 0x222222 ),
 }
 
 export const mat = {}
@@ -382,17 +382,25 @@ export const Mat = {
 			let m;
 			switch( name ){
 
+			    case 'body':   m = new MeshStandardMaterial({ color:Colors.body, ...matExtra }); break//0xFFF1D2
+			    case 'sleep':  m = new MeshStandardMaterial({ color:Colors.sleep, ...matExtra }); break//0x46B1C9
+			    case 'solid':  m = new MeshStandardMaterial({ color:Colors.solid, metalness: 0.1, roughness: 0.8, }); break
+			    case 'base':   m = new MeshStandardMaterial({ color:Colors.base, ...matExtra }); break
+
+			    case 'black':   m = new MeshPhysicalMaterial({ color:Colors.black, metalness: 0, roughness: 0.25 }); break
+			    case 'chrome': m = new MeshStandardMaterial({ color:0xCCCCCC, metalness: 1, roughness:0.075 }); break
+
 				case 'simple': m = new MeshStandardMaterial({ color:0x808080, metalness: 0, roughness: 1 }); break
 
-				case 'base':   m = new MeshStandardMaterial({ color:Colors.base, ...matExtra }); break
-				case 'body':   m = new MeshStandardMaterial({ color:Colors.body, ...matExtra }); break//0xFFF1D2
-				case 'sleep':  m = new MeshStandardMaterial({ color:Colors.sleep, ...matExtra }); break//0x46B1C9
-				case 'solid':  m = new MeshStandardMaterial({ color:Colors.solid, ...matExtra }); break
+				
+				
+				
+				
 				case 'clear':  m = new MeshStandardMaterial({ color:0xFFFFFF, metalness: 0.5, roughness: 0 }); break
 				
 				//case 'hero':   m = new MeshStandardMaterial({ color:0x00FF88, ...matExtra }); break
 				case 'skinny':   m = new MeshStandardMaterial({ color:0xe0ac69, ...matExtra }); break
-				case 'chrome': m = new MeshStandardMaterial({ color:0xCCCCCC, metalness: 1, roughness:0.2 }); break
+				
 				case 'glass':  m = new MeshPhysicalMaterial({ color:0xFFFFff, transparent:true, opacity:0.8, depthTest:true, depthWrite:false, roughness:0.02, metalness:0.0, /*side:DoubleSide,*/ alphaToCoverage:true, premultipliedAlpha:true, transmission:1, clearcoat:1, thickness:0.02  }); break
 				case 'glassX':  m = new MeshPhysicalMaterial({ color:0xFFFFff, transparent:false, opacity:1.0, roughness:0.1, metalness:0, side:DoubleSide, transmission:1.0, clearcoat:1, thickness:0.1, ior:1.5, envMapIntensity:2.2, shadowSide:1, reflectivity:0.5, iridescence:0.5 }); break
 				

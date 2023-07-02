@@ -11,7 +11,6 @@ export class Button {
 		this.down = false
 
 
-
 		this.time = o.time || 250
 
 		this.p = o.pos || [0,0,0]
@@ -24,6 +23,7 @@ export class Button {
 		this.axe = o.axe !== undefined ? o.axe : 1
 
 		this.fontSize = o.fontSize || 0.8 
+		this.fontScale = o.fontScale || 1.0;
 
 		this.extraForce = true 
 
@@ -34,8 +34,10 @@ export class Button {
 
 
 		this.origin = this.pos[this.axe]
+	    let height = this.size[this.axe]-(this.radius*2)
 
-		this.range = [ this.origin - this.decal - (this.radius*2), this.origin ]
+		//this.range = [ this.origin - this.decal - (this.radius*2), this.origin ]
+		this.range = [ this.origin - height, this.origin ]
 
 		this.value = this.origin
 		this.target = this.origin
@@ -76,7 +78,8 @@ export class Button {
 
 	addText( txt, size ){
 
-		this.fontSize = this.size[1] * 0.8
+		this.fontSize = this.type==='box' ? this.size[1] * 0.8 : this.size[0] * 0.8
+		this.fontSize *= this.fontScale
 		this.txt = new Textfield({ text:txt, pos:[ 0,this.size[1]*0.5,0 ], rot:[-90,0,0], h:this.fontSize })
 		this.b.add( this.txt )
 

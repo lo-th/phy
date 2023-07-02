@@ -34,16 +34,33 @@ demo = () => {
 
 onComplete = () => {
 
-    const models = phy.getMesh('arch')
-    buildArch({ block:0.4, height:16, length:4, deep:4, pos:[0,3.2,0] }, models )
-    // creat building
-    building({ block:0.4, height:8, length:4, deep:4, pos:[-2.037,0,0] }, models)
-    building({ block:0.4, height:8, length:4, deep:4, pos:[2.037,0,0] }, models)
+    build();
 
     phy.add({ type:'box', size:[0.05,4,1.2], pos:[2.862, 2, 0], visible:false })
     phy.add({ type:'box', size:[0.05,4,1.2], pos:[-2.862, 2, 0], visible:false })
 
     //phy.add({ type:'highSphere', name:'sphere', size:[1], pos:[0.8,1,-2], density:1, restitution:0.2, friction:0.2, sleep:true, startSleep:true, material:'chrome' })
+    //phy.addButton({ type:'cylinder', pos:[0,0,5], size:[0.4,0.1], radius:0.04, seg:32, fontSize:30, callback:rebuild, text:'O' })
+
+}
+
+rebuild = () => {
+    //
+
+    phy.clearBody()
+    build();
+
+}
+
+build = () => {
+
+    const models = phy.getMesh('arch')
+    buildArch({ name:'arch', block:0.4, height:16, length:4, deep:4, pos:[0,3.2,0] }, models )
+    // creat building
+    building({ name:'pilar_l' ,block:0.4, height:8, length:4, deep:4, pos:[-2.037,0,0] }, models)
+    building({ name:'pilar_r', block:0.4, height:8, length:4, deep:4, pos:[2.037,0,0] }, models)
+
+    phy.addButton({ type:'cylinder', pos:[0,0,5], size:[0.5,0.05], radius:0.02, seg:32, fontScale:2, callback:rebuild, text:'∞', material:'glassX' })
 
 }
 
@@ -67,6 +84,7 @@ building = ( o, models ) => {
         pos = math.addArray (o.pos, [ i*d + dx, (k*d + d)-(s*0.5), j*d + dz ])
         tmp.push({
             ...Values,
+            //name:o.name,
             instance:'boxbase',
             type:'box',
             //radius:0.1,// box chanfer
@@ -97,7 +115,8 @@ buildArch = ( o, models ) => {
     for(i=0; i<names.length; i++){
         name = names[i]
         
-        model.push({  
+        model.push({ 
+            //name:o.name, 
             instance:name,
             type:'convex', 
             shape:models[name].geometry, 
@@ -133,6 +152,7 @@ buildArch = ( o, models ) => {
         tmp.push({
             ...Values,
             ...model[i],
+
             pos:pos,
             rot:rot,
         })

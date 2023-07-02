@@ -883,10 +883,10 @@ const matExtra = {
 
 const Colors = {
     body:new Color( 0xefefd4 ),//.convertSRGBToLinear(),
+    sleep:new Color( 0xBFBFAD ),//.convertSRGBToLinear()//0x46B1C9//0x939393
+    solid:new Color( 0x6C6A68 ),
     base:new Color( 0xFFFFFF ),
-	sleep:new Color( 0xBFBFAD ),//.convertSRGBToLinear()//0x46B1C9//0x939393
-	solid:new Color( 0xDDDDDD ).convertSRGBToLinear()
-
+    black:new Color( 0x222222 ),
 };
 
 const mat = {};
@@ -909,17 +909,25 @@ const Mat = {
 			let m;
 			switch( name ){
 
+			    case 'body':   m = new MeshStandardMaterial({ color:Colors.body, ...matExtra }); break//0xFFF1D2
+			    case 'sleep':  m = new MeshStandardMaterial({ color:Colors.sleep, ...matExtra }); break//0x46B1C9
+			    case 'solid':  m = new MeshStandardMaterial({ color:Colors.solid, metalness: 0.1, roughness: 0.8, }); break
+			    case 'base':   m = new MeshStandardMaterial({ color:Colors.base, ...matExtra }); break
+
+			    case 'black':   m = new MeshPhysicalMaterial({ color:Colors.black, metalness: 0, roughness: 0.25 }); break
+			    case 'chrome': m = new MeshStandardMaterial({ color:0xCCCCCC, metalness: 1, roughness:0.075 }); break
+
 				case 'simple': m = new MeshStandardMaterial({ color:0x808080, metalness: 0, roughness: 1 }); break
 
-				case 'base':   m = new MeshStandardMaterial({ color:Colors.base, ...matExtra }); break
-				case 'body':   m = new MeshStandardMaterial({ color:Colors.body, ...matExtra }); break//0xFFF1D2
-				case 'sleep':  m = new MeshStandardMaterial({ color:Colors.sleep, ...matExtra }); break//0x46B1C9
-				case 'solid':  m = new MeshStandardMaterial({ color:Colors.solid, ...matExtra }); break
+				
+				
+				
+				
 				case 'clear':  m = new MeshStandardMaterial({ color:0xFFFFFF, metalness: 0.5, roughness: 0 }); break
 				
 				//case 'hero':   m = new MeshStandardMaterial({ color:0x00FF88, ...matExtra }); break
 				case 'skinny':   m = new MeshStandardMaterial({ color:0xe0ac69, ...matExtra }); break
-				case 'chrome': m = new MeshStandardMaterial({ color:0xCCCCCC, metalness: 1, roughness:0.2 }); break
+				
 				case 'glass':  m = new MeshPhysicalMaterial({ color:0xFFFFff, transparent:true, opacity:0.8, depthTest:true, depthWrite:false, roughness:0.02, metalness:0.0, /*side:DoubleSide,*/ alphaToCoverage:true, premultipliedAlpha:true, transmission:1, clearcoat:1, thickness:0.02  }); break
 				case 'glassX':  m = new MeshPhysicalMaterial({ color:0xFFFFff, transparent:false, opacity:1.0, roughness:0.1, metalness:0, side:DoubleSide, transmission:1.0, clearcoat:1, thickness:0.1, ior:1.5, envMapIntensity:2.2, shadowSide:1, reflectivity:0.5, iridescence:0.5 }); break
 				
@@ -5603,6 +5611,7 @@ class Body extends Item {
 	    if( o.meshScale ) o.meshScale = MathTool.autoSize( o.meshScale );
 
 	    let material, noMat = false;
+	    //let defMat = false;
 
 	    if( o.visible === false ) o.material = 'hide';
 
@@ -5611,6 +5620,7 @@ class Body extends Item {
 	    	else material = o.material;
 	    } else {
 	    	noMat = true;
+	    	//defMat = this.type === 'body'
 	    	material = Mat.get( this.type );
 	    	if( o.instance ) material = Mat.get( 'base' );
 	    }
@@ -5703,7 +5713,8 @@ class Body extends Item {
 
 		if( !noMat ) b.material = material;
 		b.defMat = false;
-		if( b.material ) b.defMat = b.material.name === 'body';
+		
+		if( b.material && noMat ) b.defMat = b.material.name === 'body';
 
 
 		//  for instancing
@@ -23076,9 +23087,10 @@ const Pool = {
 
         let name = o.url.substring( o.url.lastIndexOf('/')+1, o.url.lastIndexOf('.') );
 
-        if( name.search('_c') !== -1 || name.search('_l') !== -1 || name.search('_u') !== -1|| name.search('_d') !== -1) o.encoding = true;
+        if( name.search('_c') !== -1 || name.search('_l') !== -1 || name.search('_u') !== -1|| name.search('_d') !== -1) o.srgb = true;
 
-        if( Pool.exist( name, 'texture') ) return Pool.get( name, 'texture' );
+        if( Pool.exist( name, 'texture') ) return get( name, 'texture' );
+        if( Pool.exist( name, 'image') ) return Pool.getTexture( name, o );
             
         return Pool.loaderMap.load( o.url, function ( t ) { 
 
@@ -23098,7 +23110,7 @@ const Pool = {
             let im = Pool.data.get( 'I_' + name );
             if(!im) return null
             t = new Texture( im );
-            if( name.search('_c') !== -1 || name.search('_d') !== -1 || name.search('_l') !== -1 || name.search('_u') !== -1 ) o.encoding = true;
+            if( name.search('_c') !== -1 || name.search('_d') !== -1 || name.search('_l') !== -1 || name.search('_u') !== -1 ) o.srgb = true;
             Pool.data.set( 'T_' + name, t );
         }
         Pool.setTextureOption( t, o );
@@ -23109,6 +23121,7 @@ const Pool = {
 
         //if( o.colorSpace ) t.colorSpace = o.colorSpace;
         if( o.encoding ) t.colorSpace = SRGBColorSpace;
+        if( o.srgb ) t.colorSpace = SRGBColorSpace;
         t.flipY = ( o.flipY || o.flip ) !== undefined ? o.flipY : false;
         if( o.anisotropy !== undefined ) t.anisotropy = o.anisotropy;
         if( o.generateMipmaps !== undefined ) t.generateMipmaps = o.generateMipmaps;
@@ -29112,7 +29125,6 @@ class Button {
 		this.down = false;
 
 
-
 		this.time = o.time || 250;
 
 		this.p = o.pos || [0,0,0];
@@ -29125,6 +29137,7 @@ class Button {
 		this.axe = o.axe !== undefined ? o.axe : 1;
 
 		this.fontSize = o.fontSize || 0.8; 
+		this.fontScale = o.fontScale || 1.0;
 
 		this.extraForce = true; 
 
@@ -29135,8 +29148,10 @@ class Button {
 
 
 		this.origin = this.pos[this.axe];
+	    let height = this.size[this.axe]-(this.radius*2);
 
-		this.range = [ this.origin - this.decal - (this.radius*2), this.origin ];
+		//this.range = [ this.origin - this.decal - (this.radius*2), this.origin ]
+		this.range = [ this.origin - height, this.origin ];
 
 		this.value = this.origin;
 		this.target = this.origin;
@@ -29177,7 +29192,8 @@ class Button {
 
 	addText( txt, size ){
 
-		this.fontSize = this.size[1] * 0.8;
+		this.fontSize = this.type==='box' ? this.size[1] * 0.8 : this.size[0] * 0.8;
+		this.fontSize *= this.fontScale;
 		this.txt = new Textfield({ text:txt, pos:[ 0,this.size[1]*0.5,0 ], rot:[-90,0,0], h:this.fontSize });
 		this.b.add( this.txt );
 
@@ -31512,16 +31528,31 @@ class Motor {
 
 	static material ( o = {} ){
 
+		let type = 'Standard';
+		if( o.thickness || o.sheen || o.clearcoat || o.transmission ) type = 'Physical';
+
+		if(o.type){
+			type = o.type;
+			delete o.type;
+		}
+
 		let m;
-		let isphy = false; 
-		if( o.thickness || o.sheen || o.clearcoat || o.transmission ) isphy = true;
+
 		if(o.normalScale){
 			if( !o.normalScale.isVector2 ) o.normalScale = new Vector2().fromArray(o.normalScale);
 		}
 		if( o.isMaterial ) m = o;
-		else m = isphy ? new MeshPhysicalMaterial( o ) : new MeshStandardMaterial( o );
-		if( mat[ m.name ] ) return null;
+		else {
+			switch(type){
+				case 'Physical': m = new MeshPhysicalMaterial( o ); break;
+				case 'Phong': m = new MeshPhongMaterial( o ); break;
+				case 'Lambert': m = new MeshLambertMaterial( o ); break;
+				case 'Basic': m = new MeshBasicMaterial( o ); break;
+				default: m = new MeshStandardMaterial( o ); break;
+			}
+		}
 
+		if( mat[ m.name ] ) return null;
 	    Mat.set( m );
 		return m;
 
@@ -31645,6 +31676,12 @@ class Motor {
 
 		//root.bodyRef = items.body
 		
+
+	}
+
+	static clearBody() {
+
+		items.body.reset();
 
 	}
 
@@ -31869,7 +31906,7 @@ class Motor {
 	//-----------------------
 
 	static load ( Urls, Callback, Path = '', msg = '' ){
-		Pool.load( Urls, Callback, Path = '', msg = '' );
+		Pool.load( Urls, Callback, Path, msg );
 	}
 	static applyMorph ( modelName, meshs = null, normal = true, relative = true ){
 		Pool.applyMorph( modelName, meshs = null, normal = true, relative = true );

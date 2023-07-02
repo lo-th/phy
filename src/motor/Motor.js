@@ -1,6 +1,7 @@
 
 import {
-    Group, MeshPhysicalMaterial, MeshStandardMaterial, MeshBasicMaterial, Vector3, Vector2, Quaternion
+    Group, Vector3, Vector2, Quaternion,
+    MeshPhysicalMaterial, MeshStandardMaterial, MeshLambertMaterial, MeshPhongMaterial, MeshToonMaterial, MeshBasicMaterial,
 } from 'three';
 
 import { MathTool } from '../core/MathTool.js';
@@ -744,16 +745,31 @@ export class Motor {
 
 	static material ( o = {} ){
 
-		let m
-		let isphy = false 
-		if( o.thickness || o.sheen || o.clearcoat || o.transmission ) isphy = true
+		let type = 'Standard'
+		if( o.thickness || o.sheen || o.clearcoat || o.transmission ) type = 'Physical'
+
+		if(o.type){
+			type = o.type;
+			delete o.type
+		}
+
+		let m;
+
 		if(o.normalScale){
 			if( !o.normalScale.isVector2 ) o.normalScale = new Vector2().fromArray(o.normalScale)
 		}
 		if( o.isMaterial ) m = o
-		else m = isphy ? new MeshPhysicalMaterial( o ) : new MeshStandardMaterial( o )
-		if( mat[ m.name ] ) return null;
+		else {
+			switch(type){
+				case 'Physical': m = new MeshPhysicalMaterial( o ); break;
+				case 'Phong': m = new MeshPhongMaterial( o ); break;
+				case 'Lambert': m = new MeshLambertMaterial( o ); break;
+				case 'Basic': m = new MeshBasicMaterial( o ); break;
+				default: m = new MeshStandardMaterial( o ); break;
+			}
+		}
 
+		if( mat[ m.name ] ) return null;
 	    Mat.set( m );
 		return m;
 
@@ -877,6 +893,12 @@ export class Motor {
 
 		//root.bodyRef = items.body
 		
+
+	}
+
+	static clearBody() {
+
+		items.body.reset()
 
 	}
 
@@ -1101,7 +1123,7 @@ export class Motor {
 	//-----------------------
 
 	static load ( Urls, Callback, Path = '', msg = '' ){
-		Pool.load( Urls, Callback, Path = '', msg = '' )
+		Pool.load( Urls, Callback, Path, msg )
 	}
 	static applyMorph ( modelName, meshs = null, normal = true, relative = true ){
 		Pool.applyMorph( modelName, meshs = null, normal = true, relative = true )

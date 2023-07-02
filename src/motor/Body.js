@@ -427,6 +427,7 @@ export class Body extends Item {
 	    if( o.meshScale ) o.meshScale = MathTool.autoSize( o.meshScale )
 
 	    let material, noMat = false;
+	    //let defMat = false;
 
 	    if( o.visible === false ) o.material = 'hide'
 
@@ -435,6 +436,7 @@ export class Body extends Item {
 	    	else material = o.material;
 	    } else {
 	    	noMat = true
+	    	//defMat = this.type === 'body'
 	    	material = Mat.get( this.type )
 	    	if( o.instance ) material = Mat.get( 'base' )
 	    }
@@ -527,7 +529,8 @@ export class Body extends Item {
 
 		if( !noMat ) b.material = material
 		b.defMat = false;
-		if( b.material ) b.defMat = b.material.name === 'body'
+		
+		if( b.material && noMat ) b.defMat = b.material.name === 'body'
 
 
 		//  for instancing
