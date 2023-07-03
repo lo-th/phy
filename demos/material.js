@@ -1,4 +1,5 @@
 const mat = {}
+const mod = 'shaderBall'
 
 demo = () => {
 
@@ -6,7 +7,7 @@ demo = () => {
 
     phy.view({
         phi:30, theta:0, distance:4, x:0, y:0.4, z:0, fov:50, envmap:'lobe',
-        groundColor:0x909090,
+        //roundColor:0x909090,
         groundReflect:0.1,
     })
 
@@ -19,28 +20,29 @@ demo = () => {
 
     //makeMaterial()
 
-    phy.load(['./assets/models/shaderBall.glb'], onComplete )
+    phy.load(['./assets/models/'+mod+'.glb'], onComplete )
 
 }
 
 onComplete = () => {
 
-    const models = phy.getMesh('shaderBall')
+    const models = phy.getMesh(mod)
 
     models.ball_2.material = phy.getOneMaterial('black')//mat['black']
+    models.ball_2.receiveShadow = true
 
-    console.log( models )
+    //console.log( models )
 
     const matName = [
-    'body', 'sleep', 'solid', 'base', 'carGlass',
-    'sleep', 'chrome', 'solid', 'glassX', 'carGlass',
+    'body', 'sleep', 'solid', 'base', 'carbon',
+    'chrome', 'gold', 'copper', 'glassX', 'carGlass',
     'simple', 'chrome', 'solid', 'glassX', 'carGlass',
     'simple', 'chrome', 'solid', 'glassX', 'carGlass',
     'simple', 'chrome', 'solid', 'glassX', 'carGlass',
     ]
 
     let n, m, mid
-    let y = 3, yn=0, c = 0
+    let y = 2, yn=0, c = 0
 
     while(y--){
         n = 5

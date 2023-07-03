@@ -1,4 +1,4 @@
-import { LineSegments, BufferGeometry, BufferAttribute, Float32BufferAttribute, LineBasicMaterial, Color, Quaternion, Matrix3, Vector3, CylinderGeometry, SphereGeometry, BoxGeometry, PlaneGeometry, MeshBasicMaterial, MeshStandardMaterial, MeshPhysicalMaterial, DoubleSide, Line, EventDispatcher, MathUtils, Matrix4, Layers, InstancedMesh, InstancedBufferAttribute, DynamicDrawUsage, TrianglesDrawMode, TriangleFanDrawMode, TriangleStripDrawMode, CircleGeometry, Box3, Vector2, Line3, Plane, Triangle, Mesh, NearestFilter, NearestMipmapNearestFilter, NearestMipmapLinearFilter, LinearFilter, LinearMipmapNearestFilter, LinearMipmapLinearFilter, ClampToEdgeWrapping, RepeatWrapping, MirroredRepeatWrapping, PropertyBinding, InterpolateLinear, Source, LinearEncoding, RGBAFormat, InterpolateDiscrete, Scene, sRGBEncoding, Loader, LoaderUtils, FileLoader, SpotLight, PointLight, DirectionalLight, SRGBColorSpace, Object3D, TextureLoader, ImageBitmapLoader, InterleavedBuffer, InterleavedBufferAttribute, PointsMaterial, Material, SkinnedMesh, LineLoop, Points, Group, PerspectiveCamera, OrthographicCamera, Skeleton, AnimationClip, Bone, FrontSide, Texture, VectorKeyframeTrack, NumberKeyframeTrack, QuaternionKeyframeTrack, Sphere, Interpolant, LinearSRGBColorSpace, Vector4, Curve, Euler, MeshPhongMaterial, MeshLambertMaterial, EquirectangularReflectionMapping, AmbientLight, Uint16BufferAttribute, DataTextureLoader, HalfFloatType, FloatType, DataUtils, RedFormat, NoColorSpace, AnimationMixer, AdditiveBlending, CustomBlending, ZeroFactor, SrcAlphaFactor, SkeletonHelper, AnimationUtils, CanvasTexture, Raycaster } from 'three';
+import { LineSegments, BufferGeometry, BufferAttribute, Float32BufferAttribute, LineBasicMaterial, CanvasTexture, RepeatWrapping, SRGBColorSpace, Color, Quaternion, Matrix3, Vector3, CylinderGeometry, SphereGeometry, BoxGeometry, PlaneGeometry, MeshBasicMaterial, MeshStandardMaterial, MeshPhysicalMaterial, DoubleSide, Vector2, Line, EventDispatcher, MathUtils, Matrix4, Layers, InstancedMesh, InstancedBufferAttribute, DynamicDrawUsage, TrianglesDrawMode, TriangleFanDrawMode, TriangleStripDrawMode, CircleGeometry, Box3, Line3, Plane, Triangle, Mesh, NearestFilter, NearestMipmapNearestFilter, NearestMipmapLinearFilter, LinearFilter, LinearMipmapNearestFilter, LinearMipmapLinearFilter, ClampToEdgeWrapping, MirroredRepeatWrapping, PropertyBinding, InterpolateLinear, Source, LinearEncoding, RGBAFormat, InterpolateDiscrete, Scene, sRGBEncoding, Loader, LoaderUtils, FileLoader, SpotLight, PointLight, DirectionalLight, Object3D, TextureLoader, ImageBitmapLoader, InterleavedBuffer, InterleavedBufferAttribute, PointsMaterial, Material, SkinnedMesh, LineLoop, Points, Group, PerspectiveCamera, OrthographicCamera, Skeleton, AnimationClip, Bone, FrontSide, Texture, VectorKeyframeTrack, NumberKeyframeTrack, QuaternionKeyframeTrack, Sphere, Interpolant, LinearSRGBColorSpace, Vector4, Curve, Euler, MeshPhongMaterial, MeshLambertMaterial, EquirectangularReflectionMapping, AmbientLight, Uint16BufferAttribute, DataTextureLoader, HalfFloatType, FloatType, DataUtils, RedFormat, NoColorSpace, AnimationMixer, AdditiveBlending, CustomBlending, ZeroFactor, SrcAlphaFactor, SkeletonHelper, AnimationUtils, Raycaster } from 'three';
 
 const PI = Math.PI;
 const torad$1 = PI / 180;
@@ -532,6 +532,107 @@ class CircleHelper extends LineSegments {
 
 }
 
+class CarbonTexture {
+
+	constructor( normal, c1='rgb(69,69,69)', c2='rgb(39,39,39)'  ) {
+
+		let s = 128;
+
+		const canvas = document.createElement( 'canvas' );
+		canvas.width = canvas.height = s;
+
+		const ctx = canvas.getContext( '2d' );
+		ctx.fillStyle = c1;
+		ctx.fillRect( 0, 0, s, s );
+
+		if( !normal ){
+
+			ctx.beginPath();
+			ctx.fillStyle = c2;
+		    ctx.rect(0, 0, 32, 64);
+		    ctx.rect(32, 32, 32, 64);
+		    ctx.rect(64, 64, 32, 64);
+		    ctx.rect(96, 96, 32, 64);
+		    ctx.rect(96, -32, 32, 64);
+		    ctx.fill();
+
+	    } else {
+
+	    	let i, j, n, d;
+	    	let pos = [ [0, 0], [32, 32],[64, 64],[96, 96],[96, -32] ];
+	    	let deg = [ [0, 64], [32, 96],[64, 128],[96, 160],[-32, 32] ];
+
+	    	let f1 = normal ? 'rgb(128,128,255)' : c1;
+	    	let f2 = normal ? 'rgb(160,100,255)' : c2;
+	    	let f3 = normal ? 'rgba(100,160,255, 0.5)' : 'rgba(0,0,0, 0.1)';
+
+	    	ctx.strokeStyle = f3;
+	    	ctx.lineWidth = 1;
+
+	    	for( i = 0; i<5; i++ ){
+
+	    		d = ctx.createLinearGradient(0, deg[i][0], 0, deg[i][1]);
+				d.addColorStop(0, f2);
+				d.addColorStop(1, f1);
+
+				ctx.beginPath();
+				ctx.fillStyle = d;
+				ctx.rect(pos[i][0], pos[i][1], 32, 64);
+				ctx.fill();
+
+				for( let j = 0; j<8; j++ ){   
+
+					n = (Math.random()-0.5) * 2; 
+				           
+				    ctx.beginPath();
+					ctx.moveTo(pos[i][0]+n+2+j*4, pos[i][1]);
+					ctx.lineTo(pos[i][0]+n+2+j*4, pos[i][1]+64);
+					ctx.stroke();
+				}
+
+	    	}
+
+	    	pos = [ [32, 0], [64, 32],[96, 64],[-32, 64],[0, 96] ];
+	    	deg = [ [32, 96], [64, 128],[96, 160],[-32, 32],[0, 64] ];
+
+	    	for( i = 0; i<5; i++ ){
+
+	    		d = ctx.createLinearGradient(deg[i][0], 0, deg[i][1], 0);
+				d.addColorStop(0, f1);
+				d.addColorStop(1, f2);
+
+				ctx.beginPath();
+				ctx.fillStyle = d;
+				ctx.rect(pos[i][0], pos[i][1], 64, 32);
+				ctx.fill();
+
+				for( j = 0; j<8; j++ ){
+
+					n = (Math.random()-0.5) * 2; 
+					ctx.beginPath();
+					ctx.moveTo(pos[i][0], pos[i][1]+n+2+j*4);
+					ctx.lineTo(pos[i][0]+64, pos[i][1]+n+2+j*4);
+					ctx.stroke();
+				}
+
+	    	}
+
+	    }
+
+		//return canvas;
+
+		const texture = new CanvasTexture( canvas ); //new CarbonTexture('#ffffff', '#CCCCCC') )
+		texture.wrapS = texture.wrapT = RepeatWrapping;
+		texture.repeat.x = texture.repeat.y = 60;
+
+		if(!normal) texture.colorSpace = SRGBColorSpace;
+
+		return texture;
+
+	}
+
+}
+
 //import { LineMaterial } from 'three/addons/lines/LineMaterial.js';
 const map = new Map();
 
@@ -887,6 +988,10 @@ const Colors = {
     solid:new Color( 0x6C6A68 ),
     base:new Color( 0xFFFFFF ),
     black:new Color( 0x222222 ),
+    gold:new Color( 0.944, 0.776, 0.373 ),//f0c65f
+    gold2:new Color( 0.998, 0.981, 0.751 ),
+    copper:new Color( 0.96467984, 0.37626296, 0.25818297 ),
+    carPaint:new Color( 0.1037792, 0.59212029, 0.85064936 ),
 };
 
 const mat = {};
@@ -915,9 +1020,16 @@ const Mat = {
 			    case 'base':   m = new MeshStandardMaterial({ color:Colors.base, ...matExtra }); break
 
 			    case 'black':   m = new MeshPhysicalMaterial({ color:Colors.black, metalness: 0, roughness: 0.25 }); break
+
 			    case 'chrome': m = new MeshStandardMaterial({ color:0xCCCCCC, metalness: 1, roughness:0.075 }); break
+			    case 'gold': m = new MeshStandardMaterial({ color:Colors.gold, metalness: 1, roughness:0.02 }); break
+			    case 'copper': m = new MeshPhysicalMaterial({ color:Colors.copper, metalness: 1, roughness:0.25, clearcoat: 1.0, clearcoatRoughness: 0.2, }); break
+
+			    case 'carPaint': m = new MeshPhysicalMaterial({ color:Colors.carPaint, metalness: 0, anisotropy:new Vector2(0.5,0.5), roughness:0.4, clearcoat: 1.0, clearcoatRoughness: 0, }); break
 
 				case 'simple': m = new MeshStandardMaterial({ color:0x808080, metalness: 0, roughness: 1 }); break
+
+				case 'carbon': m = new MeshPhysicalMaterial({ map:new CarbonTexture(), normalMap:new CarbonTexture(true), clearcoat: 1.0, clearcoatRoughness: 0.1, roughness: 0.5 }); break
 
 				
 				

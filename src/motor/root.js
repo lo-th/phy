@@ -5,6 +5,7 @@ import {
     Box3Helper, DoubleSide,
 } from 'three';
 import { CircleHelper } from '../3TH/helpers/CircleHelper.js';
+import { CarbonTexture } from '../3TH/textures/CarbonTexture.js';
 //import { LineMaterial } from 'three/addons/lines/LineMaterial.js';
 export const map = new Map()
 
@@ -360,6 +361,10 @@ export const Colors = {
     solid:new Color( 0x6C6A68 ),
     base:new Color( 0xFFFFFF ),
     black:new Color( 0x222222 ),
+    gold:new Color( 0.944, 0.776, 0.373 ),//f0c65f
+    gold2:new Color( 0.998, 0.981, 0.751 ),
+    copper:new Color( 0.96467984, 0.37626296, 0.25818297 ),
+    carPaint:new Color( 0.1037792, 0.59212029, 0.85064936 ),
 }
 
 export const mat = {}
@@ -388,9 +393,16 @@ export const Mat = {
 			    case 'base':   m = new MeshStandardMaterial({ color:Colors.base, ...matExtra }); break
 
 			    case 'black':   m = new MeshPhysicalMaterial({ color:Colors.black, metalness: 0, roughness: 0.25 }); break
+
 			    case 'chrome': m = new MeshStandardMaterial({ color:0xCCCCCC, metalness: 1, roughness:0.075 }); break
+			    case 'gold': m = new MeshStandardMaterial({ color:Colors.gold, metalness: 1, roughness:0.02 }); break
+			    case 'copper': m = new MeshPhysicalMaterial({ color:Colors.copper, metalness: 1, roughness:0.25, clearcoat: 1.0, clearcoatRoughness: 0.2, }); break
+
+			    case 'carPaint': m = new MeshPhysicalMaterial({ color:Colors.carPaint, metalness: 0, anisotropy:new Vector2(0.5,0.5), roughness:0.4, clearcoat: 1.0, clearcoatRoughness: 0, }); break
 
 				case 'simple': m = new MeshStandardMaterial({ color:0x808080, metalness: 0, roughness: 1 }); break
+
+				case 'carbon': m = new MeshPhysicalMaterial({ map:new CarbonTexture(), normalMap:new CarbonTexture(true), clearcoat: 1.0, clearcoatRoughness: 0.1, roughness: 0.5 }); break
 
 				
 				

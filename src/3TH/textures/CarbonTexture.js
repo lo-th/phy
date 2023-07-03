@@ -1,6 +1,10 @@
+import {
+    CanvasTexture, RepeatWrapping, SRGBColorSpace,
+} from 'three';
+
 class CarbonTexture {
 
-	constructor( c1='rgb(69,69,69)', c2='rgb(39,39,39)', normal ) {
+	constructor( normal, c1='rgb(69,69,69)', c2='rgb(39,39,39)'  ) {
 
 		let s = 128
 
@@ -85,7 +89,15 @@ class CarbonTexture {
 
 	    }
 
-		return canvas;
+		//return canvas;
+
+		const texture = new CanvasTexture( canvas ) //new CarbonTexture('#ffffff', '#CCCCCC') )
+		texture.wrapS = texture.wrapT = RepeatWrapping
+		texture.repeat.x = texture.repeat.y = 60
+
+		if(!normal) texture.colorSpace = SRGBColorSpace;
+
+		return texture;
 
 	}
 

@@ -57,6 +57,8 @@ import WebGPURenderer from 'three/addons/renderers/webgpu/WebGPURenderer.js';
 let activeWebGPU = false
 let isWebGPU = false
 
+
+
 let drawCall = false
 let fullStat = false
 let debugLight = false
@@ -75,6 +77,7 @@ let particles = null
 
 let maxFps = 60
 
+let groundColor = 0x808080
 let groundAutoColor = true;
 
 const CameraBase = {
@@ -95,7 +98,7 @@ const setting = {
 	groundSize:[ 60, 60 ],
 	groundAlpha: true,
 	groundOpacity:1,
-	groundReflect:0.4,
+	groundReflect:0.1,
 	ground:true,
 	water:false,
 	fog:false,
@@ -323,12 +326,15 @@ export const Main = {
 	resetGui: () => { Gui.reset() },
 	setEnv: (name, chageUI) => { setEnv(name, chageUI) },
 
-	setColors: (palette) => {
+	setColors: ( palette ) => {
 
 
-		if( ground && groundAutoColor ) ground.setColor( Gui.tool.htmlToHex( palette.ground ), true )
 
-		let c = Gui.tool.htmlRgba(palette.darkMuted, 0.4)
+		groundColor = Gui.tool.htmlToHex( palette.ground )
+
+		if( ground && groundAutoColor ) ground.setColor( groundColor )
+
+		let c = Gui.tool.htmlRgba( palette.darkMuted, 0.4 )
 		//console.log(c)
 
 		Hub.setTopColor( Gui.tool.htmlRgba(palette.darkMuted, 0.4) )
@@ -789,23 +795,30 @@ const addGround = ( o ) => {
 	        encoding:true,
 	        reflect: options.reflect,
 	        water:o.water,
-	        //color:0x6a8397,
+	        //color:groundColor,
 	        round:true,
 	        normal:true
 
 	    })
+	    scene.add( ground )
+
+	} else {
+		ground.reset()
 	}
 
     ground.setSize( o.groundSize )
-    if(o.groundColor) ground.setColor( o.groundColor )
+
+    if( o.groundColor ) ground.setColor( o.groundColor )
+    else ground.setColor( groundColor )
+
 	ground.setAlphaMap( o.groundAlpha )
 	ground.setOpacity( o.groundOpacity )
 	ground.setReflect( o.groundReflect )
 	ground.setWater( o.water )
-    scene.add( ground )
-
-
+    //scene.add( ground )
     Motor.addMaterial( ground.material,  true )
+
+    
 
     //Gui.reset()
 
@@ -817,8 +830,6 @@ const removeGround = () => {
 
 	//scene.remove( ground )
 	ground.dispose()
-	//ground.geometry.dispose()
-    //ground.material.dispose()
     ground = null
 
 }

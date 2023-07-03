@@ -41,7 +41,7 @@ export const Gui = {
 	matList:null,
 
 	imageMap: ['map', 'map1', 'map2', 'emissiveMap', 'sheenColorMap'],
-	imageNormal: [ 'normalMap', 'normalMap1','normalMap2','aoMap', 'metalnessMap', 'roughnessMap', 'alphaMap', ],
+	imageNormal: [ 'normalMap', 'normalMap1','normalMap2','aoMap', 'metalnessMap', 'roughnessMap', 'alphaMap','anisotropyMap' ],
 	
 	MaterialMesh:[ 'Basic', 'Physical', 'Standard', 'Toon', 'Lambert', 'Phong', 'Shader' ],
 

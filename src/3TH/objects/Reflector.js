@@ -382,6 +382,20 @@ export class Reflector extends Mesh {
 		}
 
 	}
+
+	reset(){
+		//console.log('reset map')
+		if( this.material.map ) this.material.map.dispose()
+		//if( this.material.alphaMap ) this.material.alphaMap.dispose()
+		if( this.material.normalMap ) this.material.normalMap.dispose()
+
+		//this.groundAutoColor = true;
+        //this.material.color = null;
+		this.material.map = null;
+		//this.material.alphaMap = null;
+		this.material.normalMap = null;
+
+	}
 //}
 
 //Reflector.prototype = Object.create( THREE.Mesh.prototype );
@@ -400,7 +414,7 @@ export class Reflector extends Mesh {
 		if( this.material.normalMap ) this.material.normalMap.dispose()
 		if( this.renderTarget ) this.renderTarget.dispose();
 
-		if(this.parent) this.parent.remove(this)
+		if( this.parent ) this.parent.remove(this)
 		this.geometry.dispose()
 		this.material.dispose()
 
@@ -450,10 +464,13 @@ export class Reflector extends Mesh {
 
 	setColor ( v, srgb ) {
 
+		//console.log('setColor', v)
+
 		//return;
 		this.color = v !== undefined ? v : 0xa87232
 		this.material.color.setHex( this.color )
-		if(!srgb) this.material.color.convertSRGBToLinear()
+
+		//if(srgb) this.material.color.convertSRGBToLinear()
 
 	}
 

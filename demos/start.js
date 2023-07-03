@@ -4,7 +4,7 @@ demo = () => {
         phi:0, theta:0, distance:3, x:0, y:1, z:0, fov:50,//envmap:'render',
         groundSize:[ 5, 7],
         groundAlpha:false,
-        groundColor:0xc7a87b,
+        groundColor:0x926433,
         groundReflect:0.05,
 
     })
