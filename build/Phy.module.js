@@ -1048,7 +1048,7 @@ const Mat = {
 				case 'sat': m = new MeshPhysicalMaterial({ color:0xffffff, metalness: 1, roughness:0, clearcoat:1  }); break
 				
 				case 'car':   m = new MeshPhysicalMaterial({ color:0x303030, metalness: 1.0, roughness: 0.5, clearcoat: 1.0, clearcoatRoughness: 0.03, sheen: 0.5 }); break
-				case 'carGlass':   m = new MeshPhysicalMaterial({ color: 0xffffff, metalness: 0.25, roughness: 0, transmission: 1.0 }); break
+				case 'carGlass':   m = new MeshPhysicalMaterial({ color: 0xffffff, metalness: 0, roughness: 0, transmission: 1.0, ior:1.52 }); break
 
 
 				case 'debug':  m = new MeshBasicMaterial({ color:0x000000, wireframe:true, toneMapped: false }); break
@@ -30632,7 +30632,7 @@ class MouseTool {
 					//tolerance:[1, 10],
 					//noPreProcess:true,
 					//improveSlerp:true,
-					visible:true,
+					visible:false,
 					//noFix:true,
 				}
 			]);
@@ -31618,12 +31618,25 @@ class Motor {
 		return Pool.texture( o )
 	}
 
+
+
 	static getMaterialList(){
 		return mat
 	}
 
 	static getOneMaterial( name ){
 		return Mat.get( name )
+	}
+
+	/*static getMaterial ( name ){
+		console.log('matertialGet ??', name)
+		return Pool.getMaterial( name )
+	}*/
+
+	static addMaterial( m, direct ){
+
+		Mat.set( m, direct );
+		//return Pool.set( m.name, m, 'material', direct )
 	}
 
 	
@@ -32037,17 +32050,15 @@ class Motor {
 		return Pool.getMesh( obj, keepMaterial )
 	}
 
-	static addMaterial( m, direct ){
-		return Pool.set( m.name, m, 'material', direct )
-	}
+	
 
 	static getGroup ( obj, autoMesh, autoMaterial ){
 		return Pool.getGroup( obj, autoMesh, autoMaterial )
 	}
 
-	static getMaterial ( name ){
+	/*static getMaterial ( name ){
 		return Pool.getMaterial( name )
-	}
+	}*/
 
 	static getTexture ( name, o ){
 		return Pool.getTexture( obj, autoMesh, autoMaterial )

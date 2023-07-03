@@ -117,6 +117,11 @@ export class Env {
     	floor.height = v;
     }
 
+    static setBlur ( v ) {
+    	if(!scene) return
+    	scene.backgroundBlurriness = v;
+    }
+
     static addFloor ( v, s=2 ) {
 
     	console.log('addFloor', v)
@@ -218,6 +223,7 @@ export class Env {
 			else { 
 				if( isWebGPU ) scene.backgroundNode = env;
 				else scene.background = env;
+				
 			}
 			//if( scene.ground ) scene.ground.setColor( data.fog.getHex(), true )
 		}

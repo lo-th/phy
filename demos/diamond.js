@@ -3,6 +3,10 @@ let mat = {}
 
 demo = () => {
 
+    phy.view({
+        envmap:'lobe', envblur: 0.5
+    })
+
     // config physics setting
     phy.set( {substep:1, gravity:[0,-9.81,0]})
 
@@ -40,6 +44,8 @@ onComplete = () => {
 
         d.push( m )
 
+        //phy.material( mat[m] )
+
         phy.addMaterial( mat[m], true )
 
         n++
@@ -65,7 +71,7 @@ onComplete = () => {
 
     }
 
-    var sparkle = new Sparkle({ objectList:bodys, controler:Main.getControler() })
+    var sparkle = new Sparkle({ objectList:bodys, controler:Main.getControler(), num:2 })
     phy.addDirect( sparkle )
 
 }

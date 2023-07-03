@@ -509,7 +509,7 @@ export class MouseTool {
 					//tolerance:[1, 10],
 					//noPreProcess:true,
 					//improveSlerp:true,
-					visible:true,
+					visible:false,
 					//noFix:true,
 				}
 			])

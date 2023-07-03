@@ -1,5 +1,5 @@
 import {
-	Points, Color, PointsMaterial, BufferAttribute, FloatType, Texture, Matrix4, Vector3, AdditiveBlending, Mesh, BoxGeometry
+	Points, Color, PointsMaterial, BufferAttribute, FloatType, Texture, Matrix4, Vector3, AdditiveBlending, Mesh, BoxGeometry, SRGBColorSpace
 } from 'three';
 import { math } from '../math.js';
 import { MeshSurfaceSampler } from '../../jsm/math/MeshSurfaceSampler.js';
@@ -119,11 +119,11 @@ export class Sparkle extends Points {
 	        //depthTest: false,
 	        depthWrite: false,
 
-            //premultipliedAlpha : true,
-            //alphaToCoverage : true,
-	        polygonOffset: true,
+            premultipliedAlpha : true,
+            alphaToCoverage : true,
+	        /*polygonOffset: true,
 	        polygonOffsetFactor: -1,
-            polygonOffsetUnits: -4
+            polygonOffsetUnits: -4*/
 	    });
 
 	    this.material.onBeforeCompile = function ( shader ) {
@@ -222,7 +222,8 @@ export class Sparkle extends Points {
         ctx.stroke()
 
         var texture = new Texture(canvas);
-        texture.type = FloatType;
+        //texture.type = FloatType;
+        texture.colorSpace = SRGBColorSpace;
         texture.needsUpdate = true;
         return texture;
 
@@ -279,7 +280,7 @@ export class Sparkle extends Points {
                 this.angles[ n ] = - angular;
 
         		
-        		if(this.alphas[ n ]>1) this.alphas[ n ]= math.rand(-5, 0);
+        		if(this.alphas[ n ]>1) this.alphas[ n ] = math.rand(-5, 0);
 
         		n *= 3;
                 v.fromArray( this.pos, n ).applyQuaternion( q ).add( p );

@@ -723,12 +723,25 @@ export class Motor {
 		return Pool.texture( o )
 	}
 
+
+
 	static getMaterialList(){
 		return mat
 	}
 
 	static getOneMaterial( name ){
 		return Mat.get( name )
+	}
+
+	/*static getMaterial ( name ){
+		console.log('matertialGet ??', name)
+		return Pool.getMaterial( name )
+	}*/
+
+	static addMaterial( m, direct ){
+
+		Mat.set( m, direct );
+		//return Pool.set( m.name, m, 'material', direct )
 	}
 
 	
@@ -1142,17 +1155,15 @@ export class Motor {
 		return Pool.getMesh( obj, keepMaterial )
 	}
 
-	static addMaterial( m, direct ){
-		return Pool.set( m.name, m, 'material', direct )
-	}
+	
 
 	static getGroup ( obj, autoMesh, autoMaterial ){
 		return Pool.getGroup( obj, autoMesh, autoMaterial )
 	}
 
-	static getMaterial ( name ){
+	/*static getMaterial ( name ){
 		return Pool.getMaterial( name )
-	}
+	}*/
 
 	static getTexture ( name, o ){
 		return Pool.getTexture( obj, autoMesh, autoMaterial )

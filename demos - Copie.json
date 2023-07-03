@@ -2,11 +2,11 @@
     "Basic": [ 
         "start", "basic", "joint", "capsule", "compound", "bridge",
         "gears", "raycast", "terrain", "character", "car", "collision",
-        "kinematic", "add_remove", "tower", "keva", "empty", "test",
+        "mesh", "kinematic", "add_remove", "tower", "keva", "empty", "test",
         "gravity", "heroes", "heroes2", "break", "bullet", "evangelion", "buttons", "blast", "skeleton", "gears2", "car_ray", "mass", "material"
     ],
     "Advanced" : [ 
-        "diamond", "ragdoll", "chess", "pinball", "million" 
+        "diamond", "ragdoll", "chess", "pinball", "million", "desk" 
     ],
 
     "PHYSX": [

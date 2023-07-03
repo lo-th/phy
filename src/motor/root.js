@@ -374,7 +374,7 @@ export const Mat = {
 	set:( m, direct ) => {
 
 		if(!direct) root.extraMaterial( m )
-		mat[m.name] = m
+		mat[m.name] = m;
 
 		//console.log( m.name )
 

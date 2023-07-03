@@ -15,15 +15,19 @@ export class Diamond extends MeshPhysicalMaterial {
 		o.roughness = 0
 
         o.clearcoat = 1
-        o.clearcoatRoughness = 0.01
+        //o.clearcoatRoughness = 0.01
+
+        o.iridescenceIOR = 2.33
+        o.iridescence = 1
+
 
         
 		
 		//o.side = DoubleSide
 		
-		o.envMapIntensity = 1
+		//o.envMapIntensity = 1
         o.reflectivity = 1.0
-        o.envMapIntensity = 2.2
+        o.envMapIntensity = 1.3
         //o.iridescence = 1.0
         //o.ior=1.7
 
@@ -88,7 +92,8 @@ export class Diamond extends MeshPhysicalMaterial {
 			var fragment = shader.fragmentShader;
 			fragment = fragment.replace( 'void main() {', fragAdd );
 			//fragment = fragment.replace( 'gl_FragColor = vec4( outgoingLight, diffuseColor.a );', fragMainAdd );
-            fragment = fragment.replace( '#include <output_fragment>', '#include <output_fragment>' + fragMainAdd );
+            //fragment = fragment.replace( '#include <output_fragment>', '#include <output_fragment>' + fragMainAdd );
+            fragment = fragment.replace( '#include <opaque_fragment>', '#include <opaque_fragment>' + fragMainAdd );
 
 			shader.fragmentShader = fragment;
 

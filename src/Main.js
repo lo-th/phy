@@ -1156,7 +1156,12 @@ const view = ( o = {} ) => {
 
 	//const result = await firstFunction()
 
-	if( o.envmap ) setEnv( o.envmap, true )
+	if( o.envmap ){ 
+		setEnv( o.envmap, true )
+		Env.setBlur( o.envblur || 0.0 )
+	}
+
+
 
 
 	if( o.fog ) scene.fog = new THREE.FogExp2( Env.getFogColor().getHex(), o.fogDist || 0.01 )
@@ -1200,6 +1205,8 @@ const setEnv = ( name, chageUI ) => {
 	} else {
 		//console.log( 'is same')
 	}
+
+
 
 
 	//options.envmap = name
