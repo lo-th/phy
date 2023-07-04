@@ -41,7 +41,7 @@ export const Gui = {
 	matList:null,
 
 	imageMap: ['map', 'map1', 'map2', 'emissiveMap', 'sheenColorMap'],
-	imageNormal: [ 'normalMap', 'normalMap1','normalMap2','aoMap', 'metalnessMap', 'roughnessMap', 'alphaMap','anisotropyMap' ],
+	imageNormal: [ 'normalMap', 'normalMap1','normalMap2','aoMap', 'metalnessMap', 'roughnessMap', 'alphaMap','anisotropyMap', 'specularIntensityMap' ],
 	
 	MaterialMesh:[ 'Basic', 'Physical', 'Standard', 'Toon', 'Lambert', 'Phong', 'Shader' ],
 
@@ -628,6 +628,11 @@ export const Gui = {
 		    g0.add( m, 'cc', { type:'color', rename:'color' } ).onChange( function( c ){ m.color.setHex( c ); } )
 		}
 
+		if(m.specularColor!==undefined){
+	    	m.sp = m.specularColor.getHex()
+	    	g0.add( m, 'sp', { type:'color', rename:'specular' } ).onChange( function( c ){ m.specularColor.setHex( c ); } )
+	    }
+
 		if(m.emissive!==undefined){
 		    m.em = m.emissive.getHex()
 		    g0.add( m, 'em', { type:'color', rename:'emissive' } ).onChange( function( c ){ m.emissive.setHex( c ); } )
@@ -637,6 +642,10 @@ export const Gui = {
 	    	m.ss = m.sheenColor.getHex()
 	    	g0.add( m, 'ss', { type:'color', rename:'sheen' } ).onChange( function( c ){ m.sheenColor.setHex( c ); } )
 	    } 
+
+
+
+	    
 
 
 		let g1 = ui.add('group', { name:'IMAGES' })
@@ -728,6 +737,7 @@ export const Gui = {
 		}
 
 		o.encoding = Gui.imageMap.indexOf(name) !== -1
+		o.flipY = false
 		
 		let fileName = file.substring( 0, file.lastIndexOf('.') );
 		let fileType = file.substring( file.lastIndexOf('.')+1 );

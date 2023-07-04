@@ -30149,6 +30149,8 @@ class MouseTool {
 		this.controler = controler;
 		this.dom = this.controler.domElement;
 
+		//this.dom.style.cursor =  "url('./assets/icons/logo.png'), move";
+
 		this.selected = null;
 		this.buttonRef = null;
 
@@ -30645,7 +30647,7 @@ class MouseTool {
 
 		//document.body.style.cursor = 'move'
 
-		return 'move'
+		return "url('./assets/icons/point.png') 8 8, move" //'move'
 
 	}
 

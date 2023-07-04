@@ -18,6 +18,9 @@
 html{
 /*font-family:ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica Neue,Arial,Noto Sans,sans-serif,Apple Color Emoji,Segoe UI Emoji,Segoe UI Symbol,Noto Color Emoji;
 font-feature-settings:normal*/
+
+
+
 }
 
 body{ 
@@ -25,7 +28,10 @@ body{
 	margin:0; 
 	padding:0; 
 	overflow:hidden;
+
+
 }
+
 
 .menu {
 	flex:1; 
