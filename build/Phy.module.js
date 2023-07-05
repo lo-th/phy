@@ -1,4 +1,4 @@
-import { LineSegments, BufferGeometry, BufferAttribute, Float32BufferAttribute, LineBasicMaterial, CanvasTexture, RepeatWrapping, SRGBColorSpace, Color, Quaternion, Matrix3, Vector3, CylinderGeometry, SphereGeometry, BoxGeometry, PlaneGeometry, MeshBasicMaterial, MeshStandardMaterial, MeshPhysicalMaterial, DoubleSide, Vector2, Line, EventDispatcher, MathUtils, Matrix4, Layers, InstancedMesh, InstancedBufferAttribute, DynamicDrawUsage, TrianglesDrawMode, TriangleFanDrawMode, TriangleStripDrawMode, CircleGeometry, Box3, Line3, Plane, Triangle, Mesh, NearestFilter, NearestMipmapNearestFilter, NearestMipmapLinearFilter, LinearFilter, LinearMipmapNearestFilter, LinearMipmapLinearFilter, ClampToEdgeWrapping, MirroredRepeatWrapping, PropertyBinding, InterpolateLinear, Source, LinearEncoding, RGBAFormat, InterpolateDiscrete, Scene, sRGBEncoding, Loader, LoaderUtils, FileLoader, SpotLight, PointLight, DirectionalLight, Object3D, TextureLoader, ImageBitmapLoader, InterleavedBuffer, InterleavedBufferAttribute, PointsMaterial, Material, SkinnedMesh, LineLoop, Points, Group, PerspectiveCamera, OrthographicCamera, Skeleton, AnimationClip, Bone, FrontSide, Texture, VectorKeyframeTrack, NumberKeyframeTrack, QuaternionKeyframeTrack, Sphere, Interpolant, LinearSRGBColorSpace, Vector4, Curve, Euler, MeshPhongMaterial, MeshLambertMaterial, EquirectangularReflectionMapping, AmbientLight, Uint16BufferAttribute, DataTextureLoader, HalfFloatType, FloatType, DataUtils, RedFormat, NoColorSpace, AnimationMixer, AdditiveBlending, CustomBlending, ZeroFactor, SrcAlphaFactor, SkeletonHelper, AnimationUtils, Raycaster } from 'three';
+import { LineSegments, BufferGeometry, BufferAttribute, Float32BufferAttribute, LineBasicMaterial, CanvasTexture, RepeatWrapping, SRGBColorSpace, Color, Quaternion, Matrix3, Vector3, CylinderGeometry, SphereGeometry, BoxGeometry, PlaneGeometry, Vector2, MeshStandardMaterial, MeshToonMaterial, MeshBasicMaterial, MeshLambertMaterial, MeshPhongMaterial, MeshPhysicalMaterial, DoubleSide, Line, EventDispatcher, MathUtils, Matrix4, Layers, InstancedMesh, InstancedBufferAttribute, DynamicDrawUsage, TrianglesDrawMode, TriangleFanDrawMode, TriangleStripDrawMode, CircleGeometry, Box3, Line3, Plane, Triangle, Mesh, NearestFilter, NearestMipmapNearestFilter, NearestMipmapLinearFilter, LinearFilter, LinearMipmapNearestFilter, LinearMipmapLinearFilter, ClampToEdgeWrapping, MirroredRepeatWrapping, PropertyBinding, InterpolateLinear, Source, LinearEncoding, RGBAFormat, InterpolateDiscrete, Scene, sRGBEncoding, Loader, LoaderUtils, FileLoader, SpotLight, PointLight, DirectionalLight, Object3D, TextureLoader, ImageBitmapLoader, InterleavedBuffer, InterleavedBufferAttribute, PointsMaterial, Material, SkinnedMesh, LineLoop, Points, Group, PerspectiveCamera, OrthographicCamera, Skeleton, AnimationClip, Bone, FrontSide, Texture, VectorKeyframeTrack, NumberKeyframeTrack, QuaternionKeyframeTrack, Sphere, Interpolant, LinearSRGBColorSpace, Vector4, Curve, Euler, EquirectangularReflectionMapping, AmbientLight, Uint16BufferAttribute, DataTextureLoader, HalfFloatType, FloatType, DataUtils, RedFormat, NoColorSpace, AnimationMixer, AdditiveBlending, CustomBlending, ZeroFactor, SrcAlphaFactor, SkeletonHelper, AnimationUtils, Raycaster } from 'three';
 
 const PI = Math.PI;
 const torad$1 = PI / 180;
@@ -998,68 +998,108 @@ const mat = {};
 
 const Mat = {
 
+	create:( o ) => {
+
+		let m;
+
+		if( o.isMaterial ){
+			m = o;
+		} else {
+
+			let type = o.type !== undefined ? o.type : 'Standard';
+			if(o.type) delete o.type;
+
+			if( o.thickness || o.sheen || o.clearcoat || o.transmission || o.specularColor ) type = 'Physical';
+
+			if(o.normalScale){
+				if( !o.normalScale.isVector2 ) o.normalScale = new Vector2().fromArray(o.normalScale);
+			}
+
+		    type = type.toLowerCase();
+
+		    switch(type){
+				case 'physical': 
+				m = new MeshPhysicalMaterial( o ); 
+				m.defines = {
+
+					'STANDARD': '',
+					'PHYSICAL': '',
+					'USE_UV':'',
+					'USE_SPECULAR':''
+				};
+
+				break;
+				case 'phong': m = new MeshPhongMaterial( o ); break;
+				case 'lambert': m = new MeshLambertMaterial( o ); break;
+				case 'basic': m = new MeshBasicMaterial( o ); break;
+				case 'toon': m = new MeshToonMaterial( o ); break;
+				default: m = new MeshStandardMaterial( o ); break;
+			}
+
+		} 
+
+		if( mat[ m.name ] ) return null;
+	    Mat.set( m );
+		return m;
+
+	},
+
 	set:( m, direct ) => {
 
 		if(!direct) root.extraMaterial( m );
 		mat[m.name] = m;
-
-		//console.log( m.name )
 
 	},
 
 	get:( name ) => {
 
 		if( !mat[name] ){
-			//console.log(name)
-			let m;
 			switch( name ){
 
-			    case 'body':   m = new MeshStandardMaterial({ color:Colors.body, ...matExtra }); break//0xFFF1D2
-			    case 'sleep':  m = new MeshStandardMaterial({ color:Colors.sleep, ...matExtra }); break//0x46B1C9
-			    case 'solid':  m = new MeshStandardMaterial({ color:Colors.solid, metalness: 0.1, roughness: 0.8, }); break
-			    case 'base':   m = new MeshStandardMaterial({ color:Colors.base, ...matExtra }); break
+				case 'body': Mat.create({name:'body', color:Colors.body, ...matExtra }); break
 
-			    case 'black':   m = new MeshPhysicalMaterial({ color:Colors.black, metalness: 0, roughness: 0.25 }); break
+			    //case 'body':   m = new MeshStandardMaterial({ color:Colors.body, ...matExtra }); break//0xFFF1D2
+			    case 'sleep':  Mat.create({ name:'sleep', color:Colors.sleep, ...matExtra }); break//0x46B1C9
+			    case 'solid':  Mat.create({ name:'solid', color:Colors.solid, metalness: 0.1, roughness: 0.8, }); break
+			    case 'base':   Mat.create({ name:'base', color:Colors.base, ...matExtra }); break
 
-			    case 'chrome': m = new MeshStandardMaterial({ color:0xCCCCCC, metalness: 1, roughness:0.075 }); break
-			    case 'gold': m = new MeshStandardMaterial({ color:Colors.gold, metalness: 1, roughness:0.02 }); break
-			    case 'copper': m = new MeshPhysicalMaterial({ color:Colors.copper, metalness: 1, roughness:0.25, clearcoat: 1.0, clearcoatRoughness: 0.2, }); break
+			    case 'black':   Mat.create({ name:'black', color:Colors.black, metalness: 0, roughness: 0.25 }); break
 
-			    case 'carPaint': m = new MeshPhysicalMaterial({ color:Colors.carPaint, metalness: 0, anisotropy:new Vector2(0.5,0.5), roughness:0.4, clearcoat: 1.0, clearcoatRoughness: 0, }); break
+			    case 'chrome': Mat.create({ name:'chrome', color:0xCCCCCC, metalness: 1, roughness:0.075 }); break
+			    case 'gold': Mat.create({ name:'gold', color:Colors.gold, specularColor:Colors.gold2, metalness: 1, roughness:0.02 }); break
+			    case 'copper': Mat.create({ name:'copper', color:Colors.copper, metalness: 1, roughness:0.25, clearcoat: 1.0, clearcoatRoughness: 0.2 }); break
 
-				case 'simple': m = new MeshStandardMaterial({ color:0x808080, metalness: 0, roughness: 1 }); break
+			    case 'carPaint': Mat.create({ name:'carPaint', color:Colors.carPaint, metalness: 0, anisotropy:new Vector2(0.5,0.5), roughness:0.4, clearcoat: 1.0, clearcoatRoughness: 0, }); break
 
-				case 'carbon': m = new MeshPhysicalMaterial({ map:new CarbonTexture(), normalMap:new CarbonTexture(true), clearcoat: 1.0, clearcoatRoughness: 0.1, roughness: 0.5 }); break
+				//case 'simple': m = Mat.create({ name:'simple', color:0x808080, metalness: 0, roughness: 1 }); break
 
-				
-				
-				
-				
-				case 'clear':  m = new MeshStandardMaterial({ color:0xFFFFFF, metalness: 0.5, roughness: 0 }); break
+				case 'carbon': Mat.create({ name:'carbon', map:new CarbonTexture(), normalMap:new CarbonTexture(true), clearcoat: 1.0, clearcoatRoughness: 0.1, roughness: 0.5 }); break
+
+				//case 'clear':  m = new MeshStandardMaterial({ color:0xFFFFFF, metalness: 0.5, roughness: 0 }); break
 				
 				//case 'hero':   m = new MeshStandardMaterial({ color:0x00FF88, ...matExtra }); break
-				case 'skinny':   m = new MeshStandardMaterial({ color:0xe0ac69, ...matExtra }); break
+				case 'skinny':   Mat.create({ name:'skinny', color:0xe0ac69, ...matExtra }); break
 				
-				case 'glass':  m = new MeshPhysicalMaterial({ color:0xFFFFff, transparent:true, opacity:0.8, depthTest:true, depthWrite:false, roughness:0.02, metalness:0.0, /*side:DoubleSide,*/ alphaToCoverage:true, premultipliedAlpha:true, transmission:1, clearcoat:1, thickness:0.02  }); break
-				case 'glassX':  m = new MeshPhysicalMaterial({ color:0xFFFFff, transparent:false, opacity:1.0, roughness:0.1, metalness:0, side:DoubleSide, transmission:1.0, clearcoat:1, thickness:0.1, ior:1.5, envMapIntensity:2.2, shadowSide:1, reflectivity:0.5, iridescence:0.5 }); break
+				case 'glass':  Mat.create({ name:'glass', color:0xFFFFff, transparent:true, opacity:0.8, depthTest:true, depthWrite:false, roughness:0.02, metalness:0.0, /*side:DoubleSide,*/ alphaToCoverage:true, premultipliedAlpha:true, transmission:1, clearcoat:1, thickness:0.02  }); break
+				case 'glassX':  Mat.create({ name:'glassX', color:0xFFFFff, transparent:false, opacity:1.0, roughness:0.1, metalness:0, side:DoubleSide, transmission:1.0, clearcoat:1, thickness:0.1, ior:1.5, envMapIntensity:2.2, shadowSide:1, reflectivity:0.5, iridescence:0.5 }); break
+				case 'plexi':  Mat.create({ name:'plexi', color:0xFFFFff, transparent:true, opacity:0.4, metalness:1, roughness:0, clearcoat:1, side:DoubleSide }); break
+				case 'glass2': Mat.create({ name:'glass2', color:0xCCCCff, transparent:true, opacity:0.3  }); break
+				case 'sat': Mat.create({ name:'sat', color:0xffffff, metalness: 1, roughness:0, clearcoat:1  }); break
 				
-				case 'plexi':  m = new MeshPhysicalMaterial({ color:0xFFFFff, transparent:true, opacity:0.4, metalness:1, roughness:0, clearcoat:1, side:DoubleSide }); break
-				case 'glass2': m = new MeshPhysicalMaterial({ color:0xCCCCff, transparent:true, opacity:0.3  }); break
-				case 'sat': m = new MeshPhysicalMaterial({ color:0xffffff, metalness: 1, roughness:0, clearcoat:1  }); break
+				case 'car':   Mat.create({ name:'car', color:0x303030, metalness: 1.0, roughness: 0.5, clearcoat: 1.0, clearcoatRoughness: 0.03, sheen: 0.5 }); break
+				case 'carGlass':   Mat.create({ name:'carGlass', color: 0xffffff, metalness: 0, roughness: 0, transmission: 1.0, ior:1.52 }); break
+
+
+				case 'debug': Mat.create({ name:'debug', type:'Basic', color:0x000000, wireframe:true, toneMapped: false }); break
+				case 'debug2': Mat.create({ name:'debug2', type:'Basic', color:0x00FFFF, wireframe:true, toneMapped: false }); break
+				case 'debug3':  Mat.create({ name:'debug3', type:'Basic', color:0x000000, wireframe:true, transparent:true, opacity:0.1, toneMapped: false, depthTest:true }); break
+				case 'shadows': Mat.create({ name:'shadows', type:'Basic', transparent:true, opacity:0.01 }); break
+
+				case 'bones':  Mat.create({ name:'bones', color:0xCCAA33,  wireframe:true }); break
+				case 'bones2':  Mat.create({ name:'bones2', color:0x7777ff }); break
+
 				
-				case 'car':   m = new MeshPhysicalMaterial({ color:0x303030, metalness: 1.0, roughness: 0.5, clearcoat: 1.0, clearcoatRoughness: 0.03, sheen: 0.5 }); break
-				case 'carGlass':   m = new MeshPhysicalMaterial({ color: 0xffffff, metalness: 0, roughness: 0, transmission: 1.0, ior:1.52 }); break
-
-
-				case 'debug':  m = new MeshBasicMaterial({ color:0x000000, wireframe:true, toneMapped: false }); break
-				case 'debug2': m = new MeshBasicMaterial({ color:0x00FFFF, wireframe:true, toneMapped: false }); break
-				case 'debug3':  m = new MeshBasicMaterial({ color:0x000000, wireframe:true, transparent:true, opacity:0.1, toneMapped: false, depthTest:true }); break
-
-				case 'bones':  m = new MeshStandardMaterial({ color:0xCCAA33,  wireframe:true }); break
-				case 'bones2':  m = new MeshStandardMaterial({ color:0x7777ff }); break
-
-				case 'shadows': m = new MeshBasicMaterial({ transparent:true, opacity:0.01 }); break
-				case 'button':  m = new MeshStandardMaterial({ color:0xFF404B, ...matExtra }); break
+				case 'button':  Mat.create({ name:'button', color:0xFF404B, ...matExtra }); break
 				//case 'hide': m = new MeshBasicMaterial({ visible:false }); break
 
 				case 'line':
@@ -1074,11 +1114,11 @@ const Mat = {
 
 			}
 
-			if(m){
+			/*if(m){
 				m.name = name;
-				root.extraMaterial( m );
-				mat[name] = m;
-			}
+				root.extraMaterial( m )
+				mat[name] = m
+			}*/
 			
 		}
 
@@ -31655,23 +31695,35 @@ class Motor {
 
 	static material ( o = {} ){
 
-		let type = 'Standard';
-		if( o.thickness || o.sheen || o.clearcoat || o.transmission ) type = 'Physical';
+		return Mat.create( o )
+
+		/*let type = 'Standard'
+		if( o.thickness || o.sheen || o.clearcoat || o.transmission ) type = 'Physical'
 
 		if(o.type){
 			type = o.type;
-			delete o.type;
+			delete o.type
 		}
 
 		let m;
 
 		if(o.normalScale){
-			if( !o.normalScale.isVector2 ) o.normalScale = new Vector2().fromArray(o.normalScale);
+			if( !o.normalScale.isVector2 ) o.normalScale = new Vector2().fromArray(o.normalScale)
 		}
-		if( o.isMaterial ) m = o;
+		if( o.isMaterial ) m = o
 		else {
 			switch(type){
-				case 'Physical': m = new MeshPhysicalMaterial( o ); break;
+				case 'Physical': 
+				m = new MeshPhysicalMaterial( o ); 
+				m.defines = {
+
+					'STANDARD': '',
+					'PHYSICAL': '',
+					'USE_ANISOTROPY':'',
+					'USE_SPECULAR':''
+				};
+
+				break;
 				case 'Phong': m = new MeshPhongMaterial( o ); break;
 				case 'Lambert': m = new MeshLambertMaterial( o ); break;
 				case 'Basic': m = new MeshBasicMaterial( o ); break;
@@ -31681,7 +31733,7 @@ class Motor {
 
 		if( mat[ m.name ] ) return null;
 	    Mat.set( m );
-		return m;
+		return m;*/
 
 	}
 

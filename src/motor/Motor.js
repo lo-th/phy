@@ -758,7 +758,9 @@ export class Motor {
 
 	static material ( o = {} ){
 
-		let type = 'Standard'
+		return Mat.create( o )
+
+		/*let type = 'Standard'
 		if( o.thickness || o.sheen || o.clearcoat || o.transmission ) type = 'Physical'
 
 		if(o.type){
@@ -774,7 +776,17 @@ export class Motor {
 		if( o.isMaterial ) m = o
 		else {
 			switch(type){
-				case 'Physical': m = new MeshPhysicalMaterial( o ); break;
+				case 'Physical': 
+				m = new MeshPhysicalMaterial( o ); 
+				m.defines = {
+
+					'STANDARD': '',
+					'PHYSICAL': '',
+					'USE_ANISOTROPY':'',
+					'USE_SPECULAR':''
+				};
+
+				break;
 				case 'Phong': m = new MeshPhongMaterial( o ); break;
 				case 'Lambert': m = new MeshLambertMaterial( o ); break;
 				case 'Basic': m = new MeshBasicMaterial( o ); break;
@@ -784,7 +796,7 @@ export class Motor {
 
 		if( mat[ m.name ] ) return null;
 	    Mat.set( m );
-		return m;
+		return m;*/
 
 	}
 
