@@ -45,7 +45,7 @@ createGear = ( center, radius, thickness, lm ) => {
         shapes.push( { type:'convex', v:toothVertices, rot:[0, r * i, 0 ], margin:0.001, restitution:0 })
     }
 
-    let g = phy.add({ type:'compound', shapes:shapes, pos:center, density:1, restitution:0, friction:0.5, rot:[-90,0,0], margin:0.01, neverSleep:true, material:'simple' })
+    let g = phy.add({ type:'compound', shapes:shapes, pos:center, density:1, restitution:0, friction:0.5, rot:[-90,0,0], margin:0.01, neverSleep:true, material:'copper' })
     //let f = phy.add({ type:'cylinder', size:[ toothInterval / 4, (thickness * 0.52)*2 ], pos:center, density:0, rot:[-90,0,0], restitution:0, friction:0.5 })
     let f = phy.add({ type:'sphere', size:[ toothInterval / 4 ], pos:center, density:0, rot:[-90,0,0], restitution:0, friction:0.5 })
 

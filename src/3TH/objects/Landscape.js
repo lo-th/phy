@@ -8,6 +8,7 @@ import {
     Quaternion,
     DoubleSide,
     MeshStandardMaterial,
+    MeshPhysicalMaterial,
     MeshBasicMaterial,
     sRGBEncoding
 } from 'three';
@@ -187,7 +188,7 @@ export class Landscape extends Mesh {
 
         this.txt = txt
 
-        this.material = new MeshStandardMaterial({ name:'terrain', vertexColors:true, color:0xFFFFFF, map:txt[maps[0]+'_c'], normalMap:txt[maps[0]+'_n'] });
+        this.material = new MeshPhysicalMaterial({ name:'terrain', vertexColors:true, color:0xFFFFFF, map:txt[maps[0]+'_c'], normalMap:txt[maps[0]+'_n'] });
 
         if( o.envmap !== undefined ) this.material.envMap = o.envmap
 
@@ -200,8 +201,9 @@ export class Landscape extends Mesh {
             this.material.metalness  = 0.9;
             this.material.roughness = 0.1;
         } else {
-            this.material.metalness = o.metalness || 0.25;
-            this.material.roughness = o.roughness || 0.7; 
+            this.material.reflectivity = 0.1
+            this.material.metalness = o.metalness || 0.1;
+            this.material.roughness = o.roughness || 0.5; 
         }
 
         if( isORM ){
@@ -408,6 +410,7 @@ export class Landscape extends Mesh {
             transparent:this.isWater ? true : false,
             opacity: this.isWater ? (o.opacity || 0.8) : 1,
             envMap: o.envmap || null, 
+
     		//shadowSide : false
 
     	});
@@ -915,6 +918,45 @@ const TerrainShader = {
     // normal_fragment_maps
 
     normal : /* glsl */`
+
+        #ifdef USE_NORMALMAP_OBJECTSPACE
+
+            normal = texture2D( normalMap, vNormalMapUv ).xyz * 2.0 - 1.0; // overrides both flatShading and attribute normals
+
+            #ifdef FLIP_SIDED
+
+                normal = - normal;
+
+            #endif
+
+            #ifdef DOUBLE_SIDED
+
+                normal = normal * faceDirection;
+
+            #endif
+
+            normal = normalize( normalMatrix * normal );
+
+        #elif defined( USE_NORMALMAP_TANGENTSPACE )
+
+            vec4 sandN = textureMAP( normalMap, vNormalMapUv );
+            vec4 grassN = textureMAP( normalMap1, vNormalMapUv );
+            vec4 rockN = textureMAP( normalMap2, vNormalMapUv );
+            vec3 mapN = MappingMix(vColor.r, clevels, rockN, grassN, sandN).xyz * 2.0 - 1.0;
+
+            ///vec3 mapN = texture2D( normalMap, vNormalMapUv ).xyz * 2.0 - 1.0;
+
+            mapN.xy *= normalScale;
+            normal = normalize( tbn * mapN );
+
+        #elif defined( USE_BUMPMAP )
+
+            normal = perturbNormalArb( - vViewPosition, normal, dHdxy_fwd(), faceDirection );
+
+        #endif
+    `,
+
+    normal2 : /* glsl */`
 
         #ifdef OBJECTSPACE_NORMALMAP
 

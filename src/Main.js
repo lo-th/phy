@@ -1,6 +1,7 @@
 import * as THREE from 'three'
 import * as TWEEN from 'tween'
 import * as UIL from 'uil'
+
 import './libs/webgl-memory.js'
 import { getGPUTier } from './libs/detect-gpu.esm.js';
 
@@ -14,12 +15,15 @@ import { Env } from './3TH/Env.js'
 import { Editor } from './3TH/Editor.js'
 import { Composer } from './3TH/Composer.js'
 
+
+
 // OBJECT
+import { Hub3D } from './3TH/objects/Hub3D.js'
 import { Reflector } from './3TH/objects/Reflector.js'
-//import { Landscape } from './3TH/objects/Landscape.js'
 import { Planet } from './3TH/objects/Planet.js'
 import { Building } from './3TH/objects/Building.js'
 import { Sparkle } from './3TH/objects/Sparkle.js'
+
 // MATERIAL
 import { Diamond } from './3TH/materials/Diamond.js'
 import { Fluid } from './3TH/materials/Fluid.js'
@@ -42,9 +46,6 @@ import { Smoke } from '../build/smoke.module.js'
 import WebGPU from 'three/addons/capabilities/WebGPU.js';
 import WebGPURenderer from 'three/addons/renderers/webgpu/WebGPURenderer.js';
 
-
-
-//import { SpiderRobot } from './3TH/utils/SpiderRobot.js'
 
 /** __
 *    _)_|_|_
@@ -95,6 +96,7 @@ const CameraBase = {
 const setting = {
 
 	envmap:'clear',//'basic',
+	
 	groundSize:[ 60, 60 ],
 	groundAlpha: true,
 	groundOpacity:1,
@@ -121,6 +123,7 @@ const options = {
 	tone:'ACESFilmic',
 	exposure: 1,
 	envPower: 1,
+	envBlur:0,
 	legacy:false,
 
 	light_1: 2.5,
@@ -135,7 +138,7 @@ const options = {
 	shadowLuma:0.5, //0.75,//0,
     shadowContrast:2,//2.5,//1,
 
-    reflect:0.4,
+    reflect:0.1,
     renderMode:0,
     fogMode:0,
 
@@ -148,6 +151,7 @@ const options = {
 
 }
 
+let hub3d = null
 let renderStart = false
 let g1, g2, g3
 let dom, camera, controls, scene, renderer, loop = null, composer = null, content, dragPlane, hideMat, followGroup, helperGroup, stats, txt, light, light2 = null, light3=null, ground = null, envui, dci;
@@ -284,6 +288,8 @@ export const Main = {
 	getControler:() => ( controls ),
 	getCodeName:() => ( options.demo ),
 	getGround:() => ( ground ),
+
+	getHub3d:() => ( hub3d ),
 	//getWorker:() => ( 'Worker' + (Main.isWorker ? ' On' : ' Off') ),
 	getDemos:() => { 
 		let d = Motor.get('demos', 'json') 
@@ -325,8 +331,15 @@ export const Main = {
 	showGui: () => { Gui.showHide() },
 	resetGui: () => { Gui.reset() },
 	setEnv: (name, chageUI) => { setEnv(name, chageUI) },
+	setBlur: (v) => {
+        Env.setBlur( options.envBlur );
+	},
 
 	setColors: ( palette ) => {
+
+		//console.log( palette )
+
+		if( hub3d ) hub3d.color = Gui.tool.htmlToHex( palette.darkVibrant ) 
 
 
 
@@ -358,12 +371,11 @@ Motor.extraCode = Main.extraCode;
 
 
 window.phy = Motor
-window.math = Motor.math//()
+window.math = Motor.math
 window.Main = Main
 
 window.THREE = THREE
 window.hub = Hub
-//window.Landscape = Landscape
 window.Planet = Planet
 window.Building = Building
 window.Sparkle = Sparkle
@@ -371,15 +383,6 @@ window.Sparkle = Sparkle
 window.Diamond = Diamond
 window.Fluid = Fluid
 
-//window.SpiderRobot = SpiderRobot
-
-/*async function preLoad( name, o ) {
-	
-    let M = await import( Main.devMode ? './'+name+'.js' : '../build/'+name+'.module.js');
-    o.direct = M.engine.message;
-    Motor.init( o )
-
-}*/
 
 const init = () => {
 
@@ -463,6 +466,9 @@ const init = () => {
 	//camera.lookAt( 0, 2, 0 )
 	scene.add( camera )
 
+	hub3d = new Hub3D();
+	camera.add( hub3d );
+
 	controls = new Controller( camera, renderer.domElement, followGroup )
 	//controls.target.y = 2
 	controls.minDistance = 0.1
@@ -534,29 +540,6 @@ const next = () => {
 
 	Main.getDemos()
 
-	// add carbon texture
-	
-	/*const flakeTexture = new THREE.CanvasTexture( new CarbonTexture('rgb(69,69,69)', 'rgb(39,39,39)', true) )
-	flakeTexture.wrapS = flakeTexture.wrapT = THREE.RepeatWrapping
-	flakeTexture.repeat.x = flakeTexture.repeat.y = 2
-
-	const carbonTexture = new THREE.CanvasTexture( new CarbonTexture('#ffffff', '#CCCCCC') )
-	carbonTexture.wrapS = carbonTexture.wrapT = THREE.RepeatWrapping
-	carbonTexture.repeat.x = carbonTexture.repeat.y = 2
-	
-	
-
-	let carbonList = ['body', 'sleep', 'solid', 'hero', 'skin' ]
-
-	// custom shadow for default motor material
-	let mat = Motor.getMat()
-	for( let m in mat ){ 
-		if( carbonList.indexOf(m) !== -1 ){
-			mat[m].normalMap = flakeTexture
-			mat[m].map = carbonTexture
-		}
-		Shader.add( mat[m] )
-	}*/
 
 	hideMat = Motor.getHideMat()
 
@@ -573,18 +556,6 @@ const next = () => {
     if( hash !== '' ) options.demo = hash
 
     Hub.endLoading()
-
-    
-
-    //Gui.init()
-
-    //initGUI()
-	/*new TWEEN.Tween( { a:0 } )
-	.to( { a:options.exposure }, 3000 )
-	.onUpdate(function(o){ renderer.toneMappingExposure = math.toFixed(o.a,3) })
-	.easing( TWEEN.Easing.Quadratic.In )
-	.start()*/
-
 
 	loadDemo( options.demo )
 
@@ -693,9 +664,6 @@ const addLight = () => {
 		light2.position.set( 0, 5, 0 );
 		followGroup.add( light2 );
 	}
-
-	
-
 
 	////
 
@@ -1158,7 +1126,9 @@ const view = ( o = {} ) => {
 
 	if( o.envmap ){ 
 		setEnv( o.envmap, true )
-		Env.setBlur( o.envblur || 0.0 )
+
+		options.envBlur = o.envblur || 0
+		Env.setBlur( options.envBlur )
 	}
 
 

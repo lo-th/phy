@@ -94,6 +94,8 @@ export class Controller extends OrbitControls {
         if(o.h !== undefined) o.theta = o.h;
         if(o.v !== undefined) o.phi = o.v;
 
+        this.moveCam( o );
+
         let cam = this.cam;
 
         cam.simple = o.simple !== undefined ? o.simple : false;
@@ -143,7 +145,7 @@ export class Controller extends OrbitControls {
 
         }.bind( this );
 
-        this.moveCam( o );
+        //this.moveCam( o );
 
     }
 
@@ -169,6 +171,8 @@ export class Controller extends OrbitControls {
 
         this.cam.oldp.copy( mesh.position );
         this.cam.oldq.copy( mesh.quaternion );
+
+        //this.moveCam( this.cam )
 
         this.stopMoveCam();
 
@@ -474,14 +478,12 @@ export class Controller extends OrbitControls {
 
     }
 
-    moveCam ( data ) {
+    moveCam ( data = {} ) {
 
         if( this.followTarget ) this.resetFollow();
 
     	var self = this;
         this.getInfo();
-
-        data = data || {};
 
         var o = {};
 

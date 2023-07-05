@@ -1,9 +1,3 @@
-import {
-    ShaderMaterial,
-    Vector4,
-    Mesh,
-    PlaneGeometry
-} from 'three';
 import * as UIL from 'uil'
 import * as TWEEN from 'tween'
 import { math } from './math.js';
@@ -342,7 +336,8 @@ export class Hub {
         
 
         debug = document.createElement( 'div' );
-        debug.style.cssText = 'position:absolute; background:'+bg+'; width:300px; margin-left:-150px; bottom:25px; left:50%; font-size:14px; font-weight:500; vertical-align:bottom; text-align:center;'
+        debug.style.cssText = 'position:absolute; width:300px; bottom:25px; left:80px; font-size:14px; font-weight:500; vertical-align:bottom; text-align:left;'
+        //debug.style.cssText = 'position:absolute; background:'+bg+'; width:300px; margin-left:-150px; bottom:25px; left:50%; font-size:14px; font-weight:500; vertical-align:bottom; text-align:center;'
         content.appendChild( debug )
 
         statistics = document.createElement( 'div' );
@@ -519,12 +514,7 @@ export class Hub {
 
             innerMenu.style.display = 'grid';
             innerMenu.style.gridTemplateColumns = 'repeat(auto-fill, 120px)'
-            //innerMenu.style.flexDirection = 'row';
-            // innerMenu.style.margin = '6px';
             innerMenu.style.justifyContent = 'space-between';
-            //innerMenu.style.flexWrap = 'row wrap';
-            //innerMenu.style.gap = '0px 10px';
-            //innerMenu.style.flexFlow = 'column wrap';
             let dw = guiOpen ? (255+80) : 160 
 
             downMenu.style.left = 80 + 'px'
@@ -692,7 +682,6 @@ export class Hub {
 
         while (content.firstChild) content.removeChild(content.lastChild);
         parent.removeChild( content );
-        
         isDisplay = false;
 
     }
