@@ -299,10 +299,13 @@ export const Gui = {
 
 
 		const hub3d = Main.getHub3d()
+		if(hub3d){
+			ui.add( hub3d, 'offset', { min:0, max:2, mode:mode, color:'#8ff' } )
+			ui.add( hub3d, 'darkness', { min:0, max:1, mode:mode, color:'#8ff' } )
+			ui.add( hub3d, 'color', { type:'color' } ).listen()
+		}
 
-		ui.add( hub3d, 'offset', { min:0, max:2, mode:mode, color:'#8ff' } )
-		ui.add( hub3d, 'darkness', { min:0, max:1, mode:mode, color:'#8ff' } )
-		ui.add( hub3d, 'color', { type:'color' } ).listen()
+		
 
 		
 
@@ -653,13 +656,7 @@ export const Gui = {
 	    } 
 
 
-
-	    
-
-
 		let g1 = ui.add('group', { name:'IMAGES' })
-
-
 
 
 	    let images = [...Gui.imageMap, ...Gui.imageNormal ], t, str

@@ -409,7 +409,7 @@ const init = () => {
 
 	// RENDERER
 
-	if( isWebGPU ) renderer = new WebGPURenderer()
+	if( isWebGPU ) renderer = new WebGPURenderer({antialias:antialias})
 	else renderer = new THREE.WebGLRenderer( { 
 		antialias:antialias, 
 		powerPreference:powerPreference,
@@ -426,6 +426,8 @@ const init = () => {
 	renderer.toneMapping = toneMappingOptions[options.tone]
 	renderer.toneMappingExposure = options.exposure//Math.pow( options.exposure, 5.0 );//
 	renderer.useLegacyLights = options.legacy;
+
+	//console.log(renderer)
 
 	// DOM
     document.body.appendChild( renderer.domElement )
@@ -466,8 +468,10 @@ const init = () => {
 	//camera.lookAt( 0, 2, 0 )
 	scene.add( camera )
 
-	hub3d = new Hub3D();
-	camera.add( hub3d );
+	if( !isWebGPU ){
+		hub3d = new Hub3D();
+		camera.add( hub3d );
+	}
 
 	controls = new Controller( camera, renderer.domElement, followGroup )
 	//controls.target.y = 2
@@ -565,8 +569,10 @@ const next = () => {
 
 const start = () => {
 	if(renderStart) return
-	if( isWebGPU ) renderer.setAnimationLoop( render );
-	else { if( loop === null) render(0) }
+	//if( isWebGPU ) renderer.setAnimationLoop( render );
+	//else { if( loop === null) render(0) }
+
+	if( loop === null) render(0)
 	renderStart = true
 }
 
@@ -598,7 +604,8 @@ const addLight = () => {
 	light3.distance = 5
 
 	s = light3.shadow
-	s.mapSize.setScalar( 1024 * options.quality )
+	s.mapSize.width = s.mapSize.height = 1024 * options.quality;
+	//s.mapSize.setScalar( 1024 * options.quality )
 
 	s.camera.top = s.camera.right = 4//20
 	s.camera.bottom = s.camera.left = -4
@@ -611,7 +618,7 @@ const addLight = () => {
 	s.blurSamples = 8 // only for VSM !
 
 
-	if(!isWebGPU) light3.castShadow = options.shadow !== 0 
+	
 
 	followGroup.add( light3 )
 	followGroup.add( light3.target )
@@ -623,11 +630,8 @@ const addLight = () => {
 	light.distance = 20//20
 
 	s = light.shadow
-	if(!isWebGPU){
-		s.mapSize.setScalar( 1024 * options.quality )
-	} else {
-		s.mapSize.width = s.mapSize.height = 1024 * options.quality;
-	}
+	s.mapSize.width = s.mapSize.height = 1024 * options.quality;
+	
 	
 
 	s.camera.top = s.camera.right = 20//20
@@ -647,11 +651,15 @@ const addLight = () => {
 		options.reflect = 0
 	}
 
-	if(!isWebGPU) light.castShadow = options.shadow !== 0 
+
 
 	if(!isWebGPU){
+		light.castShadow = options.shadow !== 0 
+	    light3.castShadow = options.shadow !== 0
 		renderer.shadowMap.enabled = options.shadow !== 0 
 		renderer.shadowMap.type = shadowMapType[options.shadowType]
+	} else {
+		//light.castShadow = options.shadow !== 0
 	}
 
 	followGroup.add( light )
@@ -1022,7 +1030,8 @@ const render = ( stamp = 0 ) => {
 	//console.timeEnd('step')
 
 
-	if( !isWebGPU ) loop = requestAnimationFrame( render )
+	//if( !isWebGPU ) 
+	loop = requestAnimationFrame( render )
 
 	
 

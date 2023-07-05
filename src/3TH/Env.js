@@ -73,7 +73,7 @@ export class Env {
 	    //if( scene.environment && scene.environment.dispose ){ scene.environment.dispose(); console.log("env dispose !!") } //
 	    this.clearTargetRender()
 
-		if( env && !isWebGPU ) env.dispose()
+		if( env ) env.dispose()
 		if( hdr ) hdr.dispose()
 		if( pm ) pm.dispose()
 		//
@@ -202,7 +202,31 @@ export class Env {
 
 	}
 
-	static process () {
+    static process () {
+
+		if( usePmrem ){ 
+			pm = pmrem.fromEquirectangular( hdr )
+			env = pm.texture;
+			pmrem.dispose()
+		} else {
+			env = hdr;
+		    env.mapping = EquirectangularReflectionMapping;
+		}
+	
+		if( scene ) {
+			scene.environment = env;
+			if( floor ) floor.map = env;
+			else scene.background = env;
+			
+		}
+
+		// autosun
+		tt = 0
+		if(autosun) Env.up()
+
+	}
+
+	/*static processOLD () {
 
 		if( usePmrem ){ 
 			pm = pmrem.fromEquirectangular( hdr )
@@ -230,9 +254,9 @@ export class Env {
 
 		// autosun
 		tt = 0
-		if(autosun)Env.up()
+		if(autosun) Env.up()
 
-	}
+	}*/
 
 	
 

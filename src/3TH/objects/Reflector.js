@@ -28,7 +28,9 @@ import {
 import { Shader } from '../Shader.js';
 import { Pool } from '../Pool.js';
 
-import WebGPUTextureRenderer from 'three/addons/renderers/webgpu/WebGPUTextureRenderer.js';
+import RenderTarget from 'three/addons/renderers/common/RenderTarget.js';
+
+//import WebGPUTextureRenderer from 'three/addons/renderers/webgpu/WebGPUTextureRenderer.js';
 
 
 /**
@@ -323,61 +325,36 @@ export class Reflector extends Mesh {
 			scope.visible = false;
 
 			const currentFog = scene.fog;
-
-			if( isWebGPU ){ 
-				if(!this.textureRenderer){
-					this.textureRenderer = new WebGPUTextureRenderer( renderer );
-				    this.textureRenderer.setSize( window.innerWidth, window.innerHeight );
-				}
-
-			}
-
 			const currentRenderTarget = renderer.getRenderTarget();
-			let currentXrEnabled = isWebGPU ? false : renderer.xr.enabled;
-			let currentShadowAutoUpdate = isWebGPU ? false : renderer.shadowMap.autoUpdate;
+			let currentXrEnabled = renderer.xr.enabled;
+			let currentShadowAutoUpdate = renderer.shadowMap.autoUpdate;
 			//const currentOutputEncoding = renderer.outputColorSpace;
 			const currentToneMapping = renderer.toneMapping;
 
 			scene.fog = null
+			renderer.xr.enabled = false; // Avoid camera modification and recursion
+			renderer.shadowMap.autoUpdate = false; // Avoid re-computing shadows
+			//renderer.toneMapping = NoToneMapping;
 
-			if( !isWebGPU ){
-				renderer.xr.enabled = false; // Avoid camera modification and recursion
-				renderer.shadowMap.autoUpdate = false; // Avoid re-computing shadows
-			}
-			//renderer.outputColorSpace = LinearEncoding;
-			renderer.toneMapping = NoToneMapping;
+			renderer.setRenderTarget( scope.renderTarget );
+			
+			if( !isWebGPU ) renderer.state.buffers.depth.setMask( true );// make sure depth buffer is writable
 
-			if( !isWebGPU ){
-
-				renderer.setRenderTarget( scope.renderTarget );
-				renderer.state.buffers.depth.setMask( true );// make sure depth buffer is writable
-
-				if( renderer.autoClear === false ) renderer.clear();
-				renderer.render( scene, virtualCamera );
-			} else {
-				//this.textureRenderer.render( scene, virtualCamera );
-			}
-
-			//renderer.outputColorSpace = currentEncoding;
-			if( !isWebGPU ){ 
-				renderer.xr.enabled = currentXrEnabled;
-				renderer.shadowMap.autoUpdate = currentShadowAutoUpdate;
-			}
-			//renderer.outputColorSpace = currentOutputEncoding;
-			renderer.toneMapping = currentToneMapping;
+			if( renderer.autoClear === false ) renderer.clear();
+			renderer.render( scene, virtualCamera );
+			
+			renderer.xr.enabled = currentXrEnabled;
+			renderer.shadowMap.autoUpdate = currentShadowAutoUpdate;
+			//renderer.toneMapping = currentToneMapping;
 			scene.fog = currentFog;
 
-			if( !isWebGPU ) renderer.setRenderTarget( currentRenderTarget );
+			renderer.setRenderTarget( currentRenderTarget );
 
 			// Restore viewport
 			const viewport = camera.viewport;
 			if ( viewport !== undefined ) renderer.state.viewport( viewport );
 
-
-
 			scope.visible = true;
-
-			
 
 		}
 
@@ -437,7 +414,7 @@ export class Reflector extends Mesh {
 			generateMipmaps:true,
 		};
 
-		this.renderTarget = new WebGLRenderTarget( this.textureSize, this.textureSize, parameters );
+		this.renderTarget = new RenderTarget( this.textureSize, this.textureSize, parameters );
 		//this.material.alphaMap = this.renderTarget.texture;
 
 		this.material.userData.mirrorMap.value = this.renderTarget.texture;
