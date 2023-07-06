@@ -3,7 +3,9 @@ import { Num } from '../core/Config.js';
 import { MathTool } from '../core/MathTool.js';
 
 import { Basic3D } from '../core/Basic3D.js';
-import { Utils, root, Mat, Geo } from './root.js';
+import { Utils, root } from './root.js';
+import { Geo } from './base/Geo.js';
+import { Mat } from './base/Mat.js';
 
 import {
 	LineSegments, BufferGeometry,

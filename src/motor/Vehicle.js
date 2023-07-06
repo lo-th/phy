@@ -2,7 +2,9 @@ import { Item } from '../core/Item.js';
 import { Num } from '../core/Config.js';
 import { MathTool, todeg } from '../core/MathTool.js';
 
-import { Utils, root, Mat, mat } from './root.js';
+import { Utils, root } from './root.js';
+import { Geo } from './base/Geo.js';
+import { Mat } from './base/Mat.js';
 import { Basic3D } from '../core/Basic3D.js';
 
 
@@ -203,7 +205,7 @@ class Car extends Basic3D {//extends Object3D {
 
 	    }*/
 
-	    var material = Mat.get( 'debug3' )//'debug3'//o.debug ? 'debug' : (o.body === undefined ? 'body' : 'hide');
+	    var material = Mat.get( o.debug ? 'debug' : (o.chassisMesh === undefined ? 'body' : 'hide'));
 	    //if( o.body === undefined ) material = 'move';
 
 	    let n

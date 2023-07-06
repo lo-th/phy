@@ -329,11 +329,13 @@ export class Reflector extends Mesh {
 			let currentXrEnabled = renderer.xr.enabled;
 			let currentShadowAutoUpdate = renderer.shadowMap.autoUpdate;
 			//const currentOutputEncoding = renderer.outputColorSpace;
-			const currentToneMapping = renderer.toneMapping;
+			//const currentToneMapping = renderer.toneMapping;
 
 			scene.fog = null
 			renderer.xr.enabled = false; // Avoid camera modification and recursion
-			renderer.shadowMap.autoUpdate = false; // Avoid re-computing shadows
+
+			// bug with HAIR ????
+			//renderer.shadowMap.autoUpdate = false; // Avoid re-computing shadows
 			//renderer.toneMapping = NoToneMapping;
 
 			renderer.setRenderTarget( scope.renderTarget );
@@ -344,9 +346,11 @@ export class Reflector extends Mesh {
 			renderer.render( scene, virtualCamera );
 			
 			renderer.xr.enabled = currentXrEnabled;
-			renderer.shadowMap.autoUpdate = currentShadowAutoUpdate;
+		    renderer.shadowMap.autoUpdate = currentShadowAutoUpdate;
 			//renderer.toneMapping = currentToneMapping;
 			scene.fog = currentFog;
+
+			//renderer.shadowMap.needsUpdate = true
 
 			renderer.setRenderTarget( currentRenderTarget );
 

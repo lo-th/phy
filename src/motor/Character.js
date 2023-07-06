@@ -11,8 +11,10 @@ import { CapsuleHelper } from '../3TH/helpers/CapsuleHelper.js';
 
 
 
-import { Utils, root, Mat } from './root.js';
-import { SkeletonBody } from './SkeletonBody.js';
+import { Utils, root } from './root.js';
+import { Mat, Colors } from './base/Mat.js';
+
+import { SkeletonBody } from './extra/SkeletonBody.js';
 
 
 // THREE CHARACTER

@@ -21,7 +21,7 @@ demo = () => {
         let j = 20, n;
         while(j--){
             n = (j*3)*0.1;
-            phy.add({ type:'box', size:[8,0.3,1], pos:[0,0.15+n,3-n*1.2], radius:0.02 , material:'simple' })
+            phy.add({ type:'box', size:[8,0.3,1], pos:[0,0.15+n,3-n*1.2], radius:0.02 })
         }
 
         // add ragdoll

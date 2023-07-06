@@ -57,9 +57,8 @@ function testCar ( n, pos ){
             wpos[1] += 0.5
         }
 
-        
 
-        b = phy.add({ type:'box', name:'axis'+i+'_'+n, pos:[wpos[0]+pos[0], wpos[1]+pos[1], wpos[2]+pos[2] ], size:[0.25],  density:4, material:'debug2', neverSleep:true,  order:'YXZ'/*, angularFactor:[0,1,0]*/ });
+        b = phy.add({ type:'box', name:'axis'+i+'_'+n, pos:[wpos[0]+pos[0], wpos[1]+pos[1], wpos[2]+pos[2] ], size:[0.25],  density:4, material:'debug', neverSleep:true,  order:'YXZ'/*, angularFactor:[0,1,0]*/ });
         w = phy.add({ type:'sphere', name:'wheel'+i+'_'+n, pos:[wpos[0]+pos[0], wpos[1]+pos[1], wpos[2]+pos[2] ], size:[radius],  density:4, friction:0.9, restitution:0.2, material:'debug', mesh:mw, neverSleep:true });
 
        /*j = phy.add({ 

@@ -2,7 +2,9 @@ import { Item } from '../core/Item.js';
 import { Num } from '../core/Config.js';
 import { MathTool, todeg } from '../core/MathTool.js';
 
-import { Utils, root, Mat } from './root.js';
+import { Utils, root } from './root.js';
+import { Mat } from './base/Mat.js';
+
 import {
 	Line, LineSegments, BufferGeometry,
     Object3D, Float32BufferAttribute,

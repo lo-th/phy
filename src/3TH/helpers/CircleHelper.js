@@ -95,7 +95,7 @@ class CircleHelper extends LineSegments {
 
 		this.box = box;
 
-		this.type = 'Box3Helper';
+		this.type = 'CircleHelper';
 
 		this.geometry.computeBoundingSphere();
 

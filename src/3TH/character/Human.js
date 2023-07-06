@@ -291,11 +291,14 @@ export const Human = {
                     node.material = Pool.getMaterial( 'hair' ) || def;
                     node.receiveShadow = true;
                     node.castShadow = true;
+                    node.matrixWorldAutoUpdate = false
                     break;
                     case 'hair_man': 
                     node.material = Pool.getMaterial( 'hair_man' ) || def;
                     node.receiveShadow = true;
                     node.castShadow = true;
+
+                    node.matrixWorldAutoUpdate = false
                     break;
                 }
             }

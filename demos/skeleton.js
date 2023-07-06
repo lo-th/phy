@@ -9,7 +9,7 @@ let listN = modelList.indexOf( type )
 demo = () => {
 
 	phy.view({
-        envmap:'bed', phi:20, theta:0, distance:3, x:0, y:0.7, z:0, fov:53
+        envmap:'bed', phi:20, theta:0, distance:3, x:0, y:0.7, z:0, fov:53, envblur:0.25
 	})
 
 	phy.set({

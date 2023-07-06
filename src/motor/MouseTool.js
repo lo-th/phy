@@ -2,8 +2,8 @@ import {
     Mesh, PlaneGeometry, Raycaster, Vector2, Vector3, MeshBasicMaterial, Line, BufferGeometry, Float32BufferAttribute
 } from 'three';
 
-import { root, Mat } from './root.js';
-
+import { root } from './root.js';
+import { Mat } from './base/Mat.js';
 //let needRay = false;
 
 export class MouseTool {
@@ -61,18 +61,42 @@ export class MouseTool {
 		this.velocity = new Vector3()
 		this.angle = 0
 
+		this.helper = null
+
+		this.dragPlane = null;
+
+	    //if( this.mode === 'drag' ) 
+	    this.activeDragMouse( true )
+
+	}
+
+	addDrag(){
+
+		if( this.dragPlane ) return
+
 		this.helper = new MoveHelper()
-
 		this.dragPlane = new Mesh( new PlaneGeometry( 1, 1 ), Mat.get('hide') )
-
-		//this.dragPlane = new Mesh( new PlaneGeometry( 1, 1 ), new MeshBasicMaterial({ visible:false, toneMapped: false }) )
-		//this.dragPlane = new Mesh( new PlaneGeometry( 1, 1, 2, 2 ), new MeshBasicMaterial({ color:0xFF0000, wireframe:true, toneMapped: false }) )
 	    this.dragPlane.castShadow = false
 	    this.dragPlane.receiveShadow = false
 	    this.dragPlane.scale.set( 1, 1, 1 ).multiplyScalar( 200 )
 
-	    //if( this.mode === 'drag' ) 
-	    this.activeDragMouse( true )
+	    root.scenePlus.add( this.helper )
+	    root.scenePlus.add( this.dragPlane )
+
+	}
+
+	clearDrag(){
+
+		if( !this.dragPlane ) return
+
+		root.scenePlus.remove( this.dragPlane )
+		root.scenePlus.remove( this.helper )
+
+		this.dragPlane.geometry.dispose()
+		this.helper.geometry.dispose()
+
+		this.dragPlane = null
+		this.helper = null
 
 	}
 
@@ -466,8 +490,10 @@ export class MouseTool {
 			return 'grab'
 		}*/
 
-		root.scenePlus.add( this.helper )
-	    root.scenePlus.add( this.dragPlane )
+		this.addDrag()
+
+		//8root.scenePlus.add( this.helper )
+	    //root.scenePlus.add( this.dragPlane )
 
 	    this.dragPlane.rotation.set( 0, this.angle, 0 )
 	    this.dragPlane.position.copy( pos )
@@ -547,6 +573,7 @@ export class MouseTool {
 		}
 
 		this.helper.position.copy( this.tmpPos )
+
 		let pos = this.tmpPos.toArray()
 
 		if( this.moveDirect ){ 
@@ -560,9 +587,11 @@ export class MouseTool {
 
 		if( this.selected === null ) return
 
+		this.clearDrag()
+
 		//this.dragPlane.geometry.dispose()
-		root.scenePlus.remove( this.dragPlane )
-		root.scenePlus.remove( this.helper )
+		//root.scenePlus.remove( this.dragPlane )
+		//root.scenePlus.remove( this.helper )
 
 		if( this.moveDirect ){
 			root.motor.change({ name:this.selected.name, kinematic:false, wake:true, gravity:true, damping:[0,0.1] })

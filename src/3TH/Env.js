@@ -69,16 +69,21 @@ export class Env {
 
 	static dispose () {
 
-	    //if( scene.background && scene.background.dispose ){ scene.background.dispose(); console.log("back dispose !!")}//
-	    //if( scene.environment && scene.environment.dispose ){ scene.environment.dispose(); console.log("env dispose !!") } //
+	    if( scene.background && scene.background.dispose ){ scene.background.dispose(); }
+	    if( scene.environment && scene.environment.dispose ){ scene.environment.dispose(); }
+
+	    scene.background = null
+		scene.environment = null
+	    
 	    this.clearTargetRender()
 
 		if( env ) env.dispose()
 		if( hdr ) hdr.dispose()
 		if( pm ) pm.dispose()
 		//
-		scene.background = null
-		scene.environment = null
+
+	//console.log(renderer)
+		
 		env = null
 		hdr = null
 
@@ -94,8 +99,7 @@ export class Env {
     		if( value !== 'null' ){ 
     			if( value.search('/') !== -1 ) this.load( value, callback )
     			else this.load( './assets/textures/equirectangular/'+value+'.hdr', callback )
-    		}
-    		else {
+    		} else {
     			scene.environment = null;
     			scene.background = null;
     			callback()
@@ -171,7 +175,6 @@ export class Env {
 	    if( usePmrem ){
 			pmrem = new PMREMGenerator( renderer );
 			pmrem.compileEquirectangularShader();
-
 		}
 
 	    //this.initTargetRender()
@@ -216,7 +219,10 @@ export class Env {
 		if( scene ) {
 			scene.environment = env;
 			if( floor ) floor.map = env;
-			else scene.background = env;
+			else {
+				scene.background = env;
+
+			}
 			
 		}
 

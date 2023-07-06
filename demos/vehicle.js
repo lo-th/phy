@@ -38,6 +38,7 @@ onComplete = () => {
         type:'vehicle', 
         name:'buggy', 
         ray:debug,
+        debug:true,
         radius:0.43,// wheels radius
         deep:0.3, // wheels deep only for three cylinder
         wPos:[ 0.838, 0.43, 1.37 ], // wheels position on chassis

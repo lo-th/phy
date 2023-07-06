@@ -1,4 +1,4 @@
-import { LineSegments, BufferGeometry, BufferAttribute, Float32BufferAttribute, LineBasicMaterial, CanvasTexture, RepeatWrapping, SRGBColorSpace, Color, Quaternion, Matrix3, Vector3, CylinderGeometry, SphereGeometry, BoxGeometry, PlaneGeometry, Vector2, MeshStandardMaterial, MeshToonMaterial, MeshBasicMaterial, MeshLambertMaterial, MeshPhongMaterial, MeshPhysicalMaterial, DoubleSide, Line, EventDispatcher, MathUtils, Matrix4, Layers, InstancedMesh, InstancedBufferAttribute, DynamicDrawUsage, TrianglesDrawMode, TriangleFanDrawMode, TriangleStripDrawMode, CircleGeometry, Box3, Line3, Plane, Triangle, Mesh, NearestFilter, NearestMipmapNearestFilter, NearestMipmapLinearFilter, LinearFilter, LinearMipmapNearestFilter, LinearMipmapLinearFilter, ClampToEdgeWrapping, MirroredRepeatWrapping, PropertyBinding, InterpolateLinear, Source, LinearEncoding, RGBAFormat, InterpolateDiscrete, Scene, sRGBEncoding, Loader, LoaderUtils, FileLoader, SpotLight, PointLight, DirectionalLight, Object3D, TextureLoader, ImageBitmapLoader, InterleavedBuffer, InterleavedBufferAttribute, PointsMaterial, Material, SkinnedMesh, LineLoop, Points, Group, PerspectiveCamera, OrthographicCamera, Skeleton, AnimationClip, Bone, FrontSide, Texture, VectorKeyframeTrack, NumberKeyframeTrack, QuaternionKeyframeTrack, Sphere, Interpolant, LinearSRGBColorSpace, Vector4, Curve, Euler, EquirectangularReflectionMapping, AmbientLight, Uint16BufferAttribute, DataTextureLoader, HalfFloatType, FloatType, DataUtils, RedFormat, NoColorSpace, AnimationMixer, AdditiveBlending, CustomBlending, ZeroFactor, SrcAlphaFactor, SkeletonHelper, AnimationUtils, Raycaster } from 'three';
+import { Quaternion, Matrix3, Vector3, LineSegments, BufferGeometry, BufferAttribute, Float32BufferAttribute, LineBasicMaterial, CylinderGeometry, SphereGeometry, BoxGeometry, PlaneGeometry, CanvasTexture, RepeatWrapping, SRGBColorSpace, Color, Vector2, MeshStandardMaterial, MeshToonMaterial, MeshBasicMaterial, MeshLambertMaterial, MeshPhongMaterial, MeshPhysicalMaterial, DoubleSide, Line, EventDispatcher, MathUtils, Matrix4, Layers, InstancedMesh, InstancedBufferAttribute, DynamicDrawUsage, TrianglesDrawMode, TriangleFanDrawMode, TriangleStripDrawMode, CircleGeometry, Box3, Line3, Plane, Triangle, Mesh, NearestFilter, NearestMipmapNearestFilter, NearestMipmapLinearFilter, LinearFilter, LinearMipmapNearestFilter, LinearMipmapLinearFilter, ClampToEdgeWrapping, MirroredRepeatWrapping, PropertyBinding, InterpolateLinear, Source, LinearEncoding, RGBAFormat, InterpolateDiscrete, Scene, sRGBEncoding, Loader, LoaderUtils, FileLoader, SpotLight, PointLight, DirectionalLight, Object3D, TextureLoader, ImageBitmapLoader, InterleavedBuffer, InterleavedBufferAttribute, PointsMaterial, Material, SkinnedMesh, LineLoop, Points, Group, PerspectiveCamera, OrthographicCamera, Skeleton, AnimationClip, Bone, FrontSide, Texture, VectorKeyframeTrack, NumberKeyframeTrack, QuaternionKeyframeTrack, Sphere, Interpolant, LinearSRGBColorSpace, Vector4, Curve, Euler, EquirectangularReflectionMapping, AmbientLight, Uint16BufferAttribute, DataTextureLoader, HalfFloatType, FloatType, DataUtils, RedFormat, NoColorSpace, AnimationMixer, AdditiveBlending, CustomBlending, ZeroFactor, SrcAlphaFactor, SkeletonHelper, AnimationUtils, Raycaster } from 'three';
 
 const PI = Math.PI;
 const torad$1 = PI / 180;
@@ -412,228 +412,10 @@ const MathTool = {
 
 };
 
-class CircleHelper extends LineSegments {
+//import { CircleHelper } from '../3TH/helpers/CircleHelper.js';
+//import { CarbonTexture } from '../3TH/textures/CarbonTexture.js';
 
-	constructor( box, color = 0xffff00 ) {
 
-		let size=0.6;
-
-		const indices = new Uint16Array( [ 
-			0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 0,   
-			6, 7, 7, 8, 8, 9, 9, 10, 10, 11, 11, 6,
-			12, 13, 13, 14, 14, 15, 15, 16, 16, 17, 17, 12,
-			18,19, 20,21, 22, 23,
-			] );
-		const positions = [
-
-		
-
-		 0.5, 0.0, 0.0,
-		0.25, 0.433, 0.0,
-		-0.25, 0.433, 0.0,
-		-0.5, 0.0, 0.0,
-		-0.25, -0.433, 0.0,
-		0.25, -0.433, 0.0, 
-
-		 0.5, 0.0,0.0, 
-		0.25,  0.0,0.433,
-		-0.25,  0.0,0.433,
-		-0.5, 0.0, 0.0,
-		-0.25,0.0, -0.433, 
-		0.25, 0.0, -0.433, 
-
-		0.0,0.5, 0.0,
-		0.0,0.25, 0.433, 
-		0.0,-0.25, 0.433, 
-		0.0,-0.5, 0.0, 
-		0.0,-0.25, -0.433, 
-		0.0,0.25, -0.433, 
-
-		0, 0, 0,	size, 0, 0,
-		0, 0, 0,	0, size, 0,
-		0, 0, 0,	0, 0, size,
-
-		
-		];
-
-		const colors = [
-
-		
-
-		0, 0, 1,
-		0, 0, 1,
-		0, 0, 1,
-		0, 0, 1,
-		0, 0, 1,
-		0, 0, 1,
-		
-		0, 1, 0,
-		0, 1, 0,
-		0, 1, 0,
-		0, 1, 0,
-		0, 1, 0,
-		0, 1, 0,
-
-        1, 0, 0,
-		1, 0, 0,
-		1, 0, 0,
-		1, 0, 0,
-		1, 0, 0,
-		1, 0, 0,
-
-		1, 0, 0,	1,0, 0,
-		0, 1, 0,	0, 1, 0,
-		0, 0, 1,	0, 0, 1,
-
-		
-
-		
-		];
-
-		const geometry = new BufferGeometry();
-
-		geometry.setIndex( new BufferAttribute( indices, 1 ) );
-
-		geometry.setAttribute( 'position', new Float32BufferAttribute( positions, 3 ) );
-		geometry.setAttribute( 'color', new Float32BufferAttribute( colors, 3 ) );
-
-		super( geometry, new LineBasicMaterial( { color: color, depthTest: false, depthWrite: false, toneMapped: false, transparent: true } ) );
-
-		this.box = box;
-
-		this.type = 'Box3Helper';
-
-		this.geometry.computeBoundingSphere();
-
-	}
-
-	updateMatrixWorld( force ) {
-
-		const box = this.box;
-
-		if ( box.isEmpty() ) return;
-
-		box.getCenter( this.position );
-
-		box.getSize( this.scale );
-
-		this.scale.multiplyScalar( 0.5 );
-
-		super.updateMatrixWorld( force );
-
-	}
-
-	dispose() {
-
-		this.geometry.dispose();
-		this.material.dispose();
-
-	}
-
-}
-
-class CarbonTexture {
-
-	constructor( normal, c1='rgb(69,69,69)', c2='rgb(39,39,39)'  ) {
-
-		let s = 128;
-
-		const canvas = document.createElement( 'canvas' );
-		canvas.width = canvas.height = s;
-
-		const ctx = canvas.getContext( '2d' );
-		ctx.fillStyle = c1;
-		ctx.fillRect( 0, 0, s, s );
-
-		if( !normal ){
-
-			ctx.beginPath();
-			ctx.fillStyle = c2;
-		    ctx.rect(0, 0, 32, 64);
-		    ctx.rect(32, 32, 32, 64);
-		    ctx.rect(64, 64, 32, 64);
-		    ctx.rect(96, 96, 32, 64);
-		    ctx.rect(96, -32, 32, 64);
-		    ctx.fill();
-
-	    } else {
-
-	    	let i, j, n, d;
-	    	let pos = [ [0, 0], [32, 32],[64, 64],[96, 96],[96, -32] ];
-	    	let deg = [ [0, 64], [32, 96],[64, 128],[96, 160],[-32, 32] ];
-
-	    	let f1 = normal ? 'rgb(128,128,255)' : c1;
-	    	let f2 = normal ? 'rgb(160,100,255)' : c2;
-	    	let f3 = normal ? 'rgba(100,160,255, 0.5)' : 'rgba(0,0,0, 0.1)';
-
-	    	ctx.strokeStyle = f3;
-	    	ctx.lineWidth = 1;
-
-	    	for( i = 0; i<5; i++ ){
-
-	    		d = ctx.createLinearGradient(0, deg[i][0], 0, deg[i][1]);
-				d.addColorStop(0, f2);
-				d.addColorStop(1, f1);
-
-				ctx.beginPath();
-				ctx.fillStyle = d;
-				ctx.rect(pos[i][0], pos[i][1], 32, 64);
-				ctx.fill();
-
-				for( let j = 0; j<8; j++ ){   
-
-					n = (Math.random()-0.5) * 2; 
-				           
-				    ctx.beginPath();
-					ctx.moveTo(pos[i][0]+n+2+j*4, pos[i][1]);
-					ctx.lineTo(pos[i][0]+n+2+j*4, pos[i][1]+64);
-					ctx.stroke();
-				}
-
-	    	}
-
-	    	pos = [ [32, 0], [64, 32],[96, 64],[-32, 64],[0, 96] ];
-	    	deg = [ [32, 96], [64, 128],[96, 160],[-32, 32],[0, 64] ];
-
-	    	for( i = 0; i<5; i++ ){
-
-	    		d = ctx.createLinearGradient(deg[i][0], 0, deg[i][1], 0);
-				d.addColorStop(0, f1);
-				d.addColorStop(1, f2);
-
-				ctx.beginPath();
-				ctx.fillStyle = d;
-				ctx.rect(pos[i][0], pos[i][1], 64, 32);
-				ctx.fill();
-
-				for( j = 0; j<8; j++ ){
-
-					n = (Math.random()-0.5) * 2; 
-					ctx.beginPath();
-					ctx.moveTo(pos[i][0], pos[i][1]+n+2+j*4);
-					ctx.lineTo(pos[i][0]+64, pos[i][1]+n+2+j*4);
-					ctx.stroke();
-				}
-
-	    	}
-
-	    }
-
-		//return canvas;
-
-		const texture = new CanvasTexture( canvas ); //new CarbonTexture('#ffffff', '#CCCCCC') )
-		texture.wrapS = texture.wrapT = RepeatWrapping;
-		texture.repeat.x = texture.repeat.y = 60;
-
-		if(!normal) texture.colorSpace = SRGBColorSpace;
-
-		return texture;
-
-	}
-
-}
-
-//import { LineMaterial } from 'three/addons/lines/LineMaterial.js';
 const map = new Map();
 
 //-------------------
@@ -665,12 +447,13 @@ const root = {
 	tmpMesh : [],
 	instanceMesh : {},
 	tmpTex : [],
-	tmpMat : [],
+	//tmpMat : [],
 
-	hideMaterial: null,
-	lineMaterial: null,
+	//hideMaterial: null,
+	//lineMaterial: null,
 
 	mouseDown:false,
+	
 	flow:{
 		stamp:0,
 		current:'',
@@ -875,7 +658,7 @@ const Utils = {
     	const timeDiff = 1;//time2 - time1;
     	v.multiplyScalar( angle / timeDiff );
 
-    	console.log('result',v);
+    	//console.log('result',v)
 
     },
 
@@ -906,12 +689,132 @@ const Utils = {
 
 };
 
+class CircleHelper extends LineSegments {
+
+	constructor( box, color = 0xffff00 ) {
+
+		let size=0.6;
+
+		const indices = new Uint16Array( [ 
+			0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 0,   
+			6, 7, 7, 8, 8, 9, 9, 10, 10, 11, 11, 6,
+			12, 13, 13, 14, 14, 15, 15, 16, 16, 17, 17, 12,
+			18,19, 20,21, 22, 23,
+			] );
+		const positions = [
+
+		
+
+		 0.5, 0.0, 0.0,
+		0.25, 0.433, 0.0,
+		-0.25, 0.433, 0.0,
+		-0.5, 0.0, 0.0,
+		-0.25, -0.433, 0.0,
+		0.25, -0.433, 0.0, 
+
+		 0.5, 0.0,0.0, 
+		0.25,  0.0,0.433,
+		-0.25,  0.0,0.433,
+		-0.5, 0.0, 0.0,
+		-0.25,0.0, -0.433, 
+		0.25, 0.0, -0.433, 
+
+		0.0,0.5, 0.0,
+		0.0,0.25, 0.433, 
+		0.0,-0.25, 0.433, 
+		0.0,-0.5, 0.0, 
+		0.0,-0.25, -0.433, 
+		0.0,0.25, -0.433, 
+
+		0, 0, 0,	size, 0, 0,
+		0, 0, 0,	0, size, 0,
+		0, 0, 0,	0, 0, size,
+
+		
+		];
+
+		const colors = [
+
+		
+
+		0, 0, 1,
+		0, 0, 1,
+		0, 0, 1,
+		0, 0, 1,
+		0, 0, 1,
+		0, 0, 1,
+		
+		0, 1, 0,
+		0, 1, 0,
+		0, 1, 0,
+		0, 1, 0,
+		0, 1, 0,
+		0, 1, 0,
+
+        1, 0, 0,
+		1, 0, 0,
+		1, 0, 0,
+		1, 0, 0,
+		1, 0, 0,
+		1, 0, 0,
+
+		1, 0, 0,	1,0, 0,
+		0, 1, 0,	0, 1, 0,
+		0, 0, 1,	0, 0, 1,
+
+		
+
+		
+		];
+
+		const geometry = new BufferGeometry();
+
+		geometry.setIndex( new BufferAttribute( indices, 1 ) );
+
+		geometry.setAttribute( 'position', new Float32BufferAttribute( positions, 3 ) );
+		geometry.setAttribute( 'color', new Float32BufferAttribute( colors, 3 ) );
+
+		super( geometry, new LineBasicMaterial( { color: color, depthTest: false, depthWrite: false, toneMapped: false, transparent: true } ) );
+
+		this.box = box;
+
+		this.type = 'CircleHelper';
+
+		this.geometry.computeBoundingSphere();
+
+	}
+
+	updateMatrixWorld( force ) {
+
+		const box = this.box;
+
+		if ( box.isEmpty() ) return;
+
+		box.getCenter( this.position );
+
+		box.getSize( this.scale );
+
+		this.scale.multiplyScalar( 0.5 );
+
+		super.updateMatrixWorld( force );
+
+	}
+
+	dispose() {
+
+		this.geometry.dispose();
+		this.material.dispose();
+
+	}
+
+}
 
 //-------------------
 //
 //  GEOMETRY
 //
 //-------------------
+
 
 let geoN = 0;
 let geo = {};
@@ -926,7 +829,6 @@ const Geo = {
 
 	set: ( g ) => {
 
-		//console.log( g.name )
 		geo[g.name] = g;
 
 	},
@@ -964,13 +866,117 @@ const Geo = {
 
 };
 
+class CarbonTexture {
 
+	constructor( normal, c1='rgb(69,69,69)', c2='rgb(39,39,39)'  ) {
+
+		let s = 128;
+
+		const canvas = document.createElement( 'canvas' );
+		canvas.width = canvas.height = s;
+
+		const ctx = canvas.getContext( '2d' );
+		ctx.fillStyle = c1;
+		ctx.fillRect( 0, 0, s, s );
+
+		if( !normal ){
+
+			ctx.beginPath();
+			ctx.fillStyle = c2;
+		    ctx.rect(0, 0, 32, 64);
+		    ctx.rect(32, 32, 32, 64);
+		    ctx.rect(64, 64, 32, 64);
+		    ctx.rect(96, 96, 32, 64);
+		    ctx.rect(96, -32, 32, 64);
+		    ctx.fill();
+
+	    } else {
+
+	    	let i, j, n, d;
+	    	let pos = [ [0, 0], [32, 32],[64, 64],[96, 96],[96, -32] ];
+	    	let deg = [ [0, 64], [32, 96],[64, 128],[96, 160],[-32, 32] ];
+
+	    	let f1 = normal ? 'rgb(128,128,255)' : c1;
+	    	let f2 = normal ? 'rgb(160,100,255)' : c2;
+	    	let f3 = normal ? 'rgba(100,160,255, 0.5)' : 'rgba(0,0,0, 0.1)';
+
+	    	ctx.strokeStyle = f3;
+	    	ctx.lineWidth = 1;
+
+	    	for( i = 0; i<5; i++ ){
+
+	    		d = ctx.createLinearGradient(0, deg[i][0], 0, deg[i][1]);
+				d.addColorStop(0, f2);
+				d.addColorStop(1, f1);
+
+				ctx.beginPath();
+				ctx.fillStyle = d;
+				ctx.rect(pos[i][0], pos[i][1], 32, 64);
+				ctx.fill();
+
+				for( let j = 0; j<8; j++ ){   
+
+					n = (Math.random()-0.5) * 2; 
+				           
+				    ctx.beginPath();
+					ctx.moveTo(pos[i][0]+n+2+j*4, pos[i][1]);
+					ctx.lineTo(pos[i][0]+n+2+j*4, pos[i][1]+64);
+					ctx.stroke();
+				}
+
+	    	}
+
+	    	pos = [ [32, 0], [64, 32],[96, 64],[-32, 64],[0, 96] ];
+	    	deg = [ [32, 96], [64, 128],[96, 160],[-32, 32],[0, 64] ];
+
+	    	for( i = 0; i<5; i++ ){
+
+	    		d = ctx.createLinearGradient(deg[i][0], 0, deg[i][1], 0);
+				d.addColorStop(0, f1);
+				d.addColorStop(1, f2);
+
+				ctx.beginPath();
+				ctx.fillStyle = d;
+				ctx.rect(pos[i][0], pos[i][1], 64, 32);
+				ctx.fill();
+
+				for( j = 0; j<8; j++ ){
+
+					n = (Math.random()-0.5) * 2; 
+					ctx.beginPath();
+					ctx.moveTo(pos[i][0], pos[i][1]+n+2+j*4);
+					ctx.lineTo(pos[i][0]+64, pos[i][1]+n+2+j*4);
+					ctx.stroke();
+				}
+
+	    	}
+
+	    }
+
+		//return canvas;
+
+		const texture = new CanvasTexture( canvas ); //new CarbonTexture('#ffffff', '#CCCCCC') )
+		texture.wrapS = texture.wrapT = RepeatWrapping;
+		texture.repeat.x = texture.repeat.y = 60;
+
+		if(!normal) texture.colorSpace = SRGBColorSpace;
+
+		return texture;
+
+	}
+
+}
 
 //-------------------
 //
 //  MATERIAL
 //
 //-------------------
+
+//const mat = new Map()
+const mat = {};
+
+let TmpMat = [];
 
 const matExtra = {
 
@@ -983,20 +989,25 @@ const matExtra = {
 };
 
 const Colors = {
-    body:new Color( 0xefefd4 ),//.convertSRGBToLinear(),
-    sleep:new Color( 0xBFBFAD ),//.convertSRGBToLinear()//0x46B1C9//0x939393
+    body:new Color( 0xefefd4 ),
+    sleep:new Color( 0xBFBFAD ),
     solid:new Color( 0x6C6A68 ),
     base:new Color( 0xFFFFFF ),
     black:new Color( 0x222222 ),
-    gold:new Color( 0.944, 0.776, 0.373 ),//f0c65f
+    gold:new Color( 0.944, 0.776, 0.373 ),
     gold2:new Color( 0.998, 0.981, 0.751 ),
     copper:new Color( 0.96467984, 0.37626296, 0.25818297 ),
     carPaint:new Color( 0.1037792, 0.59212029, 0.85064936 ),
 };
 
-const mat = {};
-
 const Mat = {
+
+	extendShader:() =>{},
+
+	addToTmp:( m ) => {
+
+		TmpMat.push( m );
+	},
 
 	create:( o ) => {
 
@@ -1021,17 +1032,16 @@ const Mat = {
 				case 'physical': 
 				m = new MeshPhysicalMaterial( o ); 
 				m.defines = {
-
 					'STANDARD': '',
 					'PHYSICAL': '',
 					'USE_UV':'',
 					'USE_SPECULAR':''
 				};
-
 				break;
 				case 'phong': m = new MeshPhongMaterial( o ); break;
 				case 'lambert': m = new MeshLambertMaterial( o ); break;
 				case 'basic': m = new MeshBasicMaterial( o ); break;
+				case 'line': m = new LineBasicMaterial( o ); break;
 				case 'toon': m = new MeshToonMaterial( o ); break;
 				default: m = new MeshStandardMaterial( o ); break;
 			}
@@ -1046,8 +1056,24 @@ const Mat = {
 
 	set:( m, direct ) => {
 
-		if(!direct) root.extraMaterial( m );
+		if(!direct) Mat.extendShader( m );
 		mat[m.name] = m;
+
+	},
+
+	setEnvmapIntensity: (v) => { 
+		let m;
+		for(let name in mat){
+			m = mat[name];
+			if( !m.userData.envp ) m.userData.envp = m.envMapIntensity;
+			m.envMapIntensity = m.userData.envp * v;
+		}
+		
+	},
+	
+	getList: () => {
+
+		return mat
 
 	},
 
@@ -1090,10 +1116,13 @@ const Mat = {
 				case 'carGlass':   Mat.create({ name:'carGlass', color: 0xffffff, metalness: 0, roughness: 0, transmission: 1.0, ior:1.52 }); break
 
 
-				case 'debug': Mat.create({ name:'debug', type:'Basic', color:0x000000, wireframe:true, toneMapped: false }); break
-				case 'debug2': Mat.create({ name:'debug2', type:'Basic', color:0x00FFFF, wireframe:true, toneMapped: false }); break
-				case 'debug3':  Mat.create({ name:'debug3', type:'Basic', color:0x000000, wireframe:true, transparent:true, opacity:0.1, toneMapped: false, depthTest:true }); break
-				case 'shadows': Mat.create({ name:'shadows', type:'Basic', transparent:true, opacity:0.01 }); break
+				case 'debug': Mat.create({ name:'debug', type:'Basic', color:0xF37042, wireframe:true, toneMapped: false, transparent:true, opacity:0.25 }); break//0xEAA669
+				//case 'debug2': m = Mat.create({ name:'debug2', type:'Basic', color:0x00FFFF, wireframe:true, toneMapped: false }); break
+				//case 'debug3':  m = Mat.create({ name:'debug3', type:'Basic', color:0x000000, wireframe:true, transparent:true, opacity:0.1, toneMapped: false }); break
+				//case 'shadows': m = Mat.create({ name:'shadows', type:'Basic', transparent:true, opacity:0.01 }); break
+
+				//case 'simple': m = Mat.create({ name:'simple', type:'basic'  }); break
+
 
 				case 'bones':  Mat.create({ name:'bones', color:0xCCAA33,  wireframe:true }); break
 				case 'bones2':  Mat.create({ name:'bones2', color:0x7777ff }); break
@@ -1103,26 +1132,18 @@ const Mat = {
 				//case 'hide': m = new MeshBasicMaterial({ visible:false }); break
 
 				case 'line':
-					if( !root.lineMaterial ) root.lineMaterial = new LineBasicMaterial( { vertexColors: true, toneMapped: false } );
-					return root.lineMaterial; 
+				    Mat.create({ name:'line', type:'line', vertexColors: true, toneMapped: false });
+			    break
 				case 'hide':
-					if( !root.hideMaterial ) root.hideMaterial = new MeshBasicMaterial({ visible:false });
-					return root.hideMaterial; 
+				    Mat.create({ name:'hide', type:'basic', visible:false });
+			    break
 
 
 				
 
 			}
-
-			/*if(m){
-				m.name = name;
-				root.extraMaterial( m )
-				mat[name] = m
-			}*/
 			
 		}
-
-		//console.log(DoubleSide)
 
 		return mat[name]
 
@@ -1132,294 +1153,18 @@ const Mat = {
 
 	dispose:() => {
 
-		if( root.lineMaterial ){
-			root.lineMaterial.dispose();
-			root.lineMaterial = null;
-		}
-
-		if( root.hideMaterial ){
-			root.hideMaterial.dispose();
-			root.hideMaterial = null;
-		}
-
 		for(let m in mat){
 			mat[m].dispose();
 			delete mat[m];
 		}
 
-		let i = root.tmpMat.length;
-		while( i-- ) { root.tmpMat[i].dispose(); root.tmpMat[i] = null; }
-		root.tmpMat = [];
+		let i = TmpMat.length;
+		while( i-- ) { TmpMat[i].dispose(); }
+		TmpMat = [];
 
 	}
 
 };
-
-
-//-------------------
-//
-//  MATH
-//
-//-------------------
-/*
-export const torad = Math.PI / 180
-export const todeg = 180 / Math.PI
-
-export const euler = new Euler()
-export const quat = new Quaternion()
-*/
-/*const tmpMtx = new Matrix4()
-const tmpP = new Vector3()
-const tmpS = new Vector3()
-const tmpQ = new Quaternion()
-*/
-/*
-export const math = {
-
-	torad: Math.PI / 180,
-	todeg: 180 / Math.PI,
-	Pi: Math.PI,
-	TwoPI: Math.PI*2,
-	PI90: Math.PI*0.5,
-	PI45: Math.PI*0.25,
-	PI270: (Math.PI*0.5)*3,
-	inv255: 0.003921569,
-	golden: 1.618033,
-	epsilon: Math.pow( 2, - 52 ),
-
-	tmpE: new Euler(),
-	tmpM: new Matrix4(),
-	tmpM2: new Matrix4(),
-	tmpQ: new Quaternion(),
-	tmpV: new Vector3(),
-
-	clampA: ( v, min, max ) => { 
-		return Math.max( min, Math.min( max, v ))
-	},
-
-	clamp: ( v, min, max ) => { 
-		v = v < min ? min : v;
-	    v = v > max ? max : v;
-	    return v;
-	},
-
-	int: (x) => ( Math.floor(x) ),
-	toFixed: ( x, n = 3 ) => ( x.toFixed(n) * 1 ),
-
-	lerp: ( x, y, t ) => ( ( 1 - t ) * x + t * y ),
-	lerpAr: ( ar, arx, ary, t ) => {
-		let i = ar.length
-		while( i-- ) ar[i] = math.lerp( arx[i], ary[i], t )
-	},
-
-	randomSign: () => ( Math.random() < 0.5 ? -1 : 1 ),
-	randSpread: ( range ) => ( range * ( 0.5 - Math.random() ) ),
-	rand: ( low = 0, high = 1 ) => ( low + Math.random() * ( high - low ) ),
-	randInt: ( low, high ) => ( low + Math.floor( Math.random() * ( high - low + 1 ) ) ),
-
-	nearEquals: ( a, b, t ) => ( Math.abs(a - b) <= t ? true : false ),
-
-	angleDistance:(cur, prv)=> {
-		var diff = (cur - prv + 180) % 360 - 180;
-		return diff < -180 ? diff + 360 : diff;
-	},
-
-	nearAngle: ( s1, s2, deg = false ) => ( s2 + Math.atan2(Math.sin(s1-s2), Math.cos(s1-s2)) * (deg ? root.todeg : 1) ),
-
-	unwrapDeg: ( r ) => (r - (Math.floor((r + 180)/360))*360), 
-	//unwrapRad: ( r ) => (r - (Math.floor((r + Math.PI)/(2*Math.PI)))*2*Math.PI),
-	unwrapRad: ( r ) => ( Math.atan2(Math.sin(r), Math.cos(r)) ),
-
-	autoSize: ( s = [ 1, 1, 1 ], type = 'box' ) => {
-
-		//let s = o.size === undefined ? [ 1, 1, 1 ] : o.size;
-		if ( s.length === 1 ) s[ 1 ] = s[ 0 ];
-
-		let radius =  s[0];
-		let height =  s[1];
-
-		if( type === 'sphere' ) s = [ radius, radius, radius ];
-		if( type === 'cylinder' || type === 'wheel' || type === 'capsule' ) s = [ radius, height, radius ];
-		if( type === 'cone' || type === 'pyramid' ) s = [ radius, height, radius ];
-
-	    if ( s.length === 2 ) s[ 2 ] = s[ 0 ];
-	    return s;
-
-	},
-
-	distance: ( a, b = { x:0, y:0, z:0 } ) => { // rotation array in degree
-
-		const dx = a.x ? a.x - b.x : 0
-		const dy = a.y ? a.y - b.y : 0
-		const dz = a.z ? a.z - b.z : 0
-		return Math.sqrt( dx * dx + dy * dy + dz * dz );
-
-	},
-
-	toQuatArray: ( rot = [0,0,0] ) => { // rotation array in degree
-
-		return quat.setFromEuler( euler.fromArray( math.vectorad( rot ) ) ).toArray();
-
-	},
-
-	toLocalQuatArray: ( rot = [0,0,0], b ) => { // rotation array in degree
-
-		quat.setFromEuler( euler.fromArray( math.vectorad( rot ) ) )
-		quat.premultiply( b.quaternion.invert() );
-		return quat.toArray();
-
-	},
-
-	vecAdd: ( a, b ) => {
-
-		let i = a.length, r = [];
-	    while ( i -- ) r[i] = a[ i ] + b[ i ];
-	    return r;
-
-	},
-
-	vecMul: ( a, s ) => {
-
-		let i = a.length;
-	    while ( i -- ) a[i] *= s;
-	    return a;
-
-	},
-
-	vecSub: ( a, b ) => {
-
-		let i = a.length, r = [];
-	    while ( i -- ) r[i] = a[ i ] - b[ i ];
-	    return r;
-
-	},
-
-	vecZero: ( ar, n, i ) => {
-
-	    while ( i -- ) ar[n+i] = 0;
-
-	},
-
-	addArray:( a, b ) => ( math.vecAdd(a,b) ),
-
-	vectorad: ( r ) => {
-
-		let i = 3, nr = [];
-	    while ( i -- ) nr[ i ] = r[ i ] * torad;
-	    nr[3] = r[3];
-	    return nr;
-
-	},
-
-	scaleArray: ( ar, scale ) => {
-
-		var i = ar.length;
-		while( i-- ){ ar[i] *= scale };
-		return ar;
-
-	},
-
-	/*getIndex: ( g ) => {
-
-		if(!g.index) return null
-
-		return g.index.array || null
-	},
-
-	getVertex: ( g, noIndex ) => {
-		
-		let c = g.attributes.position.array;
-
-		if( noIndex ){
-			let h = g.clone().toNonIndexed()
-			c = h.attributes.position.array;
-		}
-
-		return c;
-
-	},*/
-/*
-	arCopy: ( a, b ) => { a = [...b] },
-
-	////////
-
-	quadToAxisArray: ( q ) => {
-
-		//math.tmpV( 1,0,0 ).applyMatrix3( )
-		//q = math.tmpQ.fromArray(q).normalize().toArray();
-	   if (q[3] > 1) q = math.tmpQ.fromArray(q).normalize().toArray(); // if w>1 acos and sqrt will produce errors, this cant happen if quaternion is normalised
-	   let angle = 2 * Math.acos(q[3]);
-	   let s = Math.sqrt(1-q[3]*q[3]); // assuming quaternion normalised then w is less than 1, so term always positive
-
-	   if (s < 0.001) {   
-	       // console.log(s)
-	        // test to avoid divide by zero, s is always positive due to sqrt
-	        // if s close to zero then direction of axis not important
-	        // if it is important that axis is normalised then replace with x=1; y=z=0;
-	        return [1,0,0]
-
-	        //return [q[0],q[1],q[2]]
-	   } else {
-	        //x = q[0] / s; // normalize axis
-	        return [(q[0] / s)*angle, (q[1] / s)*angle, (q[2] / s)*angle]
-	        //return [(q[0] / s),(q[1] / s),(q[2] / s)]
-	   }
-	},
-
-	fromTransformToQ: ( p, q, inv ) => {
-
-		inv = inv || false;
-		math.tmpM.compose( math.tmpV.fromArray( p ), math.tmpQ.fromArray( q ), { x:1, y:1, z:1 } );
-		math.tmpM.decompose( math.tmpV, math.tmpQ, { x:1, y:1, z:1 } );
-		if(inv) math.tmpQ.invert();
-		return math.tmpQ.toArray();
-
-	},
-
-	fromTransform: ( p, q, p2, q2, inv ) => {
-
-		inv = inv || false;
-		q2 = q2 || [0,0,0,1];
-
-		math.tmpM.compose( math.tmpV.fromArray( p ), math.tmpQ.fromArray( q ), { x:1, y:1, z:1 } );
-		math.tmpM2.compose( math.tmpV.fromArray( p2 ), math.tmpQ.fromArray( q2 ), { x:1, y:1, z:1 } );
-		if( inv ){
-			math.tmpM.invert();
-			math.tmpM.multiply( math.tmpM2 );
-		} else {
-			math.tmpM.multiply( math.tmpM2 );
-		}
-
-		math.tmpM.decompose( math.tmpV, math.tmpQ, { x:1, y:1, z:1 } );
-
-		return math.tmpV.toArray();
-
-	},
-
-	axisToQuatArray: ( r, isdeg ) => { // r[0] array in degree
-
-		isdeg = isdeg || false;
-		return math.tmpQ.setFromAxisAngle( math.tmpV.fromArray( r, 1 ), isdeg ? r[0]*math.torad : r[0]).normalize().toArray();
-
-	},
-
-	toQuatArray: ( rotation ) => { // rotation array in degree
-
-		math.tmpE.fromArray( math.vectorad( rotation ) )
-		console.log(math.tmpE)
-		return math.tmpQ.setFromEuler( math.tmpE ).toArray();
-
-	},
-
-	/*static transform ( p = [0,0,0], q = [0,0,0,1], s = [1,1,1] ) {
-
-		tmpMtx.compose( tmpP.fromArray(p), tmpQ.fromArray(q), tmpS.fromArray(s) )
-		return tmpMtx;
-
-	}*/
-
-
-//}*/
 
 const Max = {
 	body:2000,
@@ -5779,7 +5524,8 @@ class Body extends Item {
 
 	    if( o.unicMat ) {
 	    	material = material.clone();
-	    	root.tmpMat.push( material );
+	    	//root.tmpMat.push( material )
+	    	Mat.addToTmp( material );
 	    }
 
 	    if( o.material ) delete o.material;
@@ -6693,7 +6439,7 @@ class Car extends Basic3D {//extends Object3D {
 
 	    }*/
 
-	    var material = Mat.get( 'debug3' );//'debug3'//o.debug ? 'debug' : (o.body === undefined ? 'body' : 'hide');
+	    var material = Mat.get( o.debug ? 'debug' : (o.chassisMesh === undefined ? 'body' : 'hide'));
 	    //if( o.body === undefined ) material = 'move';
 
 	    let n;
@@ -24273,11 +24019,14 @@ const Human = {
                     node.material = Pool.getMaterial( 'hair' ) || def;
                     node.receiveShadow = true;
                     node.castShadow = true;
+                    node.matrixWorldAutoUpdate = false;
                     break;
                     case 'hair_man': 
                     node.material = Pool.getMaterial( 'hair_man' ) || def;
                     node.receiveShadow = true;
                     node.castShadow = true;
+
+                    node.matrixWorldAutoUpdate = false;
                     break;
                 }
             }
@@ -26261,7 +26010,7 @@ class SkeletonBody extends Object3D {
 
             //acc:true,
 
-           //worldAxis:[1,0,0],
+            //worldAxis:[1,0,0],
 
             autoDrive: true,
 
@@ -30265,18 +30014,42 @@ class MouseTool {
 		this.velocity = new Vector3();
 		this.angle = 0;
 
+		this.helper = null;
+
+		this.dragPlane = null;
+
+	    //if( this.mode === 'drag' ) 
+	    this.activeDragMouse( true );
+
+	}
+
+	addDrag(){
+
+		if( this.dragPlane ) return
+
 		this.helper = new MoveHelper();
-
 		this.dragPlane = new Mesh( new PlaneGeometry( 1, 1 ), Mat.get('hide') );
-
-		//this.dragPlane = new Mesh( new PlaneGeometry( 1, 1 ), new MeshBasicMaterial({ visible:false, toneMapped: false }) )
-		//this.dragPlane = new Mesh( new PlaneGeometry( 1, 1, 2, 2 ), new MeshBasicMaterial({ color:0xFF0000, wireframe:true, toneMapped: false }) )
 	    this.dragPlane.castShadow = false;
 	    this.dragPlane.receiveShadow = false;
 	    this.dragPlane.scale.set( 1, 1, 1 ).multiplyScalar( 200 );
 
-	    //if( this.mode === 'drag' ) 
-	    this.activeDragMouse( true );
+	    root.scenePlus.add( this.helper );
+	    root.scenePlus.add( this.dragPlane );
+
+	}
+
+	clearDrag(){
+
+		if( !this.dragPlane ) return
+
+		root.scenePlus.remove( this.dragPlane );
+		root.scenePlus.remove( this.helper );
+
+		this.dragPlane.geometry.dispose();
+		this.helper.geometry.dispose();
+
+		this.dragPlane = null;
+		this.helper = null;
 
 	}
 
@@ -30670,8 +30443,10 @@ class MouseTool {
 			return 'grab'
 		}*/
 
-		root.scenePlus.add( this.helper );
-	    root.scenePlus.add( this.dragPlane );
+		this.addDrag();
+
+		//8root.scenePlus.add( this.helper )
+	    //root.scenePlus.add( this.dragPlane )
 
 	    this.dragPlane.rotation.set( 0, this.angle, 0 );
 	    this.dragPlane.position.copy( pos );
@@ -30751,6 +30526,7 @@ class MouseTool {
 		}
 
 		this.helper.position.copy( this.tmpPos );
+
 		let pos = this.tmpPos.toArray();
 
 		if( this.moveDirect ){ 
@@ -30764,9 +30540,11 @@ class MouseTool {
 
 		if( this.selected === null ) return
 
+		this.clearDrag();
+
 		//this.dragPlane.geometry.dispose()
-		root.scenePlus.remove( this.dragPlane );
-		root.scenePlus.remove( this.helper );
+		//root.scenePlus.remove( this.dragPlane )
+		//root.scenePlus.remove( this.helper )
 
 		if( this.moveDirect ){
 			root.motor.change({ name:this.selected.name, kinematic:false, wake:true, gravity:true, damping:[0,0.1] });
@@ -30937,19 +30715,42 @@ K.childScale = function ( bone, matrix ) {
 
     if( !this.scalled ) return
 
+    //
+
     if( bone.scalling ) matrix.scale( bone.scalling );
     //if( bone.extraRotation ) matrix.multiply( bone.extraRotation );
     //if( !bone.isBone ) return
+
+    //if(bone.name === 'head') console.log(bone.children.length)
+
     let j = bone.children.length, child;
     while(j--){
         child = bone.children[ j ];
+
+        if( child.isBone ) child.matrixWorld.multiplyMatrices( matrix, child.matrix );
+        else {
+            child.matrixWorld.multiplyMatrices( matrix, child.matrix );
+            //child.updateWorldMatrix( false, true );
+
+            // BUG WITH HAIR !!!
+         //   child.matrixWorld.multiplyMatrices( matrix, child.matrix )
+           // child.matrixWorld.multiplyMatrices( matrix, child.matrix )
+
+            //child.updateWorldMatrix(false, true)
+            //child.matrix = matrix.clone();
+            //child.matrixWorld.premultiply( matrix.clone() )
+            //child.matrixAutoUpdate = false;
+        }
+
+        
+        //child.matrixAutoUpdate = true
         //if( child.matrixAutoUpdate ) child.matrixAutoUpdate = false
         //if( child.matrixWorldAutoUpdate ) child.matrixWorldAutoUpdate = false
         //child.matrixWorldNeedsUpdate = false;
         //child.matrixWorld.copy( child.matrix ).premultiply( matrix )
 
         //child.matrixWorld.copy( matrix ).multiply( child.matrix )
-        child.matrixWorld.multiplyMatrices( matrix, child.matrix );
+        
 
 
         //scaleMatrix = matrix.clone()
@@ -30969,7 +30770,6 @@ K.childScale = function ( bone, matrix ) {
 
 };
 
-
 K.applyScalling = function ( fingerPos ) {
 
     let b, i, lng = this.bones.length;
@@ -30982,8 +30782,10 @@ K.applyScalling = function ( fingerPos ) {
 
         if( parent !== null && parent.scalling && b.name!=='root'){//
 
-            if(parent.scalling) b.position.multiply( parent.scalling );
+          //  if( parent.scalling ) 
+            b.position.multiply( parent.scalling );
             //if(parent.extraRotation) b.quaternion.premultiply( parent.extraRotation );
+            //b.updateWorldMatrix( false, true )
             b.updateMatrixWorld( true );
 
         }
@@ -31170,8 +30972,7 @@ class Motor {
 
 	//static setExtraTexture ( f ) { extraTexture = f }
 
-	static setExtraMaterial ( f ) { root.extraMaterial = f; }
-	//static setExtraMaterial ( f ) { extraMaterial = f }
+	
 
 	static setAddControl ( f ) { addControl = f; }
 
@@ -31285,9 +31086,7 @@ class Motor {
 
 	static getScene () { return root.scene; }
 
-	static getMat () { return Mat; }
-
-	static getHideMat() { return Mat.get('hide'); }
+	
 
 	static resize ( size ) { root.viewSize = size; }
 
@@ -31703,80 +31502,29 @@ class Motor {
 
 
 
-	static getMaterialList(){
-		return mat
-	}
 
-	static getOneMaterial( name ){
-		return Mat.get( name )
-	}
+	static material ( o = {} ){ return Mat.create( o ) }
 
-	/*static getMaterial ( name ){
-		console.log('matertialGet ??', name)
-		return Pool.getMaterial( name )
-	}*/
+	static setExtendShader ( f ) { Mat.extendShader = f; }
 
-	static addMaterial( m, direct ){
+	static getMaterialList(){ return Mat.getList(); }
 
-		Mat.set( m, direct );
-		//return Pool.set( m.name, m, 'material', direct )
-	}
+	static getOneMaterial( name ){ return Mat.get( name ) }
+
+	static addMaterial( m, direct ){ Mat.set( m, direct ); }
+
+	static setEnvmapIntensity (v) { Mat.setEnvmapIntensity(v); }
+
+	static getMat () { return Mat; }
+
+	//static getHideMat() { return Mat.get('hide'); }
 
 	
+	
 
-	static setEnvmapIntensity (v) { 
-		let m;
-		for(let name in mat){
-			m = mat[name];
-			if( !m.userData.envp ) m.userData.envp = m.envMapIntensity;
-			m.envMapIntensity = m.userData.envp * v;
-		}
-		
-	}
 
-	static material ( o = {} ){
 
-		return Mat.create( o )
 
-		/*let type = 'Standard'
-		if( o.thickness || o.sheen || o.clearcoat || o.transmission ) type = 'Physical'
-
-		if(o.type){
-			type = o.type;
-			delete o.type
-		}
-
-		let m;
-
-		if(o.normalScale){
-			if( !o.normalScale.isVector2 ) o.normalScale = new Vector2().fromArray(o.normalScale)
-		}
-		if( o.isMaterial ) m = o
-		else {
-			switch(type){
-				case 'Physical': 
-				m = new MeshPhysicalMaterial( o ); 
-				m.defines = {
-
-					'STANDARD': '',
-					'PHYSICAL': '',
-					'USE_ANISOTROPY':'',
-					'USE_SPECULAR':''
-				};
-
-				break;
-				case 'Phong': m = new MeshPhongMaterial( o ); break;
-				case 'Lambert': m = new MeshLambertMaterial( o ); break;
-				case 'Basic': m = new MeshBasicMaterial( o ); break;
-				default: m = new MeshStandardMaterial( o ); break;
-			}
-		}
-
-		if( mat[ m.name ] ) return null;
-	    Mat.set( m );
-		return m;*/
-
-	}
 
 	static control ( name ){ // for character and vehicle
 

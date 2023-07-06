@@ -10,6 +10,7 @@ import { Pool } from './Pool.js'
 *   __) |_| | 2023
 * @author lo.th / https://github.com/lo-th
 */
+
 const toneMappingOptions = {
 	None: 0,
 	Linear: 1,
@@ -18,6 +19,7 @@ const toneMappingOptions = {
 	ACESFilmic: 4,
 	Uncharted2: 5
 }
+
 export const Gui = {
 
 	tool:UIL.Tools,

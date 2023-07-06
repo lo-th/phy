@@ -2,7 +2,8 @@ import * as THREE from 'three'
 import * as TWEEN from 'tween'
 import * as UIL from 'uil'
 
-import './libs/webgl-memory.js'
+//import './libs/webgl-memory.js'
+import { Stats } from './Stats.js';
 import { getGPUTier } from './libs/detect-gpu.esm.js';
 
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
@@ -61,7 +62,6 @@ let isWebGPU = false
 
 
 let drawCall = false
-let fullStat = false
 let debugLight = false
 
 let oldPause = false
@@ -75,7 +75,7 @@ let childEditor = null
 let isExternEditor = false
 let particles = null
 
-
+let stats = null
 let maxFps = 60
 
 let groundColor = 0x808080
@@ -93,6 +93,8 @@ const CameraBase = {
 	time:0
 }
 
+
+// default config
 const setting = {
 
 	envmap:'clear',//'basic',
@@ -104,6 +106,9 @@ const setting = {
 	ground:true,
 	water:false,
 	fog:false,
+	vignette:true,
+
+	shadow:0.5,
 
 }
 
@@ -154,7 +159,7 @@ const options = {
 let hub3d = null
 let renderStart = false
 let g1, g2, g3
-let dom, camera, controls, scene, renderer, loop = null, composer = null, content, dragPlane, hideMat, followGroup, helperGroup, stats, txt, light, light2 = null, light3=null, ground = null, envui, dci;
+let dom, camera, controls, scene, renderer, loop = null, composer = null, content, followGroup, helperGroup, txt, light, light2 = null, light3=null, ground = null, envui, dci;
 
 let code = ''
 let editor = null
@@ -195,7 +200,7 @@ const Version = {
     Physx:'./build/physx-js-webidl.js',
 }*/
 
-let memo = null
+let statistic = null
 
 //let isMobile = false
 
@@ -409,7 +414,7 @@ const init = () => {
 
 	// RENDERER
 
-	if( isWebGPU ) renderer = new WebGPURenderer({antialias:antialias})
+	if( isWebGPU ) renderer = new WebGPURenderer({antialias:false})
 	else renderer = new THREE.WebGLRenderer( { 
 		antialias:antialias, 
 		powerPreference:powerPreference,
@@ -444,7 +449,7 @@ const init = () => {
 	// SCENE
 
 	scene = new THREE.Scene()
-	renderer.setClearColor ( new THREE.Color( 0x272822 ) ) 
+	renderer.setClearColor ( new THREE.Color( 0x808080 ) ) 
 	//scene.background = new THREE.Color( 0x272822 )
 
 	// GROUP
@@ -464,14 +469,9 @@ const init = () => {
 	// CAMERA / CONTROLER
 
 	camera = new THREE.PerspectiveCamera( 50, size.r, 0.1, 1000 )
-	//camera.position.set( 0, 4, 10 )
-	//camera.lookAt( 0, 2, 0 )
 	scene.add( camera )
 
-	if( !isWebGPU ){
-		hub3d = new Hub3D();
-		camera.add( hub3d );
-	}
+
 
 	controls = new Controller( camera, renderer.domElement, followGroup )
 	//controls.target.y = 2
@@ -510,6 +510,17 @@ const init = () => {
 
 }
 
+const dispose = () => {
+	renderStart = false
+	if(loop === null) return
+	//Env.dispose()
+    renderer.dispose()
+	renderer.renderLists.dispose()
+	cancelAnimationFrame( loop )
+	loop = null
+	
+}
+
 const drop = (e) => {
 
 	e.preventDefault();
@@ -545,11 +556,11 @@ const next = () => {
 	Main.getDemos()
 
 
-	hideMat = Motor.getHideMat()
+	//hideMat = Motor.getHideMat()
 
     Motor.setContent( scene )
     Motor.setControl( controls )
-    Motor.setExtraMaterial( Shader.add )
+    Motor.setExtendShader( Shader.add )
     Motor.setAddControl( addControl )
 
     // activate mouse drag
@@ -563,7 +574,9 @@ const next = () => {
 
 	loadDemo( options.demo )
 
-	//if( options.show_stat ) showStatistic( true )
+
+	if(isWebGPU) options.show_stat = false
+	if( options.show_stat ) showStatistic( true )
 
 }
 
@@ -581,18 +594,20 @@ const upExpose = () => {
 }
 
 const addControl = () => {
-	if(Main.isMobile) Hub.addJoystick()
+	if( Main.isMobile ) Hub.addJoystick()
 }
 
 //--------------------
 //   LIGHT
 //--------------------
 const lightIntensity = (a,b) => {
+
 	if( a ) options.light_1 = a
 	if( b ) options.light_2 = b
 	if(light) light.intensity = options.light_1*0.3
 	if(light3) light3.intensity = options.light_1*0.7
 	if(light2) light2.intensity = options.light_2
+
 }
 
 const addLight = () => {
@@ -678,56 +693,41 @@ const addLight = () => {
 }
 
 const clearLight = ( o ) => {
-	//if(!light) return
- 
-	followGroup.remove( light )
-	followGroup.remove( light.target )
-	
-	light.shadow.dispose()
-	light.shadow.map.texture.dispose()
-	light.shadow.map.texture = null;
-	light.shadow.map.dispose()
-	light.shadow.map = null;
 
-	light = null
-
-	if(light2) followGroup.remove( light2 );
-	light2 = null
-
-	if(light3){
-		light3.shadow.dispose()
-		light3.shadow.map.texture.dispose()
-		light3.shadow.map.texture = null;
-		light3.shadow.map.dispose()
-		light3.shadow.map = null;
-
-		light3 = null
+	if(light){
+		followGroup.remove( light )
+		followGroup.remove( light.target )
 	}
 
+	if(light3){
+		followGroup.remove( light3 )
+		followGroup.remove( light3.target )
+	}
+ 
+	if(light2) followGroup.remove( light2 );
+
+	clearShadow()
 	
-
-	//light.shadow = new THREE.DirectionalLightShadow();
-	//light.shadow.mapSize.setScalar( 1024 * options.quality )
-
+	light = null
+	light2 = null
+	light3 = null
 
 }
 
-const resetLight = ( o ) => {
+const clearShadow = ( o ) => {
 
-	//renderer.shadowMap.autoUpdate = false;
-	//console.log(renderer.shadowMap)
-
-	/*clearLight()
-	addLight()
-
-	renderer.shadowMap.autoUpdate = true;*/
-
-	/*if(options.shadow) */
+	if(light) light.shadow.dispose()
+	if(light3) light3.shadow.dispose()
 	
+}
 
-	light.position.set( 0.27, 1, 0.5 ).multiplyScalar(18)
-	light.target.position.set( 0, 0, 0 )
-	light.color.setHex( 0xFFFFFF );
+const resetLight = ( o ) => {
+	
+	if(light){
+		light.position.set( 0.27, 1, 0.5 ).multiplyScalar(18)
+		light.target.position.set( 0, 0, 0 )
+		light.color.setHex( 0xFFFFFF );
+	}
 
 	if(light3){
 		light3.position.set( 0.27, 1, 0.5 ).multiplyScalar(5)
@@ -740,14 +740,36 @@ const resetLight = ( o ) => {
 	    light2.groundColor.setHex( 0x808080 );
 	}
 
-
-	
-
 }
 
 
 
 // 
+
+//--------------------
+//   GROUND
+//--------------------
+
+const addVignette = ( o ) => {
+
+	if( hub3d === null && !isWebGPU ){
+
+		hub3d = new Hub3D();
+		camera.add( hub3d );
+
+	}
+
+}
+
+const removeVignette = () => {
+
+	if( hub3d === null ) return
+
+    //camera.remove( hub3d );
+	hub3d.dispose()
+    hub3d = null
+
+}
 
 	
 //--------------------
@@ -810,16 +832,7 @@ const removeGround = () => {
 
 }
 
-const dispose = () => {
-	renderStart = false
-	if(loop === null) return
-	//Env.dispose()
-    renderer.dispose()
-	renderer.renderLists.dispose()
-	cancelAnimationFrame( loop )
-	loop = null
-	
-}
+
 
 
 //--------------------
@@ -830,7 +843,7 @@ const dispose = () => {
 
 const directDemo = ( name, result ) => {
 
-	let findDemo = Gui.resetDemoGroup( name )
+	//let findDemo = Gui.resetDemoGroup( name )
 
 	//unSelect()
 
@@ -1094,12 +1107,15 @@ const setShadow = ( v ) => {
 	options.shadow = v
 
 	if( options.shadow === 0 ){
-		light.castShadow = false
-		if( !isWebGPU )renderer.shadowMap.enabled = false
+		if(light)light.castShadow = false
+		if(light3)light3.castShadow = false
+		if( !isWebGPU ) renderer.shadowMap.enabled = false
+		clearShadow()
 	} else {
 		if( !renderer.shadowMap.enabled ){
-			light.castShadow = true
-			if( !isWebGPU )renderer.shadowMap.enabled = true
+			if(light) light.castShadow = true
+			if(light3) light3.castShadow = true
+			if( !isWebGPU ) renderer.shadowMap.enabled = true
 		}
 	}
 
@@ -1125,8 +1141,6 @@ const setShadow = ( v ) => {
 //async 
 const view = ( o = {} ) => {
 
-	//console.log(o)
-
 	o = { ...setting, ...o }
 
 	//console.log('view', o)
@@ -1140,21 +1154,25 @@ const view = ( o = {} ) => {
 		Env.setBlur( options.envBlur )
 	}
 
-
-
+	setShadow( o.shadow )
 
 	if( o.fog ) scene.fog = new THREE.FogExp2( Env.getFogColor().getHex(), o.fogDist || 0.01 )
 	else scene.fog = null
 
 	// reflect floor
-	if( o.ground  ) addGround( o )
+	if( o.ground ) addGround( o )
 	else removeGround()
+
+	if( o.vignette ) addVignette( o )
+	else removeVignette()
 
 	//if( isLoadCode ) controls.moveCam( {...cam, ...o })
 
 	if( isLoadCode ) setCamera( o )
 	
 }
+
+Motor.view = view;
 
 const setCamera = ( o ) => {
 
@@ -1165,7 +1183,7 @@ const setCamera = ( o ) => {
 
 }
 
-Motor.view = view;
+
 
 //async function setEnv( name, chageUI ) {
 const setEnv = ( name, chageUI ) => {
@@ -1287,17 +1305,13 @@ const setEnvmapIntensity = ( v ) => {
 
 const showStatistic = ( b ) => {
 
-	if( b && !fullStat ){
-
-		memo = renderer.getContext().getExtension('GMAN_webgl_memory')
-		fullStat = true
-
+	if( b && !stats ){
+		stats = new Stats( renderer )
 	}
 
-	if( !b && fullStat ){
+	if( !b && stats ){
 
-		fullStat = false
-		memo = null
+		stats = null
 		Hub.setStats()
 		
 	}
@@ -1344,27 +1358,8 @@ const showDebugLight = ( b ) => {
 
 const getFullStats = () => {
 
-    if ( !fullStat ) return
-
-    const info = memo.getMemoryInfo()
-    
-    
-    const eng = renderer.info
-
-    info['engine'] = {
-
-    	geometries : eng.memory.geometries,
-		textures : eng.memory.textures,
-
-	    calls : eng.render.calls,
-		triangles : eng.render.triangles,
-		points : eng.render.points,
-		lines : eng.render.lines,
-		//frame : eng.render.frame,
-
-    }
-
-    Hub.setStats( info )
+    if ( !stats ) return
+    Hub.setStats( stats.get() )
     
 }
 

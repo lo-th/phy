@@ -49,7 +49,7 @@ onComplete = () => {
         mesh: model['g_20_in'],
         restitution:0, friction:0.5,
         density:10,
-        material:'simple'
+        material:'base'
         //size:[100],
     }
 
@@ -58,7 +58,7 @@ onComplete = () => {
         size:[0.23, 0.6],
         restitution:0, friction:0.5,
         density:0,
-        material:'simple'
+        material:'base'
         //size:[100],
     }
 

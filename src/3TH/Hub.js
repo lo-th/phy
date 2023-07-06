@@ -223,30 +223,7 @@ export class Hub {
 
     }
 
-    static setStats ( t = '' ) {
-
-        if( statistics === null ) return;
-
-        let txt = t
-
-        if( t!=='' ){
-
-            for( let j in t.memory ){
-                //t.memory[j] = Math.round( t.memory[j]*0.000976563 )
-
-                //if( j === 'drawingbuffer' || j === 'total' ) t.memory[j] = Math.round( t.memory[j]*0.000001 ) + ' MB'
-                //else t.memory[j] = Math.round( t.memory[j]*0.001 ) + ' KB'
-
-                if( j === 'drawingbuffer' || j === 'total' ) t.memory[j] = Math.round( (t.memory[j]*0.000001 )/8) + ' Mo'
-                else t.memory[j] = Math.round( (t.memory[j]*0.001)/8 ) + ' Ko'
-
-                //t.memory[j] = Math.round( t.memory[j] / 1024/ 1024 )
-            }
-
-            txt = JSON.stringify(t, null, 2)
-            txt = txt.replace(/[",.*+?^${}()|[\]\\]/g, '')
-
-        }
+    static setStats ( txt = '' ) {
 
         statistics.textContent = txt
 
@@ -341,7 +318,7 @@ export class Hub {
         content.appendChild( debug )
 
         statistics = document.createElement( 'div' );
-        statistics.style.cssText = 'position:absolute; top:100px; left:10px; font-size:14px; font-weight:500; width:400px; white-space: pre; line-height:20px;'
+        statistics.style.cssText = 'position:absolute; bottom:25px; left:10px; font-size:14px; font-weight:500; width:400px; white-space: pre; line-height:20px;'
         content.appendChild( statistics )
 
 

@@ -1,12 +1,16 @@
 import { Object3D, Vector3, Group, Mesh, BufferGeometry, CylinderGeometry, InstancedMesh, DynamicDrawUsage, Matrix4 } from 'three';
 
+import { root, Utils } from './root.js';
+import { Geo } from './base/Geo.js';
+import { Mat, Colors } from './base/Mat.js';
+
+
 import { Item } from '../core/Item.js';
 import { Num } from '../core/Config.js';
 import { MathTool, PI90, todeg } from '../core/MathTool.js';
-
 import { Basic3D } from '../core/Basic3D.js';
 import { Instance } from '../core/Instance.js';
-import { Utils, root, Mat, Geo, Colors, map } from './root.js';
+
 
 import { SphereBox, Capsule, ChamferCyl, ChamferBox, createUV, Stair  } from '../3TH/Geometry.js';
 import { ConvexGeometry } from '../jsm/geometries/ConvexGeometry.js';
@@ -443,7 +447,8 @@ export class Body extends Item {
 
 	    if( o.unicMat ) {
 	    	material = material.clone()
-	    	root.tmpMat.push( material )
+	    	//root.tmpMat.push( material )
+	    	Mat.addToTmp( material )
 	    }
 
 	    if( o.material ) delete o.material

@@ -1,12 +1,14 @@
 
 import {
-    Group, Vector3, Vector2, Quaternion,
-    MeshPhysicalMaterial, MeshStandardMaterial, MeshLambertMaterial, MeshPhongMaterial, MeshToonMaterial, MeshBasicMaterial,
+    Group, Vector3, Vector2, Quaternion
 } from 'three';
 
 import { MathTool } from '../core/MathTool.js';
 
-import { root, Utils, Geo, Mat, mat } from './root.js';
+import { root, Utils } from './root.js';
+import { Geo } from './base/Geo.js';
+import { Mat } from './base/Mat.js';
+
 import { Max, Num, getArray, getType } from '../core/Config.js';
 
 import { Ray } from './Ray.js';
@@ -17,16 +19,16 @@ import { Vehicle } from './Vehicle.js';
 import { Character } from './Character.js';
 import { Terrain } from './Terrain.js';
 import { Solver } from './Solver.js';
-import { Timer } from './Timer.js';
-import { User } from './User.js';
+import { Timer } from './base/Timer.js';
+import { User } from './base/User.js';
 
-import { Button } from './Button.js';
-import { Textfield } from './Textfield.js';
-import { Container } from './Container.js';
+import { Button } from './extra/Button.js';
+import { Textfield } from './extra/Textfield.js';
+import { Container } from './extra/Container.js';
+import { Breaker } from './extra/Breaker.js';
 
-//import { SkeletonBody } from './SkeletonBody.js';
 
-import { Breaker } from './Breaker.js';
+
 import { MouseTool } from './MouseTool.js';
 
 import { Pool } from '../3TH/Pool.js';
@@ -192,8 +194,7 @@ export class Motor {
 
 	//static setExtraTexture ( f ) { extraTexture = f }
 
-	static setExtraMaterial ( f ) { root.extraMaterial = f }
-	//static setExtraMaterial ( f ) { extraMaterial = f }
+	
 
 	static setAddControl ( f ) { addControl = f }
 
@@ -307,9 +308,7 @@ export class Motor {
 
 	static getScene () { return root.scene; }
 
-	static getMat () { return Mat; }
-
-	static getHideMat() { return Mat.get('hide'); }
+	
 
 	static resize ( size ) { root.viewSize = size; }
 
@@ -725,80 +724,29 @@ export class Motor {
 
 
 
-	static getMaterialList(){
-		return mat
-	}
 
-	static getOneMaterial( name ){
-		return Mat.get( name )
-	}
+	static material ( o = {} ){ return Mat.create( o ) }
 
-	/*static getMaterial ( name ){
-		console.log('matertialGet ??', name)
-		return Pool.getMaterial( name )
-	}*/
+	static setExtendShader ( f ) { Mat.extendShader = f }
 
-	static addMaterial( m, direct ){
+	static getMaterialList(){ return Mat.getList(); }
 
-		Mat.set( m, direct );
-		//return Pool.set( m.name, m, 'material', direct )
-	}
+	static getOneMaterial( name ){ return Mat.get( name ) }
+
+	static addMaterial( m, direct ){ Mat.set( m, direct ); }
+
+	static setEnvmapIntensity (v) { Mat.setEnvmapIntensity(v); }
+
+	static getMat () { return Mat; }
+
+	//static getHideMat() { return Mat.get('hide'); }
 
 	
+	
 
-	static setEnvmapIntensity (v) { 
-		let m
-		for(let name in mat){
-			m = mat[name]
-			if( !m.userData.envp ) m.userData.envp = m.envMapIntensity
-			m.envMapIntensity = m.userData.envp * v
-		}
-		
-	}
 
-	static material ( o = {} ){
 
-		return Mat.create( o )
 
-		/*let type = 'Standard'
-		if( o.thickness || o.sheen || o.clearcoat || o.transmission ) type = 'Physical'
-
-		if(o.type){
-			type = o.type;
-			delete o.type
-		}
-
-		let m;
-
-		if(o.normalScale){
-			if( !o.normalScale.isVector2 ) o.normalScale = new Vector2().fromArray(o.normalScale)
-		}
-		if( o.isMaterial ) m = o
-		else {
-			switch(type){
-				case 'Physical': 
-				m = new MeshPhysicalMaterial( o ); 
-				m.defines = {
-
-					'STANDARD': '',
-					'PHYSICAL': '',
-					'USE_ANISOTROPY':'',
-					'USE_SPECULAR':''
-				};
-
-				break;
-				case 'Phong': m = new MeshPhongMaterial( o ); break;
-				case 'Lambert': m = new MeshLambertMaterial( o ); break;
-				case 'Basic': m = new MeshBasicMaterial( o ); break;
-				default: m = new MeshStandardMaterial( o ); break;
-			}
-		}
-
-		if( mat[ m.name ] ) return null;
-	    Mat.set( m );
-		return m;*/
-
-	}
 
 	static control ( name ){ // for character and vehicle
 

@@ -107,19 +107,42 @@ K.childScale = function ( bone, matrix ) {
 
     if( !this.scalled ) return
 
+    //
+
     if( bone.scalling ) matrix.scale( bone.scalling );
     //if( bone.extraRotation ) matrix.multiply( bone.extraRotation );
     //if( !bone.isBone ) return
+
+    //if(bone.name === 'head') console.log(bone.children.length)
+
     let j = bone.children.length, child;
     while(j--){
         child = bone.children[ j ]
+
+        if( child.isBone ) child.matrixWorld.multiplyMatrices( matrix, child.matrix )
+        else {
+            child.matrixWorld.multiplyMatrices( matrix, child.matrix )
+            //child.updateWorldMatrix( false, true );
+
+            // BUG WITH HAIR !!!
+         //   child.matrixWorld.multiplyMatrices( matrix, child.matrix )
+           // child.matrixWorld.multiplyMatrices( matrix, child.matrix )
+
+            //child.updateWorldMatrix(false, true)
+            //child.matrix = matrix.clone();
+            //child.matrixWorld.premultiply( matrix.clone() )
+            //child.matrixAutoUpdate = false;
+        }
+
+        
+        //child.matrixAutoUpdate = true
         //if( child.matrixAutoUpdate ) child.matrixAutoUpdate = false
         //if( child.matrixWorldAutoUpdate ) child.matrixWorldAutoUpdate = false
         //child.matrixWorldNeedsUpdate = false;
         //child.matrixWorld.copy( child.matrix ).premultiply( matrix )
 
         //child.matrixWorld.copy( matrix ).multiply( child.matrix )
-        child.matrixWorld.multiplyMatrices( matrix, child.matrix )
+        
 
 
         //scaleMatrix = matrix.clone()
@@ -139,7 +162,6 @@ K.childScale = function ( bone, matrix ) {
 
 }
 
-
 K.applyScalling = function ( fingerPos ) {
 
     let o, b, i, lng = this.bones.length;
@@ -152,8 +174,10 @@ K.applyScalling = function ( fingerPos ) {
 
         if( parent !== null && parent.scalling && b.name!=='root'){//
 
-            if(parent.scalling) b.position.multiply( parent.scalling );
+          //  if( parent.scalling ) 
+            b.position.multiply( parent.scalling );
             //if(parent.extraRotation) b.quaternion.premultiply( parent.extraRotation );
+            //b.updateWorldMatrix( false, true )
             b.updateMatrixWorld( true );
 
         }
