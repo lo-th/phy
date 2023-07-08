@@ -24,7 +24,7 @@ const defines = {}
 const uniforms = {
 
 	renderMode: { value: 0 },
-    fogMode: { value: 0 },
+    fogMode: { value: 1 },
     depthPacking: { value: 1 },
 
 	time: { value: 0.0 },
@@ -502,7 +502,17 @@ export class Shader {
     }
 
 }
-
+/*THREE.ShaderChunk.fog_fragment = THREE.ShaderChunk.fog_fragment.replace(
+                    'gl_FragColor.rgb = mix( gl_FragColor.rgb, fogColor, fogFactor );',
+                    `
+                    vec4 CCF = vec4(fogColor, 1.0);
+                    #if defined( TONE_MAPPING )
+                    CCF.rgb = toneMapping( CCF.rgb );
+                    CCF = linearToOutputTexel( CCF );
+                    #endif
+                    gl_FragColor.rgb = mix( gl_FragColor.rgb, CCF.rgb, fogFactor );
+                    `
+                );*/
 
 // https://iquilezles.org/articles/fog/
 const FogVertex = `
@@ -532,10 +542,20 @@ const FogFragment = `
     #else
 
         float fogFactor = smoothstep( fogNear, fogFar, vFogDepth );
+        float fogDensity = 0.01;
 
     #endif
 
+    
+
+    /*vec4 CCF = vec4(fogColor, 1.0);
+    #if defined( TONE_MAPPING )
+        CCF.rgb = toneMapping( CCF.rgb );
+        //CCF = linearToOutputTexel( CCF );
+    #endif*/
+
     if( fogMode == 0 ){
+
         gl_FragColor.rgb = mix( gl_FragColor.rgb, fogColor, fogFactor );
     } 
 
@@ -559,7 +579,7 @@ const FogFragment = `
             // sunColor = vec3(1,0,0);
             float sunAmount = max( dot( rayDir, sunDir ), 0.0 );
             //float sunAdd = clamp( pow(sunAmount, 60.0), 0.0, 1.0 );
-            float sunAdd = pow(sunAmount, 8.0);
+            float sunAdd = pow(sunAmount, 16.0);
             fcolor = mix( fogColor, sunColor, sunAdd ); // 8.0
 
         #endif

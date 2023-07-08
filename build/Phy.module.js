@@ -412,6 +412,79 @@ const MathTool = {
 
 };
 
+const Max = {
+	body:2000,
+    joint:100,
+    contact:50,
+    ray:100,
+    character:50,
+    vehicle:50,
+    solver:20,
+    //terrain:10,
+};
+
+const Num = {
+	bodyFull:14,
+    body:8,
+    joint:16,
+    contact:8,
+    ray:11,
+    character:16,
+    vehicle:72,//max 8 wheels
+    solver:128,//256,
+    //terrain:1,
+};
+
+const getArray = function ( engine, full = false ){
+
+    let ArPos = {};
+
+    let counts = {
+        body: Max.body * ( full ? Num.bodyFull : Num.body ),
+        joint: Max.joint * Num.joint,
+        ray: Max.ray * Num.ray,
+        contact: Max.contact * Num.contact,
+        character: Max.character * Num.character
+    };
+
+    if( engine === 'PHYSX' || engine === 'AMMO' ){ 
+        counts['vehicle'] = Max.vehicle * Num.vehicle;
+    }
+
+    if( engine === 'PHYSX' ){ 
+        counts['solver'] = Max.solver * Num.solver;
+    }
+
+    if( engine === 'HAVOK' || engine === 'RAPIER' ){ 
+        Num.joint = 0;
+    }
+
+    let prev = 0;
+
+    for( let m in counts ){ 
+
+        ArPos[m] = prev;
+        prev += counts[m];
+
+    }
+
+    ArPos['total'] = prev;
+
+    return ArPos
+
+};
+
+const getType = function (o){
+    switch(o.type){
+        case 'plane': case 'box': case 'sphere': case 'highSphere': case 'cylinder': case 'stair':
+        case 'cone': case 'capsule': case 'mesh': case 'convex': case 'compound': case 'null':
+        if ( !o.mass && !o.density && !o.kinematic ) return 'solid'
+        else return 'body'
+        default: 
+            return o.type 
+    }
+};
+
 //import { CircleHelper } from '../3TH/helpers/CircleHelper.js';
 //import { CarbonTexture } from '../3TH/textures/CarbonTexture.js';
 
@@ -1166,78 +1239,313 @@ const Mat = {
 
 };
 
-const Max = {
-	body:2000,
-    joint:100,
-    contact:50,
-    ray:100,
-    character:50,
-    vehicle:50,
-    solver:20,
-    //terrain:10,
-};
+class Timer {
 
-const Num = {
-	bodyFull:14,
-    body:8,
-    joint:16,
-    contact:8,
-    ray:11,
-    character:16,
-    vehicle:72,//max 8 wheels
-    solver:128,//256,
-    //terrain:1,
-};
+	constructor( framerate = -1 ) {
 
-const getArray = function ( engine, full = false ){
+		this.time = { now:0, delta:0, then:0, interval: 0, tmp:0, n:0, dt:0 };
+		this.fps = 0;
+		this.delta = 0;
+		this.elapsedTime = 0;
+		this.unlimited = false;
+		this.setFramerate( framerate );
+		this.force = false;
 
-    let ArPos = {};
+	} 
 
-    let counts = {
-        body: Max.body * ( full ? Num.bodyFull : Num.body ),
-        joint: Max.joint * Num.joint,
-        ray: Max.ray * Num.ray,
-        contact: Max.contact * Num.contact,
-        character: Max.character * Num.character
-    };
+	up ( stamp = 0 ) {
 
-    if( engine === 'PHYSX' || engine === 'AMMO' ){ 
-        counts['vehicle'] = Max.vehicle * Num.vehicle;
+		let t = this.time;
+
+		if(this.unlimited) this.force = true;
+
+		t.now = stamp;// !== undefined ? stamp : Date.now();
+		t.delta = t.now - t.then;
+
+		if( this.force ) {
+			t.delta = t.interval;
+			this.force = false;
+		}
+		
+		if ( t.delta >= t.interval || this.unlimited ) {
+
+		    t.then = this.unlimited ? t.now : t.now - ( t.delta % t.interval );
+		    this.delta = t.delta * 0.001;
+		    this.elapsedTime += this.delta;
+		    
+		    //if ( t.now - 1000 > t.tmp ){ t.tmp = t.now; this.fps = t.n; t.n = 0; }; t.n++;
+			return true
+
+		}
+
+		return false
+
+	}
+
+	setFramerate ( framerate ){
+		
+		this.elapsedTime = 0;
+		this.framerate = framerate;
+		this.unlimited = this.framerate < 0;
+		this.time.interval = 1000 / framerate;
+		if( framerate === 60 ) this.time.interval = 16.67;
+
+	}
+	
+}
+
+class User {
+
+	// key map
+    // 0 : axe L | left:right  -1>1
+    // 1 : axe L | top:down    -1>1
+    // 2 : axe R | left:right  -1>1
+    // 3 : axe R | top:down    -1>1
+    // 4 : bouton A             0-1  jump / space
+    // 5 : bouton B             0-1  roulade / shift ctrl
+    // 6 : bouton X             0-1  arme principale / E
+    // 7 : bouton Y             0-1  arme secondaire
+    // 8 : gachette L up        0-1  
+    // 9 : gachette R up        0-1
+    // 10 : gachette L down     0>1
+    // 11 : gachette R down     0>1
+    // 12 : bouton setup        0-1
+    // 13 : bouton menu         0-1
+    // 14 : axe button left     0-1
+    // 15 : axe button right    0-1
+    // 16 : Xcross axe top      0-1
+    // 17 : Xcross axe down     0-1
+    // 18 : Xcross axe left     0-1
+    // 19 : Xcross axe right    0-1
+
+    // 20 : Keyboard or Gamepad    0-1
+
+	constructor () {
+
+		this.key = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
+        this.key2 = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
+
+		this.gamepad = new Gamepad( this.key ); 
+
+		this.useGamepad = false;
+		this.sameAxis = true;
+
+		document.addEventListener( 'keydown', function(e){this.keyDown(e);}.bind(this), false );
+        document.addEventListener( 'keyup', function(e){this.keyUp(e);}.bind(this), false );
+
+	}
+
+    setKey( i, v ){
+        this.key[i] = v;
     }
 
-    if( engine === 'PHYSX' ){ 
-        counts['solver'] = Max.solver * Num.solver;
-    }
+	update () {
 
-    if( engine === 'HAVOK' || engine === 'RAPIER' ){ 
-        Num.joint = 0;
-    }
+		this.gamepad.update();
 
-    let prev = 0;
+        if( this.gamepad.ready ){ 
+            if( !this.useGamepad ) this.useGamepad = true;
+            this.gamepad.getValue(0);
+        }
 
-    for( let m in counts ){ 
+        if( this.sameAxis ){
+            this.key[ 2 ] = this.key[ 0 ];
+            this.key[ 3 ] = this.key[ 1 ];
+        }
 
-        ArPos[m] = prev;
-        prev += counts[m];
+        //this.axeL[ 0 ] = this.key[ 0 ];
+        //this.axeL[ 1 ] = this.key[ 1 ];
 
-    }
+        return this.key
 
-    ArPos['total'] = prev;
+	}
 
-    return ArPos
+	keyDown (e) {
 
-};
+		var key = this.key;
+        var key2 = this.key2;
+        e = e || window.event;
 
-const getType = function (o){
-    switch(o.type){
-        case 'plane': case 'box': case 'sphere': case 'highSphere': case 'cylinder': case 'stair':
-        case 'cone': case 'capsule': case 'mesh': case 'convex': case 'compound': case 'null':
-        if ( !o.mass && !o.density && !o.kinematic ) return 'solid'
-        else return 'body'
-        default: 
-            return o.type 
-    }
-};
+        if( this.sameAxis ){
+
+            switch ( e.which ) {
+                // axe L
+                case 65: case 81: case 37: key[0] = -1; key2[0] = 1; break;//key[0]<=-1 ? -1:key[0]-= 0.1; break; // left, A, Q
+                case 68:  case 39:         key[0] = 1;  key2[1] = 1; break; // right, D
+                case 87: case 90:  case 38: key[1] = -1; break; // up, W, Z
+                case 83: case 40:          key[1] = 1;  break; // down, S
+
+                case 32:          key[4] = 1; break; // space
+                case 17: case 67: key[5] = 1; break; // ctrl, C
+                case 69:          key[6] = 1; break; // E
+                
+                case 16:          key[7] = 1; break; // shift
+                //case 71:          view.hideGrid(); break; // G
+                //case 121:         noui(); break; // f10
+                //case 122:         fscreen(); break; // f11
+            }
+
+        } else {
+
+            switch ( e.which ) {
+                // axe L
+                case 65: case 81: key[0] = -1; key2[0] = 1; break;//key[0]<=-1 ? -1:key[0]-= 0.1; break; // left, A, Q
+                case 68:          key[0] = 1; key2[1] = 1; break; // right, D
+                case 87: case 90: key[1] = -1; break; // up, W, Z
+                case 83:          key[1] = 1;  break; // down, S
+                // axe R
+                case 37:          key[2] = -1;  key2[0] = 1;break; // left
+                case 39:          key[2] = 1;  key2[1] = 1;break; // right
+                case 38:          key[3] = -1; break; // up
+                case 40:          key[3] = 1;  break; // down
+                
+
+                case 32:          key[4] = 1; break; // space
+                case 17: case 67: key[5] = 1; break; // ctrl, C
+                case 69:          key[6] = 1; break; // E
+                
+                case 16:          key[7] = 1; break; // shift
+                //case 121:         noui(); break; // f10
+                //case 122:         fscreen(); break; // f11
+                
+                //case 71:          view.hideGrid(); break; // G
+            }
+        }
+
+        this.gamepad.reset();
+        //e.preventDefault();
+
+	}
+
+	keyUp (e) {
+
+		var key = this.key;
+        var key2 = this.key2;
+        e = e || window.event;
+
+        if( this.sameAxis ){
+
+            switch ( e.which ) {
+                 // axe L
+                case 65: case 81: case 37: key[0] = key[0]<0 ? 0:key[0]; key2[0] = 0; break; // left, A, Q
+                case 68: case 39:         key[0] = key[0]>0 ? 0:key[0]; key2[1] = 0; break; // right, D
+                case 87: case 90: case 38:key[1] = key[1]<0 ? 0:key[1]; break; // up, W, Z
+                case 83: case 40:         key[1] = key[1]>0 ? 0:key[1]; break; // down, S
+
+                case 32:          key[4] = 0; break; // space
+                case 17: case 67: key[5] = 0; break; // ctrl, C
+                case 69:          key[6] = 0; break; // E
+                
+                case 16:          key[7] = 0; break; // shift
+            }
+
+        } else {
+
+            switch( e.which ) {
+                
+                // axe L
+                case 65: case 81: key[0] = key[0]<0 ? 0:key[0]; key2[0] = 0; break; // left, A, Q
+                case 68:          key[0] = key[0]>0 ? 0:key[0]; key2[1] = 0; break; // right, D
+                case 87: case 90: key[1] = key[1]<0 ? 0:key[1]; break; // up, W, Z
+                case 83:          key[1] = key[1]>0 ? 0:key[1]; break; // down, S
+                // axe R
+                case 37:          key[2] = key[2]<0 ? 0:key[2]; key2[0] = 0;break; // left
+                case 39:          key[2] = key[2]>0 ? 0:key[2]; key2[1] = 0;break; // right
+                case 38:          key[3] = key[3]<0 ? 0:key[3]; break; // up
+                case 40:          key[3] = key[3]>0 ? 0:key[3]; break; // down
+
+                case 32:          key[4] = 0; break; // space
+                case 17: case 67: key[5] = 0; break; // ctrl, C
+                case 69:          key[6] = 0; break; // E
+                
+                case 16:          key[7] = 0; break; // shift
+
+                
+            }
+        }
+
+        //e.preventDefault();
+		
+	}
+
+
+}
+
+
+class Gamepad {
+
+	constructor ( key ) {
+
+		this.values = []; 
+        this.ready = 0;
+        this.key = key;
+
+	}
+
+	update () {
+
+		var i,j,k,l, v, pad;
+        var fix = this.fix;
+        var gamepads = navigator.getGamepads();
+
+        for (i = 0; i < gamepads.length; i++) {
+
+            pad = gamepads[i];
+            if(pad){
+                k = pad.axes.length;
+                l = pad.buttons.length;
+                if(l){
+                    if(!this.values[i]) this.values[i] = [];
+                    // axe
+                    for (j = 0; j < k; j++) {
+                        v = fix(pad.axes[j], 0.08 );
+                        if(this.ready == 0 && v !== 0 ) this.ready = 1;
+                        this.values[i][j] = v;
+                        //if(i==0) this.key[j] = fix( pad.axes[j], 0.08 );
+                    }
+                    // button
+                    for (j = 0; j < l; j++) {
+                        v = fix(pad.buttons[j].value); 
+                        if(this.ready == 0 && v !== 0 ) this.ready = 1;
+                        this.values[i][k+j] = v;
+                        //if(i==0) this.key[k+j] = fix( pad.buttons[j].value );
+                    }
+                    //info += 'gamepad '+i+'| ' + this.values[i]+ '<br>';
+                } else {
+                    if(this.values[i]) this.values[i] = null;
+                }
+            }
+        }
+
+	}
+
+	getValue (n) {
+
+		var i = 19, v;
+        while(i--){
+            v = this.values[n][i];
+            if(this.ready == 0 && v !== 0 ) this.ready = 1;
+            this.key[i] = v;
+        }
+
+	}
+
+	reset () {
+
+		this.ready = 0;
+		
+	}
+
+	fix (v, dead) {
+
+		let n = Number((v.toString()).substring(0, 5));
+        if(dead && n<dead && n>-dead) n = 0;
+        return n;
+		
+	}
+
+
+}
 
 class Item {
 
@@ -28643,314 +28951,6 @@ class SolverJoint {
 
 }
 
-class Timer {
-
-	constructor( framerate = -1 ) {
-
-		this.time = { now:0, delta:0, then:0, interval: 0, tmp:0, n:0, dt:0 };
-		this.fps = 0;
-		this.delta = 0;
-		this.elapsedTime = 0;
-		this.unlimited = false;
-		this.setFramerate( framerate );
-		this.force = false;
-
-	} 
-
-	up ( stamp = 0 ) {
-
-		let t = this.time;
-
-		if(this.unlimited) this.force = true;
-
-		t.now = stamp;// !== undefined ? stamp : Date.now();
-		t.delta = t.now - t.then;
-
-		if( this.force ) {
-			t.delta = t.interval;
-			this.force = false;
-		}
-		
-		if ( t.delta >= t.interval || this.unlimited ) {
-
-		    t.then = this.unlimited ? t.now : t.now - ( t.delta % t.interval );
-		    this.delta = t.delta * 0.001;
-		    this.elapsedTime += this.delta;
-		    
-		    //if ( t.now - 1000 > t.tmp ){ t.tmp = t.now; this.fps = t.n; t.n = 0; }; t.n++;
-			return true
-
-		}
-
-		return false
-
-	}
-
-	setFramerate ( framerate ){
-		
-		this.elapsedTime = 0;
-		this.framerate = framerate;
-		this.unlimited = this.framerate < 0;
-		this.time.interval = 1000 / framerate;
-		if( framerate === 60 ) this.time.interval = 16.67;
-
-	}
-	
-}
-
-class User {
-
-	// key map
-    // 0 : axe L | left:right  -1>1
-    // 1 : axe L | top:down    -1>1
-    // 2 : axe R | left:right  -1>1
-    // 3 : axe R | top:down    -1>1
-    // 4 : bouton A             0-1  jump / space
-    // 5 : bouton B             0-1  roulade / shift ctrl
-    // 6 : bouton X             0-1  arme principale / E
-    // 7 : bouton Y             0-1  arme secondaire
-    // 8 : gachette L up        0-1  
-    // 9 : gachette R up        0-1
-    // 10 : gachette L down     0>1
-    // 11 : gachette R down     0>1
-    // 12 : bouton setup        0-1
-    // 13 : bouton menu         0-1
-    // 14 : axe button left     0-1
-    // 15 : axe button right    0-1
-    // 16 : Xcross axe top      0-1
-    // 17 : Xcross axe down     0-1
-    // 18 : Xcross axe left     0-1
-    // 19 : Xcross axe right    0-1
-
-    // 20 : Keyboard or Gamepad    0-1
-
-	constructor () {
-
-		this.key = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
-        this.key2 = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
-
-		this.gamepad = new Gamepad( this.key ); 
-
-		this.useGamepad = false;
-		this.sameAxis = true;
-
-		document.addEventListener( 'keydown', function(e){this.keyDown(e);}.bind(this), false );
-        document.addEventListener( 'keyup', function(e){this.keyUp(e);}.bind(this), false );
-
-	}
-
-    setKey( i, v ){
-        this.key[i] = v;
-    }
-
-	update () {
-
-		this.gamepad.update();
-
-        if( this.gamepad.ready ){ 
-            if( !this.useGamepad ) this.useGamepad = true;
-            this.gamepad.getValue(0);
-        }
-
-        if( this.sameAxis ){
-            this.key[ 2 ] = this.key[ 0 ];
-            this.key[ 3 ] = this.key[ 1 ];
-        }
-
-        //this.axeL[ 0 ] = this.key[ 0 ];
-        //this.axeL[ 1 ] = this.key[ 1 ];
-
-        return this.key
-
-	}
-
-	keyDown (e) {
-
-		var key = this.key;
-        var key2 = this.key2;
-        e = e || window.event;
-
-        if( this.sameAxis ){
-
-            switch ( e.which ) {
-                // axe L
-                case 65: case 81: case 37: key[0] = -1; key2[0] = 1; break;//key[0]<=-1 ? -1:key[0]-= 0.1; break; // left, A, Q
-                case 68:  case 39:         key[0] = 1;  key2[1] = 1; break; // right, D
-                case 87: case 90:  case 38: key[1] = -1; break; // up, W, Z
-                case 83: case 40:          key[1] = 1;  break; // down, S
-
-                case 32:          key[4] = 1; break; // space
-                case 17: case 67: key[5] = 1; break; // ctrl, C
-                case 69:          key[6] = 1; break; // E
-                
-                case 16:          key[7] = 1; break; // shift
-                //case 71:          view.hideGrid(); break; // G
-                //case 121:         noui(); break; // f10
-                //case 122:         fscreen(); break; // f11
-            }
-
-        } else {
-
-            switch ( e.which ) {
-                // axe L
-                case 65: case 81: key[0] = -1; key2[0] = 1; break;//key[0]<=-1 ? -1:key[0]-= 0.1; break; // left, A, Q
-                case 68:          key[0] = 1; key2[1] = 1; break; // right, D
-                case 87: case 90: key[1] = -1; break; // up, W, Z
-                case 83:          key[1] = 1;  break; // down, S
-                // axe R
-                case 37:          key[2] = -1;  key2[0] = 1;break; // left
-                case 39:          key[2] = 1;  key2[1] = 1;break; // right
-                case 38:          key[3] = -1; break; // up
-                case 40:          key[3] = 1;  break; // down
-                
-
-                case 32:          key[4] = 1; break; // space
-                case 17: case 67: key[5] = 1; break; // ctrl, C
-                case 69:          key[6] = 1; break; // E
-                
-                case 16:          key[7] = 1; break; // shift
-                //case 121:         noui(); break; // f10
-                //case 122:         fscreen(); break; // f11
-                
-                //case 71:          view.hideGrid(); break; // G
-            }
-        }
-
-        this.gamepad.reset();
-        //e.preventDefault();
-
-	}
-
-	keyUp (e) {
-
-		var key = this.key;
-        var key2 = this.key2;
-        e = e || window.event;
-
-        if( this.sameAxis ){
-
-            switch ( e.which ) {
-                 // axe L
-                case 65: case 81: case 37: key[0] = key[0]<0 ? 0:key[0]; key2[0] = 0; break; // left, A, Q
-                case 68: case 39:         key[0] = key[0]>0 ? 0:key[0]; key2[1] = 0; break; // right, D
-                case 87: case 90: case 38:key[1] = key[1]<0 ? 0:key[1]; break; // up, W, Z
-                case 83: case 40:         key[1] = key[1]>0 ? 0:key[1]; break; // down, S
-
-                case 32:          key[4] = 0; break; // space
-                case 17: case 67: key[5] = 0; break; // ctrl, C
-                case 69:          key[6] = 0; break; // E
-                
-                case 16:          key[7] = 0; break; // shift
-            }
-
-        } else {
-
-            switch( e.which ) {
-                
-                // axe L
-                case 65: case 81: key[0] = key[0]<0 ? 0:key[0]; key2[0] = 0; break; // left, A, Q
-                case 68:          key[0] = key[0]>0 ? 0:key[0]; key2[1] = 0; break; // right, D
-                case 87: case 90: key[1] = key[1]<0 ? 0:key[1]; break; // up, W, Z
-                case 83:          key[1] = key[1]>0 ? 0:key[1]; break; // down, S
-                // axe R
-                case 37:          key[2] = key[2]<0 ? 0:key[2]; key2[0] = 0;break; // left
-                case 39:          key[2] = key[2]>0 ? 0:key[2]; key2[1] = 0;break; // right
-                case 38:          key[3] = key[3]<0 ? 0:key[3]; break; // up
-                case 40:          key[3] = key[3]>0 ? 0:key[3]; break; // down
-
-                case 32:          key[4] = 0; break; // space
-                case 17: case 67: key[5] = 0; break; // ctrl, C
-                case 69:          key[6] = 0; break; // E
-                
-                case 16:          key[7] = 0; break; // shift
-
-                
-            }
-        }
-
-        //e.preventDefault();
-		
-	}
-
-
-}
-
-
-class Gamepad {
-
-	constructor ( key ) {
-
-		this.values = []; 
-        this.ready = 0;
-        this.key = key;
-
-	}
-
-	update () {
-
-		var i,j,k,l, v, pad;
-        var fix = this.fix;
-        var gamepads = navigator.getGamepads();
-
-        for (i = 0; i < gamepads.length; i++) {
-
-            pad = gamepads[i];
-            if(pad){
-                k = pad.axes.length;
-                l = pad.buttons.length;
-                if(l){
-                    if(!this.values[i]) this.values[i] = [];
-                    // axe
-                    for (j = 0; j < k; j++) {
-                        v = fix(pad.axes[j], 0.08 );
-                        if(this.ready == 0 && v !== 0 ) this.ready = 1;
-                        this.values[i][j] = v;
-                        //if(i==0) this.key[j] = fix( pad.axes[j], 0.08 );
-                    }
-                    // button
-                    for (j = 0; j < l; j++) {
-                        v = fix(pad.buttons[j].value); 
-                        if(this.ready == 0 && v !== 0 ) this.ready = 1;
-                        this.values[i][k+j] = v;
-                        //if(i==0) this.key[k+j] = fix( pad.buttons[j].value );
-                    }
-                    //info += 'gamepad '+i+'| ' + this.values[i]+ '<br>';
-                } else {
-                    if(this.values[i]) this.values[i] = null;
-                }
-            }
-        }
-
-	}
-
-	getValue (n) {
-
-		var i = 19, v;
-        while(i--){
-            v = this.values[n][i];
-            if(this.ready == 0 && v !== 0 ) this.ready = 1;
-            this.key[i] = v;
-        }
-
-	}
-
-	reset () {
-
-		this.ready = 0;
-		
-	}
-
-	fix (v, dead) {
-
-		let n = Number((v.toString()).substring(0, 5));
-        if(dead && n<dead && n>-dead) n = 0;
-        return n;
-		
-	}
-
-
-}
-
 class Textfield extends Mesh {
 
 	constructor( o={} ) {
@@ -29266,6 +29266,668 @@ class Container {
 		
 	}
 
+}
+
+//let needRay = false;
+
+class MouseTool {
+
+	constructor ( controler, mode = 'drag' ) {
+
+		this.needRay = true;
+
+		//this.tmpSelected = null
+
+		//root.viewSize = { w:window.innerWidth, h:window.innerHeight, r:0}
+		//root.viewSize.r = root.viewSize.w/root.viewSize.h
+
+		this.moveDirect = false;
+		this.moveDeep = false;
+
+		this.mode = mode;
+		this.option = {};
+
+		this.controler = controler;
+		this.dom = this.controler.domElement;
+
+		//this.dom.style.cursor =  "url('./assets/icons/logo.png'), move";
+
+		this.selected = null;
+		this.buttonRef = null;
+
+		this.numBullet = 0;
+		this.maxBullet = 10;
+
+		this.sticky = false;
+
+		this.pz = 0;
+
+		this.isActive = false;
+		this.raycastTest = false;
+		this.firstSelect = false;
+		this.mouseDown = false;
+		this.mouseDown2 = false;
+		this.mouseMove = false;
+		//this.controlFirst = true;
+
+		this.decal = new Vector3();
+		this.tmpPos = new Vector3();
+		this.tmpD = new Vector3();
+
+		this.mouse = new Vector2();
+		this.oldMouse = new Vector2();
+		this.raycast = new Raycaster();
+		this.raycast.far = 1000;
+
+		this.button = 0;
+
+		this.pos = new Vector3();
+		this.velocity = new Vector3();
+		this.angle = 0;
+
+		this.helper = null;
+
+		this.dragPlane = null;
+
+	    //if( this.mode === 'drag' ) 
+	    this.activeDragMouse( true );
+
+	}
+
+	addDrag(){
+
+		if( this.dragPlane ) return
+
+		this.helper = new MoveHelper();
+		this.dragPlane = new Mesh( new PlaneGeometry( 1, 1 ), Mat.get('hide') );
+	    this.dragPlane.castShadow = false;
+	    this.dragPlane.receiveShadow = false;
+	    this.dragPlane.scale.set( 1, 1, 1 ).multiplyScalar( 200 );
+
+	    root.scenePlus.add( this.helper );
+	    root.scenePlus.add( this.dragPlane );
+
+	}
+
+	clearDrag(){
+
+		if( !this.dragPlane ) return
+
+		root.scenePlus.remove( this.dragPlane );
+		root.scenePlus.remove( this.helper );
+
+		this.dragPlane.geometry.dispose();
+		this.helper.geometry.dispose();
+
+		this.dragPlane = null;
+		this.helper = null;
+
+	}
+
+    setMode ( mode, o={} ) {
+
+    	if( mode === this.mode ) return
+    	this.mode = mode;
+        this.option = o;
+
+        if( this.mode === 'blast' && this.option.visible ) root.motor.initParticle();
+
+    }
+
+	activeDragMouse ( b ) {
+
+		if( b ){
+			if( !this.isActive ){
+				this.dom.addEventListener( 'pointermove', this.mousemove.bind(this), false );
+		        this.dom.addEventListener( 'pointerdown', this.mousedown.bind(this), false );
+		        document.addEventListener( 'pointerup', this.mouseup.bind(this), false );
+		        document.addEventListener( 'contextmenu', this.contextmenu.bind(this), false );
+
+		        this.controler.addEventListener( 'end', this.controleEnd.bind(this), false );
+		        this.controler.addEventListener( 'change', this.controleChange.bind(this), false );
+
+		        this.isActive = true;
+		        this.raycastTest = true;
+		    }
+
+		} else {
+			if( this.isActive ){
+				this.dom.removeEventListener( 'pointermove', this.mousemove.bind(this) );
+			    this.dom.removeEventListener( 'pointerdown', this.mousedown.bind(this) );
+			    document.removeEventListener( 'pointerup', this.mouseup.bind(this) );
+
+			    this.controler.removeEventListener( 'end', this.controleEnd.bind(this) );
+		        this.controler.removeEventListener( 'change', this.controleChange.bind(this) );
+
+			    this.isActive = false;
+			}
+		}
+	}
+
+	controleEnd ( e ) {
+		//this.controlFirst = true
+		this.raycastTest = true;
+		this.controler.getInfo();
+	}
+
+	controleChange ( e ) {
+
+		//console.log('change')
+
+		let state = this.controler.getState();
+
+		if( state !== -1 ) this.raycastTest = false;
+
+		/*let state = this.controler.getState();
+		console.log(state)
+		if( state !== -1 ){
+			if( this.controlFirst ) this.controlFirst = false;
+			else this.raycastTest = false;
+		}*/
+
+		//this.controler.getInfo();
+	}
+
+	getMouse ( e ) {
+
+		if(root.viewSize){
+			this.mouse.x =   ( e.offsetX / root.viewSize.w ) * 2 - 1;
+		    this.mouse.y = - ( e.offsetY / root.viewSize.h ) * 2 + 1;
+		} else {
+			this.mouse.x =   ( e.offsetX / this.dom.clientWidth ) * 2 - 1;
+			this.mouse.y = - ( e.offsetY / this.dom.clientHeight ) * 2 + 1;
+		}
+
+		//console.log(e.button)
+		
+		this.button = e.pointerType !== 'touch' ? e.button : 0;
+		//if(this.button===2)this.moveDeep = !this.moveDeep
+
+	}
+
+	contextmenu ( e ) {
+		e.preventDefault();
+		//this.mouseDown2 = true
+		//this.controler.enabled = false;
+		/*if( this.mouseDown ){
+
+			//this.moveDeep = true
+			console.log('yo ')
+		}*/
+	}
+
+	mousedown ( e ) {
+
+		if( this.sticky ){ 
+			this.unSelect();
+			console.log('unstick');
+		}
+
+		this.getMouse( e );
+
+		switch( this.mode ){
+
+			case 'drag': this.drag(); break;
+			case 'shoot': this.shoot(); break;
+			case 'blast': this.blast(); break;
+
+		}
+
+	}
+
+	mouseup ( e ) {
+
+		this.mouseMove = this.oldMouse.distanceTo( this.mouse ) < 0.01 ? false : true;
+		this.mouseDown = false;
+		this.mouseDown2 = false;
+		root.mouseDown = false;
+
+		if( this.sticky ) { this.controler.enabled = true; return; }
+		this.unSelect();
+		this.resetButton();
+
+	}
+
+	mousemove ( e ) {
+
+		switch( this.mode ){
+
+			case 'drag':
+			this.getMouse( e );
+			this.needRay = true;
+		    //this.castray()
+			break
+
+		}
+
+	}
+
+	castray () {
+
+		let inters, m, g, h, id, cursor = 'auto';
+
+		if( this.selected !== null ){
+
+			this.raycast.setFromCamera( this.mouse, this.controler.object );
+			inters = this.raycast.intersectObject( this.dragPlane );
+			if ( inters.length && this.mouseDown ){ 
+				this.moveSelect( inters[0].point );
+				//if( this.moveDirect ) root.motor.change({ name:this.selected.name, pos:inters[0].point.toArray() }, true )
+				//else root.motor.change({ name:'mouse', pos:inters[0].point.toArray() }, true )
+			}
+			//return
+		} else {
+
+			if( !this.raycastTest ) return;
+
+			//this.controler.enabled = false
+
+			this.controler.enableRotate = false;
+			this.controler.enablePan = false;
+
+			this.raycast.setFromCamera( this.mouse, this.controler.object );
+
+			inters = this.raycast.intersectObjects( root.scene.children, true );
+
+			this.tmpSelected = null;
+
+			if ( inters.length > 0 ) {
+
+				g = inters[ 0 ].object;
+				id = inters[ 0 ].instanceId;
+
+				//console.log(inters[ 0 ])
+
+				if( id !== undefined ){
+					m = root.motor.byName( g.name+id );
+				} else {
+					if( g.parent !== root.scene ){
+						h = g.parent;
+						if( h.parent !== root.scene ) m = h.parent;
+						else m = h;
+					} else m = g;
+				}
+
+				if( this.mouseDown2 ){
+					if( m.extra ) m.extra( m.name );
+					//console.log(m)
+				}
+
+				if( !m.isButton ){ 
+					cursor = this.select( m, inters[ 0 ].point );
+					//this.tmpSelected = m
+					//this.tmpPoint = inters[ 0 ].point
+				}
+				else cursor = this.actionButton( m, inters[ 0 ] );
+
+			}else {
+				this.controler.enableRotate = true;
+				this.controler.enablePan = true;
+				//this.controler.enabled = true
+			}
+
+			document.body.style.cursor = cursor;
+		} 
+
+	}
+
+	drag () {
+
+		if( !this.mouseDown ){
+			if( this.firstSelect ) this.firstSelect = false;
+			this.oldMouse.copy( this.mouse );
+		}
+
+		if( this.button === 2 ){
+		    this.mouseDown2 = true;
+		    //this.castray()
+		}
+
+	    //if( this.button === 0 ){
+		    this.mouseDown = true;
+		    root.mouseDown = true;
+		    this.needRay = true;
+
+		    //if(this.tmpSelected!== null) this.select(this.tmpSelected, this.tmpPoint )
+		    //this.castray()
+		//}
+
+		
+
+	}
+
+	blast () {
+
+		let hit = null;
+		this.raycast.setFromCamera( this.mouse, this.controler.object );
+		let inters = this.raycast.intersectObjects( root.scene.children, true );
+
+		if ( inters.length > 0 ) {hit = inters[ 0 ];
+		} else {
+			inters = this.raycast.intersectObjects( root.scenePlus.children, true );
+			if ( inters.length > 0 ) hit = inters[ 0 ];
+		}
+
+	    const o = this.option;
+
+		if(hit){ 
+
+			root.motor.explosion( hit.point, o.radius || 3, o.power || 0.1 );
+
+			if( o.visible ) root.motor.addParticle({
+				name:'blast',
+				type:"cube",
+				position:hit.point.toArray(),
+				numParticles: 60,
+				radius:0.2,
+				radiusRange:0.1,
+				//accelerationRange:[0.3,0.3,0.3],
+				acceleration:[5*10,5,5*10],
+				lifeTime: 0.5,
+		        endTime: 0.5,
+		        startTime: 0,
+		        gravity:[0,0.2,0],
+		        startSize: 0.5,
+		        endSize: 0.1,
+		        //spinSpeedRange:2,
+		        tween:"outQuad",
+		        //velocityRange: [ 0.6, 0.6, 0.6 ]
+		        //lifeTimeRange:1,
+		        //startTime: 0,
+		        //startSize: 0.1,
+
+			});
+		}
+		
+
+	}
+
+	shoot () {
+
+		this.raycast.setFromCamera( this.mouse, this.controler.object );
+		this.pos.copy( this.raycast.ray.direction ).add(  this.raycast.ray.origin );
+		this.velocity.copy( this.raycast.ray.direction ).multiplyScalar( 60 );
+
+		root.motor.add({
+			name: 'bullet_' + this.numBullet,
+			type:'sphere',
+			density:20,
+			size:[0.2], 
+			material:'chrome',
+			pos:this.pos.toArray(),
+			linearVelocity:this.velocity.toArray(),
+			bullet:true,
+			/*ccdThreshold:0.0000001,
+            ccdRadius:0.1,*/
+		});
+
+		this.numBullet++;
+		if(this.numBullet > this.maxBullet) this.numBullet = 0;
+
+	}
+
+    resetButton () {
+
+		if( this.buttonRef ){
+			if( this.buttonRef.userData.out ) this.buttonRef.userData.out();
+			this.buttonRef = null;
+		}
+
+		this.raycastTest = true;
+		this.selected = null;
+		this.firstSelect = true;
+		//this.controler.enabled = true
+		this.controler.enableRotate = true;
+		this.controler.enablePan = true;
+
+	}
+
+	actionButton ( obj, inters ) {
+
+		if( this.buttonRef ){
+			if( this.buttonRef.name !== obj.name ){ 
+				if( this.buttonRef.userData.out ) this.buttonRef.userData.out();
+				this.buttonRef = obj;
+			}
+		} else {
+			if( this.mouseDown ) this.buttonRef = obj;
+		}
+		if( this.mouseDown && this.buttonRef.userData.action ){ 
+			let pos = inters.point;
+			this.buttonRef.userData.action( pos );
+		}
+
+		//if( this.mouseDown ) this.controler.enabled = false
+		   
+		//return 'grab'
+	    return 'pointer'
+
+	}
+
+	
+
+	select ( obj, point ) {
+
+		//this.controler.enabled = false
+
+		//if( this.selected !== null ) return 'pointer'
+		//if( !this.mouseDown ) return 'pointer'
+
+		if( !this.mouseDown || this.selected === obj ) return 'pointer'
+
+		this.pz = 0;
+
+		let pos = point;
+	    let quat = [0,0,0,1];
+
+		this.selected = obj;
+		/*if( this.selected.isInstance ) quat = this.selected.instance.getInfo( this.selected.id ).quat;
+		else if( this.selected.isObject3D ){
+			this.selected.updateMatrix()
+			quat = this.selected.quaternion.toArray()
+		}*/
+
+		this.decal.copy( pos ).sub( this.selected.position );
+		this.tmpPos.copy( pos ).sub( this.decal );
+		this.angle = this.controler.getAzimuthalAngle();
+
+
+		
+
+		let q = this.selected.quaternion;
+		quat = [ q._x, q._y, q._z, q._w ];
+
+
+		/*if( this.selected.isInstance ){
+			console.log(this.selected)
+			return
+		}*/
+
+		/*if( this.selected.isButton ){
+			if( this.buttonRef ){
+				if(this.buttonRef.name !== this.selected.name ) this.buttonRef = obj
+			} else {
+				this.buttonRef = obj
+			}
+			if( this.buttonRef.userData.action ) this.buttonRef.userData.action()
+			    this.unSelect ()
+			return 'grab'
+		}*/
+
+		this.addDrag();
+
+		//8root.scenePlus.add( this.helper )
+	    //root.scenePlus.add( this.dragPlane )
+
+	    this.dragPlane.rotation.set( 0, this.angle, 0 );
+	    this.dragPlane.position.copy( pos );
+	    this.dragPlane.position.y = 0;
+
+	    this.helper.position.copy( pos );
+
+	    let p = pos.toArray();
+
+	    root.motor.change({ name: this.selected.name, neverSleep:true, wake:true });
+		//Motor.add({ name:'mouse', type:'sphere', size:[0.01], pos:p, quat:quat, mask:0, density:0, noGravity:true, kinematic:true, flags:'noCollision' })
+		//root.motor.add({ name:'mouse', type:'null', pos:p, quat:quat })
+
+		//let def = [-0.03, 0.03, 60, 5]
+		//let defr = [-3, 3, 60, 5]
+
+		//let def = [-0.03, 0.03, 60, 2]
+		//let defr = [-3, 3, 60, 2]
+
+		if( this.moveDirect ){
+			root.motor.change({ name:this.selected.name, kinematic:false, gravity:false, damping:[0.9,0.9]  });
+		} else {
+			let def = [-0.01, 0.01, 60, 1];
+			let defr = [-0.1, 0.1, 60, 1];
+			let notUseKinematic = root.engine === 'OIMO' || root.engine ==='RAPIER' || root.engine ==='HAVOK';
+			let jtype = root.engine ==='HAVOK' ? 'fixe' : 'd6';
+
+			root.motor.add([
+				{ name:'mouse', type:'null', pos:p, quat:quat, kinematic:notUseKinematic ? false : true },
+				{ 
+					name:'mouseJoint', type:'joint',
+					mode:jtype,//mode:'spherical', //lm:[-0.2, 0.2],
+					lm:[['x',...def], ['y',...def], ['z',...def], 
+					['rx',...defr], ['ry',...defr], ['rz',...defr]],
+					autoDrive: true,
+					b1:'mouse',
+					b2:this.selected.name,  
+					worldAnchor: p, 
+					worldAxis:[1,0,0],
+					//friction:0.5,
+					//tolerance:[1, 10],
+					//noPreProcess:true,
+					//improveSlerp:true,
+					visible:false,
+					//noFix:true,
+				}
+			]);
+
+		}
+		
+
+		//this.raycastTest = false
+		//this.controler.enabled = false
+
+		//document.body.style.cursor = 'move'
+
+		return "url('./assets/icons/point.png') 8 8, move" //'move'
+
+	}
+
+	moveSelect ( point ) {
+
+		if( this.selected === null ) return
+
+		if( point ){ 
+			this.tmpPos.copy( point ).sub( this.decal ); 
+		}
+
+		if( this.moveDeep ){ // Z deep move
+
+			let y = this.selected.position.y;
+			let diff  = y-this.tmpPos.y;
+			this.tmpPos.y = y;
+			this.tmpD.set(0,0,diff).applyAxisAngle({x:0, y:1, z:0}, this.angle);
+			this.tmpPos.add( this.tmpD );
+
+		}
+
+		this.helper.position.copy( this.tmpPos );
+
+		let pos = this.tmpPos.toArray();
+
+		if( this.moveDirect ){ 
+			root.motor.change({ name:this.selected.name, pos:pos, reset:true });
+		} else {
+			root.motor.change({ name:'mouse', pos:point.toArray() }, true );
+		}
+	}
+
+	unSelect () {
+
+		if( this.selected === null ) return
+
+		this.clearDrag();
+
+		//this.dragPlane.geometry.dispose()
+		//root.scenePlus.remove( this.dragPlane )
+		//root.scenePlus.remove( this.helper )
+
+		if( this.moveDirect ){
+			root.motor.change({ name:this.selected.name, kinematic:false, wake:true, gravity:true, damping:[0,0.1] });
+		} else {
+			root.motor.remove(['mouseJoint','mouse']);
+			root.motor.change({ name:this.selected.name, neverSleep:false, wake:true });
+		}
+		
+		this.raycastTest = true;
+		this.selected = null;
+		this.firstSelect = true;
+		//this.controler.enabled = true
+
+	}
+
+	step(){
+
+		if( this.needRay ) this.castray();
+	    this.needRay = false;
+
+		if( this.selected === null ) return
+
+		let key = root.flow.key;
+
+
+		if( key[1] !== 0 ){
+			let pz = key[1] * 0.1;
+			this.dragPlane.translateZ(pz);
+			this.needRay = true;
+		}
+
+
+
+		//this.castray()
+		if( this.moveDirect ) this.moveSelect();
+
+		
+
+	}
+
+
+}
+
+
+
+
+
+
+class MoveHelper extends Line {
+
+	constructor( o = {} ) {
+
+		super( new BufferGeometry(), Mat.get('line') );
+
+		let c = 0.75;
+
+		const positions = [0,0,0, 0,-100,0];
+	    const colors = [c,c,c, 0,0,0];
+
+	    //this.geometry = new BufferGeometry();
+	    this.geometry.setAttribute( 'position', new Float32BufferAttribute( positions, 3 ) );
+	    this.geometry.setAttribute( 'color', new Float32BufferAttribute( colors, 3 ) );
+	    //this.geometry.computeBoundingSphere();
+
+	    this.vertices = this.geometry.attributes.position;
+	    this.colors = this.geometry.attributes.color;
+	    this.local = [ 0, 0, 0, 0, 0, 0, 0, 0, 0 ];
+
+	    //this.matrixAutoUpdate = false;
+	    this.frustumCulled = false;
+
+	}
 }
 
 /**
@@ -29955,668 +30617,6 @@ class Breaker {
 
 	}
 
-}
-
-//let needRay = false;
-
-class MouseTool {
-
-	constructor ( controler, mode = 'drag' ) {
-
-		this.needRay = true;
-
-		//this.tmpSelected = null
-
-		//root.viewSize = { w:window.innerWidth, h:window.innerHeight, r:0}
-		//root.viewSize.r = root.viewSize.w/root.viewSize.h
-
-		this.moveDirect = false;
-		this.moveDeep = false;
-
-		this.mode = mode;
-		this.option = {};
-
-		this.controler = controler;
-		this.dom = this.controler.domElement;
-
-		//this.dom.style.cursor =  "url('./assets/icons/logo.png'), move";
-
-		this.selected = null;
-		this.buttonRef = null;
-
-		this.numBullet = 0;
-		this.maxBullet = 10;
-
-		this.sticky = false;
-
-		this.pz = 0;
-
-		this.isActive = false;
-		this.raycastTest = false;
-		this.firstSelect = false;
-		this.mouseDown = false;
-		this.mouseDown2 = false;
-		this.mouseMove = false;
-		//this.controlFirst = true;
-
-		this.decal = new Vector3();
-		this.tmpPos = new Vector3();
-		this.tmpD = new Vector3();
-
-		this.mouse = new Vector2();
-		this.oldMouse = new Vector2();
-		this.raycast = new Raycaster();
-		this.raycast.far = 1000;
-
-		this.button = 0;
-
-		this.pos = new Vector3();
-		this.velocity = new Vector3();
-		this.angle = 0;
-
-		this.helper = null;
-
-		this.dragPlane = null;
-
-	    //if( this.mode === 'drag' ) 
-	    this.activeDragMouse( true );
-
-	}
-
-	addDrag(){
-
-		if( this.dragPlane ) return
-
-		this.helper = new MoveHelper();
-		this.dragPlane = new Mesh( new PlaneGeometry( 1, 1 ), Mat.get('hide') );
-	    this.dragPlane.castShadow = false;
-	    this.dragPlane.receiveShadow = false;
-	    this.dragPlane.scale.set( 1, 1, 1 ).multiplyScalar( 200 );
-
-	    root.scenePlus.add( this.helper );
-	    root.scenePlus.add( this.dragPlane );
-
-	}
-
-	clearDrag(){
-
-		if( !this.dragPlane ) return
-
-		root.scenePlus.remove( this.dragPlane );
-		root.scenePlus.remove( this.helper );
-
-		this.dragPlane.geometry.dispose();
-		this.helper.geometry.dispose();
-
-		this.dragPlane = null;
-		this.helper = null;
-
-	}
-
-    setMode ( mode, o={} ) {
-
-    	if( mode === this.mode ) return
-    	this.mode = mode;
-        this.option = o;
-
-        if( this.mode === 'blast' && this.option.visible ) root.motor.initParticle();
-
-    }
-
-	activeDragMouse ( b ) {
-
-		if( b ){
-			if( !this.isActive ){
-				this.dom.addEventListener( 'pointermove', this.mousemove.bind(this), false );
-		        this.dom.addEventListener( 'pointerdown', this.mousedown.bind(this), false );
-		        document.addEventListener( 'pointerup', this.mouseup.bind(this), false );
-		        document.addEventListener( 'contextmenu', this.contextmenu.bind(this), false );
-
-		        this.controler.addEventListener( 'end', this.controleEnd.bind(this), false );
-		        this.controler.addEventListener( 'change', this.controleChange.bind(this), false );
-
-		        this.isActive = true;
-		        this.raycastTest = true;
-		    }
-
-		} else {
-			if( this.isActive ){
-				this.dom.removeEventListener( 'pointermove', this.mousemove.bind(this) );
-			    this.dom.removeEventListener( 'pointerdown', this.mousedown.bind(this) );
-			    document.removeEventListener( 'pointerup', this.mouseup.bind(this) );
-
-			    this.controler.removeEventListener( 'end', this.controleEnd.bind(this) );
-		        this.controler.removeEventListener( 'change', this.controleChange.bind(this) );
-
-			    this.isActive = false;
-			}
-		}
-	}
-
-	controleEnd ( e ) {
-		//this.controlFirst = true
-		this.raycastTest = true;
-		this.controler.getInfo();
-	}
-
-	controleChange ( e ) {
-
-		//console.log('change')
-
-		let state = this.controler.getState();
-
-		if( state !== -1 ) this.raycastTest = false;
-
-		/*let state = this.controler.getState();
-		console.log(state)
-		if( state !== -1 ){
-			if( this.controlFirst ) this.controlFirst = false;
-			else this.raycastTest = false;
-		}*/
-
-		//this.controler.getInfo();
-	}
-
-	getMouse ( e ) {
-
-		if(root.viewSize){
-			this.mouse.x =   ( e.offsetX / root.viewSize.w ) * 2 - 1;
-		    this.mouse.y = - ( e.offsetY / root.viewSize.h ) * 2 + 1;
-		} else {
-			this.mouse.x =   ( e.offsetX / this.dom.clientWidth ) * 2 - 1;
-			this.mouse.y = - ( e.offsetY / this.dom.clientHeight ) * 2 + 1;
-		}
-
-		//console.log(e.button)
-		
-		this.button = e.pointerType !== 'touch' ? e.button : 0;
-		//if(this.button===2)this.moveDeep = !this.moveDeep
-
-	}
-
-	contextmenu ( e ) {
-		e.preventDefault();
-		//this.mouseDown2 = true
-		//this.controler.enabled = false;
-		/*if( this.mouseDown ){
-
-			//this.moveDeep = true
-			console.log('yo ')
-		}*/
-	}
-
-	mousedown ( e ) {
-
-		if( this.sticky ){ 
-			this.unSelect();
-			console.log('unstick');
-		}
-
-		this.getMouse( e );
-
-		switch( this.mode ){
-
-			case 'drag': this.drag(); break;
-			case 'shoot': this.shoot(); break;
-			case 'blast': this.blast(); break;
-
-		}
-
-	}
-
-	mouseup ( e ) {
-
-		this.mouseMove = this.oldMouse.distanceTo( this.mouse ) < 0.01 ? false : true;
-		this.mouseDown = false;
-		this.mouseDown2 = false;
-		root.mouseDown = false;
-
-		if( this.sticky ) { this.controler.enabled = true; return; }
-		this.unSelect();
-		this.resetButton();
-
-	}
-
-	mousemove ( e ) {
-
-		switch( this.mode ){
-
-			case 'drag':
-			this.getMouse( e );
-			this.needRay = true;
-		    //this.castray()
-			break
-
-		}
-
-	}
-
-	castray () {
-
-		let inters, m, g, h, id, cursor = 'auto';
-
-		if( this.selected !== null ){
-
-			this.raycast.setFromCamera( this.mouse, this.controler.object );
-			inters = this.raycast.intersectObject( this.dragPlane );
-			if ( inters.length && this.mouseDown ){ 
-				this.moveSelect( inters[0].point );
-				//if( this.moveDirect ) root.motor.change({ name:this.selected.name, pos:inters[0].point.toArray() }, true )
-				//else root.motor.change({ name:'mouse', pos:inters[0].point.toArray() }, true )
-			}
-			//return
-		} else {
-
-			if( !this.raycastTest ) return;
-
-			//this.controler.enabled = false
-
-			this.controler.enableRotate = false;
-			this.controler.enablePan = false;
-
-			this.raycast.setFromCamera( this.mouse, this.controler.object );
-
-			inters = this.raycast.intersectObjects( root.scene.children, true );
-
-			this.tmpSelected = null;
-
-			if ( inters.length > 0 ) {
-
-				g = inters[ 0 ].object;
-				id = inters[ 0 ].instanceId;
-
-				//console.log(inters[ 0 ])
-
-				if( id !== undefined ){
-					m = root.motor.byName( g.name+id );
-				} else {
-					if( g.parent !== root.scene ){
-						h = g.parent;
-						if( h.parent !== root.scene ) m = h.parent;
-						else m = h;
-					} else m = g;
-				}
-
-				if( this.mouseDown2 ){
-					if( m.extra ) m.extra( m.name );
-					//console.log(m)
-				}
-
-				if( !m.isButton ){ 
-					cursor = this.select( m, inters[ 0 ].point );
-					//this.tmpSelected = m
-					//this.tmpPoint = inters[ 0 ].point
-				}
-				else cursor = this.actionButton( m, inters[ 0 ] );
-
-			}else {
-				this.controler.enableRotate = true;
-				this.controler.enablePan = true;
-				//this.controler.enabled = true
-			}
-
-			document.body.style.cursor = cursor;
-		} 
-
-	}
-
-	drag () {
-
-		if( !this.mouseDown ){
-			if( this.firstSelect ) this.firstSelect = false;
-			this.oldMouse.copy( this.mouse );
-		}
-
-		if( this.button === 2 ){
-		    this.mouseDown2 = true;
-		    //this.castray()
-		}
-
-	    //if( this.button === 0 ){
-		    this.mouseDown = true;
-		    root.mouseDown = true;
-		    this.needRay = true;
-
-		    //if(this.tmpSelected!== null) this.select(this.tmpSelected, this.tmpPoint )
-		    //this.castray()
-		//}
-
-		
-
-	}
-
-	blast () {
-
-		let hit = null;
-		this.raycast.setFromCamera( this.mouse, this.controler.object );
-		let inters = this.raycast.intersectObjects( root.scene.children, true );
-
-		if ( inters.length > 0 ) {hit = inters[ 0 ];
-		} else {
-			inters = this.raycast.intersectObjects( root.scenePlus.children, true );
-			if ( inters.length > 0 ) hit = inters[ 0 ];
-		}
-
-	    const o = this.option;
-
-		if(hit){ 
-
-			root.motor.explosion( hit.point, o.radius || 3, o.power || 0.1 );
-
-			if( o.visible ) root.motor.addParticle({
-				name:'blast',
-				type:"cube",
-				position:hit.point.toArray(),
-				numParticles: 60,
-				radius:0.2,
-				radiusRange:0.1,
-				//accelerationRange:[0.3,0.3,0.3],
-				acceleration:[5*10,5,5*10],
-				lifeTime: 0.5,
-		        endTime: 0.5,
-		        startTime: 0,
-		        gravity:[0,0.2,0],
-		        startSize: 0.5,
-		        endSize: 0.1,
-		        //spinSpeedRange:2,
-		        tween:"outQuad",
-		        //velocityRange: [ 0.6, 0.6, 0.6 ]
-		        //lifeTimeRange:1,
-		        //startTime: 0,
-		        //startSize: 0.1,
-
-			});
-		}
-		
-
-	}
-
-	shoot () {
-
-		this.raycast.setFromCamera( this.mouse, this.controler.object );
-		this.pos.copy( this.raycast.ray.direction ).add(  this.raycast.ray.origin );
-		this.velocity.copy( this.raycast.ray.direction ).multiplyScalar( 60 );
-
-		root.motor.add({
-			name: 'bullet_' + this.numBullet,
-			type:'sphere',
-			density:20,
-			size:[0.2], 
-			material:'chrome',
-			pos:this.pos.toArray(),
-			linearVelocity:this.velocity.toArray(),
-			bullet:true,
-			/*ccdThreshold:0.0000001,
-            ccdRadius:0.1,*/
-		});
-
-		this.numBullet++;
-		if(this.numBullet > this.maxBullet) this.numBullet = 0;
-
-	}
-
-    resetButton () {
-
-		if( this.buttonRef ){
-			if( this.buttonRef.userData.out ) this.buttonRef.userData.out();
-			this.buttonRef = null;
-		}
-
-		this.raycastTest = true;
-		this.selected = null;
-		this.firstSelect = true;
-		//this.controler.enabled = true
-		this.controler.enableRotate = true;
-		this.controler.enablePan = true;
-
-	}
-
-	actionButton ( obj, inters ) {
-
-		if( this.buttonRef ){
-			if( this.buttonRef.name !== obj.name ){ 
-				if( this.buttonRef.userData.out ) this.buttonRef.userData.out();
-				this.buttonRef = obj;
-			}
-		} else {
-			if( this.mouseDown ) this.buttonRef = obj;
-		}
-		if( this.mouseDown && this.buttonRef.userData.action ){ 
-			let pos = inters.point;
-			this.buttonRef.userData.action( pos );
-		}
-
-		//if( this.mouseDown ) this.controler.enabled = false
-		   
-		//return 'grab'
-	    return 'pointer'
-
-	}
-
-	
-
-	select ( obj, point ) {
-
-		//this.controler.enabled = false
-
-		//if( this.selected !== null ) return 'pointer'
-		//if( !this.mouseDown ) return 'pointer'
-
-		if( !this.mouseDown || this.selected === obj ) return 'pointer'
-
-		this.pz = 0;
-
-		let pos = point;
-	    let quat = [0,0,0,1];
-
-		this.selected = obj;
-		/*if( this.selected.isInstance ) quat = this.selected.instance.getInfo( this.selected.id ).quat;
-		else if( this.selected.isObject3D ){
-			this.selected.updateMatrix()
-			quat = this.selected.quaternion.toArray()
-		}*/
-
-		this.decal.copy( pos ).sub( this.selected.position );
-		this.tmpPos.copy( pos ).sub( this.decal );
-		this.angle = this.controler.getAzimuthalAngle();
-
-
-		
-
-		let q = this.selected.quaternion;
-		quat = [ q._x, q._y, q._z, q._w ];
-
-
-		/*if( this.selected.isInstance ){
-			console.log(this.selected)
-			return
-		}*/
-
-		/*if( this.selected.isButton ){
-			if( this.buttonRef ){
-				if(this.buttonRef.name !== this.selected.name ) this.buttonRef = obj
-			} else {
-				this.buttonRef = obj
-			}
-			if( this.buttonRef.userData.action ) this.buttonRef.userData.action()
-			    this.unSelect ()
-			return 'grab'
-		}*/
-
-		this.addDrag();
-
-		//8root.scenePlus.add( this.helper )
-	    //root.scenePlus.add( this.dragPlane )
-
-	    this.dragPlane.rotation.set( 0, this.angle, 0 );
-	    this.dragPlane.position.copy( pos );
-	    this.dragPlane.position.y = 0;
-
-	    this.helper.position.copy( pos );
-
-	    let p = pos.toArray();
-
-	    root.motor.change({ name: this.selected.name, neverSleep:true, wake:true });
-		//Motor.add({ name:'mouse', type:'sphere', size:[0.01], pos:p, quat:quat, mask:0, density:0, noGravity:true, kinematic:true, flags:'noCollision' })
-		//root.motor.add({ name:'mouse', type:'null', pos:p, quat:quat })
-
-		//let def = [-0.03, 0.03, 60, 5]
-		//let defr = [-3, 3, 60, 5]
-
-		//let def = [-0.03, 0.03, 60, 2]
-		//let defr = [-3, 3, 60, 2]
-
-		if( this.moveDirect ){
-			root.motor.change({ name:this.selected.name, kinematic:false, gravity:false, damping:[0.9,0.9]  });
-		} else {
-			let def = [-0.01, 0.01, 60, 1];
-			let defr = [-0.1, 0.1, 60, 1];
-			let notUseKinematic = root.engine === 'OIMO' || root.engine ==='RAPIER' || root.engine ==='HAVOK';
-			let jtype = root.engine ==='HAVOK' ? 'fixe' : 'd6';
-
-			root.motor.add([
-				{ name:'mouse', type:'null', pos:p, quat:quat, kinematic:notUseKinematic ? false : true },
-				{ 
-					name:'mouseJoint', type:'joint',
-					mode:jtype,//mode:'spherical', //lm:[-0.2, 0.2],
-					lm:[['x',...def], ['y',...def], ['z',...def], 
-					['rx',...defr], ['ry',...defr], ['rz',...defr]],
-					autoDrive: true,
-					b1:'mouse',
-					b2:this.selected.name,  
-					worldAnchor: p, 
-					worldAxis:[1,0,0],
-					//friction:0.5,
-					//tolerance:[1, 10],
-					//noPreProcess:true,
-					//improveSlerp:true,
-					visible:false,
-					//noFix:true,
-				}
-			]);
-
-		}
-		
-
-		//this.raycastTest = false
-		//this.controler.enabled = false
-
-		//document.body.style.cursor = 'move'
-
-		return "url('./assets/icons/point.png') 8 8, move" //'move'
-
-	}
-
-	moveSelect ( point ) {
-
-		if( this.selected === null ) return
-
-		if( point ){ 
-			this.tmpPos.copy( point ).sub( this.decal ); 
-		}
-
-		if( this.moveDeep ){ // Z deep move
-
-			let y = this.selected.position.y;
-			let diff  = y-this.tmpPos.y;
-			this.tmpPos.y = y;
-			this.tmpD.set(0,0,diff).applyAxisAngle({x:0, y:1, z:0}, this.angle);
-			this.tmpPos.add( this.tmpD );
-
-		}
-
-		this.helper.position.copy( this.tmpPos );
-
-		let pos = this.tmpPos.toArray();
-
-		if( this.moveDirect ){ 
-			root.motor.change({ name:this.selected.name, pos:pos, reset:true });
-		} else {
-			root.motor.change({ name:'mouse', pos:point.toArray() }, true );
-		}
-	}
-
-	unSelect () {
-
-		if( this.selected === null ) return
-
-		this.clearDrag();
-
-		//this.dragPlane.geometry.dispose()
-		//root.scenePlus.remove( this.dragPlane )
-		//root.scenePlus.remove( this.helper )
-
-		if( this.moveDirect ){
-			root.motor.change({ name:this.selected.name, kinematic:false, wake:true, gravity:true, damping:[0,0.1] });
-		} else {
-			root.motor.remove(['mouseJoint','mouse']);
-			root.motor.change({ name:this.selected.name, neverSleep:false, wake:true });
-		}
-		
-		this.raycastTest = true;
-		this.selected = null;
-		this.firstSelect = true;
-		//this.controler.enabled = true
-
-	}
-
-	step(){
-
-		if( this.needRay ) this.castray();
-	    this.needRay = false;
-
-		if( this.selected === null ) return
-
-		let key = root.flow.key;
-
-
-		if( key[1] !== 0 ){
-			let pz = key[1] * 0.1;
-			this.dragPlane.translateZ(pz);
-			this.needRay = true;
-		}
-
-
-
-		//this.castray()
-		if( this.moveDirect ) this.moveSelect();
-
-		
-
-	}
-
-
-}
-
-
-
-
-
-
-class MoveHelper extends Line {
-
-	constructor( o = {} ) {
-
-		super( new BufferGeometry(), Mat.get('line') );
-
-		let c = 0.75;
-
-		const positions = [0,0,0, 0,-100,0];
-	    const colors = [c,c,c, 0,0,0];
-
-	    //this.geometry = new BufferGeometry();
-	    this.geometry.setAttribute( 'position', new Float32BufferAttribute( positions, 3 ) );
-	    this.geometry.setAttribute( 'color', new Float32BufferAttribute( colors, 3 ) );
-	    //this.geometry.computeBoundingSphere();
-
-	    this.vertices = this.geometry.attributes.position;
-	    this.colors = this.geometry.attributes.color;
-	    this.local = [ 0, 0, 0, 0, 0, 0, 0, 0, 0 ];
-
-	    //this.matrixAutoUpdate = false;
-	    this.frustumCulled = false;
-
-	}
 }
 
 const _offsetMatrix = new Matrix4();

@@ -15,7 +15,7 @@ export class Hub3D extends Mesh {
 
         this.color = new Color()
 
-        this.geometry = new PlaneGeometry( 1,1, 1,1 );
+        this.geometry = new PlaneGeometry( 2,2, 1,1 );
         /*this.material = new MeshBasicMaterial({
             wireframe:true
         })*/
@@ -37,10 +37,14 @@ export class Hub3D extends Mesh {
 
             vertexShader:`
             varying vec2 vUv;
+            varying vec3 pos;
 
             void main() {
                 vUv = uv;
-                gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+                //gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+
+                pos = position;
+                gl_Position = vec4(position, 1.);
             }
             `,
             fragmentShader:`
@@ -53,6 +57,8 @@ export class Hub3D extends Mesh {
             uniform float radius;
             uniform vec4 step;
             varying vec2 vUv;
+            varying vec3 pos;
+
             void main() {
                 
                 /*vec2 c = vec2(0.5, 0.5);
@@ -112,10 +118,11 @@ export class Hub3D extends Mesh {
         
         this.frustumCulled = false;
         this.renderOrder = Infinity;
+        this.matrixAutoUpdate = false;
 
     }
 
-    updateMatrixWorld ( force ) {
+    /*updateMatrixWorld ( force ) {
 
         if( this.parent.isCamera ){
             const c = this.parent
@@ -128,7 +135,7 @@ export class Hub3D extends Mesh {
 
         super.updateMatrixWorld(force);
 
-    }
+    }*/
 
     raycast() {
 

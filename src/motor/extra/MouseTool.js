@@ -2,8 +2,8 @@ import {
     Mesh, PlaneGeometry, Raycaster, Vector2, Vector3, MeshBasicMaterial, Line, BufferGeometry, Float32BufferAttribute
 } from 'three';
 
-import { root } from './root.js';
-import { Mat } from './base/Mat.js';
+import { root } from '../root.js';
+import { Mat } from '../base/Mat.js';
 //let needRay = false;
 
 export class MouseTool {

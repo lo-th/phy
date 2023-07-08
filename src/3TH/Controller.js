@@ -437,7 +437,9 @@ export class Controller extends OrbitControls {
 
     updateFollowGroup(){
 
-        this.followGroup.position.set( this.target.x, 0, this.target.z );
+        this.followGroup.position.copy( this.target );
+
+        //this.followGroup.position.set( this.target.x, 0, this.target.z );
 
     }
 

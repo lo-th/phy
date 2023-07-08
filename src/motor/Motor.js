@@ -4,12 +4,13 @@ import {
 } from 'three';
 
 import { MathTool } from '../core/MathTool.js';
+import { Max, Num, getArray, getType } from '../core/Config.js';
 
 import { root, Utils } from './root.js';
 import { Geo } from './base/Geo.js';
 import { Mat } from './base/Mat.js';
-
-import { Max, Num, getArray, getType } from '../core/Config.js';
+import { Timer } from './base/Timer.js';
+import { User } from './base/User.js'
 
 import { Ray } from './Ray.js';
 import { Body } from './Body.js';
@@ -19,17 +20,12 @@ import { Vehicle } from './Vehicle.js';
 import { Character } from './Character.js';
 import { Terrain } from './Terrain.js';
 import { Solver } from './Solver.js';
-import { Timer } from './base/Timer.js';
-import { User } from './base/User.js';
 
 import { Button } from './extra/Button.js';
 import { Textfield } from './extra/Textfield.js';
 import { Container } from './extra/Container.js';
+import { MouseTool } from './extra/MouseTool.js';
 import { Breaker } from './extra/Breaker.js';
-
-
-
-import { MouseTool } from './MouseTool.js';
 
 import { Pool } from '../3TH/Pool.js';
 import { sk } from '../3TH/character/SkeletonExtand.js'

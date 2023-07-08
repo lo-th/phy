@@ -108,7 +108,7 @@ const setting = {
 	fog:false,
 	vignette:true,
 
-	shadow:0.5,
+	shadow:0.75,
 
 }
 
@@ -145,7 +145,7 @@ const options = {
 
     reflect:0.1,
     renderMode:0,
-    fogMode:0,
+    fogMode:1,
 
     lightSizeUV:1.3,
     nearPlane:9.5,
@@ -575,8 +575,8 @@ const next = () => {
 	loadDemo( options.demo )
 
 
-	if(isWebGPU) options.show_stat = false
-	if( options.show_stat ) showStatistic( true )
+	//if(isWebGPU) options.show_stat = false
+	//if( options.show_stat ) showStatistic( true )
 
 }
 
@@ -1156,7 +1156,8 @@ const view = ( o = {} ) => {
 
 	setShadow( o.shadow )
 
-	if( o.fog ) scene.fog = new THREE.FogExp2( Env.getFogColor().getHex(), o.fogDist || 0.01 )
+	//if( o.fog ) scene.fog = new THREE.FogExp2( Env.getFogColor().getHex(), o.fogDist || 0.01 )
+	if( o.fog ) scene.fog = new THREE.Fog( Env.getFogColor().getHex(), 1, 50 )
 	else scene.fog = null
 
 	// reflect floor
@@ -1304,6 +1305,8 @@ const setEnvmapIntensity = ( v ) => {
 }
 
 const showStatistic = ( b ) => {
+
+	if(isWebGPU) return
 
 	if( b && !stats ){
 		stats = new Stats( renderer )

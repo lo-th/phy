@@ -21,6 +21,9 @@ const autoSize = 0.25
 
 const useHalfFloat = true
 
+let gamma = 2.2
+let envName = ''
+
 let usePmrem = true
 let isWebGPU = false
 let autosun = true
@@ -98,7 +101,10 @@ export class Env {
     	if( typeof value  === 'string' ){
     		if( value !== 'null' ){ 
     			if( value.search('/') !== -1 ) this.load( value, callback )
-    			else this.load( './assets/textures/equirectangular/'+value+'.hdr', callback )
+    			else {
+    				envName = value
+    				this.load( './assets/textures/equirectangular/'+value+'.hdr', callback )
+    			}
     		} else {
     			scene.environment = null;
     			scene.background = null;
@@ -198,6 +204,12 @@ export class Env {
 		});*/
 
 		hdr = await hdrLoader.loadAsync( url );
+
+		gamma = 2.2
+		if(envName==='basic') gamma = 2.68
+		if(envName==='alien') gamma = 1.88
+
+		console.log(hdr)
 
 		Env.process()
 		
@@ -464,7 +476,7 @@ export class Env {
 
 	        ctx.fillStyle = '#000'
 			ctx.fillRect(0, 0, w, h);
-;
+
 			for(let m in palette){
 				
 				if(palette[m]!==undefined){
@@ -507,7 +519,7 @@ export class Env {
         const dt = []
 		const color = new Uint8ClampedArray( 4 )
 
-		const gammaCorrection = 1 / 2.2;
+		const gammaCorrection = 1 / gamma;
 
 		//const tmpColor = new Color()
 
@@ -591,7 +603,7 @@ export class Env {
 
 
 		sunColor.setRGB( color[0] * rs, color[1] * rs, color[1] * rs, SRGBColorSpace )//.convertSRGBToLinear()
-		fogColor.setRGB( (fr/w)*rs, (fg/w)*rs, (fb/w)*rs, SRGBColorSpace )//.convertSRGBToLinear()
+		fogColor.setRGB( (fr/w)*rs, (fg/w)*rs, (fb/w)*rs, SRGBColorSpace )
 		skyColor.setRGB( (cr/w)*rs, (cg/w)*rs, (cb/w)*rs, SRGBColorSpace )//.convertSRGBToLinear()
 		groundColor.setRGB( (br/w)*rs, (bg/w)*rs, (bb/w)*rs, SRGBColorSpace )//.convertSRGBToLinear()
 
@@ -615,8 +627,9 @@ export class Env {
 		let extra = {
 
 			sun: '#' + sunColor.getHexString(),
-			fog: '#' + fogColor.getHexString(),
 			m: undefined,
+			fog: '#' + fogColor.getHexString(),
+			
 			sky: '#' + skyColor.getHexString(),
 			ground: '#' + groundColor.getHexString()
 

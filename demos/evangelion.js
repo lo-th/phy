@@ -4,7 +4,7 @@ demo = () => {
 
     //phy.log('use key WSAD or ZSQD<br>E to fight / C to crouch<br>SPACE to jump / SHIFT to run')
 
-    phy.view({ envmap:'basic', envblur: 0.5, ground:false, fog:true, fogDist:0.01 })
+    phy.view({ envmap:'basic', envblur: 0.05, ground:false, fog:true, fogDist:0.01 })
 
 	// setting physics
 	phy.set({ substep:2, gravity:[0,-9.81,0], key:true })
@@ -35,7 +35,7 @@ makeTerrain = () => {
         restitution: 0.0,
         uv:engine==='OIMO' ? 18 : 96,
         pos: engine==='OIMO' ? [ 0, -2, 0 ] :[0,-5,0],
-        size: engine==='OIMO' ? [ 20, 6, 20 ] : [512, 20, 512],
+        size: engine==='OIMO' ? [ 20, 6, 20 ] : [512, 30, 512],
         sample: engine==='OIMO' ? [ 32, 32 ] : [512, 512],
        // frequency: engine==='OIMO' ? [0.05,0.25,0.75] : [0.016,0.05,0.2],
        // level:[ 1, 0.2, 0.1 ],
