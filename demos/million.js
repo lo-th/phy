@@ -15,15 +15,19 @@ let tmpTxt = []
 let tmpCanvas = document.createElement('canvas')
 tmpCanvas.width = tmpCanvas.height = 128
 
+let bigCanvas = document.createElement('canvas')
+bigCanvas.width = bigCanvas.height = 1024
+//bigCanvas.style.cssText = 'position:absolute;'
+//document.body.appendChild( bigCanvas )
 
 demo = () => {
 
     phy.log( 'SPACE to restart' )
 
 	phy.view({
-		envmap:'beach',
-        ground:false,
-        phi:20, theta:-20, distance:14, x:4, y:6, z:0, fov:70
+		envmap:'beach', envblur:1.0,
+        //ground:false,
+        phi:20, theta:-20, distance:14, x:2, y:6, z:0, fov:70
 	})
 
 	// setting and start
@@ -319,6 +323,7 @@ onReset = () => {
         
 }
 
+let tmpN = 0
 
 createBallTexture = ( n, y) => {
 
@@ -326,6 +331,7 @@ createBallTexture = ( n, y) => {
     //if( old !== null ) return old;
 
 	ctx = tmpCanvas.getContext("2d");
+    ctx2 = bigCanvas.getContext("2d");
 
     ctx.clearRect(0, 0, 128, 128);
 
@@ -352,6 +358,11 @@ createBallTexture = ( n, y) => {
 	ctx.textAlign = "center";
 	ctx.font = 'bold 48px Arial';
 	ctx.fillText( n, 64, 80 );
+
+    let ny = Math.floor(tmpN / 8)
+    nx = tmpN - (ny*8)
+    ctx2.drawImage(tmpCanvas, nx*128, ny*128)
+    tmpN ++
 
     var img = new Image(128, 128);
     img.src = tmpCanvas.toDataURL( 'image/png' );

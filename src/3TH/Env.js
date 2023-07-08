@@ -209,7 +209,7 @@ export class Env {
 		if(envName==='basic') gamma = 2.68
 		if(envName==='alien') gamma = 1.88
 
-		console.log(hdr)
+		//console.log(hdr)
 
 		Env.process()
 		
