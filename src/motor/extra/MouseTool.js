@@ -143,7 +143,7 @@ export class MouseTool {
 	controleEnd ( e ) {
 		//this.controlFirst = true
 		this.raycastTest = true
-		this.controler.getInfo();
+		if( this.controler.getInfo ) this.controler.getInfo();
 	}
 
 	controleChange ( e ) {
@@ -519,7 +519,7 @@ export class MouseTool {
 			let def = [-0.01, 0.01, 60, 1]
 			let defr = [-0.1, 0.1, 60, 1]
 			let notUseKinematic = root.engine === 'OIMO' || root.engine ==='RAPIER' || root.engine ==='HAVOK'
-			let jtype = root.engine ==='HAVOK' ? 'fixe' : 'd6'
+			let jtype = root.engine === 'HAVOK' ? 'fixe' : 'd6'
 
 			root.motor.add([
 				{ name:'mouse', type:'null', pos:p, quat:quat, kinematic:notUseKinematic ? false : true },

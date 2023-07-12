@@ -10,12 +10,13 @@ import {
 import { RGBELoader } from 'three/addons/loaders/RGBELoader.js';
 import { GroundProjectedEnv } from 'three/addons/objects/GroundProjectedEnv.js';
 import { ImgTool } from './utils/ImgTool.js';
-import { math } from './math.js';
+//import { math } from './math.js';
 //import { Hub } from './Hub.js'
-import { Main } from '../Main.js'
+//import { Main } from '../Main.js'
 
 import { texture, equirectUV } from 'three/nodes';
 
+//import { HDRTool } from './utils/HDRTool.js';
 
 const autoSize = 0.25
 
@@ -61,11 +62,20 @@ let tt = 0
 const tmpSize = new Vector2()
 const hdrLoader = new RGBELoader();
 
+let hdrTool = null
+let useHdrTool = false
+
+let main = null
+
+
+
 // https://discourse.threejs.org/t/how-to-dispose-scene-background-with-webglrendertarget/19935
 
 let plane, sceneR, cameraR, targetR = null, read = null, read16 = null
 
 export class Env {
+
+	static setMain (m) { main = m }
 
 	static get () { return env }
 	static getData () { return data }
@@ -177,6 +187,7 @@ export class Env {
 		autosun = Autosun !== undefined ? Autosun : true;
 	    if( isWebGPU ) autosun = false
 
+	    //if( useHdrTool ) hdrTool = new HDRTool()
 
 	    if( usePmrem ){
 			pmrem = new PMREMGenerator( renderer );
@@ -638,7 +649,7 @@ export class Env {
 		palette = {...extra, ...palette }
 
 
-		Main.setColors( palette )
+		if(main) main.setColors( palette )
 		
 
 		/*palette['sun'] = '#' + sunColor.getHexString()

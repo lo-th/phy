@@ -83,6 +83,7 @@ export class Body extends Item {
 			g.setLocalScaling(this.v.fromArray([ 1, 1, 1 ]))	
 			break;// 0 : planeConstant ?
 			case 'box' : g = new Ammo.btBoxShape( this.v.set(s[0] * 0.5, s[1] * 0.5, s[2] * 0.5) ); break;
+			case 'particle' : g = new Ammo.btSphereShape( 0 ); break;
 			case 'sphere' : g = new Ammo.btSphereShape( s[0] ); break;
 			case 'cone' : g = new Ammo.btConeShape( s[0], s[1] ); break;
 			case 'cylinder' : g = new Ammo.btCylinderShape( this.v.set( s[0], s[1] * 0.5, s[0] )); break;// def Y

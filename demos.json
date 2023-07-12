@@ -1,20 +1,25 @@
 {
     "Basic": [ 
         "start", "basic", "joint", "capsule", "compound", "bridge",
-        "gears", "raycast", "terrain", "character", "car", "collision",
-        "kinematic", "add_remove", "tower", "keva", "empty", "test",
-        "gravity", "heroes", "heroes2", "break", "bullet", "evangelion", "buttons", "blast", "skeleton", "gears2", "car_ray", "mass", "material"
+        "gears", "terrain", "character", "kinematic", "add_remove", "tower",
+        "gravity", "heroes", "heroes2", "break", "bullet", "evangelion", 
+        "blast", "skeleton", "material", "keva", "test", "dragon"
+    ],
+    "Dev" : [ 
+        "dev/cloth", "dev/gears2", "dev/car_ray", "dev/mass", "dev/empty",
+        "dev/car", "dev/collision", "dev/buttons", "dev/robot_arm", "dev/raycast", "dev/pinball",
+        "dev/vehicle2", "dev/vehicle3"
     ],
     "Advanced" : [ 
-        "diamond", "ragdoll", "chess", "pinball", "million" 
+        "diamond", "ragdoll", "chess", "million" 
     ],
 
     "PHYSX": [
-        "vehicle" , "vehicle2", "vehicle3", "vehicle4", "robot", "robot2"
+        "vehicle" , "vehicle4", "robot"
     ],
 
     "AMMO": [
-        "vehicle", "vehicle2", "vehicle3", "vehicle4"
+        "vehicle", "vehicle4"
     ],
 
     "OIMO": [],

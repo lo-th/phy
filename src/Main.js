@@ -1,5 +1,5 @@
 import * as THREE from 'three'
-import * as TWEEN from 'tween'
+//import * as TWEEN from 'tween'
 import * as UIL from 'uil'
 
 //import './libs/webgl-memory.js'
@@ -15,8 +15,6 @@ import { Gui } from './3TH/Gui.js'
 import { Env } from './3TH/Env.js'
 import { Editor } from './3TH/Editor.js'
 import { Composer } from './3TH/Composer.js'
-
-
 
 // OBJECT
 import { Hub3D } from './3TH/objects/Hub3D.js'
@@ -42,7 +40,6 @@ import { Motor } from './motor/Motor.js'
 // PARTICLE
 import { Smoke } from '../build/smoke.module.js'
 
-
 // WEBGPU test
 import WebGPU from 'three/addons/capabilities/WebGPU.js';
 import WebGPURenderer from 'three/addons/renderers/webgpu/WebGPURenderer.js';
@@ -58,8 +55,6 @@ import WebGPURenderer from 'three/addons/renderers/webgpu/WebGPURenderer.js';
 
 let activeWebGPU = false
 let isWebGPU = false
-
-
 
 let drawCall = false
 let debugLight = false
@@ -100,6 +95,7 @@ const setting = {
 	envmap:'clear',//'basic',
 	
 	groundSize:[ 60, 60 ],
+	groundPos:[ 0, 0, 0 ],
 	groundAlpha: true,
 	groundOpacity:1,
 	groundReflect:0.1,
@@ -214,6 +210,7 @@ export const Main = {
 	devMode:false,
 	engineList: [ 'OIMO', 'AMMO', 'PHYSX', 'HAVOK', 'RAPIER'],
 	demoList:[],
+	demoLink:[],
 	envList:[],
 	isMobile:false,
 	isEditor:false,
@@ -296,9 +293,18 @@ export const Main = {
 
 	getHub3d:() => ( hub3d ),
 	//getWorker:() => ( 'Worker' + (Main.isWorker ? ' On' : ' Off') ),
-	getDemos:() => { 
-		let d = Motor.get('demos', 'json') 
-		Main.demoList = [ ...d.Basic, ...d.Advanced, ...d[Main.engineType] ]
+	getDemos:() => {
+
+		let d = Motor.get('demos', 'json')
+		Main.demoLink = [ ...d.Basic, ...d.Advanced, ...d[Main.engineType] ]
+		if( Main.devMode ) Main.demoLink = [ ...Main.demoLink, ...d.Dev ]
+
+		let i = Main.demoLink.length, l
+	    while(i--){
+	    	l =  Main.demoLink[i]
+	    	Main.demoList[i] = l.substring( l.lastIndexOf('/')+1 );
+	    }
+
 		Main.envList = [...d.Envmap]
 		//return Main.demoList
 	},
@@ -372,9 +378,6 @@ Motor.getGround = Main.getGround;
 Motor.extraCode = Main.extraCode;
 
 
-
-
-
 window.phy = Motor
 window.math = Motor.math
 window.Main = Main
@@ -430,7 +433,7 @@ const init = () => {
 	//renderer.outputColorSpace = THREE.SRGBColorSpace;
 	renderer.toneMapping = toneMappingOptions[options.tone]
 	renderer.toneMappingExposure = options.exposure//Math.pow( options.exposure, 5.0 );//
-	renderer.useLegacyLights = options.legacy;
+	//renderer.useLegacyLights = options.legacy;
 
 	//console.log(renderer)
 
@@ -480,6 +483,7 @@ const init = () => {
     controls.enableDamping = true // an animation loop is required when either damping or auto-rotation are enabled
     controls.dampingFactor = 0.25//25//0.25;
     controls.screenSpacePanning = true
+    controls.zoomToCursor = true
     //controls.enable = false
     //controls.maxPolarAngle = Math.PI / 2
 
@@ -503,6 +507,7 @@ const init = () => {
 	editor = new Editor()
 
 	Env.init( renderer, scene, light, light2, light3 )
+	Env.setMain( Main )
 
 	start()
 
@@ -616,7 +621,7 @@ const addLight = () => {
 
 	light3 = new THREE.DirectionalLight( 0xFFFFFF,  options.light_1*0.7  )
 	//light.position.set( 5, 18, 5 )
-	light3.distance = 5
+	light3.distance = 6
 
 	s = light3.shadow
 	s.mapSize.width = s.mapSize.height = 1024 * options.quality;
@@ -649,15 +654,15 @@ const addLight = () => {
 	
 	
 
-	s.camera.top = s.camera.right = 20//20
-	s.camera.bottom = s.camera.left = -20
+	s.camera.top = s.camera.right = 40//20
+	s.camera.bottom = s.camera.left = -40
 	s.camera.near = 5//5
-	s.camera.far = 33//33
+	s.camera.far = 35//33
 
 	s.bias = !isWebGPU ? -0.005 : 0.005
 	//s.bias = 0.005
 	//s.normalBias = 0.0075//0.05
-	//s.radius = 2
+	s.radius = 2
 	//s.blurSamples = 8 // only for VSM !
 
 
@@ -778,7 +783,7 @@ const removeVignette = () => {
 
 const addGround = ( o ) => {
 
-	if( o.groundColor ) groundAutoColor = false
+	//groundAutoColor = !o.groundColor//false
     if( o.groundReflect ) options.reflect = o.groundReflect
 
 	//if( isWebGPU ) return
@@ -805,6 +810,7 @@ const addGround = ( o ) => {
 	}
 
     ground.setSize( o.groundSize )
+    ground.position.fromArray( o.groundPos )
 
     if( o.groundColor ) ground.setColor( o.groundColor )
     else ground.setColor( groundColor )
@@ -859,7 +865,12 @@ const directDemo = ( name, result ) => {
 
 const loadDemo = ( name ) => {
 
-	if( Main.demoList.indexOf(name) === -1 ) name = 'start'
+	let idd = Main.demoList.indexOf(name)
+
+	if( idd === -1 ){ 
+		name = 'start'
+		idd = 0
+	}
 
 	//let findDemo = Gui.resetDemoGroup( name )
 	//if(!findDemo) name = 'start'
@@ -870,9 +881,11 @@ const loadDemo = ( name ) => {
 	options.demo = name
 	location.hash = name
 
+	//console.log(options.demo)
+
 	Hub.upMenu()
 
-	Motor.load( './demos/' + options.demo + '.js', inject )
+	Motor.load( './demos/' + Main.demoLink[idd] + '.js', inject )
 
 }
 
@@ -1030,7 +1043,7 @@ const render = ( stamp = 0 ) => {
 	}
 
     // UPDATE TWEEN
-	TWEEN.update( stamp );
+	//TWEEN.update( stamp );
 
 	// RENDER
 	if( composer && composer.enabled ) composer.render( tm.dt )
@@ -1142,6 +1155,8 @@ const setShadow = ( v ) => {
 const view = ( o = {} ) => {
 
 	o = { ...setting, ...o }
+
+	groundAutoColor = !o.groundColor//false
 
 	//console.log('view', o)
 

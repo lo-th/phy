@@ -1,4 +1,4 @@
-import { Quaternion, Matrix3, Vector3, LineSegments, BufferGeometry, BufferAttribute, Float32BufferAttribute, LineBasicMaterial, CylinderGeometry, SphereGeometry, BoxGeometry, PlaneGeometry, CanvasTexture, RepeatWrapping, SRGBColorSpace, Color, Vector2, MeshStandardMaterial, MeshToonMaterial, MeshBasicMaterial, MeshLambertMaterial, MeshPhongMaterial, MeshPhysicalMaterial, DoubleSide, Line, EventDispatcher, MathUtils, Matrix4, Layers, InstancedMesh, InstancedBufferAttribute, DynamicDrawUsage, TrianglesDrawMode, TriangleFanDrawMode, TriangleStripDrawMode, CircleGeometry, Box3, Line3, Plane, Triangle, Mesh, NearestFilter, NearestMipmapNearestFilter, NearestMipmapLinearFilter, LinearFilter, LinearMipmapNearestFilter, LinearMipmapLinearFilter, ClampToEdgeWrapping, MirroredRepeatWrapping, PropertyBinding, InterpolateLinear, Source, LinearEncoding, RGBAFormat, InterpolateDiscrete, Scene, sRGBEncoding, Loader, LoaderUtils, FileLoader, SpotLight, PointLight, DirectionalLight, Object3D, TextureLoader, ImageBitmapLoader, InterleavedBuffer, InterleavedBufferAttribute, PointsMaterial, Material, SkinnedMesh, LineLoop, Points, Group, PerspectiveCamera, OrthographicCamera, Skeleton, AnimationClip, Bone, FrontSide, Texture, VectorKeyframeTrack, NumberKeyframeTrack, QuaternionKeyframeTrack, Sphere, Interpolant, LinearSRGBColorSpace, Vector4, Curve, Euler, EquirectangularReflectionMapping, AmbientLight, Uint16BufferAttribute, DataTextureLoader, HalfFloatType, FloatType, DataUtils, RedFormat, NoColorSpace, AnimationMixer, AdditiveBlending, CustomBlending, ZeroFactor, SrcAlphaFactor, SkeletonHelper, AnimationUtils, Raycaster } from 'three';
+import { Quaternion, Matrix3, Vector3, LineSegments, BufferGeometry, BufferAttribute, Float32BufferAttribute, LineBasicMaterial, SphereGeometry, CylinderGeometry, BoxGeometry, PlaneGeometry, CanvasTexture, RepeatWrapping, SRGBColorSpace, Color, Vector2, MeshStandardMaterial, MeshToonMaterial, MeshBasicMaterial, MeshLambertMaterial, MeshPhongMaterial, MeshPhysicalMaterial, DoubleSide, Line, EventDispatcher, MathUtils, Matrix4, Layers, InstancedMesh, InstancedBufferAttribute, TrianglesDrawMode, TriangleFanDrawMode, TriangleStripDrawMode, CircleGeometry, Box3, Line3, Plane, Triangle, Mesh, NearestFilter, NearestMipmapNearestFilter, NearestMipmapLinearFilter, LinearFilter, LinearMipmapNearestFilter, LinearMipmapLinearFilter, ClampToEdgeWrapping, MirroredRepeatWrapping, PropertyBinding, InterpolateLinear, Source, LinearEncoding, RGBAFormat, InterpolateDiscrete, Scene, sRGBEncoding, Loader, LoaderUtils, FileLoader, SpotLight, PointLight, DirectionalLight, Object3D, TextureLoader, ImageBitmapLoader, InterleavedBuffer, InterleavedBufferAttribute, PointsMaterial, Material, SkinnedMesh, LineLoop, Points, Group, PerspectiveCamera, OrthographicCamera, Skeleton, AnimationClip, Bone, FrontSide, Texture, VectorKeyframeTrack, NumberKeyframeTrack, QuaternionKeyframeTrack, Sphere, Interpolant, LinearSRGBColorSpace, Vector4, Curve, Euler, EquirectangularReflectionMapping, AmbientLight, Uint16BufferAttribute, DataTextureLoader, HalfFloatType, FloatType, DataUtils, RedFormat, NoColorSpace, AnimationMixer, AdditiveBlending, CustomBlending, ZeroFactor, SrcAlphaFactor, SkeletonHelper, AnimationUtils, Raycaster } from 'three';
 
 const PI = Math.PI;
 const torad$1 = PI / 180;
@@ -414,7 +414,7 @@ const MathTool = {
 
 const Max = {
 	body:2000,
-    joint:100,
+    joint:500,
     contact:50,
     ray:100,
     character:50,
@@ -476,7 +476,7 @@ const getArray = function ( engine, full = false ){
 
 const getType = function (o){
     switch(o.type){
-        case 'plane': case 'box': case 'sphere': case 'highSphere': case 'cylinder': case 'stair':
+        case 'plane': case 'box': case 'sphere': case 'highSphere': case 'cylinder': case 'stair':case 'particle':
         case 'cone': case 'capsule': case 'mesh': case 'convex': case 'compound': case 'null':
         if ( !o.mass && !o.density && !o.kinematic ) return 'solid'
         else return 'body'
@@ -918,7 +918,7 @@ const Geo = {
 				//case 'wheel':    g = new CylinderGeometry( 1, 1, 1 , 16 ); g.rotateX( -Math.PI * 0.5 ); break
 				case 'cone':     g = new CylinderGeometry( 0.001, 1, 1 , 16 ); break
 				//case 'joint':    g = new Box3Helper().geometry; g.scale( 0.05,0.05,0.05 ); break
-
+				case 'particle':   g = new SphereGeometry( 1, 3, 2 ); break
 				case 'joint':    g = new CircleHelper().geometry; break
 				default: return null;
 			}
@@ -1084,14 +1084,18 @@ const Mat = {
 
 	create:( o ) => {
 
-		let m;
+		let m, beforeCompile = null;
 
 		if( o.isMaterial ){
 			m = o;
 		} else {
 
 			let type = o.type !== undefined ? o.type : 'Standard';
-			if(o.type) delete o.type;
+			if( o.type ) delete o.type;
+
+			beforeCompile = o.beforeCompile || null;
+		    if( o.beforeCompile ) delete o.beforeCompile;
+
 
 			if( o.thickness || o.sheen || o.clearcoat || o.transmission || o.specularColor ) type = 'Physical';
 
@@ -1122,14 +1126,14 @@ const Mat = {
 		} 
 
 		if( mat[ m.name ] ) return null;
-	    Mat.set( m );
+	    Mat.set( m, false, beforeCompile );
 		return m;
 
 	},
 
-	set:( m, direct ) => {
+	set:( m, direct, beforeCompile ) => {
 
-		if(!direct) Mat.extendShader( m );
+		if(!direct) Mat.extendShader( m, beforeCompile );
 		mat[m.name] = m;
 
 	},
@@ -1173,6 +1177,8 @@ const Mat = {
 				//case 'simple': m = Mat.create({ name:'simple', color:0x808080, metalness: 0, roughness: 1 }); break
 
 				case 'carbon': Mat.create({ name:'carbon', map:new CarbonTexture(), normalMap:new CarbonTexture(true), clearcoat: 1.0, clearcoatRoughness: 0.1, roughness: 0.5 }); break
+				case 'cloth': Mat.create({ name:'cloth', color:0x8009cf, roughness: 0.5, sheenColor:0xcb7cff, sheen:1, sheenRoughness:0.2 }); break
+
 
 				//case 'clear':  m = new MeshStandardMaterial({ color:0xFFFFFF, metalness: 0.5, roughness: 0 }); break
 				
@@ -1209,6 +1215,9 @@ const Mat = {
 			    break
 				case 'hide':
 				    Mat.create({ name:'hide', type:'basic', visible:false });
+			    break
+			    case 'particle':
+				    Mat.create({ name:'particle', type:'basic', toneMapped: false, color:0x00ff00 });
 			    break
 
 
@@ -1270,7 +1279,10 @@ class Timer {
 		if ( t.delta >= t.interval || this.unlimited ) {
 
 		    t.then = this.unlimited ? t.now : t.now - ( t.delta % t.interval );
-		    this.delta = t.delta * 0.001;
+		    //if(t.delta>)
+		    //this.delta = t.delta * 0.001 // bug on outside
+		    this.delta = t.interval * 0.001;
+		    //if(this.delta>this.time.interval)this.delta=this.time.interval
 		    this.elapsedTime += this.delta;
 		    
 		    //if ( t.now - 1000 > t.tmp ){ t.tmp = t.now; this.fps = t.n; t.n = 0; }; t.n++;
@@ -2635,6 +2647,8 @@ class Instance extends InstancedMesh {
         this.tmpMatrix = new Matrix4();
         this.tmpQuat = new Quaternion();
 
+        //this.instanceUv = null;
+
         this.needSphereUp = false;
 
         this.isRay = true; 
@@ -2655,14 +2669,18 @@ class Instance extends InstancedMesh {
         }
     }
 
-    add( position = [0,0,0], rotation = [0,0,0,1], scale = [1,1,1], color )
+    add( position = [0,0,0], rotation = [0,0,0,1], scale = [1,1,1], color = null, uv = null )
     {
         if( rotation.length === 3 ) rotation = this.tmpQuat.setFromEuler( {_x:rotation[0], _y:rotation[1], _z:rotation[2], _order:'XYZ'}, false ).toArray();
         if(color){ 
             if( color.isColor ) color = color.toArray();
             if ( this.instanceColor === null ) this.instanceColor = new InstancedBufferAttribute( new Float32Array( this.instanceMatrix.count * 3 ), 3 );
         }
-        this.expand( position, rotation, scale, color );
+        /*if(uv){ 
+            if( uv.isVector2 ) uv = uv.toArray()
+            if ( this.instanceUv === null ) this.instanceUv = new InstancedBufferAttribute( new Float32Array( this.instanceMatrix.count * 2 ), 2 );
+        }*/
+        this.expand( position, rotation, scale, color, uv );
     }
 
     setColorAt( index, color ) {
@@ -2682,31 +2700,52 @@ class Instance extends InstancedMesh {
 
     }
 
-    remove( id )
-    {
+    /*setUvAt( index, uv ) {
+
+        if ( this.instanceUv === null ) this.instanceUv = new InstancedBufferAttribute( new Float32Array( this.instanceMatrix.count * 2 ), 2 );
+        
+        if( uv.isVector2 ) uv = uv.toArray()
+        let id = index * 2
+        this.instanceUv.array[id] = uv[0]
+        this.instanceUv.array[id +1] = uv[1]
+
+    }*/
+
+    remove( id ) {
+
         if(!this.count) return;
         let old = [...this.instanceMatrix.array];
         old.splice( id*16, 16 );
         this.instanceMatrix = new InstancedBufferAttribute( new Float32Array(old), 16 );
-        //this.instanceMatrix.setUsage( DynamicDrawUsage );
+
         if ( this.instanceColor !== null ) {
             old = [...this.instanceColor.array];
             old.splice( id*3, 3 );
             this.instanceColor = new InstancedBufferAttribute( new Float32Array(old), 3 );
         }
+
+        if ( this.instanceUv !== null ) {
+            old = [...this.instanceUv.array];
+            old.splice( id*2, 2 );
+            this.instanceUv = new InstancedBufferAttribute( new Float32Array(old), 2 );
+        }
         this.count --;
     }
 
-    expand( p, q, s, c = [1,1,1] )
-    {
+    expand( p, q, s, c = [1,1,1], uv ) {
+
         let old = this.instanceMatrix !== null ? this.instanceMatrix.array : [];
         this.tmpMatrix.compose({x:p[0], y:p[1], z:p[2]}, {_x:q[0], _y:q[1], _z:q[2], _w:q[3]}, {x:s[0], y:s[1], z:s[2]});
         this.instanceMatrix = new InstancedBufferAttribute( new Float32Array([...old, ...this.tmpMatrix.toArray()]), 16 );
-        this.instanceMatrix.setUsage( DynamicDrawUsage );
+        //this.instanceMatrix.setUsage( DynamicDrawUsage );
         if ( this.instanceColor !== null ) {
             old = this.instanceColor.array;
             this.instanceColor = new InstancedBufferAttribute( new Float32Array([...old, ...c ]), 3 );
         }
+       /* if ( this.instanceUv !== null ) {
+            old = this.instanceUv.array;
+            this.instanceUv = new InstancedBufferAttribute( new Float32Array([...old, ...uv ]), 2 );
+        }*/
         this.count ++;
     }
 
@@ -2740,6 +2779,7 @@ class Instance extends InstancedMesh {
         if( this.needSphereUp ) this.computeBoundingSphere();
         if( this.instanceMatrix ) this.instanceMatrix.needsUpdate = true;
         if( this.instanceColor ) this.instanceColor.needsUpdate = true;
+        //if( this.instanceUv ) this.instanceUv.needsUpdate = true;
         this.needSphereUp = false;
     }
 
@@ -5933,8 +5973,10 @@ class Body extends Item {
 			b.defMat = b.instance.material.name === 'base';
 			
 			b.id = b.instance.count;
+			b.mass = o.mass || 0;
 			
 			b.name = b.instance.name + b.id;
+			//if( o.name ) b.name = o.name
 			o.name = b.name;
 			b.noScale = b.instance.noScale;//false//o.type!=='box' || o.type!=='ChamferBox' || o.type!=='sphere';
 			if(o.sizeByInstance) b.noScale = false;
@@ -23556,6 +23598,8 @@ const Pool = {
 
             const model = gltf.scene;
 
+            //console.log(gltf.animations)
+
             if( gltf.animations ){ 
                 const animations = gltf.animations;
                 const mixer = new AnimationMixer( gltf.scene );
@@ -23564,7 +23608,19 @@ const Pool = {
                 for ( let i = 0; i < animations.length; i ++ ) {
                     let anim = animations[ i ];
                     model.actions[ anim.name ] = mixer.clipAction( anim );
+                    //model.actions[ anim.name ].play()
                 }
+
+                model.play = (name) => {
+                    if(model.actions[ name ]){ 
+                        model.actions[ name ].paused = false;
+                        model.actions[ name ].time = 0;
+                        model.actions[ name ].play();
+                    }
+                };
+                model.pause = (name, v=true) => {
+                    if(model.actions[ name ]) model.actions[ name ].paused = v;
+                };
             }
             
             Pool.add( name, model );
@@ -29407,7 +29463,7 @@ class MouseTool {
 	controleEnd ( e ) {
 		//this.controlFirst = true
 		this.raycastTest = true;
-		this.controler.getInfo();
+		if( this.controler.getInfo ) this.controler.getInfo();
 	}
 
 	controleChange ( e ) {
@@ -29783,7 +29839,7 @@ class MouseTool {
 			let def = [-0.01, 0.01, 60, 1];
 			let defr = [-0.1, 0.1, 60, 1];
 			let notUseKinematic = root.engine === 'OIMO' || root.engine ==='RAPIER' || root.engine ==='HAVOK';
-			let jtype = root.engine ==='HAVOK' ? 'fixe' : 'd6';
+			let jtype = root.engine === 'HAVOK' ? 'fixe' : 'd6';
 
 			root.motor.add([
 				{ name:'mouse', type:'null', pos:p, quat:quat, kinematic:notUseKinematic ? false : true },
@@ -30619,6 +30675,278 @@ class Breaker {
 
 }
 
+//const SPHSystem_getNeighbors_dist = new Vector3()
+
+// Temp vectors for calculation
+new Vector3(); // Relative velocity
+
+const SPHSystem_update_a_pressure = new Vector3();
+const SPHSystem_update_a_visc = new Vector3();
+const SPHSystem_update_gradW = new Vector3();
+const SPHSystem_update_r_vec = new Vector3();
+const SPHSystem_update_u = new Vector3();
+
+
+class Particle {
+
+	constructor ( o = {} ) {
+
+		this.name = o.name  || 'ppp';
+
+		this.particles = [];
+	    this.density = 0.01;
+	    this.smoothingRadius = 0.2;
+	    this.speedOfSound = 0.1;
+	    this.viscosity = 0.03;
+	    this.eps = 0.000001;
+
+	    this.group = 1 << 8;
+
+	    // Stuff Computed per particle
+	    this.pressures = [];
+	    this.densities = [];
+	    this.neighbors = [];
+
+	}
+
+	add( pos ){
+
+		let p = root.motor.add({ 
+
+            instance:this.name,
+            type:'particle', 
+            //type:'sphere',
+            flags:'noQuery',
+            size:[0.1],
+
+            inertia:[0,0,0], 
+            pos:pos, 
+            mass:0.01, 
+            restitution:0.0, 
+            friction:0.5, 
+            maxVelocity:[2,100],
+            //damping:[0,0.005],
+            group:this.group, 
+            mask:1|2,
+            material:'hide',
+
+        });
+
+        p.force = new Vector3();
+
+        this.particles.push( p );
+        if (this.neighbors.length < this.particles.length) {
+	        this.neighbors.push([]);
+	    }
+
+	}
+
+	connect( link ){
+
+		let i = link.length;
+		let tmp = [], l;
+
+		while(i--){
+			l = link[i];
+			tmp.push({ type:'joint', mode:'distance', b1:this.name+l[0], b2:this.name+l[1], lm:[0.01, 0.15], spring:[100, 0.01], /*visible:true, helperSize:0.02*/ });
+		}
+
+		root.motor.add(tmp);
+
+	}
+
+	getPosition(){
+
+		let ar = [];
+		let i = this.particles.length, p, n;
+		while(i--){
+
+			n = i*3;
+	    	p = this.particles[i];
+	    	ar[n] = p.position.x;
+	    	ar[n+1] = p.position.y;
+	    	ar[n+2] = p.position.z;
+	    }
+
+	    return ar
+
+	}
+
+	
+    // Get neighbors within smoothing volume, save in the array neighbors
+    getNeighbors( particle, neighbors ) {
+
+	    const N = this.particles.length;
+	    const id = particle.id;
+	    const R2 = this.smoothingRadius * this.smoothingRadius;
+	    let distance = 0;//SPHSystem_getNeighbors_dist
+	    for (let i = 0; i !== N; i++) {
+	        const p = this.particles[i];
+	        //const dx = p.position.x - particle.position.x, dy = p.position.y - particle.position.y, dz = p.position.z - particle.position.z;
+	        distance = this.distance(p, particle );//dx * dx + dy * dy + dz * dz
+	        if (id !== p.id && distance < R2) {
+	            neighbors.push(p);
+	        }
+	    }	
+    }
+
+    distance(p, v) {
+	    const dx = p.position.x - v.position.x, dy = p.position.y - v.position.y, dz = p.position.z - v.position.z;
+	    return dx * dx + dy * dy + dz * dz
+	}
+
+    // Calculate the weight using the W(r) weightfunction
+	w(r) {
+	    // 315
+	    const h = this.smoothingRadius;
+	    return (315.0 / (64.0 * Math.PI * h ** 9)) * (h * h - r * r) ** 3
+	}
+
+	// calculate gradient of the weight function
+	gradw(rVec, resultVec) {
+
+	    const r = rVec.length();
+	    const h = this.smoothingRadius;
+	    resultVec.copy(rVec).multiplyScalar( (945.0 / (32.0 * Math.PI * h ** 9)) * (h * h - r * r) ** 2 );
+	    //rVec.scale((945.0 / (32.0 * Math.PI * h ** 9)) * (h * h - r * r) ** 2, resultVec)
+	}
+
+	// Calculate nabla(W)
+	nablaw(r) {
+	    const h = this.smoothingRadius;
+	    const nabla = (945.0 / (32.0 * Math.PI * h ** 9)) * (h * h - r * r) * (7 * r * r - 3 * h * h);
+	    return nabla
+	}
+
+	update() {
+
+		const TMP = [];
+
+		const N = this.particles.length;
+	    const cs = this.speedOfSound;
+	    const eps = this.eps;
+
+	    let i = N, j;
+
+	   //for (let i = 0; i !== N; i++) {
+	    while(i--){
+
+	    	const p = this.particles[i]; // Current particle
+	    	p.force.set(0,0,0);
+            const neighbors = this.neighbors[i];
+
+            // Get neighbors
+		    neighbors.length = 0;
+		    this.getNeighbors(p, neighbors);
+		    neighbors.push(this.particles[i]); // Add current too
+		    const numNeighbors = neighbors.length;
+
+		    // Accumulate density for the particle
+		    let sum = 0.0;
+		    j = numNeighbors;
+		    while(j--){
+		    //for (let j = 0; j !== numNeighbors; j++) {
+		        //printf("Current particle has position %f %f %f\n",objects[id].pos.x(),objects[id].pos.y(),objects[id].pos.z());
+		        const weight = this.w( this.distance( p, neighbors[j] ) );
+		        sum += neighbors[j].mass * weight;
+		    }
+
+		    // Save
+		    this.densities[i] = sum;
+		    this.pressures[i] = cs * cs * (this.densities[i] - this.density);
+
+	    }
+
+	    // Add forces
+
+	    // Sum to these accelerations
+	    const a_pressure = SPHSystem_update_a_pressure;
+	    const a_visc = SPHSystem_update_a_visc;
+	    const gradW = SPHSystem_update_gradW;
+	    const r_vec = SPHSystem_update_r_vec;
+	    const u = SPHSystem_update_u;
+
+	    i = N;
+
+	   //for (let i = 0; i !== N; i++) {
+	    while(i--){
+
+	    	const particle = this.particles[i];
+
+		    a_pressure.set(0, 0, 0);
+		    a_visc.set(0, 0, 0);
+
+		    // Init vars
+		    let Pij;
+		    let nabla;
+
+		    // Sum up for all other neighbors
+		    const neighbors = this.neighbors[i];
+		    const numNeighbors = neighbors.length;
+
+		    j = numNeighbors;
+		    while(j--){
+		    //for (let j = 0; j !== numNeighbors; j++) {
+		    	const neighbor = neighbors[j];
+
+		    	// Get r once for all..
+		    	r_vec.copy(particle.position).sub(neighbor.position);
+		        //particle.position.vsub(neighbor.position, r_vec)
+		        const r = r_vec.length();
+
+		        // Pressure contribution
+		        Pij =
+		          -neighbor.mass *
+		          (this.pressures[i] / (this.densities[i] * this.densities[i] + eps) +
+		            this.pressures[j] / (this.densities[j] * this.densities[j] + eps));
+
+		        this.gradw(r_vec, gradW);
+		        // Add to pressure acceleration
+		        gradW.multiplyScalar(Pij); //scale(Pij, gradW)
+		        a_pressure.add(gradW);//.vadd(gradW, a_pressure)
+
+
+		        // Viscosity contribution
+		        u.copy(neighbor.velocity).sub(particle.velocity);
+
+		        /*TMP.push({
+			    	name:neighbor.name,
+			    	velocity : u.toArray()
+			    })*/
+		        //neighbor.velocity.vsub(particle.velocity, u)
+		        u.multiplyScalar((1.0 / (0.0001 + this.densities[i] * this.densities[j])) * this.viscosity * neighbor.mass);
+		        nabla = this.nablaw(r);
+		        u.multiplyScalar(nabla);
+		        // Add to viscosity acceleration
+		        a_visc.add(u);
+
+
+		    }
+
+		    // Calculate force
+		    a_visc.multiplyScalar(particle.mass);
+		    a_pressure.multiplyScalar(particle.mass);
+
+		    // Add force to particles
+
+		    particle.force.add(a_visc);
+            particle.force.add(a_pressure);
+
+		    TMP.push({
+		    	name: particle.name,
+		    	force: particle.force.toArray()
+		    });
+            
+	    }
+
+	    root.motor.change(TMP);
+
+
+
+	}
+
+}
+
 const _offsetMatrix = new Matrix4();
 const _identityMatrix = new Matrix4();
 new Vector3();
@@ -30888,6 +31216,7 @@ let addControl = function(){};
 
 let buttons = [];
 let textfields = [];
+let particles = [];
 //let skeletons = []
 
 const settings = {
@@ -31324,6 +31653,7 @@ class Motor {
 
 		Motor.clearText();
 		//Motor.clearSkeleton()
+		Motor.clearParticleSolver();
 
 		Motor.cleartimout();
 
@@ -31448,8 +31778,8 @@ class Motor {
 
 		if( mouseTool ) mouseTool.step();
 
-		postUpdate( root.reflow.stat.delta );
-		//postUpdate( timer.delta )
+		//postUpdate( root.reflow.stat.delta )
+		postUpdate( timer.delta );
 
 		//items.character.prestep()
 
@@ -31480,6 +31810,8 @@ class Motor {
 
     	for( let n in root.instanceMesh ) root.instanceMesh[n].update();
 
+    	//Motor.updateParticleSolver()
+
     }
 
 	static clearInstance() {
@@ -31489,12 +31821,7 @@ class Motor {
 
 	}
 
-	static addDirect( b ) {
-
-		root.scene.add( b );
-		root.tmpMesh.push( b );
-
-	}
+	
 
 	static texture( o = {} ) {
 		return Pool.texture( o )
@@ -31509,13 +31836,18 @@ class Motor {
 
 	static getMaterialList(){ return Mat.getList(); }
 
-	static getOneMaterial( name ){ return Mat.get( name ) }
+	static getOneMaterial( name ){ 
+		console.log('use getMat');
+		return Mat.get( name ) 
+	}
 
 	static addMaterial( m, direct ){ Mat.set( m, direct ); }
 
 	static setEnvmapIntensity (v) { Mat.setEnvmapIntensity(v); }
 
-	static getMat () { return Mat; }
+	static getMat( name ){ return Mat.get( name ) }
+
+	//static getMat () { return Mat; }
 
 	//static getHideMat() { return Mat.get('hide'); }
 
@@ -31678,6 +32010,16 @@ class Motor {
 		}*/
 	}
 
+
+	
+
+	static addDirect( b ) {
+
+		root.scenePlus.add( b );
+		root.tmpMesh.push( b );
+
+	}
+
 	static adds ( r = [], direct ){ 
 		let i = r.length, n = 0;
 		while(i--){
@@ -31688,6 +32030,8 @@ class Motor {
 	}
 
 	static add ( o = {}, direct = false ){
+
+		if ( o.isObject3D ) return Motor.addDirect( o )
 
 		if ( o.constructor === Array ) return Motor.adds( o, direct )
 
@@ -31931,6 +32275,28 @@ class Motor {
 	static initParticle (){}
 	static addParticle (){}
 	static getParticle (){}
+
+	static addParticleSolver ( o ){
+		let s = new Particle( o );
+		particles.push(s);
+		return s
+	}
+
+	static updateParticleSolver () { 
+
+		let i = particles.length;
+		while( i-- ) particles[i].update();
+		
+	}
+
+	static clearParticleSolver () { 
+
+		particles.length;
+		//while( i-- ) particles[i].dispose()
+    	particles = [];
+		
+	}
+
 
 	//-----------------------
 	// TEXT

@@ -126,12 +126,12 @@ applyMaterial = ( model ) => {
 
     const mat = {}
 
-    let Mat = phy.getMat()
-    let clear = Mat.get('clear')
+    //let Mat = phy.getMat()
+    //let clear = Mat.get('clear')
 
     const path = './assets/textures/buggy/'
 
-    mat['carGlass'] = Mat.get('carGlass');
+    mat['carGlass'] = phy.getMat('carGlass');
 
     mat['body'] = phy.material({
         name:'body',

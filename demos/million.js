@@ -9,8 +9,11 @@ let game = 'start';
 let result = []
 let balls = [];
 let startPos = []
+//let ballName = []
 let model = null
 let tmpTxt = []
+
+let ballTest = true
 
 let tmpCanvas = document.createElement('canvas')
 tmpCanvas.width = tmpCanvas.height = 128
@@ -36,6 +39,9 @@ demo = () => {
 		gravity:[0,-9.81,0],
 	})
 
+    // add static ground
+    phy.add({ type:'plane', size:[300,1,300], visible:false })
+
 	phy.load(['./assets/models/million.glb'], onComplete )
 
 }
@@ -44,8 +50,13 @@ onComplete = () => {
 
 	model = phy.getMesh('million')
 
-    makeMachine()
-    makeBall()
+    if(!ballTest) {
+        makeMachine()
+        makeBall()
+    } else {
+        makeMachine()
+        makeBall2()
+    }
 
     phy.setTimeout( activeBall, 3000 )
     //timer = setTimeout( activeBall, 3000 );
@@ -62,7 +73,7 @@ activeBall = () => {
 	phy.change( r )
 
     phy.setTimeout( startSimulation, 3000 )
-    //timer = setTimeout( startSimulation, 3000 )
+
 }
 
 replay = () => {
@@ -279,6 +290,7 @@ makeBall = () => {
         })
 
         balls.push( b )
+        //ballName.push( 'b'+(i+1) )
         startPos.push( [x*0.1, (y*0.1)+py, -1.16] )
         j++;
         if(j===10) j = 0;
@@ -309,11 +321,101 @@ makeBall = () => {
         })
 
         balls.push( b )
+        //ballName.push( 'x'+(i+1) )
         startPos.push( [x*0.1, (y*0.1)+py, -0.975] )
         j++;
         if(j===6) j = 0;
 
     }
+
+}
+
+makeBall2 = () => {
+
+    let ballGeo = model.ball.geometry.clone()
+    ballGeo.scale(100,100,100) 
+
+    let uvs = []
+    let i, x, y, l, b, tmpMat, j = 0;
+
+    for( i = 0; i < 50; i++){
+
+        l = Math.floor(i/10)
+        x = -27 + (j*6)
+        y = 75 - (l*5.)
+        uvs.push( createBallTexture( i+1 ) )
+        startPos.push( [x*0.1, (y*0.1)+py, -1.16] )
+        j++;
+        if(j===10) j = 0;
+
+    }
+
+    // add yellow balls
+    
+    j = 0;
+    for( i = 0; i < 12; i++){
+
+        l = Math.floor(i/6)
+        x = 70 + (j*6)
+        y = 25 - (l*5)
+        uvs.push( createBallTexture(  i+1, true ) )
+        startPos.push( [x*0.1, (y*0.1)+py, -0.975] )
+        j++;
+        if(j===6) j = 0;
+
+    }
+
+    var t = new THREE.CanvasTexture( bigCanvas );
+    t.needsUpdate = true;
+    t.flipY = false;
+    t.repeat.set(1/8,1/8)
+    t.colorSpace = THREE.SRGBColorSpace;
+
+    let beforeCompile = function ( shader ) {
+        // use color as uv move
+        let fragment = shader.fragmentShader;
+        fragment = fragment.replace( '#include <color_fragment>', '' );
+        fragment = fragment.replace( '#include <map_fragment>', `
+        #ifdef USE_MAP
+            diffuseColor *= texture2D( map, vMapUv+vColor.rg );
+        #endif
+        ` );
+        shader.fragmentShader = fragment;
+    }
+
+    tmpMat = phy.material({
+        name:'lotoball',
+        roughness: 0.4,
+        metalness: 0.6,
+        map: t,
+        beforeCompile: beforeCompile,
+    })
+
+    
+
+    let tmp = []
+
+    for( i = 0; i < 62; i++){
+        b = phy.add({
+            instance:'ball',
+            material: tmpMat,
+            geometry: ballGeo,
+            type:'sphere',
+            size: [0.25],
+            pos:startPos[i],
+            color:uvs[i],
+            density:0.3,
+            friction:0.4,
+            restitution:0.1,
+            sleep:true,
+            startSleep:true,
+        })
+
+        balls.push( b )
+        //ballName.push( 'ball'+(i) )
+    }
+
+    //phy.add(tmp)
 
 }
 
@@ -364,6 +466,8 @@ createBallTexture = ( n, y) => {
     ctx2.drawImage(tmpCanvas, nx*128, ny*128)
     tmpN ++
 
+    if( ballTest ) return [nx/8,ny/8,0]
+
     var img = new Image(128, 128);
     img.src = tmpCanvas.toDataURL( 'image/png' );
 
@@ -377,3 +481,4 @@ createBallTexture = ( n, y) => {
 	return t;
 
 }
+

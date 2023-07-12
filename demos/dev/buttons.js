@@ -10,8 +10,8 @@ demo = () => {
     phy.add({ type:'plane', visible:false });
 
     phy.addButton({ type:'box', pos:[-2.5,0,0], size:[3,1,2], radius:0.2, callback:ab1, text:'PUSH' })
-    phy.addButton({ type:'cylinder', pos:[1,0,0], size:[1,0.5], radius:0.2, seg:32, callback:ab2, text:'O' })
-    phy.addButton({ type:'cylinder', pos:[4,0,0], size:[1,0.2], radius:0.05, seg:6, callback:ab3, text:'X' })
+    phy.addButton({ type:'cylinder', pos:[1,0,0], size:[1,0.8], radius:0.2, seg:32, callback:ab2, text:'O' })
+    phy.addButton({ type:'cylinder', pos:[4,0,0], size:[1,0.4], radius:0.05, seg:6, callback:ab3, text:'X' })
 
     t = phy.addText({ text:'click on button', pos:[ 0,0,3 ], rot:[-90,0,0]})
 

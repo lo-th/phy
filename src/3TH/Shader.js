@@ -195,6 +195,17 @@ export class Shader {
 
         ShaderChunk.common = s;
 
+        /*ShaderChunk.project_vertex = `
+            vec4 mvPosition = vec4( transformed, 1.0 );
+
+            #ifdef USE_INSTANCING
+                mvPosition = instanceMatrix * mvPosition;
+            #endif
+
+            mvPosition = modelViewMatrix * mvPosition;
+            gl_Position = projectionMatrix * mvPosition;
+        `;*/
+
 
 
 
@@ -368,7 +379,7 @@ export class Shader {
 
 	}
 
-    static add ( m ) {
+    static add ( m, beforeCompile = null ) {
 
         if( !isInit ) return
 
@@ -394,6 +405,7 @@ export class Shader {
 
         m.onBeforeCompile = function ( shader ) {
             Shader.modify( shader );
+            if(beforeCompile) beforeCompile(shader)
         }
 
         /*if(!m.defines){ 

@@ -26,6 +26,7 @@ import { Textfield } from './extra/Textfield.js';
 import { Container } from './extra/Container.js';
 import { MouseTool } from './extra/MouseTool.js';
 import { Breaker } from './extra/Breaker.js';
+import { Particle } from './extra/Particle.js';
 
 import { Pool } from '../3TH/Pool.js';
 import { sk } from '../3TH/character/SkeletonExtand.js'
@@ -106,6 +107,7 @@ let addControl = function(){}
 
 let buttons = []
 let textfields = []
+let particles = []
 //let skeletons = []
 
 const settings = {
@@ -542,6 +544,7 @@ export class Motor {
 
 		Motor.clearText()
 		//Motor.clearSkeleton()
+		Motor.clearParticleSolver()
 
 		Motor.cleartimout()
 
@@ -666,8 +669,8 @@ export class Motor {
 
 		if( mouseTool ) mouseTool.step()
 
-		postUpdate( root.reflow.stat.delta )
-		//postUpdate( timer.delta )
+		//postUpdate( root.reflow.stat.delta )
+		postUpdate( timer.delta )
 
 		//items.character.prestep()
 
@@ -698,6 +701,8 @@ export class Motor {
 
     	for( let n in root.instanceMesh ) root.instanceMesh[n].update()
 
+    	//Motor.updateParticleSolver()
+
     }
 
 	static clearInstance() {
@@ -707,12 +712,7 @@ export class Motor {
 
 	}
 
-	static addDirect( b ) {
-
-		root.scene.add( b )
-		root.tmpMesh.push( b )
-
-	}
+	
 
 	static texture( o = {} ) {
 		return Pool.texture( o )
@@ -727,13 +727,18 @@ export class Motor {
 
 	static getMaterialList(){ return Mat.getList(); }
 
-	static getOneMaterial( name ){ return Mat.get( name ) }
+	static getOneMaterial( name ){ 
+		console.log('use getMat')
+		return Mat.get( name ) 
+	}
 
 	static addMaterial( m, direct ){ Mat.set( m, direct ); }
 
 	static setEnvmapIntensity (v) { Mat.setEnvmapIntensity(v); }
 
-	static getMat () { return Mat; }
+	static getMat( name ){ return Mat.get( name ) }
+
+	//static getMat () { return Mat; }
 
 	//static getHideMat() { return Mat.get('hide'); }
 
@@ -896,6 +901,16 @@ export class Motor {
 		}*/
 	}
 
+
+	
+
+	static addDirect( b ) {
+
+		root.scenePlus.add( b )
+		root.tmpMesh.push( b )
+
+	}
+
 	static adds ( r = [], direct ){ 
 		let i = r.length, n = 0
 		while(i--){
@@ -906,6 +921,8 @@ export class Motor {
 	}
 
 	static add ( o = {}, direct = false ){
+
+		if ( o.isObject3D ) return Motor.addDirect( o )
 
 		if ( o.constructor === Array ) return Motor.adds( o, direct )
 
@@ -1149,6 +1166,28 @@ export class Motor {
 	static initParticle (){}
 	static addParticle (){}
 	static getParticle (){}
+
+	static addParticleSolver ( o ){
+		let s = new Particle( o )
+		particles.push(s)
+		return s
+	}
+
+	static updateParticleSolver () { 
+
+		let i = particles.length
+		while( i-- ) particles[i].update()
+		
+	}
+
+	static clearParticleSolver () { 
+
+		let i = particles.length
+		//while( i-- ) particles[i].dispose()
+    	particles = []
+		
+	}
+
 
 	//-----------------------
 	// TEXT

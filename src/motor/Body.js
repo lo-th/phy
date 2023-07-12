@@ -548,8 +548,10 @@ export class Body extends Item {
 			b.defMat = b.instance.material.name === 'base'
 			
 			b.id = b.instance.count;
+			b.mass = o.mass || 0
 			
 			b.name = b.instance.name + b.id;
+			//if( o.name ) b.name = o.name
 			o.name = b.name;
 			b.noScale = b.instance.noScale//false//o.type!=='box' || o.type!=='ChamferBox' || o.type!=='sphere';
 			if(o.sizeByInstance) b.noScale = false

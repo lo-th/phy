@@ -1,5 +1,5 @@
 import * as UIL from 'uil'
-import * as TWEEN from 'tween'
+//import * as TWEEN from 'tween'
 import { math } from './math.js';
 import { Pool } from './Pool.js';
 import { Motor } from '../motor/Motor.js'
@@ -356,7 +356,7 @@ export class Hub {
     }
 
     static setTopColor ( c = '#000000' ) {
-        top.style.background = c
+        if(top) top.style.background = c
     }
 
     static harmony ( v ) {
@@ -736,12 +736,12 @@ export class Hub {
 
     static setCross ( n, time ) {
 
-        if( crossTween !== null ) TWEEN.remove( crossTween );
+        /*if( crossTween !== null ) TWEEN.remove( crossTween );
 
         crossTween = new TWEEN.Tween( setting ).to( { cross:n }, time || 300 )
         .easing( TWEEN.Easing.Quartic.Out )
         .onUpdate( function( o ) { this.setCrossSize( o.cross ); }.bind(this) )
-        .start();
+        .start();*/
 
     }
 

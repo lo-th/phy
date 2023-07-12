@@ -44,7 +44,7 @@ addTower = ( o ) => {
             pz = tz - Math.sin(angle) * rad
 
             phy.add({
-
+                instance:'boxbase',
                 type:"box",
                 radius:0.02,
                 size:[sx,sy,sz],

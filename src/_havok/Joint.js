@@ -148,7 +148,7 @@ export class Joint extends Item {
 		switch ( mode ) {
 			case 'fixe':
 			for(let t in CA){
-            	if(t!=='LINEAR_DISTANCE') havok.HP_Constraint_SetAxisMode(j, CA[t], LM.LOCKED)
+            	if(t!=='LINEAR_DISTANCE') havok.HP_Constraint_SetAxisMode(j, CA[t], LM.LOCKED)	
             }
 			break;
 			case 'hinge': case "revolute":

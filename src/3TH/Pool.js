@@ -427,6 +427,8 @@ export const Pool = {
 
             const model = gltf.scene;
 
+            //console.log(gltf.animations)
+
             if( gltf.animations ){ 
                 const animations = gltf.animations
                 const mixer = new AnimationMixer( gltf.scene )
@@ -435,6 +437,18 @@ export const Pool = {
                 for ( let i = 0; i < animations.length; i ++ ) {
                     let anim = animations[ i ];
                     model.actions[ anim.name ] = mixer.clipAction( anim );
+                    //model.actions[ anim.name ].play()
+                }
+
+                model.play = (name) => {
+                    if(model.actions[ name ]){ 
+                        model.actions[ name ].paused = false
+                        model.actions[ name ].time = 0;
+                        model.actions[ name ].play()
+                    }
+                }
+                model.pause = (name, v=true) => {
+                    if(model.actions[ name ]) model.actions[ name ].paused = v
                 }
             }
             

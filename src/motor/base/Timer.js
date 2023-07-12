@@ -29,7 +29,10 @@ export class Timer {
 		if ( t.delta >= t.interval || this.unlimited ) {
 
 		    t.then = this.unlimited ? t.now : t.now - ( t.delta % t.interval )
-		    this.delta = t.delta * 0.001
+		    //if(t.delta>)
+		    //this.delta = t.delta * 0.001 // bug on outside
+		    this.delta = t.interval * 0.001
+		    //if(this.delta>this.time.interval)this.delta=this.time.interval
 		    this.elapsedTime += this.delta;
 		    
 		    //if ( t.now - 1000 > t.tmp ){ t.tmp = t.now; this.fps = t.n; t.n = 0; }; t.n++;

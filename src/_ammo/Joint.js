@@ -153,15 +153,22 @@ export class Joint extends Item {
 				if ( o.damping ) j.get_m_setting().set_m_damping( o.damping );
 				if ( o.impulse ) j.get_m_setting().set_m_impulseClamp( o.impulse );
 			break;
+			case 'distance':
+			    j = new Ammo.btGeneric6DofSpringConstraint( b1, b2, formA, formB, useA );
+				//j = new Ammo.btDistanceConstraint( b1, b2, posA, posB );
+				//if ( o.strength ) j.get_m_setting().set_m_tau( o.strength );
+				//if ( o.damping ) j.get_m_setting().set_m_damping( o.damping );
+				//if ( o.impulse ) j.get_m_setting().set_m_impulseClamp( o.impulse );
+			break;
 			case "hinge2": 
-			 j = new Ammo.btHinge2Constraint( b1, b2, posA, axisA, axisB );
-			 j.setAxis( this.v1.fromArray( [0,0,1]))
-			  break;
+			    j = new Ammo.btHinge2Constraint( b1, b2, posA, axisA, axisB );
+			    j.setAxis( this.v1.fromArray( [0,0,1]))
+			break;
 			case "hinge": case "revolute": 
-			j = new Ammo.btHingeConstraint( b1, b2, formA, formB, useA );
-			j.setAxis( axisA )
+			    j = new Ammo.btHingeConstraint( b1, b2, formA, formB, useA );
+			    j.setAxis( axisA )
 			 break;
-			case "prismatic":  j = new Ammo.btSliderConstraint( b1, b2, formA, formB, useA ); console.log(j); break;
+			case "prismatic": j = new Ammo.btSliderConstraint( b1, b2, formA, formB, useA );  break;
 			case 'ragdoll': j = new Ammo.btConeTwistConstraint( b1, b2, formA, formB ); break;
 			//case "dof": j = new Ammo.btGeneric6DofConstraint( b1, b2, formA, formB, useA ); break;
 			case "dof": 
@@ -250,6 +257,16 @@ export class Joint extends Item {
 			if( o.lm ) j.setLimit( o.lm[0]*torad, o.lm[1]*torad, o.lm[2] || 0.9, o.lm[3] || 0.3, o.lm[4] || 1.0 )
 			if( o.motor ) j.enableAngularMotor( true, o.motor[0]*torad, o.motor[1] )
 			
+			break;
+
+			case "distance" :
+				if(o.lm){
+				    j.setAngularLowerLimit( this.v1.fromArray([-Math.PI, -Math.PI, -Math.PI]) )
+				    j.setAngularUpperLimit( this.v1.fromArray([Math.PI, Math.PI, Math.PI]) )
+
+				    j.setLinearLowerLimit( this.v1.fromArray([o.lm[0], 0, 0]) )
+				    j.setLinearUpperLimit( this.v1.fromArray([o.lm[1], 0, 0]) )
+				}
 			break;
 
 

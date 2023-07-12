@@ -8,18 +8,16 @@
 	</head>
 	<body>
 
-
 	<script async src="https://unpkg.com/es-module-shims@1.3.6/dist/es-module-shims.js"></script>
 		<script type="importmap">{ "imports": { 
 			"three": "../../src/libs/three.module.js",
 			"three/nodes": "../../src/jsm/nodes/Nodes.js",
 			"three/addons/": "../../src/jsm/",
-			"uil": "../../src/libs/uil.module.js",
-			"3th/": "../../src/3TH/"
+			"uil": "../../src/libs/uil.module.js"
 		}}</script>
 
 	
-		<a id='newWindow' href='./geometry.html' target='_blank'>Open in New Window</a>
+		<!--<a id='newWindow' href='./geometry.html' target='_blank'>Open in New Window</a>-->
 		
 		<script type="module">
 
@@ -28,9 +26,9 @@
 
 			import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
-			import { Capsule, ChamferCyl, ChamferBox, SphereBox, SphereGeometryFix, createUV } from '3th/Geometry.js';
-			import { Reflector } from '3th/objects/Reflector.js';
-			import { Env } from '3th/Env.js';
+			import { Capsule, ChamferCyl, ChamferBox, SphereBox, SphereGeometryFix, createUV } from '../../src/3TH/Geometry.js';
+			import { Reflector } from '../../src/3TH/objects/Reflector.js';
+			import { Env } from '../../src/3TH/Env.js';
 
 
 			let container, controls;
@@ -69,12 +67,12 @@
 				if( toneMapping ){
 					renderer.toneMapping = THREE.ACESFilmicToneMapping;
 					renderer.toneMappingExposure = 0.8;
-					renderer.useLegacyLights = false;
+					//renderer.useLegacyLights = false;
 				} else {
 					renderer.toneMapping = THREE.NoToneMapping;
 				}
+				renderer.useLegacyLights = true;
 
-				if( encoding )  renderer.outputEncoding = THREE.sRGBEncoding;
 
 				container.appendChild( renderer.domElement );
 

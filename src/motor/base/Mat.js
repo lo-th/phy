@@ -50,14 +50,18 @@ export const Mat = {
 
 	create:( o ) => {
 
-		let m;
+		let m, beforeCompile = null;
 
 		if( o.isMaterial ){
 			m = o
 		} else {
 
 			let type = o.type !== undefined ? o.type : 'Standard'
-			if(o.type) delete o.type
+			if( o.type ) delete o.type
+
+			beforeCompile = o.beforeCompile || null
+		    if( o.beforeCompile ) delete o.beforeCompile
+
 
 			if( o.thickness || o.sheen || o.clearcoat || o.transmission || o.specularColor ) type = 'Physical'
 
@@ -88,14 +92,14 @@ export const Mat = {
 		} 
 
 		if( mat[ m.name ] ) return null;
-	    Mat.set( m );
+	    Mat.set( m, false, beforeCompile );
 		return m;
 
 	},
 
-	set:( m, direct ) => {
+	set:( m, direct, beforeCompile ) => {
 
-		if(!direct) Mat.extendShader( m )
+		if(!direct) Mat.extendShader( m, beforeCompile )
 		mat[m.name] = m;
 
 	},
@@ -141,6 +145,8 @@ export const Mat = {
 				//case 'simple': m = Mat.create({ name:'simple', color:0x808080, metalness: 0, roughness: 1 }); break
 
 				case 'carbon': m = Mat.create({ name:'carbon', map:new CarbonTexture(), normalMap:new CarbonTexture(true), clearcoat: 1.0, clearcoatRoughness: 0.1, roughness: 0.5 }); break
+				case 'cloth': m = Mat.create({ name:'cloth', color:0x8009cf, roughness: 0.5, sheenColor:0xcb7cff, sheen:1, sheenRoughness:0.2 }); break
+
 
 				//case 'clear':  m = new MeshStandardMaterial({ color:0xFFFFFF, metalness: 0.5, roughness: 0 }); break
 				
@@ -177,6 +183,9 @@ export const Mat = {
 			    break
 				case 'hide':
 				    m = Mat.create({ name:'hide', type:'basic', visible:false });
+			    break
+			    case 'particle':
+				    m = Mat.create({ name:'particle', type:'basic', toneMapped: false, color:0x00ff00 });
 			    break
 
 

@@ -1,281 +1,325 @@
-let solver = null;
-const debug = false;
-
-let movementCount = 0
-
-const a_min = [-170, -135, -156, -185, -120, -350 ];
-const a_max = [ 170,  100, 120, 105, 120, 350 ];
-const anglular = { A1:0, A2:0, A3:0, A4:0, A5:0, A6:0, G:0 };
-const angles = [ 0, 0, 0, 0, 0, 0, 0, 0 ];
-let isAuto = false;
-
-const angle = [
-    [ -45, 45, -180, 90, -30, -120, 0, 0 ],
-    [ 0, -40, -60, 0, -60, 90, -0.3, 0.3 ],
-    // reach for cube
-    [ 0, -76, -55, 0, -45, 0, -0.3, 0.3 ],
-    // close gripper
-    [ 0, -76, -55, 0, -45, 0, 0, 0 ],
-    [ 0, -40, -60, 0, -60, 0, 0, 0 ],
-    [ 90, 60, 45, 60, -30, 90, 0, 0 ],
-    // rest pose
-    [ -45, 45, -180, 90, -30, -120, 0, 0 ],
-
-    // now in reverse
-    // [ 90, 60, 45, 60, -30, 90, 0, 0 ],
-    [ 0, -40, -60, 0, -60, 0, 0, 0 ],
-    // place object
-    [ 0, -76, -55, 0, -45, 0, 0, 0 ],
-    // open gripper
-    [ 0, -76, -55, 0, -45, 0, -0.3, 0.3 ],
-    [ 0, -40, -60, 0, -60, 90, -0.3, 0.3 ],
-    [ 0, -40, -60, 0, -60, 90, 0, 0 ],
-    // final rest pose
-    [ -45, 45, -180, 90, -30, -120, 0, 0 ],
-];
+const Botsetting = {
+    speed: 0.1,
+    stiffness: 1000,
+    damping: 100,
+    forceLimit: 1000,
+    legMass:1,
+    bodyMass:8,
+}
+const debug = 0;
+const single = 0;
+const bots = []
+let meshes
 
 demo = () => {
 
-    phy.view({ 
-        envmap:'clear', ground:true,
-        phi:20, theta:20, distance:14, x:4, y:6, z:0, fov:70 
-    })
+    phy.log('use key WSAD or ZSQD to move')
 
-    phy.set({ substep:1, gravity:[0,-9.81,0] })
+    phy.view({ envmap:'factory', envblur:0.3, ground:true, fog:true, fogDist:0.02 })
 
-    phy.add({ type:'plane', size:[300,1,300], visible:false });
-    phy.add({ pos:[10,0.25,0], rot:[0,0,0], size:[3.0,0.5,0.5], mass:1, 
-        friction:0.5//, enableCCD:true, speculativeCCD:true//, enableCCD_FRICTION:true, ccdMaxContact:0.001, 
-    })
+    phy.set({ substep:1, gravity:[0,-9.81,0], key:true })
 
-    phy.load(['./assets/models/kuka_arm.glb'], onComplete )
+    phy.add({ type:'plane', size:[300,1,300], visible:false, friction:1 });
+
+    phy.load(['./assets/models/spider.glb'], onComplete )
 
 }
 
 onComplete = () => {
+    // load extra script
+    phy.extraCode( './demos/extra/SpiderAi.js', initRobot );
+}
 
-    //const mats = phy.getMaterial('kuka_arm', true);
-    const groups = phy.getGroup('kuka_arm', true, true );
+initRobot = () => {
 
-    solver = phy.add({ type:'solver', name:'ARM', iteration:32, fix:true, needData:true });
+    meshes = phy.getMesh('spider', true );
 
-    //-----------------------------------------
-    //    BONES
-    //-----------------------------------------
+    let i = 10
+    let x = 0, z = 0, n = 0, l = 0
+    if(single) i = 1
 
-    phy.add({
-        type:'box', name:'base', linked:'null', solver:'ARM',
-        mesh:groups.base, meshSize:10, debug:debug,// material:mats,
-        pos:[0, 0, 0], size:[ 2.1, 2.24, 2.1 ], localPos:[0, 1.12, 0], mass:15,
-        filter:[2,-1,1,0], dmv:[0.2,0.2,100,20],
-    });
+    while(i--){
 
-    phy.add({
-        type:'box', name:'axis_1', linked:'base', solver:'ARM',
-        mesh:groups.axis_1, meshSize:10, debug:debug,// material:mats,
-        pos:[0, 2.24, 0], size:[ 2.1, 2.62, 2.8 ], localPos:[0, 1.31, 0], mass:15,
-        filter:[2,1,1,0], dmv:[0.2,0.2,100,20],
-    });
+        x = -8 + n*4
+        z = -l*4
+        n++
+        if(n===5){  n = 0; l++; }
+        if(single){ x = 0; z = 0; }
 
-    phy.add({
-        type:'box', name:'axis_2',  linked:'axis_1', solver:'ARM',
-        mesh:groups.axis_2, meshSize:10, debug:debug,// material:mats,
-        pos:[0.25, 4, 0], size:[ 1.2, 5.6, 1.2 ], localPos:[0, 2.8, 0], mass:10,
-        filter:[2,1,1,0], dmv:[0.2,0.2,100,20],
-    });
+        bots[i] = new Bot({id:i, pos:[x,0.5,z]})
 
-    phy.add({
-        type:'box', name:'axis_3', linked:'axis_2', solver:'ARM',
-        mesh:groups.axis_3, meshSize:10, meshRot:[0,0,0], debug:debug,// material:mats,
-        pos:[0.25, 9.6, 0], size:[ 1.2, 1.17, 1.9 ], localPos:[0, 0.585, 0], mass:4,
-        filter:[2,1,1,0], dmv:[0.2,0.2,100,20],
-    });
-
-    phy.add({
-        type:'box', name:'axis_4', linked:'axis_3', solver:'ARM',
-        mesh:groups.axis_4, meshSize:10, debug:debug,// material:mats,
-        pos:[-0.1, 10.77, 0], size:[ 1.2, 3.978, 1.2 ], localPos:[0, 1.989, 0], mass:6,
-        filter:[2,1,1,0], dmv:[0.2,0.2,100,20],
-    });
-
-    phy.add({
-        type:'box', name:'axis_5', linked:'axis_4', solver:'ARM',
-        mesh:groups.axis_5, meshSize:10, debug:debug,// material:mats,
-        pos:[-0.1, 14.75, 0], size:[ 0.6, 0.665, 0.6 ], localPos:[0, 0.3325, 0], mass:3,
-        filter:[2,1,1,0], dmv:[0.2,0.2,100,20],
-    });
-
-    phy.add({
-        type:'box', name:'axis_6', linked:'axis_5', solver:'ARM',
-        mesh:groups.axis_6, meshSize:10, debug:debug,// material:mats,
-        pos:[-0.1, 15.415, 0], size:[ 0.6, 1.135, 0.6 ], localPos:[0, 0.5675, 0], mass:2,
-        filter:[2,1,1,0], dmv:[0.2,0.2,100,20],
-    });
-
-    // gripper
-
-    phy.add({
-        type:'box', name:'finger_2', linked:'axis_6', solver:'ARM',
-        mesh:groups.finger_2, meshSize:10, meshRot:[0,0,0], debug:debug,// material:mats,
-        pos:[-0.1, 16.55, 0], size:[ 0.2, 0.46, 0.1 ], localPos:[0, 0.23, 0.05], mass:1,
-        filter:[2,1,1,0], dmv:[0.2,0.2,100,20],
-        friction:1, enableCCD:true, speculativeCCD:true//, enableCCD_FRICTION:true, ccdMaxContact:0.001, 
-    });
-
-    phy.add({
-        type:'box', name:'finger_1', linked:'axis_6', solver:'ARM',
-        mesh:groups.finger_1, meshSize:10, meshRot:[0,0,0], debug:debug,// material:mats,
-        pos:[-0.1, 16.55, 0], size:[ 0.2, 0.46, 0.1 ], localPos:[0, 0.23, -0.05], mass:1,
-        filter:[2,1,1,0], dmv:[0.2,0.2,100,20],
-        friction:0.5//, enableCCD:true, speculativeCCD:true//, enableCCD_FRICTION:true, ccdMaxContact:0.001, 
-    });
-
-
-    //-----------------------------------------
-    //    JOINT
-    //-----------------------------------------
-
-    const stiffness = 100000000;
-    const damping = 0;
-    const forceLimit = Infinity;
-    const acceleration = false;
-    const forceLimit2 = 100;
-
-    solver.addJoint({
-        name:'A1', bone:'axis_1',
-        pos1:[0, 2.24, 0], pos2:[ 0, 0, 0 ],
-        type:'revolute',
-        limits:[['ry', -170, 170 ]],
-        drives: [['ry', stiffness, damping, forceLimit, acceleration ]],
-    });
-
-    solver.addJoint({
-        name:'A2', bone:'axis_2',
-        pos1:[0.25, 1.76, 0], pos2:[ 0, 0, 0 ],// rot1:[0,90,0],
-        type:'revolute',
-        limits:[['rz', -135, 100 ]],
-        drives: [['rz', stiffness, damping, forceLimit, acceleration ]],
-    });
-
-    solver.addJoint({
-        name:'A3', bone:'axis_3',
-        pos1:[0, 5.6, 0], pos2:[ 0, 0, 0 ],
-        type:'revolute',
-        limits:[['rz', -156, 120 ]],
-        drives: [['rz', stiffness, damping, forceLimit, acceleration ]],
-    });
-
-    solver.addJoint({
-        name:'A4', bone:'axis_4',
-        pos1:[-0.35, 1.17, 0], pos2:[ 0, 0, 0 ],
-        type:'revolute',
-        limits:[['ry', -185, 185 ]],
-        drives: [['ry', stiffness, damping, forceLimit, acceleration ]],
-    });
-
-    solver.addJoint({
-        name:'A5', bone:'axis_5',
-        pos1:[0, 3.978, 0], pos2:[ 0, 0, 0 ],
-        type:'revolute',
-        limits:[['rz', -120, 120 ]],
-        drives: [['rz', stiffness, damping, forceLimit, acceleration ]],
-    });
-
-    solver.addJoint({
-        name:'A6', bone:'axis_6',
-        pos1:[0, 0.665, 0], pos2:[ 0, 0, 0 ],
-        type:'revolute',
-        limits:[['ry', -350, 350 ]],
-        drives: [['ry', stiffness, damping, forceLimit, acceleration ]],
-    });
-
-    // gripper
-
-    solver.addJoint({
-        name:'A7',  bone:'finger_1',
-        pos1:[0, 1.135, 0], pos2:[ 0, 0, 0 ],
-        type:'prismatic',
-        limits:[['z', -0.3, 0 ]],
-        drives: [['z', stiffness, damping, forceLimit2, acceleration ]],
-        //maxJointVelocity:1,
-        frictionCoefficient:1,
-    });
-
-    solver.addJoint({
-        name:'A8', bone:'finger_2',
-        pos1:[0, 1.135, 0], pos2:[ 0, 0, 0 ],
-        type:'prismatic',
-        limits:[['z', 0, 0.3 ]],
-        drives: [['z', stiffness, damping, forceLimit2, acceleration ]],
-        //maxJointVelocity:1,
-        frictionCoefficient:1,
-    });
-
-    //-----------------------------------------
-    //    START
-    //-----------------------------------------
-
-    solver.start();
-
-    //-----------------------------------------
-    //    ID Inverse Dynamics Computations
-    //-----------------------------------------
-
-    //solver.commonInit();
-
-
-    //-----------------------------------------
-    //    DRIVE ANGLE
-    //-----------------------------------------
-
-    //solver.setAngles([ 0, -40, -60, 0, -60, 90, 0, 0 ], 1 ).then(() => console.log("done"));
-
-    //setTimeout( () => solver.setAngles([ 90, 60, 45, 0, -30, 90, -0.3, 0.3 ], 1 ), 1000 );
-    //solver.setAngles([ 0, -40, -60, 0, -60, 90, -0.3, 0.3 ], 2 ).then(() => console.log("done"))
-
+    }
+    
     //-----------------------------------------
     //    UPDATE
     //-----------------------------------------
 
     phy.setPostUpdate( update )
 
-    // phy intern timeout
-    phy.setTimeout( function(){ autoCommand() }, 1000 )
-
 }
+
 
 update = ( dt ) => {
 
-    /*if( isAuto ){
+    let key = phy.getKey()
+    
+    let action = -1
 
-        anglular.A1 = solver.joints[0].data.target.swing1;
-        anglular.A2 = solver.joints[1].data.target.swing2;
-        anglular.A3 = solver.joints[2].data.target.swing2;
-        anglular.A4 = solver.joints[3].data.target.swing1;
-        anglular.A5 = solver.joints[4].data.target.swing2;
-        anglular.A6 = solver.joints[5].data.target.swing1;
+    if( key[1] === -1 ) action = 1
+    if( key[1] === 1 ) action = 2
+    if( key[0] === 1 ) action = 3
+    if( key[0] === -1 ) action = 4
 
-        anglular.G = (solver.joints[7].data.target.z*10)/3;
+    let i = bots.length
+    while(i--){ 
+        bots[i].update( dt, action )
+    }
+
+}
+
+//-----------------------------------------
+//    BOT CLASS
+//-----------------------------------------
+
+class Bot {
+
+    constructor ( o = {} ) {
+
+        this.setting = { ...Botsetting }
+
+        this.id = o.id || 0
+        this.name = o.name || 'bot' + this.id
+        this.solver = null
+        this.pos = o.pos || [0, 2, 0]
+
+        // angle array order is from middle to out
+
+        //   2 ____ 3   //  10--6--2 ____ 3--7--11
+        //   |      |   //         |      |
+        //   |  \/  |   //         |  \/  |  
+        //   0 ____ 1   //   8--4--0 ____ 1--5--9  
+
+        this.init()
+
+        // add arduino move programme
+        this.ai = window.SpiderAi( this.solver )
+
+        //-----------------------------------------
+        //    DIRECT ANIMATION
+        //-----------------------------------------
+        //this.frame = 0
+        /*this.anims = {
+            jump: [ 
+                [  35, 35, 35, 35,   -90, -90, -90, -90,    0, 0, 0, 0 ],
+                [  45, 45, 45, 45,    30, 30, 30, 30,      -125, -125, -125, -125 ]
+            ]
+        }*/
+
+        //this.current = 'walk'
+        //this.play()
+
+    }
+
+    init(){
+
+        const pos = this.pos;
+        const id = this.id
+
+        const solver = phy.add({ type:'solver', name:this.name, iteration:4, fix:false, needData:true, neverSleep:true })
+
+        solver.speed = this.setting.speed
+
+        //-----------------------------------------
+        //    BONES
+        //-----------------------------------------
+
+        let def = {
+            //filter:[2,-1,1,0], 
+            //dmv:[0.2,0.2,100,20], 
+            debug:debug, 
+            meshSize:10, 
+            solver:this.name,
+            density:this.setting.legMass,
+        }
+
+        phy.add({
+            ...def,
+            type:'box', name:id+'_base', linked:'null',
+            pos:pos, size:[ 0.6, 0.25, 0.8 ], localPos:[0, 0.125, 0],
+            mesh:meshes.base,
+            density:this.setting.bodyMass*0.5,
+        })
+
+        phy.add({
+            ...def,
+            type:'sphere', name:id+'_top', linked:id+'_base',
+            pos:math.addArray( pos, [0,0.245,0] ), size:[ 0.33 ], 
+            mesh:meshes.top,
+            density:this.setting.bodyMass*0.5,
+        })
+
+        // legs position
+        const p = [[0.365, 0.28, -0.355], [-0.365, 0.28, -0.355], [0.365, 0.28, 0.355], [-0.365, 0.28, 0.355]]
+        const d = [[0.275, 0, 0], [-0.275, 0, 0], [0.275, 0, 0], [-0.275, 0, 0]]
+        const c = [[0.55, 0, 0], [-0.55, 0, 0], [0.55, 0, 0], [-0.55, 0, 0]]
+        const e = [[1.9654, 0.28, -0.355], [-1.9654, 0.28, -0.355], [1.9654, 0.28, 0.355], [-1.9654, 0.28, 0.355]]
+
+
+        let i = 4, rot, left, rev
+
+        while(i--){
+
+            ///left = i==0 || i==1
+            //rev = i==1 || i==2
+
+            left = i==0 || i==2
+            rev = i==1 || i==2
+
+            rot = [0, left ? 0: 180,0]
+            //rot = [0,  0,0]
+
+            phy.add({
+                ...def,
+                type:'box', 
+                name:id+'_barm'+i, 
+                linked:id+'_base',
+                size:[ 0.275, 0.4, 0.15 ], localPos:[0.1375, -0.055, 0], 
+                pos: math.addArray( pos, p[i] ), rot:rot,
+                mesh:rev ? meshes.barm_002 : meshes.barm_001,  
+            })
+
+            phy.add({
+                ...def,
+                type:'box', 
+                name:id+'_darm'+i, 
+                linked:id+'_barm'+i,
+                size:[ 0.04, 0.1, 0.4 ], localPos:[0.25, 0, 0], 
+                pos: math.addArray( math.addArray( pos, p[i] ), d[i]), rot:rot,
+                mesh: meshes.darm_001,
+            })
+
+            phy.add({
+                ...def,
+                type:'box', 
+                name:id+'_farm'+i, 
+                linked:id+'_darm'+i,
+                size:[ 0.4, 0.22, 0.15 ], localPos:[0.095, 0, 0], 
+                pos: math.addArray( math.addArray( pos, p[i] ), math.addArray(c[i], d[i])), rot:rot,
+                mesh: rev ? meshes.farm_002 : meshes.farm_001,
+            })
+
+            phy.add({
+                ...def,
+                //type:'sphere',
+                type:'cylinder', 
+                name:id+'_earm'+i, 
+                linked:id+'_farm'+i,
+                //size:[ 0.04 ], 
+                //size:[ 0.08, 0.08, 0.12 ],
+                size:[ 0.04, 0.12 ],
+                localRot:[90,0,0],
+                pos:math.addArray( pos, e[i] ), rot:rot,
+                mesh:meshes.earm_001,
+                friction:1,
+            })
+
+        }
+
+        //-----------------------------------------
+        //    JOINT
+        //-----------------------------------------
+
+        const stiffness = this.setting.stiffness;
+        const damping = this.setting.damping; // 0
+        const forceLimit = this.setting.forceLimit;
+        const acceleration = false;
+
+        i = 4
+        while(i--){
+            //left = i==0 || i==1
+            left = i==0 || i==2
+
+            solver.addJoint({
+                name:id+'_A'+i, bone:id+'_barm'+i,
+                pos1:p[i], pos2:[ 0, 0, 0 ],
+                type:'revolute',
+                rot1: [0,left? 0: 180,0],
+                limits: [['ry', -180, 180 ]],
+                inverse : i==1 || i==2 ? true : false,
+                position: [['ry', 45 ]],
+                drives: [['ry', stiffness, damping, forceLimit, acceleration ]],
+            });
+        }
+
+        i = 4
+        while(i--){
+            solver.addJoint({
+                name:id+'_A'+(4+i), bone:id+'_darm'+i,
+                pos1:[d[0][0], 0, 0], pos2:[ 0, 0, 0 ],
+                type:'revolute',
+                limits: [['rz', -180, 180 ]],
+                position: [['rz', 30 ]],
+                drives: [['rz', stiffness, damping, forceLimit, acceleration ]],
+            });
+        }
+
+        i = 4
+        while(i--){
+            solver.addJoint({
+                name:id+'_A'+(8+i), bone:id+'_farm'+i,
+                pos1:[c[0][0], 0, 0], pos2:[ 0, 0, 0 ],
+                type:'revolute',
+                limits: [['rz', -180, 180 ]], //i>1? [['swing2', 90, 270 ]] : [['swing2', -90, 90 ]],
+                position:[['rz', -125 ]],
+                drives: [['rz', stiffness, damping, forceLimit, acceleration ]],
+            })
+
+        }
+
+        i = 4
+        while(i--){
+            solver.addJoint({
+                name:id+'_BB'+(i+12), bone:id+'_earm'+i,
+                pos1:[0.7754, 0, 0], pos2:[ 0, 0, 0 ],
+                type:'fixe',
+            })
+        }
+
+        solver.addJoint({
+            name:id+'_AAA', bone:id+'_top',
+            pos1:[0, 0.245, 0], pos2:[ 0, 0, 0 ],
+            type:'fixe',
+        })
+
+        //-----------------------------------------
+        //    START
+        //-----------------------------------------
+        
+        solver.start();
+
+        //solver.commonInit();
+
+        this.solver = solver;
+
+    }
+
+    update( dt, action = -1 ){
+        
+        this.ai.action = action
+        this.ai.update()
+        this.solver.driveJoints( dt );
+
+    }
+
+    /*play(){
+
+        const name = this.current
+        if( this.frame >= this.anims[name].length ) this.frame = 0
+        this.solver.setAngles( this.anims[name][this.frame], this.speed ).then( this.play.bind(this) );
+        this.frame++
 
     }*/
 
-    solver.driveJoints( dt );
-
-    //solver.driveJoints( 0.016 );
-}
-
-autoCommand = ( n = 0, time = 2 ) => {
-
-    if( n === angle.length ){
-        console.log('complete')
-        isAuto = false;
-        movementCount = 0
-        phy.setTimeout( function(){ autoCommand() }, 1000 )
-        return;
-    }
-
-    isAuto = true;
-
-    solver.setAngles( angle[n], time ).then(() => autoCommand( movementCount++ ) );
+    
 
 }

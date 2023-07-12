@@ -1,6 +1,6 @@
 export const Max = {
 	body:2000,
-    joint:100,
+    joint:500,
     contact:50,
     ray:100,
     character:50,
@@ -62,7 +62,7 @@ export const getArray = function ( engine, full = false ){
 
 export const getType = function (o){
     switch(o.type){
-        case 'plane': case 'box': case 'sphere': case 'highSphere': case 'cylinder': case 'stair':
+        case 'plane': case 'box': case 'sphere': case 'highSphere': case 'cylinder': case 'stair':case 'particle':
         case 'cone': case 'capsule': case 'mesh': case 'convex': case 'compound': case 'null':
         if ( !o.mass && !o.density && !o.kinematic ) return 'solid'
         else return 'body'

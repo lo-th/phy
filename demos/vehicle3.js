@@ -128,9 +128,9 @@ applyMaterial = ( model ) => {
     //const path = './assets/textures/akira/'
     const ao = 1
 
-    let Mat = phy.getMat()
-    mat['carGlass'] = Mat.get('carGlass');
-    mat['car'] = Mat.get('car');
+    //let Mat = phy.getMat()
+    mat['carGlass'] = phy.getMat('carGlass');
+    mat['car'] = phy.getMat('car');
 
     let m
     for( let o in model ){

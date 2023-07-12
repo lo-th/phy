@@ -432,8 +432,26 @@ export const Utils = {
 		}
 
 
-		//console.log(new Ammo.btTransform())
+
+
+
+		//Ammo.btTransform.prototype.free = function (){
+			//Ammo._free( this.ptr );
+		//}
+
+		/*class btDistanceConstraint extends Ammo.btPoint2PointConstraint {
+			constructor(b1, b2, posA, posB) {
+				super(b1, b2, posA, posB)
+			}
+		}
+
+		Ammo.btDistanceConstraint = btDistanceConstraint
+
+
+		console.log()*/
 
 	} 
 
 }
+
+

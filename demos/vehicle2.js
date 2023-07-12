@@ -223,8 +223,8 @@ applyMaterial = ( model ) => {
     const path = './assets/textures/akira/'
     const ao = 1
 
-    let Mat = phy.getMat()
-    mat['carGlass'] = Mat.get('carGlass');
+    //let Mat = phy.getMat()
+    mat['carGlass'] = phy.getMat('carGlass');
 
     mat['kaneda'] = phy.material({
         name:'kaneda',

@@ -65,7 +65,7 @@ export class Ray extends Item {
 				cb.get_m_hitNormalWorld().toArray( AR, n+8 )
 
 				name = Ammo.castObject( cb.get_m_collisionObject(), Ammo.btRigidBody ).name;
-				if ( name === undefined ) name = Ammo.castObject( ray.get_m_collisionObject(), Ammo.btSoftBody ).name;
+				//if ( name === undefined ) name = Ammo.castObject( ray.get_m_collisionObject(), Ammo.btSoftBody ).name;
 				root.reflow.ray[i] = name;
 
 			}
