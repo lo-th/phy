@@ -1,11 +1,17 @@
 let max = 50, n = 0, tt = 300, models
-const friction = 0.8
-const bounce = 0.3
+const friction = 0.4
+const bounce = 0.1
 const dices = ['D20', 'D12', 'D10', 'D8', 'D6', 'D4']
 
 demo = () => {
 
-    //phy.view({ envmap:null, ground:true })
+    phy.view({ 
+        envmap:'lobe',
+        envblur:0.5,
+        groundAlpha:true,
+        groundColor:0x0e6136,
+        groundReflect:0.0, 
+    })
 
     // config physics setting
     phy.set({ substep:2, gravity:[0,-9.81,0]})
@@ -14,6 +20,10 @@ demo = () => {
     phy.add({ type:'plane', size:[300,1,300], visible:false, friction:friction, restitution:bounce })
 
     phy.load( './assets/models/dices.glb', onComplete )
+
+    let g = phy.getGround()
+    g.material.map = phy.texture({ url:'./assets/textures/stucco_c.jpg', repeat:[7,8] })
+    //g.material.normalMap = phy.texture({ url:'./assets/textures/floor_n.jpg', repeat:[7,8] })
 
 }
 
@@ -24,11 +34,11 @@ onComplete = () => {
     // make material
     phy.material({ 
         name:'dices', 
-        roughness: 0.25, 
-        metalness: 0.5, 
+        roughness: 0.0, 
+        metalness: 0.0, 
         map: phy.texture({ url:'./assets/textures/dices/dices_c.png' }), 
         normalMap: phy.texture({ url:'./assets/textures/dices/dices_n.png' }),
-        normalScale:[2,-2],
+        normalScale:[10,-10],
     })
 
     // add some dices
@@ -49,7 +59,7 @@ add = () => {
         size:[math.rand(25, 50)],
         pos:[math.rand(-2, 2),math.rand(8, 10),math.rand(-2, 2)],
         rot:[math.rand(-180, 180),math.rand(-180, 180),math.rand(-180, 180)],
-        density:1,
+        density:0.1,
         friction:friction,
         restitution:bounce,
     })
