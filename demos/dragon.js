@@ -145,7 +145,7 @@ onComplete = () => {
 
 update = ( delta ) => {
 
-    dragon.mixer.update( delta*0.5 );
+    dragon.mixer.update( delta );
 
     let m = math.rand(0,10)
     if(m<0.02 && dragon.actions.mouth.paused){
@@ -165,8 +165,6 @@ update = ( delta ) => {
     head.rotation.set(0, headLook.y*math.torad, (headLook.z+180)*math.torad, 'XYZ' )
 
     updateBone()
-
-
 
     tt += delta * 1;
     if(r<2) r+=0.01
