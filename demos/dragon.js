@@ -1,7 +1,8 @@
-let dragon, head
-const nodes = []
+let dragon, head;
+const nodes = [];
 var tt = 0, r = 0;
-const debug = false
+const debug = false;
+const headLook = new THREE.Vector3();
 
 demo = () => {
 
@@ -159,7 +160,8 @@ update = ( delta ) => {
     phy.change( [{ name:'b_spine_0', pos:[ x, y, -1 ] }] );
 
     const v = phy.getMouse() || {x:0, y:0};
-    head.rotation.set(0,-(v.y*20)*math.torad, (180-(v.x*20))*math.torad, 'XYZ' )
+    headLook.lerp({ x:0, y:-v.y*20, z:-v.x*20 }, delta );
+    head.rotation.set(0, headLook.y*math.torad, (headLook.z+180)*math.torad, 'XYZ' )
 
     updateBone()
 
