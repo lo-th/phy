@@ -657,7 +657,7 @@ const addLight = () => {
 	s.camera.top = s.camera.right = 40//20
 	s.camera.bottom = s.camera.left = -40
 	s.camera.near = 5//5
-	s.camera.far = 35//33
+	s.camera.far = 50//33
 
 	s.bias = !isWebGPU ? -0.005 : 0.005
 	//s.bias = 0.005

@@ -192,6 +192,8 @@ export class Motor {
 
 	//static setExtraTexture ( f ) { extraTexture = f }
 
+	static getMouse () { return mouseTool ? mouseTool.mouse:null }
+
 	
 
 	static setAddControl ( f ) { addControl = f }

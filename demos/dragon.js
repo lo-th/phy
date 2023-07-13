@@ -1,4 +1,4 @@
-let dragon
+let dragon, head
 const nodes = []
 var tt = 0, r = 0;
 const debug = false
@@ -60,11 +60,10 @@ onComplete = () => {
     models.dragon.castShadow = true;
     models.dragon.receiveShadow = false;
     let skeleton = models.dragon.skeleton
-
-    console.log( dragon.actions.mouth )
+    head = skeleton.getBoneByName('b_head');
+    //head.rotation.y = 45 * math.torad
 
     phy.add( dragon )
-
 
     // SPINE
 
@@ -75,6 +74,8 @@ onComplete = () => {
     let sv = new THREE.Vector3();
     let q = new THREE.Quaternion();
     let transform = new THREE.Matrix4().makeTranslation( 1, 0, 0 );
+
+
 
     // add node
 
@@ -124,7 +125,6 @@ onComplete = () => {
             visible:debug
         })
 
-        
     }
 
     dragon.actions.mouth.loop = THREE.LoopOnce
@@ -158,7 +158,12 @@ update = ( delta ) => {
 
     phy.change( [{ name:'b_spine_0', pos:[ x, y, -1 ] }] );
 
+    const v = phy.getMouse() || {x:0, y:0};
+    head.rotation.set(0,-(v.y*20)*math.torad, (180-(v.x*20))*math.torad, 'XYZ' )
+
     updateBone()
+
+
 
     tt += delta * 1;
     if(r<2) r+=0.01
