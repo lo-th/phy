@@ -6,7 +6,7 @@ const debug = false
 demo = () => {
 
     // config environement
-    phy.view({ envmap:'bridge', envblur: 0.5, groundPos:[0,-8,0], groundSize:[200,200], y:0, fov:60, distance:10 })
+    phy.view({ envmap:'pendora', envblur: 0.5, groundPos:[0,-8,0], groundSize:[200,200], y:0, fov:60, distance:10, fogexp:0.04 })
 
     // config physics setting
     phy.set( {substep:1, gravity:[0,0,0]})
@@ -29,14 +29,19 @@ onComplete = () => {
     let material = phy.material({ 
         name:'dragon', 
         roughness: 0.0, 
-        metalness: 0.8, 
-        aoMap: phy.texture({ url:'./assets/textures/dragon/dragon_ao.jpg' }), 
-        normalMap: phy.texture({ url:'./assets/textures/dragon/dragon_n.jpg' }),
+        metalness: 0.0, 
+        map: phy.texture({ url:'./assets/textures/dragon/dragon_d.jpg' }), 
+        //aoMap: phy.texture({ url:'./assets/textures/dragon/dragon_ao.jpg' }), 
+       
         alphaMap: phy.texture({ url:'./assets/textures/dragon/dragon_a.jpg' }),
-        normalScale:[1,1],
+        normalMap: phy.texture({ url:'./assets/textures/dragon/dragon_n.jpg' }),
+        normalScale:[4,4],
         //alphaTest:0.9,
         transparent:true,
-        clearcoat:1.0,
+        sheen:0.5,
+        sheenColor:0x00FF00,
+        sheenRoughness: 1,
+        //clearcoat:1.0,
         wireframe:debug
     })
 

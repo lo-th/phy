@@ -3,7 +3,7 @@ let box = []
 demo = () => {
 
     phy.view({ 
-        ground:false, envmap:'alien', fog:true, fogDist:0.07,
+        ground:false, envmap:'alien', fogexp:0.1,
         phi:0, theta:0, distance:10, x:0, y:0, z:0, fov:70 
     })
 

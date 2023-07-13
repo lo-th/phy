@@ -1164,15 +1164,21 @@ const view = ( o = {} ) => {
 
 	if( o.envmap ){ 
 		setEnv( o.envmap, true )
-
 		options.envBlur = o.envblur || 0
 		Env.setBlur( options.envBlur )
 	}
 
 	setShadow( o.shadow )
 
-	//if( o.fog ) scene.fog = new THREE.FogExp2( Env.getFogColor().getHex(), o.fogDist || 0.01 )
-	if( o.fog ) scene.fog = new THREE.Fog( Env.getFogColor().getHex(), 1, 50 )
+	//if( o.fog ) 
+	if( o.fog ){ 
+		scene.fog = new THREE.Fog( Env.getFogColor().getHex(), 1, 50 )
+		options.fogMode = 1
+	}
+	else if( o.fogexp ){ 
+		scene.fog = new THREE.FogExp2( Env.getFogColor().getHex(), o.fogexp || 0.01 )
+		options.fogMode = 0
+	}
 	else scene.fog = null
 
 	// reflect floor
@@ -1185,6 +1191,8 @@ const view = ( o = {} ) => {
 	//if( isLoadCode ) controls.moveCam( {...cam, ...o })
 
 	if( isLoadCode ) setCamera( o )
+
+	Shader.up( options )
 	
 }
 
