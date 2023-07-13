@@ -39,9 +39,9 @@ onComplete = () => {
         normalScale:[4,4],
         //alphaTest:0.9,
         transparent:true,
-        sheen:0.5,
-        sheenColor:0x00FF00,
-        sheenRoughness: 1,
+        sheen:1.0,
+        sheenColor:0xe6c278,
+        sheenRoughness: 0.25,
         //clearcoat:1.0,
         wireframe:debug
     })
