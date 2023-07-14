@@ -145,7 +145,7 @@ onComplete = () => {
 
 update = ( delta ) => {
 
-    dragon.mixer.update( delta );
+    dragon.mixer.update( delta*0.5 );
 
     let m = math.rand(0,10)
     if(m<0.02 && dragon.actions.mouth.paused){
