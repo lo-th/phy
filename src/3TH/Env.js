@@ -8,6 +8,7 @@ import {
 } from 'three';
 
 import { RGBELoader } from 'three/addons/loaders/RGBELoader.js';
+import { EXRLoader } from 'three/addons/loaders/EXRLoader.js';
 import { GroundProjectedEnv } from 'three/addons/objects/GroundProjectedEnv.js';
 import { ImgTool } from './utils/ImgTool.js';
 //import { math } from './math.js';
@@ -61,6 +62,7 @@ let tt = 0
 
 const tmpSize = new Vector2()
 const hdrLoader = new RGBELoader();
+const exrLoader = new EXRLoader();
 
 let hdrTool = null
 let useHdrTool = false
@@ -198,7 +200,7 @@ export class Env {
 
     }
 
-	static async load ( url, callback ) {
+	static async load ( url, callback, type = 'hdr' ) {
 
 		data = {
 			pos: new Vector3(0,1,0),
@@ -207,14 +209,10 @@ export class Env {
 			envmap:null,
 		}
 
-		/*hdr = hdrLoader.load( url, ()=>{
+		if( type === 'hdr' ) hdr = await hdrLoader.loadAsync( url );
+		else if( type === 'exr' ) hdr = await exrLoader.loadAsync( url );
 
-			Env.process()
-			if( callback ) callback()
-
-		});*/
-
-		hdr = await hdrLoader.loadAsync( url );
+		//console.log(hdr)
 
 		gamma = 2.2
 		if(envName==='basic') gamma = 2.68

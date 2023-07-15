@@ -418,7 +418,7 @@ const init = () => {
 
 	// RENDERER
 
-	if( isWebGPU ) renderer = new WebGPURenderer({antialias:false})
+	if( isWebGPU ) renderer = new WebGPURenderer({ antialias:false, alpha:false, premultipliedAlpha: false })
 	else renderer = new THREE.WebGLRenderer( { 
 		antialias:antialias, 
 		powerPreference:powerPreference,
@@ -429,6 +429,7 @@ const init = () => {
 	
 	renderer.setPixelRatio( pixelRatio )
 	renderer.setSize( size.w, size.h )
+	renderer.setClearColor( 0x000000, 1 );
 
 	//renderer.outputColorSpace = THREE.sRGBEncoding
 	//renderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -538,12 +539,12 @@ const drop = (e) => {
 
     //console.log(type, name)
 
-    switch(type){
+    switch( type ){
     	case 'js': reader.readAsText( file ); break;
     	case 'fbx': case 'glb':  reader.readAsArrayBuffer( file ); break;
-    	case 'hdr' : 
+    	case 'hdr' : case 'exr' :
     	options.envmap = finalName
-    	Env.load( ( window.URL || window.webkitURL ).createObjectURL( file )); 
+    	Env.load( ( window.URL || window.webkitURL ).createObjectURL( file ), null, type ); 
     	break;
     }
 
