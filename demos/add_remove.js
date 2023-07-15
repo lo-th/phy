@@ -6,10 +6,10 @@ const dices = ['D20', 'D12', 'D10', 'D8', 'D6', 'D4']
 demo = () => {
 
     phy.view({ 
-        envmap:'lobe',
+        envmap:'park',
         envblur:0.5,
         groundAlpha:true,
-        groundColor:0x0e6136,
+        groundColor:0x0e7547,
         groundReflect:0.0, 
     })
 
@@ -22,8 +22,9 @@ demo = () => {
     phy.load( './assets/models/dices.glb', onComplete )
 
     let g = phy.getGround()
-    g.material.map = phy.texture({ url:'./assets/textures/stucco_c.jpg', repeat:[7,8] })
-    //g.material.normalMap = phy.texture({ url:'./assets/textures/floor_n.jpg', repeat:[7,8] })
+    //g.material.map = phy.texture({ url:'./assets/textures/dices/carpet_n.jpg', repeat:[8,8] })
+    g.material.normalMap = phy.texture({ url:'./assets/textures/dices/carpet_n.jpg', repeat:[20,20] })
+    //g.material.normalScale.set(0.2,0.2)
 
 }
 
@@ -38,7 +39,7 @@ onComplete = () => {
         metalness: 0.0, 
         map: phy.texture({ url:'./assets/textures/dices/dices_c.png' }), 
         normalMap: phy.texture({ url:'./assets/textures/dices/dices_n.png' }),
-        normalScale:[10,-10],
+        normalScale:[5,-5],
     })
 
     // add some dices
@@ -59,7 +60,7 @@ add = () => {
         size:[math.rand(25, 50)],
         pos:[math.rand(-2, 2),math.rand(8, 10),math.rand(-2, 2)],
         rot:[math.rand(-180, 180),math.rand(-180, 180),math.rand(-180, 180)],
-        density:0.1,
+        density:1,
         friction:friction,
         restitution:bounce,
     })
