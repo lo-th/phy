@@ -139,6 +139,8 @@ onComplete = () => {
     dragon.play( 'mouth' )
     dragon.pause( 'mouth' )
 
+    addEffect()
+
     phy.setPostUpdate ( update )
 
 }
@@ -161,7 +163,7 @@ update = ( delta ) => {
     phy.change( [{ name:'b_spine_0', pos:[ x, y, -1 ] }] );
 
     const v = phy.getMouse() || {x:0, y:0};
-    headLook.lerp({ x:0, y:-v.y*20, z:-v.x*20 }, delta );
+    headLook.lerp({ x:0, y:-v.y*20, z:-v.x*20 }, delta*2 );
     head.rotation.set(0, headLook.y*math.torad, (headLook.z+180)*math.torad, 'XYZ' )
 
     updateBone()
@@ -189,5 +191,27 @@ updateBone = () => {
 
     }
 
+}
+
+addEffect = () => {
+
+    phy.addParticle({
+        "type":"octo",
+        "position":[0,-8,-10],
+        "colors":[ 0.87, 0.87, 0.80, 1,
+        0.87, 0.87, 0.80, 0 ],
+        "numParticles": 100,
+        "lifeTime": 6,
+        "timeRange": 6,
+        "startSize": 0.1,
+        "endSize": 0.2,
+        "sizeRange": 0.1,
+        
+        "positionRange": [ 30, 0, 30 ],
+        "velocity": [ 0.5, 2.0, 0.5 ],
+        "velocityRange": [ 0.2, 1, 0.2 ],
+        "blending":"normal",
+        "spinSpeedRange": 1
+    })
 
 }

@@ -39,6 +39,7 @@ import { Motor } from './motor/Motor.js'
 
 // PARTICLE
 import { Smoke } from '../build/smoke.module.js'
+//import { Smoke } from './3TH/_smoke/Smoke.js'
 
 // WEBGPU test
 import WebGPU from 'three/addons/capabilities/WebGPU.js';
