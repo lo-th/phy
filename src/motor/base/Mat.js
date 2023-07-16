@@ -37,6 +37,7 @@ export const Colors = {
     gold2:new Color( 0.998, 0.981, 0.751 ),
     copper:new Color( 0.96467984, 0.37626296, 0.25818297 ),
     carPaint:new Color( 0.1037792, 0.59212029, 0.85064936 ),
+    clay:new Color( 0.604,0.584,0.497 ),
 }
 
 export const Mat = {
@@ -132,6 +133,7 @@ export const Mat = {
 			    //case 'body':   m = new MeshStandardMaterial({ color:Colors.body, ...matExtra }); break//0xFFF1D2
 			    case 'sleep':  m = Mat.create({ name:'sleep', color:Colors.sleep, ...matExtra }); break//0x46B1C9
 			    case 'solid':  m = Mat.create({ name:'solid', color:Colors.solid, metalness: 0.1, roughness: 0.8, }); break
+			    case 'clay':  m = Mat.create({ name:'clay', color:Colors.clay, metalness: 0.0, roughness: 0.9, }); break
 			    case 'base':   m = Mat.create({ name:'base', color:Colors.base, ...matExtra }); break
 
 			    case 'black':   m = Mat.create({ name:'black', color:Colors.black, metalness: 0, roughness: 0.25 }); break
@@ -154,7 +156,7 @@ export const Mat = {
 				case 'skinny':   m = Mat.create({ name:'skinny', color:0xe0ac69, ...matExtra }); break
 				
 				case 'glass':  m = Mat.create({ name:'glass', color:0xFFFFff, transparent:true, opacity:0.8, depthTest:true, depthWrite:true, roughness:0.02, metalness:0.0, /*side:DoubleSide,*/ alphaToCoverage:true, premultipliedAlpha:true, transmission:1, clearcoat:1, thickness:0.02  }); break
-				case 'glassX':  m = Mat.create({ name:'glassX', color:0xFFFFff, transparent:false, opacity:1.0, roughness:0.1, metalness:0, side:DoubleSide, transmission:1.0, clearcoat:1, thickness:0.1, ior:1.5, envMapIntensity:2.2, shadowSide:1, reflectivity:0.5, iridescence:0.5 }); break
+				case 'glassX':  m = Mat.create({ name:'glassX', color:0xeeeeee, transparent:false, opacity:1.0, roughness:0.03, metalness:0, side:DoubleSide, transmission:1.0, clearcoat:1, clearcoatRoughness:0.0, thickness:0.6, ior:1.52, envMapIntensity:1.0, shadowSide:1, reflectivity:0.5, iridescence:0 }); break
 				case 'plexi':  m = Mat.create({ name:'plexi', color:0xFFFFff, transparent:true, opacity:0.4, metalness:1, roughness:0, clearcoat:1, side:DoubleSide }); break
 				case 'glass2': m = Mat.create({ name:'glass2', color:0xCCCCff, transparent:true, opacity:0.3  }); break
 				case 'sat': m = Mat.create({ name:'sat', color:0xffffff, metalness: 1, roughness:0, clearcoat:1  }); break

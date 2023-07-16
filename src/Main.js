@@ -422,8 +422,8 @@ const init = () => {
 	else renderer = new THREE.WebGLRenderer( { 
 		antialias:antialias, 
 		powerPreference:powerPreference,
-		premultipliedAlpha: false,
-		stencil: false,
+		//premultipliedAlpha: false,
+		//stencil: false,
 		alpha: false,
 	})
 	

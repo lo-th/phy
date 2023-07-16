@@ -711,8 +711,8 @@ export const Gui = {
 
 	    if(m.envMapIntensity!==undefined) g3.add( m, 'envMapIntensity', { rename:'env', min:0, max:4 })
 	    if(m.thickness!==undefined) g3.add( m, 'thickness', { min:-4, max:4 })
-	    if(m.clearcoat!==undefined) g3.add( m, 'clearcoat', { min:0, max:4 })
-	    if(m.clearcoatRoughness!==undefined) g3.add( m, 'clearcoatRoughness', { min:0, max:4 })
+	    if(m.clearcoat!==undefined) g3.add( m, 'clearcoat', { min:0, max:1 })
+	    if(m.clearcoatRoughness!==undefined) g3.add( m, 'clearcoatRoughness', { min:0, max:1 })
 
 
 
