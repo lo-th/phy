@@ -19,7 +19,7 @@ demo = () => {
     phy.set({ substep:2, gravity:[0,-30,0]})
 
     // add static plane 
-    phy.add({ type:'plane', size:[300,1,300], visible:false, friction:0.5, restitution:0.1 })
+    phy.add({ type:'plane', size:[300,1,300], visible:false, friction:0.3, restitution:0.1 })
 
     phy.load( ['./assets/models/dices.glb', './assets/models/slide.glb'], onComplete )
 
@@ -34,7 +34,7 @@ onComplete = () => {
 
     models = phy.getMesh('dices');
 
-    // make material
+    // make dices material
     phy.material({ 
         name:'dices', 
         roughness: 0.0, 
@@ -44,17 +44,19 @@ onComplete = () => {
         normalScale:[5,-5],
     })
 
+    let slideMesh = phy.getMesh('slide');
+
     phy.add( {
         type:'mesh',
-        mesh: phy.getMesh('slide').slide_h,
-        shape: phy.getMesh('slide').slide.geometry,
-        restitution:0.1, friction:0,
+        mesh: slideMesh.slide_h,
+        shape: slideMesh.slide.geometry,
+        restitution:0.1, friction:0.0,
         size:[0.36],
         meshScale:[0.36],
         material:'glassX'
     })
 
-    let socle = phy.getMesh('slide').socle
+    let socle = slideMesh.socle
     socle.material = phy.getMat('clay')
     socle.receiveShadow = true
     socle.castShadow = true
@@ -81,11 +83,10 @@ add = () => {
         name: 'dice' + n,
         material:'dices',
         shape: models[ dices[math.randInt(0, 5)] ].geometry,
-        size:[math.rand(25, 50)],
-        //pos:[math.rand(-2, 2),math.rand(8, 10),math.rand(-2, 2)],
+        size:[math.rand(20, 60)],
         pos:[4.8,10,2],
         rot:[math.rand(-180, 180),math.rand(-180, 180),math.rand(-180, 180)],
-        density:0.2,
+        density:0.5,
         friction:0.2,
         staticFriction:0,
         restitution:0.2,
@@ -102,22 +103,23 @@ add = () => {
 addEffect = () => {
 
     phy.addParticle({
-        "type":"octo",
-        "position":[0,0,0],
-        "colors":[ 0.33, 0.34, 0.39, 1,
-        0.33, 0.34, 0.39, 0 ],
-        "numParticles": 100,
-        "lifeTime": 6,
-        "timeRange": 6,
-        "startSize": 0.07,
-        "endSize": 0.07,
-        "sizeRange": 0.025,
-        
-        "positionRange": [ 10, 0, 10 ],
-        "velocity": [ 0.5, 1.0, 0.5 ],
-        "velocityRange": [ 0.2, 0.5, 0.2 ],
-        "blending":"normal",
-        "spinSpeedRange": 1
+        type:"octo",
+        position:[0,0,0],
+        colors:[ 
+            0.33, 0.34, 0.39, 1,
+            0.33, 0.34, 0.39, 0 
+        ],
+        numParticles: 100,
+        lifeTime: 6,
+        timeRange: 6,
+        startSize: 0.07,
+        endSize: 0.07,
+        sizeRange: 0.025,
+        positionRange: [ 10, 0, 10 ],
+        velocity: [ 0.5, 1.0, 0.5 ],
+        velocityRange: [ 0.2, 0.5, 0.2 ],
+        blending:"normal",
+        spinSpeedRange: 1
     })
 
 }
