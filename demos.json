@@ -2,13 +2,13 @@
     "Basic": [ 
         "start", "basic", "joint", "capsule", "compound", "bridge",
         "gears", "terrain", "character", "kinematic", "random", "tower",
-        "gravity", "heroes", "heroes2", "break", "bullet", "evangelion", 
+        "gravity", "heroes", "heroes2", "bullet", "evangelion", 
         "blast", "skeleton", "material", "keva", "test", "dragon"
     ],
     "Dev" : [ 
         "dev/cloth", "dev/gears2", "dev/car_ray", "dev/mass", "dev/empty",
         "dev/car", "dev/collision", "dev/buttons", "dev/robot_arm", "dev/raycast", "dev/pinball",
-        "dev/vehicle2", "dev/vehicle3", "dev/mesh"
+        "dev/vehicle2", "dev/vehicle3", "dev/mesh", "dev/break"
     ],
     "Advanced" : [ 
         "diamond", "ragdoll", "chess", "million" 
