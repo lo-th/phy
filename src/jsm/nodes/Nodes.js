@@ -24,7 +24,7 @@ export { default as NodeKeywords } from './core/NodeKeywords.js';
 export { default as NodeUniform } from './core/NodeUniform.js';
 export { default as NodeVar } from './core/NodeVar.js';
 export { default as NodeVarying } from './core/NodeVarying.js';
-export { default as PropertyNode, property, diffuseColor, roughness, metalness, specularColor, shininess } from './core/PropertyNode.js';
+export { default as PropertyNode, property, output, diffuseColor, roughness, metalness, specularColor, shininess } from './core/PropertyNode.js';
 export { default as StackNode, stack } from './core/StackNode.js';
 export { default as TempNode } from './core/TempNode.js';
 export { default as UniformNode, uniform } from './core/UniformNode.js';
@@ -82,7 +82,7 @@ export { default as PositionNode, positionGeometry, positionLocal, positionWorld
 export { default as ReferenceNode, reference } from './accessors/ReferenceNode.js';
 export { default as ReflectVectorNode, reflectVector } from './accessors/ReflectVectorNode.js';
 export { default as SkinningNode, skinning } from './accessors/SkinningNode.js';
-export { default as SceneNode, backgroundBlurriness } from './accessors/SceneNode.js';
+export { default as SceneNode, backgroundBlurriness, backgroundIntensity } from './accessors/SceneNode.js';
 export { default as StorageBufferNode, storage } from './accessors/StorageBufferNode.js';
 export { default as TangentNode, tangentGeometry, tangentLocal, tangentView, tangentWorld, transformedTangentView, transformedTangentWorld } from './accessors/TangentNode.js';
 export { default as TextureNode, texture, /*textureLevel,*/ sampler } from './accessors/TextureNode.js';

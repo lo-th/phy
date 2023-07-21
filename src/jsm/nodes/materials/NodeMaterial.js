@@ -1,7 +1,7 @@
-import { Material, ShaderMaterial, NoColorSpace } from 'three';
+import { Material, ShaderMaterial, NoColorSpace, LinearSRGBColorSpace } from 'three';
 import { getNodeChildren, getCacheKey } from '../core/NodeUtils.js';
 import { attribute } from '../core/AttributeNode.js';
-import { diffuseColor } from '../core/PropertyNode.js';
+import { output, diffuseColor } from '../core/PropertyNode.js';
 import { materialNormal } from '../accessors/ExtendedMaterialNode.js';
 import { materialAlphaTest, materialColor, materialOpacity, materialEmissive } from '../accessors/MaterialNode.js';
 import { modelViewProjection } from '../accessors/ModelViewProjectionNode.js';
@@ -32,8 +32,12 @@ class NodeMaterial extends ShaderMaterial {
 
 		this.forceSinglePass = false;
 
+		this.unlit = this.constructor === NodeMaterial.prototype.constructor; // Extended materials are not unlit by default
+
+		this.fog = true;
 		this.lights = true;
 		this.normals = true;
+		this.colorSpace = true;
 
 		this.lightsNode = null;
 		this.envNode = null;
@@ -76,7 +80,9 @@ class NodeMaterial extends ShaderMaterial {
 
 		builder.addStack();
 
-		if ( this.isUnlit === false ) {
+		let outputNode;
+
+		if ( this.unlit === false ) {
 
 			if ( this.normals === true ) this.constructNormal( builder );
 
@@ -85,13 +91,23 @@ class NodeMaterial extends ShaderMaterial {
 
 			const outgoingLightNode = this.constructLighting( builder );
 
-			builder.stack.outputNode = this.constructOutput( builder, vec4( outgoingLightNode, diffuseColor.a ) );
+			outputNode = this.constructOutput( builder, vec4( outgoingLightNode, diffuseColor.a ) );
+
+			// OUTPUT NODE
+
+			builder.stack.assign( output, outputNode );
+
+			//
+
+			if ( this.outputNode !== null ) outputNode = this.outputNode;
 
 		} else {
 
-			builder.stack.outputNode = this.constructOutput( builder, this.outputNode || vec4( 0, 0, 0, 1 ) );
+			outputNode = this.constructOutput( builder, this.outputNode || vec4( 0, 0, 0, 1 ) );
 
 		}
+
+		builder.stack.outputNode = outputNode;
 
 		builder.addFlow( 'fragment', builder.removeStack() );
 
@@ -306,29 +322,41 @@ class NodeMaterial extends ShaderMaterial {
 
 		}
 
-		// ENCODING
+		// FOG
 
-		const renderTarget = renderer.getRenderTarget();
+		if ( this.fog === true ) {
 
-		let outputColorSpace;
+			const fogNode = builder.fogNode;
 
-		if ( renderTarget !== null ) {
-
-			outputColorSpace = renderTarget.texture.colorSpace;
-
-		} else {
-
-			outputColorSpace = renderer.outputColorSpace;
+			if ( fogNode ) outputNode = vec4( fogNode.mixAssign( outputNode.rgb ), outputNode.a );
 
 		}
 
-		if ( outputColorSpace !== NoColorSpace ) outputNode = outputNode.linearToColorSpace( outputColorSpace );
+		// ENCODING
 
-		// FOG
+		if ( this.colorSpace === true ) {
 
-		const fogNode = builder.fogNode;
+			const renderTarget = renderer.getRenderTarget();
 
-		if ( fogNode ) outputNode = vec4( fogNode.mixAssign( outputNode.rgb ), outputNode.a );
+			let outputColorSpace;
+
+			if ( renderTarget !== null ) {
+
+				outputColorSpace = renderTarget.texture.colorSpace;
+
+			} else {
+
+				outputColorSpace = renderer.outputColorSpace;
+
+			}
+
+			if ( outputColorSpace !== LinearSRGBColorSpace && outputColorSpace !== NoColorSpace ) {
+
+				outputNode = outputNode.linearToColorSpace( outputColorSpace );
+
+			}
+
+		}
 
 		return outputNode;
 
@@ -426,12 +454,6 @@ class NodeMaterial extends ShaderMaterial {
 		}
 
 		return data;
-
-	}
-
-	get isUnlit() {
-
-		return this.constructor === NodeMaterial.prototype.constructor;
 
 	}
 

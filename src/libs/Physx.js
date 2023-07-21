@@ -1,5 +1,5 @@
 
-var PhysX = (() => {
+export const PhysX = (() => {
   var _scriptDir = typeof document !== 'undefined' && document.currentScript ? document.currentScript.src : undefined;
   
   return (
@@ -670,7 +670,7 @@ function createExportWrapper(name, fixedasm) {
 // include: runtime_exceptions.js
 // end include: runtime_exceptions.js
 var wasmBinaryFile;
-  wasmBinaryFile = 'physx-js-webidl.wasm';
+  wasmBinaryFile = './build/physx-js-webidl.wasm';
   if (!isDataURI(wasmBinaryFile)) {
     wasmBinaryFile = locateFile(wasmBinaryFile);
   }

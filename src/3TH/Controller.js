@@ -2,8 +2,9 @@
 import {
     Vector3, Quaternion, Matrix4, Euler
 } from 'three';
-import * as TWEEN from 'tween'
-import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+//import * as TWEEN from 'tween'
+import * as TWEEN from '../libs/tween.esm.js'
+import { OrbitControls } from '../jsm/controls/OrbitControls.js';
 import { math } from './math.js';
 
 

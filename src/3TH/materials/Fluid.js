@@ -4,7 +4,7 @@ import {
 } from 'three';
 
 import { Shader } from '../Shader.js';
-import { Main } from '../../Main.js';
+//import { Main } from '../../Main.js';
 
 export class Fluid extends MeshPhysicalMaterial {
 

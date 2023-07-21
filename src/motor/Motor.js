@@ -630,7 +630,6 @@ export class Motor {
         //if( isWorker && realtime ) return
 
 		if( timer.up( stamp ) ) {
-
 			root.post( { m:'step', o:stamp } )
 		}
 
@@ -653,7 +652,9 @@ export class Motor {
 
 		//console.time('step')
 
-		root.delta = outsideStep ? timer.delta : root.reflow.stat.delta;
+		root.delta = root.reflow.stat.delta//outsideStep ? timer.delta : root.reflow.stat.delta;
+
+
 
 
 
@@ -721,7 +722,9 @@ export class Motor {
 	}
 
 
-
+	//-----------------------
+	//  MATERIAL
+	//-----------------------
 
 	static material ( o = {} ){ return Mat.create( o ) }
 
@@ -736,7 +739,7 @@ export class Motor {
 
 	static addMaterial( m, direct ){ Mat.set( m, direct ); }
 
-	static setEnvmapIntensity (v) { Mat.setEnvmapIntensity(v); }
+	static setEnvmapIntensity ( v ) { Mat.setEnvmapIntensity(v); }
 
 	static getMat( name ){ return Mat.get( name ) }
 
@@ -908,32 +911,29 @@ export class Motor {
 
 	static addDirect( b ) {
 
-		root.scenePlus.add( b )
-		root.tmpMesh.push( b )
+		root.scenePlus.add( b );
+		root.tmpMesh.push( b );
 
 	}
 
-	static adds ( r = [], direct ){ 
-		let i = r.length, n = 0
+	static adds ( r = [], direct ){
+
+		let i = r.length, n = 0;
 		while(i--){
-			 Motor.add( r[n], direct ) 
-			 n++
+			 Motor.add( r[n], direct );
+			 n++;
 		}
-		//for( let o in r ) Motor.add( r[o], direct ) 
+
 	}
 
-	static add ( o = {}, direct = false ){
+	static add ( o = {}, direct = false ) {
 
-		if ( o.isObject3D ) return Motor.addDirect( o )
-
-		if ( o.constructor === Array ) return Motor.adds( o, direct )
-
-		if( o.type === 'container' ) return new Container( o )
+		if( o.isObject3D ) return Motor.addDirect( o );
+		if( o.constructor === Array ) return Motor.adds( o, direct );
+		if( o.type === 'container' ) return new Container( o );
 		
-
-		//if( o.mass !== undefined ) o.density = o.mass
-		if( o.bounce !== undefined ) o.restitution = o.bounce
-		if( o.type === undefined ) o.type = 'box'
+		if( o.bounce !== undefined ) o.restitution = o.bounce;
+		if( o.type === undefined ) o.type = 'box';
 
 		let type = getType( o );
 
@@ -965,18 +965,12 @@ export class Motor {
 		console.log('up is old')
 		Motor.change( list, true )
 
-		//if( list instanceof Array ) Motor.changes( list, true )
-		//else Motor.changeOne( list, true )
-
 	}
 
 	static update ( list ) {
 
 		console.log('update is old')
 		Motor.change( list )
-
-		//if( list instanceof Array ) root.flow.tmp.push( ...list )
-		//else root.flow.tmp.push( list )
 
 	}
 
@@ -1014,13 +1008,12 @@ export class Motor {
 		switch( type ){
 
 			case 'terrain': b = items.terrain.set( o, b ); direct = false; break;
-			//case 'joint': b = items.joint.set( o, b ); break;
+			case 'ray': b = items.ray.set( o, b ); direct = false; break;
 			case 'character': b = items.character.set( o, b ); break;
 			case 'solid': b = items.solid.set( o, b ); break;
-			case 'ray': b = items.ray.set( o, b ); direct = false; break;
 			case 'joint': b = items.joint.set( o, b );  break;
 			case 'body':
-			 if( b.isKinematic ) items.body.set( o, b );
+			if( b.isKinematic ) items.body.set( o, b );
 
 			//b = body.set( o, b ); 
 			break;
@@ -1113,12 +1106,14 @@ export class Motor {
 	static load ( Urls, Callback, Path = '', msg = '' ){
 		Pool.load( Urls, Callback, Path, msg )
 	}
+
 	static applyMorph ( modelName, meshs = null, normal = true, relative = true ){
 		Pool.applyMorph( modelName, meshs = null, normal = true, relative = true )
 	}
-	static uv2 ( model ){
+
+	/*static uv2 ( model ){
 		Pool.uv2( model )
-	}
+	}*/
 
 	static getMesh ( obj, keepMaterial ){
 		if(keepMaterial){
@@ -1129,8 +1124,6 @@ export class Motor {
 		}
 		return Pool.getMesh( obj, keepMaterial )
 	}
-
-	
 
 	static getGroup ( obj, autoMesh, autoMaterial ){
 		return Pool.getGroup( obj, autoMesh, autoMaterial )
@@ -1214,29 +1207,6 @@ export class Motor {
 		
 	}
 
-	//-----------------------
-	// SKELETON
-	//-----------------------
-
-	/*static addSkeleton ( o ){ 
-
-		let t = new SkeletonBody(o)
-		if( o.parent ) o.parent.add( t )
-		else root.scenePlus.add( t )
-		skeletons.push(t)
-		return t
-
-	}
-
-	static clearSkeleton () { 
-
-		let i = skeletons.length
-		while( i-- ) skeletons[i].dispose()
-
-		//for( let n in textfields ) textfields[n].dispose()
-    	skeletons = []
-		
-	}*/
 
 }
 

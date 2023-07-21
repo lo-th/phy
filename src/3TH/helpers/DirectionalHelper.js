@@ -1,5 +1,5 @@
 import {
-	DirectionalLightHelper, PlaneGeometry, Mesh, MeshBasicMaterial
+	DirectionalLightHelper, PlaneGeometry, Mesh, MeshBasicMaterial, CameraHelper, Color
 } from 'three';
 
 
@@ -16,6 +16,8 @@ class DirectionalHelper extends DirectionalLightHelper {
 
 		this.m2 = new Mesh( g, m )
 
+		this.shadow = new CameraHelper( light.shadow.camera )
+		this.shadow.setColors( light.color, new Color( 0x222222 ), new Color( 0x222222 ), light.color, new Color( 0x666666) )
 
 		this.children[ 0 ].add( this.m2 );
 

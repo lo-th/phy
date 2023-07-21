@@ -16,31 +16,31 @@ import { EffectComposer, RenderPass, ShaderPass, EffectPass, LUT3dlLoader, LUTCu
 
 import { SSGIEffect, MotionBlurEffect, TRAAEffect, VelocityDepthNormalPass } from '../libs/realism.js'
 
-/*import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
-import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
-import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
+/*import { EffectComposer } from '../jsm/postprocessing/EffectComposer.js';
+import { RenderPass } from '../jsm/postprocessing/RenderPass.js';
+import { ShaderPass } from '../jsm/postprocessing/ShaderPass.js';
 */
-import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
-//import { LUTPass } from 'three/addons/postprocessing/LUTPass.js';
+import { UnrealBloomPass } from '../jsm/postprocessing/UnrealBloomPass.js';
+//import { LUTPass } from '../jsm/postprocessing/LUTPass.js';
 //import { ClearPass } from '../postprocessing/ClearPass.js';
 //import { TexturePass } from '../postprocessing/TexturePass.js';
-import { BokehPass } from 'three/addons/postprocessing/BokehPass.js';
+import { BokehPass } from '../jsm/postprocessing/BokehPass.js';
 
-import { SSAOPass } from 'three/addons/postprocessing/SSAOPass.js';
-import { SAOPass } from 'three/addons/postprocessing/SAOPass.js';
+import { SSAOPass } from '../jsm/postprocessing/SSAOPass.js';
+import { SAOPass } from '../jsm/postprocessing/SAOPass.js';
 
-import { CopyShader } from 'three/addons/shaders/CopyShader.js';
-import { FXAAShader } from 'three/addons/shaders/FXAAShader.js';
-import { SharpenShader } from 'three/addons/shaders/SharpenShader.js';
+import { CopyShader } from '../jsm/shaders/CopyShader.js';
+import { FXAAShader } from '../jsm/shaders/FXAAShader.js';
+import { SharpenShader } from '../jsm/shaders/SharpenShader.js';
 //import { BokehShader, BokehDepthShader } from '../shaders/BokehShader2.js';
-import { GammaCorrectionShader } from 'three/addons/shaders/GammaCorrectionShader.js';
-import { DistortionShader } from 'three/addons/shaders/DistortionShader.js';
-import { BloomMix } from 'three/addons/shaders/BloomMix.js';
+import { GammaCorrectionShader } from '../jsm/shaders/GammaCorrectionShader.js';
+import { DistortionShader } from '../jsm/shaders/DistortionShader.js';
+import { BloomMix } from '../jsm/shaders/BloomMix.js';
 
-import { ToneMapShader } from 'three/addons/shaders/ToneMapShader.js';
+import { ToneMapShader } from '../jsm/shaders/ToneMapShader.js';
 
-//import { LUTCubeLoader } from 'three/addons/loaders/LUTCubeLoader.js';
-//import { LUT3dlLoader } from 'three/addons/loaders/LUT3dlLoader.js';
+//import { LUTCubeLoader } from '../jsm/loaders/LUTCubeLoader.js';
+//import { LUT3dlLoader } from '../jsm/loaders/LUT3dlLoader.js';
 
 export class Composer extends EffectComposer {
 

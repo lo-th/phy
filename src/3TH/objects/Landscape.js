@@ -115,8 +115,6 @@ export class Landscape extends Mesh {
 
         this.pp = new Vector3();
 
-        
-
         this.ratioZ = 1 / this.sampleZ[0];
         this.ratio = 1 / this.sample[0];
         this.ruvx =  1.0 / ( this.size[0] / this.uvx[0] );
@@ -162,10 +160,10 @@ export class Landscape extends Mesh {
 
 
         var isORM = false;
-        var clevels = new Quaternion( 0.95, 0.8, 0.1, 0.05 ); 
+        var clevels = new Quaternion( 0.5, 0.5, 0.1, 0.2 )//0.95, 0.8, 0.1, 0.05 ); 
         if( o.maplevels ) clevels.fromArray( o.maplevels );
         var T = TerrainShader;
-        var maps = o.maps || [ 'sand', 'grass', 'rock' ], txt = {};
+        var maps = o.maps || [ 'sand', 'grass3', 'rock' ], txt = {};
         var name;
 
         if(this.isWater) maps = ['water'];
@@ -184,7 +182,7 @@ export class Landscape extends Mesh {
         }
 
         //txt['noise'] = Pool.directTexture(this.folder + 'noise.png', { flip:false, repeat:[1,1], encoding:false , callback: this.mapcallback.bind(this)  });
-        txt['noise'] = Pool.texture({ url:this.folder + 'noise.png', flip:false, repeat:[1,1], encoding:false , callback: this.mapcallback.bind(this)  });
+        //txt['noise'] = Pool.texture({ url:this.folder + 'noise.png', flip:false, repeat:[1,1], encoding:false , callback: this.mapcallback.bind(this)  });
 
         this.txt = txt
 
@@ -201,9 +199,9 @@ export class Landscape extends Mesh {
             this.material.metalness  = 0.9;
             this.material.roughness = 0.1;
         } else {
-            this.material.reflectivity = 0.1
-            this.material.metalness = o.metalness || 0.1;
-            this.material.roughness = o.roughness || 0.5; 
+            this.material.reflectivity = 0.0
+            this.material.metalness = o.metalness || 0.0;
+            this.material.roughness = o.roughness || 0.77; 
         }
 
         if( isORM ){
@@ -218,7 +216,7 @@ export class Landscape extends Mesh {
 
             this.material.onBeforeCompile = function ( shader ) {
 
-                var uniforms = shader.uniforms;
+                let uniforms = shader.uniforms;
 
                 //uniforms['fogTime'] = { value: 0 };
 
@@ -232,13 +230,13 @@ export class Landscape extends Mesh {
                 uniforms['normalMap1'] = { value: txt[maps[1]+'_n'] };
                 uniforms['normalMap2'] = { value: txt[maps[2]+'_n'] };
 
-                uniforms['noise'] = { value: txt['noise'] };
+                //uniforms['noise'] = { value: txt['noise'] };
 
                 shader.uniforms = uniforms;
 
-                var fragment = shader.fragmentShader;
+                Shader.addParsFragment( shader, Shader.getRandomUv() + T.fragmentAdd );
 
-                fragment = fragment.replace( 'uniform vec3 diffuse;', T.baseRemplace );
+                let fragment = shader.fragmentShader;
 
                 fragment = fragment.replace( '#include <map_fragment>', T.map );
                 fragment = fragment.replace( '#include <normal_fragment_maps>', T.normal );
@@ -631,10 +629,10 @@ export class Landscape extends Mesh {
             this.material.normalMap.offset.x+=0.002;
             this.material.normalMap.offset.y+=0.001;
         } else {
-            if(this.material.map){
-                this.material.map.offset.x = this.local.x * this.ruvx;
-                this.material.map.offset.y = this.local.z * this.ruvy;
-            }
+            let v = { x: this.local.x * this.ruvx, y: this.local.z * this.ruvy };
+            if(this.material.map) this.material.map.offset.copy(v)
+            if(this.material.normalMap) this.material.normalMap.offset.copy(v)
+            
         }
 
     }
@@ -645,6 +643,7 @@ export class Landscape extends Mesh {
         let cc = [1,1,1];
         let i = this.lng, n, nz, x, z,  c, l=0, id, result, idz;
         let oldz, oldh, ccY, ccc, ee;
+        let mm = 0, mi=0
 
         while( i-- ){
 
@@ -720,7 +719,13 @@ export class Landscape extends Mesh {
 
             }
 
-            ccc = math.clamp(cc[0]+0.25, 0.25, 1)
+            //ccc = math.clamp(cc[0]+0.25, 0.25, 1)
+            ccc = cc[0]
+
+            //if(ccc>mm) mm = ccc
+            //if(ccc<mi) mi = ccc
+
+            
 
             this.colors[ n ] = ccc;
             this.colors[ n + 1 ] = ccc;
@@ -729,6 +734,8 @@ export class Landscape extends Mesh {
             
 
         }
+
+        //console.log(mm, mi)
 
 
         if( this.isBorder ){
@@ -803,10 +810,8 @@ export class Landscape extends Mesh {
 
 const TerrainShader = {
 
-    baseRemplace : /* glsl */`
-        uniform vec3 diffuse; 
+    fragmentAdd : /* glsl */`
         uniform vec4 clevels;
-
         uniform float randomUv;
 
         uniform sampler2D noise;
@@ -821,41 +826,6 @@ const TerrainShader = {
         uniform sampler2D map1;
         uniform sampler2D map2;
 
-        float sum( vec3 v ) { return v.x+v.y+v.z; }
-
-        vec4 textureNoTile( sampler2D mapper, in vec2 uv ){
-
-            // sample variation pattern    
-            float k = texture2D( noise, 0.005*uv ).x; // cheap (cache friendly) lookup    
-            
-            // compute index    
-            float index = k*8.0;
-            float f = fract( index );
-
-            float ia = floor( index );
-            float ib = ia + 1.0;
-            // or
-            //float ia = floor(index+0.5); // suslik's method (see comments)
-            //float ib = floor(index);
-            //f = min(f, 1.0-f)*2.0;
-
-            // offsets for the different virtual patterns    
-            vec2 offa = sin(vec2(3.0,7.0)*ia); // can replace with any other hash    
-            vec2 offb = sin(vec2(3.0,7.0)*ib); // can replace with any other hash    
-
-            // compute derivatives for mip-mapping    
-            vec2 dx = dFdx(uv);
-            vec2 dy = dFdy(uv);
-            
-            // sample the two closest virtual patterns    
-            vec3 cola = textureGrad( mapper, uv + offa, dx, dy ).xyz;
-            vec3 colb = textureGrad( mapper, uv + offb, dx, dy ).xyz;
-
-            // interpolate between the two virtual patterns    
-            return vec4( mix( cola, colb, smoothstep(0.2,0.8,f-0.1*sum(cola-colb)) ), 1.0);
-
-        }
-
         vec4 textureMAP( sampler2D mapper, in vec2 uv ){
             if( randomUv == 1.0 ) return textureNoTile( mapper, uv );
             else return texture2D( mapper, uv );
@@ -863,10 +833,21 @@ const TerrainShader = {
 
         vec4 MappingMix( float slope, vec4 level, vec4 rocks, vec4 grasss, vec4 sands ){
             vec4 cc = rocks;
-            if (slope < level.y) cc = grasss;
+            if (slope < level.x) cc = grasss;
             if (slope < level.z) cc = sands;
-            if (( slope < level.x ) && (slope >= level.y)) cc = mix( grasss , rocks, (slope - level.y) * (1. / (level.x - level.y)));
-            if (( slope < level.y ) && (slope >= level.z)) cc = mix( sands , grasss, (slope - level.z) * (1. / (level.y - level.z)));
+            //if (( slope < level.x ) && (slope >= level.y)) cc = mix( grasss , rocks, (slope - level.y) * (1. / (level.x - level.y)));
+            //if (( slope < level.y ) && (slope >= level.z)) cc = mix( sands , grasss, (slope - level.z) * (1. / (level.y - level.z)));
+
+            float d = level.y;
+            float rx = 1.0/level.y;
+
+            if (( slope < level.x + d ) && (slope > level.x)) cc = mix( grasss , rocks, ( slope - (level.x) ) * rx );
+
+            d = level.w;
+            rx = 1.0/level.w;
+            if (( slope < level.z + d ) && (slope > level.z )) cc = mix( sands , grasss, ( slope - (level.z) ) * rx );
+
+            //cc = mix( grasss, cc, smoothstep(0.0,1.0, slope)*20.0 );
             return cc;
         }
     `,

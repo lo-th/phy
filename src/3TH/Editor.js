@@ -1,4 +1,5 @@
-import * as UIL from 'uil'
+//import * as UIL from 'uil'
+import * as UIL from '../libs/uil.module.js'
 import CodeFlask from '../libs/codeflask.module.js'
 import { CodeMirror } from '../libs/cm6.module.js'
 

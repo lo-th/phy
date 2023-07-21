@@ -11,6 +11,8 @@ import {
 let isGL2 = true;
 let isInit = false;
 const EnhanceLighting = true
+
+let renderer = null
 //let mode = ''
 
 //const mats = {}
@@ -49,6 +51,9 @@ const uniforms = {
 
 export class Shader {
 
+    get renderer() { return renderer; }
+    set renderer( r ) { renderer = r }
+
     static setGl2 ( b ) { isGL2 = b }
     static getGl2 ( b ) { return isGL2 }
 
@@ -56,9 +61,20 @@ export class Shader {
         return uniforms
     }
 
-	static init ( o = {} ) {
+    static getRandomUv(){
+        return randomUV;
+    }
 
-       
+    static addParsFragment( s, adds ){
+        s.fragmentShader = s.fragmentShader.replace( '#include <clipping_planes_pars_fragment>', '#include <clipping_planes_pars_fragment>' + adds );
+    }
+
+    /*static addToParsFragment( fragment, adds ){
+        return fragment.replace( '#include <clipping_planes_pars_fragment>', '#include <clipping_planes_pars_fragment>' + adds );
+    }*/
+
+
+	static init ( o = {} ) {
 
         const fogtest = true
         const activeShadowPCSS = true
@@ -726,5 +742,55 @@ float PCSS ( sampler2D shadowMap, vec4 coords ) {
     // STEP 3: filtering
     //return avgBlockerDepth;
     return PCF_Filter( shadowMap, uv, zReceiver, filterRadius );
+}
+`
+
+const randomUV = `
+
+float directNoise(vec2 p){
+    vec2 ip = floor(p);
+    vec2 u = fract(p);
+    u = u*u*(3.0-2.0*u);
+    
+    float res = mix(
+        mix(rand(ip),rand(ip+vec2(1.0,0.0)),u.x),
+        mix(rand(ip+vec2(0.0,1.0)),rand(ip+vec2(1.0,1.0)),u.x),u.y);
+    return res*res;
+}
+
+float sum( vec4 v ) { return v.x+v.y+v.z; }
+
+vec4 textureNoTile( sampler2D mapper, in vec2 uv ){
+
+    // sample variation pattern    
+    //float k = texture2D( noise, 0.005*uv ).x; // cheap (cache friendly) lookup    
+    float k = directNoise( uv );
+    
+    // compute index    
+    float index = k*8.0;
+    float f = fract( index );
+
+    float ia = floor( index );
+    float ib = ia + 1.0;
+    // or
+    //float ia = floor(index+0.5); // suslik's method (see comments)
+    //float ib = floor(index);
+    //f = min(f, 1.0-f)*2.0;
+
+    // offsets for the different virtual patterns    
+    vec2 offa = sin(vec2(3.0,7.0)*ia); // can replace with any other hash    
+    vec2 offb = sin(vec2(3.0,7.0)*ib); // can replace with any other hash    
+
+    // compute derivatives for mip-mapping    
+    vec2 dx = dFdx(uv);
+    vec2 dy = dFdy(uv);
+    
+    // sample the two closest virtual patterns    
+    vec4 cola = textureGrad( mapper, uv + offa, dx, dy );
+    vec4 colb = textureGrad( mapper, uv + offb, dx, dy );
+
+    // interpolate between the two virtual patterns    
+    return mix( cola, colb, smoothstep(0.2,0.8,f-0.1*sum(cola-colb)) );
+
 }
 `

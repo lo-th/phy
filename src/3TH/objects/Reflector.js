@@ -28,9 +28,9 @@ import {
 import { Shader } from '../Shader.js';
 import { Pool } from '../Pool.js';
 
-import RenderTarget from 'three/addons/renderers/common/RenderTarget.js';
+import RenderTarget from '../../jsm/renderers/common/RenderTarget.js';
 
-//import WebGPUTextureRenderer from 'three/addons/renderers/webgpu/WebGPUTextureRenderer.js';
+//import WebGPUTextureRenderer from '../jsm/renderers/webgpu/WebGPUTextureRenderer.js';
 
 
 /**

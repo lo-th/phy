@@ -4,7 +4,7 @@ import {
 } from 'three';
 
 import { Shader } from '../Shader.js';
-import { Main } from '../../Main.js';
+//import { Main } from '../../Main.js';
 
 
 export class Diamond extends MeshPhysicalMaterial {
@@ -127,7 +127,7 @@ export class Diamond extends MeshPhysicalMaterial {
         m.geometry.center();
         scene.add( m );
 
-        camera.update( Main.getRenderer(), scene );
+        camera.update( Shader.renderer, scene );
 
         scene.remove( m );
         scene.remove( camera );

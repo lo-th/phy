@@ -1,5 +1,6 @@
-import * as UIL from 'uil'
-import { Main } from '../Main.js'
+//import * as UIL from 'uil'
+import * as UIL from '../libs/uil.module.js'
+//import { Main } from '../Main.js'
 import { Video } from './Video.js'
 import { Env } from './Env.js'
 import { Hub } from './Hub.js'
@@ -10,7 +11,7 @@ import { Pool } from './Pool.js'
 *   __) |_| | 2023
 * @author lo.th / https://github.com/lo-th
 */
-
+const menuList = ['ENV', 'PHY', 'CAM', 'POST', 'MAT', 'OBJ'];
 const toneMappingOptions = {
 	None: 0,
 	Linear: 1,
@@ -19,6 +20,8 @@ const toneMappingOptions = {
 	ACESFilmic: 4,
 	Uncharted2: 5
 }
+
+let Main = null;
 
 export const Gui = {
 
@@ -31,6 +34,8 @@ export const Gui = {
 	gp:null,
 	video:null,
 	envui:null,
+
+
 
 
 
@@ -102,6 +107,10 @@ export const Gui = {
 
 	},
 
+	setMain: ( r ) => { 
+		Main = r;
+	},
+
 	
 
 
@@ -157,13 +166,14 @@ export const Gui = {
 
 		//ui.add( 'empty', {h:6})
 
-		Gui.menu = UIL.add( 'button', { type:'button', values:['ENV', 'PHY', 'CAM', 'POST', 'MAT'], value:Gui.startMode, selectable:true, unselect:false, p:0, h:30,w:250, radius:4, pos:{right:'5px', top:'60px'} }).onChange( Gui.setMode )
+		Gui.menu = UIL.add( 'button', { type:'button', values:menuList, value:Gui.startMode, selectable:true, unselect:false, p:0, h:30,w:250, radius:4, pos:{right:'5px', top:'60px'} }).onChange( Gui.setMode )
 
 		Gui.menu.icon( iconUI('env'), 0, 2 )
 		Gui.menu.icon( iconUI('phy'), 0, 3 )
 		Gui.menu.icon( iconUI('cam'), 0, 4 )
 		Gui.menu.icon( iconUI('post'), 0, 5 )
 		Gui.menu.icon( iconUI('mat'), 0, 6 )
+		Gui.menu.icon( iconUI('asset'), 0, 7 )
 
 		Gui.ui = new UIL.Gui( { w:250, h:25, open:false, close:false, css:'top:97px; right:5px;', colors:Gui.colors, transition:0 } )//
 
@@ -223,6 +233,7 @@ export const Gui = {
 	    	case 'CAM': Gui.camera(); break;
 	    	case 'POST': Gui.postprocess(); break;
 	    	case 'MAT': Gui.material(); break;
+	    	case 'OBJ': Gui.objects(); break;
 	    }
 
 	    Gui.ui.add( 'empty', {h:6})
@@ -339,6 +350,12 @@ export const Gui = {
 		*/
 
 		
+
+	},
+
+	objects:() => {
+		if( Gui.mode !== 'OBJ' ) return
+
 
 	},
 
@@ -855,7 +872,7 @@ const iconUI =  function ( type, over = false ){
         t[1]+="<path fill="+c[2]+" stroke='none' d='"+d+"'/>";
         t[1]+="<path fill="+c[1]+" stroke='none' d='M 19 8 L 6 8 6 22 19 22 19 8 Z'/>";
         t[1]+="<path fill="+c[0]+" stroke='none' d='M 10 4 L 6 8 19 8 24 4 10 4 Z'/>";
-        break;
+        break;*/
 
         case 'asset':
         d = 'M 24 19.8 L 24 14.2 19.5 11.95 19.5 6.3 15 4.05 10.5 6.3 10.5 11.95 6 14.2 6 19.8 10.5 22.05 15 19.8 19.5 22.05 24 19.8 Z';
@@ -863,7 +880,7 @@ const iconUI =  function ( type, over = false ){
         t[1]+="<path fill="+c[2]+" stroke='none' d='"+d+"'/>";
         t[1]+="<path fill="+c[1]+" stroke='none' d='M 6 14.2 L 6 19.8 10.5 22.05 10.5 16.45 6 14.2 M 19.5 22.05 L 19.5 16.45 15 14.2 15 19.8 19.5 22.05 M 15 8.55 L 10.5 6.3 10.5 11.95 15 14.2 15 8.55 Z'/>";
         t[1]+="<path fill="+c[0]+" stroke='none' d='M 15 14.2 L 19.5 16.45 24 14.2 19.5 11.95 15 14.2 M 10.5 16.45 L 15 14.2 10.5 11.95 6 14.2 10.5 16.45 M 10.5 6.3 L 15 8.55 19.5 6.3 15 4.05 10.5 6.3 Z'/>";
-        break;*/
+        break;
 
 
     }

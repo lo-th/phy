@@ -416,4 +416,61 @@ export const MathTool = {
 
     },
 
+    reduce: ( x ) => {
+    },
+
+    barycentric: ( simplex, point ) => {
+        
+
+    },
+
+    solve: ( simplex, point ) => {
+    }
+
 }
+
+// point weight blend space javascript
+
+/*
+get_blend_space_2d_node_influences :: (using space : *Blend_Space_2d, position : Vec2) -> []f32 #must
+{
+    weights           := alloc_array (f32, nodes.count, temp_allocator);
+    sqrd_distances    := alloc_array (f32, nodes.count, temp_allocator);
+    angular_distances := alloc_array (f32, nodes.count, temp_allocator);
+
+    total_sqrd_distance, total_angular_distance := 0.0;
+    for nodes
+    {
+        sqrd_distance := dot (position - it.position, position - it.position);
+        if sqrd_distance > 0
+        {
+            angular_distance := -(clamp (dot (normalize (position), normalize (it.position)), -1, 1) - 1) * 0.5;
+            total_sqrd_distance += 1 / sqrd_distance;
+            if angular_distance > 0 then total_angular_distance += 1 / angular_distance;
+            sqrd_distances[it_index] = sqrd_distance;
+            angular_distances[it_index] = angular_distance;
+        }
+        else    // The distance is 0 so it.position == position
+        {
+            // Weights are already initialized to 0
+            weights[it_index] = 1;
+
+            return weights;
+        }
+    }
+
+    for i : 0..nodes.count - 1
+    {
+        sqrd_distance    := total_sqrd_distance    * sqrd_distances[i];
+        angular_distance := total_angular_distance * angular_distances[i];
+        if sqrd_distance > 0 && angular_distance > 0
+            weights[i] = (1 / sqrd_distance) * 0.5 + (1 / angular_distance) * 0.5;
+        else if sqrd_distance > 0
+            weights[i] = (1 / sqrd_distance) * 0.5 + 0.5;
+        else
+            weight = 0;
+    }
+
+    return weights;
+}
+*/

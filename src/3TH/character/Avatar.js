@@ -723,9 +723,11 @@ export class Avatar extends Group {
 
         const action = this.mixer.clipAction( clip );
         action.frameMax = Math.round( clip.duration * FrameTime );
-        action.enabled = true;
-        action.setEffectiveWeight( 0 );
-        if(clip.name === 'Jumping Up') action.loop = LoopPingPong
+        action.play();
+        action.enabled = true//false;
+        if(clip.name.search('idle')!==-1) action.enabled = true;
+        //action.setEffectiveWeight( 0 );
+        if( clip.name === 'Jumping Up' ) action.loop = LoopPingPong
         //action.play()
         this.actions.set( clip.name, action );
 
@@ -964,7 +966,7 @@ export class Avatar extends Group {
         action.enabled = true;
         //action.time = 0;
         action.setEffectiveTimeScale( 1 );
-        action.setEffectiveWeight( 1 );
+        //action.setEffectiveWeight( 1 );
         action.play();
 
         //console.log(action)
@@ -979,24 +981,28 @@ export class Avatar extends Group {
 
 
     //---------------------
+    //
     //  ANIMATION CONTROL
+    //
     //---------------------
 
     prepareCrossFade( startAction, endAction, duration )  {
         //singleStepMode = false;
+
+        this.isPause = false;
         this.unPause();
         // If the current action is 'idle' (duration 4 sec), execute the crossfade immediately;
         // else wait until the current action has finished its current loop
 
-        if ( startAction === idleAction ) {
+        if ( endAction._clip.name !== 'idle' ) {
             this.executeCrossFade( startAction, endAction, duration );
         } else {
-            this.synchronize( startAction, endAction, duration );
+            this.synchronizeCrossFade( startAction, endAction, duration );
         }
 
     }
 
-    synchronize( startAction, endAction, duration ) {
+    synchronizeCrossFade( startAction, endAction, duration ) {
 
         this.mixer.addEventListener( 'loop', onLoopFinished );
         const self = this;
@@ -1009,7 +1015,7 @@ export class Avatar extends Group {
 
     }
 
-    executeCrossFade( startAction, endAction, duration ) {
+    executeCrossFade( startAction, endAction, duration, warping = true ) {
         // Not only the start action, but also the end action must get a weight of 1 before fading
         // (concerning the start action this is already guaranteed in this place)
         this.setWeight( endAction, 1 );
@@ -1018,23 +1024,21 @@ export class Avatar extends Group {
         startAction.crossFadeTo( endAction, duration, true );
     }
 
-    pause() {
+    pause(){
         this.actions.forEach( function ( action ) { action.paused = true; });
         this.isPause = true;
     }
 
-    unPause() {
+    unPause(){
         this.actions.forEach( function ( action ) { action.paused = false; });
         this.isPause = false;
     }
 
-    playAll()
-    {
+    playAll(){
         this.actions.forEach( function ( action ) { action.play(); });
     }
 
     setTimescale( timescale ) {
-
 
         this.actions.forEach( function ( action ) { action.setEffectiveTimeScale( timescale ); });
 
@@ -1058,13 +1062,13 @@ export class Avatar extends Group {
 
     setWeight( action, weight ) {
 
-        if( typeof action === 'string' ) action = this.getAction( action );
-        if ( !action ) return;
+        //if( typeof action === 'string' ) action = this.getAction( action );
+        //if ( !action ) return;
 
         action.enabled = true;
         if(weight<0) weight = 0
         if(weight>1) weight = 1
-        let old = action.getEffectiveWeight()
+        //let old = action.getEffectiveWeight()
         //if(old===0 && weight!== 0) action.time = 0;
         //action.setEffectiveTimeScale( weight );
         action.setEffectiveWeight( weight );
@@ -1102,23 +1106,75 @@ export class Avatar extends Group {
             this.stop()
             this.current = action;
             //action.play();
-            action.setEffectiveWeight( 1 )
+            action.setEffectiveWeight( 1 );
             //console.log(name)
         } else {
+
             if( this.current !== action ){
 
-                this.old = this.current
+                this.old = this.current;
                 this.current = action;
-                action.play();
+
+                let isIdle = this.current.getClip().name !== 'idle'
+
+                
+                /*this.current.play();
 
                 if( this.clipsToesFix.indexOf(name) !== -1 ) this.fixToe = true;
                 else this.resetToes(); 
 
+                this.executeCrossFade( this.old, this.current, fade );*/
 
-                //console.log( name, this.fixToe )
+                
 
 
-                this.executeCrossFade(this.old, this.current, fade  )
+                //this.old.fadeOut( fade );
+
+                const ratio = this.current.getClip().duration / this.old.getClip().duration;
+                
+                //else {
+                    //this.current.paused = false
+                    //this.current.time = 0
+
+                    this.current.reset()
+                    if ( !isIdle ) this.current.time = this.old.time * ratio;
+                    this.current.setEffectiveTimeScale( 1 )
+                    this.current.setEffectiveWeight( 1 )
+                //}
+
+                
+                this.current.crossFadeFrom( this.old, fade, !isIdle );
+                this.current.play()
+
+
+                //console.log( action )
+
+                //this.prepareCrossFade(this.old, this.current, fade)
+
+                /*this.setWeight( this.current, 1 );
+                //this.current.time = 0;
+
+                this.old.fadeOut(fade)
+                //this.current.reset()
+                this.current.fadeIn(fade)
+                this.current.play()*/
+
+                //this.current.fadeIn( fade );
+                //this.old.fadeOut( fade );
+
+                //this.setWeight( this.current, 1 );
+
+                //this.old.crossFadeFrom( this.current, fade, true );
+
+                /*if ( this.current._clip.name === 'idle' ) {
+                    this.old.fadeOut(fade)
+                    this.current.reset()
+                    this.current.fadeIn(fade)
+                    console.log('idle')
+                }*/
+
+
+                
 
                // this.stop()
                //this.current = action;

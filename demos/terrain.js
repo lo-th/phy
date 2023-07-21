@@ -2,7 +2,7 @@ let terrain
 
 demo = () => {
 
-	phy.view({ envmap:'basic', ground:false, fog:true })
+	phy.view({ envmap:'basic', ground:false, fog:true, fogDist:0.01 })
 	
     // config physics setting
     // substep > 1 for increase fidelity
@@ -15,6 +15,7 @@ demo = () => {
         friction: 0.1, 
         staticFriction:0.1,
         restitution: 0.1,
+        maplevels:[0.5, 0.5, 0, 0.25],
         pos: engine==='OIMO' ? [ 0, -2, 0 ] :[0,-10,0],
     	size: engine==='OIMO' ? [ 20, 6, 20 ] : [256, 20, 256],
     	sample: engine==='OIMO' ? [ 32, 32 ] : [256, 256],

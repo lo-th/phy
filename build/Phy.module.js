@@ -1,4 +1,4 @@
-import { Quaternion, Matrix3, Vector3, LineSegments, BufferGeometry, BufferAttribute, Float32BufferAttribute, LineBasicMaterial, SphereGeometry, CylinderGeometry, BoxGeometry, PlaneGeometry, CanvasTexture, RepeatWrapping, SRGBColorSpace, Color, Vector2, MeshStandardMaterial, MeshToonMaterial, MeshBasicMaterial, MeshLambertMaterial, MeshPhongMaterial, MeshPhysicalMaterial, DoubleSide, Line, EventDispatcher, MathUtils, Matrix4, Layers, InstancedMesh, InstancedBufferAttribute, TrianglesDrawMode, TriangleFanDrawMode, TriangleStripDrawMode, CircleGeometry, Box3, Line3, Plane, Triangle, Mesh, NearestFilter, NearestMipmapNearestFilter, NearestMipmapLinearFilter, LinearFilter, LinearMipmapNearestFilter, LinearMipmapLinearFilter, ClampToEdgeWrapping, MirroredRepeatWrapping, PropertyBinding, InterpolateLinear, Source, LinearEncoding, RGBAFormat, InterpolateDiscrete, Scene, sRGBEncoding, Loader, LoaderUtils, FileLoader, SpotLight, PointLight, DirectionalLight, Object3D, TextureLoader, ImageBitmapLoader, InterleavedBuffer, InterleavedBufferAttribute, PointsMaterial, Material, SkinnedMesh, LineLoop, Points, Group, PerspectiveCamera, OrthographicCamera, Skeleton, AnimationClip, Bone, FrontSide, Texture, VectorKeyframeTrack, NumberKeyframeTrack, QuaternionKeyframeTrack, Sphere, Interpolant, LinearSRGBColorSpace, Vector4, Curve, Euler, EquirectangularReflectionMapping, AmbientLight, Uint16BufferAttribute, DataTextureLoader, HalfFloatType, FloatType, DataUtils, RedFormat, NoColorSpace, AnimationMixer, AdditiveBlending, CustomBlending, ZeroFactor, SrcAlphaFactor, SkeletonHelper, AnimationUtils, Raycaster } from 'three';
+import { Quaternion, Matrix3, Vector3, LineSegments, BufferGeometry, BufferAttribute, Float32BufferAttribute, LineBasicMaterial, SphereGeometry, CylinderGeometry, BoxGeometry, PlaneGeometry, CanvasTexture, RepeatWrapping, SRGBColorSpace, Color, Vector2, MeshStandardMaterial, MeshToonMaterial, MeshBasicMaterial, MeshLambertMaterial, MeshPhongMaterial, MeshPhysicalMaterial, DoubleSide, Line, EventDispatcher, MathUtils, Matrix4, Layers, InstancedMesh, InstancedBufferAttribute, TrianglesDrawMode, TriangleFanDrawMode, TriangleStripDrawMode, CircleGeometry, Box3, Line3, Plane, Triangle, Mesh, NearestFilter, NearestMipmapNearestFilter, NearestMipmapLinearFilter, LinearFilter, LinearMipmapNearestFilter, LinearMipmapLinearFilter, ClampToEdgeWrapping, MirroredRepeatWrapping, PropertyBinding, InterpolateLinear, Source, LinearEncoding, RGBAFormat, InterpolateDiscrete, Scene, sRGBEncoding, Loader, LoaderUtils, FileLoader, SpotLight, PointLight, DirectionalLight, Object3D, TextureLoader, ImageBitmapLoader, InterleavedBuffer, InterleavedBufferAttribute, PointsMaterial, Material, SkinnedMesh, LineLoop, Points, Group, PerspectiveCamera, OrthographicCamera, Skeleton, AnimationClip, Bone, FrontSide, Texture, VectorKeyframeTrack, NumberKeyframeTrack, QuaternionKeyframeTrack, Sphere, Interpolant, LinearSRGBColorSpace, Vector4, Curve, Euler, EquirectangularReflectionMapping, AmbientLight, Uint16BufferAttribute, DataTextureLoader, HalfFloatType, FloatType, DataUtils, RedFormat, NoColorSpace, ShaderChunk, AnimationMixer, AdditiveBlending, CustomBlending, ZeroFactor, SrcAlphaFactor, SkeletonHelper, AnimationUtils, Raycaster } from 'three';
 
 const PI = Math.PI;
 const torad$1 = PI / 180;
@@ -410,7 +410,64 @@ const MathTool = {
 
     },
 
+    reduce: ( x ) => {
+    },
+
+    barycentric: ( simplex, point ) => {
+        
+
+    },
+
+    solve: ( simplex, point ) => {
+    }
+
 };
+
+// point weight blend space javascript
+
+/*
+get_blend_space_2d_node_influences :: (using space : *Blend_Space_2d, position : Vec2) -> []f32 #must
+{
+    weights           := alloc_array (f32, nodes.count, temp_allocator);
+    sqrd_distances    := alloc_array (f32, nodes.count, temp_allocator);
+    angular_distances := alloc_array (f32, nodes.count, temp_allocator);
+
+    total_sqrd_distance, total_angular_distance := 0.0;
+    for nodes
+    {
+        sqrd_distance := dot (position - it.position, position - it.position);
+        if sqrd_distance > 0
+        {
+            angular_distance := -(clamp (dot (normalize (position), normalize (it.position)), -1, 1) - 1) * 0.5;
+            total_sqrd_distance += 1 / sqrd_distance;
+            if angular_distance > 0 then total_angular_distance += 1 / angular_distance;
+            sqrd_distances[it_index] = sqrd_distance;
+            angular_distances[it_index] = angular_distance;
+        }
+        else    // The distance is 0 so it.position == position
+        {
+            // Weights are already initialized to 0
+            weights[it_index] = 1;
+
+            return weights;
+        }
+    }
+
+    for i : 0..nodes.count - 1
+    {
+        sqrd_distance    := total_sqrd_distance    * sqrd_distances[i];
+        angular_distance := total_angular_distance * angular_distances[i];
+        if sqrd_distance > 0 && angular_distance > 0
+            weights[i] = (1 / sqrd_distance) * 0.5 + (1 / angular_distance) * 0.5;
+        else if sqrd_distance > 0
+            weights[i] = (1 / sqrd_distance) * 0.5 + 0.5;
+        else
+            weight = 0;
+    }
+
+    return weights;
+}
+*/
 
 const Max = {
 	body:2000,
@@ -1072,6 +1129,7 @@ const Colors = {
     copper:new Color( 0.96467984, 0.37626296, 0.25818297 ),
     carPaint:new Color( 0.1037792, 0.59212029, 0.85064936 ),
     clay:new Color( 0.604,0.584,0.497 ),
+    concrete:new Color( 0xabafb8 ),
 };
 
 const Mat = {
@@ -1106,15 +1164,16 @@ const Mat = {
 
 		    type = type.toLowerCase();
 
-		    switch(type){
+		    switch( type ){
+
 				case 'physical': 
-				m = new MeshPhysicalMaterial( o ); 
-				m.defines = {
-					'STANDARD': '',
-					'PHYSICAL': '',
-					'USE_UV':'',
-					'USE_SPECULAR':''
-				};
+					m = new MeshPhysicalMaterial( o ); 
+					m.defines = {
+						'STANDARD': '',
+						'PHYSICAL': '',
+						'USE_UV':'',
+						'USE_SPECULAR':''
+					};
 				break;
 				case 'phong': m = new MeshPhongMaterial( o ); break;
 				case 'lambert': m = new MeshLambertMaterial( o ); break;
@@ -1136,6 +1195,12 @@ const Mat = {
 
 		if(!direct) Mat.extendShader( m, beforeCompile );
 		mat[m.name] = m;
+
+	},
+
+	changeType:() => {
+
+
 
 	},
 
@@ -1168,8 +1233,11 @@ const Mat = {
 			    case 'clay':  Mat.create({ name:'clay', color:Colors.clay, metalness: 0.0, roughness: 0.9, }); break
 			    case 'base':   Mat.create({ name:'base', color:Colors.base, ...matExtra }); break
 
+			    case 'concrete':  Mat.create({ name:'concrete', color:Colors.concrete, metalness: 0.0, roughness: 0.9, }); break
+
 			    case 'black':   Mat.create({ name:'black', color:Colors.black, metalness: 0, roughness: 0.25 }); break
 
+			    // metal
 			    case 'chrome': Mat.create({ name:'chrome', color:0xCCCCCC, metalness: 1, roughness:0.075 }); break
 			    case 'gold': Mat.create({ name:'gold', color:Colors.gold, specularColor:Colors.gold2, metalness: 1, roughness:0.02 }); break
 			    case 'copper': Mat.create({ name:'copper', color:Colors.copper, metalness: 1, roughness:0.25, clearcoat: 1.0, clearcoatRoughness: 0.2 }); break
@@ -1191,13 +1259,13 @@ const Mat = {
 				case 'glassX':  Mat.create({ name:'glassX', color:0xeeeeee, transparent:false, opacity:1.0, roughness:0.03, metalness:0, side:DoubleSide, transmission:1.0, clearcoat:1, clearcoatRoughness:0.0, thickness:0.6, ior:1.52, envMapIntensity:1.0, shadowSide:1, reflectivity:0.5, iridescence:0 }); break
 				case 'plexi':  Mat.create({ name:'plexi', color:0xFFFFff, transparent:true, opacity:0.4, metalness:1, roughness:0, clearcoat:1, side:DoubleSide }); break
 				case 'glass2': Mat.create({ name:'glass2', color:0xCCCCff, transparent:true, opacity:0.3  }); break
-				case 'sat': Mat.create({ name:'sat', color:0xffffff, metalness: 1, roughness:0, clearcoat:1  }); break
 				
 				case 'car':   Mat.create({ name:'car', color:0x303030, metalness: 1.0, roughness: 0.5, clearcoat: 1.0, clearcoatRoughness: 0.03, sheen: 0.5 }); break
 				case 'carGlass':   Mat.create({ name:'carGlass', color: 0xffffff, metalness: 0, roughness: 0, transmission: 1.0, ior:1.52 }); break
 
 
-				case 'debug': Mat.create({ name:'debug', type:'Basic', color:0xF37042, wireframe:true, toneMapped: false, transparent:true, opacity:0.25 }); break//0xEAA669
+				case 'debug': Mat.create({ name:'debug', type:'Basic', color:0xF37042, wireframe:true, toneMapped: false, transparent:true, opacity:0.25 }); break
+				
 				//case 'debug2': m = Mat.create({ name:'debug2', type:'Basic', color:0x00FFFF, wireframe:true, toneMapped: false }); break
 				//case 'debug3':  m = Mat.create({ name:'debug3', type:'Basic', color:0x000000, wireframe:true, transparent:true, opacity:0.1, toneMapped: false }); break
 				//case 'shadows': m = Mat.create({ name:'shadows', type:'Basic', transparent:true, opacity:0.01 }); break
@@ -22968,6 +23036,791 @@ var action_compress   = 1, action_decompress = 2, action_progress   = 3;
     }
 }
 
+/** __
+*    _)_|_|_
+*   __) |_| | 2022
+* @author lo.th / https://github.com/lo-th
+*/
+
+let isGL2 = true;
+let isInit = false;
+
+let renderer = null;
+//let mode = ''
+
+//const mats = {}
+
+const materials = new Map();
+
+const uniforms = {
+
+	renderMode: { value: 0 },
+    fogMode: { value: 1 },
+    depthPacking: { value: 1 },
+
+	time: { value: 0.0 },
+
+	shadow: { value: 0.5 },
+    shadowGamma: { value: 0.25 },//1
+    shadowLuma: { value: 0 },//0.75
+    shadowContrast: { value: 1 },//2.5
+    
+	//shadowAlpha: { value: 1.0 }
+
+    lightSizeUV: { value: 1.3 },
+    nearPlane: { value: 9.5 },
+    rings:{ value: 11 },
+    nSample:{ value: 17 },
+    
+    noiseIntensity:{ value: 1 },
+    softness:{ value: 3 },
+    
+};
+
+
+class Shader {
+
+    get renderer() { return renderer; }
+    set renderer( r ) { renderer = r; }
+
+    static setGl2 ( b ) { isGL2 = b; }
+    static getGl2 ( b ) { return isGL2 }
+
+    static setting ( ) {
+        return uniforms
+    }
+
+    static getRandomUv(){
+        return randomUV;
+    }
+
+    static addParsFragment( s, adds ){
+        s.fragmentShader = s.fragmentShader.replace( '#include <clipping_planes_pars_fragment>', '#include <clipping_planes_pars_fragment>' + adds );
+    }
+
+    /*static addToParsFragment( fragment, adds ){
+        return fragment.replace( '#include <clipping_planes_pars_fragment>', '#include <clipping_planes_pars_fragment>' + adds );
+    }*/
+
+
+	static init ( o = {} ) {
+
+        // Set CustomToneMapping to Uncharted2
+        // source: http://filmicworlds.com/blog/filmic-tonemapping-operators/
+
+        ShaderChunk.tonemapping_pars_fragment = ShaderChunk.tonemapping_pars_fragment.replace(
+            'vec3 CustomToneMapping( vec3 color ) { return color; }',
+            `#define Uncharted2Helper( x ) max( ( ( x * ( 0.15 * x + 0.10 * 0.50 ) + 0.20 * 0.02 ) / ( x * ( 0.15 * x + 0.50 ) + 0.20 * 0.30 ) ) - 0.02 / 0.30, vec3( 0.0 ) )
+            float toneMappingWhitePoint = 1.0;
+            vec3 CustomToneMapping( vec3 color ) {
+                color *= toneMappingExposure;
+                return saturate( Uncharted2Helper( color ) / Uncharted2Helper( vec3( toneMappingWhitePoint ) ) );
+            }`
+        );
+
+        
+
+        //mode = o.mode
+
+        //if( mode === 'LOW' ) return
+
+        let s;
+
+        this.up( o );
+
+        {
+
+            //defines['NUM_SAMPLES'] = 17
+            //defines['NUM_RINGS'] = 11
+
+            s = ShaderChunk.shadowmap_pars_fragment;
+
+            s = s.replace(
+                '#ifdef USE_SHADOWMAP', shadowPCSS
+            );
+
+            s = s.replace(//BasicShadowMap
+                'shadow = texture2DCompare( shadowMap, shadowCoord.xy, shadowCoord.z );',`
+                return PCSS( shadowMap, shadowCoord );
+            `);
+
+            /*s = s.replace(
+                '#if defined( SHADOWMAP_TYPE_PCF )',`
+                return PCSS( shadowMap, shadowCoord );
+                #if defined( SHADOWMAP_TYPE_PCF )
+            `)*/
+
+            ShaderChunk.shadowmap_pars_fragment = s;
+
+        }
+
+		//return;
+
+		s = ShaderChunk.common;
+        s = s.replace( '#define EPSILON 1e-6', `
+        	#define EPSILON 1e-6
+        	uniform float shadow;
+            uniform float shadowLuma;
+            uniform float shadowContrast;
+            uniform float shadowGamma;
+
+            uniform int renderMode;
+            uniform int fogMode;
+            uniform int depthPacking;
+
+            varying vec2 vZW;
+            varying vec3 rayDir;
+            varying vec3 rayDir2;
+            varying vec3 rayOri;
+            //varying float fDist;
+
+            float shadowValue = 1.0;
+            float shadowTmp = 1.0;
+            vec3 shadowColor = vec3(1.0);
+            
+            float color_distance( vec3 a, vec3 b){
+                vec3 s = vec3( a - b );
+                float dist = sqrt( s.r * s.r + s.g * s.g + s.b * s.b );
+                return clamp(dist, 0.0, 1.0);
+            }
+
+            vec3 adjustContrast(vec3 color, float value) {
+                const vec3 zero = vec3(0.);
+                return max(zero, 0.5 + value * (color - 0.5));
+            }
+
+            vec3 hsv2rgb(vec3 c){
+                vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
+                vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);
+                return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
+            }
+
+            vec3 rgb2hsv(vec3 rgb) {
+                float Cmax = max(rgb.r, max(rgb.g, rgb.b));
+                float Cmin = min(rgb.r, min(rgb.g, rgb.b));
+                float delta = Cmax - Cmin;
+                vec3 hsv = vec3(0., 0., Cmax);
+                if (Cmax > Cmin) {
+                    hsv.y = delta / Cmax;
+                    if (rgb.r == Cmax) hsv.x = (rgb.g - rgb.b) / delta;
+                    else {
+                        if (rgb.g == Cmax) hsv.x = 2. + (rgb.b - rgb.r) / delta;
+                        else hsv.x = 4. + (rgb.r - rgb.g) / delta;
+                    }
+                    hsv.x = fract(hsv.x / 6.);
+                }
+                return hsv;
+            }
+
+            /*
+            vec3 rgb2hsv(vec3 c){
+                vec4 K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);
+                vec4 p = mix(vec4(c.bg, K.wz), vec4(c.gb, K.xy), step(c.b, c.g));
+                vec4 q = mix(vec4(p.xyw, c.r), vec4(c.r, p.yzx), step(p.x, c.r));
+
+                float d = q.x - min(q.w, q.y);
+                float e = 1.0e-10;
+                return vec3(abs(q.z + (q.w - q.y) / (6.0 * d + e)), d / (q.x + e), q.x);
+            }
+
+            vec3 brightnessContrastCorrection(vec3 value, float brightness, float contrast){
+                return (value - 0.5) * contrast + 0.5 + brightness;
+            }
+
+            vec3 GammaCorrection(vec3 value, float param){
+                return vec3(pow(abs(value.r), param),pow(abs(value.g), param),pow(abs(value.b), param));
+            }
+            */
+            
+
+        `);
+
+        ShaderChunk.common = s;
+
+        /*ShaderChunk.project_vertex = `
+            vec4 mvPosition = vec4( transformed, 1.0 );
+
+            #ifdef USE_INSTANCING
+                mvPosition = instanceMatrix * mvPosition;
+            #endif
+
+            mvPosition = modelViewMatrix * mvPosition;
+            gl_Position = projectionMatrix * mvPosition;
+        `;*/
+
+
+
+
+
+        /*ShaderChunk.begin_vertex = `
+        vZW = gl_Position.zw;
+        vec3 transformed = vec3( position );
+        `;*/
+
+
+        ShaderChunk.clipping_planes_vertex = `
+            #if NUM_CLIPPING_PLANES > 0
+                vClipPosition = - mvPosition.xyz;
+            #endif
+            vZW = gl_Position.zw;
+        `;
+
+        s = ShaderChunk.lights_fragment_begin;
+
+        // point
+        s = s.replace( 'directLight.color *= ( directLight.visible && receiveShadow ) ? getPointShadow( pointShadowMap[ i ], pointLightShadow.shadowMapSize, pointLightShadow.shadowBias, pointLightShadow.shadowRadius, vPointShadowCoord[ i ], pointLightShadow.shadowCameraNear, pointLightShadow.shadowCameraFar ) : 1.0;', `
+            shadowTmp = 1.0;
+            shadowTmp *= ( directLight.visible && receiveShadow ) ? getPointShadow( pointShadowMap[ i ], pointLightShadow.shadowMapSize, pointLightShadow.shadowBias, pointLightShadow.shadowRadius, vPointShadowCoord[ i ], pointLightShadow.shadowCameraNear, pointLightShadow.shadowCameraFar ) : 1.0;;
+            //directLight.color *= shadowTmp;
+            shadowValue *= shadowTmp;
+        `);
+
+        // spot
+        s = s.replace( 'directLight.color *= ( directLight.visible && receiveShadow ) ? getShadow( spotShadowMap[ i ], spotLightShadow.shadowMapSize, spotLightShadow.shadowBias, spotLightShadow.shadowRadius, vSpotLightCoord[ i ] ) : 1.0;', `
+            shadowTmp = 1.0;
+            shadowTmp *= ( directLight.visible && receiveShadow ) ? getShadow( spotShadowMap[ i ], spotLightShadow.shadowMapSize, spotLightShadow.shadowBias, spotLightShadow.shadowRadius, vSpotLightCoord[ i ] ) : 1.0;
+            //directLight.color *= shadowTmp;
+            shadowValue *= shadowTmp;
+        `);
+
+        // directional
+        s = s.replace( 'directLight.color *= ( directLight.visible && receiveShadow ) ? getShadow( directionalShadowMap[ i ], directionalLightShadow.shadowMapSize, directionalLightShadow.shadowBias, directionalLightShadow.shadowRadius, vDirectionalShadowCoord[ i ] ) : 1.0;', `
+            shadowTmp = 1.0;
+            shadowTmp *= ( directLight.visible && receiveShadow ) ? getShadow( directionalShadowMap[ i ], directionalLightShadow.shadowMapSize, directionalLightShadow.shadowBias, directionalLightShadow.shadowRadius, vDirectionalShadowCoord[ i ] ) : 1.0;
+            //directLight.color *= shadowTmp;
+            shadowValue *= shadowTmp;
+        `);
+
+        ShaderChunk.lights_fragment_begin = s;
+
+       /* s = ShaderChunk.tonemapping_fragment;
+
+        s = s.replace( '#if defined( TONE_MAPPING )', `
+            #if defined( USE_SHADOWMAP )
+            gl_FragColor.rgb = mix( gl_FragColor.rgb, gl_FragColor.rgb * shadowR, Shadow);
+            #endif
+
+            #if defined( TONE_MAPPING )
+        `);
+
+        ShaderChunk.tonemapping_fragment = s;*/
+
+        {
+            ShaderChunk.fog_vertex = FogVertex;
+            ShaderChunk.fog_fragment = FogFragment;
+        }
+
+        
+        
+
+
+
+
+        s = ShaderChunk.opaque_fragment;//output_fragment;
+
+        s = s.replace( 'gl_FragColor = vec4( outgoingLight, diffuseColor.a );', `
+
+            gl_FragColor = vec4( outgoingLight, diffuseColor.a );
+
+        	#if defined( USE_SHADOWMAP )
+
+            shadowValue = (shadowValue - 0.5) * shadowContrast + 0.5 + shadowLuma;
+            shadowValue = pow(abs(shadowValue), shadowGamma );
+            shadowValue = clamp( shadowValue, 0.0, 1.0 );
+
+            shadowColor = vec3( shadowValue );
+
+            ///shadowColor = vec3( 0.0,0.0,1.0-shadowValue );
+
+            //vec3 sColor = vec3( 0.1, 0.1, 0.8 );
+            //shadowColor.b += 1.0-shadowValue ;
+
+
+
+            // TODO find better shadow variation
+
+            vec3 invert = vec3( 1.0 - gl_FragColor.rgb );
+            vec3 dd = vec3(0.38,0.42,0.63);
+            float gray = ((gl_FragColor.r + gl_FragColor.g + gl_FragColor.b) / 3.0);
+            vec3 invColor = gray * dd;
+            invColor = invColor * mix( invColor, invert, 1.0-gray*0.5 );
+
+
+
+
+                    
+
+
+            //gl_FragColor.rgb = mix( gl_FragColor.rgb, gl_FragColor.rgb * shadowColor, (1.0-shadowValue) * shadow );
+
+            //gl_FragColor.rgb *= ((1.0-shadowValue) * (1.0-shadow)) + shadowColor;
+
+            //gl_FragColor.rgb = mix( gl_FragColor.rgb, gl_FragColor.rgb * invColor, (1.0-shadowValue) * shadow );
+            gl_FragColor.rgb = mix( gl_FragColor.rgb, invColor, (1.0-shadowValue) * shadow );
+
+            //gl_FragColor.rgb = invColor;
+
+            //gl_FragColor.rgb = gl_FragColor.rgb * shadowColor;
+
+            //gl_FragColor.rgb *= ((1.0-shadowValue) * shadow) * invColor;
+
+
+        	#endif
+            
+        `);
+
+        //ShaderChunk.fog_fragment = s;
+        ShaderChunk.opaque_fragment = s;//output_fragment = s
+
+      //  ShaderChunk.tonemapping_fragment = s;
+
+
+        //console.log('shadow modif on')
+
+        s = ShaderChunk.dithering_fragment;
+
+        s = s.replace( '#endif', `
+
+            #endif
+
+            #ifdef STANDARD
+
+            if( renderMode == 1 ){ 
+                float fz = 0.5 * vZW[0] / vZW[1] + 0.5;
+                gl_FragColor = depthPacking == 1 ? packDepthToRGBA( fz ) : vec4( vec3( 1.0 - fz ), opacity );// depth render
+            }
+            if( renderMode == 2 ) gl_FragColor = vec4(  packNormalToRGB( normal ), opacity );// normal render
+            if( renderMode == 3 ) gl_FragColor = vec4(  shadowColor, opacity );// normal render
+
+            #else
+
+            if( renderMode != 0 ) discard;
+
+            #endif
+
+        `);
+
+        ShaderChunk.dithering_fragment = s;
+
+
+
+        s = ShaderChunk.color_vertex;
+        s = s.replace( 'vColor.xyz *= instanceColor.xyz;', `vColor.xyz = instanceColor.xyz;`);
+        ShaderChunk.color_vertex = s;
+
+
+        isInit = true;
+
+
+
+
+
+
+		//this.shaders=[];
+		//this.uniforms = {};
+
+	}
+
+    static add ( m, beforeCompile = null ) {
+
+        if( !isInit ) return
+
+        if( !m ) return
+
+        let name = m.name;
+        if ( materials.has( name ) ) { 
+            console.log('already add', name);
+            return 
+        }
+
+        //console.log('add', name)
+        materials.set( name, true );
+        
+        if( m.shadowSide === null ) m.shadowSide = DoubleSide;
+
+        //m.format = sRGBEncoding;
+        /*if(!m.isEncod){
+            if( m.map ) m.map.colorSpace = SRGBColorSpace
+            m.color.convertSRGBToLinear()
+            m.isEncod = true
+        }*/
+
+        m.onBeforeCompile = function ( shader ) {
+            Shader.modify( shader );
+            if(beforeCompile) beforeCompile(shader);
+        };
+
+        /*if(!m.defines){ 
+            m.defines = defines
+        } else {
+            Shader.setDefines( m )
+        }*/
+         //
+
+    } 
+
+    static refresh () {
+
+      /* console.log( 'refresh', materials )
+
+        materials.forEach( (value, key)=>{
+
+
+            //console.log( value, key )
+
+
+
+            value.needsUpdate = true 
+
+        })*/
+    }
+
+    static setDefines ( m ) {
+        
+        //for( var o in defines ) m.defines[o] = defines[o]
+
+        //if(!mats[m.name]) mats[m.name] = m
+
+       // console.log(m.name)
+
+    }
+
+
+    static modify ( s ) {
+
+        if( !isInit ) return
+
+       // if( mode === 'LOW' ) return
+
+       //shaders.push( s );
+       // apply global uniform
+       for( let n in uniforms ){
+
+       	    s.uniforms[n] = uniforms[n];
+
+       }
+
+       // start add
+
+       /*let fragment = s.fragmentShader;
+
+        fragment.replace( 'vec4 diffuseColor = vec4( diffuse, opacity );', `
+            vec4 diffuseColor = vec4( diffuse, opacity );
+            vec3 shadowR = vec3(1.0);
+        `);
+        s.fragmentShader = fragment;*/
+
+    }
+
+    static up ( o ) {
+
+        //if( mode === 'LOW' ) return
+
+        for( let n in o ){
+
+            if( uniforms[n] ){ 
+                if( uniforms[n].value.isColor ) uniforms[n].value.setHex( o[n] );
+                else uniforms[n].value = o[n];
+
+            }
+
+            /*if( defines[n] ){
+
+                for( let m in mats ){ 
+                    console.log(m)
+                    mats[m].defines[n] = o[n]
+                }
+
+            }*/
+            
+
+        }
+
+    	/*for ( let s of shaders ){
+
+    		for( let n in o ){
+
+    			if( s.uniforms[n] ){ 
+                    if( s.uniforms[n].value.isColor ) s.uniforms[n].value.setHex( o[n] );
+                    else s.uniforms[n].value = o[n];
+
+                }
+    		}
+
+    	}*/
+
+    }
+
+    static reset (){
+        materials.clear();
+    }
+
+}
+/*THREE.ShaderChunk.fog_fragment = THREE.ShaderChunk.fog_fragment.replace(
+                    'gl_FragColor.rgb = mix( gl_FragColor.rgb, fogColor, fogFactor );',
+                    `
+                    vec4 CCF = vec4(fogColor, 1.0);
+                    #if defined( TONE_MAPPING )
+                    CCF.rgb = toneMapping( CCF.rgb );
+                    CCF = linearToOutputTexel( CCF );
+                    #endif
+                    gl_FragColor.rgb = mix( gl_FragColor.rgb, CCF.rgb, fogFactor );
+                    `
+                );*/
+
+// https://iquilezles.org/articles/fog/
+const FogVertex = `
+#ifdef USE_FOG
+
+    vFogDepth = - mvPosition.z;
+
+    rayDir2 = normalize( worldPosition.xyz - cameraPosition );
+    rayDir = normalize( mvPosition.xyz );
+    rayOri = cameraPosition.xyz;
+
+    //rayOri = worldPosition.xyz; //( cameraPosition-worldPosition.xyz  );
+    //vec3 tt = vec3(cameraPosition-mvPosition);
+    //float fDist = sqrt(tt.x*tt.x+tt.y*tt.y+tt.z*tt.z);
+    //fDist = distance(cameraPosition.xyz, mvPosition.xyz);
+
+#endif
+`;
+
+const FogFragment = `
+#ifdef USE_FOG
+
+    #ifdef FOG_EXP2
+
+        float fogFactor = 1.0 - exp( - fogDensity * fogDensity * vFogDepth * vFogDepth );
+
+    #else
+
+        float fogFactor = smoothstep( fogNear, fogFar, vFogDepth );
+        float fogDensity = 0.01;
+
+    #endif
+
+    
+
+    /*vec4 CCF = vec4(fogColor, 1.0);
+    #if defined( TONE_MAPPING )
+        CCF.rgb = toneMapping( CCF.rgb );
+        //CCF = linearToOutputTexel( CCF );
+    #endif*/
+
+    if( fogMode == 0 ){
+
+        gl_FragColor.rgb = mix( gl_FragColor.rgb, fogColor, fogFactor );
+    } 
+
+    if( fogMode == 1 ){
+
+        vec3 fcolor = fogColor;
+
+        #if ( NUM_DIR_LIGHTS > 0 ) && defined( RE_Direct )
+
+            float aa = fogDensity * fogDensity * 1.0;
+            float bb = fogDensity * fogDensity * 12.0;
+            //bb = pow(bb, 0.8);
+            float distance = vFogDepth * vFogDepth;
+
+            fogFactor = 1.0 - exp( -distance*bb );
+            fogFactor = (aa/bb) * exp(-rayOri.y*bb) * (1.0-exp( -distance*rayDir2.y*bb ))/rayDir2.y;
+            fogFactor = clamp( fogFactor, 0.0, 1.0 );
+
+            vec3 sunDir = normalize( directionalLights[ 0 ].direction );
+            vec3 sunColor = directionalLights[ 0 ].color;
+            // sunColor = vec3(1,0,0);
+            float sunAmount = max( dot( rayDir, sunDir ), 0.0 );
+            //float sunAdd = clamp( pow(sunAmount, 60.0), 0.0, 1.0 );
+            float sunAdd = pow(sunAmount, 16.0);
+            fcolor = mix( fogColor, sunColor, sunAdd ); // 8.0
+
+        #endif
+
+        gl_FragColor.rgb = gl_FragColor.rgb * (1.0-fogFactor) + fcolor * fogFactor;
+
+    }
+
+#endif
+`;
+
+
+const shadowPCSS = `
+#ifdef USE_SHADOWMAP
+
+uniform float lightSizeUV;
+uniform float nearPlane;
+uniform float rings;
+uniform int nSample;
+uniform float noiseIntensity;
+uniform float softness;
+
+//#define LIGHT_WORLD_SIZE 0.005
+//#define LIGHT_FRUSTUM_WIDTH 3.75
+//#define LIGHT_SIZE_UV (LIGHT_WORLD_SIZE / LIGHT_FRUSTUM_WIDTH)
+//#define NEAR_PLANE 9.5
+
+#define NUM_SAMPLES 17
+
+vec2 poissonDisk[32];
+
+void initPoissonSamples( const in vec2 randomSeed ) {
+
+    int numSample = nSample;
+
+    float ANGLE_STEP = PI2 * rings / float( numSample );
+    float INV_NUM_SAMPLES = 1.0 / float( numSample );
+
+    // jsfiddle that shows sample pattern: https://jsfiddle.net/a16ff1p7/
+    float angle = rand( randomSeed ) * PI2 * noiseIntensity;
+    float radius = INV_NUM_SAMPLES;
+    float radiusStep = radius;
+
+    for( int i = 0; i < numSample; i ++ ) {
+        poissonDisk[i] = vec2( cos( angle ), sin( angle ) ) * pow( radius, 0.75 );
+        radius += radiusStep;
+        angle += ANGLE_STEP;
+    }
+}
+
+float penumbraSize( const in float zReceiver, const in float zBlocker ) { // Parallel plane estimation
+    return (zReceiver - zBlocker) / zBlocker;
+}
+
+float findBlocker( sampler2D shadowMap, const in vec2 uv, const in float zReceiver, float ls ) {
+
+    // This uses similar triangles to compute what
+    // area of the shadow map we should search
+    float searchRadius = ls * ( zReceiver - nearPlane ) / zReceiver;
+    float blockerDepthSum = 0.0;
+    int numBlockers = 0;
+    int numSample = nSample;
+    float shadowMapDepth = 0.0;
+
+    for( int i = 0; i < numSample; i++ ) {
+        shadowMapDepth = unpackRGBAToDepth(texture2D(shadowMap, uv + poissonDisk[i] * searchRadius));
+        if ( shadowMapDepth < zReceiver ) {
+            blockerDepthSum += shadowMapDepth;
+            numBlockers ++;
+        }
+    }
+
+    if( numBlockers == 0 ) return -1.0;
+
+    return blockerDepthSum / float( numBlockers );
+
+}
+
+float PCF_Filter(sampler2D shadowMap, vec2 uv, float zReceiver, float filterRadius ) {
+    
+    /*int numSample = nSample;
+    float sum = 0.0;
+    float depth;
+    #pragma unroll_loop_start
+    for( int i = 0; i < 17; i ++ ) {
+        depth = unpackRGBAToDepth( texture2D( shadowMap, uv + poissonDisk[ i ] * filterRadius ) );
+        if( zReceiver <= depth ) sum += 1.0;
+    }
+    #pragma unroll_loop_end
+    #pragma unroll_loop_start
+    for( int i = 0; i < 17; i ++ ) {
+        depth = unpackRGBAToDepth( texture2D( shadowMap, uv + -poissonDisk[ i ].yx * filterRadius ) );
+        if( zReceiver <= depth ) sum += 1.0;
+    }
+    #pragma unroll_loop_end
+    return sum / ( 2.0 * float( 17 ) );*/
+
+    int numSample = nSample;
+    float sum = 0.0;
+    float top = 0.0;
+    float low = 0.0;
+    #pragma unroll_loop_start
+    for( int i = 0; i < 17; i ++ ) {
+        top = unpackRGBAToDepth( texture2D( shadowMap, uv + poissonDisk[ i ] * filterRadius ) );
+        low = unpackRGBAToDepth( texture2D( shadowMap, uv + -poissonDisk[ i ].yx * filterRadius ) );
+        if( zReceiver <= top ) sum += 1.0;
+        if( zReceiver <= low ) sum += 1.0;
+    }
+    #pragma unroll_loop_end
+    return sum / ( 2.0 * float( 17 ) );
+}
+
+float PCSS ( sampler2D shadowMap, vec4 coords ) {
+
+    vec2 uv = coords.xy;
+    float zReceiver = coords.z; // Assumed to be eye-space z in this code
+    //float lightSizeUV = LIGHT_WORLD_SIZE / LIGHT_FRUSTUM_WIDTH;
+
+    float ls = lightSizeUV * 0.001;
+
+    initPoissonSamples( uv );
+    // STEP 1: blocker search
+    float avgBlockerDepth = findBlocker( shadowMap, uv, zReceiver, ls );
+
+    //There are no occluders so early out (this saves filtering)
+    if( avgBlockerDepth == -1.0 ) return 1.0;
+
+    // STEP 2: penumbra size
+    float penumbraRatio = penumbraSize( zReceiver, avgBlockerDepth );
+    float filterRadius = penumbraRatio * ls * nearPlane / zReceiver;
+
+    // STEP 3: filtering
+    //return avgBlockerDepth;
+    return PCF_Filter( shadowMap, uv, zReceiver, filterRadius );
+}
+`;
+
+const randomUV = `
+
+float directNoise(vec2 p){
+    vec2 ip = floor(p);
+    vec2 u = fract(p);
+    u = u*u*(3.0-2.0*u);
+    
+    float res = mix(
+        mix(rand(ip),rand(ip+vec2(1.0,0.0)),u.x),
+        mix(rand(ip+vec2(0.0,1.0)),rand(ip+vec2(1.0,1.0)),u.x),u.y);
+    return res*res;
+}
+
+float sum( vec4 v ) { return v.x+v.y+v.z; }
+
+vec4 textureNoTile( sampler2D mapper, in vec2 uv ){
+
+    // sample variation pattern    
+    //float k = texture2D( noise, 0.005*uv ).x; // cheap (cache friendly) lookup    
+    float k = directNoise( uv );
+    
+    // compute index    
+    float index = k*8.0;
+    float f = fract( index );
+
+    float ia = floor( index );
+    float ib = ia + 1.0;
+    // or
+    //float ia = floor(index+0.5); // suslik's method (see comments)
+    //float ib = floor(index);
+    //f = min(f, 1.0-f)*2.0;
+
+    // offsets for the different virtual patterns    
+    vec2 offa = sin(vec2(3.0,7.0)*ia); // can replace with any other hash    
+    vec2 offb = sin(vec2(3.0,7.0)*ib); // can replace with any other hash    
+
+    // compute derivatives for mip-mapping    
+    vec2 dx = dFdx(uv);
+    vec2 dy = dFdy(uv);
+    
+    // sample the two closest virtual patterns    
+    vec4 cola = textureGrad( mapper, uv + offa, dx, dy );
+    vec4 colb = textureGrad( mapper, uv + offb, dx, dy );
+
+    // interpolate between the two virtual patterns    
+    return mix( cola, colb, smoothstep(0.2,0.8,f-0.1*sum(cola-colb)) );
+
+}
+`;
+
 const GlbTool = {
 
 	getMesh:( scene, keepMaterial ) => {
@@ -22987,6 +23840,7 @@ const GlbTool = {
             if ( child.isMesh ){ 
                 m = child.material;
                 if( !Mats[m.name] ){
+                    Shader.add( m );
                     //console.log(m.name)
                     Mats[m.name] = true;
                 }
@@ -23020,6 +23874,7 @@ const GlbTool = {
             if ( child.isMesh ){ 
             	m = child.material;
             	if( !Mats[m.name] ){
+            		Shader.add( m );
             		Mats[m.name] = m;
             		n = Number( m.name.substring( 0, m.name.lastIndexOf('_') )  );
             		mats[n] = m;
@@ -25340,9 +26195,11 @@ class Avatar extends Group {
 
         const action = this.mixer.clipAction( clip );
         action.frameMax = Math.round( clip.duration * FrameTime );
-        action.enabled = true;
-        action.setEffectiveWeight( 0 );
-        if(clip.name === 'Jumping Up') action.loop = LoopPingPong;
+        action.play();
+        action.enabled = true;//false;
+        if(clip.name.search('idle')!==-1) action.enabled = true;
+        //action.setEffectiveWeight( 0 );
+        if( clip.name === 'Jumping Up' ) action.loop = LoopPingPong;
         //action.play()
         this.actions.set( clip.name, action );
 
@@ -25578,7 +26435,7 @@ class Avatar extends Group {
         action.enabled = true;
         //action.time = 0;
         action.setEffectiveTimeScale( 1 );
-        action.setEffectiveWeight( 1 );
+        //action.setEffectiveWeight( 1 );
         action.play();
 
         //console.log(action)
@@ -25593,24 +26450,28 @@ class Avatar extends Group {
 
 
     //---------------------
+    //
     //  ANIMATION CONTROL
+    //
     //---------------------
 
     prepareCrossFade( startAction, endAction, duration )  {
         //singleStepMode = false;
+
+        this.isPause = false;
         this.unPause();
         // If the current action is 'idle' (duration 4 sec), execute the crossfade immediately;
         // else wait until the current action has finished its current loop
 
-        if ( startAction === idleAction ) {
+        if ( endAction._clip.name !== 'idle' ) {
             this.executeCrossFade( startAction, endAction, duration );
         } else {
-            this.synchronize( startAction, endAction, duration );
+            this.synchronizeCrossFade( startAction, endAction, duration );
         }
 
     }
 
-    synchronize( startAction, endAction, duration ) {
+    synchronizeCrossFade( startAction, endAction, duration ) {
 
         this.mixer.addEventListener( 'loop', onLoopFinished );
         const self = this;
@@ -25623,7 +26484,7 @@ class Avatar extends Group {
 
     }
 
-    executeCrossFade( startAction, endAction, duration ) {
+    executeCrossFade( startAction, endAction, duration, warping = true ) {
         // Not only the start action, but also the end action must get a weight of 1 before fading
         // (concerning the start action this is already guaranteed in this place)
         this.setWeight( endAction, 1 );
@@ -25632,23 +26493,21 @@ class Avatar extends Group {
         startAction.crossFadeTo( endAction, duration, true );
     }
 
-    pause() {
+    pause(){
         this.actions.forEach( function ( action ) { action.paused = true; });
         this.isPause = true;
     }
 
-    unPause() {
+    unPause(){
         this.actions.forEach( function ( action ) { action.paused = false; });
         this.isPause = false;
     }
 
-    playAll()
-    {
+    playAll(){
         this.actions.forEach( function ( action ) { action.play(); });
     }
 
     setTimescale( timescale ) {
-
 
         this.actions.forEach( function ( action ) { action.setEffectiveTimeScale( timescale ); });
 
@@ -25672,13 +26531,13 @@ class Avatar extends Group {
 
     setWeight( action, weight ) {
 
-        if( typeof action === 'string' ) action = this.getAction( action );
-        if ( !action ) return;
+        //if( typeof action === 'string' ) action = this.getAction( action );
+        //if ( !action ) return;
 
         action.enabled = true;
         if(weight<0) weight = 0;
         if(weight>1) weight = 1;
-        action.getEffectiveWeight();
+        //let old = action.getEffectiveWeight()
         //if(old===0 && weight!== 0) action.time = 0;
         //action.setEffectiveTimeScale( weight );
         action.setEffectiveWeight( weight );
@@ -25719,20 +26578,72 @@ class Avatar extends Group {
             action.setEffectiveWeight( 1 );
             //console.log(name)
         } else {
+
             if( this.current !== action ){
 
                 this.old = this.current;
                 this.current = action;
-                action.play();
+
+                let isIdle = this.current.getClip().name !== 'idle';
+
+                
+                /*this.current.play();
 
                 if( this.clipsToesFix.indexOf(name) !== -1 ) this.fixToe = true;
                 else this.resetToes(); 
 
+                this.executeCrossFade( this.old, this.current, fade );*/
 
-                //console.log( name, this.fixToe )
+                
 
 
-                this.executeCrossFade(this.old, this.current, fade  );
+                //this.old.fadeOut( fade );
+
+                const ratio = this.current.getClip().duration / this.old.getClip().duration;
+                
+                //else {
+                    //this.current.paused = false
+                    //this.current.time = 0
+
+                    this.current.reset();
+                    if ( !isIdle ) this.current.time = this.old.time * ratio;
+                    this.current.setEffectiveTimeScale( 1 );
+                    this.current.setEffectiveWeight( 1 );
+                //}
+
+                
+                this.current.crossFadeFrom( this.old, fade, !isIdle );
+                this.current.play();
+
+
+                //console.log( action )
+
+                //this.prepareCrossFade(this.old, this.current, fade)
+
+                /*this.setWeight( this.current, 1 );
+                //this.current.time = 0;
+
+                this.old.fadeOut(fade)
+                //this.current.reset()
+                this.current.fadeIn(fade)
+                this.current.play()*/
+
+                //this.current.fadeIn( fade );
+                //this.old.fadeOut( fade );
+
+                //this.setWeight( this.current, 1 );
+
+                //this.old.crossFadeFrom( this.current, fade, true );
+
+                /*if ( this.current._clip.name === 'idle' ) {
+                    this.old.fadeOut(fade)
+                    this.current.reset()
+                    this.current.fadeIn(fade)
+                    console.log('idle')
+                }*/
+
+
+                
 
                // this.stop()
                //this.current = action;
@@ -26649,6 +27560,8 @@ class Hero extends Basic3D {
 		this.oy = 0;
 		this.vy = 0;
 
+		this.timeScale = 1.25;
+
 		this.angle = ( o.angle || 0 ) * torad$1;
 
 		this.speed = {
@@ -26837,7 +27750,7 @@ class Hero extends Basic3D {
 		super.dispose();
 	}
 
-	move () {
+	move ( ) {
 
 		const key = root.motor.getKey();
 		const azimut = root.motor.getAzimut();
@@ -26977,13 +27890,14 @@ class Hero extends Basic3D {
 	    //math.tmpV2.set( 0, rs, 0 );
 	    this.tmpV2.set( 0, 0, 0 );
 
-	    root.motor.change({ 
+	    root.motor.change({
+
 		    name:this.name,
 		    //force: this.tmpV1.toArray(), forceMode:'velocity', 
 		    linearVelocity: this.tmpV1.toArray(), 
-		    /*angularVelocity: this.tmpV2.toArray(),*/ 
-		    wake:true/*, 
-		    noGravity:true*/ 
+		    ///angularVelocity: this.tmpV2.toArray(), 
+		    //wake:true, 
+		    //noGravity:true 
 		});
 
 
@@ -27017,22 +27931,30 @@ class Hero extends Basic3D {
         
 	    if( this.jump ){
 	    	this.model.play( 'Jump', 0 );
-	    	this.model.setTimescale( 1 );
+	    	//this.model.setTimescale( 1 )
 	    }else {
-	    	this.model.play( mAnim, 0.25 );
-	    	//this.model.setTimescale( 1.25 )
-	    	this.model.setTimescale( 1 );
+	    	this.model.play( mAnim, 0.5 );
+	    	//this.model.setTimescale( this.timeScale )
+	    	//this.model.setTimescale( 1 )
 	    }
 
 	    if( anim !== 'idle' ){
 
+	    	//this.model.setTimescale( 0.5 )
+
 	    	let pp = MathTool.unwrapRad( this.model.rotation.y );
 	    	//if( anim === 'fight' ) pp = math.unwrapRad( azimut + Math.PI )
 	    	let aa = MathTool.nearAngle( angle, pp );
+	    	let diff = Math.abs(Math.floor((pp - aa)*math.todeg)/180);
+	    	//console.log(diff)
 	    	//this.model.rotation.y = anim === 'fight' ? (azimut + Math.PI) : math.lerp( pp, aa, 0.25 )
-	    	this.model.rotation.y = anim === 'fight' ? (azimut + Math.PI) : MathTool.lerp( pp, aa, 0.1 );
+	    	this.model.rotation.y = anim === 'fight' ? (azimut + Math.PI) : MathTool.lerp( pp, aa, 0.2 - (diff*0.1) );
 	    	this.model.updateMatrix();
-	    	this.model.setTimescale( this.tmpAcc * (1*genSpeed) );
+	    	//this.model.setTimescale( this.tmpAcc * (1*genSpeed) )
+
+	    	//let m = this.model.getAction( anim )
+	    	//if( m ) m.setEffectiveTimeScale( this.tmpAcc * (1*genSpeed) );
+	    	//if( m ) m.setEffectiveTimeScale( 0 );
 	    }
 
 	    //if( this.helper ) this.helper.setDirection( this.model.rotation.y )
@@ -27042,7 +27964,7 @@ class Hero extends Basic3D {
 
 }
 
-const math = {
+const math$1 = {
 
 	torad: Math.PI / 180,
 	todeg: 180 / Math.PI,
@@ -27066,7 +27988,7 @@ const math = {
 	nearEquals: ( a, b, t ) => ( Math.abs(a - b) <= t ? true : false ),
 	lerpAr: ( ar, arx, ary, t ) => {
 		let i = ar.length;
-		while( i-- ) ar[i] = math.lerp( arx[i], ary[i], t );
+		while( i-- ) ar[i] = math$1.lerp( arx[i], ary[i], t );
 	},
 
     unwrapDeg: ( r ) => (r - (Math.floor((r + 180)/360))*360), 
@@ -27168,14 +28090,14 @@ const math = {
 
 		inv = inv || false;
 
-		math.tmpM.compose( math.tmpV.fromArray( p ), math.tmpQ.fromArray( q ), { x:1, y:1, z:1 } );
-		math.tmpM.decompose( math.tmpV, math.tmpQ, { x:1, y:1, z:1 } );
+		math$1.tmpM.compose( math$1.tmpV.fromArray( p ), math$1.tmpQ.fromArray( q ), { x:1, y:1, z:1 } );
+		math$1.tmpM.decompose( math$1.tmpV, math$1.tmpQ, { x:1, y:1, z:1 } );
 
 		//math.tmpQ.fromArray( q )
 
-		if(inv) math.tmpQ.invert();
+		if(inv) math$1.tmpQ.invert();
 
-		return math.tmpQ.toArray();
+		return math$1.tmpQ.toArray();
 
 	},
 
@@ -27184,19 +28106,19 @@ const math = {
 		inv = inv || false;
 		q2 = q2 || [0,0,0,1];
 
-		math.tmpM.compose( math.tmpV.fromArray( p ), math.tmpQ.fromArray( q ), { x:1, y:1, z:1 } );
-		math.tmpM2.compose( math.tmpV.fromArray( p2 ), math.tmpQ.fromArray( q2 ), { x:1, y:1, z:1 } );
+		math$1.tmpM.compose( math$1.tmpV.fromArray( p ), math$1.tmpQ.fromArray( q ), { x:1, y:1, z:1 } );
+		math$1.tmpM2.compose( math$1.tmpV.fromArray( p2 ), math$1.tmpQ.fromArray( q2 ), { x:1, y:1, z:1 } );
 		if( inv ){
 			//math.tmpM.getInverse( math.tmpM );
-			math.tmpM.invert();
-			math.tmpM.multiply( math.tmpM2 );
+			math$1.tmpM.invert();
+			math$1.tmpM.multiply( math$1.tmpM2 );
 		} else {
-			math.tmpM.multiply( math.tmpM2 );
+			math$1.tmpM.multiply( math$1.tmpM2 );
 		}
 
-		math.tmpM.decompose( math.tmpV, math.tmpQ, { x:1, y:1, z:1 } );
+		math$1.tmpM.decompose( math$1.tmpV, math$1.tmpQ, { x:1, y:1, z:1 } );
 
-		return math.tmpV.toArray();
+		return math$1.tmpV.toArray();
 
 	},
 
@@ -27211,20 +28133,20 @@ const math = {
 	axisToQuatArray: ( r, isdeg ) => { // r[0] array in degree
 
 		isdeg = isdeg || false;
-		return math.tmpQ.setFromAxisAngle( math.tmpV.fromArray( r, 1 ), isdeg ? r[0]*math.torad : r[0]).normalize().toArray();
+		return math$1.tmpQ.setFromAxisAngle( math$1.tmpV.fromArray( r, 1 ), isdeg ? r[0]*math$1.torad : r[0]).normalize().toArray();
 
 	},
 
 	toQuatArray: ( rotation ) => { // rotation array in degree
 
-		return math.tmpQ.setFromEuler( math.tmpE.fromArray( math.vectorad( rotation ) ) ).toArray();
+		return math$1.tmpQ.setFromEuler( math$1.tmpE.fromArray( math$1.vectorad( rotation ) ) ).toArray();
 
 	},
 
 	vectorad: ( r ) => {
 
 		let i = 3, nr = [];
-	    while ( i -- ) nr[ i ] = r[ i ] * math.torad;
+	    while ( i -- ) nr[ i ] = r[ i ] * math$1.torad;
 	    nr[3] = r[3];
 	    return nr;
 
@@ -27298,12 +28220,12 @@ const math = {
 	perlin: null,
 
 	resetPerlin:()=>{
-		if( math.perlin !== null ) math.perlin = null;
+		if( math$1.perlin !== null ) math$1.perlin = null;
 	},
 
 	noise: ( v, o ) => {
 
-	    if( math.perlin === null ) math.perlin = new SimplexNoise();
+	    if( math$1.perlin === null ) math$1.perlin = new SimplexNoise();
 
 	    o = o || {};
 
@@ -27315,7 +28237,7 @@ const math = {
 	    for(i=0; i<level.length; i++){
 
 	        f = frequency [i];
-	        c += level[i] * ( 0.5 + math.perlin.noise3d( v.x*f, v.y*f, v.z*f ) * 0.5 );
+	        c += level[i] * ( 0.5 + math$1.perlin.noise3d( v.x*f, v.y*f, v.z*f ) * 0.5 );
 	        d += level[i];
 
 	    }
@@ -27762,8 +28684,6 @@ class Landscape extends Mesh {
 
         this.pp = new Vector3();
 
-        
-
         this.ratioZ = 1 / this.sampleZ[0];
         this.ratio = 1 / this.sample[0];
         this.ruvx =  1.0 / ( this.size[0] / this.uvx[0] );
@@ -27789,7 +28709,7 @@ class Landscape extends Mesh {
 
         this.colors = new Float32Array( this.lng * 3 );
         this.geometry = new PlaneGeometry( this.size[0], this.size[2], this.sample[0] - 1, this.sample[1] - 1 );
-        this.geometry.rotateX( -math.PI90 );
+        this.geometry.rotateX( -math$1.PI90 );
         //if( this.isTurn ) 
         //this.geometry.rotateY( -math.PI90 );
         //if( this.isTurned ) this.geometry.rotateY( math.PI90 );
@@ -27800,10 +28720,10 @@ class Landscape extends Mesh {
         this.geometry.setAttribute( 'color', new BufferAttribute( this.colors, 3 ) );
         //this.geometry.setAttribute( 'uv2', this.geometry.attributes.uv );
         this.vertices = this.geometry.attributes.position.array;
-        var clevels = new Quaternion( 0.95, 0.8, 0.1, 0.05 ); 
+        var clevels = new Quaternion( 0.5, 0.5, 0.1, 0.2 );//0.95, 0.8, 0.1, 0.05 ); 
         if( o.maplevels ) clevels.fromArray( o.maplevels );
         var T = TerrainShader;
-        var maps = o.maps || [ 'sand', 'grass', 'rock' ], txt = {};
+        var maps = o.maps || [ 'sand', 'grass3', 'rock' ], txt = {};
         var name;
 
         if(this.isWater) maps = ['water'];
@@ -27822,7 +28742,7 @@ class Landscape extends Mesh {
         }
 
         //txt['noise'] = Pool.directTexture(this.folder + 'noise.png', { flip:false, repeat:[1,1], encoding:false , callback: this.mapcallback.bind(this)  });
-        txt['noise'] = Pool.texture({ url:this.folder + 'noise.png', flip:false, repeat:[1,1], encoding:false , callback: this.mapcallback.bind(this)  });
+        //txt['noise'] = Pool.texture({ url:this.folder + 'noise.png', flip:false, repeat:[1,1], encoding:false , callback: this.mapcallback.bind(this)  });
 
         this.txt = txt;
 
@@ -27839,9 +28759,9 @@ class Landscape extends Mesh {
             this.material.metalness  = 0.9;
             this.material.roughness = 0.1;
         } else {
-            this.material.reflectivity = 0.1;
-            this.material.metalness = o.metalness || 0.1;
-            this.material.roughness = o.roughness || 0.5; 
+            this.material.reflectivity = 0.0;
+            this.material.metalness = o.metalness || 0.0;
+            this.material.roughness = o.roughness || 0.77; 
         }
 
         var ns = o.nScale || 1;
@@ -27851,7 +28771,7 @@ class Landscape extends Mesh {
 
             this.material.onBeforeCompile = function ( shader ) {
 
-                var uniforms = shader.uniforms;
+                let uniforms = shader.uniforms;
 
                 //uniforms['fogTime'] = { value: 0 };
 
@@ -27865,13 +28785,13 @@ class Landscape extends Mesh {
                 uniforms['normalMap1'] = { value: txt[maps[1]+'_n'] };
                 uniforms['normalMap2'] = { value: txt[maps[2]+'_n'] };
 
-                uniforms['noise'] = { value: txt['noise'] };
+                //uniforms['noise'] = { value: txt['noise'] };
 
                 shader.uniforms = uniforms;
 
-                var fragment = shader.fragmentShader;
+                Shader.addParsFragment( shader, Shader.getRandomUv() + T.fragmentAdd );
 
-                fragment = fragment.replace( 'uniform vec3 diffuse;', T.baseRemplace );
+                let fragment = shader.fragmentShader;
 
                 fragment = fragment.replace( '#include <map_fragment>', T.map );
                 fragment = fragment.replace( '#include <normal_fragment_maps>', T.normal );
@@ -27880,6 +28800,10 @@ class Landscape extends Mesh {
                 shader.fragmentShader = fragment;
 
                 this.userData.shader = shader;
+
+                //if( o.shader ) o.shader.modify( shader );
+
+                Shader.modify( shader );
 
             };
 
@@ -27943,7 +28867,7 @@ class Landscape extends Mesh {
 
         // rotation is in degree or Quaternion
         o.quat = o.quat === undefined ? [ 0, 0, 0, 1 ] : o.quat;
-        if( o.rot !== undefined ){ o.quat = math.toQuatArray( o.rot ); delete o.rot; }
+        if( o.rot !== undefined ){ o.quat = math$1.toQuatArray( o.rot ); delete o.rot; }
         //console.log(o.quat)
         this.quaternion.fromArray( o.quat );
 
@@ -27976,7 +28900,7 @@ class Landscape extends Mesh {
     debugZone(o) {
 
         this.geometryZ = new PlaneGeometry( this.sizeZ[0], this.sizeZ[2], this.sampleZ[0] - 1, this.sampleZ[1] - 1 );
-        this.geometryZ.rotateX( -math.PI90 );
+        this.geometryZ.rotateX( -math$1.PI90 );
         this.verticesZ = this.geometryZ.attributes.position.array;
         
         const debuger = new Mesh( this.geometryZ, new MeshBasicMaterial({color:0xff0000, wireframe:true } ));
@@ -28000,7 +28924,7 @@ class Landscape extends Mesh {
     addBottom ( o ){
 
     	var geometry = new PlaneGeometry( this.size[0], this.size[2], 1, 1 );
-        geometry.rotateX( math.PI90 );
+        geometry.rotateX( math$1.PI90 );
         
 
         this.bottomMesh = new Mesh( geometry, this.borderMaterial );
@@ -28037,11 +28961,11 @@ class Landscape extends Mesh {
         var right = new PlaneGeometry( this.size[2], 2, this.sample[1] - 1, 1 );
 
         front.translate( 0,1, this.size[2]*0.5);
-        back.rotateY( -math.Pi );
+        back.rotateY( -math$1.Pi );
         back.translate( 0,1, -this.size[2]*0.5);
-        left.rotateY( -math.PI90 );
+        left.rotateY( -math$1.PI90 );
         left.translate( -this.size[0]*0.5,1, 0);
-        right.rotateY( math.PI90 );
+        right.rotateY( math$1.PI90 );
         right.translate( this.size[0]*0.5,1, 0);
 
         this.borderGeometry = mergeVertices( mergeBufferGeometries( [ front, back, left, right ] ) );
@@ -28245,10 +29169,10 @@ class Landscape extends Mesh {
             this.material.normalMap.offset.x+=0.002;
             this.material.normalMap.offset.y+=0.001;
         } else {
-            if(this.material.map){
-                this.material.map.offset.x = this.local.x * this.ruvx;
-                this.material.map.offset.y = this.local.z * this.ruvy;
-            }
+            let v = { x: this.local.x * this.ruvx, y: this.local.z * this.ruvy };
+            if(this.material.map) this.material.map.offset.copy(v);
+            if(this.material.normalMap) this.material.normalMap.offset.copy(v);
+            
         }
 
     }
@@ -28269,7 +29193,7 @@ class Landscape extends Mesh {
 
             v.set( x + ( this.local.x*this.rx ), this.local.y, z + ( this.local.z*this.rz ) );
 
-            c = math.noise( v, this.data );
+            c = math$1.noise( v, this.data );
 
 
 
@@ -28334,7 +29258,13 @@ class Landscape extends Mesh {
 
             }
 
-            ccc = math.clamp(cc[0]+0.25, 0.25, 1);
+            //ccc = math.clamp(cc[0]+0.25, 0.25, 1)
+            ccc = cc[0];
+
+            //if(ccc>mm) mm = ccc
+            //if(ccc<mi) mi = ccc
+
+            
 
             this.colors[ n ] = ccc;
             this.colors[ n + 1 ] = ccc;
@@ -28343,6 +29273,8 @@ class Landscape extends Mesh {
             
 
         }
+
+        //console.log(mm, mi)
 
 
         if( this.isBorder ){
@@ -28353,7 +29285,7 @@ class Landscape extends Mesh {
                 if(this.list[j]!==-1){
                     h = this.height[ this.list[j] ];
                     this.borderVertices[n+1] = (h * this.size[1]) + this.deep;
-                    ccc = math.clamp(h+0.25, 0.25, 1);
+                    ccc = math$1.clamp(h+0.25, 0.25, 1);
                     this.borderColors[n] = ccc; //* this.colorBase.r;//h * this.colorBase.r//ee;
                     this.borderColors[n+1] = ccc; //* this.colorBase.g;// h * this.colorBase.g//ee*0.5;
                     this.borderColors[n+2] = ccc; //* this.colorBase.b;// h * this.colorBase.b//ee*0.3;
@@ -28414,10 +29346,8 @@ class Landscape extends Mesh {
 
 const TerrainShader = {
 
-    baseRemplace : /* glsl */`
-        uniform vec3 diffuse; 
+    fragmentAdd : /* glsl */`
         uniform vec4 clevels;
-
         uniform float randomUv;
 
         uniform sampler2D noise;
@@ -28432,41 +29362,6 @@ const TerrainShader = {
         uniform sampler2D map1;
         uniform sampler2D map2;
 
-        float sum( vec3 v ) { return v.x+v.y+v.z; }
-
-        vec4 textureNoTile( sampler2D mapper, in vec2 uv ){
-
-            // sample variation pattern    
-            float k = texture2D( noise, 0.005*uv ).x; // cheap (cache friendly) lookup    
-            
-            // compute index    
-            float index = k*8.0;
-            float f = fract( index );
-
-            float ia = floor( index );
-            float ib = ia + 1.0;
-            // or
-            //float ia = floor(index+0.5); // suslik's method (see comments)
-            //float ib = floor(index);
-            //f = min(f, 1.0-f)*2.0;
-
-            // offsets for the different virtual patterns    
-            vec2 offa = sin(vec2(3.0,7.0)*ia); // can replace with any other hash    
-            vec2 offb = sin(vec2(3.0,7.0)*ib); // can replace with any other hash    
-
-            // compute derivatives for mip-mapping    
-            vec2 dx = dFdx(uv);
-            vec2 dy = dFdy(uv);
-            
-            // sample the two closest virtual patterns    
-            vec3 cola = textureGrad( mapper, uv + offa, dx, dy ).xyz;
-            vec3 colb = textureGrad( mapper, uv + offb, dx, dy ).xyz;
-
-            // interpolate between the two virtual patterns    
-            return vec4( mix( cola, colb, smoothstep(0.2,0.8,f-0.1*sum(cola-colb)) ), 1.0);
-
-        }
-
         vec4 textureMAP( sampler2D mapper, in vec2 uv ){
             if( randomUv == 1.0 ) return textureNoTile( mapper, uv );
             else return texture2D( mapper, uv );
@@ -28474,10 +29369,21 @@ const TerrainShader = {
 
         vec4 MappingMix( float slope, vec4 level, vec4 rocks, vec4 grasss, vec4 sands ){
             vec4 cc = rocks;
-            if (slope < level.y) cc = grasss;
+            if (slope < level.x) cc = grasss;
             if (slope < level.z) cc = sands;
-            if (( slope < level.x ) && (slope >= level.y)) cc = mix( grasss , rocks, (slope - level.y) * (1. / (level.x - level.y)));
-            if (( slope < level.y ) && (slope >= level.z)) cc = mix( sands , grasss, (slope - level.z) * (1. / (level.y - level.z)));
+            //if (( slope < level.x ) && (slope >= level.y)) cc = mix( grasss , rocks, (slope - level.y) * (1. / (level.x - level.y)));
+            //if (( slope < level.y ) && (slope >= level.z)) cc = mix( sands , grasss, (slope - level.z) * (1. / (level.y - level.z)));
+
+            float d = level.y;
+            float rx = 1.0/level.y;
+
+            if (( slope < level.x + d ) && (slope > level.x)) cc = mix( grasss , rocks, ( slope - (level.x) ) * rx );
+
+            d = level.w;
+            rx = 1.0/level.w;
+            if (( slope < level.z + d ) && (slope > level.z )) cc = mix( sands , grasss, ( slope - (level.z) ) * rx );
+
+            //cc = mix( grasss, cc, smoothstep(0.0,1.0, slope)*20.0 );
             return cc;
         }
     `,
@@ -29192,9 +30098,11 @@ class Button {
 
 	addText( txt, size ){
 
-		this.fontSize = this.type==='box' ? this.size[1] * 0.8 : this.size[0] * 0.8;
+		this.fontSize = this.type==='box' ? this.size[this.axe] * 0.8 : this.size[0] * 0.8;
 		this.fontSize *= this.fontScale;
-		this.txt = new Textfield({ text:txt, pos:[ 0,this.size[1]*0.5,0 ], rot:[-90,0,0], h:this.fontSize });
+		let dt = { text:txt, pos:[ 0,this.size[1]*0.5,0 ], rot:[-90,0,0], h:this.fontSize };
+		if( this.axe === 2 ) dt = { text:txt, pos:[ 0,0, this.size[2]*0.5 ], rot:[0,0,0], h:this.fontSize };
+		this.txt = new Textfield( dt );
 		this.b.add( this.txt );
 
 	}
@@ -31054,12 +31962,20 @@ K.childScale = function ( bone, matrix ) {
     //if(bone.name === 'head') console.log(bone.children.length)
 
     let j = bone.children.length, child;
+
     while(j--){
+
         child = bone.children[ j ];
 
-        if( child.isBone ) child.matrixWorld.multiplyMatrices( matrix, child.matrix );
-        else {
+        if( child.isBone ) {
             child.matrixWorld.multiplyMatrices( matrix, child.matrix );
+            
+        } else {
+            child.matrixWorld.multiplyMatrices( matrix, child.matrix );
+            //child.updateWorldMatrix(false,true)
+            //child.updateWorldMatrix(false, true);
+            //child.updateMatrixWorld(true);
+            //child.updateMatrix()
             //child.updateWorldMatrix( false, true );
 
             // BUG WITH HAIR !!!
@@ -31110,7 +32026,7 @@ K.applyScalling = function ( fingerPos ) {
         b = this.bones[ i ];
         parent = b.parent || null;
 
-        if( parent !== null && parent.scalling && b.name!=='root'){//
+        if( parent !== null && parent.scalling && b.name!=='root' ){//
 
           //  if( parent.scalling ) 
             b.position.multiply( parent.scalling );
@@ -31144,6 +32060,8 @@ K.update = function () {
 
         // compute the offset between the current and the original transform
 
+        //if( bone.isPhysics ) bone.matrixWorld.copy( bone.phyMtx )
+
         const matrix = bone ? ( bone.isPhysics ? bone.phyMtx : bone.matrixWorld ) : _identityMatrix;
 
         if( bone.isPhysics ) this.scalled = true;
@@ -31152,6 +32070,7 @@ K.update = function () {
 
         _offsetMatrix.multiplyMatrices( matrix, boneInverses[ n ] );
         _offsetMatrix.toArray( boneMatrices, n * 16 );
+
         n++;
 
     }
@@ -31741,7 +32660,6 @@ class Motor {
         //if( isWorker && realtime ) return
 
 		if( timer.up( stamp ) ) {
-
 			root.post( { m:'step', o:stamp } );
 		}
 
@@ -31764,7 +32682,9 @@ class Motor {
 
 		//console.time('step')
 
-		root.delta = outsideStep ? timer.delta : root.reflow.stat.delta;
+		root.delta = root.reflow.stat.delta;//outsideStep ? timer.delta : root.reflow.stat.delta;
+
+
 
 
 
@@ -31832,7 +32752,9 @@ class Motor {
 	}
 
 
-
+	//-----------------------
+	//  MATERIAL
+	//-----------------------
 
 	static material ( o = {} ){ return Mat.create( o ) }
 
@@ -31847,7 +32769,7 @@ class Motor {
 
 	static addMaterial( m, direct ){ Mat.set( m, direct ); }
 
-	static setEnvmapIntensity (v) { Mat.setEnvmapIntensity(v); }
+	static setEnvmapIntensity ( v ) { Mat.setEnvmapIntensity(v); }
 
 	static getMat( name ){ return Mat.get( name ) }
 
@@ -32024,25 +32946,22 @@ class Motor {
 
 	}
 
-	static adds ( r = [], direct ){ 
+	static adds ( r = [], direct ){
+
 		let i = r.length, n = 0;
 		while(i--){
-			 Motor.add( r[n], direct ); 
+			 Motor.add( r[n], direct );
 			 n++;
 		}
-		//for( let o in r ) Motor.add( r[o], direct ) 
+
 	}
 
-	static add ( o = {}, direct = false ){
+	static add ( o = {}, direct = false ) {
 
-		if ( o.isObject3D ) return Motor.addDirect( o )
-
-		if ( o.constructor === Array ) return Motor.adds( o, direct )
-
-		if( o.type === 'container' ) return new Container( o )
+		if( o.isObject3D ) return Motor.addDirect( o );
+		if( o.constructor === Array ) return Motor.adds( o, direct );
+		if( o.type === 'container' ) return new Container( o );
 		
-
-		//if( o.mass !== undefined ) o.density = o.mass
 		if( o.bounce !== undefined ) o.restitution = o.bounce;
 		if( o.type === undefined ) o.type = 'box';
 
@@ -32076,18 +32995,12 @@ class Motor {
 		console.log('up is old');
 		Motor.change( list, true );
 
-		//if( list instanceof Array ) Motor.changes( list, true )
-		//else Motor.changeOne( list, true )
-
 	}
 
 	static update ( list ) {
 
 		console.log('update is old');
 		Motor.change( list );
-
-		//if( list instanceof Array ) root.flow.tmp.push( ...list )
-		//else root.flow.tmp.push( list )
 
 	}
 
@@ -32125,13 +33038,12 @@ class Motor {
 		switch( type ){
 
 			case 'terrain': b = items.terrain.set( o, b ); direct = false; break;
-			//case 'joint': b = items.joint.set( o, b ); break;
+			case 'ray': b = items.ray.set( o, b ); direct = false; break;
 			case 'character': b = items.character.set( o, b ); break;
 			case 'solid': b = items.solid.set( o, b ); break;
-			case 'ray': b = items.ray.set( o, b ); direct = false; break;
 			case 'joint': b = items.joint.set( o, b );  break;
 			case 'body':
-			 if( b.isKinematic ) items.body.set( o, b );
+			if( b.isKinematic ) items.body.set( o, b );
 
 			//b = body.set( o, b ); 
 			break;
@@ -32224,12 +33136,14 @@ class Motor {
 	static load ( Urls, Callback, Path = '', msg = '' ){
 		Pool.load( Urls, Callback, Path, msg );
 	}
+
 	static applyMorph ( modelName, meshs = null, normal = true, relative = true ){
 		Pool.applyMorph( modelName, meshs = null, normal = true, relative = true );
 	}
-	static uv2 ( model ){
-		Pool.uv2( model );
-	}
+
+	/*static uv2 ( model ){
+		Pool.uv2( model )
+	}*/
 
 	static getMesh ( obj, keepMaterial ){
 		if(keepMaterial){
@@ -32240,8 +33154,6 @@ class Motor {
 		}
 		return Pool.getMesh( obj, keepMaterial )
 	}
-
-	
 
 	static getGroup ( obj, autoMesh, autoMaterial ){
 		return Pool.getGroup( obj, autoMesh, autoMaterial )
@@ -32325,29 +33237,6 @@ class Motor {
 		
 	}
 
-	//-----------------------
-	// SKELETON
-	//-----------------------
-
-	/*static addSkeleton ( o ){ 
-
-		let t = new SkeletonBody(o)
-		if( o.parent ) o.parent.add( t )
-		else root.scenePlus.add( t )
-		skeletons.push(t)
-		return t
-
-	}
-
-	static clearSkeleton () { 
-
-		let i = skeletons.length
-		while( i-- ) skeletons[i].dispose()
-
-		//for( let n in textfields ) textfields[n].dispose()
-    	skeletons = []
-		
-	}*/
 
 }
 

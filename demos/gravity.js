@@ -61,7 +61,7 @@ demo = () => {
             friction:0.2, 
             restitution:1,
             damping:[0,0.8],
-            material:'sat'
+            material:'chrome'
         })
     }
 

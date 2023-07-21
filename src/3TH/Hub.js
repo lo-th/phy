@@ -1,15 +1,17 @@
-import * as UIL from 'uil'
+//import * as UIL from 'uil'
+import * as UIL from '../libs/uil.module.js'
 //import * as TWEEN from 'tween'
-import { math } from './math.js';
 import { Pool } from './Pool.js';
 import { Motor } from '../motor/Motor.js'
-import { Main } from '../Main.js'
+//import { Main } from '../Main.js'
 
 /** __
 *    _)_|_|_
 *   __) |_| | 2023
 * @author lo.th / https://github.com/lo-th
 */
+
+let Main = null;
 
 let svg = UIL.Tools.dom;
 let setSvg = UIL.Tools.setSvg;
@@ -80,6 +82,8 @@ const old = { f:0, z:0, w:0, h:0, ratio:1 }
 let size = {};
 
 export class Hub {
+
+    static setMain( r ) { Main = r }
 
     static colors( day ) {
 

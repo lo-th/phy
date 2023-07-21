@@ -124,6 +124,8 @@ class Hero extends Basic3D {
 		this.oy = 0
 		this.vy = 0;
 
+		this.timeScale = 1.25;
+
 		this.angle = ( o.angle || 0 ) * torad
 
 		this.speed = {
@@ -312,7 +314,7 @@ class Hero extends Basic3D {
 		super.dispose()
 	}
 
-	move () {
+	move ( ) {
 
 		const key = root.motor.getKey()
 		const azimut = root.motor.getAzimut()
@@ -452,13 +454,14 @@ class Hero extends Basic3D {
 	    //math.tmpV2.set( 0, rs, 0 );
 	    this.tmpV2.set( 0, 0, 0 );
 
-	    root.motor.change({ 
+	    root.motor.change({
+
 		    name:this.name,
 		    //force: this.tmpV1.toArray(), forceMode:'velocity', 
 		    linearVelocity: this.tmpV1.toArray(), 
-		    /*angularVelocity: this.tmpV2.toArray(),*/ 
-		    wake:true/*, 
-		    noGravity:true*/ 
+		    ///angularVelocity: this.tmpV2.toArray(), 
+		    //wake:true, 
+		    //noGravity:true 
 		});
 
 
@@ -492,22 +495,30 @@ class Hero extends Basic3D {
         
 	    if( this.jump ){
 	    	this.model.play( 'Jump', 0 )
-	    	this.model.setTimescale( 1 )
+	    	//this.model.setTimescale( 1 )
 	    }else {
-	    	this.model.play( mAnim, 0.25 )
-	    	//this.model.setTimescale( 1.25 )
-	    	this.model.setTimescale( 1 )
+	    	this.model.play( mAnim, 0.5 )
+	    	//this.model.setTimescale( this.timeScale )
+	    	//this.model.setTimescale( 1 )
 	    }
 
 	    if( anim !== 'idle' ){
 
+	    	//this.model.setTimescale( 0.5 )
+
 	    	let pp = MathTool.unwrapRad( this.model.rotation.y )
 	    	//if( anim === 'fight' ) pp = math.unwrapRad( azimut + Math.PI )
 	    	let aa = MathTool.nearAngle( angle, pp )
+	    	let diff = Math.abs(Math.floor((pp - aa)*math.todeg)/180)
+	    	//console.log(diff)
 	    	//this.model.rotation.y = anim === 'fight' ? (azimut + Math.PI) : math.lerp( pp, aa, 0.25 )
-	    	this.model.rotation.y = anim === 'fight' ? (azimut + Math.PI) : MathTool.lerp( pp, aa, 0.1 )
+	    	this.model.rotation.y = anim === 'fight' ? (azimut + Math.PI) : MathTool.lerp( pp, aa, 0.2 - (diff*0.1) )
 	    	this.model.updateMatrix()
-	    	this.model.setTimescale( this.tmpAcc * (1*genSpeed) )
+	    	//this.model.setTimescale( this.tmpAcc * (1*genSpeed) )
+
+	    	//let m = this.model.getAction( anim )
+	    	//if( m ) m.setEffectiveTimeScale( this.tmpAcc * (1*genSpeed) );
+	    	//if( m ) m.setEffectiveTimeScale( 0 );
 	    }
 
 	    //if( this.helper ) this.helper.setDirection( this.model.rotation.y )

@@ -1,18 +1,19 @@
 import * as THREE from 'three'
 //import * as TWEEN from 'tween'
-import * as UIL from 'uil'
+import * as UIL from './libs/uil.module.js'
 
 //import './libs/webgl-memory.js'
 import { Stats } from './Stats.js';
 import { getGPUTier } from './libs/detect-gpu.esm.js';
 
-import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
+//import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
 import { Controller } from './3TH/Controller.js'
 
-import { Shader } from './3TH/Shader.js'
 import { Hub } from './3TH/Hub.js'
 import { Gui } from './3TH/Gui.js'
 import { Env } from './3TH/Env.js'
+import { Lights } from './3TH/Lights.js'
+import { Shader } from './3TH/Shader.js'
 import { Editor } from './3TH/Editor.js'
 import { Composer } from './3TH/Composer.js'
 
@@ -34,15 +35,12 @@ import { DirectionalHelper } from './3TH/helpers/DirectionalHelper.js'
 // MOTOR MAIN
 import { Motor } from './motor/Motor.js'
 
-// DRAW CALL ???
-//import DrawCallInspector from './jsm/utils/DrawCallInspector.js'
-
 // PARTICLE
 import { Smoke } from '../build/smoke.module.js'
 //import { Smoke } from './3TH/_smoke/Smoke.js'
 
 // WEBGPU test
-import WebGPU from 'three/addons/capabilities/WebGPU.js';
+import WebGPU from './jsm/capabilities/WebGPU.js';
 import WebGPURenderer from 'three/addons/renderers/webgpu/WebGPURenderer.js';
 
 
@@ -58,7 +56,7 @@ let activeWebGPU = false
 let isWebGPU = false
 
 let drawCall = false
-let debugLight = false
+//let debugLight = false
 
 let oldPause = false
 
@@ -156,7 +154,7 @@ const options = {
 let hub3d = null
 let renderStart = false
 let g1, g2, g3
-let dom, camera, controls, scene, renderer, loop = null, composer = null, content, followGroup, helperGroup, txt, light, light2 = null, light3=null, ground = null, envui, dci;
+let dom, camera, controls, scene, renderer, loop = null, composer = null, content, followGroup, helperGroup, txt, ground = null, envui, dci;
 
 let code = ''
 let editor = null
@@ -219,6 +217,9 @@ export const Main = {
 	motor:Motor,
 
 	start: async ( o = {} ) => {
+
+		Hub.setMain( Main )
+		Gui.setMain( Main )
 
 		activeWebGPU = o.webGPU || false;
 
@@ -446,6 +447,8 @@ const init = () => {
 
 	// SHADER
 
+	Shader.renderer = renderer;
+
 	if( !isWebGPU ){
 		Shader.setGl2(  isWebGPU ? false : renderer.capabilities.isWebGL2 )
 		Shader.init( options )
@@ -468,6 +471,8 @@ const init = () => {
 	scene.add( helperGroup )
 
 	scene.helper = helperGroup
+
+
 
 	addLight()
 
@@ -508,7 +513,7 @@ const init = () => {
 
 	editor = new Editor()
 
-	Env.init( renderer, scene, light, light2, light3 )
+	Env.init( renderer, scene )
 	Env.setMain( Main )
 
 	start()
@@ -604,16 +609,17 @@ const addControl = () => {
 	if( Main.isMobile ) Hub.addJoystick()
 }
 
+
 //--------------------
 //   LIGHT
 //--------------------
+
 const lightIntensity = (a,b) => {
 
 	if( a ) options.light_1 = a
 	if( b ) options.light_2 = b
-	if(light) light.intensity = options.light_1*0.3
-	if(light3) light3.intensity = options.light_1*0.7
-	if(light2) light2.intensity = options.light_2
+
+	Lights.update( { sunIntensity:options.light_1, hemiIntensity:options.light_2 })
 
 }
 
@@ -621,78 +627,42 @@ const addLight = () => {
 
 	let s 
 
-	light3 = new THREE.DirectionalLight( 0xFFFFFF,  options.light_1*0.7  )
-	//light.position.set( 5, 18, 5 )
-	light3.distance = 6
-
-	s = light3.shadow
-	s.mapSize.width = s.mapSize.height = 1024 * options.quality;
-	//s.mapSize.setScalar( 1024 * options.quality )
-
-	s.camera.top = s.camera.right = 4//20
-	s.camera.bottom = s.camera.left = -4
-	s.camera.near = 1//5
-	s.camera.far = 9//33
-
-	s.bias = -0.0005
-	//s.bias = 0.0005
-	s.radius = 4//2
-	s.blurSamples = 8 // only for VSM !
-
-
-	
-
-	followGroup.add( light3 )
-	followGroup.add( light3.target )
+	Lights.add({ 
+		type:'direct', name:'sun',
+	    intensity:options.light_1*0.7, distance:6, parent:followGroup,
+	    shadow:{ range:4, near:1, far:9, bias:-0.0005, radius:4, quality: 1024 * options.quality },
+	})
 
 	/////
 
-	light = new THREE.DirectionalLight( 0xFFFFFF, options.light_1*0.3 )
-	//light.position.set( 5, 18, 5 )
-	light.distance = 20//20
+	Lights.add({ 
+	    type:'direct', name:'sun2',
+	    intensity:options.light_1*0.3, distance:20, parent:followGroup,
+	    shadow:{ range:40, near:5, far:40, bias:!isWebGPU ? -0.005 : 0.005, radius:2, quality: 1024 * options.quality }
+	})
 
-	s = light.shadow
-	s.mapSize.width = s.mapSize.height = 1024 * options.quality;
-	
-	
+	if( !isWebGPU ){	
+		Lights.add({ 
+			type:'hemi', name:'hemi',
+			intensity:options.light_2, 
+			pos:[0,3,0], 
+			parent:followGroup 
+		})
+	}
 
-	s.camera.top = s.camera.right = 40//20
-	s.camera.bottom = s.camera.left = -40
-	s.camera.near = 5//5
-	s.camera.far = 50//33
-
-	s.bias = !isWebGPU ? -0.005 : 0.005
-	//s.bias = 0.005
-	//s.normalBias = 0.0075//0.05
-	s.radius = 2
-	//s.blurSamples = 8 // only for VSM !
-
+	////
 
 	if( options.mode === 'LOW' ){
 		options.shadow = 0
 		options.reflect = 0
 	}
 
+	if( !isWebGPU ){
 
-
-	if(!isWebGPU){
-		light.castShadow = options.shadow !== 0 
-	    light3.castShadow = options.shadow !== 0
+		Lights.castShadow( options.shadow !== 0 )
 		renderer.shadowMap.enabled = options.shadow !== 0 
 		renderer.shadowMap.type = shadowMapType[options.shadowType]
-	} else {
-		//light.castShadow = options.shadow !== 0
-	}
 
-	followGroup.add( light )
-	followGroup.add( light.target )
-
-	// light 2
-
-	if(!isWebGPU){
-		light2 = new THREE.HemisphereLight( 0xFFFFFF, 0x808080, options.light_2 );
-		light2.position.set( 0, 5, 0 );
-		followGroup.add( light2 );
 	}
 
 	////
@@ -701,51 +671,57 @@ const addLight = () => {
 
 const clearLight = ( o ) => {
 
-	if(light){
-		followGroup.remove( light )
-		followGroup.remove( light.target )
-	}
-
-	if(light3){
-		followGroup.remove( light3 )
-		followGroup.remove( light3.target )
-	}
- 
-	if(light2) followGroup.remove( light2 );
-
-	clearShadow()
-	
-	light = null
-	light2 = null
-	light3 = null
+	Lights.dispose()
 
 }
 
-const clearShadow = ( o ) => {
+/*const clearShadow = ( o ) => {
 
 	if(light) light.shadow.dispose()
 	if(light3) light3.shadow.dispose()
 	
-}
+}*/
 
 const resetLight = ( o ) => {
-	
-	if(light){
-		light.position.set( 0.27, 1, 0.5 ).multiplyScalar(18)
-		light.target.position.set( 0, 0, 0 )
-		light.color.setHex( 0xFFFFFF );
+
+	const dt = {
+		sunPos: [0.27, 1, 0.5],
+		sunColor: 0xFFFFFF,
+		skyColor: 0xFFFFFF,
+		groundColor: 0x808080, 
 	}
 
-	if(light3){
-		light3.position.set( 0.27, 1, 0.5 ).multiplyScalar(5)
-		light3.target.position.set( 0, 0, 0 )
-		light3.color.setHex( 0xFFFFFF );
+	Lights.update( dt );
+
+}
+
+const showDebugLight = ( b ) => {
+
+	let v = Lights.addHelper( b, helperGroup );
+	Env.preview( v );
+
+}
+
+const setShadow = ( v ) => {
+
+	if( isWebGPU ) return
+
+	options.shadow = v
+
+	if( options.shadow === 0 ){
+		Lights.castShadow( false );
+		if( !isWebGPU ) renderer.shadowMap.enabled = false
+		//clearShadow()
+	} else {
+		if( !renderer.shadowMap.enabled ){
+			Lights.castShadow( true );
+			if( !isWebGPU ) renderer.shadowMap.enabled = true
+		}
 	}
 
-	if(light2){
-		light2.color.setHex( 0xFFFFFF );
-	    light2.groundColor.setHex( 0x808080 );
-	}
+	//if( light.shadowHelper ) light.shadowHelper.visible = options.shadow !== 0
+
+	Main.upShader()
 
 }
 
@@ -1115,30 +1091,7 @@ const setReflect = ( v ) => {
 
 }
 
-const setShadow = ( v ) => {
 
-	if( isWebGPU ) return
-
-	options.shadow = v
-
-	if( options.shadow === 0 ){
-		if(light)light.castShadow = false
-		if(light3)light3.castShadow = false
-		if( !isWebGPU ) renderer.shadowMap.enabled = false
-		clearShadow()
-	} else {
-		if( !renderer.shadowMap.enabled ){
-			if(light) light.castShadow = true
-			if(light3) light3.castShadow = true
-			if( !isWebGPU ) renderer.shadowMap.enabled = true
-		}
-	}
-
-	if( light.shadowHelper ) light.shadowHelper.visible = options.shadow !== 0
-
-	Main.upShader()
-
-}
 
 
 /*function firstFunction() {
@@ -1346,43 +1299,7 @@ const showStatistic = ( b ) => {
 
 }
 
-const showDebugLight = ( b ) => {
 
-	if( b && !debugLight ){
-
-		light.helper = new DirectionalHelper( light )
-		light.shadowHelper = new THREE.CameraHelper( light.shadow.camera )
-		light.shadowHelper.setColors( light.color, new THREE.Color( 0x222222 ), new THREE.Color( 0x222222 ), light.color, new THREE.Color( 0x666666) )
-		light2.helper = new THREE.HemisphereLightHelper( light2, 0.5 )
-		light2.helper.material.wireframe = false
-		helperGroup.add( light.helper )
-		helperGroup.add( light2.helper )
-
-		if(light3){
-			light3.helper = new DirectionalHelper( light3 )
-		    light3.shadowHelper = new THREE.CameraHelper( light3.shadow.camera )
-		    light3.shadowHelper.setColors( light3.color, new THREE.Color( 0x222222 ), new THREE.Color( 0x222222 ), light3.color, new THREE.Color( 0x666666) )
-		    light3.shadowHelper.visible = options.shadow !== 0
-		    helperGroup.add( light3.helper )
-		}
-
-		helperGroup.add( light.shadowHelper )
-		light.shadowHelper.visible = options.shadow !== 0
-
-		debugLight = true;
-	}
-
-	if( !b && debugLight ){
-		helperGroup.remove( light.helper )
-		helperGroup.remove( light2.helper )
-		if(light3)helperGroup.remove( light3.helper )
-		helperGroup.remove( light.shadowHelper )
-		debugLight = false
-	}
-
-	Env.preview( debugLight )
-
-}
 
 const getFullStats = () => {
 

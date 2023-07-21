@@ -78,9 +78,11 @@ export class Button {
 
 	addText( txt, size ){
 
-		this.fontSize = this.type==='box' ? this.size[1] * 0.8 : this.size[0] * 0.8
+		this.fontSize = this.type==='box' ? this.size[this.axe] * 0.8 : this.size[0] * 0.8
 		this.fontSize *= this.fontScale
-		this.txt = new Textfield({ text:txt, pos:[ 0,this.size[1]*0.5,0 ], rot:[-90,0,0], h:this.fontSize })
+		let dt = { text:txt, pos:[ 0,this.size[1]*0.5,0 ], rot:[-90,0,0], h:this.fontSize };
+		if( this.axe === 2 ) dt = { text:txt, pos:[ 0,0, this.size[2]*0.5 ], rot:[0,0,0], h:this.fontSize };
+		this.txt = new Textfield( dt )
 		this.b.add( this.txt )
 
 	}

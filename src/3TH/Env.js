@@ -7,16 +7,16 @@ import {
 	RGBAFormat, FloatType, EquirectangularReflectionMapping, NoToneMapping, SRGBColorSpace
 } from 'three';
 
-import { RGBELoader } from 'three/addons/loaders/RGBELoader.js';
-import { EXRLoader } from 'three/addons/loaders/EXRLoader.js';
-import { GroundProjectedEnv } from 'three/addons/objects/GroundProjectedEnv.js';
+import { RGBELoader } from '../jsm/loaders/RGBELoader.js';
+import { EXRLoader } from '../jsm/loaders/EXRLoader.js';
+import { GroundProjectedEnv } from '../jsm/objects/GroundProjectedEnv.js';
 import { ImgTool } from './utils/ImgTool.js';
 //import { math } from './math.js';
 //import { Hub } from './Hub.js'
 //import { Main } from '../Main.js'
 
-import { texture, equirectUV } from 'three/nodes';
-
+//import { texture, equirectUV } from 'three/nodes';
+import { Lights } from './Lights.js';
 //import { HDRTool } from './utils/HDRTool.js';
 
 const autoSize = 0.25
@@ -49,10 +49,12 @@ let floor = null;
 let data = {};
 let palette = {};
 let color =  new Color();
-let light = null, light3 = null, scene = null, renderer = null, light2 = null;
+let scene = null, renderer = null;
 
 const s1 = new Spherical()
 const s2 = new Spherical()
+
+const tmpV = new Vector3()
 
 let cc = new Color()
 let cc2 = new Color()
@@ -175,17 +177,14 @@ export class Env {
 
 	}
 
-    static init ( Renderer, Scene, Light, Light2, Light3, Autosun ) {
+    static init ( Renderer, Scene, Autosun = true ) {
 
     	if( Renderer ){ 
     		renderer = Renderer;
     		isWebGPU = renderer.isWebGPURenderer || false
     		usePmrem = isWebGPU ? false : usePmrem
     	}
-		if(Scene) scene = Scene
-		if(Light) light = Light
-		if(Light2) light2 = Light2
-		if(Light3) light3 = Light3
+		if( Scene ) scene = Scene
 		autosun = Autosun !== undefined ? Autosun : true;
 	    if( isWebGPU ) autosun = false
 
@@ -647,7 +646,7 @@ export class Env {
 		palette = {...extra, ...palette }
 
 
-		if(main) main.setColors( palette )
+		if( main ) main.setColors( palette )
 		
 
 		/*palette['sun'] = '#' + sunColor.getHexString()
@@ -670,33 +669,18 @@ export class Env {
 
 	static upLight () {
 
-		if( !light ) return
+		//if( !light ) return
 
 		if( scene.fog ) scene.fog.color.copy( data.fog )
-
-		//light.position.setFromSphericalCoords(light.distance, s1.phi, s1.theta )
-		light.position.setFromSpherical(s1).multiplyScalar( light.distance || 20 );
-		light.color.copy( data.sun );
-		light.target.position.set( 0, 0, 0 )
-		light.updateMatrixWorld();
-
-		if( light.helper ) light.helper.update()
-
-		if(light3){
-			//light3.position.setFromSphericalCoords(light3.distance, s1.phi, s1.theta )
-			light3.position.setFromSpherical(s1).multiplyScalar( light3.distance || 20 );
-			light3.color.copy( data.sun );
-			light3.target.position.set( 0, 0, 0 )
-			light3.updateMatrixWorld();
-			if( light3.helper ) light3.helper.update()
+			
+		const dt = {
+			sunPos: tmpV.setFromSpherical(s1).toArray(),
+			sunColor: data.sun,
+			skyColor: data.sky,
+			groundColor: data.ground, 
 		}
 
-		if( !light2 ) return
-
-		light2.color.copy( data.sky );
-		light2.groundColor.copy( data.ground );
-		if( light2.helper ) light2.helper.update()
-
+		Lights.update( dt );
 	
 	}
 

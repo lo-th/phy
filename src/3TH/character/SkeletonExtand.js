@@ -116,12 +116,20 @@ K.childScale = function ( bone, matrix ) {
     //if(bone.name === 'head') console.log(bone.children.length)
 
     let j = bone.children.length, child;
+
     while(j--){
+
         child = bone.children[ j ]
 
-        if( child.isBone ) child.matrixWorld.multiplyMatrices( matrix, child.matrix )
-        else {
+        if( child.isBone ) {
             child.matrixWorld.multiplyMatrices( matrix, child.matrix )
+            
+        } else {
+            child.matrixWorld.multiplyMatrices( matrix, child.matrix )
+            //child.updateWorldMatrix(false,true)
+            //child.updateWorldMatrix(false, true);
+            //child.updateMatrixWorld(true);
+            //child.updateMatrix()
             //child.updateWorldMatrix( false, true );
 
             // BUG WITH HAIR !!!
@@ -172,7 +180,7 @@ K.applyScalling = function ( fingerPos ) {
         b = this.bones[ i ];
         parent = b.parent || null;
 
-        if( parent !== null && parent.scalling && b.name!=='root'){//
+        if( parent !== null && parent.scalling && b.name!=='root' ){//
 
           //  if( parent.scalling ) 
             b.position.multiply( parent.scalling );
@@ -206,15 +214,18 @@ K.update = function () {
 
         // compute the offset between the current and the original transform
 
+        //if( bone.isPhysics ) bone.matrixWorld.copy( bone.phyMtx )
+
         const matrix = bone ? ( bone.isPhysics ? bone.phyMtx : bone.matrixWorld ) : _identityMatrix;
 
         if( bone.isPhysics ) this.scalled = true
         
-        this.childScale( bone, matrix )
+        this.childScale( bone, matrix );
 
         _offsetMatrix.multiplyMatrices( matrix, boneInverses[ n ] );
         _offsetMatrix.toArray( boneMatrices, n * 16 );
-        n++
+
+        n++;
 
     }
 

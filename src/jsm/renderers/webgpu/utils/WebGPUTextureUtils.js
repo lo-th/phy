@@ -19,13 +19,13 @@ import WebGPUTextureMipmapUtils from './WebGPUTextureMipmapUtils.js';
 
 const _compareToWebGPU = {
 	[ NeverCompare ]: 'never',
-	[ AlwaysCompare ]: 'less',
-	[ LessCompare ]: 'equal',
+	[ LessCompare ]: 'less',
+	[ EqualCompare ]: 'equal',
 	[ LessEqualCompare ]: 'less-equal',
-	[ EqualCompare ]: 'greater',
-	[ GreaterEqualCompare ]: 'not-equal',
-	[ GreaterCompare ]: 'greater-equal',
-	[ NotEqualCompare ]: 'always'
+	[ GreaterCompare ]: 'greater',
+	[ GreaterEqualCompare ]: 'greater-equal',
+	[ AlwaysCompare ]: 'always',
+	[ NotEqualCompare ]: 'not-equal'
 };
 
 class WebGPUTextureUtils {
@@ -144,6 +144,14 @@ class WebGPUTextureUtils {
 
 		} else {
 
+			if ( format === undefined ) {
+
+				console.warn( 'WebGPURenderer: Texture format not supported.' );
+
+				return this.createDefaultTexture( texture );
+
+			}
+
 			textureData.texture = backend.device.createTexture( textureDescriptorGPU );
 
 		}
@@ -200,6 +208,9 @@ class WebGPUTextureUtils {
 		const textureData = this.backend.get( texture );
 
 		const { needsMipmaps, textureDescriptorGPU } = textureData;
+
+		if ( textureDescriptorGPU === undefined ) // unsupported texture format
+			return;
 
 		// transfer texture data
 
@@ -428,7 +439,7 @@ class WebGPUTextureUtils {
 
 		const options = {};
 
-		options.imageOrientation = ( texture.flipY === true ) ? 'flipY' : 'none';
+		options.imageOrientation = ( texture.flipY === true ) ? 'flipY' : 'default';
 		options.premultiplyAlpha = ( texture.premultiplyAlpha === true ) ? 'premultiply' : 'default';
 
 		return createImageBitmap( image, 0, 0, width, height, options );

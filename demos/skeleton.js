@@ -9,7 +9,7 @@ let listN = modelList.indexOf( type )
 demo = () => {
 
 	phy.view({
-        envmap:'bed', phi:20, theta:0, distance:3, x:0, y:0.7, z:0, fov:53, envblur:0.25
+        envmap:'box', phi:0, theta:0, distance:3, x:0, y:1.0, z:0, fov:45, envblur:0.25
 	})
 
 	phy.set({
@@ -19,16 +19,32 @@ demo = () => {
 
 	// add static plane 
 	phy.add({ type:'plane', name:'floor', size:[ 300,1,300 ], visible:false, friction: 0.5,  });
-	//phy.add({ type:'box', name:'wall', pos:[0,1.25,-1.1], size:[ 2,2.5,0.2 ], friction: 0.5,  });
+	
+	
 
 	//let k = 200
 	//while(k--) phy.add({type:'sphere', pos:[math.rand(-5,5), 2, math.rand(-5,5)], size:[math.rand(0.1,0.3)], density:1, mask:2})
 
-    bb = phy.addButton({ type:'box', pos:[0,0,0.9], size:[0.4,0.1,0.2], radius:0.02, callback:switchMode, text:mode })
-    ba = phy.addButton({ type:'box', pos:[0.4,0,0.85], size:[0.3,0.1,0.2], rot:[0,16,0], radius:0.02, callback:switchModel, text:type })
-    bc = phy.addButton({ type:'box', pos:[-0.4,0,0.85], size:[0.3,0.1,0.2], rot:[0,-16,0], radius:0.02, callback:switchDebug, text:'debug' })
+    
 
-    addModel( type )
+    
+
+    phy.load( ['./assets/models/skeleton_deco.glb'], onComplete )
+
+}
+
+const onComplete = () => {
+
+	let deco = phy.getMesh('skeleton_deco');
+
+	phy.add({ type:'box', name:'wall', pos:[0,1.5,-1.5], size:[ 5,3,1.0 ], friction: 0.5, mesh:deco.wall, material:'concrete' });
+
+
+	bb = phy.addButton({ type:'box', pos:[1.0, 1.2,-1.05], size:[0.4,0.2,0.1], radius:0.02, callback:switchMode, text:mode, axe:2, material:'black' })
+    ba = phy.addButton({ type:'box', pos:[1.0, 1.5,-1.05], size:[0.4,0.2,0.1], radius:0.02, callback:switchModel, text:type, axe:2, material:'black' })
+    bc = phy.addButton({ type:'box', pos:[1.0, 1.8,-1.05], size:[0.4,0.2,0.1], radius:0.02, callback:switchDebug, text:'debug',  axe:2, material:'black' })
+
+	addModel( type )
 
 }
 

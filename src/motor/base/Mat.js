@@ -38,6 +38,7 @@ export const Colors = {
     copper:new Color( 0.96467984, 0.37626296, 0.25818297 ),
     carPaint:new Color( 0.1037792, 0.59212029, 0.85064936 ),
     clay:new Color( 0.604,0.584,0.497 ),
+    concrete:new Color( 0xabafb8 ),
 }
 
 export const Mat = {
@@ -72,15 +73,16 @@ export const Mat = {
 
 		    type = type.toLowerCase();
 
-		    switch(type){
+		    switch( type ){
+
 				case 'physical': 
-				m = new MeshPhysicalMaterial( o ); 
-				m.defines = {
-					'STANDARD': '',
-					'PHYSICAL': '',
-					'USE_UV':'',
-					'USE_SPECULAR':''
-				}
+					m = new MeshPhysicalMaterial( o ); 
+					m.defines = {
+						'STANDARD': '',
+						'PHYSICAL': '',
+						'USE_UV':'',
+						'USE_SPECULAR':''
+					}
 				break;
 				case 'phong': m = new MeshPhongMaterial( o ); break;
 				case 'lambert': m = new MeshLambertMaterial( o ); break;
@@ -102,6 +104,12 @@ export const Mat = {
 
 		if(!direct) Mat.extendShader( m, beforeCompile )
 		mat[m.name] = m;
+
+	},
+
+	changeType:() => {
+
+
 
 	},
 
@@ -136,8 +144,11 @@ export const Mat = {
 			    case 'clay':  m = Mat.create({ name:'clay', color:Colors.clay, metalness: 0.0, roughness: 0.9, }); break
 			    case 'base':   m = Mat.create({ name:'base', color:Colors.base, ...matExtra }); break
 
+			    case 'concrete':  m = Mat.create({ name:'concrete', color:Colors.concrete, metalness: 0.0, roughness: 0.9, }); break
+
 			    case 'black':   m = Mat.create({ name:'black', color:Colors.black, metalness: 0, roughness: 0.25 }); break
 
+			    // metal
 			    case 'chrome': m = Mat.create({ name:'chrome', color:0xCCCCCC, metalness: 1, roughness:0.075 }); break
 			    case 'gold': m = Mat.create({ name:'gold', color:Colors.gold, specularColor:Colors.gold2, metalness: 1, roughness:0.02 }); break
 			    case 'copper': m = Mat.create({ name:'copper', color:Colors.copper, metalness: 1, roughness:0.25, clearcoat: 1.0, clearcoatRoughness: 0.2 }); break
@@ -159,13 +170,13 @@ export const Mat = {
 				case 'glassX':  m = Mat.create({ name:'glassX', color:0xeeeeee, transparent:false, opacity:1.0, roughness:0.03, metalness:0, side:DoubleSide, transmission:1.0, clearcoat:1, clearcoatRoughness:0.0, thickness:0.6, ior:1.52, envMapIntensity:1.0, shadowSide:1, reflectivity:0.5, iridescence:0 }); break
 				case 'plexi':  m = Mat.create({ name:'plexi', color:0xFFFFff, transparent:true, opacity:0.4, metalness:1, roughness:0, clearcoat:1, side:DoubleSide }); break
 				case 'glass2': m = Mat.create({ name:'glass2', color:0xCCCCff, transparent:true, opacity:0.3  }); break
-				case 'sat': m = Mat.create({ name:'sat', color:0xffffff, metalness: 1, roughness:0, clearcoat:1  }); break
 				
 				case 'car':   m = Mat.create({ name:'car', color:0x303030, metalness: 1.0, roughness: 0.5, clearcoat: 1.0, clearcoatRoughness: 0.03, sheen: 0.5 }); break
 				case 'carGlass':   m = Mat.create({ name:'carGlass', color: 0xffffff, metalness: 0, roughness: 0, transmission: 1.0, ior:1.52 }); break
 
 
-				case 'debug': m = Mat.create({ name:'debug', type:'Basic', color:0xF37042, wireframe:true, toneMapped: false, transparent:true, opacity:0.25 }); break//0xEAA669
+				case 'debug': m = Mat.create({ name:'debug', type:'Basic', color:0xF37042, wireframe:true, toneMapped: false, transparent:true, opacity:0.25 }); break
+				
 				//case 'debug2': m = Mat.create({ name:'debug2', type:'Basic', color:0x00FFFF, wireframe:true, toneMapped: false }); break
 				//case 'debug3':  m = Mat.create({ name:'debug3', type:'Basic', color:0x000000, wireframe:true, transparent:true, opacity:0.1, toneMapped: false }); break
 				//case 'shadows': m = Mat.create({ name:'shadows', type:'Basic', transparent:true, opacity:0.01 }); break

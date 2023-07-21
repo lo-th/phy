@@ -1,4 +1,5 @@
-import { Main } from '../Main.js'
+//import { Main } from '../Main.js'
+import { Shader } from './Shader.js'
 
 export class Video {
 
@@ -11,7 +12,7 @@ export class Video {
     }
 
     update(){
-        if( this.isCapture ) this.capturer.capture( Main.getRenderer().domElement );
+        if( this.isCapture ) this.capturer.capture( Shader.renderer.domElement );
     }
     
     stop(){
