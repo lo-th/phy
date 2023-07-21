@@ -26571,7 +26571,7 @@ class Avatar extends Group {
         let action = this.getAction( name );
         if ( !action ) return false;
 
-        if(!this.current){
+        if( !this.current ){
             this.stop();
             this.current = action;
             //action.play();
@@ -26606,14 +26606,25 @@ class Avatar extends Group {
                     //this.current.time = 0
 
                     this.current.reset();
+                    //this.current.clampWhenFinished = true;
                     if ( !isIdle ) this.current.time = this.old.time * ratio;
-                    this.current.setEffectiveTimeScale( 1 );
-                    this.current.setEffectiveWeight( 1 );
+                    //this.current.setEffectiveTimeScale( 1 )
+                    //this.current.setEffectiveWeight( 1 )
+
+
+
                 //}
 
                 
-                this.current.crossFadeFrom( this.old, fade, !isIdle );
-                this.current.play();
+                //this.current.crossFadeFrom( this.old, fade, true );
+                this.current.weight = 1.0;
+                //this.current._effectiveWeight = 1.0
+                this.current.stopFading();
+                this.old.stopFading();
+                this.old._scheduleFading( fade, this.old.getEffectiveWeight(), 0 );
+                this.current._scheduleFading( fade, this.current.getEffectiveWeight(), 1 );
+
+                //this.current.play()
 
 
                 //console.log( action )
