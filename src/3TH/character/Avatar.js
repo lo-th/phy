@@ -1117,11 +1117,11 @@ export class Avatar extends Group {
 
                 let isIdle = this.current.getClip().name !== 'idle'
 
-                
+                if( this.clipsToesFix.indexOf(name) !== -1 ) this.fixToe = true;
+                else this.resetToes();
                 /*this.current.play();
 
-                if( this.clipsToesFix.indexOf(name) !== -1 ) this.fixToe = true;
-                else this.resetToes(); 
+                 
 
                 this.executeCrossFade( this.old, this.current, fade );*/
 
@@ -1133,16 +1133,16 @@ export class Avatar extends Group {
                 const ratio = this.current.getClip().duration / this.old.getClip().duration;
                 
                 //else {
-                    //this.current.paused = false
-                    //this.current.time = 0
+                //this.current.paused = false
+                //this.current.time = 0
 
-                    this.current.reset()
-                    //this.current.clampWhenFinished = true;
+                this.current.reset()
+                //this.current.clampWhenFinished = true;
 
-                    // sycro if not idle
-                    if ( !isIdle ) this.current.time = this.old.time * ratio;
-                    //this.current.setEffectiveTimeScale( 1 )
-                    //this.current.setEffectiveWeight( 1 )
+                // sycro if not idle
+                if ( !isIdle ) this.current.time = this.old.time * ratio;
+                //this.current.setEffectiveTimeScale( 1 )
+                //this.current.setEffectiveWeight( 1 )
 
 
 

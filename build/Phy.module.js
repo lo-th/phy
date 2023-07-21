@@ -1129,7 +1129,7 @@ const Colors = {
     copper:new Color( 0.96467984, 0.37626296, 0.25818297 ),
     carPaint:new Color( 0.1037792, 0.59212029, 0.85064936 ),
     clay:new Color( 0.604,0.584,0.497 ),
-    concrete:new Color( 0xabafb8 ),
+    concrete:new Color( 0xa9a9a9 ),
 };
 
 const Mat = {
@@ -26586,11 +26586,11 @@ class Avatar extends Group {
 
                 let isIdle = this.current.getClip().name !== 'idle';
 
-                
+                if( this.clipsToesFix.indexOf(name) !== -1 ) this.fixToe = true;
+                else this.resetToes();
                 /*this.current.play();
 
-                if( this.clipsToesFix.indexOf(name) !== -1 ) this.fixToe = true;
-                else this.resetToes(); 
+                 
 
                 this.executeCrossFade( this.old, this.current, fade );*/
 
@@ -26602,14 +26602,16 @@ class Avatar extends Group {
                 const ratio = this.current.getClip().duration / this.old.getClip().duration;
                 
                 //else {
-                    //this.current.paused = false
-                    //this.current.time = 0
+                //this.current.paused = false
+                //this.current.time = 0
 
-                    this.current.reset();
-                    //this.current.clampWhenFinished = true;
-                    if ( !isIdle ) this.current.time = this.old.time * ratio;
-                    //this.current.setEffectiveTimeScale( 1 )
-                    //this.current.setEffectiveWeight( 1 )
+                this.current.reset();
+                //this.current.clampWhenFinished = true;
+
+                // sycro if not idle
+                if ( !isIdle ) this.current.time = this.old.time * ratio;
+                //this.current.setEffectiveTimeScale( 1 )
+                //this.current.setEffectiveWeight( 1 )
 
 
 

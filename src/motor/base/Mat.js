@@ -38,7 +38,7 @@ export const Colors = {
     copper:new Color( 0.96467984, 0.37626296, 0.25818297 ),
     carPaint:new Color( 0.1037792, 0.59212029, 0.85064936 ),
     clay:new Color( 0.604,0.584,0.497 ),
-    concrete:new Color( 0xabafb8 ),
+    concrete:new Color( 0xa9a9a9 ),
 }
 
 export const Mat = {
