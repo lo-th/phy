@@ -1,6 +1,6 @@
 let eva, bb, ba, bc
 let mode = 'follow'
-let type = 'hero'
+let type = 'lee'
 let debug = false
 
 let modelList = ['hero', 'eva', 'lee']
@@ -8,8 +8,10 @@ let listN = modelList.indexOf( type )
 
 demo = () => {
 
+	phy.log( '> Use keyboad to move' )
+
 	phy.view({
-        envmap:'box', phi:0, theta:0, distance:3, x:0, y:1.0, z:0, fov:45, envblur:0.25
+        envmap:'box', phi:0, theta:0, distance:5, x:0, y:1.0, z:0, fov:45, envblur:0.25
 	})
 
 	phy.set({

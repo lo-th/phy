@@ -1138,6 +1138,8 @@ export class Avatar extends Group {
 
                     this.current.reset()
                     //this.current.clampWhenFinished = true;
+
+                    // sycro if not idle
                     if ( !isIdle ) this.current.time = this.old.time * ratio;
                     //this.current.setEffectiveTimeScale( 1 )
                     //this.current.setEffectiveWeight( 1 )
