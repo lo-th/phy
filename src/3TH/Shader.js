@@ -38,13 +38,17 @@ const uniforms = {
     
 	//shadowAlpha: { value: 1.0 }
 
-    lightSizeUV: { value: 1.3 },
+    lightSizeUV: { value: 3 },
     nearPlane: { value: 9.5 },
     rings:{ value: 11 },
     nSample:{ value: 17 },
     
     noiseIntensity:{ value: 1 },
-    softness:{ value: 3 },
+    softness:{ value: 1.6 },
+
+    noiseMap:{ value: null },
+    useNoiseMap:{ value: 0 },
+
     
 };
 
@@ -330,6 +334,7 @@ export class Shader {
             //gl_FragColor.rgb *= ((1.0-shadowValue) * (1.0-shadow)) + shadowColor;
 
             //gl_FragColor.rgb = mix( gl_FragColor.rgb, gl_FragColor.rgb * invColor, (1.0-shadowValue) * shadow );
+
             gl_FragColor.rgb = mix( gl_FragColor.rgb, invColor, (1.0-shadowValue) * shadow );
 
             //gl_FragColor.rgb = invColor;
@@ -635,23 +640,22 @@ uniform float softness;
 //#define LIGHT_SIZE_UV (LIGHT_WORLD_SIZE / LIGHT_FRUSTUM_WIDTH)
 //#define NEAR_PLANE 9.5
 
-#define NUM_SAMPLES 17
+#define SAMPLE 16
+#define RINGS 4
 
 vec2 poissonDisk[32];
 
 void initPoissonSamples( const in vec2 randomSeed ) {
 
-    int numSample = nSample;
-
-    float ANGLE_STEP = PI2 * rings / float( numSample );
-    float INV_NUM_SAMPLES = 1.0 / float( numSample );
+    float ANGLE_STEP = PI2 * float(RINGS) / float( SAMPLE );
+    float INV_NUM_SAMPLES = 1.0 / float( SAMPLE );
 
     // jsfiddle that shows sample pattern: https://jsfiddle.net/a16ff1p7/
-    float angle = rand( randomSeed ) * PI2 * noiseIntensity;
+    float angle = rand( randomSeed ) * PI2;
     float radius = INV_NUM_SAMPLES;
     float radiusStep = radius;
 
-    for( int i = 0; i < numSample; i ++ ) {
+    for( int i = 0; i < SAMPLE; i ++ ) {
         poissonDisk[i] = vec2( cos( angle ), sin( angle ) ) * pow( radius, 0.75 );
         radius += radiusStep;
         angle += ANGLE_STEP;
@@ -669,10 +673,9 @@ float findBlocker( sampler2D shadowMap, const in vec2 uv, const in float zReceiv
     float searchRadius = ls * ( zReceiver - nearPlane ) / zReceiver;
     float blockerDepthSum = 0.0;
     int numBlockers = 0;
-    int numSample = nSample;
     float shadowMapDepth = 0.0;
 
-    for( int i = 0; i < numSample; i++ ) {
+    for( int i = 0; i < SAMPLE; i++ ) {
         shadowMapDepth = unpackRGBAToDepth(texture2D(shadowMap, uv + poissonDisk[i] * searchRadius));
         if ( shadowMapDepth < zReceiver ) {
             blockerDepthSum += shadowMapDepth;
@@ -688,36 +691,38 @@ float findBlocker( sampler2D shadowMap, const in vec2 uv, const in float zReceiv
 
 float PCF_Filter(sampler2D shadowMap, vec2 uv, float zReceiver, float filterRadius ) {
     
-    /*int numSample = nSample;
+    /*
+    int numSample = SAMPLE;
     float sum = 0.0;
     float depth;
     #pragma unroll_loop_start
-    for( int i = 0; i < 17; i ++ ) {
+    for( int i = 0; i < SAMPLE; i ++ ) {
         depth = unpackRGBAToDepth( texture2D( shadowMap, uv + poissonDisk[ i ] * filterRadius ) );
         if( zReceiver <= depth ) sum += 1.0;
     }
     #pragma unroll_loop_end
     #pragma unroll_loop_start
-    for( int i = 0; i < 17; i ++ ) {
+    for( int i = 0; i < SAMPLE; i ++ ) {
         depth = unpackRGBAToDepth( texture2D( shadowMap, uv + -poissonDisk[ i ].yx * filterRadius ) );
         if( zReceiver <= depth ) sum += 1.0;
     }
     #pragma unroll_loop_end
-    return sum / ( 2.0 * float( 17 ) );*/
+    return sum / ( 2.0 * float( nSample ) );
+    */
 
-    int numSample = nSample;
+    
     float sum = 0.0;
     float top = 0.0;
     float low = 0.0;
     #pragma unroll_loop_start
-    for( int i = 0; i < 17; i ++ ) {
+    for( int i = 0; i < 16; i ++ ) {
         top = unpackRGBAToDepth( texture2D( shadowMap, uv + poissonDisk[ i ] * filterRadius ) );
         low = unpackRGBAToDepth( texture2D( shadowMap, uv + -poissonDisk[ i ].yx * filterRadius ) );
         if( zReceiver <= top ) sum += 1.0;
         if( zReceiver <= low ) sum += 1.0;
     }
     #pragma unroll_loop_end
-    return sum / ( 2.0 * float( 17 ) );
+    return sum / ( 2.0 * float( SAMPLE ) );
 }
 
 float PCSS ( sampler2D shadowMap, vec4 coords ) {
@@ -741,11 +746,14 @@ float PCSS ( sampler2D shadowMap, vec4 coords ) {
 
     // STEP 3: filtering
     //return avgBlockerDepth;
-    return PCF_Filter( shadowMap, uv, zReceiver, filterRadius );
+    return PCF_Filter( shadowMap, uv, zReceiver, filterRadius * softness );
 }
 `
 
 const randomUV = `
+
+uniform sampler2D noiseMap;
+uniform float useNoiseMap;
 
 float directNoise(vec2 p){
     vec2 ip = floor(p);
@@ -762,9 +770,10 @@ float sum( vec4 v ) { return v.x+v.y+v.z; }
 
 vec4 textureNoTile( sampler2D mapper, in vec2 uv ){
 
-    // sample variation pattern    
-    //float k = texture2D( noise, 0.005*uv ).x; // cheap (cache friendly) lookup    
-    float k = directNoise( uv );
+    // sample variation pattern
+    float k = 0.0;
+    if( useNoiseMap == 1.0 ) k = texture2D( noiseMap, 0.005*uv ).x;
+    else k = directNoise( uv );
     
     // compute index    
     float index = k*8.0;

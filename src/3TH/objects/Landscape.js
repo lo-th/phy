@@ -182,7 +182,7 @@ export class Landscape extends Mesh {
         }
 
         //txt['noise'] = Pool.directTexture(this.folder + 'noise.png', { flip:false, repeat:[1,1], encoding:false , callback: this.mapcallback.bind(this)  });
-        //txt['noise'] = Pool.texture({ url:this.folder + 'noise.png', flip:false, repeat:[1,1], encoding:false , callback: this.mapcallback.bind(this)  });
+        txt['noise'] = Pool.texture({ url:this.folder + 'noise.png', flip:false, repeat:[1,1], encoding:false , callback: this.mapcallback.bind(this)  });
 
         this.txt = txt
 
@@ -231,6 +231,8 @@ export class Landscape extends Mesh {
                 uniforms['normalMap2'] = { value: txt[maps[2]+'_n'] };
 
                 //uniforms['noise'] = { value: txt['noise'] };
+                uniforms['noiseMap'] = { value: txt['noise'] };
+                uniforms['useNoiseMap'] = { value: 1 };
 
                 shader.uniforms = uniforms;
 

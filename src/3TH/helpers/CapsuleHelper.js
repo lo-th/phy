@@ -6,7 +6,7 @@ const _vector = /*@__PURE__*/ new Vector3();
 
 class CapsuleHelper extends Object3D {
 
-	constructor( r, h, useDir, material ) {
+	constructor( r, h, useDir, material, c1 = [0,1,0], c2 = [0,0.5,0], full = false ) {
 
 		super();
 
@@ -15,9 +15,7 @@ class CapsuleHelper extends Object3D {
 		//this.matrix = light.matrixWorld;
 		this.matrixAutoUpdate = false;
 
-		//this.color = color;
-
-		this.type = 'SpotLightHelper';
+		this.type = 'CapsuleHelper';
 
 		const geometry = new BufferGeometry();
 
@@ -25,11 +23,33 @@ class CapsuleHelper extends Object3D {
 		let side = 32
 		let dir = r*0.2
 
+		let colors = [];
+
 		const positions = [
 		    r, py, 0 ,   r, -py, 0,
 		    -r, py, 0 ,   -r, -py, 0,
 		    0, py, r-dir ,   0, py, r+dir,
 		];
+
+		colors.push(
+			...c1,...c2,
+			...c1,...c2,
+			...c2,...c2
+		)
+
+		if(full){ 
+			positions.push(
+				0, py, r, 0, -py, r,
+				0, py, -r, 0, -py, -r 
+			);
+			colors.push(
+				...c1,...c2,
+				...c1,...c2,
+			)
+		}
+
+
+		// circle top / bottom
 
 		for ( let i = 0, j = 1; i < side; i ++, j ++ ) {
 
@@ -44,7 +64,14 @@ class CapsuleHelper extends Object3D {
 				r*Math.cos( p2 ), -py, r*Math.sin( p2 ),
 			);
 
+			colors.push(
+				...c1,...c1,
+				...c2,...c2,
+			)
+
 		}
+
+		// circle start / end
 
 		for ( let i = 0, j = 1; i < side; i ++, j ++ ) {
 
@@ -58,12 +85,18 @@ class CapsuleHelper extends Object3D {
 				r*Math.cos( p2 ), py*s + r*Math.sin( p2 ),0,
 			);
 
-		}
+			if(s===1) colors.push( ...c1,...c1 )
+			else colors.push( ...c2,...c2 )
 
-		let colors = []
-		let cc = positions.length/3
-		while(cc--){
-			colors.push(0,1,0)
+			if(full){
+				positions.push(
+					0, py*s + r*Math.sin( p1 ),r*Math.cos( p1 ),
+					0, py*s + r*Math.sin( p2 ),r*Math.cos( p2 ),
+				);
+				if(s===1) colors.push( ...c1,...c1 )
+			    else colors.push( ...c2,...c2 )
+			}
+
 		}
 
 		geometry.setAttribute( 'position', new Float32BufferAttribute( positions, 3 ) );
@@ -92,7 +125,7 @@ class CapsuleHelper extends Object3D {
 		];
 
 		colors = []
-		cc = positions2.length/3
+		let cc = positions2.length/3
 		while(cc--){
 			colors.push(1,0,0)
 		}

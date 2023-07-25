@@ -7,11 +7,9 @@ import {
     FrontSide, DoubleSide, Color, ShaderChunk, 
     VectorKeyframeTrack, QuaternionKeyframeTrack, AnimationClip, Skeleton,
     Float32BufferAttribute, EquirectangularReflectionMapping, LinearEncoding,AdditiveBlending,
-    //EqualDepth,LessDepth,LessEqualDepth,GreaterEqualDepth,GreaterDepth,NotEqualDepth,
     CustomBlending,// AddEquation, SubtractEquation, ReverseSubtractEquation, MinEquation, MaxEquation,
     ZeroFactor,//, OneFactor, SrcColorFactor, OneMinusSrcColorFactor, 
-    SrcAlphaFactor,// OneMinusSrcAlphaFactor, DstAlphaFactor, OneMinusDstAlphaFactor, DstColorFactor, OneMinusDstColorFactor, SrcAlphaSaturateFactor,
-    //CanvasTexture, LoopPingPong, LoopOnce,LoopRepeat, AxesHelper,
+    SrcAlphaFactor,
     AnimationUtils,
 
 } from 'three';
@@ -53,11 +51,13 @@ export class Avatar extends Group {
 
         super();
 
-        this.rootPath = o.path || './'
-        this.lzmaPath = this.rootPath + 'src/libs/lzma_worker.js'
-        Pool.dracoPath =  this.rootPath + 'src/libs/draco/'
+        this.fixWeight = o.fixWeight !== undefined ? o.fixWeight : true;
 
-        this.callback = o.callback || function (){}
+        this.rootPath = o.path || './';
+        this.lzmaPath = this.rootPath + 'src/libs/lzma_worker.js';
+        Pool.dracoPath =  this.rootPath + 'src/libs/draco/';
+
+        this.callback = o.callback || function (){};
 
         this.matrixAutoUpdate = false;
         this.isPause = true;
@@ -65,11 +65,9 @@ export class Avatar extends Group {
         this.textureQuality = o.quality || 1;
 
         this.model = o.type || 'man';
-        this.startAnimation = o.anim || 'idle'
+        this.startAnimation = o.anim || 'idle';
 
-        
-
-        this.ref = null
+        this.ref = null;
 
         switch( this.model ){
             case 'lee': this.ref = Lee; break;
@@ -78,13 +76,13 @@ export class Avatar extends Group {
         }
 
 
-        this.compact = o.compact !== undefined ? o.compact : true
-        this.haveMorph = o.morph !== undefined ? o.morph : false
-        this.fullMaterial = o.material !== undefined ? o.material : true
+        this.compact = o.compact !== undefined ? o.compact : true;
+        this.haveMorph = o.morph !== undefined ? o.morph : false;
+        this.fullMaterial = o.material !== undefined ? o.material : true;
 
         this.size = o.size || 1;
 
-        this.fullMorph = this.ref.fullMorph
+        this.fullMorph = this.ref.fullMorph;
         
 
         this.skeleton = null;
@@ -98,7 +96,7 @@ export class Avatar extends Group {
         this.isBreath = this.ref.isBreath || false;
         this.isEyeMove = this.ref.isEyeMove || false;
 
-        this.decalY = this.ref.decalY || 0
+        this.decalY = this.ref.decalY || 0;
 
         this.tensionTest = false;
         this.tensionActive = false;
@@ -123,32 +121,11 @@ export class Avatar extends Group {
         this.tmpMtx = new Matrix4();
         this.tmpQ = new Quaternion();
 
-        this.setting = {
-
-            mixRatio:0.,
-            threshold:0.1,
-            normal:0.2,
-            hair:0xa43412,
-
-            bow:0x100402,
-
-            sheen:2.25,
-            sheenRoughness:1.0,
-
-            metalness:1,
-            roughness:0.5,
-            wireframe:false,
-            vertexColors:false,
-
-            alphaTest:0.3,
-            h_metal:0.4,
-            h_rough:0.6,
-            
-        }
+        this.setting = {};
 
         //this.initMaterial();
 
-        this.root = Pool.get( this.ref.forceModel ? this.ref.forceModel : this.model, 'O' )
+        this.root = Pool.get( this.ref.forceModel ? this.ref.forceModel : this.model, 'O' );
 
         if( this.root ){
             this.isClone = true;
@@ -165,15 +142,15 @@ export class Avatar extends Group {
 
     load(){
 
-        this.skin = Pool.getTexture(this.ref.textureRef)
+        this.skin = Pool.getTexture(this.ref.textureRef);
         if( !this.skin ){
 
-            const path = this.rootPath + this.ref.texturePath + (this.ref.haveQuality ? this.textureQuality + 'k/' : '')
-            Pool.load( this.ref.textures, this.loadModels.bind(this), path, 'loading images...' )
+            const path = this.rootPath + this.ref.texturePath + (this.ref.haveQuality ? this.textureQuality + 'k/' : '');
+            Pool.load( this.ref.textures, this.loadModels.bind(this), path, 'loading images...' );
 
         } else {
 
-            this.loadModels()
+            this.loadModels();
 
         }
 
@@ -182,11 +159,10 @@ export class Avatar extends Group {
     loadModels(){
 
         const model = this.ref.forceModel ? this.ref.forceModel : this.model;
-        
-        const asset = [model+'.glb']
-        const path = this.rootPath + this.ref.modelPath
-        if( this.ref.haveMorph && this.haveMorph ) asset.push( model+'_morph.glb' )
-        Pool.load( asset, this.init.bind(this), path, 'loading models...' )
+        const asset = [model+'.glb'];
+        const path = this.rootPath + this.ref.modelPath;
+        if( this.ref.haveMorph && this.haveMorph ) asset.push( model+'_morph.glb' );
+        Pool.load( asset, this.init.bind(this), path, 'loading models...' );
 
     }
 
@@ -198,21 +174,21 @@ export class Avatar extends Group {
             this.mixer.update( delta );
 
             // blink
-            const n = this.n
-            if( n<=20) this.eyeControl((n*0.05))
-            if( n>10 && n<=40 ) this.eyeControl(1-((n-20)*0.05))
-            this.n ++
-            if( this.n===1000 ) this.n = 0
+            const n = this.n;
+            if( n<=20) this.eyeControl((n*0.05));
+            if( n>10 && n<=40 ) this.eyeControl(1-((n-20)*0.05));
+            this.n ++;
+            if( this.n===1000 ) this.n = 0;
 
             if( !this.isClone ){ 
-                this.look( delta*10 )
-                this.breathing()
-                this.autoToes()
+                this.look( delta*10 );
+                this.breathing();
+                this.autoToes();
             }
 
             if( this.tensionActive ){ 
-                this.tension1.update()
-                this.tension2.update()
+                this.tension1.update();
+                this.tension2.update();
             }
 
             /*if( this.ref.adjustment && !this.isClone ) {
@@ -233,23 +209,23 @@ export class Avatar extends Group {
 
     look( delta ){
 
-        if(!this.isEyeMove) return
-        if(this.isPause) return
+        if(!this.isEyeMove) return;
+        if(this.isPause) return;
 
         const v = window.mouse || {x:0, y:0};
 
-        if(delta>1) delta = 1
+        if(delta>1) delta = 1;
 
         this.headBoneLook.lerp({ x:-(v.y*20)*torad, y:0, z:-(v.x*20)*torad }, delta );
         this.eyeTarget.position.lerp({ x:v.x*0.5, y:1, z:-v.y*0.25 }, delta );
 
         let e = this.headBoneLook;
         this.tmpQ.setFromEuler( { _x:e.x, _y:e.y, _z:e.z, _order:'XYZ' }, false );
-        this.bones.head.quaternion.multiply(this.tmpQ)
+        this.bones.head.quaternion.multiply(this.tmpQ);
 
         let ER = this.bones.ER;
         let EL = this.bones.EL;
-        let up = {x:0, y:0, z:1}
+        let up = {x:0, y:0, z:1};
 
         this.tmpMtx.lookAt( EL.position, this.eyeTarget.position.clone().add({x:0.03, y:0, z:-0.074}), up );
         EL.quaternion.setFromRotationMatrix( this.tmpMtx ).multiply(this.q);
@@ -265,14 +241,14 @@ export class Avatar extends Group {
         if( !this.isBreath ) return;
         if( !this.skeleton.setScalling ) return;
 
-        let a = this.breath*0.01
+        let a = this.breath * 0.01;
 
         if(this.breathSide > 0){
-            this.skeleton.setScalling( this.bones.chest, this.lerp (1,1.02, a), this.lerp (1,1.04, a), 1 )
-            this.skeleton.setScalling( this.bones.abdomen, 1, this.lerp (1,0.92, a), 1 )
+            this.skeleton.setScalling( this.bones.chest, this.lerp (1,1.02, a), this.lerp (1,1.04, a), 1 );
+            this.skeleton.setScalling( this.bones.abdomen, 1, this.lerp (1,0.92, a), 1 );
         }else{
-            this.skeleton.setScalling( this.bones.chest, this.lerp (1.02,1, a), this.lerp (1.04,1, a), 1 )
-            this.skeleton.setScalling( this.bones.abdomen, 1, this.lerp (0.92,1, a), 1 )
+            this.skeleton.setScalling( this.bones.chest, this.lerp (1.02,1, a), this.lerp (1.04,1, a), 1 );
+            this.skeleton.setScalling( this.bones.abdomen, 1, this.lerp (0.92,1, a), 1 );
         }
 
 
@@ -287,16 +263,16 @@ export class Avatar extends Group {
 
     setPosition( x, y, z ){
 
-        this.position.set( x, y, z )
-        this.updateMatrix()
+        this.position.set( x, y, z );
+        this.updateMatrix();
 
     }
 
     setRotation( x, y, z, a ){
 
-        let r  = this.lerp( this.rotation.y, y, a)
-        this.rotation.set( x, r, z )
-        this.updateMatrix()
+        let r  = this.lerp( this.rotation.y, y, a);
+        this.rotation.set( x, r, z );
+        this.updateMatrix();
 
     }
 
@@ -339,14 +315,17 @@ export class Avatar extends Group {
     }
 
 
-    setMaterial(s){
+    setMaterial(s, b){
 
-        this.ref.changeMaterial(s)
+        //console.log('material change !!')
+        this.ref.changeMaterial(s, b)
 
     }
 
     getMaterial( name ){
+
         return Pool.getMaterial( name )
+        
     }
 
     init(){
@@ -362,17 +341,21 @@ export class Avatar extends Group {
 
         // get data
         this.root.traverse( function ( node ) {
+            
+            node.raycast = function(){ return }
+
             if ( node.isMesh ){
 
                 if( node.name === this.ref.skeletonRef ){
                     node.matrixAutoUpdate = false;
+
                     this.skeleton = node.skeleton;
                     if( this.skeleton.resetScalling ) this.skeleton.resetScalling()
 
                     //console.log( node.geometry.boundingSphere, node.geometry.boundingBox, node.frustumCulled )
                     //node.geometry.boundingSphere.radius = 0.1;
                 }
-                node.raycast = function(){ return }
+                
                 this.mesh[node.name] = node;
             }
             if ( node.isBone ){
@@ -524,9 +507,7 @@ export class Avatar extends Group {
     start(){
 
 
-
-        //console.log('start', this.model)
-        if( this.done ) return
+        if( this.done ) return;
 
         //this.updateMatrix()
 
@@ -535,32 +516,31 @@ export class Avatar extends Group {
         this.add( this.root );
 
         this.onReady();
-        this.playAll()
+        this.playAll();
         
         this.play( this.startAnimation );
 
 
         if( this.ref.adjustment ){
-            this.makePoseTrack('adjustment', this.ref.adjustment() )
+            this.makePoseTrack('adjustment', this.ref.adjustment() );
         }
 
 
-        setTimeout( this.callback, 10 ) 
-
-
+        setTimeout( this.callback, 10 );
         //this.callback()
+
     }
 
     addHelper(){
 
         if( this.helper ){
-            this.helper.dispose()
+            this.helper.dispose();
             this.remove( this.helper );
             this.helper = null;
         } else {
             this.helper = new SkeletonHelper( this.root );
-            this.helper.raycast = function (){}
-            this.helper.matrix = this.root.matrix
+            this.helper.raycast = function (){ return }
+            this.helper.matrix = this.root.matrix;
             this.add( this.helper );
         }
     }
@@ -577,7 +557,7 @@ export class Avatar extends Group {
             this.add( this.exoskel );
 
         }
-        return this.exoskel
+        return this.exoskel;
     }
 
     attachToBone( m, b ){
@@ -593,7 +573,7 @@ export class Avatar extends Group {
         request.onreadystatechange = function() {
             if ( request.readyState === 4 ) {
                 if ( request.status === 200 || request.status === 0 ) {
-                    let data = JSON.parse( request.responseText )
+                    let data = JSON.parse( request.responseText );
                     this.urls = [];
                     for( let g in data ){
                         if( g === 'main' ) this.urls.push( ...data[g] );
@@ -731,15 +711,15 @@ export class Avatar extends Group {
         //action.play()
         this.actions.set( clip.name, action );
 
-        if(clip.name.search('walk')!==-1) this.clipsToesFix.push(clip.name)
-        if(clip.name.search('run')!==-1) this.clipsToesFix.push(clip.name)
-        if(clip.name.search('strafe')!==-1) this.clipsToesFix.push(clip.name)
-        if(clip.name.search('jog')!==-1) this.clipsToesFix.push(clip.name)
-        if(clip.name.search('RUN')!==-1) this.clipsToesFix.push(clip.name)
+        if(clip.name.search('walk')!==-1) this.clipsToesFix.push(clip.name);
+        if(clip.name.search('run')!==-1) this.clipsToesFix.push(clip.name);
+        if(clip.name.search('strafe')!==-1) this.clipsToesFix.push(clip.name);
+        if(clip.name.search('jog')!==-1) this.clipsToesFix.push(clip.name);
+        if(clip.name.search('RUN')!==-1) this.clipsToesFix.push(clip.name);
 
         //console.log(clip)
 
-        if( window.gui ) window.gui.getAnimation()
+        if( window.gui ) window.gui.getAnimation();
 
        // if( play ) this.play( clip.name )
 
@@ -756,21 +736,21 @@ export class Avatar extends Group {
             let i = Pool.clip.length
             while(i--){
 
-                if( toJson ) anim[n] = Pool.clip[n].toJSON()
-                else anim[n] = Pool.clip[n]
+                if( toJson ) anim[n] = Pool.clip[n].toJSON();
+                else anim[n] = Pool.clip[n];
                 // delete animations[n].uuid
                 n++;
             }
         } else {
             this.actions.forEach( function ( action, key ) {
-                if( toJson ) anim[n] = action._clip.toJSON()
-                else anim[n] = action._clip
+                if( toJson ) anim[n] = action._clip.toJSON();
+                else anim[n] = action._clip;
                 //delete data[n].uuid
                 n++;
             })
         }
 
-        return anim
+        return anim;
 
     }
 
@@ -778,7 +758,7 @@ export class Avatar extends Group {
 
         if(!this.lzma) this.lzma = new LZMA(this.lzmaPath);
 
-        const data = this.getAnimation( true )
+        const data = this.getAnimation( true );
 
         this.lzma.compress( JSON.stringify(data), 2, function(result) {
 
@@ -824,24 +804,24 @@ export class Avatar extends Group {
 
     autoToes(){
 
-        if(!this.fixToe) return
-        let r = this.getRot('rFoot')
-        let l = this.getRot('lFoot')
-        let v = this.getWorldPos('hip')
-        let v0 = this.getWorldPos('rToes')
-        let v1 = this.getWorldPos('lToes')
-        if(r[0]>0 && (v0.z-v.z)<0) this.setRot('rToes', -r[0]*1.5, 0,0 )
-        else if( r[0] !== 0 ) this.setRot('rToes', 0,0,0 )
-        if(l[0]>0 && (v1.z-v.z)<0) this.setRot('lToes', -l[0]*1.5, 0,0 )
-        else if( l[0] !== 0 ) this.setRot('lToes', 0,0,0 )
+        if(!this.fixToe) return;
+        let r = this.getRot('rFoot');
+        let l = this.getRot('lFoot');
+        let v = this.getWorldPos('hip');
+        let v0 = this.getWorldPos('rToes');
+        let v1 = this.getWorldPos('lToes');
+        if(r[0]>0 && (v0.z-v.z)<0) this.setRot('rToes', -r[0]*1.5, 0,0 );
+        else if( r[0] !== 0 ) this.setRot('rToes', 0,0,0 );
+        if(l[0]>0 && (v1.z-v.z)<0) this.setRot('lToes', -l[0]*1.5, 0,0 );
+        else if( l[0] !== 0 ) this.setRot('lToes', 0,0,0 );
     }
 
     resetToes(){
 
-        if(!this.fixToe) return
+        if(!this.fixToe) return;
         this.fixToe = false;
-        this.setRot('rToes', 0,0,0 )
-        this.setRot('lToes', 0,0,0 )
+        this.setRot('rToes', 0,0,0 );
+        this.setRot('lToes', 0,0,0 );
     }
 
     convertFbx( name, anim, autoplay ) {
@@ -858,8 +838,8 @@ export class Avatar extends Group {
         let i = baseTracks.length, j, n, t, b, k = 0;
 
         while(i--){
-            t = baseTracks[k]
-            b = t.name.substring(0, t.name.lastIndexOf('.') )
+            t = baseTracks[k];
+            b = t.name.substring(0, t.name.lastIndexOf('.') );
 
             if( t.name === 'hip.position' ){
                 let rp = []
@@ -1144,18 +1124,25 @@ export class Avatar extends Group {
                 //this.current.setEffectiveTimeScale( 1 )
                 //this.current.setEffectiveWeight( 1 )
 
-
-
                 //}
 
+                if(this.fixWeight){
+
+                    this.current.weight = 1.0
+                    this.current.stopFading()
+                    this.old.stopFading()
+                    this.old._scheduleFading( fade, this.old.getEffectiveWeight(), 0 );
+                    this.current._scheduleFading( fade, this.current.getEffectiveWeight(), 1 );
+
+                } else {
+
+                    this.executeCrossFade( this.old, this.current, fade );
+
+                    //this.current.crossFadeFrom( this.old, fade, true );
+
+                }
+
                 
-                //this.current.crossFadeFrom( this.old, fade, true );
-                this.current.weight = 1.0
-                //this.current._effectiveWeight = 1.0
-                this.current.stopFading()
-                this.old.stopFading()
-                this.old._scheduleFading( fade, this.old.getEffectiveWeight(), 0 );
-                this.current._scheduleFading( fade, this.current.getEffectiveWeight(), 1 );
 
                 //this.current.play()
 
@@ -1271,6 +1258,7 @@ export class Avatar extends Group {
         V.set(0,0,0)
         n.localToWorld(V)
         return { x:V.x, y:V.y, z:V.z };
+
     }
 
 

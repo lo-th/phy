@@ -68,7 +68,7 @@ export const Lee = {
         },
     },
 
-    changeMaterial:( Setting ) => {
+    /*changeMaterial:( Setting ) => {
 
         const s = Lee.setting;
 
@@ -82,6 +82,26 @@ export const Lee = {
         m.roughness = s.roughness;
         m.metalness = s.metalness;
         m.wireframe = s.wireframe;
+
+    },*/
+
+    changeMaterial:( sx, def = false ) => {
+
+        if( !Pool.getMaterial( Lee.materialRef ) ) return
+
+        const defMat = Lee.materials;
+        let m;
+
+        for(let key in defMat){
+            m = Pool.getMaterial( key );
+            for(let v in sx){
+                if( m[v] !== undefined ){ 
+                    if( def && defMat[key][v] ) m[v] = defMat[key][v];
+                    else m[v] = sx[v];
+                }
+            }
+            //m.needsUpdate = true
+        }
 
     },
 

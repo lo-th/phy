@@ -21,24 +21,28 @@ const setting = {
     normal:0.25,
     hair:0xa43412,
     bow:0x100402,
-    sheen:2,//2.25,
+    sheen:1,//2.25,
     sheenRoughness:1.0,//1.0,
     metalness:0.6,
     roughness:0.4,
-    wireframe:false,
+    
     vertexColors:false,
     alphaTest:0.3,
     h_metal:0.4,
     h_rough:0.6,
     clearcoat:1.0,
+
+    wireframe:false,
+    transparent:false,
+    opacity:1.0,
     
 }
 
 export const Human = {
 
 	isBreath:false,
-	isEyeMove:true,
-	haveMorph:true,
+	isEyeMove:false,
+	haveMorph:false,
     
 
     skeletonRef:'body',
@@ -76,7 +80,8 @@ export const Human = {
             sheenRoughness:setting.sheenRoughness,
             sheenColor:0xffffff,
             sheenColorMap:'avatar_u',
-            iridescence:0.5,
+            iridescence:1.0,
+            wireframe:setting.wireframe,
 
             /*aoMap:'avatar_ao',
             aoMapIntensity:1,*/
@@ -157,6 +162,7 @@ export const Human = {
             alphaMap:'eyelash_a',
             alphaTest:setting.alphaTest,
             transparent:true,
+            opacity:1,
             side: DoubleSide,
             alphaToCoverage:true,
             polygonOffset: true,                
@@ -182,19 +188,42 @@ export const Human = {
 
     },
 
-    changeMaterial:( sx ) => {
+    changeMaterial:( sx = {}, def = false ) => {
 
-        if( !Pool.getMaterial( 'skin' ) ) return
+        if( !Pool.getMaterial( Human.materialRef ) ) return
 
         const s = Human.setting;
+        const defMat = Human.materials;
+        
+        let change = false;
 
-        if(sx){
-            for(let v in sx){
-                if(s[v]!== undefined) s[v] = sx[v]
-            }
+        for(let v in sx){
+            if(s[v]!== undefined){ 
+                if(s[v] !== sx[v]){ 
+                    s[v] = sx[v]
+                    change = true;
+                }}
         }
 
-        let m
+        let m;
+
+        if(change){
+
+            for(let key in defMat){
+                m = Pool.getMaterial( key );
+                for(let v in sx){
+                    if( m[v] !== undefined ){ 
+
+                        if( def && defMat[key][v] ) m[v] = defMat[key][v];
+                        else m[v] = sx[v];
+
+                    }
+                }
+            }
+
+        }
+
+    
         
         /*
          m = Pool.getMaterial( 'skin' );
@@ -289,15 +318,14 @@ export const Human = {
                     break;
                     case 'hair': 
                     node.material = Pool.getMaterial( 'hair' ) || def;
-                    node.receiveShadow = true;
+                    node.receiveShadow = false;
                     node.castShadow = true;
                     node.matrixWorldAutoUpdate = false
                     break;
                     case 'hair_man': 
                     node.material = Pool.getMaterial( 'hair_man' ) || def;
-                    node.receiveShadow = true;
+                    node.receiveShadow = false;
                     node.castShadow = true;
-
                     node.matrixWorldAutoUpdate = false
                     break;
                 }

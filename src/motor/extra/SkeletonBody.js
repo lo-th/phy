@@ -227,9 +227,9 @@ export class SkeletonBody extends Object3D {
                     if( n==='rThumb2' && name==='rThumb3' ){ type = 'capsule'; size = [  0.02, dist ]; rot = [0,0,90]; link='rHand'; }
 
 
-                    if( n==='rHand' && name==='rMid1' ){ type = 'capsule'; size = [  0.02, dist ]; rot = [0,0,90];translate = [-dist*0.6, 0, 0 ]; link='rHand'; }
-                    if( n==='rMid1' && name==='rMid2' ){ type = 'capsule'; size = [  0.02, dist ]; rot = [0,0,90];translate = [-dist*0.6, 0, 0 ]; link='rHand'; }
-                    if( n==='rMid2' && name==='rMid3' ){ type = 'capsule'; size = [  0.02, dist ]; rot = [0,0,90];translate = [-dist*0.6, 0, 0 ]; link='rHand'; }
+                    if( n==='rHand' && name==='rMid1' ){ type = 'capsule'; size = [  0.02, dist ]; rot = [0,0,90]; translate = [-dist*0.6, 0, 0 ]; link='rHand'; }
+                    if( n==='rMid1' && name==='rMid2' ){ type = 'capsule'; size = [  0.02, dist ]; rot = [0,0,90]; translate = [-dist*0.6, 0, 0 ]; link='rHand'; }
+                    if( n==='rMid2' && name==='rMid3' ){ type = 'capsule'; size = [  0.02, dist ]; rot = [0,0,90]; translate = [-dist*0.6, 0, 0 ]; link='rHand'; }
 
                 }
 
@@ -239,7 +239,7 @@ export class SkeletonBody extends Object3D {
 
                 if( type !== null ){
 
-                    phyName = this.prefix +'_bone_'+n
+                    phyName = this.prefix +'_bone_'+n;
 
                 	// translation
                     tmpMtx.makeTranslation( translate[0], translate[1], translate[2] );
@@ -281,6 +281,7 @@ export class SkeletonBody extends Object3D {
                         material:'bones2',
                         shadow:false,
                         neverSleep: true,
+                        helper: true,
 
                         //linked:link,
                         //iterations:[4,4],

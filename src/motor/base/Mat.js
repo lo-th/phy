@@ -185,7 +185,7 @@ export const Mat = {
 
 
 				case 'bones':  m = Mat.create({ name:'bones', color:0xCCAA33,  wireframe:true }); break
-				case 'bones2':  m = Mat.create({ name:'bones2', color:0x7777ff }); break
+				case 'bones2':  m = Mat.create({ name:'bones2', type:'basic', color:0xFF8800, transparent:true, opacity:0.5, depthTest:true, depthWrite:false, alphaToCoverage:true }); break
 
 				
 				case 'button':  m = Mat.create({ name:'button', color:0xFF404B, ...matExtra }); break

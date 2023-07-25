@@ -3,7 +3,7 @@
         "start", "basic", "joint", "capsule", "compound", "bridge",
         "gears", "terrain", "character", "kinematic", "random", "tower",
         "gravity", "heroes", "heroes2", "bullet", "evangelion", 
-        "blast", "skeleton", "material", "keva", "test", "dragon"
+        "blast", "skeleton", "skeleton_old", "material", "keva", "test", "dragon"
     ],
     "Dev" : [ 
         "dev/cloth", "dev/gears2", "dev/car_ray", "dev/mass", "dev/empty",

@@ -403,6 +403,7 @@ export const Gui = {
 		const ui = Gui.ui
 
 	    const controler = Main.getControler()
+	    const renderer = Main.getRenderer()
 
 	    //Gui.CameraOptions = 
 	    const up = function(){ 
@@ -412,25 +413,45 @@ export const Gui = {
 
 	    //console.log(options)
 
+	    let g0 = ui.add('group', { name:'CAMERA', open:true })
+
 	    
-	    ui.add( 'empty', {h:6})
-	    ui.add( controler.info, 'phi', {min:-90, max:90, precision:1, mode:mode, color:'#ff0' }).onChange( up ).listen()
-	    ui.add( controler.info, 'theta', {min:-180, max:180, precision:1, mode:mode, color:'#ff0'  }).onChange( up ).listen()
-	    ui.add( 'empty', {h:6})
-	    ui.add( controler.info, 'fov', {min:1, max:180, precision:1, mode:mode, color:'#8ff' }).onChange( up ).listen()
-	    ui.add( controler.info, 'zoom', {min:0.1, max:10, precision:1, mode:mode, color:'#8ff'  }).onChange( up ).listen()
-	    ui.add( 'empty', {h:6})
+	    //ui.add( 'empty', {h:6})
+	    g0.add( controler.info, 'phi', {min:-90, max:90, precision:1, mode:mode, color:'#ff0' }).onChange( up ).listen()
+	    g0.add( controler.info, 'theta', {min:-180, max:180, precision:1, mode:mode, color:'#ff0'  }).onChange( up ).listen()
+	    g0.add( 'empty', {h:6})
+	    g0.add( controler.info, 'fov', {min:1, max:180, precision:1, mode:mode, color:'#8ff' }).onChange( up ).listen()
+	    g0.add( controler.info, 'zoom', {min:0.1, max:10, precision:1, mode:mode, color:'#8ff'  }).onChange( up ).listen()
+	    g0.add( 'empty', {h:6})
 
 	    //ui.add( controler.info, 'target', { type:'number' }).onChange( up ).listen()
-	    ui.add( controler.info, 'distance', { type:'number', min:0, max:100, mode:mode} ).onChange( up ).listen()
-	    ui.add( controler.info, 'x', { type:'number', min:-50, max:50, precision:2, mode:mode }).onChange( up ).listen()
-	    ui.add( controler.info, 'y', { type:'number', min:-50, max:50, precision:2, mode:mode  }).onChange( up ).listen()
-	    ui.add( controler.info, 'z', { type:'number', min:-50, max:50, precision:2, mode:mode }).onChange( up ).listen()
+	    g0.add( controler.info, 'distance', { type:'number', min:0, max:100, mode:mode} ).onChange( up ).listen()
+	    g0.add( controler.info, 'x', { type:'number', min:-50, max:50, precision:2, mode:mode }).onChange( up ).listen()
+	    g0.add( controler.info, 'y', { type:'number', min:-50, max:50, precision:2, mode:mode  }).onChange( up ).listen()
+	    g0.add( controler.info, 'z', { type:'number', min:-50, max:50, precision:2, mode:mode }).onChange( up ).listen()
 
 	   
 
 	    //ui.add( 'bool', { name:'CAPTURE', onName:'STOP', value:false, mode:1 }).onChange( Gui.capture )
 		//ui.add('button', { name:'CAMERA' }).onChange( function(){ console.log( controls.getInfo() )} )
+
+		let setts = Shader.setting()
+
+		let g1 = ui.add('group', { name:'SHADOW', open:true })
+
+		g1.add( setts.shadowGamma, 'value', { rename:'gamma', min:0, max:4, precision:3, mode:mode, color:'#8ff' } )
+		g1.add( setts.shadowLuma, 'value', { rename:'lLuma', min:0, max:4, precision:3, mode:mode, color:'#8ff' } )
+		g1.add( setts.shadowContrast, 'value', { rename:'contrast', min:0, max:4, precision:3, mode:mode, color:'#8ff' } )
+		g1.add( 'empty', {h:6})
+		g1.add( setts.lightSizeUV, 'value', { rename:'light size', min:1, max:10, precision:4, mode:mode } )
+		g1.add( setts.nearPlane, 'value', { rename:'near plane', min:1, max:20, precision:2, mode:mode } )
+		g1.add( setts.rings, 'value', { rename:'ring', min:1, max:30, precision:0, color:'#ff0', mode:mode} )
+		g1.add( setts.nSample, 'value', { rename:'sample', min:2, max:32, precision:0, color:'#ff0', mode:mode }) 
+
+		//g1.add( setts.noiseIntensity, 'value', { rename:'noise', min:0, max:10, precision:3, mode:mode } )
+		g1.add( setts.softness, 'value', { rename:'softness', min:0, max:4, precision:3, mode:mode } )
+
+
 
 	},
 

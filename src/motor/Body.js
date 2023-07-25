@@ -1,4 +1,4 @@
-import { Object3D, Vector3, Group, Mesh, BufferGeometry, CylinderGeometry, InstancedMesh, DynamicDrawUsage, Matrix4 } from 'three';
+import { Object3D, Vector3, Group, Mesh, LineSegments, BufferGeometry, CylinderGeometry, InstancedMesh, DynamicDrawUsage, Matrix4 } from 'three';
 
 import { root, Utils } from './root.js';
 
@@ -13,6 +13,10 @@ import { MathTool, PI90, todeg } from '../core/MathTool.js';
 
 import { SphereBox, Capsule, ChamferCyl, ChamferBox, createUV, Stair  } from '../3TH/Geometry.js';
 import { ConvexGeometry } from '../jsm/geometries/ConvexGeometry.js';
+
+
+
+import { CapsuleHelper  } from '../3TH/helpers/CapsuleHelper.js';
 
 
 // THREE BODY
@@ -255,6 +259,8 @@ export class Body extends Item {
 
 			    g = Geo.get( gName )
 			    if(!g){
+			    	//if( o.helper ) g = new CapsuleHelperGeometry( s[ 0 ], s[ 1 ] )
+					//else 
 					g = new Capsule( s[ 0 ], s[ 1 ], seg )
 					g.name = gName
 				} else {
@@ -341,11 +347,20 @@ export class Body extends Item {
     		return g
     	}
 
-    	if( o.meshRemplace && o.debug ) material = Mat.get( 'debug3' )
+    	if( o.meshRemplace && o.debug ) material = Mat.get( 'debug' )
+    	//if( o.helper ) material = Mat.get( 'hide' )
 
     	//if( o.instance ) return
 
 		let m = new Mesh( g, material )
+
+		//if( o.helper ) m.add( new LineSegments( new CapsuleHelperGeometry( s[ 0 ], s[ 1 ] ),  Mat.get( 'line' ) ))
+		if( o.helper ) {
+
+			m.add( new CapsuleHelper( s[ 0 ], s[ 1 ]+(s[ 0 ]*2), false, Mat.get( 'line' ), [0.3,0.1,0.0], [0.8,0.2,0.0], true ))
+			//m.material.visible = false
+
+		}
 
 		if( o.localRot ) o.localQuat = MathTool.quatFromEuler(o.localRot) //math.toQuatArray( o.localRot )
 		if( o.localPos ) m.position.fromArray( o.localPos )

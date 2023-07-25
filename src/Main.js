@@ -144,8 +144,8 @@ const options = {
 
     lightSizeUV:1.3,
     nearPlane:9.5,
-    rings:11,
-    nSample:17,
+    rings:4,//11,
+    nSample:16,//17,
 
     composer:false,
 
@@ -432,6 +432,7 @@ const init = () => {
 	renderer.setSize( size.w, size.h )
 	renderer.setClearColor( 0x000000, 1 );
 
+
 	//renderer.outputColorSpace = THREE.sRGBEncoding
 	//renderer.outputColorSpace = THREE.SRGBColorSpace;
 	renderer.toneMapping = toneMappingOptions[options.tone]
@@ -630,7 +631,7 @@ const addLight = () => {
 	Lights.add({ 
 		type:'direct', name:'sun',
 	    intensity:options.light_1*0.7, distance:6, parent:followGroup,
-	    shadow:{ range:4, near:1, far:9, bias:-0.0005, radius:4, quality: 1024 * options.quality },
+	    shadow:{ range:4, near:1, far:20, bias:-0.0005, radius:4, quality: 1024 * options.quality },
 	})
 
 	/////
@@ -638,16 +639,25 @@ const addLight = () => {
 	Lights.add({ 
 	    type:'direct', name:'sun2',
 	    intensity:options.light_1*0.3, distance:20, parent:followGroup,
-	    shadow:{ range:40, near:5, far:40, bias:!isWebGPU ? -0.005 : 0.005, radius:2, quality: 1024 * options.quality }
+	    shadow:{ range:40, near:5, far:40, bias:!isWebGPU ? -0.005 : 0.005, radius:4, quality: 1024 * options.quality }
 	})
 
+
+	/////
+
+	/*Lights.add({ 
+	    type:'direct', name:'sun2',
+	    intensity:options.light_1*0.3, distance:10, parent:followGroup,
+	    shadow:{ range:20, near:1, far:20, bias:-0.0005, radius:1, quality: 2048 * options.quality }
+	})*/
+
 	if( !isWebGPU ){	
-		Lights.add({ 
+		/*Lights.add({ 
 			type:'hemi', name:'hemi',
 			intensity:options.light_2, 
 			pos:[0,3,0], 
 			parent:followGroup 
-		})
+		})*/
 	}
 
 	////
@@ -662,6 +672,9 @@ const addLight = () => {
 		Lights.castShadow( options.shadow !== 0 )
 		renderer.shadowMap.enabled = options.shadow !== 0 
 		renderer.shadowMap.type = shadowMapType[options.shadowType]
+		//renderer.shadowMap.autoUpdate = false;
+
+		//renderer.shadowMap.needsUpdate= true;
 
 	}
 
@@ -1023,6 +1036,8 @@ const render = ( stamp = 0 ) => {
     // UPDATE TWEEN
 	//TWEEN.update( stamp );
 
+
+
 	// RENDER
 	if( composer && composer.enabled ) composer.render( tm.dt )
 	else renderer.render( scene, camera )
@@ -1036,6 +1051,8 @@ const render = ( stamp = 0 ) => {
 
 	//if( !isWebGPU ) 
 	loop = requestAnimationFrame( render )
+
+	//if( renderer.shadowMap.enabled ) renderer.shadowMap.needsUpdate = true;
 
 	
 

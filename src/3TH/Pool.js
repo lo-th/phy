@@ -200,6 +200,7 @@ export const Pool = {
         if( o.encoding ) t.colorSpace = SRGBColorSpace;
         if( o.srgb ) t.colorSpace = SRGBColorSpace;
         t.flipY = ( o.flipY || o.flip ) !== undefined ? o.flipY : false
+        //t.anisotropy = o.anisotropy || 16   
         if( o.anisotropy !== undefined ) t.anisotropy = o.anisotropy
         if( o.generateMipmaps !== undefined ) t.generateMipmaps = o.generateMipmaps
         if( o.repeat ){

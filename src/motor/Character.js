@@ -85,6 +85,8 @@ class Hero extends Basic3D {
 
 		super()
 
+		this.fixWeight = o.fixWeight !== undefined ? o.fixWeight : true;
+
 		this.type = 'character';
 		this.name = o.name || 'hero';
 		o.name = this.name
@@ -237,7 +239,9 @@ class Hero extends Basic3D {
     debugMode( v ){
 
     	if( this.skeletonBody ) this.skeletonBody.isVisible(v)
-    	if( this.model ) this.model.setMaterial( {wireframe: v})
+    	//if( this.model ) this.model.setMaterial( { wireframe: v, visible:!v })
+    	if( this.model ) this.model.setMaterial( { wireframe: v, transparent:v, opacity:v?0.25:1.0 }, !v )
+    	
     	this.showHelper( v )
         
 
@@ -260,7 +264,8 @@ class Hero extends Basic3D {
 			compact:true, 
 			material:!o.noMat, 
 			morph:o.morph || false, 
-			callback:this.callback 
+			callback:this.callback,
+			fixWeight: this.fixWeight,
 		});
 
 		this.add( this.model );

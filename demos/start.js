@@ -50,7 +50,6 @@ onComplete = () => {
 
     g.material.needsUpdate = true
 
-
     ////
 
     let sofaModel = phy.getMesh('sofa');

@@ -18,7 +18,7 @@ import { Pool } from '../Pool.js';
 const setting = {
 
     metalness:0.6,
-    roughness:0.4,
+    roughness:0.1,
     clearcoat:1.0,
     wireframe:false,
     
@@ -83,7 +83,41 @@ export const Eva = {
         }
     },
 
-    changeMaterial:( Setting ) => {
+    changeMaterial:( sx, def = false ) => {
+
+        if( !Pool.getMaterial( Eva.materialRef ) ) return
+
+        //const s = Eva.setting;
+        const defMat = Eva.materials;
+        
+        /*let change = false;
+
+        for(let v in sx){
+            if(s[v]!== undefined){ 
+                if(s[v] !== sx[v]){ 
+                    s[v] = sx[v]
+                    change = true;
+                }}
+        }*/
+
+        let m;
+
+        //if(change){
+
+            for(let key in defMat){
+                m = Pool.getMaterial( key );
+                for(let v in sx){
+                    if( m[v] !== undefined ){ 
+                        if( def && defMat[key][v] ) m[v] = defMat[key][v];
+                        else m[v] = sx[v];
+                    }
+                }
+                m.needsUpdate = true
+            }
+
+        //}
+
+        /*
 
         const s = Eva.setting;
 
@@ -107,7 +141,7 @@ export const Eva = {
         m.roughness = s.roughness;
         m.metalness = s.metalness;
         m.wireframe = s.wireframe;
-        m.clearcoat = s.clearcoat;
+        m.clearcoat = s.clearcoat;*/
 
     },
 
@@ -122,14 +156,15 @@ export const Eva = {
             	node.material = def;
                 node.receiveShadow = true;
                 node.castShadow = true;
+                //node.matrixWorldAutoUpdate = false
 
                 switch( node.name ){
 
-                    case 'eva_2_head':case 'eva_2_mach': 
+                    case 'eva_2_head': case 'eva_2_mach': 
                     node.visible = model === 'eva02' ? true : false
                     break;
 
-                    case 'eva_L_COLLAR':case 'eva_R_COLLAR': 
+                    case 'eva_L_COLLAR': case 'eva_R_COLLAR': 
                     node.visible = model === 'eva00' ? false : true
                     break;
 

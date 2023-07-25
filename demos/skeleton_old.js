@@ -65,7 +65,8 @@ const addModel = ( type ) => {
         name:'avatar',
         gender:gender,
         callback:done,
-        mask:2
+        mask:2,
+        fixWeight:false,
         //debug:true
         //anim:'none',
     })

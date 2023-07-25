@@ -34,13 +34,13 @@ export class Lights {
     	if(o.sunPos){
     		if( LL.sun ){ 
     			LL.sun.position.fromArray( o.sunPos ).multiplyScalar( LL.sun.distance );
-    			LL.sun.target.position.set( 0, 0, 0 )
+    			LL.sun.target.position.set( 0, 1, 0 )
     			move = true;
     			//LL.sun.updateMatrixWorld();
     		}
     		if( LL.sun2 ){ 
     			LL.sun2.position.fromArray( o.sunPos ).multiplyScalar( LL.sun2.distance );
-    			LL.sun2.target.position.set( 0, 0, 0 )
+    			LL.sun2.target.position.set( 0, 1, 0 )
     			move = true;
     			//LL.sun2.updateMatrixWorld();
     		}

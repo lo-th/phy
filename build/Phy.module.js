@@ -1,4 +1,4 @@
-import { Quaternion, Matrix3, Vector3, LineSegments, BufferGeometry, BufferAttribute, Float32BufferAttribute, LineBasicMaterial, SphereGeometry, CylinderGeometry, BoxGeometry, PlaneGeometry, CanvasTexture, RepeatWrapping, SRGBColorSpace, Color, Vector2, MeshStandardMaterial, MeshToonMaterial, MeshBasicMaterial, MeshLambertMaterial, MeshPhongMaterial, MeshPhysicalMaterial, DoubleSide, Line, EventDispatcher, MathUtils, Matrix4, Layers, InstancedMesh, InstancedBufferAttribute, TrianglesDrawMode, TriangleFanDrawMode, TriangleStripDrawMode, CircleGeometry, Box3, Line3, Plane, Triangle, Mesh, NearestFilter, NearestMipmapNearestFilter, NearestMipmapLinearFilter, LinearFilter, LinearMipmapNearestFilter, LinearMipmapLinearFilter, ClampToEdgeWrapping, MirroredRepeatWrapping, PropertyBinding, InterpolateLinear, Source, LinearEncoding, RGBAFormat, InterpolateDiscrete, Scene, sRGBEncoding, Loader, LoaderUtils, FileLoader, SpotLight, PointLight, DirectionalLight, Object3D, TextureLoader, ImageBitmapLoader, InterleavedBuffer, InterleavedBufferAttribute, PointsMaterial, Material, SkinnedMesh, LineLoop, Points, Group, PerspectiveCamera, OrthographicCamera, Skeleton, AnimationClip, Bone, FrontSide, Texture, VectorKeyframeTrack, NumberKeyframeTrack, QuaternionKeyframeTrack, Sphere, Interpolant, LinearSRGBColorSpace, Vector4, Curve, Euler, EquirectangularReflectionMapping, AmbientLight, Uint16BufferAttribute, DataTextureLoader, HalfFloatType, FloatType, DataUtils, RedFormat, NoColorSpace, ShaderChunk, AnimationMixer, AdditiveBlending, CustomBlending, ZeroFactor, SrcAlphaFactor, SkeletonHelper, AnimationUtils, Raycaster } from 'three';
+import { Quaternion, Matrix3, Vector3, LineSegments, BufferGeometry, BufferAttribute, Float32BufferAttribute, LineBasicMaterial, SphereGeometry, CylinderGeometry, BoxGeometry, PlaneGeometry, CanvasTexture, RepeatWrapping, SRGBColorSpace, Color, Vector2, MeshStandardMaterial, MeshToonMaterial, MeshBasicMaterial, MeshLambertMaterial, MeshPhongMaterial, MeshPhysicalMaterial, DoubleSide, Line, EventDispatcher, MathUtils, Matrix4, Layers, InstancedMesh, InstancedBufferAttribute, TrianglesDrawMode, TriangleFanDrawMode, TriangleStripDrawMode, CircleGeometry, Box3, Line3, Plane, Triangle, Object3D, Mesh, NearestFilter, NearestMipmapNearestFilter, NearestMipmapLinearFilter, LinearFilter, LinearMipmapNearestFilter, LinearMipmapLinearFilter, ClampToEdgeWrapping, MirroredRepeatWrapping, PropertyBinding, InterpolateLinear, Source, LinearEncoding, RGBAFormat, InterpolateDiscrete, Scene, sRGBEncoding, Loader, LoaderUtils, FileLoader, SpotLight, PointLight, DirectionalLight, TextureLoader, ImageBitmapLoader, InterleavedBuffer, InterleavedBufferAttribute, PointsMaterial, Material, SkinnedMesh, LineLoop, Points, Group, PerspectiveCamera, OrthographicCamera, Skeleton, AnimationClip, Bone, FrontSide, Texture, VectorKeyframeTrack, NumberKeyframeTrack, QuaternionKeyframeTrack, Sphere, Interpolant, LinearSRGBColorSpace, Vector4, Curve, Euler, EquirectangularReflectionMapping, AmbientLight, Uint16BufferAttribute, DataTextureLoader, HalfFloatType, FloatType, DataUtils, RedFormat, NoColorSpace, ShaderChunk, AnimationMixer, AdditiveBlending, CustomBlending, ZeroFactor, SrcAlphaFactor, SkeletonHelper, AnimationUtils, Raycaster } from 'three';
 
 const PI = Math.PI;
 const torad$1 = PI / 180;
@@ -1274,7 +1274,7 @@ const Mat = {
 
 
 				case 'bones':  Mat.create({ name:'bones', color:0xCCAA33,  wireframe:true }); break
-				case 'bones2':  Mat.create({ name:'bones2', color:0x7777ff }); break
+				case 'bones2':  Mat.create({ name:'bones2', type:'basic', color:0xFF8800, transparent:true, opacity:0.5, depthTest:true, depthWrite:false, alphaToCoverage:true }); break
 
 				
 				case 'button':  Mat.create({ name:'button', color:0xFF404B, ...matExtra }); break
@@ -5511,6 +5511,194 @@ class ConvexGeometry extends BufferGeometry {
 
 }
 
+class CapsuleHelper extends Object3D {
+
+	constructor( r, h, useDir, material, c1 = [0,1,0], c2 = [0,0.5,0], full = false ) {
+
+		super();
+
+		//this.light = light;
+
+		//this.matrix = light.matrixWorld;
+		this.matrixAutoUpdate = false;
+
+		this.type = 'CapsuleHelper';
+
+		const geometry = new BufferGeometry();
+
+		let py = (h*0.5)-r;
+		let side = 32;
+		let dir = r*0.2;
+
+		let colors = [];
+
+		const positions = [
+		    r, py, 0 ,   r, -py, 0,
+		    -r, py, 0 ,   -r, -py, 0,
+		    0, py, r-dir ,   0, py, r+dir,
+		];
+
+		colors.push(
+			...c1,...c2,
+			...c1,...c2,
+			...c2,...c2
+		);
+
+		if(full){ 
+			positions.push(
+				0, py, r, 0, -py, r,
+				0, py, -r, 0, -py, -r 
+			);
+			colors.push(
+				...c1,...c2,
+				...c1,...c2,
+			);
+		}
+
+
+		// circle top / bottom
+
+		for ( let i = 0, j = 1; i < side; i ++, j ++ ) {
+
+			const p1 = ( i / side ) * Math.PI * 2;
+			const p2 = ( j / side ) * Math.PI * 2;
+
+			positions.push(
+				r*Math.cos( p1 ), py, r*Math.sin( p1 ),
+				r*Math.cos( p2 ), py, r*Math.sin( p2 ),
+
+				r*Math.cos( p1 ), -py, r*Math.sin( p1 ),
+				r*Math.cos( p2 ), -py, r*Math.sin( p2 ),
+			);
+
+			colors.push(
+				...c1,...c1,
+				...c2,...c2,
+			);
+
+		}
+
+		// circle start / end
+
+		for ( let i = 0, j = 1; i < side; i ++, j ++ ) {
+
+			const p1 = ( i / side ) * Math.PI * 2;
+			const p2 = ( j / side ) * Math.PI * 2;
+
+			let s = j <= side*0.5 ? 1 : -1; 
+
+			positions.push(
+				r*Math.cos( p1 ), py*s + r*Math.sin( p1 ),0,
+				r*Math.cos( p2 ), py*s + r*Math.sin( p2 ),0,
+			);
+
+			if(s===1) colors.push( ...c1,...c1 );
+			else colors.push( ...c2,...c2 );
+
+			if(full){
+				positions.push(
+					0, py*s + r*Math.sin( p1 ),r*Math.cos( p1 ),
+					0, py*s + r*Math.sin( p2 ),r*Math.cos( p2 ),
+				);
+				if(s===1) colors.push( ...c1,...c1 );
+			    else colors.push( ...c2,...c2 );
+			}
+
+		}
+
+		geometry.setAttribute( 'position', new Float32BufferAttribute( positions, 3 ) );
+		geometry.setAttribute( 'color', new Float32BufferAttribute( colors, 3 ) );
+
+		//const material = new LineBasicMaterial( { color:0x00ff00, fog: false, toneMapped: false } );
+
+		this.cone = new LineSegments( geometry, material );
+		this.cone.raycast = function(){return};
+		this.add( this.cone );
+
+		if(!useDir) return
+
+		const geometry2 = new BufferGeometry();
+
+		const positions2 = [
+		    dir*0.5, -py, r-dir ,   dir*0.5, -py, r+dir,
+		    -dir*0.5, -py, r-dir ,   -dir*0.5, -py, r+dir,
+		    dir*0.5, -py, r-dir,  -dir*0.5, -py, r-dir,
+
+		    -dir*0.5, -py, r+dir , -dir, -py, r+dir ,
+		    dir*0.5, -py, r+dir , dir, -py, r+dir ,
+
+		    -dir, -py, r+dir , 0, -py, r+dir*2 ,
+		    dir, -py, r+dir , 0, -py, r+dir*2 ,
+		];
+
+		colors = [];
+		let cc = positions2.length/3;
+		while(cc--){
+			colors.push(1,0,0);
+		}
+
+		geometry2.setAttribute( 'position', new Float32BufferAttribute( positions2, 3 ) );
+		geometry2.setAttribute( 'color', new Float32BufferAttribute( colors, 3 ) );
+
+		//const material2 = new LineBasicMaterial( { color:0xFF0000, fog: false, toneMapped: false } );
+
+		this.direction = new LineSegments( geometry2, material );
+		this.direction.raycast = function(){return};
+		this.add( this.direction );
+
+	}
+
+	setDirection(r) {
+
+		if(!this.direction) return
+		this.direction.rotation.y = r;
+
+	}
+
+	dispose() {
+
+		this.cone.geometry.dispose();
+		//this.cone.material.dispose();
+
+		if(this.direction){
+			this.direction.geometry.dispose();
+			//this.direction.material.dispose();
+		}
+
+	}
+
+	raycast(){
+		return 
+	}
+
+	update() {
+
+		/*this.light.updateWorldMatrix( true, false );
+		this.light.target.updateWorldMatrix( true, false );
+
+		const coneLength = this.light.distance ? this.light.distance : 1000;
+		const coneWidth = coneLength * Math.tan( this.light.angle );
+
+		this.cone.scale.set( coneWidth, coneWidth, coneLength );
+
+		_vector.setFromMatrixPosition( this.light.target.matrixWorld );
+
+		this.cone.lookAt( _vector );*/
+
+		/*if ( this.color !== undefined ) {
+
+			this.cone.material.color.set( this.color );
+
+		} else {
+
+			this.cone.material.color.copy( this.light.color );
+
+		}*/
+
+	}
+
+}
+
 // THREE BODY
 
 class Body extends Item {
@@ -5751,6 +5939,8 @@ class Body extends Item {
 
 			    g = Geo.get( gName );
 			    if(!g){
+			    	//if( o.helper ) g = new CapsuleHelperGeometry( s[ 0 ], s[ 1 ] )
+					//else 
 					g = new Capsule( s[ 0 ], s[ 1 ], seg );
 					g.name = gName;
 				} else {
@@ -5837,11 +6027,20 @@ class Body extends Item {
     		return g
     	}
 
-    	if( o.meshRemplace && o.debug ) material = Mat.get( 'debug3' );
+    	if( o.meshRemplace && o.debug ) material = Mat.get( 'debug' );
+    	//if( o.helper ) material = Mat.get( 'hide' )
 
     	//if( o.instance ) return
 
 		let m = new Mesh( g, material );
+
+		//if( o.helper ) m.add( new LineSegments( new CapsuleHelperGeometry( s[ 0 ], s[ 1 ] ),  Mat.get( 'line' ) ))
+		if( o.helper ) {
+
+			m.add( new CapsuleHelper( s[ 0 ], s[ 1 ]+(s[ 0 ]*2), false, Mat.get( 'line' ), [0.3,0.1,0.0], [0.8,0.2,0.0], true ));
+			//m.material.visible = false
+
+		}
 
 		if( o.localRot ) o.localQuat = MathTool.quatFromEuler(o.localRot); //math.toQuatArray( o.localRot )
 		if( o.localPos ) m.position.fromArray( o.localPos );
@@ -14012,7 +14211,6 @@ class GLTFParser {
 				if ( node.updateMatrix ) {
 
 					node.updateMatrix();
-					node.matrixAutoUpdate = true;
 
 				}
 
@@ -14361,7 +14559,6 @@ class GLTFParser {
 		const tracks = [];
 
 		const targetName = node.name ? node.name : node.uuid;
-
 		const targetNames = [];
 
 		if ( PATH_PROPERTIES[ target.path ] === PATH_PROPERTIES.weights ) {
@@ -14398,7 +14595,12 @@ class GLTFParser {
 
 			case PATH_PROPERTIES.position:
 			case PATH_PROPERTIES.scale:
+
+				TypedKeyframeTrack = VectorKeyframeTrack;
+				break;
+
 			default:
+
 				switch ( outputAccessor.itemSize ) {
 
 					case 1:
@@ -14406,6 +14608,7 @@ class GLTFParser {
 						break;
 					case 2:
 					case 3:
+					default:
 						TypedKeyframeTrack = VectorKeyframeTrack;
 						break;
 
@@ -14416,6 +14619,7 @@ class GLTFParser {
 		}
 
 		const interpolation = sampler.interpolation !== undefined ? INTERPOLATION[ sampler.interpolation ] : InterpolateLinear;
+
 
 		const outputArray = this._getArrayFromAccessor( outputAccessor );
 
@@ -14429,7 +14633,7 @@ class GLTFParser {
 			);
 
 			// Override interpolation with custom factory method.
-			if ( interpolation === 'CUBICSPLINE' ) {
+			if ( sampler.interpolation === 'CUBICSPLINE' ) {
 
 				this._createCubicSplineTrackInterpolant( track );
 
@@ -23067,13 +23271,17 @@ const uniforms = {
     
 	//shadowAlpha: { value: 1.0 }
 
-    lightSizeUV: { value: 1.3 },
+    lightSizeUV: { value: 3 },
     nearPlane: { value: 9.5 },
     rings:{ value: 11 },
     nSample:{ value: 17 },
     
     noiseIntensity:{ value: 1 },
-    softness:{ value: 3 },
+    softness:{ value: 1.6 },
+
+    noiseMap:{ value: null },
+    useNoiseMap:{ value: 0 },
+
     
 };
 
@@ -23356,6 +23564,7 @@ class Shader {
             //gl_FragColor.rgb *= ((1.0-shadowValue) * (1.0-shadow)) + shadowColor;
 
             //gl_FragColor.rgb = mix( gl_FragColor.rgb, gl_FragColor.rgb * invColor, (1.0-shadowValue) * shadow );
+
             gl_FragColor.rgb = mix( gl_FragColor.rgb, invColor, (1.0-shadowValue) * shadow );
 
             //gl_FragColor.rgb = invColor;
@@ -23661,23 +23870,22 @@ uniform float softness;
 //#define LIGHT_SIZE_UV (LIGHT_WORLD_SIZE / LIGHT_FRUSTUM_WIDTH)
 //#define NEAR_PLANE 9.5
 
-#define NUM_SAMPLES 17
+#define SAMPLE 16
+#define RINGS 4
 
 vec2 poissonDisk[32];
 
 void initPoissonSamples( const in vec2 randomSeed ) {
 
-    int numSample = nSample;
-
-    float ANGLE_STEP = PI2 * rings / float( numSample );
-    float INV_NUM_SAMPLES = 1.0 / float( numSample );
+    float ANGLE_STEP = PI2 * float(RINGS) / float( SAMPLE );
+    float INV_NUM_SAMPLES = 1.0 / float( SAMPLE );
 
     // jsfiddle that shows sample pattern: https://jsfiddle.net/a16ff1p7/
-    float angle = rand( randomSeed ) * PI2 * noiseIntensity;
+    float angle = rand( randomSeed ) * PI2;
     float radius = INV_NUM_SAMPLES;
     float radiusStep = radius;
 
-    for( int i = 0; i < numSample; i ++ ) {
+    for( int i = 0; i < SAMPLE; i ++ ) {
         poissonDisk[i] = vec2( cos( angle ), sin( angle ) ) * pow( radius, 0.75 );
         radius += radiusStep;
         angle += ANGLE_STEP;
@@ -23695,10 +23903,9 @@ float findBlocker( sampler2D shadowMap, const in vec2 uv, const in float zReceiv
     float searchRadius = ls * ( zReceiver - nearPlane ) / zReceiver;
     float blockerDepthSum = 0.0;
     int numBlockers = 0;
-    int numSample = nSample;
     float shadowMapDepth = 0.0;
 
-    for( int i = 0; i < numSample; i++ ) {
+    for( int i = 0; i < SAMPLE; i++ ) {
         shadowMapDepth = unpackRGBAToDepth(texture2D(shadowMap, uv + poissonDisk[i] * searchRadius));
         if ( shadowMapDepth < zReceiver ) {
             blockerDepthSum += shadowMapDepth;
@@ -23714,36 +23921,38 @@ float findBlocker( sampler2D shadowMap, const in vec2 uv, const in float zReceiv
 
 float PCF_Filter(sampler2D shadowMap, vec2 uv, float zReceiver, float filterRadius ) {
     
-    /*int numSample = nSample;
+    /*
+    int numSample = SAMPLE;
     float sum = 0.0;
     float depth;
     #pragma unroll_loop_start
-    for( int i = 0; i < 17; i ++ ) {
+    for( int i = 0; i < SAMPLE; i ++ ) {
         depth = unpackRGBAToDepth( texture2D( shadowMap, uv + poissonDisk[ i ] * filterRadius ) );
         if( zReceiver <= depth ) sum += 1.0;
     }
     #pragma unroll_loop_end
     #pragma unroll_loop_start
-    for( int i = 0; i < 17; i ++ ) {
+    for( int i = 0; i < SAMPLE; i ++ ) {
         depth = unpackRGBAToDepth( texture2D( shadowMap, uv + -poissonDisk[ i ].yx * filterRadius ) );
         if( zReceiver <= depth ) sum += 1.0;
     }
     #pragma unroll_loop_end
-    return sum / ( 2.0 * float( 17 ) );*/
+    return sum / ( 2.0 * float( nSample ) );
+    */
 
-    int numSample = nSample;
+    
     float sum = 0.0;
     float top = 0.0;
     float low = 0.0;
     #pragma unroll_loop_start
-    for( int i = 0; i < 17; i ++ ) {
+    for( int i = 0; i < 16; i ++ ) {
         top = unpackRGBAToDepth( texture2D( shadowMap, uv + poissonDisk[ i ] * filterRadius ) );
         low = unpackRGBAToDepth( texture2D( shadowMap, uv + -poissonDisk[ i ].yx * filterRadius ) );
         if( zReceiver <= top ) sum += 1.0;
         if( zReceiver <= low ) sum += 1.0;
     }
     #pragma unroll_loop_end
-    return sum / ( 2.0 * float( 17 ) );
+    return sum / ( 2.0 * float( SAMPLE ) );
 }
 
 float PCSS ( sampler2D shadowMap, vec4 coords ) {
@@ -23767,11 +23976,14 @@ float PCSS ( sampler2D shadowMap, vec4 coords ) {
 
     // STEP 3: filtering
     //return avgBlockerDepth;
-    return PCF_Filter( shadowMap, uv, zReceiver, filterRadius );
+    return PCF_Filter( shadowMap, uv, zReceiver, filterRadius * softness );
 }
 `;
 
 const randomUV = `
+
+uniform sampler2D noiseMap;
+uniform float useNoiseMap;
 
 float directNoise(vec2 p){
     vec2 ip = floor(p);
@@ -23788,9 +24000,10 @@ float sum( vec4 v ) { return v.x+v.y+v.z; }
 
 vec4 textureNoTile( sampler2D mapper, in vec2 uv ){
 
-    // sample variation pattern    
-    //float k = texture2D( noise, 0.005*uv ).x; // cheap (cache friendly) lookup    
-    float k = directNoise( uv );
+    // sample variation pattern
+    float k = 0.0;
+    if( useNoiseMap == 1.0 ) k = texture2D( noiseMap, 0.005*uv ).x;
+    else k = directNoise( uv );
     
     // compute index    
     float index = k*8.0;
@@ -24228,6 +24441,7 @@ const Pool = {
         if( o.encoding ) t.colorSpace = SRGBColorSpace;
         if( o.srgb ) t.colorSpace = SRGBColorSpace;
         t.flipY = ( o.flipY || o.flip ) !== undefined ? o.flipY : false;
+        //t.anisotropy = o.anisotropy || 16   
         if( o.anisotropy !== undefined ) t.anisotropy = o.anisotropy;
         if( o.generateMipmaps !== undefined ) t.generateMipmaps = o.generateMipmaps;
         if( o.repeat ){
@@ -24972,24 +25186,28 @@ const setting$2 = {
     normal:0.25,
     hair:0xa43412,
     bow:0x100402,
-    sheen:2,//2.25,
+    sheen:1,//2.25,
     sheenRoughness:1.0,//1.0,
     metalness:0.6,
     roughness:0.4,
-    wireframe:false,
+    
     vertexColors:false,
     alphaTest:0.3,
     h_metal:0.4,
     h_rough:0.6,
     clearcoat:1.0,
+
+    wireframe:false,
+    transparent:false,
+    opacity:1.0,
     
 };
 
 const Human = {
 
 	isBreath:false,
-	isEyeMove:true,
-	haveMorph:true,
+	isEyeMove:false,
+	haveMorph:false,
     
 
     skeletonRef:'body',
@@ -25027,7 +25245,8 @@ const Human = {
             sheenRoughness:setting$2.sheenRoughness,
             sheenColor:0xffffff,
             sheenColorMap:'avatar_u',
-            iridescence:0.5,
+            iridescence:1.0,
+            wireframe:setting$2.wireframe,
 
             /*aoMap:'avatar_ao',
             aoMapIntensity:1,*/
@@ -25108,6 +25327,7 @@ const Human = {
             alphaMap:'eyelash_a',
             alphaTest:setting$2.alphaTest,
             transparent:true,
+            opacity:1,
             side: DoubleSide,
             alphaToCoverage:true,
             polygonOffset: true,                
@@ -25133,17 +25353,42 @@ const Human = {
 
     },
 
-    changeMaterial:( sx ) => {
+    changeMaterial:( sx = {}, def = false ) => {
 
-        if( !Pool.getMaterial( 'skin' ) ) return
+        if( !Pool.getMaterial( Human.materialRef ) ) return
 
         const s = Human.setting;
+        const defMat = Human.materials;
+        
+        let change = false;
 
-        if(sx){
-            for(let v in sx){
-                if(s[v]!== undefined) s[v] = sx[v];
-            }
+        for(let v in sx){
+            if(s[v]!== undefined){ 
+                if(s[v] !== sx[v]){ 
+                    s[v] = sx[v];
+                    change = true;
+                }}
         }
+
+        let m;
+
+        if(change){
+
+            for(let key in defMat){
+                m = Pool.getMaterial( key );
+                for(let v in sx){
+                    if( m[v] !== undefined ){ 
+
+                        if( def && defMat[key][v] ) m[v] = defMat[key][v];
+                        else m[v] = sx[v];
+
+                    }
+                }
+            }
+
+        }
+
+    
         
         /*
          m = Pool.getMaterial( 'skin' );
@@ -25238,15 +25483,14 @@ const Human = {
                     break;
                     case 'hair': 
                     node.material = Pool.getMaterial( 'hair' ) || def;
-                    node.receiveShadow = true;
+                    node.receiveShadow = false;
                     node.castShadow = true;
                     node.matrixWorldAutoUpdate = false;
                     break;
                     case 'hair_man': 
                     node.material = Pool.getMaterial( 'hair_man' ) || def;
-                    node.receiveShadow = true;
+                    node.receiveShadow = false;
                     node.castShadow = true;
-
                     node.matrixWorldAutoUpdate = false;
                     break;
                 }
@@ -25265,7 +25509,7 @@ const Human = {
 const setting$1 = {
 
     metalness:0.6,
-    roughness:0.4,
+    roughness:0.1,
     clearcoat:1.0,
     wireframe:false,
     
@@ -25330,13 +25574,47 @@ const Eva = {
         }
     },
 
-    changeMaterial:( Setting ) => {
+    changeMaterial:( sx, def = false ) => {
+
+        if( !Pool.getMaterial( Eva.materialRef ) ) return
+
+        //const s = Eva.setting;
+        const defMat = Eva.materials;
+        
+        /*let change = false;
+
+        for(let v in sx){
+            if(s[v]!== undefined){ 
+                if(s[v] !== sx[v]){ 
+                    s[v] = sx[v]
+                    change = true;
+                }}
+        }*/
+
+        let m;
+
+        //if(change){
+
+            for(let key in defMat){
+                m = Pool.getMaterial( key );
+                for(let v in sx){
+                    if( m[v] !== undefined ){ 
+                        if( def && defMat[key][v] ) m[v] = defMat[key][v];
+                        else m[v] = sx[v];
+                    }
+                }
+                m.needsUpdate = true;
+            }
+
+        //}
+
+        /*
 
         const s = Eva.setting;
 
         if(Setting){
             for(let o in Setting){
-                if( s[o] !== undefined) s[o] = Setting[o];
+                if( s[o] !== undefined) s[o] = Setting[o]
             }
         }
         
@@ -25354,7 +25632,7 @@ const Eva = {
         m.roughness = s.roughness;
         m.metalness = s.metalness;
         m.wireframe = s.wireframe;
-        m.clearcoat = s.clearcoat;
+        m.clearcoat = s.clearcoat;*/
 
     },
 
@@ -25369,14 +25647,15 @@ const Eva = {
             	node.material = def;
                 node.receiveShadow = true;
                 node.castShadow = true;
+                //node.matrixWorldAutoUpdate = false
 
                 switch( node.name ){
 
-                    case 'eva_2_head':case 'eva_2_mach': 
+                    case 'eva_2_head': case 'eva_2_mach': 
                     node.visible = model === 'eva02' ? true : false;
                     break;
 
-                    case 'eva_L_COLLAR':case 'eva_R_COLLAR': 
+                    case 'eva_L_COLLAR': case 'eva_R_COLLAR': 
                     node.visible = model === 'eva00' ? false : true;
                     break;
 
@@ -25456,13 +25735,13 @@ const Lee = {
         },
     },
 
-    changeMaterial:( Setting ) => {
+    /*changeMaterial:( Setting ) => {
 
         const s = Lee.setting;
 
         if(Setting){
             for(let o in Setting){
-                if( s[o] !== undefined) s[o] = Setting[o];
+                if( s[o] !== undefined) s[o] = Setting[o]
             }
         }
         
@@ -25470,6 +25749,26 @@ const Lee = {
         m.roughness = s.roughness;
         m.metalness = s.metalness;
         m.wireframe = s.wireframe;
+
+    },*/
+
+    changeMaterial:( sx, def = false ) => {
+
+        if( !Pool.getMaterial( Lee.materialRef ) ) return
+
+        const defMat = Lee.materials;
+        let m;
+
+        for(let key in defMat){
+            m = Pool.getMaterial( key );
+            for(let v in sx){
+                if( m[v] !== undefined ){ 
+                    if( def && defMat[key][v] ) m[v] = defMat[key][v];
+                    else m[v] = sx[v];
+                }
+            }
+            //m.needsUpdate = true
+        }
 
     },
 
@@ -25527,6 +25826,8 @@ class Avatar extends Group {
 
         super();
 
+        this.fixWeight = o.fixWeight !== undefined ? o.fixWeight : true;
+
         this.rootPath = o.path || './';
         this.lzmaPath = this.rootPath + 'src/libs/lzma_worker.js';
         Pool.dracoPath =  this.rootPath + 'src/libs/draco/';
@@ -25540,8 +25841,6 @@ class Avatar extends Group {
 
         this.model = o.type || 'man';
         this.startAnimation = o.anim || 'idle';
-
-        
 
         this.ref = null;
 
@@ -25597,28 +25896,7 @@ class Avatar extends Group {
         this.tmpMtx = new Matrix4();
         this.tmpQ = new Quaternion();
 
-        this.setting = {
-
-            mixRatio:0.,
-            threshold:0.1,
-            normal:0.2,
-            hair:0xa43412,
-
-            bow:0x100402,
-
-            sheen:2.25,
-            sheenRoughness:1.0,
-
-            metalness:1,
-            roughness:0.5,
-            wireframe:false,
-            vertexColors:false,
-
-            alphaTest:0.3,
-            h_metal:0.4,
-            h_rough:0.6,
-            
-        };
+        this.setting = {};
 
         //this.initMaterial();
 
@@ -25656,7 +25934,6 @@ class Avatar extends Group {
     loadModels(){
 
         const model = this.ref.forceModel ? this.ref.forceModel : this.model;
-        
         const asset = [model+'.glb'];
         const path = this.rootPath + this.ref.modelPath;
         if( this.ref.haveMorph && this.haveMorph ) asset.push( model+'_morph.glb' );
@@ -25707,8 +25984,8 @@ class Avatar extends Group {
 
     look( delta ){
 
-        if(!this.isEyeMove) return
-        if(this.isPause) return
+        if(!this.isEyeMove) return;
+        if(this.isPause) return;
 
         const v = window.mouse || {x:0, y:0};
 
@@ -25739,7 +26016,7 @@ class Avatar extends Group {
         if( !this.isBreath ) return;
         if( !this.skeleton.setScalling ) return;
 
-        let a = this.breath*0.01;
+        let a = this.breath * 0.01;
 
         if(this.breathSide > 0){
             this.skeleton.setScalling( this.bones.chest, this.lerp (1,1.02, a), this.lerp (1,1.04, a), 1 );
@@ -25813,14 +26090,17 @@ class Avatar extends Group {
     }
 
 
-    setMaterial(s){
+    setMaterial(s, b){
 
-        this.ref.changeMaterial(s);
+        //console.log('material change !!')
+        this.ref.changeMaterial(s, b);
 
     }
 
     getMaterial( name ){
+
         return Pool.getMaterial( name )
+        
     }
 
     init(){
@@ -25836,17 +26116,21 @@ class Avatar extends Group {
 
         // get data
         this.root.traverse( function ( node ) {
+            
+            node.raycast = function(){ return };
+
             if ( node.isMesh ){
 
                 if( node.name === this.ref.skeletonRef ){
                     node.matrixAutoUpdate = false;
+
                     this.skeleton = node.skeleton;
                     if( this.skeleton.resetScalling ) this.skeleton.resetScalling();
 
                     //console.log( node.geometry.boundingSphere, node.geometry.boundingBox, node.frustumCulled )
                     //node.geometry.boundingSphere.radius = 0.1;
                 }
-                node.raycast = function(){ return };
+                
                 this.mesh[node.name] = node;
             }
             if ( node.isBone ){
@@ -25996,9 +26280,7 @@ class Avatar extends Group {
     start(){
 
 
-
-        //console.log('start', this.model)
-        if( this.done ) return
+        if( this.done ) return;
 
         //this.updateMatrix()
 
@@ -26017,10 +26299,9 @@ class Avatar extends Group {
         }
 
 
-        setTimeout( this.callback, 10 ); 
-
-
+        setTimeout( this.callback, 10 );
         //this.callback()
+
     }
 
     addHelper(){
@@ -26031,7 +26312,7 @@ class Avatar extends Group {
             this.helper = null;
         } else {
             this.helper = new SkeletonHelper( this.root );
-            this.helper.raycast = function (){};
+            this.helper.raycast = function (){ return };
             this.helper.matrix = this.root.matrix;
             this.add( this.helper );
         }
@@ -26049,7 +26330,7 @@ class Avatar extends Group {
             this.add( this.exoskel );
 
         }
-        return this.exoskel
+        return this.exoskel;
     }
 
     attachToBone( m, b ){
@@ -26242,7 +26523,7 @@ class Avatar extends Group {
             });
         }
 
-        return anim
+        return anim;
 
     }
 
@@ -26296,7 +26577,7 @@ class Avatar extends Group {
 
     autoToes(){
 
-        if(!this.fixToe) return
+        if(!this.fixToe) return;
         let r = this.getRot('rFoot');
         let l = this.getRot('lFoot');
         let v = this.getWorldPos('hip');
@@ -26310,7 +26591,7 @@ class Avatar extends Group {
 
     resetToes(){
 
-        if(!this.fixToe) return
+        if(!this.fixToe) return;
         this.fixToe = false;
         this.setRot('rToes', 0,0,0 );
         this.setRot('lToes', 0,0,0 );
@@ -26613,18 +26894,25 @@ class Avatar extends Group {
                 //this.current.setEffectiveTimeScale( 1 )
                 //this.current.setEffectiveWeight( 1 )
 
-
-
                 //}
 
+                if(this.fixWeight){
+
+                    this.current.weight = 1.0;
+                    this.current.stopFading();
+                    this.old.stopFading();
+                    this.old._scheduleFading( fade, this.old.getEffectiveWeight(), 0 );
+                    this.current._scheduleFading( fade, this.current.getEffectiveWeight(), 1 );
+
+                } else {
+
+                    this.executeCrossFade( this.old, this.current, fade );
+
+                    //this.current.crossFadeFrom( this.old, fade, true );
+
+                }
+
                 
-                //this.current.crossFadeFrom( this.old, fade, true );
-                this.current.weight = 1.0;
-                //this.current._effectiveWeight = 1.0
-                this.current.stopFading();
-                this.old.stopFading();
-                this.old._scheduleFading( fade, this.old.getEffectiveWeight(), 0 );
-                this.current._scheduleFading( fade, this.current.getEffectiveWeight(), 1 );
 
                 //this.current.play()
 
@@ -26740,6 +27028,7 @@ class Avatar extends Group {
         V.set(0,0,0);
         n.localToWorld(V);
         return { x:V.x, y:V.y, z:V.z };
+
     }
 
 
@@ -26802,161 +27091,6 @@ class Avatar extends Group {
         g.setAttribute( 'uv2', g.attributes.uv );
 
     }*/
-
-}
-
-class CapsuleHelper extends Object3D {
-
-	constructor( r, h, useDir, material ) {
-
-		super();
-
-		//this.light = light;
-
-		//this.matrix = light.matrixWorld;
-		this.matrixAutoUpdate = false;
-
-		//this.color = color;
-
-		this.type = 'SpotLightHelper';
-
-		const geometry = new BufferGeometry();
-
-		let py = (h*0.5)-r;
-		let side = 32;
-		let dir = r*0.2;
-
-		const positions = [
-		    r, py, 0 ,   r, -py, 0,
-		    -r, py, 0 ,   -r, -py, 0,
-		    0, py, r-dir ,   0, py, r+dir,
-		];
-
-		for ( let i = 0, j = 1; i < side; i ++, j ++ ) {
-
-			const p1 = ( i / side ) * Math.PI * 2;
-			const p2 = ( j / side ) * Math.PI * 2;
-
-			positions.push(
-				r*Math.cos( p1 ), py, r*Math.sin( p1 ),
-				r*Math.cos( p2 ), py, r*Math.sin( p2 ),
-
-				r*Math.cos( p1 ), -py, r*Math.sin( p1 ),
-				r*Math.cos( p2 ), -py, r*Math.sin( p2 ),
-			);
-
-		}
-
-		for ( let i = 0, j = 1; i < side; i ++, j ++ ) {
-
-			const p1 = ( i / side ) * Math.PI * 2;
-			const p2 = ( j / side ) * Math.PI * 2;
-
-			let s = j <= side*0.5 ? 1 : -1; 
-
-			positions.push(
-				r*Math.cos( p1 ), py*s + r*Math.sin( p1 ),0,
-				r*Math.cos( p2 ), py*s + r*Math.sin( p2 ),0,
-			);
-
-		}
-
-		let colors = [];
-		let cc = positions.length/3;
-		while(cc--){
-			colors.push(0,1,0);
-		}
-
-		geometry.setAttribute( 'position', new Float32BufferAttribute( positions, 3 ) );
-		geometry.setAttribute( 'color', new Float32BufferAttribute( colors, 3 ) );
-
-		//const material = new LineBasicMaterial( { color:0x00ff00, fog: false, toneMapped: false } );
-
-		this.cone = new LineSegments( geometry, material );
-		this.cone.raycast = function(){return};
-		this.add( this.cone );
-
-		if(!useDir) return
-
-		const geometry2 = new BufferGeometry();
-
-		const positions2 = [
-		    dir*0.5, -py, r-dir ,   dir*0.5, -py, r+dir,
-		    -dir*0.5, -py, r-dir ,   -dir*0.5, -py, r+dir,
-		    dir*0.5, -py, r-dir,  -dir*0.5, -py, r-dir,
-
-		    -dir*0.5, -py, r+dir , -dir, -py, r+dir ,
-		    dir*0.5, -py, r+dir , dir, -py, r+dir ,
-
-		    -dir, -py, r+dir , 0, -py, r+dir*2 ,
-		    dir, -py, r+dir , 0, -py, r+dir*2 ,
-		];
-
-		colors = [];
-		cc = positions2.length/3;
-		while(cc--){
-			colors.push(1,0,0);
-		}
-
-		geometry2.setAttribute( 'position', new Float32BufferAttribute( positions2, 3 ) );
-		geometry2.setAttribute( 'color', new Float32BufferAttribute( colors, 3 ) );
-
-		//const material2 = new LineBasicMaterial( { color:0xFF0000, fog: false, toneMapped: false } );
-
-		this.direction = new LineSegments( geometry2, material );
-		this.direction.raycast = function(){return};
-		this.add( this.direction );
-
-	}
-
-	setDirection(r) {
-
-		if(!this.direction) return
-		this.direction.rotation.y = r;
-
-	}
-
-	dispose() {
-
-		this.cone.geometry.dispose();
-		//this.cone.material.dispose();
-
-		if(this.direction){
-			this.direction.geometry.dispose();
-			//this.direction.material.dispose();
-		}
-
-	}
-
-	raycast(){
-		return 
-	}
-
-	update() {
-
-		/*this.light.updateWorldMatrix( true, false );
-		this.light.target.updateWorldMatrix( true, false );
-
-		const coneLength = this.light.distance ? this.light.distance : 1000;
-		const coneWidth = coneLength * Math.tan( this.light.angle );
-
-		this.cone.scale.set( coneWidth, coneWidth, coneLength );
-
-		_vector.setFromMatrixPosition( this.light.target.matrixWorld );
-
-		this.cone.lookAt( _vector );*/
-
-		/*if ( this.color !== undefined ) {
-
-			this.cone.material.color.set( this.color );
-
-		} else {
-
-			this.cone.material.color.copy( this.light.color );
-
-		}*/
-
-	}
 
 }
 
@@ -27168,9 +27302,9 @@ class SkeletonBody extends Object3D {
                     if( n==='rThumb2' && name==='rThumb3' ){ type = 'capsule'; size = [  0.02, dist ]; rot = [0,0,90]; }
 
 
-                    if( n==='rHand' && name==='rMid1' ){ type = 'capsule'; size = [  0.02, dist ]; rot = [0,0,90];translate = [-dist*0.6, 0, 0 ]; }
-                    if( n==='rMid1' && name==='rMid2' ){ type = 'capsule'; size = [  0.02, dist ]; rot = [0,0,90];translate = [-dist*0.6, 0, 0 ]; }
-                    if( n==='rMid2' && name==='rMid3' ){ type = 'capsule'; size = [  0.02, dist ]; rot = [0,0,90];translate = [-dist*0.6, 0, 0 ]; }
+                    if( n==='rHand' && name==='rMid1' ){ type = 'capsule'; size = [  0.02, dist ]; rot = [0,0,90]; translate = [-dist*0.6, 0, 0 ]; }
+                    if( n==='rMid1' && name==='rMid2' ){ type = 'capsule'; size = [  0.02, dist ]; rot = [0,0,90]; translate = [-dist*0.6, 0, 0 ]; }
+                    if( n==='rMid2' && name==='rMid3' ){ type = 'capsule'; size = [  0.02, dist ]; rot = [0,0,90]; translate = [-dist*0.6, 0, 0 ]; }
 
                 }
 
@@ -27222,6 +27356,7 @@ class SkeletonBody extends Object3D {
                         material:'bones2',
                         shadow:false,
                         neverSleep: true,
+                        helper: true,
 
                         //linked:link,
                         //iterations:[4,4],
@@ -27534,6 +27669,8 @@ class Hero extends Basic3D {
 
 		super();
 
+		this.fixWeight = o.fixWeight !== undefined ? o.fixWeight : true;
+
 		this.type = 'character';
 		this.name = o.name || 'hero';
 		o.name = this.name;
@@ -27686,7 +27823,9 @@ class Hero extends Basic3D {
     debugMode( v ){
 
     	if( this.skeletonBody ) this.skeletonBody.isVisible(v);
-    	if( this.model ) this.model.setMaterial( {wireframe: v});
+    	//if( this.model ) this.model.setMaterial( { wireframe: v, visible:!v })
+    	if( this.model ) this.model.setMaterial( { wireframe: v, transparent:v, opacity:v?0.25:1.0 }, !v );
+    	
     	this.showHelper( v );
         
 
@@ -27709,7 +27848,8 @@ class Hero extends Basic3D {
 			compact:true, 
 			material:!o.noMat, 
 			morph:o.morph || false, 
-			callback:this.callback 
+			callback:this.callback,
+			fixWeight: this.fixWeight,
 		});
 
 		this.add( this.model );
@@ -28755,7 +28895,7 @@ class Landscape extends Mesh {
         }
 
         //txt['noise'] = Pool.directTexture(this.folder + 'noise.png', { flip:false, repeat:[1,1], encoding:false , callback: this.mapcallback.bind(this)  });
-        //txt['noise'] = Pool.texture({ url:this.folder + 'noise.png', flip:false, repeat:[1,1], encoding:false , callback: this.mapcallback.bind(this)  });
+        txt['noise'] = Pool.texture({ url:this.folder + 'noise.png', flip:false, repeat:[1,1], encoding:false , callback: this.mapcallback.bind(this)  });
 
         this.txt = txt;
 
@@ -28799,6 +28939,8 @@ class Landscape extends Mesh {
                 uniforms['normalMap2'] = { value: txt[maps[2]+'_n'] };
 
                 //uniforms['noise'] = { value: txt['noise'] };
+                uniforms['noiseMap'] = { value: txt['noise'] };
+                uniforms['useNoiseMap'] = { value: 1 };
 
                 shader.uniforms = uniforms;
 
