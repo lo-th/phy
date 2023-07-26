@@ -30903,16 +30903,27 @@ class MouseTool {
 		} else {
 			let def = [-0.01, 0.01, 60, 1];
 			let defr = [-0.1, 0.1, 60, 1];
-			let notUseKinematic = root.engine === 'OIMO' || root.engine ==='RAPIER' || root.engine ==='HAVOK';
-			let jtype = root.engine === 'HAVOK' ? 'fixe' : 'd6';
+			let notUseKinematic = root.engine === 'OIMO' || root.engine ==='RAPIER'; //|| root.engine ==='HAVOK'
+			let jtype = 'd6';//root.engine === 'HAVOK' ? 'fixe' : 'd6'
+
+			let limite = [['x',...def], ['y',...def], ['z',...def], ['rx',...defr], ['ry',...defr], ['rz',...defr]];
+
+			if( root.engine === 'HAVOK' ) limite = [ ['x',...def], ['y',...def], ['z',...def] ];
 
 			root.motor.add([
-				{ name:'mouse', type:'null', pos:p, quat:quat, kinematic:notUseKinematic ? false : true },
+				{ 
+					name:'mouse', 
+					type:'null', 
+					pos:p, 
+					quat:quat, 
+					kinematic:notUseKinematic ? false : true,
+					//mass:10000000,
+					gravityFactor:0, 
+				},
 				{ 
 					name:'mouseJoint', type:'joint',
 					mode:jtype,//mode:'spherical', //lm:[-0.2, 0.2],
-					lm:[['x',...def], ['y',...def], ['z',...def], 
-					['rx',...defr], ['ry',...defr], ['rz',...defr]],
+					lm:limite,
 					autoDrive: true,
 					b1:'mouse',
 					b2:this.selected.name,  
@@ -30922,7 +30933,7 @@ class MouseTool {
 					//tolerance:[1, 10],
 					//noPreProcess:true,
 					//improveSlerp:true,
-					visible:false,
+					visible:true,
 					//noFix:true,
 				}
 			]);
@@ -30964,7 +30975,7 @@ class MouseTool {
 		if( this.moveDirect ){ 
 			root.motor.change({ name:this.selected.name, pos:pos, reset:true });
 		} else {
-			root.motor.change({ name:'mouse', pos:point.toArray() }, true );
+			root.motor.change({ name:'mouse', pos:point.toArray(), lockPos:true }, true );
 		}
 	}
 

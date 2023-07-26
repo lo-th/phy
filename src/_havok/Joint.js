@@ -187,7 +187,7 @@ export class Joint extends Item {
             case "dof": case "d6": case 'ragdoll': case 'universal':
 
             for(let t in CA){
-            	if(t!=='LINEAR_DISTANCE')havok.HP_Constraint_SetAxisMode(j, CA[t], LM.LOCKED)
+            	if(t!=='LINEAR_DISTANCE') havok.HP_Constraint_SetAxisMode(j, CA[t], LM.LOCKED)
             }
             break;
 		}
@@ -263,7 +263,8 @@ export class Joint extends Item {
 			if( o.lm ){ 
 				i = o.lm.length
 				while(i--){
-					this.setLimit( j, [o.lm[i][1], o.lm[i][2]], this.convert[ o.lm[i][0] ] )
+					//this.setLimit( j, [o.lm[i][1], o.lm[i][2]], this.convert[ o.lm[i][0] ] )
+					this.setLimit( j, o.lm[i], this.convert[ o.lm[i][0] ] )
 				}
 			}
 			if( o.motor ){ 
@@ -304,12 +305,15 @@ export class Joint extends Item {
 
 	setLimit( j, lm, axe ){
 
-		let r = this.angulars.indexOf(axe) !== -1 ? torad : 1
+		let r = this.angulars.indexOf( axe ) !== -1 ? torad : 1
 		const axis = this.ConstraintAxis[ axe ];
 		
 		havok.HP_Constraint_SetAxisMode( j, axis, this.LimitMode.LIMITED )
-		havok.HP_Constraint_SetAxisMinLimit( j, axis, lm[0]*r );
-		havok.HP_Constraint_SetAxisMaxLimit( j, axis, lm[1]*r );
+		havok.HP_Constraint_SetAxisMinLimit( j, axis, lm[1]*r );
+		havok.HP_Constraint_SetAxisMaxLimit( j, axis, lm[2]*r );
+
+		if(lm[3]) havok.HP_Constraint_SetAxisStiffness( j, axis, lm[3]*0.1 );//stiffness
+		if(lm[4]) havok.HP_Constraint_SetAxisDamping( j, axis, lm[4]*6 );//damping
 
 	}
 

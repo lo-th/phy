@@ -38,6 +38,11 @@ export class Body extends Item {
 				continue
 			}
 
+			if( b.lockPos ){
+				if( b.isKinematic ) havok.HP_Body_SetTargetQTransform( b, [ b.lockPos, b.lockQuat ] );
+				else havok.HP_Body_SetQTransform( b, [ b.lockPos, b.lockQuat ] )
+			}
+
 			lv = havok.HP_Body_GetLinearVelocity(b)[1];
 
 		    AR[ n ] = b.up ? 1 : this.arLength(lv) * 9.8;// speed km/h
@@ -244,7 +249,10 @@ export class Body extends Item {
 
 			case 'null':
 
-				havok.HP_Body_SetShape( b, havok.HP_Shape_CreateContainer()[1] )
+				//havok.HP_Body_SetShape( b, havok.HP_Shape_CreateContainer()[1] )
+				g = this.shape( { type:'sphere', size:[0.01] } );
+				havok.HP_Body_SetShape( b, g );
+				this.applyMass( b, g, o );
 
 			break;
 			
@@ -470,6 +478,15 @@ export class Body extends Item {
 			//this.multiplyScalar( o.linearImpulse, root.delta, 3 )
 			havok.HP_Body_ApplyImpulse( b, b.pos, o.linearImpulse );
 		}*/
+
+		if( o.lockPos ){
+
+			b.lockPos = o.pos;
+			b.lockQuat = o.quat;
+
+
+
+		}
 
 		if( o.reset ){ 
 			havok.HP_Body_SetLinearVelocity(b, [0,0,0])
