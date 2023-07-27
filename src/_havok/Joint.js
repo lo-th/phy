@@ -196,8 +196,8 @@ export class Joint extends Item {
 
 		let collisionEnabled = o.collision !== undefined ? o.collision : false;
 
-		havok.HP_Constraint_SetCollisionsEnabled(j, collisionEnabled);
-        havok.HP_Constraint_SetEnabled(j, true);
+		havok.HP_Constraint_SetCollisionsEnabled( j, collisionEnabled );
+        havok.HP_Constraint_SetEnabled( j, true );
 
 		//const j = new Joints[ mode + 'Joint' ](jc);
 		j.name = name;
@@ -235,19 +235,19 @@ export class Joint extends Item {
 		switch(j.mode ){
 
 			case 'hinge': case "revolute":
-			if( o.lm ) this.setLimit( j, o.lm, 'ANGULAR_X' )
+			if( o.lm ) this.setLimit( j, [ 'rx', ...o.lm ] )
 			if( o.motor ) this.setMotor( j, o.motor[1], o.motor[2], 'ANGULAR_X' )
 			if( o.friction !== undefined ) this.setFriction( j, o.friction, 'ANGULAR_X' )
 			//if( o.lm ) this.setLimit( j, o.lm, 'ANGULAR_Z' )
 			break;
 
 		    case "prismatic":
-			if( o.lm ) this.setLimit( j, o.lm, 'LINEAR_X' )
+			if( o.lm ) this.setLimit( j, [ 'x', ...o.lm ] )
 			break;
 
 		    case 'slider': case 'cylindrical':
-			if( o.lm ) this.setLimit( j, o.lm, 'LINEAR_X' )
-			if( o.lmr ) this.setLimit( j, o.lmr, 'ANGULAR_X' )
+			if( o.lm ) this.setLimit( j, [ 'x', ...o.lm ]  )
+			if( o.lmr ) this.setLimit( j, [ 'rx', ...o.lmr ] )
 			break;
 
 		    case 'dof': case 'd6': case 'ragdoll': case 'universal':
@@ -264,7 +264,7 @@ export class Joint extends Item {
 				i = o.lm.length
 				while(i--){
 					//this.setLimit( j, [o.lm[i][1], o.lm[i][2]], this.convert[ o.lm[i][0] ] )
-					this.setLimit( j, o.lm[i], this.convert[ o.lm[i][0] ] )
+					this.setLimit( j, o.lm[i] )
 				}
 			}
 			if( o.motor ){ 
@@ -273,7 +273,7 @@ export class Joint extends Item {
 					this.setMotor( j, o.motor[i][1], o.motor[i][2], this.convert[ o.motor[i][0] ] )
 				}
 			}
-			if( o.friction  ){ 
+			if( o.friction !== undefined ){ 
 				if(! o.friction instanceof Array){
 					let f = o.friction
 					o.friction = [['x', f], ['y', f], ['z', f], ['rx', f], ['ry', f], ['rz', f]]
@@ -303,9 +303,12 @@ export class Joint extends Item {
 
 	}
 
-	setLimit( j, lm, axe ){
+	setLimit( j, lm ){
+
+		let axe = this.convert[ lm[0] ] 
 
 		let r = this.angulars.indexOf( axe ) !== -1 ? torad : 1
+
 		const axis = this.ConstraintAxis[ axe ];
 		
 		havok.HP_Constraint_SetAxisMode( j, axis, this.LimitMode.LIMITED )

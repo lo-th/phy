@@ -519,11 +519,11 @@ export class MouseTool {
 			let def = [-0.01, 0.01, 60, 1]
 			let defr = [-0.1, 0.1, 60, 1]
 			let notUseKinematic = root.engine === 'OIMO' || root.engine ==='RAPIER' //|| root.engine ==='HAVOK'
-			let jtype = 'd6';//root.engine === 'HAVOK' ? 'fixe' : 'd6'
+			let jtype = root.engine === 'HAVOK' ? 'fixe' : 'd6';
 
 			let limite = [['x',...def], ['y',...def], ['z',...def], ['rx',...defr], ['ry',...defr], ['rz',...defr]]
 
-			if( root.engine === 'HAVOK' ) limite = [ ['x',...def], ['y',...def], ['z',...def] ]
+			//if( root.engine === 'HAVOK' ) limite = [ ['x',...def], ['y',...def], ['z',...def] ]
 
 			root.motor.add([
 				{ 
@@ -533,7 +533,7 @@ export class MouseTool {
 					quat:quat, 
 					kinematic:notUseKinematic ? false : true,
 					//mass:10000000,
-					gravityFactor:0, 
+					//gravityFactor:0, 
 				},
 				{ 
 					name:'mouseJoint', type:'joint',
@@ -544,7 +544,7 @@ export class MouseTool {
 					b2:this.selected.name,  
 					worldAnchor: p, 
 					worldAxis:[1,0,0],
-					//friction:0.5,
+					//friction:0,
 					//tolerance:[1, 10],
 					//noPreProcess:true,
 					//improveSlerp:true,

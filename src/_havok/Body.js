@@ -209,6 +209,7 @@ export class Body extends Item {
     }
 
 	getVertices ( ar ) {
+
         const nFloats = ar.length * 3;
         const bytesPerFloat = 4;
         const nBytes = nFloats * bytesPerFloat;
@@ -223,9 +224,11 @@ export class Body extends Item {
         }
 
         return ret;
+
     }
 
 	getTriangles ( ar ) {
+
         const bytesPerInt = 4;
         const nBytes = ar.length * bytesPerInt;
         const bufferBegin = havok._malloc(nBytes);
@@ -235,6 +238,7 @@ export class Body extends Item {
         }
 
         return ret;
+
     }
 
 	add ( o = {} ) {
@@ -242,6 +246,8 @@ export class Body extends Item {
 		let name = this.setName( o );
 
 		const motionType = this.type === 'body' ? ( o.kinematic ? "KINEMATIC" : "DYNAMIC" ) : "STATIC";
+
+		//if( o.mass ) delete o.density
 
 		let b = havok.HP_Body_Create()[1], g;
 
@@ -252,11 +258,15 @@ export class Body extends Item {
 		switch( o.type ){
 
 			case 'null':
-
-				//havok.HP_Body_SetShape( b, havok.HP_Shape_CreateContainer()[1] )
-				g = this.shape( { type:'sphere', size:[0.01] } );
-				havok.HP_Body_SetShape( b, g );
+			    //o.density = Infinity
+			    //o.mass = 0
+			    //o.inertia = [0,0,0]
+			    g = havok.HP_Shape_CreateContainer()[1]
+			    //g = this.shape( { type:'sphere', size:[0.01] } );
+				havok.HP_Body_SetShape( b, g )
 				this.applyMass( b, g, o );
+
+				//if( o.density !== undefined ) havok.HP_Shape_SetDensity( g, o.density );
 
 			break;
 			
@@ -374,14 +384,14 @@ export class Body extends Item {
 		let massProperties = [[0, 0, 0], 1, [1, 1, 1], [0, 0, 0, 1]]
 
 		if( g ){
-			const shapeMass = havok.HP_Shape_BuildMassProperties(g);
-			if ( shapeMass[0] == havok.Result.RESULT_OK ){ 
+			const shapeMass = havok.HP_Shape_BuildMassProperties( g );
+			if ( shapeMass[0] === havok.Result.RESULT_OK ){ 
 				massProperties = shapeMass[1]
 			}
 		}
 
 		
-		if( o.mass ) massProperties[1] = o.mass
+		if( o.mass !== undefined ) massProperties[1] = o.mass
 		if( o.inertia ) massProperties[2] = o.inertia
 
 		//	console.log(massProperties)

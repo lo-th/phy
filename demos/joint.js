@@ -14,6 +14,7 @@ demo = () => {
 
     createBoard(0, 4, 0, [-45,45], [2, 0.3] );
     createBoard(0, 6, 0, [-180,180], []);
+
     //createBoard(0, 6, 0, [360,360*4], []);
 
     // add dynamic sphere
@@ -99,7 +100,7 @@ createBoard = ( x, y, z, lm, sd ) => {
 
     let b1 = phy.add({ type:'box', size:[0.2, 0.2, 0.2], pos:[x, y, z],  density:0, material:'debug' })
     let b2 = phy.add({ type:'box', size:[1, 0.4, 0.8], pos:[x + 0.5, y, z], rot:[0,90,0], density:1, radius:0.01 }) 
-    phy.add({ type:'joint', mode:'revolute', b1:b1, b2:b2, worldPos:[x, y, z], worldAxis:[0,0,1], lm:lm })
+    phy.add({ type:'joint', mode:'revolute', b1:b1, b2:b2, worldPos:[x, y, z], worldAxis:[0,0,1], lm:[...lm, ...sd] })
 
 }
 
