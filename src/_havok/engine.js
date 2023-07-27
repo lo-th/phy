@@ -38,7 +38,6 @@ const t = { tmp:0, n:0, dt:0, fps:0 };
 let timestep = 1/60;
 let interval = 16.67;
 let substep = 1;
-let broadphase = 2;
 let fixe = true;
 
 let startTime = 0, lastTime = 0, elapsed = 0;
@@ -104,6 +103,8 @@ export class engine {
 
 			self.havok = havok;
 
+			console.log(havok)
+
 			//Utils.extends()
 			engine.initItems()
 
@@ -128,7 +129,7 @@ export class engine {
 		timestep = 1 / (o.fps || 60 );
 		interval = MathTool.toFixed(timestep*1000, 2)
 
-		substep = 1//o.substep || 1;
+		substep = o.forceSubstep || 1; //o.substep || 1;
 		root.substep = substep
 		
 		fixe = o.fixe !== undefined ? o.fixe : true;
@@ -184,6 +185,9 @@ export class engine {
 
 
     	havok.HP_World_SetGravity( root.world, root.gravity );
+
+    	// ??
+    	havok.HP_World_SetIdealStepTime( root.world, 0 )
 
     }
 
@@ -242,7 +246,7 @@ export class engine {
 	static notifyCollisions () {
 
         let eventAddress = havok.HP_World_GetCollisionEvents(root.world)[1], data;
-        const worldAddr = Number(root.world);
+        const worldAddr = Number( root.world );
 
         while ( eventAddress ) {
 
@@ -292,8 +296,21 @@ export class engine {
                 }
             }*/
 
-            eventAddress = havok.HP_World_GetNextCollisionEvent(worldAddr, eventAddress);
+            eventAddress = havok.HP_World_GetNextCollisionEvent( worldAddr, eventAddress );
+               
         }
+
+
+        // TRIGGER
+
+        let triggerAddress = havok.HP_World_GetTriggerEvents(root.world)[1];
+        while ( triggerAddress ) {
+        	data = engine.readToRef( havok.HEAPU8.buffer, triggerAddress )
+
+        	triggerAddress = havok.HP_World_GetNextTriggerEvent( worldAddr, eventAddress );
+        }
+
+
     }
 
 	static poststep (){
@@ -332,21 +349,23 @@ export class engine {
 		root.delta = ( startTime - lastTime ) * 0.001;
 		lastTime = startTime;
 
+		/*
 		root.deltaTime = fixe ? timestep : root.delta
 		
 		havok.HP_World_Step( root.world, root.deltaTime )
 		root.tmpStep++
-		
+		*/
 
-		/*root.deltaTime = fixe ? timestep / substep : root.delta / substep
+		root.deltaTime = fixe ? timestep / substep : root.delta / substep
 
 		let n = substep;
 		while( n-- ) {
 			havok.HP_World_Step( root.world, root.deltaTime )
+			engine.stepItems()
 			root.tmpStep++
-		}*/
+		}
 
-		engine.stepItems()
+		//engine.stepItems()
 	    engine.notifyCollisions()
 
 		// get simulation stat

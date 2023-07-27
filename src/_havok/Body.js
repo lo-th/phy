@@ -26,7 +26,7 @@ export class Body extends Item {
 
 	step ( AR, N ) {
 
-		let i = this.list.length, b, n, t, lv, av;
+		let i = this.list.length, b, n, t, lv, av, sleep;
 
 		while( i-- ){
 
@@ -45,7 +45,9 @@ export class Body extends Item {
 
 			lv = havok.HP_Body_GetLinearVelocity(b)[1];
 
-		    AR[ n ] = b.up ? 1 : this.arLength(lv) * 9.8;// speed km/h
+			sleep = havok.HP_Body_GetActivationState( b ) === 1 ? true : false; 
+			AR[ n ] = sleep ? 0 : this.arLength(lv) * 9.8;// speed km/h
+		    //AR[ n ] = b.up ? 1 : this.arLength(lv) * 9.8;// speed km/h
 
 			t = havok.HP_Body_GetQTransform(b)[1]
 
@@ -128,10 +130,12 @@ export class Body extends Item {
 
 		//
 
-		if( o.density ) havok.HP_Shape_SetDensity( g, o.density )
+		if( o.density ) havok.HP_Shape_SetDensity( g, o.density );
 			//if( o.density ) havok.HP_Shape_SetDensity( g, o.density )
 
 		//
+
+		if( o.isTrigger ) havok.HP_Shape_SetTrigger( g, true );
 
 		this.setMaterial( g, o )
 		this.setFilter( g, o )
@@ -302,7 +306,7 @@ export class Body extends Item {
 		b.breakable = o.breakable || false
 		b.isKinematic = o.kinematic || false
 		b.sleep = o.sleep || false
-		b.up = false
+		//b.up = false
 
 		b.button = o.button || false
 
@@ -396,9 +400,32 @@ export class Body extends Item {
 			havok.HP_Body_SetMotionType(b, havok.MotionType[o.kinematic ? "KINEMATIC" : "DYNAMIC"]);
 		}
 
+
+
+		//havok.ActivationControl.ALWAYS_ACTIVE.value // 1
+		//havok.ActivationControl.ALWAYS_INACTIVE.value // 2
+		//havok.ActivationControl.SIMULATION_CONTROLLED.value // 0
+
+		//havok.ActivationState.ACTIVE.value // 0
+		//havok.ActivationState.INACTIVE.value // 1
+
+
+		if( o.sleep ){
+			//havok.HP_Body_SetActivationControl( b, havok.ActivationControl.ALWAYS_INACTIVE );
+		    havok.HP_Body_SetActivationState (b, havok.ActivationState.INACTIVE );
+		    //havok.HP_Body_SetActivationPriority(b, 1 ); ???
+		}
+		if( o.activate || o.wake ){
+			havok.HP_Body_SetActivationControl( b, havok.ActivationControl.SIMULATION_CONTROLLED );
+			havok.HP_Body_SetActivationState (b, havok.ActivationState.ACTIVE );
+		}
+		if( o.neverSleep !== undefined ) havok.HP_Body_SetActivationControl(b, o.neverSleep ? havok.ActivationControl.ALWAYS_ACTIVE : havok.ActivationControl.SIMULATION_CONTROLLED );
+		if( o.alwaySleep !== undefined ) havok.HP_Body_SetActivationControl(b, o.alwaySleep ? havok.ActivationControl.ALWAYS_INACTIVE : havok.ActivationControl.SIMULATION_CONTROLLED );
+
+
 		//if( o.sleep ) b.forceSleep = true;
 		//if( o.activate || o.wake ) b.up = true
-		if( o.neverSleep !== undefined ) b.up = o.neverSleep 
+		//if( o.neverSleep !== undefined ) b.up = o.neverSleep 
 
 		//if( o.gravityScale !== undefined ) b.setGravityScale( o.gravityScale )
 
@@ -408,6 +435,14 @@ export class Body extends Item {
 
 	    //havok.HP_Body_SetEventMask(b, arg1)
 	    //havok.HP_Body_SetMassProperties(b, arg1)
+
+
+
+
+	    /*havok.HP_Body_SetActivationControl(b, )
+		havok.HP_Body_SetActivationPriority(b, )
+		havok.HP_Body_SetActivationState (b, havok.ActivationState.ACTIVE.value )*/
+
 
 		// position / rotation
 
