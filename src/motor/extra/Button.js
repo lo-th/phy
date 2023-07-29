@@ -71,6 +71,9 @@ export class Button {
 		this.b.userData['action'] = this.action.bind(this)
 		this.b.userData['out'] = this.out.bind(this)
 
+		// is bad ?
+		this.b.userData['direct'] = this.callback.bind(this)
+
 		// extra text on top 
 		if( o.text ) this.addText( o.text )
 
@@ -89,7 +92,7 @@ export class Button {
 
 	action( p ){
 
-		if(this.down) return
+		if( this.down ) return
 
 		this.down = true
 	    this.target = this.range[0]

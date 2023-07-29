@@ -13,6 +13,11 @@ import {
     Matrix4, Quaternion, Vector3
 } from 'three';
 
+
+//----------------
+//  MOTOR JOINT 
+//----------------
+
 export class Joint extends Item {
 
 	constructor () {
@@ -51,20 +56,22 @@ export class Joint extends Item {
 
 		let name = this.setName( o )
 
-		let body1 = null
-		let body2 = null
-		let isString
+		let body1 = null;
+		let body2 = null;
+		let isString;
 
 		if( o.b1 ) {
-			isString = typeof o.b1 === 'string'
-			body1 = isString ? Utils.byName( o.b1 ) : o.b1
+			isString = typeof o.b1 === 'string';
+			body1 = isString ? Utils.byName( o.b1 ) : o.b1;
 			if(!isString) o.b1 = o.b1.name;
+			if(body1) body1.link ++;
 		}
 
 		if( o.b2 ) {
-			isString = typeof o.b2 === 'string'
-			body2 = isString ? Utils.byName( o.b2 ) : o.b2
+			isString = typeof o.b2 === 'string';
+			body2 = isString ? Utils.byName( o.b2 ) : o.b2;
 			if(!isString) o.b2 = o.b2.name;
+			if(body2) body2.link ++;
 		}
 
 		// world to local
@@ -165,8 +172,8 @@ export class Joint extends Item {
 		if(!o.visible) o.visible = j.visible
 		//j.isVisible = o.visible !== undefined ? o.visible : true;
 		j.visible = o.visible !== undefined ? o.visible : true;
-		j.body1 = body1
-		j.body2 = body2
+		j.body1 = body1;
+		j.body2 = body2;
 
 		// apply option
 		this.set( o, j )
@@ -198,7 +205,7 @@ export class Joint extends Item {
 
 export class ExtraJoint extends Basic3D {
 
-	constructor( g, o ) {
+	constructor( geom, o ) {
 
 	    super()
 
@@ -210,7 +217,7 @@ export class ExtraJoint extends Basic3D {
 
 	    this.mtx = new Matrix4();
 	    this.size = o.helperSize || 0.1
-	    g = g.clone() 
+	    let g = geom.clone() 
 	    g.scale( this.size, this.size, this.size)
 	    this.m1 = new LineSegments( g, material )
 	    
@@ -218,6 +225,8 @@ export class ExtraJoint extends Basic3D {
 	    
 	    this.m1.matrixAutoUpdate = false;
 
+	    g = geom.clone() 
+	    g.scale( this.size*0.8, this.size*0.8, this.size*0.8 );
 	    this.m2 = new LineSegments( g, material )
 	    //this.m2.scale.set( this.size, this.size, this.size)
 	    this.add( this.m2 );
@@ -339,6 +348,9 @@ export class ExtraJoint extends Basic3D {
 	}
 
 	dispose (){
+
+		if( this.body1 ) this.body1.link--;
+		if( this.body2 ) this.body2.link--;
 
 		this.m1.geometry.dispose()
 		this.m2.geometry.dispose()

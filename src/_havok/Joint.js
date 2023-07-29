@@ -4,6 +4,11 @@ import { torad } from '../core/MathTool.js';
 
 import { Utils, root, map } from './root.js';
 
+
+//----------------
+//  HAVOK JOINT 
+//----------------
+
 export class Joint extends Item {
 
 	constructor () {
@@ -310,13 +315,16 @@ export class Joint extends Item {
 		let r = this.angulars.indexOf( axe ) !== -1 ? torad : 1
 
 		const axis = this.ConstraintAxis[ axe ];
-		
-		havok.HP_Constraint_SetAxisMode( j, axis, this.LimitMode.LIMITED )
-		havok.HP_Constraint_SetAxisMinLimit( j, axis, lm[1]*r );
-		havok.HP_Constraint_SetAxisMaxLimit( j, axis, lm[2]*r );
 
-		if(lm[3]) havok.HP_Constraint_SetAxisStiffness( j, axis, lm[3]*0.1 );//stiffness
-		if(lm[4]) havok.HP_Constraint_SetAxisDamping( j, axis, lm[4]*6 );//damping
+		if( lm[1] === 0 && lm[2] === 0 ) havok.HP_Constraint_SetAxisMode( j, axis, this.LimitMode.FREE )
+		else {
+			havok.HP_Constraint_SetAxisMode( j, axis, this.LimitMode.LIMITED )
+			havok.HP_Constraint_SetAxisMinLimit( j, axis, lm[1]*r );
+			havok.HP_Constraint_SetAxisMaxLimit( j, axis, lm[2]*r );
+
+			if(lm[3]) havok.HP_Constraint_SetAxisStiffness( j, axis, lm[3]*0.1 );//stiffness
+			if(lm[4]) havok.HP_Constraint_SetAxisDamping( j, axis, lm[4]*6 );//damping
+		}
 
 	}
 

@@ -354,6 +354,8 @@ export class Body extends Item {
 
 		let m = new Mesh( g, material )
 
+		if( o.button ) m.isButton = true
+
 		//if( o.helper ) m.add( new LineSegments( new CapsuleHelperGeometry( s[ 0 ], s[ 1 ] ),  Mat.get( 'line' ) ))
 		if( o.helper ) {
 
@@ -535,7 +537,8 @@ export class Body extends Item {
 	    b.type = this.type
 	    b.size = o.size
 		b.shapetype = o.type
-		b.isKinematic = o.kinematic || false
+		b.isKinematic = o.kinematic || false;
+		b.link = 0;
 
 		// for buttton only
 		if( o.button ) b.isButton = true
@@ -583,6 +586,7 @@ export class Body extends Item {
 			b.quaternion = {_x:o.quat[0], _y:o.quat[1], _z:o.quat[2], _w:o.quat[3]}
 		    b.velocity = {x:0, y:0, z:0}
 		    b.angular = {x:0, y:0, z:0}
+		    b.link = 0;
 		    if( this.needMatrix ) b.matrixWorld = new Matrix4()
 
 

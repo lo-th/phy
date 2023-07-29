@@ -865,8 +865,6 @@ class CircleHelper extends LineSegments {
 
 		const colors = [
 
-		
-
 		0, 0, 1,
 		0, 0, 1,
 		0, 0, 1,
@@ -888,13 +886,10 @@ class CircleHelper extends LineSegments {
 		1, 0, 0,
 		1, 0, 0,
 
-		1, 0, 0,	1,0, 0,
+		1, 0, 0,	1, 0, 0,
 		0, 1, 0,	0, 1, 0,
 		0, 0, 1,	0, 0, 1,
 
-		
-
-		
 		];
 
 		const geometry = new BufferGeometry();
@@ -2717,7 +2712,8 @@ class Instance extends InstancedMesh {
         this.tmpMatrix = new Matrix4();
         this.tmpQuat = new Quaternion();
 
-        //this.instanceUv = null;
+        this.instanceUv = null;
+        this.instanceColor = null;
 
         this.needSphereUp = false;
 
@@ -6034,6 +6030,8 @@ class Body extends Item {
 
 		let m = new Mesh( g, material );
 
+		if( o.button ) m.isButton = true;
+
 		//if( o.helper ) m.add( new LineSegments( new CapsuleHelperGeometry( s[ 0 ], s[ 1 ] ),  Mat.get( 'line' ) ))
 		if( o.helper ) {
 
@@ -6216,6 +6214,7 @@ class Body extends Item {
 	    b.size = o.size;
 		b.shapetype = o.type;
 		b.isKinematic = o.kinematic || false;
+		b.link = 0;
 
 		// for buttton only
 		if( o.button ) b.isButton = true;
@@ -6263,6 +6262,7 @@ class Body extends Item {
 			b.quaternion = {_x:o.quat[0], _y:o.quat[1], _z:o.quat[2], _w:o.quat[3]};
 		    b.velocity = {x:0, y:0, z:0};
 		    b.angular = {x:0, y:0, z:0};
+		    b.link = 0;
 		    if( this.needMatrix ) b.matrixWorld = new Matrix4();
 
 
@@ -6431,6 +6431,10 @@ class Body extends Item {
 
 }
 
+//----------------
+//  MOTOR JOINT 
+//----------------
+
 class Joint extends Item {
 
 	constructor () {
@@ -6477,12 +6481,14 @@ class Joint extends Item {
 			isString = typeof o.b1 === 'string';
 			body1 = isString ? Utils.byName( o.b1 ) : o.b1;
 			if(!isString) o.b1 = o.b1.name;
+			if(body1) body1.link ++;
 		}
 
 		if( o.b2 ) {
 			isString = typeof o.b2 === 'string';
 			body2 = isString ? Utils.byName( o.b2 ) : o.b2;
 			if(!isString) o.b2 = o.b2.name;
+			if(body2) body2.link ++;
 		}
 
 		// world to local
@@ -6616,7 +6622,7 @@ class Joint extends Item {
 
 class ExtraJoint extends Basic3D {
 
-	constructor( g, o ) {
+	constructor( geom, o ) {
 
 	    super();
 
@@ -6628,7 +6634,7 @@ class ExtraJoint extends Basic3D {
 
 	    this.mtx = new Matrix4();
 	    this.size = o.helperSize || 0.1;
-	    g = g.clone(); 
+	    let g = geom.clone(); 
 	    g.scale( this.size, this.size, this.size);
 	    this.m1 = new LineSegments( g, material );
 	    
@@ -6636,6 +6642,8 @@ class ExtraJoint extends Basic3D {
 	    
 	    this.m1.matrixAutoUpdate = false;
 
+	    g = geom.clone(); 
+	    g.scale( this.size*0.8, this.size*0.8, this.size*0.8 );
 	    this.m2 = new LineSegments( g, material );
 	    //this.m2.scale.set( this.size, this.size, this.size)
 	    this.add( this.m2 );
@@ -6757,6 +6765,9 @@ class ExtraJoint extends Basic3D {
 	}
 
 	dispose (){
+
+		if( this.body1 ) this.body1.link--;
+		if( this.body2 ) this.body2.link--;
 
 		this.m1.geometry.dispose();
 		this.m2.geometry.dispose();
@@ -30246,6 +30257,9 @@ class Button {
 		this.b.userData['action'] = this.action.bind(this);
 		this.b.userData['out'] = this.out.bind(this);
 
+		// is bad ?
+		this.b.userData['direct'] = this.callback.bind(this);
+
 		// extra text on top 
 		if( o.text ) this.addText( o.text );
 
@@ -30264,7 +30278,7 @@ class Button {
 
 	action( p ){
 
-		if(this.down) return
+		if( this.down ) return
 
 		this.down = true;
 	    this.target = this.range[0];
@@ -30389,7 +30403,9 @@ class Container {
 
 }
 
-//let needRay = false;
+//----------------
+//  MOUSE TOOL 
+//----------------
 
 class MouseTool {
 
@@ -30415,6 +30431,7 @@ class MouseTool {
 
 		this.selected = null;
 		this.buttonRef = null;
+		this.release = false;
 
 		this.numBullet = 0;
 		this.maxBullet = 10;
@@ -30485,7 +30502,7 @@ class MouseTool {
 
 	}
 
-    setMode ( mode, o={} ) {
+    setMode ( mode, o = {} ) {
 
     	if( mode === this.mode ) return
     	this.mode = mode;
@@ -30598,18 +30615,29 @@ class MouseTool {
 
 	mouseup ( e ) {
 
+		//console.log('up')
+
+		this.release = true;
+
+		document.body.style.cursor = 'auto';
+
 		this.mouseMove = this.oldMouse.distanceTo( this.mouse ) < 0.01 ? false : true;
 		this.mouseDown = false;
 		this.mouseDown2 = false;
 		root.mouseDown = false;
 
+
+
 		if( this.sticky ) { this.controler.enabled = true; return; }
+
 		this.unSelect();
 		this.resetButton();
 
 	}
 
 	mousemove ( e ) {
+
+		//if( this.release ) this.release = false;
 
 		switch( this.mode ){
 
@@ -30680,11 +30708,21 @@ class MouseTool {
 					//this.tmpPoint = inters[ 0 ].point
 				}
 				else cursor = this.actionButton( m, inters[ 0 ] );
+				//document.body.style.cursor = cursor
 
-			}else {
+			} else {
 				this.controler.enableRotate = true;
 				this.controler.enablePan = true;
+				
 				//this.controler.enabled = true
+			}
+
+			//console.log(this.release, cursor)
+			if( this.release ){
+				this.release = false;
+				this.controler.enableRotate = true;
+				this.controler.enablePan = true;
+				cursor = 'auto';
 			}
 
 			document.body.style.cursor = cursor;
@@ -30723,7 +30761,11 @@ class MouseTool {
 		this.raycast.setFromCamera( this.mouse, this.controler.object );
 		let inters = this.raycast.intersectObjects( root.scene.children, true );
 
-		if ( inters.length > 0 ) {hit = inters[ 0 ];
+		if ( inters.length > 0 ) {
+
+			if( !inters[ 0 ].object.isButton ) hit = inters[ 0 ];
+			else inters[ 0 ].object.parent.userData.direct();
+				
 		} else {
 			inters = this.raycast.intersectObjects( root.scenePlus.children, true );
 			if ( inters.length > 0 ) hit = inters[ 0 ];
@@ -30832,9 +30874,11 @@ class MouseTool {
 		//this.controler.enabled = false
 
 		//if( this.selected !== null ) return 'pointer'
-		//if( !this.mouseDown ) return 'pointer'
+		//if( !this.mouseDown ) return 'auto'
+		//if( this.selected === obj ) return 'grab'//'pointer'
 
-		if( !this.mouseDown || this.selected === obj ) return 'pointer'
+		if( !this.mouseDown || this.selected === obj ) return 'grab'//'pointer'
+
 
 		this.pz = 0;
 
@@ -30901,10 +30945,11 @@ class MouseTool {
 		if( this.moveDirect ){
 			root.motor.change({ name:this.selected.name, kinematic:false, gravity:false, damping:[0.9,0.9]  });
 		} else {
-			let def = [-0.01, 0.01, 60, 1];
+			let def = [-0.1, 0.1, 60, 1];
 			let defr = [-0.1, 0.1, 60, 1];
+			//let defr = [0, 0]
 			let notUseKinematic = root.engine === 'OIMO' || root.engine ==='RAPIER'; //|| root.engine ==='HAVOK'
-			let jtype = 'd6';//root.engine === 'HAVOK' ? 'fixe' : 'd6'
+			let jtype = this.selected.link === 0 ? 'fixe' : 'd6';//root.engine === 'HAVOK' ? 'fixe' : 'd6';
 
 			let limite = [['x',...def], ['y',...def], ['z',...def], ['rx',...defr], ['ry',...defr], ['rz',...defr]];
 
@@ -30918,7 +30963,7 @@ class MouseTool {
 					quat:quat, 
 					kinematic:notUseKinematic ? false : true,
 					//mass:10000000,
-					gravityFactor:0, 
+					//gravityFactor:0, 
 				},
 				{ 
 					name:'mouseJoint', type:'joint',
@@ -30929,12 +30974,7 @@ class MouseTool {
 					b2:this.selected.name,  
 					worldAnchor: p, 
 					worldAxis:[1,0,0],
-					//friction:0.5,
-					//tolerance:[1, 10],
-					//noPreProcess:true,
-					//improveSlerp:true,
-					visible:true,
-					//noFix:true,
+					visible:false,
 				}
 			]);
 
@@ -30946,7 +30986,7 @@ class MouseTool {
 
 		//document.body.style.cursor = 'move'
 
-		return "url('./assets/icons/point.png') 8 8, move" //'move'
+		return "grabbing"//"url('./assets/icons/point.png') 8 8, move" //'move'
 
 	}
 
@@ -30983,11 +31023,9 @@ class MouseTool {
 
 		if( this.selected === null ) return
 
-		this.clearDrag();
 
-		//this.dragPlane.geometry.dispose()
-		//root.scenePlus.remove( this.dragPlane )
-		//root.scenePlus.remove( this.helper )
+
+		this.clearDrag();
 
 		if( this.moveDirect ){
 			root.motor.change({ name:this.selected.name, kinematic:false, wake:true, gravity:true, damping:[0,0.1] });
@@ -30999,6 +31037,7 @@ class MouseTool {
 		this.raycastTest = true;
 		this.selected = null;
 		this.firstSelect = true;
+		
 		//this.controler.enabled = true
 
 	}

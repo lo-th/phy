@@ -4,7 +4,11 @@ import {
 
 import { root } from '../root.js';
 import { Mat } from '../base/Mat.js';
-//let needRay = false;
+
+
+//----------------
+//  MOUSE TOOL 
+//----------------
 
 export class MouseTool {
 
@@ -30,6 +34,7 @@ export class MouseTool {
 
 		this.selected = null
 		this.buttonRef = null
+		this.release = false
 
 		this.numBullet = 0
 		this.maxBullet = 10
@@ -100,7 +105,7 @@ export class MouseTool {
 
 	}
 
-    setMode ( mode, o={} ) {
+    setMode ( mode, o = {} ) {
 
     	if( mode === this.mode ) return
     	this.mode = mode;
@@ -182,7 +187,7 @@ export class MouseTool {
 	}
 
 	contextmenu ( e ) {
-		e.preventDefault()
+		e.preventDefault();
 		//this.mouseDown2 = true
 		//this.controler.enabled = false;
 		/*if( this.mouseDown ){
@@ -213,18 +218,29 @@ export class MouseTool {
 
 	mouseup ( e ) {
 
+		//console.log('up')
+
+		this.release = true;
+
+		document.body.style.cursor = 'auto'
+
 		this.mouseMove = this.oldMouse.distanceTo( this.mouse ) < 0.01 ? false : true
 		this.mouseDown = false
 		this.mouseDown2 = false
 		root.mouseDown = false
 
+
+
 		if( this.sticky ) { this.controler.enabled = true; return; }
+
 		this.unSelect()
 		this.resetButton()
 
 	}
 
 	mousemove ( e ) {
+
+		//if( this.release ) this.release = false;
 
 		switch( this.mode ){
 
@@ -295,11 +311,21 @@ export class MouseTool {
 					//this.tmpPoint = inters[ 0 ].point
 				}
 				else cursor = this.actionButton( m, inters[ 0 ] )
+				//document.body.style.cursor = cursor
 
-			}else {
+			} else {
 				this.controler.enableRotate = true
 				this.controler.enablePan = true
+				
 				//this.controler.enabled = true
+			}
+
+			//console.log(this.release, cursor)
+			if( this.release ){
+				this.release = false
+				this.controler.enableRotate = true
+				this.controler.enablePan = true
+				cursor = 'auto'
 			}
 
 			document.body.style.cursor = cursor
@@ -338,7 +364,11 @@ export class MouseTool {
 		this.raycast.setFromCamera( this.mouse, this.controler.object )
 		let inters = this.raycast.intersectObjects( root.scene.children, true )
 
-		if ( inters.length > 0 ) {hit = inters[ 0 ]
+		if ( inters.length > 0 ) {
+
+			if( !inters[ 0 ].object.isButton ) hit = inters[ 0 ]
+			else inters[ 0 ].object.parent.userData.direct()
+				
 		} else {
 			inters = this.raycast.intersectObjects( root.scenePlus.children, true )
 			if ( inters.length > 0 ) hit = inters[ 0 ]
@@ -447,9 +477,11 @@ export class MouseTool {
 		//this.controler.enabled = false
 
 		//if( this.selected !== null ) return 'pointer'
-		//if( !this.mouseDown ) return 'pointer'
+		//if( !this.mouseDown ) return 'auto'
+		//if( this.selected === obj ) return 'grab'//'pointer'
 
-		if( !this.mouseDown || this.selected === obj ) return 'pointer'
+		if( !this.mouseDown || this.selected === obj ) return 'grab'//'pointer'
+
 
 		this.pz = 0
 
@@ -516,14 +548,15 @@ export class MouseTool {
 		if( this.moveDirect ){
 			root.motor.change({ name:this.selected.name, kinematic:false, gravity:false, damping:[0.9,0.9]  })
 		} else {
-			let def = [-0.01, 0.01, 60, 1]
+			let def = [-0.1, 0.1, 60, 1]
 			let defr = [-0.1, 0.1, 60, 1]
+			//let defr = [0, 0]
 			let notUseKinematic = root.engine === 'OIMO' || root.engine ==='RAPIER' //|| root.engine ==='HAVOK'
-			let jtype = root.engine === 'HAVOK' ? 'fixe' : 'd6';
+			let jtype = this.selected.link === 0 ? 'fixe' : 'd6';//root.engine === 'HAVOK' ? 'fixe' : 'd6';
 
 			let limite = [['x',...def], ['y',...def], ['z',...def], ['rx',...defr], ['ry',...defr], ['rz',...defr]]
 
-			//if( root.engine === 'HAVOK' ) limite = [ ['x',...def], ['y',...def], ['z',...def] ]
+			if( root.engine === 'HAVOK' ) limite = [ ['x',...def], ['y',...def], ['z',...def] ]
 
 			root.motor.add([
 				{ 
@@ -544,12 +577,7 @@ export class MouseTool {
 					b2:this.selected.name,  
 					worldAnchor: p, 
 					worldAxis:[1,0,0],
-					//friction:0,
-					//tolerance:[1, 10],
-					//noPreProcess:true,
-					//improveSlerp:true,
-					visible:true,
-					//noFix:true,
+					visible:false,
 				}
 			])
 
@@ -561,7 +589,7 @@ export class MouseTool {
 
 		//document.body.style.cursor = 'move'
 
-		return "url('./assets/icons/point.png') 8 8, move" //'move'
+		return "grabbing"//"url('./assets/icons/point.png') 8 8, move" //'move'
 
 	}
 
@@ -598,11 +626,9 @@ export class MouseTool {
 
 		if( this.selected === null ) return
 
-		this.clearDrag()
 
-		//this.dragPlane.geometry.dispose()
-		//root.scenePlus.remove( this.dragPlane )
-		//root.scenePlus.remove( this.helper )
+
+		this.clearDrag()
 
 		if( this.moveDirect ){
 			root.motor.change({ name:this.selected.name, kinematic:false, wake:true, gravity:true, damping:[0,0.1] })
@@ -611,9 +637,10 @@ export class MouseTool {
 			root.motor.change({ name:this.selected.name, neverSleep:false, wake:true })
 		}
 		
-		this.raycastTest = true
-		this.selected = null
-		this.firstSelect = true
+		this.raycastTest = true;
+		this.selected = null;
+		this.firstSelect = true;
+		
 		//this.controler.enabled = true
 
 	}

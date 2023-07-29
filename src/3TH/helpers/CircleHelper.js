@@ -52,8 +52,6 @@ class CircleHelper extends LineSegments {
 
 		const colors = [
 
-		
-
 		0, 0, 1,
 		0, 0, 1,
 		0, 0, 1,
@@ -75,13 +73,10 @@ class CircleHelper extends LineSegments {
 		1, 0, 0,
 		1, 0, 0,
 
-		1, 0, 0,	1,0, 0,
+		1, 0, 0,	1, 0, 0,
 		0, 1, 0,	0, 1, 0,
 		0, 0, 1,	0, 0, 1,
 
-		
-
-		
 		];
 
 		const geometry = new BufferGeometry();

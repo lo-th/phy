@@ -8,7 +8,7 @@ demo = () => {
     // add static plane 
     phy.add({ type:'plane', visible:false })
 
-    phy.mouseMode('shoot')
+    //phy.mouseMode('shoot')
 
     //phy.add({ name:'ball1', type:'sphere', density:35, size:[0.5], pos:[0,60,0], ccdThreshold:0.00001, material:'chrome' })
 
@@ -20,7 +20,12 @@ demo = () => {
         normalMap:phy.texture({ url:'./assets/textures/wood_n.jpg', repeat:[2,2] }) 
     })
 
-    phy.add({ name:'boom1', type:'box', density:10, size:[2,4,2], pos:[0,2,0], 
+    phy.add({ 
+        name:'boom1', 
+        type:'box', 
+        density:10, 
+        size:[2,4,2], 
+        pos:[0,2,0], 
         breakable:true, 
         // breakOption: [ maxImpulse, maxRadial, maxRandom, levelOfSubdivision ]
         breakOption:[ 50, 1, 2, 2 ], 

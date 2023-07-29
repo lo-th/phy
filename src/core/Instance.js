@@ -14,7 +14,8 @@ export class Instance extends InstancedMesh {
         this.tmpMatrix = new Matrix4();
         this.tmpQuat = new Quaternion();
 
-        //this.instanceUv = null;
+        this.instanceUv = null;
+        this.instanceColor = null;
 
         this.needSphereUp = false
 
