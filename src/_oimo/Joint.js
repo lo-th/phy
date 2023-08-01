@@ -18,6 +18,8 @@ export class Joint extends Item {
 		this.q = new Quat()
 		this.m = new Mat3()
 
+		this.fullList = [ 'x', 'y', 'z', 'rx', 'ry', 'rz' ];
+
 	}
 
 	step ( AR, N ) {
@@ -77,9 +79,9 @@ export class Joint extends Item {
 		let mode = o.mode || 'revolute';
 
 		if( mode === 'fixe' ){ 
-			mode = 'revolute';
+			mode = 'generic';
 			//o.sd = [0,0]
-			//o.lm = [0,0]
+			o.lm = [0,0]
 		}
 
 		if( mode === 'd6' ) mode = 'generic'
@@ -174,6 +176,12 @@ export class Joint extends Item {
 				
 				//jc.maxSwingAngle1 = (o.maxSwing1 !== undefined ? o.maxSwing1 : 180) * torad;
 				//jc.maxSwingAngle2 = (o.maxSwing2 !== undefined ? o.maxSwing2 : 180) * torad;
+
+			break;
+			case 'spherical':
+			    //jc.springDamper.frequency = 4.0;
+				//jc.springDamper.dampingRatio = 1;
+
 
 			break;
 			case 'generic':
@@ -291,11 +299,16 @@ export class Joint extends Item {
 			// MOTOR
 
 			if( o.motor ){
+
+				rotate = j.getRotationalLimitMotors()
+				translate =  j.getTranslationalLimitMotors()
+
+				if( ! o.motor[0] instanceof Array ) o.motor = this.fillAll( o.motor )
+
 				i = o.motor.length
 				while(i--){
 					k = o.motor[i]
-					rotate = j.getRotationalLimitMotors()
-					translate =  j.getTranslationalLimitMotors()
+					
 					if( k[0]==='rx' ) this.motor( rotate[0], [ k[1], k[2] ] )
 					if( k[0]==='ry' ) this.motor( rotate[1], [ k[1], k[2] ] )
 					if( k[0]==='rz' ) this.motor( rotate[2], [ k[1], k[2] ] )
@@ -308,11 +321,15 @@ export class Joint extends Item {
 			// LIMIT MOTOR
 
 			if( o.lm ){
+
+				rotate = j.getRotationalLimitMotors()
+				translate =  j.getTranslationalLimitMotors()
+
+				if( ! o.lm[0] instanceof Array ) o.lm = this.fillAll( o.lm )
+				
 				i = o.lm.length
 				while(i--){
-					k = o.lm[i]
-					rotate = j.getRotationalLimitMotors()
-					translate =  j.getTranslationalLimitMotors()
+					k = o.lm[i];
 					if( k[0]==='rx' ) this.limit( rotate[0], [ k[1], k[2] ] )
 					if( k[0]==='ry' ) this.limit( rotate[1], [ k[1], k[2] ] )
 					if( k[0]==='rz' ) this.limit( rotate[2], [ k[1], k[2] ] )
@@ -325,6 +342,9 @@ export class Joint extends Item {
 			// SPRING DAMPER
 
 			if( o.sd ){ // spring damlper
+
+				if( ! o.sd[0] instanceof Array ) o.sd = this.fillAll( o.sd )
+
 				i = o.sd.length
 				while(i--){
 					k = o.sd[i]
@@ -338,12 +358,24 @@ export class Joint extends Item {
 			}
 
 			break;
-			case 'Spherical':
+			case 'spherical':
 			    if( o.sd ) this.spring( j.getSpringDamper(), o.sd )
 			break;
 
 		}
 
+
+	}
+
+	fillAll ( ref ){
+
+		let nlm = [];
+		i = this.fullList.length;
+		while(i--){
+			nlm.push([ this.fullList[i], ...ref ])
+		}
+
+		return nlm
 
 	}
 

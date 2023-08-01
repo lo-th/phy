@@ -1270,7 +1270,10 @@ class FBXTreeParser {
 
 		} else {
 
-			material = new MeshPhongMaterial( { color: 0xcccccc } );
+			material = new MeshPhongMaterial( {
+				name: Loader.DEFAULT_MATERIAL_NAME,
+				color: 0xcccccc
+			} );
 			materials.push( material );
 
 		}
@@ -1311,7 +1314,11 @@ class FBXTreeParser {
 		}, null );
 
 		// FBX does not list materials for Nurbs lines, so we'll just put our own in here.
-		const material = new LineBasicMaterial( { color: 0x3300ff, linewidth: 1 } );
+		const material = new LineBasicMaterial( {
+			name: Loader.DEFAULT_MATERIAL_NAME,
+			color: 0x3300ff,
+			linewidth: 1
+		} );
 		return new Line( geometry, material );
 
 	}
@@ -1635,15 +1642,7 @@ class GeometryParser {
 
 		buffers.uvs.forEach( function ( uvBuffer, i ) {
 
-			// subsequent uv buffers are called 'uv1', 'uv2', ...
-			let name = 'uv' + ( i + 1 ).toString();
-
-			// the first uv buffer is just called 'uv'
-			if ( i === 0 ) {
-
-				name = 'uv';
-
-			}
+			const name = i === 0 ? 'uv' : `uv${ i }`;
 
 			geo.setAttribute( name, new Float32BufferAttribute( buffers.uvs[ i ], 2 ) );
 

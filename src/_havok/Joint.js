@@ -49,6 +49,7 @@ export class Joint extends Item {
 			rx:'ANGULAR_X',
 			ry:'ANGULAR_Y',
 			rz:'ANGULAR_Z',
+			distance:'LINEAR_DISTANCE',
 			twist:'ANGULAR_X',
 			swing1:'ANGULAR_Y',
 			swing2:'ANGULAR_Z',
@@ -181,6 +182,8 @@ export class Joint extends Item {
 			havok.HP_Constraint_SetAxisMode(j, CA.LINEAR_X, LM.LOCKED)
             havok.HP_Constraint_SetAxisMode(j, CA.LINEAR_Y, LM.LOCKED)
             havok.HP_Constraint_SetAxisMode(j, CA.LINEAR_Z, LM.LOCKED)
+            //havok.HP_Constraint_SetAxisMode(j, CA.LINEAR_DISTANCE, LM.LOCKED)
+            //console.log(havok.HP_Constraint_GetAxisMode(j, CA.LINEAR_DISTANCE), this.LimitMode)
             break;
             case 'distance':
             const distance = o.maxDistance || 0;
@@ -255,6 +258,14 @@ export class Joint extends Item {
 			if( o.lmr ) this.setLimit( j, [ 'rx', ...o.lmr ] )
 			break;
 
+		    case "spherical":
+			if( o.lm ){ 
+				this.setLimit( j, [ 'rx', ...o.lm ] )
+				this.setLimit( j, [ 'ry', ...o.lm ] )
+				this.setLimit( j, [ 'rz', ...o.lm ] )
+			}
+			break;
+
 		    case 'dof': case 'd6': case 'ragdoll': case 'universal':
 
 
@@ -316,14 +327,17 @@ export class Joint extends Item {
 
 		const axis = this.ConstraintAxis[ axe ];
 
+
 		if( lm[1] === 0 && lm[2] === 0 ) havok.HP_Constraint_SetAxisMode( j, axis, this.LimitMode.FREE )
 		else {
 			havok.HP_Constraint_SetAxisMode( j, axis, this.LimitMode.LIMITED )
 			havok.HP_Constraint_SetAxisMinLimit( j, axis, lm[1]*r );
 			havok.HP_Constraint_SetAxisMaxLimit( j, axis, lm[2]*r );
 
-			if(lm[3]) havok.HP_Constraint_SetAxisStiffness( j, axis, lm[3]*0.1 );//stiffness
-			if(lm[4]) havok.HP_Constraint_SetAxisDamping( j, axis, lm[4]*6 );//damping
+			if(lm[3] !== undefined ) havok.HP_Constraint_SetAxisStiffness( j, axis, lm[3] );//stiffness*0.1
+			if(lm[4] !== undefined ) havok.HP_Constraint_SetAxisDamping( j, axis, lm[4] );//damping*6
+
+			if(lm[5] !== undefined ) havok.HP_Constraint_SetAxisFriction( j, axis, lm[5] );//friction default 0
 		}
 
 	}
@@ -364,3 +378,5 @@ export class Joint extends Item {
 
 }
 
+// Stiffness >> Raideur
+// Damping >> Amortissement

@@ -533,7 +533,10 @@ export class MouseTool {
 
 	    this.helper.position.copy( pos )
 
+
 	    let p = pos.toArray()
+
+	    let revert = false
 
 	    root.motor.change({ name: this.selected.name, neverSleep:true, wake:true })
 		//Motor.add({ name:'mouse', type:'sphere', size:[0.01], pos:p, quat:quat, mask:0, density:0, noGravity:true, kinematic:true, flags:'noCollision' })
@@ -558,6 +561,20 @@ export class MouseTool {
 
 			if( root.engine === 'HAVOK' ) limite = [ ['x',...def], ['y',...def], ['z',...def] ]
 
+			if( root.engine === 'OIMO' ){
+				revert = true;
+				jtype = this.selected.link === 0 ? 'fixe' : 'spherical';
+				limite = [ ['x',...def], ['y',...def], ['z',...def] ]
+				//if(this.selected.link !== 0)
+				//limite = [ 4.0, 1.0 ]
+			}
+
+			if( root.engine === 'HAVOK' ){
+				revert = true;
+				jtype = this.selected.link === 0 ? 'fixe' : 'spherical';
+				limite = [ -180, 180, 0.1, 0.1 ]
+			}
+
 			root.motor.add([
 				{ 
 					name:'mouse', 
@@ -570,13 +587,20 @@ export class MouseTool {
 				},
 				{ 
 					name:'mouseJoint', type:'joint',
-					mode:jtype,//mode:'spherical', //lm:[-0.2, 0.2],
+					mode:jtype,
 					lm:limite,
+					sd:[4.0, 1.0],
 					autoDrive: true,
-					b1:'mouse',
-					b2:this.selected.name,  
+					b1:revert ? this.selected.name : 'mouse',
+					b2:revert ? 'mouse' : this.selected.name,  
 					worldAnchor: p, 
-					worldAxis:[1,0,0],
+					//worldQuat: quat,
+
+					/*pos1: p, 
+					quat1: quat,
+					pos2: [0,0,0], 
+					quat2: [0,0,0,1],*/
+					//worldAxis:[1,0,0],
 					visible:false,
 				}
 			])

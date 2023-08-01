@@ -30,6 +30,8 @@ export const Pool = {
     dracoLoaderType:'js',
     dracoPath:'./src/libs/draco/',
 
+    maxAnisotropy:1,
+
     onLoad:() => {},
     onEnd:() => {},
     log: ( msg ) => {},
@@ -200,13 +202,17 @@ export const Pool = {
         if( o.encoding ) t.colorSpace = SRGBColorSpace;
         if( o.srgb ) t.colorSpace = SRGBColorSpace;
         t.flipY = ( o.flipY || o.flip ) !== undefined ? o.flipY : false
-        //t.anisotropy = o.anisotropy || 16   
-        if( o.anisotropy !== undefined ) t.anisotropy = o.anisotropy
+        t.anisotropy = o.anisotropy !== undefined ? o.anisotropy : Pool.maxAnisotropy;   
+        //if( o.anisotropy !== undefined ) t.anisotropy = o.anisotropy
         if( o.generateMipmaps !== undefined ) t.generateMipmaps = o.generateMipmaps
         if( o.repeat ){
             t.repeat.fromArray( o.repeat );
             t.wrapS = t.wrapT = RepeatWrapping;
         }
+
+        if( o.center ) t.center.fromArray( o.center );
+        if( o.offset ) t.offset.fromArray( o.offset );
+        
         if( o.filter ){
             if( o.filter === 'near' ){
                 t.minFilter = NearestFilter;

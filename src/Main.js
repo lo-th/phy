@@ -433,11 +433,15 @@ const init = () => {
 	renderer.setClearColor( 0x000000, 1 );
 
 
+
+
 	//renderer.outputColorSpace = THREE.sRGBEncoding
 	//renderer.outputColorSpace = THREE.SRGBColorSpace;
 	renderer.toneMapping = toneMappingOptions[options.tone]
 	renderer.toneMappingExposure = options.exposure//Math.pow( options.exposure, 5.0 );//
 	//renderer.useLegacyLights = options.legacy;
+
+	if( options.mode !== 'LOW' ) Motor.setMaxAnisotropy( renderer.capabilities.getMaxAnisotropy() );
 
 	//console.log(renderer)
 

@@ -194,9 +194,9 @@ export class Motor {
 
 	static getMouse () { return mouseTool ? mouseTool.mouse:null }
 
-	
+	static setMaxAnisotropy ( f ) { Pool.maxAnisotropy = f; }
 
-	static setAddControl ( f ) { addControl = f }
+	static setAddControl ( f ) { addControl = f; }
 
 	static setPostUpdate ( f ) { postUpdate = f !== null ? f : function(){} }
 	static setAzimut ( f ) { azimut = f }

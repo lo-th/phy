@@ -2,18 +2,43 @@ demo = () => {
 
     let b1, b2, pos, length
 
+    phy.view({
+        envmap:'box', envblur: 0.5,
+        //phi:0, theta:0, distance:3, x:0, y:1, z:0, fov:50,//
+        //envmap:'render',
+        //groundSize:[ 5, 7],
+        //groundAlpha:false,
+        //groundColor:0x000000,
+        //groundReflect:0.05,
+
+    })
+
     // config physics setting
-    phy.set({ substep:1, gravity:[0,-9.81,0], jointVisible:true })
+    phy.set({ substep:2, gravity:[0,-9.81,0], jointVisible:true })
 
     // add static ground
-    phy.add({ type:'plane', name:'floor', size:[300,1,300], visible:false })
+    phy.add({ type:'plane', name:'floor', size:[50,1,50], visible:false })
+
+    let g = phy.getGround()
+    g.material.map = phy.texture({ url:'./assets/textures/grid.png', repeat:[60,60] })
+
+
+
+
+    phy.add({ type:'box', size:[0.2,0.2,0.2], pos:[0,0.1,3], mass:1, restitution:0.5, friction:0.9 })
+    phy.add({ type:'box', size:[0.1,0.1,0.1], pos:[0.3,0.05,3], mass:1, restitution:0.5, friction:0.9 })
+    //phy.add({ type:'box', size:[0.01,0.01,0.01], pos:[0.4,0.05,3], mass:1, restitution:0.5, friction:0.9 })
+
+
+
+
 
     createBallChain([-2, 5, -2], 0.4, 7);
     createHingeChain([2, 5, -2], 0.3, 7, [0, 0, 1]);
 
 
-    createBoard(0, 4, 0, [-45,45], [2, 0.3] );
-    createBoard(0, 6, 0, [-180,180], []);
+    createBoard( 0, 4, 0, [-45,45], [20, 1] );
+    createBoard( 0, 6, 0, [-180,180], []);
 
     //createBoard(0, 6, 0, [360,360*4], []);
 
@@ -37,8 +62,6 @@ demo = () => {
        collision:true,
        //noFix:true,
     })
-
-
 
 
 
