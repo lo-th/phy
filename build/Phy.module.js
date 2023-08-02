@@ -9642,8 +9642,8 @@ class AutoSvg extends Mesh {
 			};
 			this.fill = o.fill !== undefined ? o.fill : true;
 	        this.stroke = o.stroke !== undefined ? o.stroke : true;
-			this.add( 'path', { d: this.circle(0,0, 0.2, 0, 360, false, true, 0), stroke:'#FFFFFF', 'stroke-opacity':1, 'stroke-width':o.strokeSize, fill:'none', 'stroke-linecap':'butt' } );
-			this.add( 'path', { d: this.segment({x:0, y:0.2}, {x:0, y:4.5} ), stroke:'#FFFFFF', 'stroke-opacity':1, 'stroke-width':o.strokeSize, fill:'none', 'stroke-linecap':'round' } );
+			this.add( 'path', { d: this.circle(0,0, 0.5, 0, 360, false, true, 0), stroke:'#FFFFFF', 'stroke-opacity':1, 'stroke-width':o.strokeSize, fill:'none', 'stroke-linecap':'butt' } );
+			this.add( 'path', { d: this.segment({x:0, y:0}, {x:0, y:4.4} ), stroke:'#FFFFFF', 'stroke-opacity':1, 'stroke-width':o.strokeSize, fill:'none', 'stroke-linecap':'round' } );
 			break;
 
 
@@ -9876,6 +9876,217 @@ class AutoSvg extends Mesh {
 
 }
 
+class JointDebug extends Basic3D {
+
+	constructor( o = {} ) {
+
+	    super();
+
+	    this.type = 'joint';
+	    this.mode = o.mode || 'hinge';
+	    this.isJoint = true;
+
+
+	    this.mtx = new Matrix4();
+	    this.size = o.helperSize || 0.1;
+
+	    let material = Mat.get('line');
+
+	    switch( this.mode ){
+	    	case 'hinge': case 'slider':
+	    	let mat = Mat.get('svg');
+	    	let dt = {
+				min:-180,
+				max:180,
+				fill:false,
+				stroke:true,
+				wireframe:false,
+				size:0.05
+			};
+
+			if(o.lm){
+				dt.min = o.lm[0];
+				dt.max = o.lm[1];
+			}
+
+			if(o.lmr){ // slider
+				dt.min = o.lmr[0];
+				dt.max = o.lmr[1];
+			}
+
+	    	this.m1 = new AutoSvg('angle', dt, mat );
+	    	this.m2 = new AutoSvg('needle', dt, mat );
+
+	    	this.add( this.m1 );
+	    	this.add( this.m2 );
+	    	break;
+	    	default:
+	    	const geom = Geo.get('joint');
+		    let g = geom.clone(); 
+		    g.scale( this.size, this.size, this.size);
+		    this.m1 = new LineSegments( g, material );
+		    
+		    
+		    this.add( this.m1 );
+
+		    g = geom.clone(); 
+		    g.scale( this.size*0.8, this.size*0.8, this.size*0.8 );
+		    this.m2 = new LineSegments( g, material );
+		    //this.m2.scale.set( this.size, this.size, this.size)
+		    this.add( this.m2 );
+
+		    
+	    	break;
+	    }
+
+
+	    this.m1.matrixAutoUpdate = false;
+	    this.m2.matrixAutoUpdate = false;
+
+		//    this.m2.updateMatrix()
+		//    this.m1.updateMatrix()
+
+
+
+
+	    this.body1 = null;
+	    this.body2 = null;
+
+	    this.mat1 = new Matrix4();
+	    this.mat2 = new Matrix4();
+	    this.end = new Vector3();
+
+	    // experimental rotation ?
+	    //Utils.refAxis( this.mat1, o.axis1 )
+	    //Utils.refAxis( this.mat2, o.axis2 )
+
+	    let qq = new Quaternion();
+	    if(o.quat1) this.mat1.makeRotationFromQuaternion(qq.fromArray(o.quat1));
+	    if(o.quat2) this.mat2.makeRotationFromQuaternion(qq.fromArray(o.quat2));
+
+	    this.mat1.setPosition( o.pos1[0], o.pos1[1], o.pos1[2] );
+	    this.mat2.setPosition( o.pos2[0], o.pos2[1], o.pos2[2] );
+	    
+	    
+	    const positions = [ 0, 0, 0, 0, 0, 0 ];
+	    const colors = [ 1, 0, 0, 1, 0, 0 ];
+	    const gline = new BufferGeometry();
+	    gline.setAttribute( 'position', new Float32BufferAttribute( positions, 3 ) );
+	    gline.setAttribute( 'color', new Float32BufferAttribute( colors, 3 ) );
+	    gline.computeBoundingSphere();
+
+
+	    this.m3 = new LineSegments( gline, material );
+	    this.add( this.m3 );
+	    this.m3.matrixAutoUpdate = false;
+
+	    this.pp = this.m3.geometry.attributes.position;
+
+	}
+
+	update () {
+
+		if( !this.visible ) return
+
+		if( this.body1 ){
+			this.matrix.copy( this.body1.matrixWorld ).multiply( this.mat1 );
+		} else {
+			this.matrix.copy( this.mat1 );
+		}
+
+		if( this.body2 ){
+			this.m2.matrix.copy( this.body2.matrixWorld ).multiply( this.mat2 );
+		} else {
+			this.m2.matrix.copy( this.mat2 );
+		}
+
+		this.m2.matrix.premultiply(this.matrix.clone().invert());
+		this.end.setFromMatrixPosition( this.m2.matrix );
+
+
+
+
+
+		//m.matrix = b.matrixWorld;
+        //m.matrixAutoUpdate = false;
+
+		//this.position.fromArray( r, n );
+		//this.quaternion.fromArray( r, n + 3 );
+
+		//this.updateMatrix();
+
+		//this.m2.position.fromArray( r, n+7 );
+		//this.m2.quaternion.fromArray( r, n+10 );
+		//this.m2.matrix.compose( this.m2.position, this.m2.quaternion, {x:1,y:1,z:1} );
+
+		//this.mtx.copy( this.matrix ).invert().multiply( this.m2.matrix );
+		//this.mtx.decompose( this.m2.position, this.m2.quaternion, {x:1,y:1,z:1} );
+		//this.m2.updateMatrix();
+
+		//const position = this.m3.geometry.attributes.position;
+		//position.setXYZ(1, this.m2.position.x, this.m2.position.y, this.m2.position.z)
+
+		this.pp.setXYZ(1, this.end.x, this.end.y, this.end.z);
+		this.pp.needsUpdate = true;
+
+		if( this.mode === 'slider' ){ 
+			this.m1.position.copy( this.end );
+			this.m1.updateMatrix();
+		}
+
+		if( !this.visible ) this.visible = true;
+
+	}
+
+	updateFromPhy ( r, n = 0 ) {
+
+		//if( !this.isVisible ) return
+		if( !this.visible ) return
+
+
+		//m.matrix = b.matrixWorld;
+        //m.matrixAutoUpdate = false;
+
+		this.position.fromArray( r, n );
+		this.quaternion.fromArray( r, n + 3 );
+
+		this.updateMatrix();
+
+		this.m2.position.fromArray( r, n+7 );
+		this.m2.quaternion.fromArray( r, n+10 );
+		this.m2.matrix.compose( this.m2.position, this.m2.quaternion, {x:1,y:1,z:1} );
+
+		this.mtx.copy( this.matrix ).invert().multiply( this.m2.matrix );
+		this.mtx.decompose( this.m2.position, this.m2.quaternion, {x:1,y:1,z:1} );
+		this.m2.updateMatrix();
+
+
+		this.pp.setXYZ(1, this.m2.position.x, this.m2.position.y, this.m2.position.z);
+		this.pp.needsUpdate = true;
+
+		if( this.mode === 'slider' ){ 
+			this.m1.position.copy( this.m2.position );
+			this.m1.updateMatrix();
+		}
+
+		if( !this.visible ) this.visible = true;
+
+	}
+
+	dispose (){
+
+		if( this.body1 ) this.body1.link--;
+		if( this.body2 ) this.body2.link--;
+
+		this.m1.geometry.dispose();
+		this.m2.geometry.dispose();
+		this.m3.geometry.dispose();
+		this.children = [];
+
+	}
+
+}
+
 //----------------
 //  MOTOR JOINT 
 //----------------
@@ -9902,9 +10113,7 @@ class Joint extends Item {
 		while( i-- ){
 
 			j = this.list[i];
-
 			n = N + ( i * Num.joint );
-
 			if( Num.joint === 16 ) j.updateFromPhy( AR, n );
 			else j.update();
 
@@ -9945,8 +10154,6 @@ class Joint extends Item {
 
 			this.v1.fromArray( o.worldAnchor ); 
 			this.v2.fromArray( o.worldAnchor );
-
-			//console.log(body1,body2)
 
 			o.pos1 = body1 ? Utils.toLocal( this.v1, body1 ).toArray() : o.worldAnchor;
 			o.pos2 = body2 ? Utils.toLocal( this.v2, body2 ).toArray() : o.worldAnchor;
@@ -10007,9 +10214,6 @@ class Joint extends Item {
 
 		}
 
-		//if( !o.axis1 ) o.axis1 = [0,0,1]
-		//if( !o.axis2 ) o.axis2 = [0,0,1]
-
 		if( !o.axis1 ) o.axis1 = [1,0,0];
 		if( !o.axis2 ) o.axis2 = [1,0,0];
 
@@ -10028,18 +10232,12 @@ class Joint extends Item {
 
 		if( o.drivePosition) if( o.drivePosition.rot !== undefined ){ o.drivePosition.quat = MathTool.quatFromEuler( o.drivePosition.rot ); delete ( o.drivePosition.rot ); }
 
-		let j = new ExtraJoint( o );
+		let j = new JointDebug( o );
 		j.name = name;
 		j.body1 = body1;
 		j.body2 = body2;
 		
-		/*j.visible = root.jointVisible || false; // joint is visible after first update
-		if(!o.visible) o.visible = j.visible;
-		j.visible = o.visible !== undefined ? o.visible : true;*/
-
 		if( o.visible === undefined ) o.visible = root.jointVisible || false;
-
-		
 
 		// apply option
 		this.set( o, j );
@@ -10050,212 +10248,15 @@ class Joint extends Item {
 		// add to worker 
 		root.post( { m:'add', o:o } );
 
-		return j
+		return j;
 
 	}
 
 	set ( o = {}, j = null ) {
 
 		if( j === null ) j = this.byName( o.name );
-		if( j === null ) return
-
+		if( j === null ) return;
 		if( o.visible !== undefined ) j.visible = o.visible;
-
-	}
-
-}
-
-
-
-
-
-class ExtraJoint extends Basic3D {
-
-	constructor( o = {} ) {
-
-	    super();
-
-	    this.type = 'joint';
-	    this.mode = o.mode || 'hinge';
-	    this.isJoint = true;
-
-	    
-
-	    
-
-	    this.mtx = new Matrix4();
-	    this.size = o.helperSize || 0.1;
-
-	    let material = Mat.get('line');
-
-	    if(this.mode === 'hinge'){
-
-	    	let mat = Mat.get('svg');
-	    	let dt = {
-				min:-180,
-				max:180,
-				fill:false,
-				stroke:true,
-				wireframe:false,
-				size:0.05
-			};
-
-			if(o.lm){
-				dt.min = o.lm[0];
-				dt.max = o.lm[1];
-			}
-
-	    	this.m1 = new AutoSvg('angle', dt, mat );
-	    	this.m2 = new AutoSvg('needle', dt, mat );
-
-	    	this.add( this.m1 );
-	    	this.add( this.m2 );
-
-	    } else {
-	    	
-
-	        const geom = Geo.get('joint');
-		    let g = geom.clone(); 
-		    g.scale( this.size, this.size, this.size);
-		    this.m1 = new LineSegments( g, material );
-		    this.m1.matrixAutoUpdate = false;
-		    
-		    this.add( this.m1 );
-
-		    g = geom.clone(); 
-		    g.scale( this.size*0.8, this.size*0.8, this.size*0.8 );
-		    this.m2 = new LineSegments( g, material );
-		    //this.m2.scale.set( this.size, this.size, this.size)
-		    this.add( this.m2 );
-
-		    this.m2.matrixAutoUpdate = false;
-
-		    this.m2.updateMatrix();
-		    this.m1.updateMatrix();
-	    }
-
-
-
-	    this.body1 = null;
-	    this.body2 = null;
-
-	    this.mat1 = new Matrix4();
-	    this.mat2 = new Matrix4();
-	    this.end = new Vector3();
-
-	    // experimental rotation ?
-	    //Utils.refAxis( this.mat1, o.axis1 )
-	    //Utils.refAxis( this.mat2, o.axis2 )
-
-	    let qq = new Quaternion();
-	    if(o.quat1) this.mat1.makeRotationFromQuaternion(qq.fromArray(o.quat1));
-	    if(o.quat2) this.mat2.makeRotationFromQuaternion(qq.fromArray(o.quat2));
-
-	    this.mat1.setPosition( o.pos1[0], o.pos1[1], o.pos1[2] );
-	    this.mat2.setPosition( o.pos2[0], o.pos2[1], o.pos2[2] );
-	    
-	    
-	    const positions = [ 0, 0, 0, 0, 0, 0 ];
-	    const colors = [ 1, 0, 0, 1, 0, 0 ];
-	    const gline = new BufferGeometry();
-	    gline.setAttribute( 'position', new Float32BufferAttribute( positions, 3 ) );
-	    gline.setAttribute( 'color', new Float32BufferAttribute( colors, 3 ) );
-	    gline.computeBoundingSphere();
-
-
-	    this.m3 = new LineSegments( gline, material );
-	    this.add( this.m3 );
-	    this.m3.matrixAutoUpdate = false;
-
-	    this.pp = this.m3.geometry.attributes.position;
-
-	}
-
-	update () {
-
-		if( !this.visible ) return
-
-		if( this.body1 ){
-			this.matrix.copy( this.body1.matrixWorld ).multiply( this.mat1 );
-		} else {
-			this.matrix.copy( this.mat1 );
-		}
-
-		if( this.body2 ){
-			this.m2.matrix.copy( this.body2.matrixWorld ).multiply( this.mat2 );
-		} else {
-			this.m2.matrix.copy( this.mat2 );
-		}
-
-		this.m2.matrix.premultiply(this.matrix.clone().invert());
-		this.end.setFromMatrixPosition( this.m2.matrix );
-
-
-		//m.matrix = b.matrixWorld;
-        //m.matrixAutoUpdate = false;
-
-		//this.position.fromArray( r, n );
-		//this.quaternion.fromArray( r, n + 3 );
-
-		//this.updateMatrix();
-
-		//this.m2.position.fromArray( r, n+7 );
-		//this.m2.quaternion.fromArray( r, n+10 );
-		//this.m2.matrix.compose( this.m2.position, this.m2.quaternion, {x:1,y:1,z:1} );
-
-		//this.mtx.copy( this.matrix ).invert().multiply( this.m2.matrix );
-		//this.mtx.decompose( this.m2.position, this.m2.quaternion, {x:1,y:1,z:1} );
-		//this.m2.updateMatrix();
-
-		//const position = this.m3.geometry.attributes.position;
-		//position.setXYZ(1, this.m2.position.x, this.m2.position.y, this.m2.position.z)
-
-		this.pp.setXYZ(1, this.end.x, this.end.y, this.end.z);
-		this.pp.needsUpdate = true;
-
-		if( !this.visible ) this.visible = true;
-
-	}
-
-	updateFromPhy ( r, n = 0 ) {
-
-		//if( !this.isVisible ) return
-		if( !this.visible ) return
-
-
-		//m.matrix = b.matrixWorld;
-        //m.matrixAutoUpdate = false;
-
-		this.position.fromArray( r, n );
-		this.quaternion.fromArray( r, n + 3 );
-
-		this.updateMatrix();
-
-		this.m2.position.fromArray( r, n+7 );
-		this.m2.quaternion.fromArray( r, n+10 );
-		this.m2.matrix.compose( this.m2.position, this.m2.quaternion, {x:1,y:1,z:1} );
-
-		this.mtx.copy( this.matrix ).invert().multiply( this.m2.matrix );
-		this.mtx.decompose( this.m2.position, this.m2.quaternion, {x:1,y:1,z:1} );
-		this.m2.updateMatrix();
-
-
-		this.pp.setXYZ(1, this.m2.position.x, this.m2.position.y, this.m2.position.z);
-		this.pp.needsUpdate = true;
-
-		if( !this.visible ) this.visible = true;
-
-	}
-
-	dispose (){
-
-		if( this.body1 ) this.body1.link--;
-		if( this.body2 ) this.body2.link--;
-
-		this.m1.geometry.dispose();
-		this.m2.geometry.dispose();
-		this.m3.geometry.dispose();
-		this.children = [];
 
 	}
 

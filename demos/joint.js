@@ -84,7 +84,8 @@ demo = () => {
     pos = [-2,5,1]
     b1 = phy.add({ type:'sphere', size:[0.1], pos:pos, density:0, material:'debug' })
     b2 = phy.add({ type:'box', size:[0.6,1,1], pos:[ pos[0] - 0.31,pos[1],pos[2] ], density:1 })
-    phy.add({ type:'joint', mode:'slider', b1:b1, b2:b2, lm:[-1,1], lmr:[-90,90], sd:[4,0.7], sdr:[0,0], worldPos:pos, worldAxis:[1,0,0] })
+
+    phy.add({ type:'joint', mode:'slider', b1:b1, b2:b2, lm:[-1,1], lmr:[-145,145], sd:[4,0.7], sdr:[0,0], worldPos:pos, worldAxis:[1,0,0] })
 
 
     // ragdoll
