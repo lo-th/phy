@@ -907,7 +907,14 @@ export class Motor {
 	}
 
 
-	
+
+	/*static joint ( o = {} ) {
+
+		o.type = 'joint';
+		return items.joint.add( o );
+
+	}*/
+
 
 	static addDirect( b ) {
 
@@ -934,8 +941,14 @@ export class Motor {
 		
 		if( o.bounce !== undefined ) o.restitution = o.bounce;
 		if( o.type === undefined ) o.type = 'box';
+		if( o.mode !== undefined ) o.type = 'joint';
 
 		let type = getType( o );
+
+		if( type === 'joint' && o.mode === undefined ){ 
+			o.mode = o.type;
+			o.type = 'joint';
+		}
 
 		return items[type].add( o );
 

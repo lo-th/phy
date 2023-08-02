@@ -200,6 +200,9 @@ export const Mat = {
 			    case 'particle':
 				    m = Mat.create({ name:'particle', type:'basic', toneMapped: false, color:0x00ff00 });
 			    break
+			    case 'svg':
+				    m = Mat.create({ name:'svg', type:'basic', toneMapped:false, vertexColors:true, transparent:false, side:DoubleSide });
+			    break
 
 
 				

@@ -85,10 +85,13 @@ export class Joint extends Item {
 		}
 
 		if( mode === 'd6' ) mode = 'generic'
+		if( mode === 'hinge' ) mode = 'revolute'
+		if( mode === 'slider' ) mode = 'cylindrical'
 
-		const modeName = mode.charAt(0).toUpperCase() + mode.slice(1)
+		let modeName = mode.charAt(0).toUpperCase() + mode.slice(1)
 
-			
+	    if( modeName === 'Distance' ) modeName = 'Cylindrical'
+
 		const jc = new Joints[ modeName + 'JointConfig' ]()
 
 		if( b1 ) jc.rigidBody1 = b1
@@ -179,6 +182,8 @@ export class Joint extends Item {
 
 			break;
 			case 'spherical':
+
+			    //console.log(jc)
 			    //jc.springDamper.frequency = 4.0;
 				//jc.springDamper.dampingRatio = 1;
 
@@ -260,7 +265,7 @@ export class Joint extends Item {
 
 			break;
 
-			case 'cylindrical': // two degrees of freedom
+			case 'cylindrical': case 'distance':// two degrees of freedom
 
 			    if ( o.sdr ) this.spring( j.getRotationalSpringDamper(), o.sdr )
 			    if ( o.lmr ) this.limit( j.getRotationalLimitMotor(), o.lmr )
@@ -269,7 +274,7 @@ export class Joint extends Item {
 				if ( o.lm ) this.limit( j.getTranslationalLimitMotor(), o.lm, true )
 
 				if ( o.rmotor ) this.motor( j.getRotationalLimitMotor(), o.rmotor )
-				if ( o.tmotor) this.motor( j.getTranslationalLimitMotor(), o.tmotor, true )
+				if ( o.tmotor ) this.motor( j.getTranslationalLimitMotor(), o.tmotor, true )
 
 			break;
 
@@ -285,6 +290,8 @@ export class Joint extends Item {
 			break;
 
 			case 'generic': // six degrees of freedom
+
+
 
 			/*if( o.setAxis ){
 				i = o.axis.length

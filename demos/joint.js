@@ -14,7 +14,7 @@ demo = () => {
     })
 
     // config physics setting
-    phy.set({ substep:2, gravity:[0,-9.81,0], jointVisible:true })
+    phy.set({ substep:2, gravity:[0,-9.81,0], jointVisible:true })//
 
     // add static ground
     phy.add({ type:'plane', name:'floor', size:[50,1,50], visible:false })
@@ -23,44 +23,53 @@ demo = () => {
     g.material.map = phy.texture({ url:'./assets/textures/grid.png', repeat:[60,60] })
 
 
-
-
     phy.add({ type:'box', size:[0.2,0.2,0.2], pos:[0,0.1,3], mass:1, restitution:0.5, friction:0.9 })
     phy.add({ type:'box', size:[0.1,0.1,0.1], pos:[0.3,0.05,3], mass:1, restitution:0.5, friction:0.9 })
     //phy.add({ type:'box', size:[0.01,0.01,0.01], pos:[0.4,0.05,3], mass:1, restitution:0.5, friction:0.9 })
-
-
-
 
 
     createBallChain([-2, 5, -2], 0.4, 7);
     createHingeChain([2, 5, -2], 0.3, 7, [0, 0, 1]);
 
 
-    createBoard( 0, 4, 0, [-45,45], [20, 1] );
+    createBoard( 0, 4, 0, [-45,70], [20, 1] );
     createBoard( 0, 6, 0, [-180,180], []);
 
     //createBoard(0, 6, 0, [360,360*4], []);
 
-    // add dynamic sphere
-    b1 = phy.add({ type:'sphere', size:[0.5], pos:[-2,1,0], density:1, restitution:0.5, friction:0.9, radius:0.05 })
-    b2 = phy.add({ type:'box', size:[1,1,1], pos:[ 2,1,0], density:1, restitution:0.5, friction:0.9, radius:0.05 })
 
-    // add simple joint
-    //phy.add({ type:'joint', mode:'ragdoll', b1:'box1', b2:'box2', pos1:[1,0,0], pos2:[-1,0,0], sd:[10, 1] })
+    // add generic joint
+    b1 = phy.add({ type:'sphere', size:[0.5], pos:[-2,0.5,0], density:1, restitution:0.5, friction:0.9, radius:0.05 })
+    b2 = phy.add({ type:'box', size:[1,1,1], pos:[ 2,0.5,0], density:1, restitution:0.5, friction:0.9, radius:0.05 })
     phy.add({ 
-        type:'joint', mode:'d6', b1:b1, b2:b2, pos1:[1,0,0], pos2:[-1,0,0], 
 
-        //axis1:[1,0,0], axis2:[1,0,0],
+        type:'generic', 
+        b1:b1, // link body 1 
+        b2:b2, // link body 2 
+
+        pos1:[1,0,0], 
+        pos2:[-1,0,0], 
+
+        //axis1:[1,0,0], 
+        //axis2:[1,0,0],
         
         // limite : down / up
-        lm:[['x', 0, 2], ['rx', -180, 180 ] ],
+        limit:[['x', 0, 2], ['rx', -180, 180 ] ],
         // sring: frequency / dampingRatio 
         //sd:[ ['x', 0.5, 0.1] ],
         // motor: speed / torque 
-      // motor:[ ['rx', 6, 6] ],
-       collision:true,
-       //noFix:true,
+        // motor:[ ['rx', 6, 6] ],
+        collision:true,
+
+    })
+
+    // add distance joint
+    b1 = phy.add({ type:'sphere', size:[0.25], pos:[-2,0.25,2], mass:1, restitution:0.5, friction:0.9 })
+    b2 = phy.add({ type:'sphere', size:[0.25], pos:[ 2,0.25,2], mass:1, restitution:0.5, friction:0.9 })
+    phy.add({ 
+        type:'distance', b1:b1, b2:b2,
+        limit:[1, 4],
+        collision:true,
     })
 
 
@@ -71,11 +80,11 @@ demo = () => {
     b2 = phy.add({ type:'box', size:[0.6,1,1], pos:pos, density:1 })
     phy.add({ type:'joint', mode:'prismatic', b1:b1, b2:b2, lm:[-1,1], worldPos:pos, worldAxis:[1,1,0] })
 
-    // Cylindrical // slider
+    // slider
     pos = [-2,5,1]
     b1 = phy.add({ type:'sphere', size:[0.1], pos:pos, density:0, material:'debug' })
     b2 = phy.add({ type:'box', size:[0.6,1,1], pos:[ pos[0] - 0.31,pos[1],pos[2] ], density:1 })
-    phy.add({ type:'joint', mode:'cylindrical', b1:b1, b2:b2, lm:[-1,1], lmr:[-180,180], sd:[4,0.7], sdr:[0,0], worldPos:pos, worldAxis:[1,0,0] })
+    phy.add({ type:'joint', mode:'slider', b1:b1, b2:b2, lm:[-1,1], lmr:[-90,90], sd:[4,0.7], sdr:[0,0], worldPos:pos, worldAxis:[1,0,0] })
 
 
     // ragdoll
@@ -95,7 +104,7 @@ demo = () => {
     b1 = phy.add({ type:'box', size:[0.4], pos:[ pos[0],pos[1]+length,pos[2] ], density:0, kinematic:true, angularVelocity:[0,1.5,0], material:'debug' })
     b2 = phy.add({ type:'box', size:[0.4,1,0.4], pos:[ pos[0],pos[1]-length,pos[2] ], density:1 })
     phy.add({ 
-        type:'joint', mode:'universal', b1:b1, b2:b2, 
+        type:'generic', b1:b1, b2:b2, 
         worldPos:pos,  worldAxis:[1,0,0], worldAxis2:[0,0,1],
 
         lm1:[-90*0.5, 90*0.5 ],
@@ -123,7 +132,7 @@ createBoard = ( x, y, z, lm, sd ) => {
 
     let b1 = phy.add({ type:'box', size:[0.2, 0.2, 0.2], pos:[x, y, z],  density:0, material:'debug' })
     let b2 = phy.add({ type:'box', size:[1, 0.4, 0.8], pos:[x + 0.5, y, z], rot:[0,90,0], density:1, radius:0.01 }) 
-    phy.add({ type:'joint', mode:'revolute', b1:b1, b2:b2, worldPos:[x, y, z], worldAxis:[0,0,1], lm:[...lm, ...sd] })
+    phy.add({ type:'hinge', b1:b1, b2:b2, worldPos:[x, y, z], worldAxis:[0,0,1], lm:[...lm, ...sd] })
 
 }
 
@@ -139,8 +148,8 @@ createBallChain = ( from, radius, num ) => {
             from[2]+= math.rand(-0.001, 0.001)
         }
         b2 = phy.add({ type:'sphere', size:[radius * 0.9], pos:[from[0], y, from[2]],  density:1 })
-        if(i===num-1) phy.add({ type:'joint', mode:'spherical', b1:b1, b2:b2, pos1:[0,0,0], pos2:[0,-radius*2,0] })
-        else phy.add({ type:'joint', mode:'spherical', b1:b1, b2:b2, pos1:[0,radius,0], pos2:[0,-radius,0] })
+        if(i===num-1) phy.add({ type:'spherical', b1:b1, b2:b2, pos1:[0,0,0], pos2:[0,-radius*2,0] })
+        else phy.add({ type:'spherical', b1:b1, b2:b2, pos1:[0,radius,0], pos2:[0,-radius,0] })
         b1 = b2
     }
 
@@ -157,8 +166,8 @@ createHingeChain = ( from, radius, num, axis  ) => {
             from[2]+= math.rand(-0.001, 0.001)
         }
         b2 = phy.add({ type:'box', size:[radius, radius * 0.9 *2, radius * 0.9*2], pos:[from[0], y, from[2]],  density:1 })
-        if(i===num-1) phy.add({ type:'joint', mode:'revolute', b1:b1, b2:b2, pos1:[0,0,0], pos2:[0,-radius*2,0], worldAxis:axis })
-        else phy.add({ type:'joint', mode:'revolute', b1:b1, b2:b2, pos1:[0,radius,0], pos2:[0,-radius,0], worldAxis:axis })
+        if(i===num-1) phy.add({ type:'joint', mode:'hinge', b1:b1, b2:b2, pos1:[0,0,0], pos2:[0,-radius*2,0], worldAxis:axis })
+        else phy.add({ type:'hinge', b1:b1, b2:b2, pos1:[0,radius,0], pos2:[0,-radius,0], worldAxis:axis, lm:[-120,120] })
         b1 = b2
     }
 }

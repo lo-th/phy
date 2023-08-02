@@ -7,6 +7,8 @@ import { Utils, root } from './root.js';
 import { Geo } from './base/Geo.js';
 import { Mat } from './base/Mat.js';
 
+import { AutoSvg } from '../3TH/AutoSvg.js';
+
 import {
 	LineSegments, BufferGeometry,
     Object3D, Line, Float32BufferAttribute,
@@ -59,6 +61,8 @@ export class Joint extends Item {
 		let body1 = null;
 		let body2 = null;
 		let isString;
+
+		if( o.limit ) o.lm = o.limit;
 
 		if( o.b1 ) {
 			isString = typeof o.b1 === 'string';
@@ -164,25 +168,27 @@ export class Joint extends Item {
 
 		if( o.drivePosition) if( o.drivePosition.rot !== undefined ){ o.drivePosition.quat = MathTool.quatFromEuler( o.drivePosition.rot ); delete ( o.drivePosition.rot ); }
 
-		let j = new ExtraJoint( Geo.get('joint'), o );
+		let j = new ExtraJoint( o );
 		j.name = name;
-
-		j.visible = root.jointVisible || false; // joint is visible after first update
-
-		if(!o.visible) o.visible = j.visible
-		//j.isVisible = o.visible !== undefined ? o.visible : true;
-		j.visible = o.visible !== undefined ? o.visible : true;
 		j.body1 = body1;
 		j.body2 = body2;
+		
+		/*j.visible = root.jointVisible || false; // joint is visible after first update
+		if(!o.visible) o.visible = j.visible;
+		j.visible = o.visible !== undefined ? o.visible : true;*/
+
+		if( o.visible === undefined ) o.visible = root.jointVisible || false;
+
+		
 
 		// apply option
-		this.set( o, j )
+		this.set( o, j );
 
 		// add to world
-		this.addToWorld( j, o.id )
+		this.addToWorld( j, o.id );
 
 		// add to worker 
-		root.post( { m:'add', o:o } )
+		root.post( { m:'add', o:o } );
 
 		return j
 
@@ -205,36 +211,70 @@ export class Joint extends Item {
 
 export class ExtraJoint extends Basic3D {
 
-	constructor( geom, o ) {
+	constructor( o = {} ) {
 
 	    super()
 
-	    let material = Mat.get('line')
-
 	    this.type = 'joint';
-	    this.mode = 'revolute';
+	    this.mode = o.mode || 'hinge';
 	    this.isJoint = true;
+
+	    
+
+	    
 
 	    this.mtx = new Matrix4();
 	    this.size = o.helperSize || 0.1
-	    let g = geom.clone() 
-	    g.scale( this.size, this.size, this.size)
-	    this.m1 = new LineSegments( g, material )
-	    
-	    this.add(this.m1)
-	    
-	    this.m1.matrixAutoUpdate = false;
 
-	    g = geom.clone() 
-	    g.scale( this.size*0.8, this.size*0.8, this.size*0.8 );
-	    this.m2 = new LineSegments( g, material )
-	    //this.m2.scale.set( this.size, this.size, this.size)
-	    this.add( this.m2 );
+	    let material = Mat.get('line')
 
-	    this.m2.matrixAutoUpdate = false;
+	    if(this.mode === 'hinge'){
 
-	    this.m2.updateMatrix()
-	    this.m1.updateMatrix()
+	    	let mat = Mat.get('svg')
+	    	let dt = {
+				min:-180,
+				max:180,
+				fill:false,
+				stroke:true,
+				wireframe:false,
+				size:0.05
+			}
+
+			if(o.lm){
+				dt.min = o.lm[0]
+				dt.max = o.lm[1]
+			}
+
+	    	this.m1 = new AutoSvg('angle', dt, mat );
+	    	this.m2 = new AutoSvg('needle', dt, mat );
+
+	    	this.add( this.m1 );
+	    	this.add( this.m2 );
+
+	    } else {
+	    	
+
+	        const geom = Geo.get('joint');
+		    let g = geom.clone() 
+		    g.scale( this.size, this.size, this.size)
+		    this.m1 = new LineSegments( g, material )
+		    this.m1.matrixAutoUpdate = false;
+		    
+		    this.add( this.m1 )
+
+		    g = geom.clone() 
+		    g.scale( this.size*0.8, this.size*0.8, this.size*0.8 );
+		    this.m2 = new LineSegments( g, material )
+		    //this.m2.scale.set( this.size, this.size, this.size)
+		    this.add( this.m2 );
+
+		    this.m2.matrixAutoUpdate = false;
+
+		    this.m2.updateMatrix()
+		    this.m1.updateMatrix()
+	    }
+
+
 
 	    this.body1 = null
 	    this.body2 = null

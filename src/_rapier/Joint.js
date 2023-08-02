@@ -195,7 +195,6 @@ export class Joint extends Item {
 
 		}
 
-		//console.log(j)
 
 		
 
@@ -225,7 +224,7 @@ export class Joint extends Item {
 
 		//j.handle = jv.handle
 
-		//console.log(j.jtype, j.type())
+	    //console.log(j)
 
 		this.addToWorld( j, o.id )
 		

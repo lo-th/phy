@@ -60,12 +60,17 @@ export const getArray = function ( engine, full = false ){
 
 }
 
-export const getType = function (o){
-    switch(o.type){
+export const getType = function ( o ) {
+    switch( o.type ){
         case 'plane': case 'box': case 'sphere': case 'highSphere': case 'cylinder': case 'stair':case 'particle':
         case 'cone': case 'capsule': case 'mesh': case 'convex': case 'compound': case 'null':
-        if ( !o.mass && !o.density && !o.kinematic ) return 'solid'
-        else return 'body'
+            if ( !o.mass && !o.density && !o.kinematic ) return 'solid'
+            else return 'body'
+        break;
+        case 'generic': case 'hinge': case 'slider': case 'spherical': case 'fixe':
+        case "dof": case "d6": case 'ragdoll': case 'universal': case 'cylindrical': case "distance":
+        case 'revolute': case "prismatic": 
+            return 'joint'
         break;
         default: 
             return o.type 

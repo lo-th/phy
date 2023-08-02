@@ -146,61 +146,24 @@ export class Joint extends Item {
 
         //console.log(axisA, axisB, perpAxisA, perpAxisB)
 
-		let mode = o.mode || 'revolute';
-
-		const CA = this.ConstraintAxis;
+        const CA = this.ConstraintAxis;
 		const LM = this.LimitMode
 
+		let mode = o.mode || 'revolute';
+
+		if( mode==='d6' || mode==='universal' || mode==='dof' || mode==='ragdoll') mode = 'generic'
+		if( mode==='revolute' ) mode = 'hinge'
+		if( mode==='cylindrical' ) mode = 'slider'
+
+		
 		switch ( mode ) {
-			case 'fixe':
-			for(let t in CA){
-            	if(t!=='LINEAR_DISTANCE') havok.HP_Constraint_SetAxisMode(j, CA[t], LM.LOCKED)	
-            }
-			break;
-			case 'hinge': case "revolute":
-			havok.HP_Constraint_SetAxisMode(j, CA.LINEAR_X, LM.LOCKED)
-            havok.HP_Constraint_SetAxisMode(j, CA.LINEAR_Y, LM.LOCKED)
-            havok.HP_Constraint_SetAxisMode(j, CA.LINEAR_Z, LM.LOCKED)
-            //havok.HP_Constraint_SetAxisMode(j, CA.ANGULAR_X, LM.LOCKED)
-            havok.HP_Constraint_SetAxisMode(j, CA.ANGULAR_Y, LM.LOCKED)
-            havok.HP_Constraint_SetAxisMode(j, CA.ANGULAR_Z, LM.LOCKED)
-            break;
-            case 'prismatic':
-			havok.HP_Constraint_SetAxisMode(j, CA.LINEAR_Y, LM.LOCKED)
-            havok.HP_Constraint_SetAxisMode(j, CA.LINEAR_Z, LM.LOCKED)
-            havok.HP_Constraint_SetAxisMode(j, CA.ANGULAR_X, LM.LOCKED)
-            havok.HP_Constraint_SetAxisMode(j, CA.ANGULAR_Y, LM.LOCKED)
-            havok.HP_Constraint_SetAxisMode(j, CA.ANGULAR_Z, LM.LOCKED)
-            break;
-            case 'slider': case 'cylindrical':
-			havok.HP_Constraint_SetAxisMode(j, CA.LINEAR_Y, LM.LOCKED)
-            havok.HP_Constraint_SetAxisMode(j, CA.LINEAR_Z, LM.LOCKED)
-            havok.HP_Constraint_SetAxisMode(j, CA.ANGULAR_Y, LM.LOCKED)
-            havok.HP_Constraint_SetAxisMode(j, CA.ANGULAR_Z, LM.LOCKED)
-            break;
-            case 'spherical':
-			havok.HP_Constraint_SetAxisMode(j, CA.LINEAR_X, LM.LOCKED)
-            havok.HP_Constraint_SetAxisMode(j, CA.LINEAR_Y, LM.LOCKED)
-            havok.HP_Constraint_SetAxisMode(j, CA.LINEAR_Z, LM.LOCKED)
-            //havok.HP_Constraint_SetAxisMode(j, CA.LINEAR_DISTANCE, LM.LOCKED)
-            //console.log(havok.HP_Constraint_GetAxisMode(j, CA.LINEAR_DISTANCE), this.LimitMode)
-            break;
-            case 'distance':
-            const distance = o.maxDistance || 0;
-            const dist3d = CA.LINEAR_DISTANCE;
-            havok.HP_Constraint_SetAxisMode(j, dist3d, LM.LIMITED)
-            havok.HP_Constraint_SetAxisMinLimit(j, dist3d, distance)
-            havok.HP_Constraint_SetAxisMaxLimit(j, dist3d, distance)
-            break;
-            case "dof": case "d6": case 'ragdoll': case 'universal':
-
-            for(let t in CA){
-            	if(t!=='LINEAR_DISTANCE') havok.HP_Constraint_SetAxisMode(j, CA[t], LM.LOCKED)
-            }
-            break;
+			case 'fixe': this.lock( j, ['x', 'y', 'z', 'rx', 'ry', 'rz'] ); break;
+			case 'hinge': this.lock( j, ['x', 'y', 'z', 'ry', 'rz'] ); break;
+            case 'prismatic': this.lock( j, ['y', 'z', 'rx','ry', 'rz'] ); break;
+            case 'slider': this.lock( j, ['y', 'z', 'ry', 'rz'] );  break;
+            case 'spherical': this.lock( j, ['x', 'y', 'z'] ); break;
+            case "generic": this.lock( j, ['x', 'y', 'z', 'rx', 'ry', 'rz'] ); break;
 		}
-
-
 
 		let collisionEnabled = o.collision !== undefined ? o.collision : false;
 
@@ -214,8 +177,6 @@ export class Joint extends Item {
 		j.visible = o.visible !== undefined ? o.visible : true; 
 
 		//console.log(j)
-
-		//if( j.mode ==='Generic' ) console.log( j.getAxisY() )
 
 
 		// apply option
@@ -237,12 +198,11 @@ export class Joint extends Item {
 		let i 
 
 
-
 		if( o.enable !== undefined ) havok.HP_Constraint_SetEnabled(j, o.enable);
 
 		switch(j.mode ){
 
-			case 'hinge': case "revolute":
+			case 'hinge':
 			if( o.lm ) this.setLimit( j, [ 'rx', ...o.lm ] )
 			if( o.motor ) this.setMotor( j, o.motor[1], o.motor[2], 'ANGULAR_X' )
 			if( o.friction !== undefined ) this.setFriction( j, o.friction, 'ANGULAR_X' )
@@ -253,7 +213,7 @@ export class Joint extends Item {
 			if( o.lm ) this.setLimit( j, [ 'x', ...o.lm ] )
 			break;
 
-		    case 'slider': case 'cylindrical':
+		    case 'slider':
 			if( o.lm ) this.setLimit( j, [ 'x', ...o.lm ]  )
 			if( o.lmr ) this.setLimit( j, [ 'rx', ...o.lmr ] )
 			break;
@@ -266,7 +226,13 @@ export class Joint extends Item {
 			}
 			break;
 
-		    case 'dof': case 'd6': case 'ragdoll': case 'universal':
+			case 'distance':
+			if( o.lm ) this.setLimit( j, [ 'distance', ...o.lm ] )
+			break;
+
+			
+
+		    case "generic": 
 
 
 		    if( o.motion ){ 
@@ -313,9 +279,14 @@ export class Joint extends Item {
 
 	}
 
+	lock( j, axes ){
+		let i = axes.length;
+		while( i-- ) havok.HP_Constraint_SetAxisMode( j, this.ConstraintAxis[ this.convert[axes[i]] ], this.LimitMode.LOCKED );
+	}
+
 	setLimitMode( j, axe, type ){
 
-		havok.HP_Constraint_SetAxisMode( j, this.ConstraintAxis[ axe ], this.LimitMode[type] )
+		havok.HP_Constraint_SetAxisMode( j, this.ConstraintAxis[ axe ], this.LimitMode[ type ] )
 
 	}
 

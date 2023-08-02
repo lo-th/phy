@@ -139,7 +139,7 @@ export class Joint extends Item {
 		let j
 
 		let mode = o.mode || 'revolute';
-		if( mode==='d6' || mode==='universal' || mode==='generic') mode = 'dof'
+		if( mode==='d6' || mode==='universal' || mode==='dof') mode = 'generic'
 		if( mode==='slider' || mode==='cylindrical') mode = 'prismatic'
 		if( mode==='joint_p2p') mode='spherical'
 		if( mode==='conetwist') mode='ragdoll'
@@ -154,7 +154,11 @@ export class Joint extends Item {
 				if ( o.impulse ) j.get_m_setting().set_m_impulseClamp( o.impulse );
 			break;
 			case 'distance':
-			    j = new Ammo.btGeneric6DofSpringConstraint( b1, b2, formA, formB, useA );
+			    if(o.lm){
+			    	posA.setValue( posA.x()+o.lm[0] , posA.y(), posA.z() );
+			    	posB.setValue( posB.x()+o.lm[1] , posB.y(), posB.z() );
+			    }
+			    j = new Ammo.btPoint2PointConstraint( b1, b2, posA, posB );
 				//j = new Ammo.btDistanceConstraint( b1, b2, posA, posB );
 				//if ( o.strength ) j.get_m_setting().set_m_tau( o.strength );
 				//if ( o.damping ) j.get_m_setting().set_m_damping( o.damping );
@@ -171,7 +175,7 @@ export class Joint extends Item {
 			case "prismatic": j = new Ammo.btSliderConstraint( b1, b2, formA, formB, useA );  break;
 			case 'ragdoll': j = new Ammo.btConeTwistConstraint( b1, b2, formA, formB ); break;
 			//case "dof": j = new Ammo.btGeneric6DofConstraint( b1, b2, formA, formB, useA ); break;
-			case "dof": 
+			case "generic": 
 			j = new Ammo.btGeneric6DofSpringConstraint( b1, b2, formA, formB, useA );
 			// by default i lock all angle
 			//j.setAngularLowerLimit( this.v1.fromArray([0,0,0]))
@@ -260,17 +264,18 @@ export class Joint extends Item {
 			break;
 
 			case "distance" :
-				if(o.lm){
+			//console.log(j)
+				/*if(o.lm){
 				    j.setAngularLowerLimit( this.v1.fromArray([-Math.PI, -Math.PI, -Math.PI]) )
 				    j.setAngularUpperLimit( this.v1.fromArray([Math.PI, Math.PI, Math.PI]) )
 
 				    j.setLinearLowerLimit( this.v1.fromArray([o.lm[0], 0, 0]) )
 				    j.setLinearUpperLimit( this.v1.fromArray([o.lm[1], 0, 0]) )
-				}
+				}*/
 			break;
 
 
-			case "dof" : case "sdof" :
+			case "generic" :
 
 
 			// https://pybullet.org/Bullet/BulletFull/classbtGeneric6DofSpring2Constraint.html#a38a394ba85aa31aa53ff4236ac22cd1c	
