@@ -9642,7 +9642,7 @@ class AutoSvg extends Mesh {
 			};
 			this.fill = o.fill !== undefined ? o.fill : true;
 	        this.stroke = o.stroke !== undefined ? o.stroke : true;
-			this.add( 'path', { d: this.circle(0,0, 0.5, 0, 360, false, true, 0), stroke:'#FFFFFF', 'stroke-opacity':1, 'stroke-width':o.strokeSize, fill:'none', 'stroke-linecap':'butt' } );
+			this.add( 'path', { d: this.circle(0,0, 0.7, 0, 360, false, true, 0), stroke:'#FFFFFF', 'stroke-opacity':1, 'stroke-width':o.strokeSize, fill:'none', 'stroke-linecap':'butt' } );
 			this.add( 'path', { d: this.segment({x:0, y:0}, {x:0, y:4.4} ), stroke:'#FFFFFF', 'stroke-opacity':1, 'stroke-width':o.strokeSize, fill:'none', 'stroke-linecap':'round' } );
 			break;
 
