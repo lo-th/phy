@@ -21,15 +21,15 @@ const matExtra = {
 
 	//clearcoat:1.0,
 	//clearcoatRoughness:0.1,
-	metalness: 0.6,
-	roughness: 0.3,
+	metalness: 0.0,
+	roughness: 0.2,
 	//normalScale: new Vector2(0.25,0.25),
 
 }
 
 export const Colors = {
     body:new Color( 0xefefd4 ),
-    sleep:new Color( 0xBFBFAD ),
+    sleep:new Color( 0xBFBFBD ),//0xBFBFAD
     solid:new Color( 0x6C6A68 ),
     base:new Color( 0xFFFFFF ),
     black:new Color( 0x222222 ),
@@ -125,7 +125,12 @@ export const Mat = {
 	
 	getList: () => {
 
-		return mat
+		let l = {...mat}
+		const ignor = ['line', 'debug', 'hide', 'svg']
+		let i = ignor.length
+		while(i--) delete l[ignor[i]];
+
+		return l
 
 	},
 

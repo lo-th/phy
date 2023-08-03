@@ -48,7 +48,7 @@ export const Gui = {
 	matList:null,
 
 	imageMap: ['map', 'map1', 'map2', 'emissiveMap', 'sheenColorMap'],
-	imageNormal: [ 'normalMap', 'normalMap1','normalMap2','aoMap', 'metalnessMap', 'roughnessMap', 'alphaMap','anisotropyMap', 'specularIntensityMap' ],
+	imageNormal: [ 'normalMap', 'normalMap1','normalMap2','aoMap', 'metalnessMap', 'roughnessMap', 'alphaMap','anisotropyMap', 'specularIntensityMap', 'displacementMap', 'bumpMap' ],
 	
 	MaterialMesh:[ 'Basic', 'Physical', 'Standard', 'Toon', 'Lambert', 'Phong', 'Shader' ],
 
@@ -109,6 +109,10 @@ export const Gui = {
 
 	setMain: ( r ) => { 
 		Main = r;
+	},
+
+	setTextureConstrutor: ( Texture ) => {
+		UIL.Tools.texture = Texture;
 	},
 
 	
@@ -644,6 +648,8 @@ export const Gui = {
 
     	const ui = Gui.ui
 
+        const mode = 2
+
         ui.clear()
 
 		let mats = Main.motor.getMaterialList()
@@ -658,7 +664,7 @@ export const Gui = {
 		
 		let m = mats[ Gui.currentMat ]
 
-		console.log(m)
+		//console.log(m)
 
 		let type = m.type
 		if( type.search( 'Mesh' )!==-1 ) type = type.substring( 4 ) 
@@ -673,46 +679,37 @@ export const Gui = {
 
 		//return
 
-		let g0 = ui.add('group', { name:'COLORS', open:true })
+		let g0 = ui.add('group', { name:'COLORS', color:'#FFaaaa', h:30 });
 
-	    if(m.color!==undefined){
-		    m.cc = m.color.getHex()
-		    g0.add( m, 'cc', { type:'color', rename:'color' } ).onChange( function( c ){ m.color.setHex( c ); } )
-		}
+	    if( m.color!==undefined ) g0.add( m, 'color', {} );
+		if( m.specularColor!==undefined ) g0.add( m, 'specularColor', { rename:'specular' } );
+		if( m.emissive!==undefined ) g0.add( m, 'emissive', {} );
+		if( m.sheen!==undefined ) g0.add( m, 'sheenColor', { rename:'sheen' } );
+	    
 
-		if(m.specularColor!==undefined){
-	    	m.sp = m.specularColor.getHex()
-	    	g0.add( m, 'sp', { type:'color', rename:'specular' } ).onChange( function( c ){ m.specularColor.setHex( c ); } )
-	    }
-
-		if(m.emissive!==undefined){
-		    m.em = m.emissive.getHex()
-		    g0.add( m, 'em', { type:'color', rename:'emissive' } ).onChange( function( c ){ m.emissive.setHex( c ); } )
-		}
-
-		if(m.sheen!==undefined){
-	    	m.ss = m.sheenColor.getHex()
-	    	g0.add( m, 'ss', { type:'color', rename:'sheen' } ).onChange( function( c ){ m.sheenColor.setHex( c ); } )
-	    } 
-
-
-		let g1 = ui.add('group', { name:'IMAGES' })
-
+		let g1 = ui.add('group', { name:'IMAGES', color:'#FFFF88', h:30 })
 
 	    let images = [...Gui.imageMap, ...Gui.imageNormal ], t, str
 
 	    for( let i = 0; i<images.length; i++ ){
 	    	t = images[i]
 	    	name = 'null'
-	    	if(m[t]){
+	    	/*if(m[t]){
 	    		str = m[t].source.data.currentSrc || 'Direct';
 	    	    name = str.substring( str.lastIndexOf('/')+1 )
-	    	} 
-	    	if(m[t]!==undefined) g1.add( 'bitmap',  { name:t, value:name, type:'bitmap' }).onChange( function( file, img, name ){ Gui.setTexure(file, img, name, m ) } )
+	    	} */
+	    	if(m[t]!==undefined){ 
+	    		let short = t.substring( 0, t.lastIndexOf('M') );
+	    		let colorSpace = ''
+	    		if( short==='displacement') short='displace'
+	    		if( t==='map' || short==='emissive' || short==='sheen' ) colorSpace = 'srgb'
+	    		//g1.add( 'bitmap',  { name:t, rename:short, value:name, type:'bitmap' }).onChange( function( file, img, name ){ Gui.setTexture(file, img, name, m ) } )
+	    	    g1.add( m, t,  { name:t, rename:short, colorSpace:colorSpace, type:'bitmap', h:30 })//.onChange( function( file, img, name ){ Gui.setTexture(file, img, name, m ) } )
+	    	}
 
 	    }
 
-	    let g2 = ui.add('group', { name:'OPTIONS' })
+	    let g2 = ui.add('group', { name:'OPTIONS', color:'#88FFFF', h:30 })
 
 	    if(m.randomUv!==undefined) g2.add( m, 'randomUv', {  })
 		if(m.wireframe!==undefined) g2.add( m, 'wireframe', {  })
@@ -725,48 +722,56 @@ export const Gui = {
 		if(m.premultipliedAlpha!==undefined) g2.add( m, 'premultipliedAlpha', {  })
 		if(m.transparent!==undefined) g2.add( m, 'transparent', {  })
 
-		let g3 = ui.add('group', { name:'VALUES', open:true })
+		let g3 = ui.add('group', { name:'VALUES', open:true, h:30 })
 
 		if(m.normalScale!==undefined){
-			g3.add( m.normalScale, 'x', { min:-10, max:10, precision:1 })
-			g3.add( m.normalScale, 'y', { min:-10, max:10, precision:1 })
+			g3.add( m, 'normalScale', { rename:'normal', min:-10, max:10, precision:2 })
+			//g3.add( m.normalScale, 'x', { rename:'normal x', min:-10, max:10, precision:1 })
+			//g3.add( m.normalScale, 'y', { rename:'normal y', min:-10, max:10, precision:1 })
 		}
+		if(m.clearcoatNormalScale!==undefined){
+			g3.add( m, 'clearcoatNormalScale', { rename:'clearcoat n', min:-10, max:10, precision:2 })
+		}
+
+		let deff = { min:0, max:1, mode:mode }
 
 		
 
 
-	    if(m.metalness!==undefined) g3.add( m, 'metalness', { min:0, max:1 })
-		if(m.roughness!==undefined) g3.add( m, 'roughness', { min:0, max:1 })
+	    if(m.metalness!==undefined) g3.add( m, 'metalness', { ...deff })
+		if(m.roughness!==undefined) g3.add( m, 'roughness', { ...deff })
 
-		if(m.specularIntensity!==undefined) g3.add( m, 'specularIntensity', { min:0, max:1 })
-		if(m.aoMapIntensity!==undefined) g3.add( m, 'aoMapIntensity', { min:0, max:1 })
-		if(m.emissiveIntensity!==undefined) g3.add( m, 'emissiveIntensity', { min:0, max:1 })
+		if(m.envMapIntensity!==undefined) g3.add( m, 'envMapIntensity', { ...deff, rename:'envmap', max:3 })
+		if(m.opacity!==undefined) g3.add( m, 'opacity', { ...deff })
+		if(m.reflectivity!==undefined) g3.add( m, 'reflectivity', {...deff})
 
-		if(m.opacity!==undefined) g3.add( m, 'opacity', { min:0, max:1 })
-		if(m.reflectivity!==undefined) g3.add( m, 'reflectivity', {min:0, max:1})
+		if(m.specularIntensity!==undefined) g3.add( m, 'specularIntensity', { ...deff })
+		if(m.aoMapIntensity!==undefined) g3.add( m, 'aoMapIntensity', { ...deff, rename:'ao' })
+		if(m.emissiveIntensity!==undefined) g3.add( m, 'emissiveIntensity', { ...deff, rename:'emissive', max:3 })
 
-		if(m.reflectif!==undefined) g3.add( m, 'reflectif', { min:0, max:1 })
+		if(m.bumpScale!==undefined) g3.add( m, 'bumpScale', { ...deff, rename:'bump', max:3 })
+		if(m.reflectif!==undefined) g3.add( m, 'reflectif', { ...deff })
 
-	    if(m.envMapIntensity!==undefined) g3.add( m, 'envMapIntensity', { rename:'env', min:0, max:4 })
-	    if(m.thickness!==undefined) g3.add( m, 'thickness', { min:-4, max:4 })
-	    if(m.clearcoat!==undefined) g3.add( m, 'clearcoat', { min:0, max:1 })
-	    if(m.clearcoatRoughness!==undefined) g3.add( m, 'clearcoatRoughness', { min:0, max:1 })
+	    
+	    if(m.thickness!==undefined) g3.add( m, 'thickness', { ...deff, min:-4, max:4 })
+	    if(m.clearcoat!==undefined) g3.add( m, 'clearcoat', { ...deff })
+	    if(m.clearcoatRoughness!==undefined) g3.add( m, 'clearcoatRoughness', { ...deff })
 
 
 
 	    if(m.sheen!==undefined){ 
-	    	g3.add( m, 'sheen', {min:0, max:4})
-	    	g3.add( m, 'sheenRoughness', {min:0, max:1})
+	    	g3.add( m, 'sheen', {...deff,min:0, max:4})
+	    	g3.add( m, 'sheenRoughness', {...deff})
 	    	
 	    }
 
-	    if(m.iridescence!==undefined) g3.add( m, 'iridescence', {min:0, max:1})
+	    if(m.iridescence!==undefined) g3.add( m, 'iridescence', {...deff})
 
-	    if(m.anisotropy!==undefined) g3.add( m, 'anisotropy', {min:0, max:1})
-	    if(m.anisotropyRotation!==undefined) g3.add( m, 'anisotropyRotation', {min:0, max:1})
+	    if(m.anisotropy!==undefined) g3.add( m, 'anisotropy', {...deff})
+	    if(m.anisotropyRotation!==undefined) g3.add( m, 'anisotropyRotation', {...deff})
 
-	    if(m.ior!==undefined) g3.add( m, 'ior', { min:0, max:4 })
-	    if(m.transmission!==undefined) g3.add( m, 'transmission', { min:0, max:1 })
+	    if(m.ior!==undefined) g3.add( m, 'ior', { ...deff, min:0, max:4 })
+	    if(m.transmission!==undefined) g3.add( m, 'transmission', { ...deff })
 
 
 		//Gui.mat.open()
@@ -775,7 +780,16 @@ export const Gui = {
 
 	},
 
-	setTexure:( file, img, name, mat, o = {} ) => {
+	setTexture:( file, img, name, mat, o = {} ) => {
+
+		if( name==='displace') name = 'displacementMap'
+		else if( name!=='map') name = name + 'Map'
+
+		if( file === null ){ 
+			mat[name] = null;
+			//mat.needsUpdate = true;
+			return;
+		}
 
 		let ref = mat[name]
 		if(ref){
@@ -784,22 +798,24 @@ export const Gui = {
 
 		o.encoding = Gui.imageMap.indexOf(name) !== -1
 		o.flipY = false
-		
+
 		let fileName = file.substring( 0, file.lastIndexOf('.') );
 		let fileType = file.substring( file.lastIndexOf('.')+1 );
 		
 
-		if(fileType==='exr'){
+		if( fileType==='exr' ){
 			//console.log(img)
 			//mat[name] = 
 			Pool.load_EXR( file, fileName, function(t){mat[name] = t} )
 		} else {
+
 			let im = new Image()
 			im.src = img
 			im.onload = function (){
 
 				Pool.data.set( 'I_' + fileName, im )
-			    mat[name] = Pool.getTexture( fileName, o )
+			    mat[name] = Pool.getTexture( fileName, o );
+			    //mat.needsUpdate = true;
 
 			}
 		}

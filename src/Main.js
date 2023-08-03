@@ -220,6 +220,9 @@ export const Main = {
 
 		Hub.setMain( Main )
 		Gui.setMain( Main )
+		Gui.setTextureConstrutor( THREE.Texture )
+
+		console.log(THREE.SRGBColorSpace, THREE.NoColorSpace)
 
 		activeWebGPU = o.webGPU || false;
 
