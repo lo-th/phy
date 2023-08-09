@@ -9,71 +9,66 @@ export class Container {
 
 	constructor ( o = {} ) {
 
-		this.isCompound = true
-
-		this.init(o)
+		this.isCompound = true;
+		this.remplace = o.remplace || false;
+		this.init(o);
 
 	}
 
-	init ( o ) {
+	init ( o = {} ) {
 
 
-		let s = o.size || [5,3,8]
-		let p = o.pos || [0,2,0]
-		let w = 0.1
-		let mw = w * 0.5
-		let xw = w * 2
+		let s = o.size || [5,3,8];
+		let p = o.pos || [0,2,0];
+		let w = o.wall || 0.1;
+		let mw = w * 0.5;
+		let xw = w * 2;
 
-		let geometry = new ChamferBox( s[ 0 ], s[ 1 ], s[ 2 ], o.radius || mw );
-		//let geometry = new BoxGeometry( s[ 0 ], s[ 1 ], s[ 2 ] );
-		let mesh = new Mesh( geometry );
+		if(!o.face) o.face = {};
+		let f = { up:1, down:1, left:1, right:1, front:1, back:1, ...o.face };
+		delete o.face;
 
+		//let geometry = new ChamferBox( s[ 0 ], s[ 1 ], s[ 2 ], o.radius || mw );
+		//let mesh = new Mesh( geometry );
 
-		let size = [
+		const data = [];
 
-		    [w, s[1]-xw, s[2]],
-			[w, s[1]-xw, s[2]],
+		if(f.up===1) data.push({ pos:[0, s[1]*0.5-mw, 0], size:[s[0], w, s[2]] });
+		if(f.down===1) data.push({ pos:[0, mw-s[1]*0.5, 0], size:[s[0], w, s[2]] });
 
-			[s[0], w, s[2]],
-			[s[0], w, s[2]],
+		if(f.left===1) data.push({ pos:[mw-s[0]*0.5, 0, 0 ], size:[w, s[1]-xw, s[2]] });
+		if(f.right===1) data.push({ pos:[s[0]*0.5-mw, 0, 0 ], size:[w, s[1]-xw, s[2]] });
 
-			[s[0]-xw, s[1]-xw, w],
-			[s[0]-xw, s[1]-xw, w],
+		if(f.back===1) data.push({ pos:[0, 0, mw-s[2]*0.5], size:[s[0]-xw, s[1]-xw, w] });
+		if(f.front===1) data.push({ pos:[0, 0, s[2]*0.5-mw], size:[s[0]-xw, s[1]-xw, w] });
 
-		]
+		const faces = [];
+		let i = data.length, n=0, pp, d;
 
-		let pos = [
-
-		    [mw-s[0]*0.5, 0, 0 ],
-			[s[0]*0.5-mw, 0, 0 ],
-
-			[0, mw-s[1]*0.5, 0 ],
-			[0, s[1]*0.5-mw, 0 ],
-
-			[0, 0, mw-s[2]*0.5],
-			[0, 0, s[2]*0.5-mw],
-
-		]
-
-		const faces = []
-		let i = 6, n=0, pp
 		while( i-- ){
 
-			pp = this.isCompound ? pos[n] : MathTool.addArray(p, pos[n])
-			faces.push( { type:'box', size:size[n], pos:pp, material:o.material } )
+			d = data[n];
+			pp = this.isCompound ? d.pos : MathTool.addArray(p, d.pos);
+			faces.push( { type:'box', size:d.size, pos:pp, material:o.material } );
 			n++
 
 		}
 
-		if(this.isCompound){
+		
+
+		if( this.isCompound ){
+			let mesh = null;
+			if( this.remplace ){
+				mesh = new Mesh( new ChamferBox( s[ 0 ], s[ 1 ], s[ 2 ], o.radius || mw ) );
+			}
 			root.motor.add({
 				...o,
-				shapes:faces,
 				mesh:mesh,
+				shapes:faces,
 		        type:'compound',
-		    })	
+		    });
 		} else {
-			root.motor.add( faces )
+			root.motor.add( faces );
 		}
 		
 	}

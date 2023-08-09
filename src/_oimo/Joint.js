@@ -259,6 +259,9 @@ export class Joint extends Item {
 			
 			case 'prismatic': case 'revolute': // one degree of freedom
 
+			    if( o.spring ) o.sd = o.spring
+			    if( o.limit ) o.lm = o.limit
+
 				if( o.sd ) this.spring( j.getSpringDamper(), o.sd )
 			    if( o.lm ) this.limit( j.getLimitMotor(), o.lm, j.mode === 'prismatic' )
 			    if( o.motor ) this.motor( j.getLimitMotor(), o.motor, j.mode === 'prismatic' )

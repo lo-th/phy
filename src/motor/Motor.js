@@ -717,35 +717,10 @@ export class Motor {
 
 	
 
-	static texture( o = {} ) {
-		return Pool.texture( o )
-	}
 
 
-	//-----------------------
-	//  MATERIAL
-	//-----------------------
 
-	static material ( o = {} ){ return Mat.create( o ) }
 
-	static setExtendShader ( f ) { Mat.extendShader = f }
-
-	static getMaterialList(){ return Mat.getList(); }
-
-	static getOneMaterial( name ){ 
-		console.log('use getMat')
-		return Mat.get( name ) 
-	}
-
-	static addMaterial( m, direct ){ Mat.set( m, direct ); }
-
-	static setEnvmapIntensity ( v ) { Mat.setEnvmapIntensity(v); }
-
-	static getMat( name ){ return Mat.get( name ) }
-
-	//static getMat () { return Mat; }
-
-	//static getHideMat() { return Mat.get('hide'); }
 
 	
 	
@@ -1112,8 +1087,36 @@ export class Motor {
 
 	}
 
+
 	//-----------------------
-	// FROM POOL
+	//  TEXTURE
+	//-----------------------
+
+	static texture( o = {} ) {
+		return Pool.texture( o )
+	}
+
+
+	//-----------------------
+	//  MATERIAL
+	//-----------------------
+
+	static material ( o = {} ){ return Mat.create( o ) }
+
+	static setExtendShader ( f ) { Mat.extendShader = f }
+
+	static getMaterialList(){ return Mat.getList(); }
+
+	static addMaterial( m, direct ){ Mat.set( m, direct ); }
+
+	static setEnvmapIntensity ( v ) { Mat.setEnvmapIntensity(v); }
+
+	static getMat( name ){ return Mat.get( name ) }
+
+	//-----------------------
+	//
+	//  POOL
+	//
 	//-----------------------
 
 	static load ( Urls, Callback, Path = '', msg = '' ){
@@ -1121,49 +1124,45 @@ export class Motor {
 	}
 
 	static applyMorph ( modelName, meshs = null, normal = true, relative = true ){
-		Pool.applyMorph( modelName, meshs = null, normal = true, relative = true )
+		Pool.applyMorph( modelName, meshs = null, normal = true, relative = true );
 	}
 
-	/*static uv2 ( model ){
-		Pool.uv2( model )
-	}*/
-
 	static getMesh ( obj, keepMaterial ){
-		if(keepMaterial){
-			let mm = Pool.getMaterials(obj)
+		if( keepMaterial ){
+			let mm = Pool.getMaterials(obj);
 			for( let m in mm ){
-				Motor.addMaterial( mm[m] )
+				Motor.addMaterial( mm[m] );
 			}
 		}
-		return Pool.getMesh( obj, keepMaterial )
+		return Pool.getMesh( obj, keepMaterial );
 	}
 
 	static getGroup ( obj, autoMesh, autoMaterial ){
-		return Pool.getGroup( obj, autoMesh, autoMaterial )
+		return Pool.getGroup( obj, autoMesh, autoMaterial );
 	}
 
 	/*static getMaterial ( name ){
 		return Pool.getMaterial( name )
-	}*/
+	}
 
 	static getTexture ( name, o ){
 		return Pool.getTexture( obj, autoMesh, autoMaterial )
-	}
+	}*/
 
 	static getScript ( name ){
-		return Pool.getScript( name )
+		return Pool.getScript( name );
 	}
 
 	static get ( name, type ){
-		return Pool.get( name, type )
+		return Pool.get( name, type );
 	}
 
 	static poolDispose (){
-		return Pool.dispose()
+		return Pool.dispose();
 	}
 
 	static setDracoPath ( src ){
-		return Pool.dracoPath = src
+		return Pool.dracoPath = src;
 	}
 
 

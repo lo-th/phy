@@ -164,36 +164,49 @@ export const Pool = {
 
         if( !Pool.loaderMap ) Pool.loaderMap = new TextureLoader();
 
-        let name = o.url.substring( o.url.lastIndexOf('/')+1, o.url.lastIndexOf('.') );
+        let name = o.name || '';
+
+        if( o.url ){ 
+            if( o.url.lastIndexOf('.') !==-1 ) name = o.url.substring( o.url.lastIndexOf('/')+1, o.url.lastIndexOf('.') );
+            else name = o.url.substring( o.url.lastIndexOf('/')+1 );
+        }
 
         if( name.search('_c') !== -1 || name.search('_l') !== -1 || name.search('_u') !== -1|| name.search('_d') !== -1) o.srgb = true
 
-        if( Pool.exist( name, 'texture') ) return Pool.get( name, 'texture' );
-        if( Pool.exist( name, 'image') ) return Pool.getTexture( name, o );
-            
-        return Pool.loaderMap.load( o.url, function ( t ) { 
+        if( Pool.exist( name, 'texture' )) return Pool.get( name, 'texture' );
+        else if( Pool.exist( name, 'image' )) {
+            //console.log('preload', name )
+            return Pool.getTexture( name, o );
+        } else {
 
-            Pool.setTextureOption( t, o );
-            Pool.data.set( 'T_' + name, t );
-            if( o.callback ) o.callback()
-            return t
+            return Pool.loaderMap.load( o.url, function ( t ) { 
+                console.log('use TextureLoader !!', name )
+                Pool.setTextureOption( t, o );
+                Pool.data.set( 'T_' + name, t );
+                if( o.callback ) o.callback()
+                return t
+            })
+        }
             
-        })
+        
 
     },
 
     getTexture:( name, o = {} ) => {
 
-        let t = Pool.get( name, 'texture' )
+        let t = Pool.get( name, 'texture' );
         if(!t){
-            let im = Pool.data.get( 'I_' + name )
-            if(!im) return null
-            t = new Texture( im )
+            let im = Pool.get( name, 'image' )
+            if(!im){ 
+                console.log('not find image', name );
+                return null
+            }
+            t = new Texture( im );
             if( name.search('_c') !== -1 || name.search('_d') !== -1 || name.search('_l') !== -1 || name.search('_u') !== -1 ) o.srgb = true
             Pool.data.set( 'T_' + name, t );
         }
-        Pool.setTextureOption( t, o )
-        return t
+        Pool.setTextureOption( t, o );
+        return t;
     },
 
     setTextureOption:( t, o = {} ) => {
@@ -315,7 +328,8 @@ export const Pool = {
 
         switch( type ){
 
-            case 'hex': case 'wasm': case 'mp3': case 'wav': case 'ogg': case 'jpg': case 'png': xml.responseType = "arraybuffer"; break;
+            case 'hex': case 'wasm': case 'mp3': case 'wav': case 'ogg': xml.responseType = "arraybuffer"; break;
+            case 'jpg': case 'png': xml.responseType = 'blob'; break;
             case 'bvh': case 'glsl': case 'js':  case 'json': xml.responseType = 'text'; break;
 
         }
@@ -349,9 +363,19 @@ export const Pool = {
 
         switch( type ){
         	case 'jpg': case 'png':
-        	    let img = Pool.createElementNS('img');
+                let img = Pool.createElementNS('img');
+                img.onload = function(e) {
+                    window.URL.revokeObjectURL( img.src ); // Clean up after yourself.
+                    Pool.add( name, img, 'image' );
+                }
+                img.src = window.URL.createObjectURL( response );
+
+        	    /*let img = Pool.createElementNS('img');
 	            img.src = window.URL.createObjectURL( new Blob([response]) );
-	            Pool.add( name, img, 'image' );
+                //img.onload = function(){
+                    console.log(img)
+                    Pool.add( name, img, 'image' );
+                //}*/
         	break;
             case 'mp3': case 'wav': case 'ogg':
                 AudioContext.getContext().decodeAudioData(

@@ -6,8 +6,7 @@ demo = () => {
     // add static plane 
     phy.add({ type:'plane', visible:false })
 
-    phy.add({ type:'container', material:'glassX', size:[4,4,4], pos:[0,2.5,0], friction:0, restitution:1 })// material:'glassX'
-
+    phy.add({ type:'container', material:'glassX', size:[4,4,4], pos:[0,2.5,0], friction:0, restitution:1, remplace:true });
 
     phy.setTimeout( launchBullet, 100 )
 

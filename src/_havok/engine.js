@@ -100,7 +100,7 @@ export class engine {
 
 			self.havok = havok;
 
-			console.log(havok)
+			//console.log(havok)
 
 			//Utils.extends()
 			engine.initItems()

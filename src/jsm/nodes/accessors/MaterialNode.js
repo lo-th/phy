@@ -1,6 +1,7 @@
 import Node, { addNodeClass } from '../core/Node.js';
+import { reference } from './ReferenceNode.js';
 import { materialReference } from './MaterialReferenceNode.js';
-import { nodeImmutable } from '../shadernode/ShaderNode.js';
+import { nodeImmutable, float } from '../shadernode/ShaderNode.js';
 
 class MaterialNode extends Node {
 
@@ -9,31 +10,6 @@ class MaterialNode extends Node {
 		super();
 
 		this.scope = scope;
-
-	}
-
-	getNodeType( builder ) {
-
-		const scope = this.scope;
-		const material = builder.context.material;
-
-		if ( scope === MaterialNode.COLOR ) {
-
-			return material.map !== null ? 'vec4' : 'vec3';
-
-		} else if ( scope === MaterialNode.OPACITY || scope === MaterialNode.ROTATION ) {
-
-			return 'float';
-
-		} else if ( scope === MaterialNode.EMISSIVE || scope === MaterialNode.SHEEN ) {
-
-			return 'vec3';
-
-		} else if ( scope === MaterialNode.ROUGHNESS || scope === MaterialNode.METALNESS || scope === MaterialNode.SPECULAR || scope === MaterialNode.SHININESS || scope === MaterialNode.CLEARCOAT_ROUGHNESS || scope === MaterialNode.SHEEN_ROUGHNESS ) {
-
-			return 'float';
-
-		}
 
 	}
 
@@ -70,9 +46,13 @@ class MaterialNode extends Node {
 
 		let node = null;
 
-		if ( scope === MaterialNode.ALPHA_TEST ) {
+		if ( scope === MaterialNode.ALPHA_TEST || scope === MaterialNode.SHININESS || scope === MaterialNode.REFLECTIVITY || scope === MaterialNode.ROTATION || scope === MaterialNode.IRIDESCENCE || scope === MaterialNode.IRIDESCENCE_IOR ) {
 
-			node = this.getFloat( 'alphaTest' );
+			node = this.getFloat( scope );
+
+		} else if ( scope === MaterialNode.SPECULAR_COLOR ) {
+
+			node = this.getColor( 'specular' );
 
 		} else if ( scope === MaterialNode.COLOR ) {
 
@@ -102,31 +82,17 @@ class MaterialNode extends Node {
 
 			}
 
-		} else if ( scope === MaterialNode.SHININESS ) {
-
-			node = this.getFloat( 'shininess' );
-
-		} else if ( scope === MaterialNode.SPECULAR_COLOR ) {
-
-			node = this.getColor( 'specular' );
-
 		} else if ( scope === MaterialNode.SPECULAR_STRENGTH ) {
-
-			const specularNode = this.getColor( 'specular' );
 
 			if ( material.specularMap && material.specularMap.isTexture === true ) {
 
-				node = specularNode.mul( this.getTexture( 'specularMap' ).r );
+				node = this.getTexture( 'specularMap' ).r;
 
 			} else {
 
-				node = specularNode;
+				node = float( 1 );
 
 			}
-
-		} else if ( scope === MaterialNode.REFLECTIVITY ) {
-
-			node = this.getFloat( 'reflectivity' );
 
 		} else if ( scope === MaterialNode.ROUGHNESS ) {
 
@@ -228,9 +194,21 @@ class MaterialNode extends Node {
 
 			node = node.clamp( 0.07, 1.0 );
 
-		} else if ( scope === MaterialNode.ROTATION ) {
+		} else if ( scope === MaterialNode.IRIDESCENCE_THICKNESS ) {
 
-			node = this.getFloat( 'rotation' );
+			const iridescenceThicknessMaximum = reference( 1, 'float', material.iridescenceThicknessRange );
+
+			if ( material.iridescenceThicknessMap ) {
+
+				const iridescenceThicknessMinimum = reference( 0, 'float', material.iridescenceThicknessRange );
+
+				node = iridescenceThicknessMaximum.sub( iridescenceThicknessMinimum ).mul( this.getTexture( 'iridescenceThicknessMap' ).g ).add( iridescenceThicknessMinimum );
+
+			} else {
+
+				node = iridescenceThicknessMaximum;
+
+			}
 
 		} else {
 
@@ -261,6 +239,9 @@ MaterialNode.EMISSIVE = 'emissive';
 MaterialNode.ROTATION = 'rotation';
 MaterialNode.SHEEN = 'sheen';
 MaterialNode.SHEEN_ROUGHNESS = 'sheenRoughness';
+MaterialNode.IRIDESCENCE = 'iridescence';
+MaterialNode.IRIDESCENCE_IOR = 'iridescenceIOR';
+MaterialNode.IRIDESCENCE_THICKNESS = 'iridescenceThickness';
 
 export default MaterialNode;
 
@@ -279,5 +260,8 @@ export const materialClearcoatRoughness = nodeImmutable( MaterialNode, MaterialN
 export const materialRotation = nodeImmutable( MaterialNode, MaterialNode.ROTATION );
 export const materialSheen = nodeImmutable( MaterialNode, MaterialNode.SHEEN );
 export const materialSheenRoughness = nodeImmutable( MaterialNode, MaterialNode.SHEEN_ROUGHNESS );
+export const materialIridescence = nodeImmutable( MaterialNode, MaterialNode.IRIDESCENCE );
+export const materialIridescenceIOR = nodeImmutable( MaterialNode, MaterialNode.IRIDESCENCE_IOR );
+export const materialIridescenceThickness = nodeImmutable( MaterialNode, MaterialNode.IRIDESCENCE_THICKNESS );
 
 addNodeClass( MaterialNode );

@@ -974,7 +974,7 @@ const Geo = {
 				//case 'wheel':    g = new CylinderGeometry( 1, 1, 1 , 16 ); g.rotateX( -Math.PI * 0.5 ); break
 				case 'cone':     g = new CylinderGeometry( 0.001, 1, 1 , 16 ); break
 				//case 'joint':    g = new Box3Helper().geometry; g.scale( 0.05,0.05,0.05 ); break
-				case 'particle': g = new SphereGeometry( 1, 3, 2 ); break
+				case 'particle': g = new SphereGeometry( 1.0, 8, 6 ); break
 				case 'joint':    g = new CircleHelper().geometry; break
 				default: return null;
 			}
@@ -10137,19 +10137,22 @@ class Joint extends Item {
 		let isString;
 
 		if( o.limit ) o.lm = o.limit;
+		else if( o.lm ) o.limit = o.lm;
+
+		// get the bodys
 
 		if( o.b1 ) {
 			isString = typeof o.b1 === 'string';
 			body1 = isString ? Utils.byName( o.b1 ) : o.b1;
-			if(!isString) o.b1 = o.b1.name;
-			if(body1) body1.link ++;
+			if( !isString ) o.b1 = o.b1.name;
+			if( body1 ) body1.link ++;
 		}
 
 		if( o.b2 ) {
 			isString = typeof o.b2 === 'string';
 			body2 = isString ? Utils.byName( o.b2 ) : o.b2;
-			if(!isString) o.b2 = o.b2.name;
-			if(body2) body2.link ++;
+			if( !isString ) o.b2 = o.b2.name;
+			if( body2 ) body2.link ++;
 		}
 
 		// world to local
@@ -27885,21 +27888,31 @@ const Pool = {
 
         if( !Pool.loaderMap ) Pool.loaderMap = new TextureLoader();
 
-        let name = o.url.substring( o.url.lastIndexOf('/')+1, o.url.lastIndexOf('.') );
+        let name = o.name || '';
+
+        if( o.url ){ 
+            if( o.url.lastIndexOf('.') !==-1 ) name = o.url.substring( o.url.lastIndexOf('/')+1, o.url.lastIndexOf('.') );
+            else name = o.url.substring( o.url.lastIndexOf('/')+1 );
+        }
 
         if( name.search('_c') !== -1 || name.search('_l') !== -1 || name.search('_u') !== -1|| name.search('_d') !== -1) o.srgb = true;
 
-        if( Pool.exist( name, 'texture') ) return Pool.get( name, 'texture' );
-        if( Pool.exist( name, 'image') ) return Pool.getTexture( name, o );
-            
-        return Pool.loaderMap.load( o.url, function ( t ) { 
+        if( Pool.exist( name, 'texture' )) return Pool.get( name, 'texture' );
+        else if( Pool.exist( name, 'image' )) {
+            //console.log('preload', name )
+            return Pool.getTexture( name, o );
+        } else {
 
-            Pool.setTextureOption( t, o );
-            Pool.data.set( 'T_' + name, t );
-            if( o.callback ) o.callback();
-            return t
+            return Pool.loaderMap.load( o.url, function ( t ) { 
+                console.log('use TextureLoader !!', name );
+                Pool.setTextureOption( t, o );
+                Pool.data.set( 'T_' + name, t );
+                if( o.callback ) o.callback();
+                return t
+            })
+        }
             
-        })
+        
 
     },
 
@@ -27907,14 +27920,17 @@ const Pool = {
 
         let t = Pool.get( name, 'texture' );
         if(!t){
-            let im = Pool.data.get( 'I_' + name );
-            if(!im) return null
+            let im = Pool.get( name, 'image' );
+            if(!im){ 
+                console.log('not find image', name );
+                return null
+            }
             t = new Texture( im );
             if( name.search('_c') !== -1 || name.search('_d') !== -1 || name.search('_l') !== -1 || name.search('_u') !== -1 ) o.srgb = true;
             Pool.data.set( 'T_' + name, t );
         }
         Pool.setTextureOption( t, o );
-        return t
+        return t;
     },
 
     setTextureOption:( t, o = {} ) => {
@@ -28036,7 +28052,8 @@ const Pool = {
 
         switch( type ){
 
-            case 'hex': case 'wasm': case 'mp3': case 'wav': case 'ogg': case 'jpg': case 'png': xml.responseType = "arraybuffer"; break;
+            case 'hex': case 'wasm': case 'mp3': case 'wav': case 'ogg': xml.responseType = "arraybuffer"; break;
+            case 'jpg': case 'png': xml.responseType = 'blob'; break;
             case 'bvh': case 'glsl': case 'js':  case 'json': xml.responseType = 'text'; break;
 
         }
@@ -28070,9 +28087,19 @@ const Pool = {
 
         switch( type ){
         	case 'jpg': case 'png':
-        	    let img = Pool.createElementNS('img');
+                let img = Pool.createElementNS('img');
+                img.onload = function(e) {
+                    window.URL.revokeObjectURL( img.src ); // Clean up after yourself.
+                    Pool.add( name, img, 'image' );
+                };
+                img.src = window.URL.createObjectURL( response );
+
+        	    /*let img = Pool.createElementNS('img');
 	            img.src = window.URL.createObjectURL( new Blob([response]) );
-	            Pool.add( name, img, 'image' );
+                //img.onload = function(){
+                    console.log(img)
+                    Pool.add( name, img, 'image' );
+                //}*/
         	break;
             case 'mp3': case 'wav': case 'ogg':
                 AudioContext.getContext().decodeAudioData(
@@ -33808,68 +33835,63 @@ class Container {
 	constructor ( o = {} ) {
 
 		this.isCompound = true;
-
+		this.remplace = o.remplace || false;
 		this.init(o);
 
 	}
 
-	init ( o ) {
+	init ( o = {} ) {
 
 
 		let s = o.size || [5,3,8];
 		let p = o.pos || [0,2,0];
-		let w = 0.1;
+		let w = o.wall || 0.1;
 		let mw = w * 0.5;
 		let xw = w * 2;
 
-		let geometry = new ChamferBox( s[ 0 ], s[ 1 ], s[ 2 ], o.radius || mw );
-		//let geometry = new BoxGeometry( s[ 0 ], s[ 1 ], s[ 2 ] );
-		let mesh = new Mesh( geometry );
+		if(!o.face) o.face = {};
+		let f = { up:1, down:1, left:1, right:1, front:1, back:1, ...o.face };
+		delete o.face;
 
+		//let geometry = new ChamferBox( s[ 0 ], s[ 1 ], s[ 2 ], o.radius || mw );
+		//let mesh = new Mesh( geometry );
 
-		let size = [
+		const data = [];
 
-		    [w, s[1]-xw, s[2]],
-			[w, s[1]-xw, s[2]],
+		if(f.up===1) data.push({ pos:[0, s[1]*0.5-mw, 0], size:[s[0], w, s[2]] });
+		if(f.down===1) data.push({ pos:[0, mw-s[1]*0.5, 0], size:[s[0], w, s[2]] });
 
-			[s[0], w, s[2]],
-			[s[0], w, s[2]],
+		if(f.left===1) data.push({ pos:[mw-s[0]*0.5, 0, 0 ], size:[w, s[1]-xw, s[2]] });
+		if(f.right===1) data.push({ pos:[s[0]*0.5-mw, 0, 0 ], size:[w, s[1]-xw, s[2]] });
 
-			[s[0]-xw, s[1]-xw, w],
-			[s[0]-xw, s[1]-xw, w],
-
-		];
-
-		let pos = [
-
-		    [mw-s[0]*0.5, 0, 0 ],
-			[s[0]*0.5-mw, 0, 0 ],
-
-			[0, mw-s[1]*0.5, 0 ],
-			[0, s[1]*0.5-mw, 0 ],
-
-			[0, 0, mw-s[2]*0.5],
-			[0, 0, s[2]*0.5-mw],
-
-		];
+		if(f.back===1) data.push({ pos:[0, 0, mw-s[2]*0.5], size:[s[0]-xw, s[1]-xw, w] });
+		if(f.front===1) data.push({ pos:[0, 0, s[2]*0.5-mw], size:[s[0]-xw, s[1]-xw, w] });
 
 		const faces = [];
-		let i = 6, n=0, pp;
+		let i = data.length, n=0, pp, d;
+
 		while( i-- ){
 
-			pp = this.isCompound ? pos[n] : MathTool.addArray(p, pos[n]);
-			faces.push( { type:'box', size:size[n], pos:pp, material:o.material } );
+			d = data[n];
+			pp = this.isCompound ? d.pos : MathTool.addArray(p, d.pos);
+			faces.push( { type:'box', size:d.size, pos:pp, material:o.material } );
 			n++;
 
 		}
 
-		if(this.isCompound){
+		
+
+		if( this.isCompound ){
+			let mesh = null;
+			if( this.remplace ){
+				mesh = new Mesh( new ChamferBox( s[ 0 ], s[ 1 ], s[ 2 ], o.radius || mw ) );
+			}
 			root.motor.add({
 				...o,
-				shapes:faces,
 				mesh:mesh,
+				shapes:faces,
 		        type:'compound',
-		    });	
+		    });
 		} else {
 			root.motor.add( faces );
 		}
@@ -35321,6 +35343,9 @@ class Particle {
 	    this.densities = [];
 	    this.neighbors = [];
 
+	    this.tv = new Vector3();
+	    this.tv2 = new Vector3();
+
 	}
 
 	add( pos ){
@@ -35332,16 +35357,21 @@ class Particle {
             //type:'sphere',
             flags:'noQuery',
             size:[0.1],
+            pSize:0.03,
+            pos:pos, 
 
             inertia:[0,0,0], 
-            pos:pos, 
-            mass:0.01, 
+            //iterations:[10,1],
+            
+            mass:0.001, 
+            //density:0.0001,
             restitution:0.0, 
             friction:0.5, 
-            maxVelocity:[2,100],
-            //damping:[0,0.005],
-            group:this.group, 
-            mask:1|2,
+            //maxVelocity:[2,100],
+            damping:[0.1,0.1],
+
+            //group:this.group, 
+            //mask:1|2,
             material:'hide',
 
         });
@@ -35358,11 +35388,55 @@ class Particle {
 	connect( link ){
 
 		let i = link.length;
-		let tmp = [], l;
+		console.log(i);
+		let tmp = [], l, p1, p2, d = 0;
 
 		while(i--){
+
 			l = link[i];
-			tmp.push({ type:'joint', mode:'distance', b1:this.name+l[0], b2:this.name+l[1], lm:[0.01, 0.15], spring:[100, 0.01], /*visible:true, helperSize:0.02*/ });
+			this.name+l[0];
+			this.name+l[1];
+
+			p1 = this.particles[l[0]].position;
+			p2 = this.particles[l[1]].position;
+
+			//p1.y = 0
+			//p2.y = 0
+
+			//console.log(p1,p2)
+
+			d = this.tv.copy( p1 ).distanceTo(p2);
+
+			
+
+			//this.tv.copy( p2 ).sub( p1 ).multiplyScalar(0.5)
+			this.tv.copy( p2 ).sub( p1 );//.multiplyScalar(0.5)
+
+			
+
+			tmp.push({ 
+				type:'distance', 
+			    helperSize:0.03, 
+			    b1:this.name+l[0], 
+			    b2:this.name+l[1], 
+			    //limit:[d - 0.01, d + 0.01], 
+			    limit:[d*0.5, d],
+			    spring:[20, 1.0],
+			    //spring:[0.0, 0.0],
+			    friction:0,
+			    /*visible:true, helperSize:0.02*/ 
+		    });
+		    /*tmp.push({ 
+		    	helperSize:0.01,
+			    type:'spherical', 
+			    b1:b1, b2:b2, 
+			    worldAxis: n===0 ? [1,0,0] : [0,0,1],
+			    //pos1: this.tv2.set(0,0,0).add(this.tv).toArray(),
+			    pos2: this.tv2.set(0,0,0).sub(this.tv).toArray(),
+		        limit:[-180, 180, 0.01, 10 ], //spring:[100, 0.01], 
+		    })
+		    n++
+		    if(n===2)n=0*/
 		}
 
 		root.motor.add(tmp);
@@ -36451,35 +36525,10 @@ class Motor {
 
 	
 
-	static texture( o = {} ) {
-		return Pool.texture( o )
-	}
 
 
-	//-----------------------
-	//  MATERIAL
-	//-----------------------
 
-	static material ( o = {} ){ return Mat.create( o ) }
 
-	static setExtendShader ( f ) { Mat.extendShader = f; }
-
-	static getMaterialList(){ return Mat.getList(); }
-
-	static getOneMaterial( name ){ 
-		console.log('use getMat');
-		return Mat.get( name ) 
-	}
-
-	static addMaterial( m, direct ){ Mat.set( m, direct ); }
-
-	static setEnvmapIntensity ( v ) { Mat.setEnvmapIntensity(v); }
-
-	static getMat( name ){ return Mat.get( name ) }
-
-	//static getMat () { return Mat; }
-
-	//static getHideMat() { return Mat.get('hide'); }
 
 	
 	
@@ -36846,8 +36895,36 @@ class Motor {
 
 	}
 
+
 	//-----------------------
-	// FROM POOL
+	//  TEXTURE
+	//-----------------------
+
+	static texture( o = {} ) {
+		return Pool.texture( o )
+	}
+
+
+	//-----------------------
+	//  MATERIAL
+	//-----------------------
+
+	static material ( o = {} ){ return Mat.create( o ) }
+
+	static setExtendShader ( f ) { Mat.extendShader = f; }
+
+	static getMaterialList(){ return Mat.getList(); }
+
+	static addMaterial( m, direct ){ Mat.set( m, direct ); }
+
+	static setEnvmapIntensity ( v ) { Mat.setEnvmapIntensity(v); }
+
+	static getMat( name ){ return Mat.get( name ) }
+
+	//-----------------------
+	//
+	//  POOL
+	//
 	//-----------------------
 
 	static load ( Urls, Callback, Path = '', msg = '' ){
@@ -36858,46 +36935,42 @@ class Motor {
 		Pool.applyMorph( modelName, meshs = null, normal = true, relative = true );
 	}
 
-	/*static uv2 ( model ){
-		Pool.uv2( model )
-	}*/
-
 	static getMesh ( obj, keepMaterial ){
-		if(keepMaterial){
+		if( keepMaterial ){
 			let mm = Pool.getMaterials(obj);
 			for( let m in mm ){
 				Motor.addMaterial( mm[m] );
 			}
 		}
-		return Pool.getMesh( obj, keepMaterial )
+		return Pool.getMesh( obj, keepMaterial );
 	}
 
 	static getGroup ( obj, autoMesh, autoMaterial ){
-		return Pool.getGroup( obj, autoMesh, autoMaterial )
+		return Pool.getGroup( obj, autoMesh, autoMaterial );
 	}
 
 	/*static getMaterial ( name ){
 		return Pool.getMaterial( name )
-	}*/
+	}
 
 	static getTexture ( name, o ){
 		return Pool.getTexture( obj, autoMesh, autoMaterial )
-	}
+	}*/
 
 	static getScript ( name ){
-		return Pool.getScript( name )
+		return Pool.getScript( name );
 	}
 
 	static get ( name, type ){
-		return Pool.get( name, type )
+		return Pool.get( name, type );
 	}
 
 	static poolDispose (){
-		return Pool.dispose()
+		return Pool.dispose();
 	}
 
 	static setDracoPath ( src ){
-		return Pool.dracoPath = src
+		return Pool.dracoPath = src;
 	}
 
 

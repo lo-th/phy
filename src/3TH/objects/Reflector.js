@@ -28,7 +28,7 @@ import {
 import { Shader } from '../Shader.js';
 import { Pool } from '../Pool.js';
 
-import RenderTarget from '../../jsm/renderers/common/RenderTarget.js';
+//import RenderTarget from '../../jsm/renderers/common/RenderTarget.js';
 
 //import WebGPUTextureRenderer from '../jsm/renderers/webgpu/WebGPUTextureRenderer.js';
 
@@ -418,7 +418,8 @@ export class Reflector extends Mesh {
 			generateMipmaps:true,
 		};
 
-		this.renderTarget = new RenderTarget( this.textureSize, this.textureSize, parameters );
+        this.renderTarget = new WebGLRenderTarget( this.textureSize, this.textureSize, parameters );
+		//this.renderTarget = new RenderTarget( this.textureSize, this.textureSize, parameters );
 		//this.material.alphaMap = this.renderTarget.texture;
 
 		this.material.userData.mirrorMap.value = this.renderTarget.texture;

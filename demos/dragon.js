@@ -3,11 +3,12 @@ const nodes = [];
 var tt = 0, r = 0;
 const debug = false;
 const headLook = new THREE.Vector3();
+let gate = null;
 
 demo = () => {
 
     // config environement
-    phy.view({ envmap:'pendora', envblur: 0.5, groundPos:[0,-8,0], groundSize:[200,200], y:0, fov:60, distance:10, fogexp:0.04 })
+    phy.view({ envmap:'pendora', envblur: 0.5, groundPos:[0,-10,0], groundSize:[200,200], y:0, fov:60, distance:10, fogexp:0.04 })
 
     // config physics setting
     phy.set( {substep:1, gravity:[0,0,0]})
@@ -15,10 +16,15 @@ demo = () => {
     // add static ground
     //phy.add({ type:'plane', size:[300,1,300], pos:[0,-8,0], visible:false })
 
-    phy.add({ type:'container', material:debug ? 'debug' : 'hide', size:[10,10,50], pos:[0,0,-20], friction:0, restitution:1 })// material:'glassX'
+    phy.add({ type:'container', material:debug ? 'debug' : 'hide', size:[10,10,50], pos:[0,0,-20], friction:0, wall:1.0, face:{front:0, back:0} })// material:'glassX'
 
+    // preLoad
+    const maps = [
+    'textures/dragon/dragon_d.jpg', 'textures/dragon/dragon_a.jpg', 'textures/dragon/dragon_n.jpg',
+    'textures/dragon/torii_d.jpg', 'textures/dragon/torii_ao.jpg'//, 'textures/dragon/torii_r.jpg',
+    ]
 
-    phy.load( './assets/models/dragon.glb', onComplete )
+    phy.load( ['models/dragon.glb', 'models/gate.glb', ...maps], onComplete, './assets/' );
 
 }
 
@@ -31,11 +37,10 @@ onComplete = () => {
         name:'dragon', 
         roughness: 0.0, 
         metalness: 0.0, 
-        map: phy.texture({ url:'./assets/textures/dragon/dragon_d.jpg' }), 
-        //aoMap: phy.texture({ url:'./assets/textures/dragon/dragon_ao.jpg' }), 
-       
-        alphaMap: phy.texture({ url:'./assets/textures/dragon/dragon_a.jpg' }),
-        normalMap: phy.texture({ url:'./assets/textures/dragon/dragon_n.jpg' }),
+        map: phy.texture({ url:'textures/dragon/dragon_d.jpg' }), 
+        //aoMap: phy.texture({ url:'textures/dragon/dragon_ao.jpg' }),
+        alphaMap: phy.texture({ url:'textures/dragon/dragon_a.jpg' }),
+        normalMap: phy.texture({ url:'textures/dragon/dragon_n.jpg' }),
         normalScale:[4,4],
         alphaTest:0.9,
         alphaToCoverage:true,
@@ -52,9 +57,6 @@ onComplete = () => {
 
     models.diam_1.material = eye
     models.diam_2.material = eye
-
-
-
 
     dragon = phy.get('dragon', 'O');
 
@@ -76,8 +78,6 @@ onComplete = () => {
     let sv = new THREE.Vector3();
     let q = new THREE.Quaternion();
     let transform = new THREE.Matrix4().makeTranslation( 1, 0, 0 );
-
-
 
     // add node
 
@@ -139,9 +139,38 @@ onComplete = () => {
     dragon.play( 'mouth' )
     dragon.pause( 'mouth' )
 
-    addEffect()
+    //addEffect()
+    addGate()
 
     phy.setPostUpdate ( update )
+
+}
+
+addGate = () => {
+
+    // make material
+    let material = phy.material({ 
+        name:'gate', 
+        roughness: 0.0, 
+        metalness: 0.0, 
+        map: phy.texture({ url:'textures/dragon/torii_d.jpg' }), 
+        aoMap: phy.texture({ url:'textures/dragon/torii_ao.jpg' }),
+        //roughnessMap: phy.texture({ url:'textures/dragon/torii_r.jpg' }),  
+        //normalMap: phy.texture({ url:'textures/dragon/torii_n.jpg' }),
+        transparent:true,
+        opacity:1.0
+    })
+
+    let m = phy.getMesh('gate').gate;
+    m.position.y = -10
+    m.position.z = 20
+    m.material = material;
+    m.castShadow = true;
+    m.receiveShadow = true;
+    m.scale.set(2,2,2)
+    phy.add( m );
+
+    gate = m;
 
 }
 
@@ -163,13 +192,22 @@ update = ( delta ) => {
     phy.change( [{ name:'b_spine_0', pos:[ x, y, -1 ] }] );
 
     const v = phy.getMouse() || {x:0, y:0};
-    headLook.lerp({ x:0, y:-v.y*20, z:-v.x*20 }, delta*2 );
+    headLook.lerp({ x:0, y:-v.y*20, z:-v.x*20 }, delta*10 );
     head.rotation.set(0, headLook.y*math.torad, (headLook.z+180)*math.torad, 'XYZ' )
 
-    updateBone()
+    updateBone();
 
     tt += delta * 1;
-    if(r<2) r+=0.01
+    if(r<2) r+=0.01;
+
+    if( gate ){
+        gate.position.z -= delta*4
+        if(gate.position.z < -70){ gate.material.opacity-= delta; }
+        if(gate.material.opacity < 0){ 
+            gate.position.z = 20;
+            gate.material.opacity = 1.0;
+        }
+    }
 
 }
 

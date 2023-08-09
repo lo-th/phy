@@ -54,19 +54,22 @@ export class Joint extends Item {
 		let isString;
 
 		if( o.limit ) o.lm = o.limit;
+		else if( o.lm ) o.limit = o.lm;
+
+		// get the bodys
 
 		if( o.b1 ) {
 			isString = typeof o.b1 === 'string';
 			body1 = isString ? Utils.byName( o.b1 ) : o.b1;
-			if(!isString) o.b1 = o.b1.name;
-			if(body1) body1.link ++;
+			if( !isString ) o.b1 = o.b1.name;
+			if( body1 ) body1.link ++;
 		}
 
 		if( o.b2 ) {
 			isString = typeof o.b2 === 'string';
 			body2 = isString ? Utils.byName( o.b2 ) : o.b2;
-			if(!isString) o.b2 = o.b2.name;
-			if(body2) body2.link ++;
+			if( !isString ) o.b2 = o.b2.name;
+			if( body2 ) body2.link ++;
 		}
 
 		// world to local

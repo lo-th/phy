@@ -130,6 +130,7 @@ export class Body extends Item {
 
 			case 'box' : g = new BoxGeometry( this.v.set(s[0] * 0.5, s[1] * 0.5, s[2] * 0.5) ); break;
 			case 'sphere' : g = new SphereGeometry( s[0] ); break;
+			case 'particle' : g = new SphereGeometry( o.pSize || 0.05 ); break;
 			case 'cone' : g = new ConeGeometry( s[0], s[1] * 0.5 ); break;
 			case 'cylinder' : g = new CylinderGeometry( s[0], s[1] * 0.5 ); break;
 			case 'capsule' : g = new CapsuleGeometry( s[0], s[1] * 0.5 ); break;

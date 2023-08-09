@@ -20,7 +20,10 @@ class TextureNode extends UniformNode {
 		this.levelNode = levelNode;
 		this.compareNode = compareNode;
 
-		this.updateType = NodeUpdateType.FRAME;
+		this.updateMatrix = false;
+		this.updateType = NodeUpdateType.NONE;
+
+		this.setUpdateMatrix( uvNode === null );
 
 	}
 
@@ -46,9 +49,24 @@ class TextureNode extends UniformNode {
 
 	getDefaultUV() {
 
+		return uv( this.value.channel );
+
+	}
+
+	getTextureMatrix( uvNode ) {
+
 		const texture = this.value;
 
-		return uniform( texture.matrix ).mul( vec3( uv( texture.channel ), 1 ) );
+		return uniform( texture.matrix ).mul( vec3( uvNode, 1 ) ).xy;
+
+	}
+
+	setUpdateMatrix( value ) {
+
+		this.updateMatrix = value;
+		this.updateType = value ? NodeUpdateType.FRAME : NodeUpdateType.NONE;
+
+		return this;
 
 	}
 
@@ -66,7 +84,13 @@ class TextureNode extends UniformNode {
 
 		}
 
-		uvNode || ( uvNode = this.getDefaultUV() );
+		if ( ! uvNode ) uvNode = this.getDefaultUV();
+
+		if ( this.updateMatrix ) {
+
+			uvNode = this.getTextureMatrix( uvNode );
+
+		}
 
 		//
 

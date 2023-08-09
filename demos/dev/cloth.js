@@ -11,7 +11,7 @@ function demo() {
 
 
     // config physics setting
-    phy.set( { substep:1, gravity:[0,-10,0], full:true });
+    phy.set( { substep:1, gravity:[0,-10,0], full:true, jointVisible:false });
 
     // add static ground
     phy.add({ type:'plane', size:[300,1,300], visible:false });
@@ -28,7 +28,7 @@ function demo() {
   */  y+=1
     //phy.add({ type:'box', pos:[0,2,0], size:[5,w,0.2], material:'glass2', radius:0.02, restitution:0, friction:0.5, renderOrder:3 });
 
-    phy.add({ type:'sphere', pos:[0,2,0], size:[0.4], radius:0.02, restitution:0, friction:0.5, renderOrder:3, visible:false });
+    phy.add({ type:'sphere', pos:[0,2,0], size:[0.4], radius:0.02, restitution:0, friction:0.5, renderOrder:3, visible:true });
 
 
     //phy.add({ type:'box', pos:[0,y-w*0.5,0], size:[d-w,w,l-w], material:'glass2', radius:0.02, restitution:0, friction:0.5, group:g3, mask:g3, renderOrder:4 });
@@ -40,11 +40,11 @@ function demo() {
 
 
     let lng = 16, link = []
-    let i = lng*lng, pos, x, n=0, col, row
+    let i = lng*lng, pos, x, n=0, col, row, p1, p2
 
     let geometry = new THREE.PlaneGeometry(1, 1, lng-1, lng-1);
-    let material = phy.getOneMaterial('cloth')
-    material.side = THREE.DoubleSide
+    let material = phy.getMat('cloth')
+    material.side = THREE.DoubleSide;
     mesh = new THREE.Mesh( geometry, material )
     mesh.frustumCulled = false
 
@@ -55,22 +55,21 @@ function demo() {
 
         col = n % lng;
         row = Math.floor( n / lng );
+        x = (col-(lng*0.5))*0.1;
+        y = (row-(lng*0.5))*0.1;
+        pos = [x, 3, y]
 
-        if (col < lng-1) link.push([n, n + 1]);
+        // x y
+        if (col < lng-1) link.push([n, n + 1 ]);
         if (row < lng-1) link.push([n, n + lng ]);
-
+        // cross
         if (col < lng-1 && row < lng-1){ 
-           // link.push([ n + 1, n + lng ]);
-          //  link.push([ n, n + lng + 1 ]);
+            link.push([ n + 1, n + lng ]);
+            //link.push([ n, n + lng + 1 ]);
         }
 
-        x = (col-(lng*0.5))*0.1
-        y = (row-(lng*0.5))*0.1
 
-
-    	pos = [x, 3, y]
-
-        pp.add( pos )
+        pp.add( pos );
 
     	n++
 
@@ -78,7 +77,7 @@ function demo() {
 
     
 
-    pp.connect(link)
+    pp.connect( link )
 
     phy.setPostUpdate ( update )
 

@@ -73,7 +73,7 @@ export class Joint extends Item {
 			limited:'LIMITED',
 		}*/
 
-		this.angulars = ['ANGULAR_X', 'ANGULAR_Y', 'ANGULAR_Z']
+		this.angulars = ['ANGULAR_X', 'ANGULAR_Y', 'ANGULAR_Z', 'rx', 'ry', 'rz' ]
 
 	}
 
@@ -147,7 +147,7 @@ export class Joint extends Item {
         //console.log(axisA, axisB, perpAxisA, perpAxisB)
 
         const CA = this.ConstraintAxis;
-		const LM = this.LimitMode
+		const LM = this.LimitMode;
 
 		let mode = o.mode || 'revolute';
 
@@ -203,14 +203,18 @@ export class Joint extends Item {
 		switch(j.mode ){
 
 			case 'hinge':
-			if( o.lm ) this.setLimit( j, [ 'rx', ...o.lm ] )
+			if( o.limit ) this.setLimit( j, [ 'rx', ...o.limit ] );
+			if( o.spring ) this.setSpring( j, [ 'rx', ...o.spring ] );
 			if( o.motor ) this.setMotor( j, o.motor[1], o.motor[2], 'ANGULAR_X' )
 			if( o.friction !== undefined ) this.setFriction( j, o.friction, 'ANGULAR_X' )
 			//if( o.lm ) this.setLimit( j, o.lm, 'ANGULAR_Z' )
 			break;
 
 		    case "prismatic":
-			if( o.lm ) this.setLimit( j, [ 'x', ...o.lm ] )
+		    if( o.limit ) this.setLimit( j, [ 'x', ...o.limit ] );
+			if( o.spring ) this.setSpring( j, [ 'x', ...o.spring ] );
+			if( o.friction ) this.setFriction( j, 'x', o.friction );
+			//if( o.lm ) this.setLimit( j, [ 'x', ...o.lm ] )
 			break;
 
 		    case 'slider':
@@ -227,7 +231,11 @@ export class Joint extends Item {
 			break;
 
 			case 'distance':
-			if( o.lm ) this.setLimit( j, [ 'distance', ...o.lm ] )
+			
+			if( o.limit ) this.setLimit( j, [ 'distance', ...o.limit ] );
+			if( o.spring ) this.setSpring( j, [ 'distance', ...o.spring ] );
+			if( o.friction ) this.setFriction( j, 'distance', o.friction );
+
 			break;
 
 			
@@ -262,7 +270,7 @@ export class Joint extends Item {
 				}
 				i = o.friction.length
 				while(i--){
-					this.setFriction( j, o.friction[i][1], this.convert[ o.friction[i][0] ] )
+					this.setFriction( j, o.friction[i][0], o.friction[i][1] );
 				}
 			}
 			
@@ -290,26 +298,33 @@ export class Joint extends Item {
 
 	}
 
-	setLimit( j, lm ){
+	setLimit( j, limit ){
 
-		let axe = this.convert[ lm[0] ] 
+		let m = this.angulars.indexOf( limit[0] ) !== -1 ? torad : 1;
+		const axis = this.ConstraintAxis[ this.convert[ limit[0] ] ];
 
-		let r = this.angulars.indexOf( axe ) !== -1 ? torad : 1
+		havok.HP_Constraint_SetAxisMode( j, axis, this.LimitMode.LIMITED );
+		havok.HP_Constraint_SetAxisMinLimit( j, axis, limit[1]*m );
+		havok.HP_Constraint_SetAxisMaxLimit( j, axis, limit[2]*m );
+		if( limit[3] !== undefined ) havok.HP_Constraint_SetAxisStiffness( j, axis, limit[3] );
+		if( limit[4] !== undefined ) havok.HP_Constraint_SetAxisDamping( j, axis, limit[4] );
+		//if( limit[5] !== undefined ) havok.HP_Constraint_SetAxisFriction( j, axis, limit[5] );//friction default 0
 
-		const axis = this.ConstraintAxis[ axe ];
+	}
 
+	setSpring( j, spring ){
 
-		if( lm[1] === 0 && lm[2] === 0 ) havok.HP_Constraint_SetAxisMode( j, axis, this.LimitMode.FREE )
-		else {
-			havok.HP_Constraint_SetAxisMode( j, axis, this.LimitMode.LIMITED )
-			havok.HP_Constraint_SetAxisMinLimit( j, axis, lm[1]*r );
-			havok.HP_Constraint_SetAxisMaxLimit( j, axis, lm[2]*r );
+		const axis = this.ConstraintAxis[ this.convert[ spring[0] ] ];
+		if( spring[1] !== undefined ) havok.HP_Constraint_SetAxisStiffness( j, axis, spring[1] );//stiffness*0.1
+		if( spring[2] !== undefined ) havok.HP_Constraint_SetAxisDamping( j, axis, spring[2] );//damping (0 means default damping of 1.0f)
+		
+		
+	}
 
-			if(lm[3] !== undefined ) havok.HP_Constraint_SetAxisStiffness( j, axis, lm[3] );//stiffness*0.1
-			if(lm[4] !== undefined ) havok.HP_Constraint_SetAxisDamping( j, axis, lm[4] );//damping*6
+	setFriction( j, axe, friction = 0 ){
 
-			if(lm[5] !== undefined ) havok.HP_Constraint_SetAxisFriction( j, axis, lm[5] );//friction default 0
-		}
+		const axis = this.ConstraintAxis[ this.convert[ axe ] ];
+		havok.HP_Constraint_SetAxisFriction( j, axis, friction )
 
 	}
 
@@ -336,15 +351,7 @@ export class Joint extends Item {
 
 	}
 
-	setFriction( j, friction, axe ){
-
-		//let r = this.angulars.indexOf(axe) !== -1 ? torad : 1
-		const axis = this.ConstraintAxis[ axe ];
-		havok.HP_Constraint_SetAxisFriction( j, axis, friction )
-
-		//console.log(havok.HP_Constraint_GetAxisFriction( j, axis)[1]);
-
-	}
+	
 
 
 }

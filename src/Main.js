@@ -222,8 +222,6 @@ export const Main = {
 		Gui.setMain( Main )
 		Gui.setTextureConstrutor( THREE.Texture )
 
-		console.log(THREE.SRGBColorSpace, THREE.NoColorSpace)
-
 		activeWebGPU = o.webGPU || false;
 
 		const gpuTier = await getGPUTier();

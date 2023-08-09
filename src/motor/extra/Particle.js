@@ -35,6 +35,9 @@ export class Particle {
 	    this.densities = []
 	    this.neighbors = []
 
+	    this.tv = new Vector3()
+	    this.tv2 = new Vector3()
+
 	}
 
 	add( pos ){
@@ -46,16 +49,21 @@ export class Particle {
             //type:'sphere',
             flags:'noQuery',
             size:[0.1],
+            pSize:0.03,
+            pos:pos, 
 
             inertia:[0,0,0], 
-            pos:pos, 
-            mass:0.01, 
+            //iterations:[10,1],
+            
+            mass:0.001, 
+            //density:0.0001,
             restitution:0.0, 
             friction:0.5, 
-            maxVelocity:[2,100],
-            //damping:[0,0.005],
-            group:this.group, 
-            mask:1|2,
+            //maxVelocity:[2,100],
+            damping:[0.1,0.1],
+
+            //group:this.group, 
+            //mask:1|2,
             material:'hide',
 
         })
@@ -71,12 +79,56 @@ export class Particle {
 
 	connect( link ){
 
-		let i = link.length
-		let tmp = [], l
+		let i = link.length;
+		console.log(i)
+		let tmp = [], l, b1, b2, p1, p2, n=0, d = 0
 
 		while(i--){
-			l = link[i]
-			tmp.push({ type:'joint', mode:'distance', b1:this.name+l[0], b2:this.name+l[1], lm:[0.01, 0.15], spring:[100, 0.01], /*visible:true, helperSize:0.02*/ })
+
+			l = link[i];
+			b1 = this.name+l[0];
+			b2 = this.name+l[1];
+
+			p1 = this.particles[l[0]].position;
+			p2 = this.particles[l[1]].position;
+
+			//p1.y = 0
+			//p2.y = 0
+
+			//console.log(p1,p2)
+
+			d = this.tv.copy( p1 ).distanceTo(p2)
+
+			
+
+			//this.tv.copy( p2 ).sub( p1 ).multiplyScalar(0.5)
+			this.tv.copy( p2 ).sub( p1 )//.multiplyScalar(0.5)
+
+			
+
+			tmp.push({ 
+				type:'distance', 
+			    helperSize:0.03, 
+			    b1:this.name+l[0], 
+			    b2:this.name+l[1], 
+			    //limit:[d - 0.01, d + 0.01], 
+			    limit:[d*0.5, d],
+			    spring:[20, 1.0],
+			    //spring:[0.0, 0.0],
+			    friction:0,
+			    /*visible:true, helperSize:0.02*/ 
+		    })
+		    /*tmp.push({ 
+		    	helperSize:0.01,
+			    type:'spherical', 
+			    b1:b1, b2:b2, 
+			    worldAxis: n===0 ? [1,0,0] : [0,0,1],
+			    //pos1: this.tv2.set(0,0,0).add(this.tv).toArray(),
+			    pos2: this.tv2.set(0,0,0).sub(this.tv).toArray(),
+		        limit:[-180, 180, 0.01, 10 ], //spring:[100, 0.01], 
+		    })
+		    n++
+		    if(n===2)n=0*/
 		}
 
 		root.motor.add(tmp)

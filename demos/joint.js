@@ -34,7 +34,7 @@ demo = () => {
     // Distance joint OIMO / AMMO don't have good suport
     b1 = phy.add({ type:'sphere', size:[0.25], pos:[-2,0.25,2], mass:1, restitution:0.5, friction:0.9 })
     b2 = phy.add({ type:'sphere', size:[0.25], pos:[ 2,0.25,2], mass:1, restitution:0.5, friction:0.9 })
-    phy.add({ type:'distance', b1:b1, b2:b2, limit:[1, 4], collision:true, });
+    phy.add({ type:'distance', b1:b1, b2:b2, limit:[1, 4], spring:[10,1], collision:true, });
 
     // Prismatic joint
     pos = [2,5,1]
@@ -45,8 +45,8 @@ demo = () => {
     // Slider joint
     pos = [-2,5,1]
     b1 = phy.add({ type:'sphere', size:[0.03], pos:pos, density:0 })
-    b2 = phy.add({ type:'box', size:[0.6,1,1], pos:[ pos[0] - 0.31,pos[1],pos[2] ], density:1, radius:0.02 })
-    phy.add({ type:'slider', b1:b1, b2:b2, lm:[-1,1], lmr:[-145,145], sd:[4,0.7], sdr:[0,0], worldPos:pos, worldAxis:[1,0,0] })
+    b2 = phy.add({ type:'box', size:[0.6,1,1], pos:[ pos[0] - 0.31, pos[1], pos[2] ], density:1, radius:0.02 })
+    phy.add({ type:'slider', b1:b1, b2:b2, lm:[-1,1], lmr:[-145,145 ], sd:[4,0.7], sdr:[0,0], worldPos:pos, worldAxis:[1,0,0] })
 
 
     // ragdoll joint

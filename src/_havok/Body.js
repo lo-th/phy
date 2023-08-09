@@ -114,6 +114,7 @@ export class Body extends Item {
 
 			case 'box' : g = havok.HP_Shape_CreateBox( center, qq, s )[1]; break;
 			case 'sphere' : g = havok.HP_Shape_CreateSphere( center, s[0] )[1]; break;
+			case 'particle' : g = havok.HP_Shape_CreateSphere( center, o.pSize )[1]; break;
 			//case 'cone' : g = havok.HP_Shape_CreateCylinder( p1, p2, s[0])[1]; break;
 			case 'cylinder' : g = havok.HP_Shape_CreateCylinder( p1, p2, s[0])[1]; break;
 			case 'capsule' : g = havok.HP_Shape_CreateCapsule( p1, p2, s[0])[1]; break;
@@ -497,6 +498,7 @@ export class Body extends Item {
 		if( o.linearVelocity ) havok.HP_Body_SetLinearVelocity(b, o.linearVelocity)
 		if( o.angularVelocity ) havok.HP_Body_SetAngularVelocity(b, o.angularVelocity)
 		
+		// The higher the damping, the more quickly the body will slow down and come to a halt.
 		if( o.damping ){
 			// This function is useful for controlling the angular velocity of a physics body.
 			// By setting the angular damping, the body's angular velocity will be reduced over time, allowing for more realistic physics simulations.
