@@ -19,15 +19,19 @@ export class Ray extends Item {
 
 		super();
 
-		this.Utils = Utils
-		this.type = 'ray'
+		this.Utils = Utils;
+		this.type = 'ray';
+		this.iType = 'ray';
 
 	}
 
-	step ( AR, N ) {
+	step () {
+
+		const AR = root.Ar;
+		const N = root.ArPos[this.type];
 
 		let i = this.list.length, r, n;
-		
+
 		while( i-- ){
 
 			r = this.list[i];

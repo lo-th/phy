@@ -28,8 +28,8 @@ export class Body extends Item {
 		super()
 
 		this.Utils = Utils
-		this.type = 'body'
-		this.num = Num[this.type]
+		this.type = 'body';
+		this.num = Num[this.type];
 		this.full = false
 		this.extraConvex = false
 		this.needMatrix = root.engine ==='RAPIER' || root.engine ==='HAVOK'
@@ -42,7 +42,10 @@ export class Body extends Item {
 		this.full = full
 	}
 
-	step ( AR, N ) {
+	step () {
+
+		const AR = root.Ar;
+		const N = root.ArPos[this.type];
 
 		const list = this.list
 		let i = list.length, b, n, a;

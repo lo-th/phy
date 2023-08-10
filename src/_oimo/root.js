@@ -4,6 +4,9 @@ export const map = new Map();
 
 export const root = {
 
+	Ar:null, 
+	ArPos: {},
+
 
 	deltaTime : 0,
 	invDelta : 0,

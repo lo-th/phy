@@ -3,6 +3,9 @@ export const map = new Map();
 
 export const root = {
 
+	Ar:null, 
+	ArPos: {},
+
 	world : null,
 	gravity : null,
 	bodyRef: null,

@@ -180,7 +180,7 @@ export const Pool = {
         } else {
 
             return Pool.loaderMap.load( o.url, function ( t ) { 
-                console.log('use TextureLoader !!', name )
+                //console.log('use TextureLoader !!', name )
                 Pool.setTextureOption( t, o );
                 Pool.data.set( 'T_' + name, t );
                 if( o.callback ) o.callback()
@@ -507,7 +507,7 @@ export const Pool = {
 
         Pool.loaderEXR().load( url, function ( texture ) {
             //Pool.add( name, texture ) 
-            console.log(texture)
+            //console.log(texture)
             if(cb) cb(texture)
             return texture
         })

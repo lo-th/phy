@@ -5,12 +5,13 @@ export class Character extends Body {
 	constructor () {
 		super()
 		//this.type = 'character'
+		this.itype = 'character';
 		this.num = Num[ 'character' ]
 	}
 
 	add ( o = {} ) {
 
-		o.type = 'capsule'
+		o.type = 'capsule';
 		super.add( o )
 
 	}

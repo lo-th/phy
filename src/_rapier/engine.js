@@ -26,7 +26,7 @@ let items;
 let isTimeout = false;
 let outsideStep = false;
 
-let Ar, ArPos;
+//let Ar, ArPos;
 let isBuffer = false;
 let returnMessage, isWorker;
 
@@ -65,7 +65,7 @@ export class engine {
 
 		let e = m.data;
 
-		if( e.Ar ) Ar = e.Ar
+		if( e.Ar ) root.Ar = e.Ar
 		if( e.flow ) root.flow = e.flow
 		if( e.m ) engine[ e.m ]( e.o )
 
@@ -136,7 +136,7 @@ export class engine {
 
 	static set ( o = {} ){
 
-		ArPos = o.ArPos || getArray('RAPIER', o.full)
+		root.ArPos = o.ArPos || getArray('RAPIER', o.full)
 
 		items.body.setFull(o.full)
 		//body.setFull(o.full)
@@ -170,7 +170,7 @@ export class engine {
 		if( root.world === null ){
 
 			// define transfer array
-		    Ar = new Float32Array( ArPos.total )
+		    root.Ar = new Float32Array( root.ArPos.total )
 
 		    // create new world
 			engine.initWorld()
@@ -290,22 +290,13 @@ export class engine {
 		if ( startTime - 1000 > t.tmp ){ t.tmp = startTime; root.reflow.stat.fps = t.n; t.n = 0; }; t.n++;
 		root.reflow.stat.delta = root.delta
 
-		if ( isBuffer ) engine.post( { m: 'step', reflow:root.reflow, Ar: Ar }, [ Ar.buffer ] );	
-		else engine.post( { m:'step', reflow:root.reflow, Ar:Ar } );
+		if ( isBuffer ) engine.post( { m: 'step', reflow:root.reflow, Ar: root.Ar }, [ root.Ar.buffer ] );	
+		else engine.post( { m:'step', reflow:root.reflow, Ar:root.Ar } );
 
 	}
 
-	static stepItems () {
-
-		for (const key in items) items[key].step( Ar, ArPos[key] )
-
-	}
-
-	static resetItems() {
-
-		for ( const key in items ) items[key].reset()
-
-	}
+	static resetItems() { Object.values(items).forEach( value => value.reset() ); }
+	static stepItems() { Object.values(items).forEach( value => value.step() ); }
 
 	static byName ( name ){
 
@@ -320,13 +311,7 @@ export class engine {
 
 		engine.stop();
 
-		engine.resetItems()
-
-		/*body.reset();
-		solid.reset();
-		joint.reset();
-		ray.reset();
-		contact.reset();*/
+		engine.resetItems();
 
 		// clear world
 		root.world.free()

@@ -11,11 +11,14 @@ export class Solver extends Item {
 		super();
 
 		this.Utils = Utils
-		this.type = 'solver'
+		this.type = 'solver';
 
 	}
 
-	step ( AR, N ) {
+	step () {
+
+		const AR = root.Ar;
+		const N = root.ArPos[this.type];
 
 		let i = this.list.length, n
 

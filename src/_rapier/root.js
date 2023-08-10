@@ -3,6 +3,9 @@ export const mapCollider = new Map();
 
 export const root = {
 
+	Ar:null, 
+	ArPos: {},
+
 	world : null,
 	delta : 0,
 	invDelta :0,

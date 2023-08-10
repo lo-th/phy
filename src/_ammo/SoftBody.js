@@ -22,6 +22,9 @@ Object.assign( SoftBody.prototype, {
 
 	step: function ( AR, N ) {
 
+		const AR = root.Ar;
+		const N = root.ArPos[this.type];
+
 		var softPoints = N, n, s, j;
 		var scale = root.scale;
 

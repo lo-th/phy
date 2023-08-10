@@ -560,7 +560,10 @@ const map = new Map();
 
 const root = {
 
-	AR:null,
+	Ar:null, 
+	ArPos: {},
+
+	//AR:null,
 
 	viewSize:null,
 
@@ -1651,9 +1654,8 @@ class Item {
 
 		let i = this.list.length;
 		while( i-- ) this.dispose( this.list[i] );
-
-		this.id = 0;
 		this.list = [];
+	    this.id = 0;
 
 	}
 
@@ -1661,7 +1663,7 @@ class Item {
 
 	byName ( name ) {
 
-		return this.Utils.byName( name )
+		return this.Utils.byName( name );
 
 	}
 
@@ -1672,8 +1674,7 @@ class Item {
 		// clear old item if existe keep id
 		o.id = this.remove( name, true );
 		o.name = name;
-
-		return name
+		return name;
 
 	}
 
@@ -1688,8 +1689,8 @@ class Item {
 	remove ( name, remplace ) {
 
 		let b = this.byName( name );
-		if( !b ) return -1
-		return this.clear( b, remplace )
+		if( !b ) return -1;
+		return this.clear( b, remplace );
 
 	}
 
@@ -1699,7 +1700,7 @@ class Item {
 		if ( n !== - 1 && !remplace ) this.list.splice( n, 1 );
 		else this.list[n] = null;
 		this.dispose( b );
-		return n
+		return n;
 
 	}
 
@@ -1708,9 +1709,6 @@ class Item {
 		if( b !== null ) this.Utils.remove( b );
 
 	}
-
-
-
 
     vecZero ( ar, n, i ) { while ( i -- ) ar[n+i] = 0; }
 
@@ -1755,13 +1753,17 @@ class Ray extends Item {
 
 		this.Utils = Utils;
 		this.type = 'ray';
+		this.iType = 'ray';
 
 	}
 
-	step ( AR, N ) {
+	step () {
+
+		const AR = root.Ar;
+		const N = root.ArPos[this.type];
 
 		let i = this.list.length, r, n;
-		
+
 		while( i-- ){
 
 			r = this.list[i];
@@ -5730,7 +5732,10 @@ class Body extends Item {
 		this.full = full;
 	}
 
-	step ( AR, N ) {
+	step () {
+
+		const AR = root.Ar;
+		const N = root.ArPos[this.type];
 
 		const list = this.list;
 		let i = list.length, b, n, a;
@@ -10111,7 +10116,10 @@ class Joint extends Item {
 
 	}
 
-	step ( AR, N ) {
+	step () {
+
+		const AR = root.Ar;
+		const N = root.ArPos[this.type];
 
 		let i = this.list.length, j, n;
 		
@@ -10281,7 +10289,10 @@ class Contact extends Item {
 
 	}
 
-	step ( AR, N ) {
+	step () {
+
+		const AR = root.Ar;
+		const N = root.ArPos[this.type];
 
 		let i = this.list.length, c, n;
 		
@@ -10378,7 +10389,10 @@ class Vehicle extends Item {
 
 	}
 
-	step ( AR, N ) {
+	step () {
+
+		const AR = root.Ar;
+		const N = root.ArPos[this.type];
 
 		let i = this.list.length, n, s;
 
@@ -27904,7 +27918,7 @@ const Pool = {
         } else {
 
             return Pool.loaderMap.load( o.url, function ( t ) { 
-                console.log('use TextureLoader !!', name );
+                //console.log('use TextureLoader !!', name )
                 Pool.setTextureOption( t, o );
                 Pool.data.set( 'T_' + name, t );
                 if( o.callback ) o.callback();
@@ -28231,7 +28245,7 @@ const Pool = {
 
         Pool.loaderEXR().load( url, function ( texture ) {
             //Pool.add( name, texture ) 
-            console.log(texture);
+            //console.log(texture)
             if(cb) cb(texture);
             return texture
         });
@@ -31140,7 +31154,10 @@ class Character extends Item {
 
 	}*/
 
-	step ( AR, N ) {
+	step () {
+
+		const AR = root.Ar;
+		const N = root.ArPos[this.type];
 
 		let i = this.list.length, n, s;
 
@@ -33203,7 +33220,10 @@ class Terrain extends Item {
 
 	}
 
-	step ( AR, N ) {
+	step () {
+
+		root.Ar;
+		root.ArPos[this.type];
 
 		let i = this.list.length, s;
 
@@ -33302,7 +33322,10 @@ class Solver extends Item {
 
 	}
 
-	step ( AR, N ) {
+	step () {
+
+		const AR = root.Ar;
+		const N = root.ArPos[this.type];
 
 		let i = this.list.length, n;
 
@@ -35864,7 +35887,6 @@ K.update = function () {
 let items;
 let currentControle = null;
 let callback = null;
-let Ar = null, ArPos = {};
 let worker = null;
 let isWorker = false;
 let isBuffer = false;
@@ -35974,7 +35996,7 @@ class Motor {
 
 		const data = {
 			...settings,
-			ArPos:ArPos,
+			ArPos:root.ArPos,
 			isTimeout:isTimeout,
 			outsideStep:outsideStep,
 		};
@@ -36030,7 +36052,7 @@ class Motor {
 	static message ( m ){
 
 		let e = m.data;
-		if( e.Ar ) Ar = e.Ar;//new Float32Array( e.Ar )//;
+		if( e.Ar ) root.Ar = e.Ar;//new Float32Array( e.Ar )//;
 		if( e.reflow ){
 			root.reflow = e.reflow;
 			if(root.reflow.stat.delta) elapsedTime += root.reflow.stat.delta;
@@ -36490,7 +36512,7 @@ class Motor {
 
 
 		// finally post flow change to physx
-		if( isBuffer ) root.post( { m:'poststep', flow:root.flow, Ar:Ar }, [ Ar.buffer ] );
+		if( isBuffer ) root.post( { m:'poststep', flow:root.flow, Ar:root.Ar }, [ root.Ar.buffer ] );
 		else root.post( { m:'poststep', flow:root.flow });
 
 		//	Motor.stepItems()
@@ -36504,7 +36526,7 @@ class Motor {
 	static initArray ( full = false ) {
 
 	    // dynamics array
-		ArPos = getArray( root.engine, full );
+		root.ArPos = getArray( root.engine, full );
 
 	}
 
@@ -36539,13 +36561,15 @@ class Motor {
 
 	static control ( name ){ // for character and vehicle
 
-		if(currentControle !== null){
+		if( currentControle !== null ){
 			if( name !== currentControle.name ){ 
 				currentControle = Motor.byName( name );
 			}
 		} else {
 			currentControle = Motor.byName( name );
 		}
+
+		//console.log('this control:', currentControle)
 
 	}
 
@@ -36666,17 +36690,19 @@ class Motor {
 
 	static resetItems() {
 
-		for (const key in items) items[key].reset();
+		Object.values(items).forEach( value => value.reset() );
+		//for (const key in items) items[key].reset()
 
 	}
 
 	static stepItems () {
 
-		if(Ar===null) return
+		if( root.Ar === null ) return
 
 		Motor.upButton();
 
-		for ( const key in items ) items[key].step( Ar, ArPos[key] );
+	    Object.values(items).forEach( value => value.step() );
+		//for ( const key in items ) items[key].step( root.Ar, root.ArPos[key] )
 
 		Motor.upInstance();
 
@@ -37043,7 +37069,7 @@ class Solid extends Body {
 		super();
 		this.type = 'solid';
 	}
-	step ( AR, N ) {}
+	step (){}
 }
 
 const phy = Motor;

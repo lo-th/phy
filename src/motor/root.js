@@ -15,7 +15,10 @@ export const map = new Map()
 
 export const root = {
 
-	AR:null,
+	Ar:null, 
+	ArPos: {},
+
+	//AR:null,
 
 	viewSize:null,
 

@@ -14,6 +14,7 @@ export class Body extends Item {
 
 		this.Utils = Utils
 		this.type = 'body';
+		this.itype = 'body';
 		this.num = Num[this.type]
 		this.full = false
 
@@ -33,7 +34,10 @@ export class Body extends Item {
 		this.full = full
 	}
 
-	step ( AR, N ) {
+	step () {
+
+		const AR = root.Ar;
+		const N = root.ArPos[this.itype];
 
 		let i = this.list.length, b, n, v, r;
 

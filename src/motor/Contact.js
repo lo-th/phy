@@ -10,11 +10,14 @@ export class Contact extends Item {
 		super();
 
 		this.Utils = Utils
-		this.type = 'contact'
+		this.type = 'contact';
 
 	}
 
-	step ( AR, N ) {
+	step () {
+
+		const AR = root.Ar;
+		const N = root.ArPos[this.type];
 
 		let i = this.list.length, c, n;
 		

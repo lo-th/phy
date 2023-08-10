@@ -30,7 +30,10 @@ export class Joint extends Item {
 
 	}
 
-	step ( AR, N ) {
+	step () {
+
+		const AR = root.Ar;
+		const N = root.ArPos[this.type];
 
 		let i = this.list.length, j, n, mtx1, mtx2;
 

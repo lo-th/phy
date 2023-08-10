@@ -24,7 +24,10 @@ export class Vehicle extends Item {
 
 	}
 
-	step ( AR, N ) {
+	step () {
+
+		const AR = root.Ar;
+		const N = root.ArPos[this.type];
 
 		let i = this.list.length, n;
 

@@ -17,12 +17,15 @@ export class Vehicle extends Item {
 		super();
 
 		this.Utils = Utils
-		this.type = 'vehicle'
+		this.type = 'vehicle';
 		this.num = Num[this.type]
 
 	}
 
-	step ( AR, N ) {
+	step () {
+
+		const AR = root.Ar;
+		const N = root.ArPos[this.type];
 
 		let i = this.list.length, n, s, j, k=0, m;
 

@@ -5,7 +5,8 @@ import { Num } from '../core/Config.js';
 export class Character extends Body {
 	constructor () {
 		super()
-		//this.type = 'character'
+		
+		this.itype = 'character'
 		this.num = Num[ 'character' ]
 	}
 

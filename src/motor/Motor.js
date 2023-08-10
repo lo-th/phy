@@ -53,7 +53,7 @@ const Version = {
 let items
 let currentControle = null
 let callback = null
-let Ar = null, ArPos = {}
+//let Ar = null, ArPos = {}
 let maxFps = 60
 let worker = null
 let isWorker = false
@@ -166,7 +166,7 @@ export class Motor {
 
 		const data = {
 			...settings,
-			ArPos:ArPos,
+			ArPos:root.ArPos,
 			isTimeout:isTimeout,
 			outsideStep:outsideStep,
 		}
@@ -222,7 +222,7 @@ export class Motor {
 	static message ( m ){
 
 		let e = m.data
-		if( e.Ar ) Ar = e.Ar;//new Float32Array( e.Ar )//;
+		if( e.Ar ) root.Ar = e.Ar;//new Float32Array( e.Ar )//;
 		if( e.reflow ){
 			root.reflow = e.reflow
 			if(root.reflow.stat.delta) elapsedTime += root.reflow.stat.delta
@@ -668,7 +668,7 @@ export class Motor {
 
 		if( breaker !== null ) breaker.step();
 
-		if( currentControle !== null ) currentControle.move()
+		if( currentControle !== null ) currentControle.move();
 
 		if( mouseTool ) mouseTool.step()
 
@@ -682,7 +682,7 @@ export class Motor {
 
 
 		// finally post flow change to physx
-		if( isBuffer ) root.post( { m:'poststep', flow:root.flow, Ar:Ar }, [ Ar.buffer ] )
+		if( isBuffer ) root.post( { m:'poststep', flow:root.flow, Ar:root.Ar }, [ root.Ar.buffer ] )
 		else root.post( { m:'poststep', flow:root.flow })
 
 		//	Motor.stepItems()
@@ -696,7 +696,7 @@ export class Motor {
 	static initArray ( full = false ) {
 
 	    // dynamics array
-		ArPos = getArray( root.engine, full )
+		root.ArPos = getArray( root.engine, full )
 
 	}
 
@@ -731,13 +731,15 @@ export class Motor {
 
 	static control ( name ){ // for character and vehicle
 
-		if(currentControle !== null){
+		if( currentControle !== null ){
 			if( name !== currentControle.name ){ 
 				currentControle = Motor.byName( name )
 			}
 		} else {
 			currentControle = Motor.byName( name )
 		}
+
+		//console.log('this control:', currentControle)
 
 	}
 
@@ -858,17 +860,19 @@ export class Motor {
 
 	static resetItems() {
 
-		for (const key in items) items[key].reset()
+		Object.values(items).forEach( value => value.reset() );
+		//for (const key in items) items[key].reset()
 
 	}
 
 	static stepItems () {
 
-		if(Ar===null) return
+		if( root.Ar === null ) return
 
 		Motor.upButton()
 
-		for ( const key in items ) items[key].step( Ar, ArPos[key] )
+	    Object.values(items).forEach( value => value.step() );
+		//for ( const key in items ) items[key].step( root.Ar, root.ArPos[key] )
 
 		Motor.upInstance()
 
@@ -1233,7 +1237,7 @@ export class Motor {
 class Solid extends Body {
 	constructor () {
 		super()
-		this.type = 'solid'
+		this.type = 'solid';
 	}
-	step ( AR, N ) {}
+	step (){}
 }

@@ -31,9 +31,12 @@ export class Joint extends Item {
 
 	}
 
-	step ( AR, N ) {
+	step () {
 
 		if( Num.joint!==16 ) return
+
+		const AR = root.Ar;
+		const N = root.ArPos[this.type];
 
 		let i = this.list.length, j, n;
 

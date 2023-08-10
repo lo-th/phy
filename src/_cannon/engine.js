@@ -18,7 +18,7 @@ self.onmessage = function ( m ) { engine.message( m ) }
 let isTimeout = false;
 let outsideStep = false;
 
-let Ar, ArPos
+//let Ar, ArPos
 let isBuffer = false;
 let returnMessage, isWorker;
 
@@ -53,7 +53,7 @@ export class engine {
 	static message ( m ) {
 
 		let e = m.data;
-		if( e.Ar ) Ar = e.Ar;
+		if( e.Ar ) root.Ar = e.Ar;
 		if( e.flow ) root.flow = e.flow;
 		if(!engine[ e.m ]) console.log(e.m)
 		if( e.m ) engine[ e.m ]( e.o )
@@ -100,7 +100,7 @@ export class engine {
 
 	static set ( o = {} ){
 
-		ArPos = o.ArPos || getArray('CANNON', o.full)
+		root.ArPos = o.ArPos || getArray('CANNON', o.full)
 		body.setFull(o.full)
 
 		outsideStep = o.outsideStep || false;
@@ -130,7 +130,7 @@ export class engine {
 			// define transfer array
 			//const buffer = new ArrayBuffer(ArMax)
 			//Ar = new Float32Array( buffer )
-		    Ar = new Float32Array( ArPos.total )
+		    root.Ar = new Float32Array( root.ArPos.total )
 
 		    // create new world
 			engine.initWorld()
@@ -301,15 +301,15 @@ export class engine {
 		if ( startTime - 1000 > t.tmp ){ t.tmp = startTime; root.reflow.stat.fps = t.n; t.n = 0; }; t.n++;
 		root.reflow.stat.delta = root.delta
 
-		if ( isBuffer ) engine.post( { m: 'step', reflow:root.reflow, Ar: Ar }, [ Ar.buffer ] );	
-		else engine.post( { m:'step', reflow:root.reflow, Ar:Ar } );
+		if ( isBuffer ) engine.post( { m: 'step', reflow:root.reflow, Ar: root.Ar }, [ root.Ar.buffer ] );	
+		else engine.post( { m:'step', reflow:root.reflow, Ar:root.Ar } );
 
 	}
 
 	static stepItems () {
 
-		body.step( Ar, ArPos.body );
-		joint.step( Ar, ArPos.joint );
+		body.step( root.Ar, root.ArPos.body );
+		joint.step( root.Ar, root.ArPos.joint );
 		//ray.step( Ar, ArPos.ray );
 		//contact.step( Ar, ArPos.contact );
 

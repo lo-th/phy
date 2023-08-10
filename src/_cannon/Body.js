@@ -31,7 +31,10 @@ export class Body extends Item {
 		this.full = full
 	}
 
-	step ( AR, N ) {
+	step () {
+
+		const AR = root.Ar;
+		const N = root.ArPos[this.type];
 
 		let i = this.list.length, b, n;
 

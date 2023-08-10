@@ -2,7 +2,7 @@ import { Item } from '../core/Item.js';
 import { Num } from '../core/Config.js';
 import { torad } from '../core/MathTool.js';
 
-import { Utils, map, Vec3, Quat, Mat3, Joints } from './root.js';
+import { root, Utils, map, Vec3, Quat, Mat3, Joints } from './root.js';
 
 export class Joint extends Item {
 
@@ -22,7 +22,10 @@ export class Joint extends Item {
 
 	}
 
-	step ( AR, N ) {
+	step () {
+
+		const AR = root.Ar;
+		const N = root.ArPos[this.type];
 
 		let i = this.list.length, j, n
 		const v = this.v

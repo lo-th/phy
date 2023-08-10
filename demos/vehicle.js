@@ -13,9 +13,17 @@ demo = () => {
     //phy.add({ pos:[0,20,0], rot:[0,0,0], size:[0.5,0.5,0.5], mass:30})
     //phy.add({ type:'box', size:[4,1,6], rot:[1,0,0], pos:[0,0.5,0],  radius:0.025 })
 
-   // phy.add({ type:'box', size:[4,4,1],  pos:[0,2,10],  radius:0.025 })
+    // phy.add({ type:'box', size:[4,4,1],  pos:[0,2,10],  radius:0.025 })
 
-   phy.load(['./assets/models/buggy.glb'], onComplete )
+    // preLoad
+    const maps = [
+        'textures/buggy/body_c.jpg', 'textures/buggy/extra_c.jpg',
+        'textures/buggy/extra_n.jpg', 'textures/buggy/pilote_c.jpg',
+        'textures/buggy/wheel_c.jpg', 'textures/buggy/wheel_n.jpg',
+        'textures/buggy/suspension_c.jpg'
+    ]
+
+    phy.load(['models/buggy.glb', ...maps], onComplete, './assets/' )
 
 }
 
@@ -38,7 +46,7 @@ onComplete = () => {
         type:'vehicle', 
         name:'buggy', 
         ray:debug,
-        debug:true,
+        debug:debug,
         radius:0.43,// wheels radius
         deep:0.3, // wheels deep only for three cylinder
         wPos:[ 0.838, 0.43, 1.37 ], // wheels position on chassis
@@ -70,8 +78,8 @@ onComplete = () => {
     // update after physic step
     phy.setPostUpdate ( update )
 
-    phy.follow( 'buggy', { direct:true, simple:true, decal:[0, 1, 0] })
-    phy.control( 'buggy' )
+    phy.follow( 'buggy', { direct:true, simple:true, decal:[0, 1, 0] }),
+    phy.control( 'buggy' );
     
 
 }
@@ -125,6 +133,11 @@ update = () => {
 applyMaterial = ( model ) => {
 
     const mat = {}
+
+
+
+
+
 
     //let Mat = phy.getMat()
     //let clear = Mat.get('clear')

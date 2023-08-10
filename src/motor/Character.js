@@ -26,8 +26,8 @@ export class Character extends Item {
 		super()
 
 		this.Utils = Utils
-		this.type = 'character'
-		this.num = Num[this.type]
+		this.type = 'character';
+		this.num = Num[this.type];
 
 	}
 
@@ -43,7 +43,10 @@ export class Character extends Item {
 
 	}*/
 
-	step ( AR, N ) {
+	step () {
+
+		const AR = root.Ar;
+		const N = root.ArPos[this.type];
 
 		let i = this.list.length, n, s, j, k=0, m;
 

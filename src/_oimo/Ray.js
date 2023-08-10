@@ -25,7 +25,10 @@ export class Ray extends Item {
 		
 	}
 
-	step ( AR, N ) {
+	step () {
+
+		const AR = root.Ar;
+		const N = root.ArPos[this.type];
 
 		root.reflow.ray = [];
 

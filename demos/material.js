@@ -3,7 +3,7 @@ const mod = 'shaderBall'
 
 demo = () => {
 
-    //phy.log('click to blast')
+    phy.log('Material test')
 
     phy.view({
         phi:30, theta:0, distance:4, x:0, y:0.4, z:0, fov:50, envmap:'lobe',
@@ -12,15 +12,13 @@ demo = () => {
     })
 
     // config physics setting
-    phy.set({ substep:2, gravity:[0,-9.81,0] })
+    phy.set({ substep:2, gravity:[0,-9.81,0] });
 
     // add static plane 
     //phy.add({ type:'plane', visible:false })
-    phy.add({ type:'box', size:[300,1,300], pos:[0, -0.5, 0], visible:false })
+    phy.add({ type:'box', size:[300,1,300], pos:[0, -0.5, 0], visible:false });
 
-    //makeMaterial()
-
-    phy.load(['./assets/models/'+mod+'.glb'], onComplete )
+    phy.load(['./assets/models/'+mod+'.glb'], onComplete );
 
 }
 
@@ -28,7 +26,7 @@ onComplete = () => {
 
     const models = phy.getMesh(mod)
 
-    models.ball_2.material = phy.getOneMaterial('black')//mat['black']
+    models.ball_2.material = phy.getMat('black');
     models.ball_2.receiveShadow = true
 
     //console.log( models )
@@ -66,8 +64,4 @@ onComplete = () => {
 
     
 
-}
-
-makeMaterial = () => {
-    mat['black'] = phy.material({ type:'Physical', name:'black', color:0x222222, roughness: 0.5, metalness: 0.0 })
 }
