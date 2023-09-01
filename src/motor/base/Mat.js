@@ -29,7 +29,7 @@ const matExtra = {
 
 export const Colors = {
     body:new Color( 0xefefd4 ),
-    sleep:new Color( 0xBFBFBD ),//0xBFBFAD
+    sleep:new Color( 0x9FBFBD ),//0xBFBFBD
     solid:new Color( 0x6C6A68 ),
     base:new Color( 0xFFFFFF ),
     black:new Color( 0x222222 ),

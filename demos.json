@@ -2,7 +2,7 @@
     "Basic": [ 
         "start", "basic", "joint", "capsule", "compound", "bridge",
         "gears", "terrain", "character", "kinematic", "random", "tower",
-        "gravity", "heroes", "heroes2", "bullet", "evangelion", 
+        "gravity", "heroes", "heroes2", "bullet", "evangelion", "simple",
         "blast", "skeleton", "skeleton_old", "material", "keva", "test", "dragon"
     ],
     "Dev" : [ 
@@ -25,6 +25,7 @@
     "OIMO": [],
     "RAPIER": [],
     "CANNON": [],
+    "JOLT": [],
     "HAVOK": [],
 
     "Envmap": [ 

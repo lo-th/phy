@@ -33,7 +33,7 @@ test_0 = () => {
     let i = 8
     let r = 1/(i-1)
     while(i--){
-        phy.add({ name:'b'+i, type:'box', size:[1.5, 0.2, 1.5], pos:[-7 + (i*2), 0.1, 0 ], restitution: 1 })
+        phy.add({ name:'b'+i, type:'box', size:[1.5, 0.2, 1.5], pos:[-7 + (i*2), 0.1, 0 ], restitution: i * r })
         phy.add({ name:'s'+i,  type:'sphere', size:[0.5], pos:[-7 + (i*2), 5, 0 ], restitution: i * r, density:1 })
         tmp.push( 'b'+i, 's'+i )
     }

@@ -1,10 +1,12 @@
 import { Item } from '../core/Item.js';
 import { Num } from '../core/Config.js';
 import { MathTool } from '../core/MathTool.js';
-
 import { Utils, root } from './root.js';
 
-// AMMO BODY
+
+//----------------
+//  AMMO BODY 
+//----------------
 
 export class Body extends Item {
 
@@ -12,26 +14,26 @@ export class Body extends Item {
 
 		super();
 
-		this.Utils = Utils
+		this.Utils = Utils;
 		this.type = 'body';
 		this.itype = 'body';
-		this.num = Num[this.type]
-		this.full = false
+		this.num = Num[this.type];
+		this.full = false;
 
-		this.v = new Ammo.btVector3()
-		this.vv = new Ammo.btVector3()
-		this.q = new Ammo.btQuaternion()
-		this.t = new Ammo.btTransform()
+		this.v = new Ammo.btVector3();
+		this.vv = new Ammo.btVector3();
+		this.q = new Ammo.btQuaternion();
+		this.t = new Ammo.btTransform();
 
-		this.v1 = new Ammo.btVector3()
-		this.v2 = new Ammo.btVector3()
-		this.v3 = new Ammo.btVector3()
+		this.v1 = new Ammo.btVector3();
+		this.v2 = new Ammo.btVector3();
+		this.v3 = new Ammo.btVector3();
 
 	}
 
 	setFull( full ){
-		this.num = Num[ full ? 'bodyFull':'body' ]
-		this.full = full
+		this.num = Num[ full ? 'bodyFull':'body' ];
+		this.full = full;
 	}
 
 	step () {
@@ -43,29 +45,22 @@ export class Body extends Item {
 
 		while( i-- ){
 
-			b = this.list[i]
-			n = N + ( i * this.num )
-
-			if( !b ){ 
-				this.vecZero( AR, n, this.num )
-				//AR[n]=AR[n+1]=AR[n+2]=AR[n+3]=AR[n+4]=AR[n+5]=AR[n+6]=AR[n+7]=0
-				continue
-			}
+			b = this.list[i];
+			n = N + ( i * this.num );
 			
 			AR[ n ] = b.getActivationState() === 2 ? 0 : 1; 
 
-			b.getMotionState().getWorldTransform( this.t )
-			this.t.toArray( AR, n + 1 )
+			b.getMotionState().getWorldTransform( this.t );
+			this.t.toArray( AR, n + 1 );
 
 			if( this.full ){
-				v = b.getLinearVelocity()
-				v.toArray( AR, n + 8 ) // velocity
+				v = b.getLinearVelocity();
+				r = b.getAngularVelocity();
+				v.toArray( AR, n + 8 );
+				r.toArray( AR, n + 11 );
 				if( AR[ n ] === 1 ) AR[ n ] = v.length() * 9.8;// speed km/h
-				r = b.getAngularVelocity()
-				r.toArray( AR, n + 11 )
 			}
 			
-
 		}
 
 	}
@@ -75,10 +70,10 @@ export class Body extends Item {
 	shape ( o = {} ) {
 
 		let g;
-		let t = o.type || 'box'
-		let s = o.size || [1,1,1]
+		let t = o.type || 'box';
+		let s = o.size || [1,1,1];
 
-		let i, n
+		let i, n;
 
 		switch( t ){
 

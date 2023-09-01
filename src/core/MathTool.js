@@ -13,13 +13,17 @@ export const inv255 = 0.003921569;
 export const GOLD = 1.618033;
 
 
-export const MathTool = {
+const M = {
+
+    //-----------------------
+    //  MATH
+    //-----------------------
 
     todeg:todeg,
     torad:torad,
 
-
     toFixed: ( x, n = 3 ) => ( x.toFixed(n) * 1 ),
+    toRound: ( x, n = 3 ) => ( Math.trunc(x) ),
 
     clamp: ( v, min, max ) => {
         v = v < min ? min : v;
@@ -27,12 +31,10 @@ export const MathTool = {
         return v;
     },
 
-    clampA: ( v, min, max ) => { 
-        return Math.max( min, Math.min( max, v ))
-    },
+    clampA: ( v, min, max ) => ( Math.max( min, Math.min( max, v ) ) ),
 
     lerp: ( x, y, t ) => ( ( 1 - t ) * x + t * y ),
-    damp: ( x, y, lambda, dt ) => ( MathTool.lerp( x, y, 1 - Math.exp( - lambda * dt ) ) ),
+    damp: ( x, y, lambda, dt ) => ( M.lerp( x, y, 1 - Math.exp( - lambda * dt ) ) ),
 
     nearAngle: ( s1, s2, deg = false ) => ( s2 + Math.atan2(Math.sin(s1-s2), Math.cos(s1-s2)) * (deg ? todeg : 1) ),
 
@@ -64,22 +66,19 @@ export const MathTool = {
 
     },*/
 
-    // RANDOM
+
+    //-----------------------
+    //  RANDOM
+    //-----------------------
 
     randomSign: () => ( Math.random() < 0.5 ? -1 : 1 ),
     randSpread: ( range ) => ( range * ( 0.5 - Math.random() ) ),
     rand: ( low = 0, high = 1 ) => ( low + Math.random() * ( high - low ) ),
     randInt: ( low, high ) => ( low + Math.floor( Math.random() * ( high - low + 1 ) ) ),
 
-    // ARRAY
-
-    equalArray:(a, b)=>{
-        let i = a.length
-        while(i--){ if(a[i]!==b[i]) return false }
-        return true
-    },
-
-    // MATRIX
+    //-----------------------
+    //  MATRIX
+    //-----------------------
 
     composeMatrixArray: ( p, q, s = [1,1,1] ) => {
         const x = q[0], y = q[1], z = q[2], w = q[3];
@@ -107,7 +106,7 @@ export const MathTool = {
     // for physx substep 
 
     applyTransformArray: ( v, p, q, s = [1,1,1] ) => {
-        const e = MathTool.composeMatrixArray( p, q, s )
+        const e = M.composeMatrixArray( p, q, s )
         const x = v[0], y = v[1], z = v[2];
         const w = 1 / ( e[ 3 ] * x + e[ 7 ] * y + e[ 11 ] * z + e[ 15 ] );
         return [
@@ -117,22 +116,9 @@ export const MathTool = {
         ]
     },
 
-    equalArray:( a, b ) => {
-        let i = a.length
-        while(i--){ if(a[i]!==b[i]) return false }
-        return true
-    },
     
-    lerpArray:( a, b, t ) => {
-        if ( t === 0 ) return a;
-        if ( t === 1 ) return b;
-        let i = a.length
-        let r = [];
-        while(i--){ r[i] = a[i]; r[i] += ( b[i] - r[i] ) * t; }
-        return r 
-    },
 
-    slerpQuatArray:( a, b, t ) => {
+    slerpQuatArray: ( a, b, t ) => {
 
         if ( t === 0 ) return a;
         if ( t === 1 ) return b;
@@ -159,7 +145,7 @@ export const MathTool = {
             r[0] = s * x + t * r[0];
             r[1] = s * y + t * r[1];
             r[2] = s * z + t * r[2];
-            return MathTool.quatNomalize(r);
+            return M.quatNomalize(r);
 
         }
 
@@ -176,13 +162,16 @@ export const MathTool = {
 
     },
 
-    // QUAT
+
+    //-----------------------
+    //  QUAT
+    //-----------------------
 
     toLocalQuatArray: ( rot = [0,0,0], b ) => { // rotation array in degree
 
-        let q1 = MathTool.quatFromEuler( rot );
-        let q2 = MathTool.quatInvert( b.quaternion.toArray() )
-        return MathTool.quatMultiply( q2, q1 )
+        let q1 = M.quatFromEuler( rot );
+        let q2 = M.quatInvert( b.quaternion.toArray() )
+        return M.quatMultiply( q2, q1 )
 
         /*quat.setFromEuler( euler.fromArray( math.vectorad( rot ) ) )
         quat.premultiply( b.quaternion.invert() );
@@ -190,10 +179,10 @@ export const MathTool = {
 
     },
 
-    quatFromEuler:( r = [0,0,0], isDeg = true ) => {
+    quatFromEuler: ( r = [0,0,0], isDeg = true ) => {
 
-        const cos = Math.cos
-        const sin = Math.sin
+        const cos = Math.cos;
+        const sin = Math.sin;
         const n = isDeg ? torad : 1 
         const x = (r[0]*n) * 0.5, y = (r[1]*n) * 0.5, z = (r[2]*n) * 0.5
         const c1 = cos( x ), c2 = cos( y ), c3 = cos( z );
@@ -208,7 +197,7 @@ export const MathTool = {
         
     },
 
-    quatFromAxis:( r = [0,0,0], angle, isDeg = true ) => {
+    quatFromAxis: ( r = [0,0,0], angle, isDeg = true ) => {
 
         const n = isDeg ? torad : 1 
         const halfAngle = (angle * 0.5) * n, s = Math.sin( halfAngle );
@@ -221,17 +210,17 @@ export const MathTool = {
         
     },
 
-    quatNomalize:( q ) => {
-        let l = MathTool.lengthArray( q )
+    quatNomalize: ( q ) => {
+        let l = M.lengthArray( q )
         if ( l === 0 ) {
             return [0,0,0,1]
         } else {
             l = 1 / l;
-            return MathTool.scaleArray(q, l, 4)
+            return M.scaleArray(q, l, 4)
         }
     },
 
-    quatInvert:( q ) => {
+    quatInvert: ( q ) => {
         return [-q[0],-q[1],-q[2], q[3]]
     },
 
@@ -264,7 +253,7 @@ export const MathTool = {
         const m31 = te[ 2 ], m32 = te[ 6 ], m33 = te[ 10 ];
 
         let ar = [0,0,0]
-        ar[1] = Math.asin( MathTool.clamp( m13, - 1, 1 ) );
+        ar[1] = Math.asin( M.clamp( m13, - 1, 1 ) );
         if ( Math.abs( m13 ) < 0.9999999 ) {
             ar[0] = Math.atan2( - m23, m33 );
             ar[2] = Math.atan2( - m12, m11 );
@@ -276,74 +265,95 @@ export const MathTool = {
 
     },
 
-    angleTo:( a, b ) => {
+    angleTo: ( a, b ) => {
 
-        return 2 * Math.acos( Math.abs( MathTool.clamp( MathTool.dotArray(a,b), - 1, 1 ) ) );
+        return 2 * Math.acos( Math.abs( M.clamp( M.dotArray(a,b), - 1, 1 ) ) );
 
     },
 
-    lengthArray:( r ) => {
-        let i = r.length, l=0
-        while(i--) l += r[i] * r[i]
-        return Math.sqrt( l )
+
+    //-----------------------
+    //  ARRAY
+    //-----------------------
+
+    nullArray: ( a, n, i ) => { 
+        let j = 0;
+        while( i-- ) j += a[n+i];
+        return j;
+    },
+
+    equalArray: ( a, b ) => {
+        let i = a.length
+        while(i--){ if(a[i]!==b[i]) return false; }
+        return true;
+    },
+    
+    lerpArray: ( a, b, t ) => {
+        if ( t === 0 ) return a;
+        if ( t === 1 ) return b;
+        let i = a.length
+        let r = [];
+        while(i--){ r[i] = a[i]; r[i] += ( b[i] - r[i] ) * t; }
+        return r;
+    },
+
+    zeroArray: ( a, n = 0, i ) => {
+        i = i ?? a.length;
+        while ( i-- ) a[n+i] = 0;
+        return a;
+    },
+
+    lengthArray: ( r ) => {
+        let i = r.length, l=0;
+        while( i-- ) l += r[i] * r[i];
+        return Math.sqrt( l );
     },
 
     dotArray: ( a, b ) => {
         let i = a.length, r = 0;
-        while ( i -- ) r += a[ i ] * b[ i ];
+        while ( i-- ) r += a[ i ] * b[ i ];
         return r;
     },
 
     addArray: ( a, b, i ) => {
-        i = i ?? a.length
-        let r = []
-        while ( i -- ) r[i] = a[ i ] + b[ i ]
-        return r
+        i = i ?? a.length;
+        let r = [];
+        while ( i-- ) r[i] = a[i] + b[i];
+        return r;
     },
 
     subArray: ( a, b, i ) => {
-        i = i ?? a.length 
+        i = i ?? a.length;
         let r = [];
-        while ( i -- ) r[i] = a[ i ] - b[ i ]
-        return r
+        while ( i-- ) r[i] = a[i] - b[i];
+        return r;
     },
-
-    //
 
     mulArray: ( r, s, i ) => {
-        i = i ?? r.length
-        while ( i -- ) r[i] *= s
-        return r
+        i = i ?? r.length;
+        while ( i-- ) r[i] *= s;
+        return r;
     },
 
-    divArray: ( r, s, i ) => {
-        return MathTool.scaleArray( r, 1/s, i )
+    divArray: ( r, s, i ) => ( M.mulArray( r, 1/s, i ) ),
+
+    scaleArray: ( r, s, i ) => ( M.mulArray( r, s, i ) ),
+
+    fillArray: ( a, b, n = 0, i ) => {
+        i = i ?? a.length;
+        while( i-- ) b[n+i] = a[i];
     },
 
+    copyArray: ( a, b ) => { a = [...b]; },
 
-    scaleArray: ( r, scale, i ) => {
-        i = i ?? r.length
-        while( i-- ) r[i] *= scale
-        return r
-    },
+    cloneArray: ( a ) => ( [...a] ),
 
-    fillArray ( ar, ar2, n, i ) { 
-        n = n || 0;
-        i = i ?? ar.length
-        while(i--) ar2[n+i] = ar[i]
-    },
-
-    copyArray: ( a, b ) => {
-        a = [...b]
-    },
-
-    //
-
-    distanceArray: ( a, b = [0,0,0] ) => ( MathTool.lengthArray( MathTool.subArray( a, b ) ) ),
+    distanceArray: ( a, b = [0,0,0] ) => ( M.lengthArray( M.subArray( a, b ) ) ),
 
 
-
-    // VOLUME
+    //-----------------------
+    //  VOLUME
+    //-----------------------
 
     getVolume: ( type, size, vertex = null ) => {
 
@@ -357,7 +367,7 @@ export const MathTool = {
             case 'box' : volume = 8 * (s[0]*0.5)*(s[1]*0.5)*(s[2]*0.5); break;
             case 'cylinder' : volume = Math.PI * s[0] * s[0] * (s[1] * 0.5) * 2; break;
             case 'capsule' : volume = ( (4*Math.PI*s[0]*s[0]*s[0])/3) + ( Math.PI * s[0] * s[0] * (s[1] * 0.5) * 2 ); break;
-            case 'convex' : case 'mesh' : volume = MathTool.getConvexVolume( vertex ); break;
+            case 'convex' : case 'mesh' : volume = M.getConvexVolume( vertex ); break;
 
         }
 
@@ -420,14 +430,14 @@ export const MathTool = {
     },
 
     barycentric: ( simplex, point ) => {
-        
-
     },
 
     solve: ( simplex, point ) => {
     }
 
 }
+
+export const MathTool = M;
 
 // point weight blend space javascript
 

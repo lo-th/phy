@@ -1,6 +1,6 @@
 export const Max = {
-	body:2000,
-    joint:500,
+	body:4000,
+    joint:1000,
     contact:50,
     ray:100,
     character:50,

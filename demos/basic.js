@@ -5,21 +5,22 @@ demo = () => {
 
     // add static plane 
     //phy.add({ type:'plane', visible:false })
-    phy.add({ type:'box', size:[300,1,300], pos:[0, -0.5, 0], visible:false })
+    phy.add({ type:'box', size:[300,10,300], pos:[0, -5, 0], visible:false })
 
     // add dynamic sphere
     phy.add({ type:'highSphere', name:'sphere', size:[0.4], pos:[0,6,0], density:5, restitution:0.2, friction:0.2, sleep:true, startSleep:true, })
 
     // creat building
     building({ block:0.3, height:10, length:5, deep:5 })
+    //building({ block:0.3, height:10, length:10, deep:10 })
 
-    phy.add({
+    /*phy.add({
         type:'compound', density:0.5, pos:[ 0,2,2 ],
         shapes: [
         { type:'cone', pos:[0.25,0,0], size:[ 0.5,0.5,0.5 ], rot:[0,0,-90] },
         { type:'cone', pos:[-0.25,0,0], size:[ 0.5,0.5,0.5 ], rot:[0,0,90] },
         ],
-    })
+    })*/
 
     // intern timeout
     phy.setTimeout( run, 2000 )
@@ -33,6 +34,7 @@ run = () => {
 
 building = ( o ) => {
 
+    let tmp = [];
     let i, j, k, pos;
     let s = o.block || 1;
     let space = o.space || 0//0.06;
@@ -46,7 +48,7 @@ building = ( o ) => {
     for(j = 0; j<z; j++){
     for(i = 0; i<x; i++){
         pos = [ i*d + dx, (k*d + d)-(s*0.5), j*d + dz ]
-        phy.add({
+        tmp.push({
             instance:'boxbase',
             type:'box',
             radius:0.025,// box chanfer
@@ -59,5 +61,7 @@ building = ( o ) => {
             startSleep:true,
         })
     }}}
+
+    phy.add(tmp);
 
 }

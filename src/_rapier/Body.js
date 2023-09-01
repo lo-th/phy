@@ -1,9 +1,12 @@
 import { Item } from '../core/Item.js';
 import { Num } from '../core/Config.js';
 import { MathTool } from '../core/MathTool.js';
-
 import { root, Utils, Vec3, Quat, mapCollider } from './root.js';
 
+
+//----------------
+//  RAPIER BODY 
+//----------------
 
 export class Body extends Item {
 
@@ -11,21 +14,18 @@ export class Body extends Item {
 
 		super();
 		
-		this.Utils = Utils
+		this.Utils = Utils;
 
-		this.type = 'body'
+		this.type = 'body';
 		this.itype = 'body';
-		this.num = Num[this.type]
+		this.num = Num[this.type];
 		this.full = false
 
-		this.p = new Vec3()
-		this.q = new Quat()
-		this.v = new Vec3()
-		this.v2 = new Vec3()
-		this.r = new Vec3()
-		//this.t = new Transform()
-
-		//this.sc = new ShapeConfig()
+		this.p = new Vec3();
+		this.q = new Quat();
+		this.v = new Vec3();
+		this.v2 = new Vec3();
+		this.r = new Vec3();
 
 	}
 
@@ -44,35 +44,24 @@ export class Body extends Item {
 		while( i-- ){
 
 			b = this.list[i];
-			n = N + ( i * this.num )
+			n = N + ( i * this.num );
 
-			if( !b ){ 
-				AR[n]=AR[n+1]=AR[n+2]=AR[n+3]=AR[n+4]=AR[n+5]=AR[n+6]=AR[n+7] = 0
-				continue
-			}
+			//if (!b.isValid()) continue
 
-			if (!b.isValid()) continue
+			AR[ n ] = b.isSleeping() ? 0 : 1;
 
-			AR[ n ] = b.isSleeping() ? 0 : 1
+			//if( b.isSleeping() ) b.setGravityScale( 0 );
+			//else b.setGravityScale( 1 );
 
-			if( b.isSleeping() ) b.setGravityScale( 0 );
-			else b.setGravityScale( 1 );
-
-			this.p.copy( b.translation() )
-			this.q.copy( b.rotation() )
-
-			this.p.toArray( AR, n+1 )
-			this.q.toArray( AR, n+4 )
+			this.p.copy( b.translation() ).toArray( AR, n+1 );
+			this.q.copy( b.rotation() ).toArray( AR, n+4 );
 
 			if( this.full ){
-				this.v.copy(b.linvel())
-				this.v.toArray( AR, n+8 ) // velocity
-				AR[ n ] = b.isSleeping() ? 0 : this.v.length() * 9.8
-				this.r.copy(b.angvel())
-				this.r.toArray( AR, n+11 )
+				this.v.copy(b.linvel()).toArray( AR, n+8 );
+				this.r.copy(b.angvel()).toArray( AR, n+11 );
+				if( AR[ n ] === 1 ) AR[ n ] = this.v.length() * 9.8;
 			}
 			
-
 		}
 
 	}

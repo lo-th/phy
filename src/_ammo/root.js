@@ -11,6 +11,7 @@ export const root = {
 	bodyRef: null,
 	byName: null,
 	delta : 0,
+	tmpStep:0,
 	substep:1,
 	numBreak:0,
 	gravity:null,

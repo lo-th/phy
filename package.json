@@ -26,6 +26,7 @@
     "havok": "rollup -c rollup/rollup.config.havok.js",
     "rapier": "rollup -c rollup/rollup.config.rapier.js",
     "cannon": "rollup -c rollup/rollup.config.cannon.js",
+    "jolt": "rollup -c rollup/rollup.config.jolt.js",
     "dev": "concurrently --names \"ROLLUP,HTTP\" -c \"bgBlue.bold,bgGreen.bold\" \"rollup -c rollup/rollup.config.js -w -m inline\" \"servez -p 8121 --index\"",
     "start": "concurrently --names \"ROLLUP,HTTP\" -c \"bgBlue.bold,bgGreen.bold\" \"rollup -c rollup/rollup.config.js -w -m inline\" \"http-server -c-1 -p 8121 -o index.html\""
   },
@@ -53,5 +54,7 @@
     "rollup-plugin-terser": "^7.0.2",
     "servez": "^1.11.0"
   },
-  "dependencies": {}
+  "dependencies": {
+    "@rollup/plugin-commonjs": "^25.0.4"
+  }
 }

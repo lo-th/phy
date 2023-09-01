@@ -46,8 +46,7 @@ export class Body extends Item {
 
 		const AR = root.Ar;
 		const N = root.ArPos[this.type];
-
-		const list = this.list
+		const list = this.list;
 		let i = list.length, b, n, a;
 		
 		while( i-- ){
@@ -56,17 +55,19 @@ export class Body extends Item {
 
 			if( b === null ) continue
 
-			n = N + ( i * this.num )
+			n = N + ( i * this.num );
 
 			// update only when physics actif
 			if( !b.actif ){
-				a = AR[n+0]+AR[n+1]+AR[n+2]+AR[n+3]+ AR[n+4]+AR[n+5]+AR[n+6]+AR[n+7]
-				if( a === 0 ) continue
-				else b.actif = true
+				// a = MathTool.nullArray( AR, n, this.num );
+				//a = AR[n+0]+AR[n+1]+AR[n+2]+AR[n+3]+ AR[n+4]+AR[n+5]+AR[n+6]+AR[n+7];
+				//if( a === 0 ) continue
+				if( MathTool.nullArray( AR, n, this.num ) === 0 ) continue;
+				else b.actif = true;
 			}
 
 		    // test is object sleep
-			b.sleep = AR[n] > 0 ? false : true
+			b.sleep = AR[n] > 0 ? false : true;
 
 			// update default material
 	        if( b.defMat ){
@@ -80,7 +81,7 @@ export class Body extends Item {
 			    
 			}
 
-			if( b.sleep && !b.isKinematic ) continue 
+			if( b.sleep && !b.isKinematic ) continue; 
 
 			// update position / rotation / velocity
 
@@ -97,13 +98,13 @@ export class Body extends Item {
 		    	}
 		    }
 		    else {
-		    	b.position.fromArray( AR, n + 1 )
-		        b.quaternion.fromArray( AR, n + 4 )
+		    	b.position.fromArray( AR, n + 1 );
+		        b.quaternion.fromArray( AR, n + 4 );
 		        if( this.full ){
-			        b.velocity.fromArray( AR, n + 8 )
-			        b.angular.fromArray( AR, n + 11 )
+			        b.velocity.fromArray( AR, n + 8 );
+			        b.angular.fromArray( AR, n + 11 );
 			    }
-		        if( !b.auto ) b.updateMatrix()
+		        if( !b.auto ) b.updateMatrix();
 		    }
 		}
 

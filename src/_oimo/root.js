@@ -13,6 +13,7 @@ export const root = {
 
 	world : null,
 	delta : 0,
+	tmpStep:0,
 	gravity:null,
 	key:[],
 

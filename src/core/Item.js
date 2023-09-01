@@ -1,4 +1,5 @@
 
+
 export class Item {
 
 	constructor () {
@@ -70,35 +71,44 @@ export class Item {
 
 	}
 
-    vecZero ( ar, n, i ) { while ( i -- ) ar[n+i] = 0; }
-
-    fillArray ( ar, ar2, n, i ) { 
-    	n = n || 0;
-    	i = i ?? ar.length;
-    	while(i--) ar2[n+i] = ar[i];
-    }
-
-    arLength ( ar ) { 
-    	let v = Math.sqrt( ar[0] * ar[0] + ar[1] * ar[1] + ar[2] * ar[2] );
-    	if( v < 0.001 ) v = 0;
-    	return v
-    }
-
-    multiplyScalar ( ar, v, i ) { 
-    	i = i ?? ar.length;
-    	while(i--) ar[i] *= v;
-    }
-
-    divideScalar ( ar, v, i ) { 
-    	this.multiplyScalar( ar, 1/v, i );
-    }
-
-
-
 	add ( o = {} ) { }
 
 	set ( o = {} ) { }
 
 	step ( AR, N ) { }
+
+	// ARRAY MATH TOOL
+
+    /*
+    vecZero ( ar, n, i ) { while ( i-- ) ar[n+i] = 0; }
+
+    fillArray ( ar, ar2, n, i ) { 
+
+    	n = n || 0;
+    	i = i ?? ar.length;
+    	while( i-- ) ar2[n+i] = ar[i];
+
+    }
+
+    arLength ( ar ) { 
+
+    	let v = Math.sqrt( ar[0] * ar[0] + ar[1] * ar[1] + ar[2] * ar[2] );
+    	if( v < 0.001 ) v = 0;
+    	return v;
+
+    }
+
+    multiplyScalar ( ar, v, i ) { 
+
+    	i = i ?? ar.length;
+    	while(i--) ar[i] *= v;
+
+    }
+
+    divideScalar ( ar, v, i ) {
+
+    	this.multiplyScalar( ar, 1/v, i );
+
+    }*/
 
 }

@@ -1,4 +1,4 @@
-import { Quaternion, Matrix3, Vector3, LineSegments, BufferGeometry, BufferAttribute, Float32BufferAttribute, LineBasicMaterial, SphereGeometry, CylinderGeometry, BoxGeometry, PlaneGeometry, CanvasTexture, RepeatWrapping, SRGBColorSpace, Color, Vector2, MeshStandardMaterial, MeshToonMaterial, MeshBasicMaterial, MeshLambertMaterial, MeshPhongMaterial, MeshPhysicalMaterial, DoubleSide, Line, EventDispatcher, MathUtils, Matrix4, Layers, InstancedMesh, InstancedBufferAttribute, TrianglesDrawMode, TriangleFanDrawMode, TriangleStripDrawMode, CircleGeometry, Box3, Line3, Plane, Triangle, Object3D, Mesh, Loader, FileLoader, ShapeUtils, Box2, Shape, Path, ShapePath, ShapeGeometry, NearestFilter, NearestMipmapNearestFilter, NearestMipmapLinearFilter, LinearFilter, LinearMipmapNearestFilter, LinearMipmapLinearFilter, ClampToEdgeWrapping, MirroredRepeatWrapping, PropertyBinding, InterpolateLinear, Source, LinearEncoding, RGBAFormat, InterpolateDiscrete, Scene, sRGBEncoding, LoaderUtils, SpotLight, PointLight, DirectionalLight, TextureLoader, ImageBitmapLoader, InterleavedBuffer, InterleavedBufferAttribute, PointsMaterial, Material, SkinnedMesh, LineLoop, Points, Group, PerspectiveCamera, OrthographicCamera, Skeleton, AnimationClip, Bone, FrontSide, Texture, VectorKeyframeTrack, NumberKeyframeTrack, QuaternionKeyframeTrack, Sphere, Interpolant, LinearSRGBColorSpace, Vector4, Curve, Euler, EquirectangularReflectionMapping, AmbientLight, Uint16BufferAttribute, DataTextureLoader, HalfFloatType, FloatType, DataUtils, RedFormat, NoColorSpace, ShaderChunk, AnimationMixer, AdditiveBlending, CustomBlending, ZeroFactor, SrcAlphaFactor, SkeletonHelper, AnimationUtils, Raycaster } from 'three';
+import { Quaternion, Matrix3, Vector3, LineSegments, BufferGeometry, BufferAttribute, Float32BufferAttribute, LineBasicMaterial, SphereGeometry, CylinderGeometry, BoxGeometry, PlaneGeometry, CanvasTexture, RepeatWrapping, SRGBColorSpace, Color, Vector2, MeshStandardMaterial, MeshToonMaterial, MeshBasicMaterial, MeshLambertMaterial, MeshPhongMaterial, MeshPhysicalMaterial, DoubleSide, Line, EventDispatcher, MathUtils, Matrix4, Layers, InstancedMesh, InstancedBufferAttribute, TrianglesDrawMode, TriangleFanDrawMode, TriangleStripDrawMode, CircleGeometry, Box3, Line3, Plane, Triangle, Object3D, Mesh, Loader, FileLoader, ShapeUtils, Box2, Shape, Path, ShapePath, ShapeGeometry, PropertyBinding, InterpolateLinear, Source, LinearEncoding, RGBAFormat, InterpolateDiscrete, Scene, NearestFilter, NearestMipmapNearestFilter, NearestMipmapLinearFilter, LinearFilter, LinearMipmapNearestFilter, LinearMipmapLinearFilter, ClampToEdgeWrapping, MirroredRepeatWrapping, sRGBEncoding, LoaderUtils, SpotLight, PointLight, DirectionalLight, TextureLoader, ImageBitmapLoader, InterleavedBuffer, InterleavedBufferAttribute, PointsMaterial, Material, SkinnedMesh, LineLoop, Points, Group, PerspectiveCamera, OrthographicCamera, Skeleton, AnimationClip, Bone, FrontSide, Texture, VectorKeyframeTrack, NumberKeyframeTrack, QuaternionKeyframeTrack, Sphere, Interpolant, LinearSRGBColorSpace, Vector4, Curve, Euler, EquirectangularReflectionMapping, AmbientLight, Uint16BufferAttribute, DataTextureLoader, HalfFloatType, FloatType, DataUtils, RedFormat, NoColorSpace, ShaderChunk, AnimationMixer, AdditiveBlending, CustomBlending, ZeroFactor, SrcAlphaFactor, SkeletonHelper, AnimationUtils, Raycaster } from 'three';
 
 const PI = Math.PI;
 const torad$1 = PI / 180;
@@ -7,13 +7,17 @@ const EPSILON = Number.EPSILON;//0.00001;
 const PI90 = PI*0.5;
 
 
-const MathTool = {
+const M = {
+
+    //-----------------------
+    //  MATH
+    //-----------------------
 
     todeg:todeg$1,
     torad:torad$1,
 
-
     toFixed: ( x, n = 3 ) => ( x.toFixed(n) * 1 ),
+    toRound: ( x, n = 3 ) => ( Math.trunc(x) ),
 
     clamp: ( v, min, max ) => {
         v = v < min ? min : v;
@@ -21,12 +25,10 @@ const MathTool = {
         return v;
     },
 
-    clampA: ( v, min, max ) => { 
-        return Math.max( min, Math.min( max, v ))
-    },
+    clampA: ( v, min, max ) => ( Math.max( min, Math.min( max, v ) ) ),
 
     lerp: ( x, y, t ) => ( ( 1 - t ) * x + t * y ),
-    damp: ( x, y, lambda, dt ) => ( MathTool.lerp( x, y, 1 - Math.exp( - lambda * dt ) ) ),
+    damp: ( x, y, lambda, dt ) => ( M.lerp( x, y, 1 - Math.exp( - lambda * dt ) ) ),
 
     nearAngle: ( s1, s2, deg = false ) => ( s2 + Math.atan2(Math.sin(s1-s2), Math.cos(s1-s2)) * (deg ? todeg$1 : 1) ),
 
@@ -58,22 +60,19 @@ const MathTool = {
 
     },*/
 
-    // RANDOM
+
+    //-----------------------
+    //  RANDOM
+    //-----------------------
 
     randomSign: () => ( Math.random() < 0.5 ? -1 : 1 ),
     randSpread: ( range ) => ( range * ( 0.5 - Math.random() ) ),
     rand: ( low = 0, high = 1 ) => ( low + Math.random() * ( high - low ) ),
     randInt: ( low, high ) => ( low + Math.floor( Math.random() * ( high - low + 1 ) ) ),
 
-    // ARRAY
-
-    equalArray:(a, b)=>{
-        let i = a.length;
-        while(i--){ if(a[i]!==b[i]) return false }
-        return true
-    },
-
-    // MATRIX
+    //-----------------------
+    //  MATRIX
+    //-----------------------
 
     composeMatrixArray: ( p, q, s = [1,1,1] ) => {
         const x = q[0], y = q[1], z = q[2], w = q[3];
@@ -101,7 +100,7 @@ const MathTool = {
     // for physx substep 
 
     applyTransformArray: ( v, p, q, s = [1,1,1] ) => {
-        const e = MathTool.composeMatrixArray( p, q, s );
+        const e = M.composeMatrixArray( p, q, s );
         const x = v[0], y = v[1], z = v[2];
         const w = 1 / ( e[ 3 ] * x + e[ 7 ] * y + e[ 11 ] * z + e[ 15 ] );
         return [
@@ -111,22 +110,9 @@ const MathTool = {
         ]
     },
 
-    equalArray:( a, b ) => {
-        let i = a.length;
-        while(i--){ if(a[i]!==b[i]) return false }
-        return true
-    },
     
-    lerpArray:( a, b, t ) => {
-        if ( t === 0 ) return a;
-        if ( t === 1 ) return b;
-        let i = a.length;
-        let r = [];
-        while(i--){ r[i] = a[i]; r[i] += ( b[i] - r[i] ) * t; }
-        return r 
-    },
 
-    slerpQuatArray:( a, b, t ) => {
+    slerpQuatArray: ( a, b, t ) => {
 
         if ( t === 0 ) return a;
         if ( t === 1 ) return b;
@@ -153,7 +139,7 @@ const MathTool = {
             r[0] = s * x + t * r[0];
             r[1] = s * y + t * r[1];
             r[2] = s * z + t * r[2];
-            return MathTool.quatNomalize(r);
+            return M.quatNomalize(r);
 
         }
 
@@ -170,13 +156,16 @@ const MathTool = {
 
     },
 
-    // QUAT
+
+    //-----------------------
+    //  QUAT
+    //-----------------------
 
     toLocalQuatArray: ( rot = [0,0,0], b ) => { // rotation array in degree
 
-        let q1 = MathTool.quatFromEuler( rot );
-        let q2 = MathTool.quatInvert( b.quaternion.toArray() );
-        return MathTool.quatMultiply( q2, q1 )
+        let q1 = M.quatFromEuler( rot );
+        let q2 = M.quatInvert( b.quaternion.toArray() );
+        return M.quatMultiply( q2, q1 )
 
         /*quat.setFromEuler( euler.fromArray( math.vectorad( rot ) ) )
         quat.premultiply( b.quaternion.invert() );
@@ -184,7 +173,7 @@ const MathTool = {
 
     },
 
-    quatFromEuler:( r = [0,0,0], isDeg = true ) => {
+    quatFromEuler: ( r = [0,0,0], isDeg = true ) => {
 
         const cos = Math.cos;
         const sin = Math.sin;
@@ -202,7 +191,7 @@ const MathTool = {
         
     },
 
-    quatFromAxis:( r = [0,0,0], angle, isDeg = true ) => {
+    quatFromAxis: ( r = [0,0,0], angle, isDeg = true ) => {
 
         const n = isDeg ? torad$1 : 1; 
         const halfAngle = (angle * 0.5) * n, s = Math.sin( halfAngle );
@@ -215,17 +204,17 @@ const MathTool = {
         
     },
 
-    quatNomalize:( q ) => {
-        let l = MathTool.lengthArray( q );
+    quatNomalize: ( q ) => {
+        let l = M.lengthArray( q );
         if ( l === 0 ) {
             return [0,0,0,1]
         } else {
             l = 1 / l;
-            return MathTool.scaleArray(q, l, 4)
+            return M.scaleArray(q, l, 4)
         }
     },
 
-    quatInvert:( q ) => {
+    quatInvert: ( q ) => {
         return [-q[0],-q[1],-q[2], q[3]]
     },
 
@@ -258,7 +247,7 @@ const MathTool = {
         te[ 2 ]; const m32 = te[ 6 ], m33 = te[ 10 ];
 
         let ar = [0,0,0];
-        ar[1] = Math.asin( MathTool.clamp( m13, - 1, 1 ) );
+        ar[1] = Math.asin( M.clamp( m13, - 1, 1 ) );
         if ( Math.abs( m13 ) < 0.9999999 ) {
             ar[0] = Math.atan2( - m23, m33 );
             ar[2] = Math.atan2( - m12, m11 );
@@ -270,74 +259,95 @@ const MathTool = {
 
     },
 
-    angleTo:( a, b ) => {
+    angleTo: ( a, b ) => {
 
-        return 2 * Math.acos( Math.abs( MathTool.clamp( MathTool.dotArray(a,b), - 1, 1 ) ) );
+        return 2 * Math.acos( Math.abs( M.clamp( M.dotArray(a,b), - 1, 1 ) ) );
 
     },
 
-    lengthArray:( r ) => {
+
+    //-----------------------
+    //  ARRAY
+    //-----------------------
+
+    nullArray: ( a, n, i ) => { 
+        let j = 0;
+        while( i-- ) j += a[n+i];
+        return j;
+    },
+
+    equalArray: ( a, b ) => {
+        let i = a.length;
+        while(i--){ if(a[i]!==b[i]) return false; }
+        return true;
+    },
+    
+    lerpArray: ( a, b, t ) => {
+        if ( t === 0 ) return a;
+        if ( t === 1 ) return b;
+        let i = a.length;
+        let r = [];
+        while(i--){ r[i] = a[i]; r[i] += ( b[i] - r[i] ) * t; }
+        return r;
+    },
+
+    zeroArray: ( a, n = 0, i ) => {
+        i = i ?? a.length;
+        while ( i-- ) a[n+i] = 0;
+        return a;
+    },
+
+    lengthArray: ( r ) => {
         let i = r.length, l=0;
-        while(i--) l += r[i] * r[i];
-        return Math.sqrt( l )
+        while( i-- ) l += r[i] * r[i];
+        return Math.sqrt( l );
     },
 
     dotArray: ( a, b ) => {
         let i = a.length, r = 0;
-        while ( i -- ) r += a[ i ] * b[ i ];
+        while ( i-- ) r += a[ i ] * b[ i ];
         return r;
     },
 
     addArray: ( a, b, i ) => {
         i = i ?? a.length;
         let r = [];
-        while ( i -- ) r[i] = a[ i ] + b[ i ];
-        return r
+        while ( i-- ) r[i] = a[i] + b[i];
+        return r;
     },
 
     subArray: ( a, b, i ) => {
-        i = i ?? a.length; 
+        i = i ?? a.length;
         let r = [];
-        while ( i -- ) r[i] = a[ i ] - b[ i ];
-        return r
+        while ( i-- ) r[i] = a[i] - b[i];
+        return r;
     },
-
-    //
 
     mulArray: ( r, s, i ) => {
         i = i ?? r.length;
-        while ( i -- ) r[i] *= s;
-        return r
+        while ( i-- ) r[i] *= s;
+        return r;
     },
 
-    divArray: ( r, s, i ) => {
-        return MathTool.scaleArray( r, 1/s, i )
+    divArray: ( r, s, i ) => ( M.mulArray( r, 1/s, i ) ),
+
+    scaleArray: ( r, s, i ) => ( M.mulArray( r, s, i ) ),
+
+    fillArray: ( a, b, n = 0, i ) => {
+        i = i ?? a.length;
+        while( i-- ) b[n+i] = a[i];
     },
 
+    copyArray: ( a, b ) => { [...b]; },
 
-    scaleArray: ( r, scale, i ) => {
-        i = i ?? r.length;
-        while( i-- ) r[i] *= scale;
-        return r
-    },
+    cloneArray: ( a ) => ( [...a] ),
 
-    fillArray ( ar, ar2, n, i ) { 
-        n = n || 0;
-        i = i ?? ar.length;
-        while(i--) ar2[n+i] = ar[i];
-    },
-
-    copyArray: ( a, b ) => {
-        [...b];
-    },
-
-    //
-
-    distanceArray: ( a, b = [0,0,0] ) => ( MathTool.lengthArray( MathTool.subArray( a, b ) ) ),
+    distanceArray: ( a, b = [0,0,0] ) => ( M.lengthArray( M.subArray( a, b ) ) ),
 
 
-
-    // VOLUME
+    //-----------------------
+    //  VOLUME
+    //-----------------------
 
     getVolume: ( type, size, vertex = null ) => {
 
@@ -351,7 +361,7 @@ const MathTool = {
             case 'box' : volume = 8 * (s[0]*0.5)*(s[1]*0.5)*(s[2]*0.5); break;
             case 'cylinder' : volume = Math.PI * s[0] * s[0] * (s[1] * 0.5) * 2; break;
             case 'capsule' : volume = ( (4*Math.PI*s[0]*s[0]*s[0])/3) + ( Math.PI * s[0] * s[0] * (s[1] * 0.5) * 2 ); break;
-            case 'convex' : case 'mesh' : volume = MathTool.getConvexVolume( vertex ); break;
+            case 'convex' : case 'mesh' : volume = M.getConvexVolume( vertex ); break;
 
         }
 
@@ -414,14 +424,14 @@ const MathTool = {
     },
 
     barycentric: ( simplex, point ) => {
-        
-
     },
 
     solve: ( simplex, point ) => {
     }
 
 };
+
+const MathTool = M;
 
 // point weight blend space javascript
 
@@ -470,8 +480,8 @@ get_blend_space_2d_node_influences :: (using space : *Blend_Space_2d, position :
 */
 
 const Max = {
-	body:2000,
-    joint:500,
+	body:4000,
+    joint:1000,
     contact:50,
     ray:100,
     character:50,
@@ -1122,7 +1132,7 @@ const matExtra = {
 
 const Colors = {
     body:new Color( 0xefefd4 ),
-    sleep:new Color( 0xBFBFBD ),//0xBFBFAD
+    sleep:new Color( 0x9FBFBD ),//0xBFBFBD
     solid:new Color( 0x6C6A68 ),
     base:new Color( 0xFFFFFF ),
     black:new Color( 0x222222 ),
@@ -1710,36 +1720,45 @@ class Item {
 
 	}
 
-    vecZero ( ar, n, i ) { while ( i -- ) ar[n+i] = 0; }
-
-    fillArray ( ar, ar2, n, i ) { 
-    	n = n || 0;
-    	i = i ?? ar.length;
-    	while(i--) ar2[n+i] = ar[i];
-    }
-
-    arLength ( ar ) { 
-    	let v = Math.sqrt( ar[0] * ar[0] + ar[1] * ar[1] + ar[2] * ar[2] );
-    	if( v < 0.001 ) v = 0;
-    	return v
-    }
-
-    multiplyScalar ( ar, v, i ) { 
-    	i = i ?? ar.length;
-    	while(i--) ar[i] *= v;
-    }
-
-    divideScalar ( ar, v, i ) { 
-    	this.multiplyScalar( ar, 1/v, i );
-    }
-
-
-
 	add ( o = {} ) { }
 
 	set ( o = {} ) { }
 
 	step ( AR, N ) { }
+
+	// ARRAY MATH TOOL
+
+    /*
+    vecZero ( ar, n, i ) { while ( i-- ) ar[n+i] = 0; }
+
+    fillArray ( ar, ar2, n, i ) { 
+
+    	n = n || 0;
+    	i = i ?? ar.length;
+    	while( i-- ) ar2[n+i] = ar[i];
+
+    }
+
+    arLength ( ar ) { 
+
+    	let v = Math.sqrt( ar[0] * ar[0] + ar[1] * ar[1] + ar[2] * ar[2] );
+    	if( v < 0.001 ) v = 0;
+    	return v;
+
+    }
+
+    multiplyScalar ( ar, v, i ) { 
+
+    	i = i ?? ar.length;
+    	while(i--) ar[i] *= v;
+
+    }
+
+    divideScalar ( ar, v, i ) {
+
+    	this.multiplyScalar( ar, 1/v, i );
+
+    }*/
 
 }
 
@@ -5736,9 +5755,8 @@ class Body extends Item {
 
 		const AR = root.Ar;
 		const N = root.ArPos[this.type];
-
 		const list = this.list;
-		let i = list.length, b, n, a;
+		let i = list.length, b, n;
 		
 		while( i-- ){
 
@@ -5750,8 +5768,10 @@ class Body extends Item {
 
 			// update only when physics actif
 			if( !b.actif ){
-				a = AR[n+0]+AR[n+1]+AR[n+2]+AR[n+3]+ AR[n+4]+AR[n+5]+AR[n+6]+AR[n+7];
-				if( a === 0 ) continue
+				// a = MathTool.nullArray( AR, n, this.num );
+				//a = AR[n+0]+AR[n+1]+AR[n+2]+AR[n+3]+ AR[n+4]+AR[n+5]+AR[n+6]+AR[n+7];
+				//if( a === 0 ) continue
+				if( MathTool.nullArray( AR, n, this.num ) === 0 ) continue;
 				else b.actif = true;
 			}
 
@@ -5770,7 +5790,7 @@ class Body extends Item {
 			    
 			}
 
-			if( b.sleep && !b.isKinematic ) continue 
+			if( b.sleep && !b.isKinematic ) continue; 
 
 			// update position / rotation / velocity
 
@@ -30194,6 +30214,7 @@ class Avatar extends Group {
 
         while(i--){
             t = baseTracks[i];
+            t.name;//.substring(0, t.name.lastIndexOf('.') )
 
             /*if( t.name === 'hip.position' ){
                 let rp = []
@@ -33869,6 +33890,7 @@ class Container {
 		let s = o.size || [5,3,8];
 		let p = o.pos || [0,2,0];
 		let w = o.wall || 0.1;
+		if(o.size[3])  w = o.size[3];
 		let mw = w * 0.5;
 		let xw = w * 2;
 
@@ -34471,7 +34493,7 @@ class MouseTool {
 			let def = [-0.1, 0.1, 60, 1];
 			let defr = [-0.1, 0.1, 60, 1];
 			//let defr = [0, 0]
-			let notUseKinematic = root.engine === 'OIMO' || root.engine ==='RAPIER'; //|| root.engine ==='HAVOK'
+			let notUseKinematic = root.engine === 'OIMO' || root.engine ==='RAPIER' || root.engine ==='JOLT';//|| root.engine ==='HAVOK'
 			let jtype = this.selected.link === 0 ? 'fixe' : 'd6';//root.engine === 'HAVOK' ? 'fixe' : 'd6';
 
 			let limite = [['x',...def], ['y',...def], ['z',...def], ['rx',...defr], ['ry',...defr], ['rz',...defr]];
@@ -35884,34 +35906,26 @@ K.update = function () {
 
 };
 
-let items;
+const items = {};
+
 let currentControle = null;
-let callback = null;
+let callbackReady = null;
 let worker = null;
 let isWorker = false;
 let isBuffer = false;
 let isTimeout = false;
 let outsideStep = true;
-
 let engineReady = false;
-
-
 let breaker = null;
 
-let timetest = {
-	t1:0,
-	t2:0,
-	t3:0,
-	t4:0,
-};
+let timetest = { t1:0, t2:0, t3:0, t4:0 };
 
 let mouseTool = null;
 
-
-let isPause = false;
-
 let directMessage = null;
 let controls = null;
+
+let isPause = false;
 let first = true;
 
 let timout = null;
@@ -35922,29 +35936,16 @@ let elapsedTime = 0;
 const user = new User();
 const timer = new Timer(60);
 
-
-//let particles = null
-
-//const threeScene = null
-
-let azimut = function(){ return 0 };
-let endReset = function(){};
-let postUpdate = function(){};
-let addControl = function(){};
-
-
-
+let azimut = ()=>(0);
+let endReset = ()=>{};
+let postUpdate = ()=>{};
+let addControl = ()=>{};
 
 let buttons = [];
 let textfields = [];
 let particles = [];
-//let skeletons = []
 
 const settings = {
-
-	//full:false,
-	//jointVisible:false,
-
 
 	fps: 60,
 	fixe: true,
@@ -35952,9 +35953,7 @@ const settings = {
 	substep: 2,
 	gravity: [0,-9.81,0],
 	
-
 };
-
 
 class Motor {
 
@@ -35968,17 +35967,11 @@ class Motor {
 
 	static set ( o = {} ){
 
-
 		settings.fixe = o.fixe !== undefined ? o.fixe : true;
 		settings.full = o.full !== undefined ? o.full : false;
 		settings.gravity = o.gravity ? o.gravity : [0,-9.81,0];
 	    settings.substep = o.substep ? o.substep : 2;
 	    settings.fps = o.fps ? o.fps : 60;
-
-
-	    //console.log(settings)
-
-		//if( o.full === undefined ) o.full = false
 
 		if( o.key ) addControl();
 
@@ -36005,7 +35998,7 @@ class Motor {
 
 	}
 
-	static math = MathTool//math
+	static math = MathTool
 
 	static activeMouse ( controler, mode ) { 
 		if( !mouseTool ) mouseTool = new MouseTool( controler, mode ); 
@@ -36020,15 +36013,13 @@ class Motor {
 
 	static setMaxFps ( v ) { }
 
-	//static setExtraTexture ( f ) { extraTexture = f }
-
 	static getMouse () { return mouseTool ? mouseTool.mouse:null }
 
 	static setMaxAnisotropy ( f ) { Pool.maxAnisotropy = f; }
 
 	static setAddControl ( f ) { addControl = f; }
 
-	static setPostUpdate ( f ) { postUpdate = f !== null ? f : function(){}; }
+	static setPostUpdate ( f ) { postUpdate = f !== null ? f : ()=>{}; }
 	static setAzimut ( f ) { azimut = f; }
 
 	static setKey (i, v) { return user.setKey(i,v) }
@@ -36037,22 +36028,17 @@ class Motor {
 	static getAzimut () { return azimut() }
 
 	static setContent ( Scene ) {
+
 		root.threeScene = Scene;
 		Scene.add( root.scene );
 		Scene.add( root.scenePlus );
-	}
-
-	static setControl ( Controls ) { 
-
-		controls = Controls;
-		azimut = controls.getAzimuthalAngle;
 
 	}
 
 	static message ( m ){
 
 		let e = m.data;
-		if( e.Ar ) root.Ar = e.Ar;//new Float32Array( e.Ar )//;
+		if( e.Ar ) root.Ar = e.Ar;
 		if( e.reflow ){
 			root.reflow = e.reflow;
 			if(root.reflow.stat.delta) elapsedTime += root.reflow.stat.delta;
@@ -36062,111 +36048,49 @@ class Motor {
 
 	}
 
-	static post ( e, buffer=null, direct = false ){
+	// Typically, on a Flame, the transfer speed is 80 kB/ms for postMessage 
+	// This means that if you want your message to fit in a single frame, 
+	// you should keep it under 1,300 kB
+
+	static post ( e, buffer = null, direct = false ){
 
 		if( isWorker ){
 
-		    if(e.o)if( e.o.type === 'solver' || e.o.solver !== undefined) direct = true;
-		    if(!direct){
-		    	if ( e.m === 'add' ) root.flow.add.push( e.o );
-		    	else if ( e.m === 'remove' ) root.flow.remove.push( e.o );
-		    	else worker.postMessage( e, buffer );
-		    } else {
-		    	worker.postMessage( e, buffer );
-		    }
-
-			/*if ( e.m === 'add' ){ 
-				if( e.o.type === 'solver' ) worker.postMessage( e )// direct
-				else if( e.o.solver !== undefined ) worker.postMessage( e )// direct
-				else{ 
-					if( direct ) worker.postMessage( e ) 
-				    else root.flow.add.push( e.o )// in temp 
-			    }
-			}
-			else if ( e.m === 'remove' ){ 
-				if( direct ) worker.postMessage( e ) 
-				else root.flow.remove.push( e.o )
-			}
-			else worker.postMessage( e, buffer )*/
-
-		} else {
-
-			/*if(e.o)if( e.o.type === 'solver' || e.o.solver !== undefined) direct = true
-		    if(!direct){
-		    	if ( e.m === 'add' ) root.flow.add.push( e.o )
-		    	else if ( e.m === 'remove' ) root.flow.remove.push( e.o )
-		    	else directMessage( { data : e } )
-		    } else {
-		    	directMessage( { data : e } )
+		    /*if( e.o ){
+		    	if( e.o.type === 'solver' ) direct = true;
+		    	if( e.o.solver !== undefined ) direct = true;
 		    }*/
 
-			directMessage( { data : e } );
-
-		}
-
-	}
-
-	/*static post ( e, buffer, direct = false ){
-
-		if( isWorker ){ 
-
-			if ( e.m === 'add' ){ 
-				if( e.o.type === 'solver' ) worker.postMessage( e )// direct
-				else if( e.o.solver !== undefined ) worker.postMessage( e )// direct
-				else{ 
-					if( direct ) worker.postMessage( e ) 
-				    else root.flow.add.push( e.o )// in temp 
-			    }
-			}
-			else if ( e.m === 'remove' ){ 
-				if( direct ) worker.postMessage( e ) 
-				else root.flow.remove.push( e.o )
-			}
-			else worker.postMessage( e, buffer )
+		    if( direct ){
+		    	worker.postMessage( e, buffer );
+		    } else {
+		    	if( e.m === 'add' ) root.flow.add.push( e.o );
+		    	else if ( e.m === 'remove' ) root.flow.remove.push( e.o );
+		    	else worker.postMessage( e, buffer );
+		    }
 
 		} else {
-
-			directMessage( { data : e } )
-
+			directMessage( { data : e } );
 		}
 
-	}*/
-
-	static makeView () {
-
 	}
+
+	static makeView () {}
 
 	static getScene () { return root.scene; }
 
-	
-
 	static resize ( size ) { root.viewSize = size; }
-
-	//static getMat ( mode ) { return mode === 'HIGH' ? mat : matLow; }
 
 	static init ( o = {} ) {
 
-		//root.viewSize = {w:window.innerWidth, h:window.innerHeight, r:0}
-		//root.viewSize.r = root.viewSize.w/root.viewSize.h
-
-
-
-		/*let q1 = new Quaternion().setFromAxisAngle({x:1, y:0, z:0}, 45*math.torad)
-		let q2 = new Quaternion().setFromAxisAngle({x:1, y:0, z:0}, 90*math.torad)
-
-		Utils.quatToAngular( q1.toArray(), q2.toArray() ) */
-
 		// TODO find better solution
-		let rootURL = document.location.href.replace(/\/[^/]*$/,"/");
-		var arr = rootURL.split("/");
-		rootURL = arr[0] + "//" + arr[2] + '/';
+		let url = document.location.href.replace(/\/[^/]*$/,"/");
+		var arr = url.split("/");
+		url = arr[0] + "//" + arr[2] + '/';
 
-		if( rootURL === 'https://lo-th.github.io/' ) rootURL = 'https://lo-th.github.io/phy/';
-
-		//console.log('link', rootURL)
+		if( url === 'https://lo-th.github.io/' ) url = 'https://lo-th.github.io/phy/';
 
 		const path = o.path || 'build/';
-
 		const wasmLink = {
 		    Ammo: path + 'ammo3.wasm.js',
 		    Physx: path + 'physx-js-webidl.js',
@@ -36178,21 +36102,18 @@ class Motor {
 		let mini = name.charAt(0).toUpperCase() + name.slice(1);
 		let st = '';
 
-		navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
+		//let isFirefox = navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
 
 		root.engine = type;
 
 		Motor.initItems();
 
 		// garbage material
-		Pool.materialRoot = Mat.set;//Motor.getMaterialRoot
-
-		//items.body.extraConvex = mini === 'Physx'
-		//items.solid.extraConvex = mini === 'Physx'
+		Pool.materialRoot = Mat.set;
 
 		if( o.callback ){ 
-			callback = o.callback;
-			delete ( o.callback );
+			callbackReady = o.callback;
+			delete o.callback;
 		}
 
 		isWorker = o.worker || false;
@@ -36202,68 +36123,21 @@ class Motor {
 		root.scenePlus = new Group();
 		root.scenePlus.name = 'phy_scenePlus';
 
-		if(o.scene){ 
+		if( o.scene ){ 
 			Motor.setContent( o.scene );
 			delete ( o.scene );
 		}
 
-		//root.update = Motor.update
-		//root.change = Motor.change
-		//root.remove = Motor.remove
 		root.post = Motor.post;
-		//root.add = Motor.add
-
 		root.motor = Motor;
 
 		if( isWorker ){ // is worker version
 
-			/*switch( type ){
-
-				case 'OIMO':
-
-				    worker = new Worker( path + mini + '.min.js' )
-
-				    if( isFirefox ) worker = new Worker( path + mini + '.min.js' )
-				    else {
-				    	try {
-					        worker = new Worker( path + mini + '.module.js', {type:'module'})
-						    st = 'ES6'
-						} catch (error) {
-						    worker = new Worker( path + mini + '.js' )
-						}
-				    }
-
-				break
-				
-				default :
-
-				    if( type === 'RAPIER' ) { name = 'rapier3d'; mini = 'rapier3d'; }
-
-					//let coep = '?coep=require-corp&coop=same-origin&corp=same-origin&'
-					// https://cross-origin-isolation.glitch.me/?coep=require-corp&coop=same-origin&corp=same-origin&
-				    // for wasm side
-				    if( wasmLink[mini] ) o.blob = rootURL + wasmLink[mini];
-
-				    console.log(rootURL +path + mini + '.min.js')
-
-				    //worker = new Worker( path + mini + '.module.js', {type:'module'})
-					worker = new Worker( rootURL + path + mini + '.min.js' )
-					//worker = new Worker( 'http://localhost:8612/build/'+mini+'.min.js'+coep )
-
-				break
-
-			}*/
-
-
-			// if( type === 'RAPIER' ) { name = 'rapier3d'; mini = 'rapier3d'; }
-
 		    // for wasm side
-		    if( wasmLink[mini] ) o.blob = rootURL + wasmLink[mini];
+		    if( wasmLink[mini] ) o.blob = url + wasmLink[mini];
 
 		    //worker = new Worker( path + mini + '.module.js', {type:'module'})
-			worker = new Worker( rootURL + path + mini + '.min.js' );
-
-
+			worker = new Worker( url + path + mini + '.min.js' );
 
 			worker.postMessage = worker.webkitPostMessage || worker.postMessage;
 			worker.onmessage = Motor.message;
@@ -36274,51 +36148,34 @@ class Motor {
 
 
 			o.isBuffer = isBuffer;
-			console.log( st  + ' Worker '+ type + (o.isBuffer ? ' with Shared Buffer' : '') );
-
+			console.log( st + ' Worker '+ type + (o.isBuffer ? ' with Shared Buffer' : '') );
 
 			Motor.initPhysics( o );
 
 
-			/// ???
-			//Cross-Origin-Embedder-Policy: require-corp
-			//Cross-Origin-Opener-Policy: same-origin
-			//const buffer = new SharedArrayBuffer( 1024  );
-
-			//console.log(crossOriginIsolated)
-
-			//isWorker = true;
-
-
 		} else { // is direct version
 
-			if( wasmLink[mini] ) Motor.loadWasmDirect( wasmLink[mini], o, mini, rootURL );
-			else Motor.preLoad( mini, o, rootURL );
-
-			/*directMessage = o.direct;
-			o.message = Motor.message;
-			console.log( type + ' is direct' );*/
+			if( wasmLink[mini] ) Motor.loadWasmDirect( wasmLink[mini], o, mini, url );
+			else Motor.preLoad( mini, o, url );
 
 		}
 
-		//Motor.initPhysics( o )
-
 	}
 
-	static loadWasmDirect( link, o, name, rootURL ) {
+	static loadWasmDirect( link, o, name, url ) {
 
 	    let s = document.createElement("script");
-	    s.src = rootURL + link;
+	    s.src = url + link;
 	    document.body.appendChild( s );
-	    s.onload = () => { 
-	    	Motor.preLoad( name, o, rootURL );
-	    };
+	    s.onload = () => { Motor.preLoad( name, o, url ); };
 
 	}
 
-	static async preLoad( name, o, rootURL ) {
-	
-	    let M = await import( o.devMode ? rootURL + 'src/'+name+'.js' : rootURL + 'build/'+name+'.module.js');
+	static async preLoad( name, o, url ) {
+
+		let link = url + 'build/'+name+'.module.js';
+		if( o.devMode ) link = url + 'src/'+name+'.js';
+	    let M = await import( link );
 	    directMessage = M.engine.message;
 		o.message = Motor.message;
 		Motor.initPhysics( o );
@@ -36369,7 +36226,7 @@ class Motor {
 		if( first ){
 			first = false;
 			callback();
-			return
+			return;
 		}
 
 		buttons = [];
@@ -36425,22 +36282,11 @@ class Motor {
 	static ready (){
 
 		console.log( (isWorker? 'Worker ': 'Direct ') + root.engine + ' is ready !' );
-		if( callback ) callback();
+		if( callbackReady ) callbackReady();
 
 	}
 
-	static start ( o = {} ){
-
-		root.post({ m:'start', o:o });
-
-	}
-
-	//static setTimeout ( b ){ isTimeout = b; }
-	//static getTimeout ( b ){ return isTimeout }
-
-	
-
-	
+	static start ( o = {} ){ root.post({ m:'start', o:o }); }
 
 	static morph ( obj, name, value ){ Utils.morph( obj, name, value ); }
 
@@ -36454,8 +36300,8 @@ class Motor {
 
 	static doStep ( stamp ){
 
-		if( !engineReady ) return
-		if( !outsideStep ) return
+		if( !engineReady ) return;
+		if( !outsideStep ) return;
 
         //if( isWorker && realtime ) return
 
@@ -36471,22 +36317,7 @@ class Motor {
 
 	static step (){
 
-		//let stamp = root.reflow.stat.stamp 
-		//timetest.t1 = root.reflow.stat.time 
-		//timetest.t2 = root.reflow.stat.endTime 
-
-		/*if( root.reflow.stat.time > timer.time.interval ){ 
-			//timer.force = true
-			timetest.t2++
-		}*/
-
-		//console.time('step')
-
 		root.delta = root.reflow.stat.delta;//outsideStep ? timer.delta : root.reflow.stat.delta;
-
-
-
-
 
 		Motor.stepItems();
     
@@ -36507,7 +36338,7 @@ class Motor {
 
 		//items.character.prestep()
 
-		//  update static object for this side !
+		// update static object for this side !
 		Motor.changes( root.flow.tmp );
 
 
@@ -36516,7 +36347,6 @@ class Motor {
 		else root.post( { m:'poststep', flow:root.flow });
 
 		//	Motor.stepItems()
-
 		Motor.flowReset();
 
 	}
@@ -36530,34 +36360,7 @@ class Motor {
 
 	}
 
-    static upInstance() {
-
-    	for( let n in root.instanceMesh ) root.instanceMesh[n].update();
-
-    	//Motor.updateParticleSolver()
-
-    }
-
-	static clearInstance() {
-
-    	for( let n in root.instanceMesh ) root.instanceMesh[n].dispose();
-    	root.instanceMesh = {};
-
-	}
-
-	
-
-
-
-
-
-
-	
-	
-
-
-
-
+    
 
 	static control ( name ){ // for character and vehicle
 
@@ -36569,8 +36372,6 @@ class Motor {
 			currentControle = Motor.byName( name );
 		}
 
-		//console.log('this control:', currentControle)
-
 	}
 
 	static byName ( name ){
@@ -36581,66 +36382,7 @@ class Motor {
 
 	static getAllBody ( name ){
 
-		return items.body.list
-
-	}
-
-	static explosion ( position = [0,0,0], radius = 10, force = 1 ){
-
-		let r = [];
-	    let pos = new Vector3();
-
-	    if( position ){
-	    	if( position.isVector3 ) pos.copy(position);
-	    	else pos.fromArray( position );
-	    }
-	    
-	    let dir = new Vector3();
-	    let i = items.body.list.length, b, scaling;
-
-//
-	    while( i-- ){
-
-	        b = items.body.list[i];
-	        dir.copy( b.position ).sub( pos );
-	        scaling = 1.0 - dir.length() / radius;
-
-	        if( b.isKinematic ) continue;
-	        if ( scaling < 0 ) continue;
-	        
-
-
-	       // if ( scaling < 0 ){
-	        	dir.setLength( scaling );
-	            dir.multiplyScalar( force );
-	       // }
-	        
-
-	        r.push({ name:b.name, impulse:dir.toArray(), wake:true });
-	        //r.push({ name:b.name, impulse:[0,0.01,0], impulseCenter:pos.toArray(), wake:true })
-
-
-	    }
-	    
-		Motor.change( r );
-
-	}
-
-	//-----------------------
-	//  BUTTON
-	//-----------------------
-
-	static addButton (o) {
-
-		let b = new Button( o );
-		buttons.push( b );
-		return b//.b
-
-	}
-
-	static upButton (o) {
-
-		for ( const key in buttons ) buttons[key].update();
+		return items.body.list;
 
 	}
 
@@ -36649,23 +36391,15 @@ class Motor {
 	//  ITEMS
 	//-----------------------
 
-	static getBodyRef () {
-		return items.body
-	}
-
 	static initItems () {
 
-		items = {
-			body : new Body(), 
-			solid : new Solid(), 
-			character : new Character(),
-			ray : new Ray(),
-			joint : new Joint(), 
-			contact : new Contact(), 
-			terrain : new Terrain(), 
-			
-			
-		};
+		items['ray'] = new Ray();
+		items['body'] = new Body();
+		items['joint'] = new Joint();
+		items['solid'] = new Solid();
+		items['contact'] = new Contact();
+		items['terrain'] = new Terrain();
+		items['character'] = new Character();
 
 		if( root.engine === 'PHYSX' || root.engine === 'AMMO' ){ 
 			items['vehicle'] = new Vehicle();
@@ -36677,10 +36411,9 @@ class Motor {
 
 		root.items = items;
 
-		//root.bodyRef = items.body
-		
-
 	}
+
+	static getBodyRef () { return items.body; }
 
 	static clearBody() {
 
@@ -36697,48 +36430,51 @@ class Motor {
 
 	static stepItems () {
 
-		if( root.Ar === null ) return
-
-		Motor.upButton();
+		//if( root.Ar === null ) return
 
 	    Object.values(items).forEach( value => value.step() );
 		//for ( const key in items ) items[key].step( root.Ar, root.ArPos[key] )
 
 		Motor.upInstance();
+		Motor.upButton();
 
-
-
-		// update follow camera
-		/*if( controls ){ 
-			if( controls.enableDamping && controls.enable ) controls.update()
-			if( controls.follow ) controls.follow( Motor.getDelta() )
-		}*/
 	}
 
 
+	//-----------------------
+	//  INSTANCE
+	//-----------------------
 
-	/*static joint ( o = {} ) {
+	static upInstance() {
 
-		o.type = 'joint';
-		return items.joint.add( o );
+    	Object.values( root.instanceMesh ).forEach( value => value.update() );
 
-	}*/
+    }
 
+	static clearInstance() {
+
+    	Object.values( root.instanceMesh ).forEach( value => value.dispose() );
+    	root.instanceMesh = {};
+
+	}
+
+
+	//-----------------------
+	//  ADD
+	//-----------------------
 
 	static addDirect( b ) {
 
 		root.scenePlus.add( b );
 		root.tmpMesh.push( b );
+		return b;
 
 	}
 
 	static adds ( r = [], direct ){
 
 		let i = r.length, n = 0;
-		while(i--){
-			 Motor.add( r[n], direct );
-			 n++;
-		}
+		while(i--) Motor.add( r[n++], direct );
 
 	}
 
@@ -36764,7 +36500,16 @@ class Motor {
 	}
 
 
-	static removes ( r = [], direct ){ for( let o in r ) Motor.remove( r[o], direct ); }
+	//-----------------------
+	//  REMOVE
+	//-----------------------
+
+	static removes ( r = [], direct ){ 
+
+		let i = r.length, n = 0;
+		while(i--) Motor.remove( r[n++], direct );
+
+	}
 	
 	static remove ( name, direct = false ){
 
@@ -36781,18 +36526,14 @@ class Motor {
 	}
 
 
+	//-----------------------
+	//  CHANGE
+	//-----------------------
 
-	static up ( list ) {
+	static changes ( r = [], direct = false ){ 
 
-		console.log('up is old');
-		Motor.change( list, true );
-
-	}
-
-	static update ( list ) {
-
-		console.log('update is old');
-		Motor.change( list );
+		let i = r.length, n = 0;
+		while( i-- ) Motor.changeOne( r[n++], direct );
 
 	}
 
@@ -36808,9 +36549,6 @@ class Motor {
 
 	}
 
-
-	static changes ( r = [], direct = false ){ for( let o in r ) Motor.changeOne( r[o], direct ); }
-
 	static changeOne ( o = {}, direct = false ){
 
 		if( o.heightData ) return
@@ -36820,12 +36558,19 @@ class Motor {
 		let type = b.type;
 
 		if( o.drivePosition ){
-			if( o.drivePosition.rot !== undefined ){  o.drivePosition.quat = MathTool.quatFromEuler( o.drivePosition.rot ); delete ( o.drivePosition.rot ); }
+			if( o.drivePosition.rot !== undefined ){  
+				o.drivePosition.quat = MathTool.quatFromEuler( o.drivePosition.rot ); 
+				delete ( o.drivePosition.rot ); 
+			}
 		}
 		if( o.rot !== undefined ){ o.quat = MathTool.quatFromEuler( o.rot ); delete ( o.rot ); }
 		//if( o.rot1 !== undefined ){ o.quat1 = math.toQuatArray( o.rot1 ); delete ( o.rot1 ); }
 		//if( o.rot2 !== undefined ){ o.quat2 = math.toQuatArray( o.rot2 ); delete ( o.rot2 ); }
 		if( o.localRot !== undefined ){ o.quat = MathTool.toLocalQuatArray( o.localRot, b ); delete ( o.localRot ); }
+
+
+		//if( o.type === 'solver' ) direct = true;
+		//if( o.solver !== undefined ) direct = true;
 
 		switch( type ){
 
@@ -36843,7 +36588,7 @@ class Motor {
 		}
 		
 		if( direct ){
-			root.post( { m:'change', o:o });
+			root.post({ m:'change', o:o }, null, direct );
 		}
 
 	}
@@ -36852,6 +36597,13 @@ class Motor {
 	//-----------------------
 	//  CAMERA CONTROLS
 	//-----------------------
+
+	static setControl ( Controls ) { 
+
+		controls = Controls;
+		azimut = controls.getAzimuthalAngle;
+
+	}
 
 	static setCamera ( o = {} ){
 
@@ -36866,8 +36618,6 @@ class Motor {
 		if ( typeof m === 'string' || m instanceof String ) mesh = m === '' ? null : Motor.byName( m );
 		else if ( m.isObject3D ) mesh = m;
 
-		//	console.log(m, mesh)
-
 		if( mesh === null ) controls.resetFollow();
 		else controls.startFollow( mesh, o );
 
@@ -36875,7 +36625,7 @@ class Motor {
 
 
     //-----------------------
-	// INTERN timout
+	//  INTERN timout
 	//-----------------------
 
 	static setTimeout ( f, time = 0 ){
@@ -36910,17 +36660,6 @@ class Motor {
 
 	}
 
-	//-----------------------
-	// BREAK
-	//-----------------------
-
-	static addBreaker() {
-
-		if( breaker !== null ) return;
-		breaker = new Breaker();
-
-	}
-
 
 	//-----------------------
 	//  TEXTURE
@@ -36946,6 +36685,7 @@ class Motor {
 	static setEnvmapIntensity ( v ) { Mat.setEnvmapIntensity(v); }
 
 	static getMat( name ){ return Mat.get( name ) }
+
 
 	//-----------------------
 	//
@@ -36975,14 +36715,6 @@ class Motor {
 		return Pool.getGroup( obj, autoMesh, autoMaterial );
 	}
 
-	/*static getMaterial ( name ){
-		return Pool.getMaterial( name )
-	}
-
-	static getTexture ( name, o ){
-		return Pool.getTexture( obj, autoMesh, autoMaterial )
-	}*/
-
 	static getScript ( name ){
 		return Pool.getScript( name );
 	}
@@ -37001,7 +36733,7 @@ class Motor {
 
 
 	//-----------------------
-	// PARTICLE
+	//  PARTICLE
 	//-----------------------
 
 	static initParticle (){}
@@ -37031,29 +36763,94 @@ class Motor {
 
 
 	//-----------------------
-	// TEXT
+	//  BUTTON
 	//-----------------------
 
-	static addText ( o ){ 
-		let t = new Textfield(o);
+	static addButton (o) {
 
+		let b = new Button( o );
+		buttons.push( b );
+		return b//.b
+
+	}
+
+	static upButton (o) {
+
+		for ( const key in buttons ) buttons[key].update();
+
+	}
+
+
+	//-----------------------
+	//  TEXT
+	//-----------------------
+
+	static addText ( o ){
+
+		let t = new Textfield( o );
 		if( o.parent ) o.parent.add( t );
 		else root.scenePlus.add( t );
 		textfields.push(t);
-		return t
+		return t;
+
 	}
 
-	static clearText () { 
+	static clearText () {
 
 		let i = textfields.length;
 		while( i-- ) textfields[i].dispose();
-
-		//for( let n in textfields ) textfields[n].dispose()
     	textfields = [];
 		
 	}
 
 
+	//-----------------------
+	// BREAK
+	//-----------------------
+
+	static addBreaker() {
+
+		if( breaker !== null ) return;
+		breaker = new Breaker();
+
+	}
+
+
+	//-----------------------
+	//  EXPLOSION
+	//-----------------------
+
+	static explosion ( position = [0,0,0], radius = 10, force = 1 ){
+
+		let r = [];
+	    let pos = new Vector3();
+
+	    if( position ){
+	    	if( position.isVector3 ) pos.copy(position);
+	    	else pos.fromArray( position );
+	    }
+	    
+	    let dir = new Vector3();
+	    let i = items.body.list.length, b, scaling;
+
+	    while( i-- ){
+
+	        b = items.body.list[i];
+	        dir.copy( b.position ).sub( pos );
+	        scaling = 1.0 - dir.length() / radius;
+
+	        if( b.isKinematic ) continue;
+	        if ( scaling < 0 ) continue;
+	        	
+	        dir.setLength( scaling );
+	        dir.multiplyScalar( force );
+
+	        r.push({ name:b.name, impulse:dir.toArray(), wake:true });
+	        //r.push({ name:b.name, impulse:[0,0.01,0], impulseCenter:pos.toArray(), wake:true })
+	    }
+	    
+		Motor.change( r );
+	}
 }
 
 

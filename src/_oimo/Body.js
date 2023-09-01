@@ -1,13 +1,17 @@
 import { Item } from '../core/Item.js';
 import { Num } from '../core/Config.js';
 import { MathTool } from '../core/MathTool.js';
-
-
 import { 
-	root, Utils, Vec3, Quat, Transform, RigidBodyConfig, ShapeConfig, Shape, RigidBody,ContactCallback,
-	BoxGeometry, SphereGeometry, CylinderGeometry, CapsuleGeometry, ConeGeometry, ConvexHullGeometry
+	root, Utils, Vec3, Quat, Transform, RigidBodyConfig, 
+	ShapeConfig, Shape, RigidBody,ContactCallback,
+	BoxGeometry, SphereGeometry, CylinderGeometry, 
+	CapsuleGeometry, ConeGeometry, ConvexHullGeometry
 } from './root.js';
 
+
+//----------------
+//  OIMO BODY 
+//----------------
 
 export class Body extends Item {
 
@@ -15,29 +19,26 @@ export class Body extends Item {
 
 		super();
 		
-		this.Utils = Utils
+		this.Utils = Utils;
 
 		this.type = 'body';
 		this.itype = 'body';
-		this.num = Num[this.type]
-		this.full = false
+		this.num = Num[this.type];
+		this.full = false;
 
-		this.p = new Vec3()
-		this.v = new Vec3()
-		this.v2 = new Vec3()
-		this.r = new Vec3()
-		this.q = new Quat()
-		//this.t = new Transform()
+		this.p = new Vec3();
+		this.v = new Vec3();
+		this.v2 = new Vec3();
+		this.r = new Vec3();
+		this.q = new Quat();
 
-		//console.log(this.t)
-
-		this.sc = new ShapeConfig()
+		this.sc = new ShapeConfig();
 
 	}
 
 	setFull( full ){
-		this.num = Num[ full ? 'bodyFull':'body' ]
-		this.full = full
+		this.num = Num[ full ? 'bodyFull':'body' ];
+		this.full = full;
 	}
 
 	step () {
@@ -50,26 +51,26 @@ export class Body extends Item {
 		while( i-- ){
 
 			b = this.list[i];
-			n = N + ( i * this.num )
+			n = N + ( i * this.num );
 
-			if( !b ){
+			/*if( !b ){
 				this.vecZero( AR, n, this.num )
 				//AR[n]=AR[n+1]=AR[n+2]=AR[n+3]=AR[n+4]=AR[n+5]=AR[n+6]=AR[n+7] = 0
 				continue
-			}
+			}*/
 
-			AR[ n ] = b.isSleeping() ? 0 : 1
+			AR[ n ] = b.isSleeping() ? 0 : 1;
 
-			b.getPositionTo( this.p )
-			b.getOrientationTo( this.q )
-			this.p.toArray( AR, n+1 )
-			this.q.toArray( AR, n+4 )
+			b.getPositionTo( this.p );
+			b.getOrientationTo( this.q );
+			this.p.toArray( AR, n+1 );
+			this.q.toArray( AR, n+4 );
 
 			if( this.full ){
-				b.getLinearVelocityTo( this.v )
-			    b.getAngularVelocityTo( this.r )
-				this.v.toArray( AR, n+8 ) // velocity
-			    this.r.toArray( AR, n+11 ) // angular
+				b.getLinearVelocityTo( this.v );
+			    b.getAngularVelocityTo( this.r );
+				this.v.toArray( AR, n+8 );
+			    this.r.toArray( AR, n+11 );
 			    if( AR[ n ] === 1 ) AR[ n ] = this.v.length() * 9.8;// speed km/h
 			}
 		}

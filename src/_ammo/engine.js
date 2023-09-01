@@ -1,16 +1,24 @@
-import { root, Utils } from './root.js'
+import { root, Utils } from './root.js';
 import { getType, getArray } from '../core/Config.js';
-import { MathTool } from '../core/MathTool.js';
 
-import { Ray } from './Ray.js'
-import { Body } from './Body.js'
-import { Joint } from './Joint.js'
-import { Contact } from './Contact.js'
-import { Vehicle } from './Vehicle.js'
-import { Terrain } from './Terrain.js'
-import { Character } from './Character.js'
+import { Ray } from './Ray.js';
+import { Body } from './Body.js';
+import { Joint } from './Joint.js';
+import { Contact } from './Contact.js';
+import { Vehicle } from './Vehicle.js';
+import { Terrain } from './Terrain.js';
+import { Character } from './Character.js';
 
-//import Ammo from '../../build/ammo3.wasm.js';
+//let Ammo = await import("../../build/ammo3.wasm.js");
+//import '../../build/ammo3.wasm.js';
+//import * as ammo from '../../build/ammo3.wasm.js';
+//const ammo = await import("../../build/ammo3.wasm.js");
+//const Ammo = await ammo.Ammo();//.bind(window)();
+//import { Ammo } from '../../build/ammo3.wasm.js';
+//
+
+//import ammo from "../../build/ammo3.wasm.js";
+//const Ammo = await ammo.bind(window)();
 
 /** __
 *    _)_|_|_
@@ -20,38 +28,38 @@ import { Character } from './Character.js'
 *    AMMO ENGINE
 */
 
-self.onmessage = function ( m ) { engine.message( m ) }
+self.onmessage = function ( m ) { engine.message( m ) };
 
-let items;
-
-let isTimeout = false;
-let outsideStep = false;
-let isSoft = true;
-
-//let Ar, ArPos;
-let isBuffer = false;
-let returnMessage, isWorker;
-
+const items = {};
 const Time = typeof performance === 'undefined' ? Date : performance;
-
 const t = { tmp:0, n:0, dt:0, fps:0 };
 
+let startTime = 0; 
+let lastTime = 0;
 let timestep = 1/60;
 let interval = 16.67;
 let substep = 4;
 let fixe = true;
 let broadphase = 2;
 
-let startTime = 0, lastTime = 0;
-let isStop = true, isReset, tmpStep;
+let isTimeout = false;
+let outsideStep = false;
+let isSoft = true;
+let isBuffer = false;
+let isWorker = false;
+let returnMessage = null;
 
-let intertime = null;
+
+let isStop = true;
+let isReset = false;
+
+let interut = null;
 let timeout = null;
 
 let penetration = null;
 
-let flow = {}
-let current = ''
+let flow = {};
+let current = '';
 
 let Solver, SolverSoft, CollisionConfig, Dispatcher, Broadphase;
 
@@ -62,10 +70,10 @@ export class engine {
 
 	static message ( m ) {
 
-		let e = m.data
-		if( e.Ar ) root.Ar = e.Ar
-		if( e.flow ) flow = e.flow
-		if( e.m ) engine[ e.m ]( e.o )
+		let e = m.data;
+		if( e.Ar ) root.Ar = e.Ar;
+		if( e.flow ) flow = e.flow;
+		if( e.m ) engine[ e.m ]( e.o );
 
 	}
 
@@ -114,7 +122,7 @@ export class engine {
 		isTimeout = o.isTimeout || false;
 
 		timestep = 1 / (o.fps || 60 );
-		interval = MathTool.toFixed(timestep*1000, 2)
+		interval = timestep*1000;
 
 		substep = o.substep || 1;
 		fixe = o.fixe !== undefined ? o.fixe : true;
@@ -154,7 +162,7 @@ export class engine {
 		isStop = false
 		isReset = false
 		lastTime = 0
-		tmpStep = 0
+		root.tmpStep = 0
 
 		if( outsideStep ) return
 		
@@ -162,7 +170,7 @@ export class engine {
 			if( timeout ) clearTimeout( timeout ); 
 			timeout = setTimeout( engine.step, 0 );
 		}
-		else intertime = setInterval( engine.step, interval )
+		else interut = setInterval( engine.step, interval )
 		
 	}
 
@@ -202,39 +210,39 @@ export class engine {
     }
 
     static controle ( name ) {
-    	//console.log(name)
-		if( name === current ) return
-		this.enable( current, false )
+
+		if( name === current ) return;
+		this.enable( current, false );
 		current = name;
-		this.enable( current, true )
+		this.enable( current, true );
 
 	}
 
 	static enable ( name, value ) {
 
-		if( name === '' ) return
-		let b = engine.byName( name )
-		///if( b === null ) return
-		if( b === null ){ current = ''; return; }
-		b.enable = value
+		if( name === '' ) return;
+		let b = this.byName( name );
+		if( b === null ) current = '';
+		else b.enable = value;
 
 	}
 
 	static dispatch () {
 
-		root.key = flow.key
-		if( flow.remove ) while ( flow.remove.length > 0 ) this.remove( flow.remove.shift() )
-		if( flow.add ) while ( flow.add.length > 0 ) this.add( flow.add.shift() )
-		if( flow.tmp ) while ( flow.tmp.length > 0 ) this.change( flow.tmp.shift() )
-		this.controle( flow.current )
-
+		root.key = flow.key;
+		if( flow.remove ) this.removes( flow.remove );
+		if( flow.add ) this.adds( flow.add );
+		if( flow.tmp ) this.changes( flow.tmp );
+		this.controle( flow.current );
+		flow = {};
+		
 	}
 
 	static poststep (){
 
 		if( isStop ) return;
 
-		tmpStep = 1;
+		root.tmpStep = 1;
 
 		this.dispatch()
 
@@ -265,9 +273,9 @@ export class engine {
 	static step ( stamp ){
 
 		if( isReset ) engine.endReset();
-		if( isStop || tmpStep >= 2 ) return;
+		if( isStop || root.tmpStep >= 2 ) return;
 
-		tmpStep = 2;
+		root.tmpStep = 2;
 
 		startTime = stamp || Time.now();
 		root.delta = ( startTime - lastTime ) * 0.001;
@@ -359,8 +367,8 @@ export class engine {
 
 		if( outsideStep ) return;
 		if( timeout ) clearTimeout( timeout );
-		if( intertime ) clearInterval( intertime );
-		intertime = null;
+		if( interut ) clearInterval( interut );
+		interut = null;
 		timeout = null;
 
 	}
@@ -414,7 +422,7 @@ export class engine {
 				for ( let j = 0, jl = manifold.getNumContacts(); j < jl; j ++ ) {
 
 					p = manifold.getContactPoint( j );
-					distance = MathTool.toFixed( p.getDistance(), 3)
+					distance = p.getDistance();
 
 					if ( distance < -0.01 ) {
 
@@ -483,25 +491,27 @@ export class engine {
 
 	static initItems () {
 
-		items = {
-			ray : new Ray(),
-		    body : new Body(),
-			solid : new Solid(),
-			joint : new Joint(),
-			contact : new Contact(),
-			character : new Character(),
-			vehicle : new Vehicle(),
-			terrain : new Terrain(),
-		}
+		items['ray'] = new Ray();
+		items['body'] = new Body();
+		items['joint'] = new Joint();
+		items['solid'] = new Solid();
+		items['contact'] = new Contact();
+		items['vehicle'] = new Vehicle();
+		items['terrain'] = new Terrain();
+		items['character'] = new Character();
 
 		// reference function for rigidbody
-		root.bodyRef = items.body
-		root.byName = engine.byName
+		root.bodyRef = items.body;
+		root.byName = engine.byName;
 
 	}
 
 	static resetItems() { Object.values(items).forEach( value => value.reset() ); }
 	static stepItems() { Object.values(items).forEach( value => value.step() ); }
+
+	static adds( r ){ let i = r.length, n = 0; while( i-- ) this.add(r[n++]); }
+	static removes( r ){ let i = r.length, n = 0; while( i-- ) this.remove(r[n++]); }
+	static changes( r ){ let i = r.length, n = 0; while( i-- ) this.change(r[n++]); }
 
 	static add ( o = {} ){
 

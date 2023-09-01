@@ -7,14 +7,12 @@ export const root = {
 	ArPos: {},
 
 	world : null,
+	tmpStep:0,
 	delta : 0,
 	invDelta :0,
 	gravity:null,
 
-	flow:{
-		tmp:[],
-		key:[],
-	},
+	key:[],
 
 	reflow:{
 		ray:[],
@@ -23,6 +21,8 @@ export const root = {
 			delta:0,
 		},
 	},
+
+
 
 	group:{
 		all:0xfffffffff,

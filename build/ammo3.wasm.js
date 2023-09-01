@@ -2076,12 +2076,10 @@ yha();a.BT_6DOF_FLAGS_ERP_STOP2=zha();a.BT_6DOF_FLAGS_CFM_MOTO2=Aha();a.BT_6DOF_
 }
 );
 })();
+
 if (typeof exports === 'object' && typeof module === 'object')
   module.exports = Ammo;
 else if (typeof define === 'function' && define['amd'])
   define([], function() { return Ammo; });
 else if (typeof exports === 'object')
   exports["Ammo"] = Ammo;
-
-
-//export default Ammo

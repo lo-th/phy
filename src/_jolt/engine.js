@@ -1,18 +1,21 @@
-import { root, Utils, World, Vec3, Quat } from './root.js';
-import { getType, getArray } from '../core/Config.js';
+import { root, Utils } from './root.js';
+import { Max, getType, getArray } from '../core/Config.js';
 
-import { Ray } from './Ray.js';
 import { Body } from './Body.js';
 import { Joint } from './Joint.js';
+/*import { Ray } from './Ray.js';
 import { Contact } from './Contact.js';
 import { Character } from './Character.js';
+*/
+
+import initJolt from '../libs/jolt-physics.wasm-compat.js';
 
 /** __
 *    _)_|_|_
 *   __) |_| | 2023
 * @author lo.th / https://github.com/lo-th
 *
-*    OIMO ENGINE
+*    JOLT ENGINE
 */
 
 self.onmessage = function ( m ) { engine.message( m ) };
@@ -25,7 +28,7 @@ let startTime = 0;
 let lastTime = 0;
 let timestep = 1/60;
 let interval = 16.67;
-let substep = 10;
+let substep = 1;
 let broadphase = 2;
 let fixe = true;
 
@@ -83,15 +86,22 @@ export class engine {
 			isBuffer = false;
 		}
 
-		engine.initItems()
+		initJolt().then( ( Jolt ) => {
 
-		engine.post( { m:'ready', o:{} } );
+			self.Jolt = Jolt;
+
+			Utils.extends();
+			engine.initItems();
+
+			engine.post( { m:'ready', o:{} } );
+
+		})
 
 	}
 
 	static set ( o = {} ){
 
-		root.ArPos = o.ArPos || getArray('OIMO', o.full)
+		root.ArPos = o.ArPos || getArray('JOLT', o.full)
 		items.body.setFull(o.full)
 
 		outsideStep = o.outsideStep || false;
@@ -100,12 +110,12 @@ export class engine {
 		timestep = 1 / (o.fps || 60 );
 		interval = timestep*1000;
 
-		substep = o.substep || 1;
+		substep = 1//o.substep || 1;
 		// broadphase 1:BRUTE_FORCE 2:BVH
 		broadphase = o.broadphase || 2;
 		fixe = o.fixe !== undefined ? o.fixe : true;
 
-		root.gravity = new Vec3().fromArray( o.gravity || [ 0, -9.80665, 0 ] );
+		root.gravity = new Jolt.Vec3(0, -9.8, 0).fromArray( o.gravity || [ 0, -9.80665, 0 ] );
 
 		if( root.world === null ) engine.start();
 		//else root.world.setGravity( gravity );
@@ -113,9 +123,9 @@ export class engine {
 	}
 
 	static setGravity( o ) {
-		
+
 		root.gravity.fromArray( o.gravity );
-		if( root.world ) root.world._gravity.fromArray( o.gravity )
+		if( root.physicsSystem ) root.physicsSystem.SetGravity( root.gravity );
 
 	}
 	
@@ -126,17 +136,17 @@ export class engine {
 			// define transfer array
 			//const buffer = new ArrayBuffer(ArMax)
 			//Ar = new Float32Array( buffer )
-		    root.Ar = new Float32Array( root.ArPos.total )
+		    root.Ar = new Float32Array( root.ArPos.total );
 
 		    // create new world
-			engine.initWorld()
+			engine.initWorld();
 
 		} 
 
-		isStop = false
-		isReset = false
-		lastTime = 0
-		root.tmpStep = 0
+		isStop = false;
+		isReset = false;
+		lastTime = 0;
+		root.tmpStep = 0;
 
 		if( outsideStep ) return
 
@@ -151,27 +161,54 @@ export class engine {
 
 	static initWorld () {
 
-    	root.world = new World( broadphase, root.gravity )
-		root.world.setNumVelocityIterations( 10 )
-		root.world.setNumPositionIterations( 5 )
+		// Initialize Jolt
+		root.settings = new Jolt.JoltSettings();
+		root.settings.mMaxBodies = Max.body;//10240
+		root.settings.mMaxBodyPairs = Math.round( Max.body*6.4 ); //65536
+		root.settings.mMaxContactConstraints = Max.body;//10240
 
-		//console.log( root.world )
+
+		root.world = new Jolt.JoltInterface( root.settings );
+		root.physicsSystem = root.world.GetPhysicsSystem();
+		root.bodyInterface = root.physicsSystem.GetBodyInterface();
+
+		root.physicsSystem.SetGravity( root.gravity )
+		// missing
+		//root.physicsSystem.SetCombineRestitution() // Default method is max(restitution1, restitution1)
+		// should be min
+
+		//console.log(root.settings)
+		/*console.log(root.world)*/
+		//console.log(root.bodyInterface)
+		//console.log(root.physicsSystem)
+
+    }
+
+    static clearWorld () {
+
+		Jolt.destroy(root.bodyInterface);
+		Jolt.destroy(root.settings);
+		Jolt.destroy(root.world);
+		Jolt.destroy(root.gravity);
+
+		root.world = null;
+		current = '';
 
     }
 
 	static controle ( name ) {
 
 		if( name === current ) return;
-		this.enable( current, false );
+		engine.enable( current, false );
 		current = name;
-		this.enable( current, true );
+		engine.enable( current, true );
 
 	}
 
 	static enable ( name, value ) {
 
 		if( name === '' ) return;
-		let b = this.byName( name );
+		let b = engine.byName( name );
 		if( b === null ) current = '';
 		else b.enable = value;
 
@@ -180,10 +217,10 @@ export class engine {
 	static dispatch () {
 
 		root.key = flow.key;
-		if( flow.remove ) this.removes( flow.remove );
-		if( flow.add ) this.adds( flow.add );
-		if( flow.tmp ) this.changes( flow.tmp );
-		this.controle( flow.current );
+		if( flow.remove ) engine.removes( flow.remove );
+		if( flow.add ) engine.adds( flow.add );
+		if( flow.tmp ) engine.changes( flow.tmp );
+		engine.controle( flow.current );
 		flow = {};
 		
 	}
@@ -194,7 +231,7 @@ export class engine {
 
 		root.tmpStep = 1;
 
-		this.dispatch()
+		engine.dispatch()
 
 		if( outsideStep ) return;//engine.step()
 
@@ -226,13 +263,9 @@ export class engine {
 
 		root.invDelta = 1 / (fixe ? timestep : root.delta);
 
-		//engine.stepItems()
+		root.world.Step( root.deltaTime, substep );
 
-		let n = substep;
-		while( n-- ) root.world.step( root.deltaTime );
-
-		engine.stepItems()
-
+		engine.stepItems();
 
 		// get simulation stat
 		if ( startTime - 1000 > t.tmp ){ t.tmp = startTime; root.reflow.stat.fps = t.n; t.n = 0; }; t.n++;
@@ -258,10 +291,8 @@ export class engine {
 
 		engine.resetItems()
 
-		// clear world
-		root.world = null
-		current = ''
-
+		engine.clearWorld();
+		
 		Utils.clear()
 
 		engine.post( { m:'resetCallback', o:{} } );
@@ -284,8 +315,8 @@ export class engine {
 
 		let pause = o.value;
 		if( pause === isStop ) return;
-		if( pause ) this.stop();
-		else this.start();
+		if( pause ) engine.stop();
+		else engine.start();
 
 	}
 
@@ -298,21 +329,23 @@ export class engine {
 
 	static initItems () {
 
-		items['ray'] = new Ray();
 		items['body'] = new Body();
-		items['joint'] = new Joint();
 		items['solid'] = new Solid();
+		items['joint'] = new Joint();
+		/*
+		items['ray'] = new Ray();
 		items['contact'] = new Contact();
 		items['character'] = new Character();
+		*/
 
 	}
 
 	static resetItems() { Object.values(items).forEach( value => value.reset() ); }
 	static stepItems() { Object.values(items).forEach( value => value.step() ); }
 
-	static adds( r ){ let i = r.length, n = 0; while( i-- ) this.add(r[n++]); }
-	static removes( r ){ let i = r.length, n = 0; while( i-- ) this.remove(r[n++]); }
-	static changes( r ){ let i = r.length, n = 0; while( i-- ) this.change(r[n++]); }
+	static adds( r ){ let i = r.length, n = 0; while( i-- ) engine.add(r[n++]); }
+	static removes( r ){ let i = r.length, n = 0; while( i-- ) engine.remove(r[n++]); }
+	static changes( r ){ let i = r.length, n = 0; while( i-- ) engine.change(r[n++]); }
 
 	static add ( o = {} ){
 
@@ -323,14 +356,14 @@ export class engine {
 
 	static remove ( o = {} ){
 
-		let b = this.byName( o.name );
+		let b = engine.byName( o.name );
 		if( b ) items[b.type].clear( b );
 
 	}
 
 	static change ( o = {} ){
 
-		let b = this.byName( o.name );
+		let b = engine.byName( o.name );
 		if( b ) items[b.type].set( o, b );
 
 	}
@@ -351,3 +384,36 @@ class Solid extends Body {
 	}
 	step ( AR, N ) {}
 }
+
+
+
+/*
+interface BodyInterface {
+	Body CreateBody([Const, Ref] BodyCreationSettings inSettings);
+	Body CreateSoftBody([Const, Ref] SoftBodyCreationSettings inSettings);
+	void DestroyBody([Const, Ref] BodyID inBodyID);
+	void AddBody([Const, Ref] BodyID inBodyID, EActivation inActivationMode);
+	void RemoveBody([Const, Ref] BodyID inBodyID);
+	boolean IsAdded([Const, Ref] BodyID inBodyID);
+	[Value] BodyID CreateAndAddBody([Const, Ref] BodyCreationSettings inSettings, EActivation inActivationMode);
+	[Value] BodyID CreateAndAddSoftBody([Const, Ref] SoftBodyCreationSettings inSettings, EActivation inActivationMode);
+	[Const] Shape GetShape([Const, Ref] BodyID inBodyID);
+	void SetShape([Const, Ref] BodyID inBodyID, [Const] Shape inShape, boolean inUpdateMassProperties, EActivation inActivationMode);
+	void SetObjectLayer([Const, Ref] BodyID inBodyID, unsigned long inLayer);
+	unsigned long GetObjectLayer([Const, Ref] BodyID inBodyID);
+	void SetPositionAndRotation([Const, Ref] BodyID inBodyID, [Const, Ref] Vec3 inPosition, [Const, Ref] Quat inRotation, EActivation inActivationMode);
+	void SetPositionAndRotationWhenChanged([Const, Ref] BodyID inBodyID, [Const, Ref] Vec3 inPosition, [Const, Ref] Quat inRotation, EActivation inActivationMode);
+	void GetPositionAndRotation([Const, Ref] BodyID inBodyID, [Ref] Vec3 outPosition, [Ref] Quat outRotation);
+	void SetPosition([Const, Ref] BodyID inBodyID, [Const, Ref] Vec3 inPosition, EActivation inActivationMode);
+	[Value] Vec3 GetPosition([Const, Ref] BodyID inBodyID);
+	void SetRotation([Const, Ref] BodyID inBodyID, [Const, Ref] Quat inRotation, EActivation inActivationMode);
+	[Value] Quat GetRotation([Const, Ref] BodyID inBodyID);
+	void MoveKinematic([Const, Ref] BodyID inBodyID, [Const, Ref] Vec3 inPosition, [Const, Ref] Quat inRotation, float inDeltaTime);
+	void ActivateBody([Const, Ref] BodyID inBodyID);
+	void DeactivateBody([Const, Ref] BodyID inBodyID);
+	boolean IsActive([Const, Ref] BodyID inBodyID);
+	void SetMotionType([Const, Ref] BodyID inBodyID, EMotionType inMotionType, EActivation inActivationMode);
+	void SetMotionQuality([Const, Ref] BodyID inBodyID, EMotionQuality inMotionQuality);
+};
+
+*/

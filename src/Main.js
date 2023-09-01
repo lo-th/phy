@@ -187,7 +187,8 @@ const Version = {
     Ammo: '3.0',
     Physx: '5.01.03',
     Rapier: '0.10.0',
-    Havok: '0.10.0',
+    Havok: '1.1.4',
+    Jolt:'0.0.4',
 }
 
 /*const LinkWasm = {
@@ -207,7 +208,7 @@ export const Main = {
 	currentDemmo:'',
 	isWorker:true,
 	devMode:false,
-	engineList: [ 'OIMO', 'AMMO', 'PHYSX', 'HAVOK', 'RAPIER'],
+	engineList: [ 'OIMO', 'AMMO', 'PHYSX', 'HAVOK', 'RAPIER', 'JOLT' ],
 	demoList:[],
 	demoLink:[],
 	envList:[],
@@ -218,21 +219,21 @@ export const Main = {
 
 	start: async ( o = {} ) => {
 
-		Hub.setMain( Main )
-		Gui.setMain( Main )
-		Gui.setTextureConstrutor( THREE.Texture )
+		Hub.setMain( Main );
+		Gui.setMain( Main );
+		Gui.setTextureConstrutor( THREE.Texture );
 
 		activeWebGPU = o.webGPU || false;
 
 		const gpuTier = await getGPUTier();
-	    const perf = gpuTier
+	    const perf = gpuTier;
 	    //console.log(perf)
 
-	    Main.isMobile = perf.isMobile
+	    Main.isMobile = perf.isMobile;
 
 		if( Main.isMobile || perf.fps < 60 ){ 
-			options.mode = 'LOW'
-			options.quality = 1
+			options.mode = 'LOW';
+			options.quality = 1;
 		}
 
 		switch(perf.tier){
@@ -241,11 +242,11 @@ export const Main = {
 			case 3: options.fps = 60; break
 		}
 
-		Main.engineType = o.type || 'PHYSX'
+		Main.engineType = o.type || 'PHYSX';
 
 		Main.isWorker = Main.isMobile ? false : true;
 
-		let urlParams = new URLSearchParams( window.location.search )
+		let urlParams = new URLSearchParams( window.location.search );
 		if( urlParams.has('E') ){
 			let eng = urlParams.get('E');
 			Main.isWorker = eng.search('w_') !== -1;
@@ -253,25 +254,25 @@ export const Main = {
 			Main.engineType = eng.substring( eng.lastIndexOf('_')+1 ).toUpperCase();
 		}
 
-		let n = Main.engineType.toLowerCase()
-		engineName = n.charAt(0).toUpperCase() + n.slice(1)
+		let n = Main.engineType.toLowerCase();
+		engineName = n.charAt(0).toUpperCase() + n.slice(1);
 
-		version = Version[ engineName ]
+		version = Version[ engineName ];
 
-		//if( Main.devMode ) Main.engineList.push('RAPIER')//, 'CANNON')
+		if( Main.devMode ) Main.engineList.push('CANNON');
 
 		//o.link = LinkWasm[ engineName ]
-		o.type = Main.engineType
-		o.devMode = Main.devMode
-		o.worker = Main.isWorker
-		o.callback = init
+		o.type = Main.engineType;
+		o.devMode = Main.devMode;
+		o.worker = Main.isWorker;
+		o.callback = init;
 
 		introText = ( Main.isWorker ? 'WORKER ' : 'DIRECT ' ) + Main.engineType + ' ' + version;
 
-		options.show_stat = Main.devMode
+		options.show_stat = Main.devMode;
 
 		//Motor.engine = Main.engineType
-		window.engine = Main.engineType//Motor.engine
+		window.engine = Main.engineType;//Motor.engine
 
 		Motor.init( o )
 	
@@ -412,6 +413,8 @@ const init = () => {
 	let antialias = pixelRatio > 1 ? false : true
 	if( pixelRatio > 2 ) pixelRatio = 2
 
+	if(options.mode === 'LOW') antialias = false;
+
 	content = Motor.getScene()
 
 	size.w = window.innerWidth
@@ -455,8 +458,8 @@ const init = () => {
 
 	Shader.renderer = renderer;
 
-	if( !isWebGPU ){
-		Shader.setGl2(  isWebGPU ? false : renderer.capabilities.isWebGL2 )
+	if( !isWebGPU && options.mode !== 'LOW' ){
+		Shader.setGl2( isWebGPU ? false : renderer.capabilities.isWebGL2 )
 		Shader.init( options )
 	}
 
@@ -633,20 +636,22 @@ const addLight = () => {
 
 	let s 
 
+	
 	Lights.add({ 
 		type:'direct', name:'sun',
-	    intensity:options.light_1*0.7, distance:6, parent:followGroup,
-	    shadow:{ range:4, near:1, far:20, bias:-0.0005, radius:4, quality: 1024 * options.quality },
-	})
-
-	/////
-
-	Lights.add({ 
-	    type:'direct', name:'sun2',
-	    intensity:options.light_1*0.3, distance:20, parent:followGroup,
+		intensity:options.mode !== 'LOW' ? options.light_1*0.3 : options.light_1, distance:20, parent:followGroup,
 	    shadow:{ range:40, near:5, far:40, bias:!isWebGPU ? -0.005 : 0.005, radius:4, quality: 1024 * options.quality }
 	})
 
+
+	/////
+	if( options.mode !== 'LOW' ){
+		Lights.add({ 
+		    type:'direct', name:'sun2',
+		    intensity:options.light_1*0.7, distance:6, parent:followGroup,
+	        shadow:{ range:4, near:1, far:20, bias:-0.0005, radius:4, quality: 1024 * options.quality },
+		})
+	}
 
 	/////
 
@@ -667,6 +672,7 @@ const addLight = () => {
 
 	////
 
+
 	if( options.mode === 'LOW' ){
 		options.shadow = 0
 		options.reflect = 0
@@ -678,7 +684,6 @@ const addLight = () => {
 		renderer.shadowMap.enabled = options.shadow !== 0 
 		renderer.shadowMap.type = shadowMapType[options.shadowType]
 		//renderer.shadowMap.autoUpdate = false;
-
 		//renderer.shadowMap.needsUpdate= true;
 
 	}
@@ -780,7 +785,7 @@ const removeVignette = () => {
 const addGround = ( o ) => {
 
 	//groundAutoColor = !o.groundColor//false
-    if( o.groundReflect ) options.reflect = o.groundReflect
+    //if( o.groundReflect ) options.reflect = o.groundReflect
 
 	//if( isWebGPU ) return
 
@@ -1106,7 +1111,7 @@ const showGround = ( v ) => {
 
 const setReflect = ( v ) => {
 
-	if(v) options.reflect = v
+	if(v!==undefined) options.reflect = v
 
 	if(!ground) return
 	ground.setReflect( options.reflect )
@@ -1134,6 +1139,13 @@ const view = ( o = {} ) => {
 	o = { ...setting, ...o }
 
 	groundAutoColor = !o.groundColor//false
+
+	if( options.mode === 'LOW' ){
+		o.shadow = 0;
+		o.groundReflect = 0;
+		options.reflect = 0;
+		options.quality = 1;
+	}
 
 	//console.log('view', o)
 

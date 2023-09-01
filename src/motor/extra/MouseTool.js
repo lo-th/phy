@@ -554,7 +554,7 @@ export class MouseTool {
 			let def = [-0.1, 0.1, 60, 1]
 			let defr = [-0.1, 0.1, 60, 1]
 			//let defr = [0, 0]
-			let notUseKinematic = root.engine === 'OIMO' || root.engine ==='RAPIER' //|| root.engine ==='HAVOK'
+			let notUseKinematic = root.engine === 'OIMO' || root.engine ==='RAPIER' || root.engine ==='JOLT'//|| root.engine ==='HAVOK'
 			let jtype = this.selected.link === 0 ? 'fixe' : 'd6';//root.engine === 'HAVOK' ? 'fixe' : 'd6';
 
 			let limite = [['x',...def], ['y',...def], ['z',...def], ['rx',...defr], ['ry',...defr], ['rz',...defr]]

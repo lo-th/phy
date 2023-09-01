@@ -21,6 +21,7 @@ export class Container {
 		let s = o.size || [5,3,8];
 		let p = o.pos || [0,2,0];
 		let w = o.wall || 0.1;
+		if(o.size[3])  w = o.size[3];
 		let mw = w * 0.5;
 		let xw = w * 2;
 

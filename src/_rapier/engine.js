@@ -1,61 +1,50 @@
-
 import { root, Utils, Vec3 } from './root.js';
 import { getType, getArray } from '../core/Config.js';
 
+import { Ray } from './Ray.js';
 import { Body } from './Body.js';
 import { Joint } from './Joint.js';
-import { Ray } from './Ray.js';
 import { Contact } from './Contact.js';
 import { Character } from './Character.js';
 
-//import('../../build/rapier3d').then(RAPIER => { })
-//import RAPIER from '../../build/rapier3d';
 import RAPIER from '../libs/rapier3d-compat.js';
 //import RAPIER from 'https://cdn.skypack.dev/@dimforge/rapier3d-compat';
 
-//----------------
-//
-//  RAAPIER SIDE
-// 
-//----------------
+/** __
+*    _)_|_|_
+*   __) |_| | 2023
+* @author lo.th / https://github.com/lo-th
+*
+*    RAPIER ENGINE
+*/
 
-self.onmessage = function ( m ) { engine.message( m ) }
+self.onmessage = function ( m ) { engine.message( m ) };
 
-let items;
+const items = {};
+const Time = typeof performance === 'undefined' ? Date : performance;
+const t = { tmp:0, n:0, dt:0, fps:0 };
+
+let startTime = 0; 
+let lastTime = 0;
+let timestep = 1/60;
+let interval = 16.67;
+let substep = 1;
+let fixe = true;
 
 let isTimeout = false;
 let outsideStep = false;
-
-//let Ar, ArPos;
 let isBuffer = false;
-let returnMessage, isWorker;
+let isWorker = false;
+let returnMessage = null;
 
-//let body, solid, joint, ray, contact, character;
+let isStop = true;
+let isReset = false;
 
-const Time = typeof performance === 'undefined' ? Date : performance;
+let interut = null;
+let timeout = null;
 
-const t = { tmp:0, n:0, dt:0, fps:0 }
-
-let timestep = 1/60
-let substep = 1
-let fixe = true
-
-let startTime = 0, lastTime = 0;
-let isStop = true, isReset, tmpStep;
-
-let interval = null
-let timeout = null
-
-let tmpadd = []
-let tmpremove = []
-let tmpchange = []
-
-
-//--------------
-//
-//  OIMO SIDE 
-//
-//--------------
+let flow = {};
+let current = '';
 
 export class engine {
 
@@ -64,10 +53,9 @@ export class engine {
 	static message ( m ) {
 
 		let e = m.data;
-
-		if( e.Ar ) root.Ar = e.Ar
-		if( e.flow ) root.flow = e.flow
-		if( e.m ) engine[ e.m ]( e.o )
+		if( e.Ar ) root.Ar = e.Ar;
+		if( e.flow ) flow = e.flow;
+		if( e.m ) engine[ e.m ]( e.o );
 
 	}
 
@@ -114,25 +102,7 @@ export class engine {
 
 	}
 
-	static initItems () {
-
-		items = {
-			body : new Body(),
-			solid : new Solid(),
-			joint : new Joint(),
-			ray : new Ray(),
-			contact : new Contact(),
-			character : new Character(),
-		}
-
-		/*body = new Body()
-		solid = new Solid()
-		joint = new Joint()
-		ray = new Ray()
-		contact = new Contact()
-		character = new Character()*/
-
-	}
+	
 
 	static set ( o = {} ){
 
@@ -145,6 +115,7 @@ export class engine {
 		isTimeout = o.isTimeout || false;
 
 		timestep = 1 / (o.fps || 60 );
+		interval = timestep*1000;
 		substep = o.substep || 1;
 		fixe = o.fixe !== undefined ? o.fixe : true;
 
@@ -180,12 +151,12 @@ export class engine {
 		isStop = false
 		isReset = false
 		lastTime = 0
-		tmpStep = 0
+		root.tmpStep = 0
 
 		if( outsideStep ) return
 
-		if( isTimeout ) timeout = setTimeout( engine.step, 0 )
-		else interval = setInterval( engine.step, 1000 * timestep )
+		if( isTimeout ) timeout = setTimeout( engine.step, 0 );
+		else interut = setInterval( engine.step, interval );
 		
 	}
 
@@ -202,50 +173,40 @@ export class engine {
 
     }
 
-	static add ( o = {} ){
+    static controle ( name ) {
 
-		let type = getType( o )
-		items[type].add( o )
+		if( name === current ) return;
+		this.enable( current, false );
+		current = name;
+		this.enable( current, true );
+
+	}
+
+	static enable ( name, value ) {
+
+		if( name === '' ) return;
+		let b = this.byName( name );
+		if( b === null ) current = '';
+		else b.enable = value;
+
+	}
+
+	static dispatch () {
+
+		root.key = flow.key;
+		if( flow.remove ) this.removes( flow.remove );
+		if( flow.add ) this.adds( flow.add );
+		if( flow.tmp ) this.changes( flow.tmp );
+		this.controle( flow.current );
+		flow = {};
 		
 	}
-
-	static remove ( o = {} ){
-
-		let b = this.byName( o.name )
-		if( b === null ) return
-		items[b.type].clear( b )
-
-	}
-
-	static change ( o = {} ){
-
-		let b = this.byName( o.name );
-		if( b === null ) return;
-		items[b.type].set( o, b )
-
-	}
-
-	//static changes ( r = [] ){ for( let o in r ) this.change( r[o] ) }
-
-	static dispatch (){
-
-		tmpremove = root.flow.remove
-		tmpadd = root.flow.add
-		tmpchange = root.flow.tmp
-
-		while ( tmpremove.length > 0 ) this.remove( tmpremove.shift() )
-		while ( tmpadd.length > 0 ) this.add( tmpadd.shift() )
-		while ( tmpchange.length > 0 ) this.change( tmpchange.shift() )
-
-		root.flow = { key:[], add:[], remove:[], tmp:[] }
-		
-	} 
 
 	static poststep (){
 
 		if( isStop ) return;
 
-		tmpStep = 1;
+		root.tmpStep = 1;
 
 		this.dispatch()
 
@@ -266,9 +227,9 @@ export class engine {
 	static step ( stamp ){
 
 		if( isReset ) engine.endReset();
-		if( isStop || tmpStep >= 2 ) return;
+		if( isStop || root.tmpStep >= 2 ) return;
 
-		tmpStep = 2;
+		root.tmpStep = 2;
 
 		startTime = stamp || Time.now();
 		root.delta = ( startTime - lastTime ) * 0.001;
@@ -295,8 +256,7 @@ export class engine {
 
 	}
 
-	static resetItems() { Object.values(items).forEach( value => value.reset() ); }
-	static stepItems() { Object.values(items).forEach( value => value.step() ); }
+	
 
 	static byName ( name ){
 
@@ -329,8 +289,8 @@ export class engine {
 
 		if( outsideStep ) return;
 		if( timeout ) clearTimeout( timeout );
-		if( interval ) clearInterval( interval );
-		interval = null;
+		if( interut ) clearInterval( interut );
+		interut = null;
 		timeout = null;
 
 	}
@@ -341,6 +301,53 @@ export class engine {
 		if( pause === isStop ) return
 		if( pause ) this.stop()
 		else this.start()
+
+	}
+
+
+    //-----------------------
+	//
+	//  ITEMS
+	//
+	//-----------------------
+
+	static initItems () {
+
+		items['ray'] = new Ray();
+		items['body'] = new Body();
+		items['joint'] = new Joint();
+		items['solid'] = new Solid();
+		items['contact'] = new Contact();
+		//items['terrain'] = new Terrain();
+		items['character'] = new Character();
+
+	}
+
+	static resetItems() { Object.values(items).forEach( value => value.reset() ); }
+	static stepItems() { Object.values(items).forEach( value => value.step() ); }
+
+    static adds( r ){ let i = r.length, n = 0; while( i-- ) this.add(r[n++]); }
+	static removes( r ){ let i = r.length, n = 0; while( i-- ) this.remove(r[n++]); }
+	static changes( r ){ let i = r.length, n = 0; while( i-- ) this.change(r[n++]); }
+
+	static add ( o = {} ){
+
+		let type = getType( o );
+		items[type].add( o );
+		
+	}
+
+	static remove ( o = {} ){
+
+		let b = this.byName( o.name );
+		if( b ) items[b.type].clear( b );
+
+	}
+
+	static change ( o = {} ){
+
+		let b = this.byName( o.name );
+		if( b ) items[b.type].set( o, b );
 
 	}
 

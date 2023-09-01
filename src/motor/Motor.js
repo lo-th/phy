@@ -31,9 +31,6 @@ import { Particle } from './extra/Particle.js';
 import { Pool } from '../3TH/Pool.js';
 import { sk } from '../3TH/character/SkeletonExtand.js'
 
-// PARTICLE
-//import { Smoke } from '../../build/smoke.module.js'
-
 /** __
 *    _)_|_|_
 *   __) |_| | 2023
@@ -45,76 +42,53 @@ import { sk } from '../3TH/character/SkeletonExtand.js'
 const Version = {
     Oimo: '1.2.2',
     Ammo: '3.0',
-    Physx: '5.01.03',
+    Physx: '5.02.01',
     Rapier: '0.10.0',
     Havok: '0.10.0',
 }
 
-let items
-let currentControle = null
-let callback = null
-//let Ar = null, ArPos = {}
-let maxFps = 60
-let worker = null
-let isWorker = false
-let isBuffer = false
-let isTimeout = false
-let outsideStep = true
+const items = {};
 
-let realtime = true
-
-let engineReady = false
-
-
+let currentControle = null;
+let callbackReady = null;
+let maxFps = 60;
+let worker = null;
+let isWorker = false;
+let isBuffer = false;
+let isTimeout = false;
+let outsideStep = true;
+let realtime = true;
+let engineReady = false;
 let breaker = null;
 
-let timetest = {
-	t1:0,
-	t2:0,
-	t3:0,
-	t4:0,
-}
+let timetest = { t1:0, t2:0, t3:0, t4:0 };
 
 let mouseTool = null;
 
+let directMessage = null;
+let controls = null;
 
-let isPause = false
+let isPause = false;
+let first = true;
 
-let directMessage = null
-let controls = null
-let first = true
+let timout = null;
+let timoutFunction = null;
+let timoutTime = 0;
+let elapsedTime = 0;
 
-let timout = null
-let timoutFunction = null
-let timoutTime = 0
-let elapsedTime = 0
+const user = new User();
+const timer = new Timer(60);
 
-const user = new User()
-const timer = new Timer(60)
+let azimut = ()=>(0);
+let endReset = ()=>{};
+let postUpdate = ()=>{};
+let addControl = ()=>{};
 
-
-//let particles = null
-
-//const threeScene = null
-
-let azimut = function(){ return 0 }
-let endReset = function(){}
-let postUpdate = function(){}
-let addControl = function(){}
-
-
-
-
-let buttons = []
-let textfields = []
-let particles = []
-//let skeletons = []
+let buttons = [];
+let textfields = [];
+let particles = [];
 
 const settings = {
-
-	//full:false,
-	//jointVisible:false,
-
 
 	fps: 60,
 	fixe: true,
@@ -122,9 +96,7 @@ const settings = {
 	substep: 2,
 	gravity: [0,-9.81,0],
 	
-
 }
-
 
 export class Motor {
 
@@ -138,19 +110,13 @@ export class Motor {
 
 	static set ( o = {} ){
 
+		settings.fixe = o.fixe !== undefined ? o.fixe : true;
+		settings.full = o.full !== undefined ? o.full : false;
+		settings.gravity = o.gravity ? o.gravity : [0,-9.81,0];
+	    settings.substep = o.substep ? o.substep : 2;
+	    settings.fps = o.fps ? o.fps : 60;
 
-		settings.fixe = o.fixe !== undefined ? o.fixe : true
-		settings.full = o.full !== undefined ? o.full : false
-		settings.gravity = o.gravity ? o.gravity : [0,-9.81,0]
-	    settings.substep = o.substep ? o.substep : 2
-	    settings.fps = o.fps ? o.fps : 60
-
-
-	    //console.log(settings)
-
-		//if( o.full === undefined ) o.full = false
-
-		if( o.key ) addControl()
+		if( o.key ) addControl();
 
 		items.body.setFull( settings.full )
 		Motor.initArray( settings.full )
@@ -175,7 +141,7 @@ export class Motor {
 
 	}
 
-	static math = MathTool//math
+	static math = MathTool
 
 	static activeMouse ( controler, mode ) { 
 		if( !mouseTool ) mouseTool = new MouseTool( controler, mode ) 
@@ -190,15 +156,13 @@ export class Motor {
 
 	static setMaxFps ( v ) { maxFps = v }
 
-	//static setExtraTexture ( f ) { extraTexture = f }
-
 	static getMouse () { return mouseTool ? mouseTool.mouse:null }
 
 	static setMaxAnisotropy ( f ) { Pool.maxAnisotropy = f; }
 
 	static setAddControl ( f ) { addControl = f; }
 
-	static setPostUpdate ( f ) { postUpdate = f !== null ? f : function(){} }
+	static setPostUpdate ( f ) { postUpdate = f !== null ? f : ()=>{} }
 	static setAzimut ( f ) { azimut = f }
 
 	static setKey (i, v) { return user.setKey(i,v) }
@@ -207,136 +171,69 @@ export class Motor {
 	static getAzimut () { return azimut() }
 
 	static setContent ( Scene ) {
+
 		root.threeScene = Scene;
-		Scene.add( root.scene )
-		Scene.add( root.scenePlus )
-	}
-
-	static setControl ( Controls ) { 
-
-		controls = Controls
-		azimut = controls.getAzimuthalAngle
+		Scene.add( root.scene );
+		Scene.add( root.scenePlus );
 
 	}
 
 	static message ( m ){
 
-		let e = m.data
-		if( e.Ar ) root.Ar = e.Ar;//new Float32Array( e.Ar )//;
+		let e = m.data;
+		if( e.Ar ) root.Ar = e.Ar;
 		if( e.reflow ){
-			root.reflow = e.reflow
-			if(root.reflow.stat.delta) elapsedTime += root.reflow.stat.delta
+			root.reflow = e.reflow;
+			if(root.reflow.stat.delta) elapsedTime += root.reflow.stat.delta;
 		}
 	
-		Motor[ e.m ]( e.o )
+		Motor[ e.m ]( e.o );
 
 	}
 
-	static post ( e, buffer=null, direct = false ){
+	// Typically, on a Flame, the transfer speed is 80 kB/ms for postMessage 
+	// This means that if you want your message to fit in a single frame, 
+	// you should keep it under 1,300 kB
+
+	static post ( e, buffer = null, direct = false ){
 
 		if( isWorker ){
 
-		    if(e.o)if( e.o.type === 'solver' || e.o.solver !== undefined) direct = true
-		    if(!direct){
-		    	if ( e.m === 'add' ) root.flow.add.push( e.o )
-		    	else if ( e.m === 'remove' ) root.flow.remove.push( e.o )
-		    	else worker.postMessage( e, buffer )
-		    } else {
-		    	worker.postMessage( e, buffer )
-		    }
-
-			/*if ( e.m === 'add' ){ 
-				if( e.o.type === 'solver' ) worker.postMessage( e )// direct
-				else if( e.o.solver !== undefined ) worker.postMessage( e )// direct
-				else{ 
-					if( direct ) worker.postMessage( e ) 
-				    else root.flow.add.push( e.o )// in temp 
-			    }
-			}
-			else if ( e.m === 'remove' ){ 
-				if( direct ) worker.postMessage( e ) 
-				else root.flow.remove.push( e.o )
-			}
-			else worker.postMessage( e, buffer )*/
-
-		} else {
-
-			/*if(e.o)if( e.o.type === 'solver' || e.o.solver !== undefined) direct = true
-		    if(!direct){
-		    	if ( e.m === 'add' ) root.flow.add.push( e.o )
-		    	else if ( e.m === 'remove' ) root.flow.remove.push( e.o )
-		    	else directMessage( { data : e } )
-		    } else {
-		    	directMessage( { data : e } )
+		    /*if( e.o ){
+		    	if( e.o.type === 'solver' ) direct = true;
+		    	if( e.o.solver !== undefined ) direct = true;
 		    }*/
 
-			directMessage( { data : e } )
-
-		}
-
-	}
-
-	/*static post ( e, buffer, direct = false ){
-
-		if( isWorker ){ 
-
-			if ( e.m === 'add' ){ 
-				if( e.o.type === 'solver' ) worker.postMessage( e )// direct
-				else if( e.o.solver !== undefined ) worker.postMessage( e )// direct
-				else{ 
-					if( direct ) worker.postMessage( e ) 
-				    else root.flow.add.push( e.o )// in temp 
-			    }
-			}
-			else if ( e.m === 'remove' ){ 
-				if( direct ) worker.postMessage( e ) 
-				else root.flow.remove.push( e.o )
-			}
-			else worker.postMessage( e, buffer )
+		    if( direct ){
+		    	worker.postMessage( e, buffer );
+		    } else {
+		    	if( e.m === 'add' ) root.flow.add.push( e.o );
+		    	else if ( e.m === 'remove' ) root.flow.remove.push( e.o );
+		    	else worker.postMessage( e, buffer );
+		    }
 
 		} else {
-
-			directMessage( { data : e } )
-
+			directMessage( { data : e } );
 		}
 
-	}*/
-
-	static makeView () {
-
 	}
+
+	static makeView () {}
 
 	static getScene () { return root.scene; }
 
-	
-
 	static resize ( size ) { root.viewSize = size; }
-
-	//static getMat ( mode ) { return mode === 'HIGH' ? mat : matLow; }
 
 	static init ( o = {} ) {
 
-		//root.viewSize = {w:window.innerWidth, h:window.innerHeight, r:0}
-		//root.viewSize.r = root.viewSize.w/root.viewSize.h
-
-
-
-		/*let q1 = new Quaternion().setFromAxisAngle({x:1, y:0, z:0}, 45*math.torad)
-		let q2 = new Quaternion().setFromAxisAngle({x:1, y:0, z:0}, 90*math.torad)
-
-		Utils.quatToAngular( q1.toArray(), q2.toArray() ) */
-
 		// TODO find better solution
-		let rootURL = document.location.href.replace(/\/[^/]*$/,"/")
-		var arr = rootURL.split("/");
-		rootURL = arr[0] + "//" + arr[2] + '/'
+		let url = document.location.href.replace(/\/[^/]*$/,"/");
+		var arr = url.split("/");
+		url = arr[0] + "//" + arr[2] + '/';
 
-		if( rootURL === 'https://lo-th.github.io/' ) rootURL = 'https://lo-th.github.io/phy/'
-
-		//console.log('link', rootURL)
+		if( url === 'https://lo-th.github.io/' ) url = 'https://lo-th.github.io/phy/';
 
 		const path = o.path || 'build/';
-
 		const wasmLink = {
 		    Ammo: path + 'ammo3.wasm.js',
 		    Physx: path + 'physx-js-webidl.js',
@@ -344,96 +241,46 @@ export class Motor {
 		}
 
 		let type = o.type || 'PHYSX';
-		let name = type.toLowerCase()
-		let mini = name.charAt(0).toUpperCase() + name.slice(1)
-		let st = ''
+		let name = type.toLowerCase();
+		let mini = name.charAt(0).toUpperCase() + name.slice(1);
+		let st = '';
 
-		let isFirefox = navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
+		//let isFirefox = navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
 
-		root.engine = type
+		root.engine = type;
 
-		Motor.initItems()
+		Motor.initItems();
 
 		// garbage material
-		Pool.materialRoot = Mat.set//Motor.getMaterialRoot
-
-		//items.body.extraConvex = mini === 'Physx'
-		//items.solid.extraConvex = mini === 'Physx'
+		Pool.materialRoot = Mat.set;
 
 		if( o.callback ){ 
-			callback = o.callback
-			delete ( o.callback )
+			callbackReady = o.callback;
+			delete o.callback;
 		}
 
 		isWorker = o.worker || false;
 
-		root.scene = new Group()
-		root.scene.name = 'phy_scene'
-		root.scenePlus = new Group()
-		root.scenePlus.name = 'phy_scenePlus'
+		root.scene = new Group();
+		root.scene.name = 'phy_scene';
+		root.scenePlus = new Group();
+		root.scenePlus.name = 'phy_scenePlus';
 
-		if(o.scene){ 
-			Motor.setContent( o.scene )
-			delete ( o.scene )
+		if( o.scene ){ 
+			Motor.setContent( o.scene );
+			delete ( o.scene );
 		}
 
-		//root.update = Motor.update
-		//root.change = Motor.change
-		//root.remove = Motor.remove
-		root.post = Motor.post
-		//root.add = Motor.add
-
-		root.motor = Motor
+		root.post = Motor.post;
+		root.motor = Motor;
 
 		if( isWorker ){ // is worker version
 
-			/*switch( type ){
-
-				case 'OIMO':
-
-				    worker = new Worker( path + mini + '.min.js' )
-
-				    if( isFirefox ) worker = new Worker( path + mini + '.min.js' )
-				    else {
-				    	try {
-					        worker = new Worker( path + mini + '.module.js', {type:'module'})
-						    st = 'ES6'
-						} catch (error) {
-						    worker = new Worker( path + mini + '.js' )
-						}
-				    }
-
-				break
-				
-				default :
-
-				    if( type === 'RAPIER' ) { name = 'rapier3d'; mini = 'rapier3d'; }
-
-					//let coep = '?coep=require-corp&coop=same-origin&corp=same-origin&'
-					// https://cross-origin-isolation.glitch.me/?coep=require-corp&coop=same-origin&corp=same-origin&
-				    // for wasm side
-				    if( wasmLink[mini] ) o.blob = rootURL + wasmLink[mini];
-
-				    console.log(rootURL +path + mini + '.min.js')
-
-				    //worker = new Worker( path + mini + '.module.js', {type:'module'})
-					worker = new Worker( rootURL + path + mini + '.min.js' )
-					//worker = new Worker( 'http://localhost:8612/build/'+mini+'.min.js'+coep )
-
-				break
-
-			}*/
-
-
-			// if( type === 'RAPIER' ) { name = 'rapier3d'; mini = 'rapier3d'; }
-
 		    // for wasm side
-		    if( wasmLink[mini] ) o.blob = rootURL + wasmLink[mini];
+		    if( wasmLink[mini] ) o.blob = url + wasmLink[mini];
 
 		    //worker = new Worker( path + mini + '.module.js', {type:'module'})
-			worker = new Worker( rootURL + path + mini + '.min.js' )
-
-
+			worker = new Worker( url + path + mini + '.min.js' )
 
 			worker.postMessage = worker.webkitPostMessage || worker.postMessage;
 			worker.onmessage = Motor.message;
@@ -444,54 +291,37 @@ export class Motor {
 
 
 			o.isBuffer = isBuffer;
-			console.log( st  + ' Worker '+ type + (o.isBuffer ? ' with Shared Buffer' : '') );
+			console.log( st + ' Worker '+ type + (o.isBuffer ? ' with Shared Buffer' : '') );
 
-
-			Motor.initPhysics( o )
-
-
-			/// ???
-			//Cross-Origin-Embedder-Policy: require-corp
-			//Cross-Origin-Opener-Policy: same-origin
-			//const buffer = new SharedArrayBuffer( 1024  );
-
-			//console.log(crossOriginIsolated)
-
-			//isWorker = true;
+			Motor.initPhysics( o );
 
 
 		} else { // is direct version
 
-			if( wasmLink[mini] ) Motor.loadWasmDirect( wasmLink[mini], o, mini, rootURL )
-			else Motor.preLoad( mini, o, rootURL )
-
-			/*directMessage = o.direct;
-			o.message = Motor.message;
-			console.log( type + ' is direct' );*/
+			if( wasmLink[mini] ) Motor.loadWasmDirect( wasmLink[mini], o, mini, url )
+			else Motor.preLoad( mini, o, url );
 
 		}
 
-		//Motor.initPhysics( o )
+	}
+
+	static loadWasmDirect( link, o, name, url ) {
+
+	    let s = document.createElement("script");
+	    s.src = url + link;
+	    document.body.appendChild( s );
+	    s.onload = () => { Motor.preLoad( name, o, url ); }
 
 	}
 
-	static loadWasmDirect( link, o, name, rootURL ) {
+	static async preLoad( name, o, url ) {
 
-	    let s = document.createElement("script")
-	    s.src = rootURL + link;
-	    document.body.appendChild( s )
-	    s.onload = () => { 
-	    	Motor.preLoad( name, o, rootURL )
-	    }
-
-	}
-
-	static async preLoad( name, o, rootURL ) {
-	
-	    let M = await import( o.devMode ? rootURL + 'src/'+name+'.js' : rootURL + 'build/'+name+'.module.js');
-	    directMessage = M.engine.message
-		o.message = Motor.message
-		Motor.initPhysics( o )
+		let link = url + 'build/'+name+'.module.js';
+		if( o.devMode ) link = url + 'src/'+name+'.js';
+	    let M = await import( link );
+	    directMessage = M.engine.message;
+		o.message = Motor.message;
+		Motor.initPhysics( o );
 
 	}
 
@@ -537,50 +367,50 @@ export class Motor {
 	static reset ( callback ){
 
 		if( first ){
-			first = false
-			callback()
-			return
+			first = false;
+			callback();
+			return;
 		}
 
-		buttons = []
+		buttons = [];
 
-		Motor.clearText()
+		Motor.clearText();
 		//Motor.clearSkeleton()
-		Motor.clearParticleSolver()
+		Motor.clearParticleSolver();
 
-		Motor.cleartimout()
+		Motor.cleartimout();
 
-		currentControle = null
+		currentControle = null;
 
-		if( controls ) controls.resetAll()
-		if( mouseTool ) mouseTool.unSelect()
+		if( controls ) controls.resetAll();
+		if( mouseTool ) mouseTool.unSelect();
 
-		endReset = callback
+		endReset = callback;
 
-		postUpdate = function () {}
+		postUpdate = function () {};
 
-		Motor.flowReset()
+		Motor.flowReset();
 
 		// clear instance
-	    Motor.clearInstance()
+	    Motor.clearInstance();
 
 	    // reset all items
-	    Motor.resetItems()
+	    Motor.resetItems();
 
 		// clear temporary geometry
-		Geo.dispose()
+		Geo.dispose();
 
 	    // clear temporary material
-	    Mat.dispose()
+	    Mat.dispose();
 
 	    // clear temporary mesh
 		root.disposeTmp();
 
-		if( breaker !== null ) breaker = null
+		if( breaker !== null ) breaker = null;
 			
-		root.tmpTex = []
-	    root.scenePlus.children = []
-	    root.scene.children = []
+		root.tmpTex = [];
+	    root.scenePlus.children = [];
+	    root.scene.children = [];
 
 		root.post({ m:'reset' });
 
@@ -588,29 +418,18 @@ export class Motor {
 
 	static resetCallback (){
 
-		endReset()
+		endReset();
 
 	}
 
 	static ready (){
 
-		console.log( (isWorker? 'Worker ': 'Direct ') + root.engine + ' is ready !' )
-		if( callback ) callback()
+		console.log( (isWorker? 'Worker ': 'Direct ') + root.engine + ' is ready !' );
+		if( callbackReady ) callbackReady();
 
 	}
 
-	static start ( o = {} ){
-
-		root.post({ m:'start', o:o })
-
-	}
-
-	//static setTimeout ( b ){ isTimeout = b; }
-	//static getTimeout ( b ){ return isTimeout }
-
-	
-
-	
+	static start ( o = {} ){ root.post({ m:'start', o:o }) }
 
 	static morph ( obj, name, value ){ Utils.morph( obj, name, value ) }
 
@@ -624,13 +443,13 @@ export class Motor {
 
 	static doStep ( stamp ){
 
-		if( !engineReady ) return
-		if( !outsideStep ) return
+		if( !engineReady ) return;
+		if( !outsideStep ) return;
 
         //if( isWorker && realtime ) return
 
 		if( timer.up( stamp ) ) {
-			root.post( { m:'step', o:stamp } )
+			root.post( { m:'step', o:stamp } );
 		}
 
 		/*if( isBuffer ) root.post( { m:'poststep', flow:root.flow, Ar:Ar }, [ Ar.buffer ] )
@@ -641,28 +460,13 @@ export class Motor {
 
 	static step (){
 
-		//let stamp = root.reflow.stat.stamp 
-		//timetest.t1 = root.reflow.stat.time 
-		//timetest.t2 = root.reflow.stat.endTime 
+		root.delta = root.reflow.stat.delta;//outsideStep ? timer.delta : root.reflow.stat.delta;
 
-		/*if( root.reflow.stat.time > timer.time.interval ){ 
-			//timer.force = true
-			timetest.t2++
-		}*/
-
-		//console.time('step')
-
-		root.delta = root.reflow.stat.delta//outsideStep ? timer.delta : root.reflow.stat.delta;
-
-
-
-
-
-		Motor.stepItems()
+		Motor.stepItems();
     
 		// user key interaction 
 		
-		root.flow.key = user.update()
+		root.flow.key = user.update();
 		root.flow.current = currentControle !== null ? currentControle.name : ''
 		//root.flow.tmp = []
 
@@ -670,24 +474,23 @@ export class Motor {
 
 		if( currentControle !== null ) currentControle.move();
 
-		if( mouseTool ) mouseTool.step()
+		if( mouseTool ) mouseTool.step();
 
 		//postUpdate( root.reflow.stat.delta )
-		postUpdate( timer.delta )
+		postUpdate( timer.delta );
 
 		//items.character.prestep()
 
-		//  update static object for this side !
-		Motor.changes( root.flow.tmp )
+		// update static object for this side !
+		Motor.changes( root.flow.tmp );
 
 
 		// finally post flow change to physx
-		if( isBuffer ) root.post( { m:'poststep', flow:root.flow, Ar:root.Ar }, [ root.Ar.buffer ] )
-		else root.post( { m:'poststep', flow:root.flow })
+		if( isBuffer ) root.post( { m:'poststep', flow:root.flow, Ar:root.Ar }, [ root.Ar.buffer ] );
+		else root.post( { m:'poststep', flow:root.flow });
 
 		//	Motor.stepItems()
-
-		Motor.flowReset()
+		Motor.flowReset();
 
 	}
 
@@ -696,38 +499,11 @@ export class Motor {
 	static initArray ( full = false ) {
 
 	    // dynamics array
-		root.ArPos = getArray( root.engine, full )
+		root.ArPos = getArray( root.engine, full );
 
 	}
 
-    static upInstance() {
-
-    	for( let n in root.instanceMesh ) root.instanceMesh[n].update()
-
-    	//Motor.updateParticleSolver()
-
-    }
-
-	static clearInstance() {
-
-    	for( let n in root.instanceMesh ) root.instanceMesh[n].dispose()
-    	root.instanceMesh = {}
-
-	}
-
-	
-
-
-
-
-
-
-	
-	
-
-
-
-
+    
 
 	static control ( name ){ // for character and vehicle
 
@@ -739,8 +515,6 @@ export class Motor {
 			currentControle = Motor.byName( name )
 		}
 
-		//console.log('this control:', currentControle)
-
 	}
 
 	static byName ( name ){
@@ -751,66 +525,7 @@ export class Motor {
 
 	static getAllBody ( name ){
 
-		return items.body.list
-
-	}
-
-	static explosion ( position = [0,0,0], radius = 10, force = 1 ){
-
-		let r = []
-	    let pos = new Vector3()
-
-	    if( position ){
-	    	if( position.isVector3 ) pos.copy(position)
-	    	else pos.fromArray( position )
-	    }
-	    
-	    let dir = new Vector3()
-	    let i = items.body.list.length, b, scaling
-
-//
-	    while( i-- ){
-
-	        b = items.body.list[i]
-	        dir.copy( b.position ).sub( pos )
-	        scaling = 1.0 - dir.length() / radius
-
-	        if( b.isKinematic ) continue;
-	        if ( scaling < 0 ) continue;
-	        
-
-
-	       // if ( scaling < 0 ){
-	        	dir.setLength( scaling )
-	            dir.multiplyScalar( force )
-	       // }
-	        
-
-	        r.push({ name:b.name, impulse:dir.toArray(), wake:true })
-	        //r.push({ name:b.name, impulse:[0,0.01,0], impulseCenter:pos.toArray(), wake:true })
-
-
-	    }
-	    
-		Motor.change( r )
-
-	}
-
-	//-----------------------
-	//  BUTTON
-	//-----------------------
-
-	static addButton (o) {
-
-		let b = new Button( o )
-		buttons.push( b )
-		return b//.b
-
-	}
-
-	static upButton (o) {
-
-		for ( const key in buttons ) buttons[key].update()
+		return items.body.list;
 
 	}
 
@@ -819,23 +534,15 @@ export class Motor {
 	//  ITEMS
 	//-----------------------
 
-	static getBodyRef () {
-		return items.body
-	}
-
 	static initItems () {
 
-		items = {
-			body : new Body(), 
-			solid : new Solid(), 
-			character : new Character(),
-			ray : new Ray(),
-			joint : new Joint(), 
-			contact : new Contact(), 
-			terrain : new Terrain(), 
-			
-			
-		}
+		items['ray'] = new Ray();
+		items['body'] = new Body();
+		items['joint'] = new Joint();
+		items['solid'] = new Solid();
+		items['contact'] = new Contact();
+		items['terrain'] = new Terrain();
+		items['character'] = new Character();
 
 		if( root.engine === 'PHYSX' || root.engine === 'AMMO' ){ 
 			items['vehicle'] = new Vehicle()
@@ -845,12 +552,11 @@ export class Motor {
 			items['solver'] = new Solver()
 		}
 
-		root.items = items
-
-		//root.bodyRef = items.body
-		
+		root.items = items;
 
 	}
+
+	static getBodyRef () { return items.body; }
 
 	static clearBody() {
 
@@ -867,48 +573,51 @@ export class Motor {
 
 	static stepItems () {
 
-		if( root.Ar === null ) return
-
-		Motor.upButton()
+		//if( root.Ar === null ) return
 
 	    Object.values(items).forEach( value => value.step() );
 		//for ( const key in items ) items[key].step( root.Ar, root.ArPos[key] )
 
-		Motor.upInstance()
+		Motor.upInstance();
+		Motor.upButton();
 
-
-
-		// update follow camera
-		/*if( controls ){ 
-			if( controls.enableDamping && controls.enable ) controls.update()
-			if( controls.follow ) controls.follow( Motor.getDelta() )
-		}*/
 	}
 
 
+	//-----------------------
+	//  INSTANCE
+	//-----------------------
 
-	/*static joint ( o = {} ) {
+	static upInstance() {
 
-		o.type = 'joint';
-		return items.joint.add( o );
+    	Object.values( root.instanceMesh ).forEach( value => value.update() );
 
-	}*/
+    }
 
+	static clearInstance() {
+
+    	Object.values( root.instanceMesh ).forEach( value => value.dispose() );
+    	root.instanceMesh = {}
+
+	}
+
+
+	//-----------------------
+	//  ADD
+	//-----------------------
 
 	static addDirect( b ) {
 
 		root.scenePlus.add( b );
 		root.tmpMesh.push( b );
+		return b;
 
 	}
 
 	static adds ( r = [], direct ){
 
 		let i = r.length, n = 0;
-		while(i--){
-			 Motor.add( r[n], direct );
-			 n++;
-		}
+		while(i--) Motor.add( r[n++], direct );
 
 	}
 
@@ -934,7 +643,16 @@ export class Motor {
 	}
 
 
-	static removes ( r = [], direct ){ for( let o in r ) Motor.remove( r[o], direct ) }
+	//-----------------------
+	//  REMOVE
+	//-----------------------
+
+	static removes ( r = [], direct ){ 
+
+		let i = r.length, n = 0;
+		while(i--) Motor.remove( r[n++], direct );
+
+	}
 	
 	static remove ( name, direct = false ){
 
@@ -951,18 +669,14 @@ export class Motor {
 	}
 
 
+	//-----------------------
+	//  CHANGE
+	//-----------------------
 
-	static up ( list ) {
+	static changes ( r = [], direct = false ){ 
 
-		console.log('up is old')
-		Motor.change( list, true )
-
-	}
-
-	static update ( list ) {
-
-		console.log('update is old')
-		Motor.change( list )
+		let i = r.length, n = 0;
+		while( i-- ) Motor.changeOne( r[n++], direct );
 
 	}
 
@@ -972,14 +686,11 @@ export class Motor {
     		if( o instanceof Array ) Motor.changes( o, true )
     		else Motor.changeOne( o, true )
     	} else {
-    		if( o instanceof Array ) root.flow.tmp.push( ...o )
-    		else root.flow.tmp.push( o )
+    		if( o instanceof Array ) root.flow.tmp.push( ...o );
+    		else root.flow.tmp.push( o );
     	}
 
 	}
-
-
-	static changes ( r = [], direct = false ){ for( let o in r ) Motor.changeOne( r[o], direct ) }
 
 	static changeOne ( o = {}, direct = false ){
 
@@ -990,12 +701,19 @@ export class Motor {
 		let type = b.type;
 
 		if( o.drivePosition ){
-			if( o.drivePosition.rot !== undefined ){  o.drivePosition.quat = MathTool.quatFromEuler( o.drivePosition.rot ); delete ( o.drivePosition.rot ); }
+			if( o.drivePosition.rot !== undefined ){  
+				o.drivePosition.quat = MathTool.quatFromEuler( o.drivePosition.rot ); 
+				delete ( o.drivePosition.rot ); 
+			}
 		}
 		if( o.rot !== undefined ){ o.quat = MathTool.quatFromEuler( o.rot ); delete ( o.rot ); }
 		//if( o.rot1 !== undefined ){ o.quat1 = math.toQuatArray( o.rot1 ); delete ( o.rot1 ); }
 		//if( o.rot2 !== undefined ){ o.quat2 = math.toQuatArray( o.rot2 ); delete ( o.rot2 ); }
 		if( o.localRot !== undefined ){ o.quat = MathTool.toLocalQuatArray( o.localRot, b ); delete ( o.localRot ); }
+
+
+		//if( o.type === 'solver' ) direct = true;
+		//if( o.solver !== undefined ) direct = true;
 
 		switch( type ){
 
@@ -1013,7 +731,7 @@ export class Motor {
 		}
 		
 		if( direct ){
-			root.post( { m:'change', o:o })
+			root.post({ m:'change', o:o }, null, direct );
 		}
 
 	}
@@ -1023,9 +741,16 @@ export class Motor {
 	//  CAMERA CONTROLS
 	//-----------------------
 
+	static setControl ( Controls ) { 
+
+		controls = Controls;
+		azimut = controls.getAzimuthalAngle;
+
+	}
+
 	static setCamera ( o = {} ){
 
-		controls.moveCam( o )
+		controls.moveCam( o );
 
 	}
 
@@ -1033,19 +758,17 @@ export class Motor {
 
 		let mesh = null;
 
-		if ( typeof m === 'string' || m instanceof String ) mesh = m === '' ? null : Motor.byName( m )
-		else if ( m.isObject3D ) mesh = m
+		if ( typeof m === 'string' || m instanceof String ) mesh = m === '' ? null : Motor.byName( m );
+		else if ( m.isObject3D ) mesh = m;
 
-		//	console.log(m, mesh)
-
-		if( mesh === null ) controls.resetFollow()
-		else controls.startFollow( mesh, o )
+		if( mesh === null ) controls.resetFollow();
+		else controls.startFollow( mesh, o );
 
 	}
 
 
     //-----------------------
-	// INTERN timout
+	//  INTERN timout
 	//-----------------------
 
 	static setTimeout ( f, time = 0 ){
@@ -1080,17 +803,6 @@ export class Motor {
 
 	}
 
-	//-----------------------
-	// BREAK
-	//-----------------------
-
-	static addBreaker() {
-
-		if( breaker !== null ) return;
-		breaker = new Breaker();
-
-	}
-
 
 	//-----------------------
 	//  TEXTURE
@@ -1116,6 +828,7 @@ export class Motor {
 	static setEnvmapIntensity ( v ) { Mat.setEnvmapIntensity(v); }
 
 	static getMat( name ){ return Mat.get( name ) }
+
 
 	//-----------------------
 	//
@@ -1145,14 +858,6 @@ export class Motor {
 		return Pool.getGroup( obj, autoMesh, autoMaterial );
 	}
 
-	/*static getMaterial ( name ){
-		return Pool.getMaterial( name )
-	}
-
-	static getTexture ( name, o ){
-		return Pool.getTexture( obj, autoMesh, autoMaterial )
-	}*/
-
 	static getScript ( name ){
 		return Pool.getScript( name );
 	}
@@ -1171,7 +876,7 @@ export class Motor {
 
 
 	//-----------------------
-	// PARTICLE
+	//  PARTICLE
 	//-----------------------
 
 	static initParticle (){}
@@ -1201,29 +906,94 @@ export class Motor {
 
 
 	//-----------------------
-	// TEXT
+	//  BUTTON
 	//-----------------------
 
-	static addText ( o ){ 
-		let t = new Textfield(o)
+	static addButton (o) {
 
-		if( o.parent ) o.parent.add( t )
-		else root.scenePlus.add( t )
-		textfields.push(t)
-		return t
+		let b = new Button( o )
+		buttons.push( b )
+		return b//.b
+
 	}
 
-	static clearText () { 
+	static upButton (o) {
 
-		let i = textfields.length
-		while( i-- ) textfields[i].dispose()
+		for ( const key in buttons ) buttons[key].update()
 
-		//for( let n in textfields ) textfields[n].dispose()
-    	textfields = []
+	}
+
+
+	//-----------------------
+	//  TEXT
+	//-----------------------
+
+	static addText ( o ){
+
+		let t = new Textfield( o );
+		if( o.parent ) o.parent.add( t );
+		else root.scenePlus.add( t );
+		textfields.push(t);
+		return t;
+
+	}
+
+	static clearText () {
+
+		let i = textfields.length;
+		while( i-- ) textfields[i].dispose();
+    	textfields = [];
 		
 	}
 
 
+	//-----------------------
+	// BREAK
+	//-----------------------
+
+	static addBreaker() {
+
+		if( breaker !== null ) return;
+		breaker = new Breaker();
+
+	}
+
+
+	//-----------------------
+	//  EXPLOSION
+	//-----------------------
+
+	static explosion ( position = [0,0,0], radius = 10, force = 1 ){
+
+		let r = []
+	    let pos = new Vector3();
+
+	    if( position ){
+	    	if( position.isVector3 ) pos.copy(position);
+	    	else pos.fromArray( position );
+	    }
+	    
+	    let dir = new Vector3();
+	    let i = items.body.list.length, b, scaling;
+
+	    while( i-- ){
+
+	        b = items.body.list[i];
+	        dir.copy( b.position ).sub( pos );
+	        scaling = 1.0 - dir.length() / radius;
+
+	        if( b.isKinematic ) continue;
+	        if ( scaling < 0 ) continue;
+	        	
+	        dir.setLength( scaling );
+	        dir.multiplyScalar( force );
+
+	        r.push({ name:b.name, impulse:dir.toArray(), wake:true });
+	        //r.push({ name:b.name, impulse:[0,0.01,0], impulseCenter:pos.toArray(), wake:true })
+	    }
+	    
+		Motor.change( r );
+	}
 }
 
 
