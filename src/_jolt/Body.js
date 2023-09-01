@@ -81,6 +81,7 @@ export class Body extends Item {
 		let inConvexRadius = 0.05; //0.05;
 
 		let inMaterial = null//PhysicsMaterial 
+		//new Jolt.PhysicsMaterialList
 
 		switch( t ){
 
@@ -127,6 +128,30 @@ export class Body extends Item {
 			break;
 			case 'mesh' : 
 			let triangles = new Jolt.TriangleList;
+			let v = o.v;
+
+			if(o.index){
+
+			}else{
+
+				let numTri = Math.floor( v.length/3 );
+				triangles.resize( numTri );
+
+				i = numTri/3;
+				j = 0
+			    while( i-- ){
+			    	n = j*9;
+			    	let t = triangles.at(j);
+			    	let v1 = t.get_mV(0), v2 = t.get_mV(1), v3 = t.get_mV(2);
+			    	v1.x = v[ n+0 ]; v1.y = v[ n+1 ]; v1.z = v[ n+2 ];
+			    	v2.x = v[ n+3 ]; v2.y = v[ n+4 ]; v2.z = v[ n+5 ];
+			    	v3.x = v[ n+6 ]; v3.y = v[ n+7 ]; v3.z = v[ n+8 ];
+			    	j++
+			    }
+			}
+
+			shape = new Jolt.MeshShapeSettings( triangles, new Jolt.PhysicsMaterialList ).Create().Get();
+			
 			break;
 
 		}
@@ -194,9 +219,12 @@ export class Body extends Item {
 			    //shape = hull.Create().Get();
 
 			break;
-			/*case 'mesh' : 
+			case 'mesh' : 
+			/*let vertices = this.getVertices(o.v)
+			let numTri = Math.floor( o.index.length/3);
 			let triangles = new Jolt.TriangleList;
-			break;*/
+			let shape = new Jolt.MeshShapeSettings(triangles, new Jolt.PhysicsMaterialList).Create().Get();*/
+			break;
 
 		}
 

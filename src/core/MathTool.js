@@ -426,6 +426,35 @@ const M = {
 
     },
 
+    /*getFaces: ( g ) => {
+        
+        const index = g.getIndex();
+        const position = g.getAttribute( 'position' );
+        const faces = [];
+        const vv = []
+
+        for ( let i = 0; i < index.count; i += 3 ) {
+            const face = {
+                a: index.getX(i),
+                b: index.getX(i+1),
+                c: index.getX(i+2),
+            };
+            faces.push(face);
+        }
+
+        for( let j = 0; j < faces.length; j ++ ) {
+            let face = faces[j]
+            vv.push( 
+                position.getX(face.a), position.getY(face.a), position.getZ(face.a),
+                position.getX(face.b), position.getY(face.b), position.getZ(face.b),
+                position.getX(face.c), position.getY(face.c), position.getZ(face.c),
+            )
+        }
+
+        return vv;
+
+    },*/
+
     reduce: ( x ) => {
     },
 

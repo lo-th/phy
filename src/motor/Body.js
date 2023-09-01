@@ -230,11 +230,12 @@ export class Body extends Item {
 
 			case 'mesh':
 
-				g = o.shape.clone()
-				if( o.size ) g.scale( o.size[0], o.size[0], o.size[0] )
+				g = o.shape.clone();
+				if( o.size ) g.scale( o.size[0], o.size[0], o.size[0] );
 				
-				o.v = MathTool.getVertex( g, root.engine === 'OIMO' )
-				o.index = root.engine === 'OIMO' ? null : MathTool.getIndex( g )
+				let noIndex = root.engine === 'OIMO' || root.engine === 'JOLT';
+				o.v = MathTool.getVertex( g, noIndex );
+				o.index = noIndex ? null : MathTool.getIndex( g );
 				
 				unic = true
 				noScale = true
