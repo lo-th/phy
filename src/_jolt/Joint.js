@@ -56,7 +56,7 @@ export class Joint extends Item {
 		let jc
 		switch ( mode ) {
 			case 'fixe': jc = new Jolt.FixedConstraintSettings(); break;
-			case 'hinge': jc = new Jolt.HingeConstraintSettings(); break;
+			case 'hinge': case 'revolute': jc = new Jolt.HingeConstraintSettings(); break;
             case 'distance': jc = new Jolt.DistanceConstraintSettings(); break;
             case 'slider': jc = new Jolt.SliderConstraintSettings();  break;
             case 'spherical': jc = new Jolt.PointConstraintSettings(); break;
@@ -75,11 +75,11 @@ export class Joint extends Item {
         
 
 
-        jc.mPoint1.fromArray(posA);
-		jc.mPoint2.fromArray(posB);
+        if(jc.mPoint1) jc.mPoint1.fromArray(posA);
+		if(jc.mPoint2) jc.mPoint2.fromArray(posB);
 		// or ?
-		//jc.mPosition1.fromArray(posA);
-		//jc.mPosition2.fromArray(posB);
+		//if(jc.mPosition1) jc.mPosition1.fromArray(posA);
+		//if(jc.mPosition2) jc.mPosition2.fromArray(posB);
 
 
 

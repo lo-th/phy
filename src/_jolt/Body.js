@@ -114,7 +114,6 @@ export class Body extends Item {
 			
 			case 'convex' : 
 			    hull = new Jolt.ConvexHullShapeSettings;
-
 			    i = Math.floor( o.v.length/3);
 			    j = 0
 			    while( i-- ){
@@ -122,36 +121,26 @@ export class Body extends Item {
 			    	hull.mPoints.push_back( this.v.fromArray( o.v, n ) )//.clone()
 			    	j++
 			    } 
-
 			    shape = hull.Create().Get();
 
 			break;
 			case 'mesh' : 
 			let triangles = new Jolt.TriangleList;
 			let v = o.v;
-
-			if(o.index){
-
-			}else{
-
-				let numTri = Math.floor( v.length/3 );
-				triangles.resize( numTri );
-
-				i = numTri/3;
-				j = 0
-			    while( i-- ){
-			    	n = j*9;
-			    	let t = triangles.at(j);
-			    	let v1 = t.get_mV(0), v2 = t.get_mV(1), v3 = t.get_mV(2);
-			    	v1.x = v[ n+0 ]; v1.y = v[ n+1 ]; v1.z = v[ n+2 ];
-			    	v2.x = v[ n+3 ]; v2.y = v[ n+4 ]; v2.z = v[ n+5 ];
-			    	v3.x = v[ n+6 ]; v3.y = v[ n+7 ]; v3.z = v[ n+8 ];
-			    	j++
-			    }
-			}
-
-			shape = new Jolt.MeshShapeSettings( triangles, new Jolt.PhysicsMaterialList ).Create().Get();
-			
+			let numTri = Math.floor( v.length/3 );
+			triangles.resize( numTri );
+			i = numTri/3;
+			j = 0
+		    while( i-- ){
+		    	n = j*9;
+		    	let t = triangles.at(j);
+		    	let v1 = t.get_mV(0), v2 = t.get_mV(1), v3 = t.get_mV(2);
+		    	v1.x = v[ n+0 ]; v1.y = v[ n+1 ]; v1.z = v[ n+2 ];
+		    	v2.x = v[ n+3 ]; v2.y = v[ n+4 ]; v2.z = v[ n+5 ];
+		    	v3.x = v[ n+6 ]; v3.y = v[ n+7 ]; v3.z = v[ n+8 ];
+		    	j++
+		    }
+			shape = new Jolt.MeshShapeSettings( triangles, inMaterial ).Create().Get();
 			break;
 
 		}
@@ -215,15 +204,24 @@ export class Body extends Item {
 			    	sett.mPoints.push_back( this.v.fromArray( o.v, n ) )//.clone()
 			    	j++
 			    } 
-
-			    //shape = hull.Create().Get();
-
 			break;
 			case 'mesh' : 
-			/*let vertices = this.getVertices(o.v)
-			let numTri = Math.floor( o.index.length/3);
 			let triangles = new Jolt.TriangleList;
-			let shape = new Jolt.MeshShapeSettings(triangles, new Jolt.PhysicsMaterialList).Create().Get();*/
+			let v = o.v;
+			let numTri = Math.floor( v.length/3 );
+			triangles.resize( numTri );
+			i = numTri/3;
+			j = 0
+		    while( i-- ){
+		    	n = j*9;
+		    	let t = triangles.at(j);
+		    	let v1 = t.get_mV(0), v2 = t.get_mV(1), v3 = t.get_mV(2);
+		    	v1.x = v[ n+0 ]; v1.y = v[ n+1 ]; v1.z = v[ n+2 ];
+		    	v2.x = v[ n+3 ]; v2.y = v[ n+4 ]; v2.z = v[ n+5 ];
+		    	v3.x = v[ n+6 ]; v3.y = v[ n+7 ]; v3.z = v[ n+8 ];
+		    	j++
+		    }
+			sett = new Jolt.MeshShapeSettings( triangles, inMaterial );
 			break;
 
 		}
@@ -435,7 +433,11 @@ export class Body extends Item {
 	    }
 
 	    if( o.impulse ) b.AddImpulse( this.v.fromArray( o.impulse ), this.v2.fromArray( [0,0,0] ) );
-	    if( o.force ) b.AddForce( this.v.fromArray( o.force ), this.v2.fromArray( [0,0,0] ) );
+	    //if( o.force ) b.AddForce( this.v2.fromArray( [0,0,0] ), this.v.fromArray( o.force ) );
+	    if( o.force ) {
+	    	//console.log('b')
+	    	b.AddForce( this.v.fromArray( o.force ), this.v2.fromArray( [0,0,0] ) );
+	    }
 	    if( o.torque ) b.AddTorque( this.v.fromArray( o.torque ) );
 
 
