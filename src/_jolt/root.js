@@ -151,6 +151,27 @@ export class Utils {
 			return this;
 
 		}
+
+		Jolt.Mat44.prototype.toArray = function ( r, n ){
+
+			let direct = r !== undefined
+			n = n || 0
+			if( !direct ) r = [];
+
+			let t = this.GetTranslation().toArray();
+			let q = this.GetQuaternion().toArray();
+			//let q = this.GetRotation();//?
+
+			console.log('yo', t, q)
+
+			/*r[ n ] = this.GetX();
+			r[ n + 1 ] = this.GetY();
+			r[ n + 2 ] = this.GetZ();
+			r[ n + 3 ] = this.GetW();
+
+			if(!direct) return r;*/
+
+		}
 	}
 
 }

@@ -44,7 +44,8 @@ const Version = {
     Ammo: '3.0',
     Physx: '5.02.01',
     Rapier: '0.10.0',
-    Havok: '0.10.0',
+    Havok: '1.1.4',
+    Jolt: '0.0.4',
 }
 
 const items = {};

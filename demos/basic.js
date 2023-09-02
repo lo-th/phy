@@ -14,13 +14,13 @@ demo = () => {
     building({ block:0.3, height:10, length:5, deep:5 })
     //building({ block:0.3, height:10, length:10, deep:10 })
 
-    /*phy.add({
+    phy.add({
         type:'compound', density:0.5, pos:[ 0,2,2 ],
         shapes: [
         { type:'cone', pos:[0.25,0,0], size:[ 0.5,0.5,0.5 ], rot:[0,0,-90] },
         { type:'cone', pos:[-0.25,0,0], size:[ 0.5,0.5,0.5 ], rot:[0,0,90] },
         ],
-    })*/
+    })
 
     // intern timeout
     phy.setTimeout( run, 2000 )

@@ -109,7 +109,6 @@ export class Body extends Item {
 			case 'capsule' : shape = new Jolt.CapsuleShape( s[1] * 0.5, s[0],  inConvexRadius, inMaterial ); break;
 			/*
 			case 'particle' : g = new SphereGeometry( o.pSize || 0.05 ); break;
-			case 'cone' : g = new ConeGeometry( s[0], s[1] * 0.5 ); break;
 			*/
 			
 			case 'convex' : 
@@ -118,7 +117,7 @@ export class Body extends Item {
 			    j = 0
 			    while( i-- ){
 			    	n = j*3;
-			    	hull.mPoints.push_back( this.v.fromArray( o.v, n ) )//.clone()
+			    	hull.mPoints.push_back( this.v.fromArray( o.v, n ) );
 			    	j++
 			    } 
 			    shape = hull.Create().Get();
@@ -146,7 +145,7 @@ export class Body extends Item {
 		}
 
 		if( o.density && shape.SetDensity ){ 
-			shape.SetDensity(o.density);
+			//shape.SetDensity(o.density);
 		}
 
 		//console.log(g._volume, o.volume)
@@ -165,6 +164,8 @@ export class Body extends Item {
 
 
 		//let shape = new Shape( sc );
+
+	    shape.volume = MathTool.getVolume( t, s, o.v );
 
 
 
@@ -191,7 +192,6 @@ export class Body extends Item {
 			case 'capsule' : sett = new Jolt.CapsuleShapeSettings( s[1] * 0.5, s[0],  inConvexRadius, inMaterial ); break;
 			/*
 			case 'particle' : g = new SphereGeometry( o.pSize || 0.05 ); break;
-			case 'cone' : g = new ConeGeometry( s[0], s[1] * 0.5 ); break;
 			*/
 			
 			case 'convex' : 
@@ -201,7 +201,7 @@ export class Body extends Item {
 			    j = 0
 			    while( i-- ){
 			    	n = j*3;
-			    	sett.mPoints.push_back( this.v.fromArray( o.v, n ) )//.clone()
+			    	sett.mPoints.push_back( this.v.fromArray( o.v, n ) );
 			    	j++
 			    } 
 			break;
@@ -226,26 +226,7 @@ export class Body extends Item {
 
 		}
 
-		//if( o.density && shape.SetDensity ) shape.SetDensity(o.density);
-
-		//console.log(g._volume, o.volume)
-
-		//g.volume = MathTool.getVolume( t, s, o.v );
-
-		/*sc.geometry = g;
-		sc.position.fromArray( o.localPos || [0,0,0] );
-		sc.rotation.fromQuat( this.q.fromArray( o.localQuat || [0,0,0,1] ) );
-
-
-		// The density of the shape, usually in Kg/m^3. def = 1
-		//if( o.mass && o.density ) delete o.density
-        sc.density = o.density || 0;
-        if( o.mass !== undefined ) sc.density = MathTool.densityFromMass( o.mass, MathTool.getVolume( t, s, o.v ) )*/
-
-
-		//let shape = new Shape( sc );
-
-
+	    sett.volume = MathTool.getVolume( t, s, o.v );
 
 		return sett;
 
@@ -255,9 +236,9 @@ export class Body extends Item {
 
 		let name = this.setName( o );
 
-		
 		let tt = this.type === 'body' ? Jolt.Dynamic : Jolt.Static;
 		let move = this.type === 'body' ? Jolt.MOVING : Jolt.NON_MOVING;
+		let volume = 0;
 
 		// BodyCreationSettings
 
@@ -268,7 +249,6 @@ export class Body extends Item {
 			case 'null': 
 
 				bcs = new Jolt.BodyCreationSettings( this.shape( { type:'sphere', size:[0.01] } ), this.v.fromArray(o.pos || [0,0,0]), this.q.fromArray(o.quat || [0,0,0,1]), tt , move );
-			
 
 			break;
 			
@@ -276,14 +256,14 @@ export class Body extends Item {
 
 			    let scs = new Jolt.StaticCompoundShapeSettings();
 
-				let gs = [], n;
+				let gs = [], n, ss;
 
 				for ( var i = 0; i < o.shapes.length; i ++ ) {
 
 					n = o.shapes[ i ];
-
-			        //if( o.density !== undefined ) n.density = o.density;
-					scs.AddShape( this.v2.fromArray(n.pos || [0,0,0]), this.q2.fromArray(n.quat || [0,0,0,1]), this.shapeSetting( n ) );
+			        ss = this.shapeSetting( n );
+			        volume += ss.volume;
+					scs.AddShape( this.v2.fromArray(n.pos || [0,0,0]), this.q2.fromArray(n.quat || [0,0,0,1]), ss );
 
 				}
 
@@ -292,23 +272,33 @@ export class Body extends Item {
 			break;
 
 			default:
-
-			    bcs = new Jolt.BodyCreationSettings( this.shape( o ), this.v.fromArray(o.pos || [0,0,0]), this.q.fromArray(o.quat || [0,0,0,1]), tt , move );
+			    let sp = this.shape( o );
+			    volume = sp.volume;
+			    bcs = new Jolt.BodyCreationSettings( sp, this.v.fromArray(o.pos || [0,0,0]), this.q.fromArray(o.quat || [0,0,0,1]), tt , move );
 				
 			break;
 
 		}
 
+		// set mass or density
 
-		if( o.mass ) bcs.mMassPropertiesOverride.mMass = o.mass
+		if( o.density ) o.mass = MathTool.massFromDensity( o.density || 0, volume );
+		if( o.mass ) bcs.mMassPropertiesOverride.mMass = o.mass;
+		bcs.mOverrideMassProperties = 1;
+		bcs.mInertiaMultiplier = 1;
+
+		// mInertia is mat44
 		//if( o.inertia ) bcs.mMassPropertiesOverride.mInertia.hq(x,y,z,w); = o.mass
+	    
         //bcs.mMaxAngularVelocity: 47.1238899230957
 		//bcs.mMaxLinearVelocity: 500
 		//bcs.mGravityFactor: 1
 		//bcs.mInertiaMultiplier: 1
-		//bcs.mOverrideMassProperties: 0
+		
 		//if( o.kinematic !== undefined ) bcs.mAllowDynamicOrKinematic(o.kinematic);
 		if( o.sensor !== undefined ) bcs.mIsSensor(o.sensor);
+
+		//console.log(bcs.mOverrideMassProperties)
 
 		// body 
 

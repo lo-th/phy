@@ -406,9 +406,9 @@ const M = {
 
     // GEOMETRY
 
-    getIndex: ( g ) => {
+    getIndex: ( g, noIndex ) => {
 
-        if(!g.index) return null
+        if( !g.index || noIndex ) return null
         return g.index.array || null
 
     },

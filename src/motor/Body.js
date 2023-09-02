@@ -123,6 +123,8 @@ export class Body extends Item {
 		let noScale = false, unic = false;
 		let seg = o.seg || 16;
 
+		const noIndex = root.engine === 'OIMO' || root.engine === 'JOLT';
+
 		//if( o.instance && t!== 'capsule'&& !o.radius) s = o.instanceSize || [1,1,1]
 
 		if( o.instance && t=== 'compound'){ 
@@ -152,18 +154,23 @@ export class Body extends Item {
 		} 
 
 
-	    if( root.engine === 'PHYSX' && ( o.type==='cylinder' || o.type==='cone' ) ){
+	    //if( root.engine === 'PHYSX' && ( o.type==='cylinder' || o.type==='cone' ) ){
+	    if( root.engine === 'PHYSX' && o.type==='cylinder' ){
 			// convert geometry to convex if not in physics
-	    	let geom = new CylinderGeometry( o.type === 'cone' ? 0 : o.size[ 0 ], o.size[ 0 ], o.size[ 1 ], seg, 1 );//24
+	    	let geom = new CylinderGeometry( o.size[ 0 ], o.size[ 0 ], o.size[ 1 ], seg, 1 );//24
 	    	if( o.isWheel ) geom.rotateZ( -PI90 );
 	    	o.v = MathTool.getVertex( geom )
 	    	o.type = 'convex';
 
 	    }
 
-	    if( root.engine === 'HAVOK' && o.type==='cone' ){
+	    if( ( root.engine === 'PHYSX' || root.engine === 'HAVOK' || root.engine === 'JOLT' ) && o.type==='cone' ){
 	    	// convert geometry to convex if not in physics
-	    	let geom = new CylinderGeometry( o.type === 'cone' ? 0 : o.size[ 0 ], o.size[ 0 ], o.size[ 1 ], seg, 1 );//24
+	    	//if( !o.size[2] ) o.size[2] = 0;
+	    	//console.log(o.size[2])
+	    	let geom = new CylinderGeometry( 0, o.size[ 0 ], o.size[ 1 ], seg, 1 );//24
+
+	    	//o.size[2] = o.size[0]
 	    	o.v = MathTool.getVertex( geom )
 	    	o.type = 'convex';
 
@@ -213,18 +220,16 @@ export class Body extends Item {
 				if( o.size ) g.scale( o.size[0], o.size[0], o.size[0] );
 				if( o.shapeScale ) g.scale( o.shapeScale[0], o.shapeScale[1], o.shapeScale[2] );
 				//o.v = g.attributes.position.array;
-				o.v = MathTool.getVertex( g )
-				o.index = MathTool.getIndex( g )
+				o.v = MathTool.getVertex( g, noIndex );
+				o.index = MathTool.getIndex( g, noIndex );
 
 				unic = true;
 				noScale = true;
 			}
 
-			if(!g.boundingBox) g.computeBoundingBox()
-			let bx = g.boundingBox
-		    o.boxSize = [ -bx.min.x + bx.max.x, -bx.min.y + bx.max.y, -bx.min.z + bx.max.z ]
-
-			//console.log(g)
+			if(!g.boundingBox) g.computeBoundingBox();
+			let bx = g.boundingBox;
+		    o.boxSize = [ -bx.min.x + bx.max.x, -bx.min.y + bx.max.y, -bx.min.z + bx.max.z ];
 
 			break;
 
@@ -233,12 +238,11 @@ export class Body extends Item {
 				g = o.shape.clone();
 				if( o.size ) g.scale( o.size[0], o.size[0], o.size[0] );
 				
-				let noIndex = root.engine === 'OIMO' || root.engine === 'JOLT';
 				o.v = MathTool.getVertex( g, noIndex );
-				o.index = noIndex ? null : MathTool.getIndex( g );
+				o.index = MathTool.getIndex( g, noIndex );
 				
-				unic = true
-				noScale = true
+				unic = true;
+				noScale = true;
 			
 			break;
 
