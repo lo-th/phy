@@ -284,7 +284,7 @@ export class Body extends Item {
 
 		if( o.density ) o.mass = MathTool.massFromDensity( o.density || 0, volume );
 		if( o.mass ) bcs.mMassPropertiesOverride.mMass = o.mass;
-		bcs.mOverrideMassProperties = 1;
+		bcs.mOverrideMassProperties = Jolt.CalculateInertia;
 		bcs.mInertiaMultiplier = 1;
 
 		// mInertia is mat44
@@ -298,7 +298,7 @@ export class Body extends Item {
 		//if( o.kinematic !== undefined ) bcs.mAllowDynamicOrKinematic(o.kinematic);
 		if( o.sensor !== undefined ) bcs.mIsSensor(o.sensor);
 
-		//console.log(bcs.mOverrideMassProperties)
+		//console.log( bcs )
 
 		// body 
 
@@ -317,7 +317,7 @@ export class Body extends Item {
 		delete o.pos;
 		delete o.quat;
 		delete o.kinematic;
-		if( !o.friction ) o.friction = 0.5;
+		if( !o.friction ) o.friction = 0.5;// default friction to 0.5
 
 		// apply option
 		this.set( o, b );
@@ -373,6 +373,10 @@ export class Body extends Item {
 		if( o.angularVelocity !== undefined ) b.SetAngularVelocity( this.v.fromArray( o.angularVelocity ) );
 		if( o.angularVelocityClamped !== undefined ) b.SetAngularVelocityClamped( this.v.fromArray( o.angularVelocityClamped ) )
 
+		if( o.reset ){ 
+			b.SetLinearVelocity( this.v.set( 0, 0, 0) );
+			b.SetAngularVelocity( this.v2.set( 0, 0, 0) );
+		}
 
 		/*if( o.kinematic !== undefined ){
 			b.setType(o.kinematic ? 2 : 0);
@@ -402,9 +406,8 @@ export class Body extends Item {
 
 	    		root.bodyInterface.SetPosition( b.GetID(), this.v.fromArray( o.pos ), null );
 
-	    		//b.setPosition( this.v.fromArray( o.pos ) )
-
 	    	}
+	    	
 		    if( o.quat ){
 		    	/*if(b.isKinematic){
 
@@ -424,10 +427,8 @@ export class Body extends Item {
 
 	    if( o.impulse ) b.AddImpulse( this.v.fromArray( o.impulse ), this.v2.fromArray( [0,0,0] ) );
 	    //if( o.force ) b.AddForce( this.v2.fromArray( [0,0,0] ), this.v.fromArray( o.force ) );
-	    if( o.force ) {
-	    	//console.log('b')
-	    	b.AddForce( this.v.fromArray( o.force ), this.v2.fromArray( [0,0,0] ) );
-	    }
+	    if( o.force ) b.AddForce( this.v.fromArray( o.force ), this.v2.fromArray( [0,0,0] ) );
+	    
 	    if( o.torque ) b.AddTorque( this.v.fromArray( o.torque ) );
 
 
@@ -435,62 +436,8 @@ export class Body extends Item {
 	    //console.log( this.getShape(b) )
 
 
-		
 
 		
-		
-			
-/*
-		// Applies the force `force` to `positionInWorld` in world position. [ 0,0,0,   0,0,0 ]
-		if( o.worldForce ) b.applyForce( this.v.fromArray( o.worldForce ), this.v.fromArray( o.worldForce, 3 ) )
-		if( o.force ) b.applyForceToCenter( this.v.fromArray( o.force ) )
-		if( o.torque ) b.applyTorque( this.v.fromArray( o.torque ) )
-
-
-
-	    // Applies the impulse `impulse` to the rigid body at `positionInWorld` in world position. [ 0,0,0,   0,0,0 ]
-
-	    if(o.impulse){
-	    	if( o.impulseCenter ) b.applyImpulse( this.v.fromArray( o.impulse ), this.v2.fromArray( o.impulseCenter ) );
-	    	else b.applyLinearImpulse( this.v.fromArray( o.impulse ) );
-	    }
-	    if( o.impulse ) b.applyImpulse( this.v.fromArray( o.impulse ), this.v.fromArray( o.impulse, 3 ) )
-	    if( o.linearImpulse ) {
-	    	//this.multiplyScalar( o.linearImpulse, root.delta, 3 )
-	    	b.applyLinearImpulse( this.v.fromArray( o.linearImpulse ) )
-	    }
-
-
-	   /* if( o.angularImpulse ) b.applyAngularImpulse( this.v.fromArray( o.angularImpulse ) )
-
-	    if( o.gravityScale ) b.setGravityScale( o.gravityScale );
-
-	    if( o.gravity !== undefined ) b.setGravityScale( o.gravity ? 1 : 0 );
-
-	    if( b.type === 'body' ){
-		    //b.getOrientationTo( this.q )
-		    //if( o.linearVelocity ) b.setLinearVelocity( this.v.fromArray( o.linearVelocity ).applyQuaternion( this.q ) )
-		    //if( o.angularVelocity ) b.setAngularVelocity( this.v.fromArray( o.angularVelocity ).applyQuaternion( this.q ) )
-
-		    if( o.linearVelocity ) b.setLinearVelocity( this.v.fromArray( o.linearVelocity ) )
-		    if( o.angularVelocity ) b.setAngularVelocity( this.v.fromArray( o.angularVelocity ) )
-
-		    if( o.addLinearVelocity ) b.addLinearVelocity( this.v.fromArray( o.linearVelocity ) )
-		    if( o.addAngularVelocity ) b.addAngularVelocity( this.v.fromArray( o.angularVelocity ) )
-		}
-
-	    if( o.angularFactor ) b.setRotationFactor( this.v.fromArray( o.angularFactor ) )
-
-	    // Sets the linear and angular damping. [ 0,0 ]
-	    if( o.damping ){
-		     b.setLinearDamping( o.damping[0] )
-		     b.setAngularDamping( o.damping[1] )
-		 }
-
-		if( o.reset ){ 
-			b.setLinearVelocity( this.v.set( 0, 0, 0) )
-			b.setAngularVelocity( this.v.set( 0, 0, 0) )
-		}*/
 
 	}
 

@@ -19,7 +19,7 @@ demo = () => {
     phy.set({ substep:2, gravity:[0,-30,0]})
 
     // add static plane 
-    phy.add({ type:'plane', size:[300,1,300], visible:false, friction:0.3, restitution:0.1 })
+    phy.add({ type:'plane', size:[300,1,300], visible:false, friction:0.5, restitution:0.1 })
 
     phy.load( ['./assets/models/dices.glb', './assets/models/slide.glb'], onComplete )
 
@@ -50,7 +50,7 @@ onComplete = () => {
         type:'mesh',
         mesh: slideMesh.slide_h,
         shape: slideMesh.slide.geometry,
-        restitution:0.1, friction:0.0,
+        restitution:0.2, friction:0.01,
         size:[0.36],
         meshScale:[0.36],
         material:'glassX'
