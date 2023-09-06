@@ -200,10 +200,10 @@ export class Motor {
 
 		if( isWorker ){
 
-		    /*if( e.o ){
+		    if( e.o ){
 		    	if( e.o.type === 'solver' ) direct = true;
 		    	if( e.o.solver !== undefined ) direct = true;
-		    }*/
+		    }
 
 		    if( direct ){
 		    	worker.postMessage( e, buffer );
