@@ -3244,8 +3244,10 @@ function mergeVertices( geometry, tolerance = 1e-4 ) {
 	}
 
 	// convert the error tolerance to an amount of decimal places to truncate to
-	const decimalShift = Math.log10( 1 / tolerance );
-	const shiftMultiplier = Math.pow( 10, decimalShift );
+	const halfTolerance = tolerance * 0.5;
+	const exponent = Math.log10( 1 / tolerance );
+	const hashMultiplier = Math.pow( 10, exponent );
+	const hashAdditive = halfTolerance * hashMultiplier;
 	for ( let i = 0; i < vertexCount; i ++ ) {
 
 		const index = indices ? indices.getX( i ) : i;
@@ -3261,7 +3263,7 @@ function mergeVertices( geometry, tolerance = 1e-4 ) {
 			for ( let k = 0; k < itemSize; k ++ ) {
 
 				// double tilde truncates the decimal value
-				hash += `${ ~ ~ ( attribute[ getters[ k ] ]( index ) * shiftMultiplier ) },`;
+				hash += `${ ~ ~ ( attribute[ getters[ k ] ]( index ) * hashMultiplier + hashAdditive ) },`;
 
 			}
 
@@ -36126,7 +36128,7 @@ class Motor {
 
 		const path = o.path || 'build/';
 		const wasmLink = {
-		    Ammo: path + 'ammo3.wasm.js',
+		    Ammo: path + 'ammo.wasm.js',
 		    Physx: path + 'physx-js-webidl.js',
 		    Havok: path + 'HavokPhysics.js',
 		};

@@ -236,7 +236,7 @@ export class Motor {
 
 		const path = o.path || 'build/';
 		const wasmLink = {
-		    Ammo: path + 'ammo3.wasm.js',
+		    Ammo: path + 'ammo.wasm.js',
 		    Physx: path + 'physx-js-webidl.js',
 		    Havok: path + 'HavokPhysics.js',
 		}

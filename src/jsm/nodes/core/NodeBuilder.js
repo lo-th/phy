@@ -8,10 +8,17 @@ import NodeCache from './NodeCache.js';
 import { createNodeMaterialFromType } from '../materials/NodeMaterial.js';
 import { NodeUpdateType, defaultBuildStages, shaderStages } from './constants.js';
 
-import { REVISION, NoColorSpace, LinearEncoding, sRGBEncoding, SRGBColorSpace, Color, Vector2, Vector3, Vector4, Float16BufferAttribute } from 'three';
+import {
+	FloatNodeUniform, Vector2NodeUniform, Vector3NodeUniform, Vector4NodeUniform,
+	ColorNodeUniform, Matrix3NodeUniform, Matrix4NodeUniform
+} from '../../renderers/common/nodes/NodeUniform.js';
+
+import { REVISION, RenderTarget, NoColorSpace, LinearEncoding, sRGBEncoding, SRGBColorSpace, Color, Vector2, Vector3, Vector4, Float16BufferAttribute } from 'three';
 
 import { stack } from './StackNode.js';
 import { maxMipLevel } from '../utils/MaxMipLevelNode.js';
+
+import CubeRenderTarget from '../../renderers/common/CubeRenderTarget.js';
 
 const typeFromLength = new Map( [
 	[ 2, 'vec2' ],
@@ -69,6 +76,7 @@ class NodeBuilder {
 		this.flowNodes = { vertex: [], fragment: [], compute: [] };
 		this.flowCode = { vertex: '', fragment: '', compute: [] };
 		this.uniforms = { vertex: [], fragment: [], compute: [], index: 0 };
+		this.structs = { vertex: [], fragment: [], compute: [], index: 0 };
 		this.codes = { vertex: [], fragment: [], compute: [] };
 		this.bindings = { vertex: [], fragment: [], compute: [] };
 		this.bindingsOffset = { vertex: 0, fragment: 0, compute: 0 };
@@ -98,23 +106,21 @@ class NodeBuilder {
 
 	}
 
-	includes( node ) {
+	getRenderTarget( width, height, options ) {
 
-		return this.nodes.includes( node );
+		return new RenderTarget( width, height, options );
 
 	}
 
-	createBindings() {
+	getCubeRenderTarget( size, options ) {
 
-		const bindingsArray = [];
+		return new CubeRenderTarget( size, options );
 
-		for ( const binding of this.getBindings() ) {
+	}
 
-			bindingsArray.push( binding.clone() );
+	includes( node ) {
 
-		}
-
-		return bindingsArray;
+		return this.nodes.includes( node );
 
 	}
 
@@ -627,6 +633,27 @@ class NodeBuilder {
 
 	}
 
+	getStructTypeFromNode( node, shaderStage = this.shaderStage, name = null ) {
+
+		const nodeData = this.getDataFromNode( node, shaderStage );
+
+		let nodeStruct = nodeData.structType;
+
+		if ( nodeStruct === undefined ) {
+
+			const index = this.structs.index ++;
+
+			node.name = `StructType${index}`;
+			this.structs[ shaderStage ].push( node );
+
+			nodeData.structType = node;
+
+		}
+
+		return node;
+
+	}
+
 	getUniformFromNode( node, type, shaderStage = this.shaderStage, name = null ) {
 
 		const nodeData = this.getDataFromNode( node, shaderStage );
@@ -965,6 +992,20 @@ class NodeBuilder {
 		this.buildUpdateNodes();
 
 		return this;
+
+	}
+
+	getNodeUniform( uniformNode, type ) {
+
+		if ( type === 'float' ) return new FloatNodeUniform( uniformNode );
+		if ( type === 'vec2' ) return new Vector2NodeUniform( uniformNode );
+		if ( type === 'vec3' ) return new Vector3NodeUniform( uniformNode );
+		if ( type === 'vec4' ) return new Vector4NodeUniform( uniformNode );
+		if ( type === 'color' ) return new ColorNodeUniform( uniformNode );
+		if ( type === 'mat3' ) return new Matrix3NodeUniform( uniformNode );
+		if ( type === 'mat4' ) return new Matrix4NodeUniform( uniformNode );
+
+		throw new Error( `Uniform "${type}" not declared.` );
 
 	}
 

@@ -199,7 +199,7 @@ class NodeMaterial extends ShaderMaterial {
 		if ( this.flatShading === true ) {
 
 			const fdx = dFdx( positionView );
-			const fdy = dFdy( positionView.negate() ); // use -positionView ?
+			const fdy = dFdy( positionView );
 			const normalNode = fdx.cross( fdy ).normalize();
 
 			stack.assign( transformedNormalView, normalNode );
@@ -345,7 +345,15 @@ class NodeMaterial extends ShaderMaterial {
 
 			if ( renderTarget !== null ) {
 
-				outputColorSpace = renderTarget.texture.colorSpace;
+				if ( Array.isArray( renderTarget.texture ) ) {
+
+					outputColorSpace = renderTarget.texture[ 0 ].colorSpace;
+
+				} else {
+
+					outputColorSpace = renderTarget.texture.colorSpace;
+
+				}
 
 			} else {
 

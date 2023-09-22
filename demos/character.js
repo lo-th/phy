@@ -43,6 +43,7 @@ demo = () => {
         filter:[1,-1,[1, 3, 4,5,9], 0],
         ray:false,
         noGravity:true,
+        neverSleep:true,
     })
 
 
@@ -50,7 +51,7 @@ demo = () => {
 
     
     //phy.add({ type:'box', name:'trigger', size:[2, 2, 2], pos:[0,-0.99,-3], material:'debug', mask:32 })
-    trigger = phy.add({ type:'box', name:'trigger', size:[5, 1.8, 2], pos:[0,0.91,-3], material:'debug', isTrigger:true  })//
+    trigger = phy.add({ type:'box', name:'trigger', size:[5, 1, 2], pos:[0,0.5,-3], material:'debug', isTrigger:true  })//
 
     phy.add({ type:'contact', b1:'bob', b2:'floor', callback: showContact })
     phy.add({ type:'contact', b1:'bob', b2:'trigger', callback: triggerContact })
@@ -75,10 +76,10 @@ demo = () => {
 
 showContact = ( d ) => {
 
-    if( d.hit ) { bob.material.color.setHex( 0x00FF00 ) }
+    if( d.hit ) { bob.material.color.setHex( 0xFF8800 ) }
     else bob.material.color.setHex( 0x00FF88 ) 
 
-    //console.log('bob collision on floor')
+    //if( d.hit ) console.log('bob collision on floor', d)
 }
 
 triggerContact = ( d ) => {
@@ -86,7 +87,7 @@ triggerContact = ( d ) => {
     if( d.hit ) trigger.material.color.setHex( 0xFF0000 )
     else trigger.material.color.setHex( 0xFFFF00 )
 
-    //console.log('bob collision on trigger')
+    //if( d.hit ) console.log('bob collision on trigger', d )
 }
 
 update = () => {
