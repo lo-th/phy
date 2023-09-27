@@ -1,4 +1,4 @@
-import { Object3D, Vector3, Group, Mesh, LineSegments, BufferGeometry, CylinderGeometry, InstancedMesh, DynamicDrawUsage, Matrix4 } from 'three';
+import { Object3D, Vector3, Group, Mesh, LineSegments, BufferGeometry, CylinderGeometry, InstancedMesh, Matrix4 } from 'three';
 
 import { root, Utils } from './root.js';
 

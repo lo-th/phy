@@ -1,5 +1,5 @@
 import {
-	InstancedMesh, DynamicDrawUsage, InstancedBufferAttribute,
+	InstancedMesh, InstancedBufferAttribute,
 	Object3D, MeshBasicMaterial, Mesh, Matrix4, Quaternion
 } from 'three';
 

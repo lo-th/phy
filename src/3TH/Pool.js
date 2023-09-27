@@ -1,5 +1,5 @@
 import {
-    Texture, TextureLoader, SRGBColorSpace, RepeatWrapping, NearestFilter, EquirectangularReflectionMapping, AnimationMixer, Float32BufferAttribute,
+    Texture, TextureLoader, SRGBColorSpace, RepeatWrapping, NearestFilter, EquirectangularReflectionMapping, AnimationMixer
 } from 'three';
 
 import { GLTFLoader } from '../jsm/loaders/GLTFLoader.js';

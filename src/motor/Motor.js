@@ -29,7 +29,7 @@ import { Breaker } from './extra/Breaker.js';
 import { Particle } from './extra/Particle.js';
 
 import { Pool } from '../3TH/Pool.js';
-import { sk } from '../3TH/character/SkeletonExtand.js'
+import { sk } from '../3TH/character/SkeletonExtand.js';
 
 /** __
 *    _)_|_|_
@@ -406,11 +406,11 @@ export class Motor {
             if ( xml.readyState === 4 ) {
                 if ( xml.status === 200 || xml.status === 0 ) {
                     let n = document.createElement("script");
-                    n.language = "javascript"
+                    n.language = "javascript";
                     n.type = "text/javascript";
                     n.charset = "utf-8";
                     n.async = true;
-                    n.innerHTML = xml.responseText
+                    n.innerHTML = xml.responseText;
                     //this.extraCode.push(n)
                     document.getElementsByTagName('head')[0].appendChild(n);
 
@@ -441,7 +441,7 @@ export class Motor {
 	static initPhysics( o ) {
 	
 	    root.post({ m:'init', o:o });
-	    engineReady = true
+	    engineReady = true;
 
 	}
 	
@@ -455,9 +455,9 @@ export class Motor {
 
 		if( v === isPause ) return
 		isPause = v
-		if( isPause ) Motor.pausetimout()
-		else Motor.playtimout()
-		root.post({ m:'pause', o:{ value:isPause } })
+		if( isPause ) Motor.pausetimout();
+		else Motor.playtimout();
+		root.post({ m:'pause', o:{ value:isPause } });
 
 	}
 
@@ -886,31 +886,31 @@ export class Motor {
 
 		timoutFunction = f; 
 		timoutTime = time; 
-		timout = setTimeout( timoutFunction, timoutTime ) 
+		timout = setTimeout( timoutFunction, timoutTime );
 
 	}
 
 	static playtimout (){
 
 		if( timoutFunction === null ) return
-		timout = setTimeout( timoutFunction, timoutTime ) 
+		timout = setTimeout( timoutFunction, timoutTime );
 
 	}
 
 	static pausetimout (){
 
 		if( timout === null ) return
-		clearTimeout( timout ) 
+		clearTimeout( timout );
 
 	}
 
 	static cleartimout ( f, time ){
 
 		if( timout === null ) return
-		timoutFunction = null
+		timoutFunction = null;
 		timoutTime = 0; 
-		clearTimeout( timout )
-		timout = null
+		clearTimeout( timout );
+		timout = null;
 
 	}
 
@@ -920,7 +920,7 @@ export class Motor {
 	//-----------------------
 
 	static texture( o = {} ) {
-		return Pool.texture( o )
+		return Pool.texture( o );
 	}
 
 

@@ -1,7 +1,6 @@
 import {
     MeshPhongMaterial, MeshLambertMaterial, MeshStandardMaterial, MeshPhysicalMaterial, MeshBasicMaterial, LineBasicMaterial, MeshToonMaterial,
-    Matrix4, Euler, Quaternion, Vector3, Vector2, Matrix3, Color,
-    Box3Helper, DoubleSide,
+    Matrix4, Euler, Quaternion, Vector3, Vector2, Matrix3, Color, DoubleSide,
 } from 'three';
 import { CarbonTexture } from '../../3TH/textures/CarbonTexture.js';
 
