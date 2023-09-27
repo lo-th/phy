@@ -8,7 +8,7 @@ import { Contact } from './Contact.js';
 import { Character } from './Character.js';
 */
 
-import initJolt from '../libs/jolt-physics.wasm-compat.js';
+import initJolt from '../libs_physics/X_Jolt.js';
 
 /** __
 *    _)_|_|_

@@ -25,6 +25,8 @@ export const Pool = {
     clip:[],
     data: new Map(),
     tmp: [],
+
+    lzma:null,
     //extraTexture: [],
     dracoLoader: null,
     dracoLoaderType:'js',
@@ -51,6 +53,7 @@ export const Pool = {
             case 'E': case 'hdr': case 'env': p = 'T_';  break;
             case 'J': case 'json': p = 'J_';  break;
             case 'JS': case 'js': p = 'JS_';  break;
+            case 'H': case 'hex': p = 'H_';  break;
             
             case 'O': case 'object3d': p = 'O_';  break;
             case 'M': case 'material': p = 'M_';  break;
@@ -384,7 +387,11 @@ export const Pool = {
                     function( error ){ console.error('decodeAudioData error', error); }
                 );
             break;
-            case 'hex': LzmaUnpack.parse( response, function ( result ) { Pool.add( name, result, type ); }); break;
+            case 'hex': 
+            //if(!Pool.lzma) Pool.lzma = new LZMA()
+            LZMA.decompress( response, function ( result ) { Pool.add( name, result, type ); })
+            //LzmaUnpack.parse( response, function ( result ) { Pool.add( name, result, type ); }); 
+            break;
             case 'wasm': Pool.add( name, new Uint8Array( response ), type ); break;
             case 'json': Pool.add( name, JSON.parse( response ), type ); break;
             case 'js': Pool.add( name, response, type ); break;

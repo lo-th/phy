@@ -53,5 +53,14 @@ export class Timer {
 		if( framerate === 60 ) this.time.interval = 16.67
 
 	}
+
+    static getTime () {
+    	return new Date().getTime();
+    }
+
+    static format_time ( time ) {
+	    if (time > 1000)  return (time / 1000) + " sec";
+	    return time + " ms";
+	}
 	
 }

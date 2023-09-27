@@ -630,7 +630,7 @@ export class ChamferBox extends BufferGeometry {
         //g = g.toNonIndexed()
         //
 
-        createUV(g, 'box')
+        createUV(g, 'box');
 
         this.copy(g);
         /*g.dispose();*/
@@ -798,6 +798,7 @@ export function createUV( geometry, type = 'sphere', boxSize, pos = [0,0,0], qua
     //_applyBoxUV( bufferGeometry, transformMatrix, uvBbox, boxSize );
 
     let uvBbox = new Box3(new Vector3(-boxSize / 2, -boxSize / 2, -boxSize / 2), new Vector3(boxSize / 2, boxSize / 2, boxSize / 2));
+    //let uvBbox = new Box3(new Vector3(-(boxSize / 2)/3, -(boxSize / 2)/3, -(boxSize / 2)/3), new Vector3((boxSize / 2)/3, (boxSize / 2)/3, (boxSize / 2)/3));
     //let uvBbox = bbox
     
 

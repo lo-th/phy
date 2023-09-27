@@ -14,8 +14,7 @@
 		<script type="importmap">
 			{
 				"imports": {
-					"three": "./src/libs/three.module.js",
-					"three/addons/": "./src/jsm/"
+					"three": "./src/libs/three.module.min.js"
 				}
 			}
 		</script>
@@ -23,12 +22,15 @@
 		<script type="module">
 
 			import * as THREE from 'three';
-			import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+			import { OrbitControls } from './src/jsm/controls/OrbitControls.js';
+			import { RGBELoader } from './src/jsm/loaders/RGBELoader.js';
 
 			import { phy } from './build/Phy.module.js';
 
-			let camera, scene, renderer, controler, light;
-			let material;
+			const motor = 'PHYSX';
+			//const motor = 'HAVOK';
+
+			let camera, scene, renderer, controler, text, t1, t2;
 
 			init();
 			animate();
@@ -37,31 +39,40 @@
 
 				scene = new THREE.Scene();
 
-				const texture = new THREE.TextureLoader().load( './assets/textures/check.jpg' );
-				material = new THREE.MeshStandardMaterial( { map: texture } );
-
 				renderer = new THREE.WebGLRenderer( { antialias: true } );
 				renderer.setPixelRatio( window.devicePixelRatio );
 				renderer.setSize( window.innerWidth, window.innerHeight );
+				renderer.toneMapping = THREE.ACESFilmicToneMapping;
+				renderer.toneMappingExposure = 0.6;
 				document.body.appendChild( renderer.domElement );
 
-				camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 1, 1000 );
-				camera.position.set(2,5,5);
+				camera = new THREE.PerspectiveCamera( 60, window.innerWidth / window.innerHeight, 0.1, 1000 );
+				camera.position.set(12,1,32);
 
 				controler = new OrbitControls( camera, renderer.domElement );
-				controler.target.set( 0, 0.5, 0 );
+				controler.target.set( 0, 10, 0 );
 			    controler.screenSpacePanning = true;
 			    controler.update();
 
-			    light = new THREE.PointLight(0xffffEE);
-			    light.position.set(0,50,0);
-			    scene.add(light);
-			    scene.background = new THREE.Color( 0x101000 );
-			    scene.add( new THREE.AmbientLight( 0x202000 ));
+			    new RGBELoader()
+					.setPath( './assets/textures/equirectangular/' )
+					.load( 'factory.hdr', function ( texture ) {
 
-			    initEngine()
+						texture.mapping = THREE.EquirectangularReflectionMapping;
+
+						//scene.background = texture;
+						scene.background = new THREE.Color( 0x33322c );
+						scene.environment = texture;
+
+						initEngine();
+					})
 
 				window.addEventListener( 'resize', onWindowResize );
+
+				text = document.createElement( 'div' );
+				text.style.cssText = "position:absolute; top:30px; left:30px; color:#7c806c; color:#CCCCCC; text-shadow: 1px 1px 1px #000; pointer-events:none; font-size:20px; font-family:Monospace;"
+				document.body.appendChild( text )
+
 
 			}
 
@@ -85,7 +96,11 @@
 
 			function initEngine() {
 
-				phy.init( { type:'PHYSX', worker:false, callback:startDemo } )
+				t1 = phy.getTime()
+
+				// use compact version of physic engine in /compact folder 
+				phy.init( { type:motor, worker:false, compact:true, callback:startDemo } )
+
 				// add phy container to three scene
 				phy.setContent( scene )
 
@@ -93,14 +108,50 @@
 
 			function startDemo() {
 
-				phy.set({ substep:2, gravity:[0,-9.81,0], fps:60 })
+				t2 = phy.getTime() - t1;
+				text.innerHTML =  motor + " " + phy.format_time(t2);
+
+				phy.load("./assets/models/minmac.glb", onLoad );
+
+			}
+
+			function onLoad() {
+
+				const texture = new THREE.TextureLoader().load( './assets/textures/minmac.jpg' );
+				const texture2 = new THREE.TextureLoader().load( './assets/textures/minmac_l.jpg' );
+				texture.flipY = false;
+				texture2.flipY = false;
+				const material = new THREE.MeshStandardMaterial( { 
+					map:texture, 
+					emissiveMap:texture2,
+					metalnessMap:texture2,
+					emissive:0x5E82BC,
+					emissiveIntensity:0.2,
+					roughness:0.33, 
+					metalness:1,
+				});
+
+				const model = phy.getMesh('minmac');
+
+				phy.set({ substep:1, gravity:[0,-9.81,0], fps:60 });
 
 				// add static ground
 				phy.add({ type:'plane', size:[300,1,300], visible:false });
 
-				let i = 100
+				const option = { instance:'bx', type:'box', size:[2.5,3.4,2.8], mass:7.26, friction:0.4, restitution:0.2 };
+
+				let ar = [], pos, n=0;
+				let i = 100;
 				while(i--){
-					phy.add({ type:'box', size:[1,1,1], pos:[0, 5 + i*2, 0], density:1, material:material, radius:0.1 });
+					pos = [0, 1.7+3.4*n, 0];
+					if(n===0) phy.add( {...option, pos:pos, material:material, mesh: model.mac, meshScale:[10] });
+					else phy.add( {...option, pos:pos });
+
+					pos[0] = pos[0]+3.4;
+					phy.add( {...option, pos:pos });
+					pos[0] = pos[0]-(3.4*2);
+					phy.add( {...option, pos:pos });
+					n++
 				}
 
 			}

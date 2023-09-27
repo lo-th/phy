@@ -9,6 +9,8 @@ import { Vehicle } from './Vehicle.js';
 import { Terrain } from './Terrain.js';
 import { Character } from './Character.js';
 
+import initAmmo from '../libs_physics/X_Ammo.js';
+
 //let Ammo = await import("../../build/ammo3.wasm.js");
 //import '../../build/ammo3.wasm.js';
 //import * as ammo from '../../build/ammo3.wasm.js';
@@ -98,9 +100,9 @@ export class engine {
 			isBuffer = false;
 		}
 
-		if( o.blob ) importScripts( o.blob )
+		//if( o.blob ) importScripts( o.blob )
 
-		Ammo().then( ( Ammo ) => {
+		initAmmo().then( ( Ammo ) => {
 
 			self.Ammo = Ammo;
 

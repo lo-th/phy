@@ -152,6 +152,8 @@ export class Motor {
 		if( mouseTool ) mouseTool.setMode( mode, o )
 	}
 
+    static getTime () { return Timer.getTime() }
+    static format_time ( t ) { return Timer.format_time( t ) }
 
 	static getTimeTest () { return timetest }
 
@@ -227,6 +229,8 @@ export class Motor {
 
 	static init ( o = {} ) {
 
+		const compact = o.compact || false;
+
 		// TODO find better solution
 		let url = document.location.href.replace(/\/[^/]*$/,"/");
 		var arr = url.split("/");
@@ -234,11 +238,13 @@ export class Motor {
 
 		if( url === 'https://lo-th.github.io/' ) url = 'https://lo-th.github.io/phy/';
 
-		const path = o.path || 'build/';
+		let path = o.path || 'build/';
+		const useMin = o.useMin || false;
 		const wasmLink = {
-		    Ammo: path + 'ammo.wasm.js',
+		    /*Ammo: path + 'ammo.wasm.js',
 		    Physx: path + 'physx-js-webidl.js',
 		    Havok: path + 'HavokPhysics.js',
+		    */
 		}
 
 		let type = o.type || 'PHYSX';
@@ -275,13 +281,73 @@ export class Motor {
 		root.post = Motor.post;
 		root.motor = Motor;
 
-		if( isWorker ){ // is worker version
+		if( compact ){
+			
+			path = o.path || 'compact/';
+			Pool.load( url + path + mini + '.hex', function(){ Motor.onCompactDone(o)} )
 
-		    // for wasm side
-		    if( wasmLink[mini] ) o.blob = url + wasmLink[mini];
+		} else {
 
-		    //worker = new Worker( path + mini + '.module.js', {type:'module'})
-			worker = new Worker( url + path + mini + '.min.js' )
+			if( isWorker ){ // is worker version
+
+			    // for wasm side
+			    if( wasmLink[mini] ) o.blob = url + wasmLink[mini];
+
+			    worker = new Worker( url + path + mini + '.min.js' );
+			    //else worker = new Worker( url + path + mini + '.module.js', {type:'module'});
+
+				worker.postMessage = worker.webkitPostMessage || worker.postMessage;
+				worker.onmessage = Motor.message;
+
+				let ab = new ArrayBuffer( 1 );
+				worker.postMessage( { m: 'test', ab:ab }, [ ab ] );
+				isBuffer = ab.byteLength ? false : true;
+
+
+				o.isBuffer = isBuffer;
+				console.log( st + ' Worker '+ type + (o.isBuffer ? ' with Shared Buffer' : '') );
+
+				Motor.initPhysics( o );
+
+
+			} else { // is direct version
+
+				if( wasmLink[mini] ) Motor.loadWasmDirect( wasmLink[mini], o, mini, url )
+				else if( o.devMode ) Motor.preLoad( mini, o, url );
+			    else Motor.preLoadMin( mini, o, url );
+
+			}
+
+		}
+
+		
+
+	}
+
+	static onCompactDone( o ) {
+
+		let name = root.engine.toLowerCase();
+		let mini = name.charAt(0).toUpperCase() + name.slice(1);
+
+		let code = Pool.get( mini, 'H' );
+
+		if( isWorker ){
+
+			let blob;
+
+			try {
+			    blob = new Blob([code], {type: 'application/javascript'});
+			} catch (e) { // Backwards-compatibility
+			    window.BlobBuilder = window.BlobBuilder || window.WebKitBlobBuilder || window.MozBlobBuilder;
+			    blob = new BlobBuilder();
+			    blob.append(code);
+			    blob = blob.getBlob();
+			}
+
+			//let tmp = new Blob([ code ], { type: 'application/javascript' })
+
+			worker = new Worker( URL.createObjectURL(blob) );
+		    //else worker = new Worker( url + path + mini + '.module.js', {type:'module'});
 
 			worker.postMessage = worker.webkitPostMessage || worker.postMessage;
 			worker.onmessage = Motor.message;
@@ -290,19 +356,31 @@ export class Motor {
 			worker.postMessage( { m: 'test', ab:ab }, [ ab ] );
 			isBuffer = ab.byteLength ? false : true;
 
-
 			o.isBuffer = isBuffer;
-			console.log( st + ' Worker '+ type + (o.isBuffer ? ' with Shared Buffer' : '') );
+			//console.log( st + ' Worker '+ type + (o.isBuffer ? ' with Shared Buffer' : '') );
 
 			Motor.initPhysics( o );
 
+		}else{
 
-		} else { // is direct version
+			let type = name.toUpperCase()
+			if(type==='RAPIER') type = 'RAPIER3D';
 
-			if( wasmLink[mini] ) Motor.loadWasmDirect( wasmLink[mini], o, mini, url )
-			else Motor.preLoad( mini, o, url );
+			let n = document.createElement("script");
+            n.language = "javascript"
+            n.type = "text/javascript";
+            n.charset = "utf-8";
+            n.async = true;
+            n.innerHTML = code;
+            document.getElementsByTagName('head')[0].appendChild(n);
+
+            directMessage = window[type].engine.message;
+			o.message = Motor.message;
+			Motor.initPhysics( o );
 
 		}
+
+		//console.log( code, isWorker )
 
 	}
 
@@ -312,6 +390,38 @@ export class Motor {
 	    s.src = url + link;
 	    document.body.appendChild( s );
 	    s.onload = () => { Motor.preLoad( name, o, url ); }
+
+	}
+
+	static preLoadMin( name, o, url ) {
+
+		let link = url + 'build/'+name+'.min.js';
+		let type = name.toUpperCase()
+		if(type==='RAPIER') type = 'RAPIER3D';
+
+		var xml = new XMLHttpRequest();
+        xml.open('GET', link );
+        xml.overrideMimeType( "text/javascript" );
+        xml.onreadystatechange = function() {
+            if ( xml.readyState === 4 ) {
+                if ( xml.status === 200 || xml.status === 0 ) {
+                    let n = document.createElement("script");
+                    n.language = "javascript"
+                    n.type = "text/javascript";
+                    n.charset = "utf-8";
+                    n.async = true;
+                    n.innerHTML = xml.responseText
+                    //this.extraCode.push(n)
+                    document.getElementsByTagName('head')[0].appendChild(n);
+
+				    directMessage = window[type].engine.message;
+					o.message = Motor.message;
+					Motor.initPhysics( o );
+                }
+                else console.error( "Couldn't load ["+ name + "] [" + xml.status + "]" );
+            }
+        }.bind(this)
+        xml.send(null)
 
 	}
 
