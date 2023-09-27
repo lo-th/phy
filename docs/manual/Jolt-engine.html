@@ -10,12 +10,11 @@
 
 		<h1>[name]</h1>
 
-		<p class="desc">[name] version 3.0</p>
+		<p class="desc">[name] version ?</p>
 
-		<p>Powefull, soft body, use for complex simulation and game.</p>
+		<p>Jolt is a new engine use in game like Horizon Forbidden West, is in progress so wait for more option.</p>
 
-		<iframe id="scene" src="scenes/engines.html#AMMO"></iframe>
-
+		<iframe id="scene" src="scenes/engines.html#OIMO"></iframe>
 
 		<script>
 
@@ -39,7 +38,7 @@
 import { phy } from './build/Phy.module.js';
 
 phy.init({ 
-	type:'AMMO', 
+	type:'JOLT', 
 	worker:false, 
 	callback:startDemo, 
 	scene:scene,
@@ -47,22 +46,22 @@ phy.init({
 })
 </code>
 
-		<h2>Resources need</h2>
+        <h2>Resources need</h2>
 
 		<p>
 		in /build folder<br/>
-		<b>Ammo.module.js</b> __ module version<br/>
-		or <b>Ammo.min.js</b> __ for worker version<br/>
+		<b>Jolt.module.js</b> __ module version<br/>
+		or <b>Jolt.min.js</b> __ for worker version<br/>
 		in /compact folder<br/>
-		or <b>Ammo.hex</b> __ compact version<br/>
-		
+		or <b>Jolt.hex</b> __ compact version<br/>
 		</p>
 
 <h2>About</h2>
+[link:https://github.com/jrouwe/JoltPhysics.js Made by jrouve]
 <p>
-I use special wasm version of bullet 3.0 find in repro ammo by [link:https://github.com/kripken/ammo.js Kripken] <br/>
-[link:https://pybullet.org/wordpress/ More info about Bullet]
+
 </p>
+
 
 	</body>
 </html>

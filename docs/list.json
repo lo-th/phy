@@ -19,7 +19,8 @@
 				"Oimo": "manual/Oimo-engine",
 				"Physx": "manual/Physx-engine",
 				"Ammo": "manual/Ammo-engine",
-				"Havok": "manual/Havok-engine"
+				"Havok": "manual/Havok-engine",
+				"Jolt": "manual/Jolt-engine"
 			},
 
 			"Command": {
