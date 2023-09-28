@@ -8,7 +8,7 @@ let gate = null;
 demo = () => {
 
     // config environement
-    phy.view({ envmap:'pendora', envblur: 0.5, groundPos:[0,-10,0], groundSize:[200,200], y:0, fov:60, distance:10, fogexp:0.04 })
+    phy.view({ envmap:'pendora', envblur: 0.5, groundPos:[0,-10,0], groundSize:[200,200], groundReflect:0.4, y:0, fov:60, distance:12, fogexp:0.03 })
 
     // config physics setting
     phy.set( {substep:1, gravity:[0,0,0]})
@@ -35,20 +35,23 @@ onComplete = () => {
     // make material
     let material = phy.material({ 
         name:'dragon', 
-        roughness: 0.0, 
+        roughness: 0.02, 
         metalness: 0.0, 
         map: phy.texture({ url:'textures/dragon/dragon_d.jpg' }), 
         //aoMap: phy.texture({ url:'textures/dragon/dragon_ao.jpg' }),
         alphaMap: phy.texture({ url:'textures/dragon/dragon_a.jpg' }),
         normalMap: phy.texture({ url:'textures/dragon/dragon_n.jpg' }),
-        normalScale:[4,4],
+        normalScale:[1,-1],
         alphaTest:0.9,
         alphaToCoverage:true,
         //transparent:true,
         sheen:1.0,
         sheenColor:0xe6c278,
         sheenRoughness: 0.25,
-        //clearcoat:1.0,
+        clearcoat:0.5,
+        clearcoatRoughness:0.25,
+        clearcoatNormalScale:[2,-2],
+        clearcoatNormalMap: phy.texture({ url:'textures/dragon/dragon_n.jpg' }),
         wireframe:debug
     })
 
@@ -139,7 +142,7 @@ onComplete = () => {
     dragon.play( 'mouth' )
     dragon.pause( 'mouth' )
 
-    //addEffect()
+    addEffect()
     addGate()
 
     phy.setPostUpdate ( update )
@@ -236,13 +239,15 @@ addEffect = () => {
     phy.addParticle({
         "type":"octo",
         "position":[0,-8,-10],
-        "colors":[ 0.87, 0.87, 0.80, 1,
+        "colors":[ 
+        0.87, 0.87, 0.80, 0,
+        0.87, 0.87, 0.80, 1,
         0.87, 0.87, 0.80, 0 ],
-        "numParticles": 100,
+        "numParticles": 400,
         "lifeTime": 6,
         "timeRange": 6,
         "startSize": 0.1,
-        "endSize": 0.2,
+        "endSize": 0.1,
         "sizeRange": 0.1,
         
         "positionRange": [ 30, 0, 30 ],

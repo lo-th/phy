@@ -70,6 +70,10 @@ export const Mat = {
 				if( !o.normalScale.isVector2 ) o.normalScale = new Vector2().fromArray(o.normalScale)
 			}
 
+		    if(o.clearcoatNormalScale){
+				if( !o.clearcoatNormalScale.isVector2 ) o.clearcoatNormalScale = new Vector2().fromArray(o.clearcoatNormalScale)
+			}
+
 		    type = type.toLowerCase();
 
 		    switch( type ){
