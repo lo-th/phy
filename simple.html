@@ -30,7 +30,7 @@
 			const motor = 'PHYSX';
 			//const motor = 'HAVOK';
 
-			let camera, scene, renderer, controler, text, t1, t2;
+			let camera, scene, renderer, controler, text;
 
 			init();
 			animate();
@@ -96,21 +96,16 @@
 
 			function initEngine() {
 
-				t1 = phy.getTime()
-
 				// use compact version of physic engine in /compact folder 
-				phy.init( { type:motor, worker:false, compact:true, callback:startDemo } )
-
-				// add phy container to three scene
-				phy.setContent( scene )
+				phy.init( { type:motor, worker:false, compact:true, callback:startDemo, scene:scene } )
 
 			}
 
 			function startDemo() {
 
-				t2 = phy.getTime() - t1;
-				text.innerHTML =  motor + " " + phy.format_time(t2);
+				text.innerHTML =  motor + " " + phy.startTime();
 
+				// load glb model
 				phy.load("./assets/models/minmac.glb", onLoad );
 
 			}

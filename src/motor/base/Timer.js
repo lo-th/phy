@@ -2,6 +2,7 @@ export class Timer {
 
 	constructor( framerate = -1 ) {
 
+		this.perf = window.performance;
 		this.time = { now:0, delta:0, then:0, interval: 0, tmp:0, n:0, dt:0 }
 		this.fps = 0
 		this.delta = 0
@@ -12,13 +13,13 @@ export class Timer {
 
 	} 
 
-	up ( stamp = 0 ) {
+	up ( stamp ) {
 
 		let t = this.time;
 
 		if(this.unlimited) this.force = true
 
-		t.now = stamp// !== undefined ? stamp : Date.now();
+		t.now = stamp !== undefined ? stamp : this.now();
 		t.delta = t.now - t.then;
 
 		if( this.force ) {
@@ -54,8 +55,8 @@ export class Timer {
 
 	}
 
-    static getTime () {
-    	return new Date().getTime();
+    static now () {
+    	return this.perf ? this.perf.now() : Date.now();
     }
 
     static format_time ( time ) {

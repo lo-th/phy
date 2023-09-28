@@ -26,7 +26,7 @@ export const root = {
 	motor: null,
 	scene : null,
 	scenePlus : null,
-	threeScene : null,
+	//threeScene : null,
 	post : null,
 	//up:null,
 	//update:null,

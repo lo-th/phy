@@ -40,12 +40,12 @@ import { sk } from '../3TH/character/SkeletonExtand.js';
 */
 
 const Version = {
-    Oimo: '1.2.2',
-    Ammo: '3.0',
-    Physx: '5.02.01',
-    Rapier: '0.10.0',
-    Havok: '1.1.4',
-    Jolt: '0.0.4',
+    OIMO: '1.2.2',
+    AMMO: '3.0',
+    PHYSX: '5.02.01',
+    RAPIER: '0.10.0',
+    HAVOK: '1.1.4',
+    JOLT: '0.0.4',
 }
 
 const items = {};
@@ -61,6 +61,8 @@ let outsideStep = true;
 let realtime = true;
 let engineReady = false;
 let breaker = null;
+
+let isAdd = false;
 
 let timetest = { t1:0, t2:0, t3:0, t4:0 };
 
@@ -79,6 +81,7 @@ let elapsedTime = 0;
 
 const user = new User();
 const timer = new Timer(60);
+const tt = { start:0, end:0, startTime:'' };
 
 let azimut = ()=>(0);
 let endReset = ()=>{};
@@ -152,8 +155,7 @@ export class Motor {
 		if( mouseTool ) mouseTool.setMode( mode, o )
 	}
 
-    static getTime () { return Timer.getTime() }
-    static format_time ( t ) { return Timer.format_time( t ) }
+    static startTime () { return tt.startTime }
 
 	static getTimeTest () { return timetest }
 
@@ -175,9 +177,10 @@ export class Motor {
 
 	static setContent ( Scene ) {
 
-		root.threeScene = Scene;
+		if( isAdd ) return;
 		Scene.add( root.scene );
 		Scene.add( root.scenePlus );
+		isAdd = true;
 
 	}
 
@@ -228,6 +231,8 @@ export class Motor {
 	static resize ( size ) { root.viewSize = size; }
 
 	static init ( o = {} ) {
+
+		tt.start = Timer.now();
 
 		const compact = o.compact || false;
 
@@ -305,7 +310,7 @@ export class Motor {
 
 
 				o.isBuffer = isBuffer;
-				console.log( st + ' Worker '+ type + (o.isBuffer ? ' with Shared Buffer' : '') );
+				//console.log( st + ' Worker '+ type + (o.isBuffer ? ' with Shared Buffer' : '') );
 
 				Motor.initPhysics( o );
 
@@ -533,9 +538,35 @@ export class Motor {
 
 	}
 
+	static dispose (){
+
+		Motor.reset(()=>{
+
+			if( worker ){ 
+				worker.terminate();
+				worker = null;
+			}
+
+			if( isAdd ){
+				root.scene.parent.remove( root.scene );
+				root.scenePlus.parent.remove( root.scenePlus );
+				isAdd = false;
+			}
+
+		});
+
+	}
+
 	static ready (){
 
-		console.log( (isWorker? 'Worker ': 'Direct ') + root.engine + ' is ready !' );
+		tt.end = Timer.now();
+		tt.startTime = Timer.format_time( tt.end - tt.start );
+
+		console.log( '%c'+root.engine + ' %c' + Version[root.engine] +'%c | '+( isWorker? 'Worker': 'Direct') + ' '+ tt.startTime, 
+			"font-size:16px", 
+			"font-size:12px", 
+			"font-size:12px" 
+		);
 		if( callbackReady ) callbackReady();
 
 	}
