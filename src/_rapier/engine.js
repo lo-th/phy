@@ -7,7 +7,8 @@ import { Joint } from './Joint.js';
 import { Contact } from './Contact.js';
 import { Character } from './Character.js';
 
-import RAPIER from '../libs/rapier3d-compat.js';
+//import RAPIER from '../libs/rapier3d-compat.js';
+import RAPIER from '../libs_physics/X_Rapier.js';
 //import RAPIER from 'https://cdn.skypack.dev/@dimforge/rapier3d-compat';
 
 /** __
