@@ -44,7 +44,7 @@ const Version = {
     AMMO: '3.0',
     PHYSX: '5.02.01',
     RAPIER: '0.10.0',
-    HAVOK: '1.1.4',
+    HAVOK: '1.2.0',
     JOLT: '0.0.4',
 }
 
