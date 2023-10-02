@@ -8,7 +8,7 @@ demo = () => {
 
     phy.add({ type:'container', material:'debug', size:[4,4,4,0.2], pos:[0,2.5,0], friction:0, restitution:1, remplace:false });
 
-    phy.setTimeout( launchBullet, 100 )
+    phy.setTimeout( launchBullet, 100, true );
 
 }
 

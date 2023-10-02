@@ -605,7 +605,7 @@ export class Avatar extends Group {
 
     loadCompactAnimation( url = './assets/models/animations.bin' ){
 
-        if(!this.lzma) this.lzma = new LZMA(this.lzmaPath);
+        //if(!this.lzma) this.lzma = new LZMA(this.lzmaPath);
 
         var request = new XMLHttpRequest();
         request.open('GET', url, true);
@@ -615,7 +615,7 @@ export class Avatar extends Group {
         const self = this;
 
         request.onload = function() {
-            self.lzma.decompress( new Uint8Array( request.response ), function (result) {
+            LZMA.decompress( request.response, (result) => {
                 const data = JSON.parse(result);
                 
                 for(let c in data) glb.animations.push( AnimationClip.parse( data[c] ) ); 

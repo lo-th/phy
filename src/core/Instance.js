@@ -16,15 +16,13 @@ export class Instance extends InstancedMesh {
 
         this.instanceUv = null;
         this.instanceColor = null;
-
-        this.needSphereUp = false
-
+        this.needSphereUp = false;
         this.isRay = true; 
         
     }
 
-    getInfo( id )
-    {
+    getInfo( id ) {
+
         this.tmpMatrix.fromArray( this.instanceMatrix.array, id*16 )
         let pos = {x:0, y:0, z:0 }
         let scale = { x:0, y:0, z:0 }
@@ -37,8 +35,8 @@ export class Instance extends InstancedMesh {
         }
     }
 
-    add( position = [0,0,0], rotation = [0,0,0,1], scale = [1,1,1], color = null, uv = null )
-    {
+    add( position = [0,0,0], rotation = [0,0,0,1], scale = [1,1,1], color = null, uv = null ) {
+
         if( rotation.length === 3 ) rotation = this.tmpQuat.setFromEuler( {_x:rotation[0], _y:rotation[1], _z:rotation[2], _order:'XYZ'}, false ).toArray();
         if(color){ 
             if( color.isColor ) color = color.toArray()
@@ -58,12 +56,12 @@ export class Instance extends InstancedMesh {
             this.instanceColor = new InstancedBufferAttribute( new Float32Array( this.instanceMatrix.count * 3 ), 3 );
 
         }
-        if( color.isColor ) color = color.toArray()
+        if( color.isColor ) color = color.toArray();
         
-        let id = index * 3
-        this.instanceColor.array[id] = color[0]
-        this.instanceColor.array[id +1] = color[1]
-        this.instanceColor.array[id +2] = color[2]
+        let id = index * 3;
+        this.instanceColor.array[id] = color[0];
+        this.instanceColor.array[id +1] = color[1];
+        this.instanceColor.array[id +2] = color[2];
         //color.toArray( this.instanceColor.array, index * 3 );
 
     }
@@ -97,7 +95,8 @@ export class Instance extends InstancedMesh {
             old.splice( id*2, 2 );
             this.instanceUv = new InstancedBufferAttribute( new Float32Array(old), 2 );
         }
-        this.count --
+        this.count --;
+
     }
 
     expand( p, q, s, c = [1,1,1], uv ) {
@@ -114,13 +113,16 @@ export class Instance extends InstancedMesh {
             old = this.instanceUv.array;
             this.instanceUv = new InstancedBufferAttribute( new Float32Array([...old, ...uv ]), 2 );
         }*/
-        this.count ++
+        this.count ++;
+
     }
 
     setTransformAt( index, p, q, s ) {
-        this.tmpMatrix.compose({x:p[0], y:p[1], z:p[2]}, {_x:q[0], _y:q[1], _z:q[2], _w:q[3]}, {x:s[0], y:s[1], z:s[2]})
+
+        this.tmpMatrix.compose({x:p[0], y:p[1], z:p[2]}, {_x:q[0], _y:q[1], _z:q[2], _w:q[3]}, {x:s[0], y:s[1], z:s[2]});
         this.tmpMatrix.toArray( this.instanceMatrix.array, index * 16 );
-        this.needSphereUp = true
+        this.needSphereUp = true;
+
     }
 
     dispose() {
@@ -134,21 +136,27 @@ export class Instance extends InstancedMesh {
 
     }
 
-    setRaycast(v){
-        if( v !== undefined ) this.isRay = v
+    setRaycast(v) {
+
+        if( v !== undefined ) this.isRay = v;
+
     }
 
     raycast( raycaster, intersects ) {
+
         if(!this.isRay) return
         super.raycast( raycaster, intersects );
+
     }
 
     update(){
+
         if( this.needSphereUp ) this.computeBoundingSphere();
         if( this.instanceMatrix ) this.instanceMatrix.needsUpdate = true;
         if( this.instanceColor ) this.instanceColor.needsUpdate = true;
         //if( this.instanceUv ) this.instanceUv.needsUpdate = true;
-        this.needSphereUp = false
+        this.needSphereUp = false;
+
     }
 
 }

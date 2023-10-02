@@ -913,11 +913,14 @@ export class Motor {
 	//  INTERN timout
 	//-----------------------
 
-	static setTimeout ( f, time = 0 ){
+	static setTimeout ( f, time = 0, single = false ){
 
-		timoutFunction = f; 
-		timoutTime = time; 
-		timout = setTimeout( timoutFunction, timoutTime );
+		if(single) timout = setTimeout( f, time );
+		else{
+			timoutFunction = f; 
+			timoutTime = time; 
+			timout = setTimeout( timoutFunction, timoutTime );
+		}
 
 	}
 

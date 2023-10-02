@@ -53,7 +53,7 @@ export const Pool = {
             case 'E': case 'hdr': case 'env': p = 'T_';  break;
             case 'J': case 'json': p = 'J_';  break;
             case 'JS': case 'js': p = 'JS_';  break;
-            case 'H': case 'hex': p = 'H_';  break;
+            case 'H':  case 'bin': case 'hex': p = 'H_';  break;
             
             case 'O': case 'object3d': p = 'O_';  break;
             case 'M': case 'material': p = 'M_';  break;
@@ -331,7 +331,7 @@ export const Pool = {
 
         switch( type ){
 
-            case 'hex': case 'wasm': case 'mp3': case 'wav': case 'ogg': xml.responseType = "arraybuffer"; break;
+            case 'bin': case 'hex': case 'wasm': case 'mp3': case 'wav': case 'ogg': xml.responseType = "arraybuffer"; break;
             case 'jpg': case 'png': xml.responseType = 'blob'; break;
             case 'bvh': case 'glsl': case 'js':  case 'json': xml.responseType = 'text'; break;
 
@@ -387,10 +387,8 @@ export const Pool = {
                     function( error ){ console.error('decodeAudioData error', error); }
                 );
             break;
-            case 'hex': 
-            //if(!Pool.lzma) Pool.lzma = new LZMA()
-            LZMA.decompress( response, function ( result ) { Pool.add( name, result, type ); })
-            //LzmaUnpack.parse( response, function ( result ) { Pool.add( name, result, type ); }); 
+            case 'hex': case 'bin':
+            LZMA.decompress( response, ( result ) => { Pool.add( name, result, type ) })
             break;
             case 'wasm': Pool.add( name, new Uint8Array( response ), type ); break;
             case 'json': Pool.add( name, JSON.parse( response ), type ); break;
