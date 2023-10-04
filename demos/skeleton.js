@@ -1,6 +1,6 @@
 let avatar, eva, bb, ba, bc
 let mode = 'follow'
-let type = 'hero'
+let type = 'lee'
 let debug = false
 
 let modelList = ['hero', 'eva', 'lee']
@@ -8,20 +8,15 @@ let listN = modelList.indexOf( type )
 
 demo = () => {
 
-	phy.log( '> Use keyboad to move' )
+	phy.log( '> Use keyboad to move' );
 
-	phy.view({
-        envmap:'box', phi:0, theta:0, distance:4, x:0, y:1.0, z:0, fov:45, envblur:0.25
-	})
+	phy.view({ envmap:'box', phi:0, theta:0, distance:4, x:0, y:1.0, z:0, fov:45, envblur:0.25 });
 
-	phy.set({
-		substep:1, gravity:[0,-9.81,0]
-	})
+	phy.set({ substep:1, gravity:[0,-9.81,0] });
 
-	// add static plane 
 	phy.add({ type:'plane', name:'floor', size:[ 300,1,300 ], visible:false, friction: 0.5 });
 	
-	phy.load( ['./assets/models/skeleton_deco.glb'], onComplete )
+	phy.load( ['./assets/models/skeleton_deco.glb'], onComplete );
 
 }
 
@@ -113,8 +108,6 @@ const switchDebug = () => {
 
 	if( debug ) debug = false;
 	else debug = true;
-
     avatar.debugMode( debug );
-
 
 }

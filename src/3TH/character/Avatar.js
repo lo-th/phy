@@ -605,8 +605,6 @@ export class Avatar extends Group {
 
     loadCompactAnimation( url = './assets/models/animations.bin' ){
 
-        //if(!this.lzma) this.lzma = new LZMA(this.lzmaPath);
-
         var request = new XMLHttpRequest();
         request.open('GET', url, true);
         request.responseType = 'arraybuffer';

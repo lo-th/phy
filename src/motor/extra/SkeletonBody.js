@@ -282,6 +282,8 @@ export class SkeletonBody extends Object3D {
                         shadow:false,
                         neverSleep: true,
                         helper: true,
+                        hcolor:[0.87, 0.76, 0.65],
+                        hcolor2:[0.9, 0.77, 0.64],
 
                         //linked:link,
                         //iterations:[4,4],

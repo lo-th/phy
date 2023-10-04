@@ -368,7 +368,10 @@ export class Body extends Item {
 		//if( o.helper ) m.add( new LineSegments( new CapsuleHelperGeometry( s[ 0 ], s[ 1 ] ),  Mat.get( 'line' ) ))
 		if( o.helper ) {
 
-			m.add( new CapsuleHelper( s[ 0 ], s[ 1 ]+(s[ 0 ]*2), false, Mat.get( 'line' ), [0.3,0.1,0.0], [0.8,0.2,0.0], true ))
+			let hcolor = o.hcolor || [0.3,0.1,0.0];
+			let hcolor2 = o.hcolor2 || [0.8,0.2,0.0];
+
+			m.add( new CapsuleHelper( s[ 0 ], s[ 1 ]+(s[ 0 ]*2), false, Mat.get( 'line' ), hcolor, hcolor2, true ))
 			//m.material.visible = false
 
 		}

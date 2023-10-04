@@ -42,7 +42,7 @@ import { sk } from '../3TH/character/SkeletonExtand.js';
 const Version = {
     OIMO: '1.2.2',
     AMMO: '3.0',
-    PHYSX: '5.02.01',
+    PHYSX: '5.03.00',
     RAPIER: '0.10.0',
     HAVOK: '1.2.0',
     JOLT: '0.0.4',

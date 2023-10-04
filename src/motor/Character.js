@@ -243,7 +243,7 @@ class Hero extends Basic3D {
 
     	if( this.skeletonBody ) this.skeletonBody.isVisible(v)
     	//if( this.model ) this.model.setMaterial( { wireframe: v, visible:!v })
-    	if( this.model ) this.model.setMaterial( { wireframe: v, transparent:v, opacity:v?0.25:1.0 }, !v )
+    	if( this.model ) this.model.setMaterial( { wireframe: v, transparent:v, opacity:v?0.3:1.0 }, !v )
     	
     	this.showHelper( v )
         
