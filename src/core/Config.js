@@ -1,7 +1,7 @@
 export const Max = {
 	body:4000,
     joint:1000,
-    contact:50,
+    contact:4000,
     ray:100,
     character:50,
     vehicle:50,
@@ -13,7 +13,7 @@ export const Num = {
 	bodyFull:14,
     body:8,
     joint:16,
-    contact:8,
+    contact:1,
     ray:11,
     character:16,
     vehicle:72,//max 8 wheels
