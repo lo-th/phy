@@ -1,4 +1,4 @@
-import { MathNode, GLSLNodeParser, NodeBuilder, NodeMaterial } from '../../../nodes/Nodes.js';
+import { MathNode, GLSLNodeParser, NodeBuilder, NodeMaterial, FunctionNode } from '../../../nodes/Nodes.js';
 
 import UniformsGroup from '../../common/UniformsGroup.js';
 import { NodeSampledTexture, NodeSampledCubeTexture } from '../../common/nodes/NodeSampledTexture.js';
@@ -14,6 +14,10 @@ const precisionLib = {
 	high: 'highp'
 };
 
+const supports = {
+	instance: true
+};
+
 class GLSLNodeBuilder extends NodeBuilder {
 
 	constructor( object, renderer, scene = null ) {
@@ -27,6 +31,44 @@ class GLSLNodeBuilder extends NodeBuilder {
 	getMethod( method ) {
 
 		return glslMethods[ method ] || method;
+
+	}
+
+	getPropertyName( node, shaderStage ) {
+
+		if ( node.isOutputStructVar ) return '';
+
+		return super.getPropertyName( node, shaderStage );
+
+	}
+
+	buildFunctionNode( shaderNode ) {
+
+		const layout = shaderNode.layout;
+		const flowData = this.flowShaderNode( shaderNode );
+
+		const parameters = [];
+
+		for ( const input of layout.inputs ) {
+
+			parameters.push( this.getType( input.type ) + ' ' + input.name );
+
+		}
+
+		//
+
+		const code = `${ this.getType( layout.type ) } ${ layout.name }( ${ parameters.join( ', ' ) } ) {
+
+	${ flowData.vars }
+
+${ flowData.code }
+	return ${ flowData.result };
+
+}`;
+
+		//
+
+		return new FunctionNode( code );
 
 	}
 
@@ -54,6 +96,20 @@ class GLSLNodeBuilder extends NodeBuilder {
 
 	}
 
+	getTextureCompare( texture, textureProperty, uvSnippet, compareSnippet, shaderStage = this.shaderStage ) {
+
+		if ( shaderStage === 'fragment' ) {
+
+			return `texture( ${textureProperty}, vec3( ${uvSnippet}, ${compareSnippet} ) )`;
+
+		} else {
+
+			console.error( `WebGPURenderer: THREE.DepthTexture.compareFunction() does not support ${ shaderStage } shader.` );
+
+		}
+
+	}
+
 	getVars( shaderStage ) {
 
 		const snippets = [];
@@ -61,6 +117,8 @@ class GLSLNodeBuilder extends NodeBuilder {
 		const vars = this.vars[ shaderStage ];
 
 		for ( const variable of vars ) {
+
+			if ( variable.isOutputStructVar ) continue;
 
 			snippets.push( `${ this.getVar( variable.type, variable.name ) };` );
 
@@ -84,7 +142,15 @@ class GLSLNodeBuilder extends NodeBuilder {
 
 			if ( uniform.type === 'texture' ) {
 
-				snippet = `sampler2D ${uniform.name};`;
+				if ( uniform.node.value.compareFunction ) {
+
+					snippet = `sampler2DShadow ${uniform.name};`;
+
+				} else {
+
+					snippet = `sampler2D ${uniform.name};`;
+
+				}
 
 			} else if ( uniform.type === 'cubeTexture' ) {
 
@@ -144,7 +210,7 @@ class GLSLNodeBuilder extends NodeBuilder {
 
 		if ( shaderStage === 'vertex' ) {
 
-			const attributes = this.attributes;
+			const attributes = this.getAttributesArray();
 
 			let location = 0;
 
@@ -157,6 +223,49 @@ class GLSLNodeBuilder extends NodeBuilder {
 		}
 
 		return snippet;
+
+	}
+
+	getStructMembers( struct ) {
+
+		const snippets = [];
+		const members = struct.getMemberTypes();
+
+		for ( let i = 0; i < members.length; i ++ ) {
+
+			const member = members[ i ];
+			snippets.push( `layout( location = ${i} ) out ${ member} m${i};` );
+
+		}
+
+		return snippets.join( '\n' );
+
+	}
+
+	getStructs( shaderStage ) {
+
+		const snippets = [];
+		const structs = this.structs[ shaderStage ];
+
+		if ( structs.length === 0 ) {
+
+			return "layout( location = 0 ) out vec4 fragColor;\n";
+
+		}
+
+		for ( let index = 0, length = structs.length; index < length; index ++ ) {
+
+			const struct = structs[ index ];
+
+			let snippet = `\n`;
+			snippet += this.getStructMembers( struct );
+			snippet += '\n';
+
+			snippets.push( snippet );
+
+		}
+
+		return snippets.join( '\n\n' );
 
 	}
 
@@ -209,6 +318,13 @@ class GLSLNodeBuilder extends NodeBuilder {
 		return 'gl_FragCoord';
 
 	}
+
+	isAvailable( name ) {
+
+		return supports[ name ] === true;
+
+	}
+
 
 	isFlipY() {
 
@@ -271,6 +387,7 @@ ${ this.getSignature() }
 // precision
 precision highp float;
 precision highp int;
+precision lowp sampler2DShadow;
 
 // uniforms
 ${shaderData.uniforms}
@@ -281,7 +398,7 @@ ${shaderData.varyings}
 // codes
 ${shaderData.codes}
 
-layout( location = 0 ) out vec4 fragColor;
+${shaderData.structs}
 
 void main() {
 
@@ -330,14 +447,18 @@ void main() {
 					if ( shaderStage === 'vertex' ) {
 
 						flow += 'gl_Position = ';
+						flow += `${ flowSlotData.result };`;
 
 					} else if ( shaderStage === 'fragment' ) {
 
-						flow += 'fragColor = ';
+						if ( ! node.outputNode.isOutputStructNode ) {
+
+							flow += 'fragColor = ';
+							flow += `${ flowSlotData.result };`;
+
+						}
 
 					}
-
-					flow += `${ flowSlotData.result };`;
 
 				}
 
@@ -349,6 +470,7 @@ void main() {
 			stageData.attributes = this.getAttributes( shaderStage );
 			stageData.varyings = this.getVaryings( shaderStage );
 			stageData.vars = this.getVars( shaderStage );
+			stageData.structs = this.getStructs( shaderStage );
 			stageData.codes = this.getCodes( shaderStage );
 			stageData.flow = flow;
 
@@ -358,9 +480,6 @@ void main() {
 
 			this.vertexShader = this._getGLSLVertexCode( shadersData.vertex );
 			this.fragmentShader = this._getGLSLFragmentCode( shadersData.fragment );
-
-			//console.log( this.vertexShader );
-			//console.log( this.fragmentShader );
 
 		} else {
 
