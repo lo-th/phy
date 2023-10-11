@@ -2,6 +2,7 @@
 
 
 export const map = new Map();
+export const contactmap = new Map();
 
 export const root = {
 
@@ -15,8 +16,12 @@ export const root = {
 	settings:null,
 	physicsSystem:null,
 	bodyInterface:null,
+	//broadPhase:null,
+	//narrowPhase:null,
 
 	world : null,
+
+	
 	delta : 0,
 	tmpStep:0,
 	gravity:null,
@@ -34,22 +39,28 @@ export const root = {
 
 
 
-export class Utils {
+export const Utils = {
 
-	static clear() {
+	clear:() => {
 
-		map.clear()
+		map.clear();
+		contactmap.clear();
 
-	}
+	},
 
-	static byName( name ) {
+	byName:( name ) => {
 
 		if ( !map.has( name ) ) return null;
 		return map.get( name );
 
-	}
+	},
 
-	static add( b ) {
+	byContact:( name ) => ( contactmap.has( name ) ),
+	clearContact:() => { contactmap.clear() },
+	addContact:( name, v = {} ) => { if ( !Utils.byContact(name) ) contactmap.set( name, v ); },
+	removeContact:( name ) => { contactmap.delete( name ); },
+
+	add:( b ) => {
 		
 		if( b.type !== 'ray' &&  b.type !== 'contact' ){
 			switch( b.type ){
@@ -60,9 +71,9 @@ export class Utils {
 
 		map.set( b.name, b );
 
-	}
+	},
 
-	static remove( b ) {
+	remove:( b ) => {
 
 		if( b.type !== 'ray' &&  b.type !== 'contact' ){
 			switch( b.type ){
@@ -76,12 +87,13 @@ export class Utils {
 
 		map.delete( b.name );
 
-	}
+	},
 
-	static stats (){
-	} 
+	stats:() => {
+	}, 
 
-	static extends (){
+	extends:() => {
+
 
 		Jolt.Vec3.prototype.set = function ( x,y,z ){
 
@@ -117,7 +129,8 @@ export class Utils {
 
 	    Jolt.Quat.prototype.set = function ( x,y,z,w ){
 
-	    	this.hq(x,y,z,w);
+	    	//console.log(this)
+	    	this.EJ(x,y,z,w);
 			return this;
 
 		}

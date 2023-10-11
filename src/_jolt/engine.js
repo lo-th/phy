@@ -3,10 +3,9 @@ import { Max, getType, getArray } from '../core/Config.js';
 
 import { Body } from './Body.js';
 import { Joint } from './Joint.js';
-/*import { Ray } from './Ray.js';
+import { Ray } from './Ray.js';
 import { Contact } from './Contact.js';
 import { Character } from './Character.js';
-*/
 
 import initJolt from '../libs_physics/X_Jolt.js';
 
@@ -95,6 +94,8 @@ export class engine {
 
 			engine.post( { m:'ready', o:{} } );
 
+			//console.log(Jolt)
+
 		})
 
 	}
@@ -171,16 +172,22 @@ export class engine {
 		root.world = new Jolt.JoltInterface( root.settings );
 		root.physicsSystem = root.world.GetPhysicsSystem();
 		root.bodyInterface = root.physicsSystem.GetBodyInterface();
+		//root.broadPhase = root.physicsSystem.GetBroadPhaseQuery();
+		//root.narrowPhase = root.physicsSystem.GetNarrowPhaseQuery()
 
 		root.physicsSystem.SetGravity( root.gravity )
 		// missing
 		//root.physicsSystem.SetCombineRestitution() // Default method is max(restitution1, restitution1)
 		// should be min
 
+		root.physicsSystem.OptimizeBroadPhase() // ?
+
+
 		//console.log(root.settings)
-		/*console.log(root.world)*/
+		//console.log(root.world)
 		//console.log(root.bodyInterface)
 		//console.log(root.physicsSystem)
+		//console.log(root.physicsSystem.GetBroadPhaseQuery())
 
     }
 
@@ -282,6 +289,27 @@ export class engine {
 
 	}
 
+	static byId ( n ){
+
+		let i = items.body.list.length, b, id;
+
+		while( i-- ){
+			b = items.body.list[i];
+			id = b.GetID();
+			if( id === n ) return b;
+		}
+
+		i = items.solid.list.length
+		while( i-- ){
+			b = items.solid.list[i];
+			id = b.GetID();
+			if( id === n ) return b;
+		}
+		
+		return null;
+
+	}
+
 
 	static reset (){ isReset = true }
 
@@ -332,11 +360,11 @@ export class engine {
 		items['body'] = new Body();
 		items['solid'] = new Solid();
 		items['joint'] = new Joint();
-		/*
 		items['ray'] = new Ray();
 		items['contact'] = new Contact();
 		items['character'] = new Character();
-		*/
+
+		Utils.byId = engine.byId;
 
 	}
 

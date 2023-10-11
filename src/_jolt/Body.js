@@ -36,6 +36,20 @@ export class Body extends Item {
 		this.full = full;
 	}
 
+	/*byId(n) {
+
+		let i = this.list.length, b, id;
+
+		while( i-- ){
+			b = this.list[i];
+			id = b.GetID();
+			if( id === n ) return b;
+		}
+
+		return null;
+
+	}*/
+
 	step () {
 
 		const AR = root.Ar;

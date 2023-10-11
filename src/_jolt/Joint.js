@@ -55,31 +55,28 @@ export class Joint extends Item {
 
 		let jc
 		switch ( mode ) {
-			case 'fixe': jc = new Jolt.FixedConstraintSettings(); break;
+			case 'fixe': jc = new Jolt.FixedConstraintSettings(); jc.mAutoDetectPoint = true; break;
 			case 'hinge': case 'revolute': jc = new Jolt.HingeConstraintSettings(); break;
             case 'distance': jc = new Jolt.DistanceConstraintSettings(); break;
             case 'slider': jc = new Jolt.SliderConstraintSettings();  break;
             case 'spherical': jc = new Jolt.PointConstraintSettings(); break;
             case 'cone': jc = new Jolt.ConeConstraintSettings(); break;
-            case "generic": jc = new Jolt.SwingTwistConstraintSettings(); break;
+            case 'st': jc = new Jolt.SwingTwistConstraintSettings(); break;
+            case "generic": jc = new Jolt.SixDOFConstraintSettings(); break;
 		}
 
-
-		
-
-		//console.log(b1.hpBodyId, b2.hpBodyId)
-
-		//if(b1!==null) havok.HP_Constraint_SetParentBody(j, b1);
-        //if(b2!==null) havok.HP_Constraint_SetChildBody(j, b2);
-
-        
-
+		if(!jc) return
 
         if(jc.mPoint1) jc.mPoint1.fromArray(posA);
 		if(jc.mPoint2) jc.mPoint2.fromArray(posB);
+		//if(jc.mPoint1) jc.mPoint1 = new Jolt.Vec3().fromArray(posA);
+		//if(jc.mPoint2) jc.mPoint2 = new Jolt.Vec3().fromArray(posB);
 		// or ?
-		//if(jc.mPosition1) jc.mPosition1.fromArray(posA);
-		//if(jc.mPosition2) jc.mPosition2.fromArray(posB);
+		if(jc.mPosition1) jc.mPosition1.fromArray(posA);
+		if(jc.mPosition2) jc.mPosition2.fromArray(posB);
+
+		if(jc.mAxisX1) jc.mAxisX1.fromArray(axisA);
+		if(jc.mAxisY1) jc.mAxisY1.fromArray(axisB);
 
 
 
@@ -113,7 +110,7 @@ export class Joint extends Item {
 		havok.HP_Constraint_SetCollisionsEnabled( j, collisionEnabled );
         havok.HP_Constraint_SetEnabled( j, true );
 */
-		const j = jc.Create(b1, b2)
+		const j = jc.Create(b1, b2);
 		j.name = name;
 		j.type = this.type;
 		j.mode = mode;

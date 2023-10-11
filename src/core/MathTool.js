@@ -350,6 +350,9 @@ const M = {
 
     distanceArray: ( a, b = [0,0,0] ) => ( M.lengthArray( M.subArray( a, b ) ) ),
 
+    normalizeArray: ( a ) => ( M.divArray( a, M.lengthArray(a) || 1 ) ),
+
+    normalArray: ( a, b = [0,0,0] ) => ( M.normalizeArray( M.subArray( b, a ) ) ),
 
     //-----------------------
     //  VOLUME
