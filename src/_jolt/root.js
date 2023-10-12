@@ -97,9 +97,7 @@ export const Utils = {
 
 		Jolt.Vec3.prototype.set = function ( x,y,z ){
 
-			this.SetX( x );
-			this.SetY( y );
-			this.SetZ( z );
+			this.Set( x, y, z );
 			return this;
 
 		}
@@ -107,8 +105,8 @@ export const Utils = {
 		Jolt.Vec3.prototype.fromArray = function ( r, n ){
 
 			n = n || 0;
-			this.set( r[ n ], r[ n + 1 ], r[ n + 2 ] )
-			return this
+			this.Set( r[ n ], r[ n + 1 ], r[ n + 2 ] )
+			return this;
 			
 		}
 
@@ -129,8 +127,7 @@ export const Utils = {
 
 	    Jolt.Quat.prototype.set = function ( x,y,z,w ){
 
-	    	//console.log(this)
-	    	this.EJ(x,y,z,w);
+	    	this.Set( x, y, z, w );
 			return this;
 
 		}
@@ -138,7 +135,7 @@ export const Utils = {
 		Jolt.Quat.prototype.fromArray = function ( r, n ){
 
 			n = n || 0;
-			this.set( r[ n ], r[ n + 1 ], r[ n + 2 ], r[ n + 3 ] );
+			this.Set( r[ n ], r[ n + 1 ], r[ n + 2 ], r[ n + 3 ] );
 			return this;
 			
 		}
@@ -160,7 +157,7 @@ export const Utils = {
 
 		Jolt.Quat.prototype.identity = function (){
 
-	    	this.set(0,0,0,1);
+	    	this.Set(0,0,0,1);
 			return this;
 
 		}
@@ -175,7 +172,7 @@ export const Utils = {
 			let q = this.GetQuaternion().toArray();
 			//let q = this.GetRotation();//?
 
-			console.log('yo', t, q)
+			//console.log('yo', t, q)
 
 			/*r[ n ] = this.GetX();
 			r[ n + 1 ] = this.GetY();

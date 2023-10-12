@@ -2,7 +2,6 @@ import { Item } from '../core/Item.js';
 import { Num } from '../core/Config.js';
 import { MathTool } from '../core/MathTool.js';
 
-
 import { Utils, root, map } from './root.js';
 
 // JOLT RAY
@@ -13,7 +12,7 @@ export class Ray extends Item {
 
 		super();
 
-		this.Utils = Utils
+		this.Utils = Utils;
 		this.type = 'ray';
 		this.initRay = false;
 
@@ -24,12 +23,14 @@ export class Ray extends Item {
 		super.reset()
 		
 		if( !this.initRay ) return;
+
 		this.initRay = false;
 		Jolt.destroy(this.ray);
 		Jolt.destroy(this.bp_filter);
 		Jolt.destroy(this.object_filter);
 		Jolt.destroy(this.body_filter);
 		Jolt.destroy(this.shape_filter);
+		this.collector.body = null;
 		this.collector.OnBody = null;
 		this.collector.AddHit = null;
 		Jolt.destroy(this.collector);
@@ -46,7 +47,6 @@ export class Ray extends Item {
 		this.v2 = new Jolt.Vec3();
 
 		this.ray = new Jolt.RRayCast();
-		this.current = ''
 
 		// Create ray cast settings (e.g. if we want back face culling)
 		this.ray_settings = new Jolt.RayCastSettings;
@@ -63,40 +63,38 @@ export class Ray extends Item {
 
 		this.collector.OnBody = function(inBody) {
 
-			inBody = Jolt.wrapPointer(inBody, Jolt.Body);
-			this.current = inBody.name;
-			// Called for every body that is visited, we don't need to do anything here
+			inBody = Jolt.wrapPointer( inBody, Jolt.Body );
+			this.collector.body = inBody;
+
 		}.bind(this);
 
 		this.collector.AddHit = function(inRayCastResult){
 
-			inRayCastResult = Jolt.wrapPointer(inRayCastResult, Jolt.RayCastResult);
+			inRayCastResult = Jolt.wrapPointer( inRayCastResult, Jolt.RayCastResult );
 
-			let origin = this.ray.mOrigin.toArray();
-		    let direction = this.ray.mDirection.toArray();
-		    let target = MathTool.addArray( origin, MathTool.mulArray( direction, inRayCastResult.mFraction, 3 ), 3 );
-		    let normal = [0,1,0]
-
-		    const n = this.ray.n;
+			const n = this.ray.n;
 		    const AR = root.Ar;
 
-		    if(AR[n]!==0) return; // block on first hit
+		    if( AR[n] !== 0 ) return; // block on first hit
+
+			let hitPoint = this.ray.GetPointOnRay(inRayCastResult.mFraction);
+			let hitNormal = this.collector.body.GetWorldSpaceSurfaceNormal(inRayCastResult.mSubShapeID2, hitPoint);
+			let origin = this.ray.mOrigin.toArray();
+		    let target = hitPoint.toArray();
+		    let normal = hitNormal.toArray( AR, n+8 );
 
 		    AR[n] = 1;
 		    AR[n+1] = MathTool.distanceArray( origin, target );
-		    AR[n+2] = origin[0]
-			AR[n+3] = origin[1]
-			AR[n+4] = origin[2]
 
-			AR[n+5] = target[0]
-			AR[n+6] = target[1]
-			AR[n+7] = target[2]
+		    AR[n+2] = origin[0];
+			AR[n+3] = origin[1];
+			AR[n+4] = origin[2];
 
-			AR[n+8] = normal[0]
-			AR[n+9] = normal[1]
-			AR[n+10] = normal[2]
+			AR[n+5] = target[0];
+			AR[n+6] = target[1];
+			AR[n+7] = target[2];
 
-			root.reflow.ray[this.ray.id] = this.current;
+			root.reflow.ray[this.ray.id] = this.collector.body.name;
 
 		}.bind(this);
 
