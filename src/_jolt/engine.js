@@ -1,11 +1,11 @@
 import { root, Utils } from './root.js';
-import { Max, getType, getArray } from '../core/Config.js';
+import { Num, Max, getType, getArray } from '../core/Config.js';
 
 import { Body } from './Body.js';
 import { Joint } from './Joint.js';
 import { Ray } from './Ray.js';
 import { Contact } from './Contact.js';
-import { Character } from './Character.js';
+//import { Character } from './Character.js';
 
 import initJolt from '../libs_physics/X_Jolt.js';
 
@@ -102,8 +102,8 @@ export class engine {
 
 	static set ( o = {} ){
 
-		root.ArPos = o.ArPos || getArray('JOLT', o.full)
-		items.body.setFull(o.full)
+		root.ArPos = o.ArPos || getArray('JOLT', o.full);
+		items.body.setFull(o.full);
 
 		outsideStep = o.outsideStep || false;
 		isTimeout = o.isTimeout || false;
@@ -123,14 +123,14 @@ export class engine {
 
 	}
 
-	static setGravity( o ) {
+	static setGravity ( o ) {
 
 		root.gravity.fromArray( o.gravity );
 		if( root.physicsSystem ) root.physicsSystem.SetGravity( root.gravity );
 
 	}
 	
-	static start (){
+	static start () {
 
 		if( root.world  === null ){
 
@@ -232,7 +232,7 @@ export class engine {
 		
 	}
 
-	static poststep (){
+	static poststep () {
 
 		if( isStop ) return;
 
@@ -255,7 +255,7 @@ export class engine {
 
 	}
 
-	static step ( stamp ){
+	static step ( stamp ) {
 		
 		if( isReset ) engine.endReset();
 		if( isStop || root.tmpStep >= 2 ) return;
@@ -283,13 +283,13 @@ export class engine {
 
 	}
 
-	static byName ( name ){
+	static byName ( name ) {
 
 		return Utils.byName( name );
 
 	}
 
-	static byId ( n ){
+	static byId ( n ) {
 
 		let i = items.body.list.length, b, id;
 
@@ -311,9 +311,9 @@ export class engine {
 	}
 
 
-	static reset (){ isReset = true }
+	static reset () { isReset = true }
 
-	static endReset (){
+	static endReset () {
 
 		engine.stop()
 
@@ -327,7 +327,7 @@ export class engine {
 
 	}
 
-	static stop (){
+	static stop () {
 
 		isStop = true;
 
@@ -371,25 +371,25 @@ export class engine {
 	static resetItems() { Object.values(items).forEach( value => value.reset() ); }
 	static stepItems() { Object.values(items).forEach( value => value.step() ); }
 
-	static adds( r ){ let i = r.length, n = 0; while( i-- ) engine.add(r[n++]); }
-	static removes( r ){ let i = r.length, n = 0; while( i-- ) engine.remove(r[n++]); }
-	static changes( r ){ let i = r.length, n = 0; while( i-- ) engine.change(r[n++]); }
+	static adds( r ) { let i = r.length, n = 0; while( i-- ) engine.add(r[n++]); }
+	static removes( r ) { let i = r.length, n = 0; while( i-- ) engine.remove(r[n++]); }
+	static changes( r ) { let i = r.length, n = 0; while( i-- ) engine.change(r[n++]); }
 
-	static add ( o = {} ){
+	static add ( o = {} ) {
 
 		let type = getType( o );
 		items[type].add( o );
 
 	}
 
-	static remove ( o = {} ){
+	static remove ( o = {} ) {
 
 		let b = engine.byName( o.name );
 		if( b ) items[b.type].clear( b );
 
 	}
 
-	static change ( o = {} ){
+	static change ( o = {} ) {
 
 		let b = engine.byName( o.name );
 		if( b ) items[b.type].set( o, b );
@@ -400,17 +400,31 @@ export class engine {
 
 
 //--------------
-//
 //  SOLID ONLY 
-//
 //--------------
 
 class Solid extends Body {
 	constructor () {
-		super()
-		this.type = 'solid'
+		super();
+		this.type = 'solid';
+		this.num = 0;
 	}
-	step ( AR, N ) {}
+	step () {}
+}
+
+//--------------
+//  CHARATER
+//--------------
+
+class Character extends Body {
+
+	constructor () {
+		super();
+		this.itype = 'character';
+		this.num = Num['character'];
+		this.full = true;
+	}
+
 }
 
 

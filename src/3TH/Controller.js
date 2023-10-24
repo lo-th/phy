@@ -168,6 +168,7 @@ export class Controller extends OrbitControls {
         o = o || {};
 
         this.enableDamping = false
+        this.zoomToCursor = false
         this.screenSpacePanning = false
 
         this.cam.oldp.copy( mesh.position );
@@ -206,6 +207,7 @@ export class Controller extends OrbitControls {
         this.enablePan = true;
         this.enableDamping = true;
         this.screenSpacePanning = true
+        this.zoomToCursor = true
 		this.stopMoveCam();
         this.resetFov();
         this.resetFollow();

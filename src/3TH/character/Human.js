@@ -19,7 +19,7 @@ const setting = {
     mixRatio:0.0,
     threshold:0.1,
     normal:0.25,
-    hair:0xa43412,
+    hair:0x100402,//0xa43412,
     bow:0x100402,
     sheen:1,//2.25,
     sheenRoughness:1.0,//1.0,
@@ -28,8 +28,8 @@ const setting = {
     
     vertexColors:false,
     alphaTest:0.3,
-    h_metal:0.4,
-    h_rough:0.6,
+    h_metal:0.6,//0.4,
+    h_rough:0.5,//0.6,
     clearcoat:1.0,
 
     wireframe:false,
@@ -42,13 +42,21 @@ export const Human = {
 
 	isBreath:false,
 	isEyeMove:false,
-	haveMorph:false,
-    
+	haveMorph:true,
+    haveHair:false,
+    haveBlink:true,
+
+    haveLOD:true,
+
+    levelHigh:['body', 'Head', 'eyelash', 'eyebrow', 'tear', 'eye_l', 'eye_r', 'eye_l_s', 'eye_r_s'],
+    levelHair:['hair', 'hair_man'],
+    levelLow:['body_low'],
+
 
     skeletonRef:'body',
-	fullMorph: ['MUSCLE', 'LOW', 'BIG', 'MONSTER'],
+	fullMorph: ['MUSCLE', 'LOW', 'BIG', 'MONSTER'],//
 
-	haveQuality: true,
+    textureQuality:1,
 	textureRef:'avatar_c',
 	texturePath: 'assets/textures/avatar_',
 	textures: [
@@ -65,22 +73,29 @@ export const Human = {
     setting:setting,
 
     materialRef:'skin',
+
     materials:{
         skin:{
             type:'Physical',
             map: 'avatar_c', 
             normalMap:'avatar_n',
-            roughness:1,
+
+            //envMapIntensity:0.3,
+
+            roughness:0.54,
+            metalness:0.14,
+
+            /*roughness:1,
             metalness:1,
             metalnessMap:'avatar_m',
-            roughnessMap:'avatar_r',
+            roughnessMap:'avatar_r',*/
             normalScale: new Vector2( setting.normal, -setting.normal),
             
-            sheen:setting.sheen,
+            /*sheen:setting.sheen,
             sheenRoughness:setting.sheenRoughness,
-            sheenColor:0xffffff,
+            sheenColor:0xff0000,
             sheenColorMap:'avatar_u',
-            iridescence:1.0,
+            iridescence:0.1,*/
             wireframe:setting.wireframe,
 
             /*aoMap:'avatar_ao',
@@ -157,10 +172,10 @@ export const Human = {
             type:'Standard',
         	color:setting.hair,
             map:'eyelash_c',
-            roughness:setting.h_rough,
-            metalness:setting.h_metal,
+            //roughness:setting.h_rough,
+           // metalness:setting.h_metal,
             alphaMap:'eyelash_a',
-            alphaTest:setting.alphaTest,
+            //alphaTest:setting.alphaTest,
             transparent:true,
             opacity:1,
             side: DoubleSide,
@@ -171,10 +186,10 @@ export const Human = {
             //normalScale:new Vector2( 1, -1)
         },
         tear:{
-            type:'Physical',
+            type:'Standard',
         	map:'eyelash_c',
-            roughness:0.5,
-            metalness:0.5,
+            roughness:0.0,
+            metalness:1.0,
             alphaMap:'eyelash_a',
             transparent:true,
             alphaToCoverage:true,
@@ -182,8 +197,8 @@ export const Human = {
         },
         low:{
             type:'Basic',
-        	color:0x000000,
-            wireframe: true,
+        	//color:0x000000,
+            //wireframe: true,
         }
 
     },
@@ -223,39 +238,6 @@ export const Human = {
 
         }
 
-    
-        
-        /*
-         m = Pool.getMaterial( 'skin' );
-        
-        //m.roughness = s.roughness;
-        //m.metalness = s.metalness;
-        m.wireframe = s.wireframe;
-        m.vertexColors = s.vertexColors;
-        m.normalScale.set( s.normal, -s.normal )
-        m.sheen = s.sheen;
-        m.sheenRoughness = s.sheenRoughness;
-        */
-
-       /* let c = s.hair;
-        m = Pool.getMaterial( 'hair' )
-        m.color.setHex( c )
-        m.alphaTest = s.alphaTest
-        m.metalness = s.h_metal
-        m.roughness = s.h_rough
-        m = Pool.getMaterial( 'hair_man' )
-        m.color.setHex( c )
-        m.alphaTest = s.alphaTest
-        m.metalness = s.h_metal
-        m.roughness = s.h_rough
-        m = Pool.getMaterial( 'eyelash' )
-        m.color.setHex( c )
-        m.alphaTest = s.alphaTest
-        m.metalness = s.h_metal
-        m.roughness = s.h_rough*/
-
-        //if( s.vertexColors && m.map !== null ){ m.map = null; this.tensionActive = true; m.sheen = 0;}
-        ///if( !s.vertexColors && m.map === null ){ m.map = this.skin; this.tensionActive = false; }
 
     },
 
@@ -265,6 +247,8 @@ export const Human = {
 
         // apply Material
 
+        const startHigh = false;
+
         const def = Pool.getMaterial( 'skin' );
 
         root.traverse( ( node ) => {
@@ -272,38 +256,40 @@ export const Human = {
             if ( node.isMesh ){
                 switch( node.name ){
                     case 'body':
-
-                    //Pool.addUv2( node )
                     node.material = def;
                     node.receiveShadow = true;
                     node.castShadow = true;
+                    node.visible = startHigh
                     break;
                     case 'body_low': 
-                        node.material = def
-                        node.receiveShadow = false;
-                        node.castShadow = false;
-                        node.visible = false
+                        node.material = def;
+                        node.receiveShadow = true;
+                        node.castShadow = true;
+                        node.visible = !startHigh
                     break;
                     case 'Head': 
-                    //Pool.addUv2( node )
                     node.material = def;
                     node.receiveShadow = true;
                     node.castShadow = true;
+                    node.visible = startHigh
                     break;
                     case 'mouth':
                     node.material = Pool.getMaterial( 'mouth' ) || def;
                     node.receiveShadow = false;
                     node.castShadow = false;
+                    node.visible = startHigh
                     break;
                     case 'eyelash':  case 'eyebrow':
                     node.material = Pool.getMaterial( 'eyelash' ) || def;
                     node.receiveShadow = false;
                     node.castShadow = false;
+                    node.visible = startHigh
                     break;
                     case 'tear': 
                     node.material = Pool.getMaterial( 'tear' ) || def;
                     node.receiveShadow = false;
                     node.castShadow = false;
+                    node.visible = startHigh
                     break;
                     case 'eye_l':case 'eye_r':
                     node.material = Pool.getMaterial( 'eye' ) || def;
@@ -314,19 +300,21 @@ export const Human = {
                     node.material = Pool.getMaterial( 'sub_eye' ) || def;
                     node.receiveShadow = false;
                     node.castShadow = false;
-                    //node.visible = false
+                    node.visible = startHigh
                     break;
                     case 'hair': 
                     node.material = Pool.getMaterial( 'hair' ) || def;
                     node.receiveShadow = false;
                     node.castShadow = true;
                     node.matrixWorldAutoUpdate = false
+                    node.visible = Human.haveHair ? startHigh : false;
                     break;
                     case 'hair_man': 
                     node.material = Pool.getMaterial( 'hair_man' ) || def;
                     node.receiveShadow = false;
                     node.castShadow = true;
                     node.matrixWorldAutoUpdate = false
+                    node.visible = Human.haveHair ? startHigh : false;
                     break;
                 }
             }
@@ -334,6 +322,39 @@ export const Human = {
         })
 
     },
+
+    /*lowMode:( b ) => {
+
+        if(b){
+            setVisible()
+        }
+
+
+    },*/
+
+    adjustment:() => {
+
+        return [
+        //{name:'head', values:[-10,0,0]},
+        {name:'neck', values:[-5,0,0]},
+        {name:'chest', values:[5,0,0]},
+        {name:'lCollar', values:[0,0,-10]},
+        {name:'rCollar', values:[0,0,10]},
+        {name:'lShldr', values:[-20,2,0]},
+        {name:'rShldr', values:[-20,-2,0]},
+            //{name:'rShldr', values:[0,0,0]},
+            /*
+            
+
+           // {name:'lShldr', values:[-30,0,0]},
+            //{name:'rShldr', values:[0,0,0]},
+            {name:'lForeArm', values:[0,0,20]},
+            {name:'rForeArm', values:[0,0,-20]},
+            {name:'lHand', values:[-60,0,30]},
+            {name:'rHand', values:[-60,0,-30]},*/
+        ]
+
+    }
 
 
 

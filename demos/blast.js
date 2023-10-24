@@ -34,6 +34,7 @@ demo = () => {
 
 onComplete = () => {
 
+
     build();
 
     phy.add({ type:'box', size:[0.05,4,1.2], pos:[2.862, 2, 0], visible:false })
@@ -127,7 +128,7 @@ buildArch = ( o, models ) => {
     }
 
     let angleInc = 5.625
-    let angle = angleInc
+    let angle = angleInc;
     
     let s = o.block || 1;
     let space = o.space || 0//0.06;

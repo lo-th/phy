@@ -30,6 +30,7 @@ import { Particle } from './extra/Particle.js';
 
 import { Pool } from '../3TH/Pool.js';
 import { sk } from '../3TH/character/SkeletonExtand.js';
+import { preloadAvatar } from '../3TH/character/Avatar.js';
 
 /** __
 *    _)_|_|_
@@ -43,7 +44,7 @@ const Version = {
     OIMO: '1.2.2',
     AMMO: '3.0',
     PHYSX: '5.03.00',
-    RAPIER: '0.10.0',
+    RAPIER: '0.11.2',
     HAVOK: '1.2.0',
     JOLT: '0.6.2',
 }
@@ -122,17 +123,17 @@ export class Motor {
 
 		if( o.key ) addControl();
 
-		items.body.setFull( settings.full )
-		Motor.initArray( settings.full )
+		items.body.setFull( settings.full );
+		Motor.initArray( settings.full );
 
-		elapsedTime = 0
+		elapsedTime = 0;
 
-		isTimeout = isWorker
-		outsideStep = !isTimeout
+		isTimeout = isWorker;
+		outsideStep = !isTimeout;
 
-	    root.jointVisible = o.jointVisible || false
+	    root.jointVisible = o.jointVisible || false;
 
-		if( outsideStep ) timer.setFramerate( settings.fps )
+		if( outsideStep ) timer.setFramerate( settings.fps );
 
 		const data = {
 			...settings,
@@ -148,12 +149,15 @@ export class Motor {
 	static math = MathTool
 
 	static activeMouse ( controler, mode ) { 
-		if( !mouseTool ) mouseTool = new MouseTool( controler, mode ) 
+		if( !mouseTool ) mouseTool = new MouseTool( controler, mode );
 	}
 
     static mouseMode ( mode, o ) { 
 		if( mouseTool ) mouseTool.setMode( mode, o )
 	}
+
+    static getTime () { return Timer.now(); }
+    static readTime ( t ) { return Timer.format_time(t); }
 
     static startTime () { return tt.startTime }
 
@@ -366,7 +370,7 @@ export class Motor {
 
 			Motor.initPhysics( o );
 
-		}else{
+		} else {
 
 			let type = name.toUpperCase()
 			if(type==='RAPIER') type = 'RAPIER3D';
@@ -450,11 +454,7 @@ export class Motor {
 
 	}
 	
-	static getPause (){
-
-		return isPause
-
-	}
+	static getPause (){ return isPause; }
 
 	static pause ( v ){
 
@@ -890,6 +890,18 @@ export class Motor {
 
 	}
 
+	static getCurrentCharacterPosition (){
+
+		return controls.followGroup.position;
+
+	}
+
+	static getCamera ( o = {} ){
+
+		return controls.object;
+
+	}
+
 	static setCamera ( o = {} ){
 
 		controls.moveCam( o );
@@ -980,6 +992,12 @@ export class Motor {
 	//  POOL
 	//
 	//-----------------------
+
+	static preload ( Urls, Callback ){
+
+		preloadAvatar.add( Urls, Callback )
+		//Pool.load( Urls, Callback, Path, msg )
+	}
 
 	static load ( Urls, Callback, Path = '', msg = '' ){
 		Pool.load( Urls, Callback, Path, msg )

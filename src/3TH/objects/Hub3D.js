@@ -5,6 +5,7 @@ import {
     PlaneGeometry,
     MeshBasicMaterial,
     MathUtils,
+    MultiplyBlending, AdditiveBlending, SubtractiveBlending 
 } from 'three';
 
 export class Hub3D extends Mesh {
@@ -29,6 +30,8 @@ export class Hub3D extends Mesh {
                 darkness: { value: 1 },
                 offset: { value: 1.05  },
 
+                grain: { value: 0.0  },
+
                 ratio: { value: 1 },
                 radius: { value: 2 },
                 step: { value: new Vector4(0.6, 0.7, 1.25, 1.5 ) },
@@ -51,6 +54,7 @@ export class Hub3D extends Mesh {
 
             uniform vec3 color;
             uniform float offset;
+            uniform float grain;
             uniform float darkness;
 
             uniform float ratio;
@@ -82,22 +86,33 @@ export class Hub3D extends Mesh {
                 vec2 uv = ( vUv - vec2( 0.5 ) ) * vec2( offset );
                 //gl_FragColor = vec4( mix( texel.rgb, vec3( 1.0 - darkness ), dot( uv, uv ) ), texel.a );
 
-                float alpha =  smoothstep( 0.0, 1.0, dot( uv, uv ) )-(1.0 - darkness);
+                float alpha = smoothstep( 0.0, 1.0, dot( uv, uv ) )-(1.0 - darkness);
+
+                
+                
 
                 //gl_FragColor = vec4( color, dot( uv, uv )-(1.0 - darkness) );
                 gl_FragColor = vec4( color, alpha );
 
+                // film grain noise
+                if(grain!=0.0){
+                    float noise = (fract(sin(dot(uv, vec2(12.9898,78.233)*2.0)) * 43758.5453));
+                    gl_FragColor += vec4(0.0,0.0,0.0, noise * grain )*(0.5+alpha);
+                }
+                
             }
             `, 
             transparent:true,
             depthWrite:false,
             depthTest:false,
-            toneMapped: false,
+            //toneMapped: false,
+            //blending:MultiplyBlending,
 
         });
 
 
         Object.defineProperties(this, {
+
             color: {
                 enumerable: true,
                 get: () => ( this.material.uniforms.color.value.getHex() ),
@@ -113,9 +128,13 @@ export class Hub3D extends Mesh {
                 get: () => ( this.material.uniforms.darkness.value ),
                 set: ( v ) => { this.material.uniforms.darkness.value = v },
             },
+            grain: {
+                enumerable: true,
+                get: () => ( this.material.uniforms.grain.value ),
+                set: ( v ) => { this.material.uniforms.grain.value = v },
+            },
         })
 
-        
         this.frustumCulled = false;
         this.renderOrder = Infinity;
         this.matrixAutoUpdate = false;
@@ -145,7 +164,7 @@ export class Hub3D extends Mesh {
 
     dispose () {
 
-        this.parent.remove(this)
+        this.parent.remove(this);
         this.geometry.dispose()
         this.material.dispose()
         

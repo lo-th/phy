@@ -305,7 +305,7 @@ export class Hub {
         menu.appendChild( engine )
         
         demo = document.createElement( 'div' );
-        demo.style.cssText = 'font-size:16px; font-weight:500;'
+        demo.style.cssText = 'font-size:16px; font-weight:700; '//'font-size:16px; font-weight:500;'
         demo.id = 'demo'
         menu.appendChild( demo )
         
@@ -313,7 +313,6 @@ export class Hub {
         this.effect(engine)
         this.effect(demo)
 
-        
 
         debug = document.createElement( 'div' );
         debug.style.cssText = 'position:absolute; width:300px; bottom:25px; left:80px; font-size:14px; font-weight:500; vertical-align:bottom; text-align:left;'
@@ -367,7 +366,7 @@ export class Hub {
 
         let lineColor = 'rgba(0,0,0,0.5)'
 
-        if(v ){
+        if(v){
             if(!h1 && !h2){
                 h1 = document.createElement( 'div' );
                 h1.style.cssText = 'position:absolute; top:33.33%; width:100%; height:33.33%; border-top:1px dashed '+lineColor+'; border-bottom:1px dashed '+lineColor+';'
@@ -474,7 +473,7 @@ export class Hub {
             innerMenu.appendChild( m )
             m.classList.add("down");
             
-            m.style.cssText = type === 'demo' ? 'font-size:16px; font-weight:500;' : 'font-size:16px; font-weight:700;'
+            m.style.cssText = 'font-size:16px; font-weight:700;'//type === 'demo' ? 'font-size:16px; font-weight:500;' : 'font-size:16px; font-weight:700;'
             m.id = name
             m.textContent = name;
 

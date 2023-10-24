@@ -331,7 +331,8 @@ const M = {
 
     mulArray: ( r, s, i ) => {
         i = i ?? r.length;
-        while ( i-- ) r[i] *= s;
+        s = s.length ? s : [s,s,s];
+        while ( i-- ) r[i] *= s[i];
         return r;
     },
 

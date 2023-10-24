@@ -297,8 +297,6 @@ export class Body extends Item {
 
 			    gName = 'ChamferCyl_' + s[ 0 ] +'_'+ s[ 1 ] +'_'+ s[ 2 ] + '_' + o.radius + '_' + seg;
 
-
-
 			    g = Geo.get( gName )
 			    if(!g){
 					g = new ChamferCyl( s[ 0 ], s[ 0 ], s[ 1 ], o.radius, seg );
@@ -399,7 +397,7 @@ export class Body extends Item {
 
 		//console.log('add', o.type )
 
-		let i, n, name
+		let i, n, name, volume = 0;
 
 		if( !o.instance ) name = this.setName( o );
 
@@ -409,81 +407,87 @@ export class Body extends Item {
 
 		if( o.type === 'stair'){ 
 
-			let v1 = new Vector3(0,0,o.size[2])
-			let v2 = new Vector3(0, o.size[1]*0.5,o.size[2]*0.5)
-			let angle = v1.angleTo(v2)
-			let dist = v1.distanceTo(v2)
-			o.rot = [angle * todeg,0,0]
-			o.size[1] *= o.div || 0.2
-			o.size[2] = dist*2
+			let v1 = new Vector3(0,0,o.size[2]);
+			let v2 = new Vector3(0, o.size[1]*0.5,o.size[2]*0.5);
+			let angle = v1.angleTo(v2);
+			let dist = v1.distanceTo(v2);
+			o.rot = [angle * todeg,0,0];
+			o.size[1] *= o.div || 0.2;
+			o.size[2] = dist*2;
 		
-		    let p1 = new Vector3(0,-o.size[1]*0.5,0)
-		    p1.applyAxisAngle({x:1, y:0, z:0},angle)
-			o.pos[1] += p1.y
-			o.pos[2] += p1.z
+		    let p1 = new Vector3(0,-o.size[1]*0.5,0);
+		    p1.applyAxisAngle({x:1, y:0, z:0}, angle);
+			o.pos[1] += p1.y;
+			o.pos[2] += p1.z;
+
 		}
 
 		// change default center of mass 
 		if( o.massCenter && root.engine !== 'PHYSX'){
 			if( o.type !== 'compound' ){
 				//o.localPos = o.massCenter
-				o.shapes = [{ type:o.type, pos:o.massCenter, size:o.size }]
-				if( o.seg ) o.shapes[0].seg = o.seg
-				if( o.radius ) o.shapes[0].radius = o.radius
-				delete ( o.size )
-				o.type = 'compound'
+				o.shapes = [{ type:o.type, pos:o.massCenter, size:o.size }];
+				if( o.seg ) o.shapes[0].seg = o.seg;
+				if( o.radius ) o.shapes[0].radius = o.radius;
+				delete o.size; // ?? TODO
+				o.type = 'compound';
 			} else {
 				for ( i = 0; i < o.shapes.length; i ++ ) {
 					n = o.shapes[ i ]
-					if( n.pos ) n.pos = Utils.vecAdd( n.pos, o.massCenter )
-					else n.pos = o.massCenter
+					if( n.pos ) n.pos = Utils.vecAdd( n.pos, o.massCenter );
+					else n.pos = o.massCenter;
 					Geo.unic(n);
 				}
 			}
 		}
 
-		//console.log('add', o.type, )
+		//----------------------------
+		//  Position, Rotation, Size
+		//----------------------------
 
-		// position
 		o.pos = o.pos === undefined ? [ 0, 0, 0 ] : o.pos;
 
 		// rotation is in degree or Quaternion
 	    o.quat = o.quat === undefined ? [ 0, 0, 0, 1 ] : o.quat;
-	    if( o.rot !== undefined ){ o.quat = MathTool.quatFromEuler(o.rot); delete o.rot; }
-	    if( o.meshRot !== undefined ){ o.meshQuat = MathTool.quatFromEuler(o.meshRot); delete o.meshRot; }
-	    //if( o.rot !== undefined ){ o.quat =  math.toQuatArray( o.rot ); delete o.rot; }
-	    //if( o.meshRot !== undefined ){ o.meshQuat = math.toQuatArray( o.meshRot ); delete o.meshRot; }
+	    // convert euler degree to Quaternion
+	    if( o.rot !== undefined ) o.quat = MathTool.quatFromEuler(o.rot);
+	    if( o.meshRot !== undefined ) o.meshQuat = MathTool.quatFromEuler(o.meshRot);
 
 	    //o.size = o.size == undefined ? [ 1, 1, 1 ] : math.correctSize( o.size );
 	    o.size = MathTool.autoSize( o.size, o.type );
-	    if( o.meshScale ) o.meshScale = MathTool.autoSize( o.meshScale )
+	    if( o.meshScale ) o.meshScale = MathTool.autoSize( o.meshScale );
+
+
+	    //--------------------
+		//  Material
+		//--------------------
 
 	    let material, noMat = false;
-	    //let defMat = false;
 
 	    if( o.visible === false ) o.material = 'hide'
 
 	    if ( o.material !== undefined ) {
-	    	if ( o.material.constructor === String ) material = Mat.get( o.material )
+	    	if ( o.material.constructor === String ) material = Mat.get( o.material );
 	    	else material = o.material;
 	    } else {
-	    	noMat = true
+	    	noMat = true;
 	    	//defMat = this.type === 'body'
-	    	material = Mat.get( this.type )
-	    	if( o.instance ) material = Mat.get( 'base' )
+	    	material = Mat.get( this.type );
+	    	if( o.instance ) material = Mat.get( 'base' );
 	    }
 
 	    if( o.unicMat ) {
-	    	material = material.clone()
+	    	material = material.clone();
 	    	//root.tmpMat.push( material )
-	    	Mat.addToTmp( material )
+	    	Mat.addToTmp( material );
 	    }
 
-	    if( o.material ) delete o.material
 
+	    //--------------------
+		//  Define Object
+		//--------------------
 
-	    //let b = new Basic3D( o.instance )
-	    let b = o.instance ? {} : new Basic3D()
+	    let b = o.instance ? {} : new Basic3D();
 
 	    if( o.mesh && !o.instance ){
 
@@ -493,20 +497,23 @@ export class Body extends Item {
 	    	let mm = o.noClone ? o.mesh : o.mesh.clone()
 
 	    	mm.position.fromArray( o.meshPos || [0,0,0]);
-	    	if( o.meshRot ) { o.meshQuat = MathTool.quatFromEuler(o.meshRot); delete o.meshRot; }
-	    	//if( o.meshRot ) { o.meshQuat = math.toQuatArray( o.meshRot ); delete o.meshRot; }
-	    	if( o.meshQuat ) mm.quaternion.fromArray( o.meshQuat )
-	    	if( o.meshSize ) mm.scale.set(1,1,1).multiplyScalar(o.meshSize)
-	    	if( o.meshScale ) mm.scale.fromArray( o.meshScale )
+	    	//if( o.meshRot ) { o.meshQuat = MathTool.quatFromEuler(o.meshRot); delete o.meshRot; }
+	    	if( o.meshQuat ) mm.quaternion.fromArray( o.meshQuat );
+	    	if( o.meshSize ) mm.scale.set(1,1,1).multiplyScalar(o.meshSize);
+	    	if( o.meshScale ) mm.scale.fromArray( o.meshScale );
 	    	
-	    	if( !noMat ) mm.material = material
+	    	if( !noMat ) mm.material = material;
 
-	    	root.tmpMesh.push(mm)
+	    	root.tmpMesh.push(mm);
 
 	    	o.meshRemplace = true;
-	    	b.add( mm )
+	    	b.add( mm );
 
 	    }
+
+	    //--------------------
+		//  Define Geometry
+		//--------------------
 
 	    switch( o.type ){
 
@@ -523,21 +530,28 @@ export class Body extends Item {
 					n.size = MathTool.autoSize( n.size, n.type );
 
 					if( n.pos ) n.localPos = n.pos;
-
-					if( n.rot !== undefined ){ n.quat = MathTool.quatFromEuler(n.rot); delete n.rot; }
-					//if( n.rot !== undefined ){ n.quat = math.toQuatArray( n.rot ); delete n.rot; }
+					if( n.rot !== undefined ) n.quat = MathTool.quatFromEuler(n.rot);
 					if( n.quat ) n.localQuat = n.quat;
-
+					
 					n.debug = o.debug || false;
 					n.meshRemplace = o.meshRemplace || false;
 
-					if( !o.instance ) this.geometry( n, b, material )
+					if( !o.instance ) this.geometry( n, b, material );
+					volume += MathTool.getVolume( n.type, n.size, n.v );
+
 				}
 
 	    	break;
 	    	default:
 
 			    if( !o.instance ) this.geometry( o, b, material );
+			    // TODO fix that 
+			    else if( o.type === 'convex' ){ 
+			    	o.v = MathTool.getVertex( o.shape, false );
+			    }
+			    // TODO bug with instance !!!
+			    //else o.size = MathTool.autoSize( o.size, o.type );
+			    volume = MathTool.getVolume( o.type, o.size, o.v );
 
 			break;
 
@@ -546,9 +560,9 @@ export class Body extends Item {
 
 
 	    
-	    b.type = this.type
-	    b.size = o.size
-		b.shapetype = o.type
+	    b.type = this.type;
+	    b.size = o.size;
+		b.shapetype = o.type;
 		b.isKinematic = o.kinematic || false;
 		b.link = 0;
 
@@ -567,23 +581,26 @@ export class Body extends Item {
 		if( b.material && noMat ) b.defMat = b.material.name === 'body'
 
 
-		//  for instancing
+	    //--------------------
+		//  Instance
+		//--------------------
+
 		if( o.instance ){ 
 
 			b.isInstance = true;
-			b.instance = root.instanceMesh[ o.instance ] || this.addInstance( o, material );
+			b.instance = this.getInstance( o, material );
 			b.instance.isRay = b.isRay;
 
-			b.defMat = b.instance.material.name === 'base'
+			b.defMat = b.instance.material.name === 'base';
 			
 			b.id = b.instance.count;
-			b.mass = o.mass || 0
+			//b.mass = o.mass || 0
 			
 			b.name = b.instance.name + b.id;
 			//if( o.name ) b.name = o.name
 			o.name = b.name;
 			b.noScale = b.instance.noScale//false//o.type!=='box' || o.type!=='ChamferBox' || o.type!=='sphere';
-			if(o.sizeByInstance) b.noScale = false
+			if(o.sizeByInstance) b.noScale = false;
 			//if(o.type === 'sphere') b.noScale = false
 		    //if( o.type === 'capsule' ) b.noScale = true
 		    //if( o.type === 'box' ) b.noScale = true
@@ -594,17 +611,17 @@ export class Body extends Item {
 
 			b.instance.add( o.pos, o.quat, b.noScale ? [1,1,1] : b.size, color );
 
-			b.position = {x:o.pos[0], y:o.pos[1], z:o.pos[2]}
-			b.quaternion = {_x:o.quat[0], _y:o.quat[1], _z:o.quat[2], _w:o.quat[3]}
-		    b.velocity = {x:0, y:0, z:0}
-		    b.angular = {x:0, y:0, z:0}
+			b.position = {x:o.pos[0], y:o.pos[1], z:o.pos[2]};
+			b.quaternion = {_x:o.quat[0], _y:o.quat[1], _z:o.quat[2], _w:o.quat[3]};
+		    b.velocity = {x:0, y:0, z:0};
+		    b.angular = {x:0, y:0, z:0};
 		    b.link = 0;
-		    if( this.needMatrix ) b.matrixWorld = new Matrix4()
+		    if( this.needMatrix ) b.matrixWorld = new Matrix4();
 
 
 
 			// for convex
-			if(b.instance.v) o.v = b.instance.v
+			if(b.instance.v) o.v = b.instance.v;
 			if(b.instance.index) o.index = b.instance.index;
 		    o.type = b.instance.type;
 
@@ -622,32 +639,32 @@ export class Body extends Item {
 
 			b.name = name;
 
-			if( o.renderOrder ) b.renderOrder = o.renderOrder
-			if( o.visible === undefined ) o.visible = true
-			if( o.shadow === undefined ) o.shadow = o.visible
+			if( o.renderOrder ) b.renderOrder = o.renderOrder;
+			if( o.visible === undefined ) o.visible = true;
+			if( o.shadow === undefined ) o.shadow = o.visible;
 
-			b.visible = o.visible !== undefined ? o.visible : true
-		    b.receiveShadow = o.shadow
-		    b.castShadow = o.shadow
+			b.visible = o.visible !== undefined ? o.visible : true;
+		    b.receiveShadow = o.shadow;
+		    b.castShadow = o.shadow;
 
 		    // apply option
-			this.set( o, b )
+			this.set( o, b );
 
 		}
 
-	    if( o.instance ) delete o.instance
-	    if( o.mesh ) delete o.mesh
-
+		//---------------------------
+		//  Breakable
+		//---------------------------
 
     	if( o.breakable ){
 
-    		root.motor.addBreaker()
+    		root.motor.addBreaker();
 			let child = b.children[0];
 			b.remove(child);
 			b = child;
 			b.name = name;
-			b.type = this.type
-			b.density = o.density;
+			b.type = this.type;
+			//b.density = o.density;
 			b.breakable = true;
 			b.breakOption = o.breakOption !== undefined ? o.breakOption : [ 250, 1, 2, 1 ];
 			//b.userData.mass = o.mass;
@@ -669,22 +686,44 @@ export class Body extends Item {
 
 		//o.volume = this.tmpVolume
 
+		//---------------------------
+		//  Mass and Density
+		//---------------------------
 
-		
+		b.mass = o.mass || 0;
+		b.density = o.density || 0;
+		if( b.density && !b.mass ) b.mass = MathTool.massFromDensity( b.density, volume );
+		else if( b.mass && !b.density ) b.density = MathTool.densityFromMass( b.mass, volume );
+
+		//console.log( b.name,'m: '+ b.mass, 'd: '+ b.density )
 
 
+		//---------------------------
+		// add to three world
+		//---------------------------
 
-		// add to world
-		this.addToWorld( b, o.id )
+		this.addToWorld( b, o.id );
 
-		if( o.onlyMakeMesh ) return b
+		if( o.onlyMakeMesh ) return b;
 
-		if(o.phySize) o.size = o.phySize
-		if(o.phyPos) o.pos = o.phyPos
+		if( o.phySize ) o.size = o.phySize;
+		if( o.phyPos ) o.pos = o.phyPos;
 
-		if(o.parent) delete o.parent
+		//---------------------------
+		//  Clear uneed object value
+		//---------------------------
 
-		// add to physic worker 
+		if( o.rot ) delete o.rot
+	    if( o.meshRot ) delete o.meshRot
+	    if( o.instance ) delete o.instance
+	    if( o.material ) delete o.material;
+	    if( o.mesh ) delete o.mesh
+		if( o.parent ) delete o.parent;
+
+	    //---------------------------
+		// add to physic engine 
+		//---------------------------
+
 		root.post( { m:'add', o:o } )
 
 		//console.log(b)
@@ -695,8 +734,8 @@ export class Body extends Item {
 
 	set ( o = {}, b = null ) {
 
-		if( b === null ) b = this.byName( o.name )
-		if( b === null ) return
+		if( b === null ) b = this.byName( o.name );
+		if( b === null ) return;
 
 		/*if(b.isInstance){
 
@@ -721,28 +760,28 @@ export class Body extends Item {
 
 	}
 
-	addInstance ( o, material ) {
+	getInstance ( o, material ) {
 
-		//console.log(o)
-		if( o.sizeByInstance ) o.size = [1,1,1]
-		let g = this.geometry( o )
+		if( root.instanceMesh[o.instance] ) return root.instanceMesh[o.instance];
 
-	//console.log(g)
+		// Create new instance 
+
+		o = {...o};
+
+		if( o.sizeByInstance ) o.size = [1,1,1];
+		let g = this.geometry( o );
 
 		if( o.mesh ) {
-			g = o.mesh.isObject3D ? o.mesh.geometry.clone() : o.mesh.clone()
-			if( o.meshScale ) g.scale( o.meshScale[0], o.meshScale[1], o.meshScale[2] )
-			g.noScale = true
-		}/* else {
-			g = this.geometry( o )
-		}*/
+			g = o.mesh.isObject3D ? o.mesh.geometry.clone() : o.mesh.clone();
+			if( o.meshScale ) g.scale( o.meshScale[0], o.meshScale[1], o.meshScale[2] );
+			g.noScale = true;
+		}
 
-		let bb = new Instance( g, material, 0 )
+		let bb = new Instance( g, material, 0 );
 
 		bb.type = o.type;
-		bb.noScale = g.noScale
+		bb.noScale = g.noScale;
 
-		//console.log(o)
 		if( bb.type === 'convex' ) bb.v = o.v;
 		if( o.index ) bb.index = o.index;
 		
@@ -755,13 +794,10 @@ export class Body extends Item {
     	bb.castShadow = o.shadow !== undefined ? o.shadow : true;
 
     	bb.name = o.instance;
-		root.scene.add( bb )
-		root.instanceMesh[ o.instance ] = bb
+		root.scene.add( bb );
+		root.instanceMesh[ o.instance ] = bb;
 
-
-		//console.log(bb.name+" is add")
-
-    	return bb
+    	return bb;
 
 	}
 

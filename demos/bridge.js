@@ -5,12 +5,21 @@ let ready = false
 let bob = null
 let distance = 0
 let maxY = 0
+let t1 = 0;
+let num = 0;
 
+let maxCharacter = 40;
+
+const models = [ 'man', 'woman']
+//const models = [ 'man_low', 'woman_low', 'man', 'woman' ]
 
 demo = () => {
 
     phy.view({
-        distance:30
+        phi:12, theta:0, distance:5, x:0, y:3, z:15, fov:60, 
+        envmap:'lobe', envblur: 0.5, //background:0x101010,
+        groundReflect:0.1, groundColor:0x808080,
+        shadow:0.5,//0.5,
     })
     
     // config physics setting
@@ -34,12 +43,30 @@ demo = () => {
     phy.add({ type:'stair', size:[2,2,3], pos:[-9,3,3.5], friction:0 })
     phy.add({ type:'stair', size:[2,2,3], pos:[9,3,3.5], friction:0 })
 
-    addBridge()
+    addDynamic();
 
-    let rand = math.rand
+    t1 = phy.getTime();
+    phy.preload( models, onComplete );
+
+}
+
+onComplete = () => {
+
+    console.log( 'loading in: ' + phy.readTime( phy.getTime() - t1 ) )
+    
+    
+    Character();
+
+}
+
+const addDynamic = () => {
+
+    Bridge();
+
+    let rand = math.rand;
 
     // add random object
-    i=5;
+    let i=5;
     while(i--){
         phy.add({ type:'box', size:[ rand( 0.3,  0.8 ) ], pos:[ rand( -8, 8 ), rand( 8, 10 ), rand( -1, 1 ) ], density: 0.3 })
         phy.add({ type:'sphere', size:[ rand( 0.3,  0.8 ) ], pos:[ rand( -8, 8 ), rand( 8, 10 ), rand( -1, 1 ) ], density: 0.3 })
@@ -50,14 +77,12 @@ demo = () => {
     phy.add({ type:'box', name:'kine', size:[4,0.4,4], pos:[ px, 1.8, 4 ], radius:0.04,  density:1, kinematic:true, density: 0, friction:1 });
     phy.add({ type:'box', name:'truc', size:[1,1,1], pos:[ px, 2.9, 4 ], radius:0.02, density:1, friction:1 });
 
-    addCharacter()
-
     phy.setPostUpdate ( update )
     phy.setTimeout( go, 0 )
 
 }
 
-const addBridge = ( width = 4, height = 0.3, length = 0.7 ) => {
+const Bridge = ( width = 4, height = 0.2, length = 0.7 ) => {
 
     let isLocal = true
     let num = 20;
@@ -84,165 +109,73 @@ const addBridge = ( width = 4, height = 0.3, length = 0.7 ) => {
         
     }
 
-    phy.add(data)
+    phy.add(data);
+
+}
+
+const Character = () => {
+
+    let i = maxCharacter, n = 0,  g;
+    let pos = [0,0,15], angle = 180;
+    let hh = [];
+
+    while( i-- ){
+
+        g = math.randInt( 0, models.length-1 );
+        //g = math.randInt( 0, 1 );
+
+        hh[n] = phy.add({ 
+            type: 'character',
+            name: 'c_' + n,
+            gender: models[g],
+            debug: true,
+            radius: 0.35,
+            height: 1.8,
+            pos: pos,
+            //ray: n===0,
+            angle:angle,
+            randomMorph:true,
+            morph:true,
+            callback:count,
+        });
+
+        n++
+        pos = [ math.rand( -10, 10 ), 0, math.rand( 5, 15 ) ];
+        angle = math.randInt( 0, 360 )
+
+    }
+
+   // hh[0].debugMode( true );
+
+    phy.follow('c_0', { direct:true, simple:true, distance:5, phi:12, theta:0, decal:[0.3, 0.5, -0.3], fov:60, zoom:1.0 })
+    phy.control( 'c_0' );
+
+}
+
+
+const count = () => {
+
+    num++;
+    if( num === maxCharacter ) console.log( 'ready in: ' + phy.readTime( phy.getTime() - t1 ) )
+    
 
 }
 
 const go = () => {
 
-    side = -1
-    ready = true
+    side = -1;
+    ready = true;
 
 }
 
 const update = () => {
 
-    if(!ready) return
+    if(!ready) return;
 
-    px += 0.03 * side
-    if(px<=-5) side = 1
-    if(px>=5) side = -1
+    px += 0.03 * side;
+    if(px<=-5) side = 1;
+    if(px>=5) side = -1;
     
-
-    phy.change({name:'kine', pos:[ px, 1.8, 4 ], rot:[ 0, (px-5)*18, 0 ] })
-
-   if( bob ) updateCharacter()
-
-}
-
-
-const tmpV1 = new THREE.Vector3()
-const tmpV2 = new THREE.Vector3()
-const ease = new THREE.Vector3()
-let tmpAcc = 0
-let rs = 0, ts = 0
-const diagonal = 1/Math.sqrt(2)
-let jump = false, oy = 0, vy = 0;
-const speed = {
-    idle:0,
-    walk:10,
-    run:20,
-}
-
-
-const addCharacter = () => {
-
-    let r = 0.35
-    let h = 1.8-(2*r)
-    let py = (h*0.5)+r
-
-    bob = phy.add({ 
-        type:'capsule', 
-        name:'bob', 
-        material:'hero', 
-
-        size:[ r, h ], pos:[-9,py,10], angularFactor:[0,0,0], 
-        density:1,  friction:0.5, group:32,
-        //damping:[0.01,0],
-        material:'debug',
-        inertia:[0,0,0],
-        //order:'YXZ',
-        regular:true,
-        //filter:[1,-1,[4,5, 11], 0]
-        //filter:[1,-1,[1, 3, 4,5,9], 0],
-        //ray:false,
-        noGravity:true,
-    })
-
-    maxY = r//py
-
-    //phy.add({ type:'ray', name:'bob_ray', begin:[0,-h*0.5,0], end:[0,-5, 0], callback:bobRay, visible:true, parent:'bob' })
-
-    //phy.follow('bob', { direct:true, simple:true, decal:[0.3, 1, -0.3] })
-
-
-    let test = phy.add({ 
-        type:'character',
-        name:'boby2',
-        pos:[9,py,10],
-        ray:true
-    })
-    phy.control( 'boby2' )
-
-}
-
-const bobRay = ( b) => {
-
-    //console.log(b)
-    if(b.hit) distance = b.distance
-    else distance = maxY
-
-    //if(b.hit) 
-     //   console.log(distance>=maxY)
-
-
-}
-
-const updateCharacter = () => {
-
-    let delta = phy.getDelta()
-    let r = 0//phy.getAzimut()
-    let key = phy.getKey()
-
-    let anim = key[7] !== 0 ? 'run' : 'walk'
-    if( key[0] === 0 && key[1] === 0 ) anim = 'idle'
-
-    let py = bob.position.y-oy
-
-    let up = py>0 && py<0.1
-
-    let m = key[0] !== 0 && key[1] !== 0 ? diagonal : 1
-    
-    if( key[0] !== 0 || key[1] !== 0 ){ 
-
-        tmpAcc += 0.2//math.lerp( tmpAcc, 1, delta/10 )
-        tmpAcc = math.clamp( tmpAcc, 1, speed[anim] )
-
-        if(jump)tmpAcc = 0
-
-        rs += key[0] * tmpAcc//* delta
-        ts += key[1] * tmpAcc//* delta
-    } /*else {
-       tmpAcc += 0.01
-    }*/
-
-    if( key[0] === 0 && key[1] === 0 ) tmpAcc = 0//*= 0.9
-    if( key[0] === 0 ) rs = 0
-    if( key[1] === 0 ) ts = 0
-
-    rs = math.clamp( rs, -speed[anim], speed[anim] ) * m
-    ts = math.clamp( ts, -speed[anim], speed[anim] ) * m
-
-    if( !jump && key[4] ){ vy = 28; jump = true; } // SPACE KEY
-
-    if( jump ){
-
-        vy-=1;
-        if(vy <= 0 ){ 
-            vy = 0; 
-            if( bob.position.y === oy ) jump = false;
-        }
-            
-        
-        
-    }
-
-    // gravity
-    let g = vy//(-9.81) + vy;
-
-    if(distance > maxY) g -= 9.81
-    //if(up&&!jump) g = -1
-
-
-    tmpV1.set( rs, g, ts ).applyAxisAngle( { x:0, y:1, z:0 }, r );
-    //math.tmpV2.set( 0, rs, 0 );
-    tmpV2.set( 0, 0, 0 );
-
-
-    //phy.update( { name:'bob', linearVelocity: math.tmpV1.toArray(), angularVelocity: math.tmpV2.toArray(), inTime: true, forceWake:true } );
-
-    phy.change({ name:'bob', linearVelocity: tmpV1.toArray(), angularVelocity: tmpV2.toArray(), /*rot:[0,r*math.todeg, 0],*/ wake:true });
-
-    oy = bob.position.y;
+    phy.change({name:'kine', pos:[ px, 1.8, 4 ], rot:[ 0, (px-5)*18, 0 ] });
 
 }

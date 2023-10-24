@@ -1,6 +1,12 @@
 import {
-    MeshPhongMaterial, MeshLambertMaterial, MeshStandardMaterial, MeshPhysicalMaterial, MeshBasicMaterial, LineBasicMaterial, MeshToonMaterial,
-    Matrix4, Euler, Quaternion, Vector3, Vector2, Matrix3, Color, DoubleSide,
+    MeshPhongMaterial, MeshLambertMaterial, MeshStandardMaterial, MeshPhysicalMaterial, MeshBasicMaterial, LineBasicMaterial, MeshToonMaterial, ShadowMaterial,
+    Matrix4, Euler, Quaternion, Vector3, Vector2, Matrix3, Color,
+
+    AdditiveBlending, CustomBlending, NoBlending, NormalBlending, SubtractiveBlending, MultiplyBlending,
+    AddEquation, SubtractEquation, ReverseSubtractEquation, MinEquation, MaxEquation,
+    ZeroFactor, OneFactor, SrcColorFactor, OneMinusSrcColorFactor, SrcAlphaFactor, OneMinusSrcAlphaFactor, DstAlphaFactor, OneMinusDstAlphaFactor, DstColorFactor, OneMinusDstColorFactor, SrcAlphaSaturateFactor,
+    FrontSide, BackSide, DoubleSide,
+
 } from 'three';
 import { CarbonTexture } from '../../3TH/textures/CarbonTexture.js';
 
@@ -30,7 +36,7 @@ export const Colors = {
     body:new Color( 0xefefd4 ),
     sleep:new Color( 0x9FBFBD ),//0xBFBFBD
     solid:new Color( 0x6C6A68 ),
-    base:new Color( 0xFFFFFF ),
+    base:new Color( 0xc9c8c7 ),
     black:new Color( 0x222222 ),
     gold:new Color( 0.944, 0.776, 0.373 ),
     gold2:new Color( 0.998, 0.981, 0.751 ),
@@ -40,7 +46,43 @@ export const Colors = {
     concrete:new Color( 0xa9a9a9 ),
 }
 
+
+
+const ThreeVariable = {
+
+	No: NoBlending,
+	Normal: NormalBlending,
+	Additive: AdditiveBlending,
+	Subtractive: SubtractiveBlending,
+	Multiply: MultiplyBlending,
+
+	Eadd: AddEquation,
+	Esub: SubtractEquation,
+	Erev: ReverseSubtractEquation,
+	Emin: MinEquation,
+	Emaw: MaxEquation,
+
+	Fzero: ZeroFactor,
+	Fone:  OneFactor,
+	Fcolor: SrcColorFactor,
+	Fcolorm: OneMinusSrcColorFactor,
+	Falpha: SrcAlphaFactor,
+	Falpham: OneMinusSrcAlphaFactor,
+	Fdstalpha: DstAlphaFactor,
+	Fdstalpham: OneMinusDstAlphaFactor,
+	Fdstcolor: DstColorFactor,
+	Fdstcolorm: OneMinusDstColorFactor,
+	Falphasaturate: SrcAlphaSaturateFactor, // ! not for destination
+
+	Front: FrontSide,
+	Back: BackSide,
+	Double: DoubleSide,
+
+};
+
 export const Mat = {
+
+	envMapIntensity:1.0,
 
 	extendShader:() =>{},
 
@@ -54,24 +96,32 @@ export const Mat = {
 		let m, beforeCompile = null;
 
 		if( o.isMaterial ){
-			m = o
+			m = o;
 		} else {
 
 			let type = o.type !== undefined ? o.type : 'Standard'
 			if( o.type ) delete o.type
 
 			beforeCompile = o.beforeCompile || null
-		    if( o.beforeCompile ) delete o.beforeCompile
+		    if( o.beforeCompile ) delete o.beforeCompile;
 
-
-			if( o.thickness || o.sheen || o.clearcoat || o.transmission || o.specularColor ) type = 'Physical'
+			if( o.thickness || o.sheen || o.clearcoat || o.transmission || o.specularColor ) type = 'Physical';
 
 			if(o.normalScale){
 				if( !o.normalScale.isVector2 ) o.normalScale = new Vector2().fromArray(o.normalScale)
 			}
 
+		    if( o.side ) o.side = Mat.findValue( o.side );
+		    if( o.blending ) o.blending = Mat.findValue( o.blending );
+		    if( o.blendEquation ) o.blendEquation = Mat.findValue( o.blendEquation );
+		    if( o.blendEquationAlpha ) o.blendEquationAlpha = Mat.findValue( o.blendEquationAlpha );
+		    if( o.blendSrc ) o.blendSrc = Mat.findValue( o.blendSrc );
+		    if( o.blendDst ) o.blendDst = Mat.findValue( o.blendDst );
+		    if( o.blendDstAlpha ) o.blendDstAlpha = Mat.findValue( o.blendDstAlpha );
+		    if( o.blendSrcAlpha ) o.blendSrcAlpha = Mat.findValue( o.blendSrcAlpha );
+
 		    if(o.clearcoatNormalScale){
-				if( !o.clearcoatNormalScale.isVector2 ) o.clearcoatNormalScale = new Vector2().fromArray(o.clearcoatNormalScale)
+				if( !o.clearcoatNormalScale.isVector2 ) o.clearcoatNormalScale = new Vector2().fromArray( o.clearcoatNormalScale )
 			}
 
 		    type = type.toLowerCase();
@@ -92,8 +142,12 @@ export const Mat = {
 				case 'basic': m = new MeshBasicMaterial( o ); break;
 				case 'line': m = new LineBasicMaterial( o ); break;
 				case 'toon': m = new MeshToonMaterial( o ); break;
+				case 'shadow': m = new ShadowMaterial( o ); break;
 				default: m = new MeshStandardMaterial( o ); break;
+
 			}
+
+			Mat.upEnvmapIntensity( m );
 
 		} 
 
@@ -103,10 +157,13 @@ export const Mat = {
 
 	},
 
+	findValue:(v) => ( v === 'string' ? ThreeVariable[ v.charAt(0).toUpperCase() + v.slice(1) ] : v ),
+
 	set:( m, direct, beforeCompile ) => {
 
-		if(!direct) Mat.extendShader( m, beforeCompile )
+		if(!direct) Mat.extendShader( m, beforeCompile );
 		mat[m.name] = m;
+		//Mat.setEnvmapIntensity(m)
 
 	},
 
@@ -116,13 +173,23 @@ export const Mat = {
 
 	},
 
-	setEnvmapIntensity: (v) => { 
-		let m
-		for(let name in mat){
-			m = mat[name]
-			if( !m.userData.envp ) m.userData.envp = m.envMapIntensity
-			m.envMapIntensity = m.userData.envp * v
-		}
+	setEnvmapIntensity: ( v ) => {
+
+		//console.log('set', v)
+
+		if( v === Mat.envMapIntensity ) return;
+		Mat.envMapIntensity = v;
+
+		for( let name in mat ) Mat.upEnvmapIntensity( mat[name] );
+		
+	},
+
+	upEnvmapIntensity: ( m ) => {
+
+		//console.log('HH', m.name, Mat.envMapIntensity)
+
+		if( !m.userData.envp ) m.userData.envp = m.envMapIntensity;
+		m.envMapIntensity = m.userData.envp * Mat.envMapIntensity;
 		
 	},
 	
@@ -130,7 +197,7 @@ export const Mat = {
 
 		let l = {...mat}
 		const ignor = ['line', 'debug', 'hide', 'svg']
-		let i = ignor.length
+		let i = ignor.length;
 		while(i--) delete l[ignor[i]];
 
 		return l
@@ -170,6 +237,7 @@ export const Mat = {
 
 
 				//case 'clear':  m = new MeshStandardMaterial({ color:0xFFFFFF, metalness: 0.5, roughness: 0 }); break
+				//case 'wood':   m = Mat.create({ name:'wood', color:0xe8c2a1, metalness: 0, roughness: 1 }); break
 				
 				//case 'hero':   m = new MeshStandardMaterial({ color:0x00FF88, ...matExtra }); break
 				case 'skinny':   m = Mat.create({ name:'skinny', color:0xe0ac69, ...matExtra }); break
@@ -190,6 +258,8 @@ export const Mat = {
 				//case 'shadows': m = Mat.create({ name:'shadows', type:'Basic', transparent:true, opacity:0.01 }); break
 
 				//case 'simple': m = Mat.create({ name:'simple', type:'basic'  }); break
+
+				case 'shadow': m = Mat.create({ name:'shadow', type:'shadow', color:0x000000, opacity:0.5 }); break
 
 
 				case 'bones':  m = Mat.create({ name:'bones', color:0xfde7d6,  wireframe:true }); break

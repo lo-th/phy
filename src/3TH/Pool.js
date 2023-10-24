@@ -1,5 +1,5 @@
 import {
-    Texture, TextureLoader, SRGBColorSpace, RepeatWrapping, NearestFilter, EquirectangularReflectionMapping, AnimationMixer
+    Texture, TextureLoader, SRGBColorSpace, RepeatWrapping, NearestFilter, EquirectangularReflectionMapping, AnimationMixer, ObjectSpaceNormalMap, 
 } from 'three';
 
 import { GLTFLoader } from '../jsm/loaders/GLTFLoader.js';
@@ -109,7 +109,7 @@ export const Pool = {
             Pool.materialRoot( node, direct )
         }
         if( node.isTexture ) type = 'texture';
-        if( node.isObject3D ) type = 'object3d'
+        if( node.isObject3D ) type = 'object3d';
         
         if( Pool.get( name, type ) ) return
         Pool.data.set( Pool.prefix( type ) + name, node );
@@ -135,17 +135,34 @@ export const Pool = {
     applyMorph( modelName, meshs = null, normal = true, relative = true ){
 
         let model
-        if( modelName.isObject3D ) model = modelName
-        else model = Pool.get( modelName, 'O' )
+        if( modelName.isObject3D ) model = modelName;
+        else model = Pool.get( modelName, 'O' );
 
         if( !meshs ) meshs = Pool.getMesh( modelName );
-        if( !model || !meshs ) return 
-        GlbTool.autoMorph( model, meshs, normal, relative )
+        if( !model || !meshs ) return
+        GlbTool.autoMorph( model, meshs, normal, relative );
 
     },
 
     uv2( model ){
-        GlbTool.uv2( model )
+        GlbTool.uv2( model );
+    },
+
+    symetric( model ){
+        GlbTool.symetric( model );
+    },
+
+    objectSpaceNormal( model ){
+        // glTF currently supports only tangent-space normal maps.
+        // this model has been modified to demonstrate the use of an object-space normal map.
+
+        model.material.normalMapType = ObjectSpaceNormalMap;
+
+        // attribute normals are not required with an object-space normal map. remove them.
+        //model.geometry.deleteAttribute( 'normal' );
+        //model.geometry.deleteAttribute( 'tangent' );
+
+        //console.log(model, model.material)
     },
 
     add: ( name, node, type ) => {
@@ -197,11 +214,14 @@ export const Pool = {
 
     getTexture:( name, o = {} ) => {
 
+        let k = o.quality ? o.quality+'k_' : ''; 
+        name = k + name;
+
         let t = Pool.get( name, 'texture' );
         if(!t){
             let im = Pool.get( name, 'image' )
             if(!im){ 
-                console.log('not find image', name );
+                //console.log('not find image', name );
                 return null
             }
             t = new Texture( im );
@@ -249,7 +269,7 @@ export const Pool = {
 
     ///
 
-    load: ( Urls, Callback, Path = '', msg = '' ) => {
+    load: ( Urls, Callback, Path = '', msg = '', quality = 0 ) => {
 
         Pool.msg = msg;
 
@@ -260,7 +280,7 @@ export const Pool = {
         if ( typeof Urls === 'string' || Urls instanceof String ) urls.push( Urls );
         else urls = urls.concat( Urls );
 
-        Pool.tmp.push( { urls:urls, path:Path, callback:callback, start:start } );
+        Pool.tmp.push( { urls:urls, path:Path, callback:callback, start:start, quality:quality } );
 
         if( !Pool.inLoad ) Pool.loadOne();
 
@@ -274,6 +294,10 @@ export const Pool = {
         let url = Pool.tmp[0].path + Pool.tmp[0].urls[0];
         let name = url.substring( url.lastIndexOf('/')+1, url.lastIndexOf('.') );
         let type = url.substring( url.lastIndexOf('.')+1 ).toLowerCase();
+
+        if( type==='jpg' || type==='png' ) name = (Pool.tmp[0].quality ? Pool.tmp[0].quality+'k_':'') + name;
+
+        //console.log(name)
 
         if( Pool.exist( name, type ) ) Pool.next();
         else Pool.loading( url, name, type );

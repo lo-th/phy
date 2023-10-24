@@ -250,9 +250,14 @@ export class Body extends Item {
 
 		let name = this.setName( o );
 
-		let tt = this.type === 'body' ? Jolt.Dynamic : Jolt.Static;
+		let tt = this.type === 'body' ? ( o.kinematic ? Jolt.Kinematic : Jolt.Dynamic ) : Jolt.Static;
 		let move = this.type === 'body' ? Jolt.MOVING : Jolt.NON_MOVING;
 		let volume = 0;
+
+		if( o.move !== undefined )  move = o.move ? Jolt.MOVING : Jolt.NON_MOVING;
+
+		let pos = this.v.fromArray(o.pos || [0,0,0]);
+		let quat = this.q.fromArray(o.quat || [0,0,0,1]);
 
 		// BodyCreationSettings
 
@@ -286,6 +291,8 @@ export class Body extends Item {
 			break;
 
 			default:
+
+			    if( o.shapeType ) o.type = o.shapeType;
 			    let sp = this.shape( o );
 			    volume = sp.volume;
 			    bcs = new Jolt.BodyCreationSettings( sp, this.v.fromArray(o.pos || [0,0,0]), this.q.fromArray(o.quat || [0,0,0,1]), tt , move );
@@ -302,28 +309,46 @@ export class Body extends Item {
 		bcs.mInertiaMultiplier = 1;
 
 		// mInertia is mat44
-		//if( o.inertia ) bcs.mMassPropertiesOverride.mInertia.hq(x,y,z,w); = o.mass
-	    
+		//if( o.inertia ) bcs.mMassPropertiesOverride.mInertia = this.v.fromArray( o.inertia );
+	    //if( o.inertia ) bcs.mMassPropertiesOverride.mInertia.sTranslation(this.v.fromArray( o.inertia ))
+	    if( o.inertia ) bcs.mMassPropertiesOverride.mInertia.sScale(this.v.fromArray( o.inertia ))
+
         //bcs.mMaxAngularVelocity: 47.1238899230957
 		//bcs.mMaxLinearVelocity: 500
-		//bcs.mGravityFactor: 1
+		if( o.noGravity !== undefined ){ 
+			bcs.mGravityFactor = o.noGravity ? 0:1;
+			bcs.mInertiaMultiplier = o.noGravity ? 0:1;
+		}
 		//bcs.mInertiaMultiplier: 1
 		
-		//if( o.kinematic !== undefined ) bcs.mAllowDynamicOrKinematic(o.kinematic);
-		if( o.sensor !== undefined ) bcs.mIsSensor(o.sensor);
+		if( o.kinematic !== undefined ) bcs.mAllowDynamicOrKinematic = o.kinematic;
+		if( o.sensor !== undefined ) bcs.mIsSensor = o.sensor;
 
-		//console.log( bcs )
+		
+
+		if ( o.damping !== undefined ){ 
+			bcs.mLinearDampin = o.damping[ 0 ];//0
+			bcs.mAngularDamping = o.damping[ 1 ];//0.05
+		}
+
+
+		if( o.kinematic !== undefined ) console.log( bcs )
 
 		// body 
 
 		const b = root.bodyInterface.CreateBody(bcs);
+
+		//if(o.type === 'compound') b.SetUseManifoldReduction(false)
 
 	    b.name = name
 	    b.type = this.type;
 	    b.isKinematic = o.kinematic || false;
 	    b.breakable = o.breakable || false;
 
+	    
+
 	    //console.log( b );
+
 
 		// add to world
 		this.addToWorld( b, o.id );
@@ -331,6 +356,7 @@ export class Body extends Item {
 		delete o.pos;
 		delete o.quat;
 		delete o.kinematic;
+
 		if( !o.friction ) o.friction = 0.5;// default friction to 0.5
 
 		// apply option
@@ -368,14 +394,32 @@ export class Body extends Item {
 	    	//console.log( cg, ff )
 	    }
 
+	    //----------------
+	    //  TYPE
+	    //----------------
+
+	    if( o.kinematic !== undefined && b.type === 'body' ){ 
+	    	if(o.kinematic) b.SetMotionType( Jolt.Kinematic );
+	    	else b.SetMotionType( Jolt.Dynamic );
+	    	b.isKinematic = o.kinematic || false;
+	    } 
+
 	    //console.log( b.GetCollisionGroup().GetGroupFilter() )
 
-
-	    // STATE
+	    //----------------
+	    //  STATE
+	    //----------------
 
 		if( o.sleep ) root.bodyInterface.DeactivateBody(b.GetID());
 		if( o.activate || o.wake ) root.bodyInterface.ActivateBody(b.GetID());
 		if( o.neverSleep !== undefined ) b.SetAllowSleeping( !o.neverSleep );
+
+		if( o.noGravity ) {
+			//console.log(b)
+
+
+			//SetMotionType( b)
+		}
 
 
 		// VELOCITY
@@ -387,9 +431,17 @@ export class Body extends Item {
 		if( o.angularVelocity !== undefined ) b.SetAngularVelocity( this.v.fromArray( o.angularVelocity ) );
 		if( o.angularVelocityClamped !== undefined ) b.SetAngularVelocityClamped( this.v.fromArray( o.angularVelocityClamped ) )
 
+
+		if ( o.angularFactor !== undefined ) b.SetAngularVelocityClamped( this.v.fromArray( MathTool.mulArray([47.12,47.12,47.12], o.angularFactor) ) )
+
+
+		
+
 		if( o.reset ){ 
 			b.SetLinearVelocity( this.v.set( 0, 0, 0) );
-			b.SetAngularVelocity( this.v2.set( 0, 0, 0) );
+			b.SetAngularVelocity( this.v.set( 0, 0, 0) );
+			b.ResetForce();
+			b.ResetTorque();
 		}
 
 		/*if( o.kinematic !== undefined ){
@@ -405,10 +457,23 @@ export class Body extends Item {
 
 	    if( o.pos || o.quat ){
 
+	    	if( b.IsKinematic() ){
+
+	    		let p = o.pos ? this.v.fromArray( o.pos ) : b.GetPosition();
+	    		let q = o.quat ? this.q.fromArray( o.quat ) : b.GetRotation();
+	    	    b.MoveKinematic( p, q, root.deltaTime );
+
+	    	} else {
+
+	    		if( o.pos ) root.bodyInterface.SetPosition( b.GetID(), this.v.fromArray( o.pos ), null );
+		        if( o.quat ) root.bodyInterface.SetRotation( b.GetID(), this.q.fromArray( o.quat ), null );
+
+	    	}
+
 	    	// void MoveKinematic([Const, Ref] Vec3 inPosition, [Const, Ref] Quat inRotation, float inDeltaTime);
 	    	//https://github.com/jrouwe/JoltPhysics.js/blob/0f3538a7a9615cbdbafa452f12997e3ea6a9fd55/JoltJS.idl#L728
 
-	    	if( o.pos ){ 
+	    	/*if( o.pos ){ 
 	    		
 	    		/*if(b.isKinematic){
 
@@ -418,7 +483,7 @@ export class Body extends Item {
 	    			b.pos = o.pos
 	    		}*/
 
-	    		root.bodyInterface.SetPosition( b.GetID(), this.v.fromArray( o.pos ), null );
+	    	/*	root.bodyInterface.SetPosition( b.GetID(), this.v.fromArray( o.pos ), null );
 
 	    	}
 	    	
@@ -434,14 +499,16 @@ export class Body extends Item {
 	    			b.quat = o.quat
 	    		}*/
 
-	    		root.bodyInterface.SetRotation( b.GetID(), this.q.fromArray( o.quat ), null );
+	    	/*	root.bodyInterface.SetRotation( b.GetID(), this.q.fromArray( o.quat ), null );
 
-		    }
+		    }*/
 	    }
 
-	    if( o.impulse ) b.AddImpulse( this.v.fromArray( o.impulse ), this.v2.fromArray( [0,0,0] ) );
+	    //if( o.impulse ) b.AddImpulse( this.v.fromArray( o.impulse ), this.v2.fromArray( [0,0,0] ) );
+	    if( o.impulse ) b.AddImpulse( this.v.fromArray( o.impulse ), o.impulseCenter ? this.v2.fromArray( o.impulseCenter ) : b.GetPosition() );
+	    if( o.angularImpulse ) b.AddAngularImpulse( this.v.fromArray( o.angularImpulse ) );
 	    //if( o.force ) b.AddForce( this.v2.fromArray( [0,0,0] ), this.v.fromArray( o.force ) );
-	    if( o.force ) b.AddForce( this.v.fromArray( o.force ), this.v2.fromArray( [0,0,0] ) );
+	    if( o.force ) b.AddForce( this.v.fromArray( o.force ), o.forceCenter ? this.v2.fromArray( o.forceCenter ) : b.GetPosition() );
 	    
 	    if( o.torque ) b.AddTorque( this.v.fromArray( o.torque ) );
 
@@ -462,3 +529,60 @@ export class Body extends Item {
 	}
 
 }
+
+
+/*
+AddAngularImpulse (a)
+AddForce (a,c)
+AddImpulse (a,c)
+AddTorque (a)
+CanBeKinematicOrDynamic ()
+GetAccumulatedForce ()
+GetAccumulatedTorque ()
+GetAllowSleeping ()
+GetAngularVelocity ()
+GetBodyType ()
+GetCenterOfMassPosition ()
+GetCenterOfMassTransform ()
+GetCollisionGroup ()
+GetFriction ()
+GetID ()
+GetInverseCenterOfMassTransform ()
+GetInverseInertia ()
+GetLinearVelocity ()
+GetMotionProperties ()
+GetMotionType ()
+GetObjectLayer ()
+GetPosition ()
+GetRestitution ()
+GetRotation ()
+GetShape ()
+GetTransformedShape ()
+GetUseManifoldReduction ()
+GetWorldSpaceBounds ()
+GetWorldSpaceSurfaceNormal (a,c)
+GetWorldTransform ()
+IsActive ()
+IsDynamic ()
+IsInBroadPhase ()
+IsKinematic ()
+IsRigidBody ()
+IsSensor ()
+IsSoftBody ()
+IsStatic ()
+MoveKinematic (a,c,e)
+ResetForce ()
+ResetTorque ()
+SensorDetectsStatic ()
+SetAllowSleeping (a)
+SetAngularVelocity (a)
+SetAngularVelocityClamped (a)
+SetFriction (a)
+SetIsSensor (a)
+SetLinearVelocity (a)
+SetLinearVelocityClamped (a)
+SetMotionType (a)
+SetRestitution (a)
+SetSensorDetectsStatic (a)
+SetUseManifoldReduction (a)
+*/

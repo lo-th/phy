@@ -1,6 +1,6 @@
 
 
-import {
+/*import {
 	Object3D, Group, Mesh, SkinnedMesh, Texture,
     Matrix4, Quaternion, Euler, Vector3, Vector2,
     SphereGeometry, SkeletonHelper,
@@ -12,7 +12,7 @@ import {
     CustomBlending,
     ZeroFactor,
     SrcAlphaFactor,
-} from 'three';
+} from 'three';*/
 import { Pool } from '../Pool.js';
 
 const setting = {

@@ -300,13 +300,13 @@ export const Gui = {
 			renderer.toneMapping  = toneMappingOptions[ options.tone ]
 		})
 
-		ui.add( options, 'legacy',  { type:'bool' }).onChange( function(v){ renderer.useLegacyLights  = v })
+		//ui.add( options, 'legacy',  { type:'bool' }).onChange( function(v){ renderer.useLegacyLights  = v })
 
 		ui.add( options, 'shadow', { min:0, max:1, mode:mode, color:'#8ff' } ).onChange( Main.setShadow )//.listen()
 		ui.add( options, 'reflect', { min:0, max:1, mode:mode, color:'#8ff' } ).onChange( Main.setReflect )//.listen()
 
 
-		ui.add( options, 'light_1', { rename:'Light Direct', min:0, max:10, mode:mode, color:'#ff0' } ).onChange( Main.lightIntensity )
+		ui.add( options, 'light_1', { rename:'Light Direct', min:0, max:30, mode:mode, color:'#ff0' } ).onChange( Main.lightIntensity )
 		ui.add( options, 'light_2', { rename:'Light Sphere', min:0, max:10, mode:mode, color:'#ff0' } ).onChange( Main.lightIntensity )
 		ui.add( options, 'envPower', { min:0, max:3, mode:mode, color:'#ff0' } ).onChange( Main.envmapIntensity )
 		ui.add( options, 'envBlur', { min:0, max:1, mode:mode, color:'#ff0' } ).onChange( Main.setBlur )
@@ -315,11 +315,13 @@ export const Gui = {
 
 
 
-		const hub3d = Main.getHub3d()
+		const hub3d = Main.getHub3d();
 		if(hub3d){
-			ui.add( hub3d, 'offset', { min:0, max:2, mode:mode, color:'#8ff' } )
-			ui.add( hub3d, 'darkness', { min:0, max:1, mode:mode, color:'#8ff' } )
-			ui.add( hub3d, 'color', { type:'color' } ).listen()
+			let g0 = ui.add('group', { name:'VIGNETTE', open:true })
+			g0.add( hub3d, 'grain', { min:0, max:0.5, mode:mode, color:'#8ff' } )
+			g0.add( hub3d, 'offset', { min:0, max:2, mode:mode, color:'#8ff' } )
+			g0.add( hub3d, 'darkness', { min:0, max:1, mode:mode, color:'#8ff' } )
+			g0.add( hub3d, 'color', { type:'color' } ).listen()
 		}
 
 		

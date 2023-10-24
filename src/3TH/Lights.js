@@ -23,13 +23,18 @@ export class Lights {
     	let move = false;
 
     	if(o.sunIntensity){
-    		if( LL.sun ) LL.sun.intensity = o.sunIntensity*0.3;
-    		if( LL.sun2 ) LL.sun2.intensity = o.sunIntensity*0.7;
+
+    		if( LL.sun && LL.sun2){
+    			LL.sun.intensity = o.sunIntensity*0.3;
+    			if( LL.sun2 ) LL.sun2.intensity = o.sunIntensity*0.7;
+    		} else {
+    			LL.sun.intensity = o.sunIntensity;
+    		}
+    		
     	}
 
-    	if(o.hemiIntensity){
-    		if( LL.hemi ) LL.hemi.intensity = o.hemiIntensity*0.7;
-    	}
+    	
+    	
 
     	if(o.sunPos){
     		if( LL.sun ){ 
@@ -53,6 +58,7 @@ export class Lights {
     	}
 
     	if( LL.hemi ){
+    		if(o.hemiIntensity) LL.hemi.intensity = o.hemiIntensity*0.7;
     		if(o.skyColor) Lights.setColor(LL.hemi.color, o.skyColor );
     		if(o.groundColor) Lights.setColor(LL.hemi.groundColor, o.groundColor );
     		move = true;

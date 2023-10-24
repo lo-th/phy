@@ -47,12 +47,13 @@ class Basic3D extends EventDispatcher {
 		this.type = 'Object3D';
 
 		this.children = []
-		this.parent = null
+		this.parent = null;
 		
 		
-		this.position = new Vector3()
-		this.quaternion = new Quaternion()
-		this.scale = new Vector3( 1, 1, 1 )
+		this.position = new Vector3();
+		this.quaternion = new Quaternion();
+		this.tmpRotation = new Euler();
+		this.scale = new Vector3( 1, 1, 1 );
 
 		this.isKinematic = false;
 		
@@ -73,13 +74,17 @@ class Basic3D extends EventDispatcher {
 
 		this.userData = {};
 
+		this.mass = 0;
+		this.density = 0;
+
 		
 		this.shapetype = 'box'
 		this.size = [1,1,1]
 		//this.data = {}
 		//this._size = new Vector3(1,1,1)
-		this.velocity = new Vector3()
-		this.angular = new Vector3()
+		this.velocity = new Vector3();
+		this.angular = new Vector3();
+		
 		this.defMat = false;
 		this.actif = false;
 		this.auto = false;
@@ -147,6 +152,15 @@ class Basic3D extends EventDispatcher {
 		const children = this.children;
 		if( this.children[0] ) return this.children[0].material;
 		else return null
+	}
+
+    set rotation( v ){
+    	this.tmpRotation = v;
+		quaternion.setFromEuler( this.tmpRotation, false )
+	}
+
+	get rotation(){
+		return this.tmpRotation.setFromQuaternion( this.quaternion, undefined, false );
 	}
 
     //////

@@ -446,7 +446,7 @@ export class Reflector extends Mesh {
 
 	setColor ( v, srgb ) {
 
-		//console.log('setColor', v)
+		
 
 		//return;
 		this.color = v !== undefined ? v : 0xa87232

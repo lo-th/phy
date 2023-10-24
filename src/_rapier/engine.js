@@ -1,13 +1,12 @@
 import { root, Utils, Vec3 } from './root.js';
-import { getType, getArray } from '../core/Config.js';
+import { Num, getType, getArray } from '../core/Config.js';
 
 import { Ray } from './Ray.js';
 import { Body } from './Body.js';
 import { Joint } from './Joint.js';
 import { Contact } from './Contact.js';
-import { Character } from './Character.js';
+//import { Character } from './Character.js';
 
-//import RAPIER from '../libs/rapier3d-compat.js';
 import RAPIER from '../libs_physics/X_Rapier.js';
 //import RAPIER from 'https://cdn.skypack.dev/@dimforge/rapier3d-compat';
 
@@ -17,6 +16,7 @@ import RAPIER from '../libs_physics/X_Rapier.js';
 * @author lo.th / https://github.com/lo-th
 *
 *    RAPIER ENGINE
+*    https://rapier.rs/
 */
 
 self.onmessage = function ( m ) { engine.message( m ) };
@@ -77,29 +77,21 @@ export class engine {
 
 		if( o.message ){ 
 			returnMessage = o.message;
-			isWorker = false
-			isBuffer = false
+			isWorker = false;
+			isBuffer = false;
 		}
 
 		//if( o.blob ) importScripts( o.blob )
 
 		RAPIER.init().then( () => {
 
-			self.RAPIER = RAPIER
+			self.RAPIER = RAPIER;
 
-			//Utils.extends()
-
-			engine.initItems()
-			engine.post( { m:'ready', o:{} } )
+			engine.initItems();
+			engine.post( { m:'ready', o:{} } );
 
 
 		})
-
-		
-
-		//engine.initItems()
-
-		//engine.post( { m:'ready', o:{} } );
 
 	}
 
@@ -356,15 +348,29 @@ export class engine {
 
 
 //--------------
-//
 //  SOLID ONLY 
-//
 //--------------
 
 class Solid extends Body {
 	constructor () {
-		super()
-		this.type = 'solid'
+		super();
+		this.type = 'solid';
+		this.num = 0;
 	}
-	step ( AR, N ) {}
+	step () {}
+}
+
+//--------------
+//  CHARATER
+//--------------
+
+class Character extends Body {
+
+	constructor () {
+		super();
+		this.itype = 'character';
+		this.num = Num['character'];
+		this.full = true;
+	}
+
 }

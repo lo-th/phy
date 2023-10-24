@@ -143,10 +143,9 @@ export class Body extends Item {
         }
         
         // The coefficient of restitution of the shape. def = 0
-        if( o.restitution !== undefined ) g.setRestitution( o.restitution )
-
-        if( o.sensor !== undefined ) g.setSensor( o.sensor )
-        if( o.isTrigger !== undefined ) g.setSensor( o.isTrigger )
+        if( o.restitution !== undefined ) g.setRestitution( o.restitution );
+        if( o.sensor !== undefined ) g.setSensor( o.sensor );
+        if( o.isTrigger !== undefined ) g.setSensor( o.isTrigger );
 
 
         // https://rapier.rs/docs/user_guides/javascript/colliders
@@ -259,6 +258,7 @@ export class Body extends Item {
 			break;
 			default:
 
+			    if( o.shapeType ) o.type = o.shapeType;
 			    collider = root.world.createCollider( this.shape( o ), b );
 			    mapCollider.set( collider.handle, collider )
 
@@ -266,18 +266,18 @@ export class Body extends Item {
 
 		}
 
-		b.name = name
-		b.type = this.type
-		b.first = true
+		b.name = name;
+		b.type = this.type;
+		b.first = true;
 
-		b.collid = collider
+		b.collid = collider;
 
-		b.isSensor = o.isTrigger ? o.isTrigger : false
-		b.isKinematic = o.kinematic || false
+		b.isSensor = o.isTrigger ? o.isTrigger : false;
+		b.isKinematic = o.kinematic || false;
 
 		if( o.kinematic ){ 
-			b.pos = o.pos || [0,0,0]
-			b.quat = o.quat || [0,0,0,1]
+			b.pos = o.pos || [0,0,0];
+			b.quat = o.quat || [0,0,0,1];
 		}
 
 
@@ -286,6 +286,7 @@ export class Body extends Item {
 		this.addToWorld( b, o.id )
 
 		//console.log(b)
+		//console.log( b.name, b.mass() )
 
 		// apply option
 		this.set( o, b )

@@ -2,7 +2,7 @@
 import * as CANNON from '../libs/cannon-es.js'
 
 import { root, Utils, Vec3, Quat } from './root.js';
-import { getType, getArray } from '../core/Config.js';
+import { Num, getType, getArray } from '../core/Config.js';
 
 import { Body } from './Body.js';
 import { Joint } from './Joint.js';
@@ -368,15 +368,29 @@ export class engine {
 
 
 //--------------
-//
 //  SOLID ONLY 
-//
 //--------------
 
 class Solid extends Body {
 	constructor () {
-		super()
-		this.type = 'solid'
+		super();
+		this.type = 'solid';
+		this.num = 0;
 	}
-	step ( AR, N ) {}
+	step () {}
+}
+
+//--------------
+//  CHARATER
+//--------------
+
+class Character extends Body {
+
+	constructor () {
+		super();
+		this.itype = 'character';
+		this.num = Num['character'];
+		this.full = true;
+	}
+
 }

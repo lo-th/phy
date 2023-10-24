@@ -140,9 +140,6 @@ export class Ray extends Item {
 		let name = this.setName( o );
 		let r = new ExtraRay( o ); 
 
-		// apply option
-		//this.set( o, r );
-
 		// add to world
 		this.addToWorld( r, o.id );
 
@@ -174,15 +171,13 @@ export class ExtraRay {
 
 	    this.selfHit = o.selfHit || false;
 
-	    this.begin = o.begin || [0,0,0]
-	    this.end = o.end || [0,0,1]
-
-	    //this.ray = new Jolt.RayCast();
-	    //console.log(this.ray)
+	    this.begin = o.begin || [0,0,0];
+	    this.end = o.end || [0,0,1];
 
 	}
 
 	getPoint(){
+
 		if( this.parent ){
 			const b = Utils.byName( this.parent );
 			if(b){
@@ -192,10 +187,10 @@ export class ExtraRay {
 				    MathTool.applyTransformArray( this.begin, p, q ),
 				    MathTool.applyTransformArray( this.end, p, q )
 				]
-
 			} 
 		}
-		return [ this.begin, this.end ]
+		return [ this.begin, this.end ];
+
 	}
 
 }

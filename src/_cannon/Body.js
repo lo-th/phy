@@ -207,11 +207,12 @@ export class Body extends Item {
 			break;
 			default:
 
-			   g = this.shape( o );
-			   g.localPos = new Vec3().fromArray(o.localPos||[0,0,0])
-			   g.localQuat = new Quat().fromArray(o.localQuat||[0,0,0,1])
-			   volume += g.volumes
-			   gs.push( g )
+			    if( o.shapeType ) o.type = o.shapeType;
+			    g = this.shape( o );
+			    g.localPos = new Vec3().fromArray(o.localPos||[0,0,0])
+			    g.localQuat = new Quat().fromArray(o.localQuat||[0,0,0,1])
+			    volume += g.volumes
+			    gs.push( g )
 
 			break;
 

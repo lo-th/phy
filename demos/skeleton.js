@@ -1,10 +1,10 @@
 let avatar, eva, bb, ba, bc
 let mode = 'follow'
-let type = 'lee'
+let type = 'hero'
 let debug = false
 
-let modelList = ['hero', 'eva', 'lee']
-let listN = modelList.indexOf( type )
+let modelList = ['hero', 'eva', 'lee', 'simple'];
+let listN = modelList.indexOf( type );
 
 demo = () => {
 
@@ -53,6 +53,7 @@ const addModel = ( type ) => {
 	switch(type){
 		case 'eva': gender = 'eva0'+n; break
 		case 'hero': gender = n === 1 ? 'woman' : 'man'; break
+		case 'simple': gender = n === 1 ? 'woman_low' : 'man_low'; break
 	}
 
     avatar = phy.add({ 

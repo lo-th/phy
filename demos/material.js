@@ -62,6 +62,17 @@ onComplete = () => {
         yn++
     }
 
-    
+    phy.load(['./assets/models/color.glb'], onComplete2 );
+
+}
+
+onComplete2 = () => {
+
+    const models = phy.getMesh('color')
+    let m = models.Palette;
+    m.scale.set(1,1,1)
+    m.position.set(0,0.256,1.2)
+    //m.rotation.y = Math.PI
+    phy.add(m)
 
 }

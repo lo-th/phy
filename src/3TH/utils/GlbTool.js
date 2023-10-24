@@ -96,6 +96,8 @@ export const GlbTool = {
 
     symetric: ( g ) => {
 
+        //console.log(g)
+
 		if( g.isMesh ) g = g.geometry;
 
         let uv = g.attributes.uv.array;
@@ -109,6 +111,7 @@ export const GlbTool = {
     },
 
     uv2: ( g ) => {
+
 
 		if( g.isMesh ) g = g.geometry;
         g.setAttribute( 'uv2', g.attributes.uv );

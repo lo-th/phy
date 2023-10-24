@@ -1,11 +1,11 @@
 import { root, Utils, World, Vec3, Quat } from './root.js';
-import { getType, getArray } from '../core/Config.js';
+import { Num, getType, getArray } from '../core/Config.js';
 
 import { Ray } from './Ray.js';
 import { Body } from './Body.js';
 import { Joint } from './Joint.js';
 import { Contact } from './Contact.js';
-import { Character } from './Character.js';
+//import { Character } from './Character.js';
 
 /** __
 *    _)_|_|_
@@ -339,15 +339,29 @@ export class engine {
 
 
 //--------------
-//
 //  SOLID ONLY 
-//
 //--------------
 
 class Solid extends Body {
 	constructor () {
-		super()
-		this.type = 'solid'
+		super();
+		this.type = 'solid';
+		this.num = 0;
 	}
-	step ( AR, N ) {}
+	step () {}
+}
+
+//--------------
+//  CHARATER
+//--------------
+
+class Character extends Body {
+
+	constructor () {
+		super();
+		this.itype = 'character';
+		this.num = Num['character'];
+		this.full = true;
+	}
+
 }

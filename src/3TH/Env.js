@@ -9,11 +9,8 @@ import {
 
 import { RGBELoader } from '../jsm/loaders/RGBELoader.js';
 import { EXRLoader } from '../jsm/loaders/EXRLoader.js';
-import { GroundProjectedEnv } from '../jsm/objects/GroundProjectedEnv.js';
+import { GroundProjectedSkybox } from '../jsm/objects/GroundProjectedSkybox.js';
 import { ImgTool } from './utils/ImgTool.js';
-//import { math } from './math.js';
-//import { Hub } from './Hub.js'
-//import { Main } from '../Main.js'
 
 //import { texture, equirectUV } from 'three/nodes';
 import { Lights } from './Lights.js';
@@ -23,51 +20,55 @@ const autoSize = 0.25
 
 const useHalfFloat = true
 
-let gamma = 2.2
-let envName = ''
+let gamma = 2.2;
+let envName = '';
+let autosun = true;
+let usePmrem = true;
+let isWebGPU = false;
 
-let usePmrem = true
-let isWebGPU = false
-let autosun = true
+let skybox = null;
+let needSkybox = false;
 
-let sunColor = new Color()
-let fogColor = new Color()
-let skyColor = new Color()
-let groundColor = new Color()
 
-let previewCanvas = null
-let previewPalette = null
-let isPreviewDisplay = false
-let isPaletteDisplay = false
-let previewData = null
+let sunColor = new Color();
+let fogColor = new Color();
+let skyColor = new Color();
+let groundColor = new Color();
 
-let pm = null
-let env = null
-let hdr = null
-let pmrem = null
+let previewCanvas = null;
+let previewPalette = null;
+let isPreviewDisplay = false;
+let isPaletteDisplay = false;
+let previewData = null;
+
+let pm = null;
+let env = null;
+let hdr = null;
+let pmrem = null;
 let floor = null;
 let data = {};
 let palette = {};
 let color =  new Color();
 let scene = null, renderer = null;
 
-const s1 = new Spherical()
-const s2 = new Spherical()
+const s1 = new Spherical();
+const s2 = new Spherical();
 
-const tmpV = new Vector3()
+const tmpV = new Vector3();
 
-let cc = new Color()
-let cc2 = new Color()
-let cc3 = new Color()
+let cc = new Color();
+let cc2 = new Color();
+let cc3 = new Color();
 
-let tt = 0
+let tt = 0;
 
 const tmpSize = new Vector2()
 const hdrLoader = new RGBELoader();
 const exrLoader = new EXRLoader();
 
-let hdrTool = null
-let useHdrTool = false
+let hdrTool = null;
+let useHdrTool = false;
+let backIsColor = false;
 
 let main = null
 
@@ -89,22 +90,48 @@ export class Env {
 	    if( scene.background && scene.background.dispose ){ scene.background.dispose(); }
 	    if( scene.environment && scene.environment.dispose ){ scene.environment.dispose(); }
 
-	    scene.background = null
-		scene.environment = null
+	    scene.background = null;
+		scene.environment = null;
+		backIsColor = false;
 	    
-	    this.clearTargetRender()
+	    this.clearTargetRender();
 
-		if( env ) env.dispose()
-		if( hdr ) hdr.dispose()
-		if( pm ) pm.dispose()
-		//
+	    if(skybox) Env.clearProject();
 
-	//console.log(renderer)
+		if( env ) env.dispose();
+		if( hdr ) hdr.dispose();
+		if( pm ) pm.dispose();
 		
-		env = null
-		hdr = null
+		env = null;
+		hdr = null;
 
-		//renderer.dispose()
+	}
+
+	static clearProject () {
+
+		if(!skybox) return
+
+		//needSkybox = false;
+
+		scene.remove( skybox );
+		//skybox.material.map.dispose()
+		skybox.geometry.dispose()
+	    skybox = null;
+
+	}
+
+	static project ( radius = 500, height = 100 ) {
+
+		needSkybox = true;
+		if(!hdr) return;
+		if(skybox) Env.clearProject();
+
+		skybox = new GroundProjectedSkybox( hdr );
+		skybox.scale.setScalar( 100 );
+		scene.add( skybox );
+
+		skybox.radius = radius;// 200 / 600
+		skybox.height = height;// 20 / 50
 
 	}
 
@@ -125,8 +152,8 @@ export class Env {
     			callback()
     		}
 		} else if (!isNaN(value)){
-			this.setBackgroud( value )
-			callback()
+			this.setBackgroud( value );
+			callback();
 		}
 
     }
@@ -171,9 +198,13 @@ export class Env {
 
     static setBackgroud ( c ) {
 
-		//if( c !== undefined ) renderer.setClearColor ( color.setHex(c) ) //
-		if( c !== undefined ) scene.background = color.setHex(c);
-		else scene.background = env
+		if( c !== undefined ){ 
+			backIsColor = true;
+			scene.background = color.setHex(c);
+		} else{ 
+			backIsColor = false;
+			scene.background = env;
+		}
 
 	}
 
@@ -240,11 +271,13 @@ export class Env {
 			scene.environment = env;
 			if( floor ) floor.map = env;
 			else {
-				scene.background = env;
-
+				if( backIsColor ) scene.background = color;
+				else scene.background = env;
 			}
 			
 		}
+
+		if(needSkybox) Env.project()
 
 		// autosun
 		tt = 0

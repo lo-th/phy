@@ -1,5 +1,5 @@
 import { root, Utils } from './root.js';
-import { getType, getArray } from '../core/Config.js';
+import { Num, getType, getArray } from '../core/Config.js';
 
 import { Ray } from './Ray.js';
 import { Body } from './Body.js';
@@ -7,20 +7,8 @@ import { Joint } from './Joint.js';
 import { Contact } from './Contact.js';
 import { Vehicle } from './Vehicle.js';
 import { Terrain } from './Terrain.js';
-import { Character } from './Character.js';
 
 import initAmmo from '../libs_physics/X_Ammo.js';
-
-//let Ammo = await import("../../build/ammo3.wasm.js");
-//import '../../build/ammo3.wasm.js';
-//import * as ammo from '../../build/ammo3.wasm.js';
-//const ammo = await import("../../build/ammo3.wasm.js");
-//const Ammo = await ammo.Ammo();//.bind(window)();
-//import { Ammo } from '../../build/ammo3.wasm.js';
-//
-
-//import ammo from "../../build/ammo3.wasm.js";
-//const Ammo = await ammo.bind(window)();
 
 /** __
 *    _)_|_|_
@@ -106,10 +94,10 @@ export class engine {
 
 			self.Ammo = Ammo;
 
-			Utils.extends()
-			engine.initItems()
+			Utils.extends();
+			engine.initItems();
 
-			engine.post( { m:'ready', o:{} } )
+			engine.post( { m:'ready', o:{} } );
 
 		})
 
@@ -542,15 +530,29 @@ export class engine {
 
 
 //--------------
-//
 //  SOLID ONLY 
-//
 //--------------
 
 class Solid extends Body {
 	constructor () {
-		super()
-		this.type = 'solid'
+		super();
+		this.type = 'solid';
+		this.num = 0;
 	}
 	step () {}
+}
+
+//--------------
+//  CHARATER
+//--------------
+
+class Character extends Body {
+
+	constructor () {
+		super();
+		this.itype = 'character';
+		this.num = Num['character'];
+		this.full = true;
+	}
+
 }

@@ -109,6 +109,8 @@ const setting = {
 
 }
 
+const highShadow = false;
+
 const options = {
 
 	key: false,
@@ -124,18 +126,18 @@ const options = {
 
 	tone:'ACESFilmic',
 	exposure: 1,
-	envPower: 1,
+	envPower: 1,//1
 	envBlur:0,
 	legacy:false,
 
-	light_1: 2.5,
+	light_1: 3.14,
 	light_2: 1,
 
 	show_light: false,
 	show_stat: false,
 
 	shadow:0.5,//0.25,
-	shadowType:'PCSS',
+	shadowType: highShadow ? 'PCSS':'PCFSoft',
 	shadowGamma:1,//0.25,//1,
 	shadowLuma:0.5, //0.75,//0,
     shadowContrast:2,//2.5,//1,
@@ -152,6 +154,8 @@ const options = {
     composer:false,
 
 }
+
+
 
 let hub3d = null
 let renderStart = false
@@ -178,7 +182,7 @@ const toneMappingOptions = {
 }
 
 const shadowMapType = {
-	PCSS: THREE.BasicShadowMap,
+	PCSS: THREE.BasicShadowMap, // remplace by super soft
 	PCF: THREE.PCFShadowMap,
 	PCFSoft: THREE.PCFSoftShadowMap,
 	VSM: THREE.VSMShadowMap
@@ -444,7 +448,8 @@ const init = () => {
 	//renderer.outputColorSpace = THREE.sRGBEncoding
 	//renderer.outputColorSpace = THREE.SRGBColorSpace;
 	renderer.toneMapping = toneMappingOptions[options.tone]
-	renderer.toneMappingExposure = options.exposure//Math.pow( options.exposure, 5.0 );//
+	renderer.toneMappingExposure = options.exposure;
+	//console.log(renderer.useLegacyLights)
 	//renderer.useLegacyLights = options.legacy;
 
 	if( options.mode !== 'LOW' ) Motor.setMaxAnisotropy( renderer.capabilities.getMaxAnisotropy() );
@@ -638,36 +643,37 @@ const addLight = () => {
 
 	let s 
 
-	
 	Lights.add({ 
 		type:'direct', name:'sun',
-		intensity:options.mode !== 'LOW' ? options.light_1*0.3 : options.light_1, distance:20, parent:followGroup,
-	    shadow:{ range:40, near:5, far:40, bias:!isWebGPU ? -0.005 : 0.005, radius:4, quality: 1024 * options.quality }
+		//intensity:options.mode !== 'LOW' ? options.light_1*0.3 : options.light_1, 
+		intensity:options.light_1,
+		distance:20, parent:followGroup,
+	    shadow:{ range:30, near:5, far:50, bias:!isWebGPU ? -0.0005 : 0.0005, radius:4, quality: 1024 * options.quality }
 	})
 
 
 	/////
 	if( options.mode !== 'LOW' ){
-		Lights.add({ 
+		/*Lights.add({ 
 		    type:'direct', name:'sun2',
 		    intensity:options.light_1*0.7, distance:6, parent:followGroup,
 	        shadow:{ range:4, near:1, far:20, bias:-0.0005, radius:4, quality: 1024 * options.quality },
-		})
+		})*/
 	}
 
 	/////
 
 	/*Lights.add({ 
-	    type:'direct', name:'sun2',
-	    intensity:options.light_1*0.3, distance:10, parent:followGroup,
-	    shadow:{ range:20, near:1, far:20, bias:-0.0005, radius:1, quality: 2048 * options.quality }
+	    type:'direct', name:'moon',
+	    intensity:options.light_2, distance:10, parent:followGroup,
+	   // shadow:{ range:20, near:1, far:20, bias:-0.0005, radius:1, quality: 2048 * options.quality }
 	})*/
 
 	if( !isWebGPU ){	
 		/*Lights.add({ 
 			type:'hemi', name:'hemi',
 			intensity:options.light_2, 
-			pos:[0,3,0], 
+			pos:[0,1,0], 
 			parent:followGroup 
 		})*/
 	}
@@ -815,7 +821,10 @@ const addGround = ( o ) => {
     ground.setSize( o.groundSize )
     ground.position.fromArray( o.groundPos )
 
-    if( o.groundColor ) ground.setColor( o.groundColor )
+    if( o.groundColor !== undefined ){ 
+    	ground.setColor( o.groundColor );
+    	groundAutoColor = false;
+    }
     else ground.setColor( groundColor )
 
 	ground.setAlphaMap( o.groundAlpha )
@@ -1157,6 +1166,8 @@ const view = ( o = {} ) => {
 		setEnv( o.envmap, true )
 		options.envBlur = o.envblur || 0
 		Env.setBlur( options.envBlur )
+		if( o.background ) Env.setBackgroud( o.background );
+		if( o.envFloor ) Env.project( o.background );
 	}
 
 	setShadow( o.shadow )
@@ -1184,6 +1195,9 @@ const view = ( o = {} ) => {
 	if( isLoadCode ) setCamera( o )
 
 	Shader.up( options )
+
+    if( o.envPower ) options.envPower = o.envPower;
+    setEnvmapIntensity();
 	
 }
 
@@ -1301,7 +1315,7 @@ const send = ( data ) => {
 //   OPTION
 //--------------------
 
-const setEnvmapIntensity = ( v ) => {
+const setEnvmapIntensity = () => {
 
 	Motor.setEnvmapIntensity( options.envPower )
 

@@ -81,7 +81,7 @@ export class Shader {
 	static init ( o = {} ) {
 
         const fogtest = true
-        const activeShadowPCSS = true
+        const activeShadowPCSS = o.shadowType === 'PCSS';
 
         // Set CustomToneMapping to Uncharted2
         // source: http://filmicworlds.com/blog/filmic-tonemapping-operators/
@@ -98,7 +98,8 @@ export class Shader {
 
         
 
-        //mode = o.mode
+        // native three
+        if(!activeShadowPCSS) return
 
         //if( mode === 'LOW' ) return
 
@@ -388,7 +389,7 @@ export class Shader {
         ShaderChunk.color_vertex = s;
 
 
-        isInit = true
+        isInit = true;
 
 
 

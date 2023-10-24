@@ -309,7 +309,8 @@ export class Body extends Item {
 
 			break;
 			default:
-
+			
+			    if( o.shapeType ) o.type = o.shapeType;
 			    b.addShape( this.shape( o ) );
 
 			break;

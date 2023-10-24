@@ -11,7 +11,7 @@ import {
     ZeroFactor,//, OneFactor, SrcColorFactor, OneMinusSrcColorFactor, 
     SrcAlphaFactor,
     AnimationUtils,
-
+    AdditiveAnimationBlendMode, NormalAnimationBlendMode,
 } from 'three';
 
 import { GLTFExporter } from '../../jsm/exporters/GLTFExporter.js';
@@ -28,8 +28,10 @@ import { ExoSkeleton } from './ExoSkeleton.js';
 
 // ready model
 import { Human } from './Human.js';
+import { Simple } from './Simple.js';
 import { Eva } from './Eva.js';
 import { Lee } from './Lee.js';
+
 
 /** __
 *    _)_|_|_
@@ -44,6 +46,49 @@ const TimeFrame = 1/30;
 const torad = Math.PI / 180;
 const todeg = 180 / Math.PI;
 const V = new Vector3();
+
+const list = [ 'lee', 'man', 'woman', 'man_low', 'woman_low', 'eva00', 'eva01', 'eva02' ];
+
+
+export const preloadAvatar = {
+
+    tmp:[],
+    model:[],
+    avatar:null,
+    callback:() => {},
+
+    add:( names, callback ) => {
+
+        preloadAvatar.tmp = [...names];
+        preloadAvatar.callback = callback;
+
+        if(preloadAvatar.tmp.length){
+            preloadAvatar.loadOne()
+        }
+
+    },
+
+    loadOne:() => {
+
+        let name = preloadAvatar.tmp[0]
+        preloadAvatar.avatar = new Avatar({ type:name, callback:preloadAvatar.next, morph:true });
+
+    },
+
+    next:( name ) => {
+        
+        preloadAvatar.avatar.dispose();
+
+        preloadAvatar.tmp.shift();
+        if( preloadAvatar.tmp.length === 0 ){
+            preloadAvatar.callback()
+        }else{
+            preloadAvatar.loadOne()
+        }
+
+    }
+
+}
 
 export class Avatar extends Group {
 
@@ -62,16 +107,21 @@ export class Avatar extends Group {
         this.matrixAutoUpdate = false;
         this.isPause = true;
 
-        this.textureQuality = o.quality || 1;
+        //this.textureQuality = o.quality || 1;
+
+        this.randomMorph = o.randomMorph || false;
 
         this.model = o.type || 'man';
         this.startAnimation = o.anim || 'idle';
 
         this.ref = null;
 
+
+
         switch( this.model ){
             case 'lee': this.ref = Lee; break;
             case 'man': case 'woman': this.ref = Human; break;
+            case 'man_low': case 'woman_low': this.ref = Simple; break;
             case 'eva00': case 'eva01': case 'eva02': this.ref = Eva; break;
         }
 
@@ -82,8 +132,12 @@ export class Avatar extends Group {
 
         this.size = o.size || 1;
 
-        this.fullMorph = this.ref.fullMorph;
-        
+
+        this.fullMorph = this.ref.fullMorph || [];
+        if(this.randomMorph && this.fullMorph.length ) this.haveMorph = true;
+
+        this.textureQuality = this.ref.textureQuality || 0;
+
 
         this.skeleton = null;
         //this.root = null;
@@ -95,6 +149,10 @@ export class Avatar extends Group {
         
         this.isBreath = this.ref.isBreath || false;
         this.isEyeMove = this.ref.isEyeMove || false;
+        this.haveBlink = this.ref.haveBlink || false;
+
+        this.haveLOD = this.ref.haveLOD || false;
+        this.lod = -1;
 
         this.decalY = this.ref.decalY || 0;
 
@@ -142,11 +200,16 @@ export class Avatar extends Group {
 
     load(){
 
-        this.skin = Pool.getTexture(this.ref.textureRef);
+        if( !this.ref.textures || !this.ref.textures.length ){ 
+            this.loadModels();
+            return
+        }
+
+        this.skin = Pool.getTexture( this.ref.textureRef, {quality:this.textureQuality } );
         if( !this.skin ){
 
-            const path = this.rootPath + this.ref.texturePath + (this.ref.haveQuality ? this.textureQuality + 'k/' : '');
-            Pool.load( this.ref.textures, this.loadModels.bind(this), path, 'loading images...' );
+            const path = this.rootPath + this.ref.texturePath + ( this.textureQuality ? this.textureQuality + 'k/' : '' );
+            Pool.load( this.ref.textures, this.loadModels.bind(this), path, 'loading images...', this.textureQuality );
 
         } else {
 
@@ -174,13 +237,10 @@ export class Avatar extends Group {
             this.mixer.update( delta );
 
             // blink
-            const n = this.n;
-            if( n<=20) this.eyeControl((n*0.05));
-            if( n>10 && n<=40 ) this.eyeControl(1-((n-20)*0.05));
-            this.n ++;
-            if( this.n===1000 ) this.n = 0;
+            if( this.haveBlink ) this.eyeBlink();
+            
 
-            if( !this.isClone ){ 
+            if( !this.isClone ){
                 this.look( delta*10 );
                 this.breathing();
                 this.autoToes();
@@ -205,6 +265,23 @@ export class Avatar extends Group {
             }
         }
 
+    }
+
+    eyeBlink(){
+
+        const n = this.n++ 
+        let v = 0;
+        let t = 10;
+        let s = 1/t;
+
+        if( n<=t) v = n*s;
+        if( n>t && n<=t*2 ) v = 1-((n-t)*s);
+
+        
+        if( this.n>500 ){ this.n = 0;}
+
+        this.setMorph( 'EyeBlink', v );
+    
     }
 
     look( delta ){
@@ -297,8 +374,9 @@ export class Avatar extends Group {
             type = data.type
             delete data.type
             for( const t in data ){
-
-                if(t!=='envMapIntensity')if(t==='map' || t.search('Map')!==-1 ) data[t] = Pool.getTexture(data[t])
+                if(t!=='envMapIntensity' && t!=='normalMapType'){
+                    if(t==='map' || t.search('Map')!==-1 ) data[t] = Pool.getTexture( data[t], {quality:this.textureQuality } );
+                }
             }
             if(type==='Basic') m = new MeshBasicMaterial( data )
             else if(type==='Standard') m = new MeshStandardMaterial( data )
@@ -317,8 +395,7 @@ export class Avatar extends Group {
 
     setMaterial(s, b){
 
-        //console.log('material change !!')
-        this.ref.changeMaterial(s, b)
+        //this.ref.changeMaterial(s, b)
 
     }
 
@@ -411,6 +488,11 @@ export class Avatar extends Group {
              
     }
 
+    setSize( s ){
+        this.size = s;
+        this.root.scale.set(1,1,1).multiplyScalar(this.size);
+    }
+
     addTensionMap(){
 
         this.tension1 = new Tension( this.mesh.body );
@@ -447,12 +529,46 @@ export class Avatar extends Group {
         this.setBounding(v)
     }*/
 
+    setLevel( n ){
 
-    eyeControl( v ){
+        if( !this.haveLOD ) return
+        if( this.lod === n ) return
+
+        this.lod = n;
+
+        this.hideAll();
+
+        if( this.lod === 0 ) this.setVisible( this.ref.levelLow, true );
+        else { 
+            this.setVisible( this.ref.levelHigh, true );
+            if( this.ref.haveHair ) this.setVisible( this.ref.levelHair, true );
+        }
+    
+    }
+
+    hideAll(){
+
+        for( let m in this.mesh ) this.mesh[m].visible = false;
+    
+    }
+ 
+    setVisible( names, v ){
+
+        if( typeof names === 'string' ) names = [names];
+        let i = names.length, name;
+        while(i--){
+            name = names[i];
+            if( this.mesh[name] ) this.mesh[name].visible = v;
+        }
+    
+    }
+
+
+    /*eyeControl( v ){
 
         this.setMorph('EyeBlink', v)
     
-    }
+    }*/
 
     setMorph( name, v ){
 
@@ -495,7 +611,7 @@ export class Avatar extends Group {
         this.remove( this.root );
 
         this.skeleton.dispose();
-        this.parent.remove(this);
+        if( this.parent ) this.parent.remove(this);
         
 
         //console.log('hero remove')
@@ -522,7 +638,13 @@ export class Avatar extends Group {
 
 
         if( this.ref.adjustment ){
-            this.makePoseTrack('adjustment', this.ref.adjustment() );
+            this.makePoseTrack('adjustment', this.ref.adjustment(), true );
+        }
+
+        if( this.randomMorph ){
+            let i = this.fullMorph.length;
+            while(i--) this.setMorph( this.fullMorph[i], Math.random()*0.62 )
+            this.setSize(1 + (-0.05+Math.random()*0.1))
         }
 
 
@@ -875,7 +997,7 @@ export class Avatar extends Group {
 
     }
 
-    makePoseTrack( name, data ){
+    makePoseTrack( name, data, isAdd = false ){
 
         const torad = Math.PI / 180;
         //let lockPosition = true;
@@ -929,13 +1051,10 @@ export class Avatar extends Group {
         }
 
 
-
-        let clip = new AnimationClip( name, -1, tracks );
+        // additive not work
+        let blendMode = isAdd ? AdditiveAnimationBlendMode : NormalAnimationBlendMode;
+        let clip = new AnimationClip( name, -1, tracks, blendMode );
         clip.duration = numFrame * 0.03333333507180214//anim.duration;
-
-        // additive not work???
-        //clip = AnimationUtils.makeClipAdditive( clip, 0, this.getAction( 'idle' ).clip, 30 )
-        //clip = THREE.AnimationUtils.subclip( clip, clip.name, 2, 3, 30 );
 
         //console.log(clip)
 
@@ -944,7 +1063,7 @@ export class Avatar extends Group {
         action.enabled = true;
         //action.time = 0;
         action.setEffectiveTimeScale( 1 );
-        //action.setEffectiveWeight( 1 );
+        action.setEffectiveWeight( 1 );
         action.play();
 
         //console.log(action)

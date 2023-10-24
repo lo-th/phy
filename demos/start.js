@@ -4,8 +4,8 @@ demo = () => {
         phi:0, theta:0, distance:3, x:0, y:1, z:0, fov:50,//envmap:'render',
         groundSize:[ 5, 7],
         groundAlpha:false,
-        groundColor:0x926433,
-        groundReflect:0.05,
+        groundColor:0x623403,//0x926433,
+        groundReflect:0.04,
 
     })
     // config physics setting
@@ -34,11 +34,13 @@ onComplete = () => {
 
     makeMaterial()
 
+    //phy.add({ type:'box', size:[5,0.2,7], pos:[0,2.8,0], material:'wall' })
+
     phy.add({ type:'box', size:[5,2.6,0.2], pos:[0,1.3,-3.6], material:'wall' })
     phy.add({ type:'box', size:[5,2.6,0.2], pos:[0,1.3,3.6], visible:false })
 
-    phy.add({ type:'box', size:[0.2,2.6,7], pos:[-2.6,1.3,0], visible:false })
-    phy.add({ type:'box', size:[0.2,2.6,7], pos:[2.6,1.3,0], visible:false })
+    phy.add({ type:'box', size:[0.2,2.6,7], pos:[-2.6,1.3,0], material:'wall' })
+    phy.add({ type:'box', size:[0.2,2.6,7], pos:[2.6,1.3,0], material:'wall'})
 
     let g = phy.getGround()
    // g.color.setHex(0xffffff)
@@ -98,7 +100,8 @@ onComplete = () => {
         pos:[ 0, 0.8,0 ],
         mesh:model.logo,
         meshSize:1,
-        mass:20,
+        //mass:20,
+        density:1,
         material:'glassX',
         ...option
     })
@@ -123,7 +126,7 @@ onComplete = () => {
 
     phy.add(ar)*/
 
-    i = 100;
+    i = 10;
     ar = []
     while( i-- ){
         ar.push({ 
