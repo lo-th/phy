@@ -116,7 +116,7 @@ addPiece = ( o, i, model ) => {
 
     let name = (o.black ? 'B_' : 'W_') + o.type + ( o.id ? '_' + o.id : '' )
 
-    math.scaleArray( o.pos, chessSize )
+    o.pos = math.scaleArray( o.pos, chessSize )
 
     return {
 

@@ -77,7 +77,7 @@ export const getType = function ( o ) {
         break;
     }
 }
-
+/*
 export const MathTool = {
 
     torad: Math.PI / 180,
@@ -220,4 +220,4 @@ export const MathTool = {
 
     distanceArray: ( a, b ) => ( MathTool.lengthArray( MathTool.subArray( a, b ) ) ),
 
-}
+}*/

@@ -27,6 +27,8 @@ export class MouseTool {
 		this.mode = mode
 		this.option = {}
 
+		this.overObj = null
+
 		this.controler = controler
 		this.dom = this.controler.domElement
 
@@ -70,6 +72,8 @@ export class MouseTool {
 
 		this.dragPlane = null;
 
+		this.overLock = false;
+
 	    //if( this.mode === 'drag' ) 
 	    this.activeDragMouse( true )
 
@@ -78,6 +82,8 @@ export class MouseTool {
 	addDrag(){
 
 		if( this.dragPlane ) return
+
+		//this.overLock = true;
 
 		this.helper = new MoveHelper()
 		this.dragPlane = new Mesh( new PlaneGeometry( 1, 1 ), Mat.get('hide') )
@@ -93,6 +99,8 @@ export class MouseTool {
 	clearDrag(){
 
 		if( !this.dragPlane ) return
+
+		//this.overLock = false;
 
 		root.scenePlus.remove( this.dragPlane )
 		root.scenePlus.remove( this.helper )
@@ -205,6 +213,7 @@ export class MouseTool {
 		}
 
 		this.getMouse( e )
+		//this.overLock = true;
 
 		switch( this.mode ){
 
@@ -221,6 +230,7 @@ export class MouseTool {
 		//console.log('up')
 
 		this.release = true;
+		//this.overLock = false;
 
 		document.body.style.cursor = 'auto'
 
@@ -305,15 +315,17 @@ export class MouseTool {
 					//console.log(m)
 				}
 
-				if( !m.isButton ){ 
-					cursor = this.select( m, inters[ 0 ].point )
+				if( !m.isButton ){
+					cursor = this.select( m, inters[ 0 ].point );
 					//this.tmpSelected = m
 					//this.tmpPoint = inters[ 0 ].point
 				}
-				else cursor = this.actionButton( m, inters[ 0 ] )
+				else cursor = this.actionButton( m, inters[ 0 ] );
 				//document.body.style.cursor = cursor
 
 			} else {
+
+				this.resetOver()
 				this.controler.enableRotate = true
 				this.controler.enablePan = true
 				
@@ -326,10 +338,12 @@ export class MouseTool {
 				this.controler.enableRotate = true
 				this.controler.enablePan = true
 				cursor = 'auto'
+				this.resetOver()
+				
 			}
 
 			document.body.style.cursor = cursor
-		} 
+		}
 
 	}
 
@@ -470,7 +484,28 @@ export class MouseTool {
 
 	}
 
-	
+	setOver( obj ){
+
+		//if( this.overLock ) return;
+		if( !obj ) return;
+
+		if( this.overObj ){
+			if( obj.name !== this.overObj.name ) this.resetOver();
+		}
+
+		this.overObj = obj;
+		if( this.overObj.over ) this.overObj.over(true);
+
+	}
+
+	resetOver(){
+
+		//if( this.overLock ) return;
+		if( !this.overObj ) return;
+		if( this.overObj.over ) this.overObj.over( false );
+		this.overObj = null;
+
+	}
 
 	select ( obj, point ) {
 
@@ -480,7 +515,15 @@ export class MouseTool {
 		//if( !this.mouseDown ) return 'auto'
 		//if( this.selected === obj ) return 'grab'//'pointer'
 
-		if( !this.mouseDown || this.selected === obj ) return 'grab'//'pointer'
+		if( !this.mouseDown ) this.setOver( obj );
+
+		
+
+		if( !this.mouseDown || this.selected === obj ){
+			return 'grab'
+		}
+
+		//this.overLock = true;
 
 
 		this.pz = 0
@@ -488,7 +531,8 @@ export class MouseTool {
 		let pos = point
 	    let quat = [0,0,0,1]
 
-		this.selected = obj
+		this.selected = obj;
+		//this.setOver( obj );
 		/*if( this.selected.isInstance ) quat = this.selected.instance.getInfo( this.selected.id ).quat;
 		else if( this.selected.isObject3D ){
 			this.selected.updateMatrix()
@@ -621,6 +665,8 @@ export class MouseTool {
 
 		if( this.selected === null ) return
 
+		//this.setTmpOver( this.selected )
+
 		if( point ){ 
 			this.tmpPos.copy( point ).sub( this.decal ) 
 		}
@@ -650,7 +696,7 @@ export class MouseTool {
 
 		if( this.selected === null ) return
 
-
+		//this.resetOver()
 
 		this.clearDrag()
 

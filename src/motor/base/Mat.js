@@ -1,5 +1,5 @@
 import {
-    MeshPhongMaterial, MeshLambertMaterial, MeshStandardMaterial, MeshPhysicalMaterial, MeshBasicMaterial, LineBasicMaterial, MeshToonMaterial, ShadowMaterial,
+    MeshPhongMaterial, MeshLambertMaterial, MeshStandardMaterial, MeshPhysicalMaterial, MeshBasicMaterial, LineBasicMaterial, MeshToonMaterial, ShadowMaterial, ShaderMaterial,
     Matrix4, Euler, Quaternion, Vector3, Vector2, Matrix3, Color,
 
     AdditiveBlending, CustomBlending, NoBlending, NormalBlending, SubtractiveBlending, MultiplyBlending,
@@ -84,7 +84,13 @@ export const Mat = {
 
 	envMapIntensity:1.0,
 
-	extendShader:() =>{},
+	extendShader:( m, beforeCompile = null ) =>{ 
+		if( beforeCompile ){
+			m.onBeforeCompile = function ( shader ) {
+	            beforeCompile( shader );
+	        }
+		}
+	},
 
 	addToTmp:( m ) => {
 
@@ -223,6 +229,8 @@ export const Mat = {
 
 			    case 'black':   m = Mat.create({ name:'black', color:Colors.black, metalness: 0, roughness: 0.25 }); break
 
+			    
+
 			    // metal
 			    case 'chrome': m = Mat.create({ name:'chrome', color:0xCCCCCC, metalness: 1, roughness:0.075 }); break
 			    case 'gold': m = Mat.create({ name:'gold', color:Colors.gold, specularColor:Colors.gold2, metalness: 1, roughness:0.02 }); break
@@ -250,8 +258,13 @@ export const Mat = {
 				case 'car':   m = Mat.create({ name:'car', color:0x303030, metalness: 1.0, roughness: 0.5, clearcoat: 1.0, clearcoatRoughness: 0.03, sheen: 0.5 }); break
 				case 'carGlass':   m = Mat.create({ name:'carGlass', color: 0xffffff, metalness: 0, roughness: 0, transmission: 1.0, ior:1.52 }); break
 
-
-				case 'debug': m = Mat.create({ name:'debug', type:'Basic', color:0xF37042, wireframe:true, toneMapped: false, transparent:true, opacity:0.25 }); break
+				case 'outline': 
+				if( !mat[ 'outline' ] ) mat[ 'outline' ] = outliner;
+				m = mat[ 'outline' ]
+				//m = Mat.create({ name:'outline', color:0xFFFFFF, type:'Basic', side:BackSide, toneMapped:false, wireframe:false }); 
+				break
+				case 'debug': m = Mat.create({ name:'debug', type:'Basic', color:0xF37042, wireframe:true, toneMapped: false, transparent:true, opacity:0.5 }); break
+				//case 'debug': m = Mat.create({ name:'debug', color:0xF37042, wireframe:true, toneMapped: false, transparent:true, opacity:0.5 }); break
 				
 				//case 'debug2': m = Mat.create({ name:'debug2', type:'Basic', color:0x00FFFF, wireframe:true, toneMapped: false }); break
 				//case 'debug3':  m = Mat.create({ name:'debug3', type:'Basic', color:0x000000, wireframe:true, transparent:true, opacity:0.1, toneMapped: false }); break
@@ -309,3 +322,30 @@ export const Mat = {
 	}
 
 }
+
+const outliner = new ShaderMaterial({
+    uniforms: {
+        color: {type: 'c', value: new Color(0xFFFFFF) },
+        power: {type: 'f', value: 0.01 },
+    },
+    vertexShader:`
+        uniform float power;
+        void main(){
+            vec3 pos = position + normal * power;
+            gl_Position = projectionMatrix * modelViewMatrix * vec4( pos, 1.0 );
+        }
+    `,
+    fragmentShader:`
+        uniform vec3 color;
+        void main(){
+           gl_FragColor = vec4( color, 1.0 );
+        }
+    `,
+    side:BackSide,
+    //wireframe:true,
+    //transparent:true,
+    //opacity:0.5,
+
+
+
+});

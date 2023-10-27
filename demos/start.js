@@ -64,6 +64,8 @@ onComplete = () => {
     }
 
 
+
+
     phy.add({
         type:'compound',
         shapes:sofaShape,
@@ -74,7 +76,10 @@ onComplete = () => {
         //meshPos:[0,0,0],
         //density:4,
         mass:80,
+        //debug:true
     })
+
+
 
     model = phy.getMesh('phy');
     let option = {
@@ -94,18 +99,18 @@ onComplete = () => {
     let i=14, j=0, n=0;
     while(i--){ n = j*3; logoShape.push({ type:'box', pos:[p[n],p[n+1],p[n+2]], size:[s[n],s[n+1],s[n+2]], rot:[r[n],r[n+1],r[n+2]] }); j++; }
 
+    
     phy.add({
         type:'compound',
         shapes:logoShape,
         pos:[ 0, 0.8,0 ],
         mesh:model.logo,
-        meshSize:1,
+        //meshSize:1,
         //mass:20,
         density:1,
-        material:'glassX',
+        material:'chrome',
         ...option
     })
-
     // add some dynamics object
 
     //i = 20;

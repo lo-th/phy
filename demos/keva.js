@@ -33,12 +33,8 @@ demo = () => {
     // Keva tower.
     let halfExtents = {x:0.15, y:0.5, z:2.0};
 
-    let blockHeight = 0.0;
-    // These should only be set to odd values otherwise
-    // the blocks won't align in the nicest way.
+    let blockHeight = 0.0, numBlocksBuilt = 0;
     let numyArr = [0, 3, 5, 5, 7, 9];
-    //let numyArr = [0, 3];
-    let numBlocksBuilt = 0;
     let i;
 
     for ( i = numyArr.length-1; i >= 1; --i ) {
@@ -66,12 +62,12 @@ buildBlock = ( halfExtents, shift, numx, numy, numz ) => {
     let option = {
         instance:'keva',
         type:'box',
-        friction:0.5, restitution:0.0, sleep:true, radius:0.02,
+        friction:0.5, restitution:0.0, sleep:true, radius:0.01,
         density:0.1,
         //mass:1,//0.02,
         // margin:0.001, friction:0.2, restitution:0.1, sleep:true, radius:0.02, 
-        sizeByInstance:true,
-        //startSleep:true,
+        //sizeByInstance:true,
+        startSleep:true,
         material:'wood',
     }
 
@@ -80,7 +76,6 @@ buildBlock = ( halfExtents, shift, numx, numy, numz ) => {
     let blockWidth = 2.0 * halfExtents.z * numx;
     let blockHeight = 2.0 * halfExtents.y * numy;
     let spacing = (halfExtents.z * numx - halfExtents.x) / (numz - 1.0);
-    let dm = 1;
 
     let i,j,k, dim;
 
@@ -97,7 +92,7 @@ buildBlock = ( halfExtents, shift, numx, numy, numz ) => {
                 // Build the rigid body.
                 //phy.add({ type:'box', size:[dim.x, dim.y, dim.z], pos:[(x + dim.x + shift.x)*0.5, (y + dim.y + shift.y)*0.5, (z + dim.z + shift.z)*0.5], density:1, margin:0.001, radius:0.01  })
                 list.push({ 
-                    size:[dim.x*dm, dim.y*dm, dim.z*dm],
+                    size:[dim.x, dim.y, dim.z],
                     pos:[(x + dim.x + shift.x)*0.5, (y + dim.y + shift.y)*0.5, (z + dim.z + shift.z)*0.5],
                     ...option
                 })
@@ -115,11 +110,26 @@ buildBlock = ( halfExtents, shift, numx, numy, numz ) => {
             //phy.add({ type:'box', size:[dim.x, dim.y, dim.z], pos:[(i * dim.x * 2.0 + dim.x + shift.x)*0.5, (dim.y + shift.y + blockHeight)*0.5, (j * dim.z * 2.0 + dim.z + shift.z)*0.5], density:1, margin:0.001, radius:0.01 })
            
             list.push({ 
-                size:[dim.x*dm, dim.y*dm, dim.z*dm], 
+                size:[dim.x, dim.y, dim.z], 
                 pos:[(i * dim.x * 2.0 + dim.x + shift.x)*0.5, (dim.y + shift.y + blockHeight)*0.5, (j * dim.z * 2.0 + dim.z + shift.z)*0.5],
                 ...option
             })
             n++
+        }
+    }
+
+    // change size to rotation 
+    i = list.length
+    while(i--){
+        if( list[i].size[0] === halfExtents.z ){
+            if( list[i].size[1] === halfExtents.y ) list[i].rot = [0,90,0];
+            else list[i].rot = [90,90,0];
+            list[i].size = [halfExtents.x, halfExtents.y, halfExtents.z]
+        }
+        if( list[i].size[1] === halfExtents.z ){
+            if( list[i].size[0] === halfExtents.x ) list[i].rot = [90,0,0];
+            else list[i].rot = [90,0,90];
+            list[i].size = [halfExtents.x, halfExtents.y, halfExtents.z]
         }
     }
 

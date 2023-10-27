@@ -285,6 +285,8 @@ export const Gui = {
 
 		ui.add( options, 'mode', { type:'button', values:['LOW', 'HIGH'], selectable:true, unselect:false, p:0 }).onChange( Main.changeMode )
 
+		ui.add( options, 'debug', { type:'bool' }).onChange( Main.debugMode )
+
 		ui.add( options, 'harmony', { type:'bool' }).onChange( Hub.harmony )
 		ui.add( options, 'show_light', { type:'bool' }).onChange( Main.showDebugLight )
 		ui.add( options, 'show_stat', { type:'bool' }).onChange( Main.showStatistic )
@@ -302,7 +304,7 @@ export const Gui = {
 
 		//ui.add( options, 'legacy',  { type:'bool' }).onChange( function(v){ renderer.useLegacyLights  = v })
 
-		ui.add( options, 'shadow', { min:0, max:1, mode:mode, color:'#8ff' } ).onChange( Main.setShadow )//.listen()
+		//ui.add( options, 'shadow', { min:0, max:1, mode:mode, color:'#8ff' } ).onChange( Main.setShadow )//.listen()
 		ui.add( options, 'reflect', { min:0, max:1, mode:mode, color:'#8ff' } ).onChange( Main.setReflect )//.listen()
 
 
@@ -317,7 +319,7 @@ export const Gui = {
 
 		const hub3d = Main.getHub3d();
 		if(hub3d){
-			let g0 = ui.add('group', { name:'VIGNETTE', open:true })
+			let g0 = ui.add('group', { name:'VIGNETTE', open:false })
 			g0.add( hub3d, 'grain', { min:0, max:0.5, mode:mode, color:'#8ff' } )
 			g0.add( hub3d, 'offset', { min:0, max:2, mode:mode, color:'#8ff' } )
 			g0.add( hub3d, 'darkness', { min:0, max:1, mode:mode, color:'#8ff' } )
@@ -373,7 +375,7 @@ export const Gui = {
 
 	    const setting = Main.motor.getSetting()
 
-	    ui.add('button', { values:Main.engineList, selectable:true, value:Main.engineType, h:30  }).onChange( Gui.swapEngine )
+	   //ui.add('button', { values:Main.engineList, selectable:true, value:Main.engineType, h:30  }).onChange( Gui.swapEngine )
 		//if( Main.devMode ) ui.add('button', { values:['RAPIER','CANNON'], selectable:true, value:Main.engineType }).onChange( Gui.swapEngine )
 		ui.add( 'bool', { name:'WORKER OFF', onName:'WORKER ON', value:Main.isWorker, mode:1 }).onChange( Gui.swapWorker )
 		
@@ -396,7 +398,7 @@ export const Gui = {
 
 		//ui.add( 'number', { name:'Gravity', value:[0,-9.81,0] })
 
-		ui.add( setting, 'gravity', { type:'number' }).onChange( Main.motor.setGravity )
+		ui.add( setting, 'gravity', { type:'number' }).onChange( Main.motor.setGravity );
 		//ui.add( setting, 'substep', { type:'number' })
 		//ui.add( setting, 'fps', { type:'number' })
 
@@ -408,8 +410,9 @@ export const Gui = {
 
 		const ui = Gui.ui
 
-	    const controler = Main.getControler()
-	    const renderer = Main.getRenderer()
+	    const controler = Main.getControler();
+	    const renderer = Main.getRenderer();
+	    const options = Main.getOption()
 
 	    //Gui.CameraOptions = 
 	    const up = function(){ 
@@ -443,8 +446,9 @@ export const Gui = {
 
 		let setts = Shader.setting()
 
-		let g1 = ui.add('group', { name:'SHADOW', open:true })
-
+		let g1 = ui.add('group', { name:'SHADOW', open:false })
+		g1.add( options, 'shadowType', { type:'button', values:['PCSS', 'PCF', 'PCFSoft', 'VSM'], value:'DRAG', selectable:true, unselect:false, p:0 } ).onChange( Main.setShadowType )//.listen()
+		g1.add( options, 'shadow', { min:0, max:1, mode:mode, color:'#8ff' } ).onChange( Main.setShadow )//.listen()
 		g1.add( setts.shadowGamma, 'value', { rename:'gamma', min:0, max:4, precision:3, mode:mode, color:'#8ff' } )
 		g1.add( setts.shadowLuma, 'value', { rename:'lLuma', min:0, max:4, precision:3, mode:mode, color:'#8ff' } )
 		g1.add( setts.shadowContrast, 'value', { rename:'contrast', min:0, max:4, precision:3, mode:mode, color:'#8ff' } )

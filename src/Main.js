@@ -52,10 +52,13 @@ import WebGPURenderer from 'three/addons/renderers/webgpu/WebGPURenderer.js';
 *  MAIN THREE.JS / PHY
 */
 
-let activeWebGPU = false
-let isWebGPU = false
 
-let drawCall = false
+const highShadow = false;
+
+let activeWebGPU = false;
+let isWebGPU = false;
+
+//let drawCall = false
 //let debugLight = false
 
 let oldPause = false
@@ -109,10 +112,11 @@ const setting = {
 
 }
 
-const highShadow = false;
+
 
 const options = {
 
+	debug: false,
 	key: false,
 
 	mode:'HIGH',
@@ -146,8 +150,8 @@ const options = {
     renderMode:0,
     fogMode:1,
 
-    lightSizeUV:1.3,
-    nearPlane:9.5,
+    lightSizeUV:0.1,//1.3,
+    nearPlane:3,//9.5,
     rings:4,//11,
     nSample:16,//17,
 
@@ -288,7 +292,9 @@ export const Main = {
     setComposer:( b ) => { setComposer(b) },
     showDebugLight:( b ) => { showDebugLight(b) },
     showStatistic:( b ) => { showStatistic(b) },
+
     setShadow:( v ) => { setShadow(v) },
+    setShadowType:() => { setShadowType() },
     upShader:() => { upShader() },
 
     getCamera:() => ( controls.info ),
@@ -373,6 +379,12 @@ export const Main = {
 
 		Hub.setTopColor( Gui.tool.htmlRgba(palette.darkMuted, 0.4) )
 
+	},
+
+	debugMode: ( b ) => {
+		options.debug = b;
+		Motor.setDebugMode( options.debug );
+
 	}
 
 }
@@ -386,6 +398,7 @@ Motor.getParticle = Main.getParticle
 Motor.getGround = Main.getGround;
 
 Motor.extraCode = Main.extraCode;
+Motor.debugMode = Main.debugMode;
 
 
 window.phy = Motor
@@ -465,9 +478,10 @@ const init = () => {
 
 	Shader.renderer = renderer;
 
-	if( !isWebGPU && options.mode !== 'LOW' ){
+	if( !isWebGPU && options.mode !== 'LOW' && highShadow ){
 		Shader.setGl2( isWebGPU ? false : renderer.capabilities.isWebGL2 )
 		Shader.init( options )
+		Motor.setExtendShader( Shader.add )
 	}
 
 	// SCENE
@@ -588,7 +602,7 @@ const next = () => {
 
     Motor.setContent( scene )
     Motor.setControl( controls )
-    Motor.setExtendShader( Shader.add )
+    //Motor.setExtendShader( Shader.add )
     Motor.setAddControl( addControl )
 
     // activate mouse drag
@@ -641,14 +655,16 @@ const lightIntensity = (a,b) => {
 
 const addLight = () => {
 
-	let s 
+	Lights.define( options, followGroup, isWebGPU );
+
+	/*let s 
 
 	Lights.add({ 
 		type:'direct', name:'sun',
 		//intensity:options.mode !== 'LOW' ? options.light_1*0.3 : options.light_1, 
 		intensity:options.light_1,
-		distance:20, parent:followGroup,
-	    shadow:{ range:30, near:5, far:50, bias:!isWebGPU ? -0.0005 : 0.0005, radius:4, quality: 1024 * options.quality }
+		distance:10, parent:followGroup,
+	    shadow:{ range:20, near:5, far:50, bias:!isWebGPU ? -0.0005 : 0.005, radius:4, quality: 2048 * options.quality }
 	})
 
 
@@ -659,7 +675,7 @@ const addLight = () => {
 		    intensity:options.light_1*0.7, distance:6, parent:followGroup,
 	        shadow:{ range:4, near:1, far:20, bias:-0.0005, radius:4, quality: 1024 * options.quality },
 		})*/
-	}
+	//}
 
 	/////
 
@@ -669,14 +685,14 @@ const addLight = () => {
 	   // shadow:{ range:20, near:1, far:20, bias:-0.0005, radius:1, quality: 2048 * options.quality }
 	})*/
 
-	if( !isWebGPU ){	
+	//if( !isWebGPU ){	
 		/*Lights.add({ 
 			type:'hemi', name:'hemi',
 			intensity:options.light_2, 
 			pos:[0,1,0], 
 			parent:followGroup 
 		})*/
-	}
+	//}
 
 	////
 
@@ -731,6 +747,11 @@ const showDebugLight = ( b ) => {
 	let v = Lights.addHelper( b, helperGroup );
 	Env.preview( v );
 
+}
+
+const setShadowType = () => {
+	renderer.shadowMap.type = shadowMapType[options.shadowType]
+	Main.upShader()
 }
 
 const setShadow = ( v ) => {
@@ -1158,6 +1179,8 @@ const view = ( o = {} ) => {
 		options.quality = 1;
 	}
 
+	Env.reset()
+
 	//console.log('view', o)
 
 	//const result = await firstFunction()
@@ -1197,6 +1220,8 @@ const view = ( o = {} ) => {
 	Shader.up( options )
 
     if( o.envPower ) options.envPower = o.envPower;
+    else options.envPower = 1.0;
+
     setEnvmapIntensity();
 	
 }

@@ -1,7 +1,9 @@
 demo = () => {
 
+    phy.view({ envmap:'river' })
+
     // config physics setting
-    phy.set({ substep:2, gravity:[0,-9.81,0] })
+    phy.set({ substep:1, gravity:[0,-9.81,0],  })
 
     // add static plane 
     //phy.add({ type:'plane', visible:false })
@@ -11,16 +13,19 @@ demo = () => {
     phy.add({ type:'highSphere', name:'sphere', size:[0.4], pos:[0,6,0], density:5, restitution:0.2, friction:0.2, sleep:true, startSleep:true, })
 
     // creat building
-    building({ block:0.3, height:10, length:5, deep:5 })
+    building({ block:0.3, height:10, length:6, deep:6 })
     //building({ block:0.3, height:10, length:10, deep:10 })
 
-    phy.add({
-        type:'compound', density:0.5, pos:[ 0,2,2 ],
+    /*phy.add({
+        name:'cone',
+        sleep:true,
+        type:'compound', density:5, pos:[ 0,6,0 ],
         shapes: [
         { type:'cone', pos:[0.25,0,0], size:[ 0.5,0.5,0.5 ], rot:[0,0,-90] },
         { type:'cone', pos:[-0.25,0,0], size:[ 0.5,0.5,0.5 ], rot:[0,0,90] },
         ],
-    })
+        material:'glassX'
+    })*/
 
     // intern timeout
     phy.setTimeout( run, 2000 )
@@ -51,7 +56,7 @@ building = ( o ) => {
         tmp.push({
             instance:'boxbase',
             type:'box',
-            radius:0.025,// box chanfer
+            radius:0.01,// box chanfer
             size:[s,s,s],
             pos:pos,
             density:0.3,

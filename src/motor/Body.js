@@ -533,13 +533,19 @@ export class Body extends Item {
 					if( n.rot !== undefined ) n.quat = MathTool.quatFromEuler(n.rot);
 					if( n.quat ) n.localQuat = n.quat;
 					
-					n.debug = o.debug || false;
+					n.debug = o.debug || root.debug;
 					n.meshRemplace = o.meshRemplace || false;
 
 					if( !o.instance ) this.geometry( n, b, material );
+					else if( n.type === 'convex' ){ 
+				    	n.v = MathTool.getVertex( n.shape, false );
+				    }
 					volume += MathTool.getVolume( n.type, n.size, n.v );
+					//console.log(n.type, n.size)
 
 				}
+
+				//console.log(volume, name)
 
 	    	break;
 	    	default:
@@ -566,6 +572,10 @@ export class Body extends Item {
 		b.isKinematic = o.kinematic || false;
 		b.link = 0;
 
+		b.meshSize = o.meshSize ? o.meshSize : 1;
+
+		
+
 		// for buttton only
 		if( o.button ) b.isButton = true
 
@@ -590,6 +600,9 @@ export class Body extends Item {
 			b.isInstance = true;
 			b.instance = this.getInstance( o, material );
 			b.instance.isRay = b.isRay;
+
+			b.over = b.instance.over;
+			b.isOver = false;
 
 			b.defMat = b.instance.material.name === 'base';
 			
@@ -646,6 +659,8 @@ export class Body extends Item {
 			b.visible = o.visible !== undefined ? o.visible : true;
 		    b.receiveShadow = o.shadow;
 		    b.castShadow = o.shadow;
+
+		    b.overMaterial =  Mat.get( 'outline' );
 
 		    // apply option
 			this.set( o, b );
@@ -793,9 +808,13 @@ export class Body extends Item {
     	bb.receiveShadow = o.shadow !== undefined ? o.shadow : true;
     	bb.castShadow = o.shadow !== undefined ? o.shadow : true;
 
+    	bb.overMaterial =  Mat.get( 'outline' );
+
     	bb.name = o.instance;
 		root.scene.add( bb );
 		root.instanceMesh[ o.instance ] = bb;
+
+		//console.log('add instance')
 
     	return bb;
 

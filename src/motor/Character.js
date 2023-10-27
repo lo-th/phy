@@ -451,7 +451,7 @@ class Hero extends Basic3D {
 		if( this.model ) this.model.dispose()
 		if( this.helper ) this.showHelper()
 
-		console.log('model remove')
+		//console.log('model remove')
 
 		super.dispose()
 	}

@@ -433,6 +433,11 @@ class RGBELoader extends DataTextureLoader {
 					texture.generateMipmaps = false;
 					texture.flipY = true;
 
+					//texture.gamma = texData.gamma;
+					//texture.exposure = texData.exposure;
+					//texture.userData = texData;
+
+
 					break;
 
 			}

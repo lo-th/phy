@@ -7,6 +7,7 @@ import {
 	Layers,
 	EventDispatcher,
 	MathUtils,
+	Mesh,
 } from 'three';
 
 
@@ -89,26 +90,85 @@ class Basic3D extends EventDispatcher {
 		this.actif = false;
 		this.auto = false;
 		this.sleep = false;
+
 		// only for high mesh
 		this.mesh = null;
+		this.meshSize = 1;
+
 		// if object is link by joint
 		this.linked = [];
+
+		this.isOver = false;
+		this.overMaterial = null;
 
 	}
 
 	// ADD
 
+	clearOutLine() {
+
+		if( !this.overMaterial ) return;
+		if( !this.outline ) return;
+		this.remove(this.outline);
+		this.outline = null;
+
+	}
+
+	addOutLine() {
+
+		if( !this.overMaterial ) return;
+		if( !this.children[0].isMesh ) return;
+
+		this.outline = new Mesh().copy( this.children[0] );
+		//this.outline.geometry.computeVertexNormals()
+		this.outline.geometry.normalizeNormals()
+		this.outline.name = "outline";
+		this.outline.material = this.overMaterial;
+		//if( this.shapetype==='sphere' ) this.meshSize = 0.5
+		this.overMaterial.uniforms.power.value = 0.01 / this.meshSize;
+		this.outline.matrixAutoUpdate = false;
+		this.outline.receiveShadow = false;
+		this.outline.castShadow = false;
+		this.outline.raycast = () => ( null );
+		this.add( this.outline );
+
+	}
+
+	over ( b ) {
+
+		if( b && !this.isOver ){ 
+
+            this.isOver = true;
+            this.addOutLine();
+
+        }
+
+        if( !b && this.isOver ){ 
+
+            this.isOver = false;
+            this.clearOutLine();
+
+        }
+
+		//if(b) this.addOutLine();
+		//else this.clearOutLine();
+
+    }
+
 	select ( b ) {
+
+		//console.log(b)
 
     }
 
     dispose () {
 
+    	this.clearOutLine();
     	this.traverse( function ( node ) {
-			if( node.isMesh && node.unic ) node.geometry.dispose()
+			if( node.isMesh && node.unic ) node.geometry.dispose();
 		})
 
-		this.children = []
+		this.children = [];
 
     }
 
@@ -144,19 +204,21 @@ class Basic3D extends EventDispatcher {
 
 	set material( value ){
 		this.traverse( function ( node ) {
-			if( node.isMesh ) node.material = value;
+			if( node.isMesh ){ 
+				if( node.name !== 'outline' ) node.material = value;
+			}
 		})
 	}
 
 	get material(){
 		const children = this.children;
 		if( this.children[0] ) return this.children[0].material;
-		else return null
+		else return null;
 	}
 
     set rotation( v ){
     	this.tmpRotation = v;
-		quaternion.setFromEuler( this.tmpRotation, false )
+		quaternion.setFromEuler( this.tmpRotation, false );
 	}
 
 	get rotation(){

@@ -18,7 +18,59 @@ export class Instance extends InstancedMesh {
         this.instanceColor = null;
         this.needSphereUp = false;
         this.isRay = true; 
+
         
+        this.overMaterial = null;
+        this.currentOver = -1;
+        this.isOver = false;
+        
+    }
+
+    clearOutLine() {
+
+        if( !this.overMaterial ) return;
+        if( !this.outline ) return;
+        //let i = this.outline.length
+        this.parent.remove( this.outline );
+        this.outline = null;
+        this.currentOver = -1;
+
+    }
+
+    addOutLine( obj ) {
+
+        if( !this.overMaterial ) return;
+        //console.log(this.type)
+        this.outline = new Mesh( this.geometry, this.overMaterial );
+        this.overMaterial.uniforms.power.value = 0.01;
+        this.outline.matrixAutoUpdate = false;
+        //this.outline.position.copy( obj.position );
+        //this.outline.quaternion.copy( obj.quaternion );
+
+        this.tmpMatrix.fromArray( this.instanceMatrix.array, obj.id*16 );
+        this.outline.matrix.copy( this.tmpMatrix );
+        this.outline.matrixWorldNeedsUpdate = true;
+        this.parent.add( this.outline );
+        this.currentOver = obj.id;
+
+    }
+
+    over ( b ) {
+
+        if( b && !this.instance.isOver ){ 
+
+            this.instance.isOver = true;
+            this.instance.addOutLine( this );
+
+        }
+
+        if( !b && this.instance.isOver ){ 
+
+            this.instance.isOver = false;
+            this.instance.clearOutLine();
+
+        }
+
     }
 
     getInfo( id ) {
@@ -123,9 +175,17 @@ export class Instance extends InstancedMesh {
         this.tmpMatrix.toArray( this.instanceMatrix.array, index * 16 );
         this.needSphereUp = true;
 
+        if( !this.outline ) return;
+        if(this.currentOver === index ){
+            this.outline.matrix.copy(this.tmpMatrix)
+            this.outline.matrixWorldNeedsUpdate = true;
+        }
+
     }
 
     dispose() {
+
+        this.clearOutLine()
         this.parent.remove(this);
         this.geometry.dispose();
         //this.instanceMatrix = null;

@@ -1,5 +1,5 @@
 const Botsetting = {
-    speed: 0.1,
+    speed: 0.1,//0.1,
     stiffness: 1000,
     damping: 100,
     forceLimit: 1000,
@@ -15,13 +15,16 @@ demo = () => {
 
     phy.log('use key WSAD or ZSQD to move')
 
-    phy.view({ envmap:'factory', envblur:0.3, ground:true, fog:true, fogDist:0.02 })
+    phy.view({ envmap:'photo', envblur:0.3, ground:true, fog:true, fogDist:0.02 })//envFloor:true,
 
     phy.set({ substep:1, gravity:[0,-9.81,0], key:true })
 
     phy.add({ type:'plane', size:[300,1,300], visible:false, friction:1 });
 
     phy.load(['./assets/models/spider.glb'], onComplete )
+
+    let g = phy.getGround()
+    g.material.map = phy.texture({ url:'./assets/textures/grid.png', repeat:[60,60] })
 
 }
 
@@ -137,7 +140,7 @@ class Bot {
             //filter:[2,-1,1,0], 
             //dmv:[0.2,0.2,100,20], 
             debug:debug, 
-            meshSize:10, 
+            meshSize:10,
             solver:this.name,
             density:this.setting.legMass,
         }
@@ -307,6 +310,7 @@ class Bot {
         
         this.ai.action = action
         this.ai.update()
+        // TODO fix timing for increas speed
         this.solver.driveJoints( dt );
 
     }

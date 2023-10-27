@@ -38,10 +38,10 @@ const uniforms = {
     
 	//shadowAlpha: { value: 1.0 }
 
-    lightSizeUV: { value: 3 },
-    nearPlane: { value: 9.5 },
-    rings:{ value: 11 },
-    nSample:{ value: 17 },
+    lightSizeUV: { value: 1 },//3
+    nearPlane: { value: 1 },//9.5
+    rings:{ value: 4 },//11
+    nSample:{ value: 16 },//17
     
     noiseIntensity:{ value: 1 },
     softness:{ value: 1.6 },
@@ -61,7 +61,7 @@ export class Shader {
     static setGl2 ( b ) { isGL2 = b }
     static getGl2 ( b ) { return isGL2 }
 
-    static setting ( ) {
+    static setting () {
         return uniforms
     }
 
@@ -648,15 +648,15 @@ vec2 poissonDisk[32];
 
 void initPoissonSamples( const in vec2 randomSeed ) {
 
-    float ANGLE_STEP = PI2 * float(RINGS) / float( SAMPLE );
-    float INV_NUM_SAMPLES = 1.0 / float( SAMPLE );
+    float ANGLE_STEP = PI2 * float(rings) / float( nSample );
+    float INV_NUM_SAMPLES = 1.0 / float( nSample );
 
     // jsfiddle that shows sample pattern: https://jsfiddle.net/a16ff1p7/
     float angle = rand( randomSeed ) * PI2;
     float radius = INV_NUM_SAMPLES;
     float radiusStep = radius;
 
-    for( int i = 0; i < SAMPLE; i ++ ) {
+    for( int i = 0; i < nSample; i ++ ) {
         poissonDisk[i] = vec2( cos( angle ), sin( angle ) ) * pow( radius, 0.75 );
         radius += radiusStep;
         angle += ANGLE_STEP;
@@ -676,7 +676,7 @@ float findBlocker( sampler2D shadowMap, const in vec2 uv, const in float zReceiv
     int numBlockers = 0;
     float shadowMapDepth = 0.0;
 
-    for( int i = 0; i < SAMPLE; i++ ) {
+    for( int i = 0; i < nSample; i++ ) {
         shadowMapDepth = unpackRGBAToDepth(texture2D(shadowMap, uv + poissonDisk[i] * searchRadius));
         if ( shadowMapDepth < zReceiver ) {
             blockerDepthSum += shadowMapDepth;
@@ -693,17 +693,17 @@ float findBlocker( sampler2D shadowMap, const in vec2 uv, const in float zReceiv
 float PCF_Filter(sampler2D shadowMap, vec2 uv, float zReceiver, float filterRadius ) {
     
     /*
-    int numSample = SAMPLE;
+    int numSample = nSample;
     float sum = 0.0;
     float depth;
     #pragma unroll_loop_start
-    for( int i = 0; i < SAMPLE; i ++ ) {
+    for( int i = 0; i < nSample; i ++ ) {
         depth = unpackRGBAToDepth( texture2D( shadowMap, uv + poissonDisk[ i ] * filterRadius ) );
         if( zReceiver <= depth ) sum += 1.0;
     }
     #pragma unroll_loop_end
     #pragma unroll_loop_start
-    for( int i = 0; i < SAMPLE; i ++ ) {
+    for( int i = 0; i < nSample; i ++ ) {
         depth = unpackRGBAToDepth( texture2D( shadowMap, uv + -poissonDisk[ i ].yx * filterRadius ) );
         if( zReceiver <= depth ) sum += 1.0;
     }
@@ -723,7 +723,7 @@ float PCF_Filter(sampler2D shadowMap, vec2 uv, float zReceiver, float filterRadi
         if( zReceiver <= low ) sum += 1.0;
     }
     #pragma unroll_loop_end
-    return sum / ( 2.0 * float( SAMPLE ) );
+    return sum / ( 2.0 * float( nSample ) );
 }
 
 float PCSS ( sampler2D shadowMap, vec4 coords ) {

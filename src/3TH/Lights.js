@@ -18,6 +18,19 @@ export class Lights {
 	//get debug() { return debug; }
     //set debug( value ) { Lights.debug(value) }
 
+    static define ( o = {}, parent, isWebGPU = false ) {
+
+    	let biasSide = o.shadowType === 'PCSS' ? -1:1
+
+    	Lights.add({ 
+			type:'direct', name:'sun',
+			intensity:o.light_1,
+			distance:10, parent:parent,
+		    shadow:{ range:20, near:5, far:50, bias: 0.0002 * biasSide, radius:4, quality: 2048 * o.quality }
+		})
+
+    }
+
     static update ( o = {} ) {
 
     	let move = false;
@@ -32,9 +45,6 @@ export class Lights {
     		}
     		
     	}
-
-    	
-    	
 
     	if(o.sunPos){
     		if( LL.sun ){ 

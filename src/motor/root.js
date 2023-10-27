@@ -15,6 +15,8 @@ export const map = new Map()
 
 export const root = {
 
+	debug:false,
+
 	Ar:null, 
 	ArPos: {},
 

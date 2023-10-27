@@ -63,6 +63,7 @@ let debug = null;
 let isPanel3D = false;
 
 let joy = null
+let isDay = false;
 
 let lock = false
 let timeout = null
@@ -88,12 +89,14 @@ export class Hub {
     static colors( day ) {
 
         if(day){
-            color = '#001'
-            colorVisite = '#335'
-        } else {
             color = '#FFE'
             colorVisite = '#DDC'
+        } else {
+            color = '#001'
+            colorVisite = '#335'
         }
+
+        isDay = day;
 
         content.style.color = color
         document.querySelector("#svgLogo").setAttributeNS(null, 'stroke', color )
@@ -354,7 +357,7 @@ export class Hub {
         mouse.innerHTML = Hub.miniIcon('drag', color );*/
 
 
-        //Hub.colors(false)
+        //Hub.colors(true)
 
     }
 
@@ -426,8 +429,6 @@ export class Hub {
         let color = b ? '#FFE' : '#001'
         document.querySelector("#guiPath").setAttributeNS(null, 'stroke', color )
         fps.style.color = color
-
-        
 
     }
 

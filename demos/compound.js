@@ -2,6 +2,21 @@ var model;
 
 function demo() {
 
+    //phy.debugMode(true);
+
+    phy.view({ 
+        exposure:0.6,
+        envmap:'photo', //envFloor:true,
+        ground:true, groundSize:[ 22, 15 ], groundAlpha:false,
+        groundPos:[0,0.01,0], 
+        groundReflect:0.1,// groundColor:0xc9c8c7,
+        phi:20, theta:-20, distance:10, x:0, y:0, z:0, fov:60,
+        envblur: 0.5, 
+        //fogexp:0.03, 
+        //fogColor:0x000000,
+        envPower:0.25,
+    })
+
     // config physics setting
     phy.set( {substep:2, gravity:[0,-9.81,0]});
 
@@ -19,15 +34,20 @@ function onComplete(){
 
     let px = math.rand( -6, 6 );
 
-    phy.add({ size:[3, 0.4, 10], pos:[px,3.5,-16], rot:[45,0,0] });
-    phy.add({ type:'sphere', size:[1], pos:[px,100,-18], density:10 });
+    //phy.add({ size:[3, 0.4, 10], pos:[px,3.5,-16], rot:[45,0,0] });
+    //phy.add({ type:'sphere', size:[1], pos:[px,100,-18], density:10 });
 
 
-    let i = 28, k=0, l=0;
+    let i = 28, k = 0, l = 0;
+    let x = 0, y = 0, z = 0;
 
     while (i--){
 
-        barTable ( -9+3*l, 0, -9+3*k, 45 )
+        x = -9+3*l
+        y = 0;
+        z = 5+(-9+3*k)
+
+        barTable ( x, y, z, 0 )
         l++;
         if( l>6 ) {k++; l=0 }
 

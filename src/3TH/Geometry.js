@@ -966,3 +966,124 @@ export function createUV( geometry, type = 'sphere', boxSize, pos = [0,0,0], qua
 }
 
 
+/*
+export function calcNormal( normals, normal, angle ){
+
+    let allowed = normals.filter( n => n.angleTo( normal ) < angle * Math.PI / 180 );
+    return allowed.reduce( (a, b) => a.clone().add( b ) ).normalize();
+
+}
+
+export function computeVertexNormals(geometry, angle){
+
+    geometry.computeFaceNormals();
+    
+    var vertices = geometry.vertices.map( () => [] ); // vertices with normals array
+
+    geometry.faces.map( face => {
+        vertices[ face.a ].push( face.normal );
+        vertices[ face.b ].push( face.normal );
+        vertices[ face.c ].push( face.normal );
+    });
+
+    geometry.faces.map( face => {
+        face.vertexNormals[ 0 ] = calcNormal( vertices[ face.a ], face.normal, angle );
+        face.vertexNormals[ 1 ] = calcNormal( vertices[ face.b ], face.normal, angle );
+        face.vertexNormals[ 2 ] = calcNormal( vertices[ face.c ], face.normal, angle );
+    });
+
+    if ( geometry.faces.length > 0 ) geometry.normalsNeedUpdate = true;
+
+}*/
+
+/*
+
+BufferGeometry.prototype.computeMorphFaceNormals = function () {
+
+        var i, il, f, fl, face;
+
+        // save original normals
+        // - create temp variables on first access
+        //   otherwise just copy (for faster repeated calls)
+
+        for ( f = 0, fl = this.faces.length; f < fl; f ++ ) {
+
+            face = this.faces[ f ];
+
+            if ( ! face.__originalFaceNormal ) {
+
+                face.__originalFaceNormal = face.normal.clone();
+
+            } else {
+
+                face.__originalFaceNormal.copy( face.normal );
+
+            }
+
+        }
+
+        // use temp geometry to compute face normals for each morph
+
+        var tmpGeo = new THREE.Geometry();
+        tmpGeo.faces = this.faces;
+
+        for ( i = 0, il = this.morphTargets.length; i < il; i ++ ) {
+
+            // create on first access
+
+            if ( ! this.morphNormals[ i ] ) {
+
+                this.morphNormals[ i ] = {};
+                this.morphNormals[ i ].faceNormals = [];
+
+                var dstNormalsFace = this.morphNormals[ i ].faceNormals;
+
+                var faceNormal;
+
+                for ( f = 0, fl = this.faces.length; f < fl; f ++ ) {
+
+                    faceNormal = new Vector3();
+
+                    dstNormalsFace.push( faceNormal );
+
+                }
+
+            }
+
+            var morphNormals = this.morphNormals[ i ];
+
+            // set vertices to morph target
+
+            tmpGeo.vertices = this.morphTargets[ i ].vertices;
+
+            // compute morph normals
+
+            tmpGeo.computeFaceNormals();
+
+            // store morph normals
+
+            var faceNormal;
+
+            for ( f = 0, fl = this.faces.length; f < fl; f ++ ) {
+
+                face = this.faces[ f ];
+
+                faceNormal = morphNormals.faceNormals[ f ];
+
+                faceNormal.copy( face.normal );
+            }
+
+        }
+
+        // restore original normals
+
+        for ( f = 0, fl = this.faces.length; f < fl; f ++ ) {
+
+            face = this.faces[ f ];
+
+            face.normal = face.__originalFaceNormal;
+
+        }
+
+    }
+    */

@@ -105,6 +105,14 @@ const settings = {
 
 export class Motor {
 
+	static debugMode ( b ) { Motor.setDebugMode(b); }
+	static setDebugMode ( b ) { 
+
+		console.log('debugMode is', b )
+		root.debug = b;
+
+	}
+
 	static getSetting () { return settings; }
 
 	static setGravity(){

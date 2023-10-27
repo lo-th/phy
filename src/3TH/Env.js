@@ -2,7 +2,7 @@ import {
 	PMREMGenerator,
 	HalfFloatType,
 	UnsignedByteType, LinearEncoding,
-	Vector3, Vector2, Spherical,
+	Vector3, Vector2, Spherical, RepeatWrapping,
 	Color, Mesh, PlaneGeometry, MeshBasicMaterial, Scene, OrthographicCamera, WebGLRenderTarget,
 	RGBAFormat, FloatType, EquirectangularReflectionMapping, NoToneMapping, SRGBColorSpace
 } from 'three';
@@ -28,7 +28,6 @@ let isWebGPU = false;
 
 let skybox = null;
 let needSkybox = false;
-
 
 let sunColor = new Color();
 let fogColor = new Color();
@@ -107,15 +106,22 @@ export class Env {
 
 	}
 
+	static reset () {
+
+		Env.clearProject();
+		needSkybox = false;
+		
+	}
+
 	static clearProject () {
 
-		if(!skybox) return
+		if(!skybox) return;
 
 		//needSkybox = false;
 
 		scene.remove( skybox );
 		//skybox.material.map.dispose()
-		skybox.geometry.dispose()
+		skybox.geometry.dispose();
 	    skybox = null;
 
 	}
@@ -242,7 +248,9 @@ export class Env {
 		if( type === 'hdr' ) hdr = await hdrLoader.loadAsync( url );
 		else if( type === 'exr' ) hdr = await exrLoader.loadAsync( url );
 
-		//console.log(hdr)
+		
+        //hdr.wrapS = RepeatWrapping;
+		//hdr.offset.x = 0.5
 
 		gamma = 2.2
 		if(envName==='basic') gamma = 2.68
@@ -250,7 +258,7 @@ export class Env {
 
 		//console.log(hdr)
 
-		Env.process()
+		Env.process();
 		
 		if( callback ) callback()
 
@@ -277,7 +285,7 @@ export class Env {
 			
 		}
 
-		if(needSkybox) Env.project()
+		if( needSkybox ) Env.project()
 
 		// autosun
 		tt = 0

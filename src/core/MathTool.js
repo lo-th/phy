@@ -329,11 +329,18 @@ const M = {
         return r;
     },
 
-    mulArray: ( r, s, i ) => {
-        i = i ?? r.length;
-        s = s.length ? s : [s,s,s];
-        while ( i-- ) r[i] *= s[i];
-        return r;
+    mulArray: ( a, b, i ) => {
+        
+        let ar = b instanceof Array;
+        if( !ar ){ 
+            return a.map((x) => x * b);
+        } else { 
+            let r = [];
+            i = i ?? a.length;
+            while ( i-- ) r[i] = a[i] * b[i];
+            return r;
+        }
+        
     },
 
     divArray: ( r, s, i ) => ( M.mulArray( r, 1/s, i ) ),
