@@ -319,6 +319,8 @@ export class engine {
 		let type = getType( o );
 		items[type].add( o );
 
+		//console.log(type, o.name)
+
 	}
 
 	static remove ( o = {} ){

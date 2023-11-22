@@ -62,15 +62,15 @@ class SpiderRobot {
         this.length_b = 77.5;
         this.length_c = 27.5;
         let length_side = 71;
-        let z_absolute = -28;
+        let z_absolute = -40//-28;
         // Constants for movement
-        this.z_default = -50 
-        this.z_up = -30
+        this.z_default = -50//-50 
+        this.z_up = -30//-30
         this.z_boot = z_absolute;
-        this.x_default = 62
+        this.x_default = 62//62
         this.x_offset = 0;
         this.y_start = 0
-        this.y_step = 40;
+        this.y_step = 40//40;
         this.y_default = this.x_default;
 
         //Constants for turn

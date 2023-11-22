@@ -6,10 +6,9 @@ import {
     AddEquation, SubtractEquation, ReverseSubtractEquation, MinEquation, MaxEquation,
     ZeroFactor, OneFactor, SrcColorFactor, OneMinusSrcColorFactor, SrcAlphaFactor, OneMinusSrcAlphaFactor, DstAlphaFactor, OneMinusDstAlphaFactor, DstColorFactor, OneMinusDstColorFactor, SrcAlphaSaturateFactor,
     FrontSide, BackSide, DoubleSide,
-
 } from 'three';
 import { CarbonTexture } from '../../3TH/textures/CarbonTexture.js';
-
+import { MeshSssMaterial } from '../../3TH/materials/MeshSssMaterial.js';
 
 //-------------------
 //
@@ -149,6 +148,7 @@ export const Mat = {
 				case 'line': m = new LineBasicMaterial( o ); break;
 				case 'toon': m = new MeshToonMaterial( o ); break;
 				case 'shadow': m = new ShadowMaterial( o ); break;
+				case 'sss': m = new MeshSssMaterial( o ); break;
 				default: m = new MeshStandardMaterial( o ); break;
 
 			}
@@ -295,29 +295,24 @@ export const Mat = {
 				    m = Mat.create({ name:'svg', type:'basic', toneMapped:false, vertexColors:true, transparent:false, side:DoubleSide });
 			    break
 
-
-				
-
 			}
 			
 		}
 
 		return mat[name]
 
-
-
 	},
 
 	dispose:() => {
 
 		for(let m in mat){
-			mat[m].dispose()
-			delete mat[m]
+			mat[m].dispose();
+			delete mat[m];
 		}
 
-		let i = TmpMat.length
+		let i = TmpMat.length;
 		while( i-- ) { TmpMat[i].dispose(); }
-		TmpMat = []
+		TmpMat = [];
 
 	}
 
@@ -331,7 +326,8 @@ const outliner = new ShaderMaterial({
     vertexShader:`
         uniform float power;
         void main(){
-            vec3 pos = position + normal * power;
+            //vec3 pos = position + normal * power;
+            vec3 pos = position + normalize( normal ) * power;
             gl_Position = projectionMatrix * modelViewMatrix * vec4( pos, 1.0 );
         }
     `,
@@ -342,10 +338,9 @@ const outliner = new ShaderMaterial({
         }
     `,
     side:BackSide,
+    toneMapped: false,
     //wireframe:true,
     //transparent:true,
     //opacity:0.5,
-
-
 
 });

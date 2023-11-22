@@ -250,7 +250,8 @@ export class Body extends Item {
 
 		let name = this.setName( o );
 
-		let tt = this.type === 'body' ? ( o.kinematic ? Jolt.Kinematic : Jolt.Dynamic ) : Jolt.Static;
+		let tt = this.type === 'body' ? ( o.kinematic ? Jolt.EMotionType_Kinematic : Jolt.EMotionType_Dynamic ) : Jolt.EMotionType_Static;
+		//EBodyType_SoftBody
 		let move = this.type === 'body' ? Jolt.MOVING : Jolt.NON_MOVING;
 		let volume = 0;
 
@@ -305,7 +306,7 @@ export class Body extends Item {
 
 		if( o.density ) o.mass = MathTool.massFromDensity( o.density || 0, volume );
 		if( o.mass ) bcs.mMassPropertiesOverride.mMass = o.mass;
-		bcs.mOverrideMassProperties = Jolt.CalculateInertia;
+		bcs.mOverrideMassProperties = Jolt.EOverrideMassProperties_CalculateInertia;
 		bcs.mInertiaMultiplier = 1;
 
 		// mInertia is mat44
@@ -332,7 +333,7 @@ export class Body extends Item {
 		}
 
 
-		if( o.kinematic !== undefined ) console.log( bcs )
+		//if( o.kinematic !== undefined ) console.log( bcs )
 
 		// body 
 
@@ -505,7 +506,15 @@ export class Body extends Item {
 	    }
 
 	    //if( o.impulse ) b.AddImpulse( this.v.fromArray( o.impulse ), this.v2.fromArray( [0,0,0] ) );
-	    if( o.impulse ) b.AddImpulse( this.v.fromArray( o.impulse ), o.impulseCenter ? this.v2.fromArray( o.impulseCenter ) : b.GetPosition() );
+	    if( o.impulse ){
+	    	//o.impulse = MathTool.scaleArray(o.impulse, 0.016, 3)
+	    //console.log(o.impulse, o.impulseCenter) 
+	    	b.AddImpulse( this.v.fromArray( o.impulse ), o.impulseCenter ? this.v2.fromArray( o.impulseCenter ) : b.GetPosition() );
+	    	//if( o.impulseCenter ) root.bodyInterface.AddImpulse( b.GetID(), this.v.fromArray( o.impulse ), this.v2.fromArray( o.impulseCenter ) )
+	    	//else b.AddImpulse( this.v.fromArray( o.impulse ) )
+	    }
+
+	    
 	    if( o.angularImpulse ) b.AddAngularImpulse( this.v.fromArray( o.angularImpulse ) );
 	    //if( o.force ) b.AddForce( this.v2.fromArray( [0,0,0] ), this.v.fromArray( o.force ) );
 	    if( o.force ) b.AddForce( this.v.fromArray( o.force ), o.forceCenter ? this.v2.fromArray( o.forceCenter ) : b.GetPosition() );

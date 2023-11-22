@@ -14,6 +14,8 @@ import {
     AdditiveAnimationBlendMode, NormalAnimationBlendMode,
 } from 'three';
 
+import { MeshSssMaterial } from '../materials/MeshSssMaterial.js';
+
 import { GLTFExporter } from '../../jsm/exporters/GLTFExporter.js';
 import * as SkeletonUtils from '../../jsm/utils/SkeletonUtils.js';
 import { Basic3D } from '../../core/Basic3D.js';
@@ -374,13 +376,16 @@ export class Avatar extends Group {
             type = data.type
             delete data.type
             for( const t in data ){
-                if(t!=='envMapIntensity' && t!=='normalMapType'){
+                if(t!=='envMapIntensity' && t!=='normalMapType' && t!=='aoMapIntensity' && t!=='aoMapIntensity'){
                     if(t==='map' || t.search('Map')!==-1 ) data[t] = Pool.getTexture( data[t], {quality:this.textureQuality } );
                 }
             }
+
+
             if(type==='Basic') m = new MeshBasicMaterial( data )
             else if(type==='Standard') m = new MeshStandardMaterial( data )
             else if(type==='Physical') m = new MeshPhysicalMaterial( data )
+            else if(type==='Sss') m = new MeshSssMaterial(data)
             m.name = name
 
             //console.log(m)
@@ -457,7 +462,7 @@ export class Avatar extends Group {
 
         if( !this.isClone ){
             // add morph 
-            if( this.haveMorph ) Pool.applyMorph( this.model+'_morph', this.mesh, true, false );
+            if( this.haveMorph ) Pool.applyMorph( this.model+'_morph', this.mesh, this.ref.morphNormal, this.ref.morphRelative );
             Pool.set( this.model, this.root, 'O' )
             
         }

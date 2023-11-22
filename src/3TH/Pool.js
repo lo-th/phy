@@ -124,6 +124,7 @@ export const Pool = {
 
     getMesh:( obj, keepMaterial ) => {
         if( typeof obj === 'string' ) obj = Pool.get( obj, 'O' );
+        if(!obj) return console.error('Not find Model ?')
         return GlbTool.getMesh( obj, keepMaterial )
     },
 
@@ -265,7 +266,19 @@ export const Pool = {
 
     ///
 
-    
+    loadAsync: ( Urls, Path = '', msg = '' ) => {
+
+        return new Promise((resolve, reject) => {
+
+            Pool.waiting = true;
+            Pool.load( Urls, () => { Pool.waiting = false; }, Path, msg );
+
+            //if (!Pool.waiting) resolve()
+            //Pool.load( Urls, resolve, Path, msg );
+
+        })
+
+    },
 
     ///
 

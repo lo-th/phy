@@ -47,14 +47,19 @@ export class Ray extends Item {
 			this.v2.fromArray( pp[1] )
 
 			// distance
-			distance = this.v1.distanceTo( this.v2 )
+			distance = MathTool.distanceArray( pp[0], pp[1] );//this.v1.distanceTo( this.v2 )
+			AR[n+1] = distance;
 
 			// convert v2 to direction
-			this.v2.sub( this.v1 ).normalize()
+			this.v2.fromArray( MathTool.normalArray( pp[0], pp[1] ) );
+			//this.v2.sub( this.v1 ).normalize()
 			this.ray.origin = this.v1
 			this.ray.dir = this.v2
 
 			root.world.intersectionsWithRay( this.ray, distance, r.solid,  (hit) => {
+
+				let name = hit.collider._parent.name
+				if( !r.selfHit && r.parent && name === r.parent ) return true; // ignore parent body
 
 				AR[n] = 1
 				let hitPoint = this.ray.pointAt(hit.toi)
@@ -111,8 +116,9 @@ export class ExtraRay {
 	    this.name = o.name
 
 	    this.group = o.group !== undefined || 0xfffffffff
-
 	    this.parent = o.parent || ''
+
+	    this.selfHit = o.selfHit || false;
 
 	    this.begin = o.begin || [0,0,0]
 	    this.end = o.end || [0,0,1]

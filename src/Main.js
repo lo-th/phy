@@ -429,8 +429,12 @@ const init = () => {
 	//let powerPreference ='low-power'// for mobile
 
 	let pixelRatio = window.devicePixelRatio
-	let antialias = pixelRatio > 1 ? false : true
-	if( pixelRatio > 2 ) pixelRatio = 2
+	let antialias = true;
+
+	if( pixelRatio > 2 ){ 
+		pixelRatio = 2
+		antialias = false
+	}
 
 	if(options.mode === 'LOW') antialias = false;
 
@@ -451,8 +455,8 @@ const init = () => {
 		alpha: false,
 	})
 	
-	renderer.setPixelRatio( pixelRatio )
-	renderer.setSize( size.w, size.h )
+	renderer.setPixelRatio( pixelRatio );
+	renderer.setSize( size.w, size.h );
 	renderer.setClearColor( 0x000000, 1 );
 
 
@@ -460,7 +464,7 @@ const init = () => {
 
 	//renderer.outputColorSpace = THREE.sRGBEncoding
 	//renderer.outputColorSpace = THREE.SRGBColorSpace;
-	renderer.toneMapping = toneMappingOptions[options.tone]
+	renderer.toneMapping = toneMappingOptions[options.tone];
 	renderer.toneMappingExposure = options.exposure;
 	//console.log(renderer.useLegacyLights)
 	//renderer.useLegacyLights = options.legacy;
@@ -470,9 +474,9 @@ const init = () => {
 	//console.log(renderer)
 
 	// DOM
-    document.body.appendChild( renderer.domElement )
+    document.body.appendChild( renderer.domElement );
 	dom = renderer.domElement;
-	dom.style.position = 'absolute'
+	dom.style.position = 'absolute';
 
 	// SHADER
 

@@ -6,7 +6,6 @@ import {
 	BufferGeometry,
 	ClampToEdgeWrapping,
 	Color,
-	ColorManagement,
 	DirectionalLight,
 	DoubleSide,
 	FileLoader,
@@ -26,7 +25,6 @@ import {
 	LinearFilter,
 	LinearMipmapLinearFilter,
 	LinearMipmapNearestFilter,
-	LinearSRGBColorSpace,
 	Loader,
 	LoaderUtils,
 	Material,
@@ -62,8 +60,7 @@ import {
 	Vector2,
 	Vector3,
 	VectorKeyframeTrack,
-	SRGBColorSpace,
-	InstancedBufferAttribute
+	SRGBColorSpace
 } from 'three';
 import { toTrianglesDrawMode } from '../utils/BufferGeometryUtils.js';
 
@@ -183,13 +180,7 @@ class GLTFLoader extends Loader {
 
 		} else if ( this.path !== '' ) {
 
-			// If a base path is set, resources will be relative paths from that plus the relative path of the gltf file
-			// Example  path = 'https://my-cnd-server.com/', url = 'assets/models/model.gltf'
-			// resourcePath = 'https://my-cnd-server.com/assets/models/'
-			// referenced resource 'model.bin' will be loaded from 'https://my-cnd-server.com/assets/models/model.bin'
-			// referenced resource '../textures/texture.png' will be loaded from 'https://my-cnd-server.com/assets/textures/texture.png'
-			const relativeUrl = LoaderUtils.extractUrlBase( url );
-			resourcePath = LoaderUtils.resolveURL( relativeUrl, this.path );
+			resourcePath = this.path;
 
 		} else {
 
@@ -368,9 +359,6 @@ class GLTFLoader extends Loader {
 		for ( let i = 0; i < this.pluginCallbacks.length; i ++ ) {
 
 			const plugin = this.pluginCallbacks[ i ]( parser );
-
-			if ( ! plugin.name ) console.error( 'THREE.GLTFLoader: Invalid plugin found: missing name' );
-
 			plugins[ plugin.name ] = plugin;
 
 			// Workaround to avoid determining as unknown extension
@@ -557,7 +545,7 @@ class GLTFLightsExtension {
 
 		const color = new Color( 0xffffff );
 
-		if ( lightDef.color !== undefined ) color.setRGB( lightDef.color[ 0 ], lightDef.color[ 1 ], lightDef.color[ 2 ], LinearSRGBColorSpace );
+		if ( lightDef.color !== undefined ) color.fromArray( lightDef.color );
 
 		const range = lightDef.range !== undefined ? lightDef.range : 0;
 
@@ -675,7 +663,7 @@ class GLTFMaterialsUnlitExtension {
 
 				const array = metallicRoughness.baseColorFactor;
 
-				materialParams.color.setRGB( array[ 0 ], array[ 1 ], array[ 2 ], LinearSRGBColorSpace );
+				materialParams.color.fromArray( array );
 				materialParams.opacity = array[ 3 ];
 
 			}
@@ -951,8 +939,7 @@ class GLTFMaterialsSheenExtension {
 
 		if ( extension.sheenColorFactor !== undefined ) {
 
-			const colorFactor = extension.sheenColorFactor;
-			materialParams.sheenColor.setRGB( colorFactor[ 0 ], colorFactor[ 1 ], colorFactor[ 2 ], LinearSRGBColorSpace );
+			materialParams.sheenColor.fromArray( extension.sheenColorFactor );
 
 		}
 
@@ -1090,7 +1077,7 @@ class GLTFMaterialsVolumeExtension {
 		materialParams.attenuationDistance = extension.attenuationDistance || Infinity;
 
 		const colorArray = extension.attenuationColor || [ 1, 1, 1 ];
-		materialParams.attenuationColor = new Color().setRGB( colorArray[ 0 ], colorArray[ 1 ], colorArray[ 2 ], LinearSRGBColorSpace );
+		materialParams.attenuationColor = new Color( colorArray[ 0 ], colorArray[ 1 ], colorArray[ 2 ] );
 
 		return Promise.all( pending );
 
@@ -1193,7 +1180,7 @@ class GLTFMaterialsSpecularExtension {
 		}
 
 		const colorArray = extension.specularColorFactor || [ 1, 1, 1 ];
-		materialParams.specularColor = new Color().setRGB( colorArray[ 0 ], colorArray[ 1 ], colorArray[ 2 ], LinearSRGBColorSpace );
+		materialParams.specularColor = new Color( colorArray[ 0 ], colorArray[ 1 ], colorArray[ 2 ] );
 
 		if ( extension.specularColorTexture !== undefined ) {
 
@@ -1689,12 +1676,7 @@ class GLTFMeshGpuInstancing {
 				// Add instance attributes to the geometry, excluding TRS.
 				for ( const attributeName in attributes ) {
 
-					if ( attributeName === '_COLOR_0' ) {
-
-						const attr = attributes[ attributeName ];
-						instancedMesh.instanceColor = new InstancedBufferAttribute( attr.array, attr.itemSize, attr.normalized );
-
-					} else if ( attributeName !== 'TRANSLATION' &&
+					if ( attributeName !== 'TRANSLATION' &&
 						 attributeName !== 'ROTATION' &&
 						 attributeName !== 'SCALE' ) {
 
@@ -2559,7 +2541,7 @@ class GLTFParser {
 
 			assignExtrasToUserData( result, json );
 
-			return Promise.all( parser._invokeAll( function ( ext ) {
+			Promise.all( parser._invokeAll( function ( ext ) {
 
 				return ext.afterRoot && ext.afterRoot( result );
 
@@ -3404,7 +3386,7 @@ class GLTFParser {
 
 				const array = metallicRoughness.baseColorFactor;
 
-				materialParams.color.setRGB( array[ 0 ], array[ 1 ], array[ 2 ], LinearSRGBColorSpace );
+				materialParams.color.fromArray( array );
 				materialParams.opacity = array[ 3 ];
 
 			}
@@ -3496,8 +3478,7 @@ class GLTFParser {
 
 		if ( materialDef.emissiveFactor !== undefined && materialType !== MeshBasicMaterial ) {
 
-			const emissiveFactor = materialDef.emissiveFactor;
-			materialParams.emissive = new Color().setRGB( emissiveFactor[ 0 ], emissiveFactor[ 1 ], emissiveFactor[ 2 ], LinearSRGBColorSpace );
+			materialParams.emissive = new Color().fromArray( materialDef.emissiveFactor );
 
 		}
 
@@ -4575,12 +4556,6 @@ function addPrimitiveAttributes( geometry, primitiveDef, parser ) {
 		} );
 
 		pending.push( accessor );
-
-	}
-
-	if ( ColorManagement.workingColorSpace !== LinearSRGBColorSpace && 'COLOR_0' in attributes ) {
-
-		console.warn( `THREE.GLTFLoader: Converting vertex colors from "srgb-linear" to "${ColorManagement.workingColorSpace}" not supported.` );
 
 	}
 

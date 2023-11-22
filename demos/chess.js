@@ -28,10 +28,10 @@ onComplete = () => {
 
     let m = phy.texture({ url:'./assets/textures/chess.jpg', flip:false, encoding:true })
     let defMat = {
-        roughness: 0.3, metalness: 0.4, map:m, aoMap:m, envMapIntensity:2.2 
+        roughness: 0.25, metalness: 0.2, aoMap:m//, envMapIntensity:2.2 
     }
-    phy.material({ name:'Black', color:0x343434, ...defMat })
-    phy.material({ name:'White', color:0xcbad7b, ...defMat })
+    phy.material({ name:'Black', ...defMat, map:createChessTexture(false) })
+    phy.material({ name:'White', ...defMat, map:createChessTexture(true) })
 
     let p = [
 
@@ -93,11 +93,10 @@ calculatePosition = ( items ) => {
     let dx = ((x*sx)*0.5) - x*0.5
     let dz = ((z*sz)*0.5) - z*0.5
     dz+=2
-    let n = 0
-    let item
+    let n = 0, i, j, item;
 
-    for(let i = 0; i < x; i++){
-    	for(let j = 0; j < z; j++){
+    for( i = 0; i < x; i++){
+    	for( j = 0; j < z; j++){
 
             item = items[n]
             if( item.decal !== undefined ){
@@ -123,7 +122,7 @@ addPiece = ( o, i, model ) => {
     	name: name, 
     	shape: model[ o.type + '_shape' ].geometry,
     	mesh: model[ o.type ],
-    	meshScale: [ chessSize ],
+        meshSize:chessSize,
     	material: o.black ? 'Black' : 'White', 
     	type: 'convex', 
     	size: [ chessSize ], 
@@ -136,4 +135,34 @@ addPiece = ( o, i, model ) => {
     	//damping:[0, 0.5],
     	margin:0.000001,
     }
+}
+
+
+
+
+createChessTexture = ( white ) => {
+    
+    let tmpCanvas = document.createElement('canvas')
+    tmpCanvas.width = tmpCanvas.height = 128;
+    ctx = tmpCanvas.getContext("2d");
+
+    ctx.beginPath();
+    ctx.rect(0, 0, 128, 128);
+    ctx.fillStyle = white ? "#cbad7b" : "#343434";
+    ctx.fill();
+
+    ctx.beginPath();
+    ctx.rect(0, 128-13, 128, 13);
+    ctx.fillStyle = "#0a552f";
+    ctx.fill();
+
+    let img = new Image(128, 128);
+    img.src = tmpCanvas.toDataURL( 'image/png' );
+
+    let t = new THREE.Texture( img );
+    t.needsUpdate = true;
+    t.flipY = false;
+    t.colorSpace = THREE.SRGBColorSpace;
+
+    return t;
 }

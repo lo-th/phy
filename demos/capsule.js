@@ -118,6 +118,7 @@ return*/
         	density:1,
         	//angularFactor:[0,1,0],
         	massCenter:[ 0,-0.75, 0 ],
+        	//localPos:[ 0,0.75, 0 ],
         });
 
         temp[i] = [0,0]

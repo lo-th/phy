@@ -1,10 +1,10 @@
 const Botsetting = {
     speed: 0.1,//0.1,
-    stiffness: 1000,
-    damping: 100,
-    forceLimit: 1000,
-    legMass:1,
-    bodyMass:8,
+    stiffness: 3000,//1000,
+    damping: 100,//100,
+    forceLimit: 10000,
+    legMass:100,//1,
+    bodyMass:800,//8,
 }
 const debug = 0;
 const single = 0;
@@ -17,7 +17,7 @@ demo = () => {
 
     phy.view({ envmap:'photo', envblur:0.3, ground:true, fog:true, fogDist:0.02 })//envFloor:true,
 
-    phy.set({ substep:1, gravity:[0,-9.81,0], key:true })
+    phy.set({ substep:1, gravity:[0,-9.81,0], key:true, fps:144 })
 
     phy.add({ type:'plane', size:[300,1,300], visible:false, friction:1 });
 
@@ -31,14 +31,32 @@ demo = () => {
 onComplete = () => {
     // load extra script
     phy.extraCode( './demos/extra/SpiderAi.js', initRobot );
+    
 }
 
 initRobot = () => {
 
+    let terrain = phy.add({
+        type:'terrain',
+        name:'terra',
+        maps:['road2', 'road3', 'asph'],
+        friction: 1.0, 
+        staticFriction:1.0,
+        restitution: 0.1,
+        maplevels:[0.5, 0.5, 0, 0.25],
+        pos: [0,0,0],
+        size: [30, 2, 30],
+        sample: [128, 128],
+        frequency: [0.016,0.05,0.2],
+        expo: 2,
+        zone:1.0,
+        uv: 10,
+    })
+
     meshes = phy.getMesh('spider', true );
 
     let i = 10
-    let x = 0, z = 0, n = 0, l = 0
+    let x = 0, z = 0, y=2, n = 0, l = 0
     if(single) i = 1
 
     while(i--){
@@ -49,7 +67,7 @@ initRobot = () => {
         if(n===5){  n = 0; l++; }
         if(single){ x = 0; z = 0; }
 
-        bots[i] = new Bot({id:i, pos:[x,0.5,z]})
+        bots[i] = new Bot({id:i, pos:[x,y,z]})
 
     }
     
@@ -91,7 +109,7 @@ class Bot {
         this.setting = { ...Botsetting }
 
         this.id = o.id || 0
-        this.name = o.name || 'bot' + this.id
+        this.name = o.name || 'bot' + this.id;
         this.solver = null
         this.pos = o.pos || [0, 2, 0]
 
@@ -128,7 +146,7 @@ class Bot {
         const pos = this.pos;
         const id = this.id
 
-        const solver = phy.add({ type:'solver', name:this.name, iteration:4, fix:false, needData:true, neverSleep:true })
+        const solver = phy.add({ type:'solver', name:this.name, iteration:8, fix:false, needData:true, neverSleep:true })//it:4
 
         solver.speed = this.setting.speed
 
@@ -138,7 +156,7 @@ class Bot {
 
         let def = {
             //filter:[2,-1,1,0], 
-            //dmv:[0.2,0.2,100,20], 
+            //dmv:[0.01,0.9,100,100], 
             debug:debug, 
             meshSize:10,
             solver:this.name,
@@ -214,12 +232,14 @@ class Bot {
             phy.add({
                 ...def,
                 //type:'sphere',
-                type:'cylinder', 
+                //type:'cylinder', 
+                type:'capsule', 
                 name:id+'_earm'+i, 
                 linked:id+'_farm'+i,
                 //size:[ 0.04 ], 
                 //size:[ 0.08, 0.08, 0.12 ],
-                size:[ 0.04, 0.12 ],
+                //size:[ 0.04, 0.12 ],
+                size:[ 0.04, 0.08 ],
                 localRot:[90,0,0],
                 pos:math.addArray( pos, e[i] ), rot:rot,
                 mesh:meshes.earm_001,
@@ -235,7 +255,7 @@ class Bot {
         const stiffness = this.setting.stiffness;
         const damping = this.setting.damping; // 0
         const forceLimit = this.setting.forceLimit;
-        const acceleration = false;
+        const acceleration = true;//false;
 
         i = 4
         while(i--){

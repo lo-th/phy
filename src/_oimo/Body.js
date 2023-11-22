@@ -119,8 +119,14 @@ export class Body extends Item {
 			case 'plane':
 			
 			if( s[0]===1 ) s = [300,0,300]
+			if( !s[1] ) s[1] = 1.0
 
-			h = [
+			g = new BoxGeometry( this.v.set(s[0] * 0.5, s[1] * 0.5, s[2] * 0.5) );
+
+		    if(o.localPos) o.localPos[1] -= s[1]*0.5
+			else o.localPos = [0,-s[1]*0.5,0]
+
+			/*h = [
 			    new Vec3( s[0]*0.5, 0, s[2]*0.5 ),
 			    new Vec3( s[0]*0.5, 0, -s[2]*0.5 ),
 			    new Vec3( -s[0]*0.5, 0, -s[2]*0.5 ),
@@ -129,7 +135,7 @@ export class Body extends Item {
 			
 			g = new ConvexHullGeometry( h );
 			g._gjkMargin = o.margin || 0.0001;// default 0.05
-			g._useGjkRayCast = o.ray || false;
+			g._useGjkRayCast = o.ray || false;*/
 
 			break;
 
@@ -168,8 +174,12 @@ export class Body extends Item {
 
 		// The density of the shape, usually in Kg/m^3. def = 1
 		//if( o.mass && o.density ) delete o.density
+		//if( o.mass !== undefined ) o.density = MathTool.densityFromMass( o.mass, MathTool.getVolume( t, s, o.v ) )
         sc.density = o.density || 0;
-        if( o.mass !== undefined ) sc.density = MathTool.densityFromMass( o.mass, MathTool.getVolume( t, s, o.v ) )
+
+
+        //console.log( o.mass, o.density )
+        
 
 
 		let shape = new Shape( sc );
@@ -409,7 +419,7 @@ export class Body extends Item {
 
 	    // Applies the impulse `impulse` to the rigid body at `positionInWorld` in world position. [ 0,0,0,   0,0,0 ]
 
-	    if(o.impulse){
+	    if( o.impulse ){
 	    	if( o.impulseCenter ) b.applyImpulse( this.v.fromArray( o.impulse ), this.v2.fromArray( o.impulseCenter ) );
 	    	else b.applyLinearImpulse( this.v.fromArray( o.impulse ) );
 	    }

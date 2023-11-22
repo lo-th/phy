@@ -280,7 +280,7 @@ export class Body extends Item {
 
 			//mass = mass *0.1
 
-		//	console.log(mass, o.density, o.volume)
+		//console.log(mass, o.density, o.volume)
 
 
 		//mass = o.density || 0//o.density //* g.volume;
@@ -465,7 +465,9 @@ export class Body extends Item {
 		//if( o.force ) b.applyCentralForce( this.v.fromArray( o.force ).multiplyScalar(root.delta) );
 		//if( o.localForce ) b.applyCentralForce( this.v.fromArray( o.localForce ).multiplyScalar(root.delta) );
 
-		if( o.force ) b.applyForce( this.v.fromArray( o.force ).divideScalar(root.substep) );
+		if( o.force ){ 
+			b.applyForce( this.v.fromArray( o.force ).divideScalar(root.substep) );
+		}
 
 			//console.log( b )
 
@@ -483,7 +485,14 @@ export class Body extends Item {
 	    if( o.impulse ) b.applyImpulse( this.v.fromArray( o.impulse ), this.v.fromArray( o.impulse, 3 ) );*/
 
 
-	    if( o.impulse ){
+	    if( o.impulse ){ // impulseCenter is relative to the body position ?? 
+	    	/*let transform = new Ammo.btTransform();
+			b.getMotionState().getWorldTransform(transform);
+			let relativeForce = this.v2.fromArray( o.impulseCenter )//new Ammo.btVector3(0,0, 1000);
+			let relativeTransform = new Ammo.btTransform();
+			relativeTransform.setOrigin(relativeForce);
+			relativeForce = (transform.op_mul(relativeTransform)).getOrigin();*/
+
 	    	if( o.impulseCenter ) b.applyImpulse( this.v.fromArray( o.impulse ), this.v2.fromArray( o.impulseCenter ) )
 	    	else b.applyCentralImpulse( this.v.fromArray( o.impulse ) )
 	    }

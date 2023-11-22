@@ -42,29 +42,33 @@ export const Human = {
 
 	isBreath:false,
 	isEyeMove:false,
-	haveMorph:true,
+	
     haveHair:false,
     haveBlink:true,
 
+    haveMorph:true,
+    morphNormal:false,
+    morphRelative:false,
+
     haveLOD:true,
 
-    levelHigh:['body', 'Head', 'eyelash', 'eyebrow', 'tear', 'eye_l', 'eye_r', 'eye_l_s', 'eye_r_s'],
+    levelHigh:['body', 'Head', 'crane', 'eyelash', 'eyebrow', 'tear', 'eye_l', 'eye_r', 'eye_l_s', 'eye_r_s'],
     levelHair:['hair', 'hair_man'],
     levelLow:['body_low'],
 
 
     skeletonRef:'body',
-	fullMorph: ['MUSCLE', 'LOW', 'BIG', 'MONSTER'],//
+	fullMorph: ['MUSCLE', 'LOW', 'BIG'],//, 'MONSTER'
 
     textureQuality:1,
 	textureRef:'avatar_c',
 	texturePath: 'assets/textures/avatar_',
 	textures: [
-        'avatar_c.jpg', 'avatar_n.jpg', 'avatar_m.jpg', 'avatar_r.jpg', 'avatar_u.jpg',
+        'avatar_c.jpg', 'avatar_n.jpg', 'avatar_t.jpg',//'avatar_m.jpg', 'avatar_r.jpg', 'avatar_u.jpg',
         'mouth_c.jpg', 'mouth_a.jpg', 'mouth_n.jpg', 
         'eye_c.jpg', 'eye_n.jpg', 'hair.jpg', 'hair_a.jpg',
         'eyelash_c.jpg', 'eyelash_a.jpg', 'eyelash_n.jpg',
-        'hair_man.jpg', 'hair_man_a.jpg', //'avatar_ao.jpg',
+        'hair_man.jpg', 'hair_man_a.jpg', 'avatar_ao.jpg',
     ],
 
     modelPath: 'assets/models/avatar/',
@@ -76,33 +80,44 @@ export const Human = {
 
     materials:{
         skin:{
-            type:'Physical',
+            type:'Sss',
             map: 'avatar_c', 
             normalMap:'avatar_n',
 
-            //envMapIntensity:0.3,
+            envMapIntensity:0.7,
+            //reflectivity:1.0,
 
             roughness:0.54,
             metalness:0.14,
-
+            
             /*roughness:1,
             metalness:1,
             metalnessMap:'avatar_m',
             roughnessMap:'avatar_r',*/
-            normalScale: new Vector2( setting.normal, -setting.normal),
+
+            normalScale: new Vector2( setting.normal, -setting.normal ),
             
             /*sheen:setting.sheen,
+            sheenColor:0xFFFFFF,
             sheenRoughness:setting.sheenRoughness,
-            sheenColor:0xff0000,
+            sheenColorMap:'avatar_c',
+            /*sheenColor:0xff0000,
             sheenColorMap:'avatar_u',
             iridescence:0.1,*/
             wireframe:setting.wireframe,
 
-            /*aoMap:'avatar_ao',
-            aoMapIntensity:1,*/
+            aoMap:'avatar_ao',
+            aoMapIntensity:0.5,
 
+            ior:1.4,
+            vertexColors:false,
 
-            //envMapIntensity:1,
+            sssMap:'avatar_t',
+            sssColor:new Color( 0xee2323 ),
+            sssAmbient:0.5,
+            sssDistortion:0.6,
+            sssAttenuation:0.1,
+            sssScale:6.0
             
         },
     	mouth:{
@@ -271,6 +286,12 @@ export const Human = {
                     node.material = def;
                     node.receiveShadow = true;
                     node.castShadow = true;
+                    node.visible = startHigh
+                    break;
+                    case 'crane': 
+                    node.material = def;
+                    node.receiveShadow = true;
+                    node.castShadow = false;
                     node.visible = startHigh
                     break;
                     case 'mouth':

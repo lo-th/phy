@@ -27,6 +27,7 @@ import { Container } from './extra/Container.js';
 import { MouseTool } from './extra/MouseTool.js';
 import { Breaker } from './extra/Breaker.js';
 import { Particle } from './extra/Particle.js';
+import { RayCar } from './extra/RayCar.js';
 
 import { Pool } from '../3TH/Pool.js';
 import { sk } from '../3TH/character/SkeletonExtand.js';
@@ -41,12 +42,12 @@ import { preloadAvatar } from '../3TH/character/Avatar.js';
 */
 
 const Version = {
-    OIMO: '1.2.2',
+    OIMO: '1.2.4',
     AMMO: '3.0',
     PHYSX: '5.03.00',
     RAPIER: '0.11.2',
-    HAVOK: '1.2.0',
-    JOLT: '0.6.2',
+    HAVOK: '1.3.0',
+    JOLT: '0.8.0',
 }
 
 const items = {};
@@ -105,6 +106,9 @@ const settings = {
 
 export class Motor {
 
+	static math = MathTool
+	static RayCar = RayCar
+
 	static debugMode ( b ) { Motor.setDebugMode(b); }
 	static setDebugMode ( b ) { 
 
@@ -154,14 +158,12 @@ export class Motor {
 
 	}
 
-	static math = MathTool
-
 	static activeMouse ( controler, mode ) { 
 		if( !mouseTool ) mouseTool = new MouseTool( controler, mode );
 	}
 
     static mouseMode ( mode, o ) { 
-		if( mouseTool ) mouseTool.setMode( mode, o )
+		if( mouseTool ) mouseTool.setMode( mode, o );
 	}
 
     static getTime () { return Timer.now(); }
@@ -1003,13 +1005,23 @@ export class Motor {
 
 	static preload ( Urls, Callback ){
 
-		preloadAvatar.add( Urls, Callback )
+		preloadAvatar.add( Urls, Callback );
 		//Pool.load( Urls, Callback, Path, msg )
 	}
 
 	static load ( Urls, Callback, Path = '', msg = '' ){
-		Pool.load( Urls, Callback, Path, msg )
+		Pool.load( Urls, Callback, Path, msg );
 	}
+
+	// TODO ?? 
+
+	static async loadAsync ( Urls, Path = '', msg = '' ){
+
+		await Pool.loadAsync( Urls, Path, msg );
+
+	}
+
+	
 
 	static applyMorph ( modelName, meshs = null, normal = true, relative = true ){
 		Pool.applyMorph( modelName, meshs = null, normal = true, relative = true );

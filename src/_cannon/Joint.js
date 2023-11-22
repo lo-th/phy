@@ -2,7 +2,7 @@ import { Item } from '../core/Item.js';
 import { Num } from '../core/Config.js';
 import * as CANNON from '../libs/cannon-es.js'
 
-import { Utils, map, torad, Vec3, Quat } from './root.js';
+import { root, Utils, map, torad, Vec3, Quat } from './root.js';
 
 
 

@@ -64,6 +64,7 @@ export const getType = function ( o ) {
     switch( o.type ){
         case 'plane': case 'box': case 'sphere': case 'highSphere': case 'cylinder': case 'stair':case 'particle':
         case 'cone': case 'capsule': case 'mesh': case 'convex': case 'compound': case 'null':
+            //if ( ( !o.mass || !o.density ) && !o.kinematic ) return 'solid'
             if ( !o.mass && !o.density && !o.kinematic ) return 'solid'
             else return 'body'
         break;

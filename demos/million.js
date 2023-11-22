@@ -468,10 +468,10 @@ createBallTexture = ( n, y) => {
 
     if( ballTest ) return [nx/8,ny/8,0]
 
-    var img = new Image(128, 128);
+    let img = new Image(128, 128);
     img.src = tmpCanvas.toDataURL( 'image/png' );
 
-	var t = new THREE.Texture( img );
+	let t = new THREE.Texture( img );
 	t.needsUpdate = true;
 	t.flipY = false;
     t.name = 'ball_' + n + (y ? 'R':'Y');

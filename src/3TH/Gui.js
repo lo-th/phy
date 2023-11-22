@@ -48,7 +48,7 @@ export const Gui = {
 	matList:null,
 
 	imageMap: ['map', 'map1', 'map2', 'emissiveMap', 'sheenColorMap'],
-	imageNormal: [ 'normalMap', 'normalMap1','normalMap2','aoMap', 'metalnessMap', 'roughnessMap', 'alphaMap','anisotropyMap', 'specularIntensityMap', 'displacementMap', 'bumpMap' ],
+	imageNormal: [ 'normalMap', 'normalMap1','normalMap2','aoMap', 'metalnessMap', 'thicknessMap', 'roughnessMap', 'alphaMap','anisotropyMap', 'specularIntensityMap', 'displacementMap', 'bumpMap' ],
 	
 	MaterialMesh:[ 'Basic', 'Physical', 'Standard', 'Toon', 'Lambert', 'Phong', 'Shader' ],
 
@@ -752,8 +752,11 @@ export const Gui = {
 		if(m.reflectivity!==undefined) g3.add( m, 'reflectivity', {...deff})
 
 		if(m.specularIntensity!==undefined) g3.add( m, 'specularIntensity', { ...deff })
-		if(m.aoMapIntensity!==undefined) g3.add( m, 'aoMapIntensity', { ...deff, rename:'ao' })
+		if(m.aoMapIntensity!==undefined) g3.add( m, 'aoMapIntensity', { ...deff, rename:'ax' })
 		if(m.emissiveIntensity!==undefined) g3.add( m, 'emissiveIntensity', { ...deff, rename:'emissive', max:3 })
+
+		if(m.displacementScale!==undefined) g3.add( m, 'displacementScale', { ...deff, min:-0.1, max:0.1 })
+		if(m.displacementBias!==undefined) g3.add( m, 'displacementBias', { ...deff, min:-0.1, max:0.1 })
 
 		if(m.bumpScale!==undefined) g3.add( m, 'bumpScale', { ...deff, rename:'bump', max:3 })
 		if(m.reflectif!==undefined) g3.add( m, 'reflectif', { ...deff })

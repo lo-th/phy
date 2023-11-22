@@ -116,7 +116,7 @@ export class Joint extends Item {
 		j.mode = mode;
 		j.visible = o.visible !== undefined ? o.visible : true; 
 
-		console.log(j, jc)
+		//console.log(j, jc)
 
 
 

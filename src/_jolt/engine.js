@@ -184,7 +184,7 @@ export class engine {
 
 
 		//console.log(root.settings)
-		//console.log(root.world)
+		console.log(root.world)
 		//console.log(root.bodyInterface)
 		//console.log(root.physicsSystem)
 		//console.log(root.physicsSystem.GetBroadPhaseQuery())

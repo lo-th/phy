@@ -4,8 +4,8 @@ import * as CANNON from '../libs/cannon-es.js'
 import { Item } from '../core/Item.js';
 import { Num } from '../core/Config.js';
 
-import { Utils, Vec3, Quat } from './root.js';
-
+import { root, Utils, Vec3, Quat } from './root.js';
+import { QuickHull } from './QuickHull.js';
 
 export class Body extends Item {
 
@@ -100,17 +100,23 @@ export class Body extends Item {
 			    while( i-- ){
 			    	n = j*3;
 			    	h.push( this.v.fromArray( o.v, n ).clone() )
+			    	//h.push( new CANNON.Vec3(0, 0, 0).fromArray( o.v, n ) )
 			    	j++
-			    } 
+			    }
 
-			    let faces = [];
+			    // outch perf is slow
+			    const faces = QuickHull.createHull(h);
+
+			    //console.log(faces.length, o.index.length/3)
+
+			    /*let faces = [];
 			    i =  o.index.length/3;
 			    j = 0
 			    while( i-- ){
 			    	n = j*3;
 			    	faces.push( [ o.index[n], o.index[n+1], o.index[n+2] ] )
 			    	j++
-			    }
+			    }*/
 			    g = new CANNON.ConvexPolyhedron( { vertices:h, faces:faces } );
 
 			  

@@ -129,7 +129,9 @@ export class Body extends Item {
 
 		// The density of the shape, usually in Kg/m^3. def = 1
 		let density = o.density || 0;
-        if( o.mass !== undefined ) density = MathTool.densityFromMass( o.mass, MathTool.getVolume( t, s, o.v ) )
+        //if( o.mass !== undefined ) density = MathTool.densityFromMass( o.mass, MathTool.getVolume( t, s, o.v ) )
+
+        //console.log( o.mass, density )
 
         g.setDensity( density ) 
 

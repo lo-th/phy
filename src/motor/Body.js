@@ -355,9 +355,12 @@ export class Body extends Item {
     	}
 
     	if( o.meshRemplace && o.debug ) material = Mat.get( 'debug' )
+    	//if( o.debug ) material = Mat.get( 'debug' )
     	//if( o.helper ) material = Mat.get( 'hide' )
 
     	//if( o.instance ) return
+
+    	//console.log( material.name )
 
 		let m = new Mesh( g, material )
 
@@ -583,9 +586,10 @@ export class Body extends Item {
 	    b.isRay = true//b.type === 'body' || b.isButton ? true : false
 	    if( o.ray !== undefined ) b.isRay = o.ray; 
 	    if( !o.instance ) b.setRaycast()
-	    
 
-		if( !noMat ) b.material = material
+
+	    // NO NEED ??
+		//if( !noMat ) b.material = material
 		b.defMat = false;
 		
 		if( b.material && noMat ) b.defMat = b.material.name === 'body'
@@ -660,7 +664,7 @@ export class Body extends Item {
 		    b.receiveShadow = o.shadow;
 		    b.castShadow = o.shadow;
 
-		    b.overMaterial =  Mat.get( 'outline' );
+		    b.overMaterial = Mat.get( 'outline' );
 
 		    // apply option
 			this.set( o, b );
@@ -708,9 +712,14 @@ export class Body extends Item {
 		b.mass = o.mass || 0;
 		b.density = o.density || 0;
 		if( b.density && !b.mass ) b.mass = MathTool.massFromDensity( b.density, volume );
-		else if( b.mass && !b.density ) b.density = MathTool.densityFromMass( b.mass, volume );
+		else if( b.mass && !b.density ){ 
+			b.density = MathTool.densityFromMass( b.mass, volume );
+			if( root.engine === 'RAPIER' || root.engine === 'OIMO') o.density = b.density;
+		}
 
 		//console.log( b.name,'m: '+ b.mass, 'd: '+ b.density )
+
+		
 
 
 		//---------------------------

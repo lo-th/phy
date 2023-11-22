@@ -50,7 +50,7 @@ export class Contact extends Item {
 
 
 			//collisionLog.value += 'OnContactValidate ' + inBody1.GetID().GetIndex() + ' ' + inBody2.GetID().GetIndex() + ' ' + inCollideShapeResult.mPenetrationAxis.toString() + '\n';
-			return Jolt.AcceptAllContactsForThisBodyPair;
+			return Jolt.ValidateResult_AcceptAllContactsForThisBodyPair;
 		};
 		this.contactListener.OnContactAdded = (inBody1, inBody2, inManifold, ioSettings) => {
 			inBody1 = Jolt.wrapPointer(inBody1, Jolt.Body);

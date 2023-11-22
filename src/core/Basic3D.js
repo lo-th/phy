@@ -77,6 +77,8 @@ class Basic3D extends EventDispatcher {
 
 		this.mass = 0;
 		this.density = 0;
+		// TODO 
+		this.inertia = new Vector3(1, 1, 1);
 
 		
 		this.shapetype = 'box'

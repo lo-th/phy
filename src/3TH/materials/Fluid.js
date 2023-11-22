@@ -33,7 +33,14 @@ export class Fluid extends MeshPhysicalMaterial {
         o.sheenColor = 0xffffff
 
         o.sheen = 0.5
+
+        let fillAmount = o.fillAmount || -0.5
+        delete o.fillAmount
+
+
 		super( o )
+
+        this.fillAmount = fillAmount
 
 
         this.isModif = false
@@ -53,7 +60,7 @@ export class Fluid extends MeshPhysicalMaterial {
         if(this.isModif) return
 
         let self = this
-        let fillAmount = o.fillAmount || -0.5
+        let fillAmount = this.fillAmount
 
         this.onBeforeCompile = function ( shader ) {
 
