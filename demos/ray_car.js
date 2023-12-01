@@ -9,7 +9,7 @@ function demo() {
     phy.set({ 
         full:true,
         substep:1, 
-        fixe:false,
+        fixe:true,
         gravity:[0,-9.8,0],
     })
 
@@ -25,7 +25,7 @@ function demo() {
     './assets/textures/2cv/2cv_a.jpg',
     ]
 
-    phy.load([...maps, './assets/models/2cv.glb'], onComplete )
+    phy.load([...maps, './assets/models/2cv.glb'], onComplete );
 }
 
 
@@ -35,8 +35,8 @@ onComplete = () => {
     
     //phy.add({ type:'box', name:'ground', size:[ 100,1,100 ], pos:[0,-0.25,0], friction:0.2, restitution:0.3 });
 
-   // phy.add({ type:'box', name:'f1', size:[ 5,0.2,2 ], pos:[5,0.1,3], friction:0.9, restitution:0 })
-   // phy.add({ type:'box', name:'f2', size:[ 5,0.2,2 ], pos:[5,0.1,-3], friction:0.9, restitution:0 })
+    // phy.add({ type:'box', name:'f1', size:[ 5,0.2,2 ], pos:[5,0.1,3], friction:0.9, restitution:0 })
+    // phy.add({ type:'box', name:'f2', size:[ 5,0.2,2 ], pos:[5,0.1,-3], friction:0.9, restitution:0 })
 
     /*var gw = new THREE.CylinderGeometry( 0.3, 0.3, 0.3, 16, 1 );
     gw.rotateZ( -Math.PI * 0.5 );
@@ -45,13 +45,13 @@ onComplete = () => {
     let g = phy.getGround();
     g.material.map = phy.texture({ url:'./assets/textures/grid.png', repeat:[60,60] });
 
-    const mat = phy.material({ name:'2cv', color:0xFFFFFF, roughness: 1,  metalness: 1,
+    const mat = phy.material({ 
+        name:'2cv', color:0xFFFFFF, roughness: 1,  metalness: 1, normalScale:[1,-1],
         map:phy.texture({ url:'./assets/textures/2cv/2cv_c.jpg' }),
         normalMap:phy.texture({ url:'./assets/textures/2cv/2cv_n.jpg' }),
         roughnessMap:phy.texture({ url:'./assets/textures/2cv/2cv_r.jpg' }),
         metalnessMap:phy.texture({ url:'./assets/textures/2cv/2cv_m.jpg' }),
         alphaMap:phy.texture({ url:'./assets/textures/2cv/2cv_a.jpg' }),
-        normalScale:[1,-1],
     })
 
     const mat2 = mat.clone();
@@ -69,13 +69,14 @@ onComplete = () => {
     vehicle = new phy.RayCar({ 
 
         name:'chassis0', 
-        wheelMesh:meshes.wheel_l, 
-        wheelMesh2:meshes.wheel_r, 
+        wheelMesh: meshes.wheel_l, 
+        wheelMesh2: meshes.wheel_r,
+        driveWheel: meshes.driveWheel,
         bodyMesh: meshes.body,
         meshPos:[0,-0.8,0],
         shapeMesh: meshes.shape,
         shapePos:[0,-0.8,0],
-        material:mat,
+        material: mat,
         
        // material:'debug'
     });
@@ -90,8 +91,6 @@ onComplete = () => {
     //phy.follow('chassis0', { direct:true, simple:true })
 
     // update after physic step
-    //phy.setPostUpdate ( update )
-
     phy.setPostUpdate ( update );
 
 }
@@ -100,4 +99,5 @@ onComplete = () => {
 function update () {
 
     vehicle.step();
+    
 }
