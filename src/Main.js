@@ -117,6 +117,7 @@ const setting = {
 const options = {
 
 	debug: false,
+	day: true,
 	key: false,
 
 	mode:'HIGH',

@@ -232,7 +232,7 @@ export const Gui = {
 		ui.add( options, 'mode', { type:'button', values:['LOW', 'HIGH'], selectable:true, unselect:false, p:0 }).onChange( Main.changeMode )
 
 		ui.add( options, 'debug', { type:'bool' }).onChange( Main.debugMode )
-
+		ui.add( options, 'day', { type:'bool' }).onChange( Hub.setColors )
 		ui.add( options, 'harmony', { type:'bool' }).onChange( Hub.harmony )
 		ui.add( options, 'show_light', { type:'bool' }).onChange( Main.showDebugLight )
 		ui.add( options, 'show_stat', { type:'bool' }).onChange( Main.showStatistic )

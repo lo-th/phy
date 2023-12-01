@@ -1,9 +1,6 @@
-//import * as UIL from 'uil'
 import * as UIL from '../libs/uil.module.js'
-//import * as TWEEN from 'tween'
 import { Pool } from './Pool.js';
 import { Motor } from '../motor/Motor.js'
-//import { Main } from '../Main.js'
 
 /** __
 *    _)_|_|_
@@ -14,8 +11,11 @@ import { Motor } from '../motor/Motor.js'
 let Main = null;
 
 // menu look option
-let isLiner = true;
-let isBackLight = false;
+let isLiner = false;
+let isBackLight = true;
+let isFromTop = true;
+
+//
 
 let svg = UIL.Tools.dom;
 let setSvg = UIL.Tools.setSvg;
@@ -32,7 +32,7 @@ let ratio = 1
 let listHeight = 0
 let listTop = 54
 let maxHeight = 0
-let sh=0 ,  range = 0
+let sh = 0, range = 0
 let maxListItem = 10
 let full = true
 
@@ -67,21 +67,23 @@ let debug = null;
 let isPanel3D = false;
 
 let joy = null
-let isDay = false;
 
 let lock = false
 let timeout = null
 
-let color = '#001'
-let colorVisite = '#335'
+let isDay = true;
+let color = '';
+let colorVisite = '';
+let dayColor = ['#000', '#444'];
+let nightColor = ['#FFF', '#DDD'];
 
 let setting = {
     cross:4,
     border:'#020206',
 }
 
-let p0 = 'M 0.5 1.5 L 9.5 1.5 M 0.5 5.5 L 9.5 5.5 M 0.5 9.5 L 9.5 9.5'
-let p1 = 'M 1.5 0.5 L 1.5 9.5 M 5.5 0.5 L 5.5 9.5 M 9.5 0.5 L 9.5 9.5'
+let p0 = 'M 0.5 1.5 L 9.5 1.5 M 0.5 5.5 L 9.5 5.5 M 0.5 9.5 L 9.5 9.5';
+let p1 = 'M 1.5 0.5 L 1.5 9.5 M 5.5 0.5 L 5.5 9.5 M 9.5 0.5 L 9.5 9.5';
 
 const old = { f:0, z:0, w:0, h:0, ratio:1 }
 let size = {};
@@ -90,29 +92,26 @@ export class Hub {
 
     static setMain( r ) { Main = r }
 
-    static colors( day ) {
+    static setColors( day ) {
 
-        if(day){
-            color = '#FFE'
-            colorVisite = '#DDC'
-        } else {
-            color = '#001'
-            colorVisite = '#335'
-        }
-
+        color = day ? dayColor[0] : nightColor[0];
+        colorVisite = day ? dayColor[1] : nightColor[1];
         isDay = day;
 
-        content.style.color = color
-        document.querySelector("#svgLogo").setAttributeNS(null, 'stroke', color )
-        document.querySelector("#guiPath").setAttributeNS(null, 'stroke', color )
-        document.querySelector("#svgLoader").setAttributeNS(null, 'fill', color )
+        if(!content) return;
+
+        content.style.color = color;
+        document.querySelector("#svgLogo").setAttributeNS(null, 'stroke', color );
+        document.querySelector("#guiPath").setAttributeNS(null, 'stroke', color );
+        document.querySelector("#svgLoader").setAttributeNS(null, 'fill', color );
+        if( isBackLight ) overpad.style.background = isDay ? nightColor[0] : dayColor[0];
 
     }
 
     static reset() {
 
         Hub.log()
-        if( cross ) content.removeChild( cross )
+        if( cross ) content.removeChild( cross );
         cross = null
         //guiOpen = false
 
@@ -122,16 +121,19 @@ export class Hub {
 
     static resize ( s ){
 
-        content.style.left = s.left + "px"
-        content.style.width = s.left !== 0 ? 'calc(100% - ' + s.left + 'px)' : '100%'
         tmpLeft = s.left;
-        if( joy !== null ) joy.rezone()
+        content.style.left = tmpLeft + "px";
+        content.style.width = tmpLeft !== 0 ? 'calc(100% - ' + tmpLeft + 'px)' : '100%';
+        
+        if( joy !== null ) joy.rezone();
 
     }
 
     static init ( Camera, Size, text, Parent ) {
 
         if( isDisplay ) return;
+
+        Hub.setColors( isDay );
 
         camera = Camera;
         size = Size;
@@ -170,12 +172,12 @@ export class Hub {
     }
 
     static addJoystick () {
-        let colors = {
+        let ccs = {
             joyOut: 'rgba(255,255,255,0.25)',
             joyOver:'rgba(127,255,0,0.5)',
             joySelect: '#7fFF00',
         }
-        joy = UIL.add('Joystick', {  w:120, mode:1, text:false, precision:1, pos:{left:'10px', bottom:'10px' }, target:content, simple:true, ...colors }).onChange( function(v){ Motor.setKey(0, v[0]); Motor.setKey(1, v[1]) } )
+        joy = UIL.add('Joystick', {  w:120, mode:1, text:false, precision:1, pos:{left:'10px', bottom:'10px' }, target:content, simple:true, ...ccs }).onChange( function(v){ Motor.setKey(0, v[0]); Motor.setKey(1, v[1]) } )
         //joy.neverlock = true
     }
 
@@ -289,11 +291,12 @@ export class Hub {
         //anim = 'transition: width '+sp+'s, left '+sp+'s, top '+sp+'s, transform '+sp+'s ease-out;';
         anim = 'transition: transform '+sp+'s allow-discrete ease-out;';
         //border:1px solid rgba(255,255,255,1); box-sizing:content-box;background:linear-gradient(rgba(255,255,255,0), #FFFFFF);
-        overpad.style.cssText = anim + 'position:absolute; top:0px; left:0px; height:0px; width:0px; background:#FFFFFF; opacity:0; pointer-events:none; border-radius:6px;';
+        overpad.style.cssText = anim + 'position:absolute; top:0px; left:0px; height:0px; width:0px; opacity:0; pointer-events:none; border-radius:6px;';
 
         overpad.style.transitionDuration = '0.1s';
-        overpad.style.boxShadow = '0px 0px 3px 1px #FFFFFF';
-        overpad.id = 'overpad';
+        overpad.style.background = isDay ? nightColor[0] : dayColor[0];
+        //overpad.style.boxShadow = '0px 0px 3px 1px #FFFFFF';
+        //overpad.id = 'overpad';
         content.appendChild( overpad );
 
         menu = document.createElement( 'div' );
@@ -325,7 +328,7 @@ export class Hub {
         title.innerHTML = Hub.miniIcon('logo', color );
 
         engine = document.createElement( 'div' );
-        engine.style.cssText = 'font-size:16px; font-weight:700; '
+        engine.style.cssText = 'font-size:16px; font-weight:700;';
         engine.id = 'engine'
         menu.appendChild( engine )
         
@@ -355,14 +358,9 @@ export class Hub {
         top.style.backdropFilter = 'blur(4px)'
         content.appendChild( top )
 
-
-
         fps = document.createElement( 'div' );
         fps.style.cssText = 'position:absolute; top:33px; right:100px; text-align:right; font-size:14px; font-weight:500; '
         content.appendChild( fps )
-
-
-
 
         guiButton = document.createElement( 'div' );
         guiButton.style.cssText = 'position:absolute; right:80px;  top:31px; pointer-events:auto; cursor: pointer;'
@@ -443,14 +441,12 @@ export class Hub {
     static switchGuiButton(b){
 
         document.querySelector("#guiPath").setAttributeNS(null, 'd', b ? p1 : p0)
-
-        guiOpen = b
-
+        guiOpen = b;
         top.style.display = b ? 'block':'none'
 
-        let color = b ? '#FFE' : '#001'
-        document.querySelector("#guiPath").setAttributeNS(null, 'stroke', color )
-        fps.style.color = color
+        let cc = b ? nightColor[0] : color
+        document.querySelector("#guiPath").setAttributeNS(null, 'stroke', cc );
+        fps.style.color = cc;
 
     }
 
@@ -461,7 +457,7 @@ export class Hub {
         zoning.style.width = '0px'
         zoning.style.height = '0px'
         currentMenu = '';
-        Hub.updatePad(null)
+        Hub.updatePad(null);
 
     }
 
@@ -663,10 +659,10 @@ export class Hub {
 
             if( t ){ 
                 rect = t.getBoundingClientRect();
-                /*if( isMenu ){
+                if( isMenu && isFromTop){
                     d = - rect.top - 15;
                     rect.height = -d+rect.height; 
-                }*/
+                }
             }
 
             let left = rect.left - tmpLeft;

@@ -81,7 +81,7 @@ export class RayCar {
 
         let shape = [ { type:'box', pos:this.massCenter, size:this.size, radius: 0.02 } ]
         if(o.shapeMesh){
-            shape = [ { type:'convex', shape:o.shapeMesh.geometry,  pos:[0,0,0] } ]// pos:[0,-1.1,0]
+            shape = [ { type:'convex', shape:o.shapeMesh.geometry,  pos:o.shapePos || [0,0,0] } ]// pos:[0,-1.1,0]
         }
 
         this.body = root.motor.add({ 
@@ -98,7 +98,7 @@ export class RayCar {
             massInfo:true,
 
             mesh:o.bodyMesh || null,
-            meshPos:[0,-1.1,0],
+            meshPos:o.meshPos || [0,-1.1,0],
             material:o.material,
             //debug:true,
 

@@ -46,27 +46,30 @@ onComplete = () => {
         normalScale:[1.0,-1.0],
     })
 
-    const mat2 = mat.clone()
-    mat2.transparent = true
-    mat2.side = THREE.DoubleSide
+    const mat2 = mat.clone();
+    mat2.transparent = true;
+    mat2.side = THREE.DoubleSide;
 
     //meshes.body.material = mat
-    meshes.inside.material = mat
-    meshes.plus.material = mat
-    meshes.driveWheel.material = mat
-    meshes.extra.material = mat2
+    meshes.inside.material = mat;
+    meshes.plus.material = mat;
+    meshes.driveWheel.material = mat;
+    meshes.extra.material = mat2;
 
     //testCar( 0, [ 0,4,0 ] );
 
     vehicle = new phy.RayCar({ 
+
         name:'chassis0', 
-        /*wheelMesh:meshes.wheel_l, 
+        wheelMesh:meshes.wheel_l, 
         wheelMesh2:meshes.wheel_r, 
         bodyMesh: meshes.body,
+        meshPos:[0,-0.8,0],
+        shapeMesh: meshes.shape,
+        shapePos:[0,-0.8,0],
+        material:mat,
         
-        material:mat,*/
-        //shapeMesh: meshes.shape,
-        material:'debug'
+       // material:'debug'
     });
 
     phy.gui([
