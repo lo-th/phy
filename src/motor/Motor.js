@@ -87,6 +87,7 @@ const tt = { start:0, end:0, startTime:'' };
 
 let azimut = ()=>(0);
 let endReset = ()=>{};
+let prevUpdate = ()=>{};
 let postUpdate = ()=>{};
 let addControl = ()=>{};
 
@@ -181,7 +182,9 @@ export class Motor {
 
 	static setAddControl ( f ) { addControl = f; }
 
+	static setPrevUpdate ( f ) { prevUpdate = f !== null ? f : ()=>{} }
 	static setPostUpdate ( f ) { postUpdate = f !== null ? f : ()=>{} }
+
 	static setAzimut ( f ) { azimut = f }
 
 	static setKey (i, v) { return user.setKey(i,v) }
@@ -587,7 +590,7 @@ export class Motor {
 
 	static getFps (){ return root.reflow.stat.fps }
 	
-	static getDelta2(){ return root.reflow.stat.delta }
+	static getDelta2(){ return root.delta/*root.reflow.stat.delta*/ }
 	static getElapsedTime2(){ return elapsedTime }
 	
 	static getDelta(){ return timer.delta }
@@ -597,6 +600,8 @@ export class Motor {
 
 		if( !engineReady ) return;
 		if( !outsideStep ) return;
+
+
 
         //if( isWorker && realtime ) return
 
@@ -613,6 +618,8 @@ export class Motor {
 	static step (){
 
 		root.delta = root.reflow.stat.delta;//outsideStep ? timer.delta : root.reflow.stat.delta;
+        
+        //prevUpdate( timer.delta )
 
 		Motor.stepItems();
     
@@ -643,6 +650,8 @@ export class Motor {
 
 		//	Motor.stepItems()
 		Motor.flowReset();
+
+		//);
 
 	}
 

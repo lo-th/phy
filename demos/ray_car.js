@@ -13,9 +13,12 @@ function demo() {
         gravity:[0,-9.8,0],
     })
 
+    let g = phy.getGround();
+    g.material.map = phy.texture({ url:'./assets/textures/grid.png', repeat:[60,60] });
+
 
     let gg = phy.add({ type:'plane', name:'floor', size:[ 300,1,300 ], ray:true, friction:0.2, restitution:0.3, visible:false });
-    //gg.inertia.set( 22539,37885, 15389 )
+
 
     const maps = [
     './assets/textures/2cv/2cv_c.jpg', 
@@ -32,18 +35,6 @@ function demo() {
 onComplete = () => {
 
     let meshes = phy.getMesh('2cv');
-    
-    //phy.add({ type:'box', name:'ground', size:[ 100,1,100 ], pos:[0,-0.25,0], friction:0.2, restitution:0.3 });
-
-    // phy.add({ type:'box', name:'f1', size:[ 5,0.2,2 ], pos:[5,0.1,3], friction:0.9, restitution:0 })
-    // phy.add({ type:'box', name:'f2', size:[ 5,0.2,2 ], pos:[5,0.1,-3], friction:0.9, restitution:0 })
-
-    /*var gw = new THREE.CylinderGeometry( 0.3, 0.3, 0.3, 16, 1 );
-    gw.rotateZ( -Math.PI * 0.5 );
-    mw = new THREE.Mesh( gw )*/
-
-    let g = phy.getGround();
-    g.material.map = phy.texture({ url:'./assets/textures/grid.png', repeat:[60,60] });
 
     const mat = phy.material({ 
         name:'2cv', color:0xFFFFFF, roughness: 1,  metalness: 1, normalScale:[1,-1],
@@ -99,5 +90,5 @@ onComplete = () => {
 function update () {
 
     vehicle.step();
-    
+
 }

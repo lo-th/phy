@@ -11,7 +11,7 @@ import { root, Utils } from '../root.js';
 //https://github.com/Jaagrav/raycast-vehicle-engine
 //https://asawicki.info/Mirror/Car%20Physics%20for%20Games/Car%20Physics%20for%20Games.html
 
-
+const torad = Math.PI / 180;
 const directions = [
     new Vector3(1, 0, 0),
     new Vector3(0, 1, 0),
@@ -63,6 +63,9 @@ export class RayCar {
 		this.restitution = o.restitution || 0.3;
 		this.massCenter = o.massCenter || [0,0,0];//[0,-0.2,0];
 
+        this.driveWheel = o.driveWheel || null;
+
+
 		/*this.body = root.motor.add({ 
 
 			type:'box',
@@ -81,7 +84,7 @@ export class RayCar {
 
         let shape = [ { type:'box', pos:this.massCenter, size:this.size, radius: 0.02 } ]
         if(o.shapeMesh){
-            shape = [ { type:'convex', shape:o.shapeMesh.geometry,  pos:o.shapePos || [0,0,0] } ]// pos:[0,-1.1,0]
+            shape = [ { type:'convex', shape:o.shapeMesh.geometry,  pos:o.shapePos || [0,0,0] } ]
         }
 
         this.body = root.motor.add({ 
@@ -238,6 +241,10 @@ export class RayCar {
 	    this.vehicle.wheelInfos[3].frictionSlip = slipForce
 
 	    this.vehicle.updateVehicle(delta);
+
+        if( this.driveWheel ){ 
+            this.driveWheel.rotation.y = this.tmp.steerValue * 90 * torad;
+        }
 
 	}
 
@@ -456,7 +463,6 @@ class RaycastVehicle {
         var wheelInfos = this.wheelInfos;
         var numWheels = wheelInfos.length;
 
-
         for (var w_it = 0; w_it < numWheels; w_it++){
             var wheel = wheelInfos[w_it];
 
@@ -520,8 +526,6 @@ class RaycastVehicle {
             if(!axle[i]) axle[i] = new Vector3();
             
         }
-
-     
         
         for (var i = 0; i < numWheels; i++){
 
@@ -664,7 +668,7 @@ class RaycastVehicle {
                 rel_pos2.copy(wheel.raycastResult.hitPointWorld).sub(bodyPosition(groundObject, new Vector3()))
                 //wheel.raycastResult.hitPointWorld.subtractToRef(bodyPosition(groundObject, new Vector3()), rel_pos2);
                 var sideImp = new Vector3();
-                sideImp.copy(axle[i]).multiplyScalar(wheel.sideImpulse)
+                sideImp.copy(axle[i]).multiplyScalar(wheel.sideImpulse);
                 //sideImp.copyFrom(axle[i]).scaleInPlace(wheel.sideImpulse)
     
                 TransformNormalToRef(rel_pos, bodyTransform(chassisBody, new Matrix4()).invert(), rel_pos);
@@ -689,7 +693,7 @@ class RaycastVehicle {
 
         //wheel.isInContact = false;
         var chassisBody = this.chassisBody;
-        const transform = bodyTransform( chassisBody, new Matrix4() )
+        const transform = chassisBody.matrixWorld;//bodyTransform( chassisBody, new Matrix4() )
       
         TransformCoordinatesToRef( wheel.chassisConnectionPointLocal, transform, wheel.chassisConnectionPointWorld )
         TransformNormalToRef( wheel.directionLocal, transform, wheel.directionWorld )
