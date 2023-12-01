@@ -56,8 +56,8 @@ export class Body extends Item {
 			if( this.full ){
 				v = b.getLinearVelocity();
 				r = b.getAngularVelocity();
-				v.toArray( AR, n + 8 );
-				r.toArray( AR, n + 11 );
+				v.toArray( AR, n+8 );
+				r.toArray( AR, n+11 );
 				if( AR[ n ] === 1 ) AR[ n ] = v.length() * 9.8;// speed km/h
 			}
 			
@@ -480,26 +480,22 @@ export class Body extends Item {
 	    /*if( o.linearImpulse ) { 
 	    	o.impulseCentral = o.linearImpulse
 	    	//this.multiplyScalar( o.impulseCentral, root.delta, 3 )
-	    }
-	    if( o.impulseCentral ) b.applyCentralImpulse( this.v.fromArray( o.impulseCentral ) );
-	    if( o.impulse ) b.applyImpulse( this.v.fromArray( o.impulse ), this.v.fromArray( o.impulse, 3 ) );*/
-
-
+	    }*/
+	  
 	    if( o.impulse ){ // impulseCenter is relative to the body position ?? 
-	    	/*let transform = new Ammo.btTransform();
-			b.getMotionState().getWorldTransform(transform);
-			let relativeForce = this.v2.fromArray( o.impulseCenter )//new Ammo.btVector3(0,0, 1000);
-			let relativeTransform = new Ammo.btTransform();
-			relativeTransform.setOrigin(relativeForce);
-			relativeForce = (transform.op_mul(relativeTransform)).getOrigin();*/
 
-	    	if( o.impulseCenter ) b.applyImpulse( this.v.fromArray( o.impulse ), this.v2.fromArray( o.impulseCenter ) )
-	    	else b.applyCentralImpulse( this.v.fromArray( o.impulse ) )
+	    	b.activate();
+
+	    	if( o.impulseCenter ) {
+	    	    // Convert contactPoint relative to center of mass
+	    	    b.getMotionState().getWorldTransform( this.t )
+	    		this.v2.fromArray( o.impulseCenter ).sub( this.t.getOrigin() );
+	    		b.applyImpulse( this.v.fromArray( o.impulse ), this.v2 )
+
+	    	} else {
+	    		b.applyCentralImpulse( this.v.fromArray( o.impulse ) )
+	    	}
 	    }
-	    //if( o.linearImpulse ) b.applyLinearImpulse( this.v.fromArray( o.linearImpulse ) );
-	   // if( o.angularImpulse ) b.applyAngularImpulse( this.v.fromArray( o.angularImpulse ) );
-
-
 
 	}
 

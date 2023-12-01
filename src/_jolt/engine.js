@@ -50,6 +50,8 @@ let tmpchange = [];
 let flow = {};
 let current = '';
 
+
+
 export class engine {
 
 	static test (){}
@@ -59,7 +61,6 @@ export class engine {
 		let e = m.data;
 		if( e.Ar ) root.Ar = e.Ar;
 		if( e.flow ) flow = e.flow;
-		//if(!engine[ e.m ])console.log(e.m)
 		if( e.m ) engine[ e.m ]( e.o );
 
 	}
@@ -111,15 +112,15 @@ export class engine {
 		timestep = 1 / (o.fps || 60 );
 		interval = timestep*1000;
 
-		substep = 1//o.substep || 1;
+		substep = o.substep || 1;
 		// broadphase 1:BRUTE_FORCE 2:BVH
 		broadphase = o.broadphase || 2;
 		fixe = o.fixe !== undefined ? o.fixe : true;
 
-		root.gravity = new Jolt.Vec3(0, -9.8, 0).fromArray( o.gravity || [ 0, -9.80665, 0 ] );
+		root.gravity = new Jolt.Vec3().fromArray( o.gravity || [ 0, -9.81, 0 ] );
 
 		if( root.world === null ) engine.start();
-		//else root.world.setGravity( gravity );
+		else root.physicsSystem.setGravity( root.gravity );
 
 	}
 
@@ -135,8 +136,6 @@ export class engine {
 		if( root.world  === null ){
 
 			// define transfer array
-			//const buffer = new ArrayBuffer(ArMax)
-			//Ar = new Float32Array( buffer )
 		    root.Ar = new Float32Array( root.ArPos.total );
 
 		    // create new world
@@ -146,8 +145,8 @@ export class engine {
 
 		isStop = false;
 		isReset = false;
-		lastTime = 0;
 		root.tmpStep = 0;
+		lastTime = 0;
 
 		if( outsideStep ) return
 
@@ -162,14 +161,41 @@ export class engine {
 
 	static initWorld () {
 
+		if( root.world !== null ) return;
+
+		// Note that the physics simulation works best if you use SI units (meters, radians, seconds, kg). 
+		// In order for the simluation to be accurate, dynamic objects 
+		// should be in the order [0.1, 10] meters long and have speeds in the order of [0, 500] m/s. 
+		// Static object should be in the order [0.1, 2000] meter long. 
+		// If you are using different units, consider scaling the objects before passing them on to the physics simulation
+
+
+
+		// We use only 2 layers: one for non-moving objects and one for moving objects
+		let objectFilter = new Jolt.ObjectLayerPairFilterTable(2);
+		objectFilter.EnableCollision(root.LAYER_NON_MOVING, root.LAYER_MOVING);
+		objectFilter.EnableCollision(root.LAYER_MOVING, root.LAYER_MOVING);
+
+		// We use a 1-to-1 mapping between object layers and broadphase layers
+		const BP_LAYER_NON_MOVING = new Jolt.BroadPhaseLayer(0);
+		const BP_LAYER_MOVING = new Jolt.BroadPhaseLayer(1);
+		let bpInterface = new Jolt.BroadPhaseLayerInterfaceTable(2, 2);
+		bpInterface.MapObjectToBroadPhaseLayer(root.LAYER_NON_MOVING, BP_LAYER_NON_MOVING);
+		bpInterface.MapObjectToBroadPhaseLayer(root.LAYER_MOVING, BP_LAYER_MOVING);
+
 		// Initialize Jolt
-		root.settings = new Jolt.JoltSettings();
-		root.settings.mMaxBodies = Max.body;//10240
-		root.settings.mMaxBodyPairs = Math.round( Max.body*6.4 ); //65536
-		root.settings.mMaxContactConstraints = Max.body;//10240
+		let settings = new Jolt.JoltSettings();
+		settings.mObjectLayerPairFilter = objectFilter;
+		settings.mBroadPhaseLayerInterface = bpInterface;
+		settings.mObjectVsBroadPhaseLayerFilter = new Jolt.ObjectVsBroadPhaseLayerFilterTable(settings.mBroadPhaseLayerInterface, 2, settings.mObjectLayerPairFilter, 2);
+		//root.settings.mMaxBodies = Max.body;//10240
+		//root.settings.mMaxBodyPairs = Math.round( Max.body*6.4 ); //65536
+		//root.settings.mMaxContactConstraints = Max.body;//10240
 
 
-		root.world = new Jolt.JoltInterface( root.settings );
+		root.world = new Jolt.JoltInterface( settings );
+		Jolt.destroy(settings);
+
 		root.physicsSystem = root.world.GetPhysicsSystem();
 		root.bodyInterface = root.physicsSystem.GetBodyInterface();
 		//root.broadPhase = root.physicsSystem.GetBroadPhaseQuery();
@@ -184,7 +210,7 @@ export class engine {
 
 
 		//console.log(root.settings)
-		console.log(root.world)
+		//console.log(root.world)
 		//console.log(root.bodyInterface)
 		//console.log(root.physicsSystem)
 		//console.log(root.physicsSystem.GetBroadPhaseQuery())
@@ -194,7 +220,7 @@ export class engine {
     static clearWorld () {
 
 		Jolt.destroy(root.bodyInterface);
-		Jolt.destroy(root.settings);
+		//Jolt.destroy(root.settings);
 		Jolt.destroy(root.world);
 		Jolt.destroy(root.gravity);
 
@@ -238,7 +264,7 @@ export class engine {
 
 		root.tmpStep = 1;
 
-		engine.dispatch()
+		engine.dispatch();
 
 		if( outsideStep ) return;//engine.step()
 
@@ -270,7 +296,13 @@ export class engine {
 
 		root.invDelta = 1 / (fixe ? timestep : root.delta);
 
+
+		// When running below 55 Hz, do 2 steps instead of 1
+		//let numSteps = root.delta > 1.0 / 55.0 ? 2 : 1;
+
 		root.world.Step( root.deltaTime, substep );
+
+		//root.world.Step( root.delta, numSteps );
 
 		engine.stepItems();
 

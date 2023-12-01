@@ -1,6 +1,6 @@
 demo = () => {
 
-    phy.view({ envmap:'river' })
+    phy.view({ envmap:'basic' })
 
     // config physics setting
     phy.set({ substep:1, gravity:[0,-9.81,0],  })

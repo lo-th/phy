@@ -32,7 +32,7 @@ export class Ray extends Item {
 
 		root.reflow.ray = [];
 
-		let i = this.list.length, r, n, pp, ph;
+		let i = this.list.length, r, n, pp, ph, d;
 		let cb = this.callback;
 
 		while( i-- ){
@@ -46,7 +46,11 @@ export class Ray extends Item {
 			this.begin.fromArray( pp[0] )
 			this.end.fromArray( pp[1] )
 
+			// distance
+			//d = MathTool.distanceArray( pp[0], pp[1] );
+
 			AR[n] = 0;
+			//AR[n+1] = d;
 
 			cb.clear();
 
@@ -56,7 +60,7 @@ export class Ray extends Item {
 
 				AR[n] = 1;
 
-				ph = cb.position.toArray()
+				ph = cb.position.toArray();
 				AR[n+1] = MathTool.distanceArray( pp[0], ph )
 				AR[n+2] = pp[0][0]
 				AR[n+3] = pp[0][1]

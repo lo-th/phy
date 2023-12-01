@@ -1,12 +1,13 @@
 import {
 	PMREMGenerator,
 	HalfFloatType,
-	UnsignedByteType, LinearEncoding,
+	UnsignedByteType, LinearEncoding, LinearFilter,
 	Vector3, Vector2, Spherical, RepeatWrapping,
 	Color, Mesh, PlaneGeometry, MeshBasicMaterial, Scene, OrthographicCamera, WebGLRenderTarget,
 	RGBAFormat, FloatType, EquirectangularReflectionMapping, NoToneMapping, SRGBColorSpace
 } from 'three';
 
+import { HDRJPGLoader } from '../libs/HDRJPGLoader.js';
 import { RGBELoader } from '../jsm/loaders/RGBELoader.js';
 import { EXRLoader } from '../jsm/loaders/EXRLoader.js';
 import { GroundProjectedSkybox } from '../jsm/objects/GroundProjectedSkybox.js';
@@ -64,6 +65,7 @@ let tt = 0;
 const tmpSize = new Vector2()
 const hdrLoader = new RGBELoader();
 const exrLoader = new EXRLoader();
+let jpgLoader// = new HDRJPGLoader();
 
 let hdrTool = null;
 let useHdrTool = false;
@@ -149,8 +151,9 @@ export class Env {
     		if( value !== 'null' ){ 
     			if( value.search('/') !== -1 ) this.load( value, callback )
     			else {
-    				envName = value
-    				this.load( './assets/textures/equirectangular/'+value+'.hdr', callback )
+    				envName = value;
+    				if( envName.search('_4k') !== -1 ) this.load( './assets/textures/env/'+value+'.jpg', callback, 'jpg' )
+    				else this.load( './assets/textures/equirectangular/'+value+'.hdr', callback, 'hdr' )
     			}
     		} else {
     			scene.environment = null;
@@ -232,6 +235,10 @@ export class Env {
 			pmrem.compileEquirectangularShader();
 		}
 
+		//if( useJpgHdr ){
+			jpgLoader = new HDRJPGLoader( renderer )
+		//}
+
 	    //this.initTargetRender()
 
     }
@@ -247,7 +254,33 @@ export class Env {
 
 		if( type === 'hdr' ) hdr = await hdrLoader.loadAsync( url );
 		else if( type === 'exr' ) hdr = await exrLoader.loadAsync( url );
+		else if( type === 'jpg' ) {
+			//hdr = await jpgLoader.loadAsync( url );
 
+			jpgLoader = new HDRJPGLoader( renderer ).load( url, function ( ) {
+
+				console.log(jpgLoader.width + 'x' + jpgLoader.height)
+
+				let hdrJpgPMREMRenderTarget = pmrem.fromEquirectangular( jpgLoader.renderTarget.texture );
+				pmrem.dispose()
+
+				let hdrJpgEquirectangularMap = jpgLoader.toDataTexture();
+				hdrJpgEquirectangularMap.mapping = EquirectangularReflectionMapping;
+				hdrJpgEquirectangularMap.minFilter = LinearFilter;
+				hdrJpgEquirectangularMap.magFilter = LinearFilter;
+				hdrJpgEquirectangularMap.generateMipmaps = false;
+				hdrJpgEquirectangularMap.needsUpdate = true;
+
+				scene.environment = hdrJpgPMREMRenderTarget.texture;
+				scene.background = hdrJpgEquirectangularMap;
+
+				if( callback ) callback()
+
+			})
+
+
+			return;
+		}
 		
         //hdr.wrapS = RepeatWrapping;
 		//hdr.offset.x = 0.5

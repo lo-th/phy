@@ -152,26 +152,27 @@ export class engine {
 
 	static initWorld () {
 
-    	const world = new CANNON.World()
+    	const world = new CANNON.World();
 
-    	world.gravity = gravity
+    	world.gravity = gravity;
 
     	// Max solver iterations: Use more for better force propagation, but keep in mind that it's not very computationally cheap!
     	//world.solver.iterations = 1 // def 10
     	//world.solver.tolerance = 0.001// def 1e-7
 
         // Uncomment to test with sleeeping bodies
-        world.allowSleep = true
+        world.allowSleep = true;
 
-        world.defaultContactMaterial.friction = 0.5//0.3
-        world.defaultContactMaterial.restitution = 0
+        world.defaultContactMaterial.friction = 0.5;//0.3
+        world.defaultContactMaterial.restitution = 0;
 
         // Tweak contact properties.
         // Contact stiffness - use to make softer/harder contacts
-        world.defaultContactMaterial.contactEquationStiffness = 10000000
+        //world.defaultContactMaterial.contactEquationStiffness = 10000000;
 
         // Stabilization time in number of timesteps
-        world.defaultContactMaterial.contactEquationRelaxation = 3
+        world.defaultContactMaterial.contactEquationRelaxation = 1//3
+        world.broadphase.useBoundingBoxes = true;
 
         //console.log(world.defaultContactMaterial.contactEquationStiffness)
 

@@ -286,3 +286,14 @@ Quat.prototype.set = function ( x,y,z,w ){
 	return this;
 
 }
+
+/*Mat3.prototype.toArray = function (){
+
+	this.x = x;
+	this.y = y;
+	this.z = z;
+	this.w = w;
+
+	return this;
+
+}*/

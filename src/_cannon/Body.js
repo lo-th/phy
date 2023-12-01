@@ -104,8 +104,27 @@ export class Body extends Item {
 			    	j++
 			    }
 
+			    let norm = undefined
+			    if( o.normals ){
+			    	i = Math.floor( o.normals.length/3);
+			    	j = 0
+				    norm = [];
+				    while( i-- ){
+				    	n = j*3;
+				    	norm.push( this.v.fromArray( o.normals, n ).clone() )
+				    	j++
+				    }
+			    }
+
+			    /*const faces = []
+		        for ( i = 0; i < this.v.length / 3; i += 3) {
+		            faces.push([i, i + 1, i + 2])
+		        }*/
+
 			    // outch perf is slow
-			    const faces = QuickHull.createHull(h);
+			    let faces = o.faces || QuickHull.createHull(h);
+
+			    //console.log(faces)
 
 			    //console.log(faces.length, o.index.length/3)
 
@@ -117,7 +136,10 @@ export class Body extends Item {
 			    	faces.push( [ o.index[n], o.index[n+1], o.index[n+2] ] )
 			    	j++
 			    }*/
-			    g = new CANNON.ConvexPolyhedron( { vertices:h, faces:faces } );
+
+			   
+
+			    g = new CANNON.ConvexPolyhedron( { vertices:h, faces:faces, normals:norm } );
 
 			  
 			break;

@@ -275,6 +275,7 @@ const M = {
     //-----------------------
     //  ARRAY
     //-----------------------
+    getSize: ( r ) => ( ( r.byteLength * 0.001 ) +'kb' ),
 
     nullArray: ( a, n, i ) => { 
         let j = 0;
@@ -416,6 +417,7 @@ const M = {
 
 
     // GEOMETRY
+    toNonIndexed: ( g ) => ( !g.index ? g : g.clone().toNonIndexed() ),
 
     getIndex: ( g, noIndex ) => {
 
@@ -428,43 +430,42 @@ const M = {
         
         let c = g.attributes.position.array;
 
-        if( noIndex ){
-            let h = g.clone().toNonIndexed()
-            c = h.attributes.position.array;
+        if( noIndex && g.index ){
+            g = g.clone().toNonIndexed()
+            c = g.attributes.position.array;
         }
 
         return c;
 
     },
 
-    /*getFaces: ( g ) => {
+    getNormal: ( g ) => {
+
+        //if( noIndex && g.index ) g = g.clone().toNonIndexed();
         
-        const index = g.getIndex();
-        const position = g.getAttribute( 'position' );
-        const faces = [];
-        const vv = []
+        let c = g.attributes.normal.array;
+        //console.log(c)
+        return c;
 
-        for ( let i = 0; i < index.count; i += 3 ) {
-            const face = {
-                a: index.getX(i),
-                b: index.getX(i+1),
-                c: index.getX(i+2),
-            };
-            faces.push(face);
+    },
+
+    getFaces: ( g ) => {
+
+        let faces = [];
+        if( g.index ){
+            let index = g.getIndex();
+            for ( let i = 0; i < index.count; i += 3 ) {
+                faces.push( [index.getX(i), index.getX(i+1), index.getX(i+2)] );
+            }
+        }else{
+            let lng = g.getAttribute( 'position' ).count;
+            for ( let i = 0; i < lng; i += 3 ) {
+                faces.push([i, i+1, i+2] );
+            }
         }
+        return faces;
 
-        for( let j = 0; j < faces.length; j ++ ) {
-            let face = faces[j]
-            vv.push( 
-                position.getX(face.a), position.getY(face.a), position.getZ(face.a),
-                position.getX(face.b), position.getY(face.b), position.getZ(face.b),
-                position.getX(face.c), position.getY(face.c), position.getZ(face.c),
-            )
-        }
-
-        return vv;
-
-    },*/
+    },
 
     reduce: ( x ) => {
     },

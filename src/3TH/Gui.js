@@ -31,13 +31,10 @@ export const Gui = {
 	isInit:false,
 
 	ui:null,
+	uix:null,
 	gp:null,
 	video:null,
 	envui:null,
-
-
-
-
 
 	CameraOptions:[],
 
@@ -59,7 +56,6 @@ export const Gui = {
 	bg:'rgba(0,0,8,0.5)',
 
 	colors:{
-
 		//content:'rgba(0,0,8,0.5)',
 		fontShadow:'#000',
 		//sx: 4,
@@ -74,33 +70,9 @@ export const Gui = {
 		font:"Mulish, sans-serif", 
 		fontSize:12,
 		weight:'500',
-
 		text:'#fff',
 		title:'#eee',
-
-		/*text:'rgba(0,0,6,1)',
-		title:'rgba(0,0,6,1)',
-		titleoff: '#000',
-		textOver: '#7fFF00',
-		textSelect: '#7fFF00',
-
-		button:'rgba(255,255,255,0.1)',
-		overoff : 'rgba(0,0,6,0.3)',
-		over:'rgba(0,0,6,0.2)',
-		select:'rgba(0,0,6,0.75)',
-		
-		//fontShadow:'#000006',
-		
-		border:'rgba(255,255,255,0.2)',//
 		borderSize:1,
-		//overoff:'rgba(255,255,255,0.1)',*/
-
-		
-		borderSize:1,
-		
-		//groups:'rgba(255,255,255,0.1)',
-		//gborder:'rgba(255,255,255,0.2)',
-
 		joyOut: 'rgba(255,255,255,0.1)',
 		joyOver:'rgba(127,255,0,0.2)',
         joySelect: '#7fFF00',
@@ -111,12 +83,45 @@ export const Gui = {
 		Main = r;
 	},
 
+	resize: (size) => {
+
+		if( Gui.uix ) Gui.uix.setTop( size.h - Gui.uix.forceHeight );
+
+	},
+
+	extraUi: ( data ) => { 
+
+		if( Gui.uix ) Gui.uix.dispose();
+
+		let lng = data.length;
+		let h = data.length * (20+4) + 50;
+
+		let top = window.innerHeight - h //(window.innerHeight / 3) * 2;
+
+		Gui.uix = new UIL.Gui( { w:250, h:20, open:true, close:false, css:'top:'+top+'px; left:20px;', colors:Gui.colors, transition:0 } )//
+		//Gui.uix.add( Gui.colors, 'radius', { min:0, max:1, mode:2});//.onChange( Main.debugMode )
+		Gui.uix.forceHeight = h;
+
+		let d;
+		//let lng = data.length;
+
+		for( let i = 0; i<lng; i++ ){
+			d = data[i];
+			Gui.uix.add( d.obj, d.name, d );
+		}
+
+		/*Gui.uix.isOpen = true;
+		Gui.uix.calc()
+		Gui.uix.zoneReset()*/
+		//Gui.uix.mode('def')
+		//Gui.uix.rezone()
+
+
+	},
+
 	setTextureConstrutor: ( Texture ) => {
 		UIL.Tools.texture = Texture;
 	},
-
-	
-
 
 	showHide: () => { 
 
@@ -125,26 +130,12 @@ export const Gui = {
 		if( Gui.open ) Gui.open = false;
 		else Gui.open = true;
 
-		//if( Gui.ui.isOpen ) Gui.ui.isOpen = false;
-		//else Gui.ui.isOpen = true;
-
 		Gui.ui.isOpen = Gui.open
 
-		Hub.switchGuiButton( Gui.open )
+		Hub.switchGuiButton( Gui.open );
 		//Hub.switchColor( Gui.ui.isOpen )
 
-		Gui.menu.display( Gui.open )
-
-		//UIL.Tools.setSvg( )
-
-
-		//document.querySelector("#path").setAttributeNS(null, 'd', Gui.ui.isOpen ? Gui.p1 : Gui.p0)
-
-
-		///Gui.button.childNodes[0].childNodes[ 0 ].setAttributeNS(null, 'd', Gui.ui.isOpen ? Gui.p1 : Gui.p0)
-
-		//Gui.ui.calc()
-		//Gui.ui.mode('def')
+		Gui.menu.display( Gui.open );
 
 		Gui.ui.calc()
 		Gui.ui.mode('def')
@@ -153,22 +144,7 @@ export const Gui = {
 
 	init:() => {
 
-		//Gui.colors.content = Gui.bg
-
-		//Gui.colors.background = Gui.bg
-		//Gui.colors.backgroundOver = Gui.bg
-		//Gui.colors.groups = Gui.bg
-		//Gui.colors.gborder = Gui.bg
-
 		UIL.Tools.setStyle(Gui.colors)
-
-		//const options = Main.getOption();
-
-		
-
-		//const ui = new UIL.Gui( { w:250, h:25, open:false, close:false, css:'top:54px; right:5px;', colors:Gui.colors, transition:0 } )
-
-		//ui.add( 'empty', {h:6})
 
 		Gui.menu = UIL.add( 'button', { type:'button', values:menuList, value:Gui.startMode, selectable:true, unselect:false, p:0, h:30,w:250, radius:4, pos:{right:'5px', top:'60px'} }).onChange( Gui.setMode )
 
@@ -186,42 +162,7 @@ export const Gui = {
 
 		Gui.setMode(Gui.startMode)
 
-		Gui.isInit = true
-
-
-		//return
-
-		/*let unselectable = '-o-user-select:none; -ms-user-select:none; -khtml-user-select:none; -webkit-user-select:none; -moz-user-select: none; pointer-events:none; '
-
-
-		*/
-
-		//console.log(ui)
-		//if( options.mode === 'HIGH' ) ui.content.style.backdropFilter = 'blur(4px)'
-
-
-
-
-		
-
-		//ui.add( 'empty', {h:3})
-
-		
-
-
-		//ui.add( 'empty', {h:6})
-
-		
-		
-
-		//ui.add( 'empty', {h:3})
-
-		
-		
-
-		
-
-		//Gui.display()
+		Gui.isInit = true;
 
 	},
 
@@ -254,6 +195,8 @@ export const Gui = {
 
 	reset: () => {
 
+		
+
 		if( !Gui.isInit ) return
 		if( !Gui.open ) return
 
@@ -264,9 +207,12 @@ export const Gui = {
 
 	},
 
-
-
-
+	resetExtra: () => {
+		if( Gui.uix ) { 
+			Gui.uix.dispose(); 
+			Gui.uix = null;
+		}
+	},
 
 
 	display:() => {
@@ -397,6 +343,7 @@ export const Gui = {
 		})
 
 		//ui.add( 'number', { name:'Gravity', value:[0,-9.81,0] })
+
 
 		ui.add( setting, 'gravity', { type:'number' }).onChange( Main.motor.setGravity );
 		//ui.add( setting, 'substep', { type:'number' })

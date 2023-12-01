@@ -13,6 +13,10 @@ import { Motor } from '../motor/Motor.js'
 
 let Main = null;
 
+// menu look option
+let isLiner = true;
+let isBackLight = false;
+
 let svg = UIL.Tools.dom;
 let setSvg = UIL.Tools.setSvg;
 let grad = UIL.Tools.makeGradiant;
@@ -21,7 +25,7 @@ let parent;
 let content, cross = null, border, counter, counter2, zone, path, txt, info, loader, textRight, textLeft, textLeft2;
 let unselectable = '-o-user-select:none; -ms-user-select:none; -khtml-user-select:none; -webkit-user-select:none; -moz-user-select: none; pointer-events:none; ';
 
-let menu, pin, title, engine, demo, downMenu, innerMenu, zoning, guiButton
+let menu, pin, title, engine, demo, downMenu, innerMenu, zoning, guiButton, overpad, prevOver, tmpLeft = 0;
 
 let top = null
 let ratio = 1
@@ -120,6 +124,7 @@ export class Hub {
 
         content.style.left = s.left + "px"
         content.style.width = s.left !== 0 ? 'calc(100% - ' + s.left + 'px)' : '100%'
+        tmpLeft = s.left;
         if( joy !== null ) joy.rezone()
 
     }
@@ -238,7 +243,7 @@ export class Hub {
     static endLoading () {
 
         loader.style.top = '38px'
-        loader.style.left = '90px'
+        loader.style.left = '100px'
         //content.removeChild( loader )
         
         content.removeChild( txt )
@@ -269,29 +274,46 @@ export class Hub {
 
         let bg = 'none'//'rgba(255,255,255,0.1)'
         let bg2 = 'none'//'rgba(255,255,255,0.01)'
-        let bg3 = 'rgba(127,0,0,0.2)'
+        let bg3 = 'rgba(127,0,0,0.2)';
 
         zoning = document.createElement( 'div' );
-        zoning.style.cssText = 'position:absolute; top:0px; background:'+bg2+'; left:60px; pointer-events:auto; '
+        zoning.style.cssText = 'position:absolute; top:0px; background:'+bg2+'; left:60px; pointer-events:auto;'
         zoning.id = 'zone'
         content.appendChild( zoning )
 
+        overpad = document.createElement( 'div' );
+       // let anim = "transition: width 0.2s ease-out; transition: left 0.1s ease-out; transition: top 0.1s ease-out; ";
+        let sp = 0.1;
+        //let anim = 'transition: width '+sp+'s, left '+sp+'s, top '+sp+'s, opacity '+sp+'s, transform '+sp+'s ease-out;';
+        let anim = ''
+        //anim = 'transition: width '+sp+'s, left '+sp+'s, top '+sp+'s, transform '+sp+'s ease-out;';
+        anim = 'transition: transform '+sp+'s allow-discrete ease-out;';
+        //border:1px solid rgba(255,255,255,1); box-sizing:content-box;background:linear-gradient(rgba(255,255,255,0), #FFFFFF);
+        overpad.style.cssText = anim + 'position:absolute; top:0px; left:0px; height:0px; width:0px; background:#FFFFFF; opacity:0; pointer-events:none; border-radius:6px;';
+
+        overpad.style.transitionDuration = '0.1s';
+        overpad.style.boxShadow = '0px 0px 3px 1px #FFFFFF';
+        overpad.id = 'overpad';
+        content.appendChild( overpad );
+
         menu = document.createElement( 'div' );
-        menu.style.cssText = 'position:absolute; top:25px; background:'+bg+'; left:80px; display:flex; align-self: stretch; justify-content: flex-start; gap: 10px 20px; align-items:baseline; '
-        content.appendChild( menu )
+        menu.style.cssText = 'position:absolute; top:25px; background:'+bg+'; left:80px; display:flex; align-self: stretch; justify-content: flex-start; gap: 10px 10px; align-items:baseline; '
+        content.appendChild( menu );
 
         downMenu = document.createElement( 'div' );
         downMenu.style.cssText = 'position:absolute; top:54px; left:80px; overflow:hidden; background:'+bg+'; height:0px; width:0px;'//' width:0px;' //transition: all .1s ease-in-out;
-        content.appendChild( downMenu )
+        content.appendChild( downMenu );
 
         innerMenu = document.createElement( 'div' );
         innerMenu.style.cssText = 'position:absolute; top:0px; left:0px; top:0px; overflow:hidden; background:'+bg+'; display:flex; flex-wrap:warp;'//flex-direction: column; '
-        downMenu.appendChild( innerMenu )
+        downMenu.appendChild( innerMenu );
 
         zoning.addEventListener("pointerleave", (e) => {
             lock = false
            // Hub.hideMenu()
-            timeout = setTimeout( function(){if(!lock) Hub.hideMenu() }, 100 )
+            timeout = setTimeout( function(){
+                if(!lock) Hub.hideMenu() 
+            }, 100 )
         });
         //zoning.addEventListener("pointerdown", (e) => { lock = true });
 
@@ -433,65 +455,69 @@ export class Hub {
     }
 
     static hideMenu () {
+
         downMenu.style.height = '0px'
         innerMenu.innerHTML = '';
         zoning.style.width = '0px'
         zoning.style.height = '0px'
-        currentMenu = ''
+        currentMenu = '';
+        Hub.updatePad(null)
+
     }
 
     static showMenu ( target ) {
 
-        let type = target.id
+        let type = target.id;
 
-        if( currentMenu === type ) return
+        if( currentMenu === type ) return;
 
-        Hub.hideMenu()
+        Hub.hideMenu();
 
-        currentMenu = type
+        currentMenu = type;
 
-        downMenu.style.left = (type==='engine' ? 120:80) + 'px'
+        downMenu.style.left = ( type === 'engine' ? 125:80 ) + 'px'
+        if(type === 'home') downMenu.style.left = '70px'
 
-        //if(type==='home') list.
-
-
-        let list = listdata[ type ]
+        let list = listdata[ type ];
         /*type === 'demo' ?  demolist : engineList
         if( type === 'logo') list = ['Github', 'About']*/
         let i = list.length, m, n=0, itemH = 0, name
 
-        innerMenu.style.top = '0px'
-        innerMenu.style.width = 'auto'
+        //innerMenu.style.cssText = " top:0px; width:auto; display:flex; flex-direction:column; "
+        innerMenu.style.padding = '10px 0px';
+        innerMenu.style.top = '0px';
+        innerMenu.style.width = 'auto';
         innerMenu.style.display = 'flex';
         innerMenu.style.flexDirection = 'column';
+        //innerMenu.style.background = '#ff00ff'
 
         const bb = []
         
-        while(i--){
+        while( i-- ){
 
             name = list[n]
             m = document.createElement( 'div' );
-            innerMenu.appendChild( m )
+            innerMenu.appendChild( m );
             m.classList.add("down");
             
-            m.style.cssText = 'font-size:16px; font-weight:700;'//type === 'demo' ? 'font-size:16px; font-weight:500;' : 'font-size:16px; font-weight:700;'
+            m.style.cssText = 'font-size:14px; font-weight:700; width:fit-content; padding:4px 10px'//type === 'demo' ? 'font-size:16px; font-weight:500;' : 'font-size:16px; font-weight:700;'
             m.id = name
             m.textContent = name;
+            //m.style.background = '#ff00ff'
 
             if( listdata.visited.indexOf(name) !== -1 ) m.style.color = colorVisite
             if( name === 'Worker' ) m.style.color = Main.isWorker ? color : colorVisite
             if( name === 'Code' ) m.style.color = Main.isEditor ? color : colorVisite
 
-            if( n===0 ) itemH = m.offsetHeight
+            if( n===0 ) itemH = m.offsetHeight;
             //bb[n] = m
             
-            this.effect( m, true )
+            this.effect( m, true );
             n++
         }
 
         
         let rect = innerMenu.getBoundingClientRect();
-
         let max = maxListItem * itemH
         let maxH = n * itemH 
         maxHeight = maxH > max ? max : rect.height
@@ -501,7 +527,6 @@ export class Hub {
 
         //if( ratio !== 1 && full ){
         if( type === 'demo' ){
-
             innerMenu.style.display = 'grid';
             innerMenu.style.gridTemplateColumns = 'repeat(auto-fill, 120px)'
             innerMenu.style.justifyContent = 'space-between';
@@ -514,15 +539,14 @@ export class Hub {
             
             downMenu.style.height = rect.height+'px'//maxHeight + 'px'
 
-
         } else {
             downMenu.style.width = rect.width + 'px'
             downMenu.style.height = maxHeight + 'px'
         }
 
-        zoning.style.left = (rect.left-20) + 'px'
-        zoning.style.width = (rect.width + 40) + 'px'
-        zoning.style.height = (rect.height + 70) + 'px'
+        zoning.style.left = (rect.left-20) + 'px';
+        zoning.style.width = (rect.width + 40) + 'px';
+        zoning.style.height = (rect.height + 70) + 'px';
 
     }
 
@@ -538,14 +562,14 @@ export class Hub {
         list.sort();
         list = list.map( x => Hub.reformat(x) );
 
-        listdata.demo = list
+        listdata.demo = list;
 
         list = [...Main.engineList]
         list.sort();
         list.splice(list.indexOf(Main.engineType), 1);
         list = list.map( x => Hub.reformat(x) );
 
-        listdata.engine = list
+        listdata.engine = list;
 
     }
 
@@ -561,30 +585,33 @@ export class Hub {
 
         if(!Main.isMobile) dom.addEventListener("pointermove", Hub.moving );
 
-        dom.addEventListener( 'pointerleave', (e) => {
-            e.target.style.textDecoration = 'none';
-            //lock = false
-            //timeout = setTimeout( function(){ if(!lock) Hub.hideMenu() }, 1000 )
-        })
+        dom.style.padding = '4px 10px';
+
+        if(isLiner){
+            dom.addEventListener( 'pointerleave', (e) => {
+                e.target.style.textDecoration = 'none';
+            })
+        }
+       
 
         dom.addEventListener("pointerdown", (e) => {
-            e.target.style.textDecoration = 'underline ' + color;
-            if( e.target.id === 'home' || e.target.id === 'engine' || e.target.id === 'demo' ) Hub.showMenu(e.target)
-            else Hub.onClick( e.target.id )
+            //e.target.style.textDecoration = 'underline ' + color;
+            if( e.target.id === 'home' || e.target.id === 'engine' || e.target.id === 'demo' ) Hub.showMenu( e.target )
+            else Hub.onClick( e.target.id );
         });
 
     }
 
     static onClick ( name ) {
 
-        lock = false
-        Hub.hideMenu()
+        lock = false;
+        Hub.hideMenu();
         
         timeout = setTimeout( function(){ 
             if( listdata.engine.indexOf(name) !== -1 ) Hub.swapEngine( name )
             else if( listdata.home.indexOf(name) !== -1 ) Hub.homeLink( name )
             else Main.loadDemo( name.toLowerCase() ) 
-        }, 100 ) 
+        }, 100 );
 
     }
 
@@ -619,19 +646,66 @@ export class Hub {
         let w = window.open( url+'.html?'+param+hash, '_self')
     }
 
+    static updatePad ( t ) {
+
+        let isMenu = false;
+        if( t && t.id ){
+            isMenu = t.id === 'home' || t.id === 'engine' || t.id === 'demo'; 
+            if( t.id === prevOver ) return false;
+            prevOver = t.id;
+        } else {
+            prevOver = null;
+        }
+
+        if(isBackLight){
+            let rect = { top:-10, left:-10, width:0, height:0 };
+            let d = 1;
+
+            if( t ){ 
+                rect = t.getBoundingClientRect();
+                /*if( isMenu ){
+                    d = - rect.top - 15;
+                    rect.height = -d+rect.height; 
+                }*/
+            }
+
+            let left = rect.left - tmpLeft;
+
+            overpad.style.transitionDuration = isMenu ? '0s':'0.1s';
+            overpad.style.transform = 'translate3d('+left+'px, '+(rect.top+d)+'px, 0)';
+            // overpad.style.top = ((rect.top-h)+d) + 'px';
+            // overpad.style.left = (rect.left-w) - tmpLeft + 'px';
+            overpad.style.width = (rect.width) + 'px';
+            overpad.style.height = (rect.height)-1 + 'px';
+            overpad.style.opacity = !t? 0: 0.3;
+            //overpad.style.opacity = !t? 0: (isMenu?0.6:0.6);
+        }
+
+        return true;
+
+    }
+
     static moving ( e ) {
 
         lock = true
-        if( e.target.id === 'zone') return
+        if( e.target.id === 'zone'){ 
+            overpad.style.opacity = 0.1
+            return
+        }
 
-        e.target.style.textDecoration = 'underline '+color;
+        if(isLiner) e.target.style.textDecoration = 'underline '+color;
+
+        overpad.style.opacity = 0.6
+
+        let isNewTarget = Hub.updatePad( e.target );
+        if( !isNewTarget ) return;
 
         if( e.target.id === 'home' || e.target.id === 'engine' || e.target.id === 'demo' ){ 
             Hub.showMenu( e.target )
             return 
         }
 
-        if(full) return 
+        if( full ) return 
 
         if( ratio!==1 ){
             let my = e.clientY - listTop

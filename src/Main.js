@@ -385,7 +385,7 @@ export const Main = {
 		options.debug = b;
 		Motor.setDebugMode( options.debug );
 
-	}
+	},
 
 }
 
@@ -399,6 +399,7 @@ Motor.getGround = Main.getGround;
 
 Motor.extraCode = Main.extraCode;
 Motor.debugMode = Main.debugMode;
+Motor.gui = Gui.extraUi;
 
 
 window.phy = Motor
@@ -458,20 +459,10 @@ const init = () => {
 	renderer.setPixelRatio( pixelRatio );
 	renderer.setSize( size.w, size.h );
 	renderer.setClearColor( 0x000000, 1 );
-
-
-
-
-	//renderer.outputColorSpace = THREE.sRGBEncoding
-	//renderer.outputColorSpace = THREE.SRGBColorSpace;
 	renderer.toneMapping = toneMappingOptions[options.tone];
 	renderer.toneMappingExposure = options.exposure;
-	//console.log(renderer.useLegacyLights)
-	//renderer.useLegacyLights = options.legacy;
 
 	if( options.mode !== 'LOW' ) Motor.setMaxAnisotropy( renderer.capabilities.getMaxAnisotropy() );
-
-	//console.log(renderer)
 
 	// DOM
     document.body.appendChild( renderer.domElement );
@@ -521,12 +512,12 @@ const init = () => {
 	//controls.target.y = 2
 	controls.minDistance = 0.1
     controls.maxDistance = 100
-    controls.enableDamping = true // an animation loop is required when either damping or auto-rotation are enabled
-    controls.dampingFactor = 0.25//25//0.25;
+    controls.enableDamping = true; //true;
+    controls.dampingFactor = 0.25//0.25;
     controls.screenSpacePanning = true
     controls.zoomToCursor = true
     //controls.enable = false
-    //controls.maxPolarAngle = Math.PI / 2
+    controls.maxPolarAngle = Math.PI / 2
 
     //setCamera()
 
@@ -942,6 +933,7 @@ const inject = ( newCode, force = false ) => {
 	Hub.reset()
 	Shader.reset()
 	editor.reset()
+	Gui.resetExtra()
 
 	//resetLight()
 
@@ -993,8 +985,6 @@ const refreshCode = () => {
 
     Gui.doReset()
 
-
-
 }
 
 const changeEditorCode = () => {
@@ -1041,6 +1031,7 @@ const doResize = () => {
 	renderer.setSize( size.w, size.h )
 	if(composer) composer.resize( size )
 	if(particles) particles.onresize( size.h )
+	Gui.resize( size )
 	Hub.resize( size )
     Motor.resize( size )
 	needResize = false
@@ -1075,8 +1066,8 @@ const render = ( stamp = 0 ) => {
 
 	// UPDATE CAMERA
 	if( controls ){ 
-		if( controls.enableDamping && controls.enable ) controls.update()
-		if( controls.follow ) controls.follow( tm.dt )
+		if( controls.enableDamping && controls.enable ) controls.update();
+		if( controls.follow ) controls.follow( tm.dt );
 	}
 
     // UPDATE TWEEN

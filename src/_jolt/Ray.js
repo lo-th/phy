@@ -4,7 +4,9 @@ import { MathTool } from '../core/MathTool.js';
 
 import { Utils, root, map } from './root.js';
 
-// JOLT RAY
+//----------------
+//  JOLT RAY 
+//----------------
 
 export class Ray extends Item {
 
@@ -53,13 +55,13 @@ export class Ray extends Item {
 		this.ray_settings.mTreatConvexAsSolid = false;
 
 		// Perform the ray cast as if we were a moving object
-		this.bp_filter = new Jolt.DefaultBroadPhaseLayerFilter(root.world.GetObjectVsBroadPhaseLayerFilter(), Jolt.MOVING);
-		this.object_filter = new Jolt.DefaultObjectLayerFilter(root.world.GetObjectLayerPairFilter(), Jolt.MOVING);
+		this.bp_filter = new Jolt.DefaultBroadPhaseLayerFilter(root.world.GetObjectVsBroadPhaseLayerFilter(), root.LAYER_MOVING  );
+		this.object_filter = new Jolt.DefaultObjectLayerFilter(root.world.GetObjectLayerPairFilter(), root.LAYER_ALL );
 		this.body_filter = new Jolt.BodyFilter(); // We don't want to filter out any bodies
 		this.shape_filter = new Jolt.ShapeFilter(); // We don't want to filter out any shapes
 
 		// Create collector
-		this.collector = new Jolt.CastRayCollectorJS;
+		this.collector = new Jolt.CastRayCollectorJS();
 
 		this.collector.OnBody = function(inBody) {
 
@@ -98,6 +100,11 @@ export class Ray extends Item {
 
 		}.bind(this);
 
+		this.collector.Reset = function(){
+			// Reset your bookkeeping, in any case we'll need to reset the early out fraction for the base class
+			this.collector.ResetEarlyOutFraction();
+		}.bind(this);
+
 	}
 
 	step () {
@@ -126,6 +133,7 @@ export class Ray extends Item {
 			this.ray.id = i;
 
 			AR[n] = 0;
+			this.collector.Reset();
 			this.ray_settings.mTreatConvexAsSolid = r.selfHit;
 			root.physicsSystem.GetNarrowPhaseQuery().CastRay( this.ray, this.ray_settings, this.collector, this.bp_filter, this.object_filter, this.body_filter, this.shape_filter );
 

@@ -1387,7 +1387,7 @@ class QuickHull {
     }
     let hull = new QuickHull(points);
     hull.build();
-    let faces = hull.collectFaces(false);
+    let faces = hull.collectFaces(true);
     return faces;
   }
 }

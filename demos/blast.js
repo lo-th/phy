@@ -1,5 +1,6 @@
 const Values = {
-    density:0.3,
+    mass: 0.01,
+    //density:0.3,
     friction:0.5,
     restitution:0,
     //sleep:true,

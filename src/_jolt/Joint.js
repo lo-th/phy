@@ -53,6 +53,9 @@ export class Joint extends Item {
         const posB = o.pos2 ? o.pos2 : [0,0,0];
         const axisB = o.axis2 ? o.axis2 : [1,0,0];
 
+        const axeX = [1,0,0]
+        const axeY = [0,1,0]
+
 		let jc
 		switch ( mode ) {
 			case 'fixe': jc = new Jolt.FixedConstraintSettings(); jc.mAutoDetectPoint = true; break;
@@ -62,7 +65,7 @@ export class Joint extends Item {
             case 'spherical': jc = new Jolt.PointConstraintSettings(); break;
             case 'cone': jc = new Jolt.ConeConstraintSettings(); break;
             case 'st': jc = new Jolt.SwingTwistConstraintSettings(); break;
-            case "generic": jc = new Jolt.SixDOFConstraintSettings(); break;
+            case "generic":case "g6": jc = new Jolt.SixDOFConstraintSettings(); break;
 		}
 
 		if(!jc) return
@@ -75,8 +78,16 @@ export class Joint extends Item {
 		if(jc.mPosition1) jc.mPosition1.fromArray(posA);
 		if(jc.mPosition2) jc.mPosition2.fromArray(posB);
 
-		if(jc.mAxisX1) jc.mAxisX1.fromArray(axisA);
-		if(jc.mAxisY1) jc.mAxisY1.fromArray(axisB);
+
+
+		if(jc.mAxisX1) jc.mAxisX1.fromArray(axeX);
+		if(jc.mAxisY1) jc.mAxisY1.fromArray(axeY);
+
+		if(jc.mAxisX2) jc.mAxisX2.fromArray(axeX);
+		if(jc.mAxisY2) jc.mAxisY2.fromArray(axeY);
+
+
+		//if(jc.mSpace) jc.mSpace = 1;
 
 
 
@@ -110,7 +121,7 @@ export class Joint extends Item {
 		havok.HP_Constraint_SetCollisionsEnabled( j, collisionEnabled );
         havok.HP_Constraint_SetEnabled( j, true );
 */
-		const j = jc.Create(b1, b2);
+		const j = jc.Create( b1, b2 );
 		j.name = name;
 		j.type = this.type;
 		j.mode = mode;

@@ -50,12 +50,11 @@ export class Ray extends Item {
 
 		r.visible = o.visible !== undefined ? o.visible : true
 
-
 		// add to world
 		this.addToWorld( r, o.id )
 
 		if(o.parent){
-			if( typeof o.parent !== 'string' ) o.parent = o.parent.name
+			if( typeof o.parent !== 'string' ) o.parent = o.parent.name;
 		}
 
 		if( o.callback ) delete o.callback
@@ -187,20 +186,20 @@ export class ExtraRay extends Line {
 		} else {
 			if( this.parentMesh ){
 				//this.parentMesh.updateWorldMatrix(false,false )
-				const mtx = this.parentMesh.matrixWorld
-				this.tmp.copy( this.begin ).applyMatrix4(mtx).toArray( this.local, 0 )
-				this.tmp.copy( this.end ).applyMatrix4(mtx)
-				this.tmp.toArray( this.local, 3 )
-				this.tmp.toArray( this.local, 6 )
+				const mtx = this.parentMesh.matrixWorld;
+				this.tmp.copy( this.begin ).applyMatrix4(mtx).toArray( this.local, 0 );
+				this.tmp.copy( this.end ).applyMatrix4(mtx);
+				this.tmp.toArray( this.local, 3 );
+				this.tmp.toArray( this.local, 6 );
 			} else {
 				this.begin.toArray( this.local, 0 );
 				this.end.toArray( this.local, 3 );
-				this.end.toArray( this.local, 6 )
+				this.end.toArray( this.local, 6 );
 			}
 		}
 
-		this.updateGeometry()
-		//this.updateMatrix()
+		this.updateGeometry();
+		this.updateMatrix()
 
 		this.callback( this.data );
 

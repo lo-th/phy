@@ -11,14 +11,16 @@ export class Diamond extends MeshPhysicalMaterial {
 
 	constructor( o = {}, extra = {} ) {
 
-		o.metalness = 0
-		o.roughness = 0
+		o.metalness = 0;
+		o.roughness = 0;
 
-        o.clearcoat = 1
+        o.clearcoat = 1;
         //o.clearcoatRoughness = 0.01
 
-        o.iridescenceIOR = 2.33
-        o.iridescence = 1
+        o.iridescenceIOR = 2.33;
+        o.iridescence = 1;
+
+        //o.flatShading = true
 
 
         
@@ -26,8 +28,8 @@ export class Diamond extends MeshPhysicalMaterial {
 		//o.side = DoubleSide
 		
 		//o.envMapIntensity = 1
-        o.reflectivity = 1.0
-        o.envMapIntensity = 1.3
+        o.reflectivity = 1.0;
+        o.envMapIntensity = 1.3;
         //o.iridescence = 1.0
         //o.ior=1.7
 

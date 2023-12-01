@@ -2,9 +2,10 @@ function demo() {
 
     phy.view({
         envmap:0x8aa4b8,
-        ground:false,
+        //ground:false,
         vignette:false,
-        shadow:0,
+        //shadow:0,
+        jointVisible:true, 
     })
 
 
@@ -12,6 +13,11 @@ function demo() {
 
     // add static plane 
     //phy.add({ type:'plane', name:'floor', size:[ 2,1,2 ], visible:false, friction: 0.5,  });
+
+    /*phy.ui([
+        { obj:{yo:0}, name:"yo", min:0, max:1 },
+        { obj:{yo:1}, name:"yo", min:0, max:1 }
+    ]);*/
 
 
 
@@ -35,6 +41,18 @@ const yo = () => {
 
     console.log('is done !!')
 
+    jointTest()
+
     //eva.model.addHelper()
    //eva.model.addExo()
+}
+
+const jointTest = () => {
+
+    phy.add({ type:'plane', name:'floor', size:[ 20,1,20 ], visible:false, friction: 0.5,  });
+
+    phy.add({ type:'box', name:'A', size:[1,1,1], pos:[-3,0.5,0], mass:1 });
+    phy.add({ type:'box', name:'B', size:[1,1,1], pos:[3,0.5,0], mass:1 });
+
+    phy.add({ type:'distance', b1:'A', b2:'B', pos1:[0,0,0], pos2:[0,0,0], visible:true });
 }

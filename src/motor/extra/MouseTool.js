@@ -601,6 +601,8 @@ export class MouseTool {
 			let notUseKinematic = root.engine === 'OIMO' || root.engine ==='RAPIER' || root.engine ==='JOLT'//|| root.engine ==='HAVOK'
 			let jtype = this.selected.link === 0 ? 'fixe' : 'd6';//root.engine === 'HAVOK' ? 'fixe' : 'd6';
 
+			if( root.engine === 'JOLT' ) jtype = 'fixe';
+
 			let limite = [['x',...def], ['y',...def], ['z',...def], ['rx',...defr], ['ry',...defr], ['rz',...defr]]
 
 			if( root.engine === 'HAVOK' ) limite = [ ['x',...def], ['y',...def], ['z',...def] ]

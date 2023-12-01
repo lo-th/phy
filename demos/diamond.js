@@ -8,19 +8,20 @@ demo = () => {
     })
 
     // config physics setting
-    phy.set( {substep:1, gravity:[0,-9.81,0]})
+    phy.set( {substep:1, gravity:[0,-9.8,0]})
 
     // add static ground
-    phy.add({ type:'plane', size:[300,1,300], visible:false })
+    //phy.add({ type:'plane', size:[300,1,300], visible:false })
+    phy.add({ type:'box', size:[100,10,100], pos:[0,-5,0], visible:false })
 
     // add box containe
     let w = 6, h = 10, d = 10, g = 1
-    const def = { type:'box', visible:false, material:'debug' }
+    /*const def = { type:'box', visible:false, material:'debug' }
     phy.add({ size:[w,h,g], pos:[0,h*0.5,d*0.5], ...def })
     phy.add({ size:[w,h,g], pos:[0,h*0.5,-d*0.5], ...def })
     phy.add({ size:[g,h,d-g], pos:[(w*0.5)-(g*0.5),h*0.5,0], ...def })
     phy.add({ size:[g,h,d-g], pos:[(g*0.5)-(w*0.5),h*0.5,0], ...def })
-    phy.add({ size:[w,g*2,d], pos:[0,-g,0], ...def })
+    phy.add({ size:[w,g*2,d], pos:[0,-g,0], ...def })*/
 
     phy.load( './assets/models/diamond.glb', onComplete )
 
@@ -61,9 +62,9 @@ onComplete = () => {
             type:'convex',
             shape: list[m].geometry,
             material: mat[m],
-            pos:[rand(-1,1), (n*2) + rand(3,20), rand(-1,1)],
+            pos:[rand(-1,1), (n*2) + rand(2,5), rand(-1,1)],
             rot:[rand(0,360), rand(0,360), rand(0,360)],
-            size:[rand(10,30)],
+            size:[rand(10,20)],
             density:1,
         })
 

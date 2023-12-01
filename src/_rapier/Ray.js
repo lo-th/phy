@@ -79,8 +79,7 @@ export class Ray extends Item {
 				AR[n+9] = hit.normal.y
 				AR[n+10] = hit.normal.z
 
-				let collider = hit.collider._parent.name
-				root.reflow.ray[i] = collider
+				root.reflow.ray[i] = hit.collider._parent.name
 			})
 
 		}

@@ -29,6 +29,7 @@ export class Body extends Item {
 		this.p = new Vec3();
 		this.v = new Vec3();
 		this.v2 = new Vec3();
+		this.vv = new Vec3();
 		this.r = new Vec3();
 		this.q = new Quat();
 
@@ -67,11 +68,11 @@ export class Body extends Item {
 			this.q.toArray( AR, n+4 );
 
 			if( this.full ){
-				b.getLinearVelocityTo( this.v );
+				b.getLinearVelocityTo( this.vv );
 			    b.getAngularVelocityTo( this.r );
-				this.v.toArray( AR, n+8 );
+				this.vv.toArray( AR, n+8 );
 			    this.r.toArray( AR, n+11 );
-			    if( AR[ n ] === 1 ) AR[ n ] = this.v.length() * 9.8;// speed km/h
+			    if( AR[ n ] === 1 ) AR[ n ] = this.vv.length() * 9.8;// speed km/h
 			}
 		}
 
@@ -178,7 +179,7 @@ export class Body extends Item {
         sc.density = o.density || 0;
 
 
-        //console.log( o.mass, o.density )
+       // console.log( o.mass, o.density )
         
 
 
@@ -327,6 +328,9 @@ export class Body extends Item {
 
 		}
 
+		//b.updateMass()
+
+
 		b.name = name
 		b.type = this.type
 		b.breakable = o.breakable || false
@@ -348,6 +352,8 @@ export class Body extends Item {
 
 		// apply option
 		this.set( o, b )
+
+		//console.log(b)
 
 	}
 
@@ -408,35 +414,34 @@ export class Body extends Item {
 			b.setAutoSleep( !o.neverSleep )
 			if( o.neverSleep )  b.wakeUp()
 		}
-			
-
-		// Applies the force `force` to `positionInWorld` in world position. [ 0,0,0,   0,0,0 ]
-		if( o.worldForce ) b.applyForce( this.v.fromArray( o.worldForce ), this.v.fromArray( o.worldForce, 3 ) )
-		if( o.force ) b.applyForceToCenter( this.v.fromArray( o.force ) )
-		if( o.torque ) b.applyTorque( this.v.fromArray( o.torque ) )
-
-
-
-	    // Applies the impulse `impulse` to the rigid body at `positionInWorld` in world position. [ 0,0,0,   0,0,0 ]
-
-	    if( o.impulse ){
-	    	if( o.impulseCenter ) b.applyImpulse( this.v.fromArray( o.impulse ), this.v2.fromArray( o.impulseCenter ) );
-	    	else b.applyLinearImpulse( this.v.fromArray( o.impulse ) );
-	    }
-	    /*if( o.impulse ) b.applyImpulse( this.v.fromArray( o.impulse ), this.v.fromArray( o.impulse, 3 ) )
-	    if( o.linearImpulse ) {
-	    	//this.multiplyScalar( o.linearImpulse, root.delta, 3 )
-	    	b.applyLinearImpulse( this.v.fromArray( o.linearImpulse ) )
-	    }*/
-
-
-	    if( o.angularImpulse ) b.applyAngularImpulse( this.v.fromArray( o.angularImpulse ) )
-
-	    if( o.gravityScale ) b.setGravityScale( o.gravityScale );
-
-	    if( o.gravity !== undefined ) b.setGravityScale( o.gravity ? 1 : 0 );
 
 	    if( b.type === 'body' ){
+
+	    	//b.setRotationFactor(this.v.set( 0.1, 0.1, 0.1))
+			
+
+			// Applies the force `force` to `positionInWorld` in world position. [ 0,0,0,   0,0,0 ]
+			if( o.worldForce ) b.applyForce( this.v.fromArray( o.worldForce ), this.v.fromArray( o.worldForce, 3 ) )
+			if( o.force ) b.applyForceToCenter( this.v.fromArray( o.force ) )
+			if( o.torque ) b.applyTorque( this.v.fromArray( o.torque ) )
+
+
+
+		    // Applies the impulse to the rigid body at `positionInWorld` in world position
+		    if( o.impulse ){
+		    	if( o.impulseCenter ) b.applyImpulse( this.v.fromArray( o.impulse ), this.v2.fromArray( o.impulseCenter ) );
+		    	else b.applyLinearImpulse( this.v.fromArray( o.impulse ) );
+		    }
+
+
+
+		    if( o.angularImpulse ) b.applyAngularImpulse( this.v.fromArray( o.angularImpulse ) )
+
+		    if( o.gravityScale ) b.setGravityScale( o.gravityScale );
+
+		    if( o.gravity !== undefined ) b.setGravityScale( o.gravity ? 1 : 0 );
+
+	    
 		    //b.getOrientationTo( this.q )
 		    //if( o.linearVelocity ) b.setLinearVelocity( this.v.fromArray( o.linearVelocity ).applyQuaternion( this.q ) )
 		    //if( o.angularVelocity ) b.setAngularVelocity( this.v.fromArray( o.angularVelocity ).applyQuaternion( this.q ) )
@@ -461,6 +466,10 @@ export class Body extends Item {
 			b.setAngularVelocity( this.v.set( 0, 0, 0) )
 		}
 
+		if( o.massInfo ) {
+	    	this.getMassInfo( b );
+	    }
+
 	}
 
 	setShapes ( o = {}, b = null  ){
@@ -482,6 +491,32 @@ export class Body extends Item {
 
 		}
 
+
+	}
+
+	getMassInfo( b = null ){
+
+		if( typeof b === 'string' ) b = this.byName( b );
+		if( b === null ) return;
+		if( this.type !== 'body' ) return;
+
+		const info = {
+
+			mass: b.getMass(),
+			invMass: b._invMass,
+			inertia: b.getLocalInertia().toArray(),
+			invInertia:[
+			b._invInertia00, b._invInertia01, b._invInertia02,
+			b._invInertia10, b._invInertia11, b._invInertia12,
+			b._invInertia20, b._invInertia21, b._invInertia22
+			]//_invLocalInertia//.toArray(),
+			/*massCenter: b.getCMassLocalPose().p.toArray(),
+			
+			invInertia: b.getMassSpaceInvInertiaTensor().toArray(),*/
+
+		}
+
+		console.log( info )
 
 	}
 

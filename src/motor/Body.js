@@ -13,7 +13,7 @@ import { MathTool, PI90, todeg } from '../core/MathTool.js';
 
 import { SphereBox, Capsule, ChamferCyl, ChamferBox, createUV, Stair  } from '../3TH/Geometry.js';
 import { ConvexGeometry } from '../jsm/geometries/ConvexGeometry.js';
-
+import { mergeVertices } from '../jsm/utils/BufferGeometryUtils.js';
 
 
 import { CapsuleHelper  } from '../3TH/helpers/CapsuleHelper.js';
@@ -114,30 +114,26 @@ export class Body extends Item {
 
 	geometry ( o = {}, b = null, material = null ) {
 
-		//console.log("geometry is add")
-
-		//console.log( 'geometry', o, b, material)
-
 		let g, i, n, s = o.size, gName=''
 		let t = o.type
 		let noScale = false, unic = false;
 		let seg = o.seg || 16;
 
-		const noIndex = root.engine === 'OIMO' || root.engine === 'JOLT';
+		const noIndex = root.engine === 'OIMO' || root.engine === 'JOLT' || root.engine === 'CANNON';
 
 		//if( o.instance && t!== 'capsule'&& !o.radius) s = o.instanceSize || [1,1,1]
 
-		if( o.instance && t=== 'compound'){ 
+		if( o.instance && t === 'compound'){ 
 			t = o.shapes[0].type
 			s = o.shapes[0].size
-			o.translate = o.shapes[0].pos
+			o.translate = o.shapes[0].pos;
 		}
 
 		if( t==='mesh' || t==='convex' ){
 			if( o.shape ){
-				if( o.shape.isMesh ) o.shape = o.shape.geometry
+				if( o.shape.isMesh ) o.shape = o.shape.geometry;
 			} else {
-				if( o.mesh && !o.v ) o.shape = o.mesh.geometry
+				if( o.mesh && !o.v ) o.shape = o.mesh.geometry;
 			}	
 		}
 
@@ -195,41 +191,51 @@ export class Body extends Item {
 
 			case 'convex':
 
-			if( o.v ){ 
+				if( o.v ){ 
 
-				if( o.nogeo ) g = new BufferGeometry();
-				else {
-					let vv = [];
-					i = Math.floor( o.v.length/3 );
-					while( i-- ){
-						n = i*3;
-						vv.push( new Vector3( o.v[n], o.v[n+1], o.v[n+2] ) )
+					if( o.nogeo ) g = new BufferGeometry();
+					else {
+						let vv = [];
+						i = Math.floor( o.v.length/3 );
+						while( i-- ){
+							n = i*3;
+							vv.push( new Vector3( o.v[n], o.v[n+1], o.v[n+2] ) )
+						}
+						g = new ConvexGeometry( vv );
+						//o.v = math.getVertex( g )
+						//o.index = math.getIndex( g )
+						//console.log(o.v, o.index)
 					}
-					g = new ConvexGeometry( vv );
-					//o.v = math.getVertex( g )
-					//o.index = math.getIndex( g )
-					//console.log(o.v, o.index)
+					unic = true;
+					noScale = true;
 				}
-				unic = true;
-				noScale = true;
-			}
 
-			if( o.shape ){
+				if( o.shape ){
 
-				g = o.shape.clone();
-				if( o.size ) g.scale( o.size[0], o.size[0], o.size[0] );
-				if( o.shapeScale ) g.scale( o.shapeScale[0], o.shapeScale[1], o.shapeScale[2] );
-				//o.v = g.attributes.position.array;
-				o.v = MathTool.getVertex( g, noIndex );
-				o.index = MathTool.getIndex( g, noIndex );
+					g = o.shape.clone();
+					if( o.size ) g.scale( o.size[0], o.size[0], o.size[0] );
+					if( o.shapeScale ) g.scale( o.shapeScale[0], o.shapeScale[1], o.shapeScale[2] );
 
-				unic = true;
-				noScale = true;
-			}
+					let tg = noIndex ? MathTool.toNonIndexed(g) : null;
+					o.v = MathTool.getVertex( tg || g, noIndex );
+					o.index = MathTool.getIndex( tg || g, noIndex );
+					if(root.engine === 'CANNON'){ 
+						// cannon is too slow with convex !!!
+						// CannonJS requires CCW face indices ordering, else it detects
+	                    // normals as pointing inwards
+						 
+						//console.log(tg)
+						//o.faces = MathTool.getFaces( tg || g, noIndex );
+						//o.normals = MathTool.getNormal( tg || g, noIndex );
+					}
 
-			if(!g.boundingBox) g.computeBoundingBox();
-			let bx = g.boundingBox;
-		    o.boxSize = [ -bx.min.x + bx.max.x, -bx.min.y + bx.max.y, -bx.min.z + bx.max.z ];
+					unic = true;
+					noScale = true;
+				}
+
+				if(!g.boundingBox) g.computeBoundingBox();
+				let bx = g.boundingBox;
+			    o.boxSize = [ -bx.min.x + bx.max.x, -bx.min.y + bx.max.y, -bx.min.z + bx.max.z ];
 
 			break;
 

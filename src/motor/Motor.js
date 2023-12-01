@@ -47,7 +47,7 @@ const Version = {
     PHYSX: '5.03.00',
     RAPIER: '0.11.2',
     HAVOK: '1.3.0',
-    JOLT: '0.8.0',
+    JOLT: '0.10.1',
 }
 
 const items = {};
@@ -688,8 +688,9 @@ export class Motor {
 
 	static initItems () {
 
-		items['ray'] = new Ray();
+		
 		items['body'] = new Body();
+		items['ray'] = new Ray();
 		items['joint'] = new Joint();
 		items['solid'] = new Solid();
 		items['contact'] = new Contact();
@@ -726,6 +727,9 @@ export class Motor {
 	static stepItems () {
 
 		//if( root.Ar === null ) return
+
+		//items.body.step()
+		//items.ray.step()
 
 	    Object.values(items).forEach( value => value.step() );
 		//for ( const key in items ) items[key].step( root.Ar, root.ArPos[key] )

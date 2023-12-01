@@ -55,11 +55,11 @@ export class Terrain extends Item {
 			//o.debuger = true
 		}
 
-		const t = new Landscape( o )
+		const t = new Landscape( o );
 
 		t.physicsUpdate = ( name, h ) =>{
 
-			root.flow.tmp.push( { name:name, heightData:h } )
+			root.flow.tmp.push( { name:name, heightData:h } );
 			//root.post({m:'change', o:{ name:'terra', heightData:h }})
 		}
 
@@ -100,9 +100,9 @@ const toPhysics = function( t ) {
 		o.zone = t.zone
 		o.heightData = t.heightData
 	} else {
-		o.type = 'mesh'
-		o.v = MathTool.getVertex( t.geometry, root.engine === 'OIMO' )
-		o.index = root.engine === 'OIMO' ? null : MathTool.getIndex( t.geometry )
+		o.type = 'mesh';
+		o.v = MathTool.getVertex( t.geometry, root.engine === 'OIMO' );
+		o.index = root.engine === 'OIMO' ? null : MathTool.getIndex( t.geometry );
 	}
 
 	return o

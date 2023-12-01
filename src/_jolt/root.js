@@ -6,6 +6,11 @@ export const contactmap = new Map();
 
 export const root = {
 
+	// Object layers
+	LAYER_NON_MOVING: 0,
+	LAYER_MOVING: 1,
+	LAYER_ALL: 0|1,
+
 	Ar:null, 
 	ArPos: {},
 
@@ -13,7 +18,7 @@ export const root = {
 	deltaTime : 0,
 	invDelta : 0,
 
-	settings:null,
+	//settings:null,
 	physicsSystem:null,
 	bodyInterface:null,
 	//broadPhase:null,
@@ -37,7 +42,21 @@ export const root = {
 
 };
 
+/*export const pool = {
 
+	tmpv:null,
+	tmpq:null,
+
+	v3:(ar,n) => { pool.tmpv = new Jolt.Vec3().fromArray(ar,n); return pool.tmpv; },
+	q:(ar,n) => { pool.tmpq = new Jolt.Vec3().fromArray(ar,n); return pool.tmpq; },
+	free:() => {
+		if(pool.tmpv) Jolt.destroy(pool.tmpv);
+		if(pool.tmpq) Jolt.destroy(pool.tmpq);
+		pool.tmpv = null;
+		pool.tmpq = null;
+	}
+	
+}*/
 
 export const Utils = {
 
@@ -79,8 +98,12 @@ export const Utils = {
 			switch( b.type ){
 				case 'joint': root.physicsSystem.RemoveConstraint( b ); break;
 				default: 
+
 				root.bodyInterface.RemoveBody( b.GetID() ); 
 				root.bodyInterface.DestroyBody( b.GetID() ); 
+				//let s = b.GetShape()
+				//console.log(s)
+				//if(s) Jolt.destroy(s);
 				break;
 			}
 		}
@@ -94,11 +117,16 @@ export const Utils = {
 
 	extends:() => {
 
-
 		Jolt.Vec3.prototype.set = function ( x,y,z ){
 
 			this.Set( x, y, z );
 			return this;
+
+		}
+
+		Jolt.Vec3.prototype.clone = function ( v ){
+
+			return new Jolt.Vec3( v.GetX(), v.GetY(), v.GetZ() );
 
 		}
 
@@ -180,6 +208,8 @@ export const Utils = {
 			r[ n + 3 ] = this.GetW();
 
 			if(!direct) return r;*/
+
+			return [t, q];
 
 		}
 	}

@@ -10,6 +10,7 @@ import { Utils, root } from './root.js';
 
 // https://jrouwe.github.io/JoltPhysics/class_body.html
 
+
 export class Body extends Item {
 
 	constructor () {
@@ -60,6 +61,7 @@ export class Body extends Item {
 		while( i-- ){
 
 			b = this.list[i];
+			if(!b) continue;
 			n = N + ( i * this.num );
 
 			AR[ n ] = b.IsActive() ? 1 : 0;
@@ -92,7 +94,7 @@ export class Body extends Item {
 		let h, i, n, j, hull;
 
 		// If objects are closer than this distance, they are considered to be colliding (used for GJK) (unit: meter)
-		let inConvexRadius = 0.05; //0.05;
+		let inConvexRadius = 0.01; //0.05;
 
 		let inMaterial = null//PhysicsMaterial 
 		//new Jolt.PhysicsMaterialList
@@ -181,6 +183,8 @@ export class Body extends Item {
 
 	    shape.volume = MathTool.getVolume( t, s, o.v );
 
+	    //console.log(shape)
+
 
 
 		return shape;
@@ -252,10 +256,10 @@ export class Body extends Item {
 
 		let tt = this.type === 'body' ? ( o.kinematic ? Jolt.EMotionType_Kinematic : Jolt.EMotionType_Dynamic ) : Jolt.EMotionType_Static;
 		//EBodyType_SoftBody
-		let move = this.type === 'body' ? Jolt.MOVING : Jolt.NON_MOVING;
+		let move = this.type === 'body' ? root.LAYER_MOVING : root.LAYER_NON_MOVING;
 		let volume = 0;
 
-		if( o.move !== undefined )  move = o.move ? Jolt.MOVING : Jolt.NON_MOVING;
+		if( o.move !== undefined )  move = o.move ? root.LAYER_MOVING : root.LAYER_NON_MOVING;
 
 		let pos = this.v.fromArray(o.pos || [0,0,0]);
 		let quat = this.q.fromArray(o.quat || [0,0,0,1]);
@@ -284,11 +288,12 @@ export class Body extends Item {
 			        ss = this.shapeSetting( n );
 			        volume += ss.volume;
 					scs.AddShape( this.v2.fromArray(n.pos || [0,0,0]), this.q2.fromArray(n.quat || [0,0,0,1]), ss );
+					//Jolt.destroy(ss);
 
 				}
 
 				bcs = new Jolt.BodyCreationSettings( scs.Create().Get(), this.v.fromArray(o.pos || [0,0,0]), this.q.fromArray(o.quat || [0,0,0,1]), tt , move );
-				
+				Jolt.destroy( scs );
 			break;
 
 			default:
@@ -297,47 +302,91 @@ export class Body extends Item {
 			    let sp = this.shape( o );
 			    volume = sp.volume;
 			    bcs = new Jolt.BodyCreationSettings( sp, this.v.fromArray(o.pos || [0,0,0]), this.q.fromArray(o.quat || [0,0,0,1]), tt , move );
+			    //Jolt.destroy(sp);
 				
 			break;
 
 		}
 
+		
+
 		// set mass or density
 
-		if( o.density ) o.mass = MathTool.massFromDensity( o.density || 0, volume );
-		if( o.mass ) bcs.mMassPropertiesOverride.mMass = o.mass;
-		bcs.mOverrideMassProperties = Jolt.EOverrideMassProperties_CalculateInertia;
-		bcs.mInertiaMultiplier = 1;
+		//console.log( bcs );
 
-		// mInertia is mat44
+		//EOverrideMassProperties_CalculateInertia: 1
+		//EOverrideMassProperties_CalculateMassAndInertia: 0
+		//EOverrideMassProperties_MassAndInertiaProvided: 2
+
+		if( o.density ) o.mass = MathTool.massFromDensity( o.density || 0, volume );
+		if( o.mass ){
+		    bcs.mOverrideMassProperties = 1;// Jolt.EOverrideMassProperties_CalculateInertia; 
+			bcs.mMassPropertiesOverride.mMass = o.mass; 
+			
+			//bcs.mGravityFactor = 2
+
+		}
+
+		 if( o.inertia ){ // mInertia is mat44
+		 	bcs.mMassPropertiesOverride.mInertia.sScale(this.v.fromArray( o.inertia ))
+		 	bcs.mOverrideMassProperties = 1;
+		 }
+		
+		//bcs.mInertiaMultiplier = 1.0;
+
+		//bcs.mGravityFactor
+//console.log( Jolt.EOverrideMassProperties_CalculateInertia );
+//console.log( bcs.mMassPropertiesOverride.mInertia );
+		
 		//if( o.inertia ) bcs.mMassPropertiesOverride.mInertia = this.v.fromArray( o.inertia );
 	    //if( o.inertia ) bcs.mMassPropertiesOverride.mInertia.sTranslation(this.v.fromArray( o.inertia ))
-	    if( o.inertia ) bcs.mMassPropertiesOverride.mInertia.sScale(this.v.fromArray( o.inertia ))
+	   
 
         //bcs.mMaxAngularVelocity: 47.1238899230957
-		//bcs.mMaxLinearVelocity: 500
+
+        // Motion quality, or how well it detects collisions when it has a high velocity. 
+        // Discrete : 0 or LinearCast : 1 // default : 0
+        if( o.motionQuality !== undefined ) bcs.mMotionQuality = o.motionQuality;
+        if( o.useCCD !== undefined ) bcs.mMotionQuality = 1;
+        
+        // Maximum linear velocity that this body can reach (m/s) default 500
+		if( o.maxLinear !== undefined ) bcs.mMaxLinearVelocity = o.maxLinear;
+
+		// Maximum Angular velocity that this body can reach (rad/s) default 0.25 * PI * 60
+		if( o.maxAngular !== undefined ) bcs.mMaxAngularVelocity = o.maxAngular;
+
+
 		if( o.noGravity !== undefined ){ 
 			bcs.mGravityFactor = o.noGravity ? 0:1;
 			bcs.mInertiaMultiplier = o.noGravity ? 0:1;
 		}
 		//bcs.mInertiaMultiplier: 1
+
+		// Which degrees of freedom this body has (can be used to limit simulation to 2D)
+		//bmc.mAllowedDOFs 
 		
 		if( o.kinematic !== undefined ) bcs.mAllowDynamicOrKinematic = o.kinematic;
 		if( o.sensor !== undefined ) bcs.mIsSensor = o.sensor;
 
-		
+		//console.log( bcs.mLinearDamping, bcs.mAngularDamping )
 
 		if ( o.damping !== undefined ){ 
-			bcs.mLinearDampin = o.damping[ 0 ];//0
-			bcs.mAngularDamping = o.damping[ 1 ];//0.05
-		}
+			bcs.mLinearDamping = o.damping[ 0 ];//def 0.05
+			bcs.mAngularDamping = o.damping[ 1 ];//def 0.05
+		}/* else {
+			bcs.mLinearDamping = 0;
+			bcs.mAngularDamping = 0.05;
+		}*/
 
+
+		
 
 		//if( o.kinematic !== undefined ) console.log( bcs )
 
 		// body 
 
-		const b = root.bodyInterface.CreateBody(bcs);
+		const b = root.bodyInterface.CreateBody( bcs );
+		Jolt.destroy( bcs );// 'creationSettings' no longer needed, all settings and the shape reference went to 'body'
 
 		//if(o.type === 'compound') b.SetUseManifoldReduction(false)
 
@@ -346,9 +395,10 @@ export class Body extends Item {
 	    b.isKinematic = o.kinematic || false;
 	    b.breakable = o.breakable || false;
 
-	    
+	    //b.SetUseManifoldReduction(false)
 
 	    //console.log( b );
+	    //console.log( b.GetMotionProperties() );
 
 
 		// add to world
@@ -356,6 +406,7 @@ export class Body extends Item {
 
 		delete o.pos;
 		delete o.quat;
+		delete o.mass;
 		delete o.kinematic;
 
 		if( !o.friction ) o.friction = 0.5;// default friction to 0.5
@@ -418,7 +469,6 @@ export class Body extends Item {
 		if( o.noGravity ) {
 			//console.log(b)
 
-
 			//SetMotionType( b)
 		}
 
@@ -430,8 +480,11 @@ export class Body extends Item {
 		if( o.linearVelocityClamped !== undefined ) b.SetLinearVelocityClamped( this.v.fromArray( o.linearVelocityClamped ) )
 
 		if( o.angularVelocity !== undefined ) b.SetAngularVelocity( this.v.fromArray( o.angularVelocity ) );
-		if( o.angularVelocityClamped !== undefined ) b.SetAngularVelocityClamped( this.v.fromArray( o.angularVelocityClamped ) )
 
+	    // Set world space angular velocity of the center of mass, 
+	    // will make sure the value is clamped against the maximum angular velocity.
+		if( o.angularVelocityClamped !== undefined ) b.SetAngularVelocityClamped( this.v.fromArray( o.angularVelocityClamped ) )
+        // miss b.GetLinearVelocityClamped
 
 		if ( o.angularFactor !== undefined ) b.SetAngularVelocityClamped( this.v.fromArray( MathTool.mulArray([47.12,47.12,47.12], o.angularFactor) ) )
 
@@ -507,6 +560,7 @@ export class Body extends Item {
 
 	    //if( o.impulse ) b.AddImpulse( this.v.fromArray( o.impulse ), this.v2.fromArray( [0,0,0] ) );
 	    if( o.impulse ){
+	    	root.bodyInterface.ActivateBody(b.GetID())
 	    	//o.impulse = MathTool.scaleArray(o.impulse, 0.016, 3)
 	    //console.log(o.impulse, o.impulseCenter) 
 	    	b.AddImpulse( this.v.fromArray( o.impulse ), o.impulseCenter ? this.v2.fromArray( o.impulseCenter ) : b.GetPosition() );
@@ -521,13 +575,50 @@ export class Body extends Item {
 	    
 	    if( o.torque ) b.AddTorque( this.v.fromArray( o.torque ) );
 
+	    if( o.useManifoldReduction !== undefined ) b.SetUseManifoldReduction( o.useManifoldReduction ); // boolean
+
 
 
 	    //console.log( this.getShape(b) )
 
+	    if( o.massInfo ) this.getMassInfo( b );
+	    if( o.mass ) this.setMass( b, o.mass );
+
+	    if ( o.damping !== undefined ){ 
+			b.GetMotionProperties().SetLinearDamping( o.damping[ 0 ] );//def 0.05
+			b.GetMotionProperties().SetAngularDamping( o.damping[ 1 ] );//def 0.05
+		}
+
+	}
+
+	setMass( b, mass ) {
+		b.GetMotionProperties().SetInverseMass( 1.0 / mass );
+	}
+
+	getMassInfo(b) {
+
+		if( typeof b === 'string' ) b = this.byName( b );
+		if( b === null ) return;
+		if( this.type !== 'body' ) return;
+
+		const info = {
+
+			invMass: b.GetMotionProperties().GetInverseMass(),
+			massCenter: b.GetCenterOfMassPosition().toArray(),
 
 
-		
+			/*mass: b.getMass(),
+			invMass: b.getInvMass(),
+			massCenter: b.getCMassLocalPose().p.toArray(),
+			inertia: b.getMassSpaceInertiaTensor().toArray(),
+			invInertia: b.getMassSpaceInvInertiaTensor().toArray(),
+			*/
+
+			damping:[ b.GetMotionProperties().GetLinearDamping(), b.GetMotionProperties().GetAngularDamping() ]
+
+		}
+
+		console.log( info )
 
 	}
 
