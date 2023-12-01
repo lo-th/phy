@@ -369,8 +369,6 @@ export const Main = {
 
 		if( hub3d ) hub3d.color = Gui.tool.htmlToHex( palette.darkVibrant ) 
 
-
-
 		groundColor = Gui.tool.htmlToHex( palette.ground )
 
 		if( ground && groundAutoColor ) ground.setColor( groundColor )
@@ -497,7 +495,6 @@ const init = () => {
 	scene.add( helperGroup )
 
 	scene.helper = helperGroup
-
 
 
 	addLight()

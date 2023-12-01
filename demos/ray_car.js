@@ -17,7 +17,15 @@ function demo() {
     let gg = phy.add({ type:'plane', name:'floor', size:[ 300,1,300 ], ray:true, friction:0.2, restitution:0.3, visible:false });
     //gg.inertia.set( 22539,37885, 15389 )
 
-    phy.load(['./assets/models/2cv.glb'], onComplete )
+    const maps = [
+    './assets/textures/2cv/2cv_c.jpg', 
+    './assets/textures/2cv/2cv_n.jpg',
+    './assets/textures/2cv/2cv_r.jpg',
+    './assets/textures/2cv/2cv_m.jpg', 
+    './assets/textures/2cv/2cv_a.jpg',
+    ]
+
+    phy.load([...maps, './assets/models/2cv.glb'], onComplete )
 }
 
 
@@ -37,13 +45,13 @@ onComplete = () => {
     let g = phy.getGround();
     g.material.map = phy.texture({ url:'./assets/textures/grid.png', repeat:[60,60] });
 
-    const mat = phy.material({ name:'2cv', color:0xFFFFFF, roughness: 1, metalness: 1, //color:0x8cc0e5,
-        map:phy.texture({ url:'./assets/textures/2cv/2cv_c.jpg', srgb:true }),
+    const mat = phy.material({ name:'2cv', color:0xFFFFFF, roughness: 1,  metalness: 1,
+        map:phy.texture({ url:'./assets/textures/2cv/2cv_c.jpg' }),
         normalMap:phy.texture({ url:'./assets/textures/2cv/2cv_n.jpg' }),
         roughnessMap:phy.texture({ url:'./assets/textures/2cv/2cv_r.jpg' }),
         metalnessMap:phy.texture({ url:'./assets/textures/2cv/2cv_m.jpg' }),
         alphaMap:phy.texture({ url:'./assets/textures/2cv/2cv_a.jpg' }),
-        normalScale:[1.0,-1.0],
+        normalScale:[1,-1],
     })
 
     const mat2 = mat.clone();
