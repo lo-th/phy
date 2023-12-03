@@ -47,7 +47,7 @@ const Version = {
     PHYSX: '5.03.00',
     RAPIER: '0.11.2',
     HAVOK: '1.3.0',
-    JOLT: '0.10.1',
+    JOLT: '0.10.3',
 }
 
 const items = {};
