@@ -14,7 +14,7 @@ export class MouseTool {
 
 	constructor ( controler, mode = 'drag' ) {
 
-		this.needRay = true;
+		this.needRay = false;
 
 		//this.tmpSelected = null
 
@@ -698,8 +698,7 @@ export class MouseTool {
 
 		if( this.selected === null ) return
 
-		//this.resetOver()
-
+		this.resetOver()
 		this.clearDrag()
 
 		if( this.moveDirect ){
@@ -720,7 +719,7 @@ export class MouseTool {
 	step(){
 
 		if( this.needRay ) this.castray()
-	    this.needRay = false
+	    this.needRay = false;
 
 		if( this.selected === null ) return
 

@@ -515,7 +515,7 @@ const init = () => {
     controls.screenSpacePanning = true
     controls.zoomToCursor = true
     //controls.enable = false
-    controls.maxPolarAngle = Math.PI / 2
+    //controls.maxPolarAngle = Math.PI / 2
 
     //setCamera()
 

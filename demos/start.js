@@ -1,11 +1,16 @@
+let roomMat, addHuman = false;
+
 demo = () => {
 
     phy.view({
-        phi:0, theta:0, distance:3, x:0, y:1, z:0, fov:50,//envmap:'render',
-        groundSize:[ 5, 7],
+        envmap:'river', envblur:0.5, 
+        phi:0, theta:0, distance:3, x:0, y:1, z:0, fov:50,
+        ground:false,
+        /*groundSize:[ 5, 6],
         groundAlpha:false,
         groundColor:0x623403,//0x926433,
-        groundReflect:0.04,
+        groundReflect:0.04,*/
+        exposure:0.7,
 
     })
     // config physics setting
@@ -13,36 +18,50 @@ demo = () => {
     // add static ground
     phy.add({ type:'plane', size:[300,1,300], visible:false })
 
-    phy.getGround().material.visible = false
-
     
     // preLoad
     const maps = [
     'textures/floor_c.jpg', 'textures/floor_n.jpg',
-    'textures/stucco_c.jpg',
+    'textures/stucco_c.jpg', 'textures/room_c.jpg', 'textures/room_ao.jpg',
     'textures/model/sofa_c.jpg', 'textures/model/sofa_n.jpg', 'textures/model/sofa_r.jpg',
     'textures/model/baseball_c.jpg', 'textures/model/baseball_n.jpg', 'textures/model/baseball_r.jpg',
     'textures/model/cardboard_c.jpg', 'textures/model/cardboard_n.jpg', 'textures/model/cardboard_r.jpg',
     ]
 
-    const models = ['models/phy.glb','models/sofa.glb'];
+    const models = ['models/phy.glb','models/sofa.glb','models/room.glb'];
     phy.load([...maps, ...models], onComplete, './assets/' )
 
 }
 
 onComplete = () => {
 
-    makeMaterial()
+    makeMaterial();
+
+    let sofaModel = phy.getMesh('sofa');
+    let roomModel = phy.getMesh('room');
 
     //phy.add({ type:'box', size:[5,0.2,7], pos:[0,2.8,0], material:'wall' })
 
-    phy.add({ type:'box', size:[5,2.6,0.2], pos:[0,1.3,-3.6], material:'wall' })
-    phy.add({ type:'box', size:[5,2.6,0.2], pos:[0,1.3,3.6], visible:false })
+    phy.add({ type:'box', size:[6,3,0.5], pos:[0,1.5,-3.25], visible:false })
+    phy.add({ type:'box', size:[6,3,0.5], pos:[0,1.5,3.25], visible:false })
 
-    phy.add({ type:'box', size:[0.2,2.6,7], pos:[-2.6,1.3,0], material:'wall' })
-    phy.add({ type:'box', size:[0.2,2.6,7], pos:[2.6,1.3,0], material:'wall'})
+    phy.add({ type:'box', size:[0.5,3,6], pos:[-2.75,1.5,0], visible:false })
+    phy.add({ type:'box', size:[0.5,3,6], pos:[2.75,1.5,0], visible:false })
 
-    let g = phy.getGround()
+    let room = roomModel.Room;
+
+    if(room){
+        //room.position.y = -0.02;
+        room.material = roomMat;
+        room.receiveShadow = true;
+        room.castShadow = false;
+        phy.add(room);
+
+    }
+    
+
+    /*let g = phy.getGround()
+    //g.visible = false
    // g.color.setHex(0xffffff)
     g.material.map = phy.texture({ url:'./assets/textures/floor_c.jpg', repeat:[7,8] })
     g.material.normalMap = phy.texture({ url:'./assets/textures/floor_n.jpg', repeat:[7,8] })
@@ -50,11 +69,11 @@ onComplete = () => {
     g.material.normalScale.set(-0.6,-0.6)
     g.material.visible = true
 
-    g.material.needsUpdate = true
+    g.material.needsUpdate = true*/
 
     ////
 
-    let sofaModel = phy.getMesh('sofa');
+    
 
     var sofaShape = []
 
@@ -158,18 +177,38 @@ onComplete = () => {
             material:'cardboard',
             type:'box', 
             size:[0.38, 0.33,0.5], 
-            pos:[math.rand( -0.5, 0.5 ), 2+ i*0.35, -3 + math.rand( -0.2, 0.2 )], 
+            pos:[math.rand( -2, 2 ), 2+ i*0.35, math.rand( 1, 3 )], 
             ...option 
         })
     }
 
     phy.add(ar)
 
+
+    if( addHuman ) phy.preload( ['man', 'woman'], onComplete_2 )
+
 }
 
 
 
+
+
 makeMaterial = () => {
+
+    roomMat = phy.material({ name:'room', color:0xFFFFFF,  //color:0x8cc0e5,
+        roughness: 0.5, metalness: 0, 
+        map:phy.texture({ url:'./assets/textures/room_c.jpg', srgb:true }),
+        lightMap:phy.texture({ url:'./assets/textures/room_ao.jpg' }),
+        lightMapIntensity:0.8,
+        //emissiveMap:phy.texture({ url:'./assets/textures/room_ao.jpg' }),
+        //emissiveMap:phy.texture({ url:'./assets/textures/room_ao.jpg' }),
+        //emissive:0xFFFFFF,
+        //aoMap:phy.texture({ url:'./assets/textures/room_ao.jpg' }),
+        //normalMap:phy.texture({ url:'./assets/textures/model/sofa_n.jpg' }),
+        //roughnessMap:phy.texture({ url:'./assets/textures/model/sofa_r.jpg' }),
+        //roughness:0.88,
+        //normalScale:[0.3,-0.3],
+    })
 
     phy.material({ name:'wall', color:0xFFFFFF, roughness: 1, metalness: 0, //color:0x8cc0e5,
         map:phy.texture({ url:'./assets/textures/stucco_c.jpg', repeat:[3,1.5], srgb:true }),
@@ -202,5 +241,26 @@ makeMaterial = () => {
         //roughness:0.88,
         normalScale:[0.3,-0.3], 
     })
+
+}
+
+
+onComplete_2 = () => {
+
+    const human = phy.add({ 
+        type: 'character',
+        name: 'human',
+        gender: 'man',
+        //debug: true,
+        radius: 0.35,
+        height: 1.8,
+        pos: [0,0,1],
+        //ray: n===0,
+        angle:0,
+        //randomMorph:true,
+        //morph:true,
+    });
+
+    phy.control( 'human' );
 
 }

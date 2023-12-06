@@ -1,12 +1,12 @@
 demo = () => {
 
-    phy.set({ substep:2, gravity:[0,-9.81,0] })
+    phy.set({ substep:1, gravity:[0,-9.81,0] })
 
     phy.add({ type:'plane' })
 
-    phy.add({ type:'highSphere', name:'sphere', size:[0.90], pos:[0,6,0], density:5, restitution:0.2, friction:0.2, sleep:true })
+    phy.add({ type:'highSphere', name:'sphere', size:[0.50], pos:[0,6,0], density:5, restitution:0.2, friction:0.2, sleep:true })
 
-    addTower({ radius:1, height:25, size:[0.1, 0.2], detail:18, density:0.3 });
+    addTower({ radius:1, height:25, size:[0.1, 0.2], detail:18 });
 
     phy.setTimeout( run, 1000 )
 
@@ -50,12 +50,12 @@ addTower = ( o ) => {
                 size:[sx,sy,sz],
                 pos:[px,py,pz],
                 rot  :[0,angle*(180 / Math.PI),0],
-                density:density,
+                //density:density,
+                mass:0.1,
                 restitution:0.6,
                 friction:0.4,
                 sleep:true,
                 startSleep:true,
-
             });
         }
     }

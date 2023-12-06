@@ -40,13 +40,10 @@ export class Instance extends InstancedMesh {
     addOutLine( obj ) {
 
         if( !this.overMaterial ) return;
-        //console.log(this.type)
+
         this.outline = new Mesh( this.geometry, this.overMaterial );
         this.overMaterial.uniforms.power.value = 0.01;
         this.outline.matrixAutoUpdate = false;
-        //this.outline.position.copy( obj.position );
-        //this.outline.quaternion.copy( obj.quaternion );
-
         this.tmpMatrix.fromArray( this.instanceMatrix.array, obj.id*16 );
         this.outline.matrix.copy( this.tmpMatrix );
         this.outline.matrixWorldNeedsUpdate = true;
@@ -56,6 +53,8 @@ export class Instance extends InstancedMesh {
     }
 
     over ( b ) {
+
+        //console.log('over', b)
 
         if( b && !this.instance.isOver ){ 
 

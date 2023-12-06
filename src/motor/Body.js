@@ -823,7 +823,7 @@ export class Body extends Item {
     	bb.receiveShadow = o.shadow !== undefined ? o.shadow : true;
     	bb.castShadow = o.shadow !== undefined ? o.shadow : true;
 
-    	bb.overMaterial =  Mat.get( 'outline' );
+    	bb.overMaterial = Mat.get( 'outline' );
 
     	bb.name = o.instance;
 		root.scene.add( bb );

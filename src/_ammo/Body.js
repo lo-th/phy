@@ -488,9 +488,9 @@ export class Body extends Item {
 
 	    	if( o.impulseCenter ) {
 	    	    // Convert contactPoint relative to center of mass
-	    	    b.getMotionState().getWorldTransform( this.t )
+	    	    b.getMotionState().getWorldTransform( this.t );
 	    		this.v2.fromArray( o.impulseCenter ).sub( this.t.getOrigin() );
-	    		b.applyImpulse( this.v.fromArray( o.impulse ), this.v2 )
+	    		b.applyImpulse( this.v.fromArray( o.impulse ).multiplyScalar(0.7), this.v2 )
 
 	    	} else {
 	    		b.applyCentralImpulse( this.v.fromArray( o.impulse ) )

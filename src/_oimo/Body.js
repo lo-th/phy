@@ -29,6 +29,7 @@ export class Body extends Item {
 		this.p = new Vec3();
 		this.v = new Vec3();
 		this.v2 = new Vec3();
+		this.v3 = new Vec3();
 		this.vv = new Vec3();
 		this.r = new Vec3();
 		this.q = new Quat();
@@ -389,6 +390,7 @@ export class Body extends Item {
 
 	    	}
 		    if( o.quat ){
+		    	
 		    	if(b.isKinematic){
 
 		    		let qqq = MathTool.quatMultiply( o.quat, MathTool.quatInvert( b.quat ) )
@@ -429,7 +431,12 @@ export class Body extends Item {
 
 		    // Applies the impulse to the rigid body at `positionInWorld` in world position
 		    if( o.impulse ){
-		    	if( o.impulseCenter ) b.applyImpulse( this.v.fromArray( o.impulse ), this.v2.fromArray( o.impulseCenter ) );
+		    	if( o.impulseCenter ){ 
+		    		b.getPositionTo( this.v3 );
+		    		this.v2.fromArray( o.impulseCenter ).sub( this.v3 );
+		    		b.applyImpulse( this.v.fromArray( o.impulse ), this.v2 );
+		    		//b.applyImpulse( this.v.fromArray( o.impulse ), this.v2.fromArray( o.impulseCenter ) );
+		    	}
 		    	else b.applyLinearImpulse( this.v.fromArray( o.impulse ) );
 		    }
 

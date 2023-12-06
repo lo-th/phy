@@ -47,6 +47,8 @@ export class RayCar {
 			brakeForce : 0,
 		}
 
+        this.localWheel = true;
+
 		this.maxSpeed = 70
 		this.maxForce = 1500
 		this.maxBrakeForce = 45
@@ -103,7 +105,8 @@ export class RayCar {
             mesh:o.bodyMesh || null,
             meshPos:o.meshPos || [0,-1.1,0],
             material:o.material,
-            //debug:true,
+            damping:[0.05,0.05],
+            debug:true,
 
         });
 
@@ -178,15 +181,26 @@ export class RayCar {
 
 	    let m = new Mesh( wgeo, mat );
         let m2 = wgeo2 ? new Mesh( wgeo2, mat ) : null;
-	    m.matrixAutoUpdate = false;
-        if(m2) m2.matrixAutoUpdate = false;
+	    
 
-	    this.vehicle.wheelMeshes = [
-	        root.motor.add(m2? m2 : m.clone()),
-	        root.motor.add(m),
-	        root.motor.add(m2? m2.clone() : m.clone()),
-	        root.motor.add(m.clone())
-	    ]
+        this.vehicle.localWheel = this.localWheel;
+
+        if(this.localWheel){
+            this.vehicle.wheelMeshes = [ m2? m2 : m.clone(), m, m2? m2.clone() : m.clone(), m.clone() ];
+            let k = this.vehicle.wheelMeshes.length, n=0
+            while(k--) this.body.add(this.vehicle.wheelMeshes[n++]);
+        }else{
+            m.matrixAutoUpdate = false;
+            if(m2) m2.matrixAutoUpdate = false;
+            this.vehicle.wheelMeshes = [
+                root.motor.add(m2? m2 : m.clone()),
+                root.motor.add(m),
+                root.motor.add(m2? m2.clone() : m.clone()),
+                root.motor.add(m.clone())
+            ]
+        }
+
+	    
 	
 	}
 
@@ -289,7 +303,8 @@ class RaycastVehicle {
         this.indexUpAxis = typeof(o.indexUpAxis) !== 'undefined' ? o.indexUpAxis : 1;
         //this.rays = []
         this.wheelMeshes = [];
-
+        this.localWheel = false;
+        //this.wheelMatrix = [];
     }
 
     addWheel ( o = {} ){
@@ -312,6 +327,7 @@ class RaycastVehicle {
         });
 
         this.wheelInfos.push(info);
+        //this.wheelMatrix.push( new Matrix4() );
 
         return index;
 
@@ -370,7 +386,7 @@ class RaycastVehicle {
         const cVelLocal = TransformNormalToRef(cVel, bodyTransform(chassisBody, new Matrix4()).invert(),new Vector3());
         this.currentVehicleSpeedKmHour = cVelLocal.z;
 
-        var forwardWorld = new Vector3();
+        let forwardWorld = new Vector3();
         this.getVehicleAxisWorld(this.indexForwardAxis, forwardWorld);
 
         //if (Dot(forwardWorld,bodyLinearVelocity(chassisBody, new Vector3())) < 0){
@@ -389,12 +405,12 @@ class RaycastVehicle {
         this.updateSuspension(timeStep);
 
 
-        var impulse = new Vector3();
-        var repos = new Vector3();
+        let impulse = new Vector3();
+        let repos = new Vector3();
         for ( i = 0; i < numWheels; i++) {
             //apply suspension force
-            var wheel = wheelInfos[i];
-            var suspensionForce = wheel.suspensionForce;
+            let wheel = wheelInfos[i];
+            let suspensionForce = wheel.suspensionForce;
             if (suspensionForce > wheel.maxSuspensionForce) {
                 suspensionForce = wheel.maxSuspensionForce;
             }
@@ -411,14 +427,14 @@ class RaycastVehicle {
         this.updateFriction(timeStep);
         
  
-        var hitNormalWorldScaledWithProj = new Vector3();
-        var fwd  = new Vector3();
-        var vel = new Vector3();
+        let hitNormalWorldScaledWithProj = new Vector3();
+        let fwd  = new Vector3();
+        let vel = new Vector3();
         for (i = 0; i < numWheels; i++) {
-            var wheel = wheelInfos[i];
+            let wheel = wheelInfos[i];
             velocityAt(chassisBody, wheel.chassisConnectionPointWorld, vel)
             // Hack to get the rotation in the correct direction
-            var m = 1;
+            let m = 1;
             switch(this.indexUpAxis){
             case 1:
                 m = -1;
@@ -428,14 +444,14 @@ class RaycastVehicle {
             if (wheel.isInContact) {
 
                 this.getVehicleAxisWorld(this.indexForwardAxis, fwd);
-                var proj = Dot(fwd, wheel.raycastResult.hitNormalWorld);
+                let proj = Dot(fwd, wheel.raycastResult.hitNormalWorld);
                 //hitNormalWorldScaledWithProj.copyFrom(wheel.raycastResult.hitNormalWorld).scaleInPlace(proj)
                 hitNormalWorldScaledWithProj.copy(wheel.raycastResult.hitNormalWorld).multiplyScalar(proj)
 
                 //fwd.subtractToRef(hitNormalWorldScaledWithProj, fwd);
                 fwd.sub(hitNormalWorldScaledWithProj)
 
-                var proj2 = Dot(fwd, vel);
+                let proj2 = Dot(fwd, vel);
                 wheel.deltaRotation = m * proj2 * timeStep / wheel.radius;
             }
 
@@ -458,27 +474,27 @@ class RaycastVehicle {
 
     updateSuspension( deltaTime ) {
 
-        var chassisBody = this.chassisBody;
-        var chassisMass = bodyMass(chassisBody);
-        var wheelInfos = this.wheelInfos;
-        var numWheels = wheelInfos.length;
+        let chassisBody = this.chassisBody;
+        let chassisMass = bodyMass(chassisBody);
+        let wheelInfos = this.wheelInfos;
+        let numWheels = wheelInfos.length;
 
-        for (var w_it = 0; w_it < numWheels; w_it++){
-            var wheel = wheelInfos[w_it];
+        for (let w_it = 0; w_it < numWheels; w_it++){
+            let wheel = wheelInfos[w_it];
 
             if (wheel.isInContact){
-                var force;
+                let force;
 
                 // Spring
-                var susp_length = wheel.suspensionRestLength;
-                var current_length = wheel.suspensionLength;
-                var length_diff = (susp_length - current_length);
+                let susp_length = wheel.suspensionRestLength;
+                let current_length = wheel.suspensionLength;
+                let length_diff = (susp_length - current_length);
 
                 force = wheel.suspensionStiffness * length_diff * wheel.clippedInvContactDotSuspension;
 
                 // Damper
-                var projected_rel_vel = wheel.suspensionRelativeVelocity;
-                var susp_damping;
+                let projected_rel_vel = wheel.suspensionRelativeVelocity;
+                let susp_damping;
                 if (projected_rel_vel < 0) {
                     susp_damping = wheel.dampingCompression;
                 } else {
@@ -499,50 +515,49 @@ class RaycastVehicle {
 
     updateFriction( timeStep ){
 
-        var surfNormalWS_scaled_proj = updateFriction_surfNormalWS_scaled_proj;
+        let surfNormalWS_scaled_proj = updateFriction_surfNormalWS_scaled_proj;
 
         //calculate the impulse, so that the wheels don't move sidewards
-        var wheelInfos = this.wheelInfos;
-        var numWheels = wheelInfos.length;
-        var chassisBody = this.chassisBody;
-        var forwardWS = updateFriction_forwardWS;
-        var axle = updateFriction_axle;
+        let wheelInfos = this.wheelInfos;
+        let numWheels = wheelInfos.length;
+        let chassisBody = this.chassisBody;
+        let forwardWS = updateFriction_forwardWS;
+        let axle = updateFriction_axle;
 
-        var numWheelsOnGround = 0;
+        let numWheelsOnGround = 0;
+        let i, wheel, groundObject;
 
-        for (var i = 0; i < numWheels; i++) {
+        for ( i = 0; i < numWheels; i++) {
 
-            var wheel = wheelInfos[i];
+            wheel = wheelInfos[i];
+            groundObject = wheel.raycastResult.body;
 
-            var groundObject = wheel.raycastResult.body;
-            if (groundObject){
-                numWheelsOnGround++;
-            }
-
+            if (groundObject) numWheelsOnGround++;
+            
             wheel.sideImpulse = 0;
             wheel.forwardImpulse = 0;
 
             if(!forwardWS[i]) forwardWS[i] = new Vector3();
             if(!axle[i]) axle[i] = new Vector3();
             
-        }
+        /*}
         
-        for (var i = 0; i < numWheels; i++){
+        for ( i = 0; i < numWheels; i++){
 
-            var wheel = wheelInfos[i];
+            wheel = wheelInfos[i];
     
-            var groundObject = wheel.raycastResult.body;
+            groundObject = wheel.raycastResult.body;*/
     
             if (groundObject) {
 
-                var axlei = axle[i];
-                var wheelTrans = this.getWheelTransformWorld(i);
+                let axlei = axle[i];
+                let wheelTrans = this.getWheelTransformWorld(i);
     
                 // Get world axle
                 TransformNormalToRef( directions[this.indexRightAxis], wheelTrans, axlei );
         
-                var surfNormalWS = wheel.raycastResult.hitNormalWorld;
-                var proj = Dot(axlei, surfNormalWS);
+                let surfNormalWS = wheel.raycastResult.hitNormalWorld;
+                let proj = Dot(axlei, surfNormalWS);
                 
                 //surfNormalWS.scaleToRef(proj, surfNormalWS_scaled_proj);
                 //axlei.subtractToRef(surfNormalWS_scaled_proj, axlei);
@@ -568,20 +583,21 @@ class RaycastVehicle {
 
 
 
-        var sideFactor = 1;
-        var fwdFactor = 0.5;
-
+        let sideFactor = 1;
+        let fwdFactor = 0.5;
         this.sliding = false;
-        for (var i = 0; i < numWheels; i++) {
-            var wheel = wheelInfos[i];
-            var groundObject = wheel.raycastResult.body;
 
-            var rollingFriction = 0;
+        for ( i = 0; i < numWheels; i++) {
+
+            wheel = wheelInfos[i];
+            groundObject = wheel.raycastResult.body;
+
+            let rollingFriction = 0;
 
             wheel.slipInfo = 1;
             if ( groundObject ) {
-                var defaultRollingFrictionImpulse = 0;
-                var maxImpulse = wheel.brake ? wheel.brake : defaultRollingFrictionImpulse;
+                let defaultRollingFrictionImpulse = 0;
+                let maxImpulse = wheel.brake ? wheel.brake : defaultRollingFrictionImpulse;
 
                 // btWheelContactPoint contactPt(chassisBody,groundObject,wheelInfraycastInfo.hitPointWorld,forwardWS[wheel],maxImpulse);
                 // rollingFriction = calcRollingFriction(contactPt);
@@ -591,7 +607,7 @@ class RaycastVehicle {
                 //rollingFriction *= 10
 
                 // rollingFriction = 0;
-                var factor = maxImpulse / rollingFriction;
+                let factor = maxImpulse / rollingFriction;
                 wheel.slipInfo *= factor;
 
                 //console.log(rollingFriction)
@@ -633,7 +649,7 @@ class RaycastVehicle {
 
         if (this.sliding) {
             for (let i = 0; i < numWheels; i++) {
-                const wheel = wheelInfos[i];
+                wheel = wheelInfos[i];
                 if (wheel.sideImpulse !== 0) {
                     if (wheel.skidInfo < 1){
                         wheel.forwardImpulse *= wheel.skidInfo;
@@ -645,15 +661,16 @@ class RaycastVehicle {
 
         
         // apply the impulses // TODO !!!
-        for (var i = 0; i < numWheels; i++) {
-            var wheel = wheelInfos[i];
+        for ( i = 0; i < numWheels; i++) {
+
+            wheel = wheelInfos[i];
     
-            var rel_pos = new Vector3();
+            let rel_pos = new Vector3();
             rel_pos.copy( wheel.raycastResult.hitPointWorld ).sub( bodyPosition(chassisBody, new Vector3()) )
             //wheel.raycastResult.hitPointWorld.subtractToRef(bodyPosition(chassisBody, new Vector3()), rel_pos);
            
             if (wheel.forwardImpulse !== 0) {
-                var impulse = new Vector3();
+                let impulse = new Vector3();
                 impulse.copy(forwardWS[i]).multiplyScalar(wheel.forwardImpulse)
                 //impulse.copyFrom(forwardWS[i]).scaleInPlace(wheel.forwardImpulse)
                 addImpulseAt(chassisBody, impulse, wheel.raycastResult.hitPointWorld)
@@ -661,13 +678,14 @@ class RaycastVehicle {
             }
     
             if ( wheel.sideImpulse !== 0 ){
-                var groundObject = wheel.raycastResult.body;
+
+                groundObject = wheel.raycastResult.body;
     
-                var rel_pos2 = new Vector3();
+                let rel_pos2 = new Vector3();
                
                 rel_pos2.copy(wheel.raycastResult.hitPointWorld).sub(bodyPosition(groundObject, new Vector3()))
                 //wheel.raycastResult.hitPointWorld.subtractToRef(bodyPosition(groundObject, new Vector3()), rel_pos2);
-                var sideImp = new Vector3();
+                let sideImp = new Vector3();
                 sideImp.copy(axle[i]).multiplyScalar(wheel.sideImpulse);
                 //sideImp.copyFrom(axle[i]).scaleInPlace(wheel.sideImpulse)
     
@@ -681,7 +699,7 @@ class RaycastVehicle {
                 sideImp.multiplyScalar(-1);
 
                 // add impulse on staic object ???
-                addImpulseAt(groundObject, sideImp, wheel.raycastResult.hitPointWorld);
+                addImpulseAt( groundObject, sideImp, wheel.raycastResult.hitPointWorld );
                 
             }
         }
@@ -692,22 +710,22 @@ class RaycastVehicle {
     updateWheelTransformWorld( wheel ){
 
         //wheel.isInContact = false;
-        var chassisBody = this.chassisBody;
+        let chassisBody = this.chassisBody;
         const transform = chassisBody.matrixWorld;//bodyTransform( chassisBody, new Matrix4() )
       
         TransformCoordinatesToRef( wheel.chassisConnectionPointLocal, transform, wheel.chassisConnectionPointWorld )
         TransformNormalToRef( wheel.directionLocal, transform, wheel.directionWorld )
-        TransformNormalToRef( wheel.axleLocal, transform, wheel.axleWorld )
+        //TransformNormalToRef( wheel.axleLocal, transform, wheel.axleWorld )
         
     }
 
     updateWheelTransform( wheelIndex ){
 
-        var up = tmpVec4;
-        var right = tmpVec5;
-        var fwd = tmpVec6;
+        let up = tmpVec4;
+        let right = tmpVec5;
+        let fwd = tmpVec6;
 
-        var wheel = this.wheelInfos[wheelIndex];
+        let wheel = this.wheelInfos[wheelIndex];
         this.updateWheelTransformWorld(wheel);
 
         up.copy( wheel.directionLocal ).multiplyScalar(-1);
@@ -717,32 +735,42 @@ class RaycastVehicle {
         right.normalize();
 
         // Rotate around steering over the wheelAxle
-        var steering = wheel.steering;
-        var steeringOrn = new Quaternion();
-        RotationAxisToRef( up, steering, steeringOrn )
+        let steering = wheel.steering;
+        let steeringOrn = new Quaternion();
+        RotationAxisToRef( up, steering, steeringOrn );
 
-        var rotatingOrn = new Quaternion();
-        RotationAxisToRef(right, wheel.rotation, rotatingOrn)
+        let rotatingOrn = new Quaternion();
+        RotationAxisToRef(right, wheel.rotation, rotatingOrn);
 
         // World rotation of the wheel
-        var q = wheel.quaternion;
+        let q = wheel.quaternion;
         bodyOrientation( this.chassisBody, q )
         q.multiply(steeringOrn).multiply(rotatingOrn).normalize();
 
         // world position of the wheel
-        var p = wheel.position;
+        let p = wheel.position;
         p.copy( wheel.directionWorld )
         p.multiplyScalar( wheel.suspensionLength );
+        let locP = p.clone();
         p.add( wheel.chassisConnectionPointWorld );
 
-        this.wheelMeshes[wheelIndex].position.copy(wheel.position)
-        this.wheelMeshes[wheelIndex].quaternion.copy(wheel.quaternion)
-        this.wheelMeshes[wheelIndex].updateMatrix();
+        wheel.matrix.compose( wheel.position, wheel.quaternion, {x:1,y:1,z:1} );
+
+        if( this.localWheel ){
+            locP.add(wheel.chassisConnectionPointLocal)
+            this.wheelMeshes[wheelIndex].quaternion.copy(steeringOrn).multiply(rotatingOrn).normalize();
+            this.wheelMeshes[wheelIndex].position.copy(locP);
+        } else {
+            this.wheelMeshes[wheelIndex].position.copy(wheel.position);
+            this.wheelMeshes[wheelIndex].quaternion.copy(wheel.quaternion);
+            this.wheelMeshes[wheelIndex].updateMatrix();
+        }
 
     }
 
-    getWheelTransformWorld(wheelIndex) {
-        return this.wheelMeshes[wheelIndex].matrixWorld ;
+    getWheelTransformWorld(id) {
+        return this.wheelInfos[id].matrix;
+        //return this.wheelMeshes[id].matrixWorld ;
     }
 
 
@@ -777,7 +805,7 @@ class WheelInfo {
             directionLocal: new Vector3(),
             directionWorld: new Vector3(),
             axleLocal: new Vector3(),
-            axleWorld: new Vector3(),
+            //axleWorld: new Vector3(),
             suspensionRestLength: 1,
             suspensionMaxLength: 2,
             radius: 1,
@@ -812,7 +840,7 @@ class WheelInfo {
         this.directionLocal = options.directionLocal.clone();
         this.directionWorld = options.directionLocal.clone();
         this.axleLocal = options.axleLocal.clone();
-        this.axleWorld = options.axleLocal.clone();
+        //this.axleWorld = options.axleLocal.clone();
         this.suspensionRestLength = options.suspensionRestLength;
         this.suspensionMaxLength = options.suspensionMaxLength;
         this.radius = options.radius;
@@ -848,6 +876,8 @@ class WheelInfo {
         this.isInContact = false;
         this.chassisBody = null;
         this.ray = null;
+
+        this.matrix = new Matrix4();
 
     }
 

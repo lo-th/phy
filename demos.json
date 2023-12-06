@@ -8,7 +8,7 @@
     "Dev" : [ 
         "dev/spring", "dev/cloth", "dev/gears2", "dev/mass", "dev/empty", "dev/empty2", "dev/empty3",
         "dev/car", "dev/collision", "dev/buttons", "dev/robot_arm", "dev/pinball",
-        "dev/vehicle2", "dev/vehicle3", "dev/mesh", "dev/break"
+        "dev/vehicle2", "dev/vehicle3", "dev/mesh", "dev/break", "dev/stacking"
     ],
     "Advanced" : [ 
         "diamond", "ragdoll", "chess", "million" 
