@@ -184,14 +184,9 @@ onComplete = () => {
 
     phy.add(ar)
 
-
     if( addHuman ) phy.preload( ['man', 'woman'], onComplete_2 )
 
 }
-
-
-
-
 
 makeMaterial = () => {
 

@@ -432,9 +432,9 @@ export class Body extends Item {
 		    // Applies the impulse to the rigid body at `positionInWorld` in world position
 		    if( o.impulse ){
 		    	if( o.impulseCenter ){ 
-		    		b.getPositionTo( this.v3 );
-		    		this.v2.fromArray( o.impulseCenter ).sub( this.v3 );
-		    		b.applyImpulse( this.v.fromArray( o.impulse ), this.v2 );
+		    		//b.getPositionTo( this.v3 );
+		    		this.v2.fromArray( o.impulseCenter )//.sub( this.v3 );
+		    		b.applyImpulse( this.v3.fromArray( o.impulse ), this.v2 );
 		    		//b.applyImpulse( this.v.fromArray( o.impulse ), this.v2.fromArray( o.impulseCenter ) );
 		    	}
 		    	else b.applyLinearImpulse( this.v.fromArray( o.impulse ) );

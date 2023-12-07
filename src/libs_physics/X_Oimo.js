@@ -1,4 +1,4 @@
-let HxOverrides = window.performance ? window.performance : Date;
+let HxOverrides = performance ? performance : Date;
 
 var oimo = oimo || {};
 if(!oimo.collision) oimo.collision = {};

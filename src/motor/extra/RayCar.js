@@ -99,7 +99,7 @@ export class RayCar {
             friction:this.friction,
             restitution:this.restitution,
             mass:this.mass,
-            neverSleep:true,
+            //neverSleep:true,
             massInfo:true,
 
             mesh:o.bodyMesh || null,
