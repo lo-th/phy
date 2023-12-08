@@ -56,10 +56,22 @@ export class Joint extends Item {
 		let body2 = null;
 		let isString;
 
+		if( !o.axis1 ) o.axis1 = [1,0,0];
+		if( !o.axis2 ) o.axis2 = [1,0,0];
+
+		if( !o.pos1 ) o.pos1 = [0,0,0];
+		if( !o.pos2 ) o.pos2 = [0,0,0];
+
 		if( o.limit ) o.lm = o.limit;
 		else if( o.lm ) o.limit = o.lm;
 
-		// get the bodys
+		// STRICT MODE
+
+		if(o.mode==='universal'||o.mode==='dof'||o.mode==='d6') o.mode = 'generic';
+		if(o.mode==='revolute') o.mode = 'hinge';
+		if(o.mode==='slider') o.mode = 'cylindrical';
+
+		// GET BODY REFERENCY
 
 		if( o.b1 ) {
 			isString = typeof o.b1 === 'string';
@@ -76,34 +88,30 @@ export class Joint extends Item {
 		}
 
 		// world to local
-
-		if ( o.worldPos ) o.worldAnchor = o.worldPos
+		if ( o.worldPos ) o.worldAnchor = o.worldPos;
 		if ( o.worldAnchor ){
-
-			this.v1.fromArray( o.worldAnchor ) 
-			this.v2.fromArray( o.worldAnchor )
-
-			o.pos1 = body1 ? Utils.toLocal( this.v1, body1 ).toArray() : o.worldAnchor
-			o.pos2 = body2 ? Utils.toLocal( this.v2, body2 ).toArray() : o.worldAnchor
-
-			delete o.worldAnchor
-
-		}
+			o.pos1 = body1 ? Utils.toLocal( this.v1.fromArray( o.worldAnchor ), body1 ).toArray() : o.worldAnchor;
+			o.pos2 = body2 ? Utils.toLocal( this.v2.fromArray( o.worldAnchor ), body2 ).toArray() : o.worldAnchor;
+			delete o.worldAnchor;
+		} 
 
 		if ( o.worldAxis ){
 
-			this.v1.fromArray( o.worldAxis ) 
-			this.v2.fromArray( o.worldAxis )
-
-			o.axis1 = body1 ? Utils.toLocal( this.v1, body1, true ).toArray():o.worldAxis
-			o.axis2 = body2 ? Utils.toLocal( this.v2, body2, true ).toArray():o.worldAxis
-
+			
+			/*if( root.engine === 'JOLT'){
+				o.axis1 = o.worldAxis;
+				o.axis2 = o.worldAxis;
+			}else{*/
+				o.axis1 = body1 ? Utils.toLocal( this.v1.fromArray( o.worldAxis ), body1, true ).toArray() : o.worldAxis;
+			    o.axis2 = body2 ? Utils.toLocal( this.v2.fromArray( o.worldAxis ), body2, true ).toArray() : o.worldAxis;
+			//}
+			
 			//o.quat1 = new Quaternion().setFromUnitVectors( new Vector3(1, 0, 0), new Vector3().fromArray(o.axis1).normalize() ).toArray();
 		    //o.quat2 = new Quaternion().setFromUnitVectors( new Vector3(1, 0, 0), new Vector3().fromArray(o.axis2).normalize() ).toArray();
 
 			//console.log(o.worldAxis, o.axis1, o.axis2)
 
-			delete o.worldAxis
+			delete o.worldAxis;
 
 		}
 
@@ -112,7 +120,7 @@ export class Joint extends Item {
 			o.quat1 = Utils.quatLocal(o.worldQuat, body1)
 			o.quat2 = Utils.quatLocal(o.worldQuat, body2)
 
-			if( root.engine === 'OIMO' || root.engine === 'HAVOK' ){
+			if( root.engine === 'OIMO' || root.engine === 'HAVOK' || root.engine === 'JOLT' ){
 
 				//this.v1.fromArray( math.quadToAxisArray( o.worldQuat ) ).normalize()
 				//this.v2.fromArray( math.quadToAxisArray( o.worldQuat ) ).normalize()
@@ -142,11 +150,9 @@ export class Joint extends Item {
 
 		}
 
-		if( !o.axis1 ) o.axis1 = [1,0,0]
-		if( !o.axis2 ) o.axis2 = [1,0,0]
+		
 
-		if( !o.pos1 ) o.pos1 = [0,0,0]
-		if( !o.pos2 ) o.pos2 = [0,0,0]
+		
 
 		/*if( o.b2 ) body2 = typeof o.b2 !== 'string' ? o.b2 : Utils.byName(o.b2)
 		if( o.b1 && typeof o.b1 !== 'string') o.b1 = o.b1.name;

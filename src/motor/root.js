@@ -165,9 +165,9 @@ export const Utils = {
 
     	//if( obj.isObject3D ) obj.updateWorldMatrix( true, false )
     	// apply position
-    	if(!isAxe) v.sub( obj.position )
+    	if(!isAxe) v.sub( obj.position );
     	// apply invers rotation
-    	let q = obj.quaternion
+    	let q = obj.quaternion;
     	//v.applyQuaternion(q.clone().invert())
     	//v.applyQuaternion({x:-q.x, y:-q.y, z:-q.z, w:q.w})
     	v.applyQuaternion({x:-q._x, y:-q._y, z:-q._z, w:q._w})

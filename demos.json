@@ -3,7 +3,8 @@
         "start", "basic", "joint", "capsule", "compound", "bridge", "ray_car",
         "gears", "terrain", "character", "kinematic", "random", "tower",
         "gravity", "heroes", "heroes2", "bullet", "evangelion", "simple",
-        "blast", "skeleton", "skeleton_old", "material", "keva", "test", "dragon", "raycast", "human"
+        "blast", "skeleton", "skeleton_old", "material", "keva", "test",
+        "dragon", "raycast", "human", "build"
     ],
     "Dev" : [ 
         "dev/spring", "dev/cloth", "dev/gears2", "dev/mass", "dev/empty", "dev/empty2", "dev/empty3",

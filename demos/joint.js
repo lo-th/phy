@@ -16,15 +16,17 @@ demo = () => {
 
 
     // size test
-    phy.add({ type:'box', size:[0.2,0.2,0.2], pos:[0,0.1,3], mass:1, restitution:0.5, friction:0.9 })
-    phy.add({ type:'box', size:[0.1,0.1,0.1], pos:[0.3,0.05,3], mass:1, restitution:0.5, friction:0.9 })
+    //phy.add({ type:'box', size:[0.2,0.2,0.2], pos:[0,0.1,3], mass:1, restitution:0.5, friction:0.9 })
+    //phy.add({ type:'box', size:[0.1,0.1,0.1], pos:[0.3,0.05,3], mass:1, restitution:0.5, friction:0.9 })
     //phy.add({ type:'box', size:[0.01,0.01,0.01], pos:[0.4,0.05,3], mass:1, restitution:0.5, friction:0.9 })
 
-    createBallChain([-2, 5, -2], 0.4, 7);
+    createBallChain([-2, 5, -2], 0.3, 7);
     createHingeChain([2, 5, -2], 0.3, 7, [0, 0, 1]);
 
     createBoard( 0, 4, 0, [-45,70], [20, 1] );
     createBoard( 0, 6, 0, [-180,180], []);
+
+    //return
 
     // Generic joint 6 dof
     b1 = phy.add({ type:'sphere', size:[0.5], pos:[-2,0.5,0], density:1, restitution:0.5, friction:0.9, radius:0.05 })

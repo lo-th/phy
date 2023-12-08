@@ -441,8 +441,5 @@ class Car extends Basic3D {//extends Object3D {
 		//console.log(this.steering)
 		//console.log(acc)
 
-
-
-
 	}
 }

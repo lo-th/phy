@@ -41,7 +41,7 @@ export const getArray = function ( engine, full = false ){
         counts['solver'] = Max.solver * Num.solver;
     }
 
-    if( engine === 'HAVOK' || engine === 'RAPIER' ){ 
+    if( engine === 'HAVOK' || engine === 'RAPIER' || engine === 'JOLT' ){ 
         Num.joint = 0;
     }
 
@@ -68,13 +68,18 @@ export const getType = function ( o ) {
             if ( !o.mass && !o.density && !o.kinematic ) return 'solid'
             else return 'body'
         break;
-        case 'generic': case 'hinge': case 'slider': case 'spherical': case 'fixe':
-        case "dof": case "d6": case 'ragdoll': case 'universal': case 'cylindrical': case "distance":
-        case 'revolute': case "prismatic": 
+        case 'fixe':
+        case 'generic': case 'universal': case "dof": case "d6": 
+        case 'hinge': case 'revolute': 
+        case "prismatic": 
+        case 'cylindrical': case 'slider':
+        case 'spherical':
+        case 'ragdoll': 
+        case "distance":
             return 'joint'
         break;
         default: 
-            return o.type 
+            return o.type;
         break;
     }
 }

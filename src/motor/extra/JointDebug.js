@@ -4,6 +4,7 @@ import {
     Matrix4, Quaternion, Vector3
 } from 'three';
 
+
 import { Basic3D } from '../../core/Basic3D.js';
 import { Utils, root } from '../root.js';
 import { Geo } from '../base/Geo.js';
@@ -23,53 +24,55 @@ export class JointDebug extends Basic3D {
 
 
 	    this.mtx = new Matrix4();
-	    this.size = o.helperSize || 0.1
+	    this.size = o.helperSize || 0.1;
 
-	    let material = Mat.get('line')
+	    let material = Mat.get('line');
 
 	    switch( this.mode ){
-	    	case 'hinge': case 'slider':
-	    	let mat = Mat.get('svg')
-	    	let dt = {
-				min:-180,
-				max:180,
-				fill:false,
-				stroke:true,
-				wireframe:false,
-				size:0.05
-			}
+	    	case 'hinge': case 'cylindrical':
 
-			if(o.lm){
-				dt.min = o.lm[0]
-				dt.max = o.lm[1]
-			}
+		    	let mat = Mat.get('svg')
+		    	let dt = {
+					min:-180,
+					max:180,
+					fill:false,
+					stroke:true,
+					wireframe:false,
+					size:0.05
+				}
 
-			if(o.lmr){ // slider
-				dt.min = o.lmr[0]
-				dt.max = o.lmr[1]
-			}
+				if(o.lm){
+					dt.min = o.lm[0]
+					dt.max = o.lm[1]
+				}
 
-	    	this.m1 = new AutoSvg('angle', dt, mat );
-	    	this.m2 = new AutoSvg('needle', dt, mat );
+				if(o.lmr){ // cylindrical
+					dt.min = o.lmr[0]
+					dt.max = o.lmr[1]
+				}
 
-	    	this.add( this.m1 );
-	    	this.add( this.m2 );
+		    	this.m1 = new AutoSvg('angle', dt, mat );
+		    	this.m2 = new AutoSvg('needle', dt, mat );
+
+		    	this.add( this.m1 );
+		    	this.add( this.m2 );
+
 	    	break;
 	    	default:
-	    	const geom = Geo.get('joint');
-		    let g = geom.clone() 
-		    g.scale( this.size, this.size, this.size)
-		    this.m1 = new LineSegments( g, material )
-		    
-		    
-		    this.add( this.m1 )
 
-		    g = geom.clone() 
-		    g.scale( this.size*0.8, this.size*0.8, this.size*0.8 );
-		    this.m2 = new LineSegments( g, material )
-		    //this.m2.scale.set( this.size, this.size, this.size)
-		    this.add( this.m2 );
+		    	const geom = Geo.get('joint');
+			    let g = geom.clone() 
+			    g.scale( this.size, this.size, this.size)
+			    this.m1 = new LineSegments( g, material )
+			    
+			    
+			    this.add( this.m1 )
 
+			    g = geom.clone() 
+			    g.scale( this.size*0.8, this.size*0.8, this.size*0.8 );
+			    this.m2 = new LineSegments( g, material )
+			    //this.m2.scale.set( this.size, this.size, this.size)
+			    this.add( this.m2 );
 		    
 	    	break;
 	    }
@@ -164,7 +167,7 @@ export class JointDebug extends Basic3D {
 		this.pp.setXYZ(1, this.end.x, this.end.y, this.end.z)
 		this.pp.needsUpdate = true
 
-		if( this.mode === 'slider' ){ 
+		if( this.mode === 'cylindrical' ){ 
 			this.m1.position.copy( this.end );
 			this.m1.updateMatrix();
 		}
@@ -199,7 +202,7 @@ export class JointDebug extends Basic3D {
 		this.pp.setXYZ(1, this.m2.position.x, this.m2.position.y, this.m2.position.z)
 		this.pp.needsUpdate = true;
 
-		if( this.mode === 'slider' ){ 
+		if( this.mode === 'cylindrical' ){ 
 			this.m1.position.copy( this.m2.position );
 			this.m1.updateMatrix();
 		}

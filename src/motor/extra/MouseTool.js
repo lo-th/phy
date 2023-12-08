@@ -69,9 +69,7 @@ export class MouseTool {
 		this.angle = 0
 
 		this.helper = null
-
 		this.dragPlane = null;
-
 		this.overLock = false;
 
 	    //if( this.mode === 'drag' ) 
@@ -102,14 +100,14 @@ export class MouseTool {
 
 		//this.overLock = false;
 
-		root.scenePlus.remove( this.dragPlane )
-		root.scenePlus.remove( this.helper )
+		root.scenePlus.remove( this.dragPlane );
+		root.scenePlus.remove( this.helper );
 
-		this.dragPlane.geometry.dispose()
-		this.helper.geometry.dispose()
+		this.dragPlane.geometry.dispose();
+		this.helper.geometry.dispose();
 
-		this.dragPlane = null
-		this.helper = null
+		this.dragPlane = null;
+		this.helper = null;
 
 	}
 
@@ -117,7 +115,7 @@ export class MouseTool {
 
     	if( mode === this.mode ) return
     	this.mode = mode;
-        this.option = o
+        this.option = o;
 
         if( this.mode === 'blast' && this.option.visible ) root.motor.initParticle()
 
@@ -130,13 +128,13 @@ export class MouseTool {
 				this.dom.addEventListener( 'pointermove', this.mousemove.bind(this), false )
 		        this.dom.addEventListener( 'pointerdown', this.mousedown.bind(this), false )
 		        document.addEventListener( 'pointerup', this.mouseup.bind(this), false )
-		        document.addEventListener( 'contextmenu', this.contextmenu.bind(this), false )
+		        //document.addEventListener( 'contextmenu', this.contextmenu.bind(this), false )
 
 		        this.controler.addEventListener( 'end', this.controleEnd.bind(this), false )
 		        this.controler.addEventListener( 'change', this.controleChange.bind(this), false )
 
-		        this.isActive = true
-		        this.raycastTest = true
+		        this.isActive = true;
+		        this.raycastTest = true;
 		    }
 
 		} else {
@@ -148,7 +146,7 @@ export class MouseTool {
 			    this.controler.removeEventListener( 'end', this.controleEnd.bind(this) )
 		        this.controler.removeEventListener( 'change', this.controleChange.bind(this) )
 
-			    this.isActive = false
+			    this.isActive = false;
 			}
 		}
 	}
@@ -180,22 +178,22 @@ export class MouseTool {
 	getMouse ( e ) {
 
 		if(root.viewSize){
-			this.mouse.x =   ( e.offsetX / root.viewSize.w ) * 2 - 1
-		    this.mouse.y = - ( e.offsetY / root.viewSize.h ) * 2 + 1
+			this.mouse.x =   ( e.offsetX / root.viewSize.w ) * 2 - 1;
+		    this.mouse.y = - ( e.offsetY / root.viewSize.h ) * 2 + 1;
 		} else {
-			this.mouse.x =   ( e.offsetX / this.dom.clientWidth ) * 2 - 1
-			this.mouse.y = - ( e.offsetY / this.dom.clientHeight ) * 2 + 1
+			this.mouse.x =   ( e.offsetX / this.dom.clientWidth ) * 2 - 1;
+			this.mouse.y = - ( e.offsetY / this.dom.clientHeight ) * 2 + 1;
 		}
 
 		//console.log(e.button)
 		
-		this.button = e.pointerType !== 'touch' ? e.button : 0
+		this.button = e.pointerType !== 'touch' ? e.button : 0;
 		//if(this.button===2)this.moveDeep = !this.moveDeep
 
 	}
 
 	contextmenu ( e ) {
-		e.preventDefault();
+		//e.preventDefault();
 		//this.mouseDown2 = true
 		//this.controler.enabled = false;
 		/*if( this.mouseDown ){
@@ -220,6 +218,7 @@ export class MouseTool {
 			case 'drag': this.drag(); break;
 			case 'shoot': this.shoot(); break;
 			case 'blast': this.blast(); break;
+			case 'build': this.build(); break;
 
 		}
 

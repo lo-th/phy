@@ -464,13 +464,13 @@ export class Body extends Item {
 
 	    // Sets the linear and angular damping. [ 0,0 ]
 	    if( o.damping ){
-		     b.setLinearDamping( o.damping[0] )
-		     b.setAngularDamping( o.damping[1] )
+		     b.setLinearDamping( o.damping[0] );
+		     b.setAngularDamping( o.damping[1] );
 		 }
 
 		if( o.reset ){ 
-			b.setLinearVelocity( this.v.set( 0, 0, 0) )
-			b.setAngularVelocity( this.v.set( 0, 0, 0) )
+			b.setLinearVelocity( this.v.set( 0, 0, 0) );
+			b.setAngularVelocity( this.v.set( 0, 0, 0) );
 		}
 
 		if( o.massInfo ) {

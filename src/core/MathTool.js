@@ -275,7 +275,59 @@ const M = {
     //-----------------------
     //  ARRAY
     //-----------------------
+
     getSize: ( r ) => ( ( r.byteLength * 0.001 ) +'kb' ),
+
+    // Creates a vector normal (perpendicular) to the current Vector3
+
+    perpendicularArray: ( v ) => { 
+
+        const radius = Math.sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]);
+        let theta = Math.acos(v[1] / radius);
+        const phi = Math.atan2(v[2], v[0]);
+        //makes angle 90 degs to current vector
+        if( theta > PI90 ) theta -= PI90;
+        else theta += PI90;
+        //Calculates resutant normal vector from spherical coordinate of perpendicular vector
+        const x = radius * Math.sin(theta) * Math.cos(phi);
+        const y = radius * Math.cos(theta);
+        const z = radius * Math.sin(theta) * Math.sin(phi);
+
+        return [x, y, z];
+
+    },
+
+    crossArray: ( a, b ) => { 
+
+        const ax = a[0], ay = a[1], az = a[2];
+        const bx = b[0], by = b[1], bz = b[2];
+        let x = ay * bz - az * by;
+        let y = az * bx - ax * bz;
+        let z = ax * by - ay * bx;
+        return [x, y, z];
+
+    },
+
+    applyQuaternion: ( v, q ) => { 
+
+        // quaternion q is assumed to have unit length
+
+        const vx = v[0], vy = v[1], vz = v[2];
+        const qx = q[0], qy = q[1], qz = q[2], qw = q[3];
+
+        // t = 2 * cross( q.xyz, v );
+        const tx = 2 * ( qy * vz - qz * vy );
+        const ty = 2 * ( qz * vx - qx * vz );
+        const tz = 2 * ( qx * vy - qy * vx );
+
+        // v + q.w * t + cross( q.xyz, t );
+        let x = vx + qw * tx + qy * tz - qz * ty;
+        let y = vy + qw * ty + qz * tx - qx * tz;
+        let z = vz + qw * tz + qx * ty - qy * tx;
+
+        return [x,y,z];
+
+    },
 
     nullArray: ( a, n, i ) => { 
         let j = 0;

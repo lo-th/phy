@@ -27,7 +27,7 @@ onComplete_1 = () => {
     Colomn( 8, [ 4, 0, 0 ])
     Colomn( 5, [ -4, 0, 0 ])
 
-    phy.preload( ['man', 'woman'], onComplete_2 )
+   // phy.preload( ['man', 'woman'], onComplete_2 )
 
 }
 
@@ -39,59 +39,71 @@ onComplete_2 = () => {
 
 const Colomn = ( h = 5, pos = [0,0,0] ) => {
 
+    const data = []
+
     const model = phy.getMesh('column');
 
     pos[1] += 0.5;
     let mass = 800;
+    let scaler = 1.5/100;
+    let i = h, n = 0, s = 1;
 
-    phy.add({
+    //phy.add({
+    data.push({
+
+        //type:'cylinder', 
+        //size:[0.7-(scaler*n), 1], 
+
         type:'compound',
         shapes:[
             {type:'box', size:[2, 0.25, 2 ], pos:[0,-0.375, 0]},
             {type:'cylinder', size:[0.95, 0.15], pos:[0, -0.175, 0]},
             {type:'cylinder', size:[0.83, 0.3], pos:[0, 0.05, 0]},
-            //{type:'cylinder', size:[0.7, 0.3], pos:[0, 0.35, 0]},
             {type:'box', size:[1.0, 0.3, 1.0], pos:[0, 0.35, 0]},
             {type:'box', size:[1.0, 0.3, 1.0], pos:[0, 0.35, 0], rot:[0,-30,0]},
             {type:'box', size:[1.0, 0.3, 1.0], pos:[0, 0.35, 0], rot:[0,30,0]}
         ],
-        pos:pos, mass:mass,
+        pos:[...pos], 
+        mass:mass,
         mesh:model.column_001,
         meshPos:[0,-0.5,0],
         material:'column',
         debug:debug,
+        sleep:true,
     })
-
-    let i = h, n = 0, s = 1;
-    let scaler = 1.5/100;
 
     while(i--){
 
         pos[1] += 1.0;
         s = 1.0 - ( scaler * n );
 
-        phy.add({
+        //phy.add({
+        data.push({
             //type:'cylinder', 
             //size:[0.7-(scaler*n), 1], 
 
             type:'compound',
             shapes:[
-                {type:'box', size:[ s, 1, s ], pos:[0,0, 0]},
-                {type:'box', size:[ s, 1, s ], pos:[0,0, 0], rot:[0,-30,0]},
-                {type:'box', size:[ s, 1, s ], pos:[0,0, 0], rot:[0,30,0]}
+                {type:'box', size:[ s, 1, s ], pos:[0,0,0]},
+                {type:'box', size:[ s, 1, s ], pos:[0,0,0], rot:[0,-30,0]},
+                {type:'box', size:[ s, 1, s ], pos:[0,0,0], rot:[0,30,0]}
             ],
-            pos:pos, mass:mass,
+            pos:[...pos], 
+            mass:mass,
             mesh:model.column_002,
             meshPos:[0,-0.5,0],
             meshScale:[1.0-(scaler*n),1.0,1.0-(scaler*n)],
             material:'column',
             debug:debug,
+            sleep:true,
         })
 
         
         n++
 
     }
+
+    phy.add( data );
 
 }
 

@@ -95,7 +95,7 @@ export class engine {
 
 			engine.post( { m:'ready', o:{} } );
 
-			//console.log(Jolt)
+			console.log(Jolt)
 
 		})
 

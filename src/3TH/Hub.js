@@ -11,8 +11,8 @@ import { Motor } from '../motor/Motor.js'
 let Main = null;
 
 // menu look option
-let isLiner = false;
-let isBackLight = true;
+let isLiner = true;
+let isBackLight = false;
 let isFromTop = true;
 
 //
@@ -142,6 +142,8 @@ export class Hub {
         content = document.createElement( 'div' );
         content.style.cssText = unselectable + 'position:absolute; margin:0; padding:0; top:0px; left:0px; width:100%; height:100%; display:block; color:'+color+'; font-family: Mulish,sans-serif;'
         parent.appendChild( content );
+
+        content.addEventListener( 'contextmenu', (e)=>{e.preventDefault()}, false )
         
         txt = document.createElement( 'div' );
         txt.style.cssText = " color: #fff; font-size:16px; text-align:center; position:absolute; margin:0; padding:0; top:50%; left:50%; width:512px; height:20px; margin-left:-256px; margin-top:-38px; display:block; pointer-events:none; text-shadow: 1px 1px #000000;";

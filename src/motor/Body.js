@@ -751,12 +751,16 @@ export class Body extends Item {
 		if( o.parent ) delete o.parent;
 
 	    //---------------------------
-		// add to physic engine 
+		// send to physic engine 
 		//---------------------------
 
-		root.post( { m:'add', o:o } )
+		root.post( { m:'add', o:o } );
 
 		//console.log(b)
+
+		//---------------------------
+		// return three object3d
+		//---------------------------
 
 		return b
 

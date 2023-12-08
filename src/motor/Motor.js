@@ -52,6 +52,9 @@ const Version = {
 
 const items = {};
 
+// todo look bug ?
+let addToFlow = true;
+
 let currentControle = null;
 let callbackReady = null;
 let maxFps = 60;
@@ -222,18 +225,22 @@ export class Motor {
 
 		if( isWorker ){
 
-		    if( e.o ){
-		    	if( e.o.type === 'solver' ) direct = true;
-		    	if( e.o.solver !== undefined ) direct = true;
-		    }
+			if(addToFlow){
+				if( e.o ){
+			    	if( e.o.type === 'solver' ) direct = true;
+			    	if( e.o.solver !== undefined ) direct = true;
+			    }
 
-		    if( direct ){
-		    	worker.postMessage( e, buffer );
-		    } else {
-		    	if( e.m === 'add' ) root.flow.add.push( e.o );
-		    	else if ( e.m === 'remove' ) root.flow.remove.push( e.o );
-		    	else worker.postMessage( e, buffer );
-		    }
+			    if( direct ){
+			    	worker.postMessage( e, buffer );
+			    } else {
+			    	if( e.m === 'add' ) root.flow.add.push( e.o );
+			    	else if ( e.m === 'remove' ) root.flow.remove.push( e.o );
+			    	else worker.postMessage( e, buffer );
+			    }
+			} else {
+				worker.postMessage( e, buffer );
+			}
 
 		} else {
 			directMessage( { data : e } );

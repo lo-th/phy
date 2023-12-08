@@ -557,6 +557,7 @@ class RaycastVehicle {
                 TransformNormalToRef( directions[this.indexRightAxis], wheelTrans, axlei );
         
                 let surfNormalWS = wheel.raycastResult.hitNormalWorld;
+                //if(i=== 0)console.log(axlei)
                 let proj = Dot(axlei, surfNormalWS);
                 
                 //surfNormalWS.scaleToRef(proj, surfNormalWS_scaled_proj);
@@ -567,7 +568,7 @@ class RaycastVehicle {
                
                 CrossToRef(surfNormalWS, axlei, forwardWS[i]);
                 forwardWS[i].normalize();
-                //console.log(forwardWS[i])
+                //if(i=== 0)console.log(forwardWS[i])
 
                 wheel.sideImpulse = resolveSingleBilateral(
                     chassisBody,
@@ -1181,9 +1182,9 @@ function resolveSingleBilateral( body1, pos1, body2, pos2, normal ){
     if (normalLenSqr > 1.1){
         return 0; // no impulse
     }
-    var vel1 = resolveSingleBilateral_vel1;
-    var vel2 = resolveSingleBilateral_vel2;
-    var vel = resolveSingleBilateral_vel;
+    let vel1 = resolveSingleBilateral_vel1;
+    let vel2 = resolveSingleBilateral_vel2;
+    let vel = resolveSingleBilateral_vel;
    
     velocityAt(body1, pos1, vel1)
     velocityAt(body2, pos2, vel2)
@@ -1191,13 +1192,13 @@ function resolveSingleBilateral( body1, pos1, body2, pos2, normal ){
     //vel1.sub(vel2);
     vel.copy(vel1).sub(vel2);
 
-    var rel_vel = Dot(normal, vel);
+    let rel_vel = Dot(normal, vel);
 
-    var contactDamping = 0.1;
-    var massTerm = 1 / (bodyInvMass(body1) + bodyInvMass(body2));
-    var impulse = - contactDamping * rel_vel * massTerm;
+    let contactDamping = 0.1;
+    let massTerm = 1 / (bodyInvMass(body1) + bodyInvMass(body2));
+    let impulse = - contactDamping * rel_vel * massTerm;
 
-    //console.log(bodyInvMass(body1) + bodyInvMass(body2))
+    //console.log(bodyInvMass(body1) )
 
     return impulse;
 }
