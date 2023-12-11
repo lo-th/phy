@@ -27,16 +27,16 @@ let unselectable = '-o-user-select:none; -ms-user-select:none; -khtml-user-selec
 
 let menu, pin, title, engine, demo, downMenu, innerMenu, zoning, guiButton, overpad, prevOver, tmpLeft = 0;
 
-let top = null
-let ratio = 1
-let listHeight = 0
-let listTop = 54
-let maxHeight = 0
-let sh = 0, range = 0
-let maxListItem = 10
-let full = true
+let top = null;
+let ratio = 1;
+let listHeight = 0;
+let listTop = 54;
+let maxHeight = 0;
+let sh = 0, range = 0;
+let maxListItem = 10;
+let full = true;
 
-let guiOpen = false
+let guiOpen = false;
 
 let currentMenu = ''
 
@@ -61,19 +61,20 @@ let isSnipper = false;
 
 let isReady = false;
 let fps = null;
-let statistics = null
+let statistics = null;
 let debug = null;
 
 let isPanel3D = false;
 
-let joy = null
+let joy = null;
 
-let lock = false
-let timeout = null
+let lock = false;
+let timeout = null;
 
 let isDay = true;
 let color = '';
 let colorVisite = '';
+let colorDemo = '#060';
 let dayColor = ['#000', '#444'];
 let nightColor = ['#FFF', '#DDD'];
 
@@ -250,7 +251,7 @@ export class Hub {
         loader.style.left = '100px'
         //content.removeChild( loader )
         
-        content.removeChild( txt )
+        content.removeChild( txt );
         //txt.style.top = '50px'
         //txt.textContent ='';
         //txt.style.display = 'none'
@@ -285,21 +286,25 @@ export class Hub {
         zoning.id = 'zone'
         content.appendChild( zoning )
 
-        overpad = document.createElement( 'div' );
-       // let anim = "transition: width 0.2s ease-out; transition: left 0.1s ease-out; transition: top 0.1s ease-out; ";
-        let sp = 0.1;
-        //let anim = 'transition: width '+sp+'s, left '+sp+'s, top '+sp+'s, opacity '+sp+'s, transform '+sp+'s ease-out;';
-        let anim = ''
-        //anim = 'transition: width '+sp+'s, left '+sp+'s, top '+sp+'s, transform '+sp+'s ease-out;';
-        anim = 'transition: transform '+sp+'s allow-discrete ease-out;';
-        //border:1px solid rgba(255,255,255,1); box-sizing:content-box;background:linear-gradient(rgba(255,255,255,0), #FFFFFF);
-        overpad.style.cssText = anim + 'position:absolute; top:0px; left:0px; height:0px; width:0px; opacity:0; pointer-events:none; border-radius:6px;';
+        if(isBackLight){
 
-        overpad.style.transitionDuration = '0.1s';
-        overpad.style.background = isDay ? nightColor[0] : dayColor[0];
-        //overpad.style.boxShadow = '0px 0px 3px 1px #FFFFFF';
-        //overpad.id = 'overpad';
-        content.appendChild( overpad );
+            overpad = document.createElement( 'div' );
+           // let anim = "transition: width 0.2s ease-out; transition: left 0.1s ease-out; transition: top 0.1s ease-out; ";
+            let sp = 0.1;
+            //let anim = 'transition: width '+sp+'s, left '+sp+'s, top '+sp+'s, opacity '+sp+'s, transform '+sp+'s ease-out;';
+            let anim = ''
+            //anim = 'transition: width '+sp+'s, left '+sp+'s, top '+sp+'s, transform '+sp+'s ease-out;';
+            anim = 'transition: transform '+sp+'s allow-discrete ease-out;';
+            //border:1px solid rgba(255,255,255,1); box-sizing:content-box;background:linear-gradient(rgba(255,255,255,0), #FFFFFF);
+            overpad.style.cssText = anim + 'position:absolute; top:0px; left:0px; height:0px; width:0px; opacity:0; pointer-events:none; border-radius:6px;';
+
+            overpad.style.transitionDuration = '0.1s';
+            overpad.style.background = isDay ? nightColor[0] : dayColor[0];
+            //overpad.style.boxShadow = '0px 0px 3px 1px #FFFFFF';
+            //overpad.id = 'overpad';
+            content.appendChild( overpad );
+
+        }
 
         menu = document.createElement( 'div' );
         menu.style.cssText = 'position:absolute; top:25px; background:'+bg+'; left:80px; display:flex; align-self: stretch; justify-content: flex-start; gap: 10px 10px; align-items:baseline; '
@@ -503,9 +508,10 @@ export class Hub {
             m.textContent = name;
             //m.style.background = '#ff00ff'
 
-            if( listdata.visited.indexOf(name) !== -1 ) m.style.color = colorVisite
-            if( name === 'Worker' ) m.style.color = Main.isWorker ? color : colorVisite
-            if( name === 'Code' ) m.style.color = Main.isEditor ? color : colorVisite
+            if( listdata.visited.indexOf(name) !== -1 ) m.style.color = colorVisite;
+            if( Main.devDemo[name] ) m.style.color = colorDemo;
+            if( name === 'Worker' ) m.style.color = Main.isWorker ? color : colorVisite;
+            if( name === 'Code' ) m.style.color = Main.isEditor ? color : colorVisite;
 
             if( n===0 ) itemH = m.offsetHeight;
             //bb[n] = m
@@ -687,13 +693,13 @@ export class Hub {
 
         lock = true
         if( e.target.id === 'zone'){ 
-            overpad.style.opacity = 0.1
+            if(isBackLight) overpad.style.opacity = 0.1
             return
         }
 
         if(isLiner) e.target.style.textDecoration = 'underline '+color;
 
-        overpad.style.opacity = 0.6
+        if(isBackLight) overpad.style.opacity = 0.6
 
         let isNewTarget = Hub.updatePad( e.target );
         if( !isNewTarget ) return;

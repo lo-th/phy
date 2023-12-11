@@ -6,6 +6,7 @@ import { Joint } from './Joint.js';
 import { Ray } from './Ray.js';
 import { Contact } from './Contact.js';
 //import { Character } from './Character.js';
+import { Terrain } from './Terrain.js';
 
 import initJolt from '../libs_physics/X_Jolt.js';
 
@@ -95,7 +96,7 @@ export class engine {
 
 			engine.post( { m:'ready', o:{} } );
 
-			console.log(Jolt)
+			//console.log(Jolt)
 
 		})
 
@@ -394,6 +395,7 @@ export class engine {
 		items['joint'] = new Joint();
 		items['ray'] = new Ray();
 		items['contact'] = new Contact();
+		items['terrain'] = new Terrain();
 		items['character'] = new Character();
 
 		Utils.byId = engine.byId;

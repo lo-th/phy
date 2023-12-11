@@ -1,18 +1,18 @@
 demo = () => {
 
-    let b1, b2, pos, length
+    let b1, b2, pos, length;
 
     // view setting
-    phy.view({ envmap:'box', envblur: 0.5 })
+    phy.view({ envmap:'box', envblur: 0.5 });
 
     // config physics setting
-    phy.set({ substep:2, gravity:[0,-9.81,0], jointVisible:true })//
+    phy.set({ substep:2, gravity:[0,-9.81,0], jointVisible:true });
 
     // add static ground
-    phy.add({ type:'plane', name:'floor', size:[50,1,50], visible:false })
+    phy.add({ type:'plane', name:'floor', size:[50,1,50], visible:false });
 
     let g = phy.getGround()
-    g.material.map = phy.texture({ url:'./assets/textures/grid.png', repeat:[60,60] })
+    g.material.map = phy.texture({ url:'./assets/textures/grid.png', repeat:[60,60] });
 
 
     // size test
@@ -29,26 +29,26 @@ demo = () => {
     //return
 
     // Generic joint 6 dof
-    b1 = phy.add({ type:'sphere', size:[0.5], pos:[-2,0.5,0], density:1, restitution:0.5, friction:0.9, radius:0.05 })
-    b2 = phy.add({ type:'box', size:[1,1,1], pos:[ 2,0.5,0], density:1, restitution:0.5, friction:0.9, radius:0.05 })
-    phy.add({ type:'generic', b1:b1, b2:b2, pos1:[1,0,0], pos2:[-1,0,0], limit:[['x', 0, 2], ['rx', -180, 180 ] ], collision:true })
+    b1 = phy.add({ type:'sphere', size:[0.5], pos:[-2,0.5,0], density:1, restitution:0.5, friction:0.9, radius:0.05 });
+    b2 = phy.add({ type:'box', size:[1,1,1], pos:[ 2,0.5,0], density:1, restitution:0.5, friction:0.9, radius:0.05 });
+    phy.add({ type:'generic', b1:b1, b2:b2, pos1:[1,0,0], pos2:[-1,0,0], limit:[['x', 0, 2], ['rx', -180, 180 ] ], collision:true });
 
     // Distance joint OIMO / AMMO don't have good suport
-    b1 = phy.add({ type:'sphere', size:[0.25], pos:[-2,0.25,2], mass:1, restitution:0.5, friction:0.9 })
-    b2 = phy.add({ type:'sphere', size:[0.25], pos:[ 2,0.25,2], mass:1, restitution:0.5, friction:0.9 })
+    b1 = phy.add({ type:'sphere', size:[0.25], pos:[-2,0.25,2], mass:1, restitution:0.5, friction:0.9 });
+    b2 = phy.add({ type:'sphere', size:[0.25], pos:[ 2,0.25,2], mass:1, restitution:0.5, friction:0.9 });
     phy.add({ type:'distance', b1:b1, b2:b2, limit:[1, 4], spring:[10,1], collision:true, });
 
     // Prismatic joint
-    pos = [2,5,1]
-    b1 = phy.add({ type:'sphere', size:[0.03], pos:pos, density:0 })
-    b2 = phy.add({ type:'box', size:[0.6,1,1], pos:pos, density:1, radius:0.02 })
-    phy.add({ type:'prismatic', b1:b1, b2:b2, lm:[-1,1], worldPos:pos, worldAxis:[1,1,0] })
+    pos = [2,5,1];
+    b1 = phy.add({ type:'sphere', size:[0.03], pos:pos, density:0 });
+    b2 = phy.add({ type:'box', size:[0.6,1,1], pos:pos, density:1, radius:0.02 });
+    phy.add({ type:'prismatic', b1:b1, b2:b2, lm:[-1,1], worldPos:pos, worldAxis:[0,1,0] });
 
-    // Slider joint
-    pos = [-2,5,1]
-    b1 = phy.add({ type:'sphere', size:[0.03], pos:pos, density:0 })
-    b2 = phy.add({ type:'box', size:[0.6,1,1], pos:[ pos[0] - 0.31, pos[1], pos[2] ], density:1, radius:0.02 })
-    phy.add({ type:'slider', b1:b1, b2:b2, lm:[-1,1], lmr:[-145,145 ], sd:[4,0.7], sdr:[0,0], worldPos:pos, worldAxis:[1,0,0] })
+    // Cylindrical joint
+    pos = [-2,5,1];
+    b1 = phy.add({ type:'sphere', size:[0.03], pos:pos, density:0 });
+    b2 = phy.add({ type:'box', size:[0.6,1,1], pos:[ pos[0] - 0.31, pos[1], pos[2] ], density:1, radius:0.02 });
+    phy.add({ type:'cylindrical', b1:b1, b2:b2, lm:[-1,1], lmr:[-145,145], sd:[4,0.7], sdr:[0,0], worldPos:pos, worldAxis:[1,0,0] });
 
 
     // ragdoll joint

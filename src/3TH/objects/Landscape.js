@@ -365,11 +365,9 @@ export class Landscape extends Mesh {
         this.geometryZ.rotateX( -math.PI90 );
         this.verticesZ = this.geometryZ.attributes.position.array;
         
-        const debuger = new Mesh( this.geometryZ, new MeshBasicMaterial({color:0xff0000, wireframe:true } ));
-        if( o.pos ) debuger.position.fromArray( o.pos );
+        const debuger = new Mesh( this.geometryZ, new MeshBasicMaterial({ color:0x000000, wireframe:true, transparent:true, opacity:0.25 } ));
+        //if( o.pos ) debuger.position.fromArray( o.pos );
         this.add( debuger );
-
-        
 
     }
 

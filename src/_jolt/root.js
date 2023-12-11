@@ -84,7 +84,7 @@ export const Utils = {
 		if( b.type !== 'ray' &&  b.type !== 'contact' ){
 			switch( b.type ){
 				case 'joint': root.physicsSystem.AddConstraint( b ); break;
-				default: root.bodyInterface.AddBody( b.GetID(), Jolt.Activate ); break;
+				case 'body': case 'solid': root.bodyInterface.AddBody( b.GetID(), Jolt.EActivation_Activate ); break;
 			}
 		}
 
@@ -96,8 +96,9 @@ export const Utils = {
 
 		if( b.type !== 'ray' &&  b.type !== 'contact' ){
 			switch( b.type ){
+				case 'terrain': b.release(); break;
 				case 'joint': root.physicsSystem.RemoveConstraint( b ); break;
-				default: 
+				case 'body': case 'solid': 
 
 				root.bodyInterface.RemoveBody( b.GetID() ); 
 				root.bodyInterface.DestroyBody( b.GetID() ); 

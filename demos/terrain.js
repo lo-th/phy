@@ -2,7 +2,7 @@ let terrain
 
 demo = () => {
 
-	phy.view({ envmap:'basic', ground:false, fog:true, fogDist:0.01 })
+	phy.view({ envmap:'basic', ground:false/*, fog:true, fogDist:20*/ })
 	
     // config physics setting
     // substep > 1 for increase fidelity
@@ -23,6 +23,7 @@ demo = () => {
     	expo: 2,
     	zone:0.25,
     	uv: engine==='OIMO' ? 10:60,
+    	debug:true,
     })
 
     //let G = new THREE.Quaternion().setFromAxisAngle( {x:0,y:1,z:0}, 90 * math.torad )

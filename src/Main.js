@@ -222,6 +222,7 @@ export const Main = {
 	engineList: [ 'OIMO', 'AMMO', 'PHYSX', 'HAVOK', 'RAPIER', 'JOLT' ],
 	demoList:[],
 	demoLink:[],
+	devDemo:{},
 	envList:[],
 	isMobile:false,
 	isEditor:false,
@@ -314,22 +315,30 @@ export const Main = {
 
 		let d = Motor.get('demos', 'json')
 		Main.demoLink = [ ...d.Basic, ...d.Advanced, ...d[Main.engineType] ]
-		if( Main.devMode ) Main.demoLink = [ ...Main.demoLink, ...d.Dev ]
+		if( Main.devMode ){ 
+			Main.demoLink = [ ...Main.demoLink, ...d.Dev ];
+			let j = d.Dev.length;
+			while(j--){
+				let name = d.Dev[j];
+				name = name.substring( name.lastIndexOf('/')+1 );
+				name = name.toUpperCase().substring(0,1) + name.substring(1).toLowerCase();
+				Main.devDemo[name] = true;
+			}
+		}
 
 		let i = Main.demoLink.length, l
 	    while(i--){
-	    	l =  Main.demoLink[i]
+	    	l =  Main.demoLink[i];
 	    	Main.demoList[i] = l.substring( l.lastIndexOf('/')+1 );
 	    }
 
-		Main.envList = [...d.Envmap]
+		Main.envList = [...d.Envmap];
 		//return Main.demoList
 	},
 
 	lightIntensity:() => { lightIntensity() },
 	envmapIntensity:() => { setEnvmapIntensity() },
 	setReflect:(v) => { setReflect(v) },
-
 
 	getOption:() => ( options ),
 	getSetting:() => ( setting ),
@@ -1239,8 +1248,8 @@ const setEnv = ( name, chageUI ) => {
 
 	if( name !== options.envmap ){
 
-		if ( !isNaN(name) ) options.envmap = 'null'
-		else options.envmap = name
+		if ( !isNaN(name) ) options.envmap = 'null';
+		else options.envmap = name;
 
 		Env.set( name )
 

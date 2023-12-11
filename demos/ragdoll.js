@@ -132,7 +132,7 @@ ragdoll = ( o ) => {
         ...defJoint,
         mode:'ragdoll', 
         b1:b.body1, b2:b.body2, 
-        worldAnchor:math.addArray( o.pos, [0,  lowerBody, 0]), 
+        worldAnchor:math.addArray( o.pos, [0, lowerBody, 0]), 
         worldTwistAxis:[0,1,0],
         worldSwingAxis:[1,0,0],
         maxSwing1:60, maxSwing2:45,

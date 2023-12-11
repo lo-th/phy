@@ -1,10 +1,13 @@
 let r = 0;
 let inc = 0;
 let sph = [];
+let option = {
+    speed:0.2,
+}
 
 demo = () => {
 
-    phy.log('Q or A to stop<br>D to speed uo ')
+    //phy.log('Q or A to stop<br>D to speed uo ')
 
     phy.view({
         phi:30, theta:0, distance:15, x:0, y:3, z:0, fov:70, envmap:'bed', envblur: 0.5,
@@ -38,15 +41,17 @@ onComplete = () => {
     } 
 
     phy.add({
+
         name:'fan',
         type:'compound',
         pos:[0,1,0],
         shapes:shapes,
         mesh:model.fan,
-        material:'chrome',
+        material:'black',
         restitution:0, 
         friction:0.5,
         kinematic:true,
+        ray:false,
         //debug:true,
     })
 
@@ -71,20 +76,20 @@ onComplete = () => {
 
     // add some ball
 
-    j = 600
+    j = 500;
     while(j--){
 
-        s = math.rand( 0.2, 0.4 )
+        s = 0.2//math.rand( 0.2, 0.4 )
         a = math.rand(-Math.PI, Math.PI)
         d = math.rand(2, 6)
         y = math.rand(s, s*30)
         m = phy.add({ 
             instance:'sph',
-            material:'plexi',
+            material:'body',
             type:'sphere', size:[s], 
             //pos:[ d * Math.sin(a), 5+j*0.6, d * Math.cos(a) ], 
             pos:[ d * Math.sin(a), y, d * Math.cos(a) ],
-            density:s, 
+            mass:s, 
             friction:0.5,
             color:[ s+0.5, s, 0 ] 
         })
@@ -97,6 +102,10 @@ onComplete = () => {
 
     phy.setPostUpdate( update )
 
+    phy.gui([
+        { obj:option, name:"speed", min:0, max:1,  }
+    ]);
+
 
 }
 
@@ -107,12 +116,14 @@ update = () => {
 
     //let lr = key[0]
 
-    inc += dt;
+    /*inc += dt;
     if(inc>1) inc = 1;
 
     r += inc
 
-    if(key[0]) r += key[0]*inc;
+    if(key[0]) r += key[0]*inc;*/
+
+    r -= (option.speed*300) * dt
 
     let up = [ { name:'fan', rot:[0,r,0] } ]
     //let up = [ { name:'fan', angularVelocity:[0,lr*2,0] } ] 
