@@ -1,10 +1,10 @@
 function demo() {
 
+    let g1 = 1 << 6 // 64
+    let g2 = 1 << 7 // 128
+    let g3 = 1 << 8 // 256
 
-    let g1 = 1 << 6
-    let g2 = 1 << 7
-    let g3 = 1 << 8
-
+    //console.log(2|g3) // 258
 
     // config physics setting
     phy.set( { substep:4, gravity:[0,-9.81,0] });
@@ -12,14 +12,14 @@ function demo() {
     // add static ground
     phy.add({ type:'plane', size:[300,1,300], visible:false });
 
-    let h = 6, w = 0.2, l = 4, d = 4, y = 0.22 
+    let h = 6, w = 0.2, l = 4, d = 4, y = 0.22;
 
     phy.add({type:'box', pos:[d*0.5,y+h*0.5,0], size:[w,h, l+w], restitution:0, friction:0.5, visible:false });
     phy.add({type:'box', pos:[-d*0.5,y+h*0.5,0], size:[w,h, l+w], restitution:0, friction:0.5, visible:false });
     phy.add({type:'box', pos:[0,y+h*0.5,l*0.5], size:[d-w,h, w], restitution:0, friction:0.5, visible:false });
     phy.add({type:'box', pos:[0,y+h*0.5,-l*0.5], size:[d-w,h, w], restitution:0, friction:0.5, visible:false });
 
-    phy.add({ type:'box', pos:[0,y-w*0.5,0], size:[d+w,w,l+w], material:'glass2', radius:0.02, restitution:0, friction:0.5,  group:g1, mask:g1, renderOrder:2 });
+    phy.add({ type:'box', pos:[0,y-w*0.5,0], size:[d+w,w,l+w], material:'glass2', radius:0.02, restitution:0, friction:0.5, group:g1, mask:g1, renderOrder:2 });
 
     y+=2
     phy.add({ type:'box', pos:[0,y-w*0.5,0], size:[d-w,w,l-w], material:'glass2', radius:0.02, restitution:0, friction:0.5, group:g2, mask:g2, renderOrder:3 });

@@ -409,7 +409,7 @@ export class Body extends Item {
 		delete o.mass;
 		delete o.kinematic;
 
-		if( !o.friction ) o.friction = 0.5;// default friction to 0.5
+		//if( !o.friction ) o.friction = 0.5;// default friction to 0.5
 
 		// apply option
 		this.set( o, b );
@@ -433,17 +433,27 @@ export class Body extends Item {
 	    }
 
 	    if( o.filter ){
-	    	let cg = b.GetCollisionGroup()
-	    	let ff = cg.GetGroupFilter();
 
-	    	ff.gq = o.filter[1]
-	    	//cg.SetGroupFilter(o.filter[1]) //  GroupFilter ??
-	    	cg.SetGroupID(o.filter[0]) // -1
-	    	//cg.SetSubGroupID(o.filter[1])// undefined ?
+	    	// Create group filter that filters out collisions between body N and N + 1 in the same chain
+			//let filter = new Jolt.GroupFilterTable( 512 );
 
-	    	//b.SetCollisionGroup( cg );
+			
+			//for (let z = 0; z < 9; ++z) filter.DisableCollision(z, z + 1);
 
-	    	//console.log( cg, ff )
+
+
+	    	let cg = b.GetCollisionGroup();
+
+	    	/*let gf = cg.GetGroupFilter();
+	    	let gid = cg.GetGroupID() // def -1
+	    	let sg = cg.GetSubGroupID() // def -1*/
+
+	    	//console.log(cg)
+
+	    	cg.SetGroupFilter( root.groupFilter ); //  GroupFilter define in main engine
+	    	cg.SetGroupID( o.filter[0] );
+	    	cg.SetSubGroupID( o.filter[1] );
+
 	    }
 
 	    //----------------
@@ -560,12 +570,8 @@ export class Body extends Item {
 
 	    //if( o.impulse ) b.AddImpulse( this.v.fromArray( o.impulse ), this.v2.fromArray( [0,0,0] ) );
 	    if( o.impulse ){
-	    	root.bodyInterface.ActivateBody(b.GetID())
-	    	//o.impulse = MathTool.scaleArray(o.impulse, 0.016, 3)
-	    //console.log(o.impulse, o.impulseCenter) 
+	    	if(!b.IsActive()) root.bodyInterface.ActivateBody(b.GetID())
 	    	b.AddImpulse( this.v.fromArray( o.impulse ), o.impulseCenter ? this.v2.fromArray( o.impulseCenter ) : b.GetPosition() );
-	    	//if( o.impulseCenter ) root.bodyInterface.AddImpulse( b.GetID(), this.v.fromArray( o.impulse ), this.v2.fromArray( o.impulseCenter ) )
-	    	//else b.AddImpulse( this.v.fromArray( o.impulse ) )
 	    }
 
 	    
@@ -605,7 +611,6 @@ export class Body extends Item {
 
 			invMass: b.GetMotionProperties().GetInverseMass(),
 			massCenter: b.GetCenterOfMassPosition().toArray(),
-
 
 			/*mass: b.getMass(),
 			invMass: b.getInvMass(),

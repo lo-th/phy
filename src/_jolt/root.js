@@ -25,6 +25,7 @@ export const root = {
 	//narrowPhase:null,
 
 	world : null,
+	groupFilter: null,
 
 	
 	delta : 0,

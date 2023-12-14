@@ -58,10 +58,6 @@ export class LandScape {
 		this.squarSize = [ this.size[0] / (this.sample[0]-1), this.size[2] / (this.sample[1]-1) ];
 		this.scale = [this.squarSize[0], this.size[1], this.squarSize[1]]
 
-		
-
-		
-
 		//this.fullSample = [o.sample[0], o.sample[1]]
 
 		// height data
@@ -71,13 +67,13 @@ export class LandScape {
 		//this.body = havok.HP_Body_Create()[1];
 		//havok.HP_Body_SetShape( this.body, this.geometry )
 
-		let pos = o.pos || [0,0,0]
+		let pos = o.pos || [0,0,0];
 
 		//pos[0] = pos[0]+(this.squarSize[0]*0.5)-(this.size[0]*0.5)
 		//pos[2] = pos[2]+(this.squarSize[1]*0.5)-(this.size[2]*0.5)
 
-		pos[0] = pos[0]-(this.size[0]*0.5)
-		pos[2] = pos[2]-(this.size[2]*0.5)
+		pos[0] = pos[0]-(this.size[0]*0.5);
+		pos[2] = pos[2]-(this.size[2]*0.5);
 
 		const position = new Jolt.Vec3(0,0,0).fromArray(pos); // The image tends towards 'white', so offset it down closer to zero
 		const rotation = new Jolt.Quat(0, 0, 0, 1);

@@ -107,7 +107,6 @@ const setting = {
 	water:false,
 	fog:false,
 	vignette:true,
-
 	shadow:0.75,
 
 }
@@ -1197,14 +1196,16 @@ const view = ( o = {} ) => {
 
 	setShadow( o.shadow )
 
-	//if( o.fog ) 
+	// FOG
+	let fogMode = o.fogMode || 0; 
 	if( o.fog ){ 
-		scene.fog = new THREE.Fog( Env.getFogColor().getHex(), 1, 50 )
-		options.fogMode = 1
+		let range = o.fogRange || [1,50];
+		scene.fog = new THREE.Fog( Env.getFogColor().getHex(), range[0], range[1] );
+		options.fogMode = fogMode;
 	}
 	else if( o.fogexp ){ 
 		scene.fog = new THREE.FogExp2( Env.getFogColor().getHex(), o.fogexp || 0.01 )
-		options.fogMode = 0
+		options.fogMode = fogMode;
 	}
 	else scene.fog = null
 

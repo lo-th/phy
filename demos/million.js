@@ -80,8 +80,6 @@ replay = () => {
 
     phy.setPostUpdate ( null )
 
-
-
     game = 'start'
 
     a = 0
@@ -241,6 +239,7 @@ makeMachine = () => {
 	        rot: p ? [0,0,45]:[0,0,0],
 	        renderOrder:4+i,
             kinematic:k,
+
 	        //shadow: false,
 	    })
     }
@@ -249,8 +248,8 @@ makeMachine = () => {
 
 makeBall = () => {
 
-    let ballGeo = model.ball.geometry.clone()
-    ballGeo.scale(100,100,100) 
+    let ballGeo = model.ball.geometry.clone();
+    ballGeo.scale(100,100,100);
 
     const def = {
         type:'sphere',
@@ -408,7 +407,8 @@ makeBall2 = () => {
             friction:0.4,
             restitution:0.1,
             sleep:true,
-            startSleep:true,
+            //useCCD:true,
+            //startSleep:true,
         })
 
         balls.push( b )

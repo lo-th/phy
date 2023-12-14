@@ -45,7 +45,6 @@ export class Landscape extends Mesh {
 
         this.uvx = [ o.uv || 18, o.uv || 18 ];
 
-
         this.sample = o.sample == undefined ? [128,128] : o.sample;
         this.size = o.size === undefined ? [100,30,100] : o.size;
 
@@ -66,7 +65,6 @@ export class Landscape extends Mesh {
         //let dx = (this.size[0]/sx)//*pp
         //let dz = (this.size[2]/sz)//**pp
 
-        
 
         this.sampleZ = [o.sample[0] * this.zone, o.sample[1] * this.zone];
         //this.sizeZ = [(o.size[0]-dx) * this.zone, o.size[1], (o.size[2]-dz) * this.zone];
@@ -78,7 +76,7 @@ export class Landscape extends Mesh {
 
         //console.log(  this.sample, this.sampleZ)
 
-        this.getZid()
+        this.getZid();
 
 
         this.data = {
@@ -88,7 +86,7 @@ export class Landscape extends Mesh {
         }
 
         this.isWater = o.water || false;
-
+        this.isIsland = o.island || false;
         this.isBorder = false;
         this.wantBorder = o.border || false;
 
@@ -129,12 +127,9 @@ export class Landscape extends Mesh {
         // for physx 
         this.isAbsolute = o.isAbsolute || false;
         this.isTurned = o.isTurned || false;
-
         this.isReverse = o.isReverse || false;
 
-        this.changeId = this.isReverse || this.isTurned
-       // console.log(this.changeId)
-
+        this.changeId = this.isReverse || this.isTurned;
 
         if( this.changeId ) this.getReverseID();
 
@@ -315,7 +310,7 @@ export class Landscape extends Mesh {
        // super( this.geometry, this.material );
 
         if(o.debug){
-            this.debugZone(o)
+            this.debugZone(o);
         }
 
         //root.garbage.push( this.geometry );
@@ -344,7 +339,7 @@ export class Landscape extends Mesh {
 
     }
 
-    getZid(){
+    getZid(){ // zone id
 
         this.zid = {}
 
@@ -365,7 +360,7 @@ export class Landscape extends Mesh {
         this.geometryZ.rotateX( -math.PI90 );
         this.verticesZ = this.geometryZ.attributes.position.array;
         
-        const debuger = new Mesh( this.geometryZ, new MeshBasicMaterial({ color:0x000000, wireframe:true, transparent:true, opacity:0.25 } ));
+        const debuger = new Mesh( this.geometryZ, new MeshBasicMaterial({ color:0x000000, wireframe:true, transparent:true, opacity:0.1 } ));
         //if( o.pos ) debuger.position.fromArray( o.pos );
         this.add( debuger );
 
@@ -637,6 +632,20 @@ export class Landscape extends Mesh {
 
     }
 
+    distance ( a, b ) {
+
+        const dx = a.x - b.x;
+        const dy = a.y - b.y;
+        return Math.sqrt( dx * dx + dy * dy );
+
+    }
+
+    clamp ( v, min = 0, max = 1 ) {
+        v = v < min ? min : v;
+        v = v > max ? max : v;
+        return v;
+    }
+
     update ( wait ) {
 
         let v = this.pp;
@@ -656,6 +665,16 @@ export class Landscape extends Mesh {
 
             c = math.noise( v, this.data );
 
+            if( this.isIsland ){
+
+                let d = 1-(this.distance({x:x, y:z},{x:(this.sample[0]-1)*0.5, y:(this.sample[1]-1)*0.5} )/((this.sample[0]-1)*0.5) )
+                d *= 4;
+                d = this.clamp(d);
+                //console.log(d)
+                c *= d;
+
+            }
+
 
 
             //c = Math.quinticSCurve(c);
@@ -664,9 +683,9 @@ export class Landscape extends Mesh {
             //c = Math.clamp(c,0.2,1)
 
             c = Math.pow( c, this.data.expo );
+            c = this.clamp(c);
 
-            c = c>1 ? 1:c;
-            c = c<0 ? 0:c;
+            
             
             
             if( this.ttype === 'road' ) {
@@ -835,6 +854,7 @@ const TerrainShader = {
             vec4 cc = rocks;
             if (slope < level.x) cc = grasss;
             if (slope < level.z) cc = sands;
+            if (slope == 0.0 ) cc = sands;
             //if (( slope < level.x ) && (slope >= level.y)) cc = mix( grasss , rocks, (slope - level.y) * (1. / (level.x - level.y)));
             //if (( slope < level.y ) && (slope >= level.z)) cc = mix( sands , grasss, (slope - level.z) * (1. / (level.y - level.z)));
 

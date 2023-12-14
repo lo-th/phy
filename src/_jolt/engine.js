@@ -210,6 +210,16 @@ export class engine {
 		root.physicsSystem.OptimizeBroadPhase() // ?
 
 
+		// for collision group 
+		// Constructs the table with inNumSubGroups subgroups, initially all collision pairs are enabled except when the sub group ID is the same
+		root.groupFilter = new Jolt.GroupFilterTable( 512 );
+
+
+		// TODO find a way to set collision or not 
+		// root.groupFilter.DisableCollision(z, z + 1);
+
+
+
 		//console.log(root.settings)
 		//console.log(root.world)
 		//console.log(root.bodyInterface)
@@ -293,7 +303,8 @@ export class engine {
 		root.delta = ( startTime - lastTime ) * 0.001;
 		lastTime = startTime;
 
-		root.deltaTime = fixe ? timestep / substep : root.delta / substep
+		//root.deltaTime = fixe ? timestep / substep : root.delta / substep
+		root.deltaTime = fixe ? timestep : root.delta;
 
 		root.invDelta = 1 / (fixe ? timestep : root.delta);
 
@@ -302,6 +313,7 @@ export class engine {
 		//let numSteps = root.delta > 1.0 / 55.0 ? 2 : 1;
 
 		root.world.Step( root.deltaTime, substep );
+		//root.world.Step( timestep, substep );
 
 		//root.world.Step( root.delta, numSteps );
 
