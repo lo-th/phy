@@ -7,9 +7,9 @@
         "dragon", "raycast", "human", "build"
     ],
     "Dev" : [ 
-        "dev/spring", "dev/cloth", "dev/gears2", "dev/mass", "dev/empty", "dev/empty2", "dev/empty3",
-        "dev/car", "dev/collision", "dev/buttons", "dev/robot_arm", "dev/pinball",
-        "dev/vehicle2", "dev/vehicle3", "dev/mesh", "dev/break", "dev/stacking"
+        "spring", "cloth", "gears2", "mass", "empty", "empty2", "empty3",
+        "car", "collision", "buttons", "robot_arm", "pinball",
+        "vehicle2", "vehicle3", "mesh", "break", "stacking"
     ],
     "Advanced" : [ 
         "diamond", "ragdoll", "chess", "million" 

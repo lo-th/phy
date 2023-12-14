@@ -221,6 +221,7 @@ export const Main = {
 	engineList: [ 'OIMO', 'AMMO', 'PHYSX', 'HAVOK', 'RAPIER', 'JOLT' ],
 	demoList:[],
 	demoLink:[],
+	devLink:[],
 	devDemo:{},
 	envList:[],
 	isMobile:false,
@@ -314,6 +315,7 @@ export const Main = {
 
 		let d = Motor.get('demos', 'json')
 		Main.demoLink = [ ...d.Basic, ...d.Advanced, ...d[Main.engineType] ]
+		Main.devLink = [ ...d.Dev ];
 		if( Main.devMode ){ 
 			Main.demoLink = [ ...Main.demoLink, ...d.Dev ];
 			let j = d.Dev.length;
@@ -900,8 +902,10 @@ const directDemo = ( name, result ) => {
 const loadDemo = ( name ) => {
 
 	let idd = Main.demoList.indexOf(name)
+	let expath = '';
+	if( Main.devLink.indexOf(name)!==-1 ) expath = 'dev/' 
 
-	if( idd === -1 ){ 
+	if( idd === -1 && expath === '' ){ 
 		name = 'start'
 		idd = 0
 	}
@@ -919,7 +923,8 @@ const loadDemo = ( name ) => {
 
 	Hub.upMenu()
 
-	Motor.load( './demos/' + Main.demoLink[idd] + '.js', inject )
+	//Motor.load( './demos/' + expath + Main.demoLink[idd] + '.js', inject )
+	Motor.load( './demos/' + expath + name + '.js', inject )
 
 }
 

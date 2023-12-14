@@ -442,7 +442,7 @@ export class Body extends Item {
 
 
 
-	    	let cg = b.GetCollisionGroup();
+	    	const cg = b.GetCollisionGroup();
 
 	    	/*let gf = cg.GetGroupFilter();
 	    	let gid = cg.GetGroupID() // def -1

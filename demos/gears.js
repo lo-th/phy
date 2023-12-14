@@ -45,9 +45,9 @@ createGear = ( center, radius, thickness, lm ) => {
         shapes.push( { type:'convex', v:toothVertices, rot:[0, r * i, 0 ], margin:0.001, restitution:0 })
     }
 
-    let g = phy.add({ type:'compound', shapes:shapes, pos:center, density:1, restitution:0, friction:0.5, rot:[-90,0,0], margin:0.01, neverSleep:true, material:'copper', filter:[2,2] })
+    let g = phy.add({ type:'compound', shapes:shapes, pos:center, density:1, restitution:0, friction:0.5, rot:[-90,0,0], margin:0.01, neverSleep:true, material:'copper' })
     //let f = phy.add({ type:'cylinder', size:[ toothInterval / 4, (thickness * 0.52)*2 ], pos:center, density:0, rot:[-90,0,0], restitution:0, friction:0.5 })
-    let f = phy.add({ type:'sphere', size:[ toothInterval / 4 ], pos:center, density:0, rot:[-90,0,0], filter:[2,2] })
+    let f = phy.add({ type:'sphere', size:[ toothInterval / 4 ], pos:center, density:0, rot:[-90,0,0] })
 
     if( local ) phy.add({ type:'joint', mode:'revolute', b1:f.name, b2:g.name, pos1:[0,0,0], pos2:[0,0,0], axis1:[0,1,0], axis2:[0,1,0], motor:lm, iteration:2, friction:0 })
     else phy.add({ type:'joint', mode:'revolute', b1:f.name, b2:g.name, worldAnchor:center, worldAxis:[0,0,1], motor:lm, friction:1  })

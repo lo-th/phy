@@ -16,6 +16,7 @@ import initJolt from '../libs_physics/X_Jolt.js';
 * @author lo.th / https://github.com/lo-th
 *
 *    JOLT ENGINE
+*    https://jrouwe.github.io/JoltPhysics/
 */
 
 self.onmessage = function ( m ) { engine.message( m ) };
@@ -210,16 +211,17 @@ export class engine {
 		root.physicsSystem.OptimizeBroadPhase() // ?
 
 
-		// for collision group 
+		// for collision group ??
+		// https://jrouwe.github.io/JoltPhysics/class_group_filter_table.html
 		// Constructs the table with inNumSubGroups subgroups, initially all collision pairs are enabled except when the sub group ID is the same
-		root.groupFilter = new Jolt.GroupFilterTable( 512 );
+		root.groupFilter = new Jolt.GroupFilterTable( 2 );
 
 
 		// TODO find a way to set collision or not 
 		// root.groupFilter.DisableCollision(z, z + 1);
+		// root.groupFilter.EnableCollision(z, z + 1);
 
-
-
+		console.log(root.groupFilter)
 		//console.log(root.settings)
 		//console.log(root.world)
 		//console.log(root.bodyInterface)
