@@ -4,19 +4,27 @@ const chessSize = 0.25
 
 demo = () => {
 
-    phy.view({ envmap:'river', ground:true })
+    phy.view({ 
+        envmap:'photo', envblur: 0.5, ground:true, groundAlpha:false,
+        groundSize:[ 8.9, 8.9 ], groundReflect:0.05,
+     })
 
     phy.set({ substep:1 })
 
-    /*let grid = new THREE.GridHelper( 8, 8, 0x000000, 0x000000 )
-    grid.material.opacity = 0.0001
+    let grid = new THREE.GridHelper( 8, 8, 0x2f875d, 0x2f875d )
+    grid.material.opacity = 0.1
     grid.position.y = 0.01
     grid.material.transparent = true
-    phy.addDirect( grid )*/
+    phy.addDirect( grid )
 
     // add static ground
     //phy.add({ type:'plane', size:[300,1,300], visible:false });
     phy.add({ type:'box', size:[300,1,300], pos:[0, -0.5, 0], visible:false })
+
+    let g = phy.getGround()
+    g.material.map = phy.texture({ url:'./assets/textures/chessboard.jpg', repeat:[1,1], flip:true, encoding:true });
+    g.material.roughness = 0.7;
+    g.material.metalness = 0.0;
 
     phy.load(['./assets/models/chess.glb'], onComplete )
 
@@ -26,7 +34,7 @@ onComplete = () => {
 
     const model = phy.getMesh('chess');
 
-    let m = phy.texture({ url:'./assets/textures/chess.jpg', flip:false, encoding:true })
+    let m = phy.texture({ url:'./assets/textures/chess.jpg', flip:true, encoding:true })
     let defMat = {
         roughness: 0.25, metalness: 0.2, aoMap:m//, envMapIntensity:2.2 
     }

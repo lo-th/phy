@@ -93,7 +93,8 @@ export class ExtraRay extends Line {
 			point: [0,0,0],
 			normal: [0,0,0],
 			distance: 0,
-			angle:0
+			angle:0,
+			parent:null
 
 		};
 
@@ -102,7 +103,8 @@ export class ExtraRay extends Line {
 
 	    this.parentMesh = null
 	    if(o.parent){
-	    	this.parentMesh = typeof o.parent === 'string' ?  Utils.byName( o.parent ) : o.parent
+	    	this.parentMesh = typeof o.parent === 'string' ?  Utils.byName( o.parent ) : o.parent;
+	    	this.data.parent = this.parentMesh;
 	    }
 
 	    this.callback = o.callback || function () {};
@@ -113,19 +115,17 @@ export class ExtraRay extends Line {
 		this.c2 = [ 1.0, 0.1, 0.1 ];
 		this.c3 = [ 0.1, 1.0, 0.1 ];
 
-	    this.begin = new Vector3()
-	    this.end = new Vector3(0,1,0)
-	    this.fullDistance = 0
+	    this.begin = new Vector3();
+	    this.end = new Vector3(0,1,0);
+	    this.tmp = new Vector3();
+	    this.vnormal = new Vector3();
+	    this.vv1 = new Vector3();
+	    this.vv2 = new Vector3();
+
+	    this.fullDistance = 0;
 
 	    this.setRay( o )
 
-	    this.tmp = new Vector3();
-	    this.normal = new Vector3();
-
-
-	    this.vv1 = new Vector3();
-	    this.vv2 = new Vector3();
-	    
 	    const positions = [0,0,0, 0,0,0, 0,0,0];
 	    const colors = [0,0,0, 0,0,0, 0,0,0];
 
@@ -160,21 +160,21 @@ export class ExtraRay extends Line {
 
 		if( this.data.hit ){
 
-			this.local[0] = r[n+2]
-			this.local[1] = r[n+3]
-			this.local[2] = r[n+4]
+			this.local[0] = r[n+2];
+			this.local[1] = r[n+3];
+			this.local[2] = r[n+4];
 
 			this.tmp.fromArray( r, n+5 );
-			this.normal.fromArray( r, n+8 )
+			this.vnormal.fromArray( r, n+8 );
 
 			this.data.point = this.tmp.toArray();
-			this.data.normal = this.normal.toArray();
+			this.data.normal = this.vnormal.toArray();
 			//this.data.distance = this._begin.distanceTo( this.tmp )
 
 			this.tmp.toArray( this.local, 3 );
 			this.vv1.fromArray( this.local ).sub(this.tmp).normalize(); 
-			this.tmp.addScaledVector( this.normal, this.fullDistance - this.data.distance );
-			this.tmp.toArray( this.local, 6 )
+			this.tmp.addScaledVector( this.vnormal, this.fullDistance - this.data.distance );
+			this.tmp.toArray( this.local, 6 );
 
 			
 			//vv1.fromArray( r, n+5 ); 
@@ -185,6 +185,7 @@ export class ExtraRay extends Line {
 
 		} else {
 			if( this.parentMesh ){
+				//this.data.parent = this.parentMesh;
 				//this.parentMesh.updateWorldMatrix(false,false )
 				const mtx = this.parentMesh.matrixWorld;
 				this.tmp.copy( this.begin ).applyMatrix4(mtx).toArray( this.local, 0 );

@@ -44,7 +44,7 @@ import { preloadAvatar } from '../3TH/character/Avatar.js';
 const Version = {
     OIMO: '1.2.4',
     AMMO: '3.0',
-    PHYSX: '5.03.00',
+    PHYSX: '5.03.01',
     RAPIER: '0.11.2',
     HAVOK: '1.3.0',
     JOLT: '0.10.3',

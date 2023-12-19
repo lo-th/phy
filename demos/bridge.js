@@ -143,7 +143,7 @@ const Character = () => {
 
     }
 
-   // hh[0].debugMode( true );
+    hh[0].debugMode( true );
 
     phy.follow('c_0', { direct:true, simple:true, distance:5, phi:12, theta:0, decal:[0.3, 0.5, -0.3], fov:60, zoom:1.0 })
     phy.control( 'c_0' );

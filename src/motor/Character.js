@@ -5,11 +5,8 @@ import { MathTool, torad } from '../core/MathTool.js';
 
 import { Vector3, Euler, Quaternion, Mesh } from 'three';
 
-
 import { Avatar } from '../3TH/character/Avatar.js';
 import { CapsuleHelper } from '../3TH/helpers/CapsuleHelper.js';
-
-
 
 import { Utils, root } from './root.js';
 import { Mat, Colors } from './base/Mat.js';
@@ -99,7 +96,8 @@ class Hero extends Basic3D {
 			capsuleHalfHeight: o.height*0.5,
 			capsuleRadius: o.radius,
 			floatHeight: floatHeight,
-			followLight: false,
+			characterInitDir: 0, // in rad
+			//followLight: false,
 			// Follow camera setups
 			camInitDis: -5,
 			camMaxDis: -7,
@@ -119,6 +117,9 @@ class Hero extends Basic3D {
 			rejectVelMult: 4,
 			moveImpulsePointY: 0.5,
 			camFollowMult: 11,
+			fallingGravityScale: 2.5,
+			fallingMaxVel: -20,
+			wakeUpDelay: 200,
 			// Floating Ray setups
 			rayOriginOffest: { x: 0, y: -o.height*0.5, z: 0 },
 			rayHitForgiveness: 0.1,
@@ -129,7 +130,8 @@ class Hero extends Basic3D {
 			dampingC: 0.08,
 			// Slope Ray setups
 			showSlopeRayOrigin: false,
-			slopeRayOriginOffest: o.radius,
+			slopeMaxAngle: 1, // in rad
+			slopeRayOriginOffest: o.radius - 0.03,
 			slopeRayLength: o.radius + 3,
 			slopeRayDir: { x: 0, y: -1, z: 0 },
 			slopeUpExtraForce: 0.1,
@@ -138,9 +140,11 @@ class Hero extends Basic3D {
 			autoBalance: true,
 			autoBalanceSpringK: 0.3,
 			autoBalanceDampingC: 0.03,
+			autoBalanceSpringOnY: 0.3,
 			autoBalanceDampingOnY: 0.02,
 			// Animation temporary setups
 			animated: false,
+
 		}
 
 		this.v = {
@@ -244,8 +248,6 @@ class Hero extends Basic3D {
 		this.valheimStyle = true
 		this.globalRay = o.ray || false
 
-
-
 		this.callback = o.callback || function (){}
 
 		if( o.callback ) delete o.callback
@@ -276,7 +278,7 @@ class Hero extends Basic3D {
 		//o.mask = o.mask !== undefined ? o.mask : 1|2
 		o.regular = true
 		o.filter = [1,-1,[1, 3, 4,5,9], 0]
-		o.inertia = [0,0,0] 
+		//o.inertia = [0,0,0] 
 		//o.kinematic = true
 		o.noGravity = true
 		//o.move = false
@@ -292,7 +294,7 @@ class Hero extends Basic3D {
         // add capsule to physics
         root.post({ m:'add', o:o });
 
-
+        // add bottom RAY
         this.ray = root.motor.add({ type:'ray', name:this.name + '_ray', begin:[0,this.rayStart,0], end:[0,this.rayEnd, 0], callback:this.selfRay.bind(this), visible:false, parent:this.name })
 
         // add skinning character model
