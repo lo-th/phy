@@ -96,6 +96,7 @@ const CameraBase = {
 // default config
 const setting = {
 
+	exposure: 1,
 	envmap:'clear',//'basic',
 	
 	groundSize:[ 60, 60 ],
@@ -181,6 +182,7 @@ const toneMappingOptions = {
 	Linear: THREE.LinearToneMapping,
 	Reinhard: THREE.ReinhardToneMapping,
 	Cineon: THREE.CineonToneMapping,
+	Agx: THREE.AgXToneMapping,
 	ACESFilmic: THREE.ACESFilmicToneMapping,
 	Uncharted2: THREE.CustomToneMapping
 }
@@ -1184,6 +1186,9 @@ const view = ( o = {} ) => {
 		options.reflect = 0;
 		options.quality = 1;
 	}
+
+	renderer.toneMappingExposure = o.exposure;
+	options.exposure = o.exposure;
 
 	Env.reset()
 

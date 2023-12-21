@@ -1,42 +1,75 @@
-const chess = ['king', 'queen', 'bishop', 'knight', 'rook', 'pawn']
-const h = [ 3.785, 3.4, 2.716, 2.648, 2.138, 1.973 ]
-const chessSize = 0.25
+const chess = ['king', 'queen', 'bishop', 'knight', 'rook', 'pawn'];
+const h = [ 3.785, 3.4, 2.716, 2.648, 2.138, 1.973 ];
+const chessSize = 0.25;
 
 demo = () => {
 
     phy.view({ 
         envmap:'photo', envblur: 0.5, ground:true, groundAlpha:false,
         groundSize:[ 8.9, 8.9 ], groundReflect:0.05,
+        exposure:0.8,
      })
 
     phy.set({ substep:1 })
 
+    /*
     let grid = new THREE.GridHelper( 8, 8, 0x2f875d, 0x2f875d )
     grid.material.opacity = 0.1
     grid.position.y = 0.01
     grid.material.transparent = true
     phy.addDirect( grid )
+    */
 
     // add static ground
-    //phy.add({ type:'plane', size:[300,1,300], visible:false });
-    phy.add({ type:'box', size:[300,1,300], pos:[0, -0.5, 0], visible:false })
+    phy.add({ type:'plane', size:[300,1,300], pos:[0, -0.02, 0], visible:false });
+    phy.add({ type:'box', size:[8.9,1,8.9], pos:[0, -0.5, 0], visible:false })
+
+    
 
     let g = phy.getGround()
-    g.material.map = phy.texture({ url:'./assets/textures/chessboard.jpg', repeat:[1,1], flip:true, encoding:true });
+    g.material.map = phy.texture({ url:'./assets/textures/chess/chessboard.jpg', repeat:[1,1], flip:true, encoding:true });
     g.material.roughness = 0.7;
     g.material.metalness = 0.0;
 
-    phy.load(['./assets/models/chess.glb'], onComplete )
+    phy.load(['./assets/models/chess.glb', './assets/models/chessclock.glb'], onComplete )
 
 }
 
 onComplete = () => {
 
+    const clockMesh = phy.getMesh('chessclock');
+
+    let mc = phy.material({ name:'Clock', roughness: 0.25, metalness: 1, 
+        map:phy.texture({ url:'./assets/textures/chess/chessclock_c.jpg', flip:true }),
+        metalnessMap:phy.texture({ url:'./assets/textures/chess/chessclock_m.jpg', flip:true }),
+    })
+    //let g = phy.material({ name:'gl', roughness: 0, metalness: 1, transparent:true, opacity:0.2 })
+    clockMesh.clock.traverse( ( child ) => {
+        if ( child.isMesh ){
+            if(child.name!=='glass') child.material = mc;
+            else child.material = phy.getMaterial('glass2');
+        }
+    })
+
+    phy.add({ type:'box', size:[3,1.6,1.1], pos:[0, 0.8-0.02, -5.2], mass:1, mesh:clockMesh.clock, material:'Clock' })
+
+    let b = clockMesh.border;
+    b.material = phy.material({ name:'Border', roughness: 1, metalness: 0, color:0xe8dada })
+    b.receiveShadow = true;
+    phy.add(b);
+
+    let z = clockMesh.zone;
+    z.material = phy.getMaterial('shadow');
+    z.receiveShadow = true;
+    phy.add(z);
+
+    // PIECES
+
     const model = phy.getMesh('chess');
 
-    let m = phy.texture({ url:'./assets/textures/chess.jpg', flip:true, encoding:true })
+    let m = phy.texture({ url:'./assets/textures/chess/chess.jpg', flip:true, encoding:true })
     let defMat = {
-        roughness: 0.25, metalness: 0.2, aoMap:m//, envMapIntensity:2.2 
+        roughness: 0.25, metalness: 0.2, aoMap:m, aoMapIntensity:0.7, 
     }
     phy.material({ name:'Black', ...defMat, map:createChessTexture(false) })
     phy.material({ name:'White', ...defMat, map:createChessTexture(true) })

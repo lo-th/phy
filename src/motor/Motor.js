@@ -1016,6 +1016,8 @@ export class Motor {
 
 	static getMat( name ){ return Mat.get( name ) }
 
+	static getMaterial( name ){ return Mat.get( name ) }
+
 
 	//-----------------------
 	//
