@@ -276,7 +276,7 @@ export class Joint extends Item {
 				j.SetRotationLimits( this.min, this.max );
 			}
 			j.SetEnabled(true);
-			console.log(j)
+			//console.log(j)
 			break;
 			case "generic":
 			if( o.lm ){

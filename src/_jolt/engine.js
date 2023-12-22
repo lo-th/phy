@@ -221,7 +221,7 @@ export class engine {
 		// root.groupFilter.DisableCollision(z, z + 1);
 		// root.groupFilter.EnableCollision(z, z + 1);
 
-		console.log(root.groupFilter)
+		//console.log(root.groupFilter)
 		//console.log(root.settings)
 		//console.log(root.world)
 		//console.log(root.bodyInterface)
