@@ -37,8 +37,16 @@ onComplete = () => {
     let meshes = phy.getMesh('alpine');
     let groups = phy.getGroup('alpine');
 
+    for(let m in meshes){
+        if(meshes[m].material){ 
+            meshes[m].material.vertexColors = false;
+            meshes[m].material.color = meshes[m].material.color.convertSRGBToLinear();
+        }
+    }
+
     
-    meshes.glass.material = phy.getMaterial('glass2');
+    meshes.glass.material = phy.getMaterial('glass3');
+    meshes.glass2.material = phy.getMaterial('glass2');
 
     /*const mat = phy.material({ 
         name:'2cv', color:0xFFFFFF, roughness: 1,  metalness: 1, normalScale:[1,-1],
