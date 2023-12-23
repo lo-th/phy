@@ -102,11 +102,14 @@ export class RayCar {
             //neverSleep:true,
             massInfo:true,
 
+            //shadow:false,
+
             mesh:o.bodyMesh || null,
+            //noClone: true,
             meshPos:o.meshPos || [0,-1.1,0],
             material:o.material,
             damping:[0.05,0.05],
-            debug:true,
+            debug:false,
 
         });
 
@@ -124,17 +127,19 @@ export class RayCar {
 	        new Vector3(0.95,0,1.8)
 	    ]*/
 
-        let wy = 0
+        //let wy = 0
+
+        let wp = o.wheelPosition || [0.61, 0, 1.2]
 
         const wheelPositions = [
-            new Vector3(-0.61,wy,-1.2),
-            new Vector3(0.61,wy,-1.2),
-            new Vector3(-0.61,wy,1.2),
-            new Vector3(0.61,wy,1.2)
+            new Vector3(-wp[0], wp[1], -wp[2]),
+            new Vector3(wp[0], wp[1], -wp[2]),
+            new Vector3(-wp[0], wp[1], wp[2]),
+            new Vector3(wp[0], wp[1], wp[2])
         ]
 
 	    const options = {
-	        radius: 0.31,//0.32,//0.5,
+	        radius: o.wheelRadius || 0.31,//0.32,//0.5,
 	        directionLocal: new Vector3(0, -1, 0),
 	        suspensionStiffness: 100,//30
 	        suspensionRestLength: 0.5,//0.8
@@ -164,29 +169,42 @@ export class RayCar {
 	    })
 
         let wgeo, wgeo2
+        let m1, m2;
+
         let mat = root.motor.getMat('debug');
 
         if( o.wheelMesh ){
 
-            wgeo = o.wheelMesh.geometry
+            /*wgeo = o.wheelMesh.geometry
             if(o.wheelMesh2) wgeo2 = o.wheelMesh2.geometry
-            mat = o.material || mat;
+            mat = o.material || mat;*/
+
+            m1 = o.wheelMesh;
+            m2 = o.wheelMesh2 ? o.wheelMesh2 : null;
+
+            if(o.material){
+                mat = o.material || mat;
+                m1.material = mat
+                if(m2) m2.material = mat
+            }
 
         } else {
 
-            wgeo = new CylinderGeometry( options.radius, options.radius, 0.2 );
+            wgeo = new CylinderGeometry( options.radius, options.radius, o.wheelDepth || 0.2 );
             wgeo.rotateZ( Math.PI * 0.5 )
+
+            m1 = new Mesh( wgeo, mat );
+            m2 = wgeo2 ? new Mesh( wgeo2, mat ) : null;
 
         }
 
-	    let m = new Mesh( wgeo, mat );
-        let m2 = wgeo2 ? new Mesh( wgeo2, mat ) : null;
+	    
 	    
 
         this.vehicle.localWheel = this.localWheel;
 
         if(this.localWheel){
-            this.vehicle.wheelMeshes = [ m2? m2 : m.clone(), m, m2? m2.clone() : m.clone(), m.clone() ];
+            this.vehicle.wheelMeshes = [ m2? m2 : m1.clone(), m1, m2? m2.clone() : m1.clone(), m1.clone() ];
             let k = this.vehicle.wheelMeshes.length, n=0
             while(k--) this.body.add(this.vehicle.wheelMeshes[n++]);
         }else{
