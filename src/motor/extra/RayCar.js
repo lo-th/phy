@@ -100,7 +100,7 @@ export class RayCar {
             restitution:this.restitution,
             mass:this.mass,
             //neverSleep:true,
-            massInfo:true,
+            //massInfo:true,
 
             //shadow:false,
 
@@ -275,7 +275,7 @@ export class RayCar {
 	    this.vehicle.updateVehicle(delta);
 
         if( this.driveWheel ){ 
-            this.driveWheel.rotation.y = this.tmp.steerValue * 90 * torad;
+            this.driveWheel.rotation.y = this.tmp.steerValue * 180 * torad;
         }
 
 	}
@@ -321,6 +321,7 @@ class RaycastVehicle {
         this.indexUpAxis = typeof(o.indexUpAxis) !== 'undefined' ? o.indexUpAxis : 1;
         //this.rays = []
         this.wheelMeshes = [];
+        this.brakeMeshs = null;
         this.localWheel = false;
         //this.wheelMatrix = [];
     }
@@ -340,7 +341,7 @@ class RaycastVehicle {
             begin:info.chassisConnectionPointLocal.toArray(), 
             end:[info.chassisConnectionPointLocal.x,-raylen, info.chassisConnectionPointLocal.z], 
             callback:function(r){ info.castRay(r) }, 
-            visible:true, 
+            visible:false, 
             parent:this.chassisBody 
         });
 
@@ -776,9 +777,14 @@ class RaycastVehicle {
         wheel.matrix.compose( wheel.position, wheel.quaternion, {x:1,y:1,z:1} );
 
         if( this.localWheel ){
-            locP.add(wheel.chassisConnectionPointLocal)
+            locP.add( wheel.chassisConnectionPointLocal )
             this.wheelMeshes[wheelIndex].quaternion.copy(steeringOrn).multiply(rotatingOrn).normalize();
             this.wheelMeshes[wheelIndex].position.copy(locP);
+            if(this.brakeMeshs){
+                if(wheelIndex === 2 || wheelIndex === 3 ) this.brakeMeshs[wheelIndex].quaternion.copy(steeringOrn).normalize();
+                this.brakeMeshs[wheelIndex].position.copy(locP);
+                this.brakeMeshs[wheelIndex].updateMatrix();
+            }
         } else {
             this.wheelMeshes[wheelIndex].position.copy(wheel.position);
             this.wheelMeshes[wheelIndex].quaternion.copy(wheel.quaternion);

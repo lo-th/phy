@@ -2,9 +2,7 @@ let vehicle;
 
 function demo() {
 
-    phy.log('under construction')
-
-    phy.view({ envmap:'lobe', envblur:0.3, ground:true, fog:true, fogDist:0.02, phi:14, theta:60, distance:6, y:0.58 })
+    phy.view({ envmap:'lobe', envblur:0.5, ground:true, fog:true, fogDist:0.02, phi:14, theta:60, distance:5, y:0.58, groundReflect:0.05 })
 
     phy.set({ 
         full:true,
@@ -14,18 +12,19 @@ function demo() {
     })
 
     let g = phy.getGround();
-    g.material.map = phy.texture({ url:'./assets/textures/grid.png', repeat:[60,60] });
+    g.material.map = phy.texture({ url:'./assets/textures/terrain/road_c.jpg', repeat:[30,30] });
+    g.material.normalMap = phy.texture({ url:'./assets/textures/terrain/road_n.jpg', repeat:[30,30] });
+    g.material.roughness = 0.8;
+    g.material.metalness = 0;
 
 
     let gg = phy.add({ type:'plane', name:'floor', size:[ 300,1,300 ], ray:true, friction:0.2, restitution:0.3, visible:false });
 
 
     const maps = [
-    /*'./assets/textures/2cv/2cv_c.jpg', 
-    './assets/textures/2cv/2cv_n.jpg',
-    './assets/textures/2cv/2cv_r.jpg',
-    './assets/textures/2cv/2cv_m.jpg', 
-    './assets/textures/2cv/2cv_a.jpg',*/
+    './assets/textures/alpine/tire_c.jpg',
+    './assets/textures/alpine/tire_n.jpg',
+    './assets/textures/alpine/tire_m.jpg',
     ]
 
     phy.load([...maps, './assets/models/alpine.glb'], onComplete );
@@ -44,32 +43,24 @@ onComplete = () => {
         }
     }
 
-    
-    meshes.glass.material = phy.getMaterial('glass3');
-    meshes.glass2.material = phy.getMaterial('glass2');
-
-    /*const mat = phy.material({ 
-        name:'2cv', color:0xFFFFFF, roughness: 1,  metalness: 1, normalScale:[1,-1],
-        map:phy.texture({ url:'./assets/textures/2cv/2cv_c.jpg' }),
-        normalMap:phy.texture({ url:'./assets/textures/2cv/2cv_n.jpg' }),
-        roughnessMap:phy.texture({ url:'./assets/textures/2cv/2cv_r.jpg' }),
-        metalnessMap:phy.texture({ url:'./assets/textures/2cv/2cv_m.jpg' }),
-        alphaMap:phy.texture({ url:'./assets/textures/2cv/2cv_a.jpg' }),
+    const carPaint = phy.material({ 
+        name:'car_paint', color:0x2673e2, metalness: 1.0, roughness: 0.5, clearcoat: 1.0, clearcoatRoughness: 0.03
     })
 
+    meshes.body.material = carPaint;
+    meshes.body2.material = carPaint;
 
+    meshes.glass.material = phy.getMaterial('glass3');
+    meshes.glass2.material = phy.getMaterial('glass2');
+    meshes.glass_red.material = phy.getMaterial('glass_red');
 
-    const mat2 = mat.clone();
-    mat2.transparent = true;
-    mat2.side = THREE.DoubleSide;
-
-    //meshes.body.material = mat
-    meshes.inside.material = mat;
-    meshes.plus.material = mat;
-    meshes.driveWheel.material = mat;
-    meshes.extra.material = mat2;*/
-
-    //testCar( 0, [ 0,4,0 ] );
+    let refMat = meshes.pneu.material;
+    refMat.color.setHex(0xffffff)
+    refMat.metalness = 1;
+    refMat.map = phy.texture({ url:'./assets/textures/alpine/tire_c.jpg' });
+    refMat.normalMap = phy.texture({ url:'./assets/textures/alpine/tire_n.jpg' });
+    refMat.metalnessMap = phy.texture({ url:'./assets/textures/alpine/tire_m.jpg' });
+    refMat.normalScale.set(2,-2);
 
     groups.wheel_l.castShadow = true;
 
@@ -77,10 +68,11 @@ onComplete = () => {
 
     vehicle = new phy.RayCar({ 
 
-        name:'chassis0', 
+        name:'alpine', 
         wheelPosition:[0.77, 0, 1.215],
         wheelRadius:0.31,
         wheelDepth:0.24,
+        pos:[0,1.2,0],
         //wheelMesh: meshes.WL, 
         wheelMesh: groups.wheel_l, 
         wheelMesh2: groups.wheel_r,
@@ -97,14 +89,24 @@ onComplete = () => {
     //console.log(vehicle)
     vehicle.body.receiveShadow = false;
 
-    phy.gui([
+    // add brake
+    let brakeList = [meshes.brake_br, meshes.brake_bl, meshes.brake_fr, meshes.brake_fl];
+    for(let i = 0; i<4; i++) vehicle.body.add(brakeList[i]);
+    vehicle.vehicle.brakeMeshs = brakeList;
+
+    /*phy.gui([
         { obj:vehicle, name:"maxSuspensionTravel", min:0, max:1, rename:'travel' },
         { obj:vehicle, name:"suspensionRestLength", min:0, max:1, rename:'res length' },
         { obj:vehicle, name:"suspensionMaxLength", min:0, max:1, rename:'max length' },
         { obj:vehicle, name:"frictionSlip", min:0, max:30 }
-    ]);
+    ]);*/
 
-    //phy.follow('chassis0', { direct:true, simple:true })
+    // add drivewheel
+    meshes.drivewheel.position.y = py+0.74;
+    vehicle.body.add(meshes.drivewheel);
+    vehicle.driveWheel = meshes.drivewheel;
+
+    phy.follow('alpine', { direct:true, simple:true, decal:[0,-0.5,0] })
 
     // update after physic step
     phy.setPostUpdate ( update );
