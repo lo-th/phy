@@ -11,6 +11,8 @@ function demo() {
         gravity:[0,-9.8,0],
     })
 
+    phy.mouseMode('null')
+
     let g = phy.getGround();
     g.material.map = phy.texture({ url:'./assets/textures/terrain/road_c.jpg', repeat:[30,30] });
     g.material.normalMap = phy.texture({ url:'./assets/textures/terrain/road_n.jpg', repeat:[30,30] });
