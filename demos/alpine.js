@@ -20,8 +20,7 @@ function demo() {
     g.material.metalness = 0;
 
 
-    let gg = phy.add({ type:'plane', name:'floor', size:[ 300,1,300 ], ray:true, friction:0.2, restitution:0.3, visible:false });
-
+    let gg = phy.add({ type:'plane', name:'floor', size:[ 300,1,300 ], ray:true, friction:0.2, restitution:0.0, visible:false });
 
     const maps = [
     './assets/textures/alpine/tire_c.jpg',
@@ -30,8 +29,8 @@ function demo() {
     ]
 
     phy.load([...maps, './assets/models/alpine.glb'], onComplete );
-}
 
+}
 
 onComplete = () => {
 
@@ -88,7 +87,6 @@ onComplete = () => {
         
     });
 
-    //console.log(vehicle)
     vehicle.body.receiveShadow = false;
 
     // add brake

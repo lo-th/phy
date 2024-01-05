@@ -3,12 +3,12 @@ import { nodeImmutable, nodeObject } from '../shadernode/ShaderNode.js';
 
 class PropertyNode extends Node {
 
-	constructor( nodeType, name = null, declare = true ) {
+	constructor( nodeType, name = null, varying = false ) {
 
 		super( nodeType );
 
 		this.name = name;
-		this.declare = declare;
+		this.varying = varying;
 
 		this.isPropertyNode = true;
 
@@ -28,9 +28,20 @@ class PropertyNode extends Node {
 
 	generate( builder ) {
 
-		if ( this.declare === false ) return this.name;
+		let nodeVar;
 
-		return builder.getPropertyName( builder.getVarFromNode( this, this.name ) );
+		if ( this.varying === true ) {
+
+			nodeVar = builder.getVaryingFromNode( this, this.name );
+			nodeVar.needsInterpolation = true;
+
+		} else {
+
+			nodeVar = builder.getVarFromNode( this, this.name );
+
+		}
+
+		return builder.getPropertyName( nodeVar );
 
 	}
 
@@ -39,6 +50,7 @@ class PropertyNode extends Node {
 export default PropertyNode;
 
 export const property = ( type, name ) => nodeObject( new PropertyNode( type, name ) );
+export const varyingProperty = ( type, name ) => nodeObject( new PropertyNode( type, name, true ) );
 
 export const diffuseColor = nodeImmutable( PropertyNode, 'vec4', 'DiffuseColor' );
 export const roughness = nodeImmutable( PropertyNode, 'float', 'Roughness' );
@@ -55,5 +67,6 @@ export const shininess = nodeImmutable( PropertyNode, 'float', 'Shininess' );
 export const output = nodeImmutable( PropertyNode, 'vec4', 'Output' );
 export const dashSize = nodeImmutable( PropertyNode, 'float', 'dashSize' );
 export const gapSize = nodeImmutable( PropertyNode, 'float', 'gapSize' );
+export const pointWidth = nodeImmutable( PropertyNode, 'float', 'pointWidth' );
 
 addNodeClass( 'PropertyNode', PropertyNode );

@@ -120,13 +120,13 @@ export class Body extends Item {
 
 			case 'plane':
 			
-			if( s[0]===1 ) s = [300,0,300]
-			if( !s[1] ) s[1] = 1.0
+			if( s[0]===1 ) s = [300,0,300];
+			if( !s[1] ) s[1] = 1.0;
 
 			g = new BoxGeometry( this.v.set(s[0] * 0.5, s[1] * 0.5, s[2] * 0.5) );
 
-		    if(o.localPos) o.localPos[1] -= s[1]*0.5
-			else o.localPos = [0,-s[1]*0.5,0]
+		    if(o.localPos) o.localPos[1] -= s[1]*0.5;
+			else o.localPos = [0,-s[1]*0.5,0];
 
 			/*h = [
 			    new Vec3( s[0]*0.5, 0, s[2]*0.5 ),
@@ -180,7 +180,7 @@ export class Body extends Item {
         sc.density = o.density || 0;
 
 
-       // console.log( o.mass, o.density )
+        //console.log( o.mass, o.density )
         
 
 
@@ -435,11 +435,13 @@ export class Body extends Item {
 		    		//b.getPositionTo( this.v3 );
 		    		this.v2.fromArray( o.impulseCenter )//.sub( this.v3 );
 		    		b.applyImpulse( this.v3.fromArray( o.impulse ), this.v2 );
+		    		
+		    		//o.damping = [1, 1]
+		    		//o.reset = true
 		    		//b.applyImpulse( this.v.fromArray( o.impulse ), this.v2.fromArray( o.impulseCenter ) );
 		    	}
 		    	else b.applyLinearImpulse( this.v.fromArray( o.impulse ) );
 		    }
-
 
 
 		    if( o.angularImpulse ) b.applyAngularImpulse( this.v.fromArray( o.angularImpulse ) )
@@ -460,13 +462,14 @@ export class Body extends Item {
 		    if( o.addAngularVelocity ) b.addAngularVelocity( this.v.fromArray( o.angularVelocity ) )
 		}
 
+	    // lock rotation axis
 	    if( o.angularFactor ) b.setRotationFactor( this.v.fromArray( o.angularFactor ) )
 
 	    // Sets the linear and angular damping. [ 0,0 ]
 	    if( o.damping ){
-		     b.setLinearDamping( o.damping[0] );
-		     b.setAngularDamping( o.damping[1] );
-		 }
+		    b.setLinearDamping( o.damping[0] );
+		    b.setAngularDamping( o.damping[1] );
+		}
 
 		if( o.reset ){ 
 			b.setLinearVelocity( this.v.set( 0, 0, 0) );
@@ -486,8 +489,6 @@ export class Body extends Item {
 		while(i--){
 
 			s = shapes[i]
-
-
 
 			if( o.density !== undefined ) s.setDensity( o.density )
 		    if( o.friction !== undefined ) s.setFriction( o.friction )

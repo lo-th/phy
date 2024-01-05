@@ -84,7 +84,7 @@ export class ExtraRay extends Line {
 
 	constructor( o = {} ) {
 
-	    super(  new BufferGeometry(), Mat.get('line') );
+	    super( new BufferGeometry(), Mat.get('line') );
 
 	    this.data = {
 

@@ -13,7 +13,7 @@ import {
     sRGBEncoding
 } from 'three';
 
-import { mergeVertices, mergeBufferGeometries } from '../../jsm/utils/BufferGeometryUtils.js';
+import { mergeVertices, mergeGeometries } from '../../jsm/utils/BufferGeometryUtils.js';
 import { math } from '../math.js';
 import { Pool } from '../Pool.js';
 import { Shader } from '../Shader.js';
@@ -423,7 +423,7 @@ export class Landscape extends Mesh {
         right.rotateY( math.PI90 );
         right.translate( this.size[0]*0.5,1, 0);
 
-        this.borderGeometry = mergeVertices( mergeBufferGeometries( [ front, back, left, right ] ) );
+        this.borderGeometry = mergeVertices( mergeGeometries( [ front, back, left, right ] ) );
         this.borderVertices = this.borderGeometry.attributes.position.array;
         this.lng2 = this.borderVertices.length / 3;
         this.list = new Array( this.lng2 )

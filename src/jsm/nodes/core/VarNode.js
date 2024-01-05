@@ -10,6 +10,8 @@ class VarNode extends Node {
 		this.node = node;
 		this.name = name;
 
+		this.isVarNode = true;
+
 	}
 
 	isGlobal() {
@@ -52,6 +54,7 @@ export default VarNode;
 
 export const temp = nodeProxy( VarNode );
 
-addNodeElement( 'temp', temp );
+addNodeElement( 'temp', temp ); // @TODO: Will be removed in the future
+addNodeElement( 'toVar', ( ...params ) => temp( ...params ).append() );
 
 addNodeClass( 'VarNode', VarNode );
