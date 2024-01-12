@@ -47,7 +47,7 @@ const Version = {
     PHYSX: '5.03.01',
     RAPIER: '0.11.2',
     HAVOK: '1.3.0',
-    JOLT: '0.13.0',
+    JOLT: '0.14.0',
 }
 
 const items = {};
@@ -123,8 +123,9 @@ export class Motor {
 
 	static getSetting () { return settings; }
 
-	static setGravity(){
+	static setGravity( v ){
 
+		if(v) settings.gravity = v;
 		root.post({ m:'setGravity', o:{ gravity:settings.gravity } });
 
 	}

@@ -170,6 +170,10 @@ export class Body extends Item {
 		//g.volume = MathTool.getVolume( t, s, o.v );
 
 		sc.geometry = g;
+
+		//sc.position.fromArray( o.pos || [0,0,0] );
+		//sc.rotation.fromQuat( this.q.fromArray( o.quat || [0,0,0,1] ) );
+
 		sc.position.fromArray( o.localPos || [0,0,0] );
 		sc.rotation.fromQuat( this.q.fromArray( o.localQuat || [0,0,0,1] ) );
 
@@ -283,10 +287,18 @@ export class Body extends Item {
 
 		let bodyConfig = new RigidBodyConfig();
 
+		let pos = o.pos || [0,0,0]
+		let quat = o.quat || [0,0,0,1]
+
+		bodyConfig.position.fromArray(pos)
+		bodyConfig.rotation.fromQuat(this.q.fromArray(quat))
+
 		bodyConfig.autoSleep = o.autoSleep !== undefined ? o.autoSleep : true;
 		
 		// 0 : DYNAMIC / 1 : STATIC / 2 : KINEMATIC 
 		bodyConfig.type = this.type === 'body' ? ( o.kinematic ? 2 : 0 ) : 1;
+
+		
 
 		let b = new RigidBody( bodyConfig ); 
 
@@ -337,19 +349,33 @@ export class Body extends Item {
 		b.breakable = o.breakable || false
 		b.isKinematic = o.kinematic || false
 
-		b.first = true
+		//b.first = true
 
 		if( o.kinematic ){ 
 			b.pos = o.pos || [0,0,0]
 			b.quat = o.quat || [0,0,0,1]
 		}
 
-		if(o.kinematic) delete o.kinematic
+		
 
+		// 0 : DYNAMIC / 1 : STATIC / 2 : KINEMATIC 
+		b.setType( this.type === 'body' ? ( o.kinematic ? 2 : 0 ) : 1 );
+
+		
+		
+
+		delete o.kinematic
+	    delete o.pos
+	    delete o.quat
 		
 
 		// add to world
 		this.addToWorld( b, o.id )
+
+		b.setLinearVelocity( this.v.set( 0, 0, 0) );
+		b.setAngularVelocity( this.v.set( 0, 0, 0) );
+		//b.updateMass();
+
 
 		// apply option
 		this.set( o, b )
@@ -366,7 +392,7 @@ export class Body extends Item {
 
 		if( o.kinematic !== undefined ){
 			b.setType(o.kinematic ? 2 : 0);
-			b.isKinematic = o.kinematic
+			b.isKinematic = o.kinematic ? true : false;
 		}
 
 

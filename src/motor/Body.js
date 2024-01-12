@@ -618,10 +618,13 @@ export class Body extends Item {
 			
 			b.id = b.instance.count;
 			//b.mass = o.mass || 0
-			
+
+			b.refName = b.instance.name + b.id;
 			b.name = b.instance.name + b.id;
-			//if( o.name ) b.name = o.name
+
+			if( o.name ) b.name = o.name;
 			o.name = b.name;
+
 			b.noScale = b.instance.noScale//false//o.type!=='box' || o.type!=='ChamferBox' || o.type!=='sphere';
 			if(o.sizeByInstance) b.noScale = false;
 			//if(o.type === 'sphere') b.noScale = false
@@ -756,8 +759,6 @@ export class Body extends Item {
 
 		root.post( { m:'add', o:o } );
 
-		//console.log(b)
-
 		//---------------------------
 		// return three object3d
 		//---------------------------
@@ -806,7 +807,9 @@ export class Body extends Item {
 		let g = this.geometry( o );
 
 		if( o.mesh ) {
+			material = o.mesh.material;
 			g = o.mesh.isObject3D ? o.mesh.geometry.clone() : o.mesh.clone();
+			if( o.meshSize ) g.scale( o.meshSize, o.meshSize, o.meshSize );
 			if( o.meshScale ) g.scale( o.meshScale[0], o.meshScale[1], o.meshScale[2] );
 			g.noScale = true;
 		}

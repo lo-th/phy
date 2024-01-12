@@ -300,7 +300,7 @@ export class MouseTool {
 				//console.log(inters[ 0 ])
 
 				if( id !== undefined ){
-					m = root.motor.byName( g.name+id )
+					m = root.motor.byName( g.name+id );
 				} else {
 					if( g.parent !== root.scene ){
 						h = g.parent;

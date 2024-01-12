@@ -53,7 +53,7 @@ import WebGPURenderer from 'three/addons/renderers/webgpu/WebGPURenderer.js';
 */
 
 
-const highShadow = false;
+let highShadow = false;
 
 let activeWebGPU = false;
 let isWebGPU = false;
@@ -72,8 +72,8 @@ let childEditor = null
 let isExternEditor = false
 let particles = null
 
-let stats = null
-let maxFps = 60
+let stats = null;
+let maxFps = 60;
 
 let groundColor = 0x808080
 let groundAutoColor = true;
@@ -111,7 +111,6 @@ const setting = {
 	shadow:0.75,
 
 }
-
 
 
 const options = {
@@ -458,7 +457,7 @@ const init = () => {
 
 	// RENDERER
 
-	if( isWebGPU ) renderer = new WebGPURenderer({ antialias:false, alpha:false, premultipliedAlpha: false })
+	if( isWebGPU ) renderer = new WebGPURenderer({ antialias:antialias/*, alpha:false, premultipliedAlpha: false*/ })
 	else renderer = new THREE.WebGLRenderer( { 
 		antialias:antialias, 
 		powerPreference:powerPreference,
@@ -473,7 +472,7 @@ const init = () => {
 	renderer.toneMapping = toneMappingOptions[options.tone];
 	renderer.toneMappingExposure = options.exposure;
 
-	if( options.mode !== 'LOW' ) Motor.setMaxAnisotropy( renderer.capabilities.getMaxAnisotropy() );
+	if( options.mode !== 'LOW' && !isWebGPU ) Motor.setMaxAnisotropy( renderer.capabilities.getMaxAnisotropy() );
 
 	// DOM
     document.body.appendChild( renderer.domElement );

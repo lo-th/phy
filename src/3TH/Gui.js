@@ -60,7 +60,7 @@ export const Gui = {
 		fontShadow:'#000',
 		//sx: 4,
         //sy: 4,
-        radius:0,
+        radius:3,
 
         showOver:0,
 		background:'none', //'none',
@@ -72,10 +72,10 @@ export const Gui = {
 		weight:'500',
 		text:'#fff',
 		title:'#eee',
-		borderSize:1,
-		joyOut: 'rgba(255,255,255,0.1)',
+		borderSize:2,
+		joyOut:'rgba(255,255,255,0.1)',
 		joyOver:'rgba(127,255,0,0.2)',
-        joySelect: '#7fFF00',
+        joySelect:'#7fFF00',
 
 	},
 
@@ -85,7 +85,10 @@ export const Gui = {
 
 	resize: (size) => {
 
-		if( Gui.uix ) Gui.uix.setTop( size.h - Gui.uix.forceHeight );
+		if( Gui.uix ){ 
+			//Gui.uix.setTop( size.h - Gui.uix.forceHeight );
+			Gui.uix.setLeft( 40 + size.left );
+		}
 
 	},
 
@@ -93,29 +96,19 @@ export const Gui = {
 
 		if( Gui.uix ) Gui.uix.dispose();
 
-		let lng = data.length;
-		let h = data.length * (20+4) + 50;
+		Gui.uix = new UIL.Gui( { w:200, h:24, open:true, close:false, css:'left:40px;', bottom:40, colors:Gui.colors, transition:0 } )//
 
-		let top = window.innerHeight - h //(window.innerHeight / 3) * 2;
+		if( data ){
+			let d;
+			let lng = data.length;
 
-		Gui.uix = new UIL.Gui( { w:250, h:20, open:true, close:false, css:'top:'+top+'px; left:20px;', colors:Gui.colors, transition:0 } )//
-		//Gui.uix.add( Gui.colors, 'radius', { min:0, max:1, mode:2});//.onChange( Main.debugMode )
-		Gui.uix.forceHeight = h;
-
-		let d;
-		//let lng = data.length;
-
-		for( let i = 0; i<lng; i++ ){
-			d = data[i];
-			Gui.uix.add( d.obj, d.name, d );
+			for( let i = 0; i<lng; i++ ){
+				d = data[i];
+				Gui.uix.add( d.obj, d.name, d );
+			}
 		}
 
-		/*Gui.uix.isOpen = true;
-		Gui.uix.calc()
-		Gui.uix.zoneReset()*/
-		//Gui.uix.mode('def')
-		//Gui.uix.rezone()
-
+		return Gui.uix;
 
 	},
 
@@ -194,8 +187,6 @@ export const Gui = {
 	},
 
 	reset: () => {
-
-		
 
 		if( !Gui.isInit ) return
 		if( !Gui.open ) return

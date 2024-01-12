@@ -129,15 +129,21 @@ export const Utils = {
 
 		//console.log('add', b.name, b.type )
 
+		if( b.isInstance && b.refName !== b.name ) map.set( b.refName, b );
+
 		map.set( b.name, b );
 
 	},
 
 	remove:( b ) => {
 
+
 		if( b.dispose ) b.dispose()
 		if( b.parent ) b.parent.remove( b )
-		if( b.instance ) b.instance.remove( b.id )
+		if( b.instance ) { 
+			if( b.refName !== b.name ) map.delete( b.refName );
+			b.instance.remove( b.id )
+		}
 		map.delete( b.name );
 
 	},

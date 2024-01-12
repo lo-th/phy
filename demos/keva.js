@@ -25,10 +25,10 @@ demo = () => {
 
     // add wood material
     phy.material({ 
-        name:'wood', color:0xFFFFFF, roughness: 1, metalness: 0, //color:0x8cc0e5,
-        map:phy.texture({ url:'./assets/textures/wood2_c.jpg', repeat:[1,1], srgb:true }),
-        normalMap:phy.texture({ url:'./assets/textures/wood2_n.jpg', repeat:[1,1] }),
-        roughness:0.9, normalScale:[0.4,-0.4],
+        name:'wood', color:0xFFFFFF, roughness: 0.6, metalness: 0, //color:0x8cc0e5,
+        map:phy.texture({ url:'./assets/textures/wood0_c.jpg', repeat:[1,1], srgb:true }),
+        normalMap:phy.texture({ url:'./assets/textures/wood0_n.jpg', repeat:[1,1] }),
+        normalScale:[1,-1],
     })
     // Keva tower.
     let halfExtents = {x:0.15, y:0.5, z:2.0};

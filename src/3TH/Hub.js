@@ -17,6 +17,8 @@ let isFromTop = true;
 
 //
 
+const marge = [40,40];
+
 let svg = UIL.Tools.dom;
 let setSvg = UIL.Tools.setSvg;
 let grad = UIL.Tools.makeGradiant;
@@ -247,8 +249,8 @@ export class Hub {
 
     static endLoading () {
 
-        loader.style.top = '38px'
-        loader.style.left = '100px'
+        loader.style.top = (marge[1]-1)+'px'
+        loader.style.left = (marge[0]+20)+'px'
         //content.removeChild( loader )
         
         content.removeChild( txt );
@@ -307,11 +309,11 @@ export class Hub {
         }
 
         menu = document.createElement( 'div' );
-        menu.style.cssText = 'position:absolute; top:25px; background:'+bg+'; left:80px; display:flex; align-self: stretch; justify-content: flex-start; gap: 10px 10px; align-items:baseline; '
+        menu.style.cssText = 'position:absolute; top:25px; background:'+bg+'; left:'+marge[0]+'px; display:flex; align-self: stretch; justify-content: flex-start; gap: 10px 10px; align-items:baseline; '
         content.appendChild( menu );
 
         downMenu = document.createElement( 'div' );
-        downMenu.style.cssText = 'position:absolute; top:54px; left:80px; overflow:hidden; background:'+bg+'; height:0px; width:0px;'//' width:0px;' //transition: all .1s ease-in-out;
+        downMenu.style.cssText = 'position:absolute; top:54px; left:'+marge[0]+'px; overflow:hidden; background:'+bg+'; height:0px; width:0px;'//' width:0px;' //transition: all .1s ease-in-out;
         content.appendChild( downMenu );
 
         innerMenu = document.createElement( 'div' );
@@ -350,12 +352,12 @@ export class Hub {
 
 
         debug = document.createElement( 'div' );
-        debug.style.cssText = 'position:absolute; width:300px; bottom:25px; left:80px; font-size:14px; font-weight:500; vertical-align:bottom; text-align:left;'
+        debug.style.cssText = 'position:absolute; width:300px; bottom:15px; left:'+(marge[0]+8)+'px; font-size:12px; font-weight:500; vertical-align:bottom; text-align:left;'
         //debug.style.cssText = 'position:absolute; background:'+bg+'; width:300px; margin-left:-150px; bottom:25px; left:50%; font-size:14px; font-weight:500; vertical-align:bottom; text-align:center;'
         content.appendChild( debug )
 
         statistics = document.createElement( 'div' );
-        statistics.style.cssText = 'position:absolute; bottom:25px; left:10px; font-size:14px; font-weight:500; width:400px; white-space: pre; line-height:20px;'
+        statistics.style.cssText = 'position:absolute; bottom:25px; left:10px; font-size:14px; font-weight:500; width:400px; white-space: pre; line-height:20px; margin-left:10px;'
         content.appendChild( statistics )
 
 
@@ -366,11 +368,11 @@ export class Hub {
         content.appendChild( top )
 
         fps = document.createElement( 'div' );
-        fps.style.cssText = 'position:absolute; top:33px; right:100px; text-align:right; font-size:14px; font-weight:500; '
+        fps.style.cssText = 'position:absolute; top:33px; right:'+(marge[0]+20)+'px; text-align:right; font-size:14px; font-weight:500; '
         content.appendChild( fps )
 
         guiButton = document.createElement( 'div' );
-        guiButton.style.cssText = 'position:absolute; right:80px;  top:31px; pointer-events:auto; cursor: pointer;'
+        guiButton.style.cssText = 'position:absolute; right:'+marge[0]+'px;  top:31px; pointer-events:auto; cursor: pointer;'
         content.appendChild( guiButton )
         guiButton.innerHTML = `<svg xmlns='http://www.w3.org/2000/svg' version='1.1' xmlns:xlink='http://www.w3.org/1999/xlink' style='pointer-events:none;' 
         preserveAspectRatio='xMinYMax meet' x='0px' y='0px' width='10px' height='10px' viewBox='0 0 10 10'>
@@ -478,8 +480,11 @@ export class Hub {
 
         currentMenu = type;
 
-        downMenu.style.left = ( type === 'engine' ? 125:80 ) + 'px'
-        if(type === 'home') downMenu.style.left = '70px'
+        //downMenu.style.left = ( type === 'engine' ? 125:80 ) + 'px'
+        //if(type === 'home') downMenu.style.left = '70px'
+        downMenu.style.left = marge[0] + 'px'
+        if(type === 'home') downMenu.style.left = (marge[0]-10) + 'px'
+        if(type === 'engine') downMenu.style.left = (marge[0]+52) + 'px'
 
         let list = listdata[ type ];
         /*type === 'demo' ?  demolist : engineList
