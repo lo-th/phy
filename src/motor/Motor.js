@@ -47,7 +47,7 @@ const Version = {
     PHYSX: '5.03.01',
     RAPIER: '0.11.2',
     HAVOK: '1.3.0',
-    JOLT: '0.14.0',
+    JOLT: '0.15.0',
 }
 
 const items = {};
@@ -1062,6 +1062,10 @@ export class Motor {
 
 	static getGroup ( obj, autoMesh, autoMaterial ){
 		return Pool.getGroup( obj, autoMesh, autoMaterial );
+	}
+
+	static getGLB ( obj, autoMaterial ){
+		return Pool.getGLB( obj, autoMaterial );
 	}
 
 	static getScript ( name ){
