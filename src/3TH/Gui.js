@@ -230,29 +230,28 @@ export const Gui = {
 
 		ui.add( options, 'fogMode', { type:'selector', values:[0,1], selectable:true, unselect:false, h:24 }).onChange( function(n){ Shader.up( options ) })
 
-		ui.add( options, 'exposure', { min:0, max:4, mode:mode } ).onChange( function( v ){ 
-			renderer.toneMappingExposure = v 
-			Env.up()
-		})
+		
 
 		ui.add( options, 'tone',  { type:'list', list:toneMappingOptions, full:true }).onChange( function(v){
 			renderer.toneMapping  = toneMappingOptions[ options.tone ]
 		})
 
-		//ui.add( options, 'legacy',  { type:'bool' }).onChange( function(v){ renderer.useLegacyLights  = v })
-
-		//ui.add( options, 'shadow', { min:0, max:1, mode:mode, color:'#8ff' } ).onChange( Main.setShadow )//.listen()
-		ui.add( options, 'reflect', { min:0, max:1, mode:mode, color:'#8ff' } ).onChange( Main.setReflect )//.listen()
-
+		ui.add( options, 'exposure', { min:0, max:4, mode:mode } ).onChange( function( v ){ 
+			renderer.toneMappingExposure = v 
+			Env.up()
+		})
 
 		ui.add( options, 'light_1', { rename:'Light Direct', min:0, max:30, mode:mode, color:'#ff0' } ).onChange( Main.lightIntensity )
 		ui.add( options, 'light_2', { rename:'Light Sphere', min:0, max:10, mode:mode, color:'#ff0' } ).onChange( Main.lightIntensity )
-		ui.add( options, 'envPower', { min:0, max:3, mode:mode, color:'#ff0' } ).onChange( Main.envmapIntensity )
-		ui.add( options, 'envBlur', { min:0, max:1, mode:mode, color:'#ff0' } ).onChange( Main.setBlur )
+		
+		
 
 		Gui.envui = ui.add( 'list', { name:'Envmap', list:Main.envList, value:options.envmap, path:'assets/textures/equirectangular/mini/', format:'.jpg', m:0, imageSize: [128,64], h:40}).onChange( Main.setEnv )
-
-
+		ui.add( options, 'envBlur', { min:0, max:1, mode:mode, color:'#8ff' } ).onChange( Main.setBlur )
+		ui.add( options, 'envPower', { min:0, max:3, mode:mode, color:'#8ff' } ).onChange( Main.envmapIntensity )
+		//ui.add( options, 'legacy',  { type:'bool' }).onChange( function(v){ renderer.useLegacyLights  = v })
+        //ui.add( options, 'shadow', { min:0, max:1, mode:mode, color:'#8ff' } ).onChange( Main.setShadow )//.listen()
+		ui.add( options, 'reflect', { min:0, max:1, mode:mode, color:'#8ff' } ).onChange( Main.setReflect )//.listen()
 
 		const hub3d = Main.getHub3d();
 		if(hub3d){

@@ -338,7 +338,7 @@ export const Main = {
 		//return Main.demoList
 	},
 
-	lightIntensity:() => { lightIntensity() },
+	lightIntensity:(a,b,c) => { lightIntensity(a,b,c) },
 	envmapIntensity:() => { setEnvmapIntensity() },
 	setReflect:(v) => { setReflect(v) },
 
@@ -401,6 +401,7 @@ export const Main = {
 
 Motor.log = Hub.log;
 
+Motor.lightIntensity = Main.lightIntensity
 
 Motor.initParticle = Main.initParticle
 Motor.addParticle = Main.addParticle
@@ -464,6 +465,12 @@ const init = () => {
 		//premultipliedAlpha: false,
 		//stencil: false,
 		alpha: false,
+	    depth: true,
+	    stencil: true,
+	    antialias: false,
+	    premultipliedAlpha: true,
+	    preserveDrawingBuffer: false,
+	    failIfMajorPerformanceCaveat: false,
 	})
 	
 	renderer.setPixelRatio( pixelRatio );
@@ -648,10 +655,14 @@ const addControl = () => {
 //   LIGHT
 //--------------------
 
-const lightIntensity = (a,b) => {
+const lightIntensity = (a,b,c) => {
 
-	if( a ) options.light_1 = a
-	if( b ) options.light_2 = b
+	if( a !== undefined ) options.light_1 = a
+	if( b !== undefined ) options.light_2 = b
+	if( c !== undefined ){ 
+		options.exposure = c
+		renderer.toneMappingExposure = options.exposure;
+	}
 
 	Lights.update( { sunIntensity:options.light_1, hemiIntensity:options.light_2 })
 

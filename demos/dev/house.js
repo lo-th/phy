@@ -7,11 +7,13 @@ let mesh;
 
 demo = () => {
 
-    phy.view({ theta:-25, distance:30, x:0, ground:false, envmap:'clear' });
+    phy.view({ theta:-25, distance:30, x:0, ground:false, envmap:'clear', fog:true, fogRange:[10,100], fogMode:1, });
     phy.set({ substep:1, gravity:[0,-9.81,0] });
 
     //phy.add({ type:'plane', name:'floor', size:[ 300,1,300 ], visible:false });
-    phy.add({ type:'box', name:'floor', size:[ 100,1,100 ], pos:[0,-0.5,0], visible:false });
+    //phy.add({ type:'box', name:'floor', size:[ 100,1,100 ], pos:[0,-0.5,0], visible:false });
+    phy.lightIntensity( 6, 0, 0.7 )
+
 
     // gui
     gui = phy.gui();
@@ -27,6 +29,8 @@ demo = () => {
 
 onComplete = () => {
 
+    
+
     let scene = phy.getGlb('house');
     
     
@@ -35,31 +39,27 @@ onComplete = () => {
     //let group = phy.getGroup('house' );
 
     
-    //mat.facade.vertexColors = false
+    mat.facade.color.setHex(0xFFFFFF);
+    mat.toiture.color.setHex(0xf0b59c);
+    mat.floor.color.setHex(0xFFFFFF);
+    mat.jardin.color.setHex(0xFFFFFF);
+    mat.glass.alphaToCoverage = true;
+
     mat.facade.map = phy.texture({ url:'./assets/textures/facade.jpg', flip:true, encoding:true });
     mat.toiture.map = phy.texture({ url:'./assets/textures/roof.jpg', flip:true, encoding:true, repeat:[3,2] });
     mat.floor.map = phy.texture({ url:'./assets/textures/floor.jpg', flip:true, encoding:true });
-
-    //mesh.Extern.visible = false
-
+    mat.jardin.map = phy.texture({ url:'./assets/textures/terrain/grass_c.jpg', flip:true, encoding:true, repeat:[16,16] });
 
 
     phy.add( scene )
 
-    //meshes.mur.material.map = phy.texture({ url:'./assets/textures/facade.jpg', flip:true, encoding:true });
-    /*meshes.wood_floor.material.roughness = 0.5;
-    //meshes.wood_floor.material.shadowSide = THREE.DoubleSide;
-    //console.log(meshes.wood_floor.material)
-    data.wood.mesh = meshes.wood_floor;
-    data.wall.mesh = meshes.wood_wall;
-    data.stone.mesh = meshes.stone;
+    for(let m in mat){
+        //mat.facade.vertexColors = false
+        //mat[m].shadowSide = THREE.DoubleSide;
+    }
 
     
-
-    run();*/
-
-    
-   /* for(let m in mesh){
+    for(let m in mesh){
         mesh[m].receiveShadow = true;
         mesh[m].castShadow = true;
     }
@@ -67,7 +67,7 @@ onComplete = () => {
     mesh.zone.castShadow = false;
     mesh.jardin.castShadow = false;
     mesh.glass.castShadow = false;
-   */
+   
 }
 
 click = ( name ) => {
