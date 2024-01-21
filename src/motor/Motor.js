@@ -1064,9 +1064,16 @@ export class Motor {
 		return Pool.getGroup( obj, autoMesh, autoMaterial );
 	}
 
-	static getGLB ( obj, autoMaterial ){
+	static getGlb ( obj, autoMaterial ){
 		return Pool.getGLB( obj, autoMaterial );
 	}
+
+	static getGlbMaterial ( obj ){
+		let ms = Pool.getMaterials( obj );
+		Mat.addToMat( ms );
+		return ms;
+	}
+
 
 	static getScript ( name ){
 		return Pool.getScript( name );

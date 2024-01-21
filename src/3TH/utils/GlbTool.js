@@ -51,20 +51,41 @@ export const GlbTool = {
     // 10_silver ...
 
     getMaterial:( scene, toArray ) => {
+
     	const Mats = {}
         const mats = [] 
-        let m, n
+        let m, n;
+
         scene.traverse( ( child ) => {
+
             if ( child.isMesh ){ 
+
             	m = child.material;
+
             	if( !Mats[m.name] ){
             		Shader.add( m );
+                    m.vertexColors = false
             		Mats[m.name] = m;
-            		n = Number( m.name.substring( 0, m.name.lastIndexOf('_') )  )
-            		mats[n] = m
-            	}
+            		
+            		if( toArray ){
+                        n = Number( m.name.substring( 0, m.name.lastIndexOf('_') )  )
+                        mats[n] = m
+                    }
+            	} else {
+                    child.material = Mats[m.name];
+                }
+
             }
         })
+
+        /*scene.traverse( ( child ) => {
+            if ( child.isMesh ){
+                m = child.material;
+                let name = m.name;
+                child.material = Mats[name];
+            }
+        })*/
+
         return toArray ? mats : Mats;
     },
 

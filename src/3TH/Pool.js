@@ -128,6 +128,12 @@ export const Pool = {
         return obj
     },
 
+    getMaterialList:( obj, keepMaterial ) => {
+        if( typeof obj === 'string' ) obj = Pool.get( obj, 'O' );
+        if(!obj) return console.error('Not find Model ?')
+        return GlbTool.getMesh( obj, keepMaterial )
+    },
+
     getMesh:( obj, keepMaterial ) => {
         if( typeof obj === 'string' ) obj = Pool.get( obj, 'O' );
         if(!obj) return console.error('Not find Model ?')

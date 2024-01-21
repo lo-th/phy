@@ -17,7 +17,7 @@ import { MeshSssMaterial } from '../../3TH/materials/MeshSssMaterial.js';
 //-------------------
 
 //const mat = new Map()
-const mat = {}
+let mat = {}
 
 let TmpMat = [];
 
@@ -170,6 +170,12 @@ export const Mat = {
 		if(!direct) Mat.extendShader( m, beforeCompile );
 		mat[m.name] = m;
 		//Mat.setEnvmapIntensity(m)
+
+	},
+
+	addToMat:( o ) => {
+
+		mat = { ...mat, ...o }
 
 	},
 
