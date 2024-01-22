@@ -384,10 +384,8 @@ export const Main = {
 
 		if( ground && groundAutoColor ) ground.setColor( groundColor )
 
-		let c = Gui.tool.htmlRgba( palette.darkMuted, 0.4 )
-		//console.log(c)
-
-		Hub.setTopColor( Gui.tool.htmlRgba(palette.darkMuted, 0.4) )
+		//let c = Gui.tool.htmlRgba( palette.darkMuted, 0.4 );
+		//Hub.setTopColor( Gui.tool.htmlRgba(palette.darkMuted, 0.4) );
 
 	},
 
@@ -467,7 +465,7 @@ const init = () => {
 		alpha: false,
 	    depth: true,
 	    stencil: true,
-	    antialias: false,
+	    //antialias: false,
 	    premultipliedAlpha: true,
 	    preserveDrawingBuffer: false,
 	    failIfMajorPerformanceCaveat: false,

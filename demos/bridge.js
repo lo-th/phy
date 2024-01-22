@@ -8,7 +8,7 @@ let maxY = 0
 let t1 = 0;
 let num = 0;
 
-let maxCharacter = 1;
+let maxCharacter = 10;
 
 const models = [ 'man', 'woman']
 //const models = [ 'man_low', 'woman_low', 'man', 'woman' ]

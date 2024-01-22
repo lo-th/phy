@@ -379,6 +379,7 @@ class Hero extends Basic3D {
 			randomMorph:o.randomMorph || false,
 			callback:this.callback,
 			fixWeight: this.fixWeight,
+			noLOD : o.noLOD || false,
 		});
 
 		this.add( this.model );

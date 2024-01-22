@@ -262,7 +262,10 @@ export const Human = {
 
         // apply Material
 
-        const startHigh = false;
+
+
+        const startHigh = true;//!Human.haveLOD;
+        //console.log(startHigh, Human.haveLOD)
 
         const def = Pool.getMaterial( 'skin' );
 

@@ -57,7 +57,7 @@ export const Gui = {
 
 	colors:{
 		//content:'rgba(0,0,8,0.5)',
-		fontShadow:'#000',
+		//fontShadow:'#000',
 		//sx: 4,
         //sy: 4,
         radius:3,
@@ -65,13 +65,15 @@ export const Gui = {
         showOver:0,
 		background:'none', //'none',
 		backgroundOver:'none',//'rgba(255,255,255,0.02)',
-
+		font:"'SegoeUI', 'Segoe UI', 'Helvetica Neue', -apple-system, BlinkMacSystemFont, Roboto, Oxygen-Sans, Ubuntu, Cantarell, sans-serif",
+		//font:"'Roboto Mono', 'Source Code Pro', Consolas, monospace",
 		//font:"'Roboto Mono', 'Source Code Pro', Consolas, monospace", 
-		font:"Mulish, sans-serif", 
+		//font:"Mulish, sans-serif", 
 		fontSize:12,
-		weight:'500',
-		text:'#fff',
-		title:'#eee',
+		//weight:'500',
+		//weight:'bold',
+		text:'#eee',
+		title:'#ddd',
 		borderSize:2,
 		joyOut:'rgba(255,255,255,0.1)',
 		joyOver:'rgba(127,255,0,0.2)',
@@ -223,7 +225,7 @@ export const Gui = {
 		ui.add( options, 'mode', { type:'button', values:['LOW', 'HIGH'], selectable:true, unselect:false, p:0 }).onChange( Main.changeMode )
 
 		ui.add( options, 'debug', { type:'bool' }).onChange( Main.debugMode )
-		ui.add( options, 'day', { type:'bool' }).onChange( Hub.setColors )
+		//ui.add( options, 'day', { type:'bool' }).onChange( Hub.setColors )
 		ui.add( options, 'harmony', { type:'bool' }).onChange( Hub.harmony )
 		ui.add( options, 'show_light', { type:'bool' }).onChange( Main.showDebugLight )
 		ui.add( options, 'show_stat', { type:'bool' }).onChange( Main.showStatistic )

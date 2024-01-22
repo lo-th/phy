@@ -1,9 +1,9 @@
-const debug = 1;
+const debug = 0;
 
 demo = () => {
 
 	phy.view({
-        phi:12, theta:0, distance:5, x:0, y:3, z:5, fov:60, 
+        phi:0, theta:0, distance:5, x:0, y:3, z:5, fov:60, 
         envmap:'lobe', envblur: 0.5, //background:0x101010,
         groundReflect:0.3, groundColor:0x808080,
         shadow:0.5,//0.5,
@@ -27,7 +27,7 @@ onComplete_1 = () => {
     Colomn( 8, [ 4, 0, 0 ])
     Colomn( 5, [ -4, 0, 0 ])
 
-   // phy.preload( ['man', 'woman'], onComplete_2 )
+    phy.preload( ['man', 'woman'], onComplete_2 )
 
 }
 
@@ -130,6 +130,7 @@ const Character = () => {
             angle:angle,
             randomMorph:true,
             morph:true,
+            noLOD:true,
             //callback:count,
         });
 
@@ -141,7 +142,7 @@ const Character = () => {
 
     hh[0].debugMode( debug );
 
-    phy.follow('c_0', { direct:true, simple:true, distance:5, phi:12, theta:0, decal:[0.3, 0.5, -0.3], fov:60, zoom:1.0 })
+    phy.follow('c_0', { direct:true, simple:true, distance:5, phi:0, theta:0, decal:[0.3, 0.5, -0.3], fov:60, zoom:1.0 })
     phy.control( 'c_0' );
 
 }

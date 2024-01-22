@@ -26,7 +26,7 @@ export class Lights {
 			type:'direct', name:'sun',
 			intensity:o.light_1,
 			distance:30, parent:parent,
-		    shadow:{ range:60, near:5, far:50, bias: 0.0002 * biasSide, radius:4, quality: 2048 * o.quality }
+		    shadow:{ range:30, near:5, far:50, bias: 0.0002 * biasSide, radius:4, quality: 1024 * o.quality }
 		})
 
     }

@@ -28,7 +28,6 @@ export const Simple = {
 	isEyeMove:false,
 	haveMorph:true,
     
-
     skeletonRef:'body_low',
 	fullMorph: ['MUSCLE', 'LOW', 'BIG'],//, 'MONSTER'
 

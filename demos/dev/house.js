@@ -2,12 +2,15 @@ let n = 1;
 let gui = null;
 let tmp = [];
 const setting = { gravity:-9.81, auto:true, name:'exterieur' };
-const list = [ 'exterieur', 'niveau 1', 'niveau 2' ];
+const list = [ 'Exterieur', 'Niveau 1', 'Niveau 2' ];
 let mesh;
 
 demo = () => {
 
-    phy.view({ theta:-25, distance:30, x:0, ground:false, envmap:'clear', fog:true, fogRange:[10,100], fogMode:1, });
+    phy.view({ 
+        theta:-25, distance:30, x:0, ground:false, envmap:'clear', 
+        fog:true, fogRange:[10,100], fogMode:0, 
+    });
     phy.set({ substep:1, gravity:[0,-9.81,0] });
 
     //phy.add({ type:'plane', name:'floor', size:[ 300,1,300 ], visible:false });
@@ -18,7 +21,7 @@ demo = () => {
     // gui
     gui = phy.gui();
     
-    gui.add( setting, 'name', { type:'grid', values:list, selectable:true, h:26 } ).listen().onChange( click )
+    gui.add( setting, 'name', { type:'button', values:list, selectable:true, h:26, p:0 } ).listen().onChange( click )
     /*gui.add( setting, 'gravity', { min:-30, max:0, mode:2 } ).onChange( (v) => { phy.setGravity([0,v,0]) } )
     gui.add( setting, 'auto' ).listen().onChange( ( b ) => { if(b) next(); } )
     */
@@ -49,6 +52,7 @@ onComplete = () => {
     mat.toiture.map = phy.texture({ url:'./assets/textures/roof.jpg', flip:true, encoding:true, repeat:[3,2] });
     mat.floor.map = phy.texture({ url:'./assets/textures/floor.jpg', flip:true, encoding:true });
     mat.jardin.map = phy.texture({ url:'./assets/textures/terrain/grass_c.jpg', flip:true, encoding:true, repeat:[16,16] });
+    
 
 
     phy.add( scene )
@@ -73,19 +77,19 @@ onComplete = () => {
 click = ( name ) => {
 
     switch(name){
-        case 'exterieur':
+        case 'Exterieur':
         mesh.level1.visible = true;
         mesh.level2.visible = true;
         mesh.Extern.visible = true;
         mesh.Facade.visible = true;
         break;
-        case 'niveau 1':
+        case 'Niveau 1':
         mesh.level1.visible = true;
         mesh.level2.visible = false;
         mesh.Extern.visible = false;
         mesh.Facade.visible = false;
         break;
-        case 'niveau 2':
+        case 'Niveau 2':
         mesh.level2.visible = true;
         mesh.level1.visible = false;
         mesh.Extern.visible = false;

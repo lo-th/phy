@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Mulish:wght@500;700&display=swap");
+/*@import url("https://fonts.googleapis.com/css2?family=Mulish:wght@500;700&display=swap");*/
 
 /*@font-face {
 	font-family: 'Mulish';
@@ -28,7 +28,15 @@ body{
 	margin:0; 
 	padding:0; 
 	overflow:hidden;
+	text-rendering
+    color: #fff;
 
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizelegibility;
+    -webkit-text-size-adjust: 100%;
+    -ms-text-size-adjust: 100%;
+
+    font-family: 'SegoeUI', "Segoe UI", "Helvetica Neue", -apple-system, BlinkMacSystemFont, Roboto, Oxygen-Sans, Ubuntu, Cantarell, sans-serif;
 
 }
 

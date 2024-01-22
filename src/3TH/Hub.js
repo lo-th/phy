@@ -32,7 +32,7 @@ let menu, pin, title, engine, demo, downMenu, innerMenu, zoning, guiButton, over
 let top = null;
 let ratio = 1;
 let listHeight = 0;
-let listTop = 54;
+let listTop = 60//54;
 let maxHeight = 0;
 let sh = 0, range = 0;
 let maxListItem = 10;
@@ -73,12 +73,17 @@ let joy = null;
 let lock = false;
 let timeout = null;
 
-let isDay = true;
+let isDay = false;
 let color = '';
 let colorVisite = '';
-let colorDemo = '#060';
-let dayColor = ['#000', '#444'];
-let nightColor = ['#FFF', '#DDD'];
+let colorDemo = 'rgba(255,235,205,0.7)';
+let panelBackground = '';
+
+
+let dayColor = ['#000', '#444', '#feb', 'rgba(213,211,212,0.32)'];
+let nightColor = ['#ddd', '#bee', '#feb', 'rgba(13,11,12,0.32)'];
+
+
 
 let setting = {
     cross:4,
@@ -99,6 +104,8 @@ export class Hub {
 
         color = day ? dayColor[0] : nightColor[0];
         colorVisite = day ? dayColor[1] : nightColor[1];
+        colorDemo = day ? dayColor[2] : nightColor[2];
+        panelBackground = day ? dayColor[3] : nightColor[3];
         isDay = day;
 
         if(!content) return;
@@ -108,6 +115,7 @@ export class Hub {
         document.querySelector("#guiPath").setAttributeNS(null, 'stroke', color );
         document.querySelector("#svgLoader").setAttributeNS(null, 'fill', color );
         if( isBackLight ) overpad.style.background = isDay ? nightColor[0] : dayColor[0];
+       //top.style.background = panelBackground;
 
     }
 
@@ -143,7 +151,7 @@ export class Hub {
         parent = Parent || document.body;
 
         content = document.createElement( 'div' );
-        content.style.cssText = unselectable + 'position:absolute; margin:0; padding:0; top:0px; left:0px; width:100%; height:100%; display:block; color:'+color+'; font-family: Mulish,sans-serif;'
+        content.style.cssText = unselectable + 'position:absolute; margin:0; padding:0; top:0px; left:0px; width:100%; height:100%; display:block; color:'+color+';'// font-family: Mulish,sans-serif;
         parent.appendChild( content );
 
         content.addEventListener( 'contextmenu', (e)=>{e.preventDefault()}, false )
@@ -313,12 +321,13 @@ export class Hub {
         content.appendChild( menu );
 
         downMenu = document.createElement( 'div' );
-        downMenu.style.cssText = 'position:absolute; top:54px; left:'+marge[0]+'px; overflow:hidden; background:'+bg+'; height:0px; width:0px;'//' width:0px;' //transition: all .1s ease-in-out;
+        downMenu.style.cssText = 'position:absolute; top:60px; left:'+marge[0]+'px; overflow:hidden; background:'+bg+'; height:0px; width:0px;'//'top:54px; width:0px;' //transition: all .1s ease-in-out;
         content.appendChild( downMenu );
 
         innerMenu = document.createElement( 'div' );
-        innerMenu.style.cssText = 'position:absolute; top:0px; left:0px; top:0px; overflow:hidden; background:'+bg+'; display:flex; flex-wrap:warp;'//flex-direction: column; '
+        innerMenu.style.cssText = 'position:absolute; top:0px; left:0px; top:0px; overflow:hidden; background:'+bg+'; border-radius:8px; display:flex; flex-wrap:warp;'+'transition: background 0.5s allow-discrete ease-out;'
         downMenu.appendChild( innerMenu );
+        innerMenu.style.backdropFilter = 'blur(4px)'
 
         zoning.addEventListener("pointerleave", (e) => {
             lock = false
@@ -337,12 +346,12 @@ export class Hub {
         title.innerHTML = Hub.miniIcon('logo', color );
 
         engine = document.createElement( 'div' );
-        engine.style.cssText = 'font-size:16px; font-weight:700;';
+        engine.style.cssText = 'font-size:16px; ';//font-weight:700;
         engine.id = 'engine'
         menu.appendChild( engine )
         
         demo = document.createElement( 'div' );
-        demo.style.cssText = 'font-size:16px; font-weight:700; '//'font-size:16px; font-weight:500;'
+        demo.style.cssText = 'font-size:16px; '//'font-size:16px; font-weight:500;'font-weight:700; 
         demo.id = 'demo'
         menu.appendChild( demo )
         
@@ -352,23 +361,24 @@ export class Hub {
 
 
         debug = document.createElement( 'div' );
-        debug.style.cssText = 'position:absolute; width:300px; bottom:15px; left:'+(marge[0]+8)+'px; font-size:12px; font-weight:500; vertical-align:bottom; text-align:left;'
+        debug.style.cssText = 'position:absolute; width:300px; bottom:15px; left:'+(marge[0]+8)+'px; font-size:12px; vertical-align:bottom; text-align:left;'
         //debug.style.cssText = 'position:absolute; background:'+bg+'; width:300px; margin-left:-150px; bottom:25px; left:50%; font-size:14px; font-weight:500; vertical-align:bottom; text-align:center;'
         content.appendChild( debug )
 
         statistics = document.createElement( 'div' );
-        statistics.style.cssText = 'position:absolute; bottom:25px; left:10px; font-size:14px; font-weight:500; width:400px; white-space: pre; line-height:20px; margin-left:10px;'
+        statistics.style.cssText = 'position:absolute; bottom:25px; left:10px; font-size:14px; width:400px; white-space: pre; line-height:20px; margin-left:10px;'
         content.appendChild( statistics )
 
 
         top = document.createElement( 'div' )
-        top.style.cssText = unselectable + "position:absolute; top:0px; right:0px; width:260px; height:100%; background:rgba(0,0,0,0.4); display:none;"
+        top.style.cssText = unselectable + "position:absolute; top:0px; right:0px; width:260px; height:100%; background:"+panelBackground+"; display:none;"
+
         //top.style.cssText = unselectable + "position:absolute; top:0px; right:5px; width:250px; height:100%; background:#000008; display:none; opacity: 0.7;"
         top.style.backdropFilter = 'blur(4px)'
         content.appendChild( top )
 
         fps = document.createElement( 'div' );
-        fps.style.cssText = 'position:absolute; top:33px; right:'+(marge[0]+20)+'px; text-align:right; font-size:14px; font-weight:500; '
+        fps.style.cssText = 'position:absolute; top:33px; right:'+(marge[0]+20)+'px; text-align:right; font-size:14px;'
         content.appendChild( fps )
 
         guiButton = document.createElement( 'div' );
@@ -391,7 +401,7 @@ export class Hub {
     }
 
     static setTopColor ( c = '#000000' ) {
-        if(top) top.style.background = c
+        //if(top) top.style.background = c
     }
 
     static harmony ( v ) {
@@ -442,7 +452,7 @@ export class Hub {
 
         return `<svg xmlns='http://www.w3.org/2000/svg' version='1.1' xmlns:xlink='http://www.w3.org/1999/xlink' style='pointer-events:none;' 
         preserveAspectRatio='xMinYMax meet' x='0px' y='0px' width='20px' height='20px' viewBox='0 0 40 40'>
-        <path id='svgLogo' stroke='${color}' stroke-width='4' transform='translate(0, 4)' stroke-linejoin='round' stroke-linecap='round' 
+        <path id='svgLogo' stroke='${color}' stroke-width='3' transform='translate(0, 4)' stroke-linejoin='round' stroke-linecap='round' 
         fill='none' d='${p}''></svg>`
 
     }
@@ -463,6 +473,7 @@ export class Hub {
 
         downMenu.style.height = '0px'
         innerMenu.innerHTML = '';
+        innerMenu.style.background = 'none';
         zoning.style.width = '0px'
         zoning.style.height = '0px'
         currentMenu = '';
@@ -497,18 +508,18 @@ export class Hub {
         innerMenu.style.width = 'auto';
         innerMenu.style.display = 'flex';
         innerMenu.style.flexDirection = 'column';
-        //innerMenu.style.background = '#ff00ff'
+        innerMenu.style.background = panelBackground;
 
         const bb = []
         
         while( i-- ){
 
-            name = list[n]
+            name = list[n];
             m = document.createElement( 'div' );
             innerMenu.appendChild( m );
             m.classList.add("down");
             
-            m.style.cssText = 'font-size:14px; font-weight:700; width:fit-content; padding:4px 10px'//type === 'demo' ? 'font-size:16px; font-weight:500;' : 'font-size:16px; font-weight:700;'
+            m.style.cssText = 'font-size:14px; width:fit-content; padding:4px 10px';//type === 'demo' ? 'font-size:16px; font-weight:500;' : 'font-size:16px; font-weight:700;'font-weight:700; 
             m.id = name
             m.textContent = name;
             //m.style.background = '#ff00ff'
@@ -522,7 +533,8 @@ export class Hub {
             //bb[n] = m
             
             this.effect( m, true );
-            n++
+            n++;
+
         }
 
         
