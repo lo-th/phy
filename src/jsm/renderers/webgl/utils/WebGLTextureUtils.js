@@ -135,6 +135,17 @@ class WebGLTextureUtils {
 
 		}
 
+		if ( glFormat === gl.RGB ) {
+
+			if ( glType === gl.FLOAT ) internalFormat = gl.RGB32F;
+			if ( glType === gl.HALF_FLOAT ) internalFormat = gl.RGB16F;
+			if ( glType === gl.UNSIGNED_BYTE ) internalFormat = gl.RGB8;
+			if ( glType === gl.UNSIGNED_SHORT_5_6_5 ) internalFormat = gl.RGB565;
+			if ( glType === gl.UNSIGNED_SHORT_5_5_5_1 ) internalFormat = gl.RGB5_A1;
+			if ( glType === gl.UNSIGNED_SHORT_4_4_4_4 ) internalFormat = gl.RGB4;
+
+		}
+
 		if ( glFormat === gl.RGBA ) {
 
 			if ( glType === gl.FLOAT ) internalFormat = gl.RGBA32F;
@@ -172,7 +183,9 @@ class WebGLTextureUtils {
 
 	setTextureParameters( textureType, texture ) {
 
-		const { gl, extensions } = this;
+		const { gl, extensions, backend } = this;
+
+		const { currentAnisotropy } = backend.get( texture );
 
 		gl.texParameteri( textureType, gl.TEXTURE_WRAP_S, wrappingToGL[ texture.wrapS ] );
 		gl.texParameteri( textureType, gl.TEXTURE_WRAP_T, wrappingToGL[ texture.wrapT ] );
@@ -187,7 +200,7 @@ class WebGLTextureUtils {
 
 
 		// follow WebGPU backend mapping for texture filtering
-		const minFilter = texture.minFilter === LinearFilter ? LinearMipmapLinearFilter : texture.minFilter;
+		const minFilter = ! texture.isVideoTexture && texture.minFilter === LinearFilter ? LinearMipmapLinearFilter : texture.minFilter;
 
 		gl.texParameteri( textureType, gl.TEXTURE_MIN_FILTER, filterToGL[ minFilter ] );
 
@@ -200,16 +213,15 @@ class WebGLTextureUtils {
 
 		if ( extensions.has( 'EXT_texture_filter_anisotropic' ) === true ) {
 
-			//extension = extensions.get( 'EXT_texture_filter_anisotropic' );
-
 			if ( texture.magFilter === NearestFilter ) return;
 			if ( texture.minFilter !== NearestMipmapLinearFilter && texture.minFilter !== LinearMipmapLinearFilter ) return;
 			if ( texture.type === FloatType && extensions.has( 'OES_texture_float_linear' ) === false ) return; // verify extension for WebGL 1 and WebGL 2
 
-			if ( texture.anisotropy > 1 /*|| properties.get( texture ).__currentAnisotropy*/ ) {
+			if ( texture.anisotropy > 1 || currentAnisotropy !== texture.anisotropy ) {
 
-				//gl.texParameterf( textureType, extension.TEXTURE_MAX_ANISOTROPY_EXT, Math.min( texture.anisotropy, capabilities.getMaxAnisotropy() ) );
-				//properties.get( texture ).__currentAnisotropy = texture.anisotropy;
+				const extension = extensions.get( 'EXT_texture_filter_anisotropic' );
+				gl.texParameterf( textureType, extension.TEXTURE_MAX_ANISOTROPY_EXT, Math.min( texture.anisotropy, backend.getMaxAnisotropy() ) );
+				backend.get( texture ).currentAnisotropy = texture.anisotropy;
 
 			}
 
@@ -286,6 +298,41 @@ class WebGLTextureUtils {
 			glType,
 			glInternalFormat
 		} );
+
+	}
+
+	copyBufferToTexture( buffer, texture ) {
+
+		const { gl, backend } = this;
+
+		const { textureGPU, glTextureType, glFormat, glType } = backend.get( texture );
+
+		const { width, height } = texture.source.data;
+
+		gl.bindBuffer( gl.PIXEL_UNPACK_BUFFER, buffer );
+
+		backend.state.bindTexture( glTextureType, textureGPU );
+
+		gl.pixelStorei( gl.UNPACK_FLIP_Y_WEBGL, false );
+		gl.pixelStorei( gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false );
+		gl.texSubImage2D( glTextureType, 0, 0, 0, width, height, glFormat, glType, 0 );
+
+		gl.bindBuffer( gl.PIXEL_UNPACK_BUFFER, null );
+
+		backend.state.unbindTexture();
+		// debug
+		// const framebuffer = gl.createFramebuffer();
+		// gl.bindFramebuffer( gl.FRAMEBUFFER, framebuffer );
+		// gl.framebufferTexture2D( gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, glTextureType, textureGPU, 0 );
+
+		// const readout = new Float32Array( width * height * 4 );
+
+		// const altFormat = gl.getParameter( gl.IMPLEMENTATION_COLOR_READ_FORMAT );
+		// const altType = gl.getParameter( gl.IMPLEMENTATION_COLOR_READ_TYPE );
+
+		// gl.readPixels( 0, 0, width, height, altFormat, altType, readout );
+		// gl.bindFramebuffer( gl.FRAMEBUFFER, null );
+		// console.log( readout );
 
 	}
 
@@ -486,20 +533,24 @@ class WebGLTextureUtils {
 		const width = texture.image.width;
 		const height = texture.image.height;
 
-		state.bindFramebuffer( gl.READ_FRAMEBUFFER, null );
-
 		if ( texture.isDepthTexture ) {
 
-			const fb = gl.createFramebuffer();
+			let mask = gl.DEPTH_BUFFER_BIT;
 
-			gl.bindFramebuffer( gl.DRAW_FRAMEBUFFER, fb );
+			if ( renderContext.stencil ) {
+
+				mask |= gl.STENCIL_BUFFER_BIT;
+
+			}
+
+			const fb = gl.createFramebuffer();
+			state.bindFramebuffer( gl.DRAW_FRAMEBUFFER, fb );
 
 			gl.framebufferTexture2D( gl.DRAW_FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.TEXTURE_2D, textureGPU, 0 );
 
-			gl.blitFramebuffer( 0, 0, width, height, 0, 0, width, height, gl.DEPTH_BUFFER_BIT, gl.NEAREST );
+			gl.blitFramebuffer( 0, 0, width, height, 0, 0, width, height, mask, gl.NEAREST );
 
 			gl.deleteFramebuffer( fb );
-
 
 		} else {
 
@@ -620,10 +671,11 @@ class WebGLTextureUtils {
 		if ( glType === gl.UNSIGNED_SHORT_5_5_5_1 ) return Uint16Array;
 		if ( glType === gl.UNSIGNED_SHORT_5_6_5 ) return Uint16Array;
 		if ( glType === gl.UNSIGNED_SHORT ) return Uint16Array;
-
 		if ( glType === gl.UNSIGNED_INT ) return Uint32Array;
 
-		if ( glType === gl.UNSIGNED_FLOAT ) return Float32Array;
+		if ( glType === gl.FLOAT ) return Float32Array;
+
+		throw new Error( `Unsupported WebGL type: ${glType}` );
 
 	}
 

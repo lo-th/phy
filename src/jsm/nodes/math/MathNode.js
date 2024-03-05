@@ -57,6 +57,14 @@ class MathNode extends TempNode {
 
 			return 'vec3';
 
+		} else if ( method === MathNode.ALL ) {
+
+			return 'bool';
+
+		} else if ( method === MathNode.EQUALS ) {
+
+			return builder.changeComponentType( this.aNode.getNodeType( builder ), 'bool' );
+
 		} else if ( method === MathNode.MOD ) {
 
 			return this.aNode.getNodeType( builder );
@@ -195,6 +203,10 @@ class MathNode extends TempNode {
 
 // 1 input
 
+MathNode.ALL = 'all';
+MathNode.ANY = 'any';
+MathNode.EQUALS = 'equals';
+
 MathNode.RADIANS = 'radians';
 MathNode.DEGREES = 'degrees';
 MathNode.EXP = 'exp';
@@ -253,6 +265,12 @@ export default MathNode;
 
 export const EPSILON = float( 1e-6 );
 export const INFINITY = float( 1e6 );
+export const PI = float( Math.PI );
+export const PI2 = float( Math.PI * 2 );
+
+export const all = nodeProxy( MathNode, MathNode.ALL );
+export const any = nodeProxy( MathNode, MathNode.ANY );
+export const equals = nodeProxy( MathNode, MathNode.EQUALS );
 
 export const radians = nodeProxy( MathNode, MathNode.RADIANS );
 export const degrees = nodeProxy( MathNode, MathNode.DEGREES );
@@ -302,6 +320,7 @@ export const pow4 = nodeProxy( MathNode, MathNode.POW, 4 );
 export const transformDirection = nodeProxy( MathNode, MathNode.TRANSFORM_DIRECTION );
 
 export const cbrt = ( a ) => mul( sign( a ), pow( abs( a ), 1.0 / 3.0 ) );
+export const lengthSq = ( a ) => dot( a, a );
 export const mix = nodeProxy( MathNode, MathNode.MIX );
 export const clamp = ( value, low = 0, high = 1 ) => nodeObject( new MathNode( MathNode.CLAMP, nodeObject( value ), nodeObject( low ), nodeObject( high ) ) );
 export const saturate = ( value ) => clamp( value );
@@ -311,6 +330,10 @@ export const faceForward = nodeProxy( MathNode, MathNode.FACEFORWARD );
 
 export const mixElement = ( t, e1, e2 ) => mix( e1, e2, t );
 export const smoothstepElement = ( x, low, high ) => smoothstep( low, high, x );
+
+addNodeElement( 'all', all );
+addNodeElement( 'any', any );
+addNodeElement( 'equals', equals );
 
 addNodeElement( 'radians', radians );
 addNodeElement( 'degrees', degrees );
@@ -333,6 +356,7 @@ addNodeElement( 'atan', atan );
 addNodeElement( 'abs', abs );
 addNodeElement( 'sign', sign );
 addNodeElement( 'length', length );
+addNodeElement( 'lengthSq', lengthSq );
 addNodeElement( 'negate', negate );
 addNodeElement( 'oneMinus', oneMinus );
 addNodeElement( 'dFdx', dFdx );

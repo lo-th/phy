@@ -9,8 +9,7 @@ import {
     DoubleSide,
     MeshStandardMaterial,
     MeshPhysicalMaterial,
-    MeshBasicMaterial,
-    sRGBEncoding
+    MeshBasicMaterial
 } from 'three';
 
 import { mergeVertices, mergeGeometries } from '../../jsm/utils/BufferGeometryUtils.js';

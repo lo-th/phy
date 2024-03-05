@@ -24,10 +24,10 @@ export class Body extends Item {
 		this.num = Num[this.type];
 		this.full = false;
 
-		this.v = new Jolt.Vec3();
+		this.v = new Jolt.RVec3();
 		this.q = new Jolt.Quat();
 
-		this.v2 = new Jolt.Vec3();
+		this.v2 = new Jolt.RVec3();
 		this.q2 = new Jolt.Quat();
 
 	}
@@ -534,7 +534,7 @@ export class Body extends Item {
 
 	    	}
 
-	    	// void MoveKinematic([Const, Ref] Vec3 inPosition, [Const, Ref] Quat inRotation, float inDeltaTime);
+	    	// void MoveKinematic([Const, Ref] RVec3 inPosition, [Const, Ref] Quat inRotation, float inDeltaTime);
 	    	//https://github.com/jrouwe/JoltPhysics.js/blob/0f3538a7a9615cbdbafa452f12997e3ea6a9fd55/JoltJS.idl#L728
 
 	    	/*if( o.pos ){ 

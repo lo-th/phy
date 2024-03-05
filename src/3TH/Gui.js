@@ -597,7 +597,48 @@ export const Gui = {
 
         ui.clear()
 
-		let mats = Main.motor.getMaterialList()
+        const Mat = Main.motor.getMatRef();
+        let mats = Mat.getList();
+
+        if( Mat.isRealism ) {
+
+        	let options = Mat.realismOption
+
+        	const upShader = function(){ 
+        		Mat.upShader( options );
+		    	//Main.setCamera( {...controler.info } )
+		    }
+
+        	let gr = ui.add('group', { name:'REAL LIGHT', color:'#FFFF88', h:30 });
+        	gr.add( options, 'enableESL', {}).onChange(upShader)
+        	//gr.add( options, 'exposure', { min:0, max:2 }).onChange((v)=>{renderer.toneMappingExposure = v;}) 
+			gr.add( options, 'envMapIntensity', { min:0.01, max:2 }).onChange(upShader)
+			gr.add( 'empty', { h:10 }) 
+			gr.add( options, 'aoColor', { }).onChange(upShader) 
+			gr.add( options, 'hemisphereColor',  { }).onChange(upShader) 
+			gr.add( options, 'irradianceColor',  { }).onChange(upShader)
+			gr.add( options, 'radianceColor', { }).onChange(upShader)
+			gr.add( 'empty', { h:10 }) 
+			gr.add( options, 'aoPower', { min:0, max:12 }).onChange(upShader) 
+			gr.add( options, 'aoSmoothing',  { min:0, max:1 }).onChange(upShader) 
+			gr.add( options, 'aoMapGamma',  { min:0.5, max:1.5 }).onChange(upShader)
+			gr.add( 'empty', { h:10 }) 
+			gr.add( options, 'lightMapGamma', { min:0.5, max:1.5 }).onChange(upShader) 
+			gr.add( options, 'lightMapSaturation',  { min:0, max:2.5 }).onChange(upShader) 
+			gr.add( options, 'lightMapContrast', { min:0.5, max:1.5 }).onChange(upShader) 
+			gr.add( 'empty', { h:10 }) 
+			gr.add( options, 'envPower',  { min:0, max:16 }).onChange(upShader)
+			gr.add( options, 'roughnessPower', { min:0, max:4 }).onChange(upShader) 
+			gr.add( options, 'sunIntensity',  { min:0, max:15 }).onChange(upShader) 
+			gr.add( options, 'mapContrast',  { min:0.5, max:1.5 }).onChange(upShader)
+			
+			gr.add( options, 'smoothingPower',  { min:0, max:1 }).onChange(upShader) 
+			gr.add( options, 'irradianceIntensity',  { min:0, max:10 }).onChange(upShader)
+			gr.add( options, 'radianceIntensity',  { min:0, max:10 }).onChange(upShader)
+
+        }
+
+		//let mats = Main.motor.getMaterialList();
 		const matList = ui.add( 'list', { name:'', list:mats, p:0, value:Gui.currentMat, h:40 }).onChange( Gui.materialEdit )
 
 		if( !Gui.currentMat ) {

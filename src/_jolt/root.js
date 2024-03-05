@@ -48,8 +48,8 @@ export const root = {
 	tmpv:null,
 	tmpq:null,
 
-	v3:(ar,n) => { pool.tmpv = new Jolt.Vec3().fromArray(ar,n); return pool.tmpv; },
-	q:(ar,n) => { pool.tmpq = new Jolt.Vec3().fromArray(ar,n); return pool.tmpq; },
+	v3:(ar,n) => { pool.tmpv = new Jolt.RVec3().fromArray(ar,n); return pool.tmpv; },
+	q:(ar,n) => { pool.tmpq = new Jolt.RVec3().fromArray(ar,n); return pool.tmpq; },
 	free:() => {
 		if(pool.tmpv) Jolt.destroy(pool.tmpv);
 		if(pool.tmpq) Jolt.destroy(pool.tmpq);
@@ -128,7 +128,7 @@ export const Utils = {
 
 		Jolt.Vec3.prototype.clone = function ( v ){
 
-			return new Jolt.Vec3( v.GetX(), v.GetY(), v.GetZ() );
+			return new Jolt.RVec3( v.GetX(), v.GetY(), v.GetZ() );
 
 		}
 
@@ -141,6 +141,43 @@ export const Utils = {
 		}
 
 		Jolt.Vec3.prototype.toArray = function ( r, n ){
+
+			let direct = r !== undefined
+			n = n || 0
+			if( !direct ) r = []
+
+			r[ n ] = this.GetX();
+			r[ n + 1 ] = this.GetY();
+			r[ n + 2 ] = this.GetZ();
+
+			if(!direct) return r
+
+		}
+
+	////////////////
+
+		Jolt.RVec3.prototype.set = function ( x,y,z ){
+
+			this.Set( x, y, z );
+			return this;
+
+		}
+
+		Jolt.RVec3.prototype.clone = function ( v ){
+
+			return new Jolt.RVec3( v.GetX(), v.GetY(), v.GetZ() );
+
+		}
+
+		Jolt.RVec3.prototype.fromArray = function ( r, n ){
+
+			n = n || 0;
+			this.Set( r[ n ], r[ n + 1 ], r[ n + 2 ] )
+			return this;
+			
+		}
+
+		Jolt.RVec3.prototype.toArray = function ( r, n ){
 
 			let direct = r !== undefined
 			n = n || 0

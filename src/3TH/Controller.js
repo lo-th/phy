@@ -1,6 +1,6 @@
 
 import {
-    Vector3, Quaternion, Matrix4, Euler
+    Vector3, Quaternion, Matrix4, Euler, Spherical
 } from 'three';
 //import * as TWEEN from 'tween'
 import * as TWEEN from '../libs/tween.esm.js'
@@ -26,7 +26,8 @@ export class Controller extends OrbitControls {
         this.isDecal = false;
         this.isInDecal = false;
 
-        this.tmpP =  new Vector3();
+        this.tmpS = new Spherical();
+        this.tmpP = new Vector3();
         this.tmpQ = new Quaternion();
 
     	this.cam = {
@@ -70,16 +71,40 @@ export class Controller extends OrbitControls {
         this.tmpMatrix = new Matrix4();
         this.tmpE = new Euler();
         this.tmpV = new Vector3();
+        this.tmpV2 = new Vector3();
 
         this.info = { x:0, y:0, z:0, distance: 0, phi: 0, theta:0, fov: 0, zoom: 0 }
 
         this.getInfo();
 
         this.isFree = true;
-
         this.rayClipper = null;
 
         this.tmpV1 = new Vector3();
+
+    }
+
+    up ( deltaTime = null ) {
+
+        if( this.enableDamping && this.enabled ) this.update();
+        if( this.follow ) this.follow(deltaTime);
+
+    }
+
+    resetAll () {
+
+        this.minDistance = 0.001;
+        this.maxDistance = 100;
+        this.enablePan = true;
+        this.enableDamping = true;
+        this.dampingFactor = 0.05;
+        this.screenSpacePanning = true;
+        this.zoomToCursor = true;
+        this.stopMoveCam();
+        this.resetFov();
+        this.resetFollow();
+        this.setLimite();
+        this.reverse = false;
 
     }
 
@@ -129,6 +154,10 @@ export class Controller extends OrbitControls {
             return;
         }
 
+        this.enableDamping = o.enableDamping || false;
+        if( o.dampingFactor !== undefined ) this.dampingFactor = o.dampingFactor;
+
+
         //cam.pov = o.pov || null;
 
 
@@ -167,12 +196,14 @@ export class Controller extends OrbitControls {
 
         o = o || {};
 
-        this.enableDamping = false
+        //this.enableDamping = false
         this.zoomToCursor = false
         this.screenSpacePanning = false
 
         this.cam.oldp.copy( mesh.position );
         this.cam.oldq.copy( mesh.quaternion );
+
+        //this.object.matrixAutoUpdate = false;
 
         //this.moveCam( this.cam )
 
@@ -201,20 +232,15 @@ export class Controller extends OrbitControls {
 
     }
 
+    setOption ( o ) {
 
-    resetAll () {
-		
-        this.enablePan = true;
-        this.enableDamping = true;
-        this.screenSpacePanning = true
-        this.zoomToCursor = true
-		this.stopMoveCam();
-        this.resetFov();
-        this.resetFollow();
-        this.setLimite();
-        this.reverse = false;
+        for(let m in o){
+            if(this[m]) this[m] = o[m];
+        }
 
     }
+
+    
 
     setLimite ( o ){
 
@@ -244,6 +270,7 @@ export class Controller extends OrbitControls {
         this.followGroup.position.set(0,0,0);
 		this.followTarget = null;
         this.enabled = true;
+        //this.object.matrixAutoUpdate = true;
 
 
         /*if( this.rayClipper !== null ){ 
@@ -294,6 +321,8 @@ export class Controller extends OrbitControls {
         const sph = this.getSpherical();
         const state = this.getState();
 
+        this.followTarget.updateMatrix();
+
 
 
 
@@ -316,15 +345,24 @@ export class Controller extends OrbitControls {
         //console.log(this.tmpP)
 
 
-        if(cam.simple){
+        if( cam.simple ){
 
             this.tmpV.copy( cam.decal )//.applyAxisAngle( { x:1, y:0, z:0 }, phi - math.PI90 )
+            this.tmpV.applyAxisAngle( { x:0, y:1, z:0 }, sph.theta )
             this.tmpV.applyAxisAngle( { x:0, y:1, z:0 }, sph.theta )
             //cam.offset.copy( p ).add( this.tmpV ).applyAxisAngle( { x:0, y:1, z:0 }, cam.theta );
 
             target.copy( p ).add( this.tmpV )
             camera.position.setFromSpherical( sph ).add( target );
-            camera.lookAt( target );
+            //camera.lookAt( target );
+
+            
+            /*p.add(this.tmpV)
+            target.lerp( p, cam.stiffness );
+            this.tmpV2.setFromSpherical( sph ).add( target );
+            //camera.position.lerp( this.tmpV2, cam.stiffness );
+            camera.position.copy(this.tmpV2)*/
+            //camera.updateMatrix();
 
             this.updateFollowGroup();
 
@@ -450,23 +488,31 @@ export class Controller extends OrbitControls {
 
         this.update();
 
-        var t = this.target;
-        var c = this.object;
-        var sph = this.getSpherical();
+        const t = this.target;
+        const c = this.object;
+        /*
+        const sph = this.getSpherical();
+        let phi = sph.phi;
+        let theta = sph.theta;
+        let distance = sph.radius;
+        */
 
-        this.info.x = t.x
-        this.info.y = t.y
-        this.info.z = t.z
+        let phi = this.getPolarAngle();
+        let theta = this.getAzimuthalAngle();
+        let distance = this.getDistance();
 
-        this.object.dist = sph.radius
+        this.info.x = t.x;
+        this.info.y = t.y;
+        this.info.z = t.z;
 
-        this.info.distance = sph.radius
+        this.object.dist = distance;
+        this.info.distance = distance;
 
-        this.info.phi = math.unwrapDeg(-Math.floor( sph.phi * math.todeg ) + 90)
-        this.info.theta = math.unwrapDeg(Math.floor( sph.theta * math.todeg ))
+        this.info.phi = math.unwrapDeg(-Math.floor( phi * math.todeg ) + 90)
+        this.info.theta = math.unwrapDeg(Math.floor( theta * math.todeg ))
 
-        this.info.fov = c.fov
-        this.info.zoom = c.zoom
+        this.info.fov = c.fov;
+        this.info.zoom = c.zoom;
 
     }
 
@@ -518,7 +564,7 @@ export class Controller extends OrbitControls {
         var shortest = data.shortest !== undefined ? data.shortest : true;
 		
 		if( o.theta !== undefined && shortest ){ // get shortest distance
-			var prvh = this.getSpherical().theta * math.todeg;
+			var prvh = this.getAzimuthalAngle() * math.todeg;
 			o.theta = prvh + math.angleDistance(o.theta, prvh);
 		}
 		

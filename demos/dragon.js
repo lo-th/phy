@@ -13,6 +13,10 @@ demo = () => {
     // config physics setting
     phy.set( {substep:1, gravity:[0,0,0]})
 
+    //phy.lightIntensity( 6, 0, 0.7 );
+
+    phy.useRealLight( {aoColor:0xff9000} );
+
     // add static ground
     //phy.add({ type:'plane', size:[300,1,300], pos:[0,-8,0], visible:false })
 
@@ -20,8 +24,8 @@ demo = () => {
 
     // preLoad
     const maps = [
-    'textures/dragon/dragon_d.jpg', 'textures/dragon/dragon_a.jpg', 'textures/dragon/dragon_n.jpg',
-    'textures/dragon/torii_d.jpg', 'textures/dragon/torii_ao.jpg'//, 'textures/dragon/torii_r.jpg',
+    'textures/dragon/dragon_d.jpg', 'textures/dragon/dragon_a.jpg', 'textures/dragon/dragon_n.jpg', 'textures/dragon/dragon_ao.jpg',
+    'textures/dragon/torii_d.jpg', 'textures/dragon/torii_ao.jpg', 'textures/dragon/torii_r.jpg',
     ]
 
     phy.load( ['models/dragon.glb', 'models/gate.glb', ...maps], onComplete, './assets/' );
@@ -30,21 +34,23 @@ demo = () => {
 
 onComplete = () => {
 
+    //phy.changeShadow( {range:60, far:100} );
+
     const models = phy.getMesh('dragon');
 
     // make material
     let material = phy.material({ 
         name:'dragon', 
         roughness: 0.02, 
-        metalness: 0.0, 
+        metalness: 0.3, 
         map: phy.texture({ url:'textures/dragon/dragon_d.jpg' }), 
-        //aoMap: phy.texture({ url:'textures/dragon/dragon_ao.jpg' }),
+        aoMap: phy.texture({ url:'textures/dragon/dragon_ao.jpg' }),
         alphaMap: phy.texture({ url:'textures/dragon/dragon_a.jpg' }),
         normalMap: phy.texture({ url:'textures/dragon/dragon_n.jpg' }),
         normalScale:[1,-1],
         alphaTest:0.9,
-        alphaToCoverage:true,
-        //transparent:true,
+        //alphaToCoverage:true,
+        transparent:true,
         sheen:1.0,
         sheenColor:0xe6c278,
         sheenRoughness: 0.25,
@@ -154,13 +160,13 @@ addGate = () => {
     // make material
     let material = phy.material({ 
         name:'gate', 
-        roughness: 0.0, 
+        roughness: 1.0, 
         metalness: 0.0, 
         map: phy.texture({ url:'textures/dragon/torii_d.jpg' }), 
         aoMap: phy.texture({ url:'textures/dragon/torii_ao.jpg' }),
-        //roughnessMap: phy.texture({ url:'textures/dragon/torii_r.jpg' }),  
+        roughnessMap: phy.texture({ url:'textures/dragon/torii_r.jpg' }),  
         //normalMap: phy.texture({ url:'textures/dragon/torii_n.jpg' }),
-        transparent:true,
+        //transparent:true,
         opacity:1.0
     })
 
@@ -205,10 +211,14 @@ update = ( delta ) => {
 
     if( gate ){
         gate.position.z -= delta*4
-        if(gate.position.z < -70){ gate.material.opacity-= delta; }
-        if(gate.material.opacity < 0){ 
+        if(gate.position.z < -70){ 
+            if(!gate.material.transparent) gate.material.transparent = true;
+            gate.material.opacity-= delta; 
+        }
+        if( gate.material.opacity < 0 ){ 
             gate.position.z = 20;
             gate.material.opacity = 1.0;
+            gate.material.transparent = false;
         }
     }
 

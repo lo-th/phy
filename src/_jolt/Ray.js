@@ -45,8 +45,8 @@ export class Ray extends Item {
 
 		this.initRay = true;
 
-		this.v1 = new Jolt.Vec3();
-		this.v2 = new Jolt.Vec3();
+		this.v1 = new Jolt.RVec3();
+		this.v2 = new Jolt.RVec3();
 
 		this.ray = new Jolt.RRayCast();
 

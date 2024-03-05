@@ -20,13 +20,13 @@ export class Lights {
 
     static define ( o = {}, parent, isWebGPU = false ) {
 
-    	let biasSide = o.shadowType === 'PCSS' ? -1:1
+    	let biasSide = -1//o.shadowType === 'PCSS' ? -1:1
 
     	Lights.add({ 
 			type:'direct', name:'sun',
 			intensity:o.light_1,
 			distance:30, parent:parent,
-		    shadow:{ range:30, near:5, far:50, bias: 0.0002 * biasSide, radius:4, quality: 1024 * o.quality }
+		    shadow:{ range:30, near:5, far:70, bias: 0.004 * biasSide, radius:4, quality: 1024 * o.quality }
 		})
 
     }
@@ -129,31 +129,12 @@ export class Lights {
 		if( o.pos ) l.position.fromArray( o.pos );
 
 		if( o.parent ){
-			if( l.target ) o.parent.add( l.target )
-			o.parent.add( l )
+			if( l.target ) o.parent.add( l.target );
+			o.parent.add( l );
 		}
 
 		if( l.shadow && o.shadow ){
-
-			const s = l.shadow;
-			const v = o.shadow;
-			s.mapSize.width = s.mapSize.height = v.quality;
-			const cam = s.camera;
-
-			if( cam.isOrthographicCamera ){
-				if(v.range){
-					cam.top = cam.right = v.range;
-					cam.bottom = cam.left = -v.range;
-				}
-				if(v.near) cam.near = v.near;
-				if(v.far) cam.far = v.far;
-			}
-			if(v.bias) s.bias = v.bias;
-			if(v.radius) s.radius = v.radius;
-			if(v.blurSamples) s.blurSamples = v.blurSamples; // only for VSM 
-
-			l.castShadow = true;
-
+			Lights.setShadow( l, o.shadow );
 		}
 
 	    light.push(l);
@@ -162,6 +143,41 @@ export class Lights {
 	    return l
 
 	}
+
+	static setShadow ( l, o ) {
+
+		
+
+		const s = l.shadow;
+		if(!s) return;
+
+		if(o.quality) s.mapSize.width = s.mapSize.height = o.quality;
+		const cam = s.camera;
+
+		if( cam.isOrthographicCamera ){
+			if(o.range){
+				cam.top = cam.right = o.range;
+				cam.bottom = cam.left = -o.range;
+			}
+			if(o.near) cam.near = o.near;
+			if(o.far) cam.far = o.far;
+		}
+		if( cam.isPerspectiveCamera ){
+			if(o.near) cam.near = o.near;
+			if(o.far) cam.far = o.far;
+		}
+
+		if(o.bias) s.bias = o.bias;
+		if(o.radius) s.radius = o.radius;
+		if(o.blurSamples) s.blurSamples = o.blurSamples; // only for VSM 
+
+		s.needsUpdate = true;
+		l.updateWorldMatrix( true, true );
+		l.target.updateWorldMatrix( true, true );
+
+		l.castShadow = true;
+
+    }
 
 	static byName ( name ) {
 		return LL[name]

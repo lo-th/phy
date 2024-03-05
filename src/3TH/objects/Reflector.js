@@ -13,7 +13,6 @@ import {
 	Vector4,
 	LinearFilter,
 	SRGBColorSpace,
-	LinearEncoding,
 	DoubleSide,
 	FrontSide,
 	Texture,

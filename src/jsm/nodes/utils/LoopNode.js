@@ -144,15 +144,15 @@ class LoopNode extends Node {
 
 			if ( ! update ) {
 
-				if ( type === 'int' ) {
+				if ( type === 'int' || type === 'uint' ) {
 
 					if ( condition.includes( '<' ) ) update = '++';
 					else update = '--';
 
 				} else {
 
-					if ( condition.includes( '<' ) ) update = '+= 1';
-					else update = '-= 1';
+					if ( condition.includes( '<' ) ) update = '+= 1.';
+					else update = '-= 1.';
 
 				}
 
@@ -192,6 +192,8 @@ class LoopNode extends Node {
 export default LoopNode;
 
 export const loop = ( ...params ) => nodeObject( new LoopNode( nodeArray( params, 'int' ) ) ).append();
+export const Continue = () => expression( 'continue' ).append();
+export const Break = () => expression( 'break' ).append();
 
 addNodeElement( 'loop', ( returns, ...params ) => bypass( returns, loop( ...params ) ) );
 

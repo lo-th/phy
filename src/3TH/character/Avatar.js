@@ -6,7 +6,7 @@ import {
     TextureLoader,AnimationMixer,
     FrontSide, DoubleSide, Color, ShaderChunk, 
     VectorKeyframeTrack, QuaternionKeyframeTrack, AnimationClip, Skeleton,
-    Float32BufferAttribute, EquirectangularReflectionMapping, LinearEncoding,AdditiveBlending,
+    Float32BufferAttribute, EquirectangularReflectionMapping, AdditiveBlending,
     CustomBlending,// AddEquation, SubtractEquation, ReverseSubtractEquation, MinEquation, MaxEquation,
     ZeroFactor,//, OneFactor, SrcColorFactor, OneMinusSrcColorFactor, 
     SrcAlphaFactor,

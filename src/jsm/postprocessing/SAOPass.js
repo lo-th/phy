@@ -18,7 +18,6 @@ import {
 	Vector2,
 	WebGLRenderTarget,
 	ZeroFactor,
-	sRGBEncoding
 } from 'three';
 import { Pass, FullScreenQuad } from '../postprocessing/Pass.js';
 import { SAOShader } from '../shaders/SAOShader.js';

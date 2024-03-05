@@ -13,6 +13,9 @@ function demo() {
 
     phy.mouseMode('null')
 
+    phy.lightIntensity( 6, 0, 0.7 );
+    phy.useRealLight( {} );
+
     let g = phy.getGround();
     g.material.map = phy.texture({ url:'./assets/textures/terrain/road_c.jpg', repeat:[30,30] });
     g.material.normalMap = phy.texture({ url:'./assets/textures/terrain/road_n.jpg', repeat:[30,30] });
@@ -21,6 +24,10 @@ function demo() {
 
 
     let gg = phy.add({ type:'plane', name:'floor', size:[ 300,1,300 ], ray:true, friction:0.2, restitution:0.0, visible:false });
+
+    phy.add({ type:'box', name:'p0', size:[ 1,2,1 ], pos:[-5,1,0], friction:0.2, restitution:0.0 });
+    phy.add({ type:'box', name:'p1', size:[ 1,2,1 ], pos:[-5,1,5], friction:0.2, restitution:0.0 });
+    phy.add({ type:'box', name:'p2', size:[ 1,2,1 ], pos:[-5,1,-5], friction:0.2, restitution:0.0 });
 
     const maps = [
     './assets/textures/alpine/tire_c.jpg',
@@ -36,6 +43,7 @@ onComplete = () => {
 
     let meshes = phy.getMesh('alpine');
     let groups = phy.getGroup('alpine');
+    let mat = phy.getGlbMaterial('alpine');
 
     for(let m in meshes){
         if(meshes[m].material){ 

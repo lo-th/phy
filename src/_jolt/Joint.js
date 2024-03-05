@@ -18,10 +18,10 @@ export class Joint extends Item {
 		this.Utils = Utils;
 		this.type = 'joint';
 
-		this.v = new Jolt.Vec3();
+		this.v = new Jolt.RVec3();
 
-		this.min = new Jolt.Vec3(0,0,0);
-		this.max = new Jolt.Vec3(0,0,0);
+		this.min = new Jolt.RVec3(0,0,0);
+		this.max = new Jolt.RVec3(0,0,0);
 
 		
 		/*this.ConstraintAxis = {
@@ -120,8 +120,8 @@ export class Joint extends Item {
 		// hinge
         if(jc.mPoint1) jc.mPoint1.fromArray(posA);
 		if(jc.mPoint2) jc.mPoint2.fromArray(posB);
-		//if(jc.mPoint1) jc.mPoint1 = new Jolt.Vec3().fromArray(posA);
-		//if(jc.mPoint2) jc.mPoint2 = new Jolt.Vec3().fromArray(posB);
+		//if(jc.mPoint1) jc.mPoint1 = new Jolt.RVec3().fromArray(posA);
+		//if(jc.mPoint2) jc.mPoint2 = new Jolt.RVec3().fromArray(posB);
 		// or ?
 		if(jc.mPosition1) jc.mPosition1.fromArray(posA);
 		if(jc.mPosition2) jc.mPosition2.fromArray(posB);

@@ -75,7 +75,7 @@ export class LandScape {
 		pos[0] = pos[0]-(this.size[0]*0.5);
 		pos[2] = pos[2]-(this.size[2]*0.5);
 
-		const position = new Jolt.Vec3(0,0,0).fromArray(pos); // The image tends towards 'white', so offset it down closer to zero
+		const position = new Jolt.RVec3(0,0,0).fromArray(pos); // The image tends towards 'white', so offset it down closer to zero
 		const rotation = new Jolt.Quat(0, 0, 0, 1);
 
 		let creationSettings = new Jolt.BodyCreationSettings(this.shape, position, rotation, Jolt.EBodyType_Static, root.LAYER_NON_MOVING);
@@ -97,8 +97,8 @@ export class LandScape {
 
 		// Create the heightfield
 		const shapeSettings = new Jolt.HeightFieldShapeSettings();
-		shapeSettings.mOffset = new Jolt.Vec3(0, 0, 0);
-		shapeSettings.mScale = new Jolt.Vec3(0, 0, 0).fromArray(this.scale);
+		shapeSettings.mOffset = new Jolt.RVec3(0, 0, 0);
+		shapeSettings.mScale = new Jolt.RVec3(0, 0, 0).fromArray(this.scale);
 		shapeSettings.mSampleCount = this.sample[0];
 		shapeSettings.mBlockSize = 2;
 		const totalSize = h.length;

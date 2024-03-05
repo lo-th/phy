@@ -2,7 +2,7 @@ import DataMap from '../DataMap.js';
 import ChainMap from '../ChainMap.js';
 import NodeBuilderState from './NodeBuilderState.js';
 import { NoToneMapping, EquirectangularReflectionMapping, EquirectangularRefractionMapping } from 'three';
-import { NodeFrame, objectGroup, renderGroup, frameGroup, cubeTexture, texture, rangeFog, densityFog, reference, toneMapping, equirectUV, viewportBottomLeft, normalWorld } from '../../../nodes/Nodes.js';
+import { NodeFrame, objectGroup, renderGroup, frameGroup, cubeTexture, texture, rangeFog, densityFog, reference, toneMapping, viewportBottomLeft, normalWorld, pmremTexture } from '../../../nodes/Nodes.js';
 
 class Nodes extends DataMap {
 
@@ -114,6 +114,7 @@ class Nodes extends DataMap {
 				nodeBuilder.environmentNode = this.getEnvironmentNode( renderObject.scene );
 				nodeBuilder.fogNode = this.getFogNode( renderObject.scene );
 				nodeBuilder.toneMappingNode = this.getToneMappingNode();
+				nodeBuilder.clippingContext = renderObject.clippingContext;
 				nodeBuilder.build();
 
 				nodeBuilderState = this._createNodeBuilderState( nodeBuilder );
@@ -164,7 +165,7 @@ class Nodes extends DataMap {
 
 			nodeBuilderState = this._createNodeBuilderState( nodeBuilder );
 
-			computeData.nodeBuilderState = nodeBuilder;
+			computeData.nodeBuilderState = nodeBuilderState;
 
 		}
 
@@ -181,7 +182,8 @@ class Nodes extends DataMap {
 			nodeBuilder.getAttributesArray(),
 			nodeBuilder.getBindings(),
 			nodeBuilder.updateNodes,
-			nodeBuilder.updateBeforeNodes
+			nodeBuilder.updateBeforeNodes,
+			nodeBuilder.transforms
 		);
 
 	}
@@ -303,26 +305,13 @@ class Nodes extends DataMap {
 
 				let backgroundNode = null;
 
-				if ( background.isCubeTexture === true ) {
+				if ( background.isCubeTexture === true || ( background.mapping === EquirectangularReflectionMapping || background.mapping === EquirectangularRefractionMapping ) ) {
 
-					backgroundNode = cubeTexture( background, normalWorld );
+					backgroundNode = pmremTexture( background, normalWorld );
 
 				} else if ( background.isTexture === true ) {
 
-					let nodeUV = null;
-
-					if ( background.mapping === EquirectangularReflectionMapping || background.mapping === EquirectangularRefractionMapping ) {
-
-						nodeUV = equirectUV();
-						background.flipY = false;
-
-					} else {
-
-						nodeUV = viewportBottomLeft;
-
-					}
-
-					backgroundNode = texture( background, nodeUV ).setUpdateMatrix( true );
+					backgroundNode = texture( background, viewportBottomLeft ).setUpdateMatrix( true );
 
 				} else if ( background.isColor !== true ) {
 

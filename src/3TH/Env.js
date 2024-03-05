@@ -1,7 +1,7 @@
 import {
 	PMREMGenerator,
 	HalfFloatType,
-	UnsignedByteType, LinearEncoding, LinearFilter,
+	UnsignedByteType, LinearFilter,
 	Vector3, Vector2, Spherical, RepeatWrapping,
 	Color, Mesh, PlaneGeometry, MeshBasicMaterial, Scene, OrthographicCamera, WebGLRenderTarget,
 	RGBAFormat, FloatType, EquirectangularReflectionMapping, NoToneMapping, SRGBColorSpace

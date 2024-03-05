@@ -121,6 +121,8 @@ export class Motor {
 
 	}
 
+	static useRealLight (o) { Mat.useRealLight(o) }
+
 	static getSetting () { return settings; }
 
 	static setGravity( v ){
@@ -1004,6 +1006,7 @@ export class Motor {
 	//-----------------------
 	//  MATERIAL
 	//-----------------------
+	static getMatRef(){ return Mat }
 
 	static material ( o = {} ){ return Mat.create( o ) }
 

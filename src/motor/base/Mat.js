@@ -1,14 +1,17 @@
 import {
-    MeshPhongMaterial, MeshLambertMaterial, MeshStandardMaterial, MeshPhysicalMaterial, MeshBasicMaterial, LineBasicMaterial, MeshToonMaterial, ShadowMaterial, ShaderMaterial,
+    MeshPhongMaterial, MeshLambertMaterial, MeshStandardMaterial, MeshPhysicalMaterial, MeshBasicMaterial, 
+    LineBasicMaterial, MeshToonMaterial, ShadowMaterial, ShaderMaterial,
     Matrix4, Euler, Quaternion, Vector3, Vector2, Matrix3, Color,
-
     AdditiveBlending, CustomBlending, NoBlending, NormalBlending, SubtractiveBlending, MultiplyBlending,
     AddEquation, SubtractEquation, ReverseSubtractEquation, MinEquation, MaxEquation,
-    ZeroFactor, OneFactor, SrcColorFactor, OneMinusSrcColorFactor, SrcAlphaFactor, OneMinusSrcAlphaFactor, DstAlphaFactor, OneMinusDstAlphaFactor, DstColorFactor, OneMinusDstColorFactor, SrcAlphaSaturateFactor,
+    ZeroFactor, OneFactor, SrcColorFactor, OneMinusSrcColorFactor, SrcAlphaFactor, OneMinusSrcAlphaFactor, 
+    DstAlphaFactor, OneMinusDstAlphaFactor, DstColorFactor, OneMinusDstColorFactor, SrcAlphaSaturateFactor,
     FrontSide, BackSide, DoubleSide,
 } from 'three';
 import { CarbonTexture } from '../../3TH/textures/CarbonTexture.js';
 import { MeshSssMaterial } from '../../3TH/materials/MeshSssMaterial.js';
+//import { EnhanceShaderLighting } from '../../3TH/shaders/EnhanceShaderLighting.js';
+import { EnhanceLighting } from '../../3TH/shaders/EnhanceLighting.js';
 
 //-------------------
 //
@@ -28,6 +31,33 @@ const matExtra = {
 	metalness: 0.0,
 	roughness: 0.2,
 	//normalScale: new Vector2(0.25,0.25),
+
+}
+
+export const RealismLightOption = {
+	enableESL:true,
+	exposure:1,
+	envMapIntensity:1,
+
+	aoColor: new Color(0x000000),
+	hemisphereColor: new Color(0xffffff),
+    irradianceColor: new Color(0xffffff),
+    radianceColor: new Color(0xffffff),
+
+    aoPower: 9.7,//6,
+    aoSmoothing: 0.26,
+    aoMapGamma: 0.89,
+    lightMapGamma: 0.9,//1,
+    lightMapSaturation: 1,
+    envPower: 1,//2
+    roughnessPower: 1.45,
+    sunIntensity: 0,
+    mapContrast: 0.93,//1.02,
+    lightMapContrast: 1.03,
+    smoothingPower: 0.76,
+    irradianceIntensity: 6.59,
+    radianceIntensity: 4.62,
+    hardcodeValues: false
 
 }
 
@@ -81,19 +111,53 @@ const ThreeVariable = {
 
 export const Mat = {
 
+	isRealism:false,
+	realismOption:{},
 	envMapIntensity:1.0,
+	
 
-	extendShader:( m, beforeCompile = null ) =>{ 
-		if( beforeCompile ){
-			m.onBeforeCompile = function ( shader ) {
-	            beforeCompile( shader );
-	        }
+	useRealLight: (o) => {
+
+		Mat.isRealism = true;
+
+		// apply color setting number
+		for(let c in o){
+			if(c.search('Color')!==-1){
+				if(!o[c].isColor){
+					RealismLightOption[c].set( o[c] );
+					delete o[c];
+				}
+			} 
 		}
+
+		Mat.realismOption = { ...RealismLightOption, ...o };
+
+	},
+
+	extendShader:( m, beforeCompile = null ) => { 
+
+		if( Mat.isRealism ){
+			m.onBeforeCompile = function ( shader ) {
+				EnhanceLighting( shader, Mat.realismOption );
+		        m.userData.isRealism = true;
+		        m.userData.shader = shader;
+	            if( beforeCompile ) beforeCompile( shader );
+	        }
+
+		} else {
+			if( beforeCompile ){
+				m.onBeforeCompile = function ( shader ) {
+		            beforeCompile( shader );
+		        }
+			}
+		}
+		
 	},
 
 	addToTmp:( m ) => {
 
 		TmpMat.push( m )
+
 	},
 
 	create:( o ) => {
@@ -174,6 +238,19 @@ export const Mat = {
 	},
 
 	addToMat:( o ) => {
+
+		if( Mat.isRealism ){
+			for(let m in o){
+				o[m].shadowSide = DoubleSide;
+				o[m].onBeforeCompile = function ( shader ) {
+		            EnhanceLighting( shader, Mat.realismOption );
+		            o[m].userData.isRealism = true;
+		            o[m].userData.shader = shader;
+		        }
+			}
+
+
+		}
 
 		mat = { ...mat, ...o }
 
@@ -314,6 +391,8 @@ export const Mat = {
 
 	dispose:() => {
 
+		Mat.isRealism = false;
+
 		for(let m in mat){
 			mat[m].dispose();
 			delete mat[m];
@@ -323,7 +402,37 @@ export const Mat = {
 		while( i-- ) { TmpMat[i].dispose(); }
 		TmpMat = [];
 
-	}
+	},
+
+	upShader:() => {
+
+		let option = Mat.realismOption;
+		//if(!option.enable) option = 
+
+		for( let name in mat ){
+
+			const m = mat[name];
+			const shader = m.userData.shader;
+
+			for( let o in option ){
+
+				
+				// undate shader uniforme
+				if(shader){ 
+					/*if(o==='enable'){ 
+						shader.defines.ENHANCE_SHADER_LIGHTING = option[o] ? "" : undefined;
+						//console.log(shader.defines.ENHANCE_SHADER_LIGHTING)
+					}*/
+					if(shader.uniforms[o]) shader.uniforms[o].value = option[o]; 
+				}
+				// update material option
+				if( m[o] ) m[o] = option[o];
+			}
+
+
+		}
+
+	},
 
 }
 

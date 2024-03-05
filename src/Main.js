@@ -339,6 +339,7 @@ export const Main = {
 	},
 
 	lightIntensity:(a,b,c) => { lightIntensity(a,b,c) },
+	changeShadow:(o) => { changeShadow(o) },
 	envmapIntensity:() => { setEnvmapIntensity() },
 	setReflect:(v) => { setReflect(v) },
 
@@ -390,6 +391,7 @@ export const Main = {
 	},
 
 	debugMode: ( b ) => {
+
 		options.debug = b;
 		Motor.setDebugMode( options.debug );
 
@@ -400,6 +402,7 @@ export const Main = {
 Motor.log = Hub.log;
 
 Motor.lightIntensity = Main.lightIntensity
+Motor.changeShadow = Main.changeShadow;
 
 Motor.initParticle = Main.initParticle
 Motor.addParticle = Main.addParticle
@@ -520,16 +523,15 @@ const init = () => {
 	camera = new THREE.PerspectiveCamera( 50, size.r, 0.1, 1000 )
 	scene.add( camera )
 
-
-
 	controls = new Controller( camera, renderer.domElement, followGroup )
+	controls.resetAll();
 	//controls.target.y = 2
-	controls.minDistance = 0.1
+	/*controls.minDistance = 0.1
     controls.maxDistance = 100
-    controls.enableDamping = true; //true;
-    controls.dampingFactor = 0.25//0.25;
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.05;
     controls.screenSpacePanning = true
-    controls.zoomToCursor = true
+    controls.zoomToCursor = true*/
     //controls.enable = false
     //controls.maxPolarAngle = Math.PI / 2
 
@@ -652,6 +654,12 @@ const addControl = () => {
 //--------------------
 //   LIGHT
 //--------------------
+
+const changeShadow = (o) => {
+
+	Lights.setShadow( Lights.byName('sun'), o )
+
+}
 
 const lightIntensity = (a,b,c) => {
 
@@ -1085,11 +1093,12 @@ const render = ( stamp = 0 ) => {
 	// UPDATE PARTICLE
     if( particles ) particles.update( stamp )
 
-	// UPDATE CAMERA
-	if( controls ){ 
+	// UPDATE CAMERA CONTROLER
+    if( controls ) controls.up( tm.dt )
+	/*if( controls ){ 
 		if( controls.enableDamping && controls.enable ) controls.update();
 		if( controls.follow ) controls.follow( tm.dt );
-	}
+	}*/
 
     // UPDATE TWEEN
 	//TWEEN.update( stamp );

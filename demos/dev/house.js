@@ -15,7 +15,8 @@ demo = () => {
 
     //phy.add({ type:'plane', name:'floor', size:[ 300,1,300 ], visible:false });
     //phy.add({ type:'box', name:'floor', size:[ 100,1,100 ], pos:[0,-0.5,0], visible:false });
-    phy.lightIntensity( 6, 0, 0.7 )
+    phy.lightIntensity( 6, 0, 0.7 );
+    phy.useRealLight( {} );
 
 
     // gui
@@ -32,10 +33,7 @@ demo = () => {
 
 onComplete = () => {
 
-    
-
     let scene = phy.getGlb('house');
-    
     
     let mat = phy.getGlbMaterial('house');
     mesh = phy.getMesh('house' );
@@ -48,9 +46,10 @@ onComplete = () => {
     mat.jardin.color.setHex(0xFFFFFF);
     mat.glass.alphaToCoverage = true;
 
-    mat.facade.map = phy.texture({ url:'./assets/textures/facade.jpg', flip:true, encoding:true });
-    mat.toiture.map = phy.texture({ url:'./assets/textures/roof.jpg', flip:true, encoding:true, repeat:[3,2] });
-    mat.floor.map = phy.texture({ url:'./assets/textures/floor.jpg', flip:true, encoding:true });
+    mat.facade.map = phy.texture({ url:'./assets/textures/house/facade.jpg', flip:true, encoding:true });
+    mat.facade.aoMap = phy.texture({ url:'./assets/textures/house/facade_ao.jpg', flip:true, encoding:true });
+    mat.toiture.map = phy.texture({ url:'./assets/textures/house/roof.jpg', flip:true, encoding:true, repeat:[3,2] });
+    mat.floor.map = phy.texture({ url:'./assets/textures/house/floor.jpg', flip:true, encoding:true });
     mat.jardin.map = phy.texture({ url:'./assets/textures/terrain/grass_c.jpg', flip:true, encoding:true, repeat:[16,16] });
     
 
@@ -96,9 +95,5 @@ click = ( name ) => {
         mesh.Facade.visible = false;
         break;
     }
-
-
-
-    
 
 }

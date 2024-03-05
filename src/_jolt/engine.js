@@ -119,7 +119,7 @@ export class engine {
 		broadphase = o.broadphase || 2;
 		fixe = o.fixe !== undefined ? o.fixe : true;
 
-		root.gravity = new Jolt.Vec3().fromArray( o.gravity || [ 0, -9.81, 0 ] );
+		root.gravity = new Jolt.RVec3().fromArray( o.gravity || [ 0, -9.81, 0 ] );
 
 		if( root.world === null ) engine.start();
 		else root.physicsSystem.setGravity( root.gravity );
@@ -491,14 +491,14 @@ interface BodyInterface {
 	void SetShape([Const, Ref] BodyID inBodyID, [Const] Shape inShape, boolean inUpdateMassProperties, EActivation inActivationMode);
 	void SetObjectLayer([Const, Ref] BodyID inBodyID, unsigned long inLayer);
 	unsigned long GetObjectLayer([Const, Ref] BodyID inBodyID);
-	void SetPositionAndRotation([Const, Ref] BodyID inBodyID, [Const, Ref] Vec3 inPosition, [Const, Ref] Quat inRotation, EActivation inActivationMode);
-	void SetPositionAndRotationWhenChanged([Const, Ref] BodyID inBodyID, [Const, Ref] Vec3 inPosition, [Const, Ref] Quat inRotation, EActivation inActivationMode);
-	void GetPositionAndRotation([Const, Ref] BodyID inBodyID, [Ref] Vec3 outPosition, [Ref] Quat outRotation);
-	void SetPosition([Const, Ref] BodyID inBodyID, [Const, Ref] Vec3 inPosition, EActivation inActivationMode);
-	[Value] Vec3 GetPosition([Const, Ref] BodyID inBodyID);
+	void SetPositionAndRotation([Const, Ref] BodyID inBodyID, [Const, Ref] RVec3 inPosition, [Const, Ref] Quat inRotation, EActivation inActivationMode);
+	void SetPositionAndRotationWhenChanged([Const, Ref] BodyID inBodyID, [Const, Ref] RVec3 inPosition, [Const, Ref] Quat inRotation, EActivation inActivationMode);
+	void GetPositionAndRotation([Const, Ref] BodyID inBodyID, [Ref] RVec3 outPosition, [Ref] Quat outRotation);
+	void SetPosition([Const, Ref] BodyID inBodyID, [Const, Ref] RVec3 inPosition, EActivation inActivationMode);
+	[Value] RVec3 GetPosition([Const, Ref] BodyID inBodyID);
 	void SetRotation([Const, Ref] BodyID inBodyID, [Const, Ref] Quat inRotation, EActivation inActivationMode);
 	[Value] Quat GetRotation([Const, Ref] BodyID inBodyID);
-	void MoveKinematic([Const, Ref] BodyID inBodyID, [Const, Ref] Vec3 inPosition, [Const, Ref] Quat inRotation, float inDeltaTime);
+	void MoveKinematic([Const, Ref] BodyID inBodyID, [Const, Ref] RVec3 inPosition, [Const, Ref] Quat inRotation, float inDeltaTime);
 	void ActivateBody([Const, Ref] BodyID inBodyID);
 	void DeactivateBody([Const, Ref] BodyID inBodyID);
 	boolean IsActive([Const, Ref] BodyID inBodyID);

@@ -1,6 +1,6 @@
 import {
     MeshPhysicalMaterial, MeshStandardMaterial, ShaderMaterial, WebGLCubeRenderTarget, CubeCamera, Scene, Mesh, RGBAFormat,
-    DoubleSide, Color, Vector3, Vector4, BackSide, LinearMipmapLinearFilter, sRGBEncoding, ShaderChunk
+    DoubleSide, Color, Vector3, Vector4, BackSide, LinearMipmapLinearFilter, ShaderChunk
 } from 'three';
 
 import { Shader } from '../Shader.js';

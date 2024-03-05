@@ -5,7 +5,6 @@ import {
 	LinearFilter,
 	NearestFilter,
 	RGBAFormat,
-	sRGBEncoding,
 	FloatType
 } from 'three';
 

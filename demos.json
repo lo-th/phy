@@ -12,7 +12,7 @@
         "vehicle2", "vehicle3", "mesh", "break", "stacking", "player", "house"
     ],
     "Advanced" : [ 
-        "diamond", "ragdoll", "chess", "million" 
+        "diamond", "ragdoll", "chess", "million", "museum"
     ],
 
     "PHYSX": [

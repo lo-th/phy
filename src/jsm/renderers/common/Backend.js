@@ -90,6 +90,10 @@ class Backend {
 
 	// utils
 
+	resolveTimestampAsync( renderContext, type ) { }
+
+	hasFeatureAsync( name ) { } // return Boolean
+
 	hasFeature( name ) { } // return Boolean
 
 	getInstanceCount( renderObject ) {
@@ -115,6 +119,8 @@ class Backend {
 		return this.renderer.getScissor( vector4 );
 
 	}
+
+	setScissorTest( boolean ) { }
 
 	getClearColor() {
 
@@ -169,6 +175,12 @@ class Backend {
 		}
 
 		return map;
+
+	}
+
+	has( object ) {
+
+		return this.data.has( object );
 
 	}
 
