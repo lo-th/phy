@@ -34,8 +34,6 @@ onComplete = () => {
 
     models = phy.getMesh('dices');
 
-
-
     // make dices material
     phy.material({ 
         name:'dices', 
@@ -46,8 +44,6 @@ onComplete = () => {
         normalScale:[5,-5],
     })
 
-
-
     let slideMesh = phy.getMesh('slide');
 
     phy.add( {
@@ -57,7 +53,6 @@ onComplete = () => {
         restitution:0.2, friction:0.01,
         size:[0.36],
         meshScale:[0.36],
-       // material:'plexi'
         material:'glassX'
     })
 

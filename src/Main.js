@@ -385,6 +385,10 @@ export const Main = {
 
 		if( ground && groundAutoColor ) ground.setColor( groundColor )
 
+		let m = Motor.getMatRef()
+	    //console.log(m)
+	    if( m.isRealism ) m.setColor( palette );
+
 		//let c = Gui.tool.htmlRgba( palette.darkMuted, 0.4 );
 		//Hub.setTopColor( Gui.tool.htmlRgba(palette.darkMuted, 0.4) );
 

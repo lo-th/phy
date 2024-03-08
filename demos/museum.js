@@ -134,7 +134,8 @@ addPLayer = () => {
 
     phy.follow('player', { 
         direct:true, simple:true, decal:[0,h*0.5,0], phi:0, distance:0.01, 
-        enableDamping:true, dampingFactor:0.05
+        enableDamping:true, dampingFactor:0.05,
+        //enableDamping:false,
     })
 
 

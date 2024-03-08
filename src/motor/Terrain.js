@@ -2,6 +2,8 @@ import { Item } from '../core/Item.js';
 import { MathTool } from '../core/MathTool.js';
 import { Utils, root } from './root.js';
 import { Num } from '../core/Config.js';
+import { Mat } from './base/Mat.js';
+
 import { Landscape } from '../3TH/objects/Landscape.js';
 
 // THREE TERRAIN
@@ -61,6 +63,8 @@ export class Terrain extends Item {
 		}
 
 		const t = new Landscape( o );
+
+		Mat.extendShader( t.material, t.material.onBeforeCompile );
 
 		t.physicsUpdate = ( name, h ) =>{
 

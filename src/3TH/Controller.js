@@ -93,6 +93,7 @@ export class Controller extends OrbitControls {
 
     resetAll () {
 
+        this.enableApply = true;
         this.minDistance = 0.001;
         this.maxDistance = 100;
         this.enablePan = true;
@@ -121,6 +122,8 @@ export class Controller extends OrbitControls {
         if(o.v !== undefined) o.phi = o.v;
 
         this.moveCam( o );
+
+        this.reverse = o.reverse || false;
 
         let cam = this.cam;
 
@@ -196,9 +199,12 @@ export class Controller extends OrbitControls {
 
         o = o || {};
 
+        //console.log('init follow')
+
         //this.enableDamping = false
-        this.zoomToCursor = false
-        this.screenSpacePanning = false
+        this.zoomToCursor = false;
+        this.screenSpacePanning = false;
+        this.enableApply = false;
 
         this.cam.oldp.copy( mesh.position );
         this.cam.oldq.copy( mesh.quaternion );
@@ -348,15 +354,22 @@ export class Controller extends OrbitControls {
         if( cam.simple ){
 
             this.tmpV.copy( cam.decal )//.applyAxisAngle( { x:1, y:0, z:0 }, phi - math.PI90 )
-            this.tmpV.applyAxisAngle( { x:0, y:1, z:0 }, sph.theta )
-            this.tmpV.applyAxisAngle( { x:0, y:1, z:0 }, sph.theta )
+            this.tmpV.applyAxisAngle( { x:0, y:1, z:0 }, sph.theta)
             //cam.offset.copy( p ).add( this.tmpV ).applyAxisAngle( { x:0, y:1, z:0 }, cam.theta );
 
-            target.copy( p ).add( this.tmpV )
-            camera.position.setFromSpherical( sph ).add( target );
+            //target.copy( p ).add( this.tmpV )
+            //camera.position.setFromSpherical( sph ).add( target );
             //camera.lookAt( target );
 
-            
+            if( this.reverse ){
+                camera.position.copy( p ).add( this.tmpV )
+                target.setFromSpherical( sph ).add( camera.position );
+                camera.lookAt( target );
+            } else {
+                target.copy( p ).add( this.tmpV )
+                camera.position.setFromSpherical( sph ).add( target );
+                camera.lookAt( target );
+            }
             /*p.add(this.tmpV)
             target.lerp( p, cam.stiffness );
             this.tmpV2.setFromSpherical( sph ).add( target );

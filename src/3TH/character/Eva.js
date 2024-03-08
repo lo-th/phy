@@ -17,9 +17,9 @@ import { Pool } from '../Pool.js';
 
 const setting = {
 
-    metalness:0.6,
-    roughness:0.1,
-    clearcoat:1.0,
+    metalness:0.33,
+    roughness:0.11,
+    clearcoat:0.0,
     wireframe:false,
     
 }
@@ -39,7 +39,7 @@ export const Eva = {
 	haveQuality: false,
 	skinRef:'eva_00',
 	texturePath: 'assets/textures/eva/',
-	textures: ['eva00_c.jpg', 'eva01_c.jpg', 'eva02_c.jpg', 'eva_l.jpg'],
+	textures: ['eva00_c.jpg', 'eva01_c.jpg', 'eva02_c.jpg', 'eva_l.jpg', 'eva_ao.jpg'],
 
     modelPath: 'assets/models/',
     forceModel:'eva',
@@ -57,7 +57,8 @@ export const Eva = {
             metalness:setting.metalness,
             wireframe:setting.wireframe,
             clearcoat:setting.clearcoat,
-            iridescence:0.5,
+            //iridescence:0.5,
+            aoMap:'eva_ao',
         },
         eva01:{
             type:'Physical',
@@ -68,7 +69,8 @@ export const Eva = {
             metalness:setting.metalness,
             wireframe:setting.wireframe,
             clearcoat:setting.clearcoat,
-            iridescence:0.5,
+            //iridescence:0.5,
+            aoMap:'eva_ao',
         },
         eva02:{
             type:'Physical',
@@ -79,7 +81,8 @@ export const Eva = {
             metalness:setting.metalness,
             wireframe:setting.wireframe,
             clearcoat:setting.clearcoat,
-            iridescence:0.5,
+            //iridescence:0.5,
+            aoMap:'eva_ao',
         }
     },
 

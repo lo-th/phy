@@ -174,66 +174,64 @@ if(enableESL) {
     return envMapColor.rgb * envMapIntensity;
 }
 `
+const new_map_fragment = /* glsl */ `
+if(enableESL) {
+    #ifdef USE_LIGHTMAP
+        float lightMapIntensityCorrect = lightMapIntensity;
+        if(useLegacyLights) lightMapIntensityCorrect = lightMapIntensity / PI;
+        vec3 lightMapClr = (texture2D(lightMap, vLightMapUv).rgb - vec3(1.)) * (lightMapIntensityCorrect) + vec3(1.);
+    #else
+        vec3 lightMapClr = vec3(1.);
+    #endif
 
-const map_fragment = THREE.ShaderChunk.map_fragment.replace(
-	"diffuseColor *= sampledDiffuseColor;",
-	/* glsl */ `
-    if(enableESL) {
-        #ifdef USE_LIGHTMAP
-            float lightMapIntensityCorrect = lightMapIntensity;
-            if(useLegacyLights) lightMapIntensityCorrect = lightMapIntensity / PI;
-            vec3 lightMapClr = (texture2D(lightMap, vLightMapUv).rgb - vec3(1.)) * (lightMapIntensityCorrect) + vec3(1.);
-        #else
-            vec3 lightMapClr = vec3(1.);
-        #endif
+    if(lightMapGamma != 1.) lightMapClr = pow(lightMapClr, vec3(1. / lightMapGamma));
 
-        if(lightMapGamma != 1.) lightMapClr = pow(lightMapClr, vec3(1. / lightMapGamma));
+    if(lightMapContrast != 1.) lightMapClr = adjustContrast(lightMapClr, lightMapContrast);
 
-        if(lightMapContrast != 1.) lightMapClr = adjustContrast(lightMapClr, lightMapContrast);
+    // clamp
+    lightMapClr = min(lightMapClr, vec3(1.));
 
-        // clamp
-        lightMapClr = min(lightMapClr, vec3(1.));
+    // source: Chapter 16 of OpenGL Shading Language
+    const vec3 W = vec3(0.2125, 0.7154, 0.0721);
+    vec3 intensity = vec3(dot(lightMapClr, W));
+    lightMapClr = mix(intensity, lightMapClr, lightMapSaturation);
 
-        // source: Chapter 16 of OpenGL Shading Language
-        const vec3 W = vec3(0.2125, 0.7154, 0.0721);
-        vec3 intensity = vec3(dot(lightMapClr, W));
-        lightMapClr = mix(intensity, lightMapClr, lightMapSaturation);
+    if(mapContrast != 1.) sampledDiffuseColor = vec4(adjustContrast(sampledDiffuseColor.rgb, mapContrast), 1.);
 
-        if(mapContrast != 1.) sampledDiffuseColor = vec4(adjustContrast(sampledDiffuseColor.rgb, mapContrast), 1.);
+    vec3 lightMapHsv = rgb2hsv(lightMapClr);
+    float saturation = lightMapHsv.y;
 
-        vec3 lightMapHsv = rgb2hsv(lightMapClr);
-        float saturation = lightMapHsv.y;
-
-        float mixVal = saturation;
-        
-        float value = pow(lightMapHsv.z, 0.05);
-        float darkness = 1. - value;
-
-        // lightMapHsv.y = mix(lightMapHsv.y, lightMapHsv.y * 5., darkness * 1.75);
-        
-        lightMapHsv = hsv2rgb(lightMapHsv);
-
-        // blend the lightmap color towards the diffuse color the more light this spot receives
-        lightMapHsv = mix(lightMapHsv, lightMapHsv * normalize(sampledDiffuseColor.rgb) * length(sampledDiffuseColor.rgb), value);
-
-        mixVal += darkness * 0.2;
-        
-        lightMapClr = pow(
-            mix(lightMapClr, lightMapHsv, mixVal),
-            vec3(1.25)
-        );
-
-        float lightnessFactor = pow(lightMapHsv.z, 0.1);
-
-        diffuseColor *= lightnessFactor * sampledDiffuseColor * vec4(lightMapClr, 1.0);
-        diffuseColor.a = 1.0;
-
-    } else {
-        diffuseColor *= sampledDiffuseColor;
-    }
+    float mixVal = saturation;
     
-    `
-)
+    float value = pow(lightMapHsv.z, 0.05);
+    float darkness = 1. - value;
+
+    // lightMapHsv.y = mix(lightMapHsv.y, lightMapHsv.y * 5., darkness * 1.75);
+    
+    lightMapHsv = hsv2rgb(lightMapHsv);
+
+    // blend the lightmap color towards the diffuse color the more light this spot receives
+    lightMapHsv = mix(lightMapHsv, lightMapHsv * normalize(sampledDiffuseColor.rgb) * length(sampledDiffuseColor.rgb), value);
+
+    mixVal += darkness * 0.2;
+    
+    lightMapClr = pow(
+        mix(lightMapClr, lightMapHsv, mixVal),
+        vec3(1.25)
+    );
+
+    float lightnessFactor = pow(lightMapHsv.z, 0.1);
+
+    diffuseColor *= lightnessFactor * sampledDiffuseColor * vec4(lightMapClr, 1.0);
+    diffuseColor.a = 1.0;
+
+} else {
+    diffuseColor *= sampledDiffuseColor;
+}
+
+`
+
+const map_fragment = THREE.ShaderChunk.map_fragment.replace( "diffuseColor *= sampledDiffuseColor;", new_map_fragment )
 
 const lights_pars_begin = THREE.ShaderChunk.lights_pars_begin.replace(
 	"vec3 irradiance = ambientLightColor;",
@@ -397,7 +395,9 @@ export function EnhanceLighting( shader,
 		.replace("#include <lights_pars_begin>", lights_pars_begin)
 		.replace("#include <lights_fragment_maps>", lights_fragment_maps)
 		.replace("#include <lightmap_fragment>", lightmap_fragment)
-		.replace("#include <map_fragment>", map_fragment)
+		//.replace("#include <map_fragment>", map_fragment)
+        .replace( "diffuseColor *= sampledDiffuseColor;", new_map_fragment )
+
 		.replace("#include <envmap_physical_pars_fragment>", THREE.ShaderChunk.envmap_physical_pars_fragment)
 
         // in envmap_physical_pars_fragment

@@ -4,10 +4,13 @@ demo = () => {
 
     //phy.log('use key WSAD or ZSQD<br>E to fight / C to crouch<br>SPACE to jump / SHIFT to run')
 
-    phy.view({ envmap:'basic', envblur: 0.05, ground:false, fog:true, fogDist:0.01 })
+    phy.view({ envmap:'clear', envblur: 0.05, ground:false, fog:true, fogDist:0.01 })
 
 	// setting physics
 	phy.set({ substep:2, gravity:[0,-9.81,0], key:true })
+
+    phy.lightIntensity( 7, 0.5, 1.0 );
+    phy.useRealLight( {aoColor:0x441c00, irradianceColor:0xffFFFF, envPower:1.5} );
 
 
 	// add static plane 
@@ -25,24 +28,25 @@ demo = () => {
 makeTerrain = () => {
 
     let z = 0.75
+    let low = engine === 'OIMO';
 
     let terrain = phy.add({
         type:'terrain',
         name:'terra',
-        friction: 0.5, 
-        maps:['crater', 'dirt', 'rock2'],
-        //staticFriction:0.5,
-        restitution: 0.0,
-        uv:engine==='OIMO' ? 18 : 96,
-        pos: engine==='OIMO' ? [ 0, -2, 0 ] :[0,-5,0],
-        size: engine==='OIMO' ? [ 20, 6, 20 ] : [512, 30, 512],
-        sample: engine==='OIMO' ? [ 32, 32 ] : [512, 512],
-       // frequency: engine==='OIMO' ? [0.05,0.25,0.75] : [0.016,0.05,0.2],
-       // level:[ 1, 0.2, 0.1 ],
+         
+        maps:['road3', 'dirt', 'rock'],
 
+        uv:low ? 18 : 400,
+        pos:low ? [ 0, -2, 0 ] :[0,-5,0],
+        size:low ? [ 20, 6, 20 ] : [512, 10, 512],
+        sample:low ? [ 32, 32 ] : [512, 512],
         frequency:[0.02*z,0.05*z,0.1*z],
-        level:[ 1.0, 0.2, 0.05 ],
-        expo: 1,
+        level:[ 1.0, 0.5, 0.2 ],
+        expo:2.5,
+
+        friction: 0.5,
+        restitution: 0.0,
+
     })
 
     let py = terrain.getHeight( 0, 0 )+1
@@ -50,6 +54,8 @@ makeTerrain = () => {
 
 
     addCharacter( py )
+
+
 
     //phy.change( { name:'eva', pos:[0,py,0] } )
     //phy.remove( 'floor' )
@@ -71,7 +77,7 @@ addCharacter = ( py ) => {
         pos:[0,py,0],
     })
 
-    phy.follow('eva', { direct:true, simple:true, distance:2.5, phi:-5, theta:0, decal:[0.3, 0.5, -0.3], fov:75, zoom:1.0 })
+    phy.follow('eva', { direct:true, simple:true, distance:3, phi:-10, theta:5, decal:[0.3, 0.5, -0.3], fov:75, zoom:1.0 })
     phy.control('eva')
     phy.setPostUpdate( update )
 

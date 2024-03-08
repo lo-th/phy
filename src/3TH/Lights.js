@@ -20,7 +20,7 @@ export class Lights {
 
     static define ( o = {}, parent, isWebGPU = false ) {
 
-    	let biasSide = -1//o.shadowType === 'PCSS' ? -1:1
+    	let biasSide = o.shadowType === 'PCSS' ? -1:1
 
     	Lights.add({ 
 			type:'direct', name:'sun',

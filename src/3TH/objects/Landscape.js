@@ -195,7 +195,7 @@ export class Landscape extends Mesh {
         } else {
             this.material.reflectivity = 0.0
             this.material.metalness = o.metalness || 0.0;
-            this.material.roughness = o.roughness || 0.77; 
+            this.material.roughness = o.roughness || 0.3;//0.7; 
         }
 
         if( isORM ){
@@ -203,10 +203,12 @@ export class Landscape extends Mesh {
             this.material.roughness = 1; 
         }
 
-        var ns = o.nScale || 1;
-        this.material.normalScale.set(ns,ns);
+        var ns = o.nScale || 0.5;
+        this.material.normalScale.set(ns,-ns);
 
         if( !this.isWater ){
+
+            let self = this;
 
             this.material.onBeforeCompile = function ( shader ) {
 
@@ -255,7 +257,7 @@ export class Landscape extends Mesh {
                 
                 shader.fragmentShader = fragment;
 
-                this.userData.shader = shader;
+                self.material.userData.shader = shader;
 
                 //if( o.shader ) o.shader.modify( shader );
 
@@ -909,8 +911,9 @@ const TerrainShader = {
             vec4 grass = textureMAP( map1, vMapUv );
             vec4 rock = textureMAP( map2, vMapUv ); 
 
-            vec4 baseColor = MappingMix(vColor.r, clevels, rock, grass, sand);
-            diffuseColor *= baseColor;
+            vec4 sampledDiffuseColor = MappingMix(vColor.r, clevels, rock, grass, sand);
+
+            diffuseColor *= sampledDiffuseColor;
 
         #endif
     `,

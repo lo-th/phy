@@ -1,7 +1,7 @@
 import {
     MeshPhongMaterial, MeshLambertMaterial, MeshStandardMaterial, MeshPhysicalMaterial, MeshBasicMaterial, 
     LineBasicMaterial, MeshToonMaterial, ShadowMaterial, ShaderMaterial,
-    Matrix4, Euler, Quaternion, Vector3, Vector2, Matrix3, Color,
+    Matrix4, Euler, Quaternion, Vector3, Vector2, Matrix3, Color, NoColorSpace,
     AdditiveBlending, CustomBlending, NoBlending, NormalBlending, SubtractiveBlending, MultiplyBlending,
     AddEquation, SubtractEquation, ReverseSubtractEquation, MinEquation, MaxEquation,
     ZeroFactor, OneFactor, SrcColorFactor, OneMinusSrcColorFactor, SrcAlphaFactor, OneMinusSrcAlphaFactor, 
@@ -50,9 +50,9 @@ export const RealismLightOption = {
     lightMapGamma: 0.9,//1,
     lightMapSaturation: 1,
     envPower: 1,//2
-    roughnessPower: 1.45,
+    roughnessPower: 1,//1.45,
     sunIntensity: 0,
-    mapContrast: 0.93,//1.02,
+    mapContrast: 1,//0.93,
     lightMapContrast: 1.03,
     smoothingPower: 0.76,
     irradianceIntensity: 6.59,
@@ -134,7 +134,23 @@ export const Mat = {
 
 	},
 
+	setColor:( o ) => {
+
+		if(!Mat.isRealism) return;
+
+		//console.log(o)
+
+		RealismLightOption.aoColor.set(o.minLuma).convertLinearToSRGB()
+		RealismLightOption.hemisphereColor.set(o.maxLuma).convertLinearToSRGB()
+		RealismLightOption.irradianceColor.set(o.sun).convertLinearToSRGB()
+		RealismLightOption.radianceColor.set(o.vibrant).convertLinearToSRGB()
+
+	},
+
 	extendShader:( m, beforeCompile = null ) => { 
+
+		//let oldCompile = null;
+		//if( m.onBeforeCompile ) oldCompile = m.onBeforeCompile;
 
 		if( Mat.isRealism ){
 			m.onBeforeCompile = function ( shader ) {
@@ -335,7 +351,7 @@ export const Mat = {
 				
 				case 'glass':  m = Mat.create({ name:'glass', color:0xFFFFff, transparent:true, opacity:0.8, depthTest:true, depthWrite:true, roughness:0.02, metalness:0.0, /*side:DoubleSide,*/ alphaToCoverage:true, premultipliedAlpha:true, transmission:1, clearcoat:1, thickness:0.02  }); break
 				case 'glassX':  m = Mat.create({ name:'glassX', color:0xeeeeee, transparent:false, opacity:1.0, roughness:0.03, metalness:0, side:DoubleSide, transmission:1.0, clearcoat:1, clearcoatRoughness:0.0, thickness:0.6, ior:1.52, envMapIntensity:1.0, shadowSide:1, reflectivity:0.5, iridescence:0 }); break
-				case 'plexi':  m = Mat.create({ name:'plexi', color:0xFFFFff, transparent:true, opacity:0.4, metalness:1, roughness:0, clearcoat:1, side:DoubleSide }); break
+				case 'plexi':  m = Mat.create({ name:'plexi', color:0xFFFFff, transparent:true, opacity:0.4, metalness:0, roughness:0, clearcoat:1, side:DoubleSide }); break
 				case 'glass2': m = Mat.create({ name:'glass2', color:0xEEEEEE, transparent:true, roughness:0, alphaToCoverage:true, opacity:0.3  }); break
 				case 'glass3': m = Mat.create({ name:'glass3', color:0x000000, transparent:true, roughness:0, alphaToCoverage:true, opacity:0.4  }); break
 				case 'glass_red': m = Mat.create({ name:'glass_red', color:0xFF0000, transparent:true, roughness:0, alphaToCoverage:true, opacity:0.8  }); break
