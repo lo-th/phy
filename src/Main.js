@@ -471,7 +471,7 @@ const init = () => {
 		//stencil: false,
 		alpha: false,
 	    depth: true,
-	    stencil: true,
+	    stencil: false,
 	    //antialias: false,
 	    premultipliedAlpha: true,
 	    preserveDrawingBuffer: false,

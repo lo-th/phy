@@ -187,6 +187,8 @@ export const Mat = {
 			let type = o.type !== undefined ? o.type : 'Standard'
 			if( o.type ) delete o.type
 
+			if( !o.shadowSide ) o.shadowSide = 'double'
+
 			beforeCompile = o.beforeCompile || null
 		    if( o.beforeCompile ) delete o.beforeCompile;
 
@@ -197,6 +199,7 @@ export const Mat = {
 			}
 
 		    if( o.side ) o.side = Mat.findValue( o.side );
+		    if( o.shadowSide ) o.shadowSide = Mat.findValue( o.shadowSide );
 		    if( o.blending ) o.blending = Mat.findValue( o.blending );
 		    if( o.blendEquation ) o.blendEquation = Mat.findValue( o.blendEquation );
 		    if( o.blendEquationAlpha ) o.blendEquationAlpha = Mat.findValue( o.blendEquationAlpha );

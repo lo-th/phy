@@ -1,6 +1,6 @@
 demo = () => {
 
-    phy.view({ envmap:'basic' })
+    phy.view({ envmap:'clear' })
 
     // config physics setting
     phy.set({ substep:1, gravity:[0,-9.81,0],  })

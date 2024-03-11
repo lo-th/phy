@@ -12,6 +12,9 @@ demo = () => {
 
     phy.set({ substep:1 })
 
+    //phy.lightIntensity( 6, 0, 0.7 );
+    phy.useRealLight( {} );
+
     /*
     let grid = new THREE.GridHelper( 8, 8, 0x2f875d, 0x2f875d )
     grid.material.opacity = 0.1
@@ -42,6 +45,7 @@ onComplete = () => {
     let mc = phy.material({ name:'Clock', roughness: 0.25, metalness: 1, 
         map:phy.texture({ url:'./assets/textures/chess/chessclock_c.jpg', flip:true }),
         metalnessMap:phy.texture({ url:'./assets/textures/chess/chessclock_m.jpg', flip:true }),
+        side:'double',
     })
     //let g = phy.material({ name:'gl', roughness: 0, metalness: 1, transparent:true, opacity:0.2 })
     clockMesh.clock.traverse( ( child ) => {

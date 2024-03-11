@@ -22,6 +22,7 @@ import {
 	AdditiveBlending,
 	MultiplyBlending,
 	Color,
+	HalfFloatType,
 
 } from 'three';
 import { Shader } from '../Shader.js';
@@ -69,7 +70,7 @@ export class Reflector extends Mesh {
 
 		this.isShow = true;
 
-		var scope = this;
+		const scope = this;
 
 		o = o || {};
 
@@ -80,6 +81,8 @@ export class Reflector extends Mesh {
 		this.isWater = o.water !== undefined ? o.water : false;
 		this.uv = o.uv || 1;
 		this.normalScale = o.normalScale || 1;
+
+		this.multisample = o.multisample !== undefined ? o.multisample : 4;
 
 
 
@@ -203,7 +206,8 @@ export class Reflector extends Mesh {
 
 			var fragment = shader.fragmentShader;
 			fragment = fragment.replace( 'uniform vec3 diffuse;', ['uniform vec3 diffuse;', 'varying vec4 vUvR;', 'uniform float reflectif;', 'uniform sampler2D mirrorMap;', 'uniform int blackAll;'].join("\n") );
-			fragment = fragment.replace( '#include <map_fragment>', ReflectShader.map_fragment );
+			//fragment = fragment.replace( '#include <map_fragment>', ReflectShader.map_fragment );
+			fragment = fragment.replace( '#include <lights_fragment_maps>', ReflectShader.lights_fragment_maps );
 			fragment = fragment.replace( '#include <fog_fragment>', ReflectShader.fog_fragment );
 
 			//fragment = fragment.replace( '#include <alphamap_fragment>', ReflectShader.alphamap_fragment );
@@ -211,7 +215,7 @@ export class Reflector extends Mesh {
 			//fragment = fragment.replace( '#include <normal_fragment_maps>', ReflectShader.normal_fragment_maps );
 
 			//fragment = fragment.replace( '#include <aomap_pars_fragment>', '' );
-			fragment = fragment.replace( '#include <aomap_fragment>', '' );
+			//fragment = fragment.replace( '#include <aomap_fragment>', '' );
 			//fragment = fragment.replace( '#include <emissivemap_fragment>', '' );
 			//fragment = fragment.replace( '#include <clearcoat_normal_fragment_begin>', '' );
 			//fragment = fragment.replace( '#include <clearcoat_normal_fragment_maps>', '' );
@@ -319,16 +323,12 @@ export class Reflector extends Mesh {
 
 			// Render
 
-			//scope.renderTarget.texture.colorSpace = renderer.outputColorSpace;
-
 			scope.visible = false;
 
 			const currentFog = scene.fog;
 			const currentRenderTarget = renderer.getRenderTarget();
 			let currentXrEnabled = renderer.xr.enabled;
 			let currentShadowAutoUpdate = renderer.shadowMap.autoUpdate;
-			//const currentOutputEncoding = renderer.outputColorSpace;
-			//const currentToneMapping = renderer.toneMapping;
 
 			scene.fog = null
 			renderer.xr.enabled = false; // Avoid camera modification and recursion
@@ -408,14 +408,17 @@ export class Reflector extends Mesh {
 
 		if( this.renderTarget ) this.renderTarget.dispose();
 
-		var parameters = {
+		/*var parameters = {
 			minFilter: LinearFilter,
 			magFilter: LinearFilter,
 			//format: RGBFormat,
 			stencilBuffer: false,
 			//colorSpace : this.encoding ? SRGBColorSpace : LinearEncoding,
 			generateMipmaps:true,
-		};
+		};*/
+		
+
+		var parameters = { samples: this.multisample, type: HalfFloatType }
 
         this.renderTarget = new WebGLRenderTarget( this.textureSize, this.textureSize, parameters );
 		//this.renderTarget = new RenderTarget( this.textureSize, this.textureSize, parameters );
@@ -489,8 +492,8 @@ export class Reflector extends Mesh {
 			//this.material.normalMap = Pool.texture( { url:'./assets/textures/floor.png', flip:false, repeat:[200,200] });
 			//this.material.normalMap.channel = 1;
 			//this.material.normalMap = null;
-			this.material.roughness = 0.8;
-			this.material.metalness = 0.2;
+			this.material.roughness = 0.05;//0.8;
+			this.material.metalness = 0;//0.2;
 			this.material.side = FrontSide;
 		}
 
@@ -573,15 +576,19 @@ export class Reflector extends Mesh {
 
 const ReflectShader = {
 
+	lights_fragment_maps :/* glsl */`
+	#include <lights_fragment_maps>
+
+	if( reflectif != 0.0 ){
+		vec3 reflector = texture2DProj( mirrorMap, vUvR ).rgb;
+
+	    //totalEmissiveRadiance.rgb = mix( totalEmissiveRadiance.rgb, totalEmissiveRadiance.rgb + reflector.rgb, reflectif );
+	    totalEmissiveRadiance.rgb += reflector * reflectif;
+	}
+	`,
+
 	map_fragment :/* glsl */`
-
-	
-
-	#ifdef USE_MAP
-	    
-	    diffuseColor *= texture2D( map, vMapUv );
-
-	#endif
+	#include <map_fragment>
 
 	if( reflectif != 0.0 ){
 		vec4 reflector = texture2DProj( mirrorMap, vUvR );
@@ -590,38 +597,18 @@ const ReflectShader = {
 	`,
 
 	fog_fragment :/* glsl */`
+	#include <fog_fragment>
 	if( blackAll == 1 ) gl_FragColor = vec4( vec3(0.0), diffuseColor.a );
-	#ifdef USE_FOG
-
-		#ifdef FOG_EXP2
-
-			float fogFactor = 1.0 - exp( - fogDensity * fogDensity * vFogDepth * vFogDepth );
-
-		#else
-
-			float fogFactor = smoothstep( fogNear, fogFar, vFogDepth );
-
-		#endif
-
-		gl_FragColor.rgb = mix( gl_FragColor.rgb, fogColor, fogFactor );
-
-	#endif
 	`,
 
 	extra_Function :/* glsl */`
 
 	float blendOverlay( float base, float blend ) {
-
 		return( base < 0.5 ? ( 2.0 * base * blend ) : ( 1.0 - 2.0 * ( 1.0 - base ) * ( 1.0 - blend ) ) );
-
 	}
 
 	vec3 blendOverlay( vec3 base, vec3 blend ) {
-
 		return vec3( blendOverlay( base.r, blend.r ), blendOverlay( base.g, blend.g ), blendOverlay( base.b, blend.b ) );
-
 	}`,
-
-	
 
 }
