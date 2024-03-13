@@ -147,6 +147,15 @@ export const Mat = {
 
 	},
 
+	set:( m, direct, beforeCompile = null ) => {
+
+		if(!beforeCompile) beforeCompile = m.onBeforeCompile;
+		if(!direct) Mat.extendShader( m, beforeCompile );
+		mat[m.name] = m;
+		//Mat.setEnvmapIntensity(m)
+
+	},
+
 	extendShader:( m, beforeCompile = null ) => { 
 
 		//let oldCompile = null;
@@ -248,13 +257,7 @@ export const Mat = {
 
 	findValue:(v) => ( v === 'string' ? ThreeVariable[ v.charAt(0).toUpperCase() + v.slice(1) ] : v ),
 
-	set:( m, direct, beforeCompile ) => {
 
-		if(!direct) Mat.extendShader( m, beforeCompile );
-		mat[m.name] = m;
-		//Mat.setEnvmapIntensity(m)
-
-	},
 
 	addToMat:( o ) => {
 

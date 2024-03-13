@@ -54,8 +54,6 @@ export class Instance extends InstancedMesh {
 
     over ( b ) {
 
-        //console.log('over', b)
-
         if( b && !this.instance.isOver ){ 
 
             this.instance.isOver = true;
@@ -72,12 +70,12 @@ export class Instance extends InstancedMesh {
 
     }
 
-    getInfo( id ) {
+    getInfo( index ) {
 
-        this.tmpMatrix.fromArray( this.instanceMatrix.array, id*16 )
-        let pos = {x:0, y:0, z:0 }
-        let scale = { x:0, y:0, z:0 }
-        this.tmpMatrix.decompose( pos, this.tmpQuat, scale )
+        this.tmpMatrix.fromArray( this.instanceMatrix.array, index * 16 );
+        let pos = {x:0, y:0, z:0 };
+        let scale = { x:0, y:0, z:0 };
+        this.tmpMatrix.decompose( pos, this.tmpQuat, scale );
         return{
             pos:[pos.x, pos.y, pos.z],
             quat:this.tmpQuat.toArray(),
@@ -184,7 +182,7 @@ export class Instance extends InstancedMesh {
 
     dispose() {
 
-        this.clearOutLine()
+        this.clearOutLine();
         this.parent.remove(this);
         this.geometry.dispose();
         //this.instanceMatrix = null;

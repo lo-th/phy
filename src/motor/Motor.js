@@ -676,11 +676,14 @@ export class Motor {
 
     
 
-	static control ( name ){ // for character and vehicle
+	static control ( name = null ){ // for character and vehicle
+
+
 
 		if( currentControle !== null ){
-			if( name !== currentControle.name ){ 
-				currentControle = Motor.byName( name )
+			if( name === null ) currentControle = null;
+			else  {
+				if( name !== currentControle.name ) currentControle = Motor.byName( name )
 			}
 		} else {
 			currentControle = Motor.byName( name )

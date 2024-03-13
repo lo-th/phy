@@ -19,7 +19,7 @@ const setting = {
     mixRatio:0.0,
     threshold:0.1,
     normal:0.25,
-    hair:0x100402,//0xa43412,
+    hair:0x752002,//0xa43412,
     bow:0x100402,
     sheen:1,//2.25,
     sheenRoughness:1.0,//1.0,
@@ -43,7 +43,7 @@ export const Human = {
 	isBreath:false,
 	isEyeMove:false,
 	
-    haveHair:false,
+    haveHair:true,
     haveBlink:true,
 
     haveMorph:true,
@@ -55,7 +55,6 @@ export const Human = {
     levelHigh:['body', 'Head', 'crane', 'eyelash', 'eyebrow', 'tear', 'eye_l', 'eye_r', 'eye_l_s', 'eye_r_s'],
     levelHair:['hair', 'hair_man'],
     levelLow:['body_low'],
-
 
     skeletonRef:'body',
 	fullMorph: ['MUSCLE', 'LOW', 'BIG'],//, 'MONSTER'
@@ -84,7 +83,7 @@ export const Human = {
             map: 'avatar_c', 
             normalMap:'avatar_n',
 
-            envMapIntensity:0.7,
+            //envMapIntensity:0.7,
             //reflectivity:1.0,
 
             roughness:0.54,
@@ -295,7 +294,7 @@ export const Human = {
                     node.material = def;
                     node.receiveShadow = true;
                     node.castShadow = false;
-                    node.visible = startHigh
+                    node.visible = startHigh ? !Human.haveHair:false;//startHigh
                     break;
                     case 'mouth':
                     node.material = Pool.getMaterial( 'mouth' ) || def;
@@ -362,10 +361,27 @@ export const Human = {
         //{name:'head', values:[-10,0,0]},
         {name:'neck', values:[-5,0,0]},
         {name:'chest', values:[5,0,0]},
+        
         {name:'lCollar', values:[0,0,-10]},
         {name:'rCollar', values:[0,0,10]},
-        {name:'lShldr', values:[-20,2,0]},
-        {name:'rShldr', values:[-20,-2,0]},
+
+        {name:'lShldr', values:[-20,2,5]},
+        {name:'rShldr', values:[-20,-2,-5]},
+
+        //{name:'lShldr', values:[-5,2,0]},
+        //{name:'rShldr', values:[-5,-2,0]},
+
+        {name:'lForeArm', values:[0,0,10]},
+        {name:'rForeArm', values:[0,0,-10]},
+
+        {name:'lHand', values:[0,15,10]},
+        {name:'rHand', values:[0,-15,-10]},
+        //{name:'lThumb1', values:[0,-15,0]},
+        //{name:'rThumb1', values:[0,15,0]},
+        {name:'lThumb2', values:[0,25,10]},
+        {name:'rThumb2', values:[0,-25,-10]},
+        
+
             //{name:'rShldr', values:[0,0,0]},
             /*
             
@@ -374,8 +390,7 @@ export const Human = {
             //{name:'rShldr', values:[0,0,0]},
             {name:'lForeArm', values:[0,0,20]},
             {name:'rForeArm', values:[0,0,-20]},
-            {name:'lHand', values:[-60,0,30]},
-            {name:'rHand', values:[-60,0,-30]},*/
+            */
         ]
 
     }

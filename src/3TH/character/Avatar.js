@@ -73,7 +73,7 @@ export const preloadAvatar = {
     loadOne:() => {
 
         let name = preloadAvatar.tmp[0]
-        preloadAvatar.avatar = new Avatar({ type:name, callback:preloadAvatar.next, morph:true });
+        preloadAvatar.avatar = new Avatar({ type:name, callback:preloadAvatar.next, morph:true, isPreload:true });
 
     },
 
@@ -97,6 +97,8 @@ export class Avatar extends Group {
 	constructor( o = {} ) {
 
         super();
+
+        this.isPreload = o.isPreload || false;
 
         this.fixWeight = o.fixWeight !== undefined ? o.fixWeight : true;
 
@@ -266,7 +268,7 @@ export class Avatar extends Group {
                 }
             }*/
 
-            if( window.gui && this.current ){ 
+            if( window.gui && window.gui.updateTimeBarre && this.current ){ 
                 window.gui.updateTimeBarre( Math.round( this.current.time * FrameTime ), this.current.frameMax );
             }
         }
@@ -386,15 +388,14 @@ export class Avatar extends Group {
             }
 
 
-            if(type==='Basic') m = new MeshBasicMaterial( data )
-            else if(type==='Standard') m = new MeshStandardMaterial( data )
-            else if(type==='Physical') m = new MeshPhysicalMaterial( data )
-            else if(type==='Sss') m = new MeshSssMaterial(data)
-            m.name = name
+            if(type==='Basic') m = new MeshBasicMaterial( data );
+            else if(type==='Standard') m = new MeshStandardMaterial( data );
+            else if(type==='Physical') m = new MeshPhysicalMaterial( data );
+            else if(type==='Sss') m = new MeshSssMaterial(data);
+            m.name = name;
 
-            //console.log(m)
-            //Shader.add( m )
-            Pool.set( name, m )
+            Pool.set( name, m );
+
         }
 
         this.setting = this.ref.setting;
@@ -459,7 +460,7 @@ export class Avatar extends Group {
         // for extra skin
         for( let m in this.mesh ){
             if( this.mesh[m].isSkinnedMesh && m !== this.ref.skeletonRef ){
-                this.mesh[m].skeleton.dispose();
+                //this.mesh[m].skeleton.dispose();
                 this.mesh[m].skeleton = this.skeleton;
             }
         }
@@ -550,7 +551,10 @@ export class Avatar extends Group {
         if( this.lod === 0 ) this.setVisible( this.ref.levelLow, true );
         else { 
             this.setVisible( this.ref.levelHigh, true );
-            if( this.ref.haveHair ) this.setVisible( this.ref.levelHair, true );
+            if( this.ref.haveHair ){ 
+                this.mesh.body.visible = false;
+                this.setVisible( this.ref.levelHair, true );
+            }
         }
     
     }
@@ -631,20 +635,19 @@ export class Avatar extends Group {
 
     start(){
 
-
+        if( this.isPreload ) { this.callback(); return; }
         if( this.done ) return;
 
         //this.updateMatrix()
 
         this.done = true;
  
-        this.add( this.root );
+        
 
         this.onReady();
-        this.playAll();
+        //this.playAll();
         
         this.play( this.startAnimation );
-
 
         if( this.ref.adjustment ){
             this.makePoseTrack('adjustment', this.ref.adjustment(), true );
@@ -657,7 +660,14 @@ export class Avatar extends Group {
         }
 
 
-        setTimeout( this.callback, 10 );
+        //this.add( this.root );
+
+
+        //setTimeout( this.callback, 100 );
+        setTimeout( function(){ 
+            this.add( this.root );
+            this.callback()
+        }.bind(this), 100 )
         //this.callback()
 
     }
@@ -848,7 +858,7 @@ export class Avatar extends Group {
 
         //console.log(clip)
 
-        if( window.gui ) window.gui.getAnimation();
+        if( window.gui && window.gui.getAnimation ) window.gui.getAnimation();
 
        // if( play ) this.play( clip.name )
 
@@ -1208,12 +1218,13 @@ export class Avatar extends Group {
         let action = this.getAction( name );
         if ( !action ) return false;
 
+
+
         if( !this.current ){
             this.stop()
             this.current = action;
             //action.play();
             action.setEffectiveWeight( 1 );
-            //console.log(name)
         } else {
 
             if( this.current !== action ){

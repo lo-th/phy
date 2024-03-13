@@ -661,6 +661,7 @@ const addControl = () => {
 
 const changeShadow = (o) => {
 
+	if(o.distance)
 	Lights.setShadow( Lights.byName('sun'), o )
 
 }

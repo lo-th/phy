@@ -16,16 +16,6 @@ demo = () => {
     building({ block:0.3, height:10, length:6, deep:6 })
     //building({ block:0.3, height:10, length:10, deep:10 })
 
-    /*phy.add({
-        name:'cone',
-        sleep:true,
-        type:'compound', density:5, pos:[ 0,6,0 ],
-        shapes: [
-        { type:'cone', pos:[0.25,0,0], size:[ 0.5,0.5,0.5 ], rot:[0,0,-90] },
-        { type:'cone', pos:[-0.25,0,0], size:[ 0.5,0.5,0.5 ], rot:[0,0,90] },
-        ],
-        material:'glassX'
-    })*/
 
     // intern timeout
     phy.setTimeout( run, 2000 )

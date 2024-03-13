@@ -1,5 +1,5 @@
 import {
-	Color, MeshPhysicalMaterial
+	Color, MeshPhysicalMaterial, ShaderChunk
 } from 'three';
 
 /**
@@ -37,6 +37,25 @@ class MeshSssMaterial extends MeshPhysicalMaterial {
 		
 		this.setValues( parameters );
 
+		let self = this;
+
+        self.onBeforeCompile = function ( shader ) {
+        	for(let name in self.extra ) {
+				shader.uniforms[ name ] = { value: self.extra[name] };
+			}
+
+			shader.fragmentShader = shader.fragmentShader.replace( '#include <common>', shaderChange.common );
+			shader.fragmentShader = shader.fragmentShader.replace( '#include <lights_fragment_begin>', 
+				self.replaceAll(
+					ShaderChunk[ 'lights_fragment_begin' ],
+					'RE_Direct( directLight, geometryPosition, geometryNormal, geometryViewDir, geometryClearcoatNormal, material, reflectedLight );',
+					shaderChange.light
+				)
+			);
+
+			self.userData.shader = shader;
+        }
+
 	}
 
 	addParametre( name, value ){
@@ -58,7 +77,13 @@ class MeshSssMaterial extends MeshPhysicalMaterial {
 
 	}
 
-	onBeforeCompile( shader ){
+	/*customProgramCacheKey(){
+
+		return self
+
+	} */
+
+	/*onBeforeCompile( shader ){
 
 		for(let name in this.extra ) {
 			shader.uniforms[ name ] = { value: this.extra[name] };
@@ -75,7 +100,7 @@ class MeshSssMaterial extends MeshPhysicalMaterial {
 
 		this.userData.shader = shader;
 
-	}
+	}*/
 
 }
 
