@@ -174,7 +174,7 @@ onComplete = () => {
         ar.push({ 
             instance:'C', 
             mesh:sofaModel.cardboard, 
-            material:'cardboard',
+            material:'Cardboard',
             type:'box', 
             size:[0.38, 0.33,0.5], 
             pos:[math.rand( -2, 2 ), 2+ i*0.35, math.rand( 1, 3 )], 
@@ -229,7 +229,7 @@ makeMaterial = () => {
         normalScale:[0.3,-0.3], 
     })
 
-    phy.material({ name:'cardboard', color:0xFFFFFF, roughness: 1, metalness: 0, 
+    phy.material({ name:'Cardboard', color:0xFFFFFF, roughness: 1, metalness: 0, 
         map:phy.texture({ url:'./assets/textures/model/cardboard_c.jpg' }),
         normalMap:phy.texture({ url:'./assets/textures/model/cardboard_n.jpg' }),
         roughnessMap:phy.texture({ url:'./assets/textures/model/cardboard_r.jpg' }),

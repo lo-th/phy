@@ -25464,10 +25464,7 @@ function WebGLTextures( _gl, extensions, state, properties, capabilities, utils,
 				if ( ignoreDepthValues === false ) {
 
 					if ( renderTarget.depthBuffer ) mask |= _gl.DEPTH_BUFFER_BIT;
-
-					// resolving stencil is slow with a D3D backend. disable it for all transmission render targets (see #27799)
-
-					if ( renderTarget.stencilBuffer && renderTargetProperties.__isTransmissionRenderTarget !== true ) mask |= _gl.STENCIL_BUFFER_BIT;
+					if ( renderTarget.stencilBuffer ) mask |= _gl.STENCIL_BUFFER_BIT;
 
 				}
 
@@ -29454,12 +29451,8 @@ class WebGLRenderer {
 					generateMipmaps: true,
 					type: ( extensions.has( 'EXT_color_buffer_half_float' ) || extensions.has( 'EXT_color_buffer_float' ) ) ? HalfFloatType : UnsignedByteType,
 					minFilter: LinearMipmapLinearFilter,
-					samples: 4,
-					stencilBuffer: stencil
+					samples: 4
 				} );
-
-				const renderTargetProperties = properties.get( currentRenderState.state.transmissionRenderTarget );
-				renderTargetProperties.__isTransmissionRenderTarget = true;
 
 				// debug
 

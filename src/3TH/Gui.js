@@ -408,16 +408,18 @@ export const Gui = {
 
 		if( Gui.mode !== 'POST' ) return
 
+
+
     	const ui = Gui.ui
 
-        const options = Main.getOption()
+        const options = Main.getOption();
 
         if(!direct){
         	ui.clear() 
-        	ui.add( options, 'renderMode', { type:'selector', values:[0,1,2,3], selectable:true, unselect:false, p:0, h:24 }).onChange( function(n){ 
+        	/*ui.add( options, 'renderMode', { type:'selector', values:[0,1,2,3], selectable:true, unselect:false, p:0, h:24 }).onChange( function(n){ 
 
 				if( n!== 0 ) scene.helper.visible = false
-				if( n===1 ) { Env.setBackgroud(0x000000) /*camera.near = 1; camera.updateProjectionMatrix();*/}
+				if( n===1 ) { Env.setBackgroud(0x000000)}
 				else if( n===2 ) Env.setBackgroud(0x7777ff)
 				else if( n===3 ) Env.setBackgroud(0xffffff)
 				else {
@@ -426,7 +428,7 @@ export const Gui = {
 				}
 				//Hub.setRenderMode( n )
 				Shader.up( options ) 
-			})
+			})*/
         	ui.add( options, 'composer', { type:'bool', rename:'POST PROCESS OFF', onName:'POST PROCESS ON', mode:1, h:40 }).onChange( Main.setComposer )
         	Gui.gp = ui.add('group', { name:'OPTION' })
         }
@@ -437,6 +439,19 @@ export const Gui = {
 		const composer = Main.getComposer()
 		const scene = Main.getScene()
 		const mode = 0
+
+		if(!composer) return
+
+		let data = composer.getPass()
+	    let i = data.length, n=0;
+	    while(i--){
+	    	data[n]
+	    	g.add( data[n], 'enabled', { type:'bool', rename:data[n].name+' OFF', onName:data[n].name+' ON', mode:1, h:30 }).onChange( Main.setComposer )
+	    	n++;
+	    }
+
+	    g.open()
+		return
 		if(!composer) return
 
 		g.add( composer.pass.focus, 'enabled', { type:'bool', rename:'focus', onName:'focus' })

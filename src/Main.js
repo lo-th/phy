@@ -15,7 +15,9 @@ import { Env } from './3TH/Env.js'
 import { Lights } from './3TH/Lights.js'
 import { Shader } from './3TH/Shader.js'
 import { Editor } from './3TH/Editor.js'
-import { Composer } from './3TH/Composer.js'
+//import { Composer } from './3TH/Composer.js'
+
+import { Composer } from './3TH/Composer_test.js'
 
 // OBJECT
 import { Hub3D } from './3TH/objects/Hub3D.js'
@@ -471,7 +473,7 @@ const init = () => {
 		//stencil: false,
 		alpha: false,
 	    depth: true,
-	    stencil: false,
+	    stencil: true,
 	    //antialias: false,
 	    premultipliedAlpha: true,
 	    preserveDrawingBuffer: false,
@@ -1426,13 +1428,15 @@ const getFullStats = () => {
 const setComposer = ( b ) => {
 
 	if(options.composer){
-		if( composer === null ) composer = new Composer( renderer, scene, camera, controls, size )
-		composer.enabled = true
+		if( composer === null ) composer = new Composer( renderer, scene, camera, controls, size );
+		composer.enabled = true;
+		if(hub3d) hub3d.visible = false;
 
 	} else {
 		if( composer ){
-			composer.dispose()
-			composer = null
+			composer.dispose();
+			composer = null;
+			if(hub3d) hub3d.visible = true;
 		} 
 	}
 

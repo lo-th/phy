@@ -5,22 +5,27 @@ import {
 	LinearFilter,
 	NearestFilter,
 	RGBAFormat,
-	sRGBEncoding,
-	FloatType
+	//sRGBEncoding,
+	FloatType,
+	HalfFloatType,
+	ShaderMaterial,
+	Color
 } from 'three';
 
 import { Shader } from './Shader.js';
 import { Env } from './Env.js'
 
-import { EffectComposer, RenderPass, ShaderPass, EffectPass, LUT3dlLoader, LUTCubeLoader, LUT3DEffect, BloomEffect, VignetteEffect, KernelSize } from '../libs/postprocessing.esm.js'
-
+import { EffectComposer, RenderPass, ShaderPass, EffectPass, LUT3dlLoader, LUTCubeLoader, LUT3DEffect, BloomEffect, VignetteEffect, KernelSize, Effect, SMAAEffect, SMAAPreset } from '../libs/postprocessing.js'
 import { SSGIEffect, MotionBlurEffect, TRAAEffect, VelocityDepthNormalPass } from '../libs/realism.js'
+import { N8AOPass, N8AOPostPass } from '../libs/N8AO.js'
+
+import { LensDistortionShader } from '../3TH/shaders/LensDistortionShader.js'
 
 /*import { EffectComposer } from '../jsm/postprocessing/EffectComposer.js';
 import { RenderPass } from '../jsm/postprocessing/RenderPass.js';
 import { ShaderPass } from '../jsm/postprocessing/ShaderPass.js';
 */
-import { UnrealBloomPass } from '../jsm/postprocessing/UnrealBloomPass.js';
+/*import { UnrealBloomPass } from '../jsm/postprocessing/UnrealBloomPass.js';
 //import { LUTPass } from '../jsm/postprocessing/LUTPass.js';
 //import { ClearPass } from '../postprocessing/ClearPass.js';
 //import { TexturePass } from '../postprocessing/TexturePass.js';
@@ -31,35 +36,105 @@ import { SAOPass } from '../jsm/postprocessing/SAOPass.js';
 
 import { CopyShader } from '../jsm/shaders/CopyShader.js';
 import { FXAAShader } from '../jsm/shaders/FXAAShader.js';
-import { SharpenShader } from '../jsm/shaders/SharpenShader.js';
+//import { SharpenShader } from '../jsm/shaders/SharpenShader.js';
 //import { BokehShader, BokehDepthShader } from '../shaders/BokehShader2.js';
 import { GammaCorrectionShader } from '../jsm/shaders/GammaCorrectionShader.js';
-import { DistortionShader } from '../jsm/shaders/DistortionShader.js';
+//import { DistortionShader } from '../jsm/shaders/DistortionShader.js';
 import { BloomMix } from '../jsm/shaders/BloomMix.js';
 
-import { ToneMapShader } from '../jsm/shaders/ToneMapShader.js';
+import { ToneMapShader } from '../jsm/shaders/ToneMapShader.js';*/
 
 //import { LUTCubeLoader } from '../jsm/loaders/LUTCubeLoader.js';
 //import { LUT3dlLoader } from '../jsm/loaders/LUT3dlLoader.js';
 
+const option = {
+
+
+	// n8_ao
+	aoSamples: 16.0,
+    denoiseSamples: 8.0,
+    denoiseRadius: 12.0,
+    aoRadius: 5.0,
+    distanceFalloff: 1.0,
+    screenSpaceRadius: false,
+    halfRes: false,
+    depthAwareUpsampling: true,
+    transparencyAware: true,
+    intensity: 5.0,
+    renderMode: "Combined",
+    color: [0, 0, 0],
+    colorMultiply: true,
+    stencil: true,
+    accumulate: false
+}
+
 export class Composer extends EffectComposer {
+
+
 
 	constructor( renderer, scene, camera, controls, size ) {
 
-		let isGl2 = renderer.capabilities.isWebGL2
-		let px = renderer.getPixelRatio()
+		let isGl2 = true;//renderer.capabilities.isWebGL2
+		let px = renderer.getPixelRatio();
 
-		super( renderer );
+		super( renderer, { stencilBuffer: true, depthBuffer: true, frameBufferType: HalfFloatType } );
 
-		renderer.autoClear = false
+		renderer.autoClear = false;
 
-		this.enabled = false
+		this.enabled = false;
 
-		this.renderPass = new RenderPass(scene, camera)
+		const renderPass = new RenderPass( scene, camera );
+		renderPass.name = 'render'
+		renderPass.clearPass.setClearFlags(true, true, true);
+		this.addPass(renderPass)
 
-		//this.addPass(this.renderPass)
+		const n8aopass = new N8AOPostPass( scene, camera, size.w, size.h );
+		n8aopass.name = 'n8ao'
+		n8aopass.configuration.aoRadius = 5.0;
+        n8aopass.configuration.distanceFalloff = 1.0;
+        n8aopass.configuration.transparencyAware = true;
+        n8aopass.configuration.intensity = 5.0;
+        n8aopass.configuration.aoSamples = 16.0;
+        n8aopass.configuration.denoiseRadius = 12.0;
+        n8aopass.configuration.denoiseSamples = 8.0;
+        n8aopass.configuration.stencil = true;
+        n8aopass.configuration.renderMode = 0;//["Combined", "AO", "No AO", "Split", "Split AO"]
+        n8aopass.configuration.color = new Color(0, 0, 0);
+        n8aopass.configuration.screenSpaceRadius = false;
+        n8aopass.configuration.halfRes = false;
+        n8aopass.configuration.depthAwareUpsampling = true;
+        n8aopass.configuration.colorMultiply = true;
+        n8aopass.configuration.accumulate = false;
 
-		const options = {
+	    this.addPass(n8aopass);
+
+
+	    const lens = new ShaderMaterial()
+		Object.assign(lens, LensDistortionShader)
+		lens.defines.CHROMA_SAMPLES = 1//24
+		lens.uniforms.baseIor.value = 0.86//965
+		lens.uniforms.bandOffset.value = 0//0.0015
+		lens.uniforms.jitterIntensity.value = 0//5.375
+		const lensDistortionPass = new ShaderPass( lens )
+		lensDistortionPass.name = 'lens'
+		const lensDistortionPassRender = lensDistortionPass.render
+		lensDistortionPass.render = (renderer, inputBuffer, ...args) => {
+			lens.uniforms.tDiffuse.value = inputBuffer.texture
+			lensDistortionPassRender.call(lensDistortionPass, renderer, inputBuffer, ...args)
+		}
+
+	    this.addPass( lensDistortionPass );
+
+	    const smaa = new EffectPass(camera,new SMAAEffect({ preset: SMAAPreset.ULTRA }))
+	    smaa.name = 'smaa'
+
+
+	    this.addPass(  smaa );
+
+
+	    console.log(this.passes)
+
+	/*	const options = {
 			threeVue:false,
 			distance: 2.7200000000000104,
 			thickness: 1.2999999999999972,
@@ -85,9 +160,10 @@ export class Composer extends EffectComposer {
 			missedRays: false
 		}
 
-		const pass = {}
+	//	const pass = {}
 
 
+		/*
 		pass.velocity = new VelocityDepthNormalPass(scene, camera)
 		this.addPass( pass.velocity )
 
@@ -133,9 +209,10 @@ export class Composer extends EffectComposer {
 			this.addPass( new EffectPass(camera, this.motionBlurEffect, this.bloomEffect, this.vignetteEffect, pass.lut) )
 	    })
 
+*/
 
+	  //  this.pass = pass
 
-	    this.pass = pass
 
 
 
@@ -356,7 +433,7 @@ export class Composer extends EffectComposer {
 	}
 
 
-	renderNormal () {
+	/*renderNormal () {
 
 		//if( !this.needNormal ) return
 		//if( this.normalTarget === null  ) this.normalTarget = this.renderTarget.clone()
@@ -442,7 +519,7 @@ export class Composer extends EffectComposer {
 			this.pass.bloom.bloomRadius = this.options.bloomRadius; 
 		}*/
 
-		if(this.pass.sao){
+		/*if(this.pass.sao){
 
 			this.pass.sao.params.saoBias = this.options.saoBias
 			this.pass.sao.params.saoIntensity = this.options.saoIntensity
@@ -465,7 +542,7 @@ export class Composer extends EffectComposer {
 			this.pass.ssao.maxDistance = this.options.maxDistance;
 		}*/
 
-	}
+	/*}*/
 
 	changeLut ( txt, name, type ) {
 
@@ -529,7 +606,12 @@ export class Composer extends EffectComposer {
 	}
 
 	dispose() {
-		this.enabled = false
+		this.enabled = false;
+		super.dispose();
+	}
+
+	getPass(){
+		return this.passes;
 	}
 
 	render ( deltaTime ) {
