@@ -41,6 +41,8 @@ import { Motor } from './motor/Motor.js'
 import { Smoke } from '../build/smoke.module.js'
 //import { Smoke } from './3TH/_smoke/Smoke.js'
 
+import { DualQuat } from './3TH/DualQuat.js'
+
 // WEBGPU test
 import WebGPU from './jsm/capabilities/WebGPU.js';
 import WebGPURenderer from 'three/addons/renderers/webgpu/WebGPURenderer.js';
@@ -233,6 +235,9 @@ export const Main = {
 	motor:Motor,
 
 	start: async ( o = {} ) => {
+
+		// todo don't get the good model scale 
+		//DualQuat();
 
 		Hub.setMain( Main );
 		Gui.setMain( Main );

@@ -145,6 +145,8 @@ export class Controller extends OrbitControls {
         if( o.dx !== undefined ) cam.decal.x = o.dx;
         if( o.dy !== undefined ) cam.decal.y = o.dy;
         if( o.dz !== undefined ) cam.decal.z = o.dz;
+        cam.decalY = o.decalY !== undefined ? o.decalY : 0;
+        cam.zoomUp = o.zoomUp || false;
         cam.clipper = o.clipper || false;
         cam.exr = o.exr || 0;
 
@@ -346,14 +348,18 @@ export class Controller extends OrbitControls {
         
         let phi = ( ( 90 - cam.phi ) * math.torad ) ;
         //let theta = ( cam.theta * math.torad )
-        let radius = cam.distance;
-
-        //console.log(this.tmpP)
+        let radius = this.getDistance()//cam.distance;
 
 
         if( cam.simple ){
 
+            if(radius<2) cam.decalY = (2-radius)*0.5
+
             this.tmpV.copy( cam.decal )//.applyAxisAngle( { x:1, y:0, z:0 }, phi - math.PI90 )
+
+            // zoom to head
+            if(cam.zoomUp) this.tmpV.y += cam.decalY; 
+
             this.tmpV.applyAxisAngle( { x:0, y:1, z:0 }, sph.theta)
             //cam.offset.copy( p ).add( this.tmpV ).applyAxisAngle( { x:0, y:1, z:0 }, cam.theta );
 

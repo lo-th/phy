@@ -226,7 +226,7 @@ makeMaterial = () => {
         normalMap:phy.texture({ url:'./assets/textures/model/baseball_n.jpg' }),
         roughnessMap:phy.texture({ url:'./assets/textures/model/baseball_r.jpg' }),
         //roughness:0.88,
-        normalScale:[0.3,-0.3], 
+        normalScale:[0.3,-0.3],
     })
 
     phy.material({ name:'Cardboard', color:0xFFFFFF, roughness: 1, metalness: 0, 
@@ -234,7 +234,7 @@ makeMaterial = () => {
         normalMap:phy.texture({ url:'./assets/textures/model/cardboard_n.jpg' }),
         roughnessMap:phy.texture({ url:'./assets/textures/model/cardboard_r.jpg' }),
         //roughness:0.88,
-        normalScale:[0.3,-0.3], 
+        normalScale:[0.3,-0.3],
     })
 
 }

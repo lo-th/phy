@@ -6,7 +6,7 @@ demo = () => {
 	phy.view({
         phi:0, theta:0, distance:5, x:0, y:3, z:5, fov:45, 
         envmap:'lobe', envblur: 0.5, //background:0x101010,
-        groundReflect:0.1, 
+        groundReflect:0.01, 
         groundColor:0x353436,
         //shadow:0.5,//0.5,
     });
@@ -25,14 +25,6 @@ demo = () => {
     phy.add({ type:'plane', size:[300,1,300], visible:false });
 
     phy.load(['./assets/models/column.glb'], onComplete_1 );
-
-     // gui
-    gui = phy.gui();
-
-    gui.add('button',{name:'Random', h:30}).onChange( Character )
-    gui.add('bool',{name:'Debug'}).onChange( showDebug )
-    
-    //gui.add( setting, 'name', { type:'button', values:list, selectable:true, h:26, p:0 } ).listen().onChange( click )
     
 }
 
@@ -52,7 +44,8 @@ onComplete_1 = () => {
 
 onComplete_2 = () => {
 
-    Character();
+    Character(1);
+    addGui();
 
 }
 
@@ -126,15 +119,13 @@ const Colomn = ( h = 5, pos = [0,0,0] ) => {
 
 }
 
-const showDebug = (debug) => {
-    if(player) player.debugMode( debug );
-}
 
-const Character = () => {
+
+const Character = ( num = 1 ) => {
 
     phy.control();
 
-    let i = 1, n = 0,  g;
+    let i = num, n = 0,  g;
     let pos = [0,0,5], angle = 0;
     let hh = [];
     let gender =  [ 'man', 'woman'];
@@ -165,12 +156,50 @@ const Character = () => {
 
     }
 
-    //hh[0].debugMode( debug );
     player = hh[0];
+    let model = player.model;
+
+    option.bodyMorph = model.bodyMorph;
+    option.realSize = model.realSize;
 
     //phy.follow('c_0', { direct:true, simple:true, distance:5, phi:0, theta:0, decal:[0.3, 0.5, -0.3], fov:60, zoom:1.0 })
-    phy.follow( 'c_0', { direct:true, simple:true, distance:3, phi:10, theta:0, decal:[0, 0, 0], fov:50, zoom:1.0, zoomUp:1 })
+    phy.follow( 'c_0', { direct:true, simple:true, distance:3, phi:10, theta:0, decal:[0, 0, 0], fov:50, zoom:1.0, zoomUp:true })
     // active keyboard
     phy.control( 'c_0' );
 
+}
+
+const option = {
+
+    bodyMorph:[0,0],
+    realSize:1.0
+
+}
+
+const addGui = () => {
+
+    gui = phy.gui();
+    gui.add( option, 'bodyMorph',{ type:'pad', name:'type',  min:-1, max:1 }).listen().onChange( morph );
+    gui.add( option, 'realSize',{  min:1.50, max:2.0}).listen().onChange( resize )
+    gui.add('button',{name:'Random', h:30, radius:15}).onChange( ()=>{Character()} )
+    gui.add('bool',{name:'Debug'}).onChange( showDebug )
+
+}
+
+const morph = ( v ) => {
+
+    if(!player.model) return
+    player.model.setBodyMorph(v)
+
+}
+
+const resize = ( v ) => {
+
+    if(!player.model) return
+    player.model.setRealSize(v)
+
+}
+
+const showDebug = (debug) => {
+    if( player ) player.debugMode( debug );
 }

@@ -107,7 +107,11 @@ class NodeMaterial extends ShaderMaterial {
 
 			if ( clippingNode !== null ) builder.stack.add( clippingNode );
 
-			resultNode = this.setupOutput( builder, vec4( outgoingLightNode, diffuseColor.a ) );
+			// force unsigned floats - useful for RenderTargets
+
+			const basicOutput = vec4( outgoingLightNode, diffuseColor.a ).max( 0 );
+
+			resultNode = this.setupOutput( builder, basicOutput );
 
 			// OUTPUT NODE
 
@@ -380,6 +384,16 @@ class NodeMaterial extends ShaderMaterial {
 
 		const renderer = builder.renderer;
 
+		// FOG
+
+		if ( this.fog === true ) {
+
+			const fogNode = builder.fogNode;
+
+			if ( fogNode ) outputNode = vec4( fogNode.mix( outputNode.rgb, fogNode.colorNode ), outputNode.a );
+
+		}
+
 		// TONE MAPPING
 
 		const toneMappingNode = builder.toneMappingNode;
@@ -387,16 +401,6 @@ class NodeMaterial extends ShaderMaterial {
 		if ( this.toneMapped === true && toneMappingNode ) {
 
 			outputNode = vec4( toneMappingNode.context( { color: outputNode.rgb } ), outputNode.a );
-
-		}
-
-		// FOG
-
-		if ( this.fog === true ) {
-
-			const fogNode = builder.fogNode;
-
-			if ( fogNode ) outputNode = vec4( fogNode.mixAssign( outputNode.rgb ), outputNode.a );
 
 		}
 

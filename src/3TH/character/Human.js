@@ -57,7 +57,7 @@ export const Human = {
     levelLow:['body_low'],
 
     skeletonRef:'body',
-	fullMorph: ['MUSCLE', 'LOW', 'BIG'],//, 'MONSTER'
+	fullMorph: ['MUSCLE', 'LOW', 'BIG','MONSTER'],//, 
 
     textureQuality:1,
 	textureRef:'avatar_c',

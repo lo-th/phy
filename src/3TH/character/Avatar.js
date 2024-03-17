@@ -87,7 +87,6 @@ export const preloadAvatar = {
         }else{
             preloadAvatar.loadOne()
         }
-
     }
 
 }
@@ -118,9 +117,9 @@ export class Avatar extends Group {
         this.model = o.type || 'man';
         this.startAnimation = o.anim || 'idle';
 
+        this.bodyMorph = [0,0];
+
         this.ref = null;
-
-
 
         switch( this.model ){
             case 'lee': this.ref = Lee; break;
@@ -135,6 +134,8 @@ export class Avatar extends Group {
         this.fullMaterial = o.material !== undefined ? o.material : true;
 
         this.size = o.size || 1;
+        this.realSize = 0;
+        this.baseSize = 0;
 
 
         this.fullMorph = this.ref.fullMorph || [];
@@ -409,6 +410,15 @@ export class Avatar extends Group {
 
     }
 
+    setMaterialNormal( v ){
+
+        let m = Pool.getMaterial( 'skin' )
+        if(!m) return
+            if( v<0 ) v = 0
+        m.normalScale.set(v,-v);
+
+    }
+
     getMaterial( name ){
 
         return Pool.getMaterial( name )
@@ -426,6 +436,8 @@ export class Avatar extends Group {
 
         if( this.ref.forceModel && this.isClone ) this.ref.applyMaterial( this.root, this.model )
 
+        this.realSize = 0;
+
         // get data
         this.root.traverse( function ( node ) {
             
@@ -439,9 +451,12 @@ export class Avatar extends Group {
                     this.skeleton = node.skeleton;
                     if( this.skeleton.resetScalling ) this.skeleton.resetScalling()
 
+                    this.realSize = node.geometry.boundingBox.max.y;
+
                     //console.log( node.geometry.boundingSphere, node.geometry.boundingBox, node.frustumCulled )
                     //node.geometry.boundingSphere.radius = 0.1;
                 }
+                if( node.name === 'Head' ) this.realSize = node.geometry.boundingBox.max.y;
                 
                 this.mesh[node.name] = node;
             }
@@ -451,6 +466,8 @@ export class Avatar extends Group {
                // console.log(node.name, node.rotation.x*todeg, node.rotation.y*todeg, node.rotation.z*todeg)
             }
         }.bind(this))
+
+        this.realSizeRatio = 1 / this.realSize;
 
         if( this.ref.isEyeMove ){
             this.bones.neck.add( this.eyeTarget )
@@ -496,6 +513,13 @@ export class Avatar extends Group {
 
         
              
+    }
+
+    setRealSize( s ){
+
+        this.realSize = s;
+        this.setSize( this.realSize * this.realSizeRatio )
+
     }
 
     setSize( s ){
@@ -585,6 +609,9 @@ export class Avatar extends Group {
 
     setMorph( name, v ){
 
+        v = v < 0 ? 0 : v;
+        //v = v > 1 ? 1 : v;
+
         if( !this.haveMorph ) return
         this.morpher( 'eyelash', name, v);
         this.morpher( 'eyebrow', name, v);
@@ -654,9 +681,14 @@ export class Avatar extends Group {
         }
 
         if( this.randomMorph ){
-            let i = this.fullMorph.length;
-            while(i--) this.setMorph( this.fullMorph[i], Math.random()*0.62 )
-            this.setSize(1 + (-0.05+Math.random()*0.1))
+            //let i = this.fullMorph.length;
+            //while(i--) this.setMorph( this.fullMorph[i], Math.random()*0.62 )
+
+            this.setBodyMorph([(Math.random())-0.5, (Math.random()*2)-1])
+            //this.setSize(1 + (-0.05+Math.random()*0.1))
+            this.setRealSize(this.realSize + (-0.2+Math.random()*0.4))
+
+           //console.log(this.fullMorph)
         }
 
 
@@ -669,6 +701,28 @@ export class Avatar extends Group {
             this.callback()
         }.bind(this), 100 )
         //this.callback()
+
+    }
+
+    setBodyMorph( v ){
+
+        if(!this.haveMorph) return;
+
+        if(v) this.bodyMorph = v
+
+        let vx = Number(this.bodyMorph[0]);
+        let vy = Number(this.bodyMorph[1]);
+
+        this.setMorph( 'MUSCLE', vy<0?-vy:0 )
+        this.setMorph( 'LOW', vy>=0?vy:0 )
+
+        this.setMorph( 'BIG', vx<0?-vx:0 )
+        this.setMorph( 'MONSTER', vx>=0?vx:0 )
+
+        let cx = ((vx+1)*0.5)
+        let cy = (1-((vy+1)*0.5))
+
+        this.setMaterialNormal( (cy+cx)*0.5 )
 
     }
 
@@ -686,8 +740,8 @@ export class Avatar extends Group {
         }
     }
 
-    addExo()
-    {
+    addExo() {
+
         if( this.exoskel ){
             this.exoskel.dispose()
             this.remove( this.exoskel );
@@ -705,6 +759,7 @@ export class Avatar extends Group {
 
         m.matrix = b.matrixWorld;
         m.matrixAutoUpdate = false;
+
     }
 
     loadAnimationJson( url, callback ){

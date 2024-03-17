@@ -16,7 +16,7 @@ import { Shader } from './Shader.js';
 import { Env } from './Env.js'
 
 import { EffectComposer, RenderPass, ShaderPass, EffectPass, LUT3dlLoader, LUTCubeLoader, LUT3DEffect, BloomEffect, VignetteEffect, KernelSize, Effect, SMAAEffect, SMAAPreset } from '../libs/postprocessing.js'
-import { SSGIEffect, MotionBlurEffect, TRAAEffect, VelocityDepthNormalPass } from '../libs/realism.js'
+import { SSGIEffect, MotionBlurEffect, TRAAEffect, VelocityDepthNormalPass, SharpnessEffect, LensDistortionEffect } from '../libs/realism.js'
 import { N8AOPass, N8AOPostPass } from '../libs/N8AO.js'
 
 import { LensDistortionShader } from '../3TH/shaders/LensDistortionShader.js'
@@ -68,6 +68,28 @@ const option = {
     accumulate: false
 }
 
+const sgiOption = {
+	distance: 5.980000000000011,
+	thickness: 2.829999999999997,
+	denoiseIterations: 1,
+	denoiseKernel: 3,
+	denoiseDiffuse: 25,
+	denoiseSpecular: 25.54,
+	radius: 11,
+	phi: 0.875,
+	lumaPhi: 20.651999999999997,
+	depthPhi: 23.37,
+	normalPhi: 26.087,
+	roughnessPhi: 18.477999999999998,
+	specularPhi: 7.099999999999999,
+	envBlur: 0,
+	importanceSampling: true,
+	steps: 20,
+	refineSteps: 4,
+	resolutionScale: 1,
+	missedRays: false
+}
+
 export class Composer extends EffectComposer {
 
 
@@ -115,7 +137,7 @@ export class Composer extends EffectComposer {
 		lens.uniforms.baseIor.value = 0.86//965
 		lens.uniforms.bandOffset.value = 0//0.0015
 		lens.uniforms.jitterIntensity.value = 0//5.375
-		const lensDistortionPass = new ShaderPass( lens )
+		const lensDistortionPass = new ShaderPass( lens );
 		lensDistortionPass.name = 'lens'
 		const lensDistortionPassRender = lensDistortionPass.render
 		lensDistortionPass.render = (renderer, inputBuffer, ...args) => {
@@ -123,13 +145,40 @@ export class Composer extends EffectComposer {
 			lensDistortionPassRender.call(lensDistortionPass, renderer, inputBuffer, ...args)
 		}
 
+		lensDistortionPass.enabled = false
+
 	    this.addPass( lensDistortionPass );
+
+	    const bloomEffect = new BloomEffect({
+			intensity: 1,
+			mipmapBlur: true,
+			luminanceSmoothing: 0.5,
+			luminanceThreshold: 0.75,
+			kernelSize: KernelSize.MEDIUM
+		})
+
+		//this.addPass( bloomEffect );
+
+		const vignetteEffect = new VignetteEffect({
+			darkness: 0.8,
+			offset: 0.3
+		})
+
+		// real
+		//const velocityDepthNormalPass = new VelocityDepthNormalPass(scene, camera)
+	    //this.addPass(velocityDepthNormalPass)
+
+	    //const ssgiEffect = new SSGIEffect(scene, camera, velocityDepthNormalPass, sgiOption )
+
+	    //const ssgiEffect = new SSGIEffect(this, scene, camera, { ...sgiOption, velocityDepthNormalPass })
+
+
 
 	    const smaa = new EffectPass(camera,new SMAAEffect({ preset: SMAAPreset.ULTRA }))
 	    smaa.name = 'smaa'
 
 
-	    this.addPass(  smaa );
+	    this.addPass( smaa );
 
 
 	    console.log(this.passes)

@@ -57,7 +57,7 @@ class Renderer {
 		this.sortObjects = true;
 
 		this.depth = true;
-		this.stencil = true;
+		this.stencil = false;
 
 		this.clippingPlanes = [];
 
@@ -312,9 +312,7 @@ class Renderer {
 
 		if ( this._initialized === false ) await this.init();
 
-		const renderContext = this._renderContext( scene, camera );
-
-		await this.backend.resolveTimestampAsync( renderContext, 'render' );
+		this._renderScene( scene, camera );
 
 	}
 
@@ -322,16 +320,17 @@ class Renderer {
 
 		if ( this._initialized === false ) {
 
-			console.error( 'THREE.Renderer: .render() called before the backend is initialized. Try using .renderAsync() instead.' );
-			return;
+			console.warn( 'THREE.Renderer: .render() called before the backend is initialized. Try using .renderAsync() instead.' );
+
+			return this.renderAsync( scene, camera );
 
 		}
 
-		this._renderContext( scene, camera );
+		this._renderScene( scene, camera );
 
 	}
 
-	_renderContext( scene, camera ) {
+	_renderScene( scene, camera ) {
 
 		// preserve render tree
 
@@ -378,7 +377,6 @@ class Renderer {
 
 		if ( camera.parent === null && camera.matrixWorldAutoUpdate === true ) camera.updateMatrixWorld();
 
-		if ( this.info.autoReset === true ) this.info.reset();
 
 		//
 
@@ -508,6 +506,7 @@ class Renderer {
 		sceneRef.onAfterRender( this, scene, camera, renderTarget );
 
 		//
+		this.backend.resolveTimestampAsync( renderContext, 'render' );
 
 		return renderContext;
 
@@ -761,6 +760,14 @@ class Renderer {
 
 	clear( color = true, depth = true, stencil = true ) {
 
+		if ( this._initialized === false ) {
+
+			console.warn( 'THREE.Renderer: .clear() called before the backend is initialized. Try using .clearAsync() instead.' );
+
+			return this.clearAsync( color, depth, stencil );
+
+		}
+
 		let renderTargetData = null;
 		const renderTarget = this._renderTarget;
 
@@ -897,7 +904,6 @@ class Renderer {
 		nodeFrame.renderId = this.info.calls;
 
 		//
-		if ( this.info.autoReset === true ) this.info.resetCompute();
 
 		const backend = this.backend;
 		const pipelines = this._pipelines;
@@ -978,6 +984,16 @@ class Renderer {
 		this.backend.copyFramebufferToTexture( framebufferTexture, renderContext );
 
 	}
+
+	copyTextureToTexture( position, srcTexture, dstTexture, level = 0 ) {
+
+		this._textures.updateTexture( srcTexture );
+		this._textures.updateTexture( dstTexture );
+
+		this.backend.copyTextureToTexture( position, srcTexture, dstTexture, level );
+
+	}
+
 
 	readRenderTargetPixelsAsync( renderTarget, x, y, width, height ) {
 
