@@ -378,8 +378,7 @@ export class Body extends Item {
 	    if( o.linearVelocity ) b.setLinvel( this.v.fromArray( o.linearVelocity ), autowake )
 	    if( o.angularVelocity ) b.setAngvel( this.v.fromArray( o.angularVelocity ), autowake )
 
-	    if( o.gravityScale ) b.setGravityScale( o.gravityScale, autowake );
-
+	    if( o.gravityScale !== undefined ) b.setGravityScale( o.gravityScale, autowake );
 	    if( o.gravity !== undefined ) b.setGravityScale( o.gravity ? 1 : 0 );
 
 	    // Each rigid-body is part of a dominance group in [-127; 127] (the default group is 0).

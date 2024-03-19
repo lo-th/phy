@@ -12,8 +12,8 @@ let num = 0;
 let maxCharacter = 1;
 
 const models = [ 'man', 'woman']
-const useModel = false;
 
+const useModel = false;
 let isKinematic = false;
 let isFloating = false;
 
@@ -42,7 +42,7 @@ demo = () => {
     
 
     //addDynamic();
-    addDeco()
+    addDeco();
 
     if( useModel ){
         t1 = phy.getTime();
@@ -102,13 +102,13 @@ const addDeco = () => {
     phy.add({ type:'box', size:[1.5], pos:[15,1.5*0.5,-2], mass:3.375 })
     phy.add({ type:'box', size:[2], pos:[15,1,-5], mass:8 })
 
-    addSteps()
-    addSlope()
-    addRoughPlane()
-    addDynamicPlatforms()
-    addFloatingPlatform()
+    addSteps();
+    addSlope();
+    addRoughPlane();
+    addDynamicPlatforms();
+    addFloatingPlatform();
 
-    phy.setPostUpdate ( update )
+    phy.setPostUpdate ( update );
 
     // add static box
     /*phy.add({ type:'box', size:[4,4,4], pos:[9,2,0] })
@@ -202,7 +202,7 @@ const addRoughPlane = () => {
 ///
 
 
-
+/*
 const addDynamic = () => {
 
     Bridge();
@@ -256,7 +256,7 @@ const Bridge = ( width = 4, height = 0.2, length = 0.7 ) => {
     phy.add(data);
 
 }
-
+*/
 const Character = () => {
 
     let i = maxCharacter, n = 0,  g;
@@ -279,9 +279,9 @@ const Character = () => {
             //ray: n===0,
             angle:angle,
 
-            gender: models[g],
-            randomMorph:true,
-            morph:true,
+            gender: g,//models[g],
+            //randomMorph:true,
+            //morph:true,
             //callback:count,
 
         });
@@ -315,3 +315,12 @@ const go = () => {
 }
 
 
+const addGui = () => {
+
+    gui = phy.gui();
+    //gui.add( option, 'bodyMorph',{ type:'pad', name:'type',  min:-1, max:1 }).listen().onChange( morph );
+    //gui.add( option, 'realSize',{  min:1.50, max:2.0}).listen().onChange( resize )
+    //gui.add('button',{name:'Random', h:30, radius:15}).onChange( ()=>{Character()} )
+    //gui.add('bool',{name:'Debug'}).onChange( showDebug )
+
+}

@@ -360,6 +360,8 @@ export class Body extends Item {
 			bcs.mGravityFactor = o.noGravity ? 0:1;
 			bcs.mInertiaMultiplier = o.noGravity ? 0:1;
 		}
+
+		if( o.gravityScale !== undefined ) bcs.mGravityFactor = o.gravityScale;
 		//bcs.mInertiaMultiplier: 1
 
 		// Which degrees of freedom this body has (can be used to limit simulation to 2D)
@@ -467,6 +469,12 @@ export class Body extends Item {
 	    } 
 
 	    //console.log( b.GetCollisionGroup().GetGroupFilter() )
+
+	    //----------------
+	    //  GRAVITY
+	    //----------------
+
+
 
 	    //----------------
 	    //  STATE

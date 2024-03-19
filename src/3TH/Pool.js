@@ -230,6 +230,8 @@ export const Pool = {
         let k = o.quality ? o.quality+'k_' : ''; 
         name = k + name;
 
+        //console.log(name)
+
         let t = Pool.get( name, 'texture' );
         if(!t){
             let im = Pool.get( name, 'image' )

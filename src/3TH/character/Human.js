@@ -27,8 +27,8 @@ const setting = {
     roughness:0.4,
     
     vertexColors:false,
-    alphaTest:0.3,
-    h_metal:0.6,//0.4,
+    alphaTest:0.1,//0.3,
+    h_metal:0.0,//0.4,
     h_rough:0.5,//0.6,
     clearcoat:1.0,
 
@@ -106,9 +106,9 @@ export const Human = {
             wireframe:setting.wireframe,
 
             aoMap:'avatar_ao',
-            aoMapIntensity:0.5,
+            aoMapIntensity:1.0,
 
-            ior:1.4,
+            //ior:1.4,
             vertexColors:false,
 
             sssMap:'avatar_t',
@@ -133,11 +133,11 @@ export const Human = {
             roughness:0,//0.568,
             metalness:1,
             ior:1.376,
-            opacity:1,
-            blending:AdditiveBlending,
+            opacity:0.1,
+           //blending:AdditiveBlending,
             clearcoat:1,
             transparent:true,
-            envMapIntensity:0,
+            //envMapIntensity:0,
             //wireframe:true
         },
         eye:{
@@ -152,34 +152,54 @@ export const Human = {
         },
         hair:{
             type:'Standard',
-        	map:'hair',
+        	//map:'hair',
             color:setting.hair,
-            roughness:setting.h_rough,
-            metalness:setting.h_metal,
+            aoMap:'hair',
+            metalnessMap:'hair',
+            //bumpScale:-5,
+            roughness:0.6,//setting.h_rough,
+            metalness:1.0,//setting.h_metal,
             alphaMap:'hair_a',
-            alphaTest:setting.alphaTest,
+            //alphaTest:setting.alphaTest,
             side: DoubleSide,
-            opacity:1.0,
+            emissive:setting.hair,
+            emissiveIntensity:0.5,
+            //opacity:1.0,
             transparent:true,
             blending:CustomBlending,
             blendDst:ZeroFactor,
             blendDstAlpha:SrcAlphaFactor,
+            //forceSinglePass:true,
+            //alphaHash:true,
+            //premultipliedAlpha:true,
             alphaToCoverage:true,
         },
         hair_man:{
             type:'Standard',
-        	map:'hair_man',
             color:setting.hair,
-            roughness:setting.h_rough,
-            metalness:setting.h_metal,
+        	//map:'hair_man',
+            aoMap:'hair_man',
+            metalnessMap:'hair_man',
+            roughness:0.6,
+            metalness:1.0,//setting.h_metal,
             alphaMap:'hair_man_a',
-            alphaTest:setting.alphaTest,
             side: DoubleSide,
-            opacity:1.0,
+
+            //alphaTest:setting.alphaTest,
+            
+            //opacity:1.0,
+            emissive:setting.hair,
+            emissiveIntensity:0.5,
+            //sheen:1.0,
+            //sheenColor:setting.hair,
+            //sheenRoughness:1.0,
             transparent:true,
             blending:CustomBlending,
             blendDst:ZeroFactor,
             blendDstAlpha:SrcAlphaFactor,
+            //forceSinglePass:true,
+            //alphaHash:true,
+            //premultipliedAlpha:true,
             alphaToCoverage:true,
         },
         eyelash:{
@@ -328,15 +348,15 @@ export const Human = {
                     case 'hair': 
                     node.material = Pool.getMaterial( 'hair' ) || def;
                     node.receiveShadow = false;
-                    node.castShadow = true;
-                    node.matrixWorldAutoUpdate = false
+                    node.castShadow = false;//true;
+                    //node.matrixWorldAutoUpdate = false
                     node.visible = Human.haveHair ? startHigh : false;
                     break;
                     case 'hair_man': 
                     node.material = Pool.getMaterial( 'hair_man' ) || def;
                     node.receiveShadow = false;
-                    node.castShadow = true;
-                    node.matrixWorldAutoUpdate = false
+                    node.castShadow = false;//true;
+                    //node.matrixWorldAutoUpdate = false
                     node.visible = Human.haveHair ? startHigh : false;
                     break;
                 }
@@ -356,6 +376,8 @@ export const Human = {
     },*/
 
     adjustment:() => {
+
+        //return []
 
         return [
         //{name:'head', values:[-10,0,0]},
@@ -380,17 +402,6 @@ export const Human = {
         //{name:'rThumb1', values:[0,15,0]},
         {name:'lThumb2', values:[0,25,10]},
         {name:'rThumb2', values:[0,-25,-10]},
-        
-
-            //{name:'rShldr', values:[0,0,0]},
-            /*
-            
-
-           // {name:'lShldr', values:[-30,0,0]},
-            //{name:'rShldr', values:[0,0,0]},
-            {name:'lForeArm', values:[0,0,20]},
-            {name:'rForeArm', values:[0,0,-20]},
-            */
         ]
 
     }

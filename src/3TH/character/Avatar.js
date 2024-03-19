@@ -113,6 +113,7 @@ export class Avatar extends Group {
         //this.textureQuality = o.quality || 1;
 
         this.randomMorph = o.randomMorph || false;
+        this.actionPose = null
 
         this.model = o.type || 'man';
         this.startAnimation = o.anim || 'idle';
@@ -218,6 +219,7 @@ export class Avatar extends Group {
         if( !this.skin ){
 
             const path = this.rootPath + this.ref.texturePath + ( this.textureQuality ? this.textureQuality + 'k/' : '' );
+            //console.log(path)
             Pool.load( this.ref.textures, this.loadModels.bind(this), path, 'loading images...', this.textureQuality );
 
         } else {
@@ -258,6 +260,11 @@ export class Avatar extends Group {
             if( this.tensionActive ){ 
                 this.tension1.update();
                 this.tension2.update();
+            }
+
+            if(this.actionPose){ 
+                //console.log(this.getAction( 'idle' )._effectiveWeight)
+                this.actionPose.setEffectiveWeight( this.getAction( 'idle' )._effectiveWeight );
             }
 
             /*if( this.ref.adjustment && !this.isClone ) {
@@ -1147,6 +1154,9 @@ export class Avatar extends Group {
         //this.stop();
         //this.addClip( clip, true );
         //this.addAction( clip, autoplay );
+        this.actionPose = action;
+
+
 
     }
 
@@ -1318,6 +1328,8 @@ export class Avatar extends Group {
 
                 //}
 
+
+
                 if(this.fixWeight){
 
                     this.current.weight = 1.0
@@ -1381,6 +1393,8 @@ export class Avatar extends Group {
     }
 
     playFrame ( name, frame, weight = 1 ) {
+
+
 
         let action = this.getAction( name );
         if ( !action ) return;

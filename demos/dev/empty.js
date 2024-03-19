@@ -41,7 +41,7 @@ const yo = () => {
 
     console.log('is done !!')
 
-    jointTest()
+    gravityTest()
 
     //eva.model.addHelper()
    //eva.model.addExo()
@@ -55,4 +55,11 @@ const jointTest = () => {
     phy.add({ type:'box', name:'B', size:[1,1,1], pos:[3,0.5,0], mass:1 });
 
     phy.add({ type:'distance', b1:'A', b2:'B', pos1:[0,0,0], pos2:[0,0,0], visible:true });
+}
+
+const gravityTest = () => {
+
+    phy.add({ type:'plane', name:'floor', size:[ 20,1,20 ], visible:false, friction: 0.5,  });
+
+    phy.add({ type:'box', name:'A', size:[1,1,1], pos:[0,5,0], mass:1, gravityScale:0.1 });
 }
