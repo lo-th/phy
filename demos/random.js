@@ -13,6 +13,7 @@ demo = () => {
         y:10*0.36,
         fov:60,
         phi:0,
+        theta:45,
     })
 
     // config physics setting

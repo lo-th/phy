@@ -335,8 +335,8 @@ export class Body extends Item {
 		//bcs.mInertiaMultiplier = 1.0;
 
 		//bcs.mGravityFactor
-//console.log( Jolt.EOverrideMassProperties_CalculateInertia );
-//console.log( bcs.mMassPropertiesOverride.mInertia );
+		//console.log( Jolt.EOverrideMassProperties_CalculateInertia );
+		//console.log( bcs.mMassPropertiesOverride.mInertia );
 		
 		//if( o.inertia ) bcs.mMassPropertiesOverride.mInertia = this.v.fromArray( o.inertia );
 	    //if( o.inertia ) bcs.mMassPropertiesOverride.mInertia.sTranslation(this.v.fromArray( o.inertia ))
@@ -400,6 +400,7 @@ export class Body extends Item {
 	    //b.SetUseManifoldReduction(false)
 
 	    //console.log( b );
+	    //console.log(root.bodyInterface)
 	    //console.log( b.GetMotionProperties() );
 
 
@@ -466,7 +467,12 @@ export class Body extends Item {
 	    	if(o.kinematic) b.SetMotionType( Jolt.Kinematic );
 	    	else b.SetMotionType( Jolt.Dynamic );
 	    	b.isKinematic = o.kinematic || false;
-	    } 
+	    }
+
+	    //Motion quality, or how well it detects collisions when it has a high velocity.
+	    // Discrete : 0 or LinearCast : 1 for high speed contact
+	    if( o.bullet !== undefined ) root.bodyInterface.SetMotionQuality( b.GetID(), o.bullet ? 1 : 0 );
+	    if( o.motionQuality !== undefined ) root.bodyInterface.SetMotionQuality( b.GetID(), o.motionQuality );
 
 	    //console.log( b.GetCollisionGroup().GetGroupFilter() )
 
@@ -474,7 +480,7 @@ export class Body extends Item {
 	    //  GRAVITY
 	    //----------------
 
-
+	    if( o.gravityScale ) root.bodyInterface.SetGravityFactor( b.GetID(), o.gravityScale );
 
 	    //----------------
 	    //  STATE

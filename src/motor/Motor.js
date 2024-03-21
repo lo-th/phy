@@ -47,7 +47,7 @@ const Version = {
     PHYSX: '5.03.01',
     RAPIER: '0.11.2',
     HAVOK: '1.3.0',
-    JOLT: '0.16.0',
+    JOLT: '0.20.0',
 }
 
 const items = {};
@@ -471,6 +471,8 @@ export class Motor {
 	////
 
 	static initPhysics( o ) {
+
+		//tt.start = Timer.now();
 	
 	    root.post({ m:'init', o:o });
 	    engineReady = true;
@@ -513,12 +515,6 @@ export class Motor {
 
 		buttons = [];
 
-		Motor.clearText();
-		//Motor.clearSkeleton()
-		Motor.clearParticleSolver();
-
-		Motor.cleartimout();
-
 		currentControle = null;
 
 		if( controls ) controls.resetAll();
@@ -527,6 +523,12 @@ export class Motor {
 		endReset = callback;
 
 		postUpdate = function () {};
+
+		Motor.clearText();
+		//Motor.clearSkeleton()
+		Motor.clearParticleSolver();
+
+		Motor.cleartimout();
 
 		Motor.flowReset();
 
@@ -553,6 +555,48 @@ export class Motor {
 
 		root.post({ m:'reset' });
 
+	}
+
+	static clear() {
+
+		buttons = [];
+
+		currentControle = null;
+
+		if( controls ) controls.resetAll();
+		if( mouseTool ) mouseTool.unSelect();
+
+		postUpdate = function () {};
+
+		Motor.clearText();
+		//Motor.clearSkeleton()
+		Motor.clearParticleSolver();
+
+		Motor.cleartimout();
+
+		Motor.flowReset();
+
+		// clear instance
+	    Motor.clearInstance();
+
+	    // reset all items
+	    Motor.resetItems();
+
+		// clear temporary geometry
+		Geo.dispose();
+
+	    // clear temporary material
+	    Mat.dispose();
+
+	    // clear temporary mesh
+		root.disposeTmp();
+
+		if( breaker !== null ) breaker = null;
+			
+		root.tmpTex = [];
+	    root.scenePlus.children = [];
+	    root.scene.children = [];
+		
 	}
 
 	static resetCallback (){

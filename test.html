@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charSet="utf-8"/>
+        <meta name="language" content="english"/>
+        <meta http-equiv="content-type" content="text/html"/>
+        <meta name="author" content="lo-th"/>
+        <meta name="designer" content="lo-th"/>
+        <meta name="publisher" content="lo-th"/>
+		<title>PHY test</title>
+	</head>
+
+	<body style="background-color:#000; margin:0; padding:0; overflow:hidden;">
+
+		<script type="text/javascript">
+
+			const demo = 'empty';
+			//const demo = 'random';
+			const engines = ['physx', 'havok', 'jolt', 'rapier'];
+			//engines.push( 'ammo', 'oimo' )
+			const worker = false;
+
+			let i = engines.length, n = 0;
+			let w = Math.floor(10000 / i)*0.01;
+
+			while(i--){
+				addFrame( demo, engines[n], n*w + '%', w + '%' );
+				n++
+			}
+
+		    function addFrame ( demo, engine, x, w, h = '100%' ) {
+
+		    	let name =  './index.html?E='+(worker?'w':'dev')+'_'+ engine + '#' + demo;
+		        let f = document.createElement("iframe");
+		        f.setAttribute("src", name );
+		        f.setAttribute("frameborder", "0");
+		        f.setAttribute("loading", "lazy");
+		        f.style.cssText = 'position:absolute; left:'+x+'; width:'+w+'; height:'+h+'; background: #000;';
+		        if(n>0) f.style.cssText +='border-left:1px solid #000;'
+		        document.body.appendChild(f);
+
+		    }
+
+		</script>
+
+	</body>
+</html>

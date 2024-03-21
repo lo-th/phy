@@ -1,15 +1,16 @@
 function demo() {
 
     phy.view({
-        envmap:0x8aa4b8,
+        envmap:0x606060,
         //ground:false,
         vignette:false,
         //shadow:0,
+        groundReflect:0,
         jointVisible:true, 
     })
 
 
-    phy.set({})
+    phy.set()
 
     // add static plane 
     //phy.add({ type:'plane', name:'floor', size:[ 2,1,2 ], visible:false, friction: 0.5,  });
@@ -20,9 +21,9 @@ function demo() {
     ]);*/
 
 
+    phy.setTimeout( setDemo, 0, true )
 
-
-    phy.setTimeout( yo, 1000 )
+    addGui()
 
     // config physics setting
    /*phy.add({ type:'plane', visible:false });
@@ -32,19 +33,20 @@ function demo() {
 
    
     phy.add({ type:'sphere', size:[1], pos:[0,8,0], rot:[45,45,0], density:1 });
-  phy.add({ type:'box', size:[1,1,1], pos:[0,5,0], rot:[45,45,0], density:1 });
-  phy.add({ type:'box', size:[1,1,1], pos:[0,20,0], rot:[45,45,0], density:1 });*/
+    phy.add({ type:'box', size:[1,1,1], pos:[0,5,0], rot:[45,45,0], density:1 });
+    phy.add({ type:'box', size:[1,1,1], pos:[0,20,0], rot:[45,45,0], density:1 });*/
 
 }
 
-const yo = () => {
+const setDemo = ( n = 0 ) => {
 
-    console.log('is done !!')
+    phy.clear()
 
-    gravityTest()
+    switch(n){
+        case 0: gravityTest(); break;
+        case 1: jointTest(); break;
+    }
 
-    //eva.model.addHelper()
-   //eva.model.addExo()
 }
 
 const jointTest = () => {
@@ -59,7 +61,18 @@ const jointTest = () => {
 
 const gravityTest = () => {
 
-    phy.add({ type:'plane', name:'floor', size:[ 20,1,20 ], visible:false, friction: 0.5,  });
+    phy.add({ type:'plane', name:'floor', size:[ 20,1,20 ], visible:false, friction: 0.5 });
 
-    phy.add({ type:'box', name:'A', size:[1,1,1], pos:[0,5,0], mass:1, gravityScale:0.1 });
+    phy.add({ type:'box', name:'A', size:[1,1,1], pos:[-1.5,5,0], mass:1, gravityScale:0.04 });
+    phy.add({ type:'box', name:'B', size:[1,1,1], pos:[0,5,0], mass:1, gravityScale:0.1 });
+    phy.add({ type:'box', name:'C', size:[1,1,1], pos:[1.5,5,0], mass:1 });
+
+}
+
+const addGui = () => {
+
+    gui = phy.gui();
+    gui.add('button',{name:'gravity', h:30, radius:15}).onChange( ()=>{setDemo(0)} )
+    gui.add('button',{name:'joint', h:30, radius:15}).onChange( ()=>{setDemo(1)} )
+
 }

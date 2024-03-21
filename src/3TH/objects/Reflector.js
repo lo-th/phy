@@ -331,7 +331,7 @@ export class Reflector extends Mesh {
 			let currentShadowAutoUpdate = renderer.shadowMap.autoUpdate;
 
 			scene.fog = null
-			renderer.xr.enabled = false; // Avoid camera modification and recursion
+			if(currentXrEnabled) renderer.xr.enabled = false; // Avoid camera modification and recursion
 
 			// bug with HAIR ????
 			//renderer.shadowMap.autoUpdate = false; // Avoid re-computing shadows

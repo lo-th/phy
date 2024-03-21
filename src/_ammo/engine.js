@@ -118,9 +118,9 @@ export class engine {
 		fixe = o.fixe !== undefined ? o.fixe : true;
 		broadphase = o.broadphase || 2;
 
-		root.substep = substep
+		root.substep = substep;
 
-		isSoft = o.soft === undefined ? true : o.soft;
+		isSoft = o.soft !== undefined ? o.soft : false;
 
 		root.gravity = new Ammo.btVector3().fromArray( o.gravity || [ 0, -9.8, 0 ] )
 

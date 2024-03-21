@@ -294,7 +294,7 @@ export const Main = {
 		//Motor.engine = Main.engineType
 		window.engine = Main.engineType;//Motor.engine
 
-		Motor.init( o )
+		Motor.init( o );
 	
 	},
 
@@ -847,7 +847,8 @@ const removeVignette = () => {
 const addGround = ( o ) => {
 
 	//groundAutoColor = !o.groundColor//false
-    //if( o.groundReflect ) options.reflect = o.groundReflect
+    if( o.groundReflect !== undefined ) options.reflect = o.groundReflect
+    if( o.reflect !== undefined ) options.reflect = o.reflect
 
 	//if( isWebGPU ) return
 
@@ -859,7 +860,7 @@ const addGround = ( o ) => {
 	    	textureSize: 1024 * options.quality,
 	        clipBias:0.003,
 	        encoding:true,
-	        reflect: options.reflect,
+	        reflect: options.mode === 'LOW' ? 0 : options.reflect,
 	        water:o.water,
 	        //color:groundColor,
 	        round:true,
@@ -883,7 +884,7 @@ const addGround = ( o ) => {
 
 	ground.setAlphaMap( o.groundAlpha )
 	ground.setOpacity( o.groundOpacity )
-	ground.setReflect( o.groundReflect )
+	if(o.groundReflect) ground.setReflect( o.groundReflect )
 	ground.setWater( o.water )
     //scene.add( ground )
     Motor.addMaterial( ground.material,  true )
@@ -1249,11 +1250,11 @@ const view = ( o = {} ) => {
 	else scene.fog = null
 
 	// reflect floor
-	if( o.ground ) addGround( o )
+	if( o.ground ) addGround( o );
 	else removeGround()
 
-	if( o.vignette ) addVignette( o )
-	else removeVignette()
+	if( o.vignette ) addVignette( o );
+	else removeVignette();
 
 	//if( isLoadCode ) controls.moveCam( {...cam, ...o })
 
