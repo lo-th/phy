@@ -5,7 +5,7 @@ import {
     SphereGeometry, SkeletonHelper,
     MeshStandardMaterial, MeshLambertMaterial, MeshPhongMaterial, MeshBasicMaterial,MeshPhysicalMaterial,
     TextureLoader,AnimationMixer,
-    FrontSide, DoubleSide, Color, ShaderChunk, 
+    FrontSide, BackSide, DoubleSide, Color, ShaderChunk, 
     VectorKeyframeTrack, QuaternionKeyframeTrack, AnimationClip, Skeleton,
     Float32BufferAttribute, EquirectangularReflectionMapping, AdditiveBlending,
     CustomBlending,
@@ -122,11 +122,16 @@ export const Human = {
     	mouth:{
             type:'Standard',
     		map:'mouth_c',
-            roughness:0.6,
-            metalness:0.6,
+            roughness:0.02,
+            metalness:0.0,
+            vertexColors:false,
+            //shadowSide: BackSide,
+            //roughness:0.6,
+            //metalness:0.6,
             alphaMap:'mouth_a',
             alphaTest:0.5,
-            normalMap:'mouth_n'
+            normalMap:'mouth_n',
+            normalScale: new Vector2( 0.5, -0.5 ),
     	},
     	sub_eye:{
             type:'Physical',
@@ -318,9 +323,11 @@ export const Human = {
                     break;
                     case 'mouth':
                     node.material = Pool.getMaterial( 'mouth' ) || def;
-                    node.receiveShadow = false;
+                    node.receiveShadow = true;
                     node.castShadow = false;
-                    node.visible = startHigh
+                    node.visible = startHigh;
+                    // correct bad light
+                    node.geometry.computeVertexNormals()
                     break;
                     case 'eyelash':  case 'eyebrow':
                     node.material = Pool.getMaterial( 'eyelash' ) || def;

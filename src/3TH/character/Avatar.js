@@ -119,6 +119,7 @@ export class Avatar extends Group {
         this.startAnimation = o.anim || 'idle';
 
         this.bodyMorph = [0,0];
+        this.faceMorph = [0,0];
 
         this.ref = null;
 
@@ -715,7 +716,7 @@ export class Avatar extends Group {
 
         if(!this.haveMorph) return;
 
-        if(v) this.bodyMorph = v
+        if(v) this.bodyMorph = v;
 
         let vx = Number(this.bodyMorph[0]);
         let vy = Number(this.bodyMorph[1]);
@@ -730,6 +731,22 @@ export class Avatar extends Group {
         let cy = (1-((vy+1)*0.5))
 
         this.setMaterialNormal( (cy+cx)*0.5 )
+
+    }
+
+    setFaceMorph( v ){
+
+        if(!this.haveMorph) return;
+        if(v) this.faceMorph = v;
+
+        let vx = Number(this.faceMorph[0]);
+        let vy = Number(this.faceMorph[1]);
+
+        this.setMorph( 'Shock', vy<0?-vy:0 )
+        this.setMorph( 'Frown', vy>=0?vy:0 )
+
+        this.setMorph( 'SmileOpen', vx<0?-vx:0 )
+        this.setMorph( 'Angry', vx>=0?vx:0 )
 
     }
 

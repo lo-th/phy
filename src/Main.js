@@ -445,7 +445,6 @@ const init = () => {
  
 	if( isWebGPU ) console.log('use webgpu !!')
 
-
 	// https://threejs.org/docs/#api/en/renderers/WebGLRenderer
 
 	let powerPreference ='default'

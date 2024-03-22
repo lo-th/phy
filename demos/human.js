@@ -172,6 +172,7 @@ const Character = ( num = 1 ) => {
 const option = {
 
     bodyMorph:[0,0],
+    faceMorph:[0,0],
     realSize:1.0
 
 }
@@ -179,17 +180,25 @@ const option = {
 const addGui = () => {
 
     gui = phy.gui();
-    gui.add( option, 'bodyMorph',{ type:'pad', name:'type',  min:-1, max:1 }).listen().onChange( morph );
+    gui.add( option, 'faceMorph',{ type:'pad', name:'type', min:-1, max:1 }).listen().onChange( faceMorph );
+    gui.add( option, 'bodyMorph',{ type:'pad', name:'type', min:-1, max:1 }).listen().onChange( bodyMorph );
     gui.add( option, 'realSize',{  min:1.50, max:2.0}).listen().onChange( resize )
     gui.add('button',{name:'Random', h:30, radius:15}).onChange( ()=>{Character()} )
     gui.add('bool',{name:'Debug'}).onChange( showDebug )
 
 }
 
-const morph = ( v ) => {
+const bodyMorph = ( v ) => {
 
     if(!player.model) return
     player.model.setBodyMorph(v)
+
+}
+
+const faceMorph = ( v ) => {
+
+    if(!player.model) return
+    player.model.setFaceMorph(v)
 
 }
 

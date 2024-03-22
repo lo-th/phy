@@ -1999,7 +1999,7 @@ class Texture extends EventDispatcher {
 		this.onUpdate = null;
 
 		this.isRenderTargetTexture = false; // indicates whether a texture belongs to a render target or not
-		this.pmremVersion = 0; // indicates whether this texture should be processed by PMREMGenerator or not (only relevant for render target textures)
+		this.needsPMREMUpdate = false; // indicates whether this texture should be processed by PMREMGenerator or not (only relevant for render target textures)
 
 	}
 
@@ -2225,16 +2225,6 @@ class Texture extends EventDispatcher {
 
 			this.version ++;
 			this.source.needsUpdate = true;
-
-		}
-
-	}
-
-	set needsPMREMUpdate( value ) {
-
-		if ( value === true ) {
-
-			this.pmremVersion ++;
 
 		}
 
@@ -17049,26 +17039,24 @@ function WebGLCubeUVMaps( renderer ) {
 
 			if ( isEquirectMap || isCubeMap ) {
 
-				let renderTarget = cubeUVmaps.get( texture );
+				if ( texture.isRenderTargetTexture && texture.needsPMREMUpdate === true ) {
 
-				const currentPMREMVersion = renderTarget !== undefined ? renderTarget.texture.pmremVersion : 0;
+					texture.needsPMREMUpdate = false;
 
-				if ( texture.isRenderTargetTexture && texture.pmremVersion !== currentPMREMVersion ) {
+					let renderTarget = cubeUVmaps.get( texture );
 
 					if ( pmremGenerator === null ) pmremGenerator = new PMREMGenerator( renderer );
 
 					renderTarget = isEquirectMap ? pmremGenerator.fromEquirectangular( texture, renderTarget ) : pmremGenerator.fromCubemap( texture, renderTarget );
-					renderTarget.texture.pmremVersion = texture.pmremVersion;
-
 					cubeUVmaps.set( texture, renderTarget );
 
 					return renderTarget.texture;
 
 				} else {
 
-					if ( renderTarget !== undefined ) {
+					if ( cubeUVmaps.has( texture ) ) {
 
-						return renderTarget.texture;
+						return cubeUVmaps.get( texture ).texture;
 
 					} else {
 
@@ -17078,9 +17066,7 @@ function WebGLCubeUVMaps( renderer ) {
 
 							if ( pmremGenerator === null ) pmremGenerator = new PMREMGenerator( renderer );
 
-							renderTarget = isEquirectMap ? pmremGenerator.fromEquirectangular( texture ) : pmremGenerator.fromCubemap( texture );
-							renderTarget.texture.pmremVersion = texture.pmremVersion;
-
+							const renderTarget = isEquirectMap ? pmremGenerator.fromEquirectangular( texture ) : pmremGenerator.fromCubemap( texture );
 							cubeUVmaps.set( texture, renderTarget );
 
 							texture.addEventListener( 'dispose', onTextureDispose );
@@ -32368,7 +32354,6 @@ class InstancedMesh extends Mesh {
 
 		this.instanceMatrix.copy( source.instanceMatrix );
 
-		if ( source.morphTexture !== null ) this.morphTexture = source.morphTexture.clone();
 		if ( source.instanceColor !== null ) this.instanceColor = source.instanceColor.clone();
 
 		this.count = source.count;
@@ -32519,15 +32504,6 @@ class InstancedMesh extends Mesh {
 	dispose() {
 
 		this.dispatchEvent( { type: 'dispose' } );
-
-		if ( this.morphTexture !== null ) {
-
-			this.morphTexture.dispose();
-			this.morphTexture = null;
-
-		}
-
-		return this;
 
 	}
 
@@ -42406,7 +42382,7 @@ VectorKeyframeTrack.prototype.ValueTypeName = 'vector';
 
 class AnimationClip {
 
-	constructor( name = '', duration = - 1, tracks = [], blendMode = NormalAnimationBlendMode ) {
+	constructor( name, duration = - 1, tracks, blendMode = NormalAnimationBlendMode ) {
 
 		this.name = name;
 		this.tracks = tracks;
