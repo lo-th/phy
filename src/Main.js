@@ -41,7 +41,7 @@ import { Motor } from './motor/Motor.js'
 import { Smoke } from '../build/smoke.module.js'
 //import { Smoke } from './3TH/_smoke/Smoke.js'
 
-import { DualQuat } from './3TH/DualQuat.js'
+//import { DualQuat } from './3TH/DualQuat.js'
 
 // WEBGPU test
 import WebGPU from './jsm/capabilities/WebGPU.js';
