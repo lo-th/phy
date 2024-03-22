@@ -807,7 +807,7 @@ export class Body extends Item {
 		let g = this.geometry( o );
 
 		if( o.mesh ) {
-			if(!o.material)material = o.mesh.material;
+			if( !o.material && o.mesh.material ) material = o.mesh.material;
 			g = o.mesh.isObject3D ? o.mesh.geometry.clone() : o.mesh.clone();
 			if( o.meshSize ) g.scale( o.meshSize, o.meshSize, o.meshSize );
 			if( o.meshScale ) g.scale( o.meshScale[0], o.meshScale[1], o.meshScale[2] );

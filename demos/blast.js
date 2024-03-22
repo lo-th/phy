@@ -57,6 +57,7 @@ rebuild = () => {
 build = () => {
 
     const models = phy.getMesh('arch')
+    for(let m in models){ models[m].material.dispose() }
     buildArch({ name:'arch', block:0.4, height:16, length:4, deep:4, pos:[0,3.2,0] }, models )
     // creat building
     building({ name:'pilar_l' ,block:0.4, height:8, length:4, deep:4, pos:[-2.037,0,0] }, models)
@@ -93,7 +94,8 @@ building = ( o, models ) => {
             size:[s,s,s],
             pos:pos,
             mesh: models ? models.box_0:null,
-            meshScale:[scale,scale,scale]
+            meshScale:[scale,scale,scale],
+            material:'base',
         })
     }}}
 
@@ -125,6 +127,7 @@ buildArch = ( o, models ) => {
             mesh:models[mesh[i]].geometry,
             meshScale:[scale,scale,scale],
             shapeScale:[scale,scale,scale],
+            material:'base'
         })
     }
 
