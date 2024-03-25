@@ -38,13 +38,14 @@ function demo() {
 
 }
 
-const setDemo = ( n = 0 ) => {
+const setDemo = ( n = 2 ) => {
 
     phy.clear()
 
     switch(n){
         case 0: gravityTest(); break;
         case 1: jointTest(); break;
+        case 2: capsuleTest(); break;
     }
 
 }
@@ -69,10 +70,22 @@ const gravityTest = () => {
 
 }
 
+const capsuleTest = () => {
+
+    phy.add({ type:'plane', name:'floor', size:[ 20,1,20 ], visible:false, friction: 0.5 });
+
+    let h = 2, r = 1
+
+    phy.add({ type:'capsule', name:'A', size:[r,h,r], pos:[0,(h*0.5)+r,0], mass:1 });
+    phy.add({ type:'cylinder', name:'B', size:[1,4,1], pos:[3,2,0], mass:1 });
+
+}
+
 const addGui = () => {
 
     gui = phy.gui();
-    gui.add('button',{name:'gravity', h:30, radius:15}).onChange( ()=>{setDemo(0)} )
-    gui.add('button',{name:'joint', h:30, radius:15}).onChange( ()=>{setDemo(1)} )
+    gui.add('button',{name:'gravity', radius:15}).onChange( ()=>{setDemo(0)} )
+    gui.add('button',{name:'joint', radius:15}).onChange( ()=>{setDemo(1)} )
+    gui.add('button',{name:'capsule', radius:15}).onChange( ()=>{setDemo(2)} )
 
 }

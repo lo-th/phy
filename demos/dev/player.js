@@ -1,68 +1,148 @@
 let px = 5
 let side = 0
-//let onFloor = 0
 let ready = false
-//let bob = null
-//let distance = 0
-//let maxY = 0
-//let t1 = 0;
-
 let num = 0;
-
 let maxCharacter = 1;
+//const models = [ 'man', 'woman'];
+const models = [ 'man_low', 'woman_low']
+const useModel = true;
 
-const models = [ 'man', 'woman']
 
-const useModel = false;
-let isKinematic = false;
-let isFloating = false;
+let preload = false;
+let player = null;
+let t1 = 0;
+
+const option = {
+    debug:true,
+
+};
+
+
 
 demo = () => {
 
     phy.view({
-        phi:12, theta:0, distance:5, x:0, y:3, z:15, fov:60, 
-        envmap:'lobe', envblur: 0.5, //background:0x101010,
-        groundReflect:0.1, groundColor:0x808080,
-        shadow:0.5,//0.5,
+        phi:12, theta:0, distance:5, x:0, y:3, z:15, fov:55, 
+        envmap:'clear', groundReflect:0, groundColor:0x808080,
     })
     
     // config physics setting
-    phy.set( {
-        substep:1, 
-        gravity:[0,-9.81,0],
-        jointVisible:false,
-        full:true,
-    })
+    phy.set({ substep:1, gravity:[0,-9.81,0], full:true })
 
-    let g = phy.getGround()
+    let g = phy.getGround();
     g.material.map = phy.texture({ url:'./assets/textures/grid.png', repeat:[60,60] });
+    g.material.roughness = 0.8;
 
     // add static ground
-    phy.add({ type:'plane', size:[300,1,300], visible:false })
+    //phy.add({ type:'plane', size:[300,1,300], visible:false })
+    phy.add({ type:'box', size:[300,1,300], pos:[0,-0.5,0], visible:false })
     
-
-    //addDynamic();
-    addDeco();
-
-    if( useModel ){
-        t1 = phy.getTime();
-        phy.preload( models, onComplete );
-    } else {
-        Character();
-    }
+    addDecor();
+    addCharacter();
+    addGui();
 
 }
 
-onComplete = () => {
-
-    console.log( 'loading in: ' + phy.readTime( phy.getTime() - t1 ) );
-    Character();
-
-}
-
-let movingDir = 1;
 
 const update = () => {
+
+    updateDecor();
+
+}
+
+
+//-----------
+//    GUI
+//-----------
+
+const addGui = () => {
+
+    gui = phy.gui();
+    //gui.add( option, 'bodyMorph',{ type:'pad', name:'type',  min:-1, max:1 }).listen().onChange( morph );
+    //gui.add( option, 'realSize',{  min:1.50, max:2.0}).listen().onChange( resize )
+    //gui.add('button',{name:'Random', h:30, radius:15}).onChange( ()=>{Character()} )
+    gui.add(option, 'debug',{}).onChange( showDebug );
+
+}
+
+
+//-----------------
+//    CHARACTER
+//-----------------
+
+const addCharacter = () => {
+
+    if( preload ){
+        preload = false;
+        t1 = phy.getTime();
+        phy.preload( models, addCharacter );
+        return;
+    }
+
+    //console.log( 'ready in: ' + phy.readTime( phy.getTime()-t1 ) );
+
+    let i = maxCharacter, n = 0,  g;
+    let pos = [0,0,0], angle = 0;
+    let hh = [];
+
+    while( i-- ){
+
+        g = useModel ? models[ math.randInt( 0, models.length-1 ) ] : null;
+        //g = math.randInt( 0, 1 );
+
+        hh[n] = phy.add({ 
+            type: 'character',
+            name: 'c_' + n,
+            
+            //debug: true,
+            radius: 0.3,
+            height: 1.8,
+            pos: pos,
+            //ray: n===0,
+            angle:angle,
+
+            gender: g,//models[g],
+            //randomMorph:true,
+            //morph:true,
+            //callback:count,
+            useImpulse:true,
+            massInfo:true,
+
+        });
+
+        n++
+        pos = [ math.rand( -10, 10 ), 0, math.rand( 5, 15 ) ];
+        angle = math.randInt( 0, 360 )
+
+    }
+
+    player = hh[0];
+
+    hh[0].debugMode( option.debug );
+
+    phy.follow('c_0', { direct:true, simple:true, distance:5, phi:12, theta:0, decal:[0.3, 0.5, -0.3], fov:60, zoom:1.0 })
+    phy.control( 'c_0' );
+
+}
+
+const showDebug = (debug) => {
+    if( player ) player.debugMode( debug );
+}
+
+
+
+//--------------
+//    DECOR
+//--------------
+
+let isKinematic = false;
+let isFloating = false;
+let movingDir = 1;
+const floatingDis = 0.8;
+const springK = 2.5;
+const dampingC = 0.15;
+
+const updateDecor = () => {
 
     let time = phy.getElapsedTime();
 
@@ -82,21 +162,9 @@ const update = () => {
       
     }
 
-    /*
-
-    if(!ready) return;
-
-    px += 0.03 * side;
-    if(px<=-5) side = 1;
-    if(px>=5) side = -1;
-    
-    phy.change({name:'kine', pos:[ px, 1.8, 4 ], rot:[ 0, (px-5)*18, 0 ] });
-    */
-
 }
 
-
-const addDeco = () => {
+const addDecor = () => {
 
     phy.add({ type:'box', size:[1], pos:[15,0.5,0], mass:1 })
     phy.add({ type:'box', size:[1.5], pos:[15,1.5*0.5,-2], mass:3.375 })
@@ -109,19 +177,6 @@ const addDeco = () => {
     addFloatingPlatform();
 
     phy.setPostUpdate ( update );
-
-    // add static box
-    /*phy.add({ type:'box', size:[4,4,4], pos:[9,2,0] })
-    phy.add({ type:'box', size:[4,4,4], pos:[-9,2,0] })
-    phy.add({ type:'box', size:[4,2,4], pos:[9,1,4] })
-    phy.add({ type:'box', size:[4,2,4], pos:[-9,1,4] })
-
-    phy.add({ type:'stair', size:[2,2,3], pos:[-9,1,7.5], friction:0 })
-    phy.add({ type:'stair', size:[2,2,3], pos:[9,1,7.5], friction:0 })
-
-    phy.add({ type:'stair', size:[2,2,3], pos:[-9,3,3.5], friction:0 })
-    phy.add({ type:'stair', size:[2,2,3], pos:[9,3,3.5], friction:0 })
-    */
 
 }
 
@@ -148,11 +203,10 @@ const addFloatingPlatform = () => {
 
 }
 
-const floatingDis = 0.8;
-const springK = 2.5;
-const dampingC = 0.15;
+
 
 const FloatingRay = ( r ) => {
+    // need activate full option to get velocity
     if(r.hit){
         const floatingForce = springK * (floatingDis - r.distance) - r.parent.velocity.y * dampingC;
         phy.change({ name:r.parent.name, impulse:[0, floatingForce, 0] });
@@ -194,133 +248,4 @@ const addRoughPlane = () => {
         }
     }
     phy.load(['./assets/models/tmp/roughPlane.glb'], onDone );
-}
-
-
-
-
-///
-
-
-/*
-const addDynamic = () => {
-
-    Bridge();
-
-    let rand = math.rand;
-
-    // add random object
-    let i=5;
-    while(i--){
-        phy.add({ type:'box', size:[ rand( 0.3,  0.8 ) ], pos:[ rand( -8, 8 ), rand( 8, 10 ), rand( -1, 1 ) ], density: 0.3 })
-        phy.add({ type:'sphere', size:[ rand( 0.3,  0.8 ) ], pos:[ rand( -8, 8 ), rand( 8, 10 ), rand( -1, 1 ) ], density: 0.3 })
-        phy.add({ type:'cone', size:[ rand( 0.4,  0.6 ), rand( 0.4,  0.8 ) ], pos:[ rand( -8, 8 ), rand( 8, 10 ), rand( -1, 1 ) ], density: 0.3 })
-    }
-
-    // platform test
-    phy.add({ type:'box', name:'kine', size:[4,0.4,4], pos:[ px, 1.8, 4 ], radius:0.04,  density:1, kinematic:true, density: 0, friction:1 });
-    phy.add({ type:'box', name:'truc', size:[1,1,1], pos:[ px, 2.9, 4 ], radius:0.02, density:1, friction:1 });
-
-    phy.setPostUpdate ( update )
-    phy.setTimeout( go, 0 )
-
-}
-
-const Bridge = ( width = 4, height = 0.2, length = 0.7 ) => {
-
-    let isLocal = true
-    let num = 20;
-    let gap = 0.05
-    let size = [ length, height, width ]
-    let i = num
-    let data = []
-    
-    while( i-- ){
-        x = (i - (num - 1) * 0.5) * (length + gap);
-        data.push({ type:'box', name:'b'+i, size:size, pos:[ x, 4-(height*0.5), 0 ], radius:0.02, density: i == 0 || i == num - 1? 0 : 10 });
-    }
-
-    i = num-1
-    while( i-- ){
-        
-        if( isLocal ){ // local joint
-            x = (length + gap) * 0.5
-            data.push({ type:'hinge', name:'j'+i, b1:'b'+i, b2:'b'+(i+1), pos1:[x,0,0], pos2:[-x,0,0], worldAxis:[0,0,1], lm:[-10,10] })
-        } else { // world joint
-            x = (i - (num - 1) * 0.5) * (length + gap)
-            data.push({ type:'hinge', name:'j'+i, b1:'b'+i, b2:'b'+(i+1), worldAnchor:[x+(length*0.5),4,0], worldAxis:[0,0,1], lm:[-10,10 ], sd:[20,1, 0, 0.5, -1] })
-        }
-        
-    }
-
-    phy.add(data);
-
-}
-*/
-const Character = () => {
-
-    let i = maxCharacter, n = 0,  g;
-    let pos = [0,0,0], angle = 0;
-    let hh = [];
-
-    while( i-- ){
-
-        g = useModel ? models[ math.randInt( 0, models.length-1 ) ] : null;
-        //g = math.randInt( 0, 1 );
-
-        hh[n] = phy.add({ 
-            type: 'character',
-            name: 'c_' + n,
-            
-            debug: true,
-            radius: 0.3,
-            height: 1.8,
-            pos: pos,
-            //ray: n===0,
-            angle:angle,
-
-            gender: g,//models[g],
-            //randomMorph:true,
-            //morph:true,
-            //callback:count,
-
-        });
-
-        n++
-        pos = [ math.rand( -10, 10 ), 0, math.rand( 5, 15 ) ];
-        angle = math.randInt( 0, 360 )
-
-    }
-
-    hh[0].debugMode( true );
-
-    //phy.follow('c_0', { direct:true, simple:true, distance:5, phi:12, theta:180, decal:[0.3, 0.5, -0.3], fov:60, zoom:1.0 })
-    phy.control( 'c_0' );
-
-}
-
-
-const count = () => {
-
-    num++;
-    if( num === maxCharacter ) console.log( 'ready in: ' + phy.readTime( phy.getTime() - t1 ) )
-    
-}
-
-const go = () => {
-
-    side = -1;
-    ready = true;
-
-}
-
-
-const addGui = () => {
-
-    gui = phy.gui();
-    //gui.add( option, 'bodyMorph',{ type:'pad', name:'type',  min:-1, max:1 }).listen().onChange( morph );
-    //gui.add( option, 'realSize',{  min:1.50, max:2.0}).listen().onChange( resize )
-    //gui.add('button',{name:'Random', h:30, radius:15}).onChange( ()=>{Character()} )
-    //gui.add('bool',{name:'Debug'}).onChange( showDebug )
-
 }

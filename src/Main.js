@@ -15,8 +15,8 @@ import { Env } from './3TH/Env.js'
 import { Lights } from './3TH/Lights.js'
 import { Shader } from './3TH/Shader.js'
 import { Editor } from './3TH/Editor.js'
-//import { Composer } from './3TH/Composer.js'
 
+//import { Composer } from './3TH/Composer.js'
 import { Composer } from './3TH/Composer_test.js'
 
 // OBJECT
@@ -40,7 +40,6 @@ import { Motor } from './motor/Motor.js'
 // PARTICLE
 import { Smoke } from '../build/smoke.module.js'
 //import { Smoke } from './3TH/_smoke/Smoke.js'
-
 //import { DualQuat } from './3TH/DualQuat.js'
 
 // WEBGPU test

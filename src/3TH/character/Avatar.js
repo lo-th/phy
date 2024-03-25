@@ -925,15 +925,17 @@ export class Avatar extends Group {
         action.enabled = true//false;
         if(clip.name.search('idle')!==-1) action.enabled = true;
         //action.setEffectiveWeight( 0 );
-        if( clip.name === 'Jumping Up' ) action.loop = LoopPingPong
+        if( clip.name === 'Jumping Up' ) action.loop = LoopPingPong;
         //action.play()
         this.actions.set( clip.name, action );
 
+        /*
         if(clip.name.search('walk')!==-1) this.clipsToesFix.push(clip.name);
         if(clip.name.search('run')!==-1) this.clipsToesFix.push(clip.name);
         if(clip.name.search('strafe')!==-1) this.clipsToesFix.push(clip.name);
         if(clip.name.search('jog')!==-1) this.clipsToesFix.push(clip.name);
         if(clip.name.search('RUN')!==-1) this.clipsToesFix.push(clip.name);
+        */
 
         //console.log(clip)
 
@@ -1040,6 +1042,7 @@ export class Avatar extends Group {
         this.fixToe = false;
         this.setRot('rToes', 0,0,0 );
         this.setRot('lToes', 0,0,0 );
+
     }
 
     convertFbx( name, anim, autoplay ) {
@@ -1315,6 +1318,7 @@ export class Avatar extends Group {
                 this.current = action;
 
                 let isIdle = this.current.getClip().name !== 'idle'
+                isIdle = this.old.getClip().name !== 'idle'
 
                 if( this.clipsToesFix.indexOf(name) !== -1 ) this.fixToe = true;
                 else this.resetToes();
@@ -1339,19 +1343,21 @@ export class Avatar extends Group {
                 //this.current.clampWhenFinished = true;
 
                 // sycro if not idle
-                if ( !isIdle ) this.current.time = this.old.time * ratio;
+                if( !isIdle ) this.current.time = this.old.time * ratio;
                 //this.current.setEffectiveTimeScale( 1 )
                 //this.current.setEffectiveWeight( 1 )
 
                 //}
 
+                //console.log( this.current.getEffectiveWeight(), this.old.getEffectiveWeight() )
+
 
 
                 if(this.fixWeight){
 
-                    this.current.weight = 1.0
-                    this.current.stopFading()
-                    this.old.stopFading()
+                    this.current.weight = 1.0;
+                    this.current.stopFading();
+                    this.old.stopFading();
                     this.old._scheduleFading( fade, this.old.getEffectiveWeight(), 0 );
                     this.current._scheduleFading( fade, this.current.getEffectiveWeight(), 1 );
 

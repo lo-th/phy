@@ -321,22 +321,29 @@ export class Body extends Item {
 		if( o.density ) o.mass = MathTool.massFromDensity( o.density || 0, volume );
 		if( o.mass ){
 		    bcs.mOverrideMassProperties = 1;// Jolt.EOverrideMassProperties_CalculateInertia; 
-			bcs.mMassPropertiesOverride.mMass = o.mass; 
+			bcs.mMassPropertiesOverride.mMass = o.mass;
 			
 			//bcs.mGravityFactor = 2
 
 		}
 
 		 if( o.inertia ){ // mInertia is mat44
-		 	bcs.mMassPropertiesOverride.mInertia.sScale(this.v.fromArray( o.inertia ))
+		 	// TODO not work !!!
+		 	//
 		 	bcs.mOverrideMassProperties = 1;
+		 	//bcs.mMassPropertiesOverride.mInertia.sScale(this.v.fromArray( o.inertia ))
+		 	bcs.mMassPropertiesOverride.mInertia.PostScaled(this.v.fromArray( o.inertia ))
+		 	//bcs.mMassPropertiesOverride.mInertia.PostTranslated(this.v.fromArray( o.inertia ))
+		 	//bcs.mMassPropertiesOverride.mInertia.sIdentity()
+		 	//bcs.mMassPropertiesOverride.mInertia.sZero()
+		 	//console.log( bcs.mMassPropertiesOverride.mInertia );
 		 }
 		
 		//bcs.mInertiaMultiplier = 1.0;
 
 		//bcs.mGravityFactor
 		//console.log( Jolt.EOverrideMassProperties_CalculateInertia );
-		//console.log( bcs.mMassPropertiesOverride.mInertia );
+		//console.log( bcs.mMassPropertiesOverride );
 		
 		//if( o.inertia ) bcs.mMassPropertiesOverride.mInertia = this.v.fromArray( o.inertia );
 	    //if( o.inertia ) bcs.mMassPropertiesOverride.mInertia.sTranslation(this.v.fromArray( o.inertia ))
@@ -358,7 +365,7 @@ export class Body extends Item {
 
 		if( o.noGravity !== undefined ){ 
 			bcs.mGravityFactor = o.noGravity ? 0:1;
-			bcs.mInertiaMultiplier = o.noGravity ? 0:1;
+			//bcs.mInertiaMultiplier = o.noGravity ? 0:1;
 		}
 
 		if( o.gravityScale !== undefined ) bcs.mGravityFactor = o.gravityScale;
@@ -402,6 +409,7 @@ export class Body extends Item {
 	    //console.log( b );
 	    //console.log(root.bodyInterface)
 	    //console.log( b.GetMotionProperties() );
+
 
 
 		// add to world
@@ -510,7 +518,18 @@ export class Body extends Item {
 		if( o.angularVelocityClamped !== undefined ) b.SetAngularVelocityClamped( this.v.fromArray( o.angularVelocityClamped ) )
         // miss b.GetLinearVelocityClamped
 
-		if ( o.angularFactor !== undefined ) b.SetAngularVelocityClamped( this.v.fromArray( MathTool.mulArray([47.12,47.12,47.12], o.angularFactor) ) )
+		if ( o.angularFactor !== undefined ){ 
+			this.v.fromArray( MathTool.mulArray([47.12,47.12,47.12], o.angularFactor) );
+			b.GetMotionProperties().SetAngularVelocityClamped(this.v)
+			//b.GetMotionProperties().LockAngular(this.v.fromArray([1,1,1]))
+			//
+			//this.v.fromArray( [0.0001,0.0001,0.0001]);
+			//console.log( this.v.toArray() )
+			//b.SetAngularVelocityClamped( this.v );
+		}
+
+		//if( o.maxAngular !== undefined ) b.GetMotionProperties().SetMaxAngularVelocity(o.maxAngular)
+
 
 
 		

@@ -2,6 +2,7 @@ import {
     Texture, TextureLoader, SRGBColorSpace, RepeatWrapping, NearestFilter, EquirectangularReflectionMapping, AnimationMixer, ObjectSpaceNormalMap, 
 } from 'three';
 
+import { KTX2Loader } from '../jsm/loaders/KTX2Loader.js';
 import { GLTFLoader } from '../jsm/loaders/GLTFLoader.js';
 import { DRACOLoader } from '../jsm/loaders/DRACOLoader.js';
 import { FBXLoader } from '../jsm/loaders/FBXLoader.js';
@@ -363,6 +364,7 @@ export const Pool = {
         Pool.log( Pool.msg )
 
         switch( type ){
+            case 'ktx2': Pool.load_KTX2( url, name );  break;
             case 'glb': case 'gltf': Pool.load_GLTF( url, name );  break;
             case 'fbx': case 'FBX': Pool.load_FBX( url, name ); break;
             case 'hdr': Pool.load_RGBE( url, name ); break;
@@ -470,11 +472,22 @@ export const Pool = {
 
     },
 
+    loaderKTX2: () => {
+
+        if( !Pool.KTX2 ){
+            Pool.KTX2 = new KTX2Loader()
+                .setTranscoderPath( '../jsm/libs/basis/' )
+                //.detectSupport( renderer );
+        }
+        return Pool.KTX2
+
+    },
+
     loaderGLTF: () => {
 
         if( !Pool.GLTF ){
             Pool.GLTF = new GLTFLoader()
-            Pool.GLTF.setDRACOLoader( Pool.loaderDRACO() )
+                .setDRACOLoader( Pool.loaderDRACO() )
         }
         return Pool.GLTF
 

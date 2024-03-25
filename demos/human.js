@@ -138,7 +138,7 @@ const Character = ( num = 1 ) => {
             type: 'character',
             name: 'c_' + n,
             gender: gender[g],
-            debug: true,
+            //debug: true,
             radius: 0.35,
             height: 1.8,
             pos: pos,
@@ -191,21 +191,21 @@ const addGui = () => {
 const bodyMorph = ( v ) => {
 
     if(!player.model) return
-    player.model.setBodyMorph(v)
+    player.model.setBodyMorph(v);
 
 }
 
 const faceMorph = ( v ) => {
 
     if(!player.model) return
-    player.model.setFaceMorph(v)
+    player.model.setFaceMorph(v);
 
 }
 
 const resize = ( v ) => {
 
     if(!player.model) return
-    player.model.setRealSize(v)
+    player.model.setRealSize(v);
 
 }
 

@@ -9,7 +9,7 @@
     "Dev" : [ 
         "spring", "cloth", "gears2", "mass", "empty", "empty2", "empty3",
         "car", "collision", "buttons", "robot_arm", "pinball",
-        "vehicle2", "vehicle3", "mesh", "break", "stacking", "player", "house"
+        "vehicle2", "vehicle3", "mesh", "break", "stacking", "player", "house", "direct"
     ],
     "Advanced" : [ 
         "diamond", "ragdoll", "chess", "million", "museum"
