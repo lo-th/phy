@@ -30,7 +30,7 @@ import { ExoSkeleton } from './ExoSkeleton.js';
 
 // ready model
 import { Human } from './Human.js';
-import { Simple } from './Simple.js';
+import { Human_low } from './Human_low.js';
 import { Eva } from './Eva.js';
 import { Lee } from './Lee.js';
 
@@ -113,6 +113,8 @@ export class Avatar extends Group {
         //this.textureQuality = o.quality || 1;
 
         this.randomMorph = o.randomMorph || false;
+        this.randomSize = o.randomSize || false;
+
         this.actionPose = null
 
         this.model = o.type || 'man';
@@ -126,7 +128,7 @@ export class Avatar extends Group {
         switch( this.model ){
             case 'lee': this.ref = Lee; break;
             case 'man': case 'woman': this.ref = Human; break;
-            case 'man_low': case 'woman_low': this.ref = Simple; break;
+            case 'man_low': case 'woman_low': this.ref = Human_low; break;
             case 'eva00': case 'eva01': case 'eva02': this.ref = Eva; break;
         }
 
@@ -216,7 +218,8 @@ export class Avatar extends Group {
             return
         }
 
-        this.skin = Pool.getTexture( this.ref.textureRef, {quality:this.textureQuality } );
+        this.skin = Pool.getTexture( this.ref.textureRef, { quality:this.textureQuality } );
+
         if( !this.skin ){
 
             const path = this.rootPath + this.ref.texturePath + ( this.textureQuality ? this.textureQuality + 'k/' : '' );
@@ -688,16 +691,9 @@ export class Avatar extends Group {
             this.makePoseTrack('adjustment', this.ref.adjustment(), true );
         }
 
-        if( this.randomMorph ){
-            //let i = this.fullMorph.length;
-            //while(i--) this.setMorph( this.fullMorph[i], Math.random()*0.62 )
-
-            this.setBodyMorph([(Math.random())-0.5, (Math.random()*2)-1])
-            //this.setSize(1 + (-0.05+Math.random()*0.1))
-            this.setRealSize(this.realSize + (-0.2+Math.random()*0.4))
-
-           //console.log(this.fullMorph)
-        }
+        // random human
+        if( this.randomMorph ) this.setBodyMorph([(Math.random())-0.5, (Math.random()*2)-1])
+        if( this.randomSize ) this.setRealSize(this.realSize + (-0.2+Math.random()*0.4));
 
 
         //this.add( this.root );
@@ -926,6 +922,7 @@ export class Avatar extends Group {
         if(clip.name.search('idle')!==-1) action.enabled = true;
         //action.setEffectiveWeight( 0 );
         if( clip.name === 'Jumping Up' ) action.loop = LoopPingPong;
+        
         //action.play()
         this.actions.set( clip.name, action );
 

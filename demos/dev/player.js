@@ -87,7 +87,7 @@ const addCharacter = () => {
 
     while( i-- ){
 
-        g = useModel ? models[ math.randInt( 0, models.length-1 ) ] : null;
+        g = 'man_low';//useModel ? models[ math.randInt( 0, models.length-1 ) ] : null;
         //g = math.randInt( 0, 1 );
 
         hh[n] = phy.add({ 
@@ -96,16 +96,17 @@ const addCharacter = () => {
             
             //debug: true,
             radius: 0.3,
-            height: 1.8,
+            //height: 0.7,
             pos: pos,
             //ray: n===0,
             angle:angle,
 
             gender: g,//models[g],
-            //randomMorph:true,
-            //morph:true,
+            randomMorph:true,
+            morph:true,
             //callback:count,
             useImpulse:true,
+            floating:true,
             massInfo:true,
 
         });

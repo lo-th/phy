@@ -15,16 +15,25 @@ export class Hero extends Basic3D {
 
 		super()
 
-		o.radius = o.radius !== undefined ? o.radius : 0.3;
-		o.height = o.height !== undefined ? o.height : 1.8//0.7;
+		this.useImpulse = o.useImpulse || false;
+		this.useFloating = o.floating || false;
 
 		let floatHeight = 0.3;
+		let radius = o.radius || 0.3;
+		let height = o.height || 1.8;//0.7
+
+
+		if(this.useFloating){
+			height -= floatHeight
+		}
+
+
 
 		this.option = {
 
 			debug: false,
-			capsuleHalfHeight: o.height*0.5,
-			capsuleRadius: o.radius,
+			capsuleHalfHeight: height*0.5,
+			capsuleRadius: radius,
 			floatHeight: floatHeight,
 			characterInitDir: 0, // in rad
 			//followLight: false,
@@ -33,7 +42,7 @@ export class Hero extends Basic3D {
 			camMaxDis: -7,
 			camMinDis: -0.7,
 			// Base control setups
-			maxVelLimit: 2.5,
+			maxVelLimit: 5,//2.5,
 			turnVelMultiplier: 0.2,
 			turnSpeed: 15,
 			sprintMult: 2,
@@ -51,36 +60,41 @@ export class Hero extends Basic3D {
 			fallingMaxVel: -20,
 			wakeUpDelay: 200,
 			// Floating Ray setups
-			rayOriginOffest: { x: 0, y: -o.height*0.5, z: 0 },
+			rayOriginOffest: { x: 0, y: -height*0.5, z: 0 },
 			rayHitForgiveness: 0.1,
-			rayLength: o.radius + 2,
+			rayLength: radius + 2,
 			rayDir: { x: 0, y: -1, z: 0 },
-			floatingDis: o.radius + floatHeight,
-			springK: 1.2,
-			dampingC: 0.08,
+			//floatingDis: radius + floatHeight,
+			floatingDis: (radius*0.2) + floatHeight,
+			springK: 1.2,//1.2
+			dampingC: 0.08,//0.08,
 			// Slope Ray setups
 			showSlopeRayOrigin: false,
 			slopeMaxAngle: 1, // in rad
-			slopeRayOriginOffest: o.radius - 0.03,
-			slopeRayLength: o.radius + 3,
+			slopeRayOriginOffest: radius - 0.03,
+			slopeRayLength: radius + 3,
 			slopeRayDir: { x: 0, y: -1, z: 0 },
 			slopeUpExtraForce: 0.1,
 			slopeDownExtraForce: 0.2,
 			// AutoBalance Force setups
 			autoBalance: true,
-			autoBalanceSpringK: 0.3,
-			autoBalanceDampingC: 0.03,
-			autoBalanceSpringOnY: 0.3,
-			autoBalanceDampingOnY: 0.02,
+			autoBalanceSpringK: 1.2,//0.3,
+			autoBalanceDampingC: 0.04,
+			autoBalanceSpringOnY: 0.7,
+			autoBalanceDampingOnY: 0.05,
 			// Animation temporary setups
 			animated: false,
+			mode:null,
+
+			//...o
 
 		}
 
 		this.v = {
 
-
 			movingObjectVelocityInCharacterDir: new Vector3(),
+			movingObjectVelocity: new Vector3(),
+			standingForcePoint: new Vector3(),
 
 			pivotPosition: new Vector3(),
 			modelEuler: new Euler(),
@@ -98,24 +112,30 @@ export class Hero extends Basic3D {
 			wantToMoveVel: new Vector3(),
 			rejectVel: new Vector3(),
 
+			// Floating Ray setup
+			floatingForce:null,
 			springDirVec: new Vector3(),
+			rayOrigin: new Vector3(),
 			characterMassForce: new Vector3(),
 
 			// slope
 			slopeAngle:null,
-			actualSlopeAngle:null,
 			actualSlopeNormal: new Vector3(),
+			actualSlopeAngle:null,
 			actualSlopeNormalVec: new Vector3(),
 			floorNormal: new Vector3(0, 1, 0),
+			slopeRayOriginRef: new Vector3(),
 			slopeRayorigin: new Vector3(),
 
 			canJump:false,
+			isFalling:false,
 			run:false,
 			isOnMovingObject:false,
 
 		}
 
-		this.useImpulse = o.useImpulse || false;
+
+
 		//this.angvel = new Vector3();
 
 		this.fixWeight = o.fixWeight !== undefined ? o.fixWeight : true;
@@ -133,8 +153,9 @@ export class Hero extends Basic3D {
 
 		//this.lod = -1;
 
-		this.radius = o.radius || 0.3;
-		this.height = o.height || 1.8;
+		this.radius = radius;
+		this.height = height;
+		this.mass = 0.84//0.14
 		
 		delete o.radius
 
@@ -144,7 +165,8 @@ export class Hero extends Basic3D {
 		this.distance = 0
 		this.rayAngle = 0
 		this.rayStart = -(this.height*0.5)+this.radius;
-		this.rayEnd = this.rayStart - this.height;
+		//this.rayEnd = this.rayStart - (radius + 2);//this.height;
+		this.rayEnd = this.rayStart - (4*floatHeight);//this.height;
 		this.maxRayDistance = this.height;
 
 		this.contact = false
@@ -192,6 +214,7 @@ export class Hero extends Basic3D {
 		if(!o.pos) o.pos = [0,0,0];
 
 		o.pos[1] += this.height*0.5;
+		if(this.useFloating) o.pos[1] += this.option.floatHeight
 
 		if( this.globalRay ) root.items.body.geometry( { ...o, type:'capsule', ray:true }, this, Mat.get('hide') )
 
@@ -215,7 +238,7 @@ export class Hero extends Basic3D {
 
 		//o.move = false
 
-		if(root.engine==='JOLT') o.maxAngular = 0;
+		if( root.engine === 'JOLT' ) o.maxAngular = 0;
 		//if(root.engine==='JOLT') o.inertia = [0,0,0]
 
 		//console.log(root.engine)
@@ -244,10 +267,10 @@ export class Hero extends Basic3D {
 
     	if( r.hit ){ 
     		this.distance = MathTool.toFixed(r.distance-this.radius)
-    		this.rayAngle = r.angle
+    		this.rayAngle = r.angle;
     	} else { 
-	        this.distance = this.maxRayDistance
-	        this.rayAngle = 0
+	        this.distance = this.maxRayDistance;
+	        this.rayAngle = 0;
 	    }
 
     }
@@ -321,7 +344,9 @@ export class Hero extends Basic3D {
 
 		this.add( this.model );
 		///this.model.rotation.order = 'YXZ'
-		this.model.setPosition(0, this.model.decalY-(this.height*0.5), 0);
+		let ypos = -(this.height*0.5)
+		if( this.useFloating ) ypos -= this.option.floatHeight
+		this.model.setPosition(0, this.model.decalY + ypos, 0);
 		this.model.rotation.y = this.angle;
 		//this.model.updateMatrix()
 
@@ -420,39 +445,45 @@ export class Hero extends Basic3D {
 
 	}
 
-	moveImpulse(){
+	moveCharacter( delta ){
 
 		const v = this.v;
 		const o = this.option;
 		const key = root.motor.getKey();
 		const azimut = root.motor.getAzimut();
-		const delta = root.delta;
+		//const delta = root.delta;
 
 		v.run = key[7] !== 0;
 
+		//v.movingObjectVelocity = 
+		v.slopeAngle = azimut;
+
+
+
 	    // Setup moving direction
 
-	    // Only apply slope extra force when slope angle is between 0.2-1, actualSlopeAngle < 1
-
-	    if ( v.actualSlopeAngle < 1 &&  Math.abs(v.slopeAngle) > 0.2 && Math.abs(v.slopeAngle) < 1 ) {
+	    // Only apply slope extra force when slope angle is between 0.2-slopeMaxAngle, actualSlopeAngle < slopeMaxAngle
+	    if ( v.actualSlopeAngle < o.slopeMaxAngle &&  Math.abs(v.slopeAngle) > 0.2 && Math.abs(v.slopeAngle) < o.slopeMaxAngle ) {
 	    	v.movingDirection.set(0, Math.sin(v.slopeAngle), Math.cos(v.slopeAngle));
-	    } else if (v.actualSlopeAngle >= 1) {
+	    } else if ( v.actualSlopeAngle >= o.slopeMaxAngle ) {
 	    	v.movingDirection.set( 0, Math.sin(v.slopeAngle) > 0 ? 0 : Math.sin(v.slopeAngle), Math.sin(v.slopeAngle) > 0 ? 0.1 : 1 );
 	    } else {
 	    	v.movingDirection.set(0, 0, 1);
 	    }
 
+
+
 	    // Apply character quaternion to moving direction
 	    if( this.model ) v.movingDirection.applyQuaternion( this.model.quaternion );
+
+	    
+
 	    // Calculate moving object velocity direction according to character moving direction
 	    v.movingObjectVelocityInCharacterDir.copy(v.movingObjectVelocity).projectOnVector(v.movingDirection).multiply(v.movingDirection);
 	    // Calculate angle between moving object velocity direction and character moving direction
 	    const angleBetweenCharacterDirAndObjectDir = v.movingObjectVelocity.angleTo(v.movingDirection);
 
 	    //Setup rejection velocity, (currently only work on ground)
-
-
-	     
 	    const wantToMoveMeg = v.currentVel.dot(v.movingDirection);
 	    v.wantToMoveVel.set( v.movingDirection.x * wantToMoveMeg, 0, v.movingDirection.z * wantToMoveMeg );
 	    v.rejectVel.copy(v.currentVel).sub(v.wantToMoveVel);
@@ -471,10 +502,11 @@ export class Hero extends Basic3D {
 	    // Wanted to move force function: F = ma
 	    const moveForceNeeded = v.moveAccNeeded.multiplyScalar( this.mass );
 
-	   
+	    //console.log(this.mass)
+
+  
 	    // Check if character complete turned to the wanted direction
-	    
-	    const characterRotated = Math.sin(this.rotation.y).toFixed(3) == Math.sin(v.modelEuler.y).toFixed(3);
+	    let characterRotated = Math.sin(this.rotation.y).toFixed(3) == Math.sin(v.modelEuler.y).toFixed(3);
 
 	    // If character hasn't complete turning, change the impulse quaternion follow characterModelRef quaternion
 	    if (!characterRotated) {
@@ -501,8 +533,44 @@ export class Hero extends Basic3D {
 
 	    v.impulseCenter.set( v.currentPos.x, v.currentPos.y + o.moveImpulsePointY, v.currentPos.z );
 
-
+	    // Character current velocity
 	    v.currentVel.copy(this.velocity);
+
+	    // Jump impulse
+	    if ( key[4] && v.canJump ) {
+	    	jumpVelocityVec.set( v.currentVel.x, v.run ? o.sprintJumpMult * o.jumpVel : o.jumpVel, v.currentVel.z );
+	    }
+
+
+	}
+
+	getFloating(){
+		
+		const v = this.v;
+		const o = this.option;
+
+		const floatingForce = o.springK * (o.floatingDis - this.distance) - this.velocity.y * o.dampingC;
+		v.moveImpulse.y = floatingForce;
+
+	}
+
+	stopMoving(){
+		
+		const v = this.v;
+		const o = this.option;
+
+		this.v.moveImpulse.set(0,0,0)
+		this.tmpV1.copy(this.velocity).multiplyScalar( 0.9 )
+
+		root.motor.change({
+
+			    name:this.name,
+			    //force: this.tmpV1.toArray(), forceMode:'velocity', 
+			    linearVelocity: this.tmpV1.toArray(), 
+			    //angularVelocity: this.tmpV2.toArray(),
+			    //wake:true, 
+			    //noGravity:true 
+			});
 
 	}
 
@@ -560,9 +628,7 @@ export class Hero extends Basic3D {
 	    	   mAnim = this.crouch ? 'Crouch Idle' : 'idle';
 	    	   //if( key[6] === 1 ) mAnim = 'Attack';
 	    	break;
-	    	case 'walk':
-	    	    mAnim = 'Jog Forward';
-	    	break;
+	    	case 'walk': mAnim = 'Jog Forward'; break;
 	    	case 'run': mAnim = 'Standard Run'; break;
 	    	case 'crouch': mAnim = 'Crouch Walk'; break;
 	    	case 'fight': mAnim = 'Attack'; break;
@@ -641,7 +707,7 @@ export class Hero extends Basic3D {
 
 	    // gravity
 	    //let g = this.vy - (this.distance>0.1 ? 9.81 : 0);
-	    let g = this.vy - 9.81;
+	    let g = this.vy// - 9.81;
 
 	   // console.log(this.distance)
 
@@ -658,7 +724,14 @@ export class Hero extends Basic3D {
 
 	    if( this.useImpulse ) {
 
-	    	this.v.moveImpulse.copy(this.tmpV1).multiplyScalar(0.016)
+	    	if( this.moving ) this.moveCharacter( delta );
+	    	else this.stopMoving()
+
+	    	
+
+	    	//if( this.moving ) this.v.moveImpulse.copy(this.tmpV1).multiplyScalar(delta*0.5)
+	    	//else this.stopMoving()
+	        if(this.useFloating) this.getFloating();
 
 	    	root.motor.change({
 

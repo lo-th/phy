@@ -338,6 +338,28 @@ export class Body extends Item {
 		 	//bcs.mMassPropertiesOverride.mInertia.sZero()
 		 	//console.log( bcs.mMassPropertiesOverride.mInertia );
 		 }
+
+		 if( o.linearFactor || o.angularFactor ){
+
+		 	let dof = 0;
+		 	if( o.linearFactor ){		
+		 		if(o.linearFactor[0]>0) dof |= Jolt.EAllowedDOFs_TranslationX
+			 	if(o.linearFactor[1]>0) dof |= Jolt.EAllowedDOFs_TranslationY
+			 	if(o.linearFactor[2]>0) dof |= Jolt.EAllowedDOFs_TranslationZ
+		 	} else dof |= Jolt.EAllowedDOFs_TranslationX | Jolt.EAllowedDOFs_TranslationY | Jolt.EAllowedDOFs_TranslationZ;
+		 	if( o.angularFactor ){
+			 	if(o.angularFactor[0]>0) dof |= Jolt.EAllowedDOFs_RotationX
+			 	if(o.angularFactor[1]>0) dof |= Jolt.EAllowedDOFs_RotationY
+			 	if(o.angularFactor[2]>0) dof |= Jolt.EAllowedDOFs_RotationZ
+			} else dof |= Jolt.EAllowedDOFs_RotationX | Jolt.EAllowedDOFs_RotationY | Jolt.EAllowedDOFs_RotationZ;
+
+		    bcs.mAllowedDOFs = dof
+			
+		 }
+
+		 
+
+		// bcs.mAllowedDOFs = EAllowedDOFs_TranslationX | EAllowedDOFs_TranslationY | EAllowedDOFs_TranslationZ;
 		
 		//bcs.mInertiaMultiplier = 1.0;
 
@@ -519,13 +541,9 @@ export class Body extends Item {
         // miss b.GetLinearVelocityClamped
 
 		if ( o.angularFactor !== undefined ){ 
-			this.v.fromArray( MathTool.mulArray([47.12,47.12,47.12], o.angularFactor) );
-			b.GetMotionProperties().SetAngularVelocityClamped(this.v)
-			//b.GetMotionProperties().LockAngular(this.v.fromArray([1,1,1]))
-			//
-			//this.v.fromArray( [0.0001,0.0001,0.0001]);
-			//console.log( this.v.toArray() )
-			//b.SetAngularVelocityClamped( this.v );
+			// TODO not working solution
+			//this.v.fromArray( MathTool.mulArray([47.12,47.12,47.12], o.angularFactor) );
+			//b.GetMotionProperties().SetAngularVelocityClamped(this.v)
 		}
 
 		//if( o.maxAngular !== undefined ) b.GetMotionProperties().SetMaxAngularVelocity(o.maxAngular)

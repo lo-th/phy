@@ -672,15 +672,14 @@ export class Motor {
 	static step (){
 
 		root.delta = root.reflow.stat.delta;//outsideStep ? timer.delta : root.reflow.stat.delta;
-        
+        // user key interaction
+		root.flow.key = user.update();
+		root.flow.current = currentControle !== null ? currentControle.name : ''
         //prevUpdate( timer.delta )
 
 		Motor.stepItems();
     
-		// user key interaction 
 		
-		root.flow.key = user.update();
-		root.flow.current = currentControle !== null ? currentControle.name : ''
 		//root.flow.tmp = []
 
 		if( breaker !== null ) breaker.step();
