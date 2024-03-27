@@ -1335,11 +1335,12 @@ export class Avatar extends Group {
 
                 let oldEff = this.old.getEffectiveWeight();
                 let currentEff = this.current.getEffectiveWeight();
+                
                 // keep current time to avoid reloop
                 let time = this.current.time;
                 // sycro if not idle on walk run leg position
                 if( !isIdle ){ 
-                    let ratio = this.old.getClip().duration / this.current.getClip().duration;
+                    let ratio = this.current.getClip().duration / this.old.getClip().duration;
                     time = this.old.time * ratio;
                 }
 

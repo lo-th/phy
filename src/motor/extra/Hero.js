@@ -453,6 +453,8 @@ export class Hero extends Basic3D {
 		const azimut = root.motor.getAzimut();
 		//const delta = root.delta;
 
+		v.currentPos.copy(this.position);
+
 		v.run = key[7] !== 0;
 
 		//v.movingObjectVelocity = 
@@ -725,13 +727,14 @@ export class Hero extends Basic3D {
 	    if( this.useImpulse ) {
 
 	    	if( this.moving ) this.moveCharacter( delta );
-	    	else this.stopMoving()
+	    	else this.stopMoving();
 
 	    	
 
 	    	//if( this.moving ) this.v.moveImpulse.copy(this.tmpV1).multiplyScalar(delta*0.5)
 	    	//else this.stopMoving()
-	        if(this.useFloating) this.getFloating();
+
+	        if( this.useFloating ) this.getFloating();
 
 	    	root.motor.change({
 
