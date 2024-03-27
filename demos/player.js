@@ -13,7 +13,7 @@ let player = null;
 let t1 = 0;
 
 const option = {
-    debug:true,
+    debug:false,
 
 };
 
@@ -87,7 +87,7 @@ const addCharacter = () => {
 
     while( i-- ){
 
-        g = 'man_low';//useModel ? models[ math.randInt( 0, models.length-1 ) ] : null;
+        g = useModel ? models[ math.randInt( 0, models.length-1 ) ] : null;
         //g = math.randInt( 0, 1 );
 
         hh[n] = phy.add({ 
@@ -107,7 +107,7 @@ const addCharacter = () => {
             //callback:count,
             useImpulse:true,
             floating:true,
-            massInfo:true,
+            //massInfo:true,
 
         });
 

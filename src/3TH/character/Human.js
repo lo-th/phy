@@ -40,6 +40,8 @@ const setting = {
 
 export const Human = {
 
+    refSize:1.81,
+
 	isBreath:false,
 	isEyeMove:false,
 	
@@ -193,8 +195,8 @@ export const Human = {
             //alphaTest:setting.alphaTest,
             
             //opacity:1.0,
-            emissive:setting.hair,
-            emissiveIntensity:0.5,
+            //emissive:setting.hair,
+            //emissiveIntensity:0.5,
             //sheen:1.0,
             //sheenColor:setting.hair,
             //sheenRoughness:1.0,
@@ -202,7 +204,7 @@ export const Human = {
             blending:CustomBlending,
             blendDst:ZeroFactor,
             blendDstAlpha:SrcAlphaFactor,
-            //forceSinglePass:true,
+            forceSinglePass:true,
             //alphaHash:true,
             //premultipliedAlpha:true,
             alphaToCoverage:true,

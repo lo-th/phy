@@ -557,45 +557,9 @@ export class Motor {
 
 	}
 
-	static clear() {
+	static clear( callback ) {
 
-		buttons = [];
-
-		currentControle = null;
-
-		if( controls ) controls.resetAll();
-		if( mouseTool ) mouseTool.unSelect();
-
-		postUpdate = function () {};
-
-		Motor.clearText();
-		//Motor.clearSkeleton()
-		Motor.clearParticleSolver();
-
-		Motor.cleartimout();
-
-		Motor.flowReset();
-
-		// clear instance
-	    Motor.clearInstance();
-
-	    // reset all items
-	    Motor.resetItems();
-
-		// clear temporary geometry
-		Geo.dispose();
-
-	    // clear temporary material
-	    Mat.dispose();
-
-	    // clear temporary mesh
-		root.disposeTmp();
-
-		if( breaker !== null ) breaker = null;
-			
-		root.tmpTex = [];
-	    root.scenePlus.children = [];
-	    root.scene.children = [];
+		Motor.reset(callback);
 		
 	}
 

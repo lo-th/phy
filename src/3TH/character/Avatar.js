@@ -464,6 +464,8 @@ export class Avatar extends Group {
 
                     this.realSize = node.geometry.boundingBox.max.y;
 
+
+
                     //console.log( node.geometry.boundingSphere, node.geometry.boundingBox, node.frustumCulled )
                     //node.geometry.boundingSphere.radius = 0.1;
                 }
@@ -479,9 +481,10 @@ export class Avatar extends Group {
         }.bind(this))
 
         this.realSizeRatio = 1 / this.realSize;
+        this.baseSize = this.realSize;
 
         if( this.ref.isEyeMove ){
-            this.bones.neck.add( this.eyeTarget )
+            this.bones.neck.add( this.eyeTarget );
         }
     
         //if( !this.isClone ){
@@ -529,13 +532,20 @@ export class Avatar extends Group {
     setRealSize( s ){
 
         this.realSize = s;
+        let r = 0.5 + ((this.baseSize / this.realSize)*0.5);
         this.setSize( this.realSize * this.realSizeRatio )
+        this.setHeadSize( r )
 
     }
 
     setSize( s ){
         this.size = s;
         this.root.scale.set(1,1,1).multiplyScalar(this.size);
+        //this.bones.head.scale.set(1,1,1).multiplyScalar(2);
+    }
+
+    setHeadSize( s ){
+        this.bones.head.scale.set(1,1,1).multiplyScalar(s);
     }
 
     addTensionMap(){
@@ -587,7 +597,7 @@ export class Avatar extends Group {
         else { 
             this.setVisible( this.ref.levelHigh, true );
             if( this.ref.haveHair ){ 
-                this.mesh.body.visible = false;
+                //this.mesh.body.visible = false;
                 this.setVisible( this.ref.levelHair, true );
             }
         }
@@ -926,6 +936,8 @@ export class Avatar extends Group {
         //action.play()
         this.actions.set( clip.name, action );
 
+
+
         /*
         if(clip.name.search('walk')!==-1) this.clipsToesFix.push(clip.name);
         if(clip.name.search('run')!==-1) this.clipsToesFix.push(clip.name);
@@ -934,7 +946,7 @@ export class Avatar extends Group {
         if(clip.name.search('RUN')!==-1) this.clipsToesFix.push(clip.name);
         */
 
-        //console.log(clip)
+        //console.log(clip.name, action.frameMax)
 
         if( window.gui && window.gui.getAnimation ) window.gui.getAnimation();
 
@@ -1087,6 +1099,8 @@ export class Avatar extends Group {
         let clip = new AnimationClip( name, -1, tracks );
         clip.duration = anim.duration;
 
+        //console.log( name, anim.duration )
+
 
 
         this.stop();
@@ -1164,7 +1178,7 @@ export class Avatar extends Group {
         action.setEffectiveWeight( 1 );
         action.play();
 
-        //console.log(action)
+        
         //action.paused = true;
         //this.actions.set( clip.name, action );
 
@@ -1191,7 +1205,6 @@ export class Avatar extends Group {
         this.unPause();
         // If the current action is 'idle' (duration 4 sec), execute the crossfade immediately;
         // else wait until the current action has finished its current loop
-
         if ( endAction._clip.name !== 'idle' ) {
             this.executeCrossFade( startAction, endAction, duration );
         } else {
@@ -1300,8 +1313,6 @@ export class Avatar extends Group {
         let action = this.getAction( name );
         if ( !action ) return false;
 
-
-
         if( !this.current ){
             this.stop()
             this.current = action;
@@ -1314,49 +1325,38 @@ export class Avatar extends Group {
                 this.old = this.current;
                 this.current = action;
 
-                let isIdle = this.current.getClip().name !== 'idle'
-                isIdle = this.old.getClip().name !== 'idle'
+                let isIdle = this.current.getClip().name === 'idle'
+                isIdle = this.old.getClip().name === 'idle'
 
                 if( this.clipsToesFix.indexOf(name) !== -1 ) this.fixToe = true;
                 else this.resetToes();
-                /*this.current.play();
-
-                 
-
-                this.executeCrossFade( this.old, this.current, fade );*/
-
-                
-
-
-                //this.old.fadeOut( fade );
-
-                const ratio = this.current.getClip().duration / this.old.getClip().duration;
-                
-                //else {
-                //this.current.paused = false
-                //this.current.time = 0
-
-                this.current.reset()
-                //this.current.clampWhenFinished = true;
-
-                // sycro if not idle
-                if( !isIdle ) this.current.time = this.old.time * ratio;
-                //this.current.setEffectiveTimeScale( 1 )
-                //this.current.setEffectiveWeight( 1 )
-
-                //}
-
-                //console.log( this.current.getEffectiveWeight(), this.old.getEffectiveWeight() )
 
 
 
-                if(this.fixWeight){
+                let oldEff = this.old.getEffectiveWeight();
+                let currentEff = this.current.getEffectiveWeight();
+                // keep current time to avoid reloop
+                let time = this.current.time;
+                // sycro if not idle on walk run leg position
+                if( !isIdle ){ 
+                    let ratio = this.old.getClip().duration / this.current.getClip().duration;
+                    time = this.old.time * ratio;
+                }
+
+                // reset current
+                this.current.reset();
+                //currentEff = 0
+
+                this.current.time = time;
+
+
+                if( this.fixWeight ){
 
                     this.current.weight = 1.0;
-                    this.current.stopFading();
-                    this.old.stopFading();
-                    this.old._scheduleFading( fade, this.old.getEffectiveWeight(), 0 );
-                    this.current._scheduleFading( fade, this.current.getEffectiveWeight(), 1 );
+                    this.current.stopFading()
+                    this.old.stopFading().stopWarping();
+                    this.old._scheduleFading( fade, oldEff, 0 );
+                    this.current._scheduleFading( fade, currentEff, 1 );
 
                 } else {
 
@@ -1365,44 +1365,6 @@ export class Avatar extends Group {
                     //this.current.crossFadeFrom( this.old, fade, true );
 
                 }
-
-                
-
-                //this.current.play()
-
-
-                //console.log( action )
-
-                //this.prepareCrossFade(this.old, this.current, fade)
-
-                /*this.setWeight( this.current, 1 );
-                //this.current.time = 0;
-
-                this.old.fadeOut(fade)
-                //this.current.reset()
-                this.current.fadeIn(fade)
-                this.current.play()*/
-
-                //this.current.fadeIn( fade );
-                //this.old.fadeOut( fade );
-
-                //this.setWeight( this.current, 1 );
-
-                //this.old.crossFadeFrom( this.current, fade, true );
-
-                /*if ( this.current._clip.name === 'idle' ) {
-                    this.old.fadeOut(fade)
-                    this.current.reset()
-                    this.current.fadeIn(fade)
-                    console.log('idle')
-                }*/
-
-
-                
-
-               // this.stop()
-               //this.current = action;
-               //
 
             }
         } 

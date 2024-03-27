@@ -882,7 +882,7 @@ const addGround = ( o ) => {
 
 	ground.setAlphaMap( o.groundAlpha )
 	ground.setOpacity( o.groundOpacity )
-	if(o.groundReflect) ground.setReflect( o.groundReflect )
+	if( o.groundReflect !== undefined ) ground.setReflect( o.groundReflect )
 	ground.setWater( o.water )
     //scene.add( ground )
     Motor.addMaterial( ground.material,  true )

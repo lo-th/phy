@@ -8,6 +8,12 @@ import { Motor } from '../motor/Motor.js'
 * @author lo.th / https://github.com/lo-th
 */
 
+
+const Styles = {
+    menuName:'font-size:16px; text-shadow: 1px 1px 3px #000000;',
+    demoName:'font-size:14px; width:fit-content; text-shadow: 1px 1px 3px #000000;',
+}
+
 let Main = null;
 
 // menu look option
@@ -157,7 +163,7 @@ export class Hub {
         content.addEventListener( 'contextmenu', (e)=>{e.preventDefault()}, false )
         
         txt = document.createElement( 'div' );
-        txt.style.cssText = " color: #fff; font-size:16px; text-align:center; position:absolute; margin:0; padding:0; top:50%; left:50%; width:512px; height:20px; margin-left:-256px; margin-top:-38px; display:block; pointer-events:none; text-shadow: 1px 1px #000000;";
+        txt.style.cssText = " color: #fff; font-size:16px; text-align:center; position:absolute; margin:0; padding:0; top:50%; left:50%; width:512px; height:20px; margin-left:-256px; margin-top:-38px; display:block; pointer-events:none; text-shadow: 2px 2px #000000;";
         txt.textContent = text || 'load...';
         content.appendChild( txt );
 
@@ -288,13 +294,13 @@ export class Hub {
 
 
         let bg = 'none'//'rgba(255,255,255,0.1)'
-        let bg2 = 'none'//'rgba(255,255,255,0.01)'
+        let bg2 = 'none'//'rgba(255,0,0,0.5)'
         let bg3 = 'rgba(127,0,0,0.2)';
 
         zoning = document.createElement( 'div' );
-        zoning.style.cssText = 'position:absolute; top:0px; background:'+bg2+'; left:60px; pointer-events:auto;'
-        zoning.id = 'zone'
-        content.appendChild( zoning )
+        zoning.style.cssText = 'position:absolute; top:20px; background:'+bg2+'; left:60px; pointer-events:auto;';
+        zoning.id = 'zone';
+        content.appendChild( zoning );
 
         if(isBackLight){
 
@@ -330,8 +336,8 @@ export class Hub {
         innerMenu.style.backdropFilter = 'blur(4px)'
 
         zoning.addEventListener("pointerleave", (e) => {
-            lock = false
-           // Hub.hideMenu()
+            lock = false;
+            //Hub.hideMenu()
             timeout = setTimeout( function(){
                 if(!lock) Hub.hideMenu() 
             }, 100 )
@@ -346,12 +352,12 @@ export class Hub {
         title.innerHTML = Hub.miniIcon('logo', color );
 
         engine = document.createElement( 'div' );
-        engine.style.cssText = 'font-size:16px; ';//font-weight:700;
+        engine.style.cssText = Styles.menuName;//'font-size:16px; ';//font-weight:700;
         engine.id = 'engine'
         menu.appendChild( engine )
         
         demo = document.createElement( 'div' );
-        demo.style.cssText = 'font-size:16px; '//'font-size:16px; font-weight:500;'font-weight:700; 
+        demo.style.cssText = Styles.menuName;//'font-size:16px; '//'font-size:16px; font-weight:500;'font-weight:700; 
         demo.id = 'demo'
         menu.appendChild( demo )
         
@@ -511,6 +517,8 @@ export class Hub {
         innerMenu.style.background = panelBackground;
 
         const bb = []
+
+        
         
         while( i-- ){
 
@@ -519,7 +527,7 @@ export class Hub {
             innerMenu.appendChild( m );
             m.classList.add("down");
             
-            m.style.cssText = 'font-size:14px; width:fit-content; padding:4px 10px';//type === 'demo' ? 'font-size:16px; font-weight:500;' : 'font-size:16px; font-weight:700;'font-weight:700; 
+            m.style.cssText = Styles.demoName;//'font-size:14px; width:fit-content; padding:4px 10px; text-shadow: 1px 1px #000000;';//type === 'demo' ? 'font-size:16px; font-weight:500;' : 'font-size:16px; font-weight:700;'font-weight:700; 
             m.id = name
             m.textContent = name;
             //m.style.background = '#ff00ff'
@@ -567,7 +575,8 @@ export class Hub {
 
         zoning.style.left = (rect.left-20) + 'px';
         zoning.style.width = (rect.width + 40) + 'px';
-        zoning.style.height = (rect.height + 70) + 'px';
+        zoning.style.height = (rect.height + 50) + 'px';
+        //zoning.style.height = (rect.height + 70) + 'px';
 
     }
 

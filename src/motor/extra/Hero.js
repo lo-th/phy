@@ -796,6 +796,7 @@ export class Hero extends Basic3D {
 	    	this.model.play( 'Jump', 0.5 )
 	    	//this.model.setTimescale( 1 )
 	    }else {
+
 	    	this.model.play( mAnim, 0.75 )
 	    	//this.model.setTimescale( this.timeScale )
 	    	//this.model.setTimescale( 1 )
@@ -803,7 +804,7 @@ export class Hero extends Basic3D {
 
 	    if( anim !== 'idle' ){
 
-	    	//this.model.setTimescale( 0.5 )
+	    	//this.model.setTimescale( 2.0 )
 
 	    	let pp = MathTool.unwrapRad( this.model.rotation.y )
 	    	//if( anim === 'fight' ) pp = math.unwrapRad( azimut + Math.PI )

@@ -56,6 +56,11 @@ export const Gui = {
 	bg:'rgba(0,0,8,0.5)',
 
 	colors:{
+		over:'#025B18',
+		overoff:'#025B18',
+		select:'#023612',
+		textSelect:'#1FC742',
+		border:'none',
 		//content:'rgba(0,0,8,0.5)',
 		//fontShadow:'#000',
 		//sx: 4,

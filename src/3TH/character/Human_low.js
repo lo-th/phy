@@ -19,6 +19,7 @@ const setting = {
 
     wireframe:false,
     normal:0.25,
+    hair:0x252011,
     
 }
 
@@ -35,7 +36,7 @@ export const Human_low = {
     //textureQuality:0,
     textureRef:'avatar_c_0k',
     texturePath: 'assets/textures/avatar/',
-    textures: ['avatar_c_0k.jpg', 'avatar_n_0k.jpg', 'avatar_ao_0k.jpg'],
+    textures: ['avatar_c_0k.jpg', 'avatar_n_0k.jpg', 'avatar_ao_0k.jpg', 'hair_man_a_0k.jpg'],
 
     modelPath: 'assets/models/avatar/',
     forceModel: null,
@@ -46,7 +47,7 @@ export const Human_low = {
     materials:{
         skin_low:{
             //color:0xE24C00,
-            type:'Physical',
+            type:'Standard',//Physical',
             map: 'avatar_c_0k',
             aoMap:'avatar_ao_0k',
             normalMap: 'avatar_n_0k',
@@ -57,7 +58,7 @@ export const Human_low = {
             envMapIntensity:0.3,
             roughness:0.54,
             metalness:0.14,
-            reflectivity:0.05,
+            //reflectivity:0.05,
             wireframe:setting.wireframe,
             vertexColors:false,
             /*sheen:1.0,
@@ -66,6 +67,17 @@ export const Human_low = {
             //side:DoubleSide,
             
             
+        },
+        hair_low:{
+            //color:0xE24C00,
+            type:'Standard',
+            color:setting.hair,
+            alphaMap: 'hair_man_a_0k',
+            transparent:true,
+            //blending:CustomBlending,
+            //blendDst:ZeroFactor,
+            //blendDstAlpha:SrcAlphaFactor,
+            //alphaToCoverage:true,
         },
 
     },
@@ -115,6 +127,11 @@ export const Human_low = {
                     //Pool.objectSpaceNormal( node );
                     node.receiveShadow = true;
                     node.castShadow = true;
+                    break;
+                    case 'hair_low':
+                    node.material = Pool.getMaterial( 'hair_low' ) || def;
+                    node.receiveShadow = false;
+                    node.castShadow = false;
                     break;
                     
                 }
