@@ -14,7 +14,6 @@ let t1 = 0;
 
 const setting = {
     debug:true,
-
 };
 
 
@@ -32,6 +31,7 @@ demo = () => {
     let g = phy.getGround();
     g.material.map = phy.texture({ url:'./assets/textures/grid.png', repeat:[60,60] });
     g.material.roughness = 0.8;
+    g.material.metalness = 0;
 
     // add static ground
     //phy.add({ type:'plane', size:[300,1,300], visible:false })

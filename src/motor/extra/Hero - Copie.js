@@ -34,6 +34,8 @@ export class Hero extends Basic3D {
 			height -= floatHeight
 		}
 
+
+
 		this.option = {
 
 			debug: false,
@@ -140,6 +142,8 @@ export class Hero extends Basic3D {
 
 		}
 
+
+
 		//this.angvel = new Vector3();
 
 		this.fixWeight = o.fixWeight !== undefined ? o.fixWeight : true;
@@ -239,7 +243,7 @@ export class Hero extends Basic3D {
 			massInfo: o.massInfo,
 		}
 
-		/*o.type = 'character';
+		o.type = 'character';
 	    o.shapeType = o.shapeType || 'capsule';
 
 		o.density = o.density || 1;
@@ -265,7 +269,6 @@ export class Hero extends Basic3D {
 		//o.kinematic = true;
 
 		o.volume = MathTool.getVolume( 'capsule', o.size );
-		*/
 	
 
 		// add to world
@@ -472,9 +475,7 @@ export class Hero extends Basic3D {
 		const o = this.option;
 		const key = root.motor.getKey();
 		const azimut = root.motor.getAzimut();
-
-		
-		
+		//const delta = root.delta;
 
 		v.currentPos.copy(this.position);
 
@@ -648,16 +649,84 @@ export class Hero extends Basic3D {
 	    }
 
 
-	    this.moving = key[0] !== 0 || key[1] !== 0;
-	    let angle = MathTool.unwrapRad( ( Math.atan2(key[0], key[1])) + azimut );
+	    const genSpeed = 1.0;
+
+	    let speed = this.speed[anim] * genSpeed;
+
+	    
+	    //this.tmpAcc *= 0.9
+	    
+
+	    if( key[0] !== 0 || key[1] !== 0 ){ 
+
+	    	this.moving = true;
+
+	        this.tmpAcc += delta*4//MathTool.lerp( tmpAcc, 1, delta/10 )
+	        //this.tmpAcc += MathTool.lerp( this.tmpAcc, 1, delta/10 )
+	        //this.tmpAcc = MathTool.clamp( this.tmpAcc, 1, speed )
+
+	        //this.rs += key[0] //* this.tmpAcc 
+	        //this.ts += key[1] //* this.tmpAcc
+
+	        this.rs = key[0] * speed//* this.tmpAcc 
+	        this.ts = key[1] * speed//* this.tmpAcc
+	    } else {
+	    	this.moving = false;
+	    }
+
+	    if( key[0] === 0 && key[1] === 0 ) this.tmpAcc = 0//*= 0.9
+	    if( this.tmpAcc>1 ) this.tmpAcc = 1;
+
+	    //dir.multiplyScalar(tmpAcc)
+
+	    //this.rs = MathTool.clamp( this.rs, -speed, speed ) 
+	    //this.ts = MathTool.clamp( this.ts, -speed, speed ) 
+
+	    //this.ease.set( this.ts/speed, 0, this.rs/speed )
+	    //this.ease.set( this.rs/speed, 0, this.ts/speed )
+	    this.ease.set( this.rs, 0, this.ts ).multiplyScalar( this.tmpAcc * m )
+
+	    //let angle = math.unwrapRad( (Math.atan2(this.ease.z, this.ease.x)) + azimut );
+	    let angle = MathTool.unwrapRad( ( Math.atan2(this.ease.x, this.ease.z)) + azimut );
+
+	    let acc = this.ease.length() //((Math.abs(this.ease.x) + Math.abs(this.ease.z)))
+
+	    //console.log(jj, this.ease.length() )
+
+	    //if(jj!== 0)
+
+	    // help climb montagne
+	   /* if( !this.jump ){ 
+	    	if( !this.fall ) this.vy = acc*8
+	    	else this.vy = 0
+	    }*/
+
+	    
+
+	    
+        //if(anim==='walk' || anim==='run')
+
+        //if(this.static) this.ts = this.rs = 0
+        if( this.static ) this.ease.x = this.ease.z = 0
+
+	    let g = this.vy - 9.81;
+	    this.ease.y = g;
+	    this.tmpV1.copy( this.ease ).applyAxisAngle( { x:0, y:1, z:0 }, azimut );
+	    //math.tmpV2.set( 0, rs, 0 );
+	    this.tmpV2.set( 0, 0, 0 );
 
 
-	    // 2°/ physic control
+	    // physic control
 
 	    if( this.useImpulse ) {
 
 	    	if( this.moving ) this.moveCharacter( delta, angle );
 	    	else this.stopMoving();
+
+	    	
+
+	    	//if( this.moving ) this.v.moveImpulse.copy(this.tmpV1).multiplyScalar(delta*0.5)
+	    	//else this.stopMoving()
 
 	        if( this.useFloating ) this.getFloating();
 
@@ -669,41 +738,7 @@ export class Hero extends Basic3D {
 
 			});
 
-	    } else { // old method
-
-	    	this.tmpAcc += delta*4//MathTool.lerp( tmpAcc, 1, delta/10 )
-	        //this.tmpAcc += MathTool.lerp( this.tmpAcc, 1, delta/10 )
-	        //this.tmpAcc = MathTool.clamp( this.tmpAcc, 1, speed )
-
-	        const genSpeed = 1.0;
-
-	   		let speed = this.speed[anim] * genSpeed;
-
-	        //this.rs += key[0] //* this.tmpAcc 
-	        //this.ts += key[1] //* this.tmpAcc
-			if( this.moving ){
-		        this.rs = key[0] * speed; 
-		        this.ts = key[1] * speed;
-		    }
-
-		    if( key[0] === 0 && key[1] === 0 ) this.tmpAcc = 0//*= 0.9
-		    if( this.tmpAcc>1 ) this.tmpAcc = 1;
-
-		    this.ease.set( this.rs, 0, this.ts ).multiplyScalar( this.tmpAcc * m )
-
-		    //let angle = math.unwrapRad( (Math.atan2(this.ease.z, this.ease.x)) + azimut );
-		    //let angle = MathTool.unwrapRad( ( Math.atan2(key[0], key[1])) + azimut );
-	    
-
-		    let acc = this.ease.length(); //((Math.abs(this.ease.x) + Math.abs(this.ease.z)))
-
-	        if( this.static ) this.ease.x = this.ease.z = 0
-
-		    let g = this.vy - 9.81;
-		    this.ease.y = g;
-		    this.tmpV1.copy( this.ease ).applyAxisAngle( { x:0, y:1, z:0 }, azimut );
-		    //math.tmpV2.set( 0, rs, 0 );
-		    this.tmpV2.set( 0, 0, 0 );
+	    } else {
 
 	    	root.motor.change({
 
@@ -716,6 +751,9 @@ export class Hero extends Basic3D {
 			});
 	    }
 
+	    
+
+		
 
 
 		if( this.helper ){ 

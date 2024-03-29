@@ -5,11 +5,7 @@ demo = () => {
 
 	phy.view({
         phi:0, theta:0, distance:5, x:0, y:3, z:5, fov:45, 
-        envmap:'clear',
-        //groundReflect:0.01, 
-        //groundColor:0x353436,
-        groundReflect:0.2, groundColor:0x808080,
-        //shadow:0.5,//0.5,
+        envmap:'clear', groundReflect:0.2, groundColor:0x808080,
     });
 
     phy.lightIntensity( 6, 0, 0.7 );
@@ -20,8 +16,8 @@ demo = () => {
 
     let g = phy.getGround()
     g.material.map = phy.texture({ url:'./assets/textures/grid.png', repeat:[60,60] });
-    g.material.metalness = 0
-    g.material.roughness = 0.8
+    g.material.roughness = 0.8;
+    g.material.metalness = 0;
 
     phy.add({ type:'plane', size:[300,1,300], visible:false });
 
@@ -33,11 +29,11 @@ onComplete_1 = () => {
 
 	const model = phy.getMesh('column');
 
-	let m = phy.texture({ url:'./assets/textures/column_ao.jpg', flip:false })
-	phy.material({ name:'column', color:0xc8c4a9, roughness: 0.25, metalness: 0.0, aoMap:m })
+	let m = phy.texture({ url:'./assets/textures/column_ao.jpg', flip:false });
+	phy.material({ name:'column', color:0xc8c4a9, roughness: 0.25, metalness: 0.0, aoMap:m });
 
-    Colomn( 8, [ 4, 0, 0 ])
-    Colomn( 5, [ -4, 0, 0 ])
+    Colomn( 8, [ 4, 0, 0 ]);
+    Colomn( 5, [ -4, 0, 0 ]);
 
     phy.preload( ['man', 'woman'], onComplete_2 );
 
@@ -148,7 +144,7 @@ const Character = ( num = 1 ) => {
 
         n++
         pos = [ math.rand( -10, 10 ), 0, math.rand( 5, 15 ) ];
-        angle = math.randInt( 0, 360 )
+        angle = math.randInt( 0, 360 );
 
     }
 
