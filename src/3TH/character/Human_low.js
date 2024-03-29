@@ -36,7 +36,7 @@ export const Human_low = {
     //textureQuality:0,
     textureRef:'avatar_c_0k',
     texturePath: 'assets/textures/avatar/',
-    textures: ['avatar_c_0k.jpg', 'avatar_n_0k.jpg', 'avatar_ao_0k.jpg', 'hair_man_a_0k.jpg'],
+    textures: ['avatar_c_0k.jpg', 'avatar_n_0k.jpg', 'avatar_ao_0k.jpg', 'hair_man_a_0k.jpg', 'Hair_01_c.png', 'Hair_01_n.png'],
 
     modelPath: 'assets/models/avatar/',
     forceModel: null,
@@ -56,10 +56,9 @@ export const Human_low = {
             //normalMapType: ObjectSpaceNormalMap,
             //normalMapType:TangentSpaceNormalMap,
             envMapIntensity:0.3,
-            roughness:0.54,
-            metalness:0.14,
+            roughness:0.22,
+            metalness:0.0,
             //reflectivity:0.05,
-            wireframe:setting.wireframe,
             vertexColors:false,
             /*sheen:1.0,
             sheenColor:0x692000,
@@ -78,6 +77,14 @@ export const Human_low = {
             //blendDst:ZeroFactor,
             //blendDstAlpha:SrcAlphaFactor,
             //alphaToCoverage:true,
+        },
+
+        hair_low_2:{
+            //color:0xE24C00,
+            type:'Standard',
+            color:setting.hair,
+            map:'Hair_01_c',
+            normalMap: 'Hair_01_n'
         },
 
     },
@@ -130,6 +137,11 @@ export const Human_low = {
                     break;
                     case 'hair_low':
                     node.material = Pool.getMaterial( 'hair_low' ) || def;
+                    node.receiveShadow = false;
+                    node.castShadow = false;
+                    break;
+                    case 'hair_low_2':
+                    node.material = Pool.getMaterial( 'hair_low_2' ) || def;
                     node.receiveShadow = false;
                     node.castShadow = false;
                     break;

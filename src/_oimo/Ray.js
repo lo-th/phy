@@ -61,7 +61,7 @@ export class Ray extends Item {
 				AR[n] = 1;
 
 				ph = cb.position.toArray();
-				AR[n+1] = MathTool.distanceArray( pp[0], ph )
+				AR[n+1] = MathTool.distanceArray( pp[0], ph );
 				AR[n+2] = pp[0][0]
 				AR[n+3] = pp[0][1]
 				AR[n+4] = pp[0][2]

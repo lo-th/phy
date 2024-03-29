@@ -9,6 +9,11 @@ import { SkeletonBody } from './SkeletonBody.js';
 import { Avatar } from '../../3TH/character/Avatar.js';
 import { CapsuleHelper } from '../../3TH/helpers/CapsuleHelper.js';
 
+//
+// not use native character function of physics engine 
+// use some code from https://github.com/ErdongChen-Andrew/CharacterControl
+// 
+
 export class Hero extends Basic3D {
 
 	constructor( o = {} ) {
@@ -17,6 +22,8 @@ export class Hero extends Basic3D {
 
 		this.useImpulse = o.useImpulse || false;
 		this.useFloating = o.floating || false;
+
+		this.waitRotation = false;
 
 		let floatHeight = 0.3;
 		let radius = o.radius || 0.3;
@@ -64,10 +71,11 @@ export class Hero extends Basic3D {
 			rayHitForgiveness: 0.1,
 			rayLength: radius + 2,
 			rayDir: { x: 0, y: -1, z: 0 },
-			//floatingDis: radius + floatHeight,
-			floatingDis: (radius*0.2) + floatHeight,
-			springK: 1.2,//1.2
-			dampingC: 0.08,//0.08,
+
+			floatingDis: (radius + floatHeight)-0.26,
+			//floatingDis:  floatHeight,
+			springK: 2, //1.2,
+			dampingC: 0.2,//0.08,
 			// Slope Ray setups
 			showSlopeRayOrigin: false,
 			slopeMaxAngle: 1, // in rad
@@ -97,7 +105,7 @@ export class Hero extends Basic3D {
 			standingForcePoint: new Vector3(),
 
 			pivotPosition: new Vector3(),
-			modelEuler: new Euler(),
+			//modelEuler: new Euler(),
 			modelQuat: new Quaternion(),
 			moveImpulse: new Vector3(),
 			impulseCenter: new Vector3(),
@@ -204,33 +212,48 @@ export class Hero extends Basic3D {
 
 		if( o.callback ) delete o.callback
 
-		this.init( o );
+		this.initPhysic( o );
 
 	}
 
-	init( o ){
+	initPhysic( o ){
 
 	    if(!o.size) o.size = [ this.radius, this.height-(2*this.radius) ];
 		if(!o.pos) o.pos = [0,0,0];
 
 		o.pos[1] += this.height*0.5;
-		if(this.useFloating) o.pos[1] += this.option.floatHeight
+		if( this.useFloating ) o.pos[1] += this.option.floatHeight
 
 		if( this.globalRay ) root.items.body.geometry( { ...o, type:'capsule', ray:true }, this, Mat.get('hide') )
+
+		const phyData = {
+			name: this.name,
+			size: o.size,
+			pos: o.pos,
+			type: 'character',
+			shapeType: o.shapeType || 'capsule',
+			density: 1,//o.density || 1,
+			//mass: o.mass || 0.84, 
+			friction: o.friction !== undefined ? o.friction : 0.1,
+			angularFactor:[0,0,0],
+			group: 16,
+			//mask: o.mask !== undefined ? o.mask : 1|2,
+			regular:true,
+
+			massInfo: o.massInfo,
+		}
 
 		o.type = 'character';
 	    o.shapeType = o.shapeType || 'capsule';
 
 		o.density = o.density || 1;
-        //o.damping = [0.01,0] 
         o.friction = 0.1;//0.5;
 
 		o.angularFactor = [0,0,0];
-		//o.maxDamping = 1000
 		o.group = 16;
 		//o.mask = o.mask !== undefined ? o.mask : 1|2
 		o.regular = true;
-		o.filter = [1,-1,[1, 3, 4,5,9], 0];
+		//o.filter = [1,-1,[1, 3, 4,5,9], 0];
 		//o.inertia = [0,0,0] 
 		//o.kinematic = true
 		//o.noGravity = true;
@@ -238,7 +261,7 @@ export class Hero extends Basic3D {
 
 		//o.move = false
 
-		if( root.engine === 'JOLT' ) o.maxAngular = 0;
+		//if( root.engine === 'JOLT' ) o.maxAngular = 0;
 		//if(root.engine==='JOLT') o.inertia = [0,0,0]
 
 		//console.log(root.engine)
@@ -252,7 +275,8 @@ export class Hero extends Basic3D {
 		root.items.character.addToWorld( this, o.id );
 
         // add capsule to physics
-        root.post({ m:'add', o:o });
+        //root.post({ m:'add', o:o });
+        root.post({ m:'add', o:phyData });
 
         // add bottom RAY
         this.ray = root.motor.add({ type:'ray', name:this.name + '_ray', begin:[0,this.rayStart,0], end:[0,this.rayEnd, 0], callback:this.selfRay.bind(this), visible:false, parent:this.name })
@@ -445,7 +469,7 @@ export class Hero extends Basic3D {
 
 	}
 
-	moveCharacter( delta ){
+	moveCharacter( delta, angle = 0 ){
 
 		const v = this.v;
 		const o = this.option;
@@ -458,7 +482,7 @@ export class Hero extends Basic3D {
 		v.run = key[7] !== 0;
 
 		//v.movingObjectVelocity = 
-		v.slopeAngle = azimut;
+		v.slopeAngle = 0//azimut;
 
 
 
@@ -476,7 +500,8 @@ export class Hero extends Basic3D {
 
 
 	    // Apply character quaternion to moving direction
-	    if( this.model ) v.movingDirection.applyQuaternion( this.model.quaternion );
+	    //if( this.model ) v.movingDirection.applyQuaternion( this.model.quaternion );
+	    v.movingDirection.applyAxisAngle( {x:0, y:1, z:0}, angle );
 
 	    
 
@@ -508,10 +533,12 @@ export class Hero extends Basic3D {
 
   
 	    // Check if character complete turned to the wanted direction
-	    let characterRotated = Math.sin(this.rotation.y).toFixed(3) == Math.sin(v.modelEuler.y).toFixed(3);
+	    //let characterRotated = Math.sin(this.rotation.y).toFixed(3) == Math.sin(v.modelEuler.y).toFixed(3);
+	    let characterRotated = true;
+	    if( this.waitRotation ) characterRotated = Math.sin( angle ).toFixed(3) == Math.sin(this.rotation.y).toFixed(3);
 
 	    // If character hasn't complete turning, change the impulse quaternion follow characterModelRef quaternion
-	    if (!characterRotated) {
+	    if ( !characterRotated ) {
 	    	v.moveImpulse.set(
 	    		moveForceNeeded.x * o.turnVelMultiplier * (v.canJump ? 1 : o.airDragMultiplier), // if it's in the air, give it less control
 	    		v.slopeAngle === null || v.slopeAngle == 0 // if it's on a slope, apply extra up/down force to the body
@@ -542,7 +569,6 @@ export class Hero extends Basic3D {
 	    if ( key[4] && v.canJump ) {
 	    	jumpVelocityVec.set( v.currentVel.x, v.run ? o.sprintJumpMult * o.jumpVel : o.jumpVel, v.currentVel.z );
 	    }
-
 
 	}
 
@@ -672,7 +698,7 @@ export class Hero extends Basic3D {
 	    //if( key[0] === 0 ) this.rs *= 0.9
 	    //if( key[1] === 0 ) this.ts *= 0.9
 
-	    if(this.tmpAcc>1) this.tmpAcc = 1
+	    if( this.tmpAcc>1 ) this.tmpAcc = 1;
 
 	    //dir.multiplyScalar(tmpAcc)
 
@@ -709,7 +735,8 @@ export class Hero extends Basic3D {
 
 	    // gravity
 	    //let g = this.vy - (this.distance>0.1 ? 9.81 : 0);
-	    let g = this.vy// - 9.81;
+	    let g = this.vy;
+	    if( !this.useImpulse ) g -= 9.81
 
 	   // console.log(this.distance)
 
@@ -726,7 +753,7 @@ export class Hero extends Basic3D {
 
 	    if( this.useImpulse ) {
 
-	    	if( this.moving ) this.moveCharacter( delta );
+	    	if( this.moving ) this.moveCharacter( delta, angle );
 	    	else this.stopMoving();
 
 	    	

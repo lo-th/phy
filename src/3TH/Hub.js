@@ -34,6 +34,7 @@ let content, cross = null, border, counter, counter2, zone, path, txt, info, loa
 let unselectable = '-o-user-select:none; -ms-user-select:none; -khtml-user-select:none; -webkit-user-select:none; -moz-user-select: none; pointer-events:none; ';
 
 let menu, pin, title, engine, demo, downMenu, innerMenu, zoning, guiButton, overpad, prevOver, tmpLeft = 0;
+let corner
 
 let top = null;
 let ratio = 1;
@@ -127,7 +128,7 @@ export class Hub {
 
     static reset() {
 
-        Hub.log()
+        Hub.log();
         if( cross ) content.removeChild( cross );
         cross = null
         //guiOpen = false
@@ -161,6 +162,12 @@ export class Hub {
         parent.appendChild( content );
 
         content.addEventListener( 'contextmenu', (e)=>{e.preventDefault()}, false )
+
+        // for extra gui
+        corner = document.createElement( 'div' );
+        corner.style.cssText = unselectable + 'position:absolute; margin:0; padding:0; bottom:0px; left:0px; width:1px; height:100%; display:block; background:none;'// font-family: Mulish,sans-serif;
+        content.appendChild( corner );
+
         
         txt = document.createElement( 'div' );
         txt.style.cssText = " color: #fff; font-size:16px; text-align:center; position:absolute; margin:0; padding:0; top:50%; left:50%; width:512px; height:20px; margin-left:-256px; margin-top:-38px; display:block; pointer-events:none; text-shadow: 2px 2px #000000;";
@@ -182,6 +189,10 @@ export class Hub {
         isDisplay = true
         isReady = true
 
+    }
+
+    static getCorner() {
+        return corner;
     }
 
     static removeJoystick() {

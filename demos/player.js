@@ -12,8 +12,8 @@ let preload = false;
 let player = null;
 let t1 = 0;
 
-const option = {
-    debug:false,
+const setting = {
+    debug:true,
 
 };
 
@@ -39,7 +39,7 @@ demo = () => {
     
     addDecor();
     addCharacter();
-    addGui();
+    
 
 }
 
@@ -61,7 +61,17 @@ const addGui = () => {
     //gui.add( option, 'bodyMorph',{ type:'pad', name:'type',  min:-1, max:1 }).listen().onChange( morph );
     //gui.add( option, 'realSize',{  min:1.50, max:2.0}).listen().onChange( resize )
     //gui.add('button',{name:'Random', h:30, radius:15}).onChange( ()=>{Character()} )
-    gui.add(option, 'debug',{}).onChange( showDebug );
+    
+
+    let option = player.option;
+    gui.add( option, 'floatingDis',{ min:0, max:2.5, mode:2});
+    gui.add( option, 'springK',{ min:0, max:5.0, mode:2});
+    gui.add( option, 'dampingC',{ min:0, max:3.0, mode:2});
+
+
+
+    gui.add(setting, 'debug',{}).onChange( showDebug );
+    
 
 }
 
@@ -90,7 +100,8 @@ const addCharacter = () => {
         g = useModel ? models[ math.randInt( 0, models.length-1 ) ] : null;
         //g = math.randInt( 0, 1 );
 
-        hh[n] = phy.add({ 
+        hh[n] = phy.add({
+
             type: 'character',
             name: 'c_' + n,
             
@@ -107,7 +118,8 @@ const addCharacter = () => {
             //callback:count,
             useImpulse:true,
             floating:true,
-            //massInfo:true,
+            
+            massInfo:true,
 
         });
 
@@ -119,10 +131,12 @@ const addCharacter = () => {
 
     player = hh[0];
 
-    hh[0].debugMode( option.debug );
+    hh[0].debugMode( setting.debug );
 
     phy.follow('c_0', { direct:true, simple:true, distance:5, phi:12, theta:0, decal:[0.3, 0.5, -0.3], fov:60, zoom:1.0 })
     phy.control( 'c_0' );
+
+    addGui();
 
 }
 
@@ -177,7 +191,7 @@ const addDecor = () => {
     addDynamicPlatforms();
     addFloatingPlatform();
 
-    phy.setPostUpdate ( update );
+    phy.setPostUpdate( update );
 
 }
 

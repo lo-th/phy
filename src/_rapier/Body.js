@@ -397,7 +397,37 @@ export class Body extends Item {
 			b.setAngvel( this.v.set( 0, 0, 0), false )
 		}
 
+		//if( o.massInfo ) this.getMassInfo( b );
+
 		//if( o.enableCCD !== undefined ) b.setCcdEnabled( o.enableCCD );
+
+	}
+
+	getMassInfo(b) {
+
+		if( typeof b === 'string' ) b = this.byName( b );
+		if( b === null ) return;
+		if( this.type !== 'body' ) return;
+
+		const info = {
+
+			mass: b.mass(),
+
+			//invMass: b.GetMotionProperties().GetInverseMass(),
+			//massCenter: b.GetCenterOfMassPosition().toArray(),
+
+			/*
+			invMass: b.getInvMass(),
+			massCenter: b.getCMassLocalPose().p.toArray(),
+			inertia: b.getMassSpaceInertiaTensor().toArray(),
+			invInertia: b.getMassSpaceInvInertiaTensor().toArray(),
+			*/
+
+			//damping:[ b.GetMotionProperties().GetLinearDamping(), b.GetMotionProperties().GetAngularDamping() ]
+
+		}
+
+		console.log( info )
 
 	}
 

@@ -56,10 +56,15 @@ export class Ray extends Item {
 			this.ray.origin = this.v1
 			this.ray.dir = this.v2
 
+			let first = true
+
 			root.world.intersectionsWithRay( this.ray, distance, r.solid,  (hit) => {
 
 				let name = hit.collider._parent.name
 				if( !r.selfHit && r.parent && name === r.parent ) return true; // ignore parent body
+
+				if(!first) return true;
+				first = false;
 
 				AR[n] = 1
 				let hitPoint = this.ray.pointAt(hit.toi)

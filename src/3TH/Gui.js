@@ -62,7 +62,7 @@ export const Gui = {
 		textSelect:'#1FC742',
 		border:'none',
 		//content:'rgba(0,0,8,0.5)',
-		//fontShadow:'#000',
+		fontShadow:'#000',
 		//sx: 4,
         //sy: 4,
         radius:3,
@@ -90,20 +90,11 @@ export const Gui = {
 		Main = r;
 	},
 
-	resize: (size) => {
-
-		if( Gui.uix ){ 
-			//Gui.uix.setTop( size.h - Gui.uix.forceHeight );
-			Gui.uix.setLeft( 40 + size.left );
-		}
-
-	},
-
 	extraUi: ( data ) => { 
 
 		if( Gui.uix ) Gui.uix.dispose();
 
-		Gui.uix = new UIL.Gui( { w:200, h:24, open:true, close:false, css:'left:40px;', bottom:40, colors:Gui.colors, transition:0 } )//
+		Gui.uix = new UIL.Gui( { parent:Main.getCorner(), w:200, h:24, open:true, close:false, css:'left:40px;', bottom:40, colors:Gui.colors, transition:0 } )//
 
 		if( data ){
 			let d;
@@ -125,7 +116,7 @@ export const Gui = {
 
 	showHide: () => { 
 
-		if( !Gui.isInit ) Gui.init()
+		if( !Gui.isInit ) Gui.init();
 
 		if( Gui.open ) Gui.open = false;
 		else Gui.open = true;
@@ -137,8 +128,8 @@ export const Gui = {
 
 		Gui.menu.display( Gui.open );
 
-		Gui.ui.calc()
-		Gui.ui.mode('def')
+		Gui.ui.calc();
+		Gui.ui.mode('def');
 
 	},
 

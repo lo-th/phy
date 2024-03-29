@@ -159,7 +159,8 @@ export class Body extends Item {
 			    } 
 			    g = new ConvexHullGeometry( h );
 			    g._gjkMargin = o.margin || 0.0001 // default 0.05
-			    g._useGjkRayCast = o.ray || false
+			    // oimo ray can hit this convex // false by default
+			    g._useGjkRayCast = true;//o.ray || false
 
 			break;
 

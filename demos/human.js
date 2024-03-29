@@ -51,8 +51,7 @@ onComplete_2 = () => {
 
 const Colomn = ( h = 5, pos = [0,0,0] ) => {
 
-    const data = []
-
+    const data = [];
     const model = phy.getMesh('column');
 
     pos[1] += 0.5;
@@ -60,11 +59,7 @@ const Colomn = ( h = 5, pos = [0,0,0] ) => {
     let scaler = 1.5/100;
     let i = h, n = 0, s = 1;
 
-    //phy.add({
     data.push({
-
-        //type:'cylinder', 
-        //size:[0.7-(scaler*n), 1], 
 
         type:'compound',
         shapes:[
@@ -89,10 +84,7 @@ const Colomn = ( h = 5, pos = [0,0,0] ) => {
         pos[1] += 1.0;
         s = 1.0 - ( scaler * n );
 
-        //phy.add({
         data.push({
-            //type:'cylinder', 
-            //size:[0.7-(scaler*n), 1], 
 
             type:'compound',
             shapes:[
@@ -139,14 +131,17 @@ const Character = ( num = 1 ) => {
             name: 'c_' + n,
             gender: gender[g],
             //debug: true,
-            radius: 0.35,
-            height: 1.8,
+            radius: 0.3,
+            //height: 1.8,
             pos: pos,
             //ray: n===0,
             angle:angle,
             randomMorph:true,
             morph:true,
             noLOD:true,
+
+            useImpulse:true,
+            floating:true,
             //callback:count,
         });
 

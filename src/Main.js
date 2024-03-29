@@ -239,7 +239,7 @@ export const Main = {
 		//DualQuat();
 
 		Hub.setMain( Main );
-		Gui.setMain( Main );
+		Gui.setMain( Main, Hub.getCorner() );
 		Gui.setTextureConstrutor( THREE.Texture );
 
 		activeWebGPU = o.webGPU || false;
@@ -296,6 +296,8 @@ export const Main = {
 		Motor.init( o );
 	
 	},
+
+	getCorner:() => { return Hub.getCorner(); },
 
 
     setComposer:( b ) => { setComposer(b) },
@@ -1071,7 +1073,8 @@ const doResize = () => {
 	renderer.setSize( size.w, size.h )
 	if(composer) composer.resize( size )
 	if(particles) particles.onresize( size.h )
-	Gui.resize( size )
+
+	
 	Hub.resize( size )
     Motor.resize( size )
 	needResize = false
