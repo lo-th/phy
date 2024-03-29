@@ -23,7 +23,7 @@ demo = () => {
 
     phy.view({
         phi:12, theta:0, distance:5, x:0, y:3, z:15, fov:55, 
-        envmap:'clear', groundReflect:0, groundColor:0x808080,
+        envmap:'clear', groundReflect:0.2, groundColor:0x808080,
     })
     
     // config physics setting

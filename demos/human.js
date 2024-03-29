@@ -6,9 +6,9 @@ demo = () => {
 	phy.view({
         phi:0, theta:0, distance:5, x:0, y:3, z:5, fov:45, 
         envmap:'clear',
-        //envmap:'lobe', envblur: 0.5, //background:0x101010,
-        groundReflect:0.01, 
-        groundColor:0x353436,
+        //groundReflect:0.01, 
+        //groundColor:0x353436,
+        groundReflect:0.2, groundColor:0x808080,
         //shadow:0.5,//0.5,
     });
 
