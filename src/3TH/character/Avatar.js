@@ -1331,8 +1331,6 @@ export class Avatar extends Group {
                 if( this.clipsToesFix.indexOf(name) !== -1 ) this.fixToe = true;
                 else this.resetToes();
 
-
-
                 let oldEff = this.old.getEffectiveWeight();
                 let currentEff = this.current.getEffectiveWeight();
                 
@@ -1355,7 +1353,7 @@ export class Avatar extends Group {
 
                     this.current.weight = 1.0;
                     this.current.stopFading()
-                    this.old.stopFading().stopWarping();
+                    this.old.stopFading()//.stopWarping();
                     this.old._scheduleFading( fade, oldEff, 0 );
                     this.current._scheduleFading( fade, currentEff, 1 );
 

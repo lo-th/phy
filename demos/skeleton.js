@@ -63,8 +63,9 @@ const addModel = ( type ) => {
         callback:done,
         mask:2,
         noLOD:true,
-        //debug:true
-        //anim:'none',
+
+        //useImpulse:true,
+        //floating:true,
     })
 
 }

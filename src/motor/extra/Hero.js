@@ -70,8 +70,7 @@ export class Hero extends Basic3D {
 			rayLength: radius + 2,
 			rayDir: { x: 0, y: -1, z: 0 },
 
-			floatingDis: (radius + floatHeight)-0.26,
-			//floatingDis:  floatHeight,
+			floatingDis: radius + floatHeight,
 			springK: 2, //1.2,
 			dampingC: 0.2,//0.08,
 			// Slope Ray setups
@@ -135,7 +134,7 @@ export class Hero extends Basic3D {
 
 			canJump:false,
 			isFalling:false,
-			run:false,
+			//run:false,
 			isOnMovingObject:false,
 
 		}
@@ -154,6 +153,8 @@ export class Hero extends Basic3D {
 		this.model = null;
 		this.static = false;
 		this.moving = false;
+		this.running = false;
+		this.wantJump = false;
 
 		//this.lod = -1;
 
@@ -218,7 +219,7 @@ export class Hero extends Basic3D {
 		if(!o.pos) o.pos = [0,0,0];
 
 		o.pos[1] += this.height*0.5;
-		if( this.useFloating ) o.pos[1] += this.option.floatHeight
+		if( this.useFloating ) o.pos[1] += this.option.floatHeight;
 
 		if( this.globalRay ) root.items.body.geometry( { ...o, type:'capsule', ray:true }, this, Mat.get('hide') )
 
@@ -238,6 +239,8 @@ export class Hero extends Basic3D {
 
 			massInfo: o.massInfo,
 		}
+
+		if( o.mask ) phyData['mask'] = o.mask;
 
 		/*o.type = 'character';
 	    o.shapeType = o.shapeType || 'capsule';
@@ -287,17 +290,21 @@ export class Hero extends Basic3D {
     selfRay( r ){
 
     	if( r.hit ){ 
-    		this.distance = MathTool.toFixed(r.distance-this.radius)
+    		this.distance = r.distance; //MathTool.toFixed(r.distance-this.radius)
     		this.rayAngle = r.angle;
+    		//this.v.canJump = true;
     	} else { 
 	        this.distance = this.maxRayDistance;
 	        this.rayAngle = 0;
+	        //this.v.canJump = false;	    
 	    }
 
     }
 
     hit( d ){
+
     	this.contact = d;
+
     }
 
     showHelper( b ){
@@ -374,7 +381,7 @@ export class Hero extends Basic3D {
 	}
 
 	raycast(){
-		return
+		return// false;
 	}
 
 	/*preStep(){
@@ -478,7 +485,7 @@ export class Hero extends Basic3D {
 
 		v.currentPos.copy(this.position);
 
-		v.run = key[7] !== 0;
+		
 
 		//v.movingObjectVelocity = 
 		v.slopeAngle = 0//azimut;
@@ -520,9 +527,9 @@ export class Hero extends Basic3D {
 	    // Also, apply reject velocity when character is moving opposite of it's moving direction
 	    
 	    v.moveAccNeeded.set(
-	        (v.movingDirection.x * (o.maxVelLimit * (v.run ? o.sprintMult : 1) + v.movingObjectVelocityInCharacterDir.x) - (v.currentVel.x - v.movingObjectVelocity.x * Math.sin(angleBetweenCharacterDirAndObjectDir) + v.rejectVel.x * (v.isOnMovingObject ? 0 : o.rejectVelMult))) / o.accDeltaTime,
+	        (v.movingDirection.x * (o.maxVelLimit * (this.running ? o.sprintMult : 1) + v.movingObjectVelocityInCharacterDir.x) - (v.currentVel.x - v.movingObjectVelocity.x * Math.sin(angleBetweenCharacterDirAndObjectDir) + v.rejectVel.x * (v.isOnMovingObject ? 0 : o.rejectVelMult))) / o.accDeltaTime,
 	        0,
-	        (v.movingDirection.z * (o.maxVelLimit * (v.run ? o.sprintMult : 1) + v.movingObjectVelocityInCharacterDir.z) - (v.currentVel.z - v.movingObjectVelocity.z * Math.sin(angleBetweenCharacterDirAndObjectDir) + v.rejectVel.z * (v.isOnMovingObject ? 0 : o.rejectVelMult))) / o.accDeltaTime
+	        (v.movingDirection.z * (o.maxVelLimit * (this.running ? o.sprintMult : 1) + v.movingObjectVelocityInCharacterDir.z) - (v.currentVel.z - v.movingObjectVelocity.z * Math.sin(angleBetweenCharacterDirAndObjectDir) + v.rejectVel.z * (v.isOnMovingObject ? 0 : o.rejectVelMult))) / o.accDeltaTime
 	    );
 
 	    // Wanted to move force function: F = ma
@@ -543,7 +550,7 @@ export class Hero extends Basic3D {
 	    		v.slopeAngle === null || v.slopeAngle == 0 // if it's on a slope, apply extra up/down force to the body
 	            ? 0 : v.movingDirection.y * o.turnVelMultiplier *
 	            (v.movingDirection.y > 0 // check it is on slope up or slope down
-	            ? o.slopeUpExtraForce : o.slopeDownExtraForce) * (v.run ? o.sprintMult : 1),
+	            ? o.slopeUpExtraForce : o.slopeDownExtraForce) * (this.running ? o.sprintMult : 1),
 	            moveForceNeeded.z * o.turnVelMultiplier * (v.canJump ? 1 : o.airDragMultiplier) // if it's in the air, give it less control
 	        );
 	    }
@@ -553,7 +560,7 @@ export class Hero extends Basic3D {
 	        	moveForceNeeded.x * (v.canJump ? 1 : o.airDragMultiplier),
 	        	v.slopeAngle === null || v.slopeAngle == 0 // if it's on a slope, apply extra up/down force to the body
 	        	? 0 : v.movingDirection.y * (v.movingDirection.y > 0 // check it is on slope up or slope down
-	            ? o.slopeUpExtraForce : o.slopeDownExtraForce) * (v.run ? o.sprintMult : 1),
+	            ? o.slopeUpExtraForce : o.slopeDownExtraForce) * (this.running ? o.sprintMult : 1),
 	            moveForceNeeded.z * (v.canJump ? 1 : o.airDragMultiplier)
 	        );
 	    }
@@ -565,9 +572,14 @@ export class Hero extends Basic3D {
 	    v.currentVel.copy(this.velocity);
 
 	    // Jump impulse
+
 	    if ( key[4] && v.canJump ) {
-	    	jumpVelocityVec.set( v.currentVel.x, v.run ? o.sprintJumpMult * o.jumpVel : o.jumpVel, v.currentVel.z );
+	    	v.jumpVelocityVec.set( v.currentVel.x, this.running ? o.sprintJumpMult * o.jumpVel : o.jumpVel, v.currentVel.z );
+	    	v.moveImpulse.y = v.jumpVelocityVec.y
 	    }
+
+	   //v.jumpDirection.set(0, ( this.running ? o.sprintJumpMult * o.jumpVel : o.jumpVel ) * o.slopJumpMult, 0).projectOnVector(v.actualSlopeNormalVec).add(v.jumpVelocityVec)
+	    //root.motor.change({ name:this.name, linearVelocity:v.jumpDirection.toArray() });
 
 	}
 
@@ -649,6 +661,9 @@ export class Hero extends Basic3D {
 
 
 	    this.moving = key[0] !== 0 || key[1] !== 0;
+	    this.running = key[7] !== 0;
+	    this.wantJump = key[4] !== 0;
+
 	    let angle = MathTool.unwrapRad( ( Math.atan2(key[0], key[1])) + azimut );
 
 

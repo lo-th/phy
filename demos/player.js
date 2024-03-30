@@ -2,13 +2,14 @@ let px = 5
 let side = 0
 let ready = false
 let num = 0;
-let maxCharacter = 1;
+let maxCharacter = 10;
 //const models = [ 'man', 'woman'];
+//const models = [ 'man', 'woman']
 const models = [ 'man_low', 'woman_low']
 const useModel = true;
 
 
-let preload = false;
+let preload = true;
 let player = null;
 let t1 = 0;
 
@@ -120,18 +121,22 @@ const addCharacter = () => {
             floating:true,
             
             massInfo:true,
+            debug:true,
 
         });
 
+        hh[n].debugMode( setting.debug );
+
         n++
-        pos = [ math.rand( -10, 10 ), 0, math.rand( 5, 15 ) ];
+        pos = [ math.rand( -10, 10 ), 0, math.rand( -10, 10 ) ];
         angle = math.randInt( 0, 360 )
+
 
     }
 
     player = hh[0];
 
-    hh[0].debugMode( setting.debug );
+    
 
     phy.follow('c_0', { direct:true, simple:true, distance:5, phi:12, theta:0, decal:[0.3, 0.5, -0.3], fov:60, zoom:1.0 })
     phy.control( 'c_0' );
