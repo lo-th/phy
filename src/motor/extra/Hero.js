@@ -20,6 +20,10 @@ export class Hero extends Basic3D {
 
 		super()
 
+		this.isCharacter = true;
+
+		this.isPlayer = false;
+
 		this.useImpulse = o.useImpulse || false;
 		this.useFloating = o.floating || false;
 
@@ -213,6 +217,12 @@ export class Hero extends Basic3D {
 
 	}
 
+	setHeight( H ){
+
+		if(this.model) this.model.setRealSize( H );
+
+	}
+
 	initPhysic( o ){
 
 	    if(!o.size) o.size = [ this.radius, this.height-(2*this.radius) ];
@@ -231,7 +241,7 @@ export class Hero extends Basic3D {
 			shapeType: o.shapeType || 'capsule',
 			density: 1,//o.density || 1,
 			//mass: o.mass || 0.84, 
-			friction: o.friction !== undefined ? o.friction : 0.1,
+			friction: o.friction !== undefined ? o.friction : 0.5,
 			angularFactor:[0,0,0],
 			group: 16,
 			//mask: o.mask !== undefined ? o.mask : 1|2,
@@ -279,7 +289,8 @@ export class Hero extends Basic3D {
         root.post({ m:'add', o:phyData });
 
         // add bottom RAY
-        this.ray = root.motor.add({ type:'ray', name:this.name + '_ray', begin:[0,this.rayStart,0], end:[0,this.rayEnd, 0], callback:this.selfRay.bind(this), visible:false, parent:this.name })
+        this.ray = root.motor.add({ type:'ray', name:this.name + '_ray', begin:[0,this.rayStart,0], end:[0,this.rayEnd, 0], callback:this.selfRay.bind(this), visible:false, parent:this.name });
+
 
         // add skinning character model
         if( o.gender ) this.addModel( o );
@@ -287,15 +298,26 @@ export class Hero extends Basic3D {
 		
 	}
 
+	extraRemove(){
+		// TODO bug with delete ray !!
+		root.motor.remove( this.name + '_ray' )
+	}
+
+	/*clear(){
+		root.motor.remove([this.name, this.name + '_ray']);
+	}*/
+
     selfRay( r ){
 
     	if( r.hit ){ 
     		this.distance = r.distance; //MathTool.toFixed(r.distance-this.radius)
     		this.rayAngle = r.angle;
     		//this.v.canJump = true;
+    		//console.log('true')
     	} else { 
-	        this.distance = this.maxRayDistance;
+	        this.distance =this.option.rayLength//maxRayDistance;
 	        this.rayAngle = 0;
+	        //console.log('false')
 	        //this.v.canJump = false;	    
 	    }
 
@@ -312,6 +334,7 @@ export class Hero extends Basic3D {
     	if(b){
     		if(!this.helper){
     			this.helper = new CapsuleHelper(this.radius, this.height, true, Mat.get('line'), [1,0.6,0], [0.6,0.2,0] );
+    			this.helper.setDirection( this.angle ) 
 		        this.add( this.helper );
     		}
     	} else {
@@ -322,7 +345,7 @@ export class Hero extends Basic3D {
     		}
     	}
 
-    	if(this.ray) this.ray.visible = b
+    	if( this.ray ) this.ray.visible = b
 
     }
 
@@ -365,6 +388,7 @@ export class Hero extends Basic3D {
 			material:!o.noMat, 
 			morph:o.morph || false, 
 			randomMorph:o.randomMorph || false,
+			randomSize:o.randomSize || false,
 			callback:this.callback,
 			fixWeight: this.fixWeight,
 			noLOD : o.noLOD || false,
@@ -376,7 +400,7 @@ export class Hero extends Basic3D {
 		if( this.useFloating ) ypos -= this.option.floatHeight
 		this.model.setPosition(0, this.model.decalY + ypos, 0);
 		this.model.rotation.y = this.angle;
-		//this.model.updateMatrix()
+		this.model.updateMatrix();
 
 	}
 
@@ -404,6 +428,26 @@ export class Hero extends Basic3D {
 			this.model.update( root.delta );
 			this.getDistanceToCamera()
 		}
+
+
+		if( this.useFloating && !this.isPlayer ){ 
+
+			this.stopMoving();
+
+			this.getFloating();
+
+	    	root.motor.change({
+
+			    name:this.name,
+			    impulse: this.v.moveImpulse.toArray(), 
+			    impulseCenter: this.v.impulseCenter.toArray(),
+
+			});
+
+			
+
+
+	    }
 
 		//if(this.skeletonBody) this.skeletonBody.update()
 		this.updateMatrix();
@@ -442,10 +486,14 @@ export class Hero extends Basic3D {
 
 	dispose () {
 
+		//console.log('dispose')
+
 		this.callback = null
 		if( this.skeletonBody ) this.skeletonBody.dispose()
 		if( this.model ) this.model.dispose()
 		if( this.helper ) this.showHelper()
+
+		//this.ray.dispose()
 
 		//console.log('model remove')
 
@@ -599,17 +647,24 @@ export class Hero extends Basic3D {
 		const o = this.option;
 
 		this.v.moveImpulse.set(0,0,0)
-		this.tmpV1.copy(this.velocity).multiplyScalar( 0.9 )
+
+		// slowdown
+
+		this.tmpV1.copy(this.velocity)//.multiplyScalar( 0.9 )
+		this.tmpV1.x *= 0.9;
+		this.tmpV1.z *= 0.9;
+
+		if(this.tmpV1.x + this.tmpV1.z === 0 ) return;
 
 		root.motor.change({
 
-			    name:this.name,
-			    //force: this.tmpV1.toArray(), forceMode:'velocity', 
-			    linearVelocity: this.tmpV1.toArray(), 
-			    //angularVelocity: this.tmpV2.toArray(),
-			    //wake:true, 
-			    //noGravity:true 
-			});
+		    name:this.name,
+		    //force: this.tmpV1.toArray(), forceMode:'velocity', 
+		    linearVelocity: this.tmpV1.toArray(),
+		    //angularVelocity: this.tmpV2.toArray(),
+		    wake:false,
+		    //noGravity:true 
+		});
 
 	}
 

@@ -1,4 +1,4 @@
-let n = 1;
+let n = 4;
 let gui = null;
 let tmp = [];
 const setting = { gravity:-9.81, auto:true, name:'' };
@@ -136,4 +136,6 @@ test_4 = () => {
         phy.add({ ...data.stone, name:'s'+i, pos:[0, 0.25+(i*0.5), -0.5 ], friction: 0.5, density:1 })
         tmp.push( 'a'+i, 'b'+i, 'c'+i, 'd'+i, 's'+i );
     }
+
+    phy.remove(['a2','b6','c8'])
 }

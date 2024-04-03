@@ -137,12 +137,11 @@ export const Utils = {
 
 	remove:( b ) => {
 
-
-		if( b.dispose ) b.dispose()
-		if( b.parent ) b.parent.remove( b )
-		if( b.instance ) { 
+		if( b.dispose ) b.dispose();
+		if( b.parent ) b.parent.remove( b );
+		if( b.isInstance ) { 
 			if( b.refName !== b.name ) map.delete( b.refName );
-			b.instance.remove( b.id )
+			b.instance.remove( b.id );
 		}
 		map.delete( b.name );
 
@@ -154,7 +153,6 @@ export const Utils = {
 			b.traverse( ( child ) => {
 				if ( child.isObject3D ) child.raycast = () => {return}
 			})
-
 		}
 	},
 

@@ -137,6 +137,8 @@ export class Avatar extends Group {
         this.haveMorph = o.morph !== undefined ? o.morph : false;
         this.fullMaterial = o.material !== undefined ? o.material : true;
 
+
+
         this.size = o.size || 1;
         this.realSize = 0;
         this.baseSize = 0;
@@ -209,6 +211,10 @@ export class Avatar extends Group {
             else this.loadModels()
         }
 
+    }
+
+    rand( low = 0, high = 1 ){ 
+        return low + Math.random() * ( high - low ) 
     }
 
     load(){
@@ -701,9 +707,9 @@ export class Avatar extends Group {
             this.makePoseTrack('adjustment', this.ref.adjustment(), true );
         }
 
-        // random human
-        if( this.randomMorph ) this.setBodyMorph([(Math.random())-0.5, (Math.random()*2)-1])
-        if( this.randomSize ) this.setRealSize(this.realSize + (-0.2+Math.random()*0.4));
+        // Random Human
+        if( this.randomMorph ) this.setBodyMorph([this.rand(-1,1), this.rand(-1,1)])
+        if( this.randomSize ) this.setRealSize(this.rand(1,2));
 
 
         //this.add( this.root );
@@ -712,7 +718,7 @@ export class Avatar extends Group {
         //setTimeout( this.callback, 100 );
         setTimeout( function(){ 
             this.add( this.root );
-            this.callback()
+            this.callback();
         }.bind(this), 100 )
         //this.callback()
 

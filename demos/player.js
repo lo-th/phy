@@ -2,19 +2,20 @@ let px = 5
 let side = 0
 let ready = false
 let num = 0;
-let maxCharacter = 1;
+let maxCharacter = 66;
 //const models = [ 'man', 'woman'];
 //const models = [ 'man', 'woman']
 const models = [ 'man_low', 'woman_low']
 const useModel = true;
+let heroes = [];
 
-
-let preload = true;
+let cloneList = [];
+let preload = maxCharacter>1;
 let player = null;
 let t1 = 0;
 
 const setting = {
-    debug:true,
+    debug:false,
 };
 
 
@@ -23,8 +24,13 @@ demo = () => {
 
     phy.view({
         phi:12, theta:0, distance:5, x:0, y:3, z:15, fov:55, 
-        envmap:'clear', groundReflect:0.2, groundColor:0x808080,
+        envmap:'clear', groundReflect:0, groundColor:0x808080,
     })
+
+    //phy.lightIntensity( 6, 0, 0.7 );
+    //phy.changeShadow({ range:10, near:5, far:30, distance:20 })
+    //phy.useRealLight( { /*aoPower:5*/ } );
+
     
     // config physics setting
     phy.set({ substep:1, gravity:[0,-9.81,0], full:true })
@@ -41,7 +47,6 @@ demo = () => {
     addDecor();
     addCharacter();
     
-
 }
 
 
@@ -59,21 +64,15 @@ const update = () => {
 const addGui = () => {
 
     gui = phy.gui();
-    //gui.add( option, 'bodyMorph',{ type:'pad', name:'type',  min:-1, max:1 }).listen().onChange( morph );
-    //gui.add( option, 'realSize',{  min:1.50, max:2.0}).listen().onChange( resize )
-    //gui.add('button',{name:'Random', h:30, radius:15}).onChange( ()=>{Character()} )
-    
 
     let option = player.option;
     gui.add( option, 'floatingDis',{ min:0, max:2.5, mode:2});
     gui.add( option, 'springK',{ min:0, max:5.0, mode:2});
     gui.add( option, 'dampingC',{ min:0, max:3.0, mode:2});
 
-
-
     gui.add(setting, 'debug',{}).onChange( showDebug );
+    gui.add( 'bool', { name:'add clone', onName:'remove clone', value:false, mode:1, radius:12 }).onChange( addClone )
     
-
 }
 
 
@@ -90,65 +89,74 @@ const addCharacter = () => {
         return;
     }
 
-    //console.log( 'ready in: ' + phy.readTime( phy.getTime()-t1 ) );
+    player = addHero();
 
-    let i = maxCharacter, n = 0,  g;
-    let pos = [0,0,0], angle = 0;
-    let hh = [];
-
-    while( i-- ){
-
-        g = useModel ? models[ math.randInt( 0, models.length-1 ) ] : null;
-        //g = math.randInt( 0, 1 );
-
-        hh[n] = phy.add({
-
-            type: 'character',
-            name: 'c_' + n,
-            
-            //debug: true,
-            radius: 0.3,
-            //height: 0.7,
-            pos: pos,
-            //ray: n===0,
-            angle:angle,
-
-            gender: g,//models[g],
-            randomMorph:true,
-            morph:true,
-            //callback:count,
-            useImpulse:true,
-            floating:true,
-            
-            massInfo:true,
-            debug:true,
-
-        });
-
-        hh[n].debugMode( setting.debug );
-
-        n++
-        pos = [ math.rand( -10, 10 ), 0, math.rand( -10, 10 ) ];
-        angle = math.randInt( 0, 360 )
-
-
-    }
-
-    player = hh[0];
-
-    
-
-    phy.follow('c_0', { direct:true, simple:true, distance:5, phi:12, theta:0, decal:[0.3, 0.5, -0.3], fov:60, zoom:1.0 })
-    phy.control( 'c_0' );
+    phy.follow( player.name, { direct:true, simple:true, distance:5, phi:12, theta:0, decal:[0.3, 0.5, -0.3], fov:60, zoom:1.0 })
+    phy.control( player.name );
 
     addGui();
 
 }
 
-const showDebug = (debug) => {
-    if( player ) player.debugMode( debug );
+const addClone = ( b ) => {
+
+    if( b ){
+        let i = maxCharacter;
+        while(i--) addHero();
+        
+    } else {
+
+        //for(let i = 1; i<maxCharacter-1; i++) heroes[i].clear()
+        //
+        //! TODO bug on remove 
+        phy.remove( cloneList );
+        heroes = [player]
+        cloneList = [];
+    }
 }
 
+const addHero = () => {
+
+    let n = heroes.length;
+    let isPlayer = n===0;
+    let g = useModel ? models[ math.randInt( 0, models.length-1 ) ] : null;
+    let pos = isPlayer ? [0,0,0]:[ math.rand( -10, 10 ), math.rand( 0, 10 ), math.rand( -10, 10 ) ];
+    let angle = isPlayer ? 0: math.randInt( 0, 360 );
+
+    const h = phy.add({
+
+        type: 'character',
+        name: 'c_' + n,
+        
+        radius: 0.3,
+        pos: pos,
+        //ray: n===0,
+        angle:angle,
+
+        gender: g,
+
+        randomMorph:true,
+        randomSize:!isPlayer,
+
+        useImpulse:true,
+        floating:true,
+        
+        //massInfo:true,
+        //debug:true,
+
+    });
+
+   if( setting.debug ) h.debugMode( setting.debug );
+   heroes.push( h );
+   if( !isPlayer ) cloneList.push(h.name)//, h.name+'_ray' );
+   return h;
+        
+}
+
+
+const showDebug = ( debug ) => {
+    if( player ) player.debugMode( debug );
+}
 
 
 //--------------
@@ -230,6 +238,7 @@ const FloatingRay = ( r ) => {
     if(r.hit){
         const floatingForce = springK * (floatingDis - r.distance) - r.parent.velocity.y * dampingC;
         phy.change({ name:r.parent.name, impulse:[0, floatingForce, 0] });
+        //phy.change({ name:r.parent.name, linearVelocity:[0, 0, 0] });
     }
 }
 

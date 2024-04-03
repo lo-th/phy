@@ -1,4 +1,4 @@
-import { Object3D, Vector3, Group, Mesh, LineSegments, BufferGeometry, CylinderGeometry, InstancedMesh, Matrix4 } from 'three';
+import { Object3D, Vector3, Group, Mesh, LineSegments, BufferGeometry, CylinderGeometry, Matrix4, MathUtils } from 'three';
 
 import { root, Utils } from './root.js';
 
@@ -86,11 +86,11 @@ export class Body extends Item {
 			// update position / rotation / velocity
 
 		    if( b.isInstance ){ 
-		    	if( b.speedMat ) b.instance.setColorAt(b.id, [ Math.abs(AR[n+8])*0.5, Math.abs(AR[n+9])*0.5, Math.abs(AR[n+10])*0.5] )
-		    	b.instance.setTransformAt( b.id, [AR[n+1],AR[n+2],AR[n+3]], [AR[n+4],AR[n+5],AR[n+6],AR[n+7]], b.noScale ? [1,1,1] : b.size )
-		    	b.position = {x:AR[n+1], y:AR[n+2], z:AR[n+3]}
+		    	if( b.speedMat ) b.instance.setColorAt( b.id, [ Math.abs(AR[n+8])*0.5, Math.abs(AR[n+9])*0.5, Math.abs(AR[n+10])*0.5] );
+		    	b.instance.setTransformAt( b.id, [AR[n+1],AR[n+2],AR[n+3]], [AR[n+4],AR[n+5],AR[n+6],AR[n+7]], b.noScale ? [1,1,1] : b.size );
+		    	b.position = {x:AR[n+1], y:AR[n+2], z:AR[n+3]};
 		    	///b.quaternion = {x:AR[n+4], y:AR[n+5], z:AR[n+6], w:AR[n+7]}
-		    	b.quaternion = {_x:AR[n+4], _y:AR[n+5], _z:AR[n+6], _w:AR[n+7]}
+		    	b.quaternion = {_x:AR[n+4], _y:AR[n+5], _z:AR[n+6], _w:AR[n+7]};
 		    	if( this.needMatrix ) b.matrixWorld.compose( b.position, b.quaternion, {x:1, y:1, z:1}) 
 		    	if( this.full ){
 		    		b.velocity = {x:AR[n+8], y:AR[n+9], z:AR[n+10]}
@@ -617,6 +617,8 @@ export class Body extends Item {
 			b.defMat = b.instance.material.name === 'base';
 			
 			b.id = b.instance.count;
+			//b.unicId = MathUtils.generateUUID();
+
 			//b.mass = o.mass || 0
 
 			b.refName = b.instance.name + b.id;
@@ -625,7 +627,7 @@ export class Body extends Item {
 			if( o.name ) b.name = o.name;
 			o.name = b.name;
 
-			b.noScale = b.instance.noScale//false//o.type!=='box' || o.type!=='ChamferBox' || o.type!=='sphere';
+			b.noScale = b.instance.noScale;//false//o.type!=='box' || o.type!=='ChamferBox' || o.type!=='sphere';
 			if(o.sizeByInstance) b.noScale = false;
 			//if(o.type === 'sphere') b.noScale = false
 		    //if( o.type === 'capsule' ) b.noScale = true
@@ -635,7 +637,7 @@ export class Body extends Item {
 			let color = o.color;
 			if( b.defMat ) color = o.sleep ? Colors.sleep : Colors.body;
 
-			b.instance.add( o.pos, o.quat, b.noScale ? [1,1,1] : b.size, color );
+			b.instance.add( b, o.pos, o.quat, b.noScale ? [1,1,1] : b.size, color );
 
 			b.position = {x:o.pos[0], y:o.pos[1], z:o.pos[2]};
 			b.quaternion = {_x:o.quat[0], _y:o.quat[1], _z:o.quat[2], _w:o.quat[3]};
@@ -746,11 +748,11 @@ export class Body extends Item {
 		//  Clear uneed object value
 		//---------------------------
 
-		if( o.rot ) delete o.rot
-	    if( o.meshRot ) delete o.meshRot
-	    if( o.instance ) delete o.instance
+		if( o.rot ) delete o.rot;
+		if( o.mesh ) delete o.mesh;
+	    if( o.meshRot ) delete o.meshRot;
+	    if( o.instance ) delete o.instance;
 	    if( o.material ) delete o.material;
-	    if( o.mesh ) delete o.mesh
 		if( o.parent ) delete o.parent;
 
 	    //---------------------------
@@ -763,7 +765,7 @@ export class Body extends Item {
 		// return three object3d
 		//---------------------------
 
-		return b
+		return b;
 
 	}
 

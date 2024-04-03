@@ -294,27 +294,29 @@ export class MouseTool {
 
 			if ( inters.length > 0 ) {
 
-				g = inters[ 0 ].object
-				id = inters[ 0 ].instanceId
+				g = inters[ 0 ].object;
+				id = inters[ 0 ].instanceId;
 
 				//console.log(inters[ 0 ])
 
 				if( id !== undefined ){
-					m = root.motor.byName( g.name+id );
+					// is instance mesh
+					m = root.motor.byName( g.getByName( id ) );
+					//m = root.motor.byName( g.name+id );
 				} else {
 					if( g.parent !== root.scene ){
 						h = g.parent;
-						if( h.parent !== root.scene ) m = h.parent
+						if( h.parent !== root.scene ) m = h.parent;
 						else m = h;
 					} else m = g;
 				}
 
 				if( this.mouseDown2 ){
-					if( m.extra ) m.extra( m.name )
+					if( m.extra ) m.extra( m.name );
 					//console.log(m)
 				}
 
-				if( !m.isButton ){
+				if( m && !m.isButton ){
 					cursor = this.select( m, inters[ 0 ].point );
 					//this.tmpSelected = m
 					//this.tmpPoint = inters[ 0 ].point

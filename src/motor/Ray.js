@@ -107,7 +107,7 @@ export class ExtraRay extends Line {
 	    	this.data.parent = this.parentMesh;
 	    }
 
-	    this.callback = o.callback || function () {};
+	    this.callback = o.callback || null;
 
 	    // color
 		this.c0 = [ 0.1, 0.1, 0.3 ];
@@ -147,7 +147,7 @@ export class ExtraRay extends Line {
 
 		if( o.begin ) this.begin.fromArray( o.begin );
 	    if( o.end ) this.end.fromArray( o.end );
-	    this.fullDistance = this.begin.distanceTo( this.end )
+	    this.fullDistance = this.begin.distanceTo( this.end );
 
 	}
 
@@ -179,7 +179,7 @@ export class ExtraRay extends Line {
 			
 			//vv1.fromArray( r, n+5 ); 
 
-			this.data.angle = Math.floor( MathTool.angleTo( this.vv1.toArray(), this.data.normal ) * todeg )
+			this.data.angle = Math.floor( MathTool.angleTo( this.vv1.toArray(), this.data.normal ) * todeg );
 			//let angle = MathTool.angleTo( [this.local[0], this.local[2], this.local[2]], [this.local[3], this.local[4], this.local[5]] ) * todeg
 			//console.log(this.data.angle)
 
@@ -200,13 +200,15 @@ export class ExtraRay extends Line {
 		}
 
 		this.updateGeometry();
-		this.updateMatrix()
+		this.updateMatrix();
 
-		this.callback( this.data );
+		if(this.callback) this.callback( this.data );
 
 	}
 
 	dispose(){
+		console.log('ray delete')
+		this.callback = null;
 		this.geometry.dispose()
 	}
 
@@ -221,10 +223,10 @@ export class ExtraRay extends Line {
 		let v = this.vertices.array;
 		let c = this.colors.array;
 		let l = this.local;
-		let hit = this.data.hit
+		let hit = this.data.hit;
 		let n, d, i;
-		let c1 = hit ? this.c2 : this.c1
-		let c2 = hit ? this.c3 : this.c1
+		let c1 = hit ? this.c2 : this.c1;
+		let c2 = hit ? this.c3 : this.c1;
 
 		c[ 3 ] = c1[0];
 		c[ 4 ] = c1[1];

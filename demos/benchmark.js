@@ -1,10 +1,10 @@
-const demoList = ['gravity', 'joint', 'capsule', 'stacking' ];
-let demoStart = 'gravity'
+const demoList = ['gravity', 'joint', 'geometry', 'stacking' ];
+let demoStart = 'geometry'
 
 function demo() {
 
     phy.view({
-        envmap:0x606060,
+        envmap:0x303030,
         //ground:false,
         vignette:false,
         groundReflect:0,
@@ -24,7 +24,7 @@ function demo() {
 const addGui = () => {
 
     gui = phy.gui();
-    gui.add('grid',{values:demoList, selectable:true, value:demoStart, radius:6 }).onChange( switchDemo );
+    gui.add('grid',{ values:demoList, selectable:true, value:demoStart, radius:6 }).onChange( switchDemo );
 
 }
 
@@ -39,26 +39,21 @@ const setDemo = ( name ) => {
     //phy.clear()
     phy.set()
 
-    switch(name){
-        case 'gravity': gravityTest(); break;
-        case 'joint': jointTest(); break;
-        case 'capsule': capsuleTest(); break;
-        case 'stacking': stackingTest(); break;
-    }
+    this[name+'Test']();
 
 }
 
-const jointTest = () => {
+
+jointTest = () => {
 
     phy.add({ type:'plane', name:'floor', size:[ 20,1,20 ], visible:false, friction: 0.5,  });
 
     phy.add({ type:'box', name:'A', size:[1,1,1], pos:[-3,0.5,0], mass:1 });
     phy.add({ type:'box', name:'B', size:[1,1,1], pos:[3,0.5,0], mass:1 });
-
-    phy.add({ type:'distance', b1:'A', b2:'B', pos1:[0,0,0], pos2:[0,0,0], visible:true });
+    phy.add({ type:'distance', b1:'A', b2:'B', pos1:[0,0,0], pos2:[0,0,0], visible:true, lm:[5,6] });
 }
 
-const gravityTest = () => {
+gravityTest = () => {
 
     phy.add({ type:'plane', name:'floor', size:[ 20,1,20 ], visible:false, friction: 0.5 });
 
@@ -68,18 +63,20 @@ const gravityTest = () => {
 
 }
 
-const capsuleTest = () => {
+geometryTest = () => {
 
     phy.add({ type:'plane', name:'floor', size:[ 20,1,20 ], visible:false, friction: 0.5 });
 
     let h = 2, r = 1
-
-    phy.add({ type:'capsule', name:'A', size:[r,h,r], pos:[0,(h*0.5)+r,0], mass:1 });
-    phy.add({ type:'cylinder', name:'B', size:[1,4,1], pos:[3,2,0], mass:1 });
+    phy.add({ type:'box', size:[r*2,r*2,r*2], pos:[-6,r,0], mass:1 });
+    phy.add({ type:'sphere', size:[r], pos:[-3,r,0], mass:1 });
+    phy.add({ type:'capsule', size:[r,h,r], pos:[0,(h*0.5)+r,0], mass:1 });
+    phy.add({ type:'cylinder', size:[1,4,1], pos:[3,2,0], mass:1 });
+    phy.add({ type:'convex', shape:new THREE.DodecahedronGeometry(r), pos:[6, r, 0], mass:1 })
 
 }
 
-const stackingTest = () => {
+stackingTest = () => {
 
     phy.add({ type:'plane', name:'floor', size:[ 20,1,20 ], visible:false, friction: 0.5  });
 
@@ -108,6 +105,6 @@ const stackingTest = () => {
 
     }
 
-    phy.add(data)
+    phy.add(data);
 
 }

@@ -108,7 +108,13 @@ const Colomn = ( h = 5, pos = [0,0,0] ) => {
 
 }
 
+const option = {
 
+    bodyMorph:[0,0],
+    faceMorph:[0,0],
+    realSize:1.0
+
+}
 
 const Character = ( num = 1 ) => {
 
@@ -134,6 +140,8 @@ const Character = ( num = 1 ) => {
             //ray: n===0,
             angle:angle,
             randomMorph:true,
+            randomSize:true,
+            
             morph:true,
             noLOD:true,
 
@@ -161,13 +169,7 @@ const Character = ( num = 1 ) => {
 
 }
 
-const option = {
 
-    bodyMorph:[0,0],
-    faceMorph:[0,0],
-    realSize:1.0
-
-}
 
 const addGui = () => {
 
@@ -196,8 +198,8 @@ const faceMorph = ( v ) => {
 
 const resize = ( v ) => {
 
-    if(!player.model) return
-    player.model.setRealSize(v);
+    //if(!player.model) return
+    player.setHeight( v );//model.setRealSize(v);
 
 }
 

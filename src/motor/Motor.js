@@ -681,19 +681,25 @@ export class Motor {
 
 	}
 
-    
+    static takeControl ( name = null ){
+    	Motor.control( name );
+    }
 
 	static control ( name = null ){ // for character and vehicle
 
-
-
 		if( currentControle !== null ){
-			if( name === null ) currentControle = null;
-			else  {
-				if( name !== currentControle.name ) currentControle = Motor.byName( name )
+			if( name === null ) {
+				if( currentControle.isPlayer ) currentControle.isPlayer = false;
+				currentControle = null;
+			} else  {
+				if( name !== currentControle.name ) {
+					currentControle = Motor.byName( name );
+					if( currentControle ) currentControle.isPlayer = true;
+				}
 			}
-		} else {
-			currentControle = Motor.byName( name )
+		} else if( name !== null ){
+			currentControle = Motor.byName( name );
+			if( currentControle ) currentControle.isPlayer = true;
 		}
 
 	}
@@ -841,15 +847,17 @@ export class Motor {
 	
 	static remove ( name, direct = false ){
 
-		if ( name.constructor === Array ) return Motor.removes( name, direct )
+		if ( name.constructor === Array ) return Motor.removes( name, direct );
 
-		let b = Motor.byName( name )
+		let b = Motor.byName( name );
 		if( b === null ) return;
+
+		if( b.extraRemove ) b.extraRemove()
 
 		// remove on three side
 		items[b.type].clear( b );
 		// remove on physics side
-		root.post( { m:'remove', o:{ name:name, type:b.type } }, null, direct )
+		root.post( { m:'remove', o:{ name:name, type:b.type } }, null, direct );
 
 	}
 

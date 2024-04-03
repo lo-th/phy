@@ -17,12 +17,13 @@ export class Instance extends InstancedMesh {
         this.instanceUv = null;
         this.instanceColor = null;
         this.needSphereUp = false;
-        this.isRay = true; 
+        this.isRay = true;
 
-        
         this.overMaterial = null;
         this.currentOver = -1;
         this.isOver = false;
+
+        this.tmpElement = [];
         
     }
 
@@ -84,19 +85,7 @@ export class Instance extends InstancedMesh {
         }
     }
 
-    add( position = [0,0,0], rotation = [0,0,0,1], scale = [1,1,1], color = null, uv = null ) {
-
-        if( rotation.length === 3 ) rotation = this.tmpQuat.setFromEuler( {_x:rotation[0], _y:rotation[1], _z:rotation[2], _order:'XYZ'}, false ).toArray();
-        if(color){ 
-            if( color.isColor ) color = color.toArray()
-            if ( this.instanceColor === null ) this.instanceColor = new InstancedBufferAttribute( new Float32Array( this.instanceMatrix.count * 3 ), 3 );
-        }
-        /*if(uv){ 
-            if( uv.isVector2 ) uv = uv.toArray()
-            if ( this.instanceUv === null ) this.instanceUv = new InstancedBufferAttribute( new Float32Array( this.instanceMatrix.count * 2 ), 2 );
-        }*/
-        this.expand( position, rotation, scale, color, uv );
-    }
+    
 
     setColorAt( index, color ) {
 
@@ -105,6 +94,7 @@ export class Instance extends InstancedMesh {
             this.instanceColor = new InstancedBufferAttribute( new Float32Array( this.instanceMatrix.count * 3 ), 3 );
 
         }
+
         if( color.isColor ) color = color.toArray();
         
         let id = index * 3;
@@ -126,25 +116,76 @@ export class Instance extends InstancedMesh {
 
     }*/
 
+    add( bref, position = [0,0,0], rotation = [0,0,0,1], scale = [1,1,1], color = null, uv = null ) {
+
+        if( rotation.length === 3 ) rotation = this.tmpQuat.setFromEuler( {_x:rotation[0], _y:rotation[1], _z:rotation[2], _order:'XYZ'}, false ).toArray();
+        if(color){ 
+            if( color.isColor ) color = color.toArray();
+            if ( this.instanceColor === null ) this.instanceColor = new InstancedBufferAttribute( new Float32Array( this.instanceMatrix.count * 3 ), 3 );
+        }
+        /*if(uv){ 
+            if( uv.isVector2 ) uv = uv.toArray()
+            if ( this.instanceUv === null ) this.instanceUv = new InstancedBufferAttribute( new Float32Array( this.instanceMatrix.count * 2 ), 2 );
+        }*/
+        this.expand( position, rotation, scale, color, uv );
+
+        //console.log(bref.id)
+        this.tmpElement.push( bref );
+    }
+
+    slice( ar, begin, end ) {
+
+        let target = new Float32Array(end - begin);
+        for (let i = 0; i < begin + end; ++i) {
+            target[i] = ar[begin + i];
+        }
+        return target
+
+    }
+
     remove( id ) {
 
         if(!this.count) return;
+        
+        this.tmpElement.splice( id, 1 );
+
         let old = [...this.instanceMatrix.array];
         old.splice( id*16, 16 );
         this.instanceMatrix = new InstancedBufferAttribute( new Float32Array(old), 16 );
+        //this.instanceMatrix.array = new Float32Array(old);
+
+        //this.instanceMatrix.array = this.slice( this.instanceMatrix.array, id*16, 16 );
+        //this.instanceMatrix.needsUpdate = true;
 
         if ( this.instanceColor !== null ) {
             old = [...this.instanceColor.array];
             old.splice( id*3, 3 );
             this.instanceColor = new InstancedBufferAttribute( new Float32Array(old), 3 );
+            //this.instanceColor.array = new Float32Array(old);
         }
 
         if ( this.instanceUv !== null ) {
             old = [...this.instanceUv.array];
             old.splice( id*2, 2 );
             this.instanceUv = new InstancedBufferAttribute( new Float32Array(old), 2 );
+            //this.instanceUv.array = new Float32Array(old);
         }
-        this.count --;
+        this.count--;
+
+        this.reDistribute();
+
+    }
+
+    reDistribute() {
+
+        let i = this.count;
+        while(i--) this.tmpElement[i].id = i;
+        
+    }
+
+    getByName( index ) {
+
+        return this.tmpElement[index].name;
 
     }
 
@@ -168,13 +209,13 @@ export class Instance extends InstancedMesh {
 
     setTransformAt( index, p, q, s ) {
 
-        this.tmpMatrix.compose({x:p[0], y:p[1], z:p[2]}, {_x:q[0], _y:q[1], _z:q[2], _w:q[3]}, {x:s[0], y:s[1], z:s[2]});
+        this.tmpMatrix.compose({ x:p[0], y:p[1], z:p[2] }, {_x:q[0], _y:q[1], _z:q[2], _w:q[3]}, {x:s[0], y:s[1], z:s[2]});
         this.tmpMatrix.toArray( this.instanceMatrix.array, index * 16 );
         this.needSphereUp = true;
 
         if( !this.outline ) return;
         if(this.currentOver === index ){
-            this.outline.matrix.copy(this.tmpMatrix)
+            this.outline.matrix.copy(this.tmpMatrix);
             this.outline.matrixWorldNeedsUpdate = true;
         }
 
@@ -188,6 +229,7 @@ export class Instance extends InstancedMesh {
         //this.instanceMatrix = null;
         this.instanceColor = null;
         this.count = 0;
+        this.tmpElement = [];
         //console.log(this.name+" is dispose")
         this.dispatchEvent( { type: 'dispose' } );
 

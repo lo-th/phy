@@ -21,7 +21,7 @@ function demo() {
     var i = 20, x;
     while(i--){
         x = (i*0.5)-4.5;
-        phy.add({ type:'ray', begin:[x*0.1,3,0], end:[x*0.1,1, 0], callback:Yoch, visible:true })
+        phy.add({ name:'R_'+i, type:'ray', begin:[x*0.1,3,0], end:[x*0.1,1, 0], callback:Yoch, visible:true })
     }
 
 
@@ -41,12 +41,15 @@ function demo() {
         spherical.set(1, phi, theta);
         p2.setFromSpherical(spherical);
 
-        phy.add({ type:'ray', name:'rr'+ i, begin:p1.toArray(), end:p2.toArray(), callback:Yoch, visible:true, parent:ball });
+        phy.add({ type:'ray', name:'B_'+ i, begin:p1.toArray(), end:p2.toArray(), callback:Yoch, visible:true, parent:ball });
 
     } 
 
     // update after physic step
-    phy.setPostUpdate ( up )
+    phy.setPostUpdate ( up );
+
+    // test delete one ray
+    phy.remove('R_9');
 
 };
 
