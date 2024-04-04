@@ -7,6 +7,7 @@ export const root = {
 	ArPos: {},
 
 	world : null,
+	timestep:1/60,
 	tmpStep:0,
 	delta : 0,
 	invDelta :0,

@@ -16,8 +16,8 @@ demo = () => {
         height:3,
         resolution:engine==='OIMO' ? 10 : 20,
         frequency : [2,0.3], // frequency of noise
-        level : [0.02,0.1], // influence of octave
-        expo: 1,
+        level : [0.02,0.2], // influence of octave
+        expo: 2,
     });
 
     phy.add({ 
@@ -26,7 +26,7 @@ demo = () => {
         shape: planet.geometry,
         material: planet.material,
         friction:0.2, 
-        restitution:1,
+        restitution:0.5,
     });
 
     //phy.add({ type:'highSphere', size:[2] });
@@ -44,7 +44,7 @@ demo = () => {
             math.rand(-Math.PI, Math.PI)
         )
 
-        s = math.rand(0.25, 0.5)
+        s = math.rand(0.25, 0.5);
 
         box[i] = phy.add({ 
             name:'box'+i, 
@@ -59,14 +59,14 @@ demo = () => {
             ],
             density:s, 
             friction:0.2, 
-            restitution:1,
+            restitution:0.5,
             damping:[0,0.8],
             material:'chrome'
         })
     }
 
-    // update after physic step
-    phy.setPostUpdate ( update )
+    // update on each physic step
+    phy.onStep = update;
 
 }
 
@@ -74,7 +74,7 @@ update = () => {
 
     var p, m, r = [];
     box.forEach( function( b, id ) {
-        p = b.position.clone().negate().normalize().multiplyScalar(0.01);
+        p = b.position.clone().negate().normalize().multiplyScalar(0.001);
         r.push( { name:b.name, force:p.toArray() } );
     });
 

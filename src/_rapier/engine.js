@@ -112,6 +112,8 @@ export class engine {
 		substep = o.substep || 1;
 		fixe = o.fixe !== undefined ? o.fixe : true;
 
+		root.timestep = timestep;
+
 		root.gravity = new Vec3().fromArray( o.gravity || [ 0, -9.81, 0 ] );
 
 		if( root.world === null ) engine.start();

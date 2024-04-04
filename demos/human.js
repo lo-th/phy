@@ -21,6 +21,8 @@ demo = () => {
 
     phy.add({ type:'plane', size:[300,1,300], visible:false });
 
+    //phy.add({ type:'box', size:[0.6,0.3,0.6], pos:[0.5,0.3*0.5,5]  });
+
     phy.load(['./assets/models/column.glb'], onComplete_1 );
     
 }
@@ -123,7 +125,7 @@ const Character = ( num = 1 ) => {
     let i = num, n = 0,  g;
     let pos = [0,0,5], angle = 0;
     let hh = [];
-    let gender =  [ 'man', 'woman'];
+    let gender =  ['man', 'woman'];
 
     while( i-- ){
 
@@ -140,7 +142,7 @@ const Character = ( num = 1 ) => {
             //ray: n===0,
             angle:angle,
             randomMorph:true,
-            randomSize:true,
+            //randomSize:true,
             
             morph:true,
             noLOD:true,

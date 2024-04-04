@@ -129,11 +129,11 @@ export class Body extends Item {
 
 		// The density of the shape, usually in Kg/m^3. def = 1
 		let density = o.density || 0;
-        //if( o.mass !== undefined ) density = MathTool.densityFromMass( o.mass, MathTool.getVolume( t, s, o.v ) )
+        if( o.mass !== undefined ) density = MathTool.densityFromMass( o.mass, MathTool.getVolume( t, s, o.v ) )
 
         //console.log( o.mass, density )
 
-        g.setDensity( density ) 
+        g.setDensity( density );
 
 
         //g.setMassProperties(mass: number, centerOfMass: Vector, principalAngularInertia: Vector, angularInertiaLocalFrame: Rotation)
@@ -349,7 +349,10 @@ export class Body extends Item {
 		//if( o.quat ) b.setRotation( this.q.fromArray( o.quat ), autowake )
 
 		// Applies the force `force` to `positionInWorld` in world position. [ 0,0,0,   0,0,0 ]
-		if( o.force ) b.addForce( this.v.fromArray( o.force ), autowake )
+		if( o.force ){ 
+			o.force = MathTool.scaleArray( o.force, root.timestep, 3 );
+			b.addForce( this.v.fromArray( o.force ), autowake )
+		}
 		if( o.worldForce ) b.addForceAtPoint( this.v.fromArray( o.worldForce ), this.v.fromArray( o.worldForce, 3 ), autowake )
 		if( o.torque ) b.addTorque( this.v.fromArray( o.torque ), autowake )
 
@@ -397,7 +400,7 @@ export class Body extends Item {
 			b.setAngvel( this.v.set( 0, 0, 0), false )
 		}
 
-		//if( o.massInfo ) this.getMassInfo( b );
+		if( o.massInfo ) this.getMassInfo( b );
 
 		//if( o.enableCCD !== undefined ) b.setCcdEnabled( o.enableCCD );
 

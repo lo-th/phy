@@ -33,6 +33,8 @@ export class Hero extends Basic3D {
 		let radius = o.radius || 0.3;
 		let height = o.height || 1.8;//0.7
 
+		this.realHeight = height;
+
 
 		if(this.useFloating){
 			height -= floatHeight
@@ -74,7 +76,7 @@ export class Hero extends Basic3D {
 			rayLength: radius + 2,
 			rayDir: { x: 0, y: -1, z: 0 },
 
-			floatingDis: radius + floatHeight,
+			floatingDis: radius + floatHeight + 0.08,
 			springK: 2, //1.2,
 			dampingC: 0.2,//0.08,
 			// Slope Ray setups
@@ -164,9 +166,9 @@ export class Hero extends Basic3D {
 
 		this.radius = radius;
 		this.height = height;
-		this.mass = 0.84//0.14
+		this.mass = o.mass || 0.84;
 		
-		delete o.radius
+		delete o.radius;
 
 		this.fall = false
 		this.floor = true
@@ -217,9 +219,26 @@ export class Hero extends Basic3D {
 
 	}
 
-	setHeight( H ){
+	setHeight( H ) {
 
-		if(this.model) this.model.setRealSize( H );
+		if( this.model ) this.model.setRealSize( H );
+
+	}
+
+	reSizePhysics( h ) {
+		
+		if( h === this.realHeight ) return;
+
+		this.realHeight = h;
+		this.height = this.realHeight - (this.useFloating ? this.option.floatHeight : 0);
+		let pos = this.position.toArray();
+		pos[1] += (this.height*0.5) + (this.useFloating ? this.option.floatHeight : 0);
+		let size = [ this.radius, this.height-(2*this.radius) ];
+
+		this.phyData.pos = pos;
+		this.phyData.size = size;
+
+		root.post({ m:'add', o:this.phyData });
 
 	}
 
@@ -233,52 +252,25 @@ export class Hero extends Basic3D {
 
 		if( this.globalRay ) root.items.body.geometry( { ...o, type:'capsule', ray:true }, this, Mat.get('hide') )
 
-		const phyData = {
+		this.phyData = {
 			name: this.name,
 			size: o.size,
 			pos: o.pos,
 			type: 'character',
 			shapeType: o.shapeType || 'capsule',
 			density: 1,//o.density || 1,
-			//mass: o.mass || 0.84, 
+			mass: this.mass, 
 			friction: o.friction !== undefined ? o.friction : 0.5,
 			angularFactor:[0,0,0],
 			group: 16,
-			//mask: o.mask !== undefined ? o.mask : 1|2,
 			regular:true,
 
 			massInfo: o.massInfo,
 		}
 
-		if( o.mask ) phyData['mask'] = o.mask;
+		if( o.mask ) this.phyData['mask'] = o.mask;
 
-		/*o.type = 'character';
-	    o.shapeType = o.shapeType || 'capsule';
-
-		o.density = o.density || 1;
-        o.friction = 0.1;//0.5;
-
-		o.angularFactor = [0,0,0];
-		o.group = 16;
-		//o.mask = o.mask !== undefined ? o.mask : 1|2
-		o.regular = true;
-		//o.filter = [1,-1,[1, 3, 4,5,9], 0];
-		//o.inertia = [0,0,0] 
-		//o.kinematic = true
-		//o.noGravity = true;
-
-
-		//o.move = false
-
-		//if( root.engine === 'JOLT' ) o.maxAngular = 0;
-		//if(root.engine==='JOLT') o.inertia = [0,0,0]
-
-		//console.log(root.engine)
-
-		//o.kinematic = true;
-
-		o.volume = MathTool.getVolume( 'capsule', o.size );
-		*/
+		//o.volume = MathTool.getVolume( 'capsule', o.size );
 	
 
 		// add to world
@@ -286,7 +278,7 @@ export class Hero extends Basic3D {
 
         // add capsule to physics
         //root.post({ m:'add', o:o });
-        root.post({ m:'add', o:phyData });
+        root.post({ m:'add', o:this.phyData });
 
         // add bottom RAY
         this.ray = root.motor.add({ type:'ray', name:this.name + '_ray', begin:[0,this.rayStart,0], end:[0,this.rayEnd, 0], callback:this.selfRay.bind(this), visible:false, parent:this.name });
@@ -637,7 +629,7 @@ export class Hero extends Basic3D {
 		const o = this.option;
 
 		const floatingForce = o.springK * (o.floatingDis - this.distance) - this.velocity.y * o.dampingC;
-		v.moveImpulse.y = floatingForce;
+		v.moveImpulse.y = floatingForce * (this.mass);
 
 	}
 

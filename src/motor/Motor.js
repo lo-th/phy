@@ -42,6 +42,9 @@ import { preloadAvatar } from '../3TH/character/Avatar.js';
 */
 
 const Version = {
+	
+	PHY: '0.0.1',
+
     OIMO: '1.2.4',
     AMMO: '3.0',
     PHYSX: '5.03.01',
@@ -110,13 +113,21 @@ const settings = {
 
 export class Motor {
 
-	static math = MathTool
-	static RayCar = RayCar
+	static math = MathTool;
+	static RayCar = RayCar;
+	static version = Version.PHY;
+
+	/*get onFrame() {
+        return this._name;
+    }*/
+    //static version( f ) { return Version.PHY; }
+
+    static set onStep( f ) { postUpdate = f; }
 
 	static debugMode ( b ) { Motor.setDebugMode(b); }
 	static setDebugMode ( b ) { 
 
-		console.log('debugMode is', b )
+		//console.log('debugMode is', b )
 		root.debug = b;
 
 	}

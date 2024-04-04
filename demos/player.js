@@ -130,6 +130,7 @@ const addHero = () => {
         
         radius: 0.3,
         pos: pos,
+        //mass:75,
         //ray: n===0,
         angle:angle,
 
@@ -141,7 +142,7 @@ const addHero = () => {
         useImpulse:true,
         floating:true,
         
-        //massInfo:true,
+        massInfo:true,
         //debug:true,
 
     });
