@@ -15,7 +15,7 @@ let player = null;
 let t1 = 0;
 
 const setting = {
-    debug:false,
+    debug:true,
 };
 
 
@@ -142,7 +142,7 @@ const addHero = () => {
         useImpulse:true,
         floating:true,
         
-        massInfo:true,
+        //massInfo:true,
         //debug:true,
 
     });

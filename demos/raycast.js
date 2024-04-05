@@ -1,4 +1,7 @@
-var ball, raytest;
+let ball, raytest, raylist = [];
+const setting = {
+    selfRay: true
+}
 
 function demo() {
 
@@ -26,30 +29,13 @@ function demo() {
 
 
     // or ray can be attach to any mesh
-    var spherical = new THREE.Spherical();
-    var p1 = new THREE.Vector3();
-    var p2 = new THREE.Vector3();
-
-    var i = 60;
-
-    while( i-- ){
-
-        var theta = math.rand( -180, 180 ) * math.torad;
-        var phi = math.rand( -180, 180 )  * math.torad;
-        spherical.set(0.2, phi, theta);
-        p1.setFromSpherical(spherical);
-        spherical.set(1, phi, theta);
-        p2.setFromSpherical(spherical);
-
-        phy.add({ type:'ray', name:'B_'+ i, begin:p1.toArray(), end:p2.toArray(), callback:Yoch, visible:true, parent:ball });
-
-    } 
+    attachRay( setting.selfRay );
 
     // update after physic step
     phy.setPostUpdate ( up );
 
-    // test delete one ray
-    phy.remove('R_9');
+    // little gui
+    addGui()
 
 };
 
@@ -68,9 +54,53 @@ function Yoch( o ){
 
 }
 
+function attachRay( b ){
+
+    if(b){
+
+        let spherical = new THREE.Spherical();
+        let p1 = new THREE.Vector3();
+        let p2 = new THREE.Vector3();
+        let i = 60, theta, phi;
+
+        while( i-- ){
+            theta = math.rand( -180, 180 ) * math.torad;
+            phi = math.rand( -180, 180 )  * math.torad;
+            spherical.set(0.2, phi, theta);
+            p1.setFromSpherical(spherical);
+            spherical.set(1, phi, theta);
+            p2.setFromSpherical(spherical);
+            phy.add({ type:'ray', name:'B_'+ i, begin:p1.toArray(), end:p2.toArray(), callback:Yoch, visible:true, parent:ball });
+            raylist.push( 'B_'+ i );
+        }
+
+    } else {
+
+        let i = raylist.length;
+        if(i){
+
+            phy.remove(raylist);
+            raylist = [];
+
+        }
+
+    }
+
+    
+
+}
+
 function up () {
 
     // if ball position y is under 10, ball is replaved and velocity reset
     if( ball.position.y<0.34 ) phy.change( { name:'ball', pos: [ math.rand(-0.4,0.4),5,-2.5 ], rot:[math.randInt(-180,180),0,math.randInt(-180,180)], reset:true } )
 
+}
+
+
+const addGui = () => {
+
+    gui = phy.gui();
+    gui.add( setting, 'selfRay',{}).onChange( attachRay );
+    
 }

@@ -513,8 +513,9 @@ export class engine {
 	static remove ( o = {} ){
 
 		let b = this.byName( o.name );
-		if( b === null ) return;
-		items[b.type].clear( b )
+		// TODO verifie if is alway work !!
+		if( b ) items[o.type ? o.type : b.type].clear( b );
+		//if( b ) items[type].clear( b )
 
 	}
 

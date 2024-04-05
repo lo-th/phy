@@ -25,8 +25,12 @@ demo = () => {
 
 onComplete = () => {
 
+    let mat = phy.material({ name:'noctua', roughness: 0.5, metalness: 0, color:0x551705 })
+
     const model = phy.getMesh('fan')
-    const shapes = []
+    const shapes = [];
+
+    model.fan.children[0].material = mat;
 
     let i = 7
     let r = 360/7
@@ -47,7 +51,7 @@ onComplete = () => {
         pos:[0,1,0],
         shapes:shapes,
         mesh:model.fan,
-        material:'black',
+        material:'noctua',
         restitution:0, 
         friction:0.5,
         kinematic:true,
@@ -79,10 +83,10 @@ onComplete = () => {
     j = 500;
     while(j--){
 
-        s = 0.2//math.rand( 0.2, 0.4 )
+        s = math.rand( 0.15, 0.25 )
         a = math.rand(-Math.PI, Math.PI)
         d = math.rand(2, 6)
-        y = math.rand(s, s*30)
+        y = math.rand(s, s*100)
         m = phy.add({ 
             instance:'sph',
             material:'body',
@@ -100,7 +104,8 @@ onComplete = () => {
 
     }
 
-    phy.setPostUpdate( update )
+    // update on each physic step
+    phy.onStep = update;
 
     phy.gui([
         { obj:option, name:"speed", min:0, max:1,  }

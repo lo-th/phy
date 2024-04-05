@@ -86,7 +86,11 @@ export class Body extends Item {
 			// update position / rotation / velocity
 
 		    if( b.isInstance ){ 
-		    	if( b.speedMat ) b.instance.setColorAt( b.id, [ Math.abs(AR[n+8])*0.5, Math.abs(AR[n+9])*0.5, Math.abs(AR[n+10])*0.5] );
+		    	if( b.speedMat ){ 
+		    		//b.instance.setColorAt( b.id, [ Math.abs(AR[n+8])*0.5, Math.abs(AR[n+9])*0.5, Math.abs(AR[n+10])*0.5] );
+		    		let v = AR[n]/255; //MathTool.lengthArray([AR[n+8], AR[n+9], AR[n+10]]) * 0.062;
+		    		b.instance.setColorAt( b.id, [ v,v,v ] );
+		    	}
 		    	b.instance.setTransformAt( b.id, [AR[n+1],AR[n+2],AR[n+3]], [AR[n+4],AR[n+5],AR[n+6],AR[n+7]], b.noScale ? [1,1,1] : b.size );
 		    	b.position = {x:AR[n+1], y:AR[n+2], z:AR[n+3]};
 		    	///b.quaternion = {x:AR[n+4], y:AR[n+5], z:AR[n+6], w:AR[n+7]}
@@ -590,7 +594,8 @@ export class Body extends Item {
 
 	    // enable or disable raycast
 	    b.isRay = true//b.type === 'body' || b.isButton ? true : false
-	    if( o.ray !== undefined ) b.isRay = o.ray; 
+	    //if( o.ray !== undefined ) b.isRay = o.ray; 
+	    if( o.ray !== undefined ) b.setRaycast( o.ray )
 	    if( !o.instance ) b.setRaycast()
 
 

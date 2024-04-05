@@ -863,7 +863,7 @@ export class Motor {
 		let b = Motor.byName( name );
 		if( b === null ) return;
 
-		if( b.extraRemove ) b.extraRemove()
+		if( b.extraRemove ) b.extraRemove();
 
 		// remove on three side
 		items[b.type].clear( b );

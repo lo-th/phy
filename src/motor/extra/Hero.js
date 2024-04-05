@@ -21,8 +21,8 @@ export class Hero extends Basic3D {
 		super()
 
 		this.isCharacter = true;
-
 		this.isPlayer = false;
+		this.enable = false
 
 		this.useImpulse = o.useImpulse || false;
 		this.useFloating = o.floating || false;
@@ -281,18 +281,20 @@ export class Hero extends Basic3D {
         root.post({ m:'add', o:this.phyData });
 
         // add bottom RAY
-        this.ray = root.motor.add({ type:'ray', name:this.name + '_ray', begin:[0,this.rayStart,0], end:[0,this.rayEnd, 0], callback:this.selfRay.bind(this), visible:false, parent:this.name });
+        if( this.useFloating ) this.ray = root.motor.add({ type:'ray', name:this.name + '_ray', begin:[0,this.rayStart,0], end:[0,this.rayEnd, 0], callback:this.selfRay.bind(this), visible:false, parent:this.name });
 
 
         // add skinning character model
         if( o.gender ) this.addModel( o );
         else this.showHelper( true );
+
+        this.enable = true;
 		
 	}
 
 	extraRemove(){
-		// TODO bug with delete ray !!
-		root.motor.remove( this.name + '_ray' )
+		// TODO bug with delete ray ?!
+		if( this.ray ) root.motor.remove( this.name + '_ray' );
 	}
 
 	/*clear(){
@@ -397,7 +399,7 @@ export class Hero extends Basic3D {
 	}
 
 	raycast(){
-		return// false;
+		return;// false;
 	}
 
 	/*preStep(){
@@ -471,7 +473,7 @@ export class Hero extends Basic3D {
 
 		//console.log('set', o)
 		if(o.morph){
-			if(this.model) this.model.setMorph( o.morph, o.value )
+			if(this.model) this.model.setMorph( o.morph, o.value );
 		}
 
 	}
@@ -484,6 +486,9 @@ export class Hero extends Basic3D {
 		if( this.skeletonBody ) this.skeletonBody.dispose()
 		if( this.model ) this.model.dispose()
 		if( this.helper ) this.showHelper()
+
+		//if( this.ray ) root.motor.remove( this.name + '_ray' );
+	    //this.ray = null;
 
 		//this.ray.dispose()
 

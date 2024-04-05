@@ -86,6 +86,8 @@ export class ExtraRay extends Line {
 
 	    super( new BufferGeometry(), Mat.get('line') );
 
+	    this.isRay = true;
+
 	    this.data = {
 
 			hit:false,
@@ -101,7 +103,7 @@ export class ExtraRay extends Line {
 	    this.type = 'ray';
 	    this.name = o.name;
 
-	    this.parentMesh = null
+	    this.parentMesh = null;
 	    if(o.parent){
 	    	this.parentMesh = typeof o.parent === 'string' ?  Utils.byName( o.parent ) : o.parent;
 	    	this.data.parent = this.parentMesh;
@@ -207,9 +209,12 @@ export class ExtraRay extends Line {
 	}
 
 	dispose(){
-		console.log('ray delete')
+		
 		this.callback = null;
-		this.geometry.dispose()
+		this.parentMesh = null;
+		this.data = {}
+		this.geometry.dispose();
+
 	}
 
 	raycast(){
@@ -254,4 +259,4 @@ export class ExtraRay extends Line {
 
 }
 
-ExtraRay.prototype.isRay = true;
+//ExtraRay.prototype.isRay = true;

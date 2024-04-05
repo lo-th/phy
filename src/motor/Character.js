@@ -35,7 +35,8 @@ export class Character extends Item {
 
 			s = this.list[i];
 			n = N + ( i * this.num );
-			s.step( AR, n );
+
+			if(s) s.step( AR, n );
 
 		}
 
@@ -53,7 +54,6 @@ export class Character extends Item {
 
 		if( b === null ) b = this.byName( o.name );
 		if( b === null ) return;
-
 		b.set(o);
 
 	}

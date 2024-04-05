@@ -626,7 +626,11 @@ class Basic3D extends EventDispatcher {
 		if( v !== undefined ) this.isRay = v
 		if(!this.isRay){
 			let i =  this.children.length
-			while( i-- ) this.children[i].raycast = () => {}
+			while( i-- ) {
+				let j =  this.children[i].children.length;
+				while( j-- ) this.children[i].children[j].raycast = () => {} 
+				this.children[i].raycast = () => {}
+			}
 		}
 	}
 
