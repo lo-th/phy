@@ -76,6 +76,15 @@ const M = {
     rand: ( low = 0, high = 1 ) => ( low + Math.random() * ( high - low ) ),
     randInt: ( low, high ) => ( low + Math.floor( Math.random() * ( high - low + 1 ) ) ),
 
+    randIntUnic:  ( low, high, num ) => {
+        var arr = [];
+        while( arr.length < num ){
+            var r = M.randInt(low, high);
+            if( arr.indexOf(r) === -1 ) arr.push(r);
+        }
+        return arr;
+    },
+
     //-----------------------
     //  MATRIX
     //-----------------------

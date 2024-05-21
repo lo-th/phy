@@ -353,7 +353,7 @@ export class Hero extends Basic3D {
 
     }
 
-    debugMode( v ){
+    debugMode( v = false ){
 
     	if( this.skeletonBody ) this.skeletonBody.isVisible(v)
     	//if( this.model ) this.model.setMaterial( { wireframe: v, visible:!v })
@@ -787,7 +787,7 @@ export class Hero extends Basic3D {
 
 		if( this.helper ){ 
 
-			//this.helper.updateMatrix()
+			this.helper.updateMatrix()
 			this.helper.cone.rotation.y = azimut//angle
 			if( anim !== 'idle' ) this.helper.setDirection( angle ) 
 

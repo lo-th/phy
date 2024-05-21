@@ -68,7 +68,7 @@ export const GlbTool = {
             		Mats[m.name] = m;
             		
             		if( toArray ){
-                        n = Number( m.name.substring( 0, m.name.lastIndexOf('_') )  )
+                        n = Number( m.name.substring( 0, m.name.lastIndexOf('_') ) )
                         mats[n] = m
                     }
             	} else {
@@ -108,8 +108,8 @@ export const GlbTool = {
 			g[i].forceMatId = n;
 		}
 
-		let mesh = new THREE.Mesh( new mergeGeometries( g, true ), autoMaterial )
-		mesh.name = group.name
+		let mesh = new THREE.Mesh( new mergeGeometries( g, true ), autoMaterial );
+		mesh.name = group.name;
 
 		return mesh
 
@@ -133,7 +133,6 @@ export const GlbTool = {
 
     uv2: ( g ) => {
 
-
 		if( g.isMesh ) g = g.geometry;
         g.setAttribute( 'uv2', g.attributes.uv );
 
@@ -147,7 +146,7 @@ export const GlbTool = {
         mod.traverse( ( node ) => { 
             if ( node.isMesh && node.name.search('__M__') !== -1){ 
             	morph[ node.name ] = node.geometry;
-            	tmpMesh.push(node)
+            	tmpMesh.push(node);
             }
         })
 

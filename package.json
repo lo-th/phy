@@ -1,13 +1,20 @@
 {
   "name": "phy",
-  "version": "0.0.2",
-  "description": "JavaScript 3D Physics",
+  "version": "0.1.0",
+  "description": "JavaScript 3D Physics for three.js",
   "main": "build/Main.js",
-  "repository": "lo-th/phy",
   "jsnext:main": "build/phy.module.js",
-  "module": "build/phy.module.js",
+  "module": "./build/phy.module.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/lo-th/phy"
+  },
   "files": [
-    "package.json"
+    "package.json",
+    "LICENSE",
+    "README.md",
+    "compact",
+    "build"
   ],
   "directories": {
     "demos": "demos"
@@ -16,7 +23,7 @@
     "extends": "mdcs"
   },
   "scripts": {
-    "build": "npm run phy && npm run oimo && npm run ammo && npm run physx && npm run havok && npm run rapier && npm run cannon",
+    "build": "npm run phy && npm run oimo && npm run ammo && npm run physx && npm run havok && npm run rapier && npm run jolt",
     "main": "rollup -c rollup/rollup.config.main.js",
     "smoke": "rollup -c rollup/rollup.config.smoke.js",
     "phy": "rollup -c rollup/rollup.config.phy.js",
@@ -53,8 +60,5 @@
     "rollup": "^2.39.0",
     "rollup-plugin-terser": "^7.0.2",
     "servez": "^1.11.0"
-  },
-  "dependencies": {
-    "@rollup/plugin-commonjs": "^25.0.4"
   }
 }

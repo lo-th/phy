@@ -34,21 +34,20 @@ export class SkeletonBody extends Object3D {
 
         this.withFinger = false
 
-        this.nodes = []
+        this.nodes = [];
 		this.bones = character.model.skeleton.bones;
 		this.model = character.model.root;
-        this.posRef = {}
-        this.quatRef = {}
+        this.posRef = {};
+        this.quatRef = {};
 
         this.useSolver = false 
-        if( root.engine!=='PHYSX' ) this.useSolver = false
+        if( root.engine!=='PHYSX' ) this.useSolver = false;
 
-        this.nameList = []
-        this.jointList = []
+        this.nameList = [];
+        this.jointList = [];
 
-        this.breast = false
-
-        this.ready = false
+        this.breast = false;
+        this.ready = false;
 
 		this.init()
 
@@ -68,14 +67,13 @@ export class SkeletonBody extends Object3D {
         while( i-- ){
 
             node = this.nodes[i]
-
             data.push( { name : node.name, kinematic:kinematic } )
             node.kinematic = kinematic
             node.bone.isPhysics = !kinematic;
             
         }
 
-        root.motor.change( data )
+        root.motor.change( data );
 
     }
 
@@ -84,8 +82,8 @@ export class SkeletonBody extends Object3D {
         if(!node.kinematic) return
         node.cc++
         if(node.cc=== 20 ){
-            node.cc = 0
-            node.kinematic = false
+            node.cc = 0;
+            node.kinematic = false;
             node.bone.isPhysics = true;
             root.motor.change( { name : node.name, kinematic:false } )
         }
@@ -97,13 +95,13 @@ export class SkeletonBody extends Object3D {
         //let i = this.nodes.length, node
         //while( i-- ) Utils.byName( this.nodes[i].name ).visible = v
 
-        let i = this.nameList.length, node
-        while( i-- ) Utils.byName( this.nameList[i] ).visible = v
+        let i = this.nameList.length, node;
+        while( i-- ) Utils.byName( this.nameList[i] ).visible = v;
 
         let data = []
-        i = this.jointList.length
-        while( i-- ) data.push( { name:this.jointList[i], visible:v } )
-        root.motor.change( data )
+        i = this.jointList.length;
+        while( i-- ) data.push( { name:this.jointList[i], visible:v } );
+        root.motor.change( data );
 
     }
 
@@ -509,7 +507,9 @@ export class SkeletonBody extends Object3D {
 
         }
 
-        if( up.length !== 0 ) root.motor.change( up, true )
+        //console.log(up)
+
+        if( up.length !== 0 ) root.motor.change( up, true );
 
 	}
 

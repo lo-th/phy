@@ -30,8 +30,8 @@ export class Body extends Item {
 		this.Utils = Utils
 		this.type = 'body';
 		this.num = Num[this.type];
-		this.full = false
-		this.extraConvex = false
+		this.full = false;
+		this.extraConvex = false;
 		this.needMatrix = root.engine ==='RAPIER' || root.engine ==='HAVOK'
 		//this.tmpVolume = 0
 
@@ -364,7 +364,7 @@ export class Body extends Item {
     		return g
     	}
 
-    	if( o.meshRemplace && o.debug ) material = Mat.get( 'debug' )
+    	if( o.meshRemplace && o.debug ) material = Mat.get( 'debug' );
     	//if( o.debug ) material = Mat.get( 'debug' )
     	//if( o.helper ) material = Mat.get( 'hide' )
 
@@ -372,9 +372,9 @@ export class Body extends Item {
 
     	//console.log( material.name )
 
-		let m = new Mesh( g, material )
+		let m = new Mesh( g, material );
 
-		if( o.button ) m.isButton = true
+		if( o.button ) m.isButton = true;
 
 		//if( o.helper ) m.add( new LineSegments( new CapsuleHelperGeometry( s[ 0 ], s[ 1 ] ),  Mat.get( 'line' ) ))
 		if( o.helper ) {
@@ -382,7 +382,10 @@ export class Body extends Item {
 			let hcolor = o.hcolor || [0.3,0.1,0.0];
 			let hcolor2 = o.hcolor2 || [0.8,0.2,0.0];
 
+			// TODO bug with character
+
 			m.add( new CapsuleHelper( s[ 0 ], s[ 1 ]+(s[ 0 ]*2), false, Mat.get( 'line' ), hcolor, hcolor2, true ))
+			//m = new CapsuleHelper( s[ 0 ], s[ 1 ]+(s[ 0 ]*2), false, Mat.get( 'line' ), hcolor, hcolor2, true )
 			//m.material.visible = false
 
 		}
@@ -651,8 +654,6 @@ export class Body extends Item {
 		    b.link = 0;
 		    if( this.needMatrix ) b.matrixWorld = new Matrix4();
 
-
-
 			// for convex
 			if(b.instance.v) o.v = b.instance.v;
 			if(b.instance.index) o.index = b.instance.index;
@@ -785,20 +786,18 @@ export class Body extends Item {
 		    b.position = {x:o.pos[0], y:o.pos[1], z:o.pos[2]}
 
 		}else{*/
-			if( o.pos ) b.position.fromArray( o.pos )
-		    if( o.quat ) b.quaternion.fromArray( o.quat )
+			if( o.pos ) b.position.fromArray( o.pos );
+		    if( o.quat ) b.quaternion.fromArray( o.quat );
 
-		    b.auto = o.auto || false
+		    b.auto = o.auto || false;
 
 		    if( !b.auto ) {
-		    	b.matrixAutoUpdate = false
-			    b.updateMatrix()
+		    	b.matrixAutoUpdate = false;
+			    b.updateMatrix();
 			} else {
-				b.matrixAutoUpdate = true
+				b.matrixAutoUpdate = true;
 			}
 		//}
-
-		
 
 	}
 

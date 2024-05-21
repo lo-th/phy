@@ -251,7 +251,7 @@ const lights_pars_begin = THREE.ShaderChunk.lights_pars_begin.replace(
 //const lightmap_fragment = THREE.ShaderChunk.lightmap_fragment.replace("USE_LIGHTMAP", "false")
 
 const lights_fragment_maps = THREE.ShaderChunk.lights_fragment_maps.replace("irradiance += lightMapIrradiance;", "if(!enableESL) irradiance += lightMapIrradiance;")
-const lightmap_fragment = THREE.ShaderChunk.lightmap_fragment.replace("reflectedLight.indirectDiffuse += lightMapIrradiance;", "if(!enableESL) reflectedLight.indirectDiffuse += lightMapIrradiance;")
+//const lightmap_fragment = THREE.ShaderChunk.lightmap_fragment.replace("reflectedLight.indirectDiffuse += lightMapIrradiance;", "if(!enableESL) reflectedLight.indirectDiffuse += lightMapIrradiance;")
 
 
 const toFloat32 = number => {
@@ -394,8 +394,8 @@ export function EnhanceLighting( shader,
 		.replace("#include <aomap_fragment>", aomap_fragment)
 		.replace("#include <lights_pars_begin>", lights_pars_begin)
 		.replace("#include <lights_fragment_maps>", lights_fragment_maps)
-		.replace("#include <lightmap_fragment>", lightmap_fragment)
-		//.replace("#include <map_fragment>", map_fragment)
+		//.replace("#include <lightmap_fragment>", lightmap_fragment) // NO MORE LIGHTMAP IN LAST THREE 
+		//.replace("#include <map_fragment>", map_fragment) 
         .replace( "diffuseColor *= sampledDiffuseColor;", new_map_fragment )
 
 		.replace("#include <envmap_physical_pars_fragment>", THREE.ShaderChunk.envmap_physical_pars_fragment)

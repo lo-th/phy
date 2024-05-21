@@ -6,11 +6,25 @@ const _vector = /*@__PURE__*/ new Vector3();
 
 class CapsuleHelper extends Object3D {
 
+	
+
 	constructor( r, h, useDir, material, c1 = [0,1,0], c2 = [0,0.5,0], full = false ) {
+
+		
 
 		super();
 
+
+		// TODO bug with hero skeleton !! create new CapsuleHelper on over ??
+		if(!r) return
+		if(!h) return
+
+		
+
+		//this.name = 'caps'
+
 		//this.light = light;
+
 
 		//this.matrix = light.matrixWorld;
 		this.matrixAutoUpdate = false;
@@ -20,7 +34,7 @@ class CapsuleHelper extends Object3D {
 		const geometry = new BufferGeometry();
 
 		let py = (h*0.5)-r
-		let side = 32
+		let side = 32;
 		let dir = r*0.2
 
 		let colors = [];
@@ -30,6 +44,8 @@ class CapsuleHelper extends Object3D {
 		    -r, py, 0 ,   -r, -py, 0,
 		    0, py, r-dir ,   0, py, r+dir,
 		];
+
+		//console.log( r )
 
 		colors.push(
 			...c1,...c2,
@@ -99,13 +115,20 @@ class CapsuleHelper extends Object3D {
 
 		}
 
+		//console.log( positions )
+
 		geometry.setAttribute( 'position', new Float32BufferAttribute( positions, 3 ) );
 		geometry.setAttribute( 'color', new Float32BufferAttribute( colors, 3 ) );
 
+		geometry.computeBoundingSphere()
+
 		//const material = new LineBasicMaterial( { color:0x00ff00, fog: false, toneMapped: false } );
 
+
+		//this.geometry = geometry
 		this.cone = new LineSegments( geometry, material );
 		this.cone.raycast = function(){return}
+		this.cone.name = 'cone'
 		this.add( this.cone );
 
 		if(!useDir) return
@@ -161,7 +184,7 @@ class CapsuleHelper extends Object3D {
 	}
 
 	raycast(){
-		return 
+		return
 	}
 
 	update() {

@@ -14,7 +14,7 @@
 		<script type="importmap">
 			{
 				"imports": {
-					"three": "./src/libs/three.module.min.js"
+					"three": "./src/libs/three.module.js"
 				}
 			}
 		</script>
@@ -25,15 +25,24 @@
 			import { OrbitControls } from './src/jsm/controls/OrbitControls.js';
 			import { RGBELoader } from './src/jsm/loaders/RGBELoader.js';
 
-			import { phy } from './build/Phy.module.js';
+			import { phy, math } from './build/Phy.module.js';
 
-			const motor = 'PHYSX';
+			//const motor = 'PHYSX';
+			//const motor = 'OIMO';
 			//const motor = 'HAVOK';
+			const motor = 'JOLT';
+
+			console.log(math.rand())
+
+			//const math = phy.math;
 
 			let camera, scene, renderer, controler, text;
+			let needResize = false; 
 
 			init();
 			animate();
+
+			// THREE
 
 			function init() {
 
@@ -67,7 +76,7 @@
 						initEngine();
 					})
 
-				window.addEventListener( 'resize', onWindowResize );
+				window.addEventListener( 'resize', () => { needResize = true; }, false );
 
 				text = document.createElement( 'div' );
 				text.style.cssText = "position:absolute; top:30px; left:30px; color:#7c806c; color:#CCCCCC; text-shadow: 1px 1px 1px #000; pointer-events:none; font-size:20px; font-family:Monospace;"
@@ -76,17 +85,23 @@
 
 			}
 
-			function onWindowResize() {
+			function resize() {
 
+				if(!needResize) return;
 				camera.aspect = window.innerWidth / window.innerHeight;
 				camera.updateProjectionMatrix();
 				renderer.setSize( window.innerWidth, window.innerHeight );
+				needResize = false;
 
 			}
+
+			//  LOOP
 
 			function animate( stamp = 0 ) {
 
 				requestAnimationFrame( animate );
+
+				resize();
 				phy.doStep( stamp );
 				renderer.render( scene, camera );
 
@@ -97,7 +112,7 @@
 			function initEngine() {
 
 				// use compact version of physic engine in /compact folder 
-				phy.init( { type:motor, worker:false, compact:true, callback:startDemo, scene:scene } )
+				phy.init({ type:motor, worker:false, compact:true, callback:startDemo, scene:scene });
 
 			}
 
@@ -150,7 +165,6 @@
 				}
 
 			}
-
 
 
 		</script>

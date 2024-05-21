@@ -121,6 +121,8 @@ class Basic3D extends EventDispatcher {
 		if( !this.overMaterial ) return;
 		if( !this.children[0].isMesh ) return;
 
+		//console.log(this.children[0])
+
 		this.outline = new Mesh().copy( this.children[0] );
 		//this.outline.geometry.computeVertexNormals()
 		this.outline.geometry.normalizeNormals()

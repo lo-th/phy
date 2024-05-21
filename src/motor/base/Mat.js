@@ -284,6 +284,14 @@ export const Mat = {
 
 	},
 
+	directIntensity: ( v ) => {
+
+		for( let name in mat ) {
+			if( mat[name].envMapIntensity ) mat[name].envMapIntensity = v;
+		}
+		
+	},
+
 	setEnvmapIntensity: ( v ) => {
 
 		//console.log('set', v)
@@ -297,10 +305,12 @@ export const Mat = {
 
 	upEnvmapIntensity: ( m ) => {
 
-		//console.log('HH', m.name, Mat.envMapIntensity)
+		
 
 		if( !m.userData.envp ) m.userData.envp = m.envMapIntensity;
 		m.envMapIntensity = m.userData.envp * Mat.envMapIntensity;
+
+		//console.log('HH', m.name, m.envMapIntensity)
 		
 	},
 	

@@ -50,8 +50,10 @@ const Version = {
     PHYSX: '5.03.01',
     RAPIER: '0.11.2',
     HAVOK: '1.3.0',
-    JOLT: '0.20.0',
+    JOLT: '0.23.0',
 }
+
+let scriptDir = undefined;
 
 const items = {};
 
@@ -111,10 +113,14 @@ const settings = {
 	
 }
 
+//const testUrl = new URL('../../compact/Havok.hex', import.meta.url).toString();
+
 export class Motor {
 
 	static math = MathTool;
+	static pool = Pool;
 	static RayCar = RayCar;
+	
 	static version = Version.PHY;
 
 	/*get onFrame() {
@@ -270,19 +276,26 @@ export class Motor {
 
 	static init ( o = {} ) {
 
+		scriptDir = typeof document !== 'undefined' && document.currentScript ? document.currentScript.src : undefined;
+
+		//console.log('yoo', scriptDir, testUrl )
+
 		tt.start = Timer.now();
 
 		const compact = o.compact || false;
 
 		// TODO find better solution
 		let url = document.location.href.replace(/\/[^/]*$/,"/");
-		var arr = url.split("/");
+		let arr = url.split("/");
 		url = arr[0] + "//" + arr[2] + '/';
 
 		if( url === 'https://lo-th.github.io/' ) url = 'https://lo-th.github.io/phy/';
 
-		let path = o.path || 'build/';
-		const useMin = o.useMin || false;
+		let path = o.path || '';
+		path += compact ? 'compact/' : 'build/';
+
+
+		//const useMin = o.useMin || false;
 		const wasmLink = {
 		    /*Ammo: path + 'ammo.wasm.js',
 		    Physx: path + 'physx-js-webidl.js',
@@ -325,8 +338,7 @@ export class Motor {
 		root.motor = Motor;
 
 		if( compact ){
-			
-			path = o.path || 'compact/';
+
 			Pool.load( url + path + mini + '.hex', function(){ Motor.onCompactDone(o)} )
 
 		} else {
@@ -345,7 +357,6 @@ export class Motor {
 				let ab = new ArrayBuffer( 1 );
 				worker.postMessage( { m: 'test', ab:ab }, [ ab ] );
 				isBuffer = ab.byteLength ? false : true;
-
 
 				o.isBuffer = isBuffer;
 				//console.log( st + ' Worker '+ type + (o.isBuffer ? ' with Shared Buffer' : '') );
@@ -1045,6 +1056,8 @@ export class Motor {
 
 	static addMaterial( m, direct ){ Mat.set( m, direct ); }
 
+	static directIntensity ( v ) { Mat.directIntensity(v); }
+
 	static setEnvmapIntensity ( v ) { Mat.setEnvmapIntensity(v); }
 
 	static getMat( name ){ return Mat.get( name ) }
@@ -1058,15 +1071,21 @@ export class Motor {
 	//
 	//-----------------------
 
+	static load = Pool.load; // ( Urls, Callback, Path = '', msg = '' )
+	static get = Pool.get; // ( name, type )
+	static getGlb = Pool.getGLB;
+	static getGroup = Pool.getGroup;
+	static getScript = Pool.getScript;
+
 	static preload ( Urls, Callback ){
 
 		preloadAvatar.add( Urls, Callback );
 		//Pool.load( Urls, Callback, Path, msg )
 	}
 
-	static load ( Urls, Callback, Path = '', msg = '' ){
+	/*static load ( Urls, Callback, Path = '', msg = '' ){
 		Pool.load( Urls, Callback, Path, msg );
-	}
+	}*/
 
 	// TODO ?? 
 
@@ -1075,8 +1094,6 @@ export class Motor {
 		await Pool.loadAsync( Urls, Path, msg );
 
 	}
-
-	
 
 	static applyMorph ( modelName, meshs = null, normal = true, relative = true ){
 		Pool.applyMorph( modelName, meshs = null, normal = true, relative = true );
@@ -1092,27 +1109,20 @@ export class Motor {
 		return Pool.getMesh( obj, keepMaterial );
 	}
 
-	static getGroup ( obj, autoMesh, autoMaterial ){
+	/*static getGroup ( obj, autoMesh, autoMaterial ){
 		return Pool.getGroup( obj, autoMesh, autoMaterial );
 	}
 
 	static getGlb ( obj, autoMaterial ){
 		return Pool.getGLB( obj, autoMaterial );
-	}
+	}*/
+
+	
 
 	static getGlbMaterial ( obj ){
 		let ms = Pool.getMaterials( obj );
 		Mat.addToMat( ms );
 		return ms;
-	}
-
-
-	static getScript ( name ){
-		return Pool.getScript( name );
-	}
-
-	static get ( name, type ){
-		return Pool.get( name, type );
 	}
 
 	static poolDispose (){
@@ -1160,9 +1170,9 @@ export class Motor {
 
 	static addButton (o) {
 
-		let b = new Button( o )
-		buttons.push( b )
-		return b//.b
+		let b = new Button( o );
+		buttons.push( b );
+		return b
 
 	}
 
@@ -1214,7 +1224,7 @@ export class Motor {
 
 	static explosion ( position = [0,0,0], radius = 10, force = 1 ){
 
-		let r = []
+		let r = [];
 	    let pos = new Vector3();
 
 	    if( position ){

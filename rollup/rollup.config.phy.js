@@ -47,7 +47,6 @@ export default [
 		input: 'src/Phy.js',
 		external: ['three'],
 		plugins: [
-		terser()
 		],
 		output: [
 			{

@@ -103,11 +103,14 @@ export const Pool = {
     get: ( name, type = '' ) => ( Pool.data.get( Pool.prefix( type ) + name ) ),
 
     set: ( name, node, type = '', direct ) => {
+        if( !node ){ 
+            console.log('Loading error on ' + name); 
+            return; 
+        }
         if( node.isMaterial ){ 
             type = 'material';
             node.name = name;
-
-            Pool.materialRoot( node, direct )
+            Pool.materialRoot( node, direct );
         }
         if( node.isTexture ) type = 'texture';
         if( node.isObject3D ) type = 'object3d';
