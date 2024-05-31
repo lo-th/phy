@@ -25,7 +25,7 @@ demo = () => {
 
 
     createLongChain();
-    createScissorLift()
+    //createScissorLift()
 
     // update after physic step
     phy.setPostUpdate( update )
@@ -297,12 +297,12 @@ createScissorLift = () => {
 
 			rightParentRot = rightRot;
 
-			phy.add({ 
-		        type:'joint', jointType:'d6', 
+			/*phy.add({ 
+		        type:'joint', mode:'d6', 
 		        b1:leftLink.name, b2:rightLink.name, 
 		        motions:[ ['swing1', 'free'], ['swing2', 'free'], ['twist', 'free'] ],
 		        noFix:true
-		    });
+		    });*/
 
 			currLeft = rightLink;
 			currRight = leftLink;
@@ -336,8 +336,8 @@ createScissorLift = () => {
 
 	}
 
-	phy.add({ 
-        type:'joint', jointType:'d6', 
+	/*phy.add({ 
+        type:'joint', mode:'d6', 
         b1:currLeft.name, b2:'leftTop', 
         pos1:[ 0, 0, -1 ], pos2:[ -0.5, 0, 0 ],
         motions:[ ['swing1', 'free'], ['swing2', 'free'], ['twist', 'free'] ],
@@ -345,12 +345,12 @@ createScissorLift = () => {
     });
 
     phy.add({ 
-        type:'joint', jointType:'d6', 
+        type:'joint', mode:'d6', 
         b1:currRight.name, b2:'rightTop', 
         pos1:[ 0, 0, 1 ], pos2:[ -0.5, 0, 0 ],
         motions:[ ['swing1', 'free'], ['swing2', 'free'], ['twist', 'free'] ],
         noFix:true
-    });
+    });*/
 
     phy.add({ type:'box', name:'top', pos:[0, pl[1]+0.15, 0 ], size:[ 0.5*2, 0.1*2, 1.5*2 ], density:1, solver:'scissor', linked:'leftTop', filter:[1,-1,1,0],dmv:[0.2,0.2,100,20] });
     solver.addJoint( { type:'fix', bone:'top', pos1:[ 0, 0, 0 ], pos2:[ 0, -0.15, -0.9 ] } );

@@ -224,11 +224,13 @@ export class SolverJoint {
 			this.max = o.limits[0][2];
 		}
 
-		if( o.position ){
-			let i = o.position.length, t
+		if( o.position ) o.target = o.position;
+
+		if( o.target ){
+			let i = o.target.length, t
 
 			while(i--){
-				t = o.position[i];
+				t = o.target[i];
 				this.data.target[ t[0] ] = t[1];
 				//if(t[0]===this.driveType)  this.current = t[1]
 
