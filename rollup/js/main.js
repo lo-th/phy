@@ -22,7 +22,7 @@ function init () {
 class Engine {
 	constructor (b) {
 
-		const list = ['oimo', 'ammo', 'rapier', 'jolt', 'havok', 'physx'];
+		const list = ['OimoPhysics', 'ammo.js', 'Rapier', 'JoltPhysics.js', 'Havok Physics', 'PhysX'];
 
 		this.content = document.createElement('div');
 		this.content.style.cssText = `position:absolute; top:0px; left:0px; width:100%; display:flex;`;
@@ -36,29 +36,28 @@ class Engine {
 	button ( name ) {
 
 		const b = document.createElement('div');
-	    b.innerHTML = name;
-	    b.id = name;
-	    b.style.cssText = `
-	    font-size:20px; text-shadow: 1px 1px 3px #000000; font-weight:bold;
-	    color:#ffffff; text-align:center; opacity:0.5;
-	    width:210px; height:28px; margin:10px 10px;
-	    pointer-events:auto; cursor:pointer; border:2px solid #ffffff;
-	    `;
-	    this.content.appendChild(b);
+		b.innerHTML = name;
+		b.id = name;
+		b.style.cssText = `
+		font-size:20px; text-shadow: 1px 1px 3px #000000; font-weight:bold;
+		color:#ffffff; text-align:center; opacity:0.5;
+		width:210px; height:28px; margin:10px 10px;
+		pointer-events:auto; cursor:pointer; border:2px solid #ffffff;
+		`;
+		this.content.appendChild(b);
 
-	    let self = this;
+		let self = this;
 
-	    b.addEventListener('mouseover', function(e){ this.style.opacity = 1; }, false);
-	    b.addEventListener('mouseout', function(e){ this.style.opacity = 0.5; }, false);
-	    b.addEventListener('mousedown', function(e){ self.process(this.id) }, false);
-	    
+		b.addEventListener('mouseover', function(e){ this.style.opacity = 1; }, false);
+		b.addEventListener('mouseout', function(e){ this.style.opacity = 0.5; }, false);
+		b.addEventListener('mousedown', function(e){ self.process(this.id) }, false);
+
 	}
 
 	process (name){
 
-		const target = name.charAt(0).toUpperCase() + name.slice(1);
-		const url = '../build/'+target+'.min.js'
-		console.log( target, url );
+		const url = '../build/'+name+'.min.js'
+		console.log( name, url );
 
 	}
 }
@@ -83,8 +82,8 @@ class Menu {
 
 		this.pool = [];
 	   // this.callback = callback || new function(){};
-	    this.reader = new FileReader();
-	    this.file = null;
+		this.reader = new FileReader();
+		this.file = null;
 
 		this.content = document.createElement('div');
 
@@ -95,39 +94,39 @@ class Menu {
 		this.subtitle = document.createElement('div');
 		this.top = document.createElement('div');
 		this.drager = document.createElement('div');
-	    this.loader = document.createElement('div');
-	    this.hide = document.createElement('input');
-	    this.hide.type = "file";
+		this.loader = document.createElement('div');
+		this.hide = document.createElement('input');
+		this.hide.type = "file";
 
-	    this.title.textContent = b ? 'COMPACT' : 'UNPACK';
-	    this.subtitle.textContent = b ? 'Compress any text file to LZMA' : 'test decompression';
+		this.title.textContent = b ? 'COMPACT' : 'UNPACK';
+		this.subtitle.textContent = b ? 'Compress any text file to LZMA' : 'test decompression';
 
-	    var def = 'text-align:center; font-weight: bold; font-size:14px; padding-top:10px; box-sizing: border-box; border-radius: 20px; color:'+this.color.text+';';
-	    var unselect = "-o-user-select:none; -ms-user-select:none; -khtml-user-select:none; -webkit-user-select:none; -moz-user-select:none;"
-	    var txt = 'position:absolute; left:0px; text-align:center;  width:100%; color:'+this.color.text+';'
+		var def = 'text-align:center; font-weight: bold; font-size:14px; padding-top:10px; box-sizing: border-box; border-radius: 20px; color:'+this.color.text+';';
+		var unselect = "-o-user-select:none; -ms-user-select:none; -khtml-user-select:none; -webkit-user-select:none; -moz-user-select:none;"
+		var txt = 'position:absolute; left:0px; text-align:center;  width:100%; color:'+this.color.text+';'
 
-	    this.unselect = unselect;
+		this.unselect = unselect;
 
-	    this.title.style.cssText =txt + ' top:10px; font-size:20px; font-weight: bold;'
-	    this.subtitle.style.cssText = txt + 'top:30px; font-size:12px; color:'+this.color.text+';'
-	    this.top.style.cssText = 'position:absolute; left:50%; height:40px; top:60px; box-sizing: border-box; margin-left:-105px; pointer-events:none;';
+		this.title.style.cssText =txt + ' top:10px; font-size:20px; font-weight: bold;'
+		this.subtitle.style.cssText = txt + 'top:30px; font-size:12px; color:'+this.color.text+';'
+		this.top.style.cssText = 'position:absolute; left:50%; height:40px; top:60px; box-sizing: border-box; margin-left:-105px; pointer-events:none;';
 
-	    this.drager.style.cssText = unselect+def+'position:absolute; top:0px; left:110px; width:100px; height:40px; border:2px dashed '+this.color.text+'; pointer-events:auto; cursor:pointer;';
-	    this.loader.style.cssText = unselect+def+'position:absolute; top:0px; left:0px; width:100px; height:40px; pointer-events:none; border:2px solid '+this.color.text+';';
-	    this.hide.style.cssText = "position:absolute; top:0px; left:0px; width:100px; height:40px; opacity:0; overflow:hidden; pointer-events:auto; cursor:pointer;";
+		this.drager.style.cssText = unselect+def+'position:absolute; top:0px; left:110px; width:100px; height:40px; border:2px dashed '+this.color.text+'; pointer-events:auto; cursor:pointer;';
+		this.loader.style.cssText = unselect+def+'position:absolute; top:0px; left:0px; width:100px; height:40px; pointer-events:none; border:2px solid '+this.color.text+';';
+		this.hide.style.cssText = "position:absolute; top:0px; left:0px; width:100px; height:40px; opacity:0; overflow:hidden; pointer-events:auto; cursor:pointer;";
 
-	    this.drager.innerHTML = 'DRAG';
-	    this.loader.innerHTML = 'LOAD';
+		this.drager.innerHTML = 'DRAG';
+		this.loader.innerHTML = 'LOAD';
 
-	    this.txtContent = document.createElement('div');
-	    this.info = document.createElement('div');
-	    this.txt = document.createElement('div');
-	    this.scroll = document.createElement('div');
+		this.txtContent = document.createElement('div');
+		this.info = document.createElement('div');
+		this.txt = document.createElement('div');
+		this.scroll = document.createElement('div');
 	    
-	    this.txtContent.style.cssText = unselect+ 'position:absolute; border-radius:10px; text-align:center; overflow:hidden;  top:'+(b? 170:120)+'px; left:50%; margin-left:calc(-50% + 40px); width:calc(100% - 80px); height:calc(100% - '+(b? 220:170)+'px); pointer-events:auto; border:2px solid '+this.color.text+'; background:'+this.color.tbg+'; cursor:ns-resize;';
-	    this.txt.style.cssText = unselect+ 'position:absolute; box-sizing: border-box; text-align:left; left:0px; top:0px; width:100%; height:auto; pointer-events:none; font-size:10px; color:'+this.color.text+'; padding:10px 10px;';
-	    this.info.style.cssText = unselect+ 'position:absolute; text-align:center; font-weight: bold; font-size:14px; left:0px; bottom:10px; height:20px; width:100%; color:'+this.color.text+';'
-	    this.scroll.style.cssText = unselect+ 'position:absolute;  border-radius:10px; left:0px; top:0px; height:20px; width:100%; display:none; background:'+this.color.scroll+';'
+		this.txtContent.style.cssText = unselect+ 'position:absolute; border-radius:10px; text-align:center; overflow:hidden;  top:'+(b? 170:120)+'px; left:50%; margin-left:calc(-50% + 40px); width:calc(100% - 80px); height:calc(100% - '+(b? 220:170)+'px); pointer-events:auto; border:2px solid '+this.color.text+'; background:'+this.color.tbg+'; cursor:ns-resize;';
+		this.txt.style.cssText = unselect+ 'position:absolute; box-sizing: border-box; text-align:left; left:0px; top:0px; width:100%; height:auto; pointer-events:none; font-size:10px; color:'+this.color.text+'; padding:10px 10px;';
+		this.info.style.cssText = unselect+ 'position:absolute; text-align:center; font-weight: bold; font-size:14px; left:0px; bottom:10px; height:20px; width:100%; color:'+this.color.text+';'
+		this.scroll.style.cssText = unselect+ 'position:absolute;  border-radius:10px; left:0px; top:0px; height:20px; width:100%; display:none; background:'+this.color.scroll+';'
 	   
 	   
 	    this.txtContent.appendChild( this.txt );
@@ -146,7 +145,7 @@ class Menu {
 
 	    var _this = this;
 
-	    this.reader.onload = function(e) { if( this.b ) this.compact( e.target.result ); else this.decompact( e.target.result ); }.bind(this);
+	    this.reader.onload = function(e) { if( this.b ) this.compact( e.name.result ); else this.decompact( e.name.result ); }.bind(this);
 
 	    this.drager.addEventListener('dragover', function(e){_this.dragOver(e);}, false);
 	    this.drager.addEventListener('dragend', function(e){_this.dragEnd(e);}, false);
@@ -361,7 +360,7 @@ class Menu {
 
     handleFileSelect ( e ) {
 
-        this.file = e.target.files[0];
+        this.file = e.name.files[0];
         this.read();
 
     }
