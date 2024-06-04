@@ -1,10 +1,10 @@
 <p align="center" style="display: flex; justify-content: center;">
-	<a href="https://github.com/saharan/OimoPhysics/">&nbsp;Oimo&nbsp;</a>
-	<a href="https://github.com/kripken/ammo.js">&nbsp;Ammo&nbsp;</a>
-	<a href="https://github.com/dimforge/rapier.js">&nbsp;Rapier&nbsp;</a>
-	<a href="https://github.com/jrouwe/JoltPhysics.js">&nbsp;Jolt&nbsp;</a>
-	<a href="https://github.com/BabylonJS/Babylon.js">&nbsp;Havok&nbsp;</a>
-	<a href="https://github.com/fabmax/physx-js-webidl">&nbsp;Physx&nbsp;</a>
+	<a href="https://github.com/saharan/OimoPhysics/">Oimo</a>&nbsp;&nbsp;&nbsp;&nbsp;
+	<a href="https://github.com/kripken/ammo.js">Ammo</a>&nbsp;&nbsp;&nbsp;&nbsp;
+	<a href="https://github.com/dimforge/rapier.js">Rapier</a>&nbsp;&nbsp;&nbsp;&nbsp;
+	<a href="https://github.com/jrouwe/JoltPhysics.js">Jolt</a>&nbsp;&nbsp;&nbsp;&nbsp;
+	<a href="https://github.com/BabylonJS/Babylon.js">Havok</a>&nbsp;&nbsp;&nbsp;&nbsp;
+	<a href="https://github.com/fabmax/physx-js-webidl">Physx</a>
 </p>
 
 <p align="center"><a href="https://lo-th.github.io/phy/"><img src="./assets/icons/phy_map.png" alt="START DEMOt" width="600" height="240"/></a><br><a href="https://lo-th.github.io/phy/"><b>START DEMO</b></a></p>
