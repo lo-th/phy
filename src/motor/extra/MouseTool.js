@@ -131,7 +131,8 @@ export class MouseTool {
 		        //document.addEventListener( 'contextmenu', this.contextmenu.bind(this), false )
 
 		        this.controler.addEventListener( 'end', this.controleEnd.bind(this), false )
-		        this.controler.addEventListener( 'change', this.controleChange.bind(this), false )
+		        this.controler.addEventListener( 'start', this.controleStart.bind(this), false )
+		        //this.controler.addEventListener( 'change', this.controleChange.bind(this), false )
 
 		        this.isActive = true;
 		        this.raycastTest = true;
@@ -144,7 +145,8 @@ export class MouseTool {
 			    document.removeEventListener( 'pointerup', this.mouseup.bind(this) )
 
 			    this.controler.removeEventListener( 'end', this.controleEnd.bind(this) )
-		        this.controler.removeEventListener( 'change', this.controleChange.bind(this) )
+			    this.controler.removeEventListener( 'start', this.controleStart.bind(this), false )
+		        //this.controler.removeEventListener( 'change', this.controleChange.bind(this) )
 
 			    this.isActive = false;
 			}
@@ -157,13 +159,19 @@ export class MouseTool {
 		if( this.controler.getInfo ) this.controler.getInfo();
 	}
 
+	controleStart ( e ) {
+		this.raycastTest = false
+	}
+
 	controleChange ( e ) {
 
-		//console.log('change')
+		
 
-		let state = this.controler.getState();
+		
 
-		if( state !== -1 ) this.raycastTest = false;
+		//let state = this.controler.getState();
+
+		//if( state !== -1 ) this.raycastTest = false;
 
 		/*let state = this.controler.getState();
 		console.log(state)

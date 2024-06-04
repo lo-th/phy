@@ -47,10 +47,10 @@ const Version = {
 
     OIMO: '1.2.4',
     AMMO: '3.0',
-    PHYSX: '5.03.01',
+    PHYSX: '5.04.00',
     RAPIER: '0.11.2',
-    HAVOK: '1.3.0',
-    JOLT: '0.23.0',
+    HAVOK: '1.2.1',
+    JOLT: '0.24.0',
 }
 
 let scriptDir = undefined;

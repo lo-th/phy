@@ -14,6 +14,8 @@ import { math } from './math.js';
 * @author lo.th / https://github.com/lo-th
 */
 
+//const sph = new Spherical();
+
 export class Controller extends OrbitControls {
 
     constructor( object, domElement, group ) {
