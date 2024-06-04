@@ -1,10 +1,10 @@
-<p align="center" style="display: grid; justify-content: center; grid-template-columns: repeat(auto-fill, 60px);">
-	<a href="https://github.com/saharan/OimoPhysics/">Oimo</a>
-	<a href="https://github.com/kripken/ammo.js">Ammo</a>
-	<a href="https://github.com/dimforge/rapier.js">Rapier</a>
-	<a href="https://github.com/jrouwe/JoltPhysics.js">Jolt</a>
-	<a href="https://github.com/BabylonJS/Babylon.js">Havok</a>
-	<a href="https://github.com/fabmax/physx-js-webidl">Physx</a>
+<p align="center" style="display: flex; justify-content: center;">
+	<a href="https://github.com/saharan/OimoPhysics/">&nbsp;Oimo&nbsp;</a>
+	<a href="https://github.com/kripken/ammo.js">&nbsp;Ammo&nbsp;</a>
+	<a href="https://github.com/dimforge/rapier.js">&nbsp;Rapier&nbsp;</a>
+	<a href="https://github.com/jrouwe/JoltPhysics.js">&nbsp;Jolt&nbsp;</a>
+	<a href="https://github.com/BabylonJS/Babylon.js">&nbsp;Havok&nbsp;</a>
+	<a href="https://github.com/fabmax/physx-js-webidl">&nbsp;Physx&nbsp;</a>
 </p>
 
 <p align="center"><a href="https://lo-th.github.io/phy/"><img src="./assets/icons/phy_map.png" alt="START DEMOt" width="600" height="240"/></a><br><a href="https://lo-th.github.io/phy/"><b>START DEMO</b></a></p>
