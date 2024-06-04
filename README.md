@@ -7,7 +7,7 @@
 	<a href="https://github.com/fabmax/physx-js-webidl">Physx</a>
 </p>
 
-<p align="center"><a href="https://lo-th.github.io/phy/"><img src="./assets/icons/phy_map.png" alt="START DEMO"/></a><br><a href="https://lo-th.github.io/phy/"><b>START DEMO</b></a></p>
+<p align="center" width="100%"><a href="https://lo-th.github.io/phy/"><img src="./assets/icons/phy_map.png"  width="600" height="200" alt="START DEMO"/></a><br><a href="https://lo-th.github.io/phy/"><b>START DEMO</b></a></p>
 
 Phy game engine for <a href="https://github.com/mrdoob/three.js">three.js</a>, is a simple language for create and control physics engine.<br>
 You can use direct or worker version. Phy support last version of <a href="https://github.com/saharan/OimoPhysics/">Oimo</a> and <a href="https://github.com/kripken/ammo.js">Ammo</a>.<br>
