@@ -1,4 +1,4 @@
-<p align="center">
+<p align="center" style="width:600px;">
 	<a href="https://github.com/saharan/OimoPhysics/">Oimo</a>
 	<a href="https://github.com/kripken/ammo.js">Ammo</a>
 	<a href="https://github.com/dimforge/rapier.js">Rapier</a>
