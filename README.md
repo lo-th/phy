@@ -1,4 +1,4 @@
-<p align="center" style="width:600px;">
+<p align="center" style="display: grid; justify-content: center; grid-template-columns: repeat(auto-fill, 50px);">
 	<a href="https://github.com/saharan/OimoPhysics/">Oimo</a>
 	<a href="https://github.com/kripken/ammo.js">Ammo</a>
 	<a href="https://github.com/dimforge/rapier.js">Rapier</a>
