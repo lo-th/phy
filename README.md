@@ -11,14 +11,13 @@
 
 PHY Universal physics language on Worker or Direct for <a href="https://github.com/mrdoob/three.js">three.js</a>
 
-All Physics engine can use compress or full version
-Extra: math, pool, EnhanceLigh
+Phy simplify creation of game, is a bridge between three.js and physics.<br>
+You can use compress or full version of physics engines.
 
-Phy simplify creation of game, is like a bridge between three.js and physics 
 
 ## Features
 
-ES6, chamfer geometry, Glb manager, envmap and reflection, post process ...
+math, pool, EnhanceLigh, ES6, chamfer geometry
 
 ## Usage
 
