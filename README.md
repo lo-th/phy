@@ -1,3 +1,12 @@
+<p align="center">
+	<a href="https://github.com/saharan/OimoPhysics/">Oimo</a>
+	<a href="https://github.com/kripken/ammo.js">Ammo</a>
+	<a href="https://github.com/dimforge/rapier.js">Rapier</a>
+	<a href="https://github.com/jrouwe/JoltPhysics.js">Jolt</a>
+	<a href="https://github.com/BabylonJS/Babylon.js">Havok</a>
+	<a href="https://github.com/fabmax/physx-js-webidl">Physx</a>
+</p>
+
 <p align="center"><a href="https://lo-th.github.io/phy/"><img src="./assets/icons/phy_map.png" alt="START DEMOt" width="600" height="240"/></a><br><a href="https://lo-th.github.io/phy/"><b>START DEMO</b></a></p>
 
 Phy game engine for <a href="https://github.com/mrdoob/three.js">three.js</a>, is a simple language for create and control physics engine.<br>
