@@ -399,6 +399,7 @@ export const Pool = {
             	if (xml.status >= 300) {
                     console.log("Error, status code = " + xml.status)
                 } else {
+                    //console.log(xml.response)
                 	Pool.direct( xml.response, name, type )
                     //Pool.add( name, JSON.parse( xhr.responseText ), 'json' )
                 }

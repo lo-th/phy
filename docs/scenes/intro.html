@@ -50,7 +50,6 @@
 				renderer.setPixelRatio( window.devicePixelRatio );
 				renderer.setSize( window.innerWidth, window.innerHeight );
 				document.body.appendChild( renderer.domElement );
-				renderer.useLegacyLights = true;
 
 				camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 1, 1000 );
 				camera.position.set(2,3,4);
@@ -60,7 +59,7 @@
 			    controler.screenSpacePanning = true;
 			    controler.update();
 
-			    light = new THREE.PointLight(0xffffEE, 1);
+			    light = new THREE.PointLight(0xffffEE, 100, 200 );
 			    light.position.set(0,30,10);
 			    scene.add(light);
 			    scene.background = new THREE.Color( 0x101000 );
@@ -133,7 +132,11 @@
 			    p = math.scaleArray(p,0.05)
 			    s = math.scaleArray(s,0.05)
 			    let i=14, j=0, n=0;
-			    while(i--){ n = j*3; logoShape.push({ type:'box', pos:[p[n],p[n+1],p[n+2]], size:[s[n],s[n+1],s[n+2]], rot:[r[n],r[n+1],r[n+2]] }); j++; }
+			    while(i--){ 
+			    	n = j*3; 
+			    	logoShape.push({ type:'box', pos:[p[n],p[n+1],p[n+2]], size:[s[n],s[n+1],s[n+2]], rot:[r[n],r[n+1],r[n+2]] }); 
+			    	j++; 
+			    }
 
 			    phy.add({
 			        type:'compound',

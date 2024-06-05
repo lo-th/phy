@@ -67,9 +67,11 @@ html {
 
 body {
 	font-family: 'Mulish', monospace;
-	margin: 0px;
+	margin: 0;
+	padding: 0;
 	color: var(--text-color);
 	background-color: var(--background-color);
+	overflow:hidden;
 }
 
 a {
