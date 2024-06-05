@@ -2225,7 +2225,7 @@ const Mat = {
 			let type = o.type !== undefined ? o.type : 'Standard';
 			if( o.type ) delete o.type;
 
-			if( !o.shadowSide ) o.shadowSide = 'double';
+			//if( !o.shadowSide ) o.shadowSide = 'double'
 
 			beforeCompile = o.beforeCompile || null;
 		    if( o.beforeCompile ) delete o.beforeCompile;
@@ -31817,7 +31817,7 @@ const Pool = {
             	if (xml.status >= 300) {
                     console.log("Error, status code = " + xml.status);
                 } else {
-                    console.log(xml.response);
+                    //console.log(xml.response)
                 	Pool.direct( xml.response, name, type );
                     //Pool.add( name, JSON.parse( xhr.responseText ), 'json' )
                 }

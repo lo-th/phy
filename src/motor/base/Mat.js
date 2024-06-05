@@ -196,7 +196,7 @@ export const Mat = {
 			let type = o.type !== undefined ? o.type : 'Standard'
 			if( o.type ) delete o.type
 
-			if( !o.shadowSide ) o.shadowSide = 'double'
+			//if( !o.shadowSide ) o.shadowSide = 'double'
 
 			beforeCompile = o.beforeCompile || null
 		    if( o.beforeCompile ) delete o.beforeCompile;
