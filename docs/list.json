@@ -17,10 +17,11 @@
 
 			"Engine": {
 				"Oimo": "manual/Oimo-engine",
-				"Physx": "manual/Physx-engine",
+				"Rapier": "manual/Rapier-engine",
 				"Ammo": "manual/Ammo-engine",
 				"Havok": "manual/Havok-engine",
-				"Jolt": "manual/Jolt-engine"
+				"Jolt": "manual/Jolt-engine",
+				"Physx": "manual/Physx-engine"
 			},
 
 			"Command": {
