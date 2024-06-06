@@ -28,6 +28,7 @@ import { MouseTool } from './extra/MouseTool.js';
 import { Breaker } from './extra/Breaker.js';
 import { Particle } from './extra/Particle.js';
 import { RayCar } from './extra/RayCar.js';
+import { Envmap } from './extra/Envmap.js';
 
 import { Pool } from '../3TH/Pool.js';
 import { sk } from '../3TH/character/SkeletonExtand.js';
@@ -43,11 +44,11 @@ import { preloadAvatar } from '../3TH/character/Avatar.js';
 
 const Version = {
 	
-	PHY: '0.0.1',
+	PHY: '0.0.2',
 
     OIMO: '1.2.4',
     AMMO: '3.0',
-    PHYSX: '5.04.00',
+    PHYSX: '5.4.0',
     RAPIER: '0.11.2',
     HAVOK: '1.2.1',
     JOLT: '0.24.0',
@@ -88,6 +89,11 @@ let timout = null;
 let timoutFunction = null;
 let timoutTime = 0;
 let elapsedTime = 0;
+
+let envmapUrl = '';
+
+let renderer = null;
+let scene = null;
 
 const user = new User();
 const timer = new Timer(60);
@@ -218,8 +224,9 @@ export class Motor {
 	static setContent ( Scene ) {
 
 		if( isAdd ) return;
-		Scene.add( root.scene );
-		Scene.add( root.scenePlus );
+		scene = Scene
+		scene.add( root.scene );
+		scene.add( root.scenePlus );
 		isAdd = true;
 
 	}
@@ -333,6 +340,13 @@ export class Motor {
 			Motor.setContent( o.scene );
 			delete ( o.scene );
 		}
+
+		if( o.renderer ){ // need for envmap
+			renderer = o.renderer
+			delete ( o.renderer );
+		}
+
+		envmapUrl = o.envmap || '';
 
 		root.post = Motor.post;
 		root.motor = Motor;
@@ -494,10 +508,31 @@ export class Motor {
 
 	static initPhysics( o ) {
 
+		if( envmapUrl !== '' ){
+			Motor.preloadEnvmap( o );
+			return
+		}
+
 		//tt.start = Timer.now();
 	
 	    root.post({ m:'init', o:o });
 	    engineReady = true;
+
+	}
+
+	static preloadEnvmap( o ) {
+
+		let env = new Envmap( {
+			url:envmapUrl,
+			renderer:renderer,
+			scene:scene,
+			usePmrem:o.usePmrem,
+			useBackground: o.useBackground !== undefined ? o.useBackground : true,
+			callback:()=>{
+				envmapUrl = '';
+				Motor.initPhysics(o);
+			}
+		});
 
 	}
 	
@@ -641,17 +676,9 @@ export class Motor {
 		if( !engineReady ) return;
 		if( !outsideStep ) return;
 
-
-
-        //if( isWorker && realtime ) return
-
 		if( timer.up( stamp ) ) {
 			root.post( { m:'step', o:stamp } );
 		}
-
-		/*if( isBuffer ) root.post( { m:'poststep', flow:root.flow, Ar:Ar }, [ Ar.buffer ] )
-		else root.post( { m:'poststep', flow:root.flow, Ar:Ar })
-		Motor.flowReset()*/
 
 	}
 
@@ -728,7 +755,7 @@ export class Motor {
 
 	static byName ( name ){
 
-		return Utils.byName( name )
+		return Utils.byName( name );
 
 	}
 
@@ -745,7 +772,6 @@ export class Motor {
 
 	static initItems () {
 
-		
 		items['body'] = new Body();
 		items['ray'] = new Ray();
 		items['joint'] = new Joint();

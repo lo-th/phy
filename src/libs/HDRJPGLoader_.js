@@ -1,14 +1,11 @@
 /**
- * @monogrid/gainmap-js v2.0.7
+ * @monogrid/gainmap-js v2.0.5
  * With ❤️, by MONOGRID <hello@mono-grid.com>
  */
 
-import { 
-    ShaderMaterial, Vector3, NoBlending, SRGBColorSpace, LinearSRGBColorSpace, HalfFloatType, 
-    Loader, LoadingManager, Texture, UVMapping, ClampToEdgeWrapping, LinearFilter, LinearMipMapLinearFilter, 
-    RGBAFormat, UnsignedByteType, FileLoader, Scene, OrthographicCamera, FloatType, Mesh, PlaneGeometry, 
-    WebGLRenderTarget, WebGLRenderer, DataTexture, IntType, ShortType, ByteType, UnsignedIntType, MeshBasicMaterial 
-} from 'three';
+//import { Q as QuadRenderer } from './QuadRenderer-gqnZPNP-.js';
+import { ShaderMaterial, Vector3, NoBlending, SRGBColorSpace, LinearSRGBColorSpace, HalfFloatType, Loader, LoadingManager, Texture, UVMapping, ClampToEdgeWrapping, LinearFilter, LinearMipMapLinearFilter, RGBAFormat, UnsignedByteType, FileLoader,
+Scene, OrthographicCamera, FloatType, Mesh, PlaneGeometry, WebGLRenderTarget, RepeatWrapping, WebGLRenderer, DataTexture, IntType, ShortType, ByteType, UnsignedIntType, MeshBasicMaterial } from 'three';
 
 const vertexShader = /* glsl */ `
 varying vec2 vUv;
@@ -200,9 +197,6 @@ class GainMapDecoderMaterial extends ShaderMaterial {
  * scene.add(mesh)
  * renderer.render(scene, new PerspectiveCamera())
  *
- * // result must be manually disposed
- * // when you are done using it
- * result.dispose()
  *
  * @param params
  * @returns
@@ -225,34 +219,18 @@ const decode = (params) => {
         sdr,
         gainMap
     });
-    const quadRenderer = new QuadRenderer({
-        // TODO: three types are generic, eslint complains here, see how we can solve
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-        width: sdr.image.width,
-        // TODO: three types are generic, eslint complains here, see how we can solve
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-        height: sdr.image.height,
-        type: HalfFloatType,
-        colorSpace: LinearSRGBColorSpace,
-        material,
-        renderer,
-        renderTargetOptions: params.renderTargetOptions
-    });
+    // TODO: three types are generic, eslint complains here, see how we can solve
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
+    const quadRenderer = new QuadRenderer(sdr.image.width, sdr.image.height, HalfFloatType, LinearSRGBColorSpace, material, renderer);
     try {
         quadRenderer.render();
     }
     catch (e) {
-        quadRenderer.disposeOnDemandRenderer();
+        quadRenderer.dispose();
         throw e;
     }
     return quadRenderer;
 };
-
-class GainMapNotFoundError extends Error {
-}
-
-class XMPMetadataNotFoundError extends Error {
-}
 
 const getAttribute = (description, name, defaultValue) => {
     var _a;
@@ -289,7 +267,7 @@ const getAttribute = (description, name, defaultValue) => {
 const extractXMP = (input) => {
     var _a, _b;
     let str;
-    // support node test environment
+    // support node test evnvironment
     if (typeof TextDecoder !== 'undefined')
         str = new TextDecoder().decode(input);
     else
@@ -516,11 +494,11 @@ class MPFExtractor {
 const extractGainmapFromJPEG = async (jpegFile) => {
     const metadata = extractXMP(jpegFile);
     if (!metadata)
-        throw new XMPMetadataNotFoundError('Gain map XMP metadata not found');
+        throw new Error('Gain map XMP metadata not found');
     const mpfExtractor = new MPFExtractor({ extractFII: true, extractNonFII: true });
     const images = await mpfExtractor.extract(jpegFile);
     if (images.length !== 2)
-        throw new GainMapNotFoundError('Gain map recovery image not found');
+        throw new Error('Gain map recovery image not found');
     return {
         sdr: new Uint8Array(await images[0].arrayBuffer()),
         gainMap: new Uint8Array(await images[1].arrayBuffer()),
@@ -534,7 +512,7 @@ const extractGainmapFromJPEG = async (jpegFile) => {
  * @param blob
  * @returns
  */
-const getHTMLImageFromBlob = (blob) => {
+const getImage = (blob) => {
     return new Promise((resolve, reject) => {
         const img = document.createElement('img');
         img.onload = () => { resolve(img); };
@@ -542,7 +520,6 @@ const getHTMLImageFromBlob = (blob) => {
         img.src = URL.createObjectURL(blob);
     });
 };
-
 class LoaderBase extends Loader {
     /**
      *
@@ -553,16 +530,6 @@ class LoaderBase extends Loader {
         super(manager);
         this._renderer = renderer;
         this._internalLoadingManager = new LoadingManager();
-    }
-    /**
-     * Specify the renderTarget options to use when rendering the gain map
-     *
-     * @param options
-     * @returns
-     */
-    setRenderTargetOptions(options) {
-        this._renderTargetOptions = options;
-        return this;
     }
     /**
      * @private
@@ -582,34 +549,26 @@ class LoaderBase extends Loader {
             gainMap: new Texture(),
             sdr: new Texture()
         });
-        return new QuadRenderer({
-            width: 16,
-            height: 16,
-            type: HalfFloatType,
-            colorSpace: LinearSRGBColorSpace,
-            material,
-            renderer: this._renderer,
-            renderTargetOptions: this._renderTargetOptions
-        });
+        return new QuadRenderer(16, 16, HalfFloatType, LinearSRGBColorSpace, material, this._renderer);
     }
     /**
-   * @private
-   * @param quadRenderer
-   * @param metadata
-   * @param sdrBuffer
-   * @param gainMapBuffer
-   */
-    async render(quadRenderer, metadata, sdrBuffer, gainMapBuffer) {
-        // this is optional, will render a black gain-map if not present
-        const gainMapBlob = gainMapBuffer ? new Blob([gainMapBuffer], { type: 'image/jpeg' }) : undefined;
+     *
+     * @private
+     * @param quadRenderer
+     * @param gainMapBuffer
+     * @param sdrBuffer
+     * @param metadata
+     */
+    async render(quadRenderer, gainMapBuffer, sdrBuffer, metadata) {
+        const gainMapBlob = new Blob([gainMapBuffer], { type: 'image/jpeg' });
         const sdrBlob = new Blob([sdrBuffer], { type: 'image/jpeg' });
         let sdrImage;
         let gainMapImage;
         let needsFlip = false;
         if (typeof createImageBitmap === 'undefined') {
             const res = await Promise.all([
-                gainMapBlob ? getHTMLImageFromBlob(gainMapBlob) : Promise.resolve(undefined),
-                getHTMLImageFromBlob(sdrBlob)
+                getImage(gainMapBlob),
+                getImage(sdrBlob)
             ]);
             gainMapImage = res[0];
             sdrImage = res[1];
@@ -617,13 +576,13 @@ class LoaderBase extends Loader {
         }
         else {
             const res = await Promise.all([
-                gainMapBlob ? createImageBitmap(gainMapBlob, { imageOrientation: 'flipY' }) : Promise.resolve(undefined),
+                createImageBitmap(gainMapBlob, { imageOrientation: 'flipY' }),
                 createImageBitmap(sdrBlob, { imageOrientation: 'flipY' })
             ]);
             gainMapImage = res[0];
             sdrImage = res[1];
         }
-        const gainMap = new Texture(gainMapImage || new ImageData(2, 2), UVMapping, ClampToEdgeWrapping, ClampToEdgeWrapping, LinearFilter, LinearMipMapLinearFilter, RGBAFormat, UnsignedByteType, 1, LinearSRGBColorSpace);
+        const gainMap = new Texture(gainMapImage, UVMapping, ClampToEdgeWrapping, ClampToEdgeWrapping, LinearFilter, LinearMipMapLinearFilter, RGBAFormat, UnsignedByteType, 1, LinearSRGBColorSpace);
         gainMap.flipY = needsFlip;
         gainMap.needsUpdate = true;
         const sdr = new Texture(sdrImage, UVMapping, ClampToEdgeWrapping, ClampToEdgeWrapping, LinearFilter, LinearMipMapLinearFilter, RGBAFormat, UnsignedByteType, 1, SRGBColorSpace);
@@ -669,7 +628,7 @@ class LoaderBase extends Loader {
  *
  * const loader = new GainMapLoader(renderer)
  *
- * const result = await loader.loadAsync(['sdr.jpeg', 'gainmap.jpeg', 'metadata.json'])
+ * const result = loader.load(['sdr.jpeg', 'gainmap.jpeg', 'metadata.json'])
  * // `result` can be used to populate a Texture
  *
  * const scene = new Scene()
@@ -688,10 +647,6 @@ class LoaderBase extends Loader {
  * scene.background = result.toDataTexture()
  * scene.background.mapping = EquirectangularReflectionMapping
  * scene.background.minFilter = LinearFilter
- *
- * // result must be manually disposed
- * // when you are done using it
- * result.dispose()
  *
  */
 class GainMapLoader extends LoaderBase {
@@ -716,25 +671,13 @@ class GainMapLoader extends LoaderBase {
         let metadata;
         const loadCheck = async () => {
             if (sdr && gainMap && metadata) {
-                // solves #16
-                try {
-                    await this.render(quadRenderer, metadata, sdr, gainMap);
-                }
-                catch (error) {
-                    this.manager.itemError(sdrUrl);
-                    this.manager.itemError(gainMapUrl);
-                    this.manager.itemError(metadataUrl);
-                    if (typeof onError === 'function')
-                        onError(error);
-                    quadRenderer.disposeOnDemandRenderer();
-                    return;
-                }
+                await this.render(quadRenderer, gainMap, sdr, metadata);
                 if (typeof onLoad === 'function')
                     onLoad(quadRenderer);
                 this.manager.itemEnd(sdrUrl);
                 this.manager.itemEnd(gainMapUrl);
                 this.manager.itemEnd(metadataUrl);
-                quadRenderer.disposeOnDemandRenderer();
+                quadRenderer.dispose();
             }
         };
         let sdrLengthComputable = true;
@@ -830,7 +773,7 @@ class GainMapLoader extends LoaderBase {
  * @group Loaders
  *
  * @example
- * import { HDRJPGLoader } from '@monogrid/gainmap-js'
+ * import { JPEGRLoader } from '@monogrid/gainmap-js'
  * import {
  *   EquirectangularReflectionMapping,
  *   LinearFilter,
@@ -844,9 +787,9 @@ class GainMapLoader extends LoaderBase {
  *
  * const renderer = new WebGLRenderer()
  *
- * const loader = new HDRJPGLoader(renderer)
+ * const loader = new JPEGRLoader(renderer)
  *
- * const result = await loader.loadAsync('gainmap.jpeg')
+ * const result = loader.load('gainmap.jpeg')
  * // `result` can be used to populate a Texture
  *
  * const scene = new Scene()
@@ -865,16 +808,12 @@ class GainMapLoader extends LoaderBase {
  * scene.background = result.toDataTexture()
  * scene.background.mapping = EquirectangularReflectionMapping
  * scene.background.minFilter = LinearFilter
- *
- * // result must be manually disposed
- * // when you are done using it
- * result.dispose()
+
  *
  */
 class HDRJPGLoader extends LoaderBase {
     /**
-     * Loads a JPEG containing gain map metadata
-     * Renders a normal SDR image if gainmap data is not found
+     * Loads a JPEGR Image
      *
      * @param url An array in the form of [sdr.jpg, gainmap.jpg, metadata.json]
      * @param onLoad Load complete callback, will receive the result
@@ -892,52 +831,13 @@ class HDRJPGLoader extends LoaderBase {
         this.manager.itemStart(url);
         loader.load(url, async (jpeg) => {
             if (typeof jpeg === 'string')
-                throw new Error('Invalid buffer, received [string], was expecting [ArrayBuffer]');
-            const jpegBuffer = new Uint8Array(jpeg);
-            let sdrJPEG;
-            let gainMapJPEG;
-            let metadata;
-            try {
-                const extractionResult = await extractGainmapFromJPEG(jpegBuffer);
-                // gain map is successfully reconstructed
-                sdrJPEG = extractionResult.sdr;
-                gainMapJPEG = extractionResult.gainMap;
-                metadata = extractionResult.metadata;
-            }
-            catch (e) {
-                // render the SDR version if this is not a gainmap
-                if (e instanceof XMPMetadataNotFoundError || e instanceof GainMapNotFoundError) {
-                    console.warn(`Failure to reconstruct an HDR image from ${url}: Gain map metadata not found in the file, HDRJPGLoader will render the SDR jpeg`);
-                    metadata = {
-                        gainMapMin: [0, 0, 0],
-                        gainMapMax: [1, 1, 1],
-                        gamma: [1, 1, 1],
-                        hdrCapacityMin: 0,
-                        hdrCapacityMax: 1,
-                        offsetHdr: [0, 0, 0],
-                        offsetSdr: [0, 0, 0]
-                    };
-                    sdrJPEG = jpegBuffer;
-                }
-                else {
-                    throw e;
-                }
-            }
-            // solves #16
-            try {
-                await this.render(quadRenderer, metadata, sdrJPEG, gainMapJPEG);
-            }
-            catch (error) {
-                this.manager.itemError(url);
-                if (typeof onError === 'function')
-                    onError(error);
-                quadRenderer.disposeOnDemandRenderer();
-                return;
-            }
+                throw new Error('Invalid buffer');
+            const { gainMap: gainMapJPEG, sdr: sdrJPEG, metadata } = await extractGainmapFromJPEG(new Uint8Array(jpeg));
+            await this.render(quadRenderer, gainMapJPEG, sdrJPEG, metadata);
             if (typeof onLoad === 'function')
                 onLoad(quadRenderer);
             this.manager.itemEnd(url);
-            quadRenderer.disposeOnDemandRenderer();
+            quadRenderer.dispose();
         }, onProgress, (error) => {
             this.manager.itemError(url);
             if (typeof onError === 'function')
@@ -956,13 +856,10 @@ export { GainMapDecoderMaterial, GainMapLoader, HDRJPGLoader, HDRJPGLoader as JP
 
 
 
-
-
 /**
- * @monogrid/gainmap-js v2.0.7
+ * @monogrid/gainmap-js v2.0.5
  * With ❤️, by MONOGRID <hello@mono-grid.com>
  */
-
 
 const getBufferForType = (type, width, height) => {
     let out;
@@ -1003,13 +900,23 @@ let _canReadPixelsResult;
  * @param type
  * @param renderer
  * @param camera
- * @param renderTargetOptions
  * @returns
  */
-const canReadPixels = (type, renderer, camera, renderTargetOptions) => {
+const canReadPixels = (type, renderer, camera) => {
     if (_canReadPixelsResult !== undefined)
         return _canReadPixelsResult;
-    const testRT = new WebGLRenderTarget(1, 1, renderTargetOptions);
+    const testRT = new WebGLRenderTarget(1, 1, {
+        type,
+        colorSpace: LinearSRGBColorSpace,
+        format: RGBAFormat,
+        magFilter: LinearFilter,
+        minFilter: LinearFilter,
+        wrapS: RepeatWrapping,
+        wrapT: RepeatWrapping,
+        depthBuffer: false,
+        stencilBuffer: false,
+        generateMipmaps: true
+    });
     renderer.setRenderTarget(testRT);
     const mesh = new Mesh(new PlaneGeometry(), new MeshBasicMaterial({ color: 0xffffff }));
     renderer.render(mesh, camera);
@@ -1034,8 +941,7 @@ class QuadRenderer {
      * @param sourceTexture
      * @param renderer
      */
-    constructor(options) {
-        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r;
+    constructor(width, height, type, colorSpace, material, renderer) {
         this._rendererIsDisposable = false;
         this._supportsReadPixels = true;
         /**
@@ -1052,29 +958,13 @@ class QuadRenderer {
             }
             this._renderer.setRenderTarget(null);
         };
-        this._width = options.width;
-        this._height = options.height;
-        this._type = options.type;
-        this._colorSpace = options.colorSpace;
-        const rtOptions = {
-            // fixed options
-            format: RGBAFormat,
-            depthBuffer: false,
-            stencilBuffer: false,
-            // user options
-            type: this._type,
-            colorSpace: this._colorSpace,
-            anisotropy: ((_a = options.renderTargetOptions) === null || _a === void 0 ? void 0 : _a.anisotropy) !== undefined ? (_b = options.renderTargetOptions) === null || _b === void 0 ? void 0 : _b.anisotropy : 1,
-            generateMipmaps: ((_c = options.renderTargetOptions) === null || _c === void 0 ? void 0 : _c.generateMipmaps) !== undefined ? (_d = options.renderTargetOptions) === null || _d === void 0 ? void 0 : _d.generateMipmaps : false,
-            magFilter: ((_e = options.renderTargetOptions) === null || _e === void 0 ? void 0 : _e.magFilter) !== undefined ? (_f = options.renderTargetOptions) === null || _f === void 0 ? void 0 : _f.magFilter : LinearFilter,
-            minFilter: ((_g = options.renderTargetOptions) === null || _g === void 0 ? void 0 : _g.minFilter) !== undefined ? (_h = options.renderTargetOptions) === null || _h === void 0 ? void 0 : _h.minFilter : LinearFilter,
-            samples: ((_j = options.renderTargetOptions) === null || _j === void 0 ? void 0 : _j.samples) !== undefined ? (_k = options.renderTargetOptions) === null || _k === void 0 ? void 0 : _k.samples : undefined,
-            wrapS: ((_l = options.renderTargetOptions) === null || _l === void 0 ? void 0 : _l.wrapS) !== undefined ? (_m = options.renderTargetOptions) === null || _m === void 0 ? void 0 : _m.wrapS : ClampToEdgeWrapping,
-            wrapT: ((_o = options.renderTargetOptions) === null || _o === void 0 ? void 0 : _o.wrapT) !== undefined ? (_p = options.renderTargetOptions) === null || _p === void 0 ? void 0 : _p.wrapT : ClampToEdgeWrapping
-        };
-        this._material = options.material;
-        if (options.renderer) {
-            this._renderer = options.renderer;
+        this._width = width;
+        this._height = height;
+        this._type = type;
+        this._colorSpace = colorSpace;
+        this._material = material;
+        if (renderer) {
+            this._renderer = renderer;
         }
         else {
             this._renderer = QuadRenderer.instantiateRenderer();
@@ -1088,7 +978,7 @@ class QuadRenderer {
         this._camera.top = 0.5;
         this._camera.bottom = -0.5;
         this._camera.updateProjectionMatrix();
-        if (!canReadPixels(this._type, this._renderer, this._camera, rtOptions)) {
+        if (!canReadPixels(this._type, this._renderer, this._camera)) {
             let alternativeType;
             switch (this._type) {
                 case HalfFloatType:
@@ -1107,8 +997,18 @@ class QuadRenderer {
         this._quad = new Mesh(new PlaneGeometry(), this._material);
         this._quad.geometry.computeBoundingBox();
         this._scene.add(this._quad);
-        this._renderTarget = new WebGLRenderTarget(this.width, this.height, rtOptions);
-        this._renderTarget.texture.mapping = ((_q = options.renderTargetOptions) === null || _q === void 0 ? void 0 : _q.mapping) !== undefined ? (_r = options.renderTargetOptions) === null || _r === void 0 ? void 0 : _r.mapping : UVMapping;
+        this._renderTarget = new WebGLRenderTarget(width, height, {
+            type: this._type,
+            colorSpace,
+            format: RGBAFormat,
+            magFilter: LinearFilter,
+            minFilter: LinearMipMapLinearFilter,
+            wrapS: RepeatWrapping,
+            wrapT: RepeatWrapping,
+            depthBuffer: false,
+            stencilBuffer: false,
+            generateMipmaps: true
+        });
     }
     /**
      * Instantiates a temporary renderer
@@ -1137,84 +1037,18 @@ class QuadRenderer {
         this._renderer.readRenderTargetPixels(this._renderTarget, 0, 0, this._width, this._height, out);
         return out;
     }
-    /**
-     * Performs a readPixel operation in the renderTarget
-     * and returns a DataTexture containing the read data
-     *
-     * @params options
-     * @returns
-     */
-    toDataTexture(options) {
-        const returnValue = new DataTexture(
-        // fixed values
-        this.toArray(), this.width, this.height, RGBAFormat, this._type, 
-        // user values
-        (options === null || options === void 0 ? void 0 : options.mapping) || UVMapping, (options === null || options === void 0 ? void 0 : options.wrapS) || ClampToEdgeWrapping, (options === null || options === void 0 ? void 0 : options.wrapT) || ClampToEdgeWrapping, (options === null || options === void 0 ? void 0 : options.magFilter) || LinearFilter, (options === null || options === void 0 ? void 0 : options.minFilter) || LinearFilter, (options === null || options === void 0 ? void 0 : options.anisotropy) || 1, 
-        // fixed value
-        LinearSRGBColorSpace);
-        // set this afterwards, we can't set it in constructor
-        returnValue.generateMipmaps = (options === null || options === void 0 ? void 0 : options.generateMipmaps) !== undefined ? options === null || options === void 0 ? void 0 : options.generateMipmaps : false;
-        return returnValue;
+    toDataTexture() {
+        return new DataTexture(this.toArray(), this.width, this.height, RGBAFormat, this._type, UVMapping, RepeatWrapping, RepeatWrapping, LinearFilter, LinearMipMapLinearFilter, 1, LinearSRGBColorSpace);
     }
     /**
      * If using a disposable renderer, it will dispose it.
      */
-    disposeOnDemandRenderer() {
+    dispose() {
         this._renderer.setRenderTarget(null);
         if (this._rendererIsDisposable) {
             this._renderer.dispose();
             this._renderer.forceContextLoss();
         }
-    }
-    /**
-     * Will dispose of **all** assets used by this renderer.
-     *
-     *
-     * @param disposeRenderTarget will dispose of the renderTarget which will not be usable later
-     * set this to true if you passed the `renderTarget.texture` to a `PMREMGenerator`
-     * or are otherwise done with it.
-     *
-     * @example
-     * ```js
-     * const loader = new HDRJPGLoader(renderer)
-     * const result = await loader.loadAsync('gainmap.jpeg')
-     * const mesh = new Mesh(geometry, new MeshBasicMaterial({ map: result.renderTarget.texture }) )
-     * // DO NOT dispose the renderTarget here,
-     * // it is used directly in the material
-     * result.dispose()
-     * ```
-     *
-     * @example
-     * ```js
-     * const loader = new HDRJPGLoader(renderer)
-     * const pmremGenerator = new PMREMGenerator( renderer );
-     * const result = await loader.loadAsync('gainmap.jpeg')
-     * const envMap = pmremGenerator.fromEquirectangular(result.renderTarget.texture)
-     * const mesh = new Mesh(geometry, new MeshStandardMaterial({ envMap }) )
-     * // renderTarget can be disposed here
-     * // because it was used to generate a PMREM texture
-     * result.dispose(true)
-     * ```
-     */
-    dispose(disposeRenderTarget) {
-        this.disposeOnDemandRenderer();
-        if (disposeRenderTarget) {
-            this.renderTarget.dispose();
-        }
-        // dispose shader material texture uniforms
-        if (this.material instanceof ShaderMaterial) {
-            Object.values(this.material.uniforms).forEach(v => {
-                if (v.value instanceof Texture)
-                    v.value.dispose();
-            });
-        }
-        // dispose other material properties
-        Object.values(this.material).forEach(value => {
-            if (value instanceof Texture)
-                value.dispose();
-        });
-        this.material.dispose();
-        this._quad.geometry.dispose();
     }
     /**
      * Width of the texture

@@ -49,12 +49,19 @@ phy.init({
 		<h3>phy.init( [param:Object parameters] )</h3>
 
 		<h2>Parameters</h2>
-<p>	
-		[param:String type] — the physics engine type can be 'OIMO', 'AMMO', 'PHYSX'<br />
+	<p>	
+		[param:String type] — the physics engine type can be 'OIMO', 'AMMO', 'RAPIER', 'JOLT', 'HAVOK', 'PHYSX'<br />
 		[param:Boolean worker] — run in worker or not ( worker free resource for three )<br />
 		[param:Function callback] — function start after physics engine init<br />
 		[param:Object3d scene] — the three.js main scene<br />
+		[param:WebGLRenderer renderer] — the three.js main renderer<br />
 		[param:String path] — set default resource path<br />
+	</p>
+	<h2>Optional</h2>
+	<p>	
+		[param:String envmap] — set envmap url : hdr, exr, jpg hdr<br />
+		[param:Boolean usePmrem] — use pmremGenerator<br />
+		[param:Boolean useBackground] — use envmap scene background default = true<br />
 	</p>
 
 
