@@ -1,3 +1,7 @@
+[![NPM Package][npm]][npm-url]
+[![Build Size][build-size]][build-size-url]
+[![NPM Downloads][npm-downloads]][npmtrends-url]
+
 <p align="center" style="display: flex; justify-content: center;">
 	<a href="https://github.com/saharan/OimoPhysics/">Oimo</a>&nbsp;&nbsp;&nbsp;&nbsp;
 	<a href="https://github.com/kripken/ammo.js">Ammo</a>&nbsp;&nbsp;&nbsp;&nbsp;
@@ -37,10 +41,6 @@ Add more demos, fixe joint...
 
 Phy is under active development<br>
 You can help me improve phy engine with Sponsor
-
-[![NPM Package][npm]][npm-url]
-[![Build Size][build-size]][build-size-url]
-[![NPM Downloads][npm-downloads]][npmtrends-url]
 
 [npm]: https://img.shields.io/npm/v/phy-engine
 [npm-url]: https://www.npmjs.com/package/phy-engine
