@@ -1,6 +1,8 @@
+<p align="center">
 [![NPM Package][npm]][npm-url]
 [![Build Size][build-size]][build-size-url]
 [![NPM Downloads][npm-downloads]][npmtrends-url]
+</p>
 
 <p align="center" style="display: flex; justify-content: center;">
 	<a href="https://github.com/saharan/OimoPhysics/">Oimo</a>&nbsp;&nbsp;&nbsp;&nbsp;
