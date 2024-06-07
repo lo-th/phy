@@ -117,7 +117,7 @@
 
 			function startDemo() {
 
-				phy.set({ substep:2, gravity:[0,-9.81,0], fps:60 })
+				phy.set({ substep:1, gravity:[0,-9.81,0], fps:60 })
 
 				// add static ground
 				let p = phy.add({ type:'plane', size:[300,1,300], visible:true });
@@ -135,7 +135,7 @@
 					pos = [decalX + d*2, 0.5 + l*1, 0]
 					if(l%2 == 0) pos[0] += 0.5
 					else pos[0] -= 0.5
-					phy.add({ type:'box', size:[2,1,0.5], pos:pos, mass:1,  radius:0.1 });
+					phy.add({ type:'box', size:[2,1,0.5], pos:pos, mass:1, radius:0.1 });
 					d++
 					if(d===maxLine){ 
 						d = 0
