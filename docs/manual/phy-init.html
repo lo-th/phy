@@ -33,14 +33,15 @@
 		<h2>Code Example</h2>
 
 <code>
-import { phy } from './build/Phy.module.js';
+import { phy } from 'phy-engine';
 
 phy.init({ 
 	type:'OIMO', 
-	worker:false, 
+	worker:true,
+	compact:true,
 	callback:startDemo, 
 	scene:scene,
-	path:'./build/'
+	renderer:renderer,
 })
 </code>
 
@@ -60,7 +61,7 @@ phy.init({
 	</p>
 	<h2>Optional</h2>
 	<p>	
-		[param:String envmap] — set envmap url : hdr, exr, jpg hdr<br />
+		[param:String envmap] — set envmap url : hdr, exr or hdrjpg<br />
 		[param:Boolean usePmrem] — use pmremGenerator<br />
 		[param:Boolean useBackground] — use envmap scene background default = true<br />
 	</p>
