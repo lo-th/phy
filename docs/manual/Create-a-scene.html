@@ -32,7 +32,7 @@
   import * as THREE from 'three';
   import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
-  import { phy } from './build/Phy.module.js';
+  import { phy } from 'phy-engine';
 
 &lt;/script>
         </code>
@@ -42,19 +42,20 @@
 phy.init({ 
 	type:'PHYSX', 
 	worker:false,
+	compact:true,
 	scene:scene,
-	callback:startDemo, 
-	path:'../../build/' 
+	renderer:renderer,
+	callback:physicsReadyo, 
 })
 </code>
 
 		<h2>Make your Demo</h2>
 
 <code>
-function startDemo() {
+function physicsReady() {
 
 	// set physics engine option
-	phy.set({ substep:2, gravity:[0,-9.81,0], fps:60 })
+	phy.set({ substep:1, gravity:[0,-9.81,0], fps:60 })
 
 	// add static ground
 	phy.add({ type:'plane', size:[300,1,300], visible:false });
@@ -75,7 +76,7 @@ function startDemo() {
 function animate( stamp = 0 ) {
 
 	requestAnimationFrame( animate );
-	phy.doStep( stamp );
+	phy.doStep( stamp );// only need for non worker version
 	renderer.render( scene, camera );
 
 }
