@@ -22,12 +22,12 @@ You can use compress or full version of physics engines.
 
 ### Features
 
-math, pool, EnhanceLigh, ES6, chamfer geometry
+math, pool, EnhanceLighning, ES6, chamfer geometry, compact engine
 
 ### Usage
 
 Phy main function is : add, remove and change.<br>
-You can see and edit demo code directlly on <a href="https://lo-th.github.io/phy/">webpage</a> 
+You can see and edit demo code directlly on [webpage](https://lo-th.github.io/phy/)
 
 You can drag file directly on viewport ( code js or environement hdr ) 
 
@@ -37,7 +37,7 @@ Add more demos, fixe joint...
 
 ### Docs
 
-<a href="https://lo-th.github.io/phy/docs/index.html#manual/Welcome">docs</a> in progress...
+[docs](https://lo-th.github.io/phy/docs/index.html#manual/Welcome) in progress...
 
 ### About
 
