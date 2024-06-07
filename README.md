@@ -4,10 +4,10 @@
 [Jolt](https://github.com/jrouwe/JoltPhysics.js) &mdash;
 [Havok](https://github.com/BabylonJS/Babylon.js) &mdash;
 [Physx](https://github.com/fabmax/physx-js-webidl)<br>
-[<img src="./assets/icons/phy_map.png"/>](https://lo-th.github.io/phy/docs/index.html#manual/Welcome)<br>
+[<img src="./assets/icons/phy_map.png"/>](https://lo-th.github.io/phy/)<br>
 
-[START EDITOR](https://lo-th.github.io/phy/docs/index.html#manual/Welcome)<br><br>
-PHY Universal physics language on Worker or Direct for [three.js](https://lo-th.github.io/phy/docs/index.html#manual/Welcome)<br>
+[START EDITOR](https://lo-th.github.io/phy/)<br><br>
+PHY Universal physics language on Worker or Direct for [three.js](https://github.com/mrdoob/three.js)<br>
 Phy simplify game creation, is a bridge between three.js and physics.<br>
 You can use compress or full version of physics engines.<br>
 
