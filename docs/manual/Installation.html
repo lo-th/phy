@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<base href="../" />
+		<script src="page.js"></script>
+		<link type="text/css" rel="stylesheet" href="page.css" />
+	</head>
+	<body>
+
+		<h1>[name]</h1><br>
+
+		<iframe id="scene" src="scenes/intro.html#OIMO"></iframe>
+
+		<script>
+
+		// iOS iframe auto-resize workaround
+
+		if ( /(iPad|iPhone|iPod)/g.test( navigator.userAgent ) ) {
+
+			const scene = document.getElementById( 'scene' );
+
+			scene.style.width = getComputedStyle( scene ).width;
+			scene.style.height = getComputedStyle( scene ).height;
+			scene.setAttribute( 'scrolling', 'no' );
+
+		}
+
+		</script>
+
+		<h2>Install with NPM and a build tool</h2>
+
+		<p>
+			Follow install of [link:https://threejs.org/docs/index.html#manual/en/introduction/Installation three.js]<br>
+			with option 1 and add
+		</p>
+
+		
+		<code>
+# phy-engine
+npm install --save phy-engine
+		</code>  
+		<h2>Copy compress/ engine to public/</h2>
+
+		<p>
+			copy compact folder from: node_modules/phy-engine/compact/<br>
+			to your /public folder<br>
+		</p>
+
+		<h2>Init modules</h2>
+
+		<code>
+
+&lt;script type="module">
+
+  import * as THREE from 'three';
+  import { phy, math } from 'phy-engine';
+
+  // init three.js
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
+  const renderer = new THREE.WebGLRenderer();
+  renderer.setSize( window.innerWidth, window.innerHeight );
+  document.body.appendChild( renderer.domElement );
+
+  function animate() {
+	renderer.render( scene, camera );
+  }
+  renderer.setAnimationLoop( animate );
+
+  // init phy-engine
+  phy.init({
+	type:'PHYSX', 
+	worker:true,
+	compact:true,
+	scene:scene,
+	renderer:renderer,
+	callback:physicsReady,
+  })
+
+  function physicsReady (){
+	phy.set({ substep:1, gravity:[0,-9.81,0], fps:60 });
+	phy.add({ type:'plane', size:[300,1,300], material:'shadow', visible:true });
+  }
+&lt;/script>
+        </code>
+	
+
+	</body>
+</html>
