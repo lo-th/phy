@@ -4,7 +4,7 @@
 [Jolt](https://github.com/jrouwe/JoltPhysics.js) &mdash;
 [Havok](https://github.com/BabylonJS/Babylon.js) &mdash;
 [Physx](https://github.com/fabmax/physx-js-webidl)<br>
-<img src="./assets/icons/phy_map.png"/><br><br>
+<img src="./assets/icons/phy_map.png"/>
 
 [START EDITOR](https://lo-th.github.io/phy/docs/index.html#manual/Welcome)<br><br>
 PHY Universal physics language on Worker or Direct for [three.js](https://lo-th.github.io/phy/docs/index.html#manual/Welcome)<br>
