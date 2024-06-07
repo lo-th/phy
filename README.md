@@ -22,7 +22,7 @@ You can use compress or full version of physics engines.
 
 ### Features
 
-math, pool, EnhanceLighning, ES6, chamfer geometry, compact engine
+math, pool, EnhanceLighning, ES6, chamfer geometry, compact engine, fast worker
 
 ### Usage
 
@@ -33,7 +33,7 @@ You can drag file directly on viewport ( code js or environement hdr )
 
 ### Todo
 
-Add more demos, fixe joint...
+Add more function and demo, standardize and clean code.
 
 ### Docs
 
