@@ -1,6 +1,6 @@
 {
-  "name": "phy",
-  "version": "0.1.0",
+  "name": "phy-engine",
+  "version": "0.0.5",
   "description": "JavaScript 3D Physics for three.js",
   "main": "build/Main.js",
   "jsnext:main": "build/phy.module.js",

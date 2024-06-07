@@ -38,3 +38,13 @@ Add more demos, fixe joint...
 Phy is under active development<br>
 You can help me improve phy engine with Sponsor
 
+[![NPM Package][npm]][npm-url]
+[![Build Size][build-size]][build-size-url]
+[![NPM Downloads][npm-downloads]][npmtrends-url]
+
+[npm]: https://img.shields.io/npm/v/phy-engine
+[npm-url]: https://www.npmjs.com/package/phy-engine
+[build-size]: https://badgen.net/bundlephobia/minzip/phy-engine
+[build-size-url]: https://bundlephobia.com/result?p=phy-engine
+[npm-downloads]: https://img.shields.io/npm/dw/phy-engine
+[npmtrends-url]: https://www.npmtrends.com/phy-engine

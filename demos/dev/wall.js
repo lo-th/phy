@@ -8,7 +8,12 @@ demo = () => {
 
     phy.add({ type:'plane', size:[300,1,300], visible:false });
 
-    phy.add({ type:'highSphere', size:[2], pos:[0,2,-10], mass:2, impulse:[0,0,40] });
+    phy.add({ 
+        type:'highSphere', size:[2], pos:[0,2,-10], 
+        mass:5,
+        //density:0.1,
+        impulse:[0,0,80] 
+    });
 
     let i = 100, d = 0, l=0;
     let pos = [0, 0, 0];
@@ -21,8 +26,13 @@ demo = () => {
         if(l%2 == 0) pos[0] += 0.5
         else pos[0] -= 0.5
         phy.add({ 
-            type:'box', size:[2,1,0.5], pos:pos, mass:1, radius:0.1, 
-            //maxVelocity:[100,100], //penetrationVelocity:1,
+            type:'box', size:[2,1,0.5], pos:pos, radius:0.1,
+            mass:2,
+            //density:1, 
+            massInfo:i===0,
+            //damping:[0.05, 0.05],
+            //maxVelocity:[100,100], 
+            //penetrationVelocity:1,
 
         });
         d++
