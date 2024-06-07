@@ -1,18 +1,16 @@
-<p align="center" style="display: flex; justify-content: center;">
-	<a href="https://github.com/saharan/OimoPhysics/">Oimo</a>&nbsp;&nbsp;&nbsp;&nbsp;
-	<a href="https://github.com/kripken/ammo.js">Ammo</a>&nbsp;&nbsp;&nbsp;&nbsp;
-	<a href="https://github.com/dimforge/rapier.js">Rapier</a>&nbsp;&nbsp;&nbsp;&nbsp;
-	<a href="https://github.com/jrouwe/JoltPhysics.js">Jolt</a>&nbsp;&nbsp;&nbsp;&nbsp;
-	<a href="https://github.com/BabylonJS/Babylon.js">Havok</a>&nbsp;&nbsp;&nbsp;&nbsp;
-	<a href="https://github.com/fabmax/physx-js-webidl">Physx</a>
-</p>
+[Oimo](https://github.com/saharan/OimoPhysics/) &mdash;
+[Ammo](https://github.com/kripken/ammo.js) &mdash;
+[Rapier](https://github.com/dimforge/rapier.js) &mdash;
+[Jolt](https://github.com/jrouwe/JoltPhysics.js) &mdash;
+[Havok](https://github.com/BabylonJS/Babylon.js) &mdash;
+[Physx](https://github.com/fabmax/physx-js-webidl)
+<img src="./assets/icons/phy_map.png"/>
 
-<p align="center"><a href="https://lo-th.github.io/phy/"><img src="./assets/icons/phy_map.png" alt="START DEMO"/></a><br><a href="https://lo-th.github.io/phy/"><b>START DEMO</b></a></p>
-<p align="center">
-PHY Universal physics language on Worker or Direct for <a href="https://github.com/mrdoob/three.js">three.js</a><br><br>
+[START EDITOR](https://lo-th.github.io/phy/docs/index.html#manual/Welcome)<br><br>
+PHY Universal physics language on Worker or Direct for [three.js](https://lo-th.github.io/phy/docs/index.html#manual/Welcome)<br>
 Phy simplify game creation, is a bridge between three.js and physics.<br>
-You can use compress or full version of physics engines.
-</p>
+You can use compress or full version of physics engines.<br>
+
 
 ### phy-engine
 
