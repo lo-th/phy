@@ -1,9 +1,3 @@
-<p align="center">
-[![NPM Package][npm]][npm-url]
-[![Build Size][build-size]][build-size-url]
-[![NPM Downloads][npm-downloads]][npmtrends-url]
-</p>
-
 <p align="center" style="display: flex; justify-content: center;">
 	<a href="https://github.com/saharan/OimoPhysics/">Oimo</a>&nbsp;&nbsp;&nbsp;&nbsp;
 	<a href="https://github.com/kripken/ammo.js">Ammo</a>&nbsp;&nbsp;&nbsp;&nbsp;
@@ -20,26 +14,32 @@ Phy simplify game creation, is a bridge between three.js and physics.<br>
 You can use compress or full version of physics engines.
 </p>
 
-## Features
+## phy-engine
+
+[![NPM Package][npm]][npm-url]
+[![Build Size][build-size]][build-size-url]
+[![NPM Downloads][npm-downloads]][npmtrends-url]
+
+### Features
 
 math, pool, EnhanceLigh, ES6, chamfer geometry
 
-## Usage
+### Usage
 
 Phy main function is : add, remove and change.<br>
 You can see and edit demo code directlly on <a href="https://lo-th.github.io/phy/">webpage</a> 
 
 You can drag file directly on viewport ( code js or environement hdr ) 
 
-## Todo
+### Todo
 
 Add more demos, fixe joint...
 
-## Docs
+### Docs
 
 <a href="https://lo-th.github.io/phy/docs/index.html#manual/Welcome">docs</a> in progress...
 
-## About
+### About
 
 Phy is under active development<br>
 You can help me improve phy engine with Sponsor
