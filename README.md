@@ -7,14 +7,14 @@
 	<a href="https://github.com/fabmax/physx-js-webidl">Physx</a>
 </p>
 
-<p align="center"><a href="https://lo-th.github.io/phy/"><img src="./assets/icons/phy_map.png" alt="START DEMO"/></a><br><a href="https://lo-th.github.io/phy/"><b>START DEMO</b></a></p>
+<p align="center"><a href="https://lo-th.github.io/phy/"><img src="./assets/icons/phy_map.png" alt="START DEMO"/></a><br><a href="https://lo-th.github.io/phy/"><h2><b>START DEMO</b></h2></a></p>
 <p align="center">
 PHY Universal physics language on Worker or Direct for <a href="https://github.com/mrdoob/three.js">three.js</a><br><br>
 Phy simplify game creation, is a bridge between three.js and physics.<br>
 You can use compress or full version of physics engines.
 </p>
 
-## phy-engine
+### phy-engine
 
 [![NPM Package][npm]][npm-url]
 [![Build Size][build-size]][build-size-url]
