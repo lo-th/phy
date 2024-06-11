@@ -11,6 +11,41 @@ const PI90 = PI*0.5;
 const M = {
 
     //-----------------------
+    //  LIGHT
+    //-----------------------
+
+    luminousPowers : {
+        '110000 lm (1000W)': 110000,
+        '3500 lm (300W)': 3500,
+        '1700 lm (100W)': 1700,
+        '800 lm (60W)': 800,
+        '400 lm (40W)': 400,
+        '180 lm (25W)': 180,
+        '20 lm (4W)': 20,
+        'Off': 0
+    },
+
+    // ref for solar irradiances: https://en.wikipedia.org/wiki/Lux
+    luminousIrradiances : {
+        '0.0001 lx (Moonless Night)': 0.0001,
+        '0.002 lx (Night Airglow)': 0.002,
+        '0.5 lx (Full Moon)': 0.5,
+        '3.4 lx (City Twilight)': 3.4,
+        '50 lx (Living Room)': 50,
+        '100 lx (Very Overcast)': 100,
+        '350 lx (Office Room)': 350,
+        '400 lx (Sunrise/Sunset)': 400,
+        '1000 lx (Overcast)': 1000,
+        '18000 lx (Daylight)': 18000,
+        '50000 lx (Direct Sun)': 50000
+    },
+
+    exposure : (v) => ( Math.pow( v, 5.0 ) ),
+    //Candela is default three light intensity
+    candelaToLumens : (v) => ( v * 4 * Math.PI ),
+    lumensToCandela : (v) => ( v / ( 4 * Math.PI ) ),
+
+    //-----------------------
     //  MATH
     //-----------------------
 
@@ -8007,6 +8042,13 @@ class Body extends Item {
 	    if( o.material ) delete o.material;
 		if( o.parent ) delete o.parent;
 
+
+		if(o.solver){
+			// keep name reference of bones
+			const solver = this.byName( o.solver );
+			solver.addBone( o.name );
+		}
+
 	    //---------------------------
 		// send to physic engine 
 		//---------------------------
@@ -12642,9 +12684,6 @@ class SkeletonBody extends Object3D {
                 if( n==='rShldr' && name==='rForeArm'){ type = 'capsule'; size = [  0.05, dist ]; translate = [-dist * 0.5, 0, 0 ]; rot = [0,0,90]; }
                 if( n==='rForeArm' && name==='rHand' ){ type = 'capsule'; size = [ 0.04, dist ]; translate = [-dist * 0.5, 0, 0 ]; rot = [0,0,90]; }
                 if( n==='rHand' && name==='rMid1'){ type = 'box'; size = [ dist*2, 0.09, 0.05 ]; translate = [-dist, 0, 0 ]; }
-
-                
-
 
 	            // legs
 
@@ -37459,10 +37498,23 @@ class Articulation {//extends Basic3D
 		this.name = o.name;
 		this.type = 'solver';
 		this.needData = o.needData || false;
+		this.bones = [];
 		this.joints = [];
 		this.jid = 0;
 		this.speed = 1;
 
+	}
+
+	addBone( name ){
+
+		this.bones.push( name );
+
+	}
+
+	dispose(){
+
+		root.motor.remove( this.bones, true );
+		
 	}
 
 	update ( AR, n ){
@@ -42008,6 +42060,7 @@ class Envmap {
 
 		this.usePrem = o.usePmrem !== undefined ? o.usePmrem : false;
 		this.useBackground = o.useBackground !== undefined ? o.useBackground : true;
+		this.envBlur = o.envBlur !== undefined ? o.envBlur : 0;
 		this.callback = o.callback || null;
 
 		 if( this.usePrem ){
@@ -42070,6 +42123,7 @@ class Envmap {
         env.needsUpdate = true;
 
 		if( this.useBackground ) this.scene.background = env;
+		if( this.envBlur ) this.scene.backgroundBlurriness = this.envBlur;
         this.scene.environment = env;
 
         this.loader.dispose();
@@ -42437,6 +42491,8 @@ class Motor {
 		isTimeout = isWorker;
 		outsideStep = !isTimeout;
 
+		//console.log( isTimeout, isWorker, outsideStep )
+
 	    root.jointVisible = o.jointVisible || false;
 
 		if( outsideStep ) timer.setFramerate( settings.fps );
@@ -42789,6 +42845,7 @@ class Motor {
 			scene:scene,
 			usePmrem:o.usePmrem,
 			useBackground: o.useBackground !== undefined ? o.useBackground : true,
+			envBlur: o.envBlur !== undefined ? o.envBlur : 0,
 			callback:()=>{
 				envmapUrl = '';
 				Motor.initPhysics(o);
@@ -42962,8 +43019,14 @@ class Motor {
 
 		if( mouseTool ) mouseTool.step();
 
+		// TODO fix dt 0 when no doStep ??
+
 		//postUpdate( root.reflow.stat.delta )
-		postUpdate( timer.delta );
+		//postUpdate( timer.delta );
+		//postUpdate( root.delta )
+		let dd = outsideStep ? timer.delta : root.delta;
+		//console.log(dd)
+		postUpdate( dd );
 
 		//items.character.prestep()
 

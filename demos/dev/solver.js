@@ -25,7 +25,15 @@ demo = () => {
 
 
     createLongChain();
-    createScissorLift()
+    createScissorLift();
+
+    //createSimpleChain();
+
+    setTimeout( ()=>{
+    	phy.remove('longChain')
+    	phy.remove('scissor')
+    	console.log('yo');
+    }, 4000)
 
     // update after physic step
     phy.setPostUpdate( update )
@@ -42,7 +50,32 @@ update = () => {
 	if( gClosing ) driveValue -= dt*0.25; 
 	else driveValue += dt*0.25;
 
-	phy.change( { name:'driveJoint', drivesTarget:[[ 'z', driveValue ]] } );
+	//phy.change( { name:'driveJoint', drivesTarget:[[ 'z', driveValue ]] } );
+
+}
+
+
+createSimpleChain = () => {
+
+	let solver = phy.add({ 
+		type:'solver', 
+		name:'simpleChain',
+		iteration:16,  
+		fix:true,
+	});
+
+	phy.add({ 
+			//type:'capsule',
+			type:'box',  
+			name:'one', 
+			pos:[0,0.5,0], 
+			//size:[ (halfHeight*2)+radius*2, radius , radius ], 
+			size:[ 1,1,1 ],
+			//size:[ radius, (halfHeight*2) ], 
+			density:1,
+			solver:'simpleChain', linked: 'null', 
+		});
+
 
 }
 

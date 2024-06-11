@@ -1,7 +1,8 @@
 {
   "name": "phy-engine",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "JavaScript 3D Physics for three.js",
+  "type": "module",
   "main": "build/Main.js",
   "jsnext:main": "build/phy.module.js",
   "module": "./build/phy.module.js",
@@ -17,6 +18,7 @@
     "build"
   ],
   "directories": {
+    "doc": "docs",
     "demos": "demos"
   },
   "eslintConfig": {
@@ -42,6 +44,8 @@
     "ammo",
     "physx",
     "rapier",
+    "havok",
+    "jolt",
     "cannon",
     "three",
     "physics",
@@ -59,6 +63,6 @@
     "regenerator-runtime": "^0.13.7",
     "rollup": "^2.39.0",
     "rollup-plugin-terser": "^7.0.2",
-    "servez": "^1.11.0"
+    "servez": "^2.0.0"
   }
 }

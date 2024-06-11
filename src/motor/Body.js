@@ -761,6 +761,13 @@ export class Body extends Item {
 	    if( o.material ) delete o.material;
 		if( o.parent ) delete o.parent;
 
+
+		if(o.solver){
+			// keep name reference of bones
+			const solver = this.byName( o.solver );
+			solver.addBone( o.name )
+		}
+
 	    //---------------------------
 		// send to physic engine 
 		//---------------------------

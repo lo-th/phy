@@ -1102,7 +1102,7 @@ const render = ( stamp = 0 ) => {
     
 
 	// UPDATE PHY
-	Motor.doStep( stamp )
+	if( !Main.isWorker ) Motor.doStep( stamp )
 
 	// UPDATE PARTICLE
     if( particles ) particles.update( stamp )

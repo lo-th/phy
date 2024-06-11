@@ -70,11 +70,12 @@ demo = () => {
 
 }
 
-update = () => {
+update = ( dt ) => {
 
     var p, m, r = [];
     box.forEach( function( b, id ) {
-        p = b.position.clone().negate().normalize().multiplyScalar(0.001);
+        //p = b.position.clone().negate().normalize().multiplyScalar(0.001);
+        p = b.position.clone().negate().normalize().multiplyScalar(dt);
         r.push( { name:b.name, force:p.toArray() } );
     });
 

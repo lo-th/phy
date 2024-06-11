@@ -173,6 +173,8 @@ export class Motor {
 		isTimeout = isWorker;
 		outsideStep = !isTimeout;
 
+		//console.log( isTimeout, isWorker, outsideStep )
+
 	    root.jointVisible = o.jointVisible || false;
 
 		if( outsideStep ) timer.setFramerate( settings.fps );
@@ -528,6 +530,7 @@ export class Motor {
 			scene:scene,
 			usePmrem:o.usePmrem,
 			useBackground: o.useBackground !== undefined ? o.useBackground : true,
+			envBlur: o.envBlur !== undefined ? o.envBlur : 0,
 			callback:()=>{
 				envmapUrl = '';
 				Motor.initPhysics(o);
@@ -701,8 +704,14 @@ export class Motor {
 
 		if( mouseTool ) mouseTool.step();
 
+		// TODO fix dt 0 when no doStep ??
+
 		//postUpdate( root.reflow.stat.delta )
-		postUpdate( timer.delta );
+		//postUpdate( timer.delta );
+		//postUpdate( root.delta )
+		let dd = outsideStep ? timer.delta : root.delta
+		//console.log(dd)
+		postUpdate( dd )
 
 		//items.character.prestep()
 

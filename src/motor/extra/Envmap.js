@@ -18,6 +18,7 @@ export class Envmap {
 
 		this.usePrem = o.usePmrem !== undefined ? o.usePmrem : false;
 		this.useBackground = o.useBackground !== undefined ? o.useBackground : true;
+		this.envBlur = o.envBlur !== undefined ? o.envBlur : 0;
 		this.callback = o.callback || null;
 
 		 if( this.usePrem ){
@@ -80,6 +81,7 @@ export class Envmap {
         env.needsUpdate = true;
 
 		if( this.useBackground ) this.scene.background = env;
+		if( this.envBlur ) this.scene.backgroundBlurriness = this.envBlur;
         this.scene.environment = env;
 
         this.loader.dispose();

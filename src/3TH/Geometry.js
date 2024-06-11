@@ -12,6 +12,10 @@ import {
     Vector2,
 } from 'three';
 import { mergeVertices, mergeGeometries } from '../jsm/utils/BufferGeometryUtils.js';
+import { Tubular } from './geometries/Tubular.js';
+
+
+export const Tube = Tubular;
 
 /** __
 *    _)_|_|_
@@ -71,6 +75,8 @@ export function geometryInfo( g, type, Size ) {
     return {v:g.realVertices, f:g.realIndices };*/
 
 }
+
+
 export class Stair extends BufferGeometry {
 
     constructor( size, d=0.3 ) {

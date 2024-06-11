@@ -67,10 +67,23 @@ export class Articulation {//extends Basic3D
 		this.name = o.name
 		this.type = 'solver'
 		this.needData = o.needData || false
+		this.bones = []
 		this.joints = []
 		this.jid = 0
 		this.speed = 1
 
+	}
+
+	addBone( name ){
+
+		this.bones.push( name );
+
+	}
+
+	dispose(){
+
+		root.motor.remove( this.bones, true );
+		
 	}
 
 	update ( AR, n ){
