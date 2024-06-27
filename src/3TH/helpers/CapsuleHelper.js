@@ -184,7 +184,7 @@ class CapsuleHelper extends Object3D {
 	}
 
 	raycast(){
-		return
+		return false
 	}
 
 	update() {

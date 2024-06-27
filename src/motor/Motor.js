@@ -1,6 +1,6 @@
 
 import {
-    Group, Vector3, Vector2, Quaternion
+    Group, Vector3, Vector2, Quaternion, SkeletonHelper,
 } from 'three';
 
 import { MathTool } from '../core/MathTool.js';
@@ -29,10 +29,14 @@ import { Breaker } from './extra/Breaker.js';
 import { Particle } from './extra/Particle.js';
 import { RayCar } from './extra/RayCar.js';
 import { Envmap } from './extra/Envmap.js';
+import { AutoRagdoll } from './extra/AutoRagdoll.js';
+import { SkeletonBody } from './extra/SkeletonBody.js';
+import * as SkeletonUtils from '../jsm/utils/SkeletonUtils.js';
 
 import { Pool } from '../3TH/Pool.js';
 import { sk } from '../3TH/character/SkeletonExtand.js';
 import { preloadAvatar } from '../3TH/character/Avatar.js';
+
 
 /** __
 *    _)_|_|_
@@ -276,6 +280,55 @@ export class Motor {
 		}
 
 	}
+
+	static autoRagdoll ( o ) { 
+
+		return new AutoRagdoll( o );
+
+	}
+
+	/*static autoSkeleton ( name, model, size = 1, material = null, debug = false ) { 
+
+
+
+		let m = SkeletonUtils.clone( model );//new Group();
+		m.raycast = function (){ return }
+		m.name = name
+		let skin, bones;
+		for(let i in m.children){
+			let node = m.children[i]
+			if ( node.isSkinnedMesh ){
+				skin = node;
+				skin.raycast = function (){ return }
+				skin.matrixAutoUpdate = false;
+				skin.receiveShadow = true;
+				skin.castShadow = true;
+				if(material) skin.material = material;
+				bones = skin.skeleton.bones;
+			}
+		}
+
+		m.scale.set(1,1,1).multiplyScalar(size);
+		skin.skeleton.resetScalling();
+
+		m['skeletonBody'] = new SkeletonBody( m.name, m, bones );
+		m.skeletonBody.isVisible( debug );
+
+
+
+		/* 
+		// basic three helper
+		let helper = new SkeletonHelper( m );
+		helper.raycast = function (){ return }
+        helper.matrix = m.matrix;
+        root.scene.add( helper );
+        */
+
+	/*	m.add( m.skeletonBody );
+
+		return m;
+
+	}*/
 
 	static makeView () {}
 
@@ -909,6 +962,10 @@ export class Motor {
 		let b = Motor.byName( name );
 		if( b === null ) return;
 
+		if(b.type === 'autoRagdoll' ) {
+			Utils.remove(b);
+			return 
+		}
 		if( b.extraRemove ) b.extraRemove();
 
 		// remove on three side

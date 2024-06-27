@@ -74,7 +74,7 @@ export const Gui = {
 		//font:"'Roboto Mono', 'Source Code Pro', Consolas, monospace",
 		//font:"'Roboto Mono', 'Source Code Pro', Consolas, monospace", 
 		//font:"Mulish, sans-serif", 
-		fontSize:12,
+		fontSize:13,
 		//weight:'500',
 		//weight:'bold',
 		text:'#eee',
@@ -760,7 +760,7 @@ export const Gui = {
 
 
 	    if(m.sheen!==undefined){ 
-	    	g3.add( m, 'sheen', {...deff,min:0, max:4})
+	    	g3.add( m, 'sheen', {...deff,min:0, max:20})
 	    	g3.add( m, 'sheenRoughness', {...deff})
 	    	
 	    }

@@ -1,10 +1,17 @@
 let avatar, eva, bb, ba, bc
 let mode = 'follow'
-let type = 'hero'
+//let type = 'hero'
 let debug = false
 
+const setting = { 
+	ragdoll:false,
+	debug:false,
+	name:'hero',
+	height:1.8,
+};
+
 let modelList = ['hero', 'eva', 'lee', 'simple'];
-let listN = modelList.indexOf( type );
+let listN = modelList.indexOf( setting.name );
 
 demo = () => {
 
@@ -28,13 +35,14 @@ const onComplete = () => {
 
 	// buttons
 	bb = phy.addButton({ type:'box', pos:[1.0, 1.2,-1.05], size:[0.4,0.2,0.1], radius:0.02, callback:switchMode, text:mode, axe:2, material:'black' });
-    ba = phy.addButton({ type:'box', pos:[1.0, 1.5,-1.05], size:[0.4,0.2,0.1], radius:0.02, callback:switchModel, text:type, axe:2, material:'black' });
+    ba = phy.addButton({ type:'box', pos:[1.0, 1.5,-1.05], size:[0.4,0.2,0.1], radius:0.02, callback:switchModel, text:setting.name, axe:2, material:'black' });
     bc = phy.addButton({ type:'box', pos:[1.0, 1.8,-1.05], size:[0.4,0.2,0.1], radius:0.02, callback:switchDebug, text:'debug',  axe:2, material:'black' });
 
     //let k = 200
 	//while(k--) phy.add({type:'sphere', pos:[math.rand(-5,5), 2, math.rand(-5,5)], size:[math.rand(0.1,0.3)], density:1, mask:2})
 
-	addModel( type );
+	addModel( setting.name );
+	addGui()
 
 }
 
@@ -63,16 +71,36 @@ const addModel = ( type ) => {
         callback:done,
         mask:2,
         noLOD:true,
-
+ //height: 3,
         //useImpulse:true,
         //floating:true,
     })
 
+
+
+}
+
+const addGui = () => {
+	gui = phy.gui();
+	gui.add( setting, 'ragdoll', { } ).onChange( (b)=>{
+		avatar.setMode( b ? 'ragdoll':'follow' );
+		phy.control( b ? '' : 'avatar' );
+	} );
+	gui.add( setting, 'debug', { } ).onChange( (b)=>{avatar.debugMode(b)} );
+	gui.add( setting, 'height', { min:0.1, max:4.0} ).onChange( (v)=>{avatar.model.setRealSize(v)} );
+	gui.add( setting, 'name', { type:'button', values:modelList, selectable:true, h:26, p:0 } ).onChange( addModel );
+    /*gui.add( setting, 'auto' ).onChange( (v) => { 
+        b1.skeletonBody.setMode(v ? 'ragdoll':'follow' );
+        b2.skeletonBody.setMode(v ? 'ragdoll':'follow' );
+        b3.skeletonBody.setMode(v ? 'ragdoll':'follow' );
+    })
+    gui.add( setting, 'gravity', { min:-10, max:10, mode:2 } ).onChange( (v) => { phy.setGravity([0,v,0]) } )*/
 }
 
 const done = () => {
 
 	avatar.addSkeleton();
+	//avatar.model.setRealSize(3)
 	//avatar.debugMode( debug )
 
 	phy.control( 'avatar' );
@@ -87,9 +115,10 @@ const switchModel = () => {
 	listN++
 	if( listN>=modelList.length ) listN=0
 
-	type = modelList[listN];
+	let type = modelList[listN];
 
 	ba.txt.set( type );
+	setting.name = type;
     debug = false;
 
 	addModel( type );

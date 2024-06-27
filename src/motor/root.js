@@ -127,8 +127,6 @@ export const Utils = {
 
 		}
 
-		//console.log('add', b.name, b.type )
-
 		if( b.isInstance && b.refName !== b.name ) map.set( b.refName, b );
 
 		map.set( b.name, b );
@@ -170,8 +168,9 @@ export const Utils = {
     	//if( obj.isObject3D ) obj.updateWorldMatrix( true, false )
     	// apply position
     	if(!isAxe) v.sub( obj.position );
+    	//v.multiply(obj.scale)
     	// apply invers rotation
-    	let q = obj.quaternion;
+    	let q = obj.quaternion//.normalize();
     	//v.applyQuaternion(q.clone().invert())
     	//v.applyQuaternion({x:-q.x, y:-q.y, z:-q.z, w:q.w})
     	v.applyQuaternion({x:-q._x, y:-q._y, z:-q._z, w:q._w})

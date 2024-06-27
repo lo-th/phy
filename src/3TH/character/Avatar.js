@@ -33,7 +33,7 @@ import { Human } from './Human.js';
 import { Human_low } from './Human_low.js';
 import { Eva } from './Eva.js';
 import { Lee } from './Lee.js';
-
+import { Bear } from './Bear.js';
 
 /** __
 *    _)_|_|_

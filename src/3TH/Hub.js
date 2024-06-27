@@ -88,7 +88,7 @@ let panelBackground = '';
 
 
 let dayColor = ['#000', '#444', '#feb', 'rgba(213,211,212,0.32)'];
-let nightColor = ['#ddd', '#bee', '#feb', 'rgba(13,11,12,0.32)'];
+let nightColor = ['#ddd', '#bee', '#feb', 'rgba(13,11,12,0.6)'];
 
 
 

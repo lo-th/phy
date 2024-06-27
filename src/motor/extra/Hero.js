@@ -35,7 +35,6 @@ export class Hero extends Basic3D {
 
 		this.realHeight = height;
 
-
 		if(this.useFloating){
 			height -= floatHeight
 		}
@@ -346,8 +345,9 @@ export class Hero extends Basic3D {
     addSkeleton(){
 
     	if( this.skeletonBody ) return
-
-    	this.skeletonBody = new SkeletonBody( this )
+    	if( !this.model ) return
+    	//this.skeletonBody = new SkeletonBody( this )
+        this.skeletonBody = new SkeletonBody( this.name, this.model.root, this.model.skeleton.bones )
     	root.scene.add( this.skeletonBody )
     	this.skeletonBody.isVisible( false )
 

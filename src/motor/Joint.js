@@ -90,8 +90,20 @@ export class Joint extends Item {
 		// world to local
 		if ( o.worldPos ) o.worldAnchor = o.worldPos;
 		if ( o.worldAnchor ){
+
+			
+			
+
 			o.pos1 = body1 ? Utils.toLocal( this.v1.fromArray( o.worldAnchor ), body1 ).toArray() : o.worldAnchor;
 			o.pos2 = body2 ? Utils.toLocal( this.v2.fromArray( o.worldAnchor ), body2 ).toArray() : o.worldAnchor;
+			/*if(body1){ 
+				this.v1 = body1.worldToLocal(this.v2.fromArray( o.worldAnchor ));
+				o.pos1 = this.v1.toArray();
+			}
+			if(body2){ 
+				this.v1 = body2.worldToLocal(this.v2.fromArray( o.worldAnchor ));
+				o.pos2 = this.v1.toArray();
+			}*/
 			delete o.worldAnchor;
 		} 
 

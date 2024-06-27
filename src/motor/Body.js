@@ -383,8 +383,8 @@ export class Body extends Item {
 			let hcolor2 = o.hcolor2 || [0.8,0.2,0.0];
 
 			// TODO bug with character
-
-			m.add( new CapsuleHelper( s[ 0 ], s[ 1 ]+(s[ 0 ]*2), false, Mat.get( 'line' ), hcolor, hcolor2, true ))
+			let hh = new CapsuleHelper( s[ 0 ], s[ 1 ]+(s[ 0 ]*2), false, Mat.get( 'line' ), hcolor, hcolor2, true )
+			m.add( hh )
 			//m = new CapsuleHelper( s[ 0 ], s[ 1 ]+(s[ 0 ]*2), false, Mat.get( 'line' ), hcolor, hcolor2, true )
 			//m.material.visible = false
 

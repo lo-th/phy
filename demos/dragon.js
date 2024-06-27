@@ -67,9 +67,9 @@ onComplete = () => {
     models.diam_1.material = eye
     models.diam_2.material = eye
 
-    dragon = phy.get('dragon', 'O');
+    dragon = phy.getGlb('dragon');
 
-    models.dragon.material = phy.getMat('dragon')
+    models.dragon.material = phy.getMat('dragon');
     models.dragon.castShadow = true;
     models.dragon.receiveShadow = false;
     let skeleton = models.dragon.skeleton
@@ -77,6 +77,8 @@ onComplete = () => {
     //head.rotation.y = 45 * math.torad
 
     phy.add( dragon )
+
+    console.log(dragon)
 
     // SPINE
 
