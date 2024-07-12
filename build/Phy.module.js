@@ -1,8 +1,8 @@
 import * as THREE$1 from 'three';
-import { Quaternion, Matrix3, Vector3, LineSegments, BufferGeometry, BufferAttribute, Float32BufferAttribute, LineBasicMaterial, SphereGeometry, CylinderGeometry, BoxGeometry, PlaneGeometry, CanvasTexture, RepeatWrapping, SRGBColorSpace, MeshPhysicalMaterial, Color, ShaderChunk, ShaderMaterial, BackSide, Vector2, MeshStandardMaterial, ShadowMaterial, MeshToonMaterial, MeshBasicMaterial, MeshLambertMaterial, MeshPhongMaterial, DoubleSide, NoBlending, NormalBlending, AdditiveBlending, SubtractiveBlending, MultiplyBlending, AddEquation, SubtractEquation, ReverseSubtractEquation, MinEquation, MaxEquation, ZeroFactor, OneFactor, SrcColorFactor, OneMinusSrcColorFactor, SrcAlphaFactor, OneMinusSrcAlphaFactor, DstAlphaFactor, OneMinusDstAlphaFactor, DstColorFactor, OneMinusDstColorFactor, SrcAlphaSaturateFactor, FrontSide, Line, EventDispatcher, MathUtils, Matrix4, Euler, Layers, Mesh, InstancedMesh, InstancedBufferAttribute, TrianglesDrawMode, TriangleFanDrawMode, TriangleStripDrawMode, CircleGeometry, Box3, Line3, Plane, Triangle, Object3D, Loader, FileLoader, ShapeUtils, Box2, Shape, Path, ShapePath, ShapeGeometry, Uniform, PerspectiveCamera, Scene, WebGLRenderer, PropertyBinding, InterpolateLinear, CompressedTexture, Source, NoColorSpace, RGBAFormat, InterpolateDiscrete, NearestFilter, NearestMipmapNearestFilter, NearestMipmapLinearFilter, LinearFilter, LinearMipmapNearestFilter, LinearMipmapLinearFilter, ClampToEdgeWrapping, MirroredRepeatWrapping, RGBA_ASTC_4x4_Format, RGBA_BPTC_Format, RGBA_ETC2_EAC_Format, RGBA_PVRTC_4BPPV1_Format, RGBA_S3TC_DXT5_Format, RGB_ETC1_Format, RGB_ETC2_Format, RGB_PVRTC_4BPPV1_Format, RGB_S3TC_DXT1_Format, CompressedCubeTexture, UnsignedByteType, CompressedArrayTexture, FloatType, HalfFloatType, DataTexture, Data3DTexture, LinearSRGBColorSpace, DisplayP3ColorSpace, LinearDisplayP3ColorSpace, RGFormat, RedFormat, RGBA_ASTC_6x6_Format, LoaderUtils, SpotLight, PointLight, DirectionalLight, TextureLoader, ImageBitmapLoader, InterleavedBuffer, InterleavedBufferAttribute, PointsMaterial, Material, SkinnedMesh, LineLoop, Points, Group, OrthographicCamera, Skeleton, AnimationClip, Bone, ColorManagement, Texture, VectorKeyframeTrack, NumberKeyframeTrack, QuaternionKeyframeTrack, Sphere, Interpolant, Vector4, Curve, EquirectangularReflectionMapping, AmbientLight, Uint16BufferAttribute, DataTextureLoader, DataUtils, ObjectSpaceNormalMap, AnimationMixer, CustomBlending, SkeletonHelper, AnimationUtils, AdditiveAnimationBlendMode, NormalAnimationBlendMode, Raycaster, LoadingManager, UVMapping, LinearMipMapLinearFilter, WebGLRenderTarget, IntType, ShortType, ByteType, UnsignedIntType, PMREMGenerator } from 'three';
+import { Quaternion, Matrix3, Vector3, LineSegments, BufferGeometry, BufferAttribute, Float32BufferAttribute, LineBasicMaterial, SphereGeometry, CylinderGeometry, BoxGeometry, PlaneGeometry, CanvasTexture, RepeatWrapping, SRGBColorSpace, MeshPhysicalMaterial, Color, ShaderChunk, ShaderMaterial, BackSide, Vector2, MeshStandardMaterial, ShadowMaterial, MeshToonMaterial, MeshBasicMaterial, MeshLambertMaterial, MeshPhongMaterial, DoubleSide, NoBlending, NormalBlending, AdditiveBlending, SubtractiveBlending, MultiplyBlending, AddEquation, SubtractEquation, ReverseSubtractEquation, MinEquation, MaxEquation, ZeroFactor, OneFactor, SrcColorFactor, OneMinusSrcColorFactor, SrcAlphaFactor, OneMinusSrcAlphaFactor, DstAlphaFactor, OneMinusDstAlphaFactor, DstColorFactor, OneMinusDstColorFactor, SrcAlphaSaturateFactor, FrontSide, Line, EventDispatcher, MathUtils, Matrix4, Euler, Layers, Mesh, InstancedMesh, InstancedBufferAttribute, TrianglesDrawMode, TriangleFanDrawMode, TriangleStripDrawMode, CircleGeometry, Box3, Line3, Plane, Triangle, Object3D, Loader, FileLoader, ShapeUtils, Box2, Shape, Path, ShapePath, ShapeGeometry, Uniform, PerspectiveCamera, Scene, WebGLRenderer, PropertyBinding, InterpolateLinear, CompressedTexture, Source, NoColorSpace, RGBAFormat, InterpolateDiscrete, NearestFilter, NearestMipmapNearestFilter, NearestMipmapLinearFilter, LinearFilter, LinearMipmapNearestFilter, LinearMipmapLinearFilter, ClampToEdgeWrapping, MirroredRepeatWrapping, RGBA_ASTC_4x4_Format, RGBA_BPTC_Format, RGBA_ETC2_EAC_Format, RGBA_PVRTC_4BPPV1_Format, RGBA_S3TC_DXT5_Format, RGB_ETC1_Format, RGB_ETC2_Format, RGB_PVRTC_4BPPV1_Format, RGB_S3TC_DXT1_Format, CompressedCubeTexture, UnsignedByteType, CompressedArrayTexture, FloatType, HalfFloatType, DataTexture, Data3DTexture, LinearSRGBColorSpace, DisplayP3ColorSpace, LinearDisplayP3ColorSpace, RGFormat, RedFormat, RGBA_ASTC_6x6_Format, LoaderUtils, SpotLight, PointLight, DirectionalLight, TextureLoader, ImageBitmapLoader, InterleavedBuffer, InterleavedBufferAttribute, PointsMaterial, Material, SkinnedMesh, LineLoop, Points, Group, OrthographicCamera, Skeleton, AnimationClip, Bone, ColorManagement, Texture, VectorKeyframeTrack, NumberKeyframeTrack, QuaternionKeyframeTrack, Sphere, Interpolant, Vector4, Curve, EquirectangularReflectionMapping, AmbientLight, Uint16BufferAttribute, DataTextureLoader, DataUtils, ObjectSpaceNormalMap, AnimationMixer, CustomBlending, SkeletonHelper, AnimationUtils, AdditiveAnimationBlendMode, NormalAnimationBlendMode, Raycaster, LoadingManager, UVMapping, LinearMipMapLinearFilter, WebGLRenderTarget, IntType, ShortType, ByteType, UnsignedIntType, PMREMGenerator, WebGLCubeRenderTarget, CubeCamera, IcosahedronGeometry, NoToneMapping } from 'three';
 
 const PI = Math.PI;
-const torad$2 = PI / 180;
+const torad$3 = PI / 180;
 const todeg$1 = 180 / PI;
 const EPSILON = Number.EPSILON;//0.00001;
 const PI90 = PI*0.5;
@@ -50,12 +50,12 @@ const M = {
     //-----------------------
 
     todeg:todeg$1,
-    torad:torad$2,
+    torad:torad$3,
 
     toFixed: ( x, n = 3 ) => ( x.toFixed(n) * 1 ),
     toRound: ( x, n = 3 ) => ( Math.trunc(x) ),
 
-    clamp: ( v, min, max ) => {
+    clamp: ( v, min = 0, max = 1 ) => {
         v = v < min ? min : v;
         v = v > max ? max : v;
         return v;
@@ -472,7 +472,7 @@ const M = {
 
         const cos = Math.cos;
         const sin = Math.sin;
-        const n = isDeg ? torad$2 : 1; 
+        const n = isDeg ? torad$3 : 1; 
         const x = (r[0]*n) * 0.5, y = (r[1]*n) * 0.5, z = (r[2]*n) * 0.5;
         const c1 = cos( x ), c2 = cos( y ), c3 = cos( z );
         const s1 = sin( x ), s2 = sin( y ), s3 = sin( z );
@@ -488,7 +488,7 @@ const M = {
 
     quatFromAxis: ( r = [0,0,0], angle, isDeg = true ) => {
 
-        const n = isDeg ? torad$2 : 1; 
+        const n = isDeg ? torad$3 : 1; 
         const halfAngle = (angle * 0.5) * n, s = Math.sin( halfAngle );
         return [
             r[0] * s,
@@ -1230,8 +1230,6 @@ const Utils = {
 		m.makeBasis( xAxis, yAxis, zAxis );
 
     }
-
-
 
 };
 
@@ -2409,6 +2407,7 @@ const Mat = {
 
 			    // metal
 			    case 'chrome': Mat.create({ name:'chrome', color:0xCCCCCC, metalness: 1, roughness:0.075 }); break
+			    case 'silver': Mat.create({ name:'silver', color:0xAAAAAA, metalness: 0.8, roughness:0.22 }); break
 			    case 'gold': Mat.create({ name:'gold', color:Colors.gold, specularColor:Colors.gold2, metalness: 1, roughness:0.02 }); break
 			    case 'copper': Mat.create({ name:'copper', color:Colors.copper, metalness: 1, roughness:0.25, clearcoat: 1.0, clearcoatRoughness: 0.2 }); break
 
@@ -2463,6 +2462,9 @@ const Mat = {
 
 				case 'line':
 				    Mat.create({ name:'line', type:'line', vertexColors: true, toneMapped: false });
+			    break
+			    case 'liner':
+				    Mat.create({ name:'liner', type:'line', vertexColors: true, toneMapped: false, depthTest:true, depthWrite:true, alphaToCoverage:true });
 			    break
 				case 'hide':
 				    Mat.create({ name:'hide', type:'basic', visible:false });
@@ -3361,7 +3363,7 @@ class Basic3D extends EventDispatcher {
 		this.outline.matrixAutoUpdate = false;
 		this.outline.receiveShadow = false;
 		this.outline.castShadow = false;
-		this.outline.raycast = () => ( null );
+		this.outline.raycast = () => ( false );
 		this.add( this.outline );
 
 	}
@@ -7105,29 +7107,18 @@ class CapsuleHelper extends Object3D {
 		
 
 		super();
-
-
 		// TODO bug with hero skeleton !! create new CapsuleHelper on over ??
 		if(!r) return
 		if(!h) return
 
 		
 
-		//this.name = 'caps'
-
-		//this.light = light;
-
-
-		//this.matrix = light.matrixWorld;
-		this.matrixAutoUpdate = false;
-
-		this.type = 'CapsuleHelper';
-
 		const geometry = new BufferGeometry();
 
 		let py = (h*0.5)-r;
-		let side = 32;
+		let side = 12;//32;
 		let dir = r*0.2;
+
 
 		let colors = [];
 
@@ -7136,6 +7127,8 @@ class CapsuleHelper extends Object3D {
 		    -r, py, 0 ,   -r, -py, 0,
 		    0, py, r-dir ,   0, py, r+dir,
 		];
+
+
 
 		//console.log( r )
 
@@ -7214,14 +7207,23 @@ class CapsuleHelper extends Object3D {
 
 		geometry.computeBoundingSphere();
 
+		this.colors = geometry.attributes.color.array;
+		this.colorsbase = [...this.colors];
+		this.geometry = geometry;
+
 		//const material = new LineBasicMaterial( { color:0x00ff00, fog: false, toneMapped: false } );
 
 
-		//this.geometry = geometry
+		
 		this.cone = new LineSegments( geometry, material );
-		this.cone.raycast = function(){return};
+		this.cone.raycast = function(){return false };
+		this.cone.updateMorphTargets = ()=>{};
 		this.cone.name = 'cone';
 		this.add( this.cone );
+
+		this.isOver = false;
+		this.matrixAutoUpdate = false;
+		this.type = 'CapsuleHelper';
 
 		if(!useDir) return
 
@@ -7248,22 +7250,54 @@ class CapsuleHelper extends Object3D {
 		geometry2.setAttribute( 'position', new Float32BufferAttribute( positions2, 3 ) );
 		geometry2.setAttribute( 'color', new Float32BufferAttribute( colors, 3 ) );
 
+
+
 		//const material2 = new LineBasicMaterial( { color:0xFF0000, fog: false, toneMapped: false } );
 
 		this.direction = new LineSegments( geometry2, material );
-		this.direction.raycast = function(){return};
+		this.direction.raycast = function(){return false};
 		this.add( this.direction );
+
+	}
+
+	over(b){
+
+		if(b){
+			if(!this.isOver){
+				this.isOver = true;
+				this.changeColor(this.isOver);
+			}
+		}else {
+			if(this.isOver){
+				this.isOver = false;
+				this.changeColor(this.isOver);
+		    }
+		}
+		
+
+		//console.log('yo')
+
+	}
+
+	changeColor(b) {
+
+		let i = this.colors.length;
+		while(i--) this.colors[i] = b ? 1 : this.colorsbase[i];
+		if( this.geometry ) this.geometry.attributes.color.needsUpdate = true;
 
 	}
 
 	setDirection(r) {
 
 		if(!this.direction) return
+		//this.rotation.y = r
 		this.direction.rotation.y = r;
 
 	}
 
 	dispose() {
+
+		this.geometry.dispose();
 
 		this.cone.geometry.dispose();
 		//this.cone.material.dispose();
@@ -7663,10 +7697,9 @@ class Body extends Item {
 			let hcolor2 = o.hcolor2 || [0.8,0.2,0.0];
 
 			// TODO bug with character
-			let hh = new CapsuleHelper( s[ 0 ], s[ 1 ]+(s[ 0 ]*2), false, Mat.get( 'line' ), hcolor, hcolor2, true );
+			let hh = new CapsuleHelper( s[ 0 ], s[ 1 ]+(s[ 0 ]*2), false, Mat.get( 'liner' ), hcolor, hcolor2, true );
 			m.add( hh );
-			//m = new CapsuleHelper( s[ 0 ], s[ 1 ]+(s[ 0 ]*2), false, Mat.get( 'line' ), hcolor, hcolor2, true )
-			//m.material.visible = false
+			m.userData['helper'] = hh;
 
 		}
 
@@ -7683,7 +7716,10 @@ class Body extends Item {
     	}
 
     	// add or not add
-    	if( !o.meshRemplace || o.debug ) b.add( m );
+    	if( !o.meshRemplace || o.debug ){ 
+    		b.add( m );
+    		if(m.userData.helper) b.over = (b)=>{ m.userData.helper.over(b); };
+    	}
 
 	}
 
@@ -7870,6 +7906,7 @@ class Body extends Item {
 
 		b.meshSize = o.meshSize ? o.meshSize : 1;
 
+
 		
 
 		// for buttton only
@@ -8008,16 +8045,16 @@ class Body extends Item {
 
 		b.mass = o.mass || 0;
 		b.density = o.density || 0;
+
 		if( b.density && !b.mass ) b.mass = MathTool.massFromDensity( b.density, volume );
 		else if( b.mass && !b.density ){ 
 			b.density = MathTool.densityFromMass( b.mass, volume );
+			//  force density for engin don't have mass
 			if( root.engine === 'RAPIER' || root.engine === 'OIMO') o.density = b.density;
+			//if( root.engine === 'PHYSX') o.density = null;
 		}
 
-		//console.log( b.name,'m: '+ b.mass, 'd: '+ b.density )
-
-		
-
+		if( o.massInfo ) console.log( '%c'+b.name+ ' %c' + 'density:' + b.density + ' mass:'+ b.mass, "font-size:16px", "font-size:12px" );
 
 		//---------------------------
 		// add to three world
@@ -8042,10 +8079,13 @@ class Body extends Item {
 		if( o.parent ) delete o.parent;
 
 
-		if(o.solver){
+		if( o.solver && root.engine === 'PHYSX' ){
+			// physx only have mass for solver bone
+			o.mass = b.mass;
 			// keep name reference of bones
 			const solver = this.byName( o.solver );
 			solver.addBone( o.name );
+
 		}
 
 	    //---------------------------
@@ -12408,6 +12448,11 @@ class Car extends Basic3D {//extends Object3D {
 
 	}
 
+	set ( o ) {
+		o.name = this.name;
+		root.motor.change( o );
+	}
+
 	respawn ( o ) {
 
 		//{ pos:[0,0,0], rot:[0,0,0], keepVelocity:false }
@@ -12610,10 +12655,10 @@ class SkeletonBody extends Object3D {
 
         let i = this.nameList.length;
         while( i-- ) Utils.byName( this.nameList[i] ).visible = v;
-        let data = [];
+        /*let data = []
         i = this.jointList.length;
         while( i-- ) data.push( { name:this.jointList[i], visible:v } );
-        root.motor.change( data );
+        root.motor.change( data );*/
 
     }
 
@@ -12783,7 +12828,7 @@ class SkeletonBody extends Object3D {
 
                     // rotation
                     if( rot ){
-                        tmpMtxR.makeRotationFromEuler( e.set( rot[0]*torad$2, rot[1]*torad$2, rot[2]*torad$2 ) );
+                        tmpMtxR.makeRotationFromEuler( e.set( rot[0]*torad$3, rot[1]*torad$3, rot[2]*torad$3 ) );
                         tmpMtx.multiply( tmpMtxR );
                     }
 
@@ -12810,7 +12855,7 @@ class SkeletonBody extends Object3D {
                     //this.posRef[phyName] = MathTool.scaleArray(p.toArray(),this.scaler,3)
 
                     if( n==='lForeArm' || n==='rForeArm' ){
-                        _q$1.setFromAxisAngle( {x:0, y:1, z:0}, -90*torad$2 );
+                        _q$1.setFromAxisAngle( {x:0, y:1, z:0}, -90*torad$3 );
                         q.multiply( _q$1 );
                     } 
 
@@ -12848,13 +12893,15 @@ class SkeletonBody extends Object3D {
                         group:32,
                         mask:mask,
                         //mask:0,
-                        material:'bones2',
+                        material:'hide',
                         //material:'debug',
                         shadow:false,
                         neverSleep: true,
                         helper: true,
-                        hcolor:[0.87, 0.76, 0.65],
-                        hcolor2:[0.9, 0.77, 0.64],
+                        hcolor:[0.0, 0.5, 1],
+                        hcolor2:[0.0, 0.2, 1],
+                        //hcolor:[0.87, 0.76, 0.65],
+                        //hcolor2:[0.9, 0.77, 0.64],
 
                         penetrationVelocity:1,
                         //maxAngularVelocity:3,
@@ -12962,8 +13009,10 @@ class SkeletonBody extends Object3D {
 
         // arm
 
-        data.push({ ...sett, b1:p+'chest', b2:p+'rCollar', worldPos:this.posRef[p+'rCollar'],  worldQuat:this.quatRef[p+'rCollar'], lm:[ ['rx',-10,10,...sp], ['ry',-10,10,...sp], ['rz',-10,10,...sp]] });
-        data.push({ ...sett, b1:p+'chest', b2:p+'lCollar', worldPos:this.posRef[p+'lCollar'],  worldQuat:this.quatRef[p+'lCollar'], lm:[ ['rx',-10,10,...sp], ['ry',-10,10,...sp], ['rz',-10,10,...sp]] });
+        //data.push({ ...sett, b1:p+'chest', b2:p+'rCollar', worldPos:this.posRef[p+'rCollar'],  worldQuat:this.quatRef[p+'rCollar'], lm:[ ['rx',-10,10,...sp], ['ry',-10,10,...sp], ['rz',-10,10,...sp]] })
+        //data.push({ ...sett, b1:p+'chest', b2:p+'lCollar', worldPos:this.posRef[p+'lCollar'],  worldQuat:this.quatRef[p+'lCollar'], lm:[ ['rx',-10,10,...sp], ['ry',-10,10,...sp], ['rz',-10,10,...sp]] })
+        data.push({ ...sett, b1:p+'chest', b2:p+'rCollar', worldPos:this.posRef[p+'rCollar'],  worldQuat:this.quatRef[p+'rCollar'], mode:'fixe' });
+        data.push({ ...sett, b1:p+'chest', b2:p+'lCollar', worldPos:this.posRef[p+'lCollar'],  worldQuat:this.quatRef[p+'lCollar'], mode:'fixe' });
 
         data.push({ ...sett, b1:p+'rCollar', b2:p+'rShldr', worldPos:this.posRef[p+'rShldr'],  worldQuat:this.quatRef[p+'rShldr'] });
         data.push({ ...sett, b1:p+'lCollar', b2:p+'lShldr', worldPos:this.posRef[p+'lShldr'],  worldQuat:this.quatRef[p+'lShldr'] });
@@ -31057,8 +31106,15 @@ class Shader {
                     `
                 );*/
 
+
+//---------------------
+//     FOG SHADER
+//---------------------
+
 // https://iquilezles.org/articles/fog/
-const FogVertex = `
+
+const FogVertex = /* glsl */`
+
 #ifdef USE_FOG
 
     vFogDepth = - mvPosition.z;
@@ -31075,7 +31131,8 @@ const FogVertex = `
 #endif
 `;
 
-const FogFragment = `
+const FogFragment = /* glsl */`
+
 #ifdef USE_FOG
 
     #ifdef FOG_EXP2
@@ -31134,8 +31191,12 @@ const FogFragment = `
 #endif
 `;
 
+//---------------------
+//     shadow PCSS
+//---------------------
 
-const shadowPCSS = `
+const shadowPCSS = /* glsl */`
+
 #ifdef USE_SHADOWMAP
 
 uniform float lightSizeUV;
@@ -31258,9 +31319,17 @@ float PCSS ( sampler2D shadowMap, vec4 coords ) {
     //return avgBlockerDepth;
     return PCF_Filter( shadowMap, uv, zReceiver, filterRadius * softness );
 }
+
+
 `;
 
-const randomUV = `
+
+//---------------------
+//     random UV
+//---------------------
+
+
+const randomUV = /* glsl */`
 
 uniform sampler2D noiseMap;
 uniform float useNoiseMap;
@@ -33462,7 +33531,7 @@ const Lee$1 = {
 
 const FrameTime = 30;
 const TimeFrame = 1/30;
-const torad$1 = Math.PI / 180;
+const torad$2 = Math.PI / 180;
 const todeg = 180 / Math.PI;
 const V = new Vector3();
 
@@ -33734,7 +33803,7 @@ class Avatar extends Group {
 
         if(delta>1) delta = 1;
 
-        this.headBoneLook.lerp({ x:-(v.y*20)*torad$1, y:0, z:-(v.x*20)*torad$1 }, delta );
+        this.headBoneLook.lerp({ x:-(v.y*20)*torad$2, y:0, z:-(v.x*20)*torad$2 }, delta );
         this.eyeTarget.position.lerp({ x:v.x*0.5, y:1, z:-v.y*0.25 }, delta );
 
         let e = this.headBoneLook;
@@ -33837,8 +33906,11 @@ class Avatar extends Group {
 
 
     setMaterial(s, b){
-
-        //this.ref.changeMaterial(s, b)
+        let m = Pool.getMaterial( this.ref.materialRef );
+        if(!m) return;
+        for(let p in s){
+            if(m[p]!==undefined) m[p] = s[p];
+        }
 
     }
 
@@ -33846,7 +33918,7 @@ class Avatar extends Group {
 
         let m = Pool.getMaterial( 'skin' );
         if(!m) return
-            if( v<0 ) v = 0;
+        if( v<0 ) v = 0;
         m.normalScale.set(v,-v);
 
     }
@@ -34831,7 +34903,7 @@ class Avatar extends Group {
 
         let n = this.bones[name];
         if(!n) return
-        n.rotation.set( x*torad$1, y*torad$1, z*torad$1, 'XYZ' );
+        n.rotation.set( x*torad$2, y*torad$2, z*torad$2, 'XYZ' );
         n.updateMatrix();
     }
 
@@ -35116,7 +35188,7 @@ class Hero extends Basic3D {
 
 		this.timeScale = 1.25;
 
-		this.angle = ( o.angle || 0 ) * torad$2;
+		this.angle = ( o.angle || 0 ) * torad$3;
 
 		this.speed = {
 		    idle:1,
@@ -35276,7 +35348,7 @@ class Hero extends Basic3D {
 
     	if( this.skeletonBody ) this.skeletonBody.isVisible(v);
     	//if( this.model ) this.model.setMaterial( { wireframe: v, visible:!v })
-    	if( this.model ) this.model.setMaterial( { wireframe: v, transparent:v, opacity:v?0.3:1.0 }, !v );
+    	if( this.model ) this.model.setMaterial( { transparent:v, opacity:v?0.8:1.0 }, !v );
     	
     	this.showHelper( v );
         
@@ -37619,9 +37691,9 @@ class Articulation {//extends Basic3D
 			j.data.target.y = AR[ m + 1];
 			j.data.target.z = AR[ m + 2];
 
-			j.data.target.rx = Math.round( AR[ m + 3] );
-			j.data.target.ry = Math.round( AR[ m + 4] );
-			j.data.target.rz = Math.round( AR[ m + 5] );
+			j.data.target.rx = AR[ m + 3];//Math.round( AR[ m + 3] )
+			j.data.target.ry = AR[ m + 4];//Math.round(  )
+			j.data.target.rz = AR[ m + 5];//Math.round( AR[ m + 5] )
 
 			/*j.data.target.twiwt = Math.round( AR[ m + 3] )
 			j.data.target.swing1 = Math.round( AR[ m + 4] )
@@ -37688,7 +37760,7 @@ class Articulation {//extends Basic3D
 			j = this.joints[k];
 			j.update( dt );
 			d = j.isDrive;
-			if( d ) nup.push( j.nup );
+			if( j.nup ) nup.push( j.nup );
 			isInDrive = d ? true : isInDrive;
 
 		}
@@ -37816,15 +37888,22 @@ class SolverJoint {
 
 		if( this.isDrive ){
 
-			this.tmp += dt;
-			let t = this.tmp / this.time;
+		    this.tmp += dt*this.time;
+			let t = this.tmp;
 			t = (t > 1) ? 1 : t;
+
+			//this.tmp = 1;//dt;
+			//let t = this.tmp // this.time;
+			//t = (t > 1) ? 1 : t;
+
 			let move = MathTool.lerp( this.start, this.target, t );//this.current + (this.target - this.current) * t;
 
 			this.nup = { name:this.name, drivesTarget: [[ this.driveType, move ]] };
 
 		    if( t === 1 ) this.isDrive = false;
 
+		} else {
+			this.nup = null;
 		}
 
 	}
@@ -39950,7 +40029,7 @@ class Particle {
 //https://github.com/Jaagrav/raycast-vehicle-engine
 //https://asawicki.info/Mirror/Car%20Physics%20for%20Games/Car%20Physics%20for%20Games.html
 
-const torad = Math.PI / 180;
+const torad$1 = Math.PI / 180;
 const directions = [
     new Vector3(1, 0, 0),
     new Vector3(0, 1, 0),
@@ -40212,7 +40291,7 @@ class RayCar {
 	    this.vehicle.updateVehicle(delta);
 
         if( this.driveWheel ){ 
-            this.driveWheel.rotation.y = this.tmp.steerValue * 180 * torad;
+            this.driveWheel.rotation.y = this.tmp.steerValue * 180 * torad$1;
         }
 
 	}
@@ -42133,32 +42212,450 @@ class QuadRenderer {
     get colorSpace() { return this._colorSpace; }
 }
 
+const skyOption = {
+
+    sunPosition: new Vector3(0.27, 1, 0.5),
+    sunTop: new Vector3(0, .99, 0),
+    saturation:1,
+    noiseMap:null,
+
+	//shadow:1.0,
+
+	//sunIntensity:100,//1.26,
+	//hemiIntensity:1,//2,//2.79,
+	nightLuminosity:0.03,
+
+	//HOUR:12,
+	//AZIMUTH:0,
+
+	cloud_size:0.29,
+	cloud_covr:0.1,//0.56,
+	cloud_dens:0.4,
+	cloud_dist:0.64,
+
+	haze:0.1,
+	mixRatio:0.76,
+
+	SAMPLE:64,//128*0.5,
+	STEP:4,//16
+
+	cloudColor: new Color(0xfffff9).multiplyScalar(1),
+	skyColor: new Color(0x425876),
+	fogColor: new Color(0xabb5c0),
+    groundColor: new Color(0x808080),
+    sunColor: new Color(0xffffff).multiplyScalar(3),
+
+};
+
+const SkyShader = {
+	defines:{
+		'USE_NOISE_MAP' : false,
+	},
+	uniforms: {
+		lightdir: { value: skyOption.sunPosition },
+        sunTop: { value:skyOption.sunTop },
+        noiseMap: { value:skyOption.noiseMap },
+        
+        mixRatio: { value: skyOption.mixRatio },
+
+		cloud_size: { value: skyOption.cloud_size },
+        cloud_covr: { value: skyOption.cloud_covr },
+        cloud_dens: { value: skyOption.cloud_dens },
+        cloud_dist: { value: skyOption.cloud_dist },
+        nightLuminosity: { value: skyOption.nightLuminosity },
+        haze: { value: skyOption.haze },
+        saturation:{ value: skyOption.saturation },
+        
+        SAMPLE:{ value: skyOption.SAMPLE },
+        STEP:{ value: skyOption.STEP },
+        fogy: { value: skyOption.fogy },
+        t: { value: 1.0 },
+        // extra color
+
+        fogColor: { value: skyOption.fogColor },
+        groundColor: { value: skyOption.groundColor },
+        cloudColor: { value: skyOption.cloudColor },
+        skyColor: { value: skyOption.skyColor },
+        sunColor: { value: skyOption.sunColor },
+	},
+	vertexShader: /* glsl */ `
+varying vec3 worldPosition;
+void main()	{
+	worldPosition = ( modelMatrix * vec4( position, 1.0 )).xyz;
+	gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+
+}
+`,
+	fragmentShader: /* glsl */`
+//precision highp float;
+varying vec3 worldPosition;
+
+uniform vec3 fogColor;
+uniform vec3 groundColor;
+uniform vec3 cloudColor;
+uniform vec3 skyColor;
+uniform vec3 sunColor;
+
+uniform float saturation;
+
+uniform float hue;
+uniform float mixRatio;
+uniform float fogy;
+
+uniform vec3 sunTop;
+
+uniform sampler2D noiseMap;
+uniform vec3 lightdir;
+
+uniform float cloud_size;
+uniform float cloud_covr;
+uniform float cloud_dens;
+uniform float cloud_dist;
+
+uniform float nightLuminosity;
+uniform float haze;
+uniform float t;
+
+uniform int SAMPLE;
+uniform int STEP;
+
+//const float c = 6.36e6;
+//const float d = 6.38e6;
+const float c = 6.407e6;
+const float d = 6.416e6;
+
+//const float g = 0.76; // mix ratio
+//const float h = g*g;
+const float icc = 1.0/8e3;
+const float jcc = 1.0/1200.0;
+const float pi = 3.141592653589793;
+
+const vec3 vm = vec3( 0,-c,0 );
+//const vec3 vn = vec3( 2.1e-5 );
+//const vec3 vo = vec3( 5.8e-6, 1.35e-5, 3.31e-5 );
+
+//const vec3 vn = vec3( 0.000021 );
+//const vec3 vo = vec3( 0.0000058, 0.0000135, 0.0000331 );// sky base color
+
+//const vec3 vo = vec3( 0.000021 );// sky base color
+
+
+#ifdef USE_NOISE_MAP
+
+float noise( in vec3 x ){
+    vec3 p = floor(x);
+    vec3 f = fract(x);
+    f = f*f*(3.0-2.0*f);
+    vec2 uv = (p.xy+vec2(37.0,17.0)*p.z) + f.xy;
+    vec2 rg = texture2D( noiseMap, (uv+0.5)/256.0, -16.0 ).yx;
+    return mix( rg.x, rg.y, f.z );
+}
+
+#else
+
+float hash( float n ) { return fract(sin(n)*753.5453123); }
+float noise( in vec3 x ){
+    vec3 p = floor(x);
+    vec3 f = fract(x);
+    f = f*f*(3.0-2.0*f);
+    float n = p.x + p.y*157.0 + 113.0*p.z;
+    return mix(mix(mix( hash(n+  0.0), hash(n+  1.0),f.x),
+                   mix( hash(n+157.0), hash(n+158.0),f.x),f.y),
+               mix(mix( hash(n+113.0), hash(n+114.0),f.x),
+                   mix( hash(n+270.0), hash(n+271.0),f.x),f.y),f.z);
+}
+
+#endif
+
+float NOISE( vec3 r )
+{
+	r.xz += t;
+	r *= 0.5;
+	float s;
+	s = 0.5 * noise(r);
+	r = r * 2.52;
+	s += 0.25 * noise(r);
+	r = r * 2.53;
+	s += 0.125 * noise(r);
+	r = r * 2.51;
+	s += 0.0625 * noise(r);
+	r = r * 2.53;
+	s += 0.03125 * noise(r);
+	r = r * 2.52;
+	s += 0.015625 * noise(r);
+	return s;
+}
+
+float MakeNoise( vec3 r )
+{
+	float s,tt;
+	s = NOISE( r * 2e-4 * ( 1.0 - cloud_size ) );
+	tt = ( 1.0 - cloud_covr ) * 0.5 + 0.2;
+	s = smoothstep( tt, tt+.2 , s );
+	s *= 0.5*(cloud_dens*100.0);
+	return s;
+}
+
+void clouds( in vec3 r, out vec3 u )
+{
+	float v,w;
+	v = length( r-vm ) - c;
+	w = 0.0;
+	if( 5e3 < v && v < 1e4 ) w = MakeNoise( r ) * (sin( pi*(v-5e3)/5e3 ));
+	u = vec3( exp(-v*icc), exp(-v*jcc), w );
+}
+
+float ca( in vec3 r, in vec3 s, in float t )
+{
+	vec3 u = r - vm;
+	float v,w,x,y,z,A;
+	v = dot(u,s);
+	w = dot(u,u)-t*t;
+	x = v*v-w;
+	if( x < 0.0 ) return -1.0;
+	y = sqrt(x);
+	z = -v-y;
+	A = -v+y;
+	return z >= 0.0 ? z : A;
+}
+
+vec3 czm_saturation(vec3 rgb, float adjustment)
+{
+    vec3 W = vec3(0.2125, 0.7154, 0.0721);
+    vec3 intensity = vec3(dot(rgb, W));
+    return mix(intensity, rgb, adjustment);
+}
+
+
+vec3 makeSky( in vec3 lightpos, in vec3 r, in vec3 world, out float mask )
+{
+
+	vec3 vn = vec3( 0.000021 );
+	vec3 vo = skyColor;
+	vo *= 0.00005;
+
+	float u,v,w,x,y,z,m, M, N, S, H, F;
+	vec3 p = lightpos;
+	u = ca(r,world,d);
+	v = dot(world,p);
+	w = 1.0+v*v;
+
+	float gg = mixRatio;
+	float hh = gg*gg;
+
+	x = 0.0596831*w;
+	y = 0.0253662*(1.0-hh)*w/((2.0+hh)*pow(abs(1.0+hh-2.0*gg*v),1.5));
+	z = 50.*pow(abs(1.+dot(world,-p)),2.0)*dot(vec3(0.,1.,0.),p)*(1.0-cloud_covr)*(1.0-min(fogy,1.0));
+
+	m = 0.0;
+	vec3 D,E, CB, CM, BB, BM, SX;
+
+	F = u / float( SAMPLE );
+
+	BB = vec3(0.0);
+	BM = vec3(0.0);
+
+	float count = 0.0;
+
+	for( int G=0; G<SAMPLE; ++G ){
+
+		H = float(G)*F;
+		vec3 I = r + world * H;
+		//CB = vec3(1.0);
+		//BB = vec3(0.0);
+		clouds( I, CB );
+		CB += fogy;// add fog
+		CB.y += CB.z;// add clound
+		CB.xy *= F;
+		BB += CB;
+
+		M = ca(I,p,d);
+
+		if( M > 0.0 ){
+
+			N = M/float(STEP);
+			BM = vec3(0.0);
+
+			for( int R=0; R<STEP; ++R ){
+
+				S = float(R)*N;
+				vec3 T=I+p*S;
+				clouds( T, CM );
+				CM += fogy;// add fog
+				CM.y += CM.z;// add clound
+				BM += CM * N;
+
+			}
+
+			SX = exp(-(vo*(BM.x+BB.x)+vn*(BM.y+BB.y)* cloud_dist));
+
+			m += CB.z;
+			count += 1.0;
+			D += SX*CB.x;
+			E += (SX*CB.y)+z*m;
+		}
+		else return vec3(0.0);
+	}
+	//mask = m * 0.0125;
+	//mask = m / count;
+	mask = m / float( SAMPLE );
+
+	return ((D * vo * x ) + (E * vn * y * sunColor)) * 15.0;
+}
+
+
+void main()
+{
+	vec3 light = normalize( lightdir );
+	vec3 world = normalize( worldPosition.xyz );
+
+	float uvy = acos( world.y ) / pi;
+
+	//float luma = smoothstep(0.0, 4.0,  1.0-(abs(world.y)/0.8) );
+    //float mid = smoothstep(0.0, 1.0,  abs(world.y) < haze ? 1.0-(abs(world.y)/(haze*1.0)) : 0.0 );
+    //mid *= nightLuminosity;//pow(  mid, 1.0 );
+
+    // ground reapeat sky
+	//if( world.y < -0.15) world.y = -0.15+((-world.y-0.15)*0.1);
+	if( world.y < 0.0) world.y = -world.y;
+
+	float high = smoothstep(1.0, 0.0, (uvy)*10000.0);
+	float top =  smoothstep(1.0, 0.0, (uvy-0.5)*50.0);
+	float middle = uvy > 0.5 ? high : smoothstep(0.0, 1.0, (0.5-uvy)*((1.0-haze)*100.0));
+
+	float middle2 = uvy > 0.5 ? smoothstep(0.0, 1.0, (0.5-uvy)*((1.0-haze)*100.0)) : smoothstep(0.0, 1.0, (0.5-uvy)*((1.0-haze)*100.0));
+
+	vec3 s = sunTop;
+	float lm = dot( s, light );
+	float day = clamp((lm*4.0), 0.0, (1.0-nightLuminosity) )+nightLuminosity;
+
+	if(lm <= 0.0) light *= -1.0;
+	light.y = abs(light.y);
+
+	//if(light.y < 0.1) light.y = 0.1;
+	light.y = clamp(light.y, 0.1, 1.0 );
+	//light.y += 0.5;
+
+	float mask = 0.0;
+
+	vec3 sky = makeSky( light, s, world, mask );
+	mask = clamp(mask, 0.0, 1.0 );
+	sky = mix( sky, cloudColor, mask ); //apply cloud color
+	
+
+	//sky = mix( sky, groundColor, 1.0-middle ); // apply ground color
+	sky = mix( sky, fogColor, 1.0-middle2 ); // apply fog color
+	
+    //float dd = clamp(day+(nightLuminosity*0.5), 0.0, 1.0);
+	//luma *= 1.0-dd;
+	//clear = mix( clear, clear+skyColor, luma ); // extra luminosity on night
+
+	sky *= day;
+	//sky = czm_saturation(sky, saturation);
+    //sky = clamp(sky, 0.0, 1.0 );
+
+
+ 	gl_FragColor = vec4( sky, 1.0 );
+
+}
+`,
+	depthWrite: false,
+	depthTest: false,
+	side:1,
+	toneMapped: false,
+	fog:false,
+};
+
+const torad = Math.PI / 180;
+
 class Envmap {
 
 	constructor( o = {} ) {
 
-		const url = o.url;
-		this.name = url.substring( url.lastIndexOf('/')+1, url.lastIndexOf('.') );
-        this.type = url.substring( url.lastIndexOf('.')+1 ).toLowerCase();
-
-		this.scene = o.scene;
+		this.mainScene = o.scene;
 		this.renderer = o.renderer;
 
 		this.usePrem = o.usePmrem !== undefined ? o.usePmrem : false;
 		this.useBackground = o.useBackground !== undefined ? o.useBackground : true;
 		this.envBlur = o.envBlur !== undefined ? o.envBlur : 0;
 		this.callback = o.callback || null;
+		this.isSky = false;
 
 		 if( this.usePrem ){
 	        this.pmremGenerator = new PMREMGenerator( this.renderer );
 	        this.pmremGenerator.compileEquirectangularShader();
 	    }
 
-		this.load( url );
+		if(o.cube) this.initCubeEnv( o );
+		if(o.url) this.load( o.url );
     
 	}
 
+	initCubeEnv( o = {} ) {
+
+		this.isCubeEnv = true;
+		this._quality = o.quality || 1;
+
+		this.scene = new Scene();
+		this.target = new WebGLCubeRenderTarget( 256*this._quality, {
+			//magFilter: LinearFilter,
+            minFilter: LinearFilter,
+            type: HalfFloatType,
+            //format: RGBAFormat,
+            //colorSpace: LinearSRGBColorSpace,
+            colorSpace: SRGBColorSpace, 
+            //generateMipmaps: false,
+            //depthBuffer: false,
+            //generateMipmaps:true,
+            anisotropy:1,
+        });
+
+        this.camera = new CubeCamera( o.near || 0.1, o.far || 100, this.target );
+		this.mainScene.environment = this.target.texture;
+		if( this.useBackground ) this.mainScene.background = this.target.texture;
+
+	}
+
+	addSky(){
+		let g = new IcosahedronGeometry( 20, 1 );
+		const mat = new ShaderMaterial( SkyShader );
+		this.sky = new Mesh( g, mat );
+		this.scene.add(this.sky);
+		this.render();
+		this.isSky = true;
+	}
+
+	getSkyOtion(){
+		if(!this.isSky) return;
+		return skyOption;
+	}
+
+	setSkyOtion( o ){
+		if(!this.isSky) return;
+		let u = this.sky.material.uniforms;
+		for(let k in o){
+			if(u[k]) u[k].value = o[k];
+		}
+	
+	    if(this.timeout) clearTimeout(this.timeout);
+	    this.timeout = setTimeout( this.render.bind(this), 0 );
+	}
+
+	render() {
+
+		if(!this.isCubeEnv) return
+		const renderer = this.renderer;
+        const lastToneMapping = renderer.toneMapping;
+        renderer.toneMapping = NoToneMapping;
+		this.camera.update( renderer, this.scene );
+        renderer.toneMapping = lastToneMapping;
+
+	}
+
 	load ( url ) {
+
+		this.name = url.substring( url.lastIndexOf('/')+1, url.lastIndexOf('.') );
+	    this.type = url.substring( url.lastIndexOf('.')+1 ).toLowerCase();
 
 		this.loader = null;
 
@@ -42208,15 +42705,51 @@ class Envmap {
 
         env.needsUpdate = true;
 
-		if( this.useBackground ) this.scene.background = env;
-		if( this.envBlur ) this.scene.backgroundBlurriness = this.envBlur;
-        this.scene.environment = env;
+        const scene = this.isCubeEnv ? this.scene : this.mainScene;
 
+        
+		if( this.isCubeEnv || this.useBackground ) scene.background = env;
+		if( this.envBlur ) scene.backgroundBlurriness = this.envBlur;
+	    scene.environment = env;
+	    
         this.loader.dispose();
 
 		if( this.callback ) this.callback();
 
 	}
+
+
+	get intensity() {
+        return this.mainScene.environmentIntensity;
+    }
+    set intensity(value) {
+        this.mainScene.environmentIntensity = value;
+    }
+
+    get bgIntensity() {
+        return this.mainScene.backgroundIntensity;
+    }
+    set bgIntensity(value) {
+        this.mainScene.backgroundIntensity = value;
+    }
+
+    get blur() {
+        return this.mainScene.backgroundBlurriness;
+    }
+    set blur(value) {
+        this.mainScene.backgroundBlurriness = value;
+    }
+
+    rotate( x=0,y=0,z=0 ) {
+
+        if(x!==0) x *= torad;
+        if(y!==0) y *= torad;
+        if(z!==0) z *= torad;
+
+        this.mainScene.environmentRotation.set(x,y,z);
+        this.mainScene.backgroundRotation.set(x,y,z);
+
+    }
 
 }
 
@@ -42433,20 +42966,27 @@ K.childScale = function ( bone, matrix ) {
     //if(bone.name === 'head') console.log(bone.children.length)
 
 
-    let j = bone.children.length, child;
+    let j = bone.children.length, child, k=0;
 
     while(j--){
 
-        child = bone.children[ j ];
+        child = bone.children[ k ];
+        k++;
 
         if( child.isBone ) {
             child.matrixWorld.multiplyMatrices( matrix, child.matrix );
             
         } else {
+
+            //child.matrixAutoUpdate = false;
+            //child.applyMatrix4(matrix)
+            //child.matrixWorldNeedsUpdate = false;
             child.matrixWorld.multiplyMatrices( matrix, child.matrix );
+            //child.matrixWorldNeedsUpdate = true;
+
             //child.updateWorldMatrix(false,true)
-            //child.updateWorldMatrix(false, true);
-           // child.updateMatrixWorld(true);
+            //child.updateWorldMatrix(true, true);
+            //child.updateMatrixWorld(true);
             //child.updateMatrix()
             //child.updateWorldMatrix( false, true );
 
@@ -42457,7 +42997,7 @@ K.childScale = function ( bone, matrix ) {
             //child.updateWorldMatrix(false, true)
             //child.matrix = matrix.clone();
             //child.matrixWorld.premultiply( matrix.clone() )
-            //child.matrixAutoUpdate = false;
+           
         }
 
         
@@ -42483,7 +43023,7 @@ K.childScale = function ( bone, matrix ) {
         //child.matrix.premultiply(matrix)
         //child.matrixWorld.setPosition( _decal.setFromMatrixPosition( scaleMatrix ) );
         //child.matrixWorld.setPosition( _decal.setFromMatrixPosition( scaleMatrix ) );
-        //k++
+        
     }
 
 };
@@ -42531,10 +43071,12 @@ K.update = function () {
         bone = bones[ n ];
 
         // compute the offset between the current and the original transform
+        //if(bone && bone.isPhysics) bone.matrixWorld.copy(bone.phyMtx)
+        //const matrix = bone ? bone.matrixWorld : _identityMatrix;
 
         const matrix = bone ? ( bone.isPhysics ? bone.phyMtx : bone.matrixWorld ) : _identityMatrix;
 
-        if( bone.isPhysics ) this.scalled = true;
+        //if( bone.isPhysics ) this.scalled = true
         
         this.childScale( bone, matrix );
 
@@ -42603,6 +43145,7 @@ let timoutTime = 0;
 let elapsedTime = 0;
 
 let envmapUrl = '';
+let _envmap = null;
 
 let renderer = null;
 let scene = null;
@@ -42728,6 +43271,7 @@ class Motor {
 	static setPostUpdate ( f ) { postUpdate = f !== null ? f : ()=>{}; }
 
 	static setAzimut ( f ) { azimut = f; }
+	static setRenderer ( f ) { renderer = f; }
 
 	static setKey (i, v) { return user.setKey(i,v) }
 	static getKey () { return user.key }
@@ -43079,9 +43623,14 @@ class Motor {
 
 	}
 
+	static addEnvmap( o ) {
+		if(!_envmap) _envmap = new Envmap( { renderer:renderer, scene:scene, ...o } );
+		return _envmap;
+	}
+
 	static preloadEnvmap( o ) {
 
-		new Envmap( {
+		_envmap = new Envmap( {
 			url:envmapUrl,
 			renderer:renderer,
 			scene:scene,
@@ -43210,7 +43759,7 @@ class Motor {
 		tt.end = Timer.now();
 		tt.startTime = Timer.format_time( tt.end - tt.start );
 
-		console.log( '%c'+root.engine + ' %c' + Version[root.engine] +'%c | '+( isWorker? 'Worker': 'Direct') + ' '+ tt.startTime, 
+		console.log( '%c'+root.engine + ' %c' + Version[root.engine] +'%c | '+ ( isWorker?'Worker': 'Direct') +' '+ tt.startTime, 
 			"font-size:16px", 
 			"font-size:12px", 
 			"font-size:12px" 

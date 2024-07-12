@@ -332,6 +332,11 @@ class Car extends Basic3D {//extends Object3D {
 
 	}
 
+	set ( o ) {
+		o.name = this.name;
+		root.motor.change( o );
+	}
+
 	respawn ( o ) {
 
 		//{ pos:[0,0,0], rot:[0,0,0], keepVelocity:false }

@@ -1,8 +1,12 @@
 function demo() {
 
     phy.view({
-        ground:false,
+        envmap:0x606060,
+        //ground:false,
         vignette:false,
+        //shadow:0,
+        groundReflect:0,
+        jointVisible:true,
     })
 
 
@@ -20,7 +24,7 @@ function demo() {
     phy.add({ 
         type:'box', size:[10,1,1], pos:[0,5,0], radius:0.1,
         mass:0.1, 
-        //density:1, 
+        //density:0.01, 
         massCenter:[ -4,0,0 ],
         material:'debug',
         massInfo:true,

@@ -548,8 +548,15 @@ export class Shader {
                     `
                 );*/
 
+
+//---------------------
+//     FOG SHADER
+//---------------------
+
 // https://iquilezles.org/articles/fog/
-const FogVertex = `
+
+const FogVertex = /* glsl */`
+
 #ifdef USE_FOG
 
     vFogDepth = - mvPosition.z;
@@ -566,7 +573,8 @@ const FogVertex = `
 #endif
 `
 
-const FogFragment = `
+const FogFragment = /* glsl */`
+
 #ifdef USE_FOG
 
     #ifdef FOG_EXP2
@@ -625,8 +633,12 @@ const FogFragment = `
 #endif
 `
 
+//---------------------
+//     shadow PCSS
+//---------------------
 
-const shadowPCSS = `
+const shadowPCSS = /* glsl */`
+
 #ifdef USE_SHADOWMAP
 
 uniform float lightSizeUV;
@@ -749,9 +761,17 @@ float PCSS ( sampler2D shadowMap, vec4 coords ) {
     //return avgBlockerDepth;
     return PCF_Filter( shadowMap, uv, zReceiver, filterRadius * softness );
 }
+
+
 `
 
-const randomUV = `
+
+//---------------------
+//     random UV
+//---------------------
+
+
+const randomUV = /* glsl */`
 
 uniform sampler2D noiseMap;
 uniform float useNoiseMap;

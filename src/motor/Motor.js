@@ -95,6 +95,7 @@ let timoutTime = 0;
 let elapsedTime = 0;
 
 let envmapUrl = '';
+let _envmap = null;
 
 let renderer = null;
 let scene = null;
@@ -221,6 +222,7 @@ export class Motor {
 	static setPostUpdate ( f ) { postUpdate = f !== null ? f : ()=>{} }
 
 	static setAzimut ( f ) { azimut = f }
+	static setRenderer ( f ) { renderer = f }
 
 	static setKey (i, v) { return user.setKey(i,v) }
 	static getKey () { return user.key }
@@ -575,9 +577,14 @@ export class Motor {
 
 	}
 
+	static addEnvmap( o ) {
+		if(!_envmap) _envmap = new Envmap( { renderer:renderer, scene:scene, ...o } )
+		return _envmap;
+	}
+
 	static preloadEnvmap( o ) {
 
-		let env = new Envmap( {
+		_envmap = new Envmap( {
 			url:envmapUrl,
 			renderer:renderer,
 			scene:scene,
@@ -706,7 +713,7 @@ export class Motor {
 		tt.end = Timer.now();
 		tt.startTime = Timer.format_time( tt.end - tt.start );
 
-		console.log( '%c'+root.engine + ' %c' + Version[root.engine] +'%c | '+( isWorker? 'Worker': 'Direct') + ' '+ tt.startTime, 
+		console.log( '%c'+root.engine + ' %c' + Version[root.engine] +'%c | '+ ( isWorker?'Worker': 'Direct') +' '+ tt.startTime, 
 			"font-size:16px", 
 			"font-size:12px", 
 			"font-size:12px" 

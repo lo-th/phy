@@ -348,6 +348,7 @@ export const Mat = {
 
 			    // metal
 			    case 'chrome': m = Mat.create({ name:'chrome', color:0xCCCCCC, metalness: 1, roughness:0.075 }); break
+			    case 'silver': m = Mat.create({ name:'silver', color:0xAAAAAA, metalness: 0.8, roughness:0.22 }); break
 			    case 'gold': m = Mat.create({ name:'gold', color:Colors.gold, specularColor:Colors.gold2, metalness: 1, roughness:0.02 }); break
 			    case 'copper': m = Mat.create({ name:'copper', color:Colors.copper, metalness: 1, roughness:0.25, clearcoat: 1.0, clearcoatRoughness: 0.2 }); break
 
@@ -402,6 +403,9 @@ export const Mat = {
 
 				case 'line':
 				    m = Mat.create({ name:'line', type:'line', vertexColors: true, toneMapped: false })
+			    break
+			    case 'liner':
+				    m = Mat.create({ name:'liner', type:'line', vertexColors: true, toneMapped: false, depthTest:true, depthWrite:true, alphaToCoverage:true })
 			    break
 				case 'hide':
 				    m = Mat.create({ name:'hide', type:'basic', visible:false });

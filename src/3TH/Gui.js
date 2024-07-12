@@ -235,8 +235,8 @@ export const Gui = {
 		})
 
 		ui.add( options, 'exposure', { min:0, max:4, mode:mode } ).onChange( function( v ){ 
-			renderer.toneMappingExposure = v 
-			Env.up()
+			renderer.toneMappingExposure = v; 
+			//Env.up()
 		})
 
 		ui.add( options, 'light_1', { rename:'Light Direct', min:0, max:30, mode:mode, color:'#ff0' } ).onChange( Main.lightIntensity )

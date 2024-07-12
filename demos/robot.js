@@ -1,10 +1,10 @@
 const Botsetting = {
-    speed: 0.1,//0.1,
-    stiffness: 3000,//1000,
-    damping: 100,//100,
-    forceLimit: 10000,
-    legMass:100,//1,
-    bodyMass:800,//8,
+    speed: 10,//0.1,//0.1,
+    stiffness: 1000,//3000,//1000,
+    damping: 100,//100,//100,
+    forceLimit: 1000,
+    legMass:10,//100,//1,
+    bodyMass:40,//800,//8,
 }
 const debug = 0;
 const single = 0;
@@ -19,7 +19,7 @@ demo = () => {
 
     phy.set({ substep:1, gravity:[0,-9.81,0], key:true, fps:144 })
 
-    phy.add({ type:'plane', size:[300,1,300], visible:false, friction:1 });
+    phy.add({ type:'plane', size:[300,1,300], visible:false, friction:0.5 });
 
     phy.load(['./assets/models/spider.glb'], onComplete )
 
@@ -41,11 +41,11 @@ initRobot = () => {
         name:'terra',
         maps:['road2', 'road3', 'asph'],
         friction: 1.0, 
-        staticFriction:1.0,
-        restitution: 0.1,
+        //staticFriction:1.0,
+        //restitution: 0.1,
         maplevels:[0.5, 0.5, 0, 0.25],
         pos: [0,0,0],
-        size: [30, 2, 30],
+        size: [30, 1, 30],
         sample: [128, 128],
         frequency: [0.016,0.05,0.2],
         expo: 2,
@@ -146,7 +146,7 @@ class Bot {
         const pos = this.pos;
         const id = this.id
 
-        const solver = phy.add({ type:'solver', name:this.name, iteration:8, fix:false, needData:true, neverSleep:true })//it:4
+        const solver = phy.add({ type:'solver', name:this.name, iteration:1, fix:false, needData:true, neverSleep:true })//it:4
 
         solver.speed = this.setting.speed
 
@@ -160,7 +160,9 @@ class Bot {
             debug:debug, 
             meshSize:10,
             solver:this.name,
-            density:this.setting.legMass,
+            mass:this.setting.legMass,
+            penetrationVelocity:3,
+            friction:1,
         }
 
         phy.add({
@@ -168,7 +170,7 @@ class Bot {
             type:'box', name:id+'_base', linked:'null',
             pos:pos, size:[ 0.6, 0.25, 0.8 ], localPos:[0, 0.125, 0],
             mesh:meshes.base,
-            density:this.setting.bodyMass*0.5,
+            mass:this.setting.bodyMass-1,
         })
 
         phy.add({
@@ -176,7 +178,7 @@ class Bot {
             type:'sphere', name:id+'_top', linked:id+'_base',
             pos:math.addArray( pos, [0,0.245,0] ), size:[ 0.33 ], 
             mesh:meshes.top,
-            density:this.setting.bodyMass*0.5,
+            mass:1//this.setting.bodyMass*0.5,
         })
 
         // legs position
@@ -251,11 +253,13 @@ class Bot {
         //-----------------------------------------
         //    JOINT
         //-----------------------------------------
-
+        let jdef = {
+            maxJointVelocity:10000
+        }
         const stiffness = this.setting.stiffness;
         const damping = this.setting.damping; // 0
         const forceLimit = this.setting.forceLimit;
-        const acceleration = true;//false;
+        const acceleration = false;
 
         i = 4
         while(i--){
@@ -263,6 +267,7 @@ class Bot {
             left = i==0 || i==2
 
             solver.addJoint({
+                ...jdef,
                 name:id+'_A'+i, bone:id+'_barm'+i,
                 pos1:p[i], pos2:[ 0, 0, 0 ],
                 type:'revolute',
@@ -277,6 +282,7 @@ class Bot {
         i = 4
         while(i--){
             solver.addJoint({
+                ...jdef,
                 name:id+'_A'+(4+i), bone:id+'_darm'+i,
                 pos1:[d[0][0], 0, 0], pos2:[ 0, 0, 0 ],
                 type:'revolute',
@@ -289,6 +295,7 @@ class Bot {
         i = 4
         while(i--){
             solver.addJoint({
+                ...jdef,
                 name:id+'_A'+(8+i), bone:id+'_farm'+i,
                 pos1:[c[0][0], 0, 0], pos2:[ 0, 0, 0 ],
                 type:'revolute',

@@ -133,7 +133,7 @@ class Basic3D extends EventDispatcher {
 		this.outline.matrixAutoUpdate = false;
 		this.outline.receiveShadow = false;
 		this.outline.castShadow = false;
-		this.outline.raycast = () => ( null );
+		this.outline.raycast = () => ( false );
 		this.add( this.outline );
 
 	}

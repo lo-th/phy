@@ -60,7 +60,7 @@ const M = {
     toFixed: ( x, n = 3 ) => ( x.toFixed(n) * 1 ),
     toRound: ( x, n = 3 ) => ( Math.trunc(x) ),
 
-    clamp: ( v, min, max ) => {
+    clamp: ( v, min = 0, max = 1 ) => {
         v = v < min ? min : v;
         v = v > max ? max : v;
         return v;

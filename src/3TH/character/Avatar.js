@@ -422,8 +422,11 @@ export class Avatar extends Group {
 
 
     setMaterial(s, b){
-
-        //this.ref.changeMaterial(s, b)
+        let m = Pool.getMaterial( this.ref.materialRef )
+        if(!m) return;
+        for(let p in s){
+            if(m[p]!==undefined) m[p] = s[p]
+        }
 
     }
 
@@ -431,7 +434,7 @@ export class Avatar extends Group {
 
         let m = Pool.getMaterial( 'skin' )
         if(!m) return
-            if( v<0 ) v = 0
+        if( v<0 ) v = 0
         m.normalScale.set(v,-v);
 
     }

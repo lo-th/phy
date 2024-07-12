@@ -102,9 +102,9 @@ export class Articulation {//extends Basic3D
 			j.data.target.y = AR[ m + 1]
 			j.data.target.z = AR[ m + 2]
 
-			j.data.target.rx = Math.round( AR[ m + 3] )
-			j.data.target.ry = Math.round( AR[ m + 4] )
-			j.data.target.rz = Math.round( AR[ m + 5] )
+			j.data.target.rx = AR[ m + 3]//Math.round( AR[ m + 3] )
+			j.data.target.ry = AR[ m + 4]//Math.round(  )
+			j.data.target.rz = AR[ m + 5]//Math.round( AR[ m + 5] )
 
 			/*j.data.target.twiwt = Math.round( AR[ m + 3] )
 			j.data.target.swing1 = Math.round( AR[ m + 4] )
@@ -170,8 +170,8 @@ export class Articulation {//extends Basic3D
 
 			j = this.joints[k]
 			j.update( dt );
-			d = j.isDrive
-			if( d ) nup.push( j.nup )
+			d = j.isDrive;
+			if( j.nup ) nup.push( j.nup )
 			isInDrive = d ? true : isInDrive;
 
 		}
@@ -299,15 +299,22 @@ export class SolverJoint {
 
 		if( this.isDrive ){
 
-			this.tmp += dt;
-			let t = this.tmp / this.time;
+		    this.tmp += dt*this.time;
+			let t = this.tmp;
 			t = (t > 1) ? 1 : t;
+
+			//this.tmp = 1;//dt;
+			//let t = this.tmp // this.time;
+			//t = (t > 1) ? 1 : t;
+
 			let move = MathTool.lerp( this.start, this.target, t );//this.current + (this.target - this.current) * t;
 
 			this.nup = { name:this.name, drivesTarget: [[ this.driveType, move ]] }
 
 		    if( t === 1 ) this.isDrive = false;
 
+		} else {
+			this.nup = null;
 		}
 
 	}

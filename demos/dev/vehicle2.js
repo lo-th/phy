@@ -1,34 +1,47 @@
-const debug = 0
+const debug = 1
 let bike, model, meshes, maxDistance = 50, oldv = 0, w1, w2;
 const TimeFrame = 1/30;
+let modelName = 'akira2'
+
+const setting = {
+
+    s_travel:0.15,
+    s_stiffness:10,//32
+    s_damping:4,
+    s_force:5000,
+    dampingRate: 0.25,//0.25
+
+}
 
 demo = () => {
     
-    phy.log('use key WSAD or ZSQD<br>SPACE to handbrake')
+    //phy.log('use key WSAD or ZSQD<br>SPACE to handbrake')
 
-    phy.view({ envmap:'pendora', ground:debug, fog:true, fogDist:0.01 })
+    phy.view({ envmap:'clear', ground:true, fog:true, fogDist:0.01, distance:3, phi:0, theta:-90, target:[0,1,0], y:1 })
 
-    phy.set( {substep:4, gravity:[0,-9.81,0], key:true })
+    phy.set( {substep:1, gravity:[0,-9.81,0], key:true })
 
-    phy.add({ type:'plane', name:'floor', size:[300,1,300], visible:false, friction:1.0 });
+    phy.add({ type:'plane', name:'floor', size:[20,1,20], visible:false, friction:1.0 });
     //phy.add({ pos:[0,20,0], rot:[0,0,0], size:[0.5,0.5,0.5], mass:30})
     //phy.add({ type:'box', size:[4,1,6], rot:[1,0,0], pos:[0,0.5,0],  radius:0.025 })
 
-    phy.load(['./assets/models/akira.glb'], onComplete )
+    phy.load(['./assets/models/'+modelName+'.glb'], onComplete )
 
 }
 
 onComplete = () => {
 
-    meshes = phy.getMesh('akira');
+    meshes = phy.getMesh(modelName);
     meshes.a_shape.visible = false
+    meshes.ak_front_shell.visible = !debug
+    meshes.ak_chassis_shell.visible = !debug
     applyMaterial( meshes )
 
     // reapply morph
-    phy.applyMorph('akira', null, true);
+    phy.applyMorph(modelName, null, true);
 
-    model = phy.get('akira', 'O')
-    model.rotation.y = -90 * math.torad
+    model = phy.get(modelName, 'O')
+    model.rotation.y = -90 * math.torad;
    // model.position.y = -0.05
 
     //model.scale.set(0.1,0.1,0.1)
@@ -47,7 +60,10 @@ onComplete = () => {
 
     //return
 
+    let mass = 300;
+
     bike = phy.add( {
+
         type:'vehicle', 
         name:'bike',
         rad:0.02,
@@ -59,9 +75,15 @@ onComplete = () => {
         chassisPos:[0,0,0],
         massCenter:[0,0,0],
 
+        pos:[0,0,0],
+
         ray:debug,
 
-        mass:1600,
+        mass:mass,//1600,
+
+        damping: [0,0.2],//0.25
+        maxVelocity:[1000,1],
+        //stabilization:0.3,
 
 
         chassisShape:meshes.a_shape,
@@ -69,46 +91,78 @@ onComplete = () => {
         noClone:true,
 
         chassisMesh:model,
+        debug:debug,
         //wheelMesh: wheel,
         //brakeMesh: brake,
         //suspensionMesh: suspension,
 
-        damping:[0.0,0.9],
+
 
         numWheel:2,
 
+        suspensionTravelDir:[
+            [0,-0.3,0.7],
+            [0,-0.9,-0.1],
+        ],
+
         maxSteering:12,
 
-        s_travel:0.1,
+        /*
+        s_travel:0.2,
         s_stiffness:16,//32,
         s_damping:4,//8,
         s_force:10000,
+        */
 
+        ...setting,
+
+        /*
         longStiff: 10,
         latStiffX: 0.00001,
         latStiffY: 6,
         camberStiff : 0,
-        restLoad : 5.5,
+        restLoad : 5.5,*/
 
-        dampingRate: 0.1,//0.25,
         wMass: 25,
+        
 
     })
 
     phy.control( 'bike' )
     phy.setPostUpdate ( update )
 
+    addGui()
+
     if(debug) return
 
-    terrainTest()
+    //
 
     // update after physic step
     
 
-    phy.follow( 'bike', { direct:true, simple:true, decal:[0, 1, 0] })
+    phy.follow( 'bike', { direct:true, simple:true, distance:3, phi:0, theta:-90, decal:[0, 1, 0] })
     //phy.control( 'bike' )
-    
 
+
+    terrainTest()
+
+}
+
+const addGui = () => {
+    gui = phy.gui();
+    let min = 0.01
+    let max = 100
+    for(let n in setting){
+        min = 0.01
+        max = 100
+        if( n==='s_travel' )max =1
+        if( n==='dampingRate' )max =2
+            if( n==='s_force' )max =10000
+        gui.add( setting, n, { min:min, max:max} ).onChange( (v)=>{ 
+            bike.set( setting )
+            //phy.change({name:'bike', ...setting }) 
+        });
+    }
 }
 
 terrainTest = () => {
@@ -125,18 +179,18 @@ terrainTest = () => {
         friction: 0.5,
         restitution: 0,
         uv: 150,
-        pos: [0,-5,0],
-        size:[512, 6, 512],
+        pos: [0,0,0],
+        size:[512, 10, 512],
         sample: [512, 512],
         frequency: [0.016,0.05,0.2],
         level:[ 1, 0.2, 0.05 ],
-        expo: 2,
+        expo: 1,
     })
 
-    let py = terrain.getHeight( 0, 0 )+1
-    if(py<1) py = 1
+    let py = terrain.getHeight( 0, 0 )
 
-    phy.up( { name:'bike', pos:[0,py,0] } )
+    //phy.up( { name:'bike', pos:[0,py,0] } )
+    bike.set({pos:[0,py,0]})
     phy.remove( 'floor' )
 
     // update after physic step
@@ -156,6 +210,8 @@ playFrame = ( name, frame ) => {
 }
 
 openShell = ( n ) => {
+
+
     n = 1-n
     meshes.ak_front_shell.rotation.x = - (75 + ( n * 15 )) * math.torad;
     phy.morph( meshes.ak_link,'up', 1-n )
@@ -163,16 +219,18 @@ openShell = ( n ) => {
 }
 
 frontSusp = ( n ) => {
-    let sav = n*2.61;
-    meshes.ak_rim_av.position.y = -7.172 + sav;
-    phy.morph( meshes.ak_extra_susp,'low',  1-((sav+0.783)*0.638) )
+
+    n = math.clamp(n, 0, 1);
+    meshes.ak_rim_av.position.y = -6.389 - n*1.566;
+    phy.morph( meshes.ak_extra_susp,'low', n )
 
 }
 
 backSusp = ( n ) => {
 
-    meshes.ak_rim_ar.position.y = -n;
-    phy.morph( meshes.ak_axis_back,'low', ((-n+0.3)*1.66666) )
+    meshes.ak_rim_ar.position.y = (n*0.6)-0.3//0.3//n;
+    //phy.morph( meshes.ak_axis_back,'low', ((-n+0.3)*1.66666) )
+    phy.morph( meshes.ak_axis_back,'low', n)
 
 }
 
@@ -186,10 +244,13 @@ updateAnimation = () => {
         else playFrame('right_on', Math.floor(-v*12) )
     }
 
-    //console.log( bike.suspension[0] )
+    //console.log( (-(bike.suspension[0])+1.0)*0.5 )
 
-    frontSusp( (-(bike.suspension[0])+0.5)*0.4 )
-    backSusp( (-(bike.suspension[1])*0.5)*0.4 )
+    //frontSusp( (-(bike.suspension[0])+0.5)*0.4 )
+    //frontSusp( (-(bike.suspension[0])+1.0)*0.5 )
+    frontSusp( (bike.suspension[0]*0.5)+0.5 )
+    backSusp( (bike.suspension[1]*0.5)+0.5 )
+    //backSusp( (-(bike.suspension[1])*0.5)*0.4 )
 }
 
 update = () => {
@@ -288,13 +349,13 @@ applyMaterial = ( model ) => {
         metalness: 0.1,
         map: phy.texture({ url:path + 'tires_c.jpg' }),
         normalMap: phy.texture({ url:path + 'tires_n.jpg' }),
-        normalScale: [ 2, -2 ],
+        normalScale: [ 2, 2 ],
     });
 
     let m
     for( let o in model ){
         m = model[o]
-        phy.uv2( m )
+        //phy.uv2( m )
         m.castShadow = true
         m.receiveShadow = true
         switch(o){

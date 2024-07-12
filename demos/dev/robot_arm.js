@@ -44,7 +44,7 @@ demo = () => {
     phy.set({ substep:1, gravity:[0,-9.81,0] })
 
     phy.add({ type:'plane', size:[300,1,300], visible:false });
-    phy.add({ pos:[10,0.25,0], rot:[0,0,0], size:[3.0,0.5,0.5], mass:1, 
+    phy.add({ pos:[10,0.25,0], rot:[0,0,0], size:[3.0,0.5,0.5], mass:1, //penetrationVelocity:3,
         friction:0.5//, enableCCD:true, speculativeCCD:true//, enableCCD_FRICTION:true, ccdMaxContact:0.001, 
     })
 
@@ -68,6 +68,7 @@ onComplete = () => {
         mesh:groups.base, meshSize:10, debug:debug,// material:mats,
         pos:[0, 0, 0], size:[ 2.1, 2.24, 2.1 ], localPos:[0, 1.12, 0], mass:15,
         filter:[2,-1,1,0], dmv:[0.2,0.2,100,20],
+        ray:false
     });
 
     phy.add({
@@ -119,7 +120,10 @@ onComplete = () => {
         mesh:groups.finger_2, meshSize:10, meshRot:[0,0,0], debug:debug,// material:mats,
         pos:[-0.1, 16.55, 0], size:[ 0.2, 0.46, 0.1 ], localPos:[0, 0.23, 0.05], mass:1,
         filter:[2,1,1,0], dmv:[0.2,0.2,100,20],
-        friction:1, enableCCD:true, speculativeCCD:true//, enableCCD_FRICTION:true, ccdMaxContact:0.001, 
+        friction:0.5, 
+        //enableCCD:true, speculativeCCD:true//, enableCCD_FRICTION:true, ccdMaxContact:0.001, 
+        //penetrationVelocity:3,
+
     });
 
     phy.add({
@@ -127,7 +131,9 @@ onComplete = () => {
         mesh:groups.finger_1, meshSize:10, meshRot:[0,0,0], debug:debug,// material:mats,
         pos:[-0.1, 16.55, 0], size:[ 0.2, 0.46, 0.1 ], localPos:[0, 0.23, -0.05], mass:1,
         filter:[2,1,1,0], dmv:[0.2,0.2,100,20],
-        friction:0.5//, enableCCD:true, speculativeCCD:true//, enableCCD_FRICTION:true, ccdMaxContact:0.001, 
+        friction:0.5, 
+        //enableCCD:true, speculativeCCD:true//, enableCCD_FRICTION:true, ccdMaxContact:0.001, 
+        //penetrationVelocity:3,
     });
 
 
@@ -264,7 +270,7 @@ update = ( dt ) => {
     //solver.driveJoints( 0.016 );
 }
 
-autoCommand = ( n = 0, time = 2 ) => {
+autoCommand = ( n = 0, time = 1.0 ) => {
 
     if( n === angle.length ){
         console.log('complete')

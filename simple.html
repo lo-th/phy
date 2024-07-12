@@ -108,7 +108,16 @@
 			function initEngine() {
 
 				// use compact version of physic engine in /compact folder 
-				phy.init({ type:motor, worker:true, compact:true, callback:startDemo, scene:scene });
+				phy.init({ type:motor, worker:true, compact:true, callback:startDemo, renderer:renderer, scene:scene });
+
+				const envmap = phy.addEnvmap({cube:true})
+
+				let m = new THREE.Mesh( new THREE.SphereGeometry(0.5), new THREE.MeshBasicMaterial({color:new THREE.Color(100,100,100)}))
+				m.position.set(0-1,3,2)
+				envmap.scene.background = new THREE.Color(0.5,0.5,0.8)
+				envmap.scene.add( m );
+				envmap.blur = 0.5
+				envmap.render()
 
 			}
 

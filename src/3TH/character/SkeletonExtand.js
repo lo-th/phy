@@ -116,20 +116,27 @@ K.childScale = function ( bone, matrix ) {
     //if(bone.name === 'head') console.log(bone.children.length)
 
 
-    let j = bone.children.length, child;
+    let j = bone.children.length, child, k=0;
 
     while(j--){
 
-        child = bone.children[ j ]
+        child = bone.children[ k ]
+        k++
 
         if( child.isBone ) {
-            child.matrixWorld.multiplyMatrices( matrix, child.matrix )
+            child.matrixWorld.multiplyMatrices( matrix, child.matrix );
             
         } else {
-            child.matrixWorld.multiplyMatrices( matrix, child.matrix )
+
+            //child.matrixAutoUpdate = false;
+            //child.applyMatrix4(matrix)
+            //child.matrixWorldNeedsUpdate = false;
+            child.matrixWorld.multiplyMatrices( matrix, child.matrix );
+            //child.matrixWorldNeedsUpdate = true;
+
             //child.updateWorldMatrix(false,true)
-            //child.updateWorldMatrix(false, true);
-           // child.updateMatrixWorld(true);
+            //child.updateWorldMatrix(true, true);
+            //child.updateMatrixWorld(true);
             //child.updateMatrix()
             //child.updateWorldMatrix( false, true );
 
@@ -140,7 +147,7 @@ K.childScale = function ( bone, matrix ) {
             //child.updateWorldMatrix(false, true)
             //child.matrix = matrix.clone();
             //child.matrixWorld.premultiply( matrix.clone() )
-            //child.matrixAutoUpdate = false;
+           
         }
 
         
@@ -166,7 +173,7 @@ K.childScale = function ( bone, matrix ) {
         //child.matrix.premultiply(matrix)
         //child.matrixWorld.setPosition( _decal.setFromMatrixPosition( scaleMatrix ) );
         //child.matrixWorld.setPosition( _decal.setFromMatrixPosition( scaleMatrix ) );
-        //k++
+        
     }
 
 }
@@ -211,13 +218,15 @@ K.update = function () {
 
     while( i-- ){
 
-        bone = bones[ n ]
+        bone = bones[ n ];
 
         // compute the offset between the current and the original transform
+        //if(bone && bone.isPhysics) bone.matrixWorld.copy(bone.phyMtx)
+        //const matrix = bone ? bone.matrixWorld : _identityMatrix;
 
         const matrix = bone ? ( bone.isPhysics ? bone.phyMtx : bone.matrixWorld ) : _identityMatrix;
 
-        if( bone.isPhysics ) this.scalled = true
+        //if( bone.isPhysics ) this.scalled = true
         
         this.childScale( bone, matrix );
 

@@ -13,29 +13,18 @@ class CapsuleHelper extends Object3D {
 		
 
 		super();
-
-
 		// TODO bug with hero skeleton !! create new CapsuleHelper on over ??
 		if(!r) return
 		if(!h) return
 
 		
 
-		//this.name = 'caps'
-
-		//this.light = light;
-
-
-		//this.matrix = light.matrixWorld;
-		this.matrixAutoUpdate = false;
-
-		this.type = 'CapsuleHelper';
-
 		const geometry = new BufferGeometry();
 
 		let py = (h*0.5)-r
-		let side = 32;
+		let side = 12//32;
 		let dir = r*0.2
+
 
 		let colors = [];
 
@@ -44,6 +33,8 @@ class CapsuleHelper extends Object3D {
 		    -r, py, 0 ,   -r, -py, 0,
 		    0, py, r-dir ,   0, py, r+dir,
 		];
+
+
 
 		//console.log( r )
 
@@ -122,14 +113,23 @@ class CapsuleHelper extends Object3D {
 
 		geometry.computeBoundingSphere()
 
+		this.colors = geometry.attributes.color.array;
+		this.colorsbase = [...this.colors]
+		this.geometry = geometry;
+
 		//const material = new LineBasicMaterial( { color:0x00ff00, fog: false, toneMapped: false } );
 
 
-		//this.geometry = geometry
+		
 		this.cone = new LineSegments( geometry, material );
-		this.cone.raycast = function(){return}
+		this.cone.raycast = function(){return false }
+		this.cone.updateMorphTargets = ()=>{}
 		this.cone.name = 'cone'
 		this.add( this.cone );
+
+		this.isOver = false;
+		this.matrixAutoUpdate = false;
+		this.type = 'CapsuleHelper';
 
 		if(!useDir) return
 
@@ -156,22 +156,54 @@ class CapsuleHelper extends Object3D {
 		geometry2.setAttribute( 'position', new Float32BufferAttribute( positions2, 3 ) );
 		geometry2.setAttribute( 'color', new Float32BufferAttribute( colors, 3 ) );
 
+
+
 		//const material2 = new LineBasicMaterial( { color:0xFF0000, fog: false, toneMapped: false } );
 
 		this.direction = new LineSegments( geometry2, material );
-		this.direction.raycast = function(){return}
+		this.direction.raycast = function(){return false}
 		this.add( this.direction );
+
+	}
+
+	over(b){
+
+		if(b){
+			if(!this.isOver){
+				this.isOver = true;
+				this.changeColor(this.isOver)
+			}
+		}else{
+			if(this.isOver){
+				this.isOver = false;
+				this.changeColor(this.isOver)
+		    }
+		}
+		
+
+		//console.log('yo')
+
+	}
+
+	changeColor(b) {
+
+		let i = this.colors.length;
+		while(i--) this.colors[i] = b ? 1 : this.colorsbase[i];
+		if( this.geometry ) this.geometry.attributes.color.needsUpdate = true;
 
 	}
 
 	setDirection(r) {
 
 		if(!this.direction) return
+		//this.rotation.y = r
 		this.direction.rotation.y = r
 
 	}
 
 	dispose() {
+
+		this.geometry.dispose();
 
 		this.cone.geometry.dispose();
 		//this.cone.material.dispose();

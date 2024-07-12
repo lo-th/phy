@@ -56,7 +56,7 @@ import WebGPURenderer from 'three/addons/renderers/webgpu/WebGPURenderer.js';
 */
 
 
-let highShadow = false;
+let highShadow = true;//false;
 
 let activeWebGPU = false;
 let isWebGPU = false;
@@ -293,6 +293,9 @@ export const Main = {
 		//Motor.engine = Main.engineType
 		window.engine = Main.engineType;//Motor.engine
 
+		//o.renderer = renderer
+		//console.log('yo', renderer)
+
 		Motor.init( o );
 	
 	},
@@ -492,6 +495,8 @@ const init = () => {
 	renderer.toneMappingExposure = options.exposure;
 
 	if( options.mode !== 'LOW' && !isWebGPU ) Motor.setMaxAnisotropy( renderer.capabilities.getMaxAnisotropy() );
+
+	Motor.setRenderer(renderer);
 
 	// DOM
     document.body.appendChild( renderer.domElement );

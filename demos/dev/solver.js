@@ -25,15 +25,15 @@ demo = () => {
 
 
     createLongChain();
-    createScissorLift();
+    //createScissorLift();
 
     //createSimpleChain();
 
-    setTimeout( ()=>{
+    /*setTimeout( ()=>{
     	phy.remove('longChain')
     	phy.remove('scissor')
     	console.log('yo');
-    }, 4000)
+    }, 4000)*/
 
     // update after physic step
     phy.setPostUpdate( update )
@@ -72,7 +72,7 @@ createSimpleChain = () => {
 			//size:[ (halfHeight*2)+radius*2, radius , radius ], 
 			size:[ 1,1,1 ],
 			//size:[ radius, (halfHeight*2) ], 
-			density:1,
+			mass:1,
 			solver:'simpleChain', linked: 'null', 
 		});
 
@@ -92,31 +92,34 @@ createLongChain = () => {
 	let radius = 0.5*scale;
 	let halfHeight = 1.0*scale;
 	let nbCapsules = 50;
-	let capsuledensity = 10//.0;
+	let capsuleMass = 1//.0;
 
 	let solver = phy.add({ 
 		type:'solver', 
-		name:'longChain', reduced:useReducer,
-		iteration:16,  fix:true,
+		name:'longChain', //reduced:useReducer,
+		iteration:32, 
+		fix:false,
+		neverSleep:true,
+		//velocityIteration:1,
 		//tolerance:0.001, projectionIteration:16, stabilization:100, 
 		//maxAngular:30,
 		//maxLinear:100,
 		 });
 
-	let pos = [0.0, 24.0, pz];
+	let pos = [0, nbCapsules*radius*2, 0];
 
 	//phy.add({ type:'capsule', name:'base', pos:[0, 0.25, 0], size:[ radius, halfHeight, halfHeight ], density:1, solver:'longChain', linked:'null' });
 
 	let firstLink = null;
 	let parent = null;
 
-	let pos1 = [halfHeight, 0.0, 0.0];
-	let pos2 = [-halfHeight, 0.0, 0.0];
+	let pos1 = [0.0,-radius, 0.0];
+	let pos2 = [0.0,radius,  0.0];
 
-	if( overlappingLinks ){
-		pos1 = [radius + halfHeight, 0.0, 0.0];
-		pos2 = [-radius - halfHeight, 0.0, 0.0];
-	}
+	const stiffness = 10;
+    const damping = 10;
+    const forceLimit = 100//Infinity;
+    const acceleration = true;
 
 	
 
@@ -126,16 +129,19 @@ createLongChain = () => {
 
 		let link = phy.add({ 
 			//type:'capsule',
-			type:'box',  
+			//type:'box',  
+			type:'sphere', 
 			name:'cc_' + i, 
 			pos:pos, 
-			//size:[ (halfHeight*2)+radius*2, radius , radius ], 
-			size:[ (halfHeight*2)+radius, radius , radius ],
+			penetrationVelocity:3,
+			size:[ radius ],
+			group:16,
+			mask:1|2,
 			//size:[ radius, (halfHeight*2) ], 
-			density:capsuledensity,
+			mass:capsuleMass,
 			//dmv:[0.1,0.1,100,30], 
 			//linearDamping:0.1, angularDamping:0.1, 
-			//maxLinearVelocity:100, maxAngularVelocity:30,
+			maxLinearVelocity:100, maxAngularVelocity:30,
 			solver:'longChain', linked:!parent ? 'null' : parent.name, 
 		});
 
@@ -143,37 +149,34 @@ createLongChain = () => {
 
 		if(i>0){
 
-			if( useReducer ){
-				solver.addJoint({ 
-					type:'spherical', 
-					bone:link.name, 
-					pos1:pos1, pos2:pos2,
-					motions:[['swing1', 'limited'],['swing2', 'limited']],
-					limits:[['swing1', -90, 90 ], ['swing2', -90, 90 ]],
-					//motions:[['swing1', 'free'],['swing2', 'free']],
-					frictionCoefficient:1.0,
-					//maxJointVelocity:1000//1000000,
-				});
-			} else {
-				solver.addJoint({ 
-					type:'spherical', bone:link.name, 
-					pos1:pos1, pos2:pos2,
-					damping:20
-				});
-			}
+			solver.addJoint({ 
+				type:'spherical', 
+				bone:link.name, 
+				pos1:pos1, 
+				pos2:pos2,
+				rot1:[-90,0,0], rot2:[-90,0,0], 
+				//motions:[['swing1', 'limited'],['swing2', 'limited']],
+				limits:[['swing1', -120, 120 ], ['swing2', -120, 120 ]],
+				//motions:[['twist', 'locked'],['swing1', 'free'],['swing2', 'free']],
+				drives: [['swing1', stiffness, damping, forceLimit, acceleration ], ['swing2', stiffness, damping, forceLimit, acceleration ]],
+				frictionCoefficient:0.3,// def 0.05
+				maxJointVelocity:10//def 100
+			});
 
 		}
 
-		if(overlappingLinks) pos[0] += (radius + halfHeight* 2.0);
-		else pos[0] += (radius + halfHeight) * 2.0;
+		pos[1] += radius * 2.0;
 
 		parent = link;
 
 	}
 
+	solver.start();
+	phy.add({type:'box', name:'boxblock', size:[2, 1, 4], pos:[2, 0.5, 0],mass:10 })
+return
 	//Attach large & heavy box at the end of the rope
 
-	let boxdensity = 5.0;
+	let boxdensity = 1.0;
 	let boxSize = 0.5;
 
 	pos[0] -= (radius + halfHeight) * 2.0;
@@ -183,6 +186,7 @@ createLongChain = () => {
 		type:'box', name:'cc_box', 
 		pos:pos, size:[ boxSize*2 ], 
 		density:boxdensity, 
+		penetrationVelocity:3,
 		dmv:[0.1,0.1,100,30],
 		linearDamping:0.1, angularDamping:0.1, 
 		maxLinearVelocity:100, maxAngularVelocity:30,
@@ -196,7 +200,7 @@ createLongChain = () => {
 			motions:[['swing1', 'limited'],['swing2', 'limited']],
 			limits:[['swing1', -90, 90 ], ['swing2', -90, 90 ]],
 			//motions:[['swing1', 'free'],['swing2', 'free'], ['twist', 'free']],
-			frictionCoefficient:1.0,
+			//frictionCoefficient:1.0,
 			//maxJointVelocity:1000//1000000,
 		});
 	} else {
@@ -286,13 +290,13 @@ createScissorLift = () => {
     	leftParentRot = [0,0,0,1];  
     	rightParentRot = [0,0,0,1];
 
-		for (let i=0; i < linkHeight; ++i){
+		for ( let i=0; i < linkHeight; ++i ){
 
 			let pos = [ j===0 ? 0.5 : -0.5, 0.55 + 0.1*(1+i), 0];
 
 			ppL = [ pos[0], pos[1] + sinAng*(2 * i + 1) , pos[2] ];
 
-			leftLink = phy.add({ type:'box', name:'leftLink'+i+'_'+j, pos:ppL, quat:leftRot, size:[ 0.05*2, 0.05*2, 1*2 ], density:1, solver:'scissor', linked: currLeft.name, filter:[0,0,1,0], dmv:[0.2,0.2,100,20] });
+			leftLink = phy.add({ type:'box', name:'leftLink'+i+'_'+j, pos:ppL, quat:leftRot, size:[ 0.05*2, 0.05*2, 1*2 ], mass:1, solver:'scissor', linked: currLeft.name, filter:[0,0,1,0], dmv:[0.2,0.2,100,20] });
 
 			let leftAnchorLocation = math.fromTransform( currPosL, currQL, [ pos[0], pos[1]+sinAng*(2 * i), pos[2]-0.9 ], [0,0,0,1], true );
 
@@ -312,7 +316,7 @@ createScissorLift = () => {
 
 			ppR = [ pos[0], pos[1] + sinAng*(2 * i + 1) , pos[2] ];
 
-			rightLink = phy.add({ type:'box', name:'rightLink'+i+'_'+j, pos:ppR, quat:rightRot, size:[ 0.05*2, 0.05*2, 1*2 ], density:1, solver:'scissor', linked: currRight.name, filter:[0,0,1,0], dmv:[0.2,0.2,100,20] });
+			rightLink = phy.add({ type:'box', name:'rightLink'+i+'_'+j, pos:ppR, quat:rightRot, size:[ 0.05*2, 0.05*2, 1*2 ], mass:1, solver:'scissor', linked: currRight.name, filter:[0,0,1,0], dmv:[0.2,0.2,100,20] });
 
 			let rightAnchorLocation = math.fromTransform( currPosR, currQR, [ pos[0], pos[1]+sinAng*(2 * i), pos[2]+0.9 ], [0,0,0,1], true );
 
@@ -358,9 +362,9 @@ createScissorLift = () => {
 			let ql2 = math.fromTransformToQ( pl, leftParentRot, true );
 			let qr2 = math.fromTransformToQ( pr, rightParentRot, true );
 
-			phy.add({ type:'box', name:'leftTop', pos:pl, quat:leftParentRot, size:[ 0.5*2, 0.05*2, 0.05*2 ], density:1, solver:'scissor', linked: currLeft.name, filter:[0,0,1,0],dmv:[0.2,0.2,100,20] });
+			phy.add({ type:'box', name:'leftTop', pos:pl, quat:leftParentRot, size:[ 0.5*2, 0.05*2, 0.05*2 ], mass:1, solver:'scissor', linked: currLeft.name, filter:[0,0,1,0],dmv:[0.2,0.2,100,20] });
 			//phy.add({ type:'box', name:'rightTop', pos:pr, quat:rightParentRot, size:[ 0.8*2, 0.05*2, 0.05*2 ], density:1, solver:'scissor', linked: currRight.name, filter:[1,-1,1,0],dmv:[0.2,0.2,100,20] });
-			phy.add({ type:'capsule', name:'rightTop', pos:pr, quat:rightParentRot, size:[ 0.05, 0.8*2 ], density:1, solver:'scissor', linked: currRight.name, filter:[1,-1,1,0],dmv:[0.2,0.2,100,20] });
+			phy.add({ type:'capsule', name:'rightTop', pos:pr, quat:rightParentRot, size:[ 0.05, 0.8*2 ], mass:1, solver:'scissor', linked: currRight.name, filter:[1,-1,1,0],dmv:[0.2,0.2,100,20] });
 
 			solver.addJoint( { type:'revolute', bone:'leftTop', pos1:[ 0, 0, -1 ], pos2:[ 0.5, 0, 0 ], quat1:ql, quat2:ql2, motions:[['twist', 'free']], noFix:true } );
 			solver.addJoint( { type:'revolute', bone:'rightTop', pos1:[ 0, 0, 1 ], pos2:[ 0.5, 0, 0 ], quat1:qr, quat2:qr2, motions:[['twist', 'free']], noFix:true } );
@@ -385,12 +389,10 @@ createScissorLift = () => {
         noFix:true
     });
 
-    phy.add({ type:'box', name:'top', pos:[0, pl[1]+0.15, 0 ], size:[ 0.5*2, 0.1*2, 1.5*2 ], density:1, solver:'scissor', linked:'leftTop', filter:[1,-1,1,0],dmv:[0.2,0.2,100,20] });
+    phy.add({ type:'box', name:'top', pos:[0, pl[1]+0.15, 0 ], size:[ 0.5*2, 0.1*2, 1.5*2 ], mass:1, solver:'scissor', linked:'leftTop', filter:[1,-1,1,0],dmv:[0.2,0.2,100,20] });
     solver.addJoint( { type:'fix', bone:'top', pos1:[ 0, 0, 0 ], pos2:[ 0, -0.15, -0.9 ] } );
 
-
     //
-
 
     // add box
 
@@ -410,7 +412,7 @@ createScissorLift = () => {
     	phy.add({ 
 	        type:'box', name:'box'+i, 
 	        pos:pp[i], size:[ 0.49 ],
-	        density:0.5,
+	        mass:0.5,
 	    });
     }
 

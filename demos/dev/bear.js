@@ -22,7 +22,7 @@ function demo() {
 
     phy.set({ substep:1, gravity:[0,setting.gravity,0] });
     //phy.add({pos:[0,-0.1,0], size:[5.8, 0.21, 6.6]})
-    phy.add({ type:'container', material:'glass', size:[5.8, 60, 6.6,0.2], pos:[0,30,0], friction:0, restitution:1, remplace:true });
+    phy.add({ type:'container', material:'hide', size:[5.8, 60, 6.6,0.2], pos:[0,30,0], friction:0, restitution:1, remplace:true });
 
     phy.load(['./assets/models/'+modelName+'.glb'], onComplete )
 

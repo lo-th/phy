@@ -108,10 +108,10 @@ export class SkeletonBody extends Object3D {
 
         let i = this.nameList.length, node;
         while( i-- ) Utils.byName( this.nameList[i] ).visible = v;
-        let data = []
+        /*let data = []
         i = this.jointList.length;
         while( i-- ) data.push( { name:this.jointList[i], visible:v } );
-        root.motor.change( data );
+        root.motor.change( data );*/
 
     }
 
@@ -349,13 +349,15 @@ export class SkeletonBody extends Object3D {
                         group:32,
                         mask:mask,
                         //mask:0,
-                        material:'bones2',
+                        material:'hide',
                         //material:'debug',
                         shadow:false,
                         neverSleep: true,
                         helper: true,
-                        hcolor:[0.87, 0.76, 0.65],
-                        hcolor2:[0.9, 0.77, 0.64],
+                        hcolor:[0.0, 0.5, 1],
+                        hcolor2:[0.0, 0.2, 1],
+                        //hcolor:[0.87, 0.76, 0.65],
+                        //hcolor2:[0.9, 0.77, 0.64],
 
                         penetrationVelocity:1,
                         //maxAngularVelocity:3,
@@ -463,8 +465,10 @@ export class SkeletonBody extends Object3D {
 
         // arm
 
-        data.push({ ...sett, b1:p+'chest', b2:p+'rCollar', worldPos:this.posRef[p+'rCollar'],  worldQuat:this.quatRef[p+'rCollar'], lm:[ ['rx',-10,10,...sp], ['ry',-10,10,...sp], ['rz',-10,10,...sp]] })
-        data.push({ ...sett, b1:p+'chest', b2:p+'lCollar', worldPos:this.posRef[p+'lCollar'],  worldQuat:this.quatRef[p+'lCollar'], lm:[ ['rx',-10,10,...sp], ['ry',-10,10,...sp], ['rz',-10,10,...sp]] })
+        //data.push({ ...sett, b1:p+'chest', b2:p+'rCollar', worldPos:this.posRef[p+'rCollar'],  worldQuat:this.quatRef[p+'rCollar'], lm:[ ['rx',-10,10,...sp], ['ry',-10,10,...sp], ['rz',-10,10,...sp]] })
+        //data.push({ ...sett, b1:p+'chest', b2:p+'lCollar', worldPos:this.posRef[p+'lCollar'],  worldQuat:this.quatRef[p+'lCollar'], lm:[ ['rx',-10,10,...sp], ['ry',-10,10,...sp], ['rz',-10,10,...sp]] })
+        data.push({ ...sett, b1:p+'chest', b2:p+'rCollar', worldPos:this.posRef[p+'rCollar'],  worldQuat:this.quatRef[p+'rCollar'], mode:'fixe' })
+        data.push({ ...sett, b1:p+'chest', b2:p+'lCollar', worldPos:this.posRef[p+'lCollar'],  worldQuat:this.quatRef[p+'lCollar'], mode:'fixe' })
 
         data.push({ ...sett, b1:p+'rCollar', b2:p+'rShldr', worldPos:this.posRef[p+'rShldr'],  worldQuat:this.quatRef[p+'rShldr'] })
         data.push({ ...sett, b1:p+'lCollar', b2:p+'lShldr', worldPos:this.posRef[p+'lShldr'],  worldQuat:this.quatRef[p+'lShldr'] })

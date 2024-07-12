@@ -383,10 +383,9 @@ export class Body extends Item {
 			let hcolor2 = o.hcolor2 || [0.8,0.2,0.0];
 
 			// TODO bug with character
-			let hh = new CapsuleHelper( s[ 0 ], s[ 1 ]+(s[ 0 ]*2), false, Mat.get( 'line' ), hcolor, hcolor2, true )
-			m.add( hh )
-			//m = new CapsuleHelper( s[ 0 ], s[ 1 ]+(s[ 0 ]*2), false, Mat.get( 'line' ), hcolor, hcolor2, true )
-			//m.material.visible = false
+			let hh = new CapsuleHelper( s[ 0 ], s[ 1 ]+(s[ 0 ]*2), false, Mat.get( 'liner' ), hcolor, hcolor2, true )
+			m.add( hh );
+			m.userData['helper'] = hh;
 
 		}
 
@@ -403,7 +402,10 @@ export class Body extends Item {
     	}
 
     	// add or not add
-    	if( !o.meshRemplace || o.debug ) b.add( m )
+    	if( !o.meshRemplace || o.debug ){ 
+    		b.add( m )
+    		if(m.userData.helper) b.over = (b)=>{ m.userData.helper.over(b) }
+    	}
 
 	}
 
@@ -590,6 +592,7 @@ export class Body extends Item {
 
 		b.meshSize = o.meshSize ? o.meshSize : 1;
 
+
 		
 
 		// for buttton only
@@ -728,16 +731,16 @@ export class Body extends Item {
 
 		b.mass = o.mass || 0;
 		b.density = o.density || 0;
+
 		if( b.density && !b.mass ) b.mass = MathTool.massFromDensity( b.density, volume );
 		else if( b.mass && !b.density ){ 
 			b.density = MathTool.densityFromMass( b.mass, volume );
+			//  force density for engin don't have mass
 			if( root.engine === 'RAPIER' || root.engine === 'OIMO') o.density = b.density;
+			//if( root.engine === 'PHYSX') o.density = null;
 		}
 
-		//console.log( b.name,'m: '+ b.mass, 'd: '+ b.density )
-
-		
-
+		if( o.massInfo ) console.log( '%c'+b.name+ ' %c' + 'density:' + b.density + ' mass:'+ b.mass, "font-size:16px", "font-size:12px" );
 
 		//---------------------------
 		// add to three world
@@ -762,10 +765,13 @@ export class Body extends Item {
 		if( o.parent ) delete o.parent;
 
 
-		if(o.solver){
+		if( o.solver && root.engine === 'PHYSX' ){
+			// physx only have mass for solver bone
+			o.mass = b.mass;
 			// keep name reference of bones
 			const solver = this.byName( o.solver );
-			solver.addBone( o.name )
+			solver.addBone( o.name );
+
 		}
 
 	    //---------------------------
