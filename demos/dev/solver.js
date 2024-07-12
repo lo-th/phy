@@ -97,7 +97,7 @@ createLongChain = () => {
 	let solver = phy.add({ 
 		type:'solver', 
 		name:'longChain', //reduced:useReducer,
-		iteration:32, 
+		iteration:8, 
 		fix:false,
 		neverSleep:true,
 		//velocityIteration:1,
@@ -113,8 +113,11 @@ createLongChain = () => {
 	let firstLink = null;
 	let parent = null;
 
-	let pos1 = [0.0,-radius, 0.0];
-	let pos2 = [0.0,radius,  0.0];
+	//let pos1 = [0.0,-radius, 0.0];
+	//let pos2 = [0.0,radius,  0.0];
+
+	let pos1 = [0.0,0.0, 0.0];
+	let pos2 = [0.0,radius*2,  0.0];
 
 	const stiffness = 10;
     const damping = 10;
@@ -135,8 +138,8 @@ createLongChain = () => {
 			pos:pos, 
 			penetrationVelocity:3,
 			size:[ radius ],
-			group:16,
-			mask:1|2,
+			//group:16,
+			//mask:1|2,
 			//size:[ radius, (halfHeight*2) ], 
 			mass:capsuleMass,
 			//dmv:[0.1,0.1,100,30], 
@@ -156,7 +159,7 @@ createLongChain = () => {
 				pos2:pos2,
 				rot1:[-90,0,0], rot2:[-90,0,0], 
 				//motions:[['swing1', 'limited'],['swing2', 'limited']],
-				limits:[['swing1', -120, 120 ], ['swing2', -120, 120 ]],
+				limits:[['swing1', -90, 90 ], ['swing2', -90, 90 ]],
 				//motions:[['twist', 'locked'],['swing1', 'free'],['swing2', 'free']],
 				drives: [['swing1', stiffness, damping, forceLimit, acceleration ], ['swing2', stiffness, damping, forceLimit, acceleration ]],
 				frictionCoefficient:0.3,// def 0.05

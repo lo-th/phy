@@ -39,6 +39,7 @@ launchBullet = () => {
             //impulse:[math.rand(-v,v),math.rand(-v,v),math.rand(-v,v)],
             material:'carbon',
             maxVelocity:[10,100],
+            penetrationVelocity:3,
             //linearFactor:[0.9,0.9,0.9],
             //minCCD:0.0000001,
             //ccdMaxContact:true

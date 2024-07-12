@@ -56,7 +56,7 @@ import WebGPURenderer from 'three/addons/renderers/webgpu/WebGPURenderer.js';
 */
 
 
-let highShadow = true;//false;
+let highShadow = false;//false;
 
 let activeWebGPU = false;
 let isWebGPU = false;
