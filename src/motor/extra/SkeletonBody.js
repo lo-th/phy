@@ -29,7 +29,7 @@ const _boneMatrix = /*@__PURE__*/ new Matrix4();
 
 export class SkeletonBody extends Object3D {
 
-	constructor ( name, model, bones ) {
+	constructor ( name, model, bones, mass = null ) {
 
 		super()
 
@@ -58,11 +58,25 @@ export class SkeletonBody extends Object3D {
 
         this.matrixAutoUpdate = false;
 
-       //console.log(this.scaler)
+        this.mass = mass; 
+        this.friction = 0.5; 
+        this.restitution = 0.1;
 
 		this.init()
 
 	}
+
+    setMass( mass ){
+
+        if( mass === this.mass ) return
+        this.mass = mass
+        const d = []
+        let i = this.nodes.length;
+        let m = this.mass/i;
+        while( i-- ) d.push( { name:this.nodes[i].name, mass:m } )
+        root.motor.change( d );
+
+    }
 
     setMode( mode ){
 
@@ -78,7 +92,7 @@ export class SkeletonBody extends Object3D {
         while( i-- ){
 
             node = this.nodes[i]
-            data.push( { name : node.name, kinematic:kinematic } )
+            data.push( { name:node.name, kinematic:kinematic } )
             node.kinematic = kinematic
             node.bone.isPhysics = !kinematic;
             
@@ -151,6 +165,9 @@ export class SkeletonBody extends Object3D {
 
         let i, lng = this.bones.length, name, n, boneId, bone, parent;///, child, o, parentName;
         let size, dist, rot, type, mesh, r, kinematic, translate, phyName, motion, link;
+
+        let averageMass = 0;
+        if(this.mass) averageMass = this.mass / lng;
 
         for( i = 0; i < lng; i++ ){
 
@@ -333,19 +350,20 @@ export class SkeletonBody extends Object3D {
                     if( n==='rEar_0' || n==='rEar_0') mask = 0;
 
                 	// for physic body
-                    data.push( {
+                    let bb = {
 
                         name: phyName,
-                        density:1,
-                        //mass:1,
+
+                        friction: this.friction,
+                        restitution: this.restitution,
+                        
                         type: type,
                         size: MathTool.scaleArray(size,this.scaler,3),
                         pos: p.toArray(),
                         //rot: rot,
                         quat: q.toArray(),
                         kinematic: kinematic,
-                        friction: 0.5,
-                        restitution:0.1,
+                        
                         group:32,
                         mask:mask,
                         //mask:0,
@@ -359,7 +377,7 @@ export class SkeletonBody extends Object3D {
                         //hcolor:[0.87, 0.76, 0.65],
                         //hcolor2:[0.9, 0.77, 0.64],
 
-                        penetrationVelocity:1,
+                        penetrationVelocity:3,
                         //maxAngularVelocity:3,
 
                         //linked:link,
@@ -370,7 +388,12 @@ export class SkeletonBody extends Object3D {
                         decal:tmpMtx.clone(),
                         decalinv:tmpMtx.clone().invert(),*/
                         
-                    })
+                    }
+
+                    if( this.mass !== null ) bb['mass'] = averageMass;
+                    else  bb['density'] = 1;
+
+                    data.push(bb)
 
 
 

@@ -29,7 +29,7 @@ function demo() {
         material:'debug',
         massInfo:true,
     });
-    //phy.add({ type:'sphere', size:[1], pos:[4,8,0], rot:[45,45,0], mass:1 })
+    phy.add({ type:'sphere', size:[1], pos:[0,8,0], rot:[45,45,0], mass:1 })
 
 
 }

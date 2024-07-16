@@ -5,6 +5,7 @@ let model;
 //modelName = "bear"
 //modelName = "rabit"
 const setting = { 
+    mass:10,
     gravity:-9.81, 
     ragdoll:true,
     debug:false, 
@@ -22,7 +23,7 @@ function demo() {
 
     phy.set({ substep:1, gravity:[0,setting.gravity,0] });
     //phy.add({pos:[0,-0.1,0], size:[5.8, 0.21, 6.6]})
-    phy.add({ type:'container', material:'hide', size:[5.8, 60, 6.6,0.2], pos:[0,30,0], friction:0, restitution:1, remplace:true });
+    phy.add({ type:'container', material:'hide', size:[5.8, 60, 6.6,1.0], pos:[0,30,0], friction:0, restitution:1, remplace:true });
 
     phy.load(['./assets/models/'+modelName+'.glb'], onComplete )
 
@@ -73,6 +74,7 @@ onComplete = () => {
         }
     })
     gui.add( setting, 'gravity', { min:-10, max:10, mode:2 } ).onChange( (v) => { phy.setGravity([0,v,0]) } )
+    gui.add( setting, 'mass', { min:1, max:100, mode:2 } ).onChange( (v) => { mass(v) } )
     gui.add( 'button', { name:"clear" } ).onChange( () => { clear() } )
     gui.add( 'button', { name:"add" } ).onChange( () => { add() } )
     //this.model.updateMatrix()
@@ -91,9 +93,18 @@ populate = ( n ) => {
             size:math.rand(0.5,3), 
             mode:setting.ragdoll?'ragdoll':'follow', 
             debug:setting.debug, 
-            pos:[x, 0.5 + (i*0.2), z] 
+            pos:[x, 0.5 + (i*0.2), z] , 
+            mass:setting.mass,
         }))
     }
+}
+
+mass  = (v) => {
+    let i = list.length;
+    while(i--){
+        list[i].skeletonBody.setMass(v)
+    }
+
 }
 
 clear  = () => {

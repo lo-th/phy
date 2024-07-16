@@ -551,7 +551,7 @@ export class Body extends Item {
 					if( n.rot !== undefined ) n.quat = MathTool.quatFromEuler(n.rot);
 					if( n.quat ) n.localQuat = n.quat;
 					
-					n.debug = o.debug || root.debug;
+					n.debug = o.debug;// || root.debug;
 					n.meshRemplace = o.meshRemplace || false;
 
 					if( !o.instance ) this.geometry( n, b, material );

@@ -44,14 +44,17 @@ export class AutoRagdoll {
 				bones = child.skeleton.bones;
 			}
 		})
+
+		let mass = o.mass || null
 		
-		this.skeletonBody = new SkeletonBody( model.name, model, bones );
+		this.skeletonBody = new SkeletonBody( model.name, model, bones, mass );
 
 		this.debug = this._debug;
 		this.mode = this._mode;
-		this.skeletonBody.addEventListener( 'start', function ( event ) {
-			alert( event.message );
-		});
+
+		/*this.skeletonBody.addEventListener ( 'start', function ( event ) {
+			console.log( event.message );
+		});*/
 
 
 

@@ -1,4 +1,4 @@
-const debug = 1
+const debug = 0
 let bike, model, meshes, maxDistance = 50, oldv = 0, w1, w2;
 const TimeFrame = 1/30;
 let modelName = 'akira2'
@@ -81,9 +81,9 @@ onComplete = () => {
 
         mass:mass,//1600,
 
-        damping: [0,0.2],//0.25
-        maxVelocity:[1000,1],
-        //stabilization:0.3,
+        damping: [0,0.5],//0.25
+        maxVelocity:[10,1],
+        //stabilization:0.3,//0.0025
 
 
         chassisShape:meshes.a_shape,

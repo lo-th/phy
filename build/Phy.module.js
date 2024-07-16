@@ -7865,7 +7865,7 @@ class Body extends Item {
 					if( n.rot !== undefined ) n.quat = MathTool.quatFromEuler(n.rot);
 					if( n.quat ) n.localQuat = n.quat;
 					
-					n.debug = o.debug || root.debug;
+					n.debug = o.debug;// || root.debug;
 					n.meshRemplace = o.meshRemplace || false;
 
 					if( !o.instance ) this.geometry( n, b, material );
@@ -12576,7 +12576,7 @@ const _boneMatrix = /*@__PURE__*/ new Matrix4();
 
 class SkeletonBody extends Object3D {
 
-	constructor ( name, model, bones ) {
+	constructor ( name, model, bones, mass = null ) {
 
 		super();
 
@@ -12605,11 +12605,25 @@ class SkeletonBody extends Object3D {
 
         this.matrixAutoUpdate = false;
 
-       //console.log(this.scaler)
+        this.mass = mass; 
+        this.friction = 0.5; 
+        this.restitution = 0.1;
 
 		this.init();
 
 	}
+
+    setMass( mass ){
+
+        if( mass === this.mass ) return
+        this.mass = mass;
+        const d = [];
+        let i = this.nodes.length;
+        let m = this.mass/i;
+        while( i-- ) d.push( { name:this.nodes[i].name, mass:m } );
+        root.motor.change( d );
+
+    }
 
     setMode( mode ){
 
@@ -12625,7 +12639,7 @@ class SkeletonBody extends Object3D {
         while( i-- ){
 
             node = this.nodes[i];
-            data.push( { name : node.name, kinematic:kinematic } );
+            data.push( { name:node.name, kinematic:kinematic } );
             node.kinematic = kinematic;
             node.bone.isPhysics = !kinematic;
             
@@ -12696,6 +12710,9 @@ class SkeletonBody extends Object3D {
 
         let i, lng = this.bones.length, name, n, bone, parent;///, child, o, parentName;
         let size, dist, rot, type, kinematic, translate, phyName, motion;
+
+        let averageMass = 0;
+        if(this.mass) averageMass = this.mass / lng;
 
         for( i = 0; i < lng; i++ ){
 
@@ -12877,19 +12894,20 @@ class SkeletonBody extends Object3D {
                     if( n==='rEar_0' || n==='rEar_0') mask = 0;
 
                 	// for physic body
-                    data.push( {
+                    let bb = {
 
                         name: phyName,
-                        density:1,
-                        //mass:1,
+
+                        friction: this.friction,
+                        restitution: this.restitution,
+                        
                         type: type,
                         size: MathTool.scaleArray(size,this.scaler,3),
                         pos: p.toArray(),
                         //rot: rot,
                         quat: q.toArray(),
                         kinematic: kinematic,
-                        friction: 0.5,
-                        restitution:0.1,
+                        
                         group:32,
                         mask:mask,
                         //mask:0,
@@ -12903,7 +12921,7 @@ class SkeletonBody extends Object3D {
                         //hcolor:[0.87, 0.76, 0.65],
                         //hcolor2:[0.9, 0.77, 0.64],
 
-                        penetrationVelocity:1,
+                        penetrationVelocity:3,
                         //maxAngularVelocity:3,
 
                         //linked:link,
@@ -12914,7 +12932,12 @@ class SkeletonBody extends Object3D {
                         decal:tmpMtx.clone(),
                         decalinv:tmpMtx.clone().invert(),*/
                         
-                    });
+                    };
+
+                    if( this.mass !== null ) bb['mass'] = averageMass;
+                    else  bb['density'] = 1;
+
+                    data.push(bb);
 
 
 
@@ -35348,7 +35371,7 @@ class Hero extends Basic3D {
 
     	if( this.skeletonBody ) this.skeletonBody.isVisible(v);
     	//if( this.model ) this.model.setMaterial( { wireframe: v, visible:!v })
-    	//if( this.model ) this.model.setMaterial( { transparent:v, opacity:v?0.8:1.0 }, !v )
+    	if( this.model && this.skeletonBody ) this.model.setMaterial( { transparent:v, opacity:v?0.8:1.0 }, !v );
     	
     	this.showHelper( v );
         
@@ -42795,14 +42818,17 @@ class AutoRagdoll {
 				bones = child.skeleton.bones;
 			}
 		});
+
+		let mass = o.mass || null;
 		
-		this.skeletonBody = new SkeletonBody( model.name, model, bones );
+		this.skeletonBody = new SkeletonBody( model.name, model, bones, mass );
 
 		this.debug = this._debug;
 		this.mode = this._mode;
-		this.skeletonBody.addEventListener( 'start', function ( event ) {
-			alert( event.message );
-		});
+
+		/*this.skeletonBody.addEventListener ( 'start', function ( event ) {
+			console.log( event.message );
+		});*/
 
 
 
