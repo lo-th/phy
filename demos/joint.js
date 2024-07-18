@@ -3,7 +3,7 @@ demo = () => {
     let b1, b2, pos, length;
 
     // view setting
-    phy.view({ envmap:'box', envblur: 0.5 });
+    phy.view({ envmap:'blocky_photo_studio_1k', envblur: 0.5 });
 
     // config physics setting
     phy.set({ substep:2, gravity:[0,-9.81,0], jointVisible:true });
@@ -40,9 +40,14 @@ demo = () => {
 
     // Prismatic joint
     pos = [2,5,1];
-    b1 = phy.add({ type:'sphere', size:[0.03], pos:pos, density:0 });
-    b2 = phy.add({ type:'box', size:[0.6,1,1], pos:pos, density:1, radius:0.02 });
-    phy.add({ type:'prismatic', b1:b1, b2:b2, lm:[-1,1], worldPos:pos, worldAxis:[0,1,0] });
+    b1 = phy.add({ type:'sphere', size:[0.03], pos:pos, density:0, collision:false });
+    b2 = phy.add({ type:'box', size:[0.6,0.5,0.5], pos:pos, density:1, radius:0.02, material:'plexi' });
+    phy.add({ type:'prismatic', b1:b1, b2:b2, lm:[-0.5,1], worldPos:pos, worldAxis:[0,1,0] });
+
+    pos = [1.5,5,1];
+    b1 = phy.add({ type:'sphere', size:[0.03], pos:pos, density:0, collision:false });
+    b2 = phy.add({ type:'box', size:[0.2,0.5,0.5], pos:pos, density:1, radius:0.02, material:'plexi' });
+    phy.add({ type:'prismatic', b1:b1, b2:b2, lm:[-0.5,1], worldPos:pos, worldAxis:[1,0,0] });
 
     // Cylindrical joint
     pos = [-2,5,1];

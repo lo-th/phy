@@ -26,23 +26,24 @@ export class AutoSvg extends Mesh {
 		this.stroke = true;
 
 		this.size = option.size || 1
+		this.scaler = 1/this.size;
 
 		//let w = 10
 		//this.set( { viewBox:'0 0 '+w+' '+w, width:w, height:w, preserveAspectRatio:'none' })
 
 		if( !this.model ) return;
 
-		let o = {}
+		let o = {
+			radius: 5, 
+			min:90, 
+			max:90, 
+			strokeSize:0.25,
+			...option
+		}
 
 		switch( this.model ){
 
 			case 'angle':
-
-			o = {
-				radius: 5, min:90, max:90, strokeSize:0.25,
-				...option
-			}
-
 			this.fill = o.fill !== undefined ? o.fill : true;
 	        this.stroke = o.stroke !== undefined ? o.stroke : true;
 	        let min = Math.abs(o.min);
@@ -52,15 +53,34 @@ export class AutoSvg extends Mesh {
 	        this.add( 'path', { d: this.circle(0,0, o.radius, 180-min,180, false, false, 0.3, true), stroke:'#0050FF', 'stroke-opacity':1, 'stroke-width':o.strokeSize, fill:'none', 'stroke-linecap':'round' } );
 			break;
 
+			case 'liner':
+			let r = o.radius*0.5;
+			let y1 = o.max*this.scaler;
+			let y2 = o.min*this.scaler;
+			this.fill = o.fill !== undefined ? o.fill : true;
+	        this.stroke = o.stroke !== undefined ? o.stroke : true;
+	        this.add( 'path', { d: this.segment({x:-r, y:0}, {x:r, y:0} ), stroke:'#FFFFFF', 'stroke-opacity':1, 'stroke-width':o.strokeSize, fill:'none', 'stroke-linecap':'butt' } );
+	        this.add( 'path', { d: this.segment({x:-r, y:y1}, {x:r, y:y1} ), stroke:'#FF0000', 'stroke-opacity':1, 'stroke-width':o.strokeSize, fill:'none', 'stroke-linecap':'butt' } );
+	        this.add( 'path', { d: this.segment({x:-r, y:y2}, {x:r, y:y2} ), stroke:'#0050FF', 'stroke-opacity':1, 'stroke-width':o.strokeSize, fill:'none', 'stroke-linecap':'butt' } );
+	        //
+	        this.add( 'path', { d: this.segment({x:0, y:0}, {x:0, y:y1} ), stroke:'#FF0000', 'stroke-opacity':1, 'stroke-width':o.strokeSize, fill:'none', 'stroke-linecap':'butt' } );
+	        this.add( 'path', { d: this.segment({x:0, y:0}, {x:0, y:y2} ), stroke:'#0050FF', 'stroke-opacity':1, 'stroke-width':o.strokeSize, fill:'none', 'stroke-linecap':'butt' } );
+	        break;
+
 			case 'needle':
-			o = {
-				radius: 5, min:90, max:90, strokeSize:0.25,
-				...option
-			}
 			this.fill = o.fill !== undefined ? o.fill : true;
 	        this.stroke = o.stroke !== undefined ? o.stroke : true;
 			this.add( 'path', { d: this.circle(0,0, 0.7, 0, 360, false, true, 0), stroke:'#FFFFFF', 'stroke-opacity':1, 'stroke-width':o.strokeSize, fill:'none', 'stroke-linecap':'butt' } );
 			this.add( 'path', { d: this.segment({x:0, y:0}, {x:0, y:4.4} ), stroke:'#FFFFFF', 'stroke-opacity':1, 'stroke-width':o.strokeSize, fill:'none', 'stroke-linecap':'round' } );
+			break;
+
+			case 'middle':
+			let mm = o.radius*0.5;
+			this.fill = o.fill !== undefined ? o.fill : true;
+	        this.stroke = o.stroke !== undefined ? o.stroke : true;
+			this.add( 'path', { d: this.circle(0,0, 0.7, 0, 360, false, true, 0), stroke:'#FFFFFF', 'stroke-opacity':1, 'stroke-width':o.strokeSize, fill:'none', 'stroke-linecap':'butt' } );
+			this.add( 'path', { d: this.segment({x:0, y:-mm}, {x:0, y:mm} ), stroke:'#FFFFFF', 'stroke-opacity':1, 'stroke-width':o.strokeSize, fill:'none', 'stroke-linecap':'butt' } );
+			this.add( 'path', { d: this.segment({x:-mm, y:0}, {x:mm, y:0} ), stroke:'#FFFFFF', 'stroke-opacity':1, 'stroke-width':o.strokeSize, fill:'none', 'stroke-linecap':'butt' } );
 			break;
 
 
@@ -71,7 +91,7 @@ export class AutoSvg extends Mesh {
 	}
 
 	raycast(){
-		return;
+		return false;
 	}
 
 	update( option = {} ){

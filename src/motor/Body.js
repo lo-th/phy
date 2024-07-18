@@ -459,6 +459,15 @@ export class Body extends Item {
 			}
 		}
 
+		if( o.collision !== undefined ){
+			if(o.collision === false){
+				if( root.engine === 'PHYSX' ) o.flags = 0
+				if( root.engine === 'OIMO' ) o.mask = 0
+				//o.mask = 0
+			}
+			
+		}
+
 		//----------------------------
 		//  Position, Rotation, Size
 		//----------------------------

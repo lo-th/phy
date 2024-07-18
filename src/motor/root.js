@@ -189,7 +189,7 @@ export const Utils = {
     	let q2 = obj.quaternion.clone().invert()
     	q1.premultiply(q2)
     	//v.applyQuaternion({x:-q.x, y:-q.y, z:-q.z, w:q.w})
-    	return q1.normalize().toArray()
+    	return q1.normalize().toArray();
 
     },
 

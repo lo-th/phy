@@ -1,5 +1,5 @@
 import * as THREE$1 from 'three';
-import { Quaternion, Matrix3, Vector3, LineSegments, BufferGeometry, BufferAttribute, Float32BufferAttribute, LineBasicMaterial, SphereGeometry, CylinderGeometry, BoxGeometry, PlaneGeometry, CanvasTexture, RepeatWrapping, SRGBColorSpace, MeshPhysicalMaterial, Color, ShaderChunk, ShaderMaterial, BackSide, Vector2, MeshStandardMaterial, ShadowMaterial, MeshToonMaterial, MeshBasicMaterial, MeshLambertMaterial, MeshPhongMaterial, DoubleSide, NoBlending, NormalBlending, AdditiveBlending, SubtractiveBlending, MultiplyBlending, AddEquation, SubtractEquation, ReverseSubtractEquation, MinEquation, MaxEquation, ZeroFactor, OneFactor, SrcColorFactor, OneMinusSrcColorFactor, SrcAlphaFactor, OneMinusSrcAlphaFactor, DstAlphaFactor, OneMinusDstAlphaFactor, DstColorFactor, OneMinusDstColorFactor, SrcAlphaSaturateFactor, FrontSide, Line, EventDispatcher, MathUtils, Matrix4, Euler, Layers, Mesh, InstancedMesh, InstancedBufferAttribute, TrianglesDrawMode, TriangleFanDrawMode, TriangleStripDrawMode, CircleGeometry, Box3, Line3, Plane, Triangle, Object3D, Loader, FileLoader, ShapeUtils, Box2, Shape, Path, ShapePath, ShapeGeometry, Uniform, PerspectiveCamera, Scene, WebGLRenderer, PropertyBinding, InterpolateLinear, CompressedTexture, Source, NoColorSpace, RGBAFormat, InterpolateDiscrete, NearestFilter, NearestMipmapNearestFilter, NearestMipmapLinearFilter, LinearFilter, LinearMipmapNearestFilter, LinearMipmapLinearFilter, ClampToEdgeWrapping, MirroredRepeatWrapping, RGBA_ASTC_4x4_Format, RGBA_BPTC_Format, RGBA_ETC2_EAC_Format, RGBA_PVRTC_4BPPV1_Format, RGBA_S3TC_DXT5_Format, RGB_ETC1_Format, RGB_ETC2_Format, RGB_PVRTC_4BPPV1_Format, RGB_S3TC_DXT1_Format, CompressedCubeTexture, UnsignedByteType, CompressedArrayTexture, FloatType, HalfFloatType, DataTexture, Data3DTexture, LinearSRGBColorSpace, DisplayP3ColorSpace, LinearDisplayP3ColorSpace, RGFormat, RedFormat, RGBA_ASTC_6x6_Format, LoaderUtils, SpotLight, PointLight, DirectionalLight, TextureLoader, ImageBitmapLoader, InterleavedBuffer, InterleavedBufferAttribute, PointsMaterial, Material, SkinnedMesh, LineLoop, Points, Group, OrthographicCamera, Skeleton, AnimationClip, Bone, ColorManagement, Texture, VectorKeyframeTrack, NumberKeyframeTrack, QuaternionKeyframeTrack, Sphere, Interpolant, Vector4, Curve, EquirectangularReflectionMapping, AmbientLight, Uint16BufferAttribute, DataTextureLoader, DataUtils, ObjectSpaceNormalMap, AnimationMixer, CustomBlending, SkeletonHelper, AnimationUtils, AdditiveAnimationBlendMode, NormalAnimationBlendMode, Raycaster, LoadingManager, UVMapping, LinearMipMapLinearFilter, WebGLRenderTarget, IntType, ShortType, ByteType, UnsignedIntType, PMREMGenerator, WebGLCubeRenderTarget, CubeCamera, IcosahedronGeometry, NoToneMapping } from 'three';
+import { Quaternion, Matrix3, Vector3, LineSegments, BufferGeometry, BufferAttribute, Float32BufferAttribute, LineBasicMaterial, SphereGeometry, CylinderGeometry, BoxGeometry, PlaneGeometry, CanvasTexture, RepeatWrapping, SRGBColorSpace, MeshPhysicalMaterial, Color, ShaderChunk, ShaderMaterial, BackSide, Vector2, MeshStandardMaterial, ShadowMaterial, MeshToonMaterial, MeshBasicMaterial, MeshLambertMaterial, MeshPhongMaterial, DoubleSide, AdditiveBlending, NoBlending, NormalBlending, SubtractiveBlending, MultiplyBlending, AddEquation, SubtractEquation, ReverseSubtractEquation, MinEquation, MaxEquation, ZeroFactor, OneFactor, SrcColorFactor, OneMinusSrcColorFactor, SrcAlphaFactor, OneMinusSrcAlphaFactor, DstAlphaFactor, OneMinusDstAlphaFactor, DstColorFactor, OneMinusDstColorFactor, SrcAlphaSaturateFactor, FrontSide, Line, EventDispatcher, MathUtils, Matrix4, Euler, Layers, Mesh, InstancedMesh, InstancedBufferAttribute, TrianglesDrawMode, TriangleFanDrawMode, TriangleStripDrawMode, CircleGeometry, Box3, Line3, Plane, Triangle, Object3D, Loader, FileLoader, ShapeUtils, Box2, Shape, Path, ShapePath, ShapeGeometry, Uniform, PerspectiveCamera, Scene, WebGLRenderer, PropertyBinding, InterpolateLinear, CompressedTexture, Source, NoColorSpace, RGBAFormat, InterpolateDiscrete, NearestFilter, NearestMipmapNearestFilter, NearestMipmapLinearFilter, LinearFilter, LinearMipmapNearestFilter, LinearMipmapLinearFilter, ClampToEdgeWrapping, MirroredRepeatWrapping, RGBA_ASTC_4x4_Format, RGBA_BPTC_Format, RGBA_ETC2_EAC_Format, RGBA_PVRTC_4BPPV1_Format, RGBA_S3TC_DXT5_Format, RGB_ETC1_Format, RGB_ETC2_Format, RGB_PVRTC_4BPPV1_Format, RGB_S3TC_DXT1_Format, CompressedCubeTexture, UnsignedByteType, CompressedArrayTexture, FloatType, HalfFloatType, DataTexture, Data3DTexture, LinearSRGBColorSpace, DisplayP3ColorSpace, LinearDisplayP3ColorSpace, RGFormat, RedFormat, RGBA_ASTC_6x6_Format, LoaderUtils, SpotLight, PointLight, DirectionalLight, TextureLoader, ImageBitmapLoader, InterleavedBuffer, InterleavedBufferAttribute, PointsMaterial, Material, SkinnedMesh, LineLoop, Points, Group, OrthographicCamera, Skeleton, AnimationClip, Bone, ColorManagement, Texture, VectorKeyframeTrack, NumberKeyframeTrack, QuaternionKeyframeTrack, Sphere, Interpolant, Vector4, Curve, EquirectangularReflectionMapping, AmbientLight, Uint16BufferAttribute, DataTextureLoader, DataUtils, ObjectSpaceNormalMap, AnimationMixer, CustomBlending, SkeletonHelper, AnimationUtils, AdditiveAnimationBlendMode, NormalAnimationBlendMode, Raycaster, LoadingManager, UVMapping, LinearMipMapLinearFilter, WebGLRenderTarget, IntType, ShortType, ByteType, UnsignedIntType, PMREMGenerator, WebGLCubeRenderTarget, CubeCamera, IcosahedronGeometry, NoToneMapping } from 'three';
 
 const PI = Math.PI;
 const torad$3 = PI / 180;
@@ -1138,7 +1138,7 @@ const Utils = {
     	let q2 = obj.quaternion.clone().invert();
     	q1.premultiply(q2);
     	//v.applyQuaternion({x:-q.x, y:-q.y, z:-q.z, w:q.w})
-    	return q1.normalize().toArray()
+    	return q1.normalize().toArray();
 
     },
 
@@ -2426,8 +2426,8 @@ const Mat = {
 				case 'skinny':   Mat.create({ name:'skinny', color:0xe0ac69, ...matExtra }); break
 				
 				case 'glass':  Mat.create({ name:'glass', color:0xFFFFff, transparent:true, opacity:0.8, depthTest:true, depthWrite:true, roughness:0.02, metalness:0.0, /*side:DoubleSide,*/ alphaToCoverage:true, premultipliedAlpha:true, transmission:1, clearcoat:1, thickness:0.02  }); break
-				case 'glassX':  Mat.create({ name:'glassX', color:0xeeeeee, transparent:false, opacity:1.0, roughness:0.03, metalness:0, side:DoubleSide, transmission:1.0, clearcoat:1, clearcoatRoughness:0.0, thickness:0.6, ior:1.52, envMapIntensity:1.0, shadowSide:1, reflectivity:0.5, iridescence:0 }); break
-				case 'plexi':  Mat.create({ name:'plexi', color:0xFFFFff, transparent:true, opacity:0.4, metalness:0, roughness:0, clearcoat:1, side:DoubleSide }); break
+				case 'glassX':  Mat.create({ name:'glassX', color:0xeeeeee, transparent:false, opacity:1.0, roughness:0.03, metalness:0,  side:DoubleSide, transmission:1.0, clearcoat:1, clearcoatRoughness:0.0, thickness:0.6, ior:1.52, envMapIntensity:1.0, shadowSide:1, reflectivity:0.5, iridescence:0 }); break
+				case 'plexi':  Mat.create({ name:'plexi', blending:AdditiveBlending, color:0x010101, transparent:true, opacity:0.7, reflectivity:0.3, metalness:0.6, roughness:0.1, clearcoat:0.2, clearcoatRoughness: 0.02, side:DoubleSide, alphaToCoverage:true, premultipliedAlpha:true }); break
 				case 'glass2': Mat.create({ name:'glass2', color:0xEEEEEE, transparent:true, roughness:0, alphaToCoverage:true, opacity:0.3  }); break
 				case 'glass3': Mat.create({ name:'glass3', color:0x000000, transparent:true, roughness:0, alphaToCoverage:true, opacity:0.4  }); break
 				case 'glass_red': Mat.create({ name:'glass_red', color:0xFF0000, transparent:true, roughness:0, alphaToCoverage:true, opacity:0.8  }); break
@@ -7773,6 +7773,15 @@ class Body extends Item {
 			}
 		}
 
+		if( o.collision !== undefined ){
+			if(o.collision === false){
+				if( root.engine === 'PHYSX' ) o.flags = 0;
+				if( root.engine === 'OIMO' ) o.mask = 0;
+				//o.mask = 0
+			}
+			
+		}
+
 		//----------------------------
 		//  Position, Rotation, Size
 		//----------------------------
@@ -11348,23 +11357,24 @@ class AutoSvg extends Mesh {
 		this.stroke = true;
 
 		this.size = option.size || 1;
+		this.scaler = 1/this.size;
 
 		//let w = 10
 		//this.set( { viewBox:'0 0 '+w+' '+w, width:w, height:w, preserveAspectRatio:'none' })
 
 		if( !this.model ) return;
 
-		let o = {};
+		let o = {
+			radius: 5, 
+			min:90, 
+			max:90, 
+			strokeSize:0.25,
+			...option
+		};
 
 		switch( this.model ){
 
 			case 'angle':
-
-			o = {
-				radius: 5, min:90, max:90, strokeSize:0.25,
-				...option
-			};
-
 			this.fill = o.fill !== undefined ? o.fill : true;
 	        this.stroke = o.stroke !== undefined ? o.stroke : true;
 	        let min = Math.abs(o.min);
@@ -11374,15 +11384,34 @@ class AutoSvg extends Mesh {
 	        this.add( 'path', { d: this.circle(0,0, o.radius, 180-min,180, false, false, 0.3, true), stroke:'#0050FF', 'stroke-opacity':1, 'stroke-width':o.strokeSize, fill:'none', 'stroke-linecap':'round' } );
 			break;
 
+			case 'liner':
+			let r = o.radius*0.5;
+			let y1 = o.max*this.scaler;
+			let y2 = o.min*this.scaler;
+			this.fill = o.fill !== undefined ? o.fill : true;
+	        this.stroke = o.stroke !== undefined ? o.stroke : true;
+	        this.add( 'path', { d: this.segment({x:-r, y:0}, {x:r, y:0} ), stroke:'#FFFFFF', 'stroke-opacity':1, 'stroke-width':o.strokeSize, fill:'none', 'stroke-linecap':'butt' } );
+	        this.add( 'path', { d: this.segment({x:-r, y:y1}, {x:r, y:y1} ), stroke:'#FF0000', 'stroke-opacity':1, 'stroke-width':o.strokeSize, fill:'none', 'stroke-linecap':'butt' } );
+	        this.add( 'path', { d: this.segment({x:-r, y:y2}, {x:r, y:y2} ), stroke:'#0050FF', 'stroke-opacity':1, 'stroke-width':o.strokeSize, fill:'none', 'stroke-linecap':'butt' } );
+	        //
+	        this.add( 'path', { d: this.segment({x:0, y:0}, {x:0, y:y1} ), stroke:'#FF0000', 'stroke-opacity':1, 'stroke-width':o.strokeSize, fill:'none', 'stroke-linecap':'butt' } );
+	        this.add( 'path', { d: this.segment({x:0, y:0}, {x:0, y:y2} ), stroke:'#0050FF', 'stroke-opacity':1, 'stroke-width':o.strokeSize, fill:'none', 'stroke-linecap':'butt' } );
+	        break;
+
 			case 'needle':
-			o = {
-				radius: 5, min:90, max:90, strokeSize:0.25,
-				...option
-			};
 			this.fill = o.fill !== undefined ? o.fill : true;
 	        this.stroke = o.stroke !== undefined ? o.stroke : true;
 			this.add( 'path', { d: this.circle(0,0, 0.7, 0, 360, false, true, 0), stroke:'#FFFFFF', 'stroke-opacity':1, 'stroke-width':o.strokeSize, fill:'none', 'stroke-linecap':'butt' } );
 			this.add( 'path', { d: this.segment({x:0, y:0}, {x:0, y:4.4} ), stroke:'#FFFFFF', 'stroke-opacity':1, 'stroke-width':o.strokeSize, fill:'none', 'stroke-linecap':'round' } );
+			break;
+
+			case 'middle':
+			let mm = o.radius*0.5;
+			this.fill = o.fill !== undefined ? o.fill : true;
+	        this.stroke = o.stroke !== undefined ? o.stroke : true;
+			this.add( 'path', { d: this.circle(0,0, 0.7, 0, 360, false, true, 0), stroke:'#FFFFFF', 'stroke-opacity':1, 'stroke-width':o.strokeSize, fill:'none', 'stroke-linecap':'butt' } );
+			this.add( 'path', { d: this.segment({x:0, y:-mm}, {x:0, y:mm} ), stroke:'#FFFFFF', 'stroke-opacity':1, 'stroke-width':o.strokeSize, fill:'none', 'stroke-linecap':'butt' } );
+			this.add( 'path', { d: this.segment({x:-mm, y:0}, {x:mm, y:0} ), stroke:'#FFFFFF', 'stroke-opacity':1, 'stroke-width':o.strokeSize, fill:'none', 'stroke-linecap':'butt' } );
 			break;
 
 
@@ -11393,7 +11422,7 @@ class AutoSvg extends Mesh {
 	}
 
 	raycast(){
-		return;
+		return false;
 	}
 
 	update( option = {} ){
@@ -11621,27 +11650,53 @@ class JointDebug extends Basic3D {
 
 	    super();
 
-	    this.type = 'joint';
-	    this.mode = o.mode || 'hinge';
 	    this.isJoint = true;
 
-
+	    this.type = 'joint';
+	    this.mode = o.mode || 'hinge';
+	    this.visible = o.visible !== undefined ? o.visible : false;
+	    
 	    this.mtx = new Matrix4();
 	    this.size = o.helperSize || 0.1;
 
 	    let material = Mat.get('line');
+	    let mat, dt;
 
 	    switch( this.mode ){
-	    	case 'hinge': case 'cylindrical':
-
-		    	let mat = Mat.get('svg');
-		    	let dt = {
+	    	case 'prismatic':
+	    	    mat = Mat.get('svg');
+		    	dt = {
 					min:-180,
 					max:180,
 					fill:false,
 					stroke:true,
 					wireframe:false,
-					size:0.05
+					size:this.size*0.5
+				};
+
+				if(o.lm){
+					dt.min = o.lm[0];
+					dt.max = o.lm[1];
+				}
+				this.m1 = new AutoSvg('liner', dt, mat );
+		    	this.m2 = new AutoSvg('middle', dt, mat );
+
+		    	this.m1.geometry.rotateY(90 * MathTool.torad);
+
+		    	this.add( this.m1 );
+		    	this.add( this.m2 );
+
+	    	break;
+	    	case 'hinge': case 'cylindrical':
+
+		    	mat = Mat.get('svg');
+		    	dt = {
+					min:-180,
+					max:180,
+					fill:false,
+					stroke:true,
+					wireframe:false,
+					size:this.size*0.5
 				};
 
 				if(o.lm){
@@ -11910,9 +11965,6 @@ class Joint extends Item {
 		if ( o.worldPos ) o.worldAnchor = o.worldPos;
 		if ( o.worldAnchor ){
 
-			
-			
-
 			o.pos1 = body1 ? Utils.toLocal( this.v1.fromArray( o.worldAnchor ), body1 ).toArray() : o.worldAnchor;
 			o.pos2 = body2 ? Utils.toLocal( this.v2.fromArray( o.worldAnchor ), body2 ).toArray() : o.worldAnchor;
 			/*if(body1){ 
@@ -11924,7 +11976,7 @@ class Joint extends Item {
 				o.pos2 = this.v1.toArray();
 			}*/
 			delete o.worldAnchor;
-		} 
+		}
 
 		if ( o.worldAxis ){
 
@@ -11995,7 +12047,7 @@ class Joint extends Item {
 		if( !o.quat1 ) o.quat1 = new Quaternion().setFromUnitVectors( new Vector3(1, 0, 0), new Vector3().fromArray(o.axis1).normalize() ).toArray();
 		if( !o.quat2 ) o.quat2 = new Quaternion().setFromUnitVectors( new Vector3(1, 0, 0), new Vector3().fromArray(o.axis2).normalize() ).toArray();
 
-		if( o.drivePosition) if( o.drivePosition.rot !== undefined ){ o.drivePosition.quat = MathTool.quatFromEuler( o.drivePosition.rot ); delete ( o.drivePosition.rot ); }
+		if( o.drivePosition ) if( o.drivePosition.rot !== undefined ){ o.drivePosition.quat = MathTool.quatFromEuler( o.drivePosition.rot ); delete ( o.drivePosition.rot ); }
 
 		let j = new JointDebug( o );
 		j.name = name;
@@ -12576,7 +12628,7 @@ const _boneMatrix = /*@__PURE__*/ new Matrix4();
 
 class SkeletonBody extends Object3D {
 
-	constructor ( name, model, bones, mass = null ) {
+	constructor ( name, model, bones, mass = null, option = {} ) {
 
 		super();
 
@@ -12607,7 +12659,8 @@ class SkeletonBody extends Object3D {
 
         this.mass = mass; 
         this.friction = 0.5; 
-        this.restitution = 0.1;
+        this.restitution = 0;
+        this.option = option;
 
 		this.init();
 
@@ -12922,6 +12975,9 @@ class SkeletonBody extends Object3D {
                         //hcolor2:[0.9, 0.77, 0.64],
 
                         penetrationVelocity:3,
+                        stabilization:0.1,
+                        //maxVelocity:[100,10],
+                        damping:[0.1,0.5],
                         //maxAngularVelocity:3,
 
                         //linked:link,
@@ -12931,6 +12987,8 @@ class SkeletonBody extends Object3D {
                         /*bone:parent,
                         decal:tmpMtx.clone(),
                         decalinv:tmpMtx.clone().invert(),*/
+
+                        ...this.option
                         
                     };
 
@@ -42821,7 +42879,7 @@ class AutoRagdoll {
 
 		let mass = o.mass || null;
 		
-		this.skeletonBody = new SkeletonBody( model.name, model, bones, mass );
+		this.skeletonBody = new SkeletonBody( model.name, model, bones, mass, o.option );
 
 		this.debug = this._debug;
 		this.mode = this._mode;

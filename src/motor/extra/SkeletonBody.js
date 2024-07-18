@@ -29,7 +29,7 @@ const _boneMatrix = /*@__PURE__*/ new Matrix4();
 
 export class SkeletonBody extends Object3D {
 
-	constructor ( name, model, bones, mass = null ) {
+	constructor ( name, model, bones, mass = null, option = {} ) {
 
 		super()
 
@@ -60,7 +60,8 @@ export class SkeletonBody extends Object3D {
 
         this.mass = mass; 
         this.friction = 0.5; 
-        this.restitution = 0.1;
+        this.restitution = 0;
+        this.option = option;
 
 		this.init()
 
@@ -378,6 +379,9 @@ export class SkeletonBody extends Object3D {
                         //hcolor2:[0.9, 0.77, 0.64],
 
                         penetrationVelocity:3,
+                        stabilization:0.1,
+                        //maxVelocity:[100,10],
+                        damping:[0.1,0.5],
                         //maxAngularVelocity:3,
 
                         //linked:link,
@@ -387,6 +391,8 @@ export class SkeletonBody extends Object3D {
                         /*bone:parent,
                         decal:tmpMtx.clone(),
                         decalinv:tmpMtx.clone().invert(),*/
+
+                        ...this.option
                         
                     }
 

@@ -2,10 +2,9 @@ let gui;
 let modelName = "lee"
 let list = [];
 let model;
-//modelName = "bear"
-//modelName = "rabit"
+
 const setting = { 
-    mass:10,
+    mass:1000,
     gravity:-9.81, 
     ragdoll:true,
     debug:false, 
@@ -21,9 +20,13 @@ function demo() {
         phi:20, theta:25, distance:14, y:3
     })
 
-    phy.set({ substep:1, gravity:[0,setting.gravity,0] });
+    phy.set({ 
+        substep:1, 
+        gravity:[0,setting.gravity,0],
+        stabiliz:false,
+    });
     //phy.add({pos:[0,-0.1,0], size:[5.8, 0.21, 6.6]})
-    phy.add({ type:'container', material:'hide', size:[5.8, 60, 6.6,1.0], pos:[0,30,0], friction:0, restitution:1, remplace:true });
+    phy.add({ type:'container', material:'hide', size:[5.8, 60, 6.6,1.0], pos:[0,29,0], friction:0.5, restitution:0, remplace:true, debug:true });
 
     phy.load(['./assets/models/'+modelName+'.glb'], onComplete )
 
@@ -33,7 +36,6 @@ function demo() {
 
 onComplete = () => {
 
-    //const map = phy.texture({ url:'./assets/textures/ragdoll.jpg', flip:true, encoding:true })
     const map = phy.texture({ url:'./assets/textures/lee_c.jpg', flip:true, encoding:true })
     const normal = phy.texture({ url:'./assets/textures/fur.jpg', flip:true, encoding:false, repeat:[5,5] })
 
@@ -83,14 +85,15 @@ onComplete = () => {
 
 populate = ( n ) => {
 
-    let i = n, x, z
+    let i = n, x, z, s
     while(i--){
         x = math.rand(-1,1)
         z = math.rand(-1,1)
+        s = 3.4//math.rand(0.5,3) 
         list.push( phy.autoRagdoll({ 
             name:'b_'+i, 
             model:model, 
-            size:math.rand(0.5,3), 
+            size:s, 
             mode:setting.ragdoll?'ragdoll':'follow', 
             debug:setting.debug, 
             pos:[x, 0.5 + (i*0.2), z] , 
@@ -118,7 +121,7 @@ clear  = () => {
 }
 
 add  = () => {
-    populate(math.randInt(1,60))
+    populate(1)//math.randInt(1,60))
 }
 
 update = ( delta ) => {

@@ -7,6 +7,7 @@ import {
 
 import { Basic3D } from '../../core/Basic3D.js';
 import { Utils, root } from '../root.js';
+import { MathTool } from '../../core/MathTool.js';
 import { Geo } from '../base/Geo.js';
 import { Mat } from '../base/Mat.js';
 
@@ -18,27 +19,53 @@ export class JointDebug extends Basic3D {
 
 	    super()
 
-	    this.type = 'joint';
-	    this.mode = o.mode || 'hinge';
 	    this.isJoint = true;
 
-
+	    this.type = 'joint';
+	    this.mode = o.mode || 'hinge';
+	    this.visible = o.visible !== undefined ? o.visible : false;
+	    
 	    this.mtx = new Matrix4();
 	    this.size = o.helperSize || 0.1;
 
 	    let material = Mat.get('line');
+	    let mat, dt
 
 	    switch( this.mode ){
-	    	case 'hinge': case 'cylindrical':
-
-		    	let mat = Mat.get('svg')
-		    	let dt = {
+	    	case 'prismatic':
+	    	    mat = Mat.get('svg');
+		    	dt = {
 					min:-180,
 					max:180,
 					fill:false,
 					stroke:true,
 					wireframe:false,
-					size:0.05
+					size:this.size*0.5
+				}
+
+				if(o.lm){
+					dt.min = o.lm[0]
+					dt.max = o.lm[1]
+				}
+				this.m1 = new AutoSvg('liner', dt, mat );
+		    	this.m2 = new AutoSvg('middle', dt, mat );
+
+		    	this.m1.geometry.rotateY(90 * MathTool.torad)
+
+		    	this.add( this.m1 );
+		    	this.add( this.m2 );
+
+	    	break;
+	    	case 'hinge': case 'cylindrical':
+
+		    	mat = Mat.get('svg');
+		    	dt = {
+					min:-180,
+					max:180,
+					fill:false,
+					stroke:true,
+					wireframe:false,
+					size:this.size*0.5
 				}
 
 				if(o.lm){

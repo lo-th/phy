@@ -81,9 +81,9 @@ onComplete = () => {
 
         mass:mass,//1600,
 
-        damping: [0,0.5],//0.25
-        maxVelocity:[10,1],
-        //stabilization:0.3,//0.0025
+        damping: [0,10],//0.25
+        maxVelocity:[10000,10],
+        //stabilization:10000,//0.0025
 
 
         chassisShape:meshes.a_shape,
@@ -120,8 +120,8 @@ onComplete = () => {
         longStiff: 10,
         latStiffX: 0.00001,
         latStiffY: 6,
-        camberStiff : 0,
-        restLoad : 5.5,*/
+        camberStiff : 0,*/
+        restLoad : 5.5,
 
         wMass: 25,
         

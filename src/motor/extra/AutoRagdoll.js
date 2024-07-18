@@ -47,7 +47,7 @@ export class AutoRagdoll {
 
 		let mass = o.mass || null
 		
-		this.skeletonBody = new SkeletonBody( model.name, model, bones, mass );
+		this.skeletonBody = new SkeletonBody( model.name, model, bones, mass, o.option );
 
 		this.debug = this._debug;
 		this.mode = this._mode;
