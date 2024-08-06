@@ -3,6 +3,7 @@ node_modules
 package-lock.json
 npm-debug.log
 prepa
+private
 src/_physx
 src/_havok
 src/3TH/_smoke

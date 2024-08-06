@@ -1,6 +1,6 @@
 let gui;
-let modelName = "lee"
-//let modelName = "minion"
+//let modelName = "lee"
+let modelName = "rabit"
 let list = [];
 let model;
 
@@ -29,7 +29,8 @@ function demo() {
     //phy.add({pos:[0,-0.1,0], size:[5.8, 0.21, 6.6]})
     phy.add({ type:'container', material:'debug', size:[5.8, 30, 6.6,10.0], pos:[0,15,0], friction:0.5, restitution:0, intern:true, remplace:true });
 
-    phy.load(['./assets/models/'+modelName+'.glb'], onComplete )
+    //phy.load(['./assets/models/'+modelName+'.glb'], onComplete )
+    phy.load(['./private/models/'+modelName+'.glb'], onComplete )
 
     phy.setPostUpdate ( update );
 
@@ -37,7 +38,7 @@ function demo() {
 
 onComplete = () => {
 
-    const map = phy.texture({ url:'./assets/textures/lee_c.jpg', flip:true, encoding:true })
+    //const map = phy.texture({ url:'./assets/textures/lee_c.jpg', flip:true, encoding:true })
     const normal = phy.texture({ url:'./assets/textures/fur.jpg', flip:true, encoding:false, repeat:[5,5] })
 
     //const map = phy.texture({ url:'./assets/textures/minion.jpg', flip:true, encoding:true })
@@ -55,9 +56,9 @@ onComplete = () => {
     })*/
 
     const mat_01 = phy.material({ 
-        name:'minion', color:0xFFFFFF, 
-        map:map,
-        //normalMap:normal,
+        name:'minion', color:0x808080, 
+        //map:map,
+        normalMap:normal,
         //roughness:1, metalness:1,
         //metalnessMap: orm,
         //roughnessMap: orm,
@@ -116,7 +117,10 @@ populate = ( n ) => {
             debug:setting.debug, 
             pos:[x, 2.0 + (i*0.2), z] , 
             mass:setting.mass,
-            //option:{ sizer:[2,1,5,2,1.6,0.5,0.5], useAggregate:true },
+            option:{ 
+                //sizer:[2,1,5,2,1.6,0.5,0.5], 
+                useAggregate:true 
+            },
         }))
     }
 }
