@@ -88,7 +88,7 @@ export class Body extends Item {
 		    if( b.isInstance ){ 
 		    	if( b.speedMat ){ 
 		    		//b.instance.setColorAt( b.id, [ Math.abs(AR[n+8])*0.5, Math.abs(AR[n+9])*0.5, Math.abs(AR[n+10])*0.5] );
-		    		let v = AR[n]/255; //MathTool.lengthArray([AR[n+8], AR[n+9], AR[n+10]]) * 0.062;
+		    		let v = AR[n]*0.01///255; //MathTool.lengthArray([AR[n+8], AR[n+9], AR[n+10]]) * 0.062;
 		    		b.instance.setColorAt( b.id, [ v,v,v ] );
 		    	}
 		    	b.instance.setTransformAt( b.id, [AR[n+1],AR[n+2],AR[n+3]], [AR[n+4],AR[n+5],AR[n+6],AR[n+7]], b.noScale ? [1,1,1] : b.size );
@@ -529,7 +529,10 @@ export class Body extends Item {
 	    	if( o.meshSize ) mm.scale.set(1,1,1).multiplyScalar(o.meshSize);
 	    	if( o.meshScale ) mm.scale.fromArray( o.meshScale );
 	    	
-	    	if( !noMat ) mm.material = material;
+	    	if( !noMat ){ 
+	    		mm.material = material;
+	    		if(mm.children && !o.nofullmat ) for(let k in mm.children) mm.children[k].material = material
+	    	}
 
 	    	root.tmpMesh.push(mm);
 
@@ -633,6 +636,8 @@ export class Body extends Item {
 
 			b.over = b.instance.over;
 			b.isOver = false;
+
+			b.speedMat = o.speedMat || false
 
 			b.defMat = b.instance.material.name === 'base';
 			

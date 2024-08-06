@@ -77,7 +77,7 @@ export class Body extends Item {
 			    r = b.GetAngularVelocity();
 				v.toArray( AR, n+8 );
 			    r.toArray( AR, n+11 );
-			    if( AR[ n ] === 1 ) AR[ n ] = this.v.Length() * 9.8;// speed km/h
+			    if( AR[ n ] === 1 ) AR[ n ] = v.Length() * 9.8;// speed km/h
 			}
 		}
 
@@ -429,13 +429,18 @@ export class Body extends Item {
 	    //b.SetUseManifoldReduction(false)
 
 	    //console.log( b );
+	    //console.log( b.GetSoftBodyCreationSettings() )
+
 	    //console.log(root.bodyInterface)
-	    //console.log( b.GetMotionProperties() );
+	    
+	    //console.log(root.bodyInterface)
 
 
 
 		// add to world
 		this.addToWorld( b, o.id );
+
+		//console.log( b.GetMotionProperties() )
 
 		delete o.pos;
 		delete o.quat;
@@ -568,15 +573,21 @@ export class Body extends Item {
 		if( o.noGravity ) b.setGravityScale( 0 )
 		*/
 
+	    // --------------------
 		// position / rotation
+		// --------------------
+
+		// kinematic only update by velocity
+		// rigidbody only update by force
 
 	    if( o.pos || o.quat ){
 
-	    	if( b.IsKinematic() ){
+	    	//if( b.IsKinematic() ){
+	    	if( b.isKinematic ){
 
 	    		let p = o.pos ? this.v.fromArray( o.pos ) : b.GetPosition();
 	    		let q = o.quat ? this.q.fromArray( o.quat ) : b.GetRotation();
-	    	    b.MoveKinematic( p, q, root.deltaTime );
+	    	    root.bodyInterface.MoveKinematic( b.GetID(), p, q, root.deltaTime );
 
 	    	} else {
 
@@ -584,40 +595,9 @@ export class Body extends Item {
 		        if( o.quat ) root.bodyInterface.SetRotation( b.GetID(), this.q.fromArray( o.quat ), null );
 
 	    	}
-
-	    	// void MoveKinematic([Const, Ref] RVec3 inPosition, [Const, Ref] Quat inRotation, float inDeltaTime);
-	    	//https://github.com/jrouwe/JoltPhysics.js/blob/0f3538a7a9615cbdbafa452f12997e3ea6a9fd55/JoltJS.idl#L728
-
-	    	/*if( o.pos ){ 
-	    		
-	    		/*if(b.isKinematic){
-
-	    			let pp = MathTool.subArray(o.pos, b.pos)
-	    			pp = MathTool.mulArray(pp, root.invDelta)
-	    			b.setLinearVelocity( this.v.fromArray( pp ) )
-	    			b.pos = o.pos
-	    		}*/
-
-	    	/*	root.bodyInterface.SetPosition( b.GetID(), this.v.fromArray( o.pos ), null );
-
-	    	}
-	    	
-		    if( o.quat ){
-		    	/*if(b.isKinematic){
-
-		    		let qqq = MathTool.quatMultiply( o.quat, MathTool.quatInvert( b.quat ) )
-		    		let mtx = MathTool.composeMatrixArray( [0,0,0], qqq, [1,1,1])
-		    		let eee = MathTool.eulerFromMatrix( mtx )
-		    		eee = MathTool.mulArray(eee, root.invDelta )
-
-	    			b.setAngularVelocity( this.v.fromArray( eee ) )
-	    			b.quat = o.quat
-	    		}*/
-
-	    	/*	root.bodyInterface.SetRotation( b.GetID(), this.q.fromArray( o.quat ), null );
-
-		    }*/
 	    }
+
+	    
 
 	    //if( o.impulse ) b.AddImpulse( this.v.fromArray( o.impulse ), this.v2.fromArray( [0,0,0] ) );
 	    if( o.impulse ){
@@ -637,7 +617,7 @@ export class Body extends Item {
 
 
 	    //console.log( this.getShape(b) )
-
+	    if( !b.GetMotionProperties ) return
 	    if( o.massInfo ) this.getMassInfo( b );
 	    if( o.mass ) this.setMass( b, o.mass );
 
@@ -645,6 +625,17 @@ export class Body extends Item {
 			b.GetMotionProperties().SetLinearDamping( o.damping[ 0 ] );//def 0.05
 			b.GetMotionProperties().SetAngularDamping( o.damping[ 1 ] );//def 0.05
 		}
+
+		// !! experimental 
+		if( o.inertiaScale !== undefined ){
+			let pp = b.GetMotionProperties().GetInverseInertiaDiagonal().toArray()
+			let qq = b.GetMotionProperties().GetInertiaRotation()
+			pp = MathTool.mulArray(pp, 1/o.inertiaScale);
+			b.GetMotionProperties().SetInverseInertia (this.v2.fromArray( pp ), qq)
+		}
+		
+
+		//if( o.inertiaScale !== undefined ) b.G  etMotionProperties().MultiplyWorldSpaceInverseInertiaByVector(b.GetID(), this.v2.fromArray( [o.inertiaScale, o.inertiaScale, o.inertiaScale ] ))
 
 	}
 
@@ -662,6 +653,10 @@ export class Body extends Item {
 
 			invMass: b.GetMotionProperties().GetInverseMass(),
 			massCenter: b.GetCenterOfMassPosition().toArray(),
+			inertia : b.GetMotionProperties().GetInverseInertiaDiagonal().toArray(),
+			inertiaRotation : b.GetMotionProperties().GetInertiaRotation().toArray(),
+
+			invInertia: b.GetInverseInertia().toArray(),
 
 			/*mass: b.getMass(),
 			invMass: b.getInvMass(),

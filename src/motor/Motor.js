@@ -48,7 +48,7 @@ import { preloadAvatar } from '../3TH/character/Avatar.js';
 
 const Version = {
 	
-	PHY: '0.0.2',
+	PHY: '0.1.2',
 
     OIMO: '1.2.4',
     AMMO: '3.0',
@@ -56,7 +56,8 @@ const Version = {
     RAPIER: '0.11.2',
     HAVOK: '1.2.1',
     JOLT: '0.24.0',
-}
+
+};
 
 let scriptDir = undefined;
 
@@ -133,7 +134,7 @@ export class Motor {
 	static RayCar = RayCar;
 	
 	static version = Version.PHY;
-
+	static Version = Version;
 	/*get onFrame() {
         return this._name;
     }*/
@@ -142,12 +143,7 @@ export class Motor {
     static set onStep( f ) { postUpdate = f; }
 
 	static debugMode ( b ) { Motor.setDebugMode(b); }
-	static setDebugMode ( b ) { 
-
-		//console.log('debugMode is', b )
-		root.debug = b;
-
-	}
+	static setDebugMode ( b ) { root.debug = b; }
 
 	static useRealLight (o) { Mat.useRealLight(o) }
 
@@ -283,54 +279,7 @@ export class Motor {
 
 	}
 
-	static autoRagdoll ( o ) { 
-
-		return new AutoRagdoll( o );
-
-	}
-
-	/*static autoSkeleton ( name, model, size = 1, material = null, debug = false ) { 
-
-
-
-		let m = SkeletonUtils.clone( model );//new Group();
-		m.raycast = function (){ return }
-		m.name = name
-		let skin, bones;
-		for(let i in m.children){
-			let node = m.children[i]
-			if ( node.isSkinnedMesh ){
-				skin = node;
-				skin.raycast = function (){ return }
-				skin.matrixAutoUpdate = false;
-				skin.receiveShadow = true;
-				skin.castShadow = true;
-				if(material) skin.material = material;
-				bones = skin.skeleton.bones;
-			}
-		}
-
-		m.scale.set(1,1,1).multiplyScalar(size);
-		skin.skeleton.resetScalling();
-
-		m['skeletonBody'] = new SkeletonBody( m.name, m, bones );
-		m.skeletonBody.isVisible( debug );
-
-
-
-		/* 
-		// basic three helper
-		let helper = new SkeletonHelper( m );
-		helper.raycast = function (){ return }
-        helper.matrix = m.matrix;
-        root.scene.add( helper );
-        */
-
-	/*	m.add( m.skeletonBody );
-
-		return m;
-
-	}*/
+	static autoRagdoll ( o ) {  return new AutoRagdoll( o ); }
 
 	static makeView () {}
 
@@ -667,6 +616,8 @@ export class Motor {
 	    // clear temporary mesh
 		root.disposeTmp();
 
+		root.garbage = [];
+
 		if( breaker !== null ) breaker = null;
 			
 		root.tmpTex = [];
@@ -675,6 +626,14 @@ export class Motor {
 
 		root.post({ m:'reset' });
 
+	}
+
+	static clearGarbage() {
+
+		Motor.remove(root.garbage);
+		Motor.clearInstance();
+		root.garbage = [];
+		
 	}
 
 	static clear( callback ) {
@@ -730,7 +689,8 @@ export class Motor {
 	
 	static getDelta2(){ return root.delta/*root.reflow.stat.delta*/ }
 	static getElapsedTime2(){ return elapsedTime }
-	
+
+	static setDelta(v){ timer.delta = v }
 	static getDelta(){ return timer.delta }
 	static getElapsedTime(){ return timer.elapsedTime }
 
@@ -747,7 +707,8 @@ export class Motor {
 
 	static step (){
 
-		root.delta = root.reflow.stat.delta;//outsideStep ? timer.delta : root.reflow.stat.delta;
+		// time of physic engine step
+		root.delta = root.reflow.stat.delta;
         // user key interaction
 		root.flow.key = user.update();
 		root.flow.current = currentControle !== null ? currentControle.name : ''
@@ -769,9 +730,9 @@ export class Motor {
 		//postUpdate( root.reflow.stat.delta )
 		//postUpdate( timer.delta );
 		//postUpdate( root.delta )
-		let dd = outsideStep ? timer.delta : root.delta
-		//console.log(dd)
-		postUpdate( dd )
+		let dd = outsideStep ? timer.delta : root.delta;
+
+		postUpdate( dd );
 
 		//items.character.prestep()
 
@@ -946,7 +907,9 @@ export class Motor {
 			o.type = 'joint';
 		}
 
-		return items[type].add( o );
+		let m = items[type].add( o );
+		root.garbage.push( m.name );
+		return m;
 
 	}
 

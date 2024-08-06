@@ -969,6 +969,8 @@ const root = {
 	Ar:null, 
 	ArPos: {},
 
+	garbage:[],
+
 	//AR:null,
 
 	viewSize:null,
@@ -7410,7 +7412,7 @@ class Body extends Item {
 		    if( b.isInstance ){ 
 		    	if( b.speedMat ){ 
 		    		//b.instance.setColorAt( b.id, [ Math.abs(AR[n+8])*0.5, Math.abs(AR[n+9])*0.5, Math.abs(AR[n+10])*0.5] );
-		    		let v = AR[n]/255; //MathTool.lengthArray([AR[n+8], AR[n+9], AR[n+10]]) * 0.062;
+		    		let v = AR[n]*0.01;///255; //MathTool.lengthArray([AR[n+8], AR[n+9], AR[n+10]]) * 0.062;
 		    		b.instance.setColorAt( b.id, [ v,v,v ] );
 		    	}
 		    	b.instance.setTransformAt( b.id, [AR[n+1],AR[n+2],AR[n+3]], [AR[n+4],AR[n+5],AR[n+6],AR[n+7]], b.noScale ? [1,1,1] : b.size );
@@ -7843,7 +7845,10 @@ class Body extends Item {
 	    	if( o.meshSize ) mm.scale.set(1,1,1).multiplyScalar(o.meshSize);
 	    	if( o.meshScale ) mm.scale.fromArray( o.meshScale );
 	    	
-	    	if( !noMat ) mm.material = material;
+	    	if( !noMat ){ 
+	    		mm.material = material;
+	    		if(mm.children && !o.nofullmat ) for(let k in mm.children) mm.children[k].material = material;
+	    	}
 
 	    	root.tmpMesh.push(mm);
 
@@ -7947,6 +7952,8 @@ class Body extends Item {
 
 			b.over = b.instance.over;
 			b.isOver = false;
+
+			b.speedMat = o.speedMat || false;
 
 			b.defMat = b.instance.material.name === 'base';
 			
@@ -12625,6 +12632,7 @@ const _s = /*@__PURE__*/ new Vector3();
 
 const _matrixWorldInv = /*@__PURE__*/ new Matrix4();
 const _boneMatrix = /*@__PURE__*/ new Matrix4();
+const Spine = [ 'hip', 'abdomen', 'chest', 'neck', 'head', 'rCollar', 'lCollar', 'lShldr', 'rShldr', 'lThigh', 'rThigh', 'rBreast', 'lBreast' ];
 
 class SkeletonBody extends Object3D {
 
@@ -12737,7 +12745,11 @@ class SkeletonBody extends Object3D {
             fix:true, needData:true
         });
 
+        this.useAggregate = root.engine === 'PHYSX';// && this.option.useAggregate
+
 		const data = [];
+        
+       
 
         // get character bones var bones = character.skeleton.bones;
 
@@ -12758,6 +12770,11 @@ class SkeletonBody extends Object3D {
 
         let p1 = new Vector3();
         let p2 = new Vector3();
+
+        let sizer  =  [1,1,1,1,1,1,1];
+        if(this.option.sizer){
+            sizer = this.option.sizer;
+        }
 
         //let headDone = false
 
@@ -12807,11 +12824,11 @@ class SkeletonBody extends Object3D {
                 //if( n==='hip' && name==='abdomen' ){ type = 'capsule'; size = [  0.1,dist*1.8 ]; translate = [ 0, 0, -(dist*1.8) * 0.5 ]; rot = [0,0,90]; link='null';}
                 
                 //if( n==='hip' && name==='abdomen' ){ type = 'capsule'; size = [  dist*1.8, 0.08 ]; translate = [ 0, 0, -dist * 0.5 ]; rot = [0,0,90]; link='null';}
-                if( n==='hip' && name==='abdomen' ){ type = 'capsule'; size = [  dist, 0.08 ]; translate = [ 0, 0, -dist ]; rot = [0,0,90];}
-                if( n==='abdomen' && name==='chest'  ){ type = 'capsule'; size = [ dist*0.7, 0.08   ]; translate = [ 0, 0, (-dist * 0.5)-0.06 ]; rot = [90,0,0];}
-                if( n==='chest' && name==='neck' ){ type = 'capsule'; size = [  dist*0.4, 0.04  ]; translate = [ 0, 0, (-dist * 0.5)-0.02 ]; rot = [0,0,90];}
-                if( n==='neck' && name === 'head' ){ type = 'capsule'; size = [ 0.06, dist ]; translate = [ 0, 0, -dist * 0.5 ]; rot = [90,0,0]; }
-                if( n==='head' && name === 'End_head' ){ type = 'capsule'; size = [ 0.1, dist-0.17 ]; translate = [ 0, 0.02, (-dist * 0.5)+0.02 ]; rot = [90,0,0]; }
+                if( n==='hip' && name==='abdomen' ){ type = 'capsule'; size = [  dist*sizer[0], 0.08 ]; translate = [ 0, 0, -dist*sizer[0] ]; rot = [0,0,90];}
+                if( n==='abdomen' && name==='chest'  ){ type = 'capsule'; size = [ dist*0.7*sizer[1], 0.08   ]; translate = [ 0, 0, (-dist * 0.5)-0.06 ]; rot = [90,0,0];}
+                if( n==='chest' && name==='neck' ){ type = 'capsule'; size = [  dist*0.4*sizer[2], 0.04 ]; translate = [ 0, 0, (-dist * 0.5)-0.02 ]; rot = [0,0,90];}
+                if( n==='neck' && name === 'head' ){ type = 'capsule'; size = [ 0.06*sizer[3], dist ]; translate = [ 0, 0, -dist * 0.5 ]; rot = [90,0,0]; }
+                if( n==='head' && name === 'End_head' ){ type = 'capsule'; size = [ 0.1*sizer[4], dist-0.17 ]; translate = [ 0, 0.02, (-dist * 0.5)+0.02 ]; rot = [90,0,0]; }
                 
                 //if( n==='head' && !headDone ){ console.log(name); headDone = true; type = 'sphere'; dist=0.08; size = [ 0.08, 0.2, dist ]; translate = [ 0, 0.025, -0.08 ]; }
 	            //if( n==='chest' && name==='neck' ){ type = 'box'; size = [  0.28, 0.24, dist ]; translate = [ 0, 0, -dist * 0.5 ]; }
@@ -12826,7 +12843,7 @@ class SkeletonBody extends Object3D {
 
                 // arm
 
-                let r = 0.04;
+                let r = 0.04*sizer[5];
                 let w = dist-r;
 
                 if( n==='lCollar' && name==='lShldr'){ type = 'capsule'; size = [  r, dist*0.3 ]; translate = [dist*0.6 , 0, 0 ]; rot = [0,0,90]; }
@@ -12841,7 +12858,7 @@ class SkeletonBody extends Object3D {
 
 	            // legs
 
-                r = 0.06;
+                r = 0.06*sizer[6];
                 w = dist-r;
 
                 if( n==='lThigh' ){ type = 'capsule'; size = [  r, dist ]; rot = [90,0,0]; translate = [ 0, 0, w * 0.5 ]; }
@@ -12941,10 +12958,11 @@ class SkeletonBody extends Object3D {
 
                     this.nameList.push( phyName );
 
-                    let mask =  1|2;
-                    if( n==='lForeArm' || n==='rForeArm' || n==='lShin' || n==='rShin'|| n==='head' ) mask = 1|2|32;
-                    if( n==='rEar_1' || n==='rEar_2' || n==='rEar_3' || n==='lEar_1'|| n==='lEar_2'|| n==='lEar_3' ) mask = 1|2|32;
-                    if( n==='rEar_0' || n==='rEar_0') mask = 0;
+                    
+
+                    
+
+
 
                 	// for physic body
                     let bb = {
@@ -12961,8 +12979,8 @@ class SkeletonBody extends Object3D {
                         quat: q.toArray(),
                         kinematic: kinematic,
                         
-                        group:32,
-                        mask:mask,
+                        //group:16,
+                        //mask:mask,
                         //mask:0,
                         material:'hide',
                         //material:'debug',
@@ -12977,11 +12995,13 @@ class SkeletonBody extends Object3D {
                         penetrationVelocity:3,
                         stabilization:0.1,
                         //maxVelocity:[100,10],
-                        damping:[0.1,0.5],
+                        damping:[0.25,0.5],
                         //maxAngularVelocity:3,
 
                         //linked:link,
                         //iterations:[4,4],
+                        //inertiaScale:[20,20,20],
+                        //iterations:[4,2],
 
 
                         /*bone:parent,
@@ -12992,8 +13012,34 @@ class SkeletonBody extends Object3D {
                         
                     };
 
+
+
+                    if( this.useAggregate ){
+
+                        // aggregate test
+                        if( Spine.indexOf(n)!==-1 ){ 
+                            bb['aggregate'] = this.prefix +'__Group';
+                            bb['aggregateMax'] = 14;
+                        }
+                        bb['mask'] = 1|2;
+
+                    } else {
+                        let mask =  1|2;
+                        if( n==='lForeArm' || n==='rForeArm' || n==='lShin' || n==='rShin'  ) mask = 1|2|32;
+                        if( n==='rEar_1' || n==='rEar_2' || n==='rEar_3' || n==='lEar_1'|| n==='lEar_2'|| n==='lEar_3' ) mask = 1|2|32;
+                        if( n==='rEar_0' || n==='rEar_0') mask = 0;
+
+                        bb['group'] = 32;
+                        bb['mask'] = mask;
+                    }
+                    
+
+                    //
+                    
+
+
                     if( this.mass !== null ) bb['mass'] = averageMass;
-                    else  bb['density'] = 1;
+                    else bb['density'] = 1;
 
                     data.push(bb);
 
@@ -13057,6 +13103,20 @@ class SkeletonBody extends Object3D {
             sp = [50,10, 0, 0.5];
         }
 
+        let driveSetting = {
+            stiffness:2,
+            damping:0.1,
+            forceLimit:10000000,
+            isAcceleration:false,
+        };
+
+        /*driveSetting = {
+            stiffness:10000,
+            damping:500,
+            forceLimit:100,
+            isAcceleration:true,
+        }*/
+
 
 
 
@@ -13075,7 +13135,13 @@ class SkeletonBody extends Object3D {
 
             //worldAxis:[1,0,0],
 
-            autoDrive: true,
+            //autoDrive: true,
+
+            drives: [
+            ['rx', driveSetting.stiffness, driveSetting.damping, driveSetting.forceLimit, driveSetting.isAcceleration ],
+            ['ry', driveSetting.stiffness, driveSetting.damping, driveSetting.forceLimit, driveSetting.isAcceleration ],
+            ['rz', driveSetting.stiffness, driveSetting.damping, driveSetting.forceLimit, driveSetting.isAcceleration ]
+            ],
 
         };
 
@@ -13084,8 +13150,10 @@ class SkeletonBody extends Object3D {
 
         data.push({ ...sett, b1:p+'hip', b2:p+'abdomen', worldPos:this.posRef[p+'abdomen'], worldQuat:this.quatRef[p+'hip'], lm:[ ['rx',-20,20,...sp], ['ry',-20,20,...sp], ['rz',-20,20,...sp]] });
         data.push({ ...sett, b1:p+'abdomen', b2:p+'chest', worldPos:this.posRef[p+'chest'], worldQuat:this.quatRef[p+'chest'], lm:[ ['rx',-20,20,...sp], ['ry',-20,20,...sp], ['rz',-20,20,...sp]] });
-        data.push({ ...sett, b1:p+'chest', b2:p+'neck', worldPos:this.posRef[p+'neck'], worldQuat:this.quatRef[p+'neck'], lm:[ ['rx',-60,60,...sp], ['ry',-1,1,...sp], ['rz',-30,30,...sp]] });
-        data.push({ ...sett, b1:p+'neck', b2:p+'head', worldPos:this.posRef[p+'head'], worldQuat:this.quatRef[p+'head'], lm:[ ['rx',-60,60,...sp], ['ry',-1,1,...sp], ['rz',-30,30,...sp]] });
+        //data.push({ ...sett, b1:p+'chest', b2:p+'neck', worldPos:this.posRef[p+'neck'], worldQuat:this.quatRef[p+'neck'], lm:[ ['rx',-60,60,...sp], ['ry',-1,1,...sp], ['rz',-30,30,...sp]] })
+        //data.push({ ...sett, b1:p+'neck', b2:p+'head', worldPos:this.posRef[p+'head'], worldQuat:this.quatRef[p+'head'], lm:[ ['rx',-60,60,...sp], ['ry',-1,1,...sp], ['rz',-30,30,...sp]] })
+        data.push({ ...sett, b1:p+'chest', b2:p+'neck', worldPos:this.posRef[p+'neck'], worldQuat:this.quatRef[p+'neck'], lm:[ ['rx',0,30,...sp], ['ry',-1,1,...sp], ['rz',-30,30,...sp]] });
+        data.push({ ...sett, b1:p+'neck', b2:p+'head', worldPos:this.posRef[p+'head'], worldQuat:this.quatRef[p+'head'], lm:[ ['rx',0,30,...sp], ['ry',-1,1,...sp], ['rz',-30,30,...sp]] });
         //data.push({ type:'joint', mode:'d6', b1:this.prefix*'chest', b2:this.prefix*'abdomen' })
 
         // arm
@@ -13101,8 +13169,8 @@ class SkeletonBody extends Object3D {
        //data.push({ ...sett, b1:p+'chest', b2:p+'rShldr', worldPos:this.posRef[p+'rShldr'], worldQuat:this.quatRef[p+'rShldr'] })
         //data.push({ ...sett, b1:p+'chest', b2:p+'lShldr', worldPos:this.posRef[p+'lShldr'], worldQuat:this.quatRef[p+'lShldr'] })
 
-        data.push({ ...sett, b1:p+'rShldr', b2:p+'rForeArm', worldPos:this.posRef[p+'rForeArm'], worldQuat:this.quatRef[p+'rForeArm'], lm:[['rx',0,160,...sp]] });
-        data.push({ ...sett, b1:p+'lShldr', b2:p+'lForeArm', worldPos:this.posRef[p+'lForeArm'], worldQuat:this.quatRef[p+'lForeArm'], lm:[['rx',0,160,...sp]] });
+        if( this.existe(p+'rForeArm') ) data.push({ ...sett, b1:p+'rShldr', b2:p+'rForeArm', worldPos:this.posRef[p+'rForeArm'], worldQuat:this.quatRef[p+'rForeArm'], lm:[['rx',0,160,...sp]] });
+        if( this.existe(p+'lForeArm') ) data.push({ ...sett, b1:p+'lShldr', b2:p+'lForeArm', worldPos:this.posRef[p+'lForeArm'], worldQuat:this.quatRef[p+'lForeArm'], lm:[['rx',0,160,...sp]] });
 
         if( this.existe(p+'rHand') ) data.push({ ...sett, b1:p+'rForeArm', b2:p+'rHand', worldPos:this.posRef[p+'rHand'], worldQuat:this.quatRef[p+'rHand'], lm:[['rx',0,160,...sp], ['ry',-10,10,...sp]] });
         if( this.existe(p+'lHand') ) data.push({ ...sett, b1:p+'lForeArm', b2:p+'lHand', worldPos:this.posRef[p+'lHand'], worldQuat:this.quatRef[p+'lHand'], lm:[['rx',0,160,...sp], ['ry',-10,10,...sp]] });
@@ -13115,8 +13183,8 @@ class SkeletonBody extends Object3D {
         data.push({ ...sett, b1:p+'hip', b2:p+'rThigh', worldPos:this.posRef[p+'rThigh'],  worldQuat:this.quatRef[p+'rThigh'] });
         data.push({ ...sett, b1:p+'hip', b2:p+'lThigh', worldPos:this.posRef[p+'lThigh'],  worldQuat:this.quatRef[p+'lThigh'] });
 
-        data.push({ ...sett, b1:p+'rThigh', b2:p+'rShin', worldPos:this.posRef[p+'rShin'], lm:[['rx',0,160,...sp]], worldQuat:this.quatRef[p+'rShin'] });
-        data.push({ ...sett, b1:p+'lThigh', b2:p+'lShin', worldPos:this.posRef[p+'lShin'], lm:[['rx',0,160,...sp]], worldQuat:this.quatRef[p+'lShin'] });
+        if( this.existe(p+'rShin') )data.push({ ...sett, b1:p+'rThigh', b2:p+'rShin', worldPos:this.posRef[p+'rShin'], lm:[['rx',0,160,...sp]], worldQuat:this.quatRef[p+'rShin'] });
+        if( this.existe(p+'lShin') )data.push({ ...sett, b1:p+'lThigh', b2:p+'lShin', worldPos:this.posRef[p+'lShin'], lm:[['rx',0,160,...sp]], worldQuat:this.quatRef[p+'lShin'] });
 
         if( this.existe(p+'rFoot') ) data.push({ ...sett, b1:p+'rShin', b2:p+'rFoot', worldPos:this.posRef[p+'rFoot'], lm:[['rx',-10,30,...sp], ['rz',-10,10,...sp]], worldQuat:this.quatRef[p+'rFoot'] });
         if( this.existe(p+'lFoot') ) data.push({ ...sett, b1:p+'lShin', b2:p+'lFoot', worldPos:this.posRef[p+'lFoot'], lm:[['rx',-10,30,...sp], ['rz',-10,10,...sp]], worldQuat:this.quatRef[p+'lFoot'] });
@@ -13142,7 +13210,7 @@ class SkeletonBody extends Object3D {
         let x = 0;
         for( let j in data ){
             data[j].name = this.prefix + '_joint_'+ x;
-            this.nameList.push( data[j].name );
+            //this.nameList.push( data[j].name )
             this.jointList.push( data[j].name );
             x++;
         }
@@ -13217,7 +13285,10 @@ class SkeletonBody extends Object3D {
 
 	dispose(){
 
+        root.motor.remove( this.jointList );
         root.motor.remove( this.nameList );
+
+        //if( this.useAggregate ) root.motor.remove(this.prefix +'__Group')
 
         this.nodes = [];
         this.posRef = {};
@@ -31949,7 +32020,7 @@ const Pool = {
         //if( o.colorSpace ) t.colorSpace = o.colorSpace;
         if( o.encoding ) t.colorSpace = SRGBColorSpace;
         if( o.srgb ) t.colorSpace = SRGBColorSpace;
-        t.flipY = ( o.flipY || o.flip ) !== undefined ? o.flipY : false;
+        t.flipY = o.flipY!== undefined || o.flip !== undefined ? o.flipY : false;
         t.anisotropy = o.anisotropy !== undefined ? o.anisotropy : Pool.maxAnisotropy;   
         //if( o.anisotropy !== undefined ) t.anisotropy = o.anisotropy
         if( o.generateMipmaps !== undefined ) t.generateMipmaps = o.generateMipmaps;
@@ -38238,6 +38309,117 @@ class Button {
 
 }
 
+const _box = /*@__PURE__*/ new Box3();
+
+class BoxHelper extends LineSegments {
+
+	constructor( object, color = 0xffff00 ) {
+
+		const indices = new Uint16Array( [ 0, 1, 1, 2, 2, 3, 3, 0, 4, 5, 5, 6, 6, 7, 7, 4, 0, 4, 1, 5, 2, 6, 3, 7 ] );
+		const positions = new Float32Array( 8 * 3 );
+		
+
+		let c = new Color( color );
+		let ar = [];
+		let i = 8;
+		while(i--) ar.push(c.r,c.g,c.b);
+		const colors = new Float32Array( ar );
+
+		const geometry = new BufferGeometry();
+		geometry.setIndex( new BufferAttribute( indices, 1 ) );
+		geometry.setAttribute( 'position', new BufferAttribute( positions, 3 ) );
+		geometry.setAttribute( 'color', new BufferAttribute( colors, 3 ) );
+
+		super( geometry, new LineBasicMaterial( { vertexColors: true, toneMapped: false } ) );
+
+		this.object = object;
+		this.type = 'BoxHelper';
+
+		this.matrixAutoUpdate = false;
+
+		this.update();
+
+	}
+
+	update( object ) {
+
+		if ( object !== undefined ) {
+
+			console.warn( 'THREE.BoxHelper: .update() has no longer arguments.' );
+
+		}
+
+		if ( this.object !== undefined ) {
+			_box.setFromObject( this.object );
+		}
+
+		if ( _box.isEmpty() ) return;
+
+		const min = _box.min;
+		const max = _box.max;
+
+		/*
+			5____4
+		1/___0/|
+		| 6__|_7
+		2/___3/
+
+		0: max.x, max.y, max.z
+		1: min.x, max.y, max.z
+		2: min.x, min.y, max.z
+		3: max.x, min.y, max.z
+		4: max.x, max.y, min.z
+		5: min.x, max.y, min.z
+		6: min.x, min.y, min.z
+		7: max.x, min.y, min.z
+		*/
+
+		const position = this.geometry.attributes.position;
+		const array = position.array;
+
+		array[ 0 ] = max.x; array[ 1 ] = max.y; array[ 2 ] = max.z;
+		array[ 3 ] = min.x; array[ 4 ] = max.y; array[ 5 ] = max.z;
+		array[ 6 ] = min.x; array[ 7 ] = min.y; array[ 8 ] = max.z;
+		array[ 9 ] = max.x; array[ 10 ] = min.y; array[ 11 ] = max.z;
+		array[ 12 ] = max.x; array[ 13 ] = max.y; array[ 14 ] = min.z;
+		array[ 15 ] = min.x; array[ 16 ] = max.y; array[ 17 ] = min.z;
+		array[ 18 ] = min.x; array[ 19 ] = min.y; array[ 20 ] = min.z;
+		array[ 21 ] = max.x; array[ 22 ] = min.y; array[ 23 ] = min.z;
+
+		position.needsUpdate = true;
+
+		this.geometry.computeBoundingSphere();
+
+	}
+
+	setFromObject( object ) {
+
+		this.object = object;
+		this.update();
+
+		return this;
+
+	}
+
+	copy( source, recursive ) {
+
+		super.copy( source, recursive );
+
+		this.object = source.object;
+
+		return this;
+
+	}
+
+	dispose() {
+
+		this.geometry.dispose();
+		this.material.dispose();
+
+	}
+
+}
+
 class Container {
 
 	constructor ( o = {} ) {
@@ -38250,11 +38432,15 @@ class Container {
 
 	init ( o = {} ) {
 
+		const intern = o.intern || false;
+
 
 		let s = o.size || [5,3,8];
 		let p = o.pos || [0,2,0];
 		let w = o.wall || 0.1;
-		if(o.size[3])  w = o.size[3];
+
+		if( o.size[3] !== undefined )  w = o.size[3];
+		if(w<=0) w = 0.01;
 		let mw = w * 0.5;
 		let xw = w * 2;
 
@@ -38267,14 +38453,31 @@ class Container {
 
 		const data = [];
 
-		if(f.up===1) data.push({ pos:[0, s[1]*0.5-mw, 0], size:[s[0], w, s[2]] });
-		if(f.down===1) data.push({ pos:[0, mw-s[1]*0.5, 0], size:[s[0], w, s[2]] });
+		if(intern){
 
-		if(f.left===1) data.push({ pos:[mw-s[0]*0.5, 0, 0 ], size:[w, s[1]-xw, s[2]] });
-		if(f.right===1) data.push({ pos:[s[0]*0.5-mw, 0, 0 ], size:[w, s[1]-xw, s[2]] });
+			if(f.up===1) data.push({ pos:[0, s[1]*0.5+mw, 0], size:[s[0]+xw, w, s[2]+xw] });
+			if(f.down===1) data.push({ pos:[0, -mw-s[1]*0.5, 0], size:[s[0]+xw, w, s[2]+xw] });
 
-		if(f.back===1) data.push({ pos:[0, 0, mw-s[2]*0.5], size:[s[0]-xw, s[1]-xw, w] });
-		if(f.front===1) data.push({ pos:[0, 0, s[2]*0.5-mw], size:[s[0]-xw, s[1]-xw, w] });
+			if(f.left===1) data.push({ pos:[-mw-s[0]*0.5, 0, 0 ], size:[w, s[1], s[2]] });
+			if(f.right===1) data.push({ pos:[s[0]*0.5+mw, 0, 0 ], size:[w, s[1], s[2]] });
+
+			if(f.back===1) data.push({ pos:[0, 0, -mw-s[2]*0.5], size:[s[0]+xw, s[1], w] });
+			if(f.front===1) data.push({ pos:[0, 0, s[2]*0.5+mw], size:[s[0]+xw, s[1], w] });
+
+		}else {
+
+			if(f.up===1) data.push({ pos:[0, s[1]*0.5-mw, 0], size:[s[0], w, s[2]] });
+			if(f.down===1) data.push({ pos:[0, mw-s[1]*0.5, 0], size:[s[0], w, s[2]] });
+
+			if(f.left===1) data.push({ pos:[mw-s[0]*0.5, 0, 0 ], size:[w, s[1]-xw, s[2]] });
+			if(f.right===1) data.push({ pos:[s[0]*0.5-mw, 0, 0 ], size:[w, s[1]-xw, s[2]] });
+
+			if(f.back===1) data.push({ pos:[0, 0, mw-s[2]*0.5], size:[s[0]-xw, s[1]-xw, w] });
+			if(f.front===1) data.push({ pos:[0, 0, s[2]*0.5-mw], size:[s[0]-xw, s[1]-xw, w] });
+
+		}
+
+		
 
 		const faces = [];
 		let i = data.length, n=0, pp, d;
@@ -38293,7 +38496,15 @@ class Container {
 		if( this.isCompound ){
 			let mesh = null;
 			if( this.remplace ){
-				mesh = new Mesh( new ChamferBox( s[ 0 ], s[ 1 ], s[ 2 ], o.radius || mw ) );
+				if(o.radius===0) mesh = new Mesh( new BoxGeometry( s[ 0 ], s[ 1 ], s[ 2 ] ) );
+				else mesh = new Mesh( new ChamferBox( s[ 0 ], s[ 1 ], s[ 2 ], o.radius || mw ) );
+
+				if(o.material){
+					if(o.material === 'debug'){ 
+						mesh = new BoxHelper( mesh, o.color );
+						o.material = 'line';
+					}
+				}
 			}
 			root.motor.add({
 				...o,
@@ -42727,9 +42938,13 @@ class Envmap {
 		if(!this.isCubeEnv) return
 		const renderer = this.renderer;
         const lastToneMapping = renderer.toneMapping;
+        //const lastToneExposure = renderer.toneMappingExposure;
         renderer.toneMapping = NoToneMapping;
+        //renderer.toneMappingExposure = 1.0;
+
 		this.camera.update( renderer, this.scene );
         renderer.toneMapping = lastToneMapping;
+        //renderer.toneMappingExposure = lastToneExposure;
 
 	}
 
@@ -43189,7 +43404,7 @@ K.update = function () {
 
 const Version = {
 	
-	PHY: '0.0.2',
+	PHY: '0.1.2',
 
     OIMO: '1.2.4',
     AMMO: '3.0',
@@ -43197,6 +43412,7 @@ const Version = {
     RAPIER: '0.11.2',
     HAVOK: '1.2.1',
     JOLT: '0.24.0',
+
 };
 
 const items = {};
@@ -43266,7 +43482,7 @@ class Motor {
 	static RayCar = RayCar;
 	
 	static version = Version.PHY;
-
+	static Version = Version;
 	/*get onFrame() {
         return this._name;
     }*/
@@ -43275,12 +43491,7 @@ class Motor {
     static set onStep( f ) { postUpdate = f; }
 
 	static debugMode ( b ) { Motor.setDebugMode(b); }
-	static setDebugMode ( b ) { 
-
-		//console.log('debugMode is', b )
-		root.debug = b;
-
-	}
+	static setDebugMode ( b ) { root.debug = b; }
 
 	static useRealLight (o) { Mat.useRealLight(o); }
 
@@ -43414,54 +43625,7 @@ class Motor {
 
 	}
 
-	static autoRagdoll ( o ) { 
-
-		return new AutoRagdoll( o );
-
-	}
-
-	/*static autoSkeleton ( name, model, size = 1, material = null, debug = false ) { 
-
-
-
-		let m = SkeletonUtils.clone( model );//new Group();
-		m.raycast = function (){ return }
-		m.name = name
-		let skin, bones;
-		for(let i in m.children){
-			let node = m.children[i]
-			if ( node.isSkinnedMesh ){
-				skin = node;
-				skin.raycast = function (){ return }
-				skin.matrixAutoUpdate = false;
-				skin.receiveShadow = true;
-				skin.castShadow = true;
-				if(material) skin.material = material;
-				bones = skin.skeleton.bones;
-			}
-		}
-
-		m.scale.set(1,1,1).multiplyScalar(size);
-		skin.skeleton.resetScalling();
-
-		m['skeletonBody'] = new SkeletonBody( m.name, m, bones );
-		m.skeletonBody.isVisible( debug );
-
-
-
-		/* 
-		// basic three helper
-		let helper = new SkeletonHelper( m );
-		helper.raycast = function (){ return }
-        helper.matrix = m.matrix;
-        root.scene.add( helper );
-        */
-
-	/*	m.add( m.skeletonBody );
-
-		return m;
-
-	}*/
+	static autoRagdoll ( o ) {  return new AutoRagdoll( o ); }
 
 	static makeView () {}
 
@@ -43797,6 +43961,8 @@ class Motor {
 	    // clear temporary mesh
 		root.disposeTmp();
 
+		root.garbage = [];
+
 		if( breaker !== null ) breaker = null;
 			
 		root.tmpTex = [];
@@ -43805,6 +43971,14 @@ class Motor {
 
 		root.post({ m:'reset' });
 
+	}
+
+	static clearGarbage() {
+
+		Motor.remove(root.garbage);
+		Motor.clearInstance();
+		root.garbage = [];
+		
 	}
 
 	static clear( callback ) {
@@ -43860,7 +44034,8 @@ class Motor {
 	
 	static getDelta2(){ return root.delta/*root.reflow.stat.delta*/ }
 	static getElapsedTime2(){ return elapsedTime }
-	
+
+	static setDelta(v){ timer.delta = v; }
 	static getDelta(){ return timer.delta }
 	static getElapsedTime(){ return timer.elapsedTime }
 
@@ -43877,7 +44052,8 @@ class Motor {
 
 	static step (){
 
-		root.delta = root.reflow.stat.delta;//outsideStep ? timer.delta : root.reflow.stat.delta;
+		// time of physic engine step
+		root.delta = root.reflow.stat.delta;
         // user key interaction
 		root.flow.key = user.update();
 		root.flow.current = currentControle !== null ? currentControle.name : '';
@@ -43900,7 +44076,7 @@ class Motor {
 		//postUpdate( timer.delta );
 		//postUpdate( root.delta )
 		let dd = outsideStep ? timer.delta : root.delta;
-		//console.log(dd)
+
 		postUpdate( dd );
 
 		//items.character.prestep()
@@ -44076,7 +44252,9 @@ class Motor {
 			o.type = 'joint';
 		}
 
-		return items[type].add( o );
+		let m = items[type].add( o );
+		root.garbage.push( m.name );
+		return m;
 
 	}
 

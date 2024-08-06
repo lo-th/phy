@@ -1,5 +1,5 @@
 import * as THREE from 'three'
-//import * as TWEEN from 'tween'
+import * as TWEEN from 'tween'
 import * as UIL from './libs/uil.module.js'
 
 //import './libs/webgl-memory.js'
@@ -31,16 +31,12 @@ import { Diamond } from './3TH/materials/Diamond.js'
 import { Fluid } from './3TH/materials/Fluid.js'
 
 import { DirectionalHelper } from './3TH/helpers/DirectionalHelper.js'
-// TEXTURE
-//import { CarbonTexture } from './3TH/textures/CarbonTexture.js'
 
 // MOTOR MAIN
 import { Motor } from './motor/Motor.js'
 
 // PARTICLE
 import { Smoke } from '../build/smoke.module.js'
-//import { Smoke } from './3TH/_smoke/Smoke.js'
-//import { DualQuat } from './3TH/DualQuat.js'
 
 // WEBGPU test
 import WebGPU from './jsm/capabilities/WebGPU.js';
@@ -196,14 +192,6 @@ const shadowMapType = {
 	VSM: THREE.VSMShadowMap
 }
 
-const Version = {
-    Oimo: '1.2.2',
-    Ammo: '3.0',
-    Physx: '5.02.01',
-    Rapier: '0.10.0',
-    Havok: '1.1.4',
-    Jolt:'0.0.4',
-}
 
 /*const LinkWasm = {
     Ammo:'./build/ammo3.wasm.js',
@@ -276,7 +264,7 @@ export const Main = {
 		let n = Main.engineType.toLowerCase();
 		engineName = n.charAt(0).toUpperCase() + n.slice(1);
 
-		version = Version[ engineName ];
+		version = Motor.Version[ Main.engineType ];
 
 		if( Main.devMode ) Main.engineList.push('CANNON');
 
@@ -440,7 +428,8 @@ window.Building = Building
 window.Sparkle = Sparkle
 
 window.Diamond = Diamond
-window.Fluid = Fluid
+window.Fluid = Fluid;
+window.TWEEN = TWEEN;
 
 
 const init = () => {
@@ -580,6 +569,8 @@ const init = () => {
 }
 
 const dispose = () => {
+
+
 	renderStart = false
 	if(loop === null) return
 	//Env.dispose()
@@ -977,6 +968,7 @@ const inject = ( newCode, force = false ) => {
 	}
 
 	//Hub.log()
+	TWEEN.removeAll();
 	Hub.reset()
 	Shader.reset()
 	editor.reset()
@@ -1108,6 +1100,7 @@ const render = ( stamp = 0 ) => {
 
 	// UPDATE PHY
 	if( !Main.isWorker ) Motor.doStep( stamp )
+	else Motor.setDelta(tm.dt)
 
 	// UPDATE PARTICLE
     if( particles ) particles.update( stamp )
@@ -1120,7 +1113,7 @@ const render = ( stamp = 0 ) => {
 	}*/
 
     // UPDATE TWEEN
-	//TWEEN.update( stamp );
+	TWEEN.update( stamp );
 
 
 

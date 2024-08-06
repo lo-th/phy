@@ -20,6 +20,8 @@ export const root = {
 	Ar:null, 
 	ArPos: {},
 
+	garbage:[],
+
 	//AR:null,
 
 	viewSize:null,

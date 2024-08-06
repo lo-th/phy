@@ -89,9 +89,13 @@ export class Envmap {
 		if(!this.isCubeEnv) return
 		const renderer = this.renderer;
         const lastToneMapping = renderer.toneMapping;
+        //const lastToneExposure = renderer.toneMappingExposure;
         renderer.toneMapping = NoToneMapping;
+        //renderer.toneMappingExposure = 1.0;
+
 		this.camera.update( renderer, this.scene );
         renderer.toneMapping = lastToneMapping;
+        //renderer.toneMappingExposure = lastToneExposure;
 
 	}
 

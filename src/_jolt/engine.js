@@ -308,7 +308,7 @@ export class engine {
 		//root.deltaTime = fixe ? timestep / substep : root.delta / substep
 		root.deltaTime = fixe ? timestep : root.delta;
 
-		root.invDelta = 1 / (fixe ? timestep : root.delta);
+		root.invDelta = 1 / root.deltaTime;
 
 
 		// When running below 55 Hz, do 2 steps instead of 1

@@ -29,6 +29,7 @@ export const Gui = {
 
 	open:false,
 	isInit:false,
+	graph:null,
 
 	ui:null,
 	uix:null,
@@ -161,6 +162,7 @@ export const Gui = {
 
 		if(Gui.mode === name) return
 		Gui.mode = name;
+	    Gui.graph = null;
 	    Gui.ui.clear()
 
 	    switch(Gui.mode){
@@ -308,6 +310,13 @@ export const Gui = {
 		const ui = Gui.ui
 
 	    const setting = Main.motor.getSetting()
+
+	    Gui.graph = ui.add('fps', { 
+	        name:'stat', h:22, hplus:180, custom:true, alpha:0.5, res:50, 
+	        names:['three','phy'], cc:['200,200,200','50,120,220'], 
+	        range:[25,25], precision:2, radius:4, color:'#EEEEEE', adding:false  
+	    })
+	    Gui.graph.open()
 
 	   //ui.add('button', { values:Main.engineList, selectable:true, value:Main.engineType, h:30  }).onChange( Gui.swapEngine )
 		//if( Main.devMode ) ui.add('button', { values:['RAPIER','CANNON'], selectable:true, value:Main.engineType }).onChange( Gui.swapEngine )
@@ -591,7 +600,8 @@ export const Gui = {
 	},
 
     update: () => {
-		if( Gui.video ) Gui.video.update(  )
+		if( Gui.video ) Gui.video.update()
+		if( Gui.graph ) Gui.graph.tick( [ Main.motor.getDelta()*1000, Main.motor.getDelta2()*1000 ] )
 	},
 
     /*addJoystick:() => {

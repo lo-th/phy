@@ -18,7 +18,7 @@ demo = () => {
 
 
     // intern timeout
-    phy.setTimeout( run, 2000 )
+    phy.setTimeout( run, 2000 );
 
 }
 
@@ -30,6 +30,8 @@ run = () => {
 building = ( o ) => {
 
     let tmp = [];
+    let gg = 0
+    let num = 0
     let i, j, k, pos;
     let s = o.block || 1;
     let space = o.space || 0//0.06;
@@ -43,6 +45,7 @@ building = ( o ) => {
     for(j = 0; j<z; j++){
     for(i = 0; i<x; i++){
         pos = [ i*d + dx, (k*d + d)-(s*0.5), j*d + dz ]
+        
         tmp.push({
             instance:'boxbase',
             type:'box',
@@ -52,11 +55,20 @@ building = ( o ) => {
             density:0.3,
             friction:0.4,
             restitution:0.1,
-            sleep:true,
-            startSleep:true,
+            //sleep:true,
+            //startSleep:true,
+
+            aggregate:'boxGroup'+gg,
+            //groupCollisions:true,
         })
+        num++
+        if(num>127){
+            gg++; num=0
+        }
     }}}
 
+    //tmp[0].groupMax = num
+ 
     phy.add(tmp);
 
 }

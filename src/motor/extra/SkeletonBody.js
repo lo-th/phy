@@ -27,6 +27,9 @@ const _s = /*@__PURE__*/ new Vector3();
 const _matrixWorldInv = /*@__PURE__*/ new Matrix4();
 const _boneMatrix = /*@__PURE__*/ new Matrix4();
 
+const fingers = [ 'Thumb', 'Index', 'Mid', 'Ring', 'Pinky' ];
+const Spine = [ 'hip', 'abdomen', 'chest', 'neck', 'head', 'rCollar', 'lCollar', 'lShldr', 'rShldr', 'lThigh', 'rThigh', 'rBreast', 'lBreast' ];
+
 export class SkeletonBody extends Object3D {
 
 	constructor ( name, model, bones, mass = null, option = {} ) {
@@ -138,9 +141,11 @@ export class SkeletonBody extends Object3D {
             fix:true, needData:true
         });
 
+        this.useAggregate = root.engine === 'PHYSX'// && this.option.useAggregate
+
 		const data = []
         
-        const fingers = [ 'Thumb', 'Index', 'Mid', 'Ring', 'Pinky' ];
+       
 
         // get character bones var bones = character.skeleton.bones;
 
@@ -161,6 +166,11 @@ export class SkeletonBody extends Object3D {
 
         let p1 = new Vector3();
         let p2 = new Vector3();
+
+        let sizer  =  [1,1,1,1,1,1,1]
+        if(this.option.sizer){
+            sizer = this.option.sizer
+        }
 
         //let headDone = false
 
@@ -211,11 +221,11 @@ export class SkeletonBody extends Object3D {
                 //if( n==='hip' && name==='abdomen' ){ type = 'capsule'; size = [  0.1,dist*1.8 ]; translate = [ 0, 0, -(dist*1.8) * 0.5 ]; rot = [0,0,90]; link='null';}
                 
                 //if( n==='hip' && name==='abdomen' ){ type = 'capsule'; size = [  dist*1.8, 0.08 ]; translate = [ 0, 0, -dist * 0.5 ]; rot = [0,0,90]; link='null';}
-                if( n==='hip' && name==='abdomen' ){ type = 'capsule'; size = [  dist, 0.08 ]; translate = [ 0, 0, -dist ]; rot = [0,0,90]; link='null';}
-                if( n==='abdomen' && name==='chest'  ){ type = 'capsule'; size = [ dist*0.7, 0.08   ]; translate = [ 0, 0, (-dist * 0.5)-0.06 ]; rot = [90,0,0]; link='hip';}
-                if( n==='chest' && name==='neck' ){ type = 'capsule'; size = [  dist*0.4, 0.04  ]; translate = [ 0, 0, (-dist * 0.5)-0.02 ]; rot = [0,0,90]; link='abdomen';}
-                if( n==='neck' && name === 'head' ){ type = 'capsule'; size = [ 0.06, dist ]; translate = [ 0, 0, -dist * 0.5 ]; rot = [90,0,0]; link='chest'; }
-                if( n==='head' && name === 'End_head' ){ type = 'capsule'; size = [ 0.1, dist-0.17 ]; translate = [ 0, 0.02, (-dist * 0.5)+0.02 ]; rot = [90,0,0]; link='neck'; }
+                if( n==='hip' && name==='abdomen' ){ type = 'capsule'; size = [  dist*sizer[0], 0.08 ]; translate = [ 0, 0, -dist*sizer[0] ]; rot = [0,0,90]; link='null';}
+                if( n==='abdomen' && name==='chest'  ){ type = 'capsule'; size = [ dist*0.7*sizer[1], 0.08   ]; translate = [ 0, 0, (-dist * 0.5)-0.06 ]; rot = [90,0,0]; link='hip';}
+                if( n==='chest' && name==='neck' ){ type = 'capsule'; size = [  dist*0.4*sizer[2], 0.04 ]; translate = [ 0, 0, (-dist * 0.5)-0.02 ]; rot = [0,0,90]; link='abdomen';}
+                if( n==='neck' && name === 'head' ){ type = 'capsule'; size = [ 0.06*sizer[3], dist ]; translate = [ 0, 0, -dist * 0.5 ]; rot = [90,0,0]; link='chest'; }
+                if( n==='head' && name === 'End_head' ){ type = 'capsule'; size = [ 0.1*sizer[4], dist-0.17 ]; translate = [ 0, 0.02, (-dist * 0.5)+0.02 ]; rot = [90,0,0]; link='neck'; }
                 
                 //if( n==='head' && !headDone ){ console.log(name); headDone = true; type = 'sphere'; dist=0.08; size = [ 0.08, 0.2, dist ]; translate = [ 0, 0.025, -0.08 ]; }
 	            //if( n==='chest' && name==='neck' ){ type = 'box'; size = [  0.28, 0.24, dist ]; translate = [ 0, 0, -dist * 0.5 ]; }
@@ -230,7 +240,7 @@ export class SkeletonBody extends Object3D {
 
                 // arm
 
-                let r = 0.04;
+                let r = 0.04*sizer[5];
                 let w = dist-r
 
                 if( n==='lCollar' && name==='lShldr'){ type = 'capsule'; size = [  r, dist*0.3 ]; translate = [dist*0.6 , 0, 0 ]; rot = [0,0,90]; link='chest'; }
@@ -245,7 +255,7 @@ export class SkeletonBody extends Object3D {
 
 	            // legs
 
-                r = 0.06;
+                r = 0.06*sizer[6];
                 w = dist-r
 
                 if( n==='lThigh' ){ type = 'capsule'; size = [  r, dist ]; rot = [90,0,0]; translate = [ 0, 0, w * 0.5 ]; link='hip'; }
@@ -345,10 +355,11 @@ export class SkeletonBody extends Object3D {
 
                     this.nameList.push( phyName );
 
-                    let mask =  1|2;
-                    if( n==='lForeArm' || n==='rForeArm' || n==='lShin' || n==='rShin'|| n==='head' ) mask = 1|2|32;
-                    if( n==='rEar_1' || n==='rEar_2' || n==='rEar_3' || n==='lEar_1'|| n==='lEar_2'|| n==='lEar_3' ) mask = 1|2|32;
-                    if( n==='rEar_0' || n==='rEar_0') mask = 0;
+                    
+
+                    
+
+
 
                 	// for physic body
                     let bb = {
@@ -365,8 +376,8 @@ export class SkeletonBody extends Object3D {
                         quat: q.toArray(),
                         kinematic: kinematic,
                         
-                        group:32,
-                        mask:mask,
+                        //group:16,
+                        //mask:mask,
                         //mask:0,
                         material:'hide',
                         //material:'debug',
@@ -381,11 +392,13 @@ export class SkeletonBody extends Object3D {
                         penetrationVelocity:3,
                         stabilization:0.1,
                         //maxVelocity:[100,10],
-                        damping:[0.1,0.5],
+                        damping:[0.25,0.5],
                         //maxAngularVelocity:3,
 
                         //linked:link,
                         //iterations:[4,4],
+                        //inertiaScale:[20,20,20],
+                        //iterations:[4,2],
 
 
                         /*bone:parent,
@@ -396,8 +409,34 @@ export class SkeletonBody extends Object3D {
                         
                     }
 
+
+
+                    if( this.useAggregate ){
+
+                        // aggregate test
+                        if( Spine.indexOf(n)!==-1 ){ 
+                            bb['aggregate'] = this.prefix +'__Group';
+                            bb['aggregateMax'] = 14;
+                        }
+                        bb['mask'] = 1|2;
+
+                    } else {
+                        let mask =  1|2;
+                        if( n==='lForeArm' || n==='rForeArm' || n==='lShin' || n==='rShin'  ) mask = 1|2|32;
+                        if( n==='rEar_1' || n==='rEar_2' || n==='rEar_3' || n==='lEar_1'|| n==='lEar_2'|| n==='lEar_3' ) mask = 1|2|32;
+                        if( n==='rEar_0' || n==='rEar_0') mask = 0;
+
+                        bb['group'] = 32;
+                        bb['mask'] = mask;
+                    }
+                    
+
+                    //
+                    
+
+
                     if( this.mass !== null ) bb['mass'] = averageMass;
-                    else  bb['density'] = 1;
+                    else bb['density'] = 1;
 
                     data.push(bb)
 
@@ -461,6 +500,20 @@ export class SkeletonBody extends Object3D {
             sp = [50,10, 0, 0.5]
         }
 
+        let driveSetting = {
+            stiffness:2,
+            damping:0.1,
+            forceLimit:10000000,
+            isAcceleration:false,
+        }
+
+        /*driveSetting = {
+            stiffness:10000,
+            damping:500,
+            forceLimit:100,
+            isAcceleration:true,
+        }*/
+
 
 
 
@@ -479,7 +532,13 @@ export class SkeletonBody extends Object3D {
 
             //worldAxis:[1,0,0],
 
-            autoDrive: true,
+            //autoDrive: true,
+
+            drives: [
+            ['rx', driveSetting.stiffness, driveSetting.damping, driveSetting.forceLimit, driveSetting.isAcceleration ],
+            ['ry', driveSetting.stiffness, driveSetting.damping, driveSetting.forceLimit, driveSetting.isAcceleration ],
+            ['rz', driveSetting.stiffness, driveSetting.damping, driveSetting.forceLimit, driveSetting.isAcceleration ]
+            ],
 
         }
 
@@ -488,8 +547,10 @@ export class SkeletonBody extends Object3D {
 
         data.push({ ...sett, b1:p+'hip', b2:p+'abdomen', worldPos:this.posRef[p+'abdomen'], worldQuat:this.quatRef[p+'hip'], lm:[ ['rx',-20,20,...sp], ['ry',-20,20,...sp], ['rz',-20,20,...sp]] })
         data.push({ ...sett, b1:p+'abdomen', b2:p+'chest', worldPos:this.posRef[p+'chest'], worldQuat:this.quatRef[p+'chest'], lm:[ ['rx',-20,20,...sp], ['ry',-20,20,...sp], ['rz',-20,20,...sp]] })
-        data.push({ ...sett, b1:p+'chest', b2:p+'neck', worldPos:this.posRef[p+'neck'], worldQuat:this.quatRef[p+'neck'], lm:[ ['rx',-60,60,...sp], ['ry',-1,1,...sp], ['rz',-30,30,...sp]] })
-        data.push({ ...sett, b1:p+'neck', b2:p+'head', worldPos:this.posRef[p+'head'], worldQuat:this.quatRef[p+'head'], lm:[ ['rx',-60,60,...sp], ['ry',-1,1,...sp], ['rz',-30,30,...sp]] })
+        //data.push({ ...sett, b1:p+'chest', b2:p+'neck', worldPos:this.posRef[p+'neck'], worldQuat:this.quatRef[p+'neck'], lm:[ ['rx',-60,60,...sp], ['ry',-1,1,...sp], ['rz',-30,30,...sp]] })
+        //data.push({ ...sett, b1:p+'neck', b2:p+'head', worldPos:this.posRef[p+'head'], worldQuat:this.quatRef[p+'head'], lm:[ ['rx',-60,60,...sp], ['ry',-1,1,...sp], ['rz',-30,30,...sp]] })
+        data.push({ ...sett, b1:p+'chest', b2:p+'neck', worldPos:this.posRef[p+'neck'], worldQuat:this.quatRef[p+'neck'], lm:[ ['rx',0,30,...sp], ['ry',-1,1,...sp], ['rz',-30,30,...sp]] })
+        data.push({ ...sett, b1:p+'neck', b2:p+'head', worldPos:this.posRef[p+'head'], worldQuat:this.quatRef[p+'head'], lm:[ ['rx',0,30,...sp], ['ry',-1,1,...sp], ['rz',-30,30,...sp]] })
         //data.push({ type:'joint', mode:'d6', b1:this.prefix*'chest', b2:this.prefix*'abdomen' })
 
         // arm
@@ -505,8 +566,8 @@ export class SkeletonBody extends Object3D {
        //data.push({ ...sett, b1:p+'chest', b2:p+'rShldr', worldPos:this.posRef[p+'rShldr'], worldQuat:this.quatRef[p+'rShldr'] })
         //data.push({ ...sett, b1:p+'chest', b2:p+'lShldr', worldPos:this.posRef[p+'lShldr'], worldQuat:this.quatRef[p+'lShldr'] })
 
-        data.push({ ...sett, b1:p+'rShldr', b2:p+'rForeArm', worldPos:this.posRef[p+'rForeArm'], worldQuat:this.quatRef[p+'rForeArm'], lm:[['rx',0,160,...sp]] })
-        data.push({ ...sett, b1:p+'lShldr', b2:p+'lForeArm', worldPos:this.posRef[p+'lForeArm'], worldQuat:this.quatRef[p+'lForeArm'], lm:[['rx',0,160,...sp]] })
+        if( this.existe(p+'rForeArm') ) data.push({ ...sett, b1:p+'rShldr', b2:p+'rForeArm', worldPos:this.posRef[p+'rForeArm'], worldQuat:this.quatRef[p+'rForeArm'], lm:[['rx',0,160,...sp]] })
+        if( this.existe(p+'lForeArm') ) data.push({ ...sett, b1:p+'lShldr', b2:p+'lForeArm', worldPos:this.posRef[p+'lForeArm'], worldQuat:this.quatRef[p+'lForeArm'], lm:[['rx',0,160,...sp]] })
 
         if( this.existe(p+'rHand') ) data.push({ ...sett, b1:p+'rForeArm', b2:p+'rHand', worldPos:this.posRef[p+'rHand'], worldQuat:this.quatRef[p+'rHand'], lm:[['rx',0,160,...sp], ['ry',-10,10,...sp]] })
         if( this.existe(p+'lHand') ) data.push({ ...sett, b1:p+'lForeArm', b2:p+'lHand', worldPos:this.posRef[p+'lHand'], worldQuat:this.quatRef[p+'lHand'], lm:[['rx',0,160,...sp], ['ry',-10,10,...sp]] })
@@ -519,8 +580,8 @@ export class SkeletonBody extends Object3D {
         data.push({ ...sett, b1:p+'hip', b2:p+'rThigh', worldPos:this.posRef[p+'rThigh'],  worldQuat:this.quatRef[p+'rThigh'] })
         data.push({ ...sett, b1:p+'hip', b2:p+'lThigh', worldPos:this.posRef[p+'lThigh'],  worldQuat:this.quatRef[p+'lThigh'] })
 
-        data.push({ ...sett, b1:p+'rThigh', b2:p+'rShin', worldPos:this.posRef[p+'rShin'], lm:[['rx',0,160,...sp]], worldQuat:this.quatRef[p+'rShin'] })
-        data.push({ ...sett, b1:p+'lThigh', b2:p+'lShin', worldPos:this.posRef[p+'lShin'], lm:[['rx',0,160,...sp]], worldQuat:this.quatRef[p+'lShin'] })
+        if( this.existe(p+'rShin') )data.push({ ...sett, b1:p+'rThigh', b2:p+'rShin', worldPos:this.posRef[p+'rShin'], lm:[['rx',0,160,...sp]], worldQuat:this.quatRef[p+'rShin'] })
+        if( this.existe(p+'lShin') )data.push({ ...sett, b1:p+'lThigh', b2:p+'lShin', worldPos:this.posRef[p+'lShin'], lm:[['rx',0,160,...sp]], worldQuat:this.quatRef[p+'lShin'] })
 
         if( this.existe(p+'rFoot') ) data.push({ ...sett, b1:p+'rShin', b2:p+'rFoot', worldPos:this.posRef[p+'rFoot'], lm:[['rx',-10,30,...sp], ['rz',-10,10,...sp]], worldQuat:this.quatRef[p+'rFoot'] })
         if( this.existe(p+'lFoot') ) data.push({ ...sett, b1:p+'lShin', b2:p+'lFoot', worldPos:this.posRef[p+'lFoot'], lm:[['rx',-10,30,...sp], ['rz',-10,10,...sp]], worldQuat:this.quatRef[p+'lFoot'] })
@@ -546,7 +607,7 @@ export class SkeletonBody extends Object3D {
         let x = 0
         for( let j in data ){
             data[j].name = this.prefix + '_joint_'+ x
-            this.nameList.push( data[j].name )
+            //this.nameList.push( data[j].name )
             this.jointList.push( data[j].name )
             x++
         }
@@ -621,7 +682,10 @@ export class SkeletonBody extends Object3D {
 
 	dispose(){
 
+        root.motor.remove( this.jointList );
         root.motor.remove( this.nameList );
+
+        //if( this.useAggregate ) root.motor.remove(this.prefix +'__Group')
 
         this.nodes = []
         this.posRef = {}
