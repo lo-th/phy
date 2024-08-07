@@ -65,6 +65,8 @@ export class SkeletonBody extends Object3D {
         this.friction = 0.5; 
         this.restitution = 0;
         this.option = option;
+        this.useDrive = option.useDrive !== undefined ?  option.useDrive : true;
+        this.showJoint = option.showJoint !== undefined ?  option.showJoint : false;
 
 		this.init()
 
@@ -522,11 +524,12 @@ export class SkeletonBody extends Object3D {
         let sett = {
             type:'joint', 
             mode:'d6',
-            visible:true,
+            
             lm:[  ['ry',-180,180,...sp], ['rz',-180,180,...sp] ],
 
             collision:false,
             helperSize:0.05,
+            visible:this.showJoint,
 
             //acc:true,
 
@@ -534,12 +537,20 @@ export class SkeletonBody extends Object3D {
 
             //autoDrive: true,
 
-            drives: [
+            /*drives: [
             ['rx', driveSetting.stiffness, driveSetting.damping, driveSetting.forceLimit, driveSetting.isAcceleration ],
             ['ry', driveSetting.stiffness, driveSetting.damping, driveSetting.forceLimit, driveSetting.isAcceleration ],
             ['rz', driveSetting.stiffness, driveSetting.damping, driveSetting.forceLimit, driveSetting.isAcceleration ]
-            ],
+            ],*/
 
+        }
+
+        if( this.useDrive ){
+            sett['drives'] = [
+            ['rx', driveSetting.stiffness, driveSetting.damping, driveSetting.forceLimit, driveSetting.isAcceleration ],
+            ['ry', driveSetting.stiffness, driveSetting.damping, driveSetting.forceLimit, driveSetting.isAcceleration ],
+            ['rz', driveSetting.stiffness, driveSetting.damping, driveSetting.forceLimit, driveSetting.isAcceleration ]
+            ]
         }
 
         let breastMotion = [-0.001, 0.001, 100, 0.2, 0.5]

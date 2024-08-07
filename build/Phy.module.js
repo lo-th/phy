@@ -12669,6 +12669,8 @@ class SkeletonBody extends Object3D {
         this.friction = 0.5; 
         this.restitution = 0;
         this.option = option;
+        this.useDrive = option.useDrive !== undefined ?  option.useDrive : true;
+        this.showJoint = option.showJoint !== undefined ?  option.showJoint : false;
 
 		this.init();
 
@@ -13125,11 +13127,12 @@ class SkeletonBody extends Object3D {
         let sett = {
             type:'joint', 
             mode:'d6',
-            visible:true,
+            
             lm:[  ['ry',-180,180,...sp], ['rz',-180,180,...sp] ],
 
             collision:false,
             helperSize:0.05,
+            visible:this.showJoint,
 
             //acc:true,
 
@@ -13137,13 +13140,21 @@ class SkeletonBody extends Object3D {
 
             //autoDrive: true,
 
-            drives: [
+            /*drives: [
             ['rx', driveSetting.stiffness, driveSetting.damping, driveSetting.forceLimit, driveSetting.isAcceleration ],
             ['ry', driveSetting.stiffness, driveSetting.damping, driveSetting.forceLimit, driveSetting.isAcceleration ],
             ['rz', driveSetting.stiffness, driveSetting.damping, driveSetting.forceLimit, driveSetting.isAcceleration ]
-            ],
+            ],*/
 
         };
+
+        if( this.useDrive ){
+            sett['drives'] = [
+            ['rx', driveSetting.stiffness, driveSetting.damping, driveSetting.forceLimit, driveSetting.isAcceleration ],
+            ['ry', driveSetting.stiffness, driveSetting.damping, driveSetting.forceLimit, driveSetting.isAcceleration ],
+            ['rz', driveSetting.stiffness, driveSetting.damping, driveSetting.forceLimit, driveSetting.isAcceleration ]
+            ];
+        }
 
         let breastMotion = [-0.001, 0.001, 100, 0.2, 0.5];
         
@@ -39118,8 +39129,8 @@ class MouseTool {
 		if( this.moveDirect ){
 			root.motor.change({ name:this.selected.name, kinematic:false, gravity:false, damping:[0.9,0.9]  });
 		} else {
-			let def = [-0.1, 0.1, 60, 1];
-			let defr = [-0.1, 0.1, 60, 1];
+			let def = [-0.1, 0.1, 600, 1];
+			let defr = [-0.1, 0.1, 600, 1];
 			//let defr = [0, 0]
 			let notUseKinematic = root.engine === 'OIMO' || root.engine ==='RAPIER' || root.engine ==='JOLT';//|| root.engine ==='HAVOK'
 			let jtype = this.selected.link === 0 ? 'fixe' : 'd6';//root.engine === 'HAVOK' ? 'fixe' : 'd6';
@@ -39143,6 +39154,8 @@ class MouseTool {
 				jtype = this.selected.link === 0 ? 'fixe' : 'spherical';
 				limite = [ -180, 180, 0.1, 0.1 ];
 			}
+
+			//console.log(jtype)
 
 			root.motor.add([
 				{ 
