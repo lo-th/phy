@@ -20,7 +20,7 @@ let Main = null;
 
 // menu look option
 let isLiner = true;
-let isBackLight = true;
+let isBackLight = false;
 let isFromTop = true;
 let isTopDown = true;
 
@@ -328,7 +328,7 @@ export class Hub {
             //anim = 'transition: width '+sp+'s, left '+sp+'s, top '+sp+'s, transform '+sp+'s ease-out;';
             anim = 'transition: transform '+sp+'s allow-discrete ease-out;';
             //border:1px solid rgba(255,255,255,1); box-sizing:content-box;background:linear-gradient(rgba(255,255,255,0), #FFFFFF);
-            overpad.style.cssText = anim + 'position:absolute; top:0px; left:0px; height:0px; width:0px; opacity:0; pointer-events:none; border-radius:6px;';
+            overpad.style.cssText = anim + 'position:absolute; top:0px; left:0px; height:0px; width:0px; opacity:0; pointer-events:none;';
 
             overpad.style.transitionDuration = '0.1s';
             overpad.style.background = isDay ? nightColor[0] : dayColor[0];
@@ -759,7 +759,7 @@ export class Hub {
             // overpad.style.left = (rect.left-w) - tmpLeft + 'px';
             overpad.style.width = (rect.width) + 'px';
             overpad.style.height = (rect.height)-1 + 'px';
-            overpad.style.opacity = !t? 0: 0.3;
+            overpad.style.opacity = !t? 0: 0.1;
             //overpad.style.opacity = !t? 0: (isMenu?0.6:0.6);
         }
 
