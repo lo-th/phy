@@ -31,7 +31,7 @@
     "HAVOK": [],
 
     "Envmap": [ 
-        "null", "basic", "factory", "studio", "beach", "tomoco",
+        "null", "cube","basic", "factory", "studio", "beach", "tomoco",
         "tatami", "box", "park", "color", "room", "tokyo",
         "gallery", "river", "cave", "histo", "bed", "forest",
         "small", "garden", "port", "querry", "bridge", 

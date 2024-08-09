@@ -1,6 +1,6 @@
 import {
     PMREMGenerator, EquirectangularReflectionMapping, NoToneMapping, IcosahedronGeometry,
-    Scene, CubeCamera, WebGLCubeRenderTarget, Mesh,
+    Scene, CubeCamera, WebGLCubeRenderTarget, Mesh,Color,
     LinearFilter, HalfFloatType, LinearSRGBColorSpace, SRGBColorSpace, ShaderMaterial,
 } from 'three';
 import { HDRJPGLoader } from '../../libs/HDRJPGLoader.js';
@@ -40,6 +40,7 @@ export class Envmap {
 		this._quality = o.quality || 1;
 
 		this.scene = new Scene();
+		if(o.color) this.scene.background = new Color(o.color) 
 		this.target = new WebGLCubeRenderTarget( 256*this._quality, {
 			//magFilter: LinearFilter,
             minFilter: LinearFilter,

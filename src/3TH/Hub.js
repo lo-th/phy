@@ -10,16 +10,19 @@ import { Motor } from '../motor/Motor.js'
 
 
 const Styles = {
-    menuName:'font-size:16px; text-shadow: 1px 1px 3px #000000;',
-    demoName:'font-size:14px; width:fit-content; text-shadow: 1px 1px 3px #000000;',
+    menuName:'font-size:14px; font-weight:500;',
+    demoName:'font-size:14px; width:fit-content; font-weight:500;',
 }
+//text-shadow: 1px 1px 3px #000000;
+//letter-spacing: -0.022em;
 
 let Main = null;
 
 // menu look option
 let isLiner = true;
-let isBackLight = false;
+let isBackLight = true;
 let isFromTop = true;
+let isTopDown = true;
 
 //
 
@@ -85,10 +88,11 @@ let color = '';
 let colorVisite = '';
 let colorDemo = 'rgba(255,235,205,0.7)';
 let panelBackground = '';
+let topDown = null
 
 
 let dayColor = ['#000', '#444', '#feb', 'rgba(213,211,212,0.32)'];
-let nightColor = ['#ddd', '#bee', '#feb', 'rgba(13,11,12,0.6)'];
+let nightColor = ['#fff', '#bee', '#bfb', 'rgba(20,20,20,0.5)'];
 
 
 
@@ -311,6 +315,7 @@ export class Hub {
         zoning = document.createElement( 'div' );
         zoning.style.cssText = 'position:absolute; top:20px; background:'+bg2+'; left:60px; pointer-events:auto;';
         zoning.id = 'zone';
+        //zoning.style.background = 'rgba(10,0,0,0.2)'
         content.appendChild( zoning );
 
         if(isBackLight){
@@ -333,18 +338,36 @@ export class Hub {
 
         }
 
+        if(isTopDown){
+            topDown= document.createElement( 'div' );
+            topDown.style.cssText = 'position:absolute; top:0px; left:0px; height:0px; width:100%; pointer-events:none; background:#f00; transition:all 0.12s allow-discrete ease-out; transition-property: height, opacity;';
+            topDown.style.opacity = 0;
+            topDown.style.background = panelBackground;
+            topDown.style.backdropFilter = 'blur(10px)'
+            content.appendChild( topDown );
+        }
+
         menu = document.createElement( 'div' );
-        menu.style.cssText = 'position:absolute; top:25px; background:'+bg+'; left:'+marge[0]+'px; display:flex; align-self: stretch; justify-content: flex-start; gap: 10px 10px; align-items:baseline; '
+        menu.style.cssText = 'position:absolute; top:24px; background:'+bg+'; left:'+marge[0]+'px; display:flex; align-self: stretch; justify-content: flex-start; gap: 0px 6px; align-items:baseline; '
         content.appendChild( menu );
 
         downMenu = document.createElement( 'div' );
         downMenu.style.cssText = 'position:absolute; top:60px; left:'+marge[0]+'px; overflow:hidden; background:'+bg+'; height:0px; width:0px;'//'top:54px; width:0px;' //transition: all .1s ease-in-out;
+        //downMenu.style.background = 'rgba(10,10, 10,0.2)'
         content.appendChild( downMenu );
 
         innerMenu = document.createElement( 'div' );
-        innerMenu.style.cssText = 'position:absolute; top:0px; left:0px; top:0px; overflow:hidden; background:'+bg+'; border-radius:8px; display:flex; flex-wrap:warp;'+'transition: background 0.5s allow-discrete ease-out;'
+        innerMenu.style.cssText = 'box-sizing: border-box; position:absolute; overflow:hidden; background:'+bg+'; display:flex; flex-wrap:warp;';
+        if(!isTopDown){
+            innerMenu.style.opacity = '0';
+            innerMenu.style.transition = 'opacity 0.5s allow-discrete ease-out;';
+            innerMenu.style.background = panelBackground;
+            //innerMenu.style.border = '1px solid rgba(20,20,20,0.1)'
+            //innerMenu.style.borderRadius = '6px';
+            innerMenu.style.backdropFilter = 'blur(10px)'
+        }
         downMenu.appendChild( innerMenu );
-        innerMenu.style.backdropFilter = 'blur(4px)'
+        
 
         zoning.addEventListener("pointerleave", (e) => {
             lock = false;
@@ -395,7 +418,7 @@ export class Hub {
         content.appendChild( top )
 
         fps = document.createElement( 'div' );
-        fps.style.cssText = 'position:absolute; top:33px; right:'+(marge[0]+20)+'px; text-align:right; font-size:14px;'
+        fps.style.cssText = 'position:absolute; top:33px; right:'+(marge[0]+20)+'px; text-align:right; font-size:14px; font-weight:500;'
         content.appendChild( fps )
 
         guiButton = document.createElement( 'div' );
@@ -490,10 +513,17 @@ export class Hub {
 
         downMenu.style.height = '0px'
         innerMenu.innerHTML = '';
-        innerMenu.style.background = 'none';
-        zoning.style.width = '0px'
-        zoning.style.height = '0px'
+        //innerMenu.style.background = 'none';
+        
+        zoning.style.width = '0px';
+        zoning.style.height = '0px';
         currentMenu = '';
+        if(isTopDown){ 
+            topDown.style.height = '0px'
+            topDown.style.opacity = 0;
+        }else {
+            innerMenu.style.opacity = 0;
+        }
         Hub.updatePad(null);
 
     }
@@ -512,7 +542,7 @@ export class Hub {
         //if(type === 'home') downMenu.style.left = '70px'
         downMenu.style.left = marge[0] + 'px'
         if(type === 'home') downMenu.style.left = (marge[0]-10) + 'px'
-        if(type === 'engine') downMenu.style.left = (marge[0]+52) + 'px'
+        if(type === 'engine') downMenu.style.left = (marge[0]+36) + 'px'
 
         let list = listdata[ type ];
         /*type === 'demo' ?  demolist : engineList
@@ -525,7 +555,11 @@ export class Hub {
         innerMenu.style.width = 'auto';
         innerMenu.style.display = 'flex';
         innerMenu.style.flexDirection = 'column';
-        innerMenu.style.background = panelBackground;
+        //innerMenu.style.background = panelBackground;
+        //innerMenu.style.border = '4px solid rgba(20,20,20,0.1)'
+        if(!isTopDown) innerMenu.style.opacity = 1
+
+
 
         const bb = []
 
@@ -588,6 +622,13 @@ export class Hub {
         zoning.style.width = (rect.width + 40) + 'px';
         zoning.style.height = (rect.height + 50) + 'px';
         //zoning.style.height = (rect.height + 70) + 'px';
+
+        //const rect = elem.getBoundingClientRect();
+
+        if(isTopDown){ 
+            topDown.style.height = 60 + rect.height+'px'
+            topDown.style.opacity = 1;
+        }
 
     }
 

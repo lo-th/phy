@@ -52,8 +52,12 @@ export class JointDebug extends Basic3D {
 
 		    	this.m1.geometry.rotateY(90 * MathTool.torad)
 
+		    	//this.m3 = this.m1.clone()
+		    	//this.m3.rotation.x = 90 * MathTool.torad
+
 		    	this.add( this.m1 );
 		    	this.add( this.m2 );
+		    	//this.add( this.m3 );
 
 	    	break;
 	    	case 'hinge': case 'cylindrical':

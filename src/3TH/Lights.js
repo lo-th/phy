@@ -101,6 +101,7 @@ export class Lights {
 		if(!o.color) o.color = 0xFFFFFF;
 
 		switch(o.type){
+			
 			case 'direct':
 			l = new DirectionalLight( o.color, o.intensity );
 			l.distance = o.distance !== undefined ? o.distance : 2.0;

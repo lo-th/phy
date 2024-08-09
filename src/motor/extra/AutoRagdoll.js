@@ -72,7 +72,7 @@ export class AutoRagdoll {
 		this.model = model;
 
 		//map.set( this.name, this );
-		Utils.add(this)
+		Utils.add( this )
 
 		return this;
 

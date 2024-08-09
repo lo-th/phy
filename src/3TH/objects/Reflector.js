@@ -134,7 +134,7 @@ export class Reflector extends Mesh {
 			color:this.color,
 			//emissive:0xFFFFFF,
 			//map:this.map, 
-			roughness:0.2,//0.25, 
+			roughness:0.8,//0.25, 
 			metalness:0,//1, 
 			opacity:1,
 			transparent:true,
@@ -492,7 +492,7 @@ export class Reflector extends Mesh {
 			//this.material.normalMap = Pool.texture( { url:'./assets/textures/floor.png', flip:false, repeat:[200,200] });
 			//this.material.normalMap.channel = 1;
 			//this.material.normalMap = null;
-			this.material.roughness = 0.05;//0.8;
+			this.material.roughness = 0.8;//0.8;
 			this.material.metalness = 0;//0.2;
 			this.material.side = FrontSide;
 		}

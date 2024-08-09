@@ -11690,8 +11690,12 @@ class JointDebug extends Basic3D {
 
 		    	this.m1.geometry.rotateY(90 * MathTool.torad);
 
+		    	//this.m3 = this.m1.clone()
+		    	//this.m3.rotation.x = 90 * MathTool.torad
+
 		    	this.add( this.m1 );
 		    	this.add( this.m2 );
+		    	//this.add( this.m3 );
 
 	    	break;
 	    	case 'hinge': case 'cylindrical':
@@ -42902,6 +42906,7 @@ class Envmap {
 		this._quality = o.quality || 1;
 
 		this.scene = new Scene();
+		if(o.color) this.scene.background = new Color(o.color); 
 		this.target = new WebGLCubeRenderTarget( 256*this._quality, {
 			//magFilter: LinearFilter,
             minFilter: LinearFilter,
@@ -43132,7 +43137,7 @@ class AutoRagdoll {
 		this.model = model;
 
 		//map.set( this.name, this );
-		Utils.add(this);
+		Utils.add( this );
 
 		return this;
 

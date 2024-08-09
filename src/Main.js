@@ -962,7 +962,7 @@ const inject = ( newCode, force = false ) => {
 
 	if( force ) isLoadCode = true
 
-	if(window['onReset']){ 
+	if( window['onReset'] ){ 
 		window['onReset']()
 		window['onReset'] = null
 	}
@@ -1011,18 +1011,18 @@ const refreshCode = () => {
     let ev = code.search( 'phy.view' )
     let evh = code.search( '//phy.view' )
 	
-    if( ev === -1 || evh !== -1 ) view( setting )
+    if( ev === -1 || evh !== -1 ) view( setting );
     /*else {
 
     	let t = code.substring(ev+10, code.indexOf('})'))
     	//let f = JSON.parse('{'+t+'}');
     	console.log( t )
     }*/
-    if( code.search( 'phy.set' ) === -1 ) Motor.set()
+    if( code.search( 'phy.set' ) === -1 ) Motor.set();
 
-    window['demo']()
+    window['demo']();
 
-    Gui.doReset()
+    Gui.doReset();
 
 }
 

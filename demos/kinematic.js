@@ -81,7 +81,7 @@ const demo_position = () => {
 
 const goto = () => {
 
-    let time = 1100 - (setting.speed*1000);
+    let time =  1100 - (setting.speed*1000);
     let p, x, z
 
     if(setting.name === 'position'){
@@ -92,7 +92,7 @@ const goto = () => {
 
         tween = new TWEEN.Tween( p )
         .to({ x:x, z:z }, time*d )
-        .easing( TWEEN.Easing.Sinusoidal.InOut)//Quadratic.Out )
+        .easing( TWEEN.Easing.Sinusoidal.In)//Quadratic.Out )
         .onUpdate( ()=>{ phy.change({ name:'mobile', pos:p.toArray() }) } )
         .onComplete( ()=>{ pause() })
         .start()
@@ -102,7 +102,7 @@ const goto = () => {
 
 const pause = () => {
 
-    let time = 1100 - (setting.speed*1000);
+    let time = 1000 + 1100 - (setting.speed*1000);
     tween = new TWEEN.Tween( {v:0} ).to({v:1}, time ).onComplete( ()=>{ goto() }).start()
 
 }

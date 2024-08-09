@@ -236,13 +236,13 @@ export const Gui = {
 			renderer.toneMapping  = toneMappingOptions[ options.tone ]
 		})
 
-		ui.add( options, 'exposure', { min:0, max:4, mode:mode } ).onChange( function( v ){ 
+		ui.add( options, 'exposure', { min:0, max:1, step:0.001, pecision:3, mode:mode } ).onChange( function( v ){ 
 			renderer.toneMappingExposure = v; 
 			//Env.up()
 		})
 
-		ui.add( options, 'light_1', { rename:'Light Direct', min:0, max:30, mode:mode, color:'#ff0' } ).onChange( Main.lightIntensity )
-		ui.add( options, 'light_2', { rename:'Light Sphere', min:0, max:10, mode:mode, color:'#ff0' } ).onChange( Main.lightIntensity )
+		ui.add( options, 'light_1', { rename:'Light Direct', min:0, max:100, mode:mode, color:'#ff0' } ).onChange( Main.lightIntensity )
+		ui.add( options, 'light_2', { rename:'Light Sphere', min:0, max:100, mode:mode, color:'#ff0' } ).onChange( Main.lightIntensity )
 		
 		
 
