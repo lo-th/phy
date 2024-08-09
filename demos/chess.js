@@ -5,9 +5,12 @@ const chessSize = 0.25;
 demo = () => {
 
     phy.view({ 
+        theta:15,
         envmap:'photo', envblur: 0.5, ground:true, groundAlpha:false,
         groundSize:[ 8.9, 8.9 ], groundReflect:0.05,
-        exposure:0.8,
+        exposure:0.2,
+        direct:20,
+
      })
 
     phy.set({ substep:1 })

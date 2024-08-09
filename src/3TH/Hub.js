@@ -497,7 +497,9 @@ export class Hub {
 
     }
 
-    static switchGuiButton(b){
+    static switchGuiButton( b ){
+
+        if(isTopDown) topDown.style.width = b ? 'calc(100% - 260px)': '100%'
 
         document.querySelector("#guiPath").setAttributeNS(null, 'd', b ? p1 : p0)
         guiOpen = b;

@@ -61,20 +61,25 @@ export class Envmap {
 	}
 
 	addSky(){
+
 		let g = new IcosahedronGeometry( 20, 1 )
 		const mat = new ShaderMaterial( SkyShader );
 		this.sky = new Mesh( g, mat );
 		this.scene.add(this.sky);
 		this.render();
 		this.isSky = true;
+		
 	}
 
 	getSkyOtion(){
+
 		if(!this.isSky) return;
 		return skyOption;
+
 	}
 
 	setSkyOtion( o ){
+
 		if(!this.isSky) return;
 		let u = this.sky.material.uniforms;
 		for(let k in o){
@@ -83,6 +88,7 @@ export class Envmap {
 	
 	    if(this.timeout) clearTimeout(this.timeout);
 	    this.timeout = setTimeout( this.render.bind(this), 0 );
+
 	}
 
 	render() {

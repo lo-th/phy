@@ -24,7 +24,7 @@ export class Lights {
 
     	Lights.add({ 
 			type:'direct', name:'sun',
-			intensity:o.light_1,
+			intensity:o.direct,
 			distance:30, parent:parent,
 		    shadow:{ range:30, near:5, far:70, bias: - 0.0005 * biasSide, radius:4, quality: 2048 * o.quality }
 		})
@@ -37,12 +37,12 @@ export class Lights {
 
     	if( o.sunIntensity!==undefined ){
 
-    		if( LL.sun && LL.sun2 ){
+    		/*if( LL.sun && LL.sun2 ){
     			LL.sun.intensity = o.sunIntensity*0.3;
     			if( LL.sun2 ) LL.sun2.intensity = o.sunIntensity*0.7;
-    		} else {
-    			LL.sun.intensity = o.sunIntensity;
-    		}
+    		} else {*/
+    			if( LL.sun ) LL.sun.intensity = o.sunIntensity;
+    		//}
     		
     	}
 
@@ -68,7 +68,7 @@ export class Lights {
     	}
 
     	if( LL.hemi ){
-    		if(o.hemiIntensity!==undefined) LL.hemi.intensity = o.hemiIntensity*0.7;
+    		if(o.hemiIntensity!==undefined) LL.hemi.intensity = o.hemiIntensity//*0.7;
     		if(o.skyColor) Lights.setColor(LL.hemi.color, o.skyColor );
     		if(o.groundColor) Lights.setColor(LL.hemi.groundColor, o.groundColor );
     		move = true;

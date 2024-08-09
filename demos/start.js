@@ -1,4 +1,4 @@
-let roomMat, addHuman = false;
+let addHuman = false;
 
 demo = () => {
 
@@ -14,7 +14,7 @@ demo = () => {
 
     })
     // config physics setting
-    phy.set({ substep:2, gravity:[0,-9.81,0], fps:60, fixe:true })
+    phy.set({ substep:1, gravity:[0,-9.81,0], fps:60, fixe:true })
     // add static ground
     phy.add({ type:'plane', size:[300,1,300], visible:false })
 
@@ -29,7 +29,7 @@ demo = () => {
     ]
 
     const models = ['models/phy.glb','models/sofa.glb','models/room.glb'];
-    phy.load([...maps, ...models], onComplete, './assets/' )
+    phy.load([...models, ...maps ], onComplete, './assets/' )
 
 }
 
@@ -40,7 +40,7 @@ onComplete = () => {
     let sofaModel = phy.getMesh('sofa');
     let roomModel = phy.getMesh('room');
 
-    //phy.add({ type:'box', size:[5,0.2,7], pos:[0,2.8,0], material:'wall' })
+    // the room
 
     phy.add({ type:'box', size:[6,3,0.5], pos:[0,1.5,-3.25], visible:false })
     phy.add({ type:'box', size:[6,3,0.5], pos:[0,1.5,3.25], visible:false })
@@ -48,42 +48,19 @@ onComplete = () => {
     phy.add({ type:'box', size:[0.5,3,6], pos:[-2.75,1.5,0], visible:false })
     phy.add({ type:'box', size:[0.5,3,6], pos:[2.75,1.5,0], visible:false })
 
-    let room = roomModel.Room;
 
-    if(room){
-        //room.position.y = -0.02;
-        room.material = roomMat;
-        room.receiveShadow = true;
-        room.castShadow = false;
-        phy.add(room);
+    let room = roomModel.Room.clone();
+    room.material = phy.getMaterial('room');
+    room.receiveShadow = true;
+    room.castShadow = false;
+    phy.add(room);
 
-    }
-    
-
-    /*let g = phy.getGround()
-    //g.visible = false
-   // g.color.setHex(0xffffff)
-    g.material.map = phy.texture({ url:'./assets/textures/floor_c.jpg', repeat:[7,8] })
-    g.material.normalMap = phy.texture({ url:'./assets/textures/floor_n.jpg', repeat:[7,8] })
-    //g.material.roughnessMap = phy.texture({ url:'./assets/textures/floor_r.jpg', repeat:[7,8] })
-    g.material.normalScale.set(-0.6,-0.6)
-    g.material.visible = true
-
-    g.material.needsUpdate = true*/
-
-    ////
-
-    
+    // the sofa
 
     var sofaShape = []
 
     let k = 28
-    while(k--){
-        sofaShape.push( {type:'convex', shape: sofaModel['sofa_shape_'+k] } )
-    }
-
-
-
+    while(k--) sofaShape.push( {type:'convex', shape: sofaModel['sofa_shape_'+k] } )
 
     phy.add({
         type:'compound',
@@ -98,15 +75,15 @@ onComplete = () => {
         //debug:true
     })
 
-
-
     model = phy.getMesh('phy');
     let option = {
         density:0.1, restitution:0.5, friction:0.5, radius:0.03,
         gravityFactor:1
     }
 
-    // add phy logo
+
+    // the big phy logo
+
     let sc = 0.01
     const logoShape = []
     let p = [0,0,0,31.685,16,0,-31.685,16,0,28.547,25.779,0,28.547,6.221,0,-28.547,25.779,0,-28.547,6.221,0,19.755,-1.621,
@@ -190,7 +167,7 @@ onComplete = () => {
 
 makeMaterial = () => {
 
-    roomMat = phy.material({ name:'room', color:0xFFFFFF,  //color:0x8cc0e5,
+    phy.material({ name:'room', color:0xFFFFFF,  //color:0x8cc0e5,
         roughness: 0.5, metalness: 0, 
         map:phy.texture({ url:'./assets/textures/room_c.jpg', srgb:true }),
         lightMap:phy.texture({ url:'./assets/textures/room_ao.jpg' }),

@@ -20,13 +20,16 @@ function demo() {
         groundColor:0x202020,
         groundReflect:0, //!\\ High process
         jointVisible:false, //!\\ High process
-        phi:12, theta:0, distance:14, y:4
+        phi:12, theta:0, distance:14, y:4,
+
+        direct:60,
+        exposure:0.1,
     })
 
 
-    const env = phy.addEnvmap({ cube:true, color:0x807085 })
-    env.intensity = 2;
-    env.render()
+    const env = phy.addEnvmap({ cube:true, color:0x303030 })
+    env.intensity = 10;
+    env.render();
     //phy.lightIntensity( 60, 0, 0.1 );
     phy.useRealLight( {} );
     
@@ -40,10 +43,10 @@ function demo() {
     phy.add({ type:'container', material:'debug', size:[5.8, 14, 6.6,10.0], pos:[0,7,0], friction:0.5, restitution:0, intern:true, remplace:true, color:0x000000 });
     phy.add({ type:'box', size:[5.8, 5, 2], material:'debug', pos:[0,2.5,-2], friction:0.5, restitution:0, intern:true, remplace:true, color:0x000000 });
 
-    phy.load(['./assets/models/'+modelName+'.glb'], onComplete )
+    //phy.load(['./assets/models/'+modelName+'.glb'], onComplete )
     //phy.load(['./private/models/'+modelName+'.glb'], onComplete )
-    //modelName = 'woman'
-    //phy.load(['./assets/models/avatar/woman.glb'], onComplete )
+    modelName = 'woman'
+    phy.load(['./assets/models/avatar/woman.glb'], onComplete )
     phy.setPostUpdate ( update );
 
 
@@ -52,14 +55,14 @@ function demo() {
 
 onComplete = () => {
 
-    /*const map = phy.texture({ url:'./assets/textures/avatar_1k/avatar_c.jpg', flip:true, encoding:true })
+    const map = phy.texture({ url:'./assets/textures/avatar_1k/avatar_c.jpg', flip:true, encoding:true })
     const normal = phy.texture({ url:'./assets/textures/avatar_1k/avatar_n.jpg', flip:true, encoding:false })
     const ao = phy.texture({ url:'./assets/textures/avatar_1k/avatar_ao.jpg', flip:true, encoding:false })
-*/
+/*
     const map = phy.texture({ url:'./assets/textures/motorica_c.jpg', flip:true, encoding:true })
     const normal = phy.texture({ url:'./assets/textures/motorica_n.png', flip:true, encoding:false })
     const ao = phy.texture({ url:'./assets/textures/motorica_ao.png', flip:true, encoding:false })
-
+*/
     //const map = phy.texture({ url:'./assets/textures/minion.jpg', flip:true, encoding:true })
     //const orm = phy.texture({ url:'./assets/textures/minion_orm.jpg', flip:true, encoding:false })
     //const rough = phy.texture({ url:'./assets/textures/minion_r.jpg', flip:true, encoding:false })

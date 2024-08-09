@@ -287,7 +287,7 @@ export const Mat = {
 	directIntensity: ( v ) => {
 
 		for( let name in mat ) {
-			if( mat[name].envMapIntensity ) mat[name].envMapIntensity = v;
+		//	if( mat[name].envMapIntensity ) mat[name].envMapIntensity = v;
 		}
 		
 	},
@@ -296,10 +296,10 @@ export const Mat = {
 
 		//console.log('set', v)
 
-		if( v === Mat.envMapIntensity ) return;
-		Mat.envMapIntensity = v;
+		//if( v === Mat.envMapIntensity ) return;
+		//Mat.envMapIntensity = v;
 
-		for( let name in mat ) Mat.upEnvmapIntensity( mat[name] );
+		//for( let name in mat ) Mat.upEnvmapIntensity( mat[name] );
 		
 	},
 
@@ -307,8 +307,8 @@ export const Mat = {
 
 		
 
-		if( !m.userData.envp ) m.userData.envp = m.envMapIntensity;
-		m.envMapIntensity = m.userData.envp * Mat.envMapIntensity;
+		//if( !m.userData.envp ) m.userData.envp = m.envMapIntensity;
+		//m.envMapIntensity = m.userData.envp * Mat.envMapIntensity;
 
 		//console.log('HH', m.name, m.envMapIntensity)
 		
@@ -459,7 +459,7 @@ export const Mat = {
 						shader.defines.ENHANCE_SHADER_LIGHTING = option[o] ? "" : undefined;
 						//console.log(shader.defines.ENHANCE_SHADER_LIGHTING)
 					}*/
-					if(shader.uniforms[o]) shader.uniforms[o].value = option[o]; 
+					if(shader.uniforms[o]!==undefined) shader.uniforms[o].value = option[o]; 
 				}
 				// update material option
 				if( m[o] ) m[o] = option[o];

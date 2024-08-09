@@ -95,7 +95,7 @@ const CameraBase = {
 // default config
 const setting = {
 
-	exposure: 1,
+	//exposure: 1,
 	envmap:'clear',//'basic',
 	
 	groundSize:[ 60, 60 ],
@@ -108,6 +108,11 @@ const setting = {
 	fog:false,
 	vignette:true,
 	shadow:0.75,
+
+	exposure: 1,
+	direct:3.14,
+	spherical: 0,
+	envIntensity:1,
 
 }
 
@@ -128,13 +133,18 @@ const options = {
 	gravity:[0,-9.81,0],
 
 	tone:'ACESFilmic',
+
 	exposure: 1,
-	envPower: 1,//1
+	direct:3.14,
+	spherical: 0,
+	envIntensity:1,
+
+	//envPower:1,//1
 	envBlur:0,
 	legacy:false,
 
-	light_1: 3.14,
-	light_2: 1,
+	//light_1: 3.14,
+	//light_2: 1,
 
 	show_light: false,
 	show_stat: false,
@@ -337,7 +347,7 @@ export const Main = {
 		//return Main.demoList
 	},
 
-	lightIntensity:(a,b,c) => { lightIntensity(a,b,c) },
+	lightIntensity:() => { lightIntensity() },
 	changeShadow:(o) => { changeShadow(o) },
 	envmapIntensity:() => { setEnvmapIntensity() },
 	setReflect:(v) => { setReflect(v) },
@@ -404,7 +414,7 @@ export const Main = {
 
 Motor.log = Hub.log;
 
-Motor.lightIntensity = Main.lightIntensity
+
 Motor.changeShadow = Main.changeShadow;
 
 Motor.initParticle = Main.initParticle
@@ -649,9 +659,9 @@ const start = () => {
 	renderStart = true
 }
 
-const upExpose = () => {
+/*const upExpose = () => {
 	if( renderer.toneMappingExposure < options.exposure ) renderer.toneMappingExposure+=0.001
-}
+}*/
 
 const addControl = () => {
 	if( Main.isMobile ) Hub.addJoystick()
@@ -671,16 +681,16 @@ const changeShadow = (o) => {
 
 const lightIntensity = (a,b,c) => {
 
-	if( a !== undefined ) options.light_1 = a
-	if( b !== undefined ) options.light_2 = b
-	if( c !== undefined ){ 
-		options.exposure = c
-		renderer.toneMappingExposure = options.exposure;
-	}
+	if( a !== undefined ) options.direct = a
+	if( b !== undefined ) options.spherical = b
+	if( c !== undefined ) options.exposure = c
 
-	Lights.update( { sunIntensity:options.light_1, hemiIntensity:options.light_2 })
+	Lights.update( { sunIntensity:options.direct, hemiIntensity:options.spherical })
+	renderer.toneMappingExposure = options.exposure;
 
 }
+
+Motor.lightIntensity = lightIntensity
 
 const addLight = () => {
 
@@ -1216,8 +1226,12 @@ const view = ( o = {} ) => {
 		options.quality = 1;
 	}
 
-	renderer.toneMappingExposure = o.exposure;
+	options.direct = o.direct;
+	options.spherical = o.spherical;
 	options.exposure = o.exposure;
+	options.envIntensity = o.envIntensity;
+
+	phy.lightIntensity();
 
 	Env.reset()
 
@@ -1261,8 +1275,8 @@ const view = ( o = {} ) => {
 
 	Shader.up( options )
 
-    if( o.envPower ) options.envPower = o.envPower;
-    else options.envPower = 1.0;
+    //if( o.envPower ) options.envPower = o.envPower;
+    //else options.envPower = 1.0;
 
     setEnvmapIntensity();
 	
@@ -1384,7 +1398,9 @@ const send = ( data ) => {
 
 const setEnvmapIntensity = () => {
 
-	Motor.setEnvmapIntensity( options.envPower )
+	scene.environmentIntensity = options.envIntensity;
+
+	//Motor.setEnvmapIntensity( options.envPower )
 
 	/*let g = Motor.getScene()
 	g.traverse( function ( node ) {

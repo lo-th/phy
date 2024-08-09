@@ -1641,10 +1641,56 @@ const shaderChange = {
 //https://github.com/0beqz/enhance-shader-lighting
 
 const shaderFunctions = /* glsl */ `
+
+mat4 brightnessMatrix( float brightness )
+{
+    return mat4( 1, 0, 0, 0,
+                 0, 1, 0, 0,
+                 0, 0, 1, 0,
+                 brightness, brightness, brightness, 1 );
+}
+
+mat4 contrastMatrix( float contrast )
+{
+    float t = ( 1.0 - contrast ) / 2.0;
+    
+    return mat4( contrast, 0, 0, 0,
+                 0, contrast, 0, 0,
+                 0, 0, contrast, 0,
+                 t, t, t, 1 );
+
+}
+
+mat4 saturationMatrix( float saturation )
+{
+    vec3 luminance = vec3( 0.3086, 0.6094, 0.0820 );
+    
+    float oneMinusSat = 1.0 - saturation;
+    
+    vec3 red = vec3( luminance.x * oneMinusSat );
+    red+= vec3( saturation, 0, 0 );
+    
+    vec3 green = vec3( luminance.y * oneMinusSat );
+    green += vec3( 0, saturation, 0 );
+    
+    vec3 blue = vec3( luminance.z * oneMinusSat );
+    blue += vec3( 0, 0, saturation );
+    
+    return mat4( red,     0,
+                 green,   0,
+                 blue,    0,
+                 0, 0, 0, 1 );
+}
+//fragColor = brightnessMatrix( brightness ) *
+//                contrastMatrix( contrast ) * 
+//                saturationMatrix( saturation ) *
+//                color;
+
 // source: https://timseverien.com/posts/2020-06-19-colour-correction-with-webgl/
 vec3 adjustContrast(vec3 color, float value) {
     const vec3 zero = vec3(0.);
-    return max(zero, 0.5 + value * (color - 0.5));
+    vec3 cc = color-0.5;
+    return max(zero, 0.5 + value * (cc));
 }
 
 // source: https://gist.github.com/yiwenl/745bfea7f04c456e0101
@@ -1813,6 +1859,18 @@ if(enableESL) {
 }
 `;
 const new_map_fragment = /* glsl */ `
+#ifdef USE_MAP
+
+   vec4 sampledDiffuseColor = texture2D( map, vMapUv );
+
+   #ifdef DECODE_VIDEO_TEXTURE
+
+        // use inline sRGB decode until browsers properly support SRGB8_ALPHA8 with video textures (#26516)
+
+        sampledDiffuseColor = vec4( mix( pow( sampledDiffuseColor.rgb * 0.9478672986 + vec3( 0.0521327014 ), vec3( 2.4 ) ), sampledDiffuseColor.rgb * 0.0773993808, vec3( lessThanEqual( sampledDiffuseColor.rgb, vec3( 0.04045 ) ) ) ), sampledDiffuseColor.w );
+    
+    #endif
+
 if(enableESL) {
     #ifdef USE_LIGHTMAP
         float lightMapIntensityCorrect = lightMapIntensity;
@@ -1834,7 +1892,10 @@ if(enableESL) {
     vec3 intensity = vec3(dot(lightMapClr, W));
     lightMapClr = mix(intensity, lightMapClr, lightMapSaturation);
 
-    if(mapContrast != 1.) sampledDiffuseColor = vec4(adjustContrast(sampledDiffuseColor.rgb, mapContrast), 1.);
+    if(mapContrast != 1.) sampledDiffuseColor = vec4(adjustContrast(sampledDiffuseColor.rgb, mapContrast), sampledDiffuseColor.a);
+    //sampledDiffuseColor = clamp(sampledDiffuseColor, 0.0,1.0);
+    //if(mapContrast != 1.) sampledDiffuseColor *= contrastMatrix( mapContrast );
+    //if(mapContrast != 1.) sampledDiffuseColor *= saturationMatrix( mapContrast );
 
     vec3 lightMapHsv = rgb2hsv(lightMapClr);
     float saturation = lightMapHsv.y;
@@ -1844,7 +1905,7 @@ if(enableESL) {
     float value = pow(lightMapHsv.z, 0.05);
     float darkness = 1. - value;
 
-    // lightMapHsv.y = mix(lightMapHsv.y, lightMapHsv.y * 5., darkness * 1.75);
+     lightMapHsv.y = mix(lightMapHsv.y, lightMapHsv.y * 5., darkness * 1.75);
     
     lightMapHsv = hsv2rgb(lightMapHsv);
 
@@ -1866,7 +1927,7 @@ if(enableESL) {
 } else {
     diffuseColor *= sampledDiffuseColor;
 }
-
+#endif
 `;
 
 THREE$1.ShaderChunk.map_fragment.replace( "diffuseColor *= sampledDiffuseColor;", new_map_fragment );
@@ -2034,7 +2095,8 @@ function EnhanceLighting( shader,
 		.replace("#include <lights_fragment_maps>", lights_fragment_maps)
 		//.replace("#include <lightmap_fragment>", lightmap_fragment) // NO MORE LIGHTMAP IN LAST THREE 
 		//.replace("#include <map_fragment>", map_fragment) 
-        .replace( "diffuseColor *= sampledDiffuseColor;", new_map_fragment )
+        .replace( "#include <map_fragment>", new_map_fragment )
+        ///.replace( "diffuseColor *= sampledDiffuseColor;", new_map_fragment )
 
 		.replace("#include <envmap_physical_pars_fragment>", THREE$1.ShaderChunk.envmap_physical_pars_fragment)
 
@@ -2348,10 +2410,6 @@ const Mat = {
 	},
 
 	directIntensity: ( v ) => {
-
-		for( let name in mat ) {
-			if( mat[name].envMapIntensity ) mat[name].envMapIntensity = v;
-		}
 		
 	},
 
@@ -2359,10 +2417,10 @@ const Mat = {
 
 		//console.log('set', v)
 
-		if( v === Mat.envMapIntensity ) return;
-		Mat.envMapIntensity = v;
+		//if( v === Mat.envMapIntensity ) return;
+		//Mat.envMapIntensity = v;
 
-		for( let name in mat ) Mat.upEnvmapIntensity( mat[name] );
+		//for( let name in mat ) Mat.upEnvmapIntensity( mat[name] );
 		
 	},
 
@@ -2370,8 +2428,8 @@ const Mat = {
 
 		
 
-		if( !m.userData.envp ) m.userData.envp = m.envMapIntensity;
-		m.envMapIntensity = m.userData.envp * Mat.envMapIntensity;
+		//if( !m.userData.envp ) m.userData.envp = m.envMapIntensity;
+		//m.envMapIntensity = m.userData.envp * Mat.envMapIntensity;
 
 		//console.log('HH', m.name, m.envMapIntensity)
 		
@@ -2520,7 +2578,7 @@ const Mat = {
 						shader.defines.ENHANCE_SHADER_LIGHTING = option[o] ? "" : undefined;
 						//console.log(shader.defines.ENHANCE_SHADER_LIGHTING)
 					}*/
-					if(shader.uniforms[o]) shader.uniforms[o].value = option[o]; 
+					if(shader.uniforms[o]!==undefined) shader.uniforms[o].value = option[o]; 
 				}
 				// update material option
 				if( m[o] ) m[o] = option[o];
@@ -42927,20 +42985,25 @@ class Envmap {
 	}
 
 	addSky(){
+
 		let g = new IcosahedronGeometry( 20, 1 );
 		const mat = new ShaderMaterial( SkyShader );
 		this.sky = new Mesh( g, mat );
 		this.scene.add(this.sky);
 		this.render();
 		this.isSky = true;
+		
 	}
 
 	getSkyOtion(){
+
 		if(!this.isSky) return;
 		return skyOption;
+
 	}
 
 	setSkyOtion( o ){
+
 		if(!this.isSky) return;
 		let u = this.sky.material.uniforms;
 		for(let k in o){
@@ -42949,6 +43012,7 @@ class Envmap {
 	
 	    if(this.timeout) clearTimeout(this.timeout);
 	    this.timeout = setTimeout( this.render.bind(this), 0 );
+
 	}
 
 	render() {
