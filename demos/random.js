@@ -16,6 +16,8 @@ demo = () => {
         theta:45,
     })
 
+    //phy.useRealLight( {} );
+
     // config physics setting
     phy.set({ substep:2, gravity:[0,-30,0]})
 

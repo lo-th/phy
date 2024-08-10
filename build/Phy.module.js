@@ -32281,9 +32281,7 @@ const Pool = {
                     function( error ){ console.error('decodeAudioData error', error); }
                 );
             break;
-            case 'hex': case 'bin':
-            LZMA.decompress( response, ( result ) => { Pool.add( name, result, type ); });
-            break;
+            case 'hex': case 'bin': LZMA.decompress( response, ( result ) => { Pool.add( name, result, type ); }); break;
             case 'wasm': Pool.add( name, new Uint8Array( response ), type ); break;
             case 'json': Pool.add( name, JSON.parse( response ), type ); break;
             case 'js': Pool.add( name, response, type ); break;
@@ -43457,6 +43455,7 @@ K.update = function () {
 
         const matrix = bone ? ( bone.isPhysics ? bone.phyMtx : bone.matrixWorld ) : _identityMatrix;
 
+        // no need but break dragon demo ??
         //if( bone.isPhysics ) this.scalled = true
         
         this.childScale( bone, matrix );
@@ -43493,7 +43492,7 @@ const Version = {
     PHYSX: '5.4.0',
     RAPIER: '0.11.2',
     HAVOK: '1.2.1',
-    JOLT: '0.24.0',
+    JOLT: '0.25.0',
 
 };
 
@@ -43844,8 +43843,6 @@ class Motor {
 			    blob.append(code);
 			    blob = blob.getBlob();
 			}
-
-			//let tmp = new Blob([ code ], { type: 'application/javascript' })
 
 			worker = new Worker( URL.createObjectURL(blob) );
 		    //else worker = new Worker( url + path + mini + '.module.js', {type:'module'});

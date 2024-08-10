@@ -10,8 +10,8 @@ import { Motor } from '../motor/Motor.js'
 
 
 const Styles = {
-    menuName:'font-size:14px; font-weight:500;',
-    demoName:'font-size:14px; width:fit-content; font-weight:500;',
+    menuName:'font-size:14px; font-weight:400;',
+    demoName:'font-size:14px; width:fit-content; font-weight:400;',
 }
 //text-shadow: 1px 1px 3px #000000;
 //letter-spacing: -0.022em;

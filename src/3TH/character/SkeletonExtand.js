@@ -226,6 +226,7 @@ K.update = function () {
 
         const matrix = bone ? ( bone.isPhysics ? bone.phyMtx : bone.matrixWorld ) : _identityMatrix;
 
+        // no need but break dragon demo ??
         //if( bone.isPhysics ) this.scalled = true
         
         this.childScale( bone, matrix );

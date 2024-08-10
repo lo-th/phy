@@ -448,9 +448,7 @@ export const Pool = {
                     function( error ){ console.error('decodeAudioData error', error); }
                 );
             break;
-            case 'hex': case 'bin':
-            LZMA.decompress( response, ( result ) => { Pool.add( name, result, type ) })
-            break;
+            case 'hex': case 'bin': LZMA.decompress( response, ( result ) => { Pool.add( name, result, type ) }); break;
             case 'wasm': Pool.add( name, new Uint8Array( response ), type ); break;
             case 'json': Pool.add( name, JSON.parse( response ), type ); break;
             case 'js': Pool.add( name, response, type ); break;

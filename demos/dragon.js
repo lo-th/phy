@@ -20,8 +20,8 @@ demo = () => {
     // add static ground
     //phy.add({ type:'plane', size:[300,1,300], pos:[0,-8,0], visible:false })
 
-    phy.add({ type:'container', material:debug ? 'debug' : 'hide', size:[10,10,50], pos:[0,0,-20], friction:0, wall:1.0, face:{front:0, back:0} })// material:'glassX'
-
+    phy.add({ type:'container', material:debug ? 'debug' : 'hide', size:[10,10,50], pos:[0,0,-20], friction:0, wall:1.0, remplace:true, color:0x000000, intern:true, face:{front:0, back:0} })// material:'glassX'
+//phy.add({ type:'container', material:'debug', size:[5.8, 14, 6.6,10.0], pos:[0,7,0], friction:0.5, restitution:0, intern:true, remplace:true, color:0x000000 });
     // preLoad
     const maps = [
     'textures/dragon/dragon_d.jpg', 'textures/dragon/dragon_a.jpg', 'textures/dragon/dragon_n.jpg', 'textures/dragon/dragon_ao.jpg',
@@ -73,12 +73,14 @@ onComplete = () => {
     models.dragon.castShadow = true;
     models.dragon.receiveShadow = false;
     let skeleton = models.dragon.skeleton
+    // see why ? 
+    skeleton.scalled = true;
     head = skeleton.getBoneByName('b_head');
     //head.rotation.y = 45 * math.torad
 
     phy.add( dragon )
 
-    console.log(dragon)
+    
 
     // SPINE
 

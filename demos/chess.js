@@ -10,13 +10,14 @@ demo = () => {
         groundSize:[ 8.9, 8.9 ], groundReflect:0.05,
         exposure:0.2,
         direct:20,
-
      })
+
+    phy.useRealLight( {} );
 
     phy.set({ substep:1 })
 
     //phy.lightIntensity( 6, 0, 0.7 );
-    phy.useRealLight( {} );
+    
 
     /*
     let grid = new THREE.GridHelper( 8, 8, 0x2f875d, 0x2f875d )

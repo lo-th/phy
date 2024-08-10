@@ -19,6 +19,8 @@ demo = () => {
 
     phy.view({ envmap:'clear', ground:true, fog:true, fogDist:0.01, distance:3, phi:0, theta:-90, target:[0,1,0], y:1 })
 
+    phy.useRealLight( {} );
+
     phy.set( {substep:1, gravity:[0,-9.81,0], key:true })
 
     phy.add({ type:'plane', name:'floor', size:[20,1,20], visible:false, friction:1.0 });

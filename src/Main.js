@@ -113,6 +113,7 @@ const setting = {
 	direct:3.14,
 	spherical: 0,
 	envIntensity:1,
+	bgIntensity:1,
 
 }
 
@@ -138,6 +139,7 @@ const options = {
 	direct:3.14,
 	spherical: 0,
 	envIntensity:1,
+	bgIntensity:1,
 
 	//envPower:1,//1
 	envBlur:0,
@@ -350,6 +352,7 @@ export const Main = {
 	lightIntensity:() => { lightIntensity() },
 	changeShadow:(o) => { changeShadow(o) },
 	envmapIntensity:() => { setEnvmapIntensity() },
+	bgIntensity:() => { setbgIntensity() },
 	setReflect:(v) => { setReflect(v) },
 
 	getOption:() => ( options ),
@@ -1279,6 +1282,7 @@ const view = ( o = {} ) => {
     //else options.envPower = 1.0;
 
     setEnvmapIntensity();
+    setbgIntensity();
 	
 }
 
@@ -1395,6 +1399,9 @@ const send = ( data ) => {
 //--------------------
 //   OPTION
 //--------------------
+const setbgIntensity = () => {
+	scene.backgroundIntensity = options.bgIntensity;
+}
 
 const setEnvmapIntensity = () => {
 

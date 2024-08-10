@@ -55,7 +55,7 @@ const Version = {
     PHYSX: '5.4.0',
     RAPIER: '0.11.2',
     HAVOK: '1.2.1',
-    JOLT: '0.24.0',
+    JOLT: '0.25.0',
 
 };
 
@@ -417,8 +417,6 @@ export class Motor {
 			    blob.append(code);
 			    blob = blob.getBlob();
 			}
-
-			//let tmp = new Blob([ code ], { type: 'application/javascript' })
 
 			worker = new Worker( URL.createObjectURL(blob) );
 		    //else worker = new Worker( url + path + mini + '.module.js', {type:'module'});
