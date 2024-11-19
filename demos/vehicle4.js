@@ -31,7 +31,7 @@ demo = () => {
 
     phy.log('use key WSAD or ZSQD<br>SPACE to handbrake<br>Right click to select drive car')
 
-    phy.view({ envmap:'puresky', ground:true, fog:true, fogDist:0.01 })
+    phy.view({ envmap:'puresky', ground:true, fog:false, fogDist:0.01 })
 
     phy.set( {substep:2, gravity:[0,-9.81,0], key:true })
 

@@ -639,7 +639,7 @@ export class MouseTool {
 					pos:p, 
 					quat:quat, 
 					kinematic:notUseKinematic ? false : true,
-					//mass:10000000,
+					//mass:10,///10000000,
 					//gravityFactor:0, 
 				},
 				{ 

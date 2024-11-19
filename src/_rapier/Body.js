@@ -317,20 +317,20 @@ export class Body extends Item {
 	    	
 	    	if( o.pos ){ 
 	    		
-	    		if( b.isKinematic ){
+	    		/*if( b.isKinematic ){
 
 	    			let pp = MathTool.subArray(o.pos, b.pos)
 	    			pp = MathTool.mulArray( pp, root.invDelta )
 	    			b.setLinvel( this.v.fromArray( pp ) )
 	    			b.pos = o.pos
-	    		}
+	    		}*/
 
 	    		b.setTranslation( this.v.fromArray( o.pos ), autowake )
 
 	    	}
 
 		    if( o.quat ){
-		    	if( b.isKinematic ){
+		    	/*if( b.isKinematic ){
 
 		    		let qqq = MathTool.quatMultiply( o.quat, MathTool.quatInvert( b.quat ) )
 		    		let mtx = MathTool.composeMatrixArray( [0,0,0], qqq, [1,1,1])
@@ -339,7 +339,7 @@ export class Body extends Item {
 
 	    			b.setAngvel( this.v.fromArray( eee ) )
 	    			b.quat = o.quat
-	    		}
+	    		}*/
 	    		
 		        b.setRotation( this.q.fromArray( o.quat ), autowake )
 		    }

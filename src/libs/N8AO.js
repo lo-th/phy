@@ -1,4 +1,4 @@
-import {Color as $5Whe3$Color, WebGLRenderTarget as $5Whe3$WebGLRenderTarget, LinearFilter as $5Whe3$LinearFilter, NearestFilter as $5Whe3$NearestFilter, HalfFloatType as $5Whe3$HalfFloatType, RGBAFormat as $5Whe3$RGBAFormat, DepthTexture as $5Whe3$DepthTexture, UnsignedInt248Type as $5Whe3$UnsignedInt248Type, UnsignedIntType as $5Whe3$UnsignedIntType, DepthStencilFormat as $5Whe3$DepthStencilFormat, DepthFormat as $5Whe3$DepthFormat, Matrix4 as $5Whe3$Matrix4, DataTexture as $5Whe3$DataTexture, ShaderMaterial as $5Whe3$ShaderMaterial, NoColorSpace as $5Whe3$NoColorSpace, RepeatWrapping as $5Whe3$RepeatWrapping, Vector2 as $5Whe3$Vector2, WebGLMultipleRenderTargets as $5Whe3$WebGLMultipleRenderTargets, RedFormat as $5Whe3$RedFormat, FloatType as $5Whe3$FloatType, Vector3 as $5Whe3$Vector3, BufferGeometry as $5Whe3$BufferGeometry, BufferAttribute as $5Whe3$BufferAttribute, Sphere as $5Whe3$Sphere, OrthographicCamera as $5Whe3$OrthographicCamera, Mesh as $5Whe3$Mesh} from "three";
+import {Color as $5Whe3$Color, WebGLRenderTarget as $5Whe3$WebGLRenderTarget, LinearFilter as $5Whe3$LinearFilter, NearestFilter as $5Whe3$NearestFilter, HalfFloatType as $5Whe3$HalfFloatType, RGBAFormat as $5Whe3$RGBAFormat, DepthTexture as $5Whe3$DepthTexture, UnsignedInt248Type as $5Whe3$UnsignedInt248Type, UnsignedIntType as $5Whe3$UnsignedIntType, DepthStencilFormat as $5Whe3$DepthStencilFormat, DepthFormat as $5Whe3$DepthFormat, Matrix4 as $5Whe3$Matrix4, DataTexture as $5Whe3$DataTexture, ShaderMaterial as $5Whe3$ShaderMaterial, NoColorSpace as $5Whe3$NoColorSpace, RepeatWrapping as $5Whe3$RepeatWrapping, Vector2 as $5Whe3$Vector2, REVISION as $5Whe3$REVISION, WebGLMultipleRenderTargets as $5Whe3$WebGLMultipleRenderTargets, RedFormat as $5Whe3$RedFormat, FloatType as $5Whe3$FloatType, Vector3 as $5Whe3$Vector3, BufferGeometry as $5Whe3$BufferGeometry, BufferAttribute as $5Whe3$BufferAttribute, Sphere as $5Whe3$Sphere, OrthographicCamera as $5Whe3$OrthographicCamera, Mesh as $5Whe3$Mesh} from "three";
 import {Pass as $5Whe3$Pass} from "../jsm/postprocessing/Pass.js";
 import {Pass as $5Whe3$Pass1} from "./postprocessing.js";
 
@@ -644,7 +644,7 @@ const $12b21d24d1192a04$export$a815acccbd2c9a49 = {
         }
         #include <dithering_fragment>
         if (gammaCorrection) {
-            gl_FragColor = LinearTosRGB(gl_FragColor);
+            gl_FragColor = sRGBTransferOETF(gl_FragColor);
         }
     }
     `
@@ -1197,23 +1197,20 @@ class $87431ee93b037844$export$2489f9981ab0fa82 extends (0, $5Whe3$Pass1) {
     configureHalfResTargets() {
         this.firstFrame();
         if (this.configuration.halfRes) {
-            this.depthDownsampleTarget = /*new THREE.WebGLRenderTarget(this.width / 2, this.height / 2, {
-                               minFilter: THREE.NearestFilter,
-                               magFilter: THREE.NearestFilter,
-                               depthBuffer: false,
-                               format: THREE.RedFormat,
-                               type: THREE.FloatType
-                           });*/ new $5Whe3$WebGLMultipleRenderTargets(this.width / 2, this.height / 2, 2);
-            this.depthDownsampleTarget.texture[0].format = $5Whe3$RedFormat;
-            this.depthDownsampleTarget.texture[0].type = $5Whe3$FloatType;
-            this.depthDownsampleTarget.texture[0].minFilter = $5Whe3$NearestFilter;
-            this.depthDownsampleTarget.texture[0].magFilter = $5Whe3$NearestFilter;
-            this.depthDownsampleTarget.texture[0].depthBuffer = false;
-            this.depthDownsampleTarget.texture[1].format = $5Whe3$RGBAFormat;
-            this.depthDownsampleTarget.texture[1].type = $5Whe3$HalfFloatType;
-            this.depthDownsampleTarget.texture[1].minFilter = $5Whe3$NearestFilter;
-            this.depthDownsampleTarget.texture[1].magFilter = $5Whe3$NearestFilter;
-            this.depthDownsampleTarget.texture[1].depthBuffer = false;
+            this.depthDownsampleTarget = $5Whe3$REVISION > 161 ? new $5Whe3$WebGLRenderTarget(this.width / 2, this.height / 2, {
+                count: 2
+            }) : new $5Whe3$WebGLMultipleRenderTargets(this.width / 2, this.height / 2, 2);
+            if ($5Whe3$REVISION <= 161) this.depthDownsampleTarget.textures = this.depthDownsampleTarget.texture;
+            this.depthDownsampleTarget.textures[0].format = $5Whe3$RedFormat;
+            this.depthDownsampleTarget.textures[0].type = $5Whe3$FloatType;
+            this.depthDownsampleTarget.textures[0].minFilter = $5Whe3$NearestFilter;
+            this.depthDownsampleTarget.textures[0].magFilter = $5Whe3$NearestFilter;
+            this.depthDownsampleTarget.textures[0].depthBuffer = false;
+            this.depthDownsampleTarget.textures[1].format = $5Whe3$RGBAFormat;
+            this.depthDownsampleTarget.textures[1].type = $5Whe3$HalfFloatType;
+            this.depthDownsampleTarget.textures[1].minFilter = $5Whe3$NearestFilter;
+            this.depthDownsampleTarget.textures[1].magFilter = $5Whe3$NearestFilter;
+            this.depthDownsampleTarget.textures[1].depthBuffer = false;
             this.depthDownsampleQuad = new (0, $e4ca8dcb0218f846$export$dcd670d73db751f5)(new $5Whe3$ShaderMaterial((0, $26aca173e0984d99$export$1efdf491687cd442)));
         } else {
             if (this.depthDownsampleTarget) {
@@ -1485,8 +1482,8 @@ class $87431ee93b037844$export$2489f9981ab0fa82 extends (0, $5Whe3$Pass1) {
                 this.depthDownsampleQuad.render(renderer);
             }
             this.effectShaderQuad.material.uniforms["sceneDiffuse"].value = inputBuffer.texture;
-            this.effectShaderQuad.material.uniforms["sceneDepth"].value = this.configuration.halfRes ? this.depthDownsampleTarget.texture[0] : this.depthTexture;
-            this.effectShaderQuad.material.uniforms["sceneNormal"].value = this.configuration.halfRes ? this.depthDownsampleTarget.texture[1] : null;
+            this.effectShaderQuad.material.uniforms["sceneDepth"].value = this.configuration.halfRes ? this.depthDownsampleTarget.textures[0] : this.depthTexture;
+            this.effectShaderQuad.material.uniforms["sceneNormal"].value = this.configuration.halfRes ? this.depthDownsampleTarget.textures[1] : null;
             this.effectShaderQuad.material.uniforms["projMat"].value = this.camera.projectionMatrix;
             this.effectShaderQuad.material.uniforms["viewMat"].value = this.camera.matrixWorldInverse;
             this.effectShaderQuad.material.uniforms["projViewMat"].value = this.camera.projectionMatrix.clone().multiply(this.camera.matrixWorldInverse.clone());
@@ -1516,7 +1513,7 @@ class $87431ee93b037844$export$2489f9981ab0fa82 extends (0, $5Whe3$Pass1) {
                     this.writeTargetInternal
                 ];
                 this.poissonBlurQuad.material.uniforms["tDiffuse"].value = this.readTargetInternal.texture;
-                this.poissonBlurQuad.material.uniforms["sceneDepth"].value = this.configuration.halfRes ? this.depthDownsampleTarget.texture[0] : this.depthTexture;
+                this.poissonBlurQuad.material.uniforms["sceneDepth"].value = this.configuration.halfRes ? this.depthDownsampleTarget.textures[0] : this.depthTexture;
                 this.poissonBlurQuad.material.uniforms["projMat"].value = this.camera.projectionMatrix;
                 this.poissonBlurQuad.material.uniforms["viewMat"].value = this.camera.matrixWorldInverse;
                 this.poissonBlurQuad.material.uniforms["projectionMatrixInv"].value = this.camera.projectionMatrixInverse;
@@ -1562,7 +1559,7 @@ class $87431ee93b037844$export$2489f9981ab0fa82 extends (0, $5Whe3$Pass1) {
         this.effectCompositerQuad.material.uniforms["viewMatrixInv"].value = this.camera.matrixWorld;
         this.effectCompositerQuad.material.uniforms["logDepth"].value = renderer.capabilities.logarithmicDepthBuffer;
         this.effectCompositerQuad.material.uniforms["ortho"].value = this.camera.isOrthographicCamera;
-        this.effectCompositerQuad.material.uniforms["downsampledDepth"].value = this.configuration.halfRes ? this.depthDownsampleTarget.texture[0] : this.depthTexture;
+        this.effectCompositerQuad.material.uniforms["downsampledDepth"].value = this.configuration.halfRes ? this.depthDownsampleTarget.textures[0] : this.depthTexture;
         this.effectCompositerQuad.material.uniforms["resolution"].value = this._r;
         this.effectCompositerQuad.material.uniforms["blueNoise"].value = this.bluenoise;
         this.effectCompositerQuad.material.uniforms["intensity"].value = this.configuration.intensity;
@@ -1845,23 +1842,20 @@ class $05f6997e4b65da14$export$2d57db20b5eb5e0a extends (0, $5Whe3$Pass) {
     configureHalfResTargets() {
         this.firstFrame();
         if (this.configuration.halfRes) {
-            this.depthDownsampleTarget = /*new THREE.WebGLRenderTarget(this.width / 2, this.height / 2, {
-                               minFilter: THREE.NearestFilter,
-                               magFilter: THREE.NearestFilter,
-                               depthBuffer: false,
-                               format: THREE.RedFormat,
-                               type: THREE.FloatType
-                           });*/ new $5Whe3$WebGLMultipleRenderTargets(this.width / 2, this.height / 2, 2);
-            this.depthDownsampleTarget.texture[0].format = $5Whe3$RedFormat;
-            this.depthDownsampleTarget.texture[0].type = $5Whe3$FloatType;
-            this.depthDownsampleTarget.texture[0].minFilter = $5Whe3$NearestFilter;
-            this.depthDownsampleTarget.texture[0].magFilter = $5Whe3$NearestFilter;
-            this.depthDownsampleTarget.texture[0].depthBuffer = false;
-            this.depthDownsampleTarget.texture[1].format = $5Whe3$RGBAFormat;
-            this.depthDownsampleTarget.texture[1].type = $5Whe3$HalfFloatType;
-            this.depthDownsampleTarget.texture[1].minFilter = $5Whe3$NearestFilter;
-            this.depthDownsampleTarget.texture[1].magFilter = $5Whe3$NearestFilter;
-            this.depthDownsampleTarget.texture[1].depthBuffer = false;
+            this.depthDownsampleTarget = $5Whe3$REVISION > 161 ? new $5Whe3$WebGLRenderTarget(this.width / 2, this.height / 2, {
+                count: 2
+            }) : new $5Whe3$WebGLMultipleRenderTargets(this.width / 2, this.height / 2, 2);
+            if ($5Whe3$REVISION <= 161) this.depthDownsampleTarget.textures = this.depthDownsampleTarget.texture;
+            this.depthDownsampleTarget.textures[0].format = $5Whe3$RedFormat;
+            this.depthDownsampleTarget.textures[0].type = $5Whe3$FloatType;
+            this.depthDownsampleTarget.textures[0].minFilter = $5Whe3$NearestFilter;
+            this.depthDownsampleTarget.textures[0].magFilter = $5Whe3$NearestFilter;
+            this.depthDownsampleTarget.textures[0].depthBuffer = false;
+            this.depthDownsampleTarget.textures[1].format = $5Whe3$RGBAFormat;
+            this.depthDownsampleTarget.textures[1].type = $5Whe3$HalfFloatType;
+            this.depthDownsampleTarget.textures[1].minFilter = $5Whe3$NearestFilter;
+            this.depthDownsampleTarget.textures[1].magFilter = $5Whe3$NearestFilter;
+            this.depthDownsampleTarget.textures[1].depthBuffer = false;
             this.depthDownsampleQuad = new (0, $e4ca8dcb0218f846$export$dcd670d73db751f5)(new $5Whe3$ShaderMaterial((0, $26aca173e0984d99$export$1efdf491687cd442)));
         } else {
             if (this.depthDownsampleTarget) {
@@ -2126,8 +2120,8 @@ class $05f6997e4b65da14$export$2d57db20b5eb5e0a extends (0, $5Whe3$Pass) {
                 this.depthDownsampleQuad.render(renderer);
             }
             this.effectShaderQuad.material.uniforms["sceneDiffuse"].value = this.beautyRenderTarget.texture;
-            this.effectShaderQuad.material.uniforms["sceneDepth"].value = this.configuration.halfRes ? this.depthDownsampleTarget.texture[0] : this.beautyRenderTarget.depthTexture;
-            this.effectShaderQuad.material.uniforms["sceneNormal"].value = this.configuration.halfRes ? this.depthDownsampleTarget.texture[1] : null;
+            this.effectShaderQuad.material.uniforms["sceneDepth"].value = this.configuration.halfRes ? this.depthDownsampleTarget.textures[0] : this.beautyRenderTarget.depthTexture;
+            this.effectShaderQuad.material.uniforms["sceneNormal"].value = this.configuration.halfRes ? this.depthDownsampleTarget.textures[1] : null;
             this.effectShaderQuad.material.uniforms["projMat"].value = this.camera.projectionMatrix;
             this.effectShaderQuad.material.uniforms["viewMat"].value = this.camera.matrixWorldInverse;
             this.effectShaderQuad.material.uniforms["projViewMat"].value = this.camera.projectionMatrix.clone().multiply(this.camera.matrixWorldInverse.clone());
@@ -2157,7 +2151,7 @@ class $05f6997e4b65da14$export$2d57db20b5eb5e0a extends (0, $5Whe3$Pass) {
                     this.writeTargetInternal
                 ];
                 this.poissonBlurQuad.material.uniforms["tDiffuse"].value = this.readTargetInternal.texture;
-                this.poissonBlurQuad.material.uniforms["sceneDepth"].value = this.configuration.halfRes ? this.depthDownsampleTarget.texture[0] : this.beautyRenderTarget.depthTexture;
+                this.poissonBlurQuad.material.uniforms["sceneDepth"].value = this.configuration.halfRes ? this.depthDownsampleTarget.textures[0] : this.beautyRenderTarget.depthTexture;
                 this.poissonBlurQuad.material.uniforms["projMat"].value = this.camera.projectionMatrix;
                 this.poissonBlurQuad.material.uniforms["viewMat"].value = this.camera.matrixWorldInverse;
                 this.poissonBlurQuad.material.uniforms["projectionMatrixInv"].value = this.camera.projectionMatrixInverse;
@@ -2203,7 +2197,7 @@ class $05f6997e4b65da14$export$2d57db20b5eb5e0a extends (0, $5Whe3$Pass) {
         this.effectCompositerQuad.material.uniforms["viewMatrixInv"].value = this.camera.matrixWorld;
         this.effectCompositerQuad.material.uniforms["logDepth"].value = renderer.capabilities.logarithmicDepthBuffer;
         this.effectCompositerQuad.material.uniforms["ortho"].value = this.camera.isOrthographicCamera;
-        this.effectCompositerQuad.material.uniforms["downsampledDepth"].value = this.configuration.halfRes ? this.depthDownsampleTarget.texture[0] : this.beautyRenderTarget.depthTexture;
+        this.effectCompositerQuad.material.uniforms["downsampledDepth"].value = this.configuration.halfRes ? this.depthDownsampleTarget.textures[0] : this.beautyRenderTarget.depthTexture;
         this.effectCompositerQuad.material.uniforms["resolution"].value = this._r;
         this.effectCompositerQuad.material.uniforms["blueNoise"].value = this.bluenoise;
         this.effectCompositerQuad.material.uniforms["intensity"].value = this.configuration.intensity;

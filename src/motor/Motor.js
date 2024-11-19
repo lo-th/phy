@@ -40,7 +40,7 @@ import { preloadAvatar } from '../3TH/character/Avatar.js';
 
 /** __
 *    _)_|_|_
-*   __) |_| | 2023
+*   __) |_| | 2024
 * @author lo.th / https://github.com/lo-th
 *
 *    THREE JS ENGINE
@@ -48,7 +48,7 @@ import { preloadAvatar } from '../3TH/character/Avatar.js';
 
 const Version = {
 	
-	PHY: '0.1.2',
+	PHY: '0.1.3',
 
     OIMO: '1.2.4',
     AMMO: '3.0',
@@ -148,6 +148,8 @@ export class Motor {
 	static useRealLight (o) { Mat.useRealLight(o) }
 
 	static getSetting () { return settings; }
+
+	static getRoot() { return root; }
 
 	static setGravity( v ){
 
@@ -291,8 +293,6 @@ export class Motor {
 
 		scriptDir = typeof document !== 'undefined' && document.currentScript ? document.currentScript.src : undefined;
 
-		//console.log('yoo', scriptDir, testUrl )
-
 		tt.start = Timer.now();
 
 		const compact = o.compact || false;
@@ -329,6 +329,9 @@ export class Motor {
 
 		// garbage material
 		Pool.materialRoot = Mat.set;
+
+		// extand shader
+		Mat.initExtandShader();
 
 		if( o.callback ){ 
 			callbackReady = o.callback;
@@ -402,7 +405,6 @@ export class Motor {
 
 		let name = root.engine.toLowerCase();
 		let mini = name.charAt(0).toUpperCase() + name.slice(1);
-
 		let code = Pool.get( mini, 'H' );
 
 		if( isWorker ){
@@ -435,11 +437,11 @@ export class Motor {
 
 		} else {
 
-			let type = name.toUpperCase()
+			let type = name.toUpperCase();
 			if(type==='RAPIER') type = 'RAPIER3D';
 
 			let n = document.createElement("script");
-            n.language = "javascript"
+            n.language = "javascript";
             n.type = "text/javascript";
             n.charset = "utf-8";
             n.async = true;
@@ -468,7 +470,7 @@ export class Motor {
 	static preLoadMin( name, o, url ) {
 
 		let link = url + 'build/'+name+'.min.js';
-		let type = name.toUpperCase()
+		let type = name.toUpperCase();
 		if(type==='RAPIER') type = 'RAPIER3D';
 
 		var xml = new XMLHttpRequest();
@@ -1124,6 +1126,8 @@ export class Motor {
 
 	static getMaterial( name ){ return Mat.get( name ) }
 
+	static changeRenderMode( n ){ return Mat.changeRenderMode( n ) }
+
 
 	//-----------------------
 	//
@@ -1263,6 +1267,24 @@ export class Motor {
 		while( i-- ) textfields[i].dispose();
     	textfields = [];
 		
+	}
+
+	//-----------------------
+	// BREAK
+	//-----------------------
+
+	static screenshot() {
+
+		var w = window.open('', '');
+	    w.document.title = "Screenshot";
+	    w.document.body.style.cssText = 'margin:0; padding:0; overflow:hidden;';
+	    //w.document.body.style.backgroundColor = "red";
+	    var img = new Image();
+	    // Without 'preserveDrawingBuffer' set to true, we must render now
+	    renderer.render(scene, Motor.getCamera());
+	    img.src = renderer.domElement.toDataURL();
+	    w.document.body.appendChild(img); 
+
 	}
 
 

@@ -6,7 +6,7 @@ import {
     AddEquation, SubtractEquation, ReverseSubtractEquation, MinEquation, MaxEquation,
     ZeroFactor, OneFactor, SrcColorFactor, OneMinusSrcColorFactor, SrcAlphaFactor, OneMinusSrcAlphaFactor, 
     DstAlphaFactor, OneMinusDstAlphaFactor, DstColorFactor, OneMinusDstColorFactor, SrcAlphaSaturateFactor,
-    FrontSide, BackSide, DoubleSide,
+    FrontSide, BackSide, DoubleSide, ShaderChunk
 } from 'three';
 import { CarbonTexture } from '../../3TH/textures/CarbonTexture.js';
 import { MeshSssMaterial } from '../../3TH/materials/MeshSssMaterial.js';
@@ -109,11 +109,67 @@ const ThreeVariable = {
 
 };
 
+const addRenderMode = ()=>{
+
+	let s = ShaderChunk.common;
+	s = s.replace( '#define EPSILON 1e-6', `
+		#define EPSILON 1e-6
+		uniform int renderMode;
+		uniform int depthPacking;
+		varying vec2 vZW;
+    `);
+    ShaderChunk.common = s;
+
+    ShaderChunk.clipping_planes_vertex = `
+        #if NUM_CLIPPING_PLANES > 0
+            vClipPosition = - mvPosition.xyz;
+        #endif
+        vZW = gl_Position.zw;
+    `;
+
+    s = ShaderChunk.dithering_fragment;
+	s = s.replace( '#endif', `
+		#endif
+
+        #ifdef STANDARD
+
+        if( renderMode == 1 ){ // depth render
+            float fz = 0.5 * vZW[0] / vZW[1] + 0.5;
+            fz=pow(fz, 10.0);
+            gl_FragColor = depthPacking == 1 ? packDepthToRGBA( fz ) : vec4( vec3( 1.0 - fz ), opacity );
+        }
+        if( renderMode == 2 ) gl_FragColor = vec4(  packNormalToRGB( normal ), opacity );// normal render
+        //if( renderMode == 3 ) gl_FragColor = vec4(  shadowColor, opacity );// normal render
+
+        #else
+
+        if( renderMode != 0 ) discard;
+
+        #endif
+    `);
+    ShaderChunk.dithering_fragment = s;
+
+
+}
+
 export const Mat = {
+
+	renderMode:{ value: 0 },
+	depthPacking:{ value: 0 },
 
 	isRealism:false,
 	realismOption:{},
 	envMapIntensity:1.0,
+
+	changeRenderMode: (n) => {
+
+		Mat.renderMode.value = n;
+
+	},
+
+	initExtandShader: () => {
+		addRenderMode();
+	},
 	
 
 	useRealLight: (o) => {
@@ -163,6 +219,9 @@ export const Mat = {
 
 		if( Mat.isRealism ){
 			m.onBeforeCompile = function ( shader ) {
+				shader.uniforms.renderMode = Mat.renderMode;
+				shader.uniforms.depthPacking = Mat.depthPacking;
+
 				EnhanceLighting( shader, Mat.realismOption );
 		        m.userData.isRealism = true;
 		        m.userData.shader = shader;
@@ -170,18 +229,21 @@ export const Mat = {
 	        }
 
 		} else {
-			if( beforeCompile ){
-				m.onBeforeCompile = function ( shader ) {
-		            beforeCompile( shader );
-		        }
-			}
+			m.onBeforeCompile = function ( shader ) {
+
+				shader.uniforms.renderMode = Mat.renderMode;
+				shader.uniforms.depthPacking = Mat.depthPacking;
+
+	            if( beforeCompile ) beforeCompile( shader );
+	            m.userData.shader = shader;
+	        }
 		}
 		
 	},
 
 	addToTmp:( m ) => {
 
-		TmpMat.push( m )
+		TmpMat.push( m );
 
 	},
 
@@ -366,9 +428,10 @@ export const Mat = {
 				//case 'hero':   m = new MeshStandardMaterial({ color:0x00FF88, ...matExtra }); break
 				case 'skinny':   m = Mat.create({ name:'skinny', color:0xe0ac69, ...matExtra }); break
 				
-				case 'glass':  m = Mat.create({ name:'glass', color:0xFFFFff, transparent:true, opacity:0.8, depthTest:true, depthWrite:true, roughness:0.02, metalness:0.0, /*side:DoubleSide,*/ alphaToCoverage:true, premultipliedAlpha:true, transmission:1, clearcoat:1, thickness:0.02  }); break
-				case 'glassX':  m = Mat.create({ name:'glassX', color:0xeeeeee, transparent:false, opacity:1.0, roughness:0.03, metalness:0,  side:DoubleSide, transmission:1.0, clearcoat:1, clearcoatRoughness:0.0, thickness:0.6, ior:1.52, envMapIntensity:1.0, shadowSide:1, reflectivity:0.5, iridescence:0 }); break
+				case 'glass':  m = Mat.create({ name:'glass', color:0xFFFFff, transparent:true, roughness:0.02, metalness:0.0, side:DoubleSide, alphaToCoverage:true, premultipliedAlpha:true, transmission:1, clearcoat:1, thickness:0.01  }); break
+				case 'glassX':  m = Mat.create({ name:'glassX', color:0xeeeeee, transparent:false, opacity:1.0, roughness:0.03, metalness:0,  side:DoubleSide, transmission:1.0, clearcoat:1, clearcoatRoughness:0.0, thickness:0.02, ior:1.52, shadowSide:1, reflectivity:0.5, iridescence:0 }); break
 				case 'plexi':  m = Mat.create({ name:'plexi', blending:AdditiveBlending, color:0x010101, transparent:true, opacity:0.7, reflectivity:0.3, metalness:0.6, roughness:0.1, clearcoat:0.2, clearcoatRoughness: 0.02, side:DoubleSide, alphaToCoverage:true, premultipliedAlpha:true }); break
+				case 'plexi2':  m = Mat.create({ name:'plexi2', blending:AdditiveBlending, color:0x010101, transparent:false, opacity:0.7, reflectivity:0.3, metalness:0.6, roughness:0.1, clearcoat:0.2, clearcoatRoughness: 0.02, side:DoubleSide, alphaToCoverage:false, premultipliedAlpha:true }); break
 				case 'glass2': m = Mat.create({ name:'glass2', color:0xEEEEEE, transparent:true, roughness:0, alphaToCoverage:true, opacity:0.3  }); break
 				case 'glass3': m = Mat.create({ name:'glass3', color:0x000000, transparent:true, roughness:0, alphaToCoverage:true, opacity:0.4  }); break
 				case 'glass_red': m = Mat.create({ name:'glass_red', color:0xFF0000, transparent:true, roughness:0, alphaToCoverage:true, opacity:0.8  }); break

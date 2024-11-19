@@ -66,7 +66,7 @@ export const Gui = {
 		fontShadow:'#000',
 		//sx: 4,
         //sy: 4,
-        radius:3,
+        radius:0,
 
         showOver:0,
 		background:'none', //'none',
@@ -78,8 +78,8 @@ export const Gui = {
 		fontSize:13,
 		//weight:'500',
 		//weight:'bold',
-		text:'#eee',
-		title:'#ddd',
+		text:'#fff',
+		title:'#eee',
 		borderSize:2,
 		joyOut:'rgba(255,255,255,0.1)',
 		joyOver:'rgba(127,255,0,0.2)',
@@ -122,7 +122,7 @@ export const Gui = {
 		if( Gui.open ) Gui.open = false;
 		else Gui.open = true;
 
-		Gui.ui.isOpen = Gui.open
+		Gui.ui.isOpen = Gui.open;
 
 		Hub.switchGuiButton( Gui.open );
 		//Hub.switchColor( Gui.ui.isOpen )
@@ -138,7 +138,7 @@ export const Gui = {
 
 		UIL.Tools.setStyle(Gui.colors)
 
-		Gui.menu = UIL.add( 'button', { type:'button', values:menuList, value:Gui.startMode, selectable:true, unselect:false, p:0, h:30,w:250, radius:4, pos:{right:'5px', top:'60px'} }).onChange( Gui.setMode )
+		Gui.menu = UIL.add( 'button', { type:'button', values:menuList, value:Gui.startMode, selectable:true, unselect:false, p:0, h:30, w:250, radius:0, pos:{right:'5px', top:'60px'} }).onChange( Gui.setMode )
 
 		Gui.menu.icon( iconUI('env'), 0, 2 )
 		Gui.menu.icon( iconUI('phy'), 0, 3 )
@@ -147,7 +147,7 @@ export const Gui = {
 		Gui.menu.icon( iconUI('mat'), 0, 6 )
 		Gui.menu.icon( iconUI('asset'), 0, 7 )
 
-		Gui.ui = new UIL.Gui( { w:250, h:25, open:false, close:false, css:'top:97px; right:5px;', colors:Gui.colors, transition:0 } )//
+		Gui.ui = new UIL.Gui( { w:250, h:25, open:false, close:false, css:'right:5px; top:97px;', colors:Gui.colors, transition:0 } )//
 
 
 		//Gui.display()
@@ -389,6 +389,9 @@ export const Gui = {
 
 	    //ui.add( 'bool', { name:'CAPTURE', onName:'STOP', value:false, mode:1 }).onChange( Gui.capture )
 		//ui.add('button', { name:'CAMERA' }).onChange( function(){ console.log( controls.getInfo() )} )
+		g0.add( options, 'renderMode', { type:'button', values:[ 'color', 'depth', 'normal' ], selectable:true, unselect:false, p:0 }).onChange( Main.changeRenderMode )
+
+		g0.add('button', { name:'SCREENSHOT' }).onChange( function(){ Main.motor.screenshot() } )
 
 		let setts = Shader.setting()
 

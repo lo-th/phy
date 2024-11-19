@@ -78,6 +78,11 @@ export class AutoRagdoll {
 
 	}
 
+	getRealPosition() {
+		let node = Utils.byName( this.skeletonBody.nodes[0].name );
+		return node.position;
+	}
+
 	dispose () {
 
 		if( this.skeletonBody ) this.skeletonBody.dispose()

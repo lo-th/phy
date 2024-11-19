@@ -11,10 +11,11 @@ import { Controller } from './3TH/Controller.js'
 
 import { Hub } from './3TH/Hub.js'
 import { Gui } from './3TH/Gui.js'
-import { Env } from './3TH/Env.js'
 import { Lights } from './3TH/Lights.js'
 import { Shader } from './3TH/Shader.js'
 import { Editor } from './3TH/Editor.js'
+
+import { Env } from './3TH/Env.js'
 
 //import { Composer } from './3TH/Composer.js'
 import { Composer } from './3TH/Composer_test.js'
@@ -39,23 +40,24 @@ import { Motor } from './motor/Motor.js'
 import { Smoke } from '../build/smoke.module.js'
 
 // WEBGPU test
-import WebGPU from './jsm/capabilities/WebGPU.js';
-import WebGPURenderer from 'three/addons/renderers/webgpu/WebGPURenderer.js';
+//import WebGPU from './jsm/capabilities/WebGPU.js';
+//import WebGPURenderer from 'three/addons/renderers/webgpu/WebGPURenderer.js';
 
 
 /** __
 *    _)_|_|_
-*   __) |_| | 2023
+*   __) |_| | 2024
 *  @author lo.th / https://github.com/lo-th
 * 
 *  MAIN THREE.JS / PHY
 */
 
 
-let highShadow = false;//false;
+let highShadow = false;
 
 let activeWebGPU = false;
 let isWebGPU = false;
+let lockPixelRatio = true;
 
 //let drawCall = false
 //let debugLight = false
@@ -120,6 +122,8 @@ const setting = {
 
 const options = {
 
+	renderMode: 'color',
+
 	debug: false,
 	day: true,
 	key: false,
@@ -158,7 +162,7 @@ const options = {
     shadowContrast:2,//2.5,//1,
 
     reflect:0.1,
-    renderMode:0,
+    
     fogMode:1,
 
     lightSizeUV:0.1,//1.3,
@@ -413,6 +417,15 @@ export const Main = {
 
 	},
 
+	changeRenderMode: ( v ) => {
+
+		let n = 0;
+		if(v==='depth') n = 1;
+		if(v==='normal') n = 2;
+		Motor.changeRenderMode( n );
+
+	}
+
 }
 
 Motor.log = Hub.log;
@@ -457,34 +470,31 @@ const init = () => {
 	//let powerPreference ='high-performance'
 	//let powerPreference ='low-power'// for mobile
 
-	let pixelRatio = window.devicePixelRatio
+	let pixelRatio = lockPixelRatio ? 1 : window.devicePixelRatio;
 	let antialias = true;
 
 	if( pixelRatio > 2 ){ 
-		pixelRatio = 2
-		antialias = false
+		pixelRatio = 2;
+		antialias = false;
 	}
 
 	if(options.mode === 'LOW') antialias = false;
 
 	content = Motor.getScene()
 
-	size.w = window.innerWidth
-	size.h = window.innerHeight
-	size.r = size.w / size.h
+	size.w = window.innerWidth;
+	size.h = window.innerHeight;
+	size.r = size.w / size.h;
 
 	// RENDERER
 
 	if( isWebGPU ) renderer = new WebGPURenderer({ antialias:antialias/*, alpha:false, premultipliedAlpha: false*/ })
-	else renderer = new THREE.WebGLRenderer( { 
+	else renderer = new THREE.WebGLRenderer({ 
 		antialias:antialias, 
 		powerPreference:powerPreference,
-		//premultipliedAlpha: false,
-		//stencil: false,
 		alpha: false,
 	    depth: true,
 	    stencil: true,
-	    //antialias: false,
 	    premultipliedAlpha: true,
 	    preserveDrawingBuffer: false,
 	    failIfMajorPerformanceCaveat: false,
@@ -510,38 +520,38 @@ const init = () => {
 	Shader.renderer = renderer;
 
 	if( !isWebGPU && options.mode !== 'LOW' && highShadow ){
-		Shader.setGl2( isWebGPU ? false : renderer.capabilities.isWebGL2 )
-		Shader.init( options )
-		Motor.setExtendShader( Shader.add )
+		Shader.setGl2( isWebGPU ? false : renderer.capabilities.isWebGL2 );
+		Shader.init( options );
+		Motor.setExtendShader( Shader.add );
 	}
 
 	// SCENE
 
-	scene = new THREE.Scene()
-	renderer.setClearColor ( new THREE.Color( 0x808080 ) ) 
+	scene = new THREE.Scene();
+	renderer.setClearColor ( new THREE.Color( 0x000000 ) );
 	//scene.background = new THREE.Color( 0x272822 )
 
 	// GROUP
 
-	followGroup = new THREE.Group()
-	followGroup.name = 'followGroup'
-	scene.add( followGroup )
+	followGroup = new THREE.Group();
+	followGroup.name = 'followGroup';
+	scene.add( followGroup );
 
-	helperGroup = new THREE.Group()
-	helperGroup.name = 'helperGroup'
-	scene.add( helperGroup )
+	helperGroup = new THREE.Group();
+	helperGroup.name = 'helperGroup';
+	scene.add( helperGroup );
 
-	scene.helper = helperGroup
+	scene.helper = helperGroup;
 
 
-	addLight()
+	addLight();
 
 	// CAMERA / CONTROLER
 
-	camera = new THREE.PerspectiveCamera( 50, size.r, 0.1, 1000 )
-	scene.add( camera )
+	camera = new THREE.PerspectiveCamera( 50, size.r, 0.1, 1000 );
+	scene.add( camera );
 
-	controls = new Controller( camera, renderer.domElement, followGroup )
+	controls = new Controller( camera, renderer.domElement, followGroup );
 	controls.resetAll();
 	//controls.target.y = 2
 	/*controls.minDistance = 0.1
@@ -559,30 +569,28 @@ const init = () => {
 
 	
 	// avoid track run in background
-	document.addEventListener( 'visibilitychange', onVisible )
+	document.addEventListener( 'visibilitychange', onVisible );
 
-	window.addEventListener( 'resize', onResize )
+	window.addEventListener( 'resize', onResize );
 	document.body.addEventListener( 'dragover', function(e){ e.preventDefault() }, false );
     document.body.addEventListener( 'dragend', function(e){ e.preventDefault() }, false );
     document.body.addEventListener( 'dragleave', function(e){ e.preventDefault()}, false );
 	document.body.addEventListener( 'drop', drop, false );
 
+	Hub.init( camera, size, introText );
 
-	Hub.init( camera, size, introText )
+	editor = new Editor();
 
-	editor = new Editor()
+	Env.init( renderer, scene );
+	Env.setMain( Main );
 
-	Env.init( renderer, scene )
-	Env.setMain( Main )
+	start();
 
-	start()
-
-	Motor.load( 'demos.json', next )
+	Motor.load( 'demos.json', next );
 
 }
 
 const dispose = () => {
-
 
 	renderStart = false
 	if(loop === null) return
@@ -654,12 +662,12 @@ const next = () => {
 }
 
 const start = () => {
-	if(renderStart) return
+
+	if( renderStart ) return;
 	//if( isWebGPU ) renderer.setAnimationLoop( render );
 	//else { if( loop === null) render(0) }
-
-	if( loop === null) render(0)
-	renderStart = true
+	if( loop === null) render(0);
+	renderStart = true;
 }
 
 /*const upExpose = () => {
@@ -667,7 +675,9 @@ const start = () => {
 }*/
 
 const addControl = () => {
-	if( Main.isMobile ) Hub.addJoystick()
+
+	if( Main.isMobile ) Hub.addJoystick();
+
 }
 
 
@@ -677,23 +687,23 @@ const addControl = () => {
 
 const changeShadow = (o) => {
 
-	if(o.distance)
-	Lights.setShadow( Lights.byName('sun'), o )
+	if(o.distance);
+	Lights.setShadow( Lights.byName('sun'), o );
 
 }
 
 const lightIntensity = (a,b,c) => {
 
-	if( a !== undefined ) options.direct = a
-	if( b !== undefined ) options.spherical = b
-	if( c !== undefined ) options.exposure = c
+	if( a !== undefined ) options.direct = a;
+	if( b !== undefined ) options.spherical = b;
+	if( c !== undefined ) options.exposure = c;
 
-	Lights.update( { sunIntensity:options.direct, hemiIntensity:options.spherical })
+	Lights.update({ sunIntensity:options.direct, hemiIntensity:options.spherical });
 	renderer.toneMappingExposure = options.exposure;
 
 }
 
-Motor.lightIntensity = lightIntensity
+Motor.lightIntensity = lightIntensity;
 
 const addLight = () => {
 
@@ -792,30 +802,32 @@ const showDebugLight = ( b ) => {
 }
 
 const setShadowType = () => {
-	renderer.shadowMap.type = shadowMapType[options.shadowType]
-	Main.upShader()
+
+	renderer.shadowMap.type = shadowMapType[options.shadowType];
+	Main.upShader();
+
 }
 
 const setShadow = ( v ) => {
 
-	if( isWebGPU ) return
+	if( isWebGPU ) return;
 
-	options.shadow = v
+	options.shadow = v;
 
 	if( options.shadow === 0 ){
 		Lights.castShadow( false );
-		if( !isWebGPU ) renderer.shadowMap.enabled = false
+		if( !isWebGPU ) renderer.shadowMap.enabled = false;
 		//clearShadow()
 	} else {
 		if( !renderer.shadowMap.enabled ){
 			Lights.castShadow( true );
-			if( !isWebGPU ) renderer.shadowMap.enabled = true
+			if( !isWebGPU ) renderer.shadowMap.enabled = true;
 		}
 	}
 
 	//if( light.shadowHelper ) light.shadowHelper.visible = options.shadow !== 0
 
-	Main.upShader()
+	Main.upShader();
 
 }
 
@@ -856,8 +868,8 @@ const removeVignette = () => {
 const addGround = ( o ) => {
 
 	//groundAutoColor = !o.groundColor//false
-    if( o.groundReflect !== undefined ) options.reflect = o.groundReflect
-    if( o.reflect !== undefined ) options.reflect = o.reflect
+    if( o.groundReflect !== undefined ) options.reflect = o.groundReflect;
+    if( o.reflect !== undefined ) options.reflect = o.reflect;
 
 	//if( isWebGPU ) return
 
@@ -876,29 +888,28 @@ const addGround = ( o ) => {
 	        normal:true
 
 	    })
-	    scene.add( ground )
+	    scene.add( ground );
 
 	} else {
-		ground.reset()
+		ground.reset();
 	}
 
-    ground.setSize( o.groundSize )
-    ground.position.fromArray( o.groundPos )
+    ground.setSize( o.groundSize );
+    ground.position.fromArray( o.groundPos );
 
     if( o.groundColor !== undefined ){ 
     	ground.setColor( o.groundColor );
     	groundAutoColor = false;
+    } else {
+    	ground.setColor( groundColor );
     }
-    else ground.setColor( groundColor )
 
-	ground.setAlphaMap( o.groundAlpha )
-	ground.setOpacity( o.groundOpacity )
-	if( o.groundReflect !== undefined ) ground.setReflect( o.groundReflect )
-	ground.setWater( o.water )
+	ground.setAlphaMap( o.groundAlpha );
+	ground.setOpacity( o.groundOpacity );
+	if( o.groundReflect !== undefined ) ground.setReflect( o.groundReflect );
+	ground.setWater( o.water );
     //scene.add( ground )
-    Motor.addMaterial( ground.material,  true )
-
-    
+    Motor.addMaterial( ground.material,  true );
 
     //Gui.reset()
 
@@ -1400,7 +1411,9 @@ const send = ( data ) => {
 //   OPTION
 //--------------------
 const setbgIntensity = () => {
+
 	scene.backgroundIntensity = options.bgIntensity;
+
 }
 
 const setEnvmapIntensity = () => {
@@ -1424,16 +1437,16 @@ const setEnvmapIntensity = () => {
 
 const showStatistic = ( b ) => {
 
-	if(isWebGPU) return
+	if( isWebGPU ) return
 
 	if( b && !stats ){
-		stats = new Stats( renderer )
+		stats = new Stats( renderer );
 	}
 
 	if( !b && stats ){
 
-		stats = null
-		Hub.setStats()
+		stats = null;
+		Hub.setStats();
 		
 	}
 
@@ -1455,17 +1468,17 @@ const getFullStats = () => {
 
 const setComposer = ( b ) => {
 
-	if(options.composer){
+	if( options.composer ){
 		if( composer === null ) composer = new Composer( renderer, scene, camera, controls, size );
 		composer.enabled = true;
-		if(hub3d) hub3d.visible = false;
+		if( hub3d ) hub3d.visible = false;
 
 	} else {
 		if( composer ){
 			composer.dispose();
 			composer = null;
 			if(hub3d) hub3d.visible = true;
-		} 
+		}
 	}
 
 	Gui.postprocessEdit()

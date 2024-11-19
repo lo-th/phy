@@ -64,6 +64,8 @@ export class Body extends Item {
 			if(!b) continue;
 			n = N + ( i * this.num );
 
+			if( b.lockPos ) root.bodyInterface.MoveKinematic( b.GetID(), b.GetPosition(), b.GetRotation(), root.deltaTime );
+
 			AR[ n ] = b.IsActive() ? 1 : 0;
 
 			p = b.GetPosition();
@@ -79,6 +81,7 @@ export class Body extends Item {
 			    r.toArray( AR, n+11 );
 			    if( AR[ n ] === 1 ) AR[ n ] = v.Length() * 9.8;// speed km/h
 			}
+
 		}
 
 	}
@@ -426,6 +429,8 @@ export class Body extends Item {
 	    b.isKinematic = o.kinematic || false;
 	    b.breakable = o.breakable || false;
 
+	    
+
 	    //b.SetUseManifoldReduction(false)
 
 	    //console.log( b );
@@ -499,9 +504,10 @@ export class Body extends Item {
 	    //----------------
 
 	    if( o.kinematic !== undefined && b.type === 'body' ){ 
+	    	b.isKinematic = o.kinematic || false;
 	    	if(o.kinematic) b.SetMotionType( Jolt.Kinematic );
 	    	else b.SetMotionType( Jolt.Dynamic );
-	    	b.isKinematic = o.kinematic || false;
+	    	
 	    }
 
 	    //Motion quality, or how well it detects collisions when it has a high velocity.
@@ -588,6 +594,8 @@ export class Body extends Item {
 	    		let p = o.pos ? this.v.fromArray( o.pos ) : b.GetPosition();
 	    		let q = o.quat ? this.q.fromArray( o.quat ) : b.GetRotation();
 	    	    root.bodyInterface.MoveKinematic( b.GetID(), p, q, root.deltaTime );
+	    	    b.old = { p:p, q:q }
+	    	    b.lockPos = true;
 
 	    	} else {
 

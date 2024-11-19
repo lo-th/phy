@@ -10,8 +10,8 @@ import { Motor } from '../motor/Motor.js'
 
 
 const Styles = {
-    menuName:'font-size:14px; font-weight:400;',
-    demoName:'font-size:14px; width:fit-content; font-weight:400;',
+    menuName:'font-size:14px; font-weight:400; letter-spacing: -0.022em; text-shadow: 1px 1px 2px black;',
+    demoName:'font-size:14px; width:fit-content; font-weight:400; letter-spacing: -0.022em; text-shadow: 1px 1px 2px black;',
 }
 //text-shadow: 1px 1px 3px #000000;
 //letter-spacing: -0.022em;
@@ -19,10 +19,11 @@ const Styles = {
 let Main = null;
 
 // menu look option
-let isLiner = true;
+let isLiner = false;
 let isBackLight = false;
 let isFromTop = true;
 let isTopDown = true;
+
 
 //
 
@@ -90,9 +91,9 @@ let colorDemo = 'rgba(255,235,205,0.7)';
 let panelBackground = '';
 let topDown = null
 
-
+let bgBlur = 'blur(4px)';
 let dayColor = ['#000', '#444', '#feb', 'rgba(213,211,212,0.32)'];
-let nightColor = ['#fff', '#bee', '#bfb', 'rgba(20,20,20,0.5)'];
+let nightColor = ['#fff', '#bee', '#bfb', 'rgba(0,0,0,0.4)'];
 
 
 
@@ -160,6 +161,8 @@ export class Hub {
         camera = Camera;
         size = Size;
         parent = Parent || document.body;
+
+        //const fragment = document.createDocumentFragment();
 
         content = document.createElement( 'div' );
         content.style.cssText = unselectable + 'position:absolute; margin:0; padding:0; top:0px; left:0px; width:100%; height:100%; display:block; color:'+color+';'// font-family: Mulish,sans-serif;
@@ -322,15 +325,11 @@ export class Hub {
 
             overpad = document.createElement( 'div' );
            // let anim = "transition: width 0.2s ease-out; transition: left 0.1s ease-out; transition: top 0.1s ease-out; ";
-            let sp = 0.1;
-            //let anim = 'transition: width '+sp+'s, left '+sp+'s, top '+sp+'s, opacity '+sp+'s, transform '+sp+'s ease-out;';
-            let anim = ''
-            //anim = 'transition: width '+sp+'s, left '+sp+'s, top '+sp+'s, transform '+sp+'s ease-out;';
-            anim = 'transition: transform '+sp+'s allow-discrete ease-out;';
-            //border:1px solid rgba(255,255,255,1); box-sizing:content-box;background:linear-gradient(rgba(255,255,255,0), #FFFFFF);
-            overpad.style.cssText = anim + 'position:absolute; top:0px; left:0px; height:0px; width:0px; opacity:0; pointer-events:none;';
+            let sp = 0.03;
+            let anim = 'transition: transform '+sp+'s allow-discrete ease-out;';
+            overpad.style.cssText = anim + 'position:absolute; top:0px; left:0px; height:0px; width:0px; opacity:0; pointer-events:none; border-radius:10px;';
 
-            overpad.style.transitionDuration = '0.1s';
+            overpad.style.transitionDuration = '0.03s';
             overpad.style.background = isDay ? nightColor[0] : dayColor[0];
             //overpad.style.boxShadow = '0px 0px 3px 1px #FFFFFF';
             //overpad.id = 'overpad';
@@ -339,11 +338,12 @@ export class Hub {
         }
 
         if(isTopDown){
-            topDown= document.createElement( 'div' );
-            topDown.style.cssText = 'position:absolute; top:0px; left:0px; height:0px; width:100%; pointer-events:none; background:#f00; transition:all 0.12s allow-discrete ease-out; transition-property: height, opacity;';
+            topDown = document.createElement( 'div' );
+            topDown.style.cssText = 'position:absolute; top:0px; left:0px; height:0px; width:100%; pointer-events:none; transition:all 0.12s allow-discrete ease-out; transition-property: height, opacity; ';
+            //topDown.style.cssText += 'border-bottom: 1px solid black;';
             topDown.style.opacity = 0;
             topDown.style.background = panelBackground;
-            topDown.style.backdropFilter = 'blur(10px)'
+            topDown.style.backdropFilter = bgBlur;
             content.appendChild( topDown );
         }
 
@@ -357,14 +357,14 @@ export class Hub {
         content.appendChild( downMenu );
 
         innerMenu = document.createElement( 'div' );
-        innerMenu.style.cssText = 'box-sizing: border-box; position:absolute; overflow:hidden; background:'+bg+'; display:flex; flex-wrap:warp;';
+        innerMenu.style.cssText = 'box-sizing: border-box; position:absolute; overflow:hidden; background:'+bg+'; display:flex; flex-wrap:warp; opacity:0; transition-delay: 0.12s; transition:opacity 0.5s allow-discrete ease-out;';
         if(!isTopDown){
             innerMenu.style.opacity = '0';
-            innerMenu.style.transition = 'opacity 0.5s allow-discrete ease-out;';
+            //innerMenu.style.transition = 'opacity 0.5s allow-discrete ease-out;';
             innerMenu.style.background = panelBackground;
             //innerMenu.style.border = '1px solid rgba(20,20,20,0.1)'
             //innerMenu.style.borderRadius = '6px';
-            innerMenu.style.backdropFilter = 'blur(10px)'
+            innerMenu.style.backdropFilter = bgBlur;
         }
         downMenu.appendChild( innerMenu );
         
@@ -409,16 +409,14 @@ export class Hub {
         statistics.style.cssText = 'position:absolute; bottom:25px; left:10px; font-size:14px; width:400px; white-space: pre; line-height:20px; margin-left:10px;'
         content.appendChild( statistics )
 
-
+        // gui bg
         top = document.createElement( 'div' )
         top.style.cssText = unselectable + "position:absolute; top:0px; right:0px; width:260px; height:100%; background:"+panelBackground+"; display:none;"
-
-        //top.style.cssText = unselectable + "position:absolute; top:0px; right:5px; width:250px; height:100%; background:#000008; display:none; opacity: 0.7;"
-        top.style.backdropFilter = 'blur(4px)'
+        top.style.backdropFilter = bgBlur;
         content.appendChild( top )
 
         fps = document.createElement( 'div' );
-        fps.style.cssText = 'position:absolute; top:33px; right:'+(marge[0]+20)+'px; text-align:right; font-size:14px; font-weight:500;'
+        fps.style.cssText = Styles.menuName + 'position:absolute; top:33px; right:'+(marge[0]+20)+'px; text-align:right; '
         content.appendChild( fps )
 
         guiButton = document.createElement( 'div' );
@@ -523,9 +521,10 @@ export class Hub {
         if(isTopDown){ 
             topDown.style.height = '0px'
             topDown.style.opacity = 0;
-        }else {
-            innerMenu.style.opacity = 0;
         }
+        
+        innerMenu.style.opacity = 0;
+        
         Hub.updatePad(null);
 
     }
@@ -559,13 +558,11 @@ export class Hub {
         innerMenu.style.flexDirection = 'column';
         //innerMenu.style.background = panelBackground;
         //innerMenu.style.border = '4px solid rgba(20,20,20,0.1)'
-        if(!isTopDown) innerMenu.style.opacity = 1
+        innerMenu.style.opacity = 1
 
 
 
-        const bb = []
-
-        
+        const bb = [];
         
         while( i-- ){
 
@@ -671,13 +668,11 @@ export class Hub {
 
         dom.style.padding = '4px 10px';
 
-        if(isLiner){
-            dom.addEventListener( 'pointerleave', (e) => {
-                e.target.style.textDecoration = 'none';
-            })
-        }
+        dom.addEventListener( 'pointerleave', (e) => {
+            if(isLiner)e.target.style.textDecoration = 'none';
+            else e.target.style.fontWeight = 400;
+        })
        
-
         dom.addEventListener("pointerdown", (e) => {
             //e.target.style.textDecoration = 'underline ' + color;
             if( e.target.id === 'home' || e.target.id === 'engine' || e.target.id === 'demo' ) Hub.showMenu( e.target )
@@ -736,6 +731,7 @@ export class Hub {
         if( t && t.id ){
             isMenu = t.id === 'home' || t.id === 'engine' || t.id === 'demo'; 
             if( t.id === prevOver ) return false;
+
             prevOver = t.id;
         } else {
             prevOver = null;
@@ -755,7 +751,7 @@ export class Hub {
 
             let left = rect.left - tmpLeft;
 
-            overpad.style.transitionDuration = isMenu ? '0s':'0.1s';
+            overpad.style.transitionDuration = isMenu ? '0s':'0.03s';
             overpad.style.transform = 'translate3d('+left+'px, '+(rect.top+d)+'px, 0)';
             // overpad.style.top = ((rect.top-h)+d) + 'px';
             // overpad.style.left = (rect.left-w) - tmpLeft + 'px';
@@ -778,14 +774,18 @@ export class Hub {
         }
 
         if(isLiner) e.target.style.textDecoration = 'underline '+color;
+        else e.target.style.fontWeight = 500;
 
-        if(isBackLight) overpad.style.opacity = 0.6
+        if(isBackLight) overpad.style.opacity = 0.3
 
         let isNewTarget = Hub.updatePad( e.target );
         if( !isNewTarget ) return;
 
+        
+
         if( e.target.id === 'home' || e.target.id === 'engine' || e.target.id === 'demo' ){ 
             Hub.showMenu( e.target )
+           // innerMenu.style.opacity = 1;
             return 
         }
 

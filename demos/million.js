@@ -12,8 +12,9 @@ let startPos = []
 //let ballName = []
 let model = null
 let tmpTxt = []
+let breakDeterminism = true;
 
-let ballTest = true
+//let ballTest = true
 
 let tmpCanvas = document.createElement('canvas')
 tmpCanvas.width = tmpCanvas.height = 128
@@ -35,8 +36,11 @@ demo = () => {
 
 	// setting and start
 	phy.set({ 
-		substep:engine==='OIMO' || engine==='AMMO'?8:2,
+		substep:engine==='OIMO' || engine==='AMMO'?8:1,
 		gravity:[0,-9.81,0],
+        determinism:false,
+        //averagePoint:false,
+        ccd:true,
 	})
 
     // add static ground
@@ -50,13 +54,8 @@ onComplete = () => {
 
 	model = phy.getMesh('million')
 
-    if(!ballTest) {
-        makeMachine()
-        makeBall()
-    } else {
-        makeMachine()
-        makeBall2()
-    }
+    makeMachine()
+    makeBall()
 
     phy.setTimeout( activeBall, 3000 )
     //timer = setTimeout( activeBall, 3000 );
@@ -233,12 +232,14 @@ makeMachine = () => {
 	        meshScale:[10],
 	        mesh:model[name],
 	        shape:model[name].geometry,
-	        material:br?'plexi':'glass',
+	        //material:br?'silver':'glass',
+            material:br?'plexi2':'glass',
 	        friction: friction, restitution: bounce,
 	        pos: i>5 ? [8.5,d+py,0] : [0,py,0],
 	        rot: p ? [0,0,45]:[0,0,0],
-	        renderOrder:4+i,
+	        //renderOrder:br?4:8,
             kinematic:k,
+            ray:false,
 
 	        //shadow: false,
 	    })
@@ -248,94 +249,13 @@ makeMachine = () => {
 
 makeBall = () => {
 
-    let ballGeo = model.ball.geometry.clone();
-    ballGeo.scale(100,100,100);
-
-    const def = {
-        type:'sphere',
-        size: [0.25],
-        density: 0.65,
-        friction: 0.5, 
-        restitution: 0.3,
-        geometry: ballGeo,
-        sleep:true, 
-        /*ccdThreshold:0.0000001,
-        ccdRadius:0.1,
-        enableCCD:true,*/
-    }
-	
-    // add red balls
-    
-    let i, x, y, l, b, tmpMat, j = 0;
-
-    for( i = 0; i < 50; i++){
-
-        tmpMat = phy.material({
-            name:'loto'+i,
-            roughness: 0.4,
-            metalness: 0.6,
-            map: createBallTexture( i+1 )
-        })
-
-        l = Math.floor(i/10)
-        x = -27 + (j*6)
-        y = 75 - (l*5.)
-
-        b = phy.add({ 
-        	name: 'b'+(i+1),
-            material: tmpMat,
-        	pos: [x*0.1, (y*0.1)+py, -1.16],
-        	...def
-        })
-
-        balls.push( b )
-        //ballName.push( 'b'+(i+1) )
-        startPos.push( [x*0.1, (y*0.1)+py, -1.16] )
-        j++;
-        if(j===10) j = 0;
-
-    }
-
-    // add yellow balls
-    
-    j = 0;
-    for( i = 0; i < 12; i++){
-
-        tmpMat = phy.material({
-            name:'lotox'+i,
-            roughness: 0.4,
-            metalness: 0.6,
-            map: createBallTexture(  i+1, true )
-        })
-
-        l = Math.floor(i/6)
-        x = 70 + (j*6)
-        y = 25 - (l*5)
-
-        b = phy.add({ 
-            name: 'x'+(i+1),  
-            material: tmpMat,
-            pos: [x*0.1, (y*0.1)+py, -0.975],
-            ...def
-        })
-
-        balls.push( b )
-        //ballName.push( 'x'+(i+1) )
-        startPos.push( [x*0.1, (y*0.1)+py, -0.975] )
-        j++;
-        if(j===6) j = 0;
-
-    }
-
-}
-
-makeBall2 = () => {
-
     let ballGeo = model.ball.geometry.clone()
     ballGeo.scale(100,100,100) 
 
     let uvs = []
     let i, x, y, l, b, tmpMat, j = 0;
+
+    // red ball
 
     for( i = 0; i < 50; i++){
 
@@ -401,13 +321,14 @@ makeBall2 = () => {
             geometry: ballGeo,
             type:'sphere',
             size: [0.25],
-            pos:startPos[i],
+            //pos:startPos[i],
+            pos:math.addArray(startPos[i], [math.rand(-0.03,0.03), math.rand(-0.03,0.03), math.rand(-0.03,0.03)]),
             color:uvs[i],
             density:0.3,
             friction:0.4,
             restitution:0.1,
             sleep:true,
-            //useCCD:true,
+            useCCD:true,
             //startSleep:true,
         })
 
@@ -466,9 +387,9 @@ createBallTexture = ( n, y) => {
     ctx2.drawImage(tmpCanvas, nx*128, ny*128)
     tmpN ++
 
-    if( ballTest ) return [nx/8,ny/8,0]
+    return [nx/8,ny/8,0]
 
-    let img = new Image(128, 128);
+    /*let img = new Image(128, 128);
     img.src = tmpCanvas.toDataURL( 'image/png' );
 
 	let t = new THREE.Texture( img );
@@ -478,7 +399,7 @@ createBallTexture = ( n, y) => {
     t.colorSpace = THREE.SRGBColorSpace;
 
     tmpTxt.push( t )
-	return t;
+	return t;*/
 
 }
 

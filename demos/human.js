@@ -10,7 +10,7 @@ demo = () => {
 
     phy.lightIntensity( 6, 0, 0.7 );
     phy.changeShadow({ range:10, near:5, far:30, distance:20 })
-    //phy.useRealLight( { aoPower:5 } );
+    phy.useRealLight( { aoPower:5 } );
 
     phy.set({ substep:1, gravity:[0,-9.81,0] });
 

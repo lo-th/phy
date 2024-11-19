@@ -30,17 +30,20 @@ import {
 	Quaternion,
 	QuaternionKeyframeTrack,
 	RepeatWrapping,
+	SRGBColorSpace,
+	ShapeUtils,
 	Skeleton,
 	SkinnedMesh,
 	SpotLight,
 	Texture,
 	TextureLoader,
 	Uint16BufferAttribute,
+	Vector2,
 	Vector3,
 	Vector4,
-	VectorKeyframeTrack,
-	SRGBColorSpace
+	VectorKeyframeTrack
 } from 'three';
+
 import * as fflate from '../libs/fflate.module.js';
 import { NURBSCurve } from '../curves/NURBSCurve.js';
 
@@ -405,11 +408,33 @@ class FBXTreeParser {
 	// load a texture specified as a blob or data URI, or via an external URL using TextureLoader
 	loadTexture( textureNode, images ) {
 
-		let fileName;
+		const nonNativeExtensions = new Set( [ 'tga', 'tif', 'tiff', 'exr', 'dds', 'hdr', 'ktx2' ] );
 
-		const currentPath = this.textureLoader.path;
+		const extension = textureNode.FileName.split( '.' ).pop().toLowerCase();
+
+		const loader = nonNativeExtensions.has( extension ) ? this.manager.getHandler( `.${extension}` ) : this.textureLoader;
+
+		if ( ! loader ) {
+
+			console.warn(
+				`FBXLoader: ${extension.toUpperCase()} loader not found, creating placeholder texture for`,
+				textureNode.RelativeFilename
+			);
+			return new Texture();
+
+		}
+
+		const loaderPath = loader.path;
+
+		if ( ! loaderPath ) {
+
+			loader.setPath( this.textureLoader.path );
+
+		}
 
 		const children = connections.get( textureNode.id ).children;
+
+		let fileName;
 
 		if ( children !== undefined && children.length > 0 && images[ children[ 0 ].ID ] !== undefined ) {
 
@@ -417,44 +442,16 @@ class FBXTreeParser {
 
 			if ( fileName.indexOf( 'blob:' ) === 0 || fileName.indexOf( 'data:' ) === 0 ) {
 
-				this.textureLoader.setPath( undefined );
+				loader.setPath( undefined );
 
 			}
 
 		}
 
-		let texture;
+		const texture = loader.load( fileName );
 
-		const extension = textureNode.FileName.slice( - 3 ).toLowerCase();
-
-		if ( extension === 'tga' ) {
-
-			const loader = this.manager.getHandler( '.tga' );
-
-			if ( loader === null ) {
-
-				console.warn( 'FBXLoader: TGA loader not found, creating placeholder texture for', textureNode.RelativeFilename );
-				texture = new Texture();
-
-			} else {
-
-				loader.setPath( this.textureLoader.path );
-				texture = loader.load( fileName );
-
-			}
-
-		} else if ( extension === 'psd' ) {
-
-			console.warn( 'FBXLoader: PSD textures are not supported, creating placeholder texture for', textureNode.RelativeFilename );
-			texture = new Texture();
-
-		} else {
-
-			texture = this.textureLoader.load( fileName );
-
-		}
-
-		this.textureLoader.setPath( currentPath );
+		// revert to initial path
+		loader.setPath( loaderPath );
 
 		return texture;
 
@@ -883,7 +880,7 @@ class FBXTreeParser {
 
 		this.bindSkeleton( deformers.skeletons, geometryMap, modelMap );
 
-		this.createAmbientLight();
+		this.addGlobalSceneSettings();
 
 		sceneGraph.traverse( function ( node ) {
 
@@ -961,6 +958,7 @@ class FBXTreeParser {
 				}
 
 				model.name = node.attrName ? PropertyBinding.sanitizeNodeName( node.attrName ) : '';
+				model.userData.originalName = node.attrName;
 
 				model.ID = id;
 
@@ -997,6 +995,7 @@ class FBXTreeParser {
 						// set name and id here - otherwise in cases where "subBone" is created it will not have a name / id
 
 						bone.name = name ? PropertyBinding.sanitizeNodeName( name ) : '';
+						bone.userData.originalName = name;
 						bone.ID = id;
 
 						skeleton.bones[ i ] = bone;
@@ -1331,7 +1330,7 @@ class FBXTreeParser {
 		if ( 'InheritType' in modelNode ) transformData.inheritType = parseInt( modelNode.InheritType.value );
 
 		if ( 'RotationOrder' in modelNode ) transformData.eulerOrder = getEulerOrder( modelNode.RotationOrder.value );
-		else transformData.eulerOrder = 'ZYX';
+		else transformData.eulerOrder = getEulerOrder(0);
 
 		if ( 'Lcl_Translation' in modelNode ) transformData.translation = modelNode.Lcl_Translation.value;
 
@@ -1464,20 +1463,31 @@ class FBXTreeParser {
 
 	}
 
-	// Parse ambient color in FBXTree.GlobalSettings - if it's not set to black (default), create an ambient light
-	createAmbientLight() {
+	addGlobalSceneSettings() {
 
-		if ( 'GlobalSettings' in fbxTree && 'AmbientColor' in fbxTree.GlobalSettings ) {
+		if ( 'GlobalSettings' in fbxTree ) {
 
-			const ambientColor = fbxTree.GlobalSettings.AmbientColor.value;
-			const r = ambientColor[ 0 ];
-			const g = ambientColor[ 1 ];
-			const b = ambientColor[ 2 ];
+			if ( 'AmbientColor' in fbxTree.GlobalSettings ) {
 
-			if ( r !== 0 || g !== 0 || b !== 0 ) {
+				// Parse ambient color - if it's not set to black (default), create an ambient light
 
-				const color = new Color( r, g, b ).convertSRGBToLinear();
-				sceneGraph.add( new AmbientLight( color, 1 ) );
+				const ambientColor = fbxTree.GlobalSettings.AmbientColor.value;
+				const r = ambientColor[ 0 ];
+				const g = ambientColor[ 1 ];
+				const b = ambientColor[ 2 ];
+
+				if ( r !== 0 || g !== 0 || b !== 0 ) {
+
+					const color = new Color( r, g, b ).convertSRGBToLinear();
+					sceneGraph.add( new AmbientLight( color, 1 ) );
+
+				}
+
+			}
+
+			if ( 'UnitScaleFactor' in fbxTree.GlobalSettings ) {
+
+				sceneGraph.userData.unitScaleFactor = fbxTree.GlobalSettings.UnitScaleFactor.value;
 
 			}
 
@@ -1942,8 +1952,6 @@ class GeometryParser {
 
 			if ( endOfFace ) {
 
-				if ( faceLength > 4 ) console.warn( 'THREE.FBXLoader: Polygons with more than four sides are not supported. Make sure to triangulate the geometry during export.' );
-
 				scope.genFace( buffers, geoInfo, facePositionIndexes, materialIndex, faceNormals, faceColors, faceUVs, faceWeights, faceWeightIndices, faceLength );
 
 				polygonIndex ++;
@@ -1965,70 +1973,163 @@ class GeometryParser {
 
 	}
 
+	// See https://www.khronos.org/opengl/wiki/Calculating_a_Surface_Normal
+	getNormalNewell( vertices ) {
+
+		const normal = new Vector3( 0.0, 0.0, 0.0 );
+
+		for ( let i = 0; i < vertices.length; i ++ ) {
+
+			const current = vertices[ i ];
+			const next = vertices[ ( i + 1 ) % vertices.length ];
+
+			normal.x += ( current.y - next.y ) * ( current.z + next.z );
+			normal.y += ( current.z - next.z ) * ( current.x + next.x );
+			normal.z += ( current.x - next.x ) * ( current.y + next.y );
+
+		}
+
+		normal.normalize();
+
+		return normal;
+
+	}
+
+	getNormalTangentAndBitangent( vertices ) {
+
+		const normalVector = this.getNormalNewell( vertices );
+		// Avoid up being equal or almost equal to normalVector
+		const up = Math.abs( normalVector.z ) > 0.5 ? new Vector3( 0.0, 1.0, 0.0 ) : new Vector3( 0.0, 0.0, 1.0 );
+		const tangent = up.cross( normalVector ).normalize();
+		const bitangent = normalVector.clone().cross( tangent ).normalize();
+
+		return {
+			normal: normalVector,
+			tangent: tangent,
+			bitangent: bitangent
+		};
+
+	}
+
+	flattenVertex( vertex, normalTangent, normalBitangent ) {
+
+		return new Vector2(
+			vertex.dot( normalTangent ),
+			vertex.dot( normalBitangent )
+		);
+
+	}
+
 	// Generate data for a single face in a geometry. If the face is a quad then split it into 2 tris
 	genFace( buffers, geoInfo, facePositionIndexes, materialIndex, faceNormals, faceColors, faceUVs, faceWeights, faceWeightIndices, faceLength ) {
 
-		for ( let i = 2; i < faceLength; i ++ ) {
+		let triangles;
 
-			buffers.vertex.push( geoInfo.vertexPositions[ facePositionIndexes[ 0 ] ] );
-			buffers.vertex.push( geoInfo.vertexPositions[ facePositionIndexes[ 1 ] ] );
-			buffers.vertex.push( geoInfo.vertexPositions[ facePositionIndexes[ 2 ] ] );
+		if ( faceLength > 3 ) {
 
-			buffers.vertex.push( geoInfo.vertexPositions[ facePositionIndexes[ ( i - 1 ) * 3 ] ] );
-			buffers.vertex.push( geoInfo.vertexPositions[ facePositionIndexes[ ( i - 1 ) * 3 + 1 ] ] );
-			buffers.vertex.push( geoInfo.vertexPositions[ facePositionIndexes[ ( i - 1 ) * 3 + 2 ] ] );
+			// Triangulate n-gon using earcut
 
-			buffers.vertex.push( geoInfo.vertexPositions[ facePositionIndexes[ i * 3 ] ] );
-			buffers.vertex.push( geoInfo.vertexPositions[ facePositionIndexes[ i * 3 + 1 ] ] );
-			buffers.vertex.push( geoInfo.vertexPositions[ facePositionIndexes[ i * 3 + 2 ] ] );
+			const vertices = [];
+			// in morphing scenario vertexPositions represent morphPositions
+			// while baseVertexPositions represent the original geometry's positions
+			const positions = geoInfo.baseVertexPositions || geoInfo.vertexPositions;
+			for ( let i = 0; i < facePositionIndexes.length; i += 3 ) {
+
+				vertices.push(
+					new Vector3(
+						positions[ facePositionIndexes[ i ] ],
+						positions[ facePositionIndexes[ i + 1 ] ],
+						positions[ facePositionIndexes[ i + 2 ] ]
+					)
+				);
+
+			}
+
+			const { tangent, bitangent } = this.getNormalTangentAndBitangent( vertices );
+			const triangulationInput = [];
+
+			for ( const vertex of vertices ) {
+
+				triangulationInput.push( this.flattenVertex( vertex, tangent, bitangent ) );
+
+			}
+
+			// When vertices is an array of [0,0,0] elements (which is the case for vertices not participating in morph)
+			// the triangulationInput will be an array of [0,0] elements
+			// resulting in an array of 0 triangles being returned from ShapeUtils.triangulateShape
+			// leading to not pushing into buffers.vertex the redundant vertices (the vertices that are not morphed).
+			// That's why, in order to support morphing scenario, "positions" is looking first for baseVertexPositions,
+			// so that we don't end up with an array of 0 triangles for the faces not participating in morph.
+			triangles = ShapeUtils.triangulateShape( triangulationInput, [] );
+
+		} else {
+
+			// Regular triangle, skip earcut triangulation step
+			triangles = [[ 0, 1, 2 ]];
+
+		}
+
+		for ( const [ i0, i1, i2 ] of triangles ) {
+
+			buffers.vertex.push( geoInfo.vertexPositions[ facePositionIndexes[ i0 * 3 ] ] );
+			buffers.vertex.push( geoInfo.vertexPositions[ facePositionIndexes[ i0 * 3 + 1 ] ] );
+			buffers.vertex.push( geoInfo.vertexPositions[ facePositionIndexes[ i0 * 3 + 2 ] ] );
+
+			buffers.vertex.push( geoInfo.vertexPositions[ facePositionIndexes[ i1 * 3 ] ] );
+			buffers.vertex.push( geoInfo.vertexPositions[ facePositionIndexes[ i1 * 3 + 1 ] ] );
+			buffers.vertex.push( geoInfo.vertexPositions[ facePositionIndexes[ i1 * 3 + 2 ] ] );
+
+			buffers.vertex.push( geoInfo.vertexPositions[ facePositionIndexes[ i2 * 3 ] ] );
+			buffers.vertex.push( geoInfo.vertexPositions[ facePositionIndexes[ i2 * 3 + 1 ] ] );
+			buffers.vertex.push( geoInfo.vertexPositions[ facePositionIndexes[ i2 * 3 + 2 ] ] );
 
 			if ( geoInfo.skeleton ) {
 
-				buffers.vertexWeights.push( faceWeights[ 0 ] );
-				buffers.vertexWeights.push( faceWeights[ 1 ] );
-				buffers.vertexWeights.push( faceWeights[ 2 ] );
-				buffers.vertexWeights.push( faceWeights[ 3 ] );
+				buffers.vertexWeights.push( faceWeights[ i0 * 4 ] );
+				buffers.vertexWeights.push( faceWeights[ i0 * 4 + 1 ] );
+				buffers.vertexWeights.push( faceWeights[ i0 * 4 + 2 ] );
+				buffers.vertexWeights.push( faceWeights[ i0 * 4 + 3 ] );
 
-				buffers.vertexWeights.push( faceWeights[ ( i - 1 ) * 4 ] );
-				buffers.vertexWeights.push( faceWeights[ ( i - 1 ) * 4 + 1 ] );
-				buffers.vertexWeights.push( faceWeights[ ( i - 1 ) * 4 + 2 ] );
-				buffers.vertexWeights.push( faceWeights[ ( i - 1 ) * 4 + 3 ] );
+				buffers.vertexWeights.push( faceWeights[ i1 * 4 ] );
+				buffers.vertexWeights.push( faceWeights[ i1 * 4 + 1 ] );
+				buffers.vertexWeights.push( faceWeights[ i1 * 4 + 2 ] );
+				buffers.vertexWeights.push( faceWeights[ i1 * 4 + 3 ] );
 
-				buffers.vertexWeights.push( faceWeights[ i * 4 ] );
-				buffers.vertexWeights.push( faceWeights[ i * 4 + 1 ] );
-				buffers.vertexWeights.push( faceWeights[ i * 4 + 2 ] );
-				buffers.vertexWeights.push( faceWeights[ i * 4 + 3 ] );
+				buffers.vertexWeights.push( faceWeights[ i2 * 4 ] );
+				buffers.vertexWeights.push( faceWeights[ i2 * 4 + 1 ] );
+				buffers.vertexWeights.push( faceWeights[ i2 * 4 + 2 ] );
+				buffers.vertexWeights.push( faceWeights[ i2 * 4 + 3 ] );
 
-				buffers.weightsIndices.push( faceWeightIndices[ 0 ] );
-				buffers.weightsIndices.push( faceWeightIndices[ 1 ] );
-				buffers.weightsIndices.push( faceWeightIndices[ 2 ] );
-				buffers.weightsIndices.push( faceWeightIndices[ 3 ] );
+				buffers.weightsIndices.push( faceWeightIndices[ i0 * 4 ] );
+				buffers.weightsIndices.push( faceWeightIndices[ i0 * 4 + 1 ] );
+				buffers.weightsIndices.push( faceWeightIndices[ i0 * 4 + 2 ] );
+				buffers.weightsIndices.push( faceWeightIndices[ i0 * 4 + 3 ] );
 
-				buffers.weightsIndices.push( faceWeightIndices[ ( i - 1 ) * 4 ] );
-				buffers.weightsIndices.push( faceWeightIndices[ ( i - 1 ) * 4 + 1 ] );
-				buffers.weightsIndices.push( faceWeightIndices[ ( i - 1 ) * 4 + 2 ] );
-				buffers.weightsIndices.push( faceWeightIndices[ ( i - 1 ) * 4 + 3 ] );
+				buffers.weightsIndices.push( faceWeightIndices[ i1 * 4 ] );
+				buffers.weightsIndices.push( faceWeightIndices[ i1 * 4 + 1 ] );
+				buffers.weightsIndices.push( faceWeightIndices[ i1 * 4 + 2 ] );
+				buffers.weightsIndices.push( faceWeightIndices[ i1 * 4 + 3 ] );
 
-				buffers.weightsIndices.push( faceWeightIndices[ i * 4 ] );
-				buffers.weightsIndices.push( faceWeightIndices[ i * 4 + 1 ] );
-				buffers.weightsIndices.push( faceWeightIndices[ i * 4 + 2 ] );
-				buffers.weightsIndices.push( faceWeightIndices[ i * 4 + 3 ] );
+				buffers.weightsIndices.push( faceWeightIndices[ i2 * 4 ] );
+				buffers.weightsIndices.push( faceWeightIndices[ i2 * 4 + 1 ] );
+				buffers.weightsIndices.push( faceWeightIndices[ i2 * 4 + 2 ] );
+				buffers.weightsIndices.push( faceWeightIndices[ i2 * 4 + 3 ] );
 
 			}
 
 			if ( geoInfo.color ) {
 
-				buffers.colors.push( faceColors[ 0 ] );
-				buffers.colors.push( faceColors[ 1 ] );
-				buffers.colors.push( faceColors[ 2 ] );
+				buffers.colors.push( faceColors[ i0 * 3 ] );
+				buffers.colors.push( faceColors[ i0 * 3 + 1 ] );
+				buffers.colors.push( faceColors[ i0 * 3 + 2 ] );
 
-				buffers.colors.push( faceColors[ ( i - 1 ) * 3 ] );
-				buffers.colors.push( faceColors[ ( i - 1 ) * 3 + 1 ] );
-				buffers.colors.push( faceColors[ ( i - 1 ) * 3 + 2 ] );
+				buffers.colors.push( faceColors[ i1 * 3 ] );
+				buffers.colors.push( faceColors[ i1 * 3 + 1 ] );
+				buffers.colors.push( faceColors[ i1 * 3 + 2 ] );
 
-				buffers.colors.push( faceColors[ i * 3 ] );
-				buffers.colors.push( faceColors[ i * 3 + 1 ] );
-				buffers.colors.push( faceColors[ i * 3 + 2 ] );
+				buffers.colors.push( faceColors[ i2 * 3 ] );
+				buffers.colors.push( faceColors[ i2 * 3 + 1 ] );
+				buffers.colors.push( faceColors[ i2 * 3 + 2 ] );
 
 			}
 
@@ -2042,17 +2143,17 @@ class GeometryParser {
 
 			if ( geoInfo.normal ) {
 
-				buffers.normal.push( faceNormals[ 0 ] );
-				buffers.normal.push( faceNormals[ 1 ] );
-				buffers.normal.push( faceNormals[ 2 ] );
+				buffers.normal.push( faceNormals[ i0 * 3 ] );
+				buffers.normal.push( faceNormals[ i0 * 3 + 1 ] );
+				buffers.normal.push( faceNormals[ i0 * 3 + 2 ] );
 
-				buffers.normal.push( faceNormals[ ( i - 1 ) * 3 ] );
-				buffers.normal.push( faceNormals[ ( i - 1 ) * 3 + 1 ] );
-				buffers.normal.push( faceNormals[ ( i - 1 ) * 3 + 2 ] );
+				buffers.normal.push( faceNormals[ i1 * 3 ] );
+				buffers.normal.push( faceNormals[ i1 * 3 + 1 ] );
+				buffers.normal.push( faceNormals[ i1 * 3 + 2 ] );
 
-				buffers.normal.push( faceNormals[ i * 3 ] );
-				buffers.normal.push( faceNormals[ i * 3 + 1 ] );
-				buffers.normal.push( faceNormals[ i * 3 + 2 ] );
+				buffers.normal.push( faceNormals[ i2 * 3 ] );
+				buffers.normal.push( faceNormals[ i2 * 3 + 1 ] );
+				buffers.normal.push( faceNormals[ i2 * 3 + 2 ] );
 
 			}
 
@@ -2062,14 +2163,14 @@ class GeometryParser {
 
 					if ( buffers.uvs[ j ] === undefined ) buffers.uvs[ j ] = [];
 
-					buffers.uvs[ j ].push( faceUVs[ j ][ 0 ] );
-					buffers.uvs[ j ].push( faceUVs[ j ][ 1 ] );
+					buffers.uvs[ j ].push( faceUVs[ j ][ i0 * 2 ] );
+					buffers.uvs[ j ].push( faceUVs[ j ][ i0 * 2 + 1 ] );
 
-					buffers.uvs[ j ].push( faceUVs[ j ][ ( i - 1 ) * 2 ] );
-					buffers.uvs[ j ].push( faceUVs[ j ][ ( i - 1 ) * 2 + 1 ] );
+					buffers.uvs[ j ].push( faceUVs[ j ][ i1 * 2 ] );
+					buffers.uvs[ j ].push( faceUVs[ j ][ i1 * 2 + 1 ] );
 
-					buffers.uvs[ j ].push( faceUVs[ j ][ i * 2 ] );
-					buffers.uvs[ j ].push( faceUVs[ j ][ i * 2 + 1 ] );
+					buffers.uvs[ j ].push( faceUVs[ j ][ i2 * 2 ] );
+					buffers.uvs[ j ].push( faceUVs[ j ][ i2 * 2 + 1 ] );
 
 				} );
 
@@ -2113,17 +2214,18 @@ class GeometryParser {
 	// Normal and position attributes only have data for the vertices that are affected by the morph
 	genMorphGeometry( parentGeo, parentGeoNode, morphGeoNode, preTransform, name ) {
 
-		const vertexIndices = ( parentGeoNode.PolygonVertexIndex !== undefined ) ? parentGeoNode.PolygonVertexIndex.a : [];
+		const basePositions = parentGeoNode.Vertices !== undefined ? parentGeoNode.Vertices.a : [];
+		const baseIndices = parentGeoNode.PolygonVertexIndex !== undefined ? parentGeoNode.PolygonVertexIndex.a : [];
 
-		const morphPositionsSparse = ( morphGeoNode.Vertices !== undefined ) ? morphGeoNode.Vertices.a : [];
-		const indices = ( morphGeoNode.Indexes !== undefined ) ? morphGeoNode.Indexes.a : [];
+		const morphPositionsSparse = morphGeoNode.Vertices !== undefined ? morphGeoNode.Vertices.a : [];
+		const morphIndices = morphGeoNode.Indexes !== undefined ? morphGeoNode.Indexes.a : [];
 
 		const length = parentGeo.attributes.position.count * 3;
 		const morphPositions = new Float32Array( length );
 
-		for ( let i = 0; i < indices.length; i ++ ) {
+		for ( let i = 0; i < morphIndices.length; i ++ ) {
 
-			const morphIndex = indices[ i ] * 3;
+			const morphIndex = morphIndices[ i ] * 3;
 
 			morphPositions[ morphIndex ] = morphPositionsSparse[ i * 3 ];
 			morphPositions[ morphIndex + 1 ] = morphPositionsSparse[ i * 3 + 1 ];
@@ -2133,9 +2235,9 @@ class GeometryParser {
 
 		// TODO: add morph normal support
 		const morphGeoInfo = {
-			vertexIndices: vertexIndices,
+			vertexIndices: baseIndices,
 			vertexPositions: morphPositions,
-
+			baseVertexPositions: basePositions
 		};
 
 		const morphBuffers = this.genBuffers( morphGeoInfo );
@@ -2646,13 +2748,11 @@ class AnimationParser {
 		const tracks = [];
 
 		let initialPosition = new Vector3();
-		let initialRotation = new Quaternion();
 		let initialScale = new Vector3();
 
-		if ( rawTracks.transform ) rawTracks.transform.decompose( initialPosition, initialRotation, initialScale );
+		if ( rawTracks.transform ) rawTracks.transform.decompose( initialPosition, new Quaternion(), initialScale );
 
 		initialPosition = initialPosition.toArray();
-		initialRotation = new Euler().setFromQuaternion( initialRotation, rawTracks.eulerOrder ).toArray();
 		initialScale = initialScale.toArray();
 
 		if ( rawTracks.T !== undefined && Object.keys( rawTracks.T.curves ).length > 0 ) {
@@ -2664,7 +2764,7 @@ class AnimationParser {
 
 		if ( rawTracks.R !== undefined && Object.keys( rawTracks.R.curves ).length > 0 ) {
 
-			const rotationTrack = this.generateRotationTrack( rawTracks.modelName, rawTracks.R.curves, initialRotation, rawTracks.preRotation, rawTracks.postRotation, rawTracks.eulerOrder );
+			const rotationTrack = this.generateRotationTrack( rawTracks.modelName, rawTracks.R.curves, rawTracks.preRotation, rawTracks.postRotation, rawTracks.eulerOrder );
 			if ( rotationTrack !== undefined ) tracks.push( rotationTrack );
 
 		}
@@ -2696,36 +2796,27 @@ class AnimationParser {
 
 	}
 
-	generateRotationTrack( modelName, curves, initialValue, preRotation, postRotation, eulerOrder ) {
+	generateRotationTrack( modelName, curves, preRotation, postRotation, eulerOrder ) {
 
-		if ( curves.x !== undefined ) {
+		let times;
+		let values;
 
-			this.interpolateRotations( curves.x );
-			curves.x.values = curves.x.values.map( MathUtils.degToRad );
+		if ( curves.x !== undefined && curves.y !== undefined && curves.z !== undefined ) {
 
-		}
+			const result = this.interpolateRotations( curves.x, curves.y, curves.z, eulerOrder );
 
-		if ( curves.y !== undefined ) {
-
-			this.interpolateRotations( curves.y );
-			curves.y.values = curves.y.values.map( MathUtils.degToRad );
+			times = result[ 0 ];
+			values = result[ 1 ];
 
 		}
 
-		if ( curves.z !== undefined ) {
-
-			this.interpolateRotations( curves.z );
-			curves.z.values = curves.z.values.map( MathUtils.degToRad );
-
-		}
-
-		const times = this.getTimesForAllAxes( curves );
-		const values = this.getKeyframeTrackValues( times, curves, initialValue );
+		// For Maya models using "Joint Orient", Euler order only applies to rotation, not pre/post-rotations
+		const defaultEulerOrder = getEulerOrder(0);
 
 		if ( preRotation !== undefined ) {
 
 			preRotation = preRotation.map( MathUtils.degToRad );
-			preRotation.push( eulerOrder );
+			preRotation.push( defaultEulerOrder );
 
 			preRotation = new Euler().fromArray( preRotation );
 			preRotation = new Quaternion().setFromEuler( preRotation );
@@ -2735,7 +2826,7 @@ class AnimationParser {
 		if ( postRotation !== undefined ) {
 
 			postRotation = postRotation.map( MathUtils.degToRad );
-			postRotation.push( eulerOrder );
+			postRotation.push( defaultEulerOrder );
 
 			postRotation = new Euler().fromArray( postRotation );
 			postRotation = new Quaternion().setFromEuler( postRotation ).invert();
@@ -2747,14 +2838,31 @@ class AnimationParser {
 
 		const quaternionValues = [];
 
+		if ( ! values || ! times ) return new QuaternionKeyframeTrack( modelName + '.quaternion', [ 0 ], [ 0 ] );
+
 		for ( let i = 0; i < values.length; i += 3 ) {
 
 			euler.set( values[ i ], values[ i + 1 ], values[ i + 2 ], eulerOrder );
-
 			quaternion.setFromEuler( euler );
 
 			if ( preRotation !== undefined ) quaternion.premultiply( preRotation );
 			if ( postRotation !== undefined ) quaternion.multiply( postRotation );
+
+			// Check unroll
+			if ( i > 2 ) {
+
+				const prevQuat = new Quaternion().fromArray(
+					quaternionValues,
+					( ( i - 3 ) / 3 ) * 4
+				);
+
+				if ( prevQuat.dot( quaternion ) < 0 ) {
+
+					quaternion.set( - quaternion.x, - quaternion.y, - quaternion.z, - quaternion.w );
+
+				}
+
+			}
 
 			quaternion.toArray( quaternionValues, ( i / 3 ) * 4 );
 
@@ -2886,46 +2994,109 @@ class AnimationParser {
 	// Rotations are defined as Euler angles which can have values  of any size
 	// These will be converted to quaternions which don't support values greater than
 	// PI, so we'll interpolate large rotations
-	interpolateRotations( curve ) {
+	interpolateRotations( curvex, curvey, curvez, eulerOrder ) {
 
-		for ( let i = 1; i < curve.values.length; i ++ ) {
+		const times = [];
+		const values = [];
 
-			const initialValue = curve.values[ i - 1 ];
-			const valuesSpan = curve.values[ i ] - initialValue;
+		// Add first frame
+		times.push( curvex.times[ 0 ] );
+		values.push( MathUtils.degToRad( curvex.values[ 0 ] ) );
+		values.push( MathUtils.degToRad( curvey.values[ 0 ] ) );
+		values.push( MathUtils.degToRad( curvez.values[ 0 ] ) );
 
-			const absoluteSpan = Math.abs( valuesSpan );
+		for ( let i = 1; i < curvex.values.length; i ++ ) {
 
-			if ( absoluteSpan >= 180 ) {
+			const initialValue = [
+				curvex.values[ i - 1 ],
+				curvey.values[ i - 1 ],
+				curvez.values[ i - 1 ],
+			];
 
-				const numSubIntervals = absoluteSpan / 180;
+			if ( isNaN( initialValue[ 0 ] ) || isNaN( initialValue[ 1 ] ) || isNaN( initialValue[ 2 ] ) ) {
 
-				const step = valuesSpan / numSubIntervals;
-				let nextValue = initialValue + step;
+				continue;
 
-				const initialTime = curve.times[ i - 1 ];
-				const timeSpan = curve.times[ i ] - initialTime;
-				const interval = timeSpan / numSubIntervals;
-				let nextTime = initialTime + interval;
+			}
 
-				const interpolatedTimes = [];
-				const interpolatedValues = [];
+			const initialValueRad = initialValue.map( MathUtils.degToRad );
 
-				while ( nextTime < curve.times[ i ] ) {
+			const currentValue = [
+				curvex.values[ i ],
+				curvey.values[ i ],
+				curvez.values[ i ],
+			];
 
-					interpolatedTimes.push( nextTime );
-					nextTime += interval;
+			if ( isNaN( currentValue[ 0 ] ) || isNaN( currentValue[ 1 ] ) || isNaN( currentValue[ 2 ] ) ) {
 
-					interpolatedValues.push( nextValue );
-					nextValue += step;
+				continue;
+
+			}
+
+			const currentValueRad = currentValue.map( MathUtils.degToRad );
+
+			const valuesSpan = [
+				currentValue[ 0 ] - initialValue[ 0 ],
+				currentValue[ 1 ] - initialValue[ 1 ],
+				currentValue[ 2 ] - initialValue[ 2 ],
+			];
+
+			const absoluteSpan = [
+				Math.abs( valuesSpan[ 0 ] ),
+				Math.abs( valuesSpan[ 1 ] ),
+				Math.abs( valuesSpan[ 2 ] ),
+			];
+
+			if ( absoluteSpan[ 0 ] >= 180 || absoluteSpan[ 1 ] >= 180 || absoluteSpan[ 2 ] >= 180 ) {
+
+				const maxAbsSpan = Math.max( ...absoluteSpan );
+
+				const numSubIntervals = maxAbsSpan / 180;
+
+				const E1 = new Euler( ...initialValueRad, eulerOrder );
+				const E2 = new Euler( ...currentValueRad, eulerOrder );
+
+				const Q1 = new Quaternion().setFromEuler( E1 );
+				const Q2 = new Quaternion().setFromEuler( E2 );
+
+				// Check unroll
+				if ( Q1.dot( Q2 ) ) {
+
+					Q2.set( - Q2.x, - Q2.y, - Q2.z, - Q2.w );
 
 				}
 
-				curve.times = inject( curve.times, i, interpolatedTimes );
-				curve.values = inject( curve.values, i, interpolatedValues );
+				// Interpolate
+				const initialTime = curvex.times[ i - 1 ];
+				const timeSpan = curvex.times[ i ] - initialTime;
+
+				const Q = new Quaternion();
+				const E = new Euler();
+				for ( let t = 0; t < 1; t += 1 / numSubIntervals ) {
+
+					Q.copy( Q1.clone().slerp( Q2.clone(), t ) );
+
+					times.push( initialTime + t * timeSpan );
+					E.setFromQuaternion( Q, eulerOrder );
+
+					values.push( E.x );
+					values.push( E.y );
+					values.push( E.z );
+
+				}
+
+			} else {
+
+				times.push( curvex.times[ i ] );
+				values.push( MathUtils.degToRad( curvex.values[ i ] ) );
+				values.push( MathUtils.degToRad( curvey.values[ i ] ) );
+				values.push( MathUtils.degToRad( curvez.values[ i ] ) );
 
 			}
 
 		}
+
+		return [ times, values ];
 
 	}
 
@@ -3967,10 +4138,13 @@ function generateTransform( transformData ) {
 
 	if ( transformData.translation ) lTranslationM.setPosition( tempVec.fromArray( transformData.translation ) );
 
+	// For Maya models using "Joint Orient", Euler order only applies to rotation, not pre/post-rotations
+	const defaultEulerOrder = getEulerOrder(0);
+
 	if ( transformData.preRotation ) {
 
 		const array = transformData.preRotation.map( MathUtils.degToRad );
-		array.push( transformData.eulerOrder || Euler.DEFAULT_ORDER );
+		array.push( defaultEulerOrder );
 		lPreRotationM.makeRotationFromEuler( tempEuler.fromArray( array ) );
 
 	}
@@ -3978,7 +4152,7 @@ function generateTransform( transformData ) {
 	if ( transformData.rotation ) {
 
 		const array = transformData.rotation.map( MathUtils.degToRad );
-		array.push( transformData.eulerOrder || Euler.DEFAULT_ORDER );
+		array.push( transformData.eulerOrder || defaultEulerOrder );
 		lRotationM.makeRotationFromEuler( tempEuler.fromArray( array ) );
 
 	}
@@ -3986,7 +4160,7 @@ function generateTransform( transformData ) {
 	if ( transformData.postRotation ) {
 
 		const array = transformData.postRotation.map( MathUtils.degToRad );
-		array.push( transformData.eulerOrder || Euler.DEFAULT_ORDER );
+		array.push( defaultEulerOrder );
 		lPostRotationM.makeRotationFromEuler( tempEuler.fromArray( array ) );
 		lPostRotationM.invert();
 
@@ -4132,11 +4306,5 @@ function slice( a, b, from, to ) {
 
 }
 
-// inject array a2 into array a1 at index
-function inject( a1, index, a2 ) {
-
-	return a1.slice( 0, index ).concat( a2 ).concat( a1.slice( index ) );
-
-}
 
 export { FBXLoader };

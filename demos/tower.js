@@ -4,9 +4,10 @@ demo = () => {
 
     phy.add({ type:'plane' })
 
-    phy.add({ type:'highSphere', name:'sphere', size:[0.50], pos:[0,6,0], density:5, restitution:0.2, friction:0.2, sleep:true })
+    phy.add({ type:'highSphere', name:'sphere', size:[0.50], pos:[2,6,0], density:5, restitution:0.2, friction:0.2, sleep:true })
 
-    addTower({ radius:1, height:25, size:[0.1, 0.2], detail:18 });
+    addTower({ radius:1, height:25, size:[0.1, 0.2], detail:18, pos:[2,0,0] });
+    addTower({ radius:1, height:25, size:[0.1, 0.2], detail:18, pos:[-2,0,0] });
 
     phy.setTimeout( run, 1000 )
 
