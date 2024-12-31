@@ -505,8 +505,9 @@ export class Body extends Item {
 
 	    if( o.kinematic !== undefined && b.type === 'body' ){ 
 	    	b.isKinematic = o.kinematic || false;
-	    	if(o.kinematic) b.SetMotionType( Jolt.Kinematic );
-	    	else b.SetMotionType( Jolt.Dynamic );
+	    	b.mMotionType = o.kinematic == 0 ? Jolt.EMotionType_Kinematic : Jolt.EMotionType_Dynamic;
+	    	//if(o.kinematic) b.SetMotionType( Jolt.Kinematic );
+	    	//else b.SetMotionType( Jolt.Dynamic );
 	    	
 	    }
 

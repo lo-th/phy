@@ -1,3 +1,4 @@
+
 export const Max = {
 	body:4000,
     joint:1000,
@@ -6,7 +7,6 @@ export const Max = {
     character:100,
     vehicle:50,
     solver:20,
-    //terrain:10,
 }
 
 export const Num = {
@@ -17,13 +17,15 @@ export const Num = {
     ray:11,
     character:16,
     vehicle:72,//max 8 wheels
-    solver:128,//256,
-    //terrain:1,
+    solver:128,
 }
+
+
+// Define how many body phy can manage
 
 export const getArray = function ( engine, full = false ){
 
-    let ArPos = {}
+    const ArPos = {}
 
     let counts = {
         body: Max.body * ( full ? Num.bodyFull : Num.body ),
@@ -49,16 +51,19 @@ export const getArray = function ( engine, full = false ){
 
     for( let m in counts ){ 
 
-        ArPos[m] = prev
-        prev += counts[m]
+        ArPos[m] = prev;
+        prev += counts[m];
 
     }
 
-    ArPos['total'] = prev
+    ArPos['total'] = prev;
 
-    return ArPos
+    return ArPos;
 
 }
+
+
+// Convert type for all engine
 
 export const getType = function ( o ) {
     switch( o.type ){

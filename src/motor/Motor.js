@@ -40,22 +40,23 @@ import { preloadAvatar } from '../3TH/character/Avatar.js';
 
 /** __
 *    _)_|_|_
-*   __) |_| | 2024
+*   __) |_| | 2025
 * @author lo.th / https://github.com/lo-th
 *
-*    THREE JS ENGINE
+*    THREE.JS BRIDGE ENGINE
 */
 
 const Version = {
 	
 	PHY: '0.1.3',
 
+    PHYSX: '5.4.0',
+    HAVOK: '1.2.1',
+    JOLT: '0.30.0',
+
+    RAPIER: '0.11.2',
     OIMO: '1.2.4',
     AMMO: '3.0',
-    PHYSX: '5.4.0',
-    RAPIER: '0.11.2',
-    HAVOK: '1.2.1',
-    JOLT: '0.25.0',
 
 };
 
@@ -125,7 +126,6 @@ const settings = {
 	
 }
 
-//const testUrl = new URL('../../compact/Havok.hex', import.meta.url).toString();
 
 export class Motor {
 
@@ -149,9 +149,9 @@ export class Motor {
 
 	static getSetting () { return settings; }
 
-	static getRoot() { return root; }
+	static getRoot () { return root; }
 
-	static setGravity( v ){
+	static setGravity ( v ) {
 
 		if(v) settings.gravity = v;
 		root.post({ m:'setGravity', o:{ gravity:settings.gravity } });
@@ -172,7 +172,6 @@ export class Motor {
 		Motor.initArray( settings.full );
 
 		elapsedTime = 0;
-
 		isTimeout = isWorker;
 		outsideStep = !isTimeout;
 
@@ -204,13 +203,13 @@ export class Motor {
     static getTime () { return Timer.now(); }
     static readTime ( t ) { return Timer.format_time(t); }
 
-    static startTime () { return tt.startTime }
+    static startTime () { return tt.startTime; }
 
-	static getTimeTest () { return timetest }
+	static getTimeTest () { return timetest; }
 
-	static setMaxFps ( v ) { maxFps = v }
+	static setMaxFps ( v ) { maxFps = v; }
 
-	static getMouse () { return mouseTool ? mouseTool.mouse:null }
+	static getMouse () { return mouseTool ? mouseTool.mouse : null; }
 
 	static setMaxAnisotropy ( f ) { Pool.maxAnisotropy = f; }
 
@@ -237,7 +236,7 @@ export class Motor {
 
 	}
 
-	static message ( m ){
+	static message = ( m ) => {
 
 		let e = m.data;
 		if( e.Ar ) root.Ar = e.Ar;
@@ -254,38 +253,43 @@ export class Motor {
 	// This means that if you want your message to fit in a single frame, 
 	// you should keep it under 1,300 kB
 
-	static post ( e, buffer = null, direct = false ){
+	static post = ( e, buffer = null, direct = false ) => {
 
-		if( isWorker ){
-
-			if(addToFlow){
-				if( e.o ){
-			    	if( e.o.type === 'solver' ) direct = true;
-			    	if( e.o.solver !== undefined ) direct = true;
-			    }
-
-			    if( direct ){
-			    	worker.postMessage( e, buffer );
-			    } else {
-			    	if( e.m === 'add' ) root.flow.add.push( e.o );
-			    	else if ( e.m === 'remove' ) root.flow.remove.push( e.o );
-			    	else worker.postMessage( e, buffer );
-			    }
-			} else {
-				worker.postMessage( e, buffer );
-			}
-
-		} else {
+		if( !isWorker ){
 			directMessage( { data : e } );
+			return;
+		}
+
+		if(addToFlow){
+			if( e.o ){
+		    	if( e.o.type === 'solver' ) direct = true;
+		    	if( e.o.solver !== undefined ) direct = true;
+		    }
+		    if( direct ){
+		    	worker.postMessage( e, buffer );
+		    } else {
+		    	if( e.m === 'add' ) root.flow.add.push( e.o );
+		    	else if ( e.m === 'remove' ) root.flow.remove.push( e.o );
+		    	else worker.postMessage( e, buffer );
+		    }
+		} else {
+			worker.postMessage( e, buffer );
 		}
 
 	}
 
-	static autoRagdoll ( o ) {  return new AutoRagdoll( o ); }
+
+	// return
+
+	static autoRagdoll = ( o ) => ( new AutoRagdoll( o ) );
+	static byName = ( name ) => ( Utils.byName( name ) );
+	static getScene = () => ( root.scene );
+
+	//static autoRagdoll ( o ) { return new AutoRagdoll( o ); }
+	//static getScene () { return root.scene; }
+	//static byName ( name ){ return Utils.byName( name ); }
 
 	static makeView () {}
-
-	static getScene () { return root.scene; }
 
 	static resize ( size ) { root.viewSize = size; }
 
@@ -401,7 +405,7 @@ export class Motor {
 
 	}
 
-	static onCompactDone( o ) {
+	static onCompactDone ( o ) {
 
 		let name = root.engine.toLowerCase();
 		let mini = name.charAt(0).toUpperCase() + name.slice(1);
@@ -458,7 +462,7 @@ export class Motor {
 
 	}
 
-	static loadWasmDirect( link, o, name, url ) {
+	static loadWasmDirect ( link, o, name, url ) {
 
 	    let s = document.createElement("script");
 	    s.src = url + link;
@@ -467,7 +471,7 @@ export class Motor {
 
 	}
 
-	static preLoadMin( name, o, url ) {
+	static preLoadMin ( name, o, url ) {
 
 		let link = url + 'build/'+name+'.min.js';
 		let type = name.toUpperCase();
@@ -499,7 +503,7 @@ export class Motor {
 
 	}
 
-	static async preLoad( name, o, url ) {
+	static async preLoad ( name, o, url ) {
 
 		let link = url + 'build/'+name+'.module.js';
 		if( o.devMode ) link = url + 'src/'+name+'.js';
@@ -512,7 +516,7 @@ export class Motor {
 
 	////
 
-	static initPhysics( o ) {
+	static initPhysics ( o ) {
 
 		if( envmapUrl !== '' ){
 			Motor.preloadEnvmap( o );
@@ -526,12 +530,12 @@ export class Motor {
 
 	}
 
-	static addEnvmap( o ) {
+	static addEnvmap ( o ) {
 		if(!_envmap) _envmap = new Envmap( { renderer:renderer, scene:scene, ...o } )
 		return _envmap;
 	}
 
-	static preloadEnvmap( o ) {
+	static preloadEnvmap ( o ) {
 
 		_envmap = new Envmap( {
 			url:envmapUrl,
@@ -548,7 +552,7 @@ export class Motor {
 
 	}
 	
-	static getPause (){ return isPause; }
+	static getPause () { return isPause; }
 
 	static pause ( v ){
 
@@ -560,7 +564,7 @@ export class Motor {
 
 	}
 
-	static flowReset ( ){
+	static flowReset ( ) {
 
 		root.flow = { 
 			stamp:0,
@@ -574,7 +578,7 @@ export class Motor {
 
 	}
 
-	static reset ( callback ){
+	static reset ( callback ) {
 
 		if( first ){
 			first = false;
@@ -628,7 +632,7 @@ export class Motor {
 
 	}
 
-	static clearGarbage() {
+	static clearGarbage () {
 
 		Motor.remove(root.garbage);
 		Motor.clearInstance();
@@ -636,19 +640,19 @@ export class Motor {
 		
 	}
 
-	static clear( callback ) {
+	static clear ( callback ) {
 
 		Motor.reset(callback);
 		
 	}
 
-	static resetCallback (){
+	static resetCallback () {
 
 		endReset();
 
 	}
 
-	static dispose (){
+	static dispose () {
 
 		Motor.reset(()=>{
 
@@ -667,7 +671,7 @@ export class Motor {
 
 	}
 
-	static ready (){
+	static ready () {
 
 		tt.end = Timer.now();
 		tt.startTime = Timer.format_time( tt.end - tt.start );
@@ -698,7 +702,6 @@ export class Motor {
 
 		if( !engineReady ) return;
 		if( !outsideStep ) return;
-
 		if( timer.up( stamp ) ) {
 			root.post( { m:'step', o:stamp } );
 		}
@@ -715,8 +718,7 @@ export class Motor {
         //prevUpdate( timer.delta )
 
 		Motor.stepItems();
-    
-		
+
 		//root.flow.tmp = []
 
 		if( breaker !== null ) breaker.step();
@@ -739,15 +741,12 @@ export class Motor {
 		// update static object for this side !
 		Motor.changes( root.flow.tmp );
 
-
 		// finally post flow change to physx
 		if( isBuffer ) root.post( { m:'poststep', flow:root.flow, Ar:root.Ar }, [ root.Ar.buffer ] );
 		else root.post( { m:'poststep', flow:root.flow });
 
 		//	Motor.stepItems()
 		Motor.flowReset();
-
-		//);
 
 	}
 
@@ -783,11 +782,7 @@ export class Motor {
 
 	}
 
-	static byName ( name ){
-
-		return Utils.byName( name );
-
-	}
+	
 
 	static getAllBody ( name ){
 
@@ -810,43 +805,31 @@ export class Motor {
 		items['terrain'] = new Terrain();
 		items['character'] = new Character();
 
+		// vehicle only on physx and ammo
 		if( root.engine === 'PHYSX' || root.engine === 'AMMO' ){ 
-			items['vehicle'] = new Vehicle()
+			items['vehicle'] = new Vehicle();
 		}
 
-		if( root.engine === 'PHYSX' ){ 
-			items['solver'] = new Solver()
-		}
-
+		// solver is only on physx
+		if( root.engine === 'PHYSX' ) items['solver'] = new Solver();
+		
 		root.items = items;
 
 	}
 
 	static getBodyRef () { return items.body; }
 
-	static clearBody() {
-
-		items.body.reset()
-
-	}
+	static clearBody() { items.body.reset() }
 
 	static resetItems() {
 
-		Object.values(items).forEach( value => value.reset() );
-		//for (const key in items) items[key].reset()
+		Object.values(items).forEach( v => v.reset() );
 
 	}
 
 	static stepItems () {
 
-		//if( root.Ar === null ) return
-
-		//items.body.step()
-		//items.ray.step()
-
-	    Object.values(items).forEach( value => value.step() );
-		//for ( const key in items ) items[key].step( root.Ar, root.ArPos[key] )
-
+	    Object.values( items ).forEach( v => v.step() );
 		Motor.upInstance();
 		Motor.upButton();
 
@@ -875,15 +858,7 @@ export class Motor {
 	//  ADD
 	//-----------------------
 
-	static addDirect( b ) {
-
-		root.scenePlus.add( b );
-		root.tmpMesh.push( b );
-		return b;
-
-	}
-
-	static adds ( r = [], direct ){
+	static adds ( r = [], direct = false ){
 
 		let i = r.length, n = 0;
 		while(i--) Motor.add( r[n++], direct );
@@ -910,6 +885,14 @@ export class Motor {
 		let m = items[type].add( o );
 		root.garbage.push( m.name );
 		return m;
+
+	}
+
+	static addDirect( b ) {
+
+		root.scenePlus.add( b );
+		root.tmpMesh.push( b );
+		return b;
 
 	}
 
@@ -1100,34 +1083,33 @@ export class Motor {
 	//  TEXTURE
 	//-----------------------
 
-	static texture( o = {} ) {
-		return Pool.texture( o );
-	}
+	static texture = ( o={} ) => ( Pool.texture( o ) );
+	//static texture( o = {} ) { return Pool.texture( o );}
 
 
 	//-----------------------
 	//  MATERIAL
 	//-----------------------
-	static getMatRef(){ return Mat }
-
-	static material ( o = {} ){ return Mat.create( o ) }
 
 	static setExtendShader ( f ) { Mat.extendShader = f }
-
-	static getMaterialList(){ return Mat.getList(); }
-
 	static addMaterial( m, direct ){ Mat.set( m, direct ); }
-
 	static directIntensity ( v ) { Mat.directIntensity(v); }
-
 	static setEnvmapIntensity ( v ) { Mat.setEnvmapIntensity(v); }
 
-	static getMat( name ){ return Mat.get( name ) }
+	// return
+	static getMatRef = () => ( Mat );
+	static getMat = ( name ) => ( Mat.get( name ) );
+	static getMaterial = ( name ) => ( Mat.get( name ) );
+	static getMaterialList = () => ( Mat.getList() );
+	static material = ( o={} ) => ( Mat.create( o ) );
+	static changeRenderMode = ( n ) => ( Mat.changeRenderMode( n ) );
 
-	static getMaterial( name ){ return Mat.get( name ) }
-
-	static changeRenderMode( n ){ return Mat.changeRenderMode( n ) }
-
+	//static changeRenderMode( n ){ return Mat.changeRenderMode( n ) }
+	//static getMatRef(){ return Mat }
+	//static material ( o = {} ){ return Mat.create( o ) }
+	//static getMaterialList(){ return Mat.getList(); }
+	//static getMat( name ){ return Mat.get( name ) }
+	//static getMaterial( name ){ return Mat.get( name ) }
 
 	//-----------------------
 	//
@@ -1154,9 +1136,7 @@ export class Motor {
 	// TODO ?? 
 
 	static async loadAsync ( Urls, Path = '', msg = '' ){
-
 		await Pool.loadAsync( Urls, Path, msg );
-
 	}
 
 	static applyMorph ( modelName, meshs = null, normal = true, relative = true ){
@@ -1172,16 +1152,6 @@ export class Motor {
 		}
 		return Pool.getMesh( obj, keepMaterial );
 	}
-
-	/*static getGroup ( obj, autoMesh, autoMaterial ){
-		return Pool.getGroup( obj, autoMesh, autoMaterial );
-	}
-
-	static getGlb ( obj, autoMaterial ){
-		return Pool.getGLB( obj, autoMaterial );
-	}*/
-
-	
 
 	static getGlbMaterial ( obj ){
 		let ms = Pool.getMaterials( obj );
@@ -1207,23 +1177,23 @@ export class Motor {
 	static getParticle (){}
 
 	static addParticleSolver ( o ){
-		let s = new Particle( o )
-		particles.push(s)
-		return s
+		let s = new Particle( o );
+		particles.push(s);
+		return s;
 	}
 
 	static updateParticleSolver () { 
 
-		let i = particles.length
-		while( i-- ) particles[i].update()
+		let i = particles.length;
+		while( i-- ) particles[i].update();
 		
 	}
 
 	static clearParticleSolver () { 
 
-		let i = particles.length
+		let i = particles.length;
 		//while( i-- ) particles[i].dispose()
-    	particles = []
+    	particles = [];
 		
 	}
 
@@ -1236,14 +1206,12 @@ export class Motor {
 
 		let b = new Button( o );
 		buttons.push( b );
-		return b
+		return b;
 
 	}
 
 	static upButton (o) {
-
-		for ( const key in buttons ) buttons[key].update()
-
+		for ( const key in buttons ) buttons[key].update();
 	}
 
 
@@ -1347,7 +1315,7 @@ export class Motor {
 
 class Solid extends Body {
 	constructor () {
-		super()
+		super();
 		this.type = 'solid';
 	}
 	step (){}

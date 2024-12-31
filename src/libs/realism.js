@@ -1,5 +1,5 @@
 import { Pass, Effect, RenderPass, Selection } from './postprocessing.js';
-import { ShaderChunk, ShaderLib, UniformsUtils, ShaderMaterial, Uniform, Vector2, Matrix4, Vector3, NoBlending, GLSL3, Clock, Quaternion, WebGLMultipleRenderTargets, NearestFilter, FramebufferTexture, LinearFilter, WebGLRenderTarget, FloatType, DataTexture, RGBAFormat, ClampToEdgeWrapping, LinearMipMapLinearFilter, EquirectangularReflectionMapping, TextureLoader, RepeatWrapping, NoColorSpace, MeshPhysicalMaterial, Color, DepthTexture, RedFormat, Matrix3, HalfFloatType, SRGBColorSpace } from 'three';
+import { ShaderChunk, ShaderLib, UniformsUtils, ShaderMaterial, Uniform, Vector2, Matrix4, Vector3, NoBlending, GLSL3, Clock, Quaternion, NearestFilter, FramebufferTexture, LinearFilter, WebGLRenderTarget, FloatType, DataTexture, RGBAFormat, ClampToEdgeWrapping, LinearMipMapLinearFilter, EquirectangularReflectionMapping, TextureLoader, RepeatWrapping, NoColorSpace, MeshPhysicalMaterial, Color, DepthTexture, RedFormat, Matrix3, HalfFloatType, SRGBColorSpace } from 'three';
 
 // from: https://news.ycombinator.com/item?id=17876741
 
@@ -242,7 +242,7 @@ class TemporalReprojectPass extends Pass {
     options = { ...defaultTemporalReprojectPassOptions,
       ...options
     };
-    this.renderTarget = new WebGLMultipleRenderTargets(1, 1, textureCount, {
+    this.renderTarget = new WebGLRenderTarget(1, 1, textureCount, {
       minFilter: NearestFilter,
       magFilter: NearestFilter,
       type: texture.type,
@@ -1940,8 +1940,8 @@ class PoissonDenoisePass extends Pass {
       // using HalfFloatType as FloatType with bilinear filtering isn't supported on some Apple devices
       depthBuffer: false
     };
-    this.renderTargetA = new WebGLMultipleRenderTargets(1, 1, textureCount, renderTargetOptions);
-    this.renderTargetB = new WebGLMultipleRenderTargets(1, 1, textureCount, renderTargetOptions); // give the textures of renderTargetA and renderTargetB names
+    this.renderTargetA = new WebGLRenderTarget(1, 1, textureCount, renderTargetOptions);
+    this.renderTargetB = new WebGLRenderTarget(1, 1, textureCount, renderTargetOptions); // give the textures of renderTargetA and renderTargetB names
 
     this.renderTargetB.texture[0].name = "PoissonDenoisePass." + (isTextureSpecular[0] ? "specular" : "diffuse");
 
