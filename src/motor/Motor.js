@@ -50,7 +50,7 @@ const Version = {
 	
 	PHY: '0.1.3',
 
-    PHYSX: '5.4.0',
+    PHYSX: '5.05.00',
     HAVOK: '1.2.1',
     JOLT: '0.30.0',
 
