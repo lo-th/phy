@@ -1,4 +1,4 @@
-import { Object3D, Vector3, Group, Mesh, LineSegments, BufferGeometry, CylinderGeometry, Matrix4, MathUtils } from 'three';
+import { Object3D, Vector3, Group, Mesh, LineSegments, BufferGeometry, CylinderGeometry, SphereGeometry, Matrix4, MathUtils } from 'three';
 
 import { root, Utils } from './root.js';
 
@@ -256,11 +256,27 @@ export class Body extends Item {
 			
 			break;
 
+			case 'customSphere':
+
+			    gName = 'customSphere_' + s[ 0 ];
+
+			    g = Geo.get( gName );
+			    if(!g){
+			    	g = new SphereGeometry( s[ 0 ], o.seg1 || 32, o.seg2 || 16 );
+					g.name = gName
+			    } else {
+					gName = ''
+				}
+			    noScale = true;
+			    o.type = 'sphere';
+
+			break;
+
 			case 'highSphere':
 
 			    gName = 'highSphere_' + s[ 0 ];
 
-			    g = Geo.get( gName )
+			    g = Geo.get( gName );
 			    if(!g){
 			    	g = new SphereBox( s[ 0 ] );
 					g.name = gName

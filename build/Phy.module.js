@@ -7697,6 +7697,22 @@ class Body extends Item {
 			
 			break;
 
+			case 'customSphere':
+
+			    gName = 'customSphere_' + s[ 0 ];
+
+			    g = Geo.get( gName );
+			    if(!g){
+			    	g = new SphereGeometry( s[ 0 ], o.seg1 || 32, o.seg2 || 16 );
+					g.name = gName;
+			    } else {
+					gName = '';
+				}
+			    noScale = true;
+			    o.type = 'sphere';
+
+			break;
+
 			case 'highSphere':
 
 			    gName = 'highSphere_' + s[ 0 ];
