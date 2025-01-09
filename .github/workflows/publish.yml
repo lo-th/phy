@@ -14,12 +14,6 @@ jobs:
         with:
           node-version: 20
           registry-url: 'https://registry.npmjs.org'
-
-      - name: Install dependencies
-        run: npm ci
-      
-      - name: build 🔧
-        run: npm run phy
       
       - name: Publish package on NPM 📦
         run: npm publish
