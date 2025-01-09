@@ -87,6 +87,17 @@ const M = {
 
     },
 
+    shuffle: (array) => {
+
+        let shuffled = array
+        .map(value => ({ value, sort: Math.random() }))
+        .sort((a, b) => a.sort - b.sort)
+        .map(({ value }) => value);
+
+        return shuffled
+
+    },
+
     /*distance: ( a, b = { x:0, y:0, z:0 } ) => { // rotation array in degree
 
         const dx = a.x ? a.x - b.x : 0
@@ -935,7 +946,7 @@ const getArray = function ( engine, full = false ){
 
 const getType = function ( o ) {
     switch( o.type ){
-        case 'plane': case 'box': case 'sphere': case 'highSphere': case 'cylinder': case 'stair':case 'particle':
+        case 'plane': case 'box': case 'sphere': case 'highSphere': case 'customSphere': case 'cylinder': case 'stair':case 'particle':
         case 'cone': case 'capsule': case 'mesh': case 'convex': case 'compound': case 'null':
             //if ( ( !o.mass || !o.density ) && !o.kinematic ) return 'solid'
             if ( !o.mass && !o.density && !o.kinematic ) return 'solid'
@@ -4367,6 +4378,15 @@ class Instance extends InstancedMesh {
 
     }
 
+    getBodyList(){
+
+        let bodyNames = [];
+        let i = this.count;
+        while(i--) bodyNames.push( this.tmpElement[i].name );
+        return bodyNames;
+
+    }
+
     expand( p, q, s, c = [1,1,1], uv ) {
 
         let old = this.instanceMatrix !== null ? this.instanceMatrix.array : [];
@@ -7692,6 +7712,7 @@ class Body extends Item {
 				o.v = MathTool.getVertex( g, noIndex );
 				o.index = MathTool.getIndex( g, noIndex );
 				
+				
 				unic = true;
 				noScale = true;
 			
@@ -8282,6 +8303,19 @@ class Body extends Item {
 				b.matrixAutoUpdate = true;
 			}
 		//}
+
+	}
+
+	clearInstance( name ){
+
+		//console.log('need remove instance')
+
+		let instance = root.instanceMesh[name];
+		let bodyList = instance.getBodyList();
+
+		root.motor.remove( bodyList );
+		instance.dispose();
+		delete root.instanceMesh[name];
 
 	}
 
@@ -44916,7 +44950,10 @@ class Motor {
 		if ( name.constructor === Array ) return Motor.removes( name, direct );
 
 		let b = Motor.byName( name );
-		if( b === null ) return;
+		if( b === null ){ 
+			if( root.instanceMesh[ name ] ) items.body.clearInstance( name );
+			return;
+		}
 
 		if(b.type === 'autoRagdoll' ) {
 			Utils.remove(b);

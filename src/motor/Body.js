@@ -250,6 +250,18 @@ export class Body extends Item {
 				
 				o.v = MathTool.getVertex( g, noIndex );
 				o.index = MathTool.getIndex( g, noIndex );
+
+				let use16 = false;
+
+				if(use16){
+					let z = o.index.length;
+					let index16 = new Uint16Array(z);
+					while(z--){
+						index16[z] = o.index[z];
+					}
+					o.index = index16;
+				}
+				
 				
 				unic = true;
 				noScale = true;
@@ -841,6 +853,19 @@ export class Body extends Item {
 				b.matrixAutoUpdate = true;
 			}
 		//}
+
+	}
+
+	clearInstance( name ){
+
+		//console.log('need remove instance')
+
+		let instance = root.instanceMesh[name];
+		let bodyList = instance.getBodyList();
+
+		root.motor.remove( bodyList );
+		instance.dispose();
+		delete root.instanceMesh[name]
 
 	}
 

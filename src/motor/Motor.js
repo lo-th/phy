@@ -913,7 +913,10 @@ export class Motor {
 		if ( name.constructor === Array ) return Motor.removes( name, direct );
 
 		let b = Motor.byName( name );
-		if( b === null ) return;
+		if( b === null ){ 
+			if( root.instanceMesh[ name ] ) items.body.clearInstance( name );
+			return;
+		}
 
 		if(b.type === 'autoRagdoll' ) {
 			Utils.remove(b);

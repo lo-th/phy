@@ -189,6 +189,15 @@ export class Instance extends InstancedMesh {
 
     }
 
+    getBodyList(){
+
+        let bodyNames = [];
+        let i = this.count;
+        while(i--) bodyNames.push( this.tmpElement[i].name );
+        return bodyNames;
+
+    }
+
     expand( p, q, s, c = [1,1,1], uv ) {
 
         let old = this.instanceMatrix !== null ? this.instanceMatrix.array : [];

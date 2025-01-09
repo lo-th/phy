@@ -92,6 +92,17 @@ const M = {
 
     },
 
+    shuffle: (array) => {
+
+        let shuffled = array
+        .map(value => ({ value, sort: Math.random() }))
+        .sort((a, b) => a.sort - b.sort)
+        .map(({ value }) => value)
+
+        return shuffled
+
+    },
+
     /*distance: ( a, b = { x:0, y:0, z:0 } ) => { // rotation array in degree
 
         const dx = a.x ? a.x - b.x : 0

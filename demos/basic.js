@@ -58,7 +58,7 @@ building = ( o ) => {
             //sleep:true,
             //startSleep:true,
 
-            aggregate:'boxGroup'+gg,
+            //aggregate:'boxGroup'+gg,
             //groupCollisions:true,
         })
         num++
@@ -70,5 +70,17 @@ building = ( o ) => {
     //tmp[0].groupMax = num
  
     phy.add(tmp);
+
+    // test remmove intance
+    /*setTimeout( function(){
+        phy.change({ name:'sphere', reset:true, pos:[0,6,0], sleep:true })
+        phy.remove('boxbase');
+    }, 5000);
+    setTimeout( function(){
+        let h = math.randInt(5,15)
+        console.log(h)
+        phy.change({ name:'sphere', wake:true, force:[0,-0.0001,0] })
+        building({ block:0.3, height:h, length:6, deep:6 })
+    }, 10000);*/
 
 }
