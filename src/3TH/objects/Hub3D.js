@@ -30,7 +30,7 @@ export class Hub3D extends Mesh {
                 darkness: { value: 1 },
                 offset: { value: 1.05  },
 
-                grain: { value: 0.0  },
+                grain: { value: 0.1  },
 
                 ratio: { value: 1 },
                 radius: { value: 2 },
@@ -62,6 +62,7 @@ export class Hub3D extends Mesh {
             uniform vec4 step;
             varying vec2 vUv;
             varying vec3 pos;
+
 
             void main() {
                 

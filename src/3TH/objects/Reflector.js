@@ -140,6 +140,7 @@ export class Reflector extends Mesh {
 			transparent:true,
 			depthWrite:false,
 			normalMap: null,//this.normalMap,
+			dithering:true,
 			//blending:AdditiveBlending,
 			///blending:MultiplyBlending,
 			//aoMap: normalMap,

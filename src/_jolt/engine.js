@@ -302,7 +302,7 @@ export class engine {
 		root.tmpStep = 2;
 
 		startTime = stamp || Time.now();
-		root.delta = ( startTime - lastTime ) * 0.001;
+		root.delta = ( startTime - lastTime ) / 1000;
 		lastTime = startTime;
 
 		//root.deltaTime = fixe ? timestep / substep : root.delta / substep
