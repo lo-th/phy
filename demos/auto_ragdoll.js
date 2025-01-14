@@ -18,7 +18,7 @@ function demo() {
         //envmap:0x606060,
         vignette:true,
         groundColor:0x202020,
-        groundReflect:0.5, //!\\ High process
+        groundReflect:0, //!\\ High process
         jointVisible:false, //!\\ High process
         phi:12, theta:0, distance:14, y:4,
 
