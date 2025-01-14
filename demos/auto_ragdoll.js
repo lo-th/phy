@@ -45,9 +45,6 @@ function demo() {
 
     phy.load(['./assets/models/'+modelName+'.glb'], onComplete )
  
-
-
-
 }
 
 onComplete = () => {
@@ -62,26 +59,12 @@ onComplete = () => {
         metalness:0,
     })
 
-    /*const mat_02 = phy.material({ 
-        name:'Bear2', color:0x101010,
-        roughness:0.1, metalness:0.8,
-    })*/
     let remove = []
     model = phy.getGlb(modelName);
     model.traverse( ( child ) => {
-        if( child.name === 'body_low' ) remove.push(child)
-        if( child.name === 'hair' ) remove.push(child)
-        if ( child.isMesh ) child.material = mat_01;
         if ( child.isSkinnedMesh ) child.material = mat_01;
     })
-
-    let i = remove.length
-    while(i--){
-        remove[i].parent.remove( remove[i] )
-    }
-
     
-
     populate(20)
 
     gui = phy.gui();
