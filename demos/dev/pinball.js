@@ -17,8 +17,9 @@ demo = () => {
 
 	// setting and start oimophysics
 	phy.set({ 
-		substep:16,
+		substep:2,//16,
 		gravity:[0,-9.81,0],
+        jointVisible:true
 	})
 
 	phy.load(['./assets/models/pinball.glb'], onComplete )
@@ -76,7 +77,7 @@ addPhysics = ( groups ) => {
             enableCCD:true,
             neverSleep:true,
 
-            iterations:[1,1]
+            //iterations:[1,1]
         })
 	}
 
@@ -87,7 +88,9 @@ addPhysics = ( groups ) => {
 
     let prot = [ [ 0, -120, 0 ], [ 0, 120, 0 ], [ 0, 160, 0 ] ]
 
-    let limit = [ [ -120, -60, 100, 100, 0.5 ], [ 60, 120, 100, 100, 0.5 ], [ 100, 160, 100, 100, 0.5 ] ]
+    //let limit = [ [ -120, -60, 100, 100, 0.5 ], [ 60, 120, 100, 100, 0.5 ], [ 100, 160, 100, 100, 0.5 ] ]
+    let limit = [ [ -120, -60 ], [ 60, 120 ], [ 100, 160 ] ]
+
 
     angles = [ -120, 120, 160 ]
     
@@ -102,16 +105,17 @@ addPhysics = ( groups ) => {
             friction: 0.2, //restitution:0.55, 
             group:2, mask:4,
             density:1,
-            optimize:true,
+            //optimize:true,
             //kinematic:true,  
-            ccdThreshold:0.0000001,
-            ccdRadius:0.035,
-            enableCCD:true,
+            //ccdThreshold:0.0000001,
+            //ccdRadius:0.035,
+            //enableCCD:true,
             //speculativeCCD:true,
             //enablePose:true,
             neverSleep:true,
             dmv:[1,1,1,0.01],
             noGravity:true,
+            ray:false,
         })
 
         //pad[i].rotation._order = 'YZX'
@@ -119,13 +123,15 @@ addPhysics = ( groups ) => {
         phy.add({
             name:'A'+i, type:'joint', mode:'revolute',
             b1:'playfield', b2:'paddle_'+i, 
-            worldAnchor:ppos[i], worldAxis:[0,1,0],
+            //pos1:ppos[i], pos2:[0,0,0],
+            worldPos:ppos[i], 
+            worldAxis:[0,1,0],
             //projection:0.1,//??
             //driveFree:true,
             //driveVelocity:0.1,
             //driveForceLimit:1,
-            lm:limit[i] , // sd:[10, 1]
-            acc:true
+            lm:limit[i], // sd:[10, 1]
+            //acc:true
             //pos1:ppos[i], pos2:[ 0, 0, 0 ],
             //motions:[['swing1', 'limited']], limits:[ limit[i] ],
             //drives: [['swing1', 10000, 0.2, Infinity, false ]],

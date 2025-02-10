@@ -328,8 +328,9 @@ export class Reflector extends Mesh {
 
 			const currentFog = scene.fog;
 			const currentRenderTarget = renderer.getRenderTarget();
-			let currentXrEnabled = renderer.xr.enabled;
-			let currentShadowAutoUpdate = renderer.shadowMap.autoUpdate;
+
+			const currentXrEnabled = renderer.xr.enabled;
+			const currentShadowAutoUpdate = renderer.shadowMap.autoUpdate;
 
 			scene.fog = null
 			if(currentXrEnabled) renderer.xr.enabled = false; // Avoid camera modification and recursion
@@ -356,6 +357,7 @@ export class Reflector extends Mesh {
 
 			// Restore viewport
 			const viewport = camera.viewport;
+			
 			if ( viewport !== undefined ) renderer.state.viewport( viewport );
 
 			scope.visible = true;
@@ -528,8 +530,6 @@ export class Reflector extends Mesh {
 
 	groundAlpha () {
 
-		//if(!this.settings.gAlpha ) return
-
 		let c = document.createElement('canvas');
 		c.width = c.height = 512;
         let ctx = c.getContext('2d');
@@ -553,16 +553,6 @@ export class Reflector extends Mesh {
 	    img.onload = function (){
 		    this.alphaMap.needsUpdate = true;
 	    }.bind(this)
-
-	    
-
-		/*const self = this;
-
-		img.onload = function(){
-			//self.material.alphaMap = self.alphaMap;
-		    if(self.material.alphaMap !== null) self.material.alphaMap.needsUpdate = true; 
-		}*/
-
 
 	}
 

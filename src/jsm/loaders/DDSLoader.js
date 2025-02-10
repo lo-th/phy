@@ -4,7 +4,9 @@ import {
 	RGBA_S3TC_DXT3_Format,
 	RGBA_S3TC_DXT5_Format,
 	RGB_ETC1_Format,
-	RGB_S3TC_DXT1_Format
+	RGB_S3TC_DXT1_Format,
+	RGB_BPTC_SIGNED_Format,
+	RGB_BPTC_UNSIGNED_Format
 } from 'three';
 
 class DDSLoader extends CompressedTextureLoader {
@@ -56,6 +58,9 @@ class DDSLoader extends CompressedTextureLoader {
 		// const DDPF_YUV = 0x200;
 		// const DDPF_LUMINANCE = 0x20000;
 
+		const DXGI_FORMAT_BC6H_UF16 = 95;
+		const DXGI_FORMAT_BC6H_SF16 = 96;
+
 		function fourCCToInt32( value ) {
 
 			return value.charCodeAt( 0 ) +
@@ -104,12 +109,41 @@ class DDSLoader extends CompressedTextureLoader {
 
 		}
 
+		function loadRGBMip( buffer, dataOffset, width, height ) {
+
+			const dataLength = width * height * 3;
+			const srcBuffer = new Uint8Array( buffer, dataOffset, dataLength );
+			const byteArray = new Uint8Array( width * height * 4 );
+			let dst = 0;
+			let src = 0;
+			for ( let y = 0; y < height; y ++ ) {
+
+				for ( let x = 0; x < width; x ++ ) {
+
+					const b = srcBuffer[ src ]; src ++;
+					const g = srcBuffer[ src ]; src ++;
+					const r = srcBuffer[ src ]; src ++;
+					byteArray[ dst ] = r; dst ++;	//r
+					byteArray[ dst ] = g; dst ++;	//g
+					byteArray[ dst ] = b; dst ++;	//b
+                    			byteArray[ dst ] = 1.0; dst ++; //a
+
+				}
+
+			}
+
+			return byteArray;
+
+		}
+
 		const FOURCC_DXT1 = fourCCToInt32( 'DXT1' );
 		const FOURCC_DXT3 = fourCCToInt32( 'DXT3' );
 		const FOURCC_DXT5 = fourCCToInt32( 'DXT5' );
 		const FOURCC_ETC1 = fourCCToInt32( 'ETC1' );
+		const FOURCC_DX10 = fourCCToInt32( 'DX10' );
 
 		const headerLengthInt = 31; // The header length in 32 bit ints
+		const extendedHeaderLengthInt = 5; // The extended header length in 32 bit ints
 
 		// Offsets into the header array
 
@@ -135,6 +169,9 @@ class DDSLoader extends CompressedTextureLoader {
 		// const off_caps3 = 29;
 		// const off_caps4 = 30;
 
+		// If fourCC = DX10, the extended header starts after 32
+		const off_dxgiFormat = 0;
+
 		// Parse header
 
 		const header = new Int32Array( buffer, 0, headerLengthInt );
@@ -151,6 +188,9 @@ class DDSLoader extends CompressedTextureLoader {
 		const fourCC = header[ off_pfFourCC ];
 
 		let isRGBAUncompressed = false;
+		let isRGBUncompressed = false;
+
+		let dataOffset = header[ off_size ] + 4;
 
 		switch ( fourCC ) {
 
@@ -178,6 +218,40 @@ class DDSLoader extends CompressedTextureLoader {
 				dds.format = RGB_ETC1_Format;
 				break;
 
+			case FOURCC_DX10:
+
+				dataOffset += extendedHeaderLengthInt * 4;
+				const extendedHeader = new Int32Array( buffer, ( headerLengthInt + 1 ) * 4, extendedHeaderLengthInt );
+				const dxgiFormat = extendedHeader[ off_dxgiFormat ];
+				switch ( dxgiFormat ) {
+
+					case DXGI_FORMAT_BC6H_SF16: {
+
+						blockBytes = 16;
+						dds.format = RGB_BPTC_SIGNED_Format;
+						break;
+
+					}
+
+					case DXGI_FORMAT_BC6H_UF16: {
+
+						blockBytes = 16;
+						dds.format = RGB_BPTC_UNSIGNED_Format;
+						break;
+
+					}
+
+					default: {
+
+						console.error( 'THREE.DDSLoader.parse: Unsupported DXGI_FORMAT code ', dxgiFormat );
+						return dds;
+
+					}
+
+				}
+
+				break;
+
 			default:
 
 				if ( header[ off_RGBBitCount ] === 32
@@ -189,6 +263,15 @@ class DDSLoader extends CompressedTextureLoader {
 					isRGBAUncompressed = true;
 					blockBytes = 64;
 					dds.format = RGBAFormat;
+
+				} else if ( header[ off_RGBBitCount ] === 24
+					&& header[ off_RBitMask ] & 0xff0000
+					&& header[ off_GBitMask ] & 0xff00
+					&& header[ off_BBitMask ] & 0xff ) {
+
+				    	isRGBUncompressed = true;
+                    			blockBytes = 64;
+                    			dds.format = RGBAFormat;
 
 				} else {
 
@@ -226,8 +309,6 @@ class DDSLoader extends CompressedTextureLoader {
 		dds.width = header[ off_width ];
 		dds.height = header[ off_height ];
 
-		let dataOffset = header[ off_size ] + 4;
-
 		// Extract mipmaps buffers
 
 		const faces = dds.isCubemap ? 6 : 1;
@@ -245,6 +326,11 @@ class DDSLoader extends CompressedTextureLoader {
 
 					byteArray = loadARGBMip( buffer, dataOffset, width, height );
 					dataLength = byteArray.length;
+
+				} else if ( isRGBUncompressed ) {
+
+					byteArray = loadRGBMip( buffer, dataOffset, width, height );
+					dataLength = width * height * 3;
 
 				} else {
 

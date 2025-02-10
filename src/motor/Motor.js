@@ -54,7 +54,7 @@ const Version = {
     HAVOK: '1.2.1',
     JOLT: '0.30.0',
 
-    RAPIER: '0.11.2',
+    RAPIER: '0.14.0',
     OIMO: '1.2.4',
     AMMO: '3.0',
 

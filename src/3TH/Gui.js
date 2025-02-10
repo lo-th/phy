@@ -1,16 +1,16 @@
-//import * as UIL from 'uil'
 import * as UIL from '../libs/uil.module.js'
-//import { Main } from '../Main.js'
 import { Video } from './Video.js'
 import { Env } from './Env.js'
 import { Hub } from './Hub.js'
 import { Shader } from './Shader.js'
 import { Pool } from './Pool.js'
+
 /** __
 *    _)_|_|_
 *   __) |_| | 2023
 * @author lo.th / https://github.com/lo-th
 */
+
 const menuList = ['ENV', 'PHY', 'CAM', 'POST', 'MAT', 'OBJ'];
 const toneMappingOptions = {
 	None: 0,
@@ -125,9 +125,9 @@ export const Gui = {
 		Gui.ui.isOpen = Gui.open;
 
 		Hub.switchGuiButton( Gui.open );
-		//Hub.switchColor( Gui.ui.isOpen )
 
 		Gui.menu.display( Gui.open );
+		Gui.ui.display( Gui.open );
 
 		Gui.ui.calc();
 		Gui.ui.mode('def');

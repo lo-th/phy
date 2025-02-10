@@ -14,7 +14,7 @@ import { math } from './math.js';
 * @author lo.th / https://github.com/lo-th
 */
 
-//const sph = new Spherical();
+const sph = new Spherical();
 
 export class Controller extends OrbitControls {
 
@@ -83,6 +83,14 @@ export class Controller extends OrbitControls {
         this.rayClipper = null;
 
         this.tmpV1 = new Vector3();
+
+    }
+
+
+    getSpherical (){
+
+        sph.set(this.getDistance(), this.getPolarAngle(), this.getAzimuthalAngle());
+        return sph;
 
     }
 
@@ -700,7 +708,5 @@ export class Controller extends OrbitControls {
         return math.tmpV.subVectors( this.target, this.object.position ).normalize().toArray();//math.directionVector( this.object.position, this.target );
 
     }
-
-
 
 }

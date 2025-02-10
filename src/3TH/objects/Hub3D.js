@@ -52,6 +52,9 @@ export class Hub3D extends Mesh {
             `,
             fragmentShader:`
 
+            #include <common>
+            #include <dithering_pars_fragment>
+
             uniform vec3 color;
             uniform float offset;
             uniform float grain;
@@ -100,12 +103,15 @@ export class Hub3D extends Mesh {
                     float noise = (fract(sin(dot(uv, vec2(12.9898,78.233)*2.0)) * 43758.5453));
                     gl_FragColor += vec4(0.0,0.0,0.0, noise * grain )*(0.5+alpha);
                 }
+
+                #include <dithering_fragment>
                 
             }
             `, 
             transparent:true,
             depthWrite:false,
             depthTest:false,
+            dithering:true,
             //toneMapped: false,
             //blending:MultiplyBlending,
 

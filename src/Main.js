@@ -21,11 +21,11 @@ import { Env } from './3TH/Env.js'
 import { Composer } from './3TH/Composer_test.js'
 
 // OBJECT
-import { Hub3D } from './3TH/objects/Hub3D.js'
+import { Vignette } from './3TH/objects/Vignette.js'
 import { Reflector } from './3TH/objects/Reflector.js'
-import { Planet } from './3TH/objects/Planet.js'
 import { Building } from './3TH/objects/Building.js'
 import { Sparkle } from './3TH/objects/Sparkle.js'
+import { Planet } from './3TH/objects/Planet.js'
 
 // MATERIAL
 import { Diamond } from './3TH/materials/Diamond.js'
@@ -37,7 +37,8 @@ import { DirectionalHelper } from './3TH/helpers/DirectionalHelper.js'
 import { Motor } from './motor/Motor.js'
 
 // PARTICLE
-import { Smoke } from '../build/smoke.module.js'
+//import { Smoke } from '../build/smoke.module.js'
+import { Smoke } from './libs/smoke.module.js'
 
 // WEBGPU test
 //import WebGPU from './jsm/capabilities/WebGPU.js';
@@ -176,7 +177,7 @@ const options = {
 
 
 
-let hub3d = null
+let vignette = null
 let renderStart = false
 let g1, g2, g3
 let dom, camera, controls, scene, renderer, loop = null, composer = null, content, followGroup, helperGroup, txt, ground = null, envui, dci;
@@ -325,7 +326,7 @@ export const Main = {
 	getCodeName:() => ( options.demo ),
 	getGround:() => ( ground ),
 
-	getHub3d:() => ( hub3d ),
+	getHub3d:() => ( vignette ),
 	//getWorker:() => ( 'Worker' + (Main.isWorker ? ' On' : ' Off') ),
 	getDemos:() => {
 
@@ -395,7 +396,7 @@ export const Main = {
 
 		//console.log( palette )
 
-		if( hub3d ) hub3d.color = Gui.tool.htmlToHex( palette.darkVibrant ) 
+		if( vignette ) vignette.color = Gui.tool.htmlToHex( palette.darkVibrant ) 
 
 		groundColor = Gui.tool.htmlToHex( palette.ground )
 
@@ -841,10 +842,10 @@ const setShadow = ( v ) => {
 
 const addVignette = ( o ) => {
 
-	if( hub3d === null && !isWebGPU ){
+	if( vignette === null && !isWebGPU ){
 
-		hub3d = new Hub3D();
-		camera.add( hub3d );
+		vignette = new Vignette();
+		camera.add( vignette );
 
 	}
 
@@ -852,11 +853,11 @@ const addVignette = ( o ) => {
 
 const removeVignette = () => {
 
-	if( hub3d === null ) return
+	if( vignette === null ) return
 
-    //camera.remove( hub3d );
-	hub3d.dispose()
-    hub3d = null
+    //camera.remove( vignette );
+	vignette.dispose()
+    vignette = null
 
 }
 
@@ -1471,13 +1472,13 @@ const setComposer = ( b ) => {
 	if( options.composer ){
 		if( composer === null ) composer = new Composer( renderer, scene, camera, controls, size );
 		composer.enabled = true;
-		if( hub3d ) hub3d.visible = false;
+		if( vignette ) vignette.visible = false;
 
 	} else {
 		if( composer ){
 			composer.dispose();
 			composer = null;
-			if(hub3d) hub3d.visible = true;
+			if(vignette) vignette.visible = true;
 		}
 	}
 
