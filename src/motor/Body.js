@@ -439,6 +439,11 @@ export class Body extends Item {
 
 	add ( o = {} ) {
 
+		if(o.worldScale){
+			o = this.scaler( o, o.worldScale );
+			delete o.worldScale;
+		}
+
 		//this.tmpVolume = 0
 
 		//console.log('add', o.type )
@@ -913,6 +918,25 @@ export class Body extends Item {
 		//console.log('add instance')
 
     	return bb;
+
+	}
+
+	scaler (o, s) {
+
+	    if(o.size) o.size = math.scaleArray( o.size, s );
+	    if(o.pos) o.pos = math.scaleArray( o.pos, s );
+	    if(o.type === 'convex') o.shapeScale = [s,s,s];
+	    if(o.shapes){
+	        let i = o.shapes.length, sh;
+	        while(i--){
+	            sh = o.shapes[i];
+	            if(sh.size) sh.size = math.scaleArray( sh.size, s );
+	            if(sh.pos) sh.pos = math.scaleArray( sh.pos, s );
+	            if(sh.type === 'convex') sh.shapeScale = [s,s,s];
+	        }
+	    }
+	    if(o.mesh) o.meshScale = [s,s,s];
+	    return o;
 
 	}
 

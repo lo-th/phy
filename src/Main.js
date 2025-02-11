@@ -1245,6 +1245,7 @@ const view = ( o = {} ) => {
 	options.spherical = o.spherical;
 	options.exposure = o.exposure;
 	options.envIntensity = o.envIntensity;
+	options.bgIntensity = o.bgIntensity;
 
 	phy.lightIntensity();
 

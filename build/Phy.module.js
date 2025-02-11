@@ -1,5 +1,5 @@
 import * as THREE$1 from 'three';
-import { Quaternion, Matrix3, Vector3, LineSegments, BufferGeometry, BufferAttribute, Float32BufferAttribute, LineBasicMaterial, SphereGeometry, CylinderGeometry, BoxGeometry, PlaneGeometry, CanvasTexture, RepeatWrapping, SRGBColorSpace, MeshPhysicalMaterial, Color, ShaderChunk, ShaderMaterial, BackSide, Vector2, MeshStandardMaterial, ShadowMaterial, MeshToonMaterial, MeshBasicMaterial, MeshLambertMaterial, MeshPhongMaterial, DoubleSide, AdditiveBlending, NoBlending, NormalBlending, SubtractiveBlending, MultiplyBlending, AddEquation, SubtractEquation, ReverseSubtractEquation, MinEquation, MaxEquation, ZeroFactor, OneFactor, SrcColorFactor, OneMinusSrcColorFactor, SrcAlphaFactor, OneMinusSrcAlphaFactor, DstAlphaFactor, OneMinusDstAlphaFactor, DstColorFactor, OneMinusDstColorFactor, SrcAlphaSaturateFactor, FrontSide, Line, EventDispatcher, MathUtils, Matrix4, Euler, Layers, Mesh, InstancedMesh, InstancedBufferAttribute, TrianglesDrawMode, TriangleFanDrawMode, TriangleStripDrawMode, CircleGeometry, Box3, Line3, Plane, Triangle, Object3D, Loader, FileLoader, ShapeUtils, Box2, Shape, Path, ShapePath, ShapeGeometry, Uniform, PerspectiveCamera, Scene, WebGLRenderer, PropertyBinding, InterpolateLinear, CompressedTexture, Source, NoColorSpace, RGBAFormat, InterpolateDiscrete, NearestFilter, NearestMipmapNearestFilter, NearestMipmapLinearFilter, LinearFilter, LinearMipmapNearestFilter, LinearMipmapLinearFilter, ClampToEdgeWrapping, MirroredRepeatWrapping, RGBA_ASTC_4x4_Format, RGBA_BPTC_Format, RGBA_ETC2_EAC_Format, RGBA_PVRTC_4BPPV1_Format, RGBA_S3TC_DXT5_Format, RGB_ETC1_Format, RGB_ETC2_Format, RGB_PVRTC_4BPPV1_Format, RGBA_S3TC_DXT1_Format, CompressedCubeTexture, UnsignedByteType, CompressedArrayTexture, FloatType, HalfFloatType, DataTexture, Data3DTexture, LinearSRGBColorSpace, RGFormat, RedFormat, RGBA_ASTC_6x6_Format, LoaderUtils, SpotLight, PointLight, DirectionalLight, TextureLoader, ImageBitmapLoader, InterleavedBuffer, InterleavedBufferAttribute, PointsMaterial, Material, SkinnedMesh, LineLoop, Points, Group, OrthographicCamera, Skeleton, AnimationClip, Bone, ColorManagement, Texture, VectorKeyframeTrack, NumberKeyframeTrack, QuaternionKeyframeTrack, Sphere, Interpolant, Vector4, Curve, EquirectangularReflectionMapping, AmbientLight, Uint16BufferAttribute, DataTextureLoader, DataUtils, ObjectSpaceNormalMap, AnimationMixer, CustomBlending, SkeletonHelper, AnimationUtils, AdditiveAnimationBlendMode, NormalAnimationBlendMode, Raycaster, LoadingManager, UVMapping, LinearMipMapLinearFilter, WebGLRenderTarget, IntType, ShortType, ByteType, UnsignedIntType, PMREMGenerator, WebGLCubeRenderTarget, CubeCamera, IcosahedronGeometry, NoToneMapping } from 'three';
+import { Vector3, Matrix3, Quaternion, LineSegments, BufferGeometry, BufferAttribute, Float32BufferAttribute, LineBasicMaterial, SphereGeometry, CylinderGeometry, BoxGeometry, PlaneGeometry, CanvasTexture, RepeatWrapping, SRGBColorSpace, MeshPhysicalMaterial, Color, ShaderChunk, ShaderMaterial, BackSide, DoubleSide, FrontSide, SrcAlphaSaturateFactor, OneMinusDstColorFactor, DstColorFactor, OneMinusDstAlphaFactor, DstAlphaFactor, OneMinusSrcAlphaFactor, SrcAlphaFactor, OneMinusSrcColorFactor, SrcColorFactor, OneFactor, ZeroFactor, MaxEquation, MinEquation, ReverseSubtractEquation, SubtractEquation, AddEquation, MultiplyBlending, SubtractiveBlending, AdditiveBlending, NormalBlending, NoBlending, Vector2, MeshStandardMaterial, ShadowMaterial, MeshToonMaterial, MeshBasicMaterial, MeshLambertMaterial, MeshPhongMaterial, Line, EventDispatcher, MathUtils, Matrix4, Euler, Layers, Mesh, InstancedMesh, InstancedBufferAttribute, TrianglesDrawMode, TriangleFanDrawMode, TriangleStripDrawMode, CircleGeometry, Box3, Line3, Plane, Triangle, Object3D, Loader, FileLoader, Box2, ShapeUtils, Shape, Path, ShapePath, ShapeGeometry, Uniform, PerspectiveCamera, Scene, WebGLRenderer, CompressedTexture, Source, NoColorSpace, RGBAFormat, PropertyBinding, InterpolateDiscrete, NearestFilter, NearestMipmapNearestFilter, NearestMipmapLinearFilter, LinearFilter, LinearMipmapNearestFilter, LinearMipmapLinearFilter, ClampToEdgeWrapping, MirroredRepeatWrapping, InterpolateLinear, RGBA_S3TC_DXT1_Format, RGB_PVRTC_4BPPV1_Format, RGB_ETC2_Format, RGB_ETC1_Format, RGBA_S3TC_DXT5_Format, RGBA_PVRTC_4BPPV1_Format, RGBA_ETC2_EAC_Format, RGBA_BPTC_Format, RGB_BPTC_UNSIGNED_Format, RGBA_ASTC_4x4_Format, FloatType, HalfFloatType, UnsignedByteType, CompressedCubeTexture, CompressedArrayTexture, LinearSRGBColorSpace, RGBA_ASTC_6x6_Format, RedFormat, RGFormat, DataTexture, Data3DTexture, LoaderUtils, SpotLight, PointLight, DirectionalLight, TextureLoader, ImageBitmapLoader, InterleavedBuffer, InterleavedBufferAttribute, PointsMaterial, Material, SkinnedMesh, LineLoop, Points, Group, OrthographicCamera, Skeleton, AnimationClip, Bone, Texture, VectorKeyframeTrack, NumberKeyframeTrack, QuaternionKeyframeTrack, ColorManagement, Interpolant, Sphere, Vector4, Curve, EquirectangularReflectionMapping, AmbientLight, Uint16BufferAttribute, DataTextureLoader, DataUtils, AnimationMixer, ObjectSpaceNormalMap, CustomBlending, SkeletonHelper, AnimationUtils, AdditiveAnimationBlendMode, NormalAnimationBlendMode, Raycaster, LoadingManager, UVMapping, LinearMipMapLinearFilter, WebGLRenderTarget, IntType, ShortType, ByteType, UnsignedIntType, PMREMGenerator, WebGLCubeRenderTarget, CubeCamera, IcosahedronGeometry, NoToneMapping } from 'three';
 
 const PI = Math.PI;
 const torad$3 = PI / 180;
@@ -553,7 +553,7 @@ const M = {
         te[ 2 ]; const m32 = te[ 6 ], m33 = te[ 10 ];
 
         let ar = [0,0,0];
-        ar[1] = Math.asin( M.clamp( m13, - 1, 1 ) );
+        ar[1] = Math.asin( M.clamp( m13, -1, 1 ) );
         if ( Math.abs( m13 ) < 0.9999999 ) {
             ar[0] = Math.atan2( - m23, m33 );
             ar[2] = Math.atan2( - m12, m11 );
@@ -567,7 +567,7 @@ const M = {
 
     angleTo: ( a, b ) => {
 
-        return 2 * Math.acos( Math.abs( M.clamp( M.dotArray(a,b), - 1, 1 ) ) );
+        return 2 * Math.acos( Math.abs( M.clamp( M.dotArray(a,b), -1, 1 ) ) );
 
     },
 
@@ -1654,6 +1654,7 @@ const shaderChange = {
 };
 
 //https://github.com/0beqz/enhance-shader-lighting
+
 
 const shaderFunctions = /* glsl */ `
 
@@ -3075,7 +3076,7 @@ class Item {
 	clear ( b, remplace ) {
 
 		let n = this.list.indexOf( b );
-		if ( n !== - 1 && !remplace ) this.list.splice( n, 1 );
+		if ( n !== -1 && !remplace ) this.list.splice( n, 1 );
 		else this.list[n] = null;
 		this.dispose( b );
 		return n;
@@ -3842,7 +3843,7 @@ class Basic3D extends EventDispatcher {
 
 		const index = this.children.indexOf( object );
 
-		if ( index !== - 1 ) {
+		if ( index !== -1 ) {
 
 			object.parent = null;
 			this.children.splice( index, 1 );
@@ -4663,7 +4664,7 @@ function mergeAttributes( attributes ) {
 	let TypedArray;
 	let itemSize;
 	let normalized;
-	let gpuType = - 1;
+	let gpuType = -1;
 	let arrayLength = 0;
 
 	for ( let i = 0; i < attributes.length; ++ i ) {
@@ -4694,7 +4695,7 @@ function mergeAttributes( attributes ) {
 
 		}
 
-		if ( gpuType === - 1 ) gpuType = attribute.gpuType;
+		if ( gpuType === -1 ) gpuType = attribute.gpuType;
 		if ( gpuType !== attribute.gpuType ) {
 
 			console.error( 'THREE.BufferGeometryUtils: .mergeAttributes() failed. BufferAttribute.gpuType must be consistent across matching attributes.' );
@@ -5544,7 +5545,7 @@ class SphereGeometryFix extends BufferGeometry {
 
             } else if ( iy == heightSegments && thetaEnd == Math.PI ) {
 
-                uOffset = - 0.5 / widthSegments;
+                uOffset = -0.5 / widthSegments;
 
             }
 
@@ -5953,7 +5954,7 @@ class ConvexHull {
 
 	constructor() {
 
-		this.tolerance = - 1;
+		this.tolerance = -1;
 
 		this.faces = []; // the generated faces of the convex hull
 		this.newFaces = []; // this array holds the faces that are generated within a single iteration
@@ -6469,7 +6470,7 @@ class ConvexHull {
 
 		// 3. The next vertex 'v3' is the one farthest to the plane 'v0', 'v1', 'v2'
 
-		maxDistance = - 1;
+		maxDistance = -1;
 		_plane.setFromCoplanarPoints( v0.point, v1.point, v2.point );
 
 		for ( let i = 0, l = this.vertices.length; i < l; i ++ ) {
@@ -6727,7 +6728,7 @@ class ConvexHull {
 
 		// join face.getEdge( - 1 ) with the horizon's opposite edge face.getEdge( - 1 ) = face.getEdge( 2 )
 
-		face.getEdge( - 1 ).setTwin( horizonEdge.twin );
+		face.getEdge( -1 ).setTwin( horizonEdge.twin );
 
 		return face.getEdge( 0 ); // the half edge whose vertex is the eyeVertex
 
@@ -6960,7 +6961,7 @@ class HalfEdge {
 
 		}
 
-		return - 1;
+		return -1;
 
 	}
 
@@ -6975,7 +6976,7 @@ class HalfEdge {
 
 		}
 
-		return - 1;
+		return -1;
 
 	}
 
@@ -7889,6 +7890,11 @@ class Body extends Item {
 
 	add ( o = {} ) {
 
+		if(o.worldScale){
+			o = this.scaler( o, o.worldScale );
+			delete o.worldScale;
+		}
+
 		//this.tmpVolume = 0
 
 		//console.log('add', o.type )
@@ -8363,6 +8369,25 @@ class Body extends Item {
 		//console.log('add instance')
 
     	return bb;
+
+	}
+
+	scaler (o, s) {
+
+	    if(o.size) o.size = math.scaleArray( o.size, s );
+	    if(o.pos) o.pos = math.scaleArray( o.pos, s );
+	    if(o.type === 'convex') o.shapeScale = [s,s,s];
+	    if(o.shapes){
+	        let i = o.shapes.length, sh;
+	        while(i--){
+	            sh = o.shapes[i];
+	            if(sh.size) sh.size = math.scaleArray( sh.size, s );
+	            if(sh.pos) sh.pos = math.scaleArray( sh.pos, s );
+	            if(sh.type === 'convex') sh.shapeScale = [s,s,s];
+	        }
+	    }
+	    if(o.mesh) o.meshScale = [s,s,s];
+	    return o;
 
 	}
 
@@ -9117,7 +9142,7 @@ class SVGLoader extends Loader {
 
 			const dot = ux * vx + uy * vy;
 			const len = Math.sqrt( ux * ux + uy * uy ) * Math.sqrt( vx * vx + vy * vy );
-			let ang = Math.acos( Math.max( - 1, Math.min( 1, dot / len ) ) ); // floating point precision, slightly over values appear
+			let ang = Math.acos( Math.max( -1, Math.min( 1, dot / len ) ) ); // floating point precision, slightly over values appear
 			if ( ( ux * vy - uy * vx ) < 0 ) ang = - ang;
 			return ang;
 
@@ -9414,7 +9439,6 @@ class SVGLoader extends Loader {
 
 			// Character groups
 			const RE = {
-				SEPARATOR: /[ \t\r\n\,.\-+]/,
 				WHITESPACE: /[ \t\r\n]/,
 				DIGIT: /[\d]/,
 				SIGN: /[-+]/,
@@ -9661,7 +9685,7 @@ class SVGLoader extends Loader {
 				'in': 1 / 25.4,
 				'pt': 72 / 25.4,
 				'pc': 6 / 25.4,
-				'px': - 1
+				'px': -1
 			},
 			'cm': {
 				'mm': 10,
@@ -9669,7 +9693,7 @@ class SVGLoader extends Loader {
 				'in': 1 / 2.54,
 				'pt': 72 / 2.54,
 				'pc': 6 / 2.54,
-				'px': - 1
+				'px': -1
 			},
 			'in': {
 				'mm': 25.4,
@@ -9677,7 +9701,7 @@ class SVGLoader extends Loader {
 				'in': 1,
 				'pt': 72,
 				'pc': 6,
-				'px': - 1
+				'px': -1
 			},
 			'pt': {
 				'mm': 25.4 / 72,
@@ -9685,7 +9709,7 @@ class SVGLoader extends Loader {
 				'in': 1 / 72,
 				'pt': 1,
 				'pc': 6 / 72,
-				'px': - 1
+				'px': -1
 			},
 			'pc': {
 				'mm': 25.4 / 6,
@@ -9693,7 +9717,7 @@ class SVGLoader extends Loader {
 				'in': 1 / 6,
 				'pt': 72 / 6,
 				'pc': 1,
-				'px': - 1
+				'px': -1
 			},
 			'px': {
 				'px': 1
@@ -10052,8 +10076,8 @@ class SVGLoader extends Loader {
 
 				if ( isTransformFlipped( m ) ) {
 
-					curve.aStartAngle *= - 1;
-					curve.aEndAngle *= - 1;
+					curve.aStartAngle *= -1;
+					curve.aEndAngle *= -1;
 					curve.aClockwise = ! curve.aClockwise;
 
 				}
@@ -10186,7 +10210,7 @@ class SVGLoader extends Loader {
 				// This case needs to be treated separately to avoid div by 0
 
 				rt1 = 0.5 * rt;
-				rt2 = - 0.5 * rt;
+				rt2 = -0.5 * rt;
 
 			}
 
@@ -10204,7 +10228,7 @@ class SVGLoader extends Loader {
 
 			if ( Math.abs( cs ) > 2 * Math.abs( B ) ) {
 
-				t = - 2 * B / cs;
+				t = -2 * B / cs;
 				sn = 1 / Math.sqrt( 1 + t * t );
 				cs = t * sn;
 
@@ -10215,7 +10239,7 @@ class SVGLoader extends Loader {
 
 			} else {
 
-				t = - 0.5 * cs / B;
+				t = -0.5 * cs / B;
 				cs = 1 / Math.sqrt( 1 + t * t );
 				sn = t * cs;
 
@@ -10613,14 +10637,14 @@ class SVGLoader extends Loader {
 
 		// prepare paths for hole detection
 		let scanlineMinX = BIGNUMBER;
-		let scanlineMaxX = - BIGNUMBER;
+		let scanlineMaxX = -999999999;
 
 		let simplePaths = shapePath.subPaths.map( p => {
 
 			const points = p.getPoints();
-			let maxY = - BIGNUMBER;
+			let maxY = -999999999;
 			let minY = BIGNUMBER;
-			let maxX = - BIGNUMBER;
+			let maxX = -999999999;
 			let minX = BIGNUMBER;
 
 	      	//points.forEach(p => p.y *= -1);
@@ -10668,7 +10692,7 @@ class SVGLoader extends Loader {
 
 			}
 
-			return { curves: p.curves, points: points, isCW: ShapeUtils.isClockWise( points ), identifier: - 1, boundingBox: new Box2( new Vector2( minX, minY ), new Vector2( maxX, maxY ) ) };
+			return { curves: p.curves, points: points, isCW: ShapeUtils.isClockWise( points ), identifier: -1, boundingBox: new Box2( new Vector2( minX, minY ), new Vector2( maxX, maxY ) ) };
 
 		} );
 
@@ -13335,7 +13359,7 @@ class SkeletonBody extends Object3D {
             ];
         }
 
-        let breastMotion = [-0.001, 0.001, 100, 0.2, 0.5];
+        let breastMotion = [-1e-3, 0.001, 100, 0.2, 0.5];
         
 
         data.push({ ...sett, b1:p+'hip', b2:p+'abdomen', worldPos:this.posRef[p+'abdomen'], worldQuat:this.quatRef[p+'hip'], lm:[ ['rx',-20,20,...sp], ['ry',-20,20,...sp], ['rz',-20,20,...sp]] });
@@ -13702,7 +13726,7 @@ class GLTFExporter {
 
 	register( callback ) {
 
-		if ( this.pluginCallbacks.indexOf( callback ) === - 1 ) {
+		if ( this.pluginCallbacks.indexOf( callback ) === -1 ) {
 
 			this.pluginCallbacks.push( callback );
 
@@ -13714,7 +13738,7 @@ class GLTFExporter {
 
 	unregister( callback ) {
 
-		if ( this.pluginCallbacks.indexOf( callback ) !== - 1 ) {
+		if ( this.pluginCallbacks.indexOf( callback ) !== -1 ) {
 
 			this.pluginCallbacks.splice( this.pluginCallbacks.indexOf( callback ), 1 );
 
@@ -13771,9 +13795,6 @@ const WEBGL_CONSTANTS$1 = {
 	LINE_LOOP: 0x0002,
 	LINE_STRIP: 0x0003,
 	TRIANGLES: 0x0004,
-	TRIANGLE_STRIP: 0x0005,
-	TRIANGLE_FAN: 0x0006,
-
 	BYTE: 0x1400,
 	UNSIGNED_BYTE: 0x1401,
 	SHORT: 0x1402,
@@ -14806,7 +14827,7 @@ class GLTFWriter {
 			if ( flipY === true ) {
 
 				ctx.translate( 0, canvas.height );
-				ctx.scale( 1, - 1 );
+				ctx.scale( 1, -1 );
 
 			}
 
@@ -16054,7 +16075,7 @@ class GLTFLightExtension {
 				&& ( light.target.parent !== light
 				|| light.target.position.x !== 0
 				|| light.target.position.y !== 0
-				|| light.target.position.z !== - 1 ) ) {
+				|| light.target.position.z !== -1 ) ) {
 
 			console.warn( 'THREE.GLTFExporter: Light direction may be lost. For best results, '
 				+ 'make light.target a child of the light with position 0,0,-1.' );
@@ -16084,7 +16105,7 @@ class GLTFLightExtension {
  *
  * Specification: https://github.com/KhronosGroup/glTF/tree/master/extensions/2.0/Khronos/KHR_materials_unlit
  */
-class GLTFMaterialsUnlitExtension$1 {
+let GLTFMaterialsUnlitExtension$1 = class GLTFMaterialsUnlitExtension {
 
 	constructor( writer ) {
 
@@ -16110,14 +16131,14 @@ class GLTFMaterialsUnlitExtension$1 {
 
 	}
 
-}
+};
 
 /**
  * Clearcoat Materials Extension
  *
  * Specification: https://github.com/KhronosGroup/glTF/tree/master/extensions/2.0/Khronos/KHR_materials_clearcoat
  */
-class GLTFMaterialsClearcoatExtension$1 {
+let GLTFMaterialsClearcoatExtension$1 = class GLTFMaterialsClearcoatExtension {
 
 	constructor( writer ) {
 
@@ -16180,14 +16201,14 @@ class GLTFMaterialsClearcoatExtension$1 {
 
 	}
 
-}
+};
 
 /**
  * Iridescence Materials Extension
  *
  * Specification: https://github.com/KhronosGroup/glTF/tree/master/extensions/2.0/Khronos/KHR_materials_iridescence
  */
-class GLTFMaterialsIridescenceExtension$1 {
+let GLTFMaterialsIridescenceExtension$1 = class GLTFMaterialsIridescenceExtension {
 
 	constructor( writer ) {
 
@@ -16240,14 +16261,14 @@ class GLTFMaterialsIridescenceExtension$1 {
 
 	}
 
-}
+};
 
 /**
  * Transmission Materials Extension
  *
  * Specification: https://github.com/KhronosGroup/glTF/tree/master/extensions/2.0/Khronos/KHR_materials_transmission
  */
-class GLTFMaterialsTransmissionExtension$1 {
+let GLTFMaterialsTransmissionExtension$1 = class GLTFMaterialsTransmissionExtension {
 
 	constructor( writer ) {
 
@@ -16285,14 +16306,14 @@ class GLTFMaterialsTransmissionExtension$1 {
 
 	}
 
-}
+};
 
 /**
  * Materials Volume Extension
  *
  * Specification: https://github.com/KhronosGroup/glTF/tree/master/extensions/2.0/Khronos/KHR_materials_volume
  */
-class GLTFMaterialsVolumeExtension$1 {
+let GLTFMaterialsVolumeExtension$1 = class GLTFMaterialsVolumeExtension {
 
 	constructor( writer ) {
 
@@ -16333,14 +16354,14 @@ class GLTFMaterialsVolumeExtension$1 {
 
 	}
 
-}
+};
 
 /**
  * Materials ior Extension
  *
  * Specification: https://github.com/KhronosGroup/glTF/tree/master/extensions/2.0/Khronos/KHR_materials_ior
  */
-class GLTFMaterialsIorExtension$1 {
+let GLTFMaterialsIorExtension$1 = class GLTFMaterialsIorExtension {
 
 	constructor( writer ) {
 
@@ -16367,14 +16388,14 @@ class GLTFMaterialsIorExtension$1 {
 
 	}
 
-}
+};
 
 /**
  * Materials specular Extension
  *
  * Specification: https://github.com/KhronosGroup/glTF/tree/master/extensions/2.0/Khronos/KHR_materials_specular
  */
-class GLTFMaterialsSpecularExtension$1 {
+let GLTFMaterialsSpecularExtension$1 = class GLTFMaterialsSpecularExtension {
 
 	constructor( writer ) {
 
@@ -16426,14 +16447,14 @@ class GLTFMaterialsSpecularExtension$1 {
 
 	}
 
-}
+};
 
 /**
  * Sheen Materials Extension
  *
  * Specification: https://github.com/KhronosGroup/glTF/tree/main/extensions/2.0/Khronos/KHR_materials_sheen
  */
-class GLTFMaterialsSheenExtension$1 {
+let GLTFMaterialsSheenExtension$1 = class GLTFMaterialsSheenExtension {
 
 	constructor( writer ) {
 
@@ -16483,14 +16504,14 @@ class GLTFMaterialsSheenExtension$1 {
 
 	}
 
-}
+};
 
 /**
  * Anisotropy Materials Extension
  *
  * Specification: https://github.com/KhronosGroup/glTF/tree/main/extensions/2.0/Khronos/KHR_materials_anisotropy
  */
-class GLTFMaterialsAnisotropyExtension$1 {
+let GLTFMaterialsAnisotropyExtension$1 = class GLTFMaterialsAnisotropyExtension {
 
 	constructor( writer ) {
 
@@ -16526,14 +16547,14 @@ class GLTFMaterialsAnisotropyExtension$1 {
 
 	}
 
-}
+};
 
 /**
  * Materials Emissive Strength Extension
  *
  * Specification: https://github.com/KhronosGroup/glTF/blob/5768b3ce0ef32bc39cdf1bef10b948586635ead3/extensions/2.0/Khronos/KHR_materials_emissive_strength/README.md
  */
-class GLTFMaterialsEmissiveStrengthExtension$1 {
+let GLTFMaterialsEmissiveStrengthExtension$1 = class GLTFMaterialsEmissiveStrengthExtension {
 
 	constructor( writer ) {
 
@@ -16560,7 +16581,7 @@ class GLTFMaterialsEmissiveStrengthExtension$1 {
 
 	}
 
-}
+};
 
 
 /**
@@ -16568,7 +16589,7 @@ class GLTFMaterialsEmissiveStrengthExtension$1 {
  *
  * Specification: https://github.com/KhronosGroup/glTF/tree/master/extensions/2.0/Khronos/EXT_materials_bump
  */
-class GLTFMaterialsBumpExtension$1 {
+let GLTFMaterialsBumpExtension$1 = class GLTFMaterialsBumpExtension {
 
 	constructor( writer ) {
 
@@ -16608,14 +16629,14 @@ class GLTFMaterialsBumpExtension$1 {
 
 	}
 
-}
+};
 
 /**
  * GPU Instancing Extension
  *
  * Specification: https://github.com/KhronosGroup/glTF/tree/master/extensions/2.0/Vendor/EXT_mesh_gpu_instancing
  */
-class GLTFMeshGpuInstancing$1 {
+let GLTFMeshGpuInstancing$1 = class GLTFMeshGpuInstancing {
 
 	constructor( writer ) {
 
@@ -16669,7 +16690,7 @@ class GLTFMeshGpuInstancing$1 {
 
 	}
 
-}
+};
 
 /**
  * Static utility functions
@@ -16951,7 +16972,7 @@ class WorkerPool {
 		for ( let i = 0; i < this.pool; i ++ )
 			if ( ! ( this.workerStatus & ( 1 << i ) ) ) return i;
 
-		return - 1;
+		return -1;
 
 	}
 
@@ -16992,7 +17013,7 @@ class WorkerPool {
 
 			const workerId = this._getIdleWorker();
 
-			if ( workerId !== - 1 ) {
+			if ( workerId !== -1 ) {
 
 				this._initWorker( workerId );
 				this.workerStatus |= 1 << workerId;
@@ -17021,7 +17042,7 @@ class WorkerPool {
 
 }
 
-const t=0,n=2,p=1,x$1=2,E=0,F=1,X=10,nt=0,ct=9,gt=15,yt=16,dt=22,Ot=37,Ft=43,$t=76,se=83,pe=97,xe=100,de=103,Ae=109,Sn=165,In=166,_i=1000066e3;class Si{constructor(){this.vkFormat=0,this.typeSize=1,this.pixelWidth=0,this.pixelHeight=0,this.pixelDepth=0,this.layerCount=0,this.faceCount=1,this.supercompressionScheme=0,this.levels=[],this.dataFormatDescriptor=[{vendorId:0,descriptorType:0,descriptorBlockSize:0,versionNumber:2,colorModel:0,colorPrimaries:1,transferFunction:2,flags:0,texelBlockDimension:[0,0,0,0],bytesPlane:[0,0,0,0,0,0,0,0],samples:[]}],this.keyValue={},this.globalData=null;}}class Ii{constructor(t,e,n,i){this._dataView=new DataView(t.buffer,t.byteOffset+e,n),this._littleEndian=i,this._offset=0;}_nextUint8(){const t=this._dataView.getUint8(this._offset);return this._offset+=1,t}_nextUint16(){const t=this._dataView.getUint16(this._offset,this._littleEndian);return this._offset+=2,t}_nextUint32(){const t=this._dataView.getUint32(this._offset,this._littleEndian);return this._offset+=4,t}_nextUint64(){const t=this._dataView.getUint32(this._offset,this._littleEndian)+2**32*this._dataView.getUint32(this._offset+4,this._littleEndian);return this._offset+=8,t}_nextInt32(){const t=this._dataView.getInt32(this._offset,this._littleEndian);return this._offset+=4,t}_skip(t){return this._offset+=t,this}_scan(t,e=0){const n=this._offset;let i=0;for(;this._dataView.getUint8(this._offset)!==e&&i<t;)i++,this._offset++;return i<t&&this._offset++,new Uint8Array(this._dataView.buffer,this._dataView.byteOffset+n,i)}}const Ti=[171,75,84,88,32,50,48,187,13,10,26,10];function Ei(t){return "undefined"!=typeof TextDecoder?(new TextDecoder).decode(t):Buffer.from(t).toString("utf8")}function Pi(t){const e=new Uint8Array(t.buffer,t.byteOffset,Ti.length);if(e[0]!==Ti[0]||e[1]!==Ti[1]||e[2]!==Ti[2]||e[3]!==Ti[3]||e[4]!==Ti[4]||e[5]!==Ti[5]||e[6]!==Ti[6]||e[7]!==Ti[7]||e[8]!==Ti[8]||e[9]!==Ti[9]||e[10]!==Ti[10]||e[11]!==Ti[11])throw new Error("Missing KTX 2.0 identifier.");const n=new Si,i=17*Uint32Array.BYTES_PER_ELEMENT,s=new Ii(t,Ti.length,i,!0);n.vkFormat=s._nextUint32(),n.typeSize=s._nextUint32(),n.pixelWidth=s._nextUint32(),n.pixelHeight=s._nextUint32(),n.pixelDepth=s._nextUint32(),n.layerCount=s._nextUint32(),n.faceCount=s._nextUint32();const a=s._nextUint32();n.supercompressionScheme=s._nextUint32();const r=s._nextUint32(),o=s._nextUint32(),l=s._nextUint32(),f=s._nextUint32(),U=s._nextUint64(),c=s._nextUint64(),h=new Ii(t,Ti.length+i,3*a*8,!0);for(let e=0;e<a;e++)n.levels.push({levelData:new Uint8Array(t.buffer,t.byteOffset+h._nextUint64(),h._nextUint64()),uncompressedByteLength:h._nextUint64()});const _=new Ii(t,r,o,!0),p={vendorId:_._skip(4)._nextUint16(),descriptorType:_._nextUint16(),versionNumber:_._nextUint16(),descriptorBlockSize:_._nextUint16(),colorModel:_._nextUint8(),colorPrimaries:_._nextUint8(),transferFunction:_._nextUint8(),flags:_._nextUint8(),texelBlockDimension:[_._nextUint8(),_._nextUint8(),_._nextUint8(),_._nextUint8()],bytesPlane:[_._nextUint8(),_._nextUint8(),_._nextUint8(),_._nextUint8(),_._nextUint8(),_._nextUint8(),_._nextUint8(),_._nextUint8()],samples:[]},g=(p.descriptorBlockSize/4-6)/4;for(let t=0;t<g;t++){const e={bitOffset:_._nextUint16(),bitLength:_._nextUint8(),channelType:_._nextUint8(),samplePosition:[_._nextUint8(),_._nextUint8(),_._nextUint8(),_._nextUint8()],sampleLower:-Infinity,sampleUpper:Infinity};64&e.channelType?(e.sampleLower=_._nextInt32(),e.sampleUpper=_._nextInt32()):(e.sampleLower=_._nextUint32(),e.sampleUpper=_._nextUint32()),p.samples[t]=e;}n.dataFormatDescriptor.length=0,n.dataFormatDescriptor.push(p);const y=new Ii(t,l,f,!0);for(;y._offset<f;){const t=y._nextUint32(),e=y._scan(t),i=Ei(e),s=y._scan(t-e.byteLength);n.keyValue[i]=i.match(/^ktx/i)?Ei(s):s,y._offset%4&&y._skip(4-y._offset%4);}if(c<=0)return n;const x=new Ii(t,U,c,!0),u=x._nextUint16(),b=x._nextUint16(),d=x._nextUint32(),m=x._nextUint32(),w=x._nextUint32(),D=x._nextUint32(),B=[];for(let t=0;t<a;t++)B.push({imageFlags:x._nextUint32(),rgbSliceByteOffset:x._nextUint32(),rgbSliceByteLength:x._nextUint32(),alphaSliceByteOffset:x._nextUint32(),alphaSliceByteLength:x._nextUint32()});const L=U+x._offset,A=L+d,k=A+m,v=k+w,S=new Uint8Array(t.buffer,t.byteOffset+L,d),I=new Uint8Array(t.buffer,t.byteOffset+A,m),O=new Uint8Array(t.buffer,t.byteOffset+k,w),T=new Uint8Array(t.buffer,t.byteOffset+v,D);return n.globalData={endpointCount:u,selectorCount:b,imageDescs:B,endpointsData:S,selectorsData:I,tablesData:O,extendedData:T},n}
+const t=0,n=2,p=1,x$1=2,E=0,F=1,X=10,nt=0,ct=9,gt=15,yt=16,dt=22,Ot=37,Ft=43,$t=76,se=83,pe=97,xe=100,de=103,Ae=109,Sn=165,In=166,_i=1000066e3;class Si{constructor(){this.vkFormat=0,this.typeSize=1,this.pixelWidth=0,this.pixelHeight=0,this.pixelDepth=0,this.layerCount=0,this.faceCount=1,this.supercompressionScheme=0,this.levels=[],this.dataFormatDescriptor=[{vendorId:0,descriptorType:0,descriptorBlockSize:0,versionNumber:2,colorModel:0,colorPrimaries:1,transferFunction:2,flags:0,texelBlockDimension:[0,0,0,0],bytesPlane:[0,0,0,0,0,0,0,0],samples:[]}],this.keyValue={},this.globalData=null;}}class Ii{constructor(t,e,n,i){this._dataView=new DataView(t.buffer,t.byteOffset+e,n),this._littleEndian=i,this._offset=0;}_nextUint8(){const t=this._dataView.getUint8(this._offset);return this._offset+=1,t}_nextUint16(){const t=this._dataView.getUint16(this._offset,this._littleEndian);return this._offset+=2,t}_nextUint32(){const t=this._dataView.getUint32(this._offset,this._littleEndian);return this._offset+=4,t}_nextUint64(){const t=this._dataView.getUint32(this._offset,this._littleEndian)+2**32*this._dataView.getUint32(this._offset+4,this._littleEndian);return this._offset+=8,t}_nextInt32(){const t=this._dataView.getInt32(this._offset,this._littleEndian);return this._offset+=4,t}_skip(t){return this._offset+=t,this}_scan(t,e=0){const n=this._offset;let i=0;for(;this._dataView.getUint8(this._offset)!==e&&i<t;)i++,this._offset++;return i<t&&this._offset++,new Uint8Array(this._dataView.buffer,this._dataView.byteOffset+n,i)}}const Ti=[171,75,84,88,32,50,48,187,13,10,26,10];function Ei(t){return "undefined"!=typeof TextDecoder?(new TextDecoder).decode(t):Buffer.from(t).toString("utf8")}function Pi(t){const e=new Uint8Array(t.buffer,t.byteOffset,Ti.length);if(e[0]!==Ti[0]||e[1]!==Ti[1]||e[2]!==Ti[2]||e[3]!==Ti[3]||e[4]!==Ti[4]||e[5]!==Ti[5]||e[6]!==Ti[6]||e[7]!==Ti[7]||e[8]!==Ti[8]||e[9]!==Ti[9]||e[10]!==Ti[10]||e[11]!==Ti[11])throw new Error("Missing KTX 2.0 identifier.");const n=new Si,i=17*Uint32Array.BYTES_PER_ELEMENT,s=new Ii(t,Ti.length,i,true);n.vkFormat=s._nextUint32(),n.typeSize=s._nextUint32(),n.pixelWidth=s._nextUint32(),n.pixelHeight=s._nextUint32(),n.pixelDepth=s._nextUint32(),n.layerCount=s._nextUint32(),n.faceCount=s._nextUint32();const a=s._nextUint32();n.supercompressionScheme=s._nextUint32();const r=s._nextUint32(),o=s._nextUint32(),l=s._nextUint32(),f=s._nextUint32(),U=s._nextUint64(),c=s._nextUint64(),h=new Ii(t,Ti.length+i,3*a*8,true);for(let e=0;e<a;e++)n.levels.push({levelData:new Uint8Array(t.buffer,t.byteOffset+h._nextUint64(),h._nextUint64()),uncompressedByteLength:h._nextUint64()});const _=new Ii(t,r,o,true),p={vendorId:_._skip(4)._nextUint16(),descriptorType:_._nextUint16(),versionNumber:_._nextUint16(),descriptorBlockSize:_._nextUint16(),colorModel:_._nextUint8(),colorPrimaries:_._nextUint8(),transferFunction:_._nextUint8(),flags:_._nextUint8(),texelBlockDimension:[_._nextUint8(),_._nextUint8(),_._nextUint8(),_._nextUint8()],bytesPlane:[_._nextUint8(),_._nextUint8(),_._nextUint8(),_._nextUint8(),_._nextUint8(),_._nextUint8(),_._nextUint8(),_._nextUint8()],samples:[]},g=(p.descriptorBlockSize/4-6)/4;for(let t=0;t<g;t++){const e={bitOffset:_._nextUint16(),bitLength:_._nextUint8(),channelType:_._nextUint8(),samplePosition:[_._nextUint8(),_._nextUint8(),_._nextUint8(),_._nextUint8()],sampleLower:-Infinity,sampleUpper:Infinity};64&e.channelType?(e.sampleLower=_._nextInt32(),e.sampleUpper=_._nextInt32()):(e.sampleLower=_._nextUint32(),e.sampleUpper=_._nextUint32()),p.samples[t]=e;}n.dataFormatDescriptor.length=0,n.dataFormatDescriptor.push(p);const y=new Ii(t,l,f,true);for(;y._offset<f;){const t=y._nextUint32(),e=y._scan(t),i=Ei(e),s=y._scan(t-e.byteLength);n.keyValue[i]=i.match(/^ktx/i)?Ei(s):s,y._offset%4&&y._skip(4-y._offset%4);}if(c<=0)return n;const x=new Ii(t,U,c,true),u=x._nextUint16(),b=x._nextUint16(),d=x._nextUint32(),m=x._nextUint32(),w=x._nextUint32(),D=x._nextUint32(),B=[];for(let t=0;t<a;t++)B.push({imageFlags:x._nextUint32(),rgbSliceByteOffset:x._nextUint32(),rgbSliceByteLength:x._nextUint32(),alphaSliceByteOffset:x._nextUint32(),alphaSliceByteLength:x._nextUint32()});const L=U+x._offset,A=L+d,k=A+m,v=k+w,S=new Uint8Array(t.buffer,t.byteOffset+L,d),I=new Uint8Array(t.buffer,t.byteOffset+A,m),O=new Uint8Array(t.buffer,t.byteOffset+k,w),T=new Uint8Array(t.buffer,t.byteOffset+v,D);return n.globalData={endpointCount:u,selectorCount:b,imageDescs:B,endpointsData:S,selectorsData:I,tablesData:O,extendedData:T},n}
 
 let A,I,B;const g={env:{emscripten_notify_memory_growth:function(A){B=new Uint8Array(I.exports.memory.buffer);}}};class Q{init(){return A||(A="undefined"!=typeof fetch?fetch("data:application/wasm;base64,"+C).then(A=>A.arrayBuffer()).then(A=>WebAssembly.instantiate(A,g)).then(this._init):WebAssembly.instantiate(Buffer.from(C,"base64"),g).then(this._init),A)}_init(A){I=A.instance,g.env.emscripten_notify_memory_growth(0);}decode(A,g=0){if(!I)throw new Error("ZSTDDecoder: Await .init() before decoding.");const Q=A.byteLength,C=I.exports.malloc(Q);B.set(A,C),g=g||Number(I.exports.ZSTD_findDecompressedSize(C,Q));const E=I.exports.malloc(g),i=I.exports.ZSTD_decompress(E,g,C,Q),D=B.slice(E,E+i);return I.exports.free(C),I.exports.free(E),D}}const C="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IAMNACAEQQNxBEADQCACRQ0FIAAgAkF/aiICaiIDIAEgAmotAAA6AAAgA0EDcQ0ACwsgAkEDTQ0AA0AgACACQXxqIgJqIAEgAmooAgA2AgAgAkEDSw0ACwsgAkUNAgNAIAAgAkF/aiICaiABIAJqLQAAOgAAIAINAAsMAgsgAkEDTQ0AIAIhBANAIAMgASgCADYCACABQQRqIQEgA0EEaiEDIARBfGoiBEEDSw0ACyACQQNxIQILIAJFDQADQCADIAEtAAA6AAAgA0EBaiEDIAFBAWohASACQX9qIgINAAsLIAAL8wICAn8BfgJAIAJFDQAgACACaiIDQX9qIAE6AAAgACABOgAAIAJBA0kNACADQX5qIAE6AAAgACABOgABIANBfWogAToAACAAIAE6AAIgAkEHSQ0AIANBfGogAToAACAAIAE6AAMgAkEJSQ0AIABBACAAa0EDcSIEaiIDIAFB/wFxQYGChAhsIgE2AgAgAyACIARrQXxxIgRqIgJBfGogATYCACAEQQlJDQAgAyABNgIIIAMgATYCBCACQXhqIAE2AgAgAkF0aiABNgIAIARBGUkNACADIAE2AhggAyABNgIUIAMgATYCECADIAE2AgwgAkFwaiABNgIAIAJBbGogATYCACACQWhqIAE2AgAgAkFkaiABNgIAIAQgA0EEcUEYciIEayICQSBJDQAgAa0iBUIghiAFhCEFIAMgBGohAQNAIAEgBTcDGCABIAU3AxAgASAFNwMIIAEgBTcDACABQSBqIQEgAkFgaiICQR9LDQALCyAACy8BAn8gACgCBCAAKAIAQQJ0aiICLQACIQMgACACLwEAIAEgAi0AAxAIajYCACADCy8BAn8gACgCBCAAKAIAQQJ0aiICLQACIQMgACACLwEAIAEgAi0AAxAFajYCACADCx8AIAAgASACKAIEEAg2AgAgARAEGiAAIAJBCGo2AgQLCAAgAGdBH3MLugUBDX8jAEEQayIKJAACfyAEQQNNBEAgCkEANgIMIApBDGogAyAEEAsaIAAgASACIApBDGpBBBAVIgBBbCAAEAMbIAAgACAESxsMAQsgAEEAIAEoAgBBAXRBAmoQECENQVQgAygAACIGQQ9xIgBBCksNABogAiAAQQVqNgIAIAMgBGoiAkF8aiEMIAJBeWohDiACQXtqIRAgAEEGaiELQQQh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ASIDNgLE4AEgACgCvOABIQQgACABNgK84AEgACABIAJqNgK44AEgACABIAQgA2tqNgLA4AELpgEBAX8gACAAKALs4QEQFjYCyOABIABCADcD+OABIABCADcDuOABIABBwOABakIANwMAIABBqNAAaiIBQYyAgOAANgIAIABBADYCmOIBIABCADcDiOEBIABCAzcDgOEBIABBrNABakHgEikCADcCACAAQbTQAWpB6BIoAgA2AgAgACABNgIMIAAgAEGYIGo2AgggACAAQaAwajYCBCAAIABBEGo2AgALYQEBf0G4fyEDAkAgAUEDSQ0AIAIgABAhIgFBA3YiADYCCCACIAFBAXE2AgQgAiABQQF2QQNxIgM2AgACQCADQX9qIgFBAksNAAJAIAFBAWsOAgEAAgtBbA8LIAAhAwsgAwsMACAAIAEgAkEAEC4LiAQCA38CfiADEBYhBCAAQQBBKBAQIQAgBCACSwRAIAQPCyABRQRAQX8PCwJAAkAgA0EBRg0AIAEoAAAiBkGo6r5pRg0AQXYhAyAGQXBxQdDUtMIBRw0BQQghAyACQQhJDQEgAEEAQSgQECEAIAEoAAQhASAAQQE2AhQgACABrTcDAEEADwsgASACIAMQLyIDIAJLDQAgACADNgIYQXIhAyABIARqIgVBf2otAAAiAkEIcQ0AIAJBIHEiBkUEQEFwIQMgBS0AACIFQacBSw0BIAVBB3GtQgEgBUEDdkEKaq2GIgdCA4h+IAd8IQggBEEBaiEECyACQQZ2IQMgAkECdiEFAkAgAkEDcUF/aiICQQJLBEBBACECDAELAkACQAJAIAJBAWsOAgECAAsgASAEai0AACECIARBAWohBAwCCyABIARqLwAAIQIgBEECaiEEDAELIAEgBGooAAAhAiAEQQRqIQQLIAVBAXEhBQJ+AkACQAJAIANBf2oiA0ECTQRAIANBAWsOAgIDAQtCfyAGRQ0DGiABIARqMQAADAMLIAEgBGovAACtQoACfAwCCyABIARqKAAArQwBCyABIARqKQAACyEHIAAgBTYCICAAIAI2AhwgACAHNwMAQQAhAyAAQQA2AhQgACAHIAggBhsiBzcDCCAAIAdCgIAIIAdCgIAIVBs+AhALIAMLWwEBf0G4fyEDIAIQFiICIAFNBH8gACACakF/ai0AACIAQQNxQQJ0QaAeaigC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C0Egak8NAQsgByAHKQNoNwMQIAcgBykDYDcDCCAEIA0gB0EIaiAHQdwAaiAPIA4gESAQEB4hCwwBCyACIARqIQggBCAKEAcgAkERTwRAIARBEGohAgNAIAIgCkEQaiIKEAcgAkEQaiICIAhJDQALCyAIIAlrIQIgByATNgJcIAkgCCAOa0sEQCAJIAggEWtLBEBBbCELDAILIBAgAiAOayICaiIKIANqIBBNBEAgCCAKIAMQDxoMAgsgCCAKQQAgAmsQDyEIIAcgAiADaiIDNgJkIAggAmshCCAOIQILIAlBEE8EQCADIAhqIQMDQCAIIAIQByACQRBqIQIgCEEQaiIIIANJDQALDAELAkAgCUEHTQRAIAggAi0AADoAACAIIAItAAE6AAEgCCACLQACOgACIAggAi0AAzoAAyAIQQRqIAIgCUECdCIDQcAeaigCAGoiAhAXIAIgA0HgHmooAgBrIQIgBygCZCEDDAELIAggAhAMCyADQQlJDQAgAyAIaiEDIAhBCGoiCCACQQhqIgJrQQ9MBEADQCAIIAIQDCACQQhqIQIgCEEIaiIIIANJDQAMAgALAAsDQCAIIAIQByACQRBqIQIgCEEQaiIIIANJDQALCyAHQRhqEAQaIAsgDCALEAMiAhshDCAEIAQgC2ogAhshBCAFQX9qIgUNAAsgDBADDQFBbCEMIAdBGGoQBEECSQ0BQQAhCANAIAhBA0cEQCAAIAhBAnQiAmpBrNABaiACIAdqKAJENgIAIAhBAWohCAwBCwsgBygCXCEIC0G6fyEMIA8gCGsiACANIARrSw0AIAQEfyAEIAggABALIABqBUEACyABayEMCyAHQfAAaiQAIAwLkRcCFn8FfiMAQdABayIHJAAgByAAKALw4QEiCDYCvAEgASACaiESIAggACgCgOIBaiETAkACQCAFRQRAIAEhAwwBCyAAKALE4AEhESAAKALA4AEhFSAAKAK84AEhDyAAQQE2AozhAUEAIQgDQCAIQQNHBEAgByAIQQJ0IgJqIAAgAmpBrNABaigCADYCVCAIQQFqIQgMAQsLIAcgETYCZCAHIA82AmAgByABIA9rNgJoQWwhECAHQShqIAMgBBAGEAMNASAFQQQgBUEESBshFyAHQTxqIAdBKGogACgCABATIAdBxABqIAdBKGogACgCCBATIAdBzABqIAdBKGogACgCBBATQQAhBCAHQeAAaiEMIAdB5ABqIQoDQCAHQShqEARBAksgBCAXTnJFBEAgBygCQCAHKAI8QQN0aikCACIdQhCIp0H/AXEhCyAHKAJQIAcoAkxBA3RqKQIAIh5CEIinQf8BcSEJIAcoAkggBygCREEDdGopAgAiH0IgiKchCCAeQiCIISAgHUIgiKchAgJAIB9CEIinQf8BcSIDQQJPBEACQCAGRSADQRlJckUEQCAIIAdBKGogA0EgIAcoAixrIg0gDSADSxsiDRAFIAMgDWsiA3RqIQggB0EoahAEGiADRQ0BIAdBKGogAxAFIAhqIQgMAQsgB0EoaiADEAUgCGohCCAHQShqEAQaCyAHKQJUISEgByAINgJUIAcgITcDWAwBCwJAIANFBEAgAgRAIAcoAlQhCAwDCyAHKAJYIQgMAQsCQAJAIAdBKGpBARAFIAggAkVqaiIDQQNGBEAgBygCVEF/aiIDIANFaiEIDAELIANBAnQgB2ooAlQiCCAIRWohCCADQQFGDQELIAcgBygCWDYCXAsLIAcgBygCVDYCWCAHIAg2AlQLICCnIQMgCQRAIAdBKGogCRAFIANqIQMLIAkgC2pBFE8EQCAHQShqEAQaCyALBEAgB0EoaiALEAUgAmohAgsgB0EoahAEGiAHIAcoAmggAmoiCSADajYCaCAKIAwgCCAJSxsoAgAhDSAHIAdBKGogHUIYiKdB/wFxEAggHadB//8DcWo2AjwgByAHQShqIB5CGIinQf8BcRAIIB6nQf//A3FqNgJMIAdBKGoQBBogB0EoaiAfQhiIp0H/AXEQCCEOIAdB8ABqIARBBHRqIgsgCSANaiAIazYCDCALIAg2AgggCyADNgIEIAsgAjYCACAHIA4gH6dB//8DcWo2AkQgBEEBaiEEDAELCyAEIBdIDQEgEkFgaiEYIAdB4ABqIRogB0HkAGohGyABIQMDQCAHQShqEARBAksgBCAFTnJFBEAgBygCQCAHKAI8QQN0aikCACIdQhCIp0H/AXEhCyAHKAJQIAcoAkxBA3RqKQIAIh5CEIinQf8BcSEIIAcoAkggBygCREEDdGopAgAiH0IgiKchCSAeQiCIISAgHUIgiKchDAJAIB9CEIinQf8BcSICQQJPBEACQCAGRSACQRlJckUEQCAJIAdBKGogAkEgIAcoAixrIgogCiACSxsiChAFIAIgCmsiAnRqIQkgB0EoahAEGiACRQ0BIAdBKGogAhAFIAlqIQkMAQsgB0EoaiACEAUgCWohCSAHQShqEAQaCyAHKQJUISEgByAJNgJUIAcgITcDWAwBCwJAIAJFBEAgDARAIAcoAlQhCQwDCyAHKAJYIQkMAQsCQAJAIAdBKGpBARAFIAkgDEVqaiICQQNGBEAgBygCVEF/aiICIAJFaiEJDAELIAJBAnQgB2ooAlQiCSAJRWohCSACQQFGDQELIAcgBygCWDYCXAsLIAcgBygCVDYCWCAHIAk2AlQLICCnIRQgCARAIAdBKGogCBAFIBRqIRQLIAggC2pBFE8EQCAHQShqEAQaCyALBEAgB0EoaiALEAUgDGohDAsgB0EoahAEGiAHIAcoAmggDGoiGSAUajYCaCAbIBogCSAZSxsoAgAhHCAHIAdBKGogHUIYiKdB/wFxEAggHadB//8DcWo2AjwgByAHQShqIB5CGIinQf8BcRAIIB6nQf//A3FqNgJMIAdBKGoQBBogByAHQShqIB9CGIinQf8BcRAIIB+nQf//A3FqNgJEIAcgB0HwAGogBEEDcUEEdGoiDSkDCCIdNwPIASAHIA0pAwAiHjcDwAECQAJAAkAgBygCvAEiDiAepyICaiIWIBNLDQAgAyAHKALEASIKIAJqIgtqIBhLDQAgEiADayALQSBqTw0BCyAHIAcpA8gBNwMQIAcgBykDwAE3AwggAyASIAdBCGogB0G8AWogEyAPIBUgERAeIQsMAQsgAiADaiEIIAMgDhAHIAJBEU8EQCADQRBqIQIDQCACIA5BEGoiDhAHIAJBEGoiAiAISQ0ACwsgCCAdpyIOayECIAcgFjYCvAEgDiAIIA9rSwRAIA4gCCAVa0sEQEFsIQsMAgsgESACIA9rIgJqIhYgCmogEU0EQCAIIBYgChAPGgwCCyAIIBZBACACaxAPIQggByACIApqIgo2AsQBIAggAmshCCAPIQILIA5BEE8EQCAIIApqIQoDQCAIIAIQByACQRBqIQIgCEEQaiIIIApJDQALDAELAkAgDkEHTQRAIAggAi0AADoAACAIIAItAAE6AAEgCCACLQACOgACIAggAi0AAzoAAyAIQQRqIAIgDkECdCIKQcAeaigCAGoiAhAXIAIgCkHgHmooAgBrIQIgBygCxAEhCgwBCyAIIAIQDAsgCkEJSQ0AIAggCmohCiAIQQhqIgggAkEIaiICa0EPTARAA0AgCCACEAwgAkEIaiECIAhBCGoiCCAKSQ0ADAIACwALA0AgCCACEAcgAkEQaiECIAhBEGoiCCAKSQ0ACwsgCxADBEAgCyEQDAQFIA0gDDYCACANIBkgHGogCWs2AgwgDSAJNgIIIA0gFDYCBCAEQQFqIQQgAyALaiEDDAILAAsLIAQgBUgNASAEIBdrIQtBACEEA0AgCyAFSARAIAcgB0HwAGogC0EDcUEEdGoiAikDCCIdNwPIASAHIAIpAwAiHjcDwAECQAJAAkAgBygCvAEiDCAepyICaiIKIBNLDQAgAyAHKALEASIJIAJqIhBqIBhLDQAgEiADayAQQSBqTw0BCyAHIAcpA8gBNwMgIAcgBykDwAE3AxggAyASIAdBGGogB0G8AWogEyAPIBUgERAeIRAMAQsgAiADaiEIIAMgDBAHIAJBEU8EQCADQRBqIQIDQCACIAxBEGoiDBAHIAJBEGoiAiAISQ0ACwsgCCAdpyIGayECIAcgCjYCvAEgBiAIIA9rSwRAIAYgCCAVa0sEQEFsIRAMAgsgESACIA9rIgJqIgwgCWogEU0EQCAIIAwgCRAPGgwCCyAIIAxBACACaxAPIQggByACIAlqIgk2AsQBIAggAmshCCAPIQILIAZBEE8EQCAIIAlqIQYDQCAIIAIQByACQRBqIQIgCEEQaiIIIAZJDQALDAELAkAgBkEHTQRAIAggAi0AADoAACAIIAItAAE6AAEgCCACLQACOgACIAggAi0AAzoAAyAIQQRqIAIgBkECdCIGQcAeaigCAGoiAhAXIAIgBkHgHmooAgBrIQIgBygCxAEhCQwBCyAIIAIQDAsgCUEJSQ0AIAggCWohBiAIQQhqIgggAkEIaiICa0EPTARAA0AgCCACEAwgAkEIaiECIAhBCGoiCCAGSQ0ADAIACwALA0AgCCACEAcgAkEQaiECIAhBEGoiCCAGSQ0ACwsgEBADDQMgC0EBaiELIAMgEGohAwwBCwsDQCAEQQNHBEAgACAEQQJ0IgJqQazQAWogAiAHaigCVDYCACAEQQFqIQQMAQsLIAcoArwBIQgLQbp/IRAgEyAIayIAIBIgA2tLDQAgAwR/IAMgCCAAEAsgAGoFQQALIAFrIRALIAdB0AFqJAAgEAslACAAQgA3AgAgAEEAOwEIIABBADoACyAAIAE2AgwgACACOgAKC7QFAQN/IwBBMGsiBCQAIABB/wFqIgVBfWohBgJAIAMvAQIEQCAEQRhqIAEgAhAGIgIQAw0BIARBEGogBEEYaiADEBwgBEEIaiAEQRhqIAMQHCAAIQMDQAJAIARBGGoQBCADIAZPckUEQCADIARBEGogBEEYahASOgAAIAMgBEEIaiAEQRhqEBI6AAEgBEEYahAERQ0BIANBAmohAwsgBUF+aiEFAn8DQEG6fyECIAMiASAFSw0FIAEgBEEQaiAEQRhqEBI6AAAgAUEBaiEDIARBGGoQBEEDRgRAQQIhAiAEQQhqDAILIAMgBUsNBSABIARBCGogBEEYahASOgABIAFBAmohA0EDIQIgBEEYahAEQQNHDQALIARBEGoLIQUgAyAFIARBGGoQEjoAACABIAJqIABrIQIMAwsgAyAEQRBqIARBGGoQEjoAAiADIARBCGogBEEYahASOgADIANBBGohAwwAAAsACyAEQRhqIAEgAhAGIgIQAw0AIARBEGogBEEYaiADEBwgBEEIaiAEQRhqIAMQHCAAIQMDQAJAIARBGGoQBCADIAZPckUEQCADIARBEGogBEEYahAROgAAIAMgBEEIaiAEQRhqEBE6AAEgBEEYahAERQ0BIANBAmohAwsgBUF+aiEFAn8DQEG6fyECIAMiASAFSw0EIAEgBEEQaiAEQRhqEBE6AAAgAUEBaiEDIARBGGoQBEEDRgRAQQIhAiAEQQhqDAILIAMgBUsNBCABIARBCGogBEEYahAROgABIAFBAmohA0EDIQIgBEEYahAEQQNHDQALIARBEGoLIQUgAyAFIARBGGoQEToAACABIAJqIABrIQIMAgsgAyAEQRBqIARBGGoQEToAAiADIARBCGogBEEYahAROgADIANBBGohAwwAAAsACyAEQTBqJAAgAgtpAQF/An8CQAJAIAJBB00NACABKAAAQbfIwuF+Rw0AIAAgASgABDYCmOIBQWIgAEEQaiABIAIQPiIDEAMNAhogAEKBgICAEDcDiOEBIAAgASADaiACIANrECoMAQsgACABIAIQKgtBAAsLrQMBBn8jAEGAAWsiAyQAQWIhCAJAIAJBCUkNACAAQZjQAGogAUEIaiIEIAJBeGogAEGY0AAQMyIFEAMiBg0AIANBHzYCfCADIANB/ABqIANB+ABqIAQgBCAFaiAGGyIEIAEgAmoiAiAEaxAVIgUQAw0AIAMoAnwiBkEfSw0AIAMoAngiB0EJTw0AIABBiCBqIAMgBkGAC0GADCAHEBggA0E0NgJ8IAMgA0H8AGogA0H4AGogBCAFaiIEIAIgBGsQFSIFEAMNACADKAJ8IgZBNEsNACADKAJ4IgdBCk8NACAAQZAwaiADIAZBgA1B4A4gBxAYIANBIzYCfCADIANB/ABqIANB+ABqIAQgBWoiBCACIARrEBUiBRADDQAgAygCfCIGQSNLDQAgAygCeCIHQQpPDQAgACADIAZBwBBB0BEgBxAYIAQgBWoiBEEMaiIFIAJLDQAgAiAFayEFQQAhAgNAIAJBA0cEQCAEKAAAIgZBf2ogBU8NAiAAIAJBAnRqQZzQAWogBjYCACACQQFqIQIgBEEEaiEEDAELCyAEIAFrIQgLIANBgAFqJAAgCAtGAQN/IABBCGohAyAAKAIEIQJBACEAA0AgACACdkUEQCABIAMgAEEDdGotAAJBFktqIQEgAEEBaiEADAELCyABQQggAmt0C4YDAQV/Qbh/IQcCQCADRQ0AIAItAAAiBEUEQCABQQA2AgBBAUG4fyADQQFGGw8LAn8gAkEBaiIFIARBGHRBGHUiBkF/Sg0AGiAGQX9GBEAgA0EDSA0CIAUvAABBgP4BaiEEIAJBA2oMAQsgA0ECSA0BIAItAAEgBEEIdHJBgIB+aiEEIAJBAmoLIQUgASAENgIAIAVBAWoiASACIANqIgNLDQBBbCEHIABBEGogACAFLQAAIgVBBnZBI0EJIAEgAyABa0HAEEHQEUHwEiAAKAKM4QEgACgCnOIBIAQQHyIGEAMiCA0AIABBmCBqIABBCGogBUEEdkEDcUEfQQggASABIAZqIAgbIgEgAyABa0GAC0GADEGAFyAAKAKM4QEgACgCnOIBIAQQHyIGEAMiCA0AIABBoDBqIABBBGogBUECdkEDcUE0QQkgASABIAZqIAgbIgEgAyABa0GADUHgDkGQGSAAKAKM4QEgACgCnOIBIAQQHyIAEAMNACAAIAFqIAJrIQcLIAcLrQMBCn8jAEGABGsiCCQAAn9BUiACQf8BSw0AGkFUIANBDEsNABogAkEBaiELIABBBGohCUGAgAQgA0F/anRBEHUhCkEAIQJBASEEQQEgA3QiB0F/aiIMIQUDQCACIAtGRQRAAkAgASACQQF0Ig1qLwEAIgZB//8DRgRAIAkgBUECdGogAjoAAiAFQX9qIQVBASEGDAELIARBACAKIAZBEHRBEHVKGyEECyAIIA1qIAY7AQAgAkEBaiECDAELCyAAIAQ7AQIgACADOwEAIAdBA3YgB0EBdmpBA2ohBkEAIQRBACECA0AgBCALRkUEQCABIARBAXRqLgEAIQpBACEAA0AgACAKTkUEQCAJIAJBAnRqIAQ6AAIDQCACIAZqIAxxIgIgBUsNAAsgAEEBaiEADAELCyAEQQFqIQQMAQsLQX8gAg0AGkEAIQIDfyACIAdGBH9BAAUgCCAJIAJBAnRqIgAtAAJBAXRqIgEgAS8BACIBQQFqOwEAIAAgAyABEBRrIgU6AAMgACABIAVB/wFxdCAHazsBACACQQFqIQIMAQsLCyEFIAhBgARqJAAgBQvjBgEIf0FsIQcCQCACQQNJDQACQAJAAkACQCABLQAAIgNBA3EiCUEBaw4DAwEAAgsgACgCiOEBDQBBYg8LIAJBBUkNAkEDIQYgASgAACEFAn8CQAJAIANBAnZBA3EiCEF+aiIEQQFNBEAgBEEBaw0BDAILIAVBDnZB/wdxIQQgBUEEdkH/B3EhAyAIRQwCCyAFQRJ2IQRBBCEGIAVBBHZB//8AcSEDQQAMAQsgBUEEdkH//w9xIgNBgIAISw0DIAEtAARBCnQgBUEWdnIhBEEFIQZBAAshBSAEIAZqIgogAksNAgJAIANBgQZJDQAgACgCnOIBRQ0AQQAhAgNAIAJBg4ABSw0BIAJBQGshAgwAAAsACwJ/IAlBA0YEQCABIAZqIQEgAEHw4gFqIQIgACgCDCEGIAUEQCACIAMgASAEIAYQXwwCCyACIAMgASAEIAYQXQwBCyAAQbjQAWohAiABIAZqIQEgAEHw4gFqIQYgAEGo0ABqIQggBQRAIAggBiADIAEgBCACEF4MAQsgCCAGIAMgASAEIAIQXAsQAw0CIAAgAzYCgOIBIABBATYCiOEBIAAgAEHw4gFqNgLw4QEgCUECRgRAIAAgAEGo0ABqNgIMCyAAIANqIgBBiOMBakIANwAAIABBgOMBakIANwAAIABB+OIBakIANwAAIABB8OIBakIANwAAIAoPCwJ/AkACQAJAIANBAnZBA3FBf2oiBEECSw0AIARBAWsOAgACAQtBASEEIANBA3YMAgtBAiEEIAEvAABBBHYMAQtBAyEEIAEQIUEEdgsiAyAEaiIFQSBqIAJLBEAgBSACSw0CIABB8OIBaiABIARqIAMQCyEBIAAgAzYCgOIBIAAgATYC8OEBIAEgA2oiAEIANwAYIABCADcAECAAQgA3AAggAEIANwAAIAUPCyAAIAM2AoDiASAAIAEgBGo2AvDhASAFDwsCfwJAAkACQCADQQJ2QQNxQX9qIgRBAksNACAEQQFrDgIAAgELQQEhByADQQN2DAILQQIhByABLwAAQQR2DAELIAJBBEkgARAhIgJBj4CAAUtyDQFBAyEHIAJBBHYLIQIgAEHw4gFqIAEgB2otAAAgAkEgahAQIQEgACACNgKA4gEgACABNgLw4QEgB0EBaiEHCyAHC0sAIABC+erQ0OfJoeThADcDICAAQgA3AxggAELP1tO+0ser2UI3AxAgAELW64Lu6v2J9eAANwMIIABCADcDACAAQShqQQBBKBAQGgviAgICfwV+IABBKGoiASAAKAJIaiECAn4gACkDACIDQiBaBEAgACkDECIEQgeJIAApAwgiBUIBiXwgACkDGCIGQgyJfCAAKQMgIgdCEol8IAUQGSAEEBkgBhAZIAcQGQwBCyAAKQMYQsXP2bLx5brqJ3wLIAN8IQMDQCABQQhqIgAgAk0EQEIAIAEpAAAQCSADhUIbiUKHla+vmLbem55/fkLj3MqV/M7y9YV/fCEDIAAhAQwBCwsCQCABQQRqIgAgAksEQCABIQAMAQsgASgAAK1Ch5Wvr5i23puef34gA4VCF4lCz9bTvtLHq9lCfkL5893xmfaZqxZ8IQMLA0AgACACSQRAIAAxAABCxc/ZsvHluuonfiADhUILiUKHla+vmLbem55/fiEDIABBAWohAAwBCwsgA0IhiCADhULP1tO+0ser2UJ+IgNCHYggA4VC+fPd8Zn2masWfiIDQiCIIAOFC+8CAgJ/BH4gACAAKQMAIAKtfDcDAAJAAkAgACgCSCIDIAJqIgRBH00EQCABRQ0BIAAgA2pBKGogASACECAgACgCSCACaiEEDAELIAEgAmohAgJ/IAMEQCAAQShqIgQgA2ogAUEgIANrECAgACAAKQMIIAQpAAAQCTcDCCAAIAApAxAgACkAMBAJNwMQIAAgACkDGCAAKQA4EAk3AxggACAAKQMgIABBQGspAAAQCTcDICAAKAJIIQMgAEEANgJIIAEgA2tBIGohAQsgAUEgaiACTQsEQCACQWBqIQMgACkDICEFIAApAxghBiAAKQMQIQcgACkDCCEIA0AgCCABKQAAEAkhCCAHIAEpAAgQCSEHIAYgASkAEBAJIQYgBSABKQAYEAkhBSABQSBqIgEgA00NAAsgACAFNwMgIAAgBjcDGCAAIAc3AxAgACAINwMICyABIAJPDQEgAEEoaiABIAIgAWsiBBAgCyAAIAQ2AkgLCy8BAX8gAEUEQEG2f0EAIAMbDwtBun8hBCADIAFNBH8gACACIAMQEBogAwVBun8LCy8BAX8gAEUEQEG2f0EAIAMbDwtBun8hBCADIAFNBH8gACACIAMQCxogAwVBun8LC6gCAQZ/IwBBEGsiByQAIABB2OABaikDAEKAgIAQViEIQbh/IQUCQCAEQf//B0sNACAAIAMgBBBCIgUQAyIGDQAgACgCnOIBIQkgACAHQQxqIAMgAyAFaiAGGyIKIARBACAFIAYbayIGEEAiAxADBEAgAyEFDAELIAcoAgwhBCABRQRAQbp/IQUgBEEASg0BCyAGIANrIQUgAyAKaiEDAkAgCQRAIABBADYCnOIBDAELAkACQAJAIARBBUgNACAAQdjgAWopAwBCgICACFgNAAwBCyAAQQA2ApziAQwBCyAAKAIIED8hBiAAQQA2ApziASAGQRRPDQELIAAgASACIAMgBSAEIAgQOSEFDAELIAAgASACIAMgBSAEIAgQOiEFCyAHQRBqJAAgBQtnACAAQdDgAWogASACIAAoAuzhARAuIgEQAwRAIAEPC0G4fyECAkAgAQ0AIABB7OABaigCACIBBEBBYCECIAAoApjiASABRw0BC0EAIQIgAEHw4AFqKAIARQ0AIABBkOEBahBDCyACCycBAX8QVyIERQRAQUAPCyAEIAAgASACIAMgBBBLEE8hACAEEFYgAAs/AQF/AkACQAJAIAAoAqDiAUEBaiIBQQJLDQAgAUEBaw4CAAECCyAAEDBBAA8LIABBADYCoOIBCyAAKAKU4gELvAMCB38BfiMAQRBrIgkkAEG4fyEGAkAgBCgCACIIQQVBCSAAKALs4QEiBRtJDQAgAygCACIHQQFBBSAFGyAFEC8iBRADBEAgBSEGDAELIAggBUEDakkNACAAIAcgBRBJIgYQAw0AIAEgAmohCiAAQZDhAWohCyAIIAVrIQIgBSAHaiEHIAEhBQNAIAcgAiAJECwiBhADDQEgAkF9aiICIAZJBEBBuH8hBgwCCyAJKAIAIghBAksEQEFsIQYMAgsgB0EDaiEHAn8CQAJAAkAgCEEBaw4CAgABCyAAIAUgCiAFayAHIAYQSAwCCyAFIAogBWsgByAGEEcMAQsgBSAKIAVrIActAAAgCSgCCBBGCyIIEAMEQCAIIQYMAgsgACgC8OABBEAgCyAFIAgQRQsgAiAGayECIAYgB2ohByAFIAhqIQUgCSgCBEUNAAsgACkD0OABIgxCf1IEQEFsIQYgDCAFIAFrrFINAQsgACgC8OABBEBBaiEGIAJBBEkNASALEEQhDCAHKAAAIAynRw0BIAdBBGohByACQXxqIQILIAMgBzYCACAEIAI2AgAgBSABayEGCyAJQRBqJAAgBgsuACAAECsCf0EAQQAQAw0AGiABRSACRXJFBEBBYiAAIAEgAhA9EAMNARoLQQALCzcAIAEEQCAAIAAoAsTgASABKAIEIAEoAghqRzYCnOIBCyAAECtBABADIAFFckUEQCAAIAEQWwsL0QIBB38jAEEQayIGJAAgBiAENgIIIAYgAzYCDCAFBEAgBSgCBCEKIAUoAgghCQsgASEIAkACQANAIAAoAuzhARAWIQsCQANAIAQgC0kNASADKAAAQXBxQdDUtMIBRgRAIAMgBBAiIgcQAw0EIAQgB2shBCADIAdqIQMMAQsLIAYgAzYCDCAGIAQ2AggCQCAFBEAgACAFEE5BACEHQQAQA0UNAQwFCyAAIAogCRBNIgcQAw0ECyAAIAgQUCAMQQFHQQAgACAIIAIgBkEMaiAGQQhqEEwiByIDa0EAIAMQAxtBCkdyRQRAQbh/IQcMBAsgBxADDQMgAiAHayECIAcgCGohCEEBIQwgBigCDCEDIAYoAgghBAwBCwsgBiADNgIMIAYgBDYCCEG4fyEHIAQNASAIIAFrIQcMAQsgBiADNgIMIAYgBDYCCAsgBkEQaiQAIAcLRgECfyABIAAoArjgASICRwRAIAAgAjYCxOABIAAgATYCuOABIAAoArzgASEDIAAgATYCvOABIAAgASADIAJrajYCwOABCwutAgIEfwF+IwBBQGoiBCQAAkACQCACQQhJDQAgASgAAEFwcUHQ1LTCAUcNACABIAIQIiEBIABCADcDCCAAQQA2AgQgACABNgIADAELIARBGGogASACEC0iAxADBEAgACADEBoMAQsgAwRAIABBuH8QGgwBCyACIAQoAjAiA2shAiABIANqIQMDQAJAIAAgAyACIARBCGoQLCIFEAMEfyAFBSACIAVBA2oiBU8NAUG4fwsQGgwCCyAGQQFqIQYgAiAFayECIAMgBWohAyAEKAIMRQ0ACyAEKAI4BEAgAkEDTQRAIABBuH8QGgwCCyADQQRqIQMLIAQoAighAiAEKQMYIQcgAEEANgIEIAAgAyABazYCACAAIAIgBmytIAcgB0J/URs3AwgLIARBQGskAAslAQF/IwBBEGsiAiQAIAIgACABEFEgAigCACEAIAJBEGokACAAC30BBH8jAEGQBGsiBCQAIARB/wE2AggCQCAEQRBqIARBCGogBEEMaiABIAIQFSIGEAMEQCAGIQUMAQtBVCEFIAQoAgwiB0EGSw0AIAMgBEEQaiAEKAIIIAcQQSIFEAMNACAAIAEgBmogAiAGayADEDwhBQsgBEGQBGokACAFC4cBAgJ/An5BABAWIQMCQANAIAEgA08EQAJAIAAoAABBcHFB0NS0wgFGBEAgACABECIiAhADRQ0BQn4PCyAAIAEQVSIEQn1WDQMgBCAFfCIFIARUIQJCfiEEIAINAyAAIAEQUiICEAMNAwsgASACayEBIAAgAmohAAwBCwtCfiAFIAEbIQQLIAQLPwIBfwF+IwBBMGsiAiQAAn5CfiACQQhqIAAgARAtDQAaQgAgAigCHEEBRg0AGiACKQMICyEDIAJBMGokACADC40BAQJ/IwBBMGsiASQAAkAgAEUNACAAKAKI4gENACABIABB/OEBaigCADYCKCABIAApAvThATcDICAAEDAgACgCqOIBIQIgASABKAIoNgIYIAEgASkDIDcDECACIAFBEGoQGyAAQQA2AqjiASABIAEoAig2AgggASABKQMgNwMAIAAgARAbCyABQTBqJAALKgECfyMAQRBrIgAkACAAQQA2AgggAEIANwMAIAAQWCEBIABBEGokACABC4cBAQN/IwBBEGsiAiQAAkAgACgCAEUgACgCBEVzDQAgAiAAKAIINgIIIAIgACkCADcDAAJ/IAIoAgAiAQRAIAIoAghBqOMJIAERBQAMAQtBqOMJECgLIgFFDQAgASAAKQIANwL04QEgAUH84QFqIAAoAgg2AgAgARBZIAEhAwsgAkEQaiQAIAMLywEBAn8jAEEgayIBJAAgAEGBgIDAADYCtOIBIABBADYCiOIBIABBADYC7OEBIABCADcDkOIBIABBADYCpOMJIABBADYC3OIBIABCADcCzOIBIABBADYCvOIBIABBADYCxOABIABCADcCnOIBIABBpOIBakIANwIAIABBrOIBakEANgIAIAFCADcCECABQgA3AhggASABKQMYNwMIIAEgASkDEDcDACABKAIIQQh2QQFxIQIgAEEANgLg4gEgACACNgKM4gEgAUEgaiQAC3YBA38jAEEwayIBJAAgAARAIAEgAEHE0AFqIgIoAgA2AiggASAAKQK80AE3AyAgACgCACEDIAEgAigCADYCGCABIAApArzQATcDECADIAFBEGoQGyABIAEoAig2AgggASABKQMgNwMAIAAgARAbCyABQTBqJAALzAEBAX8gACABKAK00AE2ApjiASAAIAEoAgQiAjYCwOABIAAgAjYCvOABIAAgAiABKAIIaiICNgK44AEgACACNgLE4AEgASgCuNABBEAgAEKBgICAEDcDiOEBIAAgAUGk0ABqNgIMIAAgAUGUIGo2AgggACABQZwwajYCBCAAIAFBDGo2AgAgAEGs0AFqIAFBqNABaigCADYCACAAQbDQAWogAUGs0AFqKAIANgIAIABBtNABaiABQbDQAWooAgA2AgAPCyAAQgA3A4jhAQs7ACACRQRAQbp/DwsgBEUEQEFsDwsgAiAEEGAEQCAAIAEgAiADIAQgBRBhDwsgACABIAIgAyAEIAUQZQtGAQF/IwBBEGsiBSQAIAVBCGogBBAOAn8gBS0ACQRAIAAgASACIAMgBBAyDAELIAAgASACIAMgBBA0CyEAIAVBEGokACAACzQAIAAgAyAEIAUQNiIFEAMEQCAFDwsgBSAESQR/IAEgAiADIAVqIAQgBWsgABA1BUG4fwsLRgEBfyMAQRBrIgUkACAFQQhqIAQQDgJ/IAUtAAkEQCAAIAEgAiADIAQQYgwBCyAAIAEgAiADIAQQNQshACAFQRBqJAAgAAtZAQF/QQ8hAiABIABJBEAgAUEE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";
 
@@ -17041,6 +17062,7 @@ const LinearDisplayP3ColorSpace = 'display-p3-linear';
  * - DFD: https://www.khronos.org/registry/DataFormat/specs/1.3/dataformat.1.3.html#basicdescriptor
  * - BasisU HDR: https://github.com/BinomialLLC/basis_universal/wiki/UASTC-HDR-Texture-Specification-v1.0
  */
+
 
 const _taskCache$1 = new WeakMap();
 
@@ -17095,6 +17117,7 @@ class KTX2Loader extends Loader {
 
 		this.workerConfig = {
 			astcSupported: await renderer.hasFeatureAsync( 'texture-compression-astc' ),
+			astcHDRSupported: false, // https://github.com/gpuweb/gpuweb/issues/3856
 			etc1Supported: await renderer.hasFeatureAsync( 'texture-compression-etc1' ),
 			etc2Supported: await renderer.hasFeatureAsync( 'texture-compression-etc2' ),
 			dxtSupported: await renderer.hasFeatureAsync( 'texture-compression-bc' ),
@@ -17112,6 +17135,7 @@ class KTX2Loader extends Loader {
 
 			this.workerConfig = {
 				astcSupported: renderer.hasFeature( 'texture-compression-astc' ),
+				astcHDRSupported: false, // https://github.com/gpuweb/gpuweb/issues/3856
 				etc1Supported: renderer.hasFeature( 'texture-compression-etc1' ),
 				etc2Supported: renderer.hasFeature( 'texture-compression-etc2' ),
 				dxtSupported: renderer.hasFeature( 'texture-compression-bc' ),
@@ -17123,6 +17147,8 @@ class KTX2Loader extends Loader {
 
 			this.workerConfig = {
 				astcSupported: renderer.extensions.has( 'WEBGL_compressed_texture_astc' ),
+				astcHDRSupported: renderer.extensions.has( 'WEBGL_compressed_texture_astc' )
+					&& renderer.extensions.get( 'WEBGL_compressed_texture_astc' ).getSupportedProfiles().includes( 'hdr' ),
 				etc1Supported: renderer.extensions.has( 'WEBGL_compressed_texture_etc1' ),
 				etc2Supported: renderer.extensions.has( 'WEBGL_compressed_texture_etc' ),
 				dxtSupported: renderer.extensions.has( 'WEBGL_compressed_texture_s3tc' ),
@@ -17162,6 +17188,7 @@ class KTX2Loader extends Loader {
 					const body = [
 						'/* constants */',
 						'let _EngineFormat = ' + JSON.stringify( KTX2Loader.EngineFormat ),
+						'let _EngineType = ' + JSON.stringify( KTX2Loader.EngineType ),
 						'let _TranscoderFormat = ' + JSON.stringify( KTX2Loader.TranscoderFormat ),
 						'let _BasisFormat = ' + JSON.stringify( KTX2Loader.BasisFormat ),
 						'/* basis_transcoder.js */',
@@ -17254,23 +17281,23 @@ class KTX2Loader extends Loader {
 
 	_createTextureFrom( transcodeResult, container ) {
 
-		const { faces, width, height, format, type, error, dfdFlags } = transcodeResult;
+		const { type: messageType, error, data: { faces, width, height, format, type, dfdFlags } } = transcodeResult;
 
-		if ( type === 'error' ) return Promise.reject( error );
+		if ( messageType === 'error' ) return Promise.reject( error );
 
 		let texture;
 
 		if ( container.faceCount === 6 ) {
 
-			texture = new CompressedCubeTexture( faces, format, UnsignedByteType );
+			texture = new CompressedCubeTexture( faces, format, type );
 
 		} else {
 
 			const mipmaps = faces[ 0 ].mipmaps;
 
 			texture = container.layerCount > 1
-				? new CompressedArrayTexture( mipmaps, width, height, container.layerCount, format, UnsignedByteType )
-				: new CompressedTexture( mipmaps, width, height, format, UnsignedByteType );
+				? new CompressedArrayTexture( mipmaps, width, height, container.layerCount, format, type )
+				: new CompressedTexture( mipmaps, width, height, format, type );
 
 		}
 
@@ -17288,14 +17315,26 @@ class KTX2Loader extends Loader {
 
 	/**
 	 * @param {ArrayBuffer} buffer
-	 * @param {object?} config
+	 * @param {?Object} config
 	 * @return {Promise<CompressedTexture|CompressedArrayTexture|DataTexture|Data3DTexture>}
 	 */
 	async _createTexture( buffer, config = {} ) {
 
 		const container = Pi( new Uint8Array( buffer ) );
 
-		if ( container.vkFormat !== nt ) {
+		// Basis UASTC HDR is a subset of ASTC, which can be transcoded efficiently
+		// to BC6H. To detect whether a KTX2 file uses Basis UASTC HDR, or default
+		// ASTC, inspect the DFD color model.
+		//
+		// Source: https://github.com/BinomialLLC/basis_universal/issues/381
+		const isBasisHDR = container.vkFormat === _i
+			&& container.dataFormatDescriptor[ 0 ].colorModel === 0xA7;
+
+		// If the device supports ASTC, Basis UASTC HDR requires no transcoder.
+		const needsTranscoder = container.vkFormat === nt
+			|| isBasisHDR && ! this.workerConfig.astcHDRSupported;
+
+		if ( ! needsTranscoder ) {
 
 			return createRawTexture( container );
 
@@ -17334,9 +17373,11 @@ class KTX2Loader extends Loader {
 
 KTX2Loader.BasisFormat = {
 	ETC1S: 0,
-	UASTC_4x4: 1,
+	UASTC: 1,
+	UASTC_HDR: 2,
 };
 
+// Source: https://github.com/BinomialLLC/basis_universal/blob/master/webgl/texture_test/index.html
 KTX2Loader.TranscoderFormat = {
 	ETC1: 0,
 	ETC2: 1,
@@ -17355,11 +17396,15 @@ KTX2Loader.TranscoderFormat = {
 	RGB565: 14,
 	BGR565: 15,
 	RGBA4444: 16,
+	BC6H: 22,
+	RGB_HALF: 24,
+	RGBA_HALF: 25,
 };
 
 KTX2Loader.EngineFormat = {
 	RGBAFormat: RGBAFormat,
 	RGBA_ASTC_4x4_Format: RGBA_ASTC_4x4_Format,
+	RGB_BPTC_UNSIGNED_Format: RGB_BPTC_UNSIGNED_Format,
 	RGBA_BPTC_Format: RGBA_BPTC_Format,
 	RGBA_ETC2_EAC_Format: RGBA_ETC2_EAC_Format,
 	RGBA_PVRTC_4BPPV1_Format: RGBA_PVRTC_4BPPV1_Format,
@@ -17370,6 +17415,11 @@ KTX2Loader.EngineFormat = {
 	RGBA_S3TC_DXT1_Format: RGBA_S3TC_DXT1_Format,
 };
 
+KTX2Loader.EngineType = {
+	UnsignedByteType: UnsignedByteType,
+	HalfFloatType: HalfFloatType,
+	FloatType: FloatType,
+};
 
 /* WEB WORKER */
 
@@ -17380,6 +17430,7 @@ KTX2Loader.BasisWorker = function () {
 	let BasisModule;
 
 	const EngineFormat = _EngineFormat; // eslint-disable-line no-undef
+	const EngineType = _EngineType; // eslint-disable-line no-undef
 	const TranscoderFormat = _TranscoderFormat; // eslint-disable-line no-undef
 	const BasisFormat = _BasisFormat; // eslint-disable-line no-undef
 
@@ -17399,9 +17450,9 @@ KTX2Loader.BasisWorker = function () {
 
 					try {
 
-						const { faces, buffers, width, height, hasAlpha, format, dfdFlags } = transcode( message.buffer );
+						const { faces, buffers, width, height, hasAlpha, format, type, dfdFlags } = transcode( message.buffer );
 
-						self.postMessage( { type: 'transcode', id: message.id, faces, width, height, hasAlpha, format, dfdFlags }, buffers );
+						self.postMessage( { type: 'transcode', id: message.id, data: { faces, width, height, hasAlpha, format, type, dfdFlags } }, buffers );
 
 					} catch ( error ) {
 
@@ -17457,7 +17508,26 @@ KTX2Loader.BasisWorker = function () {
 
 		}
 
-		const basisFormat = ktx2File.isUASTC() ? BasisFormat.UASTC_4x4 : BasisFormat.ETC1S;
+		let basisFormat;
+
+		if ( ktx2File.isUASTC() ) {
+
+			basisFormat = BasisFormat.UASTC;
+
+		} else if ( ktx2File.isETC1S() ) {
+
+			basisFormat = BasisFormat.ETC1S;
+
+		} else if ( ktx2File.isHDR() ) {
+
+			basisFormat = BasisFormat.UASTC_HDR;
+
+		} else {
+
+			throw new Error( 'THREE.KTX2Loader: Unknown Basis encoding' );
+
+		}
+
 		const width = ktx2File.getWidth();
 		const height = ktx2File.getHeight();
 		const layerCount = ktx2File.getLayers() || 1;
@@ -17466,7 +17536,7 @@ KTX2Loader.BasisWorker = function () {
 		const hasAlpha = ktx2File.getHasAlpha();
 		const dfdFlags = ktx2File.getDFDFlags();
 
-		const { transcoderFormat, engineFormat } = getTranscoderFormat( basisFormat, width, height, hasAlpha );
+		const { transcoderFormat, engineFormat, engineType } = getTranscoderFormat( basisFormat, width, height, hasAlpha );
 
 		if ( ! width || ! height || ! levelCount ) {
 
@@ -17520,8 +17590,14 @@ KTX2Loader.BasisWorker = function () {
 
 					}
 
-					const dst = new Uint8Array( ktx2File.getImageTranscodedSizeInBytes( mip, layer, 0, transcoderFormat ) );
-					const status = ktx2File.transcodeImage( dst, mip, layer, face, transcoderFormat, 0, - 1, - 1 );
+					let dst = new Uint8Array( ktx2File.getImageTranscodedSizeInBytes( mip, layer, 0, transcoderFormat ) );
+					const status = ktx2File.transcodeImage( dst, mip, layer, face, transcoderFormat, 0, -1, -1 );
+
+					if ( engineType === EngineType.HalfFloatType ) {
+
+						dst = new Uint16Array( dst.buffer, dst.byteOffset, dst.byteLength / Uint16Array.BYTES_PER_ELEMENT );
+
+					}
 
 					if ( ! status ) {
 
@@ -17541,122 +17617,159 @@ KTX2Loader.BasisWorker = function () {
 
 			}
 
-			faces.push( { mipmaps, width, height, format: engineFormat } );
+			faces.push( { mipmaps, width, height, format: engineFormat, type: engineType } );
 
 		}
 
 		cleanup();
 
-		return { faces, buffers, width, height, hasAlpha, format: engineFormat, dfdFlags };
+		return { faces, buffers, width, height, hasAlpha, dfdFlags, format: engineFormat, type: engineType };
 
 	}
 
 	//
 
-	// Optimal choice of a transcoder target format depends on the Basis format (ETC1S or UASTC),
-	// device capabilities, and texture dimensions. The list below ranks the formats separately
-	// for ETC1S and UASTC.
+	// Optimal choice of a transcoder target format depends on the Basis format (ETC1S, UASTC, or
+	// UASTC HDR), device capabilities, and texture dimensions. The list below ranks the formats
+	// separately for each format. Currently, priority is assigned based on:
 	//
-	// In some cases, transcoding UASTC to RGBA32 might be preferred for higher quality (at
-	// significant memory cost) compared to ETC1/2, BC1/3, and PVRTC. The transcoder currently
-	// chooses RGBA32 only as a last resort and does not expose that option to the caller.
+	//   high quality > low quality > uncompressed
+	//
+	// Prioritization may be revisited, or exposed for configuration, in the future.
+	//
+	// Reference: https://github.com/KhronosGroup/3D-Formats-Guidelines/blob/main/KTXDeveloperGuide.md
 	const FORMAT_OPTIONS = [
 		{
 			if: 'astcSupported',
-			basisFormat: [ BasisFormat.UASTC_4x4 ],
+			basisFormat: [ BasisFormat.UASTC ],
 			transcoderFormat: [ TranscoderFormat.ASTC_4x4, TranscoderFormat.ASTC_4x4 ],
 			engineFormat: [ EngineFormat.RGBA_ASTC_4x4_Format, EngineFormat.RGBA_ASTC_4x4_Format ],
+			engineType: [ EngineType.UnsignedByteType ],
 			priorityETC1S: Infinity,
 			priorityUASTC: 1,
 			needsPowerOfTwo: false,
 		},
 		{
 			if: 'bptcSupported',
-			basisFormat: [ BasisFormat.ETC1S, BasisFormat.UASTC_4x4 ],
+			basisFormat: [ BasisFormat.ETC1S, BasisFormat.UASTC ],
 			transcoderFormat: [ TranscoderFormat.BC7_M5, TranscoderFormat.BC7_M5 ],
 			engineFormat: [ EngineFormat.RGBA_BPTC_Format, EngineFormat.RGBA_BPTC_Format ],
+			engineType: [ EngineType.UnsignedByteType ],
 			priorityETC1S: 3,
 			priorityUASTC: 2,
 			needsPowerOfTwo: false,
 		},
 		{
 			if: 'dxtSupported',
-			basisFormat: [ BasisFormat.ETC1S, BasisFormat.UASTC_4x4 ],
+			basisFormat: [ BasisFormat.ETC1S, BasisFormat.UASTC ],
 			transcoderFormat: [ TranscoderFormat.BC1, TranscoderFormat.BC3 ],
 			engineFormat: [ EngineFormat.RGBA_S3TC_DXT1_Format, EngineFormat.RGBA_S3TC_DXT5_Format ],
+			engineType: [ EngineType.UnsignedByteType ],
 			priorityETC1S: 4,
 			priorityUASTC: 5,
 			needsPowerOfTwo: false,
 		},
 		{
 			if: 'etc2Supported',
-			basisFormat: [ BasisFormat.ETC1S, BasisFormat.UASTC_4x4 ],
+			basisFormat: [ BasisFormat.ETC1S, BasisFormat.UASTC ],
 			transcoderFormat: [ TranscoderFormat.ETC1, TranscoderFormat.ETC2 ],
 			engineFormat: [ EngineFormat.RGB_ETC2_Format, EngineFormat.RGBA_ETC2_EAC_Format ],
+			engineType: [ EngineType.UnsignedByteType ],
 			priorityETC1S: 1,
 			priorityUASTC: 3,
 			needsPowerOfTwo: false,
 		},
 		{
 			if: 'etc1Supported',
-			basisFormat: [ BasisFormat.ETC1S, BasisFormat.UASTC_4x4 ],
+			basisFormat: [ BasisFormat.ETC1S, BasisFormat.UASTC ],
 			transcoderFormat: [ TranscoderFormat.ETC1 ],
 			engineFormat: [ EngineFormat.RGB_ETC1_Format ],
+			engineType: [ EngineType.UnsignedByteType ],
 			priorityETC1S: 2,
 			priorityUASTC: 4,
 			needsPowerOfTwo: false,
 		},
 		{
 			if: 'pvrtcSupported',
-			basisFormat: [ BasisFormat.ETC1S, BasisFormat.UASTC_4x4 ],
+			basisFormat: [ BasisFormat.ETC1S, BasisFormat.UASTC ],
 			transcoderFormat: [ TranscoderFormat.PVRTC1_4_RGB, TranscoderFormat.PVRTC1_4_RGBA ],
 			engineFormat: [ EngineFormat.RGB_PVRTC_4BPPV1_Format, EngineFormat.RGBA_PVRTC_4BPPV1_Format ],
+			engineType: [ EngineType.UnsignedByteType ],
 			priorityETC1S: 5,
 			priorityUASTC: 6,
 			needsPowerOfTwo: true,
 		},
+		{
+			if: 'bptcSupported',
+			basisFormat: [ BasisFormat.UASTC_HDR ],
+			transcoderFormat: [ TranscoderFormat.BC6H ],
+			engineFormat: [ EngineFormat.RGB_BPTC_UNSIGNED_Format ],
+			engineType: [ EngineType.HalfFloatType ],
+			priorityHDR: 1,
+			needsPowerOfTwo: false,
+		},
+
+		// Uncompressed fallbacks.
+
+		{
+			basisFormat: [ BasisFormat.ETC1S, BasisFormat.UASTC ],
+			transcoderFormat: [ TranscoderFormat.RGBA32, TranscoderFormat.RGBA32 ],
+			engineFormat: [ EngineFormat.RGBAFormat, EngineFormat.RGBAFormat ],
+			engineType: [ EngineType.UnsignedByteType, EngineType.UnsignedByteType ],
+			priorityETC1S: 100,
+			priorityUASTC: 100,
+			needsPowerOfTwo: false,
+		},
+		{
+			basisFormat: [ BasisFormat.UASTC_HDR ],
+			transcoderFormat: [ TranscoderFormat.RGBA_HALF ],
+			engineFormat: [ EngineFormat.RGBAFormat ],
+			engineType: [ EngineType.HalfFloatType ],
+			priorityHDR: 100,
+			needsPowerOfTwo: false,
+		}
 	];
 
-	const ETC1S_OPTIONS = FORMAT_OPTIONS.sort( function ( a, b ) {
+	const OPTIONS = {
+		// TODO: For ETC1S we intentionally sort by _UASTC_ priority, preserving
+		// a historical accident shown to avoid performance pitfalls for Linux with
+		// Firefox & AMD GPU (RadeonSI). Further work needed.
+		// See https://github.com/mrdoob/three.js/pull/29730.
+		[ BasisFormat.ETC1S ]: FORMAT_OPTIONS
+			.filter( ( opt ) => opt.basisFormat.includes( BasisFormat.ETC1S ) )
+			.sort( ( a, b ) => a.priorityUASTC - b.priorityUASTC ),
 
-		return a.priorityETC1S - b.priorityETC1S;
+		[ BasisFormat.UASTC ]: FORMAT_OPTIONS
+			.filter( ( opt ) => opt.basisFormat.includes( BasisFormat.UASTC ) )
+			.sort( ( a, b ) => a.priorityUASTC - b.priorityUASTC ),
 
-	} );
-	const UASTC_OPTIONS = FORMAT_OPTIONS.sort( function ( a, b ) {
-
-		return a.priorityUASTC - b.priorityUASTC;
-
-	} );
+		[ BasisFormat.UASTC_HDR ]: FORMAT_OPTIONS
+			.filter( ( opt ) => opt.basisFormat.includes( BasisFormat.UASTC_HDR ) )
+			.sort( ( a, b ) => a.priorityHDR - b.priorityHDR ),
+	};
 
 	function getTranscoderFormat( basisFormat, width, height, hasAlpha ) {
 
-		let transcoderFormat;
-		let engineFormat;
-
-		const options = basisFormat === BasisFormat.ETC1S ? ETC1S_OPTIONS : UASTC_OPTIONS;
+		const options = OPTIONS[ basisFormat ];
 
 		for ( let i = 0; i < options.length; i ++ ) {
 
 			const opt = options[ i ];
 
-			if ( ! config[ opt.if ] ) continue;
+			if ( opt.if && ! config[ opt.if ] ) continue;
 			if ( ! opt.basisFormat.includes( basisFormat ) ) continue;
 			if ( hasAlpha && opt.transcoderFormat.length < 2 ) continue;
 			if ( opt.needsPowerOfTwo && ! ( isPowerOfTwo( width ) && isPowerOfTwo( height ) ) ) continue;
 
-			transcoderFormat = opt.transcoderFormat[ hasAlpha ? 1 : 0 ];
-			engineFormat = opt.engineFormat[ hasAlpha ? 1 : 0 ];
+			const transcoderFormat = opt.transcoderFormat[ hasAlpha ? 1 : 0 ];
+			const engineFormat = opt.engineFormat[ hasAlpha ? 1 : 0 ];
+			const engineType = opt.engineType[ 0 ];
 
-			return { transcoderFormat, engineFormat };
+			return { transcoderFormat, engineFormat, engineType };
 
 		}
 
-		console.warn( 'THREE.KTX2Loader: No suitable compressed texture format found. Decoding to RGBA32.' );
-
-		transcoderFormat = TranscoderFormat.RGBA32;
-		engineFormat = EngineFormat.RGBAFormat;
-
-		return { transcoderFormat, engineFormat };
+		throw new Error( 'THREE.KTX2Loader: Failed to identify transcoding target.' );
 
 	}
 
@@ -17668,7 +17781,12 @@ KTX2Loader.BasisWorker = function () {
 
 	}
 
-	/** Concatenates N byte arrays. */
+	/**
+	 * Concatenates N byte arrays.
+	 *
+	 * @param {Uint8Array[]} arrays
+	 * @return {Uint8Array}
+	 */
 	function concat( arrays ) {
 
 		if ( arrays.length === 1 ) return arrays[ 0 ];
@@ -17865,6 +17983,9 @@ async function createRawTexture( container ) {
 		if ( container.pixelDepth > 0 ) throw new Error( 'THREE.KTX2Loader: Unsupported pixelDepth.' );
 
 		texture = new CompressedTexture( mipmaps, container.pixelWidth, container.pixelHeight );
+
+		texture.minFilter = mipmaps.length === 1 ? LinearFilter : LinearMipmapLinearFilter;
+		texture.magFilter = LinearFilter;
 
 	}
 
@@ -18122,7 +18243,7 @@ class GLTFLoader extends Loader {
 
 	register( callback ) {
 
-		if ( this.pluginCallbacks.indexOf( callback ) === - 1 ) {
+		if ( this.pluginCallbacks.indexOf( callback ) === -1 ) {
 
 			this.pluginCallbacks.push( callback );
 
@@ -18134,7 +18255,7 @@ class GLTFLoader extends Loader {
 
 	unregister( callback ) {
 
-		if ( this.pluginCallbacks.indexOf( callback ) !== - 1 ) {
+		if ( this.pluginCallbacks.indexOf( callback ) !== -1 ) {
 
 			this.pluginCallbacks.splice( this.pluginCallbacks.indexOf( callback ), 1 );
 
@@ -18408,7 +18529,7 @@ class GLTFLightsExtension {
 
 			case 'directional':
 				lightNode = new DirectionalLight( color );
-				lightNode.target.position.set( 0, 0, - 1 );
+				lightNode.target.position.set( 0, 0, -1 );
 				lightNode.add( lightNode.target );
 				break;
 
@@ -18426,7 +18547,7 @@ class GLTFLightsExtension {
 				lightDef.spot.outerConeAngle = lightDef.spot.outerConeAngle !== undefined ? lightDef.spot.outerConeAngle : Math.PI / 4.0;
 				lightNode.angle = lightDef.spot.outerConeAngle;
 				lightNode.penumbra = 1.0 - lightDef.spot.innerConeAngle / lightDef.spot.outerConeAngle;
-				lightNode.target.position.set( 0, 0, - 1 );
+				lightNode.target.position.set( 0, 0, -1 );
 				lightNode.add( lightNode.target );
 				break;
 
@@ -18438,8 +18559,6 @@ class GLTFLightsExtension {
 		// Some lights (e.g. spot) default to a position other than the origin. Reset the position
 		// here, because node-level parsing will only override position if explicitly specified.
 		lightNode.position.set( 0, 0, 0 );
-
-		lightNode.decay = 2;
 
 		assignExtrasToUserData( lightNode, lightDef );
 
@@ -19956,7 +20075,7 @@ class GLTFCubicSplineInterpolant extends Interpolant {
 		const offset1 = i1 * stride3;
 		const offset0 = offset1 - stride3;
 
-		const s2 = - 2 * ppp + 3 * pp;
+		const s2 = -2 * ppp + 3 * pp;
 		const s3 = ppp - pp;
 		const s0 = 1 - s2;
 		const s1 = s3 - pp + p;
@@ -20004,26 +20123,13 @@ class GLTFCubicSplineQuaternionInterpolant extends GLTFCubicSplineInterpolant {
 /* CONSTANTS */
 
 const WEBGL_CONSTANTS = {
-	FLOAT: 5126,
-	//FLOAT_MAT2: 35674,
-	FLOAT_MAT3: 35675,
-	FLOAT_MAT4: 35676,
-	FLOAT_VEC2: 35664,
-	FLOAT_VEC3: 35665,
-	FLOAT_VEC4: 35666,
-	LINEAR: 9729,
-	REPEAT: 10497,
-	SAMPLER_2D: 35678,
 	POINTS: 0,
 	LINES: 1,
 	LINE_LOOP: 2,
 	LINE_STRIP: 3,
 	TRIANGLES: 4,
 	TRIANGLE_STRIP: 5,
-	TRIANGLE_FAN: 6,
-	UNSIGNED_BYTE: 5121,
-	UNSIGNED_SHORT: 5123
-};
+	TRIANGLE_FAN: 6};
 
 const WEBGL_COMPONENT_TYPES = {
 	5120: Int8Array,
@@ -20094,6 +20200,9 @@ const ALPHA_MODES = {
 
 /**
  * Specification: https://github.com/KhronosGroup/glTF/blob/master/specification/2.0/README.md#default-material
+ *
+ * @param {Object<String, Material>} cache
+ * @return {Material}
  */
 function createDefaultMaterial( cache ) {
 
@@ -20364,6 +20473,7 @@ function getImageURIMimeType( uri ) {
 
 	if ( uri.search( /\.jpe?g($|\?)/i ) > 0 || uri.search( /^data\:image\/jpeg/ ) === 0 ) return 'image/jpeg';
 	if ( uri.search( /\.webp($|\?)/i ) > 0 || uri.search( /^data\:image\/webp/ ) === 0 ) return 'image/webp';
+	if ( uri.search( /\.ktx2($|\?)/i ) > 0 || uri.search( /^data\:image\/ktx2/ ) === 0 ) return 'image/ktx2';
 
 	return 'image/png';
 
@@ -20409,9 +20519,9 @@ class GLTFParser {
 		// expensive work of uploading a texture to the GPU off the main thread.
 
 		let isSafari = false;
-		let safariVersion = - 1;
+		let safariVersion = -1;
 		let isFirefox = false;
-		let firefoxVersion = - 1;
+		let firefoxVersion = -1;
 
 		if ( typeof navigator !== 'undefined' ) {
 
@@ -20419,10 +20529,10 @@ class GLTFParser {
 
 			isSafari = /^((?!chrome|android).)*safari/i.test( userAgent ) === true;
 			const safariMatch = userAgent.match( /Version\/(\d+)/ );
-			safariVersion = isSafari && safariMatch ? parseInt( safariMatch[ 1 ], 10 ) : - 1;
+			safariVersion = isSafari && safariMatch ? parseInt( safariMatch[ 1 ], 10 ) : -1;
 
-			isFirefox = userAgent.indexOf( 'Firefox' ) > - 1;
-			firefoxVersion = isFirefox ? userAgent.match( /Firefox\/([0-9]+)\./ )[ 1 ] : - 1;
+			isFirefox = userAgent.indexOf( 'Firefox' ) > -1;
+			firefoxVersion = isFirefox ? userAgent.match( /Firefox\/([0-9]+)\./ )[ 1 ] : -1;
 
 		}
 
@@ -20591,6 +20701,9 @@ class GLTFParser {
 	 * Textures) can be reused directly and are not marked here.
 	 *
 	 * Example: CesiumMilkTruck sample model reuses "Wheel" meshes.
+	 *
+	 * @param {Object} cache
+	 * @param {Object3D} index
 	 */
 	_addNodeRef( cache, index ) {
 
@@ -20606,7 +20719,14 @@ class GLTFParser {
 
 	}
 
-	/** Returns a reference to a shared resource, cloning it if necessary. */
+	/**
+	 * Returns a reference to a shared resource, cloning it if necessary.
+	 *
+	 * @param {Object} cache
+	 * @param {number} index
+	 * @param {Object} object
+	 * @return {Object}
+	 */
 	_getNodeRef( cache, index, object ) {
 
 		if ( cache.refs[ index ] <= 1 ) return object;
@@ -21069,7 +21189,7 @@ class GLTFParser {
 			texture.minFilter = WEBGL_FILTERS[ sampler.minFilter ] || LinearMipmapLinearFilter;
 			texture.wrapS = WEBGL_WRAPPINGS[ sampler.wrapS ] || RepeatWrapping;
 			texture.wrapT = WEBGL_WRAPPINGS[ sampler.wrapT ] || RepeatWrapping;
-			texture.generateMipmaps = texture.minFilter !== NearestFilter && texture.minFilter !== LinearFilter;
+			texture.generateMipmaps = ! texture.isCompressedTexture && texture.minFilter !== NearestFilter && texture.minFilter !== LinearFilter;
 
 			parser.associations.set( texture, { textures: textureIndex } );
 
@@ -21178,9 +21298,11 @@ class GLTFParser {
 
 	/**
 	 * Asynchronously assigns a texture to the given material parameters.
+	 *
 	 * @param {Object} materialParams
 	 * @param {string} mapName
 	 * @param {Object} mapDef
+	 * @param {string} colorSpace
 	 * @return {Promise<Texture>}
 	 */
 	assignTexture( materialParams, mapName, mapDef, colorSpace ) {
@@ -21305,8 +21427,8 @@ class GLTFParser {
 				if ( useDerivativeTangents ) {
 
 					// https://github.com/mrdoob/three.js/issues/11438#issuecomment-507003995
-					if ( cachedMaterial.normalScale ) cachedMaterial.normalScale.y *= - 1;
-					if ( cachedMaterial.clearcoatNormalScale ) cachedMaterial.clearcoatNormalScale.y *= - 1;
+					if ( cachedMaterial.normalScale ) cachedMaterial.normalScale.y *= -1;
+					if ( cachedMaterial.clearcoatNormalScale ) cachedMaterial.clearcoatNormalScale.y *= -1;
 
 				}
 
@@ -21489,7 +21611,12 @@ class GLTFParser {
 
 	}
 
-	/** When Object3D instances are targeted by animation, they need unique names. */
+	/**
+	 * When Object3D instances are targeted by animation, they need unique names.
+	 *
+	 * @param {string} originalName
+	 * @return {string}
+	 */
 	createUniqueName( originalName ) {
 
 		const sanitizedName = PropertyBinding.sanitizeNodeName( originalName || '' );
@@ -22906,7 +23033,7 @@ class DRACOLoader extends Loader {
 
 				this.workerPool.sort( function ( a, b ) {
 
-					return a._taskLoad > b._taskLoad ? - 1 : 1;
+					return a._taskLoad > b._taskLoad ? -1 : 1;
 
 				} );
 
@@ -23078,7 +23205,7 @@ function DRACOWorker() {
 
 				attributeID = decoder.GetAttributeId( dracoGeometry, draco[ attributeIDs[ attributeName ] ] );
 
-				if ( attributeID === - 1 ) continue;
+				if ( attributeID === -1 ) continue;
 
 				attribute = decoder.GetAttribute( dracoGeometry, attributeID );
 
@@ -23169,6 +23296,7 @@ fflate - fast JavaScript compression/decompression
 Licensed under MIT. https://github.com/101arrowz/fflate/blob/master/LICENSE
 version 0.6.9
 */
+
 var durl = function (c) { return URL.createObjectURL(new Blob([c], { type: 'text/javascript' })); };
 try {
     URL.revokeObjectURL(durl(''));
@@ -23307,8 +23435,6 @@ var shft = function (p) { return ((p / 8) | 0) + (p & 7 && 1); };
 // typed array slice - allows garbage collector to free original reference,
 // while being more compatible than .slice
 var slc = function (v, s, e) {
-    if (s == null || s < 0)
-        s = 0;
     if (e == null || e > v.length)
         e = v.length;
     // can't use .constructor in case user-supplied
@@ -23748,7 +23874,7 @@ function calcBasisFunctionDerivatives( span, u, p, n, U ) {
 
 			}
 
-			const j1 = ( rk >= - 1 ) ? 1 : - rk;
+			const j1 = ( rk >= -1 ) ? 1 : - rk;
 			const j2 = ( r - 1 <= pk ) ? k - 1 : p - r;
 
 			for ( let j = j1; j <= j2; ++ j ) {
@@ -24509,12 +24635,12 @@ class FBXTreeParser {
 
 		if ( materialNode.Diffuse ) {
 
-			parameters.color = new Color().fromArray( materialNode.Diffuse.value ).convertSRGBToLinear();
+			parameters.color = ColorManagement.toWorkingColorSpace( new Color().fromArray( materialNode.Diffuse.value ), SRGBColorSpace );
 
 		} else if ( materialNode.DiffuseColor && ( materialNode.DiffuseColor.type === 'Color' || materialNode.DiffuseColor.type === 'ColorRGB' ) ) {
 
 			// The blender exporter exports diffuse here instead of in materialNode.Diffuse
-			parameters.color = new Color().fromArray( materialNode.DiffuseColor.value ).convertSRGBToLinear();
+			parameters.color = ColorManagement.toWorkingColorSpace( new Color().fromArray( materialNode.DiffuseColor.value ), SRGBColorSpace );
 
 		}
 
@@ -24526,12 +24652,12 @@ class FBXTreeParser {
 
 		if ( materialNode.Emissive ) {
 
-			parameters.emissive = new Color().fromArray( materialNode.Emissive.value ).convertSRGBToLinear();
+			parameters.emissive = ColorManagement.toWorkingColorSpace( new Color().fromArray( materialNode.Emissive.value ), SRGBColorSpace );
 
 		} else if ( materialNode.EmissiveColor && ( materialNode.EmissiveColor.type === 'Color' || materialNode.EmissiveColor.type === 'ColorRGB' ) ) {
 
 			// The blender exporter exports emissive color here instead of in materialNode.Emissive
-			parameters.emissive = new Color().fromArray( materialNode.EmissiveColor.value ).convertSRGBToLinear();
+			parameters.emissive = ColorManagement.toWorkingColorSpace( new Color().fromArray( materialNode.EmissiveColor.value ), SRGBColorSpace );
 
 		}
 
@@ -24541,9 +24667,19 @@ class FBXTreeParser {
 
 		}
 
-		if ( materialNode.Opacity ) {
+		// the transparency handling is implemented based on Blender/Unity's approach: https://github.com/sobotka/blender-addons/blob/7d80f2f97161fc8e353a657b179b9aa1f8e5280b/io_scene_fbx/import_fbx.py#L1444-L1459
 
-			parameters.opacity = parseFloat( materialNode.Opacity.value );
+		parameters.opacity = 1 - ( materialNode.TransparencyFactor ? parseFloat( materialNode.TransparencyFactor.value ) : 0 );
+
+		if ( parameters.opacity === 1 || parameters.opacity === 0 ) {
+
+			parameters.opacity = ( materialNode.Opacity ? parseFloat( materialNode.Opacity.value ) : null );
+
+			if ( parameters.opacity === null ) {
+
+				parameters.opacity = 1 - ( materialNode.TransparentColor ? parseFloat( materialNode.TransparentColor.value[ 0 ] ) : 0 );
+
+			}
 
 		}
 
@@ -24567,12 +24703,12 @@ class FBXTreeParser {
 
 		if ( materialNode.Specular ) {
 
-			parameters.specular = new Color().fromArray( materialNode.Specular.value ).convertSRGBToLinear();
+			parameters.specular = ColorManagement.toWorkingColorSpace( new Color().fromArray( materialNode.Specular.value ), SRGBColorSpace );
 
 		} else if ( materialNode.SpecularColor && materialNode.SpecularColor.type === 'Color' ) {
 
 			// The blender exporter exports specular color here instead of in materialNode.Specular
-			parameters.specular = new Color().fromArray( materialNode.SpecularColor.value ).convertSRGBToLinear();
+			parameters.specular = ColorManagement.toWorkingColorSpace( new Color().fromArray( materialNode.SpecularColor.value ), SRGBColorSpace );
 
 		}
 
@@ -25065,7 +25201,8 @@ class FBXTreeParser {
 					break;
 
 				case 1: // Orthographic
-					model = new OrthographicCamera( - width / 2, width / 2, height / 2, - height / 2, nearClippingPlane, farClippingPlane );
+					console.warn( 'THREE.FBXLoader: Orthographic cameras not supported yet.' );
+					model = new Object3D();
 					break;
 
 				default:
@@ -25122,7 +25259,7 @@ class FBXTreeParser {
 
 			if ( lightAttribute.Color !== undefined ) {
 
-				color = new Color().fromArray( lightAttribute.Color.value ).convertSRGBToLinear();
+				color = ColorManagement.toWorkingColorSpace( new Color().fromArray( lightAttribute.Color.value ), SRGBColorSpace );
 
 			}
 
@@ -25300,7 +25437,7 @@ class FBXTreeParser {
 		if ( 'InheritType' in modelNode ) transformData.inheritType = parseInt( modelNode.InheritType.value );
 
 		if ( 'RotationOrder' in modelNode ) transformData.eulerOrder = getEulerOrder( modelNode.RotationOrder.value );
-		else transformData.eulerOrder = getEulerOrder(0);
+		else transformData.eulerOrder = getEulerOrder( 0 );
 
 		if ( 'Lcl_Translation' in modelNode ) transformData.translation = modelNode.Lcl_Translation.value;
 
@@ -25448,7 +25585,7 @@ class FBXTreeParser {
 
 				if ( r !== 0 || g !== 0 || b !== 0 ) {
 
-					const color = new Color( r, g, b ).convertSRGBToLinear();
+					const color = new Color().setRGB( r, g, b, SRGBColorSpace );
 					sceneGraph.add( new AmbientLight( color, 1 ) );
 
 				}
@@ -25788,7 +25925,7 @@ class GeometryParser {
 			// to find index of last vertex bit shift the index: ^ - 1
 			if ( vertexIndex < 0 ) {
 
-				vertexIndex = vertexIndex ^ - 1; // equivalent to ( x * -1 ) - 1
+				vertexIndex = vertexIndex ^ -1; // equivalent to ( x * -1 ) - 1
 				endOfFace = true;
 
 			}
@@ -26288,7 +26425,9 @@ class GeometryParser {
 
 		for ( let i = 0, c = new Color(); i < buffer.length; i += 4 ) {
 
-			c.fromArray( buffer, i ).convertSRGBToLinear().toArray( buffer, i );
+			c.fromArray( buffer, i );
+			ColorManagement.toWorkingColorSpace( c, SRGBColorSpace );
+			c.toArray( buffer, i );
 
 		}
 
@@ -26707,7 +26846,7 @@ class AnimationParser {
 
 		} );
 
-		return new AnimationClip( rawClip.name, - 1, tracks );
+		return new AnimationClip( rawClip.name, -1, tracks );
 
 	}
 
@@ -26779,7 +26918,7 @@ class AnimationParser {
 		}
 
 		// For Maya models using "Joint Orient", Euler order only applies to rotation, not pre/post-rotations
-		const defaultEulerOrder = getEulerOrder(0);
+		const defaultEulerOrder = getEulerOrder( 0 );
 
 		if ( preRotation !== undefined ) {
 
@@ -26905,9 +27044,9 @@ class AnimationParser {
 
 		const values = [];
 
-		let xIndex = - 1;
-		let yIndex = - 1;
-		let zIndex = - 1;
+		let xIndex = -1;
+		let yIndex = -1;
+		let zIndex = -1;
 
 		times.forEach( function ( time ) {
 
@@ -26916,7 +27055,7 @@ class AnimationParser {
 			if ( curves.z ) zIndex = curves.z.times.indexOf( time );
 
 			// if there is an x value defined for this frame, use that
-			if ( xIndex !== - 1 ) {
+			if ( xIndex !== -1 ) {
 
 				const xValue = curves.x.values[ xIndex ];
 				values.push( xValue );
@@ -26929,7 +27068,7 @@ class AnimationParser {
 
 			}
 
-			if ( yIndex !== - 1 ) {
+			if ( yIndex !== -1 ) {
 
 				const yValue = curves.y.values[ yIndex ];
 				values.push( yValue );
@@ -26941,7 +27080,7 @@ class AnimationParser {
 
 			}
 
-			if ( zIndex !== - 1 ) {
+			if ( zIndex !== -1 ) {
 
 				const zValue = curves.z.values[ zIndex ];
 				values.push( zValue );
@@ -27321,7 +27460,7 @@ class TextParser {
 		this.setCurrentProp( currentNode, propName );
 
 		// convert string to array, unless it ends in ',' in which case more will be added to it
-		if ( propName === 'a' && propValue.slice( - 1 ) !== ',' ) {
+		if ( propName === 'a' && propValue.slice( -1 ) !== ',' ) {
 
 			currentNode.a = parseNumberArray( propValue );
 
@@ -27337,7 +27476,7 @@ class TextParser {
 
 		// if the line doesn't end in ',' we have reached the end of the property value
 		// so convert the string to an array
-		if ( line.slice( - 1 ) !== ',' ) {
+		if ( line.slice( -1 ) !== ',' ) {
 
 			currentNode.a = parseNumberArray( currentNode.a );
 
@@ -27446,7 +27585,7 @@ class BinaryParser {
 		// - 16bytes: magic
 		if ( reader.size() % 16 === 0 ) {
 
-			return ( ( reader.getOffset() + 160 + 16 ) & ~ 0xf ) >= reader.size();
+			return ( ( reader.getOffset() + 160 + 16 ) & -16 ) >= reader.size();
 
 		} else {
 
@@ -28107,7 +28246,7 @@ function generateTransform( transformData ) {
 	if ( transformData.translation ) lTranslationM.setPosition( tempVec.fromArray( transformData.translation ) );
 
 	// For Maya models using "Joint Orient", Euler order only applies to rotation, not pre/post-rotations
-	const defaultEulerOrder = getEulerOrder(0);
+	const defaultEulerOrder = getEulerOrder( 0 );
 
 	if ( transformData.preRotation ) {
 
@@ -28332,7 +28471,7 @@ class RGBELoader extends DataTextureLoader {
 
 				lineLimit = ! lineLimit ? 1024 : lineLimit;
 				let p = buffer.pos,
-					i = - 1, len = 0, s = '',
+					i = -1, len = 0, s = '',
 					chunk = String.fromCharCode.apply( null, new Uint16Array( buffer.subarray( p, p + chunkSize ) ) );
 
 				while ( ( 0 > ( i = chunk.indexOf( NEWLINE ) ) ) && ( len < lineLimit ) && ( p < buffer.byteLength ) ) {
@@ -28343,7 +28482,7 @@ class RGBELoader extends DataTextureLoader {
 
 				}
 
-				if ( - 1 < i ) {
+				if ( -1 < i ) {
 
 					/*for (i=l-1; i>=0; i--) {
 						byteCode = m.charCodeAt(i);
@@ -28351,7 +28490,7 @@ class RGBELoader extends DataTextureLoader {
 						else if (byteCode > 0x7ff && byteCode <= 0xffff) byteLen += 2;
 						if (byteCode >= 0xDC00 && byteCode <= 0xDFFF) i--; //trail surrogate
 					}*/
-					if ( false !== consume ) buffer.pos += len + i + 1;
+					buffer.pos += len + i + 1;
 					return s + chunk.slice( 0, i );
 
 				}
@@ -30499,7 +30638,7 @@ class EXRLoader extends DataTextureLoader {
 			const exponent = ( binary & 0x7C00 ) >> 10,
 				fraction = binary & 0x03FF;
 
-			return ( binary >> 15 ? - 1 : 1 ) * (
+			return ( binary >> 15 ? -1 : 1 ) * (
 				exponent ?
 					(
 						exponent === 0x1F ?
@@ -30960,7 +31099,7 @@ class EXRLoader extends DataTextureLoader {
 
 			}
 
-			if ( ( spec & ~ 0x06 ) != 0 ) { // unsupported deep-image, multi-part
+			if ( ( spec & -7 ) != 0 ) { // unsupported deep-image, multi-part
 
 				console.error( 'THREE.EXRHeader:', EXRHeader );
 				throw new Error( 'THREE.EXRLoader: Provided file is currently unsupported.' );
@@ -31267,11 +31406,11 @@ class EXRLoader extends DataTextureLoader {
 
 }
 
-var lzma = function(){var pp, n0 = 0x10000000000000000, n1 = 4294967295, n2 = 2147483647, n3 = 2147483648, n4 = 16777216;
+var lzma = function(){var pp, n0 = 0x10000000000000000, n1 = 4294967295, n2 = 2147483647, n3 = 2147483648;
 function r(e,r){pp({action:nr,cbn:r,result:e});}function o(e){var r=[];return r[e-1]=void 0,r}function n(e,r){return i(e[0]+r[0],e[1]+r[1])}
 function t(e,r){var o,n;return e[0]==r[0]&&e[1]==r[1]?0:(o=0>e[1],n=0>r[1],o&&!n?-1:!o&&n?1:d(e,r)[1]<0?-1:1)}
-function i(e,r){var o,n;for(r%=n0,e%=n0,o=r%ir,n=Math.floor(e/ir)*ir,r=r-o+n,e=e-n+o;0>e;)e+=ir,r-=ir;for(;e>n1;)e-=ir,r+=ir;for(r%=n0;r>0x7fffffff00000000;)r-=n0;for(;-n0>r;)r+=n0;return [e,r]}
-function u(e){return e>=0?[e,0]:[e+ir,-ir]}function s(e){return e[0]>=n3?~~Math.max(Math.min(e[0]-ir,n2),-n3):~~Math.max(Math.min(e[0],n2),-n3)}function d(e,r){return i(e[0]-r[0],e[1]-r[1])}
+function i(e,r){var o,n;for(r%=n0,e%=n0,o=r%ir,n=Math.floor(e/ir)*ir,r=r-o+n,e=e-n+o;0>e;)e+=ir,r-=ir;for(;e>n1;)e-=ir,r+=ir;for(r%=n0;r>0x7fffffff00000000;)r-=n0;for(;-18446744073709552e3>r;)r+=n0;return [e,r]}
+function u(e){return e>=0?[e,0]:[e+ir,-4294967296]}function s(e){return e[0]>=n3?~~Math.max(Math.min(e[0]-ir,n2),-2147483648):~~Math.max(Math.min(e[0],n2),-2147483648)}function d(e,r){return i(e[0]-r[0],e[1]-r[1])}
 function c(e,r){return e.ab=r,e.cb=0,e.O=r.length,e}function m(e){return e.cb>=e.O?-1:255&e.ab[e.cb++]}function a(e){return e.ab=o(32),e.O=0,e}function _(e){var r=e.ab;return r.length=e.O,r}
 function f(e,r,o,n){p(r,o,e.ab,e.O,n),e.O+=n;}function p(e,r,o,n,t){for(var i=0;t>i;++i)o[n+i]=e[r+i];}
 function D(e,r,o){var n,t,i,s,d="",c=[];for(t=0;5>t;++t){if(i=m(r),-1==i)throw Error("truncated input");c[t]=i<<24>>24;}if(n=N({}),!z(n,c))throw Error("corrupted input");
@@ -31285,7 +31424,7 @@ function B(e,r,o,n){return e.a.K=r,P(e.b),e.b.V=o,b(e),e.f=0,e.l=0,e.T=0,e.R=0,e
 function I(e){ var r,o,i,d,c,m;if(m=s(e.d)&e.P,Q(e.a,e.q,(e.f<<4)+m)){if(Q(e.a,e.E,e.f))i=0,
 Q(e.a,e.s,e.f)?(Q(e.a,e.u,e.f)?(Q(e.a,e.r,e.f)?(o=e._,e._=e.R):o=e.R,e.R=e.T):o=e.T,e.T=e.l,e.l=o):Q(e.a,e.n,(e.f<<4)+m)||(e.f=7>e.f?9:11,i=1),
 i||(i=x(e.o,e.a,m)+2,e.f=7>e.f?8:11);else if(e._=e.R,e.R=e.T,e.T=e.l,i=2+x(e.C,e.a,m),e.f=7>e.f?7:10,c=q(e.j[C(i)],e.a),c>=4){if(d=(c>>1)-1,e.l=(2|1&c)<<d,14>c)e.l+=J(e.J,e.l-c-1,e.a,d);
-else if(e.l+=U(e.a,d-4)<<4,e.l+=F(e.t,e.a),0>e.l)return -1==e.l?1:-1}else e.l=c;if(t(u(e.l),e.d)>=0||e.l>=e.m)return -1;
+else if(e.l+=U(e.a,d-4)<<4,e.l+=F(e.t,e.a),0>e.l)return  -1==e.l?1:-1}else e.l=c;if(t(u(e.l),e.d)>=0||e.l>=e.m)return  -1;
 g(e.b,e.l,i),e.d=n(e.d,u(i)),e.I=R(e.b,0);}else r=Z(e.k,s(e.d),e.I),e.I=7>e.f?T(r,e.a):$(r,e.a,R(e.b,e.l)),h(e.b,e.I),e.f=S(e.f),e.d=n(e.d,dr);return 0}
 function N(e){e.b={},e.a={},e.q=o(192),e.E=o(12),e.s=o(12),e.u=o(12),e.r=o(12),e.n=o(192),e.j=o(4),e.J=o(114),e.t=K({},4),e.C=G({}),e.o=G({}),e.k={};for(var r=0;4>r;++r)e.j[r]=K({},6);return e}
 function b(e){e.b.w=0,e.b.D=0,X(e.q),X(e.n),X(e.E),X(e.s),X(e.u),X(e.r),X(e.J),H(e.k);for(var r=0;4>r;++r)X(e.j[r].B);A(e.C),A(e.o),X(e.t.B),V(e.a);}
@@ -31300,9 +31439,9 @@ function T(e,r){var o=1;do o=o<<1|Q(r,e.v,o);while(256>o);return o<<24>>24}
 function $(e,r,o){var n,t,i=1;do if(t=o>>7&1,o<<=1,n=Q(r,e.v,(1+t<<8)+i),i=i<<1|n,t!=n){for(;256>i;)i=i<<1|Q(r,e.v,i);break}while(256>i);return i<<24>>24}
 function j(e){return e.v=o(768),e}function K(e,r){return e.A=r,e.B=o(1<<r),e}function q(e,r){var o,n=1;for(o=e.A;0!=o;--o)n=(n<<1)+Q(r,e.B,n);return n-(1<<e.A)}
 function F(e,r){var o,n,t=1,i=0;for(n=0;e.A>n;++n)o=Q(r,e.B,t),t<<=1,t+=o,i|=o<<n;return i}function J(e,r,o,n){var t,i,u=1,s=0;for(i=0;n>i;++i)t=Q(o,e,r+u),u<<=1,u+=t,s|=t<<i;return s}
-function Q(e,r,o){var n,t=r[o];return n=(e.i>>>11)*t,(-n3^n)>(-n3^e.p)?(e.i=n,r[o]=t+(2048-t>>>5)<<16>>16,-n4&e.i||(e.p=e.p<<8|m(e.K),e.i<<=8),0):(e.i-=n,e.p-=n,r[o]=t-(t>>>5)<<16>>16,
--n4&e.i||(e.p=e.p<<8|m(e.K),e.i<<=8),1)}
-function U(e,r){var o,n,t=0;for(o=r;0!=o;--o)e.i>>>=1,n=e.p-e.i>>>31,e.p-=e.i&n-1,t=t<<1|1-n,-n4&e.i||(e.p=e.p<<8|m(e.K),e.i<<=8);return t}
+function Q(e,r,o){var n,t=r[o];return n=(e.i>>>11)*t,(-2147483648^n)>(-2147483648^e.p)?(e.i=n,r[o]=t+(2048-t>>>5)<<16>>16,-16777216&e.i||(e.p=e.p<<8|m(e.K),e.i<<=8),0):(e.i-=n,e.p-=n,r[o]=t-(t>>>5)<<16>>16,
+-16777216&e.i||(e.p=e.p<<8|m(e.K),e.i<<=8),1)}
+function U(e,r){var o,n,t=0;for(o=r;0!=o;--o)e.i>>>=1,n=e.p-e.i>>>31,e.p-=e.i&n-1,t=t<<1|1-n,-16777216&e.i||(e.p=e.p<<8|m(e.K),e.i<<=8);return t}
 function V(e){e.p=0,e.i=-1;for(var r=0;5>r;++r)e.p=e.p<<8|m(e.K);}function X(e){for(var r=e.length-1;r>=0;--r)e[r]=1024;}
 function Y(e){ for(var r,o,n,t=0,i=0,u=e.length,s=[],d=[];u>t;++t,++i){
 if(r=255&e[t],128&r)if(192==(224&r)){if(t+1>=u)return e;if(o=255&e[++t],128!=(192&o))return e;d[i]=(31&r)<<6|63&o;}else {if(224!=(240&r))return e;if(t+2>=u)return e;
@@ -31314,7 +31453,7 @@ n(1),e=Y(_(c.d.S)),tr(o.bind(null,e),0);}catch(m){o(null,m);}} var i,u,s,d,c={},
 if("function"!=typeof o&&(u=o,o=n=0),n=n||function(e){return void 0!==u?r(s?e:-1,u):void 0},
 o=o||function(e,r){return void 0!==u?pp({action:or,cbn:u,result:e,error:r}):void 0},m){for(c.d=l({},e);L(c.d.Q););return Y(_(c.d.S))}
 try{c.d=l({},e),d=er(c.d.N),s=d>-1,n(0);}catch(a){return o(null,a)}tr(t,0);}
-var or=2,nr=3,tr="function"==typeof setImmediate?setImmediate:setTimeout,ir=4294967296,ur=[n1,-ir],sr=[0,0],dr=[1,0];
+var or=2,nr=3,tr="function"==typeof setImmediate?setImmediate:setTimeout,ir=4294967296,ur=[n1,-4294967296],sr=[0,0],dr=[1,0];
 return {decompress:rr}
 }();
 
@@ -33690,7 +33829,7 @@ const Human = {
             side: DoubleSide,
             alphaToCoverage:true,
             polygonOffset: true,                
-            polygonOffsetFactor: - 4,
+            polygonOffsetFactor: -4,
             //normalMap:'eyelash_n',
             //normalScale:new Vector2( 1, -1)
         },
@@ -33777,7 +33916,7 @@ const Human = {
                         node.material = def;
                         node.receiveShadow = true;
                         node.castShadow = true;
-                        node.visible = !startHigh;
+                        node.visible = false;
                     break;
                     case 'Head': 
                     node.material = def;
@@ -36741,7 +36880,7 @@ const math$2 = {
 	PI270: (Math.PI*0.5)*3,
 	inv255: 0.003921569,
 	golden: 1.618033,
-	epsilon: Math.pow( 2, - 52 ),
+	epsilon: Math.pow( 2, -52 ),
 
 	randomSign: () => ( Math.random() < 0.5 ? -1 : 1 ),
 	randSpread: ( range ) => ( range * ( 0.5 - Math.random() ) ),
@@ -36945,7 +37084,7 @@ const math$2 = {
 
 	rgbToHex: ( rgb ) => {
 
-	    return '0x' + ( '000000' + ( ( rgb[0] * 255 ) << 16 ^ ( rgb[1] * 255 ) << 8 ^ ( rgb[2] * 255 ) << 0 ).toString( 16 ) ).slice( - 6 );
+	    return '0x' + ( '000000' + ( ( rgb[0] * 255 ) << 16 ^ ( rgb[1] * 255 ) << 8 ^ ( rgb[2] * 255 ) << 0 ).toString( 16 ) ).slice( -6 );
 
 	},
 
@@ -36974,7 +37113,7 @@ const math$2 = {
 
 	rgbToHtml: ( rgb ) => {
 
-	    return '#' + ( '000000' + ( ( rgb[0] * 255 ) << 16 ^ ( rgb[1] * 255 ) << 8 ^ ( rgb[2] * 255 ) << 0 ).toString( 16 ) ).slice( - 6 );
+	    return '#' + ( '000000' + ( ( rgb[0] * 255 ) << 16 ^ ( rgb[1] * 255 ) << 8 ^ ( rgb[2] * 255 ) << 0 ).toString( 16 ) ).slice( -6 );
 
 	},
 
@@ -38176,35 +38315,6 @@ const TerrainShader = {
         }
     `,
 
-    // roughnessmap_fragment
-
-    rough : /* glsl */`
-        float roughnessFactor = roughness;
-        float metalnessFactor = metalness;
-        #ifdef USE_ROUGHNESSMAP
-
-            vec4 sandR = textureMAP( roughnessMap, vRoughnessMapUv );
-            vec4 grassR = textureMAP( roughnessMap1, vRoughnessMapUv );
-            vec4 rockR = textureMAP( roughnessMap2, vRoughnessMapUv );
-
-            vec4 baseColorR = MappingMix( vColor.r, clevels, rockR, grassR, sandR );
-            // reads channel G, compatible with a combined OcclusionRoughnessMetallic (RGB) texture
-            float ambientOcclusion =( baseColorR.r - 1.0 ) * aoMapIntensity + 1.0;
-            roughnessFactor *= baseColorR.g;
-            metalnessFactor *= baseColorR.b;
-        #endif
-    `,
-
-    // aomap_fragment
-
-    ao : /* glsl */`
-        reflectedLight.indirectDiffuse *= ambientOcclusion;
-        #if defined( USE_ENVMAP ) && defined( STANDARD )
-            float dotNV = saturate( dot( geometry.normal, geometry.viewDir ) );
-            reflectedLight.indirectSpecular *= computeSpecularOcclusion( dotNV, ambientOcclusion, material.specularRoughness );
-        #endif
-    `,
-
     // map_fragment.glsl
 
     map : /* glsl */`
@@ -38253,46 +38363,6 @@ const TerrainShader = {
             ///vec3 mapN = texture2D( normalMap, vNormalMapUv ).xyz * 2.0 - 1.0;
 
             mapN.xy *= normalScale;
-            normal = normalize( tbn * mapN );
-
-        #elif defined( USE_BUMPMAP )
-
-            normal = perturbNormalArb( - vViewPosition, normal, dHdxy_fwd(), faceDirection );
-
-        #endif
-    `,
-
-    normal2 : /* glsl */`
-
-        #ifdef OBJECTSPACE_NORMALMAP
-
-            normal = texture2D( normalMap, vNormalMapUv ).xyz * 2.0 - 1.0; // overrides both flatShading and attribute normals
-
-            #ifdef FLIP_SIDED
-
-                normal = - normal;
-
-            #endif
-
-            #ifdef DOUBLE_SIDED
-
-                normal = normal * faceDirection;
-
-            #endif
-
-            normal = normalize( normalMatrix * normal );
-
-        #elif defined( TANGENTSPACE_NORMALMAP )
-
-            vec4 sandN = textureMAP( normalMap, vNormalMapUv );
-            vec4 grassN = textureMAP( normalMap1, vNormalMapUv );
-            vec4 rockN = textureMAP( normalMap2, vNormalMapUv );
-
-            vec3 mapN = MappingMix(vColor.r, clevels, rockN, grassN, sandN).xyz * 2.0 - 1.0;
-
-            //vec3 mapN = texture2D( normalMap, vNormalMapUv ).xyz * 2.0 - 1.0;
-            mapN.xy *= normalScale;
-
             normal = normalize( tbn * mapN );
 
         #elif defined( USE_BUMPMAP )
@@ -42195,10 +42265,8 @@ function resolveSingleBilateral( body1, pos1, body2, pos2, normal ){
     vel.copy(vel1).sub(vel2);
 
     let rel_vel = Dot(normal, vel);
-
-    let contactDamping = 0.1;
     let massTerm = 1 / (bodyInvMass(body1) + bodyInvMass(body2));
-    let impulse = - contactDamping * rel_vel * massTerm;
+    let impulse = -0.1 * rel_vel * massTerm;
 
     //console.log(bodyInvMass(body1) )
 
@@ -42209,6 +42277,7 @@ function resolveSingleBilateral( body1, pos1, body2, pos2, normal ){
  * @monogrid/gainmap-js v2.0.7
  * With ❤️, by MONOGRID <hello@mono-grid.com>
  */
+
 
 const vertexShader = /* glsl */ `
 varying vec2 vUv;
@@ -44102,7 +44171,7 @@ const Version = {
     HAVOK: '1.2.1',
     JOLT: '0.30.0',
 
-    RAPIER: '0.11.2',
+    RAPIER: '0.14.0',
     OIMO: '1.2.4',
     AMMO: '3.0',
 
