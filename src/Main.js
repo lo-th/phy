@@ -117,6 +117,7 @@ const setting = {
 	spherical: 0,
 	envIntensity:1,
 	bgIntensity:1,
+	shadowIntensity:1,
 
 }
 
@@ -358,6 +359,7 @@ export const Main = {
 	changeShadow:(o) => { changeShadow(o) },
 	envmapIntensity:() => { setEnvmapIntensity() },
 	bgIntensity:() => { setbgIntensity() },
+	shadowIntensity:() => { setshadowIntensity() },
 	setReflect:(v) => { setReflect(v) },
 
 	getOption:() => ( options ),
@@ -1246,6 +1248,7 @@ const view = ( o = {} ) => {
 	options.exposure = o.exposure;
 	options.envIntensity = o.envIntensity;
 	options.bgIntensity = o.bgIntensity;
+	options.shadowIntensity = o.shadowIntensity;
 
 	phy.lightIntensity();
 
@@ -1296,6 +1299,7 @@ const view = ( o = {} ) => {
 
     setEnvmapIntensity();
     setbgIntensity();
+    setshadowIntensity();
 	
 }
 
@@ -1412,6 +1416,13 @@ const send = ( data ) => {
 //--------------------
 //   OPTION
 //--------------------
+
+const setshadowIntensity = () => {
+
+	Lights.setShadow( Lights.byName('sun'), { intensity:options.shadowIntensity } );
+
+}
+
 const setbgIntensity = () => {
 
 	scene.backgroundIntensity = options.bgIntensity;

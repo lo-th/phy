@@ -1,9 +1,9 @@
 demo = () => {
 
-    phy.view({ envmap:'photo', envblur:0.5, exposure:0.2, direct:25, envIntensity:1.2, bgIntensity:3, distance:5, y:0.6 })
+    phy.view({ envmap:'photo', envblur:0.5, exposure:0.2, direct:25, envIntensity:4, bgIntensity:3, shadowIntensity:0.5, distance:5, y:0.6 })
 
     // config physics setting
-    phy.set({ substep:1, gravity:[0,-9.81,0],  })
+    phy.set({ substep:1, gravity:[0,-9.81,0], stabiliz:false })
 
     // add static plane 
     //phy.add({ type:'plane', visible:false })

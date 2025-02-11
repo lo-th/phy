@@ -26,7 +26,7 @@ export class Lights {
 			type:'direct', name:'sun',
 			intensity:o.direct,
 			distance:30, parent:parent,
-		    shadow:{ range:30, near:5, far:70, bias: - 0.0005 * biasSide, radius:4, quality: 2048 * o.quality }
+		    shadow:{ range:30, near:5, far:70, bias: - 0.0005 * biasSide, radius:4, quality: 2048 * o.quality, intensity:o.shadowIntensity }
 		})
 
     }
@@ -44,6 +44,10 @@ export class Lights {
     			if( LL.sun ) LL.sun.intensity = o.sunIntensity;
     		//}
     		
+    	}
+
+    	if( o.shadowIntensity!==undefined ){
+    		if( LL.sun ) LL.sun.shadow.intensity = o.shadowIntensity;
     	}
 
     	if(o.sunPos){
@@ -169,6 +173,7 @@ export class Lights {
 		if(o.bias) s.bias = o.bias;
 		if(o.radius) s.radius = o.radius;
 		if(o.blurSamples) s.blurSamples = o.blurSamples; // only for VSM 
+		if(o.intensity) s.intensity = o.intensity;
 
 		s.needsUpdate = true;
 		l.updateWorldMatrix( true, true );

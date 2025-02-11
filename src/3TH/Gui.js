@@ -246,6 +246,7 @@ export const Gui = {
 
 		ui.add( options, 'envIntensity', { min:0, max:20, mode:mode, color:'#ff0' } ).onChange( Main.envmapIntensity )
 		ui.add( options, 'bgIntensity', { min:0, max:20, mode:mode, color:'#ff0' } ).onChange( Main.bgIntensity )
+		ui.add( options, 'shadowIntensity', { rename:'shadow', min:0, max:1, mode:mode, color:'#ff0' } ).onChange( Main.shadowIntensity )
 		
 
 		Gui.envui = ui.add( 'list', { name:'Envmap', list:Main.envList, value:options.envmap, path:'assets/textures/equirectangular/mini/', format:'.jpg', m:0, imageSize: [128,64], h:40}).onChange( Main.setEnv )
