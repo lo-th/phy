@@ -109,7 +109,7 @@ export class Body extends Item {
 			    //g.batchedUnitVectorGetSupportingVertexWithoutMargin()
 
 
-		    	g.optimizeConvexHull()
+		    	//g.optimizeConvexHull()
 				g.recalcLocalAabb();
 				//g.initializePolyhedralFeatures(1);
 				//g.localGetSupportingVertexWithoutMargin( this.v.fromArray( 0,0,0 ) )
