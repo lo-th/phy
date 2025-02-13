@@ -48,7 +48,7 @@ import { preloadAvatar } from '../3TH/character/Avatar.js';
 
 const Version = {
 	
-	PHY: '0.1.3',
+	PHY: '0.2.9',
 
     PHYSX: '5.05.00',
     HAVOK: '1.2.1',
@@ -56,7 +56,7 @@ const Version = {
 
     RAPIER: '0.14.0',
     OIMO: '1.2.4',
-    AMMO: '3.0',
+    AMMO: '3.2.6',
 
 };
 
@@ -219,7 +219,10 @@ export class Motor {
 	static setPostUpdate ( f ) { postUpdate = f !== null ? f : ()=>{} }
 
 	static setAzimut ( f ) { azimut = f }
-	static setRenderer ( f ) { renderer = f }
+	static setRenderer ( f ) { 
+		renderer = f;
+		Pool.renderer = renderer;
+	}
 
 	static setKey (i, v) { return user.setKey(i,v) }
 	static getKey () { return user.key }
@@ -354,8 +357,8 @@ export class Motor {
 			delete ( o.scene );
 		}
 
-		if( o.renderer ){ // need for envmap
-			renderer = o.renderer
+		if( o.renderer ){ // need for envmap and ktx2
+			Motor.setRenderer( o.renderer );
 			delete ( o.renderer );
 		}
 
@@ -373,7 +376,7 @@ export class Motor {
 			if( isWorker ){ // is worker version
 
 			    // for wasm side
-			    if( wasmLink[mini] ) o.blob = url + wasmLink[mini];
+			    //if( wasmLink[mini] ) o.blob = url + wasmLink[mini];
 
 			    worker = new Worker( url + path + mini + '.min.js' );
 			    //else worker = new Worker( url + path + mini + '.module.js', {type:'module'});
@@ -393,8 +396,9 @@ export class Motor {
 
 			} else { // is direct version
 
-				if( wasmLink[mini] ) Motor.loadWasmDirect( wasmLink[mini], o, mini, url )
-				else if( o.devMode ) Motor.preLoad( mini, o, url );
+				//if( wasmLink[mini] ) Motor.loadWasmDirect( wasmLink[mini], o, mini, url )
+				//else 
+				if( o.devMode ) Motor.preLoad( mini, o, url );
 			    else Motor.preLoadMin( mini, o, url );
 
 			}
@@ -1087,6 +1091,7 @@ export class Motor {
 	//-----------------------
 
 	static texture = ( o={} ) => ( Pool.texture( o ) );
+	static getTexture = ( name, o={} ) => ( Pool.getTexture( name, o ) );
 	//static texture( o = {} ) { return Pool.texture( o );}
 
 

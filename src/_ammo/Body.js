@@ -48,7 +48,8 @@ export class Body extends Item {
 			b = this.list[i];
 			n = N + ( i * this.num );
 			
-			AR[ n ] = b.getActivationState() === 2 ? 0 : 1; 
+			//AR[ n ] = b.getActivationState() === 2 ? 0 : 1; 
+			AR[ n ] = b.isActive() ? 1 : 0;
 
 			b.getMotionState().getWorldTransform( this.t );
 			this.t.toArray( AR, n + 1 );

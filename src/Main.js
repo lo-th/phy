@@ -284,7 +284,8 @@ export const Main = {
 
 		version = Motor.Version[ Main.engineType ];
 
-		if( Main.devMode ) Main.engineList.push('CANNON');
+		// test cannon physics
+		//if( Main.devMode ) Main.engineList.push('CANNON');
 
 		//o.link = LinkWasm[ engineName ]
 		o.type = Main.engineType;

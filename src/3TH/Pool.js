@@ -1,15 +1,17 @@
 import {
-    Texture, TextureLoader, SRGBColorSpace, RepeatWrapping, NearestFilter, EquirectangularReflectionMapping, AnimationMixer, ObjectSpaceNormalMap, 
+    LoadingManager, Texture, Mesh, TextureLoader, SRGBColorSpace, RepeatWrapping, NearestFilter, EquirectangularReflectionMapping, AnimationMixer, ObjectSpaceNormalMap, 
 } from 'three';
 
-import { KTX2Loader } from '../jsm/loaders/KTX2Loader.js';
 import { GLTFLoader } from '../jsm/loaders/GLTFLoader.js';
 import { DRACOLoader } from '../jsm/loaders/DRACOLoader.js';
 import { FBXLoader } from '../jsm/loaders/FBXLoader.js';
-
+import { MeshoptDecoder } from '../jsm/libs/meshopt_decoder.module.js';
+import { OBJLoader } from '../jsm/loaders/OBJLoader.js';
+import { STLLoader } from '../jsm/loaders/STLLoader.js';
 
 import { RGBELoader } from '../jsm/loaders/RGBELoader.js';
 import { EXRLoader } from '../jsm/loaders/EXRLoader.js';
+import { KTX2Loader } from '../jsm/loaders/KTX2Loader.js';
 //import { HDRJPGLoader } from '../libs/HDRJPGLoader.js';
 
 import { LZMA } from '../libs/lzma.js';
@@ -24,6 +26,9 @@ import { GlbTool } from './utils/GlbTool.js';
 
 export const Pool = {
 
+    manager: new LoadingManager(),
+    renderer: null,
+
     msg:'',
     inLoad:false,
 
@@ -34,8 +39,9 @@ export const Pool = {
     lzma:null,
     //extraTexture: [],
     dracoLoader: null,
-    dracoLoaderType:'js',
+    //dracoLoaderType:'js',
     dracoPath:'./src/libs/draco/',
+    basisPath:'./src/jsm/libs/basis/',
 
     maxAnisotropy:1,
 
@@ -355,6 +361,7 @@ export const Pool = {
             if( Pool.tmp.length > 0 ) Pool.loadOne();
             else {
                 Pool.inLoad = false;
+                Pool.clearDRACO()
                 Pool.onEnd()
             }
 
@@ -371,9 +378,13 @@ export const Pool = {
         Pool.log( Pool.msg )
 
         switch( type ){
-            case 'ktx2': Pool.load_KTX2( url, name );  break;
+            
             case 'glb': case 'gltf': Pool.load_GLTF( url, name );  break;
             case 'fbx': case 'FBX': Pool.load_FBX( url, name ); break;
+            case 'obj': Pool.load_OBJ( url, name ); break;
+            case 'stl': Pool.load_STL( url, name ); break;
+
+            case 'ktx2': Pool.load_KTX2( url, name );  break;
             case 'hdr': Pool.load_RGBE( url, name ); break;
             case 'exr': Pool.load_EXR( url, name ); break;
             default: Pool.extand( url, name, type );
@@ -460,6 +471,19 @@ export const Pool = {
 
     //////////////////////////////////
 
+    clearDRACO: () => {
+
+        if( Pool.dracoLoader ){
+            Pool.dracoLoader.dispose();
+            Pool.dracoLoader = null;
+        }
+
+        if( Pool.GLTF ){
+            Pool.GLTF = null;
+        }
+
+    },
+
     loaderDRACO: () => {
 
         if( Pool.dracoLoader ) return Pool.dracoLoader
@@ -467,12 +491,17 @@ export const Pool = {
         if( !Pool.dracoLoaderType ){
             if ( navigator.userAgentData ) Pool.dracoLoaderType = 'wasm'
             else {
-              let ua = navigator.userAgent.toLowerCase()
-              Pool.dracoLoaderType = (ua.indexOf('safari') !== -1 && ua.indexOf('chrome') === -1) ? 'js' : 'wasm'
+                let ua = navigator.userAgent.toLowerCase()
+                Pool.dracoLoaderType = (ua.indexOf('safari') !== -1 && ua.indexOf('chrome') === -1) ? 'js' : 'wasm'
             }
+
+            //console.log(Pool.dracoLoaderType)
         }
 
+        
+
         Pool.dracoLoader = new DRACOLoader().setDecoderPath( Pool.dracoPath )
+        //Pool.dracoLoader.setWorkerLimit(1)
         Pool.dracoLoader.setDecoderConfig( { type: Pool.dracoLoaderType } )
         return Pool.dracoLoader
 
@@ -481,9 +510,9 @@ export const Pool = {
     loaderKTX2: () => {
 
         if( !Pool.KTX2 ){
-            Pool.KTX2 = new KTX2Loader()
-                .setTranscoderPath( '../jsm/libs/basis/' )
-                //.detectSupport( renderer );
+            Pool.KTX2 = new KTX2Loader( Pool.manager )
+                .setTranscoderPath( Pool.basisPath )
+                .detectSupport( Pool.renderer )
         }
         return Pool.KTX2
 
@@ -492,8 +521,11 @@ export const Pool = {
     loaderGLTF: () => {
 
         if( !Pool.GLTF ){
-            Pool.GLTF = new GLTFLoader()
-                .setDRACOLoader( Pool.loaderDRACO() )
+            Pool.GLTF = new GLTFLoader( Pool.manager )
+            .setCrossOrigin('anonymous')
+            .setDRACOLoader( Pool.loaderDRACO() )
+            .setKTX2Loader( Pool.loaderKTX2() )
+            .setMeshoptDecoder( MeshoptDecoder )
         }
         return Pool.GLTF
 
@@ -501,21 +533,35 @@ export const Pool = {
 
     loaderFBX: () => {
 
-        if( !Pool.FBX ) Pool.FBX = new FBXLoader()
+        if( !Pool.FBX ) Pool.FBX = new FBXLoader( Pool.manager )
         return Pool.FBX
+
+    },
+
+    loaderSTL: () => {
+
+        if( !Pool.STL ) Pool.STL = new STLLoader( Pool.manager )
+        return Pool.STL
+
+    },
+
+    loaderOBJ: () => {
+
+        if( !Pool.OBJ ) Pool.OBJ = new OBJLoader( Pool.manager )
+        return Pool.OBJ
 
     },
 
     loaderRGBE: () => {
 
-        if( !Pool.RGBE ) Pool.RGBE = new RGBELoader()
+        if( !Pool.RGBE ) Pool.RGBE = new RGBELoader( Pool.manager )
         return Pool.RGBE
 
     },
 
     loaderEXR: () => {
 
-        if( !Pool.EXR ) Pool.EXR = new EXRLoader()
+        if( !Pool.EXR ) Pool.EXR = new EXRLoader( Pool.manager )
         return Pool.EXR
 
     },
@@ -559,6 +605,7 @@ export const Pool = {
             }
             
             Pool.add( name, model )
+            //Pool.clearDRACO()
         })
 
     },
@@ -566,6 +613,32 @@ export const Pool = {
     load_FBX: ( url, name ) => {
 
         Pool.loaderFBX().load( url, function ( node ) { Pool.add( name, node ) })
+
+    },
+
+    load_OBJ: ( url, name ) => {
+
+        Pool.loaderOBJ().load( url, function ( node ) { Pool.add( name, node ) })
+
+    },
+
+    load_STL: ( url, name ) => {
+
+        Pool.loaderSTL().load( url, function ( node ) { 
+            let object = new Mesh( node );
+            Pool.add( name, object ) 
+        })
+
+    },
+
+    load_KTX2: ( url, name, cb ) => {
+
+        Pool.loaderKTX2().load( url, function ( texture ) {
+            Pool.add( name, texture ) 
+            //console.log(texture)
+            //if(cb) cb(texture)
+            return texture
+        })
 
     },
 
@@ -592,8 +665,7 @@ export const Pool = {
     direct_EXR: ( data, name ) => {
 
         Pool.loaderEXR().parse( url, function ( texture ) {
-            Pool.add( name, texture ) 
-
+            Pool.add( name, texture )
             return texture
         })
 

@@ -3,20 +3,22 @@ demo = () => {
     phy.view({ envmap:'photo', envblur:0.5, exposure:0.2, direct:25, envIntensity:4, bgIntensity:3, shadowIntensity:0.5, distance:5, y:0.6 })
 
     // config physics setting
-    phy.set({ substep:1, gravity:[0,-9.81,0], stabiliz:false })
+    phy.set({ substep:2, gravity:[0,-9.81,0], stabiliz:false })
 
-    // add static plane 
-    //phy.add({ type:'plane', visible:false })
+    // add static box 
     phy.add({ type:'box', size:[100,10,100], pos:[0, -5, 0], visible:false })
 
     // load model
-    phy.load(['./assets/models/badaboum.glb'], onComplete );
+    phy.load(['./assets/models/badaboum.glb', './assets/textures/compressed/badaboum.ktx2'], onComplete );
 
 }
 
 onComplete = () => {
 
     const pieces = phy.getMesh('badaboum');
+    const texture = phy.getTexture('badaboum');
+
+    pieces['board'].material.map = texture;
 
     let p = [
     { mesh:pieces['b_0'], type:'box', size:[2.5,2.5,2.5] },

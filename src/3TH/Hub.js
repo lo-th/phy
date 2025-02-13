@@ -95,6 +95,8 @@ let bgBlur = 'blur(4px)';
 let dayColor = ['#000', '#444', '#feb', 'rgba(213,211,212,0.32)'];
 let nightColor = ['#fff', '#bee', '#bfb', 'rgba(0,0,0,0.4)'];
 
+let engineLogo = null;
+
 
 
 let setting = {
@@ -511,6 +513,8 @@ export class Hub {
 
     static hideMenu () {
 
+        Hub.clearLogoImage();
+
         downMenu.style.height = '0px'
         innerMenu.innerHTML = '';
         //innerMenu.style.background = 'none';
@@ -543,7 +547,12 @@ export class Hub {
         //if(type === 'home') downMenu.style.left = '70px'
         downMenu.style.left = marge[0] + 'px'
         if(type === 'home') downMenu.style.left = (marge[0]-10) + 'px'
-        if(type === 'engine') downMenu.style.left = (marge[0]+36) + 'px'
+        if(type === 'engine'){ 
+            downMenu.style.left = (marge[0]+36) + 'px';
+            Hub.addLogoImage();
+        } else {
+            Hub.clearLogoImage();
+        }
 
         let list = listdata[ type ];
         /*type === 'demo' ?  demolist : engineList
@@ -615,6 +624,7 @@ export class Hub {
         } else {
             downMenu.style.width = rect.width + 'px'
             downMenu.style.height = maxHeight + 'px'
+            
         }
 
         zoning.style.left = (rect.left-20) + 'px';
@@ -669,7 +679,7 @@ export class Hub {
         dom.style.padding = '4px 10px';
 
         dom.addEventListener( 'pointerleave', (e) => {
-            if(isLiner)e.target.style.textDecoration = 'none';
+            if(isLiner) e.target.style.textDecoration = 'none';
             else e.target.style.fontWeight = 400;
         })
        
@@ -695,25 +705,32 @@ export class Hub {
     }
 
     static homeLink ( type ) {
+
         switch(type){
             case 'Github': window.open( 'https://github.com/lo-th/phy', '_blank'); break;
             case 'Docs': window.open( './docs/index.html#manual/Welcome', '_blank'); break;
             case 'Worker': Hub.swapWorker(); break;
             case 'Code': Hub.swapCode(); break;
         }
+
     }
 
     static swapWorker () {
+
         Main.isWorker = !Main.isWorker
         Hub.swapEngine()
+
     }
 
     static swapCode () {
+
         Main.isEditor = !Main.isEditor
         Main.showEditor(Main.isEditor);
+
     }
 
     static swapEngine ( type ) {
+
         if( !type ) type = Main.engineType
         let name = type.toLowerCase()
         let hash = location.hash
@@ -723,6 +740,7 @@ export class Hub {
         if( Main.isWorker ) param += 'w_'
         param += name;
         let w = window.open( url+'.html?'+param+hash, '_self')
+
     }
 
     static updatePad ( t ) {
@@ -773,15 +791,17 @@ export class Hub {
             return
         }
 
-        if(isLiner) e.target.style.textDecoration = 'underline '+color;
+        if(isLiner) e.target.style.textDecoration = 'underline '+ color;
         else e.target.style.fontWeight = 500;
+
+        if( listdata.engine.indexOf(e.target.id) !== -1) Hub.setLogoImage( e.target.id );
+        if( e.target.id === 'engine' ) Hub.setLogoImage();
 
         if(isBackLight) overpad.style.opacity = 0.3
 
         let isNewTarget = Hub.updatePad( e.target );
         if( !isNewTarget ) return;
 
-        
 
         if( e.target.id === 'home' || e.target.id === 'engine' || e.target.id === 'demo' ){ 
             Hub.showMenu( e.target )
@@ -792,6 +812,7 @@ export class Hub {
         if( full ) return 
 
         if( ratio!==1 ){
+
             let my = e.clientY - listTop
             my = my < 0 ? 0 : my;
             my = my > maxHeight ? maxHeight : my;
@@ -833,6 +854,42 @@ export class Hub {
         isDisplay = false;
 
     }
+
+
+    //-------------------------
+    //
+    //  ENGINE LOGO
+    //
+    //-------------------------
+
+
+    static clearLogoImage() {
+
+        if(!engineLogo) return;
+        menu.removeChild(engineLogo);
+        engineLogo = null;
+
+    }
+
+    static addLogoImage() {
+
+        if(engineLogo) return;
+        let curr = Main.engineType.toLowerCase()
+        engineLogo = new Image(256, 128);
+        engineLogo.style.cssText = 'position:absolute; top:40px; left:200px; width:256px; height: 128px;';
+        menu.appendChild(engineLogo);
+        Hub.setLogoImage();
+
+    }
+
+    static setLogoImage( name ) {
+
+        if(!engineLogo) return;
+        name = name ? name.toLowerCase() : Main.engineType.toLowerCase();
+        engineLogo.src = './assets/logo/'+name+'.png';
+
+    }
+
 
     //-------------------------
     //
@@ -920,178 +977,6 @@ export class Hub {
 
     }
 
-    //-------------------------
-    //
-    //  3D HUB
-    //
-    //-------------------------
-
-    /*static init3dHub() {
-
-        console.log('HUB 3D!!')
-
-        //camera = root.view.getCamera();
-
-        //var s = root.view.getSizer()
-
-        panelMat = new ShaderMaterial( {
-
-            uniforms: {
-
-                renderMode:{ value: 0 },
-                ratio: { value: 1 },//s.w/s.h
-                radius: { value: 2 },
-                step: { value: new Vector4(0.6, 0.7, 1.25, 1.5 ) },
-
-            },
-
-            vertexShader:`
-            varying vec2 vUv;
-
-            void main() {
-                vUv = uv;
-                gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
-            }
-            `,
-            fragmentShader:`
-
-            uniform int renderMode;
-
-            uniform float ratio;
-            uniform float radius;
-            uniform vec4 step;
-            varying vec2 vUv;
-            void main() {
-                vec2 c = vec2(0.5, 0.5);
-                vec2 pos = (vUv - 0.5) * vec2(ratio, 1) + 0.5;
-      
-                float dist = length( pos - c ) * radius;
-
-                vec4 cOne = vec4(0.0, 0.0, 0.0, 0.0);
-                vec4 cTwo = vec4(0.0, 0.0, 0.0, 0.0);
-                vec4 cTree = vec4(0.0, 0.0, 0.0, 0.25);
-                vec4 cFour = vec4(0.0, 0.0, 0.0, 0.95);
-
-                vec4 color = mix( cOne, cTwo, smoothstep( step.x, step.y, dist ));
-                color = mix( color, cTree, smoothstep(step.y, step.z, dist ));
-                color = mix( color, cFour, smoothstep(step.z, step.w, dist ));
-
-                if( renderMode == 0 ) gl_FragColor = color;
-                else discard;
-
-            }
-            `, 
-            transparent:true,
-            depthWrite:false,
-            depthTest:false,
-            toneMapped: false,
-
-        } );
-
-        panel = new Mesh( new PlaneGeometry(1,1, 2,2), panelMat  );
-        panel.frustumCulled = false;
-        //panel = new THREE.Mesh( new THREE.SphereBufferGeometry(1) );
-        //panel.position.z = -0.1
-        camera.add( panel )
-
-        panel.renderOrder = 1000000;
-
-        
-
-        isPanel3D = true
-
-        this.update()
-
-    }
-
-    static setRenderMode ( v ){
-
-        if(!isPanel3D) return
-        panelMat.uniforms.renderMode.value = v
-        
-    }
-
-    static hide( b ){
-
-        panel.visible = b
-
-    }
-
-    static setFocus ( v ){
-
-        
-
-    }
-
-    static update ( Size, type ) {
-
-        console.log('HUB UP!!')
-
-        if( Size ) size = Size;
-        let s = size;
-
-        type = type || '';
-
-        //let s = root.view.getSizer();
-        let fov = camera.fov;
-        let z = camera.zoom;
-        let d = 0, r = 1;
-
-
-        if( s.w !== old.w || s.h !== old.h || fov !== old.f || z !== old.z ){ 
-
-            this.resizeOld( s, fov, z );
-
-            if(!isPanel3D) return
-
-            if( isSnipper && type === 'fps' ){
-
-                r = (z-1.2)/12.8;
-
-                panelMat.uniforms.ratio.value = math.lerp( 1, old.ratio, r ); 
-                panelMat.uniforms.radius.value = math.lerp( 2, 3, r );
-
-            } else {
-                d = type === 'tps' ? z - 0.6 : z-1.2;
-                d*=0.25;
-                panelMat.uniforms.step.value.x = 0.6 - d;
-                panelMat.uniforms.step.value.y = 0.7 - d;
-                panelMat.uniforms.step.value.z = 1.25 - d*0.5;
-            }
-
-            
-            //panelMat.uniforms.step.value.w = 1.5 - d 
-
-        }
-
-    }
-
-    static resizeOld ( s, fov, z ){
-
-        content.style.left = (s.left + 10) + "px"
-
-
-
-        if(!isPanel3D) return
-
-
-        //var d = 0.0001
-        let d = 0.001
-        let v = fov * math.torad; // convert to radians
-        let r = (s.h / ( 2 * Math.tan( v * 0.5 ) ));
-        let e = 1//3/5; // ???
-
-        panel.scale.set( s.w, s.h, 0 ).multiplyScalar(d);
-        //panel.scale.set( 50, 50, 0 ).multiplyScalar(0.0001);
-        //panel.scale.z = 1;
-        panel.position.z = -r*d*z;
-
-        old.f = fov;
-        old.z = z;
-        old.w = s.w;
-        old.h = s.h;
-        old.ratio = s.w / s.h;
-
-    }*/
+   
 
 }

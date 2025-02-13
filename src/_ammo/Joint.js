@@ -1,6 +1,6 @@
 import { Item } from '../core/Item.js';
 import { Num } from '../core/Config.js';
-import { torad } from '../core/MathTool.js';
+import { MathTool, torad } from '../core/MathTool.js';
 
 import { Utils, root } from './root.js';
 
@@ -79,21 +79,26 @@ export class Joint extends Item {
 		let posA = this.v1.fromArray( o.pos1 || [0,0,0])
 		let posB = this.v2.fromArray( o.pos2 || [0,0,0])
 
+		if(o.quatX){ // hinge correction ?
+			o.quat1 = MathTool.quatMultiply(o.quat1, o.quatX);
+			o.quat2 = MathTool.quatMultiply(o.quat2, o.quatX);
+		}
+
 		let quatA = this.q1.fromArray( o.quat1 || [0,0,0,1])
 		let quatB = this.q2.fromArray( o.quat2 || [0,0,0,1])
 
 		let axisA = this.p1.fromArray( o.axis1 || [0,0,1])
 		let axisB = this.p2.fromArray( o.axis2 || [0,0,1])
 
-		if(!o.quat1) quatA.fromAxis( axisA )
-		if(!o.quat2) quatB.fromAxis( axisB )
+		if(!o.quat1) quatA.fromAxis( axisA ).normalize();
+		if(!o.quat2) quatB.fromAxis( axisB ).normalize();
 
 		//console.log(quatA.toArray())
 
 		//this.t1.identity()
 		//this.t2.identity()
 
-		const useA = o.useA || true;
+		const useA = o.useA !== undefined ? o.useA : false;
 
 		/*if( o.worldAnchor || o.worldAxis ){
 
@@ -122,8 +127,8 @@ export class Joint extends Item {
 		}
 
 		// world to local axis
-
-	    if( o.worldAxis ){
+*/
+	    /*if( o.worldAxis ){
 
 	    	axeA = this.p1.fromArray( o.worldAxis )
 	    	axeB = this.p2.fromArray( o.worldAxis )
@@ -169,11 +174,12 @@ export class Joint extends Item {
 			break;
 			case "hinge2": 
 			    j = new Ammo.btHinge2Constraint( b1, b2, posA, axisA, axisB );
-			    j.setAxis( this.v1.fromArray( [0,0,1]))
+			    //j.setAxis( this.v1.fromArray( [0,0,1]))
 			break;
 			case "hinge": case "revolute": 
 			    j = new Ammo.btHingeConstraint( b1, b2, formA, formB, useA );
-			    j.setAxis( axisA )
+			    //console.log(j)
+			    //j.setAxis( axisA )
 			 break;
 			case "prismatic": j = new Ammo.btSliderConstraint( b1, b2, formA, formB, useA );  break;
 			case 'ragdoll': j = new Ammo.btConeTwistConstraint( b1, b2, formA, formB ); break;

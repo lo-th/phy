@@ -1,9 +1,9 @@
 import {
-	Vector3, Quaternion
+	Vector3, Quaternion, Euler
 } from 'three';
 import { Item } from '../core/Item.js';
 import { Num } from '../core/Config.js';
-import { MathTool } from '../core/MathTool.js';
+import { MathTool, torad } from '../core/MathTool.js';
 import { Utils, root } from './root.js';
 
 import { JointDebug } from './extra/JointDebug.js';
@@ -55,6 +55,8 @@ export class Joint extends Item {
 		let body1 = null;
 		let body2 = null;
 		let isString;
+
+		let isWorldAxis = false;
 
 		if( !o.axis1 ) o.axis1 = [1,0,0];
 		if( !o.axis2 ) o.axis2 = [1,0,0];
@@ -119,6 +121,7 @@ export class Joint extends Item {
 		    //o.quat2 = new Quaternion().setFromUnitVectors( new Vector3(1, 0, 0), new Vector3().fromArray(o.axis2).normalize() ).toArray();
 
 			//console.log(o.worldAxis, o.axis1, o.axis2)
+			isWorldAxis = true;
 
 			delete o.worldAxis;
 
@@ -128,6 +131,8 @@ export class Joint extends Item {
 
 			o.quat1 = Utils.quatLocal(o.worldQuat, body1)
 			o.quat2 = Utils.quatLocal(o.worldQuat, body2)
+
+
 
 			if( root.engine === 'OIMO' || root.engine === 'HAVOK' || root.engine === 'JOLT' ){
 
@@ -172,6 +177,14 @@ export class Joint extends Item {
 
 		if( !o.quat1 ) o.quat1 = new Quaternion().setFromUnitVectors( new Vector3(1, 0, 0), new Vector3().fromArray(o.axis1).normalize() ).toArray();
 		if( !o.quat2 ) o.quat2 = new Quaternion().setFromUnitVectors( new Vector3(1, 0, 0), new Vector3().fromArray(o.axis2).normalize() ).toArray();
+
+		if( root.engine === 'AMMO' && isWorldAxis && o.mode === 'hinge') {
+			let ee = new Euler(0, -90*torad, 0);
+			let qq = new Quaternion().setFromEuler(ee).toArray();
+			o.quatX = qq;
+			//o.quat1 = MathTool.quatMultiply(o.quat1, qq);
+			//o.quat2 = MathTool.quatMultiply(o.quat2, qq);
+		}
 
 		if( o.drivePosition ) if( o.drivePosition.rot !== undefined ){ o.drivePosition.quat = MathTool.quatFromEuler( o.drivePosition.rot ); delete ( o.drivePosition.rot ); }
 
