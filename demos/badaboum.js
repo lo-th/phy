@@ -3,7 +3,7 @@ demo = () => {
     phy.view({ envmap:'photo', envblur:0.5, exposure:0.2, direct:25, envIntensity:4, bgIntensity:3, shadowIntensity:0.5, distance:5, y:0.6 })
 
     // config physics setting
-    phy.set({ substep:2, gravity:[0,-9.81,0], stabiliz:false })
+    phy.set({ substep:2, gravity:[0,-9.81,0], stabiliz:false, averagePoint:true })
 
     // add static box 
     phy.add({ type:'box', size:[100,10,100], pos:[0, -5, 0], visible:false })
@@ -55,7 +55,7 @@ onComplete = () => {
 
     while(i--){
         pos = [0, 5+ i*3, 0];
-        phy.add({...p[ar[i]], pos:pos, worldScale:0.1, friction: 0.5, density:0.1, pv:2, mci:2, inertiaScale:2 })
+        phy.add({...p[ar[i]], pos:pos, worldScale:0.1, friction: 0.5, density:0.1, pv:100, mci:2, inertiaScale:2 })
     }
 
 

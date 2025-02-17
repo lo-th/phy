@@ -1,5 +1,5 @@
 import * as THREE$1 from 'three';
-import { Vector3, Matrix3, Quaternion, LineSegments, BufferGeometry, BufferAttribute, Float32BufferAttribute, LineBasicMaterial, SphereGeometry, CylinderGeometry, BoxGeometry, PlaneGeometry, CanvasTexture, RepeatWrapping, SRGBColorSpace, MeshPhysicalMaterial, Color, ShaderChunk, ShaderMaterial, BackSide, DoubleSide, FrontSide, SrcAlphaSaturateFactor, OneMinusDstColorFactor, DstColorFactor, OneMinusDstAlphaFactor, DstAlphaFactor, OneMinusSrcAlphaFactor, SrcAlphaFactor, OneMinusSrcColorFactor, SrcColorFactor, OneFactor, ZeroFactor, MaxEquation, MinEquation, ReverseSubtractEquation, SubtractEquation, AddEquation, MultiplyBlending, SubtractiveBlending, AdditiveBlending, NormalBlending, NoBlending, Vector2, MeshStandardMaterial, ShadowMaterial, MeshToonMaterial, MeshBasicMaterial, MeshLambertMaterial, MeshPhongMaterial, Line, EventDispatcher, MathUtils, Matrix4, Euler, Layers, Mesh, InstancedMesh, InstancedBufferAttribute, TrianglesDrawMode, TriangleFanDrawMode, TriangleStripDrawMode, CircleGeometry, Box3, Line3, Plane, Triangle, Object3D, Loader, FileLoader, Box2, ShapeUtils, Shape, Path, ShapePath, ShapeGeometry, Uniform, PerspectiveCamera, Scene, WebGLRenderer, CompressedTexture, Source, NoColorSpace, RGBAFormat, PropertyBinding, InterpolateDiscrete, NearestFilter, NearestMipmapNearestFilter, NearestMipmapLinearFilter, LinearFilter, LinearMipmapNearestFilter, LinearMipmapLinearFilter, ClampToEdgeWrapping, MirroredRepeatWrapping, InterpolateLinear, LoaderUtils, LinearSRGBColorSpace, SpotLight, PointLight, DirectionalLight, TextureLoader, ImageBitmapLoader, InterleavedBuffer, InterleavedBufferAttribute, PointsMaterial, Material, SkinnedMesh, LineLoop, Points, Group, OrthographicCamera, Skeleton, AnimationClip, Bone, Texture, VectorKeyframeTrack, NumberKeyframeTrack, QuaternionKeyframeTrack, ColorManagement, Interpolant, Sphere, Vector4, Curve, EquirectangularReflectionMapping, AmbientLight, Uint16BufferAttribute, DataTextureLoader, HalfFloatType, FloatType, DataUtils, RedFormat, RGBA_S3TC_DXT1_Format, RGB_PVRTC_4BPPV1_Format, RGB_ETC2_Format, RGB_ETC1_Format, RGBA_S3TC_DXT5_Format, RGBA_PVRTC_4BPPV1_Format, RGBA_ETC2_EAC_Format, RGBA_BPTC_Format, RGB_BPTC_UNSIGNED_Format, RGBA_ASTC_4x4_Format, UnsignedByteType, CompressedCubeTexture, CompressedArrayTexture, RGBA_ASTC_6x6_Format, RGFormat, DataTexture, Data3DTexture, LoadingManager, AnimationMixer, ObjectSpaceNormalMap, CustomBlending, SkeletonHelper, AnimationUtils, AdditiveAnimationBlendMode, NormalAnimationBlendMode, Raycaster, UVMapping, LinearMipMapLinearFilter, WebGLRenderTarget, IntType, ShortType, ByteType, UnsignedIntType, PMREMGenerator, WebGLCubeRenderTarget, CubeCamera, IcosahedronGeometry, NoToneMapping } from 'three';
+import { Vector3, Matrix3, Quaternion, LineSegments, BufferGeometry, BufferAttribute, Float32BufferAttribute, LineBasicMaterial, SphereGeometry, CylinderGeometry, BoxGeometry, PlaneGeometry, CanvasTexture, RepeatWrapping, SRGBColorSpace, MeshPhysicalMaterial, Color, ShaderChunk, ShaderMaterial, Uniform, AdditiveBlending, FrontSide, DoubleSide, BackSide, SrcAlphaSaturateFactor, OneMinusDstColorFactor, DstColorFactor, OneMinusDstAlphaFactor, DstAlphaFactor, OneMinusSrcAlphaFactor, SrcAlphaFactor, OneMinusSrcColorFactor, SrcColorFactor, OneFactor, ZeroFactor, MaxEquation, MinEquation, ReverseSubtractEquation, SubtractEquation, AddEquation, MultiplyBlending, SubtractiveBlending, NormalBlending, NoBlending, Vector2, MeshStandardMaterial, ShadowMaterial, MeshToonMaterial, MeshBasicMaterial, MeshLambertMaterial, MeshPhongMaterial, Line, Matrix4, EventDispatcher, MathUtils, Euler, Layers, Mesh, InstancedMesh, InstancedBufferAttribute, TrianglesDrawMode, TriangleFanDrawMode, TriangleStripDrawMode, CircleGeometry, Box3, Line3, Plane, Triangle, Object3D, Loader, FileLoader, Box2, ShapeUtils, Shape, Path, ShapePath, ShapeGeometry, PerspectiveCamera, Scene, WebGLRenderer, CompressedTexture, Source, NoColorSpace, RGBAFormat, PropertyBinding, InterpolateDiscrete, NearestFilter, NearestMipmapNearestFilter, NearestMipmapLinearFilter, LinearFilter, LinearMipmapNearestFilter, LinearMipmapLinearFilter, ClampToEdgeWrapping, MirroredRepeatWrapping, InterpolateLinear, LoaderUtils, LinearSRGBColorSpace, SpotLight, PointLight, DirectionalLight, TextureLoader, ImageBitmapLoader, InterleavedBuffer, InterleavedBufferAttribute, PointsMaterial, Material, SkinnedMesh, LineLoop, Points, Group, OrthographicCamera, Skeleton, AnimationClip, Bone, Texture, VectorKeyframeTrack, NumberKeyframeTrack, QuaternionKeyframeTrack, ColorManagement, Interpolant, Sphere, Vector4, Curve, EquirectangularReflectionMapping, AmbientLight, Uint16BufferAttribute, DataTextureLoader, HalfFloatType, FloatType, DataUtils, RedFormat, RGBA_S3TC_DXT1_Format, RGB_PVRTC_4BPPV1_Format, RGB_ETC2_Format, RGB_ETC1_Format, RGBA_S3TC_DXT5_Format, RGBA_PVRTC_4BPPV1_Format, RGBA_ETC2_EAC_Format, RGBA_BPTC_Format, RGB_BPTC_UNSIGNED_Format, RGBA_ASTC_4x4_Format, UnsignedByteType, CompressedCubeTexture, CompressedArrayTexture, RGBA_ASTC_6x6_Format, RGFormat, DataTexture, Data3DTexture, LoadingManager, AnimationMixer, ObjectSpaceNormalMap, CustomBlending, SkeletonHelper, AnimationUtils, AdditiveAnimationBlendMode, NormalAnimationBlendMode, Raycaster, UVMapping, LinearMipMapLinearFilter, WebGLRenderTarget, IntType, ShortType, ByteType, UnsignedIntType, PMREMGenerator, WebGLCubeRenderTarget, CubeCamera, IcosahedronGeometry, NoToneMapping } from 'three';
 
 const PI = Math.PI;
 const torad$3 = PI / 180;
@@ -2154,6 +2154,128 @@ function EnhanceLighting( shader,
 
 }
 
+/**
+ * FakeGlow material by Anderson Mancini - Fec 2024.
+ */
+
+class FakeGlowMaterial extends ShaderMaterial {
+
+  /**
+   * Create a FakeGlowMaterial.
+   *
+   * @param {Object} parameters - The parameters to configure the material.
+   * @param {number} [parameters.falloff=0.1] - The falloff factor for the glow effect.
+   * @param {number} [parameters.glowInternalRadius=6.0] - The internal radius for the glow effect.
+   * @param {Color} [parameters.glowColor=new Color('#00d5ff')] - The color of the glow effect.
+   * @param {number} [parameters.glowSharpness=0.5] - The sharpness of the glow effect.
+   * @param {number} [parameters.opacity=1.0] - The opacity of the hologram.
+   * @param {number} [parameters.side=THREE.FrontSide] - The rendering side. Use `THREE.FrontSide`, `THREE.BackSide`, or `THREE.DoubleSide`.
+   * @param {boolean} [parameters.depthTest=false] - Enable or disable depth testing.
+   */
+
+  constructor(parameters = {}) {
+    super();
+
+    this.vertexShader = /*GLSL */
+      `
+      varying vec3 vPosition;
+      varying vec3 vNormal;
+
+      void main() {
+        vec4 modelPosition = modelMatrix * vec4(position, 1.0);
+        gl_Position = projectionMatrix * viewMatrix * modelPosition;
+        vec4 modelNormal = modelMatrix * vec4(normal, 0.0);
+        vPosition = modelPosition.xyz;
+        vNormal = modelNormal.xyz;
+
+      }
+    `;
+
+    this.fragmentShader = /*GLSL */
+      `
+      uniform vec3 glowColor;
+      uniform float falloff;
+      uniform float glowSharpness;
+      uniform float glowInternalRadius;
+      uniform float opacity;
+
+      varying vec3 vPosition;
+      varying vec3 vNormal;
+
+      void main()
+      {
+        // Normal
+        vec3 normal = normalize(vNormal);
+        if(!gl_FrontFacing)
+            normal *= - 1.0;
+        vec3 viewDirection = normalize(cameraPosition - vPosition);
+        float fresnel = dot(viewDirection, normal);
+        fresnel = pow(fresnel, glowInternalRadius + 0.1);
+        float falloff = smoothstep(0., falloff, fresnel);
+        float fakeGlow = fresnel;
+        fakeGlow += fresnel * glowSharpness;
+        fakeGlow *= falloff;
+        gl_FragColor = vec4(clamp(glowColor * fresnel, 0., 1.0), clamp(fakeGlow, 0., opacity));
+
+        #include <tonemapping_fragment>
+        #include <colorspace_fragment>
+      } 
+      `;
+
+    // Set default values or modify existing properties if needed
+    this.uniforms = {
+
+      /**
+       * The opacity for the glow effect.
+       * @type {Uniform<number>}
+       * @default 1.0
+       */
+      opacity: new Uniform(parameters.opacity !== undefined ? parameters.opacity : 1.0),
+
+      /**
+       * The strength of the glowInternalRadius.
+       * @type {Uniform<number>}
+       * @default 6.0
+       */
+      glowInternalRadius: new Uniform(parameters.glowInternalRadius !== undefined ? parameters.glowInternalRadius : -2),//6.0
+
+      /**
+       * The glowSharpness.
+       * @type {Uniform<number>}
+       * @default 0.5
+       */
+      glowSharpness: new Uniform(parameters.glowSharpness !== undefined ? parameters.glowSharpness : 0),//0.5
+
+      /**
+       * The falloff.
+       * @type {Uniform<number>}
+       * @default 0.1
+       */
+      falloff: new Uniform(parameters.falloff !== undefined ? parameters.falloff : 0),//0.1
+
+      /**
+       * The color of the glow.
+       * @type {Uniform<Color>}
+       * @default new Color(#00d5ff)
+       */
+      glowColor: new Uniform(parameters.glowColor !== undefined ? new Color(parameters.glowColor) : new Color("#202020")),
+
+    };
+
+    this.setValues(parameters);
+    //this.depthTest = parameters.depthTest !== undefined ? parameters.depthTest : false;
+    this.blending = parameters.blendMode !== undefined ? parameters.blendMode : AdditiveBlending;
+    this.transparent = true;
+    this.side = parameters.side !== undefined ? parameters.side : FrontSide;
+    this.polygonOffset = true;
+    this.polygonOffsetFactor = -1;
+    this.polygonOffsetUnits = 1;
+    this.premultipliedAlpha = true;
+
+  }
+
+}
+
 //-------------------
 //
 //  MATERIAL
@@ -2669,8 +2791,9 @@ const Mat = {
 	},
 
 };
+const outliner = new FakeGlowMaterial();
 
-const outliner = new ShaderMaterial({
+/*const outliner = new ShaderMaterial({
     uniforms: {
         color: {type: 'c', value: new Color(0xFFFFFF) },
         power: {type: 'f', value: 0.01 },
@@ -2686,16 +2809,16 @@ const outliner = new ShaderMaterial({
     fragmentShader:`
         uniform vec3 color;
         void main(){
-           gl_FragColor = vec4( color, 1.0 );
+           gl_FragColor = vec4( color, 0.1 );
         }
     `,
     side:BackSide,
     toneMapped: false,
     //wireframe:true,
     //transparent:true,
-    //opacity:0.5,
+    //opacity:0.1,
 
-});
+});*/
 
 class Timer {
 
@@ -3382,18 +3505,18 @@ class ExtraRay extends Line {
 
 let _object3DId = 0;
 
-const _v1$2 = /*@__PURE__*/ new Vector3();
-const _q1 = /*@__PURE__*/ new Quaternion();
-const _m1 = /*@__PURE__*/ new Matrix4();
-const _target = /*@__PURE__*/ new Vector3();
+const _v1$2 = new Vector3();
+const _q1 = new Quaternion();
+const _m1 = new Matrix4();
+const _target = new Vector3();
 
-const _position = /*@__PURE__*/ new Vector3();
-const _scale = /*@__PURE__*/ new Vector3();
-const _quaternion = /*@__PURE__*/ new Quaternion();
+const _position = new Vector3();
+const _scale = new Vector3();
+const _quaternion = new Quaternion();
 
-const _xAxis = /*@__PURE__*/ new Vector3( 1, 0, 0 );
-const _yAxis = /*@__PURE__*/ new Vector3( 0, 1, 0 );
-const _zAxis = /*@__PURE__*/ new Vector3( 0, 0, 1 );
+const _xAxis = new Vector3( 1, 0, 0 );
+const _yAxis = new Vector3( 0, 1, 0 );
+const _zAxis = new Vector3( 0, 0, 1 );
 
 const _addedEvent = { type: 'added' };
 const _removedEvent = { type: 'removed' };
@@ -3491,14 +3614,25 @@ class Basic3D extends EventDispatcher {
 		if( !this.children[0].isMesh ) return;
 
 		//console.log(this.children[0])
+		//
+		let s = 0.01;
+		/*if(this.children[0].geometry.boundingBox){
+			let tt = new Vector3()
+			this.children[0].geometry.boundingBox.getSize(tt);
+			s = tt.length() * 0.01
+		}*/
+		//this.children[0].geometry.boundingBox.getSize(tt);
+		//let gSize = tt.length() * 0.5
+		//let mScale = this.children[0].scale.length() * 0.5
+		//console.log( mScale)
 
 		this.outline = new Mesh().copy( this.children[0] );
 		//this.outline.geometry.computeVertexNormals()
-		this.outline.geometry.normalizeNormals();
+		//this.outline.geometry.normalizeNormals()
 		this.outline.name = "outline";
 		this.outline.material = this.overMaterial;
 		//if( this.shapetype==='sphere' ) this.meshSize = 0.5
-		this.overMaterial.uniforms.power.value = 0.01 / this.meshSize;
+		if(this.overMaterial.uniforms.power)this.overMaterial.uniforms.power.value = s / this.meshSize;
 		this.outline.matrixAutoUpdate = false;
 		this.outline.receiveShadow = false;
 		this.outline.castShadow = false;
@@ -4233,7 +4367,7 @@ class Instance extends InstancedMesh {
         if( !this.overMaterial ) return;
 
         this.outline = new Mesh( this.geometry, this.overMaterial );
-        this.overMaterial.uniforms.power.value = 0.01;
+        if(this.overMaterial.uniforms.power)this.overMaterial.uniforms.power.value = 0.01;
         this.outline.matrixAutoUpdate = false;
         this.tmpMatrix.fromArray( this.instanceMatrix.array, obj.id*16 );
         this.outline.matrix.copy( this.tmpMatrix );
@@ -33825,8 +33959,33 @@ vec4 textureNoTile( sampler2D mapper, in vec2 uv ){
 
 const GlbTool = {
 
-	getMesh:( scene, keepMaterial ) => {
+	getMesh:( scene, multyMaterialGroup ) => {
         let meshs = {};
+
+        if( multyMaterialGroup ){
+
+            let oldGroup = [];
+            let nMesh = [];
+            scene.traverse( ( child ) => {
+                if ( child.isGroup ){ 
+                    let m = GlbTool.groupToMesh(child);
+
+                    if(m){
+                        oldGroup.push(child);
+                        nMesh.push(m);
+                    }
+                }
+            });
+
+            // remove old group and add remplace mesh
+            let i = oldGroup.length, p;
+            while(i--){
+                p = oldGroup[i].parent;
+                p.remove(oldGroup[i]);
+                p.add(nMesh[i]);
+            }
+
+        }
         //if( keepMaterial ) GlbTool.keepMaterial( scene )
         scene.traverse( ( child ) => {
             if ( child.isMesh ) meshs[ child.name ] = child;
@@ -33843,7 +34002,7 @@ const GlbTool = {
                 m = child.material;
                 if( !Mats[m.name] ){
                     Shader.add( m );
-                    //console.log(m.name)
+                    console.log(m.name);
                     Mats[m.name] = true;
                 }
             }
@@ -33854,7 +34013,7 @@ const GlbTool = {
     getGroup:( scene, autoMesh, autoMaterial ) => {
         const groups = {};
         let mats = null;
-        if( autoMaterial ) mats = GlbTool.getMaterial( scene, true ); 
+        //if( autoMaterial ) mats = GlbTool.getMaterial( scene, true ) 
         scene.traverse( ( child ) => {
             if ( child.isGroup ){ 
             	//if( autoMaterial ) mats = GlbTool.getMaterial( scene, true ) 
@@ -33868,11 +34027,11 @@ const GlbTool = {
     // 0_concret
     // 10_silver ...
 
-    getMaterial:( scene, toArray ) => {
+    getMaterial:( scene ) => {
 
     	const Mats = {};
-        const mats = []; 
-        let m, n;
+        let names = [];
+        let m;
 
         scene.traverse( ( child ) => {
 
@@ -33880,62 +34039,50 @@ const GlbTool = {
 
             	m = child.material;
 
-            	if( !Mats[m.name] ){
+            	if( names.indexOf(m.name) === -1 ){
+
+                    names.push(m.name);
             		Shader.add( m );
-                    m.vertexColors = false;
+                    
             		Mats[m.name] = m;
+
+                    if( m.color ) m.color.convertSRGBToLinear();
+                    if( m.vertexColors ) m.vertexColors = false;
             		
-            		if( toArray ){
-                        n = Number( m.name.substring( 0, m.name.lastIndexOf('_') ) );
-                        mats[n] = m;
-                    }
-            	} else {
-                    child.material = Mats[m.name];
-                }
+            	}
 
             }
         });
 
-        /*scene.traverse( ( child ) => {
-            if ( child.isMesh ){
-                m = child.material;
-                let name = m.name;
-                child.material = Mats[name];
-            }
-        })*/
-
-        return toArray ? mats : Mats;
+        return Mats;
     },
 
-    groupToMesh: ( group, autoMaterial ) => {
+    // convert multymaterial group to mesh
 
-    	if( group.children[0].name !== (group.name + '_1') ) return group
-    	if( !group.children[0].isMesh ) return group
+    groupToMesh: ( group ) => {
 
-    	let g = [];
-		let lng = group.children.length, n = 0, mName;
+    	if( group.children[0].name !== (group.name + '_1') ) return false
+    	if( !group.children[0].isMesh ) return false
 
-		for( let i = 0; i<lng; i++ ){
+    	let geometry = [];
+        let material = [];
+        let i = group.children.length;
 
-			mName = group.children[i].material.name;
-		
-			n = Number( mName.substring( 0, mName.lastIndexOf('_') )  );
-			group.children[i].material.dispose();
+        while(i--){
 
-			g[i] = group.children[i].geometry;
-			g[i].forceMatId = n;
+            material[i] = group.children[i].material;
+			geometry[i] = group.children[i].geometry;
+            geometry[i].group = i;
+
 		}
 
-		let mesh = new THREE.Mesh( new mergeGeometries( g, true ), autoMaterial );
+		let mesh = new THREE.Mesh( new mergeGeometries( geometry, true ), material);
 		mesh.name = group.name;
-
-		return mesh
+		return mesh;
 
     },
 
     symetric: ( g ) => {
-
-        //console.log(g)
 
 		if( g.isMesh ) g = g.geometry;
 
@@ -34133,7 +34280,9 @@ const Pool = {
                 node.traverse( function ( snode ) {
                     if ( snode.isMesh ){
                         if( snode.geometry ) snode.geometry.dispose();
-                        if( snode.material ) snode.material.dispose();
+                        if( snode.material ){ 
+                            if(snode.material.dispose) snode.material.dispose();
+                        }
                     }
                 });
                 Pool.data.delete( key );
@@ -34177,9 +34326,9 @@ const Pool = {
 
     getScript: ( name ) => ( Pool.data.get( Pool.prefix( 'js' ) + name ) ),
 
-    getMaterials:( obj, toArray ) => {
+    getMaterials:( obj ) => {
         if( typeof obj === 'string' ) obj = Pool.get( obj, 'O' );
-        return GlbTool.getMaterial( obj, toArray )
+        return GlbTool.getMaterial( obj )
     },
 
     getGLB:( obj, keepMaterial ) => {
@@ -34188,16 +34337,18 @@ const Pool = {
         return obj
     },
 
-    getMaterialList:( obj, keepMaterial ) => {
+    /*getMaterialList:( obj, keepMaterial ) => {
         if( typeof obj === 'string' ) obj = Pool.get( obj, 'O' );
         if(!obj) return console.error('Not find Model ?')
         return GlbTool.getMesh( obj, keepMaterial )
-    },
+    },*/
 
-    getMesh:( obj, keepMaterial ) => {
+    getMesh:( obj, multyMaterialGroup ) => {
+
         if( typeof obj === 'string' ) obj = Pool.get( obj, 'O' );
         if(!obj) return console.error('Not find Model ?')
-        return GlbTool.getMesh( obj, keepMaterial )
+        return GlbTool.getMesh( obj, multyMaterialGroup );
+
     },
 
     getGroup:( obj, autoMesh, autoMaterial ) => {
@@ -45707,9 +45858,9 @@ const Version = {
 	
 	PHY: '0.2.9',
 
-    PHYSX: '5.05.00',
+    PHYSX: '5.05.10',
     HAVOK: '1.2.1',
-    JOLT: '0.30.0',
+    JOLT: '0.32.0',
 
     RAPIER: '0.14.0',
     OIMO: '1.2.4',
@@ -46788,14 +46939,14 @@ class Motor {
 		Pool.applyMorph( modelName, meshs = null, normal = true, relative = true );
 	}
 
-	static getMesh ( obj, keepMaterial ){
+	static getMesh ( obj, keepMaterial, multyMaterialGroup ){
 		if( keepMaterial ){
 			let mm = Pool.getMaterials(obj);
 			for( let m in mm ){
 				Motor.addMaterial( mm[m] );
 			}
 		}
-		return Pool.getMesh( obj, keepMaterial );
+		return Pool.getMesh( obj, multyMaterialGroup );
 	}
 
 	static getGlbMaterial ( obj ){

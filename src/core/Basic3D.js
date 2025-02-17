@@ -13,18 +13,18 @@ import {
 
 let _object3DId = 0;
 
-const _v1 = /*@__PURE__*/ new Vector3();
-const _q1 = /*@__PURE__*/ new Quaternion();
-const _m1 = /*@__PURE__*/ new Matrix4();
-const _target = /*@__PURE__*/ new Vector3();
+const _v1 = new Vector3();
+const _q1 = new Quaternion();
+const _m1 = new Matrix4();
+const _target = new Vector3();
 
-const _position = /*@__PURE__*/ new Vector3();
-const _scale = /*@__PURE__*/ new Vector3();
-const _quaternion = /*@__PURE__*/ new Quaternion();
+const _position = new Vector3();
+const _scale = new Vector3();
+const _quaternion = new Quaternion();
 
-const _xAxis = /*@__PURE__*/ new Vector3( 1, 0, 0 );
-const _yAxis = /*@__PURE__*/ new Vector3( 0, 1, 0 );
-const _zAxis = /*@__PURE__*/ new Vector3( 0, 0, 1 );
+const _xAxis = new Vector3( 1, 0, 0 );
+const _yAxis = new Vector3( 0, 1, 0 );
+const _zAxis = new Vector3( 0, 0, 1 );
 
 const _addedEvent = { type: 'added' };
 const _removedEvent = { type: 'removed' };
@@ -122,14 +122,25 @@ class Basic3D extends EventDispatcher {
 		if( !this.children[0].isMesh ) return;
 
 		//console.log(this.children[0])
+		//
+		let s = 0.01
+		/*if(this.children[0].geometry.boundingBox){
+			let tt = new Vector3()
+			this.children[0].geometry.boundingBox.getSize(tt);
+			s = tt.length() * 0.01
+		}*/
+		//this.children[0].geometry.boundingBox.getSize(tt);
+		//let gSize = tt.length() * 0.5
+		//let mScale = this.children[0].scale.length() * 0.5
+		//console.log( mScale)
 
 		this.outline = new Mesh().copy( this.children[0] );
 		//this.outline.geometry.computeVertexNormals()
-		this.outline.geometry.normalizeNormals()
+		//this.outline.geometry.normalizeNormals()
 		this.outline.name = "outline";
 		this.outline.material = this.overMaterial;
 		//if( this.shapetype==='sphere' ) this.meshSize = 0.5
-		this.overMaterial.uniforms.power.value = 0.01 / this.meshSize;
+		if(this.overMaterial.uniforms.power)this.overMaterial.uniforms.power.value = s / this.meshSize;
 		this.outline.matrixAutoUpdate = false;
 		this.outline.receiveShadow = false;
 		this.outline.castShadow = false;
@@ -824,7 +835,7 @@ class Basic3D extends EventDispatcher {
 
 }
 
-//Object3D.DefaultUp = /*@__PURE__*/ new Vector3( 0, 1, 0 );
+//Object3D.DefaultUp = new Vector3( 0, 1, 0 );
 //Object3D.DefaultMatrixAutoUpdate = true;
 
 export { Basic3D };

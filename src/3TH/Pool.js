@@ -87,7 +87,9 @@ export const Pool = {
                 node.traverse( function ( snode ) {
                     if ( snode.isMesh ){
                         if( snode.geometry ) snode.geometry.dispose()
-                        if( snode.material ) snode.material.dispose()
+                        if( snode.material ){ 
+                            if(snode.material.dispose) snode.material.dispose()
+                        }
                     }
                 })
                 Pool.data.delete( key )
@@ -131,9 +133,9 @@ export const Pool = {
 
     getScript: ( name ) => ( Pool.data.get( Pool.prefix( 'js' ) + name ) ),
 
-    getMaterials:( obj, toArray ) => {
+    getMaterials:( obj ) => {
         if( typeof obj === 'string' ) obj = Pool.get( obj, 'O' );
-        return GlbTool.getMaterial( obj, toArray )
+        return GlbTool.getMaterial( obj )
     },
 
     getGLB:( obj, keepMaterial ) => {
@@ -142,16 +144,18 @@ export const Pool = {
         return obj
     },
 
-    getMaterialList:( obj, keepMaterial ) => {
+    /*getMaterialList:( obj, keepMaterial ) => {
         if( typeof obj === 'string' ) obj = Pool.get( obj, 'O' );
         if(!obj) return console.error('Not find Model ?')
         return GlbTool.getMesh( obj, keepMaterial )
-    },
+    },*/
 
-    getMesh:( obj, keepMaterial ) => {
+    getMesh:( obj, multyMaterialGroup ) => {
+
         if( typeof obj === 'string' ) obj = Pool.get( obj, 'O' );
         if(!obj) return console.error('Not find Model ?')
-        return GlbTool.getMesh( obj, keepMaterial )
+        return GlbTool.getMesh( obj, multyMaterialGroup );
+
     },
 
     getGroup:( obj, autoMesh, autoMaterial ) => {

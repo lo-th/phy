@@ -7,8 +7,33 @@ import { mergeGeometries } from '../../jsm/utils/BufferGeometryUtils.js';
 
 export const GlbTool = {
 
-	getMesh:( scene, keepMaterial ) => {
+	getMesh:( scene, multyMaterialGroup ) => {
         let meshs = {};
+
+        if( multyMaterialGroup ){
+
+            let oldGroup = []
+            let nMesh = []
+            scene.traverse( ( child ) => {
+                if ( child.isGroup ){ 
+                    let m = GlbTool.groupToMesh(child);
+
+                    if(m){
+                        oldGroup.push(child);
+                        nMesh.push(m);
+                    }
+                }
+            })
+
+            // remove old group and add remplace mesh
+            let i = oldGroup.length, p
+            while(i--){
+                p = oldGroup[i].parent;
+                p.remove(oldGroup[i]);
+                p.add(nMesh[i]);
+            }
+
+        }
         //if( keepMaterial ) GlbTool.keepMaterial( scene )
         scene.traverse( ( child ) => {
             if ( child.isMesh ) meshs[ child.name ] = child;
@@ -25,7 +50,7 @@ export const GlbTool = {
                 m = child.material;
                 if( !Mats[m.name] ){
                     Shader.add( m );
-                    //console.log(m.name)
+                    console.log(m.name)
                     Mats[m.name] = true;
                 }
             }
@@ -36,7 +61,7 @@ export const GlbTool = {
     getGroup:( scene, autoMesh, autoMaterial ) => {
         const groups = {};
         let mats = null
-        if( autoMaterial ) mats = GlbTool.getMaterial( scene, true ) 
+        //if( autoMaterial ) mats = GlbTool.getMaterial( scene, true ) 
         scene.traverse( ( child ) => {
             if ( child.isGroup ){ 
             	//if( autoMaterial ) mats = GlbTool.getMaterial( scene, true ) 
@@ -50,10 +75,10 @@ export const GlbTool = {
     // 0_concret
     // 10_silver ...
 
-    getMaterial:( scene, toArray ) => {
+    getMaterial:( scene ) => {
 
-    	const Mats = {}
-        const mats = [] 
+    	const Mats = {};
+        let names = [];
         let m, n;
 
         scene.traverse( ( child ) => {
@@ -62,62 +87,50 @@ export const GlbTool = {
 
             	m = child.material;
 
-            	if( !Mats[m.name] ){
+            	if( names.indexOf(m.name) === -1 ){
+
+                    names.push(m.name);
             		Shader.add( m );
-                    m.vertexColors = false
+                    
             		Mats[m.name] = m;
+
+                    if( m.color ) m.color.convertSRGBToLinear();
+                    if( m.vertexColors ) m.vertexColors = false;
             		
-            		if( toArray ){
-                        n = Number( m.name.substring( 0, m.name.lastIndexOf('_') ) )
-                        mats[n] = m
-                    }
-            	} else {
-                    child.material = Mats[m.name];
-                }
+            	}
 
             }
         })
 
-        /*scene.traverse( ( child ) => {
-            if ( child.isMesh ){
-                m = child.material;
-                let name = m.name;
-                child.material = Mats[name];
-            }
-        })*/
-
-        return toArray ? mats : Mats;
+        return Mats;
     },
 
-    groupToMesh: ( group, autoMaterial ) => {
+    // convert multymaterial group to mesh
 
-    	if( group.children[0].name !== (group.name + '_1') ) return group
-    	if( !group.children[0].isMesh ) return group
+    groupToMesh: ( group ) => {
 
-    	let g = []
-		let lng = group.children.length, n = 0, mName
+    	if( group.children[0].name !== (group.name + '_1') ) return false
+    	if( !group.children[0].isMesh ) return false
 
-		for( let i = 0; i<lng; i++ ){
+    	let geometry = []
+        let material = []
+        let i = group.children.length;
 
-			mName = group.children[i].material.name;
-		
-			n = Number( mName.substring( 0, mName.lastIndexOf('_') )  )
-			group.children[i].material.dispose()
+        while(i--){
 
-			g[i] = group.children[i].geometry
-			g[i].forceMatId = n;
+            material[i] = group.children[i].material;
+			geometry[i] = group.children[i].geometry;
+            geometry[i].group = i;
+
 		}
 
-		let mesh = new THREE.Mesh( new mergeGeometries( g, true ), autoMaterial );
+		let mesh = new THREE.Mesh( new mergeGeometries( geometry, true ), material)
 		mesh.name = group.name;
-
-		return mesh
+		return mesh;
 
     },
 
     symetric: ( g ) => {
-
-        //console.log(g)
 
 		if( g.isMesh ) g = g.geometry;
 

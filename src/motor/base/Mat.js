@@ -12,7 +12,7 @@ import { CarbonTexture } from '../../3TH/textures/CarbonTexture.js';
 import { MeshSssMaterial } from '../../3TH/materials/MeshSssMaterial.js';
 //import { EnhanceShaderLighting } from '../../3TH/shaders/EnhanceShaderLighting.js';
 import { EnhanceLighting } from '../../3TH/shaders/EnhanceLighting.js';
-
+import { FakeGlowMaterial } from '../../3TH/materials/FakeGlowMaterial.js';
 //-------------------
 //
 //  MATERIAL
@@ -534,8 +534,9 @@ export const Mat = {
 	},
 
 }
+const outliner = new FakeGlowMaterial();
 
-const outliner = new ShaderMaterial({
+/*const outliner = new ShaderMaterial({
     uniforms: {
         color: {type: 'c', value: new Color(0xFFFFFF) },
         power: {type: 'f', value: 0.01 },
@@ -551,13 +552,13 @@ const outliner = new ShaderMaterial({
     fragmentShader:`
         uniform vec3 color;
         void main(){
-           gl_FragColor = vec4( color, 1.0 );
+           gl_FragColor = vec4( color, 0.1 );
         }
     `,
     side:BackSide,
     toneMapped: false,
     //wireframe:true,
     //transparent:true,
-    //opacity:0.5,
+    //opacity:0.1,
 
-});
+});*/

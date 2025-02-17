@@ -50,9 +50,9 @@ const Version = {
 	
 	PHY: '0.2.9',
 
-    PHYSX: '5.05.00',
+    PHYSX: '5.05.10',
     HAVOK: '1.2.1',
-    JOLT: '0.30.0',
+    JOLT: '0.32.0',
 
     RAPIER: '0.14.0',
     OIMO: '1.2.4',
@@ -1151,14 +1151,14 @@ export class Motor {
 		Pool.applyMorph( modelName, meshs = null, normal = true, relative = true );
 	}
 
-	static getMesh ( obj, keepMaterial ){
+	static getMesh ( obj, keepMaterial, multyMaterialGroup ){
 		if( keepMaterial ){
 			let mm = Pool.getMaterials(obj);
 			for( let m in mm ){
 				Motor.addMaterial( mm[m] );
 			}
 		}
-		return Pool.getMesh( obj, keepMaterial );
+		return Pool.getMesh( obj, multyMaterialGroup );
 	}
 
 	static getGlbMaterial ( obj ){

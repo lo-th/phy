@@ -29,9 +29,9 @@ phy.add({
 
 		<h3>phy.add( [param:Object parameters] )</h3>
 		<h3>phy.add( [param:Array list] )</h3>
+		<h3>const obj = phy.add( [param:Object parameters] )</h3>
 
-		<h2>Parameters</h2>
-<p>	
+		<h2>Parameters</h2><p>	
 	[param:String name] — name of object is automatic if not set<br />
 		[param:String type] — type of object<br />
 		[param:Float density] — is the density of object mass = density * volume <br />
@@ -39,7 +39,21 @@ phy.add({
 		[param:Array pos] — position of object<br />
 		[param:Array rot] — rotation of object in degrée <br />
 	</p>
+	<h2>Notes</h2><p>
 
+	phy.add have a lot of parametre so look editor examples or code in /demos<br><br>
+
+	static object have no mass or density.<br>
+	for moving object add density or mass.<br>
+
+	<h3>Type can be</h3><br> 
+	rigid body : 'plane', 'box', 'sphere', 'cylinder', 'capsule', 'convex', 'mesh', 'compound'<br>
+	extra geometry: 'ChamferBox', 'ChamferCyl', 'highSphere', 'customSphere'<br>
+	joint constraint : 'prismatic', 'cylindrical', 'generic', 'hinge'<br><br>
+
+	compound is a group of geometry<br> 
+	you can remplace any geomtry by other mesh { mesh:threeObject }<br>
+	</p>
 
 	</body>
 </html>

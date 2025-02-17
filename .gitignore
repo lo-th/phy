@@ -1,4 +1,5 @@
-builder
+rollup/builder
+rollup/test
 node_modules
 package-lock.json
 npm-debug.log

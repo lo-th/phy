@@ -510,6 +510,8 @@ const init = () => {
 	renderer.toneMapping = toneMappingOptions[options.tone];
 	renderer.toneMappingExposure = options.exposure;
 
+	///THREE.ColorManagement.legacyMode = false;
+
 	if( options.mode !== 'LOW' && !isWebGPU ) Motor.setMaxAnisotropy( renderer.capabilities.getMaxAnisotropy() );
 
 	Motor.setRenderer(renderer);

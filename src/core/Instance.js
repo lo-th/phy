@@ -43,7 +43,7 @@ export class Instance extends InstancedMesh {
         if( !this.overMaterial ) return;
 
         this.outline = new Mesh( this.geometry, this.overMaterial );
-        this.overMaterial.uniforms.power.value = 0.01;
+        if(this.overMaterial.uniforms.power)this.overMaterial.uniforms.power.value = 0.01;
         this.outline.matrixAutoUpdate = false;
         this.tmpMatrix.fromArray( this.instanceMatrix.array, obj.id*16 );
         this.outline.matrix.copy( this.tmpMatrix );

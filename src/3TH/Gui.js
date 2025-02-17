@@ -69,6 +69,8 @@ export const Gui = {
         radius:0,
 
         showOver:0,
+
+        content:'none',
 		background:'none', //'none',
 		backgroundOver:'none',//'rgba(255,255,255,0.02)',
 		font:"'SegoeUI', 'Segoe UI', 'Helvetica Neue', -apple-system, BlinkMacSystemFont, Roboto, Oxygen-Sans, Ubuntu, Cantarell, sans-serif",

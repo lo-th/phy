@@ -132,7 +132,7 @@
 
 			function onLoad() {
 
-				const texture = new THREE.TextureLoader().load( './assets/textures/minmac.jpg' );
+				/*const texture = new THREE.TextureLoader().load( './assets/textures/minmac.jpg' );
 				const texture2 = new THREE.TextureLoader().load( './assets/textures/minmac_l.jpg' );
 				texture.flipY = false;
 				texture2.flipY = false;
@@ -144,7 +144,7 @@
 					emissiveIntensity:0.2,
 					roughness:0.33, 
 					metalness:1,
-				});
+				});*/
 
 				const model = phy.getMesh('minmac');
 
@@ -155,19 +155,20 @@
 
 				const option = { instance:'bx', type:'box', size:[2.5,3.4,2.8], mass:7.26, friction:0.4, restitution:0.2 };
 
-				let ar = [], pos, n=0;
+				let ar = [], n=0, p1, p2, p3;
 				let i = 100;
 				while(i--){
-					pos = [0, 1.7+3.4*n, 0];
-					if(n===0) phy.add( {...option, pos:pos, material:material, mesh: model.mac, meshScale:[10] });
-					else phy.add( {...option, pos:pos });
-
-					pos[0] = pos[0]+3.4;
-					phy.add( {...option, pos:pos });
-					pos[0] = pos[0]-(3.4*2);
-					phy.add( {...option, pos:pos });
+					p1 = [0, 1.7+3.4*n, 0];
+					p2 = [2.5, 1.7+3.4*n, 0];
+					p3 = [-2.5, 1.7+3.4*n, 0];
+					if(n===0) ar.push( {...option, pos:p1, mesh: model.mac, meshScale:[10] });
+					else ar.push( {...option, pos:p1 });
+					ar.push( {...option, pos:p2 });
+					ar.push( {...option, pos:p3 });
 					n++
 				}
+
+				phy.add(ar)
 
 			}
 
