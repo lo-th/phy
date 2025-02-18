@@ -93,9 +93,14 @@ export const Gui = {
 		Main = r;
 	},
 
-	extraUi: ( data ) => { 
+	extraUi: ( data = null ) => { 
 
-		if( Gui.uix ) Gui.uix.dispose();
+		if( Gui.uix ){ 
+			Gui.uix.dispose();
+			console.log('uix dispose')
+		}
+
+		//console.log('uix add')
 
 		Gui.uix = new UIL.Gui( { parent:Main.getCorner(), w:200, h:24, open:true, close:false, css:'left:40px;', bottom:40, colors:Gui.colors, transition:0 } )//
 
@@ -204,6 +209,7 @@ export const Gui = {
 		if( Gui.uix ) { 
 			Gui.uix.dispose(); 
 			Gui.uix = null;
+			//console.log('uix dispose')
 		}
 	},
 

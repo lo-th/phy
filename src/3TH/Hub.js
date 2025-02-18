@@ -174,7 +174,7 @@ export class Hub {
 
         // for extra gui
         corner = document.createElement( 'div' );
-        corner.style.cssText = unselectable + 'position:absolute; margin:0; padding:0; bottom:0px; left:0px; width:1px; height:100%; display:block; background:none;'// font-family: Mulish,sans-serif;
+        corner.style.cssText = unselectable + 'position:absolute; margin:0; padding:0; top:0px; left:0px; width:1px; height:1px; display:block; background:none;'// font-family: Mulish,sans-serif;
         content.appendChild( corner );
 
         

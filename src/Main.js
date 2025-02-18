@@ -295,7 +295,7 @@ export const Main = {
 
 		introText = ( Main.isWorker ? 'WORKER ' : 'DIRECT ' ) + Main.engineType + ' ' + version;
 
-		options.show_stat = Main.devMode;
+		//options.show_stat = Main.devMode;
 
 		//Motor.engine = Main.engineType
 		window.engine = Main.engineType;//Motor.engine
