@@ -1127,7 +1127,7 @@ export class Motor {
 
 	static load = Pool.load; // ( Urls, Callback, Path = '', msg = '' )
 	static get = Pool.get; // ( name, type )
-	static getGlb = Pool.getGLB;
+	//static getGlb = Pool.getGLB;
 	static getGroup = Pool.getGroup;
 	static getScript = Pool.getScript;
 
@@ -1159,6 +1159,17 @@ export class Motor {
 			}
 		}
 		return Pool.getMesh( obj, multyMaterialGroup );
+	}
+
+	static getGlb ( obj, keepMaterial, multyMaterialGroup ){
+		if( keepMaterial ){
+			let mm = Pool.getMaterials(obj);
+			for( let m in mm ){
+				Motor.addMaterial( mm[m] );
+			}
+		}
+		return Pool.getGLB( obj, multyMaterialGroup );
+		
 	}
 
 	static getGlbMaterial ( obj ){

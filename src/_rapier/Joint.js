@@ -83,8 +83,8 @@ export class Joint extends Item {
 		const b1 = this.byName(o.b1)
 		const b2 = this.byName(o.b2)
 
-		b1.wakeUp()
-		b2.wakeUp()
+		if(b1)b1.wakeUp()
+		if(b2)b2.wakeUp()
 
 		const mode = o.mode || 'revolute';
 

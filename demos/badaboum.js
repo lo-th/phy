@@ -15,7 +15,7 @@ demo = () => {
 
 onComplete = () => {
 
-    const pieces = phy.getMesh('badaboum');
+    const pieces = phy.getMesh('badaboum', true);
     const texture = phy.getTexture('badaboum');
 
     pieces['board'].material.map = texture;

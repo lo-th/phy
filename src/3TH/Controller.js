@@ -710,3 +710,28 @@ export class Controller extends OrbitControls {
     }
 
 }
+
+
+/*
+
+const sph = new THREE.Spherical();
+const target = controlsRef.current.target;
+let tmp = {
+    distance:controlsRef.current.getDistance(),
+    phi:controlsRef.current.getPolarAngle(),
+    theta: controlsRef.current.getAzimuthalAngle()
+}
+
+gsap.to(tmp, {
+  theta: Math.PI*0.5,
+  duration: 1.5,
+  ease: 'power2.out',
+  onStart:()=>{ controlsRef.current.enabled = false; }
+  onComplete:()=>{ controlsRef.current.enabled = true; }
+  onUpdate: () => {
+        sph.set( tmp.distance, tmp.phi, tmp.theta );
+        camera.position.setFromSpherical( sph ).add( target )
+        camera.lookAt( target )
+  }
+});
+*/

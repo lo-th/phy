@@ -10,27 +10,45 @@ export const GlbTool = {
 	getMesh:( scene, multyMaterialGroup ) => {
         let meshs = {};
 
+ 
+
         if( multyMaterialGroup ){
 
             let oldGroup = []
             let nMesh = []
+            let tmpMesh = {}
+            let groupName = []
             scene.traverse( ( child ) => {
                 if ( child.isGroup ){ 
                     let m = GlbTool.groupToMesh(child);
 
                     if(m){
                         oldGroup.push(child);
+                        groupName.push( child.name )
+
+                        m.applyMatrix4(child.matrix)
+                        /*m.position.copy(child.position)
+                        m.quaternion.copy(child.quaternion)
+                        m.scale.copy(child.scale)*/
                         nMesh.push(m);
+
+                        tmpMesh[m.name] = nMesh;
                     }
                 }
             })
 
             // remove old group and add remplace mesh
-            let i = oldGroup.length, p
+            let i = oldGroup.length, p, name
             while(i--){
                 p = oldGroup[i].parent;
+                name = p.name
+
                 p.remove(oldGroup[i]);
+
+                if(groupName.indexOf(name)!==-1) p = tmpMesh[name];
+                
                 p.add(nMesh[i]);
+
             }
 
         }
@@ -41,7 +59,7 @@ export const GlbTool = {
         return meshs;
     },
 
-    keepMaterial: ( scene ) => {
+    /*keepMaterial: ( scene ) => {
 
         let Mats = {}, m 
 
@@ -56,19 +74,18 @@ export const GlbTool = {
             }
         })
 
-    },
+    },*/
 
     getGroup:( scene, autoMesh, autoMaterial ) => {
+
         const groups = {};
-        let mats = null
-        //if( autoMaterial ) mats = GlbTool.getMaterial( scene, true ) 
         scene.traverse( ( child ) => {
             if ( child.isGroup ){ 
-            	//if( autoMaterial ) mats = GlbTool.getMaterial( scene, true ) 
             	groups[ child.name ] = autoMesh ? GlbTool.groupToMesh(child, mats) : child;
             }
         })
         return groups;
+
     },
 
     // Material should be name like 
@@ -94,7 +111,7 @@ export const GlbTool = {
                     
             		Mats[m.name] = m;
 
-                    if( m.color ) m.color.convertSRGBToLinear();
+                    //if( m.color ) m.color.convertSRGBToLinear();
                     if( m.vertexColors ) m.vertexColors = false;
             		
             	}
@@ -103,6 +120,7 @@ export const GlbTool = {
         })
 
         return Mats;
+
     },
 
     // convert multymaterial group to mesh

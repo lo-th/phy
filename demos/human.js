@@ -15,7 +15,7 @@ demo = () => {
     phy.set({ substep:1, gravity:[0,-9.81,0] });
 
     let g = phy.getGround()
-    g.material.map = phy.texture({ url:'./assets/textures/grid.png', repeat:[60,60] });
+    g.material.map = phy.texture({ url:'./assets/textures/grid.png', repeat:[60,60], offset:[0.5,0.5], anisotropy:4 });
     g.material.roughness = 0.8;
     g.material.metalness = 0;
 

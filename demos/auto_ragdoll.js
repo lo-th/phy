@@ -1,6 +1,7 @@
 let gui;
 //let modelName = "motorica"
 let modelName = "lee";
+//let modelName = "barbados";
 let list = [];
 let model;
 
@@ -60,7 +61,7 @@ onComplete = () => {
     })
 
     let remove = []
-    model = phy.getGlb(modelName);
+    model = phy.getGlb(modelName );
     model.traverse( ( child ) => {
         if ( child.isSkinnedMesh ) child.material = mat_01;
     })

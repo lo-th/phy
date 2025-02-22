@@ -250,19 +250,20 @@ export const Gui = {
 		})
 
 		ui.add( options, 'direct', { rename:'Light Direct', min:0, max:100, mode:mode, color:'#ff0' } ).onChange( Main.lightIntensity )
-		ui.add( options, 'spherical', { rename:'Light Sphere', min:0, max:100, mode:mode, color:'#ff0' } ).onChange( Main.lightIntensity )
-
-		ui.add( options, 'envIntensity', { min:0, max:20, mode:mode, color:'#ff0' } ).onChange( Main.envmapIntensity )
-		ui.add( options, 'bgIntensity', { min:0, max:20, mode:mode, color:'#ff0' } ).onChange( Main.bgIntensity )
+		ui.add( options, 'spherical', { rename:'Light Hemi', min:0, max:10, mode:mode, color:'#ff0' } ).onChange( Main.lightIntensity )
 		ui.add( options, 'shadowIntensity', { rename:'shadow', min:0, max:1, mode:mode, color:'#ff0' } ).onChange( Main.shadowIntensity )
-		
+
+		ui.add( options, 'envIntensity', { min:0, max:20, mode:mode, color:'#8ff' } ).onChange( Main.envmapIntensity )
+		ui.add( options, 'bgIntensity', { min:0, max:20, mode:mode, color:'#8ff' } ).onChange( Main.bgIntensity )
+		ui.add( options, 'envBlur', { min:0, max:1, mode:mode, color:'#8ff' } ).onChange( Main.setBlur )
+		ui.add( options, 'reflect', { min:0, max:1, mode:mode, color:'#8ff' } ).onChange( Main.setReflect )
 
 		Gui.envui = ui.add( 'list', { name:'Envmap', list:Main.envList, value:options.envmap, path:'assets/textures/equirectangular/mini/', format:'.jpg', m:0, imageSize: [128,64], h:40}).onChange( Main.setEnv )
-		ui.add( options, 'envBlur', { min:0, max:1, mode:mode, color:'#8ff' } ).onChange( Main.setBlur )
+		
 		//ui.add( options, 'envPower', { min:0, max:10, mode:mode, color:'#8ff' } ).onChange( Main.envmapIntensity )
 		//ui.add( options, 'legacy',  { type:'bool' }).onChange( function(v){ renderer.useLegacyLights  = v })
         //ui.add( options, 'shadow', { min:0, max:1, mode:mode, color:'#8ff' } ).onChange( Main.setShadow )//.listen()
-		ui.add( options, 'reflect', { min:0, max:1, mode:mode, color:'#8ff' } ).onChange( Main.setReflect )//.listen()
+		//.listen()
 
 		const hub3d = Main.getHub3d();
 		if(hub3d){

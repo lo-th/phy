@@ -29,6 +29,15 @@ export class Lights {
 		    shadow:{ range:30, near:5, far:70, bias: - 0.0005 * biasSide, radius:4, quality: 2048 * o.quality, intensity:o.shadowIntensity }
 		})
 
+		Lights.add({ 
+			type:'hemi', name:'hemi',
+			intensity:o.hemiIntensity,
+			skyColor:0xddeeff,
+			groundColor:0x0f0e0d,
+			pos:[0,1,0], 
+			parent:parent
+		})
+
     }
 
     static update ( o = {} ) {

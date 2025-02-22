@@ -138,9 +138,12 @@ export const Pool = {
         return GlbTool.getMaterial( obj )
     },
 
-    getGLB:( obj, keepMaterial ) => {
+    getGLB:( obj, multyMaterialGroup ) => {
         if( typeof obj === 'string' ) obj = Pool.get( obj, 'O' );
         if(!obj) return console.error('Not find Model ?')
+        if(multyMaterialGroup) GlbTool.getMesh( obj, multyMaterialGroup );
+
+    
         return obj
     },
 
@@ -271,7 +274,11 @@ export const Pool = {
         if( o.encoding ) t.colorSpace = SRGBColorSpace;
         if( o.srgb ) t.colorSpace = SRGBColorSpace;
         t.flipY = o.flipY!== undefined || o.flip !== undefined ? o.flipY : false
-        t.anisotropy = o.anisotropy !== undefined ? o.anisotropy : Pool.maxAnisotropy;   
+
+        if( o.anisotropy ){
+            t.anisotropy = o.anisotropy === 'max' ? Pool.maxAnisotropy : o.anisotropy;
+        }
+           
         //if( o.anisotropy !== undefined ) t.anisotropy = o.anisotropy
         if( o.generateMipmaps !== undefined ) t.generateMipmaps = o.generateMipmaps
         if( o.repeat ){

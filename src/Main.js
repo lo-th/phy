@@ -112,9 +112,9 @@ const setting = {
 	vignette:true,
 	shadow:0.75,
 
-	exposure: 1,
+	exposure: 0.68,//1,
 	direct:3.14,
-	spherical: 0,
+	spherical: 1,
 	envIntensity:1,
 	bgIntensity:1,
 	shadowIntensity:1,
@@ -141,9 +141,9 @@ const options = {
 
 	tone:'ACESFilmic',
 
-	exposure: 1,
+	exposure: 0.68,//1,,
 	direct:3.14,
-	spherical: 0,
+	spherical: 1,
 	envIntensity:1,
 	bgIntensity:1,
 

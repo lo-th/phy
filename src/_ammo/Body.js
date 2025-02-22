@@ -124,10 +124,12 @@ export class Body extends Item {
 			break;
 			case 'mesh':
 
-				let des = new Ammo.btTriangleMesh()
+			//btTriangleMesh (bool use32bitIndices=true, bool use4componentVertices=true
+				let des = new Ammo.btTriangleMesh(true, true)
 				//let m = new Ammo.btIndexedMesh()
 				//let des = new Ammo.btTriangleIndexVertexArray()
-				//console.log( des)
+				console.log( des)
+
 				
 				let removeDuplicateVertices = false
 				let v = o.v;
@@ -144,8 +146,19 @@ export class Body extends Item {
 
 					max = v.length
 
+					/*for ( i = 0; i < max; i += 9 ) {
+
+						des.addTriangle( 
+							this.v1.set( v[ i + 0 ], v[ i + 1 ], v[ i + 2 ] ),
+							this.v2.set( v[ i + 3 ], v[ i + 4 ], v[ i + 5 ] ),
+							this.v3.set( v[ i + 6 ], v[ i + 7 ], v[ i + 8 ] ),
+							removeDuplicateVertices 
+						)
+
+					}*/
+
 					for ( i = 0; i < max; i += 3 ) {
-						des.findOrAddVertex( this.v.set( v[ i ], v[ i + 1 ], v[ i + 2 ] ), false )
+						des.findOrAddVertex( this.v.set( v[ i ], v[ i + 1 ], v[ i + 2 ] ), removeDuplicateVertices )
 					}
 
 					max = index.length
@@ -188,9 +201,10 @@ export class Body extends Item {
 					// btGimpactTriangleMeshShape -- complex?
 					// btConvexHullShape -- possibly better?
 					g =  new Ammo.btGImpactMeshShape(des);//new Ammo.btConvexTriangleMeshShape( des, true );
-					g.setMargin(o.margin || 0.01);
+					//g.setMargin(o.margin || 0.01);
 					//g.setLocalScaling(new Ammo.btVector3(scale.x, scale.y, scale.z));
-					//g.updateBound();
+					g.updateBound();
+					console.log(g)
 
 				}
 
@@ -452,6 +466,10 @@ export class Body extends Item {
 		// for high speed object like bullet
 		// http://www.panda3d.org/manual/?title=Bullet_Continuous_Collision_Detection
 		// Don't do continuous collision detection if the motion (in one step) is less then m_ccdMotionThreshold
+		if( o.bullet ){
+			b.setCcdMotionThreshold( 1e-7 )
+			b.setCcdSweptSphereRadius( 0.1 );
+		}
 		if ( o.ccdThreshold !== undefined ) b.setCcdMotionThreshold( o.ccdThreshold );// 1e-7
 		if ( o.ccdRadius !== undefined ) b.setCcdSweptSphereRadius( o.ccdRadius ); // 0.2 // 0.0 by default
 

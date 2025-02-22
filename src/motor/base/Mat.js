@@ -28,8 +28,8 @@ const matExtra = {
 
 	//clearcoat:1.0,
 	//clearcoatRoughness:0.1,
-	metalness: 0.0,
-	roughness: 0.2,
+	metalness: 0.1,
+	roughness: 0.9,
 	//normalScale: new Vector2(0.25,0.25),
 
 }
@@ -62,17 +62,23 @@ export const RealismLightOption = {
 }
 
 export const Colors = {
-    body:new Color( 0xefefd4 ),
-    sleep:new Color( 0x9FBFBD ),//0xBFBFBD
-    solid:new Color( 0x6C6A68 ),
+    body:new Color( "hsl(45, 15%, 90%)" ),//0xefefd4
+    sleep:new Color( "hsl(33, 15%, 54%)" ),//0x9FBFBD
+    solid:new Color( 0x6C6A68 ),//
     base:new Color( 0xc9c8c7 ),
-    black:new Color( 0x222222 ),
+    black:new Color( "hsl(220, 8%, 15%)" ),
     gold:new Color( 0.944, 0.776, 0.373 ),
     gold2:new Color( 0.998, 0.981, 0.751 ),
     copper:new Color( 0.96467984, 0.37626296, 0.25818297 ),
     carPaint:new Color( 0.1037792, 0.59212029, 0.85064936 ),
-    clay:new Color( 0.604,0.584,0.497 ),
+    clay:new Color( "hsl(12, 30%, 40%)" ),
     concrete:new Color( 0xa9a9a9 ),
+
+    Raw_Fire:new Color( "hsl(40, 18%, 54%)" ),
+    Raw_Buff:new Color( "hsl(33, 15%, 54%)" ),
+    Raw_Terracotta:new Color( "hsl(12, 30%, 40%)" ),
+    Raw_Porcelain:new Color( "hsl(45, 15%, 90%)" ),
+
 }
 
 
@@ -395,12 +401,11 @@ export const Mat = {
 			switch( name ){
 
 				case 'body': m = Mat.create({name:'body', color:Colors.body, ...matExtra }); break
-
-			    //case 'body':   m = new MeshStandardMaterial({ color:Colors.body, ...matExtra }); break//0xFFF1D2
 			    case 'sleep':  m = Mat.create({ name:'sleep', color:Colors.sleep, ...matExtra }); break//0x46B1C9
-			    case 'solid':  m = Mat.create({ name:'solid', color:Colors.solid, metalness: 0.1, roughness: 0.8, }); break
-			    case 'clay':  m = Mat.create({ name:'clay', color:Colors.clay, metalness: 0.0, roughness: 0.9, }); break
+			    case 'solid':  m = Mat.create({ name:'solid', color:Colors.solid, ...matExtra }); break
 			    case 'base':   m = Mat.create({ name:'base', color:Colors.base, ...matExtra }); break
+
+			    case 'clay':  m = Mat.create({ name:'clay', color:Colors.clay, ...matExtra }); break
 
 			    case 'concrete':  m = Mat.create({ name:'concrete', color:Colors.concrete, metalness: 0.0, roughness: 0.9, }); break
 

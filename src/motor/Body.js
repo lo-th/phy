@@ -123,7 +123,7 @@ export class Body extends Item {
 		let noScale = false, unic = false;
 		let seg = o.seg || 16;
 
-		const noIndex = root.engine === 'OIMO' || root.engine === 'JOLT' || root.engine === 'CANNON';
+		const noIndex = root.engine === 'OIMO' || root.engine === 'JOLT' || root.engine === 'AMMO' || root.engine === 'CANNON';
 
 		//if( o.instance && t!== 'capsule'&& !o.radius) s = o.instanceSize || [1,1,1]
 
@@ -786,6 +786,8 @@ export class Body extends Item {
 			if( root.engine === 'RAPIER' || root.engine === 'OIMO') o.density = b.density;
 			//if( root.engine === 'PHYSX') o.density = null;
 		}
+
+		//if( root.engine === 'HAVOK') o.mass = b.mass;
 
 		if( o.massInfo ) console.log( '%c'+b.name+ ' %c' + 'density:' + b.density + ' mass:'+ b.mass, "font-size:16px", "font-size:12px" );
 

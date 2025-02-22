@@ -12,6 +12,11 @@ function demo() {
         jointVisible:true, 
     })
 
+    let g = phy.getGround()
+    g.material.map = phy.texture({ url:'./assets/textures/grid.png', repeat:[60,60], offset:[0.5,0.5], anisotropy:4 });
+    g.material.roughness = 0.8;
+    g.material.metalness = 0;
+
 
     //phy.set()
 
@@ -67,11 +72,16 @@ geometryTest = () => {
 
     phy.add({ type:'plane', name:'floor', size:[ 20,1,20 ], visible:false, friction: 0.5 });
 
-    let h = 2, r = 1
+    phy.add({ type:'box', size:[10,1,1], pos:[0,0.5,-6] });
+
+    let h = 1.5, r = 1
     phy.add({ type:'box', size:[r*2,r*2,r*2], pos:[-6,r,0], mass:1 });
+    phy.add({ type:'box', size:[r*2,r*2,r*2], pos:[-6,r,-3], mass:1, radius:0.1 });
     phy.add({ type:'sphere', size:[r], pos:[-3,r,0], mass:1 });
+    phy.add({ type:'highSphere', size:[r], pos:[-3,r,-3], mass:1 });
     phy.add({ type:'capsule', size:[r,h,r], pos:[0,(h*0.5)+r,0], mass:1 });
-    phy.add({ type:'cylinder', size:[1,4,1], pos:[3,2,0], mass:1 });
+    phy.add({ type:'cylinder', size:[1,h+2*r,1], pos:[3,(h+2*r)*0.5,0], mass:1 });
+    phy.add({ type:'cylinder', size:[1,h+2*r,1], pos:[3,(h+2*r)*0.5,-3], mass:1, radius:0.1 });
     phy.add({ type:'convex', shape:new THREE.DodecahedronGeometry(r), pos:[6, r, 0], mass:1 })
 
 }
