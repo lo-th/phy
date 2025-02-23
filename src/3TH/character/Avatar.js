@@ -34,6 +34,7 @@ import { Human_low } from './Human_low.js';
 import { Eva } from './Eva.js';
 import { Lee } from './Lee.js';
 import { Bear } from './Bear.js';
+import { Barbados } from './Barbados.js';
 
 /** __
 *    _)_|_|_
@@ -126,6 +127,7 @@ export class Avatar extends Group {
         this.ref = null;
 
         switch( this.model ){
+            case 'barbados': this.ref = Barbados; break;
             case 'lee': this.ref = Lee; break;
             case 'man': case 'woman': this.ref = Human; break;
             case 'man_low': case 'woman_low': this.ref = Human_low; break;
@@ -450,7 +452,12 @@ export class Avatar extends Group {
         this.initMaterial()
 
         if( !this.isClone ) {
-            this.root = Pool.get( this.ref.forceModel ? this.ref.forceModel : this.model, 'O' ) 
+
+            let modelName = this.ref.forceModel ? this.ref.forceModel : this.model
+
+            if( this.ref.multyMaterial ) Pool.getMesh(modelName, true);
+
+            this.root = Pool.get( modelName, 'O' ) 
             this.ref.applyMaterial( this.root, this.model )
         }
 

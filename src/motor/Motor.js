@@ -991,8 +991,8 @@ export class Motor {
 			case 'joint': b = items.joint.set( o, b );  break;
 			case 'body':
 			if( b.isKinematic ) items.body.set( o, b );
-
-			//b = body.set( o, b ); 
+            if( !b.actif || b.sleep ) items.body.set( o, b );
+            if( o.sleep ) items.body.set( o, b );
 			break;
 
 		}

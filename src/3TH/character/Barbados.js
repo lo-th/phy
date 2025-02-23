@@ -23,7 +23,7 @@ const setting = {
     
 }
 
-export const Lee = {
+export const Barbados = {
 
     decalY:-0.06,
 
@@ -33,23 +33,24 @@ export const Lee = {
 
 	skeletonRef:'barbados',
 
+    multyMaterial:true,
+
 	fullMorph: [],
 
 	haveQuality: false,
 	//skinRef:'leeSkin',
 	texturePath: 'assets/textures/',
-	textures: ['lee_c.jpg', 'lee_ao.jpg'],
+	textures: [],
 
     modelPath: 'assets/models/',
-    forceModel:'lee',
+    forceModel:'barbados',
 
     setting:setting,
 
-    materialRef:'lee_material',
+    materialRef:'bb',
     materials:{
-        lee_material:{
+        bb:{
             type:'Physical',
-            map: 'lee_c', 
 
             roughness:0.3,
             metalness:0.08,
@@ -58,7 +59,6 @@ export const Lee = {
             sheen:2.2,
             //emissive:0xFFFFFF,
             //emissiveMap:'lee_c',
-            sheenColorMap:'lee_c',
             sheenColor:0xFFFFFF,
             sheenRoughness:0.4,
             envMapIntensity:1,
@@ -87,7 +87,7 @@ export const Lee = {
 
     changeMaterial:( sx, def = false ) => {
 
-        if( !Pool.getMaterial( Lee.materialRef ) ) return
+       /* if( !Pool.getMaterial( Lee.materialRef ) ) return
 
         const defMat = Lee.materials;
         let m;
@@ -101,13 +101,13 @@ export const Lee = {
                 }
             }
             //m.needsUpdate = true
-        }
+        }*/
 
     },
 
     applyMaterial:( root, model ) => {
 
-    	const def = Pool.getMaterial( 'lee_material' );
+    	/*const def = Pool.getMaterial( 'bb' );
 
         root.traverse( ( node ) => {
 
@@ -119,7 +119,7 @@ export const Lee = {
 
             }
 
-        })
+        })*/
 
     },
 
@@ -127,9 +127,9 @@ export const Lee = {
 
         return [
             //{name:'lShldr', values:[0,-70,0]},
-            {name:'lHand', values:[-60,0,0]},
+            //{name:'lHand', values:[-60,0,0]},
             //{name:'rShldr', values:[0,70,0]},
-            {name:'rHand', values:[-60,0,0]}
+            //{name:'rHand', values:[-60,0,0]}
         ]
 
     }

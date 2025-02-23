@@ -1216,7 +1216,8 @@ const Utils = {
 
     	const v = new Vector3().applyMatrix4(matrix2);
     	const angle = Math.acos((matrix2.elements[0] + matrix2.elements[5] + matrix2.elements[10] - 1) / 2);
-*/
+    	*/
+    	
         const v = new Vector3().fromArray(ax);
     	const timeDiff = 1;//time2 - time1;
     	v.multiplyScalar( angle / timeDiff );
@@ -2291,8 +2292,8 @@ const matExtra = {
 
 	//clearcoat:1.0,
 	//clearcoatRoughness:0.1,
-	metalness: 0.0,
-	roughness: 0.2,
+	metalness: 0.1,
+	roughness: 0.9,
 	//normalScale: new Vector2(0.25,0.25),
 
 };
@@ -2325,17 +2326,23 @@ const RealismLightOption = {
 };
 
 const Colors = {
-    body:new Color( 0xefefd4 ),
-    sleep:new Color( 0x9FBFBD ),//0xBFBFBD
-    solid:new Color( 0x6C6A68 ),
+    body:new Color( "hsl(45, 15%, 90%)" ),//0xefefd4
+    sleep:new Color( "hsl(33, 15%, 54%)" ),//0x9FBFBD
+    solid:new Color( 0x6C6A68 ),//
     base:new Color( 0xc9c8c7 ),
-    black:new Color( 0x222222 ),
+    black:new Color( "hsl(220, 8%, 15%)" ),
     gold:new Color( 0.944, 0.776, 0.373 ),
     gold2:new Color( 0.998, 0.981, 0.751 ),
     copper:new Color( 0.96467984, 0.37626296, 0.25818297 ),
     carPaint:new Color( 0.1037792, 0.59212029, 0.85064936 ),
-    clay:new Color( 0.604,0.584,0.497 ),
+    clay:new Color( "hsl(12, 30%, 40%)" ),
     concrete:new Color( 0xa9a9a9 ),
+
+    Raw_Fire:new Color( "hsl(40, 18%, 54%)" ),
+    Raw_Buff:new Color( "hsl(33, 15%, 54%)" ),
+    Raw_Terracotta:new Color( "hsl(12, 30%, 40%)" ),
+    Raw_Porcelain:new Color( "hsl(45, 15%, 90%)" ),
+
 };
 
 
@@ -2652,12 +2659,11 @@ const Mat = {
 			switch( name ){
 
 				case 'body': Mat.create({name:'body', color:Colors.body, ...matExtra }); break
-
-			    //case 'body':   m = new MeshStandardMaterial({ color:Colors.body, ...matExtra }); break//0xFFF1D2
 			    case 'sleep':  Mat.create({ name:'sleep', color:Colors.sleep, ...matExtra }); break//0x46B1C9
-			    case 'solid':  Mat.create({ name:'solid', color:Colors.solid, metalness: 0.1, roughness: 0.8, }); break
-			    case 'clay':  Mat.create({ name:'clay', color:Colors.clay, metalness: 0.0, roughness: 0.9, }); break
+			    case 'solid':  Mat.create({ name:'solid', color:Colors.solid, ...matExtra }); break
 			    case 'base':   Mat.create({ name:'base', color:Colors.base, ...matExtra }); break
+
+			    case 'clay':  Mat.create({ name:'clay', color:Colors.clay, ...matExtra }); break
 
 			    case 'concrete':  Mat.create({ name:'concrete', color:Colors.concrete, metalness: 0.0, roughness: 0.9, }); break
 
@@ -3161,8 +3167,6 @@ class Item {
 
 	}
 
-	///
-
 	byName ( name ) {
 
 		return this.Utils.byName( name );
@@ -3173,7 +3177,7 @@ class Item {
 
 		let name = o.name !== undefined ? o.name : this.type + this.id ++;
 
-		// clear old item if existe keep id
+		// clear old item if existe keep same id
 		o.id = this.remove( name, true );
 		o.name = name;
 		return name;
@@ -3212,45 +3216,11 @@ class Item {
 
 	}
 
-	add ( o = {} ) { }
+	add ( o = {} ) {}
 
-	set ( o = {} ) { }
+	set ( o = {} ) {}
 
-	step ( AR, N ) { }
-
-	// ARRAY MATH TOOL
-
-    /*
-    vecZero ( ar, n, i ) { while ( i-- ) ar[n+i] = 0; }
-
-    fillArray ( ar, ar2, n, i ) { 
-
-    	n = n || 0;
-    	i = i ?? ar.length;
-    	while( i-- ) ar2[n+i] = ar[i];
-
-    }
-
-    arLength ( ar ) { 
-
-    	let v = Math.sqrt( ar[0] * ar[0] + ar[1] * ar[1] + ar[2] * ar[2] );
-    	if( v < 0.001 ) v = 0;
-    	return v;
-
-    }
-
-    multiplyScalar ( ar, v, i ) { 
-
-    	i = i ?? ar.length;
-    	while(i--) ar[i] *= v;
-
-    }
-
-    divideScalar ( ar, v, i ) {
-
-    	this.multiplyScalar( ar, 1/v, i );
-
-    }*/
+	step ( AR, N ) {}
 
 }
 
@@ -7727,7 +7697,7 @@ class Body extends Item {
 		let noScale = false, unic = false;
 		let seg = o.seg || 16;
 
-		const noIndex = root.engine === 'OIMO' || root.engine === 'JOLT' || root.engine === 'CANNON';
+		const noIndex = root.engine === 'OIMO' || root.engine === 'JOLT' || root.engine === 'AMMO' || root.engine === 'CANNON';
 
 		//if( o.instance && t!== 'capsule'&& !o.radius) s = o.instanceSize || [1,1,1]
 
@@ -8265,9 +8235,7 @@ class Body extends Item {
 			//b.mass = o.mass || 0
 
 			b.refName = b.instance.name + b.id;
-			b.name = b.instance.name + b.id;
-
-			if( o.name ) b.name = o.name;
+			b.name = o.name ? o.name : b.instance.name + b.id;
 			o.name = b.name;
 
 			b.noScale = b.instance.noScale;//false//o.type!=='box' || o.type!=='ChamferBox' || o.type!=='sphere';
@@ -8293,8 +8261,6 @@ class Body extends Item {
 			if(b.instance.v) o.v = b.instance.v;
 			if(b.instance.index) o.index = b.instance.index;
 		    o.type = b.instance.type;
-
-		    //console.log(o.v)
 
 			/*if( this.extraConvex && ( o.type==='cylinder' || o.type==='cone') ){
 		    	o.v = b.instance.v;
@@ -8372,6 +8338,8 @@ class Body extends Item {
 			//if( root.engine === 'PHYSX') o.density = null;
 		}
 
+		//if( root.engine === 'HAVOK') o.mass = b.mass;
+
 		if( o.massInfo ) console.log( '%c'+b.name+ ' %c' + 'density:' + b.density + ' mass:'+ b.mass, "font-size:16px", "font-size:12px" );
 
 		//---------------------------
@@ -8425,12 +8393,14 @@ class Body extends Item {
 		if( b === null ) b = this.byName( o.name );
 		if( b === null ) return;
 
-		/*if(b.isInstance){
+		if(b.isInstance){
 
-			b.instance.setTransformAt( b.id, o.pos, o.quat, b.noScale ? [1,1,1] : b.size )
-		    b.position = {x:o.pos[0], y:o.pos[1], z:o.pos[2]}
+			if( o.pos ) b.position = {x:o.pos[0], y:o.pos[1], z:o.pos[2]};
+		    if( o.quat ) b.quaternion = {_x:o.quat[0], _y:o.quat[1], _z:o.quat[2], _w:o.quat[3]};
+			b.instance.setTransformAt( b.id, b.position, b.quaternion, b.noScale ? [1,1,1] : b.size );
 
-		}else{*/
+		}else {
+
 			if( o.pos ) b.position.fromArray( o.pos );
 		    if( o.quat ) b.quaternion.fromArray( o.quat );
 
@@ -8442,7 +8412,7 @@ class Body extends Item {
 			} else {
 				b.matrixAutoUpdate = true;
 			}
-		//}
+		}
 
 	}
 
@@ -33962,27 +33932,45 @@ const GlbTool = {
 	getMesh:( scene, multyMaterialGroup ) => {
         let meshs = {};
 
+ 
+
         if( multyMaterialGroup ){
 
             let oldGroup = [];
             let nMesh = [];
+            let tmpMesh = {};
+            let groupName = [];
             scene.traverse( ( child ) => {
                 if ( child.isGroup ){ 
                     let m = GlbTool.groupToMesh(child);
 
                     if(m){
                         oldGroup.push(child);
+                        groupName.push( child.name );
+
+                        m.applyMatrix4(child.matrix);
+                        /*m.position.copy(child.position)
+                        m.quaternion.copy(child.quaternion)
+                        m.scale.copy(child.scale)*/
                         nMesh.push(m);
+
+                        tmpMesh[m.name] = nMesh;
                     }
                 }
             });
 
             // remove old group and add remplace mesh
-            let i = oldGroup.length, p;
+            let i = oldGroup.length, p, name;
             while(i--){
                 p = oldGroup[i].parent;
+                name = p.name;
+
                 p.remove(oldGroup[i]);
+
+                if(groupName.indexOf(name)!==-1) p = tmpMesh[name];
+                
                 p.add(nMesh[i]);
+
             }
 
         }
@@ -33993,34 +33981,33 @@ const GlbTool = {
         return meshs;
     },
 
-    keepMaterial: ( scene ) => {
+    /*keepMaterial: ( scene ) => {
 
-        let Mats = {}, m; 
+        let Mats = {}, m 
 
         scene.traverse( ( child ) => {
             if ( child.isMesh ){ 
                 m = child.material;
                 if( !Mats[m.name] ){
                     Shader.add( m );
-                    console.log(m.name);
+                    console.log(m.name)
                     Mats[m.name] = true;
                 }
             }
-        });
+        })
 
-    },
+    },*/
 
     getGroup:( scene, autoMesh, autoMaterial ) => {
+
         const groups = {};
-        let mats = null;
-        //if( autoMaterial ) mats = GlbTool.getMaterial( scene, true ) 
         scene.traverse( ( child ) => {
             if ( child.isGroup ){ 
-            	//if( autoMaterial ) mats = GlbTool.getMaterial( scene, true ) 
             	groups[ child.name ] = autoMesh ? GlbTool.groupToMesh(child, mats) : child;
             }
         });
         return groups;
+
     },
 
     // Material should be name like 
@@ -34046,7 +34033,7 @@ const GlbTool = {
                     
             		Mats[m.name] = m;
 
-                    if( m.color ) m.color.convertSRGBToLinear();
+                    //if( m.color ) m.color.convertSRGBToLinear();
                     if( m.vertexColors ) m.vertexColors = false;
             		
             	}
@@ -34055,6 +34042,7 @@ const GlbTool = {
         });
 
         return Mats;
+
     },
 
     // convert multymaterial group to mesh
@@ -34331,9 +34319,12 @@ const Pool = {
         return GlbTool.getMaterial( obj )
     },
 
-    getGLB:( obj, keepMaterial ) => {
+    getGLB:( obj, multyMaterialGroup ) => {
         if( typeof obj === 'string' ) obj = Pool.get( obj, 'O' );
         if(!obj) return console.error('Not find Model ?')
+        if(multyMaterialGroup) GlbTool.getMesh( obj, multyMaterialGroup );
+
+    
         return obj
     },
 
@@ -34464,7 +34455,11 @@ const Pool = {
         if( o.encoding ) t.colorSpace = SRGBColorSpace;
         if( o.srgb ) t.colorSpace = SRGBColorSpace;
         t.flipY = o.flipY!== undefined || o.flip !== undefined ? o.flipY : false;
-        t.anisotropy = o.anisotropy !== undefined ? o.anisotropy : Pool.maxAnisotropy;   
+
+        if( o.anisotropy ){
+            t.anisotropy = o.anisotropy === 'max' ? Pool.maxAnisotropy : o.anisotropy;
+        }
+           
         //if( o.anisotropy !== undefined ) t.anisotropy = o.anisotropy
         if( o.generateMipmaps !== undefined ) t.generateMipmaps = o.generateMipmaps;
         if( o.repeat ){
@@ -35312,7 +35307,7 @@ function getBoneList( object ) {
 
 }*/
 
-const setting$3 = {
+const setting$4 = {
 
     mixRatio:0.0,
     threshold:0.1,
@@ -35373,7 +35368,7 @@ const Human = {
     modelPath: 'assets/models/avatar/',
     forceModel: null,
 
-    setting:setting$3,
+    setting:setting$4,
 
     materialRef:'skin',
 
@@ -35394,7 +35389,7 @@ const Human = {
             metalnessMap:'avatar_m',
             roughnessMap:'avatar_r',*/
 
-            normalScale: new Vector2( setting$3.normal, -setting$3.normal ),
+            normalScale: new Vector2( setting$4.normal, -setting$4.normal ),
             
             /*sheen:setting.sheen,
             sheenColor:0xFFFFFF,
@@ -35403,7 +35398,7 @@ const Human = {
             /*sheenColor:0xff0000,
             sheenColorMap:'avatar_u',
             iridescence:0.1,*/
-            wireframe:setting$3.wireframe,
+            wireframe:setting$4.wireframe,
 
             aoMap:'avatar_ao',
             aoMapIntensity:1.0,
@@ -35458,7 +35453,7 @@ const Human = {
         hair:{
             type:'Standard',
         	//map:'hair',
-            color:setting$3.hair,
+            color:setting$4.hair,
             aoMap:'hair',
             metalnessMap:'hair',
             //bumpScale:-5,
@@ -35467,7 +35462,7 @@ const Human = {
             alphaMap:'hair_a',
             //alphaTest:setting.alphaTest,
             side: DoubleSide,
-            emissive:setting$3.hair,
+            emissive:setting$4.hair,
             emissiveIntensity:0.5,
             //opacity:1.0,
             transparent:true,
@@ -35481,7 +35476,7 @@ const Human = {
         },
         hair_man:{
             type:'Standard',
-            color:setting$3.hair,
+            color:setting$4.hair,
         	//map:'hair_man',
             aoMap:'hair_man',
             metalnessMap:'hair_man',
@@ -35509,7 +35504,7 @@ const Human = {
         },
         eyelash:{
             type:'Standard',
-        	color:setting$3.hair,
+        	color:setting$4.hair,
             map:'eyelash_c',
             //roughness:setting.h_rough,
            // metalness:setting.h_metal,
@@ -35719,7 +35714,7 @@ const Human = {
 
 };
 
-const setting$2 = {
+const setting$3 = {
 
     wireframe:false,
     normal:0.25,
@@ -35745,7 +35740,7 @@ const Human_low = {
     modelPath: 'assets/models/avatar/',
     forceModel: null,
 
-    setting:setting$2,
+    setting:setting$3,
 
     materialRef:'skin_low',
     materials:{
@@ -35756,7 +35751,7 @@ const Human_low = {
             aoMap:'avatar_ao_0k',
             normalMap: 'avatar_n_0k',
 
-            normalScale: new Vector2( setting$2.normal, -setting$2.normal),
+            normalScale: new Vector2( setting$3.normal, -setting$3.normal),
             //normalMapType: ObjectSpaceNormalMap,
             //normalMapType:TangentSpaceNormalMap,
             envMapIntensity:0.3,
@@ -35774,7 +35769,7 @@ const Human_low = {
         hair_low:{
             //color:0xE24C00,
             type:'Standard',
-            color:setting$2.hair,
+            color:setting$3.hair,
             alphaMap: 'hair_man_a_0k',
             transparent:true,
             //blending:CustomBlending,
@@ -35786,7 +35781,7 @@ const Human_low = {
         hair_low_2:{
             //color:0xE24C00,
             type:'Standard',
-            color:setting$2.hair,
+            color:setting$3.hair,
             map:'Hair_01_c',
             normalMap: 'Hair_01_n'
         },
@@ -35877,7 +35872,7 @@ const Human_low = {
 
 };
 
-const setting$1 = {
+const setting$2 = {
 
     metalness:0.33,
     roughness:0.11,
@@ -35906,7 +35901,7 @@ const Eva = {
     modelPath: 'assets/models/',
     forceModel:'eva',
 
-    setting:setting$1,
+    setting:setting$2,
 
     materialRef:'eva00',
     materials:{
@@ -35915,10 +35910,10 @@ const Eva = {
             map: 'eva00_c', 
             emissiveMap:'eva_l',
             emissive:0xffffff,
-            roughness:setting$1.roughness,
-            metalness:setting$1.metalness,
-            wireframe:setting$1.wireframe,
-            clearcoat:setting$1.clearcoat,
+            roughness:setting$2.roughness,
+            metalness:setting$2.metalness,
+            wireframe:setting$2.wireframe,
+            clearcoat:setting$2.clearcoat,
             //iridescence:0.5,
             aoMap:'eva_ao',
         },
@@ -35927,10 +35922,10 @@ const Eva = {
             map: 'eva01_c',
             emissiveMap:'eva_l',
             emissive:0xffffff,
-            roughness:setting$1.roughness,
-            metalness:setting$1.metalness,
-            wireframe:setting$1.wireframe,
-            clearcoat:setting$1.clearcoat,
+            roughness:setting$2.roughness,
+            metalness:setting$2.metalness,
+            wireframe:setting$2.wireframe,
+            clearcoat:setting$2.clearcoat,
             //iridescence:0.5,
             aoMap:'eva_ao',
         },
@@ -35939,10 +35934,10 @@ const Eva = {
             map: 'eva02_c', 
             emissiveMap:'eva_l',
             emissive:0xffffff,
-            roughness:setting$1.roughness,
-            metalness:setting$1.metalness,
-            wireframe:setting$1.wireframe,
-            clearcoat:setting$1.clearcoat,
+            roughness:setting$2.roughness,
+            metalness:setting$2.metalness,
+            wireframe:setting$2.wireframe,
+            clearcoat:setting$2.clearcoat,
             //iridescence:0.5,
             aoMap:'eva_ao',
         }
@@ -36056,7 +36051,7 @@ const Eva = {
 
 };
 
-const setting = {
+const setting$1 = {
 
     metalness:0.2,
     roughness:0.8,
@@ -36084,7 +36079,7 @@ const Lee$1 = {
     modelPath: 'assets/models/',
     forceModel:'lee',
 
-    setting:setting,
+    setting:setting$1,
 
     materialRef:'lee_material',
     materials:{
@@ -36095,7 +36090,7 @@ const Lee$1 = {
             roughness:0.3,
             metalness:0.08,
             //aoMap: 'lee_ao',
-            wireframe:setting.wireframe,
+            wireframe:setting$1.wireframe,
             sheen:2.2,
             //emissive:0xFFFFFF,
             //emissiveMap:'lee_c',
@@ -36171,6 +36166,130 @@ const Lee$1 = {
             {name:'lHand', values:[-60,0,0]},
             //{name:'rShldr', values:[0,70,0]},
             {name:'rHand', values:[-60,0,0]}
+        ]
+
+    }
+
+
+
+
+};
+
+const setting = {
+
+    metalness:0.2,
+    roughness:0.8,
+    wireframe:false,
+    
+};
+
+const Barbados = {
+
+    decalY:-0.06,
+
+	isBreath:false,
+	isEyeMove:false,
+	haveMorph:false,
+
+	skeletonRef:'barbados',
+
+    multyMaterial:true,
+
+	fullMorph: [],
+
+	haveQuality: false,
+	//skinRef:'leeSkin',
+	texturePath: 'assets/textures/',
+	textures: [],
+
+    modelPath: 'assets/models/',
+    forceModel:'barbados',
+
+    setting:setting,
+
+    materialRef:'bb',
+    materials:{
+        bb:{
+            type:'Physical',
+
+            roughness:0.3,
+            metalness:0.08,
+            //aoMap: 'lee_ao',
+            wireframe:setting.wireframe,
+            sheen:2.2,
+            //emissive:0xFFFFFF,
+            //emissiveMap:'lee_c',
+            sheenColor:0xFFFFFF,
+            sheenRoughness:0.4,
+            envMapIntensity:1,
+            //aoMapIntensity:0.5,
+            //emissiveIntensity:0.25,
+
+        },
+    },
+
+    /*changeMaterial:( Setting ) => {
+
+        const s = Lee.setting;
+
+        if(Setting){
+            for(let o in Setting){
+                if( s[o] !== undefined) s[o] = Setting[o]
+            }
+        }
+        
+        let m = Pool.getMaterial( 'lee_material' );
+        m.roughness = s.roughness;
+        m.metalness = s.metalness;
+        m.wireframe = s.wireframe;
+
+    },*/
+
+    changeMaterial:( sx, def = false ) => {
+
+       /* if( !Pool.getMaterial( Lee.materialRef ) ) return
+
+        const defMat = Lee.materials;
+        let m;
+
+        for(let key in defMat){
+            m = Pool.getMaterial( key );
+            for(let v in sx){
+                if( m[v] !== undefined ){ 
+                    if( def && defMat[key][v] ) m[v] = defMat[key][v];
+                    else m[v] = sx[v];
+                }
+            }
+            //m.needsUpdate = true
+        }*/
+
+    },
+
+    applyMaterial:( root, model ) => {
+
+    	/*const def = Pool.getMaterial( 'bb' );
+
+        root.traverse( ( node ) => {
+
+            if ( node.isMesh ){
+            	
+            	node.material = def;
+                node.receiveShadow = true;
+                node.castShadow = true;
+
+            }
+
+        })*/
+
+    },
+
+    adjustment:() => {
+
+        return [
+            //{name:'lShldr', values:[0,-70,0]},
+            //{name:'lHand', values:[-60,0,0]},
+            //{name:'rShldr', values:[0,70,0]},
+            //{name:'rHand', values:[-60,0,0]}
         ]
 
     }
@@ -36269,6 +36388,7 @@ class Avatar extends Group {
         this.ref = null;
 
         switch( this.model ){
+            case 'barbados': this.ref = Barbados; break;
             case 'lee': this.ref = Lee$1; break;
             case 'man': case 'woman': this.ref = Human; break;
             case 'man_low': case 'woman_low': this.ref = Human_low; break;
@@ -36593,7 +36713,12 @@ class Avatar extends Group {
         this.initMaterial();
 
         if( !this.isClone ) {
-            this.root = Pool.get( this.ref.forceModel ? this.ref.forceModel : this.model, 'O' ); 
+
+            let modelName = this.ref.forceModel ? this.ref.forceModel : this.model;
+
+            if( this.ref.multyMaterial ) Pool.getMesh(modelName, true);
+
+            this.root = Pool.get( modelName, 'O' ); 
             this.ref.applyMaterial( this.root, this.model );
         }
 
@@ -46779,8 +46904,8 @@ class Motor {
 			case 'joint': b = items.joint.set( o, b );  break;
 			case 'body':
 			if( b.isKinematic ) items.body.set( o, b );
-
-			//b = body.set( o, b ); 
+            if( !b.actif || b.sleep ) items.body.set( o, b );
+            if( o.sleep ) items.body.set( o, b );
 			break;
 
 		}
@@ -46915,7 +47040,7 @@ class Motor {
 
 	static load = Pool.load; // ( Urls, Callback, Path = '', msg = '' )
 	static get = Pool.get; // ( name, type )
-	static getGlb = Pool.getGLB;
+	//static getGlb = Pool.getGLB;
 	static getGroup = Pool.getGroup;
 	static getScript = Pool.getScript;
 
@@ -46947,6 +47072,17 @@ class Motor {
 			}
 		}
 		return Pool.getMesh( obj, multyMaterialGroup );
+	}
+
+	static getGlb ( obj, keepMaterial, multyMaterialGroup ){
+		if( keepMaterial ){
+			let mm = Pool.getMaterials(obj);
+			for( let m in mm ){
+				Motor.addMaterial( mm[m] );
+			}
+		}
+		return Pool.getGLB( obj, multyMaterialGroup );
+		
 	}
 
 	static getGlbMaterial ( obj ){

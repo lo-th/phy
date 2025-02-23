@@ -115,7 +115,7 @@ const setting = {
 	exposure: 0.68,//1,
 	direct:3.14,
 	spherical: 1,
-	envIntensity:1,
+	envIntensity:1.3,
 	bgIntensity:1,
 	shadowIntensity:1,
 
@@ -144,7 +144,7 @@ const options = {
 	exposure: 0.68,//1,,
 	direct:3.14,
 	spherical: 1,
-	envIntensity:1,
+	envIntensity:1.3,
 	bgIntensity:1,
 
 	//envPower:1,//1

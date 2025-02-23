@@ -252,7 +252,8 @@ export const Utils = {
 
     	const v = new Vector3().applyMatrix4(matrix2);
     	const angle = Math.acos((matrix2.elements[0] + matrix2.elements[5] + matrix2.elements[10] - 1) / 2);
-*/
+    	*/
+    	
         const v = new Vector3().fromArray(ax)
     	const timeDiff = 1//time2 - time1;
     	const angularVelocity = v.multiplyScalar( angle / timeDiff );

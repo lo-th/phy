@@ -680,9 +680,7 @@ export class Body extends Item {
 			//b.mass = o.mass || 0
 
 			b.refName = b.instance.name + b.id;
-			b.name = b.instance.name + b.id;
-
-			if( o.name ) b.name = o.name;
+			b.name = o.name ? o.name : b.instance.name + b.id;
 			o.name = b.name;
 
 			b.noScale = b.instance.noScale;//false//o.type!=='box' || o.type!=='ChamferBox' || o.type!=='sphere';
@@ -708,8 +706,6 @@ export class Body extends Item {
 			if(b.instance.v) o.v = b.instance.v;
 			if(b.instance.index) o.index = b.instance.index;
 		    o.type = b.instance.type;
-
-		    //console.log(o.v)
 
 			/*if( this.extraConvex && ( o.type==='cylinder' || o.type==='cone') ){
 		    	o.v = b.instance.v;
@@ -842,12 +838,14 @@ export class Body extends Item {
 		if( b === null ) b = this.byName( o.name );
 		if( b === null ) return;
 
-		/*if(b.isInstance){
+		if(b.isInstance){
 
-			b.instance.setTransformAt( b.id, o.pos, o.quat, b.noScale ? [1,1,1] : b.size )
-		    b.position = {x:o.pos[0], y:o.pos[1], z:o.pos[2]}
+			if( o.pos ) b.position = {x:o.pos[0], y:o.pos[1], z:o.pos[2]}
+		    if( o.quat ) b.quaternion = {_x:o.quat[0], _y:o.quat[1], _z:o.quat[2], _w:o.quat[3]};
+			b.instance.setTransformAt( b.id, b.position, b.quaternion, b.noScale ? [1,1,1] : b.size );
 
-		}else{*/
+		}else{
+
 			if( o.pos ) b.position.fromArray( o.pos );
 		    if( o.quat ) b.quaternion.fromArray( o.quat );
 
@@ -859,7 +857,7 @@ export class Body extends Item {
 			} else {
 				b.matrixAutoUpdate = true;
 			}
-		//}
+		}
 
 	}
 
