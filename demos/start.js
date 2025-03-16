@@ -90,21 +90,27 @@ onComplete = () => {
     0,7.051,-5.973,0,19.755,33.621,0,7.051,37.973,0,-19.755,-1.621,0,-7.051,-5.973,0,-21.92,32.371,0]
     let s = [8,86,8,8,13,8,8,13,8,8,13,8,8,13,8,8,13,8,8,13,8,8,14.5,8,8,15.5,8,8,14.5,8,8,15.5,8,8,14.5,8,8,15.5,8,8,9,8]
     let r = [0,0,0,0,0,0,0,0,0,0,0,35,0,0,-35,0,0,-35,0,0,35,0,0,-60,0,0,-80,0,0,60,0,0,80,0,0,60,0,0,80,0,0,-60]
-    p = math.scaleArray(p,sc)
-    s = math.scaleArray(s,sc)
+    p = math.scaleArray(p,sc);
+    s = math.scaleArray(s,sc);
     let i=14, j=0, n=0;
     while(i--){ n = j*3; logoShape.push({ type:'box', pos:[p[n],p[n+1],p[n+2]], size:[s[n],s[n+1],s[n+2]], rot:[r[n],r[n+1],r[n+2]] }); j++; }
 
-    
+    //https://forums.unrealengine.com/t/physics-by-balloon/52975/6
     phy.add({
         type:'compound',
+        name:'logo',
         shapes:logoShape,
         pos:[ 0, 0.8,0 ],
         mesh:model.logo,
+        damping:[1.5,0.7],
         //meshSize:1,
         //mass:20,
         density:1,
         material:'chrome',
+
+        massCenter:[0,0,0],
+
+        
         ...option
     })
     // add some dynamics object
@@ -163,7 +169,23 @@ onComplete = () => {
 
     if( addHuman ) phy.preload( ['man', 'woman'], onComplete_2 )
 
+    phy.onStep = update;
+
 }
+
+
+update = ( dt ) => {
+
+    const logo = phy.byName('logo')
+    let pos = logo.position;
+    let f = math.lerp(0.1, 0, pos.y)
+
+
+    if(pos.y<1) phy.change({name:'logo',force:[0,f,0], forcePosition:[pos.x,0,pos.z] })
+
+
+}
+
 
 makeMaterial = () => {
 

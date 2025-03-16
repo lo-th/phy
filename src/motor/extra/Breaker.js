@@ -1,7 +1,9 @@
 import { root, Utils } from '../root.js';
 //import { ConvexObjectBreaker } from '../3TH/objects/ConvexObjectBreaker.js';
 import { ConvexObjectBreaker } from '../../jsm/misc/ConvexObjectBreaker.js';
- 
+import { Fracture } from "../../libs/fracture.module.js"
+
+
 export class Breaker {
 
 	constructor () {

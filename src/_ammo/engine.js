@@ -114,6 +114,8 @@ export class engine {
 		timestep = 1 / (o.fps || 60 );
 		interval = timestep*1000;
 
+		root.timestep = timestep;
+
 		substep = o.substep || 1;
 		fixe = o.fixe !== undefined ? o.fixe : true;
 		broadphase = o.broadphase || 2;

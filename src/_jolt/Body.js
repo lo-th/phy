@@ -289,6 +289,7 @@ export class Body extends Item {
 
 					n = o.shapes[ i ];
 			        ss = this.shapeSetting( n );
+			        console.log(ss)
 			        volume += ss.volume;
 					scs.AddShape( this.v2.fromArray(n.pos || [0,0,0]), this.q2.fromArray(n.quat || [0,0,0,1]), ss );
 					//Jolt.destroy(ss);
@@ -315,7 +316,7 @@ export class Body extends Item {
 
 		// set mass or density
 
-		//console.log( bcs );
+		//console.log( bcs.GetMassProperties() );
 
 		//EOverrideMassProperties_CalculateInertia: 1
 		//EOverrideMassProperties_CalculateMassAndInertia: 0
@@ -328,6 +329,11 @@ export class Body extends Item {
 			
 			//bcs.mGravityFactor = 2
 
+		}
+
+		// TODO find way to change masscenter
+		if(o.massCenter){
+			//bcs.GetMassProperties().Translate( this.v.fromArray( o.massCenter ) )
 		}
 
 		 if( o.inertia ){ // mInertia is mat44
@@ -434,6 +440,7 @@ export class Body extends Item {
 	    //b.SetUseManifoldReduction(false)
 
 	    //console.log( b );
+	    //console.log( b.GetMotionProperties() );
 	    //console.log( b.GetSoftBodyCreationSettings() )
 
 	    //console.log(root.bodyInterface)
@@ -617,7 +624,9 @@ export class Body extends Item {
 	    
 	    if( o.angularImpulse ) b.AddAngularImpulse( this.v.fromArray( o.angularImpulse ) );
 	    //if( o.force ) b.AddForce( this.v2.fromArray( [0,0,0] ), this.v.fromArray( o.force ) );
-	    if( o.force ) b.AddForce( this.v.fromArray( o.force ), o.forceCenter ? this.v2.fromArray( o.forceCenter ) : b.GetPosition() );
+	    if( o.force ){
+	    	b.AddForce( this.v.fromArray( o.force ), o.forcePosition ? this.v2.fromArray( o.forcePosition ) : b.GetPosition() );
+	    }
 	    
 	    if( o.torque ) b.AddTorque( this.v.fromArray( o.torque ) );
 

@@ -17,7 +17,7 @@ let geo = {}
 export const Geo = {
 
 	unic: ( g ) => {
-
+        //console.log(g)
 		geo[ 'geo' + geoN++ ] = g
 
 	},
@@ -52,8 +52,14 @@ export const Geo = {
 	},
 
 	dispose: () => {
+
+		// TODO BUG with Start demo and HAVOK !!!
+		
 		//console.log( geo )
-		for( let n in geo ) geo[n].dispose()
+		for( let n in geo ){
+		    if( geo[n].isBufferGeometry ) geo[n].dispose()
+		    else console.log(geo[n])
+		}
 		geo = {}
 		geoN = 0
 

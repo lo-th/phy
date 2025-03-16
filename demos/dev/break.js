@@ -41,6 +41,8 @@ demo = () => {
         autoUV:true 
     });*/
 
+    phy.add({ type:'contact', b1:'boom1', callback: onContact })
+
     //phy.add({ name:'boom', type:'cylinder', density:1, size:[1,4,1], pos:[0,2,0], friction:0.5, breakable:true, material:'B', autoUV:true });
 
     /*phy.add({ name:'ball2', type:'sphere', mass:35, state:4, size:[1], pos:[0,300,0], friction:0.5, ccdThreshold:0.00001 });
@@ -70,3 +72,10 @@ demo = () => {
 
 }
 
+onContact = ( d ) => {
+
+    if( d.hit ) console.log(d)
+    //else trigger.material.color.setHex( 0xFFFF00 )
+
+    //if( d.hit ) console.log('bob collision on trigger', d )
+}

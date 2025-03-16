@@ -329,8 +329,9 @@ export class Body extends Item {
 					if( n.quat ) n.localQuat = n.quat
 
 					b.addShape( this.shape( n ) )
-
 				}
+
+				console.log(b)
 
 			break;
 			default:
@@ -451,7 +452,10 @@ export class Body extends Item {
 
 			// Applies the force `force` to `positionInWorld` in world position. [ 0,0,0,   0,0,0 ]
 			if( o.worldForce ) b.applyForce( this.v.fromArray( o.worldForce ), this.v.fromArray( o.worldForce, 3 ) )
-			if( o.force ) b.applyForceToCenter( this.v.fromArray( o.force ) )
+			if( o.force ){ 
+				if( o.forcePosition ) b.applyForce( this.v.fromArray( o.forcePosition ), this.v.fromArray( o.force ) )
+				b.applyForceToCenter( this.v.fromArray( o.force ) )
+			}
 			if( o.torque ) b.applyTorque( this.v.fromArray( o.torque ) )
 
 

@@ -2,11 +2,13 @@ import { Object3D, Vector3, Group, Mesh, LineSegments, BufferGeometry, CylinderG
 
 import { root, Utils } from './root.js';
 
+
+
 import { Geo } from './base/Geo.js';
 import { Mat, Colors } from './base/Mat.js';
 
 import { Item } from '../core/Item.js';
-import { Num } from '../core/Config.js';
+import { Num, WithMassCenter } from '../core/Config.js';
 import { Basic3D } from '../core/Basic3D.js';
 import { Instance } from '../core/Instance.js';
 import { MathTool, PI90, todeg } from '../core/MathTool.js';
@@ -473,8 +475,12 @@ export class Body extends Item {
 
 		}
 
+
 		// change default center of mass 
-		if( o.massCenter && root.engine !== 'PHYSX'){
+		// if engine don't have massCenter option
+		// is convert to compound
+		
+		if( o.massCenter && !WithMassCenter.indexOf(root.engine) ){
 			if( o.type !== 'compound' ){
 				//o.localPos = o.massCenter
 				o.shapes = [{ type:o.type, pos:o.massCenter, size:o.size }];
@@ -485,9 +491,9 @@ export class Body extends Item {
 			} else {
 				for ( i = 0; i < o.shapes.length; i ++ ) {
 					n = o.shapes[ i ]
-					if( n.pos ) n.pos = Utils.vecAdd( n.pos, o.massCenter );
+					if( n.pos ) n.pos = MathTool.addArray( n.pos, o.massCenter );
 					else n.pos = o.massCenter;
-					Geo.unic(n);
+					//Geo.unic(n);
 				}
 			}
 		}
@@ -746,7 +752,7 @@ export class Body extends Item {
 			b = child;
 			b.name = name;
 			b.type = this.type;
-			//b.density = o.density;
+			b.density = o.density;
 			b.breakable = true;
 			b.breakOption = o.breakOption !== undefined ? o.breakOption : [ 250, 1, 2, 1 ];
 			//b.userData.mass = o.mass;

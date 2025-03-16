@@ -1,3 +1,5 @@
+export const WithMassCenter = ['PHYSX', 'HAVOK'];
+
 
 export const Max = {
 	body:4000,

@@ -417,8 +417,6 @@ export class Body extends Item {
 		if ( o.rollingFriction !== undefined ) b.setRollingFriction( o.rollingFriction );
 
 
-		
-
 	    if(o.reset){ 
 			b.setLinearVelocity( this.v.set( 0, 0, 0) );
 			b.setAngularVelocity( this.v.set( 0, 0, 0) );
@@ -428,7 +426,7 @@ export class Body extends Item {
 	    	
 			if ( o.group !== undefined ){ b.getBroadphaseProxy().set_m_collisionFilterGroup( o.group ); b.group = o.group }
 			if ( o.mask !== undefined ){ b.getBroadphaseProxy().set_m_collisionFilterMask( o.mask ); b.mask = o.mask }
-			if ( o.damping !== undefined ) b.setDamping( o.damping[ 0 ], o.damping[ 1 ] );
+			if ( o.damping !== undefined ) b.setDamping( o.damping[ 0 ]*0.5, o.damping[ 1 ]*0.5 );
 			if ( o.sleeping !== undefined ) b.setSleepingThresholds( o.sleeping[ 0 ], o.sleeping[ 1 ] );
 
         }
@@ -481,11 +479,16 @@ export class Body extends Item {
 
 		// Applies the force `force` to `positionInWorld` in world position. [ 0,0,0,   0,0,0 ]
 		if( o.worldForce ) b.applyForce( this.v.fromArray( o.worldForce ), this.v.fromArray( o.worldForce, 3 ) );
+
 		//if( o.force ) b.applyCentralForce( this.v.fromArray( o.force ).multiplyScalar(root.delta) );
 		//if( o.localForce ) b.applyCentralForce( this.v.fromArray( o.localForce ).multiplyScalar(root.delta) );
 
 		if( o.force ){ 
-			b.applyForce( this.v.fromArray( o.force ).divideScalar(root.substep) );
+			let forceMode = o.forceMode || 'force';
+			//if(forceMode === 'force') o.force = MathTool.scaleArray( o.force, 100, 3 );
+			if( o.forcePosition ) b.applyForce( this.v.fromArray( o.forcePosition ), this.v.fromArray( o.force ) );
+			else b.applyForce( this.v.fromArray( o.force ).divideScalar(root.substep) );
+
 		}
 
 			//console.log( b )

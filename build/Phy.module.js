@@ -878,6 +878,9 @@ get_blend_space_2d_node_influences :: (using space : *Blend_Space_2d, position :
 }
 */
 
+const WithMassCenter = ['PHYSX', 'HAVOK'];
+
+
 const Max = {
 	body:4000,
     joint:1000,
@@ -1379,7 +1382,7 @@ let geo = {};
 const Geo = {
 
 	unic: ( g ) => {
-
+        //console.log(g)
 		geo[ 'geo' + geoN++ ] = g;
 
 	},
@@ -1414,8 +1417,14 @@ const Geo = {
 	},
 
 	dispose: () => {
+
+		// TODO BUG with Start demo and HAVOK !!!
+		
 		//console.log( geo )
-		for( let n in geo ) geo[n].dispose();
+		for( let n in geo ){
+		    if( geo[n].isBufferGeometry ) geo[n].dispose();
+		    else console.log(geo[n]);
+		}
 		geo = {};
 		geoN = 0;
 
@@ -8028,8 +8037,12 @@ class Body extends Item {
 
 		}
 
+
 		// change default center of mass 
-		if( o.massCenter && root.engine !== 'PHYSX'){
+		// if engine don't have massCenter option
+		// is convert to compound
+		
+		if( o.massCenter && !WithMassCenter.indexOf(root.engine) ){
 			if( o.type !== 'compound' ){
 				//o.localPos = o.massCenter
 				o.shapes = [{ type:o.type, pos:o.massCenter, size:o.size }];
@@ -8040,9 +8053,9 @@ class Body extends Item {
 			} else {
 				for ( i = 0; i < o.shapes.length; i ++ ) {
 					n = o.shapes[ i ];
-					if( n.pos ) n.pos = Utils.vecAdd( n.pos, o.massCenter );
+					if( n.pos ) n.pos = MathTool.addArray( n.pos, o.massCenter );
 					else n.pos = o.massCenter;
-					Geo.unic(n);
+					//Geo.unic(n);
 				}
 			}
 		}
@@ -8301,7 +8314,7 @@ class Body extends Item {
 			b = child;
 			b.name = name;
 			b.type = this.type;
-			//b.density = o.density;
+			b.density = o.density;
 			b.breakable = true;
 			b.breakOption = o.breakOption !== undefined ? o.breakOption : [ 250, 1, 2, 1 ];
 			//b.userData.mass = o.mass;
@@ -42428,6 +42441,8 @@ class ConvexObjectBreaker {
 	}
 
 }
+
+new Plane;new Vector3;({textureScale:new Vector2(1,1),textureOffset:new Vector2});
 
 class Breaker {
 
