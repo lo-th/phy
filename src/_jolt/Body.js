@@ -289,7 +289,7 @@ export class Body extends Item {
 
 					n = o.shapes[ i ];
 			        ss = this.shapeSetting( n );
-			        console.log(ss)
+			        //console.log(ss)
 			        volume += ss.volume;
 					scs.AddShape( this.v2.fromArray(n.pos || [0,0,0]), this.q2.fromArray(n.quat || [0,0,0,1]), ss );
 					//Jolt.destroy(ss);
@@ -333,6 +333,7 @@ export class Body extends Item {
 
 		// TODO find way to change masscenter
 		if(o.massCenter){
+			console.log(bcs.mMassPropertiesOverride)
 			//bcs.GetMassProperties().Translate( this.v.fromArray( o.massCenter ) )
 		}
 

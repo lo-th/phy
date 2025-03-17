@@ -52,7 +52,7 @@ const Version = {
 
     PHYSX: '5.05.10',
     HAVOK: '1.2.1',
-    JOLT: '0.32.0',
+    JOLT: '0.33.0',
 
     RAPIER: '0.14.0',
     OIMO: '1.2.4',

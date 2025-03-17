@@ -56,13 +56,26 @@ npm install --save phy-engine
   import * as THREE from 'three';
   import { phy, math } from 'phy-engine';
 
+  const w = window.innerWidth;
+  const h = window.innerHeight;
+
   // init three.js
   const scene = new THREE.Scene();
-  const camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
+  const camera = new THREE.PerspectiveCamera( 60, w / h, 0.1, 1000 );
+  camera.position.set(0,1,5);
   const renderer = new THREE.WebGLRenderer();
-  renderer.setSize( window.innerWidth, window.innerHeight );
+  renderer.setClearColor( 0x07142c, 1 );
+  renderer.setSize( w, h );
   document.body.appendChild( renderer.domElement );
 
+  // add some light
+  const light = new THREE.PointLight( 0xffffaa, 10, 100, 2 );
+  light.position.set(0, 4, 2);
+  scene.add(light);
+  const hemiLight = new THREE.HemisphereLight( 0x2076d5, 0x502c09, 1 );
+  scene.add( hemiLight );
+
+  // start three render loop
   function animate() {
 	renderer.render( scene, camera );
   }
@@ -80,7 +93,9 @@ npm install --save phy-engine
 
   function physicsReady (){
 	phy.set({ substep:1, gravity:[0,-9.81,0], fps:60 });
-	phy.add({ type:'plane', size:[300,1,300], material:'shadow', visible:true });
+	phy.add({ type:'plane', size:[300,1,300], visible:true });
+	phy.add({ type:'box', size:[1,1,1], pos:[0,4,0], mass:1 });
+	phy.add({ type:'sphere', size:[0.5], pos:[0,6,0], mass:1 });
   }
 &lt;/script>
         </code>
