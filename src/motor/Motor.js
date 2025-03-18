@@ -405,8 +405,6 @@ export class Motor {
 
 		}
 
-		
-
 	}
 
 	static onCompactDone ( o ) {
