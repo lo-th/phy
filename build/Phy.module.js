@@ -42442,7 +42442,7 @@ class ConvexObjectBreaker {
 
 }
 
-new Plane;new Vector3;({textureScale:new Vector2(1,1),textureOffset:new Vector2});
+({textureScale:new Vector2(1,1),textureOffset:new Vector2});new Vector3;new Vector3;new Vector3;new Plane;new Plane;
 
 let Breaker$1 = class Breaker {
 
@@ -49600,9 +49600,11 @@ const Utils$1 = {
 
 class JointDebug extends Basic3D {
 
-	constructor( o = {} ) {
+	constructor( o = {}, motor ) {
 
 	    super();
+
+	    this.motor = motor;
 
 	    this.isJoint = true;
 
@@ -49613,12 +49615,12 @@ class JointDebug extends Basic3D {
 	    this.mtx = new Matrix4();
 	    this.size = o.helperSize || 0.1;
 
-	    let material = Mat$2.get('line');
+	    let material = this.motor.mat.get('line');
 	    let mat, dt;
 
 	    switch( this.mode ){
 	    	case 'prismatic':
-	    	    mat = Mat$2.get('svg');
+	    	    mat = this.motor.mat.get('svg');
 		    	dt = {
 					min:-180,
 					max:180,
@@ -49647,7 +49649,7 @@ class JointDebug extends Basic3D {
 	    	break;
 	    	case 'hinge': case 'cylindrical':
 
-		    	mat = Mat$2.get('svg');
+		    	mat = this.motor.mat.get('svg');
 		    	dt = {
 					min:-180,
 					max:180,
@@ -49676,7 +49678,7 @@ class JointDebug extends Basic3D {
 	    	break;
 	    	default:
 
-		    	const geom = Geo$1.get('joint');
+		    	const geom = this.motor.geo.get('joint');
 			    let g = geom.clone(); 
 			    g.scale( this.size, this.size, this.size);
 			    this.m1 = new LineSegments( g, material );
@@ -50019,7 +50021,7 @@ class Joint extends Item {
 
 		if( o.drivePosition ) if( o.drivePosition.rot !== undefined ){ o.drivePosition.quat = MathTool.quatFromEuler( o.drivePosition.rot ); delete ( o.drivePosition.rot ); }
 
-		let j = new JointDebug( o );
+		let j = new JointDebug( o, this.motor );
 		j.name = name;
 		j.body1 = body1;
 		j.body2 = body2;

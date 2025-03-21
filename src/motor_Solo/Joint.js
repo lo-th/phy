@@ -185,7 +185,7 @@ export class Joint extends Item {
 
 		if( o.drivePosition ) if( o.drivePosition.rot !== undefined ){ o.drivePosition.quat = MathTool.quatFromEuler( o.drivePosition.rot ); delete ( o.drivePosition.rot ); }
 
-		let j = new JointDebug( o );
+		let j = new JointDebug( o, this.motor );
 		j.name = name;
 		j.body1 = body1;
 		j.body2 = body2;
