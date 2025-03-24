@@ -1,6 +1,5 @@
 import { Object3D, Vector3, Quaternion, Euler, Matrix4 } from 'three';
 import { MathTool, torad } from '../../core/MathTool.js';
-import { root, Utils } from '../root.js';
 
 
 /** __
@@ -32,9 +31,11 @@ const Spine = [ 'hip', 'abdomen', 'chest', 'neck', 'head', 'rCollar', 'lCollar',
 
 export class SkeletonBody extends Object3D {
 
-	constructor ( name, model, bones, mass = null, option = {} ) {
+	constructor ( motor, name, model, bones, mass = null, option = {} ) {
 
 		super()
+
+        this.motor = motor;
 
 		this.prefix = name || 'yoo_'
 
@@ -51,7 +52,7 @@ export class SkeletonBody extends Object3D {
         this.quatRef = {};
 
         this.useSolver = false 
-        if( root.engine !== 'PHYSX' ) this.useSolver = false;
+        if( this.motor.engine !== 'PHYSX' ) this.useSolver = false;
 
         this.nameList = [];
         this.jointList = [];
@@ -80,7 +81,7 @@ export class SkeletonBody extends Object3D {
         let i = this.nodes.length;
         let m = this.mass/i;
         while( i-- ) d.push( { name:this.nodes[i].name, mass:m } )
-        root.motor.change( d );
+        this.motor.change( d );
 
     }
 
@@ -104,7 +105,7 @@ export class SkeletonBody extends Object3D {
             
         }
 
-        root.motor.change( data );
+        this.motor.change( data );
 
     }
 
@@ -116,7 +117,7 @@ export class SkeletonBody extends Object3D {
             node.cc = 0;
             node.kinematic = false;
             node.bone.isPhysics = true;
-            root.motor.change( { name : node.name, kinematic:false } )
+            this.motor.change( { name : node.name, kinematic:false } )
         }
         
     }
@@ -127,7 +128,7 @@ export class SkeletonBody extends Object3D {
         //while( i-- ) Utils.byName( this.nodes[i].name ).visible = v
 
         let i = this.nameList.length, node;
-        while( i-- ) Utils.byName( this.nameList[i] ).visible = v;
+        while( i-- ) this.motor.byName( this.nameList[i] ).visible = v;
         /*let data = []
         i = this.jointList.length;
         while( i-- ) data.push( { name:this.jointList[i], visible:v } );
@@ -138,12 +139,12 @@ export class SkeletonBody extends Object3D {
 
 	init(){
 
-        if( this.useSolver ) this.solver = root.motor.add({ 
+        if( this.useSolver ) this.solver = this.motor.add({ 
             type:'solver', name:this.prefix+'_solver', iteration:32,
             fix:true, needData:true
         });
 
-        this.useAggregate = root.engine === 'PHYSX'// && this.option.useAggregate
+        this.useAggregate = this.motor.engine === 'PHYSX'// && this.option.useAggregate
 
 		const data = []
         
@@ -236,8 +237,8 @@ export class SkeletonBody extends Object3D {
                 
 
 
-                if( n==='chest' && name==='rBreast' && root.engine!=='HAVOK' ){ n='rBreast'; parent = bone; type = 'sphere'; size = [ 0.065 ]; translate = [ 0.065,0,0 ]; this.breast=true; motion = true; link='chest'; }
-                if( n==='chest' && name==='lBreast' && root.engine!=='HAVOK' ){ n='lBreast'; parent = bone; type = 'sphere'; size = [ 0.065 ]; translate = [ 0.065,0,0 ]; this.breast=true; motion = true; link='chest'; }
+                if( n==='chest' && name==='rBreast' && this.motor.engine!=='HAVOK' ){ n='rBreast'; parent = bone; type = 'sphere'; size = [ 0.065 ]; translate = [ 0.065,0,0 ]; this.breast=true; motion = true; link='chest'; }
+                if( n==='chest' && name==='lBreast' && this.motor.engine!=='HAVOK' ){ n='lBreast'; parent = bone; type = 'sphere'; size = [ 0.065 ]; translate = [ 0.065,0,0 ]; this.breast=true; motion = true; link='chest'; }
                 
 
                 // arm
@@ -473,7 +474,7 @@ export class SkeletonBody extends Object3D {
 
         //console.log( data )
 
-        root.motor.add( data )
+        this.motor.add( data )
 
         //if( this.useSolver ) this.solver.start();
        
@@ -495,7 +496,7 @@ export class SkeletonBody extends Object3D {
         // raideur / amortissement
         //let sp = [0.05,1]
         let sp = [0.05, 1, 0]
-        if(root.engine==='PHYSX'){
+        if(this.motor.engine==='PHYSX'){
             // stiffness / damping / restitution / bounceThreshold / contactDistance
             //[0,0, 0, 0.5]
             // raideur / amortissement
@@ -624,7 +625,7 @@ export class SkeletonBody extends Object3D {
         }
 
 
-        root.motor.add( data )
+        this.motor.add( data )
 
     }
 
@@ -676,7 +677,7 @@ export class SkeletonBody extends Object3D {
 
             } else {
 
-                body = Utils.byName( node.name );
+                body = this.motor.byName( node.name );
 
                 if(body){
                     _endMatrix.copy( body.matrixWorld ).multiply( node.decalinv );
@@ -687,14 +688,14 @@ export class SkeletonBody extends Object3D {
 
         }
 
-        if( up.length !== 0 ) root.motor.change( up, true );
+        if( up.length !== 0 ) this.motor.change( up, true );
 
 	}
 
 	dispose(){
 
-        root.motor.remove( this.jointList );
-        root.motor.remove( this.nameList );
+        this.motor.remove( this.jointList );
+        this.motor.remove( this.nameList );
 
         //if( this.useAggregate ) root.motor.remove(this.prefix +'__Group')
 

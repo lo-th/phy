@@ -4,13 +4,8 @@ import {
     Matrix4, Quaternion, Vector3
 } from 'three';
 
-
 import { Basic3D } from '../../core/Basic3D.js';
-import { Utils, root } from '../root.js';
 import { MathTool } from '../../core/MathTool.js';
-//import { Geo } from '../base/Geo.js';
-//import { Mat } from '../base/Mat.js';
-
 import { AutoSvg } from '../../3TH/AutoSvg.js';
 
 export class JointDebug extends Basic3D {

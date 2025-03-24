@@ -43,7 +43,7 @@ export class Character extends Item {
 	add ( o = {} ) {
 
 		this.setName( o );
-		const hero = new Hero( o );
+		const hero = new Hero( o, this.motor );
 		return hero;
 
 	}

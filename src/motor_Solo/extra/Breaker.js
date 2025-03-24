@@ -1,4 +1,4 @@
-import { root, Utils } from '../root.js';
+
 //import { ConvexObjectBreaker } from '../3TH/objects/ConvexObjectBreaker.js';
 import { ConvexObjectBreaker } from '../../jsm/misc/ConvexObjectBreaker.js';
 import { Fracture } from "../../libs/fracture.module.js"
@@ -6,7 +6,9 @@ import { Fracture } from "../../libs/fracture.module.js"
 
 export class Breaker {
 
-	constructor () {
+	constructor (motor) {
+
+		this.motor = motor
 
 		this.convexBreaker = new ConvexObjectBreaker();
 		this.tmpI = new THREE.Vector3();
@@ -25,9 +27,9 @@ export class Breaker {
 
 		let p;
 
-		for( let n in root.reflow.point ){
+		for( let n in this.motor.reflow.point ){
 
-			p = root.reflow.point[n];
+			p = this.motor.reflow.point[n];
 
 			//if ( !b1.breakable && !b2.breakable ) continue;
 
@@ -44,7 +46,7 @@ export class Breaker {
 
 	makeBreak ( name, pos, normal, impulse, v ) {
 
-		let mesh = Utils.byName( name );
+		let mesh = this.motor.utils.byName( name );
 
 		if ( !mesh ) return;
 		if ( !mesh.breakable ) return;
@@ -87,10 +89,10 @@ export class Breaker {
 		}
 
         // remove original object and add debrit
-        //root.motor.remove( name, true )
+        //this.motor.remove( name, true )
         this.tt = setTimeout( ()=>{
-        	root.motor.remove( name )
-		    root.motor.add( list )
+        	this.motor.remove( name )
+		    this.motor.add( list )
         }, 0 )
 		
 

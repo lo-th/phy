@@ -1,5 +1,4 @@
 import { Object3D, Vector3, Quaternion, Euler, Matrix4, CylinderGeometry, Mesh } from 'three';
-import { root, Utils } from '../root.js';
 
 // Universal ray vehicule 
 
@@ -36,7 +35,9 @@ const tmpMtx = new Matrix4();
 
 export class RayCar {
 	
-	constructor( o = {} ){
+	constructor( o = {}, motor ){
+
+        this.motor = motor;
 
         this.extra = {};
 
@@ -89,7 +90,7 @@ export class RayCar {
             shape = [ { type:'convex', shape:o.shapeMesh.geometry,  pos:o.shapePos || [0,0,0] } ]
         }
 
-        this.body = root.motor.add({ 
+        this.body = this.motor.add({ 
 
             type:'compound',
             shapes:shape,
@@ -171,7 +172,7 @@ export class RayCar {
         let wgeo, wgeo2
         let m1, m2;
 
-        let mat = root.motor.getMat('debug');
+        let mat = this.motor.getMat('debug');
 
         if( o.wheelMesh ){
 
@@ -211,10 +212,10 @@ export class RayCar {
             m.matrixAutoUpdate = false;
             if(m2) m2.matrixAutoUpdate = false;
             this.vehicle.wheelMeshes = [
-                root.motor.add(m2? m2 : m.clone()),
-                root.motor.add(m),
-                root.motor.add(m2? m2.clone() : m.clone()),
-                root.motor.add(m.clone())
+                this.motor.add(m2? m2 : m.clone()),
+                this.motor.add(m),
+                this.motor.add(m2? m2.clone() : m.clone()),
+                this.motor.add(m.clone())
             ]
         }
 
@@ -228,9 +229,9 @@ export class RayCar {
 	    this.tmp.brakeForce = 0
 	    this.tmp.steerDirection = 0
 
-	    let delta = root.motor.getDelta();
-	    let r = root.motor.getAzimut();
-	    let key = root.motor.getKey();
+	    let delta = this.motor.getDelta();
+	    let r = this.motor.getAzimut();
+	    let key = this.motor.getKey();
 
 	    this.tmp.forwardForce = key[1];
 	    this.tmp.steerDirection = key[0]*-1;
@@ -335,7 +336,7 @@ class RaycastVehicle {
 
         let raylen = info.suspensionRestLength + info.radius
         
-        info.ray = root.motor.add({
+        info.ray = this.motor.add({
             type:'ray', 
             name:this.chassisBody.name + '_wheel_' + index, 
             begin:info.chassisConnectionPointLocal.toArray(), 
@@ -915,7 +916,7 @@ class WheelInfo {
             let hitDistance = r.distance
             this.raycastResult.hitPointWorld.fromArray( r.point )
             this.raycastResult.hitNormalWorld.fromArray( r.normal )
-            this.raycastResult.body = root.motor.byName( r.body )
+            this.raycastResult.body = this.motor.byName( r.body )
 
             this.suspensionLength = hitDistance - this.radius;
             // clamp on max suspension travel
@@ -1039,11 +1040,11 @@ const addImpulseAt = ( body, impulse, point ) => {
     //point = body.localToWorld( point )
     //root.motor.change({ name:body.name, worldForce
     //console.log({ name:body.name, impulse:impulse.toArray(), impulseCenter:point.toArray() })
-    root.motor.change({ name:body.name, impulse:impulse.toArray(), impulseCenter:point.toArray() })
+    this.motor.change({ name:body.name, impulse:impulse.toArray(), impulseCenter:point.toArray() })
 }
 
 const addForceAt = (body, force, point) => {
-    root.motor.change({ name:body.name, force:force.toArray(), location:point.toArray() })
+    this.motor.change({ name:body.name, force:force.toArray(), location:point.toArray() })
 }
 
 const velocityAt = (body, pos, res) => {

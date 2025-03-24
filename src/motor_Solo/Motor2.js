@@ -29,7 +29,7 @@ import { Particle } from './extra/Particle.js';
 import { RayCar } from './extra/RayCar.js';
 import { Envmap } from './extra/Envmap.js';
 import { AutoRagdoll } from './extra/AutoRagdoll.js';
-import { SkeletonBody } from './extra/SkeletonBody.js';
+//import { SkeletonBody } from './extra/SkeletonBody.js';
 import * as SkeletonUtils from '../jsm/utils/SkeletonUtils.js';
 
 import { Pool } from '../3TH/Pool.js';
@@ -69,7 +69,7 @@ export class Motor2 {
 
 		this.math = MathTool;
 		this.pool = Pool;
-		this.RayCar = RayCar;
+		//this.RayCar = RayCar;
 		
 		this.version = Version.PHY;
 		this.Version = Version;
@@ -280,7 +280,7 @@ export class Motor2 {
 		}
 
 		this.activeMouse = ( controler, mode ) => { 
-			if( !mouseTool ) mouseTool = new MouseTool( controler, mode );
+			if( !mouseTool ) mouseTool = new MouseTool( controler, mode, this );
 		}
 
 	    this.mouseMode = ( mode, o ) => { 
@@ -371,7 +371,15 @@ export class Motor2 {
 
 		// return
 
-		this.autoRagdoll = ( o ) => ( new AutoRagdoll( o ) );
+		this.autoRagdoll = ( o ) => {
+
+			const arg = new AutoRagdoll( o, this.utils )
+			this.scene.add( arg.model );
+			
+			return arg;
+
+		}
+
 		this.byName = ( name ) => ( this.utils.byName( name ) );
 		this.getScene = () => ( this.scene );
 
@@ -947,7 +955,7 @@ export class Motor2 {
 
 			if( o.isObject3D ) return this.addDirect( o );
 			if( o.constructor === Array ) return this.adds( o, direct );
-			if( o.type === 'container' ) return new Container( o );
+			if( o.type === 'container' ) return new Container( o, this );
 			
 			if( o.bounce !== undefined ) o.restitution = o.bounce;
 			if( o.type === undefined ) o.type = 'box';
@@ -1264,7 +1272,7 @@ export class Motor2 {
 		this.getParticle = ()=>{}
 
 		this.addParticleSolver = ( o )=>{
-			let s = new Particle( o );
+			let s = new Particle( o, this );
 			particles.push(s);
 			return s;
 		}
@@ -1285,13 +1293,21 @@ export class Motor2 {
 		}
 
 
+		this.addRayCar = (o) => {
+
+			let b = new RayCar( o, this );
+			return b;
+
+		}
+
+
 		//-----------------------
 		//  BUTTON
 		//-----------------------
 
 		this.addButton = (o) => {
 
-			let b = new Button( o );
+			let b = new Button( o, this );
 			buttons.push( b );
 			return b;
 
@@ -1350,7 +1366,7 @@ export class Motor2 {
 		this.addBreaker = () => {
 
 			if( breaker !== null ) return;
-			breaker = new Breaker();
+			breaker = new Breaker(this);
 
 		}
 

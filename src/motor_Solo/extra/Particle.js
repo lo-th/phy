@@ -1,5 +1,4 @@
 import { MathTool } from '../../core/MathTool.js';
-import { root } from '../root.js';
 import { BoxGeometry, Mesh, Vector3 } from 'three';
 
 
@@ -17,7 +16,9 @@ const SPHSystem_update_u = new Vector3()
 
 export class Particle {
 
-	constructor ( o = {} ) {
+	constructor ( o = {}, motor ) {
+
+		this.motor = motor;
 
 		this.name = o.name  || 'ppp'
 
@@ -42,7 +43,7 @@ export class Particle {
 
 	add( pos ){
 
-		let p = root.motor.add({ 
+		let p = this.motor.add({ 
 
             instance:this.name,
             type:'particle', 
@@ -131,7 +132,7 @@ export class Particle {
 		    if(n===2)n=0*/
 		}
 
-		root.motor.add(tmp)
+		this.motor.add(tmp)
 
 	}
 
@@ -321,7 +322,7 @@ export class Particle {
             
 	    }
 
-	    root.motor.change(TMP)
+	    this.motor.change(TMP)
 
 
 

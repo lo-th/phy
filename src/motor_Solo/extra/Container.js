@@ -1,5 +1,4 @@
 import { MathTool } from '../../core/MathTool.js';
-import { root } from '../root.js';
 import { BoxGeometry, Mesh } from 'three';
 import { ChamferBox } from '../../3TH/Geometry.js';
 import { BoxHelper } from '../../3TH/helpers/BoxHelper.js'
@@ -8,7 +7,9 @@ let Nb = 0
 
 export class Container {
 
-	constructor ( o = {} ) {
+	constructor ( o = {}, motor ) {
+
+		this.motor = motor;
 
 		this.isCompound = true;
 		this.remplace = o.remplace || false;
@@ -92,14 +93,14 @@ export class Container {
 					}
 				}
 			}
-			root.motor.add({
+			this.motor.add({
 				...o,
 				mesh:mesh,
 				shapes:faces,
 		        type:'compound',
 		    });
 		} else {
-			root.motor.add( faces );
+			this.motor.add( faces );
 		}
 		
 	}
