@@ -629,6 +629,8 @@ const M = {
 
     },
 
+    // ARRAY OPERATION
+
     nullArray: ( a, n, i ) => { 
         let j = 0;
         while( i-- ) j += a[n+i];
@@ -980,7 +982,7 @@ const map = new Map();
 //
 //-------------------
 
-const root = {
+const root$1 = {
 
 	debug:false,
 
@@ -1029,6 +1031,7 @@ const root = {
 		ray:[],
 		stat:{ fps:0 },
 		point:{},
+		velocity:{},
 	},
 
 	extraMaterial:() => {},
@@ -1037,18 +1040,18 @@ const root = {
 
 		// clear temporary mesh
 		let i, j, m;
-		for( i in root.tmpMesh ) {
-			m = root.tmpMesh[i];
+		for( i in root$1.tmpMesh ) {
+			m = root$1.tmpMesh[i];
 			if( m.children ){
-				for( j in m.children ) root.disposeMesh( m.children[j] );
+				for( j in m.children ) root$1.disposeMesh( m.children[j] );
 			}
-			root.disposeMesh( m );
+			root$1.disposeMesh( m );
 			if( m.parent ) m.parent.remove( m );
 		}
-		root.tmpMesh = [];
+		root$1.tmpMesh = [];
 
 		// clear temporary textures
-		for( i in root.tmpTex ) root.tmpTex[i].dispose();
+		for( i in root$1.tmpTex ) root$1.tmpTex[i].dispose();
 
 	},
 
@@ -1082,11 +1085,11 @@ const Utils$1 = {
 			//console.log('add', b.name, b.type )
 
 			if(!parent){
-				if(b.isButton){ root.scene.add( b ); }
+				if(b.isButton){ root$1.scene.add( b ); }
 				else {
 					switch( b.type ){
-						case 'terrain': case 'solid': case 'joint': case 'ray': case 'articulation': root.scenePlus.add( b ); break;
-						default: root.scene.add( b ); break;
+						case 'terrain': case 'solid': case 'joint': case 'ray': case 'articulation': root$1.scenePlus.add( b ); break;
+						default: root$1.scene.add( b ); break;
 					}
 				}
 				
@@ -2431,7 +2434,7 @@ const addRenderMode = ()=>{
 
 };
 
-const Mat$3 = {
+const Mat$2 = {
 
 	renderMode:{ value: 0 },
 	depthPacking:{ value: 0 },
@@ -2442,7 +2445,7 @@ const Mat$3 = {
 
 	changeRenderMode: (n) => {
 
-		Mat$3.renderMode.value = n;
+		Mat$2.renderMode.value = n;
 
 	},
 
@@ -2453,7 +2456,7 @@ const Mat$3 = {
 
 	useRealLight: (o) => {
 
-		Mat$3.isRealism = true;
+		Mat$2.isRealism = true;
 
 		// apply color setting number
 		for(let c in o){
@@ -2465,13 +2468,13 @@ const Mat$3 = {
 			} 
 		}
 
-		Mat$3.realismOption = { ...RealismLightOption$1, ...o };
+		Mat$2.realismOption = { ...RealismLightOption$1, ...o };
 
 	},
 
 	setColor:( o ) => {
 
-		if(!Mat$3.isRealism) return;
+		if(!Mat$2.isRealism) return;
 
 		//console.log(o)
 
@@ -2485,7 +2488,7 @@ const Mat$3 = {
 	set:( m, direct, beforeCompile = null ) => {
 
 		if(!beforeCompile) beforeCompile = m.onBeforeCompile;
-		if(!direct) Mat$3.extendShader( m, beforeCompile );
+		if(!direct) Mat$2.extendShader( m, beforeCompile );
 		mat[m.name] = m;
 		//Mat.setEnvmapIntensity(m)
 
@@ -2496,12 +2499,12 @@ const Mat$3 = {
 		//let oldCompile = null;
 		//if( m.onBeforeCompile ) oldCompile = m.onBeforeCompile;
 
-		if( Mat$3.isRealism ){
+		if( Mat$2.isRealism ){
 			m.onBeforeCompile = function ( shader ) {
-				shader.uniforms.renderMode = Mat$3.renderMode;
-				shader.uniforms.depthPacking = Mat$3.depthPacking;
+				shader.uniforms.renderMode = Mat$2.renderMode;
+				shader.uniforms.depthPacking = Mat$2.depthPacking;
 
-				EnhanceLighting( shader, Mat$3.realismOption );
+				EnhanceLighting( shader, Mat$2.realismOption );
 		        m.userData.isRealism = true;
 		        m.userData.shader = shader;
 	            if( beforeCompile ) beforeCompile( shader );
@@ -2510,8 +2513,8 @@ const Mat$3 = {
 		} else {
 			m.onBeforeCompile = function ( shader ) {
 
-				shader.uniforms.renderMode = Mat$3.renderMode;
-				shader.uniforms.depthPacking = Mat$3.depthPacking;
+				shader.uniforms.renderMode = Mat$2.renderMode;
+				shader.uniforms.depthPacking = Mat$2.depthPacking;
 
 	            if( beforeCompile ) beforeCompile( shader );
 	            m.userData.shader = shader;
@@ -2548,15 +2551,15 @@ const Mat$3 = {
 				if( !o.normalScale.isVector2 ) o.normalScale = new Vector2().fromArray(o.normalScale);
 			}
 
-		    if( o.side ) o.side = Mat$3.findValue( o.side );
-		    if( o.shadowSide ) o.shadowSide = Mat$3.findValue( o.shadowSide );
-		    if( o.blending ) o.blending = Mat$3.findValue( o.blending );
-		    if( o.blendEquation ) o.blendEquation = Mat$3.findValue( o.blendEquation );
-		    if( o.blendEquationAlpha ) o.blendEquationAlpha = Mat$3.findValue( o.blendEquationAlpha );
-		    if( o.blendSrc ) o.blendSrc = Mat$3.findValue( o.blendSrc );
-		    if( o.blendDst ) o.blendDst = Mat$3.findValue( o.blendDst );
-		    if( o.blendDstAlpha ) o.blendDstAlpha = Mat$3.findValue( o.blendDstAlpha );
-		    if( o.blendSrcAlpha ) o.blendSrcAlpha = Mat$3.findValue( o.blendSrcAlpha );
+		    if( o.side ) o.side = Mat$2.findValue( o.side );
+		    if( o.shadowSide ) o.shadowSide = Mat$2.findValue( o.shadowSide );
+		    if( o.blending ) o.blending = Mat$2.findValue( o.blending );
+		    if( o.blendEquation ) o.blendEquation = Mat$2.findValue( o.blendEquation );
+		    if( o.blendEquationAlpha ) o.blendEquationAlpha = Mat$2.findValue( o.blendEquationAlpha );
+		    if( o.blendSrc ) o.blendSrc = Mat$2.findValue( o.blendSrc );
+		    if( o.blendDst ) o.blendDst = Mat$2.findValue( o.blendDst );
+		    if( o.blendDstAlpha ) o.blendDstAlpha = Mat$2.findValue( o.blendDstAlpha );
+		    if( o.blendSrcAlpha ) o.blendSrcAlpha = Mat$2.findValue( o.blendSrcAlpha );
 
 		    if(o.clearcoatNormalScale){
 				if( !o.clearcoatNormalScale.isVector2 ) o.clearcoatNormalScale = new Vector2().fromArray( o.clearcoatNormalScale );
@@ -2586,12 +2589,12 @@ const Mat$3 = {
 
 			}
 
-			Mat$3.upEnvmapIntensity( m );
+			Mat$2.upEnvmapIntensity( m );
 
 		} 
 
 		if( mat[ m.name ] ) return null;
-	    Mat$3.set( m, false, beforeCompile );
+	    Mat$2.set( m, false, beforeCompile );
 		return m;
 
 	},
@@ -2602,11 +2605,11 @@ const Mat$3 = {
 
 	addToMat:( o ) => {
 
-		if( Mat$3.isRealism ){
+		if( Mat$2.isRealism ){
 			for(let m in o){
 				o[m].shadowSide = DoubleSide;
 				o[m].onBeforeCompile = function ( shader ) {
-		            EnhanceLighting( shader, Mat$3.realismOption );
+		            EnhanceLighting( shader, Mat$2.realismOption );
 		            o[m].userData.isRealism = true;
 		            o[m].userData.shader = shader;
 		        };
@@ -2667,57 +2670,57 @@ const Mat$3 = {
 		if( !mat[name] ){
 			switch( name ){
 
-				case 'body': Mat$3.create({name:'body', color:Colors$1.body, ...matExtra$1 }); break
-			    case 'sleep':  Mat$3.create({ name:'sleep', color:Colors$1.sleep, ...matExtra$1 }); break//0x46B1C9
-			    case 'solid':  Mat$3.create({ name:'solid', color:Colors$1.solid, ...matExtra$1 }); break
-			    case 'base':   Mat$3.create({ name:'base', color:Colors$1.base, ...matExtra$1 }); break
+				case 'body': Mat$2.create({name:'body', color:Colors$1.body, ...matExtra$1 }); break
+			    case 'sleep':  Mat$2.create({ name:'sleep', color:Colors$1.sleep, ...matExtra$1 }); break//0x46B1C9
+			    case 'solid':  Mat$2.create({ name:'solid', color:Colors$1.solid, ...matExtra$1 }); break
+			    case 'base':   Mat$2.create({ name:'base', color:Colors$1.base, ...matExtra$1 }); break
 
-			    case 'clay':  Mat$3.create({ name:'clay', color:Colors$1.clay, ...matExtra$1 }); break
+			    case 'clay':  Mat$2.create({ name:'clay', color:Colors$1.clay, ...matExtra$1 }); break
 
-			    case 'concrete':  Mat$3.create({ name:'concrete', color:Colors$1.concrete, metalness: 0.0, roughness: 0.9, }); break
+			    case 'concrete':  Mat$2.create({ name:'concrete', color:Colors$1.concrete, metalness: 0.0, roughness: 0.9, }); break
 
-			    case 'black':   Mat$3.create({ name:'black', color:Colors$1.black, metalness: 0, roughness: 0.25 }); break
+			    case 'black':   Mat$2.create({ name:'black', color:Colors$1.black, metalness: 0, roughness: 0.25 }); break
 
 			    
 
 			    // metal
-			    case 'chrome': Mat$3.create({ name:'chrome', color:0xCCCCCC, metalness: 1, roughness:0.075 }); break
-			    case 'silver': Mat$3.create({ name:'silver', color:0xAAAAAA, metalness: 0.8, roughness:0.22 }); break
-			    case 'gold': Mat$3.create({ name:'gold', color:Colors$1.gold, specularColor:Colors$1.gold2, metalness: 1, roughness:0.02 }); break
-			    case 'copper': Mat$3.create({ name:'copper', color:Colors$1.copper, metalness: 1, roughness:0.25, clearcoat: 1.0, clearcoatRoughness: 0.2 }); break
+			    case 'chrome': Mat$2.create({ name:'chrome', color:0xCCCCCC, metalness: 1, roughness:0.075 }); break
+			    case 'silver': Mat$2.create({ name:'silver', color:0xAAAAAA, metalness: 0.8, roughness:0.22 }); break
+			    case 'gold': Mat$2.create({ name:'gold', color:Colors$1.gold, specularColor:Colors$1.gold2, metalness: 1, roughness:0.02 }); break
+			    case 'copper': Mat$2.create({ name:'copper', color:Colors$1.copper, metalness: 1, roughness:0.25, clearcoat: 1.0, clearcoatRoughness: 0.2 }); break
 
-			    case 'carPaint': Mat$3.create({ name:'carPaint', color:Colors$1.carPaint, metalness: 0, anisotropy:new Vector2(0.5,0.5), roughness:0.4, clearcoat: 1.0, clearcoatRoughness: 0, }); break
+			    case 'carPaint': Mat$2.create({ name:'carPaint', color:Colors$1.carPaint, metalness: 0, anisotropy:new Vector2(0.5,0.5), roughness:0.4, clearcoat: 1.0, clearcoatRoughness: 0, }); break
 
 				//case 'simple': m = Mat.create({ name:'simple', color:0x808080, metalness: 0, roughness: 1 }); break
 
-				case 'carbon': Mat$3.create({ name:'carbon', map:new CarbonTexture(), normalMap:new CarbonTexture(true), clearcoat: 1.0, clearcoatRoughness: 0.1, roughness: 0.5 }); break
-				case 'cloth': Mat$3.create({ name:'cloth', color:0x8009cf, roughness: 0.5, sheenColor:0xcb7cff, sheen:1, sheenRoughness:0.2 }); break
+				case 'carbon': Mat$2.create({ name:'carbon', map:new CarbonTexture(), normalMap:new CarbonTexture(true), clearcoat: 1.0, clearcoatRoughness: 0.1, roughness: 0.5 }); break
+				case 'cloth': Mat$2.create({ name:'cloth', color:0x8009cf, roughness: 0.5, sheenColor:0xcb7cff, sheen:1, sheenRoughness:0.2 }); break
 
 
 				//case 'clear':  m = new MeshStandardMaterial({ color:0xFFFFFF, metalness: 0.5, roughness: 0 }); break
 				//case 'wood':   m = Mat.create({ name:'wood', color:0xe8c2a1, metalness: 0, roughness: 1 }); break
 				
 				//case 'hero':   m = new MeshStandardMaterial({ color:0x00FF88, ...matExtra }); break
-				case 'skinny':   Mat$3.create({ name:'skinny', color:0xe0ac69, ...matExtra$1 }); break
+				case 'skinny':   Mat$2.create({ name:'skinny', color:0xe0ac69, ...matExtra$1 }); break
 				
-				case 'glass':  Mat$3.create({ name:'glass', color:0xFFFFff, transparent:true, roughness:0.02, metalness:0.0, side:DoubleSide, alphaToCoverage:true, premultipliedAlpha:true, transmission:1, clearcoat:1, thickness:0.01  }); break
-				case 'glassX':  Mat$3.create({ name:'glassX', color:0xeeeeee, transparent:false, opacity:1.0, roughness:0.03, metalness:0,  side:DoubleSide, transmission:1.0, clearcoat:1, clearcoatRoughness:0.0, thickness:0.02, ior:1.52, shadowSide:1, reflectivity:0.5, iridescence:0 }); break
-				case 'plexi':  Mat$3.create({ name:'plexi', blending:AdditiveBlending, color:0x010101, transparent:true, opacity:0.7, reflectivity:0.3, metalness:0.6, roughness:0.1, clearcoat:0.2, clearcoatRoughness: 0.02, side:DoubleSide, alphaToCoverage:true, premultipliedAlpha:true }); break
-				case 'plexi2':  Mat$3.create({ name:'plexi2', blending:AdditiveBlending, color:0x010101, transparent:false, opacity:0.7, reflectivity:0.3, metalness:0.6, roughness:0.1, clearcoat:0.2, clearcoatRoughness: 0.02, side:DoubleSide, alphaToCoverage:false, premultipliedAlpha:true }); break
-				case 'glass2': Mat$3.create({ name:'glass2', color:0xEEEEEE, transparent:true, roughness:0, alphaToCoverage:true, opacity:0.3  }); break
-				case 'glass3': Mat$3.create({ name:'glass3', color:0x000000, transparent:true, roughness:0, alphaToCoverage:true, opacity:0.4  }); break
-				case 'glass_red': Mat$3.create({ name:'glass_red', color:0xFF0000, transparent:true, roughness:0, alphaToCoverage:true, opacity:0.8  }); break
+				case 'glass':  Mat$2.create({ name:'glass', color:0xFFFFff, transparent:true, roughness:0.02, metalness:0.0, side:DoubleSide, alphaToCoverage:true, premultipliedAlpha:true, transmission:1, clearcoat:1, thickness:0.01  }); break
+				case 'glassX':  Mat$2.create({ name:'glassX', color:0xeeeeee, transparent:false, opacity:1.0, roughness:0.03, metalness:0,  side:DoubleSide, transmission:1.0, clearcoat:1, clearcoatRoughness:0.0, thickness:0.02, ior:1.52, shadowSide:1, reflectivity:0.5, iridescence:0 }); break
+				case 'plexi':  Mat$2.create({ name:'plexi', blending:AdditiveBlending, color:0x010101, transparent:true, opacity:0.7, reflectivity:0.3, metalness:0.6, roughness:0.1, clearcoat:0.2, clearcoatRoughness: 0.02, side:DoubleSide, alphaToCoverage:true, premultipliedAlpha:true }); break
+				case 'plexi2':  Mat$2.create({ name:'plexi2', blending:AdditiveBlending, color:0x010101, transparent:false, opacity:0.7, reflectivity:0.3, metalness:0.6, roughness:0.1, clearcoat:0.2, clearcoatRoughness: 0.02, side:DoubleSide, alphaToCoverage:false, premultipliedAlpha:true }); break
+				case 'glass2': Mat$2.create({ name:'glass2', color:0xEEEEEE, transparent:true, roughness:0, alphaToCoverage:true, opacity:0.3  }); break
+				case 'glass3': Mat$2.create({ name:'glass3', color:0x000000, transparent:true, roughness:0, alphaToCoverage:true, opacity:0.4  }); break
+				case 'glass_red': Mat$2.create({ name:'glass_red', color:0xFF0000, transparent:true, roughness:0, alphaToCoverage:true, opacity:0.8  }); break
 				
 				
-				case 'car':   Mat$3.create({ name:'car', color:0x303030, metalness: 1.0, roughness: 0.5, clearcoat: 1.0, clearcoatRoughness: 0.03, sheen: 0.5 }); break
-				case 'carGlass':   Mat$3.create({ name:'carGlass', color: 0xffffff, metalness: 0, roughness: 0, transmission: 1.0, ior:1.52 }); break
+				case 'car':   Mat$2.create({ name:'car', color:0x303030, metalness: 1.0, roughness: 0.5, clearcoat: 1.0, clearcoatRoughness: 0.03, sheen: 0.5 }); break
+				case 'carGlass':   Mat$2.create({ name:'carGlass', color: 0xffffff, metalness: 0, roughness: 0, transmission: 1.0, ior:1.52 }); break
 
 				case 'outline': 
 				if( !mat[ 'outline' ] ) mat[ 'outline' ] = outliner;
 				mat[ 'outline' ];
 				//m = Mat.create({ name:'outline', color:0xFFFFFF, type:'Basic', side:BackSide, toneMapped:false, wireframe:false }); 
 				break
-				case 'debug': Mat$3.create({ name:'debug', type:'Basic', color:0xF37042, wireframe:true, toneMapped: false, transparent:true, opacity:0.5 }); break
+				case 'debug': Mat$2.create({ name:'debug', type:'Basic', color:0xF37042, wireframe:true, toneMapped: false, transparent:true, opacity:0.5 }); break
 				//case 'debug': m = Mat.create({ name:'debug', color:0xF37042, wireframe:true, toneMapped: false, transparent:true, opacity:0.5 }); break
 				
 				//case 'debug2': m = Mat.create({ name:'debug2', type:'Basic', color:0x00FFFF, wireframe:true, toneMapped: false }); break
@@ -2726,30 +2729,30 @@ const Mat$3 = {
 
 				//case 'simple': m = Mat.create({ name:'simple', type:'basic'  }); break
 
-				case 'shadow': Mat$3.create({ name:'shadow', type:'shadow', color:0x000000, opacity:0.5 }); break
+				case 'shadow': Mat$2.create({ name:'shadow', type:'shadow', color:0x000000, opacity:0.5 }); break
 
 
-				case 'bones':  Mat$3.create({ name:'bones', color:0xfde7d6,  wireframe:true }); break
-				case 'bones2':  Mat$3.create({ name:'bones2', type:'basic', color:0xdfc4a8, transparent:true, opacity:0.5, depthTest:true, depthWrite:false, alphaToCoverage:true }); break
+				case 'bones':  Mat$2.create({ name:'bones', color:0xfde7d6,  wireframe:true }); break
+				case 'bones2':  Mat$2.create({ name:'bones2', type:'basic', color:0xdfc4a8, transparent:true, opacity:0.5, depthTest:true, depthWrite:false, alphaToCoverage:true }); break
 
 				
-				case 'button':  Mat$3.create({ name:'button', color:0xFF404B, ...matExtra$1 }); break
+				case 'button':  Mat$2.create({ name:'button', color:0xFF404B, ...matExtra$1 }); break
 				//case 'hide': m = new MeshBasicMaterial({ visible:false }); break
 
 				case 'line':
-				    Mat$3.create({ name:'line', type:'line', vertexColors: true, toneMapped: false });
+				    Mat$2.create({ name:'line', type:'line', vertexColors: true, toneMapped: false });
 			    break
 			    case 'liner':
-				    Mat$3.create({ name:'liner', type:'line', vertexColors: true, toneMapped: false, depthTest:true, depthWrite:true, alphaToCoverage:true });
+				    Mat$2.create({ name:'liner', type:'line', vertexColors: true, toneMapped: false, depthTest:true, depthWrite:true, alphaToCoverage:true });
 			    break
 				case 'hide':
-				    Mat$3.create({ name:'hide', type:'basic', visible:false });
+				    Mat$2.create({ name:'hide', type:'basic', visible:false });
 			    break
 			    case 'particle':
-				    Mat$3.create({ name:'particle', type:'basic', toneMapped: false, color:0x00ff00 });
+				    Mat$2.create({ name:'particle', type:'basic', toneMapped: false, color:0x00ff00 });
 			    break
 			    case 'svg':
-				    Mat$3.create({ name:'svg', type:'basic', toneMapped:false, vertexColors:true, transparent:false, side:DoubleSide });
+				    Mat$2.create({ name:'svg', type:'basic', toneMapped:false, vertexColors:true, transparent:false, side:DoubleSide });
 			    break
 
 			}
@@ -2762,7 +2765,7 @@ const Mat$3 = {
 
 	dispose:() => {
 
-		Mat$3.isRealism = false;
+		Mat$2.isRealism = false;
 
 		for(let m in mat){
 			mat[m].dispose();
@@ -2777,7 +2780,7 @@ const Mat$3 = {
 
 	upShader:() => {
 
-		let option = Mat$3.realismOption;
+		let option = Mat$2.realismOption;
 		//if(!option.enable) option = 
 
 		for( let name in mat ){
@@ -3249,8 +3252,8 @@ let Ray$1 = class Ray extends Item {
 
 	step () {
 
-		const AR = root.Ar;
-		const N = root.ArPos[this.type];
+		const AR = root$1.Ar;
+		const N = root$1.ArPos[this.type];
 
 		let i = this.list.length, r, n;
 
@@ -3258,7 +3261,7 @@ let Ray$1 = class Ray extends Item {
 
 			r = this.list[i];
 			n = N + ( i * Num.ray );
-			r.update( AR, n, root.reflow.ray[i] || null );
+			r.update( AR, n, root$1.reflow.ray[i] || null );
 
 		}
 
@@ -3284,7 +3287,7 @@ let Ray$1 = class Ray extends Item {
 		
 
 		// add to worker 
-		root.post( { m:'add', o:o } );
+		root$1.post( { m:'add', o:o } );
 
 		return r;
 
@@ -3306,7 +3309,7 @@ let ExtraRay$1 = class ExtraRay extends Line {
 
 	constructor( o = {} ) {
 
-	    super( new BufferGeometry(), Mat$3.get('line') );
+	    super( new BufferGeometry(), Mat$2.get('line') );
 
 	    this.isRay = true;
 
@@ -7615,7 +7618,7 @@ let Body$1 = class Body extends Item {
 		this.num = Num[this.type];
 		this.full = false;
 		this.extraConvex = false;
-		this.needMatrix = root.engine ==='RAPIER' || root.engine ==='HAVOK';
+		this.needMatrix = root$1.engine ==='RAPIER' || root$1.engine ==='HAVOK';
 		//this.tmpVolume = 0
 
 	}
@@ -7627,10 +7630,10 @@ let Body$1 = class Body extends Item {
 
 	step () {
 
-		const AR = root.Ar;
-		const N = root.ArPos[this.type];
+		const AR = root$1.Ar;
+		const N = root$1.ArPos[this.type];
 		const list = this.list;
-		let i = list.length, b, n;
+		let i = list.length, b, n, vv;
 		
 		while( i-- ){
 
@@ -7658,8 +7661,8 @@ let Body$1 = class Body extends Item {
 	        	if( b.isInstance ){
 	        		b.instance.setColorAt( b.id, b.sleep ? Colors$1.sleep : Colors$1.body );
 	        	} else {
-	        		if ( !b.sleep && b.material.name === 'sleep' ) b.material = Mat$3.get('body');
-			        if ( b.sleep && b.material.name === 'body' ) b.material = Mat$3.get('sleep');
+	        		if ( !b.sleep && b.material.name === 'sleep' ) b.material = Mat$2.get('body');
+			        if ( b.sleep && b.material.name === 'body' ) b.material = Mat$2.get('sleep');
 	        	}
 			    
 			}
@@ -7682,6 +7685,14 @@ let Body$1 = class Body extends Item {
 		    	if( this.full ){
 		    		b.velocity = {x:AR[n+8], y:AR[n+9], z:AR[n+10]};
 		    		b.angular = {x:AR[n+11], y:AR[n+12], z:AR[n+13]};
+		    	}else {
+		    		if( b.getVelocity ){
+		    			vv = root$1.reflow.velocity[b.name];
+		    			if(vv){
+		    				b.velocity = {x:vv[0], y:vv[1], z:vv[2]};
+		    				b.angular = {x:vv[3], y:vv[4], z:vv[5]};
+		    			}
+		    		}
 		    	}
 		    }
 		    else {
@@ -7690,7 +7701,15 @@ let Body$1 = class Body extends Item {
 		        if( this.full ){
 			        b.velocity.fromArray( AR, n + 8 );
 			        b.angular.fromArray( AR, n + 11 );
-			    }
+			    } else {
+		    		if( b.getVelocity ){
+		    			vv = root$1.reflow.velocity[b.name];
+		    			if(vv){
+		    				b.velocity = {x:vv[0], y:vv[1], z:vv[2]};
+		    				b.angular = {x:vv[3], y:vv[4], z:vv[5]};
+		    			}
+		    		}
+		    	}
 		        if( !b.auto ) b.updateMatrix();
 		    }
 		}
@@ -7706,7 +7725,7 @@ let Body$1 = class Body extends Item {
 		let noScale = false, unic = false;
 		let seg = o.seg || 16;
 
-		const noIndex = root.engine === 'OIMO' || root.engine === 'JOLT' || root.engine === 'AMMO' || root.engine === 'CANNON';
+		const noIndex = root$1.engine === 'OIMO' || root$1.engine === 'JOLT' || root$1.engine === 'AMMO' || root$1.engine === 'CANNON';
 
 		//if( o.instance && t!== 'capsule'&& !o.radius) s = o.instanceSize || [1,1,1]
 
@@ -7738,7 +7757,7 @@ let Body$1 = class Body extends Item {
 
 
 	    //if( root.engine === 'PHYSX' && ( o.type==='cylinder' || o.type==='cone' ) ){
-	    if( root.engine === 'PHYSX' && o.type==='cylinder' ){
+	    if( root$1.engine === 'PHYSX' && o.type==='cylinder' ){
 			// convert geometry to convex if not in physics
 	    	let geom = new CylinderGeometry( o.size[ 0 ], o.size[ 0 ], o.size[ 1 ], seg, 1 );//24
 	    	if( o.isWheel ) geom.rotateZ( -PI90 );
@@ -7747,7 +7766,7 @@ let Body$1 = class Body extends Item {
 
 	    }
 
-	    if( ( root.engine === 'PHYSX' || root.engine === 'HAVOK' || root.engine === 'JOLT' ) && o.type==='cone' ){
+	    if( ( root$1.engine === 'PHYSX' || root$1.engine === 'HAVOK' || root$1.engine === 'JOLT' ) && o.type==='cone' ){
 	    	// convert geometry to convex if not in physics
 	    	//if( !o.size[2] ) o.size[2] = 0;
 	    	//console.log(o.size[2])
@@ -7806,7 +7825,7 @@ let Body$1 = class Body extends Item {
 					let tg = noIndex ? MathTool.toNonIndexed(g) : null;
 					o.v = MathTool.getVertex( tg || g, noIndex );
 					o.index = MathTool.getIndex( tg || g, noIndex );
-					if(root.engine === 'CANNON');
+					if(root$1.engine === 'CANNON');
 
 					unic = true;
 					noScale = true;
@@ -7956,7 +7975,7 @@ let Body$1 = class Body extends Item {
     		return g
     	}
 
-    	if( o.meshRemplace && o.debug ) material = Mat$3.get( 'debug' );
+    	if( o.meshRemplace && o.debug ) material = Mat$2.get( 'debug' );
     	//if( o.debug ) material = Mat.get( 'debug' )
     	//if( o.helper ) material = Mat.get( 'hide' )
 
@@ -7975,7 +7994,7 @@ let Body$1 = class Body extends Item {
 			let hcolor2 = o.hcolor2 || [0.8,0.2,0.0];
 
 			// TODO bug with character
-			let hh = new CapsuleHelper( s[ 0 ], s[ 1 ]+(s[ 0 ]*2), false, Mat$3.get( 'liner' ), hcolor, hcolor2, true );
+			let hh = new CapsuleHelper( s[ 0 ], s[ 1 ]+(s[ 0 ]*2), false, Mat$2.get( 'liner' ), hcolor, hcolor2, true );
 			m.add( hh );
 			m.userData['helper'] = hh;
 
@@ -8042,7 +8061,7 @@ let Body$1 = class Body extends Item {
 		// if engine don't have massCenter option
 		// is convert to compound
 		
-		if( o.massCenter && !WithMassCenter.indexOf(root.engine) ){
+		if( o.massCenter && !WithMassCenter.indexOf(root$1.engine) ){
 			if( o.type !== 'compound' ){
 				//o.localPos = o.massCenter
 				o.shapes = [{ type:o.type, pos:o.massCenter, size:o.size }];
@@ -8062,8 +8081,8 @@ let Body$1 = class Body extends Item {
 
 		if( o.collision !== undefined ){
 			if(o.collision === false){
-				if( root.engine === 'PHYSX' ) o.flags = 0;
-				if( root.engine === 'OIMO' ) o.mask = 0;
+				if( root$1.engine === 'PHYSX' ) o.flags = 0;
+				if( root$1.engine === 'OIMO' ) o.mask = 0;
 				//o.mask = 0
 			}
 			
@@ -8095,19 +8114,19 @@ let Body$1 = class Body extends Item {
 	    if( o.visible === false ) o.material = 'hide';
 
 	    if ( o.material !== undefined ) {
-	    	if ( o.material.constructor === String ) material = Mat$3.get( o.material );
+	    	if ( o.material.constructor === String ) material = Mat$2.get( o.material );
 	    	else material = o.material;
 	    } else {
 	    	noMat = true;
 	    	//defMat = this.type === 'body'
-	    	material = Mat$3.get( this.type );
-	    	if( o.instance ) material = Mat$3.get( 'base' );
+	    	material = Mat$2.get( this.type );
+	    	if( o.instance ) material = Mat$2.get( 'base' );
 	    }
 
 	    if( o.unicMat ) {
 	    	material = material.clone();
 	    	//root.tmpMat.push( material )
-	    	Mat$3.addToTmp( material );
+	    	Mat$2.addToTmp( material );
 	    }
 
 
@@ -8135,7 +8154,7 @@ let Body$1 = class Body extends Item {
 	    		if(mm.children && !o.nofullmat ) for(let k in mm.children) mm.children[k].material = material;
 	    	}
 
-	    	root.tmpMesh.push(mm);
+	    	root$1.tmpMesh.push(mm);
 
 	    	o.meshRemplace = true;
 	    	b.add( mm );
@@ -8295,7 +8314,7 @@ let Body$1 = class Body extends Item {
 		    b.receiveShadow = o.shadow;
 		    b.castShadow = o.shadow;
 
-		    b.overMaterial = Mat$3.get( 'outline' );
+		    b.overMaterial = Mat$2.get( 'outline' );
 
 		    // apply option
 			this.set( o, b );
@@ -8308,7 +8327,7 @@ let Body$1 = class Body extends Item {
 
     	if( o.breakable ){
 
-    		root.motor.addBreaker();
+    		root$1.motor.addBreaker();
 			let child = b.children[0];
 			b.remove(child);
 			b = child;
@@ -8347,7 +8366,7 @@ let Body$1 = class Body extends Item {
 		else if( b.mass && !b.density ){ 
 			b.density = MathTool.densityFromMass( b.mass, volume );
 			//  force density for engin don't have mass
-			if( root.engine === 'RAPIER' || root.engine === 'OIMO') o.density = b.density;
+			if( root$1.engine === 'RAPIER' || root$1.engine === 'OIMO') o.density = b.density;
 			//if( root.engine === 'PHYSX') o.density = null;
 		}
 
@@ -8378,7 +8397,7 @@ let Body$1 = class Body extends Item {
 		if( o.parent ) delete o.parent;
 
 
-		if( o.solver && root.engine === 'PHYSX' ){
+		if( o.solver && root$1.engine === 'PHYSX' ){
 			// physx only have mass for solver bone
 			o.mass = b.mass;
 			// keep name reference of bones
@@ -8391,7 +8410,7 @@ let Body$1 = class Body extends Item {
 		// send to physic engine 
 		//---------------------------
 
-		root.post( { m:'add', o:o } );
+		root$1.post( { m:'add', o:o } );
 
 		//---------------------------
 		// return three object3d
@@ -8405,6 +8424,8 @@ let Body$1 = class Body extends Item {
 
 		if( b === null ) b = this.byName( o.name );
 		if( b === null ) return;
+
+		if( o.getVelocity !== undefined ) b.getVelocity = o.getVelocity;
 
 		if(b.isInstance){
 
@@ -8433,18 +8454,18 @@ let Body$1 = class Body extends Item {
 
 		//console.log('need remove instance')
 
-		let instance = root.instanceMesh[name];
+		let instance = root$1.instanceMesh[name];
 		let bodyList = instance.getBodyList();
 
-		root.motor.remove( bodyList );
+		root$1.motor.remove( bodyList );
 		instance.dispose();
-		delete root.instanceMesh[name];
+		delete root$1.instanceMesh[name];
 
 	}
 
 	getInstance ( o, material ) {
 
-		if( root.instanceMesh[o.instance] ) return root.instanceMesh[o.instance];
+		if( root$1.instanceMesh[o.instance] ) return root$1.instanceMesh[o.instance];
 
 		// Create new instance 
 
@@ -8477,11 +8498,11 @@ let Body$1 = class Body extends Item {
     	bb.receiveShadow = o.shadow !== undefined ? o.shadow : true;
     	bb.castShadow = o.shadow !== undefined ? o.shadow : true;
 
-    	bb.overMaterial = Mat$3.get( 'outline' );
+    	bb.overMaterial = Mat$2.get( 'outline' );
 
     	bb.name = o.instance;
-		root.scene.add( bb );
-		root.instanceMesh[ o.instance ] = bb;
+		root$1.scene.add( bb );
+		root$1.instanceMesh[ o.instance ] = bb;
 
 		//console.log('add instance')
 
@@ -11982,12 +12003,12 @@ let JointDebug$1 = class JointDebug extends Basic3D {
 	    this.mtx = new Matrix4();
 	    this.size = o.helperSize || 0.1;
 
-	    let material = Mat$3.get('line');
+	    let material = Mat$2.get('line');
 	    let mat, dt;
 
 	    switch( this.mode ){
 	    	case 'prismatic':
-	    	    mat = Mat$3.get('svg');
+	    	    mat = Mat$2.get('svg');
 		    	dt = {
 					min:-180,
 					max:180,
@@ -12016,7 +12037,7 @@ let JointDebug$1 = class JointDebug extends Basic3D {
 	    	break;
 	    	case 'hinge': case 'cylindrical':
 
-		    	mat = Mat$3.get('svg');
+		    	mat = Mat$2.get('svg');
 		    	dt = {
 					min:-180,
 					max:180,
@@ -12231,8 +12252,8 @@ let Joint$1 = class Joint extends Item {
 
 	step () {
 
-		const AR = root.Ar;
-		const N = root.ArPos[this.type];
+		const AR = root$1.Ar;
+		const N = root$1.ArPos[this.type];
 
 		let i = this.list.length, j, n;
 		
@@ -12335,7 +12356,7 @@ let Joint$1 = class Joint extends Item {
 
 
 
-			if( root.engine === 'OIMO' || root.engine === 'HAVOK' || root.engine === 'JOLT' ){
+			if( root$1.engine === 'OIMO' || root$1.engine === 'HAVOK' || root$1.engine === 'JOLT' ){
 
 				//this.v1.fromArray( math.quadToAxisArray( o.worldQuat ) ).normalize()
 				//this.v2.fromArray( math.quadToAxisArray( o.worldQuat ) ).normalize()
@@ -12379,7 +12400,7 @@ let Joint$1 = class Joint extends Item {
 		if( !o.quat1 ) o.quat1 = new Quaternion().setFromUnitVectors( new Vector3(1, 0, 0), new Vector3().fromArray(o.axis1).normalize() ).toArray();
 		if( !o.quat2 ) o.quat2 = new Quaternion().setFromUnitVectors( new Vector3(1, 0, 0), new Vector3().fromArray(o.axis2).normalize() ).toArray();
 
-		if( root.engine === 'AMMO' && isWorldAxis && o.mode === 'hinge') {
+		if( root$1.engine === 'AMMO' && isWorldAxis && o.mode === 'hinge') {
 			let ee = new Euler(0, -90*torad$5, 0);
 			let qq = new Quaternion().setFromEuler(ee).toArray();
 			o.quatX = qq;
@@ -12394,7 +12415,7 @@ let Joint$1 = class Joint extends Item {
 		j.body1 = body1;
 		j.body2 = body2;
 		
-		if( o.visible === undefined ) o.visible = root.jointVisible || false;
+		if( o.visible === undefined ) o.visible = root$1.jointVisible || false;
 
 		// apply option
 		this.set( o, j );
@@ -12403,7 +12424,7 @@ let Joint$1 = class Joint extends Item {
 		this.addToWorld( j, o.id );
 
 		// add to worker 
-		root.post( { m:'add', o:o } );
+		root$1.post( { m:'add', o:o } );
 
 		return j;
 
@@ -12432,8 +12453,8 @@ let Contact$1 = class Contact extends Item {
 
 	step () {
 
-		const AR = root.Ar;
-		const N = root.ArPos[this.type];
+		const AR = root$1.Ar;
+		const N = root$1.ArPos[this.type];
 
 		let i = this.list.length, c, n;
 		
@@ -12462,7 +12483,7 @@ let Contact$1 = class Contact extends Item {
 		this.addToWorld( c, o.id );
 
 		// add to worker 
-		root.post( { m:'add', o:o } );
+		root$1.post( { m:'add', o:o } );
 
 		return c;
 
@@ -12532,8 +12553,8 @@ let Vehicle$1 = class Vehicle extends Item {
 
 	step () {
 
-		const AR = root.Ar;
-		const N = root.ArPos[this.type];
+		const AR = root$1.Ar;
+		const N = root$1.ArPos[this.type];
 
 		let i = this.list.length, n, s;
 
@@ -12556,7 +12577,7 @@ let Vehicle$1 = class Vehicle extends Item {
 		this.addToWorld( car, o.id );
 
         // add to physics
-        root.post({ m:'add', o:car.o });
+        root$1.post({ m:'add', o:car.o });
 
         return car
 
@@ -12627,7 +12648,7 @@ let Car$1 = class Car extends Basic3D {//extends Object3D {
 
 		this.s_travel = o.s_travel || 0.4;
 		this.s_ratio = 1 / ( this.s_travel * 0.5 );
-		this.decaly = root.engine === 'PHYSX' ? this.s_travel * 0.5 : 0;
+		this.decaly = root$1.engine === 'PHYSX' ? this.s_travel * 0.5 : 0;
 
 
 		//this.diff = math.vecSub( this.chassisPos, this.massCenter )
@@ -12716,7 +12737,7 @@ let Car$1 = class Car extends Basic3D {//extends Object3D {
 
 	    }*/
 
-	    var material = Mat$3.get( o.debug ? 'debug' : (o.chassisMesh === undefined ? 'body' : 'hide'));
+	    var material = Mat$2.get( o.debug ? 'debug' : (o.chassisMesh === undefined ? 'body' : 'hide'));
 	    //if( o.body === undefined ) material = 'move';
 
 	    let n;
@@ -12725,7 +12746,7 @@ let Car$1 = class Car extends Basic3D {//extends Object3D {
 	    	n = chassisShapes[i];
 	    	if( n.pos ) n.localPos = n.pos;
 	    	n.size = MathTool.autoSize( n.size, n.type );
-	    	root.items.body.geometry( n, this, material );
+	    	root$1.items.body.geometry( n, this, material );
 	    }
 
 	    //if( o.chassisShape ) console.log(  )
@@ -12842,7 +12863,7 @@ let Car$1 = class Car extends Basic3D {//extends Object3D {
 
 	set ( o ) {
 		o.name = this.name;
-		root.motor.change( o );
+		root$1.motor.change( o );
 	}
 
 	respawn ( o ) {
@@ -12857,7 +12878,7 @@ let Car$1 = class Car extends Basic3D {//extends Object3D {
 
 
 		//root.view.up( o );
-		root.motor.change( o );
+		root$1.motor.change( o );
 
 	}
 
@@ -12988,7 +13009,7 @@ let SkeletonBody$1 = class SkeletonBody extends Object3D {
         this.quatRef = {};
 
         this.useSolver = false; 
-        if( root.engine !== 'PHYSX' ) this.useSolver = false;
+        if( root$1.engine !== 'PHYSX' ) this.useSolver = false;
 
         this.nameList = [];
         this.jointList = [];
@@ -13017,7 +13038,7 @@ let SkeletonBody$1 = class SkeletonBody extends Object3D {
         let i = this.nodes.length;
         let m = this.mass/i;
         while( i-- ) d.push( { name:this.nodes[i].name, mass:m } );
-        root.motor.change( d );
+        root$1.motor.change( d );
 
     }
 
@@ -13041,7 +13062,7 @@ let SkeletonBody$1 = class SkeletonBody extends Object3D {
             
         }
 
-        root.motor.change( data );
+        root$1.motor.change( data );
 
     }
 
@@ -13053,7 +13074,7 @@ let SkeletonBody$1 = class SkeletonBody extends Object3D {
             node.cc = 0;
             node.kinematic = false;
             node.bone.isPhysics = true;
-            root.motor.change( { name : node.name, kinematic:false } );
+            root$1.motor.change( { name : node.name, kinematic:false } );
         }
         
     }
@@ -13075,12 +13096,12 @@ let SkeletonBody$1 = class SkeletonBody extends Object3D {
 
 	init(){
 
-        if( this.useSolver ) this.solver = root.motor.add({ 
+        if( this.useSolver ) this.solver = root$1.motor.add({ 
             type:'solver', name:this.prefix+'_solver', iteration:32,
             fix:true, needData:true
         });
 
-        this.useAggregate = root.engine === 'PHYSX';// && this.option.useAggregate
+        this.useAggregate = root$1.engine === 'PHYSX';// && this.option.useAggregate
 
 		const data = [];
         
@@ -13172,8 +13193,8 @@ let SkeletonBody$1 = class SkeletonBody extends Object3D {
                 
 
 
-                if( n==='chest' && name==='rBreast' && root.engine!=='HAVOK' ){ n='rBreast'; parent = bone; type = 'sphere'; size = [ 0.065 ]; translate = [ 0.065,0,0 ]; this.breast=true; motion = true; }
-                if( n==='chest' && name==='lBreast' && root.engine!=='HAVOK' ){ n='lBreast'; parent = bone; type = 'sphere'; size = [ 0.065 ]; translate = [ 0.065,0,0 ]; this.breast=true; motion = true; }
+                if( n==='chest' && name==='rBreast' && root$1.engine!=='HAVOK' ){ n='rBreast'; parent = bone; type = 'sphere'; size = [ 0.065 ]; translate = [ 0.065,0,0 ]; this.breast=true; motion = true; }
+                if( n==='chest' && name==='lBreast' && root$1.engine!=='HAVOK' ){ n='lBreast'; parent = bone; type = 'sphere'; size = [ 0.065 ]; translate = [ 0.065,0,0 ]; this.breast=true; motion = true; }
                 
 
                 // arm
@@ -13409,7 +13430,7 @@ let SkeletonBody$1 = class SkeletonBody extends Object3D {
 
         //console.log( data )
 
-        root.motor.add( data );
+        root$1.motor.add( data );
 
         //if( this.useSolver ) this.solver.start();
        
@@ -13431,7 +13452,7 @@ let SkeletonBody$1 = class SkeletonBody extends Object3D {
         // raideur / amortissement
         //let sp = [0.05,1]
         let sp = [0.05, 1, 0];
-        if(root.engine==='PHYSX'){
+        if(root$1.engine==='PHYSX'){
             // stiffness / damping / restitution / bounceThreshold / contactDistance
             //[0,0, 0, 0.5]
             // raideur / amortissement
@@ -13560,7 +13581,7 @@ let SkeletonBody$1 = class SkeletonBody extends Object3D {
         }
 
 
-        root.motor.add( data );
+        root$1.motor.add( data );
 
     }
 
@@ -13623,14 +13644,14 @@ let SkeletonBody$1 = class SkeletonBody extends Object3D {
 
         }
 
-        if( up.length !== 0 ) root.motor.change( up, true );
+        if( up.length !== 0 ) root$1.motor.change( up, true );
 
 	}
 
 	dispose(){
 
-        root.motor.remove( this.jointList );
-        root.motor.remove( this.nameList );
+        root$1.motor.remove( this.jointList );
+        root$1.motor.remove( this.nameList );
 
         //if( this.useAggregate ) root.motor.remove(this.prefix +'__Group')
 
@@ -38025,7 +38046,7 @@ let Hero$1 = class Hero extends Basic3D {
 		this.phyData.pos = pos;
 		this.phyData.size = size;
 
-		root.post({ m:'add', o:this.phyData });
+		root$1.post({ m:'add', o:this.phyData });
 
 	}
 
@@ -38037,7 +38058,7 @@ let Hero$1 = class Hero extends Basic3D {
 		o.pos[1] += this.height*0.5;
 		if( this.useFloating ) o.pos[1] += this.option.floatHeight;
 
-		if( this.globalRay ) root.items.body.geometry( { ...o, type:'capsule', ray:true }, this, Mat$3.get('hide') );
+		if( this.globalRay ) root$1.items.body.geometry( { ...o, type:'capsule', ray:true }, this, Mat$2.get('hide') );
 
 		this.phyData = {
 			name: this.name,
@@ -38061,14 +38082,14 @@ let Hero$1 = class Hero extends Basic3D {
 	
 
 		// add to world
-		root.items.character.addToWorld( this, o.id );
+		root$1.items.character.addToWorld( this, o.id );
 
         // add capsule to physics
         //root.post({ m:'add', o:o });
-        root.post({ m:'add', o:this.phyData });
+        root$1.post({ m:'add', o:this.phyData });
 
         // add bottom RAY
-        if( this.useFloating ) this.ray = root.motor.add({ type:'ray', name:this.name + '_ray', begin:[0,this.rayStart,0], end:[0,this.rayEnd, 0], callback:this.selfRay.bind(this), visible:false, parent:this.name });
+        if( this.useFloating ) this.ray = root$1.motor.add({ type:'ray', name:this.name + '_ray', begin:[0,this.rayStart,0], end:[0,this.rayEnd, 0], callback:this.selfRay.bind(this), visible:false, parent:this.name });
 
 
         // add skinning character model
@@ -38081,7 +38102,7 @@ let Hero$1 = class Hero extends Basic3D {
 
 	extraRemove(){
 		// TODO bug with delete ray ?!
-		if( this.ray ) root.motor.remove( this.name + '_ray' );
+		if( this.ray ) root$1.motor.remove( this.name + '_ray' );
 	}
 
 	/*clear(){
@@ -38114,7 +38135,7 @@ let Hero$1 = class Hero extends Basic3D {
 
     	if(b){
     		if(!this.helper){
-    			this.helper = new CapsuleHelper(this.radius, this.height, true, Mat$3.get('line'), [1,0.6,0], [0.6,0.2,0] );
+    			this.helper = new CapsuleHelper(this.radius, this.height, true, Mat$2.get('line'), [1,0.6,0], [0.6,0.2,0] );
     			this.helper.setDirection( this.angle ); 
 		        this.add( this.helper );
     		}
@@ -38136,7 +38157,7 @@ let Hero$1 = class Hero extends Basic3D {
     	if( !this.model ) return
     	//this.skeletonBody = new SkeletonBody( this )
         this.skeletonBody = new SkeletonBody$1( this.name, this.model.root, this.model.skeleton.bones );
-    	root.scene.add( this.skeletonBody );
+    	root$1.scene.add( this.skeletonBody );
     	this.skeletonBody.isVisible( false );
 
     }
@@ -38207,7 +38228,7 @@ let Hero$1 = class Hero extends Basic3D {
 		
 
 		if( this.model ) {
-			this.model.update( root.delta );
+			this.model.update( root$1.delta );
 			this.getDistanceToCamera();
 		}
 
@@ -38218,7 +38239,7 @@ let Hero$1 = class Hero extends Basic3D {
 
 			this.getFloating();
 
-	    	root.motor.change({
+	    	root$1.motor.change({
 
 			    name:this.name,
 			    impulse: this.v.moveImpulse.toArray(), 
@@ -38242,9 +38263,9 @@ let Hero$1 = class Hero extends Basic3D {
 		if( !this.model ) return
 		if( !this.model.haveLOD ) return
 
-		const camera = root.motor.getCamera();
+		const camera = root$1.motor.getCamera();
 		//this.tmpV1.setFromMatrixPosition( camera.matrixWorld );
-		this.tmpV1.copy( root.motor.getCurrentCharacterPosition() );
+		this.tmpV1.copy( root$1.motor.getCurrentCharacterPosition() );
 		this.tmpV2.copy( this.position );//setFromMatrixPosition( this.matrixWorld );
 		const distance = this.tmpV1.distanceTo( this.tmpV2 ) / camera.zoom;
 
@@ -38310,8 +38331,8 @@ let Hero$1 = class Hero extends Basic3D {
 
 		const v = this.v;
 		const o = this.option;
-		const key = root.motor.getKey();
-		root.motor.getAzimut();
+		const key = root$1.motor.getKey();
+		root$1.motor.getAzimut();
 
 		
 		
@@ -38441,7 +38462,7 @@ let Hero$1 = class Hero extends Basic3D {
 
 		if(this.tmpV1.x + this.tmpV1.z === 0 ) return;
 
-		root.motor.change({
+		root$1.motor.change({
 
 		    name:this.name,
 		    //force: this.tmpV1.toArray(), forceMode:'velocity', 
@@ -38459,9 +38480,9 @@ let Hero$1 = class Hero extends Basic3D {
 
 		this.v;
 
-		const key = root.motor.getKey();
-		const azimut = root.motor.getAzimut();
-		const delta = root.delta;
+		const key = root$1.motor.getKey();
+		const azimut = root$1.motor.getAzimut();
+		const delta = root$1.delta;
 		
 		// 1°/ find the good animation
 
@@ -38516,7 +38537,7 @@ let Hero$1 = class Hero extends Basic3D {
 
 	        if( this.useFloating ) this.getFloating();
 
-	    	root.motor.change({
+	    	root$1.motor.change({
 
 			    name:this.name,
 			    impulse: this.v.moveImpulse.toArray(), 
@@ -38560,7 +38581,7 @@ let Hero$1 = class Hero extends Basic3D {
 		    //math.tmpV2.set( 0, rs, 0 );
 		    this.tmpV2.set( 0, 0, 0 );
 
-	    	root.motor.change({
+	    	root$1.motor.change({
 
 			    name:this.name,
 			    //force: this.tmpV1.toArray(), forceMode:'velocity', 
@@ -38665,8 +38686,8 @@ let Character$1 = class Character extends Item {
 
 	step () {
 
-		const AR = root.Ar;
-		const N = root.ArPos[this.type];
+		const AR = root$1.Ar;
+		const N = root$1.ArPos[this.type];
 		let i = this.list.length, n, s;
 
 		while( i-- ){
@@ -40225,8 +40246,8 @@ let Terrain$1 = class Terrain extends Item {
 
 	step () {
 
-		root.Ar;
-		root.ArPos[this.type];
+		root$1.Ar;
+		root$1.ArPos[this.type];
 
 		let i = this.list.length, s;
 
@@ -40244,34 +40265,34 @@ let Terrain$1 = class Terrain extends Item {
 
 		this.setName( o );
 
-		if( root.engine === 'JOLT' ){
+		if( root$1.engine === 'JOLT' ){
 			o.isAbsolute = true;
 			o.isTurned = false;
 		}
 
-		if( root.engine === 'PHYSX' ){
+		if( root$1.engine === 'PHYSX' ){
 			o.isAbsolute = true;
 			o.isTurned = true;
 		}
 
-		if( root.engine === 'HAVOK'){
+		if( root$1.engine === 'HAVOK'){
 			o.isAbsolute = true;
 			o.isTurned = true;
 			o.isReverse = false;
 		}
 
-		if( root.engine !== 'OIMO'){
+		if( root$1.engine !== 'OIMO'){
 			o.zone = o.zone || 0.25;
 			//o.debuger = true
 		}
 
 		const t = new Landscape( o );
 
-		Mat$3.extendShader( t.material, t.material.onBeforeCompile );
+		Mat$2.extendShader( t.material, t.material.onBeforeCompile );
 
 		t.physicsUpdate = ( name, h ) =>{
 
-			root.flow.tmp.push( { name:name, heightData:h } );
+			root$1.flow.tmp.push( { name:name, heightData:h } );
 			//root.post({m:'change', o:{ name:'terra', heightData:h }})
 		};
 
@@ -40279,7 +40300,7 @@ let Terrain$1 = class Terrain extends Item {
 		this.addToWorld( t, o.id );
 
         // add to physics
-        root.post({ m:'add', o:toPhysics$1(t) });
+        root$1.post({ m:'add', o:toPhysics$1(t) });
 
 		return t
 
@@ -40302,10 +40323,10 @@ const toPhysics$1 = function( t ) {
 		name:t.name,
 		type:t.type,
 		pos:t.position.toArray(),
-		quat:root.engine === 'PHYSX' ? [0,0,0,1]:t.quaternion.toArray(), // physx terrain can't turn !!
+		quat:root$1.engine === 'PHYSX' ? [0,0,0,1]:t.quaternion.toArray(), // physx terrain can't turn !!
 	};
 
-	if( root.engine === 'PHYSX' || root.engine === 'AMMO' || root.engine === 'HAVOK' || root.engine === 'JOLT'){
+	if( root$1.engine === 'PHYSX' || root$1.engine === 'AMMO' || root$1.engine === 'HAVOK' || root$1.engine === 'JOLT'){
 		o.type = 'terrain';
 		o.size = t.sizeZ;
 		o.sample = t.sampleZ;
@@ -40313,8 +40334,8 @@ const toPhysics$1 = function( t ) {
 		o.heightData = t.heightData;
 	} else {
 		o.type = 'mesh';
-		o.v = MathTool.getVertex( t.geometry, root.engine === 'OIMO' );
-		o.index = root.engine === 'OIMO' ? null : MathTool.getIndex( t.geometry );
+		o.v = MathTool.getVertex( t.geometry, root$1.engine === 'OIMO' );
+		o.index = root$1.engine === 'OIMO' ? null : MathTool.getIndex( t.geometry );
 	}
 
 	return o
@@ -40334,8 +40355,8 @@ let Solver$1 = class Solver extends Item {
 
 	step () {
 
-		const AR = root.Ar;
-		const N = root.ArPos[this.type];
+		const AR = root$1.Ar;
+		const N = root$1.ArPos[this.type];
 
 		let i = this.list.length, n;
 
@@ -40360,7 +40381,7 @@ let Solver$1 = class Solver extends Item {
 		this.addToWorld( solver, o.id );
 
         // add to worker
-        root.post({ m:'add', o:o });
+        root$1.post({ m:'add', o:o });
 
         return solver;
 
@@ -40399,7 +40420,7 @@ let Articulation$1 = class Articulation {//extends Basic3D
 
 	dispose(){
 
-		root.motor.remove( this.bones, true );
+		root$1.motor.remove( this.bones, true );
 		
 	}
 
@@ -40435,19 +40456,19 @@ let Articulation$1 = class Articulation {//extends Basic3D
 
 	start (){
 
-		root.post({ m:'startArticulation', o:{ name:this.name } });
+		root$1.post({ m:'startArticulation', o:{ name:this.name } });
 
 	}
 
 	stop (){
 
-		root.post({ m:'stopArticulation', o:{ name:this.name } });
+		root$1.post({ m:'stopArticulation', o:{ name:this.name } });
 
 	}
 
 	commonInit (){
 
-		root.post({ m:'commonInitArticulation', o:{ name:this.name } });
+		root$1.post({ m:'commonInitArticulation', o:{ name:this.name } });
 
 	}
 
@@ -40465,7 +40486,7 @@ let Articulation$1 = class Articulation {//extends Basic3D
 			this.joints.push( new SolverJoint$1( o, this ) );
 		}
 
-		root.post({ m:'addSolverJoint', o:o });
+		root$1.post({ m:'addSolverJoint', o:o });
 
 	}
 
@@ -40494,7 +40515,7 @@ let Articulation$1 = class Articulation {//extends Basic3D
 		}
 
 		// update or die
-		if( isInDrive ) root.motor.change( nup );
+		if( isInDrive ) root$1.motor.change( nup );
 		else {
 			if(this.resolve){
 				this.resolve();
@@ -40809,7 +40830,7 @@ let Button$1 = class Button {
 		this.timeout = null;
 
 		// add model & physics
-		this.b = root.motor.add( o );
+		this.b = root$1.motor.add( o );
 
 		this.b.userData['action'] = this.action.bind(this);
 		this.b.userData['out'] = this.out.bind(this);
@@ -40839,7 +40860,7 @@ let Button$1 = class Button {
 
 		this.down = true;
 	    this.target = this.range[0];
-	    if(this.extraForce) root.motor.explosion( p || this.p, this.size[0]*2, 0.01 );
+	    if(this.extraForce) root$1.motor.explosion( p || this.p, this.size[0]*2, 0.01 );
 		this.callback();
 
 	}
@@ -40850,7 +40871,7 @@ let Button$1 = class Button {
 
 		this.down = false;
 	    this.target = this.range[1];
-	    if(this.extraForce) root.motor.explosion( this.p, this.size[0]*2, 0.01 );
+	    if(this.extraForce) root$1.motor.explosion( this.p, this.size[0]*2, 0.01 );
 
 	}
 
@@ -40868,7 +40889,7 @@ let Button$1 = class Button {
 
 			if(!t){
 			    this.pos[this.axe] = this.value;
-			    root.motor.change( {name:this.b.name, pos:this.pos} );
+			    root$1.motor.change( {name:this.b.name, pos:this.pos} );
 			} else {
 				this.value = this.target;
 			}
@@ -41082,14 +41103,14 @@ let Container$1 = class Container {
 					}
 				}
 			}
-			root.motor.add({
+			root$1.motor.add({
 				...o,
 				mesh:mesh,
 				shapes:faces,
 		        type:'compound',
 		    });
 		} else {
-			root.motor.add( faces );
+			root$1.motor.add( faces );
 		}
 		
 	}
@@ -41174,13 +41195,13 @@ let MouseTool$1 = class MouseTool {
 		//this.overLock = true;
 
 		this.helper = new MoveHelper$1();
-		this.dragPlane = new Mesh( new PlaneGeometry( 1, 1 ), Mat$3.get('hide') );
+		this.dragPlane = new Mesh( new PlaneGeometry( 1, 1 ), Mat$2.get('hide') );
 	    this.dragPlane.castShadow = false;
 	    this.dragPlane.receiveShadow = false;
 	    this.dragPlane.scale.set( 1, 1, 1 ).multiplyScalar( 200 );
 
-	    root.scenePlus.add( this.helper );
-	    root.scenePlus.add( this.dragPlane );
+	    root$1.scenePlus.add( this.helper );
+	    root$1.scenePlus.add( this.dragPlane );
 
 	}
 
@@ -41190,8 +41211,8 @@ let MouseTool$1 = class MouseTool {
 
 		//this.overLock = false;
 
-		root.scenePlus.remove( this.dragPlane );
-		root.scenePlus.remove( this.helper );
+		root$1.scenePlus.remove( this.dragPlane );
+		root$1.scenePlus.remove( this.helper );
 
 		this.dragPlane.geometry.dispose();
 		this.helper.geometry.dispose();
@@ -41207,7 +41228,7 @@ let MouseTool$1 = class MouseTool {
     	this.mode = mode;
         this.option = o;
 
-        if( this.mode === 'blast' && this.option.visible ) root.motor.initParticle();
+        if( this.mode === 'blast' && this.option.visible ) root$1.motor.initParticle();
 
     }
 
@@ -41275,9 +41296,9 @@ let MouseTool$1 = class MouseTool {
 
 	getMouse ( e ) {
 
-		if(root.viewSize){
-			this.mouse.x =   ( e.offsetX / root.viewSize.w ) * 2 - 1;
-		    this.mouse.y = - ( e.offsetY / root.viewSize.h ) * 2 + 1;
+		if(root$1.viewSize){
+			this.mouse.x =   ( e.offsetX / root$1.viewSize.w ) * 2 - 1;
+		    this.mouse.y = - ( e.offsetY / root$1.viewSize.h ) * 2 + 1;
 		} else {
 			this.mouse.x =   ( e.offsetX / this.dom.clientWidth ) * 2 - 1;
 			this.mouse.y = - ( e.offsetY / this.dom.clientHeight ) * 2 + 1;
@@ -41334,7 +41355,7 @@ let MouseTool$1 = class MouseTool {
 		this.mouseMove = this.oldMouse.distanceTo( this.mouse ) < 0.01 ? false : true;
 		this.mouseDown = false;
 		this.mouseDown2 = false;
-		root.mouseDown = false;
+		root$1.mouseDown = false;
 
 
 
@@ -41386,7 +41407,7 @@ let MouseTool$1 = class MouseTool {
 
 			this.raycast.setFromCamera( this.mouse, this.controler.object );
 
-			inters = this.raycast.intersectObjects( root.scene.children, true );
+			inters = this.raycast.intersectObjects( root$1.scene.children, true );
 
 			this.tmpSelected = null;
 
@@ -41399,12 +41420,12 @@ let MouseTool$1 = class MouseTool {
 
 				if( id !== undefined ){
 					// is instance mesh
-					m = root.motor.byName( g.getByName( id ) );
+					m = root$1.motor.byName( g.getByName( id ) );
 					//m = root.motor.byName( g.name+id );
 				} else {
-					if( g.parent !== root.scene ){
+					if( g.parent !== root$1.scene ){
 						h = g.parent;
-						if( h.parent !== root.scene ) m = h.parent;
+						if( h.parent !== root$1.scene ) m = h.parent;
 						else m = h;
 					} else m = g;
 				}
@@ -41460,7 +41481,7 @@ let MouseTool$1 = class MouseTool {
 
 	    //if( this.button === 0 ){
 		    this.mouseDown = true;
-		    root.mouseDown = true;
+		    root$1.mouseDown = true;
 		    this.needRay = true;
 
 		    //if(this.tmpSelected!== null) this.select(this.tmpSelected, this.tmpPoint )
@@ -41475,7 +41496,7 @@ let MouseTool$1 = class MouseTool {
 
 		let hit = null;
 		this.raycast.setFromCamera( this.mouse, this.controler.object );
-		let inters = this.raycast.intersectObjects( root.scene.children, true );
+		let inters = this.raycast.intersectObjects( root$1.scene.children, true );
 
 		if ( inters.length > 0 ) {
 
@@ -41483,7 +41504,7 @@ let MouseTool$1 = class MouseTool {
 			else inters[ 0 ].object.parent.userData.direct();
 				
 		} else {
-			inters = this.raycast.intersectObjects( root.scenePlus.children, true );
+			inters = this.raycast.intersectObjects( root$1.scenePlus.children, true );
 			if ( inters.length > 0 ) hit = inters[ 0 ];
 		}
 
@@ -41491,9 +41512,9 @@ let MouseTool$1 = class MouseTool {
 
 		if(hit){ 
 
-			root.motor.explosion( hit.point, o.radius || 3, o.power || 0.1 );
+			root$1.motor.explosion( hit.point, o.radius || 3, o.power || 0.1 );
 
-			if( o.visible ) root.motor.addParticle({
+			if( o.visible ) root$1.motor.addParticle({
 				name:'blast',
 				type:"cube",
 				position:hit.point.toArray(),
@@ -41527,7 +41548,7 @@ let MouseTool$1 = class MouseTool {
 		this.pos.copy( this.raycast.ray.direction ).add(  this.raycast.ray.origin );
 		this.velocity.copy( this.raycast.ray.direction ).multiplyScalar( 60 );
 
-		root.motor.add({
+		root$1.motor.add({
 			name: 'bullet_' + this.numBullet,
 			type:'sphere',
 			density:20,
@@ -41681,7 +41702,7 @@ let MouseTool$1 = class MouseTool {
 
 	    let revert = false;
 
-	    root.motor.change({ name: this.selected.name, neverSleep:true, wake:true });
+	    root$1.motor.change({ name: this.selected.name, neverSleep:true, wake:true });
 		//Motor.add({ name:'mouse', type:'sphere', size:[0.01], pos:p, quat:quat, mask:0, density:0, noGravity:true, kinematic:true, flags:'noCollision' })
 		//root.motor.add({ name:'mouse', type:'null', pos:p, quat:quat })
 
@@ -41692,21 +41713,21 @@ let MouseTool$1 = class MouseTool {
 		//let defr = [-3, 3, 60, 2]
 
 		if( this.moveDirect ){
-			root.motor.change({ name:this.selected.name, kinematic:false, gravity:false, damping:[0.9,0.9]  });
+			root$1.motor.change({ name:this.selected.name, kinematic:false, gravity:false, damping:[0.9,0.9]  });
 		} else {
 			let def = [-0.1, 0.1, 600, 1];
 			let defr = [-0.1, 0.1, 600, 1];
 			//let defr = [0, 0]
-			let notUseKinematic = root.engine === 'OIMO' || root.engine ==='RAPIER' || root.engine ==='JOLT';//|| root.engine ==='HAVOK'
+			let notUseKinematic = root$1.engine === 'OIMO' || root$1.engine ==='RAPIER' || root$1.engine ==='JOLT';//|| root.engine ==='HAVOK'
 			let jtype = this.selected.link === 0 ? 'fixe' : 'd6';//root.engine === 'HAVOK' ? 'fixe' : 'd6';
 
-			if( root.engine === 'JOLT' ) jtype = 'fixe';
+			if( root$1.engine === 'JOLT' ) jtype = 'fixe';
 
 			let limite = [['x',...def], ['y',...def], ['z',...def], ['rx',...defr], ['ry',...defr], ['rz',...defr]];
 
-			if( root.engine === 'HAVOK' ) limite = [ ['x',...def], ['y',...def], ['z',...def] ];
+			if( root$1.engine === 'HAVOK' ) limite = [ ['x',...def], ['y',...def], ['z',...def] ];
 
-			if( root.engine === 'OIMO' ){
+			if( root$1.engine === 'OIMO' ){
 				revert = true;
 				jtype = this.selected.link === 0 ? 'fixe' : 'spherical';
 				limite = [ ['x',...def], ['y',...def], ['z',...def] ];
@@ -41714,7 +41735,7 @@ let MouseTool$1 = class MouseTool {
 				//limite = [ 4.0, 1.0 ]
 			}
 
-			if( root.engine === 'HAVOK' ){
+			if( root$1.engine === 'HAVOK' ){
 				revert = true;
 				jtype = this.selected.link === 0 ? 'fixe' : 'spherical';
 				limite = [ -180, 180, 0.1, 0.1 ];
@@ -41722,7 +41743,7 @@ let MouseTool$1 = class MouseTool {
 
 			//console.log(jtype)
 
-			root.motor.add([
+			root$1.motor.add([
 				{ 
 					name:'mouse', 
 					type:'null', 
@@ -41789,9 +41810,9 @@ let MouseTool$1 = class MouseTool {
 		let pos = this.tmpPos.toArray();
 
 		if( this.moveDirect ){ 
-			root.motor.change({ name:this.selected.name, pos:pos, reset:true });
+			root$1.motor.change({ name:this.selected.name, pos:pos, reset:true });
 		} else {
-			root.motor.change({ name:'mouse', pos:point.toArray(), lockPos:true }, true );
+			root$1.motor.change({ name:'mouse', pos:point.toArray(), lockPos:true }, true );
 		}
 	}
 
@@ -41803,10 +41824,10 @@ let MouseTool$1 = class MouseTool {
 		this.clearDrag();
 
 		if( this.moveDirect ){
-			root.motor.change({ name:this.selected.name, kinematic:false, wake:true, gravity:true, damping:[0,0.1] });
+			root$1.motor.change({ name:this.selected.name, kinematic:false, wake:true, gravity:true, damping:[0,0.1] });
 		} else {
-			root.motor.remove(['mouseJoint','mouse']);
-			root.motor.change({ name:this.selected.name, neverSleep:false, wake:true });
+			root$1.motor.remove(['mouseJoint','mouse']);
+			root$1.motor.change({ name:this.selected.name, neverSleep:false, wake:true });
 		}
 		
 		this.raycastTest = true;
@@ -41824,7 +41845,7 @@ let MouseTool$1 = class MouseTool {
 
 		if( this.selected === null ) return
 
-		let key = root.flow.key;
+		let key = root$1.flow.key;
 
 
 		if( key[1] !== 0 ){
@@ -41854,7 +41875,7 @@ let MoveHelper$1 = class MoveHelper extends Line {
 
 	constructor( o = {} ) {
 
-		super( new BufferGeometry(), Mat$3.get('line') );
+		super( new BufferGeometry(), Mat$2.get('line') );
 
 		let c = 0.75;
 
@@ -42465,9 +42486,9 @@ let Breaker$1 = class Breaker {
 
 		let p;
 
-		for( let n in root.reflow.point ){
+		for( let n in root$1.reflow.point ){
 
-			p = root.reflow.point[n];
+			p = root$1.reflow.point[n];
 
 			//if ( !b1.breakable && !b2.breakable ) continue;
 
@@ -42529,8 +42550,8 @@ let Breaker$1 = class Breaker {
         // remove original object and add debrit
         //root.motor.remove( name, true )
         this.tt = setTimeout( ()=>{
-        	root.motor.remove( name );
-		    root.motor.add( list );
+        	root$1.motor.remove( name );
+		    root$1.motor.add( list );
         }, 0 );
 		
 
@@ -42606,7 +42627,7 @@ let Particle$1 = class Particle {
 
 	add( pos ){
 
-		let p = root.motor.add({ 
+		let p = root$1.motor.add({ 
 
             instance:this.name,
             type:'particle', 
@@ -42695,7 +42716,7 @@ let Particle$1 = class Particle {
 		    if(n===2)n=0*/
 		}
 
-		root.motor.add(tmp);
+		root$1.motor.add(tmp);
 
 	}
 
@@ -42883,7 +42904,7 @@ let Particle$1 = class Particle {
             
 	    }
 
-	    root.motor.change(TMP);
+	    root$1.motor.change(TMP);
 
 
 
@@ -42979,7 +43000,7 @@ let RayCar$1 = class RayCar {
             shape = [ { type:'convex', shape:o.shapeMesh.geometry,  pos:o.shapePos || [0,0,0] } ];
         }
 
-        this.body = root.motor.add({ 
+        this.body = root$1.motor.add({ 
 
             type:'compound',
             shapes:shape,
@@ -43061,7 +43082,7 @@ let RayCar$1 = class RayCar {
         let wgeo;
         let m1, m2;
 
-        let mat = root.motor.getMat('debug');
+        let mat = root$1.motor.getMat('debug');
 
         if( o.wheelMesh ){
 
@@ -43101,10 +43122,10 @@ let RayCar$1 = class RayCar {
             m.matrixAutoUpdate = false;
             if(m2) m2.matrixAutoUpdate = false;
             this.vehicle.wheelMeshes = [
-                root.motor.add(m2? m2 : m.clone()),
-                root.motor.add(m),
-                root.motor.add(m2? m2.clone() : m.clone()),
-                root.motor.add(m.clone())
+                root$1.motor.add(m2? m2 : m.clone()),
+                root$1.motor.add(m),
+                root$1.motor.add(m2? m2.clone() : m.clone()),
+                root$1.motor.add(m.clone())
             ];
         }
 
@@ -43118,9 +43139,9 @@ let RayCar$1 = class RayCar {
 	    this.tmp.brakeForce = 0;
 	    this.tmp.steerDirection = 0;
 
-	    let delta = root.motor.getDelta();
-	    root.motor.getAzimut();
-	    let key = root.motor.getKey();
+	    let delta = root$1.motor.getDelta();
+	    root$1.motor.getAzimut();
+	    let key = root$1.motor.getKey();
 
 	    this.tmp.forwardForce = key[1];
 	    this.tmp.steerDirection = key[0]*-1;
@@ -43223,7 +43244,7 @@ let RaycastVehicle$1 = class RaycastVehicle {
 
         let raylen = info.suspensionRestLength + info.radius;
         
-        info.ray = root.motor.add({
+        info.ray = root$1.motor.add({
             type:'ray', 
             name:this.chassisBody.name + '_wheel_' + index, 
             begin:info.chassisConnectionPointLocal.toArray(), 
@@ -43799,7 +43820,7 @@ let WheelInfo$1 = class WheelInfo {
             let hitDistance = r.distance;
             this.raycastResult.hitPointWorld.fromArray( r.point );
             this.raycastResult.hitNormalWorld.fromArray( r.normal );
-            this.raycastResult.body = root.motor.byName( r.body );
+            this.raycastResult.body = root$1.motor.byName( r.body );
 
             this.suspensionLength = hitDistance - this.radius;
             // clamp on max suspension travel
@@ -43922,7 +43943,7 @@ const addImpulseAt$1 = ( body, impulse, point ) => {
     //point = body.localToWorld( point )
     //root.motor.change({ name:body.name, worldForce
     //console.log({ name:body.name, impulse:impulse.toArray(), impulseCenter:point.toArray() })
-    root.motor.change({ name:body.name, impulse:impulse.toArray(), impulseCenter:point.toArray() });
+    root$1.motor.change({ name:body.name, impulse:impulse.toArray(), impulseCenter:point.toArray() });
 };
 
 const velocityAt$1 = (body, pos, res) => {
@@ -45700,7 +45721,7 @@ let AutoRagdoll$1 = class AutoRagdoll {
         */
 
 		model.add( this.skeletonBody );
-		root.scene.add( model );
+		root$1.scene.add( model );
 
 		this.model = model;
 
@@ -45998,7 +46019,7 @@ const Version$1 = {
 	
 	PHY: '0.2.9',
 
-    PHYSX: '5.05.10',
+    PHYSX: '5.06.00',
     HAVOK: '1.2.1',
     JOLT: '0.33.0',
 
@@ -46083,18 +46104,18 @@ class Motor {
     static set onStep( f ) { postUpdate = f; }
 
 	static debugMode ( b ) { Motor.setDebugMode(b); }
-	static setDebugMode ( b ) { root.debug = b; }
+	static setDebugMode ( b ) { root$1.debug = b; }
 
-	static useRealLight (o) { Mat$3.useRealLight(o); }
+	static useRealLight (o) { Mat$2.useRealLight(o); }
 
 	static getSetting () { return settings; }
 
-	static getRoot () { return root; }
+	static getRoot () { return root$1; }
 
 	static setGravity ( v ) {
 
 		if(v) settings.gravity = v;
-		root.post({ m:'setGravity', o:{ gravity:settings.gravity } });
+		root$1.post({ m:'setGravity', o:{ gravity:settings.gravity } });
 
 	}
 
@@ -46117,18 +46138,18 @@ class Motor {
 
 		//console.log( isTimeout, isWorker, outsideStep )
 
-	    root.jointVisible = o.jointVisible || false;
+	    root$1.jointVisible = o.jointVisible || false;
 
 		if( outsideStep ) timer.setFramerate( settings.fps );
 
 		const data = {
 			...settings,
-			ArPos:root.ArPos,
+			ArPos:root$1.ArPos,
 			isTimeout:isTimeout,
 			outsideStep:outsideStep,
 		};
 
-		root.post({ m:'set', o:data });
+		root$1.post({ m:'set', o:data });
 
 	}
 
@@ -46173,8 +46194,8 @@ class Motor {
 
 		if( isAdd ) return;
 		scene = Scene;
-		scene.add( root.scene );
-		scene.add( root.scenePlus );
+		scene.add( root$1.scene );
+		scene.add( root$1.scenePlus );
 		isAdd = true;
 
 	}
@@ -46182,10 +46203,10 @@ class Motor {
 	static message = ( m ) => {
 
 		let e = m.data;
-		if( e.Ar ) root.Ar = e.Ar;
+		if( e.Ar ) root$1.Ar = e.Ar;
 		if( e.reflow ){
-			root.reflow = e.reflow;
-			if(root.reflow.stat.delta) elapsedTime += root.reflow.stat.delta;
+			root$1.reflow = e.reflow;
+			if(root$1.reflow.stat.delta) elapsedTime += root$1.reflow.stat.delta;
 		}
 	
 		Motor[ e.m ]( e.o );
@@ -46211,8 +46232,8 @@ class Motor {
 		    if( direct ){
 		    	worker.postMessage( e, buffer );
 		    } else {
-		    	if( e.m === 'add' ) root.flow.add.push( e.o );
-		    	else if ( e.m === 'remove' ) root.flow.remove.push( e.o );
+		    	if( e.m === 'add' ) root$1.flow.add.push( e.o );
+		    	else if ( e.m === 'remove' ) root$1.flow.remove.push( e.o );
 		    	else worker.postMessage( e, buffer );
 		    }
 		}
@@ -46224,7 +46245,7 @@ class Motor {
 
 	static autoRagdoll = ( o ) => ( new AutoRagdoll$1( o ) );
 	static byName = ( name ) => ( Utils$1.byName( name ) );
-	static getScene = () => ( root.scene );
+	static getScene = () => ( root$1.scene );
 
 	//static autoRagdoll ( o ) { return new AutoRagdoll( o ); }
 	//static getScene () { return root.scene; }
@@ -46232,7 +46253,7 @@ class Motor {
 
 	static makeView () {}
 
-	static resize ( size ) { root.viewSize = size; }
+	static resize ( size ) { root$1.viewSize = size; }
 
 	static init ( o = {} ) {
 
@@ -46258,15 +46279,15 @@ class Motor {
 
 		//let isFirefox = navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
 
-		root.engine = type;
+		root$1.engine = type;
 
 		Motor.initItems();
 
 		// garbage material
-		Pool.materialRoot = Mat$3.set;
+		Pool.materialRoot = Mat$2.set;
 
 		// extand shader
-		Mat$3.initExtandShader();
+		Mat$2.initExtandShader();
 
 		if( o.callback ){ 
 			callbackReady = o.callback;
@@ -46275,10 +46296,10 @@ class Motor {
 
 		isWorker = o.worker || false;
 
-		root.scene = new Group();
-		root.scene.name = 'phy_scene';
-		root.scenePlus = new Group();
-		root.scenePlus.name = 'phy_scenePlus';
+		root$1.scene = new Group();
+		root$1.scene.name = 'phy_scene';
+		root$1.scenePlus = new Group();
+		root$1.scenePlus.name = 'phy_scenePlus';
 
 		if( o.scene ){ 
 			Motor.setContent( o.scene );
@@ -46292,8 +46313,8 @@ class Motor {
 
 		envmapUrl = o.envmap || '';
 
-		root.post = Motor.post;
-		root.motor = Motor;
+		root$1.post = Motor.post;
+		root$1.motor = Motor;
 
 		if( compact ){
 
@@ -46337,7 +46358,7 @@ class Motor {
 
 	static onCompactDone ( o ) {
 
-		let name = root.engine.toLowerCase();
+		let name = root$1.engine.toLowerCase();
 		let mini = name.charAt(0).toUpperCase() + name.slice(1);
 		let code = Pool.get( mini, 'H' );
 
@@ -46455,7 +46476,7 @@ class Motor {
 
 		//tt.start = Timer.now();
 	
-	    root.post({ m:'init', o:o });
+	    root$1.post({ m:'init', o:o });
 	    engineReady = true;
 
 	}
@@ -46490,13 +46511,13 @@ class Motor {
 		isPause = v;
 		if( isPause ) Motor.pausetimout();
 		else Motor.playtimout();
-		root.post({ m:'pause', o:{ value:isPause } });
+		root$1.post({ m:'pause', o:{ value:isPause } });
 
 	}
 
 	static flowReset ( ) {
 
-		root.flow = { 
+		root$1.flow = { 
 			stamp:0,
 			current:'',
 			key:[],
@@ -46545,28 +46566,28 @@ class Motor {
 		Geo$2.dispose();
 
 	    // clear temporary material
-	    Mat$3.dispose();
+	    Mat$2.dispose();
 
 	    // clear temporary mesh
-		root.disposeTmp();
+		root$1.disposeTmp();
 
-		root.garbage = [];
+		root$1.garbage = [];
 
 		if( breaker !== null ) breaker = null;
 			
-		root.tmpTex = [];
-	    root.scenePlus.children = [];
-	    root.scene.children = [];
+		root$1.tmpTex = [];
+	    root$1.scenePlus.children = [];
+	    root$1.scene.children = [];
 
-		root.post({ m:'reset' });
+		root$1.post({ m:'reset' });
 
 	}
 
 	static clearGarbage () {
 
-		Motor.remove(root.garbage);
+		Motor.remove(root$1.garbage);
 		Motor.clearInstance();
-		root.garbage = [];
+		root$1.garbage = [];
 		
 	}
 
@@ -46592,8 +46613,8 @@ class Motor {
 			}
 
 			if( isAdd ){
-				root.scene.parent.remove( root.scene );
-				root.scenePlus.parent.remove( root.scenePlus );
+				root$1.scene.parent.remove( root$1.scene );
+				root$1.scenePlus.parent.remove( root$1.scenePlus );
 				isAdd = false;
 			}
 
@@ -46606,7 +46627,7 @@ class Motor {
 		tt.end = Timer$1.now();
 		tt.startTime = Timer$1.format_time( tt.end - tt.start );
 
-		console.log( '%c'+root.engine + ' %c' + Version$1[root.engine] +'%c | '+ ( isWorker?'Worker': 'Direct') +' '+ tt.startTime, 
+		console.log( '%c'+root$1.engine + ' %c' + Version$1[root$1.engine] +'%c | '+ ( isWorker?'Worker': 'Direct') +' '+ tt.startTime, 
 			"font-size:16px", 
 			"font-size:12px", 
 			"font-size:12px" 
@@ -46615,13 +46636,13 @@ class Motor {
 
 	}
 
-	static start ( o = {} ){ root.post({ m:'start', o:o }); }
+	static start ( o = {} ){ root$1.post({ m:'start', o:o }); }
 
 	static morph ( obj, name, value ){ Utils$1.morph( obj, name, value ); }
 
-	static getFps (){ return root.reflow.stat.fps }
+	static getFps (){ return root$1.reflow.stat.fps }
 	
-	static getDelta2(){ return root.delta/*root.reflow.stat.delta*/ }
+	static getDelta2(){ return root$1.delta/*root.reflow.stat.delta*/ }
 	static getElapsedTime2(){ return elapsedTime }
 
 	static setDelta(v){ timer.delta = v; }
@@ -46633,7 +46654,7 @@ class Motor {
 		if( !engineReady ) return;
 		if( !outsideStep ) return;
 		if( timer.up( stamp ) ) {
-			root.post( { m:'step', o:stamp } );
+			root$1.post( { m:'step', o:stamp } );
 		}
 
 	}
@@ -46641,10 +46662,10 @@ class Motor {
 	static step (){
 
 		// time of physic engine step
-		root.delta = root.reflow.stat.delta;
+		root$1.delta = root$1.reflow.stat.delta;
         // user key interaction
-		root.flow.key = user.update();
-		root.flow.current = currentControle !== null ? currentControle.name : '';
+		root$1.flow.key = user.update();
+		root$1.flow.current = currentControle !== null ? currentControle.name : '';
         //prevUpdate( timer.delta )
 
 		Motor.stepItems();
@@ -46662,18 +46683,18 @@ class Motor {
 		//postUpdate( root.reflow.stat.delta )
 		//postUpdate( timer.delta );
 		//postUpdate( root.delta )
-		let dd = outsideStep ? timer.delta : root.delta;
+		let dd = outsideStep ? timer.delta : root$1.delta;
 
 		postUpdate( dd );
 
 		//items.character.prestep()
 
 		// update static object for this side !
-		Motor.changes( root.flow.tmp );
+		Motor.changes( root$1.flow.tmp );
 
 		// finally post flow change to physx
-		if( isBuffer ) root.post( { m:'poststep', flow:root.flow, Ar:root.Ar }, [ root.Ar.buffer ] );
-		else root.post( { m:'poststep', flow:root.flow });
+		if( isBuffer ) root$1.post( { m:'poststep', flow:root$1.flow, Ar:root$1.Ar }, [ root$1.Ar.buffer ] );
+		else root$1.post( { m:'poststep', flow:root$1.flow });
 
 		//	Motor.stepItems()
 		Motor.flowReset();
@@ -46685,7 +46706,7 @@ class Motor {
 	static initArray ( full = false ) {
 
 	    // dynamics array
-		root.ArPos = getArray( root.engine, full );
+		root$1.ArPos = getArray( root$1.engine, full );
 
 	}
 
@@ -46736,14 +46757,14 @@ class Motor {
 		items['character'] = new Character$1();
 
 		// vehicle only on physx and ammo
-		if( root.engine === 'PHYSX' || root.engine === 'AMMO' ){ 
+		if( root$1.engine === 'PHYSX' || root$1.engine === 'AMMO' ){ 
 			items['vehicle'] = new Vehicle$1();
 		}
 
 		// solver is only on physx
-		if( root.engine === 'PHYSX' ) items['solver'] = new Solver$1();
+		if( root$1.engine === 'PHYSX' ) items['solver'] = new Solver$1();
 		
-		root.items = items;
+		root$1.items = items;
 
 	}
 
@@ -46772,14 +46793,14 @@ class Motor {
 
 	static upInstance() {
 
-    	Object.values( root.instanceMesh ).forEach( value => value.update() );
+    	Object.values( root$1.instanceMesh ).forEach( value => value.update() );
 
     }
 
 	static clearInstance() {
 
-    	Object.values( root.instanceMesh ).forEach( value => value.dispose() );
-    	root.instanceMesh = {};
+    	Object.values( root$1.instanceMesh ).forEach( value => value.dispose() );
+    	root$1.instanceMesh = {};
 
 	}
 
@@ -46813,15 +46834,15 @@ class Motor {
 		}
 
 		let m = items[type].add( o );
-		root.garbage.push( m.name );
+		root$1.garbage.push( m.name );
 		return m;
 
 	}
 
 	static addDirect( b ) {
 
-		root.scenePlus.add( b );
-		root.tmpMesh.push( b );
+		root$1.scenePlus.add( b );
+		root$1.tmpMesh.push( b );
 		return b;
 
 	}
@@ -46844,7 +46865,7 @@ class Motor {
 
 		let b = Motor.byName( name );
 		if( b === null ){ 
-			if( root.instanceMesh[ name ] ) items.body.clearInstance( name );
+			if( root$1.instanceMesh[ name ] ) items.body.clearInstance( name );
 			return;
 		}
 
@@ -46857,7 +46878,7 @@ class Motor {
 		// remove on three side
 		items[b.type].clear( b );
 		// remove on physics side
-		root.post( { m:'remove', o:{ name:name, type:b.type } }, null, direct );
+		root$1.post( { m:'remove', o:{ name:name, type:b.type } }, null, direct );
 
 	}
 
@@ -46879,8 +46900,8 @@ class Motor {
     		if( o instanceof Array ) Motor.changes( o, true );
     		else Motor.changeOne( o, true );
     	} else {
-    		if( o instanceof Array ) root.flow.tmp.push( ...o );
-    		else root.flow.tmp.push( o );
+    		if( o instanceof Array ) root$1.flow.tmp.push( ...o );
+    		else root$1.flow.tmp.push( o );
     	}
 
 	}
@@ -46924,7 +46945,7 @@ class Motor {
 		}
 		
 		if( direct ){
-			root.post({ m:'change', o:o }, null, direct );
+			root$1.post({ m:'change', o:o }, null, direct );
 		}
 
 	}
@@ -47025,18 +47046,18 @@ class Motor {
 	//  MATERIAL
 	//-----------------------
 
-	static setExtendShader ( f ) { Mat$3.extendShader = f; }
-	static addMaterial( m, direct ){ Mat$3.set( m, direct ); }
-	static directIntensity ( v ) { Mat$3.directIntensity(v); }
-	static setEnvmapIntensity ( v ) { Mat$3.setEnvmapIntensity(v); }
+	static setExtendShader ( f ) { Mat$2.extendShader = f; }
+	static addMaterial( m, direct ){ Mat$2.set( m, direct ); }
+	static directIntensity ( v ) { Mat$2.directIntensity(v); }
+	static setEnvmapIntensity ( v ) { Mat$2.setEnvmapIntensity(v); }
 
 	// return
-	static getMatRef = () => ( Mat$3 );
-	static getMat = ( name ) => ( Mat$3.get( name ) );
-	static getMaterial = ( name ) => ( Mat$3.get( name ) );
-	static getMaterialList = () => ( Mat$3.getList() );
-	static material = ( o={} ) => ( Mat$3.create( o ) );
-	static changeRenderMode = ( n ) => ( Mat$3.changeRenderMode( n ) );
+	static getMatRef = () => ( Mat$2 );
+	static getMat = ( name ) => ( Mat$2.get( name ) );
+	static getMaterial = ( name ) => ( Mat$2.get( name ) );
+	static getMaterialList = () => ( Mat$2.getList() );
+	static material = ( o={} ) => ( Mat$2.create( o ) );
+	static changeRenderMode = ( n ) => ( Mat$2.changeRenderMode( n ) );
 
 	//static changeRenderMode( n ){ return Mat.changeRenderMode( n ) }
 	//static getMatRef(){ return Mat }
@@ -47100,7 +47121,7 @@ class Motor {
 
 	static getGlbMaterial ( obj ){
 		let ms = Pool.getMaterials( obj );
-		Mat$3.addToMat( ms );
+		Mat$2.addToMat( ms );
 		return ms;
 	}
 
@@ -47168,7 +47189,7 @@ class Motor {
 
 		let t = new Textfield$1( o );
 		if( o.parent ) o.parent.add( t );
-		else root.scenePlus.add( t );
+		else root$1.scenePlus.add( t );
 		textfields.push(t);
 		return t;
 
@@ -47432,7 +47453,7 @@ const ThreeVariable = {
 
 };
 
-let Mat$2 = class Mat {
+let Mat$1 = class Mat {
 
 	constructor(){
 
@@ -48146,11 +48167,6 @@ class Gamepad {
 
 }
 
-//import { Mat } from './base/Mat.js';
-
-
-let Mat$1 = null;
-
 // THREE RAY
 
 class Ray extends Item {
@@ -48160,8 +48176,6 @@ class Ray extends Item {
 		super();
 
 		this.motor = motor;
-
-		Mat$1 = this.motor.mat;
 
 		this.Utils = this.motor.utils;
 		this.type = 'ray';
@@ -48187,7 +48201,7 @@ class Ray extends Item {
 
 		this.setName( o );
 
-		let r = new ExtraRay( o );
+		let r = new ExtraRay( o, this.motor.getMat('line') );
 
 		r.visible = o.visible !== undefined ? o.visible : true;
 
@@ -48223,9 +48237,9 @@ class Ray extends Item {
 
 class ExtraRay extends Line {
 
-	constructor( o = {} ) {
+	constructor( o = {}, material ) {
 
-	    super( new BufferGeometry(), Mat$1.get('line') );
+	    super( new BufferGeometry(), material );
 
 	    this.isRay = true;
 
@@ -48436,7 +48450,7 @@ class Body extends Item {
 	step (AR, N) {
 
 		const list = this.list;
-		let i = list.length, b, n;
+		let i = list.length, b, n, vv;
 		
 		while( i-- ){
 
@@ -48488,6 +48502,14 @@ class Body extends Item {
 		    	if( this.full ){
 		    		b.velocity = {x:AR[n+8], y:AR[n+9], z:AR[n+10]};
 		    		b.angular = {x:AR[n+11], y:AR[n+12], z:AR[n+13]};
+		    	} else {
+		    		if( b.getVelocity ){
+		    			vv = root.reflow.velocity[b.name];
+		    			if(vv){
+		    				b.velocity = {x:vv[0], y:vv[1], z:vv[2]};
+		    				b.angular = {x:vv[3], y:vv[4], z:vv[5]};
+		    			}
+		    		}
 		    	}
 		    }
 		    else {
@@ -48496,7 +48518,15 @@ class Body extends Item {
 		        if( this.full ){
 			        b.velocity.fromArray( AR, n + 8 );
 			        b.angular.fromArray( AR, n + 11 );
-			    }
+			    } else {
+		    		if( b.getVelocity ){
+		    			vv = root.reflow.velocity[b.name];
+		    			if(vv){
+		    				b.velocity = {x:vv[0], y:vv[1], z:vv[2]};
+		    				b.angular = {x:vv[3], y:vv[4], z:vv[5]};
+		    			}
+		    		}
+		    	}
 		        if( !b.auto ) b.updateMatrix();
 		    }
 		}
@@ -49106,6 +49136,9 @@ class Body extends Item {
 
 		}
 
+
+
+
 		//---------------------------
 		//  Breakable
 		//---------------------------
@@ -49157,6 +49190,9 @@ class Body extends Item {
 
 		if( o.massInfo ) console.log( '%c'+b.name+ ' %c' + 'density:' + b.density + ' mass:'+ b.mass, "font-size:16px", "font-size:12px" );
 
+
+		if( o.getVelocity ) b.getVelocity = true;
+
 		//---------------------------
 		// add to three world
 		//---------------------------
@@ -49207,6 +49243,8 @@ class Body extends Item {
 
 		if( b === null ) b = this.byName( o.name );
 		if( b === null ) return;
+
+		if( o.getVelocity !== undefined ) b.getVelocity = o.getVelocity;
 
 		if(b.isInstance){
 
@@ -50061,7 +50099,7 @@ class Car extends Basic3D {//extends Object3D {
 
 	    }*/
 
-	    var material = Mat$2.get( o.debug ? 'debug' : (o.chassisMesh === undefined ? 'body' : 'hide'));
+	    var material = Mat$1.get( o.debug ? 'debug' : (o.chassisMesh === undefined ? 'body' : 'hide'));
 	    //if( o.body === undefined ) material = 'move';
 
 	    let n;
@@ -51954,7 +51992,7 @@ class Terrain extends Item {
 
 		const t = new Landscape( o );
 
-		Mat$2.extendShader( t.material, t.material.onBeforeCompile );
+		Mat$1.extendShader( t.material, t.material.onBeforeCompile );
 
 		t.physicsUpdate = ( name, h ) =>{
 
@@ -55805,7 +55843,7 @@ const Version = {
 	
 	PHY: '0.2.9',
 
-    PHYSX: '5.05.10',
+    PHYSX: '5.06.00',
     HAVOK: '1.2.1',
     JOLT: '0.33.0',
 
@@ -55821,7 +55859,7 @@ class Motor2 {
 	constructor( parameters = {} ) {
 
 		this.geo = new Geo$1();
-		this.mat = new Mat$2();
+		this.mat = new Mat$1();
 
 		this.math = MathTool;
 		this.pool = Pool;
@@ -55921,6 +55959,7 @@ class Motor2 {
 			ray:[],
 			stat:{ fps:0 },
 			point:{},
+			velocity:{},
 		};
 
 		const items = {};

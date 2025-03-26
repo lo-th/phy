@@ -60,6 +60,14 @@ export class Body extends Item {
 				v.toArray( AR, n+8 );
 				r.toArray( AR, n+11 );
 				if( AR[ n ] === 1 ) AR[ n ] = v.length() * 9.8;// speed km/h
+			}  else {
+
+				if( b.getVelocity ){
+					v = b.GetLinearVelocity().toArray();
+				    r = b.GetAngularVelocity().toArray();
+					root.reflow.velocity[b.name] = [...v, ...r];
+				}
+
 			}
 			
 		}
@@ -351,8 +359,6 @@ export class Body extends Item {
 		this.set( o, b );
 
 
-		
-
 		//console.log(b)
 
 	}
@@ -362,6 +368,9 @@ export class Body extends Item {
 
 		if( b === null ) b = this.byName( o.name );
 		if( b === null ) return;
+
+		// return velocity on each frame for this body
+		if( o.getVelocity !== undefined ) b.getVelocity = o.getVelocity;
 
 		/*if ( o.density !== undefined ){
 

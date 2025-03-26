@@ -634,6 +634,8 @@ const M = {
 
     },
 
+    // ARRAY OPERATION
+
     nullArray: ( a, n, i ) => { 
         let j = 0;
         while( i-- ) j += a[n+i];

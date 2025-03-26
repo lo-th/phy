@@ -30,7 +30,7 @@ import { RayCar } from './extra/RayCar.js';
 import { Envmap } from './extra/Envmap.js';
 import { AutoRagdoll } from './extra/AutoRagdoll.js';
 //import { SkeletonBody } from './extra/SkeletonBody.js';
-import * as SkeletonUtils from '../jsm/utils/SkeletonUtils.js';
+//import * as SkeletonUtils from '../jsm/utils/SkeletonUtils.js';
 
 import { Pool } from '../3TH/Pool.js';
 import { sk } from '../3TH/character/SkeletonExtand.js';
@@ -49,7 +49,7 @@ const Version = {
 	
 	PHY: '0.2.9',
 
-    PHYSX: '5.05.10',
+    PHYSX: '5.06.00',
     HAVOK: '1.2.1',
     JOLT: '0.33.0',
 
@@ -173,6 +173,7 @@ export class Motor2 {
 			ray:[],
 			stat:{ fps:0 },
 			point:{},
+			velocity:{},
 		};
 
 		const items = {};

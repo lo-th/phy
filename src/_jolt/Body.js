@@ -80,6 +80,14 @@ export class Body extends Item {
 				v.toArray( AR, n+8 );
 			    r.toArray( AR, n+11 );
 			    if( AR[ n ] === 1 ) AR[ n ] = v.Length() * 9.8;// speed km/h
+			} else {
+
+				if( b.getVelocity ){
+					v = b.GetLinearVelocity().toArray();
+				    r = b.GetAngularVelocity().toArray();
+					root.reflow.velocity[b.name] = [...v, ...r];
+				}
+
 			}
 
 		}
@@ -436,7 +444,6 @@ export class Body extends Item {
 	    b.isKinematic = o.kinematic || false;
 	    b.breakable = o.breakable || false;
 
-	    
 
 	    //b.SetUseManifoldReduction(false)
 
@@ -472,6 +479,9 @@ export class Body extends Item {
 
 		if( b === null ) b = this.byName( o.name )
 		if( b === null ) return
+
+		// return velocity on each frame for this body
+		if( o.getVelocity !== undefined ) b.getVelocity = o.getVelocity;
 
 
 		if( o.friction !== undefined ) b.SetFriction(o.friction); // def 0.2

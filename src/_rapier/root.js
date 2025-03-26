@@ -21,6 +21,7 @@ export const root = {
 			fps:0,
 			delta:0,
 		},
+		velocity:{},
 	},
 
 

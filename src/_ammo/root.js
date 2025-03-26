@@ -21,11 +21,12 @@ export const root = {
 
 	reflow:{
 		ray:[],
-		point:{},
 		stat:{
 			fps:0,
 			delta:0,
 		},
+		point:{},
+		velocity:{},
 	}
 
 };

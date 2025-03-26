@@ -62,6 +62,7 @@ export const root = {
 		ray:[],
 		stat:{ fps:0 },
 		point:{},
+		velocity:{},
 	},
 
 	extraMaterial:() => {},

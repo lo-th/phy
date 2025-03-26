@@ -1,10 +1,7 @@
 import { Item } from '../core/Item.js';
 import { Num } from '../core/Config.js';
 import { MathTool, todeg } from '../core/MathTool.js';
-//import { Mat } from './base/Mat.js';
 
-
-let Mat = null;
 
 import {
 	Line, LineSegments, BufferGeometry,
@@ -21,8 +18,6 @@ export class Ray extends Item {
 		super();
 
 		this.motor = motor;
-
-		Mat = this.motor.mat
 
 		this.Utils = this.motor.utils;
 		this.type = 'ray';
@@ -48,18 +43,18 @@ export class Ray extends Item {
 
 		let name = this.setName( o );
 
-		let r = new ExtraRay( o );
+		let r = new ExtraRay( o, this.motor.getMat('line') );
 
-		r.visible = o.visible !== undefined ? o.visible : true
+		r.visible = o.visible !== undefined ? o.visible : true;
 
 		// add to world
-		this.addToWorld( r, o.id )
+		this.addToWorld( r, o.id );
 
 		if(o.parent){
 			if( typeof o.parent !== 'string' ) o.parent = o.parent.name;
 		}
 
-		if( o.callback ) delete o.callback
+		if( o.callback ) delete o.callback;
 
 		
 
@@ -75,7 +70,7 @@ export class Ray extends Item {
 		if( r === null ) r = this.byName( o.name );
 		if( r === null ) return;
 
-		r.setRay(o)
+		r.setRay(o);
 
 	}
 
@@ -84,9 +79,9 @@ export class Ray extends Item {
 
 export class ExtraRay extends Line {
 
-	constructor( o = {} ) {
+	constructor( o = {}, material ) {
 
-	    super( new BufferGeometry(), Mat.get('line') );
+	    super( new BufferGeometry(), material );
 
 	    this.isRay = true;
 
@@ -160,7 +155,7 @@ export class ExtraRay extends Line {
 		this.data.hit = r[n] !== 0 ? true : false;
 		this.data.body = body ? body : '';
 
-		this.data.distance = r[n+1]
+		this.data.distance = r[n+1];
 
 		if( this.data.hit ){
 

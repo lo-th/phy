@@ -48,7 +48,7 @@ export class Body extends Item {
 		const AR = root.Ar;
 		const N = root.ArPos[this.itype];
 
-		let i = this.list.length, b, n;
+		let i = this.list.length, b, n, v, rv;
 
 		while( i-- ){
 
@@ -74,6 +74,14 @@ export class Body extends Item {
 				this.vv.toArray( AR, n+8 );
 			    this.r.toArray( AR, n+11 );
 			    if( AR[ n ] === 1 ) AR[ n ] = this.vv.length() * 9.8;// speed km/h
+			} else {
+
+				if( b.getVelocity ){
+					v = b.getLinearVelocityTo( this.vv ).toArray();
+			        r = b.getAngularVelocityTo( this.r ).toArray();
+					root.reflow.velocity[b.name] = [...v, ...r];
+				}
+
 			}
 		}
 
@@ -363,9 +371,6 @@ export class Body extends Item {
 		// 0 : DYNAMIC / 1 : STATIC / 2 : KINEMATIC 
 		b.setType( this.type === 'body' ? ( o.kinematic ? 2 : 0 ) : 1 );
 
-		
-		
-
 		delete o.kinematic
 	    delete o.pos
 	    delete o.quat
@@ -391,6 +396,10 @@ export class Body extends Item {
 
 		if( b === null ) b = this.byName( o.name )
 		if( b === null ) return
+
+
+		// return velocity on each frame for this body
+		if(o.getVelocity !== undefined ) b.getVelocity = o.getVelocity;
 
 		if( o.kinematic !== undefined ){
 			b.setType(o.kinematic ? 2 : 0);

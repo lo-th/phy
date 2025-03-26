@@ -6,7 +6,7 @@
 [Physx](https://github.com/fabmax/physx-js-webidl)<br>
 [<img src="./assets/icons/phy_map.png"/>](https://lo-th.github.io/phy/)<br>
 
-[START EDITOR](https://lo-th.github.io/phy/)<br><br>
+[START DEMO/EDITOR](https://lo-th.github.io/phy/)<br><br>
 PHY Universal physics language on Worker or Direct for [three.js](https://github.com/mrdoob/three.js)<br>
 Phy simplify game creation, is a bridge between three.js and physics.<br>
 You can use compress or full version of physics engines.<br>
@@ -40,7 +40,14 @@ Add more function and demo, standardize and clean code.
 ### About
 
 Phy is under active development<br>
-You can help me improve phy engine with Sponsor
+You can help me improve phy engine with Sponsor<br><br>
+
+### Note
+
+For the moment my worker source on Physx and Havok are private.<br>
+It's a long research work to standardize all engines.<br>
+I'm thinking opening everything but i need more Sponsors<br>
+But is possible to use compile version without restriction.
 
 [npm]: https://img.shields.io/npm/v/phy-engine
 [npm-url]: https://www.npmjs.com/package/phy-engine

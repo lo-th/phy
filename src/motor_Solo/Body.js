@@ -55,7 +55,7 @@ export class Body extends Item {
 	step (AR, N) {
 
 		const list = this.list;
-		let i = list.length, b, n, a;
+		let i = list.length, b, n, a, vv;
 		
 		while( i-- ){
 
@@ -107,6 +107,14 @@ export class Body extends Item {
 		    	if( this.full ){
 		    		b.velocity = {x:AR[n+8], y:AR[n+9], z:AR[n+10]}
 		    		b.angular = {x:AR[n+11], y:AR[n+12], z:AR[n+13]}
+		    	} else {
+		    		if( b.getVelocity ){
+		    			vv = root.reflow.velocity[b.name]
+		    			if(vv){
+		    				b.velocity = {x:vv[0], y:vv[1], z:vv[2]}
+		    				b.angular = {x:vv[3], y:vv[4], z:vv[5]}
+		    			}
+		    		}
 		    	}
 		    }
 		    else {
@@ -115,7 +123,15 @@ export class Body extends Item {
 		        if( this.full ){
 			        b.velocity.fromArray( AR, n + 8 );
 			        b.angular.fromArray( AR, n + 11 );
-			    }
+			    } else {
+		    		if( b.getVelocity ){
+		    			vv = root.reflow.velocity[b.name]
+		    			if(vv){
+		    				b.velocity = {x:vv[0], y:vv[1], z:vv[2]}
+		    				b.angular = {x:vv[3], y:vv[4], z:vv[5]}
+		    			}
+		    		}
+		    	}
 		        if( !b.auto ) b.updateMatrix();
 		    }
 		}
@@ -744,6 +760,9 @@ export class Body extends Item {
 
 		}
 
+
+
+
 		//---------------------------
 		//  Breakable
 		//---------------------------
@@ -795,6 +814,9 @@ export class Body extends Item {
 
 		if( o.massInfo ) console.log( '%c'+b.name+ ' %c' + 'density:' + b.density + ' mass:'+ b.mass, "font-size:16px", "font-size:12px" );
 
+
+		if( o.getVelocity ) b.getVelocity = true;
+
 		//---------------------------
 		// add to three world
 		//---------------------------
@@ -845,6 +867,8 @@ export class Body extends Item {
 
 		if( b === null ) b = this.byName( o.name );
 		if( b === null ) return;
+
+		if( o.getVelocity !== undefined ) b.getVelocity = o.getVelocity;
 
 		if(b.isInstance){
 
