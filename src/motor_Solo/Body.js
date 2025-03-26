@@ -1,9 +1,5 @@
 import { Object3D, Vector3, Group, Mesh, LineSegments, BufferGeometry, CylinderGeometry, SphereGeometry, Matrix4, MathUtils } from 'three';
 
-//import { root } from './root.js';
-
-
-
 //import { Geo } from './base/Geo.js';
 import { Colors } from './base/Mat.js';
 
@@ -109,7 +105,7 @@ export class Body extends Item {
 		    		b.angular = {x:AR[n+11], y:AR[n+12], z:AR[n+13]}
 		    	} else {
 		    		if( b.getVelocity ){
-		    			vv = root.reflow.velocity[b.name]
+		    			vv = this.motor.reflow.velocity[b.name]
 		    			if(vv){
 		    				b.velocity = {x:vv[0], y:vv[1], z:vv[2]}
 		    				b.angular = {x:vv[3], y:vv[4], z:vv[5]}
@@ -125,7 +121,7 @@ export class Body extends Item {
 			        b.angular.fromArray( AR, n + 11 );
 			    } else {
 		    		if( b.getVelocity ){
-		    			vv = root.reflow.velocity[b.name]
+		    			vv = this.motor.reflow.velocity[b.name]
 		    			if(vv){
 		    				b.velocity = {x:vv[0], y:vv[1], z:vv[2]}
 		    				b.angular = {x:vv[3], y:vv[4], z:vv[5]}
