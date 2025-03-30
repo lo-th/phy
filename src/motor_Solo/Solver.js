@@ -1,7 +1,6 @@
 import { Item } from '../core/Item.js';
 import { Num } from '../core/Config.js';
 import { MathTool } from '../core/MathTool.js';
-//import { Basic3D } from '../core/Basic3D.js';
 
 export class Solver extends Item {
 

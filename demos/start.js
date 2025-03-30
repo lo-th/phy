@@ -107,6 +107,7 @@ onComplete = () => {
         //mass:20,
         density:1,
         material:'chrome',
+        getVelocity:true,
 
         massCenter:[0,0,0],
 
@@ -179,6 +180,8 @@ update = ( dt ) => {
     const logo = phy.byName('logo')
     let pos = logo.position;
     let f = math.lerp(0.1, 0, pos.y)
+
+    //console.log(logo.velocity)
 
 
     if(pos.y<1) phy.change({name:'logo',force:[0,f,0], forcePosition:[pos.x,0,pos.z] })

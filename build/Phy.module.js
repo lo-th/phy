@@ -48436,15 +48436,17 @@ class Body extends Item {
 		this.type = 'body';
 		this.num = Num[this.type];
 		this.full = false;
-		this.extraConvex = false;
+		//this.extraConvex = false;
 		this.needMatrix = this.engine ==='RAPIER' || this.engine ==='HAVOK';
 		//this.tmpVolume = 0
 
 	}
 
 	setFull( full ){
+
 		this.num = Num[ full ? 'bodyFull':'body' ];
 		this.full = full;
+		
 	}
 
 	step (AR, N) {
@@ -49270,8 +49272,6 @@ class Body extends Item {
 	}
 
 	clearInstance( name ){
-
-		//console.log('need remove instance')
 
 		let instance = this.motor.instanceMesh[name];
 		let bodyList = instance.getBodyList();
@@ -52045,8 +52045,6 @@ const toPhysics = function( t ) {
 	return o
 
 };
-
-//import { Basic3D } from '../core/Basic3D.js';
 
 class Solver extends Item {
 
@@ -55843,7 +55841,7 @@ const Version = {
 	
 	PHY: '0.2.9',
 
-    PHYSX: '5.06.00',
+    PHYSX: '5.06.10',
     HAVOK: '1.2.1',
     JOLT: '0.33.0',
 
@@ -55911,6 +55909,7 @@ class Motor2 {
 		let envmapUrl = '';
 		let _envmap = null;
 
+		// from three
 		let renderer = null;
 		let scene = null;
 
@@ -56195,9 +56194,6 @@ class Motor2 {
 			let name = type.toLowerCase();
 			let mini = name.charAt(0).toUpperCase() + name.slice(1);
 
-			//let isFirefox = navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
-
-			
 			this.engine = type;
 
 			this.initItems();
@@ -56232,37 +56228,47 @@ class Motor2 {
 
 			envmapUrl = o.envmap || '';
 
+			const useModule = this.supportModuleWorker();
+
 			if( compact ){
 
-				Pool.load( url + path + mini + '.hex', function(){ _this.onCompactDone(o);} );
+				if( useModule ) Pool.load( new URL(url + path + mini + '.module.hex', import.meta.url), function(){ _this.onCompactDone(o, true); } );
+				else Pool.load( new URL(url + path + mini + '.hex', import.meta.url), function(){ _this.onCompactDone(o); } );
+
+				//if( useModule ) Pool.load( url + path + mini + '.module.hex', function(){ _this.onCompactDone(o, true) } )
+				//else Pool.load( url + path + mini + '.hex', function(){ _this.onCompactDone(o) } )
 
 			} else {
 
 				if( isWorker ){ // is worker version
 
-				    // for wasm side
-				    //if( wasmLink[mini] ) o.blob = url + wasmLink[mini];
 
-				    worker = new Worker( url + path + mini + '.min.js' );
-				    //else worker = new Worker( url + path + mini + '.module.js', {type:'module'});
+					// https://web.dev/articles/module-workers?hl=fr
+					// https://developer.mozilla.org/en-US/docs/Web/API/Worker/Worker
+
+					if( useModule ) worker = new Worker( new URL( url + path + mini + '.module.js', import.meta.url), {type:'module'} );
+					else worker = new Worker( new URL( url + path + mini + '.min.js', import.meta.url) );
+
+					
+
+				    //worker = new Worker( url + path + mini + '.min.js' );
+				    //worker = new Worker( url + path + mini + '.module.js', {type:'module'});
+
 
 					worker.postMessage = worker.webkitPostMessage || worker.postMessage;
 					worker.onmessage = this.message;
 
+					// test if worker Shared buffer is compatible
 					let ab = new ArrayBuffer( 1 );
 					worker.postMessage( { m: 'test', ab:ab }, [ ab ] );
 					isBuffer = ab.byteLength ? false : true;
-
 					o.isBuffer = isBuffer;
-					//console.log( st + ' Worker '+ type + (o.isBuffer ? ' with Shared Buffer' : '') );
 
 					this.initPhysics( o );
 
 
 				} else { // is direct version
 
-					//if( wasmLink[mini] ) this.loadWasmDirect( wasmLink[mini], o, mini, url )
-					//else 
 					if( o.devMode ) this.preLoad( mini, o, url );
 				    else this.preLoadMin( mini, o, url );
 
@@ -56272,11 +56278,25 @@ class Motor2 {
 
 		};
 
-		this.onCompactDone = ( o ) =>{
+		this.supportModuleWorker = () => {
+
+			 let supports = false;
+			 const tester = {
+			      get type() { supports = true; }
+			};
+			try {
+			    const worker = new Worker('data:,', tester).terminate();
+			} finally {
+			    return supports;
+			}
+
+		};
+
+		this.onCompactDone = ( o, useModule ) =>{
 
 			let name = this.engine.toLowerCase();
 			let mini = name.charAt(0).toUpperCase() + name.slice(1);
-			let code = Pool.get( mini, 'H' );
+			let code = useModule ? Pool.get( mini+'.module', 'H' ) : Pool.get( mini, 'H' );
 
 			if( isWorker ){
 
@@ -56291,8 +56311,11 @@ class Motor2 {
 				    blob = blob.getBlob();
 				}
 
-				worker = new Worker( URL.createObjectURL(blob) );
+				if( useModule ) worker = new Worker( URL.createObjectURL(blob), {type:'module'} );
+				else worker = new Worker( URL.createObjectURL(blob) );
 			    //else worker = new Worker( url + path + mini + '.module.js', {type:'module'});
+
+			    console.log('can run worker module:', useModule );
 
 				worker.postMessage = worker.webkitPostMessage || worker.postMessage;
 				worker.onmessage = this.message;
@@ -56528,8 +56551,8 @@ class Motor2 {
 				}
 
 				if( isAdd ){
-					this.scene.parent.remove( this.scene );
-					this.scenePlus.parent.remove( this.scenePlus );
+					_this.scene.parent.remove( _this.scene );
+					_this.scenePlus.parent.remove( _this.scenePlus );
 					isAdd = false;
 				}
 

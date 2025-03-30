@@ -37,15 +37,17 @@ export class Body extends Item {
 		this.type = 'body';
 		this.num = Num[this.type];
 		this.full = false;
-		this.extraConvex = false;
-		this.needMatrix = this.engine ==='RAPIER' || this.engine ==='HAVOK'
+		//this.extraConvex = false;
+		this.needMatrix = this.engine ==='RAPIER' || this.engine ==='HAVOK';
 		//this.tmpVolume = 0
 
 	}
 
 	setFull( full ){
-		this.num = Num[ full ? 'bodyFull':'body' ]
-		this.full = full
+
+		this.num = Num[ full ? 'bodyFull':'body' ];
+		this.full = full;
+		
 	}
 
 	step (AR, N) {
@@ -890,8 +892,6 @@ export class Body extends Item {
 	}
 
 	clearInstance( name ){
-
-		//console.log('need remove instance')
 
 		let instance = this.motor.instanceMesh[name];
 		let bodyList = instance.getBodyList();

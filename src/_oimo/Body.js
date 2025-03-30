@@ -48,7 +48,7 @@ export class Body extends Item {
 		const AR = root.Ar;
 		const N = root.ArPos[this.itype];
 
-		let i = this.list.length, b, n, v, rv;
+		let i = this.list.length, b, n;
 
 		while( i-- ){
 
@@ -77,9 +77,9 @@ export class Body extends Item {
 			} else {
 
 				if( b.getVelocity ){
-					v = b.getLinearVelocityTo( this.vv ).toArray();
-			        r = b.getAngularVelocityTo( this.r ).toArray();
-					root.reflow.velocity[b.name] = [...v, ...r];
+					b.getLinearVelocityTo( this.vv );
+			        b.getAngularVelocityTo( this.r );
+					root.reflow.velocity[b.name] = [...this.vv.toArray(), ...this.r.toArray()];
 				}
 
 			}
@@ -339,7 +339,7 @@ export class Body extends Item {
 					b.addShape( this.shape( n ) )
 				}
 
-				console.log(b)
+				//console.log(b)
 
 			break;
 			default:

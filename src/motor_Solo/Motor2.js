@@ -11,6 +11,7 @@ import { Mat } from './base/Mat.js';
 import { Timer } from './base/Timer.js';
 import { User } from './base/User.js'
 
+// for item
 import { Ray } from './Ray.js';
 import { Body } from './Body.js';
 import { Joint } from './Joint.js';
@@ -49,7 +50,7 @@ const Version = {
 	
 	PHY: '0.2.9',
 
-    PHYSX: '5.06.00',
+    PHYSX: '5.06.10',
     HAVOK: '1.2.1',
     JOLT: '0.33.0',
 
@@ -124,6 +125,7 @@ export class Motor2 {
 		let envmapUrl = '';
 		let _envmap = null;
 
+		// from three
 		let renderer = null;
 		let scene = null;
 
@@ -320,7 +322,7 @@ export class Motor2 {
 		this.setContent = ( Scene ) => {
 
 			if( isAdd ) return;
-			scene = Scene
+			scene = Scene;
 			scene.add( this.scene );
 			scene.add( this.scenePlus );
 			isAdd = true;
@@ -407,23 +409,11 @@ export class Motor2 {
 			let path = o.path || '';
 			path += compact ? 'compact/' : 'build/';
 
-
-			//const useMin = o.useMin || false;
-			const wasmLink = {
-			    /*Ammo: path + 'ammo.wasm.js',
-			    Physx: path + 'physx-js-webidl.js',
-			    Havok: path + 'HavokPhysics.js',
-			    */
-			}
-
 			let type = o.type || 'PHYSX';
 			let name = type.toLowerCase();
 			let mini = name.charAt(0).toUpperCase() + name.slice(1);
 			let st = '';
 
-			//let isFirefox = navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
-
-			
 			this.engine = type;
 
 			this.initItems();
@@ -458,37 +448,47 @@ export class Motor2 {
 
 			envmapUrl = o.envmap || '';
 
+			const useModule = this.supportModuleWorker();
+
 			if( compact ){
 
-				Pool.load( url + path + mini + '.hex', function(){ _this.onCompactDone(o)} )
+				if( useModule ) Pool.load( new URL(url + path + mini + '.module.hex', import.meta.url), function(){ _this.onCompactDone(o, true) } )
+				else Pool.load( new URL(url + path + mini + '.hex', import.meta.url), function(){ _this.onCompactDone(o) } )
+
+				//if( useModule ) Pool.load( url + path + mini + '.module.hex', function(){ _this.onCompactDone(o, true) } )
+				//else Pool.load( url + path + mini + '.hex', function(){ _this.onCompactDone(o) } )
 
 			} else {
 
 				if( isWorker ){ // is worker version
 
-				    // for wasm side
-				    //if( wasmLink[mini] ) o.blob = url + wasmLink[mini];
 
-				    worker = new Worker( url + path + mini + '.min.js' );
-				    //else worker = new Worker( url + path + mini + '.module.js', {type:'module'});
+					// https://web.dev/articles/module-workers?hl=fr
+					// https://developer.mozilla.org/en-US/docs/Web/API/Worker/Worker
+
+					if( useModule ) worker = new Worker( new URL( url + path + mini + '.module.js', import.meta.url), {type:'module'} )
+					else worker = new Worker( new URL( url + path + mini + '.min.js', import.meta.url) )
+
+					
+
+				    //worker = new Worker( url + path + mini + '.min.js' );
+				    //worker = new Worker( url + path + mini + '.module.js', {type:'module'});
+
 
 					worker.postMessage = worker.webkitPostMessage || worker.postMessage;
 					worker.onmessage = this.message;
 
+					// test if worker Shared buffer is compatible
 					let ab = new ArrayBuffer( 1 );
 					worker.postMessage( { m: 'test', ab:ab }, [ ab ] );
 					isBuffer = ab.byteLength ? false : true;
-
 					o.isBuffer = isBuffer;
-					//console.log( st + ' Worker '+ type + (o.isBuffer ? ' with Shared Buffer' : '') );
 
 					this.initPhysics( o );
 
 
 				} else { // is direct version
 
-					//if( wasmLink[mini] ) this.loadWasmDirect( wasmLink[mini], o, mini, url )
-					//else 
 					if( o.devMode ) this.preLoad( mini, o, url );
 				    else this.preLoadMin( mini, o, url );
 
@@ -498,11 +498,25 @@ export class Motor2 {
 
 		}
 
-		this.onCompactDone = ( o ) =>{
+		this.supportModuleWorker = () => {
+
+			 let supports = false;
+			 const tester = {
+			      get type() { supports = true; }
+			};
+			try {
+			    const worker = new Worker('data:,', tester).terminate();
+			} finally {
+			    return supports;
+			}
+
+		}
+
+		this.onCompactDone = ( o, useModule ) =>{
 
 			let name = this.engine.toLowerCase();
 			let mini = name.charAt(0).toUpperCase() + name.slice(1);
-			let code = Pool.get( mini, 'H' );
+			let code = useModule ? Pool.get( mini+'.module', 'H' ) : Pool.get( mini, 'H' );
 
 			if( isWorker ){
 
@@ -517,8 +531,11 @@ export class Motor2 {
 				    blob = blob.getBlob();
 				}
 
-				worker = new Worker( URL.createObjectURL(blob) );
+				if( useModule ) worker = new Worker( URL.createObjectURL(blob), {type:'module'} );
+				else worker = new Worker( URL.createObjectURL(blob) );
 			    //else worker = new Worker( url + path + mini + '.module.js', {type:'module'});
+
+			    console.log('can run worker module:', useModule )
 
 				worker.postMessage = worker.webkitPostMessage || worker.postMessage;
 				worker.onmessage = this.message;
@@ -754,8 +771,8 @@ export class Motor2 {
 				}
 
 				if( isAdd ){
-					this.scene.parent.remove( this.scene );
-					this.scenePlus.parent.remove( this.scenePlus );
+					_this.scene.parent.remove( _this.scene );
+					_this.scenePlus.parent.remove( _this.scenePlus );
 					isAdd = false;
 				}
 
