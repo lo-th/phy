@@ -4,7 +4,7 @@ import { MathTool } from '../core/MathTool.js';
 
 export class Solver extends Item {
 
-	constructor ( motoer ) {
+	constructor ( motor ) {
 
 		super();
 

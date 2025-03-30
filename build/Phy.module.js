@@ -52048,7 +52048,7 @@ const toPhysics = function( t ) {
 
 class Solver extends Item {
 
-	constructor ( motoer ) {
+	constructor ( motor ) {
 
 		super();
 
@@ -55879,6 +55879,9 @@ class Motor2 {
 
 		const _this = this;
 
+        let testLocalUrl = false;
+        let useModule = false;
+
 		let currentControle = null;
 		let callbackReady = null;
 		let worker = null;
@@ -56216,7 +56219,7 @@ class Motor2 {
 			this.scenePlus = new Group();
 			this.scenePlus.name = 'phy_scenePlus';
 
-			if( o.scene ){ 
+			if( o.scene ){  // need for envmap
 				this.setContent( o.scene );
 				delete ( o.scene );
 			}
@@ -56228,15 +56231,23 @@ class Motor2 {
 
 			envmapUrl = o.envmap || '';
 
-			const useModule = this.supportModuleWorker();
+
+			useModule = o.testModule ? this.supportModuleWorker() : false;
+			testLocalUrl = o.testLocal || false;
 
 			if( compact ){
 
-				if( useModule ) Pool.load( new URL(url + path + mini + '.module.hex', import.meta.url), function(){ _this.onCompactDone(o, true); } );
-				else Pool.load( new URL(url + path + mini + '.hex', import.meta.url), function(){ _this.onCompactDone(o); } );
+				if( testLocalUrl ){
+					if( useModule ) Pool.load( new URL(url + path + mini + '.module.hex', import.meta.url), function(){ _this.onCompactDone(o); } );
+				    else Pool.load( new URL(url + path + mini + '.hex', import.meta.url), function(){ _this.onCompactDone(o); } );
+				} else {
+					if( useModule ) Pool.load( url + path + mini + '.module.hex', function(){ _this.onCompactDone(o); } );
+					else Pool.load( url + path + mini + '.hex', function(){ _this.onCompactDone(o); } );
+				}
 
-				//if( useModule ) Pool.load( url + path + mini + '.module.hex', function(){ _this.onCompactDone(o, true) } )
-				//else Pool.load( url + path + mini + '.hex', function(){ _this.onCompactDone(o) } )
+				
+
+				//
 
 			} else {
 
@@ -56246,8 +56257,17 @@ class Motor2 {
 					// https://web.dev/articles/module-workers?hl=fr
 					// https://developer.mozilla.org/en-US/docs/Web/API/Worker/Worker
 
-					if( useModule ) worker = new Worker( new URL( url + path + mini + '.module.js', import.meta.url), {type:'module'} );
-					else worker = new Worker( new URL( url + path + mini + '.min.js', import.meta.url) );
+					if( testLocalUrl ){
+
+						if( useModule ) worker = new Worker( new URL( url + path + mini + '.module.js', import.meta.url), {type:'module'} );
+						else worker = new Worker( new URL( url + path + mini + '.min.js', import.meta.url) );
+
+					} else {
+
+						if( useModule ) worker = new Worker( url + path + mini + '.module.js', {type:'module'} );
+						else worker = new Worker( url + path + mini + '.min.js' );
+
+					}
 
 					
 
@@ -56292,7 +56312,7 @@ class Motor2 {
 
 		};
 
-		this.onCompactDone = ( o, useModule ) =>{
+		this.onCompactDone = ( o ) =>{
 
 			let name = this.engine.toLowerCase();
 			let mini = name.charAt(0).toUpperCase() + name.slice(1);
@@ -56303,7 +56323,7 @@ class Motor2 {
 				let blob;
 
 				try {
-				    blob = new Blob([code], {type: 'application/javascript'});
+				    blob = new Blob([code], {type: 'application/javascript'});//text/html
 				} catch (e) { // Backwards-compatibility
 				    window.BlobBuilder = window.BlobBuilder || window.WebKitBlobBuilder || window.MozBlobBuilder;
 				    blob = new BlobBuilder();
