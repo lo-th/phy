@@ -455,11 +455,20 @@ export class Motor2 {
 			useModule = o.testModule ? this.supportModuleWorker() : false;
 			testLocalUrl = o.testLocal || false;
 
+			let pathdirect = o.direct || false
+
 			if( compact ){
 
 				if( testLocalUrl ){
-					if( useModule ) Pool.load( new URL(url + path + mini + '.module.hex', import.meta.url), function(){ _this.onCompactDone(o) } )
-				    else Pool.load( new URL(url + path + mini + '.hex', import.meta.url), function(){ _this.onCompactDone(o) } )
+					if(pathdirect){
+						if( useModule ) Pool.load( new URL( '../' + path + mini + '.module.hex', import.meta.url), function(){ _this.onCompactDone(o) } )
+			    		else Pool.load( new URL( '../' + path + mini + '.hex', import.meta.url), function(){ _this.onCompactDone(o) } )
+					}else{
+						if( useModule ) Pool.load( new URL( url + path + mini + '.module.hex', import.meta.url), function(){ _this.onCompactDone(o) } )
+			    		else Pool.load( new URL( url + path + mini + '.hex', import.meta.url), function(){ _this.onCompactDone(o) } )
+
+					}
+					
 				} else {
 					if( useModule ) Pool.load( url + path + mini + '.module.hex', function(){ _this.onCompactDone(o) } )
 					else Pool.load( url + path + mini + '.hex', function(){ _this.onCompactDone(o) } )
@@ -478,9 +487,14 @@ export class Motor2 {
 					// https://developer.mozilla.org/en-US/docs/Web/API/Worker/Worker
 
 					if( testLocalUrl ){
-
-						if( useModule ) worker = new Worker( new URL( url + path + mini + '.module.js', import.meta.url), {type:'module'} )
-						else worker = new Worker( new URL( url + path + mini + '.min.js', import.meta.url) )
+						if(pathdirect){
+							if( useModule ) worker = new Worker( new URL( './' + mini + '.module.js', import.meta.url).toString(), {type:'module'} )
+						    else worker = new Worker( new URL( './' + mini + '.min.js', import.meta.url).toString() )
+						} else {
+							if( useModule ) worker = new Worker( new URL( url + path + mini + '.module.js', import.meta.url).toString(), {type:'module'} )
+						    else worker = new Worker( new URL( url + path + mini + '.min.js', import.meta.url).toString() )
+						}
+						
 
 					} else {
 
@@ -555,7 +569,7 @@ export class Motor2 {
 				else worker = new Worker( URL.createObjectURL(blob) );
 			    //else worker = new Worker( url + path + mini + '.module.js', {type:'module'});
 
-			    console.log('can run worker module:', useModule )
+			    //console.log('can run worker module:', useModule )
 
 				worker.postMessage = worker.webkitPostMessage || worker.postMessage;
 				worker.onmessage = this.message;
@@ -805,7 +819,7 @@ export class Motor2 {
 			tt.end = Timer.now();
 			tt.startTime = Timer.format_time( tt.end - tt.start );
 
-			console.log( '%c'+this.engine + ' %c' + Version[this.engine] +'%c | '+ ( isWorker?'Worker': 'Direct') +' '+ tt.startTime, 
+			console.log( '%c'+this.engine + ' %c' + Version[this.engine] +'%c | '+ (useModule ? 'Module ' : '' ) + ( isWorker?'Worker': 'Direct') +' '+ tt.startTime, 
 				"font-size:16px", 
 				"font-size:12px", 
 				"font-size:12px" 
