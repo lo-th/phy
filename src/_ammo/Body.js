@@ -63,8 +63,8 @@ export class Body extends Item {
 			}  else {
 
 				if( b.getVelocity ){
-					v = b.GetLinearVelocity().toArray();
-				    r = b.GetAngularVelocity().toArray();
+					v = b.getLinearVelocity().toArray();
+				    r = b.getAngularVelocity().toArray();
 					root.reflow.velocity[b.name] = [...v, ...r];
 				}
 
