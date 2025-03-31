@@ -1,12 +1,15 @@
 {
   "name": "phy-engine",
-  "version": "0.4.7",
+  "version": "0.4.8",
   "description": "JavaScript 3D Physics for three.js",
   "type": "module",
   "main": "build/Main.js",
   "jsnext:main": "build/Phy.module.js",
   "module": "./build/Phy.module.js",
   "exports": {
+    ".": {
+      "import": "./build/Phy.module.js"
+    },
     "./build/*": "./build/*.js",
     "./compact/*": "./compact/*.hex"
   },
