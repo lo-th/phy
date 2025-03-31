@@ -1,18 +1,18 @@
 import { Item } from '../core/Item.js';
 import { Num } from '../core/Config.js';
-import { Utils, root } from './root.js';
-
 import { Hero } from './extra/Hero.js';
 
 // THREE CHARACTER
 
 export class Character extends Item {
 
-	constructor() {
+	constructor( motor ) {
 
 		super()
 
-		this.Utils = Utils
+		this.motor = motor;
+
+		this.Utils = this.motor.utils;
 		this.type = 'character';
 		this.num = Num[this.type];
 
@@ -25,10 +25,8 @@ export class Character extends Item {
 
 	}*/
 
-	step () {
-
-		const AR = root.Ar;
-		const N = root.ArPos[this.type];
+	step (AR, N) {
+		
 		let i = this.list.length, n, s, j, k=0, m;
 
 		while( i-- ){
@@ -45,7 +43,7 @@ export class Character extends Item {
 	add ( o = {} ) {
 
 		this.setName( o );
-		const hero = new Hero( o );
+		const hero = new Hero( o, this.motor );
 		return hero;
 
 	}

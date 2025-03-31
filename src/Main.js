@@ -34,7 +34,8 @@ import { Fluid } from './3TH/materials/Fluid.js'
 import { DirectionalHelper } from './3TH/helpers/DirectionalHelper.js'
 
 // MOTOR MAIN
-import { Motor } from './motor/Motor.js'
+//import { Motor } from './motor/Motor.js'
+import { phy, phy2 } from './Phy.js'
 
 // PARTICLE
 //import { Smoke } from '../build/smoke.module.js'
@@ -53,6 +54,10 @@ import { Smoke } from './libs/smoke.module.js'
 *  MAIN THREE.JS / PHY
 */
 
+
+const Motor = phy;
+// or
+//const Motor = new phy2()
 
 let highShadow = false;
 
@@ -1016,8 +1021,8 @@ const inject = ( newCode, force = false ) => {
 		Motor.poolDispose();
 	}
 
-	phy.mouseMode('drag')
-	phy.reset( refreshCode )
+	Motor.mouseMode('drag')
+	Motor.reset( refreshCode )
 
 }
 
@@ -1253,7 +1258,7 @@ const view = ( o = {} ) => {
 	options.bgIntensity = o.bgIntensity;
 	options.shadowIntensity = o.shadowIntensity;
 
-	phy.lightIntensity();
+	Motor.lightIntensity();
 
 	Env.reset()
 

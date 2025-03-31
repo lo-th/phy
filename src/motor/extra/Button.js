@@ -1,12 +1,13 @@
 import { MathTool } from '../../core/MathTool.js';
-import { root } from '../root.js';
 import { Textfield } from './Textfield.js';
 
 let Nb = 0
 
 export class Button {
 
-	constructor ( o={} ) {
+	constructor ( o={}, motor ) {
+
+		this.motor = motor;
 
 		this.down = false
 
@@ -66,7 +67,7 @@ export class Button {
 		this.timeout = null
 
 		// add model & physics
-		this.b = root.motor.add( o )
+		this.b = this.motor.add( o )
 
 		this.b.userData['action'] = this.action.bind(this)
 		this.b.userData['out'] = this.out.bind(this)
@@ -96,7 +97,7 @@ export class Button {
 
 		this.down = true
 	    this.target = this.range[0]
-	    if(this.extraForce) root.motor.explosion( p || this.p, this.size[0]*2, 0.01 )
+	    if(this.extraForce) this.motor.explosion( p || this.p, this.size[0]*2, 0.01 )
 		this.callback()
 
 	}
@@ -107,7 +108,7 @@ export class Button {
 
 		this.down = false
 	    this.target = this.range[1]
-	    if(this.extraForce) root.motor.explosion( this.p, this.size[0]*2, 0.01 )
+	    if(this.extraForce) this.motor.explosion( this.p, this.size[0]*2, 0.01 )
 
 	}
 
@@ -125,7 +126,7 @@ export class Button {
 
 			if(!t){
 			    this.pos[this.axe] = this.value
-			    root.motor.change( {name:this.b.name, pos:this.pos} );
+			    this.motor.change( {name:this.b.name, pos:this.pos} );
 			} else {
 				this.value = this.target
 			}

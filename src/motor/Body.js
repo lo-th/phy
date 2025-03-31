@@ -1,11 +1,7 @@
 import { Object3D, Vector3, Group, Mesh, LineSegments, BufferGeometry, CylinderGeometry, SphereGeometry, Matrix4, MathUtils } from 'three';
 
-import { root, Utils } from './root.js';
-
-
-
-import { Geo } from './base/Geo.js';
-import { Mat, Colors } from './base/Mat.js';
+//import { Geo } from './base/Geo.js';
+import { Colors } from './base/Mat.js';
 
 import { Item } from '../core/Item.js';
 import { Num, WithMassCenter } from '../core/Config.js';
@@ -20,34 +16,42 @@ import { mergeVertices } from '../jsm/utils/BufferGeometryUtils.js';
 
 import { CapsuleHelper  } from '../3TH/helpers/CapsuleHelper.js';
 
+let Geo = null;
+let Mat = null;
 
 // THREE BODY
 
 export class Body extends Item {
 
-	constructor () {
+	constructor ( motor ) {
 
 		super()
 
-		this.Utils = Utils
+		this.motor = motor;
+		this.engine = this.motor.engine;
+		this.Utils = this.motor.utils;
+
+		Geo = this.motor.geo
+		Mat = this.motor.mat
+
 		this.type = 'body';
 		this.num = Num[this.type];
 		this.full = false;
-		this.extraConvex = false;
-		this.needMatrix = root.engine ==='RAPIER' || root.engine ==='HAVOK'
+		//this.extraConvex = false;
+		this.needMatrix = this.engine ==='RAPIER' || this.engine ==='HAVOK';
 		//this.tmpVolume = 0
 
 	}
 
 	setFull( full ){
-		this.num = Num[ full ? 'bodyFull':'body' ]
-		this.full = full
+
+		this.num = Num[ full ? 'bodyFull':'body' ];
+		this.full = full;
+		
 	}
 
-	step () {
+	step (AR, N) {
 
-		const AR = root.Ar;
-		const N = root.ArPos[this.type];
 		const list = this.list;
 		let i = list.length, b, n, a, vv;
 		
@@ -101,9 +105,9 @@ export class Body extends Item {
 		    	if( this.full ){
 		    		b.velocity = {x:AR[n+8], y:AR[n+9], z:AR[n+10]}
 		    		b.angular = {x:AR[n+11], y:AR[n+12], z:AR[n+13]}
-		    	}else{
+		    	} else {
 		    		if( b.getVelocity ){
-		    			vv = root.reflow.velocity[b.name]
+		    			vv = this.motor.reflow.velocity[b.name]
 		    			if(vv){
 		    				b.velocity = {x:vv[0], y:vv[1], z:vv[2]}
 		    				b.angular = {x:vv[3], y:vv[4], z:vv[5]}
@@ -119,7 +123,7 @@ export class Body extends Item {
 			        b.angular.fromArray( AR, n + 11 );
 			    } else {
 		    		if( b.getVelocity ){
-		    			vv = root.reflow.velocity[b.name]
+		    			vv = this.motor.reflow.velocity[b.name]
 		    			if(vv){
 		    				b.velocity = {x:vv[0], y:vv[1], z:vv[2]}
 		    				b.angular = {x:vv[3], y:vv[4], z:vv[5]}
@@ -141,7 +145,7 @@ export class Body extends Item {
 		let noScale = false, unic = false;
 		let seg = o.seg || 16;
 
-		const noIndex = root.engine === 'OIMO' || root.engine === 'JOLT' || root.engine === 'AMMO' || root.engine === 'CANNON';
+		const noIndex = this.engine === 'OIMO' || this.engine === 'JOLT' || this.engine === 'AMMO' || this.engine === 'CANNON';
 
 		//if( o.instance && t!== 'capsule'&& !o.radius) s = o.instanceSize || [1,1,1]
 
@@ -172,8 +176,7 @@ export class Body extends Item {
 		} 
 
 
-	    //if( root.engine === 'PHYSX' && ( o.type==='cylinder' || o.type==='cone' ) ){
-	    if( root.engine === 'PHYSX' && o.type==='cylinder' ){
+	    if( this.engine === 'PHYSX' && o.type==='cylinder' ){
 			// convert geometry to convex if not in physics
 	    	let geom = new CylinderGeometry( o.size[ 0 ], o.size[ 0 ], o.size[ 1 ], seg, 1 );//24
 	    	if( o.isWheel ) geom.rotateZ( -PI90 );
@@ -182,7 +185,7 @@ export class Body extends Item {
 
 	    }
 
-	    if( ( root.engine === 'PHYSX' || root.engine === 'HAVOK' || root.engine === 'JOLT' ) && o.type==='cone' ){
+	    if( ( this.engine === 'PHYSX' || this.engine === 'HAVOK' || this.engine === 'JOLT' ) && o.type==='cone' ){
 	    	// convert geometry to convex if not in physics
 	    	//if( !o.size[2] ) o.size[2] = 0;
 	    	//console.log(o.size[2])
@@ -241,7 +244,7 @@ export class Body extends Item {
 					let tg = noIndex ? MathTool.toNonIndexed(g) : null;
 					o.v = MathTool.getVertex( tg || g, noIndex );
 					o.index = MathTool.getIndex( tg || g, noIndex );
-					if(root.engine === 'CANNON'){ 
+					if(this.engine === 'CANNON'){ 
 						// cannon is too slow with convex !!!
 						// CannonJS requires CCW face indices ordering, else it detects
 	                    // normals as pointing inwards
@@ -496,7 +499,7 @@ export class Body extends Item {
 		// if engine don't have massCenter option
 		// is convert to compound
 		
-		if( o.massCenter && !WithMassCenter.indexOf(root.engine) ){
+		if( o.massCenter && !WithMassCenter.indexOf(this.engine) ){
 			if( o.type !== 'compound' ){
 				//o.localPos = o.massCenter
 				o.shapes = [{ type:o.type, pos:o.massCenter, size:o.size }];
@@ -516,8 +519,8 @@ export class Body extends Item {
 
 		if( o.collision !== undefined ){
 			if(o.collision === false){
-				if( root.engine === 'PHYSX' ) o.flags = 0
-				if( root.engine === 'OIMO' ) o.mask = 0
+				if( this.engine === 'PHYSX' ) o.flags = 0
+				if( this.engine === 'OIMO' ) o.mask = 0
 				//o.mask = 0
 			}
 			
@@ -560,7 +563,6 @@ export class Body extends Item {
 
 	    if( o.unicMat ) {
 	    	material = material.clone();
-	    	//root.tmpMat.push( material )
 	    	Mat.addToTmp( material );
 	    }
 
@@ -589,7 +591,7 @@ export class Body extends Item {
 	    		if(mm.children && !o.nofullmat ) for(let k in mm.children) mm.children[k].material = material
 	    	}
 
-	    	root.tmpMesh.push(mm);
+	    	this.motor.tmpMesh.push(mm);
 
 	    	o.meshRemplace = true;
 	    	b.add( mm );
@@ -618,7 +620,7 @@ export class Body extends Item {
 					if( n.rot !== undefined ) n.quat = MathTool.quatFromEuler(n.rot);
 					if( n.quat ) n.localQuat = n.quat;
 					
-					n.debug = o.debug;// || root.debug;
+					n.debug = o.debug;
 					n.meshRemplace = o.meshRemplace || false;
 
 					if( !o.instance ) this.geometry( n, b, material );
@@ -756,13 +758,16 @@ export class Body extends Item {
 
 		}
 
+
+
+
 		//---------------------------
 		//  Breakable
 		//---------------------------
 
     	if( o.breakable ){
 
-    		root.motor.addBreaker();
+    		this.motor.addBreaker();
 			let child = b.children[0];
 			b.remove(child);
 			b = child;
@@ -801,13 +806,14 @@ export class Body extends Item {
 		else if( b.mass && !b.density ){ 
 			b.density = MathTool.densityFromMass( b.mass, volume );
 			//  force density for engin don't have mass
-			if( root.engine === 'RAPIER' || root.engine === 'OIMO') o.density = b.density;
-			//if( root.engine === 'PHYSX') o.density = null;
+			if( this.engine === 'RAPIER' || this.engine === 'OIMO') o.density = b.density;
 		}
 
-		//if( root.engine === 'HAVOK') o.mass = b.mass;
 
 		if( o.massInfo ) console.log( '%c'+b.name+ ' %c' + 'density:' + b.density + ' mass:'+ b.mass, "font-size:16px", "font-size:12px" );
+
+
+		if( o.getVelocity ) b.getVelocity = true;
 
 		//---------------------------
 		// add to three world
@@ -832,7 +838,7 @@ export class Body extends Item {
 		if( o.parent ) delete o.parent;
 
 
-		if( o.solver && root.engine === 'PHYSX' ){
+		if( o.solver && this.engine === 'PHYSX' ){
 			// physx only have mass for solver bone
 			o.mass = b.mass;
 			// keep name reference of bones
@@ -845,7 +851,7 @@ export class Body extends Item {
 		// send to physic engine 
 		//---------------------------
 
-		root.post( { m:'add', o:o } );
+		this.motor.post( { m:'add', o:o } );
 
 		//---------------------------
 		// return three object3d
@@ -887,20 +893,18 @@ export class Body extends Item {
 
 	clearInstance( name ){
 
-		//console.log('need remove instance')
-
-		let instance = root.instanceMesh[name];
+		let instance = this.motor.instanceMesh[name];
 		let bodyList = instance.getBodyList();
 
-		root.motor.remove( bodyList );
+		this.motor.remove( bodyList );
 		instance.dispose();
-		delete root.instanceMesh[name]
+		delete this.motor.instanceMesh[name]
 
 	}
 
 	getInstance ( o, material ) {
 
-		if( root.instanceMesh[o.instance] ) return root.instanceMesh[o.instance];
+		if( this.motor.instanceMesh[o.instance] ) return this.motor.instanceMesh[o.instance];
 
 		// Create new instance 
 
@@ -936,8 +940,8 @@ export class Body extends Item {
     	bb.overMaterial = Mat.get( 'outline' );
 
     	bb.name = o.instance;
-		root.scene.add( bb );
-		root.instanceMesh[ o.instance ] = bb;
+		this.motor.scene.add( bb );
+		this.motor.instanceMesh[ o.instance ] = bb;
 
 		//console.log('add instance')
 

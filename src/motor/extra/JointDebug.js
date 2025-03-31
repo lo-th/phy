@@ -1,23 +1,18 @@
 import {
-	LineSegments, BufferGeometry,
-    Object3D, Line, Float32BufferAttribute,
-    Matrix4, Quaternion, Vector3
+	LineSegments, BufferGeometry, Float32BufferAttribute, Matrix4, Quaternion, Vector3
 } from 'three';
 
-
 import { Basic3D } from '../../core/Basic3D.js';
-import { Utils, root } from '../root.js';
 import { MathTool } from '../../core/MathTool.js';
-import { Geo } from '../base/Geo.js';
-import { Mat } from '../base/Mat.js';
-
 import { AutoSvg } from '../../3TH/AutoSvg.js';
 
 export class JointDebug extends Basic3D {
 
-	constructor( o = {} ) {
+	constructor( o = {}, motor ) {
 
 	    super()
+
+	    this.motor = motor;
 
 	    this.isJoint = true;
 
@@ -28,12 +23,12 @@ export class JointDebug extends Basic3D {
 	    this.mtx = new Matrix4();
 	    this.size = o.helperSize || 0.1;
 
-	    let material = Mat.get('line');
+	    let material = this.motor.mat.get('line');
 	    let mat, dt
 
 	    switch( this.mode ){
 	    	case 'prismatic':
-	    	    mat = Mat.get('svg');
+	    	    mat = this.motor.mat.get('svg');
 		    	dt = {
 					min:-180,
 					max:180,
@@ -62,7 +57,7 @@ export class JointDebug extends Basic3D {
 	    	break;
 	    	case 'hinge': case 'cylindrical':
 
-		    	mat = Mat.get('svg');
+		    	mat = this.motor.mat.get('svg');
 		    	dt = {
 					min:-180,
 					max:180,
@@ -91,7 +86,7 @@ export class JointDebug extends Basic3D {
 	    	break;
 	    	default:
 
-		    	const geom = Geo.get('joint');
+		    	const geom = this.motor.geo.get('joint');
 			    let g = geom.clone() 
 			    g.scale( this.size, this.size, this.size)
 			    this.m1 = new LineSegments( g, material )

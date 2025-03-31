@@ -1,31 +1,34 @@
 import { Item } from '../core/Item.js';
 import { Num } from '../core/Config.js';
 import { MathTool, todeg } from '../core/MathTool.js';
-
-import { Utils, root } from './root.js';
-import { Geo } from './base/Geo.js';
-import { Mat } from './base/Mat.js';
+//import { Geo } from './base/Geo.js';
+//import { Mat } from './base/Mat.js';
 import { Basic3D } from '../core/Basic3D.js';
 
+let Geo = null;
+let Mat = null;
 
 // THREE VEHICLE
 
 export class Vehicle extends Item {
 
-	constructor () {
+	constructor ( motor ) {
 
 		super();
 
-		this.Utils = Utils
+		this.motor = motor;
+		this.engine = this.motor.engine;
+		this.Utils = this.motor.utils;
+
+		Geo = this.motor.geo
+		Mat = this.motor.mat
+
 		this.type = 'vehicle';
 		this.num = Num[this.type]
 
 	}
 
-	step () {
-
-		const AR = root.Ar;
-		const N = root.ArPos[this.type];
+	step (AR, N) {
 
 		let i = this.list.length, n, s, j, k=0, m;
 
@@ -42,13 +45,13 @@ export class Vehicle extends Item {
 	add ( o = {} ) {
 
 		this.setName( o )
-        const car = new Car( o )
+        const car = new Car( o, this.motor )
 
         // add to world
 		this.addToWorld( car, o.id )
 
         // add to physics
-        root.post({ m:'add', o:car.o })
+        this.motor.post({ m:'add', o:car.o })
 
         return car
 
@@ -69,9 +72,12 @@ export class Vehicle extends Item {
 
 class Car extends Basic3D {//extends Object3D {
 
-	constructor( o ) {
+	constructor( o, motor ) {
 
 		super();
+
+		this.motor = motor;
+		this.Utils = this.motor.utils;
 
 		// extra function // ex car selection
 		if(o.extra){
@@ -119,7 +125,7 @@ class Car extends Basic3D {//extends Object3D {
 
 		this.s_travel = o.s_travel || 0.4
 		this.s_ratio = 1 / ( this.s_travel * 0.5 )
-		this.decaly = root.engine === 'PHYSX' ? this.s_travel * 0.5 : 0
+		this.decaly = this.engine === 'PHYSX' ? this.s_travel * 0.5 : 0
 
 
 		//this.diff = math.vecSub( this.chassisPos, this.massCenter )
@@ -217,7 +223,7 @@ class Car extends Basic3D {//extends Object3D {
 	    	n = chassisShapes[i]
 	    	if( n.pos ) n.localPos = n.pos;
 	    	n.size = MathTool.autoSize( n.size, n.type );
-	    	root.items.body.geometry( n, this, material )
+	    	this.motor.getGeometryRef(n, this, material)
 	    }
 
 	    //if( o.chassisShape ) console.log(  )
@@ -228,7 +234,7 @@ class Car extends Basic3D {//extends Object3D {
 		if(o.chassisMesh){
 			m = o.noClone ? o.chassisMesh : o.chassisMesh.clone()
 			m.position.set( 0, 0, 0 )
-			Utils.noRay( m )
+			this.Utils.noRay( m )
 			m.scale.set( scale, scale, scale )
 			this.children[0].add( m )
 			this.model = m
@@ -249,7 +255,7 @@ class Car extends Basic3D {//extends Object3D {
 				back = i >= byAxe+1
 				if( o.wheelMeshBack ) m = back ? o.wheelMeshBack.clone() : o.wheelMesh.clone()
 				else m = o.wheelMesh.clone()
-				Utils.noRay( m )
+				this.Utils.noRay( m )
 				m.position.set( 0, 0, 0 )
 				if(i==2 || i ==4) m.scale.set( -scale, scale, scale )
 				else m.scale.set( scale, scale, scale )
@@ -271,7 +277,7 @@ class Car extends Basic3D {//extends Object3D {
 			for( let i = 1; i<this.numWheel+1; i++ ) {
 
 				m = o.suspensionMesh.clone()
-				Utils.noRay( m )
+				this.Utils.noRay( m )
 				m.position.set( 0, 0, 0 )
 				m.position.fromArray(this.wheelsPosition[i-1])
 				m.position.x = 0
@@ -294,7 +300,7 @@ class Car extends Basic3D {//extends Object3D {
 				back = i > 2
 				if( o.brakeMeshBack ) m = back ? o.brakeMeshBack.clone() : o.brakeMesh.clone()
 				else m = o.brakeMesh.clone()
-				Utils.noRay( m )
+				this.Utils.noRay( m )
 				m.position.set( 0, 0, 0 )
 				m.position.fromArray(this.wheelsPosition[i-1])
 				if( o.brakeMeshBack ) pzz = scale
@@ -334,7 +340,7 @@ class Car extends Basic3D {//extends Object3D {
 
 	set ( o ) {
 		o.name = this.name;
-		root.motor.change( o );
+		this.motor.change( o );
 	}
 
 	respawn ( o ) {
@@ -348,8 +354,7 @@ class Car extends Basic3D {//extends Object3D {
 		if( o.keepRotation ) o.quat = this.quaternion.toArray();
 
 
-		//root.view.up( o );
-		root.motor.change( o );
+		this.motor.change( o );
 
 	}
 
@@ -431,11 +436,11 @@ class Car extends Basic3D {//extends Object3D {
 			
 			if(this.suspensionMesh ){
 				if ( this.suspension[k] > 0 ) {
-					Utils.morph( this.suspensionMesh[k].children[0], 'low', this.suspension[k] )
-					Utils.morph( this.suspensionMesh[k].children[0], 'top', 0 )
+					this.Utils.morph( this.suspensionMesh[k].children[0], 'low', this.suspension[k] )
+					this.Utils.morph( this.suspensionMesh[k].children[0], 'top', 0 )
 				} else {
-					Utils.morph( this.suspensionMesh[k].children[0], 'low', 0 )
-					Utils.morph( this.suspensionMesh[k].children[0], 'top', -this.suspension[k] )
+					this.Utils.morph( this.suspensionMesh[k].children[0], 'low', 0 )
+					this.Utils.morph( this.suspensionMesh[k].children[0], 'top', -this.suspension[k] )
 				}
 			}
 

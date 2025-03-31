@@ -43,6 +43,21 @@ export const Pool = {
     dracoPath:'./src/libs/draco/',
     basisPath:'./src/jsm/libs/basis/',
 
+    formatGltf : {
+        draco:true,
+        ktx2: false,
+        meshop: false,
+    },
+
+    setSupport: ( o ) => {
+
+        for(let m in o){
+            if(Pool.formatGltf[m]) Pool.formatGltf[m] = o[m];
+        }
+
+    },
+
+
     maxAnisotropy:1,
 
     onLoad:() => {},
@@ -509,8 +524,6 @@ export const Pool = {
             //console.log(Pool.dracoLoaderType)
         }
 
-        
-
         Pool.dracoLoader = new DRACOLoader().setDecoderPath( Pool.dracoPath )
         //Pool.dracoLoader.setWorkerLimit(1)
         Pool.dracoLoader.setDecoderConfig( { type: Pool.dracoLoaderType } )
@@ -534,9 +547,10 @@ export const Pool = {
         if( !Pool.GLTF ){
             Pool.GLTF = new GLTFLoader( Pool.manager )
             .setCrossOrigin('anonymous')
-            .setDRACOLoader( Pool.loaderDRACO() )
-            .setKTX2Loader( Pool.loaderKTX2() )
-            .setMeshoptDecoder( MeshoptDecoder )
+
+            if(Pool.formatGltf.draco) Pool.GLTF.setDRACOLoader( Pool.loaderDRACO() )
+            if(Pool.formatGltf.ktx2) Pool.GLTF.setKTX2Loader( Pool.loaderKTX2() )
+            if(Pool.formatGltf.meshop) Pool.GLTF.setMeshoptDecoder( MeshoptDecoder )
         }
         return Pool.GLTF
 

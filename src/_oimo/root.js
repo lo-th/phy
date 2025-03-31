@@ -14,16 +14,14 @@ export const root = {
 
 	world : null,
 	delta : 0,
+	ms:0,
 	tmpStep:0,
 	gravity:null,
 	key:[],
 
 	reflow:{
 		ray:[],
-		stat:{
-			fps:0,
-			delta:0,
-		},
+		stat:{ fps:0, delta:0, ms:0 },
 		velocity:{},
 	}
 

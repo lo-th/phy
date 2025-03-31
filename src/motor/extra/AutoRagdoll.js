@@ -1,17 +1,19 @@
 import * as SkeletonUtils from '../../jsm/utils/SkeletonUtils.js';
 import { SkeletonBody } from './SkeletonBody.js';
-import { root, Utils } from '../root.js';
 
 export class AutoRagdoll {
 	
-	constructor( o = {} ){
+	constructor( o = {}, motor ){
+
+		this.motor = motor
+		this.utils = this.motor.utils
 
 		this.id = 0;
 		this.type = 'autoRagdoll';
 		this.name = o.name || this.type+this.id++;
 
-		let b = Utils.byName( this.name );
-		if( b ) Utils.remove( b )
+		let b = this.utils.byName( this.name );
+		if( b ) this.utils.remove( b )
 
 		//this.isAutoRagdoll = true;
 
@@ -47,7 +49,7 @@ export class AutoRagdoll {
 
 		let mass = o.mass || null
 		
-		this.skeletonBody = new SkeletonBody( model.name, model, bones, mass, o.option );
+		this.skeletonBody = new SkeletonBody( this.motor, model.name, model, bones, mass, o.option );
 
 		this.debug = this._debug;
 		this.mode = this._mode;
@@ -67,19 +69,17 @@ export class AutoRagdoll {
         */
 
 		model.add( this.skeletonBody );
-		root.scene.add( model );
 
 		this.model = model;
 
-		//map.set( this.name, this );
-		Utils.add( this )
+		this.utils.add( this )
 
 		return this;
 
 	}
 
 	getRealPosition() {
-		let node = Utils.byName( this.skeletonBody.nodes[0].name );
+		let node = this.utils.byName( this.skeletonBody.nodes[0].name );
 		return node.position;
 	}
 

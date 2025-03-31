@@ -2,7 +2,7 @@ import {
 	Float32BufferAttribute
 } from 'three';
 
-import { Shader } from '../Shader.js'
+//import { Shader } from '../Shader.js'
 import { mergeGeometries } from '../../jsm/utils/BufferGeometryUtils.js';
 
 export const GlbTool = {
@@ -107,12 +107,12 @@ export const GlbTool = {
             	if( names.indexOf(m.name) === -1 ){
 
                     names.push(m.name);
-            		Shader.add( m );
+            		//Shader.add( m );
                     
             		Mats[m.name] = m;
 
                     //if( m.color ) m.color.convertSRGBToLinear();
-                    if( m.vertexColors ) m.vertexColors = false;
+                    //if( m.vertexColors ) m.vertexColors = false;
             		
             	}
 

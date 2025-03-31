@@ -11,7 +11,7 @@ import {
     CustomBlending,
     ZeroFactor,
     SrcAlphaFactor,
-    ObjectSpaceNormalMap, TangentSpaceNormalMap,
+    ObjectSpaceNormalMap, 
 } from 'three';
 import { Pool } from '../Pool.js';
 

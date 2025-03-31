@@ -1,23 +1,20 @@
 import { Item } from '../core/Item.js';
 import { Num } from '../core/Config.js';
 
-import { Utils, root } from './root.js';
-
 export class Contact extends Item {
 
-	constructor () {
+	constructor ( motor ) {
 
 		super();
 
-		this.Utils = Utils
+		this.motor = motor;
+		this.Utils = this.motor.utils;
+
 		this.type = 'contact';
 
 	}
 
-	step () {
-
-		const AR = root.Ar;
-		const N = root.ArPos[this.type];
+	step (AR, N) {
 
 		let i = this.list.length, c, n;
 		
@@ -46,7 +43,7 @@ export class Contact extends Item {
 		this.addToWorld( c, o.id );
 
 		// add to worker 
-		root.post( { m:'add', o:o } );
+		this.motor.post( { m:'add', o:o } );
 
 		return c;
 

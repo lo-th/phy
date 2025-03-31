@@ -1,7 +1,11 @@
-import { Motor } from './motor/Motor.js';
-export const phy = Motor;
-export const math = Motor.math;
-export const pool = Motor.pool;
+//import { MotorOld } from './motor_old/MotorOld.js';
 
-import { Motor2 } from './motor_Solo/Motor2.js';
-export const phy2 = Motor2;
+
+import { MathTool } from './core/MathTool.js';
+import { Pool } from './3TH/Pool.js';
+import { PhyEngine } from './motor/PhyEngine.js';
+
+export const phy = new PhyEngine();
+export const phy2 = PhyEngine;
+export const math = MathTool;
+export const pool = Pool;

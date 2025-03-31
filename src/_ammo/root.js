@@ -11,6 +11,7 @@ export const root = {
 	bodyRef: null,
 	byName: null,
 	delta : 0,
+	ms:0,
 	timestep : 1/60,
 	tmpStep:0,
 	substep:1,
@@ -21,10 +22,7 @@ export const root = {
 
 	reflow:{
 		ray:[],
-		stat:{
-			fps:0,
-			delta:0,
-		},
+		stat:{ fps:0, delta:0, ms:0 },
 		point:{},
 		velocity:{},
 	}

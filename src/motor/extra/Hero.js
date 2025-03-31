@@ -1,9 +1,6 @@
 import { Basic3D } from '../../core/Basic3D.js';
 import { MathTool, torad } from '../../core/MathTool.js';
 import { Vector3, Euler, Quaternion, Mesh } from 'three';
-
-import { Utils, root } from '../root.js';
-import { Mat, Colors } from '../base/Mat.js';
 import { SkeletonBody } from './SkeletonBody.js';
 
 import { Avatar } from '../../3TH/character/Avatar.js';
@@ -16,9 +13,12 @@ import { CapsuleHelper } from '../../3TH/helpers/CapsuleHelper.js';
 
 export class Hero extends Basic3D {
 
-	constructor( o = {} ) {
+	constructor( o = {}, motor ) {
 
 		super()
+
+		this.motor = motor;
+		this.utils = this.motor.utils;
 
 		this.isCharacter = true;
 		this.isPlayer = false;
@@ -237,7 +237,7 @@ export class Hero extends Basic3D {
 		this.phyData.pos = pos;
 		this.phyData.size = size;
 
-		root.post({ m:'add', o:this.phyData });
+		this.motor.post({ m:'add', o:this.phyData });
 
 	}
 
@@ -249,7 +249,7 @@ export class Hero extends Basic3D {
 		o.pos[1] += this.height*0.5;
 		if( this.useFloating ) o.pos[1] += this.option.floatHeight;
 
-		if( this.globalRay ) root.items.body.geometry( { ...o, type:'capsule', ray:true }, this, Mat.get('hide') )
+		if( this.globalRay ) this.motor.getGeometryRef( { ...o, type:'capsule', ray:true }, this, this.motor.mat.get('hide') )
 
 		this.phyData = {
 			name: this.name,
@@ -273,14 +273,14 @@ export class Hero extends Basic3D {
 	
 
 		// add to world
-		root.items.character.addToWorld( this, o.id );
+		this.motor.getCharacterRef().addToWorld( this, o.id );
 
         // add capsule to physics
         //root.post({ m:'add', o:o });
-        root.post({ m:'add', o:this.phyData });
+        this.motor.post({ m:'add', o:this.phyData });
 
         // add bottom RAY
-        if( this.useFloating ) this.ray = root.motor.add({ type:'ray', name:this.name + '_ray', begin:[0,this.rayStart,0], end:[0,this.rayEnd, 0], callback:this.selfRay.bind(this), visible:false, parent:this.name });
+        if( this.useFloating ) this.ray = this.motor.add({ type:'ray', name:this.name + '_ray', begin:[0,this.rayStart,0], end:[0,this.rayEnd, 0], callback:this.selfRay.bind(this), visible:false, parent:this.name });
 
 
         // add skinning character model
@@ -293,7 +293,7 @@ export class Hero extends Basic3D {
 
 	extraRemove(){
 		// TODO bug with delete ray ?!
-		if( this.ray ) root.motor.remove( this.name + '_ray' );
+		if( this.ray ) this.motor.remove( this.name + '_ray' );
 	}
 
 	/*clear(){
@@ -326,7 +326,7 @@ export class Hero extends Basic3D {
 
     	if(b){
     		if(!this.helper){
-    			this.helper = new CapsuleHelper(this.radius, this.height, true, Mat.get('line'), [1,0.6,0], [0.6,0.2,0] );
+    			this.helper = new CapsuleHelper(this.radius, this.height, true, this.motor.mat.get('line'), [1,0.6,0], [0.6,0.2,0] );
     			this.helper.setDirection( this.angle ) 
 		        this.add( this.helper );
     		}
@@ -347,8 +347,8 @@ export class Hero extends Basic3D {
     	if( this.skeletonBody ) return
     	if( !this.model ) return
     	//this.skeletonBody = new SkeletonBody( this )
-        this.skeletonBody = new SkeletonBody( this.name, this.model.root, this.model.skeleton.bones )
-    	root.scene.add( this.skeletonBody )
+        this.skeletonBody = new SkeletonBody( this.motor, this.name, this.model.root, this.model.skeleton.bones )
+    	this.motor.scene.add( this.skeletonBody )
     	this.skeletonBody.isVisible( false )
 
     }
@@ -419,7 +419,7 @@ export class Hero extends Basic3D {
 		
 
 		if( this.model ) {
-			this.model.update( root.delta );
+			this.model.update( this.motor.delta );
 			this.getDistanceToCamera()
 		}
 
@@ -430,7 +430,7 @@ export class Hero extends Basic3D {
 
 			this.getFloating();
 
-	    	root.motor.change({
+	    	this.motor.change({
 
 			    name:this.name,
 			    impulse: this.v.moveImpulse.toArray(), 
@@ -454,9 +454,9 @@ export class Hero extends Basic3D {
 		if( !this.model ) return
 		if( !this.model.haveLOD ) return
 
-		const camera = root.motor.getCamera();
+		const camera = this.motor.getCamera();
 		//this.tmpV1.setFromMatrixPosition( camera.matrixWorld );
-		this.tmpV1.copy( root.motor.getCurrentCharacterPosition() );
+		this.tmpV1.copy( this.motor.getCurrentCharacterPosition() );
 		this.tmpV2.copy( this.position );//setFromMatrixPosition( this.matrixWorld );
 		const distance = this.tmpV1.distanceTo( this.tmpV2 ) / camera.zoom;
 
@@ -522,8 +522,8 @@ export class Hero extends Basic3D {
 
 		const v = this.v;
 		const o = this.option;
-		const key = root.motor.getKey();
-		const azimut = root.motor.getAzimut();
+		const key = this.motor.getKey();
+		const azimut = this.motor.getAzimut();
 
 		
 		
@@ -653,7 +653,7 @@ export class Hero extends Basic3D {
 
 		if(this.tmpV1.x + this.tmpV1.z === 0 ) return;
 
-		root.motor.change({
+		this.motor.change({
 
 		    name:this.name,
 		    //force: this.tmpV1.toArray(), forceMode:'velocity', 
@@ -671,9 +671,9 @@ export class Hero extends Basic3D {
 
 		const v = this.v;
 
-		const key = root.motor.getKey();
-		const azimut = root.motor.getAzimut();
-		const delta = root.delta;
+		const key = this.motor.getKey();
+		const azimut = this.motor.getAzimut();
+		const delta = this.motor.delta;
 		
 		// 1°/ find the good animation
 
@@ -728,7 +728,7 @@ export class Hero extends Basic3D {
 
 	        if( this.useFloating ) this.getFloating();
 
-	    	root.motor.change({
+	    	this.motor.change({
 
 			    name:this.name,
 			    impulse: this.v.moveImpulse.toArray(), 
@@ -772,7 +772,7 @@ export class Hero extends Basic3D {
 		    //math.tmpV2.set( 0, rs, 0 );
 		    this.tmpV2.set( 0, 0, 0 );
 
-	    	root.motor.change({
+	    	this.motor.change({
 
 			    name:this.name,
 			    //force: this.tmpV1.toArray(), forceMode:'velocity', 

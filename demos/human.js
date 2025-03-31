@@ -39,9 +39,12 @@ onComplete_1 = () => {
 
     phy.preload( ['man', 'woman'], onComplete_2 );
 
+    //onComplete_2()
+
 }
 
 onComplete_2 = () => {
+
 
     Character(1);
     addGui();

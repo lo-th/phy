@@ -10,6 +10,7 @@ export const root = {
 
 	world : null,
 	delta : 0,
+	ms:0,
 
 	flow:{
 		tmp:[],
@@ -18,10 +19,7 @@ export const root = {
 
 	reflow:{
 		ray:[],
-		stat:{
-			fps:0,
-			delta:0,
-		},
+		stat:{ fps:0, delta:0, ms:0 },
 	}
 
 };

@@ -11,7 +11,7 @@ import {
     CustomBlending,
     ZeroFactor,
     SrcAlphaFactor,
-    ObjectSpaceNormalMap, TangentSpaceNormalMap,
+    ObjectSpaceNormalMap, 
 } from 'three';
 import { Pool } from '../Pool.js';
 
@@ -54,7 +54,6 @@ export const Human_low = {
 
             normalScale: new Vector2( setting.normal, -setting.normal),
             //normalMapType: ObjectSpaceNormalMap,
-            //normalMapType:TangentSpaceNormalMap,
             envMapIntensity:0.3,
             roughness:0.22,
             metalness:0.0,

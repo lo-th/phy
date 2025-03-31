@@ -2,8 +2,6 @@ import { Item } from '../core/Item.js';
 import { Num } from '../core/Config.js';
 import { MathTool, todeg } from '../core/MathTool.js';
 
-import { Utils, root } from './root.js';
-import { Mat } from './base/Mat.js';
 
 import {
 	Line, LineSegments, BufferGeometry,
@@ -15,20 +13,19 @@ import {
 
 export class Ray extends Item {
 
-	constructor () {
+	constructor ( motor ) {
 
 		super();
 
-		this.Utils = Utils;
+		this.motor = motor;
+
+		this.Utils = this.motor.utils;
 		this.type = 'ray';
 		this.iType = 'ray';
 
 	}
 
-	step () {
-
-		const AR = root.Ar;
-		const N = root.ArPos[this.type];
+	step (AR, N) {
 
 		let i = this.list.length, r, n;
 
@@ -36,7 +33,7 @@ export class Ray extends Item {
 
 			r = this.list[i];
 			n = N + ( i * Num.ray );
-			r.update( AR, n, root.reflow.ray[i] || null );
+			r.update( AR, n, this.motor.reflow.ray[i] || null );
 
 		}
 
@@ -46,23 +43,23 @@ export class Ray extends Item {
 
 		let name = this.setName( o );
 
-		let r = new ExtraRay( o );
+		let r = new ExtraRay( o, this.motor );
 
-		r.visible = o.visible !== undefined ? o.visible : true
+		r.visible = o.visible !== undefined ? o.visible : true;
 
 		// add to world
-		this.addToWorld( r, o.id )
+		this.addToWorld( r, o.id );
 
 		if(o.parent){
 			if( typeof o.parent !== 'string' ) o.parent = o.parent.name;
 		}
 
-		if( o.callback ) delete o.callback
+		if( o.callback ) delete o.callback;
 
 		
 
 		// add to worker 
-		root.post( { m:'add', o:o } );
+		this.motor.post( { m:'add', o:o } );
 
 		return r;
 
@@ -73,7 +70,7 @@ export class Ray extends Item {
 		if( r === null ) r = this.byName( o.name );
 		if( r === null ) return;
 
-		r.setRay(o)
+		r.setRay(o);
 
 	}
 
@@ -82,9 +79,12 @@ export class Ray extends Item {
 
 export class ExtraRay extends Line {
 
-	constructor( o = {} ) {
+	constructor( o = {}, motor ) {
 
-	    super( new BufferGeometry(), Mat.get('line') );
+	    super( new BufferGeometry(), motor.getMat('line') );
+
+	    this.motor = motor;
+		this.Utils = this.motor.utils;
 
 	    this.isRay = true;
 
@@ -105,7 +105,7 @@ export class ExtraRay extends Line {
 
 	    this.parentMesh = null;
 	    if(o.parent){
-	    	this.parentMesh = typeof o.parent === 'string' ?  Utils.byName( o.parent ) : o.parent;
+	    	this.parentMesh = typeof o.parent === 'string' ?  this.Utils.byName( o.parent ) : o.parent;
 	    	this.data.parent = this.parentMesh;
 	    }
 
@@ -158,7 +158,7 @@ export class ExtraRay extends Line {
 		this.data.hit = r[n] !== 0 ? true : false;
 		this.data.body = body ? body : '';
 
-		this.data.distance = r[n+1]
+		this.data.distance = r[n+1];
 
 		if( this.data.hit ){
 

@@ -1,9 +1,6 @@
 import {
-    Mesh, PlaneGeometry, Raycaster, Vector2, Vector3, MeshBasicMaterial, Line, BufferGeometry, Float32BufferAttribute
+    Mesh, PlaneGeometry, Raycaster, Vector2, Vector3, Line, BufferGeometry, Float32BufferAttribute
 } from 'three';
-
-import { root } from '../root.js';
-import { Mat } from '../base/Mat.js';
 
 
 //----------------
@@ -12,7 +9,9 @@ import { Mat } from '../base/Mat.js';
 
 export class MouseTool {
 
-	constructor ( controler, mode = 'drag' ) {
+	constructor ( controler, mode = 'drag', motor ) {
+
+		this.motor = motor;
 
 		this.needRay = false;
 
@@ -83,14 +82,14 @@ export class MouseTool {
 
 		//this.overLock = true;
 
-		this.helper = new MoveHelper()
-		this.dragPlane = new Mesh( new PlaneGeometry( 1, 1 ), Mat.get('hide') )
+		this.helper = new MoveHelper(this.motor)
+		this.dragPlane = new Mesh( new PlaneGeometry( 1, 1 ), this.motor.mat.get('hide') )
 	    this.dragPlane.castShadow = false
 	    this.dragPlane.receiveShadow = false
 	    this.dragPlane.scale.set( 1, 1, 1 ).multiplyScalar( 200 )
 
-	    root.scenePlus.add( this.helper )
-	    root.scenePlus.add( this.dragPlane )
+	    this.motor.scenePlus.add( this.helper )
+	    this.motor.scenePlus.add( this.dragPlane )
 
 	}
 
@@ -100,8 +99,8 @@ export class MouseTool {
 
 		//this.overLock = false;
 
-		root.scenePlus.remove( this.dragPlane );
-		root.scenePlus.remove( this.helper );
+		this.motor.scenePlus.remove( this.dragPlane );
+		this.motor.scenePlus.remove( this.helper );
 
 		this.dragPlane.geometry.dispose();
 		this.helper.geometry.dispose();
@@ -117,7 +116,7 @@ export class MouseTool {
     	this.mode = mode;
         this.option = o;
 
-        if( this.mode === 'blast' && this.option.visible ) root.motor.initParticle()
+        if( this.mode === 'blast' && this.option.visible ) this.motor.initParticle()
 
     }
 
@@ -185,9 +184,9 @@ export class MouseTool {
 
 	getMouse ( e ) {
 
-		if(root.viewSize){
-			this.mouse.x =   ( e.offsetX / root.viewSize.w ) * 2 - 1;
-		    this.mouse.y = - ( e.offsetY / root.viewSize.h ) * 2 + 1;
+		if(this.motor.viewSize){
+			this.mouse.x =   ( e.offsetX / this.motor.viewSize.w ) * 2 - 1;
+		    this.mouse.y = - ( e.offsetY / this.motor.viewSize.h ) * 2 + 1;
 		} else {
 			this.mouse.x =   ( e.offsetX / this.dom.clientWidth ) * 2 - 1;
 			this.mouse.y = - ( e.offsetY / this.dom.clientHeight ) * 2 + 1;
@@ -244,7 +243,7 @@ export class MouseTool {
 		this.mouseMove = this.oldMouse.distanceTo( this.mouse ) < 0.01 ? false : true
 		this.mouseDown = false
 		this.mouseDown2 = false
-		root.mouseDown = false
+		this.motor.mouseDown = false
 
 
 
@@ -296,7 +295,7 @@ export class MouseTool {
 
 			this.raycast.setFromCamera( this.mouse, this.controler.object )
 
-			inters = this.raycast.intersectObjects( root.scene.children, true )
+			inters = this.raycast.intersectObjects( this.motor.scene.children, true )
 
 			this.tmpSelected = null
 
@@ -309,12 +308,12 @@ export class MouseTool {
 
 				if( id !== undefined ){
 					// is instance mesh
-					m = root.motor.byName( g.getByName( id ) );
+					m = this.motor.byName( g.getByName( id ) );
 					//m = root.motor.byName( g.name+id );
 				} else {
-					if( g.parent !== root.scene ){
+					if( g.parent !== this.motor.scene ){
 						h = g.parent;
-						if( h.parent !== root.scene ) m = h.parent;
+						if( h.parent !== this.motor.scene ) m = h.parent;
 						else m = h;
 					} else m = g;
 				}
@@ -370,7 +369,7 @@ export class MouseTool {
 
 	    //if( this.button === 0 ){
 		    this.mouseDown = true
-		    root.mouseDown = true
+		    this.motor.mouseDown = true
 		    this.needRay = true;
 
 		    //if(this.tmpSelected!== null) this.select(this.tmpSelected, this.tmpPoint )
@@ -385,7 +384,7 @@ export class MouseTool {
 
 		let hit = null
 		this.raycast.setFromCamera( this.mouse, this.controler.object )
-		let inters = this.raycast.intersectObjects( root.scene.children, true )
+		let inters = this.raycast.intersectObjects( this.motor.scene.children, true )
 
 		if ( inters.length > 0 ) {
 
@@ -393,7 +392,7 @@ export class MouseTool {
 			else inters[ 0 ].object.parent.userData.direct()
 				
 		} else {
-			inters = this.raycast.intersectObjects( root.scenePlus.children, true )
+			inters = this.raycast.intersectObjects( this.motor.scenePlus.children, true )
 			if ( inters.length > 0 ) hit = inters[ 0 ]
 		}
 
@@ -401,9 +400,9 @@ export class MouseTool {
 
 		if(hit){ 
 
-			root.motor.explosion( hit.point, o.radius || 3, o.power || 0.1 )
+			this.motor.explosion( hit.point, o.radius || 3, o.power || 0.1 )
 
-			if( o.visible ) root.motor.addParticle({
+			if( o.visible ) this.motor.addParticle({
 				name:'blast',
 				type:"cube",
 				position:hit.point.toArray(),
@@ -437,7 +436,7 @@ export class MouseTool {
 		this.pos.copy( this.raycast.ray.direction ).add(  this.raycast.ray.origin );
 		this.velocity.copy( this.raycast.ray.direction ).multiplyScalar( 60 )
 
-		root.motor.add({
+		this.motor.add({
 			name: 'bullet_' + this.numBullet,
 			type:'sphere',
 			density:20,
@@ -591,7 +590,7 @@ export class MouseTool {
 
 	    let revert = false
 
-	    root.motor.change({ name: this.selected.name, neverSleep:true, wake:true })
+	    this.motor.change({ name: this.selected.name, neverSleep:true, wake:true })
 		//Motor.add({ name:'mouse', type:'sphere', size:[0.01], pos:p, quat:quat, mask:0, density:0, noGravity:true, kinematic:true, flags:'noCollision' })
 		//root.motor.add({ name:'mouse', type:'null', pos:p, quat:quat })
 
@@ -602,21 +601,21 @@ export class MouseTool {
 		//let defr = [-3, 3, 60, 2]
 
 		if( this.moveDirect ){
-			root.motor.change({ name:this.selected.name, kinematic:false, gravity:false, damping:[0.9,0.9]  })
+			this.motor.change({ name:this.selected.name, kinematic:false, gravity:false, damping:[0.9,0.9]  })
 		} else {
 			let def = [-0.1, 0.1, 600, 1]
 			let defr = [-0.1, 0.1, 600, 1]
 			//let defr = [0, 0]
-			let notUseKinematic = root.engine === 'OIMO' || root.engine ==='RAPIER' || root.engine ==='JOLT'//|| root.engine ==='HAVOK'
+			let notUseKinematic = this.motor.engine === 'OIMO' || this.motor.engine ==='RAPIER' || this.motor.engine ==='JOLT'//|| root.engine ==='HAVOK'
 			let jtype = this.selected.link === 0 ? 'fixe' : 'd6';//root.engine === 'HAVOK' ? 'fixe' : 'd6';
 
-			if( root.engine === 'JOLT' ) jtype = 'fixe';
+			if( this.motor.engine === 'JOLT' ) jtype = 'fixe';
 
 			let limite = [['x',...def], ['y',...def], ['z',...def], ['rx',...defr], ['ry',...defr], ['rz',...defr]]
 
-			if( root.engine === 'HAVOK' ) limite = [ ['x',...def], ['y',...def], ['z',...def] ]
+			if( this.motor.engine === 'HAVOK' ) limite = [ ['x',...def], ['y',...def], ['z',...def] ]
 
-			if( root.engine === 'OIMO' ){
+			if( this.motor.engine === 'OIMO' ){
 				revert = true;
 				jtype = this.selected.link === 0 ? 'fixe' : 'spherical';
 				limite = [ ['x',...def], ['y',...def], ['z',...def] ]
@@ -624,7 +623,7 @@ export class MouseTool {
 				//limite = [ 4.0, 1.0 ]
 			}
 
-			if( root.engine === 'HAVOK' ){
+			if( this.motor.engine === 'HAVOK' ){
 				revert = true;
 				jtype = this.selected.link === 0 ? 'fixe' : 'spherical';
 				limite = [ -180, 180, 0.1, 0.1 ]
@@ -632,7 +631,7 @@ export class MouseTool {
 
 			//console.log(jtype)
 
-			root.motor.add([
+			this.motor.add([
 				{ 
 					name:'mouse', 
 					type:'null', 
@@ -699,9 +698,9 @@ export class MouseTool {
 		let pos = this.tmpPos.toArray()
 
 		if( this.moveDirect ){ 
-			root.motor.change({ name:this.selected.name, pos:pos, reset:true })
+			this.motor.change({ name:this.selected.name, pos:pos, reset:true })
 		} else {
-			root.motor.change({ name:'mouse', pos:point.toArray(), lockPos:true }, true )
+			this.motor.change({ name:'mouse', pos:point.toArray(), lockPos:true }, true )
 		}
 	}
 
@@ -713,10 +712,10 @@ export class MouseTool {
 		this.clearDrag()
 
 		if( this.moveDirect ){
-			root.motor.change({ name:this.selected.name, kinematic:false, wake:true, gravity:true, damping:[0,0.1] })
+			this.motor.change({ name:this.selected.name, kinematic:false, wake:true, gravity:true, damping:[0,0.1] })
 		} else {
-			root.motor.remove(['mouseJoint','mouse'])
-			root.motor.change({ name:this.selected.name, neverSleep:false, wake:true })
+			this.motor.remove(['mouseJoint','mouse'])
+			this.motor.change({ name:this.selected.name, neverSleep:false, wake:true })
 		}
 		
 		this.raycastTest = true;
@@ -734,7 +733,7 @@ export class MouseTool {
 
 		if( this.selected === null ) return
 
-		let key = root.flow.key
+		let key = this.motor.flow.key
 
 
 		if( key[1] !== 0 ){
@@ -762,9 +761,9 @@ export class MouseTool {
 
 class MoveHelper extends Line {
 
-	constructor( o = {} ) {
+	constructor( motor ) {
 
-		super( new BufferGeometry(), Mat.get('line') );
+		super( new BufferGeometry(), motor.mat.get('line') );
 
 		let c = 0.75
 

@@ -1,5 +1,4 @@
 import { MathTool } from '../../core/MathTool.js';
-import { root } from '../root.js';
 import { Mesh, PlaneGeometry, Vector3, MeshBasicMaterial, CanvasTexture, Texture } from 'three';
 
 let Nb = 0

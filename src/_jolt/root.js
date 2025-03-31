@@ -14,7 +14,7 @@ export const root = {
 	Ar:null, 
 	ArPos: {},
 
-
+	ms:0,
 	deltaTime : 0,
 	invDelta : 0,
 
@@ -35,10 +35,7 @@ export const root = {
 
 	reflow:{
 		ray:[],
-		stat:{
-			fps:0,
-			delta:0,
-		},
+		stat:{ fps:0, delta:0, ms:0 },
 		velocity:{},
 	}
 

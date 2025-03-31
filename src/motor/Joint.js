@@ -4,8 +4,6 @@ import {
 import { Item } from '../core/Item.js';
 import { Num } from '../core/Config.js';
 import { MathTool, torad } from '../core/MathTool.js';
-import { Utils, root } from './root.js';
-
 import { JointDebug } from './extra/JointDebug.js';
 
 
@@ -15,11 +13,13 @@ import { JointDebug } from './extra/JointDebug.js';
 
 export class Joint extends Item {
 
-	constructor () {
+	constructor ( motor ) {
 
 		super();
 
-		this.Utils = Utils
+		this.motor = motor;
+		this.engine = this.motor.engine;
+		this.Utils = this.motor.utils;
 
 		this.type = 'joint';
 
@@ -28,10 +28,7 @@ export class Joint extends Item {
 
 	}
 
-	step () {
-
-		const AR = root.Ar;
-		const N = root.ArPos[this.type];
+	step (AR, N) {
 
 		let i = this.list.length, j, n;
 		
@@ -77,14 +74,14 @@ export class Joint extends Item {
 
 		if( o.b1 ) {
 			isString = typeof o.b1 === 'string';
-			body1 = isString ? Utils.byName( o.b1 ) : o.b1;
+			body1 = isString ? this.Utils.byName( o.b1 ) : o.b1;
 			if( !isString ) o.b1 = o.b1.name;
 			if( body1 ) body1.link ++;
 		}
 
 		if( o.b2 ) {
 			isString = typeof o.b2 === 'string';
-			body2 = isString ? Utils.byName( o.b2 ) : o.b2;
+			body2 = isString ? this.Utils.byName( o.b2 ) : o.b2;
 			if( !isString ) o.b2 = o.b2.name;
 			if( body2 ) body2.link ++;
 		}
@@ -93,8 +90,8 @@ export class Joint extends Item {
 		if ( o.worldPos ) o.worldAnchor = o.worldPos;
 		if ( o.worldAnchor ){
 
-			o.pos1 = body1 ? Utils.toLocal( this.v1.fromArray( o.worldAnchor ), body1 ).toArray() : o.worldAnchor;
-			o.pos2 = body2 ? Utils.toLocal( this.v2.fromArray( o.worldAnchor ), body2 ).toArray() : o.worldAnchor;
+			o.pos1 = body1 ? this.Utils.toLocal( this.v1.fromArray( o.worldAnchor ), body1 ).toArray() : o.worldAnchor;
+			o.pos2 = body2 ? this.Utils.toLocal( this.v2.fromArray( o.worldAnchor ), body2 ).toArray() : o.worldAnchor;
 			/*if(body1){ 
 				this.v1 = body1.worldToLocal(this.v2.fromArray( o.worldAnchor ));
 				o.pos1 = this.v1.toArray();
@@ -109,12 +106,12 @@ export class Joint extends Item {
 		if ( o.worldAxis ){
 
 			
-			/*if( root.engine === 'JOLT'){
+			/*if( this.engine === 'JOLT'){
 				o.axis1 = o.worldAxis;
 				o.axis2 = o.worldAxis;
 			}else{*/
-				o.axis1 = body1 ? Utils.toLocal( this.v1.fromArray( o.worldAxis ), body1, true ).toArray() : o.worldAxis;
-			    o.axis2 = body2 ? Utils.toLocal( this.v2.fromArray( o.worldAxis ), body2, true ).toArray() : o.worldAxis;
+				o.axis1 = body1 ? this.Utils.toLocal( this.v1.fromArray( o.worldAxis ), body1, true ).toArray() : o.worldAxis;
+			    o.axis2 = body2 ? this.Utils.toLocal( this.v2.fromArray( o.worldAxis ), body2, true ).toArray() : o.worldAxis;
 			//}
 			
 			//o.quat1 = new Quaternion().setFromUnitVectors( new Vector3(1, 0, 0), new Vector3().fromArray(o.axis1).normalize() ).toArray();
@@ -129,12 +126,12 @@ export class Joint extends Item {
 
 		if ( o.worldQuat ){
 
-			o.quat1 = Utils.quatLocal(o.worldQuat, body1)
-			o.quat2 = Utils.quatLocal(o.worldQuat, body2)
+			o.quat1 = this.Utils.quatLocal(o.worldQuat, body1)
+			o.quat2 = this.Utils.quatLocal(o.worldQuat, body2)
 
 
 
-			if( root.engine === 'OIMO' || root.engine === 'HAVOK' || root.engine === 'JOLT' ){
+			if( this.engine === 'OIMO' || this.engine === 'HAVOK' || this.engine === 'JOLT' ){
 
 				//this.v1.fromArray( math.quadToAxisArray( o.worldQuat ) ).normalize()
 				//this.v2.fromArray( math.quadToAxisArray( o.worldQuat ) ).normalize()
@@ -142,8 +139,8 @@ export class Joint extends Item {
 				//o.axis1 = Utils.axisLocal( math.quadToAxisArray( o.worldQuat ), body1)//this.v1.fromArray( math.quadToAxisArray( o.quat1 ) ).normalize().toArray()
 				//o.axis2 = Utils.axisLocal( math.quadToAxisArray( o.worldQuat ), body2)//this.v2.fromArray( math.quadToAxisArray( o.quat2 ) ).normalize().toArray()
 
-				o.axis1 = Utils.axisLocal( MathTool.quatToAxis( o.worldQuat ), body1)
-				o.axis2 = Utils.axisLocal( MathTool.quatToAxis( o.worldQuat ), body2)
+				o.axis1 = this.Utils.axisLocal( MathTool.quatToAxis( o.worldQuat ), body1)
+				o.axis2 = this.Utils.axisLocal( MathTool.quatToAxis( o.worldQuat ), body2)
 
 				//o.axis1 = body1 ? Utils.toLocal( this.v1, body1, true ).toArray():[1,0,0]
 				//o.axis2 = body2 ? Utils.toLocal( this.v2, body2, true ).toArray():[1,0,0]
@@ -178,7 +175,7 @@ export class Joint extends Item {
 		if( !o.quat1 ) o.quat1 = new Quaternion().setFromUnitVectors( new Vector3(1, 0, 0), new Vector3().fromArray(o.axis1).normalize() ).toArray();
 		if( !o.quat2 ) o.quat2 = new Quaternion().setFromUnitVectors( new Vector3(1, 0, 0), new Vector3().fromArray(o.axis2).normalize() ).toArray();
 
-		if( root.engine === 'AMMO' && isWorldAxis && o.mode === 'hinge') {
+		if( this.engine === 'AMMO' && isWorldAxis && o.mode === 'hinge') {
 			let ee = new Euler(0, -90*torad, 0);
 			let qq = new Quaternion().setFromEuler(ee).toArray();
 			o.quatX = qq;
@@ -188,12 +185,12 @@ export class Joint extends Item {
 
 		if( o.drivePosition ) if( o.drivePosition.rot !== undefined ){ o.drivePosition.quat = MathTool.quatFromEuler( o.drivePosition.rot ); delete ( o.drivePosition.rot ); }
 
-		let j = new JointDebug( o );
+		let j = new JointDebug( o, this.motor );
 		j.name = name;
 		j.body1 = body1;
 		j.body2 = body2;
 		
-		if( o.visible === undefined ) o.visible = root.jointVisible || false;
+		if( o.visible === undefined ) o.visible = this.motor.jointVisible || false;
 
 		// apply option
 		this.set( o, j );
@@ -202,7 +199,7 @@ export class Joint extends Item {
 		this.addToWorld( j, o.id );
 
 		// add to worker 
-		root.post( { m:'add', o:o } );
+		this.motor.post( { m:'add', o:o } );
 
 		return j;
 

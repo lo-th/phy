@@ -6,31 +6,34 @@ import { CircleHelper } from '../../3TH/helpers/CircleHelper.js';
 
 //-------------------
 //
-//  GEOMETRY
+//  GEOMETRY POOL
 //
 //-------------------
 
+export class Geo {
 
-let geoN = 0;
-let geo = {}
+	constructor(){
 
-export const Geo = {
+		this.geoN = 0;
+		this.geo = {}
 
-	unic: ( g ) => {
+	}
+
+	unic ( g ) {
         //console.log(g)
-		geo[ 'geo' + geoN++ ] = g
+		this.geo[ 'geo' + this.geoN++ ] = g
 
-	},
+	}
 
-	set: ( g ) => {
+	set( g ) {
 
-		geo[g.name] = g
+		this.geo[g.name] = g
 
-	},
+	}
 
-	get: ( name, o = {} ) => {
+	get( name, o = {} ) {
 
-		if( !geo[name] ){
+		if( !this.geo[name] ){
 			let g;
 			switch( name ){
 				case 'plane':    g = new PlaneGeometry(1,1); g.rotateX( -Math.PI * 0.5 ); break
@@ -44,24 +47,24 @@ export const Geo = {
 				case 'joint':    g = new CircleHelper().geometry; break
 				default: return null;
 			}
-			geo[name] = g;
+			this.geo[name] = g;
 		}
 
-		return geo[name]
+		return this.geo[name]
 		
-	},
+	}
 
-	dispose: () => {
+	dispose () {
 
 		// TODO BUG with Start demo and HAVOK !!!
 		
 		//console.log( geo )
-		for( let n in geo ){
-		    if( geo[n].isBufferGeometry ) geo[n].dispose()
-		    else console.log(geo[n])
+		for( let n in this.geo ){
+		    if( this.geo[n].isBufferGeometry ) this.geo[n].dispose()
+		    else console.log(this.geo[n])
 		}
-		geo = {}
-		geoN = 0
+		this.geo = {}
+		this.geoN = 0
 
 	}
 

@@ -399,11 +399,11 @@ export const Gui = {
 
 	    //ui.add( 'bool', { name:'CAPTURE', onName:'STOP', value:false, mode:1 }).onChange( Gui.capture )
 		//ui.add('button', { name:'CAMERA' }).onChange( function(){ console.log( controls.getInfo() )} )
-		g0.add( options, 'renderMode', { type:'button', values:[ 'color', 'depth', 'normal' ], selectable:true, unselect:false, p:0 }).onChange( Main.changeRenderMode )
+		//g0.add( options, 'renderMode', { type:'button', values:[ 'color', 'depth', 'normal' ], selectable:true, unselect:false, p:0 }).onChange( Main.changeRenderMode )
 
 		g0.add('button', { name:'SCREENSHOT' }).onChange( function(){ Main.motor.screenshot() } )
 
-		let setts = Shader.setting()
+		/*let setts = Shader.setting()
 
 		let g1 = ui.add('group', { name:'SHADOW', open:false })
 		g1.add( options, 'shadowType', { type:'button', values:['PCSS', 'PCF', 'PCFSoft', 'VSM'], value:'DRAG', selectable:true, unselect:false, p:0 } ).onChange( Main.setShadowType )//.listen()
@@ -415,10 +415,10 @@ export const Gui = {
 		g1.add( setts.lightSizeUV, 'value', { rename:'light size', min:1, max:10, precision:4, mode:mode } )
 		g1.add( setts.nearPlane, 'value', { rename:'near plane', min:1, max:20, precision:2, mode:mode } )
 		g1.add( setts.rings, 'value', { rename:'ring', min:1, max:30, precision:0, color:'#ff0', mode:mode} )
-		g1.add( setts.nSample, 'value', { rename:'sample', min:2, max:32, precision:0, color:'#ff0', mode:mode }) 
+		g1.add( setts.nSample, 'value', { rename:'sample', min:2, max:32, precision:0, color:'#ff0', mode:mode })
 
 		//g1.add( setts.noiseIntensity, 'value', { rename:'noise', min:0, max:10, precision:3, mode:mode } )
-		g1.add( setts.softness, 'value', { rename:'softness', min:0, max:4, precision:3, mode:mode } )
+		g1.add( setts.softness, 'value', { rename:'softness', min:0, max:4, precision:3, mode:mode } ) */
 
 
 

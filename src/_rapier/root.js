@@ -10,6 +10,7 @@ export const root = {
 	timestep:1/60,
 	tmpStep:0,
 	delta : 0,
+	ms:0,
 	invDelta :0,
 	gravity:null,
 
@@ -17,10 +18,7 @@ export const root = {
 
 	reflow:{
 		ray:[],
-		stat:{
-			fps:0,
-			delta:0,
-		},
+		stat:{ fps:0, delta:0, ms:0 },
 		velocity:{},
 	},
 

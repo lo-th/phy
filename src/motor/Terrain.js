@@ -1,29 +1,31 @@
 import { Item } from '../core/Item.js';
 import { MathTool } from '../core/MathTool.js';
-import { Utils, root } from './root.js';
 import { Num } from '../core/Config.js';
-import { Mat } from './base/Mat.js';
+//import { Mat } from './base/Mat.js';
 
 import { Landscape } from '../3TH/objects/Landscape.js';
 
 // THREE TERRAIN
+let Mat = null;
 
 export class Terrain extends Item {
 
-	constructor() {
+	constructor( motor ) {
 
 		super()
 
-		this.Utils = Utils
+		this.motor = motor;
+		this.engine = this.motor.engine;
+		this.Utils = this.motor.utils;
+
+		Mat = this.motor.mat
+
 		this.type = 'terrain';
 		this.num = Num[this.type]
 
 	}
 
-	step () {
-
-		const AR = root.Ar;
-		const N = root.ArPos[this.type];
+	step (AR, N) {
 
 		let i = this.list.length, n, s, j, k=0, m;
 
@@ -41,23 +43,23 @@ export class Terrain extends Item {
 
 		this.setName( o )
 
-		if( root.engine === 'JOLT' ){
+		if( this.engine === 'JOLT' ){
 			o.isAbsolute = true
 			o.isTurned = false
 		}
 
-		if( root.engine === 'PHYSX' ){
+		if( this.engine === 'PHYSX' ){
 			o.isAbsolute = true
 			o.isTurned = true
 		}
 
-		if( root.engine === 'HAVOK'){
+		if( this.engine === 'HAVOK'){
 			o.isAbsolute = true
 			o.isTurned = true
 			o.isReverse = false
 		}
 
-		if( root.engine !== 'OIMO'){
+		if( this.engine !== 'OIMO'){
 			o.zone = o.zone || 0.25
 			//o.debuger = true
 		}
@@ -68,7 +70,7 @@ export class Terrain extends Item {
 
 		t.physicsUpdate = ( name, h ) =>{
 
-			root.flow.tmp.push( { name:name, heightData:h } );
+			this.motor.flow.tmp.push( { name:name, heightData:h } );
 			//root.post({m:'change', o:{ name:'terra', heightData:h }})
 		}
 
@@ -76,7 +78,7 @@ export class Terrain extends Item {
 		this.addToWorld( t, o.id )
 
         // add to physics
-        root.post({ m:'add', o:toPhysics(t) })
+        this.motor.post({ m:'add', o:toPhysics(t, this.engine) })
 
 		return t
 
@@ -93,16 +95,16 @@ export class Terrain extends Item {
 	
 }
 
-const toPhysics = function( t ) {
+const toPhysics = function( t, engine ) {
 
 	const o = {
 		name:t.name,
 		type:t.type,
 		pos:t.position.toArray(),
-		quat:root.engine === 'PHYSX' ? [0,0,0,1]:t.quaternion.toArray(), // physx terrain can't turn !!
+		quat:engine === 'PHYSX' ? [0,0,0,1]:t.quaternion.toArray(), // physx terrain can't turn !!
 	}
 
-	if( root.engine === 'PHYSX' || root.engine === 'AMMO' || root.engine === 'HAVOK' || root.engine === 'JOLT'){
+	if( engine === 'PHYSX' || engine === 'AMMO' || engine === 'HAVOK' || engine === 'JOLT'){
 		o.type = 'terrain';
 		o.size = t.sizeZ;
 		o.sample = t.sampleZ;
@@ -110,8 +112,8 @@ const toPhysics = function( t ) {
 		o.heightData = t.heightData;
 	} else {
 		o.type = 'mesh';
-		o.v = MathTool.getVertex( t.geometry, root.engine === 'OIMO' );
-		o.index = root.engine === 'OIMO' ? null : MathTool.getIndex( t.geometry );
+		o.v = MathTool.getVertex( t.geometry, engine === 'OIMO' );
+		o.index = engine === 'OIMO' ? null : MathTool.getIndex( t.geometry );
 	}
 
 	return o

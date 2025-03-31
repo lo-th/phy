@@ -279,7 +279,8 @@ export class engine {
 		tmpStep = 2;
 
 		startTime = stamp || Time.now();
-		root.delta = ( startTime - lastTime ) * 0.001;
+		root.ms = startTime - lastTime;
+		root.delta = root.ms / 1000;
 		lastTime = startTime;
 
 		//engine.stepItems()
@@ -300,6 +301,7 @@ export class engine {
 
 		// get simulation stat
 		if ( startTime - 1000 > t.tmp ){ t.tmp = startTime; root.reflow.stat.fps = t.n; t.n = 0; }; t.n++;
+		root.reflow.stat.ms = root.ms;
 		root.reflow.stat.delta = root.delta
 
 		if ( isBuffer ) engine.post( { m: 'step', reflow:root.reflow, Ar: root.Ar }, [ root.Ar.buffer ] );	

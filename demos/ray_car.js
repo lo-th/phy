@@ -57,7 +57,7 @@ onComplete = () => {
 
     //testCar( 0, [ 0,4,0 ] );
 
-    vehicle = new phy.RayCar({ 
+    vehicle = phy.rayCar({ 
 
         name:'chassis0', 
         wheelMesh: meshes.wheel_l, 

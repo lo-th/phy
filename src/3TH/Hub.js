@@ -1,6 +1,6 @@
 import * as UIL from '../libs/uil.module.js'
 import { Pool } from './Pool.js';
-import { Motor } from '../motor/Motor.js'
+//import { Motor } from '../motor/Motor.js'
 
 /** __
 *    _)_|_|_
@@ -216,7 +216,7 @@ export class Hub {
             joyOver:'rgba(127,255,0,0.5)',
             joySelect: '#7fFF00',
         }
-        joy = UIL.add('Joystick', {  w:120, mode:1, text:false, precision:1, pos:{left:'10px', bottom:'10px' }, target:content, simple:true, ...ccs }).onChange( function(v){ Motor.setKey(0, v[0]); Motor.setKey(1, v[1]) } )
+        //joy = UIL.add('Joystick', {  w:120, mode:1, text:false, precision:1, pos:{left:'10px', bottom:'10px' }, target:content, simple:true, ...ccs }).onChange( function(v){ Motor.setKey(0, v[0]); Motor.setKey(1, v[1]) } )
         //joy.neverlock = true
     }
 

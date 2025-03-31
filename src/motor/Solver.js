@@ -1,24 +1,21 @@
 import { Item } from '../core/Item.js';
 import { Num } from '../core/Config.js';
 import { MathTool } from '../core/MathTool.js';
-//import { Basic3D } from '../core/Basic3D.js';
-import { Utils, root } from './root.js';
 
 export class Solver extends Item {
 
-	constructor () {
+	constructor ( motor ) {
 
 		super();
 
-		this.Utils = Utils
+		this.motor = motor;
+		this.Utils = this.motor.utils;
+		
 		this.type = 'solver';
 
 	}
 
-	step () {
-
-		const AR = root.Ar;
-		const N = root.ArPos[this.type];
+	step (AR, N) {
 
 		let i = this.list.length, n
 
@@ -37,13 +34,13 @@ export class Solver extends Item {
 
 		let name = this.setName( o );
 
-        let solver = new Articulation( o )
+        let solver = new Articulation( o, this.motor )
 
         // add to world
 		this.addToWorld( solver, o.id )
 
         // add to worker
-        root.post({ m:'add', o:o });
+        this.motor.post({ m:'add', o:o });
 
         return solver;
 
@@ -60,7 +57,9 @@ export class Solver extends Item {
 
 export class Articulation {//extends Basic3D 
 
-	constructor( o ) {
+	constructor( o, motor ) {
+
+		this.motor = motor;
 
 		//super();
 
@@ -82,7 +81,7 @@ export class Articulation {//extends Basic3D
 
 	dispose(){
 
-		root.motor.remove( this.bones, true );
+		this.motor.remove( this.bones, true );
 		
 	}
 
@@ -118,19 +117,19 @@ export class Articulation {//extends Basic3D
 
 	start (){
 
-		root.post({ m:'startArticulation', o:{ name:this.name } });
+		this.motor.post({ m:'startArticulation', o:{ name:this.name } });
 
 	}
 
 	stop (){
 
-		root.post({ m:'stopArticulation', o:{ name:this.name } });
+		this.motor.post({ m:'stopArticulation', o:{ name:this.name } });
 
 	}
 
 	commonInit (){
 
-		root.post({ m:'commonInitArticulation', o:{ name:this.name } });
+		this.motor.post({ m:'commonInitArticulation', o:{ name:this.name } });
 
 	}
 
@@ -148,7 +147,7 @@ export class Articulation {//extends Basic3D
 			this.joints.push( new SolverJoint( o, this ) );
 		}
 
-		root.post({ m:'addSolverJoint', o:o });
+		this.motor.post({ m:'addSolverJoint', o:o });
 
 	}
 
@@ -177,7 +176,7 @@ export class Articulation {//extends Basic3D
 		}
 
 		// update or die
-		if( isInDrive ) root.motor.change( nup )
+		if( isInDrive ) this.motor.change( nup )
 		else {
 			if(this.resolve){
 				this.resolve();

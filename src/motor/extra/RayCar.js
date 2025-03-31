@@ -1,5 +1,4 @@
-import { Object3D, Vector3, Quaternion, Euler, Matrix4, CylinderGeometry, Mesh } from 'three';
-import { root, Utils } from '../root.js';
+import { Vector3, Quaternion, Matrix4, CylinderGeometry, Mesh } from 'three';
 
 // Universal ray vehicule 
 
@@ -36,7 +35,9 @@ const tmpMtx = new Matrix4();
 
 export class RayCar {
 	
-	constructor( o = {} ){
+	constructor( o = {}, motor ){
+
+        this.motor = motor;
 
         this.extra = {};
 
@@ -89,7 +90,7 @@ export class RayCar {
             shape = [ { type:'convex', shape:o.shapeMesh.geometry,  pos:o.shapePos || [0,0,0] } ]
         }
 
-        this.body = root.motor.add({ 
+        this.body = this.motor.add({ 
 
             type:'compound',
             shapes:shape,
@@ -116,9 +117,7 @@ export class RayCar {
 	    //this.body.inertia.set( 1.416666865348816, 1.666666865348816, 0.416666716337204 );
         this.body.inertia.set( 283.33331298828125, 333.33331298828125, 83.33332824707031 );
 
-	    this.vehicle = new RaycastVehicle({
-	        chassis: this.body,
-	    })
+	    this.vehicle = new RaycastVehicle({ chassis: this.body }, this.motor)
 
 	    /*const wheelPositions = [
 	        new Vector3(-0.95,0,-1.8),
@@ -171,7 +170,7 @@ export class RayCar {
         let wgeo, wgeo2
         let m1, m2;
 
-        let mat = root.motor.getMat('debug');
+        let mat = this.motor.getMat('debug');
 
         if( o.wheelMesh ){
 
@@ -211,10 +210,10 @@ export class RayCar {
             m.matrixAutoUpdate = false;
             if(m2) m2.matrixAutoUpdate = false;
             this.vehicle.wheelMeshes = [
-                root.motor.add(m2? m2 : m.clone()),
-                root.motor.add(m),
-                root.motor.add(m2? m2.clone() : m.clone()),
-                root.motor.add(m.clone())
+                this.motor.add(m2? m2 : m.clone()),
+                this.motor.add(m),
+                this.motor.add(m2? m2.clone() : m.clone()),
+                this.motor.add(m.clone())
             ]
         }
 
@@ -228,9 +227,9 @@ export class RayCar {
 	    this.tmp.brakeForce = 0
 	    this.tmp.steerDirection = 0
 
-	    let delta = root.motor.getDelta();
-	    let r = root.motor.getAzimut();
-	    let key = root.motor.getKey();
+	    let delta = this.motor.getDelta();
+	    let r = this.motor.getAzimut();
+	    let key = this.motor.getKey();
 
 	    this.tmp.forwardForce = key[1];
 	    this.tmp.steerDirection = key[0]*-1;
@@ -310,7 +309,9 @@ export class RayCar {
 
 class RaycastVehicle {
 
-    constructor( o ){
+    constructor( o, motor ){
+
+        this.motor = motor;
 
         this.chassisBody = o.chassis;
         this.wheelInfos = [];
@@ -328,14 +329,14 @@ class RaycastVehicle {
 
     addWheel ( o = {} ){
     
-        let info = new WheelInfo(o);
+        let info = new WheelInfo(o, this.motor );
         let index = this.wheelInfos.length-1;
 
         info.chassisBody = this.chassisBody;
 
         let raylen = info.suspensionRestLength + info.radius
         
-        info.ray = root.motor.add({
+        info.ray = this.motor.add({
             type:'ray', 
             name:this.chassisBody.name + '_wheel_' + index, 
             begin:info.chassisConnectionPointLocal.toArray(), 
@@ -437,7 +438,7 @@ class RaycastVehicle {
             impulse.copy( wheel.raycastResult.hitNormalWorld ).multiplyScalar(suspensionForce * timeStep)
             //console.log(suspensionForce * timeStep)
             
-            addImpulseAt( chassisBody, impulse, wheel.raycastResult.hitPointWorld )
+            addImpulseAt( this.motor, chassisBody, impulse, wheel.raycastResult.hitPointWorld )
             
             //repos.copy( wheel.raycastResult.hitPointWorld ).sub( chassisBody.position );
             //addImpulseAt( chassisBody, impulse, repos );
@@ -693,7 +694,7 @@ class RaycastVehicle {
                 let impulse = new Vector3();
                 impulse.copy(forwardWS[i]).multiplyScalar(wheel.forwardImpulse)
                 //impulse.copyFrom(forwardWS[i]).scaleInPlace(wheel.forwardImpulse)
-                addImpulseAt(chassisBody, impulse, wheel.raycastResult.hitPointWorld)
+                addImpulseAt( this.motor, chassisBody, impulse, wheel.raycastResult.hitPointWorld)
             
             }
     
@@ -713,13 +714,13 @@ class RaycastVehicle {
                 rel_pos['xyz'[this.indexUpAxis]] *= wheel.rollInfluence;
                 
                 TransformNormalToRef(rel_pos, bodyTransform(chassisBody, new Matrix4()), rel_pos);
-                addImpulseAt(chassisBody, sideImp, bodyPosition(chassisBody, new Vector3()).add(rel_pos));
+                addImpulseAt( this.motor, chassisBody, sideImp, bodyPosition(chassisBody, new Vector3()).add(rel_pos));
             
                 //sideImp.scaleToRef(-1, sideImp);
                 sideImp.multiplyScalar(-1);
 
                 // add impulse on staic object ???
-                addImpulseAt( groundObject, sideImp, wheel.raycastResult.hitPointWorld );
+                addImpulseAt( this.motor, groundObject, sideImp, wheel.raycastResult.hitPointWorld );
                 
             }
         }
@@ -822,7 +823,9 @@ var chassis_velocity_at_contactPoint = new Vector3();
 var relpos = new Vector3();
 
 class WheelInfo {
-    constructor( options ){
+    constructor( options, motor ){
+
+        this.motor = motor;
 
         options = Utilsdefaults(options, {
             chassisConnectionPointLocal: new Vector3(),
@@ -915,7 +918,7 @@ class WheelInfo {
             let hitDistance = r.distance
             this.raycastResult.hitPointWorld.fromArray( r.point )
             this.raycastResult.hitNormalWorld.fromArray( r.normal )
-            this.raycastResult.body = root.motor.byName( r.body )
+            this.raycastResult.body = this.motor.byName( r.body )
 
             this.suspensionLength = hitDistance - this.radius;
             // clamp on max suspension travel
@@ -1030,7 +1033,7 @@ const bodyOrientation = (body, res) => ( res.copy( body.quaternion ) )
 // The force applies the given energy overtime, while the impulse applies the given energy immediately
 
 
-const addImpulseAt = ( body, impulse, point ) => {
+const addImpulseAt = ( motor, body, impulse, point ) => {
 
     //impulse = body.worldToLocal( impulse )
     //root.motor.change({ name:body.name, impulse:impulse.toArray() })
@@ -1039,11 +1042,11 @@ const addImpulseAt = ( body, impulse, point ) => {
     //point = body.localToWorld( point )
     //root.motor.change({ name:body.name, worldForce
     //console.log({ name:body.name, impulse:impulse.toArray(), impulseCenter:point.toArray() })
-    root.motor.change({ name:body.name, impulse:impulse.toArray(), impulseCenter:point.toArray() })
+    motor.change({ name:body.name, impulse:impulse.toArray(), impulseCenter:point.toArray() })
 }
 
-const addForceAt = (body, force, point) => {
-    root.motor.change({ name:body.name, force:force.toArray(), location:point.toArray() })
+const addForceAt = ( motor, body, force, point) => {
+    motor.change({ name:body.name, force:force.toArray(), location:point.toArray() })
 }
 
 const velocityAt = (body, pos, res) => {

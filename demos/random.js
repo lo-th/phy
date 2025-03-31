@@ -65,7 +65,7 @@ onComplete = () => {
     })
 
     let socle = slideMesh.socle
-    socle.material = phy.getMat('clay')
+    socle.material = phy.getMat('clayWhite')
     socle.receiveShadow = true
     socle.castShadow = true
     socle.scale.multiplyScalar(0.36)
