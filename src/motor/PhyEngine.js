@@ -418,11 +418,11 @@ export class PhyEngine {
 			path += compact ? 'compact/' : 'build/';
 
 			let type = o.type || 'PHYSX';
+
 			let name = type.toLowerCase();
 			let mini = name.charAt(0).toUpperCase() + name.slice(1);
-			let st = '';
 
-			this.engine = type;
+			this.engine = type.toUpperCase();
 
 			this.initItems();
 
@@ -485,7 +485,7 @@ export class PhyEngine {
 					if( useLocal ){
 						
 						if( useModule ) worker = new Worker( new URL( './' + mini + '.module.js', import.meta.url), {type:'module'} )
-						else worker = new Worker( new URL( './' + mini + '.min.js', import.meta.url), {type: 'classic'} )
+						else worker = new Worker( new URL( './' + mini + '.min.js', import.meta.url), {type:'classic'} )
 						
 					} else {
 
@@ -577,7 +577,7 @@ export class PhyEngine {
 			} else {
 
 				let type = name.toUpperCase();
-				if(type==='RAPIER') type = 'RAPIER3D';
+				//if(type==='RAPIER') type = 'RAPIER3D';
 
 				let n = document.createElement("script");
 	            n.language = "javascript";
@@ -610,7 +610,7 @@ export class PhyEngine {
 
 			let link = url + 'build/'+name+'.min.js';
 			let type = name.toUpperCase();
-			if(type==='RAPIER') type = 'RAPIER3D';
+			//if(type==='RAPIER') type = 'RAPIER3D';
 
 			var xml = new XMLHttpRequest();
 	        xml.open('GET', link );

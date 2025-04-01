@@ -85,7 +85,7 @@ export class Diamond extends MeshPhysicalMaterial {
 			//shader.uniforms.reflectif = this.userData.reflectif;
 
 			var vertex = shader.vertexShader;
-			vertex = vertex.replace( 'varying vec3 vViewPosition;', Shader.getGl2() ? vertAdd : inverse+vertAdd  );
+			vertex = vertex.replace( 'varying vec3 vViewPosition;',  vertAdd );
 			vertex = vertex.replace( '#include <fog_vertex>', vertMainAdd );
 			shader.vertexShader = vertex;
 
@@ -129,7 +129,7 @@ export class Diamond extends MeshPhysicalMaterial {
         m.geometry.center();
         scene.add( m );
 
-        camera.update( Shader.renderer, scene );
+        camera.update( window.renderer, scene );
 
         scene.remove( m );
         scene.remove( camera );

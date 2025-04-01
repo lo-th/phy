@@ -40599,10 +40599,11 @@ class PhyEngine {
 			path += compact ? 'compact/' : 'build/';
 
 			let type = o.type || 'PHYSX';
+
 			let name = type.toLowerCase();
 			let mini = name.charAt(0).toUpperCase() + name.slice(1);
 
-			this.engine = type;
+			this.engine = type.toUpperCase();
 
 			this.initItems();
 
@@ -40665,7 +40666,7 @@ class PhyEngine {
 					if( useLocal ){
 						
 						if( useModule ) worker = new Worker( new URL( './' + mini + '.module.js', (typeof document === 'undefined' ? require('u' + 'rl').pathToFileURL(__filename).href : (_documentCurrentScript && _documentCurrentScript.tagName.toUpperCase() === 'SCRIPT' && _documentCurrentScript.src || new URL('Phy.cjs', document.baseURI).href))), {type:'module'} );
-						else worker = new Worker( new URL( './' + mini + '.min.js', (typeof document === 'undefined' ? require('u' + 'rl').pathToFileURL(__filename).href : (_documentCurrentScript && _documentCurrentScript.tagName.toUpperCase() === 'SCRIPT' && _documentCurrentScript.src || new URL('Phy.cjs', document.baseURI).href))), {type: 'classic'} );
+						else worker = new Worker( new URL( './' + mini + '.min.js', (typeof document === 'undefined' ? require('u' + 'rl').pathToFileURL(__filename).href : (_documentCurrentScript && _documentCurrentScript.tagName.toUpperCase() === 'SCRIPT' && _documentCurrentScript.src || new URL('Phy.cjs', document.baseURI).href))), {type:'classic'} );
 						
 					} else {
 
@@ -40757,7 +40758,7 @@ class PhyEngine {
 			} else {
 
 				let type = name.toUpperCase();
-				if(type==='RAPIER') type = 'RAPIER3D';
+				//if(type==='RAPIER') type = 'RAPIER3D';
 
 				let n = document.createElement("script");
 	            n.language = "javascript";
@@ -40790,7 +40791,7 @@ class PhyEngine {
 
 			let link = url + 'build/'+name+'.min.js';
 			let type = name.toUpperCase();
-			if(type==='RAPIER') type = 'RAPIER3D';
+			//if(type==='RAPIER') type = 'RAPIER3D';
 
 			var xml = new XMLHttpRequest();
 	        xml.open('GET', link );
