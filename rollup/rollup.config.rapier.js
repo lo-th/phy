@@ -5,7 +5,7 @@ export default [
 		input: 'src/Rapier.js',
 		output: [
 			{
-				format: 'es',
+				format: 'umd',
 				name: 'RAPIER',
 				file: 'build/Rapier.min.js',
 				plugins: [terser()]

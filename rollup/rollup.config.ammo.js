@@ -5,7 +5,7 @@ export default [
 		input: 'src/Ammo.js',
 		output: [
 			{
-				format: 'es',
+				format: 'umd',
 				name: 'AMMO',
 				file: 'build/Ammo.min.js',
 				plugins: [terser()]

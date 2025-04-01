@@ -10,14 +10,28 @@ export default [
 		external: ['three'],
 		output: [
 			{
-				format: 'es',
-				name: 'Phy',
+				format: 'umd',
+				globals: {
+		          three: 'THREE'
+		        },
+				name: 'PHY',
 				file: 'build/Phy.min.js',
 				plugins: [terser()]
 			},
 			{
 				format: 'esm',
-				file: 'build/Phy.module.js',
+				file: 'build/Phy.module.js'
+			},
+			{
+				format: 'esm',
+				file: 'build/Phy.module.min.js',
+				plugins: [terser()]
+			},
+			{
+				format: 'cjs',
+				name: 'PHY',
+				file: 'build/Phy.cjs',
+				indent: '\t'
 			}
 		]
 	}

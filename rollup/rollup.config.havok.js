@@ -5,7 +5,7 @@ export default [
 		input: 'src/Havok.js',
 		output: [
 			{
-				format: 'es',
+				format: 'umd',
 				name: 'HAVOK',
 				file: 'build/Havok.min.js',
 				plugins: [terser()]

@@ -90,7 +90,7 @@ export class PhyEngine {
         
         let scriptDir = undefined;
 
-        let testLocalUrl = false;
+        let useLocal = false;
         let useModule = false;
 
 		
@@ -458,32 +458,23 @@ export class PhyEngine {
 
 			envmapUrl = o.envmap || '';
 
+			useModule = o.useModule ? this.supportModuleWorker() : false;
+			useLocal = o.useLocal || false;
 
-			useModule = o.testModule ? this.supportModuleWorker() : false;
-			testLocalUrl = o.testLocal || false;
-
-			let pathdirect = o.direct || false
 
 			if( compact ){
 
-				if( testLocalUrl ){
-					if(pathdirect){
-						if( useModule ) Pool.load( new URL( '../' + path + mini + '.module.hex', import.meta.url), function(){ _this.onCompactDone(o) } )
-			    		else Pool.load( new URL( '../' + path + mini + '.hex', import.meta.url), function(){ _this.onCompactDone(o) } )
-					}else{
-						if( useModule ) Pool.load( new URL( url + path + mini + '.module.hex', import.meta.url), function(){ _this.onCompactDone(o) } )
-			    		else Pool.load( new URL( url + path + mini + '.hex', import.meta.url), function(){ _this.onCompactDone(o) } )
-
-					}
-					
+				if( useLocal ){
+				
+					if( useModule ) Pool.load( new URL( '../' + path + mini + '.module.hex', import.meta.url), function(){ _this.onCompactDone(o) } )
+		    		else Pool.load( new URL( '../' + path + mini + '.hex', import.meta.url), function(){ _this.onCompactDone(o) } )
+				
 				} else {
+
 					if( useModule ) Pool.load( url + path + mini + '.module.hex', function(){ _this.onCompactDone(o) } )
 					else Pool.load( url + path + mini + '.hex', function(){ _this.onCompactDone(o) } )
+
 				}
-
-				
-
-				//
 
 			} else {
 
@@ -493,39 +484,11 @@ export class PhyEngine {
 					// https://web.dev/articles/module-workers?hl=fr
 					// https://developer.mozilla.org/en-US/docs/Web/API/Worker/Worker
 
-					if( testLocalUrl ){
-						if(pathdirect){
-							if( useModule ){
-
-							    switch(mini){
-							    	case 'Physx': worker = new Worker( new URL( './Physx.module.js', import.meta.url).toString(), {type:'module'} ); break
-							    	case 'Havok': worker = new Worker( new URL( './Havok.module.js', import.meta.url).toString(), {type:'module'} ); break
-							    	case 'Jolt': worker = new Worker( new URL( './Jolt.module.js', import.meta.url).toString(), {type:'module'} ); break
-
-							    	case 'Oimo': worker = new Worker( new URL( './Oimo.module.js', import.meta.url).toString(), {type:'module'} ); break
-							    	case 'Rapier': worker = new Worker( new URL( './Rapier.module.js', import.meta.url).toString(), {type:'module'} ); break
-							    	case 'Ammo': worker = new Worker( new URL( './Ammo.module.js', import.meta.url).toString(), {type:'module'} ); break
-							    } 
-								//worker = new Worker( new URL( './' + mini + '.module.js', import.meta.url).toString(), {type:'module'} )
-							}else{
-
-								switch(mini){
-							    	case 'Physx': worker = new Worker( new URL( './Physx.min.js', import.meta.url).toString() ); break
-							    	case 'Havok': worker = new Worker( new URL( './Havok.min.js', import.meta.url).toString() ); break
-							    	case 'Jolt': worker = new Worker( new URL( './Jolt.min.js', import.meta.url).toString() ); break
-
-							    	case 'Oimo': worker = new Worker( new URL( './Oimo.min.js', import.meta.url).toString() ); break
-							    	case 'Rapier': worker = new Worker( new URL( './Rapier.min.js', import.meta.url).toString() ); break
-							    	case 'Ammo': worker = new Worker( new URL( './Ammo.min.js', import.meta.url).toString() ); break
-							    }
-								//worker = new Worker( new URL( './' + mini + '.min.js', import.meta.url).toString() )
-							} 
-						} else {
-							if( useModule ) worker = new Worker( new URL( url + path + mini + '.module.js', import.meta.url).toString(), {type:'module'} )
-						    else worker = new Worker( new URL( url + path + mini + '.min.js', import.meta.url).toString() )
-						}
+					if( useLocal ){
 						
-
+						if( useModule ) worker = new Worker( new URL( './' + mini + '.module.js', import.meta.url), {type:'module'} )
+						else worker = new Worker( new URL( './' + mini + '.min.js', import.meta.url), {type: 'classic'} )
+						
 					} else {
 
 						if( useModule ) worker = new Worker( url + path + mini + '.module.js', {type:'module'} )

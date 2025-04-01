@@ -5,7 +5,7 @@ export default [
 		input: 'src/Jolt.js',
 		output: [
 			{
-				format: 'es',
+				format: 'umd',
 				name: 'JOLT',
 				file: 'build/Jolt.min.js',
 				plugins: [terser()]

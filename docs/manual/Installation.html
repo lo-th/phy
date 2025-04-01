@@ -40,11 +40,32 @@
 # phy-engine
 npm install --save phy-engine
 		</code>  
-		<h2>Copy compress/ engine to public/</h2>
+		<h2>Option 1 _ Copy to public</h2>
 
 		<p>
-			copy compact folder from: node_modules/phy-engine/compact/<br>
-			to your /public folder<br>
+			Phy use worker so if you use compact option you have to<br>
+			copy node_modules/phy-engine/compact/ to your /public folder<br>
+			Or if you use non compact<br> 
+			copy node_modules/phy-engine/build/ to your /public folder<br>
+		</p>
+
+		<h2>Option 2 _ add vite.config.js </h2>
+
+		<p>
+			create vite.config.js file on root with this code<br>
+			<code>
+import { defineConfig } from 'vite';
+export default defineConfig({
+  optimizeDeps: {
+    exclude: ['phy-engine'],
+  },
+})
+</code>
+And on init use this setting <br>
+<code>
+	phy.init({ type:'HAVOK', worker:true, useLocal:true, useModule:true, scene:scene, callback:init });
+	</code>
+
 		</p>
 
 		<h2>Init modules</h2>
@@ -98,8 +119,22 @@ npm install --save phy-engine
 	phy.add({ type:'sphere', size:[0.5], pos:[0,6,0], mass:1 });
   }
 &lt;/script>
-        </code>
-	
+</code>
+
+<h2>Multy phy</h2>
+
+<p>
+			phy can now have multyple instance on import use phy2
+		</p>
+	<code>
+	import { phy2, math } from 'phy-engine';
+
+	const motor_1 = new phy2()
+	const motor_2 = new phy2()
+
+	motor_1.init({ type:'HAVOK', worker:true, ... });
+	motor_2.init({ type:'PHYSX', worker:true, ... });
+	</code>
 
 	</body>
 </html>

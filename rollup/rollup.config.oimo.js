@@ -5,7 +5,7 @@ export default [
 		input: 'src/Oimo.js',
 		output: [
 			{
-				format: 'es',
+				format: 'umd',
 				name: 'OIMO',
 				file: 'build/Oimo.min.js',
 				plugins: [terser()]

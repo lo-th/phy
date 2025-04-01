@@ -5,7 +5,7 @@ export default [
 		input: 'src/Physx.js',
 		output: [
 			{
-				format: 'es',
+				format: 'umd',
 				name: 'PHYSX',
 				file: 'build/Physx.min.js',
 				plugins: [terser()]
