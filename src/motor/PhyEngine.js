@@ -30,8 +30,6 @@ import { Particle } from './extra/Particle.js';
 import { RayCar } from './extra/RayCar.js';
 import { Envmap } from './extra/Envmap.js';
 import { AutoRagdoll } from './extra/AutoRagdoll.js';
-//import { SkeletonBody } from './extra/SkeletonBody.js';
-//import * as SkeletonUtils from '../jsm/utils/SkeletonUtils.js';
 
 import { Pool } from '../3TH/Pool.js';
 import { sk } from '../3TH/character/SkeletonExtand.js';
@@ -48,7 +46,7 @@ import { preloadAvatar } from '../3TH/character/Avatar.js';
 
 const Version = {
 	
-	PHY: '0.2.9',
+	PHY: '0.5.0',
 	// best
     PHYSX: '5.06.10',
     HAVOK: '1.2.1',

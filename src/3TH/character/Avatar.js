@@ -4,7 +4,7 @@ import {
     SphereGeometry, SkeletonHelper,
     MeshStandardMaterial, MeshLambertMaterial, MeshPhongMaterial, MeshBasicMaterial,MeshPhysicalMaterial,
     TextureLoader,AnimationMixer,
-    FrontSide, DoubleSide, Color, ShaderChunk, 
+    FrontSide, DoubleSide, Color,
     VectorKeyframeTrack, QuaternionKeyframeTrack, AnimationClip, Skeleton,
     Float32BufferAttribute, EquirectangularReflectionMapping, AdditiveBlending,
     CustomBlending,// AddEquation, SubtractEquation, ReverseSubtractEquation, MinEquation, MaxEquation,
@@ -16,12 +16,12 @@ import {
 
 import { MeshSssMaterial } from '../materials/MeshSssMaterial.js';
 
-import { GLTFExporter } from '../../jsm/exporters/GLTFExporter.js';
+//import { GLTFExporter } from '../../jsm/exporters/GLTFExporter.js';
 import * as SkeletonUtils from '../../jsm/utils/SkeletonUtils.js';
 import { Basic3D } from '../../core/Basic3D.js';
 
 import { Pool } from '../Pool.js';
-import { Shader } from '../Shader.js';
+//import { Shader } from '../Shader.js';
 import { LZMA } from '../../libs/lzma.js';
 import { Tension } from '../Tension.js';
 import { GlbTool } from '../utils/GlbTool.js';
@@ -33,7 +33,6 @@ import { Human } from './Human.js';
 import { Human_low } from './Human_low.js';
 import { Eva } from './Eva.js';
 import { Lee } from './Lee.js';
-import { Bear } from './Bear.js';
 import { Barbados } from './Barbados.js';
 
 /** __
@@ -1019,7 +1018,7 @@ export class Avatar extends Group {
         })
     }
 
-    exportGLB( callback ){
+    /*exportGLB( callback ){
 
         if( !this.exporter ) this.exporter = new GLTFExporter();
         
@@ -1041,7 +1040,7 @@ export class Avatar extends Group {
 
         }, null, { animations:animations, binary: true, onlyVisible: true } )
 
-    }
+    }*/
 
     armAngle(){
 

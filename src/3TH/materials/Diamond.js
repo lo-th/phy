@@ -3,7 +3,7 @@ import {
 	DoubleSide, Color, Vector3, BackSide, LinearMipmapLinearFilter
 } from 'three';
 
-import { Shader } from '../Shader.js';
+//import { Shader } from '../Shader.js';
 //import { Main } from '../../Main.js';
 
 
@@ -99,7 +99,7 @@ export class Diamond extends MeshPhysicalMaterial {
 
 			shader.fragmentShader = fragment;
 
-			Shader.modify( shader );
+			//Shader.modify( shader );
 
 		}
 

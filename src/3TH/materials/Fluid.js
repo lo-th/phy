@@ -1,9 +1,9 @@
 import {
     MeshPhysicalMaterial, MeshStandardMaterial, ShaderMaterial, WebGLCubeRenderTarget, CubeCamera, Scene, Mesh, RGBAFormat,
-    DoubleSide, Color, Vector3, Vector4, BackSide, LinearMipmapLinearFilter, ShaderChunk
+    DoubleSide, Color, Vector3, Vector4, BackSide, LinearMipmapLinearFilter
 } from 'three';
 
-import { Shader } from '../Shader.js';
+//import { Shader } from '../Shader.js';
 //import { Main } from '../../Main.js';
 
 export class Fluid extends MeshPhysicalMaterial {
@@ -130,7 +130,7 @@ export class Fluid extends MeshPhysicalMaterial {
 
             self.userData.shader = shader
 
-            Shader.modify( shader );
+            //Shader.modify( shader );
 
         }
 /*

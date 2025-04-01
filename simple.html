@@ -14,7 +14,8 @@
 		<script type="importmap">
 			{
 				"imports": {
-					"three": "./src/libs/three.module.js"
+					"three": "./three/build/three.module.js",
+					"three/addons/": "./three/examples/jsm/"
 				}
 			}
 		</script>
@@ -22,8 +23,8 @@
 		<script type="module">
 
 			import * as THREE from 'three';
-			import { OrbitControls } from './src/jsm/controls/OrbitControls.js';
-			import { RGBELoader } from './src/jsm/loaders/RGBELoader.js';
+			import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+			import { RGBELoader } from 'three/addons/loaders/RGBELoader.js';
 
 			import { phy, math } from './build/Phy.module.js';
 

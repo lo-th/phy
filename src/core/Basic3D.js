@@ -140,7 +140,7 @@ class Basic3D extends EventDispatcher {
 		this.outline.name = "outline";
 		this.outline.material = this.overMaterial;
 		//if( this.shapetype==='sphere' ) this.meshSize = 0.5
-		if(this.overMaterial.uniforms.power)this.overMaterial.uniforms.power.value = s / this.meshSize;
+		//if(this.overMaterial.uniforms.power)this.overMaterial.uniforms.power.value = s / this.meshSize;
 		this.outline.matrixAutoUpdate = false;
 		this.outline.receiveShadow = false;
 		this.outline.castShadow = false;

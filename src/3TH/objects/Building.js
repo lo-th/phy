@@ -3,7 +3,7 @@ import {
 	DoubleSide, Color, Vector3, BackSide, LinearMipmapLinearFilter, Vector2
 } from 'three';
 
-import { Shader } from '../Shader.js';
+//import { Shader } from '../Shader.js';
 
 
 export class Building extends MeshStandardMaterial {
@@ -39,7 +39,7 @@ export class Building extends MeshStandardMaterial {
 			shader.uniforms = uniforms;
 
 			var vertex = shader.vertexShader;
-			vertex = vertex.replace( 'varying vec3 vViewPosition;', Shader.getGl2() ? vertAdd : inverse+vertAdd  );
+			vertex = vertex.replace( 'varying vec3 vViewPosition;', vertAdd  );
 			vertex = vertex.replace( '#include <fog_vertex>', vertMainAdd );
 			shader.vertexShader = vertex;
 
@@ -55,7 +55,6 @@ export class Building extends MeshStandardMaterial {
 
 			shader.fragmentShader = fragment;
 
-			Shader.modify( shader );
 
 		}
 	}

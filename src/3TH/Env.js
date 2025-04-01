@@ -7,7 +7,7 @@ import {
 	RGBAFormat, FloatType, EquirectangularReflectionMapping, NoToneMapping, SRGBColorSpace
 } from 'three';
 
-import { HDRJPGLoader } from '../libs/HDRJPGLoader.js';
+//import { HDRJPGLoader } from '../libs/HDRJPGLoader.js';
 import { RGBELoader } from '../jsm/loaders/RGBELoader.js';
 import { EXRLoader } from '../jsm/loaders/EXRLoader.js';
 import { GroundProjectedSkybox } from '../jsm/objects/GroundProjectedSkybox.js';
@@ -240,7 +240,7 @@ export class Env {
 		}
 
 		//if( useJpgHdr ){
-			jpgLoader = new HDRJPGLoader( renderer );
+		//	jpgLoader = new HDRJPGLoader( renderer );
 		//}
 
 	    //this.initTargetRender()
@@ -258,7 +258,7 @@ export class Env {
 
 		if( type === 'hdr' ) hdr = await hdrLoader.loadAsync( url );
 		else if( type === 'exr' ) hdr = await exrLoader.loadAsync( url );
-		else if( type === 'jpg' ) {
+		/*else if( type === 'jpg' ) {
 			//hdr = await jpgLoader.loadAsync( url );
 
 			jpgLoader = new HDRJPGLoader( renderer ).load( url, function ( ) {
@@ -284,7 +284,7 @@ export class Env {
 
 
 			return;
-		}
+		}*/
 		
         //hdr.wrapS = RepeatWrapping;
 		//hdr.offset.x = 0.5

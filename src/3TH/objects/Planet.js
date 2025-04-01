@@ -10,7 +10,7 @@ import {
 
 import { math } from '../math.js';
 import { Pool } from '../Pool.js';
-import { Shader } from '../Shader.js';
+//import { Shader } from '../Shader.js';
 
 export class Planet extends Mesh {
 
@@ -49,9 +49,6 @@ export class Planet extends Mesh {
             metalness:0.5,
          });
 
-        this.material.onBeforeCompile = function ( shader ) {
-            Shader.modify( shader )
-        }
 
         
 

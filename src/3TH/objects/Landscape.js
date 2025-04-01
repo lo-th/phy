@@ -15,7 +15,7 @@ import {
 import { mergeVertices, mergeGeometries } from '../../jsm/utils/BufferGeometryUtils.js';
 import { math } from '../math.js';
 import { Pool } from '../Pool.js';
-import { Shader } from '../Shader.js';
+//import { Shader } from '../Shader.js';
 
 
 export class Landscape extends Mesh {
@@ -232,9 +232,9 @@ export class Landscape extends Mesh {
 
                 shader.uniforms = uniforms;
 
-                Shader.addParsFragment( shader, Shader.getRandomUv() + T.fragmentAdd );
-
                 let fragment = shader.fragmentShader;
+
+                fragment = fragment.replace( '#include <clipping_planes_pars_fragment>', '#include <clipping_planes_pars_fragment>' +  randomUV + T.fragmentAdd );
 
                 fragment = fragment.replace( '#include <map_fragment>', T.map );
                 fragment = fragment.replace( '#include <normal_fragment_maps>', T.normal );
@@ -261,7 +261,7 @@ export class Landscape extends Mesh {
 
                 //if( o.shader ) o.shader.modify( shader );
 
-                Shader.modify( shader );
+                //Shader.modify( shader );
 
             }
 
@@ -1006,3 +1006,58 @@ const TerrainShader = {
     `,
     
 }
+
+
+const randomUV = /* glsl */`
+
+uniform sampler2D noiseMap;
+uniform float useNoiseMap;
+
+float directNoise(vec2 p){
+    vec2 ip = floor(p);
+    vec2 u = fract(p);
+    u = u*u*(3.0-2.0*u);
+    
+    float res = mix(
+        mix(rand(ip),rand(ip+vec2(1.0,0.0)),u.x),
+        mix(rand(ip+vec2(0.0,1.0)),rand(ip+vec2(1.0,1.0)),u.x),u.y);
+    return res*res;
+}
+
+float sum( vec4 v ) { return v.x+v.y+v.z; }
+
+vec4 textureNoTile( sampler2D mapper, in vec2 uv ){
+
+    // sample variation pattern
+    float k = 0.0;
+    if( useNoiseMap == 1.0 ) k = texture2D( noiseMap, 0.005*uv ).x;
+    else k = directNoise( uv );
+    
+    // compute index    
+    float index = k*8.0;
+    float f = fract( index );
+
+    float ia = floor( index );
+    float ib = ia + 1.0;
+    // or
+    //float ia = floor(index+0.5); // suslik's method (see comments)
+    //float ib = floor(index);
+    //f = min(f, 1.0-f)*2.0;
+
+    // offsets for the different virtual patterns    
+    vec2 offa = sin(vec2(3.0,7.0)*ia); // can replace with any other hash    
+    vec2 offb = sin(vec2(3.0,7.0)*ib); // can replace with any other hash    
+
+    // compute derivatives for mip-mapping    
+    vec2 dx = dFdx(uv);
+    vec2 dy = dFdy(uv);
+    
+    // sample the two closest virtual patterns    
+    vec4 cola = textureGrad( mapper, uv + offa, dx, dy );
+    vec4 colb = textureGrad( mapper, uv + offb, dx, dy );
+
+    // interpolate between the two virtual patterns    
+    return mix( cola, colb, smoothstep(0.2,0.8,f-0.1*sum(cola-colb)) );
+
+}
+`

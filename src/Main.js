@@ -12,7 +12,7 @@ import { Controller } from './3TH/Controller.js'
 import { Hub } from './3TH/Hub.js'
 import { Gui } from './3TH/Gui.js'
 import { Lights } from './3TH/Lights.js'
-import { Shader } from './3TH/Shader.js'
+//import { Shader } from './3TH/Shader.js'
 import { Editor } from './3TH/Editor.js'
 
 import { Env } from './3TH/Env.js'
@@ -253,7 +253,7 @@ export const Main = {
 		Gui.setMain( Main, Hub.getCorner() );
 		Gui.setTextureConstrutor( THREE.Texture );
 
-		activeWebGPU = o.webGPU || false;
+		activeWebGPU = o.useWebgpu || false;
 
 		const gpuTier = await getGPUTier();
 	    const perf = gpuTier;
@@ -469,7 +469,8 @@ window.TWEEN = TWEEN;
 
 const init = () => {
 
-	isWebGPU = activeWebGPU ? WebGPU.isAvailable() : false
+	isWebGPU = activeWebGPU || false
+	// ? WebGPU.isAvailable() : false
  
 	if( isWebGPU ) console.log('use webgpu !!')
 
@@ -497,17 +498,20 @@ const init = () => {
 
 	// RENDERER
 
-	if( isWebGPU ) renderer = new WebGPURenderer({ antialias:antialias/*, alpha:false, premultipliedAlpha: false*/ })
-	else renderer = new THREE.WebGLRenderer({ 
-		antialias:antialias, 
-		powerPreference:powerPreference,
-		alpha: false,
-	    depth: true,
-	    stencil: true,
-	    premultipliedAlpha: true,
-	    preserveDrawingBuffer: false,
-	    failIfMajorPerformanceCaveat: false,
-	})
+	if( isWebGPU ){
+	    renderer = new THREE.WebGPURenderer({ antialias:antialias })
+	} else {
+		renderer = new THREE.WebGLRenderer({ 
+			antialias:antialias, 
+			powerPreference:powerPreference,
+			alpha: false,
+		    depth: true,
+		    stencil: true,
+		    premultipliedAlpha: true,
+		    preserveDrawingBuffer: false,
+		    failIfMajorPerformanceCaveat: false,
+		})
+	}
 	
 	renderer.setPixelRatio( pixelRatio );
 	renderer.setSize( size.w, size.h );
@@ -528,13 +532,13 @@ const init = () => {
 
 	// SHADER
 
-	Shader.renderer = renderer;
+	//Shader.renderer = renderer;
 
-	if( !isWebGPU && options.mode !== 'LOW' && highShadow ){
+	/*if( !isWebGPU && options.mode !== 'LOW' && highShadow ){
 		Shader.setGl2( isWebGPU ? false : renderer.capabilities.isWebGL2 );
 		Shader.init( options );
 		Motor.setExtendShader( Shader.add );
-	}
+	}*/
 
 	// SCENE
 
@@ -675,9 +679,9 @@ const next = () => {
 const start = () => {
 
 	if( renderStart ) return;
-	//if( isWebGPU ) renderer.setAnimationLoop( render );
-	//else { if( loop === null) render(0) }
-	if( loop === null) render(0);
+	if( isWebGPU ) renderer.setAnimationLoop( render );
+	else { if( loop === null) render(0) }
+	//if( loop === null) render(0);
 	renderStart = true;
 }
 
@@ -815,30 +819,32 @@ const showDebugLight = ( b ) => {
 const setShadowType = () => {
 
 	renderer.shadowMap.type = shadowMapType[options.shadowType];
-	Main.upShader();
+	//Main.upShader();
 
 }
 
 const setShadow = ( v ) => {
 
-	if( isWebGPU ) return;
+	//if( isWebGPU ) return;
 
 	options.shadow = v;
 
 	if( options.shadow === 0 ){
 		Lights.castShadow( false );
-		if( !isWebGPU ) renderer.shadowMap.enabled = false;
+		//if( !isWebGPU ) 
+			renderer.shadowMap.enabled = false;
 		//clearShadow()
 	} else {
 		if( !renderer.shadowMap.enabled ){
 			Lights.castShadow( true );
-			if( !isWebGPU ) renderer.shadowMap.enabled = true;
+			//if( !isWebGPU ) 
+				renderer.shadowMap.enabled = true;
 		}
 	}
 
 	//if( light.shadowHelper ) light.shadowHelper.visible = options.shadow !== 0
 
-	Main.upShader();
+	//Main.upShader();
 
 }
 
@@ -1005,7 +1011,7 @@ const inject = ( newCode, force = false ) => {
 	//Hub.log()
 	TWEEN.removeAll();
 	Hub.reset()
-	Shader.reset()
+	//Shader.reset()
 	editor.reset()
 	Gui.resetExtra()
 
@@ -1163,8 +1169,7 @@ const render = ( stamp = 0 ) => {
 	//console.timeEnd('step')
 
 
-	//if( !isWebGPU ) 
-	loop = requestAnimationFrame( render )
+	if( !isWebGPU ) loop = requestAnimationFrame( render )
 
 	//if( renderer.shadowMap.enabled ) renderer.shadowMap.needsUpdate = true;
 
@@ -1202,7 +1207,7 @@ const upStat = () => {
 //--------------------
 
 //const gotoGithub = () => { window.open( 'https://github.com/lo-th/phy', '_blank' ) }
-const upShader = () => { Shader.up( options ) }
+//const upShader = () => { Shader.up( options ) }
 
 const showGround = ( v ) => {
 
@@ -1300,7 +1305,7 @@ const view = ( o = {} ) => {
 
 	if( isLoadCode ) setCamera( o )
 
-	Shader.up( options )
+	//Shader.up( options )
 
     //if( o.envPower ) options.envPower = o.envPower;
     //else options.envPower = 1.0;

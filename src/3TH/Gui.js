@@ -2,7 +2,7 @@ import * as UIL from '../libs/uil.module.js'
 import { Video } from './Video.js'
 import { Env } from './Env.js'
 import { Hub } from './Hub.js'
-import { Shader } from './Shader.js'
+//import { Shader } from './Shader.js'
 import { Pool } from './Pool.js'
 
 /** __
@@ -236,7 +236,7 @@ export const Gui = {
 		ui.add( options, 'show_light', { type:'bool' }).onChange( Main.showDebugLight )
 		ui.add( options, 'show_stat', { type:'bool' }).onChange( Main.showStatistic )
 
-		ui.add( options, 'fogMode', { type:'selector', values:[0,1], selectable:true, unselect:false, h:24 }).onChange( function(n){ Shader.up( options ) })
+		//ui.add( options, 'fogMode', { type:'selector', values:[0,1], selectable:true, unselect:false, h:24 }).onChange( function(n){ Shader.up( options ) })
 
 		
 
@@ -636,12 +636,12 @@ export const Gui = {
         const Mat = Main.motor.getMatRef();
         let mats = Mat.getList();
 
-        if( Mat.isRealism ) {
+        /*if( Mat.isRealism ) {
 
         	let options = Mat.realismOption
 
         	const upShader = function(){ 
-        		Mat.upShader( options );
+        		//Mat.upShader( options );
 		    	//Main.setCamera( {...controler.info } )
 		    }
 
@@ -672,7 +672,7 @@ export const Gui = {
 			gr.add( options, 'irradianceIntensity',  { min:0, max:10 }).onChange(upShader)
 			gr.add( options, 'radianceIntensity',  { min:0, max:10 }).onChange(upShader)
 
-        }
+        }*/
 
 		//let mats = Main.motor.getMaterialList();
 		const matList = ui.add( 'list', { name:'', list:mats, p:0, value:Gui.currentMat, h:40 }).onChange( Gui.materialEdit )

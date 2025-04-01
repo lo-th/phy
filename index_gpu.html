@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charSet="utf-8"/>
+        <meta name="language" content="english"/>
+        <meta http-equiv="content-type" content="text/html"/>
+        <meta name="author" content="lo-th"/>
+        <meta name="designer" content="lo-th"/>
+        <meta name="publisher" content="lo-th"/>
+		<title>PHY gpu</title>
+		<meta name="description" content="Physics engine for three.js"/>
+		<meta name="keywords" content="Physics,Ammo,Physx,Oimo,Digital Artist,Visual Artist,Creative Developer,Real Time,Creative Coding,Javascript,ThreeJS,Three.js"/>
+		<meta name="robots" content="index"/>
+		
+		<meta name="distribution" content="web"/>
+        <meta property="og:title" content="PHY"/>
+        <meta property="og:type" content="site"/>
+        <meta property="og:url" content="https://lo-th.github.io/phy/"/>
+        <meta property="og:image" content="https://lo-th.github.io/phy/assets/textures/logo_4.png"/>
+        <meta property="og:site_name" content="Physics engine for three.js"/>
+        <meta property="og:description" content="Creative developer and visual artist working with real-time physics engines"/>
+
+        <link rel="apple-touch-icon" href="./assets/icons/apple-touch-icon.png"/>
+        <link rel="apple-touch-icon" sizes="16x16" href="./assets/icons/favicon-16x16.png"/>
+        <link rel="apple-touch-icon" sizes="32x32" href="./assets/icons/favicon-32x32.png"/>
+        <link rel="apple-touch-icon" sizes="180x180" href="./assets/icons/apple-touch-icon.png"/>
+        <link rel="manifest" href="./manifest.json"/>
+        <link rel="mask-icon" color="#000000" href="./assets/icons/safari-pinned-tab.svg"/>
+        <link rel="apple-touch-startup-image" href="./assets/icons/startup.png"/>
+
+		<!--<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">-->
+		<meta name="viewport" content="width=device-width, minimum-scale=1, initial-scale=1.0"/>
+		<meta name="theme-color" content="#000"/>
+		<link rel="shortcut icon" href="favicon.ico">
+
+		<meta name="twitter:card" content="summary_large_image"/>
+        <meta name="twitter:site" content="@3dflashlo"/>
+        <meta name="twitter:creator" content="@3dflashlo"/>
+        <meta property="og:url" content="https://lo-th.github.io/phy/"/>
+        <meta name="twitter:title" content="Physics engine for three.js"/>
+        <meta name="twitter:description" content="Creative developer and visual artist working with real-time physics engines"/>
+        <meta name="twitter:image" content="https://lo-th.github.io/phy/assets/icons/share_twitter.jpg"/>
+
+        <!--
+        <link rel="preload" href="/assets/fonts/Mulish-700-Bold.woff2" as="font" type="font/woff2" crossorigin>
+        <link rel="preload" href="/assets/fonts/Mulish-500-Medium.woff2" as="font" type="font/woff2" crossorigin>
+		<meta name="sharedArrayBuffer" description="using cross-orgiin-isolation in the web browser">
+		<meta http-equiv="Pragma" content="no-cache">
+	    -->
+        <link rel="stylesheet" href="./assets/index.css">
+		
+	</head>
+	<body style="background-color:#000; margin:0; padding:0; overflow:hidden;">
+		<script async src="https://unpkg.com/es-module-shims@1.3.6/dist/es-module-shims.js"></script>
+		<script type="importmap">{ "imports": { 
+			"three": "./three/build/three.webgpu.js",
+			"three/tsl": "./three/build/three.tsl.js",
+			"three/addons/": "./three/examples/jsm/",
+			"tween": "./src/libs/tween.esm.js" 
+		}}</script>
+		<script type="module">
+
+		    import { Main } from './src/Main.js'
+			Main.start({useWebgpu:true})
+
+		</script>
+	</body>
+</html>

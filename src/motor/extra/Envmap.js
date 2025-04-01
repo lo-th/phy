@@ -3,7 +3,7 @@ import {
     Scene, CubeCamera, WebGLCubeRenderTarget, Mesh,Color,
     LinearFilter, HalfFloatType, LinearSRGBColorSpace, SRGBColorSpace, ShaderMaterial,
 } from 'three';
-import { HDRJPGLoader } from '../../libs/HDRJPGLoader.js';
+//import { HDRJPGLoader } from '../../libs/HDRJPGLoader.js';
 import { RGBELoader } from '../../jsm/loaders/RGBELoader.js';
 import { EXRLoader } from '../../jsm/loaders/EXRLoader.js';
 
@@ -120,9 +120,9 @@ export class Envmap {
 			case 'exr':
 			    this.loader = new EXRLoader().load( url, this.end.bind(this), null, this.bug.bind(this) );
 			break;
-			case 'jpg': 
+			/*case 'jpg': 
 			    this.loader = new HDRJPGLoader( this.renderer ).load( url, this.end.bind(this), null, this.bug.bind(this) );
-			break;
+			break;*/
 		}
 
 	}

@@ -1,18 +1,18 @@
 //import { Main } from '../Main.js'
-import { Shader } from './Shader.js'
+//import { Shader } from './Shader.js'
 
 export class Video {
 
-    constructor () {
+    constructor (renderer) {
 
-        //this.renderer = renderer;
+        this.renderer = renderer;
         this.isCapture = false
         this.ready = false;
 
     }
 
     update(){
-        if( this.isCapture ) this.capturer.capture( Shader.renderer.domElement );
+        if( this.isCapture ) this.capturer.capture( this.renderer.domElement );
     }
     
     stop(){

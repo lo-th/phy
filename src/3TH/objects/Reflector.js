@@ -25,7 +25,7 @@ import {
 	HalfFloatType,
 
 } from 'three';
-import { Shader } from '../Shader.js';
+//import { Shader } from '../Shader.js';
 import { Pool } from '../Pool.js';
 
 //import RenderTarget from '../../jsm/renderers/common/RenderTarget.js';
@@ -227,14 +227,14 @@ export class Reflector extends Mesh {
 
 			shader.fragmentShader = fragment;
 
-			Shader.modify( shader );
+			//Shader.modify( shader );
 
 		}
 
 
 
 
-		Shader.setDefines( this.material )
+		//Shader.setDefines( this.material )
 
 		//Pool.set( 'Ground', this.material, 'material', true );
 		

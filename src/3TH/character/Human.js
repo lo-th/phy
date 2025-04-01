@@ -1,17 +1,5 @@
 
-import {
-	Object3D, Group, Mesh, SkinnedMesh, Texture,
-    Matrix4, Quaternion, Euler, Vector3, Vector2,
-    SphereGeometry, SkeletonHelper,
-    MeshStandardMaterial, MeshLambertMaterial, MeshPhongMaterial, MeshBasicMaterial,MeshPhysicalMaterial,
-    TextureLoader,AnimationMixer,
-    FrontSide, BackSide, DoubleSide, Color, ShaderChunk, 
-    VectorKeyframeTrack, QuaternionKeyframeTrack, AnimationClip, Skeleton,
-    Float32BufferAttribute, EquirectangularReflectionMapping, AdditiveBlending,
-    CustomBlending,
-    ZeroFactor,
-    SrcAlphaFactor,
-} from 'three';
+import { Vector2, Color, CustomBlending, DoubleSide, ZeroFactor, SrcAlphaFactor  } from 'three';
 import { Pool } from '../Pool.js';
 
 const setting = {

@@ -6,13 +6,13 @@ import {
     AddEquation, SubtractEquation, ReverseSubtractEquation, MinEquation, MaxEquation,
     ZeroFactor, OneFactor, SrcColorFactor, OneMinusSrcColorFactor, SrcAlphaFactor, OneMinusSrcAlphaFactor, 
     DstAlphaFactor, OneMinusDstAlphaFactor, DstColorFactor, OneMinusDstColorFactor, SrcAlphaSaturateFactor,
-    FrontSide, BackSide, DoubleSide, ShaderChunk
+    FrontSide, BackSide, DoubleSide
 } from 'three';
 import { CarbonTexture } from '../../3TH/textures/CarbonTexture.js';
 import { MeshSssMaterial } from '../../3TH/materials/MeshSssMaterial.js';
 //import { EnhanceShaderLighting } from '../../3TH/shaders/EnhanceShaderLighting.js';
-import { EnhanceLighting } from '../../3TH/shaders/EnhanceLighting.js';
-import { FakeGlowMaterial } from '../../3TH/materials/FakeGlowMaterial.js';
+//import { EnhanceLighting } from '../../3TH/shaders/EnhanceLighting.js';
+//import { FakeGlowMaterial } from '../../3TH/materials/FakeGlowMaterial.js';
 
 
 //-------------------
@@ -31,7 +31,7 @@ const matExtra = {
 
 }
 
-export const RealismLightOption = {
+/*export const RealismLightOption = {
 	enableESL:true,
 	exposure:1,
 	envMapIntensity:1,
@@ -56,7 +56,7 @@ export const RealismLightOption = {
     radianceIntensity: 4.62,
     hardcodeValues: false
 
-}
+}*/
 
 export const Colors = {
     body:new Color( "hsl(45, 15%, 90%)" ),//0xefefd4
@@ -178,14 +178,14 @@ export class Mat {
 	}
 
 	initExtandShader () {
-		addRenderMode()
-		this.extendMat = true;
+		//addRenderMode()
+		//this.extendMat = true;
 	}
 	
 
 	useRealLight (o) {
 
-		this.isRealism = true;
+		/*this.isRealism = true;
 
 		// apply color setting number
 		for(let c in o){
@@ -197,20 +197,20 @@ export class Mat {
 			} 
 		}
 
-		this.realismOption = { ...RealismLightOption, ...o };
+		this.realismOption = { ...RealismLightOption, ...o };*/
 
 	}
 
 	setColor( o ) {
 
-		if(!this.isRealism) return;
+		/*if(!this.isRealism) return;
 
 		//console.log(o)
 
 		RealismLightOption.aoColor.set(o.minLuma).convertLinearToSRGB()
 		RealismLightOption.hemisphereColor.set(o.maxLuma).convertLinearToSRGB()
 		RealismLightOption.irradianceColor.set(o.sun).convertLinearToSRGB()
-		RealismLightOption.radianceColor.set(o.vibrant).convertLinearToSRGB()
+		RealismLightOption.radianceColor.set(o.vibrant).convertLinearToSRGB()*/
 
 	}
 
@@ -227,7 +227,7 @@ export class Mat {
 		//let oldCompile = null;
 		//if( m.onBeforeCompile ) oldCompile = m.onBeforeCompile;
 
-		if( this.isRealism ){
+		/*if( this.isRealism ){
 			m.onBeforeCompile = function ( shader ) {
 				//shader.uniforms.renderMode = this.renderMode;
 				//shader.uniforms.depthPacking = this.depthPacking;
@@ -238,7 +238,7 @@ export class Mat {
 	            if( beforeCompile ) beforeCompile( shader );
 	        }
 
-		} /*else {
+		} else {
 			m.onBeforeCompile = function ( shader ) {
 
 				shader.uniforms.renderMode = this.renderMode;
@@ -430,9 +430,10 @@ export class Mat {
 				case 'carGlass':   m = this.create({ name:'carGlass', color: 0xffffff, metalness: 0, roughness: 0, transmission: 1.0, ior:1.52 }); break
 
 				case 'outline': 
-				if( !this.mat[ 'outline' ] ) this.mat[ 'outline' ] = new FakeGlowMaterial();
-				m = this.mat[ 'outline' ]
+				//if( !this.mat[ 'outline' ] ) this.mat[ 'outline' ] = new FakeGlowMaterial();
+				//m = this.mat[ 'outline' ]
 				//m = this.create({ name:'outline', color:0xFFFFFF, type:'Basic', side:BackSide, toneMapped:false, wireframe:false }); 
+				m = this.create({ name:'outline', color:0xFFFFFF, type:'Basic', side:BackSide, toneMapped:false, wireframe:true, transparent:true, opacity:0.25 }); 
 				break
 				case 'debug': m = this.create({ name:'debug', type:'Basic', color:0xF37042, wireframe:true, toneMapped: false, transparent:true, opacity:0.5 }); break
 				//case 'debug': m = this.create({ name:'debug', color:0xF37042, wireframe:true, toneMapped: false, transparent:true, opacity:0.5 }); break

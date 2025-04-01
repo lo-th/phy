@@ -15,8 +15,8 @@
 		<script async src="https://unpkg.com/es-module-shims@1.3.6/dist/es-module-shims.js"></script>
 
 		<script type="importmap">{ "imports": { 
-			"three": "../../src/libs/three.module.js",
-			"three/addons/": "../../src/jsm/",
+			"three": "../../three/build/three.module.js",
+			"three/addons/": "../../three/examples/jsm/",
 			"uil": "../../src/libs/uil.module.js",
 			"3th/": "../../src/3TH/"
 		}}</script>
@@ -27,7 +27,7 @@
 			import * as UIL from 'uil';
 			import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 			
-			import { Smoke, SmokeEditor } from '../../build/smoke.module.js';
+			import { Smoke } from '../../src/libs/smoke.module.js';
 			
 
 			const engine = window.location.hash.substring( 1 );
@@ -69,8 +69,9 @@
 
 
 				particleEngine = new Smoke( scene, renderer );
+				particleEngine.load( '../../assets/smoke.json' )
 
-				editor = new SmokeEditor();
+				/*editor = new SmokeEditor();
 				editor.onChange = function ( data ){
 					
 					particleEngine.dispose()
@@ -85,7 +86,7 @@
 
 				// load basic demo
 				editor.load( '../../assets/smoke.json' )
-
+*/
 				
 
 				// editor buton
