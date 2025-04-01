@@ -49,11 +49,11 @@ import { preloadAvatar } from '../3TH/character/Avatar.js';
 const Version = {
 	
 	PHY: '0.2.9',
-
+	// best
     PHYSX: '5.06.10',
     HAVOK: '1.2.1',
     JOLT: '0.35.0',
-
+    // old
     RAPIER: '0.14.0',
     OIMO: '1.2.4',
     AMMO: '3.2.6',
@@ -495,8 +495,31 @@ export class PhyEngine {
 
 					if( testLocalUrl ){
 						if(pathdirect){
-							if( useModule ) worker = new Worker( new URL( './' + mini + '.module.js', import.meta.url).toString(), {type:'module'} )
-						    else worker = new Worker( new URL( './' + mini + '.min.js', import.meta.url).toString() )
+							if( useModule ){
+
+							    switch(mini){
+							    	case 'Physx': worker = new Worker( new URL( './Physx.module.js', import.meta.url).toString(), {type:'module'} ); break
+							    	case 'Havok': worker = new Worker( new URL( './Havok.module.js', import.meta.url).toString(), {type:'module'} ); break
+							    	case 'Jolt': worker = new Worker( new URL( './Jolt.module.js', import.meta.url).toString(), {type:'module'} ); break
+
+							    	case 'Oimo': worker = new Worker( new URL( './Oimo.module.js', import.meta.url).toString(), {type:'module'} ); break
+							    	case 'Rapier': worker = new Worker( new URL( './Rapier.module.js', import.meta.url).toString(), {type:'module'} ); break
+							    	case 'Ammo': worker = new Worker( new URL( './Ammo.module.js', import.meta.url).toString(), {type:'module'} ); break
+							    } 
+								//worker = new Worker( new URL( './' + mini + '.module.js', import.meta.url).toString(), {type:'module'} )
+							}else{
+
+								switch(mini){
+							    	case 'Physx': worker = new Worker( new URL( './Physx.min.js', import.meta.url).toString() ); break
+							    	case 'Havok': worker = new Worker( new URL( './Havok.min.js', import.meta.url).toString() ); break
+							    	case 'Jolt': worker = new Worker( new URL( './Jolt.min.js', import.meta.url).toString() ); break
+
+							    	case 'Oimo': worker = new Worker( new URL( './Oimo.min.js', import.meta.url).toString() ); break
+							    	case 'Rapier': worker = new Worker( new URL( './Rapier.min.js', import.meta.url).toString() ); break
+							    	case 'Ammo': worker = new Worker( new URL( './Ammo.min.js', import.meta.url).toString() ); break
+							    }
+								//worker = new Worker( new URL( './' + mini + '.min.js', import.meta.url).toString() )
+							} 
 						} else {
 							if( useModule ) worker = new Worker( new URL( url + path + mini + '.module.js', import.meta.url).toString(), {type:'module'} )
 						    else worker = new Worker( new URL( url + path + mini + '.min.js', import.meta.url).toString() )

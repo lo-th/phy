@@ -18,7 +18,6 @@ export default [
 			{
 				format: 'esm',
 				file: 'build/Phy.module.js',
-				plugins: [terser()]
 			}
 		]
 	}
