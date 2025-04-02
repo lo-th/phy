@@ -100,7 +100,7 @@ onComplete = () => {
         type:'compound',
         name:'logo',
         shapes:logoShape,
-        pos:[ 0, 0.8,0 ],
+        pos:[ 0, 1.8,0 ],
         mesh:model.logo,
         damping:[1.5,0.7],
         //meshSize:1,
