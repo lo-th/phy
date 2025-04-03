@@ -1,4 +1,4 @@
-import { BufferGeometry, BufferAttribute, TrianglesDrawMode, TriangleFanDrawMode, TriangleStripDrawMode, Quaternion, Matrix4, Loader, LoaderUtils, FileLoader, MeshPhysicalMaterial, Vector2, Color, LinearSRGBColorSpace, SRGBColorSpace, SpotLight, PointLight, DirectionalLight, Vector3, InstancedMesh, InstancedBufferAttribute, Object3D, TextureLoader, ImageBitmapLoader, InterleavedBuffer, InterleavedBufferAttribute, LinearMipmapLinearFilter, NearestMipmapLinearFilter, LinearMipmapNearestFilter, NearestMipmapNearestFilter, LinearFilter, NearestFilter, RepeatWrapping, MirroredRepeatWrapping, ClampToEdgeWrapping, PointsMaterial, Material, LineBasicMaterial, MeshStandardMaterial, DoubleSide, MeshBasicMaterial, PropertyBinding, SkinnedMesh, Mesh, LineSegments, Line, LineLoop, Points, Group, PerspectiveCamera, MathUtils, OrthographicCamera, Skeleton, AnimationClip, Bone, InterpolateDiscrete, InterpolateLinear, Texture, VectorKeyframeTrack, NumberKeyframeTrack, QuaternionKeyframeTrack, ColorManagement, FrontSide, Interpolant, Box3, Sphere, Vector4, Curve, Euler, MeshPhongMaterial, MeshLambertMaterial, EquirectangularReflectionMapping, AmbientLight, Float32BufferAttribute, Uint16BufferAttribute, Matrix3 as Matrix3$1, ShapeUtils, DataTextureLoader, HalfFloatType, FloatType, DataUtils, RGBAFormat, RedFormat, NoColorSpace, RGBA_S3TC_DXT1_Format, RGB_PVRTC_4BPPV1_Format, RGB_ETC2_Format, RGB_ETC1_Format, RGBA_S3TC_DXT5_Format, RGBA_PVRTC_4BPPV1_Format, RGBA_ETC2_EAC_Format, RGBA_BPTC_Format, RGB_BPTC_UNSIGNED_Format, RGBA_ASTC_4x4_Format, UnsignedByteType, CompressedCubeTexture, CompressedArrayTexture, CompressedTexture, RGBA_ASTC_6x6_Format, RGFormat, DataTexture, Data3DTexture, LoadingManager, AnimationMixer, ObjectSpaceNormalMap, SphereGeometry, CylinderGeometry, BoxGeometry, PlaneGeometry, CanvasTexture, ShadowMaterial, MeshToonMaterial, BackSide, SrcAlphaSaturateFactor, OneMinusDstColorFactor, DstColorFactor, OneMinusDstAlphaFactor, DstAlphaFactor, OneMinusSrcAlphaFactor, SrcAlphaFactor, OneMinusSrcColorFactor, SrcColorFactor, OneFactor, ZeroFactor, MaxEquation, MinEquation, ReverseSubtractEquation, SubtractEquation, AddEquation, MultiplyBlending, SubtractiveBlending, AdditiveBlending, NormalBlending, NoBlending, EventDispatcher, Layers, CircleGeometry, Line3, Plane, Triangle, Box2, Shape, Path, ShapePath, ShapeGeometry, CustomBlending, SkeletonHelper, AnimationUtils, AdditiveAnimationBlendMode, NormalAnimationBlendMode, Raycaster, PMREMGenerator, Scene, WebGLCubeRenderTarget, CubeCamera, IcosahedronGeometry, ShaderMaterial, NoToneMapping } from 'three';
+import { BufferGeometry, BufferAttribute, TrianglesDrawMode, TriangleFanDrawMode, TriangleStripDrawMode, Quaternion as Quaternion$1, Matrix4, Loader, LoaderUtils, FileLoader, MeshPhysicalMaterial, Vector2, Color, LinearSRGBColorSpace, SRGBColorSpace, SpotLight, PointLight, DirectionalLight, Vector3, InstancedMesh, InstancedBufferAttribute, Object3D, TextureLoader, ImageBitmapLoader, InterleavedBuffer, InterleavedBufferAttribute, LinearMipmapLinearFilter, NearestMipmapLinearFilter, LinearMipmapNearestFilter, NearestMipmapNearestFilter, LinearFilter, NearestFilter, RepeatWrapping, MirroredRepeatWrapping, ClampToEdgeWrapping, PointsMaterial, Material, LineBasicMaterial, MeshStandardMaterial, DoubleSide, MeshBasicMaterial, PropertyBinding, SkinnedMesh, Mesh, LineSegments, Line, LineLoop, Points, Group, PerspectiveCamera, MathUtils, OrthographicCamera, Skeleton, AnimationClip, Bone, InterpolateDiscrete, InterpolateLinear, Texture, VectorKeyframeTrack, NumberKeyframeTrack, QuaternionKeyframeTrack, ColorManagement, FrontSide, Interpolant, Box3, Sphere, Vector4, Curve, Euler, MeshPhongMaterial, MeshLambertMaterial, EquirectangularReflectionMapping, AmbientLight, Float32BufferAttribute, Uint16BufferAttribute, Matrix3 as Matrix3$1, ShapeUtils, DataTextureLoader, HalfFloatType, FloatType, DataUtils, RGBAFormat, RedFormat, NoColorSpace, RGBA_S3TC_DXT1_Format, RGB_PVRTC_4BPPV1_Format, RGB_ETC2_Format, RGB_ETC1_Format, RGBA_S3TC_DXT5_Format, RGBA_PVRTC_4BPPV1_Format, RGBA_ETC2_EAC_Format, RGBA_BPTC_Format, RGB_BPTC_UNSIGNED_Format, RGBA_ASTC_4x4_Format, UnsignedByteType, CompressedCubeTexture, CompressedArrayTexture, CompressedTexture, RGBA_ASTC_6x6_Format, RGFormat, DataTexture, Data3DTexture, LoadingManager, AnimationMixer, ObjectSpaceNormalMap, SphereGeometry, CylinderGeometry, BoxGeometry, PlaneGeometry, CanvasTexture, ShadowMaterial, MeshToonMaterial, BackSide, SrcAlphaSaturateFactor, OneMinusDstColorFactor, DstColorFactor, OneMinusDstAlphaFactor, DstAlphaFactor, OneMinusSrcAlphaFactor, SrcAlphaFactor, OneMinusSrcColorFactor, SrcColorFactor, OneFactor, ZeroFactor, MaxEquation, MinEquation, ReverseSubtractEquation, SubtractEquation, AddEquation, MultiplyBlending, SubtractiveBlending, AdditiveBlending, NormalBlending, NoBlending, EventDispatcher, Layers, CircleGeometry, Line3, Plane, Triangle, Box2, Shape, Path, ShapePath, ShapeGeometry, CustomBlending, SkeletonHelper, AnimationUtils, AdditiveAnimationBlendMode, NormalAnimationBlendMode, Raycaster, PMREMGenerator, Scene, WebGLCubeRenderTarget, CubeCamera, IcosahedronGeometry, ShaderMaterial, NoToneMapping } from 'three';
 
 const PI = Math.PI;
 const torad$3 = PI / 180;
@@ -3132,7 +3132,7 @@ class GLTFMeshGpuInstancing {
 				// Temporal variables
 				const m = new Matrix4();
 				const p = new Vector3();
-				const q = new Quaternion();
+				const q = new Quaternion$1();
 				const s = new Vector3( 1, 1, 1 );
 
 				const instancedMesh = new InstancedMesh( mesh.geometry, mesh.material, count );
@@ -3511,7 +3511,7 @@ class GLTFCubicSplineInterpolant extends Interpolant {
 
 }
 
-const _q$1 = new Quaternion();
+const _q$1 = new Quaternion$1();
 
 class GLTFCubicSplineQuaternionInterpolant extends GLTFCubicSplineInterpolant {
 
@@ -10263,7 +10263,7 @@ class AnimationParser {
 		let initialPosition = new Vector3();
 		let initialScale = new Vector3();
 
-		if ( rawTracks.transform ) rawTracks.transform.decompose( initialPosition, new Quaternion(), initialScale );
+		if ( rawTracks.transform ) rawTracks.transform.decompose( initialPosition, new Quaternion$1(), initialScale );
 
 		initialPosition = initialPosition.toArray();
 		initialScale = initialScale.toArray();
@@ -10332,7 +10332,7 @@ class AnimationParser {
 			preRotation.push( defaultEulerOrder );
 
 			preRotation = new Euler().fromArray( preRotation );
-			preRotation = new Quaternion().setFromEuler( preRotation );
+			preRotation = new Quaternion$1().setFromEuler( preRotation );
 
 		}
 
@@ -10342,11 +10342,11 @@ class AnimationParser {
 			postRotation.push( defaultEulerOrder );
 
 			postRotation = new Euler().fromArray( postRotation );
-			postRotation = new Quaternion().setFromEuler( postRotation ).invert();
+			postRotation = new Quaternion$1().setFromEuler( postRotation ).invert();
 
 		}
 
-		const quaternion = new Quaternion();
+		const quaternion = new Quaternion$1();
 		const euler = new Euler();
 
 		const quaternionValues = [];
@@ -10364,7 +10364,7 @@ class AnimationParser {
 			// Check unroll
 			if ( i > 2 ) {
 
-				const prevQuat = new Quaternion().fromArray(
+				const prevQuat = new Quaternion$1().fromArray(
 					quaternionValues,
 					( ( i - 3 ) / 3 ) * 4
 				);
@@ -10569,8 +10569,8 @@ class AnimationParser {
 				const E1 = new Euler( ...initialValueRad, eulerOrder );
 				const E2 = new Euler( ...currentValueRad, eulerOrder );
 
-				const Q1 = new Quaternion().setFromEuler( E1 );
-				const Q2 = new Quaternion().setFromEuler( E2 );
+				const Q1 = new Quaternion$1().setFromEuler( E1 );
+				const Q2 = new Quaternion$1().setFromEuler( E2 );
 
 				// Check unroll
 				if ( Q1.dot( Q2 ) ) {
@@ -10583,7 +10583,7 @@ class AnimationParser {
 				const initialTime = curvex.times[ i - 1 ];
 				const timeSpan = curvex.times[ i ] - initialTime;
 
-				const Q = new Quaternion();
+				const Q = new Quaternion$1();
 				const E = new Euler();
 				for ( let t = 0; t < 1; t += 1 / numSubIntervals ) {
 
@@ -20332,13 +20332,13 @@ class ExtraRay extends Line {
 let _object3DId = 0;
 
 const _v1$2 = new Vector3();
-const _q1 = new Quaternion();
+const _q1 = new Quaternion$1();
 const _m1 = new Matrix4();
 const _target = new Vector3();
 
 const _position = new Vector3();
 const _scale = new Vector3();
-const _quaternion = new Quaternion();
+const _quaternion = new Quaternion$1();
 
 const _xAxis = new Vector3( 1, 0, 0 );
 const _yAxis = new Vector3( 0, 1, 0 );
@@ -20370,7 +20370,7 @@ class Basic3D extends EventDispatcher {
 		
 		
 		this.position = new Vector3();
-		this.quaternion = new Quaternion();
+		this.quaternion = new Quaternion$1();
 		this.tmpRotation = new Euler();
 		this.scale = new Vector3( 1, 1, 1 );
 
@@ -21158,7 +21158,7 @@ class Instance extends InstancedMesh {
         //this.instanceMatrix = null;
         this.matrixAutoUpdate = false; 
         this.tmpMatrix = new Matrix4();
-        this.tmpQuat = new Quaternion();
+        this.tmpQuat = new Quaternion$1();
 
         this.instanceUv = null;
         this.instanceColor = null;
@@ -21168,6 +21168,8 @@ class Instance extends InstancedMesh {
         this.overMaterial = null;
         this.currentOver = -1;
         this.isOver = false;
+
+        this.outline = null;
 
         this.tmpElement = [];
         
@@ -21188,7 +21190,7 @@ class Instance extends InstancedMesh {
 
         if( !this.overMaterial ) return;
 
-        this.outline = new Mesh( this.geometry, this.overMaterial );
+        if(!this.outline)this.outline = new Mesh( this.geometry, this.overMaterial );
         // if(this.overMaterial.uniforms.power)this.overMaterial.uniforms.power.value = 0.01;
         this.outline.matrixAutoUpdate = false;
         this.tmpMatrix.fromArray( this.instanceMatrix.array, obj.id*16 );
@@ -21217,19 +21219,19 @@ class Instance extends InstancedMesh {
 
     }
 
-    getInfo( index ) {
+    /*getInfo( index ) {
 
         this.tmpMatrix.fromArray( this.instanceMatrix.array, index * 16 );
         let pos = {x:0, y:0, z:0 };
         let scale = { x:0, y:0, z:0 };
         this.tmpMatrix.decompose( pos, this.tmpQuat, scale );
-        return {
+        return{
             pos:[pos.x, pos.y, pos.z],
             quat:this.tmpQuat.toArray(),
             scale:[scale.x, scale.y, scale.z],
             //worldMatrix:this.tmpMatrix.toArray(),
         }
-    }
+    }*/
 
     
 
@@ -21329,7 +21331,7 @@ class Instance extends InstancedMesh {
         
     }
 
-    getByName( index ) {
+    getIDName( index ) {
 
         return this.tmpElement[index].name;
 
@@ -21368,9 +21370,12 @@ class Instance extends InstancedMesh {
         this.tmpMatrix.toArray( this.instanceMatrix.array, index * 16 );
         this.needSphereUp = true;
 
+
+
         if( !this.outline ) return;
         if(this.currentOver === index ){
             this.outline.matrix.copy(this.tmpMatrix);
+            //this.outline.updateMatrix()
             this.outline.matrixWorldNeedsUpdate = true;
         }
 
@@ -21399,20 +21404,66 @@ class Instance extends InstancedMesh {
     raycast( raycaster, intersects ) {
 
         if(!this.isRay) return
+        this.instanceMatrix.needsUpdate = true;
         super.raycast( raycaster, intersects );
 
     }
 
     update(){
 
-        if( this.needSphereUp ) this.computeBoundingSphere();
+        
         if( this.instanceMatrix ) this.instanceMatrix.needsUpdate = true;
         if( this.instanceColor ) this.instanceColor.needsUpdate = true;
+        if( this.needSphereUp )this.computeBoundingSphere();
         //if( this.instanceUv ) this.instanceUv.needsUpdate = true;
         this.needSphereUp = false;
+        this.updateMatrix();
 
     }
 
+}
+
+class Quaternion {
+
+	constructor( x = 0, y = 0, z = 0, w = 1 ) {
+
+		this.isQuaternion = true;
+		this._x = x;
+		this._y = y;
+		this._z = z;
+		this._w = w;
+
+	}
+
+	set( x, y, z, w ) {
+
+		this._x = x;
+		this._y = y;
+		this._z = z;
+		this._w = w;
+		return this;
+
+	}
+
+	fromArray( array, offset = 0 ) {
+
+		this._x = array[ offset ];
+		this._y = array[ offset + 1 ];
+		this._z = array[ offset + 2 ];
+		this._w = array[ offset + 3 ];
+		return this;
+
+	}
+
+	toArray( array = [], offset = 0 ) {
+
+		array[ offset ] = this._x;
+		array[ offset + 1 ] = this._y;
+		array[ offset + 2 ] = this._z;
+		array[ offset + 3 ] = this._w;
+		return array;
+
+	}
 }
 
 /**
@@ -23928,17 +23979,18 @@ class Body extends Item {
 
 			b = list[i];
 
-			if( b === null ) continue
+			if( b === null ) continue;
 
 			n = N + ( i * this.num );
 
-			// update only when physics actif
+			// update only when physics actif buggy
 			if( !b.actif ){
 				// a = MathTool.nullArray( AR, n, this.num );
 				//a = AR[n+0]+AR[n+1]+AR[n+2]+AR[n+3]+ AR[n+4]+AR[n+5]+AR[n+6]+AR[n+7];
 				//if( a === 0 ) continue
-				if( MathTool.nullArray( AR, n, this.num ) === 0 ) continue;
-				else b.actif = true;
+				//if( MathTool.nullArray( AR, n, this.num ) === 0 ) continue;
+				//else 
+				b.actif = true;
 			}
 
 		    // test is object sleep
@@ -23958,48 +24010,43 @@ class Body extends Item {
 
 			if( b.sleep && !b.isKinematic ) continue; 
 
-			// update position / rotation / velocity
+			
 
-		    if( b.isInstance ){ 
+			// update position / rotation
+
+			b.position.fromArray( AR, n + 1 );
+	        b.quaternion.fromArray( AR, n + 4 );
+
+	        // update velocity
+
+	        if( this.full ){
+		        b.velocity.fromArray( AR, n + 8 );
+		        b.angular.fromArray( AR, n + 11 );
+		    } else {
+	    		if( b.getVelocity ){
+	    			vv = this.motor.reflow.velocity[b.name];
+	    			if(vv){
+	    				b.velocity.fromArray(vv, 0 );
+	    				b.angular.fromArray(vv, 3 );
+	    			}
+	    		}
+	    	}
+
+	    	//
+
+	    	if( b.isInstance ){ 
 		    	if( b.speedMat ){ 
 		    		//b.instance.setColorAt( b.id, [ Math.abs(AR[n+8])*0.5, Math.abs(AR[n+9])*0.5, Math.abs(AR[n+10])*0.5] );
 		    		let v = AR[n]*0.01;///255; //MathTool.lengthArray([AR[n+8], AR[n+9], AR[n+10]]) * 0.062;
 		    		b.instance.setColorAt( b.id, [ v,v,v ] );
 		    	}
 		    	b.instance.setTransformAt( b.id, [AR[n+1],AR[n+2],AR[n+3]], [AR[n+4],AR[n+5],AR[n+6],AR[n+7]], b.noScale ? [1,1,1] : b.size );
-		    	b.position = {x:AR[n+1], y:AR[n+2], z:AR[n+3]};
-		    	///b.quaternion = {x:AR[n+4], y:AR[n+5], z:AR[n+6], w:AR[n+7]}
-		    	b.quaternion = {_x:AR[n+4], _y:AR[n+5], _z:AR[n+6], _w:AR[n+7]};
 		    	if( this.needMatrix ) b.matrixWorld.compose( b.position, b.quaternion, {x:1, y:1, z:1}); 
-		    	if( this.full ){
-		    		b.velocity = {x:AR[n+8], y:AR[n+9], z:AR[n+10]};
-		    		b.angular = {x:AR[n+11], y:AR[n+12], z:AR[n+13]};
-		    	} else {
-		    		if( b.getVelocity ){
-		    			vv = this.motor.reflow.velocity[b.name];
-		    			if(vv){
-		    				b.velocity = {x:vv[0], y:vv[1], z:vv[2]};
-		    				b.angular = {x:vv[3], y:vv[4], z:vv[5]};
-		    			}
-		    		}
-		    	}
-		    }
-		    else {
-		    	b.position.fromArray( AR, n + 1 );
-		        b.quaternion.fromArray( AR, n + 4 );
-		        if( this.full ){
-			        b.velocity.fromArray( AR, n + 8 );
-			        b.angular.fromArray( AR, n + 11 );
-			    } else {
-		    		if( b.getVelocity ){
-		    			vv = this.motor.reflow.velocity[b.name];
-		    			if(vv){
-		    				b.velocity = {x:vv[0], y:vv[1], z:vv[2]};
-		    				b.angular = {x:vv[3], y:vv[4], z:vv[5]};
-		    			}
-		    		}
-		    	}
+		    	
+		    }else { 
+
 		        if( !b.auto ) b.updateMatrix();
+
 		    }
 		}
 
@@ -24542,6 +24589,7 @@ class Body extends Item {
 			b.instance.isRay = b.isRay;
 
 			b.over = b.instance.over;
+			b.isRay = false;
 			b.isOver = false;
 
 			b.speedMat = o.speedMat || false;
@@ -24553,7 +24601,7 @@ class Body extends Item {
 
 			//b.mass = o.mass || 0
 
-			b.refName = b.instance.name + b.id;
+			//b.refName = b.instance.name + b.id;
 			b.name = o.name ? o.name : b.instance.name + b.id;
 			o.name = b.name;
 
@@ -24569,11 +24617,11 @@ class Body extends Item {
 
 			b.instance.add( b, o.pos, o.quat, b.noScale ? [1,1,1] : b.size, color );
 
-			b.position = {x:o.pos[0], y:o.pos[1], z:o.pos[2]};
-			b.quaternion = {_x:o.quat[0], _y:o.quat[1], _z:o.quat[2], _w:o.quat[3]};
-		    b.velocity = {x:0, y:0, z:0};
-		    b.angular = {x:0, y:0, z:0};
-		    b.link = 0;
+			b.position = new Vector3().fromArray(o.pos); //{x:o.pos[0], y:o.pos[1], z:o.pos[2]};
+			b.quaternion = new Quaternion().fromArray(o.quat); //{_x:o.quat[0], _y:o.quat[1], _z:o.quat[2], _w:o.quat[3]};
+		    b.velocity = new Vector3(); //{x:0, y:0, z:0};
+		    b.angular = new Vector3(); //{x:0, y:0, z:0};
+		    //b.link = 0;
 		    if( this.needMatrix ) b.matrixWorld = new Matrix4();
 
 			// for convex
@@ -24720,9 +24768,9 @@ class Body extends Item {
 
 		if(b.isInstance){
 
-			if( o.pos ) b.position = {x:o.pos[0], y:o.pos[1], z:o.pos[2]};
-		    if( o.quat ) b.quaternion = {_x:o.quat[0], _y:o.quat[1], _z:o.quat[2], _w:o.quat[3]};
-			b.instance.setTransformAt( b.id, b.position, b.quaternion, b.noScale ? [1,1,1] : b.size );
+			if( o.pos ) b.position.fromArray(o.pos);// = {x:o.pos[0], y:o.pos[1], z:o.pos[2]}
+		    if( o.quat ) b.quaternion.fromArray(o.quat);// = {_x:o.quat[0], _y:o.quat[1], _z:o.quat[2], _w:o.quat[3]};
+			if( o.pos || o.quat ) b.instance.setTransformAt( b.id, b.position, b.quaternion, b.noScale ? [1,1,1] : b.size );
 
 		}else {
 
@@ -24799,7 +24847,7 @@ class Body extends Item {
 
 	}
 
-	scaler (o, s) {
+	scaler ( o, s ) {
 
 	    if(o.size) o.size = math.scaleArray( o.size, s );
 	    if(o.pos) o.pos = math.scaleArray( o.pos, s );
@@ -28395,7 +28443,7 @@ class JointDebug extends Basic3D {
 	    //Utils.refAxis( this.mat1, o.axis1 )
 	    //Utils.refAxis( this.mat2, o.axis2 )
 
-	    let qq = new Quaternion();
+	    let qq = new Quaternion$1();
 	    if(o.quat1) this.mat1.makeRotationFromQuaternion(qq.fromArray(o.quat1));
 	    if(o.quat2) this.mat2.makeRotationFromQuaternion(qq.fromArray(o.quat2));
 
@@ -28687,12 +28735,12 @@ class Joint extends Item {
 		if( o.rot1 !== undefined ){ o.quat1 = MathTool.quatFromEuler( o.rot1 ); delete ( o.rot1 ); }
 		if( o.rot2 !== undefined ){ o.quat2 = MathTool.quatFromEuler( o.rot2 ); delete ( o.rot2 ); }
 
-		if( !o.quat1 ) o.quat1 = new Quaternion().setFromUnitVectors( new Vector3(1, 0, 0), new Vector3().fromArray(o.axis1).normalize() ).toArray();
-		if( !o.quat2 ) o.quat2 = new Quaternion().setFromUnitVectors( new Vector3(1, 0, 0), new Vector3().fromArray(o.axis2).normalize() ).toArray();
+		if( !o.quat1 ) o.quat1 = new Quaternion$1().setFromUnitVectors( new Vector3(1, 0, 0), new Vector3().fromArray(o.axis1).normalize() ).toArray();
+		if( !o.quat2 ) o.quat2 = new Quaternion$1().setFromUnitVectors( new Vector3(1, 0, 0), new Vector3().fromArray(o.axis2).normalize() ).toArray();
 
 		if( this.engine === 'AMMO' && isWorldAxis && o.mode === 'hinge') {
 			let ee = new Euler(0, -90*torad$3, 0);
-			let qq = new Quaternion().setFromEuler(ee).toArray();
+			let qq = new Quaternion$1().setFromEuler(ee).toArray();
 			o.quatX = qq;
 			//o.quat1 = MathTool.quatMultiply(o.quat1, qq);
 			//o.quat2 = MathTool.quatMultiply(o.quat2, qq);
@@ -29276,7 +29324,7 @@ class Car extends Basic3D {//extends Object3D {
 
 const _endMatrix = /*@__PURE__*/ new Matrix4();
 const _p = /*@__PURE__*/ new Vector3();
-const _q = /*@__PURE__*/ new Quaternion();
+const _q = /*@__PURE__*/ new Quaternion$1();
 const _s = /*@__PURE__*/ new Vector3();
 
 
@@ -29412,7 +29460,7 @@ class SkeletonBody extends Object3D {
 
         let p = new Vector3();
         let s = new Vector3();
-        let q = new Quaternion();
+        let q = new Quaternion$1();
         let e = new Euler();
         let mtx = new Matrix4();
 
@@ -30278,7 +30326,7 @@ class ExoSkeleton extends Object3D {
 
         this.p = new Vector3();
         this.s = new Vector3();
-        this.q = new Quaternion();
+        this.q = new Quaternion$1();
         this.e = new Euler();
 
         this.mat = new MeshBasicMaterial({ color:0xCCCC80, wireframe:true, toneMapped:false });//root.mat.skinCollider;
@@ -31599,13 +31647,13 @@ class Avatar extends Group {
         this.breath = 0;
         this.breathSide = -1;
 
-        this.q = new Quaternion().setFromAxisAngle( {x:0, y:1, z:0}, Math.PI*0.5 );
+        this.q = new Quaternion$1().setFromAxisAngle( {x:0, y:1, z:0}, Math.PI*0.5 );
         this.headBoneLook = new Vector3();
         this.eyeTarget = new Group();//new AxesHelper(0.01)//
         this.eyeTarget.position.set(0, 1, 0);
 
         this.tmpMtx = new Matrix4();
-        this.tmpQ = new Quaternion();
+        this.tmpQ = new Quaternion$1();
 
         this.setting = {};
 
@@ -32483,8 +32531,8 @@ class Avatar extends Group {
 
         const torad = Math.PI / 180;
         let p = new Vector3();
-        let q = new Quaternion();
-        let RX = new Quaternion().setFromAxisAngle({x:1, y:0, z:0}, 90 * torad );
+        let q = new Quaternion$1();
+        let RX = new Quaternion$1().setFromAxisAngle({x:1, y:0, z:0}, 90 * torad );
 
         const baseTracks = anim.tracks;
         const tracks = [];
@@ -32537,7 +32585,7 @@ class Avatar extends Group {
         const torad = Math.PI / 180;
         //let lockPosition = true;
         //let p = new Vector3();
-        let q = new Quaternion();
+        let q = new Quaternion$1();
         //let RX = new Quaternion().setFromAxisAngle({x:1, y:0, z:0}, 90 * torad );
 
         const baseTracks = data;// anim.tracks;
@@ -32846,7 +32894,7 @@ class Avatar extends Group {
         let n = this.bones[name];
         if(!n) return
         //let q1 = n.quaternion
-        let q2 = new Quaternion().setFromEuler( {_x:x*todeg, _y:y*todeg, _z:z*todeg, _order:'XYZ'}).invert();
+        let q2 = new Quaternion$1().setFromEuler( {_x:x*todeg, _y:y*todeg, _z:z*todeg, _order:'XYZ'}).invert();
      
         n.quaternion.premultiply(q2);
        // n.rotation.set( x*torad, y*torad, z*torad, 'XYZ' );
@@ -33036,7 +33084,7 @@ class Hero extends Basic3D {
 
 			pivotPosition: new Vector3(),
 			//modelEuler: new Euler(),
-			modelQuat: new Quaternion(),
+			modelQuat: new Quaternion$1(),
 			moveImpulse: new Vector3(),
 			impulseCenter: new Vector3(),
 			movingDirection: new Vector3(),
@@ -33958,7 +34006,7 @@ const math$2 = {
 	tmpM: new Matrix4(),
 	tmpM2: new Matrix4(),
 	tmpV: new Vector3(),
-	tmpQ: new Quaternion(),
+	tmpQ: new Quaternion$1(),
 
 	fromTransformToQ: ( p, q, inv ) => {
 
@@ -34592,7 +34640,7 @@ class Landscape extends Mesh {
         this.geometry.setAttribute( 'color', new BufferAttribute( this.colors, 3 ) );
         //this.geometry.setAttribute( 'uv2', this.geometry.attributes.uv );
         this.vertices = this.geometry.attributes.position.array;
-        var clevels = new Quaternion( 0.5, 0.5, 0.1, 0.2 );//0.95, 0.8, 0.1, 0.05 ); 
+        var clevels = new Quaternion$1( 0.5, 0.5, 0.1, 0.2 );//0.95, 0.8, 0.1, 0.05 ); 
         if( o.maplevels ) clevels.fromArray( o.maplevels );
         var T = TerrainShader;
         var maps = o.maps || [ 'sand', 'grass3', 'rock' ], txt = {};
@@ -36517,6 +36565,7 @@ class MouseTool {
 		}
 
 		this.getMouse( e );
+		//this.needRay = true;
 		//this.overLock = true;
 
 		switch( this.mode ){
@@ -36542,7 +36591,7 @@ class MouseTool {
 		this.mouseMove = this.oldMouse.distanceTo( this.mouse ) < 0.01 ? false : true;
 		this.mouseDown = false;
 		this.mouseDown2 = false;
-		this.motor.mouseDown = false;
+		//this.motor.mouseDown = false
 
 
 
@@ -36601,13 +36650,15 @@ class MouseTool {
 			if ( inters.length > 0 ) {
 
 				g = inters[ 0 ].object;
-				id = inters[ 0 ].instanceId;
+				
 
 				//console.log(inters[ 0 ])
 
-				if( id !== undefined ){
+				if( g.isInstancedMesh ){
 					// is instance mesh
-					m = this.motor.byName( g.getByName( id ) );
+					id = inters[ 0 ].instanceId;
+					m = this.motor.byName( g.getIDName( id ) );
+					//console.log(m)
 					//m = root.motor.byName( g.name+id );
 				} else {
 					if( g.parent !== this.motor.scene ){
@@ -36661,6 +36712,8 @@ class MouseTool {
 			this.oldMouse.copy( this.mouse );
 		}
 
+
+
 		if( this.button === 2 ){
 		    this.mouseDown2 = true;
 		    //this.castray()
@@ -36668,7 +36721,7 @@ class MouseTool {
 
 	    //if( this.button === 0 ){
 		    this.mouseDown = true;
-		    this.motor.mouseDown = true;
+		    //this.motor.mouseDown = true
 		    this.needRay = true;
 
 		    //if(this.tmpSelected!== null) this.select(this.tmpSelected, this.tmpPoint )
@@ -36854,7 +36907,7 @@ class MouseTool {
 		
 
 		let q = this.selected.quaternion;
-		quat = [ q._x, q._y, q._z, q._w ];
+		quat = q.toArray();//[ q._x, q._y, q._z, q._w ]
 
 
 		/*if( this.selected.isInstance ){
@@ -37034,14 +37087,11 @@ class MouseTool {
 
 		let key = this.motor.flow.key;
 
-
 		if( key[1] !== 0 ){
 			let pz = key[1] * 0.1;
 			this.dragPlane.translateZ(pz);
 			this.needRay = true;
 		}
-
-
 
 		//this.castray()
 		if( this.moveDirect ) this.moveSelect();
@@ -38854,10 +38904,10 @@ class RaycastVehicle {
 
         // Rotate around steering over the wheelAxle
         let steering = wheel.steering;
-        let steeringOrn = new Quaternion();
+        let steeringOrn = new Quaternion$1();
         RotationAxisToRef( up, steering, steeringOrn );
 
-        let rotatingOrn = new Quaternion();
+        let rotatingOrn = new Quaternion$1();
         RotationAxisToRef(right, wheel.rotation, rotatingOrn);
 
         // World rotation of the wheel
@@ -38996,7 +39046,7 @@ class WheelInfo {
         //this.worldTransform.rotationQuaternion = new THREE.Quaternion()
 
         this.position = new Vector3().copy(this.chassisConnectionPointLocal);
-        this.quaternion = new Quaternion();
+        this.quaternion = new Quaternion$1();
 
         this.isInContact = false;
         this.chassisBody = null;
@@ -41002,7 +41052,7 @@ class PhyEngine {
 		this.morph = ( obj, name, value ) => { this.utils.morph( obj, name, value ); };
 
 		this.getFps = () => { return this.reflow.stat.fps };
-		this.getMs = () => { return this.reflow.stat.ms };
+		this.getMs = () => { return this.reflow.stat.ms.toFixed(1) };
 		
 		this.getDelta2 = () => { return this.delta };
 		this.getElapsedTime2 = () => { return elapsedTime };
@@ -41032,11 +41082,13 @@ class PhyEngine {
 
 			this.stepItems();
 
+			if( mouseTool ) mouseTool.step();
+
 			if( breaker !== null ) breaker.step();
 
 			if( currentControle !== null ) currentControle.move();
 
-			if( mouseTool ) mouseTool.step();
+			
 
 			// TODO fix dt 0 when no doStep ??
 
@@ -41763,7 +41815,7 @@ class Utils {
     	// apply position
     	//if(!isAxe) v.sub( obj.position )
     	// apply invers rotation
-    	let q1 = new Quaternion().fromArray(q);
+    	let q1 = new Quaternion$1().fromArray(q);
     	let q2 = obj.quaternion.clone().invert();
     	q1.premultiply(q2);
     	//v.applyQuaternion({x:-q.x, y:-q.y, z:-q.z, w:q.w})

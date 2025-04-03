@@ -21172,6 +21172,8 @@ class Instance extends three.InstancedMesh {
         this.currentOver = -1;
         this.isOver = false;
 
+        this.outline = null;
+
         this.tmpElement = [];
         
     }
@@ -21191,7 +21193,7 @@ class Instance extends three.InstancedMesh {
 
         if( !this.overMaterial ) return;
 
-        this.outline = new three.Mesh( this.geometry, this.overMaterial );
+        if(!this.outline)this.outline = new three.Mesh( this.geometry, this.overMaterial );
         // if(this.overMaterial.uniforms.power)this.overMaterial.uniforms.power.value = 0.01;
         this.outline.matrixAutoUpdate = false;
         this.tmpMatrix.fromArray( this.instanceMatrix.array, obj.id*16 );
@@ -21220,19 +21222,19 @@ class Instance extends three.InstancedMesh {
 
     }
 
-    getInfo( index ) {
+    /*getInfo( index ) {
 
         this.tmpMatrix.fromArray( this.instanceMatrix.array, index * 16 );
         let pos = {x:0, y:0, z:0 };
         let scale = { x:0, y:0, z:0 };
         this.tmpMatrix.decompose( pos, this.tmpQuat, scale );
-        return {
+        return{
             pos:[pos.x, pos.y, pos.z],
             quat:this.tmpQuat.toArray(),
             scale:[scale.x, scale.y, scale.z],
             //worldMatrix:this.tmpMatrix.toArray(),
         }
-    }
+    }*/
 
     
 
@@ -21332,7 +21334,7 @@ class Instance extends three.InstancedMesh {
         
     }
 
-    getByName( index ) {
+    getIDName( index ) {
 
         return this.tmpElement[index].name;
 
@@ -21371,9 +21373,12 @@ class Instance extends three.InstancedMesh {
         this.tmpMatrix.toArray( this.instanceMatrix.array, index * 16 );
         this.needSphereUp = true;
 
+
+
         if( !this.outline ) return;
         if(this.currentOver === index ){
             this.outline.matrix.copy(this.tmpMatrix);
+            //this.outline.updateMatrix()
             this.outline.matrixWorldNeedsUpdate = true;
         }
 
@@ -21402,20 +21407,66 @@ class Instance extends three.InstancedMesh {
     raycast( raycaster, intersects ) {
 
         if(!this.isRay) return
+        this.instanceMatrix.needsUpdate = true;
         super.raycast( raycaster, intersects );
 
     }
 
     update(){
 
-        if( this.needSphereUp ) this.computeBoundingSphere();
+        
         if( this.instanceMatrix ) this.instanceMatrix.needsUpdate = true;
         if( this.instanceColor ) this.instanceColor.needsUpdate = true;
+        if( this.needSphereUp )this.computeBoundingSphere();
         //if( this.instanceUv ) this.instanceUv.needsUpdate = true;
         this.needSphereUp = false;
+        this.updateMatrix();
 
     }
 
+}
+
+class Quaternion {
+
+	constructor( x = 0, y = 0, z = 0, w = 1 ) {
+
+		this.isQuaternion = true;
+		this._x = x;
+		this._y = y;
+		this._z = z;
+		this._w = w;
+
+	}
+
+	set( x, y, z, w ) {
+
+		this._x = x;
+		this._y = y;
+		this._z = z;
+		this._w = w;
+		return this;
+
+	}
+
+	fromArray( array, offset = 0 ) {
+
+		this._x = array[ offset ];
+		this._y = array[ offset + 1 ];
+		this._z = array[ offset + 2 ];
+		this._w = array[ offset + 3 ];
+		return this;
+
+	}
+
+	toArray( array = [], offset = 0 ) {
+
+		array[ offset ] = this._x;
+		array[ offset + 1 ] = this._y;
+		array[ offset + 2 ] = this._z;
+		array[ offset + 3 ] = this._w;
+		return array;
+
+	}
 }
 
 /**
@@ -23931,17 +23982,18 @@ class Body extends Item {
 
 			b = list[i];
 
-			if( b === null ) continue
+			if( b === null ) continue;
 
 			n = N + ( i * this.num );
 
-			// update only when physics actif
+			// update only when physics actif buggy
 			if( !b.actif ){
 				// a = MathTool.nullArray( AR, n, this.num );
 				//a = AR[n+0]+AR[n+1]+AR[n+2]+AR[n+3]+ AR[n+4]+AR[n+5]+AR[n+6]+AR[n+7];
 				//if( a === 0 ) continue
-				if( MathTool.nullArray( AR, n, this.num ) === 0 ) continue;
-				else b.actif = true;
+				//if( MathTool.nullArray( AR, n, this.num ) === 0 ) continue;
+				//else 
+				b.actif = true;
 			}
 
 		    // test is object sleep
@@ -23961,48 +24013,43 @@ class Body extends Item {
 
 			if( b.sleep && !b.isKinematic ) continue; 
 
-			// update position / rotation / velocity
+			
 
-		    if( b.isInstance ){ 
+			// update position / rotation
+
+			b.position.fromArray( AR, n + 1 );
+	        b.quaternion.fromArray( AR, n + 4 );
+
+	        // update velocity
+
+	        if( this.full ){
+		        b.velocity.fromArray( AR, n + 8 );
+		        b.angular.fromArray( AR, n + 11 );
+		    } else {
+	    		if( b.getVelocity ){
+	    			vv = this.motor.reflow.velocity[b.name];
+	    			if(vv){
+	    				b.velocity.fromArray(vv, 0 );
+	    				b.angular.fromArray(vv, 3 );
+	    			}
+	    		}
+	    	}
+
+	    	//
+
+	    	if( b.isInstance ){ 
 		    	if( b.speedMat ){ 
 		    		//b.instance.setColorAt( b.id, [ Math.abs(AR[n+8])*0.5, Math.abs(AR[n+9])*0.5, Math.abs(AR[n+10])*0.5] );
 		    		let v = AR[n]*0.01;///255; //MathTool.lengthArray([AR[n+8], AR[n+9], AR[n+10]]) * 0.062;
 		    		b.instance.setColorAt( b.id, [ v,v,v ] );
 		    	}
 		    	b.instance.setTransformAt( b.id, [AR[n+1],AR[n+2],AR[n+3]], [AR[n+4],AR[n+5],AR[n+6],AR[n+7]], b.noScale ? [1,1,1] : b.size );
-		    	b.position = {x:AR[n+1], y:AR[n+2], z:AR[n+3]};
-		    	///b.quaternion = {x:AR[n+4], y:AR[n+5], z:AR[n+6], w:AR[n+7]}
-		    	b.quaternion = {_x:AR[n+4], _y:AR[n+5], _z:AR[n+6], _w:AR[n+7]};
 		    	if( this.needMatrix ) b.matrixWorld.compose( b.position, b.quaternion, {x:1, y:1, z:1}); 
-		    	if( this.full ){
-		    		b.velocity = {x:AR[n+8], y:AR[n+9], z:AR[n+10]};
-		    		b.angular = {x:AR[n+11], y:AR[n+12], z:AR[n+13]};
-		    	} else {
-		    		if( b.getVelocity ){
-		    			vv = this.motor.reflow.velocity[b.name];
-		    			if(vv){
-		    				b.velocity = {x:vv[0], y:vv[1], z:vv[2]};
-		    				b.angular = {x:vv[3], y:vv[4], z:vv[5]};
-		    			}
-		    		}
-		    	}
-		    }
-		    else {
-		    	b.position.fromArray( AR, n + 1 );
-		        b.quaternion.fromArray( AR, n + 4 );
-		        if( this.full ){
-			        b.velocity.fromArray( AR, n + 8 );
-			        b.angular.fromArray( AR, n + 11 );
-			    } else {
-		    		if( b.getVelocity ){
-		    			vv = this.motor.reflow.velocity[b.name];
-		    			if(vv){
-		    				b.velocity = {x:vv[0], y:vv[1], z:vv[2]};
-		    				b.angular = {x:vv[3], y:vv[4], z:vv[5]};
-		    			}
-		    		}
-		    	}
+		    	
+		    }else { 
+
 		        if( !b.auto ) b.updateMatrix();
+
 		    }
 		}
 
@@ -24545,6 +24592,7 @@ class Body extends Item {
 			b.instance.isRay = b.isRay;
 
 			b.over = b.instance.over;
+			b.isRay = false;
 			b.isOver = false;
 
 			b.speedMat = o.speedMat || false;
@@ -24556,7 +24604,7 @@ class Body extends Item {
 
 			//b.mass = o.mass || 0
 
-			b.refName = b.instance.name + b.id;
+			//b.refName = b.instance.name + b.id;
 			b.name = o.name ? o.name : b.instance.name + b.id;
 			o.name = b.name;
 
@@ -24572,11 +24620,11 @@ class Body extends Item {
 
 			b.instance.add( b, o.pos, o.quat, b.noScale ? [1,1,1] : b.size, color );
 
-			b.position = {x:o.pos[0], y:o.pos[1], z:o.pos[2]};
-			b.quaternion = {_x:o.quat[0], _y:o.quat[1], _z:o.quat[2], _w:o.quat[3]};
-		    b.velocity = {x:0, y:0, z:0};
-		    b.angular = {x:0, y:0, z:0};
-		    b.link = 0;
+			b.position = new three.Vector3().fromArray(o.pos); //{x:o.pos[0], y:o.pos[1], z:o.pos[2]};
+			b.quaternion = new Quaternion().fromArray(o.quat); //{_x:o.quat[0], _y:o.quat[1], _z:o.quat[2], _w:o.quat[3]};
+		    b.velocity = new three.Vector3(); //{x:0, y:0, z:0};
+		    b.angular = new three.Vector3(); //{x:0, y:0, z:0};
+		    //b.link = 0;
 		    if( this.needMatrix ) b.matrixWorld = new three.Matrix4();
 
 			// for convex
@@ -24723,9 +24771,9 @@ class Body extends Item {
 
 		if(b.isInstance){
 
-			if( o.pos ) b.position = {x:o.pos[0], y:o.pos[1], z:o.pos[2]};
-		    if( o.quat ) b.quaternion = {_x:o.quat[0], _y:o.quat[1], _z:o.quat[2], _w:o.quat[3]};
-			b.instance.setTransformAt( b.id, b.position, b.quaternion, b.noScale ? [1,1,1] : b.size );
+			if( o.pos ) b.position.fromArray(o.pos);// = {x:o.pos[0], y:o.pos[1], z:o.pos[2]}
+		    if( o.quat ) b.quaternion.fromArray(o.quat);// = {_x:o.quat[0], _y:o.quat[1], _z:o.quat[2], _w:o.quat[3]};
+			if( o.pos || o.quat ) b.instance.setTransformAt( b.id, b.position, b.quaternion, b.noScale ? [1,1,1] : b.size );
 
 		}else {
 
@@ -24802,7 +24850,7 @@ class Body extends Item {
 
 	}
 
-	scaler (o, s) {
+	scaler ( o, s ) {
 
 	    if(o.size) o.size = math.scaleArray( o.size, s );
 	    if(o.pos) o.pos = math.scaleArray( o.pos, s );
@@ -36520,6 +36568,7 @@ class MouseTool {
 		}
 
 		this.getMouse( e );
+		//this.needRay = true;
 		//this.overLock = true;
 
 		switch( this.mode ){
@@ -36545,7 +36594,7 @@ class MouseTool {
 		this.mouseMove = this.oldMouse.distanceTo( this.mouse ) < 0.01 ? false : true;
 		this.mouseDown = false;
 		this.mouseDown2 = false;
-		this.motor.mouseDown = false;
+		//this.motor.mouseDown = false
 
 
 
@@ -36604,13 +36653,15 @@ class MouseTool {
 			if ( inters.length > 0 ) {
 
 				g = inters[ 0 ].object;
-				id = inters[ 0 ].instanceId;
+				
 
 				//console.log(inters[ 0 ])
 
-				if( id !== undefined ){
+				if( g.isInstancedMesh ){
 					// is instance mesh
-					m = this.motor.byName( g.getByName( id ) );
+					id = inters[ 0 ].instanceId;
+					m = this.motor.byName( g.getIDName( id ) );
+					//console.log(m)
 					//m = root.motor.byName( g.name+id );
 				} else {
 					if( g.parent !== this.motor.scene ){
@@ -36664,6 +36715,8 @@ class MouseTool {
 			this.oldMouse.copy( this.mouse );
 		}
 
+
+
 		if( this.button === 2 ){
 		    this.mouseDown2 = true;
 		    //this.castray()
@@ -36671,7 +36724,7 @@ class MouseTool {
 
 	    //if( this.button === 0 ){
 		    this.mouseDown = true;
-		    this.motor.mouseDown = true;
+		    //this.motor.mouseDown = true
 		    this.needRay = true;
 
 		    //if(this.tmpSelected!== null) this.select(this.tmpSelected, this.tmpPoint )
@@ -36857,7 +36910,7 @@ class MouseTool {
 		
 
 		let q = this.selected.quaternion;
-		quat = [ q._x, q._y, q._z, q._w ];
+		quat = q.toArray();//[ q._x, q._y, q._z, q._w ]
 
 
 		/*if( this.selected.isInstance ){
@@ -37037,14 +37090,11 @@ class MouseTool {
 
 		let key = this.motor.flow.key;
 
-
 		if( key[1] !== 0 ){
 			let pz = key[1] * 0.1;
 			this.dragPlane.translateZ(pz);
 			this.needRay = true;
 		}
-
-
 
 		//this.castray()
 		if( this.moveDirect ) this.moveSelect();
@@ -41005,7 +41055,7 @@ class PhyEngine {
 		this.morph = ( obj, name, value ) => { this.utils.morph( obj, name, value ); };
 
 		this.getFps = () => { return this.reflow.stat.fps };
-		this.getMs = () => { return this.reflow.stat.ms };
+		this.getMs = () => { return this.reflow.stat.ms.toFixed(1) };
 		
 		this.getDelta2 = () => { return this.delta };
 		this.getElapsedTime2 = () => { return elapsedTime };
@@ -41035,11 +41085,13 @@ class PhyEngine {
 
 			this.stepItems();
 
+			if( mouseTool ) mouseTool.step();
+
 			if( breaker !== null ) breaker.step();
 
 			if( currentControle !== null ) currentControle.move();
 
-			if( mouseTool ) mouseTool.step();
+			
 
 			// TODO fix dt 0 when no doStep ??
 

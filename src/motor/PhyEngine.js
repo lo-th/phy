@@ -824,7 +824,7 @@ export class PhyEngine {
 		this.morph = ( obj, name, value ) => { this.utils.morph( obj, name, value ) }
 
 		this.getFps = () => { return this.reflow.stat.fps }
-		this.getMs = () => { return this.reflow.stat.ms }
+		this.getMs = () => { return this.reflow.stat.ms.toFixed(1) }
 		
 		this.getDelta2 = () => { return this.delta }
 		this.getElapsedTime2 = () => { return elapsedTime }
@@ -854,11 +854,13 @@ export class PhyEngine {
 
 			this.stepItems();
 
+			if( mouseTool ) mouseTool.step();
+
 			if( breaker !== null ) breaker.step();
 
 			if( currentControle !== null ) currentControle.move();
 
-			if( mouseTool ) mouseTool.step();
+			
 
 			// TODO fix dt 0 when no doStep ??
 

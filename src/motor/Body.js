@@ -8,6 +8,7 @@ import { Num, WithMassCenter } from '../core/Config.js';
 import { Basic3D } from '../core/Basic3D.js';
 import { Instance } from '../core/Instance.js';
 import { MathTool, PI90, todeg } from '../core/MathTool.js';
+import { Quaternion } from '../core/MiniMath.js';
 
 import { SphereBox, Capsule, ChamferCyl, ChamferBox, createUV, Stair  } from '../3TH/Geometry.js';
 import { ConvexGeometry } from '../jsm/geometries/ConvexGeometry.js';
@@ -57,19 +58,20 @@ export class Body extends Item {
 		
 		while( i-- ){
 
-			b = list[i]
+			b = list[i];
 
-			if( b === null ) continue
+			if( b === null ) continue;
 
 			n = N + ( i * this.num );
 
-			// update only when physics actif
+			// update only when physics actif buggy
 			if( !b.actif ){
 				// a = MathTool.nullArray( AR, n, this.num );
 				//a = AR[n+0]+AR[n+1]+AR[n+2]+AR[n+3]+ AR[n+4]+AR[n+5]+AR[n+6]+AR[n+7];
 				//if( a === 0 ) continue
-				if( MathTool.nullArray( AR, n, this.num ) === 0 ) continue;
-				else b.actif = true;
+				//if( MathTool.nullArray( AR, n, this.num ) === 0 ) continue;
+				//else 
+				b.actif = true;
 			}
 
 		    // test is object sleep
@@ -89,48 +91,43 @@ export class Body extends Item {
 
 			if( b.sleep && !b.isKinematic ) continue; 
 
-			// update position / rotation / velocity
+			
 
-		    if( b.isInstance ){ 
+			// update position / rotation
+
+			b.position.fromArray( AR, n + 1 );
+	        b.quaternion.fromArray( AR, n + 4 );
+
+	        // update velocity
+
+	        if( this.full ){
+		        b.velocity.fromArray( AR, n + 8 );
+		        b.angular.fromArray( AR, n + 11 );
+		    } else {
+	    		if( b.getVelocity ){
+	    			vv = this.motor.reflow.velocity[b.name];
+	    			if(vv){
+	    				b.velocity.fromArray(vv, 0 );
+	    				b.angular.fromArray(vv, 3 );
+	    			}
+	    		}
+	    	}
+
+	    	//
+
+	    	if( b.isInstance ){ 
 		    	if( b.speedMat ){ 
 		    		//b.instance.setColorAt( b.id, [ Math.abs(AR[n+8])*0.5, Math.abs(AR[n+9])*0.5, Math.abs(AR[n+10])*0.5] );
 		    		let v = AR[n]*0.01///255; //MathTool.lengthArray([AR[n+8], AR[n+9], AR[n+10]]) * 0.062;
 		    		b.instance.setColorAt( b.id, [ v,v,v ] );
 		    	}
 		    	b.instance.setTransformAt( b.id, [AR[n+1],AR[n+2],AR[n+3]], [AR[n+4],AR[n+5],AR[n+6],AR[n+7]], b.noScale ? [1,1,1] : b.size );
-		    	b.position = {x:AR[n+1], y:AR[n+2], z:AR[n+3]};
-		    	///b.quaternion = {x:AR[n+4], y:AR[n+5], z:AR[n+6], w:AR[n+7]}
-		    	b.quaternion = {_x:AR[n+4], _y:AR[n+5], _z:AR[n+6], _w:AR[n+7]};
 		    	if( this.needMatrix ) b.matrixWorld.compose( b.position, b.quaternion, {x:1, y:1, z:1}) 
-		    	if( this.full ){
-		    		b.velocity = {x:AR[n+8], y:AR[n+9], z:AR[n+10]}
-		    		b.angular = {x:AR[n+11], y:AR[n+12], z:AR[n+13]}
-		    	} else {
-		    		if( b.getVelocity ){
-		    			vv = this.motor.reflow.velocity[b.name]
-		    			if(vv){
-		    				b.velocity = {x:vv[0], y:vv[1], z:vv[2]}
-		    				b.angular = {x:vv[3], y:vv[4], z:vv[5]}
-		    			}
-		    		}
-		    	}
-		    }
-		    else {
-		    	b.position.fromArray( AR, n + 1 );
-		        b.quaternion.fromArray( AR, n + 4 );
-		        if( this.full ){
-			        b.velocity.fromArray( AR, n + 8 );
-			        b.angular.fromArray( AR, n + 11 );
-			    } else {
-		    		if( b.getVelocity ){
-		    			vv = this.motor.reflow.velocity[b.name]
-		    			if(vv){
-		    				b.velocity = {x:vv[0], y:vv[1], z:vv[2]}
-		    				b.angular = {x:vv[3], y:vv[4], z:vv[5]}
-		    			}
-		    		}
-		    	}
+		    	
+		    }else{ 
+
 		        if( !b.auto ) b.updateMatrix();
+
 		    }
 		}
 
@@ -692,6 +689,7 @@ export class Body extends Item {
 			b.instance.isRay = b.isRay;
 
 			b.over = b.instance.over;
+			b.isRay = false
 			b.isOver = false;
 
 			b.speedMat = o.speedMat || false
@@ -703,7 +701,7 @@ export class Body extends Item {
 
 			//b.mass = o.mass || 0
 
-			b.refName = b.instance.name + b.id;
+			//b.refName = b.instance.name + b.id;
 			b.name = o.name ? o.name : b.instance.name + b.id;
 			o.name = b.name;
 
@@ -719,11 +717,11 @@ export class Body extends Item {
 
 			b.instance.add( b, o.pos, o.quat, b.noScale ? [1,1,1] : b.size, color );
 
-			b.position = {x:o.pos[0], y:o.pos[1], z:o.pos[2]};
-			b.quaternion = {_x:o.quat[0], _y:o.quat[1], _z:o.quat[2], _w:o.quat[3]};
-		    b.velocity = {x:0, y:0, z:0};
-		    b.angular = {x:0, y:0, z:0};
-		    b.link = 0;
+			b.position = new Vector3().fromArray(o.pos); //{x:o.pos[0], y:o.pos[1], z:o.pos[2]};
+			b.quaternion = new Quaternion().fromArray(o.quat); //{_x:o.quat[0], _y:o.quat[1], _z:o.quat[2], _w:o.quat[3]};
+		    b.velocity = new Vector3(); //{x:0, y:0, z:0};
+		    b.angular = new Vector3(); //{x:0, y:0, z:0};
+		    //b.link = 0;
 		    if( this.needMatrix ) b.matrixWorld = new Matrix4();
 
 			// for convex
@@ -870,9 +868,9 @@ export class Body extends Item {
 
 		if(b.isInstance){
 
-			if( o.pos ) b.position = {x:o.pos[0], y:o.pos[1], z:o.pos[2]}
-		    if( o.quat ) b.quaternion = {_x:o.quat[0], _y:o.quat[1], _z:o.quat[2], _w:o.quat[3]};
-			b.instance.setTransformAt( b.id, b.position, b.quaternion, b.noScale ? [1,1,1] : b.size );
+			if( o.pos ) b.position.fromArray(o.pos);// = {x:o.pos[0], y:o.pos[1], z:o.pos[2]}
+		    if( o.quat ) b.quaternion.fromArray(o.quat);// = {_x:o.quat[0], _y:o.quat[1], _z:o.quat[2], _w:o.quat[3]};
+			if( o.pos || o.quat ) b.instance.setTransformAt( b.id, b.position, b.quaternion, b.noScale ? [1,1,1] : b.size );
 
 		}else{
 
@@ -949,7 +947,7 @@ export class Body extends Item {
 
 	}
 
-	scaler (o, s) {
+	scaler ( o, s ) {
 
 	    if(o.size) o.size = math.scaleArray( o.size, s );
 	    if(o.pos) o.pos = math.scaleArray( o.pos, s );

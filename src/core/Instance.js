@@ -23,6 +23,8 @@ export class Instance extends InstancedMesh {
         this.currentOver = -1;
         this.isOver = false;
 
+        this.outline = null;
+
         this.tmpElement = [];
         
     }
@@ -42,7 +44,7 @@ export class Instance extends InstancedMesh {
 
         if( !this.overMaterial ) return;
 
-        this.outline = new Mesh( this.geometry, this.overMaterial );
+        if(!this.outline)this.outline = new Mesh( this.geometry, this.overMaterial );
         // if(this.overMaterial.uniforms.power)this.overMaterial.uniforms.power.value = 0.01;
         this.outline.matrixAutoUpdate = false;
         this.tmpMatrix.fromArray( this.instanceMatrix.array, obj.id*16 );
@@ -71,7 +73,7 @@ export class Instance extends InstancedMesh {
 
     }
 
-    getInfo( index ) {
+    /*getInfo( index ) {
 
         this.tmpMatrix.fromArray( this.instanceMatrix.array, index * 16 );
         let pos = {x:0, y:0, z:0 };
@@ -83,7 +85,7 @@ export class Instance extends InstancedMesh {
             scale:[scale.x, scale.y, scale.z],
             //worldMatrix:this.tmpMatrix.toArray(),
         }
-    }
+    }*/
 
     
 
@@ -183,7 +185,7 @@ export class Instance extends InstancedMesh {
         
     }
 
-    getByName( index ) {
+    getIDName( index ) {
 
         return this.tmpElement[index].name;
 
@@ -222,9 +224,12 @@ export class Instance extends InstancedMesh {
         this.tmpMatrix.toArray( this.instanceMatrix.array, index * 16 );
         this.needSphereUp = true;
 
+
+
         if( !this.outline ) return;
         if(this.currentOver === index ){
             this.outline.matrix.copy(this.tmpMatrix);
+            //this.outline.updateMatrix()
             this.outline.matrixWorldNeedsUpdate = true;
         }
 
@@ -253,17 +258,20 @@ export class Instance extends InstancedMesh {
     raycast( raycaster, intersects ) {
 
         if(!this.isRay) return
+        this.instanceMatrix.needsUpdate = true;
         super.raycast( raycaster, intersects );
 
     }
 
     update(){
 
-        if( this.needSphereUp ) this.computeBoundingSphere();
+        
         if( this.instanceMatrix ) this.instanceMatrix.needsUpdate = true;
         if( this.instanceColor ) this.instanceColor.needsUpdate = true;
+        if( this.needSphereUp )this.computeBoundingSphere();
         //if( this.instanceUv ) this.instanceUv.needsUpdate = true;
         this.needSphereUp = false;
+        this.updateMatrix();
 
     }
 

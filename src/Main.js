@@ -1199,7 +1199,7 @@ const upStat = () => {
 	}
 
 	//Hub.setFps( 'T:' + tm.fps + ' | P:' + Motor.getFps() )
-	Hub.setFps(  tm.fps + ' ~ ' + Motor.getFps() )
+	Hub.setFps(  tm.fps + ' ~ ' + Motor.getFps() + ' | ' + Motor.getMs()+' ms' )
 	getFullStats()
 
 }

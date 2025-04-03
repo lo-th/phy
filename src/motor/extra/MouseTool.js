@@ -218,6 +218,7 @@ export class MouseTool {
 		}
 
 		this.getMouse( e )
+		//this.needRay = true;
 		//this.overLock = true;
 
 		switch( this.mode ){
@@ -243,7 +244,7 @@ export class MouseTool {
 		this.mouseMove = this.oldMouse.distanceTo( this.mouse ) < 0.01 ? false : true
 		this.mouseDown = false
 		this.mouseDown2 = false
-		this.motor.mouseDown = false
+		//this.motor.mouseDown = false
 
 
 
@@ -302,13 +303,15 @@ export class MouseTool {
 			if ( inters.length > 0 ) {
 
 				g = inters[ 0 ].object;
-				id = inters[ 0 ].instanceId;
+				
 
 				//console.log(inters[ 0 ])
 
-				if( id !== undefined ){
+				if( g.isInstancedMesh ){
 					// is instance mesh
-					m = this.motor.byName( g.getByName( id ) );
+					id = inters[ 0 ].instanceId;
+					m = this.motor.byName( g.getIDName( id ) );
+					//console.log(m)
 					//m = root.motor.byName( g.name+id );
 				} else {
 					if( g.parent !== this.motor.scene ){
@@ -362,6 +365,8 @@ export class MouseTool {
 			this.oldMouse.copy( this.mouse )
 		}
 
+
+
 		if( this.button === 2 ){
 		    this.mouseDown2 = true
 		    //this.castray()
@@ -369,7 +374,7 @@ export class MouseTool {
 
 	    //if( this.button === 0 ){
 		    this.mouseDown = true
-		    this.motor.mouseDown = true
+		    //this.motor.mouseDown = true
 		    this.needRay = true;
 
 		    //if(this.tmpSelected!== null) this.select(this.tmpSelected, this.tmpPoint )
@@ -555,7 +560,7 @@ export class MouseTool {
 		
 
 		let q = this.selected.quaternion
-		quat = [ q._x, q._y, q._z, q._w ]
+		quat = q.toArray()//[ q._x, q._y, q._z, q._w ]
 
 
 		/*if( this.selected.isInstance ){
@@ -735,14 +740,11 @@ export class MouseTool {
 
 		let key = this.motor.flow.key
 
-
 		if( key[1] !== 0 ){
 			let pz = key[1] * 0.1
 			this.dragPlane.translateZ(pz)
 			this.needRay = true;
 		}
-
-
 
 		//this.castray()
 		if( this.moveDirect ) this.moveSelect()
