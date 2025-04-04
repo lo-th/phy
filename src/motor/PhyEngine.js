@@ -478,6 +478,13 @@ export class PhyEngine {
 
 				if( isWorker ){ // is worker version
 
+					// TODO test
+					// https://aditya003-ay.medium.com/different-ways-to-share-data-between-main-thread-and-worker-thread-75a5d86ab441
+					//const sharedBuffer = new SharedArrayBuffer(Float32Array.BYTES_PER_ELEMENT * 5);
+					//const sharedArray = new Float32Array(sharedBuffer);
+					// Start the worker and pass the shared buffer
+					//const worker = new Worker('./worker-shared-buffer.js', { workerData: sharedBuffer });
+
 
 					// https://web.dev/articles/module-workers?hl=fr
 					// https://developer.mozilla.org/en-US/docs/Web/API/Worker/Worker
@@ -507,6 +514,7 @@ export class PhyEngine {
 					let ab = new ArrayBuffer( 1 );
 					worker.postMessage( { m: 'test', ab:ab }, [ ab ] );
 					isBuffer = ab.byteLength ? false : true;
+
 					o.isBuffer = isBuffer;
 
 					this.initPhysics( o );
