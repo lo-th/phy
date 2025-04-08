@@ -152,6 +152,19 @@ const M = {
 
     },
 
+    // special Havok motion !!!
+
+    lerpTransform: ( oar, ar, t ) => {
+        let op = oar[0];
+        let oq = oar[1];
+        let p = ar[0]; 
+        let q = ar[1];
+
+        p = M.lerpArray(op, p, t);
+        q = M.slerpQuatArray(oq, q, t);
+        return [p,q]
+    },
+
     //-----------------------
     //  MATRIX
     //-----------------------
@@ -35908,7 +35921,7 @@ class Textfield extends three.Mesh {
 		this.font = o.font ?? "'Mulish', sans-serif";
 		this.fontSize = o.fontSize ?? 32;
 		this.backgroundColor = o.backgroundColor ?? "#00000000";
-		this.fontColor = o.fontColor ?? "#FFFFFF";
+		this.fontColor = o.color ?? "#FFFFFF";
 		this.material.alphaTest = 0.5;
 		this.set( o.text );
 		
@@ -36955,22 +36968,24 @@ class MouseTool {
 		//let def = [-0.03, 0.03, 60, 2]
 		//let defr = [-3, 3, 60, 2]
 
+		const engine = this.motor.engine;
+
 		if( this.moveDirect ){
 			this.motor.change({ name:this.selected.name, kinematic:false, gravity:false, damping:[0.9,0.9]  });
 		} else {
 			let def = [-0.1, 0.1, 600, 1];
 			let defr = [-0.1, 0.1, 600, 1];
 			//let defr = [0, 0]
-			let notUseKinematic = this.motor.engine === 'OIMO' || this.motor.engine ==='RAPIER' || this.motor.engine ==='JOLT';//|| root.engine ==='HAVOK'
+			let notUseKinematic = engine === 'OIMO' || engine ==='RAPIER' || engine ==='JOLT';//|| engine ==='HAVOK'
 			let jtype = this.selected.link === 0 ? 'fixe' : 'd6';//root.engine === 'HAVOK' ? 'fixe' : 'd6';
 
-			if( this.motor.engine === 'JOLT' ) jtype = 'fixe';
+			if( engine === 'JOLT' ) jtype = 'fixe';
 
 			let limite = [['x',...def], ['y',...def], ['z',...def], ['rx',...defr], ['ry',...defr], ['rz',...defr]];
 
-			if( this.motor.engine === 'HAVOK' ) limite = [ ['x',...def], ['y',...def], ['z',...def] ];
+			if( engine === 'HAVOK' ) limite = [ ['x',...def], ['y',...def], ['z',...def] ];
 
-			if( this.motor.engine === 'OIMO' ){
+			if( engine === 'OIMO' ){
 				revert = true;
 				jtype = this.selected.link === 0 ? 'fixe' : 'spherical';
 				limite = [ ['x',...def], ['y',...def], ['z',...def] ];
@@ -36978,10 +36993,12 @@ class MouseTool {
 				//limite = [ 4.0, 1.0 ]
 			}
 
-			if( this.motor.engine === 'HAVOK' ){
-				revert = true;
+			if( engine === 'HAVOK' ){
+				//revert = true;
 				jtype = this.selected.link === 0 ? 'fixe' : 'spherical';
 				limite = [ -180, 180, 0.1, 0.1 ];
+
+				//jtype = 'fixe'
 			}
 
 			//console.log(jtype)
@@ -40487,8 +40504,12 @@ class PhyEngine {
 			settings.fixe = o.fixe !== undefined ? o.fixe : true;
 			settings.full = o.full !== undefined ? o.full : false;
 			settings.gravity = o.gravity ? o.gravity : [0,-9.81,0];
-		    settings.substep = o.substep ? o.substep : 2;
+		    settings.substep = o.substep ? o.substep : 1;
 		    settings.fps = o.fps ? o.fps : 60;
+
+		    // TODO remove whrn full complete
+		    //if(o.forceSubstep) settings.substep = o.forceSubstep;
+		    //else if( this.engine === 'HAVOK') settings.substep = 1;
 
 			if( o.key ) addControl();
 
@@ -41361,9 +41382,15 @@ class PhyEngine {
 				case 'solid': b = items.solid.set( o, b ); break;
 				case 'joint': b = items.joint.set( o, b );  break;
 				case 'body':
-				if( b.isKinematic ) items.body.set( o, b );
-	            if( !b.actif || b.sleep ) items.body.set( o, b );
-	            if( o.sleep ) items.body.set( o, b );
+
+				if( !b.isKinematic ){
+				//if( this.engine !== 'HAVOK' ){
+
+
+					//if( b.isKinematic ) items.body.set( o, b );
+		            if( !b.actif || b.sleep ) items.body.set( o, b );
+		            if( o.sleep ) items.body.set( o, b );
+		        } 
 				break;
 
 			}
@@ -41839,7 +41866,7 @@ class Utils {
     	if( obj.isObject3D ) obj.updateWorldMatrix( true, false );
     	// apply position
 
-        let m3 = new Matrix3().setFromMatrix4( obj.matrixWorld );//.invert()
+        let m3 = new three.Matrix3().setFromMatrix4( obj.matrixWorld );//.invert()
         //m3.invert()
         let vv = new three.Vector3().fromArray(v).applyMatrix3( m3 );
 

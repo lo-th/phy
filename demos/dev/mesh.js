@@ -33,6 +33,8 @@ function onComplete(){
         type:'mesh',
         shape: model['base'].geometry,
         restitution:0, friction:0.5,
+        size:[2],
+        meshScale:[2],
         //margin: 0.0001,
        density:10
     })

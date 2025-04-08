@@ -605,22 +605,24 @@ export class MouseTool {
 		//let def = [-0.03, 0.03, 60, 2]
 		//let defr = [-3, 3, 60, 2]
 
+		const engine = this.motor.engine;
+
 		if( this.moveDirect ){
 			this.motor.change({ name:this.selected.name, kinematic:false, gravity:false, damping:[0.9,0.9]  })
 		} else {
 			let def = [-0.1, 0.1, 600, 1]
 			let defr = [-0.1, 0.1, 600, 1]
 			//let defr = [0, 0]
-			let notUseKinematic = this.motor.engine === 'OIMO' || this.motor.engine ==='RAPIER' || this.motor.engine ==='JOLT'//|| root.engine ==='HAVOK'
+			let notUseKinematic = engine === 'OIMO' || engine ==='RAPIER' || engine ==='JOLT'//|| engine ==='HAVOK'
 			let jtype = this.selected.link === 0 ? 'fixe' : 'd6';//root.engine === 'HAVOK' ? 'fixe' : 'd6';
 
-			if( this.motor.engine === 'JOLT' ) jtype = 'fixe';
+			if( engine === 'JOLT' ) jtype = 'fixe';
 
 			let limite = [['x',...def], ['y',...def], ['z',...def], ['rx',...defr], ['ry',...defr], ['rz',...defr]]
 
-			if( this.motor.engine === 'HAVOK' ) limite = [ ['x',...def], ['y',...def], ['z',...def] ]
+			if( engine === 'HAVOK' ) limite = [ ['x',...def], ['y',...def], ['z',...def] ]
 
-			if( this.motor.engine === 'OIMO' ){
+			if( engine === 'OIMO' ){
 				revert = true;
 				jtype = this.selected.link === 0 ? 'fixe' : 'spherical';
 				limite = [ ['x',...def], ['y',...def], ['z',...def] ]
@@ -628,10 +630,12 @@ export class MouseTool {
 				//limite = [ 4.0, 1.0 ]
 			}
 
-			if( this.motor.engine === 'HAVOK' ){
-				revert = true;
+			if( engine === 'HAVOK' ){
+				//revert = true;
 				jtype = this.selected.link === 0 ? 'fixe' : 'spherical';
 				limite = [ -180, 180, 0.1, 0.1 ]
+
+				//jtype = 'fixe'
 			}
 
 			//console.log(jtype)

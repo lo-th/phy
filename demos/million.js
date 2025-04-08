@@ -6,13 +6,16 @@ let open2 = false;
 let yellow = false;
 //var timer = null
 let game = 'start';
-let result = []
+let result = [];
+let final = [];
 let balls = [];
 let startPos = []
 //let ballName = []
 let model = null
 let tmpTxt = []
 let breakDeterminism = true;
+
+let text = null
 
 //let ballTest = true
 
@@ -46,6 +49,8 @@ demo = () => {
     // add static ground
     phy.add({ type:'plane', size:[300,1,300], visible:false })
 
+
+
 	phy.load(['./assets/models/million.glb'], onComplete )
 
 }
@@ -57,8 +62,9 @@ onComplete = () => {
     makeMachine()
     makeBall()
 
+    text = phy.addText({text:'Win Millions', color:'#606010', pos:[4.5,0.1,3], rot:[-90,0,0]})
+
     phy.setTimeout( activeBall, 3000 )
-    //timer = setTimeout( activeBall, 3000 );
 
 }
 
@@ -80,6 +86,7 @@ replay = () => {
     phy.setPostUpdate ( null )
 
     game = 'start'
+    text.set( 'Win Millions' )
 
     a = 0
     yellow = false
@@ -99,6 +106,7 @@ replay = () => {
     ]
 
     result = []
+    final = []
     onReset ()
     
     let i = balls.length;
@@ -109,7 +117,6 @@ replay = () => {
     phy.change( r )
 
     phy.setTimeout( activeBall, 3000 )
-    //timer = setTimeout( activeBall, 3000 )
 
 }
 
@@ -173,30 +180,47 @@ haveBall = ( name ) => {
 	open2 = false
 	
 	result.push( name )
+    
 
 	if( result.length<5 ){
+
+        final.push( Number(name.substring(4))+1 )
         phy.setTimeout( wantBall, 6000 )
-		//timer = setTimeout( wantBall, 6000 )
+
 	} else if(result.length<7){
+
+        if(!yellow) final.push(  Number(name.substring(4))+1, '  ' )
+        else final.push( (Number(name.substring(4))-50)+1 )
         yellow = true
         phy.setTimeout( wantBall, 6000 )
-        //timer = setTimeout( wantBall, 6000 )
+
     } else {
-		phy.log( result )
+
+        final.push( (Number(name.substring(4))-50)+1 )
+		//phy.log( result )
 	}
+
+    text.set( final.join(' ') )
 
 }
 
 makeMachine = () => {
 
-    let friction = 0.5;
-    let bounce = 0.3;
+    let friction = 0.4;
+    let bounce = 0.0;
 
-    let meshs = [ 
+    /*let meshs = [ 
 	    'L_roll', 'L_back', 'L_front', 'L_rampe', 'L_pale1', 'L_pale2',
 	    'M_roll', 'M_back', 'M_front', 'M_rampe', 'M_pale1', 'M_pale2'
+    ]*/
+
+    let meshs = [ 
+        'L_roll', 'L_rampe', 'L_pale1', 'L_pale2',
+        'M_roll', 'M_rampe', 'M_pale1', 'M_pale2'
     ]
-    let i = meshs.length, name, p, d, m, br, k
+    let i = meshs.length, name, p, d, m, br, k, shape
+
+
 
     phy.add({ 
         name:'block1', type:'box', density:0, //material:'glass',
@@ -218,6 +242,7 @@ makeMachine = () => {
         kinematic:true,
     });
 
+
     while(i--){
 
     	name = meshs[i]
@@ -226,26 +251,38 @@ makeMachine = () => {
         d = name==='M_rampe' ? 0 : -1.8
         k = br ? true : false;
 
+        shape = model[name].geometry;
+        if(name==='L_roll') shape = model['L_shape'].geometry;
+        if(name==='M_roll') shape = model['M_shape'].geometry;
+
+        //if(!br){
+
     	phy.add({ 
-	        name:name, type:'mesh', density:0,
+	        name:name,
+            type:'mesh', 
 	        size:[10],
 	        meshScale:[10],
 	        mesh:model[name],
-	        shape:model[name].geometry,
+	        shape:shape,
 	        //material:br?'silver':'glass',
             material:br?'plexi2':'glass',
 	        friction: friction, restitution: bounce,
-	        pos: i>5 ? [8.5,d+py,0] : [0,py,0],
+	        //pos: i>5 ? [8.5,d+py,0] : [0,py,0],
+            pos: i>3 ? [8.5,d+py,0] : [0,py,0],
 	        rot: p ? [0,0,45]:[0,0,0],
 	        //renderOrder:br?4:8,
             kinematic:k,
             ray:false,
+            //debug:true,
 
 	        //shadow: false,
 	    })
+
+       //}
     }
 
 }
+
 
 makeBall = () => {
 
@@ -290,7 +327,14 @@ makeBall = () => {
     t.repeat.set(1/8,1/8)
     t.colorSpace = THREE.SRGBColorSpace;
 
-    let beforeCompile = function ( shader ) {
+    tmpMat = phy.material({
+        name:'lotoball',
+        roughness: 0.4,
+        metalness: 0.6,
+        map: t,
+    })
+
+    tmpMat.onBeforeCompile = function ( shader ) {
         // use color as uv move
         let fragment = shader.fragmentShader;
         fragment = fragment.replace( '#include <color_fragment>', '' );
@@ -301,14 +345,6 @@ makeBall = () => {
         ` );
         shader.fragmentShader = fragment;
     }
-
-    tmpMat = phy.material({
-        name:'lotoball',
-        roughness: 0.4,
-        metalness: 0.6,
-        map: t,
-        beforeCompile: beforeCompile,
-    })
 
     
 

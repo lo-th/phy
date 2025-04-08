@@ -66,7 +66,7 @@ const demo_position = () => {
 
     let demoData = [];
     demoData.push({ type:'container', material:'debug', size:[10,3,10], pos:[0,1.5,0], friction:0.5, restitution:0, remplace:true, wall:10, radius:0, intern:true, color:0x000000 });
-    demoData.push({ name:'mobile', type:'box', radius:0.05, size:[1,3,1],  pos:[0,1.5,0], material:'noctua', kinematic:true })
+    demoData.push({ name:'mobile', type:'box', radius:0.05, size:[1,3,1],  pos:[0,1.5,0], material:'noctua',  kinematic:true })
     let i = 1000;
     while(i--){
         demoData.push({ instance:'ball', type:'sphere', size:[math.rand(0.1,0.25)], pos:[math.rand(-4.5,4.5), 0.4, math.rand(-4.5,4.5) ], mass:1, material:'body', speedMat:true, bullet:true })

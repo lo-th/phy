@@ -1,4 +1,4 @@
-import { BufferGeometry, BufferAttribute, TrianglesDrawMode, TriangleFanDrawMode, TriangleStripDrawMode, Quaternion as Quaternion$1, Matrix4, Loader, LoaderUtils, FileLoader, MeshPhysicalMaterial, Vector2, Color, LinearSRGBColorSpace, SRGBColorSpace, SpotLight, PointLight, DirectionalLight, Vector3, InstancedMesh, InstancedBufferAttribute, Object3D, TextureLoader, ImageBitmapLoader, InterleavedBuffer, InterleavedBufferAttribute, LinearMipmapLinearFilter, NearestMipmapLinearFilter, LinearMipmapNearestFilter, NearestMipmapNearestFilter, LinearFilter, NearestFilter, RepeatWrapping, MirroredRepeatWrapping, ClampToEdgeWrapping, PointsMaterial, Material, LineBasicMaterial, MeshStandardMaterial, DoubleSide, MeshBasicMaterial, PropertyBinding, SkinnedMesh, Mesh, LineSegments, Line, LineLoop, Points, Group, PerspectiveCamera, MathUtils, OrthographicCamera, Skeleton, AnimationClip, Bone, InterpolateDiscrete, InterpolateLinear, Texture, VectorKeyframeTrack, NumberKeyframeTrack, QuaternionKeyframeTrack, ColorManagement, FrontSide, Interpolant, Box3, Sphere, Vector4, Curve, Euler, MeshPhongMaterial, MeshLambertMaterial, EquirectangularReflectionMapping, AmbientLight, Float32BufferAttribute, Uint16BufferAttribute, Matrix3 as Matrix3$1, ShapeUtils, DataTextureLoader, HalfFloatType, FloatType, DataUtils, RGBAFormat, RedFormat, NoColorSpace, RGBA_S3TC_DXT1_Format, RGB_PVRTC_4BPPV1_Format, RGB_ETC2_Format, RGB_ETC1_Format, RGBA_S3TC_DXT5_Format, RGBA_PVRTC_4BPPV1_Format, RGBA_ETC2_EAC_Format, RGBA_BPTC_Format, RGB_BPTC_UNSIGNED_Format, RGBA_ASTC_4x4_Format, UnsignedByteType, CompressedCubeTexture, CompressedArrayTexture, CompressedTexture, RGBA_ASTC_6x6_Format, RGFormat, DataTexture, Data3DTexture, LoadingManager, AnimationMixer, ObjectSpaceNormalMap, SphereGeometry, CylinderGeometry, BoxGeometry, PlaneGeometry, CanvasTexture, ShadowMaterial, MeshToonMaterial, BackSide, SrcAlphaSaturateFactor, OneMinusDstColorFactor, DstColorFactor, OneMinusDstAlphaFactor, DstAlphaFactor, OneMinusSrcAlphaFactor, SrcAlphaFactor, OneMinusSrcColorFactor, SrcColorFactor, OneFactor, ZeroFactor, MaxEquation, MinEquation, ReverseSubtractEquation, SubtractEquation, AddEquation, MultiplyBlending, SubtractiveBlending, AdditiveBlending, NormalBlending, NoBlending, EventDispatcher, Layers, CircleGeometry, Line3, Plane, Triangle, Box2, Shape, Path, ShapePath, ShapeGeometry, CustomBlending, SkeletonHelper, AnimationUtils, AdditiveAnimationBlendMode, NormalAnimationBlendMode, Raycaster, PMREMGenerator, Scene, WebGLCubeRenderTarget, CubeCamera, IcosahedronGeometry, ShaderMaterial, NoToneMapping } from 'three';
+import { BufferGeometry, BufferAttribute, TrianglesDrawMode, TriangleFanDrawMode, TriangleStripDrawMode, Quaternion as Quaternion$1, Matrix4, Loader, LoaderUtils, FileLoader, MeshPhysicalMaterial, Vector2, Color, LinearSRGBColorSpace, SRGBColorSpace, SpotLight, PointLight, DirectionalLight, Vector3, InstancedMesh, InstancedBufferAttribute, Object3D, TextureLoader, ImageBitmapLoader, InterleavedBuffer, InterleavedBufferAttribute, LinearMipmapLinearFilter, NearestMipmapLinearFilter, LinearMipmapNearestFilter, NearestMipmapNearestFilter, LinearFilter, NearestFilter, RepeatWrapping, MirroredRepeatWrapping, ClampToEdgeWrapping, PointsMaterial, Material, LineBasicMaterial, MeshStandardMaterial, DoubleSide, MeshBasicMaterial, PropertyBinding, SkinnedMesh, Mesh, LineSegments, Line, LineLoop, Points, Group, PerspectiveCamera, MathUtils, OrthographicCamera, Skeleton, AnimationClip, Bone, InterpolateDiscrete, InterpolateLinear, Texture, VectorKeyframeTrack, NumberKeyframeTrack, QuaternionKeyframeTrack, ColorManagement, FrontSide, Interpolant, Box3, Sphere, Vector4, Curve, Euler, MeshPhongMaterial, MeshLambertMaterial, EquirectangularReflectionMapping, AmbientLight, Float32BufferAttribute, Uint16BufferAttribute, Matrix3, ShapeUtils, DataTextureLoader, HalfFloatType, FloatType, DataUtils, RGBAFormat, RedFormat, NoColorSpace, RGBA_S3TC_DXT1_Format, RGB_PVRTC_4BPPV1_Format, RGB_ETC2_Format, RGB_ETC1_Format, RGBA_S3TC_DXT5_Format, RGBA_PVRTC_4BPPV1_Format, RGBA_ETC2_EAC_Format, RGBA_BPTC_Format, RGB_BPTC_UNSIGNED_Format, RGBA_ASTC_4x4_Format, UnsignedByteType, CompressedCubeTexture, CompressedArrayTexture, CompressedTexture, RGBA_ASTC_6x6_Format, RGFormat, DataTexture, Data3DTexture, LoadingManager, AnimationMixer, ObjectSpaceNormalMap, SphereGeometry, CylinderGeometry, BoxGeometry, PlaneGeometry, CanvasTexture, ShadowMaterial, MeshToonMaterial, BackSide, SrcAlphaSaturateFactor, OneMinusDstColorFactor, DstColorFactor, OneMinusDstAlphaFactor, DstAlphaFactor, OneMinusSrcAlphaFactor, SrcAlphaFactor, OneMinusSrcColorFactor, SrcColorFactor, OneFactor, ZeroFactor, MaxEquation, MinEquation, ReverseSubtractEquation, SubtractEquation, AddEquation, MultiplyBlending, SubtractiveBlending, AdditiveBlending, NormalBlending, NoBlending, EventDispatcher, Layers, CircleGeometry, Line3, Plane, Triangle, Box2, Shape, Path, ShapePath, ShapeGeometry, CustomBlending, SkeletonHelper, AnimationUtils, AdditiveAnimationBlendMode, NormalAnimationBlendMode, Raycaster, PMREMGenerator, Scene, WebGLCubeRenderTarget, CubeCamera, IcosahedronGeometry, ShaderMaterial, NoToneMapping } from 'three';
 
 const PI = Math.PI;
 const torad$3 = PI / 180;
@@ -147,6 +147,19 @@ const M = {
         if(inv) q1 = M.quatInvert(q1);
         return q1
 
+    },
+
+    // special Havok motion !!!
+
+    lerpTransform: ( oar, ar, t ) => {
+        let op = oar[0];
+        let oq = oar[1];
+        let p = ar[0]; 
+        let q = ar[1];
+
+        p = M.lerpArray(op, p, t);
+        q = M.slerpQuatArray(oq, q, t);
+        return [p,q]
     },
 
     //-----------------------
@@ -9152,7 +9165,7 @@ class GeometryParser {
 
 		if ( buffers.normal.length > 0 ) {
 
-			const normalMatrix = new Matrix3$1().getNormalMatrix( preTransform );
+			const normalMatrix = new Matrix3().getNormalMatrix( preTransform );
 
 			const normalAttribute = new Float32BufferAttribute( buffers.normal, 3 );
 			normalAttribute.applyNormalMatrix( normalMatrix );
@@ -26275,7 +26288,7 @@ class SVGLoader extends Loader {
 
 		function parseNodeTransform( node ) {
 
-			const transform = new Matrix3$1();
+			const transform = new Matrix3();
 			const currentTransform = tempTransform0;
 
 			if ( node.nodeName === 'use' && ( node.hasAttribute( 'x' ) || node.hasAttribute( 'y' ) ) ) {
@@ -26739,14 +26752,14 @@ class SVGLoader extends Loader {
 
 		const transformStack = [];
 
-		const tempTransform0 = new Matrix3$1();
-		const tempTransform1 = new Matrix3$1();
-		const tempTransform2 = new Matrix3$1();
-		const tempTransform3 = new Matrix3$1();
+		const tempTransform0 = new Matrix3();
+		const tempTransform1 = new Matrix3();
+		const tempTransform2 = new Matrix3();
+		const tempTransform3 = new Matrix3();
 		const tempV2 = new Vector2();
 		const tempV3 = new Vector3();
 
-		const currentTransform = new Matrix3$1();
+		const currentTransform = new Matrix3();
 
 		const xml = new DOMParser().parseFromString( text, 'image/svg+xml' ); // application/xml
 
@@ -35905,7 +35918,7 @@ class Textfield extends Mesh {
 		this.font = o.font ?? "'Mulish', sans-serif";
 		this.fontSize = o.fontSize ?? 32;
 		this.backgroundColor = o.backgroundColor ?? "#00000000";
-		this.fontColor = o.fontColor ?? "#FFFFFF";
+		this.fontColor = o.color ?? "#FFFFFF";
 		this.material.alphaTest = 0.5;
 		this.set( o.text );
 		
@@ -36952,22 +36965,24 @@ class MouseTool {
 		//let def = [-0.03, 0.03, 60, 2]
 		//let defr = [-3, 3, 60, 2]
 
+		const engine = this.motor.engine;
+
 		if( this.moveDirect ){
 			this.motor.change({ name:this.selected.name, kinematic:false, gravity:false, damping:[0.9,0.9]  });
 		} else {
 			let def = [-0.1, 0.1, 600, 1];
 			let defr = [-0.1, 0.1, 600, 1];
 			//let defr = [0, 0]
-			let notUseKinematic = this.motor.engine === 'OIMO' || this.motor.engine ==='RAPIER' || this.motor.engine ==='JOLT';//|| root.engine ==='HAVOK'
+			let notUseKinematic = engine === 'OIMO' || engine ==='RAPIER' || engine ==='JOLT';//|| engine ==='HAVOK'
 			let jtype = this.selected.link === 0 ? 'fixe' : 'd6';//root.engine === 'HAVOK' ? 'fixe' : 'd6';
 
-			if( this.motor.engine === 'JOLT' ) jtype = 'fixe';
+			if( engine === 'JOLT' ) jtype = 'fixe';
 
 			let limite = [['x',...def], ['y',...def], ['z',...def], ['rx',...defr], ['ry',...defr], ['rz',...defr]];
 
-			if( this.motor.engine === 'HAVOK' ) limite = [ ['x',...def], ['y',...def], ['z',...def] ];
+			if( engine === 'HAVOK' ) limite = [ ['x',...def], ['y',...def], ['z',...def] ];
 
-			if( this.motor.engine === 'OIMO' ){
+			if( engine === 'OIMO' ){
 				revert = true;
 				jtype = this.selected.link === 0 ? 'fixe' : 'spherical';
 				limite = [ ['x',...def], ['y',...def], ['z',...def] ];
@@ -36975,10 +36990,12 @@ class MouseTool {
 				//limite = [ 4.0, 1.0 ]
 			}
 
-			if( this.motor.engine === 'HAVOK' ){
-				revert = true;
+			if( engine === 'HAVOK' ){
+				//revert = true;
 				jtype = this.selected.link === 0 ? 'fixe' : 'spherical';
 				limite = [ -180, 180, 0.1, 0.1 ];
+
+				//jtype = 'fixe'
 			}
 
 			//console.log(jtype)
@@ -40484,8 +40501,12 @@ class PhyEngine {
 			settings.fixe = o.fixe !== undefined ? o.fixe : true;
 			settings.full = o.full !== undefined ? o.full : false;
 			settings.gravity = o.gravity ? o.gravity : [0,-9.81,0];
-		    settings.substep = o.substep ? o.substep : 2;
+		    settings.substep = o.substep ? o.substep : 1;
 		    settings.fps = o.fps ? o.fps : 60;
+
+		    // TODO remove whrn full complete
+		    //if(o.forceSubstep) settings.substep = o.forceSubstep;
+		    //else if( this.engine === 'HAVOK') settings.substep = 1;
 
 			if( o.key ) addControl();
 
@@ -41358,9 +41379,15 @@ class PhyEngine {
 				case 'solid': b = items.solid.set( o, b ); break;
 				case 'joint': b = items.joint.set( o, b );  break;
 				case 'body':
-				if( b.isKinematic ) items.body.set( o, b );
-	            if( !b.actif || b.sleep ) items.body.set( o, b );
-	            if( o.sleep ) items.body.set( o, b );
+
+				if( !b.isKinematic ){
+				//if( this.engine !== 'HAVOK' ){
+
+
+					//if( b.isKinematic ) items.body.set( o, b );
+		            if( !b.actif || b.sleep ) items.body.set( o, b );
+		            if( o.sleep ) items.body.set( o, b );
+		        } 
 				break;
 
 			}

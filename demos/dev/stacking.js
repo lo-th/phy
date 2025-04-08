@@ -4,16 +4,16 @@ demo = () => {
 
     phy.view({ distance:20, y:5, x:decal })
 
-    phy.set({ substep:1, gravity:[0,-9.81,0] })
+    phy.set({ forceSubstep:10, substep:10, gravity:[0,-9.81,0] })
 
     //phy.add({ type:'plane' })
     phy.add({ type:'box', size:[50, 1, 50], pos:[decal,-0.5,0], visible:false })
 
-    addStack({num:20, size:[1.0, 0.5, 1.0], mass:1000, margin:0 })
+    addStack({num:60, size:[1.0, 0.5, 1.0], mass:1, margin:0 })
 
     //addTower({ radius:1.2, height:50, size:[0.5, 0.5, 0.8], detail:6 });
 
-    phy.add({ type:'highSphere', name:'sphere', size:[0.2], pos:[decal,20,0], mass:0.1, restitution:0, friction:0.2, sleep:true })
+    phy.add({ type:'highSphere', name:'sphere', size:[0.2], pos:[decal,60,0], mass:0.1, restitution:0, friction:0.2, sleep:true })
     phy.setTimeout( run, 1000 )
 
 };
@@ -35,7 +35,7 @@ addStack = ( o ) => {
     while(i--){
 
         data.push({
-            radius:0.02,
+            radius:0.05,
            // instance:'boxbase',
             type:"box",
             size: o.size,
@@ -46,7 +46,7 @@ addStack = ( o ) => {
             mass:o.mass || 1,
             restitution:0.0,
             friction:0.5,
-            sleep:true,
+            //sleep:true,
         })
 
         py += o.size[1] + m;

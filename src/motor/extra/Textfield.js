@@ -20,7 +20,7 @@ export class Textfield extends Mesh {
 		this.font = o.font ?? "'Mulish', sans-serif";
 		this.fontSize = o.fontSize ?? 32;
 		this.backgroundColor = o.backgroundColor ?? "#00000000";
-		this.fontColor = o.fontColor ?? "#FFFFFF";
+		this.fontColor = o.color ?? "#FFFFFF";
 		this.material.alphaTest = 0.5
 		this.set( o.text )
 		

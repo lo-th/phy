@@ -1,6 +1,6 @@
 
 import {
-    Group, Vector3, Vector2, Quaternion, SkeletonHelper,
+    Group, Vector3, Vector2, Quaternion, SkeletonHelper, Matrix3,
 } from 'three';
 
 import { MathTool } from '../core/MathTool.js';
@@ -254,8 +254,12 @@ export class PhyEngine {
 			settings.fixe = o.fixe !== undefined ? o.fixe : true;
 			settings.full = o.full !== undefined ? o.full : false;
 			settings.gravity = o.gravity ? o.gravity : [0,-9.81,0];
-		    settings.substep = o.substep ? o.substep : 2;
+		    settings.substep = o.substep ? o.substep : 1;
 		    settings.fps = o.fps ? o.fps : 60;
+
+		    // TODO remove whrn full complete
+		    //if(o.forceSubstep) settings.substep = o.forceSubstep;
+		    //else if( this.engine === 'HAVOK') settings.substep = 1;
 
 			if( o.key ) addControl();
 
@@ -1130,9 +1134,15 @@ export class PhyEngine {
 				case 'solid': b = items.solid.set( o, b ); break;
 				case 'joint': b = items.joint.set( o, b );  break;
 				case 'body':
-				if( b.isKinematic ) items.body.set( o, b );
-	            if( !b.actif || b.sleep ) items.body.set( o, b );
-	            if( o.sleep ) items.body.set( o, b );
+
+				if( !b.isKinematic ){
+				//if( this.engine !== 'HAVOK' ){
+
+
+					//if( b.isKinematic ) items.body.set( o, b );
+		            if( !b.actif || b.sleep ) items.body.set( o, b );
+		            if( o.sleep ) items.body.set( o, b );
+		        } 
 				break;
 
 			}

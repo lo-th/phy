@@ -1,5 +1,7 @@
 function demo() {
 
+    phy.view({phi:25})
+
     let g1 = 1 << 6 // 64
     let g2 = 1 << 7 // 128
     let g3 = 1 << 8 // 256

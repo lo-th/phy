@@ -155,6 +155,19 @@ const M = {
 
     },
 
+    // special Havok motion !!!
+
+    lerpTransform: ( oar, ar, t ) => {
+        let op = oar[0]
+        let oq = oar[1]
+        let p = ar[0] 
+        let q = ar[1]
+
+        p = M.lerpArray(op, p, t)
+        q = M.slerpQuatArray(oq, q, t)
+        return [p,q]
+    },
+
     //-----------------------
     //  MATRIX
     //-----------------------
