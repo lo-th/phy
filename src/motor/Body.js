@@ -5,7 +5,7 @@ import { Colors } from './base/Mat.js';
 
 import { Item } from '../core/Item.js';
 import { Num, WithMassCenter } from '../core/Config.js';
-import { Basic3D } from '../core/Basic3D.js';
+//import { Basic3D } from '../core/Basic3D.js';
 import { Instance } from '../core/Instance.js';
 import { MathTool, PI90, todeg } from '../core/MathTool.js';
 import { Quaternion } from '../core/MiniMath.js';
@@ -568,7 +568,7 @@ export class Body extends Item {
 		//  Define Object
 		//--------------------
 
-	    let b = o.instance ? {} : new Basic3D();
+	    let b = o.instance ? {} : new Object3D();// new Basic3D();
 
 	    if( o.mesh && !o.instance ){
 
@@ -658,22 +658,30 @@ export class Body extends Item {
 
 		b.meshSize = o.meshSize ? o.meshSize : 1;
 
+		b.velocity = new Vector3();
+		b.angular = new Vector3();
 
-		
+		b.sleep = o.sleep || false
+		b.defMat = false;
 
 		// for buttton only
 		if( o.button ) b.isButton = true
 
 	    // enable or disable raycast
-	    b.isRay = true//b.type === 'body' || b.isButton ? true : false
-	    //if( o.ray !== undefined ) b.isRay = o.ray; 
-	    if( o.ray !== undefined ) b.setRaycast( o.ray )
-	    if( !o.instance ) b.setRaycast()
+	    b.isRay = o.ray !== undefined ? o.ray : true;
 
 
-	    // NO NEED ??
-		//if( !noMat ) b.material = material
-		b.defMat = false;
+
+	    //b.type === 'body' || b.isButton ? true : false
+	    //if( o.ray !== undefined ){ 
+	    //	b.isRay = o.ray;
+
+	    	//b.setRaycast( o.ray )
+	    //}
+	    //if( !o.instance ) b.setRaycast()
+
+
+	    
 		
 		if( b.material && noMat ) b.defMat = b.material.name === 'body'
 
@@ -719,8 +727,7 @@ export class Body extends Item {
 
 			b.position = new Vector3().fromArray(o.pos); //{x:o.pos[0], y:o.pos[1], z:o.pos[2]};
 			b.quaternion = new Quaternion().fromArray(o.quat); //{_x:o.quat[0], _y:o.quat[1], _z:o.quat[2], _w:o.quat[3]};
-		    b.velocity = new Vector3(); //{x:0, y:0, z:0};
-		    b.angular = new Vector3(); //{x:0, y:0, z:0};
+		    
 		    //b.link = 0;
 		    if( this.needMatrix ) b.matrixWorld = new Matrix4();
 
@@ -741,15 +748,97 @@ export class Body extends Item {
 
 			b.name = name;
 
+			if(!b.isRay){
+				b.traverse( function ( node ) {
+					if( node.isMesh ) node.raycast = () => {}
+				})
+			}
+
 			if( o.renderOrder ) b.renderOrder = o.renderOrder;
 			if( o.visible === undefined ) o.visible = true;
 			if( o.shadow === undefined ) o.shadow = o.visible;
 
+			b.dispose = function(){
+		    	if(this.clearOutLine) this.clearOutLine();
+		    	this.traverse( function ( node ) {
+					if( node.isMesh && node.unic ) node.geometry.dispose();
+				})
+				this.children = [];
+		    }.bind(b)
+
 			b.visible = o.visible !== undefined ? o.visible : true;
+
+			Object.defineProperty(b, 'material', {
+				get() {
+				    if( this.children[0] ) return this.children[0].material;
+				    else return null;
+				},
+				set(value) {
+				    this.traverse( function ( node ) { if( node.isMesh && node.name !== 'outline' ) node.material = value; })
+				}
+			});
+
+			Object.defineProperty(b, 'castShadow', {
+				get() {
+				    if( this.children[0] ) return this.children[0].castShadow;
+				    else return false;
+				},
+				set(value) {
+				    this.traverse( function ( node ) { if( node.isMesh ) node.castShadow = value; })
+				}
+			});
+
+			Object.defineProperty(b, 'receiveShadow', {
+				get() {
+				    if( this.children[0] ) return this.children[0].receiveShadow;
+				    else return false;
+				},
+				set(value) {
+				    this.traverse( function ( node ) { if( node.isMesh ) node.receiveShadow = value; })
+				}
+			});
+
 		    b.receiveShadow = o.shadow;
 		    b.castShadow = o.shadow;
 
-		    b.overMaterial = Mat.get( 'outline' );
+		    if( this.motor.mouseActive ){
+
+		    	b.overMaterial = Mat.get( 'outline' );
+		    	b.isOver = false;
+
+		    	// extra function to display wireframe over object
+
+		    	b.addOutLine = function(){
+		    		if( !this.children[0].isMesh ) return;
+		    		this.outline = new Mesh().copy( this.children[0] );
+					this.outline.name = "outline";
+					this.outline.material = this.overMaterial;
+					this.outline.matrixAutoUpdate = false;
+					this.outline.receiveShadow = false;
+					this.outline.castShadow = false;
+					this.outline.raycast = () => ( false );
+					this.add( this.outline );
+		    	}.bind(b)
+
+		    	b.clearOutLine = function(){
+		    		if( !this.outline ) return;
+					this.remove(this.outline);
+					this.outline = null;
+		    	}.bind(b)
+
+		    	b.over = function(v){
+		    		if( v && !this.isOver )this.addOutLine();
+			        if( !v && this.isOver ) this.clearOutLine();
+			        this.isOver = v;
+		    	}.bind(b)
+
+		    	b.select = function(v){
+		    		
+		    	}.bind(b)
+
+		    }
+
+		    
 
 		    // apply option
 			this.set( o, b );
@@ -845,6 +934,8 @@ export class Body extends Item {
 
 		}
 
+		if(o.sleep) this.set(o, b)
+
 	    //---------------------------
 		// send to physic engine 
 		//---------------------------
@@ -870,7 +961,7 @@ export class Body extends Item {
 
 			if( o.pos ) b.position.fromArray(o.pos);// = {x:o.pos[0], y:o.pos[1], z:o.pos[2]}
 		    if( o.quat ) b.quaternion.fromArray(o.quat);// = {_x:o.quat[0], _y:o.quat[1], _z:o.quat[2], _w:o.quat[3]};
-			if( o.pos || o.quat ) b.instance.setTransformAt( b.id, b.position, b.quaternion, b.noScale ? [1,1,1] : b.size );
+			if( o.pos || o.quat ) b.instance.setTransformAt( b.id, b.position.toArray(), b.quaternion.toArray(), b.noScale ? [1,1,1] : b.size );
 
 		}else{
 
@@ -935,7 +1026,7 @@ export class Body extends Item {
     	bb.receiveShadow = o.shadow !== undefined ? o.shadow : true;
     	bb.castShadow = o.shadow !== undefined ? o.shadow : true;
 
-    	bb.overMaterial = Mat.get( 'outline' );
+    	if( this.motor.mouseActive ) bb.overMaterial = Mat.get( 'outline' );
 
     	bb.name = o.instance;
 		this.motor.scene.add( bb );

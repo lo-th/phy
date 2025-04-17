@@ -418,7 +418,9 @@ export class Mat {
 				case 'skinny':   m = this.create({ name:'skinny', color:0xe0ac69, ...matExtra }); break
 				
 				case 'glass':  m = this.create({ name:'glass', color:0xFFFFff, transparent:true, roughness:0.02, metalness:0.0, side:DoubleSide, alphaToCoverage:true, premultipliedAlpha:true, transmission:1, clearcoat:1, thickness:0.01  }); break
-				case 'glassX':  m = this.create({ name:'glassX', color:0xeeeeee, transparent:false, opacity:1.0, roughness:0.03, metalness:0,  side:DoubleSide, transmission:1.0, clearcoat:1, clearcoatRoughness:0.0, thickness:0.02, ior:1.52, shadowSide:1, reflectivity:0.5, iridescence:0 }); break
+				//case 'glassX':  m = this.create({ name:'glassX', color:0xeeeeee, transparent:false, opacity:1.0, roughness:0.03, metalness:0,  side:DoubleSide, transmission:1.0, clearcoat:1, clearcoatRoughness:0.0, thickness:0.02, ior:1.52, shadowSide:1, reflectivity:0.5, iridescence:0 }); break
+				case 'glassX':  m = this.create({ name:'glassX', color:0xFFFFff,  alphaToCoverage:true, transparent:true, opacity:1.0, roughness:0.0, metalness:0, side:DoubleSide, transmission:1.0, clearcoat:1, clearcoatRoughness:0.0, thickness:0.05, ior:1.52, shadowSide:1, reflectivity:0.5, iridescence:0, specularIntensity: 1, specularColor: 0xffffff, }); break
+				
 				case 'plexi':  m = this.create({ name:'plexi', blending:AdditiveBlending, color:0x010101, transparent:true, opacity:0.7, reflectivity:0.3, metalness:0.6, roughness:0.1, clearcoat:0.2, clearcoatRoughness: 0.02, side:DoubleSide, alphaToCoverage:true, premultipliedAlpha:true }); break
 				case 'plexi2':  m = this.create({ name:'plexi2', blending:AdditiveBlending, color:0x010101, transparent:false, opacity:0.7, reflectivity:0.3, metalness:0.6, roughness:0.1, clearcoat:0.2, clearcoatRoughness: 0.02, side:DoubleSide, alphaToCoverage:false, premultipliedAlpha:true }); break
 				case 'glass2': m = this.create({ name:'glass2', color:0xEEEEEE, transparent:true, roughness:0, alphaToCoverage:true, opacity:0.3  }); break

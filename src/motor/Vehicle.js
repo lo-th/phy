@@ -1,9 +1,11 @@
+import { Object3D, Vector3 } from 'three';
+
 import { Item } from '../core/Item.js';
 import { Num } from '../core/Config.js';
 import { MathTool, todeg } from '../core/MathTool.js';
 //import { Geo } from './base/Geo.js';
 //import { Mat } from './base/Mat.js';
-import { Basic3D } from '../core/Basic3D.js';
+//import { Basic3D } from '../core/Basic3D.js';
 
 let Geo = null;
 let Mat = null;
@@ -70,7 +72,7 @@ export class Vehicle extends Item {
 
 // CAR
 
-class Car extends Basic3D {//extends Object3D {
+class Car extends Object3D {//extends Object3D {
 
 	constructor( o, motor ) {
 
@@ -78,6 +80,9 @@ class Car extends Basic3D {//extends Object3D {
 
 		this.motor = motor;
 		this.Utils = this.motor.utils;
+
+		this.velocity = new Vector3();
+		this.angular = new Vector3();
 
 		// extra function // ex car selection
 		if(o.extra){

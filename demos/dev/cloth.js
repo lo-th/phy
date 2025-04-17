@@ -11,7 +11,7 @@ function demo() {
 
 
     // config physics setting
-    phy.set( { substep:1, gravity:[0,-10,0], full:true, jointVisible:false });
+    phy.set( { substep:1, gravity:[0,-10,0], full:true, jointVisible:false,  });
 
     // add static ground
     phy.add({ type:'plane', size:[300,1,300], visible:false });
@@ -35,6 +35,11 @@ function demo() {
 
 
     pp = phy.addParticleSolver({
+        density:0.1,
+        smoothDistance:50,
+        speedOfSound:20,
+        viscosity:0.06,
+
 
     })
 
@@ -88,7 +93,7 @@ function demo() {
 
 update = () => {
 
-    //pp.update()
+    pp.update()
 
     let ar = pp.getPosition()
 

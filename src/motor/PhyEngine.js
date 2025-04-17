@@ -83,6 +83,8 @@ export class PhyEngine {
 		this.debug = false;
 		this.delta = 0;
 
+		this.mouseActive = false;
+
 
 		const _this = this;
         
@@ -289,6 +291,7 @@ export class PhyEngine {
 
 		this.activeMouse = ( controler, mode ) => { 
 			if( !mouseTool ) mouseTool = new MouseTool( controler, mode, this );
+			this.mouseActive = true;
 		}
 
 	    this.mouseMode = ( mode, o ) => { 

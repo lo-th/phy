@@ -1,8 +1,8 @@
-import { Basic3D } from '../../core/Basic3D.js';
-import { MathTool, torad } from '../../core/MathTool.js';
-import { Vector3, Euler, Quaternion, Mesh } from 'three';
-import { SkeletonBody } from './SkeletonBody.js';
+import { Object3D, Vector3, Euler, Quaternion, Mesh } from 'three';
 
+//import { Basic3D } from '../../core/Basic3D.js';
+import { MathTool, torad } from '../../core/MathTool.js';
+import { SkeletonBody } from './SkeletonBody.js';
 import { Avatar } from '../../3TH/character/Avatar.js';
 import { CapsuleHelper } from '../../3TH/helpers/CapsuleHelper.js';
 
@@ -11,7 +11,7 @@ import { CapsuleHelper } from '../../3TH/helpers/CapsuleHelper.js';
 // use some code from https://github.com/ErdongChen-Andrew/CharacterControl
 // 
 
-export class Hero extends Basic3D {
+export class Hero extends Object3D {
 
 	constructor( o = {}, motor ) {
 
@@ -180,6 +180,9 @@ export class Hero extends Basic3D {
 		this.maxRayDistance = this.height;
 
 		this.contact = false
+
+		this.velocity = new Vector3();
+		this.angular = new Vector3();
 
 		this.tmpV1 = new Vector3()
 		this.tmpV2 = new Vector3()
@@ -494,7 +497,7 @@ export class Hero extends Basic3D {
 
 		//console.log('model remove')
 
-		super.dispose()
+		//super.dispose()
 	}
 
 	onFrame ( state, delta ){

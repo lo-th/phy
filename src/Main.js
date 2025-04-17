@@ -110,7 +110,6 @@ const setting = {
 	groundPos:[ 0, 0, 0 ],
 	groundAlpha: true,
 	groundOpacity:1,
-	groundReflect:0.1,
 	ground:true,
 	water:false,
 	fog:false,
@@ -123,6 +122,7 @@ const setting = {
 	envIntensity:1.3,
 	bgIntensity:1,
 	shadowIntensity:1,
+	reflect:0.1,
 
 }
 
@@ -519,6 +519,8 @@ const init = () => {
 	renderer.toneMapping = toneMappingOptions[options.tone];
 	renderer.toneMappingExposure = options.exposure;
 
+	renderer.transmissionResolutionScale = options.mode === 'LOW' ? 0.5 : 1.5;
+
 	window.renderer = renderer
 
 	///THREE.ColorManagement.legacyMode = false;
@@ -887,8 +889,8 @@ const removeVignette = () => {
 const addGround = ( o ) => {
 
 	//groundAutoColor = !o.groundColor//false
-    if( o.groundReflect !== undefined ) options.reflect = o.groundReflect;
-    if( o.reflect !== undefined ) options.reflect = o.reflect;
+    //if( o.groundReflect !== undefined ) options.reflect = o.groundReflect;
+    //if( o.reflect !== undefined ) options.reflect = o.reflect;
 
 	//if( isWebGPU ) return
 
@@ -909,6 +911,8 @@ const addGround = ( o ) => {
 	    })
 	    scene.add( ground );
 
+	    
+
 	} else {
 		ground.reset();
 	}
@@ -925,7 +929,7 @@ const addGround = ( o ) => {
 
 	ground.setAlphaMap( o.groundAlpha );
 	ground.setOpacity( o.groundOpacity );
-	if( o.groundReflect !== undefined ) ground.setReflect( o.groundReflect );
+	//if( o.groundReflect !== undefined ) ground.setReflect( o.groundReflect );
 	ground.setWater( o.water );
     //scene.add( ground )
     Motor.addMaterial( ground.material,  true );
@@ -1258,6 +1262,8 @@ const view = ( o = {} ) => {
 		options.quality = 1;
 	}
 
+
+    options.reflect = o.reflect;
 	options.direct = o.direct;
 	options.spherical = o.spherical;
 	options.exposure = o.exposure;

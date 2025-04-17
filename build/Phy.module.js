@@ -1,4 +1,4 @@
-import { BufferGeometry, BufferAttribute, TrianglesDrawMode, TriangleFanDrawMode, TriangleStripDrawMode, Quaternion as Quaternion$1, Matrix4, Loader, LoaderUtils, FileLoader, MeshPhysicalMaterial, Vector2, Color, LinearSRGBColorSpace, SRGBColorSpace, SpotLight, PointLight, DirectionalLight, Vector3, InstancedMesh, InstancedBufferAttribute, Object3D, TextureLoader, ImageBitmapLoader, InterleavedBuffer, InterleavedBufferAttribute, LinearMipmapLinearFilter, NearestMipmapLinearFilter, LinearMipmapNearestFilter, NearestMipmapNearestFilter, LinearFilter, NearestFilter, RepeatWrapping, MirroredRepeatWrapping, ClampToEdgeWrapping, PointsMaterial, Material, LineBasicMaterial, MeshStandardMaterial, DoubleSide, MeshBasicMaterial, PropertyBinding, SkinnedMesh, Mesh, LineSegments, Line, LineLoop, Points, Group, PerspectiveCamera, MathUtils, OrthographicCamera, Skeleton, AnimationClip, Bone, InterpolateDiscrete, InterpolateLinear, Texture, VectorKeyframeTrack, NumberKeyframeTrack, QuaternionKeyframeTrack, ColorManagement, FrontSide, Interpolant, Box3, Sphere, Vector4, Curve, Euler, MeshPhongMaterial, MeshLambertMaterial, EquirectangularReflectionMapping, AmbientLight, Float32BufferAttribute, Uint16BufferAttribute, Matrix3, ShapeUtils, DataTextureLoader, HalfFloatType, FloatType, DataUtils, RGBAFormat, RedFormat, NoColorSpace, RGBA_S3TC_DXT1_Format, RGB_PVRTC_4BPPV1_Format, RGB_ETC2_Format, RGB_ETC1_Format, RGBA_S3TC_DXT5_Format, RGBA_PVRTC_4BPPV1_Format, RGBA_ETC2_EAC_Format, RGBA_BPTC_Format, RGB_BPTC_UNSIGNED_Format, RGBA_ASTC_4x4_Format, UnsignedByteType, CompressedCubeTexture, CompressedArrayTexture, CompressedTexture, RGBA_ASTC_6x6_Format, RGFormat, DataTexture, Data3DTexture, LoadingManager, AnimationMixer, ObjectSpaceNormalMap, SphereGeometry, CylinderGeometry, BoxGeometry, PlaneGeometry, CanvasTexture, ShadowMaterial, MeshToonMaterial, BackSide, SrcAlphaSaturateFactor, OneMinusDstColorFactor, DstColorFactor, OneMinusDstAlphaFactor, DstAlphaFactor, OneMinusSrcAlphaFactor, SrcAlphaFactor, OneMinusSrcColorFactor, SrcColorFactor, OneFactor, ZeroFactor, MaxEquation, MinEquation, ReverseSubtractEquation, SubtractEquation, AddEquation, MultiplyBlending, SubtractiveBlending, AdditiveBlending, NormalBlending, NoBlending, EventDispatcher, Layers, CircleGeometry, Line3, Plane, Triangle, Box2, Shape, Path, ShapePath, ShapeGeometry, CustomBlending, SkeletonHelper, AnimationUtils, AdditiveAnimationBlendMode, NormalAnimationBlendMode, Raycaster, PMREMGenerator, Scene, WebGLCubeRenderTarget, CubeCamera, IcosahedronGeometry, ShaderMaterial, NoToneMapping } from 'three';
+import { BufferGeometry, BufferAttribute, TrianglesDrawMode, TriangleFanDrawMode, TriangleStripDrawMode, Quaternion as Quaternion$1, Matrix4, Loader, LoaderUtils, FileLoader, MeshPhysicalMaterial, Vector2, Color, LinearSRGBColorSpace, SRGBColorSpace, SpotLight, PointLight, DirectionalLight, Vector3, InstancedMesh, InstancedBufferAttribute, Object3D, TextureLoader, ImageBitmapLoader, InterleavedBuffer, InterleavedBufferAttribute, LinearMipmapLinearFilter, NearestMipmapLinearFilter, LinearMipmapNearestFilter, NearestMipmapNearestFilter, LinearFilter, NearestFilter, RepeatWrapping, MirroredRepeatWrapping, ClampToEdgeWrapping, PointsMaterial, Material, LineBasicMaterial, MeshStandardMaterial, DoubleSide, MeshBasicMaterial, PropertyBinding, SkinnedMesh, Mesh, LineSegments, Line, LineLoop, Points, Group, PerspectiveCamera, MathUtils, OrthographicCamera, Skeleton, AnimationClip, Bone, InterpolateDiscrete, InterpolateLinear, Texture, VectorKeyframeTrack, NumberKeyframeTrack, QuaternionKeyframeTrack, ColorManagement, FrontSide, Interpolant, Box3, Sphere, Vector4, Curve, Euler, MeshPhongMaterial, MeshLambertMaterial, EquirectangularReflectionMapping, AmbientLight, Float32BufferAttribute, Uint16BufferAttribute, Matrix3, ShapeUtils, DataTextureLoader, HalfFloatType, FloatType, DataUtils, RGBAFormat, RedFormat, NoColorSpace, RGBA_S3TC_DXT1_Format, RGB_PVRTC_4BPPV1_Format, RGB_ETC2_Format, RGB_ETC1_Format, RGBA_S3TC_DXT5_Format, RGBA_PVRTC_4BPPV1_Format, RGBA_ETC2_EAC_Format, RGBA_BPTC_Format, RGB_BPTC_UNSIGNED_Format, RGBA_ASTC_4x4_Format, UnsignedByteType, CompressedCubeTexture, CompressedArrayTexture, CompressedTexture, RGBA_ASTC_6x6_Format, RGFormat, DataTexture, Data3DTexture, LoadingManager, AnimationMixer, ObjectSpaceNormalMap, SphereGeometry, CylinderGeometry, BoxGeometry, PlaneGeometry, CanvasTexture, ShadowMaterial, MeshToonMaterial, BackSide, SrcAlphaSaturateFactor, OneMinusDstColorFactor, DstColorFactor, OneMinusDstAlphaFactor, DstAlphaFactor, OneMinusSrcAlphaFactor, SrcAlphaFactor, OneMinusSrcColorFactor, SrcColorFactor, OneFactor, ZeroFactor, MaxEquation, MinEquation, ReverseSubtractEquation, SubtractEquation, AddEquation, MultiplyBlending, SubtractiveBlending, AdditiveBlending, NormalBlending, NoBlending, CircleGeometry, Line3, Plane, Triangle, Box2, Shape, Path, ShapePath, ShapeGeometry, CustomBlending, SkeletonHelper, AnimationUtils, AdditiveAnimationBlendMode, NormalAnimationBlendMode, Raycaster, PMREMGenerator, Scene, WebGLCubeRenderTarget, CubeCamera, IcosahedronGeometry, ShaderMaterial, NoToneMapping } from 'three';
 
 const PI = Math.PI;
 const torad$3 = PI / 180;
@@ -19558,7 +19558,9 @@ let Mat$3 = class Mat {
 				case 'skinny':   this.create({ name:'skinny', color:0xe0ac69, ...matExtra }); break
 				
 				case 'glass':  this.create({ name:'glass', color:0xFFFFff, transparent:true, roughness:0.02, metalness:0.0, side:DoubleSide, alphaToCoverage:true, premultipliedAlpha:true, transmission:1, clearcoat:1, thickness:0.01  }); break
-				case 'glassX':  this.create({ name:'glassX', color:0xeeeeee, transparent:false, opacity:1.0, roughness:0.03, metalness:0,  side:DoubleSide, transmission:1.0, clearcoat:1, clearcoatRoughness:0.0, thickness:0.02, ior:1.52, shadowSide:1, reflectivity:0.5, iridescence:0 }); break
+				//case 'glassX':  m = this.create({ name:'glassX', color:0xeeeeee, transparent:false, opacity:1.0, roughness:0.03, metalness:0,  side:DoubleSide, transmission:1.0, clearcoat:1, clearcoatRoughness:0.0, thickness:0.02, ior:1.52, shadowSide:1, reflectivity:0.5, iridescence:0 }); break
+				case 'glassX':  this.create({ name:'glassX', color:0xFFFFff,  alphaToCoverage:true, transparent:true, opacity:1.0, roughness:0.0, metalness:0, side:DoubleSide, transmission:1.0, clearcoat:1, clearcoatRoughness:0.0, thickness:0.05, ior:1.52, shadowSide:1, reflectivity:0.5, iridescence:0, specularIntensity: 1, specularColor: 0xffffff, }); break
+				
 				case 'plexi':  this.create({ name:'plexi', blending:AdditiveBlending, color:0x010101, transparent:true, opacity:0.7, reflectivity:0.3, metalness:0.6, roughness:0.1, clearcoat:0.2, clearcoatRoughness: 0.02, side:DoubleSide, alphaToCoverage:true, premultipliedAlpha:true }); break
 				case 'plexi2':  this.create({ name:'plexi2', blending:AdditiveBlending, color:0x010101, transparent:false, opacity:0.7, reflectivity:0.3, metalness:0.6, roughness:0.1, clearcoat:0.2, clearcoatRoughness: 0.02, side:DoubleSide, alphaToCoverage:false, premultipliedAlpha:true }); break
 				case 'glass2': this.create({ name:'glass2', color:0xEEEEEE, transparent:true, roughness:0, alphaToCoverage:true, opacity:0.3  }); break
@@ -20341,826 +20343,6 @@ class ExtraRay extends Line {
 }
 
 //ExtraRay.prototype.isRay = true;
-
-let _object3DId = 0;
-
-const _v1$2 = new Vector3();
-const _q1 = new Quaternion$1();
-const _m1 = new Matrix4();
-const _target = new Vector3();
-
-const _position = new Vector3();
-const _scale = new Vector3();
-const _quaternion = new Quaternion$1();
-
-const _xAxis = new Vector3( 1, 0, 0 );
-const _yAxis = new Vector3( 0, 1, 0 );
-const _zAxis = new Vector3( 0, 0, 1 );
-
-const _addedEvent = { type: 'added' };
-const _removedEvent = { type: 'removed' };
-
-class Basic3D extends EventDispatcher {
-
-	constructor() {
-
-		super();
-
-		this.isObject3D = true;
-
-		Object.defineProperty( this, 'id', { value: _object3DId ++ } );
-		this.uuid = MathUtils.generateUUID();
-		
-	    this.isRay = true;
-	    this.matrix = new Matrix4();
-	    this.matrixWorld = new Matrix4();
-		
-		this.name = '';
-		this.type = 'Object3D';
-
-		this.children = [];
-		this.parent = null;
-		
-		
-		this.position = new Vector3();
-		this.quaternion = new Quaternion$1();
-		this.tmpRotation = new Euler();
-		this.scale = new Vector3( 1, 1, 1 );
-
-		this.isKinematic = false;
-		
-		this.matrixAutoUpdate = false;
-		this.matrixWorldNeedsUpdate = false;
-
-		this.layers = new Layers();
-		this.visible = true;
-		this.isVisible = true;
-
-		//this.castShadow = false;
-		//this.receiveShadow = false;
-
-		this.frustumCulled = true;
-		this.renderOrder = 0;
-
-		//this.animations = [];
-
-		this.userData = {};
-
-		this.mass = 0;
-		this.density = 0;
-		// TODO 
-		this.inertia = new Vector3(1, 1, 1);
-
-		
-		this.shapetype = 'box';
-		this.size = [1,1,1];
-		//this.data = {}
-		//this._size = new Vector3(1,1,1)
-		this.velocity = new Vector3();
-		this.angular = new Vector3();
-		
-		this.defMat = false;
-		this.actif = false;
-		this.auto = false;
-		this.sleep = false;
-
-		// only for high mesh
-		this.mesh = null;
-		this.meshSize = 1;
-
-		// if object is link by joint
-		this.linked = [];
-
-		this.isOver = false;
-		this.overMaterial = null;
-
-	}
-
-	// ADD
-
-	clearOutLine() {
-
-		if( !this.overMaterial ) return;
-		if( !this.outline ) return;
-		this.remove(this.outline);
-		this.outline = null;
-
-	}
-
-	addOutLine() {
-
-		if( !this.overMaterial ) return;
-		if( !this.children[0].isMesh ) return;
-		/*if(this.children[0].geometry.boundingBox){
-			let tt = new Vector3()
-			this.children[0].geometry.boundingBox.getSize(tt);
-			s = tt.length() * 0.01
-		}*/
-		//this.children[0].geometry.boundingBox.getSize(tt);
-		//let gSize = tt.length() * 0.5
-		//let mScale = this.children[0].scale.length() * 0.5
-		//console.log( mScale)
-
-		this.outline = new Mesh().copy( this.children[0] );
-		//this.outline.geometry.computeVertexNormals()
-		//this.outline.geometry.normalizeNormals()
-		this.outline.name = "outline";
-		this.outline.material = this.overMaterial;
-		//if( this.shapetype==='sphere' ) this.meshSize = 0.5
-		//if(this.overMaterial.uniforms.power)this.overMaterial.uniforms.power.value = s / this.meshSize;
-		this.outline.matrixAutoUpdate = false;
-		this.outline.receiveShadow = false;
-		this.outline.castShadow = false;
-		this.outline.raycast = () => ( false );
-		this.add( this.outline );
-
-	}
-
-	over ( b ) {
-
-		if( b && !this.isOver ){ 
-
-            this.isOver = true;
-            this.addOutLine();
-
-        }
-
-        if( !b && this.isOver ){ 
-
-            this.isOver = false;
-            this.clearOutLine();
-
-        }
-
-		//if(b) this.addOutLine();
-		//else this.clearOutLine();
-
-    }
-
-	select ( b ) {
-
-		//console.log(b)
-
-    }
-
-    dispose () {
-
-    	this.clearOutLine();
-    	this.traverse( function ( node ) {
-			if( node.isMesh && node.unic ) node.geometry.dispose();
-		});
-
-		this.children = [];
-
-    }
-
-	/*set size( value ){
-		this._size.fromArray( value )
-	}
-
-	get size(){
-		return this._size.toArray()
-	}*/
-
-	set receiveShadow( value ){
-		this.traverse( function ( node ) {
-			if( node.isMesh ) node.receiveShadow = value;
-		});
-	}
-
-	get receiveShadow(){
-		if( this.children[0] ) return this.children[0].receiveShadow;
-		else return false
-	}
-
-	set castShadow( value ){
-		this.traverse( function ( node ) {
-			if( node.isMesh ) node.castShadow = value;
-		});
-	}
-
-	get castShadow(){
-		if( this.children[0] ) return this.children[0].castShadow;
-		else return false
-	}
-
-	set material( value ){
-		this.traverse( function ( node ) {
-			if( node.isMesh ){ 
-				if( node.name !== 'outline' ) node.material = value;
-			}
-		});
-	}
-
-	get material(){
-		this.children;
-		if( this.children[0] ) return this.children[0].material;
-		else return null;
-	}
-
-    set rotation( v ){
-    	this.tmpRotation = v;
-		quaternion.setFromEuler( this.tmpRotation, false );
-	}
-
-	get rotation(){
-		return this.tmpRotation.setFromQuaternion( this.quaternion, undefined, false );
-	}
-
-    //////
-
-
-	onBeforeRender( /* renderer, scene, camera, geometry, material, group */ ) {}
-
-	onAfterRender( /* renderer, scene, camera, geometry, material, group */ ) {}
-
-	applyMatrix4( matrix ) {
-
-		if ( this.matrixAutoUpdate ) this.updateMatrix();
-
-		this.matrix.premultiply( matrix );
-
-		this.matrix.decompose( this.position, this.quaternion, this.scale );
-
-	}
-
-	applyQuaternion( q ) {
-
-		this.quaternion.premultiply( q );
-
-		return this;
-
-	}
-
-	setRotationFromAxisAngle( axis, angle ) {
-
-		// assumes axis is normalized
-
-		this.quaternion.setFromAxisAngle( axis, angle );
-
-	}
-
-	setRotationFromEuler( euler ) {
-
-		this.quaternion.setFromEuler( euler, true );
-
-	}
-
-	setRotationFromMatrix( m ) {
-
-		// assumes the upper 3x3 of m is a pure rotation matrix (i.e, unscaled)
-
-		this.quaternion.setFromRotationMatrix( m );
-
-	}
-
-	setRotationFromQuaternion( q ) {
-
-		// assumes q is normalized
-
-		this.quaternion.copy( q );
-
-	}
-
-	rotateOnAxis( axis, angle ) {
-
-		// rotate object on axis in object space
-		// axis is assumed to be normalized
-
-		_q1.setFromAxisAngle( axis, angle );
-
-		this.quaternion.multiply( _q1 );
-
-		return this;
-
-	}
-
-	rotateOnWorldAxis( axis, angle ) {
-
-		// rotate object on axis in world space
-		// axis is assumed to be normalized
-		// method assumes no rotated parent
-
-		_q1.setFromAxisAngle( axis, angle );
-
-		this.quaternion.premultiply( _q1 );
-
-		return this;
-
-	}
-
-	rotateX( angle ) {
-
-		return this.rotateOnAxis( _xAxis, angle );
-
-	}
-
-	rotateY( angle ) {
-
-		return this.rotateOnAxis( _yAxis, angle );
-
-	}
-
-	rotateZ( angle ) {
-
-		return this.rotateOnAxis( _zAxis, angle );
-
-	}
-
-	translateOnAxis( axis, distance ) {
-
-		// translate object by distance along axis in object space
-		// axis is assumed to be normalized
-
-		_v1$2.copy( axis ).applyQuaternion( this.quaternion );
-
-		this.position.add( _v1$2.multiplyScalar( distance ) );
-
-		return this;
-
-	}
-
-	translateX( distance ) {
-
-		return this.translateOnAxis( _xAxis, distance );
-
-	}
-
-	translateY( distance ) {
-
-		return this.translateOnAxis( _yAxis, distance );
-
-	}
-
-	translateZ( distance ) {
-
-		return this.translateOnAxis( _zAxis, distance );
-
-	}
-
-	localToWorld( vector ) {
-
-		return vector.applyMatrix4( this.matrixWorld );
-
-	}
-
-	worldToLocal( vector ) {
-
-		return vector.applyMatrix4( _m1.copy( this.matrixWorld ).invert() );
-
-	}
-
-	lookAt( x, y, z ) {
-
-		// This method does not support objects having non-uniformly-scaled parent(s)
-
-		if ( x.isVector3 ) {
-
-			_target.copy( x );
-
-		} else {
-
-			_target.set( x, y, z );
-
-		}
-
-		const parent = this.parent;
-
-		this.updateWorldMatrix( true, false );
-
-		_position.setFromMatrixPosition( this.matrixWorld );
-
-		if ( this.isCamera || this.isLight ) {
-
-			_m1.lookAt( _position, _target, this.up );
-
-		} else {
-
-			_m1.lookAt( _target, _position, this.up );
-
-		}
-
-		this.quaternion.setFromRotationMatrix( _m1 );
-
-		if ( parent ) {
-
-			_m1.extractRotation( parent.matrixWorld );
-			_q1.setFromRotationMatrix( _m1 );
-			this.quaternion.premultiply( _q1.invert() );
-
-		}
-
-	}
-
-	add( object ) {
-
-		if ( arguments.length > 1 ) {
-
-			for ( let i = 0; i < arguments.length; i ++ ) {
-
-				this.add( arguments[ i ] );
-
-			}
-
-			return this;
-
-		}
-
-		if ( object === this ) {
-
-			console.error( 'THREE.Object3D.add: object can\'t be added as a child of itself.', object );
-			return this;
-
-		}
-
-		if ( object && object.isObject3D ) {
-
-			if ( object.parent !== null ) {
-
-				object.parent.remove( object );
-
-			}
-
-			object.parent = this;
-			this.children.push( object );
-
-			object.dispatchEvent( _addedEvent );
-
-		} else {
-
-			console.error( 'THREE.Object3D.add: object not an instance of THREE.Object3D.', object );
-
-		}
-
-		return this;
-
-	}
-
-	remove( object ) {
-
-		if ( arguments.length > 1 ) {
-
-			for ( let i = 0; i < arguments.length; i ++ ) {
-
-				this.remove( arguments[ i ] );
-
-			}
-
-			return this;
-
-		}
-
-		const index = this.children.indexOf( object );
-
-		if ( index !== -1 ) {
-
-			object.parent = null;
-			this.children.splice( index, 1 );
-
-			object.dispatchEvent( _removedEvent );
-
-		}
-
-		return this;
-
-	}
-
-	removeFromParent() {
-
-		const parent = this.parent;
-
-		if ( parent !== null ) {
-
-			parent.remove( this );
-
-		}
-
-		return this;
-
-	}
-
-	clear() {
-
-		const children = this.children;
-		let i = children.length;
-
-		while( i-- ){
-		//for ( let i = 0; i < this.children.length; i ++ ) {
-
-			const object = children[ i ];
-			object.parent = null;
-			object.dispatchEvent( _removedEvent );
-
-		}
-
-		this.children.length = 0;
-
-		return this;
-
-
-	}
-
-	attach( object ) {
-
-		// adds object as a child of this, while maintaining the object's world transform
-		// Note: This method does not support scene graphs having non-uniformly-scaled nodes(s)
-
-		this.updateWorldMatrix( true, false );
-
-		_m1.copy( this.matrixWorld ).invert();
-
-		if ( object.parent !== null ) {
-
-			object.parent.updateWorldMatrix( true, false );
-
-			_m1.multiply( object.parent.matrixWorld );
-
-		}
-
-		object.applyMatrix4( _m1 );
-
-		this.add( object );
-
-		object.updateWorldMatrix( false, true );
-
-		return this;
-
-	}
-
-	getObjectById( id ) {
-
-		return this.getObjectByProperty( 'id', id );
-
-	}
-
-	getObjectByName( name ) {
-
-		return this.getObjectByProperty( 'name', name );
-
-	}
-
-	getObjectByProperty( name, value ) {
-
-		if ( this[ name ] === value ) return this;
-
-		const children = this.children;
-		let i = children.length;
-
-		while( i-- ){
-		//for ( let i = 0, l = this.children.length; i < l; i ++ ) {
-
-			const child = children[ i ];
-			const object = child.getObjectByProperty( name, value );
-
-			if ( object !== undefined ) {
-
-				return object;
-
-			}
-
-		}
-
-		return undefined;
-
-	}
-
-	getWorldPosition( target ) {
-
-		this.updateWorldMatrix( true, false );
-
-		return target.setFromMatrixPosition( this.matrixWorld );
-
-	}
-
-	getWorldQuaternion( target ) {
-
-		this.updateWorldMatrix( true, false );
-
-		this.matrixWorld.decompose( _position, target, _scale );
-
-		return target;
-
-	}
-
-	getWorldScale( target ) {
-
-		this.updateWorldMatrix( true, false );
-
-		this.matrixWorld.decompose( _position, _quaternion, target );
-
-		return target;
-
-	}
-
-	getWorldDirection( target ) {
-
-		this.updateWorldMatrix( true, false );
-
-		const e = this.matrixWorld.elements;
-
-		return target.set( e[ 8 ], e[ 9 ], e[ 10 ] ).normalize();
-
-	}
-
-	setRaycast(v){
-		if( v !== undefined ) this.isRay = v;
-		if(!this.isRay){
-			let i =  this.children.length;
-			while( i-- ) {
-				let j =  this.children[i].children.length;
-				while( j-- ) this.children[i].children[j].raycast = () => {}; 
-				this.children[i].raycast = () => {};
-			}
-		}
-	}
-
-	// direct raycast avoid recursive !!
-	raycast( raycaster, intersects ) {
-
-		if( !this.isRay ) return
-
-		const children = this.children;
-		let i = children.length;
-
-		while( i-- ){
-
-			if ( children[i].layers.test( raycaster.layers ) ) {
-
-				children[i].raycast( raycaster, intersects );
-
-			}
-
-		}
-	}
-
-	traverse( callback ) {
-
-		callback( this );
-
-		const children = this.children;
-		let i = children.length;
-
-		//for ( let i = 0, l = children.length; i < l; i ++ ) {
-		while( i-- ){
-
-			children[ i ].traverse( callback );
-
-		}
-
-	}
-
-	traverseVisible( callback ) {
-
-		if ( this.visible === false ) return;
-
-		callback( this );
-
-		const children = this.children;
-		let i = children.length;
-
-		//for ( let i = 0, l = children.length; i < l; i ++ ) {
-		while( i-- ){
-
-			children[ i ].traverseVisible( callback );
-
-		}
-
-	}
-
-	traverseAncestors( callback ) {
-
-		const parent = this.parent;
-
-		if ( parent !== null ) {
-
-			callback( parent );
-
-			parent.traverseAncestors( callback );
-
-		}
-
-	}
-
-	/*setTransform( p, q, s ) {
-
-		this.position.fromArray( p )
-		this.quaternion.fromArray( q )
-
-		this.matrix.copy( m );
-		this.matrix.decompose( this.position, this.quaternion, this.scale );
-		this.matrixWorldNeedsUpdate = true;
-
-	}
-
-	setColor( color ) {
-
-		if( this.isInstance ){
-		    this.instance.setColorAt( this.instanceId, color );
-		}
-		
-	}
-
-	updateMatrix() {
-
-		this.matrix.compose( this.position, this.quaternion, this.scale );
-	    this.matrixWorldNeedsUpdate = true;
-
-		if( this.isInstance ) {
-			this.instance.setTransformAt( this.instanceId, this.position.toArray(), this.quaternion.toArray(), this.size )
-			return;
-		} else {
-			
-		}
-
-		
-
-		//if( this.isInstance ) this.instance.setMatrixAt( this.instanceId, this.matrix );
-		//else this.matrixWorldNeedsUpdate = true;
-
-	}*/
-
-	updateMatrix() {
-
-		this.matrix.compose( this.position, this.quaternion, this.scale );
-		this.matrixWorldNeedsUpdate = true;
-
-	}
-
-	updateMatrixWorld( force ) {
-
-		if ( this.matrixAutoUpdate ) this.updateMatrix();
-
-		if ( this.matrixWorldNeedsUpdate || force ) {
-
-			if ( this.parent === null ) {
-
-				this.matrixWorld.copy( this.matrix );
-
-			} else {
-
-				this.matrixWorld.multiplyMatrices( this.parent.matrixWorld, this.matrix );
-
-			}
-
-			this.matrixWorldNeedsUpdate = false;
-
-			force = true;
-
-		}
-
-		// update children
-
-		const children = this.children;
-		let i = children.length;
-
-		while( i-- ){
-		//for ( let i = 0, l = children.length; i < l; i ++ ) {
-			children[ i ].updateMatrixWorld( force );
-
-		}
-
-	}
-
-	updateWorldMatrix( updateParents, updateChildren ) {
-
-		const parent = this.parent;
-
-		if ( updateParents === true && parent !== null ) {
-
-			parent.updateWorldMatrix( true, false );
-
-		}
-
-		if ( this.matrixAutoUpdate ) this.updateMatrix();
-
-		if ( this.parent === null ) {
-
-			this.matrixWorld.copy( this.matrix );
-
-		} else {
-
-			this.matrixWorld.multiplyMatrices( this.parent.matrixWorld, this.matrix );
-
-		}
-
-		// update children
-
-		if ( updateChildren === true ) {
-
-			const children = this.children;
-			let i = children.length;
-
-			while( i-- ){
-			//for ( let i = 0, l = children.length; i < l; i ++ ) {
-				children[ i ].updateWorldMatrix( false, true );
-
-			}
-
-		}
-
-	}
-
-}
 
 class Instance extends InstancedMesh {
 
@@ -24481,7 +23663,7 @@ class Body extends Item {
 		//  Define Object
 		//--------------------
 
-	    let b = o.instance ? {} : new Basic3D();
+	    let b = o.instance ? {} : new Object3D();// new Basic3D();
 
 	    if( o.mesh && !o.instance ){
 
@@ -24571,22 +23753,30 @@ class Body extends Item {
 
 		b.meshSize = o.meshSize ? o.meshSize : 1;
 
+		b.velocity = new Vector3();
+		b.angular = new Vector3();
 
-		
+		b.sleep = o.sleep || false;
+		b.defMat = false;
 
 		// for buttton only
 		if( o.button ) b.isButton = true;
 
 	    // enable or disable raycast
-	    b.isRay = true;//b.type === 'body' || b.isButton ? true : false
-	    //if( o.ray !== undefined ) b.isRay = o.ray; 
-	    if( o.ray !== undefined ) b.setRaycast( o.ray );
-	    if( !o.instance ) b.setRaycast();
+	    b.isRay = o.ray !== undefined ? o.ray : true;
 
 
-	    // NO NEED ??
-		//if( !noMat ) b.material = material
-		b.defMat = false;
+
+	    //b.type === 'body' || b.isButton ? true : false
+	    //if( o.ray !== undefined ){ 
+	    //	b.isRay = o.ray;
+
+	    	//b.setRaycast( o.ray )
+	    //}
+	    //if( !o.instance ) b.setRaycast()
+
+
+	    
 		
 		if( b.material && noMat ) b.defMat = b.material.name === 'body';
 
@@ -24632,8 +23822,7 @@ class Body extends Item {
 
 			b.position = new Vector3().fromArray(o.pos); //{x:o.pos[0], y:o.pos[1], z:o.pos[2]};
 			b.quaternion = new Quaternion().fromArray(o.quat); //{_x:o.quat[0], _y:o.quat[1], _z:o.quat[2], _w:o.quat[3]};
-		    b.velocity = new Vector3(); //{x:0, y:0, z:0};
-		    b.angular = new Vector3(); //{x:0, y:0, z:0};
+		    
 		    //b.link = 0;
 		    if( this.needMatrix ) b.matrixWorld = new Matrix4();
 
@@ -24654,15 +23843,97 @@ class Body extends Item {
 
 			b.name = name;
 
+			if(!b.isRay){
+				b.traverse( function ( node ) {
+					if( node.isMesh ) node.raycast = () => {};
+				});
+			}
+
 			if( o.renderOrder ) b.renderOrder = o.renderOrder;
 			if( o.visible === undefined ) o.visible = true;
 			if( o.shadow === undefined ) o.shadow = o.visible;
 
+			b.dispose = function(){
+		    	if(this.clearOutLine) this.clearOutLine();
+		    	this.traverse( function ( node ) {
+					if( node.isMesh && node.unic ) node.geometry.dispose();
+				});
+				this.children = [];
+		    }.bind(b);
+
 			b.visible = o.visible !== undefined ? o.visible : true;
+
+			Object.defineProperty(b, 'material', {
+				get() {
+				    if( this.children[0] ) return this.children[0].material;
+				    else return null;
+				},
+				set(value) {
+				    this.traverse( function ( node ) { if( node.isMesh && node.name !== 'outline' ) node.material = value; });
+				}
+			});
+
+			Object.defineProperty(b, 'castShadow', {
+				get() {
+				    if( this.children[0] ) return this.children[0].castShadow;
+				    else return false;
+				},
+				set(value) {
+				    this.traverse( function ( node ) { if( node.isMesh ) node.castShadow = value; });
+				}
+			});
+
+			Object.defineProperty(b, 'receiveShadow', {
+				get() {
+				    if( this.children[0] ) return this.children[0].receiveShadow;
+				    else return false;
+				},
+				set(value) {
+				    this.traverse( function ( node ) { if( node.isMesh ) node.receiveShadow = value; });
+				}
+			});
+
 		    b.receiveShadow = o.shadow;
 		    b.castShadow = o.shadow;
 
-		    b.overMaterial = Mat$2.get( 'outline' );
+		    if( this.motor.mouseActive ){
+
+		    	b.overMaterial = Mat$2.get( 'outline' );
+		    	b.isOver = false;
+
+		    	// extra function to display wireframe over object
+
+		    	b.addOutLine = function(){
+		    		if( !this.children[0].isMesh ) return;
+		    		this.outline = new Mesh().copy( this.children[0] );
+					this.outline.name = "outline";
+					this.outline.material = this.overMaterial;
+					this.outline.matrixAutoUpdate = false;
+					this.outline.receiveShadow = false;
+					this.outline.castShadow = false;
+					this.outline.raycast = () => ( false );
+					this.add( this.outline );
+		    	}.bind(b);
+
+		    	b.clearOutLine = function(){
+		    		if( !this.outline ) return;
+					this.remove(this.outline);
+					this.outline = null;
+		    	}.bind(b);
+
+		    	b.over = function(v){
+		    		if( v && !this.isOver )this.addOutLine();
+			        if( !v && this.isOver ) this.clearOutLine();
+			        this.isOver = v;
+		    	}.bind(b);
+
+		    	b.select = function(v){
+		    		
+		    	}.bind(b);
+
+		    }
+
+		    
 
 		    // apply option
 			this.set( o, b );
@@ -24758,6 +24029,8 @@ class Body extends Item {
 
 		}
 
+		if(o.sleep) this.set(o, b);
+
 	    //---------------------------
 		// send to physic engine 
 		//---------------------------
@@ -24783,7 +24056,7 @@ class Body extends Item {
 
 			if( o.pos ) b.position.fromArray(o.pos);// = {x:o.pos[0], y:o.pos[1], z:o.pos[2]}
 		    if( o.quat ) b.quaternion.fromArray(o.quat);// = {_x:o.quat[0], _y:o.quat[1], _z:o.quat[2], _w:o.quat[3]};
-			if( o.pos || o.quat ) b.instance.setTransformAt( b.id, b.position, b.quaternion, b.noScale ? [1,1,1] : b.size );
+			if( o.pos || o.quat ) b.instance.setTransformAt( b.id, b.position.toArray(), b.quaternion.toArray(), b.noScale ? [1,1,1] : b.size );
 
 		}else {
 
@@ -24848,7 +24121,7 @@ class Body extends Item {
     	bb.receiveShadow = o.shadow !== undefined ? o.shadow : true;
     	bb.castShadow = o.shadow !== undefined ? o.shadow : true;
 
-    	bb.overMaterial = Mat$2.get( 'outline' );
+    	if( this.motor.mouseActive ) bb.overMaterial = Mat$2.get( 'outline' );
 
     	bb.name = o.instance;
 		this.motor.scene.add( bb );
@@ -28338,7 +27611,7 @@ class AutoSvg extends Mesh {
 
 }
 
-class JointDebug extends Basic3D {
+class JointDebug extends Object3D {
 
 	constructor( o = {}, motor ) {
 
@@ -28951,7 +28224,7 @@ class Vehicle extends Item {
 
 // CAR
 
-class Car extends Basic3D {//extends Object3D {
+class Car extends Object3D {//extends Object3D {
 
 	constructor( o, motor ) {
 
@@ -28959,6 +28232,9 @@ class Car extends Basic3D {//extends Object3D {
 
 		this.motor = motor;
 		this.Utils = this.motor.utils;
+
+		this.velocity = new Vector3();
+		this.angular = new Vector3();
 
 		// extra function // ex car selection
 		if(o.extra){
@@ -33000,7 +32276,7 @@ class Avatar extends Group {
 // use some code from https://github.com/ErdongChen-Andrew/CharacterControl
 // 
 
-class Hero extends Basic3D {
+class Hero extends Object3D {
 
 	constructor( o = {}, motor ) {
 
@@ -33169,6 +32445,9 @@ class Hero extends Basic3D {
 		this.maxRayDistance = this.height;
 
 		this.contact = false;
+
+		this.velocity = new Vector3();
+		this.angular = new Vector3();
 
 		this.tmpV1 = new Vector3();
 		this.tmpV2 = new Vector3();
@@ -33483,7 +32762,7 @@ class Hero extends Basic3D {
 
 		//console.log('model remove')
 
-		super.dispose();
+		//super.dispose()
 	}
 
 	onFrame ( state, delta ){
@@ -37860,15 +37139,31 @@ class Particle {
 
 	constructor ( o = {}, motor ) {
 
+		this.first = true;
+
 		this.motor = motor;
 
 		this.name = o.name  || 'ppp';
 
 		this.particles = [];
-	    this.density = 0.01;
-	    this.smoothingRadius = 0.2;
-	    this.speedOfSound = 0.1;
-	    this.viscosity = 0.03;
+		/**
+	     * Density of the system (kg/m3).
+	     * @property {number} density
+	     */
+	    this.density = o.density || 0.01;
+	    /**
+	     * Distance below which two particles are considered to be neighbors.
+	     * It should be adjusted so there are about 15-20 neighbor particles within this radius.
+	     * @property {number} smoothingRadius
+	     */
+	    this.smoothingRadius = o.smoothDistance || 0.2;
+	    this.speedOfSound = o.speedOfSound || 0.1;
+	    
+	    /**
+	     * Viscosity of the system.
+	     * @property {number} viscosity
+	     */
+	    this.viscosity = o.viscosity || 0.03;
 	    this.eps = 0.000001;
 
 	    this.group = 1 << 8;
@@ -37890,26 +37185,33 @@ class Particle {
             instance:this.name,
             type:'particle', 
             //type:'sphere',
-            flags:'noQuery',
-            size:[0.1],
-            pSize:0.03,
+            //flags:'noQuery',
+            size:[0.2],
+            pSize:0.02,
             pos:pos, 
 
             inertia:[0,0,0], 
+            //inertia:[0.00001,0.00001,0.00001], 
             //iterations:[10,1],
             
             mass:0.001, 
-            //density:0.0001,
+            //density:0.0000001,
             restitution:0.0, 
             friction:0.5, 
             //maxVelocity:[2,100],
-            damping:[0.1,0.1],
+            damping:[0.2,0.1],
 
             //group:this.group, 
             //mask:1|2,
             material:'hide',
+            //maxVelocity:[1,100],
+           // iterations:[40, 10],
+
+            massInfo:this.first,
 
         });
+
+        this.first = false;
 
         p.force = new Vector3();
 
@@ -37955,11 +37257,19 @@ class Particle {
 			    b1:this.name+l[0], 
 			    b2:this.name+l[1], 
 			    //limit:[d - 0.01, d + 0.01], 
+			    //limit:[d*0.5, d],
 			    limit:[d*0.5, d],
 			    spring:[20, 1.0],
+
+			    collision:true,
+			    //spring:[2000, 100],
+
+			    //noPreProcess:true,
+			    noPreProcess:true,
+			    alway:true,
 			    //spring:[0.0, 0.0],
-			    friction:0,
-			    /*visible:true, helperSize:0.02*/ 
+			    //friction:0,
+			    //visible:true 
 		    });
 		    /*tmp.push({ 
 		    	helperSize:0.01,
@@ -38091,8 +37401,8 @@ class Particle {
 
 	    i = N;
 
-	   //for (let i = 0; i !== N; i++) {
-	    while(i--){
+	    for (let i = 0; i !== N; i++) {
+	    //while(i--){
 
 	    	const particle = this.particles[i];
 
@@ -38107,9 +37417,9 @@ class Particle {
 		    const neighbors = this.neighbors[i];
 		    const numNeighbors = neighbors.length;
 
-		    j = numNeighbors;
-		    while(j--){
-		    //for (let j = 0; j !== numNeighbors; j++) {
+		    //j = numNeighbors
+		    //while(j--){
+		    for (let j = 0; j !== numNeighbors; j++) {
 		    	const neighbor = neighbors[j];
 
 		    	// Get r once for all..
@@ -38157,7 +37467,9 @@ class Particle {
 
 		    TMP.push({
 		    	name: particle.name,
-		    	force: particle.force.toArray()
+		    	force: particle.force.toArray(),
+		    	//velocityOperation:'step',
+		    	//linear:0.01
 		    });
             
 	    }
@@ -38284,8 +37596,8 @@ class RayCar {
 
         });
 
-	    //this.body.inertia.set( 1.416666865348816, 1.666666865348816, 0.416666716337204 );
-        this.body.inertia.set( 283.33331298828125, 333.33331298828125, 83.33332824707031 );
+	    this.body.inertia = new Vector3( 1.416666865348816, 1.666666865348816, 0.416666716337204 );
+        //this.body.inertia.set( 283.33331298828125, 333.33331298828125, 83.33332824707031 );
 
 	    this.vehicle = new RaycastVehicle({ chassis: this.body }, this.motor);
 
@@ -39219,7 +38531,7 @@ const velocityAt = (body, pos, res) => {
 
 const bodyInertiaWorld = ( body, res ) => {
 
-    res.copy( body.inertia );//.applyNormalMatrix( body.matrixWorld );
+    if(body.inertia) res.copy( body.inertia );//.applyNormalMatrix( body.matrixWorld );
     //console.log(res)
     TransformNormalToRef(res, body.matrixWorld, res);
     res.x = res.x > 0 ? 1.0 / res.x : 0;
@@ -40338,6 +39650,8 @@ class PhyEngine {
 		this.debug = false;
 		this.delta = 0;
 
+		this.mouseActive = false;
+
 
 		const _this = this;
 
@@ -40536,6 +39850,7 @@ class PhyEngine {
 
 		this.activeMouse = ( controler, mode ) => { 
 			if( !mouseTool ) mouseTool = new MouseTool( controler, mode, this );
+			this.mouseActive = true;
 		};
 
 	    this.mouseMode = ( mode, o ) => { 

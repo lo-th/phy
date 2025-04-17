@@ -75,7 +75,7 @@ class Basic3D extends EventDispatcher {
 
 		this.userData = {};
 
-		this.mass = 0;
+		/*this.mass = 0;
 		this.density = 0;
 		// TODO 
 		this.inertia = new Vector3(1, 1, 1);
@@ -98,16 +98,16 @@ class Basic3D extends EventDispatcher {
 		this.meshSize = 1;
 
 		// if object is link by joint
-		this.linked = [];
+		//this.linked = [];
 
 		this.isOver = false;
-		this.overMaterial = null;
+		this.overMaterial = null;*/
 
 	}
 
 	// ADD
 
-	clearOutLine() {
+	/*clearOutLine() {
 
 		if( !this.overMaterial ) return;
 		if( !this.outline ) return;
@@ -134,7 +134,7 @@ class Basic3D extends EventDispatcher {
 		//let mScale = this.children[0].scale.length() * 0.5
 		//console.log( mScale)
 
-		this.outline = new Mesh().copy( this.children[0] );
+	/*	this.outline = new Mesh().copy( this.children[0] );
 		//this.outline.geometry.computeVertexNormals()
 		//this.outline.geometry.normalizeNormals()
 		this.outline.name = "outline";
@@ -174,7 +174,7 @@ class Basic3D extends EventDispatcher {
 
 		//console.log(b)
 
-    }
+    }*/
 
     dispose () {
 
@@ -195,7 +195,7 @@ class Basic3D extends EventDispatcher {
 		return this._size.toArray()
 	}*/
 
-	set receiveShadow( value ){
+	/*set receiveShadow( value ){
 		this.traverse( function ( node ) {
 			if( node.isMesh ) node.receiveShadow = value;
 		})
@@ -229,16 +229,16 @@ class Basic3D extends EventDispatcher {
 		const children = this.children;
 		if( this.children[0] ) return this.children[0].material;
 		else return null;
-	}
+	}*/
 
-    set rotation( v ){
+    /*set rotation( v ){
     	this.tmpRotation = v;
 		quaternion.setFromEuler( this.tmpRotation, false );
 	}
 
 	get rotation(){
 		return this.tmpRotation.setFromQuaternion( this.quaternion, undefined, false );
-	}
+	}*/
 
     //////
 

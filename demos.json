@@ -10,7 +10,7 @@
         "spring", "cloth", "gears2", "mass", "empty", "empty2", "empty3",
         "car", "collision", "buttons", "robot_arm", "pinball","bullet", "build", 
         "kaneda", "vehicle3", "mesh", "break", "stacking",  "house", "direct",
-        "solver", "wall", "skylab", "colors", "barbados", "barbados2", "blob", "coin"
+        "solver", "wall", "skylab", "colors", "barbados", "barbados2", "blob", "coin", "havok_car", "joint_test"
     ],
     "Advanced" : [ 
         "diamond", "ragdoll", "chess", "million", "museum"

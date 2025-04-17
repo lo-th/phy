@@ -18,7 +18,6 @@ import { MeshSssMaterial } from '../materials/MeshSssMaterial.js';
 
 //import { GLTFExporter } from '../../jsm/exporters/GLTFExporter.js';
 import * as SkeletonUtils from '../../jsm/utils/SkeletonUtils.js';
-import { Basic3D } from '../../core/Basic3D.js';
 
 import { Pool } from '../Pool.js';
 //import { Shader } from '../Shader.js';

@@ -6,7 +6,7 @@ demo = () => {
     phy.view({ envmap:'blocky_photo_studio_1k', envblur: 0.5 });
 
     // config physics setting
-    phy.set({ substep:2, gravity:[0,-9.81,0], jointVisible:true });
+    phy.set({ substep:1, gravity:[0,-9.81,0], jointVisible:true });
 
     // add static ground
     phy.add({ type:'plane', name:'floor', size:[50,1,50], visible:false });

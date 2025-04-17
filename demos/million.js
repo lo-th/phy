@@ -32,7 +32,7 @@ demo = () => {
     phy.log( 'SPACE to restart' )
 
 	phy.view({
-		envmap:'beach', envblur:1.0,
+		envmap:'beach', envblur:1.0, reflect:0.8,
         //ground:false,
         phi:20, theta:-20, distance:14, x:2, y:6, z:0, fov:70
 	})
@@ -58,6 +58,21 @@ demo = () => {
 onComplete = () => {
 
 	model = phy.getMesh('million')
+
+    model.L_roll.renderOrder = 1
+    model.L_front.renderOrder = 2
+    model.L_back.renderOrder = 3
+
+    let m = phy.getMat('chrome')
+
+    model.L_pale2_base.material = m
+    model.M_pale2_base.material = m
+
+    m = phy.getMat('plexi2')
+    model.L_pale2.material = m
+    model.M_pale2.material = m
+    model.L_pale1.material = m
+    model.M_pale1.material = m
 
     makeMachine()
     makeBall()
@@ -264,8 +279,9 @@ makeMachine = () => {
 	        meshScale:[10],
 	        mesh:model[name],
 	        shape:shape,
+            noClone:true,
 	        //material:br?'silver':'glass',
-            material:br?'plexi2':'glass',
+            material:br?undefined:'glassX',
 	        friction: friction, restitution: bounce,
 	        //pos: i>5 ? [8.5,d+py,0] : [0,py,0],
             pos: i>3 ? [8.5,d+py,0] : [0,py,0],

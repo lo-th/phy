@@ -1,12 +1,12 @@
 import {
-	LineSegments, BufferGeometry, Float32BufferAttribute, Matrix4, Quaternion, Vector3
+	Object3D, LineSegments, BufferGeometry, Float32BufferAttribute, Matrix4, Quaternion, Vector3
 } from 'three';
 
-import { Basic3D } from '../../core/Basic3D.js';
+//import { Basic3D } from '../../core/Basic3D.js';
 import { MathTool } from '../../core/MathTool.js';
 import { AutoSvg } from '../../3TH/AutoSvg.js';
 
-export class JointDebug extends Basic3D {
+export class JointDebug extends Object3D {
 
 	constructor( o = {}, motor ) {
 

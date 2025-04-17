@@ -18,15 +18,31 @@ export class Particle {
 
 	constructor ( o = {}, motor ) {
 
+		this.first = true
+
 		this.motor = motor;
 
 		this.name = o.name  || 'ppp'
 
 		this.particles = []
-	    this.density = 0.01
-	    this.smoothingRadius = 0.2
-	    this.speedOfSound = 0.1
-	    this.viscosity = 0.03
+		/**
+	     * Density of the system (kg/m3).
+	     * @property {number} density
+	     */
+	    this.density = o.density || 0.01
+	    /**
+	     * Distance below which two particles are considered to be neighbors.
+	     * It should be adjusted so there are about 15-20 neighbor particles within this radius.
+	     * @property {number} smoothingRadius
+	     */
+	    this.smoothingRadius = o.smoothDistance || 0.2
+	    this.speedOfSound = o.speedOfSound || 0.1
+	    
+	    /**
+	     * Viscosity of the system.
+	     * @property {number} viscosity
+	     */
+	    this.viscosity = o.viscosity || 0.03
 	    this.eps = 0.000001
 
 	    this.group = 1 << 8
@@ -48,26 +64,33 @@ export class Particle {
             instance:this.name,
             type:'particle', 
             //type:'sphere',
-            flags:'noQuery',
-            size:[0.1],
-            pSize:0.03,
+            //flags:'noQuery',
+            size:[0.2],
+            pSize:0.02,
             pos:pos, 
 
             inertia:[0,0,0], 
+            //inertia:[0.00001,0.00001,0.00001], 
             //iterations:[10,1],
             
             mass:0.001, 
-            //density:0.0001,
+            //density:0.0000001,
             restitution:0.0, 
             friction:0.5, 
             //maxVelocity:[2,100],
-            damping:[0.1,0.1],
+            damping:[0.2,0.1],
 
             //group:this.group, 
             //mask:1|2,
             material:'hide',
+            //maxVelocity:[1,100],
+           // iterations:[40, 10],
+
+            massInfo:this.first,
 
         })
+
+        this.first = false
 
         p.force = new Vector3()
 
@@ -113,11 +136,19 @@ export class Particle {
 			    b1:this.name+l[0], 
 			    b2:this.name+l[1], 
 			    //limit:[d - 0.01, d + 0.01], 
+			    //limit:[d*0.5, d],
 			    limit:[d*0.5, d],
 			    spring:[20, 1.0],
+
+			    collision:true,
+			    //spring:[2000, 100],
+
+			    //noPreProcess:true,
+			    noPreProcess:true,
+			    alway:true,
 			    //spring:[0.0, 0.0],
-			    friction:0,
-			    /*visible:true, helperSize:0.02*/ 
+			    //friction:0,
+			    //visible:true 
 		    })
 		    /*tmp.push({ 
 		    	helperSize:0.01,
@@ -250,8 +281,8 @@ export class Particle {
 
 	    i = N
 
-	   //for (let i = 0; i !== N; i++) {
-	    while(i--){
+	    for (let i = 0; i !== N; i++) {
+	    //while(i--){
 
 	    	const particle = this.particles[i]
 
@@ -267,9 +298,9 @@ export class Particle {
 		    const neighbors = this.neighbors[i]
 		    const numNeighbors = neighbors.length
 
-		    j = numNeighbors
-		    while(j--){
-		    //for (let j = 0; j !== numNeighbors; j++) {
+		    //j = numNeighbors
+		    //while(j--){
+		    for (let j = 0; j !== numNeighbors; j++) {
 		    	const neighbor = neighbors[j]
 
 		    	// Get r once for all..
@@ -317,7 +348,9 @@ export class Particle {
 
 		    TMP.push({
 		    	name: particle.name,
-		    	force: particle.force.toArray()
+		    	force: particle.force.toArray(),
+		    	//velocityOperation:'step',
+		    	//linear:0.01
 		    })
             
 	    }

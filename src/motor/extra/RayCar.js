@@ -114,8 +114,8 @@ export class RayCar {
 
         });
 
-	    //this.body.inertia.set( 1.416666865348816, 1.666666865348816, 0.416666716337204 );
-        this.body.inertia.set( 283.33331298828125, 333.33331298828125, 83.33332824707031 );
+	    this.body.inertia = new Vector3( 1.416666865348816, 1.666666865348816, 0.416666716337204 );
+        //this.body.inertia.set( 283.33331298828125, 333.33331298828125, 83.33332824707031 );
 
 	    this.vehicle = new RaycastVehicle({ chassis: this.body }, this.motor)
 
@@ -1060,7 +1060,7 @@ const velocityAt = (body, pos, res) => {
 
 const bodyInertiaWorld = ( body, res ) => {
 
-    res.copy( body.inertia )//.applyNormalMatrix( body.matrixWorld );
+    if(body.inertia) res.copy( body.inertia )//.applyNormalMatrix( body.matrixWorld );
     //console.log(res)
     TransformNormalToRef(res, body.matrixWorld, res)
     res.x = res.x > 0 ? 1.0 / res.x : 0
