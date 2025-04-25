@@ -21,7 +21,6 @@ export class Container {
 
 		const intern = o.intern || false;
 
-
 		let s = o.size || [5,3,8];
 		let p = o.pos || [0,2,0];
 		let w = o.wall || 0.1;

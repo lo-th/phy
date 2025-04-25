@@ -1,4 +1,4 @@
-import { BufferGeometry, BufferAttribute, TrianglesDrawMode, TriangleFanDrawMode, TriangleStripDrawMode, Quaternion as Quaternion$1, Matrix4, Loader, LoaderUtils, FileLoader, MeshPhysicalMaterial, Vector2, Color, LinearSRGBColorSpace, SRGBColorSpace, SpotLight, PointLight, DirectionalLight, Vector3, InstancedMesh, InstancedBufferAttribute, Object3D, TextureLoader, ImageBitmapLoader, InterleavedBuffer, InterleavedBufferAttribute, LinearMipmapLinearFilter, NearestMipmapLinearFilter, LinearMipmapNearestFilter, NearestMipmapNearestFilter, LinearFilter, NearestFilter, RepeatWrapping, MirroredRepeatWrapping, ClampToEdgeWrapping, PointsMaterial, Material, LineBasicMaterial, MeshStandardMaterial, DoubleSide, MeshBasicMaterial, PropertyBinding, SkinnedMesh, Mesh, LineSegments, Line, LineLoop, Points, Group, PerspectiveCamera, MathUtils, OrthographicCamera, Skeleton, AnimationClip, Bone, InterpolateDiscrete, InterpolateLinear, Texture, VectorKeyframeTrack, NumberKeyframeTrack, QuaternionKeyframeTrack, ColorManagement, FrontSide, Interpolant, Box3, Sphere, Vector4, Curve, Euler, MeshPhongMaterial, MeshLambertMaterial, EquirectangularReflectionMapping, AmbientLight, Float32BufferAttribute, Uint16BufferAttribute, Matrix3, ShapeUtils, DataTextureLoader, HalfFloatType, FloatType, DataUtils, RGBAFormat, RedFormat, NoColorSpace, RGBA_S3TC_DXT1_Format, RGB_PVRTC_4BPPV1_Format, RGB_ETC2_Format, RGB_ETC1_Format, RGBA_S3TC_DXT5_Format, RGBA_PVRTC_4BPPV1_Format, RGBA_ETC2_EAC_Format, RGBA_BPTC_Format, RGB_BPTC_UNSIGNED_Format, RGBA_ASTC_4x4_Format, UnsignedByteType, CompressedCubeTexture, CompressedArrayTexture, CompressedTexture, RGBA_ASTC_6x6_Format, RGFormat, DataTexture, Data3DTexture, LoadingManager, AnimationMixer, ObjectSpaceNormalMap, SphereGeometry, CylinderGeometry, BoxGeometry, PlaneGeometry, CanvasTexture, ShadowMaterial, MeshToonMaterial, BackSide, SrcAlphaSaturateFactor, OneMinusDstColorFactor, DstColorFactor, OneMinusDstAlphaFactor, DstAlphaFactor, OneMinusSrcAlphaFactor, SrcAlphaFactor, OneMinusSrcColorFactor, SrcColorFactor, OneFactor, ZeroFactor, MaxEquation, MinEquation, ReverseSubtractEquation, SubtractEquation, AddEquation, MultiplyBlending, SubtractiveBlending, AdditiveBlending, NormalBlending, NoBlending, CircleGeometry, Line3, Plane, Triangle, Box2, Shape, Path, ShapePath, ShapeGeometry, CustomBlending, SkeletonHelper, AnimationUtils, AdditiveAnimationBlendMode, NormalAnimationBlendMode, Raycaster, PMREMGenerator, Scene, WebGLCubeRenderTarget, CubeCamera, IcosahedronGeometry, ShaderMaterial, NoToneMapping } from 'three';
+import { BufferGeometry, BufferAttribute, TrianglesDrawMode, TriangleFanDrawMode, TriangleStripDrawMode, Quaternion as Quaternion$1, Matrix4, Loader, LoaderUtils, FileLoader, MeshPhysicalMaterial, Vector2, Color, LinearSRGBColorSpace, SRGBColorSpace, SpotLight, PointLight, DirectionalLight, Vector3, InstancedMesh, InstancedBufferAttribute, Object3D, TextureLoader, ImageBitmapLoader, InterleavedBuffer, InterleavedBufferAttribute, LinearMipmapLinearFilter, NearestMipmapLinearFilter, LinearMipmapNearestFilter, NearestMipmapNearestFilter, LinearFilter, NearestFilter, RepeatWrapping, MirroredRepeatWrapping, ClampToEdgeWrapping, PointsMaterial, Material, LineBasicMaterial, MeshStandardMaterial, DoubleSide, MeshBasicMaterial, PropertyBinding, SkinnedMesh, Mesh, LineSegments, Line, LineLoop, Points, Group, PerspectiveCamera, MathUtils, OrthographicCamera, Skeleton, AnimationClip, Bone, InterpolateDiscrete, InterpolateLinear, Texture, VectorKeyframeTrack, NumberKeyframeTrack, QuaternionKeyframeTrack, ColorManagement, FrontSide, Interpolant, Box3, Sphere, Vector4, Curve, Euler, MeshPhongMaterial, MeshLambertMaterial, EquirectangularReflectionMapping, AmbientLight, Float32BufferAttribute, Uint16BufferAttribute, Matrix3, ShapeUtils, DataTextureLoader, HalfFloatType, FloatType, DataUtils, RGBAFormat, RedFormat, NoColorSpace, RGBA_S3TC_DXT1_Format, RGB_PVRTC_4BPPV1_Format, RGB_ETC2_Format, RGB_ETC1_Format, RGBA_S3TC_DXT5_Format, RGBA_PVRTC_4BPPV1_Format, RGBA_ETC2_EAC_Format, RGBA_BPTC_Format, RGB_BPTC_UNSIGNED_Format, RGBA_ASTC_4x4_Format, UnsignedByteType, CompressedCubeTexture, CompressedArrayTexture, CompressedTexture, RGBA_ASTC_6x6_Format, RGFormat, DataTexture, Data3DTexture, LoadingManager, AnimationMixer, ObjectSpaceNormalMap, SphereGeometry, CylinderGeometry, BoxGeometry, PlaneGeometry, CanvasTexture, ShadowMaterial, MeshToonMaterial, BackSide, SrcAlphaSaturateFactor, OneMinusDstColorFactor, DstColorFactor, OneMinusDstAlphaFactor, DstAlphaFactor, OneMinusSrcAlphaFactor, SrcAlphaFactor, OneMinusSrcColorFactor, SrcColorFactor, OneFactor, ZeroFactor, MaxEquation, MinEquation, ReverseSubtractEquation, SubtractEquation, AddEquation, MultiplyBlending, SubtractiveBlending, AdditiveBlending, NormalBlending, NoBlending, CircleGeometry, Line3, Plane, Triangle, Box2, Shape, Path, ShapePath, ShapeGeometry, CustomBlending, SkeletonHelper, AnimationUtils, AdditiveAnimationBlendMode, NormalAnimationBlendMode, Raycaster, PMREMGenerator, Scene, WebGLCubeRenderTarget, CubeCamera, IcosahedronGeometry, ShaderMaterial, NoToneMapping, AxesHelper } from 'three';
 
 const PI = Math.PI;
 const torad$3 = PI / 180;
@@ -61,6 +61,16 @@ const M = {
     },
 
     clampA: ( v, min, max ) => ( Math.max( min, Math.min( max, v ) ) ),
+
+    smoothstep: ( min, max, t ) => {
+        t = M.clamp(t);
+        t = -2 * t * t * t + 3.0 * t * t;
+        return min * t + max * (1 - t);
+    },
+
+    remap: ( f, fmin, fmax, min, max) => {
+        return min + (f - fmin) * (max - min) / (fmax - fmin);
+    },
 
     lerp: ( x, y, t ) => ( ( 1 - t ) * x + t * y ),
     damp: ( x, y, lambda, dt ) => ( M.lerp( x, y, 1 - Math.exp( - lambda * dt ) ) ),
@@ -782,7 +792,10 @@ const M = {
     densityFromMass: ( mass, volume ) =>  ( mass / volume ),
 
 
-    // GEOMETRY
+    //-----------------------
+    //  GEOMETRY
+    //-----------------------
+
     toNonIndexed: ( g ) => ( !g.index ? g : g.clone().toNonIndexed() ),
 
     getIndex: ( g, noIndex ) => {
@@ -20224,6 +20237,10 @@ class ExtraRay extends Line {
 	    this.colors = this.geometry.attributes.color;
 	    this.local = [ 0, 0, 0, 0, 0, 0, 0, 0, 0 ];
 
+	    this.noRotation = o.noRotation || false;
+
+	    this.fakeMatrix = new Matrix4();
+
 	    this.matrixAutoUpdate = false;
 	    this.frustumCulled = false;
 
@@ -20271,9 +20288,14 @@ class ExtraRay extends Line {
 
 		} else {
 			if( this.parentMesh ){
-				//this.data.parent = this.parentMesh;
-				//this.parentMesh.updateWorldMatrix(false,false )
-				const mtx = this.parentMesh.matrixWorld;
+				let mtx ;
+				if(this.noRotation){
+					mtx = this.fakeMatrix.setPosition(this.parentMesh.position.x, this.parentMesh.position.y, this.parentMesh.position.z );
+				} else {
+					mtx = this.parentMesh.matrixWorld;
+				}
+				//this.parentMesh.updateWorldMatrix( true, false )
+				
 				this.tmp.copy( this.begin ).applyMatrix4(mtx).toArray( this.local, 0 );
 				this.tmp.copy( this.end ).applyMatrix4(mtx);
 				this.tmp.toArray( this.local, 3 );
@@ -23134,6 +23156,10 @@ class CapsuleHelper extends Object3D {
 let Geo = null;
 let Mat$2 = null;
 
+const _up = /*@__PURE__*/ new Vector3(0,1,0);
+const _right = /*@__PURE__*/ new Vector3(1,0,0);
+const _forward = /*@__PURE__*/ new Vector3(0,0,1);
+
 // THREE BODY
 
 class Body extends Item {
@@ -24071,6 +24097,25 @@ class Body extends Item {
 			} else {
 				b.matrixAutoUpdate = true;
 			}
+		}
+
+	}
+
+	getTransform( b ){
+
+		if( typeof b === 'string' ) b = this.byName( o.name );
+		if( b === null ) return;
+
+		b.updateWorldMatrix( true, false );
+
+		const e = b.matrixWorld.elements;
+
+		//let q = b.quaternion;
+		return {
+			position:b.position.clone(),
+			up: _up.clone().set( e[ 4 ], e[ 5 ], e[ 6 ] ).normalize(),//.applyQuaternion( q ),
+			right: _right.clone().set( e[ 0 ], e[ 1 ], e[ 2 ] ).normalize(),//.applyQuaternion( q ),
+			forward: _forward.clone().set( e[ 8 ], e[ 9 ], e[ 10 ] ).normalize()//.applyQuaternion( q ),
 		}
 
 	}
@@ -27628,6 +27673,8 @@ class JointDebug extends Object3D {
 	    this.mtx = new Matrix4();
 	    this.size = o.helperSize || 0.1;
 
+	    this.matrixAutoUpdate = false;
+
 	    let material = this.motor.mat.get('line');
 	    let mat, dt;
 
@@ -27772,29 +27819,6 @@ class JointDebug extends Object3D {
 		this.m2.matrix.premultiply(this.matrix.clone().invert());
 		this.end.setFromMatrixPosition( this.m2.matrix );
 
-
-
-
-
-		//m.matrix = b.matrixWorld;
-        //m.matrixAutoUpdate = false;
-
-		//this.position.fromArray( r, n );
-		//this.quaternion.fromArray( r, n + 3 );
-
-		//this.updateMatrix();
-
-		//this.m2.position.fromArray( r, n+7 );
-		//this.m2.quaternion.fromArray( r, n+10 );
-		//this.m2.matrix.compose( this.m2.position, this.m2.quaternion, {x:1,y:1,z:1} );
-
-		//this.mtx.copy( this.matrix ).invert().multiply( this.m2.matrix );
-		//this.mtx.decompose( this.m2.position, this.m2.quaternion, {x:1,y:1,z:1} );
-		//this.m2.updateMatrix();
-
-		//const position = this.m3.geometry.attributes.position;
-		//position.setXYZ(1, this.m2.position.x, this.m2.position.y, this.m2.position.z)
-
 		this.pp.setXYZ(1, this.end.x, this.end.y, this.end.z);
 		this.pp.needsUpdate = true;
 
@@ -27803,7 +27827,7 @@ class JointDebug extends Object3D {
 			this.m1.updateMatrix();
 		}
 
-		if( !this.visible ) this.visible = true;
+		//if( !this.visible ) this.visible = true;
 
 	}
 
@@ -27811,7 +27835,6 @@ class JointDebug extends Object3D {
 
 		//if( !this.isVisible ) return
 		if( !this.visible ) return
-
 
 		//m.matrix = b.matrixWorld;
         //m.matrixAutoUpdate = false;
@@ -27838,7 +27861,7 @@ class JointDebug extends Object3D {
 			this.m1.updateMatrix();
 		}
 
-		if( !this.visible ) this.visible = true;
+		//if( !this.visible ) this.visible = true;
 
 	}
 
@@ -35556,7 +35579,6 @@ class Container {
 
 		const intern = o.intern || false;
 
-
 		let s = o.size || [5,3,8];
 		let p = o.pos || [0,2,0];
 		let w = o.wall || 0.1;
@@ -37135,7 +37157,7 @@ const SPHSystem_update_r_vec = new Vector3();
 const SPHSystem_update_u = new Vector3();
 
 
-class Particle {
+class ParticleSolver {
 
 	constructor ( o = {}, motor ) {
 
@@ -37156,8 +37178,9 @@ class Particle {
 	     * It should be adjusted so there are about 15-20 neighbor particles within this radius.
 	     * @property {number} smoothingRadius
 	     */
-	    this.smoothingRadius = o.smoothDistance || 0.2;
-	    this.speedOfSound = o.speedOfSound || 0.1;
+	    this.smoothing = o.smoothing || 0.2;
+	    // speedOfSound
+	    this.speed = o.speed || 0.1;
 	    
 	    /**
 	     * Viscosity of the system.
@@ -37186,7 +37209,7 @@ class Particle {
             type:'particle', 
             //type:'sphere',
             //flags:'noQuery',
-            size:[0.2],
+            size:[0.02],
             pSize:0.02,
             pos:pos, 
 
@@ -37194,7 +37217,7 @@ class Particle {
             //inertia:[0.00001,0.00001,0.00001], 
             //iterations:[10,1],
             
-            mass:0.001, 
+            mass:0.01, 
             //density:0.0000001,
             restitution:0.0, 
             friction:0.5, 
@@ -37311,7 +37334,7 @@ class Particle {
 
 	    const N = this.particles.length;
 	    const id = particle.id;
-	    const R2 = this.smoothingRadius * this.smoothingRadius;
+	    const R2 = this.smoothing * this.smoothing;
 	    let distance = 0;//SPHSystem_getNeighbors_dist
 	    for (let i = 0; i !== N; i++) {
 	        const p = this.particles[i];
@@ -37331,7 +37354,7 @@ class Particle {
     // Calculate the weight using the W(r) weightfunction
 	w(r) {
 	    // 315
-	    const h = this.smoothingRadius;
+	    const h = this.smoothing;
 	    return (315.0 / (64.0 * Math.PI * h ** 9)) * (h * h - r * r) ** 3
 	}
 
@@ -37339,14 +37362,14 @@ class Particle {
 	gradw(rVec, resultVec) {
 
 	    const r = rVec.length();
-	    const h = this.smoothingRadius;
+	    const h = this.smoothing;
 	    resultVec.copy(rVec).multiplyScalar( (945.0 / (32.0 * Math.PI * h ** 9)) * (h * h - r * r) ** 2 );
 	    //rVec.scale((945.0 / (32.0 * Math.PI * h ** 9)) * (h * h - r * r) ** 2, resultVec)
 	}
 
 	// Calculate nabla(W)
 	nablaw(r) {
-	    const h = this.smoothingRadius;
+	    const h = this.smoothing;
 	    const nabla = (945.0 / (32.0 * Math.PI * h ** 9)) * (h * h - r * r) * (7 * r * r - 3 * h * h);
 	    return nabla
 	}
@@ -37356,7 +37379,7 @@ class Particle {
 		const TMP = [];
 
 		const N = this.particles.length;
-	    const cs = this.speedOfSound;
+	    const cs = this.speed;
 	    const eps = this.eps;
 
 	    let i = N, j;
@@ -37475,8 +37498,6 @@ class Particle {
 	    }
 
 	    this.motor.change(TMP);
-
-
 
 	}
 
@@ -39368,6 +39389,735 @@ class AutoRagdoll {
 
 }
 
+class Debuger extends LineSegments {
+
+	constructor( motor ) {
+
+		super();
+
+        this.rayCount = 0;
+
+        this.ray = [];
+
+        this.motor = motor;
+
+		this.maxVertices = 10000;
+		this.currentVertex = 0;
+
+		this.geometry = new BufferGeometry();
+		this.geometry.setAttribute( 'position', new Float32BufferAttribute( this.maxVertices * 3 , 3) );
+		this.geometry.setAttribute( 'color', new Float32BufferAttribute(  this.maxVertices * 3 , 3) );
+
+		this.positions = this.geometry.attributes.position.array;
+		this.colors = this.geometry.attributes.color.array;
+
+		this.material = new LineBasicMaterial({ vertexColors:true, toneMapped:false, depthTest:false, depthWrite:false });
+        this.material.transparent = true; this.renderOrder = 30000;
+		this.frustumCulled = false;
+
+	}
+
+    DrawRay( a, b, c ){
+
+        c = new Color(c);
+
+        let i = this.currentVertex;
+        let n = i * 3;
+        this.positions[n] = a.x;
+        this.positions[n + 1] = a.y;
+        this.positions[n + 2] = a.z;
+        this.colors[n] = c.r;
+        this.colors[n + 1] = c.g;
+        this.colors[n + 2] = c.b;
+
+        i++;
+        n = i * 3;
+        this.positions[n] = a.x + b.x;
+        this.positions[n + 1] = a.y + b.y;
+        this.positions[n + 2] = a.z + b.z;
+        this.colors[n] = c.r;
+        this.colors[n + 1] = c.g;
+        this.colors[n + 2] = c.b;
+        this.currentVertex += 2;
+
+    }
+
+	collapseBuffer () {
+
+        let i = this.maxVertices;
+        let min = this.currentVertex;
+        let n = 0;
+        while(i>=min){
+            n = i * 3;
+            this.positions[n] = 0;
+            this.positions[n+1] = 0;
+            this.positions[n+2] = 0;
+            this.colors[n] = 0;
+            this.colors[n+1] = 0;
+            this.colors[n+2] = 0;
+            i--;
+        }
+    }
+
+    insertLine (a, b, c) {
+        
+        let i = this.currentVertex;
+        let n = i * 3;
+        this.positions[n] = a.x;
+        this.positions[n + 1] = a.y;
+        this.positions[n + 2] = a.z;
+        this.colors[n] = c.r;
+        this.colors[n + 1] = c.g;
+        this.colors[n + 2] = c.b;
+
+        i++;
+        n = i * 3;
+        this.positions[n] = b.x;
+        this.positions[n + 1] = b.y;
+        this.positions[n + 2] = b.z;
+        this.colors[n] = c.r;
+        this.colors[n + 1] = c.g;
+        this.colors[n + 2] = c.b;
+        this.currentVertex += 2;
+
+    }
+
+    draw() {
+
+        /*let i = this.ray.length, r;
+        while(i--){
+            r = this.ray[i]
+            this.insertLine(r.a, r.b, r.c)
+        }*/
+
+
+    	this.collapseBuffer();
+        this.geometry.attributes.position.needsUpdate = true;
+        this.geometry.attributes.color.needsUpdate = true;
+
+        this.currentVertex = 0;
+
+    }
+
+    dispose() {
+
+        this.parent.remove(this);
+        this.material.dispose();
+        this.geometry.dispose();
+
+    }
+
+}
+
+// https://www.youtube.com/watch?v=WzNDI7g6jA4
+
+class Helicopter {
+
+	constructor ( o = {}, motor ) {
+
+		// car test
+		//https://www.youtube.com/watch?v=BSybcKPQCnc
+
+		this.MoveSpeed = 50;
+	    this.MaxSpeed = 15;
+	    this.Drag = 0.98;
+	    this.SteerAngle = 20;
+	    this.Traction = 10;
+	    this.MoveForce = new Vector3(0,0,0);
+
+	    this.tt = new Vector3(0,0,0);
+	    this.v1 = new Vector3(0,0,0);
+	    this.v2 = new Vector3(0,0,0);
+	    //
+
+		this.motor = motor;
+
+		this.debug = this.motor.addDebuger();
+
+		/*this.up = new Vector3(0,1,0);
+		this.right = new Vector3(1,0,0);
+		this.forward = new Vector3(0,0,1);
+
+		this.transform = {
+			position:new Vector3(),
+			up:new Vector3(),
+			right:new Vector3(),
+			forward: new Vector3(),
+			thottle:new Vector3(),
+		}*/
+
+		this._reponsivness = 500;
+		this._throttleAmt = 25;
+
+		this._thottle = 0;
+
+		this._roll = 0;
+		this._pitch = 0;
+		this._yaw = 0;
+
+		
+		this.init(o);
+
+	}
+
+	init(){
+
+		this.car = new Mesh(new BoxGeometry(2,1,3), new MeshBasicMaterial({wireframe:true}));
+		this.car.position.y = 0.5;
+		this.motor.add(this.car);
+
+		let axis = new AxesHelper();
+		this.car.add(axis);
+		
+		/*this.body = this.motor.add({
+			type:'box',
+			name:'copter',
+			size:[1.87, 2, 5],
+			pos:[0,1,0],
+			mass:360,
+		})*/
+
+	}
+
+	update( delta ){
+
+		this.updateCar(delta);
+
+		//this.handleInputs(delta)
+
+		//this.fixedUpdate()
+
+	}
+
+	updateCar(delta) {
+
+
+		const key = this.motor.getKey();
+		const transform = this.motor.getTransform(this.car);
+
+		/*transform.position.copy(this.car.position);
+
+		// Moving
+		transform.forward.copy(this.forward).applyQuaternion( this.car.quaternion );
+		transform.up.copy(this.up).applyQuaternion( this.car.quaternion );*/
+
+		//
+
+		this.tt.copy(transform.forward).multiplyScalar(this.MoveSpeed*-key[1]*delta);
+
+        this.MoveForce.add(this.tt);
+
+        this.car.position.add(this.MoveForce.clone().multiplyScalar(delta));// += MoveForce * Time.deltaTime;
+
+
+
+		// Steering
+        let steerInput = -key[0];
+        let magnitude = this.MoveForce.length();
+        transform.up.multiplyScalar(steerInput*magnitude*this.SteerAngle*delta);
+
+        this.car.rotation.y += transform.up.y*this.motor.math.torad;
+
+
+        this.MoveForce.multiplyScalar(this.Drag);
+        this.MoveForce.clampLength(0, this.MaxSpeed);
+
+        magnitude = this.MoveForce.length();
+
+
+        this.v1.copy(this.MoveForce).normalize().multiplyScalar(3);
+        this.v2.copy(transform.forward).multiplyScalar(3);
+
+
+        // Traction
+        this.debug.DrawRay(transform.position, this.v1, 'white');
+        this.debug.DrawRay(transform.position, this.v2, 'blue');
+
+        this.debug.DrawRay(transform.position, transform.right, 'red');
+
+        this.v1.copy(this.MoveForce).normalize().lerp(transform.forward, this.Traction*delta );
+
+        this.MoveForce.copy(this.v1).multiplyScalar(magnitude);
+
+        // Steering
+        
+        /*transform.Rotate(Vector3.up * steerInput * MoveForce.magnitude * SteerAngle * Time.deltaTime);
+
+        // Drag and max speed limit
+        MoveForce *= Drag;
+        MoveForce = Vector3.ClampMagnitude(MoveForce, MaxSpeed);
+
+        // Traction
+        this.debug.DrawRay(transform.position, MoveForce.normalized * 3);
+        this.debug.DrawRay(transform.position, transform.forward * 3, Color.blue);
+        MoveForce = Vector3.Lerp(MoveForce.normalized, transform.forward, Traction * Time.deltaTime) * MoveForce.magnitude;*/
+    
+    }
+
+	fixedUpdate( delta ){
+
+		const transform = this.motor.getTransform(this.body);//this.transform;
+
+		transform.position.copy(this.body.position);
+
+		transform.forward.copy(this.forward).applyQuaternion( this.body.quaternion );
+		transform.right.copy(this.right).applyQuaternion( this.body.quaternion );
+		transform.up.copy(this.up).applyQuaternion( this.body.quaternion );
+		transform.thottle.copy(transform.up);
+		
+		this.motor.change({ name:this.body.name, impulse:transform.thottle.multiplyScalar(this._thottle).toArray() });
+
+		//this.motor.change({ name:this.body.name, torque:transform.right.multiplyScalar(this._pitch * this._reponsivness).toArray() })
+		//this.motor.change({ name:this.body.name, torque:transform.forward.multiplyScalar(this._roll * this._reponsivness).toArray() })
+		//this.motor.change({ name:this.body.name, torque:transform.up.multiplyScalar(this._yaw * this._reponsivness).toArray() })
+
+
+		this.debug.DrawRay(transform.position, transform.thottle, 'red');
+		this.debug.DrawRay(transform.position, transform.forward, 'yellow');
+		this.debug.DrawRay(transform.position, transform.right, 'cyan');
+		this.debug.DrawRay(transform.position, transform.up, 'green');
+
+
+
+		/*this.body.addForces( transform.up * this._thottle, 'impulse' )
+
+		this.body.addTorque( transform.right * this._pitch * this._reponsivness )
+		this.body.addTorque( transform.forward * this._roll * this._reponsivness )
+		this.body.addTorque( transform.up * this._yaw * this._reponsivness )*/
+
+	}
+
+	handleInputs(delta){
+
+		const key = this.motor.getKey();
+
+
+		this._roll = key[0];
+		this._pitch = key[1];
+
+		if(key[4]) this._thottle += delta * this._throttleAmt;
+		else if(key[5]) this._thottle -= delta * this._throttleAmt;
+
+		
+
+		this._thottle = this.motor.math.clamp(this._thottle, 0, 100);
+
+	}
+
+}
+
+// https://www.youtube.com/watch?v=WzNDI7g6jA4
+
+class Taxi {
+
+	constructor ( o = {}, motor ) {
+
+		this.startPosition = o.pos || [0,0,0];
+
+		// taxi test
+		//https://www.youtube.com/watch?v=BSybcKPQCnc
+
+		// https://www.models-resource.com/wii/mariokartwii/
+		//https://opengameart.org/art-search-advanced?keys=&field_art_type_tid%5B%5D=10&sort_by=count&sort_order=DESC
+
+		this.debug = true;
+
+		this.angle = 0;
+
+		this.moveSpeed = 50;
+	    this.maxSpeed = 15;
+	    this.drag = 0.98;
+	    this.SteerAngle = 5;//20;
+	    this.traction = 1;//1_10 drift 
+	    this.moveForce = new Vector3(0,0,0);
+
+	    this.tt = new Vector3(0,0,0);
+	    this.v1 = new Vector3(0,0,0);
+	    this.v2 = new Vector3(0,0,0);
+
+	    this.floorNormal = new Vector3(0,0,0);
+	    this.up = new Vector3(0,1,0);
+	    this.decal = new Vector3(0,-0.5,0);
+
+	    this.tmpQ1 = new Quaternion$1();
+	    this.tmpQ2 = new Quaternion$1();
+	    this.tmpQ3 = new Quaternion$1();
+
+		this.motor = motor;
+		this.angleS = 0;
+
+		this.debuger = this.motor.addDebuger();
+
+		this.phyMove = true;
+
+		
+		this.init(o);
+		//this.setDebug();
+
+	}
+
+	setDebug(b){
+
+		if(b)this.debug = b;
+		this.sphere.visible = this.debug;
+	    this.ray.visible = this.debug;
+
+	}
+
+	init(){
+
+		const math = this.motor.math;
+
+		this.sphere = this.motor.add({ 
+			type:'sphere', 
+			name:'baser', 
+			mass:1, size:[1], 
+			pos:math.addArray(this.startPosition, [0,1,0],3), 
+			friction:0.5,  
+			material:'debug',
+			getVelocity:true,
+			visible:this.debug,
+			shadow:false,
+		});//angularFactor:[1,0,0],
+
+		let selfHit = this.rayHit.bind(this);
+
+		this.ray = this.motor.add({ name:'raySphere', type:'ray', begin:[0,0,0], end:[0,-1.5,0], visible:this.debug, parent:this.sphere, noRotation:true, callback:selfHit });
+
+		this.car = new Mesh(new BoxGeometry(1,0.4,2), new MeshBasicMaterial({wireframe:true}));
+		this.motor.add(this.car);
+
+		/*this.chassis = this.motor.add({
+			type:'box',
+			name:'chassis',
+			kinematic:true,
+			isTrigger:true,
+			size:[1,0.4,2],
+
+		})*/ 
+
+		this.addWheels();
+
+		//let axis = new AxesHelper();
+		//this.car.add(axis);
+
+	}
+
+	addWheels(){
+		let g = new CylinderGeometry(0.3,0.3, 0.3, 16);
+		g.rotateZ(Math.PI/2);
+		let m = new MeshBasicMaterial({wireframe:true});
+		let i = 4;
+		let p = [0.7, -0.2, 0.7];
+		let pos; 
+		let w = [];
+		while(i--){
+			w[i] = new Mesh( g, m );
+			pos = [i===0||i===3? p[0]:-0.7, p[1], i<2? p[2]:-0.7];
+			w[i].position.fromArray( pos );
+
+			//r[i] = this.motor.add({ name:'rayW'+i, type:'ray', begin:pos, end:pos1, visible:true, parent:this.sphere, noRotation:true })
+
+			this.car.add(w[i]);
+		}
+
+		this.w = w;
+	}
+
+	updateWheels(){
+		this.motor.math;
+		let i = 4, w;
+		this.tmpQ3.setFromAxisAngle( {x:0,y:1,z:0}, this.angleS );
+		let s = -this.sphere.velocity.length()*2;
+		let axis = {x:1,y:0,z:0};
+		while(i--){
+			w = this.w[i];
+			if(i<2) w.quaternion.setFromAxisAngle(axis,s).premultiply(this.tmpQ3);
+			else w.quaternion.setFromAxisAngle(axis,s);
+		}
+
+	}
+
+	rayHit(r){
+
+		//console.log(o)
+		if(r.hit) this.floorNormal.fromArray(r.normal).normalize();
+		else this.floorNormal.set(0,0,0);
+		
+	}
+
+	update( delta ){
+
+		const key = this.motor.getKey();
+		const math = this.motor.math;
+
+		if(this.phyMove) this.car.position.copy(this.sphere.position).add(this.decal);
+
+		const transform = this.motor.getTransform(this.car);
+
+		// moving
+
+
+		this.tt.copy(transform.forward).multiplyScalar(this.moveSpeed*-key[1]*delta);
+
+        this.moveForce.add(this.tt);
+
+        if(!this.phyMove) this.car.position.add(this.moveForce.clone().multiplyScalar(delta));
+
+        //this.car.position.copy(this.sphere.position).add(this.decal);
+
+        this.tmpQ1.setFromUnitVectors( this.up, this.floorNormal );
+        this.tmpQ2.slerp(this.tmpQ1, delta*4);
+
+        let ar = this.moveForce.toArray();
+
+        this.motor.change({ name:this.sphere.name, linear:ar, velocityOperation:'xz' });
+        
+
+
+
+
+
+		// Steering
+
+        let steerInput = -key[0];
+        let magnitude = this.moveForce.length();
+        // console.log(transform.up)
+        // transform.up.multiplyScalar(steerInput*magnitude*this.SteerAngle*delta)
+
+        this.angleS = (steerInput*this.SteerAngle)*math.torad;
+
+        //this.angle += (steerInput*magnitude*this.SteerAngle*delta)*math.torad;
+
+        this.angle += this.angleS*magnitude*delta;
+
+        //this.angleS = math.clamp(Math.PI/2 + this.angle, -this.SteerAngle, this.SteerAngle)
+
+        //this.car.rotation.y += transform.up.y*math.torad
+
+        this.car.quaternion.setFromAxisAngle(this.up, this.angle).premultiply(this.tmpQ2);
+
+        //this.motor.change({ name:this.chassis.name, pos:this.car.position.toArray(), quat:this.car.quaternion.toArray() });
+
+
+        this.moveForce.multiplyScalar(this.drag);
+        this.moveForce.clampLength(0, this.maxSpeed);
+
+        magnitude = this.moveForce.length();
+
+
+        this.v1.copy(this.moveForce).normalize().multiplyScalar(1);
+        this.v2.copy(transform.forward).multiplyScalar(1);
+
+
+        // Traction
+        this.debuger.DrawRay(transform.position, this.v1, 'white');
+        this.debuger.DrawRay(transform.position, this.v2, 'blue');
+        //this.debug.DrawRay(transform.position, transform.right, 'red');
+
+        this.v1.copy(this.moveForce).normalize().lerp(transform.forward, this.traction*delta );
+
+        this.moveForce.copy(this.v1).multiplyScalar(magnitude);
+
+        this.updateWheels();
+    
+    }
+
+}
+
+// https://www.youtube.com/watch?v=WzNDI7g6jA4
+
+class Kart {
+
+	constructor ( o = {}, motor ) {
+
+		this.motor = motor;
+
+		this.speed=0;
+		this.currentSpeed=0;
+	    this.rotate=0; 
+	    this.currentRotate=0;
+	    this.driftDirection=0;
+	    this.driftPower=0;
+	    this.driftMode =0;
+
+	    this.first = false; 
+	    this.second = false; 
+	    this.third = false;
+
+
+		// kart test
+		//https://www.youtube.com/watch?v=Ki-tWT50cEQc
+
+		this.acceleration = 30;
+		this.steering = 80;
+		this.gravity = 10;
+
+		this.drifting = false;
+
+		this.py = new Vector3(0, 0.4, 0);
+
+
+
+this.v1 = new Vector3(0,0,0);
+
+
+		/*this.moveSpeed = 50;
+	    this.maxSpeed = 15;
+	    this.drag = 0.98;
+	    this.SteerAngle = 20;
+	    this.traction = 2;//1_10 drift 
+	    this.moveForce = new Vector3(0,0,0);
+
+	    this.tt = new Vector3(0,0,0);
+	    
+	    this.v2 = new Vector3(0,0,0);*/
+
+		
+
+		this.debug = this.motor.addDebuger();
+
+		
+		this.init(o);
+
+	}
+
+	init(){
+
+		this.sphere = this.motor.add({ type:'sphere', name:'baser', mass:1, size:[0.6], pos:[0,0.6,0], material:'debug' });
+
+		this.car = new Mesh(new BoxGeometry(1,0.5,1.2), new MeshBasicMaterial({wireframe:true}));
+		this.car.position.y = 0.5;
+		this.motor.add(this.car);
+
+		let axis = new AxesHelper();
+		this.car.add(axis);
+
+	}
+
+	boost( direction, amount ){
+
+		this.drifting = false;
+		this.driftPower = 0;
+        this.driftMode = 0;
+
+	}
+
+	steer( direction, amount ){
+
+		this.rotate = (this.steering * direction) * amount;
+
+	}
+
+	update( delta ){
+
+
+
+		const key = this.motor.getKey();
+		const math = this.motor.math;
+
+		//let test =  math.remap(-key[1], -1, 1, 0, 2);
+		//console.log(test)
+
+		this.car.position.copy(this.sphere.position).sub(this.py);
+
+		//Accelerate
+		//if (key[6]) this.speed = this.acceleration;
+		if (key[1]) this.speed = key[1]*this.acceleration;
+
+		//Steer
+		if (key[0]!==0) this.steer(key[0]>0?1:-1, Math.abs(key[0]));
+
+		//Drift
+		if( key[4] && !this.drifting && key[0]!==0){
+			this.drifting = true;
+            this.driftDirection = key[0]>0?1:-1;
+		}
+
+		if (this.drifting){
+			let control = this.driftDirection === 1 ? math.remap(key[0], -1, 1, 0, 2) : math.remap(key[0], -1, 1, 2, 0);
+			let powerControl = this.driftDirection === 1 ? math.remap(key[0], -1, 1, .2, 1) : math.remap(key[0], -1, 1, 1, .2);
+
+			this.steer(this.driftDirection, control);
+            this.driftPower += powerControl;
+		}
+
+		if( key[4] && this.drifting) this.boost();
+
+		this.currentSpeed = math.smoothstep(this.currentSpeed, this.speed, delta * 12); this.speed = 0;
+        this.currentRotate = math.lerp(this.currentRotate, this.rotate, delta * 4); this.rotate = 0;
+
+        //console.log(this.currentSpeed)
+		if (!this.drifting);
+
+
+		/*const transform = this.motor.getTransform(this.car);
+
+		// moving
+
+		this.tt.copy(transform.forward).multiplyScalar(this.moveSpeed*-key[1]*delta)
+
+        this.moveForce.add(this.tt)
+
+        this.car.position.add(this.moveForce.clone().multiplyScalar(delta))// += MoveForce * Time.deltaTime;
+
+		// Steering
+
+        let steerInput = -key[0];
+        let magnitude = this.moveForce.length()
+        transform.up.multiplyScalar(steerInput*magnitude*this.SteerAngle*delta)
+
+        this.car.rotation.y += transform.up.y*this.motor.math.torad
+
+
+        this.moveForce.multiplyScalar(this.drag)
+        this.moveForce.clampLength(0, this.maxSpeed)
+
+        magnitude = this.moveForce.length()
+
+
+        this.v1.copy(this.moveForce).normalize().multiplyScalar(3)
+        this.v2.copy(transform.forward).multiplyScalar(3)
+
+
+        // Traction
+        this.debug.DrawRay(transform.position, this.v1, 'white');
+        this.debug.DrawRay(transform.position, this.v2, 'blue');
+        this.debug.DrawRay(transform.position, transform.right, 'red');
+
+
+        this.v1.copy(this.moveForce).normalize().lerp(transform.forward, this.traction*delta )
+
+        this.moveForce.copy(this.v1).multiplyScalar(magnitude)*/
+
+        this.updatePhy( delta );
+    
+    }
+
+    updatePhy( delta ){
+    	const transform = this.motor.getTransform(this.sphere);
+    	const transformCar = this.motor.getTransform(this.car);
+    	
+    	//Forward Acceleration
+
+    	if(!this.drifting){
+    		this.v1.copy(transformCar.right).multiplyScalar(-this.currentSpeed);
+    		this.motor.change({ name:this.sphere.name, force:this.v1.toArray(), forceMode:'force' });
+    	} else {
+    		this.v1.copy(transform.forward).multiplyScalar(this.currentSpeed);
+    		this.motor.change({ name:this.sphere.name, force:this.v1.toArray(), forceMode:'force' });
+    	}
+
+    	//Steering
+    	let r = new Vector3(this.car.rotation.x*math.todeg, this.car.rotation.y*math.todeg, this.car.rotation.z*math.todeg);
+		let v = new Vector3(0, (this.car.rotation.y*math.todeg)+this.currentRotate, 0);
+		r.lerp(v, delta * 5);
+		
+		this.car.rotation.set(r.x*math.torad, r.y*math.torad, r.z*math.torad);
+    }
+
+}
+
 const _offsetMatrix = new Matrix4();
 const _identityMatrix = new Matrix4();
 new Vector3();
@@ -39649,6 +40399,8 @@ class PhyEngine {
 		this.viewSize = null;
 		this.debug = false;
 		this.delta = 0;
+
+		this.debuger = null;
 
 		this.mouseActive = false;
 
@@ -39937,13 +40689,43 @@ class PhyEngine {
 		};
 
 
-		// return
+		//-----------------------
+		//  DEBUGER TEST
+		//-----------------------
 
-		this.rayCar = ( o ) => {
+		this.addDebuger = () => {
 
-			const arg = new RayCar( o, this );
-			//this.scene.add( arg.model );
-			return arg;
+			if( this.debuger !== null ) return;
+			this.debuger = new Debuger( this );
+			this.scenePlus.add(this.debuger);
+			return this.debuger
+
+		};
+
+		this.removeDebuger = () => {
+
+			if( this.debuger !== null ){
+				this.debuger.dispose();
+				this.debuger = null;
+			}
+
+		};
+
+
+		//-----------------------
+		//  EXTRA OBJECT
+		//-----------------------
+
+		this.vehicle = ( o ) => {
+
+			let b;
+			switch(o.type){
+				case 'raycar': b =  new RayCar(o, this); break;
+				case 'taxi': b =  new Taxi(o, this); break;
+				case 'Kart': b =  new Kart(o, this); break;
+				case 'helico': b =  new Helicopter(o, this); break;
+			}
+			return b;
 
 		};
 
@@ -39955,9 +40737,13 @@ class PhyEngine {
 
 		};
 
+
+		//-----------------------
+		//  BASE FUNCTION
+		//-----------------------
+
 		this.byName = ( name ) => ( this.utils.byName( name ) );
 		this.getScene = () => ( this.scene );
-
 
 		this.makeView = () => {};
 
@@ -40330,6 +41116,8 @@ class PhyEngine {
 			this.garbage = [];
 
 			if( breaker !== null ) breaker = null;
+
+			if( this.debuger !== null ) this.removeDebuger();
 				
 		    this.scenePlus.children = [];
 		    this.scene.children = [];
@@ -40431,6 +41219,8 @@ class PhyEngine {
 			if( breaker !== null ) breaker.step();
 
 			if( currentControle !== null ) currentControle.move();
+
+			if( this.debuger !== null ) this.debuger.draw();
 
 			
 
@@ -40542,6 +41332,14 @@ class PhyEngine {
 			this.upButton();
 
 		};
+
+		this.getTransform = (b) => {
+
+		    return items.body.getTransform( b ) 
+
+		};
+
+		
 
 
 		//-----------------------
@@ -40892,15 +41690,19 @@ class PhyEngine {
 
 
 		//-----------------------
-		//  PARTICLE
+		//  PARTICLE 
 		//-----------------------
 
 		this.initParticle = ()=>{};
 		this.addParticle = ()=>{};
 		this.getParticle = ()=>{};
 
+		//--------------------------
+		//  CLOTH PARTICLE PHYSICS
+		//--------------------------
+
 		this.addParticleSolver = ( o )=>{
-			let s = new Particle( o, this );
+			let s = new ParticleSolver( o, this );
 			particles.push(s);
 			return s;
 		};
@@ -40921,12 +41723,7 @@ class PhyEngine {
 		};
 
 
-		this.addRayCar = (o) => {
-
-			let b = new RayCar( o, this );
-			return b;
-
-		};
+		
 
 
 		//-----------------------

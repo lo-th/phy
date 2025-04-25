@@ -112,6 +112,8 @@ export class ExtraRay {
 	    this.begin = o.begin || [0,0,0]
 	    this.end = o.end || [0,0,1]
 
+	    this.noRotation = o.noRotation || false;
+
 	    this.precision = o.precision || 1;
 	    this.group = o.group !== undefined || 1
 	    this.mask = o.mask !== undefined || -1
@@ -125,7 +127,7 @@ export class ExtraRay {
 				b.getMotionState().getWorldTransform( t )
 				//const t = b.getGlobalPose()
 				const p = t.getOrigin().toArray()
-				const q = t.getRotation().toArray()
+				const q = this.noRotation ? [0,0,0,1] : t.getRotation().toArray()
 				return [
 				    MathTool.applyTransformArray( this.begin, p, q ),
 				    MathTool.applyTransformArray( this.end, p, q )

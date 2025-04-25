@@ -134,9 +134,9 @@ export class Body extends Item {
 			case 'sphere' : shape = new Jolt.SphereShape(s[0], inMaterial); break;
 			case 'cylinder' : shape = new Jolt.CylinderShape( s[1] * 0.5, s[0],  inConvexRadius, inMaterial ); break;
 			case 'capsule' : shape = new Jolt.CapsuleShape( s[1] * 0.5, s[0],  inConvexRadius, inMaterial ); break;
-			/*
-			case 'particle' : g = new SphereGeometry( o.pSize || 0.05 ); break;
-			*/
+			/**/
+			case 'particle' : shape = new Jolt.SphereShape( o.pSize || 0.05, inMaterial ); break;
+			
 			
 			case 'convex' : 
 			    hull = new Jolt.ConvexHullShapeSettings;

@@ -47,7 +47,7 @@ export class Joint extends Item {
 
 	add ( o = {} ) {
 
-		let name = this.setName( o )
+		let name = this.setName( o );
 
 		let body1 = null;
 		let body2 = null;

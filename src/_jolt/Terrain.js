@@ -78,7 +78,7 @@ export class LandScape {
 		const position = new Jolt.RVec3(0,0,0).fromArray(pos); // The image tends towards 'white', so offset it down closer to zero
 		const rotation = new Jolt.Quat(0, 0, 0, 1);
 
-		let creationSettings = new Jolt.BodyCreationSettings(this.shape, position, rotation, Jolt.EBodyType_Static, root.LAYER_NON_MOVING);
+		let creationSettings = new Jolt.BodyCreationSettings(this.shape, position, rotation, Jolt.EMotionType_Static, root.LAYER_NON_MOVING);
 		this.body = root.bodyInterface.CreateBody(creationSettings);
 		Jolt.destroy(creationSettings);
 		//Jolt.destroy(this.shape);
@@ -97,11 +97,13 @@ export class LandScape {
 
 		// Create the heightfield
 		const shapeSettings = new Jolt.HeightFieldShapeSettings();
-		shapeSettings.mOffset = new Jolt.RVec3(0, 0, 0);
-		shapeSettings.mScale = new Jolt.RVec3(0, 0, 0).fromArray(this.scale);
+		shapeSettings.mOffset.Set(0, 0, 0);// = new Jolt.RVec3(0, 0, 0);
+		shapeSettings.mScale.Set(this.scale[0], this.scale[1], this.scale[2])// = new Jolt.RVec3(0, 0, 0).fromArray(this.scale);
 		shapeSettings.mSampleCount = this.sample[0];
 		shapeSettings.mBlockSize = 2;
 		const totalSize = h.length;
+
+
 		shapeSettings.mHeightSamples.resize(totalSize);
 		this.heightSamples = new Float32Array(Jolt.HEAPF32.buffer, Jolt.getPointer(shapeSettings.mHeightSamples.data()), totalSize );
 		for (let i = 0; i < totalSize; i++) {
@@ -129,11 +131,25 @@ export class LandScape {
 
 		if( o.heightData ){
 
-			const totalSize = o.heightData.length;
+			let h = o.heightData;
+
+			const READ_SIZE = this.sample[0];
+			const float32MemPointer = Jolt._webidl_malloc(READ_SIZE * READ_SIZE * 4);
+			const float32MemoryBuffer = new Float32Array(Jolt.HEAPF32.buffer, float32MemPointer, READ_SIZE * READ_SIZE);
+
+			const terrainHeightFieldShape = Jolt.castObject(this.body.GetShape(), Jolt.HeightFieldShape);
+			//terrainHeightFieldShape.GetHeights(0, 0, READ_SIZE, READ_SIZE, float32MemPointer, READ_SIZE)
+
+			const totalSize = h.length;
+
 			for (let i = 0; i < totalSize; i++) {
-				this.heightSamples[i] = o.heightData[i];
+				float32MemoryBuffer[i] = h[i]*this.size[1];
 			}
 
+			const centerOfMass = this.body.GetCenterOfMassPosition();
+
+			terrainHeightFieldShape.SetHeights(0, 0, READ_SIZE, READ_SIZE, float32MemPointer, READ_SIZE, root.world.GetTempAllocator());
+			root.bodyInterface.NotifyShapeChanged(this.body, centerOfMass, false, Jolt.EActivation_Activate);
 			/*if(this.geometry) havok.HP_Shape_Release(this.geometry)
 			this.getVertices( o.heightData )
 			this.geometry = havok.HP_Shape_CreateHeightField( this.divid[0], this.divid[1], this.scale, this.heights.byteOffset )[1]

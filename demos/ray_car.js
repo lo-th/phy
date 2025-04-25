@@ -57,8 +57,8 @@ onComplete = () => {
 
     //testCar( 0, [ 0,4,0 ] );
 
-    vehicle = phy.rayCar({ 
-
+    vehicle = phy.vehicle({ 
+        type:'raycar',
         name:'chassis0', 
         wheelMesh: meshes.wheel_l, 
         wheelMesh2: meshes.wheel_r,

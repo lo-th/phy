@@ -124,6 +124,8 @@ export class ExtraRay {
 
 	    this.selfHit = o.selfHit || false;
 
+	    this.noRotation = o.noRotation || false;
+
 	    this.begin = o.begin || [0,0,0]
 	    this.end = o.end || [0,0,1]
 
@@ -139,7 +141,7 @@ export class ExtraRay {
 				let p = b.translation()
 				let q = b.rotation()
 				const pp = [p.x, p.y, p.z]
-				const qq = [q.x, q.y, q.z, q.w]
+				const qq = this.noRotation ? [0,0,0,1] : [q.x, q.y, q.z, q.w]
 				return [
 				    MathTool.applyTransformArray( this.begin, pp, qq ),
 				    MathTool.applyTransformArray( this.end, pp, qq )

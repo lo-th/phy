@@ -59,7 +59,7 @@ class Basic3D extends EventDispatcher {
 		this.isKinematic = false;
 		
 		this.matrixAutoUpdate = false;
-		this.matrixWorldNeedsUpdate = false;
+		//this.matrixWorldNeedsUpdate = false;
 
 		this.layers = new Layers();
 		this.visible = true;

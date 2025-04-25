@@ -118,6 +118,8 @@ export class ExtraRay {
 	    this.name = o.name;
 	    this.parent = o.parent || ''
 
+	    this.noRotation = o.noRotation || false;
+
 	    this.begin = o.begin || [0,0,0]
 	    this.end = o.end || [0,0,1]
 
@@ -130,7 +132,7 @@ export class ExtraRay {
 				b.getPositionTo( p )
 			    b.getOrientationTo( q )
 				const pp = p.toArray()
-				const qq = q.toArray()
+				const qq = this.noRotation ? [0,0,0,1] : q.toArray()
 				return [
 				    MathTool.applyTransformArray( this.begin, pp, qq ),
 				    MathTool.applyTransformArray( this.end, pp, qq )

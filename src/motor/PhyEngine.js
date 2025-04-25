@@ -1,6 +1,6 @@
 
 import {
-    Group, Vector3, Vector2, Quaternion, SkeletonHelper, Matrix3,
+    Group, Vector3, Vector2, Quaternion, Matrix3,
 } from 'three';
 
 import { MathTool } from '../core/MathTool.js';
@@ -26,10 +26,16 @@ import { Textfield } from './extra/Textfield.js';
 import { Container } from './extra/Container.js';
 import { MouseTool } from './extra/MouseTool.js';
 import { Breaker } from './extra/Breaker.js';
-import { Particle } from './extra/Particle.js';
+import { ParticleSolver } from './extra/ParticleSolver.js';
 import { RayCar } from './extra/RayCar.js';
 import { Envmap } from './extra/Envmap.js';
 import { AutoRagdoll } from './extra/AutoRagdoll.js';
+import { Debuger } from './extra/Debuger.js';
+
+
+import { Helicopter } from './extra/vehicles/Helicopter.js';
+import { Taxi } from './extra/vehicles/Taxi.js';
+import { Kart } from './extra/vehicles/Kart.js';
 
 import { Pool } from '../3TH/Pool.js';
 import { sk } from '../3TH/character/SkeletonExtand.js';
@@ -82,6 +88,8 @@ export class PhyEngine {
 		this.viewSize = null;
 		this.debug = false;
 		this.delta = 0;
+
+		this.debuger = null;
 
 		this.mouseActive = false;
 
@@ -380,13 +388,43 @@ export class PhyEngine {
 		}
 
 
-		// return
+		//-----------------------
+		//  DEBUGER TEST
+		//-----------------------
 
-		this.rayCar = ( o ) => {
+		this.addDebuger = () => {
 
-			const arg = new RayCar( o, this );
-			//this.scene.add( arg.model );
-			return arg;
+			if( this.debuger !== null ) return;
+			this.debuger = new Debuger( this );
+			this.scenePlus.add(this.debuger);
+			return this.debuger
+
+		}
+
+		this.removeDebuger = () => {
+
+			if( this.debuger !== null ){
+				this.debuger.dispose();
+				this.debuger = null;
+			}
+
+		}
+
+
+		//-----------------------
+		//  EXTRA OBJECT
+		//-----------------------
+
+		this.vehicle = ( o ) => {
+
+			let b
+			switch(o.type){
+				case 'raycar': b =  new RayCar(o, this); break;
+				case 'taxi': b =  new Taxi(o, this); break;
+				case 'Kart': b =  new Kart(o, this); break;
+				case 'helico': b =  new Helicopter(o, this); break;
+			}
+			return b;
 
 		}
 
@@ -398,9 +436,13 @@ export class PhyEngine {
 
 		}
 
+
+		//-----------------------
+		//  BASE FUNCTION
+		//-----------------------
+
 		this.byName = ( name ) => ( this.utils.byName( name ) );
 		this.getScene = () => ( this.scene );
-
 
 		this.makeView = () => {}
 
@@ -773,6 +815,8 @@ export class PhyEngine {
 			this.garbage = [];
 
 			if( breaker !== null ) breaker = null;
+
+			if( this.debuger !== null ) this.removeDebuger();
 				
 		    this.scenePlus.children = [];
 		    this.scene.children = [];
@@ -874,6 +918,8 @@ export class PhyEngine {
 			if( breaker !== null ) breaker.step();
 
 			if( currentControle !== null ) currentControle.move();
+
+			if( this.debuger !== null ) this.debuger.draw();
 
 			
 
@@ -985,6 +1031,14 @@ export class PhyEngine {
 			this.upButton();
 
 		}
+
+		this.getTransform = (b) => {
+
+		    return items.body.getTransform( b ) 
+
+		}
+
+		
 
 
 		//-----------------------
@@ -1335,15 +1389,19 @@ export class PhyEngine {
 
 
 		//-----------------------
-		//  PARTICLE
+		//  PARTICLE 
 		//-----------------------
 
 		this.initParticle = ()=>{}
 		this.addParticle = ()=>{}
 		this.getParticle = ()=>{}
 
+		//--------------------------
+		//  CLOTH PARTICLE PHYSICS
+		//--------------------------
+
 		this.addParticleSolver = ( o )=>{
-			let s = new Particle( o, this );
+			let s = new ParticleSolver( o, this );
 			particles.push(s);
 			return s;
 		}
@@ -1364,12 +1422,7 @@ export class PhyEngine {
 		}
 
 
-		this.addRayCar = (o) => {
-
-			let b = new RayCar( o, this );
-			return b;
-
-		}
+		
 
 
 		//-----------------------

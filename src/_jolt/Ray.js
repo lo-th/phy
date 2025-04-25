@@ -179,6 +179,8 @@ export class ExtraRay {
 
 	    this.selfHit = o.selfHit || false;
 
+	    this.noRotation = o.noRotation || false;
+
 	    this.begin = o.begin || [0,0,0];
 	    this.end = o.end || [0,0,1];
 
@@ -190,7 +192,7 @@ export class ExtraRay {
 			const b = Utils.byName( this.parent );
 			if(b){
 				const p = b.GetPosition().toArray();
-				const q = b.GetRotation().toArray();
+				const q = this.noRotation ? [0,0,0,1] : b.GetRotation().toArray();
 				return [
 				    MathTool.applyTransformArray( this.begin, p, q ),
 				    MathTool.applyTransformArray( this.end, p, q )

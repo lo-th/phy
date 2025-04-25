@@ -3,8 +3,10 @@ let box = []
 demo = () => {
 
     phy.view({ 
-        ground:false, envmap:'alien', fogexp:0.1,
-        phi:0, theta:0, distance:10, x:0, y:0, z:0, fov:70 
+        ground:false, envmap:'alien', fogexp:0.05,
+        phi:0, theta:0, distance:7, x:0, y:0, z:0, fov:90,  
+        bgIntensity:4, envIntensity:6, exposure:0.2, direct:30
+
     })
 
     // config physics setting with null gravity
@@ -54,14 +56,14 @@ demo = () => {
             rot:[math.rand(0, 360),math.rand(0, 360),math.rand(0, 360)],  
             pos:p.toArray(), 
             shapes:[
-            { type:'cylinder', pos:[0,0,0], size:[ s*0.25,s,s*0.25 ] },
+            { type:'capsule', pos:[0,0,0], size:[ s*0.25,s,s*0.25 ] },
             { type:'box', pos:[0,0,0], size:[ s*3,s*0.05,s*0.5 ] }
             ],
             density:s, 
             friction:0.2, 
             restitution:0.5,
-            damping:[0,0.8],
-            material:'chrome'
+            damping:[0.25,0.5],
+            material:'silver'
         })
     }
 

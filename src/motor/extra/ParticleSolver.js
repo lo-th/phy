@@ -14,7 +14,7 @@ const SPHSystem_update_r_vec = new Vector3()
 const SPHSystem_update_u = new Vector3()
 
 
-export class Particle {
+export class ParticleSolver {
 
 	constructor ( o = {}, motor ) {
 
@@ -35,8 +35,9 @@ export class Particle {
 	     * It should be adjusted so there are about 15-20 neighbor particles within this radius.
 	     * @property {number} smoothingRadius
 	     */
-	    this.smoothingRadius = o.smoothDistance || 0.2
-	    this.speedOfSound = o.speedOfSound || 0.1
+	    this.smoothing = o.smoothing || 0.2
+	    // speedOfSound
+	    this.speed = o.speed || 0.1
 	    
 	    /**
 	     * Viscosity of the system.
@@ -65,7 +66,7 @@ export class Particle {
             type:'particle', 
             //type:'sphere',
             //flags:'noQuery',
-            size:[0.2],
+            size:[0.02],
             pSize:0.02,
             pos:pos, 
 
@@ -73,7 +74,7 @@ export class Particle {
             //inertia:[0.00001,0.00001,0.00001], 
             //iterations:[10,1],
             
-            mass:0.001, 
+            mass:0.01, 
             //density:0.0000001,
             restitution:0.0, 
             friction:0.5, 
@@ -190,7 +191,7 @@ export class Particle {
 
 	    const N = this.particles.length
 	    const id = particle.id
-	    const R2 = this.smoothingRadius * this.smoothingRadius
+	    const R2 = this.smoothing * this.smoothing
 	    let distance = 0//SPHSystem_getNeighbors_dist
 	    for (let i = 0; i !== N; i++) {
 	        const p = this.particles[i]
@@ -210,7 +211,7 @@ export class Particle {
     // Calculate the weight using the W(r) weightfunction
 	w(r) {
 	    // 315
-	    const h = this.smoothingRadius
+	    const h = this.smoothing
 	    return (315.0 / (64.0 * Math.PI * h ** 9)) * (h * h - r * r) ** 3
 	}
 
@@ -218,14 +219,14 @@ export class Particle {
 	gradw(rVec, resultVec) {
 
 	    const r = rVec.length()
-	    const h = this.smoothingRadius
+	    const h = this.smoothing
 	    resultVec.copy(rVec).multiplyScalar( (945.0 / (32.0 * Math.PI * h ** 9)) * (h * h - r * r) ** 2 )
 	    //rVec.scale((945.0 / (32.0 * Math.PI * h ** 9)) * (h * h - r * r) ** 2, resultVec)
 	}
 
 	// Calculate nabla(W)
 	nablaw(r) {
-	    const h = this.smoothingRadius
+	    const h = this.smoothing
 	    const nabla = (945.0 / (32.0 * Math.PI * h ** 9)) * (h * h - r * r) * (7 * r * r - 3 * h * h)
 	    return nabla
 	}
@@ -236,7 +237,7 @@ export class Particle {
 
 		const N = this.particles.length
 	    const dist = SPHSystem_update_dist
-	    const cs = this.speedOfSound
+	    const cs = this.speed
 	    const eps = this.eps
 
 	    let i = N, j
@@ -356,8 +357,6 @@ export class Particle {
 	    }
 
 	    this.motor.change(TMP)
-
-
 
 	}
 

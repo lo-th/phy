@@ -75,8 +75,9 @@ onComplete = () => {
 
     let py = -0.8
 
-    vehicle = phy.rayCar({ 
+    vehicle = phy.vehicle({ 
 
+        type:'raycar',
         name:'alpine', 
         wheelPosition:[0.77, 0, 1.215],
         wheelRadius:0.31,

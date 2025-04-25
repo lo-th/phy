@@ -2,7 +2,6 @@ import {
 	Object3D, LineSegments, BufferGeometry, Float32BufferAttribute, Matrix4, Quaternion, Vector3
 } from 'three';
 
-//import { Basic3D } from '../../core/Basic3D.js';
 import { MathTool } from '../../core/MathTool.js';
 import { AutoSvg } from '../../3TH/AutoSvg.js';
 
@@ -22,6 +21,8 @@ export class JointDebug extends Object3D {
 	    
 	    this.mtx = new Matrix4();
 	    this.size = o.helperSize || 0.1;
+
+	    this.matrixAutoUpdate = false;
 
 	    let material = this.motor.mat.get('line');
 	    let mat, dt
@@ -164,41 +165,18 @@ export class JointDebug extends Object3D {
 			this.m2.matrix.copy( this.mat2 )
 		}
 
-		this.m2.matrix.premultiply(this.matrix.clone().invert())
-		this.end.setFromMatrixPosition( this.m2.matrix )
+		this.m2.matrix.premultiply(this.matrix.clone().invert());
+		this.end.setFromMatrixPosition( this.m2.matrix );
 
-
-
-
-
-		//m.matrix = b.matrixWorld;
-        //m.matrixAutoUpdate = false;
-
-		//this.position.fromArray( r, n );
-		//this.quaternion.fromArray( r, n + 3 );
-
-		//this.updateMatrix();
-
-		//this.m2.position.fromArray( r, n+7 );
-		//this.m2.quaternion.fromArray( r, n+10 );
-		//this.m2.matrix.compose( this.m2.position, this.m2.quaternion, {x:1,y:1,z:1} );
-
-		//this.mtx.copy( this.matrix ).invert().multiply( this.m2.matrix );
-		//this.mtx.decompose( this.m2.position, this.m2.quaternion, {x:1,y:1,z:1} );
-		//this.m2.updateMatrix();
-
-		//const position = this.m3.geometry.attributes.position;
-		//position.setXYZ(1, this.m2.position.x, this.m2.position.y, this.m2.position.z)
-
-		this.pp.setXYZ(1, this.end.x, this.end.y, this.end.z)
-		this.pp.needsUpdate = true
+		this.pp.setXYZ(1, this.end.x, this.end.y, this.end.z);
+		this.pp.needsUpdate = true;
 
 		if( this.mode === 'cylindrical' ){ 
 			this.m1.position.copy( this.end );
 			this.m1.updateMatrix();
 		}
 
-		if( !this.visible ) this.visible = true;
+		//if( !this.visible ) this.visible = true;
 
 	}
 
@@ -206,7 +184,6 @@ export class JointDebug extends Object3D {
 
 		//if( !this.isVisible ) return
 		if( !this.visible ) return
-
 
 		//m.matrix = b.matrixWorld;
         //m.matrixAutoUpdate = false;
@@ -233,7 +210,7 @@ export class JointDebug extends Object3D {
 			this.m1.updateMatrix();
 		}
 
-		if( !this.visible ) this.visible = true;
+		//if( !this.visible ) this.visible = true;
 
 	}
 

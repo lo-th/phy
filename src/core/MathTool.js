@@ -68,6 +68,16 @@ const M = {
 
     clampA: ( v, min, max ) => ( Math.max( min, Math.min( max, v ) ) ),
 
+    smoothstep: ( min, max, t ) => {
+        t = M.clamp(t);
+        t = -2.0 * t * t * t + 3.0 * t * t;
+        return min * t + max * (1 - t);
+    },
+
+    remap: ( f, fmin, fmax, min, max) => {
+        return min + (f - fmin) * (max - min) / (fmax - fmin);
+    },
+
     lerp: ( x, y, t ) => ( ( 1 - t ) * x + t * y ),
     damp: ( x, y, lambda, dt ) => ( M.lerp( x, y, 1 - Math.exp( - lambda * dt ) ) ),
 
@@ -788,7 +798,10 @@ const M = {
     densityFromMass: ( mass, volume ) =>  ( mass / volume ),
 
 
-    // GEOMETRY
+    //-----------------------
+    //  GEOMETRY
+    //-----------------------
+
     toNonIndexed: ( g ) => ( !g.index ? g : g.clone().toNonIndexed() ),
 
     getIndex: ( g, noIndex ) => {

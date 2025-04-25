@@ -20,6 +20,10 @@ import { CapsuleHelper  } from '../3TH/helpers/CapsuleHelper.js';
 let Geo = null;
 let Mat = null;
 
+const _up = /*@__PURE__*/ new Vector3(0,1,0);
+const _right = /*@__PURE__*/ new Vector3(1,0,0);
+const _forward = /*@__PURE__*/ new Vector3(0,0,1);
+
 // THREE BODY
 
 export class Body extends Item {
@@ -976,6 +980,25 @@ export class Body extends Item {
 			} else {
 				b.matrixAutoUpdate = true;
 			}
+		}
+
+	}
+
+	getTransform( b ){
+
+		if( typeof b === 'string' ) b = this.byName( o.name );
+		if( b === null ) return;
+
+		b.updateWorldMatrix( true, false );
+
+		const e = b.matrixWorld.elements;
+
+		//let q = b.quaternion;
+		return {
+			position:b.position.clone(),
+			up: _up.clone().set( e[ 4 ], e[ 5 ], e[ 6 ] ).normalize(),//.applyQuaternion( q ),
+			right: _right.clone().set( e[ 0 ], e[ 1 ], e[ 2 ] ).normalize(),//.applyQuaternion( q ),
+			forward: _forward.clone().set( e[ 8 ], e[ 9 ], e[ 10 ] ).normalize()//.applyQuaternion( q ),
 		}
 
 	}

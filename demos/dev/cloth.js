@@ -35,9 +35,9 @@ function demo() {
 
 
     pp = phy.addParticleSolver({
-        density:0.1,
-        smoothDistance:50,
-        speedOfSound:20,
+        density:10,
+        smoothing:50,
+        speed:0.2,
         viscosity:0.06,
 
 
@@ -69,7 +69,7 @@ function demo() {
         if (row < lng-1) link.push([n, n + lng ]);
         // cross
         if (col < lng-1 && row < lng-1){ 
-            link.push([ n + 1, n + lng ]);
+            //link.push([ n + 1, n + lng ]);
             //link.push([ n, n + lng + 1 ]);
         }
 
@@ -80,13 +80,18 @@ function demo() {
 
     }
 
-    
 
     pp.connect( link )
 
     phy.setPostUpdate ( update )
 
     //console.log(link)
+
+    let gui = phy.gui();
+    gui.add( pp, 'density', { min:0, max:100, mode:2 } )
+    gui.add( pp, 'viscosity', { min:0, max:100, mode:2 } )
+    gui.add( pp, 'smoothing', { min:0, max:100, mode:2 } )
+    gui.add( pp, 'speed', { min:0, max:100, mode:2 } )
 
 }
 

@@ -30,7 +30,7 @@ export class Planet extends Mesh {
             height: o.height || 4,
         }
 
-        this.uvx = o.uv || [2,2];
+        this.uvx = o.uv || [4,4];
 
         let typer = ['cliff', 'crater', 'desert', 'ice', 'plate', 'rock', 'rock2', 'mud', 'snow']
 
@@ -44,7 +44,7 @@ export class Planet extends Mesh {
             vertexColors:true,
             map:this.m1, 
             normalMap:this.m2,
-            normalScale:new Vector2(1,1), 
+            normalScale:new Vector2(2,2), 
             roughness:0.6, 
             metalness:0.5,
          });

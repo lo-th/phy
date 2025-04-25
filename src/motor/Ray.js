@@ -140,6 +140,10 @@ export class ExtraRay extends Line {
 	    this.colors = this.geometry.attributes.color;
 	    this.local = [ 0, 0, 0, 0, 0, 0, 0, 0, 0 ];
 
+	    this.noRotation = o.noRotation || false;
+
+	    this.fakeMatrix = new Matrix4()
+
 	    this.matrixAutoUpdate = false;
 	    this.frustumCulled = false;
 
@@ -187,9 +191,14 @@ export class ExtraRay extends Line {
 
 		} else {
 			if( this.parentMesh ){
-				//this.data.parent = this.parentMesh;
-				//this.parentMesh.updateWorldMatrix(false,false )
-				const mtx = this.parentMesh.matrixWorld;
+				let mtx ;
+				if(this.noRotation){
+					mtx = this.fakeMatrix.setPosition(this.parentMesh.position.x, this.parentMesh.position.y, this.parentMesh.position.z )
+				} else {
+					mtx = this.parentMesh.matrixWorld;
+				}
+				//this.parentMesh.updateWorldMatrix( true, false )
+				
 				this.tmp.copy( this.begin ).applyMatrix4(mtx).toArray( this.local, 0 );
 				this.tmp.copy( this.end ).applyMatrix4(mtx);
 				this.tmp.toArray( this.local, 3 );
