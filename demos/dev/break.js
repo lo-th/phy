@@ -59,7 +59,6 @@ onComplete = (name) => {
             fragment = fragment.replace( '#include <map_fragment>', newmap );
             
             shader.fragmentShader = fragment;
-
             
         }
     }

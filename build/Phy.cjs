@@ -36520,10 +36520,9 @@ class Breaker {
 		//this.motor.activeContact();
 
 		//this.convexBreaker = new ConvexObjectBreaker();
-		this.tmpI = new THREE.Vector3();
-
-		this.tpos = new THREE.Vector3();
-		this.tnormal = new THREE.Vector3();
+		//this.tmpI = new Vector3();
+		this.tpos = new three.Vector3();
+		this.tnormal = new three.Vector3();
 
 		this.nDebris = 0;
 		this.maxDebris = 1000;

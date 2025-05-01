@@ -1,4 +1,4 @@
-import { MeshBasicMaterial } from 'three';
+import { Vector3, MeshBasicMaterial } from 'three';
 //import { ConvexObjectBreaker } from '../3TH/objects/ConvexObjectBreaker.js';
 //import { ConvexObjectBreaker } from '../../jsm/misc/ConvexObjectBreaker.js';
 import { FragmentsToMesh, SubdivideByImpact, Fracture } from "../../libs/fracture.module.js"
@@ -12,10 +12,9 @@ export class Breaker {
 		//this.motor.activeContact();
 
 		//this.convexBreaker = new ConvexObjectBreaker();
-		this.tmpI = new THREE.Vector3();
-
-		this.tpos = new THREE.Vector3();
-		this.tnormal = new THREE.Vector3();
+		//this.tmpI = new Vector3();
+		this.tpos = new Vector3();
+		this.tnormal = new Vector3();
 
 		this.nDebris = 0
 		this.maxDebris = 1000
