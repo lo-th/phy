@@ -341,7 +341,7 @@ export const Main = {
 		Main.demoLink = [ ...d.Basic, ...d.Advanced, ...d[Main.engineType] ]
 		Main.devLink = [ ...d.Dev ];
 		if( Main.devMode ){ 
-			Main.demoLink = [ ...Main.demoLink, ...d.Dev ];
+			Main.demoLink = [ ...Main.demoLink, ...d.Dev, ...d.Private ];
 			let j = d.Dev.length;
 			while(j--){
 				let name = d.Dev[j];

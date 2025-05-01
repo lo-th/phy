@@ -50,6 +50,10 @@ let current = '';
 
 export class engine {
 
+	static activeContact(){
+		root.needContact = true;
+	}
+
 	static test (){}
 
 	static message ( m ) {

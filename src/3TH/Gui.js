@@ -93,7 +93,7 @@ export const Gui = {
 		Main = r;
 	},
 
-	extraUi: ( data = null ) => { 
+	extraUi: ( data = null, w = 200 ) => { 
 
 		if( Gui.uix ){ 
 			Gui.uix.dispose();
@@ -102,7 +102,7 @@ export const Gui = {
 
 		//console.log('uix add')
 
-		Gui.uix = new UIL.Gui( { parent:Main.getCorner(), w:200, h:24, open:true, close:false, css:'left:40px;', bottom:40, colors:Gui.colors, transition:0 } )//
+		Gui.uix = new UIL.Gui( { parent:Main.getCorner(), w:w, h:24, open:true, close:false, css:'left:40px;', bottom:40, colors:Gui.colors, transition:0 } )//
 
 		if( data ){
 			let d;

@@ -27,12 +27,12 @@ import { Container } from './extra/Container.js';
 import { MouseTool } from './extra/MouseTool.js';
 import { Breaker } from './extra/Breaker.js';
 import { ParticleSolver } from './extra/ParticleSolver.js';
-import { RayCar } from './extra/RayCar.js';
+
 import { Envmap } from './extra/Envmap.js';
 import { AutoRagdoll } from './extra/AutoRagdoll.js';
 import { Debuger } from './extra/Debuger.js';
 
-
+import { RayCar } from './extra/vehicles/RayCar.js';
 import { Helicopter } from './extra/vehicles/Helicopter.js';
 import { Taxi } from './extra/vehicles/Taxi.js';
 import { Kart } from './extra/vehicles/Kart.js';
@@ -103,6 +103,8 @@ export class PhyEngine {
 
 		
 		let addToFlow = true;
+
+		let needContact = false;
 
 		let currentControle = null;
 		let callbackReady = null;
@@ -781,6 +783,7 @@ export class PhyEngine {
 			buttons = [];
 
 			currentControle = null;
+			needContact = false;
 
 			if( controls ) controls.resetAll();
 			if( mouseTool ) mouseTool.unSelect();
@@ -821,7 +824,7 @@ export class PhyEngine {
 		    this.scenePlus.children = [];
 		    this.scene.children = [];
 
-			this.post({ m:'reset' });
+			this.post({ m:'reset', o:{} });
 
 		}
 
@@ -983,6 +986,15 @@ export class PhyEngine {
 
 			return items.body.list;
 
+		}
+
+		this.activeContact = () => {
+
+			if(!needContact ){
+				needContact = true;
+				this.post( { m:'activeContact', o:{} } );
+			}
+			
 		}
 
 

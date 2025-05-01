@@ -165,10 +165,10 @@ export class Body extends Item {
 		}
 
 		if( o.radius ){
-			if( !o.breakable ){
+			//if( !o.breakable ){
 				if( t === 'box' ) t = 'ChamferBox';
 				if( t === 'cylinder' ) t = 'ChamferCyl';
-			}
+			//}
 		}
 
 		if( o.geometry ){
@@ -282,6 +282,13 @@ export class Body extends Item {
 						index16[z] = o.index[z];
 					}
 					o.index = index16;
+				}
+
+				if(this.engine === 'PHYSX'){
+					let center = new Vector3();
+					MathTool.getCenter( g, center );
+					o.massCenter = center.toArray();
+					//console.log(o.massCenter)
 				}
 				
 				
@@ -859,14 +866,48 @@ export class Body extends Item {
     	if( o.breakable ){
 
     		this.motor.addBreaker();
-			let child = b.children[0];
-			b.remove(child);
+
+    		let old = b;
+			let child = old.children[0];
+			old.remove(child);
 			b = child;
+			b.position.copy(old.position);
+			b.quaternion.copy(old.quaternion);
+
 			b.name = name;
 			b.type = this.type;
-			b.density = o.density;
+			//b.density = o.density;
 			b.breakable = true;
 			b.breakOption = o.breakOption !== undefined ? o.breakOption : [ 250, 1, 2, 1 ];
+			b.getVelocity = true;
+
+			///
+
+			b.size = o.size;
+			b.shapetype = o.type;
+			b.isKinematic = o.kinematic || false;
+			b.link = 0;
+
+			b.meshSize = o.meshSize ? o.meshSize : 1;
+
+			b.velocity = new Vector3();
+			b.angular = new Vector3();
+
+			b.sleep = o.sleep || false
+			b.defMat = false;
+
+
+
+
+			b.auto = o.auto || false;
+
+		    if( !b.auto ) {
+		    	b.matrixAutoUpdate = false;
+			    b.updateMatrix();
+			} else {
+				b.matrixAutoUpdate = true;
+			}
+			
 			//b.userData.mass = o.mass;
 		}
 
@@ -897,7 +938,7 @@ export class Body extends Item {
 		else if( b.mass && !b.density ){ 
 			b.density = MathTool.densityFromMass( b.mass, volume );
 			//  force density for engin don't have mass
-			if( this.engine === 'RAPIER' || this.engine === 'OIMO') o.density = b.density;
+			if( this.engine === 'RAPIER' || this.engine === 'OIMO'|| this.engine === 'PHYSX') o.density = b.density;
 		}
 
 
@@ -945,6 +986,8 @@ export class Body extends Item {
 		//---------------------------
 
 		this.motor.post( { m:'add', o:o } );
+
+		if( o.breakable ) this.motor.add({ type:'contact', name:'cc_'+b.name,  b1:b.name, callback: null })
 
 		//---------------------------
 		// return three object3d

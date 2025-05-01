@@ -437,21 +437,24 @@ export class MouseTool {
 
 	shoot () {
 
+		const o = this.option
+
 		this.raycast.setFromCamera( this.mouse, this.controler.object )
 		this.pos.copy( this.raycast.ray.direction ).add(  this.raycast.ray.origin );
-		this.velocity.copy( this.raycast.ray.direction ).multiplyScalar( 60 )
+		this.velocity.copy( this.raycast.ray.direction ).multiplyScalar( o.velocity || 60 )
 
 		this.motor.add({
 			name: 'bullet_' + this.numBullet,
 			type:'sphere',
-			density:20,
-			size:[0.2], 
-			material:'chrome',
+			mass: o.mass || 10,
+			//density:20,
+			size:[o.size || 0.2], 
+			material:o.mat || 'chrome',
 			pos:this.pos.toArray(),
 			linearVelocity:this.velocity.toArray(),
 			bullet:true,
-			/*ccdThreshold:0.0000001,
-            ccdRadius:0.1,*/
+			ccdThreshold:0.0000001,
+            ccdRadius:o.size*2,/**/
 		})
 
 		this.numBullet++

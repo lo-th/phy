@@ -9,6 +9,7 @@ src/_physx
 src/_havok
 src/motor_old
 build/old
+assets/models/private
 assets/animation/animations.json
 assets/animation/fbx
 assets/textures/avatar_2k

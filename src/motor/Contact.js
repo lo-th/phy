@@ -62,6 +62,8 @@ export class Pair {
 		this.name = o.name;
 		this.callback = o.callback || function(){};
 
+		//console.log(this.name)
+
 		this.b1 = o.b1 || null;
 		this.b2 = o.b2 || null;
 		this.ignore = o.ignore || []

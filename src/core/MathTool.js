@@ -749,6 +749,13 @@ const M = {
     //  VOLUME
     //-----------------------
 
+    getCenter:( g, center ) => {
+
+        g.computeBoundingBox();
+        return g.boundingBox.getCenter( center );
+
+    },
+
     getVolume: ( type, size, vertex = null ) => {
 
         let volume = 1

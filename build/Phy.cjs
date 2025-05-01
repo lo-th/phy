@@ -10,7 +10,7 @@ const EPSILON = Number.EPSILON;//0.00001;
 const PI90 = PI*0.5;
 
 
-const M = {
+const M$1 = {
 
     //-----------------------
     //  LIGHT
@@ -66,7 +66,7 @@ const M = {
     clampA: ( v, min, max ) => ( Math.max( min, Math.min( max, v ) ) ),
 
     smoothstep: ( min, max, t ) => {
-        t = M.clamp(t);
+        t = M$1.clamp(t);
         t = -2 * t * t * t + 3.0 * t * t;
         return min * t + max * (1 - t);
     },
@@ -76,7 +76,7 @@ const M = {
     },
 
     lerp: ( x, y, t ) => ( ( 1 - t ) * x + t * y ),
-    damp: ( x, y, lambda, dt ) => ( M.lerp( x, y, 1 - Math.exp( - lambda * dt ) ) ),
+    damp: ( x, y, lambda, dt ) => ( M$1.lerp( x, y, 1 - Math.exp( - lambda * dt ) ) ),
 
     nearAngle: ( s1, s2, deg = false ) => ( s2 + Math.atan2(Math.sin(s1-s2), Math.cos(s1-s2)) * (deg ? todeg$1 : 1) ),
 
@@ -132,7 +132,7 @@ const M = {
     randIntUnic:  ( low, high, num ) => {
         var arr = [];
         while( arr.length < num ){
-            var r = M.randInt(low, high);
+            var r = M$1.randInt(low, high);
             if( arr.indexOf(r) === -1 ) arr.push(r);
         }
         return arr;
@@ -144,20 +144,20 @@ const M = {
 
     fromTransform: ( p1, q1, p2, q2 = [0,0,0,1], inv = false ) => {
 
-        let m1 = M.composeMatrixArray( p1, q1 );
-        let m2 = M.composeMatrixArray( p2, q2 );
-        if( inv ) m1 = M.invertMatrixArray(m1);
-        m1 = M.multiplyMatrixArray( m1, m2 );
+        let m1 = M$1.composeMatrixArray( p1, q1 );
+        let m2 = M$1.composeMatrixArray( p2, q2 );
+        if( inv ) m1 = M$1.invertMatrixArray(m1);
+        m1 = M$1.multiplyMatrixArray( m1, m2 );
         return [ m1[12],m1[13],m1[14]]
 
     },
 
     fromTransformToQ: ( p, q, inv = false ) => {
 
-        let m = M.composeMatrixArray( p, q );
-        let res = M.decomposeFullMatrixArray( m );
+        let m = M$1.composeMatrixArray( p, q );
+        let res = M$1.decomposeFullMatrixArray( m );
         let q1 = res.q;
-        if(inv) q1 = M.quatInvert(q1);
+        if(inv) q1 = M$1.quatInvert(q1);
         return q1
 
     },
@@ -170,8 +170,8 @@ const M = {
         let p = ar[0]; 
         let q = ar[1];
 
-        p = M.lerpArray(op, p, t);
-        q = M.slerpQuatArray(oq, q, t);
+        p = M$1.lerpArray(op, p, t);
+        q = M$1.slerpQuatArray(oq, q, t);
         return [p,q]
     },
 
@@ -339,12 +339,12 @@ const M = {
 
         const te = m;
 
-        let sx = M.lengthArray( [te[ 0 ], te[ 1 ], te[ 2 ]] );//_v1.set( te[ 0 ], te[ 1 ], te[ 2 ] ).length();
-        const sy = M.lengthArray( [te[ 4 ], te[ 5 ], te[ 6 ]] );//_v1.set( te[ 4 ], te[ 5 ], te[ 6 ] ).length();
-        const sz = M.lengthArray( [te[ 8 ], te[ 9 ], te[ 10 ]] );//_v1.set( te[ 8 ], te[ 9 ], te[ 10 ] ).length();
+        let sx = M$1.lengthArray( [te[ 0 ], te[ 1 ], te[ 2 ]] );//_v1.set( te[ 0 ], te[ 1 ], te[ 2 ] ).length();
+        const sy = M$1.lengthArray( [te[ 4 ], te[ 5 ], te[ 6 ]] );//_v1.set( te[ 4 ], te[ 5 ], te[ 6 ] ).length();
+        const sz = M$1.lengthArray( [te[ 8 ], te[ 9 ], te[ 10 ]] );//_v1.set( te[ 8 ], te[ 9 ], te[ 10 ] ).length();
 
         // if determine is negative, we need to invert one scale
-        const det = M.matrixArrayDeterminant(m);
+        const det = M$1.matrixArrayDeterminant(m);
         if ( det < 0 ) sx = - sx;
 
         let m1 = [...m];
@@ -364,7 +364,7 @@ const M = {
         m1[ 9 ] *= invSZ;
         m1[ 10 ] *= invSZ;
 
-        let q = M.quatFromRotationMatrix(m1); 
+        let q = M$1.quatFromRotationMatrix(m1); 
 
         return {
             p:[m[12],m[13],m[14]],
@@ -377,7 +377,7 @@ const M = {
     // for physx substep 
 
     applyTransformArray: ( v, p, q, s = [1,1,1] ) => {
-        const e = M.composeMatrixArray( p, q, s );
+        const e = M$1.composeMatrixArray( p, q, s );
         const x = v[0], y = v[1], z = v[2];
         const w = 1 / ( e[ 3 ] * x + e[ 7 ] * y + e[ 11 ] * z + e[ 15 ] );
         return [
@@ -416,7 +416,7 @@ const M = {
             r[0] = s * x + t * r[0];
             r[1] = s * y + t * r[1];
             r[2] = s * z + t * r[2];
-            return M.quatNomalize(r);
+            return M$1.quatNomalize(r);
 
         }
 
@@ -440,9 +440,9 @@ const M = {
 
     toLocalQuatArray: ( rot = [0,0,0], b ) => { // rotation array in degree
 
-        let q1 = M.quatFromEuler( rot );
-        let q2 = M.quatInvert( b.quaternion.toArray() );
-        return M.quatMultiply( q2, q1 )
+        let q1 = M$1.quatFromEuler( rot );
+        let q2 = M$1.quatInvert( b.quaternion.toArray() );
+        return M$1.quatMultiply( q2, q1 )
 
         /*quat.setFromEuler( euler.fromArray( math.vectorad( rot ) ) )
         quat.premultiply( b.quaternion.invert() );
@@ -536,12 +536,12 @@ const M = {
     },
 
     quatNomalize: ( q ) => {
-        let l = M.lengthArray( q );
+        let l = M$1.lengthArray( q );
         if ( l === 0 ) {
             return [0,0,0,1]
         } else {
             l = 1 / l;
-            return M.scaleArray(q, l, 4)
+            return M$1.scaleArray(q, l, 4)
         }
     },
 
@@ -578,7 +578,7 @@ const M = {
         te[ 2 ]; const m32 = te[ 6 ], m33 = te[ 10 ];
 
         let ar = [0,0,0];
-        ar[1] = Math.asin( M.clamp( m13, -1, 1 ) );
+        ar[1] = Math.asin( M$1.clamp( m13, -1, 1 ) );
         if ( Math.abs( m13 ) < 0.9999999 ) {
             ar[0] = Math.atan2( - m23, m33 );
             ar[2] = Math.atan2( - m12, m11 );
@@ -592,7 +592,7 @@ const M = {
 
     angleTo: ( a, b ) => {
 
-        return 2 * Math.acos( Math.abs( M.clamp( M.dotArray(a,b), -1, 1 ) ) );
+        return 2 * Math.acos( Math.abs( M$1.clamp( M$1.dotArray(a,b), -1, 1 ) ) );
 
     },
 
@@ -723,9 +723,9 @@ const M = {
         
     },
 
-    divArray: ( r, s, i ) => ( M.mulArray( r, 1/s, i ) ),
+    divArray: ( r, s, i ) => ( M$1.mulArray( r, 1/s, i ) ),
 
-    scaleArray: ( r, s, i ) => ( M.mulArray( r, s, i ) ),
+    scaleArray: ( r, s, i ) => ( M$1.mulArray( r, s, i ) ),
 
     fillArray: ( a, b, n = 0, i ) => {
         i = i ?? a.length;
@@ -736,15 +736,22 @@ const M = {
 
     cloneArray: ( a ) => ( [...a] ),
 
-    distanceArray: ( a, b = [0,0,0] ) => ( M.lengthArray( M.subArray( a, b ) ) ),
+    distanceArray: ( a, b = [0,0,0] ) => ( M$1.lengthArray( M$1.subArray( a, b ) ) ),
 
-    normalizeArray: ( a ) => ( M.divArray( a, M.lengthArray(a) || 1 ) ),
+    normalizeArray: ( a ) => ( M$1.divArray( a, M$1.lengthArray(a) || 1 ) ),
 
-    normalArray: ( a, b = [0,0,0] ) => ( M.normalizeArray( M.subArray( b, a ) ) ),
+    normalArray: ( a, b = [0,0,0] ) => ( M$1.normalizeArray( M$1.subArray( b, a ) ) ),
 
     //-----------------------
     //  VOLUME
     //-----------------------
+
+    getCenter:( g, center ) => {
+
+        g.computeBoundingBox();
+        return g.boundingBox.getCenter( center );
+
+    },
 
     getVolume: ( type, size, vertex = null ) => {
 
@@ -758,7 +765,7 @@ const M = {
             case 'box' : volume = 8 * (s[0]*0.5)*(s[1]*0.5)*(s[2]*0.5); break;
             case 'cylinder' : volume = Math.PI * s[0] * s[0] * (s[1] * 0.5) * 2; break;
             case 'capsule' : volume = ( (4*Math.PI*s[0]*s[0]*s[0])/3) + ( Math.PI * s[0] * s[0] * (s[1] * 0.5) * 2 ); break;
-            case 'convex' : case 'mesh' : volume = M.getConvexVolume( vertex ); break;
+            case 'convex' : case 'mesh' : volume = M$1.getConvexVolume( vertex ); break;
 
         }
 
@@ -860,7 +867,7 @@ const M = {
 
 };
 
-const MathTool = M;
+const MathTool = M$1;
 
 // point weight blend space javascript
 
@@ -6773,10 +6780,10 @@ var _b = freb(fdeb, 0), fd = _b[0];
 var rev = new u16(32768);
 for (var i = 0; i < 32768; ++i) {
     // reverse table algorithm from SO
-    var x$1 = ((i & 0xAAAA) >>> 1) | ((i & 0x5555) << 1);
-    x$1 = ((x$1 & 0xCCCC) >>> 2) | ((x$1 & 0x3333) << 2);
-    x$1 = ((x$1 & 0xF0F0) >>> 4) | ((x$1 & 0x0F0F) << 4);
-    rev[i] = (((x$1 & 0xFF00) >>> 8) | ((x$1 & 0x00FF) << 8)) >>> 1;
+    var x$2 = ((i & 0xAAAA) >>> 1) | ((i & 0x5555) << 1);
+    x$2 = ((x$2 & 0xCCCC) >>> 2) | ((x$2 & 0x3333) << 2);
+    x$2 = ((x$2 & 0xF0F0) >>> 4) | ((x$2 & 0x0F0F) << 4);
+    rev[i] = (((x$2 & 0xFF00) >>> 8) | ((x$2 & 0x00FF) << 8)) >>> 1;
 }
 // create huffman tree from u8 "map": index -> code length for code index
 // mb (max bits) must be at most 15
@@ -16407,9 +16414,9 @@ class WorkerPool {
 
 }
 
-const t=0,n=2,p=1,x=2,E=0,F=1,X=10,nt=0,ct=9,gt=15,yt=16,dt=22,Ot=37,Ft=43,$t=76,se=83,pe=97,xe=100,de=103,Ae=109,Sn=165,In=166,_i=1000066e3;class Si{constructor(){this.vkFormat=0,this.typeSize=1,this.pixelWidth=0,this.pixelHeight=0,this.pixelDepth=0,this.layerCount=0,this.faceCount=1,this.supercompressionScheme=0,this.levels=[],this.dataFormatDescriptor=[{vendorId:0,descriptorType:0,descriptorBlockSize:0,versionNumber:2,colorModel:0,colorPrimaries:1,transferFunction:2,flags:0,texelBlockDimension:[0,0,0,0],bytesPlane:[0,0,0,0,0,0,0,0],samples:[]}],this.keyValue={},this.globalData=null;}}class Ii{constructor(t,e,n,i){this._dataView=new DataView(t.buffer,t.byteOffset+e,n),this._littleEndian=i,this._offset=0;}_nextUint8(){const t=this._dataView.getUint8(this._offset);return this._offset+=1,t}_nextUint16(){const t=this._dataView.getUint16(this._offset,this._littleEndian);return this._offset+=2,t}_nextUint32(){const t=this._dataView.getUint32(this._offset,this._littleEndian);return this._offset+=4,t}_nextUint64(){const t=this._dataView.getUint32(this._offset,this._littleEndian)+2**32*this._dataView.getUint32(this._offset+4,this._littleEndian);return this._offset+=8,t}_nextInt32(){const t=this._dataView.getInt32(this._offset,this._littleEndian);return this._offset+=4,t}_skip(t){return this._offset+=t,this}_scan(t,e=0){const n=this._offset;let i=0;for(;this._dataView.getUint8(this._offset)!==e&&i<t;)i++,this._offset++;return i<t&&this._offset++,new Uint8Array(this._dataView.buffer,this._dataView.byteOffset+n,i)}}const Ti=[171,75,84,88,32,50,48,187,13,10,26,10];function Ei(t){return "undefined"!=typeof TextDecoder?(new TextDecoder).decode(t):Buffer.from(t).toString("utf8")}function Pi(t){const e=new Uint8Array(t.buffer,t.byteOffset,Ti.length);if(e[0]!==Ti[0]||e[1]!==Ti[1]||e[2]!==Ti[2]||e[3]!==Ti[3]||e[4]!==Ti[4]||e[5]!==Ti[5]||e[6]!==Ti[6]||e[7]!==Ti[7]||e[8]!==Ti[8]||e[9]!==Ti[9]||e[10]!==Ti[10]||e[11]!==Ti[11])throw new Error("Missing KTX 2.0 identifier.");const n=new Si,i=17*Uint32Array.BYTES_PER_ELEMENT,s=new Ii(t,Ti.length,i,true);n.vkFormat=s._nextUint32(),n.typeSize=s._nextUint32(),n.pixelWidth=s._nextUint32(),n.pixelHeight=s._nextUint32(),n.pixelDepth=s._nextUint32(),n.layerCount=s._nextUint32(),n.faceCount=s._nextUint32();const a=s._nextUint32();n.supercompressionScheme=s._nextUint32();const r=s._nextUint32(),o=s._nextUint32(),l=s._nextUint32(),f=s._nextUint32(),U=s._nextUint64(),c=s._nextUint64(),h=new Ii(t,Ti.length+i,3*a*8,true);for(let e=0;e<a;e++)n.levels.push({levelData:new Uint8Array(t.buffer,t.byteOffset+h._nextUint64(),h._nextUint64()),uncompressedByteLength:h._nextUint64()});const _=new Ii(t,r,o,true),p={vendorId:_._skip(4)._nextUint16(),descriptorType:_._nextUint16(),versionNumber:_._nextUint16(),descriptorBlockSize:_._nextUint16(),colorModel:_._nextUint8(),colorPrimaries:_._nextUint8(),transferFunction:_._nextUint8(),flags:_._nextUint8(),texelBlockDimension:[_._nextUint8(),_._nextUint8(),_._nextUint8(),_._nextUint8()],bytesPlane:[_._nextUint8(),_._nextUint8(),_._nextUint8(),_._nextUint8(),_._nextUint8(),_._nextUint8(),_._nextUint8(),_._nextUint8()],samples:[]},g=(p.descriptorBlockSize/4-6)/4;for(let t=0;t<g;t++){const e={bitOffset:_._nextUint16(),bitLength:_._nextUint8(),channelType:_._nextUint8(),samplePosition:[_._nextUint8(),_._nextUint8(),_._nextUint8(),_._nextUint8()],sampleLower:-Infinity,sampleUpper:Infinity};64&e.channelType?(e.sampleLower=_._nextInt32(),e.sampleUpper=_._nextInt32()):(e.sampleLower=_._nextUint32(),e.sampleUpper=_._nextUint32()),p.samples[t]=e;}n.dataFormatDescriptor.length=0,n.dataFormatDescriptor.push(p);const y=new Ii(t,l,f,true);for(;y._offset<f;){const t=y._nextUint32(),e=y._scan(t),i=Ei(e),s=y._scan(t-e.byteLength);n.keyValue[i]=i.match(/^ktx/i)?Ei(s):s,y._offset%4&&y._skip(4-y._offset%4);}if(c<=0)return n;const x=new Ii(t,U,c,true),u=x._nextUint16(),b=x._nextUint16(),d=x._nextUint32(),m=x._nextUint32(),w=x._nextUint32(),D=x._nextUint32(),B=[];for(let t=0;t<a;t++)B.push({imageFlags:x._nextUint32(),rgbSliceByteOffset:x._nextUint32(),rgbSliceByteLength:x._nextUint32(),alphaSliceByteOffset:x._nextUint32(),alphaSliceByteLength:x._nextUint32()});const L=U+x._offset,A=L+d,k=A+m,v=k+w,S=new Uint8Array(t.buffer,t.byteOffset+L,d),I=new Uint8Array(t.buffer,t.byteOffset+A,m),O=new Uint8Array(t.buffer,t.byteOffset+k,w),T=new Uint8Array(t.buffer,t.byteOffset+v,D);return n.globalData={endpointCount:u,selectorCount:b,imageDescs:B,endpointsData:S,selectorsData:I,tablesData:O,extendedData:T},n}
+const t=0,n=2,p$1=1,x$1=2,E$1=0,F$1=1,X=10,nt=0,ct=9,gt=15,yt=16,dt=22,Ot=37,Ft=43,$t=76,se=83,pe=97,xe=100,de=103,Ae=109,Sn=165,In=166,_i=1000066e3;class Si{constructor(){this.vkFormat=0,this.typeSize=1,this.pixelWidth=0,this.pixelHeight=0,this.pixelDepth=0,this.layerCount=0,this.faceCount=1,this.supercompressionScheme=0,this.levels=[],this.dataFormatDescriptor=[{vendorId:0,descriptorType:0,descriptorBlockSize:0,versionNumber:2,colorModel:0,colorPrimaries:1,transferFunction:2,flags:0,texelBlockDimension:[0,0,0,0],bytesPlane:[0,0,0,0,0,0,0,0],samples:[]}],this.keyValue={},this.globalData=null;}}class Ii{constructor(t,e,n,i){this._dataView=new DataView(t.buffer,t.byteOffset+e,n),this._littleEndian=i,this._offset=0;}_nextUint8(){const t=this._dataView.getUint8(this._offset);return this._offset+=1,t}_nextUint16(){const t=this._dataView.getUint16(this._offset,this._littleEndian);return this._offset+=2,t}_nextUint32(){const t=this._dataView.getUint32(this._offset,this._littleEndian);return this._offset+=4,t}_nextUint64(){const t=this._dataView.getUint32(this._offset,this._littleEndian)+2**32*this._dataView.getUint32(this._offset+4,this._littleEndian);return this._offset+=8,t}_nextInt32(){const t=this._dataView.getInt32(this._offset,this._littleEndian);return this._offset+=4,t}_skip(t){return this._offset+=t,this}_scan(t,e=0){const n=this._offset;let i=0;for(;this._dataView.getUint8(this._offset)!==e&&i<t;)i++,this._offset++;return i<t&&this._offset++,new Uint8Array(this._dataView.buffer,this._dataView.byteOffset+n,i)}}const Ti=[171,75,84,88,32,50,48,187,13,10,26,10];function Ei(t){return "undefined"!=typeof TextDecoder?(new TextDecoder).decode(t):Buffer.from(t).toString("utf8")}function Pi(t){const e=new Uint8Array(t.buffer,t.byteOffset,Ti.length);if(e[0]!==Ti[0]||e[1]!==Ti[1]||e[2]!==Ti[2]||e[3]!==Ti[3]||e[4]!==Ti[4]||e[5]!==Ti[5]||e[6]!==Ti[6]||e[7]!==Ti[7]||e[8]!==Ti[8]||e[9]!==Ti[9]||e[10]!==Ti[10]||e[11]!==Ti[11])throw new Error("Missing KTX 2.0 identifier.");const n=new Si,i=17*Uint32Array.BYTES_PER_ELEMENT,s=new Ii(t,Ti.length,i,true);n.vkFormat=s._nextUint32(),n.typeSize=s._nextUint32(),n.pixelWidth=s._nextUint32(),n.pixelHeight=s._nextUint32(),n.pixelDepth=s._nextUint32(),n.layerCount=s._nextUint32(),n.faceCount=s._nextUint32();const a=s._nextUint32();n.supercompressionScheme=s._nextUint32();const r=s._nextUint32(),o=s._nextUint32(),l=s._nextUint32(),f=s._nextUint32(),U=s._nextUint64(),c=s._nextUint64(),h=new Ii(t,Ti.length+i,3*a*8,true);for(let e=0;e<a;e++)n.levels.push({levelData:new Uint8Array(t.buffer,t.byteOffset+h._nextUint64(),h._nextUint64()),uncompressedByteLength:h._nextUint64()});const _=new Ii(t,r,o,true),p={vendorId:_._skip(4)._nextUint16(),descriptorType:_._nextUint16(),versionNumber:_._nextUint16(),descriptorBlockSize:_._nextUint16(),colorModel:_._nextUint8(),colorPrimaries:_._nextUint8(),transferFunction:_._nextUint8(),flags:_._nextUint8(),texelBlockDimension:[_._nextUint8(),_._nextUint8(),_._nextUint8(),_._nextUint8()],bytesPlane:[_._nextUint8(),_._nextUint8(),_._nextUint8(),_._nextUint8(),_._nextUint8(),_._nextUint8(),_._nextUint8(),_._nextUint8()],samples:[]},g=(p.descriptorBlockSize/4-6)/4;for(let t=0;t<g;t++){const e={bitOffset:_._nextUint16(),bitLength:_._nextUint8(),channelType:_._nextUint8(),samplePosition:[_._nextUint8(),_._nextUint8(),_._nextUint8(),_._nextUint8()],sampleLower:-Infinity,sampleUpper:Infinity};64&e.channelType?(e.sampleLower=_._nextInt32(),e.sampleUpper=_._nextInt32()):(e.sampleLower=_._nextUint32(),e.sampleUpper=_._nextUint32()),p.samples[t]=e;}n.dataFormatDescriptor.length=0,n.dataFormatDescriptor.push(p);const y=new Ii(t,l,f,true);for(;y._offset<f;){const t=y._nextUint32(),e=y._scan(t),i=Ei(e),s=y._scan(t-e.byteLength);n.keyValue[i]=i.match(/^ktx/i)?Ei(s):s,y._offset%4&&y._skip(4-y._offset%4);}if(c<=0)return n;const x=new Ii(t,U,c,true),u=x._nextUint16(),b=x._nextUint16(),d=x._nextUint32(),m=x._nextUint32(),w=x._nextUint32(),D=x._nextUint32(),B=[];for(let t=0;t<a;t++)B.push({imageFlags:x._nextUint32(),rgbSliceByteOffset:x._nextUint32(),rgbSliceByteLength:x._nextUint32(),alphaSliceByteOffset:x._nextUint32(),alphaSliceByteLength:x._nextUint32()});const L=U+x._offset,A=L+d,k=A+m,v=k+w,S=new Uint8Array(t.buffer,t.byteOffset+L,d),I=new Uint8Array(t.buffer,t.byteOffset+A,m),O=new Uint8Array(t.buffer,t.byteOffset+k,w),T=new Uint8Array(t.buffer,t.byteOffset+v,D);return n.globalData={endpointCount:u,selectorCount:b,imageDescs:B,endpointsData:S,selectorsData:I,tablesData:O,extendedData:T},n}
 
-let A,I,B;const g={env:{emscripten_notify_memory_growth:function(A){B=new Uint8Array(I.exports.memory.buffer);}}};class Q{init(){return A||(A="undefined"!=typeof fetch?fetch("data:application/wasm;base64,"+C).then(A=>A.arrayBuffer()).then(A=>WebAssembly.instantiate(A,g)).then(this._init):WebAssembly.instantiate(Buffer.from(C,"base64"),g).then(this._init),A)}_init(A){I=A.instance,g.env.emscripten_notify_memory_growth(0);}decode(A,g=0){if(!I)throw new Error("ZSTDDecoder: Await .init() before decoding.");const Q=A.byteLength,C=I.exports.malloc(Q);B.set(A,C),g=g||Number(I.exports.ZSTD_findDecompressedSize(C,Q));const E=I.exports.malloc(g),i=I.exports.ZSTD_decompress(E,g,C,Q),D=B.slice(E,E+i);return I.exports.free(C),I.exports.free(E),D}}const C="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IAMNACAEQQNxBEADQCACRQ0FIAAgAkF/aiICaiIDIAEgAmotAAA6AAAgA0EDcQ0ACwsgAkEDTQ0AA0AgACACQXxqIgJqIAEgAmooAgA2AgAgAkEDSw0ACwsgAkUNAgNAIAAgAkF/aiICaiABIAJqLQAAOgAAIAINAAsMAgsgAkEDTQ0AIAIhBANAIAMgASgCADYCACABQQRqIQEgA0EEaiEDIARBfGoiBEEDSw0ACyACQQNxIQILIAJFDQADQCADIAEtAAA6AAAgA0EBaiEDIAFBAWohASACQX9qIgINAAsLIAAL8wICAn8BfgJAIAJFDQAgACACaiIDQX9qIAE6AAAgACABOgAAIAJBA0kNACADQX5qIAE6AAAgACABOgABIANBfWogAToAACAAIAE6AAIgAkEHSQ0AIANBfGogAToAACAAIAE6AAMgAkEJSQ0AIABBACAAa0EDcSIEaiIDIAFB/wFxQYGChAhsIgE2AgAgAyACIARrQXxxIgRqIgJBfGogATYCACAEQQlJDQAgAyABNgIIIAMgATYCBCACQXhqIAE2AgAgAkF0aiABNgIAIARBGUkNACADIAE2AhggAyABNgIUIAMgATYCECADIAE2AgwgAkFwaiABNgIAIAJBbGogATYCACACQWhqIAE2AgAgAkFkaiABNgIAIAQgA0EEcUEYciIEayICQSBJDQAgAa0iBUIghiAFhCEFIAMgBGohAQNAIAEgBTcDGCABIAU3AxAgASAFNwMIIAEgBTcDACABQSBqIQEgAkFgaiICQR9LDQALCyAACy8BAn8gACgCBCAAKAIAQQJ0aiICLQACIQMgACACLwEAIAEgAi0AAxAIajYCACADCy8BAn8gACgCBCAAKAIAQQJ0aiICLQACIQMgACACLwEAIAEgAi0AAxAFajYCACADCx8AIAAgASACKAIEEAg2AgAgARAEGiAAIAJBCGo2AgQLCAAgAGdBH3MLugUBDX8jAEEQayIKJAACfyAEQQNNBEAgCkEANgIMIApBDGogAyAEEAsaIAAgASACIApBDGpBBBAVIgBBbCAAEAMbIAAgACAESxsMAQsgAEEAIAEoAgBBAXRBAmoQECENQVQgAygAACIGQQ9xIgBBCksNABogAiAAQQVqNgIAIAMgBGoiAkF8aiEMIAJBeWohDiACQXtqIRAgAEEGaiELQQQh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ASIDNgLE4AEgACgCvOABIQQgACABNgK84AEgACABIAJqNgK44AEgACABIAQgA2tqNgLA4AELpgEBAX8gACAAKALs4QEQFjYCyOABIABCADcD+OABIABCADcDuOABIABBwOABakIANwMAIABBqNAAaiIBQYyAgOAANgIAIABBADYCmOIBIABCADcDiOEBIABCAzcDgOEBIABBrNABakHgEikCADcCACAAQbTQAWpB6BIoAgA2AgAgACABNgIMIAAgAEGYIGo2AgggACAAQaAwajYCBCAAIABBEGo2AgALYQEBf0G4fyEDAkAgAUEDSQ0AIAIgABAhIgFBA3YiADYCCCACIAFBAXE2AgQgAiABQQF2QQNxIgM2AgACQCADQX9qIgFBAksNAAJAIAFBAWsOAgEAAgtBbA8LIAAhAwsgAwsMACAAIAEgAkEAEC4LiAQCA38CfiADEBYhBCAAQQBBKBAQIQAgBCACSwRAIAQPCyABRQRAQX8PCwJAAkAgA0EBRg0AIAEoAAAiBkGo6r5pRg0AQXYhAyAGQXBxQdDUtMIBRw0BQQghAyACQQhJDQEgAEEAQSgQECEAIAEoAAQhASAAQQE2AhQgACABrTcDAEEADwsgASACIAMQLyIDIAJLDQAgACADNgIYQXIhAyABIARqIgVBf2otAAAiAkEIcQ0AIAJBIHEiBkUEQEFwIQMgBS0AACIFQacBSw0BIAVBB3GtQgEgBUEDdkEKaq2GIgdCA4h+IAd8IQggBEEBaiEECyACQQZ2IQMgAkECdiEFAkAgAkEDcUF/aiICQQJLBEBBACECDAELAkACQAJAIAJBAWsOAgECAAsgASAEai0AACECIARBAWohBAwCCyABIARqLwAAIQIgBEECaiEEDAELIAEgBGooAAAhAiAEQQRqIQQLIAVBAXEhBQJ+AkACQAJAIANBf2oiA0ECTQRAIANBAWsOAgIDAQtCfyAGRQ0DGiABIARqMQAADAMLIAEgBGovAACtQoACfAwCCyABIARqKAAArQwBCyABIARqKQAACyEHIAAgBTYCICAAIAI2AhwgACAHNwMAQQAhAyAAQQA2AhQgACAHIAggBhsiBzcDCCAAIAdCgIAIIAdCgIAIVBs+AhALIAMLWwEBf0G4fyEDIAIQFiICIAFNBH8gACACakF/ai0AACIAQQNxQQJ0QaAeaigC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C0Egak8NAQsgByAHKQNoNwMQIAcgBykDYDcDCCAEIA0gB0EIaiAHQdwAaiAPIA4gESAQEB4hCwwBCyACIARqIQggBCAKEAcgAkERTwRAIARBEGohAgNAIAIgCkEQaiIKEAcgAkEQaiICIAhJDQALCyAIIAlrIQIgByATNgJcIAkgCCAOa0sEQCAJIAggEWtLBEBBbCELDAILIBAgAiAOayICaiIKIANqIBBNBEAgCCAKIAMQDxoMAgsgCCAKQQAgAmsQDyEIIAcgAiADaiIDNgJkIAggAmshCCAOIQILIAlBEE8EQCADIAhqIQMDQCAIIAIQByACQRBqIQIgCEEQaiIIIANJDQALDAELAkAgCUEHTQRAIAggAi0AADoAACAIIAItAAE6AAEgCCACLQACOgACIAggAi0AAzoAAyAIQQRqIAIgCUECdCIDQcAeaigCAGoiAhAXIAIgA0HgHmooAgBrIQIgBygCZCEDDAELIAggAhAMCyADQQlJDQAgAyAIaiEDIAhBCGoiCCACQQhqIgJrQQ9MBEADQCAIIAIQDCACQQhqIQIgCEEIaiIIIANJDQAMAgALAAsDQCAIIAIQByACQRBqIQIgCEEQaiIIIANJDQALCyAHQRhqEAQaIAsgDCALEAMiAhshDCAEIAQgC2ogAhshBCAFQX9qIgUNAAsgDBADDQFBbCEMIAdBGGoQBEECSQ0BQQAhCANAIAhBA0cEQCAAIAhBAnQiAmpBrNABaiACIAdqKAJENgIAIAhBAWohCAwBCwsgBygCXCEIC0G6fyEMIA8gCGsiACANIARrSw0AIAQEfyAEIAggABALIABqBUEACyABayEMCyAHQfAAaiQAIAwLkRcCFn8FfiMAQdABayIHJAAgByAAKALw4QEiCDYCvAEgASACaiESIAggACgCgOIBaiETAkACQCAFRQRAIAEhAwwBCyAAKALE4AEhESAAKALA4AEhFSAAKAK84AEhDyAAQQE2AozhAUEAIQgDQCAIQQNHBEAgByAIQQJ0IgJqIAAgAmpBrNABaigCADYCVCAIQQFqIQgMAQsLIAcgETYCZCAHIA82AmAgByABIA9rNgJoQWwhECAHQShqIAMgBBAGEAMNASAFQQQgBUEESBshFyAHQTxqIAdBKGogACgCABATIAdBxABqIAdBKGogACgCCBATIAdBzABqIAdB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IAdB0AFqJAAgEAslACAAQgA3AgAgAEEAOwEIIABBADoACyAAIAE2AgwgACACOgAKC7QFAQN/IwBBMGsiBCQAIABB/wFqIgVBfWohBgJAIAMvAQIEQCAEQRhqIAEgAhAGIgIQAw0BIARBEGogBEEYaiADEBwgBEEIaiAEQRhqIAMQHCAAIQMDQAJAIARBGGoQBCADIAZPckUEQCADIARBEGogBEEYahASOgAAIAMgBEEIaiAEQRhqEBI6AAEgBEEYahAERQ0BIANBAmohAwsgBUF+aiEFAn8DQEG6fyECIAMiASAFSw0FIAEgBEEQaiAEQRhqEBI6AAAgAUEBaiEDIARBGGoQBEEDRgRAQQIhAiAEQQhqDAILIAMgBUsNBSABIARBCGogBEEYahASOgABIAFBAmohA0EDIQIgBEEYahAEQQNHDQALIARBEGoLIQUgAyAFIARBGGoQEjoAACABIAJqIABrIQIMAwsgAyAEQRBqIARBGGoQEjoAAiADIARBCGogBEEYahASOgADIANBBGohAwwAAAsACyAEQRhqIAEgAhAGIgIQAw0AIARBEGogBEEYaiADEBwgBEEIaiAEQRhqIAMQHCAAIQMDQAJAIARBGGoQBCADIAZPckUEQCADIARBEGogBEEYahAROgAAIAMgBEEIaiAEQRhqEBE6AAEgBEEYahAERQ0BIANBAmohAwsgBUF+aiEFAn8DQEG6fyECIAMiASAFSw0EIAEgBEEQaiAEQRhqEBE6AAAgAUEBaiEDIARBGGoQBEEDRgRAQQIhAiAEQQhqDAILIAMgBUsNBCABIARBCGogBEEYahAROgABIAFBAmohA0EDIQIgBEEYahAEQQNHDQALIARBEGoLIQUgAyAFIARBGGoQEToAACABIAJqIABrIQIMAgsgAyAEQRBqIARBGGoQEToAAiADIARBCGogBEEYahAROgADIANBBGohAwwAAAsACyAEQTBqJAAgAgtpAQF/An8CQAJAIAJBB00NACABKAAAQbfIwuF+Rw0AIAAgASgABDYCmOIBQWIgAEEQaiABIAIQPiIDEAMNAhogAEKBgICAEDcDiOEBIAAgASADaiACIANrECoMAQsgACABIAIQKgtBAAsLrQMBBn8jAEGAAWsiAyQAQWIhCAJAIAJBCUkNACAAQZjQAGogAUEIaiIEIAJBeGogAEGY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wOABCwutAgIEfwF+IwBBQGoiBCQAAkACQCACQQhJDQAgASgAAEFwcUHQ1LTCAUcNACABIAIQIiEBIABCADcDCCAAQQA2AgQgACABNgIADAELIARBGGogASACEC0iAxADBEAgACADEBoMAQsgAwRAIABBuH8QGgwBCyACIAQoAjAiA2shAiABIANqIQMDQAJAIAAgAyACIARBCGoQLCIFEAMEfyAFBSACIAVBA2oiBU8NAUG4fwsQGgwCCyAGQQFqIQYgAiAFayECIAMgBWohAyAEKAIMRQ0ACyAEKAI4BEAgAkEDTQRAIABBuH8QGgwCCyADQQRqIQMLIAQoAighAiAEKQMYIQcgAEEANgIEIAAgAyABazYCACAAIAIgBmytIAcgB0J/URs3AwgLIARBQGskAAslAQF/IwBBEGsiAiQAIAIgACABEFEgAigCACEAIAJBEGokACAAC30BBH8jAEGQBGsiBCQAIARB/wE2AggCQCAEQRBqIARBCGogBEEMaiABIAIQFSIGEAMEQCAGIQUMAQtBVCEFIAQoAgwiB0EGSw0AIAMgBEEQaiAEKAIIIAcQQSIFEAMNACAAIAEgBmogAiAGayADEDwhBQsgBEGQBGokACAFC4cBAgJ/An5BABAWIQMCQANAIAEgA08EQAJAIAAoAABBcHFB0NS0wgFGBEAgACABECIiAhADRQ0BQn4PCyAAIAEQVSIEQn1WDQMgBCAFfCIFIARUIQJCfiEEIAINAyAAIAEQUiICEAMNAwsgASACayEBIAAgAmohAAwBCwtCfiAFIAEbIQQLIAQLPwIBfwF+IwBBMGsiAiQAAn5CfiACQQhqIAAgARAtDQAaQgAgAigCHEEBRg0AGiACKQMICyEDIAJBMGokACADC40BAQJ/IwBBMGsiASQAAkAgAEUNACAAKAKI4gENACABIABB/OEBaigCADYCKCABIAApAvThATcDICAAEDAgACgCqOIBIQIgASABKAIoNgIYIAEgASkDIDcDECACIAFBEGoQGyAAQQA2AqjiASABIAEoAig2AgggASABKQMgNwMAIAAgARAbCyABQTBqJAALKgECfyMAQRBrIgAkACAAQQA2AgggAEIANwMAIAAQWCEBIABBEGokACABC4cBAQN/IwBBEGsiAiQAAkAgACgCAEUgACgCBEVzDQAgAiAAKAIINgIIIAIgACkCADcDAAJ/IAIoAgAiAQRAIAIoAghBqOMJIAERBQAMAQtBqOMJECgLIgFFDQAgASAAKQIANwL04QEgAUH84QFqIAAoAgg2AgAgARBZIAEhAwsgAkEQaiQAIAMLywEBAn8jAEEgayIBJAAgAEGBgIDAADYCtOIBIABBADYCiOIBIABBADYC7OEBIABCADcDkOIBIABBADYCpOMJIABBADYC3OIBIABCADcCzOIBIABBADYCvOIBIABBADYCxOABIABCADcCnOIBIABBpOIBakIANwIAIABBrOIBakEANgIAIAFCADcCECABQgA3AhggASABKQMYNwMIIAEgASkDEDcDACABKAIIQQh2QQFxIQIgAEEANgLg4gEgACACNgKM4gEgAUEgaiQAC3YBA38jAEEwayIBJAAgAARAIAEgAEHE0AFqIgIoAgA2AiggASAAKQK80AE3AyAgACgCACEDIAEgAigCADYCGCABIAApArzQATcDECADIAFBEGoQGyABIAEoAig2AgggASABKQMgNwMAIAAgARAbCyABQTBqJAALzAEBAX8gACABKAK00AE2ApjiASAAIAEoAgQiAjYCwOABIAAgAjYCvOABIAAgAiABKAIIaiICNgK44AEgACACNgLE4AEgASgCuNABBEAgAEKBgICAEDcDiOEBIAAgAUGk0ABqNgIMIAAgAUGUIGo2AgggACABQZwwajYCBCAAIAFBDGo2AgAgAEGs0AFqIAFBqNABaigCADYCACAAQbDQAWogAUGs0AFqKAIANgIAIABBtNABaiABQbDQAWooAgA2AgAPCyAAQgA3A4jhAQs7ACACRQRAQbp/DwsgBEUEQEFsDwsgAiAEEGAEQCAAIAEgAiADIAQgBRBhDwsgACABIAIgAyAEIAUQZQtGAQF/IwBBEGsiBSQAIAVBCGogBBAOAn8gBS0ACQRAIAAgASACIAMgBBAyDAELIAAgASACIAMgBBA0CyEAIAVBEGokACAACzQAIAAgAyAEIAUQNiIFEAMEQCAFDwsgBSAESQR/IAEgAiADIAVqIAQgBWsgABA1BUG4fwsLRgEBfyMAQRBrIgUkACAFQQhqIAQQDgJ/IAUtAAkEQCAAIAEgAiADIAQQYgwBCyAAIAEgAiADIAQQNQshACAFQRBqJAAgAAtZAQF/QQ8hAiABIABJBEAgAUEEdCAAbiECCyAAQQh2IgEgAkEYbCIAQYwIaigCAGwgAEGICGooAgBqIgJBA3YgAmogAEGACGooAgAgAEGECGooAgAgAWxqSQs3ACAAIAMgBCAFQYAQEDMiBRADBEAgBQ8LIAUgBEkEfyABIAIgAyAFaiAEIAVrIAAQMgVBuH8LC78DAQN/IwBBIGsiBSQAIAVBCGogAiADEAYiAhADRQRAIAAgAWoiB0F9aiEGIAUgBBAOIARBBGohAiAFLQACIQMDQEEAIAAgBkkgBUEIahAEGwRAIAAgAiAFQQhqIAMQAkECdGoiBC8BADsAACAFQQhqIAQtAAIQASAAIAQtAANqIgQgAiAFQQhqIAMQAkECdGoiAC8BADsAACAFQQhqIAAtAAIQASAEIAAtAANqIQAMAQUgB0F+aiEEA0AgBUEIahAEIAAgBEtyRQRAIAAgAiAFQQhqIAMQAkECdGoiBi8BADsAACAFQQhqIAYtAAIQASAAIAYtAANqIQAMAQsLA0AgACAES0UEQCAAIAIgBUEIaiADEAJBAnRqIgYvAQA7AAAgBUEIaiAGLQACEAEgACAGLQADaiEADAELCwJAIAAgB08NACAAIAIgBUEIaiADEAIiA0ECdGoiAC0AADoAACAALQADQQFGBEAgBUEIaiAALQACEAEMAQsgBSgCDEEfSw0AIAVBCGogAiADQQJ0ai0AAhABIAUoAgxBIUkNACAFQSA2AgwLIAFBbCAFQQhqEAobIQILCwsgBUEgaiQAIAILkgIBBH8jAEFAaiIJJAAgCSADQTQQCyEDAkAgBEECSA0AIAMgBEECdGooAgAhCSADQTxqIAgQIyADQQE6AD8gAyACOgA+QQAhBCADKAI8IQoDQCAEIAlGDQEgACAEQQJ0aiAKNgEAIARBAWohBAwAAAsAC0EAIQkDQCAGIAlGRQRAIAMgBSAJQQF0aiIKLQABIgtBAnRqIgwoAgAhBCADQTxqIAotAABBCHQgCGpB//8DcRAjIANBAjoAPyADIAcgC2siCiACajoAPiAEQQEgASAKa3RqIQogAygCPCELA0AgACAEQQJ0aiALNgEAIARBAWoiBCAKSQ0ACyAMIAo2AgAgCUEBaiEJDAELCyADQUBrJAALowIBCX8jAEHQAGsiCSQAIAlBEGogBUE0EAsaIAcgBmshDyAHIAFrIRADQAJAIAMgCkcEQEEBIAEgByACIApBAXRqIgYtAAEiDGsiCGsiC3QhDSAGLQAAIQ4gCUEQaiAMQQJ0aiIMKAIAIQYgCyAPTwRAIAAgBkECdGogCyAIIAUgCEE0bGogCCAQaiIIQQEgCEEBShsiCCACIAQgCEECdGooAgAiCEEBdGogAyAIayAHIA4QYyAGIA1qIQgMAgsgCUEMaiAOECMgCUEBOgAPIAkgCDoADiAGIA1qIQggCSgCDCELA0AgBiAITw0CIAAgBkECdGogCzYBACAGQQFqIQYMAAALAAsgCUHQAGokAA8LIAwgCDYCACAKQQFqIQoMAAALAAs0ACAAIAMgBCAFEDYiBRADBEAgBQ8LIAUgBEkEfyABIAIgAyAFaiAEIAVrIAAQNAVBuH8LCyMAIAA/AEEQdGtB//8DakEQdkAAQX9GBEBBAA8LQQAQAEEBCzsBAX8gAgRAA0AgACABIAJBgCAgAkGAIEkbIgMQCyEAIAFBgCBqIQEgAEGAIGohACACIANrIgINAAsLCwYAIAAQAwsLqBUJAEGICAsNAQAAAAEAAAACAAAAAgBBoAgLswYBAAAAAQAAAAIAAAACAAAAJgAAAIIAAAAhBQAASgAAAGcIAAAmAAAAwAEAAIAAAABJBQAASgAAAL4IAAApAAAALAIAAIAAAABJBQAASgAAAL4IAAAvAAAAygIAAIAAAACKBQAASgAAAIQJAAA1AAAAcwMAAIAAAACdBQAASgAAAKAJAAA9AAAAgQMAAIAAAADrBQAASwAAAD4KAABEAAAAngMAAIAAAABNBgAASwAAAKoKAABLAAAAswMAAIAAAADBBgAATQAAAB8NAABNAAAAUwQAAIAAAAAjCAAAUQAAAKYPAABUAAAAmQQAAIAAAABLCQAAVwAAALESAABYAAAA2gQAAIAAAABvCQAAXQAAACMUAABUAAAARQUAAIAAAABUCgAAagAAAIwUAABqAAAArwUAAIAAAAB2CQAAfAAAAE4QAAB8AAAA0gIAAIAAAABjBwAAkQAAAJAHAACSAAAAAAAAAAEAAAABAAAABQAAAA0AAAAdAAAAPQAAAH0AAAD9AAAA/QEAAP0DAAD9BwAA/Q8AAP0fAAD9PwAA/X8AAP3/AAD9/wEA/f8DAP3/BwD9/w8A/f8fAP3/PwD9/38A/f//AP3//wH9//8D/f//B/3//w/9//8f/f//P/3//38AAAAAAQAAAAIAAAADAAAABAAAAAUAAAAGAAAABwAAAAgAAAAJAAAACgAAAAsAAAAMAAAADQAAAA4AAAAPAAAAEAAAABEAAAASAAAAEwAAABQAAAAVAAAAFgAAABcAAAAYAAAAGQAAABoAAAAbAAAAHAAAAB0AAAAeAAAAHwAAAAMAAAAEAAAABQAAAAYAAAAHAAAACAAAAAkAAAAKAAAACwAAAAwAAAANAAAADgAAAA8AAAAQAAAAEQAAABIAAAATAAAAFAAAABUAAAAWAAAAFwAAABgAAAAZAAAAGgAAABsAAAAcAAAAHQAAAB4AAAAfAAAAIAAAACEAAAAiAAAAIwAAACUAAAAnAAAAKQAAACsAAAAvAAAAMwAAADsAAABDAAAAUwAAAGMAAACDAAAAAwEAAAMCAAADBAAAAwgAAAMQAAADIAAAA0AAAAOAAAADAAEAQeAPC1EBAAAAAQAAAAEAAAABAAAAAgAAAAIAAAADAAAAAwAAAAQAAAAEAAAABQAAAAcAAAAIAAAACQAAAAoAAAALAAAADAAAAA0AAAAOAAAADwAAABAAQcQQC4sBAQAAAAIAAAADAAAABAAAAAUAAAAGAAAABwAAAAgAAAAJAAAACgAAAAsAAAAMAAAADQAAAA4AAAAPAAAAEAAAABIAAAAUAAAAFgAAABgAAAAcAAAAIAAAACgAAAAwAAAAQAAAAIAAAAAAAQAAAAIAAAAEAAAACAAAABAAAAAgAAAAQAAAAIAAAAAAAQBBkBIL5gQBAAAAAQAAAAEAAAABAAAAAgAAAAIAAAADAAAAAwAAAAQAAAAGAAAABwAAAAgAAAAJAAAACgAAAAsAAAAMAAAADQAAAA4AAAAPAAAAEAAAAAEAAAAEAAAACAAAAAAAAAABAAEBBgAAAAAAAAQAAAAAEAAABAAAAAAgAAAFAQAAAAAAAAUDAAAAAAAABQQAAAAAAAAFBgAAAAAAAAUHAAAAAAAABQkAAAAAAAAFCgAAAAAAAAUMAAAAAAAABg4AAAAAAAEFEAAAAAAAAQUUAAAAAAABBRYAAAAAAAIFHAAAAAAAAwUgAAAAAAAEBTAAAAAgAAYFQAAAAAAABwWAAAAAAAAIBgABAAAAAAoGAAQAAAAADAYAEAAAIAAABAAAAAAAAAAEAQAAAAAAAAUCAAAAIAAABQQAAAAAAAAFBQAAACAAAAUHAAAAAAAABQgAAAAgAAAFCgAAAAAAAAULAAAAAAAABg0AAAAgAAEFEAAAAAAAAQUSAAAAIAABBRYAAAAAAAIFGAAAACAAAwUgAAAAAAADBSgAAAAAAAYEQAAAABAABgRAAAAAIAAHBYAAAAAAAAkGAAIAAAAACwYACAAAMAAABAAAAAAQAAAEAQAAACAAAAUCAAAAIAAABQMAAAAgAAAFBQAAACAAAAUGAAAAIAAABQgAAAAgAAAFCQAAACAAAAULAAAAIAAABQwAAAAAAAAGDwAAACAAAQUSAAAAIAABBRQAAAAgAAIFGAAAACAAAgUcAAAAIAADBSgAAAAgAAQFMAAAAAAAEAYAAAEAAAAPBgCAAAAAAA4GAEAAAAAADQYAIABBgBcLhwIBAAEBBQAAAAAAAAUAAAAAAAAGBD0AAAAAAAkF/QEAAAAADwX9fwAAAAAVBf3/HwAAAAMFBQAAAAAABwR9AAAAAAAMBf0PAAAAABIF/f8DAAAAFwX9/38AAAAFBR0AAAAAAAgE/QAAAAAADgX9PwAAAAAUBf3/DwAAAAIFAQAAABAABwR9AAAAAAALBf0HAAAAABEF/f8BAAAAFgX9/z8AAAAEBQ0AAAAQAAgE/QAAAAAADQX9HwAAAAATBf3/BwAAAAEFAQAAABAABgQ9AAAAAAAKBf0DAAAAABAF/f8AAAAAHAX9//8PAAAbBf3//wcAABoF/f//AwAAGQX9//8BAAAYBf3//wBBkBkLhgQBAAEBBgAAAAAAAAYDAAAAAAAABAQAAAAgAAAFBQAAAAAAAAUGAAAAAAAABQgAAAAAAAAFCQAAAAAAAAULAAAAAAAABg0AAAAAAAAGEAAAAAAAAAYTAAAAAAAABhYAAAAAAAAGGQAAAAAAAAYcAAAAAAAABh8AAAAAAAAGIgAAAAAAAQYlAAAAAAABBikAAAAAAAIGLwAAAAAAAwY7AAAAAAAEBlMAAAAAAAcGgwAAAAAACQYDAgAAEAAABAQAAAAAAAAEBQAAACAAAAUGAAAAAAAABQcAAAAgAAAFCQAAAAAAAAUKAAAAAAAABgwAAAAAAAAGDwAAAAAAAAYSAAAAAAAABhUAAAAAAAAGGAAAAAAAAAYbAAAAAAAABh4AAAAAAAAGIQAAAAAAAQYjAAAAAAABBicAAAAAAAIGKwAAAAAAAwYzAAAAAAAEBkMAAAAAAAUGYwAAAAAACAYDAQAAIAAABAQAAAAwAAAEBAAAABAAAAQFAAAAIAAABQcAAAAgAAAFCAAAACAAAAUKAAAAIAAABQsAAAAAAAAGDgAAAAAAAAYRAAAAAAAABhQAAAAAAAAGFwAAAAAAAAYaAAAAAAAABh0AAAAAAAAGIAAAAAAAEAYDAAEAAAAPBgOAAAAAAA4GA0AAAAAADQYDIAAAAAAMBgMQAAAAAAsGAwgAAAAACgYDBABBpB0L2QEBAAAAAwAAAAcAAAAPAAAAHwAAAD8AAAB/AAAA/wAAAP8BAAD/AwAA/wcAAP8PAAD/HwAA/z8AAP9/AAD//wAA//8BAP//AwD//wcA//8PAP//HwD//z8A//9/AP///wD///8B////A////wf///8P////H////z////9/AAAAAAEAAAACAAAABAAAAAAAAAACAAAABAAAAAgAAAAAAAAAAQAAAAIAAAABAAAABAAAAAQAAAAEAAAABAAAAAgAAAAIAAAACAAAAAcAAAAIAAAACQAAAAoAAAALAEGgIAsDwBBQ";
+let A$1,I$1,B$1;const g$1={env:{emscripten_notify_memory_growth:function(A){B$1=new Uint8Array(I$1.exports.memory.buffer);}}};let Q$1 = class Q{init(){return A$1||(A$1="undefined"!=typeof fetch?fetch("data:application/wasm;base64,"+C$1).then(A=>A.arrayBuffer()).then(A=>WebAssembly.instantiate(A,g$1)).then(this._init):WebAssembly.instantiate(Buffer.from(C$1,"base64"),g$1).then(this._init),A$1)}_init(A){I$1=A.instance,g$1.env.emscripten_notify_memory_growth(0);}decode(A,g=0){if(!I$1)throw new Error("ZSTDDecoder: Await .init() before decoding.");const Q=A.byteLength,C=I$1.exports.malloc(Q);B$1.set(A,C),g=g||Number(I$1.exports.ZSTD_findDecompressedSize(C,Q));const E=I$1.exports.malloc(g),i=I$1.exports.ZSTD_decompress(E,g,C,Q),D=B$1.slice(E,E+i);return I$1.exports.free(C),I$1.exports.free(E),D}};const C$1="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IAMNACAEQQNxBEADQCACRQ0FIAAgAkF/aiICaiIDIAEgAmotAAA6AAAgA0EDcQ0ACwsgAkEDTQ0AA0AgACACQXxqIgJqIAEgAmooAgA2AgAgAkEDSw0ACwsgAkUNAgNAIAAgAkF/aiICaiABIAJqLQAAOgAAIAINAAsMAgsgAkEDTQ0AIAIhBANAIAMgASgCADYCACABQQRqIQEgA0EEaiEDIARBfGoiBEEDSw0ACyACQQNxIQILIAJFDQADQCADIAEtAAA6AAAgA0EBaiEDIAFBAWohASACQX9qIgINAAsLIAAL8wICAn8BfgJAIAJFDQAgACACaiIDQX9qIAE6AAAgACABOgAAIAJBA0kNACADQX5qIAE6AAAgACABOgABIANBfWogAToAACAAIAE6AAIgAkEHSQ0AIANBfGogAToAACAAIAE6AAMgAkEJSQ0AIABBACAAa0EDcSIEaiIDIAFB/wFxQYGChAhsIgE2AgAgAyACIARrQXxxIgRqIgJBfGogATYCACAEQQlJDQAgAyABNgIIIAMgATYCBCACQXhqIAE2AgAgAkF0aiABNgIAIARBGUkNACADIAE2AhggAyABNgIUIAMgATYCECADIAE2AgwgAkFwaiABNgIAIAJBbGogATYCACACQWhqIAE2AgAgAkFkaiABNgIAIAQgA0EEcUEYciIEayICQSBJDQAgAa0iBUIghiAFhCEFIAMgBGohAQNAIAEgBTcDGCABIAU3AxAgASAFNwMIIAEgBTcDACABQSBqIQEgAkFgaiICQR9LDQALCyAACy8BAn8gACgCBCAAKAIAQQJ0aiICLQACIQMgACACLwEAIAEgAi0AAxAIajYCACADCy8BAn8gACgCBCAAKAIAQQJ0aiICLQACIQMgACACLwEAIAEgAi0AAxAFajYCACADCx8AIAAgASACKAIEEAg2AgAgARAEGiAAIAJBCGo2AgQLCAAgAGdBH3MLugUBDX8jAEEQayIKJAACfyAEQQNNBEAgCkEANgIMIApBDGogAyAEEAsaIAAgASACIApBDGpBBBAVIgBBbCAAEAMbIAAgACAESxsMAQsgAEEAIAEoAgBBAXRBAmoQECENQVQgAygAACIGQQ9xIgBBCksNABogAiAAQQVqNgIAIAMgBGoiAkF8aiEMIAJBeWohDiACQXtqIRAgAEEGaiELQQQh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ASIDNgLE4AEgACgCvOABIQQgACABNgK84AEgACABIAJqNgK44AEgACABIAQgA2tqNgLA4AELpgEBAX8gACAAKALs4QEQFjYCyOABIABCADcD+OABIABCADcDuOABIABBwOABakIANwMAIABBqNAAaiIBQYyAgOAANgIAIABBADYCmOIBIABCADcDiOEBIABCAzcDgOEBIABBrNABakHgEikCADcCACAAQbTQAWpB6BIoAgA2AgAgACABNgIMIAAgAEGYIGo2AgggACAAQaAwajYCBCAAIABBEGo2AgALYQEBf0G4fyEDAkAgAUEDSQ0AIAIgABAhIgFBA3YiADYCCCACIAFBAXE2AgQgAiABQQF2QQNxIgM2AgACQCADQX9qIgFBAksNAAJAIAFBAWsOAgEAAgtBbA8LIAAhAwsgAwsMACAAIAEgAkEAEC4LiAQCA38CfiADEBYhBCAAQQBBKBAQIQAgBCACSwRAIAQPCyABRQRAQX8PCwJAAkAgA0EBRg0AIAEoAAAiBkGo6r5pRg0AQXYhAyAGQXBxQdDUtMIBRw0BQQghAyACQQhJDQEgAEEAQSgQECEAIAEoAAQhASAAQQE2AhQgACABrTcDAEEADwsgASACIAMQLyIDIAJLDQAgACADNgIYQXIhAyABIARqIgVBf2otAAAiAkEIcQ0AIAJBIHEiBkUEQEFwIQMgBS0AACIFQacBSw0BIAVBB3GtQgEgBUEDdkEKaq2GIgdCA4h+IAd8IQggBEEBaiEECyACQQZ2IQMgAkECdiEFAkAgAkEDcUF/aiICQQJLBEBBACECDAELAkACQAJAIAJBAWsOAgECAAsgASAEai0AACECIARBAWohBAwCCyABIARqLwAAIQIgBEECaiEEDAELIAEgBGooAAAhAiAEQQRqIQQLIAVBAXEhBQJ+AkACQAJAIANBf2oiA0ECTQRAIANBAWsOAgIDAQtCfyAGRQ0DGiABIARqMQAADAMLIAEgBGovAACtQoACfAwCCyABIARqKAAArQwBCyABIARqKQAACyEHIAAgBTYCICAAIAI2AhwgACAHNwMAQQAhAyAAQQA2AhQgACAHIAggBhsiBzcDCCAAIAdCgIAIIAdCgIAIVBs+AhALIAMLWwEBf0G4fyEDIAIQFiICIAFNBH8gACACakF/ai0AACIAQQNxQQJ0QaAeaigC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C0Egak8NAQsgByAHKQNoNwMQIAcgBykDYDcDCCAEIA0gB0EIaiAHQdwAaiAPIA4gESAQEB4hCwwBCyACIARqIQggBCAKEAcgAkERTwRAIARBEGohAgNAIAIgCkEQaiIKEAcgAkEQaiICIAhJDQALCyAIIAlrIQIgByATNgJcIAkgCCAOa0sEQCAJIAggEWtLBEBBbCELDAILIBAgAiAOayICaiIKIANqIBBNBEAgCCAKIAMQDxoMAgsgCCAKQQAgAmsQDyEIIAcgAiADaiIDNgJkIAggAmshCCAOIQILIAlBEE8EQCADIAhqIQMDQCAIIAIQByACQRBqIQIgCEEQaiIIIANJDQALDAELAkAgCUEHTQRAIAggAi0AADoAACAIIAItAAE6AAEgCCACLQACOgACIAggAi0AAzoAAyAIQQRqIAIgCUECdCIDQcAeaigCAGoiAhAXIAIgA0HgHmooAgBrIQIgBygCZCEDDAELIAggAhAMCyADQQlJDQAgAyAIaiEDIAhBCGoiCCACQQhqIgJrQQ9MBEADQCAIIAIQDCACQQhqIQIgCEEIaiIIIANJDQAMAgALAAsDQCAIIAIQByACQRBqIQIgCEEQaiIIIANJDQALCyAHQRhqEAQaIAsgDCALEAMiAhshDCAEIAQgC2ogAhshBCAFQX9qIgUNAAsgDBADDQFBbCEMIAdBGGoQBEECSQ0BQQAhCANAIAhBA0cEQCAAIAhBAnQiAmpBrNABaiACIAdqKAJENgIAIAhBAWohCAwBCwsgBygCXCEIC0G6fyEMIA8gCGsiACANIARrSw0AIAQEfyAEIAggABALIABqBUEACyABayEMCyAHQfAAaiQAIAwLkRcCFn8FfiMAQdABayIHJAAgByAAKALw4QEiCDYCvAEgASACaiESIAggACgCgOIBaiETAkACQCAFRQRAIAEhAwwBCyAAKALE4AEhESAAKALA4AEhFSAAKAK84AEhDyAAQQE2AozhAUEAIQgDQCAIQQNHBEAgByAIQQJ0IgJqIAAgAmpBrNABaigCADYCVCAIQQFqIQgMAQsLIAcgETYCZCAHIA82AmAgByABIA9rNgJoQWwhECAHQShqIAMgBBAGEAMNASAFQQQgBUEESBshFyAHQTxqIAdBKGogACgCABATIAdBxABqIAdBKGogACgCCBATIAdBzABqIAdB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IAdB0AFqJAAgEAslACAAQgA3AgAgAEEAOwEIIABBADoACyAAIAE2AgwgACACOgAKC7QFAQN/IwBBMGsiBCQAIABB/wFqIgVBfWohBgJAIAMvAQIEQCAEQRhqIAEgAhAGIgIQAw0BIARBEGogBEEYaiADEBwgBEEIaiAEQRhqIAMQHCAAIQMDQAJAIARBGGoQBCADIAZPckUEQCADIARBEGogBEEYahASOgAAIAMgBEEIaiAEQRhqEBI6AAEgBEEYahAERQ0BIANBAmohAwsgBUF+aiEFAn8DQEG6fyECIAMiASAFSw0FIAEgBEEQaiAEQRhqEBI6AAAgAUEBaiEDIARBGGoQBEEDRgRAQQIhAiAEQQhqDAILIAMgBUsNBSABIARBCGogBEEYahASOgABIAFBAmohA0EDIQIgBEEYahAEQQNHDQALIARBEGoLIQUgAyAFIARBGGoQEjoAACABIAJqIABrIQIMAwsgAyAEQRBqIARBGGoQEjoAAiADIARBCGogBEEYahASOgADIANBBGohAwwAAAsACyAEQRhqIAEgAhAGIgIQAw0AIARBEGogBEEYaiADEBwgBEEIaiAEQRhqIAMQHCAAIQMDQAJAIARBGGoQBCADIAZPckUEQCADIARBEGogBEEYahAROgAAIAMgBEEIaiAEQRhqEBE6AAEgBEEYahAERQ0BIANBAmohAwsgBUF+aiEFAn8DQEG6fyECIAMiASAFSw0EIAEgBEEQaiAEQRhqEBE6AAAgAUEBaiEDIARBGGoQBEEDRgRAQQIhAiAEQQhqDAILIAMgBUsNBCABIARBCGogBEEYahAROgABIAFBAmohA0EDIQIgBEEYahAEQQNHDQALIARBEGoLIQUgAyAFIARBGGoQEToAACABIAJqIABrIQIMAgsgAyAEQRBqIARBGGoQEToAAiADIARBCGogBEEYahAROgADIANBBGohAwwAAAsACyAEQTBqJAAgAgtpAQF/An8CQAJAIAJBB00NACABKAAAQbfIwuF+Rw0AIAAgASgABDYCmOIBQWIgAEEQaiABIAIQPiIDEAMNAhogAEKBgICAEDcDiOEBIAAgASADaiACIANrECoMAQsgACABIAIQKgtBAAsLrQMBBn8jAEGAAWsiAyQAQWIhCAJAIAJBCUkNACAAQZjQAGogAUEIaiIEIAJBeGogAEGY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wOABCwutAgIEfwF+IwBBQGoiBCQAAkACQCACQQhJDQAgASgAAEFwcUHQ1LTCAUcNACABIAIQIiEBIABCADcDCCAAQQA2AgQgACABNgIADAELIARBGGogASACEC0iAxADBEAgACADEBoMAQsgAwRAIABBuH8QGgwBCyACIAQoAjAiA2shAiABIANqIQMDQAJAIAAgAyACIARBCGoQLCIFEAMEfyAFBSACIAVBA2oiBU8NAUG4fwsQGgwCCyAGQQFqIQYgAiAFayECIAMgBWohAyAEKAIMRQ0ACyAEKAI4BEAgAkEDTQRAIABBuH8QGgwCCyADQQRqIQMLIAQoAighAiAEKQMYIQcgAEEANgIEIAAgAyABazYCACAAIAIgBmytIAcgB0J/URs3AwgLIARBQGskAAslAQF/IwBBEGsiAiQAIAIgACABEFEgAigCACEAIAJBEGokACAAC30BBH8jAEGQBGsiBCQAIARB/wE2AggCQCAEQRBqIARBCGogBEEMaiABIAIQFSIGEAMEQCAGIQUMAQtBVCEFIAQoAgwiB0EGSw0AIAMgBEEQaiAEKAIIIAcQQSIFEAMNACAAIAEgBmogAiAGayADEDwhBQsgBEGQBGokACAFC4cBAgJ/An5BABAWIQMCQANAIAEgA08EQAJAIAAoAABBcHFB0NS0wgFGBEAgACABECIiAhADRQ0BQn4PCyAAIAEQVSIEQn1WDQMgBCAFfCIFIARUIQJCfiEEIAINAyAAIAEQUiICEAMNAwsgASACayEBIAAgAmohAAwBCwtCfiAFIAEbIQQLIAQLPwIBfwF+IwBBMGsiAiQAAn5CfiACQQhqIAAgARAtDQAaQgAgAigCHEEBRg0AGiACKQMICyEDIAJBMGokACADC40BAQJ/IwBBMGsiASQAAkAgAEUNACAAKAKI4gENACABIABB/OEBaigCADYCKCABIAApAvThATcDICAAEDAgACgCqOIBIQIgASABKAIoNgIYIAEgASkDIDcDECACIAFBEGoQGyAAQQA2AqjiASABIAEoAig2AgggASABKQMgNwMAIAAgARAbCyABQTBqJAALKgECfyMAQRBrIgAkACAAQQA2AgggAEIANwMAIAAQWCEBIABBEGokACABC4cBAQN/IwBBEGsiAiQAAkAgACgCAEUgACgCBEVzDQAgAiAAKAIINgIIIAIgACkCADcDAAJ/IAIoAgAiAQRAIAIoAghBqOMJIAERBQAMAQtBqOMJECgLIgFFDQAgASAAKQIANwL04QEgAUH84QFqIAAoAgg2AgAgARBZIAEhAwsgAkEQaiQAIAMLywEBAn8jAEEgayIBJAAgAEGBgIDAADYCtOIBIABBADYCiOIBIABBADYC7OEBIABCADcDkOIBIABBADYCpOMJIABBADYC3OIBIABCADcCzOIBIABBADYCvOIBIABBADYCxOABIABCADcCnOIBIABBpOIBakIANwIAIABBrOIBakEANgIAIAFCADcCECABQgA3AhggASABKQMYNwMIIAEgASkDEDcDACABKAIIQQh2QQFxIQIgAEEANgLg4gEgACACNgKM4gEgAUEgaiQAC3YBA38jAEEwayIBJAAgAARAIAEgAEHE0AFqIgIoAgA2AiggASAAKQK80AE3AyAgACgCACEDIAEgAigCADYCGCABIAApArzQATcDECADIAFBEGoQGyABIAEoAig2AgggASABKQMgNwMAIAAgARAbCyABQTBqJAALzAEBAX8gACABKAK00AE2ApjiASAAIAEoAgQiAjYCwOABIAAgAjYCvOABIAAgAiABKAIIaiICNgK44AEgACACNgLE4AEgASgCuNABBEAgAEKBgICAEDcDiOEBIAAgAUGk0ABqNgIMIAAgAUGUIGo2AgggACABQZwwajYCBCAAIAFBDGo2AgAgAEGs0AFqIAFBqNABaigCADYCACAAQbDQAWogAUGs0AFqKAIANgIAIABBtNABaiABQbDQAWooAgA2AgAPCyAAQgA3A4jhAQs7ACACRQRAQbp/DwsgBEUEQEFsDwsgAiAEEGAEQCAAIAEgAiADIAQgBRBhDwsgACABIAIgAyAEIAUQZQtGAQF/IwBBEGsiBSQAIAVBCGogBBAOAn8gBS0ACQRAIAAgASACIAMgBBAyDAELIAAgASACIAMgBBA0CyEAIAVBEGokACAACzQAIAAgAyAEIAUQNiIFEAMEQCAFDwsgBSAESQR/IAEgAiADIAVqIAQgBWsgABA1BUG4fwsLRgEBfyMAQRBrIgUkACAFQQhqIAQQDgJ/IAUtAAkEQCAAIAEgAiADIAQQYgwBCyAAIAEgAiADIAQQNQshACAFQRBqJAAgAAtZAQF/QQ8hAiABIABJBEAgAUEE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";
 
 const DisplayP3ColorSpace = 'display-p3';
 const LinearDisplayP3ColorSpace = 'display-p3-linear';
@@ -16672,7 +16679,7 @@ class KTX2Loader extends three.Loader {
 
 		texture.needsUpdate = true;
 		texture.colorSpace = parseColorSpace( container );
-		texture.premultiplyAlpha = !! ( dfdFlags & p );
+		texture.premultiplyAlpha = !! ( dfdFlags & p$1 );
 
 		return texture;
 
@@ -17255,7 +17262,7 @@ async function createRawTexture( container ) {
 
 			_zstd = new Promise( async ( resolve ) => {
 
-				const zstd = new Q();
+				const zstd = new Q$1();
 				await zstd.init();
 				resolve( zstd );
 
@@ -17371,15 +17378,15 @@ function parseColorSpace( container ) {
 
 	const dfd = container.dataFormatDescriptor[ 0 ];
 
-	if ( dfd.colorPrimaries === F ) {
+	if ( dfd.colorPrimaries === F$1 ) {
 
-		return dfd.transferFunction === x ? three.SRGBColorSpace : three.LinearSRGBColorSpace;
+		return dfd.transferFunction === x$1 ? three.SRGBColorSpace : three.LinearSRGBColorSpace;
 
 	} else if ( dfd.colorPrimaries === X ) {
 
-		return dfd.transferFunction === x ? DisplayP3ColorSpace : LinearDisplayP3ColorSpace;
+		return dfd.transferFunction === x$1 ? DisplayP3ColorSpace : LinearDisplayP3ColorSpace;
 
-	} else if ( dfd.colorPrimaries === E ) {
+	} else if ( dfd.colorPrimaries === E$1 ) {
 
 		return three.NoColorSpace;
 
@@ -21611,7 +21618,7 @@ BufferGeometry.prototype.computeMorphFaceNormals = function () {
 const Visible = 0;
 const Deleted = 1;
 
-const _v1$1 = new three.Vector3();
+const _v1 = new three.Vector3();
 const _line3 = new three.Line3();
 const _plane = new three.Plane();
 const _closestPoint = new three.Vector3();
@@ -21797,7 +21804,7 @@ class ConvexHull {
 
 	intersectsRay( ray ) {
 
-		return this.intersectRay( ray, _v1$1 ) !== null;
+		return this.intersectRay( ray, _v1 ) !== null;
 
 	}
 
@@ -23304,10 +23311,10 @@ class Body extends Item {
 		}
 
 		if( o.radius ){
-			if( !o.breakable ){
+			//if( !o.breakable ){
 				if( t === 'box' ) t = 'ChamferBox';
 				if( t === 'cylinder' ) t = 'ChamferCyl';
-			}
+			//}
 		}
 
 		if( o.geometry ){
@@ -23403,6 +23410,13 @@ class Body extends Item {
 				
 				o.v = MathTool.getVertex( g, noIndex );
 				o.index = MathTool.getIndex( g, noIndex );
+
+				if(this.engine === 'PHYSX'){
+					let center = new three.Vector3();
+					MathTool.getCenter( g, center );
+					o.massCenter = center.toArray();
+					//console.log(o.massCenter)
+				}
 				
 				
 				unic = true;
@@ -23979,14 +23993,48 @@ class Body extends Item {
     	if( o.breakable ){
 
     		this.motor.addBreaker();
-			let child = b.children[0];
-			b.remove(child);
+
+    		let old = b;
+			let child = old.children[0];
+			old.remove(child);
 			b = child;
+			b.position.copy(old.position);
+			b.quaternion.copy(old.quaternion);
+
 			b.name = name;
 			b.type = this.type;
-			b.density = o.density;
+			//b.density = o.density;
 			b.breakable = true;
 			b.breakOption = o.breakOption !== undefined ? o.breakOption : [ 250, 1, 2, 1 ];
+			b.getVelocity = true;
+
+			///
+
+			b.size = o.size;
+			b.shapetype = o.type;
+			b.isKinematic = o.kinematic || false;
+			b.link = 0;
+
+			b.meshSize = o.meshSize ? o.meshSize : 1;
+
+			b.velocity = new three.Vector3();
+			b.angular = new three.Vector3();
+
+			b.sleep = o.sleep || false;
+			b.defMat = false;
+
+
+
+
+			b.auto = o.auto || false;
+
+		    if( !b.auto ) {
+		    	b.matrixAutoUpdate = false;
+			    b.updateMatrix();
+			} else {
+				b.matrixAutoUpdate = true;
+			}
+			
 			//b.userData.mass = o.mass;
 		}
 
@@ -24017,7 +24065,7 @@ class Body extends Item {
 		else if( b.mass && !b.density ){ 
 			b.density = MathTool.densityFromMass( b.mass, volume );
 			//  force density for engin don't have mass
-			if( this.engine === 'RAPIER' || this.engine === 'OIMO') o.density = b.density;
+			if( this.engine === 'RAPIER' || this.engine === 'OIMO'|| this.engine === 'PHYSX') o.density = b.density;
 		}
 
 
@@ -24065,6 +24113,8 @@ class Body extends Item {
 		//---------------------------
 
 		this.motor.post( { m:'add', o:o } );
+
+		if( o.breakable ) this.motor.add({ type:'contact', name:'cc_'+b.name,  b1:b.name, callback: null });
 
 		//---------------------------
 		// return three object3d
@@ -28151,6 +28201,8 @@ class Pair {
 		this.name = o.name;
 		this.callback = o.callback || function(){};
 
+		//console.log(this.name)
+
 		this.b1 = o.b1 || null;
 		this.b2 = o.b2 || null;
 		this.ignore = o.ignore || [];
@@ -30824,7 +30876,7 @@ const FrameTime = 30;
 const TimeFrame = 1/30;
 const torad$2 = Math.PI / 180;
 const todeg = 180 / Math.PI;
-const V = new three.Vector3();
+const V$1 = new three.Vector3();
 
 
 const preloadAvatar = {
@@ -32228,9 +32280,9 @@ class Avatar extends three.Group {
 
         let n = this.bones[name];
         if(!n) return
-        V.set(0,0,0);
-        n.localToWorld(V);
-        return { x:V.x, y:V.y, z:V.z };
+        V$1.set(0,0,0);
+        n.localToWorld(V$1);
+        return { x:V$1.x, y:V$1.y, z:V$1.z };
 
     }
 
@@ -36101,21 +36153,24 @@ class MouseTool {
 
 	shoot () {
 
+		const o = this.option;
+
 		this.raycast.setFromCamera( this.mouse, this.controler.object );
 		this.pos.copy( this.raycast.ray.direction ).add(  this.raycast.ray.origin );
-		this.velocity.copy( this.raycast.ray.direction ).multiplyScalar( 60 );
+		this.velocity.copy( this.raycast.ray.direction ).multiplyScalar( o.velocity || 60 );
 
 		this.motor.add({
 			name: 'bullet_' + this.numBullet,
 			type:'sphere',
-			density:20,
-			size:[0.2], 
-			material:'chrome',
+			mass: o.mass || 10,
+			//density:20,
+			size:[o.size || 0.2], 
+			material:o.mat || 'chrome',
 			pos:this.pos.toArray(),
 			linearVelocity:this.velocity.toArray(),
 			bullet:true,
-			/*ccdThreshold:0.0000001,
-            ccdRadius:0.1,*/
+			ccdThreshold:0.0000001,
+            ccdRadius:o.size*2,/**/
 		});
 
 		this.numBullet++;
@@ -36455,588 +36510,25 @@ class MoveHelper extends three.Line {
 	}
 }
 
-/**
- * @fileoverview This class can be used to subdivide a convex Geometry object into pieces.
- *
- * Usage:
- *
- * Use the function prepareBreakableObject to prepare a Mesh object to be broken.
- *
- * Then, call the various functions to subdivide the object (subdivideByImpact, cutByPlane)
- *
- * Sub-objects that are product of subdivision don't need prepareBreakableObject to be called on them.
- *
- * Requisites for the object:
- *
- *  - Mesh object must have a buffer geometry and a material
- *
- *  - Vertex normals must be planar (not smoothed)
- *
- *  - The geometry must be convex (this is not checked in the library). You can create convex
- *  geometries with ConvexGeometry. The BoxGeometry, SphereGeometry and other convex primitives
- *  can also be used.
- *
- * Note: This lib adds member variables to object's userData member (see prepareBreakableObject function)
- * Use with caution and read the code when using with other libs.
- *
- * @param {double} minSizeForBreak Min size a debris can have to break.
- * @param {double} smallDelta Max distance to consider that a point belongs to a plane.
- *
-*/
-
-const _v1 = new three.Vector3();
-
-class ConvexObjectBreaker {
-
-	constructor( minSizeForBreak = 1.4, smallDelta = 0.0001 ) {
-
-		this.minSizeForBreak = minSizeForBreak;
-		this.smallDelta = smallDelta;
-
-		this.tempLine1 = new three.Line3();
-		this.tempPlane1 = new three.Plane();
-		this.tempPlane2 = new three.Plane();
-		this.tempPlane_Cut = new three.Plane();
-		this.tempCM1 = new three.Vector3();
-		this.tempCM2 = new three.Vector3();
-		this.tempVector3 = new three.Vector3();
-		this.tempVector3_2 = new three.Vector3();
-		this.tempVector3_3 = new three.Vector3();
-		this.tempVector3_P0 = new three.Vector3();
-		this.tempVector3_P1 = new three.Vector3();
-		this.tempVector3_P2 = new three.Vector3();
-		this.tempVector3_N0 = new three.Vector3();
-		this.tempVector3_N1 = new three.Vector3();
-		this.tempVector3_AB = new three.Vector3();
-		this.tempVector3_CB = new three.Vector3();
-		this.tempResultObjects = { object1: null, object2: null };
-
-		this.box1 = new three.Box3();
-		this.box2 = new three.Box3();
-
-		this.sph1 = new three.Sphere();
-		this.sph2 = new three.Sphere();
-
-		this.tt = new three.Vector3();
-		this.s1 = new three.Vector3();
-		this.s2 = new three.Vector3();
-
-
-		this.segments = [];
-		const n = 30 * 30;
-		for ( let i = 0; i < n; i ++ ) this.segments[ i ] = false;
-
-	}
-
-	prepareBreakableObject( object, mass, velocity, angularVelocity, breakable ) {
-
-		// object is a Object3d (normally a Mesh), must have a buffer geometry, and it must be convex.
-		// Its material property is propagated to its children (sub-pieces)
-		// mass must be > 0
-
-		const userData = object.userData;
-		userData.mass = mass;
-		userData.velocity = velocity.clone();
-		userData.angularVelocity = angularVelocity.clone();
-		userData.breakable = breakable;
-
-	}
-
-	/*
-	 * @param {int} maxRadialIterations Iterations for radial cuts.
-	 * @param {int} maxRandomIterations Max random iterations for not-radial cuts
-	 *
-	 * Returns the array of pieces
-	 */
-	subdivideByImpact( object, pointOfImpact, normal, maxRadialIterations, maxRandomIterations ) {
-
-		const debris = [];
-
-		const tempPlane1 = this.tempPlane1;
-		const tempPlane2 = this.tempPlane2;
-
-		this.tempVector3.addVectors( pointOfImpact, normal );
-		tempPlane1.setFromCoplanarPoints( pointOfImpact, object.position, this.tempVector3 );
-
-		const maxTotalIterations = maxRandomIterations + maxRadialIterations;
-
-		const scope = this;
-
-		function subdivideRadial( subObject, startAngle, endAngle, numIterations ) {
-
-			if ( Math.random() < numIterations * 0.05 || numIterations > maxTotalIterations ) {
-
-				debris.push( subObject );
-
-				return;
-
-			}
-
-			let angle = Math.PI;
-
-			if ( numIterations === 0 ) {
-
-				tempPlane2.normal.copy( tempPlane1.normal );
-				tempPlane2.constant = tempPlane1.constant;
-
-			} else {
-
-				if ( numIterations <= maxRadialIterations ) {
-
-					angle = ( endAngle - startAngle ) * ( 0.2 + 0.6 * Math.random() ) + startAngle;
-
-					// Rotate tempPlane2 at impact point around normal axis and the angle
-					scope.tempVector3_2.copy( object.position ).sub( pointOfImpact ).applyAxisAngle( normal, angle ).add( pointOfImpact );
-					tempPlane2.setFromCoplanarPoints( pointOfImpact, scope.tempVector3, scope.tempVector3_2 );
-
-				} else {
-
-					angle = ( ( 0.5 * ( numIterations & 1 ) ) + 0.2 * ( 2 - Math.random() ) ) * Math.PI;
-
-					// Rotate tempPlane2 at object position around normal axis and the angle
-					scope.tempVector3_2.copy( pointOfImpact ).sub( subObject.position ).applyAxisAngle( normal, angle ).add( subObject.position );
-					scope.tempVector3_3.copy( normal ).add( subObject.position );
-					tempPlane2.setFromCoplanarPoints( subObject.position, scope.tempVector3_3, scope.tempVector3_2 );
-
-				}
-
-			}
-
-			// Perform the cut
-			scope.cutByPlane( subObject, tempPlane2, scope.tempResultObjects );
-
-			const obj1 = scope.tempResultObjects.object1;
-			const obj2 = scope.tempResultObjects.object2;
-
-			if ( obj1 ) {
-
-				subdivideRadial( obj1, startAngle, angle, numIterations + 1 );
-
-			}
-
-			if ( obj2 ) {
-
-				subdivideRadial( obj2, angle, endAngle, numIterations + 1 );
-
-			}
-
-		}
-
-		subdivideRadial( object, 0, 2 * Math.PI, 0 );
-
-		return debris;
-
-	}
-
-	cutByPlane( object, plane, output ) {
-
-		let k;
-
-		// Returns breakable objects in output.object1 and output.object2 members, the resulting 2 pieces of the cut.
-		// object2 can be null if the plane doesn't cut the object.
-		// object1 can be null only in case of internal error
-		// Returned value is number of pieces, 0 for error.
-
-		const geometry = object.geometry;
-		const coords = geometry.attributes.position.array;
-		const normals = geometry.attributes.normal.array;
-
-		const numPoints = coords.length / 3;
-		let numFaces = numPoints / 3;
-
-		let indices = geometry.getIndex();
-
-		if ( indices ) {
-
-			indices = indices.array;
-			numFaces = indices.length / 3;
-
-		}
-
-		function getVertexIndex( faceIdx, vert ) {
-
-			// vert = 0, 1 or 2.
-
-			const idx = faceIdx * 3 + vert;
-
-			return indices ? indices[ idx ] : idx;
-
-		}
-
-		const points1 = [];
-		const points2 = [];
-
-		const delta = this.smallDelta;
-
-		// Reset segments mark
-		const numPointPairs = numPoints * numPoints;
-		for ( let i = 0; i < numPointPairs; i ++ ) this.segments[ i ] = false;
-
-		const p0 = this.tempVector3_P0;
-		const p1 = this.tempVector3_P1;
-		const n0 = this.tempVector3_N0;
-		const n1 = this.tempVector3_N1;
-
-		// Iterate through the faces to mark edges shared by coplanar faces
-		for ( let i = 0; i < numFaces - 1; i ++ ) {
-
-			const a1 = getVertexIndex( i, 0 );
-			const b1 = getVertexIndex( i, 1 );
-			const c1 = getVertexIndex( i, 2 );
-
-			// Assuming all 3 vertices have the same normal
-			n0.set( normals[ a1 ], normals[ a1 ] + 1, normals[ a1 ] + 2 );
-
-			for ( let j = i + 1; j < numFaces; j ++ ) {
-
-				const a2 = getVertexIndex( j, 0 );
-				const b2 = getVertexIndex( j, 1 );
-				const c2 = getVertexIndex( j, 2 );
-
-				// Assuming all 3 vertices have the same normal
-				n1.set( normals[ a2 ], normals[ a2 ] + 1, normals[ a2 ] + 2 );
-
-				const coplanar = 1 - n0.dot( n1 ) < delta;
-
-				if ( coplanar ) {
-
-					if ( a1 === a2 || a1 === b2 || a1 === c2 ) {
-
-						if ( b1 === a2 || b1 === b2 || b1 === c2 ) {
-
-							this.segments[ a1 * numPoints + b1 ] = true;
-							this.segments[ b1 * numPoints + a1 ] = true;
-
-						}	else {
-
-							this.segments[ c1 * numPoints + a1 ] = true;
-							this.segments[ a1 * numPoints + c1 ] = true;
-
-						}
-
-					}	else if ( b1 === a2 || b1 === b2 || b1 === c2 ) {
-
-						this.segments[ c1 * numPoints + b1 ] = true;
-						this.segments[ b1 * numPoints + c1 ] = true;
-
-					}
-
-				}
-
-			}
-
-		}
-
-		// Transform the plane to object local space
-		const localPlane = this.tempPlane_Cut;
-		object.updateMatrix();
-		ConvexObjectBreaker.transformPlaneToLocalSpace( plane, object.matrix, localPlane );
-
-		// Iterate through the faces adding points to both pieces
-		for ( let i = 0; i < numFaces; i ++ ) {
-
-			const va = getVertexIndex( i, 0 );
-			const vb = getVertexIndex( i, 1 );
-			const vc = getVertexIndex( i, 2 );
-
-			for ( let segment = 0; segment < 3; segment ++ ) {
-
-				const i0 = segment === 0 ? va : ( segment === 1 ? vb : vc );
-				const i1 = segment === 0 ? vb : ( segment === 1 ? vc : va );
-
-				const segmentState = this.segments[ i0 * numPoints + i1 ];
-
-				if ( segmentState ) continue; // The segment already has been processed in another face
-
-				// Mark segment as processed (also inverted segment)
-				this.segments[ i0 * numPoints + i1 ] = true;
-				this.segments[ i1 * numPoints + i0 ] = true;
-
-				p0.set( coords[ 3 * i0 ], coords[ 3 * i0 + 1 ], coords[ 3 * i0 + 2 ] );
-				p1.set( coords[ 3 * i1 ], coords[ 3 * i1 + 1 ], coords[ 3 * i1 + 2 ] );
-
-				// mark: 1 for negative side, 2 for positive side, 3 for coplanar point
-				let mark0 = 0;
-
-				let d = localPlane.distanceToPoint( p0 );
-
-				if ( d > delta ) {
-
-					mark0 = 2;
-					points2.push( p0.clone() );
-
-				} else if ( d < - delta ) {
-
-					mark0 = 1;
-					points1.push( p0.clone() );
-
-				} else {
-
-					mark0 = 3;
-					points1.push( p0.clone() );
-					points2.push( p0.clone() );
-
-				}
-
-				// mark: 1 for negative side, 2 for positive side, 3 for coplanar point
-				let mark1 = 0;
-
-				d = localPlane.distanceToPoint( p1 );
-
-				if ( d > delta ) {
-
-					mark1 = 2;
-					points2.push( p1.clone() );
-
-				} else if ( d < - delta ) {
-
-					mark1 = 1;
-					points1.push( p1.clone() );
-
-				}	else {
-
-					mark1 = 3;
-					points1.push( p1.clone() );
-					points2.push( p1.clone() );
-
-				}
-
-				if ( ( mark0 === 1 && mark1 === 2 ) || ( mark0 === 2 && mark1 === 1 ) ) {
-
-					// Intersection of segment with the plane
-
-					this.tempLine1.start.copy( p0 );
-					this.tempLine1.end.copy( p1 );
-
-					let intersection = new three.Vector3();
-					intersection = localPlane.intersectLine( this.tempLine1, intersection );
-
-					if ( intersection === null ) {
-
-						// Shouldn't happen
-						console.error( 'Internal error: segment does not intersect plane.' );
-						output.segmentedObject1 = null;
-						output.segmentedObject2 = null;
-						return 0;
-
-					}
-
-					points1.push( intersection );
-					points2.push( intersection.clone() );
-
-				}
-
-			}
-
-		}
-
-		// Calculate debris mass (very fast and imprecise):
-		object.userData.mass * 0.5;
-
-		let box1 = this.box1;
-		let box2 = this.box2;
-		let numPoints1 = points1.length;
-		let numPoints2 = points2.length;
-
-		// reset box3
-		box1.makeEmpty();
-		box2.makeEmpty();
-		
-		// expand box3
-		k = numPoints1;
-		while(k--) box1.expandByPoint(points1[ k ]);
-
-		k = numPoints2;
-		while(k--) box2.expandByPoint(points2[ k ]);
-	
-		box1.getBoundingSphere(this.sph1);
-		box2.getBoundingSphere(this.sph2);
-
-		// Calculate debris Center of Mass Fastest
-		this.tempCM1.copy(this.sph1.center);
-		this.tempCM2.copy(this.sph2.center);
-		k = numPoints1;
-		while ( k-- ) points1[ k ].sub( this.tempCM1 );
-		k = numPoints2;
-		while ( k-- ) points2[ k ].sub( this.tempCM2 );
-
-		this.tempCM1.add(object.position);
-		this.tempCM2.add(object.position);
-
-		box1.getSize(this.s1);
-		box2.getSize(this.s2);
-
-		// avoid too low radius
-		if(2 * this.sph1.radius < this.minSizeForBreak) numPoints1 = 0;
-		if(2 * this.sph2.radius < this.minSizeForBreak) numPoints2 = 0;
-
-		// avoid too low size
-		if(this.testSize(this.s1)) numPoints1 = 0;
-		if(this.testSize(this.s2)) numPoints2 = 0;
-
-		//this.tempCM1.add( object.position );
-		//this.tempCM2.add( object.position )
-
-		//let sizer1 = this.tt.copy(box1.max).add(box1.min).manhattanLength()
-		//let sizer2 = this.tt.copy(box2.max).add(box2.min).manhattanLength()
-
-		//if(sizer1<s) numPoints1 = 0
-		//if(sizer2<s) numPoints2 = 0
-	    //box1 = {x:Math.abs(box1.x), y:Math.abs(box1.y), z:Math.abs(box1.z)}
-	    //box2 = {x:Math.abs(box2.x), y:Math.abs(box2.y), z:Math.abs(box2.z)}
-
-	    //console.log(radius1, radius2)
-	    //console.log(box1.manhattanLength(), box2.manhattanLength())
-
-	    //console.log(box1, box2)
-
-
-
-	    //console.log(sizer1, sizer2)
-
-
-		//if( box1.x<s || box1.y<s || box1.z<s ) numPoints1 = 0
-		//if( box2.x<s || box2.y<s || box2.z<s ) numPoints2 = 0
-
-			//if( box1.x+box1.y+box1.z<s ) numPoints1 = 0
-			//if( box2.x+box2.y+box2.z<s ) numPoints1 = 0
-		//if( box1.manhattanLength()<s ) numPoints1 = 0
-		//if( box2.manhattanLength()<s ) numPoints2 = 0
-
-		//if( box1.length()<s ) numPoints1 = 0
-		//if( box2.length()<s ) numPoints2 = 0
-
-
-	
-
-		let object1 = null;
-		let object2 = null;
-
-		let numObjects = 0;
-
-		if ( numPoints1 > 4 ) {
-
-			object1 = new three.Mesh( new ConvexGeometry( points1 ), object.material );
-			object1.position.copy( this.tempCM1 );
-			object1.quaternion.copy( object.quaternion );
-
-			//this.prepareBreakableObject( object1, newMass, object.userData.velocity, object.userData.angularVelocity, 2 * radius1 > this.minSizeForBreak );
-
-			numObjects ++;
-
-		}
-
-		if ( numPoints2 > 4 ) {
-
-
-			object2 = new three.Mesh( new ConvexGeometry( points2 ), object.material );
-			object2.position.copy( this.tempCM2 );
-			object2.quaternion.copy( object.quaternion );
-
-			//this.prepareBreakableObject( object2, newMass, object.userData.velocity, object.userData.angularVelocity, 2 * radius2 > this.minSizeForBreak );
-
-			numObjects ++;
-
-		}
-
-		output.object1 = object1;
-		output.object2 = object2;
-
-		return numObjects;
-
-	}
-
-	testSize( s ) {
-		let n = 0;
-		if(s.x < 0.01 ) n++; 
-		if(s.y < 0.01 ) n++; 
-		if(s.z < 0.01 ) n++;
-		return n>1 
-	}
-
-	static transformFreeVector( v, m ) {
-
-		// input:
-		// vector interpreted as a free vector
-		// THREE.Matrix4 orthogonal matrix (matrix without scale)
-
-		const x = v.x, y = v.y, z = v.z;
-		const e = m.elements;
-
-		v.x = e[ 0 ] * x + e[ 4 ] * y + e[ 8 ] * z;
-		v.y = e[ 1 ] * x + e[ 5 ] * y + e[ 9 ] * z;
-		v.z = e[ 2 ] * x + e[ 6 ] * y + e[ 10 ] * z;
-
-		return v;
-
-	}
-
-	static transformFreeVectorInverse( v, m ) {
-
-		// input:
-		// vector interpreted as a free vector
-		// THREE.Matrix4 orthogonal matrix (matrix without scale)
-
-		const x = v.x, y = v.y, z = v.z;
-		const e = m.elements;
-
-		v.x = e[ 0 ] * x + e[ 1 ] * y + e[ 2 ] * z;
-		v.y = e[ 4 ] * x + e[ 5 ] * y + e[ 6 ] * z;
-		v.z = e[ 8 ] * x + e[ 9 ] * y + e[ 10 ] * z;
-
-		return v;
-
-	}
-
-	static transformTiedVectorInverse( v, m ) {
-
-		// input:
-		// vector interpreted as a tied (ordinary) vector
-		// THREE.Matrix4 orthogonal matrix (matrix without scale)
-
-		const x = v.x, y = v.y, z = v.z;
-		const e = m.elements;
-
-		v.x = e[ 0 ] * x + e[ 1 ] * y + e[ 2 ] * z - e[ 12 ];
-		v.y = e[ 4 ] * x + e[ 5 ] * y + e[ 6 ] * z - e[ 13 ];
-		v.z = e[ 8 ] * x + e[ 9 ] * y + e[ 10 ] * z - e[ 14 ];
-
-		return v;
-
-	}
-
-	static transformPlaneToLocalSpace( plane, m, resultPlane ) {
-
-		resultPlane.normal.copy( plane.normal );
-		resultPlane.constant = plane.constant;
-
-		const referencePoint = ConvexObjectBreaker.transformTiedVectorInverse( plane.coplanarPoint( _v1 ), m );
-
-		ConvexObjectBreaker.transformFreeVectorInverse( resultPlane.normal, m );
-
-		// recalculate constant (like in setFromNormalAndCoplanarPoint)
-		resultPlane.constant = - referencePoint.dot( resultPlane.normal );
-
-	}
-
-}
-
-({textureScale:new three.Vector2(1,1),textureOffset:new three.Vector2});new three.Vector3;new three.Vector3;new three.Vector3;new three.Plane;new three.Plane;
+function h(t,i,n,s){return function(t,i,n,s,e){let r={x:i.x-t.x,y:i.y-t.y},o={x:s.x-n.x,y:s.y-n.y};const a=p(t),h=p(n);if(a===h)return e;const l=p(i);if(l===h)return e;const u=p(s);if(a===u)return e;if(l===u)return e;let c=(t.x-n.x)*o.y-(t.y-n.y)*o.x,g=(i.x-n.x)*o.y-(i.y-n.y)*o.x,d=(n.x-t.x)*r.y-(n.y-t.y)*r.x,f=(s.x-t.x)*r.y-(s.y-t.y)*r.x;return (c>=0&&g<=0||c<=0&&g>=0)&&(d>=0&&f<=0||d<=0&&f>=0)}(t,i,n,s,false)}function l(i,n,s,e){let r=0,o=new three.Vector3;return f(i)===f(n)||0===s.x&&0===s.y&&0===s.z?null:(r=((e.x-i.x)*s.x+(e.y-i.y)*s.y+(e.z-i.z)*s.z)/((n.x-i.x)*s.x+(n.y-i.y)*s.y+(n.z-i.z)*s.z),r<0||r>1?null:(o=new three.Vector3(i.x+(n.x-i.x)*r,i.y+(n.y-i.y)*r,i.z+(n.z-i.z)*r),{x:o,s:r}))}function u(t,i,n){return (i.x-t.x)*(n.y-t.y)-(i.y-t.y)*(n.x-t.x)<=0}function c(t){return parseInt(Math.round(1e6*t))}function g(t,i=1e6){return Math.floor(t*i)}function d(t,i){return Math.round((t+i)*(t+i+1)*.5+i)}function p(t){return d(g(t.x),g(t.y))}function f(t){const i=g(t.x),n=g(t.y),s=g(t.z),e=(i+n)*(i+n+1)*.5+n;return (e+s)*(e+s+1)*.5+s}function x(t,i,n){return !(i.x*(t.x-n.x)+i.y*(t.y-n.y)+i.z*(t.z-n.z)<0)}class v{constructor(n=new three.Vector3,s=new three.Vector3,e=new three.Vector2){this.position=n,this.normal=s,this.uv=e;}equals(t){return f(this.position)===f(t.position)}toString(){return `Position = ${this.position.x}, ${this.position.y}, ${this.position.z}, Normal = ${this.normal.x}, ${this.normal.y}, ${this.normal.z}, UV = ${this.uv.x}, ${this.uv.y}`}}const y=0,m$1=1;class w{constructor(){this.vertices=[],this.cutVertices=[],this.triangles=[[],[]],this.constraints=[],this.indexMap=[],this.bounds=new three.Box3,this.vertexAdjacency=[],this.convextested=false;}static fromGeometry(n){const s=n.attributes.position.array,e=n.attributes.normal.array,r=n.attributes.uv.array,o=n.attributes.position.count;let a,h;const l=new w;for(let n=0;n<o;n++)a=3*n,h=2*n,l.vertices.push(new v(new three.Vector3(s[a],s[a+1],s[a+2]),new three.Vector3(e[a],e[a+1],e[a+2]),new three.Vector2(r[h],r[h+1])));return l.triangles=[[...n.index.array],[]],l.calculateBounds(),l}get size(){this.bounds||this.calculateBounds();let i=new three.Vector3;return this.bounds.getSize(i)}get convex(){return this.convextested||(this.cc=this.isConvex()),this.cc}get triangleCount(){return (this.triangles[0].length+this.triangles[1].length)/3}get vertexCount(){return this.vertices.length+this.cutVertices.length}addCutFaceVertex(t,i,n){const s=new v(t,i,n);this.vertices.push(s),this.cutVertices.push(s),this.vertexAdjacency.push(this.vertices.length-1);}addMappedVertex(t,i){this.vertices.push(t),this.indexMap[i]=this.vertices.length-1;}addTriangle(t,i,n,s){this.triangles[s].push(t,i,n);}addMappedTriangle(t,i,n,s){this.triangles[s].push(this.indexMap[t],this.indexMap[i],this.indexMap[n]);}weldCutFaceVertices(){const t=[],i=[],n=new Array(this.cutVertices.length);let s=0;const e=new Map;this.cutVertices.forEach(((r,o)=>{const a=function(t){let i=c(t.x),n=c(t.y),s=c(t.z),e=(i+n)*(i+n+1)*.5+n;return (e+s)*(e+s+1)*.5+s}(r.position),h=e.get(a);void 0===h?(n[o]=s,e.set(a,s),t.push(this.cutVertices[o]),i.push(this.vertexAdjacency[o]),s++):n[o]=h;}));for(let t=0;t<this.constraints.length;t++){const i=this.constraints[t];i.v1=n[i.v1],i.v2=n[i.v2];}this.cutVertices=t,this.vertexAdjacency=i;}calculateBounds(){if(!this.vertices.length)return;let t=this.vertices[0].position.clone(),i=t.clone();this.vertices.forEach((n=>{t.x=Math.min(t.x,n.position.x),t.y=Math.min(t.y,n.position.y),t.z=Math.min(t.z,n.position.z),i.x=Math.max(i.x,n.position.x),i.y=Math.max(i.y,n.position.y),i.z=Math.max(i.z,n.position.z);})),this.bounds.set(t,i);}calculateBounds_(t=false){null===this.bounds&&(this.bounds=new three.Box3);let i=this.vertices.length;t&&(i+=this.cutVertices.length);const s=[];let e=-1;for(const t of this.vertices)s[e++]=t.position;if(t)for(const t of this.cutVertices)s[e++]=t.position;this.bounds.setFromPoints(s);}toMesh(i,n=null,r=true,o=0){const a=new three.Vector3,h=new three.Vector3;let l=this.toGeometry(r,o);l.boundingBox.getCenter(a),l.boundingBox.getSize(h),l.translate(-a.x,-a.y,-a.z),l.boundingSphere=new three.Sphere(new three.Vector3,.5*h.length());let u=i.material;n&&u.isMaterial&&(u=[i.material,n]);const c=new three.Mesh(l,u);return c.receiveShadow=i.receiveShadow,c.castShadow=i.castShadow,c.sizer=h.length(),a.applyQuaternion(i.quaternion),c.position.copy(i.position).add(a),c.quaternion.copy(i.quaternion),c.userData={origin:c.position.clone(),direction:a.normalize(),size:h},c}makeTrickness(t,i,n,s,e){let r,o=1-e,a=[...t],h=[...i],l=[...n],u=t.length/3,c=u;for(;c--;)r=3*c,a[r]*=o,a[r+1]*=o,a[r+2]*=o;let g=[];for(c=s.length;c--;)g[c]=s[c]+u;return [a,h,l,g]}toGeometry(t,i){let n;const s=new three.BufferGeometry;let e=[],a=[],h=[];if(this.vertices.forEach((t=>{e.push(t.position.x,t.position.y,t.position.z),a.push(t.normal.x,t.normal.y,t.normal.z),h.push(t.uv.x,t.uv.y);})),0!==i){let t=this.makeTrickness(e,a,h,this.triangles[0],i);e=e.concat(t[0]),a=a.concat(t[1]),h=h.concat(t[2]),n=t[3];}return t&&this.cutVertices.forEach((t=>{e.push(t.position.x,t.position.y,t.position.z),a.push(t.normal.x,t.normal.y,t.normal.z),h.push(t.uv.x,t.uv.y);})),s.addGroup(0,this.triangles[0].length,0),0!==i&&(s.addGroup(this.triangles[0].length,n.length,1),this.triangles[0]=this.triangles[0].concat(n)),t&&s.addGroup(this.triangles[0].length,this.triangles[1].length,1),s.setAttribute("position",new three.BufferAttribute(new Float32Array(e),3)),s.setAttribute("normal",new three.BufferAttribute(new Float32Array(a),3)),s.setAttribute("uv",new three.BufferAttribute(new Float32Array(h),2)),s.setIndex(new three.BufferAttribute(new Uint32Array(this.triangles.flat()),1)),s.computeBoundingBox(),s}isConvex(i=.001){this.convextested=true;let n=0;const s=this.triangleCount,e=[...this.triangles[0],...this.triangles[1]],r=[...this.vertices,...this.cutVertices],o=r.length;if(0===s||0===o)return  false;const a=new three.Vector3,h=new three.Vector3,l=new three.Vector3,u=new three.Vector3,c=new three.Vector3;let g,d;for(let t=0;t<s;t++){n=3*t,c.copy(r[0].position),a.copy(r[e[n]].position),h.copy(r[e[n+1]].position),l.copy(r[e[n+2]].position),h.sub(a),l.sub(a),u.copy(h).cross(l).normalize(),g=c.sub(a).dot(u);for(let t=0;t<o;t++)if(d=c.copy(r[t].position).sub(a).dot(u),Math.abs(g)>i&&Math.abs(d)>i&&g*d<0)return  false}return  true}}class V{constructor(t){this.parent=new Array(t),this.rank=new Array(t);for(let i=0;i<t;i++)this.parent[i]=i,this.rank[i]=1;}find(t){return this.parent[t]!==t&&(this.parent[t]=this.find(this.parent[t])),this.parent[t]}union(t,i){const n=this.find(t),s=this.find(i);n!==s&&(this.rank[n]>this.rank[s]?this.parent[s]=n:this.rank[n]<this.rank[s]?this.parent[n]=s:(this.parent[s]=n,this.rank[n]+=1));}}class M{constructor(t,i,n,s,e){this.v1=t,this.v2=i,this.t1=void 0!==n?n:-1,this.t2=void 0!==s?s:-1,this.t1Edge=void 0!==e?e:0;}equals(t){return this.v1===t.v1&&this.v2===t.v2||this.v1===t.v2&&this.v2===t.v1}toString(){return `Edge: T${this.t1}->T${this.t2} (V${this.v1}->V${this.v2})`}}class T{static getBinNumber(t,i,n){return t%2==0?t*n+i:(t+1)*n-i-1}static sort(t,i,n){if(n<=1)return t;i>t.length&&(i=t.length);const s=new Array(n).fill(0),e=new Array(t.length);for(let n=0;n<i;n++)s[t[n].bin]++;for(let t=1;t<n;t++)s[t]+=s[t-1];for(let n=i-1;n>=0;n--){const i=t[n].bin;s[i]--,e[s[i]]=t[n];}for(let n=i;n<e.length;n++)e[n]=t[n];return e}}class C{constructor(t,i){this.index=t,this.coords=i,this.bin=0;}toString(){return `${this.coords} -> ${this.bin}`}}const z=-1;class b{constructor(n,s){if(this.normalizationScaleFactor=1,this.N=n.length,this.N>=3){this.triangleCount=2*this.N+1,this.triangulation=Array.from({length:this.triangleCount},(()=>new Array(6).fill(0))),this.skipTriangle=new Array(this.triangleCount).fill(false),this.points=new Array(this.N+3),this.normal=s.clone().normalize();let o=n[0].position.clone().sub(n[1].position).normalize(),a=this.normal.clone(),h=new three.Vector3;h.crossVectors(o,a).normalize();for(let t=0;t<this.N;t++){var e=n[t].position,r=new three.Vector2(e.dot(o),e.dot(h));this.points[t]=new C(t,r);}}else this.triangleCount=0,this.triangulation=[],this.skipTriangle=[],this.points=[],this.normal=new three.Vector3;}triangulate(){if(this.N<3)return [];this.addSuperTriangle(),this.normalizeCoordinates(),this.computeTriangulation(),this.discardTrianglesWithSuperTriangleVertices();const t=[];for(let i=0;i<this.triangleCount;i++)this.skipTriangle[i]||t.push(this.triangulation[i][0],this.triangulation[i][1],this.triangulation[i][2]);return t}normalizeCoordinates(){let t=Number.MAX_VALUE,n=Number.MIN_VALUE,s=Number.MAX_VALUE,e=Number.MIN_VALUE;for(let i=0;i<this.N;i++)t=Math.min(t,this.points[i].coords.x),n=Math.max(n,this.points[i].coords.x),s=Math.min(s,this.points[i].coords.y),e=Math.max(e,this.points[i].coords.y);const r=Math.max(n-t,e-s);for(let n=0;n<this.N;n++){var o=this.points[n],a=new three.Vector2((o.coords.x-t)/r,(o.coords.y-s)/r);this.points[n].coords=a;}}sortPointsIntoBins(){const t=Math.round(Math.pow(this.N,.25)),i=t*t;for(let i=0;i<this.N;i++){var n=this.points[i];const s=Math.floor(.99*t*n.coords.y),e=Math.floor(.99*t*n.coords.x);n.bin=T.getBinNumber(s,e,t);}return T.sort(this.points,this.N,i)}computeTriangulation(){let t=0,i=0,n=this.sortPointsIntoBins();for(let s=0;s<this.N;s++){let e=n[s],r=0,o=false;for(;!o&&!(r++>i||t===z);){let n=this.points[this.triangulation[t][0]].coords,s=this.points[this.triangulation[t][1]].coords,r=this.points[this.triangulation[t][2]].coords;u(n,s,e.coords)?u(s,r,e.coords)?u(r,n,e.coords)?(this.insertPointIntoTriangle(e,t,i),i+=2,t=i,o=true):t=this.triangulation[t][5]:t=this.triangulation[t][4]:t=this.triangulation[t][3];}}}addSuperTriangle(){this.points[this.N]=new C(this.N,new three.Vector2(-100,-100)),this.points[this.N+1]=new C(this.N+1,new three.Vector2(0,100)),this.points[this.N+2]=new C(this.N+2,new three.Vector2(100,-100)),this.triangulation[0][0]=this.N,this.triangulation[0][1]=this.N+1,this.triangulation[0][2]=this.N+2,this.triangulation[0][3]=z,this.triangulation[0][4]=z,this.triangulation[0][5]=z;}insertPointIntoTriangle(t,i,n){const s=i,e=n+1,r=n+2;this.triangulation[e][0]=t.index,this.triangulation[e][1]=this.triangulation[i][1],this.triangulation[e][2]=this.triangulation[i][2],this.triangulation[e][3]=r,this.triangulation[e][4]=this.triangulation[i][4],this.triangulation[e][5]=s,this.triangulation[r][0]=t.index,this.triangulation[r][1]=this.triangulation[i][0],this.triangulation[r][2]=this.triangulation[i][1],this.triangulation[r][3]=s,this.triangulation[r][4]=this.triangulation[i][3],this.triangulation[r][5]=e,this.updateAdjacency(this.triangulation[i][3],i,r),this.updateAdjacency(this.triangulation[i][4],i,e),this.triangulation[s][1]=this.triangulation[i][2],this.triangulation[s][2]=this.triangulation[i][0],this.triangulation[s][0]=t.index,this.triangulation[s][4]=this.triangulation[i][5],this.triangulation[s][3]=e,this.triangulation[s][5]=r,this.restoreDelauneyTriangulation(t,s,e,r);}restoreDelauneyTriangulation(t,i,n,s){const e=[];for(e.push([i,this.triangulation[i][4]]),e.push([n,this.triangulation[n][4]]),e.push([s,this.triangulation[s][4]]);e.length>0;)if([i,n]=e.pop()??[z,z],n!==z){const s=this.swapQuadDiagonalIfNeeded(t.index,i,n);null!==s&&(e.push([i,s.t3]),e.push([n,s.t4]));}}swapQuadDiagonalIfNeeded(t,i,n){let s=0,e=0,r=0,o=t,a=0,h=0;this.triangulation[n][3]===i?(s=this.triangulation[n][1],e=this.triangulation[n][0],r=this.triangulation[n][2],a=this.triangulation[n][4],h=this.triangulation[n][5]):this.triangulation[n][4]===i?(s=this.triangulation[n][2],e=this.triangulation[n][1],r=this.triangulation[n][0],a=this.triangulation[n][5],h=this.triangulation[n][3]):(s=this.triangulation[n][0],e=this.triangulation[n][2],r=this.triangulation[n][1],a=this.triangulation[n][3],h=this.triangulation[n][4]);return this.swapTest(this.points[s].coords,this.points[e].coords,this.points[r].coords,this.points[o].coords)?(this.updateAdjacency(a,n,i),this.updateAdjacency(this.triangulation[i][5],i,n),this.triangulation[i][0]=o,this.triangulation[i][1]=s,this.triangulation[i][2]=r,this.triangulation[n][0]=o,this.triangulation[n][1]=r,this.triangulation[n][2]=e,this.triangulation[n][3]=i,this.triangulation[n][4]=h,this.triangulation[n][5]=this.triangulation[i][5],this.triangulation[i][4]=a,this.triangulation[i][5]=n,{t3:a,t4:h}):null}discardTrianglesWithSuperTriangleVertices(){for(let t=0;t<this.triangleCount;t++)(this.triangleContainsVertex(t,this.N)||this.triangleContainsVertex(t,this.N+1)||this.triangleContainsVertex(t,this.N+2))&&(this.skipTriangle[t]=true);}swapTest(t,i,n,s){const e=t.x-n.x,r=i.x-n.x,o=t.y-n.y,a=i.y-n.y,h=t.x-s.x,l=i.x-s.x,u=t.y-s.y,c=i.y-s.y,g=e*r+o*a,d=l*h+c*u;if(g>=0&&d>=0)return  false;if(g<0&&d<0)return  true;return (e*a-r*o)*d+(l*u-h*c)*g<0}triangleContainsVertex(t,i){return this.triangulation[t][0]===i||this.triangulation[t][1]===i||this.triangulation[t][2]===i}updateAdjacency(t,i,n){if(t===z)return;const s=this.findSharedEdge(t,i);null!==s&&(this.triangulation[t][s]=n);}findSharedEdge(t,i){return t===z?null:this.triangulation[t][3]===i?3:this.triangulation[t][4]===i?4:this.triangulation[t][5]===i?5:null}}class A{constructor(t,i,n,s,e,r,o,a,h,l){this.q1=t,this.q2=i,this.q3=n,this.q4=s,this.t1=e,this.t2=r,this.t1L=o,this.t1R=a,this.t2L=h,this.t2R=l;}toString(){return `T${this.t1}/T${this.t2} (V${this.q1},V${this.q2},V${this.q3},V${this.q4})`}}class S extends b{edgeVertex1=[0,0,0,0,1,2];edgeVertex2=[0,0,0,1,2,0];oppositePoint=[0,0,0,2,0,1];nextEdge=[0,0,0,4,5,3];previousEdge=[0,0,0,5,3,4];constructor(t,i,n){super(t,n),this.constraints=i,this.vertexTriangles=[],this.visited=[];}triangulate(){if(this.N<3)return [];this.addSuperTriangle(),this.normalizeCoordinates(),this.computeTriangulation(),this.constraints.length>0&&(this.applyConstraints(),this.discardTrianglesViolatingConstraints()),this.discardTrianglesWithSuperTriangleVertices();let t=[];for(let i=0;i<this.triangleCount;i++)this.skipTriangle[i]||(t.push(this.triangulation[i][0]),t.push(this.triangulation[i][1]),t.push(this.triangulation[i][2]));return t}applyConstraints(){const t=this.triangulation.length;this.visited=new Array(t).fill(false),this.vertexTriangles=new Array(this.N+3).fill(0);for(let i=0;i<t;i++)this.vertexTriangles[this.triangulation[i][0]]=i,this.vertexTriangles[this.triangulation[i][1]]=i,this.vertexTriangles[this.triangulation[i][2]]=i;for(let t of this.constraints){if(t.v1===t.v2)continue;const i=this.findIntersectingEdges(t,this.vertexTriangles);this.removeIntersectingEdges(t,i);}}findIntersectingEdges(t,i){const n=[],s=this.findStartingEdge(i,t);if(null===s)return n;n.push(s);let e=s.t1,r=s.t1Edge,o=e,a=false;for(;!a;){o=e,e=this.triangulation[e][r];const i=this.points[t.v1].coords,s=this.points[t.v2].coords,u=this.points[this.triangulation[e][0]].coords,c=this.points[this.triangulation[e][1]].coords,g=this.points[this.triangulation[e][2]].coords;if(this.triangleContainsVertex(e,t.v2))a=true;else if(this.triangulation[e][3]!==o&&h(i,s,u,c)){r=3;var l=new M(this.triangulation[e][0],this.triangulation[e][1],e,this.triangulation[e][3],r);n.push(l);}else if(this.triangulation[e][4]!==o&&h(i,s,c,g)){r=4;l=new M(this.triangulation[e][1],this.triangulation[e][2],e,this.triangulation[e][4],r);n.push(l);}else {if(this.triangulation[e][5]===o||!h(i,s,g,u)){console.warn("Failed to find final triangle, exiting early.");break}r=5;l=new M(this.triangulation[e][2],this.triangulation[e][0],e,this.triangulation[e][5],r);n.push(l);}}return n}findStartingEdge(t,i){let n,s,e,r=new M(-1,-1),o=i.v1,a=t[o],h=false,l=null;for(this.visited.fill(false);!l&&!h;){if(this.visited[a]=true,this.triangleContainsConstraint(a,i))return null;if(l=this.edgeConstraintIntersectsTriangle(a,i),l)break;if(n=this.triangulation[a][3],s=this.triangulation[a][4],e=this.triangulation[a][5],-1!==n&&!this.visited[n]&&this.triangleContainsVertex(n,o))a=n;else if(-1!==s&&!this.visited[s]&&this.triangleContainsVertex(s,o))a=s;else {if(-1===e||this.visited[e]||!this.triangleContainsVertex(e,o)){h=true;break}a=e;}}if(l){const t=this.triangulation[a][this.edgeVertex1[l]],i=this.triangulation[a][this.edgeVertex2[l]],n=this.triangulation[a][l];return r=new M(t,i,a,n,l),r}return null}removeIntersectingEdges(t,i){let n,s=[],e=0;for(;i.length>0&&e<=i.length;){if(n=i.shift(),null==n)continue;let r=this.findQuadFromSharedEdge(n.t1,n.t1Edge);if(r)if(h(this.points[r.q4].coords,this.points[r.q3].coords,this.points[r.q1].coords,this.points[r.q2].coords)){this.swapQuadDiagonal(r,i,s,this.constraints);let n=new M(r.q3,r.q4,r.t1,r.t2,5);h(this.points[t.v1].coords,this.points[t.v2].coords,this.points[r.q3].coords,this.points[r.q4].coords)?i.push(n):(e=0,s.push(n));}else i.push(n);e++;}s.length>0&&this.restoreConstrainedDelauneyTriangulation(t,s);}restoreConstrainedDelauneyTriangulation(t,i){let n=true;for(;n;){n=false;for(let s=0;s<i.length;s++){const e=i[s];if(e.equals(t))continue;let r=this.findQuadFromSharedEdge(e.t1,e.t1Edge);if(r&&this.swapTest(this.points[r.q1].coords,this.points[r.q2].coords,this.points[r.q3].coords,this.points[r.q4].coords)){this.swapQuadDiagonal(r,i,this.constraints,null);const t=r.q3,e=r.q4;i[s]=new M(t,e,r.t1,r.t2,5),n=true;}}}}discardTrianglesViolatingConstraints(){this.skipTriangle.fill(true);let t=new Set;for(let i=0;i<this.constraints.length;i++){const n=this.constraints[i];t.add(d(n.v1,n.v2));}this.visited.fill(false);let i,n,s,e,r,o,a=[];for(let h=0;h<this.triangleCount;h++)if(!this.visited[h]&&(i=this.triangulation[h][0],n=this.triangulation[h][1],s=this.triangulation[h][2],e=t.has(d(i,n)),r=t.has(d(n,s)),o=t.has(d(s,i)),e||r||o))for(this.skipTriangle[h]=false,a=[],e||a.push(this.triangulation[h][3]),r||a.push(this.triangulation[h][4]),o||a.push(this.triangulation[h][5]);a.length>0;){const e=a.shift();-1===e||this.visited[e]||(this.skipTriangle[e]=false,this.visited[e]=true,i=this.triangulation[e][0],n=this.triangulation[e][1],s=this.triangulation[e][2],t.has(d(i,n))||a.push(this.triangulation[e][3]),t.has(d(n,s))||a.push(this.triangulation[e][4]),t.has(d(s,i))||a.push(this.triangulation[e][5]));}}triangleContainsConstraint(t,i){return !(t>=this.triangulation.length)&&!(this.triangulation[t][0]!==i.v1&&this.triangulation[t][1]!==i.v1&&this.triangulation[t][2]!==i.v1||this.triangulation[t][0]!==i.v2&&this.triangulation[t][1]!==i.v2&&this.triangulation[t][2]!==i.v2)}edgeConstraintIntersectsTriangle(t,i){const n=this.points[i.v1].coords,s=this.points[i.v2].coords,e=this.points[this.triangulation[t][0]].coords,r=this.points[this.triangulation[t][1]].coords,o=this.points[this.triangulation[t][2]].coords;return h(n,s,e,r)?3:h(n,s,r,o)?4:h(n,s,o,e)?5:null}findQuadFromSharedEdge(t,i){let n,s,e,r,o,a,h,l,u=this.triangulation[t][i],c=this.findSharedEdge(u,t);return c?(3===c?(s=this.triangulation[u][0],n=this.triangulation[u][1],e=this.triangulation[u][2]):4===c?(s=this.triangulation[u][1],n=this.triangulation[u][2],e=this.triangulation[u][0]):(s=this.triangulation[u][2],n=this.triangulation[u][0],e=this.triangulation[u][1]),r=this.triangulation[t][this.oppositePoint[i]],o=this.triangulation[t][this.previousEdge[i]],a=this.triangulation[t][this.nextEdge[i]],h=this.triangulation[u][this.nextEdge[c]],l=this.triangulation[u][this.previousEdge[c]],new A(n,s,e,r,t,u,o,a,h,l)):null}swapQuadDiagonal(t,i,n,s){const e=t.t1,r=t.t2,o=t.t1R,a=t.t1L,h=t.t2R,l=t.t2L;this.triangulation[e][0]=t.q4,this.triangulation[e][1]=t.q1,this.triangulation[e][2]=t.q3,this.triangulation[r][0]=t.q4,this.triangulation[r][1]=t.q3,this.triangulation[r][2]=t.q2,this.triangulation[e][3]=a,this.triangulation[e][4]=l,this.triangulation[e][5]=r,this.triangulation[r][3]=e,this.triangulation[r][4]=h,this.triangulation[r][5]=o,this.updateAdjacency(l,r,e),this.updateAdjacency(o,e,r),this.updateEdgesAfterSwap(i,e,r,a,o,l,h),this.updateEdgesAfterSwap(n,e,r,a,o,l,h),this.updateEdgesAfterSwap(s,e,r,a,o,l,h),this.vertexTriangles[t.q1]=e,this.vertexTriangles[t.q2]=r;}updateEdgesAfterSwap(t,i,n,s,e,r,o){if(t)for(let a of t)a.t1===i&&a.t2===e?(a.t1=n,a.t2=e,a.t1Edge=5):a.t1===i&&a.t2===s?a.t1Edge=3:a.t1===e&&a.t2===i?a.t2=n:a.t1===s&&a.t2===i||(a.t1===n&&a.t2===o?a.t1Edge=4:a.t1===n&&a.t2===r?(a.t1=i,a.t2=r,a.t1Edge=4):a.t1===o&&a.t2===n||a.t1===r&&a.t2===n&&(a.t2=i));}}function E(t,n,s,e,r,o,a=true){const h=new w,l=new w,u=new Array(t.vertexCount).fill(false);for(let i=0;i<t.vertices.length;i++){var c=t.vertices[i];u[i]=x(c.position,n,s),(u[i]?h:l).addMappedVertex(c,i);}const g=t.vertices.length;for(let i=0;i<t.cutVertices.length;i++){c=t.cutVertices[i];u[i+g]=x(c.position,n,s),(u[i+g]?h:l).addMappedVertex(c,i+g);}return N(t,h,l,n,s,u,y),a&&N(t,h,l,n,s,u,m$1),a&&function(t,n,s,e,r,o){t.weldCutFaceVertices();const a=s.clone().negate().normalize();if(t.cutVertices.length<3)return;const h=o?new b(t.cutVertices,a):new S(t.cutVertices,t.constraints,a),l=h.triangulate();for(let o=0;o<t.cutVertices.length;o++){var u=t.cutVertices[o],c=h.points[o];const l=new three.Vector2(h.normalizationScaleFactor*c.coords.x*e.x+r.x,h.normalizationScaleFactor*c.coords.y*e.y+r.y),g=new v(u.position.clone(),a.clone(),l.clone()),d=new v(u.position.clone(),s.clone(),l.clone());t.cutVertices[o]=g,n.cutVertices[o]=d;}let g=t.vertices.length,d=n.vertices.length;for(let i=0;i<l.length;i+=3)t.addTriangle(g+l[i],g+l[i+1],g+l[i+2],m$1),n.addTriangle(d+l[i],d+l[i+2],d+l[i+1],m$1);}(h,l,n,e,r,o),{topSlice:h,bottomSlice:l}}function N(t,i,n,s,e,r,o){const a=t.triangles[o];let h,l,u;for(let c=0;c<a.length;c+=3)h=a[c],l=a[c+1],u=a[c+2],r[h]&&r[l]&&r[u]?i.addMappedTriangle(h,l,u,o):r[h]||r[l]||r[u]?r[l]&&r[u]&&!r[h]?q(l,u,h,s,e,t,i,n,o,true):r[u]&&r[h]&&!r[l]?q(u,h,l,s,e,t,i,n,o,true):r[h]&&r[l]&&!r[u]?q(h,l,u,s,e,t,i,n,o,true):r[l]||r[u]||!r[h]?r[u]||r[h]||!r[l]?r[h]||r[l]||!r[u]||q(h,l,u,s,e,t,i,n,o,false):q(u,h,l,s,e,t,i,n,o,false):q(l,u,h,s,e,t,i,n,o,false):n.addMappedTriangle(h,l,u,o);}function q(n,s,e,r,o,a,h,u,c,g){let d=n<a.vertices.length?a.vertices[n]:a.cutVertices[n-a.vertices.length],p=s<a.vertices.length?a.vertices[s]:a.cutVertices[s-a.vertices.length],f=e<a.vertices.length?a.vertices[e]:a.cutVertices[e-a.vertices.length];const x=l(d.position,f.position,r,o),v=l(p.position,f.position,r,o);if(x&&v){const r=new three.Vector3(d.normal.x+x.s*(f.normal.x-d.normal.x),d.normal.y+x.s*(f.normal.y-d.normal.y),d.normal.z+x.s*(f.normal.z-d.normal.z)).normalize(),o=new three.Vector3(p.normal.x+v.s*(f.normal.x-p.normal.x),p.normal.y+v.s*(f.normal.y-p.normal.y),p.normal.z+v.s*(f.normal.z-p.normal.z)).normalize(),a=new three.Vector2(d.uv.x+x.s*(f.uv.x-d.uv.x),d.uv.y+x.s*(f.uv.y-d.uv.y)),l=new three.Vector2(p.uv.x+v.s*(f.uv.x-p.uv.x),p.uv.y+v.s*(f.uv.y-p.uv.y));h.addCutFaceVertex(x.x,r,a),h.addCutFaceVertex(v.x,o,l),u.addCutFaceVertex(x.x,r,a),u.addCutFaceVertex(v.x,o,l);const y=h.vertices.length-2,m=h.vertices.length-1,w=u.vertices.length-2,V=u.vertices.length-1;g?(h.addTriangle(m,y,h.indexMap[s],c),h.addTriangle(y,h.indexMap[n],h.indexMap[s],c),u.addTriangle(u.indexMap[e],w,V,c),h.constraints.push(new M(h.cutVertices.length-2,h.cutVertices.length-1)),u.constraints.push(new M(u.cutVertices.length-1,u.cutVertices.length-2))):(h.addTriangle(y,m,h.indexMap[e],c),u.addTriangle(u.indexMap[n],u.indexMap[s],w,c),u.addTriangle(u.indexMap[s],V,w,c),h.constraints.push(new M(h.cutVertices.length-1,h.cutVertices.length-2)),u.constraints.push(new M(u.cutVertices.length-2,u.cutVertices.length-1)));}}const k={textureScale:new three.Vector2(1,1),textureOffset:new three.Vector2},F=new three.Vector3,$=new three.Vector3,I=new three.Vector3,P=new three.Plane,j=new three.Plane;function B(i,n,s,e,r,o){const a=[],h=i.matrixWorld.clone().invert(),l=i.position;n.applyMatrix4(h);const u=w.fromGeometry(i.geometry);let c=u.convex;F.addVectors(n,s),P.setFromCoplanarPoints(n,l,F);const g=r+e;return function i(r,u,d,p){if(0===r.vertexCount)return;if(Math.random()<.05*p||p>g)return void a.push(r);let f=Math.PI,x=new three.Vector3;r.calculateBounds(),r.bounds.getCenter(x);let v=c;if(0===p)j.normal.copy(P.normal),j.constant=P.constant;else if(p<=e)f=(d-u)*(.2+.6*Math.random())+u,$.copy(l).sub(n).applyAxisAngle(s,f).add(n),j.setFromCoplanarPoints(n,F,$);else {let t=x.clone().applyMatrix4(h);f=(.5*(1&p)+.2*(2-Math.random()))*Math.PI,$.copy(n).sub(t).applyAxisAngle(s,f).add(t),I.copy(s).add(t),j.setFromCoplanarPoints(t,I,$);}const{topSlice:y,bottomSlice:m}=E(r,j.normal,$,k.textureScale,k.textureOffset,v,o);let w=y,V=m;v||(w=G(y),V=G(m)),w&&(w instanceof Array?w.length>0&&w.forEach((t=>{i(t,u,f,p+1);})):i(w,u,f,p+1)),V&&(V instanceof Array?V.length>0&&V.forEach((t=>{i(t,u,f,p+1);})):i(m,f,d,p+1));}(u,0,2*Math.PI,0),a}function Q(t,i,n,s=true,e=0){const r=[];return t.map(((t,o)=>{r.push(t.toMesh(i,n,s,e));})),r}function G(t){const i=new V(t.vertexCount),n={},s=t.vertices.length,e=t.cutVertices.length,r=new Map;t.vertices.forEach(((t,n)=>{const s=f(t.position),e=r.get(s);void 0===e?r.set(s,n):i.union(e,n);}));for(let n=0;n<e;n++)i.union(t.vertexAdjacency[n],n+s);const o=t.triangles;for(let t=0;t<o.length;t++)for(let s=0;s<o[t].length;s+=3){const e=o[t][s],r=o[t][s+1],a=o[t][s+2];i.union(e,r),i.union(r,a);const h=i.find(e);n[h]||(n[h]=[[],[]]),n[h][t].push(e,r,a);}const a={},h=Array(t.vertexCount);for(let n=0;n<s;n++){const s=i.find(n);a[s]||(a[s]=new w),a[s].vertices.push(t.vertices[n]),h[n]=a[s].vertices.length-1;}for(let n=0;n<e;n++){const e=i.find(n+s);a[e].cutVertices.push(t.cutVertices[n]),h[n+s]=a[e].vertices.length+a[e].cutVertices.length-1;}for(const s of Object.keys(n)){let e=Number(s),r=i.parent[e];for(let i=0;i<t.triangles.length;i++)for(const t of n[e][i]){const n=h[t];a[r].triangles[i].push(n);}}return Object.values(a)}
 
 class Breaker {
 
 	constructor (motor) {
 
 		this.motor = motor;
+		//this.motor.activeContact();
 
-		this.convexBreaker = new ConvexObjectBreaker();
+		//this.convexBreaker = new ConvexObjectBreaker();
 		this.tmpI = new THREE.Vector3();
 
 		this.tpos = new THREE.Vector3();
 		this.tnormal = new THREE.Vector3();
 
 		this.nDebris = 0;
-		this.maxDebris = 300;
+		this.maxDebris = 1000;
+
+		this.interneMat = this.motor.getMat('chrome');//new MeshBasicMaterial({ color:0xff0000 })
 
 		this.tt = null;
 
@@ -37073,6 +36565,8 @@ class Breaker {
 
 
 		let breakOption = mesh.breakOption;
+
+		const intern = breakOption[4] !== undefined ? breakOption[4] : true;
 		//let imp = this.tmpI.fromArray( impulse ).length();
 
 		//console.log( name, impulse )
@@ -37080,10 +36574,19 @@ class Breaker {
 		// not enoputh impulse to break
 		if ( impulse < breakOption[ 0 ] ) return;
 
+		// remove contact ??
+		this.motor.remove( 'cc_' + name );
+		this.motor.remove( name );
+
+
 
 		//let parentMatrix = mesh.matrix.clone().invert()
 
-		let debris = this.convexBreaker.subdivideByImpact( mesh, this.tpos.fromArray(pos), this.tnormal.fromArray(normal), breakOption[ 1 ], breakOption[ 2 ] );
+		//let debris = this.convexBreaker.subdivideByImpact( mesh, this.tpos.fromArray(pos), this.tnormal.fromArray(normal), breakOption[ 1 ], breakOption[ 2 ] );
+
+		//                                                                                              maxRadialIterations, maxRandomIterations
+		let fragment = B( mesh, this.tpos.fromArray(pos), this.tnormal.fromArray(normal), breakOption[ 1 ], breakOption[ 2 ], intern );
+		let debris = Q( fragment, mesh, this.interneMat, intern, 0 );
 
 		//console.log( debris.length )
 
@@ -37092,49 +36595,59 @@ class Breaker {
 		// remove one level
 		breakOption[ 3 ] -= 1;
 		
-		const eritage = {
+		const heritage = {
+			basename: name,
 			material: mesh.material,
-			linearVelocity: [v[0], v[1], v[2]],
-			angularVelocity: [v[3], v[4], v[5]],
-			density: mesh.density,
+			linearVelocity:mesh.velocity.toArray(),
+			angularVelocity:mesh.angular.toArray(),
+			//linearVelocity: [v[0], v[1], v[2]],
+			//angularVelocity: [v[3], v[4], v[5]],
+			//density: mesh.density,
+			mass:0
 		};
 
 		// add debris
 		let list = [];
-		let i = debris.length, n = 0;
+		let i = debris.length, n = 0, m, nv;
+		let mass = mesh.mass/i;
+		heritage.mass = mass;
 		while ( i -- ){ 
-			list.push( this.addDebris( debris[ n ], breakOption, eritage ) );
+			m = debris[ n ];
+			nv = m.geometry.attributes.position.count;// physx can't use lese that 4 vertex
+			if(m.sizer>0.02 && nv > 5) list.push( this.addDebris( m, breakOption, heritage ) );
 			n++;
 		}
 
         // remove original object and add debrit
         //this.motor.remove( name, true )
-        this.tt = setTimeout( ()=>{
-        	this.motor.remove( name );
+        //this.tt = setTimeout( ()=>{
+        	//this.motor.remove( name )
 		    this.motor.add( list );
-        }, 0 );
+        //}, 60 )
 		
 
 	}
 
-	addDebris ( mesh, breakOption, eritage ) {
+	addDebris ( mesh, breakOption, heritage ) {
 
 		let breakable = breakOption[ 3 ] > 0 ? true : false;
 
-		let name = 'debris_' + (this.nDebris++);
+		let name = heritage.basename +'_debris_' + (this.nDebris++);
 
+		//console.log(mesh.position.toArray())
 		let deb = {
 
-			...eritage,
+			...heritage,
 
 			name: name,
 			type: 'convex',
 			shape: mesh.geometry,
+			material:mesh.material,
 			//size:[1,1,1],
 			pos: mesh.position.toArray(),
 			quat: mesh.quaternion.toArray(),
 			breakable: breakable,
-			breakOption:breakOption,
+			breakOption: breakOption,
 
 		};
 
@@ -37506,6 +37019,795 @@ class ParticleSolver {
 
 }
 
+const skyOption = {
+
+    sunPosition: new three.Vector3(0.27, 1, 0.5),
+    sunTop: new three.Vector3(0, .99, 0),
+    saturation:1,
+    noiseMap:null,
+
+	//shadow:1.0,
+
+	//sunIntensity:100,//1.26,
+	//hemiIntensity:1,//2,//2.79,
+	nightLuminosity:0.03,
+
+	//HOUR:12,
+	//AZIMUTH:0,
+
+	cloud_size:0.29,
+	cloud_covr:0.1,//0.56,
+	cloud_dens:0.4,
+	cloud_dist:0.64,
+
+	haze:0.1,
+	mixRatio:0.76,
+
+	SAMPLE:64,//128*0.5,
+	STEP:4,//16
+
+	cloudColor: new three.Color(0xfffff9).multiplyScalar(1),
+	skyColor: new three.Color(0x425876),
+	fogColor: new three.Color(0xabb5c0),
+    groundColor: new three.Color(0x808080),
+    sunColor: new three.Color(0xffffff).multiplyScalar(3),
+
+};
+
+const SkyShader = {
+	defines:{
+		'USE_NOISE_MAP' : false,
+	},
+	uniforms: {
+		lightdir: { value: skyOption.sunPosition },
+        sunTop: { value:skyOption.sunTop },
+        noiseMap: { value:skyOption.noiseMap },
+        
+        mixRatio: { value: skyOption.mixRatio },
+
+		cloud_size: { value: skyOption.cloud_size },
+        cloud_covr: { value: skyOption.cloud_covr },
+        cloud_dens: { value: skyOption.cloud_dens },
+        cloud_dist: { value: skyOption.cloud_dist },
+        nightLuminosity: { value: skyOption.nightLuminosity },
+        haze: { value: skyOption.haze },
+        saturation:{ value: skyOption.saturation },
+        
+        SAMPLE:{ value: skyOption.SAMPLE },
+        STEP:{ value: skyOption.STEP },
+        fogy: { value: skyOption.fogy },
+        t: { value: 1.0 },
+        // extra color
+
+        fogColor: { value: skyOption.fogColor },
+        groundColor: { value: skyOption.groundColor },
+        cloudColor: { value: skyOption.cloudColor },
+        skyColor: { value: skyOption.skyColor },
+        sunColor: { value: skyOption.sunColor },
+	},
+	vertexShader: /* glsl */ `
+varying vec3 worldPosition;
+void main()	{
+	worldPosition = ( modelMatrix * vec4( position, 1.0 )).xyz;
+	gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+
+}
+`,
+	fragmentShader: /* glsl */`
+//precision highp float;
+varying vec3 worldPosition;
+
+uniform vec3 fogColor;
+uniform vec3 groundColor;
+uniform vec3 cloudColor;
+uniform vec3 skyColor;
+uniform vec3 sunColor;
+
+uniform float saturation;
+
+uniform float hue;
+uniform float mixRatio;
+uniform float fogy;
+
+uniform vec3 sunTop;
+
+uniform sampler2D noiseMap;
+uniform vec3 lightdir;
+
+uniform float cloud_size;
+uniform float cloud_covr;
+uniform float cloud_dens;
+uniform float cloud_dist;
+
+uniform float nightLuminosity;
+uniform float haze;
+uniform float t;
+
+uniform int SAMPLE;
+uniform int STEP;
+
+//const float c = 6.36e6;
+//const float d = 6.38e6;
+const float c = 6.407e6;
+const float d = 6.416e6;
+
+//const float g = 0.76; // mix ratio
+//const float h = g*g;
+const float icc = 1.0/8e3;
+const float jcc = 1.0/1200.0;
+const float pi = 3.141592653589793;
+
+const vec3 vm = vec3( 0,-c,0 );
+//const vec3 vn = vec3( 2.1e-5 );
+//const vec3 vo = vec3( 5.8e-6, 1.35e-5, 3.31e-5 );
+
+//const vec3 vn = vec3( 0.000021 );
+//const vec3 vo = vec3( 0.0000058, 0.0000135, 0.0000331 );// sky base color
+
+//const vec3 vo = vec3( 0.000021 );// sky base color
+
+
+#ifdef USE_NOISE_MAP
+
+float noise( in vec3 x ){
+    vec3 p = floor(x);
+    vec3 f = fract(x);
+    f = f*f*(3.0-2.0*f);
+    vec2 uv = (p.xy+vec2(37.0,17.0)*p.z) + f.xy;
+    vec2 rg = texture2D( noiseMap, (uv+0.5)/256.0, -16.0 ).yx;
+    return mix( rg.x, rg.y, f.z );
+}
+
+#else
+
+float hash( float n ) { return fract(sin(n)*753.5453123); }
+float noise( in vec3 x ){
+    vec3 p = floor(x);
+    vec3 f = fract(x);
+    f = f*f*(3.0-2.0*f);
+    float n = p.x + p.y*157.0 + 113.0*p.z;
+    return mix(mix(mix( hash(n+  0.0), hash(n+  1.0),f.x),
+                   mix( hash(n+157.0), hash(n+158.0),f.x),f.y),
+               mix(mix( hash(n+113.0), hash(n+114.0),f.x),
+                   mix( hash(n+270.0), hash(n+271.0),f.x),f.y),f.z);
+}
+
+#endif
+
+float NOISE( vec3 r )
+{
+	r.xz += t;
+	r *= 0.5;
+	float s;
+	s = 0.5 * noise(r);
+	r = r * 2.52;
+	s += 0.25 * noise(r);
+	r = r * 2.53;
+	s += 0.125 * noise(r);
+	r = r * 2.51;
+	s += 0.0625 * noise(r);
+	r = r * 2.53;
+	s += 0.03125 * noise(r);
+	r = r * 2.52;
+	s += 0.015625 * noise(r);
+	return s;
+}
+
+float MakeNoise( vec3 r )
+{
+	float s,tt;
+	s = NOISE( r * 2e-4 * ( 1.0 - cloud_size ) );
+	tt = ( 1.0 - cloud_covr ) * 0.5 + 0.2;
+	s = smoothstep( tt, tt+.2 , s );
+	s *= 0.5*(cloud_dens*100.0);
+	return s;
+}
+
+void clouds( in vec3 r, out vec3 u )
+{
+	float v,w;
+	v = length( r-vm ) - c;
+	w = 0.0;
+	if( 5e3 < v && v < 1e4 ) w = MakeNoise( r ) * (sin( pi*(v-5e3)/5e3 ));
+	u = vec3( exp(-v*icc), exp(-v*jcc), w );
+}
+
+float ca( in vec3 r, in vec3 s, in float t )
+{
+	vec3 u = r - vm;
+	float v,w,x,y,z,A;
+	v = dot(u,s);
+	w = dot(u,u)-t*t;
+	x = v*v-w;
+	if( x < 0.0 ) return -1.0;
+	y = sqrt(x);
+	z = -v-y;
+	A = -v+y;
+	return z >= 0.0 ? z : A;
+}
+
+vec3 czm_saturation(vec3 rgb, float adjustment)
+{
+    vec3 W = vec3(0.2125, 0.7154, 0.0721);
+    vec3 intensity = vec3(dot(rgb, W));
+    return mix(intensity, rgb, adjustment);
+}
+
+
+vec3 makeSky( in vec3 lightpos, in vec3 r, in vec3 world, out float mask )
+{
+
+	vec3 vn = vec3( 0.000021 );
+	vec3 vo = skyColor;
+	vo *= 0.00005;
+
+	float u,v,w,x,y,z,m, M, N, S, H, F;
+	vec3 p = lightpos;
+	u = ca(r,world,d);
+	v = dot(world,p);
+	w = 1.0+v*v;
+
+	float gg = mixRatio;
+	float hh = gg*gg;
+
+	x = 0.0596831*w;
+	y = 0.0253662*(1.0-hh)*w/((2.0+hh)*pow(abs(1.0+hh-2.0*gg*v),1.5));
+	z = 50.*pow(abs(1.+dot(world,-p)),2.0)*dot(vec3(0.,1.,0.),p)*(1.0-cloud_covr)*(1.0-min(fogy,1.0));
+
+	m = 0.0;
+	vec3 D,E, CB, CM, BB, BM, SX;
+
+	F = u / float( SAMPLE );
+
+	BB = vec3(0.0);
+	BM = vec3(0.0);
+
+	float count = 0.0;
+
+	for( int G=0; G<SAMPLE; ++G ){
+
+		H = float(G)*F;
+		vec3 I = r + world * H;
+		//CB = vec3(1.0);
+		//BB = vec3(0.0);
+		clouds( I, CB );
+		CB += fogy;// add fog
+		CB.y += CB.z;// add clound
+		CB.xy *= F;
+		BB += CB;
+
+		M = ca(I,p,d);
+
+		if( M > 0.0 ){
+
+			N = M/float(STEP);
+			BM = vec3(0.0);
+
+			for( int R=0; R<STEP; ++R ){
+
+				S = float(R)*N;
+				vec3 T=I+p*S;
+				clouds( T, CM );
+				CM += fogy;// add fog
+				CM.y += CM.z;// add clound
+				BM += CM * N;
+
+			}
+
+			SX = exp(-(vo*(BM.x+BB.x)+vn*(BM.y+BB.y)* cloud_dist));
+
+			m += CB.z;
+			count += 1.0;
+			D += SX*CB.x;
+			E += (SX*CB.y)+z*m;
+		}
+		else return vec3(0.0);
+	}
+	//mask = m * 0.0125;
+	//mask = m / count;
+	mask = m / float( SAMPLE );
+
+	return ((D * vo * x ) + (E * vn * y * sunColor)) * 15.0;
+}
+
+
+void main()
+{
+	vec3 light = normalize( lightdir );
+	vec3 world = normalize( worldPosition.xyz );
+
+	float uvy = acos( world.y ) / pi;
+
+	//float luma = smoothstep(0.0, 4.0,  1.0-(abs(world.y)/0.8) );
+    //float mid = smoothstep(0.0, 1.0,  abs(world.y) < haze ? 1.0-(abs(world.y)/(haze*1.0)) : 0.0 );
+    //mid *= nightLuminosity;//pow(  mid, 1.0 );
+
+    // ground reapeat sky
+	//if( world.y < -0.15) world.y = -0.15+((-world.y-0.15)*0.1);
+	if( world.y < 0.0) world.y = -world.y;
+
+	float high = smoothstep(1.0, 0.0, (uvy)*10000.0);
+	float top =  smoothstep(1.0, 0.0, (uvy-0.5)*50.0);
+	float middle = uvy > 0.5 ? high : smoothstep(0.0, 1.0, (0.5-uvy)*((1.0-haze)*100.0));
+
+	float middle2 = uvy > 0.5 ? smoothstep(0.0, 1.0, (0.5-uvy)*((1.0-haze)*100.0)) : smoothstep(0.0, 1.0, (0.5-uvy)*((1.0-haze)*100.0));
+
+	vec3 s = sunTop;
+	float lm = dot( s, light );
+	float day = clamp((lm*4.0), 0.0, (1.0-nightLuminosity) )+nightLuminosity;
+
+	if(lm <= 0.0) light *= -1.0;
+	light.y = abs(light.y);
+
+	//if(light.y < 0.1) light.y = 0.1;
+	light.y = clamp(light.y, 0.1, 1.0 );
+	//light.y += 0.5;
+
+	float mask = 0.0;
+
+	vec3 sky = makeSky( light, s, world, mask );
+	mask = clamp(mask, 0.0, 1.0 );
+	sky = mix( sky, cloudColor, mask ); //apply cloud color
+	
+
+	//sky = mix( sky, groundColor, 1.0-middle ); // apply ground color
+	sky = mix( sky, fogColor, 1.0-middle2 ); // apply fog color
+	
+    //float dd = clamp(day+(nightLuminosity*0.5), 0.0, 1.0);
+	//luma *= 1.0-dd;
+	//clear = mix( clear, clear+skyColor, luma ); // extra luminosity on night
+
+	sky *= day;
+	//sky = czm_saturation(sky, saturation);
+    //sky = clamp(sky, 0.0, 1.0 );
+
+
+ 	gl_FragColor = vec4( sky, 1.0 );
+
+}
+`,
+	depthWrite: false,
+	depthTest: false,
+	side:1,
+	toneMapped: false,
+	fog:false,
+};
+
+const torad$1 = Math.PI / 180;
+
+class Envmap {
+
+	constructor( o = {} ) {
+
+		this.mainScene = o.scene;
+		this.renderer = o.renderer;
+
+		this.usePrem = o.usePmrem !== undefined ? o.usePmrem : false;
+		this.useBackground = o.useBackground !== undefined ? o.useBackground : true;
+		this.envBlur = o.envBlur !== undefined ? o.envBlur : 0;
+		this.callback = o.callback || null;
+		this.isSky = false;
+
+		 if( this.usePrem ){
+	        this.pmremGenerator = new three.PMREMGenerator( this.renderer );
+	        this.pmremGenerator.compileEquirectangularShader();
+	    }
+
+		if(o.cube) this.initCubeEnv( o );
+		if(o.url) this.load( o.url );
+    
+	}
+
+	initCubeEnv( o = {} ) {
+
+		this.isCubeEnv = true;
+		this._quality = o.quality || 1;
+
+		this.scene = new three.Scene();
+		if(o.color) this.scene.background = new three.Color(o.color); 
+		this.target = new three.WebGLCubeRenderTarget( 256*this._quality, {
+			//magFilter: LinearFilter,
+            minFilter: three.LinearFilter,
+            type: three.HalfFloatType,
+            //format: RGBAFormat,
+            //colorSpace: LinearSRGBColorSpace,
+            colorSpace: three.SRGBColorSpace, 
+            //generateMipmaps: false,
+            //depthBuffer: false,
+            //generateMipmaps:true,
+            anisotropy:1,
+        });
+
+        this.camera = new three.CubeCamera( o.near || 0.1, o.far || 100, this.target );
+		this.mainScene.environment = this.target.texture;
+		if( this.useBackground ) this.mainScene.background = this.target.texture;
+
+	}
+
+	addSky(){
+
+		let g = new three.IcosahedronGeometry( 20, 1 );
+		const mat = new three.ShaderMaterial( SkyShader );
+		this.sky = new three.Mesh( g, mat );
+		this.scene.add(this.sky);
+		this.render();
+		this.isSky = true;
+		
+	}
+
+	getSkyOtion(){
+
+		if(!this.isSky) return;
+		return skyOption;
+
+	}
+
+	setSkyOtion( o ){
+
+		if(!this.isSky) return;
+		let u = this.sky.material.uniforms;
+		for(let k in o){
+			if(u[k]) u[k].value = o[k];
+		}
+	
+	    if(this.timeout) clearTimeout(this.timeout);
+	    this.timeout = setTimeout( this.render.bind(this), 0 );
+
+	}
+
+	render() {
+
+		if(!this.isCubeEnv) return
+		const renderer = this.renderer;
+        const lastToneMapping = renderer.toneMapping;
+        //const lastToneExposure = renderer.toneMappingExposure;
+        renderer.toneMapping = three.NoToneMapping;
+        //renderer.toneMappingExposure = 1.0;
+
+		this.camera.update( renderer, this.scene );
+        renderer.toneMapping = lastToneMapping;
+        //renderer.toneMappingExposure = lastToneExposure;
+
+	}
+
+	load ( url ) {
+
+		this.name = url.substring( url.lastIndexOf('/')+1, url.lastIndexOf('.') );
+	    this.type = url.substring( url.lastIndexOf('.')+1 ).toLowerCase();
+
+		this.loader = null;
+
+		switch( this.type ){
+			case 'hdr': 
+			    this.loader = new RGBELoader().load( url, this.end.bind(this), null, this.bug.bind(this) );
+			break;
+			case 'exr':
+			    this.loader = new EXRLoader().load( url, this.end.bind(this), null, this.bug.bind(this) );
+			break;
+			/*case 'jpg': 
+			    this.loader = new HDRJPGLoader( this.renderer ).load( url, this.end.bind(this), null, this.bug.bind(this) );
+			break;*/
+		}
+
+	}
+
+	bug () {
+
+		console.log( 'Envmap is not find :', this.name );
+		if( this.callback ) this.callback();
+
+	}
+
+	end () {
+
+		let env;
+
+		switch( this.type ){
+			case 'hdr': case 'exr':
+			    env = this.loader;
+			    env.mapping = three.EquirectangularReflectionMapping;
+			break;
+			case 'jpg':
+			    env = this.loader.renderTarget.texture;
+			    env.mapping = three.EquirectangularReflectionMapping;
+			    
+			break;
+		}
+
+		if( this.usePrem ) {
+            
+            env = this.pmremGenerator.fromEquirectangular( env ).texture;
+            this.pmremGenerator.dispose();
+
+        }
+
+        env.needsUpdate = true;
+
+        const scene = this.isCubeEnv ? this.scene : this.mainScene;
+
+        
+		if( this.isCubeEnv || this.useBackground ) scene.background = env;
+		if( this.envBlur ) scene.backgroundBlurriness = this.envBlur;
+	    scene.environment = env;
+	    
+        this.loader.dispose();
+
+		if( this.callback ) this.callback();
+
+	}
+
+
+	get intensity() {
+        return this.mainScene.environmentIntensity;
+    }
+    set intensity(value) {
+        this.mainScene.environmentIntensity = value;
+    }
+
+    get bgIntensity() {
+        return this.mainScene.backgroundIntensity;
+    }
+    set bgIntensity(value) {
+        this.mainScene.backgroundIntensity = value;
+    }
+
+    get blur() {
+        return this.mainScene.backgroundBlurriness;
+    }
+    set blur(value) {
+        this.mainScene.backgroundBlurriness = value;
+    }
+
+    rotate( x=0,y=0,z=0 ) {
+
+        if(x!==0) x *= torad$1;
+        if(y!==0) y *= torad$1;
+        if(z!==0) z *= torad$1;
+
+        this.mainScene.environmentRotation.set(x,y,z);
+        this.mainScene.backgroundRotation.set(x,y,z);
+
+    }
+
+}
+
+class AutoRagdoll {
+	
+	constructor( o = {}, motor ){
+
+		this.motor = motor;
+		this.utils = this.motor.utils;
+
+		this.id = 0;
+		this.type = 'autoRagdoll';
+		this.name = o.name || this.type+this.id++;
+
+		let b = this.utils.byName( this.name );
+		if( b ) this.utils.remove( b );
+
+		//this.isAutoRagdoll = true;
+
+		this._mode = o.mode || 'follow';
+		this._size = o.size || 1;
+		this._debug = o.debug || false;
+
+		const model = clone( o.model );
+		model.scale.set(1,1,1).multiplyScalar( this._size );
+		if(o.pos) model.position.fromArray(o.pos);
+
+		model.raycast = function (){ return };
+		model.name = this.name;
+		//model.frustumCulled = false;
+
+		let bones;
+
+		model.traverse( ( child ) => {
+			if ( child.isMesh ){
+				child.frustumCulled = false;
+			}
+			if ( child.isSkinnedMesh ){
+				child.raycast = function (){ return };
+				child.frustumCulled = false;
+				child.matrixAutoUpdate = false;
+				child.receiveShadow = true;
+				child.castShadow = true;
+				if( o.material ) child.material = o.material;
+				child.skeleton.resetScalling();
+				bones = child.skeleton.bones;
+			}
+		});
+
+		let mass = o.mass || null;
+		
+		this.skeletonBody = new SkeletonBody( this.motor, model.name, model, bones, mass, o.option );
+
+		this.debug = this._debug;
+		this.mode = this._mode;
+
+		/*this.skeletonBody.addEventListener ( 'start', function ( event ) {
+			console.log( event.message );
+		});*/
+
+
+
+		/* 
+		// basic three helper
+		let helper = new SkeletonHelper( m );
+		helper.raycast = function (){ return }
+        helper.matrix = m.matrix;
+        root.scene.add( helper );
+        */
+
+		model.add( this.skeletonBody );
+
+		this.model = model;
+
+		this.utils.add( this );
+
+		return this;
+
+	}
+
+	getRealPosition() {
+		let node = this.utils.byName( this.skeletonBody.nodes[0].name );
+		return node.position;
+	}
+
+	dispose () {
+
+		if( this.skeletonBody ) this.skeletonBody.dispose();
+		if( this.model ) this.model.parent.remove( this.model );
+
+	}
+
+	//
+
+	get position () { return model.position; }
+
+	get size () { return this._size; }
+	set size (value) {
+		this._size = value;
+		this.model.scale.set(1,1,1).multiplyScalar( this._size );
+	}
+
+	//
+
+	get debug () { return this._debug; }
+	set debug (value) {
+		this._debug = value;
+		this.skeletonBody.isVisible( this._debug );
+	}
+
+	get mode () { return this._mode; }
+	set mode (value) {
+		this._mode = value;
+		this.skeletonBody.setMode( this._mode );
+	}
+
+
+
+}
+
+class Debuger extends three.LineSegments {
+
+	constructor( motor ) {
+
+		super();
+
+        this.rayCount = 0;
+
+        this.ray = [];
+
+        this.motor = motor;
+
+		this.maxVertices = 10000;
+		this.currentVertex = 0;
+
+		this.geometry = new three.BufferGeometry();
+		this.geometry.setAttribute( 'position', new three.Float32BufferAttribute( this.maxVertices * 3 , 3) );
+		this.geometry.setAttribute( 'color', new three.Float32BufferAttribute(  this.maxVertices * 3 , 3) );
+
+		this.positions = this.geometry.attributes.position.array;
+		this.colors = this.geometry.attributes.color.array;
+
+		this.material = new three.LineBasicMaterial({ vertexColors:true, toneMapped:false, depthTest:false, depthWrite:false });
+        this.material.transparent = true; this.renderOrder = 30000;
+		this.frustumCulled = false;
+
+	}
+
+    DrawRay( a, b, c ){
+
+        c = new three.Color(c);
+
+        let i = this.currentVertex;
+        let n = i * 3;
+        this.positions[n] = a.x;
+        this.positions[n + 1] = a.y;
+        this.positions[n + 2] = a.z;
+        this.colors[n] = c.r;
+        this.colors[n + 1] = c.g;
+        this.colors[n + 2] = c.b;
+
+        i++;
+        n = i * 3;
+        this.positions[n] = a.x + b.x;
+        this.positions[n + 1] = a.y + b.y;
+        this.positions[n + 2] = a.z + b.z;
+        this.colors[n] = c.r;
+        this.colors[n + 1] = c.g;
+        this.colors[n + 2] = c.b;
+        this.currentVertex += 2;
+
+    }
+
+	collapseBuffer () {
+
+        let i = this.maxVertices;
+        let min = this.currentVertex;
+        let n = 0;
+        while(i>=min){
+            n = i * 3;
+            this.positions[n] = 0;
+            this.positions[n+1] = 0;
+            this.positions[n+2] = 0;
+            this.colors[n] = 0;
+            this.colors[n+1] = 0;
+            this.colors[n+2] = 0;
+            i--;
+        }
+    }
+
+    insertLine (a, b, c) {
+        
+        let i = this.currentVertex;
+        let n = i * 3;
+        this.positions[n] = a.x;
+        this.positions[n + 1] = a.y;
+        this.positions[n + 2] = a.z;
+        this.colors[n] = c.r;
+        this.colors[n + 1] = c.g;
+        this.colors[n + 2] = c.b;
+
+        i++;
+        n = i * 3;
+        this.positions[n] = b.x;
+        this.positions[n + 1] = b.y;
+        this.positions[n + 2] = b.z;
+        this.colors[n] = c.r;
+        this.colors[n + 1] = c.g;
+        this.colors[n + 2] = c.b;
+        this.currentVertex += 2;
+
+    }
+
+    draw() {
+
+        /*let i = this.ray.length, r;
+        while(i--){
+            r = this.ray[i]
+            this.insertLine(r.a, r.b, r.c)
+        }*/
+
+
+    	this.collapseBuffer();
+        this.geometry.attributes.position.needsUpdate = true;
+        this.geometry.attributes.color.needsUpdate = true;
+
+        this.currentVertex = 0;
+
+    }
+
+    dispose() {
+
+        this.parent.remove(this);
+        this.material.dispose();
+        this.geometry.dispose();
+
+    }
+
+}
+
 // Universal ray vehicule 
 
 // ...ref
@@ -37516,7 +37818,7 @@ class ParticleSolver {
 //https://github.com/Jaagrav/raycast-vehicle-engine
 //https://asawicki.info/Mirror/Car%20Physics%20for%20Games/Car%20Physics%20for%20Games.html
 
-const torad$1 = Math.PI / 180;
+const torad = Math.PI / 180;
 const directions = [
     new three.Vector3(1, 0, 0),
     new three.Vector3(0, 1, 0),
@@ -37778,7 +38080,7 @@ class RayCar {
 	    this.vehicle.updateVehicle(delta);
 
         if( this.driveWheel ){ 
-            this.driveWheel.rotation.y = this.tmp.steerValue * 180 * torad$1;
+            this.driveWheel.rotation.y = this.tmp.steerValue * 180 * torad;
         }
 
 	}
@@ -38723,795 +39025,6 @@ function resolveSingleBilateral( body1, pos1, body2, pos2, normal ){
     return impulse;
 }
 
-const skyOption = {
-
-    sunPosition: new three.Vector3(0.27, 1, 0.5),
-    sunTop: new three.Vector3(0, .99, 0),
-    saturation:1,
-    noiseMap:null,
-
-	//shadow:1.0,
-
-	//sunIntensity:100,//1.26,
-	//hemiIntensity:1,//2,//2.79,
-	nightLuminosity:0.03,
-
-	//HOUR:12,
-	//AZIMUTH:0,
-
-	cloud_size:0.29,
-	cloud_covr:0.1,//0.56,
-	cloud_dens:0.4,
-	cloud_dist:0.64,
-
-	haze:0.1,
-	mixRatio:0.76,
-
-	SAMPLE:64,//128*0.5,
-	STEP:4,//16
-
-	cloudColor: new three.Color(0xfffff9).multiplyScalar(1),
-	skyColor: new three.Color(0x425876),
-	fogColor: new three.Color(0xabb5c0),
-    groundColor: new three.Color(0x808080),
-    sunColor: new three.Color(0xffffff).multiplyScalar(3),
-
-};
-
-const SkyShader = {
-	defines:{
-		'USE_NOISE_MAP' : false,
-	},
-	uniforms: {
-		lightdir: { value: skyOption.sunPosition },
-        sunTop: { value:skyOption.sunTop },
-        noiseMap: { value:skyOption.noiseMap },
-        
-        mixRatio: { value: skyOption.mixRatio },
-
-		cloud_size: { value: skyOption.cloud_size },
-        cloud_covr: { value: skyOption.cloud_covr },
-        cloud_dens: { value: skyOption.cloud_dens },
-        cloud_dist: { value: skyOption.cloud_dist },
-        nightLuminosity: { value: skyOption.nightLuminosity },
-        haze: { value: skyOption.haze },
-        saturation:{ value: skyOption.saturation },
-        
-        SAMPLE:{ value: skyOption.SAMPLE },
-        STEP:{ value: skyOption.STEP },
-        fogy: { value: skyOption.fogy },
-        t: { value: 1.0 },
-        // extra color
-
-        fogColor: { value: skyOption.fogColor },
-        groundColor: { value: skyOption.groundColor },
-        cloudColor: { value: skyOption.cloudColor },
-        skyColor: { value: skyOption.skyColor },
-        sunColor: { value: skyOption.sunColor },
-	},
-	vertexShader: /* glsl */ `
-varying vec3 worldPosition;
-void main()	{
-	worldPosition = ( modelMatrix * vec4( position, 1.0 )).xyz;
-	gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
-
-}
-`,
-	fragmentShader: /* glsl */`
-//precision highp float;
-varying vec3 worldPosition;
-
-uniform vec3 fogColor;
-uniform vec3 groundColor;
-uniform vec3 cloudColor;
-uniform vec3 skyColor;
-uniform vec3 sunColor;
-
-uniform float saturation;
-
-uniform float hue;
-uniform float mixRatio;
-uniform float fogy;
-
-uniform vec3 sunTop;
-
-uniform sampler2D noiseMap;
-uniform vec3 lightdir;
-
-uniform float cloud_size;
-uniform float cloud_covr;
-uniform float cloud_dens;
-uniform float cloud_dist;
-
-uniform float nightLuminosity;
-uniform float haze;
-uniform float t;
-
-uniform int SAMPLE;
-uniform int STEP;
-
-//const float c = 6.36e6;
-//const float d = 6.38e6;
-const float c = 6.407e6;
-const float d = 6.416e6;
-
-//const float g = 0.76; // mix ratio
-//const float h = g*g;
-const float icc = 1.0/8e3;
-const float jcc = 1.0/1200.0;
-const float pi = 3.141592653589793;
-
-const vec3 vm = vec3( 0,-c,0 );
-//const vec3 vn = vec3( 2.1e-5 );
-//const vec3 vo = vec3( 5.8e-6, 1.35e-5, 3.31e-5 );
-
-//const vec3 vn = vec3( 0.000021 );
-//const vec3 vo = vec3( 0.0000058, 0.0000135, 0.0000331 );// sky base color
-
-//const vec3 vo = vec3( 0.000021 );// sky base color
-
-
-#ifdef USE_NOISE_MAP
-
-float noise( in vec3 x ){
-    vec3 p = floor(x);
-    vec3 f = fract(x);
-    f = f*f*(3.0-2.0*f);
-    vec2 uv = (p.xy+vec2(37.0,17.0)*p.z) + f.xy;
-    vec2 rg = texture2D( noiseMap, (uv+0.5)/256.0, -16.0 ).yx;
-    return mix( rg.x, rg.y, f.z );
-}
-
-#else
-
-float hash( float n ) { return fract(sin(n)*753.5453123); }
-float noise( in vec3 x ){
-    vec3 p = floor(x);
-    vec3 f = fract(x);
-    f = f*f*(3.0-2.0*f);
-    float n = p.x + p.y*157.0 + 113.0*p.z;
-    return mix(mix(mix( hash(n+  0.0), hash(n+  1.0),f.x),
-                   mix( hash(n+157.0), hash(n+158.0),f.x),f.y),
-               mix(mix( hash(n+113.0), hash(n+114.0),f.x),
-                   mix( hash(n+270.0), hash(n+271.0),f.x),f.y),f.z);
-}
-
-#endif
-
-float NOISE( vec3 r )
-{
-	r.xz += t;
-	r *= 0.5;
-	float s;
-	s = 0.5 * noise(r);
-	r = r * 2.52;
-	s += 0.25 * noise(r);
-	r = r * 2.53;
-	s += 0.125 * noise(r);
-	r = r * 2.51;
-	s += 0.0625 * noise(r);
-	r = r * 2.53;
-	s += 0.03125 * noise(r);
-	r = r * 2.52;
-	s += 0.015625 * noise(r);
-	return s;
-}
-
-float MakeNoise( vec3 r )
-{
-	float s,tt;
-	s = NOISE( r * 2e-4 * ( 1.0 - cloud_size ) );
-	tt = ( 1.0 - cloud_covr ) * 0.5 + 0.2;
-	s = smoothstep( tt, tt+.2 , s );
-	s *= 0.5*(cloud_dens*100.0);
-	return s;
-}
-
-void clouds( in vec3 r, out vec3 u )
-{
-	float v,w;
-	v = length( r-vm ) - c;
-	w = 0.0;
-	if( 5e3 < v && v < 1e4 ) w = MakeNoise( r ) * (sin( pi*(v-5e3)/5e3 ));
-	u = vec3( exp(-v*icc), exp(-v*jcc), w );
-}
-
-float ca( in vec3 r, in vec3 s, in float t )
-{
-	vec3 u = r - vm;
-	float v,w,x,y,z,A;
-	v = dot(u,s);
-	w = dot(u,u)-t*t;
-	x = v*v-w;
-	if( x < 0.0 ) return -1.0;
-	y = sqrt(x);
-	z = -v-y;
-	A = -v+y;
-	return z >= 0.0 ? z : A;
-}
-
-vec3 czm_saturation(vec3 rgb, float adjustment)
-{
-    vec3 W = vec3(0.2125, 0.7154, 0.0721);
-    vec3 intensity = vec3(dot(rgb, W));
-    return mix(intensity, rgb, adjustment);
-}
-
-
-vec3 makeSky( in vec3 lightpos, in vec3 r, in vec3 world, out float mask )
-{
-
-	vec3 vn = vec3( 0.000021 );
-	vec3 vo = skyColor;
-	vo *= 0.00005;
-
-	float u,v,w,x,y,z,m, M, N, S, H, F;
-	vec3 p = lightpos;
-	u = ca(r,world,d);
-	v = dot(world,p);
-	w = 1.0+v*v;
-
-	float gg = mixRatio;
-	float hh = gg*gg;
-
-	x = 0.0596831*w;
-	y = 0.0253662*(1.0-hh)*w/((2.0+hh)*pow(abs(1.0+hh-2.0*gg*v),1.5));
-	z = 50.*pow(abs(1.+dot(world,-p)),2.0)*dot(vec3(0.,1.,0.),p)*(1.0-cloud_covr)*(1.0-min(fogy,1.0));
-
-	m = 0.0;
-	vec3 D,E, CB, CM, BB, BM, SX;
-
-	F = u / float( SAMPLE );
-
-	BB = vec3(0.0);
-	BM = vec3(0.0);
-
-	float count = 0.0;
-
-	for( int G=0; G<SAMPLE; ++G ){
-
-		H = float(G)*F;
-		vec3 I = r + world * H;
-		//CB = vec3(1.0);
-		//BB = vec3(0.0);
-		clouds( I, CB );
-		CB += fogy;// add fog
-		CB.y += CB.z;// add clound
-		CB.xy *= F;
-		BB += CB;
-
-		M = ca(I,p,d);
-
-		if( M > 0.0 ){
-
-			N = M/float(STEP);
-			BM = vec3(0.0);
-
-			for( int R=0; R<STEP; ++R ){
-
-				S = float(R)*N;
-				vec3 T=I+p*S;
-				clouds( T, CM );
-				CM += fogy;// add fog
-				CM.y += CM.z;// add clound
-				BM += CM * N;
-
-			}
-
-			SX = exp(-(vo*(BM.x+BB.x)+vn*(BM.y+BB.y)* cloud_dist));
-
-			m += CB.z;
-			count += 1.0;
-			D += SX*CB.x;
-			E += (SX*CB.y)+z*m;
-		}
-		else return vec3(0.0);
-	}
-	//mask = m * 0.0125;
-	//mask = m / count;
-	mask = m / float( SAMPLE );
-
-	return ((D * vo * x ) + (E * vn * y * sunColor)) * 15.0;
-}
-
-
-void main()
-{
-	vec3 light = normalize( lightdir );
-	vec3 world = normalize( worldPosition.xyz );
-
-	float uvy = acos( world.y ) / pi;
-
-	//float luma = smoothstep(0.0, 4.0,  1.0-(abs(world.y)/0.8) );
-    //float mid = smoothstep(0.0, 1.0,  abs(world.y) < haze ? 1.0-(abs(world.y)/(haze*1.0)) : 0.0 );
-    //mid *= nightLuminosity;//pow(  mid, 1.0 );
-
-    // ground reapeat sky
-	//if( world.y < -0.15) world.y = -0.15+((-world.y-0.15)*0.1);
-	if( world.y < 0.0) world.y = -world.y;
-
-	float high = smoothstep(1.0, 0.0, (uvy)*10000.0);
-	float top =  smoothstep(1.0, 0.0, (uvy-0.5)*50.0);
-	float middle = uvy > 0.5 ? high : smoothstep(0.0, 1.0, (0.5-uvy)*((1.0-haze)*100.0));
-
-	float middle2 = uvy > 0.5 ? smoothstep(0.0, 1.0, (0.5-uvy)*((1.0-haze)*100.0)) : smoothstep(0.0, 1.0, (0.5-uvy)*((1.0-haze)*100.0));
-
-	vec3 s = sunTop;
-	float lm = dot( s, light );
-	float day = clamp((lm*4.0), 0.0, (1.0-nightLuminosity) )+nightLuminosity;
-
-	if(lm <= 0.0) light *= -1.0;
-	light.y = abs(light.y);
-
-	//if(light.y < 0.1) light.y = 0.1;
-	light.y = clamp(light.y, 0.1, 1.0 );
-	//light.y += 0.5;
-
-	float mask = 0.0;
-
-	vec3 sky = makeSky( light, s, world, mask );
-	mask = clamp(mask, 0.0, 1.0 );
-	sky = mix( sky, cloudColor, mask ); //apply cloud color
-	
-
-	//sky = mix( sky, groundColor, 1.0-middle ); // apply ground color
-	sky = mix( sky, fogColor, 1.0-middle2 ); // apply fog color
-	
-    //float dd = clamp(day+(nightLuminosity*0.5), 0.0, 1.0);
-	//luma *= 1.0-dd;
-	//clear = mix( clear, clear+skyColor, luma ); // extra luminosity on night
-
-	sky *= day;
-	//sky = czm_saturation(sky, saturation);
-    //sky = clamp(sky, 0.0, 1.0 );
-
-
- 	gl_FragColor = vec4( sky, 1.0 );
-
-}
-`,
-	depthWrite: false,
-	depthTest: false,
-	side:1,
-	toneMapped: false,
-	fog:false,
-};
-
-const torad = Math.PI / 180;
-
-class Envmap {
-
-	constructor( o = {} ) {
-
-		this.mainScene = o.scene;
-		this.renderer = o.renderer;
-
-		this.usePrem = o.usePmrem !== undefined ? o.usePmrem : false;
-		this.useBackground = o.useBackground !== undefined ? o.useBackground : true;
-		this.envBlur = o.envBlur !== undefined ? o.envBlur : 0;
-		this.callback = o.callback || null;
-		this.isSky = false;
-
-		 if( this.usePrem ){
-	        this.pmremGenerator = new three.PMREMGenerator( this.renderer );
-	        this.pmremGenerator.compileEquirectangularShader();
-	    }
-
-		if(o.cube) this.initCubeEnv( o );
-		if(o.url) this.load( o.url );
-    
-	}
-
-	initCubeEnv( o = {} ) {
-
-		this.isCubeEnv = true;
-		this._quality = o.quality || 1;
-
-		this.scene = new three.Scene();
-		if(o.color) this.scene.background = new three.Color(o.color); 
-		this.target = new three.WebGLCubeRenderTarget( 256*this._quality, {
-			//magFilter: LinearFilter,
-            minFilter: three.LinearFilter,
-            type: three.HalfFloatType,
-            //format: RGBAFormat,
-            //colorSpace: LinearSRGBColorSpace,
-            colorSpace: three.SRGBColorSpace, 
-            //generateMipmaps: false,
-            //depthBuffer: false,
-            //generateMipmaps:true,
-            anisotropy:1,
-        });
-
-        this.camera = new three.CubeCamera( o.near || 0.1, o.far || 100, this.target );
-		this.mainScene.environment = this.target.texture;
-		if( this.useBackground ) this.mainScene.background = this.target.texture;
-
-	}
-
-	addSky(){
-
-		let g = new three.IcosahedronGeometry( 20, 1 );
-		const mat = new three.ShaderMaterial( SkyShader );
-		this.sky = new three.Mesh( g, mat );
-		this.scene.add(this.sky);
-		this.render();
-		this.isSky = true;
-		
-	}
-
-	getSkyOtion(){
-
-		if(!this.isSky) return;
-		return skyOption;
-
-	}
-
-	setSkyOtion( o ){
-
-		if(!this.isSky) return;
-		let u = this.sky.material.uniforms;
-		for(let k in o){
-			if(u[k]) u[k].value = o[k];
-		}
-	
-	    if(this.timeout) clearTimeout(this.timeout);
-	    this.timeout = setTimeout( this.render.bind(this), 0 );
-
-	}
-
-	render() {
-
-		if(!this.isCubeEnv) return
-		const renderer = this.renderer;
-        const lastToneMapping = renderer.toneMapping;
-        //const lastToneExposure = renderer.toneMappingExposure;
-        renderer.toneMapping = three.NoToneMapping;
-        //renderer.toneMappingExposure = 1.0;
-
-		this.camera.update( renderer, this.scene );
-        renderer.toneMapping = lastToneMapping;
-        //renderer.toneMappingExposure = lastToneExposure;
-
-	}
-
-	load ( url ) {
-
-		this.name = url.substring( url.lastIndexOf('/')+1, url.lastIndexOf('.') );
-	    this.type = url.substring( url.lastIndexOf('.')+1 ).toLowerCase();
-
-		this.loader = null;
-
-		switch( this.type ){
-			case 'hdr': 
-			    this.loader = new RGBELoader().load( url, this.end.bind(this), null, this.bug.bind(this) );
-			break;
-			case 'exr':
-			    this.loader = new EXRLoader().load( url, this.end.bind(this), null, this.bug.bind(this) );
-			break;
-			/*case 'jpg': 
-			    this.loader = new HDRJPGLoader( this.renderer ).load( url, this.end.bind(this), null, this.bug.bind(this) );
-			break;*/
-		}
-
-	}
-
-	bug () {
-
-		console.log( 'Envmap is not find :', this.name );
-		if( this.callback ) this.callback();
-
-	}
-
-	end () {
-
-		let env;
-
-		switch( this.type ){
-			case 'hdr': case 'exr':
-			    env = this.loader;
-			    env.mapping = three.EquirectangularReflectionMapping;
-			break;
-			case 'jpg':
-			    env = this.loader.renderTarget.texture;
-			    env.mapping = three.EquirectangularReflectionMapping;
-			    
-			break;
-		}
-
-		if( this.usePrem ) {
-            
-            env = this.pmremGenerator.fromEquirectangular( env ).texture;
-            this.pmremGenerator.dispose();
-
-        }
-
-        env.needsUpdate = true;
-
-        const scene = this.isCubeEnv ? this.scene : this.mainScene;
-
-        
-		if( this.isCubeEnv || this.useBackground ) scene.background = env;
-		if( this.envBlur ) scene.backgroundBlurriness = this.envBlur;
-	    scene.environment = env;
-	    
-        this.loader.dispose();
-
-		if( this.callback ) this.callback();
-
-	}
-
-
-	get intensity() {
-        return this.mainScene.environmentIntensity;
-    }
-    set intensity(value) {
-        this.mainScene.environmentIntensity = value;
-    }
-
-    get bgIntensity() {
-        return this.mainScene.backgroundIntensity;
-    }
-    set bgIntensity(value) {
-        this.mainScene.backgroundIntensity = value;
-    }
-
-    get blur() {
-        return this.mainScene.backgroundBlurriness;
-    }
-    set blur(value) {
-        this.mainScene.backgroundBlurriness = value;
-    }
-
-    rotate( x=0,y=0,z=0 ) {
-
-        if(x!==0) x *= torad;
-        if(y!==0) y *= torad;
-        if(z!==0) z *= torad;
-
-        this.mainScene.environmentRotation.set(x,y,z);
-        this.mainScene.backgroundRotation.set(x,y,z);
-
-    }
-
-}
-
-class AutoRagdoll {
-	
-	constructor( o = {}, motor ){
-
-		this.motor = motor;
-		this.utils = this.motor.utils;
-
-		this.id = 0;
-		this.type = 'autoRagdoll';
-		this.name = o.name || this.type+this.id++;
-
-		let b = this.utils.byName( this.name );
-		if( b ) this.utils.remove( b );
-
-		//this.isAutoRagdoll = true;
-
-		this._mode = o.mode || 'follow';
-		this._size = o.size || 1;
-		this._debug = o.debug || false;
-
-		const model = clone( o.model );
-		model.scale.set(1,1,1).multiplyScalar( this._size );
-		if(o.pos) model.position.fromArray(o.pos);
-
-		model.raycast = function (){ return };
-		model.name = this.name;
-		//model.frustumCulled = false;
-
-		let bones;
-
-		model.traverse( ( child ) => {
-			if ( child.isMesh ){
-				child.frustumCulled = false;
-			}
-			if ( child.isSkinnedMesh ){
-				child.raycast = function (){ return };
-				child.frustumCulled = false;
-				child.matrixAutoUpdate = false;
-				child.receiveShadow = true;
-				child.castShadow = true;
-				if( o.material ) child.material = o.material;
-				child.skeleton.resetScalling();
-				bones = child.skeleton.bones;
-			}
-		});
-
-		let mass = o.mass || null;
-		
-		this.skeletonBody = new SkeletonBody( this.motor, model.name, model, bones, mass, o.option );
-
-		this.debug = this._debug;
-		this.mode = this._mode;
-
-		/*this.skeletonBody.addEventListener ( 'start', function ( event ) {
-			console.log( event.message );
-		});*/
-
-
-
-		/* 
-		// basic three helper
-		let helper = new SkeletonHelper( m );
-		helper.raycast = function (){ return }
-        helper.matrix = m.matrix;
-        root.scene.add( helper );
-        */
-
-		model.add( this.skeletonBody );
-
-		this.model = model;
-
-		this.utils.add( this );
-
-		return this;
-
-	}
-
-	getRealPosition() {
-		let node = this.utils.byName( this.skeletonBody.nodes[0].name );
-		return node.position;
-	}
-
-	dispose () {
-
-		if( this.skeletonBody ) this.skeletonBody.dispose();
-		if( this.model ) this.model.parent.remove( this.model );
-
-	}
-
-	//
-
-	get position () { return model.position; }
-
-	get size () { return this._size; }
-	set size (value) {
-		this._size = value;
-		this.model.scale.set(1,1,1).multiplyScalar( this._size );
-	}
-
-	//
-
-	get debug () { return this._debug; }
-	set debug (value) {
-		this._debug = value;
-		this.skeletonBody.isVisible( this._debug );
-	}
-
-	get mode () { return this._mode; }
-	set mode (value) {
-		this._mode = value;
-		this.skeletonBody.setMode( this._mode );
-	}
-
-
-
-}
-
-class Debuger extends three.LineSegments {
-
-	constructor( motor ) {
-
-		super();
-
-        this.rayCount = 0;
-
-        this.ray = [];
-
-        this.motor = motor;
-
-		this.maxVertices = 10000;
-		this.currentVertex = 0;
-
-		this.geometry = new three.BufferGeometry();
-		this.geometry.setAttribute( 'position', new three.Float32BufferAttribute( this.maxVertices * 3 , 3) );
-		this.geometry.setAttribute( 'color', new three.Float32BufferAttribute(  this.maxVertices * 3 , 3) );
-
-		this.positions = this.geometry.attributes.position.array;
-		this.colors = this.geometry.attributes.color.array;
-
-		this.material = new three.LineBasicMaterial({ vertexColors:true, toneMapped:false, depthTest:false, depthWrite:false });
-        this.material.transparent = true; this.renderOrder = 30000;
-		this.frustumCulled = false;
-
-	}
-
-    DrawRay( a, b, c ){
-
-        c = new three.Color(c);
-
-        let i = this.currentVertex;
-        let n = i * 3;
-        this.positions[n] = a.x;
-        this.positions[n + 1] = a.y;
-        this.positions[n + 2] = a.z;
-        this.colors[n] = c.r;
-        this.colors[n + 1] = c.g;
-        this.colors[n + 2] = c.b;
-
-        i++;
-        n = i * 3;
-        this.positions[n] = a.x + b.x;
-        this.positions[n + 1] = a.y + b.y;
-        this.positions[n + 2] = a.z + b.z;
-        this.colors[n] = c.r;
-        this.colors[n + 1] = c.g;
-        this.colors[n + 2] = c.b;
-        this.currentVertex += 2;
-
-    }
-
-	collapseBuffer () {
-
-        let i = this.maxVertices;
-        let min = this.currentVertex;
-        let n = 0;
-        while(i>=min){
-            n = i * 3;
-            this.positions[n] = 0;
-            this.positions[n+1] = 0;
-            this.positions[n+2] = 0;
-            this.colors[n] = 0;
-            this.colors[n+1] = 0;
-            this.colors[n+2] = 0;
-            i--;
-        }
-    }
-
-    insertLine (a, b, c) {
-        
-        let i = this.currentVertex;
-        let n = i * 3;
-        this.positions[n] = a.x;
-        this.positions[n + 1] = a.y;
-        this.positions[n + 2] = a.z;
-        this.colors[n] = c.r;
-        this.colors[n + 1] = c.g;
-        this.colors[n + 2] = c.b;
-
-        i++;
-        n = i * 3;
-        this.positions[n] = b.x;
-        this.positions[n + 1] = b.y;
-        this.positions[n + 2] = b.z;
-        this.colors[n] = c.r;
-        this.colors[n + 1] = c.g;
-        this.colors[n + 2] = c.b;
-        this.currentVertex += 2;
-
-    }
-
-    draw() {
-
-        /*let i = this.ray.length, r;
-        while(i--){
-            r = this.ray[i]
-            this.insertLine(r.a, r.b, r.c)
-        }*/
-
-
-    	this.collapseBuffer();
-        this.geometry.attributes.position.needsUpdate = true;
-        this.geometry.attributes.color.needsUpdate = true;
-
-        this.currentVertex = 0;
-
-    }
-
-    dispose() {
-
-        this.parent.remove(this);
-        this.material.dispose();
-        this.geometry.dispose();
-
-    }
-
-}
-
 // https://www.youtube.com/watch?v=WzNDI7g6jA4
 
 class Helicopter {
@@ -40413,6 +39926,8 @@ class PhyEngine {
         let useLocal = false;
         let useModule = false;
 
+		let needContact = false;
+
 		let currentControle = null;
 		let callbackReady = null;
 		let worker = null;
@@ -41085,6 +40600,7 @@ class PhyEngine {
 			buttons = [];
 
 			currentControle = null;
+			needContact = false;
 
 			if( controls ) controls.resetAll();
 			if( mouseTool ) mouseTool.unSelect();
@@ -41125,7 +40641,7 @@ class PhyEngine {
 		    this.scenePlus.children = [];
 		    this.scene.children = [];
 
-			this.post({ m:'reset' });
+			this.post({ m:'reset', o:{} });
 
 		};
 
@@ -41287,6 +40803,15 @@ class PhyEngine {
 
 			return items.body.list;
 
+		};
+
+		this.activeContact = () => {
+
+			if(!needContact ){
+				needContact = true;
+				this.post( { m:'activeContact', o:{} } );
+			}
+			
 		};
 
 

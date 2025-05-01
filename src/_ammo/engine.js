@@ -56,6 +56,10 @@ let Solver, SolverSoft, CollisionConfig, Dispatcher, Broadphase;
 
 export class engine {
 
+	static activeContact(){
+		root.needContact = true;
+	}
+
 	static test (){}
 
 	static message ( m ) {

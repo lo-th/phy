@@ -10,8 +10,8 @@ import { Pool } from './Pool.js';
 
 
 const Styles = {
-    menuName:'font-size:14px; font-weight:400; letter-spacing: -0.022em; text-shadow: 1px 1px 2px black;',
-    demoName:'font-size:14px; width:fit-content; font-weight:400; letter-spacing: -0.022em; text-shadow: 1px 1px 2px black;',
+    menuName:'font-size:14px; font-weight:400;  text-shadow: 1px 1px 2px black;',//letter-spacing: -0.022em;
+    demoName:'font-size:14px; width:fit-content; font-weight:400; text-shadow: 1px 1px 2px black; margin:-2px 0px; ',
 }
 //text-shadow: 1px 1px 3px #000000;
 //letter-spacing: -0.022em;
@@ -23,7 +23,6 @@ let isLiner = false;
 let isBackLight = false;
 let isFromTop = true;
 let isTopDown = true;
-
 
 //
 
@@ -37,8 +36,14 @@ let parent;
 let content, cross = null, border, counter, counter2, zone, path, txt, info, loader, textRight, textLeft, textLeft2;
 let unselectable = '-o-user-select:none; -ms-user-select:none; -khtml-user-select:none; -webkit-user-select:none; -moz-user-select: none; pointer-events:none; ';
 
-let menu, pin, title, engine, demo, downMenu, innerMenu, zoning, guiButton, overpad, prevOver, tmpLeft = 0;
+let menu, pin, title, engine, demo, downMenu, innerMenu, zoning, guiButton, overpad, prevOver, tmpLeft = 0, contentWidth= 0;
 let corner
+
+//let mousePos = [0,0];
+//let mouseLast = [0,0];
+let overTime = null
+
+let menuIsDisplay = false;
 
 let top = null;
 let ratio = 1;
@@ -80,7 +85,6 @@ let debug = null;
 let isPanel3D = false;
 
 let joy = null;
-
 let lock = false;
 let timeout = null;
 
@@ -96,8 +100,6 @@ let dayColor = ['#000', '#444', '#feb', 'rgba(213,211,212,0.32)'];
 let nightColor = ['#fff', '#bee', '#bfb', 'rgba(0,0,0,0.4)'];
 
 let engineLogo = null;
-
-
 
 let setting = {
     cross:4,
@@ -149,6 +151,7 @@ export class Hub {
         tmpLeft = s.left;
         content.style.left = tmpLeft + "px";
         content.style.width = tmpLeft !== 0 ? 'calc(100% - ' + tmpLeft + 'px)' : '100%';
+        contentWidth = s.w;
         
         if( joy !== null ) joy.rezone();
 
@@ -320,6 +323,8 @@ export class Hub {
         zoning = document.createElement( 'div' );
         zoning.style.cssText = 'position:absolute; top:20px; background:'+bg2+'; left:60px; pointer-events:auto;';
         zoning.id = 'zone';
+        //zoning.style.width = '100%'//'0px';
+        //zoning.style.height = '50px'//'0px';
         //zoning.style.background = 'rgba(10,0,0,0.2)'
         content.appendChild( zoning );
 
@@ -513,6 +518,8 @@ export class Hub {
 
     static hideMenu () {
 
+        menuIsDisplay = false;
+
         Hub.clearLogoImage();
 
         downMenu.style.height = '0px'
@@ -537,9 +544,13 @@ export class Hub {
 
         let type = target.id;
 
+        
+
         if( currentMenu === type ) return;
 
         Hub.hideMenu();
+
+        menuIsDisplay = true;
 
         currentMenu = type;
 
@@ -558,9 +569,11 @@ export class Hub {
         /*type === 'demo' ?  demolist : engineList
         if( type === 'logo') list = ['Github', 'About']*/
         let i = list.length, m, n=0, itemH = 0, name
+        let listLength = i
 
         //innerMenu.style.cssText = " top:0px; width:auto; display:flex; flex-direction:column; "
         innerMenu.style.padding = '10px 0px';
+        //innerMenu.style.padding = '2px 0px';
         innerMenu.style.top = '0px';
         innerMenu.style.width = 'auto';
         innerMenu.style.display = 'flex';
@@ -580,10 +593,9 @@ export class Hub {
             innerMenu.appendChild( m );
             m.classList.add("down");
             
-            m.style.cssText = Styles.demoName;//'font-size:14px; width:fit-content; padding:4px 10px; text-shadow: 1px 1px #000000;';//type === 'demo' ? 'font-size:16px; font-weight:500;' : 'font-size:16px; font-weight:700;'font-weight:700; 
-            m.id = name
+            m.style.cssText = Styles.demoName;
+            m.id = name;
             m.textContent = name;
-            //m.style.background = '#ff00ff'
 
             if( listdata.visited.indexOf(name) !== -1 ) m.style.color = colorVisite;
             if( Main.devDemo[name] ) m.style.color = colorDemo;
@@ -600,31 +612,36 @@ export class Hub {
 
         
         let rect = innerMenu.getBoundingClientRect();
-        let max = maxListItem * itemH
-        let maxH = n * itemH 
-        maxHeight = maxH > max ? max : rect.height
-        ratio = maxHeight / maxH 
-        sh = maxHeight * ratio
-        range = maxHeight - sh
+        let max = maxListItem * itemH;
+        let maxH = n * itemH;
+        maxHeight = maxH > max ? max : rect.height;
+        ratio = maxHeight / maxH;
+        sh = maxHeight * ratio;
+        range = maxHeight - sh;
 
-        //if( ratio !== 1 && full ){
         if( type === 'demo' ){
+
+            let dw = guiOpen ? (255+80) : 160;
+            let maxC = Math.floor((contentWidth-dw) / 120);
+            let maxR = Math.round(listLength/maxC);
+
             innerMenu.style.display = 'grid';
-            innerMenu.style.gridTemplateColumns = 'repeat(auto-fill, 120px)'
-            innerMenu.style.justifyContent = 'space-between';
-            let dw = guiOpen ? (255+80) : 160 
+            innerMenu.style.gridTemplateRows = 'repeat('+maxR+', 22px)';
+            innerMenu.style.gap = '0px';
+            innerMenu.style.gridAutoFlow = 'column';
+            innerMenu.style.gridAutoColumns = '120px';
 
             downMenu.style.left = 80 + 'px'
-            downMenu.style.width = 'calc(100% - '+dw+'px)'
+            downMenu.style.width = 'calc(100% - '+dw+'px)';
             innerMenu.style.width = '100%'
             rect = innerMenu.getBoundingClientRect();
-            
-            downMenu.style.height = rect.height+'px'//maxHeight + 'px'
+            downMenu.style.height = rect.height+'px';
 
         } else {
-            downMenu.style.width = rect.width + 'px'
-            downMenu.style.height = maxHeight + 'px'
-            
+
+            downMenu.style.width = rect.width + 'px';
+            downMenu.style.height = maxHeight + 'px';
+
         }
 
         zoning.style.left = (rect.left-20) + 'px';
@@ -679,13 +696,16 @@ export class Hub {
         dom.style.padding = '4px 10px';
 
         dom.addEventListener( 'pointerleave', (e) => {
-            if(isLiner) e.target.style.textDecoration = 'none';
-            else e.target.style.fontWeight = 400;
+            
+            Hub.setTextStyle( e.target, false );
         })
        
         dom.addEventListener("pointerdown", (e) => {
             //e.target.style.textDecoration = 'underline ' + color;
-            if( e.target.id === 'home' || e.target.id === 'engine' || e.target.id === 'demo' ) Hub.showMenu( e.target )
+            if( e.target.id === 'home' || e.target.id === 'engine' || e.target.id === 'demo' ){ 
+                if(!menuIsDisplay) Hub.showMenu( e.target )
+                else Hub.hideMenu()
+            }
             else Hub.onClick( e.target.id );
         });
 
@@ -783,6 +803,27 @@ export class Hub {
 
     }
 
+    static setTextStyle ( target, on ) {
+
+        if( on ){
+            if(isLiner){ 
+                target.style.textDecoration = 'underline '+ color;
+            } else {
+                target.style.fontWeight = 500;
+                target.style.letterSpacing  = '-0.3px'
+                target.style.wordSpacing   = '-0.3px'
+            }
+        } else {
+            if(isLiner){ 
+                target.style.textDecoration = 'none';
+            } else {
+                target.style.fontWeight = 400;
+                target.style.letterSpacing  = 'normal'
+                target.style.wordSpacing   = 'normal'
+            }
+        }
+    }
+
     static moving ( e ) {
 
         lock = true
@@ -791,8 +832,7 @@ export class Hub {
             return
         }
 
-        if(isLiner) e.target.style.textDecoration = 'underline '+ color;
-        else e.target.style.fontWeight = 500;
+        Hub.setTextStyle( e.target, true );
 
         if( listdata.engine.indexOf(e.target.id) !== -1) Hub.setLogoImage( e.target.id );
         if( e.target.id === 'engine' ) Hub.setLogoImage();
@@ -804,8 +844,8 @@ export class Hub {
 
 
         if( e.target.id === 'home' || e.target.id === 'engine' || e.target.id === 'demo' ){ 
-            Hub.showMenu( e.target )
-           // innerMenu.style.opacity = 1;
+
+            if(menuIsDisplay) Hub.showMenu( e.target );
             return 
         }
 
