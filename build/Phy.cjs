@@ -34876,7 +34876,7 @@ class Terrain extends Item {
 		if( this.engine === 'HAVOK'){
 			o.isAbsolute = true;
 			o.isTurned = true;
-			o.isReverse = false;
+			//o.isReverse = false
 		}
 
 		if( this.engine !== 'OIMO'){
@@ -39223,11 +39223,13 @@ class Helicopter {
 
 // https://www.youtube.com/watch?v=WzNDI7g6jA4
 
-class Taxi {
+class Kart {
 
 	constructor ( o = {}, motor ) {
 
 		this.startPosition = o.pos || [0,0,0];
+		this.model = o.model || null;
+		this.debug = o.debug || false;
 
 		// taxi test
 		//https://www.youtube.com/watch?v=BSybcKPQCnc
@@ -39235,16 +39237,20 @@ class Taxi {
 		// https://www.models-resource.com/wii/mariokartwii/
 		//https://opengameart.org/art-search-advanced?keys=&field_art_type_tid%5B%5D=10&sort_by=count&sort_order=DESC
 
-		this.debug = true;
+		
 
 		this.angle = 0;
 
-		this.moveSpeed = 50;
-	    this.maxSpeed = 15;
+		this.speed = 50;
+	    this.maxSpeed = 20;
 	    this.drag = 0.98;
-	    this.SteerAngle = 5;//20;
-	    this.traction = 1;//1_10 drift 
+	    this.steerAngle = 5;//20;
+	    this.traction = 3;//1_10 drift 
+
+
 	    this.moveForce = new three.Vector3(0,0,0);
+	    this.side = 0;
+	    this.onAir = false;
 
 	    this.tt = new three.Vector3(0,0,0);
 	    this.v1 = new three.Vector3(0,0,0);
@@ -39261,7 +39267,7 @@ class Taxi {
 		this.motor = motor;
 		this.angleS = 0;
 
-		this.debuger = this.motor.addDebuger();
+		if(this.debug) this.debuger = this.motor.addDebuger();
 
 		this.phyMove = true;
 
@@ -39293,13 +39299,36 @@ class Taxi {
 			getVelocity:true,
 			visible:this.debug,
 			shadow:false,
+			ray:false,
 		});//angularFactor:[1,0,0],
 
 		let selfHit = this.rayHit.bind(this);
 
-		this.ray = this.motor.add({ name:'raySphere', type:'ray', begin:[0,0,0], end:[0,-1.5,0], visible:this.debug, parent:this.sphere, noRotation:true, callback:selfHit });
+		this.ray = this.motor.add({ name:'raySphere', type:'ray', begin:[0,0,0], end:[0,-2,0], visible:this.debug, parent:this.sphere, noRotation:true, callback:selfHit });
 
-		this.car = new three.Mesh(new three.BoxGeometry(1,0.4,2), new three.MeshBasicMaterial({wireframe:true}));
+		
+		if(this.model ){ 
+
+			for(let m in this.model){
+				this.model[m].receiveShadow = true;
+				this.model[m].castShadow = true;
+			}
+
+			this.car = this.model.body;
+			
+			this.w = [
+				this.model.wheel_0,
+				this.model.wheel_1,
+				this.model.wheel_2,
+				this.model.wheel_3,
+				this.model.d_wheel,
+			];
+			//this.car.geometry.scale(10,10,10)
+		} else {
+			this.car = new three.Mesh(new three.BoxGeometry(1,0.4,2), new three.MeshBasicMaterial({wireframe:true}));
+			this.addWheels();
+		}
+
 		this.motor.add(this.car);
 
 		/*this.chassis = this.motor.add({
@@ -39311,7 +39340,7 @@ class Taxi {
 
 		})*/ 
 
-		this.addWheels();
+		
 
 		//let axis = new AxesHelper();
 		//this.car.add(axis);
@@ -39342,14 +39371,18 @@ class Taxi {
 	updateWheels(){
 		this.motor.math;
 		let i = 4, w;
-		this.tmpQ3.setFromAxisAngle( {x:0,y:1,z:0}, this.angleS );
-		let s = -this.sphere.velocity.length()*2;
+		
+		this.tmpQ3.setFromAxisAngle( {x:0,y:1,z:0}, this.angleS*3 );
+		let s = this.sphere.velocity.length()*this.side;//*2;
+		//s = math.clamp(s, -0.8, 0.8)
 		let axis = {x:1,y:0,z:0};
 		while(i--){
 			w = this.w[i];
 			if(i<2) w.quaternion.setFromAxisAngle(axis,s).premultiply(this.tmpQ3);
 			else w.quaternion.setFromAxisAngle(axis,s);
 		}
+
+	    if(this.w[4]) this.w[4].rotation.y = this.angleS*10;
 
 	}
 
@@ -39358,6 +39391,8 @@ class Taxi {
 		//console.log(o)
 		if(r.hit) this.floorNormal.fromArray(r.normal).normalize();
 		else this.floorNormal.set(0,0,0);
+
+		this.onAir = !r.hit;
 		
 	}
 
@@ -39372,8 +39407,13 @@ class Taxi {
 
 		// moving
 
+		let acceleration = -key[1]*this.speed*delta;
 
-		this.tt.copy(transform.forward).multiplyScalar(this.moveSpeed*-key[1]*delta);
+		if( this.onAir ) acceleration = 0;
+
+
+
+		this.tt.copy(transform.forward).multiplyScalar(acceleration);
 
         this.moveForce.add(this.tt);
 
@@ -39383,6 +39423,8 @@ class Taxi {
 
         this.tmpQ1.setFromUnitVectors( this.up, this.floorNormal );
         this.tmpQ2.slerp(this.tmpQ1, delta*4);
+
+        
 
         let ar = this.moveForce.toArray();
 
@@ -39400,7 +39442,7 @@ class Taxi {
         // console.log(transform.up)
         // transform.up.multiplyScalar(steerInput*magnitude*this.SteerAngle*delta)
 
-        this.angleS = (steerInput*this.SteerAngle)*math.torad;
+        this.angleS = steerInput*this.steerAngle*math.torad;
 
         //this.angle += (steerInput*magnitude*this.SteerAngle*delta)*math.torad;
 
@@ -39426,209 +39468,21 @@ class Taxi {
 
 
         // Traction
-        this.debuger.DrawRay(transform.position, this.v1, 'white');
-        this.debuger.DrawRay(transform.position, this.v2, 'blue');
+        if(this.debug){
+        	this.debuger.DrawRay(transform.position, this.v1, 'white');
+            this.debuger.DrawRay(transform.position, this.v2, 'blue');
+        }
+        
         //this.debug.DrawRay(transform.position, transform.right, 'red');
 
         this.v1.copy(this.moveForce).normalize().lerp(transform.forward, this.traction*delta );
 
         this.moveForce.copy(this.v1).multiplyScalar(magnitude);
 
+        this.side = this.moveForce.dot(transform.forward)>0?-1:1;
+
         this.updateWheels();
     
-    }
-
-}
-
-// https://www.youtube.com/watch?v=WzNDI7g6jA4
-
-class Kart {
-
-	constructor ( o = {}, motor ) {
-
-		this.motor = motor;
-
-		this.speed=0;
-		this.currentSpeed=0;
-	    this.rotate=0; 
-	    this.currentRotate=0;
-	    this.driftDirection=0;
-	    this.driftPower=0;
-	    this.driftMode =0;
-
-	    this.first = false; 
-	    this.second = false; 
-	    this.third = false;
-
-
-		// kart test
-		//https://www.youtube.com/watch?v=Ki-tWT50cEQc
-
-		this.acceleration = 30;
-		this.steering = 80;
-		this.gravity = 10;
-
-		this.drifting = false;
-
-		this.py = new three.Vector3(0, 0.4, 0);
-
-
-
-this.v1 = new three.Vector3(0,0,0);
-
-
-		/*this.moveSpeed = 50;
-	    this.maxSpeed = 15;
-	    this.drag = 0.98;
-	    this.SteerAngle = 20;
-	    this.traction = 2;//1_10 drift 
-	    this.moveForce = new Vector3(0,0,0);
-
-	    this.tt = new Vector3(0,0,0);
-	    
-	    this.v2 = new Vector3(0,0,0);*/
-
-		
-
-		this.debug = this.motor.addDebuger();
-
-		
-		this.init(o);
-
-	}
-
-	init(){
-
-		this.sphere = this.motor.add({ type:'sphere', name:'baser', mass:1, size:[0.6], pos:[0,0.6,0], material:'debug' });
-
-		this.car = new three.Mesh(new three.BoxGeometry(1,0.5,1.2), new three.MeshBasicMaterial({wireframe:true}));
-		this.car.position.y = 0.5;
-		this.motor.add(this.car);
-
-		let axis = new three.AxesHelper();
-		this.car.add(axis);
-
-	}
-
-	boost( direction, amount ){
-
-		this.drifting = false;
-		this.driftPower = 0;
-        this.driftMode = 0;
-
-	}
-
-	steer( direction, amount ){
-
-		this.rotate = (this.steering * direction) * amount;
-
-	}
-
-	update( delta ){
-
-
-
-		const key = this.motor.getKey();
-		const math = this.motor.math;
-
-		//let test =  math.remap(-key[1], -1, 1, 0, 2);
-		//console.log(test)
-
-		this.car.position.copy(this.sphere.position).sub(this.py);
-
-		//Accelerate
-		//if (key[6]) this.speed = this.acceleration;
-		if (key[1]) this.speed = key[1]*this.acceleration;
-
-		//Steer
-		if (key[0]!==0) this.steer(key[0]>0?1:-1, Math.abs(key[0]));
-
-		//Drift
-		if( key[4] && !this.drifting && key[0]!==0){
-			this.drifting = true;
-            this.driftDirection = key[0]>0?1:-1;
-		}
-
-		if (this.drifting){
-			let control = this.driftDirection === 1 ? math.remap(key[0], -1, 1, 0, 2) : math.remap(key[0], -1, 1, 2, 0);
-			let powerControl = this.driftDirection === 1 ? math.remap(key[0], -1, 1, .2, 1) : math.remap(key[0], -1, 1, 1, .2);
-
-			this.steer(this.driftDirection, control);
-            this.driftPower += powerControl;
-		}
-
-		if( key[4] && this.drifting) this.boost();
-
-		this.currentSpeed = math.smoothstep(this.currentSpeed, this.speed, delta * 12); this.speed = 0;
-        this.currentRotate = math.lerp(this.currentRotate, this.rotate, delta * 4); this.rotate = 0;
-
-        //console.log(this.currentSpeed)
-		if (!this.drifting);
-
-
-		/*const transform = this.motor.getTransform(this.car);
-
-		// moving
-
-		this.tt.copy(transform.forward).multiplyScalar(this.moveSpeed*-key[1]*delta)
-
-        this.moveForce.add(this.tt)
-
-        this.car.position.add(this.moveForce.clone().multiplyScalar(delta))// += MoveForce * Time.deltaTime;
-
-		// Steering
-
-        let steerInput = -key[0];
-        let magnitude = this.moveForce.length()
-        transform.up.multiplyScalar(steerInput*magnitude*this.SteerAngle*delta)
-
-        this.car.rotation.y += transform.up.y*this.motor.math.torad
-
-
-        this.moveForce.multiplyScalar(this.drag)
-        this.moveForce.clampLength(0, this.maxSpeed)
-
-        magnitude = this.moveForce.length()
-
-
-        this.v1.copy(this.moveForce).normalize().multiplyScalar(3)
-        this.v2.copy(transform.forward).multiplyScalar(3)
-
-
-        // Traction
-        this.debug.DrawRay(transform.position, this.v1, 'white');
-        this.debug.DrawRay(transform.position, this.v2, 'blue');
-        this.debug.DrawRay(transform.position, transform.right, 'red');
-
-
-        this.v1.copy(this.moveForce).normalize().lerp(transform.forward, this.traction*delta )
-
-        this.moveForce.copy(this.v1).multiplyScalar(magnitude)*/
-
-        this.updatePhy( delta );
-    
-    }
-
-    updatePhy( delta ){
-    	const transform = this.motor.getTransform(this.sphere);
-    	const transformCar = this.motor.getTransform(this.car);
-    	
-    	//Forward Acceleration
-
-    	if(!this.drifting){
-    		this.v1.copy(transformCar.right).multiplyScalar(-this.currentSpeed);
-    		this.motor.change({ name:this.sphere.name, force:this.v1.toArray(), forceMode:'force' });
-    	} else {
-    		this.v1.copy(transform.forward).multiplyScalar(this.currentSpeed);
-    		this.motor.change({ name:this.sphere.name, force:this.v1.toArray(), forceMode:'force' });
-    	}
-
-    	//Steering
-    	let r = new three.Vector3(this.car.rotation.x*math.todeg, this.car.rotation.y*math.todeg, this.car.rotation.z*math.todeg);
-		let v = new three.Vector3(0, (this.car.rotation.y*math.todeg)+this.currentRotate, 0);
-		r.lerp(v, delta * 5);
-		
-		this.car.rotation.set(r.x*math.torad, r.y*math.torad, r.z*math.torad);
     }
 
 }
@@ -40238,8 +40092,8 @@ class PhyEngine {
 			let b;
 			switch(o.type){
 				case 'raycar': b =  new RayCar(o, this); break;
-				case 'taxi': b =  new Taxi(o, this); break;
-				case 'Kart': b =  new Kart(o, this); break;
+				//case 'taxi': b =  new Taxi(o, this); break;
+				case 'kart': b =  new Kart(o, this); break;
 				case 'helico': b =  new Helicopter(o, this); break;
 			}
 			return b;

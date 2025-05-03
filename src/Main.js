@@ -451,6 +451,8 @@ Motor.extraCode = Main.extraCode;
 Motor.debugMode = Main.debugMode;
 Motor.gui = Gui.extraUi;
 
+Motor.setCamera = Main.setCamera;
+
 
 window.phy = Motor
 window.math = Motor.math

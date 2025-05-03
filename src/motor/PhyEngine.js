@@ -32,10 +32,9 @@ import { Envmap } from './extra/Envmap.js';
 import { AutoRagdoll } from './extra/AutoRagdoll.js';
 import { Debuger } from './extra/Debuger.js';
 
-import { RayCar } from './extra/vehicles/RayCar.js';
-import { Helicopter } from './extra/vehicles/Helicopter.js';
-import { Taxi } from './extra/vehicles/Taxi.js';
-import { Kart } from './extra/vehicles/Kart.js';
+import { RayCar } from './vehicles/RayCar.js';
+import { Helicopter } from './vehicles/Helicopter.js';
+import { Kart } from './vehicles/Kart.js';
 
 import { Pool } from '../3TH/Pool.js';
 import { sk } from '../3TH/character/SkeletonExtand.js';
@@ -422,8 +421,8 @@ export class PhyEngine {
 			let b
 			switch(o.type){
 				case 'raycar': b =  new RayCar(o, this); break;
-				case 'taxi': b =  new Taxi(o, this); break;
-				case 'Kart': b =  new Kart(o, this); break;
+				//case 'taxi': b =  new Taxi(o, this); break;
+				case 'kart': b =  new Kart(o, this); break;
 				case 'helico': b =  new Helicopter(o, this); break;
 			}
 			return b;

@@ -57,6 +57,9 @@ addTerrain = () => {
 
     terrain = phy.add( data );
 
+    let py = terrain.getHeight( 0, 0 )
+    phy.setCamera({y:py})
+
 }
 
 addSimpleTerrain = () => {
