@@ -1,6 +1,6 @@
 {
   "name": "phy-engine",
-  "version": "0.6.2",
+  "version": "0.6.3",
   "description": "JavaScript 3D Physics for three.js",
   "type": "module",
   "main": "./build/Phy.cjs",
@@ -33,6 +33,7 @@
     "main": "rollup -c rollup/rollup.config.main.js",
     "smoke": "rollup -c rollup/extra.smoke.js",
     "fracture": "rollup -c rollup/extra.fracture.js",
+    "wiggle": "rollup -c rollup/extra.wiggle.js",
     "codeflask": "rollup -c rollup/extra.codeflask.js",
     "phy": "rollup -c rollup/rollup.config.phy.js",
     "oimo": "rollup -c rollup/rollup.config.oimo.js",

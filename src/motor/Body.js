@@ -987,7 +987,10 @@ export class Body extends Item {
 
 		this.motor.post( { m:'add', o:o } );
 
-		if( o.breakable ) this.motor.add({ type:'contact', name:'cc_'+b.name,  b1:b.name, callback: null })
+		if( o.breakable ){ 
+			// only add contact for first breakable 
+			if( b.name.search('_debris_') === -1 ) this.motor.add({ type:'contact', name:'cc_'+b.name,  b1:b.name, callback: null })
+		}
 
 		//---------------------------
 		// return three object3d

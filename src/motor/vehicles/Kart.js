@@ -66,13 +66,19 @@ export class Kart {
 
 	init(){
 
+		this.radius = 1;
+		this.decal.y = -0.5
+
+		this.radius = 1.7;
+		this.decal.y = -1.2
+
 		const math = this.motor.math;
 
 		this.sphere = this.motor.add({ 
 			type:'sphere', 
 			name:'baser', 
-			mass:1, size:[1], 
-			pos:math.addArray(this.startPosition, [0,1,0],3), 
+			mass:1, size:[this.radius], 
+			pos:math.addArray(this.startPosition, [0,this.radius,0]), 
 			friction:0.5,  
 			material:'debug',
 			getVelocity:true,
@@ -83,7 +89,7 @@ export class Kart {
 
 		let selfHit = this.rayHit.bind(this)
 
-		this.ray = this.motor.add({ name:'raySphere', type:'ray', begin:[0,0,0], end:[0,-2,0], visible:this.debug, parent:this.sphere, noRotation:true, callback:selfHit })
+		this.ray = this.motor.add({ name:'raySphere', type:'ray', begin:[0,0,0], end:[0,-(this.radius+1),0], visible:this.debug, parent:this.sphere, noRotation:true, callback:selfHit })
 
 		
 		if(this.model ){ 
@@ -111,13 +117,15 @@ export class Kart {
 		this.motor.add(this.car);
 
 		/*this.chassis = this.motor.add({
-			type:'box',
+			type:'compound',
 			name:'chassis',
-			kinematic:true,
-			isTrigger:true,
-			size:[1,0.4,2],
+			//kinematic:true,
+			mass:1,
+			shapes:[
+			{type:'box', size:[0.5,0.5,0.5], pos:[0,0,1.6]}
+			],
 
-		})*/ 
+		})*/
 
 		
 
@@ -210,6 +218,8 @@ export class Kart {
         let ar = this.moveForce.toArray();
 
         this.motor.change({ name:this.sphere.name, linear:ar, velocityOperation:'xz' })
+
+        if(this.chassis)this.motor.change({ name:this.chassis.name, /*linear:ar, velocityOperation:'xz',*/quat:this.car.quaternion.toArray() ,pos:this.car.position.toArray() });
         
 
 
@@ -235,7 +245,7 @@ export class Kart {
 
         this.car.quaternion.setFromAxisAngle(this.up, this.angle).premultiply(this.tmpQ2);
 
-        //this.motor.change({ name:this.chassis.name, pos:this.car.position.toArray(), quat:this.car.quaternion.toArray() });
+        
 
 
         this.moveForce.multiplyScalar(this.drag);

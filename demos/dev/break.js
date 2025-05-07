@@ -90,16 +90,32 @@ test_0 = ( d ) => {
     })
 
     phy.add({ 
-        name:'vase', 
+        name:'vase1', 
         type:'mesh',
         mesh:model['vase_'+math.randInt(1,8)],
         mass:100,
         //density:5, 
-        pos:[0,0.01,0],
+        pos:[-3,0.01,0],
         breakable:true, 
         // breakOption: [ maxImpulse, maxRadial, maxRandom, levelOfSubdivision ]
         //breakOption:[ 60, 6, 2, 2, false ], 
-        breakOption:[ 60, 3, 6, 2, false ],
+        breakOption:[ 100, 3, 6, 3, false ],
+        //material:'B', 
+        //autoUV:true 
+        //massInfo:true
+    });
+
+    phy.add({ 
+        name:'vase2', 
+        type:'mesh',
+        mesh:model['vase_'+math.randInt(1,8)],
+        mass:100,
+        //density:5, 
+        pos:[3,0.01,0],
+        breakable:true, 
+        // breakOption: [ maxImpulse, maxRadial, maxRandom, levelOfSubdivision ]
+        //breakOption:[ 60, 6, 2, 2, false ], 
+        breakOption:[ 100, 3, 6, 3, false ],
         //material:'B', 
         //autoUV:true 
         //massInfo:true
@@ -119,7 +135,7 @@ test_0 = ( d ) => {
         autoUV:true 
     });*/
 
-    phy.mouseMode('shoot', { size:0.2, mass:100, velocity:60 })
+    phy.mouseMode('shoot', { size:0.1, mass:100, velocity:100 })
 
 
 }

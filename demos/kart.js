@@ -28,6 +28,8 @@ function demo() {
 
     phy.add({ type:'box', size:[1000,1,1000], pos:[0,-0.5,0], density:0, visible:false });
 
+    phy.add({ type:'box', size:[10,100,10], pos:[-10,-0.5,0], density:0, visible:true });
+
     phy.load(['./assets/models/kart.glb'], onComplete )
 
 }
@@ -36,7 +38,7 @@ onComplete = (delta) => {
 
     const model = phy.getMesh('kart');
 
-    v = phy.vehicle({type:'kart', pos:[0,py,0], model:model, debug:false })
+    v = phy.vehicle({type:'kart', pos:[0,py,0], model:model, debug:true })
     phy.follow('baser', { direct:true, simple:true, decal:[0.3, 0.5, -0.3] })
     phy.setPostUpdate ( update )
     addGui()
