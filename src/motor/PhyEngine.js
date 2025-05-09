@@ -55,9 +55,9 @@ const Version = {
 	// best
     PHYSX: '5.06.10',
     HAVOK: '1.2.1',
-    JOLT: '0.35.0',
+    JOLT: '0.36.0',
     // old
-    RAPIER: '0.14.0',
+    RAPIER: '0.16.2',
     OIMO: '1.2.4',
     AMMO: '3.2.6',
 

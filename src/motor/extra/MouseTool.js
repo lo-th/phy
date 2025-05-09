@@ -453,8 +453,11 @@ export class MouseTool {
 			pos:this.pos.toArray(),
 			linearVelocity:this.velocity.toArray(),
 			bullet:true,
-			ccdThreshold:0.0000001,
-            ccdRadius:o.size*2,/**/
+			//iterations:[32,4],
+			//minCCD:0.01,
+			//speculativeCCD:true,
+			//ccdThreshold:0.0000001,
+            //ccdRadius:o.size*2,/**/
 		})
 
 		this.numBullet++

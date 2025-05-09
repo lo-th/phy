@@ -7,11 +7,13 @@ let model
 
 demo = () => {
 
-    phy.view({ envmap:'room_1k', envblur:0.5, exposure:0.1, direct:25, envIntensity:5, bgIntensity:4, shadowIntensity:1.0, distance:14, y:3 })
+    phy.view({ envmap:'histo', envblur:0.5, exposure:0.1, direct:25, envIntensity:5, bgIntensity:1.0, shadowIntensity:1.0, distance:16, y:3.5 })
+
+    console.log(phy.engine)
 
 
     // config physics setting
-    phy.set({ substep:1, gravity:[0,-9.81,0], ccd:true });
+    phy.set({ substep:phy.engine==='HAVOK'? 1:2, gravity:[0,-9.81,0], ccd:true });
 
     // add static plane 
     phy.add({ type:'plane', visible:false })
@@ -26,18 +28,18 @@ demo = () => {
     //gui.add( setting, 'name', { type:'grid', values:list, selectable:true, h:26 } ).listen().onChange( run )
   
 
-    phy.load(['./assets/models/private/vase.glb'], onComplete )
+    phy.load(['./assets/models/museum/wakeup.glb'], onComplete )
 
 
 }
 
 onComplete = (name) => {
 
-    model = phy.getMesh('vase', true);
+    model = phy.getMesh('wakeup', true);
     let mat;
 
     for(let m in model){
-        model[m].geometry.scale(10,10,10);
+        model[m].geometry.scale(20,20,20);
         mat = model[m].material
 
         mat.side =  THREE.DoubleSide
@@ -55,13 +57,15 @@ onComplete = (name) => {
                 `vec4 diffuseColor = vec4( diffuse, opacity );`,
                 `vec3 col = gl_FrontFacing ? diffuse : vec3(0.6);
                 vec4 diffuseColor = vec4( col, opacity );`
-            );
+            ); 
             fragment = fragment.replace( '#include <map_fragment>', newmap );
             
             shader.fragmentShader = fragment;
             
         }
     }
+
+    //console.log(model)
 
     
     test_0()
@@ -84,59 +88,32 @@ test_0 = ( d ) => {
 
     phy.add({
         name:'wall',
-        size:[20,10,1],
-        pos:[0,5,-4],
-        material:'glass',
+        size:[20,40,1],
+        pos:[0,20,-10],
+        visible:false
+        //material:'glass',
     })
 
     phy.add({ 
-        name:'vase1', 
+        name:'frost', 
         type:'mesh',
-        mesh:model['vase_'+math.randInt(1,8)],
-        mass:100,
+        mesh:model['wakeup002'],
+        mass:10000,
         //density:5, 
-        pos:[-3,0.01,0],
+        pos:[0,0.01,0],
         breakable:true, 
+       //bullet:true,
         // breakOption: [ maxImpulse, maxRadial, maxRandom, levelOfSubdivision ]
         //breakOption:[ 60, 6, 2, 2, false ], 
-        breakOption:[ 100, 3, 6, 3, false ],
+        breakOption:[ 50, 4, 6, 2, false ],
         //material:'B', 
         //autoUV:true 
-        //massInfo:true
+        massInfo:true
     });
 
-    phy.add({ 
-        name:'vase2', 
-        type:'mesh',
-        mesh:model['vase_'+math.randInt(1,8)],
-        mass:100,
-        //density:5, 
-        pos:[3,0.01,0],
-        breakable:true, 
-        // breakOption: [ maxImpulse, maxRadial, maxRandom, levelOfSubdivision ]
-        //breakOption:[ 60, 6, 2, 2, false ], 
-        breakOption:[ 100, 3, 6, 3, false ],
-        //material:'B', 
-        //autoUV:true 
-        //massInfo:true
-    });
 
-    /*phy.add({ 
-        name:'boom1', 
-        type:'box', 
-        density:5, 
-        size:[2,4,2], 
-        pos:[0,2,0],
-        breakable:true, 
-        radius:0.25,
-        // breakOption: [ maxImpulse, maxRadial, maxRandom, levelOfSubdivision ]
-        breakOption:[ 10, 1, 2, 2 ], 
-        material:'B', 
-        autoUV:true 
-    });*/
 
-    phy.mouseMode('shoot', { size:0.1, mass:100, velocity:100 })
-
+    phy.mouseMode('shoot', { size:0.2, mass:100, velocity:60 })
 
 }
 

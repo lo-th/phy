@@ -36172,8 +36172,11 @@ class MouseTool {
 			pos:this.pos.toArray(),
 			linearVelocity:this.velocity.toArray(),
 			bullet:true,
-			ccdThreshold:0.0000001,
-            ccdRadius:o.size*2,/**/
+			//iterations:[32,4],
+			//minCCD:0.01,
+			//speculativeCCD:true,
+			//ccdThreshold:0.0000001,
+            //ccdRadius:o.size*2,/**/
 		});
 
 		this.numBullet++;
@@ -36629,7 +36632,7 @@ class Breaker {
 
 			breako = [...breakOption];
 			if(ratio<0.3) breako[3] = 0;
-			if(ratio>0.8) breako[3] = breako[3];
+			//if(ratio>0.8) breako[3] = breako[3];
 			else breako[3] = breako[3]-1;
 
 			if(m.sizer>0.02 && nv > 5) list.push( this.addDebris( m, breako, herit ) );
@@ -39781,9 +39784,9 @@ const Version = {
 	// best
     PHYSX: '5.06.10',
     HAVOK: '1.2.1',
-    JOLT: '0.35.0',
+    JOLT: '0.36.0',
     // old
-    RAPIER: '0.14.0',
+    RAPIER: '0.16.2',
     OIMO: '1.2.4',
     AMMO: '3.2.6',
 

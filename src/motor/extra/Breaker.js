@@ -118,7 +118,7 @@ export class Breaker {
 
 			breako = [...breakOption];
 			if(ratio<0.3) breako[3] = 0;
-			if(ratio>0.8) breako[3] = breako[3];
+			//if(ratio>0.8) breako[3] = breako[3];
 			else breako[3] = breako[3]-1;
 
 			if(m.sizer>0.02 && nv > 5) list.push( this.addDebris( m, breako, herit ) );
