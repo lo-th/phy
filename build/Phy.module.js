@@ -41243,7 +41243,7 @@ class PhyEngine {
 
 	    this.getColorChecker = ( n = 0 ) => {
 
-	    	if(!colorChecker) return;
+	    	if(!colorChecker) return false;
 
 	    	//console.log(colorChecker.children)
 	    	if(!this.ccp){

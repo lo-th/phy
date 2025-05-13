@@ -64,13 +64,19 @@ export class ColorCheck {
         
         this.addEvent()
 
+        let target = this.startResize()
+
         if(this.motor){ 
-        	this.fit( this.motor.getColorChecker(this.paletteType) );
-        	const autoUpdate = this.auto.bind(this)
-        	this.motor.getControl().onChange( autoUpdate );
-        } else {
-        	this.startResize()
-        }
+        	let detect =  this.motor.getColorChecker(this.paletteType);
+        	if(detect){
+        		const autoUpdate = this.auto.bind(this)
+        		this.motor.getControl().onChange( autoUpdate );
+        		target = detect
+        	}
+        	
+        } 
+
+        this.fit(target)
 
     }
 
@@ -120,24 +126,20 @@ export class ColorCheck {
 
     startResize(){
 
-    	const n = this.node
     	let px = 30
 		let py = 30
 		let sy = 210
 		let sx = sy*1.5
 
-		n.c0.setAttribute('cx', this.source[0].x+px )
-		n.c0.setAttribute('cy', this.source[0].y+py )
-		n.c1.setAttribute('cx', this.source[1].x+sx+px )
-		n.c1.setAttribute('cy', this.source[1].y+py )
-		n.c2.setAttribute('cx', this.source[2].x+sx+px )
-		n.c2.setAttribute('cy', this.source[2].y+sy+py )
-		n.c3.setAttribute('cx', this.source[3].x+px )
-		n.c3.setAttribute('cy', this.source[3].y+sy+py )
+		let target = [
+			{x:this.source[0].x+px,y:this.source[0].y+py}, 
+			{x:this.source[1].x+sx+px,y:this.source[1].y+py}, 
+			{x:this.source[2].x+sx+px,y:this.source[2].y+sy+py}, 
+			{x:this.source[3].x+px,y:this.source[3].y+sy+py}
+		]
 
-		this.upCenter()
-		this.updatelines();
-		this.update();
+		return target
+
     }
 
     lerp ( x, y, t ) { return ( 1 - t ) * x + t * y }
