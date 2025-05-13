@@ -54,6 +54,24 @@ import { Smoke } from './libs/smoke.module.js'
 *  MAIN THREE.JS / PHY
 */
 
+///http://filmicworlds.com/blog/filmic-tonemapping-operators/
+
+THREE.ShaderChunk.tonemapping_pars_fragment = THREE.ShaderChunk.tonemapping_pars_fragment.replace(
+
+	'vec3 CustomToneMapping( vec3 color ) { return color; }',
+
+	`#define Uncharted2Helper( x ) max( ( ( x * ( 0.15 * x + 0.10 * 0.50 ) + 0.20 * 0.02 ) / ( x * ( 0.15 * x + 0.50 ) + 0.20 * 0.30 ) ) - 0.02 / 0.30, vec3( 0.0 ) )
+
+	float toneMappingWhitePoint = 1.0;
+
+	vec3 CustomToneMapping( vec3 color ) {
+		color *= toneMappingExposure;
+		return saturate( Uncharted2Helper( color ) / Uncharted2Helper( vec3( toneMappingWhitePoint ) ) );
+
+	}`
+
+);
+
 
 const Motor = phy;
 // or
@@ -178,6 +196,7 @@ const options = {
     nSample:16,//17,
 
     composer:false,
+    colorCheck:false,
 
 }
 
@@ -195,24 +214,28 @@ let isLoadCode = true
 let needResize = true
 
 //const timer = new Timer(60)
-const size = { w:0, h:0, r:0, left:0 }
+const size = { w:0, h:0, r:0, left:0, px:1 }
 const tm = { now:0, delta:0, then:0, inter: 1000/60, tmp:0, n:0, dt:0, fps:0 }
 
 const toneMappingOptions = {
+
 	None: THREE.NoToneMapping,
 	Linear: THREE.LinearToneMapping,
 	Reinhard: THREE.ReinhardToneMapping,
 	Cineon: THREE.CineonToneMapping,
 	Agx: THREE.AgXToneMapping,
 	ACESFilmic: THREE.ACESFilmicToneMapping,
-	Uncharted2: THREE.CustomToneMapping
+	Custom: THREE.CustomToneMapping
+
 }
 
 const shadowMapType = {
+
 	PCSS: THREE.BasicShadowMap, // remplace by super soft
 	PCF: THREE.PCFShadowMap,
 	PCFSoft: THREE.PCFSoftShadowMap,
 	VSM: THREE.VSMShadowMap
+
 }
 
 
@@ -497,6 +520,7 @@ const init = () => {
 	size.w = window.innerWidth;
 	size.h = window.innerHeight;
 	size.r = size.w / size.h;
+	size.px = pixelRatio;
 
 	// RENDERER
 

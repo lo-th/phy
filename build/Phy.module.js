@@ -39874,6 +39874,8 @@ class PhyEngine {
 		let textfields = [];
 		let particles = [];
 
+		let colorChecker = null;
+
 		const settings = {
 
 			fps: 60,
@@ -40532,6 +40534,8 @@ class PhyEngine {
 
 			this.garbage = [];
 
+			colorChecker =  null;
+
 			if( breaker !== null ) breaker = null;
 
 			if( this.debuger !== null ) this.removeDebuger();
@@ -40676,7 +40680,7 @@ class PhyEngine {
 
 	    };
 
-		this.control =( name = null ) => { // for character and vehicle
+		this.control = ( name = null ) => { // for character and vehicle
 
 			if( currentControle !== null ){
 				if( name === null ) {
@@ -40946,6 +40950,12 @@ class PhyEngine {
 
 			controls = Controls;
 			azimut = controls.getAzimuthalAngle;
+
+		};
+
+		this.getControl = () => {
+
+			return controls;
 
 		};
 
@@ -41221,6 +41231,49 @@ class PhyEngine {
 
 		};
 
+		//-----------------------
+		//  COLOR CHECKER
+		//-----------------------
+
+		this.setColorChecker = ( m ) => {
+
+	    	colorChecker = m;
+
+	    };
+
+	    this.getColorChecker = ( n = 0 ) => {
+
+	    	if(!colorChecker) return;
+
+	    	//console.log(colorChecker.children)
+	    	if(!this.ccp){
+		    	let name = 'marker_'+n+'_';
+		    	this.ccp = [];
+		    	colorChecker.traverse( ( child ) => {
+		    		if ( child.isMesh ){
+		    			if(child.name === name+'0') this.ccp[0] = child;
+		    			if(child.name === name+'1') this.ccp[1] = child;
+		    			if(child.name === name+'2') this.ccp[2] = child;
+		    			if(child.name === name+'3') this.ccp[3] = child;
+		    		}
+		    	});
+		    }
+
+		    let p = new Vector3();
+		    let pos = [ {x:0,y:0}, {x:0,y:0}, {x:0,y:0}, {x:0,y:0} ];
+		    let px = this.viewSize.px || window.devicePixelRatio; 
+
+		    for(let i=0; i<4; i++){
+		    	this.ccp[i].getWorldPosition(p);
+		    	p.project(this.getCamera());
+		    	pos[i].x = Math.round((0.5 + p.x / 2) * (this.viewSize.w / px));
+		    	pos[i].y = Math.round((0.5 - p.y / 2) * (this.viewSize.h / px));
+		    }
+
+	    	return pos;
+
+	    };
+
 
 		//-----------------------
 		//  EXPLOSION
@@ -41458,6 +41511,8 @@ class Utils {
 		m.makeBasis( xAxis, yAxis, zAxis );
 
     }
+
+    
 
 }
 

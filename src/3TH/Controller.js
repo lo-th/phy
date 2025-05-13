@@ -86,6 +86,22 @@ export class Controller extends OrbitControls {
 
     }
 
+    onChange( fun ){
+
+        this.changeFunction = fun;
+        this.addEventListener( 'change', this.changeFunction );
+
+    }
+
+    offChange(){
+
+        if(this.changeFunction){ 
+            this.removeEventListener( 'change', this.changeFunction );
+            this.changeFunction = null;
+        }
+
+    }
+
 
     getSpherical (){
 
@@ -102,6 +118,8 @@ export class Controller extends OrbitControls {
     }
 
     resetAll () {
+
+        this.offChange()
 
         this.enableApply = true;
         this.minDistance = 0.001;

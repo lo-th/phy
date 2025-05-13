@@ -4,6 +4,7 @@ import { Env } from './Env.js'
 import { Hub } from './Hub.js'
 //import { Shader } from './Shader.js'
 import { Pool } from './Pool.js'
+import { ColorCheck } from './ColorCheck.js';
 
 /** __
 *    _)_|_|_
@@ -26,6 +27,8 @@ let Main = null;
 export const Gui = {
 
 	tool:UIL.Tools,
+
+	colorChecker:null,
 
 	open:false,
 	isInit:false,
@@ -185,6 +188,17 @@ export const Gui = {
 
 	},
 
+	showCheker( v ){
+
+		if(v){
+			if(!Gui.colorChecker) Gui.colorChecker = new ColorCheck( Main.motor )
+		} else {
+			if(Gui.colorChecker) Gui.colorChecker.dispose()
+			Gui.colorChecker = null;
+		}
+
+	},
+
 	doReset: () => {
 
 		if( !Gui.isInit ) return
@@ -232,6 +246,7 @@ export const Gui = {
 
 		ui.add( options, 'debug', { type:'bool' }).onChange( Main.debugMode )
 		//ui.add( options, 'day', { type:'bool' }).onChange( Hub.setColors )
+		ui.add( options, 'colorCheck', { type:'bool' }).onChange( Gui.showCheker )
 		ui.add( options, 'harmony', { type:'bool' }).onChange( Hub.harmony )
 		ui.add( options, 'show_light', { type:'bool' }).onChange( Main.showDebugLight )
 		ui.add( options, 'show_stat', { type:'bool' }).onChange( Main.showStatistic )
