@@ -6,7 +6,7 @@ import {
     AddEquation, SubtractEquation, ReverseSubtractEquation, MinEquation, MaxEquation,
     ZeroFactor, OneFactor, SrcColorFactor, OneMinusSrcColorFactor, SrcAlphaFactor, OneMinusSrcAlphaFactor, 
     DstAlphaFactor, OneMinusDstAlphaFactor, DstColorFactor, OneMinusDstColorFactor, SrcAlphaSaturateFactor,
-    FrontSide, BackSide, DoubleSide
+    FrontSide, BackSide, DoubleSide, SRGBColorSpace
 } from 'three';
 import { CarbonTexture } from '../../3TH/textures/CarbonTexture.js';
 import { MeshSssMaterial } from '../../3TH/materials/MeshSssMaterial.js';
@@ -18,6 +18,7 @@ import { MeshSssMaterial } from '../../3TH/materials/MeshSssMaterial.js';
 //-------------------
 //
 //  MATERIAL
+//  https://physicallybased.info/
 //
 //-------------------
 
@@ -59,18 +60,27 @@ const matExtra = {
 }*/
 
 export const Colors = {
-    body:new Color( "hsl(45, 15%, 90%)" ),//0xefefd4
+	grey:new Color( 0.180,0.180,0.180 ),//
+	black:new Color( 0.039,0.039,0.039 ),//0.180,0.180,0.180
+    body:new Color( 0xCAC6C3 ),//0xefefd4
     sleep:new Color( "hsl(33, 15%, 54%)" ),//0x9FBFBD
     solid:new Color( 0x6C6A68 ),//
     base:new Color( 0xc9c8c7 ),
-    black:new Color( "hsl(220, 8%, 15%)" ),
+
+    brick:new Color( 0.262,0.095,0.061 ),
+    sand:new Color( 0.440,0.386,0.231 ),
+    //black:new Color( "hsl(220, 8%, 15%)" ),
     gold:new Color( 0.944, 0.776, 0.373 ),
     gold2:new Color( 0.998, 0.981, 0.751 ),
-    copper:new Color( 0.96467984, 0.37626296, 0.25818297 ),
+    titanium: new Color(0.633,0.578,0.503),
+    titaniumSpec: new Color(0.728,0.680,0.550),
+    chrome: new Color(0.653,0.650,0.615),
+    chromeSpec: new Color(0.675,0.720,0.711),
+    copper:new Color( 0.988,0.688,0.448 ),
     carPaint:new Color( 0.1037792, 0.59212029, 0.85064936 ),
     clay:new Color( "hsl(12, 30%, 40%)" ),
     clayWhite:new Color( 0xa9a9a9 ),
-    concrete:new Color( 0xa9a9a9 ),
+    concrete:new Color( 0.510,0.510,0.510 ),
 
     Raw_Fire:new Color( "hsl(40, 18%, 54%)" ),
     Raw_Buff:new Color( "hsl(33, 15%, 54%)" ),
@@ -383,6 +393,9 @@ export class Mat {
 			let m;
 			switch( name ){
 
+				case 'grey': m = this.create({name:'grey', color:Colors.grey, metalness: 0.0, roughness: 0.5 }); break
+				case 'black':   m = this.create({ name:'black', color:Colors.black, metalness: 0, roughness: 0.5 }); break
+
 				case 'body': m = this.create({name:'body', color:Colors.body, ...matExtra }); break
 			    case 'sleep':  m = this.create({ name:'sleep', color:Colors.sleep, ...matExtra }); break//0x46B1C9
 			    case 'solid':  m = this.create({ name:'solid', color:Colors.solid, ...matExtra }); break
@@ -391,17 +404,21 @@ export class Mat {
 			    case 'clay':  m = this.create({ name:'clay', color:Colors.clay, metalness: 0.1, roughness: 0.7 }); break
 			    case 'clayWhite':  m = this.create({ name:'clayWhite', color:Colors.clayWhite, metalness: 0.1, roughness: 0.7 }); break
 
-			    case 'concrete':  m = this.create({ name:'concrete', color:Colors.concrete, metalness: 0.0, roughness: 0.9, }); break
+			    case 'concrete':  m = this.create({ name:'concrete', color:Colors.concrete, metalness: 0.0, roughness: 0.9 }); break
+			    case 'brick':  m = this.create({ name:'brick', color:Colors.brick, metalness: 0.0, roughness: 0.6 }); break
+			    case 'sand':  m = this.create({ name:'sand', color:Colors.sand, metalness: 0.0, roughness: 0.9 }); break
 
-			    case 'black':   m = this.create({ name:'black', color:Colors.black, metalness: 0, roughness: 0.25 }); break
+			    
 
 			    
 
 			    // metal
-			    case 'chrome': m = this.create({ name:'chrome', color:0xCCCCCC, metalness: 1, roughness:0.075 }); break
+			    case 'chrome': m = this.create({ name:'chrome', color:Colors.chrome, specularColor:Colors.chromeSpec, metalness: 1, roughness:0.075 }); break
 			    case 'silver': m = this.create({ name:'silver', color:0xAAAAAA, metalness: 0.8, roughness:0.22 }); break
 			    case 'gold': m = this.create({ name:'gold', color:Colors.gold, specularColor:Colors.gold2, metalness: 1, roughness:0.02 }); break
-			    case 'copper': m = this.create({ name:'copper', color:Colors.copper, metalness: 1, roughness:0.25, clearcoat: 1.0, clearcoatRoughness: 0.2 }); break
+			    case 'copper': m = this.create({ name:'copper', color:Colors.copper, metalness: 1, roughness:0.05 }); break
+			    case 'titanium': m = this.create({ name:'titanium', color:Colors.titanium, metalness: 1.0, roughness:0, specularColor:Colors.titaniumSpec }); break
+
 
 			    case 'carPaint': m = this.create({ name:'carPaint', color:Colors.carPaint, metalness: 0, anisotropy:new Vector2(0.5,0.5), roughness:0.4, clearcoat: 1.0, clearcoatRoughness: 0, }); break
 

@@ -56,7 +56,7 @@ import { Smoke } from './libs/smoke.module.js'
 
 ///http://filmicworlds.com/blog/filmic-tonemapping-operators/
 
-THREE.ShaderChunk.tonemapping_pars_fragment = THREE.ShaderChunk.tonemapping_pars_fragment.replace(
+/*THREE.ShaderChunk.tonemapping_pars_fragment = THREE.ShaderChunk.tonemapping_pars_fragment.replace(
 
 	'vec3 CustomToneMapping( vec3 color ) { return color; }',
 
@@ -70,8 +70,43 @@ THREE.ShaderChunk.tonemapping_pars_fragment = THREE.ShaderChunk.tonemapping_pars
 
 	}`
 
-);
+);*/
 
+
+
+// PBR Neutral ToneMapping
+// https://modelviewer.dev/examples/tone-mapping
+// https://github.com/KhronosGroup/ToneMapping
+
+THREE.ShaderChunk.tonemapping_pars_fragment = THREE.ShaderChunk.tonemapping_pars_fragment.replace(
+
+	'vec3 CustomToneMapping( vec3 color ) { return color; }',
+
+	`
+	float startCompression = 0.8 - 0.04;
+    float desaturation = 0.15;
+
+	vec3 CustomToneMapping( vec3 color ) {
+
+		color *= toneMappingExposure;
+
+		float x = min(color.r, min(color.g, color.b));
+		float offset = x < 0.08 ? x - 6.25 * x * x : 0.04;
+		color -= offset;
+
+		float peak = max(color.r, max(color.g, color.b));
+		if (peak < startCompression) return color;
+
+		float d = 1. - startCompression;
+		float newPeak = 1. - d * d / (peak + d - startCompression);
+		color *= newPeak / peak;
+
+		float g = 1. - 1. / (desaturation * (peak - newPeak) + 1.);
+		return mix(color, newPeak * vec3(1, 1, 1), g);
+
+	}`
+
+);
 
 const Motor = phy;
 // or
@@ -134,12 +169,12 @@ const setting = {
 	vignette:true,
 	shadow:0.75,
 
-	exposure: 0.68,//1,
-	direct:3.14,
+	exposure: 0.5,//0.68,//1,
+	direct:8, //3.14,
 	spherical: 1,
-	envIntensity:1.3,
-	bgIntensity:1,
-	shadowIntensity:1,
+	envIntensity:2.0,//1.3,
+	bgIntensity:1.5,//1,
+	shadowIntensity:1.0,//1,
 	reflect:0.1,
 
 }
@@ -162,10 +197,10 @@ const options = {
 	fps:60,
 	gravity:[0,-9.81,0],
 
-	tone:'ACESFilmic',
+	tone:'PBRneutral', //'ACESFilmic',
 
-	exposure: 0.68,//1,,
-	direct:3.14,
+	exposure: 0.5, //0.68,//1,,
+	direct:5, //3.14,
 	spherical: 1,
 	envIntensity:1.3,
 	bgIntensity:1,
@@ -225,7 +260,7 @@ const toneMappingOptions = {
 	Cineon: THREE.CineonToneMapping,
 	Agx: THREE.AgXToneMapping,
 	ACESFilmic: THREE.ACESFilmicToneMapping,
-	Custom: THREE.CustomToneMapping
+	PBRneutral: THREE.CustomToneMapping
 
 }
 
@@ -1307,7 +1342,8 @@ const view = ( o = {} ) => {
 
 	if( o.envmap ){ 
 		setEnv( o.envmap, true )
-		options.envBlur = o.envblur || 0
+		if(o.envblur) o.envBlur = o.envblur;
+		options.envBlur = o.envBlur || 0
 		Env.setBlur( options.envBlur )
 		if( o.background ) Env.setBackgroud( o.background );
 		if( o.envFloor ) Env.project( o.background );

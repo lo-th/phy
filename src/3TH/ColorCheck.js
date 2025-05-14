@@ -10,7 +10,6 @@ export class ColorCheck {
 
     	this.paletteType = 0
     	
-
     	this.motor = motor || null;
 
     	let parent = Parent || document.body;
@@ -66,12 +65,13 @@ export class ColorCheck {
 
         let target = this.startResize()
 
-        if(this.motor){ 
-        	let detect =  this.motor.getColorChecker(this.paletteType);
-        	if(detect){
+        if(this.motor){
+            this.colorChecker = this.motor.getColorChecker();
+        	//let detect =  this.motor.getColorChecker(this.paletteType);
+        	if(this.colorChecker){
+        		target = this.get3DPosition(this.paletteType);
         		const autoUpdate = this.auto.bind(this)
         		this.motor.getControl().onChange( autoUpdate );
-        		target = detect
         	}
         	
         } 
@@ -99,10 +99,72 @@ export class ColorCheck {
 
     }
 
+    get3DPosition = ( n = 0 ) => {
+
+    	if(!this.colorChecker) return false;
+    	if(!this.ccp){
+	    	this.ccp = []
+	    	this.colorChecker.traverse( ( child ) => {
+	    		if ( child.isMesh ){
+	    			if(child.name === 'marker_0_0') this.ccp[0] = child;
+	    			if(child.name === 'marker_0_1') this.ccp[1] = child;
+	    			if(child.name === 'marker_0_2') this.ccp[2] = child;
+	    			if(child.name === 'marker_0_3') this.ccp[3] = child;
+
+	    			if(child.name === 'marker_1_0') this.ccp[4] = child;
+	    			if(child.name === 'marker_1_1') this.ccp[5] = child;
+	    			if(child.name === 'marker_1_2') this.ccp[6] = child;
+	    			if(child.name === 'marker_1_3') this.ccp[7] = child;
+
+	    			//if(child.name === 'marker_1_3') this.ccp[8] = child
+	    		}
+	    	})
+	    }
+
+        const todeg = 180 / Math.PI;
+
+	    const view = this.motor.viewSize;
+	    const camera = this.motor.getCamera();
+
+	    let a = camera.position.clone()
+	    let b = camera.position.clone()
+	    this.colorChecker.getWorldDirection(a)
+	    camera.getWorldDirection(b)
+
+	    let angle = b.dot(a)
+
+	    if(this.paletteType===0 && angle>0){
+	    	this.paletteType=1
+	    	this.setColor( colors[this.paletteType] )
+	    }
+
+	    if(this.paletteType===1 && angle<0){
+	    	this.paletteType=0
+	    	this.setColor( colors[this.paletteType] )
+	    }
+
+
+	    let p = this.ccp[0].position.clone();
+	    let pos = [ {x:0,y:0}, {x:0,y:0}, {x:0,y:0}, {x:0,y:0} ];
+	    let px = view.px || window.devicePixelRatio
+	    let nn
+
+	    for(let i=0; i<4; i++){
+	    	nn = this.paletteType===0 ? i : i+4
+	    	this.ccp[nn].getWorldPosition(p);
+	    	p.project(camera);
+	    	pos[i].x = Math.round((0.5 + p.x / 2) * (view.w / px));
+	    	pos[i].y = Math.round((0.5 - p.y / 2) * (view.h / px));
+	    }
+
+    	return pos;
+
+    }
+
     auto(){
 
     	if(!this.motor) return
-    	this.fit( this.motor.getColorChecker(this.paletteType) );
+    	this.fit( this.get3DPosition(this.paletteType) );
 
     }
 
@@ -384,18 +446,18 @@ export class ColorCheck {
 
 	}
 
-    transSvg(){
+    transSvg(c1='#606060', c2='#808080', c3='#404040'){
         return `
         <svg height="80" version="1.1" width="120" xmlns="http://www.w3.org/2000/svg" style="overflow: visible;">
-    		<path id="l0" fill="none" stroke="#00AA00" d="M0,0L120,0" stroke-width="2" style="pointer-events: none;"></path>
-    		<path id="l1" fill="none" stroke="#00AA00" d="M120,0L120,80" stroke-width="2" style="pointer-events: none;"></path>
-    		<path id="l2" fill="none" stroke="#00AA00" d="M120,80L0,80" stroke-width="2" style="pointer-events: none;"></path>
-    		<path id="l3" fill="none" stroke="#00AA00" d="M0,80L0,0" stroke-width="2" style="pointer-events: none;"></path>
-    		<circle id="c0" cx="0" cy="0" r="4" fill="rgba(0,0,0,0)" stroke="#00ff00" stroke-width="2" style="pointer-events: auto; cursor: pointer;"></circle>
-    		<circle id="c1" cx="120" cy="0" r="4" fill="rgba(0,0,0,0)" stroke="#00ff00" stroke-width="2" style="pointer-events: auto; cursor: pointer;"></circle>
-    		<circle id="c2" cx="120" cy="80" r="4" fill="rgba(0,0,0,0)" stroke="#00ff00" stroke-width="2" style="pointer-events: auto; cursor: pointer;"></circle>
-    		<circle id="c3" cx="0" cy="80" r="4" fill="rgba(0,0,0,0)" stroke="#00ff00" stroke-width="2" style="pointer-events: auto; cursor: pointer;"></circle>
-    		<circle id="c4" cx="60" cy="0" r="4" fill="rgba(0,0,0,0)" stroke="#00ffFF" stroke-width="2" style="pointer-events: auto; cursor: pointer;"></circle>
+    		<path id="l0" fill="none" stroke=${c1} d="M0,0L120,0" stroke-width="2" style="pointer-events: none;"></path>
+    		<path id="l1" fill="none" stroke=${c1} d="M120,0L120,80" stroke-width="2" style="pointer-events: none;"></path>
+    		<path id="l2" fill="none" stroke=${c1} d="M120,80L0,80" stroke-width="2" style="pointer-events: none;"></path>
+    		<path id="l3" fill="none" stroke=${c1} d="M0,80L0,0" stroke-width="2" style="pointer-events: none;"></path>
+    		<circle id="c0" cx="0" cy="0" r="4" fill="rgba(0,0,0,0)" stroke=${c2} stroke-width="2" style="pointer-events: auto; cursor: pointer;"></circle>
+    		<circle id="c1" cx="120" cy="0" r="4" fill="rgba(0,0,0,0)" stroke=${c2} stroke-width="2" style="pointer-events: auto; cursor: pointer;"></circle>
+    		<circle id="c2" cx="120" cy="80" r="4" fill="rgba(0,0,0,0)" stroke=${c2} stroke-width="2" style="pointer-events: auto; cursor: pointer;"></circle>
+    		<circle id="c3" cx="0" cy="80" r="4" fill="rgba(0,0,0,0)" stroke=${c2} stroke-width="2" style="pointer-events: auto; cursor: pointer;"></circle>
+    		<circle id="c4" cx="60" cy="0" r="4" fill="rgba(0,0,0,0)" stroke=${c3} stroke-width="2" style="pointer-events: auto; cursor: pointer;"></circle>
     	</svg>
         `
     }
