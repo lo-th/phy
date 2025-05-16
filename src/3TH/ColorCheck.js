@@ -116,21 +116,48 @@ export class ColorCheck {
 	    			if(child.name === 'marker_1_2') this.ccp[6] = child;
 	    			if(child.name === 'marker_1_3') this.ccp[7] = child;
 
+	    			//if(child.name === 'box') this.ccp[8] = child;
+
 	    			//if(child.name === 'marker_1_3') this.ccp[8] = child
 	    		}
 	    	})
 	    }
+
+	    const colorChecker = this.colorChecker
+
+
 
         const todeg = 180 / Math.PI;
 
 	    const view = this.motor.viewSize;
 	    const camera = this.motor.getCamera();
 
-	    let a = camera.position.clone()
+	    let a = colorChecker.position.clone()
 	    let b = camera.position.clone()
-	    this.colorChecker.getWorldDirection(a)
-	    camera.getWorldDirection(b)
 
+	    //let aa = this.motor.getControl().getAzimuthalAngle();
+
+	    //this.ccp[8].rotation.y = aa
+        /*colorChecker.getWorldPosition(a);
+        camera.getWorldPosition(b);
+	    
+
+	    b.sub(a).normalize();
+
+
+	    colorChecker.getWorldDirection(a)
+	    a.applyMatrix4( colorChecker.matrixWorld )
+	    a.sub(colorChecker.position).normalize()
+	    */
+
+	    
+	    //console.log(a)
+
+
+	    colorChecker.getWorldDirection(a)
+	    camera.getWorldDirection(b)
+	    //b.applyMatrix4( colorChecker.matrixWorld ).normalize()
+	    /*b.sub(colorChecker.position).normalize()*/
 	    let angle = b.dot(a)
 
 	    if(this.paletteType===0 && angle>0){
