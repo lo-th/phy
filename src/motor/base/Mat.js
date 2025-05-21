@@ -483,7 +483,7 @@ export class Mat {
 				    m = this.create({ name:'hide', type:'basic', visible:false });
 			    break
 			    case 'particle':
-				    m = this.create({ name:'particle', type:'basic', toneMapped: false, color:0x00ff00 });
+				    m = this.create({ name:'particle', type:'basic', toneMapped: false, color:0xffff00, transparent:true, opacity:0.2 });
 			    break
 			    case 'svg':
 				    m = this.create({ name:'svg', type:'basic', toneMapped:false, vertexColors:true, transparent:false, side:DoubleSide });

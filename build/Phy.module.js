@@ -81,7 +81,7 @@ const M$1 = {
     //unwrapRad: ( r ) => (r - (Math.floor((r + Math.PI)/(2*Math.PI)))*2*Math.PI),
     unwrapRad: ( r ) => ( Math.atan2(Math.sin(r), Math.cos(r)) ),
 
-    nearEquals: ( a, b, t ) => ( Math.abs(a - b) <= t ? true : false ),
+    nearEquals: ( a, b, t = 1e-4 ) => ( Math.abs(a - b) <= t ? true : false ),
 
     autoSize: ( s = [ 1, 1, 1 ], type = 'box' ) => {
 
@@ -812,6 +812,56 @@ const M$1 = {
 
     },
 
+    getSameVertex: ( g ) => {
+        
+        const positionAttribute = g.getAttribute( 'position' );
+        const ar = positionAttribute.array;
+
+        const tmppos = [];
+        const pos = [];
+        const sameId = {};
+
+        new THREE.Vector3();
+        let n = 0, jcount;
+
+        M$1.getHash(g);
+
+        let p1, p2, same = false;
+
+        let idx = 0;
+
+        for ( let i = 0; i < positionAttribute.count; i ++ ) {
+
+            n = i*3;
+            p1 = { x:ar[n], y:ar[n+1], z:ar[n+2], id:i };
+            same = false;
+            
+            jcount = tmppos.length;
+            for ( let j = 0; j < jcount; j ++ ) {
+                p2 = tmppos[j];
+                if( p1.x === p2.x && p1.y === p2.y && p1.z === p2.z ){ 
+                    same = true;
+                    sameId[i] = p2.id;
+                    //console.log(i+' have same index than '+p2.id)
+                }  
+            }
+
+            if(!same){ 
+                //if(!sameId[i])sameId[i] = i
+                p1.id = idx++;
+                tmppos.push(p1);
+                pos.push([ p1.x, p1.y, p1.z ]);
+            }
+
+        }
+
+        //console.log(tmppos)
+
+        return [pos, sameId]
+
+
+    },
+
     getVertex: ( g, noIndex ) => {
         
         let c = g.attributes.position.array;
@@ -853,6 +903,50 @@ const M$1 = {
 
     },
 
+    getConnectedFaces: ( faces ) => {
+
+        const connected = [];
+        let lng = faces.length;
+        let i = lng, j, fa, fb, common;
+        let tmp, nx, final;
+        while(i--){
+            fa = faces[i];
+            j = lng;
+            while(j--){
+                if(j !== i){
+                    //d = 0
+                    fb = faces[j];
+                    common = fa.filter(item => fb.includes(item));
+                    if(common.length>1){
+
+                        final = [];
+
+                        tmp = [...fa];
+                        nx = tmp.indexOf(common[0]);
+                        tmp.splice(nx, 1);
+                        nx = tmp.indexOf(common[1]);
+                        tmp.splice(nx, 1);
+                        final.push(tmp[0]);
+
+                        tmp = [...fb];
+                        nx = tmp.indexOf(common[0]);
+                        tmp.splice(nx, 1);
+                        nx = tmp.indexOf(common[1]);
+                        tmp.splice(nx, 1);
+                        final.push(tmp[0]);
+
+                        connected.push( final );
+                    }
+                }
+
+            }
+
+        }
+
+        return connected
+
+    },
+
     reduce: ( x ) => {
     },
 
@@ -860,7 +954,211 @@ const M$1 = {
     },
 
     solve: ( simplex, point ) => {
-    }
+    },
+
+    getHash: (geometry, tolerance = 1e-4) => {
+
+        tolerance = Math.max( tolerance, Number.EPSILON );
+
+        const hashToIndex = {};
+        const hashTable = {};
+        const positions = geometry.getAttribute( 'position' );
+        const vertexCount = positions.count;
+        //const vertexCount = positions.count;
+
+        const ar = positions.array;
+
+        const halfTolerance = tolerance * 0.5;
+        const exponent = Math.log10( 1 / tolerance );
+        const mul = Math.pow( 10, exponent );
+        const add = halfTolerance * mul;
+
+        let n;
+        
+
+        for ( let i = 0; i < vertexCount; i ++ ) {
+
+            const index = i;
+            n = index*3;
+            // Generate a hash for the vertex attributes at the current index 'i'
+            let hash = `${ ~ ~ ( ar[n] * mul + add ) },${ ~ ~ ( ar[n+1] * mul + add ) },${ ~ ~ ( ar[n+2] * mul + add ) }`;
+
+            if(hashToIndex[hash]) hashToIndex[hash].push(i);
+            else hashToIndex[hash] = [i];
+
+        }
+
+        let id = 0;
+
+        for(let h in hashToIndex){
+            hashTable[id++] = hashToIndex[h];
+        }
+
+        //console.log(hashTable)
+
+        return hashTable
+
+    },
+
+
+
+    /*mergeVertices:( geometry, tolerance = 1e-4 ) => {
+
+        tolerance = Math.max( tolerance, Number.EPSILON );
+
+        // Generate an index buffer if the geometry doesn't have one, or optimize it
+        // if it's already available.
+        const hashToIndex = {};
+        const indices = geometry.getIndex();
+        const positions = geometry.getAttribute( 'position' );
+        const vertexCount = indices ? indices.count : positions.count;
+
+        // next value for triangle indices
+        let nextIndex = 0;
+
+        // attributes and new attribute arrays
+        const attributeNames = Object.keys( geometry.attributes );
+        const tmpAttributes = {};
+        const tmpMorphAttributes = {};
+        const newIndices = [];
+        const getters = [ 'getX', 'getY', 'getZ', 'getW' ];
+        const setters = [ 'setX', 'setY', 'setZ', 'setW' ];
+
+        // Initialize the arrays, allocating space conservatively. Extra
+        // space will be trimmed in the last step.
+        for ( let i = 0, l = attributeNames.length; i < l; i ++ ) {
+
+            const name = attributeNames[ i ];
+            const attr = geometry.attributes[ name ];
+
+            tmpAttributes[ name ] = new attr.constructor(
+                new attr.array.constructor( attr.count * attr.itemSize ),
+                attr.itemSize,
+                attr.normalized
+            );
+
+            const morphAttributes = geometry.morphAttributes[ name ];
+            if ( morphAttributes ) {
+
+                if ( ! tmpMorphAttributes[ name ] ) tmpMorphAttributes[ name ] = [];
+                morphAttributes.forEach( ( morphAttr, i ) => {
+
+                    const array = new morphAttr.array.constructor( morphAttr.count * morphAttr.itemSize );
+                    tmpMorphAttributes[ name ][ i ] = new morphAttr.constructor( array, morphAttr.itemSize, morphAttr.normalized );
+
+                } );
+
+            }
+
+        }
+
+        // convert the error tolerance to an amount of decimal places to truncate to
+        const halfTolerance = tolerance * 0.5;
+        const exponent = Math.log10( 1 / tolerance );
+        const mul = Math.pow( 10, exponent );
+        const add = halfTolerance * mul;
+        for ( let i = 0; i < vertexCount; i ++ ) {
+
+            const index = indices ? indices.getX( i ) : i;
+
+            // Generate a hash for the vertex attributes at the current index 'i'
+            let hash = '';
+            for ( let j = 0, l = attributeNames.length; j < l; j ++ ) {
+
+                const name = attributeNames[ j ];
+                const attribute = geometry.getAttribute( name );
+                const itemSize = attribute.itemSize;
+
+                for ( let k = 0; k < itemSize; k ++ ) {
+
+                    // double tilde truncates the decimal value
+                    hash += `${ ~ ~ ( attribute[ getters[ k ] ]( index ) * mul + add ) },`;
+
+                }
+
+            }
+
+            // Add another reference to the vertex if it's already
+            // used by another index
+            if ( hash in hashToIndex ) {
+
+                newIndices.push( hashToIndex[ hash ] );
+
+            } else {
+
+                // copy data to the new index in the temporary attributes
+                for ( let j = 0, l = attributeNames.length; j < l; j ++ ) {
+
+                    const name = attributeNames[ j ];
+                    const attribute = geometry.getAttribute( name );
+                    const morphAttributes = geometry.morphAttributes[ name ];
+                    const itemSize = attribute.itemSize;
+                    const newArray = tmpAttributes[ name ];
+                    const newMorphArrays = tmpMorphAttributes[ name ];
+
+                    for ( let k = 0; k < itemSize; k ++ ) {
+
+                        const getterFunc = getters[ k ];
+                        const setterFunc = setters[ k ];
+                        newArray[ setterFunc ]( nextIndex, attribute[ getterFunc ]( index ) );
+
+                        if ( morphAttributes ) {
+
+                            for ( let m = 0, ml = morphAttributes.length; m < ml; m ++ ) {
+
+                                newMorphArrays[ m ][ setterFunc ]( nextIndex, morphAttributes[ m ][ getterFunc ]( index ) );
+
+                            }
+
+                        }
+
+                    }
+
+                }
+
+                hashToIndex[ hash ] = nextIndex;
+                newIndices.push( nextIndex );
+                nextIndex ++;
+
+            }
+
+        }
+
+        // generate result BufferGeometry
+        const result = geometry.clone();
+        for ( const name in geometry.attributes ) {
+
+            const tmpAttribute = tmpAttributes[ name ];
+
+            result.setAttribute( name, new tmpAttribute.constructor(
+                tmpAttribute.array.slice( 0, nextIndex * tmpAttribute.itemSize ),
+                tmpAttribute.itemSize,
+                tmpAttribute.normalized,
+            ) );
+
+            if ( ! ( name in tmpMorphAttributes ) ) continue;
+
+            for ( let j = 0; j < tmpMorphAttributes[ name ].length; j ++ ) {
+
+                const tmpMorphAttribute = tmpMorphAttributes[ name ][ j ];
+
+                result.morphAttributes[ name ][ j ] = new tmpMorphAttribute.constructor(
+                    tmpMorphAttribute.array.slice( 0, nextIndex * tmpMorphAttribute.itemSize ),
+                    tmpMorphAttribute.itemSize,
+                    tmpMorphAttribute.normalized,
+                );
+
+            }
+
+        }
+
+        // indices
+
+        result.setIndex( newIndices );
+
+        return result;
+
+    }*/
 
 };
 
@@ -18550,7 +18848,7 @@ const getArray = function ( engine, full = false ){
 
 const getType = function ( o ) {
     switch( o.type ){
-        case 'plane': case 'box': case 'sphere': case 'highSphere': case 'customSphere': case 'cylinder': case 'stair':case 'particle':
+        case 'plane': case 'box': case 'sphere': case 'highSphere': case 'customSphere': case 'cylinder': case 'stair': case 'particle':
         case 'cone': case 'capsule': case 'mesh': case 'convex': case 'compound': case 'null':
             //if ( ( !o.mass || !o.density ) && !o.kinematic ) return 'solid'
             if ( !o.mass && !o.density && !o.kinematic ) return 'solid'
@@ -18723,7 +19021,7 @@ let Geo$1 = class Geo {
 				//case 'wheel':    g = new CylinderGeometry( 1, 1, 1 , 16 ); g.rotateX( -Math.PI * 0.5 ); break
 				case 'cone':     g = new CylinderGeometry( 0.001, 1, 1 , 16 ); break
 				//case 'joint':    g = new Box3Helper().geometry; g.scale( 0.05,0.05,0.05 ); break
-				case 'particle': g = new SphereGeometry( 1.0, 8, 6 ); break
+				case 'particle': g = new SphereGeometry( 1.0, 6, 4 ); break
 				case 'joint':    g = new CircleHelper().geometry; break
 				default: return null;
 			}
@@ -19643,7 +19941,7 @@ let Mat$3 = class Mat {
 				    this.create({ name:'hide', type:'basic', visible:false });
 			    break
 			    case 'particle':
-				    this.create({ name:'particle', type:'basic', toneMapped: false, color:0x00ff00 });
+				    this.create({ name:'particle', type:'basic', toneMapped: false, color:0xffff00, transparent:true, opacity:0.2 });
 			    break
 			    case 'svg':
 				    this.create({ name:'svg', type:'basic', toneMapped:false, vertexColors:true, transparent:false, side:DoubleSide });
@@ -36712,6 +37010,7 @@ class Breaker {
 
 }
 
+const tmp_Vector = new Vector3(); 
 //const SPHSystem_getNeighbors_dist = new Vector3()
 
 // Temp vectors for calculation
@@ -36724,36 +37023,48 @@ const SPHSystem_update_r_vec = new Vector3();
 const SPHSystem_update_u = new Vector3();
 
 
-class ParticleSolver {
+class SoftSolver {
 
 	constructor ( o = {}, motor ) {
 
 		this.first = true;
+		this.debug = o.debug || false;
 
 		this.motor = motor;
 
 		this.name = o.name  || 'ppp';
 
+		this.pMass = o.pMass || 0.01;
+		// visual size
+		this.vSize = o.vSize || 0.1;//0.06;
+		// physical size
+		this.pSize = o.pSize || 0.02;
+
 		this.particles = [];
 		/**
 	     * Density of the system (kg/m3).
-	     * @property {number} density
+	     * default 1.0
 	     */
 	    this.density = o.density || 0.01;
 	    /**
 	     * Distance below which two particles are considered to be neighbors.
 	     * It should be adjusted so there are about 15-20 neighbor particles within this radius.
-	     * @property {number} smoothingRadius
+	     * default 1.0
 	     */
+	    this.smoothMulty = o.smoothMulty || 1;
 	    this.smoothing = o.smoothing || 0.2;
-	    // speedOfSound
+	    this.smoothing*=this.smoothMulty;
+	    /**
+	     * Speed Of Sound
+	     * default 1
+	     */
 	    this.speed = o.speed || 0.1;
 	    
 	    /**
 	     * Viscosity of the system.
-	     * @property {number} viscosity
 	     */
 	    this.viscosity = o.viscosity || 0.03;
+
 	    this.eps = 0.000001;
 
 	    this.group = 1 << 8;
@@ -36763,12 +37074,121 @@ class ParticleSolver {
 	    this.densities = [];
 	    this.neighbors = [];
 
+	    this.maxDist = 0;
+
 	    this.tv = new Vector3();
 	    this.tv2 = new Vector3();
+
+	    if( o.mesh ) this.setMesh( o.mesh, o.crossEdge );
+
+	}
+
+	setMesh( mesh, crossLink = false ){
+
+		const link = [];
+		const extralink = [];
+
+		this.mesh = mesh;
+		this.geometry = mesh.geometry;
+
+		this.geometry.getIndex();
+        const positions = this.geometry.getAttribute( 'position' );
+        const ar = positions.array;
+
+        const hash = MathTool.getHash(this.geometry);
+        const faces = MathTool.getFaces(this.geometry);
+        const connected = crossLink ? MathTool.getConnectedFaces(faces) : null;
+
+        //console.log(hash)
+        //console.log(connected)
+
+		//let g2 = MathTool.getHash(this.geometry);
+
+		let j, n, f, a, b, c;
+
+		// add vertex position referency
+		for(let m in hash){
+
+			j = hash[m][0];
+			//const k = indices ? indices.getX( j ) : j;
+			n = j*3;
+			tmp_Vector.set( ar[n], ar[n+1], ar[n+2] );
+			this.mesh.localToWorld(tmp_Vector);
+			this.add(tmp_Vector.toArray());
+
+		}
+
+		for( let i=0; i<faces.length; i++ ){
+
+			f = faces[i];
+			a = this.getKey( hash, f[0] );
+			b = this.getKey( hash, f[1] );
+			c = this.getKey( hash, f[2] );
+			
+
+			if(!this.sameLink(link, a, b)) link.push([a,b]);
+			if(!this.sameLink(link, b, c)) link.push([b,c]);
+			if(!this.sameLink(link, c, a)) link.push([c,a]);
+
+		}
+
+	    this.connect( link );
+
+	    // extra link cross X
+
+	    if(connected){
+	    	for( let i=0; i<connected.length; i++ ){
+	    	
+		    	f = connected[i];
+		    	a = this.getKey( hash, f[0] );
+		    	b = this.getKey( hash, f[1] );
+		    	if(!this.sameLink(link, a, b) && !this.sameLink(extralink, a, b)) extralink.push([a,b]);
+
+		    }
+
+		    this.connect( extralink, true );
+	    }
+
+	    
+
+	    this.hash = hash;
+
+	    this.mesh.position.set(0,0,0);
+		this.mesh.quaternion.set(0,0,0,1);
+		this.mesh.receiveShadow = true;
+		this.mesh.castShadow = true;
+		phy.addDirect( this.mesh );
+
+	}
+
+	updateMesh(){
+
+		if(!this.geometry) return;
+
+		let h = this.hash;
+		let p = this.geometry.attributes.position.array;
+		let i = this.particles.length, n, r, j;
+		while(i--){
+
+			r = this.particles[i];
+			j = h[i].length;
+
+			while(j--){
+				n = h[i][j]*3;
+				p[n] = r.position.x;
+				p[n+1] = r.position.y;
+				p[n+2] = r.position.z;
+			}
+		}
+
+		this.geometry.attributes.position.needsUpdate = true;
+        this.geometry.computeVertexNormals();
+        this.geometry.computeBoundingSphere();
 
 	}
 
 	add( pos ){
+
 
 		let p = this.motor.add({ 
 
@@ -36776,15 +37196,15 @@ class ParticleSolver {
             type:'particle', 
             //type:'sphere',
             //flags:'noQuery',
-            size:[0.02],
-            pSize:0.02,
+            size:[this.vSize],
+            pSize:this.pSize,
             pos:pos, 
 
             inertia:[0,0,0], 
             //inertia:[0.00001,0.00001,0.00001], 
             //iterations:[10,1],
             
-            mass:0.01, 
+            mass:this.pMass, 
             //density:0.0000001,
             restitution:0.0, 
             friction:0.5, 
@@ -36793,11 +37213,14 @@ class ParticleSolver {
 
             //group:this.group, 
             //mask:1|2,
-            material:'hide',
+            material:this.debug ? 'particle':'hide',
             //maxVelocity:[1,100],
            // iterations:[40, 10],
 
-            massInfo:this.first,
+            shadow:false,
+            getVelocity:true,
+
+            //massInfo:this.first,
 
         });
 
@@ -36812,13 +37235,15 @@ class ParticleSolver {
 
 	}
 
-	connect( link ){
+	connect( link, extra ){
 
 		let i = link.length;
-		console.log(i);
+		//console.log(i)
 		let tmp = [], l, p1, p2, d = 0;
 
 		while(i--){
+
+			//if(!this.particles[l[0]] || !this.particles[l[1]]) continue
 
 			l = link[i];
 			this.name+l[0];
@@ -36833,6 +37258,12 @@ class ParticleSolver {
 			//console.log(p1,p2)
 
 			d = this.tv.copy( p1 ).distanceTo(p2);
+
+			if(extra){
+				if(d>this.maxDist) continue
+			} else {
+				if(d>this.maxDist)  this.maxDist = d;
+			}
 
 			
 
@@ -36906,7 +37337,7 @@ class ParticleSolver {
 	    for (let i = 0; i !== N; i++) {
 	        const p = this.particles[i];
 	        //const dx = p.position.x - particle.position.x, dy = p.position.y - particle.position.y, dz = p.position.z - particle.position.z;
-	        distance = this.distance(p, particle );//dx * dx + dy * dy + dz * dz
+	        distance = this.distanceSq(p, particle );//dx * dx + dy * dy + dz * dz
 	        if (id !== p.id && distance < R2) {
 	            neighbors.push(p);
 	        }
@@ -36915,6 +37346,11 @@ class ParticleSolver {
 
     distance(p, v) {
 	    const dx = p.position.x - v.position.x, dy = p.position.y - v.position.y, dz = p.position.z - v.position.z;
+	    return Math.sqrt(dx * dx + dy * dy + dz * dz)
+	}
+
+    distanceSq(p, v) {
+	    const dx = p.position.x - v.position.x, dy = p.position.y - v.position.y, dz = p.position.z - v.position.z;
 	    return dx * dx + dy * dy + dz * dz
 	}
 
@@ -36922,7 +37358,8 @@ class ParticleSolver {
 	w(r) {
 	    // 315
 	    const h = this.smoothing;
-	    return (315.0 / (64.0 * Math.PI * h ** 9)) * (h * h - r * r) ** 3
+	    return (315.0 / (64.0 * Math.PI * h ** 9)) * (h * h - r * r) ** 3;
+
 	}
 
 	// calculate gradient of the weight function
@@ -36931,14 +37368,42 @@ class ParticleSolver {
 	    const r = rVec.length();
 	    const h = this.smoothing;
 	    resultVec.copy(rVec).multiplyScalar( (945.0 / (32.0 * Math.PI * h ** 9)) * (h * h - r * r) ** 2 );
-	    //rVec.scale((945.0 / (32.0 * Math.PI * h ** 9)) * (h * h - r * r) ** 2, resultVec)
+
 	}
 
 	// Calculate nabla(W)
 	nablaw(r) {
+
 	    const h = this.smoothing;
 	    const nabla = (945.0 / (32.0 * Math.PI * h ** 9)) * (h * h - r * r) * (7 * r * r - 3 * h * h);
-	    return nabla
+	    return nabla;
+
+	}
+
+	// For mesh contruction
+
+	getKey( hash, f){
+
+		let k;
+		for(let i in hash){
+			k = hash[i];
+			if(k.indexOf(f) !== -1) return i
+		}
+	
+	}
+
+	sameLink(link, a,b){
+
+		let i = link.length, l;
+		let same = false;
+		while(i--){
+			l = link[i];
+			if( a === b ) same = true;
+			if( a === l[0] && b === l[1] ) same = true;
+			if( a === l[1] && b === l[0] ) same = true;
+		}
+	    return same;
+
 	}
 
 	update() {
@@ -36949,10 +37414,10 @@ class ParticleSolver {
 	    const cs = this.speed;
 	    const eps = this.eps;
 
-	    let i = N, j;
+	    let j;
 
-	   //for (let i = 0; i !== N; i++) {
-	    while(i--){
+	    for (let i = 0; i !== N; i++) {
+	    //while(i--){
 
 	    	const p = this.particles[i]; // Current particle
 	    	p.force.set(0,0,0);
@@ -36988,8 +37453,6 @@ class ParticleSolver {
 	    const gradW = SPHSystem_update_gradW;
 	    const r_vec = SPHSystem_update_r_vec;
 	    const u = SPHSystem_update_u;
-
-	    i = N;
 
 	    for (let i = 0; i !== N; i++) {
 	    //while(i--){
@@ -37065,6 +37528,7 @@ class ParticleSolver {
 	    }
 
 	    this.motor.change(TMP);
+	    this.updateMesh();
 
 	}
 
@@ -39889,7 +40353,7 @@ class PhyEngine {
 
 		let buttons = [];
 		let textfields = [];
-		let particles = [];
+		let softBodySolver = [];
 
 		let colorChecker = null;
 
@@ -40528,7 +40992,7 @@ class PhyEngine {
 
 			this.clearText();
 			//this.clearSkeleton()
-			this.clearParticleSolver();
+			this.clearSoftSolver();
 
 			this.cleartimout();
 
@@ -41151,27 +41615,26 @@ class PhyEngine {
 		this.getParticle = ()=>{};
 
 		//--------------------------
-		//  CLOTH PARTICLE PHYSICS
+		//  SOFT PARTICLE PHYSICS
 		//--------------------------
 
-		this.addParticleSolver = ( o )=>{
-			let s = new ParticleSolver( o, this );
-			particles.push(s);
+		this.addSoftSolver = ( o )=>{
+			let s = new SoftSolver( o, this );
+			softBodySolver.push(s);
 			return s;
 		};
 
-		this.updateParticleSolver = () =>{ 
+		this.updateSoftSolver = () =>{ 
 
-			let i = particles.length;
-			while( i-- ) particles[i].update();
+			let i = softBodySolver.length;
+			while( i-- ) softBodySolver[i].update();
 			
 		};
 
-		this.clearParticleSolver = () => { 
+		this.clearSoftSolver = () => { 
 
-			particles.length;
-			//while( i-- ) particles[i].dispose()
-	    	particles = [];
+			softBodySolver.length;
+	    	softBodySolver = [];
 			
 		};
 
@@ -41509,9 +41972,9 @@ class Utils {
 //import { MotorOld } from './motor_old/MotorOld.js';
 
 
-const phy = new PhyEngine();
+const phy$1 = new PhyEngine();
 const phy2 = PhyEngine;
 const math$1 = MathTool;
 const pool = Pool;
 
-export { math$1 as math, phy, phy2, pool };
+export { math$1 as math, phy$1 as phy, phy2, pool };

@@ -32,7 +32,7 @@ const update = () => {
     let y = bob.position.y
     phy.change( { name:'bob', pos:[0,y-0.05,0] } )
 
-    if(y<-1)bob = phy.add({ type:'sphere', name:'bob', size:[1], pos:[0, 10, 0],  kinematic:true })
+    if(y<-1) bob = phy.add({ type:'sphere', name:'bob', size:[1], pos:[0, 10, 0],  kinematic:true })
 
 }
 

@@ -87,7 +87,7 @@ const M = {
     //unwrapRad: ( r ) => (r - (Math.floor((r + Math.PI)/(2*Math.PI)))*2*Math.PI),
     unwrapRad: ( r ) => ( Math.atan2(Math.sin(r), Math.cos(r)) ),
 
-    nearEquals: ( a, b, t ) => ( Math.abs(a - b) <= t ? true : false ),
+    nearEquals: ( a, b, t = 1e-4 ) => ( Math.abs(a - b) <= t ? true : false ),
 
     autoSize: ( s = [ 1, 1, 1 ], type = 'box' ) => {
 
@@ -818,6 +818,56 @@ const M = {
 
     },
 
+    getSameVertex: ( g ) => {
+        
+        const positionAttribute = g.getAttribute( 'position' );
+        const ar = positionAttribute.array;
+
+        const tmppos = []
+        const pos = []
+        const sameId = {}
+
+        const vertex = new THREE.Vector3();
+        let n = 0, jcount
+
+        const hashTable = M.getHash(g)
+
+        let p1, p2, same = false
+
+        let idx = 0
+
+        for ( let i = 0; i < positionAttribute.count; i ++ ) {
+
+            n = i*3
+            p1 = { x:ar[n], y:ar[n+1], z:ar[n+2], id:i };
+            same = false
+            
+            jcount = tmppos.length
+            for ( let j = 0; j < jcount; j ++ ) {
+                p2 = tmppos[j]
+                if( p1.x === p2.x && p1.y === p2.y && p1.z === p2.z ){ 
+                    same = true
+                    sameId[i] = p2.id
+                    //console.log(i+' have same index than '+p2.id)
+                }  
+            }
+
+            if(!same){ 
+                //if(!sameId[i])sameId[i] = i
+                p1.id = idx++
+                tmppos.push(p1)
+                pos.push([ p1.x, p1.y, p1.z ])
+            }
+
+        }
+
+        //console.log(tmppos)
+
+        return [pos, sameId]
+
+
+    },
+
     getVertex: ( g, noIndex ) => {
         
         let c = g.attributes.position.array;
@@ -859,6 +909,50 @@ const M = {
 
     },
 
+    getConnectedFaces: ( faces ) => {
+
+        const connected = []
+        let lng = faces.length
+        let i = lng, j, fa, fb, common, d = 0
+        let tmp, nx, final
+        while(i--){
+            fa = faces[i]
+            j = lng
+            while(j--){
+                if(j !== i){
+                    //d = 0
+                    fb = faces[j]
+                    common = fa.filter(item => fb.includes(item));
+                    if(common.length>1){
+
+                        final = []
+
+                        tmp = [...fa]
+                        nx = tmp.indexOf(common[0])
+                        tmp.splice(nx, 1)
+                        nx = tmp.indexOf(common[1])
+                        tmp.splice(nx, 1)
+                        final.push(tmp[0])
+
+                        tmp = [...fb]
+                        nx = tmp.indexOf(common[0])
+                        tmp.splice(nx, 1)
+                        nx = tmp.indexOf(common[1])
+                        tmp.splice(nx, 1)
+                        final.push(tmp[0])
+
+                        connected.push( final );
+                    }
+                }
+
+            }
+
+        }
+
+        return connected
+
+    },
+
     reduce: ( x ) => {
     },
 
@@ -866,7 +960,212 @@ const M = {
     },
 
     solve: ( simplex, point ) => {
-    }
+    },
+
+    getHash: (geometry, tolerance = 1e-4) => {
+
+        tolerance = Math.max( tolerance, Number.EPSILON );
+
+        const hashToIndex = {};
+        const hashTable = {};
+        const indices = null//geometry.getIndex();
+        const positions = geometry.getAttribute( 'position' );
+        const vertexCount = indices ? indices.count : positions.count;
+        //const vertexCount = positions.count;
+
+        const ar = positions.array
+
+        const halfTolerance = tolerance * 0.5;
+        const exponent = Math.log10( 1 / tolerance );
+        const mul = Math.pow( 10, exponent );
+        const add = halfTolerance * mul;
+
+        let n;
+        
+
+        for ( let i = 0; i < vertexCount; i ++ ) {
+
+            const index = indices ? indices.getX( i ) : i;
+            n = index*3
+            // Generate a hash for the vertex attributes at the current index 'i'
+            let hash = `${ ~ ~ ( ar[n] * mul + add ) },${ ~ ~ ( ar[n+1] * mul + add ) },${ ~ ~ ( ar[n+2] * mul + add ) }`;
+
+            if(hashToIndex[hash]) hashToIndex[hash].push(i)
+            else hashToIndex[hash] = [i]
+
+        }
+
+        let id = 0
+
+        for(let h in hashToIndex){
+            hashTable[id++] = hashToIndex[h]
+        }
+
+        //console.log(hashTable)
+
+        return hashTable
+
+    },
+
+
+
+    /*mergeVertices:( geometry, tolerance = 1e-4 ) => {
+
+        tolerance = Math.max( tolerance, Number.EPSILON );
+
+        // Generate an index buffer if the geometry doesn't have one, or optimize it
+        // if it's already available.
+        const hashToIndex = {};
+        const indices = geometry.getIndex();
+        const positions = geometry.getAttribute( 'position' );
+        const vertexCount = indices ? indices.count : positions.count;
+
+        // next value for triangle indices
+        let nextIndex = 0;
+
+        // attributes and new attribute arrays
+        const attributeNames = Object.keys( geometry.attributes );
+        const tmpAttributes = {};
+        const tmpMorphAttributes = {};
+        const newIndices = [];
+        const getters = [ 'getX', 'getY', 'getZ', 'getW' ];
+        const setters = [ 'setX', 'setY', 'setZ', 'setW' ];
+
+        // Initialize the arrays, allocating space conservatively. Extra
+        // space will be trimmed in the last step.
+        for ( let i = 0, l = attributeNames.length; i < l; i ++ ) {
+
+            const name = attributeNames[ i ];
+            const attr = geometry.attributes[ name ];
+
+            tmpAttributes[ name ] = new attr.constructor(
+                new attr.array.constructor( attr.count * attr.itemSize ),
+                attr.itemSize,
+                attr.normalized
+            );
+
+            const morphAttributes = geometry.morphAttributes[ name ];
+            if ( morphAttributes ) {
+
+                if ( ! tmpMorphAttributes[ name ] ) tmpMorphAttributes[ name ] = [];
+                morphAttributes.forEach( ( morphAttr, i ) => {
+
+                    const array = new morphAttr.array.constructor( morphAttr.count * morphAttr.itemSize );
+                    tmpMorphAttributes[ name ][ i ] = new morphAttr.constructor( array, morphAttr.itemSize, morphAttr.normalized );
+
+                } );
+
+            }
+
+        }
+
+        // convert the error tolerance to an amount of decimal places to truncate to
+        const halfTolerance = tolerance * 0.5;
+        const exponent = Math.log10( 1 / tolerance );
+        const mul = Math.pow( 10, exponent );
+        const add = halfTolerance * mul;
+        for ( let i = 0; i < vertexCount; i ++ ) {
+
+            const index = indices ? indices.getX( i ) : i;
+
+            // Generate a hash for the vertex attributes at the current index 'i'
+            let hash = '';
+            for ( let j = 0, l = attributeNames.length; j < l; j ++ ) {
+
+                const name = attributeNames[ j ];
+                const attribute = geometry.getAttribute( name );
+                const itemSize = attribute.itemSize;
+
+                for ( let k = 0; k < itemSize; k ++ ) {
+
+                    // double tilde truncates the decimal value
+                    hash += `${ ~ ~ ( attribute[ getters[ k ] ]( index ) * mul + add ) },`;
+
+                }
+
+            }
+
+            // Add another reference to the vertex if it's already
+            // used by another index
+            if ( hash in hashToIndex ) {
+
+                newIndices.push( hashToIndex[ hash ] );
+
+            } else {
+
+                // copy data to the new index in the temporary attributes
+                for ( let j = 0, l = attributeNames.length; j < l; j ++ ) {
+
+                    const name = attributeNames[ j ];
+                    const attribute = geometry.getAttribute( name );
+                    const morphAttributes = geometry.morphAttributes[ name ];
+                    const itemSize = attribute.itemSize;
+                    const newArray = tmpAttributes[ name ];
+                    const newMorphArrays = tmpMorphAttributes[ name ];
+
+                    for ( let k = 0; k < itemSize; k ++ ) {
+
+                        const getterFunc = getters[ k ];
+                        const setterFunc = setters[ k ];
+                        newArray[ setterFunc ]( nextIndex, attribute[ getterFunc ]( index ) );
+
+                        if ( morphAttributes ) {
+
+                            for ( let m = 0, ml = morphAttributes.length; m < ml; m ++ ) {
+
+                                newMorphArrays[ m ][ setterFunc ]( nextIndex, morphAttributes[ m ][ getterFunc ]( index ) );
+
+                            }
+
+                        }
+
+                    }
+
+                }
+
+                hashToIndex[ hash ] = nextIndex;
+                newIndices.push( nextIndex );
+                nextIndex ++;
+
+            }
+
+        }
+
+        // generate result BufferGeometry
+        const result = geometry.clone();
+        for ( const name in geometry.attributes ) {
+
+            const tmpAttribute = tmpAttributes[ name ];
+
+            result.setAttribute( name, new tmpAttribute.constructor(
+                tmpAttribute.array.slice( 0, nextIndex * tmpAttribute.itemSize ),
+                tmpAttribute.itemSize,
+                tmpAttribute.normalized,
+            ) );
+
+            if ( ! ( name in tmpMorphAttributes ) ) continue;
+
+            for ( let j = 0; j < tmpMorphAttributes[ name ].length; j ++ ) {
+
+                const tmpMorphAttribute = tmpMorphAttributes[ name ][ j ];
+
+                result.morphAttributes[ name ][ j ] = new tmpMorphAttribute.constructor(
+                    tmpMorphAttribute.array.slice( 0, nextIndex * tmpMorphAttribute.itemSize ),
+                    tmpMorphAttribute.itemSize,
+                    tmpMorphAttribute.normalized,
+                );
+
+            }
+
+        }
+
+        // indices
+
+        result.setIndex( newIndices );
+
+        return result;
+
+    }*/
 
 }
 

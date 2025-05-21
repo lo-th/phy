@@ -1,7 +1,7 @@
 import { MathTool } from '../../core/MathTool.js';
 import { BoxGeometry, Mesh, Vector3 } from 'three';
 
-
+const tmp_Vector = new Vector3() 
 //const SPHSystem_getNeighbors_dist = new Vector3()
 
 // Temp vectors for calculation
@@ -14,36 +14,48 @@ const SPHSystem_update_r_vec = new Vector3()
 const SPHSystem_update_u = new Vector3()
 
 
-export class ParticleSolver {
+export class SoftSolver {
 
 	constructor ( o = {}, motor ) {
 
 		this.first = true
+		this.debug = o.debug || false;
 
 		this.motor = motor;
 
 		this.name = o.name  || 'ppp'
 
+		this.pMass = o.pMass || 0.01;
+		// visual size
+		this.vSize = o.vSize || 0.16;//0.06;
+		// physical size
+		this.pSize = o.pSize || 0.02;
+
 		this.particles = []
 		/**
 	     * Density of the system (kg/m3).
-	     * @property {number} density
+	     * default 1.0
 	     */
 	    this.density = o.density || 0.01
 	    /**
 	     * Distance below which two particles are considered to be neighbors.
 	     * It should be adjusted so there are about 15-20 neighbor particles within this radius.
-	     * @property {number} smoothingRadius
+	     * default 1.0
 	     */
+	    this.smoothMulty = o.smoothMulty || 1
 	    this.smoothing = o.smoothing || 0.2
-	    // speedOfSound
+	    this.smoothing*=this.smoothMulty
+	    /**
+	     * Speed Of Sound
+	     * default 1
+	     */
 	    this.speed = o.speed || 0.1
 	    
 	    /**
 	     * Viscosity of the system.
-	     * @property {number} viscosity
 	     */
 	    this.viscosity = o.viscosity || 0.03
+
 	    this.eps = 0.000001
 
 	    this.group = 1 << 8
@@ -53,12 +65,121 @@ export class ParticleSolver {
 	    this.densities = []
 	    this.neighbors = []
 
+	    this.maxDist = 0
+
 	    this.tv = new Vector3()
 	    this.tv2 = new Vector3()
+
+	    if( o.mesh ) this.setMesh( o.mesh, o.crossEdge );
+
+	}
+
+	setMesh( mesh, crossLink = false ){
+
+		const link = []
+		const extralink = []
+
+		this.mesh = mesh;
+		this.geometry = mesh.geometry;
+
+		const indices = this.geometry.getIndex();
+        const positions = this.geometry.getAttribute( 'position' );
+        const ar = positions.array
+
+        const hash = MathTool.getHash(this.geometry);
+        const faces = MathTool.getFaces(this.geometry);
+        const connected = crossLink ? MathTool.getConnectedFaces(faces) : null
+
+        //console.log(hash)
+        //console.log(connected)
+
+		//let g2 = MathTool.getHash(this.geometry);
+
+		let p, j, k, n, f, a, b, c
+
+		// add vertex position referency
+		for(let m in hash){
+
+			j = hash[m][0];
+			//const k = indices ? indices.getX( j ) : j;
+			n = j*3
+			tmp_Vector.set( ar[n], ar[n+1], ar[n+2] )
+			this.mesh.localToWorld(tmp_Vector)
+			this.add(tmp_Vector.toArray());
+
+		}
+
+		for( let i=0; i<faces.length; i++ ){
+
+			f = faces[i]
+			a = this.getKey( hash, f[0] )
+			b = this.getKey( hash, f[1] )
+			c = this.getKey( hash, f[2] )
+			
+
+			if(!this.sameLink(link, a, b)) link.push([a,b])
+			if(!this.sameLink(link, b, c)) link.push([b,c])
+			if(!this.sameLink(link, c, a)) link.push([c,a])
+
+		}
+
+	    this.connect( link )
+
+	    // extra link cross X
+
+	    if(connected){
+	    	for( let i=0; i<connected.length; i++ ){
+	    	
+		    	f = connected[i]
+		    	a = this.getKey( hash, f[0] )
+		    	b = this.getKey( hash, f[1] )
+		    	if(!this.sameLink(link, a, b) && !this.sameLink(extralink, a, b)) extralink.push([a,b])
+
+		    }
+
+		    this.connect( extralink, true )
+	    }
+
+	    
+
+	    this.hash = hash;
+
+	    this.mesh.position.set(0,0,0)
+		this.mesh.quaternion.set(0,0,0,1)
+		this.mesh.receiveShadow = true;
+		this.mesh.castShadow = true;
+		phy.addDirect( this.mesh )
+
+	}
+
+	updateMesh(){
+
+		if(!this.geometry) return;
+
+		let h = this.hash
+		let p = this.geometry.attributes.position.array;
+		let i = this.particles.length, n, r, j
+		while(i--){
+
+			r = this.particles[i]
+			j = h[i].length;
+
+			while(j--){
+				n = h[i][j]*3
+				p[n] = r.position.x;
+				p[n+1] = r.position.y;
+				p[n+2] = r.position.z;
+			}
+		}
+
+		this.geometry.attributes.position.needsUpdate = true;
+        this.geometry.computeVertexNormals();
+        this.geometry.computeBoundingSphere()
 
 	}
 
 	add( pos ){
+
 
 		let p = this.motor.add({ 
 
@@ -66,15 +187,15 @@ export class ParticleSolver {
             type:'particle', 
             //type:'sphere',
             //flags:'noQuery',
-            size:[0.02],
-            pSize:0.02,
+            size:[this.vSize],
+            pSize:this.pSize,
             pos:pos, 
 
             inertia:[0,0,0], 
             //inertia:[0.00001,0.00001,0.00001], 
             //iterations:[10,1],
             
-            mass:0.01, 
+            mass:this.pMass, 
             //density:0.0000001,
             restitution:0.0, 
             friction:0.5, 
@@ -83,11 +204,14 @@ export class ParticleSolver {
 
             //group:this.group, 
             //mask:1|2,
-            material:'hide',
+            material:this.debug ? 'particle':'hide',
             //maxVelocity:[1,100],
            // iterations:[40, 10],
 
-            massInfo:this.first,
+            shadow:false,
+            getVelocity:true,
+
+            //massInfo:this.first,
 
         })
 
@@ -102,13 +226,15 @@ export class ParticleSolver {
 
 	}
 
-	connect( link ){
+	connect( link, extra ){
 
 		let i = link.length;
-		console.log(i)
+		//console.log(i)
 		let tmp = [], l, b1, b2, p1, p2, n=0, d = 0
 
 		while(i--){
+
+			//if(!this.particles[l[0]] || !this.particles[l[1]]) continue
 
 			l = link[i];
 			b1 = this.name+l[0];
@@ -123,6 +249,12 @@ export class ParticleSolver {
 			//console.log(p1,p2)
 
 			d = this.tv.copy( p1 ).distanceTo(p2)
+
+			if(extra){
+				if(d>this.maxDist) continue
+			} else {
+				if(d>this.maxDist)  this.maxDist = d
+			}
 
 			
 
@@ -196,7 +328,7 @@ export class ParticleSolver {
 	    for (let i = 0; i !== N; i++) {
 	        const p = this.particles[i]
 	        //const dx = p.position.x - particle.position.x, dy = p.position.y - particle.position.y, dz = p.position.z - particle.position.z;
-	        distance = this.distance(p, particle )//dx * dx + dy * dy + dz * dz
+	        distance = this.distanceSq(p, particle )//dx * dx + dy * dy + dz * dz
 	        if (id !== p.id && distance < R2) {
 	            neighbors.push(p)
 	        }
@@ -205,6 +337,11 @@ export class ParticleSolver {
 
     distance(p, v) {
 	    const dx = p.position.x - v.position.x, dy = p.position.y - v.position.y, dz = p.position.z - v.position.z;
+	    return Math.sqrt(dx * dx + dy * dy + dz * dz)
+	}
+
+    distanceSq(p, v) {
+	    const dx = p.position.x - v.position.x, dy = p.position.y - v.position.y, dz = p.position.z - v.position.z;
 	    return dx * dx + dy * dy + dz * dz
 	}
 
@@ -212,23 +349,52 @@ export class ParticleSolver {
 	w(r) {
 	    // 315
 	    const h = this.smoothing
-	    return (315.0 / (64.0 * Math.PI * h ** 9)) * (h * h - r * r) ** 3
+	    return (315.0 / (64.0 * Math.PI * h ** 9)) * (h * h - r * r) ** 3;
+
 	}
 
 	// calculate gradient of the weight function
 	gradw(rVec, resultVec) {
 
-	    const r = rVec.length()
-	    const h = this.smoothing
-	    resultVec.copy(rVec).multiplyScalar( (945.0 / (32.0 * Math.PI * h ** 9)) * (h * h - r * r) ** 2 )
-	    //rVec.scale((945.0 / (32.0 * Math.PI * h ** 9)) * (h * h - r * r) ** 2, resultVec)
+	    const r = rVec.length();
+	    const h = this.smoothing;
+	    resultVec.copy(rVec).multiplyScalar( (945.0 / (32.0 * Math.PI * h ** 9)) * (h * h - r * r) ** 2 );
+
 	}
 
 	// Calculate nabla(W)
 	nablaw(r) {
-	    const h = this.smoothing
-	    const nabla = (945.0 / (32.0 * Math.PI * h ** 9)) * (h * h - r * r) * (7 * r * r - 3 * h * h)
-	    return nabla
+
+	    const h = this.smoothing;
+	    const nabla = (945.0 / (32.0 * Math.PI * h ** 9)) * (h * h - r * r) * (7 * r * r - 3 * h * h);
+	    return nabla;
+
+	}
+
+	// For mesh contruction
+
+	getKey( hash, f){
+
+		let k
+		for(let i in hash){
+			k = hash[i]
+			if(k.indexOf(f) !== -1) return i
+		}
+	
+	}
+
+	sameLink(link, a,b){
+
+		let i = link.length, l
+		let same = false;
+		while(i--){
+			l = link[i]
+			if( a === b ) same = true
+			if( a === l[0] && b === l[1] ) same = true
+			if( a === l[1] && b === l[0] ) same = true
+		}
+	    return same;
+
 	}
 
 	update() {
@@ -242,8 +408,8 @@ export class ParticleSolver {
 
 	    let i = N, j
 
-	   //for (let i = 0; i !== N; i++) {
-	    while(i--){
+	    for (let i = 0; i !== N; i++) {
+	    //while(i--){
 
 	    	const p = this.particles[i] // Current particle
 	    	p.force.set(0,0,0)
@@ -357,6 +523,7 @@ export class ParticleSolver {
 	    }
 
 	    this.motor.change(TMP)
+	    this.updateMesh()
 
 	}
 

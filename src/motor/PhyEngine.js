@@ -26,7 +26,7 @@ import { Textfield } from './extra/Textfield.js';
 import { Container } from './extra/Container.js';
 import { MouseTool } from './extra/MouseTool.js';
 import { Breaker } from './extra/Breaker.js';
-import { ParticleSolver } from './extra/ParticleSolver.js';
+import { SoftSolver } from './extra/SoftSolver.js';
 
 import { Envmap } from './extra/Envmap.js';
 import { AutoRagdoll } from './extra/AutoRagdoll.js';
@@ -154,7 +154,7 @@ export class PhyEngine {
 
 		let buttons = [];
 		let textfields = [];
-		let particles = [];
+		let softBodySolver = [];
 
 		let colorChecker = null;
 
@@ -795,7 +795,7 @@ export class PhyEngine {
 
 			this.clearText();
 			//this.clearSkeleton()
-			this.clearParticleSolver();
+			this.clearSoftSolver();
 
 			this.cleartimout();
 
@@ -1418,27 +1418,26 @@ export class PhyEngine {
 		this.getParticle = ()=>{}
 
 		//--------------------------
-		//  CLOTH PARTICLE PHYSICS
+		//  SOFT PARTICLE PHYSICS
 		//--------------------------
 
-		this.addParticleSolver = ( o )=>{
-			let s = new ParticleSolver( o, this );
-			particles.push(s);
+		this.addSoftSolver = ( o )=>{
+			let s = new SoftSolver( o, this );
+			softBodySolver.push(s);
 			return s;
 		}
 
-		this.updateParticleSolver = () =>{ 
+		this.updateSoftSolver = () =>{ 
 
-			let i = particles.length;
-			while( i-- ) particles[i].update();
+			let i = softBodySolver.length;
+			while( i-- ) softBodySolver[i].update();
 			
 		}
 
-		this.clearParticleSolver = () => { 
+		this.clearSoftSolver = () => { 
 
-			let i = particles.length;
-			//while( i-- ) particles[i].dispose()
-	    	particles = [];
+			let i = softBodySolver.length;
+	    	softBodySolver = [];
 			
 		}
 
