@@ -37036,7 +37036,7 @@ class SoftSolver {
 
 		this.pMass = o.pMass || 0.01;
 		// visual size
-		this.vSize = o.vSize || 0.1;//0.06;
+		this.vSize = o.vSize || 0.16;//0.06;
 		// physical size
 		this.pSize = o.pSize || 0.02;
 

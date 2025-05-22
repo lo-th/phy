@@ -477,7 +477,17 @@ export const Gui = {
 
 		if(!composer) return
 
-		let data = composer.getPass()
+		let data = composer.option
+	    let func = ()=>{ composer.upOption() }
+
+	    g.add( data, 'bloom', {}).onChange( func )
+	    g.add( data, 'n8ao', {}).onChange( func )
+	    g.add( data, 'smaa', {}).onChange( func )
+	    g.add( data, 'lut', {}).onChange( func )
+
+	    g.open()
+
+		/*let data = composer.getPass()
 	    let i = data.length, n=0;
 	    while(i--){
 	    	data[n]
@@ -494,7 +504,7 @@ export const Gui = {
 		g.add( composer.options, 'aperture', {min:0, max:5,  precision:2} ).onChange( function(){ composer.update() } )
 		g.add( composer.options, 'maxblur', {min:0, max:0.01,  step:0.001, precision:3} ).onChange( function(){ composer.update() } )
 	    g.add( 'empty', {h:6})
-	    /**/
+	    /*
 
 	    g.add( composer.pass.sao, 'enabled', { type:'bool', rename:'sao' })
 		g.add( composer.options, 'saoBias', {min:-1, max:1, mode:mode} ).onChange( function(){ composer.update() } )
@@ -528,7 +538,7 @@ export const Gui = {
 
 	    g.open()
 	    
-	    
+	    */
 	    /*
 	    g.add( 'empty', {h:6})
 		g.add( composer.options, 'kernelRadius', {min:0.01, max:1} ).onChange( function(){ composer.update() } )
