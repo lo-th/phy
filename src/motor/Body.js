@@ -63,6 +63,7 @@ export class Body extends Item {
 		while( i-- ){
 
 			b = list[i];
+			//b.id = i;
 
 			if( b === null ) continue;
 
@@ -76,6 +77,7 @@ export class Body extends Item {
 				//if( MathTool.nullArray( AR, n, this.num ) === 0 ) continue;
 				//else 
 				b.actif = true;
+				continue;
 			}
 
 		    // test is object sleep
@@ -85,7 +87,7 @@ export class Body extends Item {
 	        if( b.defMat ){
 
 	        	if( b.isInstance ){
-	        		b.instance.setColorAt( b.id, b.sleep ? Colors.sleep : Colors.body )
+	        		b.instance.setColorAt( b.idx, b.sleep ? Colors.sleep : Colors.body )
 	        	} else {
 	        		if ( !b.sleep && b.material.name === 'sleep' ) b.material = Mat.get('body')
 			        if ( b.sleep && b.material.name === 'body' ) b.material = Mat.get('sleep')
@@ -123,16 +125,17 @@ export class Body extends Item {
 		    	if( b.speedMat ){ 
 		    		//b.instance.setColorAt( b.id, [ Math.abs(AR[n+8])*0.5, Math.abs(AR[n+9])*0.5, Math.abs(AR[n+10])*0.5] );
 		    		let v = AR[n]*0.01///255; //MathTool.lengthArray([AR[n+8], AR[n+9], AR[n+10]]) * 0.062;
-		    		b.instance.setColorAt( b.id, [ v,v,v ] );
+		    		b.instance.setColorAt( b.idx, [ v,v,v ] );
 		    	}
-		    	b.instance.setTransformAt( b.id, [AR[n+1],AR[n+2],AR[n+3]], [AR[n+4],AR[n+5],AR[n+6],AR[n+7]], b.noScale ? [1,1,1] : b.size );
+		    	b.instance.setTransformAt( b.idx, [AR[n+1],AR[n+2],AR[n+3]], [AR[n+4],AR[n+5],AR[n+6],AR[n+7]], b.noScale ? [1,1,1] : b.size );
 		    	if( this.needMatrix ) b.matrixWorld.compose( b.position, b.quaternion, {x:1, y:1, z:1}) 
 		    	
-		    }else{ 
+		    } else { 
 
 		        if( !b.auto ) b.updateMatrix();
 
 		    }
+
 		}
 
 	}
@@ -715,13 +718,13 @@ export class Body extends Item {
 
 			b.defMat = b.instance.material.name === 'base';
 			
-			b.id = b.instance.count;
+			b.idx = b.instance.count;
 			//b.unicId = MathUtils.generateUUID();
 
 			//b.mass = o.mass || 0
 
 			//b.refName = b.instance.name + b.id;
-			b.name = o.name ? o.name : b.instance.name + b.id;
+			b.name = o.name ? o.name : b.instance.name + b.idx;
 			o.name = b.name;
 
 			b.noScale = b.instance.noScale;//false//o.type!=='box' || o.type!=='ChamferBox' || o.type!=='sphere';
@@ -746,6 +749,10 @@ export class Body extends Item {
 			if(b.instance.v) o.v = b.instance.v;
 			if(b.instance.index) o.index = b.instance.index;
 		    o.type = b.instance.type;
+
+
+		    // skip first frame to force good repositionning on delete !
+		    b.actif = false
 
 			/*if( this.extraConvex && ( o.type==='cylinder' || o.type==='cone') ){
 		    	o.v = b.instance.v;
@@ -838,14 +845,12 @@ export class Body extends Item {
 		    	}.bind(b)
 
 		    	b.over = function(v){
-		    		if( v && !this.isOver )this.addOutLine();
+		    		if( v && !this.isOver ) this.addOutLine();
 			        if( !v && this.isOver ) this.clearOutLine();
 			        this.isOver = v;
 		    	}.bind(b)
 
-		    	b.select = function(v){
-		    		
-		    	}.bind(b)
+		    	b.select = function(v){ }.bind(b)
 
 		    }
 
@@ -1000,6 +1005,13 @@ export class Body extends Item {
 
 	}
 
+	dispatchEvent( name, type, data ){
+
+		let body = this.byName( name );
+		body.dispatchEvent( { type:type, data:data } );
+
+	}
+
 	set ( o = {}, b = null ) {
 
 		if( b === null ) b = this.byName( o.name );
@@ -1007,11 +1019,11 @@ export class Body extends Item {
 
 		if( o.getVelocity !== undefined ) b.getVelocity = o.getVelocity;
 
-		if(b.isInstance){
+		if( b.isInstance ){
 
 			if( o.pos ) b.position.fromArray(o.pos);// = {x:o.pos[0], y:o.pos[1], z:o.pos[2]}
 		    if( o.quat ) b.quaternion.fromArray(o.quat);// = {_x:o.quat[0], _y:o.quat[1], _z:o.quat[2], _w:o.quat[3]};
-			if( o.pos || o.quat ) b.instance.setTransformAt( b.id, b.position.toArray(), b.quaternion.toArray(), b.noScale ? [1,1,1] : b.size );
+			if( o.pos || o.quat ) b.instance.setTransformAt( b.idx, b.position.toArray(), b.quaternion.toArray(), b.noScale ? [1,1,1] : b.size );
 
 		}else{
 

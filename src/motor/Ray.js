@@ -43,6 +43,8 @@ export class Ray extends Item {
 
 		let name = this.setName( o );
 
+		
+
 		let r = new ExtraRay( o, this.motor );
 
 		r.visible = o.visible !== undefined ? o.visible : true;

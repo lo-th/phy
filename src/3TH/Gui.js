@@ -348,13 +348,11 @@ export const Gui = {
 	   //ui.add('button', { values:Main.engineList, selectable:true, value:Main.engineType, h:30  }).onChange( Gui.swapEngine )
 		//if( Main.devMode ) ui.add('button', { values:['RAPIER','CANNON'], selectable:true, value:Main.engineType }).onChange( Gui.swapEngine )
 		ui.add( 'bool', { name:'WORKER OFF', onName:'WORKER ON', value:Main.isWorker, mode:1 }).onChange( Gui.swapWorker )
-		
-
-	    let rrr = ui.add( 'button', { type:'button', values:['REPLAY', 'PAUSE'], p:0 }).onChange( (n)=>{ 
-			//if(n === 'EDIT'){ Main.showEditor(true); this.switchValues(0, 'CLOSE' ); }
+		//if(n === 'EDIT'){ Main.showEditor(true); this.switchValues(0, 'CLOSE' ); }
 			//if(n === 'CLOSE'){ Main.showEditor(false); this.switchValues(0, 'EDIT' ); }
-			if(n === 'PAUSE'){ phy.pause( true ); rrr.switchValues(1, 'PLAY' ); }
-			if(n === 'PLAY'){ phy.pause( false ); rrr.switchValues(1, 'PAUSE' ); }
+	    let rrr = ui.add( 'button', { type:'button', values:[ 'PAUSE', 'REPLAY',], p:0 }).onChange( (n)=>{ 
+			if(n === 'PAUSE'){ phy.pause( true ); rrr.switchValues(0, 'PLAY' ); }
+			if(n === 'PLAY'){ phy.pause( false ); rrr.switchValues(0, 'PAUSE' ); }
 			if(n === 'REPLAY') Main.injectCode( Main.getCode() )
 		})
 

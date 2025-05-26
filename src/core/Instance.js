@@ -47,11 +47,11 @@ export class Instance extends InstancedMesh {
         if(!this.outline)this.outline = new Mesh( this.geometry, this.overMaterial );
         // if(this.overMaterial.uniforms.power)this.overMaterial.uniforms.power.value = 0.01;
         this.outline.matrixAutoUpdate = false;
-        this.tmpMatrix.fromArray( this.instanceMatrix.array, obj.id*16 );
+        this.tmpMatrix.fromArray( this.instanceMatrix.array, obj.idx*16 );
         this.outline.matrix.copy( this.tmpMatrix );
         this.outline.matrixWorldNeedsUpdate = true;
         this.parent.add( this.outline );
-        this.currentOver = obj.id;
+        this.currentOver = obj.idx;
 
     }
 
@@ -131,7 +131,7 @@ export class Instance extends InstancedMesh {
         }*/
         this.expand( position, rotation, scale, color, uv );
 
-        //console.log(bref.id)
+        //console.log(bref.idx)
         this.tmpElement.push( bref );
     }
 
@@ -181,7 +181,7 @@ export class Instance extends InstancedMesh {
     reDistribute() {
 
         let i = this.count;
-        while(i--) this.tmpElement[i].id = i;
+        while(i--) this.tmpElement[i].idx = i;
         
     }
 
@@ -224,8 +224,6 @@ export class Instance extends InstancedMesh {
         this.tmpMatrix.toArray( this.instanceMatrix.array, index * 16 );
         this.needSphereUp = true;
 
-
-
         if( !this.outline ) return;
         if(this.currentOver === index ){
             this.outline.matrix.copy(this.tmpMatrix);
@@ -265,7 +263,6 @@ export class Instance extends InstancedMesh {
 
     update(){
 
-        
         if( this.instanceMatrix ) this.instanceMatrix.needsUpdate = true;
         if( this.instanceColor ) this.instanceColor.needsUpdate = true;
         if( this.needSphereUp )this.computeBoundingSphere();

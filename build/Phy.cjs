@@ -20465,6 +20465,8 @@ class Ray extends Item {
 
 		this.setName( o );
 
+		
+
 		let r = new ExtraRay( o, this.motor );
 
 		r.visible = o.visible !== undefined ? o.visible : true;
@@ -20735,11 +20737,11 @@ class Instance extends three.InstancedMesh {
         if(!this.outline)this.outline = new three.Mesh( this.geometry, this.overMaterial );
         // if(this.overMaterial.uniforms.power)this.overMaterial.uniforms.power.value = 0.01;
         this.outline.matrixAutoUpdate = false;
-        this.tmpMatrix.fromArray( this.instanceMatrix.array, obj.id*16 );
+        this.tmpMatrix.fromArray( this.instanceMatrix.array, obj.idx*16 );
         this.outline.matrix.copy( this.tmpMatrix );
         this.outline.matrixWorldNeedsUpdate = true;
         this.parent.add( this.outline );
-        this.currentOver = obj.id;
+        this.currentOver = obj.idx;
 
     }
 
@@ -20819,7 +20821,7 @@ class Instance extends three.InstancedMesh {
         }*/
         this.expand( position, rotation, scale, color, uv );
 
-        //console.log(bref.id)
+        //console.log(bref.idx)
         this.tmpElement.push( bref );
     }
 
@@ -20869,7 +20871,7 @@ class Instance extends three.InstancedMesh {
     reDistribute() {
 
         let i = this.count;
-        while(i--) this.tmpElement[i].id = i;
+        while(i--) this.tmpElement[i].idx = i;
         
     }
 
@@ -20912,8 +20914,6 @@ class Instance extends three.InstancedMesh {
         this.tmpMatrix.toArray( this.instanceMatrix.array, index * 16 );
         this.needSphereUp = true;
 
-
-
         if( !this.outline ) return;
         if(this.currentOver === index ){
             this.outline.matrix.copy(this.tmpMatrix);
@@ -20953,7 +20953,6 @@ class Instance extends three.InstancedMesh {
 
     update(){
 
-        
         if( this.instanceMatrix ) this.instanceMatrix.needsUpdate = true;
         if( this.instanceColor ) this.instanceColor.needsUpdate = true;
         if( this.needSphereUp )this.computeBoundingSphere();
@@ -23524,6 +23523,7 @@ class Body extends Item {
 		while( i-- ){
 
 			b = list[i];
+			//b.id = i;
 
 			if( b === null ) continue;
 
@@ -23537,6 +23537,7 @@ class Body extends Item {
 				//if( MathTool.nullArray( AR, n, this.num ) === 0 ) continue;
 				//else 
 				b.actif = true;
+				continue;
 			}
 
 		    // test is object sleep
@@ -23546,7 +23547,7 @@ class Body extends Item {
 	        if( b.defMat ){
 
 	        	if( b.isInstance ){
-	        		b.instance.setColorAt( b.id, b.sleep ? Colors.sleep : Colors.body );
+	        		b.instance.setColorAt( b.idx, b.sleep ? Colors.sleep : Colors.body );
 	        	} else {
 	        		if ( !b.sleep && b.material.name === 'sleep' ) b.material = Mat$2.get('body');
 			        if ( b.sleep && b.material.name === 'body' ) b.material = Mat$2.get('sleep');
@@ -23584,16 +23585,17 @@ class Body extends Item {
 		    	if( b.speedMat ){ 
 		    		//b.instance.setColorAt( b.id, [ Math.abs(AR[n+8])*0.5, Math.abs(AR[n+9])*0.5, Math.abs(AR[n+10])*0.5] );
 		    		let v = AR[n]*0.01;///255; //MathTool.lengthArray([AR[n+8], AR[n+9], AR[n+10]]) * 0.062;
-		    		b.instance.setColorAt( b.id, [ v,v,v ] );
+		    		b.instance.setColorAt( b.idx, [ v,v,v ] );
 		    	}
-		    	b.instance.setTransformAt( b.id, [AR[n+1],AR[n+2],AR[n+3]], [AR[n+4],AR[n+5],AR[n+6],AR[n+7]], b.noScale ? [1,1,1] : b.size );
+		    	b.instance.setTransformAt( b.idx, [AR[n+1],AR[n+2],AR[n+3]], [AR[n+4],AR[n+5],AR[n+6],AR[n+7]], b.noScale ? [1,1,1] : b.size );
 		    	if( this.needMatrix ) b.matrixWorld.compose( b.position, b.quaternion, {x:1, y:1, z:1}); 
 		    	
-		    }else { 
+		    } else { 
 
 		        if( !b.auto ) b.updateMatrix();
 
 		    }
+
 		}
 
 	}
@@ -24157,13 +24159,13 @@ class Body extends Item {
 
 			b.defMat = b.instance.material.name === 'base';
 			
-			b.id = b.instance.count;
+			b.idx = b.instance.count;
 			//b.unicId = MathUtils.generateUUID();
 
 			//b.mass = o.mass || 0
 
 			//b.refName = b.instance.name + b.id;
-			b.name = o.name ? o.name : b.instance.name + b.id;
+			b.name = o.name ? o.name : b.instance.name + b.idx;
 			o.name = b.name;
 
 			b.noScale = b.instance.noScale;//false//o.type!=='box' || o.type!=='ChamferBox' || o.type!=='sphere';
@@ -24188,6 +24190,10 @@ class Body extends Item {
 			if(b.instance.v) o.v = b.instance.v;
 			if(b.instance.index) o.index = b.instance.index;
 		    o.type = b.instance.type;
+
+
+		    // skip first frame to force good repositionning on delete !
+		    b.actif = false;
 
 			/*if( this.extraConvex && ( o.type==='cylinder' || o.type==='cone') ){
 		    	o.v = b.instance.v;
@@ -24280,14 +24286,12 @@ class Body extends Item {
 		    	}.bind(b);
 
 		    	b.over = function(v){
-		    		if( v && !this.isOver )this.addOutLine();
+		    		if( v && !this.isOver ) this.addOutLine();
 			        if( !v && this.isOver ) this.clearOutLine();
 			        this.isOver = v;
 		    	}.bind(b);
 
-		    	b.select = function(v){
-		    		
-		    	}.bind(b);
+		    	b.select = function(v){ }.bind(b);
 
 		    }
 
@@ -24442,6 +24446,13 @@ class Body extends Item {
 
 	}
 
+	dispatchEvent( name, type, data ){
+
+		let body = this.byName( name );
+		body.dispatchEvent( { type:type, data:data } );
+
+	}
+
 	set ( o = {}, b = null ) {
 
 		if( b === null ) b = this.byName( o.name );
@@ -24449,11 +24460,11 @@ class Body extends Item {
 
 		if( o.getVelocity !== undefined ) b.getVelocity = o.getVelocity;
 
-		if(b.isInstance){
+		if( b.isInstance ){
 
 			if( o.pos ) b.position.fromArray(o.pos);// = {x:o.pos[0], y:o.pos[1], z:o.pos[2]}
 		    if( o.quat ) b.quaternion.fromArray(o.quat);// = {_x:o.quat[0], _y:o.quat[1], _z:o.quat[2], _w:o.quat[3]};
-			if( o.pos || o.quat ) b.instance.setTransformAt( b.id, b.position.toArray(), b.quaternion.toArray(), b.noScale ? [1,1,1] : b.size );
+			if( o.pos || o.quat ) b.instance.setTransformAt( b.idx, b.position.toArray(), b.quaternion.toArray(), b.noScale ? [1,1,1] : b.size );
 
 		}else {
 
@@ -28526,7 +28537,7 @@ class Pair {
 		this.ignore = o.ignore || [];
 
 		this.always = o.always !== undefined ? o.always : true;
-		this.simple = o.simple || false;
+		//this.simple = o.simple || false
 
 		this.data = {
 
@@ -28535,6 +28546,11 @@ class Pair {
 			normal: [0,0,0],
 			//object: null,
 		};
+
+	}
+
+	detectBody(){
+		//this.dispatchEvent( { type: 'ready', message: 'ready to create plant' } );
 
 	}
 
@@ -40278,6 +40294,8 @@ class PhyEngine {
 
 	constructor( parameters = {} ) {
 
+		this.noBuffer = true;
+
 		this.geo = new Geo$1();
 		this.mat = new Mat$3();
 
@@ -40299,6 +40317,8 @@ class PhyEngine {
 		this.delta = 0;
 
 		this.debuger = null;
+
+
 
 		this.mouseActive = false;
 
@@ -40753,21 +40773,18 @@ class PhyEngine {
 
 					}
 
-					
-
-				    //worker = new Worker( url + path + mini + '.min.js' );
-				    //worker = new Worker( url + path + mini + '.module.js', {type:'module'});
-
 
 					worker.postMessage = worker.webkitPostMessage || worker.postMessage;
 					worker.onmessage = this.message;
 
-					// test if worker Shared buffer is compatible
-					let ab = new ArrayBuffer( 1 );
-					worker.postMessage( { m: 'test', ab:ab }, [ ab ] );
-					isBuffer = ab.byteLength ? false : true;
-
-					o.isBuffer = isBuffer;
+					if( this.noBuffer ) o.isBuffer = false;
+					else {
+						// test if worker Shared buffer is compatible
+						let ab = new ArrayBuffer( 1 );
+						worker.postMessage( { m: 'test', ab:ab }, [ ab ] );
+						isBuffer = ab.byteLength ? false : true;
+						o.isBuffer = isBuffer;
+					}
 
 					this.initPhysics( o );
 
@@ -40825,11 +40842,15 @@ class PhyEngine {
 				worker.postMessage = worker.webkitPostMessage || worker.postMessage;
 				worker.onmessage = this.message;
 
-				let ab = new ArrayBuffer( 1 );
-				worker.postMessage( { m: 'test', ab:ab }, [ ab ] );
-				isBuffer = ab.byteLength ? false : true;
+				if( this.noBuffer ) o.isBuffer = false;
+				else {
 
-				o.isBuffer = isBuffer;
+					let ab = new ArrayBuffer( 1 );
+					worker.postMessage( { m: 'test', ab:ab }, [ ab ] );
+					isBuffer = ab.byteLength ? false : true;
+					o.isBuffer = isBuffer;
+
+				}
 				//console.log( st + ' Worker '+ type + (o.isBuffer ? ' with Shared Buffer' : '') );
 
 				this.initPhysics( o );
@@ -41134,6 +41155,8 @@ class PhyEngine {
 			let dd = outsideStep ? timer.delta : this.delta;
 
 			postUpdate( dd );
+
+			//console.log(dd)
 
 			//items.character.prestep()
 
@@ -41789,7 +41812,16 @@ class Solid extends Body {
 		super( motor );
 		this.type = 'solid';
 	}
-	step (){}
+	step (){
+
+		// test to force idx
+		/*let i = this.list.length, b;
+		while( i-- ){
+			b = this.list[i];
+			b.id = i;
+		}*/
+
+	}
 }
 
 
@@ -41851,7 +41883,7 @@ class Utils {
 		if( b.parent ) b.parent.remove( b );
 		if( b.isInstance ) { 
 			if( b.refName !== b.name ) this.map.delete( b.refName );
-			b.instance.remove( b.id );
+			b.instance.remove( b.idx );
 		}
 		this.map.delete( b.name );
 
@@ -41873,7 +41905,6 @@ class Utils {
         obj.morphTargetInfluences[ obj.morphTargetDictionary[name] ] = value;
     
     }
-
 
     toLocal ( v, obj, isAxe = false ) {
 

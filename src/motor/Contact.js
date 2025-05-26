@@ -69,7 +69,7 @@ export class Pair {
 		this.ignore = o.ignore || []
 
 		this.always = o.always !== undefined ? o.always : true
-		this.simple = o.simple || false
+		//this.simple = o.simple || false
 
 		this.data = {
 
@@ -78,6 +78,11 @@ export class Pair {
 			normal: [0,0,0],
 			//object: null,
 		}
+
+	}
+
+	detectBody(){
+		//this.dispatchEvent( { type: 'ready', message: 'ready to create plant' } );
 
 	}
 

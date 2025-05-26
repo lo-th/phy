@@ -68,6 +68,8 @@ export class PhyEngine {
 
 	constructor( parameters = {} ) {
 
+		this.noBuffer = true;
+
 		this.geo = new Geo();
 		this.mat = new Mat();
 
@@ -89,6 +91,8 @@ export class PhyEngine {
 		this.delta = 0;
 
 		this.debuger = null;
+
+
 
 		this.mouseActive = false;
 
@@ -553,21 +557,18 @@ export class PhyEngine {
 
 					}
 
-					
-
-				    //worker = new Worker( url + path + mini + '.min.js' );
-				    //worker = new Worker( url + path + mini + '.module.js', {type:'module'});
-
 
 					worker.postMessage = worker.webkitPostMessage || worker.postMessage;
 					worker.onmessage = this.message;
 
-					// test if worker Shared buffer is compatible
-					let ab = new ArrayBuffer( 1 );
-					worker.postMessage( { m: 'test', ab:ab }, [ ab ] );
-					isBuffer = ab.byteLength ? false : true;
-
-					o.isBuffer = isBuffer;
+					if( this.noBuffer ) o.isBuffer = false;
+					else {
+						// test if worker Shared buffer is compatible
+						let ab = new ArrayBuffer( 1 );
+						worker.postMessage( { m: 'test', ab:ab }, [ ab ] );
+						isBuffer = ab.byteLength ? false : true;
+						o.isBuffer = isBuffer;
+					}
 
 					this.initPhysics( o );
 
@@ -625,11 +626,15 @@ export class PhyEngine {
 				worker.postMessage = worker.webkitPostMessage || worker.postMessage;
 				worker.onmessage = this.message;
 
-				let ab = new ArrayBuffer( 1 );
-				worker.postMessage( { m: 'test', ab:ab }, [ ab ] );
-				isBuffer = ab.byteLength ? false : true;
+				if( this.noBuffer ) o.isBuffer = false;
+				else {
 
-				o.isBuffer = isBuffer;
+					let ab = new ArrayBuffer( 1 );
+					worker.postMessage( { m: 'test', ab:ab }, [ ab ] );
+					isBuffer = ab.byteLength ? false : true;
+					o.isBuffer = isBuffer;
+
+				}
 				//console.log( st + ' Worker '+ type + (o.isBuffer ? ' with Shared Buffer' : '') );
 
 				this.initPhysics( o );
@@ -934,6 +939,8 @@ export class PhyEngine {
 			let dd = outsideStep ? timer.delta : this.delta;
 
 			postUpdate( dd );
+
+			//console.log(dd)
 
 			//items.character.prestep()
 
@@ -1589,7 +1596,16 @@ class Solid extends Body {
 		super( motor );
 		this.type = 'solid';
 	}
-	step (){}
+	step (){
+
+		// test to force idx
+		/*let i = this.list.length, b;
+		while( i-- ){
+			b = this.list[i];
+			b.id = i;
+		}*/
+
+	}
 }
 
 
@@ -1651,7 +1667,7 @@ export class Utils {
 		if( b.parent ) b.parent.remove( b );
 		if( b.isInstance ) { 
 			if( b.refName !== b.name ) this.map.delete( b.refName );
-			b.instance.remove( b.id );
+			b.instance.remove( b.idx );
 		}
 		this.map.delete( b.name );
 
@@ -1673,7 +1689,6 @@ export class Utils {
         obj.morphTargetInfluences[ obj.morphTargetDictionary[name] ] = value;
     
     }
-
 
     toLocal ( v, obj, isAxe = false ) {
 

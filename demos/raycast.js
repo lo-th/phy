@@ -1,4 +1,5 @@
 let ball, raytest, raylist = [];
+
 const setting = {
     selfRay: true
 }
@@ -12,7 +13,7 @@ function demo() {
     phy.add({ type:'box', name:'planche', size:[2,0.2,6], rot:[10,0,0], pos:[0,0.85,0], friction:0.8, restitution:0.1, radius:0.025 })
 
 
-    ball = phy.add({ type:'highSphere', name:'ball', size:[0.3], pos:[0,5,-2.5], density:1, friction:0.8, restitution:0.1, group:2, mask:1|2, material:'base' })
+    ball = phy.add({ type:'highSphere', name:'ball', size:[0.3], pos:[0,5,-2.5], density:1, friction:0.8, restitution:0.5, group:2, mask:1|2, material:'base' })
 
     phy.add({ type:'contact', b1:'ball', b2:'planche', callback: ballContact });
 
