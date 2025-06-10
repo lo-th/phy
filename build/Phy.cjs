@@ -601,6 +601,15 @@ const M$1 = {
     //  ARRAY
     //-----------------------
 
+    fixedArray: ( a, p ) => { 
+
+        let i = a.length;
+        let r = [];
+        while(i--){ r[i] = M$1.toFixed(a[i], p); }
+        return r;
+
+    },
+
     getSize: ( r ) => ( ( r.byteLength * 0.001 ) +'kb' ),
 
     // Creates a vector normal (perpendicular) to the current Vector3
@@ -24209,7 +24218,7 @@ class Body extends Item {
 
 			if(!b.isRay){
 				b.traverse( function ( node ) {
-					if( node.isMesh ) node.raycast = () => {};
+					if( node.isObject3D ) node.raycast = () => {return};
 				});
 			}
 
@@ -35592,6 +35601,84 @@ class SolverJoint {
 
 }
 
+class Collision {
+
+	constructor ( motor ) {
+
+		this.map = new Map();
+		this.motor = motor;
+
+		this.enginReady = ['PHYSX', 'HAVOK', 'OIMO'];
+
+		this.rc = this.refresh.bind(this);
+
+	}
+
+	step () {
+
+		this.map.forEach( this.rc );
+
+	}
+
+	refresh ( b, key ) {
+
+		let cc = this.motor.reflow.contact[key];
+		if( cc !== undefined ){
+			
+			for(let i = 0, lng = cc.length; i<lng; i++){
+
+				if( b.userData.collisionCallback ) b.userData.collisionCallback(cc[i]);
+				else b.dispatchEvent( { type: 'collision', data:cc[i] } );
+
+			}
+		}
+		
+	}
+
+	isReady() {
+		return this.enginReady.indexOf( this.motor.engine ) !== -1
+	}
+
+	reset () {
+
+		this.map = new Map();
+
+	}
+
+	remove ( name ) {
+
+		if(!this.isReady()) return
+		if( !this.map.has( name ) ) return;
+
+		this.map.delete( name );
+		this.motor.post( { m:'removeCollision', o:{name:name} } );
+
+	}
+
+	add ( o ) {
+
+		if(!this.isReady()) return
+
+		let name = o.name;
+		let b = this.motor.byName( name );
+		if( b === null ) return;
+		b.getVelocity = true;
+
+		if( o.vs && o.vs.constructor !== Array) o.vs = [o.vs];
+		if( o.ignore && o.ignore.constructor !== Array) o.ignore = [o.ignore];
+
+		if( o.callback ){ 
+			b.userData.collisionCallback = o.callback;
+			delete ( o.callback );
+		}
+
+		this.map.set( name, b );
+	    this.motor.post( { m:'addCollision', o:o } );
+
+	}
+
+}
+
 class Textfield extends three.Mesh {
 
 	constructor( o={} ) {
@@ -36032,19 +36119,28 @@ class Container {
 				if(o.radius===0) mesh = new three.Mesh( new three.BoxGeometry( s[ 0 ], s[ 1 ], s[ 2 ] ) );
 				else mesh = new three.Mesh( new ChamferBox( s[ 0 ], s[ 1 ], s[ 2 ], o.radius || mw ) );
 
+
+
 				if(o.material){
 					if(o.material === 'debug'){ 
 						mesh = new BoxHelper( mesh, o.color );
 						o.material = 'line';
 					}
 				}
+
+				mesh.raycast = () => {return};
 			}
+
+			
 			this.motor.add({
 				...o,
 				mesh:mesh,
 				shapes:faces,
 		        type:'compound',
+		        ray:false,
 		    });
+
+		    
 		} else {
 			this.motor.add( faces );
 		}
@@ -40311,6 +40407,7 @@ class PhyEngine {
 		this.jointVisible = false;
 
 		this.utils = new Utils(this);
+		this.collision = new Collision(this);
 
 		this.viewSize = null;
 		this.debug = false;
@@ -40411,6 +40508,7 @@ class PhyEngine {
 			ray:[],
 			stat:{ fps:0, delta:0, ms:0 },
 			point:{},
+			contact:{},
 			velocity:{},
 		};
 
@@ -41014,6 +41112,8 @@ class PhyEngine {
 
 			postUpdate = function () {};
 
+			this.collision.reset();
+
 			this.clearText();
 			//this.clearSkeleton()
 			this.clearSoftSolver();
@@ -41223,6 +41323,18 @@ class PhyEngine {
 			
 		};
 
+		//-----------------------
+		//  COLLISION
+		//-----------------------
+
+		this.addCollision = ( o ) => {
+			this.collision.add(o);
+		};
+
+		this.removeCollision = ( name ) => {
+			this.collision.remove(name);
+		};
+
 
 		//-----------------------
 		//  ITEMS
@@ -41265,6 +41377,8 @@ class PhyEngine {
 		this.stepItems = () => {
 
 		    Object.values( items ).forEach( v => v.step( _Ar, _ArPos[v.type] ) );
+
+		    this.collision.step();
 			this.upInstance();
 			this.upButton();
 
@@ -41360,6 +41474,8 @@ class PhyEngine {
 				if( this.instanceMesh[ name ] ) items.body.clearInstance( name );
 				return;
 			}
+
+			this.removeCollision(name);
 
 			if(b.type === 'autoRagdoll' ) {
 				this.utils.remove(b);

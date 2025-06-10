@@ -273,6 +273,10 @@ export const Gui = {
 		ui.add( options, 'envBlur', { min:0, max:1, mode:mode, color:'#8ff' } ).onChange( Main.setBlur )
 		ui.add( options, 'reflect', { min:0, max:1, mode:mode, color:'#8ff' } ).onChange( Main.setReflect )
 
+		ui.add( 'slide', {name:'yoch', min:0, max:10, step:0.001, pecision:3, mode:mode } ).onChange( function( v ){ 
+			Main.motor.setYoch(v)
+		})
+
 		Gui.envui = ui.add( 'list', { name:'Envmap', list:Main.envList, value:options.envmap, path:'assets/textures/equirectangular/mini/', format:'.jpg', m:0, imageSize: [128,64], h:40}).onChange( Main.setEnv )
 		
 		//ui.add( options, 'envPower', { min:0, max:10, mode:mode, color:'#8ff' } ).onChange( Main.envmapIntensity )

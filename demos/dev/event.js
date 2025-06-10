@@ -4,7 +4,7 @@ function demo() {
     phy.view({d:25})
 
     // config physics setting
-    phy.set( { substep:1, gravity:[0,-9.81,0] });
+    phy.set( { substep:1, gravity:[0,0,0] });
 
     // add static ground
     //phy.add({ type:'plane', name:'floor', size:[ 300,1,300 ], visible:false });
@@ -30,16 +30,24 @@ function demo() {
 const update = () => {
 
     let y = bob.position.y
-    phy.change( { name:'bob', pos:[0,y-0.05,0] } )
+    //console.log(y.toFixed(2))
+    phy.change( { name:'bob', pos:[0,y-0.025,0] } )
 
-    if(y<-1) bob = phy.add({ type:'sphere', name:'bob', size:[1], pos:[0, 10, 0],  kinematic:true })
+    if(y<-1){ 
+        bob = phy.add({ type:'sphere', name:'bob', size:[1], pos:[0, 10, 0],  kinematic:true })
+        // only need on physx ?
+        phy.add({ type:'contact', b1:'bob', b2:'bob2', callback: showContact })
+    }
 
 }
 
 showContact = ( d ) => {
 
-    if( d.hit ) { bob.material.color.setHex( 0xFF8800 ) }
+    if( d.hit ) { bob.material.color.setHex( 0xFF8800 );  }
     else bob.material.color.setHex( 0x00FF88 ) 
+
+
+    //phy.log(JSON.stringify(d))
 
     //if( d.hit ) console.log('bob collision on floor', d)
 }

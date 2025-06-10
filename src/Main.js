@@ -55,59 +55,6 @@ import { Smoke } from './libs/smoke.module.js'
 *  MAIN THREE.JS / PHY
 */
 
-///http://filmicworlds.com/blog/filmic-tonemapping-operators/
-
-/*THREE.ShaderChunk.tonemapping_pars_fragment = THREE.ShaderChunk.tonemapping_pars_fragment.replace(
-
-	'vec3 CustomToneMapping( vec3 color ) { return color; }',
-
-	`#define Uncharted2Helper( x ) max( ( ( x * ( 0.15 * x + 0.10 * 0.50 ) + 0.20 * 0.02 ) / ( x * ( 0.15 * x + 0.50 ) + 0.20 * 0.30 ) ) - 0.02 / 0.30, vec3( 0.0 ) )
-
-	float toneMappingWhitePoint = 1.0;
-
-	vec3 CustomToneMapping( vec3 color ) {
-		color *= toneMappingExposure;
-		return saturate( Uncharted2Helper( color ) / Uncharted2Helper( vec3( toneMappingWhitePoint ) ) );
-
-	}`
-
-);*/
-
-
-
-// PBR Neutral ToneMapping
-// https://modelviewer.dev/examples/tone-mapping
-// https://github.com/KhronosGroup/ToneMapping
-
-THREE.ShaderChunk.tonemapping_pars_fragment = THREE.ShaderChunk.tonemapping_pars_fragment.replace(
-
-	'vec3 CustomToneMapping( vec3 color ) { return color; }',
-
-	`
-	float startCompression = 0.8 - 0.04;
-    float desaturation = 0.15;
-
-	vec3 CustomToneMapping( vec3 color ) {
-
-		color *= toneMappingExposure;
-
-		float x = min(color.r, min(color.g, color.b));
-		float offset = x < 0.08 ? x - 6.25 * x * x : 0.04;
-		color -= offset;
-
-		float peak = max(color.r, max(color.g, color.b));
-		if (peak < startCompression) return color;
-
-		float d = 1. - startCompression;
-		float newPeak = 1. - d * d / (peak + d - startCompression);
-		color *= newPeak / peak;
-
-		float g = 1. - 1. / (desaturation * (peak - newPeak) + 1.);
-		return mix(color, newPeak * vec3(1, 1, 1), g);
-
-	}`
-
-);
 
 const Motor = phy;
 // or
@@ -198,7 +145,7 @@ const options = {
 	fps:60,
 	gravity:[0,-9.81,0],
 
-	tone:'PBRneutral', //'ACESFilmic',
+	tone:'Neutral', //'ACESFilmic',
 
 	exposure: 0.5, //0.68,//1,,
 	direct:5, //3.14,
@@ -261,7 +208,7 @@ const toneMappingOptions = {
 	Cineon: THREE.CineonToneMapping,
 	Agx: THREE.AgXToneMapping,
 	ACESFilmic: THREE.ACESFilmicToneMapping,
-	PBRneutral: THREE.CustomToneMapping
+	Neutral: THREE.NeutralToneMapping,
 
 }
 

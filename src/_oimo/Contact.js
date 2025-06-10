@@ -12,7 +12,6 @@ export class Contact extends Item {
 		this.Utils = Utils
 
 		this.type = 'contact';
-		//this.cb = new Ammo.ConcreteContactResultCallback();
 
 	}
 

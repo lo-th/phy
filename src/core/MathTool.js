@@ -604,6 +604,15 @@ const M = {
     //  ARRAY
     //-----------------------
 
+    fixedArray: ( a, p ) => { 
+
+        let i = a.length
+        let r = [];
+        while(i--){ r[i] = M.toFixed(a[i], p); }
+        return r;
+
+    },
+
     getSize: ( r ) => ( ( r.byteLength * 0.001 ) +'kb' ),
 
     // Creates a vector normal (perpendicular) to the current Vector3

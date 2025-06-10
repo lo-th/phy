@@ -99,7 +99,7 @@
 				requestAnimationFrame( animate );
 
 				resize();
-				//phy.doStep( stamp );
+				phy.doStep( stamp );
 				renderer.render( scene, camera );
 
 			}
@@ -109,7 +109,7 @@
 			function initEngine() {
 
 				// use compact version of physic engine in /compact folder 
-				phy.init({ type:motor, worker:true, compact:true, callback:startDemo, renderer:renderer, scene:scene });
+				phy.init({ type:motor, worker:false, compact:true, callback:startDemo, renderer:renderer, scene:scene });
 
 				const envmap = phy.addEnvmap({cube:true})
 

@@ -768,7 +768,7 @@ export class Body extends Item {
 
 			if(!b.isRay){
 				b.traverse( function ( node ) {
-					if( node.isMesh ) node.raycast = () => {}
+					if( node.isObject3D ) node.raycast = () => {return}
 				})
 			}
 

@@ -423,7 +423,7 @@ export class Body extends Item {
 	    			b.pos = o.pos
 	    		}
 
-	    		b.setPosition( this.v.fromArray( o.pos ) )
+	    		else b.setPosition( this.v.fromArray( o.pos ) )
 
 	    	}
 		    if( o.quat ){
@@ -439,7 +439,7 @@ export class Body extends Item {
 	    			b.quat = o.quat
 	    		}
 	    		
-		        b.setOrientation( this.q.fromArray( o.quat ) )
+		        else b.setOrientation( this.q.fromArray( o.quat ) )
 		    }
 	    }
 

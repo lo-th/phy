@@ -85,19 +85,28 @@ export class Container {
 				if(o.radius===0) mesh = new Mesh( new BoxGeometry( s[ 0 ], s[ 1 ], s[ 2 ] ) );
 				else mesh = new Mesh( new ChamferBox( s[ 0 ], s[ 1 ], s[ 2 ], o.radius || mw ) );
 
+
+
 				if(o.material){
 					if(o.material === 'debug'){ 
 						mesh = new BoxHelper( mesh, o.color );
 						o.material = 'line'
 					}
 				}
+
+				mesh.raycast = () => {return}
 			}
-			this.motor.add({
+
+			
+			let m = this.motor.add({
 				...o,
 				mesh:mesh,
 				shapes:faces,
 		        type:'compound',
+		        ray:false,
 		    });
+
+		    
 		} else {
 			this.motor.add( faces );
 		}

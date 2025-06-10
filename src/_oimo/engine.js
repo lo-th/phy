@@ -48,6 +48,8 @@ let tmpchange = [];
 let flow = {};
 let current = '';
 
+let collisionMap = new Map(); 
+
 export class engine {
 
 	static activeContact(){
@@ -237,6 +239,7 @@ export class engine {
 		while( n-- ) root.world.step( root.deltaTime );
 
 		engine.stepItems()
+		engine.onContact()
 
 
 		// get simulation stat
@@ -246,6 +249,21 @@ export class engine {
 
 		if ( isBuffer ) engine.post( { m: 'step', reflow:root.reflow, Ar: root.Ar }, [ root.Ar.buffer ] );	
 		else engine.post( { m:'step', reflow:root.reflow, Ar:root.Ar } );
+
+		root.reflow.contact = {};
+		root.reflow.velocity = {}
+
+	}
+
+	static clearReFlow() {
+
+		root.reflow = { 
+			ray:[],
+			point:{},
+			contact:{},
+			velocity:{},
+			stat:{ fps:0, delta:0, ms:0 },
+		};
 
 	}
 
@@ -263,6 +281,9 @@ export class engine {
 		engine.stop()
 
 		engine.resetItems()
+
+		collisionMap = new Map();
+		engine.clearReFlow();
 
 		// clear world
 		root.world = null
@@ -342,6 +363,120 @@ export class engine {
 
 		let b = this.byName( o.name );
 		if( b ) items[b.type].set( o, b );
+
+	}
+
+	//-----------------------
+	//
+	//  COLLISION
+	//
+	//-----------------------
+
+	static needCollision( name, name2 ) {
+
+		if ( !collisionMap.has( name ) ) return false;
+		let b = collisionMap.get( name );
+
+		if(b.vs && b.vs.indexOf(name2) !== -1) return true; 
+		if(b.ignore && b.ignore.indexOf(name2) !== -1) return false; 
+
+    	return true;
+
+    }
+
+	static addCollision( o ) {
+
+		let name = o.name;
+		let b = engine.byName(name);
+		if( b === null ) return
+
+		collisionMap.set( name, b );
+
+	    if(o.vs) b.vs = o.vs;
+		if(o.ignore) b.ignore = o.ignore;
+
+		b.getVelocity = true;
+
+	    root.needContact = true;
+		//root.needTrigger = true;
+
+	}
+
+	static removeCollision( o ) {
+
+		let name = o.name;
+		let b = engine.byName(name);
+		if( b === null ) return
+
+		if( collisionMap.has( name ) ) collisionMap.delete( name );
+		b.getVelocity = false;
+
+	}
+
+	static onContact() {
+
+		if( !root.needContact ) return;
+
+		collisionMap.forEach( engine.testContact );
+
+	}
+
+	static testContact(b, key) {
+
+		const flow = root.reflow.contact;
+
+		let c1, c2
+
+		let b1 = key
+		let list = b.getContactLinkList()
+		if(!list) return
+		let ct = list.getContact()
+	    while( ct !== null ){
+
+	    	let b2 = ct._b2.name
+
+	    	c1 = engine.needCollision(b1, b2)
+		    c2 = engine.needCollision(b2, b1)
+
+		    if(!c1 && !c2) continue
+
+		    if(c1 && !flow[b1]) flow[b1] = [];
+        	if(c2 && !flow[b2]) flow[b2] = [];
+
+
+	    	if(ct._touching){
+
+	    		
+
+	    		let data = ct._manifold
+
+	    		let impulse = 0
+	    		let distance = 0
+
+		    	let result = ct._detectorResult
+
+		    	let hit = 2//result.incremental ? 2:1
+		    	let normal = result.normal.toArray()
+		    	let point = result.points[0].position1.toArray()
+
+
+		    	if(c1) flow[b1].push({ hit:hit, from:b1, to:b2, point:point, normal:normal, impulse:impulse, distance:distance })
+				if(c2) flow[b2].push({ hit:hit, from:b2, to:b1, point:point, normal:normal, impulse:impulse, distance:distance })
+
+		    	//console.log(ct)
+	    	}else{
+
+	    		if(c1) flow[b1].push({ hit:0, from:b1, to:b2 })
+				if(c2) flow[b2].push({ hit:0, from:b2, to:b1 })
+
+	    	}
+
+	    	
+
+			ct = ct.getNext()
+
+		}
+
 
 	}
 

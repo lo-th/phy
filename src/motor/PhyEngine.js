@@ -20,6 +20,7 @@ import { Vehicle } from './Vehicle.js';
 import { Character } from './Character.js';
 import { Terrain } from './Terrain.js';
 import { Solver } from './Solver.js';
+import { Collision } from './Collision.js';
 
 import { Button } from './extra/Button.js';
 import { Textfield } from './extra/Textfield.js';
@@ -85,6 +86,7 @@ export class PhyEngine {
 		this.jointVisible = false;
 
 		this.utils = new Utils(this);
+		this.collision = new Collision(this);
 
 		this.viewSize = null;
 		this.debug = false;
@@ -193,6 +195,7 @@ export class PhyEngine {
 			ray:[],
 			stat:{ fps:0, delta:0, ms:0 },
 			point:{},
+			contact:{},
 			velocity:{},
 		};
 
@@ -798,6 +801,8 @@ export class PhyEngine {
 
 			postUpdate = function () {};
 
+			this.collision.reset();
+
 			this.clearText();
 			//this.clearSkeleton()
 			this.clearSoftSolver();
@@ -1007,6 +1012,18 @@ export class PhyEngine {
 			
 		}
 
+		//-----------------------
+		//  COLLISION
+		//-----------------------
+
+		this.addCollision = ( o ) => {
+			this.collision.add(o);
+		}
+
+		this.removeCollision = ( name ) => {
+			this.collision.remove(name);
+		}
+
 
 		//-----------------------
 		//  ITEMS
@@ -1049,6 +1066,8 @@ export class PhyEngine {
 		this.stepItems = () => {
 
 		    Object.values( items ).forEach( v => v.step( _Ar, _ArPos[v.type] ) );
+
+		    this.collision.step();
 			this.upInstance();
 			this.upButton();
 
@@ -1144,6 +1163,8 @@ export class PhyEngine {
 				if( this.instanceMesh[ name ] ) items.body.clearInstance( name );
 				return;
 			}
+
+			this.removeCollision(name);
 
 			if(b.type === 'autoRagdoll' ) {
 				this.utils.remove(b);
