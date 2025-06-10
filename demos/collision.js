@@ -35,8 +35,13 @@ function demo() {
     bob.addEventListener( 'collision', (event) => { showContact(event.data) })
 
     // with callback
-    phy.addCollision({ name:'bob2', ignore:'container', callback: showContact })
+    phy.addCollision({ name:'bob2', vs:'container', callback: showContact })
     phy.addCollision({ name:'bob3', vs:'container', callback: showContact })
+
+
+
+    phy.add({ type:'cylinder', name:'trig', size:[1, 6], pos:[0, 5, 0], rot:[0, 0, 90], isTrigger:true,  material:'plexi' })
+    phy.addCollision({ name:'trig', ignore:'container', callback: onTrigger })
 
     //phy.removeCollision('bob3')
 
@@ -52,6 +57,21 @@ const update = () => {
     //az+=0.5
     phy.change( { name:'container', rot:[ax,ay,az] } )
 
+}
+
+const onTrigger = ( d ) => {
+
+    const b = phy.byName(d.from);
+    const b2 = phy.byName(d.to);
+    if(d.hit){ 
+        b.material.color.setHex( 0x008000 )
+        b2.material.color.setHex( 0x60ff60 ) 
+    } else {
+        b.material.color.setHex( 0x000000 ) 
+        b2.material.color.setHex( 0x606060 )
+    }
+
+    //console.log(d)
 }
 
 const showContact = ( d ) => {

@@ -35627,8 +35627,12 @@ class Collision {
 			
 			for(let i = 0, lng = cc.length; i<lng; i++){
 
-				if( b.userData.collisionCallback ) b.userData.collisionCallback(cc[i]);
-				else b.dispatchEvent( { type: 'collision', data:cc[i] } );
+				/*if(cc[i].trigger){
+					console.log('yooo', cc[i])
+				}else{*/
+					if( b.userData.collisionCallback ) b.userData.collisionCallback(cc[i]);
+					else b.dispatchEvent( { type: 'collision', data:cc[i] } );
+				//}
 
 			}
 		}
@@ -35662,7 +35666,7 @@ class Collision {
 		let name = o.name;
 		let b = this.motor.byName( name );
 		if( b === null ) return;
-		b.getVelocity = true;
+		if( !b.trigger ) b.getVelocity = true;
 
 		if( o.vs && o.vs.constructor !== Array) o.vs = [o.vs];
 		if( o.ignore && o.ignore.constructor !== Array) o.ignore = [o.ignore];
