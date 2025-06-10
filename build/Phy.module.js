@@ -40416,8 +40416,6 @@ class PhyEngine {
 
 		this.debuger = null;
 
-
-
 		this.mouseActive = false;
 
 
@@ -41240,6 +41238,7 @@ class PhyEngine {
 	        //prevUpdate( timer.delta )
 
 			this.stepItems();
+			this.collision.step();
 
 			if( mouseTool ) mouseTool.step();
 
@@ -41379,7 +41378,7 @@ class PhyEngine {
 
 		    Object.values( items ).forEach( v => v.step( _Ar, _ArPos[v.type] ) );
 
-		    this.collision.step();
+		   // this.collision.step();
 			this.upInstance();
 			this.upButton();
 
