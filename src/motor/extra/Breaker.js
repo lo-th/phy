@@ -131,7 +131,7 @@ export class Breaker {
         	//this.motor.remove( name )
 		this.motor.add( list )
 
-		this.tt = setTimeout( ()=>{this.activeCollider(list)}, 1000 )
+		this.tt = setTimeout( ()=>{ this.activeCollider(list) }, 1000 )
 		
 
 	}

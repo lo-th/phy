@@ -4,12 +4,12 @@
         "gears", "terrain", "character", "kinematic", "random", "tower",
         "gravity", "evangelion", "simple",
         "blast", "skeleton", "skeleton_old", "material", "keva", "test", "collision",
-        "dragon", "raycast", "human", "player", "auto_ragdoll", "badaboum", "kart"
+        "dragon", "raycast", "human", "player", "auto_ragdoll", "badaboum", "kart", "fracture"
     ],
     "Dev" : [ 
         "spring", "gears2", "mass", "empty", "empty2", "empty3", "group_mask",
         "car", "buttons", "robot_arm", "pinball", "bullet", "build", 
-        "kaneda", "vehicle3", "mesh", "break", "stacking",  "house", "direct",
+        "kaneda", "vehicle3", "mesh", "stacking",  "house", "direct",
         "solver", "wall", "skylab", "colors", "barbados", "barbados2", "blob", "coin", "havok_car", "joint_test", "event"
     ],
     "Advanced" : [ 

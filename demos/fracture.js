@@ -9,9 +9,6 @@ demo = () => {
 
     phy.view({ envmap:'histo', envblur:0.5, exposure:0.1, direct:25, envIntensity:5, bgIntensity:1.0, shadowIntensity:1.0, distance:16, y:3.5 })
 
-    console.log(phy.engine)
-
-
     // config physics setting
     phy.set({ substep:phy.engine==='HAVOK'? 1:2, gravity:[0,-9.81,0], ccd:true });
 

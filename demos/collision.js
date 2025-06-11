@@ -71,8 +71,9 @@ const onTrigger = ( d ) => {
 
 const showContact = ( d ) => {
 
-    // d =  hit, from, to, point, normal, impulse, distance
+    // d =  hit, from, to, point, normal, impulse, distance, v1, v2
     // hit  0:finished, 1:started, 2:continued  
+    // v1 and v2 is linear velocity
 
     const b = phy.byName(d.from);
 
