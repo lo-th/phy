@@ -8,11 +8,8 @@ export class Breaker {
 
 	constructor (motor) {
 
-		this.motor = motor
-		//this.motor.activeContact();
+		this.motor = motor;
 
-		//this.convexBreaker = new ConvexObjectBreaker();
-		//this.tmpI = new Vector3();
 		this.tpos = new Vector3();
 		this.tnormal = new Vector3();
 
@@ -21,39 +18,39 @@ export class Breaker {
 
 		this.interneMat = this.motor.getMat('chrome')//new MeshBasicMaterial({ color:0xff0000 })
 
+
 		this.tt = null
 
 	}
 
-	step () {
+	add( body, ignore = [] ){
 
-		let p;
+		let self = this;
 
-		for( let n in this.motor.reflow.point ){
+		let delay = 0
 
-			p = this.motor.reflow.point[n];
+		if( body.name.search('_debris_') !== -1 ) delay = 1000
 
-			//if ( !b1.breakable && !b2.breakable ) continue;
+		setTimeout( ()=>{ 
 
-			
+			self.motor.addCollision({ name:body.name, ignore:body.ignore })
+			body.addEventListener( 'collision', (event) => { 
+				let d = event.data;
+				if(d.hit === 1) self.makeBreak( d.from, d.point, d.normal, d.impulse, d.v1 );
+			})
 
-			if ( p.distance !== 0 ) {
+		}, delay )
 
-				this.makeBreak( p.b1, p.pos, p.normal, p.impulse, p.v1 );
-				this.makeBreak( p.b2, p.pos, p.normal, p.impulse, p.v2 );
-				
-			} 
-		}
+		
+
 	}
 
 	makeBreak ( name, pos, normal, impulse, v ) {
 
-		let mesh = this.motor.utils.byName( name );
+		let mesh = this.motor.byName( name );
 
 		if ( !mesh ) return;
 		if ( !mesh.breakable ) return;
-
-
 
 		let breakOption = mesh.breakOption;
 
@@ -66,7 +63,8 @@ export class Breaker {
 		if ( impulse < breakOption[ 0 ] ) return;
 
 		// remove contact ??
-		this.motor.remove( 'cc_' + name )
+		//this.motor.remove( 'cc_' + name )
+		this.motor.removeCollision( name )
 		this.motor.remove( name )
 
 		
@@ -89,40 +87,39 @@ export class Breaker {
 
 		if(debris.length<1) return
 
-		// remove one level
-		//breakOption[ 3 ] -= 1;
-
-		//console.log(breakOption[ 3 ])
-		
-		const heritage = {
-			basename: name,
-			material: mesh.material,
-			linearVelocity:mesh.velocity.toArray(),
-			angularVelocity:mesh.angular.toArray(),
-			//density: mesh.density,
-			mass:mesh.mass
-		}
-
 		// add debris
 		let list = []
 		let i = debris.length, n = 0, m, nv, ratio;
 		let herit, breako
+		let ignore = [...mesh.ignore]
 
 		while ( i -- ){ 
+
 			m = debris[ n ];
 			nv = m.geometry.attributes.position.count;// physx can't use lese that 4 vertex
 			ratio = m.sizer/baseSize;
 
-			herit = {...heritage};
-			herit.mass = mesh.mass * ratio;
-
+			herit = {};
 			breako = [...breakOption];
-			if(ratio<0.3) breako[3] = 0;
-			//if(ratio>0.8) breako[3] = breako[3];
-			else breako[3] = breako[3]-1;
+			// remove one level if big enouth
+			breako[3] = breako[3]-1
+			if(ratio < 0.2) breako[3] = 0;
+			//else ;
 
-			if(m.sizer>0.02 && nv > 5) list.push( this.addDebris( m, breako, herit ) );
+			if( m.sizer > 0.02 && nv > 6) {
+				this.nDebris ++
+				herit.name = name+'_debris_'+n
+				herit.mass = mesh.mass * ratio;
+				list.push( this.addDebris( m, breako, herit ) )
+				ignore.push(herit.name)
+			}
 			n++
+		}
+
+		// disabler self collision
+		i = list.length
+		while ( i -- ){
+			list[i]['ignore'] = ignore;
 		}
 
         // remove original object and add debrit
@@ -131,24 +128,8 @@ export class Breaker {
         	//this.motor.remove( name )
 		this.motor.add( list )
 
-		this.tt = setTimeout( ()=>{ this.activeCollider(list) }, 1000 )
+		//this.tt = setTimeout( ()=>{ this.activeSubCollider(list) }, 1000 )
 		
-
-	}
-
-	activeCollider ( list ) {
-
-		const contactList = []
-
-		let item
-		for(let m in list){
-			item = list[m];
-			if(item.breakable){
-				 contactList.push({ type:'contact', name:'cc_'+item.name,  b1:item.name, callback: null })
-			}
-		}
-
-		this.motor.add( contactList )
 
 	}
 
@@ -156,16 +137,16 @@ export class Breaker {
 
 		let breakable = breakOption[ 3 ] > 0 ? true : false;
 
-		let name = heritage.basename +'_debris_' + (this.nDebris++)
+		//let name = heritage.basename +'_debris_' + (this.nDebris++)
 
 		let deb = {
 
 			...heritage,
 
-			name: name,
+			//name: name,
 			type: 'convex',
 			shape: mesh.geometry,
-			material:mesh.material, //
+			material: mesh.material, //
 			//material: breakable ? mesh.material : 'debug',
 			//size:[1,1,1],
 			pos: mesh.position.toArray(),
@@ -175,8 +156,10 @@ export class Breaker {
 
 		}
 
+		//console.log(breakOption)
+
 		//this.nDebris++
-		if( this.nDebris>this.maxDebris ) this.nDebris = 0
+		//if( this.nDebris>this.maxDebris ) this.nDebris = 0
 
 		return deb
 

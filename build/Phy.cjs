@@ -24320,7 +24320,7 @@ class Body extends Item {
 
     	if( o.breakable ){
 
-    		this.motor.addBreaker();
+    		
 
     		let old = b;
 			let child = old.children[0];
@@ -24334,7 +24334,9 @@ class Body extends Item {
 			//b.density = o.density;
 			b.breakable = true;
 			b.breakOption = o.breakOption !== undefined ? o.breakOption : [ 250, 1, 2, 1 ];
-			b.getVelocity = true;
+			//b.getVelocity = true;
+
+			b.ignore = o.ignore || [];
 
 			///
 
@@ -24443,8 +24445,11 @@ class Body extends Item {
 		this.motor.post( { m:'add', o:o } );
 
 		if( o.breakable ){ 
+
+			let breaker = this.motor.getBreaker();
+			breaker.add( b );
 			// only add contact for first breakable 
-			if( b.name.search('_debris_') === -1 ) this.motor.add({ type:'contact', name:'cc_'+b.name,  b1:b.name, callback: null });
+			//if( b.name.search('_debris_') === -1 ) this.motor.add({ type:'contact', name:'cc_'+b.name,  b1:b.name, callback: null })
 		}
 
 		//---------------------------
@@ -35614,6 +35619,12 @@ class Collision {
 
 	}
 
+	reset () {
+
+		this.map = new Map();
+
+	}
+
 	step () {
 
 		this.map.forEach( this.rc );
@@ -35627,12 +35638,8 @@ class Collision {
 			
 			for(let i = 0, lng = cc.length; i<lng; i++){
 
-				/*if(cc[i].trigger){
-					console.log('yooo', cc[i])
-				}else{*/
-					if( b.userData.collisionCallback ) b.userData.collisionCallback(cc[i]);
-					else b.dispatchEvent( { type: 'collision', data:cc[i] } );
-				//}
+				if( b.userData.collisionCallback ) b.userData.collisionCallback(cc[i]);
+				else b.dispatchEvent( { type: 'collision', data:cc[i] } );
 
 			}
 		}
@@ -35643,11 +35650,7 @@ class Collision {
 		return this.enginReady.indexOf( this.motor.engine ) !== -1
 	}
 
-	reset () {
-
-		this.map = new Map();
-
-	}
+	
 
 	remove ( name ) {
 
@@ -35666,7 +35669,7 @@ class Collision {
 		let name = o.name;
 		let b = this.motor.byName( name );
 		if( b === null ) return;
-		if( !b.trigger ) b.getVelocity = true;
+		//if( !b.trigger ) b.getVelocity = true;
 
 		if( o.vs && o.vs.constructor !== Array) o.vs = [o.vs];
 		if( o.ignore && o.ignore.constructor !== Array) o.ignore = [o.ignore];
@@ -36954,10 +36957,7 @@ class Breaker {
 	constructor (motor) {
 
 		this.motor = motor;
-		//this.motor.activeContact();
 
-		//this.convexBreaker = new ConvexObjectBreaker();
-		//this.tmpI = new Vector3();
 		this.tpos = new three.Vector3();
 		this.tnormal = new three.Vector3();
 
@@ -36966,39 +36966,39 @@ class Breaker {
 
 		this.interneMat = this.motor.getMat('chrome');//new MeshBasicMaterial({ color:0xff0000 })
 
+
 		this.tt = null;
 
 	}
 
-	step () {
+	add( body, ignore = [] ){
 
-		let p;
+		let self = this;
 
-		for( let n in this.motor.reflow.point ){
+		let delay = 0;
 
-			p = this.motor.reflow.point[n];
+		if( body.name.search('_debris_') !== -1 ) delay = 1000;
 
-			//if ( !b1.breakable && !b2.breakable ) continue;
+		setTimeout( ()=>{ 
 
-			
+			self.motor.addCollision({ name:body.name, ignore:body.ignore });
+			body.addEventListener( 'collision', (event) => { 
+				let d = event.data;
+				if(d.hit === 1) self.makeBreak( d.from, d.point, d.normal, d.impulse, d.v1 );
+			});
 
-			if ( p.distance !== 0 ) {
+		}, delay );
 
-				this.makeBreak( p.b1, p.pos, p.normal, p.impulse, p.v1 );
-				this.makeBreak( p.b2, p.pos, p.normal, p.impulse, p.v2 );
-				
-			} 
-		}
+		
+
 	}
 
 	makeBreak ( name, pos, normal, impulse, v ) {
 
-		let mesh = this.motor.utils.byName( name );
+		let mesh = this.motor.byName( name );
 
 		if ( !mesh ) return;
 		if ( !mesh.breakable ) return;
-
-
 
 		let breakOption = mesh.breakOption;
 
@@ -37011,7 +37011,8 @@ class Breaker {
 		if ( impulse < breakOption[ 0 ] ) return;
 
 		// remove contact ??
-		this.motor.remove( 'cc_' + name );
+		//this.motor.remove( 'cc_' + name )
+		this.motor.removeCollision( name );
 		this.motor.remove( name );
 
 		
@@ -37034,40 +37035,39 @@ class Breaker {
 
 		if(debris.length<1) return
 
-		// remove one level
-		//breakOption[ 3 ] -= 1;
-
-		//console.log(breakOption[ 3 ])
-		
-		const heritage = {
-			basename: name,
-			material: mesh.material,
-			linearVelocity:mesh.velocity.toArray(),
-			angularVelocity:mesh.angular.toArray(),
-			//density: mesh.density,
-			mass:mesh.mass
-		};
-
 		// add debris
 		let list = [];
 		let i = debris.length, n = 0, m, nv, ratio;
 		let herit, breako;
+		let ignore = [...mesh.ignore];
 
 		while ( i -- ){ 
+
 			m = debris[ n ];
 			nv = m.geometry.attributes.position.count;// physx can't use lese that 4 vertex
 			ratio = m.sizer/baseSize;
 
-			herit = {...heritage};
-			herit.mass = mesh.mass * ratio;
-
+			herit = {};
 			breako = [...breakOption];
-			if(ratio<0.3) breako[3] = 0;
-			//if(ratio>0.8) breako[3] = breako[3];
-			else breako[3] = breako[3]-1;
+			// remove one level if big enouth
+			breako[3] = breako[3]-1;
+			if(ratio < 0.2) breako[3] = 0;
+			//else ;
 
-			if(m.sizer>0.02 && nv > 5) list.push( this.addDebris( m, breako, herit ) );
+			if( m.sizer > 0.02 && nv > 6) {
+				this.nDebris ++;
+				herit.name = name+'_debris_'+n;
+				herit.mass = mesh.mass * ratio;
+				list.push( this.addDebris( m, breako, herit ) );
+				ignore.push(herit.name);
+			}
 			n++;
+		}
+
+		// disabler self collision
+		i = list.length;
+		while ( i -- ){
+			list[i]['ignore'] = ignore;
 		}
 
         // remove original object and add debrit
@@ -37076,24 +37076,8 @@ class Breaker {
         	//this.motor.remove( name )
 		this.motor.add( list );
 
-		this.tt = setTimeout( ()=>{ this.activeCollider(list); }, 1000 );
+		//this.tt = setTimeout( ()=>{ this.activeSubCollider(list) }, 1000 )
 		
-
-	}
-
-	activeCollider ( list ) {
-
-		const contactList = [];
-
-		let item;
-		for(let m in list){
-			item = list[m];
-			if(item.breakable){
-				 contactList.push({ type:'contact', name:'cc_'+item.name,  b1:item.name, callback: null });
-			}
-		}
-
-		this.motor.add( contactList );
 
 	}
 
@@ -37101,16 +37085,16 @@ class Breaker {
 
 		let breakable = breakOption[ 3 ] > 0 ? true : false;
 
-		let name = heritage.basename +'_debris_' + (this.nDebris++);
+		//let name = heritage.basename +'_debris_' + (this.nDebris++)
 
 		let deb = {
 
 			...heritage,
 
-			name: name,
+			//name: name,
 			type: 'convex',
 			shape: mesh.geometry,
-			material:mesh.material, //
+			material: mesh.material, //
 			//material: breakable ? mesh.material : 'debug',
 			//size:[1,1,1],
 			pos: mesh.position.toArray(),
@@ -37120,8 +37104,10 @@ class Breaker {
 
 		};
 
+		//console.log(breakOption)
+
 		//this.nDebris++
-		if( this.nDebris>this.maxDebris ) this.nDebris = 0;
+		//if( this.nDebris>this.maxDebris ) this.nDebris = 0
 
 		return deb
 
@@ -41245,7 +41231,7 @@ class PhyEngine {
 
 			if( mouseTool ) mouseTool.step();
 
-			if( breaker !== null ) breaker.step();
+			//if( breaker !== null ) breaker.step();
 
 			if( currentControle !== null ) currentControle.move();
 
@@ -41849,10 +41835,11 @@ class PhyEngine {
 		// BREAK
 		//-----------------------
 
-		this.addBreaker = () => {
+		this.getBreaker = () => {
 
-			if( breaker !== null ) return;
+			if( breaker !== null ) return breaker;
 			breaker = new Breaker(this);
+			return breaker;
 
 		};
 

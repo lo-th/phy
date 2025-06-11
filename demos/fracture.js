@@ -13,7 +13,7 @@ demo = () => {
     phy.set({ substep:phy.engine==='HAVOK'? 1:2, gravity:[0,-9.81,0], ccd:true });
 
     // add static plane 
-    phy.add({ type:'plane', visible:false })
+    phy.add({ type:'plane', name:'floor', visible:false })
 
     phy.material({ name:'B', color:0xFFFFFF, roughness: 0.6, metalness: 0.3, 
         map:phy.texture({ url:'./assets/textures/wood_c.jpg', repeat:[2,2] }),
@@ -73,7 +73,7 @@ run = (name) => {
 
     phy.clearGarbage();
 
-    phy.add({ type:'plane', visible:false })
+    phy.add({ type:'plane', name:'floor', visible:false })
 
     this[name]();
 
@@ -97,15 +97,15 @@ test_0 = ( d ) => {
         mesh:model['wakeup002'],
         mass:10000,
         //density:5, 
-        pos:[0,0.01,0],
+        pos:[0,0,0],
         breakable:true, 
+        ignore:['floor', 'wall'],
        //bullet:true,
-        // breakOption: [ maxImpulse, maxRadial, maxRandom, levelOfSubdivision ]
-        //breakOption:[ 60, 6, 2, 2, false ], 
-        breakOption:[ 50, 4, 6, 2, false ],
+        // breakOption: [ maxImpulse, maxRadial, maxRandom, levelOfSubdivision, with intern mesh ]
+        breakOption:[ 50, 3, 4, 2, false ],
         //material:'B', 
         //autoUV:true 
-        massInfo:true
+        //massInfo:true
     });
 
 

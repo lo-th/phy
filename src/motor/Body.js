@@ -870,7 +870,7 @@ export class Body extends Item {
 
     	if( o.breakable ){
 
-    		this.motor.addBreaker();
+    		
 
     		let old = b;
 			let child = old.children[0];
@@ -884,7 +884,9 @@ export class Body extends Item {
 			//b.density = o.density;
 			b.breakable = true;
 			b.breakOption = o.breakOption !== undefined ? o.breakOption : [ 250, 1, 2, 1 ];
-			b.getVelocity = true;
+			//b.getVelocity = true;
+
+			b.ignore = o.ignore || [];
 
 			///
 
@@ -993,8 +995,11 @@ export class Body extends Item {
 		this.motor.post( { m:'add', o:o } );
 
 		if( o.breakable ){ 
+
+			let breaker = this.motor.getBreaker();
+			breaker.add( b );
 			// only add contact for first breakable 
-			if( b.name.search('_debris_') === -1 ) this.motor.add({ type:'contact', name:'cc_'+b.name,  b1:b.name, callback: null })
+			//if( b.name.search('_debris_') === -1 ) this.motor.add({ type:'contact', name:'cc_'+b.name,  b1:b.name, callback: null })
 		}
 
 		//---------------------------

@@ -930,7 +930,7 @@ export class PhyEngine {
 
 			if( mouseTool ) mouseTool.step();
 
-			if( breaker !== null ) breaker.step();
+			//if( breaker !== null ) breaker.step();
 
 			if( currentControle !== null ) currentControle.move();
 
@@ -1534,10 +1534,11 @@ export class PhyEngine {
 		// BREAK
 		//-----------------------
 
-		this.addBreaker = () => {
+		this.getBreaker = () => {
 
-			if( breaker !== null ) return;
+			if( breaker !== null ) return breaker;
 			breaker = new Breaker(this);
+			return breaker;
 
 		}
 
