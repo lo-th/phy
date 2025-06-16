@@ -15,11 +15,6 @@ export class MouseTool {
 
 		this.needRay = false;
 
-		//this.tmpSelected = null
-
-		//root.viewSize = { w:window.innerWidth, h:window.innerHeight, r:0}
-		//root.viewSize.r = root.viewSize.w/root.viewSize.h
-
 		this.moveDirect = false
 		this.moveDeep = false
 
@@ -67,7 +62,7 @@ export class MouseTool {
 		this.velocity = new Vector3()
 		this.angle = 0
 
-		this.helper = null
+		this.helper = null;
 		this.dragPlane = null;
 		this.overLock = false;
 
@@ -81,12 +76,16 @@ export class MouseTool {
 		if( this.dragPlane ) return
 
 		//this.overLock = true;
+	    this.floorDrag = this.button === 2
+	    //this.floorDrag = true
 
 		this.helper = new MoveHelper(this.motor)
 		this.dragPlane = new Mesh( new PlaneGeometry( 1, 1 ), this.motor.mat.get('hide') )
+		if(this.floorDrag)this.dragPlane.geometry.rotateX(-Math.PI*0.5)
 	    this.dragPlane.castShadow = false
 	    this.dragPlane.receiveShadow = false
 	    this.dragPlane.scale.set( 1, 1, 1 ).multiplyScalar( 200 )
+	    this.dragPlane.visible = false
 
 	    this.motor.scenePlus.add( this.helper )
 	    this.motor.scenePlus.add( this.dragPlane )
@@ -365,9 +364,12 @@ export class MouseTool {
 			this.oldMouse.copy( this.mouse )
 		}
 
+		//console.log(this.button)
 
+        
 
 		if( this.button === 2 ){
+
 		    this.mouseDown2 = true
 		    //this.castray()
 		}
@@ -562,28 +564,9 @@ export class MouseTool {
 		this.tmpPos.copy( pos ).sub( this.decal )
 		this.angle = this.controler.getAzimuthalAngle()
 
-
-		
-
 		let q = this.selected.quaternion
-		quat = q.toArray()//[ q._x, q._y, q._z, q._w ]
+		quat = q.toArray()
 
-
-		/*if( this.selected.isInstance ){
-			console.log(this.selected)
-			return
-		}*/
-
-		/*if( this.selected.isButton ){
-			if( this.buttonRef ){
-				if(this.buttonRef.name !== this.selected.name ) this.buttonRef = obj
-			} else {
-				this.buttonRef = obj
-			}
-			if( this.buttonRef.userData.action ) this.buttonRef.userData.action()
-			    this.unSelect ()
-			return 'grab'
-		}*/
 
 		this.addDrag()
 
@@ -592,7 +575,7 @@ export class MouseTool {
 
 	    this.dragPlane.rotation.set( 0, this.angle, 0 )
 	    this.dragPlane.position.copy( pos )
-	    this.dragPlane.position.y = 0
+	    //if(!this.floorDrag)this.dragPlane.position.y = 0
 
 	    this.helper.position.copy( pos )
 

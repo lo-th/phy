@@ -97,12 +97,17 @@ export class Instance extends InstancedMesh {
 
         }
 
+
+
         if( color.isColor ) color = color.toArray();
         
         let id = index * 3;
         this.instanceColor.array[id] = color[0];
         this.instanceColor.array[id +1] = color[1];
         this.instanceColor.array[id +2] = color[2];
+        
+        
+        
         //color.toArray( this.instanceColor.array, index * 3 );
 
     }

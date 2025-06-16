@@ -39,8 +39,7 @@ import { DirectionalHelper } from './3TH/helpers/DirectionalHelper.js'
 import { phy, phy2 } from './Phy.js'
 
 // PARTICLE
-//import { Smoke } from '../build/smoke.module.js'
-import { Smoke } from './libs/smoke.module.js'
+//import { Smoke } from './libs/smoke.module.js'
 
 // WEBGPU test
 //import WebGPU from './jsm/capabilities/WebGPU.js';
@@ -78,7 +77,6 @@ let video = null
 
 let childEditor = null
 let isExternEditor = false
-let particles = null
 
 let stats = null;
 let maxFps = 60;
@@ -385,10 +383,6 @@ export const Main = {
 	externEditor:() => { externEditor() },
 	injectCode: ( cc ) => { inject(cc) },
 
-	addParticle: ( o ) => { return addParticle( o ) },
-	getParticle: ( name ) => { return getParticle( name ) },
-	initParticle: () => { return initParticle() },
-
 	loadDemo: ( name ) => { loadDemo( name ) },
 	extraCode: ( url, callback ) => { editor.loadExtra( url, callback ); },
 
@@ -448,9 +442,9 @@ Motor.log = Hub.log;
 
 Motor.changeShadow = Main.changeShadow;
 
-Motor.initParticle = Main.initParticle
+/*Motor.initParticle = Main.initParticle
 Motor.addParticle = Main.addParticle
-Motor.getParticle = Main.getParticle
+Motor.getParticle = Main.getParticle*/
 Motor.getGround = Main.getGround;
 
 Motor.extraCode = Main.extraCode;
@@ -1030,10 +1024,6 @@ const inject = ( newCode, force = false ) => {
 	editor.reset()
 	Gui.resetExtra()
 
-	//resetLight()
-
-	if( particles ) particles.dispose()
-	
 	
 	if( isLoadCode ){
 		//console.log('is full reset !!!')
@@ -1125,7 +1115,6 @@ const doResize = () => {
 	camera.updateProjectionMatrix()
 	renderer.setSize( size.w, size.h )
 	if(composer) composer.resize( size )
-	if(particles) particles.onresize( size.h )
 
 	
 	Hub.resize( size )
@@ -1158,8 +1147,6 @@ const render = ( stamp = 0 ) => {
 	if( !Main.isWorker ) Motor.doStep( stamp )
 	else Motor.setDelta(tm.dt)
 
-	// UPDATE PARTICLE
-    if( particles ) particles.update( stamp )
 
 	// UPDATE CAMERA CONTROLER
     if( controls ) controls.up( tm.dt )
@@ -1527,30 +1514,5 @@ const setComposer = ( b ) => {
 	}
 
 	Gui.postprocessEdit()
-
-}
-
-
-//--------------------
-//  PARTICLE
-//--------------------
-
-const initParticle = ( ) => {
-
-   if( !particles ) particles = new Smoke( scene, renderer );
-
-}
-
-const addParticle = ( o = {} ) => {
-
-   if( !particles ) particles = new Smoke( scene, renderer );
-   return particles.add( o )
-
-}
-
-const getParticle = ( name ) => {
-	
-	if( !particles ) particles = new Smoke( scene, renderer );
-   return particles.get( name )
 
 }

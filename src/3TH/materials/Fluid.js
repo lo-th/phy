@@ -11,7 +11,7 @@ export class Fluid extends MeshPhysicalMaterial {
 	constructor( o = {}, extra = {} ) {
 
 		o.metalness = 0.5
-		o.roughness = 0
+		o.roughness = 0.02
 
         o.clearcoat = 1
         //o.clearcoatRoughness = 0.25
@@ -20,7 +20,6 @@ export class Fluid extends MeshPhysicalMaterial {
 		
 		o.side = DoubleSide
 		
-		o.envMapIntensity = 1.2
         o.reflectivity = 1.0
         //o.ior=1.7
 
@@ -28,13 +27,13 @@ export class Fluid extends MeshPhysicalMaterial {
         //o.depthWrite = false
         o.opacity = 0.7
 		//o.premultipliedAlpha = true
-        o.alphaToCoverage = true
+       // o.alphaToCoverage = true
 
         o.sheenColor = 0xffffff
 
         o.sheen = 0.5
 
-        let fillAmount = o.fillAmount || -0.5
+        let fillAmount = (1-o.fillAmount)*-1 || -0.5
         delete o.fillAmount
 
 
@@ -65,18 +64,27 @@ export class Fluid extends MeshPhysicalMaterial {
         this.onBeforeCompile = function ( shader ) {
 
             let uniforms = shader.uniforms
-            uniforms[ "time" ] = { value: 0 }
-            uniforms[ "fillAmount" ] = { value: -0.5 }
+            
+            uniforms[ "fillAmount" ] = { value: this.fillAmount }
             //uniforms[ "wobbleX" ] = { value: 0.0 }
             //uniforms[ "wobbleZ" ] = { value: 0.0 }
             uniforms[ "topColor" ] = { value: new Vector4(1,0,0, 0.7) }
             uniforms[ "rimColor" ] = { value: new Vector4(0,1,0, 0.5) }
-            uniforms[ "foamColor" ] = { value: new Vector4(1,1,1, 0.9) }
-            uniforms[ "tint" ] = { value: new Vector4(1,1,0,0.8) }
+            uniforms[ "foamColor" ] = { value: new Vector4(1,1,1, 1.0) }
+            uniforms[ "tint" ] = { value: new Vector4(1,0,0,0.2) }
             uniforms[ "rim" ] = { value: 0.1 }
             uniforms[ "rimPower" ] = { value: 0.5 }
             uniforms[ "Line" ] = { value: 0.01 }
             uniforms[ "LineSmooth" ] = { value: 0.1 }
+
+
+            uniforms[ "Line" ] = { value: 0.01 }
+            uniforms[ "LineSmooth" ] = { value: 0.1 }
+
+            uniforms[ "time" ] = { value: 0 }
+            uniforms[ "wobbleIntensity" ] = { value: 0.2 }
+            uniforms[ "Amplitude" ] = { value: 0.2 }
+            uniforms[ "Freq" ] = { value: 2 }
 
             /*uniforms[ "normalCube" ] = { value: self.normal.texture };
             uniforms[ "bDebugBounces" ] = { value: 0 };
@@ -106,7 +114,8 @@ export class Fluid extends MeshPhysicalMaterial {
 
             var vertex = shader.vertexShader;
 
-            vertex = vertexAdd + vertex;
+            //vertex = vertexAdd + vertex;
+            vertex = vertex.replace( '#include <common>', vertexAdd  );
             vertex = vertex.replace( '#include <color_vertex>', vertexColor  );
             vertex = vertex.replace( '#include <worldpos_vertex>', vertexWorld  );
             //vertex = vertex.replace( '#include <fog_vertex>', vertMainAdd );
@@ -116,7 +125,9 @@ export class Fluid extends MeshPhysicalMaterial {
 
             var fragment = shader.fragmentShader;
 
-            fragment = fragmentAdd + fragment;
+            //fragment = fragmentAdd + fragment;
+
+            fragment = fragment.replace( '#include <common>', fragmentAdd );
 
             //console.log(fragment)
             /*fragment = fragment.replace( 'void main() {', `
@@ -187,6 +198,8 @@ vec3 RotateAround(vec3 In, vec3 Axis, float degrees )
     return Out;
 
 }
+
+#include <common>
 `
 const vertexColor = `
 #ifdef USE_COLOR
@@ -236,6 +249,13 @@ uniform float LineSmooth;
 varying vec3 fillPosition;
 varying vec4 vvWorldPosition;
 
+uniform float time;
+uniform float wobbleIntensity;
+uniform float Amplitude;
+uniform float Freq;
+
+#include <common>
+
 `
 const fragmentColor = `
 // -------- INIT LIQUID SHADER --------
@@ -245,7 +265,9 @@ vec4 col = tint;
 //RimResult *= rimColor;
 //RimResult *= rimColor.w;
 
-float wobble = 0.0;//sin((i.fillPosition.x * _Freq) + (i.fillPosition.z * _Freq ) + ( _Time.y)) * (_Amplitude *wobbleIntensity);  
+//float wobble = 0.0;
+//float wobble = sin((i.fillPosition.x * _Freq) + (i.fillPosition.z * _Freq ) + ( _Time.y)) * (_Amplitude *wobbleIntensity);  
+float wobble = sin((fillPosition.x * Freq) + (fillPosition.z * Freq ) + (time)) * (Amplitude *wobbleIntensity);  
 float movingfillPosition = fillPosition.y + wobble;
 
 // foam edge

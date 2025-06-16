@@ -55,9 +55,9 @@ onComplete = () => {
 				}*/
 
 	const mats = new Fluid({
-            color: 0xffffff,
+            color: 0xfCFF00,
             name: 'fluid33',
-            fillAmount : -0.5 //+ 0.75
+            fillAmount : 0.7 //+ 0.75
         },{
 		geometry:g
 	})
@@ -153,9 +153,10 @@ update = () => {
     	wz = temp[i][1] * Math.cos(pulse * time)
 
     	py = c.position.y
-    	if(engine!=='PHYSX') py += 0.75
+    	//if(i===1)console.log(py)
+    	//if(engine!=='PHYSX') py += 0.75
 
-    	instance.setColorAt( c.id, [wx, py, wz])
+    	instance.setColorAt( c.idx, [wx, py, wz])
 
     	temp[i][0] = math.clamp( (c.velocity.x + c.angular.z * 0.2) * s.maxWobble , -s.maxWobble, s.maxWobble )
     	temp[i][1] = math.clamp( (c.velocity.z + c.angular.x * 0.2) * s.maxWobble , -s.maxWobble, s.maxWobble )
@@ -165,7 +166,7 @@ update = () => {
 
     const shader = instance.material.userData.shader;
     if ( shader ) {
-    	//shader.uniforms.time.value = phy.getDelta();
+    	  shader.uniforms.time.value += phy.getDelta();
     }
 
 }

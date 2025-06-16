@@ -41,6 +41,8 @@ import { Pool } from '../3TH/Pool.js';
 import { sk } from '../3TH/character/SkeletonExtand.js';
 import { preloadAvatar } from '../3TH/character/Avatar.js';
 
+import { Smoke } from '../libs/smoke.module.js'
+
 
 /** __
 *    _)_|_|_
@@ -98,6 +100,8 @@ export class PhyEngine {
 
 
 		const _this = this;
+
+		let particles = null;
         
         let scriptDir = undefined;
 
@@ -454,7 +458,10 @@ export class PhyEngine {
 
 		this.makeView = () => {}
 
-		this.resize = ( size ) => { this.viewSize = size; }
+		this.resize = ( size ) => { 
+			this.viewSize = size; 
+			if(particles) particles.resize(this.viewSize.h)
+		}
 
 		this.init = ( o = {} ) => {
 
@@ -795,6 +802,11 @@ export class PhyEngine {
 			if( controls ) controls.resetAll();
 			if( mouseTool ) mouseTool.unSelect();
 
+			if( particles ){ 
+				particles.dispose()
+				particles = null;
+			}
+
 			endReset = callback;
 
 			postUpdate = function () {};
@@ -944,7 +956,6 @@ export class PhyEngine {
 
 			postUpdate( dd );
 
-			//console.log(dd)
 
 			//items.character.prestep()
 
@@ -1469,9 +1480,6 @@ export class PhyEngine {
 		}
 
 
-		
-
-
 		//-----------------------
 		//  BUTTON
 		//-----------------------
@@ -1511,8 +1519,9 @@ export class PhyEngine {
 			
 		}
 
+
 		//-----------------------
-		// BREAK
+		//  SCEENSHOT
 		//-----------------------
 
 		this.screenshot = () => {
@@ -1557,6 +1566,34 @@ export class PhyEngine {
 	    	return colorChecker;
 
 	    }
+
+	    //--------------------
+		//
+		//  PARTICLE
+		//
+		//--------------------
+
+		this.initParticleEngine = () => {
+
+		   if( particles ) return;
+		   particles = new Smoke();
+		   this.scene.add( particles );
+
+		}
+
+		this.addParticle = ( o = {} ) => {
+
+		   if( particles === null ) this.initParticleEngine()
+		   return particles.add( o );
+
+		}
+
+		this.getParticle = ( name ) => {
+			
+			if( particles === null ) return null
+		    return particles.get( name );
+
+		}
 
 
 		//-----------------------

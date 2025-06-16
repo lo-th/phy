@@ -290,7 +290,7 @@ export class Body extends Item {
 				if(this.engine === 'PHYSX'){
 					let center = new Vector3();
 					MathTool.getCenter( g, center );
-					o.massCenter = center.toArray();
+					if(!o.massCenter) o.massCenter = center.toArray();
 					//console.log(o.massCenter)
 				}
 				
@@ -510,7 +510,7 @@ export class Body extends Item {
 		// if engine don't have massCenter option
 		// is convert to compound
 		
-		if( o.massCenter && !WithMassCenter.indexOf(this.engine) ){
+		if( o.massCenter && WithMassCenter.indexOf(this.engine) ===-1 ){
 			if( o.type !== 'compound' ){
 				//o.localPos = o.massCenter
 				o.shapes = [{ type:o.type, pos:o.massCenter, size:o.size }];
@@ -524,6 +524,7 @@ export class Body extends Item {
 					if( n.pos ) n.pos = MathTool.addArray( n.pos, o.massCenter );
 					else n.pos = o.massCenter;
 					//Geo.unic(n);
+
 				}
 			}
 		}
