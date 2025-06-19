@@ -10,14 +10,14 @@ demo = () => {
     // add static plane 
     phy.add({ type:'plane', name:'floor', visible:false })
 
-    phy.material({ name:'nefer', color:0xFFFFFF, roughness: 0.6, metalness: 0.3, normalScale:[0.2,-0.2], 
+    phy.material({ name:'nefer', color:0xFFFFFF, roughness: 0.6, metalness: 0.3, normalScale:[0.25,-0.25], 
         map:phy.texture({ url:'./assets/textures/museum/nefer_d.jpg', srgb:true }),
         normalMap:phy.texture({ url:'./assets/textures/museum/nefer_n.jpg' }) 
     })
 
     let gui = phy.gui(null,100);
     gui.add( 'button', { name:'Reset' } ).listen().onChange( ()=>{run('test_0')} )
-    gui.add( 'button', { name:'Shot' } ).listen().onChange( ()=>{ phy.mouseMode('shoot', { size:0.2, mass:100, velocity:60 }) } )
+    gui.add( 'button', { name:'Shoot' } ).listen().onChange( ()=>{ phy.mouseMode('shoot', { size:0.2, mass:100, velocity:60 }) } )
     //gui.add( setting, 'name', { type:'grid', values:list, selectable:true, h:26 } ).listen().onChange( run )
   
 
