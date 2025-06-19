@@ -92,10 +92,10 @@ test_0 = ( d ) => {
 
     phy.add({ 
         name:'frost', 
-        type:'mesh',
+        type:'convex',
         mesh:model['nefertiti'],
         mass:1000,
-        friction:1,
+        friction:0.5,
         //density:5, 
         pos:[0,0,0],
         breakable:true, 
