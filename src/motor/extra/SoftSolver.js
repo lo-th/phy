@@ -195,7 +195,7 @@ export class SoftSolver {
             //inertia:[0.00001,0.00001,0.00001], 
             //iterations:[10,1],
             
-            mass:this.pMass, 
+            mass:this.pMass,
             //density:0.0000001,
             restitution:0.0, 
             friction:0.5, 
@@ -322,14 +322,14 @@ export class SoftSolver {
     getNeighbors( particle, neighbors ) {
 
 	    const N = this.particles.length
-	    const id = particle.id
+	    const id = particle.idx
 	    const R2 = this.smoothing * this.smoothing
 	    let distance = 0//SPHSystem_getNeighbors_dist
 	    for (let i = 0; i !== N; i++) {
 	        const p = this.particles[i]
 	        //const dx = p.position.x - particle.position.x, dy = p.position.y - particle.position.y, dz = p.position.z - particle.position.z;
 	        distance = this.distanceSq(p, particle )//dx * dx + dy * dy + dz * dz
-	        if (id !== p.id && distance < R2) {
+	        if (id !== p.idx && distance < R2) {
 	            neighbors.push(p)
 	        }
 	    }	

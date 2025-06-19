@@ -1,0 +1,115 @@
+let model
+
+demo = () => {
+
+    phy.view({ envmap:'histo', envblur:0.5, exposure:0.5, direct:25, envIntensity:5, bgIntensity:1.0, shadowIntensity:1.0, distance:16, y:5 })
+
+    // config physics setting
+    phy.set({ substep:phy.engine==='HAVOK'? 1:2, gravity:[0,-9.81,0], ccd:true });
+
+    // add static plane 
+    phy.add({ type:'plane', name:'floor', visible:false })
+
+    phy.material({ name:'nefer', color:0xFFFFFF, roughness: 0.6, metalness: 0.3, normalScale:[0.2,-0.2], 
+        map:phy.texture({ url:'./assets/textures/museum/nefer_d.jpg', srgb:true }),
+        normalMap:phy.texture({ url:'./assets/textures/museum/nefer_n.jpg' }) 
+    })
+
+    let gui = phy.gui(null,100);
+    gui.add( 'button', { name:'Reset' } ).listen().onChange( ()=>{run('test_0')} )
+    gui.add( 'button', { name:'Shot' } ).listen().onChange( ()=>{ phy.mouseMode('shoot', { size:0.2, mass:100, velocity:60 }) } )
+    //gui.add( setting, 'name', { type:'grid', values:list, selectable:true, h:26 } ).listen().onChange( run )
+  
+
+    phy.load(['./assets/models/museum/nefertiti.glb'], onComplete )
+
+
+}
+
+onComplete = (name) => {
+
+    model = phy.getMesh('nefertiti', true);
+    let mat;
+
+    for(let m in model){
+        model[m].geometry.scale(0.08,0.08,0.08);
+        model[m].material = phy.getMaterial('nefer');
+        mat = model[m].material
+
+        mat.side =  THREE.DoubleSide
+
+        const newmap = /* glsl */`
+        #ifdef USE_MAP
+            vec4 sampledDiffuseColor = texture2D( map, vMapUv );
+            if(gl_FrontFacing) diffuseColor *= sampledDiffuseColor;
+        #endif
+        `;
+        mat.onBeforeCompile = (shader)=>{
+
+            let fragment = shader.fragmentShader;
+            fragment = fragment.replace( 
+                `vec4 diffuseColor = vec4( diffuse, opacity );`,
+                `vec3 col = gl_FrontFacing ? diffuse : vec3(0.6);
+                vec4 diffuseColor = vec4( col, opacity );`
+            ); 
+            fragment = fragment.replace( '#include <map_fragment>', newmap );
+            
+            shader.fragmentShader = fragment;
+            
+        }
+    }
+
+    console.log(model)
+
+    
+    test_0()
+
+}
+
+run = (name) => {
+
+    phy.clearGarbage();
+
+     phy.mouseMode('drag')
+
+    phy.add({ type:'plane', name:'floor', visible:false })
+
+    this[name]();
+
+}
+
+test_0 = ( d ) => {
+
+
+
+    phy.add({
+        name:'wall',
+        size:[20,40,1],
+        pos:[0,20,-10],
+        visible:false
+        //material:'glass',
+    })
+
+    phy.add({ 
+        name:'frost', 
+        type:'mesh',
+        mesh:model['nefertiti'],
+        mass:1000,
+        friction:1,
+        //density:5, 
+        pos:[0,0,0],
+        breakable:true, 
+        ignore:['floor', 'wall'],
+       //bullet:true,
+        // breakOption: [ maxImpulse, maxRadial, maxRandom, levelOfSubdivision, with intern mesh ]
+        breakOption:[ 50, 3, 4, 2, false ],
+        //material:'B', 
+        //autoUV:true 
+        //massInfo:true
+    });
+
+
+
+    //phy.mouseMode('shoot', { size:0.2, mass:100, velocity:60 })
+
+}

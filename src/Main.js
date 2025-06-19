@@ -38,9 +38,6 @@ import { DirectionalHelper } from './3TH/helpers/DirectionalHelper.js'
 //import { Motor } from './motor/Motor.js'
 import { phy, phy2 } from './Phy.js'
 
-// PARTICLE
-//import { Smoke } from './libs/smoke.module.js'
-
 // WEBGPU test
 //import WebGPU from './jsm/capabilities/WebGPU.js';
 //import WebGPURenderer from 'three/addons/renderers/webgpu/WebGPURenderer.js';
@@ -731,44 +728,7 @@ const addLight = () => {
 
 	Lights.define( options, followGroup, isWebGPU );
 
-	/*let s 
 
-	Lights.add({ 
-		type:'direct', name:'sun',
-		//intensity:options.mode !== 'LOW' ? options.light_1*0.3 : options.light_1, 
-		intensity:options.light_1,
-		distance:10, parent:followGroup,
-	    shadow:{ range:20, near:5, far:50, bias:!isWebGPU ? -0.0005 : 0.005, radius:4, quality: 2048 * options.quality }
-	})
-
-
-	/////
-	if( options.mode !== 'LOW' ){
-		/*Lights.add({ 
-		    type:'direct', name:'sun2',
-		    intensity:options.light_1*0.7, distance:6, parent:followGroup,
-	        shadow:{ range:4, near:1, far:20, bias:-0.0005, radius:4, quality: 1024 * options.quality },
-		})*/
-	//}
-
-	/////
-
-	/*Lights.add({ 
-	    type:'direct', name:'moon',
-	    intensity:options.light_2, distance:10, parent:followGroup,
-	   // shadow:{ range:20, near:1, far:20, bias:-0.0005, radius:1, quality: 2048 * options.quality }
-	})*/
-
-	//if( !isWebGPU ){	
-		/*Lights.add({ 
-			type:'hemi', name:'hemi',
-			intensity:options.light_2, 
-			pos:[0,1,0], 
-			parent:followGroup 
-		})*/
-	//}
-
-	////
 
 
 	if( options.mode === 'LOW' ){
@@ -890,12 +850,6 @@ const removeVignette = () => {
 //--------------------
 
 const addGround = ( o ) => {
-
-	//groundAutoColor = !o.groundColor//false
-    //if( o.groundReflect !== undefined ) options.reflect = o.groundReflect;
-    //if( o.reflect !== undefined ) options.reflect = o.reflect;
-
-	//if( isWebGPU ) return
 
 	if( ground === null ){
 
@@ -1230,20 +1184,6 @@ const setReflect = ( v ) => {
 }
 
 
-
-
-/*function firstFunction() {
-      return new Promise((resolve, reject) => {
-          let y = 0
-          setTimeout(() => {
-            for (let i=0; i<10; i++) {
-               y++
-            }
-             console.log('Loop completed.')  
-             resolve(y)
-          }, 2000)
-      })
-    }*/
 //async 
 const view = ( o = {} ) => {
 
@@ -1450,19 +1390,6 @@ const setbgIntensity = () => {
 const setEnvmapIntensity = () => {
 
 	scene.environmentIntensity = options.envIntensity;
-
-	//Motor.setEnvmapIntensity( options.envPower )
-
-	/*let g = Motor.getScene()
-	g.traverse( function ( node ) {
-		if( node.isMesh ){ 
-			if( !node.material.userData.envp ) node.material.userData.envp = node.material.envMapIntensity
-			node.material.envMapIntensity = node.material.userData.envp * options.envPower
-		}
-	})*/
-
-	//if(!ground.material.userData.envp) ground.material.userData.envp = ground.material.envMapIntensity
-	//ground.material.envMapIntensity = ground.material.userData.envp * options.envPower
 
 }
 

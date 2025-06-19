@@ -41,7 +41,7 @@ import { Pool } from '../3TH/Pool.js';
 import { sk } from '../3TH/character/SkeletonExtand.js';
 import { preloadAvatar } from '../3TH/character/Avatar.js';
 
-import { Smoke } from '../libs/smoke.module.js'
+import { Smoke } from '../libs/smoke.module.js';
 
 
 /** __
@@ -202,8 +202,6 @@ export class PhyEngine {
 		};
 
 		const items = {};
-		//this.items = () => items;
-
 
 		// ------------------------------
 		//     MAIN SCENE FOR PHY
@@ -247,13 +245,6 @@ export class PhyEngine {
 			if( m.dispose ) m.dispose();
 				
 		}
-
-
-		/*get onFrame() {
-	        return this._name;
-	    }*/
-	    //this.version( f ) { return Version.PHY; }
-
 
 	    this.setStep = ( f ) => { postUpdate = f; }
 
@@ -548,7 +539,6 @@ export class PhyEngine {
 					//const sharedArray = new Float32Array(sharedBuffer);
 					// Start the worker and pass the shared buffer
 					//const worker = new Worker('./worker-shared-buffer.js', { workerData: sharedBuffer });
-
 
 					// https://web.dev/articles/module-workers?hl=fr
 					// https://developer.mozilla.org/en-US/docs/Web/API/Worker/Worker
@@ -948,7 +938,6 @@ export class PhyEngine {
 
 			if( this.debuger !== null ) this.debuger.draw();
 
-			
 
 			// TODO fix dt 0 when no doStep ??
 
@@ -1766,13 +1755,13 @@ export class Utils {
 
     quatLocal ( q, obj ) {
 
-    	if( obj.isObject3D ) obj.updateWorldMatrix( true, false )
+    	if( obj.isObject3D ) obj.updateWorldMatrix( true, false );
     	// apply position
     	//if(!isAxe) v.sub( obj.position )
     	// apply invers rotation
-    	let q1 = new Quaternion().fromArray(q)
-    	let q2 = obj.quaternion.clone().invert()
-    	q1.premultiply(q2)
+    	let q1 = new Quaternion().fromArray(q);
+    	let q2 = obj.quaternion.clone().invert();
+    	q1.premultiply(q2);
     	//v.applyQuaternion({x:-q.x, y:-q.y, z:-q.z, w:q.w})
     	return q1.normalize().toArray();
 
@@ -1817,7 +1806,7 @@ export class Utils {
 	        ax =  [x / s,y / s,z / s]
         }
     	
-        const v = new Vector3().fromArray(ax)
+        const v = new Vector3().fromArray(ax);
     	const timeDiff = 1//time2 - time1;
     	const angularVelocity = v.multiplyScalar( angle / timeDiff );
 
@@ -1827,7 +1816,7 @@ export class Utils {
 
     refAxis( m, axe ) {
 
-    	let zAxis = new Vector3().fromArray(axe)
+    	let zAxis = new Vector3().fromArray(axe);
 	    let xAxis = new Vector3(1, 0, 0);
 	    let yAxis = new Vector3(0, 1, 0);
 	    if ( Math.abs( axe[1] ) > 0.9999 ){

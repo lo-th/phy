@@ -36599,7 +36599,7 @@ class MouseTool {
 
 		this.raycast.setFromCamera( this.mouse, this.controler.object );
 		this.pos.copy( this.raycast.ray.direction ).add(  this.raycast.ray.origin );
-		this.velocity.copy( this.raycast.ray.direction ).multiplyScalar( o.velocity || 60 );
+		this.velocity.copy( this.raycast.ray.direction ).multiplyScalar( o.velocity || 60 );//.multiplyScalar( 100 )
 
 		this.motor.add({
 			name: 'bullet_' + this.numBullet,
@@ -36610,6 +36610,7 @@ class MouseTool {
 			material:o.mat || 'chrome',
 			pos:this.pos.toArray(),
 			linearVelocity:this.velocity.toArray(),
+			//impulse:this.velocity.toArray(),
 			bullet:true,
 			//iterations:[32,4],
 			//minCCD:0.01,
@@ -37295,7 +37296,7 @@ class SoftSolver {
             //inertia:[0.00001,0.00001,0.00001], 
             //iterations:[10,1],
             
-            mass:this.pMass, 
+            mass:this.pMass,
             //density:0.0000001,
             restitution:0.0, 
             friction:0.5, 
@@ -37422,14 +37423,14 @@ class SoftSolver {
     getNeighbors( particle, neighbors ) {
 
 	    const N = this.particles.length;
-	    const id = particle.id;
+	    const id = particle.idx;
 	    const R2 = this.smoothing * this.smoothing;
 	    let distance = 0;//SPHSystem_getNeighbors_dist
 	    for (let i = 0; i !== N; i++) {
 	        const p = this.particles[i];
 	        //const dx = p.position.x - particle.position.x, dy = p.position.y - particle.position.y, dz = p.position.z - particle.position.z;
 	        distance = this.distanceSq(p, particle );//dx * dx + dy * dy + dz * dz
-	        if (id !== p.id && distance < R2) {
+	        if (id !== p.idx && distance < R2) {
 	            neighbors.push(p);
 	        }
 	    }	
@@ -40491,8 +40492,6 @@ class PhyEngine {
 		};
 
 		const items = {};
-		//this.items = () => items;
-
 
 		// ------------------------------
 		//     MAIN SCENE FOR PHY
@@ -40536,13 +40535,6 @@ class PhyEngine {
 			if( m.dispose ) m.dispose();
 				
 		};
-
-
-		/*get onFrame() {
-	        return this._name;
-	    }*/
-	    //this.version( f ) { return Version.PHY; }
-
 
 	    this.setStep = ( f ) => { postUpdate = f; };
 
@@ -40835,7 +40827,6 @@ class PhyEngine {
 					//const sharedArray = new Float32Array(sharedBuffer);
 					// Start the worker and pass the shared buffer
 					//const worker = new Worker('./worker-shared-buffer.js', { workerData: sharedBuffer });
-
 
 					// https://web.dev/articles/module-workers?hl=fr
 					// https://developer.mozilla.org/en-US/docs/Web/API/Worker/Worker
@@ -41235,7 +41226,6 @@ class PhyEngine {
 
 			if( this.debuger !== null ) this.debuger.draw();
 
-			
 
 			// TODO fix dt 0 when no doStep ??
 

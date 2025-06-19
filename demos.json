@@ -4,7 +4,7 @@
         "gears", "terrain", "character", "kinematic", "random", "tower",
         "gravity", "evangelion", "simple",
         "blast", "skeleton", "skeleton_old", "material", "keva", "test", "collision",
-        "dragon", "raycast", "human", "player", "auto_ragdoll", "badaboum", "kart", "fracture"
+        "dragon", "raycast", "human", "player", "auto_ragdoll", "badaboum", "kart", "fracture", "nefertiti"
     ],
     "Dev" : [ 
         "spring", "gears2", "mass", "empty", "empty2", "empty3", "group_mask",
