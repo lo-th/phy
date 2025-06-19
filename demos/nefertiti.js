@@ -12,6 +12,7 @@ demo = () => {
 
     phy.material({ name:'nefer', color:0xFFFFFF, roughness: 0.6, metalness: 0.3, normalScale:[0.25,-0.25], 
         map:phy.texture({ url:'./assets/textures/museum/nefer_d.jpg', srgb:true }),
+        aoMap:phy.texture({ url:'./assets/textures/museum/nefer_ao.jpg' }),
         normalMap:phy.texture({ url:'./assets/textures/museum/nefer_n.jpg' }) 
     })
 
@@ -32,7 +33,7 @@ onComplete = (name) => {
     let mat;
 
     for(let m in model){
-        model[m].geometry.scale(0.08,0.08,0.08);
+        model[m].geometry.scale(20,20,20);
         model[m].material = phy.getMaterial('nefer');
         mat = model[m].material
 

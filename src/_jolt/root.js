@@ -35,8 +35,10 @@ export const root = {
 
 	reflow:{
 		ray:[],
-		stat:{ fps:0, delta:0, ms:0 },
+		point:{},
+		contact:{},
 		velocity:{},
+		stat:{ fps:0, delta:0, ms:0 },
 	}
 
 };
