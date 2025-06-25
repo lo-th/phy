@@ -276,7 +276,11 @@ export class Body extends Item {
 				o.v = MathTool.getVertex( g, noIndex );
 				o.index = MathTool.getIndex( g, noIndex );
 
-				let use16 = false;
+				//console.log(o.v, o.index)
+
+				//console.log(o.index)
+
+				/*let use16 = false;
 
 				if(use16){
 					let z = o.index.length;
@@ -285,7 +289,7 @@ export class Body extends Item {
 						index16[z] = o.index[z];
 					}
 					o.index = index16;
-				}
+				}*/
 
 				if(this.engine === 'PHYSX'){
 					let center = new Vector3();

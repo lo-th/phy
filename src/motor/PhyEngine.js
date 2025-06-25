@@ -42,7 +42,7 @@ import { sk } from '../3TH/character/SkeletonExtand.js';
 import { preloadAvatar } from '../3TH/character/Avatar.js';
 
 import { Smoke } from '../libs/smoke.module.js';
-
+import { WiggleGroup } from "../libs/wiggle.module.js";
 
 /** __
 *    _)_|_|_
@@ -108,7 +108,6 @@ export class PhyEngine {
         let useLocal = false;
         let useModule = false;
 
-		
 		let addToFlow = true;
 
 		let needContact = false;
@@ -1555,6 +1554,20 @@ export class PhyEngine {
 	    	return colorChecker;
 
 	    }
+
+	    //--------------------
+		//
+		//  WINGGLE
+		//
+		//--------------------
+
+		this.addWiggle = ( o = {} ) => {
+
+		   
+
+		}
+
+
 
 	    //--------------------
 		//

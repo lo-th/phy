@@ -9,7 +9,7 @@
     "Dev" : [ 
         "spring", "gears2", "mass", "empty", "empty2", "empty3", "group_mask",
         "car", "buttons", "robot_arm", "pinball", "bullet", "build", 
-        "kaneda", "vehicle3", "mesh", "stacking",  "house", "direct",
+        "kaneda", "vehicle3", "mesh", "stacking",  "house", "direct", "nefertiti2",
         "solver", "wall", "skylab", "colors", "barbados", "barbados2", "blob", "coin", "havok_car", "joint_test", "event"
     ],
     "Advanced" : [ 

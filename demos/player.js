@@ -252,6 +252,7 @@ const addSteps = () => {
 }
 
 const addSlope = () => {
+    //return
     const onDone = () => {
         const model = phy.getMesh('slopes');
         for(let m in model){
@@ -267,9 +268,11 @@ const addSlope = () => {
 }
 
 const addRoughPlane = () => {
+    //return
     const onDone = () => {
         const model = phy.getMesh('roughPlane');
         for(let m in model){
+            
             phy.add( {
                 type:'mesh',
                 shape: model[m].geometry,
