@@ -24,8 +24,6 @@ tmpCanvas.width = tmpCanvas.height = 128
 
 let bigCanvas = document.createElement('canvas')
 bigCanvas.width = bigCanvas.height = 1024
-//bigCanvas.style.cssText = 'position:absolute;'
-//document.body.appendChild( bigCanvas )
 
 demo = () => {
 
@@ -77,7 +75,7 @@ onComplete = () => {
     makeMachine()
     makeBall()
 
-    text = phy.addText({text:'Win Millions', color:'#606010', pos:[4.5,0.1,3], rot:[-90,0,0]})
+    text = phy.addText({text:'Win maybe millions ?', color:'#FFFFFF', pos:[4.5,0.3,3], rot:[-90,0,0]})
 
     phy.setTimeout( activeBall, 3000 )
 

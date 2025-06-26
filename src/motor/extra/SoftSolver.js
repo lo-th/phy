@@ -328,7 +328,7 @@ export class SoftSolver {
 	    for (let i = 0; i !== N; i++) {
 	        const p = this.particles[i]
 	        //const dx = p.position.x - particle.position.x, dy = p.position.y - particle.position.y, dz = p.position.z - particle.position.z;
-	        distance = this.distanceSq(p, particle )//dx * dx + dy * dy + dz * dz
+	        distance = this.distanceSq( p, particle )//dx * dx + dy * dy + dz * dz
 	        if (id !== p.idx && distance < R2) {
 	            neighbors.push(p)
 	        }
@@ -349,7 +349,8 @@ export class SoftSolver {
 	w(r) {
 	    // 315
 	    const h = this.smoothing
-	    return (315.0 / (64.0 * Math.PI * h ** 9)) * (h * h - r * r) ** 3;
+	    return 315.0/(64.0*Math.PI*Math.pow(h,9)) * Math.pow(h*h-r*r,3);
+	    //return (315.0 / (64.0 * Math.PI * h ** 9)) * (h * h - r * r) ** 3;
 
 	}
 
@@ -358,7 +359,9 @@ export class SoftSolver {
 
 	    const r = rVec.length();
 	    const h = this.smoothing;
-	    resultVec.copy(rVec).multiplyScalar( (945.0 / (32.0 * Math.PI * h ** 9)) * (h * h - r * r) ** 2 );
+	    const vv = 945.0/(32.0*Math.PI*Math.pow(h,9)) * Math.pow((h*h-r*r),2)
+	    //resultVec.copy(rVec).multiplyScalar( (945.0 / (32.0 * Math.PI * h ** 9)) * (h * h - r * r) ** 2 );
+	    resultVec.copy(rVec).multiplyScalar( vv );
 
 	}
 
@@ -366,7 +369,8 @@ export class SoftSolver {
 	nablaw(r) {
 
 	    const h = this.smoothing;
-	    const nabla = (945.0 / (32.0 * Math.PI * h ** 9)) * (h * h - r * r) * (7 * r * r - 3 * h * h);
+	    const nabla = 945.0/(32.0*Math.PI*Math.pow(h,9)) * (h*h-r*r)*(7*r*r - 3*h*h);
+	    //const nabla = (945.0 / (32.0 * Math.PI * h ** 9)) * (h * h - r * r) * (7 * r * r - 3 * h * h);
 	    return nabla;
 
 	}
@@ -448,8 +452,9 @@ export class SoftSolver {
 
 	    i = N
 
+	    let neighbor, r
+
 	    for (let i = 0; i !== N; i++) {
-	    //while(i--){
 
 	    	const particle = this.particles[i]
 
@@ -465,15 +470,18 @@ export class SoftSolver {
 		    const neighbors = this.neighbors[i]
 		    const numNeighbors = neighbors.length
 
+		    
+
 		    //j = numNeighbors
 		    //while(j--){
 		    for (let j = 0; j !== numNeighbors; j++) {
-		    	const neighbor = neighbors[j]
+		    	
+		    	neighbor = neighbors[j]
 
 		    	// Get r once for all..
 		    	r_vec.copy(particle.position).sub(neighbor.position)
-		        //particle.position.vsub(neighbor.position, r_vec)
-		        const r = r_vec.length()
+		        r = r_vec.length()
+
 
 		        // Pressure contribution
 		        Pij =
@@ -516,6 +524,7 @@ export class SoftSolver {
 		    TMP.push({
 		    	name: particle.name,
 		    	force: particle.force.toArray(),
+		    	//pos:particle.position.toArray()
 		    	//velocityOperation:'step',
 		    	//linear:0.01
 		    })

@@ -104,6 +104,8 @@ export class Body extends Item {
 			b.position.fromArray( AR, n + 1 );
 	        b.quaternion.fromArray( AR, n + 4 );
 
+	        if(this.motor.ws !== 1) b.position.multiplyScalar(this.motor.uws)
+
 	        // update velocity
 
 	        if( this.full ){
@@ -127,7 +129,8 @@ export class Body extends Item {
 		    		let v = AR[n]*0.01///255; //MathTool.lengthArray([AR[n+8], AR[n+9], AR[n+10]]) * 0.062;
 		    		b.instance.setColorAt( b.idx, [ v,v,v ] );
 		    	}
-		    	b.instance.setTransformAt( b.idx, [AR[n+1],AR[n+2],AR[n+3]], [AR[n+4],AR[n+5],AR[n+6],AR[n+7]], b.noScale ? [1,1,1] : b.size );
+		    	//b.instance.setTransformAt( b.idx, [AR[n+1],AR[n+2],AR[n+3]], [AR[n+4],AR[n+5],AR[n+6],AR[n+7]], b.noScale ? [1,1,1] : b.size );
+		    	b.instance.setTransformAt( b.idx, b.position.toArray(), b.quaternion.toArray(), b.noScale ? [1,1,1] : b.size );
 		    	if( this.needMatrix ) b.matrixWorld.compose( b.position, b.quaternion, {x:1, y:1, z:1}) 
 		    	
 		    } else { 
@@ -265,6 +268,13 @@ export class Body extends Item {
 				if(!g.boundingBox) g.computeBoundingBox();
 				let bx = g.boundingBox;
 			    o.boxSize = [ -bx.min.x + bx.max.x, -bx.min.y + bx.max.y, -bx.min.z + bx.max.z ];
+
+			    /*if(this.engine === 'PHYSX'){
+					let center = new Vector3();
+					MathTool.getCenter( g, center );
+					if(!o.massCenter) o.massCenter = center.toArray();
+					//console.log(o.massCenter)
+				}*/
 
 			break;
 
@@ -744,8 +754,11 @@ export class Body extends Item {
 
 			b.instance.add( b, o.pos, o.quat, b.noScale ? [1,1,1] : b.size, color );
 
+			
 			b.position = new Vector3().fromArray(o.pos); //{x:o.pos[0], y:o.pos[1], z:o.pos[2]};
 			b.quaternion = new Quaternion().fromArray(o.quat); //{_x:o.quat[0], _y:o.quat[1], _z:o.quat[2], _w:o.quat[3]};
+
+			
 		    
 		    //b.link = 0;
 		    if( this.needMatrix ) b.matrixWorld = new Matrix4();
@@ -1131,8 +1144,8 @@ export class Body extends Item {
 
 	scaler ( o, s ) {
 
-	    if(o.size) o.size = math.scaleArray( o.size, s );
-	    if(o.pos) o.pos = math.scaleArray( o.pos, s );
+	    if(o.size) o.size = math.worldscale(o.size, s )//o.size = math.scaleArray( o.size, s );
+	    if(o.pos) o.pos = math.worldscale(o.pos, s )//o.pos = math.scaleArray( o.pos, s );
 	    if(o.type === 'convex') o.shapeScale = [s,s,s];
 	    if(o.shapes){
 	        let i = o.shapes.length, sh;

@@ -735,6 +735,10 @@ const M = {
         
     },
 
+    worldscale: ( a, b ) => {
+        return a.map((x) => x * b);
+    },
+
     divArray: ( r, s, i ) => ( M.mulArray( r, 1/s, i ) ),
 
     scaleArray: ( r, s, i ) => ( M.mulArray( r, s, i ) ),

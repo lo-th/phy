@@ -94,10 +94,12 @@ test_0 = ( d ) => {
     phy.add({ 
         name:'frost', 
         type:'mesh',
+        //type:'convex',
+
         mesh:model['wakeup002'],
-        mass:1000,
-        friction:1,
-        //density:5, 
+        //mass:1000,
+        friction:0.5,
+        density:500, 
         pos:[0,0,0],
         breakable:true, 
         ignore:['floor', 'wall'],
@@ -106,7 +108,7 @@ test_0 = ( d ) => {
         breakOption:[ 50, 3, 4, 2, false ],
         //material:'B', 
         //autoUV:true 
-        //massInfo:true
+        massInfo:true
     });
 
 

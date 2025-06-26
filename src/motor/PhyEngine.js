@@ -209,9 +209,16 @@ export class PhyEngine {
 		this.scene = null;
 	    this.scenePlus = null;
 
+	    // ------------------------------
+		//     WORRLD SCALE
+		// ------------------------------
+
+	    this.ws = 1;
+		this.uws = 1;
+
 
 		// ------------------------------
-		//     GARBAGEE
+		//     GARBAGE
 		// ------------------------------
 
 		this.garbage = [];
@@ -268,6 +275,10 @@ export class PhyEngine {
 			settings.gravity = o.gravity ? o.gravity : [0,-9.81,0];
 		    settings.substep = o.substep ? o.substep : 1;
 		    settings.fps = o.fps ? o.fps : 60;
+
+		    this.ws = o.worldScale !== undefined ? o.worldScale : 1;
+		    this.uws = 1/this.ws;
+		    
 
 		    // TODO remove whrn full complete
 		    //if(o.forceSubstep) settings.substep = o.forceSubstep;
@@ -360,11 +371,42 @@ export class PhyEngine {
 
 		}
 
+		this.worldScaler = ( o ) => {
+
+			const w = this.ws
+
+			if(o.pos) o.pos = MathTool.worldscale( o.pos, w );
+			if(o.localPos) o.localPos = MathTool.worldscale(o.localPos, w );
+			if(o.massCenter) o.massCenter = MathTool.worldscale(o.massCenter, w );
+			
+			if(o.pos1) o.pos1 = MathTool.worldscale(o.pos1, w );
+			if(o.pos2) o.pos2 = MathTool.worldscale(o.pos2, w );
+
+			if(o.shapes){
+				let i = o.shapes.length, s;
+		        while(i--){
+		            s = o.shapes[i];
+		            if(s.size) o.shapes[i].size = MathTool.worldscale( s.size, w );
+		            if(s.pos) o.shapes[i].pos = MathTool.worldscale( s.pos, w );
+		            if(s.v) o.shapes[i].v = MathTool.worldscale( s.v, w );
+		        }
+			} else {
+				if(o.size) o.size = MathTool.worldscale(o.size, w );
+				if(o.v) o.v = MathTool.worldscale( o.v, w );
+			}
+
+		}
+
 		// Typically, on a Flame, the transfer speed is 80 kB/ms for postMessage 
 		// This means that if you want your message to fit in a single frame, 
 		// you should keep it under 1,300 kB
 
 		this.post = ( e, buffer = null, direct = false ) => {
+
+			// worldscale
+			if( this.ws !== 1 ){
+				if(e.m === 'add' || e.m === 'change') this.worldScaler( e.o );
+			}
 
 			if( !isWorker ){
 				directMessage( { data : e } );

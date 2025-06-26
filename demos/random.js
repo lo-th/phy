@@ -19,7 +19,7 @@ demo = () => {
     //phy.useRealLight( {} );
 
     // config physics setting
-    phy.set({ substep:2, gravity:[0,-30,0]})
+    phy.set({ substep:2, gravity:[0,-30,0], worldScale:1 })
 
     // add static plane 
     phy.add({ type:'plane', size:[300,1,300], visible:false, friction:0.5, restitution:0.1 })

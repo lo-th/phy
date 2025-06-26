@@ -3,7 +3,7 @@ demo = () => {
     phy.view({ envmap:'river', theta:-100, reflect:0.25 })
 
     // config physics setting
-    phy.set({ substep:1, gravity:[0,-9.81,0], fps:60 })
+    phy.set({ substep:1, gravity:[0,-9.81,0], fps:60, worldScale:0.5 })
 
     // add static ground box
     phy.add({ type:'box', size:[100,4,100], pos:[0, -2, 0], restitution:0.2, visible:false })
