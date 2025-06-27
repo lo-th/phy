@@ -45621,6 +45621,9 @@ class PhyEngine {
 
 				if( isWorker ){ // is worker version
 
+					let fileName = useModule ? mini + '.module.js' : mini + '.min.js';
+					let workerSourceURL;
+
 					// TODO test
 					// https://aditya003-ay.medium.com/different-ways-to-share-data-between-main-thread-and-worker-thread-75a5d86ab441
 					//const sharedBuffer = new SharedArrayBuffer(Float32Array.BYTES_PER_ELEMENT * 5);
@@ -45631,14 +45634,17 @@ class PhyEngine {
 					// https://web.dev/articles/module-workers?hl=fr
 					// https://developer.mozilla.org/en-US/docs/Web/API/Worker/Worker
 
-					if( useLocal ){
+					if( useLocal ) workerSourceURL = new URL( '../build/' + fileName, import.meta.url );
+					else workerSourceURL = url + path + fileName;
 
-						const jsContent = this.loadLibrary( new URL( useModule ? '../build/' + mini + '.module.js' : '../build/' + mini + '.min.js', import.meta.url) );
-						Promise.all( [ jsContent ] )
+					
+
+						/*const jsContent = this.loadLibrary( new URL( useModule ? '../build/' + mini + '.module.js' : '../build/' + mini + '.min.js', import.meta.url) )
+						const transcoderPending = Promise.all( [ jsContent ] )
 						    .then( ( [ jsContent ] ) => {
 
 						    	const workerSourceURL = URL.createObjectURL( new Blob( [ jsContent ] ) );
-						    	worker = new Worker( workerSourceURL, {type:useModule ? 'module' : 'classic' } );
+						    	worker = new Worker( workerSourceURL, {type:useModule ? 'module' : 'classic' } )
 						    	worker.postMessage = worker.webkitPostMessage || worker.postMessage;
 								worker.onmessage = _this.message;
 
@@ -45653,37 +45659,37 @@ class PhyEngine {
 
 								_this.initPhysics( o );
 
-						});
+						});*/
 
 						//if( useModule ) worker = new Worker( new URL( './' + mini + '.module.js', import.meta.url), {type:'module'} )
 						//else worker = new Worker( new URL( './' + mini + '.min.js', import.meta.url), {type:'classic'} )
 						
-						//if( useModule ) worker = new Worker( new URL( '../build/' + mini + '.module.js', import.meta.url), {type:'module'} )
-						//else worker = new Worker( new URL( '../build/' + mini + '.min.js', import.meta.url), {type:'classic'} )
+				/*		if( useModule ) worker = new Worker( new URL( '../build/' + mini + '.module.js', import.meta.url), {type:'module'} )
+						else worker = new Worker( new URL( '../build/' + mini + '.min.js', import.meta.url), {type:'classic'} )
 						
 					} else {
 
-						if( useModule ) worker = new Worker( url + path + mini + '.module.js', {type:'module'} );
-						else worker = new Worker( url + path + mini + '.min.js' );
+						if( useModule ) worker = new Worker( url + path + mini + '.module.js', {type:'module'} )
+						else worker = new Worker( url + path + mini + '.min.js' )
 
-						worker.postMessage = worker.webkitPostMessage || worker.postMessage;
-						worker.onmessage = this.message;
+						
 
-						if( this.noBuffer ) o.isBuffer = false;
-						else {
-							// test if worker Shared buffer is compatible
-							let ab = new ArrayBuffer( 1 );
-							worker.postMessage( { m: 'test', ab:ab }, [ ab ] );
-							isBuffer = ab.byteLength ? false : true;
-							o.isBuffer = isBuffer;
-						}
+					}*/
 
-						this.initPhysics( o );
+				    worker = new Worker( workerSourceURL, { type: useModule ? 'module' : 'classic'} );
+				    worker.postMessage = worker.webkitPostMessage || worker.postMessage;
+					worker.onmessage = this.message;
 
+					if( this.noBuffer ) o.isBuffer = false;
+					else {
+						// test if worker Shared buffer is compatible
+						let ab = new ArrayBuffer( 1 );
+						worker.postMessage( { m: 'test', ab:ab }, [ ab ] );
+						isBuffer = ab.byteLength ? false : true;
+						o.isBuffer = isBuffer;
 					}
 
-
-					
+					this.initPhysics( o );
 
 
 				} else { // is direct version
@@ -45697,7 +45703,7 @@ class PhyEngine {
 
 		};
 
-		this.loadLibrary = ( url, responseType = 'text' ) => {
+		/*this.loadLibrary = ( url, responseType = 'text' ) => {
 
 			const loader = Pool.loaderFILE();
 			//loader.setPath( this.transcoderPath );
@@ -45710,7 +45716,7 @@ class PhyEngine {
 
 			});
 
-		};
+		}*/
 
 
 
