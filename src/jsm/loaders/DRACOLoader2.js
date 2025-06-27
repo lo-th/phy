@@ -256,6 +256,8 @@ class DRACOLoader extends Loader {
 
 	}
 
+
+
 	preload() {
 
 		this._initDecoder();
@@ -277,8 +279,8 @@ class DRACOLoader extends Loader {
 
 		} else {
 
-			//librariesPending.push( draco_wasm );
-			librariesPending.push( this._loadLibrary( 'draco_wasm_wrapper.js', 'text' ) );
+			librariesPending.push( draco_wasm );
+			//librariesPending.push( this._loadLibrary( 'draco_wasm_wrapper.js', 'text' ) );
 			//librariesPending.push( this._loadLibrary( 'draco_decoder.wasm', 'arraybuffer' ) );
 
 		}
@@ -290,7 +292,7 @@ class DRACOLoader extends Loader {
 
 				if ( ! useJS ) {
 
-					console.log(libraries[ 0 ])
+					//console.log(libraries[ 0 ])
 
 					//this.decoderConfig.wasmBinary = libraries[ 1 ];
 

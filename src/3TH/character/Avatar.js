@@ -16,7 +16,6 @@ import {
 
 import { MeshSssMaterial } from '../materials/MeshSssMaterial.js';
 
-//import { GLTFExporter } from '../../jsm/exporters/GLTFExporter.js';
 import * as SkeletonUtils from '../../jsm/utils/SkeletonUtils.js';
 
 import { Pool } from '../Pool.js';
@@ -102,7 +101,7 @@ export class Avatar extends Group {
 
         this.rootPath = o.path || './';
         this.lzmaPath = this.rootPath + 'src/libs/lzma_worker.js';
-        Pool.dracoPath =  this.rootPath + 'src/libs/draco/';
+        //Pool.dracoPath =  this.rootPath + 'src/libs/draco/';
 
         this.callback = o.callback || function (){};
 

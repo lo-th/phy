@@ -555,6 +555,8 @@ export class PhyEngine {
 			useModule = o.useModule ? this.supportModuleWorker() : false;
 			useLocal = o.useLocal || false;
 
+			Pool.useLocal = useLocal;
+
 
 			if( compact ){
 

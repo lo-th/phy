@@ -193,28 +193,16 @@ addClock = () => {
 
     const clockMesh = phy.getMesh('chessclock');
 
-    /*let mc = phy.material({ name:'Clock', roughness: 0.25, metalness: 1, 
-        map:phy.texture({ url:'./assets/textures/chess/chessclock_c.jpg', flip:true }),
-        metalnessMap:phy.texture({ url:'./assets/textures/chess/chessclock_m.jpg', flip:true }),
-        //side:'Double',
-    })
-    //let g = phy.material({ name:'gl', roughness: 0, metalness: 1, transparent:true, opacity:0.2 })
-    clockMesh.clock.traverse( ( child ) => {
-        if ( child.isMesh ){
-            if(child.name!=='glass') child.material = mc;
-            else child.material = phy.getMaterial('glass2');
-        }
-    })*/
+    phy.add({ type:'box', size:[3,1.6,1.1], pos:[0, 0.8-0.02, -5.2], mass:1, mesh:clockMesh.clock })
 
-    phy.add({ type:'box', size:[3,1.6,1.1], pos:[0, 0.8-0.02, -5.2], mass:1, mesh:clockMesh.clock, noClone:true })
-
-    let b = clockMesh.border;
+    let b = clockMesh.border.clone();
     b.material = phy.material({ name:'Border', roughness: 1, metalness: 0, color:0xe8dada })
     b.receiveShadow = true;
     phy.add(b);
 
-    let z = clockMesh.zone;
+    let z = clockMesh.zone.clone();
     z.material = phy.getMaterial('shadow');
     z.receiveShadow = true;
-    phy.add(z);/**/
+    phy.add(z);
+    
 }

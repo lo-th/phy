@@ -19,25 +19,27 @@ demo = () => {
     //phy.useRealLight( {} );
 
     // config physics setting
-    phy.set({ substep:2, gravity:[0,-30,0], worldScale:1 })
+    phy.set({ substep:2, gravity:[0,-10,0], worldScale:0.2 })
 
     // add static plane 
     phy.add({ type:'plane', size:[300,1,300], visible:false, friction:0.5, restitution:0.1 })
 
     phy.load( ['./assets/models/dices.glb', './assets/models/slide.glb'], onComplete )
 
-    let g = phy.getGround()
-    //g.material.map = phy.texture({ url:'./assets/textures/dices/carpet_n.jpg', repeat:[8,8] })
-    g.material.normalMap = phy.texture({ url:'./assets/textures/dices/carpet_n.jpg', repeat:[20,20] })
-    //g.material.normalScale.set(0.2,0.2)
+    
 
 }
 
 onComplete = () => {
 
+
+
+    let g = phy.getGround()
+    //g.material.map = phy.texture({ url:'./assets/textures/dices/carpet_n.jpg', repeat:[8,8] })
+    g.material.normalMap = phy.texture({ url:'./assets/textures/dices/carpet_n.jpg', repeat:[20,20] })
+    //g.material.normalScale.set(0.2,0.2)
+
     models = phy.getMesh('dices');
-
-
 
     // make dices material
     phy.material({ 
@@ -48,7 +50,6 @@ onComplete = () => {
         normalMap: phy.texture({ url:'./assets/textures/dices/dices_n.png' }),
         normalScale:[5,-5],
     })
-
 
 
     let slideMesh = phy.getMesh('slide');
@@ -64,13 +65,13 @@ onComplete = () => {
         material:'glassX'
     })
 
-    let socle = slideMesh.socle
+
+    let socle = slideMesh.socle.clone()
     socle.material = phy.getMat('clayWhite')
     socle.receiveShadow = true
     socle.castShadow = true
     socle.scale.multiplyScalar(0.36)
     socle.position.multiplyScalar(0.36)
-
     phy.add(socle)
 
     // add some dust

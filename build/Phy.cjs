@@ -1,6 +1,15 @@
 'use strict';
 
 var three = require('three');
+var GLTFLoader_js = require('three/addons/loaders/GLTFLoader.js');
+var FBXLoader_js = require('three/addons/loaders/FBXLoader.js');
+var OBJLoader_js = require('three/addons/loaders/OBJLoader.js');
+var STLLoader_js = require('three/addons/loaders/STLLoader.js');
+var RGBELoader_js = require('three/addons/loaders/RGBELoader.js');
+var EXRLoader_js = require('three/addons/loaders/EXRLoader.js');
+var meshopt_decoder_module_js = require('three/addons/libs/meshopt_decoder.module.js');
+require('three/addons/loaders/UltraHDRLoader.js');
+var KTX2Loader_js = require('three/addons/loaders/KTX2Loader.js');
 
 var _documentCurrentScript = typeof document !== 'undefined' ? document.currentScript : null;
 const PI = Math.PI;
@@ -1226,6 +1235,870 @@ get_blend_space_2d_node_influences :: (using space : *Blend_Space_2d, position :
 }
 */
 
+const _taskCache = new WeakMap();
+
+class DRACOLoader extends three.Loader {
+
+	constructor( manager ) {
+
+		super( manager );
+
+		this.useLocal = false;
+
+		this.decoderPath = '';
+		this.decoderConfig = {};
+		this.decoderBinary = null;
+		this.decoderPending = null;
+
+		this.workerLimit = 4;
+		this.workerPool = [];
+		this.workerNextTaskID = 1;
+		this.workerSourceURL = '';
+
+		this.defaultAttributeIDs = {
+			position: 'POSITION',
+			normal: 'NORMAL',
+			color: 'COLOR',
+			uv: 'TEX_COORD'
+		};
+		this.defaultAttributeTypes = {
+			position: 'Float32Array',
+			normal: 'Float32Array',
+			color: 'Float32Array',
+			uv: 'Float32Array'
+		};
+
+	}
+
+	setUseLocal( value ) {
+
+		this.useLocal = value;
+
+		return this;
+
+	}
+
+	setDecoderPath( path ) {
+
+		this.decoderPath = path;
+
+		return this;
+
+	}
+
+	setDecoderConfig( config ) {
+
+		this.decoderConfig = config;
+
+		return this;
+
+	}
+
+	setWorkerLimit( workerLimit ) {
+
+		this.workerLimit = workerLimit;
+
+		return this;
+
+	}
+
+	load( url, onLoad, onProgress, onError ) {
+
+		const loader = new three.FileLoader( this.manager );
+
+		loader.setPath( this.path );
+		loader.setResponseType( 'arraybuffer' );
+		loader.setRequestHeader( this.requestHeader );
+		loader.setWithCredentials( this.withCredentials );
+
+		loader.load( url, ( buffer ) => {
+
+			this.parse( buffer, onLoad, onError );
+
+		}, onProgress, onError );
+
+	}
+
+	parse( buffer, onLoad, onError ) {
+
+		this.decodeDracoFile( buffer, onLoad, null, null, three.SRGBColorSpace ).catch( onError );
+
+	}
+
+	decodeDracoFile( buffer, callback, attributeIDs, attributeTypes, vertexColorSpace = three.LinearSRGBColorSpace ) {
+
+		const taskConfig = {
+			attributeIDs: attributeIDs || this.defaultAttributeIDs,
+			attributeTypes: attributeTypes || this.defaultAttributeTypes,
+			useUniqueIDs: !! attributeIDs,
+			vertexColorSpace: vertexColorSpace,
+		};
+
+		return this.decodeGeometry( buffer, taskConfig ).then( callback );
+
+	}
+
+	decodeGeometry( buffer, taskConfig ) {
+
+		const taskKey = JSON.stringify( taskConfig );
+
+		// Check for an existing task using this buffer. A transferred buffer cannot be transferred
+		// again from this thread.
+		if ( _taskCache.has( buffer ) ) {
+
+			const cachedTask = _taskCache.get( buffer );
+
+			if ( cachedTask.key === taskKey ) {
+
+				return cachedTask.promise;
+
+			} else if ( buffer.byteLength === 0 ) {
+
+				// Technically, it would be possible to wait for the previous task to complete,
+				// transfer the buffer back, and decode again with the second configuration. That
+				// is complex, and I don't know of any reason to decode a Draco buffer twice in
+				// different ways, so this is left unimplemented.
+				throw new Error(
+
+					'THREE.DRACOLoader: Unable to re-decode a buffer with different ' +
+					'settings. Buffer has already been transferred.'
+
+				);
+
+			}
+
+		}
+
+		//
+
+		let worker;
+		const taskID = this.workerNextTaskID ++;
+		const taskCost = buffer.byteLength;
+
+		// Obtain a worker and assign a task, and construct a geometry instance
+		// when the task completes.
+		const geometryPending = this._getWorker( taskID, taskCost )
+			.then( ( _worker ) => {
+
+				worker = _worker;
+
+				return new Promise( ( resolve, reject ) => {
+
+					worker._callbacks[ taskID ] = { resolve, reject };
+
+					worker.postMessage( { type: 'decode', id: taskID, taskConfig, buffer }, [ buffer ] );
+
+					// this.debug();
+
+				} );
+
+			} )
+			.then( ( message ) => this._createGeometry( message.geometry ) );
+
+		// Remove task from the task list.
+		// Note: replaced '.finally()' with '.catch().then()' block - iOS 11 support (#19416)
+		geometryPending
+			.catch( () => true )
+			.then( () => {
+
+				if ( worker && taskID ) {
+
+					this._releaseTask( worker, taskID );
+
+					// this.debug();
+
+				}
+
+			} );
+
+		// Cache the task result.
+		_taskCache.set( buffer, {
+
+			key: taskKey,
+			promise: geometryPending
+
+		} );
+
+		return geometryPending;
+
+	}
+
+	_createGeometry( geometryData ) {
+
+		const geometry = new three.BufferGeometry();
+
+		if ( geometryData.index ) {
+
+			geometry.setIndex( new three.BufferAttribute( geometryData.index.array, 1 ) );
+
+		}
+
+		for ( let i = 0; i < geometryData.attributes.length; i ++ ) {
+
+			const result = geometryData.attributes[ i ];
+			const name = result.name;
+			const array = result.array;
+			const itemSize = result.itemSize;
+
+			const attribute = new three.BufferAttribute( array, itemSize );
+
+			if ( name === 'color' ) {
+
+				this._assignVertexColorSpace( attribute, result.vertexColorSpace );
+
+				attribute.normalized = ( array instanceof Float32Array ) === false;
+
+			}
+
+			geometry.setAttribute( name, attribute );
+
+		}
+
+		return geometry;
+
+	}
+
+	_assignVertexColorSpace( attribute, inputColorSpace ) {
+
+		// While .drc files do not specify colorspace, the only 'official' tooling
+		// is PLY and OBJ converters, which use sRGB. We'll assume sRGB when a .drc
+		// file is passed into .load() or .parse(). GLTFLoader uses internal APIs
+		// to decode geometry, and vertex colors are already Linear-sRGB in there.
+
+		if ( inputColorSpace !== three.SRGBColorSpace ) return;
+
+		const _color = new three.Color();
+
+		for ( let i = 0, il = attribute.count; i < il; i ++ ) {
+
+			_color.fromBufferAttribute( attribute, i ).convertSRGBToLinear();
+			attribute.setXYZ( i, _color.r, _color.g, _color.b );
+
+		}
+
+	}
+
+	_loadLibrary( url, responseType ) {
+
+		const loader = new three.FileLoader( this.manager );
+		loader.setPath( this.decoderPath );
+		loader.setResponseType( responseType );
+		loader.setWithCredentials( this.withCredentials );
+
+		return new Promise( ( resolve, reject ) => {
+
+			loader.load( url, resolve, undefined, reject );
+
+		} );
+
+	}
+
+
+
+	preload() {
+
+		this._initDecoder();
+
+		return this;
+
+	}
+
+	_initDecoder() {
+
+		if ( this.decoderPending ) return this.decoderPending;
+
+		const useJS = typeof WebAssembly !== 'object' || this.decoderConfig.type === 'js';
+		const librariesPending = [];
+
+		if ( useJS ) {
+
+			if(this.useLocal) {
+				this.decoderPath = '';
+				librariesPending.push( this._loadLibrary( new URL( '../build/draco/draco_decoder.js', (typeof document === 'undefined' ? require('u' + 'rl').pathToFileURL(__filename).href : (_documentCurrentScript && _documentCurrentScript.tagName.toUpperCase() === 'SCRIPT' && _documentCurrentScript.src || new URL('Phy.cjs', document.baseURI).href)) ), 'text' ) );
+			} else {
+				librariesPending.push( this._loadLibrary( 'draco_decoder.js', 'text' ) );
+			}
+
+		} else {
+
+			if(this.useLocal) {
+				this.decoderPath = '';
+				librariesPending.push( this._loadLibrary( new URL( '../build/draco/draco_wasm_wrapper.js', (typeof document === 'undefined' ? require('u' + 'rl').pathToFileURL(__filename).href : (_documentCurrentScript && _documentCurrentScript.tagName.toUpperCase() === 'SCRIPT' && _documentCurrentScript.src || new URL('Phy.cjs', document.baseURI).href)) ), 'text' ) );
+			} else {
+				librariesPending.push( this._loadLibrary( 'draco_wasm_wrapper.js', 'text' ) );
+			}
+
+		}
+
+		this.decoderPending = Promise.all( librariesPending )
+			.then( ( libraries ) => {
+
+				const jsContent = libraries[ 0 ];
+
+				const fn = DRACOWorker.toString();
+
+				const body = [
+					'/* draco decoder */',
+					jsContent,
+					'',
+					'/* worker */',
+					fn.substring( fn.indexOf( '{' ) + 1, fn.lastIndexOf( '}' ) )
+				].join( '\n' );
+
+				this.workerSourceURL = URL.createObjectURL( new Blob( [ body ] ) );
+
+			} );
+
+		return this.decoderPending;
+
+	}
+
+	_getWorker( taskID, taskCost ) {
+
+		return this._initDecoder().then( () => {
+
+			if ( this.workerPool.length < this.workerLimit ) {
+
+				const worker = new Worker( this.workerSourceURL );
+
+				worker._callbacks = {};
+				worker._taskCosts = {};
+				worker._taskLoad = 0;
+
+				worker.postMessage( { type: 'init', decoderConfig: this.decoderConfig } );
+
+				worker.onmessage = function ( e ) {
+
+					const message = e.data;
+
+					switch ( message.type ) {
+
+						case 'decode':
+							worker._callbacks[ message.id ].resolve( message );
+							break;
+
+						case 'error':
+							worker._callbacks[ message.id ].reject( message );
+							break;
+
+						default:
+							console.error( 'THREE.DRACOLoader: Unexpected message, "' + message.type + '"' );
+
+					}
+
+				};
+
+				this.workerPool.push( worker );
+
+			} else {
+
+				this.workerPool.sort( function ( a, b ) {
+
+					return a._taskLoad > b._taskLoad ? -1 : 1;
+
+				} );
+
+			}
+
+			const worker = this.workerPool[ this.workerPool.length - 1 ];
+			worker._taskCosts[ taskID ] = taskCost;
+			worker._taskLoad += taskCost;
+			return worker;
+
+		} );
+
+	}
+
+	_releaseTask( worker, taskID ) {
+
+		worker._taskLoad -= worker._taskCosts[ taskID ];
+		delete worker._callbacks[ taskID ];
+		delete worker._taskCosts[ taskID ];
+
+	}
+
+	debug() {
+
+		console.log( 'Task load: ', this.workerPool.map( ( worker ) => worker._taskLoad ) );
+
+	}
+
+	dispose() {
+
+		for ( let i = 0; i < this.workerPool.length; ++ i ) {
+
+			this.workerPool[ i ].terminate();
+
+		}
+
+		this.workerPool.length = 0;
+
+		if ( this.workerSourceURL !== '' ) {
+
+			URL.revokeObjectURL( this.workerSourceURL );
+
+		}
+
+		return this;
+
+	}
+
+}
+
+/* WEB WORKER */
+
+function DRACOWorker() {
+
+	let decoderConfig;
+	let decoderPending;
+
+	onmessage = function ( e ) {
+
+		const message = e.data;
+
+		switch ( message.type ) {
+
+			case 'init':
+				decoderConfig = message.decoderConfig;
+				decoderPending = new Promise( function ( resolve/*, reject*/ ) {
+
+					decoderConfig.onModuleLoaded = function ( draco ) {
+
+						// Module is Promise-like. Wrap before resolving to avoid loop.
+						resolve( { draco: draco } );
+
+					};
+
+					DracoDecoderModule( decoderConfig ); // eslint-disable-line no-undef
+
+				} );
+				break;
+
+			case 'decode':
+				const buffer = message.buffer;
+				const taskConfig = message.taskConfig;
+				decoderPending.then( ( module ) => {
+
+					const draco = module.draco;
+					const decoder = new draco.Decoder();
+
+					try {
+
+						const geometry = decodeGeometry( draco, decoder, new Int8Array( buffer ), taskConfig );
+
+						const buffers = geometry.attributes.map( ( attr ) => attr.array.buffer );
+
+						if ( geometry.index ) buffers.push( geometry.index.array.buffer );
+
+						self.postMessage( { type: 'decode', id: message.id, geometry }, buffers );
+
+					} catch ( error ) {
+
+						console.error( error );
+
+						self.postMessage( { type: 'error', id: message.id, error: error.message } );
+
+					} finally {
+
+						draco.destroy( decoder );
+
+					}
+
+				} );
+				break;
+
+		}
+
+	};
+
+	function decodeGeometry( draco, decoder, array, taskConfig ) {
+
+		const attributeIDs = taskConfig.attributeIDs;
+		const attributeTypes = taskConfig.attributeTypes;
+
+		let dracoGeometry;
+		let decodingStatus;
+
+		const geometryType = decoder.GetEncodedGeometryType( array );
+
+		if ( geometryType === draco.TRIANGULAR_MESH ) {
+
+			dracoGeometry = new draco.Mesh();
+			decodingStatus = decoder.DecodeArrayToMesh( array, array.byteLength, dracoGeometry );
+
+		} else if ( geometryType === draco.POINT_CLOUD ) {
+
+			dracoGeometry = new draco.PointCloud();
+			decodingStatus = decoder.DecodeArrayToPointCloud( array, array.byteLength, dracoGeometry );
+
+		} else {
+
+			throw new Error( 'THREE.DRACOLoader: Unexpected geometry type.' );
+
+		}
+
+		if ( ! decodingStatus.ok() || dracoGeometry.ptr === 0 ) {
+
+			throw new Error( 'THREE.DRACOLoader: Decoding failed: ' + decodingStatus.error_msg() );
+
+		}
+
+		const geometry = { index: null, attributes: [] };
+
+		// Gather all vertex attributes.
+		for ( const attributeName in attributeIDs ) {
+
+			const attributeType = self[ attributeTypes[ attributeName ] ];
+
+			let attribute;
+			let attributeID;
+
+			// A Draco file may be created with default vertex attributes, whose attribute IDs
+			// are mapped 1:1 from their semantic name (POSITION, NORMAL, ...). Alternatively,
+			// a Draco file may contain a custom set of attributes, identified by known unique
+			// IDs. glTF files always do the latter, and `.drc` files typically do the former.
+			if ( taskConfig.useUniqueIDs ) {
+
+				attributeID = attributeIDs[ attributeName ];
+				attribute = decoder.GetAttributeByUniqueId( dracoGeometry, attributeID );
+
+			} else {
+
+				attributeID = decoder.GetAttributeId( dracoGeometry, draco[ attributeIDs[ attributeName ] ] );
+
+				if ( attributeID === -1 ) continue;
+
+				attribute = decoder.GetAttribute( dracoGeometry, attributeID );
+
+			}
+
+			const attributeResult = decodeAttribute( draco, decoder, dracoGeometry, attributeName, attributeType, attribute );
+
+			if ( attributeName === 'color' ) {
+
+				attributeResult.vertexColorSpace = taskConfig.vertexColorSpace;
+
+			}
+
+			geometry.attributes.push( attributeResult );
+
+		}
+
+		// Add index.
+		if ( geometryType === draco.TRIANGULAR_MESH ) {
+
+			geometry.index = decodeIndex( draco, decoder, dracoGeometry );
+
+		}
+
+		draco.destroy( dracoGeometry );
+
+		return geometry;
+
+	}
+
+	function decodeIndex( draco, decoder, dracoGeometry ) {
+
+		const numFaces = dracoGeometry.num_faces();
+		const numIndices = numFaces * 3;
+		const byteLength = numIndices * 4;
+
+		const ptr = draco._malloc( byteLength );
+		decoder.GetTrianglesUInt32Array( dracoGeometry, byteLength, ptr );
+		const index = new Uint32Array( draco.HEAPF32.buffer, ptr, numIndices ).slice();
+		draco._free( ptr );
+
+		return { array: index, itemSize: 1 };
+
+	}
+
+	function decodeAttribute( draco, decoder, dracoGeometry, attributeName, attributeType, attribute ) {
+
+		const numComponents = attribute.num_components();
+		const numPoints = dracoGeometry.num_points();
+		const numValues = numPoints * numComponents;
+		const byteLength = numValues * attributeType.BYTES_PER_ELEMENT;
+		const dataType = getDracoDataType( draco, attributeType );
+
+		const ptr = draco._malloc( byteLength );
+		decoder.GetAttributeDataArrayForAllPoints( dracoGeometry, attribute, dataType, byteLength, ptr );
+		const array = new attributeType( draco.HEAPF32.buffer, ptr, numValues ).slice();
+		draco._free( ptr );
+
+		return {
+			name: attributeName,
+			array: array,
+			itemSize: numComponents
+		};
+
+	}
+
+	function getDracoDataType( draco, attributeType ) {
+
+		switch ( attributeType ) {
+
+			case Float32Array: return draco.DT_FLOAT32;
+			case Int8Array: return draco.DT_INT8;
+			case Int16Array: return draco.DT_INT16;
+			case Int32Array: return draco.DT_INT32;
+			case Uint8Array: return draco.DT_UINT8;
+			case Uint16Array: return draco.DT_UINT16;
+			case Uint32Array: return draco.DT_UINT32;
+
+		}
+
+	}
+
+}
+
+let _activeLoaders = 0;
+
+
+class KTX2Loader extends KTX2Loader_js.KTX2Loader {
+
+	/**
+	 * Constructs a new KTX2 loader.
+	 *
+	 * @param {LoadingManager} [manager] - The loading manager.
+	 */
+	constructor( manager ) {
+
+		super( manager );
+
+		this.useLocal = false;
+
+	}
+
+	setUseLocal( value ) {
+
+		this.useLocal = value;
+		return this;
+
+	}
+
+	_loadLibrary( url, responseType ) {
+
+		const loader = new three.FileLoader( this.manager );
+		loader.setPath( this.transcoderPath );
+		loader.setResponseType( responseType );
+		loader.setWithCredentials( this.withCredentials );
+
+		return new Promise( ( resolve, reject ) => {
+
+			loader.load( url, resolve, undefined, reject );
+
+		});
+
+	}
+
+
+	// TODO: Make this method private
+
+	init() {
+
+		if ( ! this.transcoderPending ) {
+
+			let jsContent, binaryContent;
+
+
+			if(this.useLocal) {
+				this.transcoderPath = '';
+				jsContent = this._loadLibrary( new URL( '../build/basis/basis_transcoder.js', (typeof document === 'undefined' ? require('u' + 'rl').pathToFileURL(__filename).href : (_documentCurrentScript && _documentCurrentScript.tagName.toUpperCase() === 'SCRIPT' && _documentCurrentScript.src || new URL('Phy.cjs', document.baseURI).href)) ), 'text' );
+				binaryContent = this._loadLibrary( new URL( '../build/basis/basis_transcoder.wasm', (typeof document === 'undefined' ? require('u' + 'rl').pathToFileURL(__filename).href : (_documentCurrentScript && _documentCurrentScript.tagName.toUpperCase() === 'SCRIPT' && _documentCurrentScript.src || new URL('Phy.cjs', document.baseURI).href)) ), 'arraybuffer' );
+			} else {
+				jsContent = this._loadLibrary( 'basis_transcoder.js', 'text' );
+			    binaryContent = this._loadLibrary( 'basis_transcoder.wasm', 'arraybuffer' );
+			}
+
+
+			this.transcoderPending = Promise.all( [ jsContent, binaryContent ] )
+				.then( ( [ jsContent, binaryContent ] ) => {
+
+					const fn = KTX2Loader.BasisWorker.toString();
+
+					const body = [
+						'/* constants */',
+						'let _EngineFormat = ' + JSON.stringify( KTX2Loader.EngineFormat ),
+						'let _EngineType = ' + JSON.stringify( KTX2Loader.EngineType ),
+						'let _TranscoderFormat = ' + JSON.stringify( KTX2Loader.TranscoderFormat ),
+						'let _BasisFormat = ' + JSON.stringify( KTX2Loader.BasisFormat ),
+						'/* basis_transcoder.js */',
+						jsContent,
+						'/* worker */',
+						fn.substring( fn.indexOf( '{' ) + 1, fn.lastIndexOf( '}' ) )
+					].join( '\n' );
+
+					this.workerSourceURL = URL.createObjectURL( new Blob( [ body ] ) );
+					this.transcoderBinary = binaryContent;
+
+					this.workerPool.setWorkerCreator( () => {
+
+						const worker = new Worker( this.workerSourceURL );
+						const transcoderBinary = this.transcoderBinary.slice( 0 );
+
+						worker.postMessage( { type: 'init', config: this.workerConfig, transcoderBinary }, [ transcoderBinary ] );
+
+						return worker;
+
+					} );
+
+				} );
+
+			if ( _activeLoaders > 0 ) {
+
+				// Each instance loads a transcoder and allocates workers, increasing network and memory cost.
+
+				console.warn(
+
+					'THREE.KTX2Loader: Multiple active KTX2 loaders may cause performance issues.'
+					+ ' Use a single KTX2Loader instance, or call .dispose() on old instances.'
+
+				);
+
+			}
+
+			_activeLoaders ++;
+
+		}
+
+		return this.transcoderPending;
+
+	}
+
+	
+}
+
+var lzma = function(){var pp, n0 = 0x10000000000000000, n1 = 4294967295, n2 = 2147483647, n3 = 2147483648;
+function r(e,r){pp({action:nr,cbn:r,result:e});}function o(e){var r=[];return r[e-1]=void 0,r}function n(e,r){return i(e[0]+r[0],e[1]+r[1])}
+function t(e,r){var o,n;return e[0]==r[0]&&e[1]==r[1]?0:(o=0>e[1],n=0>r[1],o&&!n?-1:!o&&n?1:d(e,r)[1]<0?-1:1)}
+function i(e,r){var o,n;for(r%=n0,e%=n0,o=r%ir,n=Math.floor(e/ir)*ir,r=r-o+n,e=e-n+o;0>e;)e+=ir,r-=ir;for(;e>n1;)e-=ir,r+=ir;for(r%=n0;r>0x7fffffff00000000;)r-=n0;for(;-18446744073709552e3>r;)r+=n0;return [e,r]}
+function u(e){return e>=0?[e,0]:[e+ir,-4294967296]}function s(e){return e[0]>=n3?~~Math.max(Math.min(e[0]-ir,n2),-2147483648):~~Math.max(Math.min(e[0],n2),-2147483648)}function d(e,r){return i(e[0]-r[0],e[1]-r[1])}
+function c(e,r){return e.ab=r,e.cb=0,e.O=r.length,e}function m(e){return e.cb>=e.O?-1:255&e.ab[e.cb++]}function a(e){return e.ab=o(32),e.O=0,e}function _(e){var r=e.ab;return r.length=e.O,r}
+function f(e,r,o,n){p(r,o,e.ab,e.O,n),e.O+=n;}function p(e,r,o,n,t){for(var i=0;t>i;++i)o[n+i]=e[r+i];}
+function D(e,r,o){var n,t,i,s,d="",c=[];for(t=0;5>t;++t){if(i=m(r),-1==i)throw Error("truncated input");c[t]=i<<24>>24;}if(n=N({}),!z(n,c))throw Error("corrupted input");
+for(t=0;64>t;t+=8){if(i=m(r),-1==i)throw Error("truncated input");i=i.toString(16),1==i.length&&(i="0"+i),d=i+""+d;}/^0+$|^f+$/i.test(d)?e.N=ur:(s=parseInt(d,16),e.N=s>n1?ur:u(s)),e.Q=B(n,r,o,e.N);}
+function l(e,r){return e.S=a({}),D(e,c({},r),e.S),e}function g(e,r,o){var n=e.D-r-1;for(0>n&&(n+=e.c);0!=o;--o)n>=e.c&&(n=0),e.x[e.D++]=e.x[n++],e.D>=e.c&&w(e);}
+function v(e,r){(null==e.x||e.c!=r)&&(e.x=o(r)),e.c=r,e.D=0,e.w=0;}function w(e){var r=e.D-e.w;r&&(f(e.V,e.x,e.w,r),e.D>=e.c&&(e.D=0),e.w=e.D);}
+function R(e,r){var o=e.D-r-1;return 0>o&&(o+=e.c),e.x[o]}function h(e,r){e.x[e.D++]=r,e.D>=e.c&&w(e);}function P(e){w(e),e.V=null;}function C(e){return e-=2,4>e?e:3}
+function S(e){return 4>e?0:10>e?e-3:e-6}function M(e,r){return e.h=r,e.bb=null,e.X=1,e}function L(e){if(!e.X)throw Error("bad state");if(e.bb)throw Error("No encoding");return y(e),e.X}
+function y(e){var r=I(e.h);if(-1==r)throw Error("corrupted input");e.$=ur,e.Z=e.h.d,(r||t(e.h.U,sr)>=0&&t(e.h.d,e.h.U)>=0)&&(w(e.h.b),P(e.h.b),e.h.a.K=null,e.X=0);}
+function B(e,r,o,n){return e.a.K=r,P(e.b),e.b.V=o,b(e),e.f=0,e.l=0,e.T=0,e.R=0,e._=0,e.U=n,e.d=sr,e.I=0,M({},e)}
+function I(e){ var r,o,i,d,c,m;if(m=s(e.d)&e.P,Q(e.a,e.q,(e.f<<4)+m)){if(Q(e.a,e.E,e.f))i=0,
+Q(e.a,e.s,e.f)?(Q(e.a,e.u,e.f)?(Q(e.a,e.r,e.f)?(o=e._,e._=e.R):o=e.R,e.R=e.T):o=e.T,e.T=e.l,e.l=o):Q(e.a,e.n,(e.f<<4)+m)||(e.f=7>e.f?9:11,i=1),
+i||(i=x(e.o,e.a,m)+2,e.f=7>e.f?8:11);else if(e._=e.R,e.R=e.T,e.T=e.l,i=2+x(e.C,e.a,m),e.f=7>e.f?7:10,c=q(e.j[C(i)],e.a),c>=4){if(d=(c>>1)-1,e.l=(2|1&c)<<d,14>c)e.l+=J(e.J,e.l-c-1,e.a,d);
+else if(e.l+=U(e.a,d-4)<<4,e.l+=F(e.t,e.a),0>e.l)return  -1==e.l?1:-1}else e.l=c;if(t(u(e.l),e.d)>=0||e.l>=e.m)return  -1;
+g(e.b,e.l,i),e.d=n(e.d,u(i)),e.I=R(e.b,0);}else r=Z(e.k,s(e.d),e.I),e.I=7>e.f?T(r,e.a):$(r,e.a,R(e.b,e.l)),h(e.b,e.I),e.f=S(e.f),e.d=n(e.d,dr);return 0}
+function N(e){e.b={},e.a={},e.q=o(192),e.E=o(12),e.s=o(12),e.u=o(12),e.r=o(12),e.n=o(192),e.j=o(4),e.J=o(114),e.t=K({},4),e.C=G({}),e.o=G({}),e.k={};for(var r=0;4>r;++r)e.j[r]=K({},6);return e}
+function b(e){e.b.w=0,e.b.D=0,X(e.q),X(e.n),X(e.E),X(e.s),X(e.u),X(e.r),X(e.J),H(e.k);for(var r=0;4>r;++r)X(e.j[r].B);A(e.C),A(e.o),X(e.t.B),V(e.a);}
+function z(e,r){var o,n,t,i,u,s,d;if(5>r.length)return 0;for(d=255&r[0],t=d%9,s=~~(d/9),i=s%5,u=~~(s/5),o=0,n=0;4>n;++n)o+=(255&r[1+n])<<8*n;return o>99999999||!W(e,t,i,u)?0:O(e,o)}
+function O(e,r){return 0>r?0:(e.z!=r&&(e.z=r,e.m=Math.max(e.z,1),v(e.b,Math.max(e.m,4096))),1)}
+function W(e,r,o,n){if(r>8||o>4||n>4)return 0;E(e.k,o,r);var t=1<<n;return k(e.C,t),k(e.o,t),e.P=t-1,1}function k(e,r){for(;r>e.e;++e.e)e.G[e.e]=K({},3),e.H[e.e]=K({},3);}
+function x(e,r,o){if(!Q(r,e.M,0))return q(e.G[o],r);var n=8;return n+=Q(r,e.M,1)?8+q(e.L,r):q(e.H[o],r)}function G(e){return e.M=o(2),e.G=o(16),e.H=o(16),e.L=K({},8),e.e=0,e}
+function A(e){X(e.M);for(var r=0;e.e>r;++r)X(e.G[r].B),X(e.H[r].B);X(e.L.B);}
+function E(e,r,n){var t,i;if(null==e.F||e.g!=n||e.y!=r)for(e.y=r,e.Y=(1<<r)-1,e.g=n,i=1<<e.g+e.y,e.F=o(i),t=0;i>t;++t)e.F[t]=j({});}
+function Z(e,r,o){return e.F[((r&e.Y)<<e.g)+((255&o)>>>8-e.g)]}function H(e){var r,o;for(o=1<<e.g+e.y,r=0;o>r;++r)X(e.F[r].v);}
+function T(e,r){var o=1;do o=o<<1|Q(r,e.v,o);while(256>o);return o<<24>>24}
+function $(e,r,o){var n,t,i=1;do if(t=o>>7&1,o<<=1,n=Q(r,e.v,(1+t<<8)+i),i=i<<1|n,t!=n){for(;256>i;)i=i<<1|Q(r,e.v,i);break}while(256>i);return i<<24>>24}
+function j(e){return e.v=o(768),e}function K(e,r){return e.A=r,e.B=o(1<<r),e}function q(e,r){var o,n=1;for(o=e.A;0!=o;--o)n=(n<<1)+Q(r,e.B,n);return n-(1<<e.A)}
+function F(e,r){var o,n,t=1,i=0;for(n=0;e.A>n;++n)o=Q(r,e.B,t),t<<=1,t+=o,i|=o<<n;return i}function J(e,r,o,n){var t,i,u=1,s=0;for(i=0;n>i;++i)t=Q(o,e,r+u),u<<=1,u+=t,s|=t<<i;return s}
+function Q(e,r,o){var n,t=r[o];return n=(e.i>>>11)*t,(-2147483648^n)>(-2147483648^e.p)?(e.i=n,r[o]=t+(2048-t>>>5)<<16>>16,-16777216&e.i||(e.p=e.p<<8|m(e.K),e.i<<=8),0):(e.i-=n,e.p-=n,r[o]=t-(t>>>5)<<16>>16,
+-16777216&e.i||(e.p=e.p<<8|m(e.K),e.i<<=8),1)}
+function U(e,r){var o,n,t=0;for(o=r;0!=o;--o)e.i>>>=1,n=e.p-e.i>>>31,e.p-=e.i&n-1,t=t<<1|1-n,-16777216&e.i||(e.p=e.p<<8|m(e.K),e.i<<=8);return t}
+function V(e){e.p=0,e.i=-1;for(var r=0;5>r;++r)e.p=e.p<<8|m(e.K);}function X(e){for(var r=e.length-1;r>=0;--r)e[r]=1024;}
+function Y(e){ for(var r,o,n,t=0,i=0,u=e.length,s=[],d=[];u>t;++t,++i){
+if(r=255&e[t],128&r)if(192==(224&r)){if(t+1>=u)return e;if(o=255&e[++t],128!=(192&o))return e;d[i]=(31&r)<<6|63&o;}else {if(224!=(240&r))return e;if(t+2>=u)return e;
+if(o=255&e[++t],128!=(192&o))return e;if(n=255&e[++t],128!=(192&n))return e;d[i]=(15&r)<<12|(63&o)<<6|63&n;}else {if(!r)return e;
+d[i]=r;}16383==i&&(s.push(String.fromCharCode.apply(String,d)),i=-1);}return i>0&&(d.length=i,s.push(String.fromCharCode.apply(String,d))),s.join("")}
+function er(e){return e[1]+e[0]}
+function rr(e,o,n){function t(){try{for(var e,r=0,u=(new Date).getTime();L(c.d.Q);)if(++r%1e3==0&&(new Date).getTime()-u>200)return s&&(i=er(c.d.Q.h.d)/d,n(i)),tr(t,0),0;
+n(1),e=Y(_(c.d.S)),tr(o.bind(null,e),0);}catch(m){o(null,m);}} var i,u,s,d,c={},m=void 0===o&&void 0===n;
+if("function"!=typeof o&&(u=o,o=n=0),n=n||function(e){return void 0!==u?r(s?e:-1,u):void 0},
+o=o||function(e,r){return void 0!==u?pp({action:or,cbn:u,result:e,error:r}):void 0},m){for(c.d=l({},e);L(c.d.Q););return Y(_(c.d.S))}
+try{c.d=l({},e),d=er(c.d.N),s=d>-1,n(0);}catch(a){return o(null,a)}tr(t,0);}
+var or=2,nr=3,tr="function"==typeof setImmediate?setImmediate:setTimeout,ir=4294967296,ur=[n1,-4294967296],sr=[0,0],dr=[1,0];
+return {decompress:rr}
+}();
+
+const LZMA = {
+
+    decompress:( r, callback ) => {
+        lzma.decompress( new Uint8Array( r ), callback );
+    },
+};
+/*
+  var action_compress   = 1, action_decompress = 2, action_progress   = 3
+
+  export class LZMA {
+
+    constructor( lzma_path ) {
+   // export class LZMA = function (lzma_path) {
+        
+            
+            this.callback_obj = {}
+            
+            ///NOTE: Node.js needs something like "./" or "../" at the beginning.
+            this.lzma_worker = new Worker(lzma_path || "./lzma_worker-min.js");
+        
+        this.lzma_worker.onmessage = function onmessage(e) {
+            if (e.data.action === action_progress) {
+                if (this.callback_obj[e.data.cbn] && typeof this.callback_obj[e.data.cbn].on_progress === "function") {
+                    this.callback_obj[e.data.cbn].on_progress(e.data.result);
+                }
+            } else {
+                if (this.callback_obj[e.data.cbn] && typeof this.callback_obj[e.data.cbn].on_finish === "function") {
+                    this.callback_obj[e.data.cbn].on_finish(e.data.result, e.data.error);
+                    
+                    /// Since the (de)compression is complete, the callbacks are no longer needed.
+                    delete this.callback_obj[e.data.cbn];
+                }
+            }
+        }.bind(this)
+        
+        /// Very simple error handling.
+        this.lzma_worker.onerror = function(event) {
+            var err = new Error(event.message + " (" + event.filename + ":" + event.lineno + ")");
+            
+            for (var cbn in this.callback_obj) {
+                this.callback_obj[cbn].on_finish(null, err);
+            }
+            
+            console.error('Uncaught error in lzma_worker', err);
+        }.bind(this)
+        
+    }
+
+    send_to_worker(action, data, mode, on_finish, on_progress) {
+        var cbn;
+        
+        do {
+            cbn = Math.floor(Math.random() * (10000000));
+        } while(typeof this.callback_obj[cbn] !== "undefined");
+        
+        this.callback_obj[cbn] = {
+            on_finish:   on_finish,
+            on_progress: on_progress
+        };
+        
+        this.lzma_worker.postMessage({
+            action: action, /// action_compress = 1, action_decompress = 2, action_progress = 3
+            cbn:    cbn,    /// callback number
+            data:   data,
+            mode:   mode
+        });
+    }
+
+    compress(mixed, mode, on_finish, on_progress) {
+        this.send_to_worker(action_compress, mixed, mode, on_finish, on_progress);
+    }
+    decompress(byte_arr, on_finish, on_progress) {
+        this.send_to_worker(action_decompress, byte_arr, false, on_finish, on_progress);
+    }
+    worker() {
+        return this.lzma_worker;
+    }
+}
+*/
+
 /**
  * @param  {Array<BufferGeometry>} geometries
  * @param  {Boolean} useGroups
@@ -1676,16171 +2549,6 @@ function mergeVertices( geometry, tolerance = 1e-4 ) {
 
 }
 
-/**
- * @param {BufferGeometry} geometry
- * @param {number} drawMode
- * @return {BufferGeometry}
- */
-function toTrianglesDrawMode( geometry, drawMode ) {
-
-	if ( drawMode === three.TrianglesDrawMode ) {
-
-		console.warn( 'THREE.BufferGeometryUtils.toTrianglesDrawMode(): Geometry already defined as triangles.' );
-		return geometry;
-
-	}
-
-	if ( drawMode === three.TriangleFanDrawMode || drawMode === three.TriangleStripDrawMode ) {
-
-		let index = geometry.getIndex();
-
-		// generate index if not present
-
-		if ( index === null ) {
-
-			const indices = [];
-
-			const position = geometry.getAttribute( 'position' );
-
-			if ( position !== undefined ) {
-
-				for ( let i = 0; i < position.count; i ++ ) {
-
-					indices.push( i );
-
-				}
-
-				geometry.setIndex( indices );
-				index = geometry.getIndex();
-
-			} else {
-
-				console.error( 'THREE.BufferGeometryUtils.toTrianglesDrawMode(): Undefined position attribute. Processing not possible.' );
-				return geometry;
-
-			}
-
-		}
-
-		//
-
-		const numberOfTriangles = index.count - 2;
-		const newIndices = [];
-
-		if ( drawMode === three.TriangleFanDrawMode ) {
-
-			// gl.TRIANGLE_FAN
-
-			for ( let i = 1; i <= numberOfTriangles; i ++ ) {
-
-				newIndices.push( index.getX( 0 ) );
-				newIndices.push( index.getX( i ) );
-				newIndices.push( index.getX( i + 1 ) );
-
-			}
-
-		} else {
-
-			// gl.TRIANGLE_STRIP
-
-			for ( let i = 0; i < numberOfTriangles; i ++ ) {
-
-				if ( i % 2 === 0 ) {
-
-					newIndices.push( index.getX( i ) );
-					newIndices.push( index.getX( i + 1 ) );
-					newIndices.push( index.getX( i + 2 ) );
-
-				} else {
-
-					newIndices.push( index.getX( i + 2 ) );
-					newIndices.push( index.getX( i + 1 ) );
-					newIndices.push( index.getX( i ) );
-
-				}
-
-			}
-
-		}
-
-		if ( ( newIndices.length / 3 ) !== numberOfTriangles ) {
-
-			console.error( 'THREE.BufferGeometryUtils.toTrianglesDrawMode(): Unable to generate correct amount of triangles.' );
-
-		}
-
-		// build final geometry
-
-		const newGeometry = geometry.clone();
-		newGeometry.setIndex( newIndices );
-		newGeometry.clearGroups();
-
-		return newGeometry;
-
-	} else {
-
-		console.error( 'THREE.BufferGeometryUtils.toTrianglesDrawMode(): Unknown draw mode:', drawMode );
-		return geometry;
-
-	}
-
-}
-
-class GLTFLoader extends three.Loader {
-
-	constructor( manager ) {
-
-		super( manager );
-
-		this.dracoLoader = null;
-		this.ktx2Loader = null;
-		this.meshoptDecoder = null;
-
-		this.pluginCallbacks = [];
-
-		this.register( function ( parser ) {
-
-			return new GLTFMaterialsClearcoatExtension( parser );
-
-		} );
-
-		this.register( function ( parser ) {
-
-			return new GLTFMaterialsDispersionExtension( parser );
-
-		} );
-
-		this.register( function ( parser ) {
-
-			return new GLTFTextureBasisUExtension( parser );
-
-		} );
-
-		this.register( function ( parser ) {
-
-			return new GLTFTextureWebPExtension( parser );
-
-		} );
-
-		this.register( function ( parser ) {
-
-			return new GLTFTextureAVIFExtension( parser );
-
-		} );
-
-		this.register( function ( parser ) {
-
-			return new GLTFMaterialsSheenExtension( parser );
-
-		} );
-
-		this.register( function ( parser ) {
-
-			return new GLTFMaterialsTransmissionExtension( parser );
-
-		} );
-
-		this.register( function ( parser ) {
-
-			return new GLTFMaterialsVolumeExtension( parser );
-
-		} );
-
-		this.register( function ( parser ) {
-
-			return new GLTFMaterialsIorExtension( parser );
-
-		} );
-
-		this.register( function ( parser ) {
-
-			return new GLTFMaterialsEmissiveStrengthExtension( parser );
-
-		} );
-
-		this.register( function ( parser ) {
-
-			return new GLTFMaterialsSpecularExtension( parser );
-
-		} );
-
-		this.register( function ( parser ) {
-
-			return new GLTFMaterialsIridescenceExtension( parser );
-
-		} );
-
-		this.register( function ( parser ) {
-
-			return new GLTFMaterialsAnisotropyExtension( parser );
-
-		} );
-
-		this.register( function ( parser ) {
-
-			return new GLTFMaterialsBumpExtension( parser );
-
-		} );
-
-		this.register( function ( parser ) {
-
-			return new GLTFLightsExtension( parser );
-
-		} );
-
-		this.register( function ( parser ) {
-
-			return new GLTFMeshoptCompression( parser );
-
-		} );
-
-		this.register( function ( parser ) {
-
-			return new GLTFMeshGpuInstancing( parser );
-
-		} );
-
-	}
-
-	load( url, onLoad, onProgress, onError ) {
-
-		const scope = this;
-
-		let resourcePath;
-
-		if ( this.resourcePath !== '' ) {
-
-			resourcePath = this.resourcePath;
-
-		} else if ( this.path !== '' ) {
-
-			// If a base path is set, resources will be relative paths from that plus the relative path of the gltf file
-			// Example  path = 'https://my-cnd-server.com/', url = 'assets/models/model.gltf'
-			// resourcePath = 'https://my-cnd-server.com/assets/models/'
-			// referenced resource 'model.bin' will be loaded from 'https://my-cnd-server.com/assets/models/model.bin'
-			// referenced resource '../textures/texture.png' will be loaded from 'https://my-cnd-server.com/assets/textures/texture.png'
-			const relativeUrl = three.LoaderUtils.extractUrlBase( url );
-			resourcePath = three.LoaderUtils.resolveURL( relativeUrl, this.path );
-
-		} else {
-
-			resourcePath = three.LoaderUtils.extractUrlBase( url );
-
-		}
-
-		// Tells the LoadingManager to track an extra item, which resolves after
-		// the model is fully loaded. This means the count of items loaded will
-		// be incorrect, but ensures manager.onLoad() does not fire early.
-		this.manager.itemStart( url );
-
-		const _onError = function ( e ) {
-
-			if ( onError ) {
-
-				onError( e );
-
-			} else {
-
-				console.error( e );
-
-			}
-
-			scope.manager.itemError( url );
-			scope.manager.itemEnd( url );
-
-		};
-
-		const loader = new three.FileLoader( this.manager );
-
-		loader.setPath( this.path );
-		loader.setResponseType( 'arraybuffer' );
-		loader.setRequestHeader( this.requestHeader );
-		loader.setWithCredentials( this.withCredentials );
-
-		loader.load( url, function ( data ) {
-
-			try {
-
-				scope.parse( data, resourcePath, function ( gltf ) {
-
-					onLoad( gltf );
-
-					scope.manager.itemEnd( url );
-
-				}, _onError );
-
-			} catch ( e ) {
-
-				_onError( e );
-
-			}
-
-		}, onProgress, _onError );
-
-	}
-
-	setDRACOLoader( dracoLoader ) {
-
-		this.dracoLoader = dracoLoader;
-		return this;
-
-	}
-
-	setKTX2Loader( ktx2Loader ) {
-
-		this.ktx2Loader = ktx2Loader;
-		return this;
-
-	}
-
-	setMeshoptDecoder( meshoptDecoder ) {
-
-		this.meshoptDecoder = meshoptDecoder;
-		return this;
-
-	}
-
-	register( callback ) {
-
-		if ( this.pluginCallbacks.indexOf( callback ) === -1 ) {
-
-			this.pluginCallbacks.push( callback );
-
-		}
-
-		return this;
-
-	}
-
-	unregister( callback ) {
-
-		if ( this.pluginCallbacks.indexOf( callback ) !== -1 ) {
-
-			this.pluginCallbacks.splice( this.pluginCallbacks.indexOf( callback ), 1 );
-
-		}
-
-		return this;
-
-	}
-
-	parse( data, path, onLoad, onError ) {
-
-		let json;
-		const extensions = {};
-		const plugins = {};
-		const textDecoder = new TextDecoder();
-
-		if ( typeof data === 'string' ) {
-
-			json = JSON.parse( data );
-
-		} else if ( data instanceof ArrayBuffer ) {
-
-			const magic = textDecoder.decode( new Uint8Array( data, 0, 4 ) );
-
-			if ( magic === BINARY_EXTENSION_HEADER_MAGIC ) {
-
-				try {
-
-					extensions[ EXTENSIONS.KHR_BINARY_GLTF ] = new GLTFBinaryExtension( data );
-
-				} catch ( error ) {
-
-					if ( onError ) onError( error );
-					return;
-
-				}
-
-				json = JSON.parse( extensions[ EXTENSIONS.KHR_BINARY_GLTF ].content );
-
-			} else {
-
-				json = JSON.parse( textDecoder.decode( data ) );
-
-			}
-
-		} else {
-
-			json = data;
-
-		}
-
-		if ( json.asset === undefined || json.asset.version[ 0 ] < 2 ) {
-
-			if ( onError ) onError( new Error( 'THREE.GLTFLoader: Unsupported asset. glTF versions >=2.0 are supported.' ) );
-			return;
-
-		}
-
-		const parser = new GLTFParser( json, {
-
-			path: path || this.resourcePath || '',
-			crossOrigin: this.crossOrigin,
-			requestHeader: this.requestHeader,
-			manager: this.manager,
-			ktx2Loader: this.ktx2Loader,
-			meshoptDecoder: this.meshoptDecoder
-
-		} );
-
-		parser.fileLoader.setRequestHeader( this.requestHeader );
-
-		for ( let i = 0; i < this.pluginCallbacks.length; i ++ ) {
-
-			const plugin = this.pluginCallbacks[ i ]( parser );
-
-			if ( ! plugin.name ) console.error( 'THREE.GLTFLoader: Invalid plugin found: missing name' );
-
-			plugins[ plugin.name ] = plugin;
-
-			// Workaround to avoid determining as unknown extension
-			// in addUnknownExtensionsToUserData().
-			// Remove this workaround if we move all the existing
-			// extension handlers to plugin system
-			extensions[ plugin.name ] = true;
-
-		}
-
-		if ( json.extensionsUsed ) {
-
-			for ( let i = 0; i < json.extensionsUsed.length; ++ i ) {
-
-				const extensionName = json.extensionsUsed[ i ];
-				const extensionsRequired = json.extensionsRequired || [];
-
-				switch ( extensionName ) {
-
-					case EXTENSIONS.KHR_MATERIALS_UNLIT:
-						extensions[ extensionName ] = new GLTFMaterialsUnlitExtension();
-						break;
-
-					case EXTENSIONS.KHR_DRACO_MESH_COMPRESSION:
-						extensions[ extensionName ] = new GLTFDracoMeshCompressionExtension( json, this.dracoLoader );
-						break;
-
-					case EXTENSIONS.KHR_TEXTURE_TRANSFORM:
-						extensions[ extensionName ] = new GLTFTextureTransformExtension();
-						break;
-
-					case EXTENSIONS.KHR_MESH_QUANTIZATION:
-						extensions[ extensionName ] = new GLTFMeshQuantizationExtension();
-						break;
-
-					default:
-
-						if ( extensionsRequired.indexOf( extensionName ) >= 0 && plugins[ extensionName ] === undefined ) {
-
-							console.warn( 'THREE.GLTFLoader: Unknown extension "' + extensionName + '".' );
-
-						}
-
-				}
-
-			}
-
-		}
-
-		parser.setExtensions( extensions );
-		parser.setPlugins( plugins );
-		parser.parse( onLoad, onError );
-
-	}
-
-	parseAsync( data, path ) {
-
-		const scope = this;
-
-		return new Promise( function ( resolve, reject ) {
-
-			scope.parse( data, path, resolve, reject );
-
-		} );
-
-	}
-
-}
-
-/* GLTFREGISTRY */
-
-function GLTFRegistry() {
-
-	let objects = {};
-
-	return	{
-
-		get: function ( key ) {
-
-			return objects[ key ];
-
-		},
-
-		add: function ( key, object ) {
-
-			objects[ key ] = object;
-
-		},
-
-		remove: function ( key ) {
-
-			delete objects[ key ];
-
-		},
-
-		removeAll: function () {
-
-			objects = {};
-
-		}
-
-	};
-
-}
-
-/*********************************/
-/********** EXTENSIONS ***********/
-/*********************************/
-
-const EXTENSIONS = {
-	KHR_BINARY_GLTF: 'KHR_binary_glTF',
-	KHR_DRACO_MESH_COMPRESSION: 'KHR_draco_mesh_compression',
-	KHR_LIGHTS_PUNCTUAL: 'KHR_lights_punctual',
-	KHR_MATERIALS_CLEARCOAT: 'KHR_materials_clearcoat',
-	KHR_MATERIALS_DISPERSION: 'KHR_materials_dispersion',
-	KHR_MATERIALS_IOR: 'KHR_materials_ior',
-	KHR_MATERIALS_SHEEN: 'KHR_materials_sheen',
-	KHR_MATERIALS_SPECULAR: 'KHR_materials_specular',
-	KHR_MATERIALS_TRANSMISSION: 'KHR_materials_transmission',
-	KHR_MATERIALS_IRIDESCENCE: 'KHR_materials_iridescence',
-	KHR_MATERIALS_ANISOTROPY: 'KHR_materials_anisotropy',
-	KHR_MATERIALS_UNLIT: 'KHR_materials_unlit',
-	KHR_MATERIALS_VOLUME: 'KHR_materials_volume',
-	KHR_TEXTURE_BASISU: 'KHR_texture_basisu',
-	KHR_TEXTURE_TRANSFORM: 'KHR_texture_transform',
-	KHR_MESH_QUANTIZATION: 'KHR_mesh_quantization',
-	KHR_MATERIALS_EMISSIVE_STRENGTH: 'KHR_materials_emissive_strength',
-	EXT_MATERIALS_BUMP: 'EXT_materials_bump',
-	EXT_TEXTURE_WEBP: 'EXT_texture_webp',
-	EXT_TEXTURE_AVIF: 'EXT_texture_avif',
-	EXT_MESHOPT_COMPRESSION: 'EXT_meshopt_compression',
-	EXT_MESH_GPU_INSTANCING: 'EXT_mesh_gpu_instancing'
-};
-
-/**
- * Punctual Lights Extension
- *
- * Specification: https://github.com/KhronosGroup/glTF/tree/master/extensions/2.0/Khronos/KHR_lights_punctual
- */
-class GLTFLightsExtension {
-
-	constructor( parser ) {
-
-		this.parser = parser;
-		this.name = EXTENSIONS.KHR_LIGHTS_PUNCTUAL;
-
-		// Object3D instance caches
-		this.cache = { refs: {}, uses: {} };
-
-	}
-
-	_markDefs() {
-
-		const parser = this.parser;
-		const nodeDefs = this.parser.json.nodes || [];
-
-		for ( let nodeIndex = 0, nodeLength = nodeDefs.length; nodeIndex < nodeLength; nodeIndex ++ ) {
-
-			const nodeDef = nodeDefs[ nodeIndex ];
-
-			if ( nodeDef.extensions
-					&& nodeDef.extensions[ this.name ]
-					&& nodeDef.extensions[ this.name ].light !== undefined ) {
-
-				parser._addNodeRef( this.cache, nodeDef.extensions[ this.name ].light );
-
-			}
-
-		}
-
-	}
-
-	_loadLight( lightIndex ) {
-
-		const parser = this.parser;
-		const cacheKey = 'light:' + lightIndex;
-		let dependency = parser.cache.get( cacheKey );
-
-		if ( dependency ) return dependency;
-
-		const json = parser.json;
-		const extensions = ( json.extensions && json.extensions[ this.name ] ) || {};
-		const lightDefs = extensions.lights || [];
-		const lightDef = lightDefs[ lightIndex ];
-		let lightNode;
-
-		const color = new three.Color( 0xffffff );
-
-		if ( lightDef.color !== undefined ) color.setRGB( lightDef.color[ 0 ], lightDef.color[ 1 ], lightDef.color[ 2 ], three.LinearSRGBColorSpace );
-
-		const range = lightDef.range !== undefined ? lightDef.range : 0;
-
-		switch ( lightDef.type ) {
-
-			case 'directional':
-				lightNode = new three.DirectionalLight( color );
-				lightNode.target.position.set( 0, 0, -1 );
-				lightNode.add( lightNode.target );
-				break;
-
-			case 'point':
-				lightNode = new three.PointLight( color );
-				lightNode.distance = range;
-				break;
-
-			case 'spot':
-				lightNode = new three.SpotLight( color );
-				lightNode.distance = range;
-				// Handle spotlight properties.
-				lightDef.spot = lightDef.spot || {};
-				lightDef.spot.innerConeAngle = lightDef.spot.innerConeAngle !== undefined ? lightDef.spot.innerConeAngle : 0;
-				lightDef.spot.outerConeAngle = lightDef.spot.outerConeAngle !== undefined ? lightDef.spot.outerConeAngle : Math.PI / 4.0;
-				lightNode.angle = lightDef.spot.outerConeAngle;
-				lightNode.penumbra = 1.0 - lightDef.spot.innerConeAngle / lightDef.spot.outerConeAngle;
-				lightNode.target.position.set( 0, 0, -1 );
-				lightNode.add( lightNode.target );
-				break;
-
-			default:
-				throw new Error( 'THREE.GLTFLoader: Unexpected light type: ' + lightDef.type );
-
-		}
-
-		// Some lights (e.g. spot) default to a position other than the origin. Reset the position
-		// here, because node-level parsing will only override position if explicitly specified.
-		lightNode.position.set( 0, 0, 0 );
-
-		assignExtrasToUserData( lightNode, lightDef );
-
-		if ( lightDef.intensity !== undefined ) lightNode.intensity = lightDef.intensity;
-
-		lightNode.name = parser.createUniqueName( lightDef.name || ( 'light_' + lightIndex ) );
-
-		dependency = Promise.resolve( lightNode );
-
-		parser.cache.add( cacheKey, dependency );
-
-		return dependency;
-
-	}
-
-	getDependency( type, index ) {
-
-		if ( type !== 'light' ) return;
-
-		return this._loadLight( index );
-
-	}
-
-	createNodeAttachment( nodeIndex ) {
-
-		const self = this;
-		const parser = this.parser;
-		const json = parser.json;
-		const nodeDef = json.nodes[ nodeIndex ];
-		const lightDef = ( nodeDef.extensions && nodeDef.extensions[ this.name ] ) || {};
-		const lightIndex = lightDef.light;
-
-		if ( lightIndex === undefined ) return null;
-
-		return this._loadLight( lightIndex ).then( function ( light ) {
-
-			return parser._getNodeRef( self.cache, lightIndex, light );
-
-		} );
-
-	}
-
-}
-
-/**
- * Unlit Materials Extension
- *
- * Specification: https://github.com/KhronosGroup/glTF/tree/master/extensions/2.0/Khronos/KHR_materials_unlit
- */
-class GLTFMaterialsUnlitExtension {
-
-	constructor() {
-
-		this.name = EXTENSIONS.KHR_MATERIALS_UNLIT;
-
-	}
-
-	getMaterialType() {
-
-		return three.MeshBasicMaterial;
-
-	}
-
-	extendParams( materialParams, materialDef, parser ) {
-
-		const pending = [];
-
-		materialParams.color = new three.Color( 1.0, 1.0, 1.0 );
-		materialParams.opacity = 1.0;
-
-		const metallicRoughness = materialDef.pbrMetallicRoughness;
-
-		if ( metallicRoughness ) {
-
-			if ( Array.isArray( metallicRoughness.baseColorFactor ) ) {
-
-				const array = metallicRoughness.baseColorFactor;
-
-				materialParams.color.setRGB( array[ 0 ], array[ 1 ], array[ 2 ], three.LinearSRGBColorSpace );
-				materialParams.opacity = array[ 3 ];
-
-			}
-
-			if ( metallicRoughness.baseColorTexture !== undefined ) {
-
-				pending.push( parser.assignTexture( materialParams, 'map', metallicRoughness.baseColorTexture, three.SRGBColorSpace ) );
-
-			}
-
-		}
-
-		return Promise.all( pending );
-
-	}
-
-}
-
-/**
- * Materials Emissive Strength Extension
- *
- * Specification: https://github.com/KhronosGroup/glTF/blob/5768b3ce0ef32bc39cdf1bef10b948586635ead3/extensions/2.0/Khronos/KHR_materials_emissive_strength/README.md
- */
-class GLTFMaterialsEmissiveStrengthExtension {
-
-	constructor( parser ) {
-
-		this.parser = parser;
-		this.name = EXTENSIONS.KHR_MATERIALS_EMISSIVE_STRENGTH;
-
-	}
-
-	extendMaterialParams( materialIndex, materialParams ) {
-
-		const parser = this.parser;
-		const materialDef = parser.json.materials[ materialIndex ];
-
-		if ( ! materialDef.extensions || ! materialDef.extensions[ this.name ] ) {
-
-			return Promise.resolve();
-
-		}
-
-		const emissiveStrength = materialDef.extensions[ this.name ].emissiveStrength;
-
-		if ( emissiveStrength !== undefined ) {
-
-			materialParams.emissiveIntensity = emissiveStrength;
-
-		}
-
-		return Promise.resolve();
-
-	}
-
-}
-
-/**
- * Clearcoat Materials Extension
- *
- * Specification: https://github.com/KhronosGroup/glTF/tree/master/extensions/2.0/Khronos/KHR_materials_clearcoat
- */
-class GLTFMaterialsClearcoatExtension {
-
-	constructor( parser ) {
-
-		this.parser = parser;
-		this.name = EXTENSIONS.KHR_MATERIALS_CLEARCOAT;
-
-	}
-
-	getMaterialType( materialIndex ) {
-
-		const parser = this.parser;
-		const materialDef = parser.json.materials[ materialIndex ];
-
-		if ( ! materialDef.extensions || ! materialDef.extensions[ this.name ] ) return null;
-
-		return three.MeshPhysicalMaterial;
-
-	}
-
-	extendMaterialParams( materialIndex, materialParams ) {
-
-		const parser = this.parser;
-		const materialDef = parser.json.materials[ materialIndex ];
-
-		if ( ! materialDef.extensions || ! materialDef.extensions[ this.name ] ) {
-
-			return Promise.resolve();
-
-		}
-
-		const pending = [];
-
-		const extension = materialDef.extensions[ this.name ];
-
-		if ( extension.clearcoatFactor !== undefined ) {
-
-			materialParams.clearcoat = extension.clearcoatFactor;
-
-		}
-
-		if ( extension.clearcoatTexture !== undefined ) {
-
-			pending.push( parser.assignTexture( materialParams, 'clearcoatMap', extension.clearcoatTexture ) );
-
-		}
-
-		if ( extension.clearcoatRoughnessFactor !== undefined ) {
-
-			materialParams.clearcoatRoughness = extension.clearcoatRoughnessFactor;
-
-		}
-
-		if ( extension.clearcoatRoughnessTexture !== undefined ) {
-
-			pending.push( parser.assignTexture( materialParams, 'clearcoatRoughnessMap', extension.clearcoatRoughnessTexture ) );
-
-		}
-
-		if ( extension.clearcoatNormalTexture !== undefined ) {
-
-			pending.push( parser.assignTexture( materialParams, 'clearcoatNormalMap', extension.clearcoatNormalTexture ) );
-
-			if ( extension.clearcoatNormalTexture.scale !== undefined ) {
-
-				const scale = extension.clearcoatNormalTexture.scale;
-
-				materialParams.clearcoatNormalScale = new three.Vector2( scale, scale );
-
-			}
-
-		}
-
-		return Promise.all( pending );
-
-	}
-
-}
-
-/**
- * Materials dispersion Extension
- *
- * Specification: https://github.com/KhronosGroup/glTF/tree/main/extensions/2.0/Khronos/KHR_materials_dispersion
- */
-class GLTFMaterialsDispersionExtension {
-
-	constructor( parser ) {
-
-		this.parser = parser;
-		this.name = EXTENSIONS.KHR_MATERIALS_DISPERSION;
-
-	}
-
-	getMaterialType( materialIndex ) {
-
-		const parser = this.parser;
-		const materialDef = parser.json.materials[ materialIndex ];
-
-		if ( ! materialDef.extensions || ! materialDef.extensions[ this.name ] ) return null;
-
-		return three.MeshPhysicalMaterial;
-
-	}
-
-	extendMaterialParams( materialIndex, materialParams ) {
-
-		const parser = this.parser;
-		const materialDef = parser.json.materials[ materialIndex ];
-
-		if ( ! materialDef.extensions || ! materialDef.extensions[ this.name ] ) {
-
-			return Promise.resolve();
-
-		}
-
-		const extension = materialDef.extensions[ this.name ];
-
-		materialParams.dispersion = extension.dispersion !== undefined ? extension.dispersion : 0;
-
-		return Promise.resolve();
-
-	}
-
-}
-
-/**
- * Iridescence Materials Extension
- *
- * Specification: https://github.com/KhronosGroup/glTF/tree/master/extensions/2.0/Khronos/KHR_materials_iridescence
- */
-class GLTFMaterialsIridescenceExtension {
-
-	constructor( parser ) {
-
-		this.parser = parser;
-		this.name = EXTENSIONS.KHR_MATERIALS_IRIDESCENCE;
-
-	}
-
-	getMaterialType( materialIndex ) {
-
-		const parser = this.parser;
-		const materialDef = parser.json.materials[ materialIndex ];
-
-		if ( ! materialDef.extensions || ! materialDef.extensions[ this.name ] ) return null;
-
-		return three.MeshPhysicalMaterial;
-
-	}
-
-	extendMaterialParams( materialIndex, materialParams ) {
-
-		const parser = this.parser;
-		const materialDef = parser.json.materials[ materialIndex ];
-
-		if ( ! materialDef.extensions || ! materialDef.extensions[ this.name ] ) {
-
-			return Promise.resolve();
-
-		}
-
-		const pending = [];
-
-		const extension = materialDef.extensions[ this.name ];
-
-		if ( extension.iridescenceFactor !== undefined ) {
-
-			materialParams.iridescence = extension.iridescenceFactor;
-
-		}
-
-		if ( extension.iridescenceTexture !== undefined ) {
-
-			pending.push( parser.assignTexture( materialParams, 'iridescenceMap', extension.iridescenceTexture ) );
-
-		}
-
-		if ( extension.iridescenceIor !== undefined ) {
-
-			materialParams.iridescenceIOR = extension.iridescenceIor;
-
-		}
-
-		if ( materialParams.iridescenceThicknessRange === undefined ) {
-
-			materialParams.iridescenceThicknessRange = [ 100, 400 ];
-
-		}
-
-		if ( extension.iridescenceThicknessMinimum !== undefined ) {
-
-			materialParams.iridescenceThicknessRange[ 0 ] = extension.iridescenceThicknessMinimum;
-
-		}
-
-		if ( extension.iridescenceThicknessMaximum !== undefined ) {
-
-			materialParams.iridescenceThicknessRange[ 1 ] = extension.iridescenceThicknessMaximum;
-
-		}
-
-		if ( extension.iridescenceThicknessTexture !== undefined ) {
-
-			pending.push( parser.assignTexture( materialParams, 'iridescenceThicknessMap', extension.iridescenceThicknessTexture ) );
-
-		}
-
-		return Promise.all( pending );
-
-	}
-
-}
-
-/**
- * Sheen Materials Extension
- *
- * Specification: https://github.com/KhronosGroup/glTF/tree/main/extensions/2.0/Khronos/KHR_materials_sheen
- */
-class GLTFMaterialsSheenExtension {
-
-	constructor( parser ) {
-
-		this.parser = parser;
-		this.name = EXTENSIONS.KHR_MATERIALS_SHEEN;
-
-	}
-
-	getMaterialType( materialIndex ) {
-
-		const parser = this.parser;
-		const materialDef = parser.json.materials[ materialIndex ];
-
-		if ( ! materialDef.extensions || ! materialDef.extensions[ this.name ] ) return null;
-
-		return three.MeshPhysicalMaterial;
-
-	}
-
-	extendMaterialParams( materialIndex, materialParams ) {
-
-		const parser = this.parser;
-		const materialDef = parser.json.materials[ materialIndex ];
-
-		if ( ! materialDef.extensions || ! materialDef.extensions[ this.name ] ) {
-
-			return Promise.resolve();
-
-		}
-
-		const pending = [];
-
-		materialParams.sheenColor = new three.Color( 0, 0, 0 );
-		materialParams.sheenRoughness = 0;
-		materialParams.sheen = 1;
-
-		const extension = materialDef.extensions[ this.name ];
-
-		if ( extension.sheenColorFactor !== undefined ) {
-
-			const colorFactor = extension.sheenColorFactor;
-			materialParams.sheenColor.setRGB( colorFactor[ 0 ], colorFactor[ 1 ], colorFactor[ 2 ], three.LinearSRGBColorSpace );
-
-		}
-
-		if ( extension.sheenRoughnessFactor !== undefined ) {
-
-			materialParams.sheenRoughness = extension.sheenRoughnessFactor;
-
-		}
-
-		if ( extension.sheenColorTexture !== undefined ) {
-
-			pending.push( parser.assignTexture( materialParams, 'sheenColorMap', extension.sheenColorTexture, three.SRGBColorSpace ) );
-
-		}
-
-		if ( extension.sheenRoughnessTexture !== undefined ) {
-
-			pending.push( parser.assignTexture( materialParams, 'sheenRoughnessMap', extension.sheenRoughnessTexture ) );
-
-		}
-
-		return Promise.all( pending );
-
-	}
-
-}
-
-/**
- * Transmission Materials Extension
- *
- * Specification: https://github.com/KhronosGroup/glTF/tree/master/extensions/2.0/Khronos/KHR_materials_transmission
- * Draft: https://github.com/KhronosGroup/glTF/pull/1698
- */
-class GLTFMaterialsTransmissionExtension {
-
-	constructor( parser ) {
-
-		this.parser = parser;
-		this.name = EXTENSIONS.KHR_MATERIALS_TRANSMISSION;
-
-	}
-
-	getMaterialType( materialIndex ) {
-
-		const parser = this.parser;
-		const materialDef = parser.json.materials[ materialIndex ];
-
-		if ( ! materialDef.extensions || ! materialDef.extensions[ this.name ] ) return null;
-
-		return three.MeshPhysicalMaterial;
-
-	}
-
-	extendMaterialParams( materialIndex, materialParams ) {
-
-		const parser = this.parser;
-		const materialDef = parser.json.materials[ materialIndex ];
-
-		if ( ! materialDef.extensions || ! materialDef.extensions[ this.name ] ) {
-
-			return Promise.resolve();
-
-		}
-
-		const pending = [];
-
-		const extension = materialDef.extensions[ this.name ];
-
-		if ( extension.transmissionFactor !== undefined ) {
-
-			materialParams.transmission = extension.transmissionFactor;
-
-		}
-
-		if ( extension.transmissionTexture !== undefined ) {
-
-			pending.push( parser.assignTexture( materialParams, 'transmissionMap', extension.transmissionTexture ) );
-
-		}
-
-		return Promise.all( pending );
-
-	}
-
-}
-
-/**
- * Materials Volume Extension
- *
- * Specification: https://github.com/KhronosGroup/glTF/tree/master/extensions/2.0/Khronos/KHR_materials_volume
- */
-class GLTFMaterialsVolumeExtension {
-
-	constructor( parser ) {
-
-		this.parser = parser;
-		this.name = EXTENSIONS.KHR_MATERIALS_VOLUME;
-
-	}
-
-	getMaterialType( materialIndex ) {
-
-		const parser = this.parser;
-		const materialDef = parser.json.materials[ materialIndex ];
-
-		if ( ! materialDef.extensions || ! materialDef.extensions[ this.name ] ) return null;
-
-		return three.MeshPhysicalMaterial;
-
-	}
-
-	extendMaterialParams( materialIndex, materialParams ) {
-
-		const parser = this.parser;
-		const materialDef = parser.json.materials[ materialIndex ];
-
-		if ( ! materialDef.extensions || ! materialDef.extensions[ this.name ] ) {
-
-			return Promise.resolve();
-
-		}
-
-		const pending = [];
-
-		const extension = materialDef.extensions[ this.name ];
-
-		materialParams.thickness = extension.thicknessFactor !== undefined ? extension.thicknessFactor : 0;
-
-		if ( extension.thicknessTexture !== undefined ) {
-
-			pending.push( parser.assignTexture( materialParams, 'thicknessMap', extension.thicknessTexture ) );
-
-		}
-
-		materialParams.attenuationDistance = extension.attenuationDistance || Infinity;
-
-		const colorArray = extension.attenuationColor || [ 1, 1, 1 ];
-		materialParams.attenuationColor = new three.Color().setRGB( colorArray[ 0 ], colorArray[ 1 ], colorArray[ 2 ], three.LinearSRGBColorSpace );
-
-		return Promise.all( pending );
-
-	}
-
-}
-
-/**
- * Materials ior Extension
- *
- * Specification: https://github.com/KhronosGroup/glTF/tree/master/extensions/2.0/Khronos/KHR_materials_ior
- */
-class GLTFMaterialsIorExtension {
-
-	constructor( parser ) {
-
-		this.parser = parser;
-		this.name = EXTENSIONS.KHR_MATERIALS_IOR;
-
-	}
-
-	getMaterialType( materialIndex ) {
-
-		const parser = this.parser;
-		const materialDef = parser.json.materials[ materialIndex ];
-
-		if ( ! materialDef.extensions || ! materialDef.extensions[ this.name ] ) return null;
-
-		return three.MeshPhysicalMaterial;
-
-	}
-
-	extendMaterialParams( materialIndex, materialParams ) {
-
-		const parser = this.parser;
-		const materialDef = parser.json.materials[ materialIndex ];
-
-		if ( ! materialDef.extensions || ! materialDef.extensions[ this.name ] ) {
-
-			return Promise.resolve();
-
-		}
-
-		const extension = materialDef.extensions[ this.name ];
-
-		materialParams.ior = extension.ior !== undefined ? extension.ior : 1.5;
-
-		return Promise.resolve();
-
-	}
-
-}
-
-/**
- * Materials specular Extension
- *
- * Specification: https://github.com/KhronosGroup/glTF/tree/master/extensions/2.0/Khronos/KHR_materials_specular
- */
-class GLTFMaterialsSpecularExtension {
-
-	constructor( parser ) {
-
-		this.parser = parser;
-		this.name = EXTENSIONS.KHR_MATERIALS_SPECULAR;
-
-	}
-
-	getMaterialType( materialIndex ) {
-
-		const parser = this.parser;
-		const materialDef = parser.json.materials[ materialIndex ];
-
-		if ( ! materialDef.extensions || ! materialDef.extensions[ this.name ] ) return null;
-
-		return three.MeshPhysicalMaterial;
-
-	}
-
-	extendMaterialParams( materialIndex, materialParams ) {
-
-		const parser = this.parser;
-		const materialDef = parser.json.materials[ materialIndex ];
-
-		if ( ! materialDef.extensions || ! materialDef.extensions[ this.name ] ) {
-
-			return Promise.resolve();
-
-		}
-
-		const pending = [];
-
-		const extension = materialDef.extensions[ this.name ];
-
-		materialParams.specularIntensity = extension.specularFactor !== undefined ? extension.specularFactor : 1.0;
-
-		if ( extension.specularTexture !== undefined ) {
-
-			pending.push( parser.assignTexture( materialParams, 'specularIntensityMap', extension.specularTexture ) );
-
-		}
-
-		const colorArray = extension.specularColorFactor || [ 1, 1, 1 ];
-		materialParams.specularColor = new three.Color().setRGB( colorArray[ 0 ], colorArray[ 1 ], colorArray[ 2 ], three.LinearSRGBColorSpace );
-
-		if ( extension.specularColorTexture !== undefined ) {
-
-			pending.push( parser.assignTexture( materialParams, 'specularColorMap', extension.specularColorTexture, three.SRGBColorSpace ) );
-
-		}
-
-		return Promise.all( pending );
-
-	}
-
-}
-
-
-/**
- * Materials bump Extension
- *
- * Specification: https://github.com/KhronosGroup/glTF/tree/master/extensions/2.0/Khronos/EXT_materials_bump
- */
-class GLTFMaterialsBumpExtension {
-
-	constructor( parser ) {
-
-		this.parser = parser;
-		this.name = EXTENSIONS.EXT_MATERIALS_BUMP;
-
-	}
-
-	getMaterialType( materialIndex ) {
-
-		const parser = this.parser;
-		const materialDef = parser.json.materials[ materialIndex ];
-
-		if ( ! materialDef.extensions || ! materialDef.extensions[ this.name ] ) return null;
-
-		return three.MeshPhysicalMaterial;
-
-	}
-
-	extendMaterialParams( materialIndex, materialParams ) {
-
-		const parser = this.parser;
-		const materialDef = parser.json.materials[ materialIndex ];
-
-		if ( ! materialDef.extensions || ! materialDef.extensions[ this.name ] ) {
-
-			return Promise.resolve();
-
-		}
-
-		const pending = [];
-
-		const extension = materialDef.extensions[ this.name ];
-
-		materialParams.bumpScale = extension.bumpFactor !== undefined ? extension.bumpFactor : 1.0;
-
-		if ( extension.bumpTexture !== undefined ) {
-
-			pending.push( parser.assignTexture( materialParams, 'bumpMap', extension.bumpTexture ) );
-
-		}
-
-		return Promise.all( pending );
-
-	}
-
-}
-
-/**
- * Materials anisotropy Extension
- *
- * Specification: https://github.com/KhronosGroup/glTF/tree/master/extensions/2.0/Khronos/KHR_materials_anisotropy
- */
-class GLTFMaterialsAnisotropyExtension {
-
-	constructor( parser ) {
-
-		this.parser = parser;
-		this.name = EXTENSIONS.KHR_MATERIALS_ANISOTROPY;
-
-	}
-
-	getMaterialType( materialIndex ) {
-
-		const parser = this.parser;
-		const materialDef = parser.json.materials[ materialIndex ];
-
-		if ( ! materialDef.extensions || ! materialDef.extensions[ this.name ] ) return null;
-
-		return three.MeshPhysicalMaterial;
-
-	}
-
-	extendMaterialParams( materialIndex, materialParams ) {
-
-		const parser = this.parser;
-		const materialDef = parser.json.materials[ materialIndex ];
-
-		if ( ! materialDef.extensions || ! materialDef.extensions[ this.name ] ) {
-
-			return Promise.resolve();
-
-		}
-
-		const pending = [];
-
-		const extension = materialDef.extensions[ this.name ];
-
-		if ( extension.anisotropyStrength !== undefined ) {
-
-			materialParams.anisotropy = extension.anisotropyStrength;
-
-		}
-
-		if ( extension.anisotropyRotation !== undefined ) {
-
-			materialParams.anisotropyRotation = extension.anisotropyRotation;
-
-		}
-
-		if ( extension.anisotropyTexture !== undefined ) {
-
-			pending.push( parser.assignTexture( materialParams, 'anisotropyMap', extension.anisotropyTexture ) );
-
-		}
-
-		return Promise.all( pending );
-
-	}
-
-}
-
-/**
- * BasisU Texture Extension
- *
- * Specification: https://github.com/KhronosGroup/glTF/tree/master/extensions/2.0/Khronos/KHR_texture_basisu
- */
-class GLTFTextureBasisUExtension {
-
-	constructor( parser ) {
-
-		this.parser = parser;
-		this.name = EXTENSIONS.KHR_TEXTURE_BASISU;
-
-	}
-
-	loadTexture( textureIndex ) {
-
-		const parser = this.parser;
-		const json = parser.json;
-
-		const textureDef = json.textures[ textureIndex ];
-
-		if ( ! textureDef.extensions || ! textureDef.extensions[ this.name ] ) {
-
-			return null;
-
-		}
-
-		const extension = textureDef.extensions[ this.name ];
-		const loader = parser.options.ktx2Loader;
-
-		if ( ! loader ) {
-
-			if ( json.extensionsRequired && json.extensionsRequired.indexOf( this.name ) >= 0 ) {
-
-				throw new Error( 'THREE.GLTFLoader: setKTX2Loader must be called before loading KTX2 textures' );
-
-			} else {
-
-				// Assumes that the extension is optional and that a fallback texture is present
-				return null;
-
-			}
-
-		}
-
-		return parser.loadTextureImage( textureIndex, extension.source, loader );
-
-	}
-
-}
-
-/**
- * WebP Texture Extension
- *
- * Specification: https://github.com/KhronosGroup/glTF/tree/master/extensions/2.0/Vendor/EXT_texture_webp
- */
-class GLTFTextureWebPExtension {
-
-	constructor( parser ) {
-
-		this.parser = parser;
-		this.name = EXTENSIONS.EXT_TEXTURE_WEBP;
-		this.isSupported = null;
-
-	}
-
-	loadTexture( textureIndex ) {
-
-		const name = this.name;
-		const parser = this.parser;
-		const json = parser.json;
-
-		const textureDef = json.textures[ textureIndex ];
-
-		if ( ! textureDef.extensions || ! textureDef.extensions[ name ] ) {
-
-			return null;
-
-		}
-
-		const extension = textureDef.extensions[ name ];
-		const source = json.images[ extension.source ];
-
-		let loader = parser.textureLoader;
-		if ( source.uri ) {
-
-			const handler = parser.options.manager.getHandler( source.uri );
-			if ( handler !== null ) loader = handler;
-
-		}
-
-		return this.detectSupport().then( function ( isSupported ) {
-
-			if ( isSupported ) return parser.loadTextureImage( textureIndex, extension.source, loader );
-
-			if ( json.extensionsRequired && json.extensionsRequired.indexOf( name ) >= 0 ) {
-
-				throw new Error( 'THREE.GLTFLoader: WebP required by asset but unsupported.' );
-
-			}
-
-			// Fall back to PNG or JPEG.
-			return parser.loadTexture( textureIndex );
-
-		} );
-
-	}
-
-	detectSupport() {
-
-		if ( ! this.isSupported ) {
-
-			this.isSupported = new Promise( function ( resolve ) {
-
-				const image = new Image();
-
-				// Lossy test image. Support for lossy images doesn't guarantee support for all
-				// WebP images, unfortunately.
-				image.src = 'data:image/webp;base64,UklGRiIAAABXRUJQVlA4IBYAAAAwAQCdASoBAAEADsD+JaQAA3AAAAAA';
-
-				image.onload = image.onerror = function () {
-
-					resolve( image.height === 1 );
-
-				};
-
-			} );
-
-		}
-
-		return this.isSupported;
-
-	}
-
-}
-
-/**
- * AVIF Texture Extension
- *
- * Specification: https://github.com/KhronosGroup/glTF/tree/master/extensions/2.0/Vendor/EXT_texture_avif
- */
-class GLTFTextureAVIFExtension {
-
-	constructor( parser ) {
-
-		this.parser = parser;
-		this.name = EXTENSIONS.EXT_TEXTURE_AVIF;
-		this.isSupported = null;
-
-	}
-
-	loadTexture( textureIndex ) {
-
-		const name = this.name;
-		const parser = this.parser;
-		const json = parser.json;
-
-		const textureDef = json.textures[ textureIndex ];
-
-		if ( ! textureDef.extensions || ! textureDef.extensions[ name ] ) {
-
-			return null;
-
-		}
-
-		const extension = textureDef.extensions[ name ];
-		const source = json.images[ extension.source ];
-
-		let loader = parser.textureLoader;
-		if ( source.uri ) {
-
-			const handler = parser.options.manager.getHandler( source.uri );
-			if ( handler !== null ) loader = handler;
-
-		}
-
-		return this.detectSupport().then( function ( isSupported ) {
-
-			if ( isSupported ) return parser.loadTextureImage( textureIndex, extension.source, loader );
-
-			if ( json.extensionsRequired && json.extensionsRequired.indexOf( name ) >= 0 ) {
-
-				throw new Error( 'THREE.GLTFLoader: AVIF required by asset but unsupported.' );
-
-			}
-
-			// Fall back to PNG or JPEG.
-			return parser.loadTexture( textureIndex );
-
-		} );
-
-	}
-
-	detectSupport() {
-
-		if ( ! this.isSupported ) {
-
-			this.isSupported = new Promise( function ( resolve ) {
-
-				const image = new Image();
-
-				// Lossy test image.
-				image.src = 'data:image/avif;base64,AAAAIGZ0eXBhdmlmAAAAAGF2aWZtaWYxbWlhZk1BMUIAAADybWV0YQAAAAAAAAAoaGRscgAAAAAAAAAAcGljdAAAAAAAAAAAAAAAAGxpYmF2aWYAAAAADnBpdG0AAAAAAAEAAAAeaWxvYwAAAABEAAABAAEAAAABAAABGgAAABcAAAAoaWluZgAAAAAAAQAAABppbmZlAgAAAAABAABhdjAxQ29sb3IAAAAAamlwcnAAAABLaXBjbwAAABRpc3BlAAAAAAAAAAEAAAABAAAAEHBpeGkAAAAAAwgICAAAAAxhdjFDgQAMAAAAABNjb2xybmNseAACAAIABoAAAAAXaXBtYQAAAAAAAAABAAEEAQKDBAAAAB9tZGF0EgAKCBgABogQEDQgMgkQAAAAB8dSLfI=';
-				image.onload = image.onerror = function () {
-
-					resolve( image.height === 1 );
-
-				};
-
-			} );
-
-		}
-
-		return this.isSupported;
-
-	}
-
-}
-
-/**
- * meshopt BufferView Compression Extension
- *
- * Specification: https://github.com/KhronosGroup/glTF/tree/master/extensions/2.0/Vendor/EXT_meshopt_compression
- */
-class GLTFMeshoptCompression {
-
-	constructor( parser ) {
-
-		this.name = EXTENSIONS.EXT_MESHOPT_COMPRESSION;
-		this.parser = parser;
-
-	}
-
-	loadBufferView( index ) {
-
-		const json = this.parser.json;
-		const bufferView = json.bufferViews[ index ];
-
-		if ( bufferView.extensions && bufferView.extensions[ this.name ] ) {
-
-			const extensionDef = bufferView.extensions[ this.name ];
-
-			const buffer = this.parser.getDependency( 'buffer', extensionDef.buffer );
-			const decoder = this.parser.options.meshoptDecoder;
-
-			if ( ! decoder || ! decoder.supported ) {
-
-				if ( json.extensionsRequired && json.extensionsRequired.indexOf( this.name ) >= 0 ) {
-
-					throw new Error( 'THREE.GLTFLoader: setMeshoptDecoder must be called before loading compressed files' );
-
-				} else {
-
-					// Assumes that the extension is optional and that fallback buffer data is present
-					return null;
-
-				}
-
-			}
-
-			return buffer.then( function ( res ) {
-
-				const byteOffset = extensionDef.byteOffset || 0;
-				const byteLength = extensionDef.byteLength || 0;
-
-				const count = extensionDef.count;
-				const stride = extensionDef.byteStride;
-
-				const source = new Uint8Array( res, byteOffset, byteLength );
-
-				if ( decoder.decodeGltfBufferAsync ) {
-
-					return decoder.decodeGltfBufferAsync( count, stride, source, extensionDef.mode, extensionDef.filter ).then( function ( res ) {
-
-						return res.buffer;
-
-					} );
-
-				} else {
-
-					// Support for MeshoptDecoder 0.18 or earlier, without decodeGltfBufferAsync
-					return decoder.ready.then( function () {
-
-						const result = new ArrayBuffer( count * stride );
-						decoder.decodeGltfBuffer( new Uint8Array( result ), count, stride, source, extensionDef.mode, extensionDef.filter );
-						return result;
-
-					} );
-
-				}
-
-			} );
-
-		} else {
-
-			return null;
-
-		}
-
-	}
-
-}
-
-/**
- * GPU Instancing Extension
- *
- * Specification: https://github.com/KhronosGroup/glTF/tree/master/extensions/2.0/Vendor/EXT_mesh_gpu_instancing
- *
- */
-class GLTFMeshGpuInstancing {
-
-	constructor( parser ) {
-
-		this.name = EXTENSIONS.EXT_MESH_GPU_INSTANCING;
-		this.parser = parser;
-
-	}
-
-	createNodeMesh( nodeIndex ) {
-
-		const json = this.parser.json;
-		const nodeDef = json.nodes[ nodeIndex ];
-
-		if ( ! nodeDef.extensions || ! nodeDef.extensions[ this.name ] ||
-			nodeDef.mesh === undefined ) {
-
-			return null;
-
-		}
-
-		const meshDef = json.meshes[ nodeDef.mesh ];
-
-		// No Points or Lines + Instancing support yet
-
-		for ( const primitive of meshDef.primitives ) {
-
-			if ( primitive.mode !== WEBGL_CONSTANTS.TRIANGLES &&
-				 primitive.mode !== WEBGL_CONSTANTS.TRIANGLE_STRIP &&
-				 primitive.mode !== WEBGL_CONSTANTS.TRIANGLE_FAN &&
-				 primitive.mode !== undefined ) {
-
-				return null;
-
-			}
-
-		}
-
-		const extensionDef = nodeDef.extensions[ this.name ];
-		const attributesDef = extensionDef.attributes;
-
-		// @TODO: Can we support InstancedMesh + SkinnedMesh?
-
-		const pending = [];
-		const attributes = {};
-
-		for ( const key in attributesDef ) {
-
-			pending.push( this.parser.getDependency( 'accessor', attributesDef[ key ] ).then( accessor => {
-
-				attributes[ key ] = accessor;
-				return attributes[ key ];
-
-			} ) );
-
-		}
-
-		if ( pending.length < 1 ) {
-
-			return null;
-
-		}
-
-		pending.push( this.parser.createNodeMesh( nodeIndex ) );
-
-		return Promise.all( pending ).then( results => {
-
-			const nodeObject = results.pop();
-			const meshes = nodeObject.isGroup ? nodeObject.children : [ nodeObject ];
-			const count = results[ 0 ].count; // All attribute counts should be same
-			const instancedMeshes = [];
-
-			for ( const mesh of meshes ) {
-
-				// Temporal variables
-				const m = new three.Matrix4();
-				const p = new three.Vector3();
-				const q = new three.Quaternion();
-				const s = new three.Vector3( 1, 1, 1 );
-
-				const instancedMesh = new three.InstancedMesh( mesh.geometry, mesh.material, count );
-
-				for ( let i = 0; i < count; i ++ ) {
-
-					if ( attributes.TRANSLATION ) {
-
-						p.fromBufferAttribute( attributes.TRANSLATION, i );
-
-					}
-
-					if ( attributes.ROTATION ) {
-
-						q.fromBufferAttribute( attributes.ROTATION, i );
-
-					}
-
-					if ( attributes.SCALE ) {
-
-						s.fromBufferAttribute( attributes.SCALE, i );
-
-					}
-
-					instancedMesh.setMatrixAt( i, m.compose( p, q, s ) );
-
-				}
-
-				// Add instance attributes to the geometry, excluding TRS.
-				for ( const attributeName in attributes ) {
-
-					if ( attributeName === '_COLOR_0' ) {
-
-						const attr = attributes[ attributeName ];
-						instancedMesh.instanceColor = new three.InstancedBufferAttribute( attr.array, attr.itemSize, attr.normalized );
-
-					} else if ( attributeName !== 'TRANSLATION' &&
-						 attributeName !== 'ROTATION' &&
-						 attributeName !== 'SCALE' ) {
-
-						mesh.geometry.setAttribute( attributeName, attributes[ attributeName ] );
-
-					}
-
-				}
-
-				// Just in case
-				three.Object3D.prototype.copy.call( instancedMesh, mesh );
-
-				this.parser.assignFinalMaterial( instancedMesh );
-
-				instancedMeshes.push( instancedMesh );
-
-			}
-
-			if ( nodeObject.isGroup ) {
-
-				nodeObject.clear();
-
-				nodeObject.add( ... instancedMeshes );
-
-				return nodeObject;
-
-			}
-
-			return instancedMeshes[ 0 ];
-
-		} );
-
-	}
-
-}
-
-/* BINARY EXTENSION */
-const BINARY_EXTENSION_HEADER_MAGIC = 'glTF';
-const BINARY_EXTENSION_HEADER_LENGTH = 12;
-const BINARY_EXTENSION_CHUNK_TYPES = { JSON: 0x4E4F534A, BIN: 0x004E4942 };
-
-class GLTFBinaryExtension {
-
-	constructor( data ) {
-
-		this.name = EXTENSIONS.KHR_BINARY_GLTF;
-		this.content = null;
-		this.body = null;
-
-		const headerView = new DataView( data, 0, BINARY_EXTENSION_HEADER_LENGTH );
-		const textDecoder = new TextDecoder();
-
-		this.header = {
-			magic: textDecoder.decode( new Uint8Array( data.slice( 0, 4 ) ) ),
-			version: headerView.getUint32( 4, true ),
-			length: headerView.getUint32( 8, true )
-		};
-
-		if ( this.header.magic !== BINARY_EXTENSION_HEADER_MAGIC ) {
-
-			throw new Error( 'THREE.GLTFLoader: Unsupported glTF-Binary header.' );
-
-		} else if ( this.header.version < 2.0 ) {
-
-			throw new Error( 'THREE.GLTFLoader: Legacy binary file detected.' );
-
-		}
-
-		const chunkContentsLength = this.header.length - BINARY_EXTENSION_HEADER_LENGTH;
-		const chunkView = new DataView( data, BINARY_EXTENSION_HEADER_LENGTH );
-		let chunkIndex = 0;
-
-		while ( chunkIndex < chunkContentsLength ) {
-
-			const chunkLength = chunkView.getUint32( chunkIndex, true );
-			chunkIndex += 4;
-
-			const chunkType = chunkView.getUint32( chunkIndex, true );
-			chunkIndex += 4;
-
-			if ( chunkType === BINARY_EXTENSION_CHUNK_TYPES.JSON ) {
-
-				const contentArray = new Uint8Array( data, BINARY_EXTENSION_HEADER_LENGTH + chunkIndex, chunkLength );
-				this.content = textDecoder.decode( contentArray );
-
-			} else if ( chunkType === BINARY_EXTENSION_CHUNK_TYPES.BIN ) {
-
-				const byteOffset = BINARY_EXTENSION_HEADER_LENGTH + chunkIndex;
-				this.body = data.slice( byteOffset, byteOffset + chunkLength );
-
-			}
-
-			// Clients must ignore chunks with unknown types.
-
-			chunkIndex += chunkLength;
-
-		}
-
-		if ( this.content === null ) {
-
-			throw new Error( 'THREE.GLTFLoader: JSON content not found.' );
-
-		}
-
-	}
-
-}
-
-/**
- * DRACO Mesh Compression Extension
- *
- * Specification: https://github.com/KhronosGroup/glTF/tree/master/extensions/2.0/Khronos/KHR_draco_mesh_compression
- */
-class GLTFDracoMeshCompressionExtension {
-
-	constructor( json, dracoLoader ) {
-
-		if ( ! dracoLoader ) {
-
-			throw new Error( 'THREE.GLTFLoader: No DRACOLoader instance provided.' );
-
-		}
-
-		this.name = EXTENSIONS.KHR_DRACO_MESH_COMPRESSION;
-		this.json = json;
-		this.dracoLoader = dracoLoader;
-		this.dracoLoader.preload();
-
-	}
-
-	decodePrimitive( primitive, parser ) {
-
-		const json = this.json;
-		const dracoLoader = this.dracoLoader;
-		const bufferViewIndex = primitive.extensions[ this.name ].bufferView;
-		const gltfAttributeMap = primitive.extensions[ this.name ].attributes;
-		const threeAttributeMap = {};
-		const attributeNormalizedMap = {};
-		const attributeTypeMap = {};
-
-		for ( const attributeName in gltfAttributeMap ) {
-
-			const threeAttributeName = ATTRIBUTES[ attributeName ] || attributeName.toLowerCase();
-
-			threeAttributeMap[ threeAttributeName ] = gltfAttributeMap[ attributeName ];
-
-		}
-
-		for ( const attributeName in primitive.attributes ) {
-
-			const threeAttributeName = ATTRIBUTES[ attributeName ] || attributeName.toLowerCase();
-
-			if ( gltfAttributeMap[ attributeName ] !== undefined ) {
-
-				const accessorDef = json.accessors[ primitive.attributes[ attributeName ] ];
-				const componentType = WEBGL_COMPONENT_TYPES[ accessorDef.componentType ];
-
-				attributeTypeMap[ threeAttributeName ] = componentType.name;
-				attributeNormalizedMap[ threeAttributeName ] = accessorDef.normalized === true;
-
-			}
-
-		}
-
-		return parser.getDependency( 'bufferView', bufferViewIndex ).then( function ( bufferView ) {
-
-			return new Promise( function ( resolve, reject ) {
-
-				dracoLoader.decodeDracoFile( bufferView, function ( geometry ) {
-
-					for ( const attributeName in geometry.attributes ) {
-
-						const attribute = geometry.attributes[ attributeName ];
-						const normalized = attributeNormalizedMap[ attributeName ];
-
-						if ( normalized !== undefined ) attribute.normalized = normalized;
-
-					}
-
-					resolve( geometry );
-
-				}, threeAttributeMap, attributeTypeMap, three.LinearSRGBColorSpace, reject );
-
-			} );
-
-		} );
-
-	}
-
-}
-
-/**
- * Texture Transform Extension
- *
- * Specification: https://github.com/KhronosGroup/glTF/tree/master/extensions/2.0/Khronos/KHR_texture_transform
- */
-class GLTFTextureTransformExtension {
-
-	constructor() {
-
-		this.name = EXTENSIONS.KHR_TEXTURE_TRANSFORM;
-
-	}
-
-	extendTexture( texture, transform ) {
-
-		if ( ( transform.texCoord === undefined || transform.texCoord === texture.channel )
-			&& transform.offset === undefined
-			&& transform.rotation === undefined
-			&& transform.scale === undefined ) {
-
-			// See https://github.com/mrdoob/three.js/issues/21819.
-			return texture;
-
-		}
-
-		texture = texture.clone();
-
-		if ( transform.texCoord !== undefined ) {
-
-			texture.channel = transform.texCoord;
-
-		}
-
-		if ( transform.offset !== undefined ) {
-
-			texture.offset.fromArray( transform.offset );
-
-		}
-
-		if ( transform.rotation !== undefined ) {
-
-			texture.rotation = transform.rotation;
-
-		}
-
-		if ( transform.scale !== undefined ) {
-
-			texture.repeat.fromArray( transform.scale );
-
-		}
-
-		texture.needsUpdate = true;
-
-		return texture;
-
-	}
-
-}
-
-/**
- * Mesh Quantization Extension
- *
- * Specification: https://github.com/KhronosGroup/glTF/tree/master/extensions/2.0/Khronos/KHR_mesh_quantization
- */
-class GLTFMeshQuantizationExtension {
-
-	constructor() {
-
-		this.name = EXTENSIONS.KHR_MESH_QUANTIZATION;
-
-	}
-
-}
-
-/*********************************/
-/********** INTERPOLATION ********/
-/*********************************/
-
-// Spline Interpolation
-// Specification: https://github.com/KhronosGroup/glTF/blob/master/specification/2.0/README.md#appendix-c-spline-interpolation
-class GLTFCubicSplineInterpolant extends three.Interpolant {
-
-	constructor( parameterPositions, sampleValues, sampleSize, resultBuffer ) {
-
-		super( parameterPositions, sampleValues, sampleSize, resultBuffer );
-
-	}
-
-	copySampleValue_( index ) {
-
-		// Copies a sample value to the result buffer. See description of glTF
-		// CUBICSPLINE values layout in interpolate_() function below.
-
-		const result = this.resultBuffer,
-			values = this.sampleValues,
-			valueSize = this.valueSize,
-			offset = index * valueSize * 3 + valueSize;
-
-		for ( let i = 0; i !== valueSize; i ++ ) {
-
-			result[ i ] = values[ offset + i ];
-
-		}
-
-		return result;
-
-	}
-
-	interpolate_( i1, t0, t, t1 ) {
-
-		const result = this.resultBuffer;
-		const values = this.sampleValues;
-		const stride = this.valueSize;
-
-		const stride2 = stride * 2;
-		const stride3 = stride * 3;
-
-		const td = t1 - t0;
-
-		const p = ( t - t0 ) / td;
-		const pp = p * p;
-		const ppp = pp * p;
-
-		const offset1 = i1 * stride3;
-		const offset0 = offset1 - stride3;
-
-		const s2 = -2 * ppp + 3 * pp;
-		const s3 = ppp - pp;
-		const s0 = 1 - s2;
-		const s1 = s3 - pp + p;
-
-		// Layout of keyframe output values for CUBICSPLINE animations:
-		//   [ inTangent_1, splineVertex_1, outTangent_1, inTangent_2, splineVertex_2, ... ]
-		for ( let i = 0; i !== stride; i ++ ) {
-
-			const p0 = values[ offset0 + i + stride ]; // splineVertex_k
-			const m0 = values[ offset0 + i + stride2 ] * td; // outTangent_k * (t_k+1 - t_k)
-			const p1 = values[ offset1 + i + stride ]; // splineVertex_k+1
-			const m1 = values[ offset1 + i ] * td; // inTangent_k+1 * (t_k+1 - t_k)
-
-			result[ i ] = s0 * p0 + s1 * m0 + s2 * p1 + s3 * m1;
-
-		}
-
-		return result;
-
-	}
-
-}
-
-const _q$1 = new three.Quaternion();
-
-class GLTFCubicSplineQuaternionInterpolant extends GLTFCubicSplineInterpolant {
-
-	interpolate_( i1, t0, t, t1 ) {
-
-		const result = super.interpolate_( i1, t0, t, t1 );
-
-		_q$1.fromArray( result ).normalize().toArray( result );
-
-		return result;
-
-	}
-
-}
-
-
-/*********************************/
-/********** INTERNALS ************/
-/*********************************/
-
-/* CONSTANTS */
-
-const WEBGL_CONSTANTS = {
-	POINTS: 0,
-	LINES: 1,
-	LINE_LOOP: 2,
-	LINE_STRIP: 3,
-	TRIANGLES: 4,
-	TRIANGLE_STRIP: 5,
-	TRIANGLE_FAN: 6};
-
-const WEBGL_COMPONENT_TYPES = {
-	5120: Int8Array,
-	5121: Uint8Array,
-	5122: Int16Array,
-	5123: Uint16Array,
-	5125: Uint32Array,
-	5126: Float32Array
-};
-
-const WEBGL_FILTERS = {
-	9728: three.NearestFilter,
-	9729: three.LinearFilter,
-	9984: three.NearestMipmapNearestFilter,
-	9985: three.LinearMipmapNearestFilter,
-	9986: three.NearestMipmapLinearFilter,
-	9987: three.LinearMipmapLinearFilter
-};
-
-const WEBGL_WRAPPINGS = {
-	33071: three.ClampToEdgeWrapping,
-	33648: three.MirroredRepeatWrapping,
-	10497: three.RepeatWrapping
-};
-
-const WEBGL_TYPE_SIZES = {
-	'SCALAR': 1,
-	'VEC2': 2,
-	'VEC3': 3,
-	'VEC4': 4,
-	'MAT2': 4,
-	'MAT3': 9,
-	'MAT4': 16
-};
-
-const ATTRIBUTES = {
-	POSITION: 'position',
-	NORMAL: 'normal',
-	TANGENT: 'tangent',
-	TEXCOORD_0: 'uv',
-	TEXCOORD_1: 'uv1',
-	TEXCOORD_2: 'uv2',
-	TEXCOORD_3: 'uv3',
-	COLOR_0: 'color',
-	WEIGHTS_0: 'skinWeight',
-	JOINTS_0: 'skinIndex',
-};
-
-const PATH_PROPERTIES = {
-	scale: 'scale',
-	translation: 'position',
-	rotation: 'quaternion',
-	weights: 'morphTargetInfluences'
-};
-
-const INTERPOLATION = {
-	CUBICSPLINE: undefined, // We use a custom interpolant (GLTFCubicSplineInterpolation) for CUBICSPLINE tracks. Each
-		                        // keyframe track will be initialized with a default interpolation type, then modified.
-	LINEAR: three.InterpolateLinear,
-	STEP: three.InterpolateDiscrete
-};
-
-const ALPHA_MODES = {
-	OPAQUE: 'OPAQUE',
-	MASK: 'MASK',
-	BLEND: 'BLEND'
-};
-
-/**
- * Specification: https://github.com/KhronosGroup/glTF/blob/master/specification/2.0/README.md#default-material
- *
- * @param {Object<String, Material>} cache
- * @return {Material}
- */
-function createDefaultMaterial( cache ) {
-
-	if ( cache[ 'DefaultMaterial' ] === undefined ) {
-
-		cache[ 'DefaultMaterial' ] = new three.MeshStandardMaterial( {
-			color: 0xFFFFFF,
-			emissive: 0x000000,
-			metalness: 1,
-			roughness: 1,
-			transparent: false,
-			depthTest: true,
-			side: three.FrontSide
-		} );
-
-	}
-
-	return cache[ 'DefaultMaterial' ];
-
-}
-
-function addUnknownExtensionsToUserData( knownExtensions, object, objectDef ) {
-
-	// Add unknown glTF extensions to an object's userData.
-
-	for ( const name in objectDef.extensions ) {
-
-		if ( knownExtensions[ name ] === undefined ) {
-
-			object.userData.gltfExtensions = object.userData.gltfExtensions || {};
-			object.userData.gltfExtensions[ name ] = objectDef.extensions[ name ];
-
-		}
-
-	}
-
-}
-
-/**
- * @param {Object3D|Material|BufferGeometry} object
- * @param {GLTF.definition} gltfDef
- */
-function assignExtrasToUserData( object, gltfDef ) {
-
-	if ( gltfDef.extras !== undefined ) {
-
-		if ( typeof gltfDef.extras === 'object' ) {
-
-			Object.assign( object.userData, gltfDef.extras );
-
-		} else {
-
-			console.warn( 'THREE.GLTFLoader: Ignoring primitive type .extras, ' + gltfDef.extras );
-
-		}
-
-	}
-
-}
-
-/**
- * Specification: https://github.com/KhronosGroup/glTF/blob/master/specification/2.0/README.md#morph-targets
- *
- * @param {BufferGeometry} geometry
- * @param {Array<GLTF.Target>} targets
- * @param {GLTFParser} parser
- * @return {Promise<BufferGeometry>}
- */
-function addMorphTargets( geometry, targets, parser ) {
-
-	let hasMorphPosition = false;
-	let hasMorphNormal = false;
-	let hasMorphColor = false;
-
-	for ( let i = 0, il = targets.length; i < il; i ++ ) {
-
-		const target = targets[ i ];
-
-		if ( target.POSITION !== undefined ) hasMorphPosition = true;
-		if ( target.NORMAL !== undefined ) hasMorphNormal = true;
-		if ( target.COLOR_0 !== undefined ) hasMorphColor = true;
-
-		if ( hasMorphPosition && hasMorphNormal && hasMorphColor ) break;
-
-	}
-
-	if ( ! hasMorphPosition && ! hasMorphNormal && ! hasMorphColor ) return Promise.resolve( geometry );
-
-	const pendingPositionAccessors = [];
-	const pendingNormalAccessors = [];
-	const pendingColorAccessors = [];
-
-	for ( let i = 0, il = targets.length; i < il; i ++ ) {
-
-		const target = targets[ i ];
-
-		if ( hasMorphPosition ) {
-
-			const pendingAccessor = target.POSITION !== undefined
-				? parser.getDependency( 'accessor', target.POSITION )
-				: geometry.attributes.position;
-
-			pendingPositionAccessors.push( pendingAccessor );
-
-		}
-
-		if ( hasMorphNormal ) {
-
-			const pendingAccessor = target.NORMAL !== undefined
-				? parser.getDependency( 'accessor', target.NORMAL )
-				: geometry.attributes.normal;
-
-			pendingNormalAccessors.push( pendingAccessor );
-
-		}
-
-		if ( hasMorphColor ) {
-
-			const pendingAccessor = target.COLOR_0 !== undefined
-				? parser.getDependency( 'accessor', target.COLOR_0 )
-				: geometry.attributes.color;
-
-			pendingColorAccessors.push( pendingAccessor );
-
-		}
-
-	}
-
-	return Promise.all( [
-		Promise.all( pendingPositionAccessors ),
-		Promise.all( pendingNormalAccessors ),
-		Promise.all( pendingColorAccessors )
-	] ).then( function ( accessors ) {
-
-		const morphPositions = accessors[ 0 ];
-		const morphNormals = accessors[ 1 ];
-		const morphColors = accessors[ 2 ];
-
-		if ( hasMorphPosition ) geometry.morphAttributes.position = morphPositions;
-		if ( hasMorphNormal ) geometry.morphAttributes.normal = morphNormals;
-		if ( hasMorphColor ) geometry.morphAttributes.color = morphColors;
-		geometry.morphTargetsRelative = true;
-
-		return geometry;
-
-	} );
-
-}
-
-/**
- * @param {Mesh} mesh
- * @param {GLTF.Mesh} meshDef
- */
-function updateMorphTargets( mesh, meshDef ) {
-
-	mesh.updateMorphTargets();
-
-	if ( meshDef.weights !== undefined ) {
-
-		for ( let i = 0, il = meshDef.weights.length; i < il; i ++ ) {
-
-			mesh.morphTargetInfluences[ i ] = meshDef.weights[ i ];
-
-		}
-
-	}
-
-	// .extras has user-defined data, so check that .extras.targetNames is an array.
-	if ( meshDef.extras && Array.isArray( meshDef.extras.targetNames ) ) {
-
-		const targetNames = meshDef.extras.targetNames;
-
-		if ( mesh.morphTargetInfluences.length === targetNames.length ) {
-
-			mesh.morphTargetDictionary = {};
-
-			for ( let i = 0, il = targetNames.length; i < il; i ++ ) {
-
-				mesh.morphTargetDictionary[ targetNames[ i ] ] = i;
-
-			}
-
-		} else {
-
-			console.warn( 'THREE.GLTFLoader: Invalid extras.targetNames length. Ignoring names.' );
-
-		}
-
-	}
-
-}
-
-function createPrimitiveKey( primitiveDef ) {
-
-	let geometryKey;
-
-	const dracoExtension = primitiveDef.extensions && primitiveDef.extensions[ EXTENSIONS.KHR_DRACO_MESH_COMPRESSION ];
-
-	if ( dracoExtension ) {
-
-		geometryKey = 'draco:' + dracoExtension.bufferView
-				+ ':' + dracoExtension.indices
-				+ ':' + createAttributesKey( dracoExtension.attributes );
-
-	} else {
-
-		geometryKey = primitiveDef.indices + ':' + createAttributesKey( primitiveDef.attributes ) + ':' + primitiveDef.mode;
-
-	}
-
-	if ( primitiveDef.targets !== undefined ) {
-
-		for ( let i = 0, il = primitiveDef.targets.length; i < il; i ++ ) {
-
-			geometryKey += ':' + createAttributesKey( primitiveDef.targets[ i ] );
-
-		}
-
-	}
-
-	return geometryKey;
-
-}
-
-function createAttributesKey( attributes ) {
-
-	let attributesKey = '';
-
-	const keys = Object.keys( attributes ).sort();
-
-	for ( let i = 0, il = keys.length; i < il; i ++ ) {
-
-		attributesKey += keys[ i ] + ':' + attributes[ keys[ i ] ] + ';';
-
-	}
-
-	return attributesKey;
-
-}
-
-function getNormalizedComponentScale( constructor ) {
-
-	// Reference:
-	// https://github.com/KhronosGroup/glTF/tree/master/extensions/2.0/Khronos/KHR_mesh_quantization#encoding-quantized-data
-
-	switch ( constructor ) {
-
-		case Int8Array:
-			return 1 / 127;
-
-		case Uint8Array:
-			return 1 / 255;
-
-		case Int16Array:
-			return 1 / 32767;
-
-		case Uint16Array:
-			return 1 / 65535;
-
-		default:
-			throw new Error( 'THREE.GLTFLoader: Unsupported normalized accessor component type.' );
-
-	}
-
-}
-
-function getImageURIMimeType( uri ) {
-
-	if ( uri.search( /\.jpe?g($|\?)/i ) > 0 || uri.search( /^data\:image\/jpeg/ ) === 0 ) return 'image/jpeg';
-	if ( uri.search( /\.webp($|\?)/i ) > 0 || uri.search( /^data\:image\/webp/ ) === 0 ) return 'image/webp';
-	if ( uri.search( /\.ktx2($|\?)/i ) > 0 || uri.search( /^data\:image\/ktx2/ ) === 0 ) return 'image/ktx2';
-
-	return 'image/png';
-
-}
-
-const _identityMatrix$1 = new three.Matrix4();
-
-/* GLTF PARSER */
-
-class GLTFParser {
-
-	constructor( json = {}, options = {} ) {
-
-		this.json = json;
-		this.extensions = {};
-		this.plugins = {};
-		this.options = options;
-
-		// loader object cache
-		this.cache = new GLTFRegistry();
-
-		// associations between Three.js objects and glTF elements
-		this.associations = new Map();
-
-		// BufferGeometry caching
-		this.primitiveCache = {};
-
-		// Node cache
-		this.nodeCache = {};
-
-		// Object3D instance caches
-		this.meshCache = { refs: {}, uses: {} };
-		this.cameraCache = { refs: {}, uses: {} };
-		this.lightCache = { refs: {}, uses: {} };
-
-		this.sourceCache = {};
-		this.textureCache = {};
-
-		// Track node names, to ensure no duplicates
-		this.nodeNamesUsed = {};
-
-		// Use an ImageBitmapLoader if imageBitmaps are supported. Moves much of the
-		// expensive work of uploading a texture to the GPU off the main thread.
-
-		let isSafari = false;
-		let safariVersion = -1;
-		let isFirefox = false;
-		let firefoxVersion = -1;
-
-		if ( typeof navigator !== 'undefined' ) {
-
-			const userAgent = navigator.userAgent;
-
-			isSafari = /^((?!chrome|android).)*safari/i.test( userAgent ) === true;
-			const safariMatch = userAgent.match( /Version\/(\d+)/ );
-			safariVersion = isSafari && safariMatch ? parseInt( safariMatch[ 1 ], 10 ) : -1;
-
-			isFirefox = userAgent.indexOf( 'Firefox' ) > -1;
-			firefoxVersion = isFirefox ? userAgent.match( /Firefox\/([0-9]+)\./ )[ 1 ] : -1;
-
-		}
-
-		if ( typeof createImageBitmap === 'undefined' || ( isSafari && safariVersion < 17 ) || ( isFirefox && firefoxVersion < 98 ) ) {
-
-			this.textureLoader = new three.TextureLoader( this.options.manager );
-
-		} else {
-
-			this.textureLoader = new three.ImageBitmapLoader( this.options.manager );
-
-		}
-
-		this.textureLoader.setCrossOrigin( this.options.crossOrigin );
-		this.textureLoader.setRequestHeader( this.options.requestHeader );
-
-		this.fileLoader = new three.FileLoader( this.options.manager );
-		this.fileLoader.setResponseType( 'arraybuffer' );
-
-		if ( this.options.crossOrigin === 'use-credentials' ) {
-
-			this.fileLoader.setWithCredentials( true );
-
-		}
-
-	}
-
-	setExtensions( extensions ) {
-
-		this.extensions = extensions;
-
-	}
-
-	setPlugins( plugins ) {
-
-		this.plugins = plugins;
-
-	}
-
-	parse( onLoad, onError ) {
-
-		const parser = this;
-		const json = this.json;
-		const extensions = this.extensions;
-
-		// Clear the loader cache
-		this.cache.removeAll();
-		this.nodeCache = {};
-
-		// Mark the special nodes/meshes in json for efficient parse
-		this._invokeAll( function ( ext ) {
-
-			return ext._markDefs && ext._markDefs();
-
-		} );
-
-		Promise.all( this._invokeAll( function ( ext ) {
-
-			return ext.beforeRoot && ext.beforeRoot();
-
-		} ) ).then( function () {
-
-			return Promise.all( [
-
-				parser.getDependencies( 'scene' ),
-				parser.getDependencies( 'animation' ),
-				parser.getDependencies( 'camera' ),
-
-			] );
-
-		} ).then( function ( dependencies ) {
-
-			const result = {
-				scene: dependencies[ 0 ][ json.scene || 0 ],
-				scenes: dependencies[ 0 ],
-				animations: dependencies[ 1 ],
-				cameras: dependencies[ 2 ],
-				asset: json.asset,
-				parser: parser,
-				userData: {}
-			};
-
-			addUnknownExtensionsToUserData( extensions, result, json );
-
-			assignExtrasToUserData( result, json );
-
-			return Promise.all( parser._invokeAll( function ( ext ) {
-
-				return ext.afterRoot && ext.afterRoot( result );
-
-			} ) ).then( function () {
-
-				for ( const scene of result.scenes ) {
-
-					scene.updateMatrixWorld();
-
-				}
-
-				onLoad( result );
-
-			} );
-
-		} ).catch( onError );
-
-	}
-
-	/**
-	 * Marks the special nodes/meshes in json for efficient parse.
-	 */
-	_markDefs() {
-
-		const nodeDefs = this.json.nodes || [];
-		const skinDefs = this.json.skins || [];
-		const meshDefs = this.json.meshes || [];
-
-		// Nothing in the node definition indicates whether it is a Bone or an
-		// Object3D. Use the skins' joint references to mark bones.
-		for ( let skinIndex = 0, skinLength = skinDefs.length; skinIndex < skinLength; skinIndex ++ ) {
-
-			const joints = skinDefs[ skinIndex ].joints;
-
-			for ( let i = 0, il = joints.length; i < il; i ++ ) {
-
-				nodeDefs[ joints[ i ] ].isBone = true;
-
-			}
-
-		}
-
-		// Iterate over all nodes, marking references to shared resources,
-		// as well as skeleton joints.
-		for ( let nodeIndex = 0, nodeLength = nodeDefs.length; nodeIndex < nodeLength; nodeIndex ++ ) {
-
-			const nodeDef = nodeDefs[ nodeIndex ];
-
-			if ( nodeDef.mesh !== undefined ) {
-
-				this._addNodeRef( this.meshCache, nodeDef.mesh );
-
-				// Nothing in the mesh definition indicates whether it is
-				// a SkinnedMesh or Mesh. Use the node's mesh reference
-				// to mark SkinnedMesh if node has skin.
-				if ( nodeDef.skin !== undefined ) {
-
-					meshDefs[ nodeDef.mesh ].isSkinnedMesh = true;
-
-				}
-
-			}
-
-			if ( nodeDef.camera !== undefined ) {
-
-				this._addNodeRef( this.cameraCache, nodeDef.camera );
-
-			}
-
-		}
-
-	}
-
-	/**
-	 * Counts references to shared node / Object3D resources. These resources
-	 * can be reused, or "instantiated", at multiple nodes in the scene
-	 * hierarchy. Mesh, Camera, and Light instances are instantiated and must
-	 * be marked. Non-scenegraph resources (like Materials, Geometries, and
-	 * Textures) can be reused directly and are not marked here.
-	 *
-	 * Example: CesiumMilkTruck sample model reuses "Wheel" meshes.
-	 *
-	 * @param {Object} cache
-	 * @param {Object3D} index
-	 */
-	_addNodeRef( cache, index ) {
-
-		if ( index === undefined ) return;
-
-		if ( cache.refs[ index ] === undefined ) {
-
-			cache.refs[ index ] = cache.uses[ index ] = 0;
-
-		}
-
-		cache.refs[ index ] ++;
-
-	}
-
-	/**
-	 * Returns a reference to a shared resource, cloning it if necessary.
-	 *
-	 * @param {Object} cache
-	 * @param {number} index
-	 * @param {Object} object
-	 * @return {Object}
-	 */
-	_getNodeRef( cache, index, object ) {
-
-		if ( cache.refs[ index ] <= 1 ) return object;
-
-		const ref = object.clone();
-
-		// Propagates mappings to the cloned object, prevents mappings on the
-		// original object from being lost.
-		const updateMappings = ( original, clone ) => {
-
-			const mappings = this.associations.get( original );
-			if ( mappings != null ) {
-
-				this.associations.set( clone, mappings );
-
-			}
-
-			for ( const [ i, child ] of original.children.entries() ) {
-
-				updateMappings( child, clone.children[ i ] );
-
-			}
-
-		};
-
-		updateMappings( object, ref );
-
-		ref.name += '_instance_' + ( cache.uses[ index ] ++ );
-
-		return ref;
-
-	}
-
-	_invokeOne( func ) {
-
-		const extensions = Object.values( this.plugins );
-		extensions.push( this );
-
-		for ( let i = 0; i < extensions.length; i ++ ) {
-
-			const result = func( extensions[ i ] );
-
-			if ( result ) return result;
-
-		}
-
-		return null;
-
-	}
-
-	_invokeAll( func ) {
-
-		const extensions = Object.values( this.plugins );
-		extensions.unshift( this );
-
-		const pending = [];
-
-		for ( let i = 0; i < extensions.length; i ++ ) {
-
-			const result = func( extensions[ i ] );
-
-			if ( result ) pending.push( result );
-
-		}
-
-		return pending;
-
-	}
-
-	/**
-	 * Requests the specified dependency asynchronously, with caching.
-	 * @param {string} type
-	 * @param {number} index
-	 * @return {Promise<Object3D|Material|THREE.Texture|AnimationClip|ArrayBuffer|Object>}
-	 */
-	getDependency( type, index ) {
-
-		const cacheKey = type + ':' + index;
-		let dependency = this.cache.get( cacheKey );
-
-		if ( ! dependency ) {
-
-			switch ( type ) {
-
-				case 'scene':
-					dependency = this.loadScene( index );
-					break;
-
-				case 'node':
-					dependency = this._invokeOne( function ( ext ) {
-
-						return ext.loadNode && ext.loadNode( index );
-
-					} );
-					break;
-
-				case 'mesh':
-					dependency = this._invokeOne( function ( ext ) {
-
-						return ext.loadMesh && ext.loadMesh( index );
-
-					} );
-					break;
-
-				case 'accessor':
-					dependency = this.loadAccessor( index );
-					break;
-
-				case 'bufferView':
-					dependency = this._invokeOne( function ( ext ) {
-
-						return ext.loadBufferView && ext.loadBufferView( index );
-
-					} );
-					break;
-
-				case 'buffer':
-					dependency = this.loadBuffer( index );
-					break;
-
-				case 'material':
-					dependency = this._invokeOne( function ( ext ) {
-
-						return ext.loadMaterial && ext.loadMaterial( index );
-
-					} );
-					break;
-
-				case 'texture':
-					dependency = this._invokeOne( function ( ext ) {
-
-						return ext.loadTexture && ext.loadTexture( index );
-
-					} );
-					break;
-
-				case 'skin':
-					dependency = this.loadSkin( index );
-					break;
-
-				case 'animation':
-					dependency = this._invokeOne( function ( ext ) {
-
-						return ext.loadAnimation && ext.loadAnimation( index );
-
-					} );
-					break;
-
-				case 'camera':
-					dependency = this.loadCamera( index );
-					break;
-
-				default:
-					dependency = this._invokeOne( function ( ext ) {
-
-						return ext != this && ext.getDependency && ext.getDependency( type, index );
-
-					} );
-
-					if ( ! dependency ) {
-
-						throw new Error( 'Unknown type: ' + type );
-
-					}
-
-					break;
-
-			}
-
-			this.cache.add( cacheKey, dependency );
-
-		}
-
-		return dependency;
-
-	}
-
-	/**
-	 * Requests all dependencies of the specified type asynchronously, with caching.
-	 * @param {string} type
-	 * @return {Promise<Array<Object>>}
-	 */
-	getDependencies( type ) {
-
-		let dependencies = this.cache.get( type );
-
-		if ( ! dependencies ) {
-
-			const parser = this;
-			const defs = this.json[ type + ( type === 'mesh' ? 'es' : 's' ) ] || [];
-
-			dependencies = Promise.all( defs.map( function ( def, index ) {
-
-				return parser.getDependency( type, index );
-
-			} ) );
-
-			this.cache.add( type, dependencies );
-
-		}
-
-		return dependencies;
-
-	}
-
-	/**
-	 * Specification: https://github.com/KhronosGroup/glTF/blob/master/specification/2.0/README.md#buffers-and-buffer-views
-	 * @param {number} bufferIndex
-	 * @return {Promise<ArrayBuffer>}
-	 */
-	loadBuffer( bufferIndex ) {
-
-		const bufferDef = this.json.buffers[ bufferIndex ];
-		const loader = this.fileLoader;
-
-		if ( bufferDef.type && bufferDef.type !== 'arraybuffer' ) {
-
-			throw new Error( 'THREE.GLTFLoader: ' + bufferDef.type + ' buffer type is not supported.' );
-
-		}
-
-		// If present, GLB container is required to be the first buffer.
-		if ( bufferDef.uri === undefined && bufferIndex === 0 ) {
-
-			return Promise.resolve( this.extensions[ EXTENSIONS.KHR_BINARY_GLTF ].body );
-
-		}
-
-		const options = this.options;
-
-		return new Promise( function ( resolve, reject ) {
-
-			loader.load( three.LoaderUtils.resolveURL( bufferDef.uri, options.path ), resolve, undefined, function () {
-
-				reject( new Error( 'THREE.GLTFLoader: Failed to load buffer "' + bufferDef.uri + '".' ) );
-
-			} );
-
-		} );
-
-	}
-
-	/**
-	 * Specification: https://github.com/KhronosGroup/glTF/blob/master/specification/2.0/README.md#buffers-and-buffer-views
-	 * @param {number} bufferViewIndex
-	 * @return {Promise<ArrayBuffer>}
-	 */
-	loadBufferView( bufferViewIndex ) {
-
-		const bufferViewDef = this.json.bufferViews[ bufferViewIndex ];
-
-		return this.getDependency( 'buffer', bufferViewDef.buffer ).then( function ( buffer ) {
-
-			const byteLength = bufferViewDef.byteLength || 0;
-			const byteOffset = bufferViewDef.byteOffset || 0;
-			return buffer.slice( byteOffset, byteOffset + byteLength );
-
-		} );
-
-	}
-
-	/**
-	 * Specification: https://github.com/KhronosGroup/glTF/blob/master/specification/2.0/README.md#accessors
-	 * @param {number} accessorIndex
-	 * @return {Promise<BufferAttribute|InterleavedBufferAttribute>}
-	 */
-	loadAccessor( accessorIndex ) {
-
-		const parser = this;
-		const json = this.json;
-
-		const accessorDef = this.json.accessors[ accessorIndex ];
-
-		if ( accessorDef.bufferView === undefined && accessorDef.sparse === undefined ) {
-
-			const itemSize = WEBGL_TYPE_SIZES[ accessorDef.type ];
-			const TypedArray = WEBGL_COMPONENT_TYPES[ accessorDef.componentType ];
-			const normalized = accessorDef.normalized === true;
-
-			const array = new TypedArray( accessorDef.count * itemSize );
-			return Promise.resolve( new three.BufferAttribute( array, itemSize, normalized ) );
-
-		}
-
-		const pendingBufferViews = [];
-
-		if ( accessorDef.bufferView !== undefined ) {
-
-			pendingBufferViews.push( this.getDependency( 'bufferView', accessorDef.bufferView ) );
-
-		} else {
-
-			pendingBufferViews.push( null );
-
-		}
-
-		if ( accessorDef.sparse !== undefined ) {
-
-			pendingBufferViews.push( this.getDependency( 'bufferView', accessorDef.sparse.indices.bufferView ) );
-			pendingBufferViews.push( this.getDependency( 'bufferView', accessorDef.sparse.values.bufferView ) );
-
-		}
-
-		return Promise.all( pendingBufferViews ).then( function ( bufferViews ) {
-
-			const bufferView = bufferViews[ 0 ];
-
-			const itemSize = WEBGL_TYPE_SIZES[ accessorDef.type ];
-			const TypedArray = WEBGL_COMPONENT_TYPES[ accessorDef.componentType ];
-
-			// For VEC3: itemSize is 3, elementBytes is 4, itemBytes is 12.
-			const elementBytes = TypedArray.BYTES_PER_ELEMENT;
-			const itemBytes = elementBytes * itemSize;
-			const byteOffset = accessorDef.byteOffset || 0;
-			const byteStride = accessorDef.bufferView !== undefined ? json.bufferViews[ accessorDef.bufferView ].byteStride : undefined;
-			const normalized = accessorDef.normalized === true;
-			let array, bufferAttribute;
-
-			// The buffer is not interleaved if the stride is the item size in bytes.
-			if ( byteStride && byteStride !== itemBytes ) {
-
-				// Each "slice" of the buffer, as defined by 'count' elements of 'byteStride' bytes, gets its own InterleavedBuffer
-				// This makes sure that IBA.count reflects accessor.count properly
-				const ibSlice = Math.floor( byteOffset / byteStride );
-				const ibCacheKey = 'InterleavedBuffer:' + accessorDef.bufferView + ':' + accessorDef.componentType + ':' + ibSlice + ':' + accessorDef.count;
-				let ib = parser.cache.get( ibCacheKey );
-
-				if ( ! ib ) {
-
-					array = new TypedArray( bufferView, ibSlice * byteStride, accessorDef.count * byteStride / elementBytes );
-
-					// Integer parameters to IB/IBA are in array elements, not bytes.
-					ib = new three.InterleavedBuffer( array, byteStride / elementBytes );
-
-					parser.cache.add( ibCacheKey, ib );
-
-				}
-
-				bufferAttribute = new three.InterleavedBufferAttribute( ib, itemSize, ( byteOffset % byteStride ) / elementBytes, normalized );
-
-			} else {
-
-				if ( bufferView === null ) {
-
-					array = new TypedArray( accessorDef.count * itemSize );
-
-				} else {
-
-					array = new TypedArray( bufferView, byteOffset, accessorDef.count * itemSize );
-
-				}
-
-				bufferAttribute = new three.BufferAttribute( array, itemSize, normalized );
-
-			}
-
-			// https://github.com/KhronosGroup/glTF/blob/master/specification/2.0/README.md#sparse-accessors
-			if ( accessorDef.sparse !== undefined ) {
-
-				const itemSizeIndices = WEBGL_TYPE_SIZES.SCALAR;
-				const TypedArrayIndices = WEBGL_COMPONENT_TYPES[ accessorDef.sparse.indices.componentType ];
-
-				const byteOffsetIndices = accessorDef.sparse.indices.byteOffset || 0;
-				const byteOffsetValues = accessorDef.sparse.values.byteOffset || 0;
-
-				const sparseIndices = new TypedArrayIndices( bufferViews[ 1 ], byteOffsetIndices, accessorDef.sparse.count * itemSizeIndices );
-				const sparseValues = new TypedArray( bufferViews[ 2 ], byteOffsetValues, accessorDef.sparse.count * itemSize );
-
-				if ( bufferView !== null ) {
-
-					// Avoid modifying the original ArrayBuffer, if the bufferView wasn't initialized with zeroes.
-					bufferAttribute = new three.BufferAttribute( bufferAttribute.array.slice(), bufferAttribute.itemSize, bufferAttribute.normalized );
-
-				}
-
-				// Ignore normalized since we copy from sparse
-				bufferAttribute.normalized = false;
-
-				for ( let i = 0, il = sparseIndices.length; i < il; i ++ ) {
-
-					const index = sparseIndices[ i ];
-
-					bufferAttribute.setX( index, sparseValues[ i * itemSize ] );
-					if ( itemSize >= 2 ) bufferAttribute.setY( index, sparseValues[ i * itemSize + 1 ] );
-					if ( itemSize >= 3 ) bufferAttribute.setZ( index, sparseValues[ i * itemSize + 2 ] );
-					if ( itemSize >= 4 ) bufferAttribute.setW( index, sparseValues[ i * itemSize + 3 ] );
-					if ( itemSize >= 5 ) throw new Error( 'THREE.GLTFLoader: Unsupported itemSize in sparse BufferAttribute.' );
-
-				}
-
-				bufferAttribute.normalized = normalized;
-
-			}
-
-			return bufferAttribute;
-
-		} );
-
-	}
-
-	/**
-	 * Specification: https://github.com/KhronosGroup/glTF/tree/master/specification/2.0#textures
-	 * @param {number} textureIndex
-	 * @return {Promise<THREE.Texture|null>}
-	 */
-	loadTexture( textureIndex ) {
-
-		const json = this.json;
-		const options = this.options;
-		const textureDef = json.textures[ textureIndex ];
-		const sourceIndex = textureDef.source;
-		const sourceDef = json.images[ sourceIndex ];
-
-		let loader = this.textureLoader;
-
-		if ( sourceDef.uri ) {
-
-			const handler = options.manager.getHandler( sourceDef.uri );
-			if ( handler !== null ) loader = handler;
-
-		}
-
-		return this.loadTextureImage( textureIndex, sourceIndex, loader );
-
-	}
-
-	loadTextureImage( textureIndex, sourceIndex, loader ) {
-
-		const parser = this;
-		const json = this.json;
-
-		const textureDef = json.textures[ textureIndex ];
-		const sourceDef = json.images[ sourceIndex ];
-
-		const cacheKey = ( sourceDef.uri || sourceDef.bufferView ) + ':' + textureDef.sampler;
-
-		if ( this.textureCache[ cacheKey ] ) {
-
-			// See https://github.com/mrdoob/three.js/issues/21559.
-			return this.textureCache[ cacheKey ];
-
-		}
-
-		const promise = this.loadImageSource( sourceIndex, loader ).then( function ( texture ) {
-
-			texture.flipY = false;
-
-			texture.name = textureDef.name || sourceDef.name || '';
-
-			if ( texture.name === '' && typeof sourceDef.uri === 'string' && sourceDef.uri.startsWith( 'data:image/' ) === false ) {
-
-				texture.name = sourceDef.uri;
-
-			}
-
-			const samplers = json.samplers || {};
-			const sampler = samplers[ textureDef.sampler ] || {};
-
-			texture.magFilter = WEBGL_FILTERS[ sampler.magFilter ] || three.LinearFilter;
-			texture.minFilter = WEBGL_FILTERS[ sampler.minFilter ] || three.LinearMipmapLinearFilter;
-			texture.wrapS = WEBGL_WRAPPINGS[ sampler.wrapS ] || three.RepeatWrapping;
-			texture.wrapT = WEBGL_WRAPPINGS[ sampler.wrapT ] || three.RepeatWrapping;
-			texture.generateMipmaps = ! texture.isCompressedTexture && texture.minFilter !== three.NearestFilter && texture.minFilter !== three.LinearFilter;
-
-			parser.associations.set( texture, { textures: textureIndex } );
-
-			return texture;
-
-		} ).catch( function () {
-
-			return null;
-
-		} );
-
-		this.textureCache[ cacheKey ] = promise;
-
-		return promise;
-
-	}
-
-	loadImageSource( sourceIndex, loader ) {
-
-		const parser = this;
-		const json = this.json;
-		const options = this.options;
-
-		if ( this.sourceCache[ sourceIndex ] !== undefined ) {
-
-			return this.sourceCache[ sourceIndex ].then( ( texture ) => texture.clone() );
-
-		}
-
-		const sourceDef = json.images[ sourceIndex ];
-
-		const URL = self.URL || self.webkitURL;
-
-		let sourceURI = sourceDef.uri || '';
-		let isObjectURL = false;
-
-		if ( sourceDef.bufferView !== undefined ) {
-
-			// Load binary image data from bufferView, if provided.
-
-			sourceURI = parser.getDependency( 'bufferView', sourceDef.bufferView ).then( function ( bufferView ) {
-
-				isObjectURL = true;
-				const blob = new Blob( [ bufferView ], { type: sourceDef.mimeType } );
-				sourceURI = URL.createObjectURL( blob );
-				return sourceURI;
-
-			} );
-
-		} else if ( sourceDef.uri === undefined ) {
-
-			throw new Error( 'THREE.GLTFLoader: Image ' + sourceIndex + ' is missing URI and bufferView' );
-
-		}
-
-		const promise = Promise.resolve( sourceURI ).then( function ( sourceURI ) {
-
-			return new Promise( function ( resolve, reject ) {
-
-				let onLoad = resolve;
-
-				if ( loader.isImageBitmapLoader === true ) {
-
-					onLoad = function ( imageBitmap ) {
-
-						const texture = new three.Texture( imageBitmap );
-						texture.needsUpdate = true;
-
-						resolve( texture );
-
-					};
-
-				}
-
-				loader.load( three.LoaderUtils.resolveURL( sourceURI, options.path ), onLoad, undefined, reject );
-
-			} );
-
-		} ).then( function ( texture ) {
-
-			// Clean up resources and configure Texture.
-
-			if ( isObjectURL === true ) {
-
-				URL.revokeObjectURL( sourceURI );
-
-			}
-
-			assignExtrasToUserData( texture, sourceDef );
-
-			texture.userData.mimeType = sourceDef.mimeType || getImageURIMimeType( sourceDef.uri );
-
-			return texture;
-
-		} ).catch( function ( error ) {
-
-			console.error( 'THREE.GLTFLoader: Couldn\'t load texture', sourceURI );
-			throw error;
-
-		} );
-
-		this.sourceCache[ sourceIndex ] = promise;
-		return promise;
-
-	}
-
-	/**
-	 * Asynchronously assigns a texture to the given material parameters.
-	 *
-	 * @param {Object} materialParams
-	 * @param {string} mapName
-	 * @param {Object} mapDef
-	 * @param {string} colorSpace
-	 * @return {Promise<Texture>}
-	 */
-	assignTexture( materialParams, mapName, mapDef, colorSpace ) {
-
-		const parser = this;
-
-		return this.getDependency( 'texture', mapDef.index ).then( function ( texture ) {
-
-			if ( ! texture ) return null;
-
-			if ( mapDef.texCoord !== undefined && mapDef.texCoord > 0 ) {
-
-				texture = texture.clone();
-				texture.channel = mapDef.texCoord;
-
-			}
-
-			if ( parser.extensions[ EXTENSIONS.KHR_TEXTURE_TRANSFORM ] ) {
-
-				const transform = mapDef.extensions !== undefined ? mapDef.extensions[ EXTENSIONS.KHR_TEXTURE_TRANSFORM ] : undefined;
-
-				if ( transform ) {
-
-					const gltfReference = parser.associations.get( texture );
-					texture = parser.extensions[ EXTENSIONS.KHR_TEXTURE_TRANSFORM ].extendTexture( texture, transform );
-					parser.associations.set( texture, gltfReference );
-
-				}
-
-			}
-
-			if ( colorSpace !== undefined ) {
-
-				texture.colorSpace = colorSpace;
-
-			}
-
-			materialParams[ mapName ] = texture;
-
-			return texture;
-
-		} );
-
-	}
-
-	/**
-	 * Assigns final material to a Mesh, Line, or Points instance. The instance
-	 * already has a material (generated from the glTF material options alone)
-	 * but reuse of the same glTF material may require multiple threejs materials
-	 * to accommodate different primitive types, defines, etc. New materials will
-	 * be created if necessary, and reused from a cache.
-	 * @param  {Object3D} mesh Mesh, Line, or Points instance.
-	 */
-	assignFinalMaterial( mesh ) {
-
-		const geometry = mesh.geometry;
-		let material = mesh.material;
-
-		const useDerivativeTangents = geometry.attributes.tangent === undefined;
-		const useVertexColors = geometry.attributes.color !== undefined;
-		const useFlatShading = geometry.attributes.normal === undefined;
-
-		if ( mesh.isPoints ) {
-
-			const cacheKey = 'PointsMaterial:' + material.uuid;
-
-			let pointsMaterial = this.cache.get( cacheKey );
-
-			if ( ! pointsMaterial ) {
-
-				pointsMaterial = new three.PointsMaterial();
-				three.Material.prototype.copy.call( pointsMaterial, material );
-				pointsMaterial.color.copy( material.color );
-				pointsMaterial.map = material.map;
-				pointsMaterial.sizeAttenuation = false; // glTF spec says points should be 1px
-
-				this.cache.add( cacheKey, pointsMaterial );
-
-			}
-
-			material = pointsMaterial;
-
-		} else if ( mesh.isLine ) {
-
-			const cacheKey = 'LineBasicMaterial:' + material.uuid;
-
-			let lineMaterial = this.cache.get( cacheKey );
-
-			if ( ! lineMaterial ) {
-
-				lineMaterial = new three.LineBasicMaterial();
-				three.Material.prototype.copy.call( lineMaterial, material );
-				lineMaterial.color.copy( material.color );
-				lineMaterial.map = material.map;
-
-				this.cache.add( cacheKey, lineMaterial );
-
-			}
-
-			material = lineMaterial;
-
-		}
-
-		// Clone the material if it will be modified
-		if ( useDerivativeTangents || useVertexColors || useFlatShading ) {
-
-			let cacheKey = 'ClonedMaterial:' + material.uuid + ':';
-
-			if ( useDerivativeTangents ) cacheKey += 'derivative-tangents:';
-			if ( useVertexColors ) cacheKey += 'vertex-colors:';
-			if ( useFlatShading ) cacheKey += 'flat-shading:';
-
-			let cachedMaterial = this.cache.get( cacheKey );
-
-			if ( ! cachedMaterial ) {
-
-				cachedMaterial = material.clone();
-
-				if ( useVertexColors ) cachedMaterial.vertexColors = true;
-				if ( useFlatShading ) cachedMaterial.flatShading = true;
-
-				if ( useDerivativeTangents ) {
-
-					// https://github.com/mrdoob/three.js/issues/11438#issuecomment-507003995
-					if ( cachedMaterial.normalScale ) cachedMaterial.normalScale.y *= -1;
-					if ( cachedMaterial.clearcoatNormalScale ) cachedMaterial.clearcoatNormalScale.y *= -1;
-
-				}
-
-				this.cache.add( cacheKey, cachedMaterial );
-
-				this.associations.set( cachedMaterial, this.associations.get( material ) );
-
-			}
-
-			material = cachedMaterial;
-
-		}
-
-		mesh.material = material;
-
-	}
-
-	getMaterialType( /* materialIndex */ ) {
-
-		return three.MeshStandardMaterial;
-
-	}
-
-	/**
-	 * Specification: https://github.com/KhronosGroup/glTF/blob/master/specification/2.0/README.md#materials
-	 * @param {number} materialIndex
-	 * @return {Promise<Material>}
-	 */
-	loadMaterial( materialIndex ) {
-
-		const parser = this;
-		const json = this.json;
-		const extensions = this.extensions;
-		const materialDef = json.materials[ materialIndex ];
-
-		let materialType;
-		const materialParams = {};
-		const materialExtensions = materialDef.extensions || {};
-
-		const pending = [];
-
-		if ( materialExtensions[ EXTENSIONS.KHR_MATERIALS_UNLIT ] ) {
-
-			const kmuExtension = extensions[ EXTENSIONS.KHR_MATERIALS_UNLIT ];
-			materialType = kmuExtension.getMaterialType();
-			pending.push( kmuExtension.extendParams( materialParams, materialDef, parser ) );
-
-		} else {
-
-			// Specification:
-			// https://github.com/KhronosGroup/glTF/tree/master/specification/2.0#metallic-roughness-material
-
-			const metallicRoughness = materialDef.pbrMetallicRoughness || {};
-
-			materialParams.color = new three.Color( 1.0, 1.0, 1.0 );
-			materialParams.opacity = 1.0;
-
-			if ( Array.isArray( metallicRoughness.baseColorFactor ) ) {
-
-				const array = metallicRoughness.baseColorFactor;
-
-				materialParams.color.setRGB( array[ 0 ], array[ 1 ], array[ 2 ], three.LinearSRGBColorSpace );
-				materialParams.opacity = array[ 3 ];
-
-			}
-
-			if ( metallicRoughness.baseColorTexture !== undefined ) {
-
-				pending.push( parser.assignTexture( materialParams, 'map', metallicRoughness.baseColorTexture, three.SRGBColorSpace ) );
-
-			}
-
-			materialParams.metalness = metallicRoughness.metallicFactor !== undefined ? metallicRoughness.metallicFactor : 1.0;
-			materialParams.roughness = metallicRoughness.roughnessFactor !== undefined ? metallicRoughness.roughnessFactor : 1.0;
-
-			if ( metallicRoughness.metallicRoughnessTexture !== undefined ) {
-
-				pending.push( parser.assignTexture( materialParams, 'metalnessMap', metallicRoughness.metallicRoughnessTexture ) );
-				pending.push( parser.assignTexture( materialParams, 'roughnessMap', metallicRoughness.metallicRoughnessTexture ) );
-
-			}
-
-			materialType = this._invokeOne( function ( ext ) {
-
-				return ext.getMaterialType && ext.getMaterialType( materialIndex );
-
-			} );
-
-			pending.push( Promise.all( this._invokeAll( function ( ext ) {
-
-				return ext.extendMaterialParams && ext.extendMaterialParams( materialIndex, materialParams );
-
-			} ) ) );
-
-		}
-
-		if ( materialDef.doubleSided === true ) {
-
-			materialParams.side = three.DoubleSide;
-
-		}
-
-		const alphaMode = materialDef.alphaMode || ALPHA_MODES.OPAQUE;
-
-		if ( alphaMode === ALPHA_MODES.BLEND ) {
-
-			materialParams.transparent = true;
-
-			// See: https://github.com/mrdoob/three.js/issues/17706
-			materialParams.depthWrite = false;
-
-		} else {
-
-			materialParams.transparent = false;
-
-			if ( alphaMode === ALPHA_MODES.MASK ) {
-
-				materialParams.alphaTest = materialDef.alphaCutoff !== undefined ? materialDef.alphaCutoff : 0.5;
-
-			}
-
-		}
-
-		if ( materialDef.normalTexture !== undefined && materialType !== three.MeshBasicMaterial ) {
-
-			pending.push( parser.assignTexture( materialParams, 'normalMap', materialDef.normalTexture ) );
-
-			materialParams.normalScale = new three.Vector2( 1, 1 );
-
-			if ( materialDef.normalTexture.scale !== undefined ) {
-
-				const scale = materialDef.normalTexture.scale;
-
-				materialParams.normalScale.set( scale, scale );
-
-			}
-
-		}
-
-		if ( materialDef.occlusionTexture !== undefined && materialType !== three.MeshBasicMaterial ) {
-
-			pending.push( parser.assignTexture( materialParams, 'aoMap', materialDef.occlusionTexture ) );
-
-			if ( materialDef.occlusionTexture.strength !== undefined ) {
-
-				materialParams.aoMapIntensity = materialDef.occlusionTexture.strength;
-
-			}
-
-		}
-
-		if ( materialDef.emissiveFactor !== undefined && materialType !== three.MeshBasicMaterial ) {
-
-			const emissiveFactor = materialDef.emissiveFactor;
-			materialParams.emissive = new three.Color().setRGB( emissiveFactor[ 0 ], emissiveFactor[ 1 ], emissiveFactor[ 2 ], three.LinearSRGBColorSpace );
-
-		}
-
-		if ( materialDef.emissiveTexture !== undefined && materialType !== three.MeshBasicMaterial ) {
-
-			pending.push( parser.assignTexture( materialParams, 'emissiveMap', materialDef.emissiveTexture, three.SRGBColorSpace ) );
-
-		}
-
-		return Promise.all( pending ).then( function () {
-
-			const material = new materialType( materialParams );
-
-			if ( materialDef.name ) material.name = materialDef.name;
-
-			assignExtrasToUserData( material, materialDef );
-
-			parser.associations.set( material, { materials: materialIndex } );
-
-			if ( materialDef.extensions ) addUnknownExtensionsToUserData( extensions, material, materialDef );
-
-			return material;
-
-		} );
-
-	}
-
-	/**
-	 * When Object3D instances are targeted by animation, they need unique names.
-	 *
-	 * @param {string} originalName
-	 * @return {string}
-	 */
-	createUniqueName( originalName ) {
-
-		const sanitizedName = three.PropertyBinding.sanitizeNodeName( originalName || '' );
-
-		if ( sanitizedName in this.nodeNamesUsed ) {
-
-			return sanitizedName + '_' + ( ++ this.nodeNamesUsed[ sanitizedName ] );
-
-		} else {
-
-			this.nodeNamesUsed[ sanitizedName ] = 0;
-
-			return sanitizedName;
-
-		}
-
-	}
-
-	/**
-	 * Specification: https://github.com/KhronosGroup/glTF/blob/master/specification/2.0/README.md#geometry
-	 *
-	 * Creates BufferGeometries from primitives.
-	 *
-	 * @param {Array<GLTF.Primitive>} primitives
-	 * @return {Promise<Array<BufferGeometry>>}
-	 */
-	loadGeometries( primitives ) {
-
-		const parser = this;
-		const extensions = this.extensions;
-		const cache = this.primitiveCache;
-
-		function createDracoPrimitive( primitive ) {
-
-			return extensions[ EXTENSIONS.KHR_DRACO_MESH_COMPRESSION ]
-				.decodePrimitive( primitive, parser )
-				.then( function ( geometry ) {
-
-					return addPrimitiveAttributes( geometry, primitive, parser );
-
-				} );
-
-		}
-
-		const pending = [];
-
-		for ( let i = 0, il = primitives.length; i < il; i ++ ) {
-
-			const primitive = primitives[ i ];
-			const cacheKey = createPrimitiveKey( primitive );
-
-			// See if we've already created this geometry
-			const cached = cache[ cacheKey ];
-
-			if ( cached ) {
-
-				// Use the cached geometry if it exists
-				pending.push( cached.promise );
-
-			} else {
-
-				let geometryPromise;
-
-				if ( primitive.extensions && primitive.extensions[ EXTENSIONS.KHR_DRACO_MESH_COMPRESSION ] ) {
-
-					// Use DRACO geometry if available
-					geometryPromise = createDracoPrimitive( primitive );
-
-				} else {
-
-					// Otherwise create a new geometry
-					geometryPromise = addPrimitiveAttributes( new three.BufferGeometry(), primitive, parser );
-
-				}
-
-				// Cache this geometry
-				cache[ cacheKey ] = { primitive: primitive, promise: geometryPromise };
-
-				pending.push( geometryPromise );
-
-			}
-
-		}
-
-		return Promise.all( pending );
-
-	}
-
-	/**
-	 * Specification: https://github.com/KhronosGroup/glTF/blob/master/specification/2.0/README.md#meshes
-	 * @param {number} meshIndex
-	 * @return {Promise<Group|Mesh|SkinnedMesh>}
-	 */
-	loadMesh( meshIndex ) {
-
-		const parser = this;
-		const json = this.json;
-		const extensions = this.extensions;
-
-		const meshDef = json.meshes[ meshIndex ];
-		const primitives = meshDef.primitives;
-
-		const pending = [];
-
-		for ( let i = 0, il = primitives.length; i < il; i ++ ) {
-
-			const material = primitives[ i ].material === undefined
-				? createDefaultMaterial( this.cache )
-				: this.getDependency( 'material', primitives[ i ].material );
-
-			pending.push( material );
-
-		}
-
-		pending.push( parser.loadGeometries( primitives ) );
-
-		return Promise.all( pending ).then( function ( results ) {
-
-			const materials = results.slice( 0, results.length - 1 );
-			const geometries = results[ results.length - 1 ];
-
-			const meshes = [];
-
-			for ( let i = 0, il = geometries.length; i < il; i ++ ) {
-
-				const geometry = geometries[ i ];
-				const primitive = primitives[ i ];
-
-				// 1. create Mesh
-
-				let mesh;
-
-				const material = materials[ i ];
-
-				if ( primitive.mode === WEBGL_CONSTANTS.TRIANGLES ||
-						primitive.mode === WEBGL_CONSTANTS.TRIANGLE_STRIP ||
-						primitive.mode === WEBGL_CONSTANTS.TRIANGLE_FAN ||
-						primitive.mode === undefined ) {
-
-					// .isSkinnedMesh isn't in glTF spec. See ._markDefs()
-					mesh = meshDef.isSkinnedMesh === true
-						? new three.SkinnedMesh( geometry, material )
-						: new three.Mesh( geometry, material );
-
-					if ( mesh.isSkinnedMesh === true ) {
-
-						// normalize skin weights to fix malformed assets (see #15319)
-						mesh.normalizeSkinWeights();
-
-					}
-
-					if ( primitive.mode === WEBGL_CONSTANTS.TRIANGLE_STRIP ) {
-
-						mesh.geometry = toTrianglesDrawMode( mesh.geometry, three.TriangleStripDrawMode );
-
-					} else if ( primitive.mode === WEBGL_CONSTANTS.TRIANGLE_FAN ) {
-
-						mesh.geometry = toTrianglesDrawMode( mesh.geometry, three.TriangleFanDrawMode );
-
-					}
-
-				} else if ( primitive.mode === WEBGL_CONSTANTS.LINES ) {
-
-					mesh = new three.LineSegments( geometry, material );
-
-				} else if ( primitive.mode === WEBGL_CONSTANTS.LINE_STRIP ) {
-
-					mesh = new three.Line( geometry, material );
-
-				} else if ( primitive.mode === WEBGL_CONSTANTS.LINE_LOOP ) {
-
-					mesh = new three.LineLoop( geometry, material );
-
-				} else if ( primitive.mode === WEBGL_CONSTANTS.POINTS ) {
-
-					mesh = new three.Points( geometry, material );
-
-				} else {
-
-					throw new Error( 'THREE.GLTFLoader: Primitive mode unsupported: ' + primitive.mode );
-
-				}
-
-				if ( Object.keys( mesh.geometry.morphAttributes ).length > 0 ) {
-
-					updateMorphTargets( mesh, meshDef );
-
-				}
-
-				mesh.name = parser.createUniqueName( meshDef.name || ( 'mesh_' + meshIndex ) );
-
-				assignExtrasToUserData( mesh, meshDef );
-
-				if ( primitive.extensions ) addUnknownExtensionsToUserData( extensions, mesh, primitive );
-
-				parser.assignFinalMaterial( mesh );
-
-				meshes.push( mesh );
-
-			}
-
-			for ( let i = 0, il = meshes.length; i < il; i ++ ) {
-
-				parser.associations.set( meshes[ i ], {
-					meshes: meshIndex,
-					primitives: i
-				} );
-
-			}
-
-			if ( meshes.length === 1 ) {
-
-				if ( meshDef.extensions ) addUnknownExtensionsToUserData( extensions, meshes[ 0 ], meshDef );
-
-				return meshes[ 0 ];
-
-			}
-
-			const group = new three.Group();
-
-			if ( meshDef.extensions ) addUnknownExtensionsToUserData( extensions, group, meshDef );
-
-			parser.associations.set( group, { meshes: meshIndex } );
-
-			for ( let i = 0, il = meshes.length; i < il; i ++ ) {
-
-				group.add( meshes[ i ] );
-
-			}
-
-			return group;
-
-		} );
-
-	}
-
-	/**
-	 * Specification: https://github.com/KhronosGroup/glTF/tree/master/specification/2.0#cameras
-	 * @param {number} cameraIndex
-	 * @return {Promise<THREE.Camera>}
-	 */
-	loadCamera( cameraIndex ) {
-
-		let camera;
-		const cameraDef = this.json.cameras[ cameraIndex ];
-		const params = cameraDef[ cameraDef.type ];
-
-		if ( ! params ) {
-
-			console.warn( 'THREE.GLTFLoader: Missing camera parameters.' );
-			return;
-
-		}
-
-		if ( cameraDef.type === 'perspective' ) {
-
-			camera = new three.PerspectiveCamera( three.MathUtils.radToDeg( params.yfov ), params.aspectRatio || 1, params.znear || 1, params.zfar || 2e6 );
-
-		} else if ( cameraDef.type === 'orthographic' ) {
-
-			camera = new three.OrthographicCamera( - params.xmag, params.xmag, params.ymag, - params.ymag, params.znear, params.zfar );
-
-		}
-
-		if ( cameraDef.name ) camera.name = this.createUniqueName( cameraDef.name );
-
-		assignExtrasToUserData( camera, cameraDef );
-
-		return Promise.resolve( camera );
-
-	}
-
-	/**
-	 * Specification: https://github.com/KhronosGroup/glTF/tree/master/specification/2.0#skins
-	 * @param {number} skinIndex
-	 * @return {Promise<Skeleton>}
-	 */
-	loadSkin( skinIndex ) {
-
-		const skinDef = this.json.skins[ skinIndex ];
-
-		const pending = [];
-
-		for ( let i = 0, il = skinDef.joints.length; i < il; i ++ ) {
-
-			pending.push( this._loadNodeShallow( skinDef.joints[ i ] ) );
-
-		}
-
-		if ( skinDef.inverseBindMatrices !== undefined ) {
-
-			pending.push( this.getDependency( 'accessor', skinDef.inverseBindMatrices ) );
-
-		} else {
-
-			pending.push( null );
-
-		}
-
-		return Promise.all( pending ).then( function ( results ) {
-
-			const inverseBindMatrices = results.pop();
-			const jointNodes = results;
-
-			// Note that bones (joint nodes) may or may not be in the
-			// scene graph at this time.
-
-			const bones = [];
-			const boneInverses = [];
-
-			for ( let i = 0, il = jointNodes.length; i < il; i ++ ) {
-
-				const jointNode = jointNodes[ i ];
-
-				if ( jointNode ) {
-
-					bones.push( jointNode );
-
-					const mat = new three.Matrix4();
-
-					if ( inverseBindMatrices !== null ) {
-
-						mat.fromArray( inverseBindMatrices.array, i * 16 );
-
-					}
-
-					boneInverses.push( mat );
-
-				} else {
-
-					console.warn( 'THREE.GLTFLoader: Joint "%s" could not be found.', skinDef.joints[ i ] );
-
-				}
-
-			}
-
-			return new three.Skeleton( bones, boneInverses );
-
-		} );
-
-	}
-
-	/**
-	 * Specification: https://github.com/KhronosGroup/glTF/tree/master/specification/2.0#animations
-	 * @param {number} animationIndex
-	 * @return {Promise<AnimationClip>}
-	 */
-	loadAnimation( animationIndex ) {
-
-		const json = this.json;
-		const parser = this;
-
-		const animationDef = json.animations[ animationIndex ];
-		const animationName = animationDef.name ? animationDef.name : 'animation_' + animationIndex;
-
-		const pendingNodes = [];
-		const pendingInputAccessors = [];
-		const pendingOutputAccessors = [];
-		const pendingSamplers = [];
-		const pendingTargets = [];
-
-		for ( let i = 0, il = animationDef.channels.length; i < il; i ++ ) {
-
-			const channel = animationDef.channels[ i ];
-			const sampler = animationDef.samplers[ channel.sampler ];
-			const target = channel.target;
-			const name = target.node;
-			const input = animationDef.parameters !== undefined ? animationDef.parameters[ sampler.input ] : sampler.input;
-			const output = animationDef.parameters !== undefined ? animationDef.parameters[ sampler.output ] : sampler.output;
-
-			if ( target.node === undefined ) continue;
-
-			pendingNodes.push( this.getDependency( 'node', name ) );
-			pendingInputAccessors.push( this.getDependency( 'accessor', input ) );
-			pendingOutputAccessors.push( this.getDependency( 'accessor', output ) );
-			pendingSamplers.push( sampler );
-			pendingTargets.push( target );
-
-		}
-
-		return Promise.all( [
-
-			Promise.all( pendingNodes ),
-			Promise.all( pendingInputAccessors ),
-			Promise.all( pendingOutputAccessors ),
-			Promise.all( pendingSamplers ),
-			Promise.all( pendingTargets )
-
-		] ).then( function ( dependencies ) {
-
-			const nodes = dependencies[ 0 ];
-			const inputAccessors = dependencies[ 1 ];
-			const outputAccessors = dependencies[ 2 ];
-			const samplers = dependencies[ 3 ];
-			const targets = dependencies[ 4 ];
-
-			const tracks = [];
-
-			for ( let i = 0, il = nodes.length; i < il; i ++ ) {
-
-				const node = nodes[ i ];
-				const inputAccessor = inputAccessors[ i ];
-				const outputAccessor = outputAccessors[ i ];
-				const sampler = samplers[ i ];
-				const target = targets[ i ];
-
-				if ( node === undefined ) continue;
-
-				if ( node.updateMatrix ) {
-
-					node.updateMatrix();
-
-				}
-
-				const createdTracks = parser._createAnimationTracks( node, inputAccessor, outputAccessor, sampler, target );
-
-				if ( createdTracks ) {
-
-					for ( let k = 0; k < createdTracks.length; k ++ ) {
-
-						tracks.push( createdTracks[ k ] );
-
-					}
-
-				}
-
-			}
-
-			return new three.AnimationClip( animationName, undefined, tracks );
-
-		} );
-
-	}
-
-	createNodeMesh( nodeIndex ) {
-
-		const json = this.json;
-		const parser = this;
-		const nodeDef = json.nodes[ nodeIndex ];
-
-		if ( nodeDef.mesh === undefined ) return null;
-
-		return parser.getDependency( 'mesh', nodeDef.mesh ).then( function ( mesh ) {
-
-			const node = parser._getNodeRef( parser.meshCache, nodeDef.mesh, mesh );
-
-			// if weights are provided on the node, override weights on the mesh.
-			if ( nodeDef.weights !== undefined ) {
-
-				node.traverse( function ( o ) {
-
-					if ( ! o.isMesh ) return;
-
-					for ( let i = 0, il = nodeDef.weights.length; i < il; i ++ ) {
-
-						o.morphTargetInfluences[ i ] = nodeDef.weights[ i ];
-
-					}
-
-				} );
-
-			}
-
-			return node;
-
-		} );
-
-	}
-
-	/**
-	 * Specification: https://github.com/KhronosGroup/glTF/tree/master/specification/2.0#nodes-and-hierarchy
-	 * @param {number} nodeIndex
-	 * @return {Promise<Object3D>}
-	 */
-	loadNode( nodeIndex ) {
-
-		const json = this.json;
-		const parser = this;
-
-		const nodeDef = json.nodes[ nodeIndex ];
-
-		const nodePending = parser._loadNodeShallow( nodeIndex );
-
-		const childPending = [];
-		const childrenDef = nodeDef.children || [];
-
-		for ( let i = 0, il = childrenDef.length; i < il; i ++ ) {
-
-			childPending.push( parser.getDependency( 'node', childrenDef[ i ] ) );
-
-		}
-
-		const skeletonPending = nodeDef.skin === undefined
-			? Promise.resolve( null )
-			: parser.getDependency( 'skin', nodeDef.skin );
-
-		return Promise.all( [
-			nodePending,
-			Promise.all( childPending ),
-			skeletonPending
-		] ).then( function ( results ) {
-
-			const node = results[ 0 ];
-			const children = results[ 1 ];
-			const skeleton = results[ 2 ];
-
-			if ( skeleton !== null ) {
-
-				// This full traverse should be fine because
-				// child glTF nodes have not been added to this node yet.
-				node.traverse( function ( mesh ) {
-
-					if ( ! mesh.isSkinnedMesh ) return;
-
-					mesh.bind( skeleton, _identityMatrix$1 );
-
-				} );
-
-			}
-
-			for ( let i = 0, il = children.length; i < il; i ++ ) {
-
-				node.add( children[ i ] );
-
-			}
-
-			return node;
-
-		} );
-
-	}
-
-	// ._loadNodeShallow() parses a single node.
-	// skin and child nodes are created and added in .loadNode() (no '_' prefix).
-	_loadNodeShallow( nodeIndex ) {
-
-		const json = this.json;
-		const extensions = this.extensions;
-		const parser = this;
-
-		// This method is called from .loadNode() and .loadSkin().
-		// Cache a node to avoid duplication.
-
-		if ( this.nodeCache[ nodeIndex ] !== undefined ) {
-
-			return this.nodeCache[ nodeIndex ];
-
-		}
-
-		const nodeDef = json.nodes[ nodeIndex ];
-
-		// reserve node's name before its dependencies, so the root has the intended name.
-		const nodeName = nodeDef.name ? parser.createUniqueName( nodeDef.name ) : '';
-
-		const pending = [];
-
-		const meshPromise = parser._invokeOne( function ( ext ) {
-
-			return ext.createNodeMesh && ext.createNodeMesh( nodeIndex );
-
-		} );
-
-		if ( meshPromise ) {
-
-			pending.push( meshPromise );
-
-		}
-
-		if ( nodeDef.camera !== undefined ) {
-
-			pending.push( parser.getDependency( 'camera', nodeDef.camera ).then( function ( camera ) {
-
-				return parser._getNodeRef( parser.cameraCache, nodeDef.camera, camera );
-
-			} ) );
-
-		}
-
-		parser._invokeAll( function ( ext ) {
-
-			return ext.createNodeAttachment && ext.createNodeAttachment( nodeIndex );
-
-		} ).forEach( function ( promise ) {
-
-			pending.push( promise );
-
-		} );
-
-		this.nodeCache[ nodeIndex ] = Promise.all( pending ).then( function ( objects ) {
-
-			let node;
-
-			// .isBone isn't in glTF spec. See ._markDefs
-			if ( nodeDef.isBone === true ) {
-
-				node = new three.Bone();
-
-			} else if ( objects.length > 1 ) {
-
-				node = new three.Group();
-
-			} else if ( objects.length === 1 ) {
-
-				node = objects[ 0 ];
-
-			} else {
-
-				node = new three.Object3D();
-
-			}
-
-			if ( node !== objects[ 0 ] ) {
-
-				for ( let i = 0, il = objects.length; i < il; i ++ ) {
-
-					node.add( objects[ i ] );
-
-				}
-
-			}
-
-			if ( nodeDef.name ) {
-
-				node.userData.name = nodeDef.name;
-				node.name = nodeName;
-
-			}
-
-			assignExtrasToUserData( node, nodeDef );
-
-			if ( nodeDef.extensions ) addUnknownExtensionsToUserData( extensions, node, nodeDef );
-
-			if ( nodeDef.matrix !== undefined ) {
-
-				const matrix = new three.Matrix4();
-				matrix.fromArray( nodeDef.matrix );
-				node.applyMatrix4( matrix );
-
-			} else {
-
-				if ( nodeDef.translation !== undefined ) {
-
-					node.position.fromArray( nodeDef.translation );
-
-				}
-
-				if ( nodeDef.rotation !== undefined ) {
-
-					node.quaternion.fromArray( nodeDef.rotation );
-
-				}
-
-				if ( nodeDef.scale !== undefined ) {
-
-					node.scale.fromArray( nodeDef.scale );
-
-				}
-
-			}
-
-			if ( ! parser.associations.has( node ) ) {
-
-				parser.associations.set( node, {} );
-
-			}
-
-			parser.associations.get( node ).nodes = nodeIndex;
-
-			return node;
-
-		} );
-
-		return this.nodeCache[ nodeIndex ];
-
-	}
-
-	/**
-	 * Specification: https://github.com/KhronosGroup/glTF/tree/master/specification/2.0#scenes
-	 * @param {number} sceneIndex
-	 * @return {Promise<Group>}
-	 */
-	loadScene( sceneIndex ) {
-
-		const extensions = this.extensions;
-		const sceneDef = this.json.scenes[ sceneIndex ];
-		const parser = this;
-
-		// Loader returns Group, not Scene.
-		// See: https://github.com/mrdoob/three.js/issues/18342#issuecomment-578981172
-		const scene = new three.Group();
-		if ( sceneDef.name ) scene.name = parser.createUniqueName( sceneDef.name );
-
-		assignExtrasToUserData( scene, sceneDef );
-
-		if ( sceneDef.extensions ) addUnknownExtensionsToUserData( extensions, scene, sceneDef );
-
-		const nodeIds = sceneDef.nodes || [];
-
-		const pending = [];
-
-		for ( let i = 0, il = nodeIds.length; i < il; i ++ ) {
-
-			pending.push( parser.getDependency( 'node', nodeIds[ i ] ) );
-
-		}
-
-		return Promise.all( pending ).then( function ( nodes ) {
-
-			for ( let i = 0, il = nodes.length; i < il; i ++ ) {
-
-				scene.add( nodes[ i ] );
-
-			}
-
-			// Removes dangling associations, associations that reference a node that
-			// didn't make it into the scene.
-			const reduceAssociations = ( node ) => {
-
-				const reducedAssociations = new Map();
-
-				for ( const [ key, value ] of parser.associations ) {
-
-					if ( key instanceof three.Material || key instanceof three.Texture ) {
-
-						reducedAssociations.set( key, value );
-
-					}
-
-				}
-
-				node.traverse( ( node ) => {
-
-					const mappings = parser.associations.get( node );
-
-					if ( mappings != null ) {
-
-						reducedAssociations.set( node, mappings );
-
-					}
-
-				} );
-
-				return reducedAssociations;
-
-			};
-
-			parser.associations = reduceAssociations( scene );
-
-			return scene;
-
-		} );
-
-	}
-
-	_createAnimationTracks( node, inputAccessor, outputAccessor, sampler, target ) {
-
-		const tracks = [];
-
-		const targetName = node.name ? node.name : node.uuid;
-		const targetNames = [];
-
-		if ( PATH_PROPERTIES[ target.path ] === PATH_PROPERTIES.weights ) {
-
-			node.traverse( function ( object ) {
-
-				if ( object.morphTargetInfluences ) {
-
-					targetNames.push( object.name ? object.name : object.uuid );
-
-				}
-
-			} );
-
-		} else {
-
-			targetNames.push( targetName );
-
-		}
-
-		let TypedKeyframeTrack;
-
-		switch ( PATH_PROPERTIES[ target.path ] ) {
-
-			case PATH_PROPERTIES.weights:
-
-				TypedKeyframeTrack = three.NumberKeyframeTrack;
-				break;
-
-			case PATH_PROPERTIES.rotation:
-
-				TypedKeyframeTrack = three.QuaternionKeyframeTrack;
-				break;
-
-			case PATH_PROPERTIES.position:
-			case PATH_PROPERTIES.scale:
-
-				TypedKeyframeTrack = three.VectorKeyframeTrack;
-				break;
-
-			default:
-
-				switch ( outputAccessor.itemSize ) {
-
-					case 1:
-						TypedKeyframeTrack = three.NumberKeyframeTrack;
-						break;
-					case 2:
-					case 3:
-					default:
-						TypedKeyframeTrack = three.VectorKeyframeTrack;
-						break;
-
-				}
-
-				break;
-
-		}
-
-		const interpolation = sampler.interpolation !== undefined ? INTERPOLATION[ sampler.interpolation ] : three.InterpolateLinear;
-
-
-		const outputArray = this._getArrayFromAccessor( outputAccessor );
-
-		for ( let j = 0, jl = targetNames.length; j < jl; j ++ ) {
-
-			const track = new TypedKeyframeTrack(
-				targetNames[ j ] + '.' + PATH_PROPERTIES[ target.path ],
-				inputAccessor.array,
-				outputArray,
-				interpolation
-			);
-
-			// Override interpolation with custom factory method.
-			if ( sampler.interpolation === 'CUBICSPLINE' ) {
-
-				this._createCubicSplineTrackInterpolant( track );
-
-			}
-
-			tracks.push( track );
-
-		}
-
-		return tracks;
-
-	}
-
-	_getArrayFromAccessor( accessor ) {
-
-		let outputArray = accessor.array;
-
-		if ( accessor.normalized ) {
-
-			const scale = getNormalizedComponentScale( outputArray.constructor );
-			const scaled = new Float32Array( outputArray.length );
-
-			for ( let j = 0, jl = outputArray.length; j < jl; j ++ ) {
-
-				scaled[ j ] = outputArray[ j ] * scale;
-
-			}
-
-			outputArray = scaled;
-
-		}
-
-		return outputArray;
-
-	}
-
-	_createCubicSplineTrackInterpolant( track ) {
-
-		track.createInterpolant = function InterpolantFactoryMethodGLTFCubicSpline( result ) {
-
-			// A CUBICSPLINE keyframe in glTF has three output values for each input value,
-			// representing inTangent, splineVertex, and outTangent. As a result, track.getValueSize()
-			// must be divided by three to get the interpolant's sampleSize argument.
-
-			const interpolantType = ( this instanceof three.QuaternionKeyframeTrack ) ? GLTFCubicSplineQuaternionInterpolant : GLTFCubicSplineInterpolant;
-
-			return new interpolantType( this.times, this.values, this.getValueSize() / 3, result );
-
-		};
-
-		// Mark as CUBICSPLINE. `track.getInterpolation()` doesn't support custom interpolants.
-		track.createInterpolant.isInterpolantFactoryMethodGLTFCubicSpline = true;
-
-	}
-
-}
-
-/**
- * @param {BufferGeometry} geometry
- * @param {GLTF.Primitive} primitiveDef
- * @param {GLTFParser} parser
- */
-function computeBounds( geometry, primitiveDef, parser ) {
-
-	const attributes = primitiveDef.attributes;
-
-	const box = new three.Box3();
-
-	if ( attributes.POSITION !== undefined ) {
-
-		const accessor = parser.json.accessors[ attributes.POSITION ];
-
-		const min = accessor.min;
-		const max = accessor.max;
-
-		// glTF requires 'min' and 'max', but VRM (which extends glTF) currently ignores that requirement.
-
-		if ( min !== undefined && max !== undefined ) {
-
-			box.set(
-				new three.Vector3( min[ 0 ], min[ 1 ], min[ 2 ] ),
-				new three.Vector3( max[ 0 ], max[ 1 ], max[ 2 ] )
-			);
-
-			if ( accessor.normalized ) {
-
-				const boxScale = getNormalizedComponentScale( WEBGL_COMPONENT_TYPES[ accessor.componentType ] );
-				box.min.multiplyScalar( boxScale );
-				box.max.multiplyScalar( boxScale );
-
-			}
-
-		} else {
-
-			console.warn( 'THREE.GLTFLoader: Missing min/max properties for accessor POSITION.' );
-
-			return;
-
-		}
-
-	} else {
-
-		return;
-
-	}
-
-	const targets = primitiveDef.targets;
-
-	if ( targets !== undefined ) {
-
-		const maxDisplacement = new three.Vector3();
-		const vector = new three.Vector3();
-
-		for ( let i = 0, il = targets.length; i < il; i ++ ) {
-
-			const target = targets[ i ];
-
-			if ( target.POSITION !== undefined ) {
-
-				const accessor = parser.json.accessors[ target.POSITION ];
-				const min = accessor.min;
-				const max = accessor.max;
-
-				// glTF requires 'min' and 'max', but VRM (which extends glTF) currently ignores that requirement.
-
-				if ( min !== undefined && max !== undefined ) {
-
-					// we need to get max of absolute components because target weight is [-1,1]
-					vector.setX( Math.max( Math.abs( min[ 0 ] ), Math.abs( max[ 0 ] ) ) );
-					vector.setY( Math.max( Math.abs( min[ 1 ] ), Math.abs( max[ 1 ] ) ) );
-					vector.setZ( Math.max( Math.abs( min[ 2 ] ), Math.abs( max[ 2 ] ) ) );
-
-
-					if ( accessor.normalized ) {
-
-						const boxScale = getNormalizedComponentScale( WEBGL_COMPONENT_TYPES[ accessor.componentType ] );
-						vector.multiplyScalar( boxScale );
-
-					}
-
-					// Note: this assumes that the sum of all weights is at most 1. This isn't quite correct - it's more conservative
-					// to assume that each target can have a max weight of 1. However, for some use cases - notably, when morph targets
-					// are used to implement key-frame animations and as such only two are active at a time - this results in very large
-					// boxes. So for now we make a box that's sometimes a touch too small but is hopefully mostly of reasonable size.
-					maxDisplacement.max( vector );
-
-				} else {
-
-					console.warn( 'THREE.GLTFLoader: Missing min/max properties for accessor POSITION.' );
-
-				}
-
-			}
-
-		}
-
-		// As per comment above this box isn't conservative, but has a reasonable size for a very large number of morph targets.
-		box.expandByVector( maxDisplacement );
-
-	}
-
-	geometry.boundingBox = box;
-
-	const sphere = new three.Sphere();
-
-	box.getCenter( sphere.center );
-	sphere.radius = box.min.distanceTo( box.max ) / 2;
-
-	geometry.boundingSphere = sphere;
-
-}
-
-/**
- * @param {BufferGeometry} geometry
- * @param {GLTF.Primitive} primitiveDef
- * @param {GLTFParser} parser
- * @return {Promise<BufferGeometry>}
- */
-function addPrimitiveAttributes( geometry, primitiveDef, parser ) {
-
-	const attributes = primitiveDef.attributes;
-
-	const pending = [];
-
-	function assignAttributeAccessor( accessorIndex, attributeName ) {
-
-		return parser.getDependency( 'accessor', accessorIndex )
-			.then( function ( accessor ) {
-
-				geometry.setAttribute( attributeName, accessor );
-
-			} );
-
-	}
-
-	for ( const gltfAttributeName in attributes ) {
-
-		const threeAttributeName = ATTRIBUTES[ gltfAttributeName ] || gltfAttributeName.toLowerCase();
-
-		// Skip attributes already provided by e.g. Draco extension.
-		if ( threeAttributeName in geometry.attributes ) continue;
-
-		pending.push( assignAttributeAccessor( attributes[ gltfAttributeName ], threeAttributeName ) );
-
-	}
-
-	if ( primitiveDef.indices !== undefined && ! geometry.index ) {
-
-		const accessor = parser.getDependency( 'accessor', primitiveDef.indices ).then( function ( accessor ) {
-
-			geometry.setIndex( accessor );
-
-		} );
-
-		pending.push( accessor );
-
-	}
-
-	if ( three.ColorManagement.workingColorSpace !== three.LinearSRGBColorSpace && 'COLOR_0' in attributes ) {
-
-		console.warn( `THREE.GLTFLoader: Converting vertex colors from "srgb-linear" to "${three.ColorManagement.workingColorSpace}" not supported.` );
-
-	}
-
-	assignExtrasToUserData( geometry, primitiveDef );
-
-	computeBounds( geometry, primitiveDef, parser );
-
-	return Promise.all( pending ).then( function () {
-
-		return primitiveDef.targets !== undefined
-			? addMorphTargets( geometry, primitiveDef.targets, parser )
-			: geometry;
-
-	} );
-
-}
-
-const _taskCache$1 = new WeakMap();
-
-class DRACOLoader extends three.Loader {
-
-	constructor( manager ) {
-
-		super( manager );
-
-		this.decoderPath = '';
-		this.decoderConfig = {};
-		this.decoderBinary = null;
-		this.decoderPending = null;
-
-		this.workerLimit = 4;
-		this.workerPool = [];
-		this.workerNextTaskID = 1;
-		this.workerSourceURL = '';
-
-		this.defaultAttributeIDs = {
-			position: 'POSITION',
-			normal: 'NORMAL',
-			color: 'COLOR',
-			uv: 'TEX_COORD'
-		};
-		this.defaultAttributeTypes = {
-			position: 'Float32Array',
-			normal: 'Float32Array',
-			color: 'Float32Array',
-			uv: 'Float32Array'
-		};
-
-	}
-
-	setDecoderPath( path ) {
-
-		this.decoderPath = path;
-
-		return this;
-
-	}
-
-	setDecoderConfig( config ) {
-
-		this.decoderConfig = config;
-
-		return this;
-
-	}
-
-	setWorkerLimit( workerLimit ) {
-
-		this.workerLimit = workerLimit;
-
-		return this;
-
-	}
-
-	load( url, onLoad, onProgress, onError ) {
-
-		const loader = new three.FileLoader( this.manager );
-
-		loader.setPath( this.path );
-		loader.setResponseType( 'arraybuffer' );
-		loader.setRequestHeader( this.requestHeader );
-		loader.setWithCredentials( this.withCredentials );
-
-		loader.load( url, ( buffer ) => {
-
-			this.parse( buffer, onLoad, onError );
-
-		}, onProgress, onError );
-
-	}
-
-	parse( buffer, onLoad, onError ) {
-
-		this.decodeDracoFile( buffer, onLoad, null, null, three.SRGBColorSpace ).catch( onError );
-
-	}
-
-	decodeDracoFile( buffer, callback, attributeIDs, attributeTypes, vertexColorSpace = three.LinearSRGBColorSpace ) {
-
-		const taskConfig = {
-			attributeIDs: attributeIDs || this.defaultAttributeIDs,
-			attributeTypes: attributeTypes || this.defaultAttributeTypes,
-			useUniqueIDs: !! attributeIDs,
-			vertexColorSpace: vertexColorSpace,
-		};
-
-		return this.decodeGeometry( buffer, taskConfig ).then( callback );
-
-	}
-
-	decodeGeometry( buffer, taskConfig ) {
-
-		const taskKey = JSON.stringify( taskConfig );
-
-		// Check for an existing task using this buffer. A transferred buffer cannot be transferred
-		// again from this thread.
-		if ( _taskCache$1.has( buffer ) ) {
-
-			const cachedTask = _taskCache$1.get( buffer );
-
-			if ( cachedTask.key === taskKey ) {
-
-				return cachedTask.promise;
-
-			} else if ( buffer.byteLength === 0 ) {
-
-				// Technically, it would be possible to wait for the previous task to complete,
-				// transfer the buffer back, and decode again with the second configuration. That
-				// is complex, and I don't know of any reason to decode a Draco buffer twice in
-				// different ways, so this is left unimplemented.
-				throw new Error(
-
-					'THREE.DRACOLoader: Unable to re-decode a buffer with different ' +
-					'settings. Buffer has already been transferred.'
-
-				);
-
-			}
-
-		}
-
-		//
-
-		let worker;
-		const taskID = this.workerNextTaskID ++;
-		const taskCost = buffer.byteLength;
-
-		// Obtain a worker and assign a task, and construct a geometry instance
-		// when the task completes.
-		const geometryPending = this._getWorker( taskID, taskCost )
-			.then( ( _worker ) => {
-
-				worker = _worker;
-
-				return new Promise( ( resolve, reject ) => {
-
-					worker._callbacks[ taskID ] = { resolve, reject };
-
-					worker.postMessage( { type: 'decode', id: taskID, taskConfig, buffer }, [ buffer ] );
-
-					// this.debug();
-
-				} );
-
-			} )
-			.then( ( message ) => this._createGeometry( message.geometry ) );
-
-		// Remove task from the task list.
-		// Note: replaced '.finally()' with '.catch().then()' block - iOS 11 support (#19416)
-		geometryPending
-			.catch( () => true )
-			.then( () => {
-
-				if ( worker && taskID ) {
-
-					this._releaseTask( worker, taskID );
-
-					// this.debug();
-
-				}
-
-			} );
-
-		// Cache the task result.
-		_taskCache$1.set( buffer, {
-
-			key: taskKey,
-			promise: geometryPending
-
-		} );
-
-		return geometryPending;
-
-	}
-
-	_createGeometry( geometryData ) {
-
-		const geometry = new three.BufferGeometry();
-
-		if ( geometryData.index ) {
-
-			geometry.setIndex( new three.BufferAttribute( geometryData.index.array, 1 ) );
-
-		}
-
-		for ( let i = 0; i < geometryData.attributes.length; i ++ ) {
-
-			const result = geometryData.attributes[ i ];
-			const name = result.name;
-			const array = result.array;
-			const itemSize = result.itemSize;
-
-			const attribute = new three.BufferAttribute( array, itemSize );
-
-			if ( name === 'color' ) {
-
-				this._assignVertexColorSpace( attribute, result.vertexColorSpace );
-
-				attribute.normalized = ( array instanceof Float32Array ) === false;
-
-			}
-
-			geometry.setAttribute( name, attribute );
-
-		}
-
-		return geometry;
-
-	}
-
-	_assignVertexColorSpace( attribute, inputColorSpace ) {
-
-		// While .drc files do not specify colorspace, the only 'official' tooling
-		// is PLY and OBJ converters, which use sRGB. We'll assume sRGB when a .drc
-		// file is passed into .load() or .parse(). GLTFLoader uses internal APIs
-		// to decode geometry, and vertex colors are already Linear-sRGB in there.
-
-		if ( inputColorSpace !== three.SRGBColorSpace ) return;
-
-		const _color = new three.Color();
-
-		for ( let i = 0, il = attribute.count; i < il; i ++ ) {
-
-			_color.fromBufferAttribute( attribute, i ).convertSRGBToLinear();
-			attribute.setXYZ( i, _color.r, _color.g, _color.b );
-
-		}
-
-	}
-
-	_loadLibrary( url, responseType ) {
-
-		const loader = new three.FileLoader( this.manager );
-		loader.setPath( this.decoderPath );
-		loader.setResponseType( responseType );
-		loader.setWithCredentials( this.withCredentials );
-
-		return new Promise( ( resolve, reject ) => {
-
-			loader.load( url, resolve, undefined, reject );
-
-		} );
-
-	}
-
-	preload() {
-
-		this._initDecoder();
-
-		return this;
-
-	}
-
-	_initDecoder() {
-
-		if ( this.decoderPending ) return this.decoderPending;
-
-		const useJS = typeof WebAssembly !== 'object' || this.decoderConfig.type === 'js';
-		const librariesPending = [];
-
-		if ( useJS ) {
-
-			librariesPending.push( this._loadLibrary( 'draco_decoder.js', 'text' ) );
-
-		} else {
-
-			librariesPending.push( this._loadLibrary( 'draco_wasm_wrapper.js', 'text' ) );
-			//librariesPending.push( this._loadLibrary( 'draco_decoder.wasm', 'arraybuffer' ) );
-
-		}
-
-		this.decoderPending = Promise.all( librariesPending )
-			.then( ( libraries ) => {
-
-				const jsContent = libraries[ 0 ];
-
-				const fn = DRACOWorker.toString();
-
-				const body = [
-					'/* draco decoder */',
-					jsContent,
-					'',
-					'/* worker */',
-					fn.substring( fn.indexOf( '{' ) + 1, fn.lastIndexOf( '}' ) )
-				].join( '\n' );
-
-				this.workerSourceURL = URL.createObjectURL( new Blob( [ body ] ) );
-
-			} );
-
-		return this.decoderPending;
-
-	}
-
-	_getWorker( taskID, taskCost ) {
-
-		return this._initDecoder().then( () => {
-
-			if ( this.workerPool.length < this.workerLimit ) {
-
-				const worker = new Worker( this.workerSourceURL );
-
-				worker._callbacks = {};
-				worker._taskCosts = {};
-				worker._taskLoad = 0;
-
-				worker.postMessage( { type: 'init', decoderConfig: this.decoderConfig } );
-
-				worker.onmessage = function ( e ) {
-
-					const message = e.data;
-
-					switch ( message.type ) {
-
-						case 'decode':
-							worker._callbacks[ message.id ].resolve( message );
-							break;
-
-						case 'error':
-							worker._callbacks[ message.id ].reject( message );
-							break;
-
-						default:
-							console.error( 'THREE.DRACOLoader: Unexpected message, "' + message.type + '"' );
-
-					}
-
-				};
-
-				this.workerPool.push( worker );
-
-			} else {
-
-				this.workerPool.sort( function ( a, b ) {
-
-					return a._taskLoad > b._taskLoad ? -1 : 1;
-
-				} );
-
-			}
-
-			const worker = this.workerPool[ this.workerPool.length - 1 ];
-			worker._taskCosts[ taskID ] = taskCost;
-			worker._taskLoad += taskCost;
-			return worker;
-
-		} );
-
-	}
-
-	_releaseTask( worker, taskID ) {
-
-		worker._taskLoad -= worker._taskCosts[ taskID ];
-		delete worker._callbacks[ taskID ];
-		delete worker._taskCosts[ taskID ];
-
-	}
-
-	debug() {
-
-		console.log( 'Task load: ', this.workerPool.map( ( worker ) => worker._taskLoad ) );
-
-	}
-
-	dispose() {
-
-		for ( let i = 0; i < this.workerPool.length; ++ i ) {
-
-			this.workerPool[ i ].terminate();
-
-		}
-
-		this.workerPool.length = 0;
-
-		if ( this.workerSourceURL !== '' ) {
-
-			URL.revokeObjectURL( this.workerSourceURL );
-
-		}
-
-		return this;
-
-	}
-
-}
-
-/* WEB WORKER */
-
-function DRACOWorker() {
-
-	let decoderConfig;
-	let decoderPending;
-
-	onmessage = function ( e ) {
-
-		const message = e.data;
-
-		switch ( message.type ) {
-
-			case 'init':
-				decoderConfig = message.decoderConfig;
-				decoderPending = new Promise( function ( resolve/*, reject*/ ) {
-
-					decoderConfig.onModuleLoaded = function ( draco ) {
-
-						// Module is Promise-like. Wrap before resolving to avoid loop.
-						resolve( { draco: draco } );
-
-					};
-
-					DracoDecoderModule( decoderConfig ); // eslint-disable-line no-undef
-
-				} );
-				break;
-
-			case 'decode':
-				const buffer = message.buffer;
-				const taskConfig = message.taskConfig;
-				decoderPending.then( ( module ) => {
-
-					const draco = module.draco;
-					const decoder = new draco.Decoder();
-
-					try {
-
-						const geometry = decodeGeometry( draco, decoder, new Int8Array( buffer ), taskConfig );
-
-						const buffers = geometry.attributes.map( ( attr ) => attr.array.buffer );
-
-						if ( geometry.index ) buffers.push( geometry.index.array.buffer );
-
-						self.postMessage( { type: 'decode', id: message.id, geometry }, buffers );
-
-					} catch ( error ) {
-
-						console.error( error );
-
-						self.postMessage( { type: 'error', id: message.id, error: error.message } );
-
-					} finally {
-
-						draco.destroy( decoder );
-
-					}
-
-				} );
-				break;
-
-		}
-
-	};
-
-	function decodeGeometry( draco, decoder, array, taskConfig ) {
-
-		const attributeIDs = taskConfig.attributeIDs;
-		const attributeTypes = taskConfig.attributeTypes;
-
-		let dracoGeometry;
-		let decodingStatus;
-
-		const geometryType = decoder.GetEncodedGeometryType( array );
-
-		if ( geometryType === draco.TRIANGULAR_MESH ) {
-
-			dracoGeometry = new draco.Mesh();
-			decodingStatus = decoder.DecodeArrayToMesh( array, array.byteLength, dracoGeometry );
-
-		} else if ( geometryType === draco.POINT_CLOUD ) {
-
-			dracoGeometry = new draco.PointCloud();
-			decodingStatus = decoder.DecodeArrayToPointCloud( array, array.byteLength, dracoGeometry );
-
-		} else {
-
-			throw new Error( 'THREE.DRACOLoader: Unexpected geometry type.' );
-
-		}
-
-		if ( ! decodingStatus.ok() || dracoGeometry.ptr === 0 ) {
-
-			throw new Error( 'THREE.DRACOLoader: Decoding failed: ' + decodingStatus.error_msg() );
-
-		}
-
-		const geometry = { index: null, attributes: [] };
-
-		// Gather all vertex attributes.
-		for ( const attributeName in attributeIDs ) {
-
-			const attributeType = self[ attributeTypes[ attributeName ] ];
-
-			let attribute;
-			let attributeID;
-
-			// A Draco file may be created with default vertex attributes, whose attribute IDs
-			// are mapped 1:1 from their semantic name (POSITION, NORMAL, ...). Alternatively,
-			// a Draco file may contain a custom set of attributes, identified by known unique
-			// IDs. glTF files always do the latter, and `.drc` files typically do the former.
-			if ( taskConfig.useUniqueIDs ) {
-
-				attributeID = attributeIDs[ attributeName ];
-				attribute = decoder.GetAttributeByUniqueId( dracoGeometry, attributeID );
-
-			} else {
-
-				attributeID = decoder.GetAttributeId( dracoGeometry, draco[ attributeIDs[ attributeName ] ] );
-
-				if ( attributeID === -1 ) continue;
-
-				attribute = decoder.GetAttribute( dracoGeometry, attributeID );
-
-			}
-
-			const attributeResult = decodeAttribute( draco, decoder, dracoGeometry, attributeName, attributeType, attribute );
-
-			if ( attributeName === 'color' ) {
-
-				attributeResult.vertexColorSpace = taskConfig.vertexColorSpace;
-
-			}
-
-			geometry.attributes.push( attributeResult );
-
-		}
-
-		// Add index.
-		if ( geometryType === draco.TRIANGULAR_MESH ) {
-
-			geometry.index = decodeIndex( draco, decoder, dracoGeometry );
-
-		}
-
-		draco.destroy( dracoGeometry );
-
-		return geometry;
-
-	}
-
-	function decodeIndex( draco, decoder, dracoGeometry ) {
-
-		const numFaces = dracoGeometry.num_faces();
-		const numIndices = numFaces * 3;
-		const byteLength = numIndices * 4;
-
-		const ptr = draco._malloc( byteLength );
-		decoder.GetTrianglesUInt32Array( dracoGeometry, byteLength, ptr );
-		const index = new Uint32Array( draco.HEAPF32.buffer, ptr, numIndices ).slice();
-		draco._free( ptr );
-
-		return { array: index, itemSize: 1 };
-
-	}
-
-	function decodeAttribute( draco, decoder, dracoGeometry, attributeName, attributeType, attribute ) {
-
-		const numComponents = attribute.num_components();
-		const numPoints = dracoGeometry.num_points();
-		const numValues = numPoints * numComponents;
-		const byteLength = numValues * attributeType.BYTES_PER_ELEMENT;
-		const dataType = getDracoDataType( draco, attributeType );
-
-		const ptr = draco._malloc( byteLength );
-		decoder.GetAttributeDataArrayForAllPoints( dracoGeometry, attribute, dataType, byteLength, ptr );
-		const array = new attributeType( draco.HEAPF32.buffer, ptr, numValues ).slice();
-		draco._free( ptr );
-
-		return {
-			name: attributeName,
-			array: array,
-			itemSize: numComponents
-		};
-
-	}
-
-	function getDracoDataType( draco, attributeType ) {
-
-		switch ( attributeType ) {
-
-			case Float32Array: return draco.DT_FLOAT32;
-			case Int8Array: return draco.DT_INT8;
-			case Int16Array: return draco.DT_INT16;
-			case Int32Array: return draco.DT_INT32;
-			case Uint8Array: return draco.DT_UINT8;
-			case Uint16Array: return draco.DT_UINT16;
-			case Uint32Array: return draco.DT_UINT32;
-
-		}
-
-	}
-
-}
-
-/*!
-fflate - fast JavaScript compression/decompression
-<https://101arrowz.github.io/fflate>
-Licensed under MIT. https://github.com/101arrowz/fflate/blob/master/LICENSE
-version 0.6.9
-*/
-
-var durl = function (c) { return URL.createObjectURL(new Blob([c], { type: 'text/javascript' })); };
-try {
-    URL.revokeObjectURL(durl(''));
-}
-catch (e) {
-    // We're in Deno or a very old browser
-    durl = function (c) { return 'data:application/javascript;charset=UTF-8,' + encodeURI(c); };
-}
-
-// aliases for shorter compressed code (most minifers don't do this)
-var u8 = Uint8Array, u16 = Uint16Array, u32 = Uint32Array;
-// fixed length extra bits
-var fleb = new u8([0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 0, /* unused */ 0, 0, /* impossible */ 0]);
-// fixed distance extra bits
-// see fleb note
-var fdeb = new u8([0, 0, 0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 10, 10, 11, 11, 12, 12, 13, 13, /* unused */ 0, 0]);
-// code length index map
-var clim = new u8([16, 17, 18, 0, 8, 7, 9, 6, 10, 5, 11, 4, 12, 3, 13, 2, 14, 1, 15]);
-// get base, reverse index map from extra bits
-var freb = function (eb, start) {
-    var b = new u16(31);
-    for (var i = 0; i < 31; ++i) {
-        b[i] = start += 1 << eb[i - 1];
-    }
-    // numbers here are at max 18 bits
-    var r = new u32(b[30]);
-    for (var i = 1; i < 30; ++i) {
-        for (var j = b[i]; j < b[i + 1]; ++j) {
-            r[j] = ((j - b[i]) << 5) | i;
-        }
-    }
-    return [b, r];
-};
-var _a = freb(fleb, 2), fl = _a[0], revfl = _a[1];
-// we can ignore the fact that the other numbers are wrong; they never happen anyway
-fl[28] = 258, revfl[258] = 28;
-var _b = freb(fdeb, 0), fd = _b[0];
-// map of value to reverse (assuming 16 bits)
-var rev = new u16(32768);
-for (var i = 0; i < 32768; ++i) {
-    // reverse table algorithm from SO
-    var x$2 = ((i & 0xAAAA) >>> 1) | ((i & 0x5555) << 1);
-    x$2 = ((x$2 & 0xCCCC) >>> 2) | ((x$2 & 0x3333) << 2);
-    x$2 = ((x$2 & 0xF0F0) >>> 4) | ((x$2 & 0x0F0F) << 4);
-    rev[i] = (((x$2 & 0xFF00) >>> 8) | ((x$2 & 0x00FF) << 8)) >>> 1;
-}
-// create huffman tree from u8 "map": index -> code length for code index
-// mb (max bits) must be at most 15
-// TODO: optimize/split up?
-var hMap = (function (cd, mb, r) {
-    var s = cd.length;
-    // index
-    var i = 0;
-    // u16 "map": index -> # of codes with bit length = index
-    var l = new u16(mb);
-    // length of cd must be 288 (total # of codes)
-    for (; i < s; ++i)
-        ++l[cd[i] - 1];
-    // u16 "map": index -> minimum code for bit length = index
-    var le = new u16(mb);
-    for (i = 0; i < mb; ++i) {
-        le[i] = (le[i - 1] + l[i - 1]) << 1;
-    }
-    var co;
-    if (r) {
-        // u16 "map": index -> number of actual bits, symbol for code
-        co = new u16(1 << mb);
-        // bits to remove for reverser
-        var rvb = 15 - mb;
-        for (i = 0; i < s; ++i) {
-            // ignore 0 lengths
-            if (cd[i]) {
-                // num encoding both symbol and bits read
-                var sv = (i << 4) | cd[i];
-                // free bits
-                var r_1 = mb - cd[i];
-                // start value
-                var v = le[cd[i] - 1]++ << r_1;
-                // m is end value
-                for (var m = v | ((1 << r_1) - 1); v <= m; ++v) {
-                    // every 16 bit value starting with the code yields the same result
-                    co[rev[v] >>> rvb] = sv;
-                }
-            }
-        }
-    }
-    else {
-        co = new u16(s);
-        for (i = 0; i < s; ++i) {
-            if (cd[i]) {
-                co[i] = rev[le[cd[i] - 1]++] >>> (15 - cd[i]);
-            }
-        }
-    }
-    return co;
-});
-// fixed length tree
-var flt = new u8(288);
-for (var i = 0; i < 144; ++i)
-    flt[i] = 8;
-for (var i = 144; i < 256; ++i)
-    flt[i] = 9;
-for (var i = 256; i < 280; ++i)
-    flt[i] = 7;
-for (var i = 280; i < 288; ++i)
-    flt[i] = 8;
-// fixed distance tree
-var fdt = new u8(32);
-for (var i = 0; i < 32; ++i)
-    fdt[i] = 5;
-// fixed length map
-var flrm = /*#__PURE__*/ hMap(flt, 9, 1);
-// fixed distance map
-var fdrm = /*#__PURE__*/ hMap(fdt, 5, 1);
-// find max of array
-var max = function (a) {
-    var m = a[0];
-    for (var i = 1; i < a.length; ++i) {
-        if (a[i] > m)
-            m = a[i];
-    }
-    return m;
-};
-// read d, starting at bit p and mask with m
-var bits = function (d, p, m) {
-    var o = (p / 8) | 0;
-    return ((d[o] | (d[o + 1] << 8)) >> (p & 7)) & m;
-};
-// read d, starting at bit p continuing for at least 16 bits
-var bits16 = function (d, p) {
-    var o = (p / 8) | 0;
-    return ((d[o] | (d[o + 1] << 8) | (d[o + 2] << 16)) >> (p & 7));
-};
-// get end of byte
-var shft = function (p) { return ((p / 8) | 0) + (p & 7 && 1); };
-// typed array slice - allows garbage collector to free original reference,
-// while being more compatible than .slice
-var slc = function (v, s, e) {
-    if (e == null || e > v.length)
-        e = v.length;
-    // can't use .constructor in case user-supplied
-    var n = new (v instanceof u16 ? u16 : v instanceof u32 ? u32 : u8)(e - s);
-    n.set(v.subarray(s, e));
-    return n;
-};
-// expands raw DEFLATE data
-var inflt = function (dat, buf, st) {
-    // source length
-    var sl = dat.length;
-    if (!sl || (st && !st.l && sl < 5))
-        return buf || new u8(0);
-    // have to estimate size
-    var noBuf = !buf || st;
-    // no state
-    var noSt = !st || st.i;
-    if (!st)
-        st = {};
-    // Assumes roughly 33% compression ratio average
-    if (!buf)
-        buf = new u8(sl * 3);
-    // ensure buffer can fit at least l elements
-    var cbuf = function (l) {
-        var bl = buf.length;
-        // need to increase size to fit
-        if (l > bl) {
-            // Double or set to necessary, whichever is greater
-            var nbuf = new u8(Math.max(bl * 2, l));
-            nbuf.set(buf);
-            buf = nbuf;
-        }
-    };
-    //  last chunk         bitpos           bytes
-    var final = st.f || 0, pos = st.p || 0, bt = st.b || 0, lm = st.l, dm = st.d, lbt = st.m, dbt = st.n;
-    // total bits
-    var tbts = sl * 8;
-    do {
-        if (!lm) {
-            // BFINAL - this is only 1 when last chunk is next
-            st.f = final = bits(dat, pos, 1);
-            // type: 0 = no compression, 1 = fixed huffman, 2 = dynamic huffman
-            var type = bits(dat, pos + 1, 3);
-            pos += 3;
-            if (!type) {
-                // go to end of byte boundary
-                var s = shft(pos) + 4, l = dat[s - 4] | (dat[s - 3] << 8), t = s + l;
-                if (t > sl) {
-                    if (noSt)
-                        throw 'unexpected EOF';
-                    break;
-                }
-                // ensure size
-                if (noBuf)
-                    cbuf(bt + l);
-                // Copy over uncompressed data
-                buf.set(dat.subarray(s, t), bt);
-                // Get new bitpos, update byte count
-                st.b = bt += l, st.p = pos = t * 8;
-                continue;
-            }
-            else if (type == 1)
-                lm = flrm, dm = fdrm, lbt = 9, dbt = 5;
-            else if (type == 2) {
-                //  literal                            lengths
-                var hLit = bits(dat, pos, 31) + 257, hcLen = bits(dat, pos + 10, 15) + 4;
-                var tl = hLit + bits(dat, pos + 5, 31) + 1;
-                pos += 14;
-                // length+distance tree
-                var ldt = new u8(tl);
-                // code length tree
-                var clt = new u8(19);
-                for (var i = 0; i < hcLen; ++i) {
-                    // use index map to get real code
-                    clt[clim[i]] = bits(dat, pos + i * 3, 7);
-                }
-                pos += hcLen * 3;
-                // code lengths bits
-                var clb = max(clt), clbmsk = (1 << clb) - 1;
-                // code lengths map
-                var clm = hMap(clt, clb, 1);
-                for (var i = 0; i < tl;) {
-                    var r = clm[bits(dat, pos, clbmsk)];
-                    // bits read
-                    pos += r & 15;
-                    // symbol
-                    var s = r >>> 4;
-                    // code length to copy
-                    if (s < 16) {
-                        ldt[i++] = s;
-                    }
-                    else {
-                        //  copy   count
-                        var c = 0, n = 0;
-                        if (s == 16)
-                            n = 3 + bits(dat, pos, 3), pos += 2, c = ldt[i - 1];
-                        else if (s == 17)
-                            n = 3 + bits(dat, pos, 7), pos += 3;
-                        else if (s == 18)
-                            n = 11 + bits(dat, pos, 127), pos += 7;
-                        while (n--)
-                            ldt[i++] = c;
-                    }
-                }
-                //    length tree                 distance tree
-                var lt = ldt.subarray(0, hLit), dt = ldt.subarray(hLit);
-                // max length bits
-                lbt = max(lt);
-                // max dist bits
-                dbt = max(dt);
-                lm = hMap(lt, lbt, 1);
-                dm = hMap(dt, dbt, 1);
-            }
-            else
-                throw 'invalid block type';
-            if (pos > tbts) {
-                if (noSt)
-                    throw 'unexpected EOF';
-                break;
-            }
-        }
-        // Make sure the buffer can hold this + the largest possible addition
-        // Maximum chunk size (practically, theoretically infinite) is 2^17;
-        if (noBuf)
-            cbuf(bt + 131072);
-        var lms = (1 << lbt) - 1, dms = (1 << dbt) - 1;
-        var lpos = pos;
-        for (;; lpos = pos) {
-            // bits read, code
-            var c = lm[bits16(dat, pos) & lms], sym = c >>> 4;
-            pos += c & 15;
-            if (pos > tbts) {
-                if (noSt)
-                    throw 'unexpected EOF';
-                break;
-            }
-            if (!c)
-                throw 'invalid length/literal';
-            if (sym < 256)
-                buf[bt++] = sym;
-            else if (sym == 256) {
-                lpos = pos, lm = null;
-                break;
-            }
-            else {
-                var add = sym - 254;
-                // no extra bits needed if less
-                if (sym > 264) {
-                    // index
-                    var i = sym - 257, b = fleb[i];
-                    add = bits(dat, pos, (1 << b) - 1) + fl[i];
-                    pos += b;
-                }
-                // dist
-                var d = dm[bits16(dat, pos) & dms], dsym = d >>> 4;
-                if (!d)
-                    throw 'invalid distance';
-                pos += d & 15;
-                var dt = fd[dsym];
-                if (dsym > 3) {
-                    var b = fdeb[dsym];
-                    dt += bits16(dat, pos) & ((1 << b) - 1), pos += b;
-                }
-                if (pos > tbts) {
-                    if (noSt)
-                        throw 'unexpected EOF';
-                    break;
-                }
-                if (noBuf)
-                    cbuf(bt + 131072);
-                var end = bt + add;
-                for (; bt < end; bt += 4) {
-                    buf[bt] = buf[bt - dt];
-                    buf[bt + 1] = buf[bt + 1 - dt];
-                    buf[bt + 2] = buf[bt + 2 - dt];
-                    buf[bt + 3] = buf[bt + 3 - dt];
-                }
-                bt = end;
-            }
-        }
-        st.l = lm, st.p = lpos, st.b = bt;
-        if (lm)
-            final = 1, st.m = lbt, st.d = dm, st.n = dbt;
-    } while (!final);
-    return bt == buf.length ? buf : slc(buf, 0, bt);
-};
-// empty
-var et = /*#__PURE__*/ new u8(0);
-// zlib valid
-var zlv = function (d) {
-    if ((d[0] & 15) != 8 || (d[0] >>> 4) > 7 || ((d[0] << 8 | d[1]) % 31))
-        throw 'invalid zlib data';
-    if (d[1] & 32)
-        throw 'invalid zlib data: preset dictionaries not supported';
-};
-/**
- * Expands Zlib data
- * @param data The data to decompress
- * @param out Where to write the data. Saves memory if you know the decompressed size and provide an output buffer of that length.
- * @returns The decompressed version of the data
- */
-function unzlibSync(data, out) {
-    return inflt((zlv(data), data.subarray(2, -4)), out);
-}
-// text decoder
-var td = typeof TextDecoder != 'undefined' && /*#__PURE__*/ new TextDecoder();
-// text decoder stream
-var tds = 0;
-try {
-    td.decode(et, { stream: true });
-    tds = 1;
-}
-catch (e) { }
-
-/**
- * NURBS utils
- *
- * See NURBSCurve and NURBSSurface.
- **/
-
-
-/**************************************************************
- *	NURBS Utils
- **************************************************************/
-
-/*
-Finds knot vector span.
-
-p : degree
-u : parametric value
-U : knot vector
-
-returns the span
-*/
-function findSpan( p, u, U ) {
-
-	const n = U.length - p - 1;
-
-	if ( u >= U[ n ] ) {
-
-		return n - 1;
-
-	}
-
-	if ( u <= U[ p ] ) {
-
-		return p;
-
-	}
-
-	let low = p;
-	let high = n;
-	let mid = Math.floor( ( low + high ) / 2 );
-
-	while ( u < U[ mid ] || u >= U[ mid + 1 ] ) {
-
-		if ( u < U[ mid ] ) {
-
-			high = mid;
-
-		} else {
-
-			low = mid;
-
-		}
-
-		mid = Math.floor( ( low + high ) / 2 );
-
-	}
-
-	return mid;
-
-}
-
-
-/*
-Calculate basis functions. See The NURBS Book, page 70, algorithm A2.2
-
-span : span in which u lies
-u    : parametric point
-p    : degree
-U    : knot vector
-
-returns array[p+1] with basis functions values.
-*/
-function calcBasisFunctions( span, u, p, U ) {
-
-	const N = [];
-	const left = [];
-	const right = [];
-	N[ 0 ] = 1.0;
-
-	for ( let j = 1; j <= p; ++ j ) {
-
-		left[ j ] = u - U[ span + 1 - j ];
-		right[ j ] = U[ span + j ] - u;
-
-		let saved = 0.0;
-
-		for ( let r = 0; r < j; ++ r ) {
-
-			const rv = right[ r + 1 ];
-			const lv = left[ j - r ];
-			const temp = N[ r ] / ( rv + lv );
-			N[ r ] = saved + rv * temp;
-			saved = lv * temp;
-
-		}
-
-		N[ j ] = saved;
-
-	}
-
-	return N;
-
-}
-
-
-/*
-Calculate B-Spline curve points. See The NURBS Book, page 82, algorithm A3.1.
-
-p : degree of B-Spline
-U : knot vector
-P : control points (x, y, z, w)
-u : parametric point
-
-returns point for given u
-*/
-function calcBSplinePoint( p, U, P, u ) {
-
-	const span = findSpan( p, u, U );
-	const N = calcBasisFunctions( span, u, p, U );
-	const C = new three.Vector4( 0, 0, 0, 0 );
-
-	for ( let j = 0; j <= p; ++ j ) {
-
-		const point = P[ span - p + j ];
-		const Nj = N[ j ];
-		const wNj = point.w * Nj;
-		C.x += point.x * wNj;
-		C.y += point.y * wNj;
-		C.z += point.z * wNj;
-		C.w += point.w * Nj;
-
-	}
-
-	return C;
-
-}
-
-
-/*
-Calculate basis functions derivatives. See The NURBS Book, page 72, algorithm A2.3.
-
-span : span in which u lies
-u    : parametric point
-p    : degree
-n    : number of derivatives to calculate
-U    : knot vector
-
-returns array[n+1][p+1] with basis functions derivatives
-*/
-function calcBasisFunctionDerivatives( span, u, p, n, U ) {
-
-	const zeroArr = [];
-	for ( let i = 0; i <= p; ++ i )
-		zeroArr[ i ] = 0.0;
-
-	const ders = [];
-
-	for ( let i = 0; i <= n; ++ i )
-		ders[ i ] = zeroArr.slice( 0 );
-
-	const ndu = [];
-
-	for ( let i = 0; i <= p; ++ i )
-		ndu[ i ] = zeroArr.slice( 0 );
-
-	ndu[ 0 ][ 0 ] = 1.0;
-
-	const left = zeroArr.slice( 0 );
-	const right = zeroArr.slice( 0 );
-
-	for ( let j = 1; j <= p; ++ j ) {
-
-		left[ j ] = u - U[ span + 1 - j ];
-		right[ j ] = U[ span + j ] - u;
-
-		let saved = 0.0;
-
-		for ( let r = 0; r < j; ++ r ) {
-
-			const rv = right[ r + 1 ];
-			const lv = left[ j - r ];
-			ndu[ j ][ r ] = rv + lv;
-
-			const temp = ndu[ r ][ j - 1 ] / ndu[ j ][ r ];
-			ndu[ r ][ j ] = saved + rv * temp;
-			saved = lv * temp;
-
-		}
-
-		ndu[ j ][ j ] = saved;
-
-	}
-
-	for ( let j = 0; j <= p; ++ j ) {
-
-		ders[ 0 ][ j ] = ndu[ j ][ p ];
-
-	}
-
-	for ( let r = 0; r <= p; ++ r ) {
-
-		let s1 = 0;
-		let s2 = 1;
-
-		const a = [];
-		for ( let i = 0; i <= p; ++ i ) {
-
-			a[ i ] = zeroArr.slice( 0 );
-
-		}
-
-		a[ 0 ][ 0 ] = 1.0;
-
-		for ( let k = 1; k <= n; ++ k ) {
-
-			let d = 0.0;
-			const rk = r - k;
-			const pk = p - k;
-
-			if ( r >= k ) {
-
-				a[ s2 ][ 0 ] = a[ s1 ][ 0 ] / ndu[ pk + 1 ][ rk ];
-				d = a[ s2 ][ 0 ] * ndu[ rk ][ pk ];
-
-			}
-
-			const j1 = ( rk >= -1 ) ? 1 : - rk;
-			const j2 = ( r - 1 <= pk ) ? k - 1 : p - r;
-
-			for ( let j = j1; j <= j2; ++ j ) {
-
-				a[ s2 ][ j ] = ( a[ s1 ][ j ] - a[ s1 ][ j - 1 ] ) / ndu[ pk + 1 ][ rk + j ];
-				d += a[ s2 ][ j ] * ndu[ rk + j ][ pk ];
-
-			}
-
-			if ( r <= pk ) {
-
-				a[ s2 ][ k ] = - a[ s1 ][ k - 1 ] / ndu[ pk + 1 ][ r ];
-				d += a[ s2 ][ k ] * ndu[ r ][ pk ];
-
-			}
-
-			ders[ k ][ r ] = d;
-
-			const j = s1;
-			s1 = s2;
-			s2 = j;
-
-		}
-
-	}
-
-	let r = p;
-
-	for ( let k = 1; k <= n; ++ k ) {
-
-		for ( let j = 0; j <= p; ++ j ) {
-
-			ders[ k ][ j ] *= r;
-
-		}
-
-		r *= p - k;
-
-	}
-
-	return ders;
-
-}
-
-
-/*
-	Calculate derivatives of a B-Spline. See The NURBS Book, page 93, algorithm A3.2.
-
-	p  : degree
-	U  : knot vector
-	P  : control points
-	u  : Parametric points
-	nd : number of derivatives
-
-	returns array[d+1] with derivatives
-	*/
-function calcBSplineDerivatives( p, U, P, u, nd ) {
-
-	const du = nd < p ? nd : p;
-	const CK = [];
-	const span = findSpan( p, u, U );
-	const nders = calcBasisFunctionDerivatives( span, u, p, du, U );
-	const Pw = [];
-
-	for ( let i = 0; i < P.length; ++ i ) {
-
-		const point = P[ i ].clone();
-		const w = point.w;
-
-		point.x *= w;
-		point.y *= w;
-		point.z *= w;
-
-		Pw[ i ] = point;
-
-	}
-
-	for ( let k = 0; k <= du; ++ k ) {
-
-		const point = Pw[ span - p ].clone().multiplyScalar( nders[ k ][ 0 ] );
-
-		for ( let j = 1; j <= p; ++ j ) {
-
-			point.add( Pw[ span - p + j ].clone().multiplyScalar( nders[ k ][ j ] ) );
-
-		}
-
-		CK[ k ] = point;
-
-	}
-
-	for ( let k = du + 1; k <= nd + 1; ++ k ) {
-
-		CK[ k ] = new three.Vector4( 0, 0, 0 );
-
-	}
-
-	return CK;
-
-}
-
-
-/*
-Calculate "K over I"
-
-returns k!/(i!(k-i)!)
-*/
-function calcKoverI( k, i ) {
-
-	let nom = 1;
-
-	for ( let j = 2; j <= k; ++ j ) {
-
-		nom *= j;
-
-	}
-
-	let denom = 1;
-
-	for ( let j = 2; j <= i; ++ j ) {
-
-		denom *= j;
-
-	}
-
-	for ( let j = 2; j <= k - i; ++ j ) {
-
-		denom *= j;
-
-	}
-
-	return nom / denom;
-
-}
-
-
-/*
-Calculate derivatives (0-nd) of rational curve. See The NURBS Book, page 127, algorithm A4.2.
-
-Pders : result of function calcBSplineDerivatives
-
-returns array with derivatives for rational curve.
-*/
-function calcRationalCurveDerivatives( Pders ) {
-
-	const nd = Pders.length;
-	const Aders = [];
-	const wders = [];
-
-	for ( let i = 0; i < nd; ++ i ) {
-
-		const point = Pders[ i ];
-		Aders[ i ] = new three.Vector3( point.x, point.y, point.z );
-		wders[ i ] = point.w;
-
-	}
-
-	const CK = [];
-
-	for ( let k = 0; k < nd; ++ k ) {
-
-		const v = Aders[ k ].clone();
-
-		for ( let i = 1; i <= k; ++ i ) {
-
-			v.sub( CK[ k - i ].clone().multiplyScalar( calcKoverI( k, i ) * wders[ i ] ) );
-
-		}
-
-		CK[ k ] = v.divideScalar( wders[ 0 ] );
-
-	}
-
-	return CK;
-
-}
-
-
-/*
-Calculate NURBS curve derivatives. See The NURBS Book, page 127, algorithm A4.2.
-
-p  : degree
-U  : knot vector
-P  : control points in homogeneous space
-u  : parametric points
-nd : number of derivatives
-
-returns array with derivatives.
-*/
-function calcNURBSDerivatives( p, U, P, u, nd ) {
-
-	const Pders = calcBSplineDerivatives( p, U, P, u, nd );
-	return calcRationalCurveDerivatives( Pders );
-
-}
-
-/**
- * NURBS curve object
- *
- * Derives from Curve, overriding getPoint and getTangent.
- *
- * Implementation is based on (x, y [, z=0 [, w=1]]) control points with w=weight.
- *
- **/
-
-class NURBSCurve extends three.Curve {
-
-	constructor(
-		degree,
-		knots /* array of reals */,
-		controlPoints /* array of Vector(2|3|4) */,
-		startKnot /* index in knots */,
-		endKnot /* index in knots */
-	) {
-
-		super();
-
-		this.degree = degree;
-		this.knots = knots;
-		this.controlPoints = [];
-		// Used by periodic NURBS to remove hidden spans
-		this.startKnot = startKnot || 0;
-		this.endKnot = endKnot || ( this.knots.length - 1 );
-
-		for ( let i = 0; i < controlPoints.length; ++ i ) {
-
-			// ensure Vector4 for control points
-			const point = controlPoints[ i ];
-			this.controlPoints[ i ] = new three.Vector4( point.x, point.y, point.z, point.w );
-
-		}
-
-	}
-
-	getPoint( t, optionalTarget = new three.Vector3() ) {
-
-		const point = optionalTarget;
-
-		const u = this.knots[ this.startKnot ] + t * ( this.knots[ this.endKnot ] - this.knots[ this.startKnot ] ); // linear mapping t->u
-
-		// following results in (wx, wy, wz, w) homogeneous point
-		const hpoint = calcBSplinePoint( this.degree, this.knots, this.controlPoints, u );
-
-		if ( hpoint.w !== 1.0 ) {
-
-			// project to 3D space: (wx, wy, wz, w) -> (x, y, z, 1)
-			hpoint.divideScalar( hpoint.w );
-
-		}
-
-		return point.set( hpoint.x, hpoint.y, hpoint.z );
-
-	}
-
-	getTangent( t, optionalTarget = new three.Vector3() ) {
-
-		const tangent = optionalTarget;
-
-		const u = this.knots[ 0 ] + t * ( this.knots[ this.knots.length - 1 ] - this.knots[ 0 ] );
-		const ders = calcNURBSDerivatives( this.degree, this.knots, this.controlPoints, u, 1 );
-		tangent.copy( ders[ 1 ] ).normalize();
-
-		return tangent;
-
-	}
-
-}
-
-/**
- * Loader loads FBX file and generates Group representing FBX scene.
- * Requires FBX file to be >= 7.0 and in ASCII or >= 6400 in Binary format
- * Versions lower than this may load but will probably have errors
- *
- * Needs Support:
- *  Morph normals / blend shape normals
- *
- * FBX format references:
- * 	https://help.autodesk.com/view/FBX/2017/ENU/?guid=__cpp_ref_index_html (C++ SDK reference)
- *
- * Binary format specification:
- *	https://code.blender.org/2013/08/fbx-binary-file-format-specification/
- */
-
-
-let fbxTree;
-let connections;
-let sceneGraph;
-
-class FBXLoader extends three.Loader {
-
-	constructor( manager ) {
-
-		super( manager );
-
-	}
-
-	load( url, onLoad, onProgress, onError ) {
-
-		const scope = this;
-
-		const path = ( scope.path === '' ) ? three.LoaderUtils.extractUrlBase( url ) : scope.path;
-
-		const loader = new three.FileLoader( this.manager );
-		loader.setPath( scope.path );
-		loader.setResponseType( 'arraybuffer' );
-		loader.setRequestHeader( scope.requestHeader );
-		loader.setWithCredentials( scope.withCredentials );
-
-		loader.load( url, function ( buffer ) {
-
-			try {
-
-				onLoad( scope.parse( buffer, path ) );
-
-			} catch ( e ) {
-
-				if ( onError ) {
-
-					onError( e );
-
-				} else {
-
-					console.error( e );
-
-				}
-
-				scope.manager.itemError( url );
-
-			}
-
-		}, onProgress, onError );
-
-	}
-
-	parse( FBXBuffer, path ) {
-
-		if ( isFbxFormatBinary( FBXBuffer ) ) {
-
-			fbxTree = new BinaryParser().parse( FBXBuffer );
-
-		} else {
-
-			const FBXText = convertArrayBufferToString( FBXBuffer );
-
-			if ( ! isFbxFormatASCII( FBXText ) ) {
-
-				throw new Error( 'THREE.FBXLoader: Unknown format.' );
-
-			}
-
-			if ( getFbxVersion( FBXText ) < 7000 ) {
-
-				throw new Error( 'THREE.FBXLoader: FBX version not supported, FileVersion: ' + getFbxVersion( FBXText ) );
-
-			}
-
-			fbxTree = new TextParser().parse( FBXText );
-
-		}
-
-		// console.log( fbxTree );
-
-		const textureLoader = new three.TextureLoader( this.manager ).setPath( this.resourcePath || path ).setCrossOrigin( this.crossOrigin );
-
-		return new FBXTreeParser( textureLoader, this.manager ).parse( fbxTree );
-
-	}
-
-}
-
-// Parse the FBXTree object returned by the BinaryParser or TextParser and return a Group
-class FBXTreeParser {
-
-	constructor( textureLoader, manager ) {
-
-		this.textureLoader = textureLoader;
-		this.manager = manager;
-
-	}
-
-	parse() {
-
-		connections = this.parseConnections();
-
-		const images = this.parseImages();
-		const textures = this.parseTextures( images );
-		const materials = this.parseMaterials( textures );
-		const deformers = this.parseDeformers();
-		const geometryMap = new GeometryParser().parse( deformers );
-
-		this.parseScene( deformers, geometryMap, materials );
-
-		return sceneGraph;
-
-	}
-
-	// Parses FBXTree.Connections which holds parent-child connections between objects (e.g. material -> texture, model->geometry )
-	// and details the connection type
-	parseConnections() {
-
-		const connectionMap = new Map();
-
-		if ( 'Connections' in fbxTree ) {
-
-			const rawConnections = fbxTree.Connections.connections;
-
-			rawConnections.forEach( function ( rawConnection ) {
-
-				const fromID = rawConnection[ 0 ];
-				const toID = rawConnection[ 1 ];
-				const relationship = rawConnection[ 2 ];
-
-				if ( ! connectionMap.has( fromID ) ) {
-
-					connectionMap.set( fromID, {
-						parents: [],
-						children: []
-					} );
-
-				}
-
-				const parentRelationship = { ID: toID, relationship: relationship };
-				connectionMap.get( fromID ).parents.push( parentRelationship );
-
-				if ( ! connectionMap.has( toID ) ) {
-
-					connectionMap.set( toID, {
-						parents: [],
-						children: []
-					} );
-
-				}
-
-				const childRelationship = { ID: fromID, relationship: relationship };
-				connectionMap.get( toID ).children.push( childRelationship );
-
-			} );
-
-		}
-
-		return connectionMap;
-
-	}
-
-	// Parse FBXTree.Objects.Video for embedded image data
-	// These images are connected to textures in FBXTree.Objects.Textures
-	// via FBXTree.Connections.
-	parseImages() {
-
-		const images = {};
-		const blobs = {};
-
-		if ( 'Video' in fbxTree.Objects ) {
-
-			const videoNodes = fbxTree.Objects.Video;
-
-			for ( const nodeID in videoNodes ) {
-
-				const videoNode = videoNodes[ nodeID ];
-
-				const id = parseInt( nodeID );
-
-				images[ id ] = videoNode.RelativeFilename || videoNode.Filename;
-
-				// raw image data is in videoNode.Content
-				if ( 'Content' in videoNode ) {
-
-					const arrayBufferContent = ( videoNode.Content instanceof ArrayBuffer ) && ( videoNode.Content.byteLength > 0 );
-					const base64Content = ( typeof videoNode.Content === 'string' ) && ( videoNode.Content !== '' );
-
-					if ( arrayBufferContent || base64Content ) {
-
-						const image = this.parseImage( videoNodes[ nodeID ] );
-
-						blobs[ videoNode.RelativeFilename || videoNode.Filename ] = image;
-
-					}
-
-				}
-
-			}
-
-		}
-
-		for ( const id in images ) {
-
-			const filename = images[ id ];
-
-			if ( blobs[ filename ] !== undefined ) images[ id ] = blobs[ filename ];
-			else images[ id ] = images[ id ].split( '\\' ).pop();
-
-		}
-
-		return images;
-
-	}
-
-	// Parse embedded image data in FBXTree.Video.Content
-	parseImage( videoNode ) {
-
-		const content = videoNode.Content;
-		const fileName = videoNode.RelativeFilename || videoNode.Filename;
-		const extension = fileName.slice( fileName.lastIndexOf( '.' ) + 1 ).toLowerCase();
-
-		let type;
-
-		switch ( extension ) {
-
-			case 'bmp':
-
-				type = 'image/bmp';
-				break;
-
-			case 'jpg':
-			case 'jpeg':
-
-				type = 'image/jpeg';
-				break;
-
-			case 'png':
-
-				type = 'image/png';
-				break;
-
-			case 'tif':
-
-				type = 'image/tiff';
-				break;
-
-			case 'tga':
-
-				if ( this.manager.getHandler( '.tga' ) === null ) {
-
-					console.warn( 'FBXLoader: TGA loader not found, skipping ', fileName );
-
-				}
-
-				type = 'image/tga';
-				break;
-
-			default:
-
-				console.warn( 'FBXLoader: Image type "' + extension + '" is not supported.' );
-				return;
-
-		}
-
-		if ( typeof content === 'string' ) { // ASCII format
-
-			return 'data:' + type + ';base64,' + content;
-
-		} else { // Binary Format
-
-			const array = new Uint8Array( content );
-			return window.URL.createObjectURL( new Blob( [ array ], { type: type } ) );
-
-		}
-
-	}
-
-	// Parse nodes in FBXTree.Objects.Texture
-	// These contain details such as UV scaling, cropping, rotation etc and are connected
-	// to images in FBXTree.Objects.Video
-	parseTextures( images ) {
-
-		const textureMap = new Map();
-
-		if ( 'Texture' in fbxTree.Objects ) {
-
-			const textureNodes = fbxTree.Objects.Texture;
-			for ( const nodeID in textureNodes ) {
-
-				const texture = this.parseTexture( textureNodes[ nodeID ], images );
-				textureMap.set( parseInt( nodeID ), texture );
-
-			}
-
-		}
-
-		return textureMap;
-
-	}
-
-	// Parse individual node in FBXTree.Objects.Texture
-	parseTexture( textureNode, images ) {
-
-		const texture = this.loadTexture( textureNode, images );
-
-		texture.ID = textureNode.id;
-
-		texture.name = textureNode.attrName;
-
-		const wrapModeU = textureNode.WrapModeU;
-		const wrapModeV = textureNode.WrapModeV;
-
-		const valueU = wrapModeU !== undefined ? wrapModeU.value : 0;
-		const valueV = wrapModeV !== undefined ? wrapModeV.value : 0;
-
-		// http://download.autodesk.com/us/fbx/SDKdocs/FBX_SDK_Help/files/fbxsdkref/class_k_fbx_texture.html#889640e63e2e681259ea81061b85143a
-		// 0: repeat(default), 1: clamp
-
-		texture.wrapS = valueU === 0 ? three.RepeatWrapping : three.ClampToEdgeWrapping;
-		texture.wrapT = valueV === 0 ? three.RepeatWrapping : three.ClampToEdgeWrapping;
-
-		if ( 'Scaling' in textureNode ) {
-
-			const values = textureNode.Scaling.value;
-
-			texture.repeat.x = values[ 0 ];
-			texture.repeat.y = values[ 1 ];
-
-		}
-
-		if ( 'Translation' in textureNode ) {
-
-			const values = textureNode.Translation.value;
-
-			texture.offset.x = values[ 0 ];
-			texture.offset.y = values[ 1 ];
-
-		}
-
-		return texture;
-
-	}
-
-	// load a texture specified as a blob or data URI, or via an external URL using TextureLoader
-	loadTexture( textureNode, images ) {
-
-		const nonNativeExtensions = new Set( [ 'tga', 'tif', 'tiff', 'exr', 'dds', 'hdr', 'ktx2' ] );
-
-		const extension = textureNode.FileName.split( '.' ).pop().toLowerCase();
-
-		const loader = nonNativeExtensions.has( extension ) ? this.manager.getHandler( `.${extension}` ) : this.textureLoader;
-
-		if ( ! loader ) {
-
-			console.warn(
-				`FBXLoader: ${extension.toUpperCase()} loader not found, creating placeholder texture for`,
-				textureNode.RelativeFilename
-			);
-			return new three.Texture();
-
-		}
-
-		const loaderPath = loader.path;
-
-		if ( ! loaderPath ) {
-
-			loader.setPath( this.textureLoader.path );
-
-		}
-
-		const children = connections.get( textureNode.id ).children;
-
-		let fileName;
-
-		if ( children !== undefined && children.length > 0 && images[ children[ 0 ].ID ] !== undefined ) {
-
-			fileName = images[ children[ 0 ].ID ];
-
-			if ( fileName.indexOf( 'blob:' ) === 0 || fileName.indexOf( 'data:' ) === 0 ) {
-
-				loader.setPath( undefined );
-
-			}
-
-		}
-
-		const texture = loader.load( fileName );
-
-		// revert to initial path
-		loader.setPath( loaderPath );
-
-		return texture;
-
-	}
-
-	// Parse nodes in FBXTree.Objects.Material
-	parseMaterials( textureMap ) {
-
-		const materialMap = new Map();
-
-		if ( 'Material' in fbxTree.Objects ) {
-
-			const materialNodes = fbxTree.Objects.Material;
-
-			for ( const nodeID in materialNodes ) {
-
-				const material = this.parseMaterial( materialNodes[ nodeID ], textureMap );
-
-				if ( material !== null ) materialMap.set( parseInt( nodeID ), material );
-
-			}
-
-		}
-
-		return materialMap;
-
-	}
-
-	// Parse single node in FBXTree.Objects.Material
-	// Materials are connected to texture maps in FBXTree.Objects.Textures
-	// FBX format currently only supports Lambert and Phong shading models
-	parseMaterial( materialNode, textureMap ) {
-
-		const ID = materialNode.id;
-		const name = materialNode.attrName;
-		let type = materialNode.ShadingModel;
-
-		// Case where FBX wraps shading model in property object.
-		if ( typeof type === 'object' ) {
-
-			type = type.value;
-
-		}
-
-		// Ignore unused materials which don't have any connections.
-		if ( ! connections.has( ID ) ) return null;
-
-		const parameters = this.parseParameters( materialNode, textureMap, ID );
-
-		let material;
-
-		switch ( type.toLowerCase() ) {
-
-			case 'phong':
-				material = new three.MeshPhongMaterial();
-				break;
-			case 'lambert':
-				material = new three.MeshLambertMaterial();
-				break;
-			default:
-				console.warn( 'THREE.FBXLoader: unknown material type "%s". Defaulting to MeshPhongMaterial.', type );
-				material = new three.MeshPhongMaterial();
-				break;
-
-		}
-
-		material.setValues( parameters );
-		material.name = name;
-
-		return material;
-
-	}
-
-	// Parse FBX material and return parameters suitable for a three.js material
-	// Also parse the texture map and return any textures associated with the material
-	parseParameters( materialNode, textureMap, ID ) {
-
-		const parameters = {};
-
-		if ( materialNode.BumpFactor ) {
-
-			parameters.bumpScale = materialNode.BumpFactor.value;
-
-		}
-
-		if ( materialNode.Diffuse ) {
-
-			parameters.color = three.ColorManagement.toWorkingColorSpace( new three.Color().fromArray( materialNode.Diffuse.value ), three.SRGBColorSpace );
-
-		} else if ( materialNode.DiffuseColor && ( materialNode.DiffuseColor.type === 'Color' || materialNode.DiffuseColor.type === 'ColorRGB' ) ) {
-
-			// The blender exporter exports diffuse here instead of in materialNode.Diffuse
-			parameters.color = three.ColorManagement.toWorkingColorSpace( new three.Color().fromArray( materialNode.DiffuseColor.value ), three.SRGBColorSpace );
-
-		}
-
-		if ( materialNode.DisplacementFactor ) {
-
-			parameters.displacementScale = materialNode.DisplacementFactor.value;
-
-		}
-
-		if ( materialNode.Emissive ) {
-
-			parameters.emissive = three.ColorManagement.toWorkingColorSpace( new three.Color().fromArray( materialNode.Emissive.value ), three.SRGBColorSpace );
-
-		} else if ( materialNode.EmissiveColor && ( materialNode.EmissiveColor.type === 'Color' || materialNode.EmissiveColor.type === 'ColorRGB' ) ) {
-
-			// The blender exporter exports emissive color here instead of in materialNode.Emissive
-			parameters.emissive = three.ColorManagement.toWorkingColorSpace( new three.Color().fromArray( materialNode.EmissiveColor.value ), three.SRGBColorSpace );
-
-		}
-
-		if ( materialNode.EmissiveFactor ) {
-
-			parameters.emissiveIntensity = parseFloat( materialNode.EmissiveFactor.value );
-
-		}
-
-		// the transparency handling is implemented based on Blender/Unity's approach: https://github.com/sobotka/blender-addons/blob/7d80f2f97161fc8e353a657b179b9aa1f8e5280b/io_scene_fbx/import_fbx.py#L1444-L1459
-
-		parameters.opacity = 1 - ( materialNode.TransparencyFactor ? parseFloat( materialNode.TransparencyFactor.value ) : 0 );
-
-		if ( parameters.opacity === 1 || parameters.opacity === 0 ) {
-
-			parameters.opacity = ( materialNode.Opacity ? parseFloat( materialNode.Opacity.value ) : null );
-
-			if ( parameters.opacity === null ) {
-
-				parameters.opacity = 1 - ( materialNode.TransparentColor ? parseFloat( materialNode.TransparentColor.value[ 0 ] ) : 0 );
-
-			}
-
-		}
-
-		if ( parameters.opacity < 1.0 ) {
-
-			parameters.transparent = true;
-
-		}
-
-		if ( materialNode.ReflectionFactor ) {
-
-			parameters.reflectivity = materialNode.ReflectionFactor.value;
-
-		}
-
-		if ( materialNode.Shininess ) {
-
-			parameters.shininess = materialNode.Shininess.value;
-
-		}
-
-		if ( materialNode.Specular ) {
-
-			parameters.specular = three.ColorManagement.toWorkingColorSpace( new three.Color().fromArray( materialNode.Specular.value ), three.SRGBColorSpace );
-
-		} else if ( materialNode.SpecularColor && materialNode.SpecularColor.type === 'Color' ) {
-
-			// The blender exporter exports specular color here instead of in materialNode.Specular
-			parameters.specular = three.ColorManagement.toWorkingColorSpace( new three.Color().fromArray( materialNode.SpecularColor.value ), three.SRGBColorSpace );
-
-		}
-
-		const scope = this;
-		connections.get( ID ).children.forEach( function ( child ) {
-
-			const type = child.relationship;
-
-			switch ( type ) {
-
-				case 'Bump':
-					parameters.bumpMap = scope.getTexture( textureMap, child.ID );
-					break;
-
-				case 'Maya|TEX_ao_map':
-					parameters.aoMap = scope.getTexture( textureMap, child.ID );
-					break;
-
-				case 'DiffuseColor':
-				case 'Maya|TEX_color_map':
-					parameters.map = scope.getTexture( textureMap, child.ID );
-					if ( parameters.map !== undefined ) {
-
-						parameters.map.colorSpace = three.SRGBColorSpace;
-
-					}
-
-					break;
-
-				case 'DisplacementColor':
-					parameters.displacementMap = scope.getTexture( textureMap, child.ID );
-					break;
-
-				case 'EmissiveColor':
-					parameters.emissiveMap = scope.getTexture( textureMap, child.ID );
-					if ( parameters.emissiveMap !== undefined ) {
-
-						parameters.emissiveMap.colorSpace = three.SRGBColorSpace;
-
-					}
-
-					break;
-
-				case 'NormalMap':
-				case 'Maya|TEX_normal_map':
-					parameters.normalMap = scope.getTexture( textureMap, child.ID );
-					break;
-
-				case 'ReflectionColor':
-					parameters.envMap = scope.getTexture( textureMap, child.ID );
-					if ( parameters.envMap !== undefined ) {
-
-						parameters.envMap.mapping = three.EquirectangularReflectionMapping;
-						parameters.envMap.colorSpace = three.SRGBColorSpace;
-
-					}
-
-					break;
-
-				case 'SpecularColor':
-					parameters.specularMap = scope.getTexture( textureMap, child.ID );
-					if ( parameters.specularMap !== undefined ) {
-
-						parameters.specularMap.colorSpace = three.SRGBColorSpace;
-
-					}
-
-					break;
-
-				case 'TransparentColor':
-				case 'TransparencyFactor':
-					parameters.alphaMap = scope.getTexture( textureMap, child.ID );
-					parameters.transparent = true;
-					break;
-
-				case 'AmbientColor':
-				case 'ShininessExponent': // AKA glossiness map
-				case 'SpecularFactor': // AKA specularLevel
-				case 'VectorDisplacementColor': // NOTE: Seems to be a copy of DisplacementColor
-				default:
-					console.warn( 'THREE.FBXLoader: %s map is not supported in three.js, skipping texture.', type );
-					break;
-
-			}
-
-		} );
-
-		return parameters;
-
-	}
-
-	// get a texture from the textureMap for use by a material.
-	getTexture( textureMap, id ) {
-
-		// if the texture is a layered texture, just use the first layer and issue a warning
-		if ( 'LayeredTexture' in fbxTree.Objects && id in fbxTree.Objects.LayeredTexture ) {
-
-			console.warn( 'THREE.FBXLoader: layered textures are not supported in three.js. Discarding all but first layer.' );
-			id = connections.get( id ).children[ 0 ].ID;
-
-		}
-
-		return textureMap.get( id );
-
-	}
-
-	// Parse nodes in FBXTree.Objects.Deformer
-	// Deformer node can contain skinning or Vertex Cache animation data, however only skinning is supported here
-	// Generates map of Skeleton-like objects for use later when generating and binding skeletons.
-	parseDeformers() {
-
-		const skeletons = {};
-		const morphTargets = {};
-
-		if ( 'Deformer' in fbxTree.Objects ) {
-
-			const DeformerNodes = fbxTree.Objects.Deformer;
-
-			for ( const nodeID in DeformerNodes ) {
-
-				const deformerNode = DeformerNodes[ nodeID ];
-
-				const relationships = connections.get( parseInt( nodeID ) );
-
-				if ( deformerNode.attrType === 'Skin' ) {
-
-					const skeleton = this.parseSkeleton( relationships, DeformerNodes );
-					skeleton.ID = nodeID;
-
-					if ( relationships.parents.length > 1 ) console.warn( 'THREE.FBXLoader: skeleton attached to more than one geometry is not supported.' );
-					skeleton.geometryID = relationships.parents[ 0 ].ID;
-
-					skeletons[ nodeID ] = skeleton;
-
-				} else if ( deformerNode.attrType === 'BlendShape' ) {
-
-					const morphTarget = {
-						id: nodeID,
-					};
-
-					morphTarget.rawTargets = this.parseMorphTargets( relationships, DeformerNodes );
-					morphTarget.id = nodeID;
-
-					if ( relationships.parents.length > 1 ) console.warn( 'THREE.FBXLoader: morph target attached to more than one geometry is not supported.' );
-
-					morphTargets[ nodeID ] = morphTarget;
-
-				}
-
-			}
-
-		}
-
-		return {
-
-			skeletons: skeletons,
-			morphTargets: morphTargets,
-
-		};
-
-	}
-
-	// Parse single nodes in FBXTree.Objects.Deformer
-	// The top level skeleton node has type 'Skin' and sub nodes have type 'Cluster'
-	// Each skin node represents a skeleton and each cluster node represents a bone
-	parseSkeleton( relationships, deformerNodes ) {
-
-		const rawBones = [];
-
-		relationships.children.forEach( function ( child ) {
-
-			const boneNode = deformerNodes[ child.ID ];
-
-			if ( boneNode.attrType !== 'Cluster' ) return;
-
-			const rawBone = {
-
-				ID: child.ID,
-				indices: [],
-				weights: [],
-				transformLink: new three.Matrix4().fromArray( boneNode.TransformLink.a ),
-				// transform: new Matrix4().fromArray( boneNode.Transform.a ),
-				// linkMode: boneNode.Mode,
-
-			};
-
-			if ( 'Indexes' in boneNode ) {
-
-				rawBone.indices = boneNode.Indexes.a;
-				rawBone.weights = boneNode.Weights.a;
-
-			}
-
-			rawBones.push( rawBone );
-
-		} );
-
-		return {
-
-			rawBones: rawBones,
-			bones: []
-
-		};
-
-	}
-
-	// The top level morph deformer node has type "BlendShape" and sub nodes have type "BlendShapeChannel"
-	parseMorphTargets( relationships, deformerNodes ) {
-
-		const rawMorphTargets = [];
-
-		for ( let i = 0; i < relationships.children.length; i ++ ) {
-
-			const child = relationships.children[ i ];
-
-			const morphTargetNode = deformerNodes[ child.ID ];
-
-			const rawMorphTarget = {
-
-				name: morphTargetNode.attrName,
-				initialWeight: morphTargetNode.DeformPercent,
-				id: morphTargetNode.id,
-				fullWeights: morphTargetNode.FullWeights.a
-
-			};
-
-			if ( morphTargetNode.attrType !== 'BlendShapeChannel' ) return;
-
-			rawMorphTarget.geoID = connections.get( parseInt( child.ID ) ).children.filter( function ( child ) {
-
-				return child.relationship === undefined;
-
-			} )[ 0 ].ID;
-
-			rawMorphTargets.push( rawMorphTarget );
-
-		}
-
-		return rawMorphTargets;
-
-	}
-
-	// create the main Group() to be returned by the loader
-	parseScene( deformers, geometryMap, materialMap ) {
-
-		sceneGraph = new three.Group();
-
-		const modelMap = this.parseModels( deformers.skeletons, geometryMap, materialMap );
-
-		const modelNodes = fbxTree.Objects.Model;
-
-		const scope = this;
-		modelMap.forEach( function ( model ) {
-
-			const modelNode = modelNodes[ model.ID ];
-			scope.setLookAtProperties( model, modelNode );
-
-			const parentConnections = connections.get( model.ID ).parents;
-
-			parentConnections.forEach( function ( connection ) {
-
-				const parent = modelMap.get( connection.ID );
-				if ( parent !== undefined ) parent.add( model );
-
-			} );
-
-			if ( model.parent === null ) {
-
-				sceneGraph.add( model );
-
-			}
-
-
-		} );
-
-		this.bindSkeleton( deformers.skeletons, geometryMap, modelMap );
-
-		this.addGlobalSceneSettings();
-
-		sceneGraph.traverse( function ( node ) {
-
-			if ( node.userData.transformData ) {
-
-				if ( node.parent ) {
-
-					node.userData.transformData.parentMatrix = node.parent.matrix;
-					node.userData.transformData.parentMatrixWorld = node.parent.matrixWorld;
-
-				}
-
-				const transform = generateTransform( node.userData.transformData );
-
-				node.applyMatrix4( transform );
-				node.updateWorldMatrix();
-
-			}
-
-		} );
-
-		const animations = new AnimationParser().parse();
-
-		// if all the models where already combined in a single group, just return that
-		if ( sceneGraph.children.length === 1 && sceneGraph.children[ 0 ].isGroup ) {
-
-			sceneGraph.children[ 0 ].animations = animations;
-			sceneGraph = sceneGraph.children[ 0 ];
-
-		}
-
-		sceneGraph.animations = animations;
-
-	}
-
-	// parse nodes in FBXTree.Objects.Model
-	parseModels( skeletons, geometryMap, materialMap ) {
-
-		const modelMap = new Map();
-		const modelNodes = fbxTree.Objects.Model;
-
-		for ( const nodeID in modelNodes ) {
-
-			const id = parseInt( nodeID );
-			const node = modelNodes[ nodeID ];
-			const relationships = connections.get( id );
-
-			let model = this.buildSkeleton( relationships, skeletons, id, node.attrName );
-
-			if ( ! model ) {
-
-				switch ( node.attrType ) {
-
-					case 'Camera':
-						model = this.createCamera( relationships );
-						break;
-					case 'Light':
-						model = this.createLight( relationships );
-						break;
-					case 'Mesh':
-						model = this.createMesh( relationships, geometryMap, materialMap );
-						break;
-					case 'NurbsCurve':
-						model = this.createCurve( relationships, geometryMap );
-						break;
-					case 'LimbNode':
-					case 'Root':
-						model = new three.Bone();
-						break;
-					case 'Null':
-					default:
-						model = new three.Group();
-						break;
-
-				}
-
-				model.name = node.attrName ? three.PropertyBinding.sanitizeNodeName( node.attrName ) : '';
-				model.userData.originalName = node.attrName;
-
-				model.ID = id;
-
-			}
-
-			this.getTransformData( model, node );
-			modelMap.set( id, model );
-
-		}
-
-		return modelMap;
-
-	}
-
-	buildSkeleton( relationships, skeletons, id, name ) {
-
-		let bone = null;
-
-		relationships.parents.forEach( function ( parent ) {
-
-			for ( const ID in skeletons ) {
-
-				const skeleton = skeletons[ ID ];
-
-				skeleton.rawBones.forEach( function ( rawBone, i ) {
-
-					if ( rawBone.ID === parent.ID ) {
-
-						const subBone = bone;
-						bone = new three.Bone();
-
-						bone.matrixWorld.copy( rawBone.transformLink );
-
-						// set name and id here - otherwise in cases where "subBone" is created it will not have a name / id
-
-						bone.name = name ? three.PropertyBinding.sanitizeNodeName( name ) : '';
-						bone.userData.originalName = name;
-						bone.ID = id;
-
-						skeleton.bones[ i ] = bone;
-
-						// In cases where a bone is shared between multiple meshes
-						// duplicate the bone here and and it as a child of the first bone
-						if ( subBone !== null ) {
-
-							bone.add( subBone );
-
-						}
-
-					}
-
-				} );
-
-			}
-
-		} );
-
-		return bone;
-
-	}
-
-	// create a PerspectiveCamera or OrthographicCamera
-	createCamera( relationships ) {
-
-		let model;
-		let cameraAttribute;
-
-		relationships.children.forEach( function ( child ) {
-
-			const attr = fbxTree.Objects.NodeAttribute[ child.ID ];
-
-			if ( attr !== undefined ) {
-
-				cameraAttribute = attr;
-
-			}
-
-		} );
-
-		if ( cameraAttribute === undefined ) {
-
-			model = new three.Object3D();
-
-		} else {
-
-			let type = 0;
-			if ( cameraAttribute.CameraProjectionType !== undefined && cameraAttribute.CameraProjectionType.value === 1 ) {
-
-				type = 1;
-
-			}
-
-			let nearClippingPlane = 1;
-			if ( cameraAttribute.NearPlane !== undefined ) {
-
-				nearClippingPlane = cameraAttribute.NearPlane.value / 1000;
-
-			}
-
-			let farClippingPlane = 1000;
-			if ( cameraAttribute.FarPlane !== undefined ) {
-
-				farClippingPlane = cameraAttribute.FarPlane.value / 1000;
-
-			}
-
-
-			let width = window.innerWidth;
-			let height = window.innerHeight;
-
-			if ( cameraAttribute.AspectWidth !== undefined && cameraAttribute.AspectHeight !== undefined ) {
-
-				width = cameraAttribute.AspectWidth.value;
-				height = cameraAttribute.AspectHeight.value;
-
-			}
-
-			const aspect = width / height;
-
-			let fov = 45;
-			if ( cameraAttribute.FieldOfView !== undefined ) {
-
-				fov = cameraAttribute.FieldOfView.value;
-
-			}
-
-			const focalLength = cameraAttribute.FocalLength ? cameraAttribute.FocalLength.value : null;
-
-			switch ( type ) {
-
-				case 0: // Perspective
-					model = new three.PerspectiveCamera( fov, aspect, nearClippingPlane, farClippingPlane );
-					if ( focalLength !== null ) model.setFocalLength( focalLength );
-					break;
-
-				case 1: // Orthographic
-					console.warn( 'THREE.FBXLoader: Orthographic cameras not supported yet.' );
-					model = new three.Object3D();
-					break;
-
-				default:
-					console.warn( 'THREE.FBXLoader: Unknown camera type ' + type + '.' );
-					model = new three.Object3D();
-					break;
-
-			}
-
-		}
-
-		return model;
-
-	}
-
-	// Create a DirectionalLight, PointLight or SpotLight
-	createLight( relationships ) {
-
-		let model;
-		let lightAttribute;
-
-		relationships.children.forEach( function ( child ) {
-
-			const attr = fbxTree.Objects.NodeAttribute[ child.ID ];
-
-			if ( attr !== undefined ) {
-
-				lightAttribute = attr;
-
-			}
-
-		} );
-
-		if ( lightAttribute === undefined ) {
-
-			model = new three.Object3D();
-
-		} else {
-
-			let type;
-
-			// LightType can be undefined for Point lights
-			if ( lightAttribute.LightType === undefined ) {
-
-				type = 0;
-
-			} else {
-
-				type = lightAttribute.LightType.value;
-
-			}
-
-			let color = 0xffffff;
-
-			if ( lightAttribute.Color !== undefined ) {
-
-				color = three.ColorManagement.toWorkingColorSpace( new three.Color().fromArray( lightAttribute.Color.value ), three.SRGBColorSpace );
-
-			}
-
-			let intensity = ( lightAttribute.Intensity === undefined ) ? 1 : lightAttribute.Intensity.value / 100;
-
-			// light disabled
-			if ( lightAttribute.CastLightOnObject !== undefined && lightAttribute.CastLightOnObject.value === 0 ) {
-
-				intensity = 0;
-
-			}
-
-			let distance = 0;
-			if ( lightAttribute.FarAttenuationEnd !== undefined ) {
-
-				if ( lightAttribute.EnableFarAttenuation !== undefined && lightAttribute.EnableFarAttenuation.value === 0 ) {
-
-					distance = 0;
-
-				} else {
-
-					distance = lightAttribute.FarAttenuationEnd.value;
-
-				}
-
-			}
-
-			// TODO: could this be calculated linearly from FarAttenuationStart to FarAttenuationEnd?
-			const decay = 1;
-
-			switch ( type ) {
-
-				case 0: // Point
-					model = new three.PointLight( color, intensity, distance, decay );
-					break;
-
-				case 1: // Directional
-					model = new three.DirectionalLight( color, intensity );
-					break;
-
-				case 2: // Spot
-					let angle = Math.PI / 3;
-
-					if ( lightAttribute.InnerAngle !== undefined ) {
-
-						angle = three.MathUtils.degToRad( lightAttribute.InnerAngle.value );
-
-					}
-
-					let penumbra = 0;
-					if ( lightAttribute.OuterAngle !== undefined ) {
-
-						// TODO: this is not correct - FBX calculates outer and inner angle in degrees
-						// with OuterAngle > InnerAngle && OuterAngle <= Math.PI
-						// while three.js uses a penumbra between (0, 1) to attenuate the inner angle
-						penumbra = three.MathUtils.degToRad( lightAttribute.OuterAngle.value );
-						penumbra = Math.max( penumbra, 1 );
-
-					}
-
-					model = new three.SpotLight( color, intensity, distance, angle, penumbra, decay );
-					break;
-
-				default:
-					console.warn( 'THREE.FBXLoader: Unknown light type ' + lightAttribute.LightType.value + ', defaulting to a PointLight.' );
-					model = new three.PointLight( color, intensity );
-					break;
-
-			}
-
-			if ( lightAttribute.CastShadows !== undefined && lightAttribute.CastShadows.value === 1 ) {
-
-				model.castShadow = true;
-
-			}
-
-		}
-
-		return model;
-
-	}
-
-	createMesh( relationships, geometryMap, materialMap ) {
-
-		let model;
-		let geometry = null;
-		let material = null;
-		const materials = [];
-
-		// get geometry and materials(s) from connections
-		relationships.children.forEach( function ( child ) {
-
-			if ( geometryMap.has( child.ID ) ) {
-
-				geometry = geometryMap.get( child.ID );
-
-			}
-
-			if ( materialMap.has( child.ID ) ) {
-
-				materials.push( materialMap.get( child.ID ) );
-
-			}
-
-		} );
-
-		if ( materials.length > 1 ) {
-
-			material = materials;
-
-		} else if ( materials.length > 0 ) {
-
-			material = materials[ 0 ];
-
-		} else {
-
-			material = new three.MeshPhongMaterial( {
-				name: three.Loader.DEFAULT_MATERIAL_NAME,
-				color: 0xcccccc
-			} );
-			materials.push( material );
-
-		}
-
-		if ( 'color' in geometry.attributes ) {
-
-			materials.forEach( function ( material ) {
-
-				material.vertexColors = true;
-
-			} );
-
-		}
-
-		if ( geometry.FBX_Deformer ) {
-
-			model = new three.SkinnedMesh( geometry, material );
-			model.normalizeSkinWeights();
-
-		} else {
-
-			model = new three.Mesh( geometry, material );
-
-		}
-
-		return model;
-
-	}
-
-	createCurve( relationships, geometryMap ) {
-
-		const geometry = relationships.children.reduce( function ( geo, child ) {
-
-			if ( geometryMap.has( child.ID ) ) geo = geometryMap.get( child.ID );
-
-			return geo;
-
-		}, null );
-
-		// FBX does not list materials for Nurbs lines, so we'll just put our own in here.
-		const material = new three.LineBasicMaterial( {
-			name: three.Loader.DEFAULT_MATERIAL_NAME,
-			color: 0x3300ff,
-			linewidth: 1
-		} );
-		return new three.Line( geometry, material );
-
-	}
-
-	// parse the model node for transform data
-	getTransformData( model, modelNode ) {
-
-		const transformData = {};
-
-		if ( 'InheritType' in modelNode ) transformData.inheritType = parseInt( modelNode.InheritType.value );
-
-		if ( 'RotationOrder' in modelNode ) transformData.eulerOrder = getEulerOrder( modelNode.RotationOrder.value );
-		else transformData.eulerOrder = getEulerOrder( 0 );
-
-		if ( 'Lcl_Translation' in modelNode ) transformData.translation = modelNode.Lcl_Translation.value;
-
-		if ( 'PreRotation' in modelNode ) transformData.preRotation = modelNode.PreRotation.value;
-		if ( 'Lcl_Rotation' in modelNode ) transformData.rotation = modelNode.Lcl_Rotation.value;
-		if ( 'PostRotation' in modelNode ) transformData.postRotation = modelNode.PostRotation.value;
-
-		if ( 'Lcl_Scaling' in modelNode ) transformData.scale = modelNode.Lcl_Scaling.value;
-
-		if ( 'ScalingOffset' in modelNode ) transformData.scalingOffset = modelNode.ScalingOffset.value;
-		if ( 'ScalingPivot' in modelNode ) transformData.scalingPivot = modelNode.ScalingPivot.value;
-
-		if ( 'RotationOffset' in modelNode ) transformData.rotationOffset = modelNode.RotationOffset.value;
-		if ( 'RotationPivot' in modelNode ) transformData.rotationPivot = modelNode.RotationPivot.value;
-
-		model.userData.transformData = transformData;
-
-	}
-
-	setLookAtProperties( model, modelNode ) {
-
-		if ( 'LookAtProperty' in modelNode ) {
-
-			const children = connections.get( model.ID ).children;
-
-			children.forEach( function ( child ) {
-
-				if ( child.relationship === 'LookAtProperty' ) {
-
-					const lookAtTarget = fbxTree.Objects.Model[ child.ID ];
-
-					if ( 'Lcl_Translation' in lookAtTarget ) {
-
-						const pos = lookAtTarget.Lcl_Translation.value;
-
-						// DirectionalLight, SpotLight
-						if ( model.target !== undefined ) {
-
-							model.target.position.fromArray( pos );
-							sceneGraph.add( model.target );
-
-						} else { // Cameras and other Object3Ds
-
-							model.lookAt( new three.Vector3().fromArray( pos ) );
-
-						}
-
-					}
-
-				}
-
-			} );
-
-		}
-
-	}
-
-	bindSkeleton( skeletons, geometryMap, modelMap ) {
-
-		const bindMatrices = this.parsePoseNodes();
-
-		for ( const ID in skeletons ) {
-
-			const skeleton = skeletons[ ID ];
-
-			const parents = connections.get( parseInt( skeleton.ID ) ).parents;
-
-			parents.forEach( function ( parent ) {
-
-				if ( geometryMap.has( parent.ID ) ) {
-
-					const geoID = parent.ID;
-					const geoRelationships = connections.get( geoID );
-
-					geoRelationships.parents.forEach( function ( geoConnParent ) {
-
-						if ( modelMap.has( geoConnParent.ID ) ) {
-
-							const model = modelMap.get( geoConnParent.ID );
-
-							model.bind( new three.Skeleton( skeleton.bones ), bindMatrices[ geoConnParent.ID ] );
-
-						}
-
-					} );
-
-				}
-
-			} );
-
-		}
-
-	}
-
-	parsePoseNodes() {
-
-		const bindMatrices = {};
-
-		if ( 'Pose' in fbxTree.Objects ) {
-
-			const BindPoseNode = fbxTree.Objects.Pose;
-
-			for ( const nodeID in BindPoseNode ) {
-
-				if ( BindPoseNode[ nodeID ].attrType === 'BindPose' && BindPoseNode[ nodeID ].NbPoseNodes > 0 ) {
-
-					const poseNodes = BindPoseNode[ nodeID ].PoseNode;
-
-					if ( Array.isArray( poseNodes ) ) {
-
-						poseNodes.forEach( function ( poseNode ) {
-
-							bindMatrices[ poseNode.Node ] = new three.Matrix4().fromArray( poseNode.Matrix.a );
-
-						} );
-
-					} else {
-
-						bindMatrices[ poseNodes.Node ] = new three.Matrix4().fromArray( poseNodes.Matrix.a );
-
-					}
-
-				}
-
-			}
-
-		}
-
-		return bindMatrices;
-
-	}
-
-	addGlobalSceneSettings() {
-
-		if ( 'GlobalSettings' in fbxTree ) {
-
-			if ( 'AmbientColor' in fbxTree.GlobalSettings ) {
-
-				// Parse ambient color - if it's not set to black (default), create an ambient light
-
-				const ambientColor = fbxTree.GlobalSettings.AmbientColor.value;
-				const r = ambientColor[ 0 ];
-				const g = ambientColor[ 1 ];
-				const b = ambientColor[ 2 ];
-
-				if ( r !== 0 || g !== 0 || b !== 0 ) {
-
-					const color = new three.Color().setRGB( r, g, b, three.SRGBColorSpace );
-					sceneGraph.add( new three.AmbientLight( color, 1 ) );
-
-				}
-
-			}
-
-			if ( 'UnitScaleFactor' in fbxTree.GlobalSettings ) {
-
-				sceneGraph.userData.unitScaleFactor = fbxTree.GlobalSettings.UnitScaleFactor.value;
-
-			}
-
-		}
-
-	}
-
-}
-
-// parse Geometry data from FBXTree and return map of BufferGeometries
-class GeometryParser {
-
-	constructor() {
-
-		this.negativeMaterialIndices = false;
-
-	}
-
-	// Parse nodes in FBXTree.Objects.Geometry
-	parse( deformers ) {
-
-		const geometryMap = new Map();
-
-		if ( 'Geometry' in fbxTree.Objects ) {
-
-			const geoNodes = fbxTree.Objects.Geometry;
-
-			for ( const nodeID in geoNodes ) {
-
-				const relationships = connections.get( parseInt( nodeID ) );
-				const geo = this.parseGeometry( relationships, geoNodes[ nodeID ], deformers );
-
-				geometryMap.set( parseInt( nodeID ), geo );
-
-			}
-
-		}
-
-		// report warnings
-
-		if ( this.negativeMaterialIndices === true ) {
-
-			console.warn( 'THREE.FBXLoader: The FBX file contains invalid (negative) material indices. The asset might not render as expected.' );
-
-		}
-
-		return geometryMap;
-
-	}
-
-	// Parse single node in FBXTree.Objects.Geometry
-	parseGeometry( relationships, geoNode, deformers ) {
-
-		switch ( geoNode.attrType ) {
-
-			case 'Mesh':
-				return this.parseMeshGeometry( relationships, geoNode, deformers );
-
-			case 'NurbsCurve':
-				return this.parseNurbsGeometry( geoNode );
-
-		}
-
-	}
-
-	// Parse single node mesh geometry in FBXTree.Objects.Geometry
-	parseMeshGeometry( relationships, geoNode, deformers ) {
-
-		const skeletons = deformers.skeletons;
-		const morphTargets = [];
-
-		const modelNodes = relationships.parents.map( function ( parent ) {
-
-			return fbxTree.Objects.Model[ parent.ID ];
-
-		} );
-
-		// don't create geometry if it is not associated with any models
-		if ( modelNodes.length === 0 ) return;
-
-		const skeleton = relationships.children.reduce( function ( skeleton, child ) {
-
-			if ( skeletons[ child.ID ] !== undefined ) skeleton = skeletons[ child.ID ];
-
-			return skeleton;
-
-		}, null );
-
-		relationships.children.forEach( function ( child ) {
-
-			if ( deformers.morphTargets[ child.ID ] !== undefined ) {
-
-				morphTargets.push( deformers.morphTargets[ child.ID ] );
-
-			}
-
-		} );
-
-		// Assume one model and get the preRotation from that
-		// if there is more than one model associated with the geometry this may cause problems
-		const modelNode = modelNodes[ 0 ];
-
-		const transformData = {};
-
-		if ( 'RotationOrder' in modelNode ) transformData.eulerOrder = getEulerOrder( modelNode.RotationOrder.value );
-		if ( 'InheritType' in modelNode ) transformData.inheritType = parseInt( modelNode.InheritType.value );
-
-		if ( 'GeometricTranslation' in modelNode ) transformData.translation = modelNode.GeometricTranslation.value;
-		if ( 'GeometricRotation' in modelNode ) transformData.rotation = modelNode.GeometricRotation.value;
-		if ( 'GeometricScaling' in modelNode ) transformData.scale = modelNode.GeometricScaling.value;
-
-		const transform = generateTransform( transformData );
-
-		return this.genGeometry( geoNode, skeleton, morphTargets, transform );
-
-	}
-
-	// Generate a BufferGeometry from a node in FBXTree.Objects.Geometry
-	genGeometry( geoNode, skeleton, morphTargets, preTransform ) {
-
-		const geo = new three.BufferGeometry();
-		if ( geoNode.attrName ) geo.name = geoNode.attrName;
-
-		const geoInfo = this.parseGeoNode( geoNode, skeleton );
-		const buffers = this.genBuffers( geoInfo );
-
-		const positionAttribute = new three.Float32BufferAttribute( buffers.vertex, 3 );
-
-		positionAttribute.applyMatrix4( preTransform );
-
-		geo.setAttribute( 'position', positionAttribute );
-
-		if ( buffers.colors.length > 0 ) {
-
-			geo.setAttribute( 'color', new three.Float32BufferAttribute( buffers.colors, 3 ) );
-
-		}
-
-		if ( skeleton ) {
-
-			geo.setAttribute( 'skinIndex', new three.Uint16BufferAttribute( buffers.weightsIndices, 4 ) );
-
-			geo.setAttribute( 'skinWeight', new three.Float32BufferAttribute( buffers.vertexWeights, 4 ) );
-
-			// used later to bind the skeleton to the model
-			geo.FBX_Deformer = skeleton;
-
-		}
-
-		if ( buffers.normal.length > 0 ) {
-
-			const normalMatrix = new three.Matrix3().getNormalMatrix( preTransform );
-
-			const normalAttribute = new three.Float32BufferAttribute( buffers.normal, 3 );
-			normalAttribute.applyNormalMatrix( normalMatrix );
-
-			geo.setAttribute( 'normal', normalAttribute );
-
-		}
-
-		buffers.uvs.forEach( function ( uvBuffer, i ) {
-
-			const name = i === 0 ? 'uv' : `uv${ i }`;
-
-			geo.setAttribute( name, new three.Float32BufferAttribute( buffers.uvs[ i ], 2 ) );
-
-		} );
-
-		if ( geoInfo.material && geoInfo.material.mappingType !== 'AllSame' ) {
-
-			// Convert the material indices of each vertex into rendering groups on the geometry.
-			let prevMaterialIndex = buffers.materialIndex[ 0 ];
-			let startIndex = 0;
-
-			buffers.materialIndex.forEach( function ( currentIndex, i ) {
-
-				if ( currentIndex !== prevMaterialIndex ) {
-
-					geo.addGroup( startIndex, i - startIndex, prevMaterialIndex );
-
-					prevMaterialIndex = currentIndex;
-					startIndex = i;
-
-				}
-
-			} );
-
-			// the loop above doesn't add the last group, do that here.
-			if ( geo.groups.length > 0 ) {
-
-				const lastGroup = geo.groups[ geo.groups.length - 1 ];
-				const lastIndex = lastGroup.start + lastGroup.count;
-
-				if ( lastIndex !== buffers.materialIndex.length ) {
-
-					geo.addGroup( lastIndex, buffers.materialIndex.length - lastIndex, prevMaterialIndex );
-
-				}
-
-			}
-
-			// case where there are multiple materials but the whole geometry is only
-			// using one of them
-			if ( geo.groups.length === 0 ) {
-
-				geo.addGroup( 0, buffers.materialIndex.length, buffers.materialIndex[ 0 ] );
-
-			}
-
-		}
-
-		this.addMorphTargets( geo, geoNode, morphTargets, preTransform );
-
-		return geo;
-
-	}
-
-	parseGeoNode( geoNode, skeleton ) {
-
-		const geoInfo = {};
-
-		geoInfo.vertexPositions = ( geoNode.Vertices !== undefined ) ? geoNode.Vertices.a : [];
-		geoInfo.vertexIndices = ( geoNode.PolygonVertexIndex !== undefined ) ? geoNode.PolygonVertexIndex.a : [];
-
-		if ( geoNode.LayerElementColor ) {
-
-			geoInfo.color = this.parseVertexColors( geoNode.LayerElementColor[ 0 ] );
-
-		}
-
-		if ( geoNode.LayerElementMaterial ) {
-
-			geoInfo.material = this.parseMaterialIndices( geoNode.LayerElementMaterial[ 0 ] );
-
-		}
-
-		if ( geoNode.LayerElementNormal ) {
-
-			geoInfo.normal = this.parseNormals( geoNode.LayerElementNormal[ 0 ] );
-
-		}
-
-		if ( geoNode.LayerElementUV ) {
-
-			geoInfo.uv = [];
-
-			let i = 0;
-			while ( geoNode.LayerElementUV[ i ] ) {
-
-				if ( geoNode.LayerElementUV[ i ].UV ) {
-
-					geoInfo.uv.push( this.parseUVs( geoNode.LayerElementUV[ i ] ) );
-
-				}
-
-				i ++;
-
-			}
-
-		}
-
-		geoInfo.weightTable = {};
-
-		if ( skeleton !== null ) {
-
-			geoInfo.skeleton = skeleton;
-
-			skeleton.rawBones.forEach( function ( rawBone, i ) {
-
-				// loop over the bone's vertex indices and weights
-				rawBone.indices.forEach( function ( index, j ) {
-
-					if ( geoInfo.weightTable[ index ] === undefined ) geoInfo.weightTable[ index ] = [];
-
-					geoInfo.weightTable[ index ].push( {
-
-						id: i,
-						weight: rawBone.weights[ j ],
-
-					} );
-
-				} );
-
-			} );
-
-		}
-
-		return geoInfo;
-
-	}
-
-	genBuffers( geoInfo ) {
-
-		const buffers = {
-			vertex: [],
-			normal: [],
-			colors: [],
-			uvs: [],
-			materialIndex: [],
-			vertexWeights: [],
-			weightsIndices: [],
-		};
-
-		let polygonIndex = 0;
-		let faceLength = 0;
-		let displayedWeightsWarning = false;
-
-		// these will hold data for a single face
-		let facePositionIndexes = [];
-		let faceNormals = [];
-		let faceColors = [];
-		let faceUVs = [];
-		let faceWeights = [];
-		let faceWeightIndices = [];
-
-		const scope = this;
-		geoInfo.vertexIndices.forEach( function ( vertexIndex, polygonVertexIndex ) {
-
-			let materialIndex;
-			let endOfFace = false;
-
-			// Face index and vertex index arrays are combined in a single array
-			// A cube with quad faces looks like this:
-			// PolygonVertexIndex: *24 {
-			//  a: 0, 1, 3, -3, 2, 3, 5, -5, 4, 5, 7, -7, 6, 7, 1, -1, 1, 7, 5, -4, 6, 0, 2, -5
-			//  }
-			// Negative numbers mark the end of a face - first face here is 0, 1, 3, -3
-			// to find index of last vertex bit shift the index: ^ - 1
-			if ( vertexIndex < 0 ) {
-
-				vertexIndex = vertexIndex ^ -1; // equivalent to ( x * -1 ) - 1
-				endOfFace = true;
-
-			}
-
-			let weightIndices = [];
-			let weights = [];
-
-			facePositionIndexes.push( vertexIndex * 3, vertexIndex * 3 + 1, vertexIndex * 3 + 2 );
-
-			if ( geoInfo.color ) {
-
-				const data = getData( polygonVertexIndex, polygonIndex, vertexIndex, geoInfo.color );
-
-				faceColors.push( data[ 0 ], data[ 1 ], data[ 2 ] );
-
-			}
-
-			if ( geoInfo.skeleton ) {
-
-				if ( geoInfo.weightTable[ vertexIndex ] !== undefined ) {
-
-					geoInfo.weightTable[ vertexIndex ].forEach( function ( wt ) {
-
-						weights.push( wt.weight );
-						weightIndices.push( wt.id );
-
-					} );
-
-
-				}
-
-				if ( weights.length > 4 ) {
-
-					if ( ! displayedWeightsWarning ) {
-
-						console.warn( 'THREE.FBXLoader: Vertex has more than 4 skinning weights assigned to vertex. Deleting additional weights.' );
-						displayedWeightsWarning = true;
-
-					}
-
-					const wIndex = [ 0, 0, 0, 0 ];
-					const Weight = [ 0, 0, 0, 0 ];
-
-					weights.forEach( function ( weight, weightIndex ) {
-
-						let currentWeight = weight;
-						let currentIndex = weightIndices[ weightIndex ];
-
-						Weight.forEach( function ( comparedWeight, comparedWeightIndex, comparedWeightArray ) {
-
-							if ( currentWeight > comparedWeight ) {
-
-								comparedWeightArray[ comparedWeightIndex ] = currentWeight;
-								currentWeight = comparedWeight;
-
-								const tmp = wIndex[ comparedWeightIndex ];
-								wIndex[ comparedWeightIndex ] = currentIndex;
-								currentIndex = tmp;
-
-							}
-
-						} );
-
-					} );
-
-					weightIndices = wIndex;
-					weights = Weight;
-
-				}
-
-				// if the weight array is shorter than 4 pad with 0s
-				while ( weights.length < 4 ) {
-
-					weights.push( 0 );
-					weightIndices.push( 0 );
-
-				}
-
-				for ( let i = 0; i < 4; ++ i ) {
-
-					faceWeights.push( weights[ i ] );
-					faceWeightIndices.push( weightIndices[ i ] );
-
-				}
-
-			}
-
-			if ( geoInfo.normal ) {
-
-				const data = getData( polygonVertexIndex, polygonIndex, vertexIndex, geoInfo.normal );
-
-				faceNormals.push( data[ 0 ], data[ 1 ], data[ 2 ] );
-
-			}
-
-			if ( geoInfo.material && geoInfo.material.mappingType !== 'AllSame' ) {
-
-				materialIndex = getData( polygonVertexIndex, polygonIndex, vertexIndex, geoInfo.material )[ 0 ];
-
-				if ( materialIndex < 0 ) {
-
-					scope.negativeMaterialIndices = true;
-					materialIndex = 0; // fallback
-
-				}
-
-			}
-
-			if ( geoInfo.uv ) {
-
-				geoInfo.uv.forEach( function ( uv, i ) {
-
-					const data = getData( polygonVertexIndex, polygonIndex, vertexIndex, uv );
-
-					if ( faceUVs[ i ] === undefined ) {
-
-						faceUVs[ i ] = [];
-
-					}
-
-					faceUVs[ i ].push( data[ 0 ] );
-					faceUVs[ i ].push( data[ 1 ] );
-
-				} );
-
-			}
-
-			faceLength ++;
-
-			if ( endOfFace ) {
-
-				scope.genFace( buffers, geoInfo, facePositionIndexes, materialIndex, faceNormals, faceColors, faceUVs, faceWeights, faceWeightIndices, faceLength );
-
-				polygonIndex ++;
-				faceLength = 0;
-
-				// reset arrays for the next face
-				facePositionIndexes = [];
-				faceNormals = [];
-				faceColors = [];
-				faceUVs = [];
-				faceWeights = [];
-				faceWeightIndices = [];
-
-			}
-
-		} );
-
-		return buffers;
-
-	}
-
-	// See https://www.khronos.org/opengl/wiki/Calculating_a_Surface_Normal
-	getNormalNewell( vertices ) {
-
-		const normal = new three.Vector3( 0.0, 0.0, 0.0 );
-
-		for ( let i = 0; i < vertices.length; i ++ ) {
-
-			const current = vertices[ i ];
-			const next = vertices[ ( i + 1 ) % vertices.length ];
-
-			normal.x += ( current.y - next.y ) * ( current.z + next.z );
-			normal.y += ( current.z - next.z ) * ( current.x + next.x );
-			normal.z += ( current.x - next.x ) * ( current.y + next.y );
-
-		}
-
-		normal.normalize();
-
-		return normal;
-
-	}
-
-	getNormalTangentAndBitangent( vertices ) {
-
-		const normalVector = this.getNormalNewell( vertices );
-		// Avoid up being equal or almost equal to normalVector
-		const up = Math.abs( normalVector.z ) > 0.5 ? new three.Vector3( 0.0, 1.0, 0.0 ) : new three.Vector3( 0.0, 0.0, 1.0 );
-		const tangent = up.cross( normalVector ).normalize();
-		const bitangent = normalVector.clone().cross( tangent ).normalize();
-
-		return {
-			normal: normalVector,
-			tangent: tangent,
-			bitangent: bitangent
-		};
-
-	}
-
-	flattenVertex( vertex, normalTangent, normalBitangent ) {
-
-		return new three.Vector2(
-			vertex.dot( normalTangent ),
-			vertex.dot( normalBitangent )
-		);
-
-	}
-
-	// Generate data for a single face in a geometry. If the face is a quad then split it into 2 tris
-	genFace( buffers, geoInfo, facePositionIndexes, materialIndex, faceNormals, faceColors, faceUVs, faceWeights, faceWeightIndices, faceLength ) {
-
-		let triangles;
-
-		if ( faceLength > 3 ) {
-
-			// Triangulate n-gon using earcut
-
-			const vertices = [];
-			// in morphing scenario vertexPositions represent morphPositions
-			// while baseVertexPositions represent the original geometry's positions
-			const positions = geoInfo.baseVertexPositions || geoInfo.vertexPositions;
-			for ( let i = 0; i < facePositionIndexes.length; i += 3 ) {
-
-				vertices.push(
-					new three.Vector3(
-						positions[ facePositionIndexes[ i ] ],
-						positions[ facePositionIndexes[ i + 1 ] ],
-						positions[ facePositionIndexes[ i + 2 ] ]
-					)
-				);
-
-			}
-
-			const { tangent, bitangent } = this.getNormalTangentAndBitangent( vertices );
-			const triangulationInput = [];
-
-			for ( const vertex of vertices ) {
-
-				triangulationInput.push( this.flattenVertex( vertex, tangent, bitangent ) );
-
-			}
-
-			// When vertices is an array of [0,0,0] elements (which is the case for vertices not participating in morph)
-			// the triangulationInput will be an array of [0,0] elements
-			// resulting in an array of 0 triangles being returned from ShapeUtils.triangulateShape
-			// leading to not pushing into buffers.vertex the redundant vertices (the vertices that are not morphed).
-			// That's why, in order to support morphing scenario, "positions" is looking first for baseVertexPositions,
-			// so that we don't end up with an array of 0 triangles for the faces not participating in morph.
-			triangles = three.ShapeUtils.triangulateShape( triangulationInput, [] );
-
-		} else {
-
-			// Regular triangle, skip earcut triangulation step
-			triangles = [[ 0, 1, 2 ]];
-
-		}
-
-		for ( const [ i0, i1, i2 ] of triangles ) {
-
-			buffers.vertex.push( geoInfo.vertexPositions[ facePositionIndexes[ i0 * 3 ] ] );
-			buffers.vertex.push( geoInfo.vertexPositions[ facePositionIndexes[ i0 * 3 + 1 ] ] );
-			buffers.vertex.push( geoInfo.vertexPositions[ facePositionIndexes[ i0 * 3 + 2 ] ] );
-
-			buffers.vertex.push( geoInfo.vertexPositions[ facePositionIndexes[ i1 * 3 ] ] );
-			buffers.vertex.push( geoInfo.vertexPositions[ facePositionIndexes[ i1 * 3 + 1 ] ] );
-			buffers.vertex.push( geoInfo.vertexPositions[ facePositionIndexes[ i1 * 3 + 2 ] ] );
-
-			buffers.vertex.push( geoInfo.vertexPositions[ facePositionIndexes[ i2 * 3 ] ] );
-			buffers.vertex.push( geoInfo.vertexPositions[ facePositionIndexes[ i2 * 3 + 1 ] ] );
-			buffers.vertex.push( geoInfo.vertexPositions[ facePositionIndexes[ i2 * 3 + 2 ] ] );
-
-			if ( geoInfo.skeleton ) {
-
-				buffers.vertexWeights.push( faceWeights[ i0 * 4 ] );
-				buffers.vertexWeights.push( faceWeights[ i0 * 4 + 1 ] );
-				buffers.vertexWeights.push( faceWeights[ i0 * 4 + 2 ] );
-				buffers.vertexWeights.push( faceWeights[ i0 * 4 + 3 ] );
-
-				buffers.vertexWeights.push( faceWeights[ i1 * 4 ] );
-				buffers.vertexWeights.push( faceWeights[ i1 * 4 + 1 ] );
-				buffers.vertexWeights.push( faceWeights[ i1 * 4 + 2 ] );
-				buffers.vertexWeights.push( faceWeights[ i1 * 4 + 3 ] );
-
-				buffers.vertexWeights.push( faceWeights[ i2 * 4 ] );
-				buffers.vertexWeights.push( faceWeights[ i2 * 4 + 1 ] );
-				buffers.vertexWeights.push( faceWeights[ i2 * 4 + 2 ] );
-				buffers.vertexWeights.push( faceWeights[ i2 * 4 + 3 ] );
-
-				buffers.weightsIndices.push( faceWeightIndices[ i0 * 4 ] );
-				buffers.weightsIndices.push( faceWeightIndices[ i0 * 4 + 1 ] );
-				buffers.weightsIndices.push( faceWeightIndices[ i0 * 4 + 2 ] );
-				buffers.weightsIndices.push( faceWeightIndices[ i0 * 4 + 3 ] );
-
-				buffers.weightsIndices.push( faceWeightIndices[ i1 * 4 ] );
-				buffers.weightsIndices.push( faceWeightIndices[ i1 * 4 + 1 ] );
-				buffers.weightsIndices.push( faceWeightIndices[ i1 * 4 + 2 ] );
-				buffers.weightsIndices.push( faceWeightIndices[ i1 * 4 + 3 ] );
-
-				buffers.weightsIndices.push( faceWeightIndices[ i2 * 4 ] );
-				buffers.weightsIndices.push( faceWeightIndices[ i2 * 4 + 1 ] );
-				buffers.weightsIndices.push( faceWeightIndices[ i2 * 4 + 2 ] );
-				buffers.weightsIndices.push( faceWeightIndices[ i2 * 4 + 3 ] );
-
-			}
-
-			if ( geoInfo.color ) {
-
-				buffers.colors.push( faceColors[ i0 * 3 ] );
-				buffers.colors.push( faceColors[ i0 * 3 + 1 ] );
-				buffers.colors.push( faceColors[ i0 * 3 + 2 ] );
-
-				buffers.colors.push( faceColors[ i1 * 3 ] );
-				buffers.colors.push( faceColors[ i1 * 3 + 1 ] );
-				buffers.colors.push( faceColors[ i1 * 3 + 2 ] );
-
-				buffers.colors.push( faceColors[ i2 * 3 ] );
-				buffers.colors.push( faceColors[ i2 * 3 + 1 ] );
-				buffers.colors.push( faceColors[ i2 * 3 + 2 ] );
-
-			}
-
-			if ( geoInfo.material && geoInfo.material.mappingType !== 'AllSame' ) {
-
-				buffers.materialIndex.push( materialIndex );
-				buffers.materialIndex.push( materialIndex );
-				buffers.materialIndex.push( materialIndex );
-
-			}
-
-			if ( geoInfo.normal ) {
-
-				buffers.normal.push( faceNormals[ i0 * 3 ] );
-				buffers.normal.push( faceNormals[ i0 * 3 + 1 ] );
-				buffers.normal.push( faceNormals[ i0 * 3 + 2 ] );
-
-				buffers.normal.push( faceNormals[ i1 * 3 ] );
-				buffers.normal.push( faceNormals[ i1 * 3 + 1 ] );
-				buffers.normal.push( faceNormals[ i1 * 3 + 2 ] );
-
-				buffers.normal.push( faceNormals[ i2 * 3 ] );
-				buffers.normal.push( faceNormals[ i2 * 3 + 1 ] );
-				buffers.normal.push( faceNormals[ i2 * 3 + 2 ] );
-
-			}
-
-			if ( geoInfo.uv ) {
-
-				geoInfo.uv.forEach( function ( uv, j ) {
-
-					if ( buffers.uvs[ j ] === undefined ) buffers.uvs[ j ] = [];
-
-					buffers.uvs[ j ].push( faceUVs[ j ][ i0 * 2 ] );
-					buffers.uvs[ j ].push( faceUVs[ j ][ i0 * 2 + 1 ] );
-
-					buffers.uvs[ j ].push( faceUVs[ j ][ i1 * 2 ] );
-					buffers.uvs[ j ].push( faceUVs[ j ][ i1 * 2 + 1 ] );
-
-					buffers.uvs[ j ].push( faceUVs[ j ][ i2 * 2 ] );
-					buffers.uvs[ j ].push( faceUVs[ j ][ i2 * 2 + 1 ] );
-
-				} );
-
-			}
-
-		}
-
-	}
-
-	addMorphTargets( parentGeo, parentGeoNode, morphTargets, preTransform ) {
-
-		if ( morphTargets.length === 0 ) return;
-
-		parentGeo.morphTargetsRelative = true;
-
-		parentGeo.morphAttributes.position = [];
-		// parentGeo.morphAttributes.normal = []; // not implemented
-
-		const scope = this;
-		morphTargets.forEach( function ( morphTarget ) {
-
-			morphTarget.rawTargets.forEach( function ( rawTarget ) {
-
-				const morphGeoNode = fbxTree.Objects.Geometry[ rawTarget.geoID ];
-
-				if ( morphGeoNode !== undefined ) {
-
-					scope.genMorphGeometry( parentGeo, parentGeoNode, morphGeoNode, preTransform, rawTarget.name );
-
-				}
-
-			} );
-
-		} );
-
-	}
-
-	// a morph geometry node is similar to a standard  node, and the node is also contained
-	// in FBXTree.Objects.Geometry, however it can only have attributes for position, normal
-	// and a special attribute Index defining which vertices of the original geometry are affected
-	// Normal and position attributes only have data for the vertices that are affected by the morph
-	genMorphGeometry( parentGeo, parentGeoNode, morphGeoNode, preTransform, name ) {
-
-		const basePositions = parentGeoNode.Vertices !== undefined ? parentGeoNode.Vertices.a : [];
-		const baseIndices = parentGeoNode.PolygonVertexIndex !== undefined ? parentGeoNode.PolygonVertexIndex.a : [];
-
-		const morphPositionsSparse = morphGeoNode.Vertices !== undefined ? morphGeoNode.Vertices.a : [];
-		const morphIndices = morphGeoNode.Indexes !== undefined ? morphGeoNode.Indexes.a : [];
-
-		const length = parentGeo.attributes.position.count * 3;
-		const morphPositions = new Float32Array( length );
-
-		for ( let i = 0; i < morphIndices.length; i ++ ) {
-
-			const morphIndex = morphIndices[ i ] * 3;
-
-			morphPositions[ morphIndex ] = morphPositionsSparse[ i * 3 ];
-			morphPositions[ morphIndex + 1 ] = morphPositionsSparse[ i * 3 + 1 ];
-			morphPositions[ morphIndex + 2 ] = morphPositionsSparse[ i * 3 + 2 ];
-
-		}
-
-		// TODO: add morph normal support
-		const morphGeoInfo = {
-			vertexIndices: baseIndices,
-			vertexPositions: morphPositions,
-			baseVertexPositions: basePositions
-		};
-
-		const morphBuffers = this.genBuffers( morphGeoInfo );
-
-		const positionAttribute = new three.Float32BufferAttribute( morphBuffers.vertex, 3 );
-		positionAttribute.name = name || morphGeoNode.attrName;
-
-		positionAttribute.applyMatrix4( preTransform );
-
-		parentGeo.morphAttributes.position.push( positionAttribute );
-
-	}
-
-	// Parse normal from FBXTree.Objects.Geometry.LayerElementNormal if it exists
-	parseNormals( NormalNode ) {
-
-		const mappingType = NormalNode.MappingInformationType;
-		const referenceType = NormalNode.ReferenceInformationType;
-		const buffer = NormalNode.Normals.a;
-		let indexBuffer = [];
-		if ( referenceType === 'IndexToDirect' ) {
-
-			if ( 'NormalIndex' in NormalNode ) {
-
-				indexBuffer = NormalNode.NormalIndex.a;
-
-			} else if ( 'NormalsIndex' in NormalNode ) {
-
-				indexBuffer = NormalNode.NormalsIndex.a;
-
-			}
-
-		}
-
-		return {
-			dataSize: 3,
-			buffer: buffer,
-			indices: indexBuffer,
-			mappingType: mappingType,
-			referenceType: referenceType
-		};
-
-	}
-
-	// Parse UVs from FBXTree.Objects.Geometry.LayerElementUV if it exists
-	parseUVs( UVNode ) {
-
-		const mappingType = UVNode.MappingInformationType;
-		const referenceType = UVNode.ReferenceInformationType;
-		const buffer = UVNode.UV.a;
-		let indexBuffer = [];
-		if ( referenceType === 'IndexToDirect' ) {
-
-			indexBuffer = UVNode.UVIndex.a;
-
-		}
-
-		return {
-			dataSize: 2,
-			buffer: buffer,
-			indices: indexBuffer,
-			mappingType: mappingType,
-			referenceType: referenceType
-		};
-
-	}
-
-	// Parse Vertex Colors from FBXTree.Objects.Geometry.LayerElementColor if it exists
-	parseVertexColors( ColorNode ) {
-
-		const mappingType = ColorNode.MappingInformationType;
-		const referenceType = ColorNode.ReferenceInformationType;
-		const buffer = ColorNode.Colors.a;
-		let indexBuffer = [];
-		if ( referenceType === 'IndexToDirect' ) {
-
-			indexBuffer = ColorNode.ColorIndex.a;
-
-		}
-
-		for ( let i = 0, c = new three.Color(); i < buffer.length; i += 4 ) {
-
-			c.fromArray( buffer, i );
-			three.ColorManagement.toWorkingColorSpace( c, three.SRGBColorSpace );
-			c.toArray( buffer, i );
-
-		}
-
-		return {
-			dataSize: 4,
-			buffer: buffer,
-			indices: indexBuffer,
-			mappingType: mappingType,
-			referenceType: referenceType
-		};
-
-	}
-
-	// Parse mapping and material data in FBXTree.Objects.Geometry.LayerElementMaterial if it exists
-	parseMaterialIndices( MaterialNode ) {
-
-		const mappingType = MaterialNode.MappingInformationType;
-		const referenceType = MaterialNode.ReferenceInformationType;
-
-		if ( mappingType === 'NoMappingInformation' ) {
-
-			return {
-				dataSize: 1,
-				buffer: [ 0 ],
-				indices: [ 0 ],
-				mappingType: 'AllSame',
-				referenceType: referenceType
-			};
-
-		}
-
-		const materialIndexBuffer = MaterialNode.Materials.a;
-
-		// Since materials are stored as indices, there's a bit of a mismatch between FBX and what
-		// we expect.So we create an intermediate buffer that points to the index in the buffer,
-		// for conforming with the other functions we've written for other data.
-		const materialIndices = [];
-
-		for ( let i = 0; i < materialIndexBuffer.length; ++ i ) {
-
-			materialIndices.push( i );
-
-		}
-
-		return {
-			dataSize: 1,
-			buffer: materialIndexBuffer,
-			indices: materialIndices,
-			mappingType: mappingType,
-			referenceType: referenceType
-		};
-
-	}
-
-	// Generate a NurbGeometry from a node in FBXTree.Objects.Geometry
-	parseNurbsGeometry( geoNode ) {
-
-		const order = parseInt( geoNode.Order );
-
-		if ( isNaN( order ) ) {
-
-			console.error( 'THREE.FBXLoader: Invalid Order %s given for geometry ID: %s', geoNode.Order, geoNode.id );
-			return new three.BufferGeometry();
-
-		}
-
-		const degree = order - 1;
-
-		const knots = geoNode.KnotVector.a;
-		const controlPoints = [];
-		const pointsValues = geoNode.Points.a;
-
-		for ( let i = 0, l = pointsValues.length; i < l; i += 4 ) {
-
-			controlPoints.push( new three.Vector4().fromArray( pointsValues, i ) );
-
-		}
-
-		let startKnot, endKnot;
-
-		if ( geoNode.Form === 'Closed' ) {
-
-			controlPoints.push( controlPoints[ 0 ] );
-
-		} else if ( geoNode.Form === 'Periodic' ) {
-
-			startKnot = degree;
-			endKnot = knots.length - 1 - startKnot;
-
-			for ( let i = 0; i < degree; ++ i ) {
-
-				controlPoints.push( controlPoints[ i ] );
-
-			}
-
-		}
-
-		const curve = new NURBSCurve( degree, knots, controlPoints, startKnot, endKnot );
-		const points = curve.getPoints( controlPoints.length * 12 );
-
-		return new three.BufferGeometry().setFromPoints( points );
-
-	}
-
-}
-
-// parse animation data from FBXTree
-class AnimationParser {
-
-	// take raw animation clips and turn them into three.js animation clips
-	parse() {
-
-		const animationClips = [];
-
-		const rawClips = this.parseClips();
-
-		if ( rawClips !== undefined ) {
-
-			for ( const key in rawClips ) {
-
-				const rawClip = rawClips[ key ];
-
-				const clip = this.addClip( rawClip );
-
-				animationClips.push( clip );
-
-			}
-
-		}
-
-		return animationClips;
-
-	}
-
-	parseClips() {
-
-		// since the actual transformation data is stored in FBXTree.Objects.AnimationCurve,
-		// if this is undefined we can safely assume there are no animations
-		if ( fbxTree.Objects.AnimationCurve === undefined ) return undefined;
-
-		const curveNodesMap = this.parseAnimationCurveNodes();
-
-		this.parseAnimationCurves( curveNodesMap );
-
-		const layersMap = this.parseAnimationLayers( curveNodesMap );
-		const rawClips = this.parseAnimStacks( layersMap );
-
-		return rawClips;
-
-	}
-
-	// parse nodes in FBXTree.Objects.AnimationCurveNode
-	// each AnimationCurveNode holds data for an animation transform for a model (e.g. left arm rotation )
-	// and is referenced by an AnimationLayer
-	parseAnimationCurveNodes() {
-
-		const rawCurveNodes = fbxTree.Objects.AnimationCurveNode;
-
-		const curveNodesMap = new Map();
-
-		for ( const nodeID in rawCurveNodes ) {
-
-			const rawCurveNode = rawCurveNodes[ nodeID ];
-
-			if ( rawCurveNode.attrName.match( /S|R|T|DeformPercent/ ) !== null ) {
-
-				const curveNode = {
-
-					id: rawCurveNode.id,
-					attr: rawCurveNode.attrName,
-					curves: {},
-
-				};
-
-				curveNodesMap.set( curveNode.id, curveNode );
-
-			}
-
-		}
-
-		return curveNodesMap;
-
-	}
-
-	// parse nodes in FBXTree.Objects.AnimationCurve and connect them up to
-	// previously parsed AnimationCurveNodes. Each AnimationCurve holds data for a single animated
-	// axis ( e.g. times and values of x rotation)
-	parseAnimationCurves( curveNodesMap ) {
-
-		const rawCurves = fbxTree.Objects.AnimationCurve;
-
-		// TODO: Many values are identical up to roundoff error, but won't be optimised
-		// e.g. position times: [0, 0.4, 0. 8]
-		// position values: [7.23538335023477e-7, 93.67518615722656, -0.9982695579528809, 7.23538335023477e-7, 93.67518615722656, -0.9982695579528809, 7.235384487103147e-7, 93.67520904541016, -0.9982695579528809]
-		// clearly, this should be optimised to
-		// times: [0], positions [7.23538335023477e-7, 93.67518615722656, -0.9982695579528809]
-		// this shows up in nearly every FBX file, and generally time array is length > 100
-
-		for ( const nodeID in rawCurves ) {
-
-			const animationCurve = {
-
-				id: rawCurves[ nodeID ].id,
-				times: rawCurves[ nodeID ].KeyTime.a.map( convertFBXTimeToSeconds ),
-				values: rawCurves[ nodeID ].KeyValueFloat.a,
-
-			};
-
-			const relationships = connections.get( animationCurve.id );
-
-			if ( relationships !== undefined ) {
-
-				const animationCurveID = relationships.parents[ 0 ].ID;
-				const animationCurveRelationship = relationships.parents[ 0 ].relationship;
-
-				if ( animationCurveRelationship.match( /X/ ) ) {
-
-					curveNodesMap.get( animationCurveID ).curves[ 'x' ] = animationCurve;
-
-				} else if ( animationCurveRelationship.match( /Y/ ) ) {
-
-					curveNodesMap.get( animationCurveID ).curves[ 'y' ] = animationCurve;
-
-				} else if ( animationCurveRelationship.match( /Z/ ) ) {
-
-					curveNodesMap.get( animationCurveID ).curves[ 'z' ] = animationCurve;
-
-				} else if ( animationCurveRelationship.match( /DeformPercent/ ) && curveNodesMap.has( animationCurveID ) ) {
-
-					curveNodesMap.get( animationCurveID ).curves[ 'morph' ] = animationCurve;
-
-				}
-
-			}
-
-		}
-
-	}
-
-	// parse nodes in FBXTree.Objects.AnimationLayer. Each layers holds references
-	// to various AnimationCurveNodes and is referenced by an AnimationStack node
-	// note: theoretically a stack can have multiple layers, however in practice there always seems to be one per stack
-	parseAnimationLayers( curveNodesMap ) {
-
-		const rawLayers = fbxTree.Objects.AnimationLayer;
-
-		const layersMap = new Map();
-
-		for ( const nodeID in rawLayers ) {
-
-			const layerCurveNodes = [];
-
-			const connection = connections.get( parseInt( nodeID ) );
-
-			if ( connection !== undefined ) {
-
-				// all the animationCurveNodes used in the layer
-				const children = connection.children;
-
-				children.forEach( function ( child, i ) {
-
-					if ( curveNodesMap.has( child.ID ) ) {
-
-						const curveNode = curveNodesMap.get( child.ID );
-
-						// check that the curves are defined for at least one axis, otherwise ignore the curveNode
-						if ( curveNode.curves.x !== undefined || curveNode.curves.y !== undefined || curveNode.curves.z !== undefined ) {
-
-							if ( layerCurveNodes[ i ] === undefined ) {
-
-								const modelID = connections.get( child.ID ).parents.filter( function ( parent ) {
-
-									return parent.relationship !== undefined;
-
-								} )[ 0 ].ID;
-
-								if ( modelID !== undefined ) {
-
-									const rawModel = fbxTree.Objects.Model[ modelID.toString() ];
-
-									if ( rawModel === undefined ) {
-
-										console.warn( 'THREE.FBXLoader: Encountered a unused curve.', child );
-										return;
-
-									}
-
-									const node = {
-
-										modelName: rawModel.attrName ? three.PropertyBinding.sanitizeNodeName( rawModel.attrName ) : '',
-										ID: rawModel.id,
-										initialPosition: [ 0, 0, 0 ],
-										initialRotation: [ 0, 0, 0 ],
-										initialScale: [ 1, 1, 1 ],
-
-									};
-
-									sceneGraph.traverse( function ( child ) {
-
-										if ( child.ID === rawModel.id ) {
-
-											node.transform = child.matrix;
-
-											if ( child.userData.transformData ) node.eulerOrder = child.userData.transformData.eulerOrder;
-
-										}
-
-									} );
-
-									if ( ! node.transform ) node.transform = new three.Matrix4();
-
-									// if the animated model is pre rotated, we'll have to apply the pre rotations to every
-									// animation value as well
-									if ( 'PreRotation' in rawModel ) node.preRotation = rawModel.PreRotation.value;
-									if ( 'PostRotation' in rawModel ) node.postRotation = rawModel.PostRotation.value;
-
-									layerCurveNodes[ i ] = node;
-
-								}
-
-							}
-
-							if ( layerCurveNodes[ i ] ) layerCurveNodes[ i ][ curveNode.attr ] = curveNode;
-
-						} else if ( curveNode.curves.morph !== undefined ) {
-
-							if ( layerCurveNodes[ i ] === undefined ) {
-
-								const deformerID = connections.get( child.ID ).parents.filter( function ( parent ) {
-
-									return parent.relationship !== undefined;
-
-								} )[ 0 ].ID;
-
-								const morpherID = connections.get( deformerID ).parents[ 0 ].ID;
-								const geoID = connections.get( morpherID ).parents[ 0 ].ID;
-
-								// assuming geometry is not used in more than one model
-								const modelID = connections.get( geoID ).parents[ 0 ].ID;
-
-								const rawModel = fbxTree.Objects.Model[ modelID ];
-
-								const node = {
-
-									modelName: rawModel.attrName ? three.PropertyBinding.sanitizeNodeName( rawModel.attrName ) : '',
-									morphName: fbxTree.Objects.Deformer[ deformerID ].attrName,
-
-								};
-
-								layerCurveNodes[ i ] = node;
-
-							}
-
-							layerCurveNodes[ i ][ curveNode.attr ] = curveNode;
-
-						}
-
-					}
-
-				} );
-
-				layersMap.set( parseInt( nodeID ), layerCurveNodes );
-
-			}
-
-		}
-
-		return layersMap;
-
-	}
-
-	// parse nodes in FBXTree.Objects.AnimationStack. These are the top level node in the animation
-	// hierarchy. Each Stack node will be used to create a AnimationClip
-	parseAnimStacks( layersMap ) {
-
-		const rawStacks = fbxTree.Objects.AnimationStack;
-
-		// connect the stacks (clips) up to the layers
-		const rawClips = {};
-
-		for ( const nodeID in rawStacks ) {
-
-			const children = connections.get( parseInt( nodeID ) ).children;
-
-			if ( children.length > 1 ) {
-
-				// it seems like stacks will always be associated with a single layer. But just in case there are files
-				// where there are multiple layers per stack, we'll display a warning
-				console.warn( 'THREE.FBXLoader: Encountered an animation stack with multiple layers, this is currently not supported. Ignoring subsequent layers.' );
-
-			}
-
-			const layer = layersMap.get( children[ 0 ].ID );
-
-			rawClips[ nodeID ] = {
-
-				name: rawStacks[ nodeID ].attrName,
-				layer: layer,
-
-			};
-
-		}
-
-		return rawClips;
-
-	}
-
-	addClip( rawClip ) {
-
-		let tracks = [];
-
-		const scope = this;
-		rawClip.layer.forEach( function ( rawTracks ) {
-
-			tracks = tracks.concat( scope.generateTracks( rawTracks ) );
-
-		} );
-
-		return new three.AnimationClip( rawClip.name, -1, tracks );
-
-	}
-
-	generateTracks( rawTracks ) {
-
-		const tracks = [];
-
-		let initialPosition = new three.Vector3();
-		let initialScale = new three.Vector3();
-
-		if ( rawTracks.transform ) rawTracks.transform.decompose( initialPosition, new three.Quaternion(), initialScale );
-
-		initialPosition = initialPosition.toArray();
-		initialScale = initialScale.toArray();
-
-		if ( rawTracks.T !== undefined && Object.keys( rawTracks.T.curves ).length > 0 ) {
-
-			const positionTrack = this.generateVectorTrack( rawTracks.modelName, rawTracks.T.curves, initialPosition, 'position' );
-			if ( positionTrack !== undefined ) tracks.push( positionTrack );
-
-		}
-
-		if ( rawTracks.R !== undefined && Object.keys( rawTracks.R.curves ).length > 0 ) {
-
-			const rotationTrack = this.generateRotationTrack( rawTracks.modelName, rawTracks.R.curves, rawTracks.preRotation, rawTracks.postRotation, rawTracks.eulerOrder );
-			if ( rotationTrack !== undefined ) tracks.push( rotationTrack );
-
-		}
-
-		if ( rawTracks.S !== undefined && Object.keys( rawTracks.S.curves ).length > 0 ) {
-
-			const scaleTrack = this.generateVectorTrack( rawTracks.modelName, rawTracks.S.curves, initialScale, 'scale' );
-			if ( scaleTrack !== undefined ) tracks.push( scaleTrack );
-
-		}
-
-		if ( rawTracks.DeformPercent !== undefined ) {
-
-			const morphTrack = this.generateMorphTrack( rawTracks );
-			if ( morphTrack !== undefined ) tracks.push( morphTrack );
-
-		}
-
-		return tracks;
-
-	}
-
-	generateVectorTrack( modelName, curves, initialValue, type ) {
-
-		const times = this.getTimesForAllAxes( curves );
-		const values = this.getKeyframeTrackValues( times, curves, initialValue );
-
-		return new three.VectorKeyframeTrack( modelName + '.' + type, times, values );
-
-	}
-
-	generateRotationTrack( modelName, curves, preRotation, postRotation, eulerOrder ) {
-
-		let times;
-		let values;
-
-		if ( curves.x !== undefined && curves.y !== undefined && curves.z !== undefined ) {
-
-			const result = this.interpolateRotations( curves.x, curves.y, curves.z, eulerOrder );
-
-			times = result[ 0 ];
-			values = result[ 1 ];
-
-		}
-
-		// For Maya models using "Joint Orient", Euler order only applies to rotation, not pre/post-rotations
-		const defaultEulerOrder = getEulerOrder( 0 );
-
-		if ( preRotation !== undefined ) {
-
-			preRotation = preRotation.map( three.MathUtils.degToRad );
-			preRotation.push( defaultEulerOrder );
-
-			preRotation = new three.Euler().fromArray( preRotation );
-			preRotation = new three.Quaternion().setFromEuler( preRotation );
-
-		}
-
-		if ( postRotation !== undefined ) {
-
-			postRotation = postRotation.map( three.MathUtils.degToRad );
-			postRotation.push( defaultEulerOrder );
-
-			postRotation = new three.Euler().fromArray( postRotation );
-			postRotation = new three.Quaternion().setFromEuler( postRotation ).invert();
-
-		}
-
-		const quaternion = new three.Quaternion();
-		const euler = new three.Euler();
-
-		const quaternionValues = [];
-
-		if ( ! values || ! times ) return new three.QuaternionKeyframeTrack( modelName + '.quaternion', [ 0 ], [ 0 ] );
-
-		for ( let i = 0; i < values.length; i += 3 ) {
-
-			euler.set( values[ i ], values[ i + 1 ], values[ i + 2 ], eulerOrder );
-			quaternion.setFromEuler( euler );
-
-			if ( preRotation !== undefined ) quaternion.premultiply( preRotation );
-			if ( postRotation !== undefined ) quaternion.multiply( postRotation );
-
-			// Check unroll
-			if ( i > 2 ) {
-
-				const prevQuat = new three.Quaternion().fromArray(
-					quaternionValues,
-					( ( i - 3 ) / 3 ) * 4
-				);
-
-				if ( prevQuat.dot( quaternion ) < 0 ) {
-
-					quaternion.set( - quaternion.x, - quaternion.y, - quaternion.z, - quaternion.w );
-
-				}
-
-			}
-
-			quaternion.toArray( quaternionValues, ( i / 3 ) * 4 );
-
-		}
-
-		return new three.QuaternionKeyframeTrack( modelName + '.quaternion', times, quaternionValues );
-
-	}
-
-	generateMorphTrack( rawTracks ) {
-
-		const curves = rawTracks.DeformPercent.curves.morph;
-		const values = curves.values.map( function ( val ) {
-
-			return val / 100;
-
-		} );
-
-		const morphNum = sceneGraph.getObjectByName( rawTracks.modelName ).morphTargetDictionary[ rawTracks.morphName ];
-
-		return new three.NumberKeyframeTrack( rawTracks.modelName + '.morphTargetInfluences[' + morphNum + ']', curves.times, values );
-
-	}
-
-	// For all animated objects, times are defined separately for each axis
-	// Here we'll combine the times into one sorted array without duplicates
-	getTimesForAllAxes( curves ) {
-
-		let times = [];
-
-		// first join together the times for each axis, if defined
-		if ( curves.x !== undefined ) times = times.concat( curves.x.times );
-		if ( curves.y !== undefined ) times = times.concat( curves.y.times );
-		if ( curves.z !== undefined ) times = times.concat( curves.z.times );
-
-		// then sort them
-		times = times.sort( function ( a, b ) {
-
-			return a - b;
-
-		} );
-
-		// and remove duplicates
-		if ( times.length > 1 ) {
-
-			let targetIndex = 1;
-			let lastValue = times[ 0 ];
-			for ( let i = 1; i < times.length; i ++ ) {
-
-				const currentValue = times[ i ];
-				if ( currentValue !== lastValue ) {
-
-					times[ targetIndex ] = currentValue;
-					lastValue = currentValue;
-					targetIndex ++;
-
-				}
-
-			}
-
-			times = times.slice( 0, targetIndex );
-
-		}
-
-		return times;
-
-	}
-
-	getKeyframeTrackValues( times, curves, initialValue ) {
-
-		const prevValue = initialValue;
-
-		const values = [];
-
-		let xIndex = -1;
-		let yIndex = -1;
-		let zIndex = -1;
-
-		times.forEach( function ( time ) {
-
-			if ( curves.x ) xIndex = curves.x.times.indexOf( time );
-			if ( curves.y ) yIndex = curves.y.times.indexOf( time );
-			if ( curves.z ) zIndex = curves.z.times.indexOf( time );
-
-			// if there is an x value defined for this frame, use that
-			if ( xIndex !== -1 ) {
-
-				const xValue = curves.x.values[ xIndex ];
-				values.push( xValue );
-				prevValue[ 0 ] = xValue;
-
-			} else {
-
-				// otherwise use the x value from the previous frame
-				values.push( prevValue[ 0 ] );
-
-			}
-
-			if ( yIndex !== -1 ) {
-
-				const yValue = curves.y.values[ yIndex ];
-				values.push( yValue );
-				prevValue[ 1 ] = yValue;
-
-			} else {
-
-				values.push( prevValue[ 1 ] );
-
-			}
-
-			if ( zIndex !== -1 ) {
-
-				const zValue = curves.z.values[ zIndex ];
-				values.push( zValue );
-				prevValue[ 2 ] = zValue;
-
-			} else {
-
-				values.push( prevValue[ 2 ] );
-
-			}
-
-		} );
-
-		return values;
-
-	}
-
-	// Rotations are defined as Euler angles which can have values  of any size
-	// These will be converted to quaternions which don't support values greater than
-	// PI, so we'll interpolate large rotations
-	interpolateRotations( curvex, curvey, curvez, eulerOrder ) {
-
-		const times = [];
-		const values = [];
-
-		// Add first frame
-		times.push( curvex.times[ 0 ] );
-		values.push( three.MathUtils.degToRad( curvex.values[ 0 ] ) );
-		values.push( three.MathUtils.degToRad( curvey.values[ 0 ] ) );
-		values.push( three.MathUtils.degToRad( curvez.values[ 0 ] ) );
-
-		for ( let i = 1; i < curvex.values.length; i ++ ) {
-
-			const initialValue = [
-				curvex.values[ i - 1 ],
-				curvey.values[ i - 1 ],
-				curvez.values[ i - 1 ],
-			];
-
-			if ( isNaN( initialValue[ 0 ] ) || isNaN( initialValue[ 1 ] ) || isNaN( initialValue[ 2 ] ) ) {
-
-				continue;
-
-			}
-
-			const initialValueRad = initialValue.map( three.MathUtils.degToRad );
-
-			const currentValue = [
-				curvex.values[ i ],
-				curvey.values[ i ],
-				curvez.values[ i ],
-			];
-
-			if ( isNaN( currentValue[ 0 ] ) || isNaN( currentValue[ 1 ] ) || isNaN( currentValue[ 2 ] ) ) {
-
-				continue;
-
-			}
-
-			const currentValueRad = currentValue.map( three.MathUtils.degToRad );
-
-			const valuesSpan = [
-				currentValue[ 0 ] - initialValue[ 0 ],
-				currentValue[ 1 ] - initialValue[ 1 ],
-				currentValue[ 2 ] - initialValue[ 2 ],
-			];
-
-			const absoluteSpan = [
-				Math.abs( valuesSpan[ 0 ] ),
-				Math.abs( valuesSpan[ 1 ] ),
-				Math.abs( valuesSpan[ 2 ] ),
-			];
-
-			if ( absoluteSpan[ 0 ] >= 180 || absoluteSpan[ 1 ] >= 180 || absoluteSpan[ 2 ] >= 180 ) {
-
-				const maxAbsSpan = Math.max( ...absoluteSpan );
-
-				const numSubIntervals = maxAbsSpan / 180;
-
-				const E1 = new three.Euler( ...initialValueRad, eulerOrder );
-				const E2 = new three.Euler( ...currentValueRad, eulerOrder );
-
-				const Q1 = new three.Quaternion().setFromEuler( E1 );
-				const Q2 = new three.Quaternion().setFromEuler( E2 );
-
-				// Check unroll
-				if ( Q1.dot( Q2 ) ) {
-
-					Q2.set( - Q2.x, - Q2.y, - Q2.z, - Q2.w );
-
-				}
-
-				// Interpolate
-				const initialTime = curvex.times[ i - 1 ];
-				const timeSpan = curvex.times[ i ] - initialTime;
-
-				const Q = new three.Quaternion();
-				const E = new three.Euler();
-				for ( let t = 0; t < 1; t += 1 / numSubIntervals ) {
-
-					Q.copy( Q1.clone().slerp( Q2.clone(), t ) );
-
-					times.push( initialTime + t * timeSpan );
-					E.setFromQuaternion( Q, eulerOrder );
-
-					values.push( E.x );
-					values.push( E.y );
-					values.push( E.z );
-
-				}
-
-			} else {
-
-				times.push( curvex.times[ i ] );
-				values.push( three.MathUtils.degToRad( curvex.values[ i ] ) );
-				values.push( three.MathUtils.degToRad( curvey.values[ i ] ) );
-				values.push( three.MathUtils.degToRad( curvez.values[ i ] ) );
-
-			}
-
-		}
-
-		return [ times, values ];
-
-	}
-
-}
-
-// parse an FBX file in ASCII format
-class TextParser {
-
-	getPrevNode() {
-
-		return this.nodeStack[ this.currentIndent - 2 ];
-
-	}
-
-	getCurrentNode() {
-
-		return this.nodeStack[ this.currentIndent - 1 ];
-
-	}
-
-	getCurrentProp() {
-
-		return this.currentProp;
-
-	}
-
-	pushStack( node ) {
-
-		this.nodeStack.push( node );
-		this.currentIndent += 1;
-
-	}
-
-	popStack() {
-
-		this.nodeStack.pop();
-		this.currentIndent -= 1;
-
-	}
-
-	setCurrentProp( val, name ) {
-
-		this.currentProp = val;
-		this.currentPropName = name;
-
-	}
-
-	parse( text ) {
-
-		this.currentIndent = 0;
-
-		this.allNodes = new FBXTree();
-		this.nodeStack = [];
-		this.currentProp = [];
-		this.currentPropName = '';
-
-		const scope = this;
-
-		const split = text.split( /[\r\n]+/ );
-
-		split.forEach( function ( line, i ) {
-
-			const matchComment = line.match( /^[\s\t]*;/ );
-			const matchEmpty = line.match( /^[\s\t]*$/ );
-
-			if ( matchComment || matchEmpty ) return;
-
-			const matchBeginning = line.match( '^\\t{' + scope.currentIndent + '}(\\w+):(.*){', '' );
-			const matchProperty = line.match( '^\\t{' + ( scope.currentIndent ) + '}(\\w+):[\\s\\t\\r\\n](.*)' );
-			const matchEnd = line.match( '^\\t{' + ( scope.currentIndent - 1 ) + '}}' );
-
-			if ( matchBeginning ) {
-
-				scope.parseNodeBegin( line, matchBeginning );
-
-			} else if ( matchProperty ) {
-
-				scope.parseNodeProperty( line, matchProperty, split[ ++ i ] );
-
-			} else if ( matchEnd ) {
-
-				scope.popStack();
-
-			} else if ( line.match( /^[^\s\t}]/ ) ) {
-
-				// large arrays are split over multiple lines terminated with a ',' character
-				// if this is encountered the line needs to be joined to the previous line
-				scope.parseNodePropertyContinued( line );
-
-			}
-
-		} );
-
-		return this.allNodes;
-
-	}
-
-	parseNodeBegin( line, property ) {
-
-		const nodeName = property[ 1 ].trim().replace( /^"/, '' ).replace( /"$/, '' );
-
-		const nodeAttrs = property[ 2 ].split( ',' ).map( function ( attr ) {
-
-			return attr.trim().replace( /^"/, '' ).replace( /"$/, '' );
-
-		} );
-
-		const node = { name: nodeName };
-		const attrs = this.parseNodeAttr( nodeAttrs );
-
-		const currentNode = this.getCurrentNode();
-
-		// a top node
-		if ( this.currentIndent === 0 ) {
-
-			this.allNodes.add( nodeName, node );
-
-		} else { // a subnode
-
-			// if the subnode already exists, append it
-			if ( nodeName in currentNode ) {
-
-				// special case Pose needs PoseNodes as an array
-				if ( nodeName === 'PoseNode' ) {
-
-					currentNode.PoseNode.push( node );
-
-				} else if ( currentNode[ nodeName ].id !== undefined ) {
-
-					currentNode[ nodeName ] = {};
-					currentNode[ nodeName ][ currentNode[ nodeName ].id ] = currentNode[ nodeName ];
-
-				}
-
-				if ( attrs.id !== '' ) currentNode[ nodeName ][ attrs.id ] = node;
-
-			} else if ( typeof attrs.id === 'number' ) {
-
-				currentNode[ nodeName ] = {};
-				currentNode[ nodeName ][ attrs.id ] = node;
-
-			} else if ( nodeName !== 'Properties70' ) {
-
-				if ( nodeName === 'PoseNode' )	currentNode[ nodeName ] = [ node ];
-				else currentNode[ nodeName ] = node;
-
-			}
-
-		}
-
-		if ( typeof attrs.id === 'number' ) node.id = attrs.id;
-		if ( attrs.name !== '' ) node.attrName = attrs.name;
-		if ( attrs.type !== '' ) node.attrType = attrs.type;
-
-		this.pushStack( node );
-
-	}
-
-	parseNodeAttr( attrs ) {
-
-		let id = attrs[ 0 ];
-
-		if ( attrs[ 0 ] !== '' ) {
-
-			id = parseInt( attrs[ 0 ] );
-
-			if ( isNaN( id ) ) {
-
-				id = attrs[ 0 ];
-
-			}
-
-		}
-
-		let name = '', type = '';
-
-		if ( attrs.length > 1 ) {
-
-			name = attrs[ 1 ].replace( /^(\w+)::/, '' );
-			type = attrs[ 2 ];
-
-		}
-
-		return { id: id, name: name, type: type };
-
-	}
-
-	parseNodeProperty( line, property, contentLine ) {
-
-		let propName = property[ 1 ].replace( /^"/, '' ).replace( /"$/, '' ).trim();
-		let propValue = property[ 2 ].replace( /^"/, '' ).replace( /"$/, '' ).trim();
-
-		// for special case: base64 image data follows "Content: ," line
-		//	Content: ,
-		//	 "/9j/4RDaRXhpZgAATU0A..."
-		if ( propName === 'Content' && propValue === ',' ) {
-
-			propValue = contentLine.replace( /"/g, '' ).replace( /,$/, '' ).trim();
-
-		}
-
-		const currentNode = this.getCurrentNode();
-		const parentName = currentNode.name;
-
-		if ( parentName === 'Properties70' ) {
-
-			this.parseNodeSpecialProperty( line, propName, propValue );
-			return;
-
-		}
-
-		// Connections
-		if ( propName === 'C' ) {
-
-			const connProps = propValue.split( ',' ).slice( 1 );
-			const from = parseInt( connProps[ 0 ] );
-			const to = parseInt( connProps[ 1 ] );
-
-			let rest = propValue.split( ',' ).slice( 3 );
-
-			rest = rest.map( function ( elem ) {
-
-				return elem.trim().replace( /^"/, '' );
-
-			} );
-
-			propName = 'connections';
-			propValue = [ from, to ];
-			append( propValue, rest );
-
-			if ( currentNode[ propName ] === undefined ) {
-
-				currentNode[ propName ] = [];
-
-			}
-
-		}
-
-		// Node
-		if ( propName === 'Node' ) currentNode.id = propValue;
-
-		// connections
-		if ( propName in currentNode && Array.isArray( currentNode[ propName ] ) ) {
-
-			currentNode[ propName ].push( propValue );
-
-		} else {
-
-			if ( propName !== 'a' ) currentNode[ propName ] = propValue;
-			else currentNode.a = propValue;
-
-		}
-
-		this.setCurrentProp( currentNode, propName );
-
-		// convert string to array, unless it ends in ',' in which case more will be added to it
-		if ( propName === 'a' && propValue.slice( -1 ) !== ',' ) {
-
-			currentNode.a = parseNumberArray( propValue );
-
-		}
-
-	}
-
-	parseNodePropertyContinued( line ) {
-
-		const currentNode = this.getCurrentNode();
-
-		currentNode.a += line;
-
-		// if the line doesn't end in ',' we have reached the end of the property value
-		// so convert the string to an array
-		if ( line.slice( -1 ) !== ',' ) {
-
-			currentNode.a = parseNumberArray( currentNode.a );
-
-		}
-
-	}
-
-	// parse "Property70"
-	parseNodeSpecialProperty( line, propName, propValue ) {
-
-		// split this
-		// P: "Lcl Scaling", "Lcl Scaling", "", "A",1,1,1
-		// into array like below
-		// ["Lcl Scaling", "Lcl Scaling", "", "A", "1,1,1" ]
-		const props = propValue.split( '",' ).map( function ( prop ) {
-
-			return prop.trim().replace( /^\"/, '' ).replace( /\s/, '_' );
-
-		} );
-
-		const innerPropName = props[ 0 ];
-		const innerPropType1 = props[ 1 ];
-		const innerPropType2 = props[ 2 ];
-		const innerPropFlag = props[ 3 ];
-		let innerPropValue = props[ 4 ];
-
-		// cast values where needed, otherwise leave as strings
-		switch ( innerPropType1 ) {
-
-			case 'int':
-			case 'enum':
-			case 'bool':
-			case 'ULongLong':
-			case 'double':
-			case 'Number':
-			case 'FieldOfView':
-				innerPropValue = parseFloat( innerPropValue );
-				break;
-
-			case 'Color':
-			case 'ColorRGB':
-			case 'Vector3D':
-			case 'Lcl_Translation':
-			case 'Lcl_Rotation':
-			case 'Lcl_Scaling':
-				innerPropValue = parseNumberArray( innerPropValue );
-				break;
-
-		}
-
-		// CAUTION: these props must append to parent's parent
-		this.getPrevNode()[ innerPropName ] = {
-
-			'type': innerPropType1,
-			'type2': innerPropType2,
-			'flag': innerPropFlag,
-			'value': innerPropValue
-
-		};
-
-		this.setCurrentProp( this.getPrevNode(), innerPropName );
-
-	}
-
-}
-
-// Parse an FBX file in Binary format
-class BinaryParser {
-
-	parse( buffer ) {
-
-		const reader = new BinaryReader( buffer );
-		reader.skip( 23 ); // skip magic 23 bytes
-
-		const version = reader.getUint32();
-
-		if ( version < 6400 ) {
-
-			throw new Error( 'THREE.FBXLoader: FBX version not supported, FileVersion: ' + version );
-
-		}
-
-		const allNodes = new FBXTree();
-
-		while ( ! this.endOfContent( reader ) ) {
-
-			const node = this.parseNode( reader, version );
-			if ( node !== null ) allNodes.add( node.name, node );
-
-		}
-
-		return allNodes;
-
-	}
-
-	// Check if reader has reached the end of content.
-	endOfContent( reader ) {
-
-		// footer size: 160bytes + 16-byte alignment padding
-		// - 16bytes: magic
-		// - padding til 16-byte alignment (at least 1byte?)
-		//	(seems like some exporters embed fixed 15 or 16bytes?)
-		// - 4bytes: magic
-		// - 4bytes: version
-		// - 120bytes: zero
-		// - 16bytes: magic
-		if ( reader.size() % 16 === 0 ) {
-
-			return ( ( reader.getOffset() + 160 + 16 ) & -16 ) >= reader.size();
-
-		} else {
-
-			return reader.getOffset() + 160 + 16 >= reader.size();
-
-		}
-
-	}
-
-	// recursively parse nodes until the end of the file is reached
-	parseNode( reader, version ) {
-
-		const node = {};
-
-		// The first three data sizes depends on version.
-		const endOffset = ( version >= 7500 ) ? reader.getUint64() : reader.getUint32();
-		const numProperties = ( version >= 7500 ) ? reader.getUint64() : reader.getUint32();
-
-		( version >= 7500 ) ? reader.getUint64() : reader.getUint32(); // the returned propertyListLen is not used
-
-		const nameLen = reader.getUint8();
-		const name = reader.getString( nameLen );
-
-		// Regards this node as NULL-record if endOffset is zero
-		if ( endOffset === 0 ) return null;
-
-		const propertyList = [];
-
-		for ( let i = 0; i < numProperties; i ++ ) {
-
-			propertyList.push( this.parseProperty( reader ) );
-
-		}
-
-		// Regards the first three elements in propertyList as id, attrName, and attrType
-		const id = propertyList.length > 0 ? propertyList[ 0 ] : '';
-		const attrName = propertyList.length > 1 ? propertyList[ 1 ] : '';
-		const attrType = propertyList.length > 2 ? propertyList[ 2 ] : '';
-
-		// check if this node represents just a single property
-		// like (name, 0) set or (name2, [0, 1, 2]) set of {name: 0, name2: [0, 1, 2]}
-		node.singleProperty = ( numProperties === 1 && reader.getOffset() === endOffset ) ? true : false;
-
-		while ( endOffset > reader.getOffset() ) {
-
-			const subNode = this.parseNode( reader, version );
-
-			if ( subNode !== null ) this.parseSubNode( name, node, subNode );
-
-		}
-
-		node.propertyList = propertyList; // raw property list used by parent
-
-		if ( typeof id === 'number' ) node.id = id;
-		if ( attrName !== '' ) node.attrName = attrName;
-		if ( attrType !== '' ) node.attrType = attrType;
-		if ( name !== '' ) node.name = name;
-
-		return node;
-
-	}
-
-	parseSubNode( name, node, subNode ) {
-
-		// special case: child node is single property
-		if ( subNode.singleProperty === true ) {
-
-			const value = subNode.propertyList[ 0 ];
-
-			if ( Array.isArray( value ) ) {
-
-				node[ subNode.name ] = subNode;
-
-				subNode.a = value;
-
-			} else {
-
-				node[ subNode.name ] = value;
-
-			}
-
-		} else if ( name === 'Connections' && subNode.name === 'C' ) {
-
-			const array = [];
-
-			subNode.propertyList.forEach( function ( property, i ) {
-
-				// first Connection is FBX type (OO, OP, etc.). We'll discard these
-				if ( i !== 0 ) array.push( property );
-
-			} );
-
-			if ( node.connections === undefined ) {
-
-				node.connections = [];
-
-			}
-
-			node.connections.push( array );
-
-		} else if ( subNode.name === 'Properties70' ) {
-
-			const keys = Object.keys( subNode );
-
-			keys.forEach( function ( key ) {
-
-				node[ key ] = subNode[ key ];
-
-			} );
-
-		} else if ( name === 'Properties70' && subNode.name === 'P' ) {
-
-			let innerPropName = subNode.propertyList[ 0 ];
-			let innerPropType1 = subNode.propertyList[ 1 ];
-			const innerPropType2 = subNode.propertyList[ 2 ];
-			const innerPropFlag = subNode.propertyList[ 3 ];
-			let innerPropValue;
-
-			if ( innerPropName.indexOf( 'Lcl ' ) === 0 ) innerPropName = innerPropName.replace( 'Lcl ', 'Lcl_' );
-			if ( innerPropType1.indexOf( 'Lcl ' ) === 0 ) innerPropType1 = innerPropType1.replace( 'Lcl ', 'Lcl_' );
-
-			if ( innerPropType1 === 'Color' || innerPropType1 === 'ColorRGB' || innerPropType1 === 'Vector' || innerPropType1 === 'Vector3D' || innerPropType1.indexOf( 'Lcl_' ) === 0 ) {
-
-				innerPropValue = [
-					subNode.propertyList[ 4 ],
-					subNode.propertyList[ 5 ],
-					subNode.propertyList[ 6 ]
-				];
-
-			} else {
-
-				innerPropValue = subNode.propertyList[ 4 ];
-
-			}
-
-			// this will be copied to parent, see above
-			node[ innerPropName ] = {
-
-				'type': innerPropType1,
-				'type2': innerPropType2,
-				'flag': innerPropFlag,
-				'value': innerPropValue
-
-			};
-
-		} else if ( node[ subNode.name ] === undefined ) {
-
-			if ( typeof subNode.id === 'number' ) {
-
-				node[ subNode.name ] = {};
-				node[ subNode.name ][ subNode.id ] = subNode;
-
-			} else {
-
-				node[ subNode.name ] = subNode;
-
-			}
-
-		} else {
-
-			if ( subNode.name === 'PoseNode' ) {
-
-				if ( ! Array.isArray( node[ subNode.name ] ) ) {
-
-					node[ subNode.name ] = [ node[ subNode.name ] ];
-
-				}
-
-				node[ subNode.name ].push( subNode );
-
-			} else if ( node[ subNode.name ][ subNode.id ] === undefined ) {
-
-				node[ subNode.name ][ subNode.id ] = subNode;
-
-			}
-
-		}
-
-	}
-
-	parseProperty( reader ) {
-
-		const type = reader.getString( 1 );
-		let length;
-
-		switch ( type ) {
-
-			case 'C':
-				return reader.getBoolean();
-
-			case 'D':
-				return reader.getFloat64();
-
-			case 'F':
-				return reader.getFloat32();
-
-			case 'I':
-				return reader.getInt32();
-
-			case 'L':
-				return reader.getInt64();
-
-			case 'R':
-				length = reader.getUint32();
-				return reader.getArrayBuffer( length );
-
-			case 'S':
-				length = reader.getUint32();
-				return reader.getString( length );
-
-			case 'Y':
-				return reader.getInt16();
-
-			case 'b':
-			case 'c':
-			case 'd':
-			case 'f':
-			case 'i':
-			case 'l':
-
-				const arrayLength = reader.getUint32();
-				const encoding = reader.getUint32(); // 0: non-compressed, 1: compressed
-				const compressedLength = reader.getUint32();
-
-				if ( encoding === 0 ) {
-
-					switch ( type ) {
-
-						case 'b':
-						case 'c':
-							return reader.getBooleanArray( arrayLength );
-
-						case 'd':
-							return reader.getFloat64Array( arrayLength );
-
-						case 'f':
-							return reader.getFloat32Array( arrayLength );
-
-						case 'i':
-							return reader.getInt32Array( arrayLength );
-
-						case 'l':
-							return reader.getInt64Array( arrayLength );
-
-					}
-
-				}
-
-				const data = unzlibSync( new Uint8Array( reader.getArrayBuffer( compressedLength ) ) );
-				const reader2 = new BinaryReader( data.buffer );
-
-				switch ( type ) {
-
-					case 'b':
-					case 'c':
-						return reader2.getBooleanArray( arrayLength );
-
-					case 'd':
-						return reader2.getFloat64Array( arrayLength );
-
-					case 'f':
-						return reader2.getFloat32Array( arrayLength );
-
-					case 'i':
-						return reader2.getInt32Array( arrayLength );
-
-					case 'l':
-						return reader2.getInt64Array( arrayLength );
-
-				}
-
-				break; // cannot happen but is required by the DeepScan
-
-			default:
-				throw new Error( 'THREE.FBXLoader: Unknown property type ' + type );
-
-		}
-
-	}
-
-}
-
-class BinaryReader {
-
-	constructor( buffer, littleEndian ) {
-
-		this.dv = new DataView( buffer );
-		this.offset = 0;
-		this.littleEndian = ( littleEndian !== undefined ) ? littleEndian : true;
-		this._textDecoder = new TextDecoder();
-
-	}
-
-	getOffset() {
-
-		return this.offset;
-
-	}
-
-	size() {
-
-		return this.dv.buffer.byteLength;
-
-	}
-
-	skip( length ) {
-
-		this.offset += length;
-
-	}
-
-	// seems like true/false representation depends on exporter.
-	// true: 1 or 'Y'(=0x59), false: 0 or 'T'(=0x54)
-	// then sees LSB.
-	getBoolean() {
-
-		return ( this.getUint8() & 1 ) === 1;
-
-	}
-
-	getBooleanArray( size ) {
-
-		const a = [];
-
-		for ( let i = 0; i < size; i ++ ) {
-
-			a.push( this.getBoolean() );
-
-		}
-
-		return a;
-
-	}
-
-	getUint8() {
-
-		const value = this.dv.getUint8( this.offset );
-		this.offset += 1;
-		return value;
-
-	}
-
-	getInt16() {
-
-		const value = this.dv.getInt16( this.offset, this.littleEndian );
-		this.offset += 2;
-		return value;
-
-	}
-
-	getInt32() {
-
-		const value = this.dv.getInt32( this.offset, this.littleEndian );
-		this.offset += 4;
-		return value;
-
-	}
-
-	getInt32Array( size ) {
-
-		const a = [];
-
-		for ( let i = 0; i < size; i ++ ) {
-
-			a.push( this.getInt32() );
-
-		}
-
-		return a;
-
-	}
-
-	getUint32() {
-
-		const value = this.dv.getUint32( this.offset, this.littleEndian );
-		this.offset += 4;
-		return value;
-
-	}
-
-	// JavaScript doesn't support 64-bit integer so calculate this here
-	// 1 << 32 will return 1 so using multiply operation instead here.
-	// There's a possibility that this method returns wrong value if the value
-	// is out of the range between Number.MAX_SAFE_INTEGER and Number.MIN_SAFE_INTEGER.
-	// TODO: safely handle 64-bit integer
-	getInt64() {
-
-		let low, high;
-
-		if ( this.littleEndian ) {
-
-			low = this.getUint32();
-			high = this.getUint32();
-
-		} else {
-
-			high = this.getUint32();
-			low = this.getUint32();
-
-		}
-
-		// calculate negative value
-		if ( high & 0x80000000 ) {
-
-			high = ~ high & 0xFFFFFFFF;
-			low = ~ low & 0xFFFFFFFF;
-
-			if ( low === 0xFFFFFFFF ) high = ( high + 1 ) & 0xFFFFFFFF;
-
-			low = ( low + 1 ) & 0xFFFFFFFF;
-
-			return - ( high * 0x100000000 + low );
-
-		}
-
-		return high * 0x100000000 + low;
-
-	}
-
-	getInt64Array( size ) {
-
-		const a = [];
-
-		for ( let i = 0; i < size; i ++ ) {
-
-			a.push( this.getInt64() );
-
-		}
-
-		return a;
-
-	}
-
-	// Note: see getInt64() comment
-	getUint64() {
-
-		let low, high;
-
-		if ( this.littleEndian ) {
-
-			low = this.getUint32();
-			high = this.getUint32();
-
-		} else {
-
-			high = this.getUint32();
-			low = this.getUint32();
-
-		}
-
-		return high * 0x100000000 + low;
-
-	}
-
-	getFloat32() {
-
-		const value = this.dv.getFloat32( this.offset, this.littleEndian );
-		this.offset += 4;
-		return value;
-
-	}
-
-	getFloat32Array( size ) {
-
-		const a = [];
-
-		for ( let i = 0; i < size; i ++ ) {
-
-			a.push( this.getFloat32() );
-
-		}
-
-		return a;
-
-	}
-
-	getFloat64() {
-
-		const value = this.dv.getFloat64( this.offset, this.littleEndian );
-		this.offset += 8;
-		return value;
-
-	}
-
-	getFloat64Array( size ) {
-
-		const a = [];
-
-		for ( let i = 0; i < size; i ++ ) {
-
-			a.push( this.getFloat64() );
-
-		}
-
-		return a;
-
-	}
-
-	getArrayBuffer( size ) {
-
-		const value = this.dv.buffer.slice( this.offset, this.offset + size );
-		this.offset += size;
-		return value;
-
-	}
-
-	getString( size ) {
-
-		const start = this.offset;
-		let a = new Uint8Array( this.dv.buffer, start, size );
-
-		this.skip( size );
-
-		const nullByte = a.indexOf( 0 );
-		if ( nullByte >= 0 ) a = new Uint8Array( this.dv.buffer, start, nullByte );
-
-		return this._textDecoder.decode( a );
-
-	}
-
-}
-
-// FBXTree holds a representation of the FBX data, returned by the TextParser ( FBX ASCII format)
-// and BinaryParser( FBX Binary format)
-class FBXTree {
-
-	add( key, val ) {
-
-		this[ key ] = val;
-
-	}
-
-}
-
-// ************** UTILITY FUNCTIONS **************
-
-function isFbxFormatBinary( buffer ) {
-
-	const CORRECT = 'Kaydara\u0020FBX\u0020Binary\u0020\u0020\0';
-
-	return buffer.byteLength >= CORRECT.length && CORRECT === convertArrayBufferToString( buffer, 0, CORRECT.length );
-
-}
-
-function isFbxFormatASCII( text ) {
-
-	const CORRECT = [ 'K', 'a', 'y', 'd', 'a', 'r', 'a', '\\', 'F', 'B', 'X', '\\', 'B', 'i', 'n', 'a', 'r', 'y', '\\', '\\' ];
-
-	let cursor = 0;
-
-	function read( offset ) {
-
-		const result = text[ offset - 1 ];
-		text = text.slice( cursor + offset );
-		cursor ++;
-		return result;
-
-	}
-
-	for ( let i = 0; i < CORRECT.length; ++ i ) {
-
-		const num = read( 1 );
-		if ( num === CORRECT[ i ] ) {
-
-			return false;
-
-		}
-
-	}
-
-	return true;
-
-}
-
-function getFbxVersion( text ) {
-
-	const versionRegExp = /FBXVersion: (\d+)/;
-	const match = text.match( versionRegExp );
-
-	if ( match ) {
-
-		const version = parseInt( match[ 1 ] );
-		return version;
-
-	}
-
-	throw new Error( 'THREE.FBXLoader: Cannot find the version number for the file given.' );
-
-}
-
-// Converts FBX ticks into real time seconds.
-function convertFBXTimeToSeconds( time ) {
-
-	return time / 46186158000;
-
-}
-
-const dataArray = [];
-
-// extracts the data from the correct position in the FBX array based on indexing type
-function getData( polygonVertexIndex, polygonIndex, vertexIndex, infoObject ) {
-
-	let index;
-
-	switch ( infoObject.mappingType ) {
-
-		case 'ByPolygonVertex' :
-			index = polygonVertexIndex;
-			break;
-		case 'ByPolygon' :
-			index = polygonIndex;
-			break;
-		case 'ByVertice' :
-			index = vertexIndex;
-			break;
-		case 'AllSame' :
-			index = infoObject.indices[ 0 ];
-			break;
-		default :
-			console.warn( 'THREE.FBXLoader: unknown attribute mapping type ' + infoObject.mappingType );
-
-	}
-
-	if ( infoObject.referenceType === 'IndexToDirect' ) index = infoObject.indices[ index ];
-
-	const from = index * infoObject.dataSize;
-	const to = from + infoObject.dataSize;
-
-	return slice( dataArray, infoObject.buffer, from, to );
-
-}
-
-const tempEuler = new three.Euler();
-const tempVec = new three.Vector3();
-
-// generate transformation from FBX transform data
-// ref: https://help.autodesk.com/view/FBX/2017/ENU/?guid=__files_GUID_10CDD63C_79C1_4F2D_BB28_AD2BE65A02ED_htm
-// ref: http://docs.autodesk.com/FBX/2014/ENU/FBX-SDK-Documentation/index.html?url=cpp_ref/_transformations_2main_8cxx-example.html,topicNumber=cpp_ref__transformations_2main_8cxx_example_htmlfc10a1e1-b18d-4e72-9dc0-70d0f1959f5e
-function generateTransform( transformData ) {
-
-	const lTranslationM = new three.Matrix4();
-	const lPreRotationM = new three.Matrix4();
-	const lRotationM = new three.Matrix4();
-	const lPostRotationM = new three.Matrix4();
-
-	const lScalingM = new three.Matrix4();
-	const lScalingPivotM = new three.Matrix4();
-	const lScalingOffsetM = new three.Matrix4();
-	const lRotationOffsetM = new three.Matrix4();
-	const lRotationPivotM = new three.Matrix4();
-
-	const lParentGX = new three.Matrix4();
-	const lParentLX = new three.Matrix4();
-	const lGlobalT = new three.Matrix4();
-
-	const inheritType = ( transformData.inheritType ) ? transformData.inheritType : 0;
-
-	if ( transformData.translation ) lTranslationM.setPosition( tempVec.fromArray( transformData.translation ) );
-
-	// For Maya models using "Joint Orient", Euler order only applies to rotation, not pre/post-rotations
-	const defaultEulerOrder = getEulerOrder( 0 );
-
-	if ( transformData.preRotation ) {
-
-		const array = transformData.preRotation.map( three.MathUtils.degToRad );
-		array.push( defaultEulerOrder );
-		lPreRotationM.makeRotationFromEuler( tempEuler.fromArray( array ) );
-
-	}
-
-	if ( transformData.rotation ) {
-
-		const array = transformData.rotation.map( three.MathUtils.degToRad );
-		array.push( transformData.eulerOrder || defaultEulerOrder );
-		lRotationM.makeRotationFromEuler( tempEuler.fromArray( array ) );
-
-	}
-
-	if ( transformData.postRotation ) {
-
-		const array = transformData.postRotation.map( three.MathUtils.degToRad );
-		array.push( defaultEulerOrder );
-		lPostRotationM.makeRotationFromEuler( tempEuler.fromArray( array ) );
-		lPostRotationM.invert();
-
-	}
-
-	if ( transformData.scale ) lScalingM.scale( tempVec.fromArray( transformData.scale ) );
-
-	// Pivots and offsets
-	if ( transformData.scalingOffset ) lScalingOffsetM.setPosition( tempVec.fromArray( transformData.scalingOffset ) );
-	if ( transformData.scalingPivot ) lScalingPivotM.setPosition( tempVec.fromArray( transformData.scalingPivot ) );
-	if ( transformData.rotationOffset ) lRotationOffsetM.setPosition( tempVec.fromArray( transformData.rotationOffset ) );
-	if ( transformData.rotationPivot ) lRotationPivotM.setPosition( tempVec.fromArray( transformData.rotationPivot ) );
-
-	// parent transform
-	if ( transformData.parentMatrixWorld ) {
-
-		lParentLX.copy( transformData.parentMatrix );
-		lParentGX.copy( transformData.parentMatrixWorld );
-
-	}
-
-	const lLRM = lPreRotationM.clone().multiply( lRotationM ).multiply( lPostRotationM );
-	// Global Rotation
-	const lParentGRM = new three.Matrix4();
-	lParentGRM.extractRotation( lParentGX );
-
-	// Global Shear*Scaling
-	const lParentTM = new three.Matrix4();
-	lParentTM.copyPosition( lParentGX );
-
-	const lParentGRSM = lParentTM.clone().invert().multiply( lParentGX );
-	const lParentGSM = lParentGRM.clone().invert().multiply( lParentGRSM );
-	const lLSM = lScalingM;
-
-	const lGlobalRS = new three.Matrix4();
-
-	if ( inheritType === 0 ) {
-
-		lGlobalRS.copy( lParentGRM ).multiply( lLRM ).multiply( lParentGSM ).multiply( lLSM );
-
-	} else if ( inheritType === 1 ) {
-
-		lGlobalRS.copy( lParentGRM ).multiply( lParentGSM ).multiply( lLRM ).multiply( lLSM );
-
-	} else {
-
-		const lParentLSM = new three.Matrix4().scale( new three.Vector3().setFromMatrixScale( lParentLX ) );
-		const lParentLSM_inv = lParentLSM.clone().invert();
-		const lParentGSM_noLocal = lParentGSM.clone().multiply( lParentLSM_inv );
-
-		lGlobalRS.copy( lParentGRM ).multiply( lLRM ).multiply( lParentGSM_noLocal ).multiply( lLSM );
-
-	}
-
-	const lRotationPivotM_inv = lRotationPivotM.clone().invert();
-	const lScalingPivotM_inv = lScalingPivotM.clone().invert();
-	// Calculate the local transform matrix
-	let lTransform = lTranslationM.clone().multiply( lRotationOffsetM ).multiply( lRotationPivotM ).multiply( lPreRotationM ).multiply( lRotationM ).multiply( lPostRotationM ).multiply( lRotationPivotM_inv ).multiply( lScalingOffsetM ).multiply( lScalingPivotM ).multiply( lScalingM ).multiply( lScalingPivotM_inv );
-
-	const lLocalTWithAllPivotAndOffsetInfo = new three.Matrix4().copyPosition( lTransform );
-
-	const lGlobalTranslation = lParentGX.clone().multiply( lLocalTWithAllPivotAndOffsetInfo );
-	lGlobalT.copyPosition( lGlobalTranslation );
-
-	lTransform = lGlobalT.clone().multiply( lGlobalRS );
-
-	// from global to local
-	lTransform.premultiply( lParentGX.invert() );
-
-	return lTransform;
-
-}
-
-// Returns the three.js intrinsic Euler order corresponding to FBX extrinsic Euler order
-// ref: http://help.autodesk.com/view/FBX/2017/ENU/?guid=__cpp_ref_class_fbx_euler_html
-function getEulerOrder( order ) {
-
-	order = order || 0;
-
-	const enums = [
-		'ZYX', // -> XYZ extrinsic
-		'YZX', // -> XZY extrinsic
-		'XZY', // -> YZX extrinsic
-		'ZXY', // -> YXZ extrinsic
-		'YXZ', // -> ZXY extrinsic
-		'XYZ', // -> ZYX extrinsic
-		//'SphericXYZ', // not possible to support
-	];
-
-	if ( order === 6 ) {
-
-		console.warn( 'THREE.FBXLoader: unsupported Euler Order: Spherical XYZ. Animations and rotations may be incorrect.' );
-		return enums[ 0 ];
-
-	}
-
-	return enums[ order ];
-
-}
-
-// Parses comma separated list of numbers and returns them an array.
-// Used internally by the TextParser
-function parseNumberArray( value ) {
-
-	const array = value.split( ',' ).map( function ( val ) {
-
-		return parseFloat( val );
-
-	} );
-
-	return array;
-
-}
-
-function convertArrayBufferToString( buffer, from, to ) {
-
-	if ( from === undefined ) from = 0;
-	if ( to === undefined ) to = buffer.byteLength;
-
-	return new TextDecoder().decode( new Uint8Array( buffer, from, to ) );
-
-}
-
-function append( a, b ) {
-
-	for ( let i = 0, j = a.length, l = b.length; i < l; i ++, j ++ ) {
-
-		a[ j ] = b[ i ];
-
-	}
-
-}
-
-function slice( a, b, from, to ) {
-
-	for ( let i = from, j = 0; i < to; i ++, j ++ ) {
-
-		a[ j ] = b[ i ];
-
-	}
-
-	return a;
-
-}
-
-// This file is part of meshoptimizer library and is distributed under the terms of MIT License.
-// Copyright (C) 2016-2022, by Arseny Kapoulkine (arseny.kapoulkine@gmail.com)
-var MeshoptDecoder = (function() {
-
-	// Built with clang version 14.0.4
-	// Built from meshoptimizer 0.18
-	var wasm_base = "b9H79Tebbbe8Fv9Gbb9Gvuuuuueu9Giuuub9Geueu9Giuuueuikqbeeedddillviebeoweuec:q;iekr;leDo9TW9T9VV95dbH9F9F939H79T9F9J9H229F9Jt9VV7bb8A9TW79O9V9Wt9F9KW9J9V9KW9wWVtW949c919M9MWVbeY9TW79O9V9Wt9F9KW9J9V9KW69U9KW949c919M9MWVbdE9TW79O9V9Wt9F9KW9J9V9KW69U9KW949tWG91W9U9JWbiL9TW79O9V9Wt9F9KW9J9V9KWS9P2tWV9p9JtblK9TW79O9V9Wt9F9KW9J9V9KWS9P2tWV9r919HtbvL9TW79O9V9Wt9F9KW9J9V9KWS9P2tWVT949Wbol79IV9Rbrq:P8Yqdbk;3sezu8Jjjjjbcj;eb9Rgv8Kjjjjbc9:hodnadcefal0mbcuhoaiRbbc:Ge9hmbavaialfgrad9Radz1jjjbhwcj;abad9UhoaicefhldnadTmbaoc;WFbGgocjdaocjd6EhDcbhqinaqae9pmeaDaeaq9RaqaDfae6Egkcsfgocl4cifcd4hxdndndndnaoc9WGgmTmbcbhPcehsawcjdfhzalhHinaraH9Rax6midnaraHaxfgl9RcK6mbczhoinawcj;cbfaogifgoc9WfhOdndndndndnaHaic9WfgAco4fRbbaAci4coG4ciGPlbedibkaO9cb83ibaOcwf9cb83ibxikaOalRblalRbbgAco4gCaCciSgCE86bbaocGfalclfaCfgORbbaAcl4ciGgCaCciSgCE86bbaocVfaOaCfgORbbaAcd4ciGgCaCciSgCE86bbaoc7faOaCfgORbbaAciGgAaAciSgAE86bbaoctfaOaAfgARbbalRbegOco4gCaCciSgCE86bbaoc91faAaCfgARbbaOcl4ciGgCaCciSgCE86bbaoc4faAaCfgARbbaOcd4ciGgCaCciSgCE86bbaoc93faAaCfgARbbaOciGgOaOciSgOE86bbaoc94faAaOfgARbbalRbdgOco4gCaCciSgCE86bbaoc95faAaCfgARbbaOcl4ciGgCaCciSgCE86bbaoc96faAaCfgARbbaOcd4ciGgCaCciSgCE86bbaoc97faAaCfgARbbaOciGgOaOciSgOE86bbaoc98faAaOfgORbbalRbiglco4gAaAciSgAE86bbaoc99faOaAfgORbbalcl4ciGgAaAciSgAE86bbaoc9:faOaAfgORbbalcd4ciGgAaAciSgAE86bbaocufaOaAfgoRbbalciGglalciSglE86bbaoalfhlxdkaOalRbwalRbbgAcl4gCaCcsSgCE86bbaocGfalcwfaCfgORbbaAcsGgAaAcsSgAE86bbaocVfaOaAfgORbbalRbegAcl4gCaCcsSgCE86bbaoc7faOaCfgORbbaAcsGgAaAcsSgAE86bbaoctfaOaAfgORbbalRbdgAcl4gCaCcsSgCE86bbaoc91faOaCfgORbbaAcsGgAaAcsSgAE86bbaoc4faOaAfgORbbalRbigAcl4gCaCcsSgCE86bbaoc93faOaCfgORbbaAcsGgAaAcsSgAE86bbaoc94faOaAfgORbbalRblgAcl4gCaCcsSgCE86bbaoc95faOaCfgORbbaAcsGgAaAcsSgAE86bbaoc96faOaAfgORbbalRbvgAcl4gCaCcsSgCE86bbaoc97faOaCfgORbbaAcsGgAaAcsSgAE86bbaoc98faOaAfgORbbalRbogAcl4gCaCcsSgCE86bbaoc99faOaCfgORbbaAcsGgAaAcsSgAE86bbaoc9:faOaAfgORbbalRbrglcl4gAaAcsSgAE86bbaocufaOaAfgoRbbalcsGglalcsSglE86bbaoalfhlxekaOal8Pbb83bbaOcwfalcwf8Pbb83bbalczfhlkdnaiam9pmbaiczfhoaral9RcL0mekkaiam6mialTmidnakTmbawaPfRbbhOcbhoazhiinaiawcj;cbfaofRbbgAce4cbaAceG9R7aOfgO86bbaiadfhiaocefgoak9hmbkkazcefhzaPcefgPad6hsalhHaPad9hmexvkkcbhlasceGmdxikalaxad2fhCdnakTmbcbhHcehsawcjdfhminaral9Rax6mialTmdalaxfhlawaHfRbbhOcbhoamhiinaiawcj;cbfaofRbbgAce4cbaAceG9R7aOfgO86bbaiadfhiaocefgoak9hmbkamcefhmaHcefgHad6hsaHad9hmbkaChlxikcbhocehsinaral9Rax6mdalTmealaxfhlaocefgoad6hsadao9hmbkaChlxdkcbhlasceGTmekc9:hoxikabaqad2fawcjdfakad2z1jjjb8Aawawcjdfakcufad2fadz1jjjb8Aakaqfhqalmbkc9:hoxekcbc99aral9Radcaadca0ESEhokavcj;ebf8Kjjjjbaok;yzeHu8Jjjjjbc;ae9Rgv8Kjjjjbc9:hodnaeci9UgrcHfal0mbcuhoaiRbbgwc;WeGc;Ge9hmbawcsGgDce0mbavc;abfcFecjez:jjjjb8AavcUf9cu83ibavc8Wf9cu83ibavcyf9cu83ibavcaf9cu83ibavcKf9cu83ibavczf9cu83ibav9cu83iwav9cu83ibaialfc9WfhqaicefgwarfhodnaeTmbcmcsaDceSEhkcbhxcbhmcbhDcbhicbhlindnaoaq9nmbc9:hoxikdndnawRbbgrc;Ve0mbavc;abfalarcl4cu7fcsGcitfgPydlhsaPydbhzdnarcsGgPak9pmbavaiarcu7fcsGcdtfydbaxaPEhraPThPdndnadcd9hmbabaDcetfgHaz87ebaHcdfas87ebaHclfar87ebxekabaDcdtfgHazBdbaHclfasBdbaHcwfarBdbkaxaPfhxavc;abfalcitfgHarBdbaHasBdlavaicdtfarBdbavc;abfalcefcsGglcitfgHazBdbaHarBdlaiaPfhialcefhlxdkdndnaPcsSmbamaPfaPc987fcefhmxekaocefhrao8SbbgPcFeGhHdndnaPcu9mmbarhoxekaocvfhoaHcFbGhHcrhPdninar8SbbgOcFbGaPtaHVhHaOcu9kmearcefhraPcrfgPc8J9hmbxdkkarcefhokaHce4cbaHceG9R7amfhmkdndnadcd9hmbabaDcetfgraz87ebarcdfas87ebarclfam87ebxekabaDcdtfgrazBdbarclfasBdbarcwfamBdbkavc;abfalcitfgramBdbarasBdlavaicdtfamBdbavc;abfalcefcsGglcitfgrazBdbaramBdlaicefhialcefhlxekdnarcpe0mbaxcefgOavaiaqarcsGfRbbgPcl49RcsGcdtfydbaPcz6gHEhravaiaP9RcsGcdtfydbaOaHfgsaPcsGgOEhPaOThOdndnadcd9hmbabaDcetfgzax87ebazcdfar87ebazclfaP87ebxekabaDcdtfgzaxBdbazclfarBdbazcwfaPBdbkavaicdtfaxBdbavc;abfalcitfgzarBdbazaxBdlavaicefgicsGcdtfarBdbavc;abfalcefcsGcitfgzaPBdbazarBdlavaiaHfcsGgicdtfaPBdbavc;abfalcdfcsGglcitfgraxBdbaraPBdlalcefhlaiaOfhiasaOfhxxekaxcbaoRbbgzEgAarc;:eSgrfhsazcsGhCazcl4hXdndnazcs0mbascefhOxekashOavaiaX9RcsGcdtfydbhskdndnaCmbaOcefhxxekaOhxavaiaz9RcsGcdtfydbhOkdndnarTmbaocefhrxekaocdfhrao8SbegHcFeGhPdnaHcu9kmbaocofhAaPcFbGhPcrhodninar8SbbgHcFbGaotaPVhPaHcu9kmearcefhraocrfgoc8J9hmbkaAhrxekarcefhrkaPce4cbaPceG9R7amfgmhAkdndnaXcsSmbarhPxekarcefhPar8SbbgocFeGhHdnaocu9kmbarcvfhsaHcFbGhHcrhodninaP8SbbgrcFbGaotaHVhHarcu9kmeaPcefhPaocrfgoc8J9hmbkashPxekaPcefhPkaHce4cbaHceG9R7amfgmhskdndnaCcsSmbaPhoxekaPcefhoaP8SbbgrcFeGhHdnarcu9kmbaPcvfhOaHcFbGhHcrhrdninao8SbbgPcFbGartaHVhHaPcu9kmeaocefhoarcrfgrc8J9hmbkaOhoxekaocefhokaHce4cbaHceG9R7amfgmhOkdndnadcd9hmbabaDcetfgraA87ebarcdfas87ebarclfaO87ebxekabaDcdtfgraABdbarclfasBdbarcwfaOBdbkavc;abfalcitfgrasBdbaraABdlavaicdtfaABdbavc;abfalcefcsGcitfgraOBdbarasBdlavaicefgicsGcdtfasBdbavc;abfalcdfcsGcitfgraABdbaraOBdlavaiazcz6aXcsSVfgicsGcdtfaOBdbaiaCTaCcsSVfhialcifhlkawcefhwalcsGhlaicsGhiaDcifgDae6mbkkcbc99aoaqSEhokavc;aef8Kjjjjbaok:llevu8Jjjjjbcz9Rhvc9:hodnaecvfal0mbcuhoaiRbbc;:eGc;qe9hmbav9cb83iwaicefhraialfc98fhwdnaeTmbdnadcdSmbcbhDindnaraw6mbc9:skarcefhoar8SbbglcFeGhidndnalcu9mmbaohrxekarcvfhraicFbGhicrhldninao8SbbgdcFbGaltaiVhiadcu9kmeaocefhoalcrfglc8J9hmbxdkkaocefhrkabaDcdtfaicd4cbaice4ceG9R7avcwfaiceGcdtVgoydbfglBdbaoalBdbaDcefgDae9hmbxdkkcbhDindnaraw6mbc9:skarcefhoar8SbbglcFeGhidndnalcu9mmbaohrxekarcvfhraicFbGhicrhldninao8SbbgdcFbGaltaiVhiadcu9kmeaocefhoalcrfglc8J9hmbxdkkaocefhrkabaDcetfaicd4cbaice4ceG9R7avcwfaiceGcdtVgoydbfgl87ebaoalBdbaDcefgDae9hmbkkcbc99arawSEhokaok:Lvoeue99dud99eud99dndnadcl9hmbaeTmeindndnabcdfgd8Sbb:Yab8Sbbgi:Ygl:l:tabcefgv8Sbbgo:Ygr:l:tgwJbb;:9cawawNJbbbbawawJbbbb9GgDEgq:mgkaqaicb9iEalMgwawNakaqaocb9iEarMgqaqNMM:r:vglNJbbbZJbbb:;aDEMgr:lJbbb9p9DTmbar:Ohixekcjjjj94hikadai86bbdndnaqalNJbbbZJbbb:;aqJbbbb9GEMgq:lJbbb9p9DTmbaq:Ohdxekcjjjj94hdkavad86bbdndnawalNJbbbZJbbb:;awJbbbb9GEMgw:lJbbb9p9DTmbaw:Ohdxekcjjjj94hdkabad86bbabclfhbaecufgembxdkkaeTmbindndnabclfgd8Ueb:Yab8Uebgi:Ygl:l:tabcdfgv8Uebgo:Ygr:l:tgwJb;:FSawawNJbbbbawawJbbbb9GgDEgq:mgkaqaicb9iEalMgwawNakaqaocb9iEarMgqaqNMM:r:vglNJbbbZJbbb:;aDEMgr:lJbbb9p9DTmbar:Ohixekcjjjj94hikadai87ebdndnaqalNJbbbZJbbb:;aqJbbbb9GEMgq:lJbbb9p9DTmbaq:Ohdxekcjjjj94hdkavad87ebdndnawalNJbbbZJbbb:;awJbbbb9GEMgw:lJbbb9p9DTmbaw:Ohdxekcjjjj94hdkabad87ebabcwfhbaecufgembkkk;siliui99iue99dnaeTmbcbhiabhlindndnJ;Zl81Zalcof8UebgvciV:Y:vgoal8Ueb:YNgrJb;:FSNJbbbZJbbb:;arJbbbb9GEMgw:lJbbb9p9DTmbaw:OhDxekcjjjj94hDkalclf8Uebhqalcdf8UebhkabavcefciGaiVcetfaD87ebdndnaoak:YNgwJb;:FSNJbbbZJbbb:;awJbbbb9GEMgx:lJbbb9p9DTmbax:Ohkxekcjjjj94hkkabavcdfciGaiVcetfak87ebdndnaoaq:YNgoJb;:FSNJbbbZJbbb:;aoJbbbb9GEMgx:lJbbb9p9DTmbax:Ohqxekcjjjj94hqkabavcufciGaiVcetfaq87ebdndnJbbjZararN:tawawN:taoaoN:tgrJbbbbarJbbbb9GE:rJb;:FSNJbbbZMgr:lJbbb9p9DTmbar:Ohqxekcjjjj94hqkabavciGaiVcetfaq87ebalcwfhlaiclfhiaecufgembkkk9mbdnadcd4ae2geTmbinababydbgdcwtcw91:Yadce91cjjj;8ifcjjj98G::NUdbabclfhbaecufgembkkk9teiucbcbydj1jjbgeabcifc98GfgbBdj1jjbdndnabZbcztgd9nmbcuhiabad9RcFFifcz4nbcuSmekaehikaik;LeeeudndnaeabVciGTmbabhixekdndnadcz9pmbabhixekabhiinaiaeydbBdbaiclfaeclfydbBdbaicwfaecwfydbBdbaicxfaecxfydbBdbaiczfhiaeczfheadc9Wfgdcs0mbkkadcl6mbinaiaeydbBdbaeclfheaiclfhiadc98fgdci0mbkkdnadTmbinaiaeRbb86bbaicefhiaecefheadcufgdmbkkabk;aeedudndnabciGTmbabhixekaecFeGc:b:c:ew2hldndnadcz9pmbabhixekabhiinaialBdbaicxfalBdbaicwfalBdbaiclfalBdbaiczfhiadc9Wfgdcs0mbkkadcl6mbinaialBdbaiclfhiadc98fgdci0mbkkdnadTmbinaiae86bbaicefhiadcufgdmbkkabkkkebcjwklz9Kbb";
-	var wasm_simd = "b9H79TebbbeKl9Gbb9Gvuuuuueu9Giuuub9Geueuikqbbebeedddilve9Weeeviebeoweuec:q;Aekr;leDo9TW9T9VV95dbH9F9F939H79T9F9J9H229F9Jt9VV7bb8A9TW79O9V9Wt9F9KW9J9V9KW9wWVtW949c919M9MWVbdY9TW79O9V9Wt9F9KW9J9V9KW69U9KW949c919M9MWVblE9TW79O9V9Wt9F9KW9J9V9KW69U9KW949tWG91W9U9JWbvL9TW79O9V9Wt9F9KW9J9V9KWS9P2tWV9p9JtboK9TW79O9V9Wt9F9KW9J9V9KWS9P2tWV9r919HtbrL9TW79O9V9Wt9F9KW9J9V9KWS9P2tWVT949Wbwl79IV9RbDq;t9tqlbzik9:evu8Jjjjjbcz9Rhbcbheincbhdcbhiinabcwfadfaicjuaead4ceGglE86bbaialfhiadcefgdcw9hmbkaec:q:yjjbfai86bbaecitc:q1jjbfab8Piw83ibaecefgecjd9hmbkk;h8JlHud97euo978Jjjjjbcj;kb9Rgv8Kjjjjbc9:hodnadcefal0mbcuhoaiRbbc:Ge9hmbavaialfgrad9Rad;8qbbcj;abad9UhoaicefhldnadTmbaoc;WFbGgocjdaocjd6EhwcbhDinaDae9pmeawaeaD9RaDawfae6Egqcsfgoc9WGgkci2hxakcethmaocl4cifcd4hPabaDad2fhscbhzdnincehHalhOcbhAdninaraO9RaP6miavcj;cbfaAak2fhCaOaPfhlcbhidnakc;ab6mbaral9Rc;Gb6mbcbhoinaCaofhidndndndndnaOaoco4fRbbgXciGPlbedibkaipxbbbbbbbbbbbbbbbbpklbxikaialpbblalpbbbgQclp:meaQpmbzeHdOiAlCvXoQrLgQcdp:meaQpmbzeHdOiAlCvXoQrLpxiiiiiiiiiiiiiiiip9ogLpxiiiiiiiiiiiiiiiip8JgQp5b9cjF;8;4;W;G;ab9:9cU1:NgKcitc:q1jjbfpbibaKc:q:yjjbfpbbbgYaYpmbbbbbbbbbbbbbbbbaQp5e9cjF;8;4;W;G;ab9:9cU1:NgKcitc:q1jjbfpbibp9UpmbedilvorzHOACXQLpPaLaQp9spklbalclfaYpQbfaKc:q:yjjbfRbbfhlxdkaialpbbwalpbbbgQclp:meaQpmbzeHdOiAlCvXoQrLpxssssssssssssssssp9ogLpxssssssssssssssssp8JgQp5b9cjF;8;4;W;G;ab9:9cU1:NgKcitc:q1jjbfpbibaKc:q:yjjbfpbbbgYaYpmbbbbbbbbbbbbbbbbaQp5e9cjF;8;4;W;G;ab9:9cU1:NgKcitc:q1jjbfpbibp9UpmbedilvorzHOACXQLpPaLaQp9spklbalcwfaYpQbfaKc:q:yjjbfRbbfhlxekaialpbbbpklbalczfhlkdndndndndnaXcd4ciGPlbedibkaipxbbbbbbbbbbbbbbbbpklzxikaialpbblalpbbbgQclp:meaQpmbzeHdOiAlCvXoQrLgQcdp:meaQpmbzeHdOiAlCvXoQrLpxiiiiiiiiiiiiiiiip9ogLpxiiiiiiiiiiiiiiiip8JgQp5b9cjF;8;4;W;G;ab9:9cU1:NgKcitc:q1jjbfpbibaKc:q:yjjbfpbbbgYaYpmbbbbbbbbbbbbbbbbaQp5e9cjF;8;4;W;G;ab9:9cU1:NgKcitc:q1jjbfpbibp9UpmbedilvorzHOACXQLpPaLaQp9spklzalclfaYpQbfaKc:q:yjjbfRbbfhlxdkaialpbbwalpbbbgQclp:meaQpmbzeHdOiAlCvXoQrLpxssssssssssssssssp9ogLpxssssssssssssssssp8JgQp5b9cjF;8;4;W;G;ab9:9cU1:NgKcitc:q1jjbfpbibaKc:q:yjjbfpbbbgYaYpmbbbbbbbbbbbbbbbbaQp5e9cjF;8;4;W;G;ab9:9cU1:NgKcitc:q1jjbfpbibp9UpmbedilvorzHOACXQLpPaLaQp9spklzalcwfaYpQbfaKc:q:yjjbfRbbfhlxekaialpbbbpklzalczfhlkdndndndndnaXcl4ciGPlbedibkaipxbbbbbbbbbbbbbbbbpklaxikaialpbblalpbbbgQclp:meaQpmbzeHdOiAlCvXoQrLgQcdp:meaQpmbzeHdOiAlCvXoQrLpxiiiiiiiiiiiiiiiip9ogLpxiiiiiiiiiiiiiiiip8JgQp5b9cjF;8;4;W;G;ab9:9cU1:NgKcitc:q1jjbfpbibaKc:q:yjjbfpbbbgYaYpmbbbbbbbbbbbbbbbbaQp5e9cjF;8;4;W;G;ab9:9cU1:NgKcitc:q1jjbfpbibp9UpmbedilvorzHOACXQLpPaLaQp9spklaalclfaYpQbfaKc:q:yjjbfRbbfhlxdkaialpbbwalpbbbgQclp:meaQpmbzeHdOiAlCvXoQrLpxssssssssssssssssp9ogLpxssssssssssssssssp8JgQp5b9cjF;8;4;W;G;ab9:9cU1:NgKcitc:q1jjbfpbibaKc:q:yjjbfpbbbgYaYpmbbbbbbbbbbbbbbbbaQp5e9cjF;8;4;W;G;ab9:9cU1:NgKcitc:q1jjbfpbibp9UpmbedilvorzHOACXQLpPaLaQp9spklaalcwfaYpQbfaKc:q:yjjbfRbbfhlxekaialpbbbpklaalczfhlkdndndndndnaXco4Plbedibkaipxbbbbbbbbbbbbbbbbpkl8WxikaialpbblalpbbbgQclp:meaQpmbzeHdOiAlCvXoQrLgQcdp:meaQpmbzeHdOiAlCvXoQrLpxiiiiiiiiiiiiiiiip9ogLpxiiiiiiiiiiiiiiiip8JgQp5b9cjF;8;4;W;G;ab9:9cU1:NgXcitc:q1jjbfpbibaXc:q:yjjbfpbbbgYaYpmbbbbbbbbbbbbbbbbaQp5e9cjF;8;4;W;G;ab9:9cU1:NgXcitc:q1jjbfpbibp9UpmbedilvorzHOACXQLpPaLaQp9spkl8WalclfaYpQbfaXc:q:yjjbfRbbfhlxdkaialpbbwalpbbbgQclp:meaQpmbzeHdOiAlCvXoQrLpxssssssssssssssssp9ogLpxssssssssssssssssp8JgQp5b9cjF;8;4;W;G;ab9:9cU1:NgXcitc:q1jjbfpbibaXc:q:yjjbfpbbbgYaYpmbbbbbbbbbbbbbbbbaQp5e9cjF;8;4;W;G;ab9:9cU1:NgXcitc:q1jjbfpbibp9UpmbedilvorzHOACXQLpPaLaQp9spkl8WalcwfaYpQbfaXc:q:yjjbfRbbfhlxekaialpbbbpkl8Walczfhlkaoc;abfhiaocjefak0meaihoaral9Rc;Fb0mbkkdndnaiak9pmbaici4hoinaral9RcK6mdaCaifhXdndndndndnaOaico4fRbbaocoG4ciGPlbedibkaXpxbbbbbbbbbbbbbbbbpklbxikaXalpbblalpbbbgQclp:meaQpmbzeHdOiAlCvXoQrLgQcdp:meaQpmbzeHdOiAlCvXoQrLpxiiiiiiiiiiiiiiiip9ogLpxiiiiiiiiiiiiiiiip8JgQp5b9cjF;8;4;W;G;ab9:9cU1:NgKcitc:q1jjbfpbibaKc:q:yjjbfpbbbgYaYpmbbbbbbbbbbbbbbbbaQp5e9cjF;8;4;W;G;ab9:9cU1:NgKcitc:q1jjbfpbibp9UpmbedilvorzHOACXQLpPaLaQp9spklbalclfaYpQbfaKc:q:yjjbfRbbfhlxdkaXalpbbwalpbbbgQclp:meaQpmbzeHdOiAlCvXoQrLpxssssssssssssssssp9ogLpxssssssssssssssssp8JgQp5b9cjF;8;4;W;G;ab9:9cU1:NgKcitc:q1jjbfpbibaKc:q:yjjbfpbbbgYaYpmbbbbbbbbbbbbbbbbaQp5e9cjF;8;4;W;G;ab9:9cU1:NgKcitc:q1jjbfpbibp9UpmbedilvorzHOACXQLpPaLaQp9spklbalcwfaYpQbfaKc:q:yjjbfRbbfhlxekaXalpbbbpklbalczfhlkaocdfhoaiczfgiak6mbkkalTmbaAci6hHalhOaAcefgohAaoclSmdxekkcbhlaHceGmdkdnakTmbavcjdfazfhiavazfpbdbhYcbhXinaiavcj;cbfaXfgopblbgLcep9TaLpxeeeeeeeeeeeeeeeegQp9op9Hp9rgLaoakfpblbg8Acep9Ta8AaQp9op9Hp9rg8ApmbzeHdOiAlCvXoQrLgEaoamfpblbg3cep9Ta3aQp9op9Hp9rg3aoaxfpblbg5cep9Ta5aQp9op9Hp9rg5pmbzeHdOiAlCvXoQrLg8EpmbezHdiOAlvCXorQLgQaQpmbedibedibedibediaYp9UgYp9AdbbaiadfgoaYaQaQpmlvorlvorlvorlvorp9UgYp9AdbbaoadfgoaYaQaQpmwDqkwDqkwDqkwDqkp9UgYp9AdbbaoadfgoaYaQaQpmxmPsxmPsxmPsxmPsp9UgYp9AdbbaoadfgoaYaEa8EpmwDKYqk8AExm35Ps8E8FgQaQpmbedibedibedibedip9UgYp9AdbbaoadfgoaYaQaQpmlvorlvorlvorlvorp9UgYp9AdbbaoadfgoaYaQaQpmwDqkwDqkwDqkwDqkp9UgYp9AdbbaoadfgoaYaQaQpmxmPsxmPsxmPsxmPsp9UgYp9AdbbaoadfgoaYaLa8ApmwKDYq8AkEx3m5P8Es8FgLa3a5pmwKDYq8AkEx3m5P8Es8Fg8ApmbezHdiOAlvCXorQLgQaQpmbedibedibedibedip9UgYp9AdbbaoadfgoaYaQaQpmlvorlvorlvorlvorp9UgYp9AdbbaoadfgoaYaQaQpmwDqkwDqkwDqkwDqkp9UgYp9AdbbaoadfgoaYaQaQpmxmPsxmPsxmPsxmPsp9UgYp9AdbbaoadfgoaYaLa8ApmwDKYqk8AExm35Ps8E8FgQaQpmbedibedibedibedip9UgYp9AdbbaoadfgoaYaQaQpmlvorlvorlvorlvorp9UgYp9AdbbaoadfgoaYaQaQpmwDqkwDqkwDqkwDqkp9UgYp9AdbbaoadfgoaYaQaQpmxmPsxmPsxmPsxmPsp9UgYp9AdbbaoadfhiaXczfgXak6mbkkazclfgzad6mbkasavcjdfaqad2;8qbbavavcjdfaqcufad2fad;8qbbaqaDfhDc9:hoalmexikkc9:hoxekcbc99aral9Radcaadca0ESEhokavcj;kbf8Kjjjjbaokwbz:bjjjbk;uzeHu8Jjjjjbc;ae9Rgv8Kjjjjbc9:hodnaeci9UgrcHfal0mbcuhoaiRbbgwc;WeGc;Ge9hmbawcsGgDce0mbavc;abfcFecje;8kbavcUf9cu83ibavc8Wf9cu83ibavcyf9cu83ibavcaf9cu83ibavcKf9cu83ibavczf9cu83ibav9cu83iwav9cu83ibaialfc9WfhqaicefgwarfhodnaeTmbcmcsaDceSEhkcbhxcbhmcbhDcbhicbhlindnaoaq9nmbc9:hoxikdndnawRbbgrc;Ve0mbavc;abfalarcl4cu7fcsGcitfgPydlhsaPydbhzdnarcsGgPak9pmbavaiarcu7fcsGcdtfydbaxaPEhraPThPdndnadcd9hmbabaDcetfgHaz87ebaHcdfas87ebaHclfar87ebxekabaDcdtfgHazBdbaHclfasBdbaHcwfarBdbkaxaPfhxavc;abfalcitfgHarBdbaHasBdlavaicdtfarBdbavc;abfalcefcsGglcitfgHazBdbaHarBdlaiaPfhialcefhlxdkdndnaPcsSmbamaPfaPc987fcefhmxekaocefhrao8SbbgPcFeGhHdndnaPcu9mmbarhoxekaocvfhoaHcFbGhHcrhPdninar8SbbgOcFbGaPtaHVhHaOcu9kmearcefhraPcrfgPc8J9hmbxdkkarcefhokaHce4cbaHceG9R7amfhmkdndnadcd9hmbabaDcetfgraz87ebarcdfas87ebarclfam87ebxekabaDcdtfgrazBdbarclfasBdbarcwfamBdbkavc;abfalcitfgramBdbarasBdlavaicdtfamBdbavc;abfalcefcsGglcitfgrazBdbaramBdlaicefhialcefhlxekdnarcpe0mbaxcefgOavaiaqarcsGfRbbgPcl49RcsGcdtfydbaPcz6gHEhravaiaP9RcsGcdtfydbaOaHfgsaPcsGgOEhPaOThOdndnadcd9hmbabaDcetfgzax87ebazcdfar87ebazclfaP87ebxekabaDcdtfgzaxBdbazclfarBdbazcwfaPBdbkavaicdtfaxBdbavc;abfalcitfgzarBdbazaxBdlavaicefgicsGcdtfarBdbavc;abfalcefcsGcitfgzaPBdbazarBdlavaiaHfcsGgicdtfaPBdbavc;abfalcdfcsGglcitfgraxBdbaraPBdlalcefhlaiaOfhiasaOfhxxekaxcbaoRbbgzEgAarc;:eSgrfhsazcsGhCazcl4hXdndnazcs0mbascefhOxekashOavaiaX9RcsGcdtfydbhskdndnaCmbaOcefhxxekaOhxavaiaz9RcsGcdtfydbhOkdndnarTmbaocefhrxekaocdfhrao8SbegHcFeGhPdnaHcu9kmbaocofhAaPcFbGhPcrhodninar8SbbgHcFbGaotaPVhPaHcu9kmearcefhraocrfgoc8J9hmbkaAhrxekarcefhrkaPce4cbaPceG9R7amfgmhAkdndnaXcsSmbarhPxekarcefhPar8SbbgocFeGhHdnaocu9kmbarcvfhsaHcFbGhHcrhodninaP8SbbgrcFbGaotaHVhHarcu9kmeaPcefhPaocrfgoc8J9hmbkashPxekaPcefhPkaHce4cbaHceG9R7amfgmhskdndnaCcsSmbaPhoxekaPcefhoaP8SbbgrcFeGhHdnarcu9kmbaPcvfhOaHcFbGhHcrhrdninao8SbbgPcFbGartaHVhHaPcu9kmeaocefhoarcrfgrc8J9hmbkaOhoxekaocefhokaHce4cbaHceG9R7amfgmhOkdndnadcd9hmbabaDcetfgraA87ebarcdfas87ebarclfaO87ebxekabaDcdtfgraABdbarclfasBdbarcwfaOBdbkavc;abfalcitfgrasBdbaraABdlavaicdtfaABdbavc;abfalcefcsGcitfgraOBdbarasBdlavaicefgicsGcdtfasBdbavc;abfalcdfcsGcitfgraABdbaraOBdlavaiazcz6aXcsSVfgicsGcdtfaOBdbaiaCTaCcsSVfhialcifhlkawcefhwalcsGhlaicsGhiaDcifgDae6mbkkcbc99aoaqSEhokavc;aef8Kjjjjbaok:llevu8Jjjjjbcz9Rhvc9:hodnaecvfal0mbcuhoaiRbbc;:eGc;qe9hmbav9cb83iwaicefhraialfc98fhwdnaeTmbdnadcdSmbcbhDindnaraw6mbc9:skarcefhoar8SbbglcFeGhidndnalcu9mmbaohrxekarcvfhraicFbGhicrhldninao8SbbgdcFbGaltaiVhiadcu9kmeaocefhoalcrfglc8J9hmbxdkkaocefhrkabaDcdtfaicd4cbaice4ceG9R7avcwfaiceGcdtVgoydbfglBdbaoalBdbaDcefgDae9hmbxdkkcbhDindnaraw6mbc9:skarcefhoar8SbbglcFeGhidndnalcu9mmbaohrxekarcvfhraicFbGhicrhldninao8SbbgdcFbGaltaiVhiadcu9kmeaocefhoalcrfglc8J9hmbxdkkaocefhrkabaDcetfaicd4cbaice4ceG9R7avcwfaiceGcdtVgoydbfgl87ebaoalBdbaDcefgDae9hmbkkcbc99arawSEhokaok:EPliuo97eue978Jjjjjbca9Rhidndnadcl9hmbdnaec98GglTmbcbhvabhdinadadpbbbgocKp:RecKp:Sep;6egraocwp:RecKp:Sep;6earp;Geaoczp:RecKp:Sep;6egwp;Gep;Kep;LegDpxbbbbbbbbbbbbbbbbp:2egqarpxbbbjbbbjbbbjbbbjgkp9op9rp;Kegrpxbb;:9cbb;:9cbb;:9cbb;:9cararp;MeaDaDp;Meawaqawakp9op9rp;Kegrarp;Mep;Kep;Kep;Jep;Negwp;Mepxbbn0bbn0bbn0bbn0gqp;KepxFbbbFbbbFbbbFbbbp9oaopxbbbFbbbFbbbFbbbFp9op9qarawp;Meaqp;Kecwp:RepxbFbbbFbbbFbbbFbbp9op9qaDawp;Meaqp;Keczp:RepxbbFbbbFbbbFbbbFbp9op9qpkbbadczfhdavclfgval6mbkkalae9pmeaiaeciGgvcdtgdVcbczad9R;8kbaiabalcdtfglad;8qbbdnavTmbaiaipblbgocKp:RecKp:Sep;6egraocwp:RecKp:Sep;6earp;Geaoczp:RecKp:Sep;6egwp;Gep;Kep;LegDpxbbbbbbbbbbbbbbbbp:2egqarpxbbbjbbbjbbbjbbbjgkp9op9rp;Kegrpxbb;:9cbb;:9cbb;:9cbb;:9cararp;MeaDaDp;Meawaqawakp9op9rp;Kegrarp;Mep;Kep;Kep;Jep;Negwp;Mepxbbn0bbn0bbn0bbn0gqp;KepxFbbbFbbbFbbbFbbbp9oaopxbbbFbbbFbbbFbbbFp9op9qarawp;Meaqp;Kecwp:RepxbFbbbFbbbFbbbFbbp9op9qaDawp;Meaqp;Keczp:RepxbbFbbbFbbbFbbbFbp9op9qpklbkalaiad;8qbbskdnaec98GgxTmbcbhvabhdinadczfglalpbbbgopxbbbbbbFFbbbbbbFFgkp9oadpbbbgDaopmlvorxmPsCXQL358E8FpxFubbFubbFubbFubbp9op;6eaDaopmbediwDqkzHOAKY8AEgoczp:Sep;6egrp;Geaoczp:Reczp:Sep;6egwp;Gep;Kep;Legopxb;:FSb;:FSb;:FSb;:FSawaopxbbbbbbbbbbbbbbbbp:2egqawpxbbbjbbbjbbbjbbbjgmp9op9rp;Kegwawp;Meaoaop;Mearaqaramp9op9rp;Kegoaop;Mep;Kep;Kep;Jep;Negrp;Mepxbbn0bbn0bbn0bbn0gqp;Keczp:Reawarp;Meaqp;KepxFFbbFFbbFFbbFFbbp9op9qgwaoarp;Meaqp;KepxFFbbFFbbFFbbFFbbp9ogopmwDKYqk8AExm35Ps8E8Fp9qpkbbadaDakp9oawaopmbezHdiOAlvCXorQLp9qpkbbadcafhdavclfgvax6mbkkaxae9pmbaiaeciGgvcitgdfcbcaad9R;8kbaiabaxcitfglad;8qbbdnavTmbaiaipblzgopxbbbbbbFFbbbbbbFFgkp9oaipblbgDaopmlvorxmPsCXQL358E8FpxFubbFubbFubbFubbp9op;6eaDaopmbediwDqkzHOAKY8AEgoczp:Sep;6egrp;Geaoczp:Reczp:Sep;6egwp;Gep;Kep;Legopxb;:FSb;:FSb;:FSb;:FSawaopxbbbbbbbbbbbbbbbbp:2egqawpxbbbjbbbjbbbjbbbjgmp9op9rp;Kegwawp;Meaoaop;Mearaqaramp9op9rp;Kegoaop;Mep;Kep;Kep;Jep;Negrp;Mepxbbn0bbn0bbn0bbn0gqp;Keczp:Reawarp;Meaqp;KepxFFbbFFbbFFbbFFbbp9op9qgwaoarp;Meaqp;KepxFFbbFFbbFFbbFFbbp9ogopmwDKYqk8AExm35Ps8E8Fp9qpklzaiaDakp9oawaopmbezHdiOAlvCXorQLp9qpklbkalaiad;8qbbkk;4wllue97euv978Jjjjjbc8W9Rhidnaec98GglTmbcbhvabhoinaiaopbbbgraoczfgwpbbbgDpmlvorxmPsCXQL358E8Fgqczp:Segkclp:RepklbaopxbbjZbbjZbbjZbbjZpx;Zl81Z;Zl81Z;Zl81Z;Zl81Zakpxibbbibbbibbbibbbp9qp;6ep;NegkaraDpmbediwDqkzHOAKY8AEgrczp:Reczp:Sep;6ep;MegDaDp;Meakarczp:Sep;6ep;Megxaxp;Meakaqczp:Reczp:Sep;6ep;Megqaqp;Mep;Kep;Kep;Lepxbbbbbbbbbbbbbbbbp:4ep;Jepxb;:FSb;:FSb;:FSb;:FSgkp;Mepxbbn0bbn0bbn0bbn0grp;KepxFFbbFFbbFFbbFFbbgmp9oaxakp;Mearp;Keczp:Rep9qgxaqakp;Mearp;Keczp:ReaDakp;Mearp;Keamp9op9qgkpmbezHdiOAlvCXorQLgrp5baipblbpEb:T:j83ibaocwfarp5eaipblbpEe:T:j83ibawaxakpmwDKYqk8AExm35Ps8E8Fgkp5baipblbpEd:T:j83ibaocKfakp5eaipblbpEi:T:j83ibaocafhoavclfgval6mbkkdnalae9pmbaiaeciGgvcitgofcbcaao9R;8kbaiabalcitfgwao;8qbbdnavTmbaiaipblbgraipblzgDpmlvorxmPsCXQL358E8Fgqczp:Segkclp:RepklaaipxbbjZbbjZbbjZbbjZpx;Zl81Z;Zl81Z;Zl81Z;Zl81Zakpxibbbibbbibbbibbbp9qp;6ep;NegkaraDpmbediwDqkzHOAKY8AEgrczp:Reczp:Sep;6ep;MegDaDp;Meakarczp:Sep;6ep;Megxaxp;Meakaqczp:Reczp:Sep;6ep;Megqaqp;Mep;Kep;Kep;Lepxbbbbbbbbbbbbbbbbp:4ep;Jepxb;:FSb;:FSb;:FSb;:FSgkp;Mepxbbn0bbn0bbn0bbn0grp;KepxFFbbFFbbFFbbFFbbgmp9oaxakp;Mearp;Keczp:Rep9qgxaqakp;Mearp;Keczp:ReaDakp;Mearp;Keamp9op9qgkpmbezHdiOAlvCXorQLgrp5baipblapEb:T:j83ibaiarp5eaipblapEe:T:j83iwaiaxakpmwDKYqk8AExm35Ps8E8Fgkp5baipblapEd:T:j83izaiakp5eaipblapEi:T:j83iKkawaiao;8qbbkk:Pddiue978Jjjjjbc;ab9Rhidnadcd4ae2glc98GgvTmbcbhdabheinaeaepbbbgocwp:Recwp:Sep;6eaocep:SepxbbjZbbjZbbjZbbjZp:UepxbbjFbbjFbbjFbbjFp9op;Mepkbbaeczfheadclfgdav6mbkkdnaval9pmbaialciGgdcdtgeVcbc;abae9R;8kbaiabavcdtfgvae;8qbbdnadTmbaiaipblbgocwp:Recwp:Sep;6eaocep:SepxbbjZbbjZbbjZbbjZp:UepxbbjFbbjFbbjFbbjFp9op;Mepklbkavaiae;8qbbkk9teiucbcbydj1jjbgeabcifc98GfgbBdj1jjbdndnabZbcztgd9nmbcuhiabad9RcFFifcz4nbcuSmekaehikaikkkebcjwklz9Tbb";
-
-	var detector = new Uint8Array([0,97,115,109,1,0,0,0,1,4,1,96,0,0,3,3,2,0,0,5,3,1,0,1,12,1,0,10,22,2,12,0,65,0,65,0,65,0,252,10,0,0,11,7,0,65,0,253,15,26,11]);
-	var wasmpack = new Uint8Array([32,0,65,2,1,106,34,33,3,128,11,4,13,64,6,253,10,7,15,116,127,5,8,12,40,16,19,54,20,9,27,255,113,17,42,67,24,23,146,148,18,14,22,45,70,69,56,114,101,21,25,63,75,136,108,28,118,29,73,115]);
-
-	if (typeof WebAssembly !== 'object') {
-		return {
-			supported: false,
-		};
-	}
-
-	var wasm = WebAssembly.validate(detector) ? wasm_simd : wasm_base;
-
-	var instance;
-
-	var ready =
-		WebAssembly.instantiate(unpack(wasm), {})
-		.then(function(result) {
-			instance = result.instance;
-			instance.exports.__wasm_call_ctors();
-		});
-
-	function unpack(data) {
-		var result = new Uint8Array(data.length);
-		for (var i = 0; i < data.length; ++i) {
-			var ch = data.charCodeAt(i);
-			result[i] = ch > 96 ? ch - 97 : ch > 64 ? ch - 39 : ch + 4;
-		}
-		var write = 0;
-		for (var i = 0; i < data.length; ++i) {
-			result[write++] = (result[i] < 60) ? wasmpack[result[i]] : (result[i] - 60) * 64 + result[++i];
-		}
-		return result.buffer.slice(0, write);
-	}
-
-	function decode(fun, target, count, size, source, filter) {
-		var sbrk = instance.exports.sbrk;
-		var count4 = (count + 3) & -4;
-		var tp = sbrk(count4 * size);
-		var sp = sbrk(source.length);
-		var heap = new Uint8Array(instance.exports.memory.buffer);
-		heap.set(source, sp);
-		var res = fun(tp, count, size, sp, source.length);
-		if (res == 0 && filter) {
-			filter(tp, count4, size);
-		}
-		target.set(heap.subarray(tp, tp + count * size));
-		sbrk(tp - sbrk(0));
-		if (res != 0) {
-			throw new Error("Malformed buffer data: " + res);
-		}
-	}
-
-	var filters = {
-		NONE: "",
-		OCTAHEDRAL: "meshopt_decodeFilterOct",
-		QUATERNION: "meshopt_decodeFilterQuat",
-		EXPONENTIAL: "meshopt_decodeFilterExp",
-	};
-
-	var decoders = {
-		ATTRIBUTES: "meshopt_decodeVertexBuffer",
-		TRIANGLES: "meshopt_decodeIndexBuffer",
-		INDICES: "meshopt_decodeIndexSequence",
-	};
-
-	var workers = [];
-	var requestId = 0;
-
-	function createWorker(url) {
-		var worker = {
-			object: new Worker(url),
-			pending: 0,
-			requests: {}
-		};
-
-		worker.object.onmessage = function(event) {
-			var data = event.data;
-
-			worker.pending -= data.count;
-			worker.requests[data.id][data.action](data.value);
-
-			delete worker.requests[data.id];
-		};
-
-		return worker;
-	}
-
-	function initWorkers(count) {
-		var source =
-			"var instance; var ready = WebAssembly.instantiate(new Uint8Array([" + new Uint8Array(unpack(wasm)) + "]), {})" +
-			".then(function(result) { instance = result.instance; instance.exports.__wasm_call_ctors(); });" +
-			"self.onmessage = workerProcess;" +
-			decode.toString() + workerProcess.toString();
-
-		var blob = new Blob([source], {type: 'text/javascript'});
-		var url = URL.createObjectURL(blob);
-
-		for (var i = 0; i < count; ++i) {
-			workers[i] = createWorker(url);
-		}
-
-		URL.revokeObjectURL(url);
-	}
-
-	function decodeWorker(count, size, source, mode, filter) {
-		var worker = workers[0];
-
-		for (var i = 1; i < workers.length; ++i) {
-			if (workers[i].pending < worker.pending) {
-				worker = workers[i];
-			}
-		}
-
-		return new Promise(function (resolve, reject) {
-			var data = new Uint8Array(source);
-			var id = requestId++;
-
-			worker.pending += count;
-			worker.requests[id] = { resolve: resolve, reject: reject };
-			worker.object.postMessage({ id: id, count: count, size: size, source: data, mode: mode, filter: filter }, [ data.buffer ]);
-		});
-	}
-
-	function workerProcess(event) {
-		ready.then(function() {
-			var data = event.data;
-			try {
-				var target = new Uint8Array(data.count * data.size);
-				decode(instance.exports[data.mode], target, data.count, data.size, data.source, instance.exports[data.filter]);
-				self.postMessage({ id: data.id, count: data.count, action: "resolve", value: target }, [ target.buffer ]);
-			} catch (error) {
-				self.postMessage({ id: data.id, count: data.count, action: "reject", value: error });
-			}
-		});
-	}
-
-	return {
-		ready: ready,
-		supported: true,
-		useWorkers: function(count) {
-			initWorkers(count);
-		},
-		decodeVertexBuffer: function(target, count, size, source, filter) {
-			decode(instance.exports.meshopt_decodeVertexBuffer, target, count, size, source, instance.exports[filters[filter]]);
-		},
-		decodeIndexBuffer: function(target, count, size, source) {
-			decode(instance.exports.meshopt_decodeIndexBuffer, target, count, size, source);
-		},
-		decodeIndexSequence: function(target, count, size, source) {
-			decode(instance.exports.meshopt_decodeIndexSequence, target, count, size, source);
-		},
-		decodeGltfBuffer: function(target, count, size, source, mode, filter) {
-			decode(instance.exports[decoders[mode]], target, count, size, source, instance.exports[filters[filter]]);
-		},
-		decodeGltfBufferAsync: function(count, size, source, mode, filter) {
-			if (workers.length > 0) {
-				return decodeWorker(count, size, source, decoders[mode], filters[filter]);
-			}
-
-			return ready.then(function() {
-				var target = new Uint8Array(count * size);
-				decode(instance.exports[decoders[mode]], target, count, size, source, instance.exports[filters[filter]]);
-				return target;
-			});
-		}
-	};
-})();
-
-// o object_name | g group_name
-const _object_pattern = /^[og]\s*(.+)?/;
-// mtllib file_reference
-const _material_library_pattern = /^mtllib /;
-// usemtl material_name
-const _material_use_pattern = /^usemtl /;
-// usemap map_name
-const _map_use_pattern = /^usemap /;
-const _face_vertex_data_separator_pattern = /\s+/;
-
-const _vA = new three.Vector3();
-const _vB = new three.Vector3();
-const _vC = new three.Vector3();
-
-const _ab = new three.Vector3();
-const _cb = new three.Vector3();
-
-const _color = new three.Color();
-
-function ParserState() {
-
-	const state = {
-		objects: [],
-		object: {},
-
-		vertices: [],
-		normals: [],
-		colors: [],
-		uvs: [],
-
-		materials: {},
-		materialLibraries: [],
-
-		startObject: function ( name, fromDeclaration ) {
-
-			// If the current object (initial from reset) is not from a g/o declaration in the parsed
-			// file. We need to use it for the first parsed g/o to keep things in sync.
-			if ( this.object && this.object.fromDeclaration === false ) {
-
-				this.object.name = name;
-				this.object.fromDeclaration = ( fromDeclaration !== false );
-				return;
-
-			}
-
-			const previousMaterial = ( this.object && typeof this.object.currentMaterial === 'function' ? this.object.currentMaterial() : undefined );
-
-			if ( this.object && typeof this.object._finalize === 'function' ) {
-
-				this.object._finalize( true );
-
-			}
-
-			this.object = {
-				name: name || '',
-				fromDeclaration: ( fromDeclaration !== false ),
-
-				geometry: {
-					vertices: [],
-					normals: [],
-					colors: [],
-					uvs: [],
-					hasUVIndices: false
-				},
-				materials: [],
-				smooth: true,
-
-				startMaterial: function ( name, libraries ) {
-
-					const previous = this._finalize( false );
-
-					// New usemtl declaration overwrites an inherited material, except if faces were declared
-					// after the material, then it must be preserved for proper MultiMaterial continuation.
-					if ( previous && ( previous.inherited || previous.groupCount <= 0 ) ) {
-
-						this.materials.splice( previous.index, 1 );
-
-					}
-
-					const material = {
-						index: this.materials.length,
-						name: name || '',
-						mtllib: ( Array.isArray( libraries ) && libraries.length > 0 ? libraries[ libraries.length - 1 ] : '' ),
-						smooth: ( previous !== undefined ? previous.smooth : this.smooth ),
-						groupStart: ( previous !== undefined ? previous.groupEnd : 0 ),
-						groupEnd: -1,
-						groupCount: -1,
-						inherited: false,
-
-						clone: function ( index ) {
-
-							const cloned = {
-								index: ( typeof index === 'number' ? index : this.index ),
-								name: this.name,
-								mtllib: this.mtllib,
-								smooth: this.smooth,
-								groupStart: 0,
-								groupEnd: -1,
-								groupCount: -1,
-								inherited: false
-							};
-							cloned.clone = this.clone.bind( cloned );
-							return cloned;
-
-						}
-					};
-
-					this.materials.push( material );
-
-					return material;
-
-				},
-
-				currentMaterial: function () {
-
-					if ( this.materials.length > 0 ) {
-
-						return this.materials[ this.materials.length - 1 ];
-
-					}
-
-					return undefined;
-
-				},
-
-				_finalize: function ( end ) {
-
-					const lastMultiMaterial = this.currentMaterial();
-					if ( lastMultiMaterial && lastMultiMaterial.groupEnd === -1 ) {
-
-						lastMultiMaterial.groupEnd = this.geometry.vertices.length / 3;
-						lastMultiMaterial.groupCount = lastMultiMaterial.groupEnd - lastMultiMaterial.groupStart;
-						lastMultiMaterial.inherited = false;
-
-					}
-
-					// Ignore objects tail materials if no face declarations followed them before a new o/g started.
-					if ( end && this.materials.length > 1 ) {
-
-						for ( let mi = this.materials.length - 1; mi >= 0; mi -- ) {
-
-							if ( this.materials[ mi ].groupCount <= 0 ) {
-
-								this.materials.splice( mi, 1 );
-
-							}
-
-						}
-
-					}
-
-					// Guarantee at least one empty material, this makes the creation later more straight forward.
-					if ( end && this.materials.length === 0 ) {
-
-						this.materials.push( {
-							name: '',
-							smooth: this.smooth
-						} );
-
-					}
-
-					return lastMultiMaterial;
-
-				}
-			};
-
-			// Inherit previous objects material.
-			// Spec tells us that a declared material must be set to all objects until a new material is declared.
-			// If a usemtl declaration is encountered while this new object is being parsed, it will
-			// overwrite the inherited material. Exception being that there was already face declarations
-			// to the inherited material, then it will be preserved for proper MultiMaterial continuation.
-
-			if ( previousMaterial && previousMaterial.name && typeof previousMaterial.clone === 'function' ) {
-
-				const declared = previousMaterial.clone( 0 );
-				declared.inherited = true;
-				this.object.materials.push( declared );
-
-			}
-
-			this.objects.push( this.object );
-
-		},
-
-		finalize: function () {
-
-			if ( this.object && typeof this.object._finalize === 'function' ) {
-
-				this.object._finalize( true );
-
-			}
-
-		},
-
-		parseVertexIndex: function ( value, len ) {
-
-			const index = parseInt( value, 10 );
-			return ( index >= 0 ? index - 1 : index + len / 3 ) * 3;
-
-		},
-
-		parseNormalIndex: function ( value, len ) {
-
-			const index = parseInt( value, 10 );
-			return ( index >= 0 ? index - 1 : index + len / 3 ) * 3;
-
-		},
-
-		parseUVIndex: function ( value, len ) {
-
-			const index = parseInt( value, 10 );
-			return ( index >= 0 ? index - 1 : index + len / 2 ) * 2;
-
-		},
-
-		addVertex: function ( a, b, c ) {
-
-			const src = this.vertices;
-			const dst = this.object.geometry.vertices;
-
-			dst.push( src[ a + 0 ], src[ a + 1 ], src[ a + 2 ] );
-			dst.push( src[ b + 0 ], src[ b + 1 ], src[ b + 2 ] );
-			dst.push( src[ c + 0 ], src[ c + 1 ], src[ c + 2 ] );
-
-		},
-
-		addVertexPoint: function ( a ) {
-
-			const src = this.vertices;
-			const dst = this.object.geometry.vertices;
-
-			dst.push( src[ a + 0 ], src[ a + 1 ], src[ a + 2 ] );
-
-		},
-
-		addVertexLine: function ( a ) {
-
-			const src = this.vertices;
-			const dst = this.object.geometry.vertices;
-
-			dst.push( src[ a + 0 ], src[ a + 1 ], src[ a + 2 ] );
-
-		},
-
-		addNormal: function ( a, b, c ) {
-
-			const src = this.normals;
-			const dst = this.object.geometry.normals;
-
-			dst.push( src[ a + 0 ], src[ a + 1 ], src[ a + 2 ] );
-			dst.push( src[ b + 0 ], src[ b + 1 ], src[ b + 2 ] );
-			dst.push( src[ c + 0 ], src[ c + 1 ], src[ c + 2 ] );
-
-		},
-
-		addFaceNormal: function ( a, b, c ) {
-
-			const src = this.vertices;
-			const dst = this.object.geometry.normals;
-
-			_vA.fromArray( src, a );
-			_vB.fromArray( src, b );
-			_vC.fromArray( src, c );
-
-			_cb.subVectors( _vC, _vB );
-			_ab.subVectors( _vA, _vB );
-			_cb.cross( _ab );
-
-			_cb.normalize();
-
-			dst.push( _cb.x, _cb.y, _cb.z );
-			dst.push( _cb.x, _cb.y, _cb.z );
-			dst.push( _cb.x, _cb.y, _cb.z );
-
-		},
-
-		addColor: function ( a, b, c ) {
-
-			const src = this.colors;
-			const dst = this.object.geometry.colors;
-
-			if ( src[ a ] !== undefined ) dst.push( src[ a + 0 ], src[ a + 1 ], src[ a + 2 ] );
-			if ( src[ b ] !== undefined ) dst.push( src[ b + 0 ], src[ b + 1 ], src[ b + 2 ] );
-			if ( src[ c ] !== undefined ) dst.push( src[ c + 0 ], src[ c + 1 ], src[ c + 2 ] );
-
-		},
-
-		addUV: function ( a, b, c ) {
-
-			const src = this.uvs;
-			const dst = this.object.geometry.uvs;
-
-			dst.push( src[ a + 0 ], src[ a + 1 ] );
-			dst.push( src[ b + 0 ], src[ b + 1 ] );
-			dst.push( src[ c + 0 ], src[ c + 1 ] );
-
-		},
-
-		addDefaultUV: function () {
-
-			const dst = this.object.geometry.uvs;
-
-			dst.push( 0, 0 );
-			dst.push( 0, 0 );
-			dst.push( 0, 0 );
-
-		},
-
-		addUVLine: function ( a ) {
-
-			const src = this.uvs;
-			const dst = this.object.geometry.uvs;
-
-			dst.push( src[ a + 0 ], src[ a + 1 ] );
-
-		},
-
-		addFace: function ( a, b, c, ua, ub, uc, na, nb, nc ) {
-
-			const vLen = this.vertices.length;
-
-			let ia = this.parseVertexIndex( a, vLen );
-			let ib = this.parseVertexIndex( b, vLen );
-			let ic = this.parseVertexIndex( c, vLen );
-
-			this.addVertex( ia, ib, ic );
-			this.addColor( ia, ib, ic );
-
-			// normals
-
-			if ( na !== undefined && na !== '' ) {
-
-				const nLen = this.normals.length;
-
-				ia = this.parseNormalIndex( na, nLen );
-				ib = this.parseNormalIndex( nb, nLen );
-				ic = this.parseNormalIndex( nc, nLen );
-
-				this.addNormal( ia, ib, ic );
-
-			} else {
-
-				this.addFaceNormal( ia, ib, ic );
-
-			}
-
-			// uvs
-
-			if ( ua !== undefined && ua !== '' ) {
-
-				const uvLen = this.uvs.length;
-
-				ia = this.parseUVIndex( ua, uvLen );
-				ib = this.parseUVIndex( ub, uvLen );
-				ic = this.parseUVIndex( uc, uvLen );
-
-				this.addUV( ia, ib, ic );
-
-				this.object.geometry.hasUVIndices = true;
-
-			} else {
-
-				// add placeholder values (for inconsistent face definitions)
-
-				this.addDefaultUV();
-
-			}
-
-		},
-
-		addPointGeometry: function ( vertices ) {
-
-			this.object.geometry.type = 'Points';
-
-			const vLen = this.vertices.length;
-
-			for ( let vi = 0, l = vertices.length; vi < l; vi ++ ) {
-
-				const index = this.parseVertexIndex( vertices[ vi ], vLen );
-
-				this.addVertexPoint( index );
-				this.addColor( index );
-
-			}
-
-		},
-
-		addLineGeometry: function ( vertices, uvs ) {
-
-			this.object.geometry.type = 'Line';
-
-			const vLen = this.vertices.length;
-			const uvLen = this.uvs.length;
-
-			for ( let vi = 0, l = vertices.length; vi < l; vi ++ ) {
-
-				this.addVertexLine( this.parseVertexIndex( vertices[ vi ], vLen ) );
-
-			}
-
-			for ( let uvi = 0, l = uvs.length; uvi < l; uvi ++ ) {
-
-				this.addUVLine( this.parseUVIndex( uvs[ uvi ], uvLen ) );
-
-			}
-
-		}
-
-	};
-
-	state.startObject( '', false );
-
-	return state;
-
-}
-
-//
-
-class OBJLoader extends three.Loader {
-
-	constructor( manager ) {
-
-		super( manager );
-
-		this.materials = null;
-
-	}
-
-	load( url, onLoad, onProgress, onError ) {
-
-		const scope = this;
-
-		const loader = new three.FileLoader( this.manager );
-		loader.setPath( this.path );
-		loader.setRequestHeader( this.requestHeader );
-		loader.setWithCredentials( this.withCredentials );
-		loader.load( url, function ( text ) {
-
-			try {
-
-				onLoad( scope.parse( text ) );
-
-			} catch ( e ) {
-
-				if ( onError ) {
-
-					onError( e );
-
-				} else {
-
-					console.error( e );
-
-				}
-
-				scope.manager.itemError( url );
-
-			}
-
-		}, onProgress, onError );
-
-	}
-
-	setMaterials( materials ) {
-
-		this.materials = materials;
-
-		return this;
-
-	}
-
-	parse( text ) {
-
-		const state = new ParserState();
-
-		if ( text.indexOf( '\r\n' ) !== -1 ) {
-
-			// This is faster than String.split with regex that splits on both
-			text = text.replace( /\r\n/g, '\n' );
-
-		}
-
-		if ( text.indexOf( '\\\n' ) !== -1 ) {
-
-			// join lines separated by a line continuation character (\)
-			text = text.replace( /\\\n/g, '' );
-
-		}
-
-		const lines = text.split( '\n' );
-		let result = [];
-
-		for ( let i = 0, l = lines.length; i < l; i ++ ) {
-
-			const line = lines[ i ].trimStart();
-
-			if ( line.length === 0 ) continue;
-
-			const lineFirstChar = line.charAt( 0 );
-
-			// @todo invoke passed in handler if any
-			if ( lineFirstChar === '#' ) continue; // skip comments
-
-			if ( lineFirstChar === 'v' ) {
-
-				const data = line.split( _face_vertex_data_separator_pattern );
-
-				switch ( data[ 0 ] ) {
-
-					case 'v':
-						state.vertices.push(
-							parseFloat( data[ 1 ] ),
-							parseFloat( data[ 2 ] ),
-							parseFloat( data[ 3 ] )
-						);
-						if ( data.length >= 7 ) {
-
-							_color.setRGB(
-								parseFloat( data[ 4 ] ),
-								parseFloat( data[ 5 ] ),
-								parseFloat( data[ 6 ] ),
-								three.SRGBColorSpace
-							);
-
-							state.colors.push( _color.r, _color.g, _color.b );
-
-						} else {
-
-							// if no colors are defined, add placeholders so color and vertex indices match
-
-							state.colors.push( undefined, undefined, undefined );
-
-						}
-
-						break;
-					case 'vn':
-						state.normals.push(
-							parseFloat( data[ 1 ] ),
-							parseFloat( data[ 2 ] ),
-							parseFloat( data[ 3 ] )
-						);
-						break;
-					case 'vt':
-						state.uvs.push(
-							parseFloat( data[ 1 ] ),
-							parseFloat( data[ 2 ] )
-						);
-						break;
-
-				}
-
-			} else if ( lineFirstChar === 'f' ) {
-
-				const lineData = line.slice( 1 ).trim();
-				const vertexData = lineData.split( _face_vertex_data_separator_pattern );
-				const faceVertices = [];
-
-				// Parse the face vertex data into an easy to work with format
-
-				for ( let j = 0, jl = vertexData.length; j < jl; j ++ ) {
-
-					const vertex = vertexData[ j ];
-
-					if ( vertex.length > 0 ) {
-
-						const vertexParts = vertex.split( '/' );
-						faceVertices.push( vertexParts );
-
-					}
-
-				}
-
-				// Draw an edge between the first vertex and all subsequent vertices to form an n-gon
-
-				const v1 = faceVertices[ 0 ];
-
-				for ( let j = 1, jl = faceVertices.length - 1; j < jl; j ++ ) {
-
-					const v2 = faceVertices[ j ];
-					const v3 = faceVertices[ j + 1 ];
-
-					state.addFace(
-						v1[ 0 ], v2[ 0 ], v3[ 0 ],
-						v1[ 1 ], v2[ 1 ], v3[ 1 ],
-						v1[ 2 ], v2[ 2 ], v3[ 2 ]
-					);
-
-				}
-
-			} else if ( lineFirstChar === 'l' ) {
-
-				const lineParts = line.substring( 1 ).trim().split( ' ' );
-				let lineVertices = [];
-				const lineUVs = [];
-
-				if ( line.indexOf( '/' ) === -1 ) {
-
-					lineVertices = lineParts;
-
-				} else {
-
-					for ( let li = 0, llen = lineParts.length; li < llen; li ++ ) {
-
-						const parts = lineParts[ li ].split( '/' );
-
-						if ( parts[ 0 ] !== '' ) lineVertices.push( parts[ 0 ] );
-						if ( parts[ 1 ] !== '' ) lineUVs.push( parts[ 1 ] );
-
-					}
-
-				}
-
-				state.addLineGeometry( lineVertices, lineUVs );
-
-			} else if ( lineFirstChar === 'p' ) {
-
-				const lineData = line.slice( 1 ).trim();
-				const pointData = lineData.split( ' ' );
-
-				state.addPointGeometry( pointData );
-
-			} else if ( ( result = _object_pattern.exec( line ) ) !== null ) {
-
-				// o object_name
-				// or
-				// g group_name
-
-				// WORKAROUND: https://bugs.chromium.org/p/v8/issues/detail?id=2869
-				// let name = result[ 0 ].slice( 1 ).trim();
-				const name = ( ' ' + result[ 0 ].slice( 1 ).trim() ).slice( 1 );
-
-				state.startObject( name );
-
-			} else if ( _material_use_pattern.test( line ) ) {
-
-				// material
-
-				state.object.startMaterial( line.substring( 7 ).trim(), state.materialLibraries );
-
-			} else if ( _material_library_pattern.test( line ) ) {
-
-				// mtl file
-
-				state.materialLibraries.push( line.substring( 7 ).trim() );
-
-			} else if ( _map_use_pattern.test( line ) ) {
-
-				// the line is parsed but ignored since the loader assumes textures are defined MTL files
-				// (according to https://www.okino.com/conv/imp_wave.htm, 'usemap' is the old-style Wavefront texture reference method)
-
-				console.warn( 'THREE.OBJLoader: Rendering identifier "usemap" not supported. Textures must be defined in MTL files.' );
-
-			} else if ( lineFirstChar === 's' ) {
-
-				result = line.split( ' ' );
-
-				// smooth shading
-
-				// @todo Handle files that have varying smooth values for a set of faces inside one geometry,
-				// but does not define a usemtl for each face set.
-				// This should be detected and a dummy material created (later MultiMaterial and geometry groups).
-				// This requires some care to not create extra material on each smooth value for "normal" obj files.
-				// where explicit usemtl defines geometry groups.
-				// Example asset: examples/models/obj/cerberus/Cerberus.obj
-
-				/*
-					 * http://paulbourke.net/dataformats/obj/
-					 *
-					 * From chapter "Grouping" Syntax explanation "s group_number":
-					 * "group_number is the smoothing group number. To turn off smoothing groups, use a value of 0 or off.
-					 * Polygonal elements use group numbers to put elements in different smoothing groups. For free-form
-					 * surfaces, smoothing groups are either turned on or off; there is no difference between values greater
-					 * than 0."
-					 */
-				if ( result.length > 1 ) {
-
-					const value = result[ 1 ].trim().toLowerCase();
-					state.object.smooth = ( value !== '0' && value !== 'off' );
-
-				} else {
-
-					// ZBrush can produce "s" lines #11707
-					state.object.smooth = true;
-
-				}
-
-				const material = state.object.currentMaterial();
-				if ( material ) material.smooth = state.object.smooth;
-
-			} else {
-
-				// Handle null terminated files without exception
-				if ( line === '\0' ) continue;
-
-				console.warn( 'THREE.OBJLoader: Unexpected line: "' + line + '"' );
-
-			}
-
-		}
-
-		state.finalize();
-
-		const container = new three.Group();
-		container.materialLibraries = [].concat( state.materialLibraries );
-
-		const hasPrimitives = ! ( state.objects.length === 1 && state.objects[ 0 ].geometry.vertices.length === 0 );
-
-		if ( hasPrimitives === true ) {
-
-			for ( let i = 0, l = state.objects.length; i < l; i ++ ) {
-
-				const object = state.objects[ i ];
-				const geometry = object.geometry;
-				const materials = object.materials;
-				const isLine = ( geometry.type === 'Line' );
-				const isPoints = ( geometry.type === 'Points' );
-				let hasVertexColors = false;
-
-				// Skip o/g line declarations that did not follow with any faces
-				if ( geometry.vertices.length === 0 ) continue;
-
-				const buffergeometry = new three.BufferGeometry();
-
-				buffergeometry.setAttribute( 'position', new three.Float32BufferAttribute( geometry.vertices, 3 ) );
-
-				if ( geometry.normals.length > 0 ) {
-
-					buffergeometry.setAttribute( 'normal', new three.Float32BufferAttribute( geometry.normals, 3 ) );
-
-				}
-
-				if ( geometry.colors.length > 0 ) {
-
-					hasVertexColors = true;
-					buffergeometry.setAttribute( 'color', new three.Float32BufferAttribute( geometry.colors, 3 ) );
-
-				}
-
-				if ( geometry.hasUVIndices === true ) {
-
-					buffergeometry.setAttribute( 'uv', new three.Float32BufferAttribute( geometry.uvs, 2 ) );
-
-				}
-
-				// Create materials
-
-				const createdMaterials = [];
-
-				for ( let mi = 0, miLen = materials.length; mi < miLen; mi ++ ) {
-
-					const sourceMaterial = materials[ mi ];
-					const materialHash = sourceMaterial.name + '_' + sourceMaterial.smooth + '_' + hasVertexColors;
-					let material = state.materials[ materialHash ];
-
-					if ( this.materials !== null ) {
-
-						material = this.materials.create( sourceMaterial.name );
-
-						// mtl etc. loaders probably can't create line materials correctly, copy properties to a line material.
-						if ( isLine && material && ! ( material instanceof three.LineBasicMaterial ) ) {
-
-							const materialLine = new three.LineBasicMaterial();
-							three.Material.prototype.copy.call( materialLine, material );
-							materialLine.color.copy( material.color );
-							material = materialLine;
-
-						} else if ( isPoints && material && ! ( material instanceof three.PointsMaterial ) ) {
-
-							const materialPoints = new three.PointsMaterial( { size: 10, sizeAttenuation: false } );
-							three.Material.prototype.copy.call( materialPoints, material );
-							materialPoints.color.copy( material.color );
-							materialPoints.map = material.map;
-							material = materialPoints;
-
-						}
-
-					}
-
-					if ( material === undefined ) {
-
-						if ( isLine ) {
-
-							material = new three.LineBasicMaterial();
-
-						} else if ( isPoints ) {
-
-							material = new three.PointsMaterial( { size: 1, sizeAttenuation: false } );
-
-						} else {
-
-							material = new three.MeshPhongMaterial();
-
-						}
-
-						material.name = sourceMaterial.name;
-						material.flatShading = sourceMaterial.smooth ? false : true;
-						material.vertexColors = hasVertexColors;
-
-						state.materials[ materialHash ] = material;
-
-					}
-
-					createdMaterials.push( material );
-
-				}
-
-				// Create mesh
-
-				let mesh;
-
-				if ( createdMaterials.length > 1 ) {
-
-					for ( let mi = 0, miLen = materials.length; mi < miLen; mi ++ ) {
-
-						const sourceMaterial = materials[ mi ];
-						buffergeometry.addGroup( sourceMaterial.groupStart, sourceMaterial.groupCount, mi );
-
-					}
-
-					if ( isLine ) {
-
-						mesh = new three.LineSegments( buffergeometry, createdMaterials );
-
-					} else if ( isPoints ) {
-
-						mesh = new three.Points( buffergeometry, createdMaterials );
-
-					} else {
-
-						mesh = new three.Mesh( buffergeometry, createdMaterials );
-
-					}
-
-				} else {
-
-					if ( isLine ) {
-
-						mesh = new three.LineSegments( buffergeometry, createdMaterials[ 0 ] );
-
-					} else if ( isPoints ) {
-
-						mesh = new three.Points( buffergeometry, createdMaterials[ 0 ] );
-
-					} else {
-
-						mesh = new three.Mesh( buffergeometry, createdMaterials[ 0 ] );
-
-					}
-
-				}
-
-				mesh.name = object.name;
-
-				container.add( mesh );
-
-			}
-
-		} else {
-
-			// if there is only the default parser state object with no geometry data, interpret data as point cloud
-
-			if ( state.vertices.length > 0 ) {
-
-				const material = new three.PointsMaterial( { size: 1, sizeAttenuation: false } );
-
-				const buffergeometry = new three.BufferGeometry();
-
-				buffergeometry.setAttribute( 'position', new three.Float32BufferAttribute( state.vertices, 3 ) );
-
-				if ( state.colors.length > 0 && state.colors[ 0 ] !== undefined ) {
-
-					buffergeometry.setAttribute( 'color', new three.Float32BufferAttribute( state.colors, 3 ) );
-					material.vertexColors = true;
-
-				}
-
-				const points = new three.Points( buffergeometry, material );
-				container.add( points );
-
-			}
-
-		}
-
-		return container;
-
-	}
-
-}
-
-/**
- * Description: A THREE loader for STL ASCII files, as created by Solidworks and other CAD programs.
- *
- * Supports both binary and ASCII encoded files, with automatic detection of type.
- *
- * The loader returns a non-indexed buffer geometry.
- *
- * Limitations:
- *  Binary decoding supports "Magics" color format (http://en.wikipedia.org/wiki/STL_(file_format)#Color_in_binary_STL).
- *  There is perhaps some question as to how valid it is to always assume little-endian-ness.
- *  ASCII decoding assumes file is UTF-8.
- *
- * Usage:
- *  const loader = new STLLoader();
- *  loader.load( './models/stl/slotted_disk.stl', function ( geometry ) {
- *    scene.add( new THREE.Mesh( geometry ) );
- *  });
- *
- * For binary STLs geometry might contain colors for vertices. To use it:
- *  // use the same code to load STL as above
- *  if (geometry.hasColors) {
- *    material = new THREE.MeshPhongMaterial({ opacity: geometry.alpha, vertexColors: true });
- *  } else { .... }
- *  const mesh = new THREE.Mesh( geometry, material );
- *
- * For ASCII STLs containing multiple solids, each solid is assigned to a different group.
- * Groups can be used to assign a different color by defining an array of materials with the same length of
- * geometry.groups and passing it to the Mesh constructor:
- *
- * const mesh = new THREE.Mesh( geometry, material );
- *
- * For example:
- *
- *  const materials = [];
- *  const nGeometryGroups = geometry.groups.length;
- *
- *  const colorMap = ...; // Some logic to index colors.
- *
- *  for (let i = 0; i < nGeometryGroups; i++) {
- *
- *		const material = new THREE.MeshPhongMaterial({
- *			color: colorMap[i],
- *			wireframe: false
- *		});
- *
- *  }
- *
- *  materials.push(material);
- *  const mesh = new THREE.Mesh(geometry, materials);
- */
-
-
-class STLLoader extends three.Loader {
-
-	constructor( manager ) {
-
-		super( manager );
-
-	}
-
-	load( url, onLoad, onProgress, onError ) {
-
-		const scope = this;
-
-		const loader = new three.FileLoader( this.manager );
-		loader.setPath( this.path );
-		loader.setResponseType( 'arraybuffer' );
-		loader.setRequestHeader( this.requestHeader );
-		loader.setWithCredentials( this.withCredentials );
-
-		loader.load( url, function ( text ) {
-
-			try {
-
-				onLoad( scope.parse( text ) );
-
-			} catch ( e ) {
-
-				if ( onError ) {
-
-					onError( e );
-
-				} else {
-
-					console.error( e );
-
-				}
-
-				scope.manager.itemError( url );
-
-			}
-
-		}, onProgress, onError );
-
-	}
-
-	parse( data ) {
-
-		function isBinary( data ) {
-
-			const reader = new DataView( data );
-			const face_size = ( 32 / 8 * 3 ) + ( ( 32 / 8 * 3 ) * 3 ) + ( 16 / 8 );
-			const n_faces = reader.getUint32( 80, true );
-			const expect = 80 + ( 32 / 8 ) + ( n_faces * face_size );
-
-			if ( expect === reader.byteLength ) {
-
-				return true;
-
-			}
-
-			// An ASCII STL data must begin with 'solid ' as the first six bytes.
-			// However, ASCII STLs lacking the SPACE after the 'd' are known to be
-			// plentiful.  So, check the first 5 bytes for 'solid'.
-
-			// Several encodings, such as UTF-8, precede the text with up to 5 bytes:
-			// https://en.wikipedia.org/wiki/Byte_order_mark#Byte_order_marks_by_encoding
-			// Search for "solid" to start anywhere after those prefixes.
-
-			// US-ASCII ordinal values for 's', 'o', 'l', 'i', 'd'
-
-			const solid = [ 115, 111, 108, 105, 100 ];
-
-			for ( let off = 0; off < 5; off ++ ) {
-
-				// If "solid" text is matched to the current offset, declare it to be an ASCII STL.
-
-				if ( matchDataViewAt( solid, reader, off ) ) return false;
-
-			}
-
-			// Couldn't find "solid" text at the beginning; it is binary STL.
-
-			return true;
-
-		}
-
-		function matchDataViewAt( query, reader, offset ) {
-
-			// Check if each byte in query matches the corresponding byte from the current offset
-
-			for ( let i = 0, il = query.length; i < il; i ++ ) {
-
-				if ( query[ i ] !== reader.getUint8( offset + i ) ) return false;
-
-			}
-
-			return true;
-
-		}
-
-		function parseBinary( data ) {
-
-			const reader = new DataView( data );
-			const faces = reader.getUint32( 80, true );
-
-			let r, g, b, hasColors = false, colors;
-			let defaultR, defaultG, defaultB, alpha;
-
-			// process STL header
-			// check for default color in header ("COLOR=rgba" sequence).
-
-			for ( let index = 0; index < 80 - 10; index ++ ) {
-
-				if ( ( reader.getUint32( index, false ) == 0x434F4C4F /*COLO*/ ) &&
-					( reader.getUint8( index + 4 ) == 0x52 /*'R'*/ ) &&
-					( reader.getUint8( index + 5 ) == 0x3D /*'='*/ ) ) {
-
-					hasColors = true;
-					colors = new Float32Array( faces * 3 * 3 );
-
-					defaultR = reader.getUint8( index + 6 ) / 255;
-					defaultG = reader.getUint8( index + 7 ) / 255;
-					defaultB = reader.getUint8( index + 8 ) / 255;
-					alpha = reader.getUint8( index + 9 ) / 255;
-
-				}
-
-			}
-
-			const dataOffset = 84;
-			const faceLength = 12 * 4 + 2;
-
-			const geometry = new three.BufferGeometry();
-
-			const vertices = new Float32Array( faces * 3 * 3 );
-			const normals = new Float32Array( faces * 3 * 3 );
-
-			const color = new three.Color();
-
-			for ( let face = 0; face < faces; face ++ ) {
-
-				const start = dataOffset + face * faceLength;
-				const normalX = reader.getFloat32( start, true );
-				const normalY = reader.getFloat32( start + 4, true );
-				const normalZ = reader.getFloat32( start + 8, true );
-
-				if ( hasColors ) {
-
-					const packedColor = reader.getUint16( start + 48, true );
-
-					if ( ( packedColor & 0x8000 ) === 0 ) {
-
-						// facet has its own unique color
-
-						r = ( packedColor & 0x1F ) / 31;
-						g = ( ( packedColor >> 5 ) & 0x1F ) / 31;
-						b = ( ( packedColor >> 10 ) & 0x1F ) / 31;
-
-					} else {
-
-						r = defaultR;
-						g = defaultG;
-						b = defaultB;
-
-					}
-
-				}
-
-				for ( let i = 1; i <= 3; i ++ ) {
-
-					const vertexstart = start + i * 12;
-					const componentIdx = ( face * 3 * 3 ) + ( ( i - 1 ) * 3 );
-
-					vertices[ componentIdx ] = reader.getFloat32( vertexstart, true );
-					vertices[ componentIdx + 1 ] = reader.getFloat32( vertexstart + 4, true );
-					vertices[ componentIdx + 2 ] = reader.getFloat32( vertexstart + 8, true );
-
-					normals[ componentIdx ] = normalX;
-					normals[ componentIdx + 1 ] = normalY;
-					normals[ componentIdx + 2 ] = normalZ;
-
-					if ( hasColors ) {
-
-						color.setRGB( r, g, b, three.SRGBColorSpace );
-
-						colors[ componentIdx ] = color.r;
-						colors[ componentIdx + 1 ] = color.g;
-						colors[ componentIdx + 2 ] = color.b;
-
-					}
-
-				}
-
-			}
-
-			geometry.setAttribute( 'position', new three.BufferAttribute( vertices, 3 ) );
-			geometry.setAttribute( 'normal', new three.BufferAttribute( normals, 3 ) );
-
-			if ( hasColors ) {
-
-				geometry.setAttribute( 'color', new three.BufferAttribute( colors, 3 ) );
-				geometry.hasColors = true;
-				geometry.alpha = alpha;
-
-			}
-
-			return geometry;
-
-		}
-
-		function parseASCII( data ) {
-
-			const geometry = new three.BufferGeometry();
-			const patternSolid = /solid([\s\S]*?)endsolid/g;
-			const patternFace = /facet([\s\S]*?)endfacet/g;
-			const patternName = /solid\s(.+)/;
-			let faceCounter = 0;
-
-			const patternFloat = /[\s]+([+-]?(?:\d*)(?:\.\d*)?(?:[eE][+-]?\d+)?)/.source;
-			const patternVertex = new RegExp( 'vertex' + patternFloat + patternFloat + patternFloat, 'g' );
-			const patternNormal = new RegExp( 'normal' + patternFloat + patternFloat + patternFloat, 'g' );
-
-			const vertices = [];
-			const normals = [];
-			const groupNames = [];
-
-			const normal = new three.Vector3();
-
-			let result;
-
-			let groupCount = 0;
-			let startVertex = 0;
-			let endVertex = 0;
-
-			while ( ( result = patternSolid.exec( data ) ) !== null ) {
-
-				startVertex = endVertex;
-
-				const solid = result[ 0 ];
-
-				const name = ( result = patternName.exec( solid ) ) !== null ? result[ 1 ] : '';
-				groupNames.push( name );
-
-				while ( ( result = patternFace.exec( solid ) ) !== null ) {
-
-					let vertexCountPerFace = 0;
-					let normalCountPerFace = 0;
-
-					const text = result[ 0 ];
-
-					while ( ( result = patternNormal.exec( text ) ) !== null ) {
-
-						normal.x = parseFloat( result[ 1 ] );
-						normal.y = parseFloat( result[ 2 ] );
-						normal.z = parseFloat( result[ 3 ] );
-						normalCountPerFace ++;
-
-					}
-
-					while ( ( result = patternVertex.exec( text ) ) !== null ) {
-
-						vertices.push( parseFloat( result[ 1 ] ), parseFloat( result[ 2 ] ), parseFloat( result[ 3 ] ) );
-						normals.push( normal.x, normal.y, normal.z );
-						vertexCountPerFace ++;
-						endVertex ++;
-
-					}
-
-					// every face have to own ONE valid normal
-
-					if ( normalCountPerFace !== 1 ) {
-
-						console.error( 'THREE.STLLoader: Something isn\'t right with the normal of face number ' + faceCounter );
-
-					}
-
-					// each face have to own THREE valid vertices
-
-					if ( vertexCountPerFace !== 3 ) {
-
-						console.error( 'THREE.STLLoader: Something isn\'t right with the vertices of face number ' + faceCounter );
-
-					}
-
-					faceCounter ++;
-
-				}
-
-				const start = startVertex;
-				const count = endVertex - startVertex;
-
-				geometry.userData.groupNames = groupNames;
-
-				geometry.addGroup( start, count, groupCount );
-				groupCount ++;
-
-			}
-
-			geometry.setAttribute( 'position', new three.Float32BufferAttribute( vertices, 3 ) );
-			geometry.setAttribute( 'normal', new three.Float32BufferAttribute( normals, 3 ) );
-
-			return geometry;
-
-		}
-
-		function ensureString( buffer ) {
-
-			if ( typeof buffer !== 'string' ) {
-
-				return new TextDecoder().decode( buffer );
-
-			}
-
-			return buffer;
-
-		}
-
-		function ensureBinary( buffer ) {
-
-			if ( typeof buffer === 'string' ) {
-
-				const array_buffer = new Uint8Array( buffer.length );
-				for ( let i = 0; i < buffer.length; i ++ ) {
-
-					array_buffer[ i ] = buffer.charCodeAt( i ) & 0xff; // implicitly assumes little-endian
-
-				}
-
-				return array_buffer.buffer || array_buffer;
-
-			} else {
-
-				return buffer;
-
-			}
-
-		}
-
-		// start
-
-		const binData = ensureBinary( data );
-
-		return isBinary( binData ) ? parseBinary( binData ) : parseASCII( ensureString( data ) );
-
-	}
-
-}
-
-// https://github.com/mrdoob/three.js/issues/5552
-// http://en.wikipedia.org/wiki/RGBE_image_format
-
-class RGBELoader extends three.DataTextureLoader {
-
-	constructor( manager ) {
-
-		super( manager );
-
-		this.type = three.HalfFloatType;
-
-	}
-
-	// adapted from http://www.graphics.cornell.edu/~bjw/rgbe.html
-
-	parse( buffer ) {
-
-		const
-			/* default error routine.  change this to change error handling */
-			rgbe_read_error = 1,
-			rgbe_write_error = 2,
-			rgbe_format_error = 3,
-			rgbe_memory_error = 4,
-			rgbe_error = function ( rgbe_error_code, msg ) {
-
-				switch ( rgbe_error_code ) {
-
-					case rgbe_read_error: throw new Error( 'THREE.RGBELoader: Read Error: ' + ( msg || '' ) );
-					case rgbe_write_error: throw new Error( 'THREE.RGBELoader: Write Error: ' + ( msg || '' ) );
-					case rgbe_format_error: throw new Error( 'THREE.RGBELoader: Bad File Format: ' + ( msg || '' ) );
-					default:
-					case rgbe_memory_error: throw new Error( 'THREE.RGBELoader: Memory Error: ' + ( msg || '' ) );
-
-				}
-
-			},
-
-			/* offsets to red, green, and blue components in a data (float) pixel */
-			//RGBE_DATA_RED = 0,
-			//RGBE_DATA_GREEN = 1,
-			//RGBE_DATA_BLUE = 2,
-
-			/* number of floats per pixel, use 4 since stored in rgba image format */
-			//RGBE_DATA_SIZE = 4,
-
-			/* flags indicating which fields in an rgbe_header_info are valid */
-			RGBE_VALID_PROGRAMTYPE = 1,
-			RGBE_VALID_FORMAT = 2,
-			RGBE_VALID_DIMENSIONS = 4,
-
-			NEWLINE = '\n',
-
-			fgets = function ( buffer, lineLimit, consume ) {
-
-				const chunkSize = 128;
-
-				lineLimit = ! lineLimit ? 1024 : lineLimit;
-				let p = buffer.pos,
-					i = -1, len = 0, s = '',
-					chunk = String.fromCharCode.apply( null, new Uint16Array( buffer.subarray( p, p + chunkSize ) ) );
-
-				while ( ( 0 > ( i = chunk.indexOf( NEWLINE ) ) ) && ( len < lineLimit ) && ( p < buffer.byteLength ) ) {
-
-					s += chunk; len += chunk.length;
-					p += chunkSize;
-					chunk += String.fromCharCode.apply( null, new Uint16Array( buffer.subarray( p, p + chunkSize ) ) );
-
-				}
-
-				if ( -1 < i ) {
-
-					/*for (i=l-1; i>=0; i--) {
-						byteCode = m.charCodeAt(i);
-						if (byteCode > 0x7f && byteCode <= 0x7ff) byteLen++;
-						else if (byteCode > 0x7ff && byteCode <= 0xffff) byteLen += 2;
-						if (byteCode >= 0xDC00 && byteCode <= 0xDFFF) i--; //trail surrogate
-					}*/
-					buffer.pos += len + i + 1;
-					return s + chunk.slice( 0, i );
-
-				}
-
-				return false;
-
-			},
-
-			/* minimal header reading.  modify if you want to parse more information */
-			RGBE_ReadHeader = function ( buffer ) {
-
-
-				// regexes to parse header info fields
-				const magic_token_re = /^#\?(\S+)/,
-					gamma_re = /^\s*GAMMA\s*=\s*(\d+(\.\d+)?)\s*$/,
-					exposure_re = /^\s*EXPOSURE\s*=\s*(\d+(\.\d+)?)\s*$/,
-					format_re = /^\s*FORMAT=(\S+)\s*$/,
-					dimensions_re = /^\s*\-Y\s+(\d+)\s+\+X\s+(\d+)\s*$/,
-
-					// RGBE format header struct
-					header = {
-
-						valid: 0, /* indicate which fields are valid */
-
-						string: '', /* the actual header string */
-
-						comments: '', /* comments found in header */
-
-						programtype: 'RGBE', /* listed at beginning of file to identify it after "#?". defaults to "RGBE" */
-
-						format: '', /* RGBE format, default 32-bit_rle_rgbe */
-
-						gamma: 1.0, /* image has already been gamma corrected with given gamma. defaults to 1.0 (no correction) */
-
-						exposure: 1.0, /* a value of 1.0 in an image corresponds to <exposure> watts/steradian/m^2. defaults to 1.0 */
-
-						width: 0, height: 0 /* image dimensions, width/height */
-
-					};
-
-				let line, match;
-
-				if ( buffer.pos >= buffer.byteLength || ! ( line = fgets( buffer ) ) ) {
-
-					rgbe_error( rgbe_read_error, 'no header found' );
-
-				}
-
-				/* if you want to require the magic token then uncomment the next line */
-				if ( ! ( match = line.match( magic_token_re ) ) ) {
-
-					rgbe_error( rgbe_format_error, 'bad initial token' );
-
-				}
-
-				header.valid |= RGBE_VALID_PROGRAMTYPE;
-				header.programtype = match[ 1 ];
-				header.string += line + '\n';
-
-				while ( true ) {
-
-					line = fgets( buffer );
-					if ( false === line ) break;
-					header.string += line + '\n';
-
-					if ( '#' === line.charAt( 0 ) ) {
-
-						header.comments += line + '\n';
-						continue; // comment line
-
-					}
-
-					if ( match = line.match( gamma_re ) ) {
-
-						header.gamma = parseFloat( match[ 1 ] );
-
-					}
-
-					if ( match = line.match( exposure_re ) ) {
-
-						header.exposure = parseFloat( match[ 1 ] );
-
-					}
-
-					if ( match = line.match( format_re ) ) {
-
-						header.valid |= RGBE_VALID_FORMAT;
-						header.format = match[ 1 ];//'32-bit_rle_rgbe';
-
-					}
-
-					if ( match = line.match( dimensions_re ) ) {
-
-						header.valid |= RGBE_VALID_DIMENSIONS;
-						header.height = parseInt( match[ 1 ], 10 );
-						header.width = parseInt( match[ 2 ], 10 );
-
-					}
-
-					if ( ( header.valid & RGBE_VALID_FORMAT ) && ( header.valid & RGBE_VALID_DIMENSIONS ) ) break;
-
-				}
-
-				if ( ! ( header.valid & RGBE_VALID_FORMAT ) ) {
-
-					rgbe_error( rgbe_format_error, 'missing format specifier' );
-
-				}
-
-				if ( ! ( header.valid & RGBE_VALID_DIMENSIONS ) ) {
-
-					rgbe_error( rgbe_format_error, 'missing image size specifier' );
-
-				}
-
-				return header;
-
-			},
-
-			RGBE_ReadPixels_RLE = function ( buffer, w, h ) {
-
-				const scanline_width = w;
-
-				if (
-					// run length encoding is not allowed so read flat
-					( ( scanline_width < 8 ) || ( scanline_width > 0x7fff ) ) ||
-					// this file is not run length encoded
-					( ( 2 !== buffer[ 0 ] ) || ( 2 !== buffer[ 1 ] ) || ( buffer[ 2 ] & 0x80 ) )
-				) {
-
-					// return the flat buffer
-					return new Uint8Array( buffer );
-
-				}
-
-				if ( scanline_width !== ( ( buffer[ 2 ] << 8 ) | buffer[ 3 ] ) ) {
-
-					rgbe_error( rgbe_format_error, 'wrong scanline width' );
-
-				}
-
-				const data_rgba = new Uint8Array( 4 * w * h );
-
-				if ( ! data_rgba.length ) {
-
-					rgbe_error( rgbe_memory_error, 'unable to allocate buffer space' );
-
-				}
-
-				let offset = 0, pos = 0;
-
-				const ptr_end = 4 * scanline_width;
-				const rgbeStart = new Uint8Array( 4 );
-				const scanline_buffer = new Uint8Array( ptr_end );
-				let num_scanlines = h;
-
-				// read in each successive scanline
-				while ( ( num_scanlines > 0 ) && ( pos < buffer.byteLength ) ) {
-
-					if ( pos + 4 > buffer.byteLength ) {
-
-						rgbe_error( rgbe_read_error );
-
-					}
-
-					rgbeStart[ 0 ] = buffer[ pos ++ ];
-					rgbeStart[ 1 ] = buffer[ pos ++ ];
-					rgbeStart[ 2 ] = buffer[ pos ++ ];
-					rgbeStart[ 3 ] = buffer[ pos ++ ];
-
-					if ( ( 2 != rgbeStart[ 0 ] ) || ( 2 != rgbeStart[ 1 ] ) || ( ( ( rgbeStart[ 2 ] << 8 ) | rgbeStart[ 3 ] ) != scanline_width ) ) {
-
-						rgbe_error( rgbe_format_error, 'bad rgbe scanline format' );
-
-					}
-
-					// read each of the four channels for the scanline into the buffer
-					// first red, then green, then blue, then exponent
-					let ptr = 0, count;
-
-					while ( ( ptr < ptr_end ) && ( pos < buffer.byteLength ) ) {
-
-						count = buffer[ pos ++ ];
-						const isEncodedRun = count > 128;
-						if ( isEncodedRun ) count -= 128;
-
-						if ( ( 0 === count ) || ( ptr + count > ptr_end ) ) {
-
-							rgbe_error( rgbe_format_error, 'bad scanline data' );
-
-						}
-
-						if ( isEncodedRun ) {
-
-							// a (encoded) run of the same value
-							const byteValue = buffer[ pos ++ ];
-							for ( let i = 0; i < count; i ++ ) {
-
-								scanline_buffer[ ptr ++ ] = byteValue;
-
-							}
-							//ptr += count;
-
-						} else {
-
-							// a literal-run
-							scanline_buffer.set( buffer.subarray( pos, pos + count ), ptr );
-							ptr += count; pos += count;
-
-						}
-
-					}
-
-
-					// now convert data from buffer into rgba
-					// first red, then green, then blue, then exponent (alpha)
-					const l = scanline_width; //scanline_buffer.byteLength;
-					for ( let i = 0; i < l; i ++ ) {
-
-						let off = 0;
-						data_rgba[ offset ] = scanline_buffer[ i + off ];
-						off += scanline_width; //1;
-						data_rgba[ offset + 1 ] = scanline_buffer[ i + off ];
-						off += scanline_width; //1;
-						data_rgba[ offset + 2 ] = scanline_buffer[ i + off ];
-						off += scanline_width; //1;
-						data_rgba[ offset + 3 ] = scanline_buffer[ i + off ];
-						offset += 4;
-
-					}
-
-					num_scanlines --;
-
-				}
-
-				return data_rgba;
-
-			};
-
-		const RGBEByteToRGBFloat = function ( sourceArray, sourceOffset, destArray, destOffset ) {
-
-			const e = sourceArray[ sourceOffset + 3 ];
-			const scale = Math.pow( 2.0, e - 128.0 ) / 255.0;
-
-			destArray[ destOffset + 0 ] = sourceArray[ sourceOffset + 0 ] * scale;
-			destArray[ destOffset + 1 ] = sourceArray[ sourceOffset + 1 ] * scale;
-			destArray[ destOffset + 2 ] = sourceArray[ sourceOffset + 2 ] * scale;
-			destArray[ destOffset + 3 ] = 1;
-
-		};
-
-		const RGBEByteToRGBHalf = function ( sourceArray, sourceOffset, destArray, destOffset ) {
-
-			const e = sourceArray[ sourceOffset + 3 ];
-			const scale = Math.pow( 2.0, e - 128.0 ) / 255.0;
-
-			// clamping to 65504, the maximum representable value in float16
-			destArray[ destOffset + 0 ] = three.DataUtils.toHalfFloat( Math.min( sourceArray[ sourceOffset + 0 ] * scale, 65504 ) );
-			destArray[ destOffset + 1 ] = three.DataUtils.toHalfFloat( Math.min( sourceArray[ sourceOffset + 1 ] * scale, 65504 ) );
-			destArray[ destOffset + 2 ] = three.DataUtils.toHalfFloat( Math.min( sourceArray[ sourceOffset + 2 ] * scale, 65504 ) );
-			destArray[ destOffset + 3 ] = three.DataUtils.toHalfFloat( 1 );
-
-		};
-
-		const byteArray = new Uint8Array( buffer );
-		byteArray.pos = 0;
-		const rgbe_header_info = RGBE_ReadHeader( byteArray );
-
-		const w = rgbe_header_info.width,
-			h = rgbe_header_info.height,
-			image_rgba_data = RGBE_ReadPixels_RLE( byteArray.subarray( byteArray.pos ), w, h );
-
-
-		let data, type;
-		let numElements;
-
-		switch ( this.type ) {
-
-			case three.FloatType:
-
-				numElements = image_rgba_data.length / 4;
-				const floatArray = new Float32Array( numElements * 4 );
-
-				for ( let j = 0; j < numElements; j ++ ) {
-
-					RGBEByteToRGBFloat( image_rgba_data, j * 4, floatArray, j * 4 );
-
-				}
-
-				data = floatArray;
-				type = three.FloatType;
-				break;
-
-			case three.HalfFloatType:
-
-				numElements = image_rgba_data.length / 4;
-				const halfArray = new Uint16Array( numElements * 4 );
-
-				for ( let j = 0; j < numElements; j ++ ) {
-
-					RGBEByteToRGBHalf( image_rgba_data, j * 4, halfArray, j * 4 );
-
-				}
-
-				data = halfArray;
-				type = three.HalfFloatType;
-				break;
-
-			default:
-
-				throw new Error( 'THREE.RGBELoader: unsupported type: ', this.type );
-
-		}
-
-		return {
-			width: w, height: h,
-			data: data,
-			header: rgbe_header_info.string,
-			gamma: rgbe_header_info.gamma,
-			exposure: rgbe_header_info.exposure,
-			type: type
-		};
-
-	}
-
-	setDataType( value ) {
-
-		this.type = value;
-		return this;
-
-	}
-
-	load( url, onLoad, onProgress, onError ) {
-
-		function onLoadCallback( texture, texData ) {
-
-			switch ( texture.type ) {
-
-				case three.FloatType:
-				case three.HalfFloatType:
-
-					texture.colorSpace = three.LinearSRGBColorSpace;
-					texture.minFilter = three.LinearFilter;
-					texture.magFilter = three.LinearFilter;
-					texture.generateMipmaps = false;
-					texture.flipY = true;
-
-					//texture.gamma = texData.gamma;
-					//texture.exposure = texData.exposure;
-					//texture.userData = texData;
-
-
-					break;
-
-			}
-
-			if ( onLoad ) onLoad( texture, texData );
-
-		}
-
-		return super.load( url, onLoadCallback, onProgress, onError );
-
-	}
-
-}
-
-/**
- * OpenEXR loader currently supports uncompressed, ZIP(S), RLE, PIZ and DWA/B compression.
- * Supports reading as UnsignedByte, HalfFloat and Float type data texture.
- *
- * Referred to the original Industrial Light & Magic OpenEXR implementation and the TinyEXR / Syoyo Fujita
- * implementation, so I have preserved their copyright notices.
- */
-
-// /*
-// Copyright (c) 2014 - 2017, Syoyo Fujita
-// All rights reserved.
-
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
-//     * Redistributions of source code must retain the above copyright
-//       notice, this list of conditions and the following disclaimer.
-//     * Redistributions in binary form must reproduce the above copyright
-//       notice, this list of conditions and the following disclaimer in the
-//       documentation and/or other materials provided with the distribution.
-//     * Neither the name of the Syoyo Fujita nor the
-//       names of its contributors may be used to endorse or promote products
-//       derived from this software without specific prior written permission.
-
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
-// ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-// WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-// DISCLAIMED. IN NO EVENT SHALL <COPYRIGHT HOLDER> BE LIABLE FOR ANY
-// DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-// (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-// LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
-// ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// */
-
-// // TinyEXR contains some OpenEXR code, which is licensed under ------------
-
-// ///////////////////////////////////////////////////////////////////////////
-// //
-// // Copyright (c) 2002, Industrial Light & Magic, a division of Lucas
-// // Digital Ltd. LLC
-// //
-// // All rights reserved.
-// //
-// // Redistribution and use in source and binary forms, with or without
-// // modification, are permitted provided that the following conditions are
-// // met:
-// // *       Redistributions of source code must retain the above copyright
-// // notice, this list of conditions and the following disclaimer.
-// // *       Redistributions in binary form must reproduce the above
-// // copyright notice, this list of conditions and the following disclaimer
-// // in the documentation and/or other materials provided with the
-// // distribution.
-// // *       Neither the name of Industrial Light & Magic nor the names of
-// // its contributors may be used to endorse or promote products derived
-// // from this software without specific prior written permission.
-// //
-// // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-// // "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-// // LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-// // A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-// // OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-// // SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-// // LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-// // DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-// // THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-// // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-// // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// //
-// ///////////////////////////////////////////////////////////////////////////
-
-// // End of OpenEXR license -------------------------------------------------
-
-class EXRLoader extends three.DataTextureLoader {
-
-	constructor( manager ) {
-
-		super( manager );
-
-		this.type = three.HalfFloatType;
-
-	}
-
-	parse( buffer ) {
-
-		const USHORT_RANGE = ( 1 << 16 );
-		const BITMAP_SIZE = ( USHORT_RANGE >> 3 );
-
-		const HUF_ENCBITS = 16; // literal (value) bit length
-		const HUF_DECBITS = 14; // decoding bit size (>= 8)
-
-		const HUF_ENCSIZE = ( 1 << HUF_ENCBITS ) + 1; // encoding table size
-		const HUF_DECSIZE = 1 << HUF_DECBITS; // decoding table size
-		const HUF_DECMASK = HUF_DECSIZE - 1;
-
-		const NBITS = 16;
-		const A_OFFSET = 1 << ( NBITS - 1 );
-		const MOD_MASK = ( 1 << NBITS ) - 1;
-
-		const SHORT_ZEROCODE_RUN = 59;
-		const LONG_ZEROCODE_RUN = 63;
-		const SHORTEST_LONG_RUN = 2 + LONG_ZEROCODE_RUN - SHORT_ZEROCODE_RUN;
-
-		const ULONG_SIZE = 8;
-		const FLOAT32_SIZE = 4;
-		const INT32_SIZE = 4;
-		const INT16_SIZE = 2;
-		const INT8_SIZE = 1;
-
-		const STATIC_HUFFMAN = 0;
-		const DEFLATE = 1;
-
-		const UNKNOWN = 0;
-		const LOSSY_DCT = 1;
-		const RLE = 2;
-
-		const logBase = Math.pow( 2.7182818, 2.2 );
-
-		function reverseLutFromBitmap( bitmap, lut ) {
-
-			let k = 0;
-
-			for ( let i = 0; i < USHORT_RANGE; ++ i ) {
-
-				if ( ( i == 0 ) || ( bitmap[ i >> 3 ] & ( 1 << ( i & 7 ) ) ) ) {
-
-					lut[ k ++ ] = i;
-
-				}
-
-			}
-
-			const n = k - 1;
-
-			while ( k < USHORT_RANGE ) lut[ k ++ ] = 0;
-
-			return n;
-
-		}
-
-		function hufClearDecTable( hdec ) {
-
-			for ( let i = 0; i < HUF_DECSIZE; i ++ ) {
-
-				hdec[ i ] = {};
-				hdec[ i ].len = 0;
-				hdec[ i ].lit = 0;
-				hdec[ i ].p = null;
-
-			}
-
-		}
-
-		const getBitsReturn = { l: 0, c: 0, lc: 0 };
-
-		function getBits( nBits, c, lc, uInt8Array, inOffset ) {
-
-			while ( lc < nBits ) {
-
-				c = ( c << 8 ) | parseUint8Array( uInt8Array, inOffset );
-				lc += 8;
-
-			}
-
-			lc -= nBits;
-
-			getBitsReturn.l = ( c >> lc ) & ( ( 1 << nBits ) - 1 );
-			getBitsReturn.c = c;
-			getBitsReturn.lc = lc;
-
-		}
-
-		const hufTableBuffer = new Array( 59 );
-
-		function hufCanonicalCodeTable( hcode ) {
-
-			for ( let i = 0; i <= 58; ++ i ) hufTableBuffer[ i ] = 0;
-			for ( let i = 0; i < HUF_ENCSIZE; ++ i ) hufTableBuffer[ hcode[ i ] ] += 1;
-
-			let c = 0;
-
-			for ( let i = 58; i > 0; -- i ) {
-
-				const nc = ( ( c + hufTableBuffer[ i ] ) >> 1 );
-				hufTableBuffer[ i ] = c;
-				c = nc;
-
-			}
-
-			for ( let i = 0; i < HUF_ENCSIZE; ++ i ) {
-
-				const l = hcode[ i ];
-				if ( l > 0 ) hcode[ i ] = l | ( hufTableBuffer[ l ] ++ << 6 );
-
-			}
-
-		}
-
-		function hufUnpackEncTable( uInt8Array, inOffset, ni, im, iM, hcode ) {
-
-			const p = inOffset;
-			let c = 0;
-			let lc = 0;
-
-			for ( ; im <= iM; im ++ ) {
-
-				if ( p.value - inOffset.value > ni ) return false;
-
-				getBits( 6, c, lc, uInt8Array, p );
-
-				const l = getBitsReturn.l;
-				c = getBitsReturn.c;
-				lc = getBitsReturn.lc;
-
-				hcode[ im ] = l;
-
-				if ( l == LONG_ZEROCODE_RUN ) {
-
-					if ( p.value - inOffset.value > ni ) {
-
-						throw new Error( 'Something wrong with hufUnpackEncTable' );
-
-					}
-
-					getBits( 8, c, lc, uInt8Array, p );
-
-					let zerun = getBitsReturn.l + SHORTEST_LONG_RUN;
-					c = getBitsReturn.c;
-					lc = getBitsReturn.lc;
-
-					if ( im + zerun > iM + 1 ) {
-
-						throw new Error( 'Something wrong with hufUnpackEncTable' );
-
-					}
-
-					while ( zerun -- ) hcode[ im ++ ] = 0;
-
-					im --;
-
-				} else if ( l >= SHORT_ZEROCODE_RUN ) {
-
-					let zerun = l - SHORT_ZEROCODE_RUN + 2;
-
-					if ( im + zerun > iM + 1 ) {
-
-						throw new Error( 'Something wrong with hufUnpackEncTable' );
-
-					}
-
-					while ( zerun -- ) hcode[ im ++ ] = 0;
-
-					im --;
-
-				}
-
-			}
-
-			hufCanonicalCodeTable( hcode );
-
-		}
-
-		function hufLength( code ) {
-
-			return code & 63;
-
-		}
-
-		function hufCode( code ) {
-
-			return code >> 6;
-
-		}
-
-		function hufBuildDecTable( hcode, im, iM, hdecod ) {
-
-			for ( ; im <= iM; im ++ ) {
-
-				const c = hufCode( hcode[ im ] );
-				const l = hufLength( hcode[ im ] );
-
-				if ( c >> l ) {
-
-					throw new Error( 'Invalid table entry' );
-
-				}
-
-				if ( l > HUF_DECBITS ) {
-
-					const pl = hdecod[ ( c >> ( l - HUF_DECBITS ) ) ];
-
-					if ( pl.len ) {
-
-						throw new Error( 'Invalid table entry' );
-
-					}
-
-					pl.lit ++;
-
-					if ( pl.p ) {
-
-						const p = pl.p;
-						pl.p = new Array( pl.lit );
-
-						for ( let i = 0; i < pl.lit - 1; ++ i ) {
-
-							pl.p[ i ] = p[ i ];
-
-						}
-
-					} else {
-
-						pl.p = new Array( 1 );
-
-					}
-
-					pl.p[ pl.lit - 1 ] = im;
-
-				} else if ( l ) {
-
-					let plOffset = 0;
-
-					for ( let i = 1 << ( HUF_DECBITS - l ); i > 0; i -- ) {
-
-						const pl = hdecod[ ( c << ( HUF_DECBITS - l ) ) + plOffset ];
-
-						if ( pl.len || pl.p ) {
-
-							throw new Error( 'Invalid table entry' );
-
-						}
-
-						pl.len = l;
-						pl.lit = im;
-
-						plOffset ++;
-
-					}
-
-				}
-
-			}
-
-			return true;
-
-		}
-
-		const getCharReturn = { c: 0, lc: 0 };
-
-		function getChar( c, lc, uInt8Array, inOffset ) {
-
-			c = ( c << 8 ) | parseUint8Array( uInt8Array, inOffset );
-			lc += 8;
-
-			getCharReturn.c = c;
-			getCharReturn.lc = lc;
-
-		}
-
-		const getCodeReturn = { c: 0, lc: 0 };
-
-		function getCode( po, rlc, c, lc, uInt8Array, inOffset, outBuffer, outBufferOffset, outBufferEndOffset ) {
-
-			if ( po == rlc ) {
-
-				if ( lc < 8 ) {
-
-					getChar( c, lc, uInt8Array, inOffset );
-					c = getCharReturn.c;
-					lc = getCharReturn.lc;
-
-				}
-
-				lc -= 8;
-
-				let cs = ( c >> lc );
-				cs = new Uint8Array( [ cs ] )[ 0 ];
-
-				if ( outBufferOffset.value + cs > outBufferEndOffset ) {
-
-					return false;
-
-				}
-
-				const s = outBuffer[ outBufferOffset.value - 1 ];
-
-				while ( cs -- > 0 ) {
-
-					outBuffer[ outBufferOffset.value ++ ] = s;
-
-				}
-
-			} else if ( outBufferOffset.value < outBufferEndOffset ) {
-
-				outBuffer[ outBufferOffset.value ++ ] = po;
-
-			} else {
-
-				return false;
-
-			}
-
-			getCodeReturn.c = c;
-			getCodeReturn.lc = lc;
-
-		}
-
-		function UInt16( value ) {
-
-			return ( value & 0xFFFF );
-
-		}
-
-		function Int16( value ) {
-
-			const ref = UInt16( value );
-			return ( ref > 0x7FFF ) ? ref - 0x10000 : ref;
-
-		}
-
-		const wdec14Return = { a: 0, b: 0 };
-
-		function wdec14( l, h ) {
-
-			const ls = Int16( l );
-			const hs = Int16( h );
-
-			const hi = hs;
-			const ai = ls + ( hi & 1 ) + ( hi >> 1 );
-
-			const as = ai;
-			const bs = ai - hi;
-
-			wdec14Return.a = as;
-			wdec14Return.b = bs;
-
-		}
-
-		function wdec16( l, h ) {
-
-			const m = UInt16( l );
-			const d = UInt16( h );
-
-			const bb = ( m - ( d >> 1 ) ) & MOD_MASK;
-			const aa = ( d + bb - A_OFFSET ) & MOD_MASK;
-
-			wdec14Return.a = aa;
-			wdec14Return.b = bb;
-
-		}
-
-		function wav2Decode( buffer, j, nx, ox, ny, oy, mx ) {
-
-			const w14 = mx < ( 1 << 14 );
-			const n = ( nx > ny ) ? ny : nx;
-			let p = 1;
-			let p2;
-			let py;
-
-			while ( p <= n ) p <<= 1;
-
-			p >>= 1;
-			p2 = p;
-			p >>= 1;
-
-			while ( p >= 1 ) {
-
-				py = 0;
-				const ey = py + oy * ( ny - p2 );
-				const oy1 = oy * p;
-				const oy2 = oy * p2;
-				const ox1 = ox * p;
-				const ox2 = ox * p2;
-				let i00, i01, i10, i11;
-
-				for ( ; py <= ey; py += oy2 ) {
-
-					let px = py;
-					const ex = py + ox * ( nx - p2 );
-
-					for ( ; px <= ex; px += ox2 ) {
-
-						const p01 = px + ox1;
-						const p10 = px + oy1;
-						const p11 = p10 + ox1;
-
-						if ( w14 ) {
-
-							wdec14( buffer[ px + j ], buffer[ p10 + j ] );
-
-							i00 = wdec14Return.a;
-							i10 = wdec14Return.b;
-
-							wdec14( buffer[ p01 + j ], buffer[ p11 + j ] );
-
-							i01 = wdec14Return.a;
-							i11 = wdec14Return.b;
-
-							wdec14( i00, i01 );
-
-							buffer[ px + j ] = wdec14Return.a;
-							buffer[ p01 + j ] = wdec14Return.b;
-
-							wdec14( i10, i11 );
-
-							buffer[ p10 + j ] = wdec14Return.a;
-							buffer[ p11 + j ] = wdec14Return.b;
-
-						} else {
-
-							wdec16( buffer[ px + j ], buffer[ p10 + j ] );
-
-							i00 = wdec14Return.a;
-							i10 = wdec14Return.b;
-
-							wdec16( buffer[ p01 + j ], buffer[ p11 + j ] );
-
-							i01 = wdec14Return.a;
-							i11 = wdec14Return.b;
-
-							wdec16( i00, i01 );
-
-							buffer[ px + j ] = wdec14Return.a;
-							buffer[ p01 + j ] = wdec14Return.b;
-
-							wdec16( i10, i11 );
-
-							buffer[ p10 + j ] = wdec14Return.a;
-							buffer[ p11 + j ] = wdec14Return.b;
-
-
-						}
-
-					}
-
-					if ( nx & p ) {
-
-						const p10 = px + oy1;
-
-						if ( w14 )
-							wdec14( buffer[ px + j ], buffer[ p10 + j ] );
-						else
-							wdec16( buffer[ px + j ], buffer[ p10 + j ] );
-
-						i00 = wdec14Return.a;
-						buffer[ p10 + j ] = wdec14Return.b;
-
-						buffer[ px + j ] = i00;
-
-					}
-
-				}
-
-				if ( ny & p ) {
-
-					let px = py;
-					const ex = py + ox * ( nx - p2 );
-
-					for ( ; px <= ex; px += ox2 ) {
-
-						const p01 = px + ox1;
-
-						if ( w14 )
-							wdec14( buffer[ px + j ], buffer[ p01 + j ] );
-						else
-							wdec16( buffer[ px + j ], buffer[ p01 + j ] );
-
-						i00 = wdec14Return.a;
-						buffer[ p01 + j ] = wdec14Return.b;
-
-						buffer[ px + j ] = i00;
-
-					}
-
-				}
-
-				p2 = p;
-				p >>= 1;
-
-			}
-
-			return py;
-
-		}
-
-		function hufDecode( encodingTable, decodingTable, uInt8Array, inOffset, ni, rlc, no, outBuffer, outOffset ) {
-
-			let c = 0;
-			let lc = 0;
-			const outBufferEndOffset = no;
-			const inOffsetEnd = Math.trunc( inOffset.value + ( ni + 7 ) / 8 );
-
-			while ( inOffset.value < inOffsetEnd ) {
-
-				getChar( c, lc, uInt8Array, inOffset );
-
-				c = getCharReturn.c;
-				lc = getCharReturn.lc;
-
-				while ( lc >= HUF_DECBITS ) {
-
-					const index = ( c >> ( lc - HUF_DECBITS ) ) & HUF_DECMASK;
-					const pl = decodingTable[ index ];
-
-					if ( pl.len ) {
-
-						lc -= pl.len;
-
-						getCode( pl.lit, rlc, c, lc, uInt8Array, inOffset, outBuffer, outOffset, outBufferEndOffset );
-
-						c = getCodeReturn.c;
-						lc = getCodeReturn.lc;
-
-					} else {
-
-						if ( ! pl.p ) {
-
-							throw new Error( 'hufDecode issues' );
-
-						}
-
-						let j;
-
-						for ( j = 0; j < pl.lit; j ++ ) {
-
-							const l = hufLength( encodingTable[ pl.p[ j ] ] );
-
-							while ( lc < l && inOffset.value < inOffsetEnd ) {
-
-								getChar( c, lc, uInt8Array, inOffset );
-
-								c = getCharReturn.c;
-								lc = getCharReturn.lc;
-
-							}
-
-							if ( lc >= l ) {
-
-								if ( hufCode( encodingTable[ pl.p[ j ] ] ) == ( ( c >> ( lc - l ) ) & ( ( 1 << l ) - 1 ) ) ) {
-
-									lc -= l;
-
-									getCode( pl.p[ j ], rlc, c, lc, uInt8Array, inOffset, outBuffer, outOffset, outBufferEndOffset );
-
-									c = getCodeReturn.c;
-									lc = getCodeReturn.lc;
-
-									break;
-
-								}
-
-							}
-
-						}
-
-						if ( j == pl.lit ) {
-
-							throw new Error( 'hufDecode issues' );
-
-						}
-
-					}
-
-				}
-
-			}
-
-			const i = ( 8 - ni ) & 7;
-
-			c >>= i;
-			lc -= i;
-
-			while ( lc > 0 ) {
-
-				const pl = decodingTable[ ( c << ( HUF_DECBITS - lc ) ) & HUF_DECMASK ];
-
-				if ( pl.len ) {
-
-					lc -= pl.len;
-
-					getCode( pl.lit, rlc, c, lc, uInt8Array, inOffset, outBuffer, outOffset, outBufferEndOffset );
-
-					c = getCodeReturn.c;
-					lc = getCodeReturn.lc;
-
-				} else {
-
-					throw new Error( 'hufDecode issues' );
-
-				}
-
-			}
-
-			return true;
-
-		}
-
-		function hufUncompress( uInt8Array, inDataView, inOffset, nCompressed, outBuffer, nRaw ) {
-
-			const outOffset = { value: 0 };
-			const initialInOffset = inOffset.value;
-
-			const im = parseUint32( inDataView, inOffset );
-			const iM = parseUint32( inDataView, inOffset );
-
-			inOffset.value += 4;
-
-			const nBits = parseUint32( inDataView, inOffset );
-
-			inOffset.value += 4;
-
-			if ( im < 0 || im >= HUF_ENCSIZE || iM < 0 || iM >= HUF_ENCSIZE ) {
-
-				throw new Error( 'Something wrong with HUF_ENCSIZE' );
-
-			}
-
-			const freq = new Array( HUF_ENCSIZE );
-			const hdec = new Array( HUF_DECSIZE );
-
-			hufClearDecTable( hdec );
-
-			const ni = nCompressed - ( inOffset.value - initialInOffset );
-
-			hufUnpackEncTable( uInt8Array, inOffset, ni, im, iM, freq );
-
-			if ( nBits > 8 * ( nCompressed - ( inOffset.value - initialInOffset ) ) ) {
-
-				throw new Error( 'Something wrong with hufUncompress' );
-
-			}
-
-			hufBuildDecTable( freq, im, iM, hdec );
-
-			hufDecode( freq, hdec, uInt8Array, inOffset, nBits, iM, nRaw, outBuffer, outOffset );
-
-		}
-
-		function applyLut( lut, data, nData ) {
-
-			for ( let i = 0; i < nData; ++ i ) {
-
-				data[ i ] = lut[ data[ i ] ];
-
-			}
-
-		}
-
-		function predictor( source ) {
-
-			for ( let t = 1; t < source.length; t ++ ) {
-
-				const d = source[ t - 1 ] + source[ t ] - 128;
-				source[ t ] = d;
-
-			}
-
-		}
-
-		function interleaveScalar( source, out ) {
-
-			let t1 = 0;
-			let t2 = Math.floor( ( source.length + 1 ) / 2 );
-			let s = 0;
-			const stop = source.length - 1;
-
-			while ( true ) {
-
-				if ( s > stop ) break;
-				out[ s ++ ] = source[ t1 ++ ];
-
-				if ( s > stop ) break;
-				out[ s ++ ] = source[ t2 ++ ];
-
-			}
-
-		}
-
-		function decodeRunLength( source ) {
-
-			let size = source.byteLength;
-			const out = new Array();
-			let p = 0;
-
-			const reader = new DataView( source );
-
-			while ( size > 0 ) {
-
-				const l = reader.getInt8( p ++ );
-
-				if ( l < 0 ) {
-
-					const count = - l;
-					size -= count + 1;
-
-					for ( let i = 0; i < count; i ++ ) {
-
-						out.push( reader.getUint8( p ++ ) );
-
-					}
-
-
-				} else {
-
-					const count = l;
-					size -= 2;
-
-					const value = reader.getUint8( p ++ );
-
-					for ( let i = 0; i < count + 1; i ++ ) {
-
-						out.push( value );
-
-					}
-
-				}
-
-			}
-
-			return out;
-
-		}
-
-		function lossyDctDecode( cscSet, rowPtrs, channelData, acBuffer, dcBuffer, outBuffer ) {
-
-			let dataView = new DataView( outBuffer.buffer );
-
-			const width = channelData[ cscSet.idx[ 0 ] ].width;
-			const height = channelData[ cscSet.idx[ 0 ] ].height;
-
-			const numComp = 3;
-
-			const numFullBlocksX = Math.floor( width / 8.0 );
-			const numBlocksX = Math.ceil( width / 8.0 );
-			const numBlocksY = Math.ceil( height / 8.0 );
-			const leftoverX = width - ( numBlocksX - 1 ) * 8;
-			const leftoverY = height - ( numBlocksY - 1 ) * 8;
-
-			const currAcComp = { value: 0 };
-			const currDcComp = new Array( numComp );
-			const dctData = new Array( numComp );
-			const halfZigBlock = new Array( numComp );
-			const rowBlock = new Array( numComp );
-			const rowOffsets = new Array( numComp );
-
-			for ( let comp = 0; comp < numComp; ++ comp ) {
-
-				rowOffsets[ comp ] = rowPtrs[ cscSet.idx[ comp ] ];
-				currDcComp[ comp ] = ( comp < 1 ) ? 0 : currDcComp[ comp - 1 ] + numBlocksX * numBlocksY;
-				dctData[ comp ] = new Float32Array( 64 );
-				halfZigBlock[ comp ] = new Uint16Array( 64 );
-				rowBlock[ comp ] = new Uint16Array( numBlocksX * 64 );
-
-			}
-
-			for ( let blocky = 0; blocky < numBlocksY; ++ blocky ) {
-
-				let maxY = 8;
-
-				if ( blocky == numBlocksY - 1 )
-					maxY = leftoverY;
-
-				let maxX = 8;
-
-				for ( let blockx = 0; blockx < numBlocksX; ++ blockx ) {
-
-					if ( blockx == numBlocksX - 1 )
-						maxX = leftoverX;
-
-					for ( let comp = 0; comp < numComp; ++ comp ) {
-
-						halfZigBlock[ comp ].fill( 0 );
-
-						// set block DC component
-						halfZigBlock[ comp ][ 0 ] = dcBuffer[ currDcComp[ comp ] ++ ];
-						// set block AC components
-						unRleAC( currAcComp, acBuffer, halfZigBlock[ comp ] );
-
-						// UnZigZag block to float
-						unZigZag( halfZigBlock[ comp ], dctData[ comp ] );
-						// decode float dct
-						dctInverse( dctData[ comp ] );
-
-					}
-
-					{
-
-						csc709Inverse( dctData );
-
-					}
-
-					for ( let comp = 0; comp < numComp; ++ comp ) {
-
-						convertToHalf( dctData[ comp ], rowBlock[ comp ], blockx * 64 );
-
-					}
-
-				} // blockx
-
-				let offset = 0;
-
-				for ( let comp = 0; comp < numComp; ++ comp ) {
-
-					const type = channelData[ cscSet.idx[ comp ] ].type;
-
-					for ( let y = 8 * blocky; y < 8 * blocky + maxY; ++ y ) {
-
-						offset = rowOffsets[ comp ][ y ];
-
-						for ( let blockx = 0; blockx < numFullBlocksX; ++ blockx ) {
-
-							const src = blockx * 64 + ( ( y & 0x7 ) * 8 );
-
-							dataView.setUint16( offset + 0 * INT16_SIZE * type, rowBlock[ comp ][ src + 0 ], true );
-							dataView.setUint16( offset + 1 * INT16_SIZE * type, rowBlock[ comp ][ src + 1 ], true );
-							dataView.setUint16( offset + 2 * INT16_SIZE * type, rowBlock[ comp ][ src + 2 ], true );
-							dataView.setUint16( offset + 3 * INT16_SIZE * type, rowBlock[ comp ][ src + 3 ], true );
-
-							dataView.setUint16( offset + 4 * INT16_SIZE * type, rowBlock[ comp ][ src + 4 ], true );
-							dataView.setUint16( offset + 5 * INT16_SIZE * type, rowBlock[ comp ][ src + 5 ], true );
-							dataView.setUint16( offset + 6 * INT16_SIZE * type, rowBlock[ comp ][ src + 6 ], true );
-							dataView.setUint16( offset + 7 * INT16_SIZE * type, rowBlock[ comp ][ src + 7 ], true );
-
-							offset += 8 * INT16_SIZE * type;
-
-						}
-
-					}
-
-					// handle partial X blocks
-					if ( numFullBlocksX != numBlocksX ) {
-
-						for ( let y = 8 * blocky; y < 8 * blocky + maxY; ++ y ) {
-
-							const offset = rowOffsets[ comp ][ y ] + 8 * numFullBlocksX * INT16_SIZE * type;
-							const src = numFullBlocksX * 64 + ( ( y & 0x7 ) * 8 );
-
-							for ( let x = 0; x < maxX; ++ x ) {
-
-								dataView.setUint16( offset + x * INT16_SIZE * type, rowBlock[ comp ][ src + x ], true );
-
-							}
-
-						}
-
-					}
-
-				} // comp
-
-			} // blocky
-
-			const halfRow = new Uint16Array( width );
-			dataView = new DataView( outBuffer.buffer );
-
-			// convert channels back to float, if needed
-			for ( let comp = 0; comp < numComp; ++ comp ) {
-
-				channelData[ cscSet.idx[ comp ] ].decoded = true;
-				const type = channelData[ cscSet.idx[ comp ] ].type;
-
-				if ( channelData[ comp ].type != 2 ) continue;
-
-				for ( let y = 0; y < height; ++ y ) {
-
-					const offset = rowOffsets[ comp ][ y ];
-
-					for ( let x = 0; x < width; ++ x ) {
-
-						halfRow[ x ] = dataView.getUint16( offset + x * INT16_SIZE * type, true );
-
-					}
-
-					for ( let x = 0; x < width; ++ x ) {
-
-						dataView.setFloat32( offset + x * INT16_SIZE * type, decodeFloat16( halfRow[ x ] ), true );
-
-					}
-
-				}
-
-			}
-
-		}
-
-		function unRleAC( currAcComp, acBuffer, halfZigBlock ) {
-
-			let acValue;
-			let dctComp = 1;
-
-			while ( dctComp < 64 ) {
-
-				acValue = acBuffer[ currAcComp.value ];
-
-				if ( acValue == 0xff00 ) {
-
-					dctComp = 64;
-
-				} else if ( acValue >> 8 == 0xff ) {
-
-					dctComp += acValue & 0xff;
-
-				} else {
-
-					halfZigBlock[ dctComp ] = acValue;
-					dctComp ++;
-
-				}
-
-				currAcComp.value ++;
-
-			}
-
-		}
-
-		function unZigZag( src, dst ) {
-
-			dst[ 0 ] = decodeFloat16( src[ 0 ] );
-			dst[ 1 ] = decodeFloat16( src[ 1 ] );
-			dst[ 2 ] = decodeFloat16( src[ 5 ] );
-			dst[ 3 ] = decodeFloat16( src[ 6 ] );
-			dst[ 4 ] = decodeFloat16( src[ 14 ] );
-			dst[ 5 ] = decodeFloat16( src[ 15 ] );
-			dst[ 6 ] = decodeFloat16( src[ 27 ] );
-			dst[ 7 ] = decodeFloat16( src[ 28 ] );
-			dst[ 8 ] = decodeFloat16( src[ 2 ] );
-			dst[ 9 ] = decodeFloat16( src[ 4 ] );
-
-			dst[ 10 ] = decodeFloat16( src[ 7 ] );
-			dst[ 11 ] = decodeFloat16( src[ 13 ] );
-			dst[ 12 ] = decodeFloat16( src[ 16 ] );
-			dst[ 13 ] = decodeFloat16( src[ 26 ] );
-			dst[ 14 ] = decodeFloat16( src[ 29 ] );
-			dst[ 15 ] = decodeFloat16( src[ 42 ] );
-			dst[ 16 ] = decodeFloat16( src[ 3 ] );
-			dst[ 17 ] = decodeFloat16( src[ 8 ] );
-			dst[ 18 ] = decodeFloat16( src[ 12 ] );
-			dst[ 19 ] = decodeFloat16( src[ 17 ] );
-
-			dst[ 20 ] = decodeFloat16( src[ 25 ] );
-			dst[ 21 ] = decodeFloat16( src[ 30 ] );
-			dst[ 22 ] = decodeFloat16( src[ 41 ] );
-			dst[ 23 ] = decodeFloat16( src[ 43 ] );
-			dst[ 24 ] = decodeFloat16( src[ 9 ] );
-			dst[ 25 ] = decodeFloat16( src[ 11 ] );
-			dst[ 26 ] = decodeFloat16( src[ 18 ] );
-			dst[ 27 ] = decodeFloat16( src[ 24 ] );
-			dst[ 28 ] = decodeFloat16( src[ 31 ] );
-			dst[ 29 ] = decodeFloat16( src[ 40 ] );
-
-			dst[ 30 ] = decodeFloat16( src[ 44 ] );
-			dst[ 31 ] = decodeFloat16( src[ 53 ] );
-			dst[ 32 ] = decodeFloat16( src[ 10 ] );
-			dst[ 33 ] = decodeFloat16( src[ 19 ] );
-			dst[ 34 ] = decodeFloat16( src[ 23 ] );
-			dst[ 35 ] = decodeFloat16( src[ 32 ] );
-			dst[ 36 ] = decodeFloat16( src[ 39 ] );
-			dst[ 37 ] = decodeFloat16( src[ 45 ] );
-			dst[ 38 ] = decodeFloat16( src[ 52 ] );
-			dst[ 39 ] = decodeFloat16( src[ 54 ] );
-
-			dst[ 40 ] = decodeFloat16( src[ 20 ] );
-			dst[ 41 ] = decodeFloat16( src[ 22 ] );
-			dst[ 42 ] = decodeFloat16( src[ 33 ] );
-			dst[ 43 ] = decodeFloat16( src[ 38 ] );
-			dst[ 44 ] = decodeFloat16( src[ 46 ] );
-			dst[ 45 ] = decodeFloat16( src[ 51 ] );
-			dst[ 46 ] = decodeFloat16( src[ 55 ] );
-			dst[ 47 ] = decodeFloat16( src[ 60 ] );
-			dst[ 48 ] = decodeFloat16( src[ 21 ] );
-			dst[ 49 ] = decodeFloat16( src[ 34 ] );
-
-			dst[ 50 ] = decodeFloat16( src[ 37 ] );
-			dst[ 51 ] = decodeFloat16( src[ 47 ] );
-			dst[ 52 ] = decodeFloat16( src[ 50 ] );
-			dst[ 53 ] = decodeFloat16( src[ 56 ] );
-			dst[ 54 ] = decodeFloat16( src[ 59 ] );
-			dst[ 55 ] = decodeFloat16( src[ 61 ] );
-			dst[ 56 ] = decodeFloat16( src[ 35 ] );
-			dst[ 57 ] = decodeFloat16( src[ 36 ] );
-			dst[ 58 ] = decodeFloat16( src[ 48 ] );
-			dst[ 59 ] = decodeFloat16( src[ 49 ] );
-
-			dst[ 60 ] = decodeFloat16( src[ 57 ] );
-			dst[ 61 ] = decodeFloat16( src[ 58 ] );
-			dst[ 62 ] = decodeFloat16( src[ 62 ] );
-			dst[ 63 ] = decodeFloat16( src[ 63 ] );
-
-		}
-
-		function dctInverse( data ) {
-
-			const a = 0.5 * Math.cos( 3.14159 / 4.0 );
-			const b = 0.5 * Math.cos( 3.14159 / 16.0 );
-			const c = 0.5 * Math.cos( 3.14159 / 8.0 );
-			const d = 0.5 * Math.cos( 3.0 * 3.14159 / 16.0 );
-			const e = 0.5 * Math.cos( 5.0 * 3.14159 / 16.0 );
-			const f = 0.5 * Math.cos( 3.0 * 3.14159 / 8.0 );
-			const g = 0.5 * Math.cos( 7.0 * 3.14159 / 16.0 );
-
-			const alpha = new Array( 4 );
-			const beta = new Array( 4 );
-			const theta = new Array( 4 );
-			const gamma = new Array( 4 );
-
-			for ( let row = 0; row < 8; ++ row ) {
-
-				const rowPtr = row * 8;
-
-				alpha[ 0 ] = c * data[ rowPtr + 2 ];
-				alpha[ 1 ] = f * data[ rowPtr + 2 ];
-				alpha[ 2 ] = c * data[ rowPtr + 6 ];
-				alpha[ 3 ] = f * data[ rowPtr + 6 ];
-
-				beta[ 0 ] = b * data[ rowPtr + 1 ] + d * data[ rowPtr + 3 ] + e * data[ rowPtr + 5 ] + g * data[ rowPtr + 7 ];
-				beta[ 1 ] = d * data[ rowPtr + 1 ] - g * data[ rowPtr + 3 ] - b * data[ rowPtr + 5 ] - e * data[ rowPtr + 7 ];
-				beta[ 2 ] = e * data[ rowPtr + 1 ] - b * data[ rowPtr + 3 ] + g * data[ rowPtr + 5 ] + d * data[ rowPtr + 7 ];
-				beta[ 3 ] = g * data[ rowPtr + 1 ] - e * data[ rowPtr + 3 ] + d * data[ rowPtr + 5 ] - b * data[ rowPtr + 7 ];
-
-				theta[ 0 ] = a * ( data[ rowPtr + 0 ] + data[ rowPtr + 4 ] );
-				theta[ 3 ] = a * ( data[ rowPtr + 0 ] - data[ rowPtr + 4 ] );
-				theta[ 1 ] = alpha[ 0 ] + alpha[ 3 ];
-				theta[ 2 ] = alpha[ 1 ] - alpha[ 2 ];
-
-				gamma[ 0 ] = theta[ 0 ] + theta[ 1 ];
-				gamma[ 1 ] = theta[ 3 ] + theta[ 2 ];
-				gamma[ 2 ] = theta[ 3 ] - theta[ 2 ];
-				gamma[ 3 ] = theta[ 0 ] - theta[ 1 ];
-
-				data[ rowPtr + 0 ] = gamma[ 0 ] + beta[ 0 ];
-				data[ rowPtr + 1 ] = gamma[ 1 ] + beta[ 1 ];
-				data[ rowPtr + 2 ] = gamma[ 2 ] + beta[ 2 ];
-				data[ rowPtr + 3 ] = gamma[ 3 ] + beta[ 3 ];
-
-				data[ rowPtr + 4 ] = gamma[ 3 ] - beta[ 3 ];
-				data[ rowPtr + 5 ] = gamma[ 2 ] - beta[ 2 ];
-				data[ rowPtr + 6 ] = gamma[ 1 ] - beta[ 1 ];
-				data[ rowPtr + 7 ] = gamma[ 0 ] - beta[ 0 ];
-
-			}
-
-			for ( let column = 0; column < 8; ++ column ) {
-
-				alpha[ 0 ] = c * data[ 16 + column ];
-				alpha[ 1 ] = f * data[ 16 + column ];
-				alpha[ 2 ] = c * data[ 48 + column ];
-				alpha[ 3 ] = f * data[ 48 + column ];
-
-				beta[ 0 ] = b * data[ 8 + column ] + d * data[ 24 + column ] + e * data[ 40 + column ] + g * data[ 56 + column ];
-				beta[ 1 ] = d * data[ 8 + column ] - g * data[ 24 + column ] - b * data[ 40 + column ] - e * data[ 56 + column ];
-				beta[ 2 ] = e * data[ 8 + column ] - b * data[ 24 + column ] + g * data[ 40 + column ] + d * data[ 56 + column ];
-				beta[ 3 ] = g * data[ 8 + column ] - e * data[ 24 + column ] + d * data[ 40 + column ] - b * data[ 56 + column ];
-
-				theta[ 0 ] = a * ( data[ column ] + data[ 32 + column ] );
-				theta[ 3 ] = a * ( data[ column ] - data[ 32 + column ] );
-
-				theta[ 1 ] = alpha[ 0 ] + alpha[ 3 ];
-				theta[ 2 ] = alpha[ 1 ] - alpha[ 2 ];
-
-				gamma[ 0 ] = theta[ 0 ] + theta[ 1 ];
-				gamma[ 1 ] = theta[ 3 ] + theta[ 2 ];
-				gamma[ 2 ] = theta[ 3 ] - theta[ 2 ];
-				gamma[ 3 ] = theta[ 0 ] - theta[ 1 ];
-
-				data[ 0 + column ] = gamma[ 0 ] + beta[ 0 ];
-				data[ 8 + column ] = gamma[ 1 ] + beta[ 1 ];
-				data[ 16 + column ] = gamma[ 2 ] + beta[ 2 ];
-				data[ 24 + column ] = gamma[ 3 ] + beta[ 3 ];
-
-				data[ 32 + column ] = gamma[ 3 ] - beta[ 3 ];
-				data[ 40 + column ] = gamma[ 2 ] - beta[ 2 ];
-				data[ 48 + column ] = gamma[ 1 ] - beta[ 1 ];
-				data[ 56 + column ] = gamma[ 0 ] - beta[ 0 ];
-
-			}
-
-		}
-
-		function csc709Inverse( data ) {
-
-			for ( let i = 0; i < 64; ++ i ) {
-
-				const y = data[ 0 ][ i ];
-				const cb = data[ 1 ][ i ];
-				const cr = data[ 2 ][ i ];
-
-				data[ 0 ][ i ] = y + 1.5747 * cr;
-				data[ 1 ][ i ] = y - 0.1873 * cb - 0.4682 * cr;
-				data[ 2 ][ i ] = y + 1.8556 * cb;
-
-			}
-
-		}
-
-		function convertToHalf( src, dst, idx ) {
-
-			for ( let i = 0; i < 64; ++ i ) {
-
-				dst[ idx + i ] = three.DataUtils.toHalfFloat( toLinear( src[ i ] ) );
-
-			}
-
-		}
-
-		function toLinear( float ) {
-
-			if ( float <= 1 ) {
-
-				return Math.sign( float ) * Math.pow( Math.abs( float ), 2.2 );
-
-			} else {
-
-				return Math.sign( float ) * Math.pow( logBase, Math.abs( float ) - 1.0 );
-
-			}
-
-		}
-
-		function uncompressRAW( info ) {
-
-			return new DataView( info.array.buffer, info.offset.value, info.size );
-
-		}
-
-		function uncompressRLE( info ) {
-
-			const compressed = info.viewer.buffer.slice( info.offset.value, info.offset.value + info.size );
-
-			const rawBuffer = new Uint8Array( decodeRunLength( compressed ) );
-			const tmpBuffer = new Uint8Array( rawBuffer.length );
-
-			predictor( rawBuffer ); // revert predictor
-
-			interleaveScalar( rawBuffer, tmpBuffer ); // interleave pixels
-
-			return new DataView( tmpBuffer.buffer );
-
-		}
-
-		function uncompressZIP( info ) {
-
-			const compressed = info.array.slice( info.offset.value, info.offset.value + info.size );
-
-			const rawBuffer = unzlibSync( compressed );
-			const tmpBuffer = new Uint8Array( rawBuffer.length );
-
-			predictor( rawBuffer ); // revert predictor
-
-			interleaveScalar( rawBuffer, tmpBuffer ); // interleave pixels
-
-			return new DataView( tmpBuffer.buffer );
-
-		}
-
-		function uncompressPIZ( info ) {
-
-			const inDataView = info.viewer;
-			const inOffset = { value: info.offset.value };
-
-			const outBuffer = new Uint16Array( info.columns * info.lines * ( info.inputChannels.length * info.type ) );
-			const bitmap = new Uint8Array( BITMAP_SIZE );
-
-			// Setup channel info
-			let outBufferEnd = 0;
-			const pizChannelData = new Array( info.inputChannels.length );
-			for ( let i = 0, il = info.inputChannels.length; i < il; i ++ ) {
-
-				pizChannelData[ i ] = {};
-				pizChannelData[ i ][ 'start' ] = outBufferEnd;
-				pizChannelData[ i ][ 'end' ] = pizChannelData[ i ][ 'start' ];
-				pizChannelData[ i ][ 'nx' ] = info.columns;
-				pizChannelData[ i ][ 'ny' ] = info.lines;
-				pizChannelData[ i ][ 'size' ] = info.type;
-
-				outBufferEnd += pizChannelData[ i ].nx * pizChannelData[ i ].ny * pizChannelData[ i ].size;
-
-			}
-
-			// Read range compression data
-
-			const minNonZero = parseUint16( inDataView, inOffset );
-			const maxNonZero = parseUint16( inDataView, inOffset );
-
-			if ( maxNonZero >= BITMAP_SIZE ) {
-
-				throw new Error( 'Something is wrong with PIZ_COMPRESSION BITMAP_SIZE' );
-
-			}
-
-			if ( minNonZero <= maxNonZero ) {
-
-				for ( let i = 0; i < maxNonZero - minNonZero + 1; i ++ ) {
-
-					bitmap[ i + minNonZero ] = parseUint8( inDataView, inOffset );
-
-				}
-
-			}
-
-			// Reverse LUT
-			const lut = new Uint16Array( USHORT_RANGE );
-			const maxValue = reverseLutFromBitmap( bitmap, lut );
-
-			const length = parseUint32( inDataView, inOffset );
-
-			// Huffman decoding
-			hufUncompress( info.array, inDataView, inOffset, length, outBuffer, outBufferEnd );
-
-			// Wavelet decoding
-			for ( let i = 0; i < info.inputChannels.length; ++ i ) {
-
-				const cd = pizChannelData[ i ];
-
-				for ( let j = 0; j < pizChannelData[ i ].size; ++ j ) {
-
-					wav2Decode(
-						outBuffer,
-						cd.start + j,
-						cd.nx,
-						cd.size,
-						cd.ny,
-						cd.nx * cd.size,
-						maxValue
-					);
-
-				}
-
-			}
-
-			// Expand the pixel data to their original range
-			applyLut( lut, outBuffer, outBufferEnd );
-
-			// Rearrange the pixel data into the format expected by the caller.
-			let tmpOffset = 0;
-			const tmpBuffer = new Uint8Array( outBuffer.buffer.byteLength );
-			for ( let y = 0; y < info.lines; y ++ ) {
-
-				for ( let c = 0; c < info.inputChannels.length; c ++ ) {
-
-					const cd = pizChannelData[ c ];
-
-					const n = cd.nx * cd.size;
-					const cp = new Uint8Array( outBuffer.buffer, cd.end * INT16_SIZE, n * INT16_SIZE );
-
-					tmpBuffer.set( cp, tmpOffset );
-					tmpOffset += n * INT16_SIZE;
-					cd.end += n;
-
-				}
-
-			}
-
-			return new DataView( tmpBuffer.buffer );
-
-		}
-
-		function uncompressPXR( info ) {
-
-			const compressed = info.array.slice( info.offset.value, info.offset.value + info.size );
-
-			const rawBuffer = unzlibSync( compressed );
-
-			const byteSize = info.inputChannels.length * info.lines * info.columns * info.totalBytes;
-			const tmpBuffer = new ArrayBuffer( byteSize );
-			const viewer = new DataView( tmpBuffer );
-
-			let tmpBufferEnd = 0;
-			let writePtr = 0;
-			const ptr = new Array( 4 );
-
-			for ( let y = 0; y < info.lines; y ++ ) {
-
-				for ( let c = 0; c < info.inputChannels.length; c ++ ) {
-
-					let pixel = 0;
-
-					const type = info.inputChannels[ c ].pixelType;
-					switch ( type ) {
-
-						case 1:
-
-							ptr[ 0 ] = tmpBufferEnd;
-							ptr[ 1 ] = ptr[ 0 ] + info.columns;
-							tmpBufferEnd = ptr[ 1 ] + info.columns;
-
-							for ( let j = 0; j < info.columns; ++ j ) {
-
-								const diff = ( rawBuffer[ ptr[ 0 ] ++ ] << 8 ) | rawBuffer[ ptr[ 1 ] ++ ];
-
-								pixel += diff;
-
-								viewer.setUint16( writePtr, pixel, true );
-								writePtr += 2;
-
-							}
-
-							break;
-
-						case 2:
-
-							ptr[ 0 ] = tmpBufferEnd;
-							ptr[ 1 ] = ptr[ 0 ] + info.columns;
-							ptr[ 2 ] = ptr[ 1 ] + info.columns;
-							tmpBufferEnd = ptr[ 2 ] + info.columns;
-
-							for ( let j = 0; j < info.columns; ++ j ) {
-
-								const diff = ( rawBuffer[ ptr[ 0 ] ++ ] << 24 ) | ( rawBuffer[ ptr[ 1 ] ++ ] << 16 ) | ( rawBuffer[ ptr[ 2 ] ++ ] << 8 );
-
-								pixel += diff;
-
-								viewer.setUint32( writePtr, pixel, true );
-								writePtr += 4;
-
-							}
-
-							break;
-
-					}
-
-				}
-
-			}
-
-			return viewer;
-
-		}
-
-		function uncompressDWA( info ) {
-
-			const inDataView = info.viewer;
-			const inOffset = { value: info.offset.value };
-			const outBuffer = new Uint8Array( info.columns * info.lines * ( info.inputChannels.length * info.type * INT16_SIZE ) );
-
-			// Read compression header information
-			const dwaHeader = {
-
-				version: parseInt64( inDataView, inOffset ),
-				unknownUncompressedSize: parseInt64( inDataView, inOffset ),
-				unknownCompressedSize: parseInt64( inDataView, inOffset ),
-				acCompressedSize: parseInt64( inDataView, inOffset ),
-				dcCompressedSize: parseInt64( inDataView, inOffset ),
-				rleCompressedSize: parseInt64( inDataView, inOffset ),
-				rleUncompressedSize: parseInt64( inDataView, inOffset ),
-				rleRawSize: parseInt64( inDataView, inOffset ),
-				totalAcUncompressedCount: parseInt64( inDataView, inOffset ),
-				totalDcUncompressedCount: parseInt64( inDataView, inOffset ),
-				acCompression: parseInt64( inDataView, inOffset )
-
-			};
-
-			if ( dwaHeader.version < 2 )
-				throw new Error( 'EXRLoader.parse: ' + EXRHeader.compression + ' version ' + dwaHeader.version + ' is unsupported' );
-
-			// Read channel ruleset information
-			const channelRules = new Array();
-			let ruleSize = parseUint16( inDataView, inOffset ) - INT16_SIZE;
-
-			while ( ruleSize > 0 ) {
-
-				const name = parseNullTerminatedString( inDataView.buffer, inOffset );
-				const value = parseUint8( inDataView, inOffset );
-				const compression = ( value >> 2 ) & 3;
-				const csc = ( value >> 4 ) - 1;
-				const index = new Int8Array( [ csc ] )[ 0 ];
-				const type = parseUint8( inDataView, inOffset );
-
-				channelRules.push( {
-					name: name,
-					index: index,
-					type: type,
-					compression: compression,
-				} );
-
-				ruleSize -= name.length + 3;
-
-			}
-
-			// Classify channels
-			const channels = EXRHeader.channels;
-			const channelData = new Array( info.inputChannels.length );
-
-			for ( let i = 0; i < info.inputChannels.length; ++ i ) {
-
-				const cd = channelData[ i ] = {};
-				const channel = channels[ i ];
-
-				cd.name = channel.name;
-				cd.compression = UNKNOWN;
-				cd.decoded = false;
-				cd.type = channel.pixelType;
-				cd.pLinear = channel.pLinear;
-				cd.width = info.columns;
-				cd.height = info.lines;
-
-			}
-
-			const cscSet = {
-				idx: new Array( 3 )
-			};
-
-			for ( let offset = 0; offset < info.inputChannels.length; ++ offset ) {
-
-				const cd = channelData[ offset ];
-
-				for ( let i = 0; i < channelRules.length; ++ i ) {
-
-					const rule = channelRules[ i ];
-
-					if ( cd.name == rule.name ) {
-
-						cd.compression = rule.compression;
-
-						if ( rule.index >= 0 ) {
-
-							cscSet.idx[ rule.index ] = offset;
-
-						}
-
-						cd.offset = offset;
-
-					}
-
-				}
-
-			}
-
-			let acBuffer, dcBuffer, rleBuffer;
-
-			// Read DCT - AC component data
-			if ( dwaHeader.acCompressedSize > 0 ) {
-
-				switch ( dwaHeader.acCompression ) {
-
-					case STATIC_HUFFMAN:
-
-						acBuffer = new Uint16Array( dwaHeader.totalAcUncompressedCount );
-						hufUncompress( info.array, inDataView, inOffset, dwaHeader.acCompressedSize, acBuffer, dwaHeader.totalAcUncompressedCount );
-						break;
-
-					case DEFLATE:
-
-						const compressed = info.array.slice( inOffset.value, inOffset.value + dwaHeader.totalAcUncompressedCount );
-						const data = unzlibSync( compressed );
-						acBuffer = new Uint16Array( data.buffer );
-						inOffset.value += dwaHeader.totalAcUncompressedCount;
-						break;
-
-				}
-
-
-			}
-
-			// Read DCT - DC component data
-			if ( dwaHeader.dcCompressedSize > 0 ) {
-
-				const zlibInfo = {
-					array: info.array,
-					offset: inOffset,
-					size: dwaHeader.dcCompressedSize
-				};
-				dcBuffer = new Uint16Array( uncompressZIP( zlibInfo ).buffer );
-				inOffset.value += dwaHeader.dcCompressedSize;
-
-			}
-
-			// Read RLE compressed data
-			if ( dwaHeader.rleRawSize > 0 ) {
-
-				const compressed = info.array.slice( inOffset.value, inOffset.value + dwaHeader.rleCompressedSize );
-				const data = unzlibSync( compressed );
-				rleBuffer = decodeRunLength( data.buffer );
-
-				inOffset.value += dwaHeader.rleCompressedSize;
-
-			}
-
-			// Prepare outbuffer data offset
-			let outBufferEnd = 0;
-			const rowOffsets = new Array( channelData.length );
-			for ( let i = 0; i < rowOffsets.length; ++ i ) {
-
-				rowOffsets[ i ] = new Array();
-
-			}
-
-			for ( let y = 0; y < info.lines; ++ y ) {
-
-				for ( let chan = 0; chan < channelData.length; ++ chan ) {
-
-					rowOffsets[ chan ].push( outBufferEnd );
-					outBufferEnd += channelData[ chan ].width * info.type * INT16_SIZE;
-
-				}
-
-			}
-
-			// Lossy DCT decode RGB channels
-			lossyDctDecode( cscSet, rowOffsets, channelData, acBuffer, dcBuffer, outBuffer );
-
-			// Decode other channels
-			for ( let i = 0; i < channelData.length; ++ i ) {
-
-				const cd = channelData[ i ];
-
-				if ( cd.decoded ) continue;
-
-				switch ( cd.compression ) {
-
-					case RLE:
-
-						let row = 0;
-						let rleOffset = 0;
-
-						for ( let y = 0; y < info.lines; ++ y ) {
-
-							let rowOffsetBytes = rowOffsets[ i ][ row ];
-
-							for ( let x = 0; x < cd.width; ++ x ) {
-
-								for ( let byte = 0; byte < INT16_SIZE * cd.type; ++ byte ) {
-
-									outBuffer[ rowOffsetBytes ++ ] = rleBuffer[ rleOffset + byte * cd.width * cd.height ];
-
-								}
-
-								rleOffset ++;
-
-							}
-
-							row ++;
-
-						}
-
-						break;
-
-					case LOSSY_DCT: // skip
-
-					default:
-						throw new Error( 'EXRLoader.parse: unsupported channel compression' );
-
-				}
-
-			}
-
-			return new DataView( outBuffer.buffer );
-
-		}
-
-		function parseNullTerminatedString( buffer, offset ) {
-
-			const uintBuffer = new Uint8Array( buffer );
-			let endOffset = 0;
-
-			while ( uintBuffer[ offset.value + endOffset ] != 0 ) {
-
-				endOffset += 1;
-
-			}
-
-			const stringValue = new TextDecoder().decode(
-				uintBuffer.slice( offset.value, offset.value + endOffset )
-			);
-
-			offset.value = offset.value + endOffset + 1;
-
-			return stringValue;
-
-		}
-
-		function parseFixedLengthString( buffer, offset, size ) {
-
-			const stringValue = new TextDecoder().decode(
-				new Uint8Array( buffer ).slice( offset.value, offset.value + size )
-			);
-
-			offset.value = offset.value + size;
-
-			return stringValue;
-
-		}
-
-		function parseRational( dataView, offset ) {
-
-			const x = parseInt32( dataView, offset );
-			const y = parseUint32( dataView, offset );
-
-			return [ x, y ];
-
-		}
-
-		function parseTimecode( dataView, offset ) {
-
-			const x = parseUint32( dataView, offset );
-			const y = parseUint32( dataView, offset );
-
-			return [ x, y ];
-
-		}
-
-		function parseInt32( dataView, offset ) {
-
-			const Int32 = dataView.getInt32( offset.value, true );
-
-			offset.value = offset.value + INT32_SIZE;
-
-			return Int32;
-
-		}
-
-		function parseUint32( dataView, offset ) {
-
-			const Uint32 = dataView.getUint32( offset.value, true );
-
-			offset.value = offset.value + INT32_SIZE;
-
-			return Uint32;
-
-		}
-
-		function parseUint8Array( uInt8Array, offset ) {
-
-			const Uint8 = uInt8Array[ offset.value ];
-
-			offset.value = offset.value + INT8_SIZE;
-
-			return Uint8;
-
-		}
-
-		function parseUint8( dataView, offset ) {
-
-			const Uint8 = dataView.getUint8( offset.value );
-
-			offset.value = offset.value + INT8_SIZE;
-
-			return Uint8;
-
-		}
-
-		const parseInt64 = function ( dataView, offset ) {
-
-			let int;
-
-			if ( 'getBigInt64' in DataView.prototype ) {
-
-				int = Number( dataView.getBigInt64( offset.value, true ) );
-
-			} else {
-
-				int = dataView.getUint32( offset.value + 4, true ) + Number( dataView.getUint32( offset.value, true ) << 32 );
-
-			}
-
-			offset.value += ULONG_SIZE;
-
-			return int;
-
-		};
-
-		function parseFloat32( dataView, offset ) {
-
-			const float = dataView.getFloat32( offset.value, true );
-
-			offset.value += FLOAT32_SIZE;
-
-			return float;
-
-		}
-
-		function decodeFloat32( dataView, offset ) {
-
-			return three.DataUtils.toHalfFloat( parseFloat32( dataView, offset ) );
-
-		}
-
-		// https://stackoverflow.com/questions/5678432/decompressing-half-precision-floats-in-javascript
-		function decodeFloat16( binary ) {
-
-			const exponent = ( binary & 0x7C00 ) >> 10,
-				fraction = binary & 0x03FF;
-
-			return ( binary >> 15 ? -1 : 1 ) * (
-				exponent ?
-					(
-						exponent === 0x1F ?
-							fraction ? NaN : Infinity :
-							Math.pow( 2, exponent - 15 ) * ( 1 + fraction / 0x400 )
-					) :
-					6.103515625e-5 * ( fraction / 0x400 )
-			);
-
-		}
-
-		function parseUint16( dataView, offset ) {
-
-			const Uint16 = dataView.getUint16( offset.value, true );
-
-			offset.value += INT16_SIZE;
-
-			return Uint16;
-
-		}
-
-		function parseFloat16( buffer, offset ) {
-
-			return decodeFloat16( parseUint16( buffer, offset ) );
-
-		}
-
-		function parseChlist( dataView, buffer, offset, size ) {
-
-			const startOffset = offset.value;
-			const channels = [];
-
-			while ( offset.value < ( startOffset + size - 1 ) ) {
-
-				const name = parseNullTerminatedString( buffer, offset );
-				const pixelType = parseInt32( dataView, offset );
-				const pLinear = parseUint8( dataView, offset );
-				offset.value += 3; // reserved, three chars
-				const xSampling = parseInt32( dataView, offset );
-				const ySampling = parseInt32( dataView, offset );
-
-				channels.push( {
-					name: name,
-					pixelType: pixelType,
-					pLinear: pLinear,
-					xSampling: xSampling,
-					ySampling: ySampling
-				} );
-
-			}
-
-			offset.value += 1;
-
-			return channels;
-
-		}
-
-		function parseChromaticities( dataView, offset ) {
-
-			const redX = parseFloat32( dataView, offset );
-			const redY = parseFloat32( dataView, offset );
-			const greenX = parseFloat32( dataView, offset );
-			const greenY = parseFloat32( dataView, offset );
-			const blueX = parseFloat32( dataView, offset );
-			const blueY = parseFloat32( dataView, offset );
-			const whiteX = parseFloat32( dataView, offset );
-			const whiteY = parseFloat32( dataView, offset );
-
-			return { redX: redX, redY: redY, greenX: greenX, greenY: greenY, blueX: blueX, blueY: blueY, whiteX: whiteX, whiteY: whiteY };
-
-		}
-
-		function parseCompression( dataView, offset ) {
-
-			const compressionCodes = [
-				'NO_COMPRESSION',
-				'RLE_COMPRESSION',
-				'ZIPS_COMPRESSION',
-				'ZIP_COMPRESSION',
-				'PIZ_COMPRESSION',
-				'PXR24_COMPRESSION',
-				'B44_COMPRESSION',
-				'B44A_COMPRESSION',
-				'DWAA_COMPRESSION',
-				'DWAB_COMPRESSION'
-			];
-
-			const compression = parseUint8( dataView, offset );
-
-			return compressionCodes[ compression ];
-
-		}
-
-		function parseBox2i( dataView, offset ) {
-
-			const xMin = parseInt32( dataView, offset );
-			const yMin = parseInt32( dataView, offset );
-			const xMax = parseInt32( dataView, offset );
-			const yMax = parseInt32( dataView, offset );
-
-			return { xMin: xMin, yMin: yMin, xMax: xMax, yMax: yMax };
-
-		}
-
-		function parseLineOrder( dataView, offset ) {
-
-			const lineOrders = [
-				'INCREASING_Y',
-				'DECREASING_Y',
-				'RANDOM_Y',
-			];
-
-			const lineOrder = parseUint8( dataView, offset );
-
-			return lineOrders[ lineOrder ];
-
-		}
-
-		function parseEnvmap( dataView, offset ) {
-
-			const envmaps = [
-				'ENVMAP_LATLONG',
-				'ENVMAP_CUBE'
-			];
-
-			const envmap = parseUint8( dataView, offset );
-
-			return envmaps[ envmap ];
-
-		}
-
-		function parseTiledesc( dataView, offset ) {
-
-			const levelModes = [
-				'ONE_LEVEL',
-				'MIPMAP_LEVELS',
-				'RIPMAP_LEVELS',
-			];
-
-			const roundingModes = [
-				'ROUND_DOWN',
-				'ROUND_UP',
-			];
-
-			const xSize = parseUint32( dataView, offset );
-			const ySize = parseUint32( dataView, offset );
-			const modes = parseUint8( dataView, offset );
-
-			return {
-				xSize: xSize,
-				ySize: ySize,
-				levelMode: levelModes[ modes & 0xf ],
-				roundingMode: roundingModes[ modes >> 4 ]
-			};
-
-		}
-
-		function parseV2f( dataView, offset ) {
-
-			const x = parseFloat32( dataView, offset );
-			const y = parseFloat32( dataView, offset );
-
-			return [ x, y ];
-
-		}
-
-		function parseV3f( dataView, offset ) {
-
-			const x = parseFloat32( dataView, offset );
-			const y = parseFloat32( dataView, offset );
-			const z = parseFloat32( dataView, offset );
-
-			return [ x, y, z ];
-
-		}
-
-		function parseValue( dataView, buffer, offset, type, size ) {
-
-			if ( type === 'string' || type === 'stringvector' || type === 'iccProfile' ) {
-
-				return parseFixedLengthString( buffer, offset, size );
-
-			} else if ( type === 'chlist' ) {
-
-				return parseChlist( dataView, buffer, offset, size );
-
-			} else if ( type === 'chromaticities' ) {
-
-				return parseChromaticities( dataView, offset );
-
-			} else if ( type === 'compression' ) {
-
-				return parseCompression( dataView, offset );
-
-			} else if ( type === 'box2i' ) {
-
-				return parseBox2i( dataView, offset );
-
-			} else if ( type === 'envmap' ) {
-
-				return parseEnvmap( dataView, offset );
-
-			} else if ( type === 'tiledesc' ) {
-
-				return parseTiledesc( dataView, offset );
-
-			} else if ( type === 'lineOrder' ) {
-
-				return parseLineOrder( dataView, offset );
-
-			} else if ( type === 'float' ) {
-
-				return parseFloat32( dataView, offset );
-
-			} else if ( type === 'v2f' ) {
-
-				return parseV2f( dataView, offset );
-
-			} else if ( type === 'v3f' ) {
-
-				return parseV3f( dataView, offset );
-
-			} else if ( type === 'int' ) {
-
-				return parseInt32( dataView, offset );
-
-			} else if ( type === 'rational' ) {
-
-				return parseRational( dataView, offset );
-
-			} else if ( type === 'timecode' ) {
-
-				return parseTimecode( dataView, offset );
-
-			} else if ( type === 'preview' ) {
-
-				offset.value += size;
-				return 'skipped';
-
-			} else {
-
-				offset.value += size;
-				return undefined;
-
-			}
-
-		}
-
-		function roundLog2( x, mode ) {
-
-			const log2 = Math.log2( x );
-			return mode == 'ROUND_DOWN' ? Math.floor( log2 ) : Math.ceil( log2 );
-
-		}
-
-		function calculateTileLevels( tiledesc, w, h ) {
-
-			let num = 0;
-
-			switch ( tiledesc.levelMode ) {
-
-				case 'ONE_LEVEL':
-					num = 1;
-					break;
-
-				case 'MIPMAP_LEVELS':
-					num = roundLog2( Math.max( w, h ), tiledesc.roundingMode ) + 1;
-					break;
-
-				case 'RIPMAP_LEVELS':
-					throw new Error( 'THREE.EXRLoader: RIPMAP_LEVELS tiles currently unsupported.' );
-
-			}
-
-			return num;
-
-		}
-
-		function calculateTiles( count, dataSize, size, roundingMode ) {
-
-			const tiles = new Array( count );
-
-			for ( let i = 0; i < count; i ++ ) {
-
-				const b = ( 1 << i );
-				let s = ( dataSize / b ) | 0;
-
-				if ( roundingMode == 'ROUND_UP' && s * b < dataSize ) s += 1;
-
-				const l = Math.max( s, 1 );
-
-				tiles[ i ] = ( ( l + size - 1 ) / size ) | 0;
-
-			}
-
-			return tiles;
-
-		}
-
-		function parseTiles() {
-
-			const EXRDecoder = this;
-			const offset = EXRDecoder.offset;
-			const tmpOffset = { value: 0 };
-
-			for ( let tile = 0; tile < EXRDecoder.tileCount; tile ++ ) {
-
-				const tileX = parseInt32( EXRDecoder.viewer, offset );
-				const tileY = parseInt32( EXRDecoder.viewer, offset );
-				offset.value += 8; // skip levels - only parsing top-level
-				EXRDecoder.size = parseUint32( EXRDecoder.viewer, offset );
-
-				const startX = tileX * EXRDecoder.blockWidth;
-				const startY = tileY * EXRDecoder.blockHeight;
-				EXRDecoder.columns = ( startX + EXRDecoder.blockWidth > EXRDecoder.width ) ? EXRDecoder.width - startX : EXRDecoder.blockWidth;
-				EXRDecoder.lines = ( startY + EXRDecoder.blockHeight > EXRDecoder.height ) ? EXRDecoder.height - startY : EXRDecoder.blockHeight;
-
-				const bytesBlockLine = EXRDecoder.columns * EXRDecoder.totalBytes;
-				const isCompressed = EXRDecoder.size < EXRDecoder.lines * bytesBlockLine;
-				const viewer = isCompressed ? EXRDecoder.uncompress( EXRDecoder ) : uncompressRAW( EXRDecoder );
-
-				offset.value += EXRDecoder.size;
-
-				for ( let line = 0; line < EXRDecoder.lines; line ++ ) {
-
-					const lineOffset = line * EXRDecoder.columns * EXRDecoder.totalBytes;
-
-					for ( let channelID = 0; channelID < EXRDecoder.inputChannels.length; channelID ++ ) {
-
-						const name = EXRHeader.channels[ channelID ].name;
-						const lOff = EXRDecoder.channelByteOffsets[ name ] * EXRDecoder.columns;
-						const cOff = EXRDecoder.decodeChannels[ name ];
-
-						if ( cOff === undefined ) continue;
-
-						tmpOffset.value = lineOffset + lOff;
-						const outLineOffset = ( EXRDecoder.height - ( 1 + startY + line ) ) * EXRDecoder.outLineWidth;
-
-						for ( let x = 0; x < EXRDecoder.columns; x ++ ) {
-
-							const outIndex = outLineOffset + ( x + startX ) * EXRDecoder.outputChannels + cOff;
-							EXRDecoder.byteArray[ outIndex ] = EXRDecoder.getter( viewer, tmpOffset );
-
-						}
-
-					}
-
-				}
-
-			}
-
-		}
-
-		function parseScanline() {
-
-			const EXRDecoder = this;
-			const offset = EXRDecoder.offset;
-			const tmpOffset = { value: 0 };
-
-			for ( let scanlineBlockIdx = 0; scanlineBlockIdx < EXRDecoder.height / EXRDecoder.blockHeight; scanlineBlockIdx ++ ) {
-
-				const line = parseInt32( EXRDecoder.viewer, offset ) - EXRHeader.dataWindow.yMin; // line_no
-				EXRDecoder.size = parseUint32( EXRDecoder.viewer, offset ); // data_len
-				EXRDecoder.lines = ( ( line + EXRDecoder.blockHeight > EXRDecoder.height ) ? ( EXRDecoder.height - line ) : EXRDecoder.blockHeight );
-
-				const bytesPerLine = EXRDecoder.columns * EXRDecoder.totalBytes;
-				const isCompressed = EXRDecoder.size < EXRDecoder.lines * bytesPerLine;
-				const viewer = isCompressed ? EXRDecoder.uncompress( EXRDecoder ) : uncompressRAW( EXRDecoder );
-
-				offset.value += EXRDecoder.size;
-
-				for ( let line_y = 0; line_y < EXRDecoder.blockHeight; line_y ++ ) {
-
-					const scan_y = scanlineBlockIdx * EXRDecoder.blockHeight;
-					const true_y = line_y + EXRDecoder.scanOrder( scan_y );
-					if ( true_y >= EXRDecoder.height ) continue;
-
-					const lineOffset = line_y * bytesPerLine;
-					const outLineOffset = ( EXRDecoder.height - 1 - true_y ) * EXRDecoder.outLineWidth;
-
-					for ( let channelID = 0; channelID < EXRDecoder.inputChannels.length; channelID ++ ) {
-
-						const name = EXRHeader.channels[ channelID ].name;
-						const lOff = EXRDecoder.channelByteOffsets[ name ] * EXRDecoder.columns;
-						const cOff = EXRDecoder.decodeChannels[ name ];
-
-						if ( cOff === undefined ) continue;
-
-						tmpOffset.value = lineOffset + lOff;
-
-						for ( let x = 0; x < EXRDecoder.columns; x ++ ) {
-
-							const outIndex = outLineOffset + x * EXRDecoder.outputChannels + cOff;
-							EXRDecoder.byteArray[ outIndex ] = EXRDecoder.getter( viewer, tmpOffset );
-
-						}
-
-					}
-
-				}
-
-			}
-
-		}
-
-		function parseHeader( dataView, buffer, offset ) {
-
-			const EXRHeader = {};
-
-			if ( dataView.getUint32( 0, true ) != 20000630 ) { // magic
-
-				throw new Error( 'THREE.EXRLoader: Provided file doesn\'t appear to be in OpenEXR format.' );
-
-			}
-
-			EXRHeader.version = dataView.getUint8( 4 );
-
-			const spec = dataView.getUint8( 5 ); // fullMask
-
-			EXRHeader.spec = {
-				singleTile: !! ( spec & 2 ),
-				longName: !! ( spec & 4 ),
-				deepFormat: !! ( spec & 8 ),
-				multiPart: !! ( spec & 16 ),
-			};
-
-			// start of header
-
-			offset.value = 8; // start at 8 - after pre-amble
-
-			let keepReading = true;
-
-			while ( keepReading ) {
-
-				const attributeName = parseNullTerminatedString( buffer, offset );
-
-				if ( attributeName == 0 ) {
-
-					keepReading = false;
-
-				} else {
-
-					const attributeType = parseNullTerminatedString( buffer, offset );
-					const attributeSize = parseUint32( dataView, offset );
-					const attributeValue = parseValue( dataView, buffer, offset, attributeType, attributeSize );
-
-					if ( attributeValue === undefined ) {
-
-						console.warn( `THREE.EXRLoader: Skipped unknown header attribute type \'${attributeType}\'.` );
-
-					} else {
-
-						EXRHeader[ attributeName ] = attributeValue;
-
-					}
-
-				}
-
-			}
-
-			if ( ( spec & -7 ) != 0 ) { // unsupported deep-image, multi-part
-
-				console.error( 'THREE.EXRHeader:', EXRHeader );
-				throw new Error( 'THREE.EXRLoader: Provided file is currently unsupported.' );
-
-			}
-
-			return EXRHeader;
-
-		}
-
-		function setupDecoder( EXRHeader, dataView, uInt8Array, offset, outputType ) {
-
-			const EXRDecoder = {
-				size: 0,
-				viewer: dataView,
-				array: uInt8Array,
-				offset: offset,
-				width: EXRHeader.dataWindow.xMax - EXRHeader.dataWindow.xMin + 1,
-				height: EXRHeader.dataWindow.yMax - EXRHeader.dataWindow.yMin + 1,
-				inputChannels: EXRHeader.channels,
-				channelByteOffsets: {},
-				scanOrder: null,
-				totalBytes: null,
-				columns: null,
-				lines: null,
-				type: null,
-				uncompress: null,
-				getter: null,
-				format: null,
-				colorSpace: three.LinearSRGBColorSpace,
-			};
-
-			switch ( EXRHeader.compression ) {
-
-				case 'NO_COMPRESSION':
-					EXRDecoder.blockHeight = 1;
-					EXRDecoder.uncompress = uncompressRAW;
-					break;
-
-				case 'RLE_COMPRESSION':
-					EXRDecoder.blockHeight = 1;
-					EXRDecoder.uncompress = uncompressRLE;
-					break;
-
-				case 'ZIPS_COMPRESSION':
-					EXRDecoder.blockHeight = 1;
-					EXRDecoder.uncompress = uncompressZIP;
-					break;
-
-				case 'ZIP_COMPRESSION':
-					EXRDecoder.blockHeight = 16;
-					EXRDecoder.uncompress = uncompressZIP;
-					break;
-
-				case 'PIZ_COMPRESSION':
-					EXRDecoder.blockHeight = 32;
-					EXRDecoder.uncompress = uncompressPIZ;
-					break;
-
-				case 'PXR24_COMPRESSION':
-					EXRDecoder.blockHeight = 16;
-					EXRDecoder.uncompress = uncompressPXR;
-					break;
-
-				case 'DWAA_COMPRESSION':
-					EXRDecoder.blockHeight = 32;
-					EXRDecoder.uncompress = uncompressDWA;
-					break;
-
-				case 'DWAB_COMPRESSION':
-					EXRDecoder.blockHeight = 256;
-					EXRDecoder.uncompress = uncompressDWA;
-					break;
-
-				default:
-					throw new Error( 'EXRLoader.parse: ' + EXRHeader.compression + ' is unsupported' );
-
-			}
-
-			const channels = {};
-			for ( const channel of EXRHeader.channels ) {
-
-				switch ( channel.name ) {
-
-					case 'Y':
-					case 'R':
-					case 'G':
-					case 'B':
-					case 'A':
-						channels[ channel.name ] = true;
-						EXRDecoder.type = channel.pixelType;
-
-				}
-
-			}
-
-			// RGB images will be converted to RGBA format, preventing software emulation in select devices.
-			let fillAlpha = false;
-
-			if ( channels.R && channels.G && channels.B ) {
-
-				fillAlpha = ! channels.A;
-				EXRDecoder.outputChannels = 4;
-				EXRDecoder.decodeChannels = { R: 0, G: 1, B: 2, A: 3 };
-
-			} else if ( channels.Y ) {
-
-				EXRDecoder.outputChannels = 1;
-				EXRDecoder.decodeChannels = { Y: 0 };
-
-			} else {
-
-				throw new Error( 'EXRLoader.parse: file contains unsupported data channels.' );
-
-			}
-
-			if ( EXRDecoder.type == 1 ) {
-
-				// half
-				switch ( outputType ) {
-
-					case three.FloatType:
-						EXRDecoder.getter = parseFloat16;
-						break;
-
-					case three.HalfFloatType:
-						EXRDecoder.getter = parseUint16;
-						break;
-
-				}
-
-			} else if ( EXRDecoder.type == 2 ) {
-
-				// float
-				switch ( outputType ) {
-
-					case three.FloatType:
-						EXRDecoder.getter = parseFloat32;
-						break;
-
-					case three.HalfFloatType:
-						EXRDecoder.getter = decodeFloat32;
-
-				}
-
-			} else {
-
-				throw new Error( 'EXRLoader.parse: unsupported pixelType ' + EXRDecoder.type + ' for ' + EXRHeader.compression + '.' );
-
-			}
-
-			EXRDecoder.columns = EXRDecoder.width;
-			const size = EXRDecoder.width * EXRDecoder.height * EXRDecoder.outputChannels;
-
-			switch ( outputType ) {
-
-				case three.FloatType:
-					EXRDecoder.byteArray = new Float32Array( size );
-
-					// Fill initially with 1s for the alpha value if the texture is not RGBA, RGB values will be overwritten
-					if ( fillAlpha )
-						EXRDecoder.byteArray.fill( 1, 0, size );
-
-					break;
-
-				case three.HalfFloatType:
-					EXRDecoder.byteArray = new Uint16Array( size );
-
-					if ( fillAlpha )
-						EXRDecoder.byteArray.fill( 0x3C00, 0, size ); // Uint16Array holds half float data, 0x3C00 is 1
-
-					break;
-
-				default:
-					console.error( 'THREE.EXRLoader: unsupported type: ', outputType );
-					break;
-
-			}
-
-			let byteOffset = 0;
-			for ( const channel of EXRHeader.channels ) {
-
-				if ( EXRDecoder.decodeChannels[ channel.name ] !== undefined ) {
-
-					EXRDecoder.channelByteOffsets[ channel.name ] = byteOffset;
-
-				}
-
-				byteOffset += channel.pixelType * 2;
-
-			}
-
-			EXRDecoder.totalBytes = byteOffset;
-			EXRDecoder.outLineWidth = EXRDecoder.width * EXRDecoder.outputChannels;
-
-			if ( EXRHeader.lineOrder === 'INCREASING_Y' ) {
-
-				EXRDecoder.scanOrder = ( y ) => y;
-
-			} else {
-
-				EXRDecoder.scanOrder = ( y ) => EXRDecoder.height - 1 - y;
-
-			}
-
-			if ( EXRDecoder.outputChannels == 4 ) {
-
-				EXRDecoder.format = three.RGBAFormat;
-				EXRDecoder.colorSpace = three.LinearSRGBColorSpace;
-
-			} else {
-
-				EXRDecoder.format = three.RedFormat;
-				EXRDecoder.colorSpace = three.NoColorSpace;
-
-			}
-
-			if ( EXRHeader.spec.singleTile ) {
-
-				EXRDecoder.blockHeight = EXRHeader.tiles.ySize;
-				EXRDecoder.blockWidth = EXRHeader.tiles.xSize;
-
-				const numXLevels = calculateTileLevels( EXRHeader.tiles, EXRDecoder.width, EXRDecoder.height );
-				// const numYLevels = calculateTileLevels( EXRHeader.tiles, EXRDecoder.width, EXRDecoder.height );
-
-				const numXTiles = calculateTiles( numXLevels, EXRDecoder.width, EXRHeader.tiles.xSize, EXRHeader.tiles.roundingMode );
-				const numYTiles = calculateTiles( numXLevels, EXRDecoder.height, EXRHeader.tiles.ySize, EXRHeader.tiles.roundingMode );
-
-				EXRDecoder.tileCount = numXTiles[ 0 ] * numYTiles[ 0 ];
-
-				for ( let l = 0; l < numXLevels; l ++ )
-					for ( let y = 0; y < numYTiles[ l ]; y ++ )
-						for ( let x = 0; x < numXTiles[ l ]; x ++ )
-							parseInt64( dataView, offset ); // tileOffset
-
-				EXRDecoder.decode = parseTiles.bind( EXRDecoder );
-
-			} else {
-
-				EXRDecoder.blockWidth = EXRDecoder.width;
-				const blockCount = Math.ceil( EXRDecoder.height / EXRDecoder.blockHeight );
-
-				for ( let i = 0; i < blockCount; i ++ )
-					parseInt64( dataView, offset ); // scanlineOffset
-
-				EXRDecoder.decode = parseScanline.bind( EXRDecoder );
-
-			}
-
-			return EXRDecoder;
-
-		}
-
-		// start parsing file [START]
-		const offset = { value: 0 };
-		const bufferDataView = new DataView( buffer );
-		const uInt8Array = new Uint8Array( buffer );
-
-		// get header information and validate format.
-		const EXRHeader = parseHeader( bufferDataView, buffer, offset );
-
-		// get input compression information and prepare decoding.
-		const EXRDecoder = setupDecoder( EXRHeader, bufferDataView, uInt8Array, offset, this.type );
-
-		// parse input data
-		EXRDecoder.decode();
-
-		return {
-			header: EXRHeader,
-			width: EXRDecoder.width,
-			height: EXRDecoder.height,
-			data: EXRDecoder.byteArray,
-			format: EXRDecoder.format,
-			colorSpace: EXRDecoder.colorSpace,
-			type: this.type,
-		};
-
-	}
-
-	setDataType( value ) {
-
-		this.type = value;
-		return this;
-
-	}
-
-	load( url, onLoad, onProgress, onError ) {
-
-		function onLoadCallback( texture, texData ) {
-
-			texture.colorSpace = texData.colorSpace;
-			texture.minFilter = three.LinearFilter;
-			texture.magFilter = three.LinearFilter;
-			texture.generateMipmaps = false;
-			texture.flipY = false;
-
-			if ( onLoad ) onLoad( texture, texData );
-
-		}
-
-		return super.load( url, onLoadCallback, onProgress, onError );
-
-	}
-
-}
-
-/**
- * @author Deepkolos / https://github.com/deepkolos
- */
-
-class WorkerPool {
-
-	constructor( pool = 4 ) {
-
-		this.pool = pool;
-		this.queue = [];
-		this.workers = [];
-		this.workersResolve = [];
-		this.workerStatus = 0;
-
-	}
-
-	_initWorker( workerId ) {
-
-		if ( ! this.workers[ workerId ] ) {
-
-			const worker = this.workerCreator();
-			worker.addEventListener( 'message', this._onMessage.bind( this, workerId ) );
-			this.workers[ workerId ] = worker;
-
-		}
-
-	}
-
-	_getIdleWorker() {
-
-		for ( let i = 0; i < this.pool; i ++ )
-			if ( ! ( this.workerStatus & ( 1 << i ) ) ) return i;
-
-		return -1;
-
-	}
-
-	_onMessage( workerId, msg ) {
-
-		const resolve = this.workersResolve[ workerId ];
-		resolve && resolve( msg );
-
-		if ( this.queue.length ) {
-
-			const { resolve, msg, transfer } = this.queue.shift();
-			this.workersResolve[ workerId ] = resolve;
-			this.workers[ workerId ].postMessage( msg, transfer );
-
-		} else {
-
-			this.workerStatus ^= 1 << workerId;
-
-		}
-
-	}
-
-	setWorkerCreator( workerCreator ) {
-
-		this.workerCreator = workerCreator;
-
-	}
-
-	setWorkerLimit( pool ) {
-
-		this.pool = pool;
-
-	}
-
-	postMessage( msg, transfer ) {
-
-		return new Promise( ( resolve ) => {
-
-			const workerId = this._getIdleWorker();
-
-			if ( workerId !== -1 ) {
-
-				this._initWorker( workerId );
-				this.workerStatus |= 1 << workerId;
-				this.workersResolve[ workerId ] = resolve;
-				this.workers[ workerId ].postMessage( msg, transfer );
-
-			} else {
-
-				this.queue.push( { resolve, msg, transfer } );
-
-			}
-
-		} );
-
-	}
-
-	dispose() {
-
-		this.workers.forEach( ( worker ) => worker.terminate() );
-		this.workersResolve.length = 0;
-		this.workers.length = 0;
-		this.queue.length = 0;
-		this.workerStatus = 0;
-
-	}
-
-}
-
-const t=0,n=2,p$1=1,x$1=2,E$2=0,F$2=1,X=10,nt=0,ct=9,gt=15,yt=16,dt=22,Ot=37,Ft=43,$t=76,se=83,pe=97,xe=100,de=103,Ae=109,Sn=165,In=166,_i=1000066e3;class Si{constructor(){this.vkFormat=0,this.typeSize=1,this.pixelWidth=0,this.pixelHeight=0,this.pixelDepth=0,this.layerCount=0,this.faceCount=1,this.supercompressionScheme=0,this.levels=[],this.dataFormatDescriptor=[{vendorId:0,descriptorType:0,descriptorBlockSize:0,versionNumber:2,colorModel:0,colorPrimaries:1,transferFunction:2,flags:0,texelBlockDimension:[0,0,0,0],bytesPlane:[0,0,0,0,0,0,0,0],samples:[]}],this.keyValue={},this.globalData=null;}}class Ii{constructor(t,e,n,i){this._dataView=new DataView(t.buffer,t.byteOffset+e,n),this._littleEndian=i,this._offset=0;}_nextUint8(){const t=this._dataView.getUint8(this._offset);return this._offset+=1,t}_nextUint16(){const t=this._dataView.getUint16(this._offset,this._littleEndian);return this._offset+=2,t}_nextUint32(){const t=this._dataView.getUint32(this._offset,this._littleEndian);return this._offset+=4,t}_nextUint64(){const t=this._dataView.getUint32(this._offset,this._littleEndian)+2**32*this._dataView.getUint32(this._offset+4,this._littleEndian);return this._offset+=8,t}_nextInt32(){const t=this._dataView.getInt32(this._offset,this._littleEndian);return this._offset+=4,t}_skip(t){return this._offset+=t,this}_scan(t,e=0){const n=this._offset;let i=0;for(;this._dataView.getUint8(this._offset)!==e&&i<t;)i++,this._offset++;return i<t&&this._offset++,new Uint8Array(this._dataView.buffer,this._dataView.byteOffset+n,i)}}const Ti=[171,75,84,88,32,50,48,187,13,10,26,10];function Ei(t){return "undefined"!=typeof TextDecoder?(new TextDecoder).decode(t):Buffer.from(t).toString("utf8")}function Pi(t){const e=new Uint8Array(t.buffer,t.byteOffset,Ti.length);if(e[0]!==Ti[0]||e[1]!==Ti[1]||e[2]!==Ti[2]||e[3]!==Ti[3]||e[4]!==Ti[4]||e[5]!==Ti[5]||e[6]!==Ti[6]||e[7]!==Ti[7]||e[8]!==Ti[8]||e[9]!==Ti[9]||e[10]!==Ti[10]||e[11]!==Ti[11])throw new Error("Missing KTX 2.0 identifier.");const n=new Si,i=17*Uint32Array.BYTES_PER_ELEMENT,s=new Ii(t,Ti.length,i,true);n.vkFormat=s._nextUint32(),n.typeSize=s._nextUint32(),n.pixelWidth=s._nextUint32(),n.pixelHeight=s._nextUint32(),n.pixelDepth=s._nextUint32(),n.layerCount=s._nextUint32(),n.faceCount=s._nextUint32();const a=s._nextUint32();n.supercompressionScheme=s._nextUint32();const r=s._nextUint32(),o=s._nextUint32(),l=s._nextUint32(),f=s._nextUint32(),U=s._nextUint64(),c=s._nextUint64(),h=new Ii(t,Ti.length+i,3*a*8,true);for(let e=0;e<a;e++)n.levels.push({levelData:new Uint8Array(t.buffer,t.byteOffset+h._nextUint64(),h._nextUint64()),uncompressedByteLength:h._nextUint64()});const _=new Ii(t,r,o,true),p={vendorId:_._skip(4)._nextUint16(),descriptorType:_._nextUint16(),versionNumber:_._nextUint16(),descriptorBlockSize:_._nextUint16(),colorModel:_._nextUint8(),colorPrimaries:_._nextUint8(),transferFunction:_._nextUint8(),flags:_._nextUint8(),texelBlockDimension:[_._nextUint8(),_._nextUint8(),_._nextUint8(),_._nextUint8()],bytesPlane:[_._nextUint8(),_._nextUint8(),_._nextUint8(),_._nextUint8(),_._nextUint8(),_._nextUint8(),_._nextUint8(),_._nextUint8()],samples:[]},g=(p.descriptorBlockSize/4-6)/4;for(let t=0;t<g;t++){const e={bitOffset:_._nextUint16(),bitLength:_._nextUint8(),channelType:_._nextUint8(),samplePosition:[_._nextUint8(),_._nextUint8(),_._nextUint8(),_._nextUint8()],sampleLower:-Infinity,sampleUpper:Infinity};64&e.channelType?(e.sampleLower=_._nextInt32(),e.sampleUpper=_._nextInt32()):(e.sampleLower=_._nextUint32(),e.sampleUpper=_._nextUint32()),p.samples[t]=e;}n.dataFormatDescriptor.length=0,n.dataFormatDescriptor.push(p);const y=new Ii(t,l,f,true);for(;y._offset<f;){const t=y._nextUint32(),e=y._scan(t),i=Ei(e),s=y._scan(t-e.byteLength);n.keyValue[i]=i.match(/^ktx/i)?Ei(s):s,y._offset%4&&y._skip(4-y._offset%4);}if(c<=0)return n;const x=new Ii(t,U,c,true),u=x._nextUint16(),b=x._nextUint16(),d=x._nextUint32(),m=x._nextUint32(),w=x._nextUint32(),D=x._nextUint32(),B=[];for(let t=0;t<a;t++)B.push({imageFlags:x._nextUint32(),rgbSliceByteOffset:x._nextUint32(),rgbSliceByteLength:x._nextUint32(),alphaSliceByteOffset:x._nextUint32(),alphaSliceByteLength:x._nextUint32()});const L=U+x._offset,A=L+d,k=A+m,v=k+w,S=new Uint8Array(t.buffer,t.byteOffset+L,d),I=new Uint8Array(t.buffer,t.byteOffset+A,m),O=new Uint8Array(t.buffer,t.byteOffset+k,w),T=new Uint8Array(t.buffer,t.byteOffset+v,D);return n.globalData={endpointCount:u,selectorCount:b,imageDescs:B,endpointsData:S,selectorsData:I,tablesData:O,extendedData:T},n}
-
-let A$2,I$2,B$2;const g$1={env:{emscripten_notify_memory_growth:function(A){B$2=new Uint8Array(I$2.exports.memory.buffer);}}};let Q$1 = class Q{init(){return A$2||(A$2="undefined"!=typeof fetch?fetch("data:application/wasm;base64,"+C$2).then(A=>A.arrayBuffer()).then(A=>WebAssembly.instantiate(A,g$1)).then(this._init):WebAssembly.instantiate(Buffer.from(C$2,"base64"),g$1).then(this._init),A$2)}_init(A){I$2=A.instance,g$1.env.emscripten_notify_memory_growth(0);}decode(A,g=0){if(!I$2)throw new Error("ZSTDDecoder: Await .init() before decoding.");const Q=A.byteLength,C=I$2.exports.malloc(Q);B$2.set(A,C),g=g||Number(I$2.exports.ZSTD_findDecompressedSize(C,Q));const E=I$2.exports.malloc(g),i=I$2.exports.ZSTD_decompress(E,g,C,Q),D=B$2.slice(E,E+i);return I$2.exports.free(C),I$2.exports.free(E),D}};const C$2="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IAMNACAEQQNxBEADQCACRQ0FIAAgAkF/aiICaiIDIAEgAmotAAA6AAAgA0EDcQ0ACwsgAkEDTQ0AA0AgACACQXxqIgJqIAEgAmooAgA2AgAgAkEDSw0ACwsgAkUNAgNAIAAgAkF/aiICaiABIAJqLQAAOgAAIAINAAsMAgsgAkEDTQ0AIAIhBANAIAMgASgCADYCACABQQRqIQEgA0EEaiEDIARBfGoiBEEDSw0ACyACQQNxIQILIAJFDQADQCADIAEtAAA6AAAgA0EBaiEDIAFBAWohASACQX9qIgINAAsLIAAL8wICAn8BfgJAIAJFDQAgACACaiIDQX9qIAE6AAAgACABOgAAIAJBA0kNACADQX5qIAE6AAAgACABOgABIANBfWogAToAACAAIAE6AAIgAkEHSQ0AIANBfGogAToAACAAIAE6AAMgAkEJSQ0AIABBACAAa0EDcSIEaiIDIAFB/wFxQYGChAhsIgE2AgAgAyACIARrQXxxIgRqIgJBfGogATYCACAEQQlJDQAgAyABNgIIIAMgATYCBCACQXhqIAE2AgAgAkF0aiABNgIAIARBGUkNACADIAE2AhggAyABNgIUIAMgATYCECADIAE2AgwgAkFwaiABNgIAIAJBbGogATYCACACQWhqIAE2AgAgAkFkaiABNgIAIAQgA0EEcUEYciIEayICQSBJDQAgAa0iBUIghiAFhCEFIAMgBGohAQNAIAEgBTcDGCABIAU3AxAgASAFNwMIIAEgBTcDACABQSBqIQEgAkFgaiICQR9LDQALCyAACy8BAn8gACgCBCAAKAIAQQJ0aiICLQACIQMgACACLwEAIAEgAi0AAxAIajYCACADCy8BAn8gACgCBCAAKAIAQQJ0aiICLQACIQMgACACLwEAIAEgAi0AAxAFajYCACADCx8AIAAgASACKAIEEAg2AgAgARAEGiAAIAJBCGo2AgQLCAAgAGdBH3MLugUBDX8jAEEQayIKJAACfyAEQQNNBEAgCkEANgIMIApBDGogAyAEEAsaIAAgASACIApBDGpBBBAVIgBBbCAAEAMbIAAgACAESxsMAQsgAEEAIAEoAgBBAXRBAmoQECENQVQgAygAACIGQQ9xIgBBCksNABogAiAAQQVqNgIAIAMgBGoiAkF8aiEMIAJBeWohDiACQXtqIRAgAEEGaiELQQQh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ASIDNgLE4AEgACgCvOABIQQgACABNgK84AEgACABIAJqNgK44AEgACABIAQgA2tqNgLA4AELpgEBAX8gACAAKALs4QEQFjYCyOABIABCADcD+OABIABCADcDuOABIABBwOABakIANwMAIABBqNAAaiIBQYyAgOAANgIAIABBADYCmOIBIABCADcDiOEBIABCAzcDgOEBIABBrNABakHgEikCADcCACAAQbTQAWpB6BIoAgA2AgAgACABNgIMIAAgAEGYIGo2AgggACAAQaAwajYCBCAAIABBEGo2AgALYQEBf0G4fyEDAkAgAUEDSQ0AIAIgABAhIgFBA3YiADYCCCACIAFBAXE2AgQgAiABQQF2QQNxIgM2AgACQCADQX9qIgFBAksNAAJAIAFBAWsOAgEAAgtBbA8LIAAhAwsgAwsMACAAIAEgAkEAEC4LiAQCA38CfiADEBYhBCAAQQBBKBAQIQAgBCACSwRAIAQPCyABRQRAQX8PCwJAAkAgA0EBRg0AIAEoAAAiBkGo6r5pRg0AQXYhAyAGQXBxQdDUtMIBRw0BQQghAyACQQhJDQEgAEEAQSgQECEAIAEoAAQhASAAQQE2AhQgACABrTcDAEEADwsgASACIAMQLyIDIAJLDQAgACADNgIYQXIhAyABIARqIgVBf2otAAAiAkEIcQ0AIAJBIHEiBkUEQEFwIQMgBS0AACIFQacBSw0BIAVBB3GtQgEgBUEDdkEKaq2GIgdCA4h+IAd8IQggBEEBaiEECyACQQZ2IQMgAkECdiEFAkAgAkEDcUF/aiICQQJLBEBBACECDAELAkACQAJAIAJBAWsOAgECAAsgASAEai0AACECIARBAWohBAwCCyABIARqLwAAIQIgBEECaiEEDAELIAEgBGooAAAhAiAEQQRqIQQLIAVBAXEhBQJ+AkACQAJAIANBf2oiA0ECTQRAIANBAWsOAgIDAQtCfyAGRQ0DGiABIARqMQAADAMLIAEgBGovAACtQoACfAwCCyABIARqKAAArQwBCyABIARqKQAACyEHIAAgBTYCICAAIAI2AhwgACAHNwMAQQAhAyAAQQA2AhQgACAHIAggBhsiBzcDCCAAIAdCgIAIIAdCgIAIVBs+AhALIAMLWwEBf0G4fyEDIAIQFiICIAFNBH8gACACakF/ai0AACIAQQNxQQJ0QaAeaigC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C0Egak8NAQsgByAHKQNoNwMQIAcgBykDYDcDCCAEIA0gB0EIaiAHQdwAaiAPIA4gESAQEB4hCwwBCyACIARqIQggBCAKEAcgAkERTwRAIARBEGohAgNAIAIgCkEQaiIKEAcgAkEQaiICIAhJDQALCyAIIAlrIQIgByATNgJcIAkgCCAOa0sEQCAJIAggEWtLBEBBbCELDAILIBAgAiAOayICaiIKIANqIBBNBEAgCCAKIAMQDxoMAgsgCCAKQQAgAmsQDyEIIAcgAiADaiIDNgJkIAggAmshCCAOIQILIAlBEE8EQCADIAhqIQMDQCAIIAIQByACQRBqIQIgCEEQaiIIIANJDQALDAELAkAgCUEHTQRAIAggAi0AADoAACAIIAItAAE6AAEgCCACLQACOgACIAggAi0AAzoAAyAIQQRqIAIgCUECdCIDQcAeaigCAGoiAhAXIAIgA0HgHmooAgBrIQIgBygCZCEDDAELIAggAhAMCyADQQlJDQAgAyAIaiEDIAhBCGoiCCACQQhqIgJrQQ9MBEADQCAIIAIQDCACQQhqIQIgCEEIaiIIIANJDQAMAgALAAsDQCAIIAIQByACQRBqIQIgCEEQaiIIIANJDQALCyAHQRhqEAQaIAsgDCALEAMiAhshDCAEIAQgC2ogAhshBCAFQX9qIgUNAAsgDBADDQFBbCEMIAdBGGoQBEECSQ0BQQAhCANAIAhBA0cEQCAAIAhBAnQiAmpBrNABaiACIAdqKAJENgIAIAhBAWohCAwBCwsgBygCXCEIC0G6fyEMIA8gCGsiACANIARrSw0AIAQEfyAEIAggABALIABqBUEACyABayEMCyAHQfAAaiQAIAwLkRcCFn8FfiMAQdABayIHJAAgByAAKALw4QEiCDYCvAEgASACaiESIAggACgCgOIBaiETAkACQCAFRQRAIAEhAwwBCyAAKALE4AEhESAAKALA4AEhFSAAKAK84AEhDyAAQQE2AozhAUEAIQgDQCAIQQNHBEAgByAIQQJ0IgJqIAAgAmpBrNABaigCADYCVCAIQQFqIQgMAQsLIAcgETYCZCAHIA82AmAgByABIA9rNgJoQWwhECAHQShqIAMgBBAGEAMNASAFQQQgBUEESBshFyAHQTxqIAdBKGogACgCABATIAdBxABqIAdBKGogACgCCBATIAdBzABqIAdB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IAdB0AFqJAAgEAslACAAQgA3AgAgAEEAOwEIIABBADoACyAAIAE2AgwgACACOgAKC7QFAQN/IwBBMGsiBCQAIABB/wFqIgVBfWohBgJAIAMvAQIEQCAEQRhqIAEgAhAGIgIQAw0BIARBEGogBEEYaiADEBwgBEEIaiAEQRhqIAMQHCAAIQMDQAJAIARBGGoQBCADIAZPckUEQCADIARBEGogBEEYahASOgAAIAMgBEEIaiAEQRhqEBI6AAEgBEEYahAERQ0BIANBAmohAwsgBUF+aiEFAn8DQEG6fyECIAMiASAFSw0FIAEgBEEQaiAEQRhqEBI6AAAgAUEBaiEDIARBGGoQBEEDRgRAQQIhAiAEQQhqDAILIAMgBUsNBSABIARBCGogBEEYahASOgABIAFBAmohA0EDIQIgBEEYahAEQQNHDQALIARBEGoLIQUgAyAFIARBGGoQEjoAACABIAJqIABrIQIMAwsgAyAEQRBqIARBGGoQEjoAAiADIARBCGogBEEYahASOgADIANBBGohAwwAAAsACyAEQRhqIAEgAhAGIgIQAw0AIARBEGogBEEYaiADEBwgBEEIaiAEQRhqIAMQHCAAIQMDQAJAIARBGGoQBCADIAZPckUEQCADIARBEGogBEEYahAROgAAIAMgBEEIaiAEQRhqEBE6AAEgBEEYahAERQ0BIANBAmohAwsgBUF+aiEFAn8DQEG6fyECIAMiASAFSw0EIAEgBEEQaiAEQRhqEBE6AAAgAUEBaiEDIARBGGoQBEEDRgRAQQIhAiAEQQhqDAILIAMgBUsNBCABIARBCGogBEEYahAROgABIAFBAmohA0EDIQIgBEEYahAEQQNHDQALIARBEGoLIQUgAyAFIARBGGoQEToAACABIAJqIABrIQIMAgsgAyAEQRBqIARBGGoQEToAAiADIARBCGogBEEYahAROgADIANBBGohAwwAAAsACyAEQTBqJAAgAgtpAQF/An8CQAJAIAJBB00NACABKAAAQbfIwuF+Rw0AIAAgASgABDYCmOIBQWIgAEEQaiABIAIQPiIDEAMNAhogAEKBgICAEDcDiOEBIAAgASADaiACIANrECoMAQsgACABIAIQKgtBAAsLrQMBBn8jAEGAAWsiAyQAQWIhCAJAIAJBCUkNACAAQZjQAGogAUEIaiIEIAJBeGogAEGY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wOABCwutAgIEfwF+IwBBQGoiBCQAAkACQCACQQhJDQAgASgAAEFwcUHQ1LTCAUcNACABIAIQIiEBIABCADcDCCAAQQA2AgQgACABNgIADAELIARBGGogASACEC0iAxADBEAgACADEBoMAQsgAwRAIABBuH8QGgwBCyACIAQoAjAiA2shAiABIANqIQMDQAJAIAAgAyACIARBCGoQLCIFEAMEfyAFBSACIAVBA2oiBU8NAUG4fwsQGgwCCyAGQQFqIQYgAiAFayECIAMgBWohAyAEKAIMRQ0ACyAEKAI4BEAgAkEDTQRAIABBuH8QGgwCCyADQQRqIQMLIAQoAighAiAEKQMYIQcgAEEANgIEIAAgAyABazYCACAAIAIgBmytIAcgB0J/URs3AwgLIARBQGskAAslAQF/IwBBEGsiAiQAIAIgACABEFEgAigCACEAIAJBEGokACAAC30BBH8jAEGQBGsiBCQAIARB/wE2AggCQCAEQRBqIARBCGogBEEMaiABIAIQFSIGEAMEQCAGIQUMAQtBVCEFIAQoAgwiB0EGSw0AIAMgBEEQaiAEKAIIIAcQQSIFEAMNACAAIAEgBmogAiAGayADEDwhBQsgBEGQBGokACAFC4cBAgJ/An5BABAWIQMCQANAIAEgA08EQAJAIAAoAABBcHFB0NS0wgFGBEAgACABECIiAhADRQ0BQn4PCyAAIAEQVSIEQn1WDQMgBCAFfCIFIARUIQJCfiEEIAINAyAAIAEQUiICEAMNAwsgASACayEBIAAgAmohAAwBCwtCfiAFIAEbIQQLIAQLPwIBfwF+IwBBMGsiAiQAAn5CfiACQQhqIAAgARAtDQAaQgAgAigCHEEBRg0AGiACKQMICyEDIAJBMGokACADC40BAQJ/IwBBMGsiASQAAkAgAEUNACAAKAKI4gENACABIABB/OEBaigCADYCKCABIAApAvThATcDICAAEDAgACgCqOIBIQIgASABKAIoNgIYIAEgASkDIDcDECACIAFBEGoQGyAAQQA2AqjiASABIAEoAig2AgggASABKQMgNwMAIAAgARAbCyABQTBqJAALKgECfyMAQRBrIgAkACAAQQA2AgggAEIANwMAIAAQWCEBIABBEGokACABC4cBAQN/IwBBEGsiAiQAAkAgACgCAEUgACgCBEVzDQAgAiAAKAIINgIIIAIgACkCADcDAAJ/IAIoAgAiAQRAIAIoAghBqOMJIAERBQAMAQtBqOMJECgLIgFFDQAgASAAKQIANwL04QEgAUH84QFqIAAoAgg2AgAgARBZIAEhAwsgAkEQaiQAIAMLywEBAn8jAEEgayIBJAAgAEGBgIDAADYCtOIBIABBADYCiOIBIABBADYC7OEBIABCADcDkOIBIABBADYCpOMJIABBADYC3OIBIABCADcCzOIBIABBADYCvOIBIABBADYCxOABIABCADcCnOIBIABBpOIBakIANwIAIABBrOIBakEANgIAIAFCADcCECABQgA3AhggASABKQMYNwMIIAEgASkDEDcDACABKAIIQQh2QQFxIQIgAEEANgLg4gEgACACNgKM4gEgAUEgaiQAC3YBA38jAEEwayIBJAAgAARAIAEgAEHE0AFqIgIoAgA2AiggASAAKQK80AE3AyAgACgCACEDIAEgAigCADYCGCABIAApArzQATcDECADIAFBEGoQGyABIAEoAig2AgggASABKQMgNwMAIAAgARAbCyABQTBqJAALzAEBAX8gACABKAK00AE2ApjiASAAIAEoAgQiAjYCwOABIAAgAjYCvOABIAAgAiABKAIIaiICNgK44AEgACACNgLE4AEgASgCuNABBEAgAEKBgICAEDcDiOEBIAAgAUGk0ABqNgIMIAAgAUGUIGo2AgggACABQZwwajYCBCAAIAFBDGo2AgAgAEGs0AFqIAFBqNABaigCADYCACAAQbDQAWogAUGs0AFqKAIANgIAIABBtNABaiABQbDQAWooAgA2AgAPCyAAQgA3A4jhAQs7ACACRQRAQbp/DwsgBEUEQEFsDwsgAiAEEGAEQCAAIAEgAiADIAQgBRBhDwsgACABIAIgAyAEIAUQZQtGAQF/IwBBEGsiBSQAIAVBCGogBBAOAn8gBS0ACQRAIAAgASACIAMgBBAyDAELIAAgASACIAMgBBA0CyEAIAVBEGokACAACzQAIAAgAyAEIAUQNiIFEAMEQCAFDwsgBSAESQR/IAEgAiADIAVqIAQgBWsgABA1BUG4fwsLRgEBfyMAQRBrIgUkACAFQQhqIAQQDgJ/IAUtAAkEQCAAIAEgAiADIAQQYgwBCyAAIAEgAiADIAQQNQshACAFQRBqJAAgAAtZAQF/QQ8hAiABIABJBEAgAUEE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";
-
-const DisplayP3ColorSpace = 'display-p3';
-const LinearDisplayP3ColorSpace = 'display-p3-linear';
-
-/**
- * Loader for KTX 2.0 GPU Texture containers.
- *
- * KTX 2.0 is a container format for various GPU texture formats. The loader
- * supports Basis Universal GPU textures, which can be quickly transcoded to
- * a wide variety of GPU texture compression formats, as well as some
- * uncompressed DataTexture and Data3DTexture formats.
- *
- * References:
- * - KTX: http://github.khronos.org/KTX-Specification/
- * - DFD: https://www.khronos.org/registry/DataFormat/specs/1.3/dataformat.1.3.html#basicdescriptor
- * - BasisU HDR: https://github.com/BinomialLLC/basis_universal/wiki/UASTC-HDR-Texture-Specification-v1.0
- */
-
-
-const _taskCache = new WeakMap();
-
-let _activeLoaders = 0;
-
-let _zstd;
-
-class KTX2Loader extends three.Loader {
-
-	constructor( manager ) {
-
-		super( manager );
-
-		this.transcoderPath = '';
-		this.transcoderBinary = null;
-		this.transcoderPending = null;
-
-		this.workerPool = new WorkerPool();
-		this.workerSourceURL = '';
-		this.workerConfig = null;
-
-		if ( typeof MSC_TRANSCODER !== 'undefined' ) {
-
-			console.warn(
-
-				'THREE.KTX2Loader: Please update to latest "basis_transcoder".'
-				+ ' "msc_basis_transcoder" is no longer supported in three.js r125+.'
-
-			);
-
-		}
-
-	}
-
-	setTranscoderPath( path ) {
-
-		this.transcoderPath = path;
-
-		return this;
-
-	}
-
-	setWorkerLimit( num ) {
-
-		this.workerPool.setWorkerLimit( num );
-
-		return this;
-
-	}
-
-	async detectSupportAsync( renderer ) {
-
-		this.workerConfig = {
-			astcSupported: await renderer.hasFeatureAsync( 'texture-compression-astc' ),
-			astcHDRSupported: false, // https://github.com/gpuweb/gpuweb/issues/3856
-			etc1Supported: await renderer.hasFeatureAsync( 'texture-compression-etc1' ),
-			etc2Supported: await renderer.hasFeatureAsync( 'texture-compression-etc2' ),
-			dxtSupported: await renderer.hasFeatureAsync( 'texture-compression-bc' ),
-			bptcSupported: await renderer.hasFeatureAsync( 'texture-compression-bptc' ),
-			pvrtcSupported: await renderer.hasFeatureAsync( 'texture-compression-pvrtc' )
-		};
-
-		return this;
-
-	}
-
-	detectSupport( renderer ) {
-
-		if ( renderer.isWebGPURenderer === true ) {
-
-			this.workerConfig = {
-				astcSupported: renderer.hasFeature( 'texture-compression-astc' ),
-				astcHDRSupported: false, // https://github.com/gpuweb/gpuweb/issues/3856
-				etc1Supported: renderer.hasFeature( 'texture-compression-etc1' ),
-				etc2Supported: renderer.hasFeature( 'texture-compression-etc2' ),
-				dxtSupported: renderer.hasFeature( 'texture-compression-bc' ),
-				bptcSupported: renderer.hasFeature( 'texture-compression-bptc' ),
-				pvrtcSupported: renderer.hasFeature( 'texture-compression-pvrtc' )
-			};
-
-		} else {
-
-			this.workerConfig = {
-				astcSupported: renderer.extensions.has( 'WEBGL_compressed_texture_astc' ),
-				astcHDRSupported: renderer.extensions.has( 'WEBGL_compressed_texture_astc' )
-					&& renderer.extensions.get( 'WEBGL_compressed_texture_astc' ).getSupportedProfiles().includes( 'hdr' ),
-				etc1Supported: renderer.extensions.has( 'WEBGL_compressed_texture_etc1' ),
-				etc2Supported: renderer.extensions.has( 'WEBGL_compressed_texture_etc' ),
-				dxtSupported: renderer.extensions.has( 'WEBGL_compressed_texture_s3tc' ),
-				bptcSupported: renderer.extensions.has( 'EXT_texture_compression_bptc' ),
-				pvrtcSupported: renderer.extensions.has( 'WEBGL_compressed_texture_pvrtc' )
-					|| renderer.extensions.has( 'WEBKIT_WEBGL_compressed_texture_pvrtc' )
-			};
-
-		}
-
-		return this;
-
-	}
-
-	init() {
-
-		if ( ! this.transcoderPending ) {
-
-			// Load transcoder wrapper.
-			const jsLoader = new three.FileLoader( this.manager );
-			jsLoader.setPath( this.transcoderPath );
-			jsLoader.setWithCredentials( this.withCredentials );
-			const jsContent = jsLoader.loadAsync( 'basis_transcoder.js' );
-
-			// Load transcoder WASM binary.
-			const binaryLoader = new three.FileLoader( this.manager );
-			binaryLoader.setPath( this.transcoderPath );
-			binaryLoader.setResponseType( 'arraybuffer' );
-			binaryLoader.setWithCredentials( this.withCredentials );
-			const binaryContent = binaryLoader.loadAsync( 'basis_transcoder.wasm' );
-
-			this.transcoderPending = Promise.all( [ jsContent, binaryContent ] )
-				.then( ( [ jsContent, binaryContent ] ) => {
-
-					const fn = KTX2Loader.BasisWorker.toString();
-
-					const body = [
-						'/* constants */',
-						'let _EngineFormat = ' + JSON.stringify( KTX2Loader.EngineFormat ),
-						'let _EngineType = ' + JSON.stringify( KTX2Loader.EngineType ),
-						'let _TranscoderFormat = ' + JSON.stringify( KTX2Loader.TranscoderFormat ),
-						'let _BasisFormat = ' + JSON.stringify( KTX2Loader.BasisFormat ),
-						'/* basis_transcoder.js */',
-						jsContent,
-						'/* worker */',
-						fn.substring( fn.indexOf( '{' ) + 1, fn.lastIndexOf( '}' ) )
-					].join( '\n' );
-
-					this.workerSourceURL = URL.createObjectURL( new Blob( [ body ] ) );
-					this.transcoderBinary = binaryContent;
-
-					this.workerPool.setWorkerCreator( () => {
-
-						const worker = new Worker( this.workerSourceURL );
-						const transcoderBinary = this.transcoderBinary.slice( 0 );
-
-						worker.postMessage( { type: 'init', config: this.workerConfig, transcoderBinary }, [ transcoderBinary ] );
-
-						return worker;
-
-					} );
-
-				} );
-
-			if ( _activeLoaders > 0 ) {
-
-				// Each instance loads a transcoder and allocates workers, increasing network and memory cost.
-
-				console.warn(
-
-					'THREE.KTX2Loader: Multiple active KTX2 loaders may cause performance issues.'
-					+ ' Use a single KTX2Loader instance, or call .dispose() on old instances.'
-
-				);
-
-			}
-
-			_activeLoaders ++;
-
-		}
-
-		return this.transcoderPending;
-
-	}
-
-	load( url, onLoad, onProgress, onError ) {
-
-		if ( this.workerConfig === null ) {
-
-			throw new Error( 'THREE.KTX2Loader: Missing initialization with `.detectSupport( renderer )`.' );
-
-		}
-
-		const loader = new three.FileLoader( this.manager );
-
-		loader.setResponseType( 'arraybuffer' );
-		loader.setWithCredentials( this.withCredentials );
-
-		loader.load( url, ( buffer ) => {
-
-			this.parse( buffer, onLoad, onError );
-
-		}, onProgress, onError );
-
-	}
-
-	parse( buffer, onLoad, onError ) {
-
-		if ( this.workerConfig === null ) {
-
-			throw new Error( 'THREE.KTX2Loader: Missing initialization with `.detectSupport( renderer )`.' );
-
-		}
-
-		// Check for an existing task using this buffer. A transferred buffer cannot be transferred
-		// again from this thread.
-		if ( _taskCache.has( buffer ) ) {
-
-			const cachedTask = _taskCache.get( buffer );
-
-			return cachedTask.promise.then( onLoad ).catch( onError );
-
-		}
-
-		this._createTexture( buffer )
-			.then( ( texture ) => onLoad ? onLoad( texture ) : null )
-			.catch( onError );
-
-	}
-
-	_createTextureFrom( transcodeResult, container ) {
-
-		const { type: messageType, error, data: { faces, width, height, format, type, dfdFlags } } = transcodeResult;
-
-		if ( messageType === 'error' ) return Promise.reject( error );
-
-		let texture;
-
-		if ( container.faceCount === 6 ) {
-
-			texture = new three.CompressedCubeTexture( faces, format, type );
-
-		} else {
-
-			const mipmaps = faces[ 0 ].mipmaps;
-
-			texture = container.layerCount > 1
-				? new three.CompressedArrayTexture( mipmaps, width, height, container.layerCount, format, type )
-				: new three.CompressedTexture( mipmaps, width, height, format, type );
-
-		}
-
-		texture.minFilter = faces[ 0 ].mipmaps.length === 1 ? three.LinearFilter : three.LinearMipmapLinearFilter;
-		texture.magFilter = three.LinearFilter;
-		texture.generateMipmaps = false;
-
-		texture.needsUpdate = true;
-		texture.colorSpace = parseColorSpace( container );
-		texture.premultiplyAlpha = !! ( dfdFlags & p$1 );
-
-		return texture;
-
-	}
-
-	/**
-	 * @param {ArrayBuffer} buffer
-	 * @param {?Object} config
-	 * @return {Promise<CompressedTexture|CompressedArrayTexture|DataTexture|Data3DTexture>}
-	 */
-	async _createTexture( buffer, config = {} ) {
-
-		const container = Pi( new Uint8Array( buffer ) );
-
-		// Basis UASTC HDR is a subset of ASTC, which can be transcoded efficiently
-		// to BC6H. To detect whether a KTX2 file uses Basis UASTC HDR, or default
-		// ASTC, inspect the DFD color model.
-		//
-		// Source: https://github.com/BinomialLLC/basis_universal/issues/381
-		const isBasisHDR = container.vkFormat === _i
-			&& container.dataFormatDescriptor[ 0 ].colorModel === 0xA7;
-
-		// If the device supports ASTC, Basis UASTC HDR requires no transcoder.
-		const needsTranscoder = container.vkFormat === nt
-			|| isBasisHDR && ! this.workerConfig.astcHDRSupported;
-
-		if ( ! needsTranscoder ) {
-
-			return createRawTexture( container );
-
-		}
-
-		//
-		const taskConfig = config;
-		const texturePending = this.init().then( () => {
-
-			return this.workerPool.postMessage( { type: 'transcode', buffer, taskConfig: taskConfig }, [ buffer ] );
-
-		} ).then( ( e ) => this._createTextureFrom( e.data, container ) );
-
-		// Cache the task result.
-		_taskCache.set( buffer, { promise: texturePending } );
-
-		return texturePending;
-
-	}
-
-	dispose() {
-
-		this.workerPool.dispose();
-		if ( this.workerSourceURL ) URL.revokeObjectURL( this.workerSourceURL );
-
-		_activeLoaders --;
-
-		return this;
-
-	}
-
-}
-
-
-/* CONSTANTS */
-
-KTX2Loader.BasisFormat = {
-	ETC1S: 0,
-	UASTC: 1,
-	UASTC_HDR: 2,
-};
-
-// Source: https://github.com/BinomialLLC/basis_universal/blob/master/webgl/texture_test/index.html
-KTX2Loader.TranscoderFormat = {
-	ETC1: 0,
-	ETC2: 1,
-	BC1: 2,
-	BC3: 3,
-	BC4: 4,
-	BC5: 5,
-	BC7_M6_OPAQUE_ONLY: 6,
-	BC7_M5: 7,
-	PVRTC1_4_RGB: 8,
-	PVRTC1_4_RGBA: 9,
-	ASTC_4x4: 10,
-	ATC_RGB: 11,
-	ATC_RGBA_INTERPOLATED_ALPHA: 12,
-	RGBA32: 13,
-	RGB565: 14,
-	BGR565: 15,
-	RGBA4444: 16,
-	BC6H: 22,
-	RGB_HALF: 24,
-	RGBA_HALF: 25,
-};
-
-KTX2Loader.EngineFormat = {
-	RGBAFormat: three.RGBAFormat,
-	RGBA_ASTC_4x4_Format: three.RGBA_ASTC_4x4_Format,
-	RGB_BPTC_UNSIGNED_Format: three.RGB_BPTC_UNSIGNED_Format,
-	RGBA_BPTC_Format: three.RGBA_BPTC_Format,
-	RGBA_ETC2_EAC_Format: three.RGBA_ETC2_EAC_Format,
-	RGBA_PVRTC_4BPPV1_Format: three.RGBA_PVRTC_4BPPV1_Format,
-	RGBA_S3TC_DXT5_Format: three.RGBA_S3TC_DXT5_Format,
-	RGB_ETC1_Format: three.RGB_ETC1_Format,
-	RGB_ETC2_Format: three.RGB_ETC2_Format,
-	RGB_PVRTC_4BPPV1_Format: three.RGB_PVRTC_4BPPV1_Format,
-	RGBA_S3TC_DXT1_Format: three.RGBA_S3TC_DXT1_Format,
-};
-
-KTX2Loader.EngineType = {
-	UnsignedByteType: three.UnsignedByteType,
-	HalfFloatType: three.HalfFloatType,
-	FloatType: three.FloatType,
-};
-
-/* WEB WORKER */
-
-KTX2Loader.BasisWorker = function () {
-
-	let config;
-	let transcoderPending;
-	let BasisModule;
-
-	const EngineFormat = _EngineFormat; // eslint-disable-line no-undef
-	const EngineType = _EngineType; // eslint-disable-line no-undef
-	const TranscoderFormat = _TranscoderFormat; // eslint-disable-line no-undef
-	const BasisFormat = _BasisFormat; // eslint-disable-line no-undef
-
-	self.addEventListener( 'message', function ( e ) {
-
-		const message = e.data;
-
-		switch ( message.type ) {
-
-			case 'init':
-				config = message.config;
-				init( message.transcoderBinary );
-				break;
-
-			case 'transcode':
-				transcoderPending.then( () => {
-
-					try {
-
-						const { faces, buffers, width, height, hasAlpha, format, type, dfdFlags } = transcode( message.buffer );
-
-						self.postMessage( { type: 'transcode', id: message.id, data: { faces, width, height, hasAlpha, format, type, dfdFlags } }, buffers );
-
-					} catch ( error ) {
-
-						console.error( error );
-
-						self.postMessage( { type: 'error', id: message.id, error: error.message } );
-
-					}
-
-				} );
-				break;
-
-		}
-
-	} );
-
-	function init( wasmBinary ) {
-
-		transcoderPending = new Promise( ( resolve ) => {
-
-			BasisModule = { wasmBinary, onRuntimeInitialized: resolve };
-			BASIS( BasisModule ); // eslint-disable-line no-undef
-
-		} ).then( () => {
-
-			BasisModule.initializeBasis();
-
-			if ( BasisModule.KTX2File === undefined ) {
-
-				console.warn( 'THREE.KTX2Loader: Please update Basis Universal transcoder.' );
-
-			}
-
-		} );
-
-	}
-
-	function transcode( buffer ) {
-
-		const ktx2File = new BasisModule.KTX2File( new Uint8Array( buffer ) );
-
-		function cleanup() {
-
-			ktx2File.close();
-			ktx2File.delete();
-
-		}
-
-		if ( ! ktx2File.isValid() ) {
-
-			cleanup();
-			throw new Error( 'THREE.KTX2Loader:	Invalid or unsupported .ktx2 file' );
-
-		}
-
-		let basisFormat;
-
-		if ( ktx2File.isUASTC() ) {
-
-			basisFormat = BasisFormat.UASTC;
-
-		} else if ( ktx2File.isETC1S() ) {
-
-			basisFormat = BasisFormat.ETC1S;
-
-		} else if ( ktx2File.isHDR() ) {
-
-			basisFormat = BasisFormat.UASTC_HDR;
-
-		} else {
-
-			throw new Error( 'THREE.KTX2Loader: Unknown Basis encoding' );
-
-		}
-
-		const width = ktx2File.getWidth();
-		const height = ktx2File.getHeight();
-		const layerCount = ktx2File.getLayers() || 1;
-		const levelCount = ktx2File.getLevels();
-		const faceCount = ktx2File.getFaces();
-		const hasAlpha = ktx2File.getHasAlpha();
-		const dfdFlags = ktx2File.getDFDFlags();
-
-		const { transcoderFormat, engineFormat, engineType } = getTranscoderFormat( basisFormat, width, height, hasAlpha );
-
-		if ( ! width || ! height || ! levelCount ) {
-
-			cleanup();
-			throw new Error( 'THREE.KTX2Loader:	Invalid texture' );
-
-		}
-
-		if ( ! ktx2File.startTranscoding() ) {
-
-			cleanup();
-			throw new Error( 'THREE.KTX2Loader: .startTranscoding failed' );
-
-		}
-
-		const faces = [];
-		const buffers = [];
-
-		for ( let face = 0; face < faceCount; face ++ ) {
-
-			const mipmaps = [];
-
-			for ( let mip = 0; mip < levelCount; mip ++ ) {
-
-				const layerMips = [];
-
-				let mipWidth, mipHeight;
-
-				for ( let layer = 0; layer < layerCount; layer ++ ) {
-
-					const levelInfo = ktx2File.getImageLevelInfo( mip, layer, face );
-
-					if ( face === 0 && mip === 0 && layer === 0 && ( levelInfo.origWidth % 4 !== 0 || levelInfo.origHeight % 4 !== 0 ) ) {
-
-						console.warn( 'THREE.KTX2Loader: ETC1S and UASTC textures should use multiple-of-four dimensions.' );
-
-					}
-
-					if ( levelCount > 1 ) {
-
-						mipWidth = levelInfo.origWidth;
-						mipHeight = levelInfo.origHeight;
-
-					} else {
-
-						// Handles non-multiple-of-four dimensions in textures without mipmaps. Textures with
-						// mipmaps must use multiple-of-four dimensions, for some texture formats and APIs.
-						// See mrdoob/three.js#25908.
-						mipWidth = levelInfo.width;
-						mipHeight = levelInfo.height;
-
-					}
-
-					let dst = new Uint8Array( ktx2File.getImageTranscodedSizeInBytes( mip, layer, 0, transcoderFormat ) );
-					const status = ktx2File.transcodeImage( dst, mip, layer, face, transcoderFormat, 0, -1, -1 );
-
-					if ( engineType === EngineType.HalfFloatType ) {
-
-						dst = new Uint16Array( dst.buffer, dst.byteOffset, dst.byteLength / Uint16Array.BYTES_PER_ELEMENT );
-
-					}
-
-					if ( ! status ) {
-
-						cleanup();
-						throw new Error( 'THREE.KTX2Loader: .transcodeImage failed.' );
-
-					}
-
-					layerMips.push( dst );
-
-				}
-
-				const mipData = concat( layerMips );
-
-				mipmaps.push( { data: mipData, width: mipWidth, height: mipHeight } );
-				buffers.push( mipData.buffer );
-
-			}
-
-			faces.push( { mipmaps, width, height, format: engineFormat, type: engineType } );
-
-		}
-
-		cleanup();
-
-		return { faces, buffers, width, height, hasAlpha, dfdFlags, format: engineFormat, type: engineType };
-
-	}
-
-	//
-
-	// Optimal choice of a transcoder target format depends on the Basis format (ETC1S, UASTC, or
-	// UASTC HDR), device capabilities, and texture dimensions. The list below ranks the formats
-	// separately for each format. Currently, priority is assigned based on:
-	//
-	//   high quality > low quality > uncompressed
-	//
-	// Prioritization may be revisited, or exposed for configuration, in the future.
-	//
-	// Reference: https://github.com/KhronosGroup/3D-Formats-Guidelines/blob/main/KTXDeveloperGuide.md
-	const FORMAT_OPTIONS = [
-		{
-			if: 'astcSupported',
-			basisFormat: [ BasisFormat.UASTC ],
-			transcoderFormat: [ TranscoderFormat.ASTC_4x4, TranscoderFormat.ASTC_4x4 ],
-			engineFormat: [ EngineFormat.RGBA_ASTC_4x4_Format, EngineFormat.RGBA_ASTC_4x4_Format ],
-			engineType: [ EngineType.UnsignedByteType ],
-			priorityETC1S: Infinity,
-			priorityUASTC: 1,
-			needsPowerOfTwo: false,
-		},
-		{
-			if: 'bptcSupported',
-			basisFormat: [ BasisFormat.ETC1S, BasisFormat.UASTC ],
-			transcoderFormat: [ TranscoderFormat.BC7_M5, TranscoderFormat.BC7_M5 ],
-			engineFormat: [ EngineFormat.RGBA_BPTC_Format, EngineFormat.RGBA_BPTC_Format ],
-			engineType: [ EngineType.UnsignedByteType ],
-			priorityETC1S: 3,
-			priorityUASTC: 2,
-			needsPowerOfTwo: false,
-		},
-		{
-			if: 'dxtSupported',
-			basisFormat: [ BasisFormat.ETC1S, BasisFormat.UASTC ],
-			transcoderFormat: [ TranscoderFormat.BC1, TranscoderFormat.BC3 ],
-			engineFormat: [ EngineFormat.RGBA_S3TC_DXT1_Format, EngineFormat.RGBA_S3TC_DXT5_Format ],
-			engineType: [ EngineType.UnsignedByteType ],
-			priorityETC1S: 4,
-			priorityUASTC: 5,
-			needsPowerOfTwo: false,
-		},
-		{
-			if: 'etc2Supported',
-			basisFormat: [ BasisFormat.ETC1S, BasisFormat.UASTC ],
-			transcoderFormat: [ TranscoderFormat.ETC1, TranscoderFormat.ETC2 ],
-			engineFormat: [ EngineFormat.RGB_ETC2_Format, EngineFormat.RGBA_ETC2_EAC_Format ],
-			engineType: [ EngineType.UnsignedByteType ],
-			priorityETC1S: 1,
-			priorityUASTC: 3,
-			needsPowerOfTwo: false,
-		},
-		{
-			if: 'etc1Supported',
-			basisFormat: [ BasisFormat.ETC1S, BasisFormat.UASTC ],
-			transcoderFormat: [ TranscoderFormat.ETC1 ],
-			engineFormat: [ EngineFormat.RGB_ETC1_Format ],
-			engineType: [ EngineType.UnsignedByteType ],
-			priorityETC1S: 2,
-			priorityUASTC: 4,
-			needsPowerOfTwo: false,
-		},
-		{
-			if: 'pvrtcSupported',
-			basisFormat: [ BasisFormat.ETC1S, BasisFormat.UASTC ],
-			transcoderFormat: [ TranscoderFormat.PVRTC1_4_RGB, TranscoderFormat.PVRTC1_4_RGBA ],
-			engineFormat: [ EngineFormat.RGB_PVRTC_4BPPV1_Format, EngineFormat.RGBA_PVRTC_4BPPV1_Format ],
-			engineType: [ EngineType.UnsignedByteType ],
-			priorityETC1S: 5,
-			priorityUASTC: 6,
-			needsPowerOfTwo: true,
-		},
-		{
-			if: 'bptcSupported',
-			basisFormat: [ BasisFormat.UASTC_HDR ],
-			transcoderFormat: [ TranscoderFormat.BC6H ],
-			engineFormat: [ EngineFormat.RGB_BPTC_UNSIGNED_Format ],
-			engineType: [ EngineType.HalfFloatType ],
-			priorityHDR: 1,
-			needsPowerOfTwo: false,
-		},
-
-		// Uncompressed fallbacks.
-
-		{
-			basisFormat: [ BasisFormat.ETC1S, BasisFormat.UASTC ],
-			transcoderFormat: [ TranscoderFormat.RGBA32, TranscoderFormat.RGBA32 ],
-			engineFormat: [ EngineFormat.RGBAFormat, EngineFormat.RGBAFormat ],
-			engineType: [ EngineType.UnsignedByteType, EngineType.UnsignedByteType ],
-			priorityETC1S: 100,
-			priorityUASTC: 100,
-			needsPowerOfTwo: false,
-		},
-		{
-			basisFormat: [ BasisFormat.UASTC_HDR ],
-			transcoderFormat: [ TranscoderFormat.RGBA_HALF ],
-			engineFormat: [ EngineFormat.RGBAFormat ],
-			engineType: [ EngineType.HalfFloatType ],
-			priorityHDR: 100,
-			needsPowerOfTwo: false,
-		}
-	];
-
-	const OPTIONS = {
-		// TODO: For ETC1S we intentionally sort by _UASTC_ priority, preserving
-		// a historical accident shown to avoid performance pitfalls for Linux with
-		// Firefox & AMD GPU (RadeonSI). Further work needed.
-		// See https://github.com/mrdoob/three.js/pull/29730.
-		[ BasisFormat.ETC1S ]: FORMAT_OPTIONS
-			.filter( ( opt ) => opt.basisFormat.includes( BasisFormat.ETC1S ) )
-			.sort( ( a, b ) => a.priorityUASTC - b.priorityUASTC ),
-
-		[ BasisFormat.UASTC ]: FORMAT_OPTIONS
-			.filter( ( opt ) => opt.basisFormat.includes( BasisFormat.UASTC ) )
-			.sort( ( a, b ) => a.priorityUASTC - b.priorityUASTC ),
-
-		[ BasisFormat.UASTC_HDR ]: FORMAT_OPTIONS
-			.filter( ( opt ) => opt.basisFormat.includes( BasisFormat.UASTC_HDR ) )
-			.sort( ( a, b ) => a.priorityHDR - b.priorityHDR ),
-	};
-
-	function getTranscoderFormat( basisFormat, width, height, hasAlpha ) {
-
-		const options = OPTIONS[ basisFormat ];
-
-		for ( let i = 0; i < options.length; i ++ ) {
-
-			const opt = options[ i ];
-
-			if ( opt.if && ! config[ opt.if ] ) continue;
-			if ( ! opt.basisFormat.includes( basisFormat ) ) continue;
-			if ( hasAlpha && opt.transcoderFormat.length < 2 ) continue;
-			if ( opt.needsPowerOfTwo && ! ( isPowerOfTwo( width ) && isPowerOfTwo( height ) ) ) continue;
-
-			const transcoderFormat = opt.transcoderFormat[ hasAlpha ? 1 : 0 ];
-			const engineFormat = opt.engineFormat[ hasAlpha ? 1 : 0 ];
-			const engineType = opt.engineType[ 0 ];
-
-			return { transcoderFormat, engineFormat, engineType };
-
-		}
-
-		throw new Error( 'THREE.KTX2Loader: Failed to identify transcoding target.' );
-
-	}
-
-	function isPowerOfTwo( value ) {
-
-		if ( value <= 2 ) return true;
-
-		return ( value & ( value - 1 ) ) === 0 && value !== 0;
-
-	}
-
-	/**
-	 * Concatenates N byte arrays.
-	 *
-	 * @param {Uint8Array[]} arrays
-	 * @return {Uint8Array}
-	 */
-	function concat( arrays ) {
-
-		if ( arrays.length === 1 ) return arrays[ 0 ];
-
-		let totalByteLength = 0;
-
-		for ( let i = 0; i < arrays.length; i ++ ) {
-
-			const array = arrays[ i ];
-			totalByteLength += array.byteLength;
-
-		}
-
-		const result = new Uint8Array( totalByteLength );
-
-		let byteOffset = 0;
-
-		for ( let i = 0; i < arrays.length; i ++ ) {
-
-			const array = arrays[ i ];
-			result.set( array, byteOffset );
-
-			byteOffset += array.byteLength;
-
-		}
-
-		return result;
-
-	}
-
-};
-
-// Parsing for non-Basis textures. These textures may have supercompression
-// like Zstd, but they do not require transcoding.
-
-const UNCOMPRESSED_FORMATS = new Set( [ three.RGBAFormat, three.RGFormat, three.RedFormat ] );
-
-const FORMAT_MAP = {
-
-	[ Ae ]: three.RGBAFormat,
-	[ pe ]: three.RGBAFormat,
-	[ Ot ]: three.RGBAFormat,
-	[ Ft ]: three.RGBAFormat,
-
-	[ de ]: three.RGFormat,
-	[ se ]: three.RGFormat,
-	[ yt ]: three.RGFormat,
-	[ dt ]: three.RGFormat,
-
-	[ xe ]: three.RedFormat,
-	[ $t ]: three.RedFormat,
-	[ gt ]: three.RedFormat,
-	[ ct ]: three.RedFormat,
-
-	[ _i ]: three.RGBA_ASTC_4x4_Format,
-	[ In ]: three.RGBA_ASTC_6x6_Format,
-	[ Sn ]: three.RGBA_ASTC_6x6_Format,
-
-};
-
-const TYPE_MAP = {
-
-	[ Ae ]: three.FloatType,
-	[ pe ]: three.HalfFloatType,
-	[ Ot ]: three.UnsignedByteType,
-	[ Ft ]: three.UnsignedByteType,
-
-	[ de ]: three.FloatType,
-	[ se ]: three.HalfFloatType,
-	[ yt ]: three.UnsignedByteType,
-	[ dt ]: three.UnsignedByteType,
-
-	[ xe ]: three.FloatType,
-	[ $t ]: three.HalfFloatType,
-	[ gt ]: three.UnsignedByteType,
-	[ ct ]: three.UnsignedByteType,
-
-	[ _i ]: three.HalfFloatType,
-	[ In ]: three.UnsignedByteType,
-	[ Sn ]: three.UnsignedByteType,
-
-};
-
-async function createRawTexture( container ) {
-
-	const { vkFormat } = container;
-
-	if ( FORMAT_MAP[ vkFormat ] === undefined ) {
-
-		throw new Error( 'THREE.KTX2Loader: Unsupported vkFormat.' );
-
-	}
-
-	//
-
-	let zstd;
-
-	if ( container.supercompressionScheme === n ) {
-
-		if ( ! _zstd ) {
-
-			_zstd = new Promise( async ( resolve ) => {
-
-				const zstd = new Q$1();
-				await zstd.init();
-				resolve( zstd );
-
-			} );
-
-		}
-
-		zstd = await _zstd;
-
-	}
-
-	//
-
-	const mipmaps = [];
-
-
-	for ( let levelIndex = 0; levelIndex < container.levels.length; levelIndex ++ ) {
-
-		const levelWidth = Math.max( 1, container.pixelWidth >> levelIndex );
-		const levelHeight = Math.max( 1, container.pixelHeight >> levelIndex );
-		const levelDepth = container.pixelDepth ? Math.max( 1, container.pixelDepth >> levelIndex ) : 0;
-
-		const level = container.levels[ levelIndex ];
-
-		let levelData;
-
-		if ( container.supercompressionScheme === t ) {
-
-			levelData = level.levelData;
-
-		} else if ( container.supercompressionScheme === n ) {
-
-			levelData = zstd.decode( level.levelData, level.uncompressedByteLength );
-
-		} else {
-
-			throw new Error( 'THREE.KTX2Loader: Unsupported supercompressionScheme.' );
-
-		}
-
-		let data;
-
-		if ( TYPE_MAP[ vkFormat ] === three.FloatType ) {
-
-			data = new Float32Array(
-
-				levelData.buffer,
-				levelData.byteOffset,
-				levelData.byteLength / Float32Array.BYTES_PER_ELEMENT
-
-			);
-
-		} else if ( TYPE_MAP[ vkFormat ] === three.HalfFloatType ) {
-
-			data = new Uint16Array(
-
-				levelData.buffer,
-				levelData.byteOffset,
-				levelData.byteLength / Uint16Array.BYTES_PER_ELEMENT
-
-			);
-
-		} else {
-
-			data = levelData;
-
-		}
-
-		mipmaps.push( {
-
-			data: data,
-			width: levelWidth,
-			height: levelHeight,
-			depth: levelDepth,
-
-		} );
-
-	}
-
-	let texture;
-
-	if ( UNCOMPRESSED_FORMATS.has( FORMAT_MAP[ vkFormat ] ) ) {
-
-		texture = container.pixelDepth === 0
-			? new three.DataTexture( mipmaps[ 0 ].data, container.pixelWidth, container.pixelHeight )
-			: new three.Data3DTexture( mipmaps[ 0 ].data, container.pixelWidth, container.pixelHeight, container.pixelDepth );
-
-	} else {
-
-		if ( container.pixelDepth > 0 ) throw new Error( 'THREE.KTX2Loader: Unsupported pixelDepth.' );
-
-		texture = new three.CompressedTexture( mipmaps, container.pixelWidth, container.pixelHeight );
-
-		texture.minFilter = mipmaps.length === 1 ? three.LinearFilter : three.LinearMipmapLinearFilter;
-		texture.magFilter = three.LinearFilter;
-
-	}
-
-	texture.mipmaps = mipmaps;
-
-	texture.type = TYPE_MAP[ vkFormat ];
-	texture.format = FORMAT_MAP[ vkFormat ];
-	texture.colorSpace = parseColorSpace( container );
-	texture.needsUpdate = true;
-
-	//
-
-	return Promise.resolve( texture );
-
-}
-
-function parseColorSpace( container ) {
-
-	const dfd = container.dataFormatDescriptor[ 0 ];
-
-	if ( dfd.colorPrimaries === F$2 ) {
-
-		return dfd.transferFunction === x$1 ? three.SRGBColorSpace : three.LinearSRGBColorSpace;
-
-	} else if ( dfd.colorPrimaries === X ) {
-
-		return dfd.transferFunction === x$1 ? DisplayP3ColorSpace : LinearDisplayP3ColorSpace;
-
-	} else if ( dfd.colorPrimaries === E$2 ) {
-
-		return three.NoColorSpace;
-
-	} else {
-
-		console.warn( `THREE.KTX2Loader: Unsupported color primaries, "${ dfd.colorPrimaries }"` );
-		return three.NoColorSpace;
-
-	}
-
-}
-
-var lzma = function(){var pp, n0 = 0x10000000000000000, n1 = 4294967295, n2 = 2147483647, n3 = 2147483648;
-function r(e,r){pp({action:nr,cbn:r,result:e});}function o(e){var r=[];return r[e-1]=void 0,r}function n(e,r){return i(e[0]+r[0],e[1]+r[1])}
-function t(e,r){var o,n;return e[0]==r[0]&&e[1]==r[1]?0:(o=0>e[1],n=0>r[1],o&&!n?-1:!o&&n?1:d(e,r)[1]<0?-1:1)}
-function i(e,r){var o,n;for(r%=n0,e%=n0,o=r%ir,n=Math.floor(e/ir)*ir,r=r-o+n,e=e-n+o;0>e;)e+=ir,r-=ir;for(;e>n1;)e-=ir,r+=ir;for(r%=n0;r>0x7fffffff00000000;)r-=n0;for(;-18446744073709552e3>r;)r+=n0;return [e,r]}
-function u(e){return e>=0?[e,0]:[e+ir,-4294967296]}function s(e){return e[0]>=n3?~~Math.max(Math.min(e[0]-ir,n2),-2147483648):~~Math.max(Math.min(e[0],n2),-2147483648)}function d(e,r){return i(e[0]-r[0],e[1]-r[1])}
-function c(e,r){return e.ab=r,e.cb=0,e.O=r.length,e}function m(e){return e.cb>=e.O?-1:255&e.ab[e.cb++]}function a(e){return e.ab=o(32),e.O=0,e}function _(e){var r=e.ab;return r.length=e.O,r}
-function f(e,r,o,n){p(r,o,e.ab,e.O,n),e.O+=n;}function p(e,r,o,n,t){for(var i=0;t>i;++i)o[n+i]=e[r+i];}
-function D(e,r,o){var n,t,i,s,d="",c=[];for(t=0;5>t;++t){if(i=m(r),-1==i)throw Error("truncated input");c[t]=i<<24>>24;}if(n=N({}),!z(n,c))throw Error("corrupted input");
-for(t=0;64>t;t+=8){if(i=m(r),-1==i)throw Error("truncated input");i=i.toString(16),1==i.length&&(i="0"+i),d=i+""+d;}/^0+$|^f+$/i.test(d)?e.N=ur:(s=parseInt(d,16),e.N=s>n1?ur:u(s)),e.Q=B(n,r,o,e.N);}
-function l(e,r){return e.S=a({}),D(e,c({},r),e.S),e}function g(e,r,o){var n=e.D-r-1;for(0>n&&(n+=e.c);0!=o;--o)n>=e.c&&(n=0),e.x[e.D++]=e.x[n++],e.D>=e.c&&w(e);}
-function v(e,r){(null==e.x||e.c!=r)&&(e.x=o(r)),e.c=r,e.D=0,e.w=0;}function w(e){var r=e.D-e.w;r&&(f(e.V,e.x,e.w,r),e.D>=e.c&&(e.D=0),e.w=e.D);}
-function R(e,r){var o=e.D-r-1;return 0>o&&(o+=e.c),e.x[o]}function h(e,r){e.x[e.D++]=r,e.D>=e.c&&w(e);}function P(e){w(e),e.V=null;}function C(e){return e-=2,4>e?e:3}
-function S(e){return 4>e?0:10>e?e-3:e-6}function M(e,r){return e.h=r,e.bb=null,e.X=1,e}function L(e){if(!e.X)throw Error("bad state");if(e.bb)throw Error("No encoding");return y(e),e.X}
-function y(e){var r=I(e.h);if(-1==r)throw Error("corrupted input");e.$=ur,e.Z=e.h.d,(r||t(e.h.U,sr)>=0&&t(e.h.d,e.h.U)>=0)&&(w(e.h.b),P(e.h.b),e.h.a.K=null,e.X=0);}
-function B(e,r,o,n){return e.a.K=r,P(e.b),e.b.V=o,b(e),e.f=0,e.l=0,e.T=0,e.R=0,e._=0,e.U=n,e.d=sr,e.I=0,M({},e)}
-function I(e){ var r,o,i,d,c,m;if(m=s(e.d)&e.P,Q(e.a,e.q,(e.f<<4)+m)){if(Q(e.a,e.E,e.f))i=0,
-Q(e.a,e.s,e.f)?(Q(e.a,e.u,e.f)?(Q(e.a,e.r,e.f)?(o=e._,e._=e.R):o=e.R,e.R=e.T):o=e.T,e.T=e.l,e.l=o):Q(e.a,e.n,(e.f<<4)+m)||(e.f=7>e.f?9:11,i=1),
-i||(i=x(e.o,e.a,m)+2,e.f=7>e.f?8:11);else if(e._=e.R,e.R=e.T,e.T=e.l,i=2+x(e.C,e.a,m),e.f=7>e.f?7:10,c=q(e.j[C(i)],e.a),c>=4){if(d=(c>>1)-1,e.l=(2|1&c)<<d,14>c)e.l+=J(e.J,e.l-c-1,e.a,d);
-else if(e.l+=U(e.a,d-4)<<4,e.l+=F(e.t,e.a),0>e.l)return  -1==e.l?1:-1}else e.l=c;if(t(u(e.l),e.d)>=0||e.l>=e.m)return  -1;
-g(e.b,e.l,i),e.d=n(e.d,u(i)),e.I=R(e.b,0);}else r=Z(e.k,s(e.d),e.I),e.I=7>e.f?T(r,e.a):$(r,e.a,R(e.b,e.l)),h(e.b,e.I),e.f=S(e.f),e.d=n(e.d,dr);return 0}
-function N(e){e.b={},e.a={},e.q=o(192),e.E=o(12),e.s=o(12),e.u=o(12),e.r=o(12),e.n=o(192),e.j=o(4),e.J=o(114),e.t=K({},4),e.C=G({}),e.o=G({}),e.k={};for(var r=0;4>r;++r)e.j[r]=K({},6);return e}
-function b(e){e.b.w=0,e.b.D=0,X(e.q),X(e.n),X(e.E),X(e.s),X(e.u),X(e.r),X(e.J),H(e.k);for(var r=0;4>r;++r)X(e.j[r].B);A(e.C),A(e.o),X(e.t.B),V(e.a);}
-function z(e,r){var o,n,t,i,u,s,d;if(5>r.length)return 0;for(d=255&r[0],t=d%9,s=~~(d/9),i=s%5,u=~~(s/5),o=0,n=0;4>n;++n)o+=(255&r[1+n])<<8*n;return o>99999999||!W(e,t,i,u)?0:O(e,o)}
-function O(e,r){return 0>r?0:(e.z!=r&&(e.z=r,e.m=Math.max(e.z,1),v(e.b,Math.max(e.m,4096))),1)}
-function W(e,r,o,n){if(r>8||o>4||n>4)return 0;E(e.k,o,r);var t=1<<n;return k(e.C,t),k(e.o,t),e.P=t-1,1}function k(e,r){for(;r>e.e;++e.e)e.G[e.e]=K({},3),e.H[e.e]=K({},3);}
-function x(e,r,o){if(!Q(r,e.M,0))return q(e.G[o],r);var n=8;return n+=Q(r,e.M,1)?8+q(e.L,r):q(e.H[o],r)}function G(e){return e.M=o(2),e.G=o(16),e.H=o(16),e.L=K({},8),e.e=0,e}
-function A(e){X(e.M);for(var r=0;e.e>r;++r)X(e.G[r].B),X(e.H[r].B);X(e.L.B);}
-function E(e,r,n){var t,i;if(null==e.F||e.g!=n||e.y!=r)for(e.y=r,e.Y=(1<<r)-1,e.g=n,i=1<<e.g+e.y,e.F=o(i),t=0;i>t;++t)e.F[t]=j({});}
-function Z(e,r,o){return e.F[((r&e.Y)<<e.g)+((255&o)>>>8-e.g)]}function H(e){var r,o;for(o=1<<e.g+e.y,r=0;o>r;++r)X(e.F[r].v);}
-function T(e,r){var o=1;do o=o<<1|Q(r,e.v,o);while(256>o);return o<<24>>24}
-function $(e,r,o){var n,t,i=1;do if(t=o>>7&1,o<<=1,n=Q(r,e.v,(1+t<<8)+i),i=i<<1|n,t!=n){for(;256>i;)i=i<<1|Q(r,e.v,i);break}while(256>i);return i<<24>>24}
-function j(e){return e.v=o(768),e}function K(e,r){return e.A=r,e.B=o(1<<r),e}function q(e,r){var o,n=1;for(o=e.A;0!=o;--o)n=(n<<1)+Q(r,e.B,n);return n-(1<<e.A)}
-function F(e,r){var o,n,t=1,i=0;for(n=0;e.A>n;++n)o=Q(r,e.B,t),t<<=1,t+=o,i|=o<<n;return i}function J(e,r,o,n){var t,i,u=1,s=0;for(i=0;n>i;++i)t=Q(o,e,r+u),u<<=1,u+=t,s|=t<<i;return s}
-function Q(e,r,o){var n,t=r[o];return n=(e.i>>>11)*t,(-2147483648^n)>(-2147483648^e.p)?(e.i=n,r[o]=t+(2048-t>>>5)<<16>>16,-16777216&e.i||(e.p=e.p<<8|m(e.K),e.i<<=8),0):(e.i-=n,e.p-=n,r[o]=t-(t>>>5)<<16>>16,
--16777216&e.i||(e.p=e.p<<8|m(e.K),e.i<<=8),1)}
-function U(e,r){var o,n,t=0;for(o=r;0!=o;--o)e.i>>>=1,n=e.p-e.i>>>31,e.p-=e.i&n-1,t=t<<1|1-n,-16777216&e.i||(e.p=e.p<<8|m(e.K),e.i<<=8);return t}
-function V(e){e.p=0,e.i=-1;for(var r=0;5>r;++r)e.p=e.p<<8|m(e.K);}function X(e){for(var r=e.length-1;r>=0;--r)e[r]=1024;}
-function Y(e){ for(var r,o,n,t=0,i=0,u=e.length,s=[],d=[];u>t;++t,++i){
-if(r=255&e[t],128&r)if(192==(224&r)){if(t+1>=u)return e;if(o=255&e[++t],128!=(192&o))return e;d[i]=(31&r)<<6|63&o;}else {if(224!=(240&r))return e;if(t+2>=u)return e;
-if(o=255&e[++t],128!=(192&o))return e;if(n=255&e[++t],128!=(192&n))return e;d[i]=(15&r)<<12|(63&o)<<6|63&n;}else {if(!r)return e;
-d[i]=r;}16383==i&&(s.push(String.fromCharCode.apply(String,d)),i=-1);}return i>0&&(d.length=i,s.push(String.fromCharCode.apply(String,d))),s.join("")}
-function er(e){return e[1]+e[0]}
-function rr(e,o,n){function t(){try{for(var e,r=0,u=(new Date).getTime();L(c.d.Q);)if(++r%1e3==0&&(new Date).getTime()-u>200)return s&&(i=er(c.d.Q.h.d)/d,n(i)),tr(t,0),0;
-n(1),e=Y(_(c.d.S)),tr(o.bind(null,e),0);}catch(m){o(null,m);}} var i,u,s,d,c={},m=void 0===o&&void 0===n;
-if("function"!=typeof o&&(u=o,o=n=0),n=n||function(e){return void 0!==u?r(s?e:-1,u):void 0},
-o=o||function(e,r){return void 0!==u?pp({action:or,cbn:u,result:e,error:r}):void 0},m){for(c.d=l({},e);L(c.d.Q););return Y(_(c.d.S))}
-try{c.d=l({},e),d=er(c.d.N),s=d>-1,n(0);}catch(a){return o(null,a)}tr(t,0);}
-var or=2,nr=3,tr="function"==typeof setImmediate?setImmediate:setTimeout,ir=4294967296,ur=[n1,-4294967296],sr=[0,0],dr=[1,0];
-return {decompress:rr}
-}();
-
-const LZMA = {
-
-    decompress:( r, callback ) => {
-        lzma.decompress( new Uint8Array( r ), callback );
-    },
-};
-/*
-  var action_compress   = 1, action_decompress = 2, action_progress   = 3
-
-  export class LZMA {
-
-    constructor( lzma_path ) {
-   // export class LZMA = function (lzma_path) {
-        
-            
-            this.callback_obj = {}
-            
-            ///NOTE: Node.js needs something like "./" or "../" at the beginning.
-            this.lzma_worker = new Worker(lzma_path || "./lzma_worker-min.js");
-        
-        this.lzma_worker.onmessage = function onmessage(e) {
-            if (e.data.action === action_progress) {
-                if (this.callback_obj[e.data.cbn] && typeof this.callback_obj[e.data.cbn].on_progress === "function") {
-                    this.callback_obj[e.data.cbn].on_progress(e.data.result);
-                }
-            } else {
-                if (this.callback_obj[e.data.cbn] && typeof this.callback_obj[e.data.cbn].on_finish === "function") {
-                    this.callback_obj[e.data.cbn].on_finish(e.data.result, e.data.error);
-                    
-                    /// Since the (de)compression is complete, the callbacks are no longer needed.
-                    delete this.callback_obj[e.data.cbn];
-                }
-            }
-        }.bind(this)
-        
-        /// Very simple error handling.
-        this.lzma_worker.onerror = function(event) {
-            var err = new Error(event.message + " (" + event.filename + ":" + event.lineno + ")");
-            
-            for (var cbn in this.callback_obj) {
-                this.callback_obj[cbn].on_finish(null, err);
-            }
-            
-            console.error('Uncaught error in lzma_worker', err);
-        }.bind(this)
-        
-    }
-
-    send_to_worker(action, data, mode, on_finish, on_progress) {
-        var cbn;
-        
-        do {
-            cbn = Math.floor(Math.random() * (10000000));
-        } while(typeof this.callback_obj[cbn] !== "undefined");
-        
-        this.callback_obj[cbn] = {
-            on_finish:   on_finish,
-            on_progress: on_progress
-        };
-        
-        this.lzma_worker.postMessage({
-            action: action, /// action_compress = 1, action_decompress = 2, action_progress = 3
-            cbn:    cbn,    /// callback number
-            data:   data,
-            mode:   mode
-        });
-    }
-
-    compress(mixed, mode, on_finish, on_progress) {
-        this.send_to_worker(action_compress, mixed, mode, on_finish, on_progress);
-    }
-    decompress(byte_arr, on_finish, on_progress) {
-        this.send_to_worker(action_decompress, byte_arr, false, on_finish, on_progress);
-    }
-    worker() {
-        return this.lzma_worker;
-    }
-}
-*/
-
 const GlbTool = {
 
 	getMesh:( scene, multyMaterialGroup ) => {
@@ -18135,8 +2843,10 @@ const Pool = {
     //extraTexture: [],
     dracoLoader: null,
     //dracoLoaderType:'js',
-    dracoPath:'./src/libs/draco/',
-    basisPath:'./src/jsm/libs/basis/',
+    dracoPath:'./build/draco/',
+    basisPath:'./build/basis/',
+
+    useLocal:false,
 
     formatGltf : {
         draco:true,
@@ -18483,6 +3193,7 @@ const Pool = {
             else {
                 Pool.inLoad = false;
                 Pool.clearDRACO();
+                Pool.clearKTX2();
                 Pool.onEnd();
             }
 
@@ -18592,6 +3303,15 @@ const Pool = {
 
     //////////////////////////////////
 
+    clearKTX2: () => {
+
+        if( Pool.KTX2 ){
+            Pool.KTX2.dispose();
+            Pool.KTX2 = null;
+        }
+
+    },
+
     clearDRACO: () => {
 
         if( Pool.dracoLoader ){
@@ -18615,24 +3335,27 @@ const Pool = {
                 let ua = navigator.userAgent.toLowerCase();
                 Pool.dracoLoaderType = (ua.indexOf('safari') !== -1 && ua.indexOf('chrome') === -1) ? 'js' : 'wasm';
             }
-
-            //console.log(Pool.dracoLoaderType)
         }
 
-        Pool.dracoLoader = new DRACOLoader().setDecoderPath( Pool.dracoPath );
-        //Pool.dracoLoader.setWorkerLimit(1)
-        Pool.dracoLoader.setDecoderConfig( { type: Pool.dracoLoaderType } );
+        Pool.dracoLoader = new DRACOLoader()
+            .setDecoderConfig( { type: Pool.dracoLoaderType } )
+            .setDecoderPath( Pool.dracoPath )
+            .setUseLocal( Pool.useLocal );
+            //.setWorkerLimit(1)
+
         return Pool.dracoLoader
 
     },
 
     loaderKTX2: () => {
 
-        if( !Pool.KTX2 ){
-            Pool.KTX2 = new KTX2Loader( Pool.manager )
-                .setTranscoderPath( Pool.basisPath )
-                .detectSupport( Pool.renderer );
-        }
+        if( Pool.KTX2 ) return Pool.KTX2
+
+        Pool.KTX2 = new KTX2Loader( Pool.manager )
+            .setTranscoderPath( Pool.basisPath )
+            .detectSupport( Pool.renderer )
+            .setUseLocal( Pool.useLocal );
+        
         return Pool.KTX2
 
     },
@@ -18640,12 +3363,12 @@ const Pool = {
     loaderGLTF: () => {
 
         if( !Pool.GLTF ){
-            Pool.GLTF = new GLTFLoader( Pool.manager )
+            Pool.GLTF = new GLTFLoader_js.GLTFLoader( Pool.manager )
             .setCrossOrigin('anonymous');
 
             if(Pool.formatGltf.draco) Pool.GLTF.setDRACOLoader( Pool.loaderDRACO() );
             if(Pool.formatGltf.ktx2) Pool.GLTF.setKTX2Loader( Pool.loaderKTX2() );
-            if(Pool.formatGltf.meshop) Pool.GLTF.setMeshoptDecoder( MeshoptDecoder );
+            if(Pool.formatGltf.meshop) Pool.GLTF.setMeshoptDecoder( meshopt_decoder_module_js.MeshoptDecoder );
         }
         return Pool.GLTF
 
@@ -18653,35 +3376,35 @@ const Pool = {
 
     loaderFBX: () => {
 
-        if( !Pool.FBX ) Pool.FBX = new FBXLoader( Pool.manager );
+        if( !Pool.FBX ) Pool.FBX = new FBXLoader_js.FBXLoader( Pool.manager );
         return Pool.FBX
 
     },
 
     loaderSTL: () => {
 
-        if( !Pool.STL ) Pool.STL = new STLLoader( Pool.manager );
+        if( !Pool.STL ) Pool.STL = new STLLoader_js.STLLoader( Pool.manager );
         return Pool.STL
 
     },
 
     loaderOBJ: () => {
 
-        if( !Pool.OBJ ) Pool.OBJ = new OBJLoader( Pool.manager );
+        if( !Pool.OBJ ) Pool.OBJ = new OBJLoader_js.OBJLoader( Pool.manager );
         return Pool.OBJ
 
     },
 
     loaderRGBE: () => {
 
-        if( !Pool.RGBE ) Pool.RGBE = new RGBELoader( Pool.manager );
+        if( !Pool.RGBE ) Pool.RGBE = new RGBELoader_js.RGBELoader( Pool.manager );
         return Pool.RGBE
 
     },
 
     loaderEXR: () => {
 
-        if( !Pool.EXR ) Pool.EXR = new EXRLoader( Pool.manager );
+        if( !Pool.EXR ) Pool.EXR = new EXRLoader_js.EXRLoader( Pool.manager );
         return Pool.EXR
 
     },
@@ -31316,7 +16039,7 @@ class Avatar extends three.Group {
 
         this.rootPath = o.path || './';
         this.lzmaPath = this.rootPath + 'src/libs/lzma_worker.js';
-        Pool.dracoPath =  this.rootPath + 'src/libs/draco/';
+        //Pool.dracoPath =  this.rootPath + 'src/libs/draco/';
 
         this.callback = o.callback || function (){};
 
@@ -36972,7 +21695,7 @@ class MoveHelper extends three.Line {
 	}
 }
 
-function h(t,i,n,s){return function(t,i,n,s,e){let r={x:i.x-t.x,y:i.y-t.y},o={x:s.x-n.x,y:s.y-n.y};const a=p(t),h=p(n);if(a===h)return e;const l=p(i);if(l===h)return e;const u=p(s);if(a===u)return e;if(l===u)return e;let c=(t.x-n.x)*o.y-(t.y-n.y)*o.x,g=(i.x-n.x)*o.y-(i.y-n.y)*o.x,d=(n.x-t.x)*r.y-(n.y-t.y)*r.x,f=(s.x-t.x)*r.y-(s.y-t.y)*r.x;return (c>=0&&g<=0||c<=0&&g>=0)&&(d>=0&&f<=0||d<=0&&f>=0)}(t,i,n,s,false)}function l(i,n,s,e){let r=0,o=new three.Vector3;return f(i)===f(n)||0===s.x&&0===s.y&&0===s.z?null:(r=((e.x-i.x)*s.x+(e.y-i.y)*s.y+(e.z-i.z)*s.z)/((n.x-i.x)*s.x+(n.y-i.y)*s.y+(n.z-i.z)*s.z),r<0||r>1?null:(o=new three.Vector3(i.x+(n.x-i.x)*r,i.y+(n.y-i.y)*r,i.z+(n.z-i.z)*r),{x:o,s:r}))}function u(t,i,n){return (i.x-t.x)*(n.y-t.y)-(i.y-t.y)*(n.x-t.x)<=0}function c(t){return parseInt(Math.round(1e6*t))}function g(t,i=1e6){return Math.floor(t*i)}function d(t,i){return Math.round((t+i)*(t+i+1)*.5+i)}function p(t){return d(g(t.x),g(t.y))}function f(t){const i=g(t.x),n=g(t.y),s=g(t.z),e=(i+n)*(i+n+1)*.5+n;return (e+s)*(e+s+1)*.5+s}function x(t,i,n){return !(i.x*(t.x-n.x)+i.y*(t.y-n.y)+i.z*(t.z-n.z)<0)}class v{constructor(n=new three.Vector3,s=new three.Vector3,e=new three.Vector2){this.position=n,this.normal=s,this.uv=e;}equals(t){return f(this.position)===f(t.position)}toString(){return `Position = ${this.position.x}, ${this.position.y}, ${this.position.z}, Normal = ${this.normal.x}, ${this.normal.y}, ${this.normal.z}, UV = ${this.uv.x}, ${this.uv.y}`}}const y=0,m$1=1;class w{constructor(){this.vertices=[],this.cutVertices=[],this.triangles=[[],[]],this.constraints=[],this.indexMap=[],this.bounds=new three.Box3,this.vertexAdjacency=[],this.convextested=false;}static fromGeometry(n){const s=n.attributes.position.array,e=n.attributes.normal.array,r=n.attributes.uv.array,o=n.attributes.position.count;let a,h;const l=new w;for(let n=0;n<o;n++)a=3*n,h=2*n,l.vertices.push(new v(new three.Vector3(s[a],s[a+1],s[a+2]),new three.Vector3(e[a],e[a+1],e[a+2]),new three.Vector2(r[h],r[h+1])));return l.triangles=[[...n.index.array],[]],l.calculateBounds(),l}get size(){this.bounds||this.calculateBounds();let i=new three.Vector3;return this.bounds.getSize(i)}get convex(){return this.convextested||(this.cc=this.isConvex()),this.cc}get triangleCount(){return (this.triangles[0].length+this.triangles[1].length)/3}get vertexCount(){return this.vertices.length+this.cutVertices.length}addCutFaceVertex(t,i,n){const s=new v(t,i,n);this.vertices.push(s),this.cutVertices.push(s),this.vertexAdjacency.push(this.vertices.length-1);}addMappedVertex(t,i){this.vertices.push(t),this.indexMap[i]=this.vertices.length-1;}addTriangle(t,i,n,s){this.triangles[s].push(t,i,n);}addMappedTriangle(t,i,n,s){this.triangles[s].push(this.indexMap[t],this.indexMap[i],this.indexMap[n]);}weldCutFaceVertices(){const t=[],i=[],n=new Array(this.cutVertices.length);let s=0;const e=new Map;this.cutVertices.forEach(((r,o)=>{const a=function(t){let i=c(t.x),n=c(t.y),s=c(t.z),e=(i+n)*(i+n+1)*.5+n;return (e+s)*(e+s+1)*.5+s}(r.position),h=e.get(a);void 0===h?(n[o]=s,e.set(a,s),t.push(this.cutVertices[o]),i.push(this.vertexAdjacency[o]),s++):n[o]=h;}));for(let t=0;t<this.constraints.length;t++){const i=this.constraints[t];i.v1=n[i.v1],i.v2=n[i.v2];}this.cutVertices=t,this.vertexAdjacency=i;}calculateBounds(){if(!this.vertices.length)return;let t=this.vertices[0].position.clone(),i=t.clone();this.vertices.forEach((n=>{t.x=Math.min(t.x,n.position.x),t.y=Math.min(t.y,n.position.y),t.z=Math.min(t.z,n.position.z),i.x=Math.max(i.x,n.position.x),i.y=Math.max(i.y,n.position.y),i.z=Math.max(i.z,n.position.z);})),this.bounds.set(t,i);}calculateBounds_(t=false){null===this.bounds&&(this.bounds=new three.Box3);let i=this.vertices.length;t&&(i+=this.cutVertices.length);const s=[];let e=-1;for(const t of this.vertices)s[e++]=t.position;if(t)for(const t of this.cutVertices)s[e++]=t.position;this.bounds.setFromPoints(s);}toMesh(i,n=null,r=true,o=0){const a=new three.Vector3,h=new three.Vector3;let l=this.toGeometry(r,o);l.boundingBox.getCenter(a),l.boundingBox.getSize(h),l.translate(-a.x,-a.y,-a.z),l.boundingSphere=new three.Sphere(new three.Vector3,.5*h.length());let u=i.material;n&&u.isMaterial&&(u=[i.material,n]);const c=new three.Mesh(l,u);return c.receiveShadow=i.receiveShadow,c.castShadow=i.castShadow,c.sizer=h.length(),a.applyQuaternion(i.quaternion),c.position.copy(i.position).add(a),c.quaternion.copy(i.quaternion),c.userData={origin:c.position.clone(),direction:a.normalize(),size:h},c}makeTrickness(t,i,n,s,e){let r,o=1-e,a=[...t],h=[...i],l=[...n],u=t.length/3,c=u;for(;c--;)r=3*c,a[r]*=o,a[r+1]*=o,a[r+2]*=o;let g=[];for(c=s.length;c--;)g[c]=s[c]+u;return [a,h,l,g]}toGeometry(t,i){let n;const s=new three.BufferGeometry;let e=[],a=[],h=[];if(this.vertices.forEach((t=>{e.push(t.position.x,t.position.y,t.position.z),a.push(t.normal.x,t.normal.y,t.normal.z),h.push(t.uv.x,t.uv.y);})),0!==i){let t=this.makeTrickness(e,a,h,this.triangles[0],i);e=e.concat(t[0]),a=a.concat(t[1]),h=h.concat(t[2]),n=t[3];}return t&&this.cutVertices.forEach((t=>{e.push(t.position.x,t.position.y,t.position.z),a.push(t.normal.x,t.normal.y,t.normal.z),h.push(t.uv.x,t.uv.y);})),s.addGroup(0,this.triangles[0].length,0),0!==i&&(s.addGroup(this.triangles[0].length,n.length,1),this.triangles[0]=this.triangles[0].concat(n)),t&&s.addGroup(this.triangles[0].length,this.triangles[1].length,1),s.setAttribute("position",new three.BufferAttribute(new Float32Array(e),3)),s.setAttribute("normal",new three.BufferAttribute(new Float32Array(a),3)),s.setAttribute("uv",new three.BufferAttribute(new Float32Array(h),2)),s.setIndex(new three.BufferAttribute(new Uint32Array(this.triangles.flat()),1)),s.computeBoundingBox(),s}isConvex(i=.001){this.convextested=true;let n=0;const s=this.triangleCount,e=[...this.triangles[0],...this.triangles[1]],r=[...this.vertices,...this.cutVertices],o=r.length;if(0===s||0===o)return  false;const a=new three.Vector3,h=new three.Vector3,l=new three.Vector3,u=new three.Vector3,c=new three.Vector3;let g,d;for(let t=0;t<s;t++){n=3*t,c.copy(r[0].position),a.copy(r[e[n]].position),h.copy(r[e[n+1]].position),l.copy(r[e[n+2]].position),h.sub(a),l.sub(a),u.copy(h).cross(l).normalize(),g=c.sub(a).dot(u);for(let t=0;t<o;t++)if(d=c.copy(r[t].position).sub(a).dot(u),Math.abs(g)>i&&Math.abs(d)>i&&g*d<0)return  false}return  true}}class V{constructor(t){this.parent=new Array(t),this.rank=new Array(t);for(let i=0;i<t;i++)this.parent[i]=i,this.rank[i]=1;}find(t){return this.parent[t]!==t&&(this.parent[t]=this.find(this.parent[t])),this.parent[t]}union(t,i){const n=this.find(t),s=this.find(i);n!==s&&(this.rank[n]>this.rank[s]?this.parent[s]=n:this.rank[n]<this.rank[s]?this.parent[n]=s:(this.parent[s]=n,this.rank[n]+=1));}}let M$1 = class M{constructor(t,i,n,s,e){this.v1=t,this.v2=i,this.t1=void 0!==n?n:-1,this.t2=void 0!==s?s:-1,this.t1Edge=void 0!==e?e:0;}equals(t){return this.v1===t.v1&&this.v2===t.v2||this.v1===t.v2&&this.v2===t.v1}toString(){return `Edge: T${this.t1}->T${this.t2} (V${this.v1}->V${this.v2})`}};class T{static getBinNumber(t,i,n){return t%2==0?t*n+i:(t+1)*n-i-1}static sort(t,i,n){if(n<=1)return t;i>t.length&&(i=t.length);const s=new Array(n).fill(0),e=new Array(t.length);for(let n=0;n<i;n++)s[t[n].bin]++;for(let t=1;t<n;t++)s[t]+=s[t-1];for(let n=i-1;n>=0;n--){const i=t[n].bin;s[i]--,e[s[i]]=t[n];}for(let n=i;n<e.length;n++)e[n]=t[n];return e}}let C$1 = class C{constructor(t,i){this.index=t,this.coords=i,this.bin=0;}toString(){return `${this.coords} -> ${this.bin}`}};const z=-1;class b{constructor(n,s){if(this.normalizationScaleFactor=1,this.N=n.length,this.N>=3){this.triangleCount=2*this.N+1,this.triangulation=Array.from({length:this.triangleCount},(()=>new Array(6).fill(0))),this.skipTriangle=new Array(this.triangleCount).fill(false),this.points=new Array(this.N+3),this.normal=s.clone().normalize();let o=n[0].position.clone().sub(n[1].position).normalize(),a=this.normal.clone(),h=new three.Vector3;h.crossVectors(o,a).normalize();for(let t=0;t<this.N;t++){var e=n[t].position,r=new three.Vector2(e.dot(o),e.dot(h));this.points[t]=new C$1(t,r);}}else this.triangleCount=0,this.triangulation=[],this.skipTriangle=[],this.points=[],this.normal=new three.Vector3;}triangulate(){if(this.N<3)return [];this.addSuperTriangle(),this.normalizeCoordinates(),this.computeTriangulation(),this.discardTrianglesWithSuperTriangleVertices();const t=[];for(let i=0;i<this.triangleCount;i++)this.skipTriangle[i]||t.push(this.triangulation[i][0],this.triangulation[i][1],this.triangulation[i][2]);return t}normalizeCoordinates(){let t=Number.MAX_VALUE,n=Number.MIN_VALUE,s=Number.MAX_VALUE,e=Number.MIN_VALUE;for(let i=0;i<this.N;i++)t=Math.min(t,this.points[i].coords.x),n=Math.max(n,this.points[i].coords.x),s=Math.min(s,this.points[i].coords.y),e=Math.max(e,this.points[i].coords.y);const r=Math.max(n-t,e-s);for(let n=0;n<this.N;n++){var o=this.points[n],a=new three.Vector2((o.coords.x-t)/r,(o.coords.y-s)/r);this.points[n].coords=a;}}sortPointsIntoBins(){const t=Math.round(Math.pow(this.N,.25)),i=t*t;for(let i=0;i<this.N;i++){var n=this.points[i];const s=Math.floor(.99*t*n.coords.y),e=Math.floor(.99*t*n.coords.x);n.bin=T.getBinNumber(s,e,t);}return T.sort(this.points,this.N,i)}computeTriangulation(){let t=0,i=0,n=this.sortPointsIntoBins();for(let s=0;s<this.N;s++){let e=n[s];if(!e)break;let r=0,o=false;for(;!o&&!(r++>i||t===z);){let n=this.points[this.triangulation[t][0]].coords,s=this.points[this.triangulation[t][1]].coords,r=this.points[this.triangulation[t][2]].coords;u(n,s,e.coords)?u(s,r,e.coords)?u(r,n,e.coords)?(this.insertPointIntoTriangle(e,t,i),i+=2,t=i,o=true):t=this.triangulation[t][5]:t=this.triangulation[t][4]:t=this.triangulation[t][3];}}}addSuperTriangle(){this.points[this.N]=new C$1(this.N,new three.Vector2(-100,-100)),this.points[this.N+1]=new C$1(this.N+1,new three.Vector2(0,100)),this.points[this.N+2]=new C$1(this.N+2,new three.Vector2(100,-100)),this.triangulation[0][0]=this.N,this.triangulation[0][1]=this.N+1,this.triangulation[0][2]=this.N+2,this.triangulation[0][3]=z,this.triangulation[0][4]=z,this.triangulation[0][5]=z;}insertPointIntoTriangle(t,i,n){const s=i,e=n+1,r=n+2;this.triangulation[e][0]=t.index,this.triangulation[e][1]=this.triangulation[i][1],this.triangulation[e][2]=this.triangulation[i][2],this.triangulation[e][3]=r,this.triangulation[e][4]=this.triangulation[i][4],this.triangulation[e][5]=s,this.triangulation[r][0]=t.index,this.triangulation[r][1]=this.triangulation[i][0],this.triangulation[r][2]=this.triangulation[i][1],this.triangulation[r][3]=s,this.triangulation[r][4]=this.triangulation[i][3],this.triangulation[r][5]=e,this.updateAdjacency(this.triangulation[i][3],i,r),this.updateAdjacency(this.triangulation[i][4],i,e),this.triangulation[s][1]=this.triangulation[i][2],this.triangulation[s][2]=this.triangulation[i][0],this.triangulation[s][0]=t.index,this.triangulation[s][4]=this.triangulation[i][5],this.triangulation[s][3]=e,this.triangulation[s][5]=r,this.restoreDelauneyTriangulation(t,s,e,r);}restoreDelauneyTriangulation(t,i,n,s){const e=[];for(e.push([i,this.triangulation[i][4]]),e.push([n,this.triangulation[n][4]]),e.push([s,this.triangulation[s][4]]);e.length>0;)if([i,n]=e.pop()??[z,z],n!==z){const s=this.swapQuadDiagonalIfNeeded(t.index,i,n);null!==s&&(e.push([i,s.t3]),e.push([n,s.t4]));}}swapQuadDiagonalIfNeeded(t,i,n){let s=0,e=0,r=0,o=t,a=0,h=0;this.triangulation[n][3]===i?(s=this.triangulation[n][1],e=this.triangulation[n][0],r=this.triangulation[n][2],a=this.triangulation[n][4],h=this.triangulation[n][5]):this.triangulation[n][4]===i?(s=this.triangulation[n][2],e=this.triangulation[n][1],r=this.triangulation[n][0],a=this.triangulation[n][5],h=this.triangulation[n][3]):(s=this.triangulation[n][0],e=this.triangulation[n][2],r=this.triangulation[n][1],a=this.triangulation[n][3],h=this.triangulation[n][4]);return this.swapTest(this.points[s].coords,this.points[e].coords,this.points[r].coords,this.points[o].coords)?(this.updateAdjacency(a,n,i),this.updateAdjacency(this.triangulation[i][5],i,n),this.triangulation[i][0]=o,this.triangulation[i][1]=s,this.triangulation[i][2]=r,this.triangulation[n][0]=o,this.triangulation[n][1]=r,this.triangulation[n][2]=e,this.triangulation[n][3]=i,this.triangulation[n][4]=h,this.triangulation[n][5]=this.triangulation[i][5],this.triangulation[i][4]=a,this.triangulation[i][5]=n,{t3:a,t4:h}):null}discardTrianglesWithSuperTriangleVertices(){for(let t=0;t<this.triangleCount;t++)(this.triangleContainsVertex(t,this.N)||this.triangleContainsVertex(t,this.N+1)||this.triangleContainsVertex(t,this.N+2))&&(this.skipTriangle[t]=true);}swapTest(t,i,n,s){const e=t.x-n.x,r=i.x-n.x,o=t.y-n.y,a=i.y-n.y,h=t.x-s.x,l=i.x-s.x,u=t.y-s.y,c=i.y-s.y,g=e*r+o*a,d=l*h+c*u;if(g>=0&&d>=0)return  false;if(g<0&&d<0)return  true;return (e*a-r*o)*d+(l*u-h*c)*g<0}triangleContainsVertex(t,i){return this.triangulation[t][0]===i||this.triangulation[t][1]===i||this.triangulation[t][2]===i}updateAdjacency(t,i,n){if(t===z)return;const s=this.findSharedEdge(t,i);null!==s&&(this.triangulation[t][s]=n);}findSharedEdge(t,i){return t===z?null:this.triangulation[t][3]===i?3:this.triangulation[t][4]===i?4:this.triangulation[t][5]===i?5:null}}let A$1 = class A{constructor(t,i,n,s,e,r,o,a,h,l){this.q1=t,this.q2=i,this.q3=n,this.q4=s,this.t1=e,this.t2=r,this.t1L=o,this.t1R=a,this.t2L=h,this.t2R=l;}toString(){return `T${this.t1}/T${this.t2} (V${this.q1},V${this.q2},V${this.q3},V${this.q4})`}};class S extends b{edgeVertex1=[0,0,0,0,1,2];edgeVertex2=[0,0,0,1,2,0];oppositePoint=[0,0,0,2,0,1];nextEdge=[0,0,0,4,5,3];previousEdge=[0,0,0,5,3,4];constructor(t,i,n){super(t,n),this.constraints=i,this.vertexTriangles=[],this.visited=[];}triangulate(){if(this.N<3)return [];this.addSuperTriangle(),this.normalizeCoordinates(),this.computeTriangulation(),this.constraints.length>0&&(this.applyConstraints(),this.discardTrianglesViolatingConstraints()),this.discardTrianglesWithSuperTriangleVertices();let t=[];for(let i=0;i<this.triangleCount;i++)this.skipTriangle[i]||(t.push(this.triangulation[i][0]),t.push(this.triangulation[i][1]),t.push(this.triangulation[i][2]));return t}applyConstraints(){const t=this.triangulation.length;this.visited=new Array(t).fill(false),this.vertexTriangles=new Array(this.N+3).fill(0);for(let i=0;i<t;i++)this.vertexTriangles[this.triangulation[i][0]]=i,this.vertexTriangles[this.triangulation[i][1]]=i,this.vertexTriangles[this.triangulation[i][2]]=i;for(let t of this.constraints){if(t.v1===t.v2)continue;const i=this.findIntersectingEdges(t,this.vertexTriangles);this.removeIntersectingEdges(t,i);}}findIntersectingEdges(t,i){const n=[],s=this.findStartingEdge(i,t);if(null===s)return n;n.push(s);let e=s.t1,r=s.t1Edge,o=e,a=false;for(;!a;){o=e,e=this.triangulation[e][r];const i=this.points[t.v1].coords,s=this.points[t.v2].coords,u=this.points[this.triangulation[e][0]].coords,c=this.points[this.triangulation[e][1]].coords,g=this.points[this.triangulation[e][2]].coords;if(this.triangleContainsVertex(e,t.v2))a=true;else if(this.triangulation[e][3]!==o&&h(i,s,u,c)){r=3;var l=new M$1(this.triangulation[e][0],this.triangulation[e][1],e,this.triangulation[e][3],r);n.push(l);}else if(this.triangulation[e][4]!==o&&h(i,s,c,g)){r=4;l=new M$1(this.triangulation[e][1],this.triangulation[e][2],e,this.triangulation[e][4],r);n.push(l);}else {if(this.triangulation[e][5]===o||!h(i,s,g,u)){console.warn("Failed to find final triangle, exiting early.");break}r=5;l=new M$1(this.triangulation[e][2],this.triangulation[e][0],e,this.triangulation[e][5],r);n.push(l);}}return n}findStartingEdge(t,i){let n,s,e,r=new M$1(-1,-1),o=i.v1,a=t[o],h=false,l=null;for(this.visited.fill(false);!l&&!h;){if(this.visited[a]=true,this.triangleContainsConstraint(a,i))return null;if(l=this.edgeConstraintIntersectsTriangle(a,i),l)break;if(n=this.triangulation[a][3],s=this.triangulation[a][4],e=this.triangulation[a][5],-1!==n&&!this.visited[n]&&this.triangleContainsVertex(n,o))a=n;else if(-1!==s&&!this.visited[s]&&this.triangleContainsVertex(s,o))a=s;else {if(-1===e||this.visited[e]||!this.triangleContainsVertex(e,o)){h=true;break}a=e;}}if(l){const t=this.triangulation[a][this.edgeVertex1[l]],i=this.triangulation[a][this.edgeVertex2[l]],n=this.triangulation[a][l];return r=new M$1(t,i,a,n,l),r}return null}removeIntersectingEdges(t,i){let n,s=[],e=0;for(;i.length>0&&e<=i.length;){if(n=i.shift(),null==n)continue;let r=this.findQuadFromSharedEdge(n.t1,n.t1Edge);if(r)if(h(this.points[r.q4].coords,this.points[r.q3].coords,this.points[r.q1].coords,this.points[r.q2].coords)){this.swapQuadDiagonal(r,i,s,this.constraints);let n=new M$1(r.q3,r.q4,r.t1,r.t2,5);h(this.points[t.v1].coords,this.points[t.v2].coords,this.points[r.q3].coords,this.points[r.q4].coords)?i.push(n):(e=0,s.push(n));}else i.push(n);e++;}s.length>0&&this.restoreConstrainedDelauneyTriangulation(t,s);}restoreConstrainedDelauneyTriangulation(t,i){let n=true;for(;n;){n=false;for(let s=0;s<i.length;s++){const e=i[s];if(e.equals(t))continue;let r=this.findQuadFromSharedEdge(e.t1,e.t1Edge);if(r&&this.swapTest(this.points[r.q1].coords,this.points[r.q2].coords,this.points[r.q3].coords,this.points[r.q4].coords)){this.swapQuadDiagonal(r,i,this.constraints,null);const t=r.q3,e=r.q4;i[s]=new M$1(t,e,r.t1,r.t2,5),n=true;}}}}discardTrianglesViolatingConstraints(){this.skipTriangle.fill(true);let t=new Set;for(let i=0;i<this.constraints.length;i++){const n=this.constraints[i];t.add(d(n.v1,n.v2));}this.visited.fill(false);let i,n,s,e,r,o,a=[];for(let h=0;h<this.triangleCount;h++)if(!this.visited[h]&&(i=this.triangulation[h][0],n=this.triangulation[h][1],s=this.triangulation[h][2],e=t.has(d(i,n)),r=t.has(d(n,s)),o=t.has(d(s,i)),e||r||o))for(this.skipTriangle[h]=false,a=[],e||a.push(this.triangulation[h][3]),r||a.push(this.triangulation[h][4]),o||a.push(this.triangulation[h][5]);a.length>0;){const e=a.shift();-1===e||this.visited[e]||(this.skipTriangle[e]=false,this.visited[e]=true,i=this.triangulation[e][0],n=this.triangulation[e][1],s=this.triangulation[e][2],t.has(d(i,n))||a.push(this.triangulation[e][3]),t.has(d(n,s))||a.push(this.triangulation[e][4]),t.has(d(s,i))||a.push(this.triangulation[e][5]));}}triangleContainsConstraint(t,i){return !(t>=this.triangulation.length)&&!(this.triangulation[t][0]!==i.v1&&this.triangulation[t][1]!==i.v1&&this.triangulation[t][2]!==i.v1||this.triangulation[t][0]!==i.v2&&this.triangulation[t][1]!==i.v2&&this.triangulation[t][2]!==i.v2)}edgeConstraintIntersectsTriangle(t,i){const n=this.points[i.v1].coords,s=this.points[i.v2].coords,e=this.points[this.triangulation[t][0]].coords,r=this.points[this.triangulation[t][1]].coords,o=this.points[this.triangulation[t][2]].coords;return h(n,s,e,r)?3:h(n,s,r,o)?4:h(n,s,o,e)?5:null}findQuadFromSharedEdge(t,i){let n,s,e,r,o,a,h,l,u=this.triangulation[t][i],c=this.findSharedEdge(u,t);return c?(3===c?(s=this.triangulation[u][0],n=this.triangulation[u][1],e=this.triangulation[u][2]):4===c?(s=this.triangulation[u][1],n=this.triangulation[u][2],e=this.triangulation[u][0]):(s=this.triangulation[u][2],n=this.triangulation[u][0],e=this.triangulation[u][1]),r=this.triangulation[t][this.oppositePoint[i]],o=this.triangulation[t][this.previousEdge[i]],a=this.triangulation[t][this.nextEdge[i]],h=this.triangulation[u][this.nextEdge[c]],l=this.triangulation[u][this.previousEdge[c]],new A$1(n,s,e,r,t,u,o,a,h,l)):null}swapQuadDiagonal(t,i,n,s){const e=t.t1,r=t.t2,o=t.t1R,a=t.t1L,h=t.t2R,l=t.t2L;this.triangulation[e][0]=t.q4,this.triangulation[e][1]=t.q1,this.triangulation[e][2]=t.q3,this.triangulation[r][0]=t.q4,this.triangulation[r][1]=t.q3,this.triangulation[r][2]=t.q2,this.triangulation[e][3]=a,this.triangulation[e][4]=l,this.triangulation[e][5]=r,this.triangulation[r][3]=e,this.triangulation[r][4]=h,this.triangulation[r][5]=o,this.updateAdjacency(l,r,e),this.updateAdjacency(o,e,r),this.updateEdgesAfterSwap(i,e,r,a,o,l,h),this.updateEdgesAfterSwap(n,e,r,a,o,l,h),this.updateEdgesAfterSwap(s,e,r,a,o,l,h),this.vertexTriangles[t.q1]=e,this.vertexTriangles[t.q2]=r;}updateEdgesAfterSwap(t,i,n,s,e,r,o){if(t)for(let a of t)a.t1===i&&a.t2===e?(a.t1=n,a.t2=e,a.t1Edge=5):a.t1===i&&a.t2===s?a.t1Edge=3:a.t1===e&&a.t2===i?a.t2=n:a.t1===s&&a.t2===i||(a.t1===n&&a.t2===o?a.t1Edge=4:a.t1===n&&a.t2===r?(a.t1=i,a.t2=r,a.t1Edge=4):a.t1===o&&a.t2===n||a.t1===r&&a.t2===n&&(a.t2=i));}}function E$1(t,n,s,e,r,o,a=true){const h=new w,l=new w,u=new Array(t.vertexCount).fill(false);for(let i=0;i<t.vertices.length;i++){var c=t.vertices[i];u[i]=x(c.position,n,s),(u[i]?h:l).addMappedVertex(c,i);}const g=t.vertices.length;for(let i=0;i<t.cutVertices.length;i++){c=t.cutVertices[i];u[i+g]=x(c.position,n,s),(u[i+g]?h:l).addMappedVertex(c,i+g);}return N(t,h,l,n,s,u,y),a&&N(t,h,l,n,s,u,m$1),a&&function(t,n,s,e,r,o){t.weldCutFaceVertices();const a=s.clone().negate().normalize();if(t.cutVertices.length<3)return;const h=o?new b(t.cutVertices,a):new S(t.cutVertices,t.constraints,a),l=h.triangulate();for(let o=0;o<t.cutVertices.length;o++){var u=t.cutVertices[o],c=h.points[o];const l=new three.Vector2(h.normalizationScaleFactor*c.coords.x*e.x+r.x,h.normalizationScaleFactor*c.coords.y*e.y+r.y),g=new v(u.position.clone(),a.clone(),l.clone()),d=new v(u.position.clone(),s.clone(),l.clone());t.cutVertices[o]=g,n.cutVertices[o]=d;}let g=t.vertices.length,d=n.vertices.length;for(let i=0;i<l.length;i+=3)t.addTriangle(g+l[i],g+l[i+1],g+l[i+2],m$1),n.addTriangle(d+l[i],d+l[i+2],d+l[i+1],m$1);}(h,l,n,e,r,o),{topSlice:h,bottomSlice:l}}function N(t,i,n,s,e,r,o){const a=t.triangles[o];let h,l,u;for(let c=0;c<a.length;c+=3)h=a[c],l=a[c+1],u=a[c+2],r[h]&&r[l]&&r[u]?i.addMappedTriangle(h,l,u,o):r[h]||r[l]||r[u]?r[l]&&r[u]&&!r[h]?q$1(l,u,h,s,e,t,i,n,o,true):r[u]&&r[h]&&!r[l]?q$1(u,h,l,s,e,t,i,n,o,true):r[h]&&r[l]&&!r[u]?q$1(h,l,u,s,e,t,i,n,o,true):r[l]||r[u]||!r[h]?r[u]||r[h]||!r[l]?r[h]||r[l]||!r[u]||q$1(h,l,u,s,e,t,i,n,o,false):q$1(u,h,l,s,e,t,i,n,o,false):q$1(l,u,h,s,e,t,i,n,o,false):n.addMappedTriangle(h,l,u,o);}function q$1(n,s,e,r,o,a,h,u,c,g){let d=n<a.vertices.length?a.vertices[n]:a.cutVertices[n-a.vertices.length],p=s<a.vertices.length?a.vertices[s]:a.cutVertices[s-a.vertices.length],f=e<a.vertices.length?a.vertices[e]:a.cutVertices[e-a.vertices.length];const x=l(d.position,f.position,r,o),v=l(p.position,f.position,r,o);if(x&&v){const r=new three.Vector3(d.normal.x+x.s*(f.normal.x-d.normal.x),d.normal.y+x.s*(f.normal.y-d.normal.y),d.normal.z+x.s*(f.normal.z-d.normal.z)).normalize(),o=new three.Vector3(p.normal.x+v.s*(f.normal.x-p.normal.x),p.normal.y+v.s*(f.normal.y-p.normal.y),p.normal.z+v.s*(f.normal.z-p.normal.z)).normalize(),a=new three.Vector2(d.uv.x+x.s*(f.uv.x-d.uv.x),d.uv.y+x.s*(f.uv.y-d.uv.y)),l=new three.Vector2(p.uv.x+v.s*(f.uv.x-p.uv.x),p.uv.y+v.s*(f.uv.y-p.uv.y));h.addCutFaceVertex(x.x,r,a),h.addCutFaceVertex(v.x,o,l),u.addCutFaceVertex(x.x,r,a),u.addCutFaceVertex(v.x,o,l);const y=h.vertices.length-2,m=h.vertices.length-1,w=u.vertices.length-2,V=u.vertices.length-1;g?(h.addTriangle(m,y,h.indexMap[s],c),h.addTriangle(y,h.indexMap[n],h.indexMap[s],c),u.addTriangle(u.indexMap[e],w,V,c),h.constraints.push(new M$1(h.cutVertices.length-2,h.cutVertices.length-1)),u.constraints.push(new M$1(u.cutVertices.length-1,u.cutVertices.length-2))):(h.addTriangle(y,m,h.indexMap[e],c),u.addTriangle(u.indexMap[n],u.indexMap[s],w,c),u.addTriangle(u.indexMap[s],V,w,c),h.constraints.push(new M$1(h.cutVertices.length-1,h.cutVertices.length-2)),u.constraints.push(new M$1(u.cutVertices.length-2,u.cutVertices.length-1)));}}const k={textureScale:new three.Vector2(1,1),textureOffset:new three.Vector2},F$1=new three.Vector3,$=new three.Vector3,I$1=new three.Vector3,P$1=new three.Plane,j=new three.Plane;function B$1(i,n,s,e,r,o){const a=[],h=i.matrixWorld.clone().invert(),l=i.position;n.applyMatrix4(h);const u=w.fromGeometry(i.geometry);let c=u.convex;F$1.addVectors(n,s),P$1.setFromCoplanarPoints(n,l,F$1);const g=r+e;return function i(r,u,d,p){if(0===r.vertexCount)return;if(Math.random()<.05*p||p>g)return void a.push(r);let f=Math.PI,x=new three.Vector3;r.calculateBounds(),r.bounds.getCenter(x);let v=c;if(0===p)j.normal.copy(P$1.normal),j.constant=P$1.constant;else if(p<=e)f=(d-u)*(.2+.6*Math.random())+u,$.copy(l).sub(n).applyAxisAngle(s,f).add(n),j.setFromCoplanarPoints(n,F$1,$);else {let t=x.clone().applyMatrix4(h);f=(.5*(1&p)+.2*(2-Math.random()))*Math.PI,$.copy(n).sub(t).applyAxisAngle(s,f).add(t),I$1.copy(s).add(t),j.setFromCoplanarPoints(t,I$1,$);}const{topSlice:y,bottomSlice:m}=E$1(r,j.normal,$,k.textureScale,k.textureOffset,v,o);let w=y,V=m;v||(w=G(y),V=G(m)),w&&(w instanceof Array?w.length>0&&w.forEach((t=>{t.vertices.length>12&&i(t,u,f,p+1);})):i(w,u,f,p+1)),V&&(V instanceof Array?V.length>0&&V.forEach((t=>{t.vertices.length>12&&i(t,u,f,p+1);})):i(m,f,d,p+1));}(u,0,2*Math.PI,0),a}function Q(t,i,n,s=true,e=0){const r=[];return t.map(((t,o)=>{r.push(t.toMesh(i,n,s,e));})),r}function G(t){const i=new V(t.vertexCount),n={},s=t.vertices.length,e=t.cutVertices.length,r=new Map;t.vertices.forEach(((t,n)=>{const s=f(t.position),e=r.get(s);void 0===e?r.set(s,n):i.union(e,n);}));for(let n=0;n<e;n++)i.union(t.vertexAdjacency[n],n+s);const o=t.triangles;for(let t=0;t<o.length;t++)for(let s=0;s<o[t].length;s+=3){const e=o[t][s],r=o[t][s+1],a=o[t][s+2];i.union(e,r),i.union(r,a);const h=i.find(e);n[h]||(n[h]=[[],[]]),n[h][t].push(e,r,a);}const a={},h=Array(t.vertexCount);for(let n=0;n<s;n++){const s=i.find(n);a[s]||(a[s]=new w),a[s].vertices.push(t.vertices[n]),h[n]=a[s].vertices.length-1;}for(let n=0;n<e;n++){const e=i.find(n+s);a[e].cutVertices.push(t.cutVertices[n]),h[n+s]=a[e].vertices.length+a[e].cutVertices.length-1;}for(const s of Object.keys(n)){let e=Number(s),r=i.parent[e];for(let i=0;i<t.triangles.length;i++)for(const t of n[e][i]){const n=h[t];a[r].triangles[i].push(n);}}return Object.values(a)}
+function h(t,i,n,s){return function(t,i,n,s,e){let r={x:i.x-t.x,y:i.y-t.y},o={x:s.x-n.x,y:s.y-n.y};const a=p(t),h=p(n);if(a===h)return e;const l=p(i);if(l===h)return e;const u=p(s);if(a===u)return e;if(l===u)return e;let c=(t.x-n.x)*o.y-(t.y-n.y)*o.x,g=(i.x-n.x)*o.y-(i.y-n.y)*o.x,d=(n.x-t.x)*r.y-(n.y-t.y)*r.x,f=(s.x-t.x)*r.y-(s.y-t.y)*r.x;return (c>=0&&g<=0||c<=0&&g>=0)&&(d>=0&&f<=0||d<=0&&f>=0)}(t,i,n,s,false)}function l(i,n,s,e){let r=0,o=new three.Vector3;return f(i)===f(n)||0===s.x&&0===s.y&&0===s.z?null:(r=((e.x-i.x)*s.x+(e.y-i.y)*s.y+(e.z-i.z)*s.z)/((n.x-i.x)*s.x+(n.y-i.y)*s.y+(n.z-i.z)*s.z),r<0||r>1?null:(o=new three.Vector3(i.x+(n.x-i.x)*r,i.y+(n.y-i.y)*r,i.z+(n.z-i.z)*r),{x:o,s:r}))}function u(t,i,n){return (i.x-t.x)*(n.y-t.y)-(i.y-t.y)*(n.x-t.x)<=0}function c(t){return parseInt(Math.round(1e6*t))}function g(t,i=1e6){return Math.floor(t*i)}function d(t,i){return Math.round((t+i)*(t+i+1)*.5+i)}function p(t){return d(g(t.x),g(t.y))}function f(t){const i=g(t.x),n=g(t.y),s=g(t.z),e=(i+n)*(i+n+1)*.5+n;return (e+s)*(e+s+1)*.5+s}function x$1(t,i,n){return !(i.x*(t.x-n.x)+i.y*(t.y-n.y)+i.z*(t.z-n.z)<0)}class v{constructor(n=new three.Vector3,s=new three.Vector3,e=new three.Vector2){this.position=n,this.normal=s,this.uv=e;}equals(t){return f(this.position)===f(t.position)}toString(){return `Position = ${this.position.x}, ${this.position.y}, ${this.position.z}, Normal = ${this.normal.x}, ${this.normal.y}, ${this.normal.z}, UV = ${this.uv.x}, ${this.uv.y}`}}const y=0,m$1=1;class w{constructor(){this.vertices=[],this.cutVertices=[],this.triangles=[[],[]],this.constraints=[],this.indexMap=[],this.bounds=new three.Box3,this.vertexAdjacency=[],this.convextested=false;}static fromGeometry(n){const s=n.attributes.position.array,e=n.attributes.normal.array,r=n.attributes.uv.array,o=n.attributes.position.count;let a,h;const l=new w;for(let n=0;n<o;n++)a=3*n,h=2*n,l.vertices.push(new v(new three.Vector3(s[a],s[a+1],s[a+2]),new three.Vector3(e[a],e[a+1],e[a+2]),new three.Vector2(r[h],r[h+1])));return l.triangles=[[...n.index.array],[]],l.calculateBounds(),l}get size(){this.bounds||this.calculateBounds();let i=new three.Vector3;return this.bounds.getSize(i)}get convex(){return this.convextested||(this.cc=this.isConvex()),this.cc}get triangleCount(){return (this.triangles[0].length+this.triangles[1].length)/3}get vertexCount(){return this.vertices.length+this.cutVertices.length}addCutFaceVertex(t,i,n){const s=new v(t,i,n);this.vertices.push(s),this.cutVertices.push(s),this.vertexAdjacency.push(this.vertices.length-1);}addMappedVertex(t,i){this.vertices.push(t),this.indexMap[i]=this.vertices.length-1;}addTriangle(t,i,n,s){this.triangles[s].push(t,i,n);}addMappedTriangle(t,i,n,s){this.triangles[s].push(this.indexMap[t],this.indexMap[i],this.indexMap[n]);}weldCutFaceVertices(){const t=[],i=[],n=new Array(this.cutVertices.length);let s=0;const e=new Map;this.cutVertices.forEach(((r,o)=>{const a=function(t){let i=c(t.x),n=c(t.y),s=c(t.z),e=(i+n)*(i+n+1)*.5+n;return (e+s)*(e+s+1)*.5+s}(r.position),h=e.get(a);void 0===h?(n[o]=s,e.set(a,s),t.push(this.cutVertices[o]),i.push(this.vertexAdjacency[o]),s++):n[o]=h;}));for(let t=0;t<this.constraints.length;t++){const i=this.constraints[t];i.v1=n[i.v1],i.v2=n[i.v2];}this.cutVertices=t,this.vertexAdjacency=i;}calculateBounds(){if(!this.vertices.length)return;let t=this.vertices[0].position.clone(),i=t.clone();this.vertices.forEach((n=>{t.x=Math.min(t.x,n.position.x),t.y=Math.min(t.y,n.position.y),t.z=Math.min(t.z,n.position.z),i.x=Math.max(i.x,n.position.x),i.y=Math.max(i.y,n.position.y),i.z=Math.max(i.z,n.position.z);})),this.bounds.set(t,i);}calculateBounds_(t=false){null===this.bounds&&(this.bounds=new three.Box3);let i=this.vertices.length;t&&(i+=this.cutVertices.length);const s=[];let e=-1;for(const t of this.vertices)s[e++]=t.position;if(t)for(const t of this.cutVertices)s[e++]=t.position;this.bounds.setFromPoints(s);}toMesh(i,n=null,r=true,o=0){const a=new three.Vector3,h=new three.Vector3;let l=this.toGeometry(r,o);l.boundingBox.getCenter(a),l.boundingBox.getSize(h),l.translate(-a.x,-a.y,-a.z),l.boundingSphere=new three.Sphere(new three.Vector3,.5*h.length());let u=i.material;n&&u.isMaterial&&(u=[i.material,n]);const c=new three.Mesh(l,u);return c.receiveShadow=i.receiveShadow,c.castShadow=i.castShadow,c.sizer=h.length(),a.applyQuaternion(i.quaternion),c.position.copy(i.position).add(a),c.quaternion.copy(i.quaternion),c.userData={origin:c.position.clone(),direction:a.normalize(),size:h},c}makeTrickness(t,i,n,s,e){let r,o=1-e,a=[...t],h=[...i],l=[...n],u=t.length/3,c=u;for(;c--;)r=3*c,a[r]*=o,a[r+1]*=o,a[r+2]*=o;let g=[];for(c=s.length;c--;)g[c]=s[c]+u;return [a,h,l,g]}toGeometry(t,i){let n;const s=new three.BufferGeometry;let e=[],a=[],h=[];if(this.vertices.forEach((t=>{e.push(t.position.x,t.position.y,t.position.z),a.push(t.normal.x,t.normal.y,t.normal.z),h.push(t.uv.x,t.uv.y);})),0!==i){let t=this.makeTrickness(e,a,h,this.triangles[0],i);e=e.concat(t[0]),a=a.concat(t[1]),h=h.concat(t[2]),n=t[3];}return t&&this.cutVertices.forEach((t=>{e.push(t.position.x,t.position.y,t.position.z),a.push(t.normal.x,t.normal.y,t.normal.z),h.push(t.uv.x,t.uv.y);})),s.addGroup(0,this.triangles[0].length,0),0!==i&&(s.addGroup(this.triangles[0].length,n.length,1),this.triangles[0]=this.triangles[0].concat(n)),t&&s.addGroup(this.triangles[0].length,this.triangles[1].length,1),s.setAttribute("position",new three.BufferAttribute(new Float32Array(e),3)),s.setAttribute("normal",new three.BufferAttribute(new Float32Array(a),3)),s.setAttribute("uv",new three.BufferAttribute(new Float32Array(h),2)),s.setIndex(new three.BufferAttribute(new Uint32Array(this.triangles.flat()),1)),s.computeBoundingBox(),s}isConvex(i=.001){this.convextested=true;let n=0;const s=this.triangleCount,e=[...this.triangles[0],...this.triangles[1]],r=[...this.vertices,...this.cutVertices],o=r.length;if(0===s||0===o)return  false;const a=new three.Vector3,h=new three.Vector3,l=new three.Vector3,u=new three.Vector3,c=new three.Vector3;let g,d;for(let t=0;t<s;t++){n=3*t,c.copy(r[0].position),a.copy(r[e[n]].position),h.copy(r[e[n+1]].position),l.copy(r[e[n+2]].position),h.sub(a),l.sub(a),u.copy(h).cross(l).normalize(),g=c.sub(a).dot(u);for(let t=0;t<o;t++)if(d=c.copy(r[t].position).sub(a).dot(u),Math.abs(g)>i&&Math.abs(d)>i&&g*d<0)return  false}return  true}}class V{constructor(t){this.parent=new Array(t),this.rank=new Array(t);for(let i=0;i<t;i++)this.parent[i]=i,this.rank[i]=1;}find(t){return this.parent[t]!==t&&(this.parent[t]=this.find(this.parent[t])),this.parent[t]}union(t,i){const n=this.find(t),s=this.find(i);n!==s&&(this.rank[n]>this.rank[s]?this.parent[s]=n:this.rank[n]<this.rank[s]?this.parent[n]=s:(this.parent[s]=n,this.rank[n]+=1));}}let M$1 = class M{constructor(t,i,n,s,e){this.v1=t,this.v2=i,this.t1=void 0!==n?n:-1,this.t2=void 0!==s?s:-1,this.t1Edge=void 0!==e?e:0;}equals(t){return this.v1===t.v1&&this.v2===t.v2||this.v1===t.v2&&this.v2===t.v1}toString(){return `Edge: T${this.t1}->T${this.t2} (V${this.v1}->V${this.v2})`}};class T{static getBinNumber(t,i,n){return t%2==0?t*n+i:(t+1)*n-i-1}static sort(t,i,n){if(n<=1)return t;i>t.length&&(i=t.length);const s=new Array(n).fill(0),e=new Array(t.length);for(let n=0;n<i;n++)s[t[n].bin]++;for(let t=1;t<n;t++)s[t]+=s[t-1];for(let n=i-1;n>=0;n--){const i=t[n].bin;s[i]--,e[s[i]]=t[n];}for(let n=i;n<e.length;n++)e[n]=t[n];return e}}let C$1 = class C{constructor(t,i){this.index=t,this.coords=i,this.bin=0;}toString(){return `${this.coords} -> ${this.bin}`}};const z=-1;class b{constructor(n,s){if(this.normalizationScaleFactor=1,this.N=n.length,this.N>=3){this.triangleCount=2*this.N+1,this.triangulation=Array.from({length:this.triangleCount},(()=>new Array(6).fill(0))),this.skipTriangle=new Array(this.triangleCount).fill(false),this.points=new Array(this.N+3),this.normal=s.clone().normalize();let o=n[0].position.clone().sub(n[1].position).normalize(),a=this.normal.clone(),h=new three.Vector3;h.crossVectors(o,a).normalize();for(let t=0;t<this.N;t++){var e=n[t].position,r=new three.Vector2(e.dot(o),e.dot(h));this.points[t]=new C$1(t,r);}}else this.triangleCount=0,this.triangulation=[],this.skipTriangle=[],this.points=[],this.normal=new three.Vector3;}triangulate(){if(this.N<3)return [];this.addSuperTriangle(),this.normalizeCoordinates(),this.computeTriangulation(),this.discardTrianglesWithSuperTriangleVertices();const t=[];for(let i=0;i<this.triangleCount;i++)this.skipTriangle[i]||t.push(this.triangulation[i][0],this.triangulation[i][1],this.triangulation[i][2]);return t}normalizeCoordinates(){let t=Number.MAX_VALUE,n=Number.MIN_VALUE,s=Number.MAX_VALUE,e=Number.MIN_VALUE;for(let i=0;i<this.N;i++)t=Math.min(t,this.points[i].coords.x),n=Math.max(n,this.points[i].coords.x),s=Math.min(s,this.points[i].coords.y),e=Math.max(e,this.points[i].coords.y);const r=Math.max(n-t,e-s);for(let n=0;n<this.N;n++){var o=this.points[n],a=new three.Vector2((o.coords.x-t)/r,(o.coords.y-s)/r);this.points[n].coords=a;}}sortPointsIntoBins(){const t=Math.round(Math.pow(this.N,.25)),i=t*t;for(let i=0;i<this.N;i++){var n=this.points[i];const s=Math.floor(.99*t*n.coords.y),e=Math.floor(.99*t*n.coords.x);n.bin=T.getBinNumber(s,e,t);}return T.sort(this.points,this.N,i)}computeTriangulation(){let t=0,i=0,n=this.sortPointsIntoBins();for(let s=0;s<this.N;s++){let e=n[s];if(!e)break;let r=0,o=false;for(;!o&&!(r++>i||t===z);){let n=this.points[this.triangulation[t][0]].coords,s=this.points[this.triangulation[t][1]].coords,r=this.points[this.triangulation[t][2]].coords;u(n,s,e.coords)?u(s,r,e.coords)?u(r,n,e.coords)?(this.insertPointIntoTriangle(e,t,i),i+=2,t=i,o=true):t=this.triangulation[t][5]:t=this.triangulation[t][4]:t=this.triangulation[t][3];}}}addSuperTriangle(){this.points[this.N]=new C$1(this.N,new three.Vector2(-100,-100)),this.points[this.N+1]=new C$1(this.N+1,new three.Vector2(0,100)),this.points[this.N+2]=new C$1(this.N+2,new three.Vector2(100,-100)),this.triangulation[0][0]=this.N,this.triangulation[0][1]=this.N+1,this.triangulation[0][2]=this.N+2,this.triangulation[0][3]=z,this.triangulation[0][4]=z,this.triangulation[0][5]=z;}insertPointIntoTriangle(t,i,n){const s=i,e=n+1,r=n+2;this.triangulation[e][0]=t.index,this.triangulation[e][1]=this.triangulation[i][1],this.triangulation[e][2]=this.triangulation[i][2],this.triangulation[e][3]=r,this.triangulation[e][4]=this.triangulation[i][4],this.triangulation[e][5]=s,this.triangulation[r][0]=t.index,this.triangulation[r][1]=this.triangulation[i][0],this.triangulation[r][2]=this.triangulation[i][1],this.triangulation[r][3]=s,this.triangulation[r][4]=this.triangulation[i][3],this.triangulation[r][5]=e,this.updateAdjacency(this.triangulation[i][3],i,r),this.updateAdjacency(this.triangulation[i][4],i,e),this.triangulation[s][1]=this.triangulation[i][2],this.triangulation[s][2]=this.triangulation[i][0],this.triangulation[s][0]=t.index,this.triangulation[s][4]=this.triangulation[i][5],this.triangulation[s][3]=e,this.triangulation[s][5]=r,this.restoreDelauneyTriangulation(t,s,e,r);}restoreDelauneyTriangulation(t,i,n,s){const e=[];for(e.push([i,this.triangulation[i][4]]),e.push([n,this.triangulation[n][4]]),e.push([s,this.triangulation[s][4]]);e.length>0;)if([i,n]=e.pop()??[z,z],n!==z){const s=this.swapQuadDiagonalIfNeeded(t.index,i,n);null!==s&&(e.push([i,s.t3]),e.push([n,s.t4]));}}swapQuadDiagonalIfNeeded(t,i,n){let s=0,e=0,r=0,o=t,a=0,h=0;this.triangulation[n][3]===i?(s=this.triangulation[n][1],e=this.triangulation[n][0],r=this.triangulation[n][2],a=this.triangulation[n][4],h=this.triangulation[n][5]):this.triangulation[n][4]===i?(s=this.triangulation[n][2],e=this.triangulation[n][1],r=this.triangulation[n][0],a=this.triangulation[n][5],h=this.triangulation[n][3]):(s=this.triangulation[n][0],e=this.triangulation[n][2],r=this.triangulation[n][1],a=this.triangulation[n][3],h=this.triangulation[n][4]);return this.swapTest(this.points[s].coords,this.points[e].coords,this.points[r].coords,this.points[o].coords)?(this.updateAdjacency(a,n,i),this.updateAdjacency(this.triangulation[i][5],i,n),this.triangulation[i][0]=o,this.triangulation[i][1]=s,this.triangulation[i][2]=r,this.triangulation[n][0]=o,this.triangulation[n][1]=r,this.triangulation[n][2]=e,this.triangulation[n][3]=i,this.triangulation[n][4]=h,this.triangulation[n][5]=this.triangulation[i][5],this.triangulation[i][4]=a,this.triangulation[i][5]=n,{t3:a,t4:h}):null}discardTrianglesWithSuperTriangleVertices(){for(let t=0;t<this.triangleCount;t++)(this.triangleContainsVertex(t,this.N)||this.triangleContainsVertex(t,this.N+1)||this.triangleContainsVertex(t,this.N+2))&&(this.skipTriangle[t]=true);}swapTest(t,i,n,s){const e=t.x-n.x,r=i.x-n.x,o=t.y-n.y,a=i.y-n.y,h=t.x-s.x,l=i.x-s.x,u=t.y-s.y,c=i.y-s.y,g=e*r+o*a,d=l*h+c*u;if(g>=0&&d>=0)return  false;if(g<0&&d<0)return  true;return (e*a-r*o)*d+(l*u-h*c)*g<0}triangleContainsVertex(t,i){return this.triangulation[t][0]===i||this.triangulation[t][1]===i||this.triangulation[t][2]===i}updateAdjacency(t,i,n){if(t===z)return;const s=this.findSharedEdge(t,i);null!==s&&(this.triangulation[t][s]=n);}findSharedEdge(t,i){return t===z?null:this.triangulation[t][3]===i?3:this.triangulation[t][4]===i?4:this.triangulation[t][5]===i?5:null}}let A$1 = class A{constructor(t,i,n,s,e,r,o,a,h,l){this.q1=t,this.q2=i,this.q3=n,this.q4=s,this.t1=e,this.t2=r,this.t1L=o,this.t1R=a,this.t2L=h,this.t2R=l;}toString(){return `T${this.t1}/T${this.t2} (V${this.q1},V${this.q2},V${this.q3},V${this.q4})`}};class S extends b{edgeVertex1=[0,0,0,0,1,2];edgeVertex2=[0,0,0,1,2,0];oppositePoint=[0,0,0,2,0,1];nextEdge=[0,0,0,4,5,3];previousEdge=[0,0,0,5,3,4];constructor(t,i,n){super(t,n),this.constraints=i,this.vertexTriangles=[],this.visited=[];}triangulate(){if(this.N<3)return [];this.addSuperTriangle(),this.normalizeCoordinates(),this.computeTriangulation(),this.constraints.length>0&&(this.applyConstraints(),this.discardTrianglesViolatingConstraints()),this.discardTrianglesWithSuperTriangleVertices();let t=[];for(let i=0;i<this.triangleCount;i++)this.skipTriangle[i]||(t.push(this.triangulation[i][0]),t.push(this.triangulation[i][1]),t.push(this.triangulation[i][2]));return t}applyConstraints(){const t=this.triangulation.length;this.visited=new Array(t).fill(false),this.vertexTriangles=new Array(this.N+3).fill(0);for(let i=0;i<t;i++)this.vertexTriangles[this.triangulation[i][0]]=i,this.vertexTriangles[this.triangulation[i][1]]=i,this.vertexTriangles[this.triangulation[i][2]]=i;for(let t of this.constraints){if(t.v1===t.v2)continue;const i=this.findIntersectingEdges(t,this.vertexTriangles);this.removeIntersectingEdges(t,i);}}findIntersectingEdges(t,i){const n=[],s=this.findStartingEdge(i,t);if(null===s)return n;n.push(s);let e=s.t1,r=s.t1Edge,o=e,a=false;for(;!a;){o=e,e=this.triangulation[e][r];const i=this.points[t.v1].coords,s=this.points[t.v2].coords,u=this.points[this.triangulation[e][0]].coords,c=this.points[this.triangulation[e][1]].coords,g=this.points[this.triangulation[e][2]].coords;if(this.triangleContainsVertex(e,t.v2))a=true;else if(this.triangulation[e][3]!==o&&h(i,s,u,c)){r=3;var l=new M$1(this.triangulation[e][0],this.triangulation[e][1],e,this.triangulation[e][3],r);n.push(l);}else if(this.triangulation[e][4]!==o&&h(i,s,c,g)){r=4;l=new M$1(this.triangulation[e][1],this.triangulation[e][2],e,this.triangulation[e][4],r);n.push(l);}else {if(this.triangulation[e][5]===o||!h(i,s,g,u)){console.warn("Failed to find final triangle, exiting early.");break}r=5;l=new M$1(this.triangulation[e][2],this.triangulation[e][0],e,this.triangulation[e][5],r);n.push(l);}}return n}findStartingEdge(t,i){let n,s,e,r=new M$1(-1,-1),o=i.v1,a=t[o],h=false,l=null;for(this.visited.fill(false);!l&&!h;){if(this.visited[a]=true,this.triangleContainsConstraint(a,i))return null;if(l=this.edgeConstraintIntersectsTriangle(a,i),l)break;if(n=this.triangulation[a][3],s=this.triangulation[a][4],e=this.triangulation[a][5],-1!==n&&!this.visited[n]&&this.triangleContainsVertex(n,o))a=n;else if(-1!==s&&!this.visited[s]&&this.triangleContainsVertex(s,o))a=s;else {if(-1===e||this.visited[e]||!this.triangleContainsVertex(e,o)){h=true;break}a=e;}}if(l){const t=this.triangulation[a][this.edgeVertex1[l]],i=this.triangulation[a][this.edgeVertex2[l]],n=this.triangulation[a][l];return r=new M$1(t,i,a,n,l),r}return null}removeIntersectingEdges(t,i){let n,s=[],e=0;for(;i.length>0&&e<=i.length;){if(n=i.shift(),null==n)continue;let r=this.findQuadFromSharedEdge(n.t1,n.t1Edge);if(r)if(h(this.points[r.q4].coords,this.points[r.q3].coords,this.points[r.q1].coords,this.points[r.q2].coords)){this.swapQuadDiagonal(r,i,s,this.constraints);let n=new M$1(r.q3,r.q4,r.t1,r.t2,5);h(this.points[t.v1].coords,this.points[t.v2].coords,this.points[r.q3].coords,this.points[r.q4].coords)?i.push(n):(e=0,s.push(n));}else i.push(n);e++;}s.length>0&&this.restoreConstrainedDelauneyTriangulation(t,s);}restoreConstrainedDelauneyTriangulation(t,i){let n=true;for(;n;){n=false;for(let s=0;s<i.length;s++){const e=i[s];if(e.equals(t))continue;let r=this.findQuadFromSharedEdge(e.t1,e.t1Edge);if(r&&this.swapTest(this.points[r.q1].coords,this.points[r.q2].coords,this.points[r.q3].coords,this.points[r.q4].coords)){this.swapQuadDiagonal(r,i,this.constraints,null);const t=r.q3,e=r.q4;i[s]=new M$1(t,e,r.t1,r.t2,5),n=true;}}}}discardTrianglesViolatingConstraints(){this.skipTriangle.fill(true);let t=new Set;for(let i=0;i<this.constraints.length;i++){const n=this.constraints[i];t.add(d(n.v1,n.v2));}this.visited.fill(false);let i,n,s,e,r,o,a=[];for(let h=0;h<this.triangleCount;h++)if(!this.visited[h]&&(i=this.triangulation[h][0],n=this.triangulation[h][1],s=this.triangulation[h][2],e=t.has(d(i,n)),r=t.has(d(n,s)),o=t.has(d(s,i)),e||r||o))for(this.skipTriangle[h]=false,a=[],e||a.push(this.triangulation[h][3]),r||a.push(this.triangulation[h][4]),o||a.push(this.triangulation[h][5]);a.length>0;){const e=a.shift();-1===e||this.visited[e]||(this.skipTriangle[e]=false,this.visited[e]=true,i=this.triangulation[e][0],n=this.triangulation[e][1],s=this.triangulation[e][2],t.has(d(i,n))||a.push(this.triangulation[e][3]),t.has(d(n,s))||a.push(this.triangulation[e][4]),t.has(d(s,i))||a.push(this.triangulation[e][5]));}}triangleContainsConstraint(t,i){return !(t>=this.triangulation.length)&&!(this.triangulation[t][0]!==i.v1&&this.triangulation[t][1]!==i.v1&&this.triangulation[t][2]!==i.v1||this.triangulation[t][0]!==i.v2&&this.triangulation[t][1]!==i.v2&&this.triangulation[t][2]!==i.v2)}edgeConstraintIntersectsTriangle(t,i){const n=this.points[i.v1].coords,s=this.points[i.v2].coords,e=this.points[this.triangulation[t][0]].coords,r=this.points[this.triangulation[t][1]].coords,o=this.points[this.triangulation[t][2]].coords;return h(n,s,e,r)?3:h(n,s,r,o)?4:h(n,s,o,e)?5:null}findQuadFromSharedEdge(t,i){let n,s,e,r,o,a,h,l,u=this.triangulation[t][i],c=this.findSharedEdge(u,t);return c?(3===c?(s=this.triangulation[u][0],n=this.triangulation[u][1],e=this.triangulation[u][2]):4===c?(s=this.triangulation[u][1],n=this.triangulation[u][2],e=this.triangulation[u][0]):(s=this.triangulation[u][2],n=this.triangulation[u][0],e=this.triangulation[u][1]),r=this.triangulation[t][this.oppositePoint[i]],o=this.triangulation[t][this.previousEdge[i]],a=this.triangulation[t][this.nextEdge[i]],h=this.triangulation[u][this.nextEdge[c]],l=this.triangulation[u][this.previousEdge[c]],new A$1(n,s,e,r,t,u,o,a,h,l)):null}swapQuadDiagonal(t,i,n,s){const e=t.t1,r=t.t2,o=t.t1R,a=t.t1L,h=t.t2R,l=t.t2L;this.triangulation[e][0]=t.q4,this.triangulation[e][1]=t.q1,this.triangulation[e][2]=t.q3,this.triangulation[r][0]=t.q4,this.triangulation[r][1]=t.q3,this.triangulation[r][2]=t.q2,this.triangulation[e][3]=a,this.triangulation[e][4]=l,this.triangulation[e][5]=r,this.triangulation[r][3]=e,this.triangulation[r][4]=h,this.triangulation[r][5]=o,this.updateAdjacency(l,r,e),this.updateAdjacency(o,e,r),this.updateEdgesAfterSwap(i,e,r,a,o,l,h),this.updateEdgesAfterSwap(n,e,r,a,o,l,h),this.updateEdgesAfterSwap(s,e,r,a,o,l,h),this.vertexTriangles[t.q1]=e,this.vertexTriangles[t.q2]=r;}updateEdgesAfterSwap(t,i,n,s,e,r,o){if(t)for(let a of t)a.t1===i&&a.t2===e?(a.t1=n,a.t2=e,a.t1Edge=5):a.t1===i&&a.t2===s?a.t1Edge=3:a.t1===e&&a.t2===i?a.t2=n:a.t1===s&&a.t2===i||(a.t1===n&&a.t2===o?a.t1Edge=4:a.t1===n&&a.t2===r?(a.t1=i,a.t2=r,a.t1Edge=4):a.t1===o&&a.t2===n||a.t1===r&&a.t2===n&&(a.t2=i));}}function E$1(t,n,s,e,r,o,a=true){const h=new w,l=new w,u=new Array(t.vertexCount).fill(false);for(let i=0;i<t.vertices.length;i++){var c=t.vertices[i];u[i]=x$1(c.position,n,s),(u[i]?h:l).addMappedVertex(c,i);}const g=t.vertices.length;for(let i=0;i<t.cutVertices.length;i++){c=t.cutVertices[i];u[i+g]=x$1(c.position,n,s),(u[i+g]?h:l).addMappedVertex(c,i+g);}return N(t,h,l,n,s,u,y),a&&N(t,h,l,n,s,u,m$1),a&&function(t,n,s,e,r,o){t.weldCutFaceVertices();const a=s.clone().negate().normalize();if(t.cutVertices.length<3)return;const h=o?new b(t.cutVertices,a):new S(t.cutVertices,t.constraints,a),l=h.triangulate();for(let o=0;o<t.cutVertices.length;o++){var u=t.cutVertices[o],c=h.points[o];const l=new three.Vector2(h.normalizationScaleFactor*c.coords.x*e.x+r.x,h.normalizationScaleFactor*c.coords.y*e.y+r.y),g=new v(u.position.clone(),a.clone(),l.clone()),d=new v(u.position.clone(),s.clone(),l.clone());t.cutVertices[o]=g,n.cutVertices[o]=d;}let g=t.vertices.length,d=n.vertices.length;for(let i=0;i<l.length;i+=3)t.addTriangle(g+l[i],g+l[i+1],g+l[i+2],m$1),n.addTriangle(d+l[i],d+l[i+2],d+l[i+1],m$1);}(h,l,n,e,r,o),{topSlice:h,bottomSlice:l}}function N(t,i,n,s,e,r,o){const a=t.triangles[o];let h,l,u;for(let c=0;c<a.length;c+=3)h=a[c],l=a[c+1],u=a[c+2],r[h]&&r[l]&&r[u]?i.addMappedTriangle(h,l,u,o):r[h]||r[l]||r[u]?r[l]&&r[u]&&!r[h]?q$1(l,u,h,s,e,t,i,n,o,true):r[u]&&r[h]&&!r[l]?q$1(u,h,l,s,e,t,i,n,o,true):r[h]&&r[l]&&!r[u]?q$1(h,l,u,s,e,t,i,n,o,true):r[l]||r[u]||!r[h]?r[u]||r[h]||!r[l]?r[h]||r[l]||!r[u]||q$1(h,l,u,s,e,t,i,n,o,false):q$1(u,h,l,s,e,t,i,n,o,false):q$1(l,u,h,s,e,t,i,n,o,false):n.addMappedTriangle(h,l,u,o);}function q$1(n,s,e,r,o,a,h,u,c,g){let d=n<a.vertices.length?a.vertices[n]:a.cutVertices[n-a.vertices.length],p=s<a.vertices.length?a.vertices[s]:a.cutVertices[s-a.vertices.length],f=e<a.vertices.length?a.vertices[e]:a.cutVertices[e-a.vertices.length];const x=l(d.position,f.position,r,o),v=l(p.position,f.position,r,o);if(x&&v){const r=new three.Vector3(d.normal.x+x.s*(f.normal.x-d.normal.x),d.normal.y+x.s*(f.normal.y-d.normal.y),d.normal.z+x.s*(f.normal.z-d.normal.z)).normalize(),o=new three.Vector3(p.normal.x+v.s*(f.normal.x-p.normal.x),p.normal.y+v.s*(f.normal.y-p.normal.y),p.normal.z+v.s*(f.normal.z-p.normal.z)).normalize(),a=new three.Vector2(d.uv.x+x.s*(f.uv.x-d.uv.x),d.uv.y+x.s*(f.uv.y-d.uv.y)),l=new three.Vector2(p.uv.x+v.s*(f.uv.x-p.uv.x),p.uv.y+v.s*(f.uv.y-p.uv.y));h.addCutFaceVertex(x.x,r,a),h.addCutFaceVertex(v.x,o,l),u.addCutFaceVertex(x.x,r,a),u.addCutFaceVertex(v.x,o,l);const y=h.vertices.length-2,m=h.vertices.length-1,w=u.vertices.length-2,V=u.vertices.length-1;g?(h.addTriangle(m,y,h.indexMap[s],c),h.addTriangle(y,h.indexMap[n],h.indexMap[s],c),u.addTriangle(u.indexMap[e],w,V,c),h.constraints.push(new M$1(h.cutVertices.length-2,h.cutVertices.length-1)),u.constraints.push(new M$1(u.cutVertices.length-1,u.cutVertices.length-2))):(h.addTriangle(y,m,h.indexMap[e],c),u.addTriangle(u.indexMap[n],u.indexMap[s],w,c),u.addTriangle(u.indexMap[s],V,w,c),h.constraints.push(new M$1(h.cutVertices.length-1,h.cutVertices.length-2)),u.constraints.push(new M$1(u.cutVertices.length-2,u.cutVertices.length-1)));}}const k={textureScale:new three.Vector2(1,1),textureOffset:new three.Vector2},F$1=new three.Vector3,$=new three.Vector3,I$1=new three.Vector3,P$1=new three.Plane,j=new three.Plane;function B$1(i,n,s,e,r,o){const a=[],h=i.matrixWorld.clone().invert(),l=i.position;n.applyMatrix4(h);const u=w.fromGeometry(i.geometry);let c=u.convex;F$1.addVectors(n,s),P$1.setFromCoplanarPoints(n,l,F$1);const g=r+e;return function i(r,u,d,p){if(0===r.vertexCount)return;if(Math.random()<.05*p||p>g)return void a.push(r);let f=Math.PI,x=new three.Vector3;r.calculateBounds(),r.bounds.getCenter(x);let v=c;if(0===p)j.normal.copy(P$1.normal),j.constant=P$1.constant;else if(p<=e)f=(d-u)*(.2+.6*Math.random())+u,$.copy(l).sub(n).applyAxisAngle(s,f).add(n),j.setFromCoplanarPoints(n,F$1,$);else {let t=x.clone().applyMatrix4(h);f=(.5*(1&p)+.2*(2-Math.random()))*Math.PI,$.copy(n).sub(t).applyAxisAngle(s,f).add(t),I$1.copy(s).add(t),j.setFromCoplanarPoints(t,I$1,$);}const{topSlice:y,bottomSlice:m}=E$1(r,j.normal,$,k.textureScale,k.textureOffset,v,o);let w=y,V=m;v||(w=G(y),V=G(m)),w&&(w instanceof Array?w.length>0&&w.forEach((t=>{t.vertices.length>12&&i(t,u,f,p+1);})):i(w,u,f,p+1)),V&&(V instanceof Array?V.length>0&&V.forEach((t=>{t.vertices.length>12&&i(t,u,f,p+1);})):i(m,f,d,p+1));}(u,0,2*Math.PI,0),a}function Q(t,i,n,s=true,e=0){const r=[];return t.map(((t,o)=>{r.push(t.toMesh(i,n,s,e));})),r}function G(t){const i=new V(t.vertexCount),n={},s=t.vertices.length,e=t.cutVertices.length,r=new Map;t.vertices.forEach(((t,n)=>{const s=f(t.position),e=r.get(s);void 0===e?r.set(s,n):i.union(e,n);}));for(let n=0;n<e;n++)i.union(t.vertexAdjacency[n],n+s);const o=t.triangles;for(let t=0;t<o.length;t++)for(let s=0;s<o[t].length;s+=3){const e=o[t][s],r=o[t][s+1],a=o[t][s+2];i.union(e,r),i.union(r,a);const h=i.find(e);n[h]||(n[h]=[[],[]]),n[h][t].push(e,r,a);}const a={},h=Array(t.vertexCount);for(let n=0;n<s;n++){const s=i.find(n);a[s]||(a[s]=new w),a[s].vertices.push(t.vertices[n]),h[n]=a[s].vertices.length-1;}for(let n=0;n<e;n++){const e=i.find(n+s);a[e].cutVertices.push(t.cutVertices[n]),h[n+s]=a[e].vertices.length+a[e].cutVertices.length-1;}for(const s of Object.keys(n)){let e=Number(s),r=i.parent[e];for(let i=0;i<t.triangles.length;i++)for(const t of n[e][i]){const n=h[t];a[r].triangles[i].push(n);}}return Object.values(a)}
 
 class Breaker {
 
@@ -37665,6 +22388,3358 @@ class SoftSolver {
 
 	    this.motor.change(TMP);
 	    this.updateMesh();
+
+	}
+
+}
+
+// https://github.com/mrdoob/three.js/issues/5552
+// http://en.wikipedia.org/wiki/RGBE_image_format
+
+class RGBELoader extends three.DataTextureLoader {
+
+	constructor( manager ) {
+
+		super( manager );
+
+		this.type = three.HalfFloatType;
+
+	}
+
+	// adapted from http://www.graphics.cornell.edu/~bjw/rgbe.html
+
+	parse( buffer ) {
+
+		const
+			/* default error routine.  change this to change error handling */
+			rgbe_read_error = 1,
+			rgbe_write_error = 2,
+			rgbe_format_error = 3,
+			rgbe_memory_error = 4,
+			rgbe_error = function ( rgbe_error_code, msg ) {
+
+				switch ( rgbe_error_code ) {
+
+					case rgbe_read_error: throw new Error( 'THREE.RGBELoader: Read Error: ' + ( msg || '' ) );
+					case rgbe_write_error: throw new Error( 'THREE.RGBELoader: Write Error: ' + ( msg || '' ) );
+					case rgbe_format_error: throw new Error( 'THREE.RGBELoader: Bad File Format: ' + ( msg || '' ) );
+					default:
+					case rgbe_memory_error: throw new Error( 'THREE.RGBELoader: Memory Error: ' + ( msg || '' ) );
+
+				}
+
+			},
+
+			/* offsets to red, green, and blue components in a data (float) pixel */
+			//RGBE_DATA_RED = 0,
+			//RGBE_DATA_GREEN = 1,
+			//RGBE_DATA_BLUE = 2,
+
+			/* number of floats per pixel, use 4 since stored in rgba image format */
+			//RGBE_DATA_SIZE = 4,
+
+			/* flags indicating which fields in an rgbe_header_info are valid */
+			RGBE_VALID_PROGRAMTYPE = 1,
+			RGBE_VALID_FORMAT = 2,
+			RGBE_VALID_DIMENSIONS = 4,
+
+			NEWLINE = '\n',
+
+			fgets = function ( buffer, lineLimit, consume ) {
+
+				const chunkSize = 128;
+
+				lineLimit = ! lineLimit ? 1024 : lineLimit;
+				let p = buffer.pos,
+					i = -1, len = 0, s = '',
+					chunk = String.fromCharCode.apply( null, new Uint16Array( buffer.subarray( p, p + chunkSize ) ) );
+
+				while ( ( 0 > ( i = chunk.indexOf( NEWLINE ) ) ) && ( len < lineLimit ) && ( p < buffer.byteLength ) ) {
+
+					s += chunk; len += chunk.length;
+					p += chunkSize;
+					chunk += String.fromCharCode.apply( null, new Uint16Array( buffer.subarray( p, p + chunkSize ) ) );
+
+				}
+
+				if ( -1 < i ) {
+
+					/*for (i=l-1; i>=0; i--) {
+						byteCode = m.charCodeAt(i);
+						if (byteCode > 0x7f && byteCode <= 0x7ff) byteLen++;
+						else if (byteCode > 0x7ff && byteCode <= 0xffff) byteLen += 2;
+						if (byteCode >= 0xDC00 && byteCode <= 0xDFFF) i--; //trail surrogate
+					}*/
+					buffer.pos += len + i + 1;
+					return s + chunk.slice( 0, i );
+
+				}
+
+				return false;
+
+			},
+
+			/* minimal header reading.  modify if you want to parse more information */
+			RGBE_ReadHeader = function ( buffer ) {
+
+
+				// regexes to parse header info fields
+				const magic_token_re = /^#\?(\S+)/,
+					gamma_re = /^\s*GAMMA\s*=\s*(\d+(\.\d+)?)\s*$/,
+					exposure_re = /^\s*EXPOSURE\s*=\s*(\d+(\.\d+)?)\s*$/,
+					format_re = /^\s*FORMAT=(\S+)\s*$/,
+					dimensions_re = /^\s*\-Y\s+(\d+)\s+\+X\s+(\d+)\s*$/,
+
+					// RGBE format header struct
+					header = {
+
+						valid: 0, /* indicate which fields are valid */
+
+						string: '', /* the actual header string */
+
+						comments: '', /* comments found in header */
+
+						programtype: 'RGBE', /* listed at beginning of file to identify it after "#?". defaults to "RGBE" */
+
+						format: '', /* RGBE format, default 32-bit_rle_rgbe */
+
+						gamma: 1.0, /* image has already been gamma corrected with given gamma. defaults to 1.0 (no correction) */
+
+						exposure: 1.0, /* a value of 1.0 in an image corresponds to <exposure> watts/steradian/m^2. defaults to 1.0 */
+
+						width: 0, height: 0 /* image dimensions, width/height */
+
+					};
+
+				let line, match;
+
+				if ( buffer.pos >= buffer.byteLength || ! ( line = fgets( buffer ) ) ) {
+
+					rgbe_error( rgbe_read_error, 'no header found' );
+
+				}
+
+				/* if you want to require the magic token then uncomment the next line */
+				if ( ! ( match = line.match( magic_token_re ) ) ) {
+
+					rgbe_error( rgbe_format_error, 'bad initial token' );
+
+				}
+
+				header.valid |= RGBE_VALID_PROGRAMTYPE;
+				header.programtype = match[ 1 ];
+				header.string += line + '\n';
+
+				while ( true ) {
+
+					line = fgets( buffer );
+					if ( false === line ) break;
+					header.string += line + '\n';
+
+					if ( '#' === line.charAt( 0 ) ) {
+
+						header.comments += line + '\n';
+						continue; // comment line
+
+					}
+
+					if ( match = line.match( gamma_re ) ) {
+
+						header.gamma = parseFloat( match[ 1 ] );
+
+					}
+
+					if ( match = line.match( exposure_re ) ) {
+
+						header.exposure = parseFloat( match[ 1 ] );
+
+					}
+
+					if ( match = line.match( format_re ) ) {
+
+						header.valid |= RGBE_VALID_FORMAT;
+						header.format = match[ 1 ];//'32-bit_rle_rgbe';
+
+					}
+
+					if ( match = line.match( dimensions_re ) ) {
+
+						header.valid |= RGBE_VALID_DIMENSIONS;
+						header.height = parseInt( match[ 1 ], 10 );
+						header.width = parseInt( match[ 2 ], 10 );
+
+					}
+
+					if ( ( header.valid & RGBE_VALID_FORMAT ) && ( header.valid & RGBE_VALID_DIMENSIONS ) ) break;
+
+				}
+
+				if ( ! ( header.valid & RGBE_VALID_FORMAT ) ) {
+
+					rgbe_error( rgbe_format_error, 'missing format specifier' );
+
+				}
+
+				if ( ! ( header.valid & RGBE_VALID_DIMENSIONS ) ) {
+
+					rgbe_error( rgbe_format_error, 'missing image size specifier' );
+
+				}
+
+				return header;
+
+			},
+
+			RGBE_ReadPixels_RLE = function ( buffer, w, h ) {
+
+				const scanline_width = w;
+
+				if (
+					// run length encoding is not allowed so read flat
+					( ( scanline_width < 8 ) || ( scanline_width > 0x7fff ) ) ||
+					// this file is not run length encoded
+					( ( 2 !== buffer[ 0 ] ) || ( 2 !== buffer[ 1 ] ) || ( buffer[ 2 ] & 0x80 ) )
+				) {
+
+					// return the flat buffer
+					return new Uint8Array( buffer );
+
+				}
+
+				if ( scanline_width !== ( ( buffer[ 2 ] << 8 ) | buffer[ 3 ] ) ) {
+
+					rgbe_error( rgbe_format_error, 'wrong scanline width' );
+
+				}
+
+				const data_rgba = new Uint8Array( 4 * w * h );
+
+				if ( ! data_rgba.length ) {
+
+					rgbe_error( rgbe_memory_error, 'unable to allocate buffer space' );
+
+				}
+
+				let offset = 0, pos = 0;
+
+				const ptr_end = 4 * scanline_width;
+				const rgbeStart = new Uint8Array( 4 );
+				const scanline_buffer = new Uint8Array( ptr_end );
+				let num_scanlines = h;
+
+				// read in each successive scanline
+				while ( ( num_scanlines > 0 ) && ( pos < buffer.byteLength ) ) {
+
+					if ( pos + 4 > buffer.byteLength ) {
+
+						rgbe_error( rgbe_read_error );
+
+					}
+
+					rgbeStart[ 0 ] = buffer[ pos ++ ];
+					rgbeStart[ 1 ] = buffer[ pos ++ ];
+					rgbeStart[ 2 ] = buffer[ pos ++ ];
+					rgbeStart[ 3 ] = buffer[ pos ++ ];
+
+					if ( ( 2 != rgbeStart[ 0 ] ) || ( 2 != rgbeStart[ 1 ] ) || ( ( ( rgbeStart[ 2 ] << 8 ) | rgbeStart[ 3 ] ) != scanline_width ) ) {
+
+						rgbe_error( rgbe_format_error, 'bad rgbe scanline format' );
+
+					}
+
+					// read each of the four channels for the scanline into the buffer
+					// first red, then green, then blue, then exponent
+					let ptr = 0, count;
+
+					while ( ( ptr < ptr_end ) && ( pos < buffer.byteLength ) ) {
+
+						count = buffer[ pos ++ ];
+						const isEncodedRun = count > 128;
+						if ( isEncodedRun ) count -= 128;
+
+						if ( ( 0 === count ) || ( ptr + count > ptr_end ) ) {
+
+							rgbe_error( rgbe_format_error, 'bad scanline data' );
+
+						}
+
+						if ( isEncodedRun ) {
+
+							// a (encoded) run of the same value
+							const byteValue = buffer[ pos ++ ];
+							for ( let i = 0; i < count; i ++ ) {
+
+								scanline_buffer[ ptr ++ ] = byteValue;
+
+							}
+							//ptr += count;
+
+						} else {
+
+							// a literal-run
+							scanline_buffer.set( buffer.subarray( pos, pos + count ), ptr );
+							ptr += count; pos += count;
+
+						}
+
+					}
+
+
+					// now convert data from buffer into rgba
+					// first red, then green, then blue, then exponent (alpha)
+					const l = scanline_width; //scanline_buffer.byteLength;
+					for ( let i = 0; i < l; i ++ ) {
+
+						let off = 0;
+						data_rgba[ offset ] = scanline_buffer[ i + off ];
+						off += scanline_width; //1;
+						data_rgba[ offset + 1 ] = scanline_buffer[ i + off ];
+						off += scanline_width; //1;
+						data_rgba[ offset + 2 ] = scanline_buffer[ i + off ];
+						off += scanline_width; //1;
+						data_rgba[ offset + 3 ] = scanline_buffer[ i + off ];
+						offset += 4;
+
+					}
+
+					num_scanlines --;
+
+				}
+
+				return data_rgba;
+
+			};
+
+		const RGBEByteToRGBFloat = function ( sourceArray, sourceOffset, destArray, destOffset ) {
+
+			const e = sourceArray[ sourceOffset + 3 ];
+			const scale = Math.pow( 2.0, e - 128.0 ) / 255.0;
+
+			destArray[ destOffset + 0 ] = sourceArray[ sourceOffset + 0 ] * scale;
+			destArray[ destOffset + 1 ] = sourceArray[ sourceOffset + 1 ] * scale;
+			destArray[ destOffset + 2 ] = sourceArray[ sourceOffset + 2 ] * scale;
+			destArray[ destOffset + 3 ] = 1;
+
+		};
+
+		const RGBEByteToRGBHalf = function ( sourceArray, sourceOffset, destArray, destOffset ) {
+
+			const e = sourceArray[ sourceOffset + 3 ];
+			const scale = Math.pow( 2.0, e - 128.0 ) / 255.0;
+
+			// clamping to 65504, the maximum representable value in float16
+			destArray[ destOffset + 0 ] = three.DataUtils.toHalfFloat( Math.min( sourceArray[ sourceOffset + 0 ] * scale, 65504 ) );
+			destArray[ destOffset + 1 ] = three.DataUtils.toHalfFloat( Math.min( sourceArray[ sourceOffset + 1 ] * scale, 65504 ) );
+			destArray[ destOffset + 2 ] = three.DataUtils.toHalfFloat( Math.min( sourceArray[ sourceOffset + 2 ] * scale, 65504 ) );
+			destArray[ destOffset + 3 ] = three.DataUtils.toHalfFloat( 1 );
+
+		};
+
+		const byteArray = new Uint8Array( buffer );
+		byteArray.pos = 0;
+		const rgbe_header_info = RGBE_ReadHeader( byteArray );
+
+		const w = rgbe_header_info.width,
+			h = rgbe_header_info.height,
+			image_rgba_data = RGBE_ReadPixels_RLE( byteArray.subarray( byteArray.pos ), w, h );
+
+
+		let data, type;
+		let numElements;
+
+		switch ( this.type ) {
+
+			case three.FloatType:
+
+				numElements = image_rgba_data.length / 4;
+				const floatArray = new Float32Array( numElements * 4 );
+
+				for ( let j = 0; j < numElements; j ++ ) {
+
+					RGBEByteToRGBFloat( image_rgba_data, j * 4, floatArray, j * 4 );
+
+				}
+
+				data = floatArray;
+				type = three.FloatType;
+				break;
+
+			case three.HalfFloatType:
+
+				numElements = image_rgba_data.length / 4;
+				const halfArray = new Uint16Array( numElements * 4 );
+
+				for ( let j = 0; j < numElements; j ++ ) {
+
+					RGBEByteToRGBHalf( image_rgba_data, j * 4, halfArray, j * 4 );
+
+				}
+
+				data = halfArray;
+				type = three.HalfFloatType;
+				break;
+
+			default:
+
+				throw new Error( 'THREE.RGBELoader: unsupported type: ', this.type );
+
+		}
+
+		return {
+			width: w, height: h,
+			data: data,
+			header: rgbe_header_info.string,
+			gamma: rgbe_header_info.gamma,
+			exposure: rgbe_header_info.exposure,
+			type: type
+		};
+
+	}
+
+	setDataType( value ) {
+
+		this.type = value;
+		return this;
+
+	}
+
+	load( url, onLoad, onProgress, onError ) {
+
+		function onLoadCallback( texture, texData ) {
+
+			switch ( texture.type ) {
+
+				case three.FloatType:
+				case three.HalfFloatType:
+
+					texture.colorSpace = three.LinearSRGBColorSpace;
+					texture.minFilter = three.LinearFilter;
+					texture.magFilter = three.LinearFilter;
+					texture.generateMipmaps = false;
+					texture.flipY = true;
+
+					//texture.gamma = texData.gamma;
+					//texture.exposure = texData.exposure;
+					//texture.userData = texData;
+
+
+					break;
+
+			}
+
+			if ( onLoad ) onLoad( texture, texData );
+
+		}
+
+		return super.load( url, onLoadCallback, onProgress, onError );
+
+	}
+
+}
+
+/*!
+fflate - fast JavaScript compression/decompression
+<https://101arrowz.github.io/fflate>
+Licensed under MIT. https://github.com/101arrowz/fflate/blob/master/LICENSE
+version 0.6.9
+*/
+
+var durl = function (c) { return URL.createObjectURL(new Blob([c], { type: 'text/javascript' })); };
+try {
+    URL.revokeObjectURL(durl(''));
+}
+catch (e) {
+    // We're in Deno or a very old browser
+    durl = function (c) { return 'data:application/javascript;charset=UTF-8,' + encodeURI(c); };
+}
+
+// aliases for shorter compressed code (most minifers don't do this)
+var u8 = Uint8Array, u16 = Uint16Array, u32 = Uint32Array;
+// fixed length extra bits
+var fleb = new u8([0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 0, /* unused */ 0, 0, /* impossible */ 0]);
+// fixed distance extra bits
+// see fleb note
+var fdeb = new u8([0, 0, 0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 10, 10, 11, 11, 12, 12, 13, 13, /* unused */ 0, 0]);
+// code length index map
+var clim = new u8([16, 17, 18, 0, 8, 7, 9, 6, 10, 5, 11, 4, 12, 3, 13, 2, 14, 1, 15]);
+// get base, reverse index map from extra bits
+var freb = function (eb, start) {
+    var b = new u16(31);
+    for (var i = 0; i < 31; ++i) {
+        b[i] = start += 1 << eb[i - 1];
+    }
+    // numbers here are at max 18 bits
+    var r = new u32(b[30]);
+    for (var i = 1; i < 30; ++i) {
+        for (var j = b[i]; j < b[i + 1]; ++j) {
+            r[j] = ((j - b[i]) << 5) | i;
+        }
+    }
+    return [b, r];
+};
+var _a = freb(fleb, 2), fl = _a[0], revfl = _a[1];
+// we can ignore the fact that the other numbers are wrong; they never happen anyway
+fl[28] = 258, revfl[258] = 28;
+var _b = freb(fdeb, 0), fd = _b[0];
+// map of value to reverse (assuming 16 bits)
+var rev = new u16(32768);
+for (var i = 0; i < 32768; ++i) {
+    // reverse table algorithm from SO
+    var x = ((i & 0xAAAA) >>> 1) | ((i & 0x5555) << 1);
+    x = ((x & 0xCCCC) >>> 2) | ((x & 0x3333) << 2);
+    x = ((x & 0xF0F0) >>> 4) | ((x & 0x0F0F) << 4);
+    rev[i] = (((x & 0xFF00) >>> 8) | ((x & 0x00FF) << 8)) >>> 1;
+}
+// create huffman tree from u8 "map": index -> code length for code index
+// mb (max bits) must be at most 15
+// TODO: optimize/split up?
+var hMap = (function (cd, mb, r) {
+    var s = cd.length;
+    // index
+    var i = 0;
+    // u16 "map": index -> # of codes with bit length = index
+    var l = new u16(mb);
+    // length of cd must be 288 (total # of codes)
+    for (; i < s; ++i)
+        ++l[cd[i] - 1];
+    // u16 "map": index -> minimum code for bit length = index
+    var le = new u16(mb);
+    for (i = 0; i < mb; ++i) {
+        le[i] = (le[i - 1] + l[i - 1]) << 1;
+    }
+    var co;
+    if (r) {
+        // u16 "map": index -> number of actual bits, symbol for code
+        co = new u16(1 << mb);
+        // bits to remove for reverser
+        var rvb = 15 - mb;
+        for (i = 0; i < s; ++i) {
+            // ignore 0 lengths
+            if (cd[i]) {
+                // num encoding both symbol and bits read
+                var sv = (i << 4) | cd[i];
+                // free bits
+                var r_1 = mb - cd[i];
+                // start value
+                var v = le[cd[i] - 1]++ << r_1;
+                // m is end value
+                for (var m = v | ((1 << r_1) - 1); v <= m; ++v) {
+                    // every 16 bit value starting with the code yields the same result
+                    co[rev[v] >>> rvb] = sv;
+                }
+            }
+        }
+    }
+    else {
+        co = new u16(s);
+        for (i = 0; i < s; ++i) {
+            if (cd[i]) {
+                co[i] = rev[le[cd[i] - 1]++] >>> (15 - cd[i]);
+            }
+        }
+    }
+    return co;
+});
+// fixed length tree
+var flt = new u8(288);
+for (var i = 0; i < 144; ++i)
+    flt[i] = 8;
+for (var i = 144; i < 256; ++i)
+    flt[i] = 9;
+for (var i = 256; i < 280; ++i)
+    flt[i] = 7;
+for (var i = 280; i < 288; ++i)
+    flt[i] = 8;
+// fixed distance tree
+var fdt = new u8(32);
+for (var i = 0; i < 32; ++i)
+    fdt[i] = 5;
+// fixed length map
+var flrm = /*#__PURE__*/ hMap(flt, 9, 1);
+// fixed distance map
+var fdrm = /*#__PURE__*/ hMap(fdt, 5, 1);
+// find max of array
+var max = function (a) {
+    var m = a[0];
+    for (var i = 1; i < a.length; ++i) {
+        if (a[i] > m)
+            m = a[i];
+    }
+    return m;
+};
+// read d, starting at bit p and mask with m
+var bits = function (d, p, m) {
+    var o = (p / 8) | 0;
+    return ((d[o] | (d[o + 1] << 8)) >> (p & 7)) & m;
+};
+// read d, starting at bit p continuing for at least 16 bits
+var bits16 = function (d, p) {
+    var o = (p / 8) | 0;
+    return ((d[o] | (d[o + 1] << 8) | (d[o + 2] << 16)) >> (p & 7));
+};
+// get end of byte
+var shft = function (p) { return ((p / 8) | 0) + (p & 7 && 1); };
+// typed array slice - allows garbage collector to free original reference,
+// while being more compatible than .slice
+var slc = function (v, s, e) {
+    if (e == null || e > v.length)
+        e = v.length;
+    // can't use .constructor in case user-supplied
+    var n = new (v instanceof u16 ? u16 : v instanceof u32 ? u32 : u8)(e - s);
+    n.set(v.subarray(s, e));
+    return n;
+};
+// expands raw DEFLATE data
+var inflt = function (dat, buf, st) {
+    // source length
+    var sl = dat.length;
+    if (!sl || (st && !st.l && sl < 5))
+        return buf || new u8(0);
+    // have to estimate size
+    var noBuf = !buf || st;
+    // no state
+    var noSt = !st || st.i;
+    if (!st)
+        st = {};
+    // Assumes roughly 33% compression ratio average
+    if (!buf)
+        buf = new u8(sl * 3);
+    // ensure buffer can fit at least l elements
+    var cbuf = function (l) {
+        var bl = buf.length;
+        // need to increase size to fit
+        if (l > bl) {
+            // Double or set to necessary, whichever is greater
+            var nbuf = new u8(Math.max(bl * 2, l));
+            nbuf.set(buf);
+            buf = nbuf;
+        }
+    };
+    //  last chunk         bitpos           bytes
+    var final = st.f || 0, pos = st.p || 0, bt = st.b || 0, lm = st.l, dm = st.d, lbt = st.m, dbt = st.n;
+    // total bits
+    var tbts = sl * 8;
+    do {
+        if (!lm) {
+            // BFINAL - this is only 1 when last chunk is next
+            st.f = final = bits(dat, pos, 1);
+            // type: 0 = no compression, 1 = fixed huffman, 2 = dynamic huffman
+            var type = bits(dat, pos + 1, 3);
+            pos += 3;
+            if (!type) {
+                // go to end of byte boundary
+                var s = shft(pos) + 4, l = dat[s - 4] | (dat[s - 3] << 8), t = s + l;
+                if (t > sl) {
+                    if (noSt)
+                        throw 'unexpected EOF';
+                    break;
+                }
+                // ensure size
+                if (noBuf)
+                    cbuf(bt + l);
+                // Copy over uncompressed data
+                buf.set(dat.subarray(s, t), bt);
+                // Get new bitpos, update byte count
+                st.b = bt += l, st.p = pos = t * 8;
+                continue;
+            }
+            else if (type == 1)
+                lm = flrm, dm = fdrm, lbt = 9, dbt = 5;
+            else if (type == 2) {
+                //  literal                            lengths
+                var hLit = bits(dat, pos, 31) + 257, hcLen = bits(dat, pos + 10, 15) + 4;
+                var tl = hLit + bits(dat, pos + 5, 31) + 1;
+                pos += 14;
+                // length+distance tree
+                var ldt = new u8(tl);
+                // code length tree
+                var clt = new u8(19);
+                for (var i = 0; i < hcLen; ++i) {
+                    // use index map to get real code
+                    clt[clim[i]] = bits(dat, pos + i * 3, 7);
+                }
+                pos += hcLen * 3;
+                // code lengths bits
+                var clb = max(clt), clbmsk = (1 << clb) - 1;
+                // code lengths map
+                var clm = hMap(clt, clb, 1);
+                for (var i = 0; i < tl;) {
+                    var r = clm[bits(dat, pos, clbmsk)];
+                    // bits read
+                    pos += r & 15;
+                    // symbol
+                    var s = r >>> 4;
+                    // code length to copy
+                    if (s < 16) {
+                        ldt[i++] = s;
+                    }
+                    else {
+                        //  copy   count
+                        var c = 0, n = 0;
+                        if (s == 16)
+                            n = 3 + bits(dat, pos, 3), pos += 2, c = ldt[i - 1];
+                        else if (s == 17)
+                            n = 3 + bits(dat, pos, 7), pos += 3;
+                        else if (s == 18)
+                            n = 11 + bits(dat, pos, 127), pos += 7;
+                        while (n--)
+                            ldt[i++] = c;
+                    }
+                }
+                //    length tree                 distance tree
+                var lt = ldt.subarray(0, hLit), dt = ldt.subarray(hLit);
+                // max length bits
+                lbt = max(lt);
+                // max dist bits
+                dbt = max(dt);
+                lm = hMap(lt, lbt, 1);
+                dm = hMap(dt, dbt, 1);
+            }
+            else
+                throw 'invalid block type';
+            if (pos > tbts) {
+                if (noSt)
+                    throw 'unexpected EOF';
+                break;
+            }
+        }
+        // Make sure the buffer can hold this + the largest possible addition
+        // Maximum chunk size (practically, theoretically infinite) is 2^17;
+        if (noBuf)
+            cbuf(bt + 131072);
+        var lms = (1 << lbt) - 1, dms = (1 << dbt) - 1;
+        var lpos = pos;
+        for (;; lpos = pos) {
+            // bits read, code
+            var c = lm[bits16(dat, pos) & lms], sym = c >>> 4;
+            pos += c & 15;
+            if (pos > tbts) {
+                if (noSt)
+                    throw 'unexpected EOF';
+                break;
+            }
+            if (!c)
+                throw 'invalid length/literal';
+            if (sym < 256)
+                buf[bt++] = sym;
+            else if (sym == 256) {
+                lpos = pos, lm = null;
+                break;
+            }
+            else {
+                var add = sym - 254;
+                // no extra bits needed if less
+                if (sym > 264) {
+                    // index
+                    var i = sym - 257, b = fleb[i];
+                    add = bits(dat, pos, (1 << b) - 1) + fl[i];
+                    pos += b;
+                }
+                // dist
+                var d = dm[bits16(dat, pos) & dms], dsym = d >>> 4;
+                if (!d)
+                    throw 'invalid distance';
+                pos += d & 15;
+                var dt = fd[dsym];
+                if (dsym > 3) {
+                    var b = fdeb[dsym];
+                    dt += bits16(dat, pos) & ((1 << b) - 1), pos += b;
+                }
+                if (pos > tbts) {
+                    if (noSt)
+                        throw 'unexpected EOF';
+                    break;
+                }
+                if (noBuf)
+                    cbuf(bt + 131072);
+                var end = bt + add;
+                for (; bt < end; bt += 4) {
+                    buf[bt] = buf[bt - dt];
+                    buf[bt + 1] = buf[bt + 1 - dt];
+                    buf[bt + 2] = buf[bt + 2 - dt];
+                    buf[bt + 3] = buf[bt + 3 - dt];
+                }
+                bt = end;
+            }
+        }
+        st.l = lm, st.p = lpos, st.b = bt;
+        if (lm)
+            final = 1, st.m = lbt, st.d = dm, st.n = dbt;
+    } while (!final);
+    return bt == buf.length ? buf : slc(buf, 0, bt);
+};
+// empty
+var et = /*#__PURE__*/ new u8(0);
+// zlib valid
+var zlv = function (d) {
+    if ((d[0] & 15) != 8 || (d[0] >>> 4) > 7 || ((d[0] << 8 | d[1]) % 31))
+        throw 'invalid zlib data';
+    if (d[1] & 32)
+        throw 'invalid zlib data: preset dictionaries not supported';
+};
+/**
+ * Expands Zlib data
+ * @param data The data to decompress
+ * @param out Where to write the data. Saves memory if you know the decompressed size and provide an output buffer of that length.
+ * @returns The decompressed version of the data
+ */
+function unzlibSync(data, out) {
+    return inflt((zlv(data), data.subarray(2, -4)), out);
+}
+// text decoder
+var td = typeof TextDecoder != 'undefined' && /*#__PURE__*/ new TextDecoder();
+// text decoder stream
+var tds = 0;
+try {
+    td.decode(et, { stream: true });
+    tds = 1;
+}
+catch (e) { }
+
+/**
+ * OpenEXR loader currently supports uncompressed, ZIP(S), RLE, PIZ and DWA/B compression.
+ * Supports reading as UnsignedByte, HalfFloat and Float type data texture.
+ *
+ * Referred to the original Industrial Light & Magic OpenEXR implementation and the TinyEXR / Syoyo Fujita
+ * implementation, so I have preserved their copyright notices.
+ */
+
+// /*
+// Copyright (c) 2014 - 2017, Syoyo Fujita
+// All rights reserved.
+
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions are met:
+//     * Redistributions of source code must retain the above copyright
+//       notice, this list of conditions and the following disclaimer.
+//     * Redistributions in binary form must reproduce the above copyright
+//       notice, this list of conditions and the following disclaimer in the
+//       documentation and/or other materials provided with the distribution.
+//     * Neither the name of the Syoyo Fujita nor the
+//       names of its contributors may be used to endorse or promote products
+//       derived from this software without specific prior written permission.
+
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+// ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+// WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+// DISCLAIMED. IN NO EVENT SHALL <COPYRIGHT HOLDER> BE LIABLE FOR ANY
+// DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+// (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+// LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+// ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// */
+
+// // TinyEXR contains some OpenEXR code, which is licensed under ------------
+
+// ///////////////////////////////////////////////////////////////////////////
+// //
+// // Copyright (c) 2002, Industrial Light & Magic, a division of Lucas
+// // Digital Ltd. LLC
+// //
+// // All rights reserved.
+// //
+// // Redistribution and use in source and binary forms, with or without
+// // modification, are permitted provided that the following conditions are
+// // met:
+// // *       Redistributions of source code must retain the above copyright
+// // notice, this list of conditions and the following disclaimer.
+// // *       Redistributions in binary form must reproduce the above
+// // copyright notice, this list of conditions and the following disclaimer
+// // in the documentation and/or other materials provided with the
+// // distribution.
+// // *       Neither the name of Industrial Light & Magic nor the names of
+// // its contributors may be used to endorse or promote products derived
+// // from this software without specific prior written permission.
+// //
+// // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+// // "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+// // LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+// // A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+// // OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+// // SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+// // LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+// // DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+// // THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+// // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+// // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// //
+// ///////////////////////////////////////////////////////////////////////////
+
+// // End of OpenEXR license -------------------------------------------------
+
+class EXRLoader extends three.DataTextureLoader {
+
+	constructor( manager ) {
+
+		super( manager );
+
+		this.type = three.HalfFloatType;
+
+	}
+
+	parse( buffer ) {
+
+		const USHORT_RANGE = ( 1 << 16 );
+		const BITMAP_SIZE = ( USHORT_RANGE >> 3 );
+
+		const HUF_ENCBITS = 16; // literal (value) bit length
+		const HUF_DECBITS = 14; // decoding bit size (>= 8)
+
+		const HUF_ENCSIZE = ( 1 << HUF_ENCBITS ) + 1; // encoding table size
+		const HUF_DECSIZE = 1 << HUF_DECBITS; // decoding table size
+		const HUF_DECMASK = HUF_DECSIZE - 1;
+
+		const NBITS = 16;
+		const A_OFFSET = 1 << ( NBITS - 1 );
+		const MOD_MASK = ( 1 << NBITS ) - 1;
+
+		const SHORT_ZEROCODE_RUN = 59;
+		const LONG_ZEROCODE_RUN = 63;
+		const SHORTEST_LONG_RUN = 2 + LONG_ZEROCODE_RUN - SHORT_ZEROCODE_RUN;
+
+		const ULONG_SIZE = 8;
+		const FLOAT32_SIZE = 4;
+		const INT32_SIZE = 4;
+		const INT16_SIZE = 2;
+		const INT8_SIZE = 1;
+
+		const STATIC_HUFFMAN = 0;
+		const DEFLATE = 1;
+
+		const UNKNOWN = 0;
+		const LOSSY_DCT = 1;
+		const RLE = 2;
+
+		const logBase = Math.pow( 2.7182818, 2.2 );
+
+		function reverseLutFromBitmap( bitmap, lut ) {
+
+			let k = 0;
+
+			for ( let i = 0; i < USHORT_RANGE; ++ i ) {
+
+				if ( ( i == 0 ) || ( bitmap[ i >> 3 ] & ( 1 << ( i & 7 ) ) ) ) {
+
+					lut[ k ++ ] = i;
+
+				}
+
+			}
+
+			const n = k - 1;
+
+			while ( k < USHORT_RANGE ) lut[ k ++ ] = 0;
+
+			return n;
+
+		}
+
+		function hufClearDecTable( hdec ) {
+
+			for ( let i = 0; i < HUF_DECSIZE; i ++ ) {
+
+				hdec[ i ] = {};
+				hdec[ i ].len = 0;
+				hdec[ i ].lit = 0;
+				hdec[ i ].p = null;
+
+			}
+
+		}
+
+		const getBitsReturn = { l: 0, c: 0, lc: 0 };
+
+		function getBits( nBits, c, lc, uInt8Array, inOffset ) {
+
+			while ( lc < nBits ) {
+
+				c = ( c << 8 ) | parseUint8Array( uInt8Array, inOffset );
+				lc += 8;
+
+			}
+
+			lc -= nBits;
+
+			getBitsReturn.l = ( c >> lc ) & ( ( 1 << nBits ) - 1 );
+			getBitsReturn.c = c;
+			getBitsReturn.lc = lc;
+
+		}
+
+		const hufTableBuffer = new Array( 59 );
+
+		function hufCanonicalCodeTable( hcode ) {
+
+			for ( let i = 0; i <= 58; ++ i ) hufTableBuffer[ i ] = 0;
+			for ( let i = 0; i < HUF_ENCSIZE; ++ i ) hufTableBuffer[ hcode[ i ] ] += 1;
+
+			let c = 0;
+
+			for ( let i = 58; i > 0; -- i ) {
+
+				const nc = ( ( c + hufTableBuffer[ i ] ) >> 1 );
+				hufTableBuffer[ i ] = c;
+				c = nc;
+
+			}
+
+			for ( let i = 0; i < HUF_ENCSIZE; ++ i ) {
+
+				const l = hcode[ i ];
+				if ( l > 0 ) hcode[ i ] = l | ( hufTableBuffer[ l ] ++ << 6 );
+
+			}
+
+		}
+
+		function hufUnpackEncTable( uInt8Array, inOffset, ni, im, iM, hcode ) {
+
+			const p = inOffset;
+			let c = 0;
+			let lc = 0;
+
+			for ( ; im <= iM; im ++ ) {
+
+				if ( p.value - inOffset.value > ni ) return false;
+
+				getBits( 6, c, lc, uInt8Array, p );
+
+				const l = getBitsReturn.l;
+				c = getBitsReturn.c;
+				lc = getBitsReturn.lc;
+
+				hcode[ im ] = l;
+
+				if ( l == LONG_ZEROCODE_RUN ) {
+
+					if ( p.value - inOffset.value > ni ) {
+
+						throw new Error( 'Something wrong with hufUnpackEncTable' );
+
+					}
+
+					getBits( 8, c, lc, uInt8Array, p );
+
+					let zerun = getBitsReturn.l + SHORTEST_LONG_RUN;
+					c = getBitsReturn.c;
+					lc = getBitsReturn.lc;
+
+					if ( im + zerun > iM + 1 ) {
+
+						throw new Error( 'Something wrong with hufUnpackEncTable' );
+
+					}
+
+					while ( zerun -- ) hcode[ im ++ ] = 0;
+
+					im --;
+
+				} else if ( l >= SHORT_ZEROCODE_RUN ) {
+
+					let zerun = l - SHORT_ZEROCODE_RUN + 2;
+
+					if ( im + zerun > iM + 1 ) {
+
+						throw new Error( 'Something wrong with hufUnpackEncTable' );
+
+					}
+
+					while ( zerun -- ) hcode[ im ++ ] = 0;
+
+					im --;
+
+				}
+
+			}
+
+			hufCanonicalCodeTable( hcode );
+
+		}
+
+		function hufLength( code ) {
+
+			return code & 63;
+
+		}
+
+		function hufCode( code ) {
+
+			return code >> 6;
+
+		}
+
+		function hufBuildDecTable( hcode, im, iM, hdecod ) {
+
+			for ( ; im <= iM; im ++ ) {
+
+				const c = hufCode( hcode[ im ] );
+				const l = hufLength( hcode[ im ] );
+
+				if ( c >> l ) {
+
+					throw new Error( 'Invalid table entry' );
+
+				}
+
+				if ( l > HUF_DECBITS ) {
+
+					const pl = hdecod[ ( c >> ( l - HUF_DECBITS ) ) ];
+
+					if ( pl.len ) {
+
+						throw new Error( 'Invalid table entry' );
+
+					}
+
+					pl.lit ++;
+
+					if ( pl.p ) {
+
+						const p = pl.p;
+						pl.p = new Array( pl.lit );
+
+						for ( let i = 0; i < pl.lit - 1; ++ i ) {
+
+							pl.p[ i ] = p[ i ];
+
+						}
+
+					} else {
+
+						pl.p = new Array( 1 );
+
+					}
+
+					pl.p[ pl.lit - 1 ] = im;
+
+				} else if ( l ) {
+
+					let plOffset = 0;
+
+					for ( let i = 1 << ( HUF_DECBITS - l ); i > 0; i -- ) {
+
+						const pl = hdecod[ ( c << ( HUF_DECBITS - l ) ) + plOffset ];
+
+						if ( pl.len || pl.p ) {
+
+							throw new Error( 'Invalid table entry' );
+
+						}
+
+						pl.len = l;
+						pl.lit = im;
+
+						plOffset ++;
+
+					}
+
+				}
+
+			}
+
+			return true;
+
+		}
+
+		const getCharReturn = { c: 0, lc: 0 };
+
+		function getChar( c, lc, uInt8Array, inOffset ) {
+
+			c = ( c << 8 ) | parseUint8Array( uInt8Array, inOffset );
+			lc += 8;
+
+			getCharReturn.c = c;
+			getCharReturn.lc = lc;
+
+		}
+
+		const getCodeReturn = { c: 0, lc: 0 };
+
+		function getCode( po, rlc, c, lc, uInt8Array, inOffset, outBuffer, outBufferOffset, outBufferEndOffset ) {
+
+			if ( po == rlc ) {
+
+				if ( lc < 8 ) {
+
+					getChar( c, lc, uInt8Array, inOffset );
+					c = getCharReturn.c;
+					lc = getCharReturn.lc;
+
+				}
+
+				lc -= 8;
+
+				let cs = ( c >> lc );
+				cs = new Uint8Array( [ cs ] )[ 0 ];
+
+				if ( outBufferOffset.value + cs > outBufferEndOffset ) {
+
+					return false;
+
+				}
+
+				const s = outBuffer[ outBufferOffset.value - 1 ];
+
+				while ( cs -- > 0 ) {
+
+					outBuffer[ outBufferOffset.value ++ ] = s;
+
+				}
+
+			} else if ( outBufferOffset.value < outBufferEndOffset ) {
+
+				outBuffer[ outBufferOffset.value ++ ] = po;
+
+			} else {
+
+				return false;
+
+			}
+
+			getCodeReturn.c = c;
+			getCodeReturn.lc = lc;
+
+		}
+
+		function UInt16( value ) {
+
+			return ( value & 0xFFFF );
+
+		}
+
+		function Int16( value ) {
+
+			const ref = UInt16( value );
+			return ( ref > 0x7FFF ) ? ref - 0x10000 : ref;
+
+		}
+
+		const wdec14Return = { a: 0, b: 0 };
+
+		function wdec14( l, h ) {
+
+			const ls = Int16( l );
+			const hs = Int16( h );
+
+			const hi = hs;
+			const ai = ls + ( hi & 1 ) + ( hi >> 1 );
+
+			const as = ai;
+			const bs = ai - hi;
+
+			wdec14Return.a = as;
+			wdec14Return.b = bs;
+
+		}
+
+		function wdec16( l, h ) {
+
+			const m = UInt16( l );
+			const d = UInt16( h );
+
+			const bb = ( m - ( d >> 1 ) ) & MOD_MASK;
+			const aa = ( d + bb - A_OFFSET ) & MOD_MASK;
+
+			wdec14Return.a = aa;
+			wdec14Return.b = bb;
+
+		}
+
+		function wav2Decode( buffer, j, nx, ox, ny, oy, mx ) {
+
+			const w14 = mx < ( 1 << 14 );
+			const n = ( nx > ny ) ? ny : nx;
+			let p = 1;
+			let p2;
+			let py;
+
+			while ( p <= n ) p <<= 1;
+
+			p >>= 1;
+			p2 = p;
+			p >>= 1;
+
+			while ( p >= 1 ) {
+
+				py = 0;
+				const ey = py + oy * ( ny - p2 );
+				const oy1 = oy * p;
+				const oy2 = oy * p2;
+				const ox1 = ox * p;
+				const ox2 = ox * p2;
+				let i00, i01, i10, i11;
+
+				for ( ; py <= ey; py += oy2 ) {
+
+					let px = py;
+					const ex = py + ox * ( nx - p2 );
+
+					for ( ; px <= ex; px += ox2 ) {
+
+						const p01 = px + ox1;
+						const p10 = px + oy1;
+						const p11 = p10 + ox1;
+
+						if ( w14 ) {
+
+							wdec14( buffer[ px + j ], buffer[ p10 + j ] );
+
+							i00 = wdec14Return.a;
+							i10 = wdec14Return.b;
+
+							wdec14( buffer[ p01 + j ], buffer[ p11 + j ] );
+
+							i01 = wdec14Return.a;
+							i11 = wdec14Return.b;
+
+							wdec14( i00, i01 );
+
+							buffer[ px + j ] = wdec14Return.a;
+							buffer[ p01 + j ] = wdec14Return.b;
+
+							wdec14( i10, i11 );
+
+							buffer[ p10 + j ] = wdec14Return.a;
+							buffer[ p11 + j ] = wdec14Return.b;
+
+						} else {
+
+							wdec16( buffer[ px + j ], buffer[ p10 + j ] );
+
+							i00 = wdec14Return.a;
+							i10 = wdec14Return.b;
+
+							wdec16( buffer[ p01 + j ], buffer[ p11 + j ] );
+
+							i01 = wdec14Return.a;
+							i11 = wdec14Return.b;
+
+							wdec16( i00, i01 );
+
+							buffer[ px + j ] = wdec14Return.a;
+							buffer[ p01 + j ] = wdec14Return.b;
+
+							wdec16( i10, i11 );
+
+							buffer[ p10 + j ] = wdec14Return.a;
+							buffer[ p11 + j ] = wdec14Return.b;
+
+
+						}
+
+					}
+
+					if ( nx & p ) {
+
+						const p10 = px + oy1;
+
+						if ( w14 )
+							wdec14( buffer[ px + j ], buffer[ p10 + j ] );
+						else
+							wdec16( buffer[ px + j ], buffer[ p10 + j ] );
+
+						i00 = wdec14Return.a;
+						buffer[ p10 + j ] = wdec14Return.b;
+
+						buffer[ px + j ] = i00;
+
+					}
+
+				}
+
+				if ( ny & p ) {
+
+					let px = py;
+					const ex = py + ox * ( nx - p2 );
+
+					for ( ; px <= ex; px += ox2 ) {
+
+						const p01 = px + ox1;
+
+						if ( w14 )
+							wdec14( buffer[ px + j ], buffer[ p01 + j ] );
+						else
+							wdec16( buffer[ px + j ], buffer[ p01 + j ] );
+
+						i00 = wdec14Return.a;
+						buffer[ p01 + j ] = wdec14Return.b;
+
+						buffer[ px + j ] = i00;
+
+					}
+
+				}
+
+				p2 = p;
+				p >>= 1;
+
+			}
+
+			return py;
+
+		}
+
+		function hufDecode( encodingTable, decodingTable, uInt8Array, inOffset, ni, rlc, no, outBuffer, outOffset ) {
+
+			let c = 0;
+			let lc = 0;
+			const outBufferEndOffset = no;
+			const inOffsetEnd = Math.trunc( inOffset.value + ( ni + 7 ) / 8 );
+
+			while ( inOffset.value < inOffsetEnd ) {
+
+				getChar( c, lc, uInt8Array, inOffset );
+
+				c = getCharReturn.c;
+				lc = getCharReturn.lc;
+
+				while ( lc >= HUF_DECBITS ) {
+
+					const index = ( c >> ( lc - HUF_DECBITS ) ) & HUF_DECMASK;
+					const pl = decodingTable[ index ];
+
+					if ( pl.len ) {
+
+						lc -= pl.len;
+
+						getCode( pl.lit, rlc, c, lc, uInt8Array, inOffset, outBuffer, outOffset, outBufferEndOffset );
+
+						c = getCodeReturn.c;
+						lc = getCodeReturn.lc;
+
+					} else {
+
+						if ( ! pl.p ) {
+
+							throw new Error( 'hufDecode issues' );
+
+						}
+
+						let j;
+
+						for ( j = 0; j < pl.lit; j ++ ) {
+
+							const l = hufLength( encodingTable[ pl.p[ j ] ] );
+
+							while ( lc < l && inOffset.value < inOffsetEnd ) {
+
+								getChar( c, lc, uInt8Array, inOffset );
+
+								c = getCharReturn.c;
+								lc = getCharReturn.lc;
+
+							}
+
+							if ( lc >= l ) {
+
+								if ( hufCode( encodingTable[ pl.p[ j ] ] ) == ( ( c >> ( lc - l ) ) & ( ( 1 << l ) - 1 ) ) ) {
+
+									lc -= l;
+
+									getCode( pl.p[ j ], rlc, c, lc, uInt8Array, inOffset, outBuffer, outOffset, outBufferEndOffset );
+
+									c = getCodeReturn.c;
+									lc = getCodeReturn.lc;
+
+									break;
+
+								}
+
+							}
+
+						}
+
+						if ( j == pl.lit ) {
+
+							throw new Error( 'hufDecode issues' );
+
+						}
+
+					}
+
+				}
+
+			}
+
+			const i = ( 8 - ni ) & 7;
+
+			c >>= i;
+			lc -= i;
+
+			while ( lc > 0 ) {
+
+				const pl = decodingTable[ ( c << ( HUF_DECBITS - lc ) ) & HUF_DECMASK ];
+
+				if ( pl.len ) {
+
+					lc -= pl.len;
+
+					getCode( pl.lit, rlc, c, lc, uInt8Array, inOffset, outBuffer, outOffset, outBufferEndOffset );
+
+					c = getCodeReturn.c;
+					lc = getCodeReturn.lc;
+
+				} else {
+
+					throw new Error( 'hufDecode issues' );
+
+				}
+
+			}
+
+			return true;
+
+		}
+
+		function hufUncompress( uInt8Array, inDataView, inOffset, nCompressed, outBuffer, nRaw ) {
+
+			const outOffset = { value: 0 };
+			const initialInOffset = inOffset.value;
+
+			const im = parseUint32( inDataView, inOffset );
+			const iM = parseUint32( inDataView, inOffset );
+
+			inOffset.value += 4;
+
+			const nBits = parseUint32( inDataView, inOffset );
+
+			inOffset.value += 4;
+
+			if ( im < 0 || im >= HUF_ENCSIZE || iM < 0 || iM >= HUF_ENCSIZE ) {
+
+				throw new Error( 'Something wrong with HUF_ENCSIZE' );
+
+			}
+
+			const freq = new Array( HUF_ENCSIZE );
+			const hdec = new Array( HUF_DECSIZE );
+
+			hufClearDecTable( hdec );
+
+			const ni = nCompressed - ( inOffset.value - initialInOffset );
+
+			hufUnpackEncTable( uInt8Array, inOffset, ni, im, iM, freq );
+
+			if ( nBits > 8 * ( nCompressed - ( inOffset.value - initialInOffset ) ) ) {
+
+				throw new Error( 'Something wrong with hufUncompress' );
+
+			}
+
+			hufBuildDecTable( freq, im, iM, hdec );
+
+			hufDecode( freq, hdec, uInt8Array, inOffset, nBits, iM, nRaw, outBuffer, outOffset );
+
+		}
+
+		function applyLut( lut, data, nData ) {
+
+			for ( let i = 0; i < nData; ++ i ) {
+
+				data[ i ] = lut[ data[ i ] ];
+
+			}
+
+		}
+
+		function predictor( source ) {
+
+			for ( let t = 1; t < source.length; t ++ ) {
+
+				const d = source[ t - 1 ] + source[ t ] - 128;
+				source[ t ] = d;
+
+			}
+
+		}
+
+		function interleaveScalar( source, out ) {
+
+			let t1 = 0;
+			let t2 = Math.floor( ( source.length + 1 ) / 2 );
+			let s = 0;
+			const stop = source.length - 1;
+
+			while ( true ) {
+
+				if ( s > stop ) break;
+				out[ s ++ ] = source[ t1 ++ ];
+
+				if ( s > stop ) break;
+				out[ s ++ ] = source[ t2 ++ ];
+
+			}
+
+		}
+
+		function decodeRunLength( source ) {
+
+			let size = source.byteLength;
+			const out = new Array();
+			let p = 0;
+
+			const reader = new DataView( source );
+
+			while ( size > 0 ) {
+
+				const l = reader.getInt8( p ++ );
+
+				if ( l < 0 ) {
+
+					const count = - l;
+					size -= count + 1;
+
+					for ( let i = 0; i < count; i ++ ) {
+
+						out.push( reader.getUint8( p ++ ) );
+
+					}
+
+
+				} else {
+
+					const count = l;
+					size -= 2;
+
+					const value = reader.getUint8( p ++ );
+
+					for ( let i = 0; i < count + 1; i ++ ) {
+
+						out.push( value );
+
+					}
+
+				}
+
+			}
+
+			return out;
+
+		}
+
+		function lossyDctDecode( cscSet, rowPtrs, channelData, acBuffer, dcBuffer, outBuffer ) {
+
+			let dataView = new DataView( outBuffer.buffer );
+
+			const width = channelData[ cscSet.idx[ 0 ] ].width;
+			const height = channelData[ cscSet.idx[ 0 ] ].height;
+
+			const numComp = 3;
+
+			const numFullBlocksX = Math.floor( width / 8.0 );
+			const numBlocksX = Math.ceil( width / 8.0 );
+			const numBlocksY = Math.ceil( height / 8.0 );
+			const leftoverX = width - ( numBlocksX - 1 ) * 8;
+			const leftoverY = height - ( numBlocksY - 1 ) * 8;
+
+			const currAcComp = { value: 0 };
+			const currDcComp = new Array( numComp );
+			const dctData = new Array( numComp );
+			const halfZigBlock = new Array( numComp );
+			const rowBlock = new Array( numComp );
+			const rowOffsets = new Array( numComp );
+
+			for ( let comp = 0; comp < numComp; ++ comp ) {
+
+				rowOffsets[ comp ] = rowPtrs[ cscSet.idx[ comp ] ];
+				currDcComp[ comp ] = ( comp < 1 ) ? 0 : currDcComp[ comp - 1 ] + numBlocksX * numBlocksY;
+				dctData[ comp ] = new Float32Array( 64 );
+				halfZigBlock[ comp ] = new Uint16Array( 64 );
+				rowBlock[ comp ] = new Uint16Array( numBlocksX * 64 );
+
+			}
+
+			for ( let blocky = 0; blocky < numBlocksY; ++ blocky ) {
+
+				let maxY = 8;
+
+				if ( blocky == numBlocksY - 1 )
+					maxY = leftoverY;
+
+				let maxX = 8;
+
+				for ( let blockx = 0; blockx < numBlocksX; ++ blockx ) {
+
+					if ( blockx == numBlocksX - 1 )
+						maxX = leftoverX;
+
+					for ( let comp = 0; comp < numComp; ++ comp ) {
+
+						halfZigBlock[ comp ].fill( 0 );
+
+						// set block DC component
+						halfZigBlock[ comp ][ 0 ] = dcBuffer[ currDcComp[ comp ] ++ ];
+						// set block AC components
+						unRleAC( currAcComp, acBuffer, halfZigBlock[ comp ] );
+
+						// UnZigZag block to float
+						unZigZag( halfZigBlock[ comp ], dctData[ comp ] );
+						// decode float dct
+						dctInverse( dctData[ comp ] );
+
+					}
+
+					{
+
+						csc709Inverse( dctData );
+
+					}
+
+					for ( let comp = 0; comp < numComp; ++ comp ) {
+
+						convertToHalf( dctData[ comp ], rowBlock[ comp ], blockx * 64 );
+
+					}
+
+				} // blockx
+
+				let offset = 0;
+
+				for ( let comp = 0; comp < numComp; ++ comp ) {
+
+					const type = channelData[ cscSet.idx[ comp ] ].type;
+
+					for ( let y = 8 * blocky; y < 8 * blocky + maxY; ++ y ) {
+
+						offset = rowOffsets[ comp ][ y ];
+
+						for ( let blockx = 0; blockx < numFullBlocksX; ++ blockx ) {
+
+							const src = blockx * 64 + ( ( y & 0x7 ) * 8 );
+
+							dataView.setUint16( offset + 0 * INT16_SIZE * type, rowBlock[ comp ][ src + 0 ], true );
+							dataView.setUint16( offset + 1 * INT16_SIZE * type, rowBlock[ comp ][ src + 1 ], true );
+							dataView.setUint16( offset + 2 * INT16_SIZE * type, rowBlock[ comp ][ src + 2 ], true );
+							dataView.setUint16( offset + 3 * INT16_SIZE * type, rowBlock[ comp ][ src + 3 ], true );
+
+							dataView.setUint16( offset + 4 * INT16_SIZE * type, rowBlock[ comp ][ src + 4 ], true );
+							dataView.setUint16( offset + 5 * INT16_SIZE * type, rowBlock[ comp ][ src + 5 ], true );
+							dataView.setUint16( offset + 6 * INT16_SIZE * type, rowBlock[ comp ][ src + 6 ], true );
+							dataView.setUint16( offset + 7 * INT16_SIZE * type, rowBlock[ comp ][ src + 7 ], true );
+
+							offset += 8 * INT16_SIZE * type;
+
+						}
+
+					}
+
+					// handle partial X blocks
+					if ( numFullBlocksX != numBlocksX ) {
+
+						for ( let y = 8 * blocky; y < 8 * blocky + maxY; ++ y ) {
+
+							const offset = rowOffsets[ comp ][ y ] + 8 * numFullBlocksX * INT16_SIZE * type;
+							const src = numFullBlocksX * 64 + ( ( y & 0x7 ) * 8 );
+
+							for ( let x = 0; x < maxX; ++ x ) {
+
+								dataView.setUint16( offset + x * INT16_SIZE * type, rowBlock[ comp ][ src + x ], true );
+
+							}
+
+						}
+
+					}
+
+				} // comp
+
+			} // blocky
+
+			const halfRow = new Uint16Array( width );
+			dataView = new DataView( outBuffer.buffer );
+
+			// convert channels back to float, if needed
+			for ( let comp = 0; comp < numComp; ++ comp ) {
+
+				channelData[ cscSet.idx[ comp ] ].decoded = true;
+				const type = channelData[ cscSet.idx[ comp ] ].type;
+
+				if ( channelData[ comp ].type != 2 ) continue;
+
+				for ( let y = 0; y < height; ++ y ) {
+
+					const offset = rowOffsets[ comp ][ y ];
+
+					for ( let x = 0; x < width; ++ x ) {
+
+						halfRow[ x ] = dataView.getUint16( offset + x * INT16_SIZE * type, true );
+
+					}
+
+					for ( let x = 0; x < width; ++ x ) {
+
+						dataView.setFloat32( offset + x * INT16_SIZE * type, decodeFloat16( halfRow[ x ] ), true );
+
+					}
+
+				}
+
+			}
+
+		}
+
+		function unRleAC( currAcComp, acBuffer, halfZigBlock ) {
+
+			let acValue;
+			let dctComp = 1;
+
+			while ( dctComp < 64 ) {
+
+				acValue = acBuffer[ currAcComp.value ];
+
+				if ( acValue == 0xff00 ) {
+
+					dctComp = 64;
+
+				} else if ( acValue >> 8 == 0xff ) {
+
+					dctComp += acValue & 0xff;
+
+				} else {
+
+					halfZigBlock[ dctComp ] = acValue;
+					dctComp ++;
+
+				}
+
+				currAcComp.value ++;
+
+			}
+
+		}
+
+		function unZigZag( src, dst ) {
+
+			dst[ 0 ] = decodeFloat16( src[ 0 ] );
+			dst[ 1 ] = decodeFloat16( src[ 1 ] );
+			dst[ 2 ] = decodeFloat16( src[ 5 ] );
+			dst[ 3 ] = decodeFloat16( src[ 6 ] );
+			dst[ 4 ] = decodeFloat16( src[ 14 ] );
+			dst[ 5 ] = decodeFloat16( src[ 15 ] );
+			dst[ 6 ] = decodeFloat16( src[ 27 ] );
+			dst[ 7 ] = decodeFloat16( src[ 28 ] );
+			dst[ 8 ] = decodeFloat16( src[ 2 ] );
+			dst[ 9 ] = decodeFloat16( src[ 4 ] );
+
+			dst[ 10 ] = decodeFloat16( src[ 7 ] );
+			dst[ 11 ] = decodeFloat16( src[ 13 ] );
+			dst[ 12 ] = decodeFloat16( src[ 16 ] );
+			dst[ 13 ] = decodeFloat16( src[ 26 ] );
+			dst[ 14 ] = decodeFloat16( src[ 29 ] );
+			dst[ 15 ] = decodeFloat16( src[ 42 ] );
+			dst[ 16 ] = decodeFloat16( src[ 3 ] );
+			dst[ 17 ] = decodeFloat16( src[ 8 ] );
+			dst[ 18 ] = decodeFloat16( src[ 12 ] );
+			dst[ 19 ] = decodeFloat16( src[ 17 ] );
+
+			dst[ 20 ] = decodeFloat16( src[ 25 ] );
+			dst[ 21 ] = decodeFloat16( src[ 30 ] );
+			dst[ 22 ] = decodeFloat16( src[ 41 ] );
+			dst[ 23 ] = decodeFloat16( src[ 43 ] );
+			dst[ 24 ] = decodeFloat16( src[ 9 ] );
+			dst[ 25 ] = decodeFloat16( src[ 11 ] );
+			dst[ 26 ] = decodeFloat16( src[ 18 ] );
+			dst[ 27 ] = decodeFloat16( src[ 24 ] );
+			dst[ 28 ] = decodeFloat16( src[ 31 ] );
+			dst[ 29 ] = decodeFloat16( src[ 40 ] );
+
+			dst[ 30 ] = decodeFloat16( src[ 44 ] );
+			dst[ 31 ] = decodeFloat16( src[ 53 ] );
+			dst[ 32 ] = decodeFloat16( src[ 10 ] );
+			dst[ 33 ] = decodeFloat16( src[ 19 ] );
+			dst[ 34 ] = decodeFloat16( src[ 23 ] );
+			dst[ 35 ] = decodeFloat16( src[ 32 ] );
+			dst[ 36 ] = decodeFloat16( src[ 39 ] );
+			dst[ 37 ] = decodeFloat16( src[ 45 ] );
+			dst[ 38 ] = decodeFloat16( src[ 52 ] );
+			dst[ 39 ] = decodeFloat16( src[ 54 ] );
+
+			dst[ 40 ] = decodeFloat16( src[ 20 ] );
+			dst[ 41 ] = decodeFloat16( src[ 22 ] );
+			dst[ 42 ] = decodeFloat16( src[ 33 ] );
+			dst[ 43 ] = decodeFloat16( src[ 38 ] );
+			dst[ 44 ] = decodeFloat16( src[ 46 ] );
+			dst[ 45 ] = decodeFloat16( src[ 51 ] );
+			dst[ 46 ] = decodeFloat16( src[ 55 ] );
+			dst[ 47 ] = decodeFloat16( src[ 60 ] );
+			dst[ 48 ] = decodeFloat16( src[ 21 ] );
+			dst[ 49 ] = decodeFloat16( src[ 34 ] );
+
+			dst[ 50 ] = decodeFloat16( src[ 37 ] );
+			dst[ 51 ] = decodeFloat16( src[ 47 ] );
+			dst[ 52 ] = decodeFloat16( src[ 50 ] );
+			dst[ 53 ] = decodeFloat16( src[ 56 ] );
+			dst[ 54 ] = decodeFloat16( src[ 59 ] );
+			dst[ 55 ] = decodeFloat16( src[ 61 ] );
+			dst[ 56 ] = decodeFloat16( src[ 35 ] );
+			dst[ 57 ] = decodeFloat16( src[ 36 ] );
+			dst[ 58 ] = decodeFloat16( src[ 48 ] );
+			dst[ 59 ] = decodeFloat16( src[ 49 ] );
+
+			dst[ 60 ] = decodeFloat16( src[ 57 ] );
+			dst[ 61 ] = decodeFloat16( src[ 58 ] );
+			dst[ 62 ] = decodeFloat16( src[ 62 ] );
+			dst[ 63 ] = decodeFloat16( src[ 63 ] );
+
+		}
+
+		function dctInverse( data ) {
+
+			const a = 0.5 * Math.cos( 3.14159 / 4.0 );
+			const b = 0.5 * Math.cos( 3.14159 / 16.0 );
+			const c = 0.5 * Math.cos( 3.14159 / 8.0 );
+			const d = 0.5 * Math.cos( 3.0 * 3.14159 / 16.0 );
+			const e = 0.5 * Math.cos( 5.0 * 3.14159 / 16.0 );
+			const f = 0.5 * Math.cos( 3.0 * 3.14159 / 8.0 );
+			const g = 0.5 * Math.cos( 7.0 * 3.14159 / 16.0 );
+
+			const alpha = new Array( 4 );
+			const beta = new Array( 4 );
+			const theta = new Array( 4 );
+			const gamma = new Array( 4 );
+
+			for ( let row = 0; row < 8; ++ row ) {
+
+				const rowPtr = row * 8;
+
+				alpha[ 0 ] = c * data[ rowPtr + 2 ];
+				alpha[ 1 ] = f * data[ rowPtr + 2 ];
+				alpha[ 2 ] = c * data[ rowPtr + 6 ];
+				alpha[ 3 ] = f * data[ rowPtr + 6 ];
+
+				beta[ 0 ] = b * data[ rowPtr + 1 ] + d * data[ rowPtr + 3 ] + e * data[ rowPtr + 5 ] + g * data[ rowPtr + 7 ];
+				beta[ 1 ] = d * data[ rowPtr + 1 ] - g * data[ rowPtr + 3 ] - b * data[ rowPtr + 5 ] - e * data[ rowPtr + 7 ];
+				beta[ 2 ] = e * data[ rowPtr + 1 ] - b * data[ rowPtr + 3 ] + g * data[ rowPtr + 5 ] + d * data[ rowPtr + 7 ];
+				beta[ 3 ] = g * data[ rowPtr + 1 ] - e * data[ rowPtr + 3 ] + d * data[ rowPtr + 5 ] - b * data[ rowPtr + 7 ];
+
+				theta[ 0 ] = a * ( data[ rowPtr + 0 ] + data[ rowPtr + 4 ] );
+				theta[ 3 ] = a * ( data[ rowPtr + 0 ] - data[ rowPtr + 4 ] );
+				theta[ 1 ] = alpha[ 0 ] + alpha[ 3 ];
+				theta[ 2 ] = alpha[ 1 ] - alpha[ 2 ];
+
+				gamma[ 0 ] = theta[ 0 ] + theta[ 1 ];
+				gamma[ 1 ] = theta[ 3 ] + theta[ 2 ];
+				gamma[ 2 ] = theta[ 3 ] - theta[ 2 ];
+				gamma[ 3 ] = theta[ 0 ] - theta[ 1 ];
+
+				data[ rowPtr + 0 ] = gamma[ 0 ] + beta[ 0 ];
+				data[ rowPtr + 1 ] = gamma[ 1 ] + beta[ 1 ];
+				data[ rowPtr + 2 ] = gamma[ 2 ] + beta[ 2 ];
+				data[ rowPtr + 3 ] = gamma[ 3 ] + beta[ 3 ];
+
+				data[ rowPtr + 4 ] = gamma[ 3 ] - beta[ 3 ];
+				data[ rowPtr + 5 ] = gamma[ 2 ] - beta[ 2 ];
+				data[ rowPtr + 6 ] = gamma[ 1 ] - beta[ 1 ];
+				data[ rowPtr + 7 ] = gamma[ 0 ] - beta[ 0 ];
+
+			}
+
+			for ( let column = 0; column < 8; ++ column ) {
+
+				alpha[ 0 ] = c * data[ 16 + column ];
+				alpha[ 1 ] = f * data[ 16 + column ];
+				alpha[ 2 ] = c * data[ 48 + column ];
+				alpha[ 3 ] = f * data[ 48 + column ];
+
+				beta[ 0 ] = b * data[ 8 + column ] + d * data[ 24 + column ] + e * data[ 40 + column ] + g * data[ 56 + column ];
+				beta[ 1 ] = d * data[ 8 + column ] - g * data[ 24 + column ] - b * data[ 40 + column ] - e * data[ 56 + column ];
+				beta[ 2 ] = e * data[ 8 + column ] - b * data[ 24 + column ] + g * data[ 40 + column ] + d * data[ 56 + column ];
+				beta[ 3 ] = g * data[ 8 + column ] - e * data[ 24 + column ] + d * data[ 40 + column ] - b * data[ 56 + column ];
+
+				theta[ 0 ] = a * ( data[ column ] + data[ 32 + column ] );
+				theta[ 3 ] = a * ( data[ column ] - data[ 32 + column ] );
+
+				theta[ 1 ] = alpha[ 0 ] + alpha[ 3 ];
+				theta[ 2 ] = alpha[ 1 ] - alpha[ 2 ];
+
+				gamma[ 0 ] = theta[ 0 ] + theta[ 1 ];
+				gamma[ 1 ] = theta[ 3 ] + theta[ 2 ];
+				gamma[ 2 ] = theta[ 3 ] - theta[ 2 ];
+				gamma[ 3 ] = theta[ 0 ] - theta[ 1 ];
+
+				data[ 0 + column ] = gamma[ 0 ] + beta[ 0 ];
+				data[ 8 + column ] = gamma[ 1 ] + beta[ 1 ];
+				data[ 16 + column ] = gamma[ 2 ] + beta[ 2 ];
+				data[ 24 + column ] = gamma[ 3 ] + beta[ 3 ];
+
+				data[ 32 + column ] = gamma[ 3 ] - beta[ 3 ];
+				data[ 40 + column ] = gamma[ 2 ] - beta[ 2 ];
+				data[ 48 + column ] = gamma[ 1 ] - beta[ 1 ];
+				data[ 56 + column ] = gamma[ 0 ] - beta[ 0 ];
+
+			}
+
+		}
+
+		function csc709Inverse( data ) {
+
+			for ( let i = 0; i < 64; ++ i ) {
+
+				const y = data[ 0 ][ i ];
+				const cb = data[ 1 ][ i ];
+				const cr = data[ 2 ][ i ];
+
+				data[ 0 ][ i ] = y + 1.5747 * cr;
+				data[ 1 ][ i ] = y - 0.1873 * cb - 0.4682 * cr;
+				data[ 2 ][ i ] = y + 1.8556 * cb;
+
+			}
+
+		}
+
+		function convertToHalf( src, dst, idx ) {
+
+			for ( let i = 0; i < 64; ++ i ) {
+
+				dst[ idx + i ] = three.DataUtils.toHalfFloat( toLinear( src[ i ] ) );
+
+			}
+
+		}
+
+		function toLinear( float ) {
+
+			if ( float <= 1 ) {
+
+				return Math.sign( float ) * Math.pow( Math.abs( float ), 2.2 );
+
+			} else {
+
+				return Math.sign( float ) * Math.pow( logBase, Math.abs( float ) - 1.0 );
+
+			}
+
+		}
+
+		function uncompressRAW( info ) {
+
+			return new DataView( info.array.buffer, info.offset.value, info.size );
+
+		}
+
+		function uncompressRLE( info ) {
+
+			const compressed = info.viewer.buffer.slice( info.offset.value, info.offset.value + info.size );
+
+			const rawBuffer = new Uint8Array( decodeRunLength( compressed ) );
+			const tmpBuffer = new Uint8Array( rawBuffer.length );
+
+			predictor( rawBuffer ); // revert predictor
+
+			interleaveScalar( rawBuffer, tmpBuffer ); // interleave pixels
+
+			return new DataView( tmpBuffer.buffer );
+
+		}
+
+		function uncompressZIP( info ) {
+
+			const compressed = info.array.slice( info.offset.value, info.offset.value + info.size );
+
+			const rawBuffer = unzlibSync( compressed );
+			const tmpBuffer = new Uint8Array( rawBuffer.length );
+
+			predictor( rawBuffer ); // revert predictor
+
+			interleaveScalar( rawBuffer, tmpBuffer ); // interleave pixels
+
+			return new DataView( tmpBuffer.buffer );
+
+		}
+
+		function uncompressPIZ( info ) {
+
+			const inDataView = info.viewer;
+			const inOffset = { value: info.offset.value };
+
+			const outBuffer = new Uint16Array( info.columns * info.lines * ( info.inputChannels.length * info.type ) );
+			const bitmap = new Uint8Array( BITMAP_SIZE );
+
+			// Setup channel info
+			let outBufferEnd = 0;
+			const pizChannelData = new Array( info.inputChannels.length );
+			for ( let i = 0, il = info.inputChannels.length; i < il; i ++ ) {
+
+				pizChannelData[ i ] = {};
+				pizChannelData[ i ][ 'start' ] = outBufferEnd;
+				pizChannelData[ i ][ 'end' ] = pizChannelData[ i ][ 'start' ];
+				pizChannelData[ i ][ 'nx' ] = info.columns;
+				pizChannelData[ i ][ 'ny' ] = info.lines;
+				pizChannelData[ i ][ 'size' ] = info.type;
+
+				outBufferEnd += pizChannelData[ i ].nx * pizChannelData[ i ].ny * pizChannelData[ i ].size;
+
+			}
+
+			// Read range compression data
+
+			const minNonZero = parseUint16( inDataView, inOffset );
+			const maxNonZero = parseUint16( inDataView, inOffset );
+
+			if ( maxNonZero >= BITMAP_SIZE ) {
+
+				throw new Error( 'Something is wrong with PIZ_COMPRESSION BITMAP_SIZE' );
+
+			}
+
+			if ( minNonZero <= maxNonZero ) {
+
+				for ( let i = 0; i < maxNonZero - minNonZero + 1; i ++ ) {
+
+					bitmap[ i + minNonZero ] = parseUint8( inDataView, inOffset );
+
+				}
+
+			}
+
+			// Reverse LUT
+			const lut = new Uint16Array( USHORT_RANGE );
+			const maxValue = reverseLutFromBitmap( bitmap, lut );
+
+			const length = parseUint32( inDataView, inOffset );
+
+			// Huffman decoding
+			hufUncompress( info.array, inDataView, inOffset, length, outBuffer, outBufferEnd );
+
+			// Wavelet decoding
+			for ( let i = 0; i < info.inputChannels.length; ++ i ) {
+
+				const cd = pizChannelData[ i ];
+
+				for ( let j = 0; j < pizChannelData[ i ].size; ++ j ) {
+
+					wav2Decode(
+						outBuffer,
+						cd.start + j,
+						cd.nx,
+						cd.size,
+						cd.ny,
+						cd.nx * cd.size,
+						maxValue
+					);
+
+				}
+
+			}
+
+			// Expand the pixel data to their original range
+			applyLut( lut, outBuffer, outBufferEnd );
+
+			// Rearrange the pixel data into the format expected by the caller.
+			let tmpOffset = 0;
+			const tmpBuffer = new Uint8Array( outBuffer.buffer.byteLength );
+			for ( let y = 0; y < info.lines; y ++ ) {
+
+				for ( let c = 0; c < info.inputChannels.length; c ++ ) {
+
+					const cd = pizChannelData[ c ];
+
+					const n = cd.nx * cd.size;
+					const cp = new Uint8Array( outBuffer.buffer, cd.end * INT16_SIZE, n * INT16_SIZE );
+
+					tmpBuffer.set( cp, tmpOffset );
+					tmpOffset += n * INT16_SIZE;
+					cd.end += n;
+
+				}
+
+			}
+
+			return new DataView( tmpBuffer.buffer );
+
+		}
+
+		function uncompressPXR( info ) {
+
+			const compressed = info.array.slice( info.offset.value, info.offset.value + info.size );
+
+			const rawBuffer = unzlibSync( compressed );
+
+			const byteSize = info.inputChannels.length * info.lines * info.columns * info.totalBytes;
+			const tmpBuffer = new ArrayBuffer( byteSize );
+			const viewer = new DataView( tmpBuffer );
+
+			let tmpBufferEnd = 0;
+			let writePtr = 0;
+			const ptr = new Array( 4 );
+
+			for ( let y = 0; y < info.lines; y ++ ) {
+
+				for ( let c = 0; c < info.inputChannels.length; c ++ ) {
+
+					let pixel = 0;
+
+					const type = info.inputChannels[ c ].pixelType;
+					switch ( type ) {
+
+						case 1:
+
+							ptr[ 0 ] = tmpBufferEnd;
+							ptr[ 1 ] = ptr[ 0 ] + info.columns;
+							tmpBufferEnd = ptr[ 1 ] + info.columns;
+
+							for ( let j = 0; j < info.columns; ++ j ) {
+
+								const diff = ( rawBuffer[ ptr[ 0 ] ++ ] << 8 ) | rawBuffer[ ptr[ 1 ] ++ ];
+
+								pixel += diff;
+
+								viewer.setUint16( writePtr, pixel, true );
+								writePtr += 2;
+
+							}
+
+							break;
+
+						case 2:
+
+							ptr[ 0 ] = tmpBufferEnd;
+							ptr[ 1 ] = ptr[ 0 ] + info.columns;
+							ptr[ 2 ] = ptr[ 1 ] + info.columns;
+							tmpBufferEnd = ptr[ 2 ] + info.columns;
+
+							for ( let j = 0; j < info.columns; ++ j ) {
+
+								const diff = ( rawBuffer[ ptr[ 0 ] ++ ] << 24 ) | ( rawBuffer[ ptr[ 1 ] ++ ] << 16 ) | ( rawBuffer[ ptr[ 2 ] ++ ] << 8 );
+
+								pixel += diff;
+
+								viewer.setUint32( writePtr, pixel, true );
+								writePtr += 4;
+
+							}
+
+							break;
+
+					}
+
+				}
+
+			}
+
+			return viewer;
+
+		}
+
+		function uncompressDWA( info ) {
+
+			const inDataView = info.viewer;
+			const inOffset = { value: info.offset.value };
+			const outBuffer = new Uint8Array( info.columns * info.lines * ( info.inputChannels.length * info.type * INT16_SIZE ) );
+
+			// Read compression header information
+			const dwaHeader = {
+
+				version: parseInt64( inDataView, inOffset ),
+				unknownUncompressedSize: parseInt64( inDataView, inOffset ),
+				unknownCompressedSize: parseInt64( inDataView, inOffset ),
+				acCompressedSize: parseInt64( inDataView, inOffset ),
+				dcCompressedSize: parseInt64( inDataView, inOffset ),
+				rleCompressedSize: parseInt64( inDataView, inOffset ),
+				rleUncompressedSize: parseInt64( inDataView, inOffset ),
+				rleRawSize: parseInt64( inDataView, inOffset ),
+				totalAcUncompressedCount: parseInt64( inDataView, inOffset ),
+				totalDcUncompressedCount: parseInt64( inDataView, inOffset ),
+				acCompression: parseInt64( inDataView, inOffset )
+
+			};
+
+			if ( dwaHeader.version < 2 )
+				throw new Error( 'EXRLoader.parse: ' + EXRHeader.compression + ' version ' + dwaHeader.version + ' is unsupported' );
+
+			// Read channel ruleset information
+			const channelRules = new Array();
+			let ruleSize = parseUint16( inDataView, inOffset ) - INT16_SIZE;
+
+			while ( ruleSize > 0 ) {
+
+				const name = parseNullTerminatedString( inDataView.buffer, inOffset );
+				const value = parseUint8( inDataView, inOffset );
+				const compression = ( value >> 2 ) & 3;
+				const csc = ( value >> 4 ) - 1;
+				const index = new Int8Array( [ csc ] )[ 0 ];
+				const type = parseUint8( inDataView, inOffset );
+
+				channelRules.push( {
+					name: name,
+					index: index,
+					type: type,
+					compression: compression,
+				} );
+
+				ruleSize -= name.length + 3;
+
+			}
+
+			// Classify channels
+			const channels = EXRHeader.channels;
+			const channelData = new Array( info.inputChannels.length );
+
+			for ( let i = 0; i < info.inputChannels.length; ++ i ) {
+
+				const cd = channelData[ i ] = {};
+				const channel = channels[ i ];
+
+				cd.name = channel.name;
+				cd.compression = UNKNOWN;
+				cd.decoded = false;
+				cd.type = channel.pixelType;
+				cd.pLinear = channel.pLinear;
+				cd.width = info.columns;
+				cd.height = info.lines;
+
+			}
+
+			const cscSet = {
+				idx: new Array( 3 )
+			};
+
+			for ( let offset = 0; offset < info.inputChannels.length; ++ offset ) {
+
+				const cd = channelData[ offset ];
+
+				for ( let i = 0; i < channelRules.length; ++ i ) {
+
+					const rule = channelRules[ i ];
+
+					if ( cd.name == rule.name ) {
+
+						cd.compression = rule.compression;
+
+						if ( rule.index >= 0 ) {
+
+							cscSet.idx[ rule.index ] = offset;
+
+						}
+
+						cd.offset = offset;
+
+					}
+
+				}
+
+			}
+
+			let acBuffer, dcBuffer, rleBuffer;
+
+			// Read DCT - AC component data
+			if ( dwaHeader.acCompressedSize > 0 ) {
+
+				switch ( dwaHeader.acCompression ) {
+
+					case STATIC_HUFFMAN:
+
+						acBuffer = new Uint16Array( dwaHeader.totalAcUncompressedCount );
+						hufUncompress( info.array, inDataView, inOffset, dwaHeader.acCompressedSize, acBuffer, dwaHeader.totalAcUncompressedCount );
+						break;
+
+					case DEFLATE:
+
+						const compressed = info.array.slice( inOffset.value, inOffset.value + dwaHeader.totalAcUncompressedCount );
+						const data = unzlibSync( compressed );
+						acBuffer = new Uint16Array( data.buffer );
+						inOffset.value += dwaHeader.totalAcUncompressedCount;
+						break;
+
+				}
+
+
+			}
+
+			// Read DCT - DC component data
+			if ( dwaHeader.dcCompressedSize > 0 ) {
+
+				const zlibInfo = {
+					array: info.array,
+					offset: inOffset,
+					size: dwaHeader.dcCompressedSize
+				};
+				dcBuffer = new Uint16Array( uncompressZIP( zlibInfo ).buffer );
+				inOffset.value += dwaHeader.dcCompressedSize;
+
+			}
+
+			// Read RLE compressed data
+			if ( dwaHeader.rleRawSize > 0 ) {
+
+				const compressed = info.array.slice( inOffset.value, inOffset.value + dwaHeader.rleCompressedSize );
+				const data = unzlibSync( compressed );
+				rleBuffer = decodeRunLength( data.buffer );
+
+				inOffset.value += dwaHeader.rleCompressedSize;
+
+			}
+
+			// Prepare outbuffer data offset
+			let outBufferEnd = 0;
+			const rowOffsets = new Array( channelData.length );
+			for ( let i = 0; i < rowOffsets.length; ++ i ) {
+
+				rowOffsets[ i ] = new Array();
+
+			}
+
+			for ( let y = 0; y < info.lines; ++ y ) {
+
+				for ( let chan = 0; chan < channelData.length; ++ chan ) {
+
+					rowOffsets[ chan ].push( outBufferEnd );
+					outBufferEnd += channelData[ chan ].width * info.type * INT16_SIZE;
+
+				}
+
+			}
+
+			// Lossy DCT decode RGB channels
+			lossyDctDecode( cscSet, rowOffsets, channelData, acBuffer, dcBuffer, outBuffer );
+
+			// Decode other channels
+			for ( let i = 0; i < channelData.length; ++ i ) {
+
+				const cd = channelData[ i ];
+
+				if ( cd.decoded ) continue;
+
+				switch ( cd.compression ) {
+
+					case RLE:
+
+						let row = 0;
+						let rleOffset = 0;
+
+						for ( let y = 0; y < info.lines; ++ y ) {
+
+							let rowOffsetBytes = rowOffsets[ i ][ row ];
+
+							for ( let x = 0; x < cd.width; ++ x ) {
+
+								for ( let byte = 0; byte < INT16_SIZE * cd.type; ++ byte ) {
+
+									outBuffer[ rowOffsetBytes ++ ] = rleBuffer[ rleOffset + byte * cd.width * cd.height ];
+
+								}
+
+								rleOffset ++;
+
+							}
+
+							row ++;
+
+						}
+
+						break;
+
+					case LOSSY_DCT: // skip
+
+					default:
+						throw new Error( 'EXRLoader.parse: unsupported channel compression' );
+
+				}
+
+			}
+
+			return new DataView( outBuffer.buffer );
+
+		}
+
+		function parseNullTerminatedString( buffer, offset ) {
+
+			const uintBuffer = new Uint8Array( buffer );
+			let endOffset = 0;
+
+			while ( uintBuffer[ offset.value + endOffset ] != 0 ) {
+
+				endOffset += 1;
+
+			}
+
+			const stringValue = new TextDecoder().decode(
+				uintBuffer.slice( offset.value, offset.value + endOffset )
+			);
+
+			offset.value = offset.value + endOffset + 1;
+
+			return stringValue;
+
+		}
+
+		function parseFixedLengthString( buffer, offset, size ) {
+
+			const stringValue = new TextDecoder().decode(
+				new Uint8Array( buffer ).slice( offset.value, offset.value + size )
+			);
+
+			offset.value = offset.value + size;
+
+			return stringValue;
+
+		}
+
+		function parseRational( dataView, offset ) {
+
+			const x = parseInt32( dataView, offset );
+			const y = parseUint32( dataView, offset );
+
+			return [ x, y ];
+
+		}
+
+		function parseTimecode( dataView, offset ) {
+
+			const x = parseUint32( dataView, offset );
+			const y = parseUint32( dataView, offset );
+
+			return [ x, y ];
+
+		}
+
+		function parseInt32( dataView, offset ) {
+
+			const Int32 = dataView.getInt32( offset.value, true );
+
+			offset.value = offset.value + INT32_SIZE;
+
+			return Int32;
+
+		}
+
+		function parseUint32( dataView, offset ) {
+
+			const Uint32 = dataView.getUint32( offset.value, true );
+
+			offset.value = offset.value + INT32_SIZE;
+
+			return Uint32;
+
+		}
+
+		function parseUint8Array( uInt8Array, offset ) {
+
+			const Uint8 = uInt8Array[ offset.value ];
+
+			offset.value = offset.value + INT8_SIZE;
+
+			return Uint8;
+
+		}
+
+		function parseUint8( dataView, offset ) {
+
+			const Uint8 = dataView.getUint8( offset.value );
+
+			offset.value = offset.value + INT8_SIZE;
+
+			return Uint8;
+
+		}
+
+		const parseInt64 = function ( dataView, offset ) {
+
+			let int;
+
+			if ( 'getBigInt64' in DataView.prototype ) {
+
+				int = Number( dataView.getBigInt64( offset.value, true ) );
+
+			} else {
+
+				int = dataView.getUint32( offset.value + 4, true ) + Number( dataView.getUint32( offset.value, true ) << 32 );
+
+			}
+
+			offset.value += ULONG_SIZE;
+
+			return int;
+
+		};
+
+		function parseFloat32( dataView, offset ) {
+
+			const float = dataView.getFloat32( offset.value, true );
+
+			offset.value += FLOAT32_SIZE;
+
+			return float;
+
+		}
+
+		function decodeFloat32( dataView, offset ) {
+
+			return three.DataUtils.toHalfFloat( parseFloat32( dataView, offset ) );
+
+		}
+
+		// https://stackoverflow.com/questions/5678432/decompressing-half-precision-floats-in-javascript
+		function decodeFloat16( binary ) {
+
+			const exponent = ( binary & 0x7C00 ) >> 10,
+				fraction = binary & 0x03FF;
+
+			return ( binary >> 15 ? -1 : 1 ) * (
+				exponent ?
+					(
+						exponent === 0x1F ?
+							fraction ? NaN : Infinity :
+							Math.pow( 2, exponent - 15 ) * ( 1 + fraction / 0x400 )
+					) :
+					6.103515625e-5 * ( fraction / 0x400 )
+			);
+
+		}
+
+		function parseUint16( dataView, offset ) {
+
+			const Uint16 = dataView.getUint16( offset.value, true );
+
+			offset.value += INT16_SIZE;
+
+			return Uint16;
+
+		}
+
+		function parseFloat16( buffer, offset ) {
+
+			return decodeFloat16( parseUint16( buffer, offset ) );
+
+		}
+
+		function parseChlist( dataView, buffer, offset, size ) {
+
+			const startOffset = offset.value;
+			const channels = [];
+
+			while ( offset.value < ( startOffset + size - 1 ) ) {
+
+				const name = parseNullTerminatedString( buffer, offset );
+				const pixelType = parseInt32( dataView, offset );
+				const pLinear = parseUint8( dataView, offset );
+				offset.value += 3; // reserved, three chars
+				const xSampling = parseInt32( dataView, offset );
+				const ySampling = parseInt32( dataView, offset );
+
+				channels.push( {
+					name: name,
+					pixelType: pixelType,
+					pLinear: pLinear,
+					xSampling: xSampling,
+					ySampling: ySampling
+				} );
+
+			}
+
+			offset.value += 1;
+
+			return channels;
+
+		}
+
+		function parseChromaticities( dataView, offset ) {
+
+			const redX = parseFloat32( dataView, offset );
+			const redY = parseFloat32( dataView, offset );
+			const greenX = parseFloat32( dataView, offset );
+			const greenY = parseFloat32( dataView, offset );
+			const blueX = parseFloat32( dataView, offset );
+			const blueY = parseFloat32( dataView, offset );
+			const whiteX = parseFloat32( dataView, offset );
+			const whiteY = parseFloat32( dataView, offset );
+
+			return { redX: redX, redY: redY, greenX: greenX, greenY: greenY, blueX: blueX, blueY: blueY, whiteX: whiteX, whiteY: whiteY };
+
+		}
+
+		function parseCompression( dataView, offset ) {
+
+			const compressionCodes = [
+				'NO_COMPRESSION',
+				'RLE_COMPRESSION',
+				'ZIPS_COMPRESSION',
+				'ZIP_COMPRESSION',
+				'PIZ_COMPRESSION',
+				'PXR24_COMPRESSION',
+				'B44_COMPRESSION',
+				'B44A_COMPRESSION',
+				'DWAA_COMPRESSION',
+				'DWAB_COMPRESSION'
+			];
+
+			const compression = parseUint8( dataView, offset );
+
+			return compressionCodes[ compression ];
+
+		}
+
+		function parseBox2i( dataView, offset ) {
+
+			const xMin = parseInt32( dataView, offset );
+			const yMin = parseInt32( dataView, offset );
+			const xMax = parseInt32( dataView, offset );
+			const yMax = parseInt32( dataView, offset );
+
+			return { xMin: xMin, yMin: yMin, xMax: xMax, yMax: yMax };
+
+		}
+
+		function parseLineOrder( dataView, offset ) {
+
+			const lineOrders = [
+				'INCREASING_Y',
+				'DECREASING_Y',
+				'RANDOM_Y',
+			];
+
+			const lineOrder = parseUint8( dataView, offset );
+
+			return lineOrders[ lineOrder ];
+
+		}
+
+		function parseEnvmap( dataView, offset ) {
+
+			const envmaps = [
+				'ENVMAP_LATLONG',
+				'ENVMAP_CUBE'
+			];
+
+			const envmap = parseUint8( dataView, offset );
+
+			return envmaps[ envmap ];
+
+		}
+
+		function parseTiledesc( dataView, offset ) {
+
+			const levelModes = [
+				'ONE_LEVEL',
+				'MIPMAP_LEVELS',
+				'RIPMAP_LEVELS',
+			];
+
+			const roundingModes = [
+				'ROUND_DOWN',
+				'ROUND_UP',
+			];
+
+			const xSize = parseUint32( dataView, offset );
+			const ySize = parseUint32( dataView, offset );
+			const modes = parseUint8( dataView, offset );
+
+			return {
+				xSize: xSize,
+				ySize: ySize,
+				levelMode: levelModes[ modes & 0xf ],
+				roundingMode: roundingModes[ modes >> 4 ]
+			};
+
+		}
+
+		function parseV2f( dataView, offset ) {
+
+			const x = parseFloat32( dataView, offset );
+			const y = parseFloat32( dataView, offset );
+
+			return [ x, y ];
+
+		}
+
+		function parseV3f( dataView, offset ) {
+
+			const x = parseFloat32( dataView, offset );
+			const y = parseFloat32( dataView, offset );
+			const z = parseFloat32( dataView, offset );
+
+			return [ x, y, z ];
+
+		}
+
+		function parseValue( dataView, buffer, offset, type, size ) {
+
+			if ( type === 'string' || type === 'stringvector' || type === 'iccProfile' ) {
+
+				return parseFixedLengthString( buffer, offset, size );
+
+			} else if ( type === 'chlist' ) {
+
+				return parseChlist( dataView, buffer, offset, size );
+
+			} else if ( type === 'chromaticities' ) {
+
+				return parseChromaticities( dataView, offset );
+
+			} else if ( type === 'compression' ) {
+
+				return parseCompression( dataView, offset );
+
+			} else if ( type === 'box2i' ) {
+
+				return parseBox2i( dataView, offset );
+
+			} else if ( type === 'envmap' ) {
+
+				return parseEnvmap( dataView, offset );
+
+			} else if ( type === 'tiledesc' ) {
+
+				return parseTiledesc( dataView, offset );
+
+			} else if ( type === 'lineOrder' ) {
+
+				return parseLineOrder( dataView, offset );
+
+			} else if ( type === 'float' ) {
+
+				return parseFloat32( dataView, offset );
+
+			} else if ( type === 'v2f' ) {
+
+				return parseV2f( dataView, offset );
+
+			} else if ( type === 'v3f' ) {
+
+				return parseV3f( dataView, offset );
+
+			} else if ( type === 'int' ) {
+
+				return parseInt32( dataView, offset );
+
+			} else if ( type === 'rational' ) {
+
+				return parseRational( dataView, offset );
+
+			} else if ( type === 'timecode' ) {
+
+				return parseTimecode( dataView, offset );
+
+			} else if ( type === 'preview' ) {
+
+				offset.value += size;
+				return 'skipped';
+
+			} else {
+
+				offset.value += size;
+				return undefined;
+
+			}
+
+		}
+
+		function roundLog2( x, mode ) {
+
+			const log2 = Math.log2( x );
+			return mode == 'ROUND_DOWN' ? Math.floor( log2 ) : Math.ceil( log2 );
+
+		}
+
+		function calculateTileLevels( tiledesc, w, h ) {
+
+			let num = 0;
+
+			switch ( tiledesc.levelMode ) {
+
+				case 'ONE_LEVEL':
+					num = 1;
+					break;
+
+				case 'MIPMAP_LEVELS':
+					num = roundLog2( Math.max( w, h ), tiledesc.roundingMode ) + 1;
+					break;
+
+				case 'RIPMAP_LEVELS':
+					throw new Error( 'THREE.EXRLoader: RIPMAP_LEVELS tiles currently unsupported.' );
+
+			}
+
+			return num;
+
+		}
+
+		function calculateTiles( count, dataSize, size, roundingMode ) {
+
+			const tiles = new Array( count );
+
+			for ( let i = 0; i < count; i ++ ) {
+
+				const b = ( 1 << i );
+				let s = ( dataSize / b ) | 0;
+
+				if ( roundingMode == 'ROUND_UP' && s * b < dataSize ) s += 1;
+
+				const l = Math.max( s, 1 );
+
+				tiles[ i ] = ( ( l + size - 1 ) / size ) | 0;
+
+			}
+
+			return tiles;
+
+		}
+
+		function parseTiles() {
+
+			const EXRDecoder = this;
+			const offset = EXRDecoder.offset;
+			const tmpOffset = { value: 0 };
+
+			for ( let tile = 0; tile < EXRDecoder.tileCount; tile ++ ) {
+
+				const tileX = parseInt32( EXRDecoder.viewer, offset );
+				const tileY = parseInt32( EXRDecoder.viewer, offset );
+				offset.value += 8; // skip levels - only parsing top-level
+				EXRDecoder.size = parseUint32( EXRDecoder.viewer, offset );
+
+				const startX = tileX * EXRDecoder.blockWidth;
+				const startY = tileY * EXRDecoder.blockHeight;
+				EXRDecoder.columns = ( startX + EXRDecoder.blockWidth > EXRDecoder.width ) ? EXRDecoder.width - startX : EXRDecoder.blockWidth;
+				EXRDecoder.lines = ( startY + EXRDecoder.blockHeight > EXRDecoder.height ) ? EXRDecoder.height - startY : EXRDecoder.blockHeight;
+
+				const bytesBlockLine = EXRDecoder.columns * EXRDecoder.totalBytes;
+				const isCompressed = EXRDecoder.size < EXRDecoder.lines * bytesBlockLine;
+				const viewer = isCompressed ? EXRDecoder.uncompress( EXRDecoder ) : uncompressRAW( EXRDecoder );
+
+				offset.value += EXRDecoder.size;
+
+				for ( let line = 0; line < EXRDecoder.lines; line ++ ) {
+
+					const lineOffset = line * EXRDecoder.columns * EXRDecoder.totalBytes;
+
+					for ( let channelID = 0; channelID < EXRDecoder.inputChannels.length; channelID ++ ) {
+
+						const name = EXRHeader.channels[ channelID ].name;
+						const lOff = EXRDecoder.channelByteOffsets[ name ] * EXRDecoder.columns;
+						const cOff = EXRDecoder.decodeChannels[ name ];
+
+						if ( cOff === undefined ) continue;
+
+						tmpOffset.value = lineOffset + lOff;
+						const outLineOffset = ( EXRDecoder.height - ( 1 + startY + line ) ) * EXRDecoder.outLineWidth;
+
+						for ( let x = 0; x < EXRDecoder.columns; x ++ ) {
+
+							const outIndex = outLineOffset + ( x + startX ) * EXRDecoder.outputChannels + cOff;
+							EXRDecoder.byteArray[ outIndex ] = EXRDecoder.getter( viewer, tmpOffset );
+
+						}
+
+					}
+
+				}
+
+			}
+
+		}
+
+		function parseScanline() {
+
+			const EXRDecoder = this;
+			const offset = EXRDecoder.offset;
+			const tmpOffset = { value: 0 };
+
+			for ( let scanlineBlockIdx = 0; scanlineBlockIdx < EXRDecoder.height / EXRDecoder.blockHeight; scanlineBlockIdx ++ ) {
+
+				const line = parseInt32( EXRDecoder.viewer, offset ) - EXRHeader.dataWindow.yMin; // line_no
+				EXRDecoder.size = parseUint32( EXRDecoder.viewer, offset ); // data_len
+				EXRDecoder.lines = ( ( line + EXRDecoder.blockHeight > EXRDecoder.height ) ? ( EXRDecoder.height - line ) : EXRDecoder.blockHeight );
+
+				const bytesPerLine = EXRDecoder.columns * EXRDecoder.totalBytes;
+				const isCompressed = EXRDecoder.size < EXRDecoder.lines * bytesPerLine;
+				const viewer = isCompressed ? EXRDecoder.uncompress( EXRDecoder ) : uncompressRAW( EXRDecoder );
+
+				offset.value += EXRDecoder.size;
+
+				for ( let line_y = 0; line_y < EXRDecoder.blockHeight; line_y ++ ) {
+
+					const scan_y = scanlineBlockIdx * EXRDecoder.blockHeight;
+					const true_y = line_y + EXRDecoder.scanOrder( scan_y );
+					if ( true_y >= EXRDecoder.height ) continue;
+
+					const lineOffset = line_y * bytesPerLine;
+					const outLineOffset = ( EXRDecoder.height - 1 - true_y ) * EXRDecoder.outLineWidth;
+
+					for ( let channelID = 0; channelID < EXRDecoder.inputChannels.length; channelID ++ ) {
+
+						const name = EXRHeader.channels[ channelID ].name;
+						const lOff = EXRDecoder.channelByteOffsets[ name ] * EXRDecoder.columns;
+						const cOff = EXRDecoder.decodeChannels[ name ];
+
+						if ( cOff === undefined ) continue;
+
+						tmpOffset.value = lineOffset + lOff;
+
+						for ( let x = 0; x < EXRDecoder.columns; x ++ ) {
+
+							const outIndex = outLineOffset + x * EXRDecoder.outputChannels + cOff;
+							EXRDecoder.byteArray[ outIndex ] = EXRDecoder.getter( viewer, tmpOffset );
+
+						}
+
+					}
+
+				}
+
+			}
+
+		}
+
+		function parseHeader( dataView, buffer, offset ) {
+
+			const EXRHeader = {};
+
+			if ( dataView.getUint32( 0, true ) != 20000630 ) { // magic
+
+				throw new Error( 'THREE.EXRLoader: Provided file doesn\'t appear to be in OpenEXR format.' );
+
+			}
+
+			EXRHeader.version = dataView.getUint8( 4 );
+
+			const spec = dataView.getUint8( 5 ); // fullMask
+
+			EXRHeader.spec = {
+				singleTile: !! ( spec & 2 ),
+				longName: !! ( spec & 4 ),
+				deepFormat: !! ( spec & 8 ),
+				multiPart: !! ( spec & 16 ),
+			};
+
+			// start of header
+
+			offset.value = 8; // start at 8 - after pre-amble
+
+			let keepReading = true;
+
+			while ( keepReading ) {
+
+				const attributeName = parseNullTerminatedString( buffer, offset );
+
+				if ( attributeName == 0 ) {
+
+					keepReading = false;
+
+				} else {
+
+					const attributeType = parseNullTerminatedString( buffer, offset );
+					const attributeSize = parseUint32( dataView, offset );
+					const attributeValue = parseValue( dataView, buffer, offset, attributeType, attributeSize );
+
+					if ( attributeValue === undefined ) {
+
+						console.warn( `THREE.EXRLoader: Skipped unknown header attribute type \'${attributeType}\'.` );
+
+					} else {
+
+						EXRHeader[ attributeName ] = attributeValue;
+
+					}
+
+				}
+
+			}
+
+			if ( ( spec & -7 ) != 0 ) { // unsupported deep-image, multi-part
+
+				console.error( 'THREE.EXRHeader:', EXRHeader );
+				throw new Error( 'THREE.EXRLoader: Provided file is currently unsupported.' );
+
+			}
+
+			return EXRHeader;
+
+		}
+
+		function setupDecoder( EXRHeader, dataView, uInt8Array, offset, outputType ) {
+
+			const EXRDecoder = {
+				size: 0,
+				viewer: dataView,
+				array: uInt8Array,
+				offset: offset,
+				width: EXRHeader.dataWindow.xMax - EXRHeader.dataWindow.xMin + 1,
+				height: EXRHeader.dataWindow.yMax - EXRHeader.dataWindow.yMin + 1,
+				inputChannels: EXRHeader.channels,
+				channelByteOffsets: {},
+				scanOrder: null,
+				totalBytes: null,
+				columns: null,
+				lines: null,
+				type: null,
+				uncompress: null,
+				getter: null,
+				format: null,
+				colorSpace: three.LinearSRGBColorSpace,
+			};
+
+			switch ( EXRHeader.compression ) {
+
+				case 'NO_COMPRESSION':
+					EXRDecoder.blockHeight = 1;
+					EXRDecoder.uncompress = uncompressRAW;
+					break;
+
+				case 'RLE_COMPRESSION':
+					EXRDecoder.blockHeight = 1;
+					EXRDecoder.uncompress = uncompressRLE;
+					break;
+
+				case 'ZIPS_COMPRESSION':
+					EXRDecoder.blockHeight = 1;
+					EXRDecoder.uncompress = uncompressZIP;
+					break;
+
+				case 'ZIP_COMPRESSION':
+					EXRDecoder.blockHeight = 16;
+					EXRDecoder.uncompress = uncompressZIP;
+					break;
+
+				case 'PIZ_COMPRESSION':
+					EXRDecoder.blockHeight = 32;
+					EXRDecoder.uncompress = uncompressPIZ;
+					break;
+
+				case 'PXR24_COMPRESSION':
+					EXRDecoder.blockHeight = 16;
+					EXRDecoder.uncompress = uncompressPXR;
+					break;
+
+				case 'DWAA_COMPRESSION':
+					EXRDecoder.blockHeight = 32;
+					EXRDecoder.uncompress = uncompressDWA;
+					break;
+
+				case 'DWAB_COMPRESSION':
+					EXRDecoder.blockHeight = 256;
+					EXRDecoder.uncompress = uncompressDWA;
+					break;
+
+				default:
+					throw new Error( 'EXRLoader.parse: ' + EXRHeader.compression + ' is unsupported' );
+
+			}
+
+			const channels = {};
+			for ( const channel of EXRHeader.channels ) {
+
+				switch ( channel.name ) {
+
+					case 'Y':
+					case 'R':
+					case 'G':
+					case 'B':
+					case 'A':
+						channels[ channel.name ] = true;
+						EXRDecoder.type = channel.pixelType;
+
+				}
+
+			}
+
+			// RGB images will be converted to RGBA format, preventing software emulation in select devices.
+			let fillAlpha = false;
+
+			if ( channels.R && channels.G && channels.B ) {
+
+				fillAlpha = ! channels.A;
+				EXRDecoder.outputChannels = 4;
+				EXRDecoder.decodeChannels = { R: 0, G: 1, B: 2, A: 3 };
+
+			} else if ( channels.Y ) {
+
+				EXRDecoder.outputChannels = 1;
+				EXRDecoder.decodeChannels = { Y: 0 };
+
+			} else {
+
+				throw new Error( 'EXRLoader.parse: file contains unsupported data channels.' );
+
+			}
+
+			if ( EXRDecoder.type == 1 ) {
+
+				// half
+				switch ( outputType ) {
+
+					case three.FloatType:
+						EXRDecoder.getter = parseFloat16;
+						break;
+
+					case three.HalfFloatType:
+						EXRDecoder.getter = parseUint16;
+						break;
+
+				}
+
+			} else if ( EXRDecoder.type == 2 ) {
+
+				// float
+				switch ( outputType ) {
+
+					case three.FloatType:
+						EXRDecoder.getter = parseFloat32;
+						break;
+
+					case three.HalfFloatType:
+						EXRDecoder.getter = decodeFloat32;
+
+				}
+
+			} else {
+
+				throw new Error( 'EXRLoader.parse: unsupported pixelType ' + EXRDecoder.type + ' for ' + EXRHeader.compression + '.' );
+
+			}
+
+			EXRDecoder.columns = EXRDecoder.width;
+			const size = EXRDecoder.width * EXRDecoder.height * EXRDecoder.outputChannels;
+
+			switch ( outputType ) {
+
+				case three.FloatType:
+					EXRDecoder.byteArray = new Float32Array( size );
+
+					// Fill initially with 1s for the alpha value if the texture is not RGBA, RGB values will be overwritten
+					if ( fillAlpha )
+						EXRDecoder.byteArray.fill( 1, 0, size );
+
+					break;
+
+				case three.HalfFloatType:
+					EXRDecoder.byteArray = new Uint16Array( size );
+
+					if ( fillAlpha )
+						EXRDecoder.byteArray.fill( 0x3C00, 0, size ); // Uint16Array holds half float data, 0x3C00 is 1
+
+					break;
+
+				default:
+					console.error( 'THREE.EXRLoader: unsupported type: ', outputType );
+					break;
+
+			}
+
+			let byteOffset = 0;
+			for ( const channel of EXRHeader.channels ) {
+
+				if ( EXRDecoder.decodeChannels[ channel.name ] !== undefined ) {
+
+					EXRDecoder.channelByteOffsets[ channel.name ] = byteOffset;
+
+				}
+
+				byteOffset += channel.pixelType * 2;
+
+			}
+
+			EXRDecoder.totalBytes = byteOffset;
+			EXRDecoder.outLineWidth = EXRDecoder.width * EXRDecoder.outputChannels;
+
+			if ( EXRHeader.lineOrder === 'INCREASING_Y' ) {
+
+				EXRDecoder.scanOrder = ( y ) => y;
+
+			} else {
+
+				EXRDecoder.scanOrder = ( y ) => EXRDecoder.height - 1 - y;
+
+			}
+
+			if ( EXRDecoder.outputChannels == 4 ) {
+
+				EXRDecoder.format = three.RGBAFormat;
+				EXRDecoder.colorSpace = three.LinearSRGBColorSpace;
+
+			} else {
+
+				EXRDecoder.format = three.RedFormat;
+				EXRDecoder.colorSpace = three.NoColorSpace;
+
+			}
+
+			if ( EXRHeader.spec.singleTile ) {
+
+				EXRDecoder.blockHeight = EXRHeader.tiles.ySize;
+				EXRDecoder.blockWidth = EXRHeader.tiles.xSize;
+
+				const numXLevels = calculateTileLevels( EXRHeader.tiles, EXRDecoder.width, EXRDecoder.height );
+				// const numYLevels = calculateTileLevels( EXRHeader.tiles, EXRDecoder.width, EXRDecoder.height );
+
+				const numXTiles = calculateTiles( numXLevels, EXRDecoder.width, EXRHeader.tiles.xSize, EXRHeader.tiles.roundingMode );
+				const numYTiles = calculateTiles( numXLevels, EXRDecoder.height, EXRHeader.tiles.ySize, EXRHeader.tiles.roundingMode );
+
+				EXRDecoder.tileCount = numXTiles[ 0 ] * numYTiles[ 0 ];
+
+				for ( let l = 0; l < numXLevels; l ++ )
+					for ( let y = 0; y < numYTiles[ l ]; y ++ )
+						for ( let x = 0; x < numXTiles[ l ]; x ++ )
+							parseInt64( dataView, offset ); // tileOffset
+
+				EXRDecoder.decode = parseTiles.bind( EXRDecoder );
+
+			} else {
+
+				EXRDecoder.blockWidth = EXRDecoder.width;
+				const blockCount = Math.ceil( EXRDecoder.height / EXRDecoder.blockHeight );
+
+				for ( let i = 0; i < blockCount; i ++ )
+					parseInt64( dataView, offset ); // scanlineOffset
+
+				EXRDecoder.decode = parseScanline.bind( EXRDecoder );
+
+			}
+
+			return EXRDecoder;
+
+		}
+
+		// start parsing file [START]
+		const offset = { value: 0 };
+		const bufferDataView = new DataView( buffer );
+		const uInt8Array = new Uint8Array( buffer );
+
+		// get header information and validate format.
+		const EXRHeader = parseHeader( bufferDataView, buffer, offset );
+
+		// get input compression information and prepare decoding.
+		const EXRDecoder = setupDecoder( EXRHeader, bufferDataView, uInt8Array, offset, this.type );
+
+		// parse input data
+		EXRDecoder.decode();
+
+		return {
+			header: EXRHeader,
+			width: EXRDecoder.width,
+			height: EXRDecoder.height,
+			data: EXRDecoder.byteArray,
+			format: EXRDecoder.format,
+			colorSpace: EXRDecoder.colorSpace,
+			type: this.type,
+		};
+
+	}
+
+	setDataType( value ) {
+
+		this.type = value;
+		return this;
+
+	}
+
+	load( url, onLoad, onProgress, onError ) {
+
+		function onLoadCallback( texture, texData ) {
+
+			texture.colorSpace = texData.colorSpace;
+			texture.minFilter = three.LinearFilter;
+			texture.magFilter = three.LinearFilter;
+			texture.generateMipmaps = false;
+			texture.flipY = false;
+
+			if ( onLoad ) onLoad( texture, texData );
+
+		}
+
+		return super.load( url, onLoadCallback, onProgress, onError );
 
 	}
 
@@ -40889,6 +28964,8 @@ class PhyEngine {
 
 			useModule = o.useModule ? this.supportModuleWorker() : false;
 			useLocal = o.useLocal || false;
+
+			Pool.useLocal = useLocal;
 
 
 			if( compact ){

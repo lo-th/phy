@@ -2,8 +2,17 @@ import {
     LoadingManager, Texture, Mesh, TextureLoader, SRGBColorSpace, RepeatWrapping, NearestFilter, EquirectangularReflectionMapping, AnimationMixer, ObjectSpaceNormalMap, 
 } from 'three';
 
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { FBXLoader } from 'three/addons/loaders/FBXLoader.js';
+import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
+import { STLLoader } from 'three/addons/loaders/STLLoader.js';
+import { RGBELoader } from 'three/addons/loaders/RGBELoader.js';
+import { EXRLoader } from 'three/addons/loaders/EXRLoader.js';
+import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
+import { UltraHDRLoader } from 'three/addons/loaders/UltraHDRLoader.js';
+/*
 import { GLTFLoader } from '../jsm/loaders/GLTFLoader.js';
-import { DRACOLoader } from '../jsm/loaders/DRACOLoader.js';
+//import { DRACOLoader } from '../jsm/loaders/DRACOLoader.js';
 import { FBXLoader } from '../jsm/loaders/FBXLoader.js';
 import { MeshoptDecoder } from '../jsm/libs/meshopt_decoder.module.js';
 import { OBJLoader } from '../jsm/loaders/OBJLoader.js';
@@ -11,8 +20,11 @@ import { STLLoader } from '../jsm/loaders/STLLoader.js';
 
 import { RGBELoader } from '../jsm/loaders/RGBELoader.js';
 import { EXRLoader } from '../jsm/loaders/EXRLoader.js';
-import { KTX2Loader } from '../jsm/loaders/KTX2Loader.js';
-//import { HDRJPGLoader } from '../libs/HDRJPGLoader.js';
+//import { KTX2Loader } from '../jsm/loaders/KTX2Loader.js';
+//import { HDRJPGLoader } from '../libs/HDRJPGLoader.js';*/
+
+import { DRACOLoader } from '../libs/DRACOLoader.js';
+import { KTX2Loader } from '../libs/KTX2Loader.js';
 
 import { LZMA } from '../libs/lzma.js';
 
@@ -40,8 +52,10 @@ export const Pool = {
     //extraTexture: [],
     dracoLoader: null,
     //dracoLoaderType:'js',
-    dracoPath:'./src/libs/draco/',
-    basisPath:'./src/jsm/libs/basis/',
+    dracoPath:'./build/draco/',
+    basisPath:'./build/basis/',
+
+    useLocal:false,
 
     formatGltf : {
         draco:true,
@@ -388,6 +402,7 @@ export const Pool = {
             else {
                 Pool.inLoad = false;
                 Pool.clearDRACO()
+                Pool.clearKTX2()
                 Pool.onEnd()
             }
 
@@ -497,6 +512,15 @@ export const Pool = {
 
     //////////////////////////////////
 
+    clearKTX2: () => {
+
+        if( Pool.KTX2 ){
+            Pool.KTX2.dispose();
+            Pool.KTX2 = null;
+        }
+
+    },
+
     clearDRACO: () => {
 
         if( Pool.dracoLoader ){
@@ -520,24 +544,27 @@ export const Pool = {
                 let ua = navigator.userAgent.toLowerCase()
                 Pool.dracoLoaderType = (ua.indexOf('safari') !== -1 && ua.indexOf('chrome') === -1) ? 'js' : 'wasm'
             }
-
-            //console.log(Pool.dracoLoaderType)
         }
 
-        Pool.dracoLoader = new DRACOLoader().setDecoderPath( Pool.dracoPath )
-        //Pool.dracoLoader.setWorkerLimit(1)
-        Pool.dracoLoader.setDecoderConfig( { type: Pool.dracoLoaderType } )
+        Pool.dracoLoader = new DRACOLoader()
+            .setDecoderConfig( { type: Pool.dracoLoaderType } )
+            .setDecoderPath( Pool.dracoPath )
+            .setUseLocal( Pool.useLocal )
+            //.setWorkerLimit(1)
+
         return Pool.dracoLoader
 
     },
 
     loaderKTX2: () => {
 
-        if( !Pool.KTX2 ){
-            Pool.KTX2 = new KTX2Loader( Pool.manager )
-                .setTranscoderPath( Pool.basisPath )
-                .detectSupport( Pool.renderer )
-        }
+        if( Pool.KTX2 ) return Pool.KTX2
+
+        Pool.KTX2 = new KTX2Loader( Pool.manager )
+            .setTranscoderPath( Pool.basisPath )
+            .detectSupport( Pool.renderer )
+            .setUseLocal( Pool.useLocal )
+        
         return Pool.KTX2
 
     },
