@@ -32,7 +32,7 @@ import {
 	UnsignedByteType
 } from 'three';
 
-import { KTX2Loader as KTX2LoaderBase } from 'three/addons/loaders/KTX2Loader.js';
+import { KTX2Loader as KTX2LoaderBase } from '../../three/examples/jsm/loaders/KTX2Loader.js';
 
 
 const _taskCache = new WeakMap();

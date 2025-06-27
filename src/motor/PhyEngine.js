@@ -587,31 +587,58 @@ export class PhyEngine {
 					// https://developer.mozilla.org/en-US/docs/Web/API/Worker/Worker
 
 					if( useLocal ){
+
+						const jsContent = this.loadLibrary( new URL( useModule ? '../build/' + mini + '.module.js' : '../build/' + mini + '.min.js', import.meta.url) )
+						const transcoderPending = Promise.all( [ jsContent ] )
+						    .then( ( [ jsContent ] ) => {
+
+						    	const workerSourceURL = URL.createObjectURL( new Blob( [ jsContent ] ) );
+						    	worker = new Worker( workerSourceURL, {type:useModule ? 'module' : 'classic' } )
+						    	worker.postMessage = worker.webkitPostMessage || worker.postMessage;
+								worker.onmessage = _this.message;
+
+								if( _this.noBuffer ) o.isBuffer = false;
+								else {
+									// test if worker Shared buffer is compatible
+									let ab = new ArrayBuffer( 1 );
+									worker.postMessage( { m: 'test', ab:ab }, [ ab ] );
+									isBuffer = ab.byteLength ? false : true;
+									o.isBuffer = isBuffer;
+								}
+
+								_this.initPhysics( o );
+
+						});
+
+						//if( useModule ) worker = new Worker( new URL( './' + mini + '.module.js', import.meta.url), {type:'module'} )
+						//else worker = new Worker( new URL( './' + mini + '.min.js', import.meta.url), {type:'classic'} )
 						
-						if( useModule ) worker = new Worker( new URL( './' + mini + '.module.js', import.meta.url), {type:'module'} )
-						else worker = new Worker( new URL( './' + mini + '.min.js', import.meta.url), {type:'classic'} )
+						//if( useModule ) worker = new Worker( new URL( '../build/' + mini + '.module.js', import.meta.url), {type:'module'} )
+						//else worker = new Worker( new URL( '../build/' + mini + '.min.js', import.meta.url), {type:'classic'} )
 						
 					} else {
 
 						if( useModule ) worker = new Worker( url + path + mini + '.module.js', {type:'module'} )
 						else worker = new Worker( url + path + mini + '.min.js' )
 
+						worker.postMessage = worker.webkitPostMessage || worker.postMessage;
+						worker.onmessage = this.message;
+
+						if( this.noBuffer ) o.isBuffer = false;
+						else {
+							// test if worker Shared buffer is compatible
+							let ab = new ArrayBuffer( 1 );
+							worker.postMessage( { m: 'test', ab:ab }, [ ab ] );
+							isBuffer = ab.byteLength ? false : true;
+							o.isBuffer = isBuffer;
+						}
+
+						this.initPhysics( o );
+
 					}
 
 
-					worker.postMessage = worker.webkitPostMessage || worker.postMessage;
-					worker.onmessage = this.message;
-
-					if( this.noBuffer ) o.isBuffer = false;
-					else {
-						// test if worker Shared buffer is compatible
-						let ab = new ArrayBuffer( 1 );
-						worker.postMessage( { m: 'test', ab:ab }, [ ab ] );
-						isBuffer = ab.byteLength ? false : true;
-						o.isBuffer = isBuffer;
-					}
-
-					this.initPhysics( o );
+					
 
 
 				} else { // is direct version
@@ -624,6 +651,23 @@ export class PhyEngine {
 			}
 
 		}
+
+		this.loadLibrary = ( url, responseType = 'text' ) => {
+
+			const loader = Pool.loaderFILE();
+			//loader.setPath( this.transcoderPath );
+			loader.setResponseType( responseType );
+			//loader.setWithCredentials( this.withCredentials );
+
+			return new Promise( ( resolve, reject ) => {
+
+				loader.load( url, resolve, undefined, reject );
+
+			});
+
+		}
+
+
 
 		this.supportModuleWorker = () => {
 

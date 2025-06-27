@@ -1,7 +1,15 @@
 import {
-    LoadingManager, Texture, Mesh, TextureLoader, SRGBColorSpace, RepeatWrapping, NearestFilter, EquirectangularReflectionMapping, AnimationMixer, ObjectSpaceNormalMap, 
+    LoadingManager, FileLoader, Texture, Mesh, TextureLoader, SRGBColorSpace, RepeatWrapping, NearestFilter, EquirectangularReflectionMapping, AnimationMixer, ObjectSpaceNormalMap, 
 } from 'three';
-
+import { GLTFLoader } from '../../three/examples/jsm/loaders/GLTFLoader.js';
+import { FBXLoader } from '../../three/examples/jsm/loaders/FBXLoader.js';
+import { OBJLoader } from '../../three/examples/jsm/loaders/OBJLoader.js';
+import { STLLoader } from '../../three/examples/jsm/loaders/STLLoader.js';
+import { RGBELoader } from '../../three/examples/jsm/loaders/RGBELoader.js';
+import { EXRLoader } from '../../three/examples/jsm/loaders/EXRLoader.js';
+import { MeshoptDecoder } from '../../three/examples/jsm/libs/meshopt_decoder.module.js';
+import { UltraHDRLoader } from '../../three/examples/jsm/loaders/UltraHDRLoader.js';
+/*
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { FBXLoader } from 'three/addons/loaders/FBXLoader.js';
 import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
@@ -10,6 +18,7 @@ import { RGBELoader } from 'three/addons/loaders/RGBELoader.js';
 import { EXRLoader } from 'three/addons/loaders/EXRLoader.js';
 import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
 import { UltraHDRLoader } from 'three/addons/loaders/UltraHDRLoader.js';
+*/
 /*
 import { GLTFLoader } from '../jsm/loaders/GLTFLoader.js';
 //import { DRACOLoader } from '../jsm/loaders/DRACOLoader.js';
@@ -510,7 +519,11 @@ export const Pool = {
 
     },
 
-    //////////////////////////////////
+    //----------------------------
+    //
+    //       CLEAR MEMORY
+    //
+    //----------------------------
 
     clearKTX2: () => {
 
@@ -531,6 +544,20 @@ export const Pool = {
         if( Pool.GLTF ){
             Pool.GLTF = null;
         }
+
+    },
+
+
+    //----------------------------
+    //
+    //         LOADER
+    //
+    //----------------------------
+
+    loaderFILE: () => {
+
+        if( !Pool.FILE ) Pool.FILE = new FileLoader( Pool.manager )
+        return Pool.FILE
 
     },
 
@@ -615,6 +642,13 @@ export const Pool = {
 
         if( !Pool.EXR ) Pool.EXR = new EXRLoader( Pool.manager )
         return Pool.EXR
+
+    },
+
+    loaderUltra: () => {
+
+        if( !Pool.ULTRA ) Pool.ULTRA = new UltraHDRLoader( Pool.manager ).setDataType( THREE.HalfFloatType )
+        return Pool.ULTRA
 
     },
 
