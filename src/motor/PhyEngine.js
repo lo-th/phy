@@ -596,7 +596,7 @@ export class PhyEngine {
 					// https://web.dev/articles/module-workers?hl=fr
 					// https://developer.mozilla.org/en-US/docs/Web/API/Worker/Worker
 
-					if( useLocal ) workerSourceURL = new URL( `../build/${fileName}`, import.meta.url );
+					if( useLocal ) workerSourceURL = new URL( `./${fileName}`, import.meta.url );
 					else workerSourceURL = url + path + fileName;
 
 					
@@ -704,8 +704,9 @@ export class PhyEngine {
 		this.loadLibrary = ( url, responseType = 'text' ) => {
 
 			const loader = Pool.loaderFILE();
-			//loader.setPath( this.transcoderPath );
+			loader.setPath( '' );
 			loader.setResponseType( responseType );
+			//loader.setRequestHeader( this.requestHeader );
 			//loader.setWithCredentials( this.withCredentials );
 
 			return new Promise( ( resolve, reject ) => {

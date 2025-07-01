@@ -16649,6 +16649,8 @@ class DRACOLoader extends Loader {
 		loader.setRequestHeader( this.requestHeader );
 		loader.setWithCredentials( this.withCredentials );
 
+		console.log( this.withCredentials, this.requestHeader, this.path );
+
 		loader.load( url, ( buffer ) => {
 
 			this.parse( buffer, onLoad, onError );
@@ -20150,6 +20152,19 @@ const Pool = {
     },
 
 };
+
+
+
+/*class SuperLoader extends Loader {
+
+    constructor( manager ) {
+
+        super( manager );
+        this.decoderPath = '';
+
+    }
+
+}*/
 
 const WithMassCenter = ['PHYSX', 'HAVOK'];
 
@@ -45644,7 +45659,7 @@ class PhyEngine {
 					// https://web.dev/articles/module-workers?hl=fr
 					// https://developer.mozilla.org/en-US/docs/Web/API/Worker/Worker
 
-					if( useLocal ) workerSourceURL = new URL( `../build/${fileName}`, import.meta.url );
+					if( useLocal ) workerSourceURL = new URL( `./${fileName}`, import.meta.url );
 					else workerSourceURL = url + path + fileName;
 
 					
@@ -45752,8 +45767,9 @@ class PhyEngine {
 		this.loadLibrary = ( url, responseType = 'text' ) => {
 
 			const loader = Pool.loaderFILE();
-			//loader.setPath( this.transcoderPath );
+			loader.setPath( '' );
 			loader.setResponseType( responseType );
+			//loader.setRequestHeader( this.requestHeader );
 			//loader.setWithCredentials( this.withCredentials );
 
 			return new Promise( ( resolve, reject ) => {

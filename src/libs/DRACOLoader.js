@@ -84,6 +84,8 @@ class DRACOLoader extends Loader {
 		loader.setRequestHeader( this.requestHeader );
 		loader.setWithCredentials( this.withCredentials );
 
+		console.log( this.withCredentials, this.requestHeader, this.path )
+
 		loader.load( url, ( buffer ) => {
 
 			this.parse( buffer, onLoad, onError );

@@ -758,3 +758,16 @@ export const Pool = {
     },
 
 }
+
+
+
+/*class SuperLoader extends Loader {
+
+    constructor( manager ) {
+
+        super( manager );
+        this.decoderPath = '';
+
+    }
+
+}*/
