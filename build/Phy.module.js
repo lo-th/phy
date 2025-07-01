@@ -45667,43 +45667,6 @@ class PhyEngine {
 
 					
 
-						/*const jsContent = this.loadLibrary( new URL( useModule ? '../build/' + mini + '.module.js' : '../build/' + mini + '.min.js', import.meta.url) )
-						const transcoderPending = Promise.all( [ jsContent ] )
-						    .then( ( [ jsContent ] ) => {
-
-						    	const workerSourceURL = URL.createObjectURL( new Blob( [ jsContent ] ) );
-						    	worker = new Worker( workerSourceURL, {type:useModule ? 'module' : 'classic' } )
-						    	worker.postMessage = worker.webkitPostMessage || worker.postMessage;
-								worker.onmessage = _this.message;
-
-								if( _this.noBuffer ) o.isBuffer = false;
-								else {
-									// test if worker Shared buffer is compatible
-									let ab = new ArrayBuffer( 1 );
-									worker.postMessage( { m: 'test', ab:ab }, [ ab ] );
-									isBuffer = ab.byteLength ? false : true;
-									o.isBuffer = isBuffer;
-								}
-
-								_this.initPhysics( o );
-
-						});*/
-
-						//if( useModule ) worker = new Worker( new URL( './' + mini + '.module.js', import.meta.url), {type:'module'} )
-						//else worker = new Worker( new URL( './' + mini + '.min.js', import.meta.url), {type:'classic'} )
-						
-				/*		if( useModule ) worker = new Worker( new URL( '../build/' + mini + '.module.js', import.meta.url), {type:'module'} )
-						else worker = new Worker( new URL( '../build/' + mini + '.min.js', import.meta.url), {type:'classic'} )
-						
-					} else {
-
-						if( useModule ) worker = new Worker( url + path + mini + '.module.js', {type:'module'} )
-						else worker = new Worker( url + path + mini + '.min.js' )
-
-						
-
-					}*/
-
 				    worker = new Worker( workerSourceURL, { type: useModule ? 'module' : 'classic'} );
 				    worker.postMessage = worker.webkitPostMessage || worker.postMessage;
 					worker.onmessage = this.message;
@@ -45730,58 +45693,6 @@ class PhyEngine {
 			}
 
 		};
-
-		/*this.loadDecal = ( url, o ) => {
-
-			const librariesPending = [];
-			librariesPending.push( this.loadLibrary( new URL( url, import.meta.url ), 'text' ) );
-
-			const decoderPending = Promise.all( librariesPending )
-			.then( ( libraries ) => {
-
-				const jsContent = libraries[ 0 ];
-				const body = [
-					'',
-					jsContent
-				].join( '\n' );
-
-				const fileType = useModule ? "application/javascript" : "text/plain";
-				const workerSourceURL = URL.createObjectURL( new Blob( [ body ], { type: fileType } ) ) 
-
-				worker = new Worker( workerSourceURL, { type: useModule ? 'module' : 'classic'} )
-			    worker.postMessage = worker.webkitPostMessage || worker.postMessage;
-				worker.onmessage = _this.message;
-
-				if( _this.noBuffer ) o.isBuffer = false;
-				else {
-					// test if worker Shared buffer is compatible
-					let ab = new ArrayBuffer( 1 );
-					worker.postMessage( { m: 'test', ab:ab }, [ ab ] );
-					isBuffer = ab.byteLength ? false : true;
-					o.isBuffer = isBuffer;
-				}
-
-				_this.initPhysics( o );
-
-			})
-
-		}
-
-		this.loadLibrary = ( url, responseType = 'text' ) => {
-
-			const loader = Pool.loaderFILE();
-			loader.setPath( '' );
-			loader.setResponseType( responseType );
-			//loader.setRequestHeader( this.requestHeader );
-			//loader.setWithCredentials( this.withCredentials );
-
-			return new Promise( ( resolve, reject ) => {
-
-				loader.load( url, resolve, undefined, reject );
-
-			});
-
-		}*/
 
 
 		this.supportModuleWorker = () => {

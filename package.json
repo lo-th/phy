@@ -1,6 +1,6 @@
 {
   "name": "phy-engine",
-  "version": "0.10.1",
+  "version": "0.10.2",
   "description": "JavaScript 3D Physics for three.js",
   "type": "module",
   "main": "./build/Phy.cjs",
@@ -62,13 +62,14 @@
     "url": "https://github.com/lo-th/phy/issues"
   },
   "homepage": "http://lo-th.github.io/phy/",
+  "peerDependencies": {
+    "three": "0.x.x"
+  },
   "devDependencies": {
     "@rollup/plugin-node-resolve": "^16.0.0",
     "@rollup/plugin-terser": "^0.4.0",
     "magic-string": "^0.30.0",
-    "rollup": "^4.6.0"
-  },
-  "dependencies": {
+    "rollup": "^4.6.0",
     "three": "^0.178.0"
   }
 }
