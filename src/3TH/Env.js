@@ -228,7 +228,7 @@ export class Env {
     	}
 		if( Scene ) scene = Scene
 		autosun = Autosun !== undefined ? Autosun : true;
-	    if( isWebGPU ) autosun = false
+	    //if( isWebGPU ) autosun = false
 
 	    if(autosun) textureAnalys = new TextureAnalys( renderer );
 
@@ -336,7 +336,7 @@ export class Env {
 
 		if(tt=== 0){
 			Env.autoSun()
-			Env.upLight()
+			//Env.upLight()
 		}
 		tt++
 		if(tt<6) tt = 0
@@ -419,6 +419,7 @@ export class Env {
 		
 
 		if(b){
+
 			if( previewPalette === null ) previewPalette = document.createElement("canvas");;
 			previewPalette.style.cssText = 'position:absolute; left:271px; bottom:10px; width:'+w+'px; height:'+h+'px; border:1px solid #222;';
 			previewPalette.width = w;
@@ -462,9 +463,17 @@ export class Env {
 
 	static autoSun () {
 
-		textureAnalys.run(hdr);
+		textureAnalys.run(hdr, Env.endAutoSun);
+		//if( main ) main.setColors( textureAnalys.palette )
+		//Env.preview( isPreviewDisplay )
+
+	}
+
+	static endAutoSun () {
+
 		if( main ) main.setColors( textureAnalys.palette )
-		Env.preview( isPreviewDisplay )
+		Env.preview( isPreviewDisplay );
+	    Env.upLight();
 
 	}
 

@@ -107,6 +107,7 @@ export class PhyEngine {
 
         let useLocal = false;
         let useModule = false;
+        let useDecal = false;
 
 		let addToFlow = true;
 
@@ -554,6 +555,7 @@ export class PhyEngine {
 
 			useModule = o.useModule ? this.supportModuleWorker() : false;
 			useLocal = o.useLocal || false;
+			useDecal = o.useDecal || false;
 
 			Pool.useLocal = useLocal;
 
@@ -579,6 +581,11 @@ export class PhyEngine {
 					let fileName = useModule ? mini + '.module.js' : mini + '.min.js';
 					let workerSourceURL
 
+					if(useDecal){
+						this.loadDecal(`../build/${fileName}`, o);
+						return;
+					}
+
 					// TODO test
 					// https://aditya003-ay.medium.com/different-ways-to-share-data-between-main-thread-and-worker-thread-75a5d86ab441
 					//const sharedBuffer = new SharedArrayBuffer(Float32Array.BYTES_PER_ELEMENT * 5);
@@ -589,7 +596,7 @@ export class PhyEngine {
 					// https://web.dev/articles/module-workers?hl=fr
 					// https://developer.mozilla.org/en-US/docs/Web/API/Worker/Worker
 
-					if( useLocal ) workerSourceURL = new URL( '../build/' + fileName, import.meta.url );
+					if( useLocal ) workerSourceURL = new URL( `../build/${fileName}`, import.meta.url );
 					else workerSourceURL = url + path + fileName;
 
 					
@@ -658,7 +665,43 @@ export class PhyEngine {
 
 		}
 
-		/*this.loadLibrary = ( url, responseType = 'text' ) => {
+		this.loadDecal = ( url, o ) => {
+
+			const librariesPending = [];
+			librariesPending.push( this.loadLibrary( new URL( url, import.meta.url ), 'text' ) );
+
+			const decoderPending = Promise.all( librariesPending )
+			.then( ( libraries ) => {
+
+				const jsContent = libraries[ 0 ];
+				const body = [
+					'/* worker */',
+					jsContent
+				].join( '\n' );
+
+				const workerSourceURL = URL.createObjectURL( new Blob( [ body ] ) );
+
+
+				worker = new Worker( workerSourceURL, { type: useModule ? 'module' : 'classic'} )
+			    worker.postMessage = worker.webkitPostMessage || worker.postMessage;
+				worker.onmessage = _this.message;
+
+				if( _this.noBuffer ) o.isBuffer = false;
+				else {
+					// test if worker Shared buffer is compatible
+					let ab = new ArrayBuffer( 1 );
+					worker.postMessage( { m: 'test', ab:ab }, [ ab ] );
+					isBuffer = ab.byteLength ? false : true;
+					o.isBuffer = isBuffer;
+				}
+
+				_this.initPhysics( o );
+
+			})
+
+		}
+
+		this.loadLibrary = ( url, responseType = 'text' ) => {
 
 			const loader = Pool.loaderFILE();
 			//loader.setPath( this.transcoderPath );
@@ -671,8 +714,7 @@ export class PhyEngine {
 
 			});
 
-		}*/
-
+		}
 
 
 		this.supportModuleWorker = () => {

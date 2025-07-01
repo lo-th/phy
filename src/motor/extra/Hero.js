@@ -255,6 +255,7 @@ export class Hero extends Object3D {
 		if( this.globalRay ) this.motor.getGeometryRef( { ...o, type:'capsule', ray:true }, this, this.motor.mat.get('hide') )
 
 		this.phyData = {
+
 			name: this.name,
 			size: o.size,
 			pos: o.pos,
@@ -269,6 +270,8 @@ export class Hero extends Object3D {
 
 			massInfo: o.massInfo,
 		}
+
+		if(this.motor.engine === 'HAVOK')this.phyData['inertia'] = [0,0,0]
 
 		if( o.mask ) this.phyData['mask'] = o.mask;
 

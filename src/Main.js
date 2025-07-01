@@ -19,7 +19,7 @@ import { Env } from './3TH/Env.js'
 
 //import { Composer } from './3TH/Composer.js'
 //import { Composer } from './3TH/Composer_test.js'
-import { PostProcess } from './3TH/PostProcess.js'
+//import { PostProcess } from './3TH/PostProcess.js'
 
 // OBJECT
 import { Vignette } from './3TH/objects/Vignette.js'
@@ -1427,7 +1427,7 @@ const getFullStats = () => {
 const setComposer = ( b ) => {
 
 	if( options.composer ){
-		if( composer === null ) composer = new PostProcess( renderer, scene, camera, size );
+		//if( composer === null ) composer = new PostProcess( renderer, scene, camera, size );
 		//if( composer === null ) composer = new Composer( renderer, scene, camera, size );
 		composer.enabled = true;
 		if( vignette ) vignette.visible = false;

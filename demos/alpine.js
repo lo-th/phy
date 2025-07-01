@@ -2,7 +2,7 @@ let vehicle;
 
 function demo() {
 
-    phy.view({ envmap:'lobe', envblur:0.5, ground:true, fog:true, fogDist:0.02, phi:14, theta:60, distance:5, y:0.58, groundReflect:0.05 })
+    phy.view({ envmap:'lobe', envblur:0.5, ground:true,  phi:14, theta:60, distance:5, y:0.58, groundReflect:0.05 })
 
     phy.set({ 
         full:true,
@@ -13,8 +13,8 @@ function demo() {
 
     phy.mouseMode('null')
 
-    phy.lightIntensity( 6, 0, 0.7 );
-    phy.useRealLight( {} );
+    //phy.lightIntensity( 6, 0, 0.7 );
+    //phy.useRealLight( {} );
 
     let g = phy.getGround();
     g.material.map = phy.texture({ url:'./assets/textures/terrain/road_c.jpg', repeat:[30,30] });
@@ -53,7 +53,7 @@ onComplete = () => {
     }
 
     const carPaint = phy.material({ 
-        name:'car_paint', color:0x2673e2, metalness: 1.0, roughness: 0.5, clearcoat: 1.0, clearcoatRoughness: 0.03
+        name:'car_paint', color:0x2673e2, metalness: 1.0, roughness: 0.22, clearcoat: 1.0, clearcoatRoughness: 0.03
     })
 
     meshes.body.material = carPaint;
