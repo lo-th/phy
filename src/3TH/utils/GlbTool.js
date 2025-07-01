@@ -1,5 +1,5 @@
 import {
-	Float32BufferAttribute
+	Float32BufferAttribute, Mesh
 } from 'three';
 
 //import { Shader } from '../Shader.js'
@@ -142,7 +142,7 @@ export const GlbTool = {
 
 		}
 
-		let mesh = new THREE.Mesh( new mergeGeometries( geometry, true ), material)
+		let mesh = new Mesh( new mergeGeometries( geometry, true ), material)
 		mesh.name = group.name;
 		return mesh;
 

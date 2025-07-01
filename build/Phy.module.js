@@ -19303,7 +19303,7 @@ const GlbTool = {
 
 		}
 
-		let mesh = new THREE.Mesh( new mergeGeometries( geometry, true ), material);
+		let mesh = new Mesh( new mergeGeometries( geometry, true ), material);
 		mesh.name = group.name;
 		return mesh;
 
