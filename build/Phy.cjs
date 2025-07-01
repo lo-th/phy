@@ -1,3 +1,8 @@
+/**
+ * @license
+ * Copyright 2010-2025 Phy.js Authors
+ * SPDX-License-Identifier: MIT
+ */
 'use strict';
 
 var three = require('three');

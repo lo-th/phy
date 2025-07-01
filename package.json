@@ -1,6 +1,6 @@
 {
   "name": "phy-engine",
-  "version": "0.9.9",
+  "version": "0.10.0",
   "description": "JavaScript 3D Physics for three.js",
   "type": "module",
   "main": "./build/Phy.cjs",
@@ -65,6 +65,7 @@
   "devDependencies": {
     "@rollup/plugin-node-resolve": "^16.0.0",
     "@rollup/plugin-terser": "^0.4.0",
+    "magic-string": "^0.30.0",
     "rollup": "^4.6.0"
   },
   "dependencies": {
