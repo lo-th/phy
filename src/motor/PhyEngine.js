@@ -559,7 +559,6 @@ export class PhyEngine {
 
 			Pool.useLocal = useLocal;
 
-
 			if( compact ){
 
 				if( useLocal ){
@@ -581,10 +580,10 @@ export class PhyEngine {
 					let fileName = useModule ? mini + '.module.js' : mini + '.min.js';
 					let workerSourceURL
 
-					if(useDecal){
+					/*if(useDecal){
 						this.loadDecal( `./${fileName}`, o);
 						return;
-					}
+					}*/
 
 					// TODO test
 					// https://aditya003-ay.medium.com/different-ways-to-share-data-between-main-thread-and-worker-thread-75a5d86ab441
@@ -665,7 +664,7 @@ export class PhyEngine {
 
 		}
 
-		this.loadDecal = ( url, o ) => {
+		/*this.loadDecal = ( url, o ) => {
 
 			const librariesPending = [];
 			librariesPending.push( this.loadLibrary( new URL( url, import.meta.url ), 'text' ) );
@@ -675,7 +674,7 @@ export class PhyEngine {
 
 				const jsContent = libraries[ 0 ];
 				const body = [
-					'/* worker */',
+					'',
 					jsContent
 				].join( '\n' );
 
@@ -715,7 +714,7 @@ export class PhyEngine {
 
 			});
 
-		}
+		}*/
 
 
 		this.supportModuleWorker = () => {

@@ -45180,7 +45180,6 @@ class PhyEngine {
 
         let useLocal = false;
         let useModule = false;
-        let useDecal = false;
 
 		let needContact = false;
 
@@ -45621,10 +45620,9 @@ class PhyEngine {
 
 			useModule = o.useModule ? this.supportModuleWorker() : false;
 			useLocal = o.useLocal || false;
-			useDecal = o.useDecal || false;
+			o.useDecal || false;
 
 			Pool.useLocal = useLocal;
-
 
 			if( compact ){
 
@@ -45647,10 +45645,10 @@ class PhyEngine {
 					let fileName = useModule ? mini + '.module.js' : mini + '.min.js';
 					let workerSourceURL;
 
-					if(useDecal){
+					/*if(useDecal){
 						this.loadDecal( `./${fileName}`, o);
 						return;
-					}
+					}*/
 
 					// TODO test
 					// https://aditya003-ay.medium.com/different-ways-to-share-data-between-main-thread-and-worker-thread-75a5d86ab441
@@ -45731,24 +45729,24 @@ class PhyEngine {
 
 		};
 
-		this.loadDecal = ( url, o ) => {
+		/*this.loadDecal = ( url, o ) => {
 
 			const librariesPending = [];
-			librariesPending.push( this.loadLibrary( new URL( url, (typeof document === 'undefined' ? require('u' + 'rl').pathToFileURL(__filename).href : (_documentCurrentScript && _documentCurrentScript.tagName.toUpperCase() === 'SCRIPT' && _documentCurrentScript.src || new URL('Phy.cjs', document.baseURI).href)) ), 'text' ) );
+			librariesPending.push( this.loadLibrary( new URL( url, import.meta.url ), 'text' ) );
 
-			Promise.all( librariesPending )
+			const decoderPending = Promise.all( librariesPending )
 			.then( ( libraries ) => {
 
 				const jsContent = libraries[ 0 ];
 				const body = [
-					'/* worker */',
+					'',
 					jsContent
 				].join( '\n' );
 
 				const fileType = useModule ? "application/javascript" : "text/plain";
-				const workerSourceURL = URL.createObjectURL( new Blob( [ body ], { type: fileType } ) ); 
+				const workerSourceURL = URL.createObjectURL( new Blob( [ body ], { type: fileType } ) ) 
 
-				worker = new Worker( workerSourceURL, { type: useModule ? 'module' : 'classic'} );
+				worker = new Worker( workerSourceURL, { type: useModule ? 'module' : 'classic'} )
 			    worker.postMessage = worker.webkitPostMessage || worker.postMessage;
 				worker.onmessage = _this.message;
 
@@ -45763,9 +45761,9 @@ class PhyEngine {
 
 				_this.initPhysics( o );
 
-			});
+			})
 
-		};
+		}
 
 		this.loadLibrary = ( url, responseType = 'text' ) => {
 
@@ -45781,7 +45779,7 @@ class PhyEngine {
 
 			});
 
-		};
+		}*/
 
 
 		this.supportModuleWorker = () => {
