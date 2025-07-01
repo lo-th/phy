@@ -45633,7 +45633,7 @@ class PhyEngine {
 					let workerSourceURL;
 
 					if(useDecal){
-						this.loadDecal(`../build/${fileName}`, o);
+						this.loadDecal(fileName, o);
 						return;
 					}
 
@@ -45730,8 +45730,8 @@ class PhyEngine {
 					jsContent
 				].join( '\n' );
 
-				const workerSourceURL = URL.createObjectURL( new Blob( [ body ] ) );
-
+				const fileType = useModule ? "application/javascript" : "text/plain";
+				const workerSourceURL = URL.createObjectURL( new Blob( [ body ], { type: fileType } ) ); 
 
 				worker = new Worker( workerSourceURL, { type: useModule ? 'module' : 'classic'} );
 			    worker.postMessage = worker.webkitPostMessage || worker.postMessage;
