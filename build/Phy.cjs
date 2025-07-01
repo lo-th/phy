@@ -45633,7 +45633,7 @@ class PhyEngine {
 					let workerSourceURL;
 
 					if(useDecal){
-						this.loadDecal(fileName, o);
+						this.loadDecal( `./${fileName}`, o);
 						return;
 					}
 
