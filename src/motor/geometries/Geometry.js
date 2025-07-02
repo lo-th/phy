@@ -11,9 +11,8 @@ import {
     Box3,
     Vector2
 } from 'three';
-
-import { mergeVertices, mergeGeometries } from '../jsm/utils/BufferGeometryUtils.js';
-import { Tubular } from './geometries/Tubular.js';
+import { mergeVertices, mergeGeometries } from './BufferGeometryUtils.js';
+import { Tubular } from './Tubular.js';
 
 
 export const Tube = Tubular;

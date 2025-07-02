@@ -7,6 +7,7 @@ function demo() {
         envmap:0x303030,
         //ground:false,
         vignette:false,
+
         groundReflect:0,
         groundColor:0x404040,
         jointVisible:true, 

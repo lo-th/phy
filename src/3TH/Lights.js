@@ -20,18 +20,19 @@ export class Lights {
 
     static define ( o = {}, parent, isWebGPU = false ) {
 
-    	let biasSide = o.shadowType === 'PCSS' ? -1:1
+    	let biasSide = -1//o.shadowType === 'PCSS' ? -1:1
 
     	Lights.add({ 
 			type:'direct', name:'sun',
 			intensity:o.direct,
-			distance:30, parent:parent,
-		    shadow:{ range:30, near:5, far:70, bias:  0.0005 * biasSide, radius:4, quality: 2048 * o.quality, intensity:o.shadowIntensity }
+			distance:30, 
+			parent:parent,
+		    shadow:{ range:30, near:5, far:70, bias:  0.0005 * biasSide, radius:4, quality: 1024 * o.quality, intensity:o.shadowIntensity }
 		})
 
 		Lights.add({ 
 			type:'hemi', name:'hemi',
-			intensity:o.hemiIntensity,
+			intensity:o.spherical,
 			skyColor:0xddeeff,
 			groundColor:0x0f0e0d,
 			pos:[0,1,0], 
@@ -107,6 +108,8 @@ export class Lights {
 
 	static add ( o = {} ) {
 
+
+
 		if ( o.constructor === Array ) return Lights.adds( o );
 
 		let l = null;
@@ -147,8 +150,9 @@ export class Lights {
 			o.parent.add( l );
 		}
 
-		if( l.shadow && o.shadow ){
+		if( o.shadow !== undefined && o.type!=='hemi'){
 			Lights.setShadow( l, o.shadow );
+
 		}
 
 	    light.push(l);
@@ -180,7 +184,7 @@ export class Lights {
 		}
 
 		if(o.bias) s.bias = o.bias;
-		if(o.radius) s.radius = o.radius;
+		//if(o.radius) s.radius = o.radius;
 		if(o.blurSamples) s.blurSamples = o.blurSamples; // only for VSM 
 		if(o.intensity) s.intensity = o.intensity;
 

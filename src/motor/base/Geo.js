@@ -1,7 +1,8 @@
 import {
     SphereGeometry, PlaneGeometry, CylinderGeometry, BoxGeometry
 } from 'three';
-import { CircleHelper } from '../../3TH/helpers/CircleHelper.js';
+
+import { CircleHelper } from '../geometries/CircleHelper.js';
 
 
 //-------------------

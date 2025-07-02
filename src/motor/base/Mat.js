@@ -345,7 +345,7 @@ export class Mat {
 
 		if( this.isRealism ){
 			for(let m in o){
-				o[m].shadowSide = DoubleSide;
+				//o[m].shadowSide = DoubleSide;
 				o[m].onBeforeCompile = function ( shader ) {
 		            EnhanceLighting( shader, this.realismOption );
 		            o[m].userData.isRealism = true;

@@ -85,7 +85,7 @@ export class MouseTool {
 	    this.dragPlane.castShadow = false
 	    this.dragPlane.receiveShadow = false
 	    this.dragPlane.scale.set( 1, 1, 1 ).multiplyScalar( 200 )
-	    this.dragPlane.visible = false
+	    //this.dragPlane.visible = false
 
 	    this.motor.scenePlus.add( this.helper )
 	    this.motor.scenePlus.add( this.dragPlane )

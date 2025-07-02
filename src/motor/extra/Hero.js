@@ -4,7 +4,7 @@ import { Object3D, Vector3, Euler, Quaternion, Mesh } from 'three';
 import { MathTool, torad } from '../../core/MathTool.js';
 import { SkeletonBody } from './SkeletonBody.js';
 import { Avatar } from '../../3TH/character/Avatar.js';
-import { CapsuleHelper } from '../../3TH/helpers/CapsuleHelper.js';
+import { CapsuleHelper } from '../geometries/CapsuleHelper.js';
 
 //
 // not use native character function of physics engine 

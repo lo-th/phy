@@ -23,7 +23,11 @@ import { Env } from './3TH/Env.js'
 
 // OBJECT
 import { Vignette } from './3TH/objects/Vignette.js'
+import { VignetteGpu } from './3TH/objects/VignetteGpu.js'
+
 import { Reflector } from './3TH/objects/Reflector.js'
+import { ReflectorGpu } from './3TH/objects/ReflectorGpu.js'
+
 import { Building } from './3TH/objects/Building.js'
 import { Sparkle } from './3TH/objects/Sparkle.js'
 import { Planet } from './3TH/objects/Planet.js'
@@ -38,9 +42,6 @@ import { DirectionalHelper } from './3TH/helpers/DirectionalHelper.js'
 //import { Motor } from './motor/Motor.js'
 import { phy, phy2 } from './Phy.js'
 
-// WEBGPU test
-//import WebGPU from './jsm/capabilities/WebGPU.js';
-//import WebGPURenderer from 'three/addons/renderers/webgpu/WebGPURenderer.js';
 
 
 /** __
@@ -56,9 +57,6 @@ const Motor = phy;
 // or
 //const Motor = new phy2()
 
-let highShadow = false;
-
-let activeWebGPU = false;
 let isWebGPU = false;
 let lockPixelRatio = true;
 
@@ -159,10 +157,7 @@ const options = {
 	show_stat: false,
 
 	shadow:0.5,//0.25,
-	shadowType: highShadow ? 'PCSS':'PCFSoft',
-	shadowGamma:1,//0.25,//1,
-	shadowLuma:0.5, //0.75,//0,
-    shadowContrast:2,//2.5,//1,
+	shadowType: 'PCFSoft',
 
     reflect:0.1,
     
@@ -232,6 +227,7 @@ export const Main = {
 
 	engineType:'',
 	currentDemmo:'',
+	webgpu:false,
 	isWorker:true,
 	devMode:false,
 	engineList: [ 'OIMO', 'AMMO', 'PHYSX', 'HAVOK', 'RAPIER', 'JOLT' ],
@@ -254,13 +250,14 @@ export const Main = {
 		Gui.setMain( Main, Hub.getCorner() );
 		Gui.setTextureConstrutor( THREE.Texture );
 
-		activeWebGPU = o.useWebgpu || false;
+		//activeWebGPU = o.useWebgpu || false;
 
 		const gpuTier = await getGPUTier();
 	    const perf = gpuTier;
 	    //console.log(perf)
 
 	    Main.isMobile = perf.isMobile;
+	    Main.webgpu = o.useWebgpu || false;
 
 		if( Main.isMobile || perf.fps < 60 ){ 
 			options.mode = 'LOW';
@@ -306,8 +303,6 @@ export const Main = {
 		//Motor.engine = Main.engineType
 		window.engine = Main.engineType;//Motor.engine
 
-		//o.renderer = renderer
-		//console.log('yo', renderer)
 
 		Motor.init( o );
 	
@@ -468,7 +463,7 @@ window.TWEEN = TWEEN;
 
 const init = () => {
 
-	isWebGPU = activeWebGPU || false
+	isWebGPU = Main.webgpu;
 	// ? WebGPU.isAvailable() : false
  
 	if( isWebGPU ) console.log('use webgpu !!')
@@ -499,7 +494,9 @@ const init = () => {
 	// RENDERER
 
 	if( isWebGPU ){
-	    renderer = new THREE.WebGPURenderer({ antialias:antialias })
+	    renderer = new THREE.WebGPURenderer({ 
+	    	antialias:antialias, 
+	    })
 	} else {
 		renderer = new THREE.WebGLRenderer({ 
 			antialias:antialias, 
@@ -534,15 +531,6 @@ const init = () => {
 	dom = renderer.domElement;
 	dom.style.position = 'absolute';
 
-	// SHADER
-
-	//Shader.renderer = renderer;
-
-	/*if( !isWebGPU && options.mode !== 'LOW' && highShadow ){
-		Shader.setGl2( isWebGPU ? false : renderer.capabilities.isWebGL2 );
-		Shader.init( options );
-		Motor.setExtendShader( Shader.add );
-	}*/
 
 	// SCENE
 
@@ -736,15 +724,17 @@ const addLight = () => {
 		options.reflect = 0
 	}
 
-	if( !isWebGPU ){
+	//if( !isWebGPU ){
 
 		Lights.castShadow( options.shadow !== 0 )
 		renderer.shadowMap.enabled = options.shadow !== 0 
 		renderer.shadowMap.type = shadowMapType[options.shadowType]
+
+		//console.log(options.shadowType, renderer.shadowMap.type, shadowMapType)
 		//renderer.shadowMap.autoUpdate = false;
 		//renderer.shadowMap.needsUpdate= true;
 
-	}
+	//}
 
 	////
 
@@ -785,14 +775,13 @@ const showDebugLight = ( b ) => {
 
 const setShadowType = () => {
 
-	renderer.shadowMap.type = shadowMapType[options.shadowType];
+	//renderer.shadowMap.type = shadowMapType[options.shadowType];
 	//Main.upShader();
 
 }
 
 const setShadow = ( v ) => {
 
-	//if( isWebGPU ) return;
 
 	options.shadow = v;
 
@@ -804,8 +793,7 @@ const setShadow = ( v ) => {
 	} else {
 		if( !renderer.shadowMap.enabled ){
 			Lights.castShadow( true );
-			//if( !isWebGPU ) 
-				renderer.shadowMap.enabled = true;
+			renderer.shadowMap.enabled = true;
 		}
 	}
 
@@ -825,9 +813,9 @@ const setShadow = ( v ) => {
 
 const addVignette = ( o ) => {
 
-	if( vignette === null && !isWebGPU ){
+	if( vignette === null ){
 
-		vignette = new Vignette();
+		vignette = Main.webgpu ? new VignetteGpu() : new Vignette();
 		camera.add( vignette );
 
 	}
@@ -851,21 +839,39 @@ const removeVignette = () => {
 
 const addGround = ( o ) => {
 
+
+
 	if( ground === null ){
 
-		// add reflect ground
-		ground = new Reflector({
+		if(Main.webgpu){
+			ground = new ReflectorGpu({
 
-	    	textureSize: 1024 * options.quality,
-	        clipBias:0.003,
-	        encoding:true,
-	        reflect: options.mode === 'LOW' ? 0 : options.reflect,
-	        water:o.water,
-	        //color:groundColor,
-	        round:true,
-	        normal:true
+		    	textureSize: 1024 * options.quality,
+		        clipBias:0.003,
+		        encoding:true,
+		        reflect: options.mode === 'LOW' ? 0 : options.reflect,
+		        water:o.water,
+		        //color:groundColor,
+		        round:true,
+		        normal:true
 
-	    })
+		    })
+		} else {
+			ground = new Reflector({
+
+		    	textureSize: 1024 * options.quality,
+		        clipBias:0.003,
+		        encoding:true,
+		        reflect: options.mode === 'LOW' ? 0 : options.reflect,
+		        water:o.water,
+		        //color:groundColor,
+		        round:true,
+		        normal:true
+
+		    })
+		}
+
+		
 	    scene.add( ground );
 
 	    

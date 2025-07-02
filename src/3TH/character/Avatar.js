@@ -22,11 +22,11 @@ import { Pool } from '../Pool.js';
 //import { Shader } from '../Shader.js';
 import { LZMA } from '../../libs/lzma.js';
 import { Tension } from '../Tension.js';
-import { GlbTool } from '../utils/GlbTool.js';
 
 import { ExoSkeleton } from './ExoSkeleton.js';
 
 // ready model
+
 import { Human } from './Human.js';
 import { Human_low } from './Human_low.js';
 import { Eva } from './Eva.js';

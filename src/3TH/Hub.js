@@ -755,7 +755,7 @@ export class Hub {
         if( !type ) type = Main.engineType
         let name = type.toLowerCase()
         let hash = location.hash
-        let url = 'index';
+        let url = Main.webgpu ? 'index_gpu' : 'index';
         let param = 'E='
         if( Main.devMode ) param += 'dev_'
         if( Main.isWorker ) param += 'w_'

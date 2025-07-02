@@ -1,7 +1,5 @@
 
-import {
-    Group, Vector3, Vector2, Quaternion, Matrix3,
-} from 'three';
+import { Group, Vector3, Vector2, Quaternion, Matrix3 } from 'three';
 
 import { MathTool } from '../core/MathTool.js';
 import { Max, Num, getArray, getType } from '../core/Config.js';
@@ -9,9 +7,10 @@ import { Max, Num, getArray, getType } from '../core/Config.js';
 import { Geo } from './base/Geo.js';
 import { Mat } from './base/Mat.js';
 import { Timer } from './base/Timer.js';
-import { User } from './base/User.js'
+import { User } from './base/User.js';
 
 // for item
+
 import { Ray } from './Ray.js';
 import { Body } from './Body.js';
 import { Joint } from './Joint.js';
@@ -22,24 +21,30 @@ import { Terrain } from './Terrain.js';
 import { Solver } from './Solver.js';
 import { Collision } from './Collision.js';
 
+// extension
+
 import { Button } from './extra/Button.js';
 import { Textfield } from './extra/Textfield.js';
 import { Container } from './extra/Container.js';
 import { MouseTool } from './extra/MouseTool.js';
-import { Breaker } from './extra/Breaker.js';
 import { SoftSolver } from './extra/SoftSolver.js';
+import { Breaker } from './extra/Breaker.js';
 
-import { Envmap } from './extra/Envmap.js';
 import { AutoRagdoll } from './extra/AutoRagdoll.js';
 import { Debuger } from './extra/Debuger.js';
+import { Envmap } from './extra/Envmap.js';
 
 import { RayCar } from './vehicles/RayCar.js';
 import { Helicopter } from './vehicles/Helicopter.js';
 import { Kart } from './vehicles/Kart.js';
 
+// to clean
+
 import { Pool } from '../3TH/Pool.js';
 import { sk } from '../3TH/character/SkeletonExtand.js';
 import { preloadAvatar } from '../3TH/character/Avatar.js';
+
+// extra library
 
 import { Smoke } from '../libs/smoke.module.js';
 import { WiggleGroup } from "../libs/wiggle.module.js";
@@ -95,9 +100,7 @@ export class PhyEngine {
 		this.delta = 0;
 
 		this.debuger = null;
-
 		this.mouseActive = false;
-
 
 		const _this = this;
 

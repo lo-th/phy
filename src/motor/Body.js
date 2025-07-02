@@ -10,12 +10,11 @@ import { Instance } from '../core/Instance.js';
 import { MathTool, PI90, todeg } from '../core/MathTool.js';
 import { Quaternion } from '../core/MiniMath.js';
 
-import { SphereBox, Capsule, ChamferCyl, ChamferBox, createUV, Stair  } from '../3TH/Geometry.js';
-import { ConvexGeometry } from '../jsm/geometries/ConvexGeometry.js';
-import { mergeVertices } from '../jsm/utils/BufferGeometryUtils.js';
+import { SphereBox, Capsule, ChamferCyl, ChamferBox, createUV, Stair  } from './geometries/Geometry.js';
+import { CapsuleHelper } from './geometries/CapsuleHelper.js';
+import { ConvexGeometry } from './geometries/ConvexGeometry.js';
 
 
-import { CapsuleHelper  } from '../3TH/helpers/CapsuleHelper.js';
 
 let Geo = null;
 let Mat = null;
