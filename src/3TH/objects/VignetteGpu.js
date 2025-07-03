@@ -1,29 +1,21 @@
-import {
-    ShaderMaterial,
-    Vector4, Vector3, Color,
-    Mesh,
-    PlaneGeometry,
-    MeshBasicMaterial,
-    MathUtils,
-    MultiplyBlending, AdditiveBlending, SubtractiveBlending 
-} from 'three';
-
-import { NodeMaterial, MeshBasicNodeMaterial } from 'three/webgpu';
-import { screenUV, color, uniform, varying, vec2, vec3, uv, dot, smoothstep, sub, float, vec4, sin, fract, add, If, Fn } from 'three/tsl';
+import { Mesh, PlaneGeometry } from 'three';
+import { NodeMaterial } from 'three/webgpu';
+import { attribute, color, uniform, vec2, vec3, uv, dot, smoothstep, sub, float, vec4, sin, fract, add, If, Fn, clamp } from 'three/tsl';
 
 export class VignetteGpu extends Mesh {
+
+    //https://github.com/mrdoob/three.js/wiki/Three.js-Shading-Language#math
 
     constructor( o = {} ) {
 
         const geometry = new PlaneGeometry( 2, 2, 1, 1 );
-        const material = new MeshBasicNodeMaterial();
-        //const material = new NodeMaterial();
+        const material = new NodeMaterial();
 
         super(geometry, material);
 
         this._color = uniform( color( '#010101' ) );
-        this._offset = uniform( 1 );
-        this._darkness = uniform( 1.05 );
+        this._offset = uniform( 1.05 );
+        this._darkness = uniform( 1 );
         this._grain = uniform( 0.1 ); 
 
         //screenUV//
@@ -31,96 +23,42 @@ export class VignetteGpu extends Mesh {
         const uv0 = uv();
         const self = this
 
-        this.material.colorNode = /*#__PURE__*/ Fn( () => {
+        const position = attribute("position")
+        this.material.vertexNode = vec4( position, 1.0 );
 
-            const uv = vec2( uv0.sub( vec2( 0.5 ) ).mul( vec2( this._offset ) ) );
-            const alpha = float( smoothstep( 0.0, 1.0, dot( uv, uv ) ).sub( sub( 1.0, this._darkness ) ) );
-            //return vec4( this._color, alpha ) ;
-            return vec4( this._color.rgb, 1.0 ) ;
 
-           /* If( grain.notEqual( 0.0 ), () => {
+        this.material.colorNode = Fn( () => {
+
+            const uv = vec2( uv0.sub( vec2( 0.5 ) ).mul( vec2( self._offset ) ) ).toVar();
+            const alpha = float( smoothstep( 0.0, 1.0, dot( uv, uv ) ).sub( sub( 1.0, self._darkness ) ) ).toVar();
+            const ret = vec4(self._color, alpha).toVar();
+
+            // film grain noise
+            If( self._grain.notEqual( 0.0 ), () => {
 
                 const noise = float( fract( sin( dot( uv, vec2( 12.9898, 78.233 ).mul( 2.0 ) ) ).mul( 43758.5453 ) ) );
-                return vec4( 0.0, 0.0, 0.0, noise.mul( this._grain ) ).mul( add( 0.5, alpha ) );
+                const alphaAdd = ( noise.mul( self._grain ).mul( add( 0.5, alpha ) ) ).toVar();
+                ret.assign( vec4( self._color, clamp(alpha.add(alphaAdd), 0.0, 1.0 ) ) );
 
-            } );*/
+            })
+
+            return ret;
 
         } )();
 
         this.material.transparent = true
         this.material.depthWrite = false
         this.material.depthTest = false
-       // this.material.dithering = true
-
-        /*this.geometry = new PlaneGeometry( 2,2, 1,1 );
-        this.material = new ShaderMaterial( {
-
-            name: 'VignetteShader',
-
-            uniforms: {
-
-                color: { value: new Color( 0.01, 0.01, 0.01 ) },
-                darkness: { value: 1 },
-                offset: { value: 1.05  },
-                grain: { value: 0.1  }
-                
-            },
-
-            vertexShader:`
-            
-
-            varying vec2 vUv;
-            varying vec3 pos;
-
-            void main() {
-                vUv = uv;
-                pos = position;
-                gl_Position = vec4(position, 1.);
-            }
-            `,
-            fragmentShader:`
-            #include <common>
-            #include <dithering_pars_fragment>
-
-            uniform vec3 color;
-            uniform float offset;
-            uniform float grain;
-            uniform float darkness;
-
-            varying vec2 vUv;
-            varying vec3 pos;
-
-            void main() {
-                
-                vec2 uv = ( vUv - vec2( 0.5 ) ) * vec2( offset );
-                float alpha = smoothstep( 0.0, 1.0, dot( uv, uv ) )-(1.0 - darkness);
-                gl_FragColor = vec4( color, alpha );
-
-                // film grain noise
-                if(grain!=0.0){
-                    float noise = (fract(sin(dot(uv, vec2(12.9898,78.233)*2.0)) * 43758.5453));
-                    gl_FragColor += vec4(0.0,0.0,0.0, noise * grain )*(0.5+alpha);
-                }
-
-                #include <dithering_fragment>
-                
-            }
-            `, 
-            transparent:true,
-            depthWrite:false,
-            depthTest:false,
-            dithering:true,
-            //toneMapped:false,
-
-        });*/
-
-
+        this.material.dithering = true
+        this.material.toneMapped = true
+ 
         Object.defineProperties(this, {
 
             color: {
                 enumerable: true,
+                //get: ( v ) => { console.log(this._color); return this._color.value.getHex(); },
                 get: () => ( this._color.value.getHex() ),
-                set: ( v ) => { this._color.value.setHex( v ) },
+                set: ( v ) => { console.log(v); this._color.value.setHex( v ) },
             },
             offset: {
                 enumerable: true,
@@ -141,7 +79,7 @@ export class VignetteGpu extends Mesh {
 
         this.frustumCulled = false;
         this.renderOrder = 10000;
-        //this.matrixAutoUpdate = false;
+        this.matrixAutoUpdate = false;
 
     }
 

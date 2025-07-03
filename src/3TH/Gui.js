@@ -290,7 +290,7 @@ export const Gui = {
 			g0.add( hub3d, 'grain', { min:0, max:0.5, mode:mode, color:'#8ff' } )
 			g0.add( hub3d, 'offset', { min:0, max:2, mode:mode, color:'#8ff' } )
 			g0.add( hub3d, 'darkness', { min:0, max:1, mode:mode, color:'#8ff' } )
-			g0.add( hub3d, 'color', { type:'color' } ).listen()
+			g0.add( hub3d, 'color', { type:'color' } )
 		}
 
 		

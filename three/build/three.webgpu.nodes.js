@@ -3575,20 +3575,6 @@ const getConstNode = ( value, type ) => {
 
 };
 
-const safeGetNodeType = ( node ) => {
-
-	try {
-
-		return node.getNodeType();
-
-	} catch ( _ ) {
-
-		return undefined;
-
-	}
-
-};
-
 const ConvertType = function ( type, cacheMap = null ) {
 
 	return ( ...params ) => {
@@ -3608,7 +3594,7 @@ const ConvertType = function ( type, cacheMap = null ) {
 		if ( params.length === 1 ) {
 
 			const node = getConstNode( params[ 0 ], type );
-			if ( safeGetNodeType( node ) === type ) return nodeObject( node );
+			if ( node.nodeType === type ) return nodeObject( node );
 			return nodeObject( new ConvertNode( node, type ) );
 
 		}
@@ -33506,9 +33492,9 @@ const normal = Fn( ( { texture, uv } ) => {
 
 		const step = 0.01;
 
-		const x = texture.sample( uv.add( vec3( -0.01, 0.0, 0.0 ) ) ).r.sub( texture.sample( uv.add( vec3( step, 0.0, 0.0 ) ) ).r );
-		const y = texture.sample( uv.add( vec3( 0.0, -0.01, 0.0 ) ) ).r.sub( texture.sample( uv.add( vec3( 0.0, step, 0.0 ) ) ).r );
-		const z = texture.sample( uv.add( vec3( 0.0, 0.0, -0.01 ) ) ).r.sub( texture.sample( uv.add( vec3( 0.0, 0.0, step ) ) ).r );
+		const x = texture.sample( uv.add( vec3( - step, 0.0, 0.0 ) ) ).r.sub( texture.sample( uv.add( vec3( step, 0.0, 0.0 ) ) ).r );
+		const y = texture.sample( uv.add( vec3( 0.0, - step, 0.0 ) ) ).r.sub( texture.sample( uv.add( vec3( 0.0, step, 0.0 ) ) ).r );
+		const z = texture.sample( uv.add( vec3( 0.0, 0.0, - step ) ) ).r.sub( texture.sample( uv.add( vec3( 0.0, 0.0, step ) ) ).r );
 
 		ret.assign( vec3( x, y, z ) );
 
@@ -57381,6 +57367,10 @@ class WebGLAttributeUtils {
 
 			type = gl.FLOAT;
 
+		} else if ( typeof Float16Array !== 'undefined' && array instanceof Float16Array ) {
+
+			type = gl.HALF_FLOAT;
+
 		} else if ( array instanceof Uint16Array ) {
 
 			if ( attribute.isFloat16BufferAttribute ) {
@@ -63756,20 +63746,26 @@ const GPUInputStepMode = {
 };
 
 const GPUFeatureName = {
+	CoreFeaturesAndLimits: 'core-features-and-limits',
 	DepthClipControl: 'depth-clip-control',
 	Depth32FloatStencil8: 'depth32float-stencil8',
 	TextureCompressionBC: 'texture-compression-bc',
+	TextureCompressionBCSliced3D: 'texture-compression-bc-sliced-3d',
 	TextureCompressionETC2: 'texture-compression-etc2',
 	TextureCompressionASTC: 'texture-compression-astc',
+	TextureCompressionASTCSliced3D: 'texture-compression-astc-sliced-3d',
 	TimestampQuery: 'timestamp-query',
 	IndirectFirstInstance: 'indirect-first-instance',
 	ShaderF16: 'shader-f16',
 	RG11B10UFloat: 'rg11b10ufloat-renderable',
 	BGRA8UNormStorage: 'bgra8unorm-storage',
 	Float32Filterable: 'float32-filterable',
+	Float32Blendable: 'float32-blendable',
 	ClipDistances: 'clip-distances',
 	DualSourceBlending: 'dual-source-blending',
-	Subgroups: 'subgroups'
+	Subgroups: 'subgroups',
+	TextureFormatsTier1: 'texture-formats-tier1',
+	TextureFormatsTier2: 'texture-formats-tier2'
 };
 
 /**
@@ -65453,7 +65449,7 @@ class WebGPUTextureUtils {
 
 		let dimension;
 
-		if ( texture.isData3DTexture ) {
+		if ( texture.is3DTexture || texture.isData3DTexture ) {
 
 			dimension = GPUTextureDimension.ThreeD;
 
@@ -67727,24 +67723,29 @@ ${ flowData.code }
 
 					}
 
-				} else if ( texture.isArrayTexture === true || texture.isDataArrayTexture === true || texture.isCompressedArrayTexture === true ) {
-
-					textureType = 'texture_2d_array<f32>';
-
-				} else if ( texture.isVideoTexture === true ) {
-
-					textureType = 'texture_external';
-
-				} else if ( texture.isData3DTexture === true ) {
-
-					textureType = 'texture_3d<f32>';
-
 				} else if ( uniform.node.isStorageTextureNode === true ) {
 
 					const format = getFormat( texture );
 					const access = this.getStorageAccess( uniform.node, shaderStage );
 
-					textureType = `texture_storage_2d<${ format }, ${ access }>`;
+					const is3D = uniform.node.value.is3DTexture;
+					const isArrayTexture = uniform.node.value.isArrayTexture;
+
+					const dimension = is3D ? '3d' : `2d${ isArrayTexture ? '_array' : '' }`;
+
+					textureType = `texture_storage_${ dimension }<${ format }, ${ access }>`;
+
+				} else if ( texture.isArrayTexture === true || texture.isDataArrayTexture === true || texture.isCompressedArrayTexture === true ) {
+
+					textureType = 'texture_2d_array<f32>';
+
+				} else if ( texture.is3DTexture === true || texture.isData3DTexture === true ) {
+
+					textureType = 'texture_3d<f32>';
+
+				} else if ( texture.isVideoTexture === true ) {
+
+					textureType = 'texture_external';
 
 				} else {
 
@@ -68441,6 +68442,12 @@ const typedArraysToVertexFormatPrefix = new Map( [
 	[ Float32Array, [ 'float32', ]],
 ] );
 
+if ( typeof Float16Array !== 'undefined' ) {
+
+	typedArraysToVertexFormatPrefix.set( Float16Array, [ 'float16' ] );
+
+}
+
 const typedAttributeToVertexFormatPrefix = new Map( [
 	[ Float16BufferAttribute, [ 'float16', ]],
 ] );
@@ -68997,6 +69004,16 @@ class WebGPUBindingUtils {
 				} else {
 
 					storageTexture.access = GPUStorageTextureAccess.ReadOnly;
+
+				}
+
+				if ( binding.texture.isArrayTexture ) {
+
+					storageTexture.viewDimension = GPUTextureViewDimension.TwoDArray;
+
+				} else if ( binding.texture.is3DTexture ) {
+
+					storageTexture.viewDimension = GPUTextureViewDimension.ThreeD;
 
 				}
 
@@ -72462,7 +72479,15 @@ class WebGPUBackend extends Backend {
 	 */
 	createIndexAttribute( attribute ) {
 
-		this.attributeUtils.createAttribute( attribute, GPUBufferUsage.INDEX | GPUBufferUsage.COPY_SRC | GPUBufferUsage.COPY_DST );
+		let usage = GPUBufferUsage.INDEX | GPUBufferUsage.COPY_SRC | GPUBufferUsage.COPY_DST;
+
+		if ( attribute.isStorageBufferAttribute || attribute.isStorageInstancedBufferAttribute ) {
+
+			usage |= GPUBufferUsage.STORAGE;
+
+		}
+
+		this.attributeUtils.createAttribute( attribute, usage );
 
 	}
 

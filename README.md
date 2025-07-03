@@ -6,7 +6,8 @@
 [Physx](https://github.com/fabmax/physx-js-webidl)<br>
 [<img src="./assets/icons/phy_map.png"/>](https://lo-th.github.io/phy/)<br>
 
-[START DEMO/EDITOR](https://lo-th.github.io/phy/)<br><br>
+[START DEMO/EDITOR](https://lo-th.github.io/phy/)<br>
+[START DEMO/EDITOR WEBGPU](https://lo-th.github.io/phy/index_gpu.html)<br><br>
 PHY Universal physics language on Worker or Direct for [three.js](https://github.com/mrdoob/three.js)<br>
 Phy simplify game creation, is a bridge between three.js and physics.<br>
 You can use compress or full version of physics engines.<br>
