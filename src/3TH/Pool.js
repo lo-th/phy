@@ -8,9 +8,10 @@ import { OBJLoader } from '../../three/examples/jsm/loaders/OBJLoader.js';
 import { STLLoader } from '../../three/examples/jsm/loaders/STLLoader.js';
 import { RGBELoader } from '../../three/examples/jsm/loaders/RGBELoader.js';
 import { EXRLoader } from '../../three/examples/jsm/loaders/EXRLoader.js';
-import { MeshoptDecoder } from '../../three/examples/jsm/libs/meshopt_decoder.module.js';
+//import { MeshoptDecoder } from '../../three/examples/jsm/libs/meshopt_decoder.module.js';
 import { UltraHDRLoader } from '../../three/examples/jsm/loaders/UltraHDRLoader.js';
 
+import { MeshoptDecoder } from '../libs/meshopt_decoder.module.js';
 
 import { DRACOLoader } from '../libs/DRACOLoader.js';
 import { KTX2Loader } from '../libs/KTX2Loader.js';

@@ -188,7 +188,7 @@ let needResize = true
 
 //const timer = new Timer(60)
 const size = { w:0, h:0, r:0, left:0, px:1 }
-const tm = { now:0, delta:0, then:0, inter: 1000/60, tmp:0, n:0, dt:0, fps:0 }
+const tm = { now:0, then:0, inter: 1000/60, tmp:0, n:0, fps:0, elapsed:0, delta:0 }
 
 const toneMappingOptions = {
 
@@ -671,9 +671,9 @@ const next = () => {
 const start = () => {
 
 	if( renderStart ) return;
-	if( isWebGPU ) renderer.setAnimationLoop( render );
-	else { if( loop === null) render(0) }
-	//if( loop === null) render(0);
+	//if( isWebGPU ) renderer.setAnimationLoop( render );
+	//else { if( loop === null) render(0) }
+	if( loop === null ) Main.webgpu ? renderGPU(0) : render(0);
 	renderStart = true;
 }
 
@@ -715,9 +715,6 @@ Motor.lightIntensity = lightIntensity;
 const addLight = () => {
 
 	Lights.define( options, followGroup, isWebGPU );
-
-
-
 
 	if( options.mode === 'LOW' ){
 		options.shadow = 0
@@ -1060,10 +1057,10 @@ const onVisible = () => {
 
 const onResize = () => {
 
-	size.w = window.innerWidth - size.left
-	size.h = window.innerHeight
-	size.r = size.w / size.h
-	needResize = true
+	size.w = window.innerWidth - size.left;
+	size.h = window.innerHeight;
+	size.r = size.w / size.h;
+	needResize = true;
 
 }
 
@@ -1086,58 +1083,63 @@ const doResize = () => {
 }
 
 
-
 //--------------------
 //   RENDER
 //--------------------
 
+const renderGPU = async ( stamp = 0 ) => {
+
+	update( stamp );
+
+	await renderer.renderAsync( scene, camera );
+
+	loop = requestAnimationFrame( renderGPU );
+
+}
+
 const render = ( stamp = 0 ) => {
 
-    //console.time('step')
+	update( stamp );
+
+	if( composer && composer.enabled ) composer.render( tm.delta );
+	else renderer.render( scene, camera );
+
+	loop = requestAnimationFrame( render );
+
+}
+
+const update = ( stamp = 0 ) => {
+
 	// TIME
 	tm.now = stamp
-	tm.delta = tm.now - tm.then
-	tm.dt = tm.delta * 0.001
+	tm.delta = (tm.now - tm.then)/1000;
+	tm.then = tm.now;
+	tm.elapsed += tm.delta;
 
 	if( needResize ) doResize()
 
-    
-
 	// UPDATE PHY
-	if( !Main.isWorker ) Motor.doStep( stamp )
-	else Motor.setDelta(tm.dt)
+	if( !Main.isWorker ) Motor.doStep( stamp );
+	else Motor.setDelta( tm.delta );
 
 
 	// UPDATE CAMERA CONTROLER
-    if( controls ) controls.up( tm.dt )
-	/*if( controls ){ 
-		if( controls.enableDamping && controls.enable ) controls.update();
-		if( controls.follow ) controls.follow( tm.dt );
-	}*/
+    if( controls ) controls.up( tm.delta );
+
 
     // UPDATE TWEEN
 	TWEEN.update( stamp );
 
+	Gui.update();
 
-
-	// RENDER
-	if( composer && composer.enabled ) composer.render( tm.dt )
-	else renderer.render( scene, camera )
-
-	Gui.update()
-
-	upStat()
-
-	//console.timeEnd('step')
-
-
-	if( !isWebGPU ) loop = requestAnimationFrame( render )
-
-	//if( renderer.shadowMap.enabled ) renderer.shadowMap.needsUpdate = true;
-
-	
+	upStat();
 
 }
+
+
+//--------------------
+//   STAT
+//--------------------
 
 const upStat = () => {
 
@@ -1151,7 +1153,7 @@ const upStat = () => {
 	}
 
 	tm.n++
-	tm.then = tm.now
+	//tm.then = tm.now
 
 	if( tm.fps > maxFps ) {
 		maxFps = tm.fps

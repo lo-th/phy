@@ -953,7 +953,7 @@ export class PhyEngine {
 		this.getDelta2 = () => { return this.delta }
 		this.getElapsedTime2 = () => { return elapsedTime }
 
-		this.setDelta = (v) => { timer.delta = v }
+		this.setDelta = (v) => { timer.delta = v } // three js delta time
 		this.getDelta = () => { return timer.delta }
 		this.getElapsedTime = () => { return timer.elapsedTime }
 
@@ -990,9 +990,9 @@ export class PhyEngine {
 
 			// TODO fix dt 0 when no doStep ??
 
-			let dd = outsideStep ? timer.delta : this.delta;
+			let delta = outsideStep ? timer.delta : this.delta;
 
-			postUpdate( dd );
+			postUpdate( delta );
 
 
 			//items.character.prestep()
