@@ -12,7 +12,7 @@ import {
     MeshBasicMaterial
 } from 'three';
 
-import { mergeVertices, mergeGeometries } from '../../jsm/utils/BufferGeometryUtils.js';
+import { mergeVertices, mergeGeometries } from '../../../three/examples/jsm/utils/BufferGeometryUtils.js';
 import { math } from '../math.js';
 import { Pool } from '../Pool.js';
 //import { Shader } from '../Shader.js';

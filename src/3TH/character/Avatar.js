@@ -16,7 +16,7 @@ import {
 
 import { MeshSssMaterial } from '../materials/MeshSssMaterial.js';
 
-import * as SkeletonUtils from '../../jsm/utils/SkeletonUtils.js';
+import * as SkeletonUtils from '../../../three/examples/jsm/utils/SkeletonUtils.js';
 
 import { Pool } from '../Pool.js';
 //import { Shader } from '../Shader.js';

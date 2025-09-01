@@ -1,12 +1,4 @@
-import {
-    ShaderMaterial,
-    RawShaderMaterial,
-    Vector4, Vector3, Color,
-    Mesh,
-    PlaneGeometry,
-    SRGBColorSpace,
-    LinearSRGBColorSpace
-} from 'three';
+import { ShaderMaterial, Color, Mesh, PlaneGeometry } from 'three';
 
 export class Vignette extends Mesh {
 
@@ -63,7 +55,8 @@ export class Vignette extends Mesh {
                 }
 
                 
-                gl_FragColor = ret;
+                //gl_FragColor = ret;
+                gl_FragColor = vec4( ret );
 
                 #include <tonemapping_fragment>
                 #include <colorspace_fragment>
@@ -71,7 +64,7 @@ export class Vignette extends Mesh {
                 
             }
             `, 
-            transparent:true,
+            transparent:true, 
             depthWrite:false,
             depthTest:false,
             dithering:true,
@@ -79,17 +72,14 @@ export class Vignette extends Mesh {
 
         });
 
-        this.material.defines = {
-            'TONE_MAPPING' : '',
+        /*this.material.defines = {
             'DITHERING':''
-        }
+        }*/
 
 
         Object.defineProperties(this, {
-
             color: {
                 enumerable: true,
-                //get: ( v ) => { console.log(this.material.uniforms.color); return this.material.uniforms.color.value.getHex(); },
                 get: () => ( this.material.uniforms.color.value.getHex() ),
                 set: ( v ) => {  this.material.uniforms.color.value.setHex( v ) },
             },
@@ -116,15 +106,11 @@ export class Vignette extends Mesh {
 
     }
 
-    raycast() {
-
-        return
-
-    }
+    raycast() {  return }
 
     dispose () {
 
-        this.parent.remove(this);
+        if(this.parent) this.parent.remove(this)
         this.geometry.dispose()
         this.material.dispose()
         
