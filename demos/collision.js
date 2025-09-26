@@ -77,35 +77,39 @@ const showContact = ( d ) => {
 
     const b = phy.byName(d.from);
 
-    if( d.hit !== 0 ) { 
-       
-        b.material.color.setHex( d.hit === 1 ? 0xFF0000 : 0xFFFFFF );
-
-        phy.addParticle({
-            type:'pixel',
-            colors:d.hit===1?[
-                1, 0, 0, 1,
-                1, 1, 0, 0.2,
-            ]:[
-                0.8, 0.8, 0.8, 1,
-                0.8, 0.8, 0.8, 0.2
-            ]
-            ,
-            position:d.point,
-            positionRange:[0.25,0.25,0.25],
-            numParticles: d.hit===1?40:10,
-            startTime: 0,
-            lifeTime: 0.5,
-            endTime: 0.5,
-            startSize: 0.05,
-            endSize: 0.05,
-           // sizeRange:0.2,
-            velocity: math.mulArray(d.normal, d.impulse*0.5),
-            velocityRange: [ 1, 1, 1 ], 
-            blending:"normal",
-        }) 
+    if( d.hit === 0 ){
+        b.material.color.setHex( 0x606060 )
+        return
     }
-    else b.material.color.setHex( 0x606060 ) 
+   
+    b.material.color.setHex( d.hit === 1 ? 0xFF0000 : 0xFFFFFF );
+
+    phy.addParticle({
+        type:'pixel',
+        name:d.from+d.hit,
+        colors:d.hit===1?[
+            1, 0, 0, 1,
+            1, 0.6, 0, 0.2,
+        ]:[
+            0.8, 0.8, 0.8, 1,
+            0.8, 0.8, 0.8, 0.2
+        ]
+        ,
+        position:d.point,
+        positionRange:[0.25,0.25,0.25],
+        numParticles: d.hit===1?40:10,
+        startTime: 0,
+        lifeTime: 0.5,
+        endTime: 0.5,
+        startSize: 0.05,
+        endSize: 0.05,
+       // sizeRange:0.2,
+        velocity: math.mulArray(d.normal, d.impulse*0.5),
+        velocityRange: [ 1, 1, 1 ], 
+        blending:"normal",
+    }) 
+    //}
+    //else b.material.color.setHex( 0x606060 ) 
 
 
 }

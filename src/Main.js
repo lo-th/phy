@@ -694,7 +694,7 @@ const addControl = () => {
 
 const changeShadow = (o) => {
 
-	if(o.distance);
+	//if(o.distance);
 	Lights.setShadow( Lights.byName('sun'), o );
 
 }
@@ -766,7 +766,7 @@ const resetLight = ( o ) => {
 const showDebugLight = ( b ) => {
 
 	let v = Lights.addHelper( b, helperGroup );
-	Env.preview( v );
+	Env.preview( b );
 
 }
 
@@ -779,13 +779,11 @@ const setShadowType = () => {
 
 const setShadow = ( v ) => {
 
-
 	options.shadow = v;
 
 	if( options.shadow === 0 ){
 		Lights.castShadow( false );
-		//if( !isWebGPU ) 
-			renderer.shadowMap.enabled = false;
+		renderer.shadowMap.enabled = false;
 		//clearShadow()
 	} else {
 		if( !renderer.shadowMap.enabled ){

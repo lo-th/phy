@@ -4,8 +4,8 @@ import {
     LinearFilter, HalfFloatType, LinearSRGBColorSpace, SRGBColorSpace, ShaderMaterial,
 } from 'three';
 //import { HDRJPGLoader } from '../../libs/HDRJPGLoader.js';
-import { RGBELoader } from '../../jsm/loaders/RGBELoader.js';
-import { EXRLoader } from '../../jsm/loaders/EXRLoader.js';
+import { HDRLoader } from '../../../three/examples/jsm/loaders/HDRLoader.js';
+import { EXRLoader } from '../../../three/examples/jsm/loaders/EXRLoader.js';
 
 import { SkyShader, skyOption } from './SkyShader.js';
 
@@ -115,7 +115,7 @@ export class Envmap {
 
 		switch( this.type ){
 			case 'hdr': 
-			    this.loader = new RGBELoader().load( url, this.end.bind(this), null, this.bug.bind(this) );
+			    this.loader = new HDRLoader().load( url, this.end.bind(this), null, this.bug.bind(this) );
 			break;
 			case 'exr':
 			    this.loader = new EXRLoader().load( url, this.end.bind(this), null, this.bug.bind(this) );

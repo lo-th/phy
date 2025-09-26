@@ -1,8 +1,8 @@
 import {
     Color, Float32BufferAttribute, ShapeGeometry, Mesh, MeshBasicMaterial, DoubleSide, BufferGeometry
 } from 'three';
-import { mergeGeometries } from '../jsm/utils/BufferGeometryUtils.js';
-import { SVGLoader } from '../jsm/loaders/SVGLoader.js';
+import { mergeGeometries } from '../../three/examples/jsm/utils/BufferGeometryUtils.js';
+import { SVGLoader } from '../../three/examples/jsm/loaders/SVGLoader.js';
 
 export class AutoSvg extends Mesh {
 

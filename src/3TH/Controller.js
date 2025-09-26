@@ -4,7 +4,8 @@ import {
 } from 'three';
 //import * as TWEEN from 'tween'
 import * as TWEEN from '../libs/tween.esm.js'
-import { OrbitControls } from '../jsm/controls/OrbitControls.js';
+import { OrbitControls } from '../../three/examples/jsm/controls/OrbitControls.js';
+//import { OrbitControls } from './OrbitControls.js';
 import { math } from './math.js';
 
 
@@ -520,6 +521,10 @@ export class Controller extends OrbitControls {
         this.tmpV1.set(0, 0, -1).applyQuaternion( camera.quaternion ).normalize().multiplyScalar( cam.maxDistance );
         this.rayClipper.end.copy(this.rayClipper.start).sub( this.tmpV1 );
 
+    }
+
+    getState () {
+        return this.state
     }
 
 

@@ -1,8 +1,6 @@
 import * as UIL from '../libs/uil.module.js'
 import { Pool } from './Pool.js';
 
-//import { Motor } from '../motor/Motor.js'
-
 /** __
 *    _)_|_|_
 *   __) |_| | 2023
@@ -37,7 +35,7 @@ let parent;
 let content, cross = null, border, counter, counter2, zone, path, txt, info, loader, textRight, textLeft, textLeft2;
 let unselectable = '-o-user-select:none; -ms-user-select:none; -khtml-user-select:none; -webkit-user-select:none; -moz-user-select: none; pointer-events:none; ';
 
-let menu, pin, title, engine, demo, downMenu, innerMenu, zoning, guiButton, overpad, prevOver, tmpLeft = 0, contentWidth= 0;
+let menu, pin, title, engine, demo, dev, downMenu, innerMenu, zoning, guiButton, overpad, prevOver, tmpLeft = 0, contentWidth= 0;
 let corner
 
 //let mousePos = [0,0];
@@ -66,6 +64,7 @@ const listdata = {
     engine : [],
     demo:[],
     visited:[],
+    //dev:[],
 }
 
 let isDisplay = false;
@@ -168,8 +167,6 @@ export class Hub {
         size = Size;
         parent = Parent || document.body;
 
-        //const fragment = document.createDocumentFragment();
-
         content = document.createElement( 'div' );
         content.style.cssText = unselectable + 'position:absolute; margin:0; padding:0; top:0px; left:0px; width:100%; height:100%; display:block; color:'+color+';'// font-family: Mulish,sans-serif;
         parent.appendChild( content );
@@ -191,14 +188,7 @@ export class Hub {
         loader.style.cssText = "position:absolute; top:50%; left:50%; width:60px; height:60px; margin-left:-30px; margin-top:-30px; display:block; ";
         loader.innerHTML = this.miniLoader( '#000' )
         content.appendChild( loader );
-        
-
-        //loader.textContent = 'load...';
-        //this.addJoystick()
-
-        //this.addBorder()
-        //this.init3dHub()
-
+ 
         isDisplay = true
         isReady = true
 
@@ -388,24 +378,34 @@ export class Hub {
 
         zoning.addEventListener("pointermove", Hub.moving );
 
+
+        // MENU CONTENT
+
         title = document.createElement( 'div' );
         menu.appendChild( title )
         title.id = 'home'
         title.innerHTML = Hub.miniIcon('logo', color );
 
         engine = document.createElement( 'div' );
-        engine.style.cssText = Styles.menuName;//'font-size:16px; ';//font-weight:700;
+        engine.style.cssText = Styles.menuName;
         engine.id = 'engine'
         menu.appendChild( engine )
         
         demo = document.createElement( 'div' );
-        demo.style.cssText = Styles.menuName;//'font-size:16px; '//'font-size:16px; font-weight:500;'font-weight:700; 
+        demo.style.cssText = Styles.menuName;
         demo.id = 'demo'
         menu.appendChild( demo )
+
+        /*dev = document.createElement( 'div' );
+        dev.style.cssText = Styles.menuName;
+        dev.id = 'dev'
+        menu.appendChild( dev )
+        dev.textContent = 'dev'*/
         
         this.effect(title)
         this.effect(engine)
         this.effect(demo)
+        //this.effect(dev)
 
 
         debug = document.createElement( 'div' );
@@ -545,8 +545,6 @@ export class Hub {
 
         let type = target.id;
 
-        
-
         if( currentMenu === type ) return;
 
         Hub.hideMenu();
@@ -661,8 +659,18 @@ export class Hub {
 
     static upMenu () {
 
+        
+
         engine.textContent = this.reformat( Main.engineType )
+
+        
         demo.textContent = this.reformat( Main.currentDemo )
+
+        let isDev = Main.devDemo[demo.textContent] 
+        demo.style.color = isDev ? colorDemo : color
+
+        //console.log(Main.devDemo, isDev)
+        
 
         listdata.visited.push( demo.textContent )
 
@@ -1017,7 +1025,5 @@ export class Hub {
         }
 
     }
-
-   
 
 }

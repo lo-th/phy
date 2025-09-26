@@ -10,7 +10,7 @@ const setting = {
     hair:0x752002,//0xa43412,
     bow:0x100402,
     sheen:1,//2.25,
-    sheenRoughness:1.0,//1.0,
+    sheenRoughness:0.6,//1.0,
     metalness:0.6,
     roughness:0.4,
     
@@ -74,7 +74,7 @@ export const Human = {
             normalMap:'avatar_n',
 
             //envMapIntensity:0.7,
-            //reflectivity:1.0,
+            reflectivity:0.2,
 
             roughness:0.54,
             metalness:0.14,
@@ -85,11 +85,10 @@ export const Human = {
             roughnessMap:'avatar_r',*/
 
             normalScale: new Vector2( setting.normal, -setting.normal ),
-            
-            /*sheen:setting.sheen,
-            sheenColor:0xFFFFFF,
+            sheenColor:0x600000,
+            sheen:setting.sheen,
             sheenRoughness:setting.sheenRoughness,
-            sheenColorMap:'avatar_c',
+            //sheenColorMap:'avatar_c',
             /*sheenColor:0xff0000,
             sheenColorMap:'avatar_u',
             iridescence:0.1,*/
@@ -157,6 +156,7 @@ export const Human = {
             alphaMap:'hair_a',
             //alphaTest:setting.alphaTest,
             side: DoubleSide,
+            shadowSide: DoubleSide,
             emissive:setting.hair,
             emissiveIntensity:0.5,
             //opacity:1.0,
@@ -345,7 +345,7 @@ export const Human = {
                     case 'hair': 
                     node.material = Pool.getMaterial( 'hair' ) || def;
                     node.receiveShadow = false;
-                    node.castShadow = false;//true;
+                    node.castShadow = true;
                     //node.matrixWorldAutoUpdate = false
                     node.visible = Human.haveHair ? startHigh : false;
                     break;

@@ -1,1 +1,9700 @@
-const t="4.4.0",s={ui:[],debug:!1,dom:null,ID:null,lock:!1,wlock:!1,current:-1,needReZone:!0,needResize:!1,forceZone:!1,isEventsInit:!1,isLeave:!1,downTime:0,prevTime:0,prevDefault:["contextmenu"],pointerEvent:["pointerdown","pointermove","pointerup"],eventOut:["pointercancel","pointerout","pointerleave"],xmlserializer:null,tmpTime:null,tmpImage:null,oldCursor:"auto",input:null,parent:null,firstImput:!0,hiddenImput:null,hiddenSizer:null,hasFocus:!1,startInput:!1,inputRange:[0,0],cursorId:0,str:"",pos:0,startX:-1,moveX:-1,debugInput:!1,isLoop:!1,listens:[],e:{type:null,clientX:0,clientY:0,keyCode:NaN,key:null,delta:0},isMobile:!1,now:null,getTime:function(){return self.performance&&self.performance.now?self.performance.now.bind(performance):Date.now},testMobile:function(){let t=navigator.userAgent;return!!(t.match(/Android/i)||t.match(/webOS/i)||t.match(/iPhone/i)||t.match(/iPad/i)||t.match(/iPod/i)||t.match(/BlackBerry/i)||t.match(/Windows Phone/i))},add:function(t){s.ui.push(t),s.getZone(t),s.isEventsInit||s.initEvents()},remove:function(t){let i=s.ui.indexOf(t);-1!==i&&(s.removeListen(t),s.ui.splice(i,1)),0===s.ui.length&&s.removeEvents()},initEvents:function(){if(s.isEventsInit)return;let t=document.body;s.isMobile=s.testMobile(),s.now=s.getTime(),s.isMobile?t.style.touchAction="none":t.addEventListener("wheel",s,{passive:!1}),t.addEventListener("pointercancel",s),t.addEventListener("pointerleave",s),t.addEventListener("pointermove",s),t.addEventListener("pointerdown",s),t.addEventListener("pointerup",s),t.addEventListener("keydown",s,!1),t.addEventListener("keyup",s,!1),window.addEventListener("resize",s.resize,!1),s.isEventsInit=!0,s.dom=t},removeEvents:function(){if(!s.isEventsInit)return;let t=document.body;s.isMobile||t.removeEventListener("wheel",s),t.removeEventListener("pointercancel",s),t.removeEventListener("pointerleave",s),t.removeEventListener("pointermove",s),t.removeEventListener("pointerdown",s),t.removeEventListener("pointerup",s),t.removeEventListener("keydown",s),t.removeEventListener("keyup",s),window.removeEventListener("resize",s.resize),s.isEventsInit=!1},resize:function(){let t,i=s.ui.length;for(;i--;)t=s.ui[i],t.isGui&&!t.isCanvasOnly&&t.autoResize&&t.calc();s.needReZone=!0,s.needResize=!1},out:function(){console.log("im am out"),s.clearOldID()},in:function(){console.log("im am in")},fakeUp:function(){this.handleEvent({type:"pointerup"})},handleEvent:function(t){s.needResize&&s.resize(),s.findZone(s.forceZone);let i=s.e,e=!1;"keydown"===t.type&&s.keydown(t),"keyup"===t.type&&s.keyup(t),"wheel"===t.type?i.delta=t.deltaY>0?1:-1:i.delta=0;let h=t.pointerType;if(i.clientX=("touch"===h?t.pageX:t.clientX)||0,i.clientY=("touch"===h?t.pageY:t.clientY)||0,i.type=t.type,-1!==s.eventOut.indexOf(t.type)&&(e=!0,i.type="mouseup"),"pointerleave"===t.type&&(s.isLeave=!0),"pointerdown"===t.type&&(i.type="mousedown"),"pointerup"===t.type&&(i.type="mouseup"),"pointermove"===t.type&&(s.isLeave&&(s.isLeave=!1,s.resize()),i.type="mousemove"),"mousedown"===i.type){if(s.downTime=s.now(),s.downTime-s.prevTime<200)return s.selectAll(),!1;s.prevTime=s.downTime,s.forceZone=!1}"mousedown"===i.type&&s.clearInput(),"mousedown"===i.type&&(s.lock=!0),"mouseup"===i.type&&(s.lock=!1),s.isMobile&&"mousedown"===i.type&&s.findID(i),"mousemove"!==i.type||s.lock||s.findID(i),null!==s.ID&&(s.ID.isCanvasOnly&&(i.clientX=s.ID.mouse.x,i.clientY=s.ID.mouse.y),s.ID.handleEvent(i)),s.isMobile&&"mouseup"===i.type&&s.clearOldID(),e&&s.clearOldID()},findID:function(t){let i,e,h,o=s.ui.length,n=-1;for(;o--;)if(i=s.ui[o],i.isCanvasOnly?(e=i.mouse.x,h=i.mouse.y):(e=t.clientX,h=t.clientY),s.onZone(i,e,h)){n=o,n!==s.current&&(s.clearOldID(),s.current=n,s.ID=i);break}-1===n&&s.clearOldID()},clearOldID:function(){s.ID&&(s.current=-1,s.ID.reset(),s.ID=null,s.cursor())},calcUis:(t,i,e,h=!1)=>{s.debug&&console.log("calc_uis !!");let o,n,r=t.length,l=0,a=0,c=0;for(;r--;){o=t[a],a++,!h&&o.isGroup&&o.calcUis();let r=o.margin||0;o.zone.w=o.w,o.zone.h=o.h+r,o.autoWidth?(l=0,o.zone.x=i.x+o.dx,o.zone.y=e,e+=o.h+r,c+=o.h+r):(0===l&&(c+=o.h+r),o.zone.x=i.x+l,o.zone.y=e,n=s.getWidth(o),n?o.zone.w=o.w=n:o.fw&&(o.zone.w=o.w=o.fw),l+=o.zone.w,l>=i.w&&(e+=o.h+r,l=0))}return c},findTarget:function(t,i){let e=t.length;for(;e--;)if(s.onZone(t[e],i.clientX,i.clientY))return e;return-1},findZone:function(t=!1){if(t&&(s.needReZone=t),!s.needReZone)return;let i,e=s.ui.length;for(;e--;)i=s.ui[e],s.getZone(i);s.needReZone=!1},onZone:function(t,s,i){if(void 0===s||void 0===i)return!1;let e=t.zone,h=s-e.x,o=i-e.y,n=h>=0&&o>=0&&h<=e.w&&o<=e.h;return n?t.local.set(h,o):t.local.neg(),n},getWidth:function(t){return t.getDom().clientWidth},getZone:function(t){if(t.isCanvasOnly)return;if(t.isEmpty)return;const s=t.getDom().getBoundingClientRect();t.zone={x:s.left,y:s.top,w:s.width,h:s.height},t.isBottom&&(t.zone.y=t.realTop)},cursor:function(t){(t=t||"auto")!==s.oldCursor&&(document.body.style.cursor=t,s.oldCursor=t)},toCanvas:function(t,i,e,h){if(s.xmlserializer||(s.xmlserializer=new XMLSerializer),h&&null!==s.tmpTime&&(clearTimeout(s.tmpTime),s.tmpTime=null),null!==s.tmpTime)return;s.lock&&(s.tmpTime=setTimeout((function(){s.tmpTime=null}),10));let o=!1;i===t.canvas.width&&e===t.canvas.height||(o=!0),null===s.tmpImage&&(s.tmpImage=new Image);let n=s.tmpImage,r=s.xmlserializer.serializeToString(t.content),l='<svg xmlns="http://www.w3.org/2000/svg" width="'+i+'" height="'+e+'"><foreignObject style="pointer-events: none; left:0;" width="100%" height="100%">'+r+"</foreignObject></svg>";n.onload=function(){let s=t.canvas.getContext("2d");o?(t.canvas.width=i,t.canvas.height=e):s.clearRect(0,0,i,e),s.drawImage(this,0,0),t.onDraw()},n.src="data:image/svg+xml;charset=utf-8,"+encodeURIComponent(l),n.crossOrigin=""},setHidden:function(){null===s.hiddenImput&&(s.hiddenImput=document.createElement("input"),s.hiddenImput.type="text",s.hiddenSizer=document.createElement("div"),document.body.appendChild(s.hiddenImput),document.body.appendChild(s.hiddenSizer));let t=s.debugInput?"":"opacity:0; zIndex:0;",i=s.parent.css.txtselect+"padding:0; width:auto; height:auto; left:10px; top:auto; color:#FFF; background:#000;"+t;s.hiddenImput.style.cssText=i+"bottom:10px;"+(s.debugInput?"":"transform:scale(0);"),s.hiddenSizer.style.cssText=i+"bottom:40px;",s.hiddenImput.style.width=s.input.clientWidth+"px",s.hiddenImput.value=s.str,s.hiddenSizer.innerHTML=s.str,s.hasFocus=!0},clearHidden:function(t){null!==s.hiddenImput&&(s.hasFocus=!1)},clickPos:function(t){let i=s.str.length,e=0,h=0;for(;i--&&(e+=s.textWidth(s.str[h]),!(e>=t));)h++;return h},upInput:function(t,i){if(null===s.parent)return!1;let e=!1;if(i){let i=s.clickPos(t);if(s.moveX=i,-1===s.startX)s.startX=i,s.cursorId=i,s.inputRange=[s.startX,s.startX];else{s.moveX!==s.startX&&(s.startX>s.moveX?s.inputRange=[s.moveX,s.startX]:s.inputRange=[s.startX,s.moveX])}e=!0}else-1!==s.startX&&(s.hasFocus=!0,s.hiddenImput.focus(),s.hiddenImput.selectionStart=s.inputRange[0],s.hiddenImput.selectionEnd=s.inputRange[1],s.startX=-1,e=!0);return e&&s.selectParent(),e},selectAll:function(){s.parent&&(s.str=s.input.textContent,s.inputRange=[0,s.str.length],s.hasFocus=!0,s.hiddenImput.focus(),s.hiddenImput.selectionStart=s.inputRange[0],s.hiddenImput.selectionEnd=s.inputRange[1],s.cursorId=s.inputRange[1],s.selectParent())},selectParent:function(){var t=s.textWidth(s.str.substring(0,s.cursorId)),i=s.textWidth(s.str.substring(0,s.inputRange[0])),e=s.textWidth(s.str.substring(s.inputRange[0],s.inputRange[1]));s.parent.select(t,i,e,s.hiddenSizer.innerHTML)},textWidth:function(t){return null===s.hiddenSizer?0:(t=t.replace(/ /g,"&nbsp;"),s.hiddenSizer.innerHTML=t,s.hiddenSizer.clientWidth)},clearInput:function(){null!==s.parent&&(s.firstImput||s.parent.validate(!0),s.clearHidden(),s.parent.unselect(),s.input.style.background=s.parent.colors.back,s.input.style.borderColor=s.parent.colors.border,s.parent.isEdit=!1,s.input=null,s.parent=null,s.str="",s.firstImput=!0)},setInput:function(t,i){s.clearInput(),s.input=t,s.parent=i,s.input.style.background=s.parent.colors.backoff,s.input.style.borderColor=s.parent.colors.select,s.str=s.input.textContent,s.setHidden()},keydown:function(t){if(null===s.parent)return;let i=t.which;t.shiftKey,s.firstImput=!1,s.hasFocus&&(window.focus(),s.hiddenImput.focus()),s.parent.isEdit=!0,13===i?s.clearInput():s.input.isNum?t.keyCode>47&&t.keyCode<58||t.keyCode>95&&t.keyCode<106||190===t.keyCode||110===t.keyCode||8===t.keyCode||109===t.keyCode?s.hiddenImput.readOnly=!1:s.hiddenImput.readOnly=!0:s.hiddenImput.readOnly=!1},keyup:function(t){null!==s.parent&&(s.str=s.hiddenImput.value,s.parent.allEqual?s.parent.sameStr(s.str):s.input.textContent=s.str,s.cursorId=s.hiddenImput.selectionStart,s.inputRange=[s.hiddenImput.selectionStart,s.hiddenImput.selectionEnd],s.selectParent(),s.parent.validate())},loop:function(){s.isLoop&&requestAnimationFrame(s.loop),s.update()},update:function(){let t=s.listens.length;for(;t--;)s.listens[t].listening()},removeListen:function(t){let i=s.listens.indexOf(t);-1!==i&&s.listens.splice(i,1),0===s.listens.length&&(s.isLoop=!1)},addListen:function(t){return-1===s.listens.indexOf(t)&&(s.listens.push(t),s.isLoop||(s.isLoop=!0,s.loop()),!0)}},i=s,e={size:{w:320,h:24,p:30,s:8},texture:null,transition:.1,frag:document.createDocumentFragment(),colorRing:null,joystick_0:null,joystick_1:null,circular:null,knob:null,pad2d:null,svgns:"http://www.w3.org/2000/svg",links:"http://www.w3.org/1999/xlink",htmls:"http://www.w3.org/1999/xhtml",DOM_SIZE:["height","width","top","left","bottom","right","margin-left","margin-right","margin-top","margin-bottom"],SVG_TYPE_D:["pattern","defs","transform","stop","animate","radialGradient","linearGradient","animateMotion","use","filter","feColorMatrix"],SVG_TYPE_G:["svg","rect","circle","path","polygon","text","g","line","foreignObject"],PI:Math.PI,TwoPI:2*Math.PI,pi90:.5*Math.PI,pi60:Math.PI/3,torad:Math.PI/180,todeg:180/Math.PI,clamp:(t,s,i)=>t=(t=t<s?s:t)>i?i:t,isDivid:t=>.5*t===Math.floor(.5*t),defineColor:(t,s=e.colors)=>{let i={...s},h=["fontFamily","fontWeight","fontShadow","fontSize"],o=!1;t.font&&(t.fontFamily=t.font),t.shadow&&(t.fontShadow=t.shadow),t.weight&&(t.fontWeight=t.weight),t.fontColor&&(t.text=t.fontColor),t.color&&(t.text=t.color),t.text&&(i.text=t.text,t.fontColor||t.color||(i.title=e.ColorLuma(t.text,-.25),i.titleoff=e.ColorLuma(t.text,-.5)),i.textOver=e.ColorLuma(t.text,.25),i.textSelect=e.ColorLuma(t.text,.5)),t.button&&(i.button=t.button,i.border=e.ColorLuma(t.button,.1),i.overoff=e.ColorLuma(t.button,.2)),t.select&&(i.select=t.select,i.over=e.ColorLuma(t.select,-.1)),t.itemBg&&(t.back=t.itemBg),t.back&&(i.back=t.back,i.backoff=e.ColorLuma(t.back,-.1)),t.fontSelect&&(i.textSelect=t.fontSelect),t.groupBorder&&(i.gborder=t.groupBorder),t.bgOver&&(i.backgroundOver=t.bgOver);for(let s in i)void 0!==t[s]&&(i[s]=t[s]);for(let s in t)-1!==h.indexOf(s)&&(o=!0);return o&&e.defineText(i),i},colors:{sx:4,sy:0,radius:6,showOver:1,content:"#37383d",background:"#28292e",backgroundOver:"rgba(40,40,40,0)",title:"#CCC",titleoff:"#BBB",text:"#DDD",textOver:"#EEE",textSelect:"#FFF",back:"rgba(0,0,0,0.2)",backoff:"rgba(0,0,0,0.3)",border:"#4c4c4c",borderSize:1,gborder:"none",groups:"none",button:"#3c3c3c",overoff:"#5c5c5c",over:"#024699",select:"#308AFF",action:"#FF3300",fontFamily:"'SegoeUI', 'Segoe UI', 'Helvetica Neue', -apple-system, BlinkMacSystemFont, Roboto, Oxygen-Sans, Ubuntu, Cantarell, sans-serif",fontWeight:"normal",fontShadow:"none",fontSize:12,joyOver:"rgba(48,138,255,0.25)",joyOut:"rgba(100,100,100,0.5)",joySelect:"#308AFF",hide:"rgba(0,0,0,0)"},css:{basic:"position:absolute; pointer-events:none; box-sizing:border-box; margin:0; padding:0; overflow:hidden; -o-user-select:none; -ms-user-select:none; -khtml-user-select:none; -webkit-user-select:none; -moz-user-select:none;",button:"display:flex; align-items:center; justify-content:center; text-align:center;",middle:"display:flex; align-items:center; justify-content:left; text-align:left; flex-direction: row-reverse;"},svgs:{g1:"M 6 4 L 0 4 0 6 6 6 6 4 M 6 0 L 0 0 0 2 6 2 6 0 Z",g2:"M 6 0 L 4 0 4 6 6 6 6 0 M 2 0 L 0 0 0 6 2 6 2 0 Z",group:"M 7 7 L 7 8 8 8 8 7 7 7 M 5 7 L 5 8 6 8 6 7 5 7 M 3 7 L 3 8 4 8 4 7 3 7 M 7 5 L 7 6 8 6 8 5 7 5 M 6 6 L 6 5 5 5 5 6 6 6 M 7 3 L 7 4 8 4 8 3 7 3 M 6 4 L 6 3 5 3 5 4 6 4 M 3 5 L 3 6 4 6 4 5 3 5 M 3 3 L 3 4 4 4 4 3 3 3 Z",arrow:"M 3 8 L 8 5 3 2 3 8 Z",arrowDown:"M 5 8 L 8 3 2 3 5 8 Z",arrowUp:"M 5 2 L 2 7 8 7 5 2 Z",solid:"M 13 10 L 13 1 4 1 1 4 1 13 10 13 13 10 M 11 3 L 11 9 9 11 3 11 3 5 5 3 11 3 Z",body:"M 13 10 L 13 1 4 1 1 4 1 13 10 13 13 10 M 11 3 L 11 9 9 11 3 11 3 5 5 3 11 3 M 5 4 L 4 5 4 10 9 10 10 9 10 4 5 4 Z",vehicle:"M 13 6 L 11 1 3 1 1 6 1 13 3 13 3 11 11 11 11 13 13 13 13 6 M 2.4 6 L 4 2 10 2 11.6 6 2.4 6 M 12 8 L 12 10 10 10 10 8 12 8 M 4 8 L 4 10 2 10 2 8 4 8 Z",articulation:"M 13 9 L 12 9 9 2 9 1 5 1 5 2 2 9 1 9 1 13 5 13 5 9 4 9 6 5 8 5 10 9 9 9 9 13 13 13 13 9 Z",character:"M 13 4 L 12 3 9 4 5 4 2 3 1 4 5 6 5 8 4 13 6 13 7 9 8 13 10 13 9 8 9 6 13 4 M 6 1 L 6 3 8 3 8 1 6 1 Z",terrain:"M 13 8 L 12 7 Q 9.06 -3.67 5.95 4.85 4.04 3.27 2 7 L 1 8 7 13 13 8 M 3 8 Q 3.78 5.420 5.4 6.6 5.20 7.25 5 8 L 7 8 Q 8.39 -0.16 11 8 L 7 11 3 8 Z",joint:"M 7.7 7.7 Q 8 7.45 8 7 8 6.6 7.7 6.3 7.45 6 7 6 6.6 6 6.3 6.3 6 6.6 6 7 6 7.45 6.3 7.7 6.6 8 7 8 7.45 8 7.7 7.7 M 3.35 8.65 L 1 11 3 13 5.35 10.65 Q 6.1 11 7 11 8.28 11 9.25 10.25 L 7.8 8.8 Q 7.45 9 7 9 6.15 9 5.55 8.4 5 7.85 5 7 5 6.54 5.15 6.15 L 3.7 4.7 Q 3 5.712 3 7 3 7.9 3.35 8.65 M 10.25 9.25 Q 11 8.28 11 7 11 6.1 10.65 5.35 L 13 3 11 1 8.65 3.35 Q 7.9 3 7 3 5.7 3 4.7 3.7 L 6.15 5.15 Q 6.54 5 7 5 7.85 5 8.4 5.55 9 6.15 9 7 9 7.45 8.8 7.8 L 10.25 9.25 Z",ray:"M 9 11 L 5 11 5 12 9 12 9 11 M 12 5 L 11 5 11 9 12 9 12 5 M 11.5 10 Q 10.9 10 10.45 10.45 10 10.9 10 11.5 10 12.2 10.45 12.55 10.9 13 11.5 13 12.2 13 12.55 12.55 13 12.2 13 11.5 13 10.9 12.55 10.45 12.2 10 11.5 10 M 9 10 L 10 9 2 1 1 2 9 10 Z",collision:"M 11 12 L 13 10 10 7 13 4 11 2 7.5 5.5 9 7 7.5 8.5 11 12 M 3 2 L 1 4 4 7 1 10 3 12 8 7 3 2 Z",map:"M 13 1 L 1 1 1 13 13 13 13 1 M 12 2 L 12 7 7 7 7 12 2 12 2 7 7 7 7 2 12 2 Z",material:"M 13 1 L 1 1 1 13 13 13 13 1 M 12 2 L 12 7 7 7 7 12 2 12 2 7 7 7 7 2 12 2 Z",texture:"M 13 4 L 13 1 1 1 1 4 5 4 5 13 9 13 9 4 13 4 Z",object:"M 10 1 L 7 4 4 1 1 1 1 13 4 13 4 5 7 8 10 5 10 13 13 13 13 1 10 1 Z",none:"M 9 5 L 5 5 5 9 9 9 9 5 Z",cursor:"M 4 7 L 1 10 1 12 2 13 4 13 7 10 9 14 14 0 0 5 4 7 Z",load:"M 13 8 L 11.5 6.5 9 9 9 3 5 3 5 9 2.5 6.5 1 8 7 14 13 8 M 9 2 L 9 0 5 0 5 2 9 2 Z",save:"M 9 12 L 5 12 5 14 9 14 9 12 M 11.5 7.5 L 13 6 7 0 1 6 2.5 7.5 5 5 5 11 9 11 9 5 11.5 7.5 Z",extern:"M 14 14 L 14 0 0 0 0 14 14 14 M 12 6 L 12 12 2 12 2 6 12 6 M 12 2 L 12 4 2 4 2 2 12 2 Z"},setDebug(t){i.debug=t},rezone(){i.needReZone=!0},getImput:function(){return!!i.input},setStyle:function(t){for(var s in t)e.colors[s]&&(e.colors[s]=t[s]);e.setText()},defineText:function(t){e.setText(t.fontSize,t.text,t.fontFamily,t.fontShadow,t.fontWeight)},setText:function(t,s,i,h,o){let n=e.colors;void 0===i&&(i=n.fontFamily),void 0===t&&(t=n.fontSize),void 0===h&&(h=n.fontShadow),void 0===o&&(o=n.fontWeight),void 0===s&&(s=n.text),isNaN(t)?-1===t.search("em")&&(t+="px"):t+="px",e.css.txt=e.css.basic+e.css.middle+" font-family:"+i+"; font-weight:"+o+"; font-size:"+t+"; color:"+n.text+"; padding:0px 8px; left:0; top:2px; height:16px; width:100px; overflow:hidden; white-space: nowrap; letter-spacing: normal;","none"!==h&&(e.css.txt+=" text-shadow: 1px 1px 1px "+h+";"),e.css.txtselect=e.css.txt+"padding:0px 4px; border:1px dashed "+n.border+";",e.css.item=e.css.txt+"padding:0px 4px; position:relative; margin-bottom:1px; "},cloneCss:function(){return{...e.css}},clone:function(t){return t.cloneNode(!0)},setSvg:function(t,s,i,e,h){-1===e?t.setAttributeNS(null,s,i):void 0!==h?t.childNodes[e||0].childNodes[h||0].setAttributeNS(null,s,i):t.childNodes[e||0].setAttributeNS(null,s,i)},setCss:function(t,s){for(let i in s)-1!==e.DOM_SIZE.indexOf(i)?t.style[i]=s[i]+"px":t.style[i]=s[i]},set:function(t,s){for(let i in s)"txt"===i&&(t.textContent=s[i]),"link"===i?t.setAttributeNS(e.links,"xlink:href",s[i]):t.setAttributeNS(null,i,s[i])},get:function(t,s){if(void 0===s)return t;if(!isNaN(s))return t.childNodes[s];if(s instanceof Array){if(2===s.length)return t.childNodes[s[0]].childNodes[s[1]];if(3===s.length)return t.childNodes[s[0]].childNodes[s[1]].childNodes[s[2]]}},dom:function(t,s,i,h,o){return t=t||"div",-1!==e.SVG_TYPE_D.indexOf(t)||-1!==e.SVG_TYPE_G.indexOf(t)?"svg"===t?(h=document.createElementNS(e.svgns,"svg"),e.set(h,i)):(void 0===h&&(h=document.createElementNS(e.svgns,"svg")),e.addAttributes(h,t,i,o)):h=void 0===h?document.createElementNS(e.htmls,t):h.appendChild(document.createElementNS(e.htmls,t)),s&&(h.style.cssText=s),void 0===o?h:h.childNodes[o||0]},addAttributes:function(t,s,i,h){let o=document.createElementNS(e.svgns,s);return e.set(o,i),e.get(t,h).appendChild(o),-1!==e.SVG_TYPE_G.indexOf(s)&&(o.style.pointerEvents="none"),o},clear:function(t){for(e.purge(t);t.firstChild;)t.firstChild.firstChild&&e.clear(t.firstChild),t.removeChild(t.firstChild)},purge:function(t){let s,i,h=t.attributes;if(h)for(s=h.length;s--;)i=h[s].name,"function"==typeof t[i]&&(t[i]=null);if(h=t.childNodes,h)for(s=h.length;s--;)e.purge(t.childNodes[s])},addSVGGlowEffect:function(){if(null!==document.getElementById("UILGlow"))return;let t=e.initUILEffects(),s=e.addAttributes(t,"filter",{id:"UILGlow",x:"-20%",y:"-20%",width:"140%",height:"140%"});e.addAttributes(s,"feGaussianBlur",{in:"SourceGraphic",stdDeviation:"3",result:"uilBlur"});let i=e.addAttributes(s,"feMerge",{});for(let t=0;t<=3;t++)e.addAttributes(i,"feMergeNode",{in:"uilBlur"});e.addAttributes(i,"feMergeNode",{in:"SourceGraphic"})},initUILEffects:function(){let t=document.getElementById("UILSVGEffects");return null===t&&(t=e.dom("svg",void 0,{id:"UILSVGEffects",width:"0",height:"0"}),document.body.appendChild(t)),t},ColorLuma:function(t,s){"n"===t&&(t="#000"),(t=String(t).replace(/[^0-9a-f]/gi,"")).length<6&&(t=t[0]+t[0]+t[1]+t[1]+t[2]+t[2]),s=s||0;let i,e,h="#";for(e=0;e<3;e++)i=parseInt(t.substr(2*e,2),16),i=Math.round(Math.min(Math.max(0,i+i*s),255)).toString(16),h+=("00"+i).substr(i.length);return h},findDeepInver:function(t){return.3*t[0]+.59*t[1]+.11*t[2]<=.6},lerpColor:function(t,s,i){let e={};for(let h=0;h<3;h++)e[h]=t[h]+(s[h]-t[h])*i;return e},hexToHtml:function(t){return"#"+("000000"+(t=void 0===t?0:t).toString(16)).substr(-6)},htmlToHex:function(t){return t.toUpperCase().replace("#","0x")},u255:function(t,s){return parseInt(t.substring(s,s+2),16)/255},u16:function(t,s){return parseInt(t.substring(s,s+1),16)/15},unpack:function(t){return 7==t.length?[e.u255(t,1),e.u255(t,3),e.u255(t,5)]:4==t.length?[e.u16(t,1),e.u16(t,2),e.u16(t,3)]:void 0},p255:function(t){let s=Math.round(255*t).toString(16);return s.length<2&&(s="0"+s),s},pack:function(t){return"#"+e.p255(t[0])+e.p255(t[1])+e.p255(t[2])},htmlRgba:function(t,s){return t=e.unpack(t),"rgba("+Math.round(255*t[0])+","+Math.round(255*t[1])+","+Math.round(255*t[2])+","+s+")"},htmlRgb:function(t,s){return"rgb("+Math.round(255*t[0])+","+Math.round(255*t[1])+","+Math.round(255*t[2])+")"},pad:function(t){return 1==t.length&&(t="0"+t),t},rgbToHex:function(t){let s=Math.round(255*t[0]).toString(16),i=Math.round(255*t[1]).toString(16),h=Math.round(255*t[2]).toString(16);return"#"+e.pad(s)+e.pad(i)+e.pad(h)},hueToRgb:function(t,s,i){return i<0&&(i+=1),i>1&&(i-=1),i<1/6?t+6*(s-t)*i:i<.5?s:i<2/3?t+6*(s-t)*(2/3-i):t},rgbToHsl:function(t){let s=t[0],i=t[1],e=t[2],h=Math.min(s,i,e),o=Math.max(s,i,e),n=o-h,r=0,l=0,a=(h+o)/2;return a>0&&a<1&&(l=n/(a<.5?2*a:2-2*a)),n>0&&(o==s&&o!=i&&(r+=(i-e)/n),o==i&&o!=e&&(r+=2+(e-s)/n),o==e&&o!=s&&(r+=4+(s-i)/n),r/=6),[r,l,a]},hslToRgb:function(t){let s,i,h=t[0],o=t[1],n=t[2];return 0===o?[n,n,n]:(i=n<=.5?n*(o+1):n+o-n*o,s=2*n-i,[e.hueToRgb(s,i,h+.33333),e.hueToRgb(s,i,h),e.hueToRgb(s,i,h-.33333)])},makeGradiant:function(t,s,i,h){e.dom(t,null,s,i,0);let o,n=i.childNodes[0].childNodes.length-1;for(let t=0;t<h.length;t++)o=h[t],e.dom("stop",null,{offset:o[0]+"%","stop-color":o[1],"stop-opacity":o[2]},i,[0,n])},makePad:function(t){let s=256,i=e.dom("svg",e.css.basic+"position:relative;",{viewBox:"0 0 256 "+s,width:s,height:s,preserveAspectRatio:"none"}),o=200,n=28;h.dom("rect","",{x:n,y:n,width:o,height:o,fill:e.colors.back},i),h.dom("rect","",{x:38,y:38,width:180,height:180,fill:e.colors.button},i),h.dom("line","",{x1:38,y1:128,x2:218,y2:128,stroke:e.colors.back,"stroke-width":2},i),h.dom("line","",{x1:128,x2:128,y1:38,y2:218,stroke:e.colors.back,"stroke-width":2},i),h.dom("circle","",{cx:128,cy:128,r:5,stroke:e.colors.text,"stroke-width":5,fill:"none"},i),e.pad2d=i},makeKnob:function(t){let s=128,i=e.dom("svg",e.css.basic+"position:relative;",{viewBox:"0 0 128 "+s,width:s,height:s,preserveAspectRatio:"none"});e.dom("circle","",{cx:64,cy:64,r:34,fill:e.colors.button,stroke:"rgba(0,0,0,0.3)","stroke-width":8},i),e.dom("path","",{d:"",stroke:e.colors.text,"stroke-width":4,fill:"none","stroke-linecap":"round"},i),e.dom("circle","",{cx:64,cy:64,r:41,stroke:"rgba(0,0,0,0.1)","stroke-width":7,fill:"none"},i),e.dom("path","",{d:"",stroke:"rgba(255,255,255,0.3)","stroke-width":2,fill:"none","stroke-linecap":"round","stroke-opacity":.5},i),e.knob=i},makeCircular:function(t){let s=128,i=e.dom("svg",e.css.basic+"position:relative;",{viewBox:"0 0 128 "+s,width:s,height:s,preserveAspectRatio:"none"});e.dom("circle","",{cx:64,cy:64,r:40,stroke:"rgba(0,0,0,0.1)","stroke-width":10,fill:"none"},i),e.dom("path","",{d:"",stroke:e.colors.text,"stroke-width":7,fill:"none","stroke-linecap":"butt"},i),e.circular=i},makeJoystick:function(t){let s,i=128,h=Math.floor(49),o=Math.floor(.6*h),n=e.dom("svg",e.css.basic+"position:relative;",{viewBox:"0 0 128 "+i,width:i,height:i,preserveAspectRatio:"none"});if(e.dom("defs",null,{},n),e.dom("g",null,{},n),0===t){s=[[40,"rgb(0,0,0)",.3],[80,"rgb(0,0,0)",0],[90,"rgb(50,50,50)",.4],[100,"rgb(50,50,50)",0]],e.makeGradiant("radialGradient",{id:"grad",cx:"50%",cy:"50%",r:"50%",fx:"50%",fy:"50%"},n,s),s=[[60,"rgb(0,0,0)",.5],[100,"rgb(0,0,0)",0]],e.makeGradiant("radialGradient",{id:"gradS",cx:"50%",cy:"50%",r:"50%",fx:"50%",fy:"50%"},n,s);let t=["rgb(40,40,40)","rgb(48,48,48)","rgb(30,30,30)"],i=["rgb(1,90,197)","rgb(3,95,207)","rgb(0,65,167)"];s=[[30,t[0],1],[60,t[1],1],[80,t[1],1],[100,t[2],1]],e.makeGradiant("radialGradient",{id:"gradIn",cx:"50%",cy:"50%",r:"50%",fx:"50%",fy:"50%"},n,s),s=[[30,i[0],1],[60,i[1],1],[80,i[1],1],[100,i[2],1]],e.makeGradiant("radialGradient",{id:"gradIn2",cx:"50%",cy:"50%",r:"50%",fx:"50%",fy:"50%"},n,s),e.dom("circle","",{cx:64,cy:64,r:h,fill:"url(#grad)"},n),e.dom("circle","",{cx:69,cy:74,r:o+10,fill:"url(#gradS)"},n),e.dom("circle","",{cx:64,cy:64,r:o,fill:"url(#gradIn)"},n),e.joystick_0=n}else s=[[69,"rgb(0,0,0)",0],[70,"rgb(0,0,0)",.3],[100,"rgb(0,0,0)",0]],e.makeGradiant("radialGradient",{id:"gradX",cx:"50%",cy:"50%",r:"50%",fx:"50%",fy:"50%"},n,s),e.dom("circle","",{cx:64,cy:64,r:h,fill:"none",stroke:"rgba(100,100,100,0.25)","stroke-width":"4"},n),e.dom("circle","",{cx:64,cy:64,r:o+14,fill:"url(#gradX)"},n),e.dom("circle","",{cx:64,cy:64,r:o,fill:"none",stroke:"rgb(100,100,100)","stroke-width":"4"},n),e.joystick_1=n},makeColorRing:function(){let t=256,s=e.dom("svg",e.css.basic+"position:relative;",{viewBox:"0 0 256 "+t,width:t,height:t,preserveAspectRatio:"none"});e.dom("defs",null,{},s),e.dom("g",null,{},s);let i,h,o,n,r,l,a,c,d,u=128,p=8/113/24*Math.PI,m=0,g=[];for(l=0;l<=24;++l){if(o=l/24,n=o*e.TwoPI,i=.5*(m+n),h=1/Math.cos(.5*(n-m)),r=[Math.sin(m),-Math.cos(m),Math.sin(i)*h,-Math.cos(i)*h,Math.sin(n),-Math.cos(n)],g[1]=e.rgbToHex(e.hslToRgb([o,1,.5])),l>0){for(a=6;a--;)r[a]=(113*r[a]+u).toFixed(2);c=" M"+r[0]+" "+r[1]+" Q"+r[2]+" "+r[3]+" "+r[4]+" "+r[5],d=[[0,g[0],1],[100,g[1],1]],e.makeGradiant("linearGradient",{id:"G"+l,x1:r[0],y1:r[1],x2:r[4],y2:r[5],gradientUnits:"userSpaceOnUse"},s,d),e.dom("path","",{d:c,"stroke-width":30,stroke:"url(#G"+l+")","stroke-linecap":"butt"},s,1)}m=n-p,g[0]=g[1]}d=[[0,"#FFFFFF",1],[50,"#FFFFFF",0],[50,"#000000",0],[100,"#000000",1]],e.makeGradiant("linearGradient",{id:"GL0",x1:0,y1:u-84.9,x2:0,y2:212.9,gradientUnits:"userSpaceOnUse"},s,d),d=[[0,"#7f7f7f",1],[50,"#7f7f7f",.5],[100,"#7f7f7f",0]],e.makeGradiant("linearGradient",{id:"GL1",x1:78.95,y1:0,x2:226,y2:0,gradientUnits:"userSpaceOnUse"},s,d),e.dom("g",null,{"transform-origin":"128px 128px",transform:"rotate(0)"},s),e.dom("polygon","",{points:"78.95 43.1 78.95 212.85 226 128",fill:"red"},s,2),e.dom("polygon","",{points:"78.95 43.1 78.95 212.85 226 128",fill:"url(#GL1)","stroke-width":1,stroke:"url(#GL1)"},s,2),e.dom("polygon","",{points:"78.95 43.1 78.95 212.85 226 128",fill:"url(#GL0)","stroke-width":1,stroke:"url(#GL0)"},s,2),e.dom("path","",{d:"M 255.75 136.5 Q 256 132.3 256 128 256 123.7 255.75 119.5 L 241 128 255.75 136.5 Z",fill:"none","stroke-width":2,stroke:"#000"},s,2),e.dom("circle","",{cx:128,cy:128,r:6,"stroke-width":2,stroke:"#000",fill:"none"},s),e.colorRing=s},icon:function(t,s,i){i=i||40;let h=["<svg xmlns='"+e.svgns+"' version='1.1' xmlns:xlink='"+e.htmls+"' style='pointer-events:none;' preserveAspectRatio='xMinYMax meet' x='0px' y='0px' width='"+i+"px' height='"+i+"px' viewBox='0 0 256 256'><g>"];switch(t){case"logo":h[1]="<path id='logoin' fill='"+s+"' stroke='none' d='"+e.logoFill_d+"'/>";break;case"donate":h[1]="<path id='logoin' fill='"+s+"' stroke='none' d='"+e.logo_donate+"'/>";break;case"neo":h[1]="<path id='logoin' fill='"+s+"' stroke='none' d='"+e.logo_neo+"'/>";break;case"phy":h[1]="<path id='logoin' stroke='"+s+"' stroke-width='49' stroke-linejoin='round' stroke-linecap='butt' fill='none' d='"+e.logo_phy+"'/>";break;case"config":h[1]="<path id='logoin' stroke='"+s+"' stroke-width='49' stroke-linejoin='round' stroke-linecap='butt' fill='none' d='"+e.logo_config+"'/>";break;case"github":h[1]="<path id='logoin' fill='"+s+"' stroke='none' d='"+e.logo_github+"'/>";break;case"save":h[1]="<path stroke='"+s+"' stroke-width='4' stroke-linejoin='round' stroke-linecap='round' fill='none' d='M 26.125 17 L 20 22.95 14.05 17 M 20 9.95 L 20 22.95'/><path stroke='"+s,h[1]+="' stroke-width='2.5' stroke-linejoin='round' stroke-linecap='round' fill='none' d='M 32.6 23 L 32.6 25.5 Q 32.6 28.5 29.6 28.5 L 10.6 28.5 Q 7.6 28.5 7.6 25.5 L 7.6 23'/>"}return h[2]="</g></svg>",h.join("\n")},logoFill_d:"\n    M 171 150.75 L 171 33.25 155.5 33.25 155.5 150.75 Q 155.5 162.2 147.45 170.2 139.45 178.25 128 178.25 116.6 178.25 108.55 170.2 100.5 162.2 100.5 150.75 \n    L 100.5 33.25 85 33.25 85 150.75 Q 85 168.65 97.55 181.15 110.15 193.75 128 193.75 145.9 193.75 158.4 181.15 171 168.65 171 150.75 \n    M 200 33.25 L 184 33.25 184 150.8 Q 184 174.1 167.6 190.4 151.3 206.8 128 206.8 104.75 206.8 88.3 190.4 72 174.1 72 150.8 L 72 33.25 56 33.25 56 150.75 \n    Q 56 180.55 77.05 201.6 98.2 222.75 128 222.75 157.8 222.75 178.9 201.6 200 180.55 200 150.75 L 200 33.25 Z\n    ",logo_github:"\n    M 180.5 70 Q 186.3 82.4 181.55 96.55 196.5 111.5 189.7 140.65 183.65 168.35 146 172.7 152.5 178.7 152.55 185.9 L 152.55 218.15 Q 152.84 224.56 159.15 223.3 \n    159.21 223.3 159.25 223.3 181.14 216.25 198.7 198.7 228 169.4 228 128 228 86.6 198.7 57.3 169.4 28 128 28 86.6 28 57.3 57.3 28 86.6 28 128 28 169.4 57.3 198.7 74.85 \n    216.25 96.75 223.3 96.78 223.3 96.8 223.3 103.16 224.54 103.45 218.15 L 103.45 200 Q 82.97 203.1 75.1 196.35 69.85 191.65 68.4 185.45 64.27 177.055 59.4 174.15 49.20 \n    166.87 60.8 167.8 69.85 169.61 75.7 180 81.13 188.09 90 188.55 98.18 188.86 103.45 185.9 103.49 178.67 110 172.7 72.33 168.33 66.3 140.65 59.48 111.49 74.45 96.55 69.7 \n    82.41 75.5 70 84.87 68.74 103.15 80 115.125 76.635 128 76.85 140.85 76.65 152.85 80 171.1 68.75 180.5 70 Z\n    ",logo_neo:"\n    M 219 52 L 206 52 206 166 Q 206 183.4 193.75 195.65 181.4 208 164 208 146.6 208 134.35 195.65 122 183.4 122 166 L 122 90 Q 122 77.6 113.15 68.85 104.4 60 92 60 79.55 \n    60 70.75 68.85 62 77.6 62 90 L 62 204 75 204 75 90 Q 75 83 79.95 78 84.95 73 92 73 99 73 104 78 109 83 109 90 L 109 166 Q 109 188.8 125.15 204.85 141.2 221 164 221 \n    186.75 221 202.95 204.85 219 188.8 219 166 L 219 52 M 194 52 L 181 52 181 166 Q 181 173 176.05 178 171.05 183 164 183 157 183 152 178 147 173 147 166 L 147 90 Q 147 \n    67.2 130.85 51.15 114.8 35 92 35 69.25 35 53.05 51.15 37 67.2 37 90 L 37 204 50 204 50 90 Q 50 72.6 62.25 60.35 74.6 48 92 48 109.4 48 121.65 60.35 134 72.6 134 90 L \n    134 166 Q 134 178.4 142.85 187.15 151.6 196 164 196 176.45 196 185.25 187.15 194 178.4 194 166 L 194 52 Z\n    ",logo_phy:"\n    M 103.55 37.95 L 127.95 37.95 Q 162.35 37.95 186.5 55 210.9 72.35 210.9 96.5 210.9 120.65 186.5 137.7 162.35 155 127.95 155 L 127.95 237.95 M 127.95 155 \n    Q 93.55 155 69.15 137.7 45 120.65 45 96.5 45 72.35 69.15 55 70.9 53.8 72.85 52.85 M 127.95 155 L 127.95 37.95\n    ",logo_config:"\n    M 204.35 51.65 L 173.25 82.75 Q 192 101.5 192 128 L 236 128 M 192 128 Q 192 154.55 173.25 173.25 L 204.4 204.4 M 51.65 51.65 L 82.75 82.75 Q 101.5 64 128 64 \n    L 128 20 M 51.6 204.4 L 82.75 173.25 Q 64 154.55 64 128 L 20 128 M 128 236 L 128 192 Q 101.5 192 82.75 173.25 M 64 128 Q 64 101.5 82.75 82.75 M 173.25 173.25 \n    Q 154.55 192 128 192 M 128 64 Q 154.55 64 173.25 82.75\n    ",logo_donate:"\n    M 171.3 80.3 Q 179.5 62.15 171.3 45.8 164.1 32.5 141.35 30.1 L 94.35 30.1 Q 89.35 30.4 88.3 35.15 L 70.5 148.05 Q 70.2 152.5 73.7 152.6 L 100.95 152.6 107 111.6 Q 108.75 \n    106.55 112.6 106.45 130.45 108.05 145.3 103.9 163.35 98.75 171.3 80.3 M 179.8 71.5 Q 178.6 79.75 174.9 87.85 168.45 102.9 151.9 109.15 140.65 113.95 117.55 113 113.15 \n    112.75 111 117.45 L 102.7 169.95 Q 102.45 173.8 105.5 173.85 L 128.95 173.85 Q 132.2 174.2 133.35 169.65 L 138.3 139.95 Q 139.75 135.6 143.1 135.5 146.6 135.75 150.6 135.65 \n    154.55 135.5 157.35 135.1 160.15 134.7 166.75 132.35 181.35 127.4 187.9 111.2 194.25 95.75 189.5 81.95 186.75 74.85 179.8 71.5 M 103.5 209.9 Q 103.5 202.85 99.7 198.85 95.95 \n    194.75 89.4 194.75 82.8 194.75 79.05 198.85 75.3 202.9 75.3 209.9 75.3 216.85 79.05 220.95 82.8 225.05 89.4 225.05 95.95 225.05 99.7 221 103.5 216.95 103.5 209.9 M 95.45 205.5 \n    Q 95.95 207.3 95.95 209.9 95.95 212.65 95.45 214.35 94.95 216 94 217.3 93.1 218.45 91.9 219 90.7 219.55 89.4 219.55 88.15 219.55 86.95 219.05 85.75 218.55 84.8 217.3 83.9 216.15 \n    83.4 214.35 82.85 212.6 82.85 209.9 82.85 207.3 83.4 205.45 83.95 203.55 84.85 202.45 85.9 201.2 86.95 200.75 88.05 200.25 89.4 200.25 90.7 200.25 91.85 200.8 93.05 201.3 94 202.5 \n    94.9 203.65 95.45 205.5 M 153.3 195.35 L 145.3 195.35 135.5 224.45 142.8 224.45 144.6 218.5 153.75 218.5 155.6 224.45 163.1 224.45 153.3 195.35 M 152.15 213.25 L 146.25 213.25 \n    149.2 203.65 152.15 213.25 M 116.75 195.35 L 107.8 195.35 107.8 224.45 114.5 224.45 114.5 204.2 125.7 224.45 132.75 224.45 132.75 195.35 126.05 195.35 126.05 212.05 116.75 195.35 M \n    66.5 197.65 Q 64.15 196.15 61.45 195.75 58.8 195.35 55.75 195.35 L 46.7 195.35 46.7 224.45 55.8 224.45 Q 58.8 224.45 61.5 224.05 64.15 223.6 66.4 222.15 69.15 220.45 70.9 217.2 \n    72.7 214 72.7 209.95 72.7 205.7 71 202.6 69.35 199.5 66.5 197.65 M 64.2 205 Q 65.2 207 65.2 209.9 65.2 212.75 64.25 214.75 63.3 216.75 61.5 217.85 60 218.85 58.3 218.9 56.6 219 \n    54.15 219 L 54 219 54 200.8 54.15 200.8 Q 56.4 200.8 58.05 200.9 59.7 200.95 61.15 201.75 63.2 202.95 64.2 205 M 210.2 195.35 L 190.5 195.35 190.5 224.45 210.2 224.45 210.2 218.9 \n    197.75 218.9 197.75 211.55 209.2 211.55 209.2 206 197.75 206 197.75 200.9 210.2 200.9 210.2 195.35 M 187.5 195.35 L 163 195.35 163 200.9 171.6 200.9 171.6 224.45 178.9 224.45 178.9 \n    200.9 187.5 200.9 187.5 195.35 Z\n    "};e.setText();const h=e;class o{static autoTypes(t){let s=[];switch(t){case"svg":s=[{accept:{"image/svg+xml":".svg"}}];break;case"wav":s=[{accept:{"audio/wav":".wav"}}];break;case"mp3":s=[{accept:{"audio/mpeg":".mp3"}}];break;case"mp4":s=[{accept:{"video/mp4":".mp4"}}];break;case"bin":case"hex":s=[{description:"Binary Files",accept:{"application/octet-stream":[".bin",".hex"]}}];break;case"text":s=[{description:"Text Files",accept:{"text/plain":[".txt",".text"],"text/html":[".html",".htm"]}}];break;case"json":s=[{description:"JSON Files",accept:{"application/json":[".json"]}}];break;case"js":s=[{description:"JavaScript Files",accept:{"text/javascript":[".js"]}}];break;case"ktx2":s=[{description:"ktx2",accept:{"image/ktx2":[".ktx2"]}}];break;case"image":s=[{description:"Images",accept:{"image/*":[".png",".gif",".jpeg",".jpg",".hdr",".exr"]}}];break;case"gif":s=[{description:"Images",accept:{"image/*":[".gif"]}}];break;case"png":s=[{description:"Images",accept:{"image/*":[".png"]}}];break;case"exr":s=[{description:"Images",accept:{"image/exr":[".exr"]}}];break;case"hdr":s=[{description:"Images",accept:{"image/hdr":[".hdr"]}}];break;case"jpg":s=[{description:"Images",accept:{"image/*":[".jpg",".jpeg"]}}];break;case"icon":s=[{description:"Icons",accept:{"image/x-ico":[".ico"]}}];break;case"lut":s=[{description:"Lut",accept:{"text/plain":[".cube",".3dl"]}}]}return s}static async load(t={}){"function"!=typeof window.showOpenFilePicker&&(window.showOpenFilePicker=o.showOpenFilePickerPolyfill);try{let s=t.type||"";const i={excludeAcceptAllOption:!!s,multiple:!1};i.types=o.autoTypes(s);const e=await window.showOpenFilePicker(i),h=await e[0].getFile();if(!h)return null;let n=h.name,r=n.substring(n.lastIndexOf(".")+1,n.length);const l=["png","jpg","jpeg","mp4","webm","ogg","mp3"],a=["sea","z","hex","bvh","BVH","glb","gltf","exr","ktx2","hdr"],c=new FileReader;"ArrayBuffer"===t.forceType?(c.readAsArrayBuffer(h),s=""):-1!==l.indexOf(r)?c.readAsDataURL(h):-1!==a.indexOf(r)?c.readAsArrayBuffer(h):c.readAsText(h),c.onload=function(i){let e=i.target.result;switch(s){case"image":let s=new Image;s.onload=function(){s.width=s.width,s.height=s.height,t.callback&&t.callback(s,n,r,[s.width,s.height])},s.src=e;break;case"json":t.callback&&t.callback(JSON.parse(e),n,r);break;default:t.callback&&t.callback(e,n,r)}}}catch(s){console.log(s),t.always&&t.callback&&t.callback(null)}}static showOpenFilePickerPolyfill(t){return new Promise((s=>{const i=document.createElement("input");i.type="file",i.multiple=t.multiple,i.accept=t.types.map((t=>t.accept)).flatMap((t=>Object.keys(t).flatMap((s=>t[s])))).join(","),i.addEventListener("change",(()=>{s([...i.files].map((t=>({getFile:async()=>new Promise((s=>{s(t)}))}))))})),i.click()}))}static async save(t={}){let s=!1;"function"!=typeof window.showSaveFilePicker&&(window.showSaveFilePicker=o.showSaveFilePickerPolyfill,s=!0);try{let i=t.type||"";const e={suggestedName:t.name||"hello",data:t.data||""};e.types=o.autoTypes(i),e.finalType=Object.keys(e.types[0].accept)[0],e.suggestedName+=e.types[0].accept[e.finalType][0];const h=await window.showSaveFilePicker(e);if(s)return;const n=await h.createWritable();let r=new Blob([e.data],{type:e.finalType});await n.write(r),await n.close()}catch(t){console.log(t)}}static showSaveFilePickerPolyfill(t){return new Promise((s=>{const i=document.createElement("a");i.download=t.suggestedName||"my-file.txt";let e=new Blob([t.data],{type:t.finalType});i.href=URL.createObjectURL(e),i.addEventListener("click",(()=>{s(setTimeout((()=>URL.revokeObjectURL(i.href)),1e3))})),i.click()}))}static async getFolder(){try{const t=await window.showDirectoryPicker(),s=[];for await(const i of t.values()){const t=await i.getFile();s.push(t)}return console.log(s),s}catch(t){console.log(t)}}}class n{constructor(t=0,s=0){this.x=t,this.y=s}set(t,s){return this.x=t,this.y=s,this}divide(t){return this.x/=t.x,this.y/=t.y,this}multiply(t){return this.x*=t.x,this.y*=t.y,this}multiplyScalar(t){return this.x*=t,this.y*=t,this}divideScalar(t){return this.multiplyScalar(1/t)}length(){return Math.sqrt(this.x*this.x+this.y*this.y)}angle(){var t=Math.atan2(this.y,this.x);return t<0&&(t+=2*Math.PI),t}addScalar(t){return this.x+=t,this.y+=t,this}negate(){return this.x*=-1,this.y*=-1,this}neg(){return this.x=-1,this.y=-1,this}isZero(){return 0===this.x&&0===this.y}copy(t){return this.x=t.x,this.y=t.y,this}equals(t){return t.x===this.x&&t.y===this.y}nearEquals(t,s){return t.x.toFixed(s)===this.x.toFixed(s)&&t.y.toFixed(s)===this.y.toFixed(s)}lerp(t,s){return null===t?(this.x-=this.x*s,this.y-=this.y*s):(this.x+=(t.x-this.x)*s,this.y+=(t.y-this.y)*s),this}}class r{constructor(t={}){this.lock=t.lock||!1,this.neverlock=!1,this.isSpace=t.isSpace||!1,this.main=t.main||null,this.isUI=t.isUI||!1,this.group=t.group||null,this.isListen=!1,this.top=0,this.ytop=0,this.dx=t.dx||0,this.isSelectable=void 0!==t.selectable&&t.selectable,this.unselectable=void 0!==t.unselect?t.unselect:this.isSelectable,this.ontop=!!t.ontop&&t.ontop,this.css=this.main?this.main.css:h.css,this.colors=h.defineColor(t,this.main?this.group?this.group.colors:this.main.colors:h.colors),this.overEffect=this.colors.showOver,this.svgs=h.svgs,this.zone={x:0,y:0,w:0,h:0,d:0},this.local=(new n).neg(),this.isCanvasOnly=!1,this.isSelect=!1,this.p=void 0!==t.p?t.p:h.size.p,this.w=this.isUI?this.main.size.w:h.size.w,void 0!==t.w&&(this.w=t.w),this.h=this.isUI?this.main.size.h:h.size.h,void 0!==t.h&&(this.h=t.h),this.isSpace?this.lock=!0:this.h=this.h<11?11:this.h,this.fw=t.fw||0,this.autoWidth=t.auto||!0,this.isOpen=!1,this.radius=t.radius||this.colors.radius,this.transition=t.transition||h.transition,this.isNumber=!1,this.noNeg=t.noNeg||!1,this.allEqual=t.allEqual||!1,this.mono=!1,this.isEdit=!1,this.simple=t.simple||!1,this.simple&&(this.sa=0),this.setSize(this.w),void 0!==t.sa&&(this.sa=t.sa),void 0!==t.sb&&(this.sb=t.sb),this.simple&&(this.sb=this.w-this.sa),this.sc=void 0===t.sc?47:t.sc,this.objectLink=null,this.isSend=!1,this.objectKey=null,this.txt=t.name||"",this.name=t.rename||this.txt,this.target=t.target||null,this.callback=void 0===t.callback?null:t.callback,this.endCallback=null,this.openCallback=void 0===t.openCallback?null:t.openCallback,this.closeCallback=void 0===t.closeCallback?null:t.closeCallback,null===this.callback&&this.isUI&&null!==this.main.callback&&(this.callback=this.group?this.group.callback:this.main.callback),this.c=[],this.s=[],this.useFlex=!!this.isUI&&this.main.useFlex;let s=this.useFlex?"display:flex; justify-content:center; align-items:center; text-align:center; flex: 1 100%;":"float:left;";this.c[0]=h.dom("div",this.css.basic+s+"position:relative; height:20px;"),this.s[0]=this.c[0].style,this.margin=this.colors.sy,this.mtop=0;let i=h.isDivid(this.margin);if(this.isUI&&this.margin&&(this.s[0].boxSizing="content-box",i?(this.mtop=.5*this.margin,this.s[0].borderTop=this.mtop+"px solid transparent",this.s[0].borderBottom=this.mtop+"px solid transparent"):this.s[0].borderBottom=NaN),this.simple||(this.c[1]=h.dom("div",this.css.txt+this.css.middle),this.s[1]=this.c[1].style,this.c[1].textContent=this.name,this.s[1].color=this.lock?this.colors.titleoff:this.colors.title),t.pos){this.s[0].position="absolute";for(let s in t.pos)this.s[0][s]=t.pos[s];this.mono=!0}t.css&&(this.s[0].cssText=t.css)}init(){this.ytop=this.top+this.mtop,this.zone.h=this.h+this.margin,this.zone.w=this.w;let t=this.s,s=this.c;t[0].height=this.h+"px",this.isUI&&(t[0].background=this.colors.background),!this.autoWidth&&this.useFlex?(t[0].flex="1 0 auto",t[0].minWidth=this.minw+"px",t[0].textAlign="center"):this.isUI&&(t[0].width="100%"),void 0!==s[1]&&this.autoWidth&&(t[1]=s[1].style,t[1].top="1px",t[1].height=this.h-2+"px");let e=h.frag;for(let i=1,h=s.length;i!==h;i++)void 0!==s[i]&&(e.appendChild(s[i]),t[i]=s[i].style);let o=null!==this.target?this.target:this.isUI?this.main.inner:document.body;this.ontop?o.insertAdjacentElement("afterbegin",s[0]):o.appendChild(s[0]),s[0].appendChild(e),this.rSize(),this.isUI||(this.c[0].style.pointerEvents="auto",i.add(this))}addTransition(){this.baseH&&this.transition&&this.isUI&&(this.c[0].style.transition="height "+this.transition+"s ease-out")}dom(t,s,i,e,o){return h.dom(t,s,i,e,o)}setSvg(t,s,i,e,o){h.setSvg(t,s,i,e,o)}setCss(t,s){h.setCss(t,s)}clamp(t,s,i){return h.clamp(t,s,i)}getColorRing(){return h.colorRing||h.makeColorRing(),h.clone(h.colorRing)}getJoystick(t){return h["joystick_"+t]||h.makeJoystick(t),h.clone(h["joystick_"+t])}getCircular(t){return h.circular||h.makeCircular(t),h.clone(h.circular)}getKnob(t){return h.knob||h.makeKnob(t),h.clone(h.knob)}getPad2d(t){return h.pad2d||h.makePad(t),h.clone(h.pad2d)}cursor(t){i.cursor(t)}update(){}reset(){}appendChild(t){this.c[0].appendChild(t)}content(){return this.c[0]}getDom(){return this.c[0]}uiout(){this.lock||this.overEffect&&(this.isGroup||this.isTitle||this.s&&(this.s[0].background=this.colors.background))}uiover(){this.lock||this.overEffect&&(this.isGroup||this.isTitle||this.s&&(this.s[0].background=this.colors.backgroundOver))}rename(t){void 0!==this.c[1]&&(this.c[1].textContent=t)}listen(){return this.isListen=i.addListen(this),this}listening(){null!==this.objectLink&&(this.isSend||this.isEdit||this.setValue(this.objectLink[this.objectKey]))}setValue(t){this.isNumber?this.value=this.numValue(t):this.value=t,this.update()}onChange(t){if(!this.isSpace)return this.callback=t||null,this}onFinishChange(t){if(!this.isSpace)return this.callback=null,this.endCallback=t,this}onOpen(t){return this.openCallback=t,this}onClose(t){return this.closeCallback=t,this}send(t){(t=t||this.value)instanceof Array&&1===t.length&&(t=t[0]),this.isSend=!0,null!==this.objectLink&&(this.objectLink[this.objectKey]&&this.objectLink[this.objectKey].isColor?this.objectLink[this.objectKey].setHex(t):this.objectLink[this.objectKey]=t),this.callback&&this.callback(t,this.objectKey),this.isSend=!1}sendEnd(t){(t=t||this.value)instanceof Array&&1===t.length&&(t=t[0]),this.endCallback&&this.endCallback(t),null!==this.objectLink&&(this.objectLink[this.objectKey]=t)}dispose(){this.isListen&&i.removeListen(this),h.clear(this.c[0]),null!==this.target?null!==this.group?this.group.clearOne(this):this.target.removeChild(this.c[0]):this.isUI?this.main.clearOne(this):document.body.removeChild(this.c[0]),this.isUI||i.remove(this),this.c=null,this.s=null,this.callback=null,this.target=null,this.isListen=!1}clear(){}getWidth(){let t=i.getWidth(this);t&&(this.w=t)}setSize(t){if(this.autoWidth)if(this.w=t,this.simple)this.sb=this.w-this.sa;else{let t=this.w*(this.p/100);this.sa=Math.floor(t+8),this.sb=Math.floor(this.w-t-16)}}rSize(){this.autoWidth&&(this.isUI||(this.s[0].width=this.w+"px"),this.simple||(this.s[1].width=this.sa+"px"))}setTypeNumber(t){let s;switch(this.isNumber=!0,this.value=0,void 0!==t.value&&("string"==typeof t.value?this.value=1*t.value:this.value=t.value),this.min=void 0===t.min?-1/0:t.min,this.max=void 0===t.max?1/0:t.max,this.precision=void 0===t.precision?2:t.precision,this.precision){case 0:s=1;break;case 1:s=.1;break;case 2:s=.01;break;case 3:s=.001;break;case 4:s=1e-4;break;case 5:s=1e-5;break;case 6:s=1e-6}this.step=void 0===t.step?s:t.step,this.range=this.max-this.min,this.value=this.numValue(this.value)}numValue(t){return this.noNeg&&(t=Math.abs(t)),1*Math.min(this.max,Math.max(this.min,t)).toFixed(this.precision)}handleEvent(t){if(!this.lock)return this.neverlock&&(i.lock=!1),this[t.type]?this[t.type](t):console.error(t.type,"this type of event no existe !")}wheel(t){return!1}mousedown(t){return!1}mousemove(t){return!1}mouseup(t){return!1}keydown(t){return!1}keyup(t){return!1}setReferency(t,s){this.objectLink=t,this.objectKey=s}display(t=!1){this.s[0].visibility=t?"visible":"hidden"}open(){this.isOpen||(this.isOpen=!0,i.needResize=!0,this.openCallback&&this.openCallback())}close(){this.isOpen&&(this.isOpen=!1,i.needResize=!0,this.closeCallback&&this.closeCallback())}needZone(){i.needReZone=!0}rezone(){i.needReZone=!0}select(){}unselect(){}setInput(t){i.setInput(t,this)}upInput(t,s){return i.upInput(t,s)}selected(t){this.isSelect=t||!1}}class l extends r{constructor(t={}){super(t),this.value=t.value||!1,this.model=void 0!==t.mode?t.mode:0,this.onName=t.rename||this.txt,t.onName&&(t.onname=t.onName),t.onname&&(this.onName=t.onname),this.inh=t.inh||Math.floor(.8*this.h),this.inw=t.inw||36;let s=this.colors;if(0===this.model){let t=Math.floor(.5*this.h)-.5*(this.inh-2);this.c[2]=this.dom("div",this.css.basic+"background:"+s.inputBg+"; height:"+(this.inh-2)+"px; width:"+this.inw+"px; top:"+t+"px; border-radius:10px; border:2px solid "+s.back),this.c[3]=this.dom("div",this.css.basic+"height:"+(this.inh-6)+"px; width:16px; top:"+(t+2)+"px; border-radius:10px; background:"+s.button+";")}else this.p=0,void 0!==this.c[1]&&(this.c[1].textContent=""),this.c[2]=this.dom("div",this.css.txt+this.css.button+"top:1px; background:"+s.button+"; height:"+(this.h-2)+"px; border:"+s.borderSize+"px solid "+s.border+"; border-radius:"+this.radius+"px;");this.stat=-1,this.init(),this.update()}mousedown(t){return this.value=!this.value,this.update(!0),this.mousemove(t)}mousemove(t){return this.cursor("pointer"),this.mode(!0)}reset(){return this.cursor(),this.mode()}mode(t){let s,i=!1,e=this.colors,h=this.s,o=this.value;if(s=t?o?4:3:o?2:1,this.stat!==s){if(this.stat=s,0!==this.model){switch(s){case 1:h[2].color=e.text,h[2].background=e.button;break;case 2:h[2].color=e.textSelect,h[2].background=e.select;break;case 3:h[2].color=e.textOver,h[2].background=e.overoff;break;case 4:h[2].color=e.textOver,h[2].background=e.over}this.c[2].innerHTML=o?this.onName:this.name}else{switch(s){case 1:h[2].background=h[2].borderColor=e.backoff,h[3].background=e.button;break;case 2:h[2].background=h[2].borderColor=e.back,h[3].background=e.textOver;break;case 3:h[2].background=h[2].borderColor=e.back,h[3].background=e.overoff;break;case 4:h[2].background=h[2].borderColor=e.backoff,h[3].background=e.textSelect}h[3].marginLeft=o?"17px":"2px",this.c[1].textContent=o?this.onName:this.name}i=!0}return i}update(t){this.mode(),t&&this.send()}rSize(){super.rSize();let t=this.s,s=this.w-10-this.inw;0===this.model?(t[2].left=s+"px",t[3].left=s+"px"):(t[2].left=this.sa+"px",t[2].width=this.sb+"px")}}class a extends r{constructor(t={}){super(t),this.value="",void 0!==t.value&&(this.value=t.value),this.values=t.value||this.txt,t.values&&(this.values=t.values),t.values||t.value||(this.txt=""),this.onName=t.onName||null,this.on=!1,this.bw=t.forceWidth||0,t.bw&&(this.bw=t.bw),this.space=t.space||3,"string"==typeof this.values&&(this.values=[this.values]),this.isDown=!1,this.neverlock=!0,this.res=0,this.lng=this.values.length,this.tmp=[],this.stat=[];let s,i=this.colors;for(let t=0;t<this.lng;t++)s=!1,this.values[t]===this.value&&this.isSelectable&&(s=!0),this.c[t+2]=this.dom("div",this.css.txt+this.css.button+"top:1px; height:"+(this.h-2)+"px; border:"+i.borderSize+"px solid "+i.border+"; border-radius:"+this.radius+"px;"),this.c[t+2].style.background=s?i.select:i.button,this.c[t+2].style.color=s?i.textSelect:i.text,this.c[t+2].innerHTML=this.values[t],this.stat[t]=s?3:1;""===this.txt&&(this.p=0),(t.value||t.values)&&0!==this.p||void 0!==this.c[1]&&(this.c[1].textContent=""),this.init()}onOff(){this.on=!this.on,this.label(this.on?this.onName:this.value)}testZone(t){let s=this.local;if(-1===s.x&&-1===s.y)return-1;let i=this.lng,e=this.tmp;for(;i--;)if(s.x>e[i][0]&&s.x<e[i][2])return i;return-1}mouseup(t){return!!this.isDown&&(this.isDown=!1,-1!==this.res&&(this.value===this.values[this.res]&&this.unselectable?this.value="":this.value=this.values[this.res],null!==this.onName&&this.onOff(),this.send()),this.mousemove(t))}mousedown(t){return!this.isDown&&(this.isDown=!0,this.mousemove(t))}mousemove(t){let s=!1;return this.res=this.testZone(t),-1!==this.res?(this.cursor("pointer"),s=this.modes(this.isDown?3:2,this.res)):s=this.reset(),s}modes(t=1,s=-1){let i,e,h=this.lng,o=!1;for(;h--;)e=t,i=!!this.isSelectable&&this.values[h]===this.value,h===s?i&&2===e&&(e=3):(e=1,i&&(e=4)),o=this.mode(e,h);return o}mode(t,s){let i=!1,e=this.colors,h=this.s,o=s+2;if(this.stat[s]!==t){switch(this.stat[s]=t,t){case 1:h[o].color=e.text,h[o].background=e.button;break;case 2:h[o].color=e.textOver,h[o].background=e.overoff;break;case 3:h[o].color=e.textOver,h[o].background=e.over;break;case 4:h[o].color=e.textSelect,h[o].background=e.select}i=!0}return i}reset(){return this.res=-1,this.cursor(),this.modes()}label(t,s){s=s||2,this.c[s].textContent=t}switchValues(t,s){this.c[t+2].innerHTML=this.values[t]=s}icon(t,s=0,i=2){return this.s[i].padding=s+"px 0px",this.c[i].innerHTML=t,this}rSize(){super.rSize();let t=this.s,s=this.sb,i=this.sa,e=this.lng,h=this.colors.sx,o=(s-h*(e-1))/e;for(this.bw&&(o=this.bw<o?this.bw:o,i=.5*(this.w-(o*e+h*(e-1))));e--;)this.tmp[e]=[i+o*e+h*e,o],this.tmp[e][2]=this.tmp[e][0]+this.tmp[e][1],t[e+2].left=this.tmp[e][0]+"px",t[e+2].width=this.tmp[e][1]+"px"}}class c extends r{constructor(t={}){super(t),this.isCyclic=t.cyclic||!1,this.model=t.stype||0,void 0!==t.mode&&(this.model=t.mode),this.autoWidth=!1,this.minw=this.w,this.diam=t.diam||this.w,this.setTypeNumber(t),this.twoPi=h.TwoPI,this.pi90=h.pi90,this.offset=new n,this.h=t.h||this.w+10,this.c[0].style.width=this.w+"px",this.c[0].style.display="block",void 0!==this.c[1]&&(this.c[1].style.width="100%",this.c[1].style.justifyContent="center",this.top=10,this.h+=10),this.percent=0,this.cmode=0;let s=this.colors;this.c[2]=this.dom("div",this.css.txt+"justify-content:center; top:"+(this.h-20)+"px; width:100%; color:"+s.text),this.c[3]=this.getCircular(),this.setSvg(this.c[3],"stroke",s.back,0),this.setSvg(this.c[3],"d",this.makePath(),1),this.setSvg(this.c[3],"stroke",s.text,1),this.setSvg(this.c[3],"viewBox","0 0 "+this.diam+" "+this.diam),this.setCss(this.c[3],{width:this.diam,height:this.diam,left:0,top:this.top}),this.init(),this.update()}mode(t){if(this.cmode===t)return!1;let s,i=this.colors;switch(t){case 0:this.s[2].color=i.text,this.setSvg(this.c[3],"stroke",i.back,0),s=this.model>0?h.pack(h.lerpColor(h.unpack(h.ColorLuma(i.text,-.75)),h.unpack(i.text),this.percent)):i.text,this.setSvg(this.c[3],"stroke",s,1);break;case 1:this.s[2].color=i.textOver,this.setSvg(this.c[3],"stroke",i.backoff,0),s=this.model>0?h.pack(h.lerpColor(h.unpack(h.ColorLuma(i.text,-.75)),h.unpack(i.text),this.percent)):i.textOver,this.setSvg(this.c[3],"stroke",s,1)}return this.cmode=t,!0}reset(){this.isDown=!1}testZone(t){let s=this.local;return-1===s.x&&-1===s.y?"":s.y<=this.c[1].offsetHeight?"title":s.y>this.h-this.c[2].offsetHeight?"text":"circular"}mouseup(t){return this.isDown=!1,this.sendEnd(),this.mode(0)}mousedown(t){return this.isDown=!0,this.old=this.value,this.oldr=null,this.mousemove(t),this.mode(1)}mousemove(t){if(!this.isDown)return;let s=this.offset;if(s.x=.5*this.w-(t.clientX-this.zone.x),s.y=.5*this.diam-(t.clientY-this.zone.y-this.ytop),this.r=s.angle()-this.pi90,this.r=(this.r%this.twoPi+this.twoPi)%this.twoPi,null!==this.oldr){let t=this.r-this.oldr;this.r=Math.abs(t)>Math.PI?this.oldr:this.r,t>6&&(this.r=0),t<-6&&(this.r=this.twoPi)}let i=1/this.twoPi,e=this.r*i,h=this.range*e+this.min-this.old;(h>=this.step||h<=this.step)&&(h=~~(h/this.step),this.value=this.numValue(this.old+h*this.step),this.update(!0),this.old=this.value,this.oldr=this.r)}wheel(t){if("circular"===this.testZone(t)){let s=this.value-this.step*t.delta;return s>this.max?s=this.isCyclic?this.min:this.max:s<this.min&&(s=this.isCyclic?this.max:this.min),this.setValue(s),this.old=s,this.update(!0),!0}return!1}makePath(){let t=40,s=this.percent*this.twoPi-.001,i=t+t*Math.sin(s)+24,e=t-t*Math.cos(s)+24;return"M 64,24 A 40,40 0 "+(s>Math.PI?1:0)+" 1 "+i+","+e}update(t){if(this.c[2].textContent=this.value,this.percent=(this.value-this.min)/this.range,this.setSvg(this.c[3],"d",this.makePath(),1),this.model>0){let t=this.colors,s=h.pack(h.lerpColor(h.unpack(h.ColorLuma(t.text,-.75)),h.unpack(t.text),this.percent));this.setSvg(this.c[3],"stroke",s,1)}t&&this.send()}}class d extends r{constructor(t={}){super(t),this.ctype=t.ctype||"hex",this.wfixe=256,this.cw=this.sb>256?256:this.sb,null!=t.cw&&(this.cw=t.cw),this.side=t.side||"down",this.up="down"===this.side?0:1,this.baseH=this.h,this.offset=new n,this.decal=new n,this.pp=new n;let s=this.colors;this.c[2]=this.dom("div",`${this.css.txt} ${this.css.middle} top:1px; height:${this.h-2}px; border-radius:${this.radius}px; text-shadow:none; border:${s.borderSize}px solid ${s.border};`),this.c[0].style.display="block",this.c[3]=this.getColorRing(),this.c[3].style.visibility="hidden",this.hsl=null,this.value="#ffffff",void 0!==t.value&&(t.value.isColor?this.value="#"+t.value.getHexString():t.value instanceof Array?this.value=h.rgbToHex(t.value):isNaN(t.value)?this.value=t.value:this.value=h.hexToHtml(t.value)),this.bcolor=null,this.isDown=!1,this.fistDown=!1,this.notext=t.notext||!1,this.tr=98,this.tsl=Math.sqrt(3)*this.tr,this.hue=0,this.d=256,this.init(),this.setColor(this.value),void 0!==t.open&&this.open()}testZone(t,s){let i=this.local;return-1===i.x&&-1===i.y?"":this.up&&this.isOpen?i.y>this.wfixe?"title":"color":i.y<this.baseH+2?"title":this.isOpen?"color":void 0}mouseup(t){this.isDown=!1,this.d=256}mousedown(t){let s=this.testZone(t.clientX,t.clientY);if("title"===s)return this.isOpen?this.close():this.open(),!0;"color"===s&&(this.isDown=!0,this.fistDown=!0,this.mousemove(t))}mousemove(t){let s,i,e,o,n,r,l,a,c,d=this.testZone(t.clientX,t.clientY),u=h;if("title"===d&&this.cursor("pointer"),"color"===d&&(s=this.offset,s.x=t.clientX-(this.zone.x+this.decal.x+this.mid),s.y=t.clientY-(this.zone.y+this.decal.y+this.mid)-this.ytop,i=s.length()*this.ratio,c=s.angle(),c<0&&(c+=2*u.PI),i<128?this.cursor("crosshair"):this.isDown||this.cursor(),this.isDown&&(this.fistDown&&(this.d=i,this.fistDown=!1),this.d<128)))if(this.d>this.tr)e=(c+u.pi90)/u.TwoPI,this.hue=(e+1)%1,this.setHSL([(e+1)%1,this.hsl[1],this.hsl[2]]);else{l=s.x*this.ratio,a=s.y*this.ratio;let t=this.hue*u.TwoPI+u.PI;t<0&&(t+=2*u.PI),r=Math.atan2(-a,l),r<0&&(r+=2*u.PI);let i=(r+u.pi90+u.TwoPI+t)%u.TwoPI,e=i%(2/3*u.PI)-u.pi60,h=.5*this.tr,c=Math.tan(e)*h,d=Math.sqrt(l*l+a*a),p=Math.sqrt(h*h+c*c);if(d>p){let s=Math.tan(e)*d,o=Math.atan(s/p);o>u.pi60?o=u.pi60:o<-u.pi60&&(o=-u.pi60),r+=o-e,i=(r+u.pi90+u.TwoPI+t)%u.TwoPI,e=i%(2/3*u.PI)-u.pi60,c=Math.tan(e)*h,d=p=Math.sqrt(h*h+c*c)}n=Math.sin(i)*d/this.tsl+.5;let m=1-2*Math.abs(n-.5);o=(Math.cos(i)*d+this.tr/2)/(1.5*this.tr)/m,o=u.clamp(o,0,1),this.setHSL([this.hsl[0],o,n])}}setHeight(){this.h=this.isOpen?this.wfixe+this.baseH+5:this.baseH,this.s[0].height=this.h+"px",this.zone.h=this.h}parentHeight(t){null!==this.group?this.group.calc(t):this.isUI&&this.main.calc(t)}open(){super.open(),this.setHeight(),this.up&&(this.zone.y-=this.wfixe+5);let t=this.h-this.baseH;this.s[3].visibility="visible",this.parentHeight(t)}close(){super.close(),this.up&&(this.zone.y+=this.wfixe+5);let t=this.h-this.baseH;this.setHeight(),this.s[3].visibility="hidden",this.parentHeight(-t)}update(t){let s=h.rgbToHex(h.hslToRgb([this.hsl[0],1,.5]));this.moveMarkers(),this.value=this.bcolor,this.setSvg(this.c[3],"fill",s,2,0),this.s[2].background=this.bcolor,this.notext||(this.c[2].textContent=h.htmlToHex(this.bcolor)),this.invert=h.findDeepInver(this.rgb),this.s[2].color=this.invert?"#fff":"#000",t&&("array"===this.ctype&&this.send(this.rgb),"rgb"===this.ctype&&this.send(h.htmlRgb(this.rgb)),"hex"===this.ctype&&this.send(h.htmlToHex(this.value)),"html"===this.ctype&&this.send())}setValue(t){t instanceof Array?this.value=h.rgbToHex(t):isNaN(t)?this.value=t:this.value=h.hexToHtml(t),this.setColor(this.value),this.update()}setColor(t){let s=h.unpack(t);return this.bcolor!==t&&s&&(this.bcolor=t,this.rgb=s,this.hsl=h.rgbToHsl(this.rgb),this.hue=this.hsl[0],this.update()),this}setHSL(t){return this.hsl=t,this.rgb=h.hslToRgb(t),this.bcolor=h.rgbToHex(this.rgb),this.update(!0),this}moveMarkers(){let t=this.pp,s=h;this.invert;let i=this.hsl[0]*s.TwoPI,e=2/3*s.PI,o=this.tr,n=this.hsl[0],r=this.hsl[1],l=this.hsl[2],a=(i-s.pi90)*s.todeg;n=-i+s.pi90;let c=Math.cos(n)*o,d=-Math.sin(n)*o,u=Math.cos(n-e)*o,p=-Math.sin(n-e)*o,m=Math.cos(n+e)*o,g=-Math.sin(n+e)*o,x=(u+m)/2,v=(p+g)/2;i=(1-2*Math.abs(l-.5))*r;let b=u+(m-u)*l+(c-x)*i,f=p+(g-p)*l+(d-v)*i;t.set(b,f).addScalar(128),this.setSvg(this.c[3],"transform","rotate("+a+" )",2),this.setSvg(this.c[3],"cx",t.x,3),this.setSvg(this.c[3],"cy",t.y,3),this.setSvg(this.c[3],"stroke",this.invert?"#fff":"#000",2,3),this.setSvg(this.c[3],"stroke",this.invert?"#fff":"#000",3),this.setSvg(this.c[3],"fill",this.bcolor,3)}rSize(){super.rSize();let t=this.s;t[2].width=this.sb+"px",t[2].left=this.sa+"px",this.cw=this.sb>256?256:this.sb,this.rSizeColor(this.cw),this.decal.x=Math.floor(.5*(this.w-this.wfixe))}rSizeColor(t){if(t===this.wfixe)return;this.wfixe=t;let s=this.s;this.decal.y="up"===this.side?2:this.baseH+2,this.mid=Math.floor(.5*this.wfixe),this.setSvg(this.c[3],"viewBox","0 0 "+this.wfixe+" "+this.wfixe),s[3].width=this.wfixe+"px",s[3].height=this.wfixe+"px",s[3].top=this.decal.y+"px",this.ratio=256/this.wfixe,this.square=1/(this.wfixe/256*60),this.setHeight()}}class u extends r{constructor(t={}){super(t),this.round=Math.round,this.baseH=this.h,this.hplus=t.hplus||50,this.res=t.res||40,this.l=1,this.precision=t.precision||0,this.custom=t.custom||!1,this.names=t.names||["FPS","MS"];let s=t.cc||["220,220,220","255,255,0"];this.adding=t.adding||!1,this.range=t.range||[165,100,100],this.alpha=t.alpha||.25,this.values=[],this.points=[],this.textDisplay=[],this.custom||(this.now=i.getTime(),this.startTime=0,this.prevTime=0,this.frames=0,this.ms=0,this.fps=0,this.mem=0,this.mm=0,this.isMem=!(!self.performance||!self.performance.memory),this.isMem&&(this.names.push("MEM"),s.push("0,255,255")),this.txt=t.name||"Fps");let e=Math.floor(.5*this.h)-3;const h=this.colors;this.c[1].textContent=this.txt,this.c[0].style.cursor="pointer",this.c[0].style.pointerEvents="auto";let o="display:none; left:10px; top:"+this.h+"px; height:"+(this.hplus-8)+"px; box-sizing:border-box; background: rgba(0, 0, 0, 0.2); border:1px solid "+h.border+";";0!==this.radius&&(o+="border-radius:"+this.radius+"px;"),this.c[2]=this.dom("path",this.css.basic+o,{}),this.c[2].setAttribute("viewBox","0 0 "+this.res+" 50"),this.c[2].setAttribute("height","100%"),this.c[2].setAttribute("width","100%"),this.c[2].setAttribute("preserveAspectRatio","none"),this.c[3]=this.dom("path",this.css.basic+"position:absolute; width:6px; height:6px; left:0; top:"+e+"px;",{d:this.svgs.g1,fill:h.text,stroke:"none"}),this.c[4]=this.dom("div",this.css.txt+"position:absolute; left:10px; top:"+(this.h+2)+"px; display:none; width:100%; text-align:center;"),t.bottomLine&&(this.c[4]=this.dom("div",this.css.basic+"width:100%; bottom:0px; height:1px; background: rgba(255, 255, 255, 0.2);")),this.isShow=!1;let n=this.s;n[1].lineHeight=this.h-4,n[1].color=h.text,0!==this.radius&&(n[0].borderRadius=this.radius+"px"),"none"!==this.colors.gborder&&(n[0].border="1px solid "+h.gborder);let r=0;for(r=0;r<this.names.length;r++){let t=[],i=this.res+1;for(;i--;)t.push(50);this.range[r]=1/this.range[r]*49,this.points.push(t),this.values.push(0),this.textDisplay.push("<span style='color:rgb("+s[r]+")'> "+this.names[r]+" ")}for(r=this.names.length;r--;)this.dom("path",null,{fill:"rgba("+s[r]+","+this.alpha+")","stroke-width":1,stroke:"rgba("+s[r]+",1)","vector-effect":"non-scaling-stroke"},this.c[2]);this.init()}mousedown(t){this.isShow?this.close():this.open()}tick(t){this.values=t,this.isShow&&(this.drawGraph(),this.upText())}makePath(t){let s="";s+="M -1 50";for(let i=0;i<this.res+1;i++)s+=" L "+i+" "+t[i];return s+=" L "+(this.res+1)+" 50",s}upText(t){let s=t||this.values,i="";for(let t=0,e=this.names.length;t<e;t++)i+=this.textDisplay[t]+s[t].toFixed(this.precision)+"</span>";this.c[4].innerHTML=i}drawGraph(){let t,s=this.c[2],i=this.names.length,e=0,h=0;for(;i--;)t=this.adding?(this.values[h]+e)*this.range[h]:this.values[h]*this.range[h],this.points[h].shift(),this.points[h].push(50-t),this.setSvg(s,"d",this.makePath(this.points[h]),i+1),e+=this.values[h],h++}open(){super.open(),this.h=this.hplus+this.baseH,this.setSvg(this.c[3],"d",this.svgs.g2),null!==this.group?this.group.calc(this.hplus):this.isUI&&this.main.calc(this.hplus),this.s[0].height=this.h+"px",this.s[2].display="block",this.s[4].display="block",this.isShow=!0,this.custom||i.addListen(this)}close(){super.close(),this.h=this.baseH,this.setSvg(this.c[3],"d",this.svgs.g1),null!==this.group?this.group.calc(-this.hplus):this.isUI&&this.main.calc(-this.hplus),this.s[0].height=this.h+"px",this.s[2].display="none",this.s[4].display="none",this.isShow=!1,this.custom||i.removeListen(this),this.c[4].innerHTML=""}begin(){this.startTime=this.now()}end(){let t=this.now();if(this.ms=t-this.startTime,this.frames++,t>this.prevTime+1e3&&(this.fps=this.round(1e3*this.frames/(t-this.prevTime)),this.prevTime=t,this.frames=0,this.isMem)){let t=performance.memory.usedJSHeapSize,s=performance.memory.jsHeapSizeLimit;this.mem=this.round(954e-9*t),this.mm=t/s}return this.values=[this.fps,this.ms,this.mm],this.drawGraph(),this.upText([this.fps,this.ms,this.mem]),t}listening(){this.custom||(this.startTime=this.end())}rSize(){let t=this.s,s=this.w;t[3].left=this.sa+this.sb-6+"px",t[0].width=s+"px",t[1].width=s+"px",t[2].left="10px",t[2].width=s-20+"px",t[4].width=s-20+"px"}}class p extends r{constructor(t={}){super(t),this.value=void 0!==t.value?t.value:[0,0,0],this.lng=this.value.length,this.precision=void 0!==t.precision?t.precision:2,this.multiplicator=t.multiplicator||1,this.neg=t.neg||!1,this.line=void 0===t.line||t.line,this.autoWidth=void 0===t.autoWidth||t.autoWidth,this.isNumber=!1,this.isDown=!1,this.h=t.h||138,this.rh=this.h-10,this.top=0,this.c[0].style.width=this.w+"px",void 0!==this.c[1]&&(this.c[1].style.width=this.w+"px",this.autoWidth||(this.c[1].style.width="100%",this.c[1].style.justifyContent="center"),this.top=10,this.h+=10),this.gh=this.rh-28,this.gw=this.w-28,this.c[2]=this.dom("div",this.css.txt+"display:block; text-align:center; padding:0px 0px; top:"+(this.h-20)+"px; left:14px; width:"+this.gw+"px;  color:"+this.colors.text),this.c[2].innerHTML=this.valueToHtml();let s=this.dom("svg",this.css.basic,{viewBox:"0 0 "+this.w+" "+this.rh,width:this.w,height:this.rh,preserveAspectRatio:"none"});this.setCss(s,{width:this.w,height:this.rh,left:0,top:this.top}),this.dom("path","",{d:"",stroke:this.colors.text,"stroke-width":2,fill:"none","stroke-linecap":"butt"},s),this.dom("rect","",{x:10,y:10,width:this.gw+8,height:this.gh+8,stroke:"rgba(0,0,0,0.3)","stroke-width":1,fill:"none"},s),this.iw=(this.gw-4*(this.lng-1))/this.lng;let i=[];this.cMode=[],this.v=[];for(let t=0;t<this.lng;t++)i[t]=[14+t*this.iw+4*t,this.iw],i[t][2]=i[t][0]+i[t][1],this.cMode[t]=0,this.neg?this.v[t]=.5*(1+this.value[t]/this.multiplicator):this.v[t]=this.value[t]/this.multiplicator,this.dom("rect","",{x:i[t][0],y:14,width:i[t][1],height:1,fill:this.colors.text,"fill-opacity":.3},s);this.tmp=i,this.c[3]=s,this.init(),void 0!==this.c[1]&&(this.c[1].style.top="0px",this.c[1].style.height="20px",this.s[1].lineHeight="15px"),this.update(!1)}setValue(t){this.value=t,this.lng=this.value.length;for(var s=0;s<this.lng;s++)this.neg?this.v[s]=.5*(1+t[s]/this.multiplicator):this.v[s]=t[s]/this.multiplicator;this.update()}valueToHtml(){let t=this.lng,s=0,i='<table style="width:100%;"><tr>',e="width:"+100/this.lng+"%;";for(;t--;)s===this.lng-1?i+="<td style="+e+">"+this.value[s]+"</td></tr></table>":i+="<td style="+e+">"+this.value[s]+"</td>",s++;return i}updateSVG(){this.line&&this.setSvg(this.c[3],"d",this.makePath(),0);for(let t=0;t<this.lng;t++)this.setSvg(this.c[3],"height",this.v[t]*this.gh,t+2),this.setSvg(this.c[3],"y",this.gh-this.v[t]*this.gh+14,t+2),this.neg?this.value[t]=1*((2*this.v[t]-1)*this.multiplicator).toFixed(this.precision):this.value[t]=1*(this.v[t]*this.multiplicator).toFixed(this.precision);this.c[2].innerHTML=this.valueToHtml()}testZone(t){let s=this.local;if(-1===s.x&&-1===s.y)return"";let i=this.lng,e=this.tmp;if(s.y>this.top&&s.y<this.h-20)for(;i--;)if(s.x>e[i][0]&&s.x<e[i][2])return i;return""}mode(t,s){if(t===this.cMode[s])return!1;let i;switch(t){case 0:i=.3;break;case 1:i=.6;break;case 2:i=1}return this.reset(),this.setSvg(this.c[3],"fill-opacity",i,s+2),this.cMode[s]=t,!0}reset(){let t=!1,s=this.lng;for(;s--;)0!==this.cMode[s]&&(this.cMode[s]=0,this.setSvg(this.c[3],"fill-opacity",.3,s+2),t=!0);return t}mouseup(t){if(this.isDown=!1,-1!==this.current)return this.reset()}mousedown(t){return this.isDown=!0,this.mousemove(t)}mousemove(t){let s=!1,i=this.testZone(t);return""===i?s=this.reset():(s=this.mode(this.isDown?2:1,i),this.isDown&&(this.v[i]=this.clamp(1-(t.clientY-this.zone.y-this.ytop-10)/this.gh,0,1),this.update(!0))),s}update(t){this.updateSVG(),t&&this.send()}makePath(){let t,s,i,e,h,o,n="";for(let r=0;r<this.lng;r++)t=this.gh-this.v[r]*this.gh+14,s=14+r*this.iw+4*r,e=s+.5*this.iw,i=s+this.iw,n+=0===r?"M "+s+" "+t+" T "+e+" "+t:" C "+h+" "+o+","+s+" "+t+","+e+" "+t,r===this.lng-1&&(n+=" T "+i+" "+t),h=i,o=t;return n}rSize(){super.rSize();let t=this.s;void 0!==this.c[1]&&(t[1].width=this.w+"px"),t[3].width=this.w+"px";let s=this.w-28,i=(s-4*(this.lng-1))/this.lng,e=[];t[2].width=s+"px";for(let t=0;t<this.lng;t++)e[t]=[14+t*i+4*t,i],e[t][2]=e[t][0]+e[t][1];this.tmp=e}}class m extends r{constructor(t={}){t.isSpace=!0,t.margin=0,t.h||(t.h=10),super(t),this.init()}}class g extends r{constructor(t={}){super(t),this.isGroup=!0,this.ADD=t.add,this.autoHeight=!0,this.uis=[],this.current=-1,this.proto=null,this.isEmpty=!0,this.decal=t.group?8:0,this.baseH=this.h,this.radius=0;let s=Math.floor(.5*this.h)-3;const i=this.colors;this.useFlex=!0;let e=this.useFlex?"display:flex; flex-flow: row wrap;":"";this.c[2]=this.dom("div",this.css.basic+e+"width:100%; left:0;  overflow:hidden; top:"+this.h+"px"),this.c[3]=this.dom("path",this.css.basic+"position:absolute; width:6px; height:6px; left:0; top:"+s+"px;",{d:this.svgs.g1,fill:i.text,stroke:"none"}),0===this.mtop?this.margin:this.mtop,this.s,this.c[1].name="group",this.c[1].style.color=i.text,this.init(),this.setBG(t.bg),t.open&&this.open()}setBG(t){const s=this.colors,i=this.s;void 0!==t&&(s.groups=t),"none"===s.groups&&(s.groups=s.background),i[0].background=void 0!==t?"none":s.content,i[1].background=void 0!==t?s.groups:s.content,"none"!==s.gborder&&(i[1].border=s.borderSize+"px solid "+s.gborder),0!==this.radius&&(i[1].borderRadius=this.radius+"px",i[2].borderRadius=this.radius+"px")}testZone(t){let s=this.local;if(-1===s.x&&-1===s.y)return"";let i="";return s.y<this.baseH+this.margin?i="title":this.isOpen&&(i="content"),i}clearTarget(){return-1!==this.current&&(this.proto.s&&(this.proto.uiout(),this.proto.reset()),this.proto=null,this.current=-1,this.cursor(),!0)}reset(){this.clearTarget()}handleEvent(t){let s=t.type,e=!1,h=!1,o=this.testZone(t);if(o){switch(o){case"content":i.isMobile&&"mousedown"===s&&this.getNext(t,e),this.proto&&(h=this.proto.handleEvent(t)),i.lock||this.getNext(t,e);break;case"title":this.cursor("pointer"),"mousedown"===s&&(this.isOpen?this.close():this.open())}return this.isDown&&(e=!0),h&&(e=!0),e}}getNext(t,s){let e=i.findTarget(this.uis,t);e!==this.current&&(this.clearTarget(),this.current=e),-1!==e&&(this.proto=this.uis[this.current],this.proto.uiover())}add(){let t=arguments;"object"==typeof t[1]?(t[1].isUI=this.isUI,t[1].target=this.c[2],t[1].main=this.main,t[1].group=this):"string"==typeof arguments[1]&&(void 0===t[2]?[].push.call(t,{isUI:!0,target:this.c[2],main:this.main}):(t[2].isUI=!0,t[2].target=this.c[2],t[2].main=this.main,t[2].group=this));let s=this.ADD.apply(this,t);return s.isGroup&&(s.dx=8),i.forceZone=!0,this.uis.push(s),this.isEmpty=!1,s}remove(t){t.dispose&&t.dispose()}dispose(){this.clear(),this.isUI&&this.main.calc(),super.dispose()}clear(){this.empty()}empty(){this.close();let t,s=this.uis.length;for(;s--;)t=this.uis.pop(),this.c[2].removeChild(t.c[0]),t.clear(!0);this.isEmpty=!0,this.h=this.baseH}clearOne(t){let s=this.uis.indexOf(t);-1!==s&&(this.calc(-(this.uis[s].h+this.margin)),this.c[2].removeChild(this.uis[s].c[0]),this.uis.splice(s,1),0===this.uis.length&&(this.isEmpty=!0,this.close()))}open(){super.open(),this.setSvg(this.c[3],"d",this.svgs.g2),this.rSizeContent();const t=this.s,s=this.colors;t[2].top=this.h+this.mtop+"px",this.radius&&(t[1].borderRadius="0px",t[2].borderRadius="0px",t[1].borderTopLeftRadius=this.radius+"px",t[1].borderTopRightRadius=this.radius+"px",t[2].borderBottomLeftRadius=this.radius+"px",t[2].borderBottomRightRadius=this.radius+"px"),"none"!==s.gborder&&(t[4].borderLeft=s.borderSize+"px solid "+s.gborder,t[4].borderRight=s.borderSize+"px solid "+s.gborder,t[2].border=s.borderSize+"px solid "+s.gborder,t[2].borderTop="none",t[1].borderBottom=s.borderSize+"px solid rgba(0,0,0,0)"),this.parentHeight()}close(){super.close(),this.setSvg(this.c[3],"d",this.svgs.g1),this.h=this.baseH;const t=this.s,s=this.colors;t[0].height=this.h+"px",t[2].top=this.h+this.mtop+"px","none"!==s.gborder&&(t[4].border="none",t[2].border="none",t[1].border=s.borderSize+"px solid "+s.gborder),this.radius&&(t[1].borderRadius=this.radius+"px"),this.parentHeight()}calcUis(){!this.isOpen||this.isEmpty?this.h=this.baseH:this.h=i.calcUis([...this.uis],this.zone,this.zone.y+this.baseH+this.margin,!0)+this.baseH,this.s[0].height=this.h+"px",this.s[2].height=this.h-this.baseH+"px"}parentHeight(t){null!==this.group?this.group.calc(t):this.isUI&&this.main.calc(t)}calc(t){this.isOpen&&(this.isUI?this.main.calc():this.calcUis(),this.s[0].height=this.h+"px",this.s[2].height=this.h+"px")}rSizeContent(){let t=this.uis.length;for(;t--;)this.uis[t].setSize(this.w),this.uis[t].rSize()}rSize(){super.rSize();let t=this.s;this.w=this.w-this.decal,t[3].left=this.sa+this.sb-6+"px",t[1].width=this.w+"px",t[2].width=this.w+"px",t[1].left=this.decal+"px",t[2].left=this.decal+"px",this.isOpen&&this.rSizeContent()}}class x extends r{constructor(t={}){super(t),this.autoWidth=!1,this.value=[0,0],this.minw=this.w,this.diam=t.diam||this.w,this.joyType="analogique",this.model=void 0!==t.mode?t.mode:0,this.precision=t.precision||2,this.multiplicator=t.multiplicator||1,this.pos=new n,this.tmp=new n,this.interval=null,this.c[0].style.display="block",this.haveText=void 0===t.text||t.text,this.distance=.5*this.diam*.25,this.h=t.h||this.w+(this.haveText?10:0),this.c[0].style.width=this.w+"px",void 0!==this.c[1]&&(this.c[1].style.width="100%",this.c[1].style.justifyContent="center",this.top=10,this.h+=10);let s=this.colors;this.c[2]=this.dom("div",this.css.txt+"justify-content:center; top:"+(this.h-20)+"px; width:100%; color:"+s.text),this.c[2].textContent=this.haveText?this.value:"",this.c[3]=this.getJoystick(this.model),this.setSvg(this.c[3],"viewBox","0 0 "+this.diam+" "+this.diam),this.setCss(this.c[3],{width:this.diam,height:this.diam,left:0,top:this.top}),this.mode(0),this.ratio=128/this.w,this.init(),this.update(!1)}mode(t){let s=this.colors;switch(t){case 0:0===this.model?(this.setSvg(this.c[3],"fill","url(#gradIn)",4),this.setSvg(this.c[3],"stroke","#000",4)):(this.setSvg(this.c[3],"stroke",s.joyOut,2),this.setSvg(this.c[3],"stroke",s.joyOut,4),this.setSvg(this.c[3],"fill","none",4));break;case 1:0===this.model?(this.setSvg(this.c[3],"fill","url(#gradIn2)",4),this.setSvg(this.c[3],"stroke","rgba(0,0,0,0)",4)):(this.setSvg(this.c[3],"stroke",s.joyOver,2),this.setSvg(this.c[3],"stroke",s.joySelect,4),this.setSvg(this.c[3],"fill",s.joyOver,4))}}addInterval(){null!==this.interval&&this.stopInterval(),this.pos.isZero()||(this.interval=setInterval(function(){this.update()}.bind(this),10))}stopInterval(){null!==this.interval&&(clearInterval(this.interval),this.interval=null)}reset(){this.addInterval(),this.mode(0)}mouseup(t){this.addInterval(),this.isDown=!1}mousedown(t){this.isDown=!0,this.mousemove(t),this.mode(2)}mousemove(t){if(this.mode(1),!this.isDown)return;if(this.tmp.x=.5*this.w-(t.clientX-this.zone.x),this.tmp.y=.5*this.diam-(t.clientY-this.zone.y-this.ytop),this.tmp.length()>this.distance){let t=Math.atan2(this.tmp.x,this.tmp.y);this.tmp.x=Math.sin(t)*this.distance,this.tmp.y=Math.cos(t)*this.distance}this.pos.copy(this.tmp).divideScalar(this.distance).negate(),this.update()}setValue(t){void 0===t&&(t=[0,0]),this.pos.set(t[0]||0,t[1]||0),this.updateSVG()}update(t){void 0===t&&(t=!0),null!==this.interval&&(this.isDown||(this.pos.lerp(null,.3),this.pos.x=Math.abs(this.pos.x)<.01?0:this.pos.x,this.pos.y=Math.abs(this.pos.y)<.01?0:this.pos.y,this.isUI&&this.main.isCanvas&&this.main.draw())),this.updateSVG(),t&&this.send(),this.pos.isZero()&&this.stopInterval()}updateSVG(){let t=.5*this.diam- -this.pos.x*this.distance,s=.5*this.diam- -this.pos.y*this.distance;if(0===this.model){let i=t+5*this.pos.x+5,e=s+5*this.pos.y+10;this.setSvg(this.c[3],"cx",i*this.ratio,3),this.setSvg(this.c[3],"cy",e*this.ratio,3)}else this.setSvg(this.c[3],"cx",t*this.ratio,3),this.setSvg(this.c[3],"cy",s*this.ratio,3);this.setSvg(this.c[3],"cx",t*this.ratio,4),this.setSvg(this.c[3],"cy",s*this.ratio,4),this.value[0]=1*(this.pos.x*this.multiplicator).toFixed(this.precision),this.value[1]=1*(this.pos.y*this.multiplicator).toFixed(this.precision),this.haveText&&(this.c[2].textContent=this.value)}clear(){this.stopInterval(),super.clear()}}class v extends r{constructor(t={}){super(t),this.isCyclic=t.cyclic||!1,this.model=t.stype||0,void 0!==t.mode&&(this.model=t.mode),this.autoWidth=!1,this.setTypeNumber(t),this.minw=this.w,this.diam=t.diam||this.w,this.mPI=.8*Math.PI,this.toDeg=180/Math.PI,this.cirRange=2*this.mPI,this.offset=new n,this.h=t.h||this.w+10,this.c[0].style.width=this.w+"px",this.c[0].style.display="block",void 0!==this.c[1]&&(this.c[1].style.width="100%",this.c[1].style.justifyContent="center",this.top=10,this.h+=10),this.percent=0,this.cmode=0;let s=this.colors;this.c[2]=this.dom("div",this.css.txt+"justify-content:center; top:"+(this.h-20)+"px; width:100%; color:"+s.text),this.c[3]=this.getKnob(),this.setSvg(this.c[3],"fill",s.button,0),this.setSvg(this.c[3],"stroke",s.text,1),this.setSvg(this.c[3],"stroke",s.text,3),this.setSvg(this.c[3],"d",this.makeGrad(),3),this.setSvg(this.c[3],"viewBox","0 0 "+this.diam+" "+this.diam),this.setCss(this.c[3],{width:this.diam,height:this.diam,left:0,top:this.top}),this.model>0&&(h.dom("path","",{d:"",stroke:s.text,"stroke-width":2,fill:"none","stroke-linecap":"round"},this.c[3]),2==this.model&&(h.addSVGGlowEffect(),this.setSvg(this.c[3],"style",'filter: url("#UILGlow");',4))),this.r=0,this.init(),this.update()}mode(t){let s=this.colors;if(this.cmode===t)return!1;switch(t){case 0:this.s[2].color=s.text,this.setSvg(this.c[3],"fill",s.button,0),this.setSvg(this.c[3],"stroke",s.text,1);break;case 1:this.s[2].color=s.textOver,this.setSvg(this.c[3],"fill",s.select,0),this.setSvg(this.c[3],"stroke",s.textOver,1)}return this.cmode=t,!0}testZone(t){let s=this.local;return-1===s.x&&-1===s.y?"":s.y<=this.c[1].offsetHeight?"title":s.y>this.h-this.c[2].offsetHeight?"text":"knob"}mouseup(t){return this.isDown=!1,this.sendEnd(),this.mode(0)}mousedown(t){return this.isDown=!0,this.old=this.value,this.oldr=null,this.mousemove(t),this.mode(1)}mousemove(t){if(!this.isDown)return;let s=this.offset;s.x=.5*this.w-(t.clientX-this.zone.x),s.y=.5*this.diam-(t.clientY-this.zone.y-this.ytop),this.r=-Math.atan2(s.x,s.y),null!==this.oldr&&(this.r=Math.abs(this.r-this.oldr)>Math.PI?this.oldr:this.r),this.r=this.r>this.mPI?this.mPI:this.r,this.r=this.r<-this.mPI?-this.mPI:this.r;let i=1/this.cirRange,e=(this.r+this.mPI)*i,h=this.range*e+this.min-this.old;(h>=this.step||h<=this.step)&&(h=Math.floor(h/this.step),this.value=this.numValue(this.old+h*this.step),this.update(!0),this.old=this.value,this.oldr=this.r)}wheel(t){if("knob"===this.testZone(t)){let s=this.value-this.step*t.delta;return s>this.max?s=this.isCyclic?this.min:this.max:s<this.min&&(s=this.isCyclic?this.max:this.min),this.setValue(s),this.old=s,this.update(!0),!0}return!1}makeGrad(){let t,s,i,e,h,o,n,r="",l=64,a=Math.PI+this.mPI,c=Math.PI-this.mPI;this.step>5?(s=this.range/this.step,t=(a-c)/s):(t=(a-c)/l*2,s=32);for(let c=0;c<=s;++c)i=a-t*c,e=l+44*Math.sin(i),h=l+44*Math.cos(i),o=l+40*Math.sin(i),n=l+40*Math.cos(i),r+="M"+e+" "+h+" L"+o+" "+n+" ";return r}update(t){this.c[2].textContent=this.value,this.percent=(this.value-this.min)/this.range;let s=Math.PI+this.mPI,i=this.percent*this.cirRange-this.mPI,e=Math.sin(i),o=Math.cos(i),n=25*e+64,r=-25*o+64,l=20*e+64,a=-20*o+64;if(this.setSvg(this.c[3],"d","M "+n+" "+r+" L "+l+" "+a,1),this.model>0){let t=36*Math.sin(s)+64,n=36*Math.cos(s)+64,r=36*e+64,l=-36*o+64,a=i<=Math.PI-this.mPI?0:1;this.setSvg(this.c[3],"d","M "+t+","+n+" A 36,36 1 "+a+" 1 "+r+","+l,4);let c=h.pack(h.lerpColor(h.unpack(h.ColorLuma(this.colors.text,-.75)),h.unpack(this.colors.text),this.percent));this.setSvg(this.c[3],"stroke",c,4)}t&&this.send()}}class b extends r{constructor(t={}){super(t),this.hideCurrent=!1,this.path=t.path||"",this.format=t.format||"",this.isWithImage=""!==this.path,this.preLoadComplete=!1,this.tmpImage={},this.tmpUrl=[],this.m=void 0!==t.m?t.m:5;let s=t.align||"left",i=t.scrollSize||10;this.ss=i+1,this.sMode=0,this.tMode=0,this.listOnly=t.listOnly||!1,this.staticTop=t.staticTop||!1,this.isSelectable=this.listOnly,void 0!==t.select&&(t.selectable=t.select),void 0!==t.selectable&&(this.isSelectable=t.selectable),""===this.txt&&(this.p=0);let e=Math.floor(.5*this.h)-3,h=this.colors;if(this.c[2]=this.dom("div",this.css.basic+"top:0; display:none; border-radius:"+this.radius+"px;"),this.c[3]=this.dom("div",this.css.item+"padding:0px "+this.m+"px; margin-bottom:0px; position:absolute; justify-content:"+s+"; text-align:"+s+"; line-height:"+(this.h-4)+"px; top:1px; background:"+h.button+"; height:"+(this.h-2)+"px; border:1px solid "+h.border+"; border-radius:"+this.radius+"px;"),this.c[4]=this.dom("path",this.css.basic+"position:absolute; width:6px; height:6px; top:"+e+"px;",{d:this.svgs.g1,fill:h.text,stroke:"none"}),this.scrollerBack=this.dom("div",this.css.basic+"right:0px; width:"+i+"px; background:"+h.back+"; display:none;"),this.scroller=this.dom("div",this.css.basic+"right:"+.5*(i-.25*i)+"px; width:"+.25*i+"px; background:"+h.text+"; display:none; "),this.c[3].style.color=h.text,this.list=[],this.refObject=null,t.list)if(t.list instanceof Array)this.list=t.list;else if(t.list instanceof Object){this.refObject=t.list;for(let t in this.refObject)this.list.push(t)}this.items=[],this.prevName="",this.tmpId=0,this.baseH=this.h,this.itemHeight=t.itemHeight||this.h,this.full=t.full||!1,this.py=0,this.ww=this.sb,this.scroll=!1,this.isDown=!1,this.current=null,this.side=t.side||"down",this.up="down"===this.side?0:1,this.up?(this.c[2].style.top="auto",this.c[3].style.top="auto",this.c[4].style.top="auto",this.c[2].style.bottom=this.h-2+"px",this.c[3].style.bottom="1px",this.c[4].style.bottom=e+"px"):this.c[2].style.top=this.baseH+"px",this.listIn=this.dom("div",this.css.basic+"left:0; top:0; width:100%; background:none;"),this.listIn.name="list",this.topList=0,this.c[2].appendChild(this.listIn),this.c[2].appendChild(this.scrollerBack),this.c[2].appendChild(this.scroller),void 0!==t.value?isNaN(t.value)?this.value=t.value:this.value=this.list[t.value]:this.value=this.list[0],this.isOpenOnStart=t.open||!1,this.listOnly&&(this.baseH=5,this.c[3].style.display="none",this.c[4].style.display="none",this.c[2].style.top=this.baseH+"px",this.isOpenOnStart=!0),this.miniCanvas=t.miniCanvas||!1,this.canvasBg=t.canvasBg||"rgba(0,0,0,0)",this.imageSize=t.imageSize||[20,20],this.drag=t.drag||!1,this.dragout=t.dragout||!1,this.dragstart=t.dragstart||null,this.dragend=t.dragend||null,this.setList(this.list),this.init(),this.isWithImage&&this.preloadImage(),this.isOpenOnStart&&this.open(!0),this.baseH+=this.mtop}preloadImage(){this.preLoadComplete=!1,this.tmpImage={};for(let t=0;t<this.list.length;t++)this.tmpUrl.push(this.list[t]);this.loadOne()}nextImg(){null!==this.c&&(this.tmpUrl.shift(),0===this.tmpUrl.length?(this.preLoadComplete=!0,this.addImages()):this.loadOne())}loadOne(){let t=this,s=this.tmpUrl[0],i=document.createElement("img");i.style.cssText="position:absolute; width:"+t.imageSize[0]+"px; height:"+t.imageSize[1]+"px",i.setAttribute("src",this.path+s+this.format),i.addEventListener("load",(function(){t.imageSize[2]=i.width,t.imageSize[3]=i.height,t.tmpImage[s]=i,t.nextImg()}))}testZone(t){let s=this.local;if(-1===s.x&&-1===s.y)return"";if(this.up&&this.isOpen){if(s.y>this.h-this.baseH)return"title";if(this.scroll&&s.x>this.sa+this.sb-this.ss)return"scroll";if(s.x>this.sa)return this.testItems(s.y-this.baseH)}else{if(s.y<this.baseH+2)return"title";if(this.isOpen){if(this.scroll&&s.x>this.sa+this.sb-this.ss)return"scroll";if(s.x>this.sa)return this.testItems(s.y-this.baseH)}}return""}testItems(t){let s,i,e,h="",o=this.items,n=o.length;for(;n--;)if(s=o[n],i=s.posy+this.topList,e=s.posy+this.itemHeight+1+this.topList,t>=i&&t<=e)return h="item"+n,this.modeItem(0),this.current=s,this.modeItem(1),h;return h}modeItem(t){if(!this.current)return;this.current.select&&0===t&&(t=2);let s=this.colors;switch(t){case 0:this.current.style.background=s.back,this.current.style.color=s.text;break;case 1:this.current.style.background=s.over,this.current.style.color=s.textOver;break;case 2:this.current.style.background=s.select,this.current.style.color=s.textSelect}}unSelected(){this.current&&(this.modeItem(0),this.current=null)}selected(){this.current&&(this.resetItems(),this.modeItem(2),this.current.select=!0)}resetItems(){let t=this.items.length;for(;t--;)this.items[t].select=!1,this.items[t].style.background=this.colors.back,this.items[t].style.color=this.colors.text}hideActive(){this.hideCurrent&&(this.current&&(this.tmpId=this.current.id),this.resetHide())}resetHide(){console.log(this.tmpId);let t=this.items.length;for(;t--;)t===this.tmpId?(this.items[t].style.height="0px",this.items[t].posy=-1):(this.items[t].style.height=this.itemHeight+"px",this.items[t].posy=(this.itemHeight+1)*(t-1))}mouseup(t){this.isDown=!1}mousedown(t){let s=this.testZone(t);return!!s&&("scroll"===s?(this.isDown=!0,this.mousemove(t)):"title"===s?(this.modeTitle(2),this.listOnly||(this.hideActive(),this.isOpen?this.close():this.open())):this.current&&(this.value=this.list[this.current.id],this.isSelectable&&this.selected(),this.send(this.value),this.listOnly||(this.close(),this.setTopItem())),!0)}mousemove(t){let s=!1,i=this.testZone(t);if(!i)return s;if("title"===i)this.unSelected(),this.modeTitle(1),this.cursor("pointer");else if("scroll"===i){if(this.cursor("s-resize"),this.modeScroll(1),this.isDown){this.modeScroll(2);let s=this.zone.y+this.baseH-2;this.update(t.clientY-s-.5*this.sh)}}else this.modeTitle(0),this.modeScroll(0),this.cursor("pointer");return i!==this.prevName&&(s=!0),this.prevName=i,s}wheel(t){return"title"!==this.testZone(t)&&(this.py+=10*t.delta,this.update(this.py),!0)}reset(){this.prevName="",this.unSelected(),this.modeTitle(0),this.modeScroll(0)}modeScroll(t){if(t===this.sMode)return;let s=this.scroller.style,i=this.colors;switch(t){case 0:s.background=i.text;break;case 1:case 2:s.background=i.select}this.sMode=t}modeTitle(t){if(t===this.tMode)return;let s=this.s,i=this.colors;switch(t){case 0:s[3].color=i.text,s[3].background=i.button;break;case 1:s[3].color=i.textOver,s[3].background=i.overoff;break;case 2:s[3].color=i.textSelect,s[3].background=i.overoff}this.tMode=t}clearList(){for(;this.listIn.children.length;)this.listIn.removeChild(this.listIn.lastChild);this.items=[]}setList(t){this.clearList(),this.list=t,this.length=this.list.length;let s,e,h=this.hideCurrent?this.length-1:this.length;this.maxItem=this.full?h:5,this.maxItem=h<this.maxItem?h:this.maxItem,this.maxHeight=this.maxItem*(this.itemHeight+1)+2,this.max=h*(this.itemHeight+1)+2,this.ratio=this.maxHeight/this.max,this.sh=this.maxHeight*this.ratio,this.range=this.maxHeight-this.sh,this.c[2].style.height=this.maxHeight+"px",this.scrollerBack.style.height=this.maxHeight+"px",this.scroller.style.height=this.sh+"px",this.max>this.maxHeight&&(this.ww=this.sb-this.ss,this.scroll=!0),this.miniCanvas&&(this.tmpCanvas=document.createElement("canvas"),this.tmpCanvas.width=this.imageSize[0],this.tmpCanvas.height=this.imageSize[1],this.tmpCtx=this.tmpCanvas.getContext("2d"),this.tmpCtx.fillStyle=this.canvasBg,this.tmpCtx.fillRect(0,0,this.imageSize[0],this.imageSize[1]));for(let t=0;t<this.length;t++){if(e=this.list[t],s=this.dom("div",this.css.item+"padding:0px "+(this.m+1)+"px; width:"+this.ww+"px; height:"+this.itemHeight+"px; line-height:"+(this.itemHeight-2)+"px; color:"+this.colors.text+"; background:"+this.colors.back+";"),s.name="item"+t,s.id=t,s.select=!1,s.posy=(this.itemHeight+1)*t,this.listIn.appendChild(s),this.items.push(s),e===this.value&&(this.current=s),this.isWithImage||(s.textContent=e),this.miniCanvas){let t=new Image;t.src=this.tmpCanvas.toDataURL(),t.style.cssText="margin-right:4px;",s.appendChild(t),this.tmpImage[e]=t}this.dragout&&(s.img=this.tmpImage[e],s.style.pointerEvents="auto",s.draggable="true",s.addEventListener("dragstart",this.dragstart||function(){}),s.addEventListener("drag",this.drag||function(){}),s.addEventListener("dragleave",(function(){i.fakeUp()})),s.addEventListener("dragend",this.dragend||function(){}.bind(this)))}this.setTopItem(),this.isSelectable&&this.selected()}drawImage(t,s,i,e,h,o){this.tmpCtx.clearRect(0,0,this.imageSize[0],this.imageSize[1]),this.tmpCtx.drawImage(s,i,e,h,o,0,0,this.imageSize[0],this.imageSize[1]),this.tmpImage[t].src=this.tmpCanvas.toDataURL()}addImages(){let t=this.list.length;for(let s=0;s<t;s++)this.items[s].appendChild(this.tmpImage[this.list[s]]);this.setTopItem()}setValue(t){isNaN(t)?this.value=t:this.value=this.list[t],this.setTopItem()}setTopItem(){if(!this.staticTop){if(this.isWithImage){if(!this.preLoadComplete)return;this.c[3].children.length||(this.canvas=document.createElement("canvas"),this.canvas.width=this.imageSize[0],this.canvas.height=this.imageSize[1],this.canvas.style.cssText="margin-right:4px;",this.ctx=this.canvas.getContext("2d"),this.c[3].style.textAlign="left",this.c[3].style.justifyContent="left",this.c[3].appendChild(this.canvas)),this.tmpImage[this.value],this.ctx.drawImage(this.tmpImage[this.value],0,0,this.imageSize[2],this.imageSize[3],0,0,this.imageSize[0],this.imageSize[1])}else this.c[3].textContent=this.value;this.miniCanvas&&(this.c[3].children.length||(this.canvas=document.createElement("canvas"),this.canvas.width=this.imageSize[0],this.canvas.height=this.imageSize[1],this.canvas.style.cssText="margin-right:4px;",this.ctx=this.canvas.getContext("2d"),this.c[3].style.textAlign="left",this.c[3].style.justifyContent="left",this.c[3].appendChild(this.canvas)),this.ctx.drawImage(this.tmpImage[this.value],0,0))}}update(t){this.scroll&&(t=(t=t<0?0:t)>this.range?this.range:t,this.topList=-Math.floor(t/this.ratio),this.listIn.style.top=this.topList+"px",this.scroller.style.top=Math.floor(t)+"px",this.py=t)}parentHeight(t){null!==this.group?this.group.calc(t):this.isUI&&this.main.calc(t)}open(t){super.open(),this.update(0),this.h=this.maxHeight+this.baseH+5,this.scroll?(this.scroller.style.display="block",this.scrollerBack.style.display="block"):(this.topList=0,this.h=this.baseH+5+this.max,this.scroller.style.display="none",this.scrollerBack.style.display="none"),this.s[0].height=this.h+"px",this.s[2].display="block",this.up?(this.zone.y-=this.h-(this.baseH-10),this.setSvg(this.c[4],"d",this.svgs.g1)):this.setSvg(this.c[4],"d",this.svgs.g2),this.rSizeContent();let s=this.h-this.baseH;this.zone.h=this.h,t||this.parentHeight(s)}close(){super.close(),this.up&&(this.zone.y+=this.h-(this.baseH-10));let t=this.h-this.baseH;this.h=this.baseH,this.s[0].height=this.h+"px",this.s[2].display="none",this.setSvg(this.c[4],"d",this.svgs.g1),this.zone.h=this.h,this.parentHeight(-t)}text(t){this.c[3].textContent=t}rSizeContent(){let t=this.length;for(;t--;)this.listIn.children[t].style.width=this.ww+"px"}rSize(){super.rSize();let t=this.s,s=this.sb,i=this.sa;void 0!==t[2]&&(t[2].width=s+"px",t[2].left=i+"px",t[3].width=s+"px",t[3].left=i+"px",t[4].left=i+s-15+"px",this.ww=s,this.max>this.maxHeight&&(this.ww=s-this.ss),this.isOpen&&this.rSizeContent())}}class f extends r{constructor(t={}){super(t),this.setTypeNumber(t),this.allway=t.allway||!1,this.isDown=!1,this.value=[0],this.multy=1,this.invmulty=1,this.isSingle=!0,this.isAngle=!1,this.isVector=!1,t.isAngle&&(this.isAngle=!0,this.multy=h.torad,this.invmulty=h.todeg),this.isDrag=t.drag||!1,void 0!==t.value&&(isNaN(t.value)?t.value instanceof Array?(this.value=t.value,this.isSingle=!1):t.value instanceof Object&&(this.value=[],void 0!==t.value.x&&(this.value[0]=t.value.x),void 0!==t.value.y&&(this.value[1]=t.value.y),void 0!==t.value.z&&(this.value[2]=t.value.z),void 0!==t.value.w&&(this.value[3]=t.value.w),this.isSingle=!1,this.isVector=!0):this.value=[t.value]),this.lng=this.value.length,this.tmp=[],this.current=-1,this.prev={x:0,y:0,d:0,v:0};let s=this.colors;this.c[2]=this.dom("div",this.css.basic+" background:"+s.select+"; top:4px; width:0px; height:"+(this.h-8)+"px;"),this.cMode=[];let i=this.lng;for(;i--;)this.isAngle&&(this.value[i]=(180*this.value[i]/Math.PI).toFixed(this.precision)),this.c[3+i]=this.dom("div",this.css.txtselect+"top:1px; height:"+(this.h-2)+"px; color:"+s.text+"; background:"+s.back+"; borderColor:"+s.border+"; border-radius:"+this.radius+"px;"),t.center&&(this.c[2+i].style.textAlign="center"),this.c[3+i].textContent=this.value[i],this.c[3+i].style.color=this.colors.text,this.c[3+i].isNum=!0,this.cMode[i]=0;this.selectId=3+this.lng,this.c[this.selectId]=this.dom("div",this.css.txtselect+"position:absolute; top:2px; height:"+(this.h-4)+"px; padding:0px 0px; width:0px; color:"+s.textSelect+"; background:"+s.select+"; border:none; border-radius:0px;"),this.cursorId=4+this.lng,this.c[this.cursorId]=this.dom("div",this.css.basic+"top:2px; height:"+(this.h-4)+"px; width:0px; background:"+s.text+";"),this.init()}testZone(t){let s=this.local;if(-1===s.x&&-1===s.y)return"";let i=this.lng,e=this.tmp;for(;i--;)if(s.x>e[i][0]&&s.x<e[i][2])return i;return""}mousedown(t){let s=this.testZone(t);return!this.isDown&&(this.isDown=!0,""!==s&&(this.current=s,this.prev={x:t.clientX,y:t.clientY,d:0,v:this.isSingle?parseFloat(this.value):parseFloat(this.value[this.current])},this.setInput(this.c[3+this.current])),this.mousemove(t))}mouseup(t){return!!this.isDown&&(this.isDown=!1,this.prev={x:0,y:0,d:0,v:0},this.mousemove(t))}mousemove(t){let s=!1,i=0;if(""===this.testZone(t)?this.cursor():this.isDrag?this.cursor(-1!==this.current?"move":"pointer"):this.cursor("text"),!this.isDrag)return this.isDown&&(i=t.clientX-this.zone.x-3),-1!==this.current&&(i-=this.tmp[this.current][0]),this.upInput(i,this.isDown);if(-1!==this.current){this.prev.d+=t.clientX-this.prev.x-(t.clientY-this.prev.y);let i=this.prev.v+this.prev.d*this.step;this.value[this.current]=this.numValue(i),this.c[3+this.current].textContent=this.value[this.current],this.validate(),this.prev.x=t.clientX,this.prev.y=t.clientY,s=!0}return s}reset(){return!1}setValue(t){this.isVector?(void 0!==t.x&&(this.value[0]=t.x),void 0!==t.y&&(this.value[1]=t.y),void 0!==t.z&&(this.value[2]=t.z),void 0!==t.w&&(this.value[3]=t.w)):this.value=this.isSingle?[t]:t,this.update()}sameStr(t){let s=this.value.length;for(;s--;)this.c[3+s].textContent=t}update(t){let s=this.value.length;for(;s--;)this.value[s]=this.numValue(this.value[s]*this.invmulty),this.c[3+s].textContent=this.value[s];t&&this.send()}send(t){t=t||this.value,this.isSend=!0,null!==this.objectLink&&(this.isVector?this.objectLink[this.objectKey].fromArray(t):this.objectLink[this.objectKey]=t),this.callback&&this.callback(t,this.objectKey),this.isSend=!1}select(t,s,i,e){let h=this.s,o=-1!==this.current?this.tmp[this.current][0]+5:0;h[this.cursorId].width="1px",h[this.cursorId].left=o+t+"px",h[this.selectId].left=o+s+"px",h[this.selectId].width=i+"px",this.c[this.selectId].innerHTML=e}unselect(){let t=this.s;t&&(this.c[this.selectId].innerHTML="",t[this.selectId].width="0px",t[this.cursorId].width="0px")}validate(t){let s=[],i=this.lng;for(this.allway&&(t=!0);i--;){if(isNaN(this.c[3+i].textContent))this.c[3+i].textContent=this.value[i];else{let t=this.numValue(this.c[3+i].textContent);this.c[3+i].textContent=t,this.value[i]=t}s[i]=this.value[i]*this.multy}t&&this.send(this.isSingle?s[0]:s)}rSize(){super.rSize();let t=this.colors.sx,s=t*(this.lng-1),i=(this.sb-s)/this.lng,e=this.s,h=this.lng;for(;h--;)this.tmp[h]=[this.sa+i*h+t*h,i],this.tmp[h][2]=this.tmp[h][0]+this.tmp[h][1],e[3+h].left=this.tmp[h][0]+"px",e[3+h].width=this.tmp[h][1]+"px"}}class w extends r{constructor(t={}){super(t),this.setTypeNumber(t),this.model=void 0!==t.stype?t.stype:2,void 0!==t.mode&&(this.model=t.mode),this.isDown=!1,this.isOver=!1,this.allway=t.allway||!1,this.autoValue=!0,void 0!==t.autoValue&&(this.autoValue=!1),this.isDeg=t.isDeg||!1,this.isCyclic=t.cyclic||!1,this.firstImput=!1;let s=this.colors;if(this.c[2]=this.dom("div",this.css.txtselect+"border:none; background:none; width:47px; color:"+s.text+";"),this.c[3]=this.dom("div",this.css.basic+" top:0; height:"+this.h+"px;"),this.c[4]=this.dom("div",this.css.basic+"background:"+s.back+"; top:2px; height:"+(this.h-4)+"px;"),this.c[5]=this.dom("div",this.css.basic+"left:4px; top:5px; height:"+(this.h-10)+"px; background:"+s.text+";"),this.c[2].isNum=!0,this.c[2].style.height=this.h-2+"px",this.c[2].style.lineHeight=this.h-10+"px",0!==this.model){let t=4,i=4,e=8,h=this.h-6,o=16;2===this.model&&(t=0,i=2,e=4,o=2,h=.5*(this.h-6)),3===this.model&&(this.c[5].style.visible="none"),this.c[4].style.borderRadius=t+"px",this.c[4].style.height=e+"px",this.c[4].style.top=.5*this.h-i+"px",this.c[5].style.borderRadius=.5*t+"px",this.c[5].style.height=i+"px",this.c[5].style.top=.5*this.h-.5*i+"px",this.c[6]=this.dom("div",this.css.basic+"border-radius:"+o+"px; margin-left:"+.5*-h+"px; background:"+s.text+"; left:4px; top:"+.5*(this.h-h)+"px; height:"+h+"px; width:"+h+"px;")}this.init()}testZone(t){let s=this.local;return-1===s.x&&-1===s.y?"":s.x>=this.txl?"text":s.x>=this.sa?"scroll":""}mouseup(t){this.isDown&&(this.isDown=!1)}mousedown(t){let s=this.testZone(t);return!!s&&("scroll"===s&&(this.isDown=!0,this.old=this.value,this.mousemove(t)),!0)}mousemove(t){let s=!1;if("scroll"===this.testZone(t)?(this.mode(1),this.cursor("w-resize")):this.cursor(),this.isDown){let i=(t.clientX-(this.zone.x+this.sa)-3)/this.ww*this.range+this.min-this.old;(i>=this.step||i<=this.step)&&(i=Math.floor(i/this.step),this.value=this.numValue(this.old+i*this.step),this.update(!0),this.old=this.value),s=!0}return s}wheel(t){if("scroll"===this.testZone(t)){let s=this.value-this.step*t.delta;return s>this.max?s=this.isCyclic?this.min:this.max:s<this.min&&(s=this.isCyclic?this.max:this.min),this.setValue(s),this.old=s,this.update(!0),!0}return!1}validate(){let t=this.c[2].textContent;isNaN(t)?this.autoValue&&(this.c[2].textContent=this.value+(this.isDeg?"°":"")):(this.value=this.numValue(t),this.update(!0))}reset(){this.isDown=!1,this.mode(0)}mode(t){let s=this.s,i=this.colors;switch(t){case 0:s[2].color=i.text,s[4].background=i.back,s[5].background=i.text,0!==this.model&&(s[6].background=i.text);break;case 1:s[2].color=i.textOver,s[4].background=i.back,s[5].background=i.textOver,0!==this.model&&(s[6].background=i.textOver)}}update(t){let s=Math.floor(this.ww*((this.value-this.min)/this.range));3!==this.model&&(this.s[5].width=s+"px"),this.s[6]&&(this.s[6].left=this.sa+s+3+"px"),this.autoValue&&(this.c[2].textContent=this.value+(this.isDeg?"°":"")),t&&this.send()}rSize(){super.rSize();let t=this.sb-this.sc;this.ww=t-6;let s=this.sc;!this.isUI&&this.simple||(s=this.sc+10),this.txl=this.w-s+2;let i=this.s;i[2].width=this.sc-6+"px",i[2].left=this.txl+4+"px",i[3].left=this.sa+"px",i[3].width=t+"px",i[4].left=this.sa+"px",i[4].width=t+"px",i[5].left=this.sa+3+"px",this.update()}}class y extends r{constructor(t={}){super(t),this.cmode=0,this.value=void 0!==t.value?t.value:"",this.placeHolder=t.placeHolder||"",this.allway=t.allway||!1,this.editable=void 0===t.edit||t.edit,this.isDown=!1;let s=this.colors;this.c[2]=this.dom("div",this.css.txtselect+"top:1px; height:"+(this.h-2)+"px; color:"+s.text+"; background:"+s.back+"; borderColor:"+s.border+"; border-radius:"+this.radius+"px;"),this.c[2].textContent=this.value,this.c[3]=this.dom("div",this.css.txtselect+"position:absolute; top:2px; height:"+(this.h-4)+"px; padding:0px 0px; width:0px; color:"+s.textSelect+"; background:"+s.select+"; border:none; border-radius:0px;"),this.c[4]=this.dom("div",this.css.basic+"top:2px; height:"+(this.h-4)+"px; width:0px; background:"+s.text+";"),this.c[5]=this.dom("div",this.css.txtselect+"top:1px; height:"+(this.h-2)+"px; border:none; justify-content: center; font-style: italic; color:"+s.border+";"),""===this.value&&(this.c[5].textContent=this.placeHolder),this.init()}testZone(t){let s=this.local;return-1===s.x&&-1===s.y?"":s.x>=this.sa?"text":""}mouseup(t){if(this.editable)return!!this.isDown&&(this.isDown=!1,this.mousemove(t))}mousedown(t){if(!this.editable)return;let s=this.testZone(t);return!this.isDown&&(this.isDown=!0,"text"===s&&this.setInput(this.c[2]),this.mousemove(t))}mousemove(t){if(!this.editable)return;let s=0;return"text"===this.testZone(t)?this.cursor("text"):this.cursor(),this.isDown&&(s=t.clientX-this.zone.x),this.upInput(s-this.sa-3,this.isDown)}update(){this.c[2].textContent=this.value}reset(){this.cursor()}select(t,s,i,e){let h=this.s,o=this.sa+5;h[4].width="1px",h[4].left=o+s+"px",h[3].left=o+s+"px",h[3].width=i+"px",this.c[3].innerHTML=e}unselect(){let t=this.s;t&&(t[3].width="0px",this.c[3].innerHTML="t",t[4].width="0px")}validate(t){this.allway&&(t=!0),this.value=this.c[2].textContent,""!==this.value?this.c[5].textContent="":this.c[5].textContent=this.placeHolder,t&&this.send()}rSize(){super.rSize();let t=this.s;t[2].left=this.sa+"px",t[2].width=this.sb+"px",t[5].left=this.sa+"px",t[5].width=this.sb+"px"}}class k extends r{constructor(t={}){super(t),this.isTitle=!0;let s=t.prefix||"",i=t.color||this.colors.text;this.c[2]=this.dom("div",this.css.txt+"justify-content:right; width:60px; line-height:"+(this.h-8)+"px; color:"+i),31===this.h&&(this.s[0].height=this.h+"px",this.s[1].top="8px",this.c[2].style.top="8px");let e=this.s;e[1].justifyContent=t.align||"left",e[1].fontWeight=t.fontWeight||"bold",e[1].color=t.color||this.colors.text,this.c[1].textContent=this.txt.substring(0,1).toUpperCase()+this.txt.substring(1).replace("-"," "),this.c[2].textContent=s,this.init()}text(t){this.c[1].textContent=t}text2(t){this.c[2].textContent=t}rSize(){super.rSize(),this.s[1].width=this.w+"px",this.s[2].left=this.w+"px"}setColor(t){this.s[1].color=t,this.s[2].color=t}}class S extends r{constructor(t={}){super(t),this.value=t.value||"",this.isDown=!1,this.onActif=t.onActif||function(){};const s=this.colors;this.c[2]=this.dom("div",this.css.txt+this.css.button+" top:1px; background:"+s.button+"; height:"+(this.h-2)+"px; border:"+s.buttonBorder+"; border-radius:15px; width:30px; left:10px;"),this.c[3]=this.dom("div",this.css.txtselect+"height:"+(this.h-4)+"px; background:"+s.inputBg+"; borderColor:"+s.inputBorder+"; border-radius:"+this.radius+"px;"),this.c[3].textContent=this.value;let i=Math.floor(.5*this.h)-7;this.c[4]=this.dom("path",this.css.basic+"position:absolute; width:14px; height:14px; left:5px; top:"+i+"px;",{d:this.svgs.cursor,fill:s.text,stroke:"none"}),this.stat=1,this.isActif=!1,this.init()}testZone(t){let s=this.local;return-1===s.x&&-1===s.y?"":s.x>this.sa&&s.x<this.sa+30?"over":"0"}mouseup(t){return!!this.isDown&&(this.isDown=!1,this.mousemove(t))}mousedown(t){return!!this.testZone(t)&&(this.isDown=!0,this.mousemove(t))}mousemove(t){let s=!1;return"over"===this.testZone(t)?(this.cursor("pointer"),s=this.mode(this.isDown?3:2)):s=this.reset(),s}apply(t){(t=t||"")!==this.value&&(this.value=t,this.c[3].textContent=this.value,this.send()),this.mode(1)}update(){this.mode(3)}mode(t){let s=!1,i=this.colors;if(this.stat!==t){switch(1===t&&(this.isActif=!1),3===t&&(this.isActif?this.isActif=!1:(this.isActif=!0,t=4,this.onActif(this))),2===t&&this.isActif&&(t=4),this.stat=t,t){case 1:this.s[2].color=i.text,this.s[2].background=i.button;break;case 2:this.s[2].color=i.textOver,this.s[2].background=i.overoff;break;case 3:this.s[2].color=i.textOver,this.s[2].background=i.action;break;case 4:this.s[2].color=i.textSelect,this.s[2].background=i.action}s=!0}return s}reset(){return this.cursor(),this.mode(this.isActif?4:1)}text(t){this.c[3].textContent=t}rSize(){super.rSize();let t=this.s;t[2].left=this.sa+"px",t[3].left=this.sa+40+"px",t[3].width=this.sb-40+"px",t[4].left=this.sa+8+"px"}}class I extends r{constructor(t={}){super(t),this.value=t.value||"",this.colorSpace=t.colorSpace||"",this.img=null,this.value.isTexture&&this.value.image&&(this.img=this.value.image),this.isDown=!1,this.neverlock=!0;const s=this.colors;this.c[2]=this.dom("div",this.css.txt+this.css.button+" top:1px; background:"+s.button+"; height:"+(this.h-2)+"px; border:"+s.buttonBorder+"; border-radius:2px; width:30px; "),this.c[3]=this.dom("div",this.css.txtselect+"height:"+(this.h-4)+"px; background:"+s.back+"; borderColor:"+s.inputBorder+"; border-radius:"+this.radius+"px;"),this.img||(this.c[3].textContent="null");let i=Math.floor(.5*this.h)-7;this.c[4]=this.dom("path",this.css.basic+"position:absolute; width:14px; height:14px; left:5px; top:"+i+"px;",{d:this.svgs.load,fill:s.text,stroke:"none"}),this.stat=1,this.makePreview(),this.init()}testZone(t){let s=this.local;return-1===s.x&&-1===s.y?"":s.x>this.sa&&s.x<this.sa+30?"over":s.x>this.sa-30&&s.x<this.sa?"delete":"0"}mouseup(t){return!!this.isDown&&(this.isDown=!1,this.mousemove(t))}mousedown(t){let s=this.testZone(t);return!!s&&("over"===s&&(this.isDown=!0,o.load({callback:this.changeBitmap.bind(this),always:!0,type:"image"})),this.mousemove(t))}mousemove(t){let s=!1;return"over"===this.testZone(t)?(this.cursor("pointer"),s=this.mode(this.isDown?3:2)):s=this.reset(),s}makePreview(){this.img?(this.c[3].style.background="url("+this.img.src+")",this.c[3].style.backgroundSize=this.sb-40+"px "+(this.sb-40)+"px",this.c[3].style.backgroundPosition="center",this.c[3].style.backgroundRepeat="no-repeat"):(this.c[3].style.background=this.colors.back,this.c[3].style.backgroundImage="none")}changeBitmap(t,s,i){t?(this.img=t,this.apply(s)):(this.img=null,this.apply("null")),this.makePreview(),this.threeTexture()}threeTexture(){if(null===this.objectLink)return;let t=this.objectLink[this.objectKey];this.img?null!==t?(t.image=this.img,this.objectLink[this.objectKey]=t.clone(),t.dispose(),this.objectLink[this.objectKey].needsUpdate=!0):h.texture&&(t=new h.texture(this.img),this.colorSpace&&(t.colorSpace=this.colorSpace),this.objectLink[this.objectKey]=t,this.objectLink[this.objectKey].needsUpdate=!0):this.objectLink[this.objectKey]=null,this.objectLink.needsUpdate=!0}apply(t){t=t||"";let s=null!==this.objectLink?this.objectKey:this.name;t!==this.value&&(this.value=t,null!==this.img?(this.c[3].textContent="",this.callback&&this.callback(this.value,this.img,s)):(this.c[3].textContent="null",this.callback&&this.callback(null,null,s))),this.mode(1)}update(){this.mode(3)}mode(t,s){let i=!1,e=this.colors;if(this.stat!==t){switch(this.stat=t,t){case 1:this.s[2].color=e.text,this.s[2].background=e.button;break;case 2:this.s[2].color=e.textOver,this.s[2].background=e.overoff;break;case 3:this.s[2].color=e.textOver,this.s[2].background=e.over;break;case 4:this.s[2].color=e.textSelect,this.s[2].background=e.select}i=!0}return i}reset(){return this.cursor(),this.mode(this.isActif?4:1)}text(t){this.c[3].textContent=t}rSize(){super.rSize();let t=this.s;t[2].left=this.sa+"px",t[3].left=this.sa+40+"px",t[3].width=this.sb-40+"px",t[4].left=this.sa+8+"px"}}class C extends a{constructor(t={}){void 0===t.selectable&&(t.selectable=!0),super(t)}}class M extends r{constructor(t={}){super(t),this.p=100,this.value=this.txt,this.status=1,this.itype=t.itype||"none",this.val=this.itype,this.graph=this.svgs[this.itype];let s=Math.floor(.5*this.h)-7;this.c[2]=this.dom("path",this.css.basic+"position:absolute; width:14px; height:14px; left:5px; top:"+s+"px;",{d:this.graph,fill:this.colors.text,stroke:"none"}),this.s[1].marginLeft="20px",this.init()}mousemove(t){this.cursor("pointer")}mousedown(t){return this.isUI&&this.main.resetItem(),this.selected(!0),this.send(),!0}uiout(){this.isSelect?this.mode(3):this.mode(1)}uiover(){this.isSelect?this.mode(4):this.mode(2)}update(){}mode(t){let s=!1;if(this.status!==t){this.status=t;let i=this.s,e=this.colors;switch(t){case 1:this.status=1,i[1].color=e.text,i[0].background="none";break;case 2:this.status=2,i[1].color=e.textOver,i[0].background=e.back;break;case 3:this.status=3,i[1].color=e.textSelect,i[0].background=e.select;break;case 4:this.status=4,i[1].color=e.textOver,i[0].background=e.over}s=!0}return s}reset(){this.cursor()}selected(t){this.isSelect&&this.mode(1),this.isSelect=t||!1,this.isSelect&&this.mode(3)}}class L extends r{constructor(t={}){if(super(t),this.values=[],t.values)if(t.values instanceof Array)this.values=t.values;else if(t.values instanceof String)this.values=[t.values];else if(t.values instanceof Object){this.refObject=t.values;for(let t in this.refObject)this.values.push(t)}this.lng=this.values.length,this.value=t.value||null;let s=this.colors;this.isSelectable=t.selectable||!1,this.spaces=t.spaces||[s.sx,s.sy],this.bsize=t.bsize||[90,this.h],this.bsizeMax=this.bsize[0],this.tmp=[],this.stat=[],this.grid=[2,Math.round(.5*this.lng)],this.h=this.grid[1]*this.bsize[1]+this.grid[1]*this.spaces[1],this.c[1].textContent="",this.c[2]=this.dom("table",this.css.basic+"width:100%; border-spacing: "+(this.spaces[0]-2)+"px "+this.spaces[1]+"px; border:none;");let i,e,h,o,n=0;this.res=-1,this.isDown=!1,this.neverlock=!0,this.buttons=[],this.stat=[],this.tmpX=[],this.tmpY=[];for(let t=0;t<this.grid[1];t++){h=this.c[2].insertRow(),h.style.cssText="pointer-events:none;";for(let t=0;t<this.grid[0];t++)e=h.insertCell(),e.style.cssText="pointer-events:none;",this.values[n]?(o=!1,this.values[n]===this.value&&this.isSelectable&&(o=!0),i=document.createElement("div"),i.style.cssText=this.css.txt+this.css.button+"position:static; top:1px; width:"+this.bsize[0]+"px; height:"+(this.bsize[1]-2)+"px; border:"+s.borderSize+"px solid "+s.border+"; left:auto; right:auto; border-radius:"+this.radius+"px;",i.style.background=o?s.select:s.button,i.style.color=o?s.textSelect:s.text,i.innerHTML=this.values[n],e.appendChild(i),this.buttons.push(i),this.stat.push(1)):(i=document.createElement("div"),i.style.cssText=this.css.txt+"position:static; width:"+this.bsize[0]+"px; height:"+this.bsize[1]+"px; text-align:center; left:auto; right:auto; background:none;",e.appendChild(i)),i.style.cssText+=0===t?"float:right;":"float:left;",n++}this.s[0].border="none",this.init()}testZone(t){let s=this.local;if(-1===s.x&&-1===s.y)return-1;s.y+=this.mtop;let i=this.tmpX,e=this.tmpY,h=-1,o=-1,n=-1,r=this.grid[0];for(;r--;)s.x>i[r][0]&&s.x<i[r][1]&&(o=r);for(r=this.grid[1];r--;)s.y>e[r][0]&&s.y<e[r][1]&&(n=r);return-1!==o&&-1!==n&&(h=o+2*n,h>this.lng-1&&(h=-1)),h}mouseup(t){return!!this.isDown&&(this.isDown=!1,-1!==this.res&&(this.value=this.values[this.res],this.send()),this.mousemove(t))}mousedown(t){return!this.isDown&&(this.isDown=!0,this.mousemove(t))}mousemove(t){let s=!1;return this.res=this.testZone(t),-1!==this.res?(this.cursor("pointer"),s=this.modes(this.isDown?3:2,this.res)):s=this.reset(),s}update(){this.modes(2,this.values.indexOf(this.value))}modes(t=1,s=-1){let i,e,h=this.lng,o=!1;for(;h--;)e=t,i=!!this.isSelectable&&this.values[h]===this.value,h===s?i&&2===e&&(e=3):(e=1,i&&(e=4)),this.mode(e,h)&&(o=!0);return o}mode(t,s){let i=!1,e=this.colors,h=this.buttons,o=s;if(this.stat[s]!==t){switch(this.stat[s]=t,t){case 1:h[o].style.color=e.text,h[o].style.background=e.button;break;case 2:h[o].style.color=e.textOver,h[o].style.background=e.overoff;break;case 3:h[o].style.color=e.textOver,h[o].style.background=e.over;break;case 4:h[o].style.color=e.textSelect,h[o].style.background=e.select}i=!0}return i}reset(){return this.res=-1,this.cursor(),this.modes()}label(t,s){this.buttons[s].textContent=t}icon(t,s,i){this.buttons[i].style.padding=(s||0)+"px 0px",this.buttons[i].innerHTML=t}testW(){let t=!1;if(3*this.spaces[0]+2*this.bsizeMax>this.w?(this.bsize[0]=.5*(this.w-3*this.spaces[0]),t=!0):this.bsize[0]!==this.bsizeMax&&(this.bsize[0]=this.bsizeMax,t=!0),!t)return;let s=this.buttons.length;for(;s--;)this.buttons[s].style.width=this.bsize[0]+"px"}rSize(){let t;super.rSize(),this.testW(),this.tmpX=[],this.tmpY=[];for(let s=0;s<this.grid[0];s++)0===s?(t=.5*this.w-.5*this.spaces[0],this.tmpX.push([t-this.bsize[0],t])):(t=.5*this.w+.5*this.spaces[0],this.tmpX.push([t,t+this.bsize[0]]));t=this.spaces[1];for(let s=0;s<this.grid[1];s++)this.tmpY.push([t,t+this.bsize[1]]),t+=this.bsize[1]+this.spaces[1]}}class z extends r{constructor(t={}){super(t),this.autoWidth=!1,this.minw=this.w,this.diam=t.diam||this.w,this.pos=new n(0,0),this.maxPos=90,this.model=t.stype||0,void 0!==t.mode&&(this.model=t.mode),this.min=void 0===t.min?-1:t.min,this.max=void 0===t.max?1:t.max,this.range=.5*(this.max-this.min),this.cmode=0,this.c[0].style.display="block",this.precision=void 0===t.precision?2:t.precision,this.value=Array.isArray(t.value)&&2==t.value.length?t.value:[0,0],this.h=t.h||this.w+10,this.c[0].style.width=this.w+"px",void 0!==this.c[1]&&(this.c[1].style.width="100%",this.c[1].style.justifyContent="center",this.top=10,this.h+=10);let s=this.colors;this.c[2]=this.dom("div",this.css.txt+"justify-content:center; top:"+(this.h-20)+"px; width:100%; color:"+s.text),this.c[2].textContent=this.value;let i=this.getPad2d();this.setSvg(i,"fill",s.back,0),this.setSvg(i,"fill",s.button,1),this.setSvg(i,"stroke",s.back,2),this.setSvg(i,"stroke",s.back,3),this.setSvg(i,"stroke",s.text,4),this.setSvg(i,"viewBox","0 0 "+this.diam+" "+this.diam),this.setCss(i,{width:this.diam,height:this.diam,left:0,top:this.top}),this.c[3]=i,this.init(),this.setValue()}testZone(t){let s=this.local;return-1===s.x&&-1===s.y?"":s.y<=this.c[1].offsetHeight?"title":s.y>this.h-this.c[2].offsetHeight?"text":"pad"}mouseup(t){return this.isDown=!1,this.mode(0)}mousedown(t){if("pad"===this.testZone(t))return this.isDown=!0,this.mousemove(t),this.mode(1)}mousemove(t){if(!this.isDown)return;let s=.5*this.w-(t.clientX-this.zone.x),i=.5*this.diam-(t.clientY-this.zone.y-this.ytop),e=256/this.diam;s=-s*e,i=-i*e,s=h.clamp(s,-this.maxPos,this.maxPos),i=h.clamp(i,-this.maxPos,this.maxPos),this.setPos([s,i]),this.update(!0)}mode(t){if(this.cmode===t)return!1;let s=this.colors;switch(t){case 0:this.s[2].color=s.text,this.setSvg(this.c[3],"fill",s.back,0),this.setSvg(this.c[3],"fill",s.button,1),this.setSvg(this.c[3],"stroke",s.back,2),this.setSvg(this.c[3],"stroke",s.back,3),this.setSvg(this.c[3],"stroke",s.text,4);break;case 1:this.s[2].color=s.textSelect,this.setSvg(this.c[3],"fill",s.backoff,0),this.setSvg(this.c[3],"fill",s.overoff,1),this.setSvg(this.c[3],"stroke",s.backoff,2),this.setSvg(this.c[3],"stroke",s.backoff,3),this.setSvg(this.c[3],"stroke",s.textSelect,4)}return this.cmode=t,!0}update(t){this.c[2].textContent=this.value,this.updateSVG(),t&&this.send()}updateSVG(){1==this.model&&(this.setSvg(this.c[3],"y1",this.pos.y,2),this.setSvg(this.c[3],"y2",this.pos.y,2),this.setSvg(this.c[3],"x1",this.pos.x,3),this.setSvg(this.c[3],"x2",this.pos.x,3)),this.setSvg(this.c[3],"cx",this.pos.x,4),this.setSvg(this.c[3],"cy",this.pos.y,4)}setPos(t){this.pos.set(t[0]+128,t[1]+128);let s=1/this.maxPos;this.value[0]=(t[0]*s*this.range).toFixed(this.precision),this.value[1]=(t[1]*s*this.range).toFixed(this.precision)}setValue(t,s=!1){void 0===t&&(t=this.value),this.value[0]=1*Math.min(this.max,Math.max(this.min,t[0])).toFixed(this.precision),this.value[1]=1*Math.min(this.max,Math.max(this.min,t[1])).toFixed(this.precision),this.pos.set(this.value[0]/this.range*this.maxPos+128,this.value[1]/this.range*this.maxPos+128),this.update(s)}}const T=function(){let t,s,e=arguments,h=!1,o=null;"string"==typeof e[0]?(t=e[0],s=e[1]||{}):"object"==typeof e[0]&&(h=!0,void 0===e[2]&&[].push.call(e,{}),t=e[2].type?e[2].type:O(e[0][e[1]],e[2]),s=e[2],s.name=e[1],"list"!==t||s.list?s.value=e[0][e[1]]:s.list=e[0][e[1]]);let n=t.toLowerCase();switch("group"===n&&(s.add=T),n){case"bool":case"boolean":o=new l(s);break;case"button":o=new a(s);break;case"circular":o=new c(s);break;case"color":o=new d(s);break;case"fps":o=new u(s);break;case"graph":o=new p(s);break;case"group":o=new g(s);break;case"joystick":o=new x(s);break;case"knob":o=new v(s);break;case"list":o=new b(s);break;case"numeric":case"number":o=new f(s);break;case"slide":o=new w(s);break;case"textInput":case"string":o=new y(s);break;case"title":case"text":o=new k(s);break;case"select":o=new S(s);break;case"bitmap":o=new I(s);break;case"selector":o=new C(s);break;case"empty":case"space":o=new m(s);break;case"item":o=new M(s);break;case"grid":o=new L(s);break;case"pad2d":case"pad":o=new z(s)}if(null!==o)return i.needResize=!0,h&&o.setReferency(e[0],e[1]),o},O=function(t,s){let i="slide";return t.isColor?i="color":t.isTexture?i="bitmap":"boolean"==typeof t?i="bool":"string"==typeof t?i="#"===t.substring(0,1)?"color":"string":"number"==typeof t?i=s.ctype?"color":"slide":"array"==typeof t&&t instanceof Array?"number"==typeof t[0]?i="number":"string"==typeof t[0]&&(i="list"):"object"==typeof t&&t instanceof Object&&(i=void 0!==t.x?"number":"list"),i};class H{constructor(t={}){this.isGui=!0,this.name="gui",this.canvas=null,this.screen=null,this.plane=t.plane||null,t.config&&(t.colors=t.config),t.colors?this.setConfig(t.colors):this.colors=h.defineColor(t),this.css=h.cloneCss(),this.isReset=!0,this.tmpAdd=null,this.isCanvas=t.isCanvas||!1,this.isCanvasOnly=!1,this.callback=void 0===t.callback?null:t.callback,this.forceHeight=t.maxHeight||0,this.lockHeight=t.lockHeight||!1,this.isItemMode=void 0!==t.itemMode&&t.itemMode,this.cn="",this.size=h.size,void 0!==t.p&&(this.size.p=t.p),void 0!==t.w&&(this.size.w=t.w),void 0!==t.h&&(this.size.h=t.h),void 0!==t.s&&(this.size.s=t.s),this.size.h=this.size.h<11?11:this.size.h,this.local=(new n).neg(),this.zone={x:0,y:0,w:this.size.w,h:0},this.mouse=(new n).neg(),this.h=0,this.sw=0,this.margin=this.colors.sy,this.marginDiv=h.isDivid(this.margin),this.isWithClose=void 0===t.close||t.close,this.bh=this.isWithClose?this.size.h:0,this.autoResize=void 0===t.autoResize||t.autoResize,this.isCenter=t.center||!1,this.isBottom=void 0!==t.bottom,this.realTop=0,this.bottomPosition=t.bottom||0,this.cssGui=void 0!==t.css?t.css:this.isCenter?"":"right:10px;",this.isOpen=void 0===t.open||t.open,this.isDown=!1,this.isScroll=!1,this.uis=[],this.current=-1,this.proto=null,this.isEmpty=!0,this.decal=0,this.ratio=1,this.oy=0,this.isNewTarget=!1;let s=this.colors,e="border: 2px solid "+s.content+"; ";this.content=h.dom("div",this.css.basic+" width:0px; height:auto; top:0px; background:"+s.content+"; "+this.cssGui+e),this.innerContent=h.dom("div",this.css.basic+"width:100%; top:0; left:0; height:auto; overflow:hidden;"),this.content.appendChild(this.innerContent),this.useFlex=!0;let o=this.useFlex?"display:flex; flex-flow: row wrap;":"";this.inner=h.dom("div",this.css.basic+o+"width:100%; left:0; "),this.innerContent.appendChild(this.inner),this.scrollBG=h.dom("div",this.css.basic+"right:0; top:0; width:"+(this.size.s-1)+"px; height:10px; display:none; background:"+s.background+";"),this.content.appendChild(this.scrollBG),this.scroll=h.dom("div",this.css.basic+"background:"+s.button+"; right:2px; top:0; width:"+(this.size.s-4)+"px; height:10px;"),this.scrollBG.appendChild(this.scroll),this.bottomText=t.bottomText||["open","close"];let r=s.radius;this.bottom=h.dom("div",this.css.txt+"width:100%; top:auto; bottom:0; left:0; border-bottom-right-radius:"+r+"px; border-bottom-left-radius:"+r+"px; justify-content:center; height:"+this.bh+"px; line-height:"+(this.bh-5)+"px; color:"+s.text+";"),this.content.appendChild(this.bottom),this.bottom.textContent=this.isOpen?this.bottomText[1]:this.bottomText[0],this.bottom.style.background=s.background,this.parent=void 0!==t.parent?t.parent:null,this.parent=void 0!==t.target?t.target:this.parent,null!==this.parent||this.isCanvas||(this.parent=document.body),null!==this.parent&&this.parent.appendChild(this.content),this.isCanvas&&null===this.parent&&(this.isCanvasOnly=!0),this.isCanvasOnly?(this.content.style.left="0px",this.content.style.right="auto",t.transition=0):this.content.style.pointerEvents="auto",this.transition=void 0!==t.transition?t.transition:h.transition,this.transition&&setTimeout(this.addTransition.bind(this),1e3),this.setWidth(),this.isCanvas&&this.makeCanvas(),i.add(this)}setLeft(t){this.content.style.left=t+"px",i.needReZone=!0}setTop(t,s){this.content.style.top=t+"px",void 0!==s&&(this.forceHeight=s),this.calc(),i.needReZone=!0}addTransition(){this.transition&&!this.isCanvas&&(this.innerContent.style.transition="height "+this.transition+"s ease-out",this.content.style.transition="height "+this.transition+"s ease-out",this.bottom.style.transition="top "+this.transition+"s ease-out");let t=this.uis.length;for(;t--;)this.uis[t].addTransition()}onDraw(){}makeCanvas(){this.canvas=document.createElementNS("http://www.w3.org/1999/xhtml","canvas"),this.canvas.width=this.zone.w,this.canvas.height=this.forceHeight?this.forceHeight:this.zone.h}draw(t){if(null===this.canvas)return;let s=this.zone.w,e=this.forceHeight?this.forceHeight:this.zone.h;i.toCanvas(this,s,e,t)}getDom(){return this.content}noMouse(){this.mouse.neg()}setMouse(t,s=!0){s?this.mouse.set(Math.round(t.x*this.canvas.width),this.canvas.height-Math.round(t.y*this.canvas.height)):this.mouse.set(Math.round(t.x*this.canvas.width),Math.round(t.y*this.canvas.height))}setConfig(t){h.setText(),this.colors=h.defineColor(t)}setColors(t){for(let s in t)this.colors[s]&&(this.colors[s]=t[s])}setText(t,s,i,e){h.setText(t,s,i,e)}hide(t){this.content.style.visibility=t?"hidden":"visible"}display(t=!1){this.content.style.visibility=t?"visible":"hidden"}onChange(t){return this.callback=t||null,this}mode(t){let s=!1,e=this.colors;if(t!==this.cn){switch(this.cn=t,t){case"def":i.cursor(),this.scroll.style.background=e.button,this.bottom.style.background=e.background,this.bottom.style.color=e.text;break;case"scrollOver":i.cursor("ns-resize"),this.scroll.style.background=e.select;break;case"scrollDown":this.scroll.style.background=e.select;break;case"bottomOver":i.cursor("pointer"),this.bottom.style.background=e.backgroundOver,this.bottom.style.color=e.textOver}s=!0}return s}clearTarget(){return-1!==this.current&&(this.proto.s&&(this.proto.uiout(),this.proto.reset()),this.proto=null,this.current=-1,i.cursor(),!0)}testZone(t){let s=this.local;if(-1===s.x&&-1===s.y)return"";this.isReset=!1;let i="",e=this.isScroll?this.zone.w-this.size.s:this.zone.w;return i=s.y>this.zone.h-this.bh&&s.y<this.zone.h?"bottom":s.x>e?"scroll":"content",i}handleEvent(t){let s=t.type,e=!1,h=!1,o=this.testZone(t);if("mouseup"===s&&this.isDown&&(this.isDown=!1),"mousedown"!==s||this.isDown||(this.isDown=!0),this.isDown&&this.isNewTarget&&(i.clearInput(),this.isNewTarget=!1),o){switch(o){case"content":t.clientY=this.isScroll?t.clientY+this.decal:t.clientY,i.isMobile&&"mousedown"===s&&this.getNext(t,e),this.proto&&(h=this.proto.handleEvent(t)),"mousemove"===s&&(e=this.mode("def")),"wheel"===s&&!h&&this.isScroll&&(e=this.onWheel(t)),i.lock||this.getNext(t,e);break;case"bottom":this.clearTarget(),"mousemove"===s&&(e=this.mode("bottomOver")),"mousedown"===s&&(this.isOpen=!this.isOpen,this.bottom.textContent=this.isOpen?this.bottomText[1]:this.bottomText[0],this.calc(),this.mode("def"),e=!0);break;case"scroll":this.clearTarget(),"mousemove"===s&&(e=this.mode("scrollOver")),"mousedown"===s&&(e=this.mode("scrollDown")),"wheel"===s&&(e=this.onWheel(t)),this.isDown&&this.update(t.clientY-this.zone.y-.5*this.sh)}this.isDown&&(e=!0),h&&(e=!0),"keyup"===s&&(e=!0),"keydown"===s&&(e=!0),e&&this.draw()}}getNext(t,s){let e=i.findTarget(this.uis,t);e!==this.current&&(this.clearTarget(),this.current=e,this.isNewTarget=!0),-1!==e&&(this.proto=this.uis[this.current],this.proto.uiover())}onWheel(t){return this.oy+=20*t.delta,this.update(this.oy),!0}reset(t){if(this.isReset)return;this.mouse.neg(),this.isDown=!1;let s=this.mode("def"),i=this.clearTarget();(s||i)&&this.draw(!0),this.isReset=!0}add(){let t=arguments,s=!1;"object"==typeof t[1]?(t[1].isUI=!0,t[1].main=this,s=!!t[1].ontop&&t[1].ontop):"string"==typeof t[1]&&(void 0===t[2]?[].push.call(t,{isUI:!0,main:this}):(t[2].isUI=!0,t[2].main=this,s=!!t[2].ontop&&t[2].ontop));let i=T.apply(this,t);if(null!==i)return s?this.uis.unshift(i):this.uis.push(i),this.calc(),this.isEmpty=!1,i}remove(t){t.dispose&&t.dispose()}clearOne(t){let s=this.uis.indexOf(t);-1!==s&&(this.inner.removeChild(this.uis[s].c[0]),this.uis.splice(s,1),this.calc())}empty(){let t,s=this.uis.length;for(;s--;)t=this.uis.pop(),this.inner.removeChild(t.c[0]),t.dispose();this.uis=[],this.isEmpty=!0,this.calc()}clear(){this.empty()}clear2(){setTimeout(this.empty.bind(this),0)}dispose(){this.clear(),null!==this.parent&&this.parent.removeChild(this.content),i.remove(this)}resetItem(){if(!this.isItemMode)return;let t=this.uis.length;for(;t--;)this.uis[t].selected()}setItem(t){if(!this.isItemMode)return;if(t=t||"",this.resetItem(),!t)return void this.update(0);let s=this.uis.length;for(;s--;)this.uis[s].value===t&&(this.uis[s].selected(!0),this.isScroll&&this.update(s*(this.uis[s].h+this.margin)*this.ratio))}upScroll(t){this.sw=t?this.size.s:0,this.oy=t?this.oy:0,this.scrollBG.style.display=t?"block":"none",t&&(this.total=this.h,this.maxView=this.maxHeight,this.ratio=this.maxView/this.total,this.sh=this.maxView*this.ratio,this.range=this.maxView-this.sh,this.oy=h.clamp(this.oy,0,this.range),this.scrollBG.style.height=this.maxView+"px",this.scroll.style.height=this.sh+"px"),this.setItemWidth(this.zone.w-this.sw),this.update(this.oy)}update(t){t=h.clamp(t,0,this.range),this.decal=Math.floor(t/this.ratio),this.inner.style.top=-this.decal+"px",this.scroll.style.top=Math.floor(t)+"px",this.oy=t}calcUis(){return i.calcUis(this.uis,this.zone,this.zone.y)}calc(){clearTimeout(this.tmp),this.tmp=setTimeout(this.setHeight.bind(this),10)}setHeight(){if(this.tmp&&clearTimeout(this.tmp),this.zone.h=this.bh,this.isScroll=!1,this.isOpen){this.h=this.calcUis();let t=this.forceHeight?this.forceHeight+this.zone.y:window.innerHeight,s=this.isBottom?this.bottomPosition:this.zone.y;this.maxHeight=t-s-this.bh,this.h-this.maxHeight>1?(this.isScroll=!0,this.zone.h=this.maxHeight+this.bh):this.zone.h=this.h+this.bh}this.upScroll(this.isScroll),this.innerContent.style.height=this.zone.h-this.bh+"px",this.content.style.height=this.zone.h+"px",this.bottom.style.top=this.zone.h-this.bh+"px",this.isBottom&&(this.realTop=window.innerHeight-this.zone.h-this.bottomPosition,this.zone.y=this.realTop,this.content.style.top=this.realTop+"px",this.calcUis()),this.forceHeight&&this.lockHeight&&(this.content.style.height=this.forceHeight+"px"),this.isCanvas&&this.draw(!0)}resizeRoot(){i.resize(),i.initEvents()}rezone(){i.needReZone=!0}getRoot(){return i}zoneReset(){}setWidth(t){t&&(this.zone.w=t),this.zone.w=Math.floor(this.zone.w),this.content.style.width=this.zone.w+"px",this.isCenter&&(this.content.style.marginLeft=-Math.floor(.5*this.zone.w)+"px"),this.setItemWidth(this.zone.w-this.sw)}setItemWidth(t){let s=this.uis.length;for(;s--;)this.uis[s].setSize(t),this.uis[s].rSize()}}export{o as Files,H as Gui,t as REVISION,h as Tools,T as add};
+/**
+ * @author lth / https://github.com/lo-th
+ */
+
+const REVISION = '4.4.0';
+
+// INTENAL FUNCTION
+
+/*const observer = new IntersectionObserver((entries) => {
+    for (const entry of entries) {
+        console.log(entry)
+        //const bounds = entry.boundingClientRect;
+        entry.target.bounds = entry.boundingClientRect;
+    }
+    observer.disconnect();
+})*/
+
+
+const R = {
+
+	ui: [],
+
+    debug:false,
+
+    dom:null,
+
+	ID: null,
+    lock:false,
+    wlock:false,
+    current:-1,
+
+	needReZone: true,
+    needResize:false,
+    forceZone:false,
+    isEventsInit: false,
+    isLeave:false,
+
+    downTime:0,
+    prevTime:0,
+
+    //prevDefault: ['contextmenu', 'wheel'],
+    prevDefault: ['contextmenu'],
+    pointerEvent: ['pointerdown', 'pointermove', 'pointerup'],
+    eventOut: ['pointercancel', 'pointerout', 'pointerleave'],
+
+	xmlserializer: null,
+	tmpTime: null,
+    tmpImage: null,
+
+    oldCursor:'auto',
+
+    input: null,
+    parent: null,
+    firstImput: true,
+    
+    hiddenImput:null,
+    hiddenSizer:null,
+    hasFocus:false,
+    startInput:false,
+    inputRange : [0,0],
+    cursorId : 0,
+    str:'',
+    pos:0,
+    startX:-1,
+    moveX:-1,
+
+    debugInput:false,
+
+    isLoop: false,
+    listens: [],
+
+    e:{
+        type:null,
+        clientX:0,
+        clientY:0,
+        keyCode:NaN,
+        key:null,
+        delta:0,
+    },
+
+    isMobile: false,
+
+    now: null,
+
+    injectCss (css, styleName, parent) {
+        const CSS_ID = styleName || 'codeflask-style';
+        const PARENT = parent || document.head;
+
+        if (!css) return false
+
+        if (document.getElementById(CSS_ID)) return true
+
+        const style = document.createElement('style');
+        style.innerHTML = css;
+        style.id = CSS_ID;
+        PARENT.appendChild(style);
+        return true
+    },
+
+    
+
+    getTime: function() {
+        return ( self.performance && self.performance.now ) ? self.performance.now.bind( performance ) : Date.now;
+    },
+
+    testMobile: function () {
+
+        let n = navigator.userAgent;
+        if (n.match(/Android/i) || n.match(/webOS/i) || n.match(/iPhone/i) || n.match(/iPad/i) || n.match(/iPod/i) || n.match(/BlackBerry/i) || n.match(/Windows Phone/i)) return true;
+        else return false;  
+
+    },
+
+    // ----------------------
+    //   ADD / REMOVE
+    // ----------------------
+
+	add: function ( o ) {
+
+        R.ui.push( o );
+        R.getZone( o );
+
+        if( !R.isEventsInit ) R.initEvents();
+
+    },
+
+    remove: function ( o ) {
+
+        let i = R.ui.indexOf( o );
+        
+        if ( i !== -1 ) {
+            R.removeListen( o );
+            R.ui.splice( i, 1 ); 
+        }
+
+        if( R.ui.length === 0 ){
+            R.removeEvents();
+
+        }
+
+        //console.log('remove:', R.ui.length)
+
+    },
+
+    // ----------------------
+    //   EVENTS
+    // ----------------------
+
+    initEvents: function () {
+
+        if( R.isEventsInit ) return;
+
+        let dom = document.body;
+
+        R.isMobile = R.testMobile();
+        R.now = R.getTime();
+
+
+        if(!R.isMobile){
+            dom.addEventListener( 'wheel', R, { passive: false } );
+        } else {
+            dom.style.touchAction = 'none';
+        }
+
+        
+        dom.addEventListener( 'pointercancel', R );
+        dom.addEventListener( 'pointerleave', R );
+        //dom.addEventListener( 'pointerout', R )
+
+        dom.addEventListener( 'pointermove', R );
+        dom.addEventListener( 'pointerdown', R );
+        dom.addEventListener( 'pointerup', R );
+       
+
+        dom.addEventListener( 'keydown', R, false );
+        dom.addEventListener( 'keyup', R, false );
+        window.addEventListener( 'resize', R.resize , false );
+
+        //window.onblur = R.out;
+        //window.onfocus = R.in;
+
+
+        R.isEventsInit = true;
+        R.dom = dom;
+
+       
+
+        //console.log('event is add !')
+
+    },
+
+    removeEvents: function () {
+
+        if( !R.isEventsInit ) return;
+
+        let dom = document.body;
+            
+        if(!R.isMobile){
+            dom.removeEventListener( 'wheel', R );
+        }
+        
+        
+        dom.removeEventListener( 'pointercancel', R );
+        dom.removeEventListener( 'pointerleave', R );
+        //dom.removeEventListener( 'pointerout', R );
+
+        dom.removeEventListener( 'pointermove', R );
+        dom.removeEventListener( 'pointerdown', R );
+        dom.removeEventListener( 'pointerup', R );
+        
+
+        dom.removeEventListener( 'keydown', R );
+        dom.removeEventListener( 'keyup', R );
+        window.removeEventListener( 'resize', R.resize  );
+
+        R.isEventsInit = false;
+
+        //console.log('event is remove !')
+
+    },
+
+    resize: function () {
+
+        //console.log('resize !!')
+
+        let i = R.ui.length, u;
+        
+        while( i-- ){
+
+            u = R.ui[i];
+            if( u.isGui && !u.isCanvasOnly && u.autoResize ) u.calc();
+        
+        }
+
+        R.needReZone = true;
+        R.needResize = false;
+
+    },
+
+    out: function () {
+
+        console.log('im am out');
+        R.clearOldID();
+
+    },
+
+    in: function () {
+
+        console.log('im am in');
+      //  R.clearOldID();
+
+    },
+
+    // ----------------------
+    //   HANDLE EVENTS
+    // ----------------------
+
+    fakeUp: function(){
+
+        this.handleEvent( {type:'pointerup'} );
+
+    },
+    
+
+    handleEvent: function ( event ) {
+
+        //if(!event.type) return;
+
+        //if( R.prevDefault.indexOf( event.type ) !== -1 ) event.preventDefault(); 
+
+        if( R.needResize ) R.resize();
+
+
+        R.findZone( R.forceZone );
+       
+        let e = R.e;
+        let leave = false;
+        
+        if( event.type === 'keydown') R.keydown( event );
+        if( event.type === 'keyup') R.keyup( event );
+
+        if( event.type === 'wheel' ) e.delta = event.deltaY > 0 ? 1 : -1;
+        else e.delta = 0;
+
+        let ptype = event.pointerType; // mouse, pen, touch
+
+        e.clientX = ( ptype === 'touch' ? event.pageX : event.clientX ) || 0;
+        e.clientY = ( ptype === 'touch' ? event.pageY : event.clientY ) || 0;
+
+        e.type = event.type;
+
+        if( R.eventOut.indexOf( event.type ) !== -1 ){ 
+            leave = true;
+            e.type = 'mouseup';
+        }
+
+        if( event.type === 'pointerleave') R.isLeave = true; 
+
+        if( event.type === 'pointerdown') e.type = 'mousedown';
+        if( event.type === 'pointerup') e.type = 'mouseup';
+        if( event.type === 'pointermove'){ 
+            if( R.isLeave ){ 
+                // if user resize outside this document
+                R.isLeave = false;
+                R.resize();
+            }
+            e.type = 'mousemove';
+        }
+
+        // double click test
+        if( e.type === 'mousedown' ) {
+            R.downTime = R.now();
+            let time = R.downTime - R.prevTime;
+
+            // double click on imput
+            if( time < 200 ) { R.selectAll(); return false }
+   
+            R.prevTime = R.downTime;
+            R.forceZone = false;
+        }
+
+        // for imput
+        if( e.type === 'mousedown' ) R.clearInput();
+
+        // mouse lock
+        if( e.type === 'mousedown' ) R.lock = true;
+        if( e.type === 'mouseup' ) R.lock = false;
+
+        //if( R.current !== null && R.current.neverlock ) R.lock = false;
+
+        /*if( e.type === 'mousedown' && event.button === 1){
+            R.cursor()
+            e.preventDefault();
+            e.stopPropagation();
+        }*/
+
+        if( R.isMobile && e.type === 'mousedown' ) R.findID( e );
+        if( e.type === 'mousemove' && !R.lock ) R.findID( e );
+        
+        if( R.ID !== null ){
+
+            if( R.ID.isCanvasOnly ) {
+
+                e.clientX = R.ID.mouse.x;
+                e.clientY = R.ID.mouse.y;
+
+            }
+
+            //if( R.ID.marginDiv ) e.clientY -= R.ID.margin * 0.5
+
+            R.ID.handleEvent( e );
+
+        }
+
+        if( R.isMobile && e.type === 'mouseup' ) R.clearOldID();
+        if( leave ) R.clearOldID();
+
+    },
+
+    // ----------------------
+    //   ID
+    // ----------------------
+
+    findID: function ( e ) {
+
+        let i = R.ui.length, next = -1, u, x, y;
+
+
+
+        while( i-- ){
+
+            u = R.ui[i];
+
+
+
+            if( u.isCanvasOnly ) {
+
+                x = u.mouse.x;
+                y = u.mouse.y;
+
+            } else {
+
+                x = e.clientX;
+                y = e.clientY;
+
+            }
+
+            if( R.onZone( u, x, y ) ){ 
+                
+                next = i;
+                
+                if( next !== R.current ){
+                    R.clearOldID();
+                    R.current = next;
+                    R.ID = u;
+                }
+                break;
+            }
+                
+        }
+
+        if( next === -1 ) R.clearOldID();
+
+    },
+
+    clearOldID: function () {
+
+        if( !R.ID ) return;
+        R.current = -1;
+        R.ID.reset();
+        R.ID = null;
+        R.cursor();
+
+    },
+
+    // ----------------------
+    //  GUI / GROUP FUNCTION
+    //  need update if zone change !!
+    // ----------------------
+
+    calcUis: ( uis, zone, py, group = false ) => {
+
+        if( R.debug ) console.log('calc_uis !!');
+
+        let i = uis.length, u, px = 0, n = 0, tw;
+
+        let height = 0;
+
+        while( i-- ){
+
+            u = uis[n];
+            n++;
+
+            if( !group && u.isGroup ) u.calcUis();
+
+            let m = u.margin || 0;
+
+            u.zone.w = u.w;
+            u.zone.h = u.h + m;
+            
+            if( !u.autoWidth ){
+
+                if( px === 0 ) height += u.h + m;
+
+                u.zone.x = zone.x + px;
+                u.zone.y = py;// + u.mtop
+                //if(div) u.zone.y += m * 0.5
+
+                tw = R.getWidth(u);
+                if( tw ) u.zone.w = u.w = tw;
+                else if( u.fw ) u.zone.w = u.w = u.fw;
+                
+                px += u.zone.w;
+
+                if( px >= zone.w ) { 
+                    py += u.h + m;
+                    //if(div) py += m * 0.5
+                    px = 0;
+                }
+
+            } else {
+
+                px = 0;
+
+                u.zone.x = zone.x + u.dx;
+                u.zone.y = py;
+                py += u.h + m;
+
+                height += (u.h + m); //-0.5;// ???
+
+            }
+
+        }
+
+        return height
+
+    },
+
+
+	findTarget: function ( uis, e ) {
+
+        let i = uis.length;
+
+        while( i-- ){
+            if( R.onZone( uis[i], e.clientX, e.clientY ) ) return i
+        }
+
+        return -1;
+
+    },
+
+    // ----------------------
+    //   ZONE
+    // ----------------------
+
+    findZone: function ( force = false ) {
+
+        if( force ) R.needReZone = force;
+        if( !R.needReZone ) return;
+
+        let i = R.ui.length, u;
+
+        while( i-- ){ 
+
+            u = R.ui[i];
+            R.getZone( u );
+
+            // TODO need for group open at start !!!
+            if( u.isGui ) u.calcUis();
+
+        }
+
+        R.needReZone = false;
+
+    },
+
+    onZone: function ( o, x, y ) {
+
+        //console.log(o, x, y)
+
+        if( x === undefined || y === undefined ) return false;
+
+        let z = o.zone;
+        let mx = x - z.x;// - o.dx;
+        let my = y - z.y;
+
+        //if( this.marginDiv ) e.clientY -= this.margin * 0.5
+        //if( o.group && o.group.marginDiv ) my += o.group.margin * 0.5
+        //if( o.group !== null ) mx -= o.dx
+
+        let over = ( mx >= 0 ) && ( my >= 0 ) && ( mx <= z.w ) && ( my <= z.h );
+
+        //if( o.marginDiv ) my -= o.margin * 0.5
+
+        if( over ) o.local.set( mx, my );
+        else o.local.neg();
+
+        return over;
+
+    },
+
+    getWidth: function ( o ) {
+
+
+
+        //return o.getDom().offsetWidth
+        return o.getDom().clientWidth;
+
+        //let r = o.getDom().getBoundingClientRect();
+        //return (r.width)
+        //return Math.floor(r.width)
+
+    },
+
+    getZone: function ( o ) {
+
+        if( o.isCanvasOnly ) return;
+        if( o.isEmpty ) return;
+
+        const element = o.getDom();
+        const r = element.getBoundingClientRect();
+        o.zone = { x:r.left, y:r.top, w:r.width, h:r.height };
+        if( o.isBottom ) o.zone.y = o.realTop;
+
+
+    },
+
+    // ----------------------
+    //   CURSOR
+    // ----------------------
+
+    cursor: function ( name ) {
+
+        name = name ? name : 'auto';
+        if( name !== R.oldCursor ){
+            document.body.style.cursor = name;
+            R.oldCursor = name;
+        }
+
+    },
+
+    // ----------------------
+    //   CANVAS
+    // ----------------------
+
+    toCanvas: function ( o, w, h, force ) {
+
+        if( !R.xmlserializer ) R.xmlserializer = new XMLSerializer();
+
+        // prevent exesive redraw
+
+        if( force && R.tmpTime !== null ) { clearTimeout(R.tmpTime); R.tmpTime = null;  }
+
+        if( R.tmpTime !== null ) return;
+
+        if( R.lock ) R.tmpTime = setTimeout( function(){ R.tmpTime = null; }, 10 );
+
+        ///
+
+        let isNewSize = false;
+        if( w !== o.canvas.width || h !== o.canvas.height ) isNewSize = true;
+
+        if( R.tmpImage === null ) R.tmpImage = new Image();
+
+        let img = R.tmpImage; //new Image();
+
+        let htmlString = R.xmlserializer.serializeToString( o.content );
+        
+        let svg = '<svg xmlns="http://www.w3.org/2000/svg" width="'+w+'" height="'+h+'"><foreignObject style="pointer-events: none; left:0;" width="100%" height="100%">'+ htmlString +'</foreignObject></svg>';
+
+        img.onload = function() {
+
+            let ctx = o.canvas.getContext("2d");
+
+            if( isNewSize ){ 
+                o.canvas.width = w;
+                o.canvas.height = h;
+            }else {
+                ctx.clearRect( 0, 0, w, h );
+            }
+            ctx.drawImage( this, 0, 0 );
+
+            o.onDraw();
+
+        };
+
+        img.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
+        //img.src = 'data:image/svg+xml;base64,'+ window.btoa( svg );
+        img.crossOrigin = '';
+
+
+    },
+
+    // ----------------------
+    //   INPUT
+    // ----------------------
+
+    setHidden: function () {
+
+
+        if( R.hiddenImput === null ){
+
+            //let css = R.parent.css.txtselect + 'padding:0; width:auto; height:auto; '
+            //let css = R.parent.css.txt + 'padding:0; width:auto; height:auto; text-shadow:none;'
+            //css += 'left:10px; top:auto; border:none; color:#FFF; background:#000;' + hide;
+
+            R.hiddenImput = document.createElement('input');
+            R.hiddenImput.type = 'text';
+            //R.hiddenImput.style.cssText = css + 'bottom:30px;' + (R.debugInput ? '' : 'transform:scale(0);');
+
+            R.hiddenSizer = document.createElement('div');
+            //R.hiddenSizer.style.cssText = css + 'bottom:60px;';
+            
+            document.body.appendChild( R.hiddenImput );
+            document.body.appendChild( R.hiddenSizer );
+
+        }
+
+        let hide = R.debugInput ? '' : 'opacity:0; zIndex:0;';
+        let css = R.parent.css.txtselect + 'padding:0; width:auto; height:auto; left:10px; top:auto; color:#FFF; background:#000;'+ hide;
+        R.hiddenImput.style.cssText = css + 'bottom:10px;' + (R.debugInput ? '' : 'transform:scale(0);');
+        R.hiddenSizer.style.cssText = css + 'bottom:40px;';
+
+        R.hiddenImput.style.width = R.input.clientWidth + 'px';
+        R.hiddenImput.value = R.str;
+        R.hiddenSizer.innerHTML = R.str;
+
+        R.hasFocus = true;
+
+    },
+
+    clearHidden: function ( p ) {
+
+        if( R.hiddenImput === null ) return;
+        R.hasFocus = false;
+
+    },
+
+    clickPos: function( x ){
+
+        let i = R.str.length, l = 0, n = 0;
+        while( i-- ){
+            l += R.textWidth( R.str[n] );
+            if( l >= x ) break;
+            n++;
+        }
+        return n;
+
+    },
+
+    upInput: function ( x, down ) {
+
+        if( R.parent === null ) return false;
+
+        let up = false;
+     
+        if( down ){
+
+            let id = R.clickPos( x );
+
+            R.moveX = id;
+
+            if( R.startX === -1 ){ 
+
+                R.startX = id;
+                R.cursorId = id;
+                R.inputRange = [ R.startX, R.startX ];
+
+            } else {
+            
+                let isSelection = R.moveX !== R.startX;
+
+                if( isSelection ){
+                    if( R.startX > R.moveX ) R.inputRange = [ R.moveX, R.startX ];
+                    else R.inputRange = [ R.startX, R.moveX ];    
+                }
+            }
+
+            up = true;
+            
+        } else {
+
+            if( R.startX !== -1 ){
+
+                R.hasFocus = true;
+                R.hiddenImput.focus();
+                R.hiddenImput.selectionStart = R.inputRange[0];
+                R.hiddenImput.selectionEnd = R.inputRange[1];
+                R.startX = -1;
+
+                up = true;
+
+            }
+
+        }
+
+        if( up ) R.selectParent();
+
+        return up;
+
+    },
+
+    selectAll: function (){
+
+        if(!R.parent) return
+
+        R.str = R.input.textContent;
+        R.inputRange = [0, R.str.length ];
+        R.hasFocus = true;
+        R.hiddenImput.focus();
+        R.hiddenImput.selectionStart = R.inputRange[0];
+        R.hiddenImput.selectionEnd = R.inputRange[1];
+        R.cursorId = R.inputRange[1];
+        R.selectParent();
+
+    },
+
+    selectParent: function (){
+
+        var c = R.textWidth( R.str.substring( 0, R.cursorId ));
+        var e = R.textWidth( R.str.substring( 0, R.inputRange[0] ));
+        var s = R.textWidth( R.str.substring( R.inputRange[0],  R.inputRange[1] ));
+
+        R.parent.select( c, e, s, R.hiddenSizer.innerHTML );
+
+    },
+
+    textWidth: function ( text ){
+
+        if( R.hiddenSizer === null ) return 0;
+        text = text.replace(/ /g, '&nbsp;');
+        R.hiddenSizer.innerHTML = text;
+        return R.hiddenSizer.clientWidth;
+
+    },
+
+
+    clearInput: function () {
+
+        if( R.parent === null ) return;
+        if( !R.firstImput ) R.parent.validate( true );
+
+        R.clearHidden();
+        R.parent.unselect();
+
+        //R.input.style.background = 'none';
+        R.input.style.background = R.parent.colors.back;
+        R.input.style.borderColor = R.parent.colors.border;
+        //R.input.style.color = R.parent.colors.text;
+        R.parent.isEdit = false;
+
+        R.input = null;
+        R.parent = null;
+        R.str = '',
+        R.firstImput = true;
+
+    },
+
+    setInput: function ( Input, parent ) {
+
+        R.clearInput();
+        
+        R.input = Input;
+        R.parent = parent;
+
+        R.input.style.background = R.parent.colors.backoff;
+        R.input.style.borderColor = R.parent.colors.select;
+        //R.input.style.color = R.parent.colors.textSelect;
+        R.str = R.input.textContent;
+
+        R.setHidden();
+
+    },
+
+    keydown: function ( e ) {
+
+        if( R.parent === null ) return;
+
+        let keyCode = e.which; e.shiftKey;
+
+        //console.log( keyCode )
+
+        R.firstImput = false;
+
+
+        if (R.hasFocus) {
+            // hack to fix touch event bug in iOS Safari
+            window.focus();
+            R.hiddenImput.focus();
+
+        }
+
+
+        R.parent.isEdit = true;
+
+       // e.preventDefault();
+
+        // add support for Ctrl/Cmd+A selection
+        //if ( keyCode === 65 && (e.ctrlKey || e.metaKey )) {
+            //R.selectText();
+            //e.preventDefault();
+            //return self.render();
+        //}
+
+        if( keyCode === 13 ){ //enter
+
+            R.clearInput();
+
+        //} else if( keyCode === 9 ){ //tab key
+
+           // R.input.textContent = '';
+
+        } else {
+
+            if( R.input.isNum ){
+                if ( ((e.keyCode > 47) && (e.keyCode < 58)) || ((e.keyCode > 95) && (e.keyCode < 106)) || e.keyCode === 190 || e.keyCode === 110 || e.keyCode === 8 || e.keyCode === 109 ){
+                    R.hiddenImput.readOnly = false;
+                } else {
+                    R.hiddenImput.readOnly = true;
+                }
+            } else {
+                R.hiddenImput.readOnly = false;
+            }
+
+        }
+
+    },
+
+    keyup: function ( e ) {
+
+        if( R.parent === null ) return;
+
+        R.str = R.hiddenImput.value;
+
+        if( R.parent.allEqual ) R.parent.sameStr( R.str );// numeric samùe value
+        else R.input.textContent = R.str;
+
+        R.cursorId = R.hiddenImput.selectionStart;
+        R.inputRange = [ R.hiddenImput.selectionStart, R.hiddenImput.selectionEnd ];
+
+        R.selectParent();
+
+        //if( R.parent.allway ) 
+        R.parent.validate();
+
+    },
+
+    // ----------------------
+    //
+    //   LISTENING
+    //
+    // ----------------------
+
+    loop: function () {
+
+        if( R.isLoop ) requestAnimationFrame( R.loop );
+        R.update();
+
+    },
+
+    update: function () {
+
+        let i = R.listens.length;
+        while( i-- ) R.listens[i].listening();
+
+    },
+
+    removeListen: function ( proto ) {
+
+        let id = R.listens.indexOf( proto );
+        if( id !== -1 ) R.listens.splice(id, 1);
+        if( R.listens.length === 0 ) R.isLoop = false;
+
+    },
+
+    addListen: function ( proto ) {
+
+        let id = R.listens.indexOf( proto );
+
+        if( id !== -1 ) return false; 
+
+        R.listens.push( proto );
+
+        if( !R.isLoop ){
+            R.isLoop = true;
+            R.loop();
+        }
+
+        return true;
+
+    },
+
+};
+
+const Roots = R;
+
+/**
+ * @author lth / https://github.com/lo-th
+ */
+
+//import { PixelFont } from './PixelFont.js';
+
+const T = {
+
+    size: {  w:320, h:24, p:30, s:8 },
+
+    // three reference class
+    texture: null,
+
+    transition: 0.1,
+
+    frag: document.createDocumentFragment(),
+
+    colorRing: null,
+    joystick_0: null,
+    joystick_1: null,
+    circular: null,
+    knob: null,
+    pad2d: null,
+
+    svgns: "http://www.w3.org/2000/svg",
+    links: "http://www.w3.org/1999/xlink",
+    htmls: "http://www.w3.org/1999/xhtml",
+
+    DOM_SIZE: [ 'height', 'width', 'top', 'left', 'bottom', 'right', 'margin-left', 'margin-right', 'margin-top', 'margin-bottom'],
+    SVG_TYPE_D: [ 'pattern', 'defs', 'transform', 'stop', 'animate', 'radialGradient', 'linearGradient', 'animateMotion', 'use', 'filter', 'feColorMatrix' ],
+    SVG_TYPE_G: [ 'svg', 'rect', 'circle', 'path', 'polygon', 'text', 'g', 'line', 'foreignObject' ],
+
+    PI: Math.PI,
+    TwoPI: Math.PI*2,
+    pi90: Math.PI * 0.5,
+    pi60: Math.PI/3,
+    
+    torad: Math.PI / 180,
+    todeg: 180 / Math.PI,
+
+    clamp: ( v, min, max ) => {
+
+        v = v < min ? min : v;
+        v = v > max ? max : v;
+        return v;
+
+    },
+
+    isDivid: ( v ) => ( v*0.5 === Math.floor(v*0.5) ),
+
+    
+    // ----------------------
+    //   COLOR
+    // ----------------------
+
+    defineColor: ( o, cc = T.colors ) => {
+
+        //Roots.injectCss(PixelFont, null)
+
+        let color = { ...cc };
+
+        let textChange = ['fontFamily', 'fontWeight', 'fontShadow', 'fontSize' ];
+        let changeText = false;
+
+        if( o.font ) o.fontFamily = o.font;
+        if( o.shadow ) o.fontShadow = o.shadow;
+        if( o.weight ) o.fontWeight = o.weight;
+
+        if( o.fontColor ) o.text = o.fontColor;
+        if( o.color ) o.text = o.color;
+
+        if( o.text ){
+            color.text = o.text;
+            if( !o.fontColor && !o.color ){ 
+                color.title = T.ColorLuma( o.text, -0.25 );
+                color.titleoff = T.ColorLuma( o.text, -0.5 );
+            }
+            color.textOver = T.ColorLuma( o.text, 0.25 );
+            color.textSelect = T.ColorLuma( o.text, 0.5 );
+        }
+
+        if( o.button ){
+            color.button = o.button;
+            color.border = T.ColorLuma( o.button, 0.1 );
+            color.overoff = T.ColorLuma( o.button, 0.2 );
+        }
+
+        if( o.select ){
+            color.select = o.select;
+            color.over = T.ColorLuma( o.select, -0.1 );
+        }
+
+        if( o.itemBg ) o.back = o.itemBg;
+
+        if( o.back ){
+            color.back = o.back;
+            color.backoff = T.ColorLuma( o.back, -0.1 );
+        }
+
+        if( o.fontSelect ) color.textSelect = o.fontSelect;
+        if( o.groupBorder ) color.gborder = o.groupBorder;
+
+        //if( o.transparent ) o.bg = 'none'
+        //if( o.bg ) color.background = color.backgroundOver = o.bg
+        if( o.bgOver ) color.backgroundOver = o.bgOver;
+
+        for( let m in color ){
+            if(o[m]!==undefined) color[m] = o[m];
+        }
+
+        for( let m in o ){
+            if( textChange.indexOf(m) !== -1 ) changeText = true; 
+        }
+
+        if( changeText ) T.defineText( color );
+
+        return color
+
+    },
+
+    colors: {
+
+        sx: 4,//4
+        sy: 0,//2
+        radius:6,//2
+
+        showOver : 1,
+        //groupOver : 1,
+
+        content:'#37383d',//#28292e',//'none',
+        background: '#28292e',//'rgba(30,30,30,0)',
+        backgroundOver: 'rgba(40,40,40,0)',
+
+        title : '#CCC',
+        titleoff : '#BBB',
+        text : '#DDD',
+        textOver : '#EEE',
+        textSelect : '#FFF',
+        
+        back:'rgba(0,0,0,0.2)',
+        backoff:'rgba(0,0,0,0.3)',
+
+        // input and button border
+        border : '#4c4c4c',
+        borderSize : 1,
+
+        gborder : 'none',
+        groups : 'none',
+        
+
+        button : '#3c3c3c',
+        overoff : '#5c5c5c',
+        over : '#024699',
+        select : '#308AFF',
+        action: '#FF3300',
+        
+        //fontFamily: 'Tahoma',
+        //fontFamily: 'Consolas, monospace',
+        //fontFamily:"'SegoeUI', 'Segoe UI', 'Helvetica Neue', -apple-system, BlinkMacSystemFont, Roboto, Oxygen-Sans, Ubuntu, Cantarell, sans-serif",
+        fontFamily:"Roboto Mono, Source Code Pro, Menlo, Courier, monospace",
+        
+        //fontFamily: "'Roboto Mono', 'Source Code Pro', Menlo, Courier, monospace",
+        fontWeight: 'normal',
+        fontShadow: 'none',//'#000',
+        fontSize:11,
+
+        joyOver:'rgba(48,138,255,0.25)',
+        joyOut: 'rgba(100,100,100,0.5)',
+        joySelect: '#308AFF',
+
+        
+        hide: 'rgba(0,0,0,0)',
+
+    },
+
+    // style css
+
+    css : {
+
+        basic: 'position:absolute; pointer-events:none; box-sizing:border-box; margin:0; padding:0; overflow:hidden; ' + '-o-user-select:none; -ms-user-select:none; -khtml-user-select:none; -webkit-user-select:none; -moz-user-select:none;',
+        button:'display:flex; align-items:center; justify-content:center; text-align:center;',
+        middle:'display:flex; align-items:center; justify-content:left; text-align:left; flex-direction: row-reverse;'
+    },
+
+    // svg path
+
+    svgs: {
+
+        g1:'M 6 4 L 0 4 0 6 6 6 6 4 M 6 0 L 0 0 0 2 6 2 6 0 Z',
+        g2:'M 6 0 L 4 0 4 6 6 6 6 0 M 2 0 L 0 0 0 6 2 6 2 0 Z',
+
+        group:'M 7 7 L 7 8 8 8 8 7 7 7 M 5 7 L 5 8 6 8 6 7 5 7 M 3 7 L 3 8 4 8 4 7 3 7 M 7 5 L 7 6 8 6 8 5 7 5 M 6 6 L 6 5 5 5 5 6 6 6 M 7 3 L 7 4 8 4 8 3 7 3 M 6 4 L 6 3 5 3 5 4 6 4 M 3 5 L 3 6 4 6 4 5 3 5 M 3 3 L 3 4 4 4 4 3 3 3 Z',
+        arrow:'M 3 8 L 8 5 3 2 3 8 Z',
+
+        arrowDown:'M 5 8 L 8 3 2 3 5 8 Z',
+        arrowUp:'M 5 2 L 2 7 8 7 5 2 Z',
+
+        solid:'M 13 10 L 13 1 4 1 1 4 1 13 10 13 13 10 M 11 3 L 11 9 9 11 3 11 3 5 5 3 11 3 Z',
+        body:'M 13 10 L 13 1 4 1 1 4 1 13 10 13 13 10 M 11 3 L 11 9 9 11 3 11 3 5 5 3 11 3 M 5 4 L 4 5 4 10 9 10 10 9 10 4 5 4 Z',
+        vehicle:'M 13 6 L 11 1 3 1 1 6 1 13 3 13 3 11 11 11 11 13 13 13 13 6 M 2.4 6 L 4 2 10 2 11.6 6 2.4 6 M 12 8 L 12 10 10 10 10 8 12 8 M 4 8 L 4 10 2 10 2 8 4 8 Z',
+        articulation:'M 13 9 L 12 9 9 2 9 1 5 1 5 2 2 9 1 9 1 13 5 13 5 9 4 9 6 5 8 5 10 9 9 9 9 13 13 13 13 9 Z',
+        character:'M 13 4 L 12 3 9 4 5 4 2 3 1 4 5 6 5 8 4 13 6 13 7 9 8 13 10 13 9 8 9 6 13 4 M 6 1 L 6 3 8 3 8 1 6 1 Z',
+        terrain:'M 13 8 L 12 7 Q 9.06 -3.67 5.95 4.85 4.04 3.27 2 7 L 1 8 7 13 13 8 M 3 8 Q 3.78 5.420 5.4 6.6 5.20 7.25 5 8 L 7 8 Q 8.39 -0.16 11 8 L 7 11 3 8 Z',
+        joint:'M 7.7 7.7 Q 8 7.45 8 7 8 6.6 7.7 6.3 7.45 6 7 6 6.6 6 6.3 6.3 6 6.6 6 7 6 7.45 6.3 7.7 6.6 8 7 8 7.45 8 7.7 7.7 M 3.35 8.65 L 1 11 3 13 5.35 10.65 Q 6.1 11 7 11 8.28 11 9.25 10.25 L 7.8 8.8 Q 7.45 9 7 9 6.15 9 5.55 8.4 5 7.85 5 7 5 6.54 5.15 6.15 L 3.7 4.7 Q 3 5.712 3 7 3 7.9 3.35 8.65 M 10.25 9.25 Q 11 8.28 11 7 11 6.1 10.65 5.35 L 13 3 11 1 8.65 3.35 Q 7.9 3 7 3 5.7 3 4.7 3.7 L 6.15 5.15 Q 6.54 5 7 5 7.85 5 8.4 5.55 9 6.15 9 7 9 7.45 8.8 7.8 L 10.25 9.25 Z',
+        ray:'M 9 11 L 5 11 5 12 9 12 9 11 M 12 5 L 11 5 11 9 12 9 12 5 M 11.5 10 Q 10.9 10 10.45 10.45 10 10.9 10 11.5 10 12.2 10.45 12.55 10.9 13 11.5 13 12.2 13 12.55 12.55 13 12.2 13 11.5 13 10.9 12.55 10.45 12.2 10 11.5 10 M 9 10 L 10 9 2 1 1 2 9 10 Z',
+        collision:'M 11 12 L 13 10 10 7 13 4 11 2 7.5 5.5 9 7 7.5 8.5 11 12 M 3 2 L 1 4 4 7 1 10 3 12 8 7 3 2 Z',
+        map:'M 13 1 L 1 1 1 13 13 13 13 1 M 12 2 L 12 7 7 7 7 12 2 12 2 7 7 7 7 2 12 2 Z',
+        material:'M 13 1 L 1 1 1 13 13 13 13 1 M 12 2 L 12 7 7 7 7 12 2 12 2 7 7 7 7 2 12 2 Z',
+        texture:'M 13 4 L 13 1 1 1 1 4 5 4 5 13 9 13 9 4 13 4 Z',
+        object:'M 10 1 L 7 4 4 1 1 1 1 13 4 13 4 5 7 8 10 5 10 13 13 13 13 1 10 1 Z',
+        none:'M 9 5 L 5 5 5 9 9 9 9 5 Z',
+        cursor:'M 4 7 L 1 10 1 12 2 13 4 13 7 10 9 14 14 0 0 5 4 7 Z',
+        load:'M 13 8 L 11.5 6.5 9 9 9 3 5 3 5 9 2.5 6.5 1 8 7 14 13 8 M 9 2 L 9 0 5 0 5 2 9 2 Z',
+        save:'M 9 12 L 5 12 5 14 9 14 9 12 M 11.5 7.5 L 13 6 7 0 1 6 2.5 7.5 5 5 5 11 9 11 9 5 11.5 7.5 Z',
+        extern:'M 14 14 L 14 0 0 0 0 14 14 14 M 12 6 L 12 12 2 12 2 6 12 6 M 12 2 L 12 4 2 4 2 2 12 2 Z',
+
+    },
+
+    setDebug ( v ) {
+        Roots.debug = v;
+    },
+
+    rezone () {
+        Roots.needReZone = true;
+    },
+
+    getImput: function(){
+
+        return Roots.input ? true : false
+
+    },
+
+    setStyle : function ( data ){
+
+        for ( var o in data ){
+            if( T.colors[o] ) T.colors[o] = data[o];
+        }
+
+        T.setText();
+
+    },
+
+    // ----------------------
+    // custom text
+    // ----------------------
+
+    defineText: function( o ){
+
+        T.setText( o.fontSize, o.text, o.fontFamily, o.fontShadow, o.fontWeight );
+
+    },
+
+    setText: function( size, color, font, shadow, weight ){
+
+        let cc = T.colors;
+
+        if( font === undefined ) font = cc.fontFamily;
+        if( size === undefined ) size = cc.fontSize;
+        if( shadow === undefined ) shadow = cc.fontShadow;
+        if( weight === undefined ) weight = cc.fontWeight;
+        if( color === undefined ) color = cc.text;
+
+        if( isNaN(size) ){ if( size.search('em')===-1 ) size += 'px';}
+        else size += 'px';
+        
+
+        //let align = 'display:flex; justify-content:left; align-items:center; text-align:left;'
+
+        T.css.txt = T.css.basic + T.css.middle + ' font-family:'+ font +'; font-weight:'+weight+'; font-size:'+size+'; color:'+cc.text+'; padding:0px 8px; left:0; top:2px; height:16px; width:100px; overflow:hidden; white-space: nowrap; letter-spacing:normal;';//letter-spacing: normal;
+        if( shadow !== 'none' ) T.css.txt += ' text-shadow: 1px 1px 1px '+shadow+';';
+
+        T.css.txtselect = T.css.txt + 'padding:0px 4px; border:1px dashed ' + cc.border + ';';
+        T.css.item = T.css.txt + 'padding:0px 4px; position:relative; margin-bottom:1px; ';
+
+    },
+
+
+    // note
+
+    //https://developer.mozilla.org/fr/docs/Web/CSS/css_flexible_box_layout/aligning_items_in_a_flex_container
+
+    /*cloneColor: function () {
+
+        let cc = Object.assign({}, T.colors );
+        return cc;
+
+    },*/
+
+    // intern function
+
+    cloneCss: function () {
+
+        //let cc = Object.assign({}, T.css );
+        return { ...T.css };
+
+    },
+
+    clone: function ( o ) {
+
+        return o.cloneNode( true );
+
+    },
+
+    setSvg: function( dom, type, value, id, id2 ){
+
+        if( id === -1 ) dom.setAttributeNS( null, type, value );
+        else if( id2 !== undefined ) dom.childNodes[ id || 0 ].childNodes[ id2 || 0 ].setAttributeNS( null, type, value );
+        else dom.childNodes[ id || 0 ].setAttributeNS( null, type, value );
+
+    },
+
+    setCss: function( dom, css ){
+
+        for( let r in css ){
+            if( T.DOM_SIZE.indexOf(r) !== -1 ) dom.style[r] = css[r] + 'px';
+            else dom.style[r] = css[r];
+        }
+
+    },
+
+    set: function( g, o ){
+
+        for( let att in o ){
+            if( att === 'txt' ) g.textContent = o[ att ];
+            if( att === 'link' ) g.setAttributeNS( T.links, 'xlink:href', o[ att ] );
+            else g.setAttributeNS( null, att, o[ att ] );
+        }
+        
+    },
+
+    get: function( dom, id ){
+
+        if( id === undefined ) return dom; // root
+        else if( !isNaN( id ) ) return dom.childNodes[ id ]; // first child
+        else if( id instanceof Array ){
+            if(id.length === 2) return dom.childNodes[ id[0] ].childNodes[ id[1] ];
+            if(id.length === 3) return dom.childNodes[ id[0] ].childNodes[ id[1] ].childNodes[ id[2] ];
+        }
+
+    },
+
+    dom : function ( type, css, obj, dom, id ) {
+
+        type = type || 'div';
+
+        if( T.SVG_TYPE_D.indexOf(type) !== -1 || T.SVG_TYPE_G.indexOf(type) !== -1 ){ // is svg element
+
+            if( type ==='svg' ){
+
+                dom = document.createElementNS( T.svgns, 'svg' );
+                T.set( dom, obj );
+
+          /*  } else if ( type === 'use' ) {
+
+                dom = document.createElementNS( T.svgns, 'use' );
+                T.set( dom, obj );
+*/
+            } else {
+                // create new svg if not def
+                if( dom === undefined ) dom = document.createElementNS( T.svgns, 'svg' );
+                T.addAttributes( dom, type, obj, id );
+
+            }
+            
+        } else { // is html element
+
+            if( dom === undefined ) dom = document.createElementNS( T.htmls, type );
+            else dom = dom.appendChild( document.createElementNS( T.htmls, type ) );
+
+        }
+
+        if( css ) dom.style.cssText = css; 
+
+        if( id === undefined ) return dom;
+        else return dom.childNodes[ id || 0 ];
+
+    },
+
+    addAttributes : function( dom, type, o, id ){
+
+        let g = document.createElementNS( T.svgns, type );
+        T.set( g, o );
+        T.get( dom, id ).appendChild( g );
+        if( T.SVG_TYPE_G.indexOf(type) !== -1 ) g.style.pointerEvents = 'none';
+        return g;
+
+    },
+
+    clear : function( dom ){
+
+        T.purge( dom );
+        while (dom.firstChild) {
+            if ( dom.firstChild.firstChild ) T.clear( dom.firstChild );
+            dom.removeChild( dom.firstChild ); 
+        }
+
+    },
+
+    purge : function ( dom ) {
+
+        let a = dom.attributes, i, n;
+        if (a) {
+            i = a.length;
+            while(i--){
+                n = a[i].name;
+                if (typeof dom[n] === 'function') dom[n] = null;
+            }
+        }
+        a = dom.childNodes;
+        if (a) {
+            i = a.length;
+            while(i--){ 
+                T.purge( dom.childNodes[i] ); 
+            }
+        }
+
+    },
+
+    // ----------------------
+    //   SVG Effects function
+    // ----------------------
+
+    addSVGGlowEffect: function () {
+
+        if ( document.getElementById( 'UILGlow') !== null ) return;
+
+        let svgFilter = T.initUILEffects();
+
+        let filter = T.addAttributes( svgFilter, 'filter', { id: 'UILGlow', x: '-20%', y: '-20%', width: '140%', height: '140%' } );
+        T.addAttributes( filter, 'feGaussianBlur', { in: 'SourceGraphic', stdDeviation: '3', result: 'uilBlur' } );
+        let feMerge = T.addAttributes( filter, 'feMerge', {  } );
+        
+        for( let i = 0; i <= 3; i++ ) {
+
+            T.addAttributes( feMerge, 'feMergeNode', { in: 'uilBlur' } );
+        
+        }
+
+        T.addAttributes( feMerge, 'feMergeNode', { in: 'SourceGraphic' } );
+
+    },
+
+    initUILEffects: function () {
+
+        let svgFilter = document.getElementById( 'UILSVGEffects');
+        
+        if ( svgFilter === null ) {
+            
+            svgFilter = T.dom( 'svg', undefined , { id: 'UILSVGEffects', width: '0', height: '0' } );
+            document.body.appendChild( svgFilter );
+ 
+        }
+
+        return svgFilter;
+
+    },
+
+    // ----------------------
+    //   Color function
+    // ----------------------
+
+    ColorLuma : function ( hex, l ) {
+
+        //if( hex.substring(0, 3) === 'rgba' ) hex = '#000';
+
+        if( hex === 'n' ) hex = '#000';
+
+        // validate hex string
+        hex = String(hex).replace(/[^0-9a-f]/gi, '');
+        if (hex.length < 6) {
+            hex = hex[0]+hex[0]+hex[1]+hex[1]+hex[2]+hex[2];
+        }
+        l = l || 0;
+
+        // convert to decimal and change luminosity
+        let rgb = "#", c, i;
+        for (i = 0; i < 3; i++) {
+            c = parseInt(hex.substr(i*2,2), 16);
+            c = Math.round(Math.min(Math.max(0, c + (c * l)), 255)).toString(16);
+            rgb += ("00"+c).substr(c.length);
+        }
+
+        return rgb;
+
+    },
+
+    findDeepInver: function ( c ) { 
+
+        return (c[0] * 0.3 + c[1] * .59 + c[2] * .11) <= 0.6;
+        
+    },
+
+    lerpColor: function( c1, c2, factor ) {
+        let newColor = {};
+        for ( let i = 0; i < 3; i++ ) {
+          newColor[i] = c1[ i ] + ( c2[ i ] - c1[ i ] ) * factor;
+        }
+        return newColor;
+    },
+
+    hexToHtml: function ( v ) { 
+        v = v === undefined ? 0x000000 : v;
+        return "#" + ("000000" + v.toString(16)).substr(-6);
+        
+    },
+
+    htmlToHex: function ( v ) { 
+
+        return v.toUpperCase().replace("#", "0x");
+
+    },
+
+    u255: function (c, i) {
+
+        return parseInt(c.substring(i, i + 2), 16) / 255;
+
+    },
+
+    u16: function ( c, i ) {
+
+        return parseInt(c.substring(i, i + 1), 16) / 15;
+
+    },
+
+    unpack: function( c ){
+
+        if (c.length == 7) return [ T.u255(c, 1), T.u255(c, 3), T.u255(c, 5) ];
+        else if (c.length == 4) return [ T.u16(c,1), T.u16(c,2), T.u16(c,3) ];
+
+    },
+
+    p255: function ( c ) {
+        let h = Math.round( ( c * 255 ) ).toString( 16 );
+        if ( h.length < 2 ) h = '0' + h;
+        return h;
+    },
+
+    pack: function ( c ) {
+
+        return '#' + T.p255( c[ 0 ] ) + T.p255( c[ 1 ] ) + T.p255( c[ 2 ] );
+
+    },
+
+    htmlRgba: function( c, a ){
+         c = T.unpack(c);
+        return 'rgba(' + Math.round(c[0] * 255) + ','+ Math.round(c[1] * 255) + ','+ Math.round(c[2] * 255) + ','+ a + ')';
+
+    },
+
+    htmlRgb: function( c, a ){
+
+        return 'rgb(' + Math.round(c[0] * 255) + ','+ Math.round(c[1] * 255) + ','+ Math.round(c[2] * 255) + ')';
+
+    },
+
+    pad: function( n ){
+        if(n.length == 1)n = '0' + n;
+        return n;
+    },
+
+    rgbToHex : function( c ){
+
+        let r = Math.round(c[0] * 255).toString(16);
+        let g = Math.round(c[1] * 255).toString(16);
+        let b = Math.round(c[2] * 255).toString(16);
+        return '#' + T.pad(r) + T.pad(g) + T.pad(b);
+
+       // return '#' + ( '000000' + ( ( c[0] * 255 ) << 16 ^ ( c[1] * 255 ) << 8 ^ ( c[2] * 255 ) << 0 ).toString( 16 ) ).slice( - 6 );
+
+    },
+
+    hueToRgb: function( p, q, t ){
+
+        if ( t < 0 ) t += 1;
+        if ( t > 1 ) t -= 1;
+        if ( t < 1 / 6 ) return p + ( q - p ) * 6 * t;
+        if ( t < 1 / 2 ) return q;
+        if ( t < 2 / 3 ) return p + ( q - p ) * 6 * ( 2 / 3 - t );
+        return p;
+
+    },
+
+    rgbToHsl: function ( c ) {
+
+        let r = c[0], g = c[1], b = c[2], min = Math.min(r, g, b), max = Math.max(r, g, b), delta = max - min, h = 0, s = 0, l = (min + max) / 2;
+        if (l > 0 && l < 1) s = delta / (l < 0.5 ? (2 * l) : (2 - 2 * l));
+        if (delta > 0) {
+            if (max == r && max != g) h += (g - b) / delta;
+            if (max == g && max != b) h += (2 + (b - r) / delta);
+            if (max == b && max != r) h += (4 + (r - g) / delta);
+            h /= 6;
+        }
+        return [ h, s, l ];
+
+    },
+
+    hslToRgb: function ( c ) {
+
+        let p, q, h = c[0], s = c[1], l = c[2];
+
+        if ( s === 0 ) return [ l, l, l ];
+        else {
+            q = l <= 0.5 ? l * (s + 1) : l + s - ( l * s );
+            p = l * 2 - q;
+            return [ T.hueToRgb(p, q, h + 0.33333), T.hueToRgb(p, q, h), T.hueToRgb(p, q, h - 0.33333) ];
+        }
+
+    },
+
+    // ----------------------
+    //   SVG MODEL
+    // ----------------------
+
+    makeGradiant: function ( type, settings, parent, colors ) {
+
+        T.dom( type, null, settings, parent, 0 );
+
+        let n = parent.childNodes[0].childNodes.length - 1, c;
+
+        for( let i = 0; i < colors.length; i++ ){
+
+            c = colors[i];
+            //T.dom( 'stop', null, { offset:c[0]+'%', style:'stop-color:'+c[1]+'; stop-opacity:'+c[2]+';' }, parent, [0,n] );
+            T.dom( 'stop', null, { offset:c[0]+'%', 'stop-color':c[1],  'stop-opacity':c[2] }, parent, [0,n] );
+
+        }
+
+    },
+
+    /*makeGraph: function () {
+
+        let w = 128;
+        let radius = 34;
+        let svg = T.dom( 'svg', T.css.basic , { viewBox:'0 0 '+w+' '+w, width:w, height:w, preserveAspectRatio:'none' } );
+        T.dom( 'path', '', { d:'', stroke:T.colors.text, 'stroke-width':4, fill:'none', 'stroke-linecap':'butt' }, svg );//0
+        //T.dom( 'rect', '', { x:10, y:10, width:108, height:108, stroke:'rgba(0,0,0,0.3)', 'stroke-width':2 , fill:'none'}, svg );//1
+        //T.dom( 'circle', '', { cx:64, cy:64, r:radius, fill:T.colors.button, stroke:'rgba(0,0,0,0.3)', 'stroke-width':8 }, svg );//0
+        
+        //T.dom( 'circle', '', { cx:64, cy:64, r:radius+7, stroke:'rgba(0,0,0,0.3)', 'stroke-width':7 , fill:'none'}, svg );//2
+        //T.dom( 'path', '', { d:'', stroke:'rgba(255,255,255,0.3)', 'stroke-width':2, fill:'none', 'stroke-linecap':'round', 'stroke-opacity':0.5 }, svg );//3
+        T.graph = svg;
+
+    },*/
+
+    makeChecker: function ( model ) {
+
+        let ww = 128;
+        let space = 2;
+        let box = ww/6 - (space*4);
+        let hh = (box*4) + (space*2);
+
+        let svg = T.dom( 'svg', T.css.basic + 'position:relative;', { viewBox:'0 0 '+ww+' '+hh, width:ww, height:hh, preserveAspectRatio:'none' } );
+
+        let x = 0;
+        let y = 0;
+        let n = 0;
+
+        for(let i = 0; i<24; i++){
+
+            Tools.dom( 'rect', '', { x: x, y: y,  width: box, height: box, fill:T.colors.back }, svg );
+            x += box+space;
+            n ++;
+            if(n>5){
+                x = 0;
+                y += box+space;
+                n = 0;
+            }
+        }
+        /*let w = 200; 
+        let d = (ww-w)*0.5, m = 20;
+        Tools.dom( 'rect', '', { x: d, y: d,  width: w, height: w, fill:T.colors.back }, svg ); // 0
+        Tools.dom( 'rect', '', { x: d+m*0.5, y: d+m*0.5, width: w - m , height: w - m, fill:T.colors.button }, svg ); // 1
+        // Pointer
+        Tools.dom( 'line', '', { x1: d+(m*0.5), y1: ww *0.5, x2: d+(w-m*0.5), y2: ww * 0.5, stroke:T.colors.back, 'stroke-width': 2 }, svg ); // 2
+        Tools.dom( 'line', '', { x1: ww * 0.5, x2: ww * 0.5, y1: d+(m*0.5), y2: d+(w-m*0.5), stroke:T.colors.back, 'stroke-width': 2 }, svg ); // 3
+        Tools.dom( 'circle', '', { cx: ww * 0.5, cy: ww * 0.5, r:5, stroke: T.colors.text, 'stroke-width': 5, fill:'none' }, svg ); // 4*/
+        T.checker = svg;
+
+    },
+
+    makePad: function ( model ) {
+
+        let ww = 256;
+        let svg = T.dom( 'svg', T.css.basic + 'position:relative;', { viewBox:'0 0 '+ww+' '+ww, width:ww, height:ww, preserveAspectRatio:'none' } );
+        let w = 200; 
+        let d = (ww-w)*0.5, m = 20;
+        Tools.dom( 'rect', '', { x: d, y: d,  width: w, height: w, fill:T.colors.back }, svg ); // 0
+        Tools.dom( 'rect', '', { x: d+m*0.5, y: d+m*0.5, width: w - m , height: w - m, fill:T.colors.button }, svg ); // 1
+        // Pointer
+        Tools.dom( 'line', '', { x1: d+(m*0.5), y1: ww *0.5, x2: d+(w-m*0.5), y2: ww * 0.5, stroke:T.colors.back, 'stroke-width': 2 }, svg ); // 2
+        Tools.dom( 'line', '', { x1: ww * 0.5, x2: ww * 0.5, y1: d+(m*0.5), y2: d+(w-m*0.5), stroke:T.colors.back, 'stroke-width': 2 }, svg ); // 3
+        Tools.dom( 'circle', '', { cx: ww * 0.5, cy: ww * 0.5, r:5, stroke: T.colors.text, 'stroke-width': 5, fill:'none' }, svg ); // 4
+        T.pad2d = svg;
+
+    },
+
+    makeKnob: function ( model ) {
+
+        let w = 128;
+        let radius = 34;
+        let svg = T.dom( 'svg', T.css.basic + 'position:relative;', { viewBox:'0 0 '+w+' '+w, width:w, height:w, preserveAspectRatio:'none' } );
+        T.dom( 'circle', '', { cx:64, cy:64, r:radius, fill:T.colors.button, stroke:'rgba(0,0,0,0.3)', 'stroke-width':8 }, svg );//0
+        T.dom( 'path', '', { d:'', stroke:T.colors.text, 'stroke-width':4, fill:'none', 'stroke-linecap':'round' }, svg );//1
+        T.dom( 'circle', '', { cx:64, cy:64, r:radius+7, stroke:'rgba(0,0,0,0.1)', 'stroke-width':7 , fill:'none'}, svg );//2
+        T.dom( 'path', '', { d:'', stroke:'rgba(255,255,255,0.3)', 'stroke-width':2, fill:'none', 'stroke-linecap':'round', 'stroke-opacity':0.5 }, svg );//3
+        T.knob = svg;
+
+    },
+
+    makeCircular: function ( model ) {
+
+        let w = 128;
+        let radius = 40;
+        let svg = T.dom( 'svg', T.css.basic + 'position:relative;', { viewBox:'0 0 '+w+' '+w, width:w, height:w, preserveAspectRatio:'none' } );
+        T.dom( 'circle', '', { cx:64, cy:64, r:radius, stroke:'rgba(0,0,0,0.1)', 'stroke-width':10, fill:'none' }, svg );//0
+        T.dom( 'path', '', { d:'', stroke:T.colors.text, 'stroke-width':7, fill:'none', 'stroke-linecap':'butt' }, svg );//1
+        T.circular = svg;
+
+    },
+
+    makeJoystick: function ( model ) {
+
+        //+' background:#f00;'
+
+        let w = 128, ccc;
+        let radius = Math.floor((w-30)*0.5);
+        let innerRadius = Math.floor(radius*0.6);
+        let svg = T.dom( 'svg', T.css.basic + 'position:relative;', { viewBox:'0 0 '+w+' '+w, width:w, height:w, preserveAspectRatio:'none' } );
+        T.dom( 'defs', null, {}, svg );
+        T.dom( 'g', null, {}, svg );
+
+        if( model === 0 ){
+
+        
+
+            // gradian background
+            ccc = [ [40, 'rgb(0,0,0)', 0.3], [80, 'rgb(0,0,0)', 0], [90, 'rgb(50,50,50)', 0.4], [100, 'rgb(50,50,50)', 0] ];
+            T.makeGradiant( 'radialGradient', { id:'grad', cx:'50%', cy:'50%', r:'50%', fx:'50%', fy:'50%' }, svg, ccc );
+
+            // gradian shadow
+            ccc = [ [60, 'rgb(0,0,0)', 0.5], [100, 'rgb(0,0,0)', 0] ];
+            T.makeGradiant( 'radialGradient', { id:'gradS', cx:'50%', cy:'50%', r:'50%', fx:'50%', fy:'50%' }, svg, ccc );
+
+            // gradian stick
+            let cc0 = ['rgb(40,40,40)', 'rgb(48,48,48)', 'rgb(30,30,30)'];
+            let cc1 = ['rgb(1,90,197)', 'rgb(3,95,207)', 'rgb(0,65,167)'];
+
+            ccc = [ [30, cc0[0], 1], [60, cc0[1], 1], [80, cc0[1], 1], [100, cc0[2], 1] ];
+            T.makeGradiant( 'radialGradient', { id:'gradIn', cx:'50%', cy:'50%', r:'50%', fx:'50%', fy:'50%' }, svg, ccc );
+
+            ccc = [ [30, cc1[0], 1], [60, cc1[1], 1], [80, cc1[1], 1], [100, cc1[2], 1] ];
+            T.makeGradiant( 'radialGradient', { id:'gradIn2', cx:'50%', cy:'50%', r:'50%', fx:'50%', fy:'50%' }, svg, ccc );
+
+            // graph
+
+            T.dom( 'circle', '', { cx:64, cy:64, r:radius, fill:'url(#grad)' }, svg );//2
+            T.dom( 'circle', '', { cx:64+5, cy:64+10, r:innerRadius+10, fill:'url(#gradS)' }, svg );//3
+            T.dom( 'circle', '', { cx:64, cy:64, r:innerRadius, fill:'url(#gradIn)' }, svg );//4
+
+            T.joystick_0 = svg;
+
+        } else {
+             // gradian shadow
+            ccc = [ [69, 'rgb(0,0,0)', 0],[70, 'rgb(0,0,0)', 0.3], [100, 'rgb(0,0,0)', 0] ];
+            T.makeGradiant( 'radialGradient', { id:'gradX', cx:'50%', cy:'50%', r:'50%', fx:'50%', fy:'50%' }, svg, ccc );
+
+            T.dom( 'circle', '', { cx:64, cy:64, r:radius, fill:'none', stroke:'rgba(100,100,100,0.25)', 'stroke-width':'4' }, svg );//2
+            T.dom( 'circle', '', { cx:64, cy:64, r:innerRadius+14, fill:'url(#gradX)' }, svg );//3
+            T.dom( 'circle', '', { cx:64, cy:64, r:innerRadius, fill:'none', stroke:'rgb(100,100,100)', 'stroke-width':'4' }, svg );//4
+
+            T.joystick_1 = svg;
+        }
+
+        
+
+    },
+
+    makeColorRing: function () {
+
+        let w = 256;
+        let svg = T.dom( 'svg', T.css.basic + 'position:relative;', { viewBox:'0 0 '+w+' '+w, width:w, height:w, preserveAspectRatio:'none' } );
+        T.dom( 'defs', null, {}, svg );
+        T.dom( 'g', null, {}, svg );
+
+        let s = 30;//stroke
+        let r =( w-s )*0.5;
+        let mid = w*0.5;
+        let n = 24, nudge = 8 / r / n * Math.PI, a1 = 0;
+        let am, tan, d2, a2, ar, i, j, path, ccc;
+        let color = [];
+        
+        for ( i = 0; i <= n; ++i) {
+
+            d2 = i / n;
+            a2 = d2 * T.TwoPI;
+            am = (a1 + a2) * 0.5;
+            tan = 1 / Math.cos((a2 - a1) * 0.5);
+
+            ar = [
+                Math.sin(a1), -Math.cos(a1), 
+                Math.sin(am) * tan, -Math.cos(am) * tan, 
+                Math.sin(a2), -Math.cos(a2)
+            ];
+            
+            color[1] = T.rgbToHex( T.hslToRgb([d2, 1, 0.5]) );
+
+            if (i > 0) {
+
+                j = 6;
+                while(j--){
+                   ar[j] = ((ar[j]*r)+mid).toFixed(2);
+                }
+
+                path = ' M' + ar[0] + ' ' + ar[1] + ' Q' + ar[2] + ' ' + ar[3] + ' ' + ar[4] + ' ' + ar[5];
+
+                ccc = [ [0,color[0],1], [100,color[1],1] ];
+                T.makeGradiant( 'linearGradient', { id:'G'+i, x1:ar[0], y1:ar[1], x2:ar[4], y2:ar[5], gradientUnits:"userSpaceOnUse" }, svg, ccc );
+
+                T.dom( 'path', '', { d:path, 'stroke-width':s, stroke:'url(#G'+i+')', 'stroke-linecap':"butt" }, svg, 1 );
+                
+            }
+            a1 = a2 - nudge; 
+            color[0] = color[1];
+        }
+
+        let tw = 84.90;
+
+        // black / white
+        ccc = [ [0, '#FFFFFF', 1], [50, '#FFFFFF', 0], [50, '#000000', 0], [100, '#000000', 1] ];
+        T.makeGradiant( 'linearGradient', { id:'GL0', x1:0, y1:mid-tw, x2:0, y2:mid+tw, gradientUnits:"userSpaceOnUse" }, svg, ccc );
+
+        ccc = [ [0, '#7f7f7f', 1], [50, '#7f7f7f', 0.5], [100, '#7f7f7f', 0] ];
+        T.makeGradiant( 'linearGradient', { id:'GL1', x1:mid-49.05, y1:0, x2:mid+98, y2:0, gradientUnits:"userSpaceOnUse" }, svg, ccc );
+
+        T.dom( 'g', null, { 'transform-origin': '128px 128px', 'transform':'rotate(0)' }, svg );//2
+        T.dom( 'polygon', '', { points:'78.95 43.1 78.95 212.85 226 128',  fill:'red'  }, svg, 2 );// 2,0
+        T.dom( 'polygon', '', { points:'78.95 43.1 78.95 212.85 226 128',  fill:'url(#GL1)','stroke-width':1, stroke:'url(#GL1)'  }, svg, 2 );//2,1
+        T.dom( 'polygon', '', { points:'78.95 43.1 78.95 212.85 226 128',  fill:'url(#GL0)','stroke-width':1, stroke:'url(#GL0)'  }, svg, 2 );//2,2
+        T.dom( 'path', '', { d:'M 255.75 136.5 Q 256 132.3 256 128 256 123.7 255.75 119.5 L 241 128 255.75 136.5 Z',  fill:'none','stroke-width':2, stroke:'#000'  }, svg, 2 );//2,3
+        //T.dom( 'circle', '', { cx:128+113, cy:128, r:6, 'stroke-width':3, stroke:'#000', fill:'none' }, svg, 2 );//2.3
+
+        T.dom( 'circle', '', { cx:128, cy:128, r:6, 'stroke-width':2, stroke:'#000', fill:'none' }, svg );//3
+
+        T.colorRing = svg;
+
+    },
+
+    icon: function ( type, color, w ){
+
+        w = w || 40;
+        //color = color || '#DEDEDE';
+        let viewBox = '0 0 256 256';
+        //let viewBox = '0 0 '+ w +' '+ w;
+        let t = ["<svg xmlns='"+T.svgns+"' version='1.1' xmlns:xlink='"+T.htmls+"' style='pointer-events:none;' preserveAspectRatio='xMinYMax meet' x='0px' y='0px' width='"+w+"px' height='"+w+"px' viewBox='"+viewBox+"'><g>"];
+        switch(type){
+            case 'logo':
+            t[1]="<path id='logoin' fill='"+color+"' stroke='none' d='"+T.logoFill_d+"'/>";
+            break;
+            case 'donate':
+            t[1]="<path id='logoin' fill='"+color+"' stroke='none' d='"+T.logo_donate+"'/>";
+            break;
+            case 'neo':
+            t[1]="<path id='logoin' fill='"+color+"' stroke='none' d='"+T.logo_neo+"'/>";
+            break;
+            case 'phy':
+            t[1]="<path id='logoin' stroke='"+color+"' stroke-width='49' stroke-linejoin='round' stroke-linecap='butt' fill='none' d='"+T.logo_phy+"'/>";
+            break;
+            case 'config':
+            t[1]="<path id='logoin' stroke='"+color+"' stroke-width='49' stroke-linejoin='round' stroke-linecap='butt' fill='none' d='"+T.logo_config+"'/>";
+            break;
+            case 'github':
+            t[1]="<path id='logoin' fill='"+color+"' stroke='none' d='"+T.logo_github+"'/>";
+            break;
+            case 'save':
+            t[1]="<path stroke='"+color+"' stroke-width='4' stroke-linejoin='round' stroke-linecap='round' fill='none' d='M 26.125 17 L 20 22.95 14.05 17 M 20 9.95 L 20 22.95'/><path stroke='"+color;
+            t[1]+="' stroke-width='2.5' stroke-linejoin='round' stroke-linecap='round' fill='none' d='M 32.6 23 L 32.6 25.5 Q 32.6 28.5 29.6 28.5 L 10.6 28.5 Q 7.6 28.5 7.6 25.5 L 7.6 23'/>";
+            break;
+        }
+        t[2] = "</g></svg>";
+        return t.join("\n");
+
+    },
+
+    logoFill_d:`
+    M 171 150.75 L 171 33.25 155.5 33.25 155.5 150.75 Q 155.5 162.2 147.45 170.2 139.45 178.25 128 178.25 116.6 178.25 108.55 170.2 100.5 162.2 100.5 150.75 
+    L 100.5 33.25 85 33.25 85 150.75 Q 85 168.65 97.55 181.15 110.15 193.75 128 193.75 145.9 193.75 158.4 181.15 171 168.65 171 150.75 
+    M 200 33.25 L 184 33.25 184 150.8 Q 184 174.1 167.6 190.4 151.3 206.8 128 206.8 104.75 206.8 88.3 190.4 72 174.1 72 150.8 L 72 33.25 56 33.25 56 150.75 
+    Q 56 180.55 77.05 201.6 98.2 222.75 128 222.75 157.8 222.75 178.9 201.6 200 180.55 200 150.75 L 200 33.25 Z
+    `,
+
+    logo_github:`
+    M 180.5 70 Q 186.3 82.4 181.55 96.55 196.5 111.5 189.7 140.65 183.65 168.35 146 172.7 152.5 178.7 152.55 185.9 L 152.55 218.15 Q 152.84 224.56 159.15 223.3 
+    159.21 223.3 159.25 223.3 181.14 216.25 198.7 198.7 228 169.4 228 128 228 86.6 198.7 57.3 169.4 28 128 28 86.6 28 57.3 57.3 28 86.6 28 128 28 169.4 57.3 198.7 74.85 
+    216.25 96.75 223.3 96.78 223.3 96.8 223.3 103.16 224.54 103.45 218.15 L 103.45 200 Q 82.97 203.1 75.1 196.35 69.85 191.65 68.4 185.45 64.27 177.055 59.4 174.15 49.20 
+    166.87 60.8 167.8 69.85 169.61 75.7 180 81.13 188.09 90 188.55 98.18 188.86 103.45 185.9 103.49 178.67 110 172.7 72.33 168.33 66.3 140.65 59.48 111.49 74.45 96.55 69.7 
+    82.41 75.5 70 84.87 68.74 103.15 80 115.125 76.635 128 76.85 140.85 76.65 152.85 80 171.1 68.75 180.5 70 Z
+    `,
+
+    logo_neo:`
+    M 219 52 L 206 52 206 166 Q 206 183.4 193.75 195.65 181.4 208 164 208 146.6 208 134.35 195.65 122 183.4 122 166 L 122 90 Q 122 77.6 113.15 68.85 104.4 60 92 60 79.55 
+    60 70.75 68.85 62 77.6 62 90 L 62 204 75 204 75 90 Q 75 83 79.95 78 84.95 73 92 73 99 73 104 78 109 83 109 90 L 109 166 Q 109 188.8 125.15 204.85 141.2 221 164 221 
+    186.75 221 202.95 204.85 219 188.8 219 166 L 219 52 M 194 52 L 181 52 181 166 Q 181 173 176.05 178 171.05 183 164 183 157 183 152 178 147 173 147 166 L 147 90 Q 147 
+    67.2 130.85 51.15 114.8 35 92 35 69.25 35 53.05 51.15 37 67.2 37 90 L 37 204 50 204 50 90 Q 50 72.6 62.25 60.35 74.6 48 92 48 109.4 48 121.65 60.35 134 72.6 134 90 L 
+    134 166 Q 134 178.4 142.85 187.15 151.6 196 164 196 176.45 196 185.25 187.15 194 178.4 194 166 L 194 52 Z
+    `,
+
+    logo_phy:`
+    M 103.55 37.95 L 127.95 37.95 Q 162.35 37.95 186.5 55 210.9 72.35 210.9 96.5 210.9 120.65 186.5 137.7 162.35 155 127.95 155 L 127.95 237.95 M 127.95 155 
+    Q 93.55 155 69.15 137.7 45 120.65 45 96.5 45 72.35 69.15 55 70.9 53.8 72.85 52.85 M 127.95 155 L 127.95 37.95
+    `,
+
+    logo_config:`
+    M 204.35 51.65 L 173.25 82.75 Q 192 101.5 192 128 L 236 128 M 192 128 Q 192 154.55 173.25 173.25 L 204.4 204.4 M 51.65 51.65 L 82.75 82.75 Q 101.5 64 128 64 
+    L 128 20 M 51.6 204.4 L 82.75 173.25 Q 64 154.55 64 128 L 20 128 M 128 236 L 128 192 Q 101.5 192 82.75 173.25 M 64 128 Q 64 101.5 82.75 82.75 M 173.25 173.25 
+    Q 154.55 192 128 192 M 128 64 Q 154.55 64 173.25 82.75
+    `,
+
+    logo_donate:`
+    M 171.3 80.3 Q 179.5 62.15 171.3 45.8 164.1 32.5 141.35 30.1 L 94.35 30.1 Q 89.35 30.4 88.3 35.15 L 70.5 148.05 Q 70.2 152.5 73.7 152.6 L 100.95 152.6 107 111.6 Q 108.75 
+    106.55 112.6 106.45 130.45 108.05 145.3 103.9 163.35 98.75 171.3 80.3 M 179.8 71.5 Q 178.6 79.75 174.9 87.85 168.45 102.9 151.9 109.15 140.65 113.95 117.55 113 113.15 
+    112.75 111 117.45 L 102.7 169.95 Q 102.45 173.8 105.5 173.85 L 128.95 173.85 Q 132.2 174.2 133.35 169.65 L 138.3 139.95 Q 139.75 135.6 143.1 135.5 146.6 135.75 150.6 135.65 
+    154.55 135.5 157.35 135.1 160.15 134.7 166.75 132.35 181.35 127.4 187.9 111.2 194.25 95.75 189.5 81.95 186.75 74.85 179.8 71.5 M 103.5 209.9 Q 103.5 202.85 99.7 198.85 95.95 
+    194.75 89.4 194.75 82.8 194.75 79.05 198.85 75.3 202.9 75.3 209.9 75.3 216.85 79.05 220.95 82.8 225.05 89.4 225.05 95.95 225.05 99.7 221 103.5 216.95 103.5 209.9 M 95.45 205.5 
+    Q 95.95 207.3 95.95 209.9 95.95 212.65 95.45 214.35 94.95 216 94 217.3 93.1 218.45 91.9 219 90.7 219.55 89.4 219.55 88.15 219.55 86.95 219.05 85.75 218.55 84.8 217.3 83.9 216.15 
+    83.4 214.35 82.85 212.6 82.85 209.9 82.85 207.3 83.4 205.45 83.95 203.55 84.85 202.45 85.9 201.2 86.95 200.75 88.05 200.25 89.4 200.25 90.7 200.25 91.85 200.8 93.05 201.3 94 202.5 
+    94.9 203.65 95.45 205.5 M 153.3 195.35 L 145.3 195.35 135.5 224.45 142.8 224.45 144.6 218.5 153.75 218.5 155.6 224.45 163.1 224.45 153.3 195.35 M 152.15 213.25 L 146.25 213.25 
+    149.2 203.65 152.15 213.25 M 116.75 195.35 L 107.8 195.35 107.8 224.45 114.5 224.45 114.5 204.2 125.7 224.45 132.75 224.45 132.75 195.35 126.05 195.35 126.05 212.05 116.75 195.35 M 
+    66.5 197.65 Q 64.15 196.15 61.45 195.75 58.8 195.35 55.75 195.35 L 46.7 195.35 46.7 224.45 55.8 224.45 Q 58.8 224.45 61.5 224.05 64.15 223.6 66.4 222.15 69.15 220.45 70.9 217.2 
+    72.7 214 72.7 209.95 72.7 205.7 71 202.6 69.35 199.5 66.5 197.65 M 64.2 205 Q 65.2 207 65.2 209.9 65.2 212.75 64.25 214.75 63.3 216.75 61.5 217.85 60 218.85 58.3 218.9 56.6 219 
+    54.15 219 L 54 219 54 200.8 54.15 200.8 Q 56.4 200.8 58.05 200.9 59.7 200.95 61.15 201.75 63.2 202.95 64.2 205 M 210.2 195.35 L 190.5 195.35 190.5 224.45 210.2 224.45 210.2 218.9 
+    197.75 218.9 197.75 211.55 209.2 211.55 209.2 206 197.75 206 197.75 200.9 210.2 200.9 210.2 195.35 M 187.5 195.35 L 163 195.35 163 200.9 171.6 200.9 171.6 224.45 178.9 224.45 178.9 
+    200.9 187.5 200.9 187.5 195.35 Z
+    `,
+
+};
+
+T.setText();
+
+const Tools = T;
+
+///https://wicg.github.io/file-system-access/#api-filesystemfilehandle-getfile
+
+
+class Files {
+
+    //-----------------------------
+    //  FILE TYPE
+    //-----------------------------
+
+    static autoTypes( type ) {
+
+        let t = [];
+
+        switch( type ){
+            case 'svg':
+            t = [ { accept: { 'image/svg+xml': '.svg'} }, ];
+            break;
+            case 'wav':
+            t = [ { accept: { 'audio/wav': '.wav'} }, ];
+            break;
+            case 'mp3':
+            t = [ { accept: { 'audio/mpeg': '.mp3'} }, ];
+            break;
+            case 'mp4':
+            t = [ { accept: { 'video/mp4': '.mp4'} }, ];
+            break;
+            case 'bin': case 'hex':
+            t = [ { description: 'Binary Files', accept: { 'application/octet-stream': ['.bin', '.hex'] } }, ];
+            break;
+            case 'text':
+            t = [ { description: 'Text Files', accept: { 'text/plain': ['.txt', '.text'], 'text/html': ['.html', '.htm'] } }, ];
+            break;
+            case 'json':
+            t = [ { description: 'JSON Files', accept: { 'application/json': ['.json'] } }, ];//text/plain
+            break;
+            case 'js':
+            t = [ { description: 'JavaScript Files', accept: { 'text/javascript': ['.js'] } }, ];
+            break;
+            case 'ktx2':
+            t = [ { description: 'ktx2', accept: { 'image/ktx2': ['.ktx2'] } }, ];
+            break;
+            case 'image':
+            t = [ { description: 'Images', accept: { 'image/*': ['.png', '.gif', '.jpeg', '.jpg', '.hdr', '.exr'] } }, ];
+            break;
+            case 'gif':
+            t = [ { description: 'Images', accept: { 'image/*': ['.gif'] } }, ];
+            break;
+            case 'png':
+            t = [ { description: 'Images', accept: { 'image/*': ['.png'] } }, ];
+            break;
+            case 'exr':
+            t = [ { description: 'Images', accept: { 'image/exr': ['.exr'] } }, ];
+            break;
+            case 'hdr':
+            t = [ { description: 'Images', accept: { 'image/hdr': ['.hdr'] } }, ];
+            break;
+            case 'jpg':
+            t = [ { description: 'Images', accept: { 'image/*': ['.jpg', '.jpeg'] } }, ];
+            break;
+            case 'icon':
+            t = [ { description: 'Icons', accept: { 'image/x-ico': ['.ico'] } }, ];
+            break;
+            case 'lut':
+            t = [ { description: 'Lut', accept: { 'text/plain': ['.cube', '.3dl'] } }, ];
+            break;
+
+        }
+
+        return t
+
+    }
+
+
+    //-----------------------------
+    //  LOAD
+    //-----------------------------
+
+	static async load( o = {} ) {
+
+        if (typeof window.showOpenFilePicker !== 'function') {
+            window.showOpenFilePicker = Files.showOpenFilePickerPolyfill;
+        }
+
+        try {
+
+        	let type = o.type || '';
+
+            const options = {
+                excludeAcceptAllOption: type ? true : false,
+                multiple: false,
+                //startIn:'./assets'
+            };
+
+            options.types = Files.autoTypes( type );
+
+            // create a new handle
+            const handle = await window.showOpenFilePicker( options );
+            const file = await handle[0].getFile();
+            //let content = await file.text()
+
+            if( !file ) return null
+
+            let fname = file.name;
+            let ftype = fname.substring( fname.lastIndexOf('.')+1, fname.length );
+            let realType = '';
+
+            const dataUrl = [ 'png', 'jpg', 'jpeg', 'mp4', 'webm', 'ogg', 'mp3' ];
+            const dataBuf = [ 'sea', 'z', 'hex', 'bvh', 'BVH', 'glb', 'gltf', 'exr', 'ktx2', 'hdr' ];
+            const reader = new FileReader();
+
+            if(o.forceType === 'ArrayBuffer') {
+                reader.readAsArrayBuffer( file );
+                type = '';
+
+            } else {
+                if( dataUrl.indexOf( ftype ) !== -1 ) reader.readAsDataURL( file );
+                else if( dataBuf.indexOf( ftype ) !== -1 ) reader.readAsArrayBuffer( file );
+                else reader.readAsText( file );
+            }
+
+            
+            reader.onload = function(e) {
+
+                let content = e.target.result;
+
+                //console.log(type, files)
+
+                switch(type){
+                    case 'image':
+                        let img = new Image();
+                        img.onload = function() {
+                            img.width = img.width;
+                            img.height = img.height;
+                            if( o.callback ) o.callback( img, fname, ftype, [img.width, img.height] );
+                        };
+                        img.src = content;
+                    break;
+                    case 'json':
+                        if( o.callback ) o.callback( JSON.parse( content ), fname, ftype );
+                    break;
+                    default:
+                        
+                        if( o.callback ) o.callback( content, fname, ftype );
+                        
+                        
+                    break;
+                }
+
+            };
+
+        } catch(e) {
+
+            console.log(e);
+            if( o.always && o.callback ) o.callback( null );
+
+        }
+
+    }
+
+	static showOpenFilePickerPolyfill( options ) {
+        return new Promise((resolve) => {
+            const input = document.createElement("input");
+            input.type = "file";
+            input.multiple = options.multiple;
+            input.accept = options.types
+                .map((type) => type.accept)
+                .flatMap((inst) => Object.keys(inst).flatMap((key) => inst[key]))
+                .join(",");
+
+            input.addEventListener("change", () => {
+                resolve(
+                    [...input.files].map((file) => {
+                        return {
+                            getFile: async () =>
+                                new Promise((resolve) => {
+                                    resolve(file);
+                                }),
+                        };
+                    })
+                );
+            });
+
+            input.click();
+        })
+    }
+
+
+    //-----------------------------
+    //  SAVE
+    //-----------------------------
+
+    static async save( o = {} ) {
+
+        let usePoly = false;
+
+        if (typeof window.showSaveFilePicker !== 'function') {
+            window.showSaveFilePicker = Files.showSaveFilePickerPolyfill;
+            usePoly = true;
+        }
+
+        try {
+
+            let type = o.type || '';
+
+            const options = {
+                suggestedName: o.name || 'hello',
+                data: o.data || ''
+            };
+
+            options.types = Files.autoTypes( type );
+            options.finalType = Object.keys( options.types[0].accept )[0];
+            options.suggestedName += options.types[0].accept[options.finalType][0];
+
+
+            // create a new handle
+            const handle = await window.showSaveFilePicker( options );
+
+            if( usePoly ) return
+
+            // create a FileSystemWritableFileStream to write to
+            const file = await handle.createWritable();
+
+            let blob = new Blob([ options.data ], { type: options.finalType });
+
+            // write our file
+            await file.write(blob);
+
+            // close the file and write the contents to disk.
+            await file.close();
+
+        } catch(e) {
+
+            console.log(e);
+
+        }
+
+    }
+
+    static showSaveFilePickerPolyfill( options ) {
+        return new Promise((resolve) => {
+            const a = document.createElement("a");
+            a.download = options.suggestedName || "my-file.txt";
+            let blob = new Blob([ options.data ], { type:options.finalType });
+            a.href = URL.createObjectURL( blob );
+
+            a.addEventListener("click", () => {
+                resolve(
+                    setTimeout( () => URL.revokeObjectURL(a.href), 1000 )
+                );
+            });
+            a.click();
+        })
+    }
+
+
+    //-----------------------------
+    //  FOLDER not possible in poly
+    //-----------------------------
+
+    static async getFolder() {
+
+        try {
+    
+            const handle = await window.showDirectoryPicker();
+            const files = [];
+            for await (const entry of handle.values()) {
+                const file = await entry.getFile();
+                files.push(file);
+            }
+
+            console.log(files);
+            return files;
+
+        } catch(e) {
+
+            console.log(e);
+
+        }
+    
+    }
+
+
+
+
+
+
+
+
+    
+
+}
+
+class V2 {
+
+	constructor( x = 0, y = 0 ) {
+
+		this.x = x;
+		this.y = y;
+
+	}
+
+	set ( x, y ) {
+
+		this.x = x;
+		this.y = y;
+		return this;
+
+	}
+
+	divide ( v ) {
+
+		this.x /= v.x;
+		this.y /= v.y;
+		return this;
+
+	}
+
+	multiply ( v ) {
+
+		this.x *= v.x;
+		this.y *= v.y;
+		return this;
+
+	}
+
+	multiplyScalar ( scalar ) {
+
+		this.x *= scalar;
+		this.y *= scalar;
+		return this;
+
+	}
+
+	divideScalar ( scalar ) {
+
+		return this.multiplyScalar( 1 / scalar );
+
+	}
+
+	length () {
+
+		return Math.sqrt( this.x * this.x + this.y * this.y );
+
+	}
+
+	angle () {
+
+		// computes the angle in radians with respect to the positive x-axis
+
+		var angle = Math.atan2( this.y, this.x );
+
+		if ( angle < 0 ) angle += 2 * Math.PI;
+
+		return angle;
+
+	}
+
+	addScalar ( s ) {
+
+		this.x += s;
+		this.y += s;
+		return this;
+
+	}
+
+	negate () {
+
+		this.x *= -1;
+		this.y *= -1;
+		return this;
+
+	}
+
+	neg () {
+
+		this.x = -1;
+		this.y = -1;
+		return this;
+
+	}
+
+	isZero () {
+
+		return ( this.x === 0 && this.y === 0 );
+
+	}
+
+	copy ( v ) {
+
+		this.x = v.x;
+		this.y = v.y;
+
+		return this;
+
+	}
+
+	equals ( v ) {
+
+		return ( ( v.x === this.x ) && ( v.y === this.y ) );
+
+	}
+
+	nearEquals ( v, n ) {
+
+		return ( ( v.x.toFixed(n) === this.x.toFixed(n) ) && ( v.y.toFixed(n) === this.y.toFixed(n) ) );
+
+	}
+
+	lerp ( v, alpha ) {
+
+		if( v === null ){
+			this.x -= this.x * alpha;
+		    this.y -= this.y * alpha;
+		} else {
+			this.x += ( v.x - this.x ) * alpha;
+		    this.y += ( v.y - this.y ) * alpha;
+		}
+
+		return this;
+
+	}
+
+}
+
+/**
+ * @author lth / https://github.com/lo-th
+ */
+
+class Proto {
+
+    constructor( o = {} ) {
+
+        
+
+        // disable mouse controle
+        this.lock = o.lock || false;
+
+        // for button
+        this.neverlock = false;
+
+        // only simple space 
+        this.isSpace = o.isSpace || false;
+
+
+
+        // if is on gui or group
+        this.main = o.main || null;
+        this.isUI = o.isUI || false;
+        this.group = o.group || null;
+
+        this.isListen = false;
+
+        this.top = 0;
+        this.ytop = 0;
+
+        this.dx = o.dx || 0;
+
+        this.isSelectable = o.selectable !== undefined ? o.selectable : false;
+        this.unselectable =  o.unselect !== undefined ? o.unselect : this.isSelectable;
+
+        this.ontop = o.ontop ? o.ontop : false; // 'beforebegin' 'afterbegin' 'beforeend' 'afterend'
+
+        this.css = this.main ? this.main.css : Tools.css;
+
+        this.colors = Tools.defineColor( o, this.main ? ( this.group ? this.group.colors : this.main.colors ) : Tools.colors );
+
+
+        this.overEffect = this.colors.showOver;
+
+        this.svgs = Tools.svgs;
+
+        this.zone = { x:0, y:0, w:0, h:0, d:0 };
+        this.local = new V2().neg();
+
+        this.isCanvasOnly = false;
+        this.isSelect = false;
+
+        // percent of title
+        this.p = o.p !== undefined ? o.p : Tools.size.p;
+
+        this.w = this.isUI ? this.main.size.w : Tools.size.w;
+        if( o.w !== undefined ) this.w = o.w;
+
+        this.h = this.isUI ? this.main.size.h : Tools.size.h;
+        if( o.h !== undefined ) this.h = o.h;
+        if( !this.isSpace ) this.h = this.h < 11 ? 11 : this.h;
+        else this.lock = true;
+
+
+        // decale for canvas only
+        this.fw = o.fw || 0;
+
+        this.autoWidth = o.auto || true;// auto width or flex 
+        this.isOpen = false;//false// open statu
+
+        // radius for toolbox
+        this.radius = o.radius || this.colors.radius;
+
+        this.transition = o.transition || Tools.transition;
+
+        // only for number
+        this.isNumber = false;
+        this.noNeg = o.noNeg || false;
+        this.allEqual = o.allEqual || false;
+        
+        // only most simple 
+        this.mono = false;
+
+        // stop listening for edit slide text
+        this.isEdit = false;
+
+        // no title 
+        this.simple = o.simple || false;
+        if( this.simple ) this.sa = 0;
+
+
+        // define obj size
+        this.setSize( this.w );
+
+        // title size
+        if( o.sa !== undefined ) this.sa = o.sa;
+        if( o.sb !== undefined ) this.sb = o.sb;
+        if( this.simple ) this.sb = this.w - this.sa;
+
+        // last number size for slide
+        this.sc = o.sc === undefined ? 47 : o.sc;
+
+        // for listening object
+        this.objectLink = null;
+        this.isSend = false;
+        this.objectKey = null;
+
+        this.txt = o.name || '';
+        this.name = o.rename || this.txt;
+        this.target = o.target || null;
+
+        // callback
+        this.callback = o.callback === undefined ? null : o.callback;
+        this.endCallback = null;
+        this.openCallback = o.openCallback === undefined ? null : o.openCallback;
+        this.closeCallback = o.closeCallback === undefined ? null : o.closeCallback;
+
+        // if no callback take one from group or gui
+        if( this.callback === null && this.isUI && this.main.callback !== null ){ 
+            this.callback = this.group ? this.group.callback : this.main.callback;
+        }
+
+        // elements
+        this.c = [];
+
+        // style 
+        this.s = [];
+
+
+        this.useFlex = this.isUI ? this.main.useFlex : false; 
+        let flexible = this.useFlex ? 'display:flex; justify-content:center; align-items:center; text-align:center; flex: 1 100%;' : 'float:left;';
+
+        this.c[0] = Tools.dom( 'div', this.css.basic + flexible + 'position:relative; height:20px;');
+
+
+        this.s[0] = this.c[0].style;
+
+        // bottom margin
+        this.margin = this.colors.sy;
+        this.mtop = 0;
+        let marginDiv = Tools.isDivid( this.margin );
+
+        if( this.isUI && this.margin ){ 
+            this.s[0].boxSizing = 'content-box';
+            if( marginDiv ){
+                this.mtop = this.margin * 0.5;
+                //this.s[0].borderTop = '${this.mtop}px solid transparent'
+                //console.log(`${this.mtop}px solid transparent`)
+                this.s[0].borderTop = this.mtop + 'px solid transparent';
+                this.s[0].borderBottom = this.mtop + 'px solid transparent';
+            } else {
+                this.s[0].borderBottom =  NaN;
+            }
+        }
+        
+        // with title
+        if( !this.simple ){ 
+            this.c[1] = Tools.dom( 'div', this.css.txt + this.css.middle );
+            this.s[1] = this.c[1].style;
+            this.c[1].textContent = this.name;
+            this.s[1].color = this.lock ? this.colors.titleoff : this.colors.title;
+        }
+
+        if( o.pos ){
+            this.s[0].position = 'absolute';
+            for(let p in o.pos){
+                this.s[0][p] = o.pos[p];
+            }
+            this.mono = true;
+        }
+
+
+
+
+        if( o.css ) this.s[0].cssText = o.css; 
+        
+
+    }
+
+    // ----------------------
+    // make the node
+    // ----------------------
+    
+    init() {
+
+        this.ytop = this.top + this.mtop;
+
+        this.zone.h = this.h + this.margin;
+        this.zone.w = this.w;
+
+        let s = this.s; // style cache
+        let c = this.c; // div cach
+
+        s[0].height = this.h + 'px';
+
+        if( this.isUI ) s[0].background = this.colors.background;
+           
+
+        if(!this.autoWidth && this.useFlex ){
+            s[0].flex = '1 0 auto';
+            s[0].minWidth = this.minw+'px';
+            s[0].textAlign = 'center';
+        } else {
+            if( this.isUI ) s[0].width = '100%';
+        }
+
+        //if( this.autoHeight ) s[0].transition = 'height 0.01s ease-out';
+        if( c[1] !== undefined && this.autoWidth ){
+            s[1] = c[1].style;
+            s[1].top = 1 + 'px';
+            s[1].height = (this.h-2) + 'px';
+        }
+
+        let frag = Tools.frag;
+
+        for( let i = 1, lng = c.length; i !== lng; i++ ){
+            if( c[i] !== undefined ) {
+                frag.appendChild( c[i] );
+                s[i] = c[i].style;
+            }
+        }
+
+        let pp = this.target !== null ? this.target : ( this.isUI ? this.main.inner : document.body );
+
+        if( this.ontop ) pp.insertAdjacentElement( 'afterbegin', c[0] );
+        else pp.appendChild( c[0] );
+
+        c[0].appendChild( frag );
+
+        this.rSize();
+
+        // ! solo proto
+        if( !this.isUI ){
+
+            this.c[0].style.pointerEvents = 'auto';
+            Roots.add( this );
+            
+        }
+
+    }
+
+    addTransition(){
+
+        if( this.baseH && this.transition && this.isUI ){
+            this.c[0].style.transition = 'height '+this.transition+'s ease-out';
+        }
+        
+    }
+
+    // from Tools
+
+    dom( type, css, obj, dom, id ) {
+
+        return Tools.dom( type, css, obj, dom, id );
+
+    }
+
+    setSvg( dom, type, value, id, id2 ) {
+
+        Tools.setSvg( dom, type, value, id, id2 );
+
+    }
+
+    setCss( dom, css ) {
+
+        Tools.setCss( dom, css );
+
+    }
+
+    clamp( value, min, max ) {
+
+        return Tools.clamp( value, min, max );
+
+    }
+
+    getColorRing() {
+
+        if( !Tools.colorRing ) Tools.makeColorRing();
+        return Tools.clone( Tools.colorRing );
+
+    }
+
+    getCkecker( model ) {
+
+        if( !Tools[ 'checker' ] ) Tools.makeChecker( model );
+        return Tools.clone( Tools[ 'checker' ] )
+
+    }
+
+    getJoystick( model ) {
+
+        if( !Tools[ 'joystick_'+ model ] ) Tools.makeJoystick( model );
+        return Tools.clone( Tools[ 'joystick_'+ model ] )
+
+    }
+
+    getCircular( model ) {
+
+        if( !Tools.circular ) Tools.makeCircular( model );
+        return Tools.clone( Tools.circular )
+
+    }
+
+    getKnob( model ) {
+
+        if( !Tools.knob ) Tools.makeKnob( model );
+        return Tools.clone( Tools.knob )
+
+    }
+
+    getPad2d( model ) {
+
+        if( !Tools.pad2d ) Tools.makePad( model );
+        return Tools.clone( Tools.pad2d )
+
+    }
+
+    // from Roots
+
+    cursor( name ) {
+
+         Roots.cursor( name );
+
+    }
+
+    
+
+    /////////
+
+    update() {}
+
+    reset() {}
+
+    /////////
+
+    appendChild( m ){
+        this.c[0].appendChild( m );
+    }
+
+    content() {
+
+        return this.c[0]
+
+    }
+
+    getDom() {
+
+        return this.c[0]
+
+    }
+
+    uiout() {
+
+        if( this.lock ) return;
+        if(!this.overEffect) return;
+        if(this.isGroup)return;
+        if(this.isTitle)return;
+        if(this.s) this.s[0].background = this.colors.background;
+
+    }
+
+    uiover() {
+
+        if( this.lock ) return;
+        if(!this.overEffect) return;
+        if(this.isGroup)return;
+        if(this.isTitle)return;
+        if(this.s) this.s[0].background = this.colors.backgroundOver;
+
+    }
+
+    rename( s ) {
+
+        if( this.c[1] !== undefined) this.c[1].textContent = s;
+
+    }
+
+    listen() {
+
+        this.isListen = Roots.addListen( this );
+        return this;
+
+    }
+
+    listening() {
+
+        if( this.objectLink === null ) return;
+        if( this.isSend ) return;
+        if( this.isEdit ) return;
+
+        this.setValue( this.objectLink[ this.objectKey ] );
+
+    }
+
+    setValue( v ) {
+
+        if( this.isNumber ) this.value = this.numValue( v );
+        //else if( v instanceof Array && v.length === 1 ) v = v[0];
+        else this.value = v;
+        this.update();
+
+    }
+
+    // ----------------------
+    // update every change
+    // ----------------------
+
+    onChange( f ) {
+
+        if( this.isSpace ) return
+        this.callback = f || null;
+        return this
+
+    }
+
+    // ----------------------
+    // update only on end
+    // ----------------------
+
+    onFinishChange( f ) {
+
+        if( this.isSpace ) return;
+        this.callback = null;
+        this.endCallback = f;
+        return this
+
+    }
+
+    // ----------------------
+    // event on open close
+    // ----------------------
+
+    onOpen( f ) {
+
+        this.openCallback = f;
+        return this
+
+    }
+
+    onClose( f ) {
+
+        this.closeCallback = f;
+        return this
+
+    }
+
+    // ----------------------
+    //  send back value
+    // ----------------------
+
+    send( v ) {
+
+        v = v || this.value;
+        if( v instanceof Array && v.length === 1 ) v = v[0];
+
+        this.isSend = true;
+        if( this.objectLink !== null ){ 
+            if( this.objectLink[ this.objectKey ] && this.objectLink[ this.objectKey ].isColor ) this.objectLink[ this.objectKey ].setHex( v );
+            else this.objectLink[ this.objectKey ] = v;
+        }
+        if( this.callback ) this.callback( v, this.objectKey );
+        this.isSend = false;
+
+    }
+
+    sendEnd( v ) {
+
+        v = v || this.value;
+        if( v instanceof Array && v.length === 1 ) v = v[0];
+
+        if( this.endCallback ) this.endCallback( v );
+        if( this.objectLink !== null ) this.objectLink[ this.objectKey ] = v;
+
+    }
+
+    // ----------------------
+    // clear node
+    // ----------------------
+
+    dispose(){
+
+        if( this.isListen ) Roots.removeListen( this );
+
+        Tools.clear( this.c[0] );
+
+        if( this.target !== null ){ 
+
+            if( this.group !== null  ) this.group.clearOne( this );
+            else this.target.removeChild( this.c[0] );
+
+        } else {
+
+            if( this.isUI ) this.main.clearOne( this );
+            else document.body.removeChild( this.c[0] );
+
+        }
+
+        if( !this.isUI ) Roots.remove( this );
+        
+        this.c = null;
+        this.s = null;
+        this.callback = null;
+        this.target = null;
+        this.isListen = false;
+
+    }
+    
+    clear() {
+
+    }
+
+    // ----------------------
+    // change size 
+    // ----------------------
+
+    getWidth() {
+
+        let nw = Roots.getWidth( this );
+        if(nw) this.w = nw;
+
+    }
+
+    setSize( sx ) {
+
+        if( !this.autoWidth ) return;
+        
+        this.w = sx;
+
+        if( this.simple ){
+            this.sb = this.w - this.sa;
+        } else {
+            let pp = this.w * ( this.p / 100 );
+            //this.sa = Math.floor( pp + 10 )
+            //this.sb = Math.floor( this.w - pp - 20 )
+            this.sa = Math.floor( pp + 8 );
+            this.sb = Math.floor( this.w - pp - 16 );
+        }
+
+    }
+
+    rSize() {
+
+        if( !this.autoWidth ) return
+        if( !this.isUI ) this.s[0].width = this.w + 'px';
+        if( !this.simple ) this.s[1].width = this.sa + 'px';
+    
+    }
+
+    // ----------------------
+    // for numeric value
+    // ----------------------
+
+    setTypeNumber( o ) {
+
+        this.isNumber = true;
+
+        this.value = 0;
+        if( o.value !== undefined ){
+            if( typeof o.value === 'string' ) this.value = o.value * 1;
+            else this.value = o.value;
+        }
+
+        this.min = o.min === undefined ? -Infinity : o.min;
+        this.max = o.max === undefined ?  Infinity : o.max;
+        this.precision = o.precision === undefined ? 2 : o.precision;
+
+        let s;
+
+        switch(this.precision){
+            case 0: s = 1; break;
+            case 1: s = 0.1; break;
+            case 2: s = 0.01; break;
+            case 3: s = 0.001; break;
+            case 4: s = 0.0001; break;
+            case 5: s = 0.00001; break;
+            case 6: s = 0.000001; break;
+        }
+
+        this.step = o.step === undefined ?  s : o.step;
+        this.range = this.max - this.min;
+        this.value = this.numValue( this.value );
+        
+    }
+
+    numValue( n ) {
+
+        if( this.noNeg ) n = Math.abs( n );
+        return Math.min( this.max, Math.max( this.min, n ) ).toFixed( this.precision ) * 1
+
+    }
+
+
+    // ----------------------
+    //   EVENTS DEFAULT
+    // ----------------------
+
+    handleEvent( e ) {
+
+        if( this.lock ) return
+        if( this.neverlock ) Roots.lock = false;
+        if( !this[e.type] ) return console.error(e.type, 'this type of event no existe !')
+
+
+        // TODO !!!!
+
+        //if( this.marginDiv ) z.d -= this.margin * 0.5
+
+        //if( this.marginDiv ) e.clientY -= this.margin * 0.5
+        //if( this.group && this.group.marginDiv ) e.clientY -= this.group.margin * 0.5
+
+        return this[e.type](e)
+    
+    }
+
+    wheel( e ) { return false; }
+    mousedown( e ) { return false; }
+    mousemove( e ) { return false; }
+    mouseup( e ) { return false; }
+    keydown( e ) { return false; }
+    keyup( e ) { return false; }
+
+
+    // ----------------------
+    // object referency
+    // ----------------------
+
+    setReferency( obj, key ) {
+
+        this.objectLink = obj;
+        this.objectKey = key;
+
+    }
+
+    display( v = false ) {
+        this.s[0].visibility = v ? 'visible' : 'hidden';
+    }
+
+    // ----------------------
+    // resize height 
+    // ----------------------
+
+    open () {
+
+        if( this.isOpen ) return
+        this.isOpen = true;
+        Roots.needResize = true;
+        if( this.openCallback ) this.openCallback();
+
+    }
+
+    close () {
+
+        if( !this.isOpen ) return
+        this.isOpen = false;
+        Roots.needResize = true;
+        if( this.closeCallback ) this.closeCallback();
+
+    }
+
+    needZone() {
+
+        Roots.needReZone = true;
+
+    }
+
+    rezone() {
+
+        Roots.needReZone = true;
+
+    }
+
+    // ----------------------
+    //  INPUT
+    // ----------------------
+
+    select() {
+    
+    }
+
+    unselect() {
+
+    }
+
+    setInput( Input ) {
+        
+        Roots.setInput( Input, this );
+
+    }
+
+    upInput( x, down ) {
+
+        return Roots.upInput( x, down );
+
+    }
+
+    // ----------------------
+    // special item 
+    // ----------------------
+
+    selected( b ){
+
+        this.isSelect = b || false;
+        
+    }
+
+}
+
+class Bool extends Proto {
+
+    constructor( o = {} ) {
+
+        super( o );
+        
+        this.value = o.value || false;
+        this.model = o.mode !== undefined ? o.mode : 0;
+
+        this.onName = o.rename || this.txt;
+        if( o.onName ) o.onname = o.onName;
+        if( o.onname ) this.onName = o.onname;
+
+        this.inh = o.inh || Math.floor( this.h*0.8 );
+        this.inw = o.inw || 36;
+
+        let cc = this.colors;
+       
+        if( this.model === 0 ){
+            let t = Math.floor(this.h*0.5)-((this.inh-2)*0.5);
+            this.c[2] = this.dom( 'div', this.css.basic + 'background:'+ cc.inputBg +'; height:'+(this.inh-2)+'px; width:'+this.inw+'px; top:'+t+'px; border-radius:10px; border:2px solid '+ cc.back );
+            this.c[3] = this.dom( 'div', this.css.basic + 'height:'+(this.inh-6)+'px; width:16px; top:'+(t+2)+'px; border-radius:10px; background:'+ cc.button+';' );
+        } else {
+            this.p = 0;
+            if( this.c[1] !== undefined ) this.c[1].textContent = '';
+            this.c[2] = this.dom( 'div', this.css.txt + this.css.button + 'top:1px; background:'+cc.button+'; height:'+(this.h-2)+'px; border:'+cc.borderSize+'px solid '+cc.border+'; border-radius:'+this.radius+'px;' );
+        }
+
+        this.stat = -1;
+
+        this.init();
+        this.update();
+
+    }
+
+    // ----------------------
+    //   EVENTS
+    // ----------------------
+
+    mousedown ( e ) {
+
+        this.value = !this.value;
+        this.update( true );
+        return this.mousemove( e )
+
+    }
+
+    mousemove ( e ) {
+
+        this.cursor('pointer');
+        return this.mode( true )
+        
+    }
+
+    reset () {
+
+        this.cursor();
+        return this.mode()
+
+    }
+
+    // ----------------------
+    //   MODE
+    // ----------------------
+
+    mode ( over ) {
+
+        let change = false;
+        let cc = this.colors, s = this.s, n, v = this.value;
+
+        if( over ) n = v ? 4 : 3;
+        else n = v ? 2 : 1;
+
+        if( this.stat !== n ){
+
+            this.stat = n;
+
+            if( this.model !== 0 ){
+
+                switch( n ){
+
+                    case 1: s[2].color = cc.text; s[2].background = cc.button; break;
+                    case 2: s[2].color = cc.textSelect; s[2].background = cc.select; break;
+                    case 3: s[2].color = cc.textOver; s[2].background = cc.overoff; break;
+                    case 4: s[2].color = cc.textOver; s[2].background = cc.over; break;
+
+                }
+
+                this.c[2].innerHTML = v ? this.onName : this.name;
+
+            } else {
+
+                switch( n ){
+
+                    case 1: s[2].background = s[2].borderColor = cc.backoff; s[3].background = cc.button; break;// off out
+                    case 2: s[2].background = s[2].borderColor = cc.back; s[3].background = cc.textOver; break;// on over
+                    case 3: s[2].background = s[2].borderColor = cc.back; s[3].background = cc.overoff; break;// off over
+                    case 4: s[2].background = s[2].borderColor = cc.backoff; s[3].background = cc.textSelect; break;// on out
+
+                }
+
+                s[3].marginLeft = v ? '17px' : '2px';
+                this.c[1].textContent = v ? this.onName : this.name;
+
+            }
+
+            change = true;
+
+        }
+
+        return change
+
+    }
+
+    // ----------------------
+
+    update ( up ) {
+
+        this.mode();
+        if( up ) this.send();
+            
+    }
+
+    rSize () {
+
+        super.rSize();
+
+        let s = this.s;
+        let w = (this.w - 10 ) - this.inw;
+        if( this.model === 0 ){
+            s[2].left = w + 'px';
+            s[3].left = w + 'px';
+        } else {
+            s[2].left = this.sa + 'px';
+            s[2].width = this.sb  + 'px';
+        }
+        
+    }
+
+}
+
+class Button extends Proto {
+
+    constructor( o = {} ) {
+
+        super( o );
+
+        this.value = '';
+        if( o.value !== undefined ) this.value = o.value;
+
+        this.values = o.value || this.txt;
+        if( o.values ) this.values = o.values;
+
+        if( !o.values && !o.value ) this.txt = '';
+
+        this.onName = o.onName || null;
+
+        this.on = false;
+
+        // force button width
+        this.bw = o.forceWidth || 0;
+        if(o.bw) this.bw = o.bw;
+        this.space = o.space || 3;
+
+        if( typeof this.values === 'string' ) this.values = [ this.values ];
+
+        this.isDown = false;
+        this.neverlock = true;
+        this.res = 0;
+
+        this.lng = this.values.length;
+        this.tmp = [];
+        this.stat = [];
+
+        let sel, cc = this.colors;
+
+        for( let i = 0; i < this.lng; i++ ){
+
+            sel = false;
+            if( this.values[i] === this.value && this.isSelectable ) sel = true;
+
+            this.c[i+2] = this.dom( 'div', this.css.txt + this.css.button + 'top:1px; height:'+(this.h-2)+'px; border:'+cc.borderSize+'px solid '+cc.border+'; border-radius:'+this.radius+'px;' );
+            this.c[i+2].style.background = sel ? cc.select : cc.button;
+            this.c[i+2].style.color = sel ? cc.textSelect : cc.text;
+            this.c[i+2].innerHTML = this.values[i];
+            this.stat[i] = sel ? 3:1;
+
+        }
+
+
+        if( this.txt==='' ) this.p = 0; 
+
+        if( (!o.value && !o.values) || this.p === 0 ){
+            if( this.c[1] !== undefined ) this.c[1].textContent = '';
+        } 
+        
+
+        this.init();
+
+    }
+
+    onOff() {
+
+        this.on = !this.on;
+        this.label( this.on ? this.onName : this.value );
+        
+    }
+
+    testZone ( e ) {
+
+        let l = this.local;
+        if( l.x === -1 && l.y === -1 ) return -1
+
+        let i = this.lng;
+        let t = this.tmp;
+        
+        while( i-- ){
+        	if( l.x>t[i][0] && l.x<t[i][2] ) return i
+        }
+
+        return -1
+
+    }
+
+    // ----------------------
+    //   EVENTS
+    // ----------------------
+
+    mouseup ( e ) {
+
+        if( !this.isDown ) return false
+
+        this.isDown = false;
+        if( this.res !== -1 ){
+            if( this.value === this.values[this.res] && this.unselectable ) this.value = '';
+            else this.value = this.values[this.res];
+            if( this.onName !== null ) this.onOff();
+            this.send();
+        }
+
+        return this.mousemove( e )
+
+    }
+
+    mousedown ( e ) {
+
+        if( this.isDown ) return false
+        this.isDown = true;
+    	return this.mousemove( e )
+
+    }
+
+    mousemove ( e ) {
+
+        let up = false;
+        this.res = this.testZone( e );
+
+        if( this.res !== -1 ){
+            this.cursor('pointer');
+            up = this.modes( this.isDown ? 3 : 2, this.res );
+        } else {
+        	up = this.reset();
+        }
+
+        return up
+
+    }
+
+    // ----------------------
+
+    modes ( N = 1, id = -1 ) {
+
+        let i = this.lng, w, n, r = false;
+
+        while( i-- ){
+
+            n = N;
+            w = this.isSelectable ? this.values[ i ] === this.value : false;
+            
+            if( i === id ){
+                if( w && n === 2 ) n = 3; 
+            } else {
+                n = 1;
+                if( w ) n = 4;
+            }
+
+            //if( this.mode( n, i ) ) r = true
+            r = this.mode( n, i );
+
+        }
+
+        return r
+
+    }
+
+    mode ( n, id ) {
+
+        //if(!this.s) return false
+ 
+        let change = false;
+        let cc = this.colors, s = this.s;
+        let i = id+2;
+
+        if( this.stat[id] !== n ){
+
+            this.stat[id] = n;
+        
+            switch( n ){
+
+                case 1: s[i].color = cc.text; s[i].background = cc.button; break
+                case 2: s[i].color = cc.textOver; s[i].background = cc.overoff; break
+                case 3: s[i].color = cc.textOver; s[i].background = cc.over; break
+                case 4: s[i].color = cc.textSelect; s[i].background = cc.select; break
+
+            }
+
+            change = true;
+
+        }
+
+        return change
+
+    }
+
+    // ----------------------
+
+    reset () {
+
+        this.res = -1;
+        this.cursor();
+        return this.modes()
+
+    }
+
+    label ( string, n ) {
+
+        n = n || 2;
+        this.c[n].textContent = string;
+
+    }
+
+    switchValues( n, string ){
+        this.c[n+2].innerHTML = this.values[n] = string;
+    }
+
+    icon ( string, y = 0, n = 2 ) {
+
+        //if(y) this.s[n].margin = ( y ) +'px 0px';
+        this.s[n].padding = ( y ) +'px 0px';
+        this.c[n].innerHTML = string;
+
+        return this
+
+    }
+
+    rSize () {
+
+        super.rSize();
+
+        let s = this.s;
+        let w = this.sb;
+        let d = this.sa;
+
+        let i = this.lng;
+        let sx = this.colors.sx; //this.space;
+        //let size = Math.floor( ( w-(dc*(i-1)) ) / i );
+        let size = ( w-(sx*(i-1)) ) / i; 
+
+        if( this.bw ){ 
+            size = this.bw < size ? this.bw : size;
+            //d = Math.floor((this.w-( (size * i) + (dc * (i-1)) ))*0.5)
+            d = ((this.w-( (size * i) + (sx * (i-1)) ))*0.5);
+        }
+
+        while( i-- ){
+
+        	//this.tmp[i] = [ Math.floor( d + ( size * i ) + ( dc * i )), size ];
+            this.tmp[i] = [ ( d + ( size * i ) + ( sx * i )), size ];
+        	this.tmp[i][2] = this.tmp[i][0] + this.tmp[i][1];
+
+            s[i+2].left = this.tmp[i][0] + 'px';
+            s[i+2].width = this.tmp[i][1] + 'px';
+
+        }
+
+    }
+
+}
+
+class Circular extends Proto {
+
+    constructor( o = {} ) {
+
+        super( o );
+
+        this.isCyclic = o.cyclic || false;
+        this.model = o.stype || 0;
+        if( o.mode !== undefined ) this.model = o.mode;
+
+        this.autoWidth = false;
+        this.minw = this.w;
+        this.diam = o.diam || this.w; 
+
+        this.setTypeNumber( o );
+
+        this.twoPi = Tools.TwoPI;
+        this.pi90 = Tools.pi90;
+
+        this.offset = new V2();
+
+        this.h = o.h || this.w + 10;
+
+        this.c[0].style.width = this.w +'px';
+        this.c[0].style.display = 'block';
+
+        if(this.c[1] !== undefined) {
+
+            this.c[1].style.width = '100%';
+            this.c[1].style.justifyContent = 'center';
+            this.top = 10;
+            this.h += 10;
+
+        }
+
+
+
+        this.percent = 0;
+        this.cmode = 0;
+        let cc = this.colors;
+
+        this.c[2] = this.dom( 'div', this.css.txt + 'justify-content:center; top:'+(this.h-20)+'px; width:100%; color:'+ cc.text );
+
+        // svg
+        
+        this.c[3] = this.getCircular();
+
+        this.setSvg( this.c[3], 'stroke', cc.back, 0 );
+        this.setSvg( this.c[3], 'd', this.makePath(), 1 );
+        this.setSvg( this.c[3], 'stroke', cc.text, 1 );
+
+        this.setSvg( this.c[3], 'viewBox', '0 0 '+this.diam+' '+this.diam );
+        this.setCss( this.c[3], { width:this.diam, height:this.diam, left:0, top:this.top });
+
+        this.init();
+        this.update();
+
+    }
+
+    mode ( mode ) {
+
+        if( this.cmode === mode ) return false;
+
+        let cc = this.colors;
+        let color;
+
+        switch( mode ){
+            case 0: // base
+
+                this.s[2].color = cc.text;
+                this.setSvg( this.c[3], 'stroke', cc.back, 0);
+                color = this.model > 0 ? Tools.pack( Tools.lerpColor( Tools.unpack( Tools.ColorLuma( cc.text, -0.75) ), Tools.unpack( cc.text ), this.percent ) ) : cc.text;
+                this.setSvg( this.c[3], 'stroke', color, 1 );
+                
+            break;
+            case 1: // down
+
+                this.s[2].color = cc.textOver;
+                this.setSvg( this.c[3], 'stroke', cc.backoff, 0);
+                color = this.model > 0 ? Tools.pack( Tools.lerpColor( Tools.unpack( Tools.ColorLuma( cc.text, -0.75) ), Tools.unpack( cc.text ), this.percent ) ) : cc.textOver;
+                this.setSvg( this.c[3], 'stroke', color, 1 );
+                
+            break;
+        }
+
+        this.cmode = mode;
+        return true;
+
+    }
+
+    reset () {
+
+        this.isDown = false;
+        
+    }
+
+    testZone ( e ) {
+
+        let l = this.local;
+        if( l.x === -1 && l.y === -1 ) return '';
+        
+        if( l.y <= this.c[ 1 ].offsetHeight ) return 'title';
+        else if ( l.y > this.h - this.c[ 2 ].offsetHeight ) return 'text';
+        else return 'circular';
+
+    }
+
+    // ----------------------
+    //   EVENTS
+    // ----------------------
+
+    mouseup ( e ) {
+
+        this.isDown = false;
+        this.sendEnd();
+        return this.mode(0);
+
+    }
+
+    mousedown ( e ) {
+
+        this.isDown = true;
+        this.old = this.value;
+        this.oldr = null;
+        this.mousemove( e );
+        return this.mode(1);
+
+    }
+
+    mousemove ( e ) {
+
+        if( !this.isDown ) return;
+
+        //console.log('over')
+
+        let off = this.offset;
+        off.x = (this.w*0.5) - ( e.clientX - this.zone.x );
+        off.y = (this.diam*0.5) - ( e.clientY - this.zone.y - this.ytop );
+
+        this.r = off.angle() - this.pi90;
+        this.r = (((this.r%this.twoPi)+this.twoPi)%this.twoPi);
+
+        if( this.oldr !== null ){ 
+
+            let dif = this.r - this.oldr;
+            this.r = Math.abs(dif) > Math.PI ? this.oldr : this.r;
+
+            if( dif > 6 ) this.r = 0;
+            if( dif < -6 ) this.r = this.twoPi;
+
+        }
+
+        let steps = 1 / this.twoPi;
+        let value = this.r * steps;
+
+        let n = ( ( this.range * value ) + this.min ) - this.old;
+
+        if(n >= this.step || n <= this.step){ 
+            n = ~~ ( n / this.step );
+            this.value = this.numValue( this.old + ( n * this.step ) );
+            this.update( true );
+            this.old = this.value;
+            this.oldr = this.r;
+        }
+
+    }
+
+    wheel ( e ) {
+
+        let name = this.testZone( e );
+
+        if( name === 'circular' ) {
+    
+            let v = this.value - this.step * e.delta;
+    
+            if ( v > this.max ) {
+                v = this.isCyclic ? this.min : this.max;
+            } else if ( v < this.min ) {
+                v = this.isCyclic ? this.max : this.min;
+            }
+    
+            this.setValue( v );
+            this.old = v;
+            this.update( true );
+
+            return true;
+    
+        }
+        return false;
+
+    }
+
+    // ----------------------
+
+    makePath () {
+
+        let r = 40;
+        let d = 24;
+        let a = this.percent * this.twoPi - 0.001;
+        let x2 = (r + r * Math.sin(a)) + d;
+        let y2 = (r - r * Math.cos(a)) + d;
+        let big = a > Math.PI ? 1 : 0;
+        return "M " + (r+d) + "," + d + " A " + r + "," + r + " 0 " + big + " 1 " + x2 + "," + y2;
+
+    }
+
+    update ( up ) {
+
+        this.c[2].textContent = this.value;
+        this.percent = ( this.value - this.min ) / this.range;
+
+        this.setSvg( this.c[3], 'd', this.makePath(), 1 );
+
+        if ( this.model > 0 ) {
+
+            let cc = this.colors;
+            let color = Tools.pack( Tools.lerpColor( Tools.unpack( Tools.ColorLuma( cc.text, -0.75) ), Tools.unpack( cc.text ), this.percent ) );
+            this.setSvg( this.c[3], 'stroke', color, 1 );
+        
+        }
+
+        if( up ) this.send();
+        
+    }
+
+}
+
+class Color extends Proto {
+
+    constructor( o = {} ) {
+
+        super( o );
+
+	    //this.autoHeight = true;
+
+	    this.ctype = o.ctype || 'hex';
+
+	    this.wfixe = 256;
+
+	    this.cw = this.sb > 256 ? 256 : this.sb;
+	    if(o.cw != undefined ) this.cw = o.cw;
+
+
+
+	    // color up or down
+	    this.side = o.side || 'down';
+	    this.up = this.side === 'down' ? 0 : 1;
+	    
+	    this.baseH = this.h;
+
+	    this.offset = new V2();
+	    this.decal = new V2();
+	    this.pp = new V2();
+
+	    let cc = this.colors;
+
+	   // this.c[2] = this.dom( 'div', this.css.txt + this.css.middle + 'top:1px; height:'+(this.h-2)+'px;' + 'border-radius:'+this.radius+'px; text-shadow:none; border:'+cc.borderSize+'px solid '+cc.border+';' )
+
+	    this.c[2] = this.dom( 'div', `${this.css.txt} ${this.css.middle} top:1px; height:${this.h-2}px; border-radius:${this.radius}px; text-shadow:none; border:${cc.borderSize}px solid ${cc.border};` );
+	    //this.s[2] = this.c[2].style;
+
+	    //this.s[2].textShadow = 'none'
+
+	    /*if( this.up ){
+	        this.s[2].top = 'auto';
+	        this.s[2].bottom = '2px';
+	    }*/
+
+	    //this.c[0].style.textAlign = 'center';
+	    this.c[0].style.display = 'block';
+
+	    this.c[3] = this.getColorRing();
+	    this.c[3].style.visibility  = 'hidden';
+
+	    this.hsl = null;
+	    this.value = '#ffffff';
+	    if( o.value !== undefined ){
+	    	if( o.value.isColor ){ this.value = '#' + o.value.getHexString(); }
+	        else if( o.value instanceof Array ) this.value = Tools.rgbToHex( o.value );
+	        else if(!isNaN(o.value)) this.value = Tools.hexToHtml( o.value );
+	        else this.value = o.value;
+	    }
+
+	    this.bcolor = null;
+	    this.isDown = false;
+	    this.fistDown = false;
+
+	    this.notext = o.notext || false;
+
+	    this.tr = 98;
+	    this.tsl = Math.sqrt(3) * this.tr;
+
+	    this.hue = 0;
+	    this.d = 256;
+
+	    this.init();
+
+	    this.setColor( this.value );
+
+	    if( o.open !== undefined ) this.open();
+
+	}
+
+	testZone ( mx, my ) {
+
+		let l = this.local;
+		if( l.x === -1 && l.y === -1 ) return ''
+
+		if( this.up && this.isOpen ){
+
+			if( l.y > this.wfixe ) return 'title'
+		    else return 'color'
+
+		} else {
+
+			if( l.y < this.baseH+2 ) return 'title'
+	    	else if( this.isOpen ) return 'color'
+
+		}
+
+    }
+
+	// ----------------------
+    //   EVENTS
+    // ----------------------
+
+	mouseup ( e ) {
+
+	    this.isDown = false;
+	    this.d = 256;
+
+	}
+
+	mousedown ( e ) {
+
+
+		let name = this.testZone( e.clientX, e.clientY );
+
+
+		//if( !name ) return;
+		if(name === 'title'){
+			if( !this.isOpen ) this.open();
+	        else this.close();
+	        return true;
+		}
+
+
+		if( name === 'color' ){
+
+			this.isDown = true;
+			this.fistDown = true;
+			this.mousemove( e );
+		}
+	}
+
+	mousemove ( e ) {
+
+	    let name = this.testZone( e.clientX, e.clientY );
+
+	    let off, d, hue, sat, lum, rad, x, y, rr, T = Tools;
+
+	    if( name === 'title' ) this.cursor('pointer');
+
+	    if( name === 'color' ){
+
+	    	off = this.offset;
+		    off.x = e.clientX - ( this.zone.x + this.decal.x + this.mid );
+		    off.y = e.clientY - ( this.zone.y + this.decal.y + this.mid ) - this.ytop;
+			d = off.length() * this.ratio;
+			rr = off.angle();
+			if(rr < 0) rr += 2 * T.PI;
+						
+
+	    	if ( d < 128 ) this.cursor('crosshair');
+	    	else if( !this.isDown ) this.cursor();
+
+	    	if( this.isDown ){
+
+			    if( this.fistDown ){
+			    	this.d = d;
+			    	this.fistDown = false;
+			    }
+
+			    if ( this.d < 128 ) {
+
+				    if ( this.d > this.tr ) { // outside hue
+
+				        hue = ( rr + T.pi90 ) / T.TwoPI;
+				        this.hue = (hue + 1) % 1;
+				        this.setHSL([(hue + 1) % 1, this.hsl[1], this.hsl[2]]);
+
+				    } else { // triangle
+
+				    	x = off.x * this.ratio;
+				    	y = off.y * this.ratio;
+
+				    	let rr = (this.hue * T.TwoPI) + T.PI;
+				    	if(rr < 0) rr += 2 * T.PI;
+
+				    	rad = Math.atan2(-y, x);
+				    	if(rad < 0) rad += 2 * T.PI;
+						
+				    	let rad0 = ( rad + T.pi90 + T.TwoPI + rr ) % (T.TwoPI),
+				    	rad1 = rad0 % ((2/3) * T.PI) - (T.pi60),
+				    	a    = 0.5 * this.tr,
+				    	b    = Math.tan(rad1) * a,
+				    	r    = Math.sqrt(x*x + y*y),
+				    	maxR = Math.sqrt(a*a + b*b);
+
+				    	if( r > maxR ) {
+							let dx = Math.tan(rad1) * r;
+							let rad2 = Math.atan(dx / maxR);
+							if(rad2 > T.pi60)  rad2 = T.pi60;
+						    else if( rad2 < -T.pi60 ) rad2 = -T.pi60;
+						
+							rad += rad2 - rad1;
+
+							rad0 = (rad + T.pi90  + T.TwoPI + rr) % (T.TwoPI),
+							rad1 = rad0 % ((2/3) * T.PI) - (T.pi60);
+							b = Math.tan(rad1) * a;
+							r = maxR = Math.sqrt(a*a + b*b);
+						}
+
+						lum = ((Math.sin(rad0) * r) / this.tsl) + 0.5;
+				
+						let w = 1 - (Math.abs(lum - 0.5) * 2);
+						sat = (((Math.cos(rad0) * r) + (this.tr / 2)) / (1.5 * this.tr)) / w;
+						sat = T.clamp( sat, 0, 1 );
+						
+				        this.setHSL([this.hsl[0], sat, lum]);
+
+				    }
+				}
+			}
+		}
+
+	}
+
+	// ----------------------
+
+	setHeight () {
+
+		this.h = this.isOpen ? this.wfixe + this.baseH + 5 : this.baseH;
+		this.s[0].height = this.h + 'px';
+		this.zone.h = this.h;
+
+	}
+
+	parentHeight ( t ) {
+
+		if ( this.group !== null ) this.group.calc( t );
+	    else if ( this.isUI ) this.main.calc( t );
+
+	}
+
+	open () {
+
+		super.open();
+
+		this.setHeight();
+
+		if( this.up ) this.zone.y -= this.wfixe + 5;
+
+		let t = this.h - this.baseH;
+
+	    this.s[3].visibility = 'visible';
+	    //this.s[3].display = 'block';
+	    this.parentHeight( t );
+
+	}
+
+	close () {
+
+		super.close();
+
+		if( this.up ) this.zone.y += this.wfixe + 5;
+
+		let t = this.h - this.baseH;
+
+		this.setHeight();
+
+	    this.s[3].visibility  = 'hidden';
+	    //this.s[3].display = 'none';
+	    this.parentHeight( -t );
+
+	}
+
+	update ( up ) {
+
+	    let cc = Tools.rgbToHex( Tools.hslToRgb([ this.hsl[0], 1, 0.5 ]) );
+
+	    this.moveMarkers();
+	    
+	    this.value = this.bcolor;
+
+	    this.setSvg( this.c[3], 'fill', cc, 2, 0 );
+
+	    this.s[2].background = this.bcolor;
+	    if(!this.notext) this.c[2].textContent = Tools.htmlToHex( this.bcolor );
+
+	    this.invert = Tools.findDeepInver( this.rgb );
+	    this.s[2].color = this.invert ? '#fff' : '#000';
+
+	    if(!up) return;
+
+	    if( this.ctype === 'array' ) this.send( this.rgb );
+	    if( this.ctype === 'rgb' ) this.send( Tools.htmlRgb( this.rgb ) );
+	    if( this.ctype === 'hex' ) this.send( Tools.htmlToHex( this.value ) );
+	    if( this.ctype === 'html' ) this.send();
+
+	}
+
+	setValue ( v ){
+
+		if( v instanceof Array ) this.value = Tools.rgbToHex( v );
+        else if(!isNaN(v)) this.value = Tools.hexToHtml( v );
+        else this.value = v;
+
+		this.setColor( this.value );
+        this.update();
+
+	}
+
+	setColor ( color ) {
+
+	    let unpack = Tools.unpack(color);
+	    if (this.bcolor !== color && unpack) {
+
+	        this.bcolor = color;
+	        this.rgb = unpack;
+	        this.hsl = Tools.rgbToHsl( this.rgb );
+
+	        this.hue = this.hsl[0];
+
+	        this.update();
+	    }
+	    return this;
+
+	}
+
+	setHSL ( hsl ) {
+
+	    this.hsl = hsl;
+	    this.rgb = Tools.hslToRgb( hsl );
+	    this.bcolor = Tools.rgbToHex( this.rgb );
+	    this.update( true );
+	    return this;
+
+	}
+
+	moveMarkers () {
+
+		let p = this.pp;
+		let T = Tools;
+
+	    this.invert ? '#fff' : '#000';
+	    let a = this.hsl[0] * T.TwoPI;
+	    let third = (2/3) * T.PI;
+	    let r = this.tr;
+	    let h = this.hsl[0];
+	    let s = this.hsl[1];
+	    let l = this.hsl[2];
+
+	    let angle = ( a - T.pi90 ) * T.todeg;
+
+	    h = - a + T.pi90;
+
+		let hx = Math.cos(h) * r;
+		let hy = -Math.sin(h) * r;
+		let sx = Math.cos(h - third) * r;
+		let sy = -Math.sin(h - third) * r;
+		let vx = Math.cos(h + third) * r;
+		let vy = -Math.sin(h + third) * r;
+		let mx = (sx + vx) / 2, my = (sy + vy) / 2;
+		a  = (1 - 2 * Math.abs(l - .5)) * s;
+		let x = sx + (vx - sx) * l + (hx - mx) * a;
+		let y = sy + (vy - sy) * l + (hy - my) * a;
+
+	    p.set( x, y ).addScalar(128);
+
+	    //let ff = (1-l)*255;
+	    // this.setSvg( this.c[3], 'stroke', 'rgb('+ff+','+ff+','+ff+')', 3 );
+
+	    this.setSvg( this.c[3], 'transform', 'rotate('+angle+' )', 2 );
+
+	    this.setSvg( this.c[3], 'cx', p.x, 3 );
+	    this.setSvg( this.c[3], 'cy', p.y, 3 );
+	    
+	    this.setSvg( this.c[3], 'stroke', this.invert ? '#fff' : '#000', 2, 3 );
+	    this.setSvg( this.c[3], 'stroke', this.invert ? '#fff' : '#000', 3 );
+	    this.setSvg( this.c[3], 'fill',this.bcolor, 3 );
+
+	}
+
+	rSize () {
+
+	    //Proto.prototype.rSize.call( this );
+	    super.rSize();
+
+	    let s = this.s;
+
+	    s[2].width = this.sb + 'px';
+	    s[2].left = this.sa + 'px';
+
+	    //console.log(this.sb)
+
+	    this.cw = this.sb > 256 ? 256 : this.sb;
+
+
+
+	    this.rSizeColor( this.cw );
+
+	    this.decal.x = Math.floor((this.w - this.wfixe) * 0.5);
+	    //s[3].left = this.decal.x + 'px';
+	    
+	}
+
+	rSizeColor ( w ) {
+
+
+		if( w === this.wfixe ) return;
+
+
+
+		this.wfixe = w;
+
+
+
+		let s = this.s;
+
+		//this.decal.x = Math.floor((this.w - this.wfixe) * 0.5);
+	    this.decal.y = this.side === 'up' ? 2 : this.baseH + 2;
+	    this.mid = Math.floor( this.wfixe * 0.5 );
+
+	    this.setSvg( this.c[3], 'viewBox', '0 0 '+ this.wfixe + ' '+ this.wfixe );
+	    s[3].width = this.wfixe + 'px';
+	    s[3].height = this.wfixe + 'px';
+    	//s[3].left = this.decal.x + 'px';
+	    s[3].top = this.decal.y + 'px';
+
+	    this.ratio = 256 / this.wfixe;
+	    this.square = 1 / (60*(this.wfixe/256));
+	    this.setHeight();
+
+	}
+
+
+}
+
+class Fps extends Proto {
+
+    constructor( o = {} ) {
+
+        super( o );
+
+        this.round = Math.round;
+
+        //this.autoHeight = true;
+
+        this.baseH = this.h;
+        this.hplus = o.hplus || 50;
+
+        this.res = o.res || 40;
+        this.l = 1;
+
+        this.precision = o.precision || 0;
+        
+
+        this.custom = o.custom || false;
+        this.names = o.names || ['FPS', 'MS'];
+        let cc = o.cc || ['220,220,220', '255,255,0'];
+
+       // this.divid = [ 100, 100, 100 ];
+       // this.multy = [ 30, 30, 30 ];
+
+        this.adding = o.adding || false;
+
+        this.range = o.range || [ 165, 100, 100 ];
+
+        this.alpha = o.alpha || 0.25;
+
+        this.values = [];
+        this.points = [];
+        this.textDisplay = [];
+
+        if(!this.custom){
+
+            this.now = Roots.getTime();
+            this.startTime = 0;//this.now()
+            this.prevTime = 0;//this.startTime;
+            this.frames = 0;
+
+            this.ms = 0;
+            this.fps = 0;
+            this.mem = 0;
+            this.mm = 0;
+
+            this.isMem = ( self.performance && self.performance.memory ) ? true : false;
+
+           // this.divid = [ 100, 200, 1 ];
+           // this.multy = [ 30, 30, 30 ];
+
+            if( this.isMem ){
+
+                this.names.push('MEM');
+                cc.push('0,255,255');
+
+            }
+
+            this.txt = o.name || 'Fps';
+
+        }
+
+
+        let fltop = Math.floor(this.h*0.5)-3;
+        const ccc = this.colors;
+
+        this.c[1].textContent = this.txt;
+        //this.c[1].innerHTML = '&#160;' + this.txt
+        this.c[0].style.cursor = 'pointer';
+        this.c[0].style.pointerEvents = 'auto';
+
+        let panelCss = 'display:none; left:10px; top:'+ this.h + 'px; height:'+(this.hplus - 8)+'px; box-sizing:border-box; background: rgba(0, 0, 0, 0.2); border:1px solid '+ ccc.border +';';
+
+        if( this.radius !== 0 ) panelCss += 'border-radius:' + this.radius+'px;'; 
+
+        this.c[2] = this.dom( 'path', this.css.basic + panelCss , {} );
+
+        this.c[2].setAttribute('viewBox', '0 0 '+this.res+' 50' );
+        this.c[2].setAttribute('height', '100%' );
+        this.c[2].setAttribute('width', '100%' );
+        this.c[2].setAttribute('preserveAspectRatio', 'none' );
+
+
+        //this.dom( 'path', null, { fill:'rgba(255,255,0,0.3)', 'stroke-width':1, stroke:'#FF0', 'vector-effect':'non-scaling-stroke' }, this.c[2] );
+        //this.dom( 'path', null, { fill:'rgba(0,255,255,0.3)', 'stroke-width':1, stroke:'#0FF', 'vector-effect':'non-scaling-stroke' }, this.c[2] );
+        
+        // arrow
+        this.c[3] = this.dom( 'path', this.css.basic + 'position:absolute; width:6px; height:6px; left:0; top:'+fltop+'px;', { d:this.svgs.g1, fill:ccc.text, stroke:'none'});
+        //this.c[3] = this.dom( 'path', this.css.basic + 'position:absolute; width:10px; height:10px; left:4px; top:'+fltop+'px;', { d:this.svgs.arrow, fill:this.colors.text, stroke:'none'});
+
+        // result test
+        this.c[4] = this.dom( 'div', this.css.txt + 'position:absolute; left:10px; top:'+(this.h+2) +'px; display:none; width:100%; text-align:center;' );
+
+        // bottom line
+        if( o.bottomLine ) this.c[4] = this.dom( 'div', this.css.basic + 'width:100%; bottom:0px; height:1px; background: rgba(255, 255, 255, 0.2);');
+
+        this.isShow = false;
+
+
+
+        let s = this.s;
+
+        //s[1].marginLeft = '10px';
+        s[1].lineHeight = this.h-4;
+        s[1].color = ccc.text;
+        //s[1].paddingLeft = '18px';
+        //s[1].fontWeight = 'bold';
+
+        if( this.radius !== 0 )  s[0].borderRadius = this.radius+'px';
+        if( this.colors.gborder!=='none') s[0].border = '1px solid ' + ccc.gborder;
+
+
+
+
+        let j = 0;
+
+        for( j=0; j<this.names.length; j++ ){
+
+            let base = [];
+            let i = this.res+1;
+            while( i-- ) base.push(50);
+
+            this.range[j] = ( 1 / this.range[j] ) * 49;
+            
+            this.points.push( base );
+            this.values.push(0);
+           //  this.dom( 'path', null, { fill:'rgba('+cc[j]+',0.5)', 'stroke-width':1, stroke:'rgba('+cc[j]+',1)', 'vector-effect':'non-scaling-stroke' }, this.c[2] );
+            this.textDisplay.push( "<span style='color:rgb("+cc[j]+")'> " + this.names[j] +" ");
+
+        }
+
+        j = this.names.length;
+        while(j--){
+            this.dom( 'path', null, { fill:'rgba('+cc[j]+','+this.alpha+')', 'stroke-width':1, stroke:'rgba('+cc[j]+',1)', 'vector-effect':'non-scaling-stroke' }, this.c[2] );
+        }
+
+
+        this.init();
+
+        //if( this.isShow ) this.show();
+
+    }
+
+    // ----------------------
+    //   EVENTS
+    // ----------------------
+
+    mousedown ( e ) {
+
+        if( this.isShow ) this.close();
+        else this.open();
+
+    }
+
+    // ----------------------
+
+    /*mode: function ( mode ) {
+
+        let s = this.s;
+
+        switch(mode){
+            case 0: // base
+                s[1].color = this.colors.text;
+                //s[1].background = 'none';
+            break;
+            case 1: // over
+                s[1].color = '#FFF';
+                //s[1].background = UIL.SELECT;
+            break;
+            case 2: // edit / down
+                s[1].color = this.colors.text;
+                //s[1].background = UIL.SELECTDOWN;
+            break;
+
+        }
+    },*/
+
+    tick ( v ) {
+
+        this.values = v;
+        if( !this.isShow ) return;
+        this.drawGraph();
+        this.upText();
+
+    }
+
+    makePath ( point ) {
+
+        let p = '';
+        p += 'M ' + (-1) + ' ' + 50;
+        for ( let i = 0; i < this.res + 1; i ++ ) { p += ' L ' + i + ' ' + point[i]; }
+        p += ' L ' + (this.res + 1) + ' ' + 50;
+        return p;
+
+    }
+
+    upText ( val ) {
+
+        let v = val || this.values, t = '';
+        for( let j=0, lng =this.names.length; j<lng; j++ ) t += this.textDisplay[j] + (v[j]).toFixed(this.precision) + '</span>';
+        this.c[4].innerHTML = t;
+    
+    }
+
+    drawGraph () {
+
+        let svg = this.c[2];
+        let i = this.names.length, v, old = 0, n = 0;
+
+        while( i-- ){
+            if( this.adding ) v = (this.values[n]+old) * this.range[n];
+            else  v = (this.values[n] * this.range[n]);
+            this.points[n].shift();
+            this.points[n].push( 50 - v );
+            this.setSvg( svg, 'd', this.makePath( this.points[n] ), i+1 );
+            old += this.values[n];
+            n++;
+
+        }
+
+    }
+
+    open () {
+
+        super.open();
+
+        this.h = this.hplus + this.baseH;
+
+        this.setSvg( this.c[3], 'd', this.svgs.g2 );
+
+        if( this.group !== null ){ this.group.calc( this.hplus );}
+        else if( this.isUI ) this.main.calc( this.hplus );
+
+        this.s[0].height = this.h +'px';
+        this.s[2].display = 'block'; 
+        this.s[4].display = 'block';
+        this.isShow = true;
+
+        if( !this.custom ) Roots.addListen( this );
+
+    }
+
+    close () {
+
+        super.close();
+
+        this.h = this.baseH;
+
+        this.setSvg( this.c[3], 'd', this.svgs.g1 );
+
+        if( this.group !== null ){ this.group.calc( -this.hplus );}
+        else if( this.isUI ) this.main.calc( -this.hplus );
+        
+        this.s[0].height = this.h +'px';
+        this.s[2].display = 'none';
+        this.s[4].display = 'none';
+        this.isShow = false;
+
+        if( !this.custom ) Roots.removeListen( this );
+
+        this.c[4].innerHTML = '';
+        
+    }
+
+
+    ///// AUTO FPS //////
+
+    begin () {
+
+        this.startTime = this.now();
+        
+    }
+
+    end () {
+
+        let time = this.now();
+        this.ms = time - this.startTime;
+
+        this.frames ++;
+
+        if ( time > this.prevTime + 1000 ) {
+
+            this.fps = this.round( ( this.frames * 1000 ) / ( time - this.prevTime ) );
+
+            this.prevTime = time;
+            this.frames = 0;
+
+            if ( this.isMem ) {
+
+                let heapSize = performance.memory.usedJSHeapSize;
+                let heapSizeLimit = performance.memory.jsHeapSizeLimit;
+
+                this.mem = this.round( heapSize * 0.000000954 );
+                this.mm = heapSize / heapSizeLimit;
+
+            }
+
+        }
+
+        this.values = [ this.fps, this.ms , this.mm ];
+
+        this.drawGraph();
+        this.upText( [ this.fps, this.ms, this.mem ] );
+
+        return time;
+
+    }
+
+    listening () {
+
+        if( !this.custom ) this.startTime = this.end();
+        
+    }
+
+    rSize () {
+
+        let s = this.s;
+        let w = this.w;
+
+        s[3].left = ( this.sa + this.sb - 6 ) + 'px';
+
+        s[0].width = w + 'px';
+        s[1].width = w + 'px';
+        s[2].left = 10 + 'px';
+        s[2].width = (w-20) + 'px';
+        s[4].width = (w-20) + 'px';
+        
+    }
+    
+}
+
+class Graph extends Proto {
+
+    constructor( o = {} ) {
+
+        super( o );
+
+    	this.value = o.value !== undefined ? o.value : [0,0,0];
+        this.lng = this.value.length;
+
+        this.precision = o.precision !== undefined ? o.precision : 2;
+        this.multiplicator = o.multiplicator || 1;
+        this.neg = o.neg || false;
+
+        this.line = o.line !== undefined ?  o.line : true;
+
+        //if(this.neg)this.multiplicator*=2;
+
+        this.autoWidth = o.autoWidth !== undefined ? o.autoWidth : true;
+        this.isNumber = false;
+
+        this.isDown = false;
+
+        this.h = o.h || 128 + 10;
+        this.rh = this.h - 10;
+        this.top = 0;
+
+        this.c[0].style.width = this.w +'px';
+
+        if( this.c[1] !== undefined ) { // with title
+
+            this.c[1].style.width = this.w +'px';
+
+            if(!this.autoWidth){
+                this.c[1].style.width = '100%';
+                this.c[1].style.justifyContent = 'center';
+            }
+            
+            
+            //this.c[1].style.background = '#ff0000';
+            //this.c[1].style.textAlign = 'center';
+            this.top = 10;
+            this.h += 10;
+
+        }
+
+        this.gh = this.rh - 28;
+        this.gw = this.w - 28;
+
+        //this.c[2] = this.dom( 'div', this.css.txt + 'justify-content:center; text-align: justify; column-count:'+this.lng+'; top:'+(this.h-20)+'px; width:100%; color:'+ this.colors.text );
+
+        //let colum = 'column-count:'+this.lng+'; column:'+this.lng+'; break-inside: column; top:'
+        this.c[2] = this.dom( 'div', this.css.txt + 'display:block; text-align:center; padding:0px 0px; top:'+(this.h-20)+'px; left:14px; width:'+this.gw+'px;  color:'+ this.colors.text );
+       
+        //this.c[2].textContent = this.value;
+        this.c[2].innerHTML = this.valueToHtml();
+
+        let svg = this.dom( 'svg', this.css.basic , { viewBox:'0 0 '+this.w+' '+this.rh, width:this.w, height:this.rh, preserveAspectRatio:'none' } );
+        this.setCss( svg, { width:this.w, height:this.rh, left:0, top:this.top });
+
+        this.dom( 'path', '', { d:'', stroke:this.colors.text, 'stroke-width':2, fill:'none', 'stroke-linecap':'butt' }, svg );
+        this.dom( 'rect', '', { x:10, y:10, width:this.gw+8, height:this.gh+8, stroke:'rgba(0,0,0,0.3)', 'stroke-width':1 , fill:'none'}, svg );
+
+        this.iw = ((this.gw-(4*(this.lng-1)))/this.lng);
+        let t = [];
+        this.cMode = [];
+
+        this.v = [];
+
+        for( let i = 0; i < this.lng; i++ ){
+
+        	t[i] = [ 14 + (i*this.iw) + (i*4), this.iw ];
+        	t[i][2] = t[i][0] + t[i][1];
+        	this.cMode[i] = 0;
+
+            if( this.neg ) this.v[i] = ((1+(this.value[i] / this.multiplicator))*0.5);
+        	else this.v[i] = this.value[i] / this.multiplicator;
+
+        	this.dom( 'rect', '', { x:t[i][0], y:14, width:t[i][1], height:1, fill:this.colors.text, 'fill-opacity':0.3 }, svg );
+
+        }
+
+        this.tmp = t;
+        this.c[3] = svg;
+
+        //console.log(this.w)
+
+        this.init();
+
+        if( this.c[1] !== undefined ){
+            this.c[1].style.top = 0 +'px';
+            this.c[1].style.height = 20 +'px';
+            this.s[1].lineHeight = (20-5)+'px';
+        }
+
+        this.update( false );
+
+    }
+
+    setValue ( value ) {
+
+        this.value = value;
+        this.lng = this.value.length;
+        for (var i = 0; i < this.lng; i++) {
+            if (this.neg) this.v[i] = (1 + value[i] / this.multiplicator) * 0.5;
+            else this.v[i] = value[i] / this.multiplicator;
+        }
+        this.update();
+
+    }
+
+    valueToHtml() {
+
+        let i = this.lng, n=0, r = '<table style="width:100%;"><tr>';
+        let w = 100 / this.lng;
+        let style = 'width:'+ w +'%;';//' text-align:center;'
+        while(i--){
+            if(n===this.lng-1) r += '<td style='+style+'>' + this.value[n] + '</td></tr></table>';
+            else r += '<td style='+style+'>' + this.value[n] + '</td>';
+            n++;
+        }
+        return r
+    }
+
+    updateSVG () {
+
+        if( this.line ) this.setSvg( this.c[3], 'd', this.makePath(), 0 );
+
+        for(let i = 0; i<this.lng; i++ ){
+
+            this.setSvg( this.c[3], 'height', this.v[i]*this.gh, i+2 );
+            this.setSvg( this.c[3], 'y', 14 + (this.gh - this.v[i]*this.gh), i+2 );
+            if( this.neg ) this.value[i] = ( ((this.v[i]*2)-1) * this.multiplicator ).toFixed( this.precision ) * 1;
+            else this.value[i] = ( (this.v[i] * this.multiplicator) ).toFixed( this.precision ) * 1;
+
+        }
+
+        //this.c[2].textContent = this.value;
+        this.c[2].innerHTML = this.valueToHtml();
+
+    }
+
+    testZone ( e ) {
+
+        let l = this.local;
+        if( l.x === -1 && l.y === -1 ) return '';
+
+        let i = this.lng;
+        let t = this.tmp;
+        
+	    if( l.y>this.top && l.y<this.h-20 ){
+	        while( i-- ){
+	            if( l.x>t[i][0] && l.x<t[i][2] ) return i;
+	        }
+	    }
+
+        return ''
+
+    }
+
+    mode ( n, name ) {
+
+    	if( n === this.cMode[name] ) return false;
+
+    	let a;
+
+        switch(n){
+            case 0: a=0.3; break;
+            case 1: a=0.6; break;
+            case 2: a=1; break;
+        }
+
+        this.reset();
+
+        this.setSvg( this.c[3], 'fill-opacity', a, name + 2 );
+        this.cMode[name] = n;
+
+        return true;
+
+
+
+    }
+
+    // ----------------------
+    //   EVENTS
+    // ----------------------
+
+    reset () {
+
+    	let nup = false;
+        //this.isDown = false;
+
+        let i = this.lng;
+        while(i--){ 
+            if( this.cMode[i] !== 0 ){
+                this.cMode[i] = 0;
+                this.setSvg( this.c[3], 'fill-opacity', 0.3, i + 2 );
+                nup = true;
+            }
+        }
+
+        return nup;
+
+    }
+
+    mouseup ( e ) {
+
+        this.isDown = false;
+        if( this.current !== -1 ) return this.reset();
+        
+    }
+
+    mousedown ( e ) {
+
+    	this.isDown = true;
+        return this.mousemove( e );
+
+    }
+
+    mousemove ( e ) {
+
+    	let nup = false;
+
+    	let name = this.testZone(e);
+
+    	if( name === '' ){
+
+            nup = this.reset();
+            //this.cursor();
+
+        } else { 
+
+            nup = this.mode( this.isDown ? 2 : 1, name );
+            //this.cursor( this.current !== -1 ? 'move' : 'pointer' );
+            if(this.isDown){
+            	this.v[name] = this.clamp( 1 - (( e.clientY - this.zone.y - this.ytop - 10 ) / this.gh) , 0, 1 );
+            	this.update( true );
+            }
+
+        }
+
+        return nup;
+
+    }
+
+    // ----------------------
+
+    update ( up ) {
+
+    	this.updateSVG();
+
+        if( up ) this.send();
+
+    }
+
+    makePath () {
+
+    	let p = "", h, w, wn, wm, ow, oh;
+    	//let g = this.iw*0.5
+
+    	for(let i = 0; i<this.lng; i++ ){
+
+    		h = 14 + (this.gh - this.v[i]*this.gh);
+    		w = (14 + (i*this.iw) + (i*4));
+
+    		wm = w + this.iw*0.5;
+    		wn = w + this.iw;
+
+    		if( i === 0 ) p+='M '+w+' '+ h + ' T ' + wm +' '+ h;
+    		else p += ' C ' + ow +' '+ oh + ',' + w +' '+ h + ',' + wm +' '+ h;
+    		if( i === this.lng-1 ) p+=' T ' + wn +' '+ h;
+
+    		ow = wn;
+    		oh = h; 
+
+    	}
+
+    	return p
+
+    }
+
+    rSize () {
+
+        super.rSize();
+
+        let s = this.s;
+        if( this.c[1] !== undefined ) s[1].width = this.w + 'px';
+        s[3].width = this.w + 'px';
+
+        let gw = this.w - 28;
+        let iw = ((gw-(4*(this.lng-1)))/this.lng);
+        let t = [];
+
+        s[2].width = gw + 'px';
+
+        for( let i = 0; i < this.lng; i++ ){
+
+            t[i] = [ 14 + (i*iw) + (i*4), iw ];
+            t[i][2] = t[i][0] + t[i][1];
+
+        }
+
+        this.tmp = t;
+
+    }
+
+}
+
+class Empty extends Proto {
+
+    constructor( o = {} ) {
+
+	    o.isSpace = true;
+        o.margin = 0;
+        if(!o.h) o.h = 10;
+        super( o );
+        this.init();
+
+    }
+    
+}
+
+class Group extends Proto {
+
+    constructor( o = {} ) {
+
+        super( o );
+
+        this.isGroup = true;
+
+        this.ADD = o.add;
+
+        this.autoHeight = true;
+
+        this.uis = [];
+        this.current = -1;
+        this.proto = null;
+        this.isEmpty = true;
+
+        this.decal = o.group ? 8 : 0;
+        //this.dd = o.group ? o.group.decal + 8 : 0
+
+        this.baseH = this.h;
+
+        //this.spaceY = new Empty({h:this.margin});
+
+        this.radius = 0;
+
+
+
+        let fltop = Math.floor(this.h*0.5)-3;
+
+        const cc = this.colors;
+
+        this.useFlex = true; 
+        let flexible = this.useFlex ? 'display:flex; flex-flow: row wrap;' : '';
+
+        this.c[2] = this.dom( 'div', this.css.basic + flexible + 'width:100%; left:0;  overflow:hidden; top:'+(this.h)+'px');
+        this.c[3] = this.dom( 'path', this.css.basic + 'position:absolute; width:6px; height:6px; left:0; top:'+fltop+'px;', { d:this.svgs.g1, fill:cc.text, stroke:'none'});
+
+        this.mtop === 0 ? this.margin : this.mtop;
+
+        
+        //this.c[4] = this.dom( 'div', this.css.basic + 'width:100%; left:0; height:'+(bh+1)+'px; top:'+((this.h-1))+'px; background:#f00;')
+
+        this.s;
+        this.c[1].name = 'group';
+        this.c[1].style.color = cc.text;
+
+        this.init();
+
+        this.setBG( o.bg );
+
+        //console.log(this.margin)
+
+        if( o.open ){ 
+            //setTimeout( this.open.bind(this), 100 )
+            this.open();
+
+            //if(this.isUI) this.main.calcUis();
+            //this.rezone()
+            //Roots.needReZone = true;
+            //Roots.resize();
+            //this.calcUis()
+        }
+
+    }
+
+    setBG ( bg ) {
+
+        const cc = this.colors;
+        const s = this.s;
+
+        if( bg !== undefined ) cc.groups = bg;
+        if(cc.groups === 'none') cc.groups = cc.background;
+        //    cc.background = 'none'
+
+        s[0].background = bg !== undefined ? 'none' : cc.content;
+        s[1].background = bg !== undefined ? cc.groups : cc.content;
+        //s[2].background = bg !== undefined ? cc.groups : cc.content
+
+        //s[0].background = '#FF0';
+        //s[4].background = '#FF0';
+        //s[2].background = cc.background
+
+        if( cc.gborder !== 'none' ){
+            s[1].border = cc.borderSize+'px solid '+ cc.gborder;
+        }
+
+        if( this.radius !== 0 ){
+
+            s[1].borderRadius = this.radius+'px';
+            s[2].borderRadius = this.radius+'px';
+
+        }
+
+        /*let i = this.uis.length;
+        while(i--){
+            this.uis[i].setBG( 'none' );
+            //this.uis[i].setBG( this.colors.background );
+        }*/
+
+    }
+
+    testZone ( e ) {
+
+        //console.log( this.local)
+
+        let l = this.local;
+        if( l.x === -1 && l.y === -1 ) return '';
+
+        let name = '';
+
+        if( l.y < this.baseH + this.margin ) name = 'title';
+        else {
+            if( this.isOpen ) name = 'content';
+        }
+
+        
+
+        return name;
+
+    }
+
+    clearTarget () {
+
+        if( this.current === -1 ) return false;
+        if( this.proto.s ){
+            // if no s target is delete !!
+            this.proto.uiout();
+            this.proto.reset();
+        }
+        this.proto = null;
+        this.current = -1;
+        this.cursor();
+        return true;
+
+    }
+
+    reset () {
+
+        this.clearTarget();
+
+    }
+
+    // ----------------------
+    //   EVENTS
+    // ----------------------
+
+    handleEvent ( e ) {
+
+        let type = e.type;
+
+        let change = false;
+        let protoChange = false;
+
+        let name = this.testZone( e );
+
+        if( !name ) return;
+
+        switch( name ){
+
+            case 'content':
+
+
+
+            //this.cursor()
+
+            //if( this.marginDiv ) e.clientY -= this.margin * 0.5
+
+            if( Roots.isMobile && type === 'mousedown' ) this.getNext( e, change );
+
+            if( this.proto ){ 
+                //e.clientY -= this.margin
+                protoChange = this.proto.handleEvent( e );
+            }
+
+            if( !Roots.lock ) this.getNext( e, change );
+
+            break;
+            case 'title':
+            //this.cursor( this.isOpen ? 'n-resize':'s-resize' );
+            this.cursor('pointer');
+            if( type === 'mousedown' ){
+                if( this.isOpen ) this.close();
+                else this.open();
+            }
+            break;
+
+
+        }
+
+        if( this.isDown ) change = true;
+        if( protoChange ) change = true;
+
+        return change;
+
+    }
+
+    getNext ( e, change ) {
+
+        let next = Roots.findTarget( this.uis, e );
+
+
+
+        if( next !== this.current ){
+            this.clearTarget();
+            this.current = next;
+        }
+
+        if( next !== -1 ){ 
+            this.proto  = this.uis[ this.current ];
+            this.proto.uiover();
+        }
+
+    }
+
+    // ----------------------
+
+    
+
+    add() {
+
+        let a = arguments;
+
+        if( typeof a[1] === 'object' ){ 
+            a[1].isUI = this.isUI;
+            a[1].target = this.c[2];
+            a[1].main = this.main;
+            a[1].group = this;
+        } else if( typeof arguments[1] === 'string' ){
+            if( a[2] === undefined ) [].push.call( a, { isUI:true, target:this.c[2], main:this.main });
+            else { 
+                a[2].isUI = true;
+                a[2].target = this.c[2];
+                a[2].main = this.main;
+                a[2].group = this;
+            }
+        }
+
+        let u = this.ADD.apply( this, a );
+
+        if( u.isGroup ){ 
+            //o.add = add;
+            u.dx = 8;
+        }
+        
+        //u.dx += 4
+        //console.log(this.decal)
+        //u.zone.d -= 8
+        Roots.forceZone = true;
+        //u.margin += this.margin
+
+        //console.log( u.margin )
+        //Roots.needReZone = true
+
+        //Roots.resize()
+         //console.log(Roots.needResize)
+
+        this.uis.push( u );
+
+        this.isEmpty = false;
+
+        return u;
+
+    }
+
+    // remove one node
+
+    remove ( n ) {
+
+        if( n.dispose ) n.dispose();
+
+    }
+
+    // clear all iner 
+
+    dispose() {
+
+        this.clear();
+        if( this.isUI ) this.main.calc();
+        super.dispose();
+
+    }
+
+    clear() {
+
+        this.empty();
+
+    }
+
+    empty () {
+
+        this.close();
+
+        let i = this.uis.length, item;
+
+        while( i-- ){
+            item = this.uis.pop();
+            this.c[2].removeChild( item.c[0] );
+            item.clear( true );
+
+            //this.uis[i].clear()
+        }
+
+        this.isEmpty = true;
+        this.h = this.baseH;
+
+    }
+
+    // clear one element
+
+    clearOne ( n ) { 
+
+        let id = this.uis.indexOf( n );
+
+        if ( id !== -1 ) {
+            this.calc( - ( this.uis[ id ].h + this.margin ) );
+            this.c[2].removeChild( this.uis[ id ].c[0] );
+            this.uis.splice( id, 1 );
+
+            if( this.uis.length === 0 ){ 
+                this.isEmpty = true;
+                this.close();
+            }
+        }
+
+    }
+
+    
+
+    open () {
+
+        super.open();
+
+        this.setSvg( this.c[3], 'd', this.svgs.g2 );
+        this.rSizeContent();
+
+        //let t = this.h - this.baseH
+
+        const s = this.s;
+        const cc = this.colors;
+
+        //s[2].top = (this.h-1) + 'px'
+        s[2].top = (this.h+this.mtop) + 'px';
+        //s[4].background = '#0f0'
+
+        if(this.radius){
+
+            s[1].borderRadius = '0px';
+            s[2].borderRadius = '0px';
+
+            s[1].borderTopLeftRadius = this.radius+'px';
+            s[1].borderTopRightRadius = this.radius+'px';
+            s[2].borderBottomLeftRadius = this.radius+'px';
+            s[2].borderBottomRightRadius = this.radius+'px';
+        }
+
+        if( cc.gborder !== 'none' ){
+
+            s[4].borderLeft = cc.borderSize+'px solid '+ cc.gborder;
+            s[4].borderRight = cc.borderSize+'px solid '+ cc.gborder;
+
+            s[2].border = cc.borderSize+'px solid '+ cc.gborder;
+            s[2].borderTop = 'none';
+            s[1].borderBottom = cc.borderSize+'px solid rgba(0,0,0,0)';
+
+        }
+        
+        this.parentHeight();
+
+        //Roots.isLeave = true
+        //Roots.needResize = true
+
+    }
+
+    close () {
+
+        super.close();
+
+        //let t = this.h - this.baseH
+
+        this.setSvg( this.c[3], 'd', this.svgs.g1 );
+
+        this.h = this.baseH;
+
+        const s = this.s;
+        const cc = this.colors;
+        
+        s[0].height = this.h + 'px';
+        //s[1].height = (this.h-2) + 'px'
+        //s[2].top = this.h + 'px'
+        s[2].top = (this.h+this.mtop) + 'px';
+        //s[4].background = 'none'
+
+        if( cc.gborder !== 'none' ){
+
+            s[4].border = 'none';
+            s[2].border = 'none';
+            s[1].border = cc.borderSize+'px solid '+ cc.gborder;
+        }
+
+        if(this.radius) s[1].borderRadius = this.radius+'px';
+
+        this.parentHeight();
+
+    }
+
+    calcUis () {
+
+        if( !this.isOpen || this.isEmpty ) this.h = this.baseH;
+        //else this.h = Roots.calcUis( this.uis, this.zone, this.zone.y + this.baseH ) + this.baseH;
+        else this.h = Roots.calcUis( [...this.uis ], this.zone, this.zone.y + this.baseH + this.margin, true ) + this.baseH;
+       // else this.h = Roots.calcUis( [...this.uis, this.spaceY ], this.zone, this.zone.y + this.baseH + this.margin, true ) + this.baseH
+
+        this.s[0].height = this.h + 'px';
+        this.s[2].height = ( this.h - this.baseH ) + 'px';
+
+    }
+
+    parentHeight ( t ) {
+
+
+        if ( this.group !== null ) this.group.calc( t );
+        else if ( this.isUI ) this.main.calc( t );
+
+    }
+
+    calc ( y ) {
+
+        if( !this.isOpen ) return
+        if( this.isUI ) this.main.calc();
+        else this.calcUis();
+
+        this.s[0].height = this.h + 'px';
+        this.s[2].height = this.h + 'px';
+
+    }
+
+    rSizeContent () {
+
+        let i = this.uis.length;
+        while(i--){
+            this.uis[i].setSize( this.w );
+            this.uis[i].rSize();
+        }
+
+    }
+
+    rSize () {
+
+        super.rSize();
+
+        let s = this.s;
+
+        this.w = this.w - this.decal;
+
+        s[3].left = ( this.sa + this.sb - 6 ) + 'px';
+
+        s[1].width = this.w + 'px';
+        s[2].width = this.w + 'px';
+        s[1].left = (this.decal) + 'px';
+        s[2].left = (this.decal) + 'px';
+
+        if( this.isOpen ) this.rSizeContent();
+
+    }
+
+    //
+/*
+    uiout() {
+
+        if( this.lock ) return;
+        if(!this.overEffect) return;
+        if(this.s) this.s[0].background = this.colors.background;
+
+    }
+
+    uiover() {
+
+        if( this.lock ) return;
+        if(!this.overEffect) return;
+        //if( this.isOpen ) return;
+        if(this.s) this.s[0].background = this.colors.backgroundOver;
+
+    }
+*/
+}
+
+class Joystick extends Proto {
+
+    constructor( o = {} ) {
+
+        super( o );
+
+        this.autoWidth = false;
+
+        this.value = [0,0];
+
+        this.minw  = this.w;
+        this.diam = o.diam || this.w; 
+
+        this.joyType = 'analogique';
+        this.model = o.mode !== undefined ? o.mode : 0;
+
+        this.precision = o.precision || 2;
+        this.multiplicator = o.multiplicator || 1;
+
+        this.pos = new V2();
+        this.tmp = new V2();
+
+        this.interval = null;
+        this.c[0].style.display = 'block';
+        this.haveText = o.text !== undefined ? o.text : true; 
+
+        //this.radius = this.w * 0.5;
+        //this.distance = this.radius*0.25;
+        this.distance = (this.diam*0.5)*0.25;
+
+        this.h = o.h || this.w + (this.haveText ? 10 : 0);
+
+        this.c[0].style.width = this.w +'px';
+
+        if( this.c[1] !== undefined ) { // with title
+
+            this.c[1].style.width = '100%';
+            this.c[1].style.justifyContent = 'center';
+            this.top = 10;
+            this.h += 10;
+
+        }
+
+        let cc = this.colors;
+
+        this.c[2] = this.dom( 'div', this.css.txt + 'justify-content:center; top:'+(this.h-20)+'px; width:100%; color:'+ cc.text );
+        this.c[2].textContent = this.haveText ? this.value : '';
+
+        this.c[3] = this.getJoystick( this.model );
+        this.setSvg( this.c[3], 'viewBox', '0 0 '+this.diam+' '+this.diam );
+        this.setCss( this.c[3], { width:this.diam, height:this.diam, left:0, top:this.top });
+
+        this.mode(0);
+
+
+        this.ratio = 128/this.w;
+
+        this.init();
+
+        this.update(false);
+        
+    }
+
+    mode ( mode ) {
+
+        let cc = this.colors;
+
+        switch(mode){
+            case 0: // base
+                if(this.model===0){
+                    this.setSvg( this.c[3], 'fill', 'url(#gradIn)', 4 );
+                    this.setSvg( this.c[3], 'stroke', '#000', 4 );
+                } else {
+                    this.setSvg( this.c[3], 'stroke', cc.joyOut, 2 );
+                    //this.setSvg( this.c[3], 'stroke', 'rgb(0,0,0,0.1)', 3 );
+                    this.setSvg( this.c[3], 'stroke', cc.joyOut, 4 );
+                    this.setSvg( this.c[3], 'fill', 'none', 4 );
+                }
+                
+            break;
+            case 1: // over
+                if(this.model===0){
+                    this.setSvg( this.c[3], 'fill', 'url(#gradIn2)', 4 );
+                    this.setSvg( this.c[3], 'stroke', 'rgba(0,0,0,0)', 4 );
+                } else {
+                    this.setSvg( this.c[3], 'stroke', cc.joyOver, 2 );
+                    //this.setSvg( this.c[3], 'stroke', 'rgb(0,0,0,0.3)', 3 );
+                    this.setSvg( this.c[3], 'stroke', cc.joySelect, 4 );
+                    this.setSvg( this.c[3], 'fill', cc.joyOver, 4 );
+                }
+            break;
+
+        }
+    }
+
+    // ----------------------
+    //   EVENTS
+    // ----------------------
+
+    addInterval (){
+        if( this.interval !== null ) this.stopInterval();
+        if( this.pos.isZero() ) return;
+        this.interval = setInterval( function(){ this.update(); }.bind(this), 10 );
+
+    }
+
+    stopInterval (){
+
+        if( this.interval === null ) return;
+        clearInterval( this.interval );
+        this.interval = null;
+
+    }
+
+    reset () {
+
+        this.addInterval();
+        this.mode(0);
+
+    }
+
+    mouseup ( e ) {
+
+        this.addInterval();
+        this.isDown = false;
+    
+    }
+
+    mousedown ( e ) {
+
+        this.isDown = true;
+        this.mousemove( e );
+        this.mode( 2 );
+
+    }
+
+    mousemove ( e ) {
+
+        this.mode(1);
+
+        if( !this.isDown ) return;
+
+        //this.tmp.x = this.radius - ( e.clientX - this.zone.x );
+        //this.tmp.y = this.radius - ( e.clientY - this.zone.y - this.top );
+
+        this.tmp.x = (this.w*0.5) - ( e.clientX - this.zone.x );
+        this.tmp.y = (this.diam*0.5) - ( e.clientY - this.zone.y - this.ytop );
+
+        let distance = this.tmp.length();
+
+        if ( distance > this.distance ) {
+            let angle = Math.atan2(this.tmp.x, this.tmp.y);
+            this.tmp.x = Math.sin( angle ) * this.distance;
+            this.tmp.y = Math.cos( angle ) * this.distance;
+        }
+
+        this.pos.copy( this.tmp ).divideScalar( this.distance ).negate();
+
+        this.update();
+
+    }
+
+    setValue ( v ) {
+
+        if(v===undefined) v=[0,0];
+
+        this.pos.set( v[0] || 0, v[1]  || 0 );
+        this.updateSVG();
+
+    }
+
+    update ( up ) {
+
+        if( up === undefined ) up = true;
+
+        if( this.interval !== null ){
+
+            if( !this.isDown ){
+
+                this.pos.lerp( null, 0.3 );
+
+                this.pos.x = Math.abs( this.pos.x ) < 0.01 ? 0 : this.pos.x;
+                this.pos.y = Math.abs( this.pos.y ) < 0.01 ? 0 : this.pos.y;
+
+                if( this.isUI && this.main.isCanvas ) this.main.draw();
+
+            }
+
+        }
+
+        this.updateSVG();
+
+        if( up ) this.send();
+        
+
+        if( this.pos.isZero() ) this.stopInterval();
+
+    }
+
+    updateSVG () {
+
+        //let x = this.radius - ( -this.pos.x * this.distance );
+        //let y = this.radius - ( -this.pos.y * this.distance );
+
+        let x = (this.diam*0.5) - ( -this.pos.x * this.distance );
+        let y = (this.diam*0.5) - ( -this.pos.y * this.distance );
+
+        if(this.model === 0){
+
+            let sx = x + ((this.pos.x)*5) + 5;
+            let sy = y + ((this.pos.y)*5) + 10;
+
+            this.setSvg( this.c[3], 'cx', sx*this.ratio, 3 );
+            this.setSvg( this.c[3], 'cy', sy*this.ratio, 3 );
+        } else {
+            this.setSvg( this.c[3], 'cx', x*this.ratio, 3 );
+            this.setSvg( this.c[3], 'cy', y*this.ratio, 3 );
+        }
+
+        
+
+        this.setSvg( this.c[3], 'cx', x*this.ratio, 4 );
+        this.setSvg( this.c[3], 'cy', y*this.ratio, 4 );
+
+        this.value[0] =  ( this.pos.x * this.multiplicator ).toFixed( this.precision ) * 1;
+        this.value[1] =  ( this.pos.y * this.multiplicator ).toFixed( this.precision ) * 1;
+
+        if(this.haveText) this.c[2].textContent = this.value;
+
+    }
+
+    clear () {
+        
+        this.stopInterval();
+        super.clear();
+
+    }
+
+}
+
+class Knob extends Proto {
+
+    constructor( o = {} ) {
+
+        super( o );
+
+        this.isCyclic = o.cyclic || false;
+        this.model = o.stype || 0;
+        if( o.mode !== undefined ) this.model = o.mode;
+
+        this.autoWidth = false;
+
+        this.setTypeNumber( o );
+
+        this.minw  = this.w;
+        this.diam = o.diam || this.w; 
+
+        this.mPI = Math.PI * 0.8;
+        this.toDeg = 180 / Math.PI;
+        this.cirRange = this.mPI * 2;
+
+        this.offset = new V2();
+
+        this.h = o.h || this.w + 10;
+
+        this.c[0].style.width = this.w +'px';
+        this.c[0].style.display = 'block';
+
+        if(this.c[1] !== undefined) {
+
+            this.c[1].style.width = '100%';
+            this.c[1].style.justifyContent = 'center';
+            this.top = 10;
+            this.h += 10;
+
+        }
+
+        this.percent = 0;
+
+        this.cmode = 0;
+        let cc = this.colors;
+
+        this.c[2] = this.dom( 'div', this.css.txt + 'justify-content:center; top:'+(this.h-20)+'px; width:100%; color:'+ cc.text );
+
+        this.c[3] = this.getKnob();
+        this.setSvg( this.c[3], 'fill', cc.button, 0 );
+        this.setSvg( this.c[3], 'stroke', cc.text, 1 );
+        this.setSvg( this.c[3], 'stroke', cc.text, 3 );
+        this.setSvg( this.c[3], 'd', this.makeGrad(), 3 );
+        
+        this.setSvg( this.c[3], 'viewBox', '0 0 ' + this.diam + ' ' + this.diam );
+        this.setCss( this.c[3], { width:this.diam, height:this.diam, left:0, top:this.top });
+
+        if ( this.model > 0 ) {
+
+            Tools.dom( 'path', '', { d: '', stroke:cc.text, 'stroke-width': 2, fill: 'none', 'stroke-linecap': 'round' }, this.c[3] ); //4
+
+            if ( this.model == 2) {
+            
+                Tools.addSVGGlowEffect();
+                this.setSvg( this.c[3], 'style', 'filter: url("#UILGlow");', 4 );
+            
+            }
+
+        }
+
+        this.r = 0;
+
+        this.init();
+
+        this.update();
+
+    }
+
+    mode ( mode ) {
+
+        let cc = this.colors;
+
+        if( this.cmode === mode ) return false;
+
+        switch( mode ) {
+            case 0: // base
+                this.s[2].color = cc.text;
+                this.setSvg( this.c[3], 'fill', cc.button, 0);
+                //this.setSvg( this.c[3], 'stroke','rgba(255,0,0,0.2)', 2);
+                this.setSvg( this.c[3], 'stroke', cc.text, 1 );
+            break;
+            case 1: // down
+                this.s[2].color = cc.textOver;
+                this.setSvg( this.c[3], 'fill', cc.select, 0);
+                //this.setSvg( this.c[3], 'stroke','rgba(0,0,0,0.6)', 2);
+                this.setSvg( this.c[3], 'stroke', cc.textOver, 1 );
+            break;
+        }
+
+        this.cmode = mode;
+        return true;
+
+    }
+
+    testZone ( e ) {
+
+        let l = this.local;
+        if( l.x === -1 && l.y === -1 ) return '';
+        if( l.y <= this.c[ 1 ].offsetHeight ) return 'title';
+        else if ( l.y > this.h - this.c[ 2 ].offsetHeight ) return 'text';
+        else return 'knob';
+
+    }
+
+    // ----------------------
+    //   EVENTS
+    // ----------------------
+
+    mouseup ( e ) {
+
+        this.isDown = false;
+        this.sendEnd();
+        return this.mode(0)
+
+    }
+
+    mousedown ( e ) {
+
+        this.isDown = true;
+        this.old = this.value;
+        this.oldr = null;
+        this.mousemove( e );
+        return this.mode(1)
+
+    }
+
+    mousemove ( e ) {
+
+        if( !this.isDown ) return;
+
+        let off = this.offset;
+
+        //off.x = this.radius - ( e.clientX - this.zone.x );
+        //off.y = this.radius - ( e.clientY - this.zone.y - this.top );
+
+        off.x = (this.w*0.5) - ( e.clientX - this.zone.x );
+        off.y = (this.diam*0.5) - ( e.clientY - this.zone.y - this.ytop );
+
+        this.r = - Math.atan2( off.x, off.y );
+
+        if( this.oldr !== null ) this.r = Math.abs(this.r - this.oldr) > Math.PI ? this.oldr : this.r;
+
+        this.r = this.r > this.mPI ? this.mPI : this.r;
+        this.r = this.r < -this.mPI ? -this.mPI : this.r;
+
+        let steps = 1 / this.cirRange;
+        let value = (this.r + this.mPI) * steps;
+
+        let n = ( ( this.range * value ) + this.min ) - this.old;
+
+        if(n >= this.step || n <= this.step){ 
+            n = Math.floor( n / this.step );
+            this.value = this.numValue( this.old + ( n * this.step ) );
+            this.update( true );
+            this.old = this.value;
+            this.oldr = this.r;
+        }
+
+    }
+
+    wheel ( e ) {
+
+        let name = this.testZone( e );
+
+        if( name === 'knob' ) {
+    
+            let v = this.value - this.step * e.delta;
+    
+            if ( v > this.max ) {
+                v = this.isCyclic ? this.min : this.max;
+            } else if ( v < this.min ) {
+                v = this.isCyclic ? this.max : this.min;
+            }
+    
+            this.setValue( v );
+            this.old = v;
+            this.update( true );
+
+            return true;
+    
+        }
+        return false;
+
+    }
+
+    makeGrad () {
+
+        let d = '', step, range, a, x, y, x2, y2, r = 64;
+        let startangle = Math.PI + this.mPI;
+        let endangle = Math.PI - this.mPI;
+        //let step = this.step>5 ? this.step : 1;
+
+        if(this.step>5){
+            range =  this.range / this.step;
+            step = ( startangle - endangle ) / range;
+        } else {
+            step = (( startangle - endangle ) / r)*2;
+            range = r*0.5;
+        }
+
+        for ( let i = 0; i <= range; ++i ) {
+
+            a = startangle - ( step * i );
+            x = r + Math.sin( a ) * ( r - 20 );
+            y = r + Math.cos( a ) * ( r - 20 );
+            x2 = r + Math.sin( a ) * ( r - 24 );
+            y2 = r + Math.cos( a ) * ( r - 24 );
+            d += 'M' + x + ' ' + y + ' L' + x2 + ' '+y2 + ' ';
+
+        }
+
+        return d;
+
+    }
+
+    update ( up ) {
+
+        this.c[2].textContent = this.value;
+        this.percent = (this.value - this.min) / this.range;
+
+        let sa = Math.PI + this.mPI;
+        let ea = ( ( this.percent * this.cirRange ) - ( this.mPI ) );
+
+        let sin = Math.sin( ea );
+        let cos = Math.cos( ea );
+
+        let x1 = ( 25 * sin ) + 64;
+        let y1 = -( 25 * cos ) + 64;
+        let x2 = ( 20 * sin ) + 64;
+        let y2 = -( 20 * cos ) + 64;
+
+        this.setSvg( this.c[3], 'd', 'M ' + x1 +' ' + y1 + ' L ' + x2 +' ' + y2, 1 );
+        
+        if ( this.model > 0 ) {
+
+            let x1 = 36 * Math.sin( sa ) + 64;
+            let y1 = 36 * Math.cos( sa ) + 64;
+            let x2 = 36 * sin + 64;
+            let y2 = -36 * cos + 64;
+            let big = ea <= Math.PI - this.mPI ? 0 : 1;
+            this.setSvg( this.c[3], 'd', 'M ' + x1 + ',' + y1 + ' A ' + 36 + ',' + 36 + ' 1 ' + big + ' 1 ' + x2 + ',' + y2, 4 );
+
+            let color = Tools.pack( Tools.lerpColor( Tools.unpack( Tools.ColorLuma( this.colors.text, -0.75) ), Tools.unpack( this.colors.text ), this.percent ) );
+            this.setSvg( this.c[3], 'stroke', color, 4 );
+        
+        }
+
+        if( up ) this.send();
+        
+    }
+
+}
+
+class List extends Proto {
+
+    constructor( o = {} ) {
+
+        super( o );
+
+        // TODO not work
+        this.hideCurrent = false;
+
+        // images
+        this.path = o.path || '';
+        this.format = o.format || '';
+        
+
+        this.isWithImage = this.path !== '' ? true:false;
+        this.preLoadComplete = false;
+
+        this.tmpImage = {};
+        this.tmpUrl = [];
+
+        this.m = o.m !== undefined ? o.m : 5;
+
+
+        let align = o.align || 'left';
+
+        // scroll size
+        let ss = o.scrollSize || 10;
+        this.ss = ss+1;
+
+        this.sMode = 0;
+        this.tMode = 0;
+
+        this.listOnly = o.listOnly || false;
+        this.staticTop = o.staticTop || false;
+
+        this.isSelectable = this.listOnly;
+        if( o.select !== undefined ) o.selectable = o.select;
+        if( o.selectable !== undefined ) this.isSelectable = o.selectable;
+
+        if( this.txt === '' ) this.p = 0;
+
+
+        let fltop = Math.floor(this.h*0.5)-3;
+        let cc = this.colors;
+
+        this.c[2] = this.dom( 'div', this.css.basic + 'top:0; display:none; border-radius:'+this.radius+'px;' );
+        this.c[3] = this.dom( 'div', this.css.item + 'padding:0px '+this.m+'px; margin-bottom:0px; position:absolute; justify-content:'+align+'; text-align:'+align+'; line-height:'+(this.h-4)+'px; top:1px; background:'+cc.button+'; height:'+(this.h-2)+'px; border:1px solid '+cc.border+'; border-radius:'+this.radius+'px;' );
+        this.c[4] = this.dom( 'path', this.css.basic + 'position:absolute; width:6px; height:6px; top:'+fltop+'px;', { d:this.svgs.g1, fill:cc.text, stroke:'none'});
+
+        this.scrollerBack = this.dom( 'div', this.css.basic + 'right:0px; width:'+ss+'px; background:'+cc.back+'; display:none;');
+        this.scroller = this.dom( 'div', this.css.basic + 'right:'+((ss-(ss*0.25))*0.5)+'px; width:'+(ss*0.25)+'px; background:'+cc.text+'; display:none; ');
+
+        this.c[3].style.color = cc.text;
+
+
+        this.list = [];
+        this.refObject = null;
+
+        if( o.list ){
+            if( o.list instanceof Array ){
+                this.list = o.list;
+            } else if( o.list instanceof Object ){
+                this.refObject = o.list;
+                for( let g in this.refObject ) this.list.push( g );
+            }
+        }
+
+        this.items = [];
+
+        this.prevName = '';
+
+        
+        this.tmpId = 0;
+
+        this.baseH = this.h;
+
+        this.itemHeight = o.itemHeight || this.h;//(this.h-3);
+
+        // force full list 
+        this.full = o.full || false;
+
+        this.py = 0;
+        this.ww = this.sb;
+        this.scroll = false;
+        this.isDown = false;
+
+        this.current = null;
+
+        // list up or down
+        this.side = o.side || 'down';
+        this.up = this.side === 'down' ? 0 : 1;
+
+        if( this.up ){
+
+            this.c[2].style.top = 'auto';
+            this.c[3].style.top = 'auto';
+            this.c[4].style.top = 'auto';
+
+            this.c[2].style.bottom = this.h-2 + 'px';
+            this.c[3].style.bottom = '1px';
+            this.c[4].style.bottom = fltop + 'px';
+
+        } else {
+            this.c[2].style.top = this.baseH + 'px';
+        }
+
+        this.listIn = this.dom( 'div', this.css.basic + 'left:0; top:0; width:100%; background:none;');
+        this.listIn.name = 'list';
+
+        this.topList = 0;
+        
+        this.c[2].appendChild( this.listIn );
+        this.c[2].appendChild( this.scrollerBack );
+        this.c[2].appendChild( this.scroller );
+
+        if( o.value !== undefined ){
+            if(!isNaN(o.value)) this.value = this.list[ o.value ];
+            else this.value = o.value;
+        }else {
+            this.value = this.list[0];
+        }
+
+        this.isOpenOnStart = o.open || false;
+
+        if( this.listOnly ){
+            this.baseH = 5;
+            this.c[3].style.display = 'none';
+            this.c[4].style.display = 'none';
+            this.c[2].style.top = this.baseH+'px';
+            this.isOpenOnStart = true;
+        }
+
+
+        this.miniCanvas = o.miniCanvas || false; 
+        this.canvasBg = o.canvasBg || 'rgba(0,0,0,0)';
+        this.imageSize = o.imageSize || [20,20];
+
+        // dragout function
+        this.drag = o.drag || false;
+        this.dragout = o.dragout || false;
+        this.dragstart = o.dragstart || null;
+        this.dragend = o.dragend || null;
+
+        
+
+        //this.c[0].style.background = '#FF0000'
+        ///if( this.isWithImage ) this.preloadImage();
+            
+        this.setList( this.list );
+        this.init();
+        if( this.isWithImage ) this.preloadImage();
+        if( this.isOpenOnStart ) this.open( true );
+
+        this.baseH += this.mtop;
+
+    }
+
+    // image list
+
+    preloadImage () {
+
+
+
+        this.preLoadComplete = false;
+
+        this.tmpImage = {};
+        for( let i=0; i<this.list.length; i++ ) this.tmpUrl.push( this.list[i] );
+        this.loadOne();
+        
+    }
+
+    nextImg () {
+
+        if(this.c === null) return
+
+        this.tmpUrl.shift();
+        if( this.tmpUrl.length === 0 ){ 
+
+            this.preLoadComplete = true;
+
+            this.addImages();
+            /*this.setList( this.list );
+            this.init();
+            if( this.isOpenOnStart ) this.open();*/
+
+        }
+        else this.loadOne();
+
+    }
+
+    loadOne(){
+
+        let self = this;
+        let name = this.tmpUrl[0];
+        let img = document.createElement('img');
+        img.style.cssText = 'position:absolute; width:'+self.imageSize[0]+'px; height:'+self.imageSize[1]+'px';
+        img.setAttribute('src', this.path + name + this.format );
+
+        img.addEventListener('load', function() {
+
+            self.imageSize[2] = img.width;
+            self.imageSize[3] = img.height;
+            self.tmpImage[name] = img;
+            self.nextImg();
+
+        });
+
+    }
+
+    //
+
+    testZone ( e ) {
+
+        let l = this.local;
+        if( l.x === -1 && l.y === -1 ) return '';
+
+        if( this.up && this.isOpen ){
+            if( l.y > this.h - this.baseH ) return 'title';
+            else {
+                if( this.scroll && ( l.x > (this.sa+this.sb-this.ss)) ) return 'scroll';
+                if(l.x > this.sa) return this.testItems( l.y-this.baseH );
+            }
+
+        } else {
+            if( l.y < this.baseH+2 ) return 'title';
+            else {
+                if( this.isOpen ){
+                    if( this.scroll && ( l.x > (this.sa+this.sb-this.ss)) ) return 'scroll';
+                    if(l.x > this.sa) return this.testItems( l.y-this.baseH );
+                }
+            }
+
+        }
+
+        return '';
+
+    }
+
+    testItems ( y ) {
+
+        let name = '';
+
+        let items = this.items;
+
+        /*if(this.hideCurrent){
+            //items = [...this.items]
+            items = this.items.slice(this.tmpId)
+
+        }*/
+
+        let i = items.length, item, a, b;
+        while(i--){
+            item = items[i];
+            a = item.posy + this.topList;
+            b = item.posy + this.itemHeight + 1 + this.topList;
+            if( y >= a && y <= b ){ 
+                name = 'item' + i;
+                this.modeItem(0);
+                this.current = item;
+                this.modeItem(1);
+                return name;
+            }
+
+        }
+
+        return name;
+
+    }
+
+    modeItem ( mode ) {
+
+        if( !this.current ) return
+
+        if( this.current.select && mode===0) mode = 2;
+        let cc = this.colors;
+
+        switch( mode ){
+
+            case 0: // base
+                this.current.style.background = cc.back;
+                this.current.style.color = cc.text;
+            break;
+            case 1: // over
+                this.current.style.background = cc.over;
+                this.current.style.color = cc.textOver;
+            break;
+            case 2: // edit / down
+                this.current.style.background = cc.select;
+                this.current.style.color = cc.textSelect;
+            break;
+
+        }
+    }
+
+    unSelected() {
+
+        if( !this.current ) return
+        this.modeItem(0);
+        this.current = null;
+
+    }
+
+    selected() {
+
+        if( !this.current ) return
+        this.resetItems();
+        this.modeItem(2);
+        this.current.select = true;
+
+        
+
+    }
+
+    resetItems() {
+
+        let i = this.items.length;
+        while(i--){
+            this.items[i].select = false;
+            this.items[i].style.background = this.colors.back;
+            this.items[i].style.color = this.colors.text;
+        }
+
+    }
+
+    hideActive() {
+
+        if( !this.hideCurrent ) return
+        //if( !this.current ) return
+        if( this.current )this.tmpId = this.current.id;
+        this.resetHide();
+        //this.items[this.tmpId].style.height = 0+'px'
+        
+    }
+
+    resetHide() {
+
+        console.log(this.tmpId);
+
+        let i = this.items.length;
+        while(i--){
+            if(i===this.tmpId){
+                this.items[i].style.height = 0+'px';
+                this.items[i].posy = -1;
+            } else {
+                this.items[i].style.height = this.itemHeight+'px';
+                this.items[i].posy = (this.itemHeight+1)*(i-1);
+            }
+            //this.items[i].style.display = 'flex'
+            
+            /*this.items[i].select = false
+            this.items[i].style.background = this.colors.back;
+            this.items[i].style.color = this.colors.text;*/
+        }
+
+    }
+
+    // ----------------------
+    //   EVENTS
+    // ----------------------
+
+
+    mouseup ( e ) {
+
+        this.isDown = false;
+
+    }
+
+    mousedown ( e ) {
+
+        let name = this.testZone( e );
+
+        if( !name ) return false;
+
+        if( name === 'scroll' ){
+
+            this.isDown = true;
+            this.mousemove( e );
+
+        } else if( name === 'title' ){
+
+            this.modeTitle(2);
+            if( !this.listOnly ){
+                this.hideActive();
+                if( !this.isOpen ) this.open();
+                else this.close();
+            }
+        } else {
+            // is item
+            if( this.current ){
+
+                this.value = this.list[ this.current.id ];
+                //this.tmpId = this.current.id
+
+                if( this.isSelectable ) this.selected();
+
+                //this.send( this.refObject !== null ? this.refObject[ this.list[this.current.id]] : this.value );
+                this.send( this.value );
+
+                if( !this.listOnly ) {
+                    this.close();
+                    this.setTopItem();
+                    //this.hideActive()
+                }
+            }
+            
+        }
+
+        return true;
+
+    }
+
+    mousemove ( e ) {
+
+        let nup = false;
+        let name = this.testZone( e );
+
+        if( !name ) return nup;
+
+        if( name === 'title' ){
+            this.unSelected();
+            this.modeTitle(1);
+            this.cursor('pointer');
+
+        } else if( name === 'scroll' ){
+
+            this.cursor('s-resize');
+            this.modeScroll(1);
+            if( this.isDown ){
+                this.modeScroll(2);
+                //this.update( ( e.clientY - top  ) - ( this.sh*0.5 ) );
+                let top = this.zone.y+this.baseH-2;
+                this.update( ( e.clientY - top  ) - ( this.sh*0.5 ) );
+            }
+            //if(this.isDown) this.listmove(e);
+        } else {
+
+            // is item
+            this.modeTitle(0);
+            this.modeScroll(0);
+            this.cursor('pointer');
+        
+        }
+
+        if( name !== this.prevName ) nup = true;
+        this.prevName = name;
+
+        return nup;
+
+    }
+
+    wheel ( e ) {
+
+        let name = this.testZone( e );
+        if( name === 'title' ) return false; 
+        this.py += e.delta*10;
+        this.update(this.py);
+        return true;
+
+    }
+
+
+
+    // ----------------------
+
+    reset () {
+
+        this.prevName = '';
+        this.unSelected();
+        this.modeTitle(0);
+        this.modeScroll(0);
+
+        //console.log('this is reset')
+        
+    }
+
+    modeScroll ( mode ) {
+
+        if( mode === this.sMode ) return;
+
+        let s = this.scroller.style;
+        let cc = this.colors;
+
+        switch(mode){
+            case 0: // base
+                s.background = cc.text;
+            break;
+            case 1: // over
+                s.background = cc.select;
+            break;
+            case 2: // edit / down
+                s.background = cc.select;
+            break;
+
+        }
+
+        this.sMode = mode;
+    }
+
+    modeTitle ( mode ) {
+
+        if( mode === this.tMode ) return;
+
+        let s = this.s;
+        let cc = this.colors;
+
+        switch(mode){
+            case 0: // base
+                s[3].color = cc.text;
+                s[3].background = cc.button;
+            break;
+            case 1: // over
+                s[3].color = cc.textOver;
+                s[3].background = cc.overoff;
+            break;
+            case 2: // edit / down
+                s[3].color = cc.textSelect;
+                s[3].background = cc.overoff;
+            break;
+
+        }
+
+        this.tMode = mode;
+
+    }
+
+    clearList () {
+
+        while ( this.listIn.children.length ) this.listIn.removeChild( this.listIn.lastChild );
+        this.items = [];
+
+    }
+
+    setList ( list ) {
+
+        this.clearList();
+
+        this.list = list;
+        this.length = this.list.length;
+
+        let lng = this.hideCurrent? this.length-1 : this.length;
+
+        this.maxItem = this.full ? lng : 5;
+        this.maxItem = lng < this.maxItem ? lng : this.maxItem;
+
+        this.maxHeight = this.maxItem * (this.itemHeight+1) + 2;
+        
+
+
+        this.max = lng * (this.itemHeight+1) + 2;
+        this.ratio = this.maxHeight / this.max;
+        this.sh = this.maxHeight * this.ratio;
+        this.range = this.maxHeight - this.sh;
+
+        this.c[2].style.height = this.maxHeight + 'px';
+        this.scrollerBack.style.height = this.maxHeight + 'px';
+        this.scroller.style.height = this.sh + 'px';
+
+        if( this.max > this.maxHeight ){ 
+            this.ww = this.sb - this.ss;
+            this.scroll = true;
+        }
+
+        if( this.miniCanvas ) {
+
+            this.tmpCanvas = document.createElement('canvas');
+            this.tmpCanvas.width = this.imageSize[0];
+            this.tmpCanvas.height = this.imageSize[1];
+            this.tmpCtx = this.tmpCanvas.getContext("2d");
+            this.tmpCtx.fillStyle = this.canvasBg;
+            this.tmpCtx.fillRect(0, 0, this.imageSize[0], this.imageSize[1]);
+
+        }
+
+        let item, n;//, l = this.sb;
+        for( let i=0; i<this.length; i++ ){
+
+            n = this.list[i];
+            item = this.dom( 'div', this.css.item + 'padding:0px '+(this.m+1)+'px; width:'+this.ww+'px; height:'+this.itemHeight+'px; line-height:'+(this.itemHeight-2)+'px; color:'+this.colors.text+'; background:'+this.colors.back+';' );
+            item.name = 'item'+ i;
+            item.id = i;
+            item.select = false;
+            item.posy = (this.itemHeight+1)*i;
+            this.listIn.appendChild( item );
+            this.items.push( item );
+
+            if( n === this.value ) this.current = item;
+
+            //if( this.isWithImage ) item.appendChild( this.tmpImage[n] );
+            if( !this.isWithImage ) item.textContent = n;
+
+            if( this.miniCanvas ){
+
+                let c = new Image();
+                c.src = this.tmpCanvas.toDataURL();
+
+                //item.style.marginLeft = (this.imageSize[0]+8)+'px'
+
+
+                /*let c = document.createElement('canvas')
+
+                c.width = this.imageSize[0]
+                c.height = this.imageSize[1]
+                let ctx = c.getContext("2d")
+                ctx.fillStyle = this.canvasBg
+                ctx.fillRect(0, 0, this.imageSize[0], this.imageSize[1])*/
+                
+                //c.style.cssText = 'position:relative; pointer-events:none; display:inline-block; float:left; margin-left:0px; margin-right:5px; top:2px'
+               // c.style.cssText =' flex-shrink: 0;'
+
+                c.style.cssText ='margin-right:4px;';
+
+
+                //c.style.cssText = 'display:flex; align-content: flex-start; flex-wrap: wrap;'
+                //item.style.float = 'right'
+                item.appendChild( c );
+
+                this.tmpImage[n] = c;
+
+            }
+
+            if( this.dragout ){
+
+                item.img = this.tmpImage[n];
+
+                item.style.pointerEvents = 'auto';
+                item.draggable = "true";
+
+                item.addEventListener('dragstart', this.dragstart || function(){ /*console.log('drag start')*/});
+                item.addEventListener('drag', this.drag || function(){ /*console.log('drag start')*/});
+                //item.addEventListener('dragover', this);
+                //item.addEventListener('dragenter', this);
+                item.addEventListener('dragleave', function(){ Roots.fakeUp(); } );
+                item.addEventListener('dragend', this.dragend || function(){ /*console.log('drag end')*/ }.bind(this) );
+                //item.addEventListener('drop', function(){console.log('drop')})
+
+            }
+
+        }
+
+        this.setTopItem();
+        if( this.isSelectable ) this.selected();
+        
+    }
+
+    drawImage( name, image, x,y,w,h ){
+
+        this.tmpCtx.clearRect(0, 0, this.imageSize[0], this.imageSize[1]);
+        this.tmpCtx.drawImage(image, x, y, w, h, 0, 0, this.imageSize[0], this.imageSize[1]);
+        this.tmpImage[name].src = this.tmpCanvas.toDataURL();
+
+
+        /*let c = this.tmpImage[name]
+        let ctx = c.getContext("2d")
+        ctx.drawImage(image, x, y, w, h, 0, 0, this.imageSize[0], this.imageSize[1])*/
+
+    }
+
+    addImages (){
+        let lng = this.list.length;
+        for( let i=0; i<lng; i++ ){
+            this.items[i].appendChild( this.tmpImage[this.list[i]] );
+        }
+        this.setTopItem();
+    }
+
+    setValue ( value ) {
+
+        if(!isNaN(value)) this.value = this.list[ value ];
+        else this.value = value;
+
+        //this.tmpId = value
+
+        this.setTopItem();
+
+    }
+
+    setTopItem (){
+
+        if( this.staticTop ) return;
+
+        if( this.isWithImage ){
+
+            if(!this.preLoadComplete ) return;
+
+            if(!this.c[3].children.length){
+                this.canvas = document.createElement('canvas');
+                this.canvas.width = this.imageSize[0];
+                this.canvas.height = this.imageSize[1];
+                this.canvas.style.cssText ='margin-right:4px;';
+                this.ctx = this.canvas.getContext("2d");
+                this.c[3].style.textAlign = 'left';
+                this.c[3].style.justifyContent = 'left';
+                this.c[3].appendChild( this.canvas );
+            }
+
+            this.tmpImage[ this.value ];
+            this.ctx.drawImage( this.tmpImage[ this.value ], 0, 0, this.imageSize[2], this.imageSize[3], 0,0, this.imageSize[0], this.imageSize[1] );
+
+        }
+        else this.c[3].textContent = this.value;
+
+        if( this.miniCanvas ){
+
+            if(!this.c[3].children.length){
+                this.canvas = document.createElement('canvas');
+                this.canvas.width = this.imageSize[0];
+                this.canvas.height = this.imageSize[1];
+                this.canvas.style.cssText ='margin-right:4px;';
+                this.ctx = this.canvas.getContext("2d");
+                this.c[3].style.textAlign = 'left';
+                this.c[3].style.justifyContent = 'left';
+                this.c[3].appendChild( this.canvas );
+            }
+
+            this.ctx.drawImage( this.tmpImage[ this.value ], 0, 0 );
+
+
+        }
+
+    }
+
+
+    // ----- LIST
+
+    update ( y ) {
+
+        if( !this.scroll ) return;
+
+        y = y < 0 ? 0 : y;
+        y = y > this.range ? this.range : y;
+
+        this.topList = -Math.floor( y / this.ratio );
+
+        this.listIn.style.top = this.topList+'px';
+        this.scroller.style.top = Math.floor( y )  + 'px';
+
+        this.py = y;
+
+    }
+
+    parentHeight ( t ) {
+
+        if ( this.group !== null ) this.group.calc( t );
+        else if ( this.isUI ) this.main.calc( t );
+
+    }
+
+    open ( first ) {
+
+        super.open();
+
+        this.update( 0 );
+
+        this.h = this.maxHeight + this.baseH + 5;
+        if( !this.scroll ){
+            this.topList = 0;
+            this.h = this.baseH + 5 + this.max;
+            this.scroller.style.display = 'none';
+            this.scrollerBack.style.display = 'none';
+        } else {
+            this.scroller.style.display = 'block';
+            this.scrollerBack.style.display = 'block';
+        }
+        this.s[0].height = this.h + 'px';
+        this.s[2].display = 'block';
+
+        if( this.up ){ 
+            this.zone.y -= this.h - (this.baseH-10);
+            this.setSvg( this.c[4], 'd', this.svgs.g1 );
+        } else {
+            this.setSvg( this.c[4], 'd', this.svgs.g2 );
+        }
+
+        this.rSizeContent();
+
+        let t = this.h - this.baseH;
+
+        this.zone.h = this.h;
+
+        if(!first) this.parentHeight( t );
+
+    }
+
+    close () {
+
+        super.close();
+
+        if( this.up ) this.zone.y += this.h - (this.baseH-10);
+
+        let t = this.h - this.baseH;
+
+        this.h = this.baseH;
+        this.s[0].height = this.h + 'px';
+        this.s[2].display = 'none';
+        this.setSvg( this.c[4], 'd', this.svgs.g1 );
+
+        this.zone.h = this.h;
+
+        this.parentHeight( -t );
+
+    }
+
+    // -----
+
+    text ( txt ) {
+
+        this.c[3].textContent = txt;
+
+    }
+
+    rSizeContent () {
+
+        let i = this.length;
+        while(i--) this.listIn.children[i].style.width = this.ww + 'px';
+
+    }
+
+    rSize () {
+
+        super.rSize();
+
+        //Proto.prototype.rSize.call( this );
+
+        let s = this.s;
+        let w = this.sb;
+        let d = this.sa;
+
+        if(s[2]=== undefined) return;
+
+        s[2].width = w + 'px';
+        s[2].left = d +'px';
+
+        s[3].width = w + 'px';
+        s[3].left = d + 'px';
+
+        s[4].left = d + w - 15 + 'px';
+
+        this.ww = w;
+        if( this.max > this.maxHeight ) this.ww = w-this.ss;
+        if(this.isOpen) this.rSizeContent();
+
+    }
+
+}
+
+class Numeric extends Proto {
+
+    constructor( o = {} ) {
+
+        super( o );
+
+        this.setTypeNumber( o );
+
+        this.allway = o.allway || false;
+
+        this.isDown = false;
+        this.value = [0];
+        this.multy = 1;
+        this.invmulty = 1;
+        this.isSingle = true;
+        this.isAngle = false;
+        this.isVector = false;
+
+        if( o.isAngle ){
+            this.isAngle = true;
+            this.multy = Tools.torad;
+            this.invmulty = Tools.todeg;
+        }
+
+        this.isDrag = o.drag || false;
+
+        if( o.value !== undefined ){
+            if( !isNaN(o.value) ){
+                this.value = [o.value];
+            } else if( o.value instanceof Array ){ 
+                this.value = o.value;
+                this.isSingle = false;
+            } else if( o.value instanceof Object ){ 
+                this.value = [];
+                if( o.value.x !== undefined ) this.value[0] = o.value.x;
+                if( o.value.y !== undefined ) this.value[1] = o.value.y;
+                if( o.value.z !== undefined ) this.value[2] = o.value.z;
+                if( o.value.w !== undefined ) this.value[3] = o.value.w;
+                this.isSingle = false;
+                this.isVector = true;
+            }
+        }
+
+        this.lng = this.value.length;
+        this.tmp = [];
+
+        this.current = -1;
+        this.prev = { x:0, y:0, d:0, v:0 };
+
+        let cc = this.colors;
+
+        // bg
+        this.c[2] = this.dom( 'div', this.css.basic + ' background:' + cc.select + '; top:4px; width:0px; height:' + (this.h-8) + 'px;' );
+
+        this.cMode = [];
+        
+        let i = this.lng;
+        while(i--){
+
+            if( this.isAngle ) this.value[i] = (this.value[i] * 180 / Math.PI).toFixed( this.precision );
+            this.c[3+i] = this.dom( 'div', this.css.txtselect + 'top:1px; height:'+(this.h-2)+'px; color:' + cc.text + '; background:' + cc.back + '; borderColor:' + cc.border+'; border-radius:'+this.radius+'px;');
+            if(o.center) this.c[2+i].style.textAlign = 'center';
+            this.c[3+i].textContent = this.value[i];
+            this.c[3+i].style.color = this.colors.text;
+            this.c[3+i].isNum = true;
+            this.cMode[i] = 0;
+
+        }
+
+        // selection
+        this.selectId = 3 + this.lng;
+        this.c[this.selectId] = this.dom(  'div', this.css.txtselect + 'position:absolute; top:2px; height:' + (this.h-4) + 'px; padding:0px 0px; width:0px; color:' + cc.textSelect + '; background:' + cc.select + '; border:none; border-radius:0px;');
+
+        // cursor
+        this.cursorId = 4 + this.lng;
+        this.c[ this.cursorId ] = this.dom( 'div', this.css.basic + 'top:2px; height:' + (this.h-4) + 'px; width:0px; background:'+cc.text+';' );
+
+        this.init();
+    }
+
+    testZone ( e ) {
+
+        let l = this.local;
+        if( l.x === -1 && l.y === -1 ) return ''
+
+        let i = this.lng;
+        let t = this.tmp;
+
+        while( i-- ){
+            if( l.x>t[i][0] && l.x<t[i][2] ) return i
+        }
+
+        return ''
+
+    }
+
+    // ----------------------
+    //   EVENTS
+    // ----------------------
+
+    mousedown ( e ) {
+
+        let name = this.testZone( e );
+
+        if( !this.isDown ){
+            this.isDown = true;
+            if( name !== '' ){ 
+            	this.current = name;
+            	this.prev = { x:e.clientX, y:e.clientY, d:0, v: this.isSingle ? parseFloat(this.value) : parseFloat( this.value[ this.current ] ) };
+            	this.setInput( this.c[ 3 + this.current ] );
+            }
+            return this.mousemove( e )
+        }
+
+        return false
+
+    }
+
+    mouseup ( e ) {
+
+    	if( this.isDown ){
+            
+            this.isDown = false;
+            this.prev = { x:0, y:0, d:0, v:0 };
+
+            return this.mousemove( e )
+        }
+
+        return false
+
+    }
+
+    mousemove ( e ) {
+
+        let nup = false;
+        let x = 0;
+
+        let name = this.testZone( e );
+
+        if( name === '' ) this.cursor();
+        else { 
+        	if(!this.isDrag) this.cursor('text');
+        	else this.cursor( this.current !== -1 ? 'move' : 'pointer' );
+        }
+
+        
+
+        if( this.isDrag ){
+
+        	if( this.current !== -1 ){
+
+            	this.prev.d += ( e.clientX - this.prev.x ) - ( e.clientY - this.prev.y );
+
+                let n = this.prev.v + ( this.prev.d * this.step);
+
+                this.value[ this.current ] = this.numValue(n);
+                this.c[ 3 + this.current ].textContent = this.value[this.current];
+
+                this.validate();
+
+                this.prev.x = e.clientX;
+                this.prev.y = e.clientY;
+
+                nup = true;
+             }
+
+        } else {
+
+        	if( this.isDown ) x = e.clientX - this.zone.x -3;
+        	if( this.current !== -1 ) x -= this.tmp[this.current][0];
+        	return this.upInput( x, this.isDown )
+
+        }
+
+        return nup
+
+    }
+
+    // ----------------------
+
+    reset () {
+
+        let nup = false;
+        return nup
+
+    }
+
+
+    setValue ( v ) {
+
+        if( this.isVector ){
+            if( v.x !== undefined ) this.value[0] = v.x;
+            if( v.y !== undefined ) this.value[1] = v.y;
+            if( v.z !== undefined ) this.value[2] = v.z;
+            if( v.w !== undefined ) this.value[3] = v.w;
+        } else {
+            this.value = this.isSingle ? [v] : v;  
+        }
+
+        this.update();
+
+    }
+
+    sameStr ( str ){
+
+        let i = this.value.length;
+        while(i--) this.c[ 3 + i ].textContent = str;
+
+    }
+
+    update ( up ) {
+
+        let i = this.value.length;
+
+        while(i--){
+             this.value[i] = this.numValue( this.value[i] * this.invmulty );
+             this.c[ 3 + i ].textContent = this.value[i];
+        }
+
+        if( up ) this.send();
+
+    }
+
+    send ( v ) {
+
+        v = v || this.value;
+
+        this.isSend = true;
+
+        if( this.objectLink !== null ){ 
+
+            if( this.isVector ){
+                this.objectLink[ this.objectKey ].fromArray( v );
+            } else {
+                this.objectLink[ this.objectKey ] = v;
+            }
+
+        }
+
+        if( this.callback ) this.callback( v, this.objectKey );
+        this.isSend = false;
+
+    }
+
+
+    // ----------------------
+    //   INPUT
+    // ----------------------
+
+    select ( c, e, w, t ) {
+
+        let s = this.s;
+        let d = this.current !== -1 ? this.tmp[this.current][0] + 5 : 0;
+        s[this.cursorId].width = '1px';
+        s[this.cursorId].left = ( d + c ) + 'px';
+        s[this.selectId].left =  ( d + e )  + 'px';
+        s[this.selectId].width =  w  + 'px';
+        this.c[this.selectId].innerHTML = t;
+    
+    }
+
+    unselect () {
+
+        let s = this.s;
+        if(!s) return
+        this.c[this.selectId].innerHTML = '';
+        s[this.selectId].width = 0 + 'px';
+        s[this.cursorId].width = 0 + 'px';
+
+    }
+
+    validate ( force ) {
+
+        let ar = [];
+        let i = this.lng;
+
+        if( this.allway ) force = true;
+
+        while(i--){
+        	if(!isNaN( this.c[ 3 + i ].textContent )){ 
+                let nx = this.numValue( this.c[ 3 + i ].textContent );
+                this.c[ 3 + i ].textContent = nx;
+                this.value[i] = nx;
+            } else { // not number
+                this.c[ 3 + i ].textContent = this.value[i];
+            }
+
+        	ar[i] = this.value[i] * this.multy;
+        }
+
+        if( !force ) return
+        this.send( this.isSingle ? ar[0] : ar );
+
+    }
+
+    // ----------------------
+    //   REZISE
+    // ----------------------
+
+    rSize () {
+
+        super.rSize();
+        let sx = this.colors.sx;
+        let ss = sx * (this.lng-1);
+        let w = (this.sb-ss) / this.lng;//(( this.sb + sx ) / this.lng )-sx
+        let s = this.s;
+        let i = this.lng;
+
+        while(i--){
+            //this.tmp[i] = [ Math.floor( this.sa + ( w * i )+( 5 * i )), w ];
+            this.tmp[i] = [ ( this.sa + ( w * i )+( sx * i )), w ];
+            this.tmp[i][2] = this.tmp[i][0] + this.tmp[i][1];
+            s[ 3 + i ].left = this.tmp[i][0] + 'px';
+            s[ 3 + i ].width = this.tmp[i][1] + 'px';
+        }
+
+    }
+
+}
+
+class Slide extends Proto {
+
+    constructor( o = {} ) {
+
+        super( o );
+
+        this.setTypeNumber( o );
+
+
+        this.model = o.stype!== undefined ? o.stype : 2;
+        if( o.mode !== undefined ) this.model = o.mode;
+
+        //this.defaultBorderColor = this.colors.hide;
+
+        this.isDown = false;
+        this.isOver = false;
+        this.allway = o.allway || false;
+
+        this.autoValue = true;
+        if(o.autoValue!==undefined) this.autoValue = false;
+
+        this.isDeg = o.isDeg || false;
+        this.isCyclic = o.cyclic || false;
+
+        this.firstImput = false;
+
+        let cc = this.colors;
+
+        //this.c[2] = this.dom( 'div', this.css.txtselect + 'letter-spacing:-1px; text-align:right; width:47px; border:1px dashed '+this.defaultBorderColor+'; color:'+ this.colors.text );
+        //this.c[2] = this.dom( 'div', this.css.txtselect + 'text-align:right; width:47px; border:1px dashed '+this.defaultBorderColor+'; color:'+ this.colors.text );
+        this.c[2] = this.dom( 'div', this.css.txtselect + 'border:none; background:none; width:47px; color:'+ cc.text +';' );
+        //this.c[2] = this.dom( 'div', this.css.txtselect + 'letter-spacing:-1px; text-align:right; width:47px; color:'+ this.colors.text );
+        this.c[3] = this.dom( 'div', this.css.basic + ' top:0; height:'+this.h+'px;' );
+        this.c[4] = this.dom( 'div', this.css.basic + 'background:'+cc.back+'; top:2px; height:'+(this.h-4)+'px;' );
+        this.c[5] = this.dom( 'div', this.css.basic + 'left:4px; top:5px; height:'+(this.h-10)+'px; background:' + cc.text +';' );
+
+        this.c[2].isNum = true;
+        //this.c[2].style.height = (this.h-4) + 'px';
+        //this.c[2].style.lineHeight = (this.h-8) + 'px';
+        this.c[2].style.height = (this.h-2) + 'px';
+        this.c[2].style.lineHeight = (this.h-10) + 'px';
+
+        if(this.model !== 0){
+
+            let r1 = 4, h1 = 4, h2 = 8, ww = this.h-6, ra = 16;
+
+            if( this.model === 2 ){
+                r1 = 0;
+                h1 = 2;
+                h2 = 4;
+                ra = 2;
+                ww = (this.h-6)*0.5;
+            }
+
+            if( this.model === 3 ) this.c[5].style.visible = 'none';
+
+            this.c[4].style.borderRadius = r1 + 'px';
+            this.c[4].style.height = h2 + 'px';
+            this.c[4].style.top = (this.h*0.5) - h1 + 'px';
+
+            this.c[5].style.borderRadius = (r1*0.5) + 'px';
+            this.c[5].style.height = h1 + 'px';
+            this.c[5].style.top = (this.h*0.5)-(h1*0.5) + 'px';
+
+            //this.c[6] = this.dom( 'div', this.css.basic + 'border-radius:'+ra+'px; margin-left:'+(-ww*0.5)+'px; border:1px solid '+cc.border+'; background:'+cc.button+'; left:4px; top:2px; height:'+(this.h-4)+'px; width:'+ww+'px;' );
+            //this.c[6] = this.dom( 'div', this.css.basic + 'border-radius:'+ra+'px; margin-left:'+(-ww*0.5)+'px; background:'+cc.text+'; left:4px; top:3px; height:'+(this.h-6)+'px; width:'+ww+'px;' )
+            this.c[6] = this.dom( 'div', this.css.basic + 'border-radius:'+ra+'px; margin-left:'+(-ww*0.5)+'px; background:'+cc.text+'; left:4px; top:'+((this.h-ww)*0.5)+'px; height:'+ww+'px; width:'+ww+'px;' );
+        }
+
+        this.init();
+
+    }
+
+    testZone ( e ) {
+
+        let l = this.local;
+        if( l.x === -1 && l.y === -1 ) return '';
+        
+        if( l.x >= this.txl ) return 'text';
+        else if( l.x >= this.sa ) return 'scroll';
+        else return '';
+
+    }
+
+    // ----------------------
+    //   EVENTS
+    // ----------------------
+
+    mouseup ( e ) {
+        
+        if( this.isDown ) this.isDown = false;
+        
+    }
+
+    mousedown ( e ) {
+
+        let name = this.testZone( e );
+
+        if( !name ) return false;
+
+        if( name === 'scroll' ){ 
+            this.isDown = true;
+            this.old = this.value;
+            this.mousemove( e );
+            
+        }
+
+        /*if( name === 'text' ){
+            this.setInput( this.c[2], function(){ this.validate() }.bind(this) );
+        }*/
+
+        return true;
+
+    }
+
+    mousemove ( e ) {
+
+        let nup = false;
+
+        let name = this.testZone( e );
+
+        if( name === 'scroll' ) {
+            this.mode(1);
+            this.cursor('w-resize');
+        //} else if(name === 'text'){ 
+            //this.cursor('pointer');
+        } else {
+            this.cursor();
+        }
+
+        if( this.isDown ){
+
+            let n = ((( e.clientX - (this.zone.x+this.sa) - 3 ) / this.ww ) * this.range + this.min ) - this.old;
+            if(n >= this.step || n <= this.step){ 
+                n = Math.floor( n / this.step );
+                this.value = this.numValue( this.old + ( n * this.step ) );
+                this.update( true );
+                this.old = this.value;
+            }
+            nup = true;
+        }
+
+        return nup;
+
+    }
+
+    wheel ( e ) {
+
+        let name = this.testZone( e );
+    
+        if( name === 'scroll' ) {
+    
+            let v = this.value - this.step * e.delta;
+    
+            if ( v > this.max ) {
+                v = this.isCyclic ? this.min : this.max;
+            } else if ( v < this.min ) {
+                v = this.isCyclic ? this.max : this.min;
+            }
+    
+            this.setValue(v);
+            this.old = v;
+            this.update( true );
+
+            return true;
+    
+        }
+              
+        return false;
+    
+    }
+
+    //keydown: function ( e ) { return true; },
+
+    // ----------------------
+
+    validate () {
+        
+        let n = this.c[2].textContent;
+
+        if(!isNaN( n )){ 
+            this.value = this.numValue( n ); 
+            this.update(true); 
+        }
+
+        else {
+            if(this.autoValue) this.c[2].textContent = this.value + (this.isDeg ? '°':'');
+        }
+
+    }
+
+
+    reset () {
+
+        //this.clearInput();
+        this.isDown = false;
+        this.mode(0);
+
+    }
+
+    mode ( mode ) {
+
+        let s = this.s;
+        let cc = this.colors;
+
+        switch(mode){
+            case 0: // base
+               // s[2].border = '1px solid ' + this.colors.hide;
+                s[2].color = cc.text;
+                s[4].background = cc.back;
+                s[5].background = cc.text;
+                if(this.model !== 0) s[6].background = cc.text;//cc.button;
+            break;
+            case 1: // scroll over
+                //s[2].border = '1px dashed ' + this.colors.hide;
+                s[2].color = cc.textOver;
+                s[4].background = cc.back;
+                s[5].background = cc.textOver;
+                if(this.model !== 0) s[6].background = cc.textOver;//cc.overoff;
+            break;
+
+        }
+    }
+
+    update ( up ) {
+
+        let ww = Math.floor( this.ww * (( this.value - this.min ) / this.range ));
+       
+        if(this.model !== 3) this.s[5].width = ww + 'px';
+        if(this.s[6]) this.s[6].left = ( this.sa + ww + 3 ) + 'px';
+        if(this.autoValue) this.c[2].textContent = this.value + (this.isDeg ? '°':'');
+
+        if( up ) this.send();
+
+    }
+
+    rSize () {
+
+        super.rSize();
+
+        let w = this.sb - this.sc;
+        this.ww = w - 6;
+
+        let tx = this.sc;
+        if(this.isUI || !this.simple) tx = this.sc+10;
+        this.txl = this.w - tx + 2;
+
+        //let ty = Math.floor(this.h * 0.5) - 8;
+
+        let s = this.s;
+
+        s[2].width = (this.sc -6 )+ 'px';
+        s[2].left = (this.txl +4) + 'px';
+        //s[2].top = ty + 'px';
+        s[3].left = this.sa + 'px';
+        s[3].width = w + 'px';
+        s[4].left = this.sa + 'px';
+        s[4].width = w + 'px';
+        s[5].left = (this.sa + 3) + 'px';
+
+        this.update();
+
+    }
+
+}
+
+class TextInput extends Proto {
+
+    constructor( o = {} ) {
+
+        super( o );
+
+        this.cmode = 0;
+
+        this.value = o.value !== undefined ? o.value : '';
+        this.placeHolder = o.placeHolder || '';
+
+        this.allway = o.allway || false;
+        this.editable = o.edit !== undefined ? o.edit : true;
+
+        this.isDown = false;
+
+        let cc = this.colors;
+
+        // text
+        this.c[2] = this.dom( 'div', this.css.txtselect + 'top:1px; height:' + (this.h-2) + 'px; color:' + cc.text + '; background:' + cc.back + '; borderColor:' + cc.border+'; border-radius:'+this.radius+'px;' );
+        this.c[2].textContent = this.value;
+
+        // selection
+        this.c[3] = this.dom(  'div', this.css.txtselect + 'position:absolute; top:2px; height:' + (this.h-4) + 'px; padding:0px 0px; width:0px; color:' + cc.textSelect + '; background:' + cc.select + '; border:none; border-radius:0px;');
+
+        // cursor
+        this.c[4] = this.dom( 'div', this.css.basic + 'top:2px; height:' + (this.h-4) + 'px; width:0px; background:'+cc.text+';' );
+
+        // fake
+        this.c[5] = this.dom( 'div', this.css.txtselect + 'top:1px; height:' + (this.h-2) + 'px; border:none; justify-content: center; font-style: italic; color:'+cc.border+';' );
+        if( this.value === '' ) this.c[5].textContent = this.placeHolder;
+
+        
+
+
+        this.init();
+
+    }
+
+    testZone ( e ) {
+
+        let l = this.local;
+        if( l.x === -1 && l.y === -1 ) return '';
+        if( l.x >= this.sa ) return 'text';
+        return '';
+
+    }
+
+    // ----------------------
+    //   EVENTS
+    // ----------------------
+
+    mouseup ( e ) {
+
+        if(!this.editable) return;
+
+        if( this.isDown ){
+            this.isDown = false;
+            return this.mousemove( e );
+        }
+
+        return false;
+
+    }
+
+    mousedown ( e ) {
+
+        if(!this.editable) return;
+
+        let name = this.testZone( e );
+
+        if( !this.isDown ){
+            this.isDown = true;
+            if( name === 'text' ) this.setInput( this.c[2] );
+            return this.mousemove( e );
+        }
+
+        return false;
+
+    }
+
+    mousemove ( e ) {
+
+        if(!this.editable) return;
+
+        let name = this.testZone( e );
+
+        //let l = this.local;
+        //if( l.x === -1 && l.y === -1 ){ return;}
+
+        //if( l.x >= this.sa ) this.cursor('text');
+        //else this.cursor();
+
+        let x = 0;
+
+        if( name === 'text' ) this.cursor('text');
+        else this.cursor();
+
+        if( this.isDown ) x = e.clientX - this.zone.x;
+
+        return this.upInput( x - this.sa -3, this.isDown );
+
+    }
+
+    update ( ) {
+
+        this.c[2].textContent = this.value;
+        
+    }
+
+    // ----------------------
+
+    reset () {
+
+        this.cursor();
+
+    }
+
+    // ----------------------
+    //   INPUT
+    // ----------------------
+
+    select ( c, e, w, t ) {
+
+        let s = this.s;
+        let d = this.sa + 5;
+        s[4].width = '1px';
+        s[4].left = ( d + e ) + 'px';
+
+        s[3].left =  ( d + e )  + 'px';
+        s[3].width =  w  + 'px';
+        this.c[3].innerHTML = t;
+    
+    }
+
+    unselect () {
+
+        let s = this.s;
+        if(!s) return;
+        s[3].width =  0  + 'px';
+        this.c[3].innerHTML = 't';
+        s[4].width = 0 + 'px';
+
+    }
+
+    validate ( force ) {
+
+        if( this.allway ) force = true; 
+
+        this.value = this.c[2].textContent;
+
+        if(this.value !== '') this.c[5].textContent = '';
+        else this.c[5].textContent = this.placeHolder;
+
+        if( !force ) return;
+
+        this.send();
+
+    }
+
+    // ----------------------
+    //   REZISE
+    // ----------------------
+
+    rSize () {
+
+        super.rSize();
+
+        let s = this.s;
+        s[2].left = this.sa + 'px';
+        s[2].width = this.sb + 'px';
+
+        s[5].left = this.sa + 'px';
+        s[5].width = this.sb + 'px';
+     
+    }
+
+
+}
+
+class Title extends Proto {
+
+    constructor( o = {} ) {
+
+        super( o );
+
+        this.isTitle = true;
+
+        let prefix = o.prefix || '';
+        let color = o.color || this.colors.text;
+
+        this.c[2] = this.dom( 'div', this.css.txt + 'justify-content:right; width:60px; line-height:'+ (this.h-8) + 'px; color:' + color );
+
+        if( this.h === 31 ){
+
+            this.s[0].height = this.h + 'px';
+            this.s[1].top = 8 + 'px';
+            this.c[2].style.top = 8 + 'px';
+
+        }
+
+        let s = this.s;
+
+        s[1].justifyContent = o.align || 'left';
+        //s[1].textAlign = o.align || 'left';
+        s[1].fontWeight = o.fontWeight || 'bold';
+        s[1].color = o.color || this.colors.text;
+
+
+        this.c[1].textContent = this.txt.substring(0,1).toUpperCase() + this.txt.substring(1).replace("-", " ");
+        this.c[2].textContent = prefix;
+
+        this.init();
+
+    }
+
+    text( txt ) {
+
+        this.c[1].textContent = txt;
+
+    }
+
+    text2( txt ) {
+
+        this.c[2].textContent = txt;
+
+    }
+
+    rSize() {
+
+        super.rSize();
+        this.s[1].width = this.w + 'px'; //- 50 + 'px';
+        this.s[2].left = this.w + 'px';//- ( 50 + 26 ) + 'px';
+
+    }
+
+    setColor( c ) {
+        this.s[1].color = c;
+        this.s[2].color = c;
+    }
+
+}
+
+class Select extends Proto {
+
+    constructor( o = {} ) {
+
+        super( o );
+
+        this.value = o.value || '';
+        this.isDown = false;
+        this.onActif = o.onActif || function(){};
+
+        //let prefix = o.prefix || '';
+        const cc = this.colors;
+
+        this.c[2] = this.dom( 'div', this.css.txt + this.css.button + ' top:1px; background:'+cc.button+'; height:'+(this.h-2)+'px; border:'+ cc.buttonBorder+'; border-radius:15px; width:30px; left:10px;' );
+        //this.c[2].style.color = this.fontColor;
+
+        this.c[3] = this.dom( 'div', this.css.txtselect + 'height:' + (this.h-4) + 'px; background:' + cc.inputBg + '; borderColor:' + cc.inputBorder+'; border-radius:'+this.radius+'px;' );
+        this.c[3].textContent = this.value;
+
+        let fltop = Math.floor(this.h*0.5)-7;
+        this.c[4] = this.dom( 'path', this.css.basic + 'position:absolute; width:14px; height:14px; left:5px; top:'+fltop+'px;', { d:this.svgs[ 'cursor' ], fill:cc.text, stroke:'none'});
+
+        this.stat = 1;
+        this.isActif = false;
+
+        this.init();
+
+    }
+
+    testZone ( e ) {
+
+        let l = this.local;
+        if( l.x === -1 && l.y === -1 ) return ''
+        if( l.x > this.sa && l.x < this.sa+30 ) return 'over'
+        return '0'
+
+    }
+
+    // ----------------------
+    //   EVENTS
+    // ----------------------
+
+    mouseup ( e ) {
+    
+        if( this.isDown ){
+            //this.value = false;
+            this.isDown = false;
+            //this.send();
+            return this.mousemove( e )
+        }
+
+        return false
+
+    }
+
+    mousedown ( e ) {
+
+        let name = this.testZone( e );
+
+        if( !name ) return false
+
+        this.isDown = true;
+        //this.value = this.values[ name-2 ];
+        //this.send();
+        return this.mousemove( e )
+
+    }
+
+    mousemove ( e ) {
+
+        let up = false;
+        let name = this.testZone( e );
+
+        if( name === 'over' ){
+            this.cursor('pointer');
+            up = this.mode( this.isDown ? 3 : 2 );
+        } else {
+            up = this.reset();
+        }
+
+        return up
+
+    }
+
+    // ----------------------
+
+    apply ( v ) {
+
+        v = v || '';
+
+        if( v !== this.value ) {
+            this.value = v;
+            this.c[3].textContent = this.value;
+            this.send();
+        }
+        
+        this.mode(1);
+
+    }
+
+    update () {
+
+        this.mode( 3 );
+
+    }
+
+    mode ( n ) {
+
+        let change = false;
+        let cc = this.colors;
+
+        if( this.stat !== n ){
+
+            if( n===1 ) this.isActif = false;
+            if( n===3 ){ 
+                if( !this.isActif ){ this.isActif = true; n=4; this.onActif( this ); }
+                else { this.isActif = false; }
+            }
+
+            if( n===2 && this.isActif ) n = 4;
+
+            this.stat = n;
+
+            switch( n ){
+
+                case 1: this.s[ 2 ].color = cc.text; this.s[ 2 ].background = cc.button; break; // base
+                case 2: this.s[ 2 ].color = cc.textOver; this.s[ 2 ].background = cc.overoff; break; // over
+                case 3: this.s[ 2 ].color = cc.textOver; this.s[ 2 ].background = cc.action; break; // down
+                case 4: this.s[ 2 ].color = cc.textSelect; this.s[ 2 ].background = cc.action; break; // actif
+
+            }
+
+            change = true;
+
+        }
+
+        return change
+
+
+
+    }
+
+    reset () {
+
+        this.cursor();
+        return this.mode( this.isActif ? 4 : 1 )
+
+    }
+
+    text ( txt ) {
+
+        this.c[3].textContent = txt;
+
+    }
+
+    rSize () {
+
+        super.rSize();
+
+        let s = this.s;
+        s[2].left = this.sa + 'px';
+        s[3].left = (this.sa + 40) + 'px';
+        s[3].width = (this.sb - 40) + 'px';
+        s[4].left = (this.sa+8) + 'px';
+
+    }
+
+}
+
+class Bitmap extends Proto {
+
+    constructor( o = {} ) {
+
+        super( o );
+
+        this.value = o.value || '';
+        this.colorSpace = o.colorSpace || '';
+
+
+        //this.refTexture = o.texture || null;
+        this.img = null;
+
+        if( this.value.isTexture ){
+            if( this.value.image ){
+                this.img = this.value.image; 
+                //console.log(this.value, this.img)
+            }
+        }
+
+        
+        
+
+
+        this.isDown = false;
+        this.neverlock = true;
+
+        const cc = this.colors;
+
+        this.c[2] = this.dom( 'div', this.css.txt + this.css.button + ' top:1px; background:'+cc.button+'; height:'+(this.h-2)+'px; border:'+cc.buttonBorder+'; border-radius:2px; width:30px; ' );
+
+        this.c[3] = this.dom( 'div', this.css.txtselect + 'height:' + (this.h-4) + 'px; background:' + cc.back + '; borderColor:' + cc.inputBorder+'; border-radius:'+this.radius+'px;' );
+        //this.c[3].textContent = this.value;
+        if(!this.img) this.c[3].textContent = 'null';
+        
+
+        let fltop = Math.floor(this.h*0.5)-7;
+        this.c[4] = this.dom( 'path', this.css.basic + 'position:absolute; width:14px; height:14px; left:5px; top:'+fltop+'px;', { d:this.svgs[ 'load' ], fill:cc.text, stroke:'none'});
+
+        //this.c[5] = this.dom( 'div', this.css.txt + this.css.button + ' top:1px; background:'+cc.button+'; height:'+(this.h-2)+'px; border:'+cc.buttonBorder+'; border-radius:2px; width:30px; ' )
+
+        this.stat = 1;
+
+        this.makePreview();
+
+        this.init();
+
+    }
+
+    testZone ( e ) {
+
+        let l = this.local;
+        if( l.x === -1 && l.y === -1 ) return '';
+        if( l.x > this.sa && l.x < this.sa+30 ) return 'over';
+        if( l.x > this.sa-30 && l.x < this.sa ) return 'delete';
+        return '0'
+
+    }
+
+    // ----------------------
+    //   EVENTS
+    // ----------------------
+
+    mouseup ( e ) {
+    
+        if( this.isDown ){
+            //this.value = false;
+            this.isDown = false;
+            //this.send();
+            return this.mousemove( e );
+        }
+
+        return false;
+
+    }
+
+    mousedown ( e ) {
+
+        let name = this.testZone( e );
+
+        if( !name ) return false;
+
+        if( name === 'over' ){
+            this.isDown = true;
+            Files.load( { callback:this.changeBitmap.bind(this), always:true, type:'image' } );
+
+        }
+
+        
+        //this.value = this.values[ name-2 ];
+        //this.send();
+        return this.mousemove( e );
+
+    }
+
+    mousemove ( e ) {
+
+        let up = false;
+
+        let name = this.testZone( e );
+
+        if( name === 'over' ){
+            this.cursor('pointer');
+            up = this.mode( this.isDown ? 3 : 2 );
+        } else {
+            up = this.reset();
+        }
+
+        return up;
+
+    }
+
+    // ----------------------
+
+    makePreview(){
+
+        if( this.img ){
+
+            let src = this.img.src;
+
+            if(src.search('blob:')!==-1){ 
+                src.substring(5);
+
+                //  TODO find a way to display blob ???
+
+                
+                /*let reader = new FileReader();
+                reader.onload = () => {
+                    console.log( reader.result );
+                };
+                reader.readAsDataURL( src2 );
+                console.log(src, src2)*/
+                //src = URL.createObjectURL(src)
+                //this.c[3].style.background = 'url('+src2+')';
+                //this.c[3].style.backgroundSize = (this.sb - 40) + 'px ' + (this.sb - 40) + 'px'
+                //this.c[3].style.backgroundSize = 20 + 'px ' + 20 + 'px'
+                //this.c[3].style.backgroundPosition = 'center';
+                //this.c[3].style.backgroundRepeat = 'no-repeat';
+                this.c[3].style.background = '#00ff00';
+                this.c[3].style.backgroundImage = 'none';
+            } else {
+                //console.log(this.value)
+                //let src = this.img.src ? this.img.src : this.img;
+                this.c[3].style.background = 'url('+src+')';
+                this.c[3].style.backgroundSize = (this.sb - 40) + 'px ' + (this.sb - 40) + 'px';
+                //this.c[3].style.backgroundSize = 20 + 'px ' + 20 + 'px'
+                this.c[3].style.backgroundPosition = 'center';
+                this.c[3].style.backgroundRepeat = 'no-repeat';
+            }
+
+            
+        } else {
+            this.c[3].style.background = this.colors.back;
+            this.c[3].style.backgroundImage = 'none';
+        }
+
+    }
+
+    changeBitmap( img, fname, type ){
+
+        if( img ){
+            this.img = img;
+            this.apply( fname );
+        } else {
+            this.img = null;
+            this.apply( 'null' );
+        }
+
+        this.makePreview();
+        this.threeTexture();
+        
+    }
+
+    // ----------------------
+
+    threeTexture() {
+
+        // need define UIL.Tools.texture = THREE.Texture;
+
+        if( this.objectLink === null ) return;
+        
+        let texture = this.objectLink[this.objectKey];
+        if( this.img ){
+            if( texture !== null ){
+                texture.image = this.img;
+                this.objectLink[this.objectKey] = texture.clone();
+                texture.dispose();
+                this.objectLink[this.objectKey].needsUpdate = true;
+            } else if( Tools.texture ){
+                texture = new Tools.texture(this.img);
+                //console.log('colorSpace',  texture.colorSpace )
+                if( this.colorSpace ) texture.colorSpace = this.colorSpace;//'srgb';
+                this.objectLink[this.objectKey] = texture;
+                this.objectLink[this.objectKey].needsUpdate = true;
+            }
+        }
+        else {
+            this.objectLink[this.objectKey] = null;
+        }
+        this.objectLink.needsUpdate = true;
+    }
+
+    apply ( v ) {
+
+        v = v || '';
+        let name = this.objectLink !== null ? this.objectKey : this.name;
+
+        if( v !== this.value ) {
+            this.value = v;
+
+            if( this.img !== null ){
+                this.c[3].textContent = '';
+                //if( this.objectLink !== null ) this.objectLink[ this.val ] = v
+                if( this.callback ) this.callback( this.value, this.img, name );
+            } else {
+                this.c[3].textContent = 'null';
+                //if( this.objectLink !== null ) this.objectLink[ this.val ] = v
+                if( this.callback ) this.callback( null, null, name );
+            }
+
+            
+            
+        }
+        
+        this.mode(1);
+
+    }
+
+    update () {
+
+        this.mode( 3 );
+
+    }
+
+    mode ( n, id ) {
+
+        let change = false;
+        let cc = this.colors;
+
+        if( this.stat !== n ){
+
+            this.stat = n;
+
+            switch( n ){
+
+                case 1: this.s[ 2 ].color = cc.text; this.s[ 2 ].background = cc.button; break; // base
+                case 2: this.s[ 2 ].color = cc.textOver; this.s[ 2 ].background = cc.overoff; break; // over
+                case 3: this.s[ 2 ].color = cc.textOver; this.s[ 2 ].background = cc.over; break; // down
+                case 4: this.s[ 2 ].color = cc.textSelect; this.s[ 2 ].background = cc.select; break; // actif
+
+            }
+
+            change = true;
+
+        }
+
+        return change;
+
+
+
+    }
+
+    reset () {
+
+        this.cursor();
+        return this.mode( this.isActif ? 4 : 1 );
+
+    }
+
+    text ( txt ) {
+
+        this.c[3].textContent = txt;
+
+    }
+
+    rSize () {
+
+        super.rSize();
+
+        let s = this.s;
+        s[2].left = this.sa + 'px';
+        s[3].left = (this.sa + 40) + 'px';
+        s[3].width = (this.sb - 40) + 'px';
+        s[4].left = (this.sa+8) + 'px';
+
+        //s[3].backgroundSize = (this.sb - 40) + 'px' + (this.sb - 40) + 'px'
+        //s[5].left = (this.w-30) + 'px';
+
+    }
+
+}
+
+//import { Proto } from '../core/Proto.js';
+
+class Selector extends Button {
+
+    constructor( o = {} ) {
+
+        if( o.selectable === undefined ) o.selectable = true;
+        super( o );
+     
+    }
+
+}
+
+class Item extends Proto {
+
+    constructor( o = {} ) {
+
+        super( o );
+
+        this.p = 100;
+        this.value = this.txt;
+        this.status = 1;
+
+        this.itype = o.itype || 'none';
+        this.val = this.itype;
+
+        this.graph = this.svgs[ this.itype ];
+
+        let fltop = Math.floor(this.h*0.5)-7;
+
+        this.c[2] = this.dom( 'path', this.css.basic + 'position:absolute; width:14px; height:14px; left:5px; top:'+fltop+'px;', { d:this.graph, fill:this.colors.text, stroke:'none'});
+
+        this.s[1].marginLeft = 20 + 'px';
+
+        this.init();
+
+    }
+
+    // ----------------------
+    //   EVENTS
+    // ----------------------
+
+    mousemove ( e ) {
+
+        this.cursor('pointer');
+
+        //up = this.modes( this.isDown ? 3 : 2, name );
+
+    }
+
+    mousedown ( e ) {
+
+        if( this.isUI ) this.main.resetItem();
+
+        this.selected( true );
+
+        this.send();
+
+        return true;
+
+    }
+
+    uiout () {
+
+        if( this.isSelect ) this.mode(3);
+        else this.mode(1);
+
+    }
+
+    uiover () {
+
+        if( this.isSelect ) this.mode(4);
+        else this.mode(2);
+
+    }
+
+    update () {
+            
+    }
+
+    /*rSize () {
+        
+        super.rSize();
+
+    }*/
+
+    mode ( n ) {
+
+        let change = false;
+
+        if( this.status !== n ){
+
+            this.status = n;
+            let s = this.s, cc = this.colors;
+        
+            switch( n ){
+
+                case 1: this.status = 1; s[1].color = cc.text; s[0].background = 'none'; break;
+                case 2: this.status = 2; s[1].color = cc.textOver; s[0].background = cc.back; break;
+                case 3: this.status = 3; s[1].color = cc.textSelect; s[0].background = cc.select; break;
+                case 4: this.status = 4; s[1].color = cc.textOver; s[0].background = cc.over; break;
+
+            }
+
+            change = true;
+
+        }
+
+        return change;
+
+    }
+
+    reset () {
+
+        this.cursor();
+       // return this.mode( 1 );
+
+    }
+
+    selected ( b ){
+
+        if( this.isSelect ) this.mode(1);
+
+        this.isSelect = b || false;
+
+        if( this.isSelect ) this.mode(3);
+        
+    }
+
+
+}
+
+class Grid extends Proto {
+
+    constructor( o = {} ) {
+
+        super( o );
+
+        /*this.values = o.values || [];
+
+        if( typeof this.values === 'string' ) this.values = [ this.values ];*/
+
+        this.values = [];
+
+        if( o.values ){
+            if( o.values instanceof Array ){
+                this.values = o.values;
+            } else if( o.values instanceof String ){
+                this.values = [ o.values ];
+            } else if( o.values instanceof Object ){
+                this.refObject = o.values;
+                for( let g in this.refObject ) this.values.push( g );
+            }
+        }
+
+        this.lng = this.values.length;
+
+
+
+        this.value = o.value || null;
+
+
+
+
+        let cc = this.colors;
+
+
+        this.isSelectable = o.selectable || false;
+        this.spaces = o.spaces || [ cc.sx, cc.sy ];
+        this.bsize = o.bsize || [ 90, this.h ];
+
+        this.bsizeMax = this.bsize[0];
+
+        this.tmp = [];
+        this.stat = [];
+        this.grid = [ 2, Math.round( this.lng * 0.5 ) ];
+
+        this.h = ( this.grid[1] * this.bsize[1] ) + ( this.grid[1] * this.spaces[1] ); //+ 4 - (this.mtop*2) //+ (this.spaces[1] - this.mtop);
+
+        this.c[1].textContent = '';
+        //this.c[2] = this.dom( 'table', this.css.basic + 'width:100%; top:'+(this.spaces[1]-2)+'px; height:auto; border-collapse:separate; border:none; border-spacing: '+(this.spaces[0]-2)+'px '+(this.spaces[1]-2)+'px;' );
+        this.c[2] = this.dom( 'table', this.css.basic + 'width:100%; border-spacing: '+(this.spaces[0]-2)+'px '+(this.spaces[1])+'px; border:none;' );
+
+        let n = 0, b, td, tr, sel;
+
+        this.res = -1;
+        this.isDown = false;
+        this.neverlock = true;
+
+        this.buttons = []; 
+        this.stat = [];
+        this.tmpX = [];
+        this.tmpY = [];
+
+        for( let i = 0; i < this.grid[1]; i++ ){
+
+            tr = this.c[2].insertRow();
+            tr.style.cssText = 'pointer-events:none;';
+            for( let j = 0; j < this.grid[0]; j++ ){
+
+                td = tr.insertCell();
+                td.style.cssText = 'pointer-events:none;';
+
+                if( this.values[n] ){
+
+                    sel = false;
+                    if( this.values[n] === this.value && this.isSelectable ) sel = true;
+
+                    b = document.createElement( 'div' );
+                    b.style.cssText = this.css.txt + this.css.button + 'position:static; top:1px; width:'+this.bsize[0]+'px; height:'+(this.bsize[1]-2)+'px; border:'+cc.borderSize+'px solid '+cc.border+'; left:auto; right:auto; border-radius:'+this.radius+'px;';
+                    b.style.background = sel ? cc.select : cc.button;
+                    b.style.color = sel ? cc.textSelect : cc.text;
+                    b.innerHTML = this.values[n];
+                    td.appendChild( b );
+
+                    this.buttons.push(b);
+                    this.stat.push(1);
+
+                } else {
+
+                    b = document.createElement( 'div' );
+                    b.style.cssText = this.css.txt + 'position:static; width:'+this.bsize[0]+'px; height:'+this.bsize[1]+'px; text-align:center; left:auto; right:auto; background:none;';
+                    td.appendChild( b );
+
+                }
+
+                if(j===0) b.style.cssText += 'float:right;';
+                else b.style.cssText += 'float:left;';
+            
+                n++;
+
+            }
+        }
+
+        this.s[0].border = 'none';
+
+        this.init();
+
+    }
+
+    testZone ( e ) {
+
+        let l = this.local;
+        if( l.x === -1 && l.y === -1 ) return -1;
+
+        l.y += this.mtop;
+        
+        let tx = this.tmpX;
+        let ty = this.tmpY;
+
+        let id = -1;
+        let c = -1;
+        let line = -1;
+        let i = this.grid[0];
+        while( i-- ){
+        	if( l.x > tx[i][0] && l.x < tx[i][1] ) c = i;
+        }
+
+        i = this.grid[1];
+        while( i-- ){
+            if( l.y > ty[i][0] && l.y < ty[i][1] ) line = i;
+        }
+
+        if(c!==-1 && line!==-1){
+            id = c + (line*2);
+            if(id>this.lng-1) id = -1;
+        }
+
+        return id;
+
+    }
+
+    // ----------------------
+    //   EVENTS
+    // ----------------------
+
+    mouseup ( e ) {
+
+        if( !this.isDown ) return false
+
+        this.isDown = false;
+        if( this.res !== -1 ){
+            this.value = this.values[this.res];
+            this.send();
+        }
+
+        return this.mousemove( e )
+
+    }
+
+    mousedown ( e ) {
+
+        if( this.isDown ) return false
+        this.isDown = true;
+        return this.mousemove( e )
+
+    }
+
+    mousemove ( e ) {
+
+        let up = false;
+        this.res = this.testZone( e );
+
+        if( this.res !== -1 ){
+            this.cursor('pointer');
+            up = this.modes( this.isDown ? 3 : 2, this.res );
+        } else {
+        	up = this.reset();
+        }
+
+        return up;
+
+    }
+
+    update () {
+
+        this.modes( 2, this.values.indexOf(this.value) );
+
+    }
+
+    // ----------------------
+    //   MODE
+    // -----------------------
+
+    modes ( N = 1, id = -1 ) {
+
+        let i = this.lng, w, n, r = false;
+
+        while( i-- ){
+
+            n = N;
+            w = this.isSelectable ? this.values[ i ] === this.value : false;
+            
+            if( i === id ){
+                if( w && n === 2 ) n = 3; 
+            } else {
+                n = 1;
+                if( w ) n = 4;
+            }
+
+            if( this.mode( n, i ) ) r = true;
+
+        }
+
+        return r
+
+    }
+
+    mode ( n, id ) {
+
+        let change = false;
+        let cc = this.colors, s = this.buttons;
+        let i = id;
+
+        if( this.stat[id] !== n ){
+
+            this.stat[id] = n;
+        
+            switch( n ){
+
+                case 1: s[i].style.color = cc.text; s[i].style.background = cc.button; break;
+                case 2: s[i].style.color = cc.textOver; s[i].style.background = cc.overoff; break;
+                case 3: s[i].style.color = cc.textOver; s[i].style.background = cc.over; break;
+                case 4: s[i].style.color = cc.textSelect; s[i].style.background = cc.select; break;
+
+            }
+
+            change = true;
+
+        }
+
+        return change;
+
+    }
+
+    // ----------------------
+
+    reset () {
+
+        this.res = -1;
+        this.cursor();
+        return this.modes()
+
+    }
+
+
+    label ( string, n ) {
+
+        this.buttons[n].textContent = string;
+
+    }
+
+    icon ( string, y, n ) {
+
+        this.buttons[n].style.padding = ( y || 0 ) +'px 0px';
+        this.buttons[n].innerHTML = string;
+
+    }
+
+    testW () {
+
+        let vw = this.spaces[0]*3 + this.bsizeMax*2, rz = false;
+        if( vw > this.w ) {
+            this.bsize[0] = ( this.w-(this.spaces[0]*3) ) * 0.5;
+            rz = true;
+        } else {
+            if( this.bsize[0] !== this.bsizeMax ) {
+                this.bsize[0] = this.bsizeMax;
+                rz = true;
+            }
+        }
+
+        if( !rz ) return;
+
+        let i = this.buttons.length;
+        while(i--) this.buttons[i].style.width = this.bsize[0] + 'px';
+
+    }
+
+    rSize () {
+
+        super.rSize();
+
+        this.testW();
+
+        let mid;
+
+        this.tmpX = [];
+        this.tmpY = [];
+
+        for( let j = 0; j < this.grid[0]; j++ ){
+
+            if(j===0){
+                mid = ( this.w*0.5 ) - ( this.spaces[0]*0.5 );
+                this.tmpX.push( [ mid-this.bsize[0], mid ] );
+            } else {
+                mid = ( this.w*0.5 ) + ( this.spaces[0]*0.5 );
+                this.tmpX.push( [ mid, mid+this.bsize[0] ] );
+            }
+
+        }
+
+        mid = this.spaces[1];
+
+        for( let i = 0; i < this.grid[1]; i++ ){
+
+            this.tmpY.push( [ mid, mid + this.bsize[1] ] );
+            mid += this.bsize[1] + this.spaces[1];
+            
+        }
+
+    }
+
+}
+
+class Pad2D extends Proto {
+
+    constructor( o = {} ) {
+
+        super( o );
+
+        this.autoWidth = false;
+        this.minw  = this.w;
+        this.diam = o.diam || this.w; 
+
+        //this.margin = 15;
+        this.pos = new V2(0,0);
+        this.maxPos = 90;
+
+        this.model = o.stype || 0;
+        if( o.mode !== undefined ) this.model = o.mode;
+
+        this.min = o.min === undefined ? -1 : o.min;
+        this.max = o.max === undefined ? 1 : o.max;
+
+        this.range = (this.max - this.min)*0.5;  
+
+        this.cmode = 0;
+
+
+        //console.log(this.range)
+
+        this.c[0].style.display = 'block';
+
+        
+
+
+
+        this.precision = o.precision === undefined ? 2 : o.precision;
+
+        /*this.bounds = {};
+        this.bounds.x1 = o.x1 || -1;
+        this.bounds.x2 = o.x2 || 1;
+        this.bounds.y1 = o.y1 || -1;
+        this.bounds.y2 = o.y2 || 1;
+
+        this.lerpX = this.lerp( this.margin, this.w - this.margin , this.bounds.x1, this.bounds.x2 );
+        this.lerpY = this.lerp( this.margin, this.w - this.margin , this.bounds.y1, this.bounds.y2 );
+
+        this.alerpX = this.lerp( this.bounds.x1, this.bounds.x2, this.margin, this.w - this.margin );
+        this.alerpY = this.lerp( this.bounds.y1, this.bounds.y2, this.margin, this.w - this.margin );*/
+
+        this.value = ( Array.isArray( o.value ) && o.value.length == 2 ) ? o.value : [ 0, 0 ];
+        
+        
+        this.h = o.h || this.w + 10;
+
+        this.c[0].style.width = this.w + 'px';
+
+        // Title
+        if( this.c[1] !== undefined ) { // with title
+
+            this.c[1].style.width = '100%';
+            this.c[1].style.justifyContent = 'center';
+            this.top = 10;
+            this.h += 10;
+
+        }
+
+        //this.top -= this.margin
+
+        let cc = this.colors;
+
+
+        // Value
+        this.c[2] = this.dom( 'div', this.css.txt + 'justify-content:center; top:'+ ( this.h - 20 ) + 'px; width:100%; color:' + cc.text );
+        this.c[2].textContent = this.value;
+
+        // Pad
+
+        let pad = this.getPad2d();
+
+        this.setSvg( pad, 'fill', cc.back, 0 );
+        this.setSvg( pad, 'fill', cc.button, 1 );
+        this.setSvg( pad, 'stroke', cc.back, 2 );
+        this.setSvg( pad, 'stroke', cc.back, 3 );
+        this.setSvg( pad, 'stroke', cc.text, 4 );
+
+        this.setSvg( pad, 'viewBox', '0 0 '+this.diam+' '+this.diam );
+        this.setCss( pad, { width:this.diam, height:this.diam, left:0, top:this.top });
+
+        this.c[3] = pad;
+
+        this.init();
+        this.setValue();
+
+    }
+    
+    testZone ( e ) {
+        
+        let l = this.local;
+
+        if( l.x === -1 && l.y === -1 ) return '';
+
+
+
+        if( l.y <= this.c[ 1 ].offsetHeight ) return 'title';
+        else if ( l.y > this.h - this.c[ 2 ].offsetHeight ) return 'text';
+        else return 'pad';
+
+        /*if( ( l.x >= this.margin ) && ( l.x <= this.w - this.margin ) && ( l.y >= this.top + this.margin ) && ( l.y <= this.top + this.w - this.margin ) ) {
+            return 'pad';
+        }*/
+        
+        //return '';
+
+    }
+
+    mouseup ( e ) {
+
+        this.isDown = false;
+        return this.mode(0);
+
+    }
+
+    mousedown ( e ) {
+
+        if ( this.testZone(e) === 'pad' ) {
+
+            this.isDown = true;
+            this.mousemove( e );
+            return this.mode(1);
+        }
+
+    }
+
+    mousemove ( e ) {
+
+        if( !this.isDown ) return;
+
+        let x = (this.w*0.5) - ( e.clientX - this.zone.x );
+        let y = (this.diam*0.5) - ( e.clientY - this.zone.y - this.ytop );
+        
+
+        let r = 256 / this.diam;
+
+        x = -(x*r);
+        y = -(y*r);
+
+        x = Tools.clamp( x, -this.maxPos, this.maxPos );
+        y = Tools.clamp( y, -this.maxPos, this.maxPos );
+
+        //let x = e.clientX - this.zone.x;
+        //let y = e.clientY - this.zone.y - this.top;
+
+        /*if( x < this.margin ) x = this.margin;
+        if( x > this.w - this.margin ) x = this.w - this.margin;
+        if( y < this.margin ) y = this.margin;
+        if( y > this.w - this.margin ) y = this.w - this.margin;*/
+
+        //console.log(x,y)
+
+        this.setPos( [ x , y ] );
+        
+        this.update( true );
+
+    }
+
+    mode ( mode ) {
+
+        if( this.cmode === mode ) return false;
+
+        let cc = this.colors;
+
+        switch( mode ){
+            case 0: // base
+
+                this.s[2].color = cc.text;
+                this.setSvg( this.c[3], 'fill', cc.back, 0);
+                this.setSvg( this.c[3], 'fill', cc.button, 1);
+                this.setSvg( this.c[3], 'stroke', cc.back, 2);
+                this.setSvg( this.c[3], 'stroke', cc.back, 3);
+                this.setSvg( this.c[3], 'stroke', cc.text, 4 );
+                
+            break;
+            case 1: // down
+
+                this.s[2].color = cc.textSelect;
+                this.setSvg( this.c[3], 'fill', cc.backoff, 0);
+                this.setSvg( this.c[3], 'fill', cc.overoff, 1);
+                this.setSvg( this.c[3], 'stroke', cc.backoff, 2);
+                this.setSvg( this.c[3], 'stroke', cc.backoff, 3);
+                this.setSvg( this.c[3], 'stroke', cc.textSelect, 4 );
+                
+            break;
+        }
+
+        this.cmode = mode;
+        return true;
+
+
+
+    }
+
+    update ( up ) {
+
+        //if( up === undefined ) up = true;
+        
+        this.c[2].textContent = this.value;
+
+        this.updateSVG();
+
+        if( up ) this.send();
+
+    }
+
+    updateSVG() {
+
+        if ( this.model == 1 ) {
+
+            this.setSvg( this.c[3], 'y1', this.pos.y, 2 );
+            this.setSvg( this.c[3], 'y2', this.pos.y, 2 );
+
+            this.setSvg( this.c[3], 'x1', this.pos.x, 3 );
+            this.setSvg( this.c[3], 'x2', this.pos.x, 3 );
+
+        }
+
+        this.setSvg( this.c[3], 'cx', this.pos.x, 4 );
+        this.setSvg( this.c[3], 'cy', this.pos.y, 4 );
+
+    }
+
+    setPos ( p ) {
+
+        //if( p === undefined ) p = [ this.w / 2, this.w / 2 ];
+
+        this.pos.set( p[0]+128 , p[1]+128 );
+
+        let r = 1/this.maxPos;
+
+        this.value[0] = ((p[0]*r)*this.range).toFixed( this.precision );
+        this.value[1] = ((p[1]*r)*this.range).toFixed( this.precision );
+
+    }
+
+    setValue ( v, up = false ) {
+
+        if( v === undefined ) v = this.value;
+
+        /*if ( v[0] < this.bounds.x1 ) v[0] = this.bounds.x1;
+        if ( v[0] > this.bounds.x2 ) v[0] = this.bounds.x2;
+        if ( v[1] < this.bounds.y1 ) v[1] = this.bounds.y1;
+        if ( v[1] > this.bounds.y2 ) v[1] = this.bounds.y2;*/
+
+        this.value[0] = Math.min( this.max, Math.max( this.min, v[0] ) ).toFixed( this.precision ) * 1;
+        this.value[1] = Math.min( this.max, Math.max( this.min, v[1] ) ).toFixed( this.precision ) * 1;
+
+        this.pos.set( ((this.value[0]/this.range)*this.maxPos)+128  , ((this.value[1]/this.range)*this.maxPos)+128 );
+
+        //console.log(this.pos)
+
+        this.update( up );
+
+    }
+
+    /*lerp( s1, s2, d1, d2, c = true ) {
+
+        let s = ( d2 - d1 ) / ( s2 - s1 );
+
+        return c ? ( v ) => { 
+            return ( ( v < s1 ? s1 : v > s2 ? s2 : v ) - s1 ) * s + d1
+        } : ( v ) => { 
+          return ( v - s1 ) * s + d1
+        }
+
+    }*/
+
+}
+
+class Checker extends Proto {
+
+    constructor( o = {} ) {
+
+        super( o );
+
+        this.round = Math.round;
+
+        //this.autoHeight = true;
+
+        this.wfixe = 128;
+        this.hfixe = 84;
+
+        this.ratio = this.hfixe/this.wfixe;
+
+        this.hhh = this.w*this.ratio;
+
+        this.baseH = this.h;
+        this.hplus = o.hplus || 50;
+
+        this.res = o.res || 40;
+        this.l = 1;
+
+        this.precision = o.precision || 0;
+        
+
+        this.custom = o.custom || false;
+        this.names = o.names || ['FPS', 'MS'];
+        let cc = o.cc || ['220,220,220', '255,255,0'];
+
+       // this.divid = [ 100, 100, 100 ];
+       // this.multy = [ 30, 30, 30 ];
+
+        this.adding = o.adding || false;
+
+        this.range = o.range || [ 165, 100, 100 ];
+
+        this.alpha = o.alpha || 0.25;
+
+        this.values = [];
+        this.points = [];
+        this.textDisplay = [];
+
+        if(!this.custom){
+
+            this.now = Roots.getTime();
+            this.startTime = 0;//this.now()
+            this.prevTime = 0;//this.startTime;
+            this.frames = 0;
+
+            this.ms = 0;
+            this.fps = 0;
+            this.mem = 0;
+            this.mm = 0;
+
+            this.isMem = ( self.performance && self.performance.memory ) ? true : false;
+
+           // this.divid = [ 100, 200, 1 ];
+           // this.multy = [ 30, 30, 30 ];
+
+            if( this.isMem ){
+
+                this.names.push('MEM');
+                cc.push('0,255,255');
+
+            }
+
+            this.txt = o.name || 'Checker';
+
+        }
+
+
+        let fltop = Math.floor(this.h*0.5)-3;
+        const ccc = this.colors;
+
+        this.c[1].textContent = this.txt;
+        //this.c[1].innerHTML = '&#160;' + this.txt
+        this.c[0].style.cursor = 'pointer';
+        this.c[0].style.pointerEvents = 'auto';
+
+        //let panelCss = 'display:none; left:10px; top:'+ this.h + 'px; height:'+(this.hplus - 8)+'px; box-sizing:border-box; background: rgba(0, 0, 0, 0.2); border:1px solid '+ ccc.border +';';
+
+        //if( this.radius !== 0 ) panelCss += 'border-radius:' + this.radius+'px;'; 
+
+        this.model = 'to';
+
+        this.c[2] = this.getCkecker( this.model );
+        this.setSvg( this.c[2], 'viewBox', '0 0 '+this.w+' '+this.hhh );
+        this.setCss( this.c[2], { width:this.w, height:this.hhh, left:0, top:this.top });
+
+       /* this.c[2] = this.dom( 'path', this.css.basic + panelCss , {} );*/
+
+        //this.c[2].setAttribute('viewBox', '0 0 '+this.res+' 50' );
+        //this.c[2].setAttribute('height', '100%' );
+        //this.c[2].setAttribute('width', '100%' );
+        //this.c[2].setAttribute('preserveAspectRatio', 'none' );
+         this.c[2].setAttribute('display', 'none' );
+       // this.s[2].display = 'none';
+
+
+        //this.dom( 'path', null, { fill:'rgba(255,255,0,0.3)', 'stroke-width':1, stroke:'#FF0', 'vector-effect':'non-scaling-stroke' }, this.c[2] );
+        //this.dom( 'path', null, { fill:'rgba(0,255,255,0.3)', 'stroke-width':1, stroke:'#0FF', 'vector-effect':'non-scaling-stroke' }, this.c[2] );
+        
+        // arrow
+        this.c[3] = this.dom( 'path', this.css.basic + 'position:absolute; width:6px; height:6px; left:0; top:'+fltop+'px;', { d:this.svgs.g1, fill:ccc.text, stroke:'none'});
+        //this.c[3] = this.dom( 'path', this.css.basic + 'position:absolute; width:10px; height:10px; left:4px; top:'+fltop+'px;', { d:this.svgs.arrow, fill:this.colors.text, stroke:'none'});
+
+        // result test
+        //this.c[4] = this.dom( 'div', this.css.txt + 'position:absolute; left:10px; top:'+(this.h+2) +'px; display:none; width:100%; text-align:center;' );
+
+        // bottom line
+        //if( o.bottomLine ) this.c[4] = this.dom( 'div', this.css.basic + 'width:100%; bottom:0px; height:1px; background: rgba(255, 255, 255, 0.2);');
+
+        this.isShow = false;
+
+
+
+        let s = this.s;
+
+        //s[1].marginLeft = '10px';
+        s[1].lineHeight = this.h-4;
+        s[1].color = ccc.text;
+        //s[1].paddingLeft = '18px';
+        //s[1].fontWeight = 'bold';
+
+        if( this.radius !== 0 )  s[0].borderRadius = this.radius+'px';
+        if( this.colors.gborder!=='none') s[0].border = '1px solid ' + ccc.gborder;
+
+
+
+
+        /*let j = 0;
+
+        for( j=0; j<this.names.length; j++ ){
+
+            let base = [];
+            let i = this.res+1;
+            while( i-- ) base.push(50);
+
+            this.range[j] = ( 1 / this.range[j] ) * 49;
+            
+            this.points.push( base );
+            this.values.push(0);
+           //  this.dom( 'path', null, { fill:'rgba('+cc[j]+',0.5)', 'stroke-width':1, stroke:'rgba('+cc[j]+',1)', 'vector-effect':'non-scaling-stroke' }, this.c[2] );
+            this.textDisplay.push( "<span style='color:rgb("+cc[j]+")'> " + this.names[j] +" ");
+
+        }
+
+        j = this.names.length;
+        while(j--){
+            this.dom( 'path', null, { fill:'rgba('+cc[j]+','+this.alpha+')', 'stroke-width':1, stroke:'rgba('+cc[j]+',1)', 'vector-effect':'non-scaling-stroke' }, this.c[2] );
+        }*/
+
+
+        this.init();
+
+        //if( this.isShow ) this.show();
+
+    }
+
+    // ----------------------
+    //   EVENTS
+    // ----------------------
+
+    mousedown ( e ) {
+
+        if( this.isShow ) this.close();
+        else this.open();
+
+    }
+
+    open () {
+
+        super.open();
+
+        this.h = this.hplus + this.baseH;
+
+        this.setSvg( this.c[3], 'd', this.svgs.g2 );
+
+        if( this.group !== null ){ this.group.calc( this.hplus );}
+        else if( this.isUI ) this.main.calc( this.hplus );
+
+        this.s[0].height = this.h +'px';
+        this.s[2].display = 'block'; 
+        //this.s[4].display = 'block';
+        this.isShow = true;
+
+        //if( !this.custom ) Roots.addListen( this );
+
+    }
+
+    close () {
+
+        super.close();
+
+        this.h = this.baseH;
+
+        this.setSvg( this.c[3], 'd', this.svgs.g1 );
+
+        if( this.group !== null ){ this.group.calc( -this.hplus );}
+        else if( this.isUI ) this.main.calc( -this.hplus );
+        
+        this.s[0].height = this.h +'px';
+        this.s[2].display = 'none';
+        //this.s[4].display = 'none';
+        this.isShow = false;
+
+        //if( !this.custom ) Roots.removeListen( this );
+
+        //this.c[4].innerHTML = '';
+        
+    }
+
+
+    rSize () {
+
+        let s = this.s;
+        let w = this.w;
+
+        s[3].left = ( this.sa + this.sb - 6 ) + 'px';
+
+        s[0].width = w + 'px';
+        s[1].width = w + 'px';
+        s[2].left = 0 + 'px';
+       // s[2].width = w + 'px';
+
+        //s[4].width = (w-20) + 'px';
+        
+    }
+    
+}
+
+const add = function () {
+
+        let a = arguments; 
+
+        let type, o, ref = false, n = null;
+
+        if( typeof a[0] === 'string' ){ 
+
+            type = a[0];
+            o = a[1] || {};
+
+        } else if ( typeof a[0] === 'object' ){ // like dat gui
+
+            ref = true;
+            if( a[2] === undefined ) [].push.call(a, {});
+                
+            type = a[2].type ? a[2].type : autoType( a[0][a[1]], a[2] );
+
+            o = a[2];
+            o.name = a[1];
+            if( type === 'list' && !o.list ){ o.list = a[0][a[1]]; }
+            else o.value = a[0][a[1]];
+
+        }
+
+        let name = type.toLowerCase();
+
+        if( name === 'group' ){ 
+            o.add = add;
+            //o.dx = 8
+        }
+
+        switch( name ){
+
+            case 'bool': case 'boolean': n = new Bool(o); break;
+            case 'button': n = new Button(o); break;
+            case 'circular': n = new Circular(o); break;
+            case 'color': n = new Color(o); break;
+            case 'fps': n = new Fps(o); break;
+            case 'graph': n = new Graph(o); break;
+            case 'group': n = new Group(o); break;
+            case 'joystick': n = new Joystick(o); break;
+            case 'knob': n = new Knob(o); break;
+            case 'list': n = new List(o); break;
+            case 'numeric': case 'number': n = new Numeric(o); break;
+            case 'slide': n = new Slide(o); break;
+            case 'textInput': case 'string': n = new TextInput(o); break;
+            case 'title': case 'text': n = new Title(o); break;
+            case 'select': n = new Select(o); break;
+            case 'bitmap': n = new Bitmap(o); break;
+            case 'selector': n = new Selector(o); break;
+            case 'empty': case 'space': n = new Empty(o); break;
+            case 'item': n = new Item(o); break;
+            case 'grid': n = new Grid(o); break;
+            case 'pad2d': case 'pad': n = new Pad2D(o); break;
+            case 'checker': n = new Checker(o); break;
+
+        }
+
+        
+
+        if( n !== null ){
+
+            Roots.needResize = true;
+
+            if( ref ) n.setReferency( a[0], a[1] );
+            return n;
+
+        }
+
+};
+
+const autoType = function ( v, o ) {
+
+    let type = 'slide';
+
+    if( v.isColor ) type = 'color';
+    else if( v.isTexture ) type = 'bitmap';
+    else {
+        if( typeof v === 'boolean' ) type = 'bool'; 
+        else if( typeof v === 'string' ){ 
+            if( v.substring(0,1) === '#' ) type = 'color';
+            else type = 'string'; 
+        } else if( typeof v === 'number' ){ 
+            if( o.ctype ) type = 'color';
+            else type = 'slide';
+        } else if( typeof v === 'array' && v instanceof Array ){
+            if( typeof v[0] === 'number' ) type = 'number';
+            else if( typeof v[0] === 'string' ) type = 'list';
+        } else if( typeof v === 'object' && v instanceof Object ){
+            if( v.x !== undefined ) type = 'number';
+            else type = 'list';
+        }
+    }
+
+    return type
+
+};
+
+/**
+ * @author lth / https://github.com/lo-th
+ */
+
+class Gui {
+
+    constructor( o = {} ) {
+
+        this.isGui = true;
+
+        this.name = 'gui';
+
+        // for 3d
+        this.canvas = null;
+        this.screen = null;
+        this.plane = o.plane || null;
+
+        
+
+        // color
+        if( o.config ) o.colors = o.config;
+        if ( o.colors ) this.setConfig( o.colors );
+        else this.colors = Tools.defineColor( o );
+
+        //this.cleanning = false
+        
+
+        // style
+        this.css = Tools.cloneCss();
+
+        this.isReset = true;
+        this.tmpAdd = null;
+        //this.tmpH = 0
+
+        this.isCanvas = o.isCanvas || false;
+        this.isCanvasOnly = false;
+        
+        this.callback = o.callback  === undefined ? null : o.callback;
+
+        this.forceHeight = o.maxHeight || 0;
+        this.lockHeight = o.lockHeight || false;
+
+        this.isItemMode = o.itemMode !== undefined ? o.itemMode : false;
+
+        this.cn = '';
+        
+        // size define
+        this.size = Tools.size;
+        if( o.p !== undefined ) this.size.p = o.p;
+        if( o.w !== undefined ) this.size.w = o.w;
+        if( o.h !== undefined ) this.size.h = o.h;
+        if( o.s !== undefined ) this.size.s = o.s;
+
+        this.size.h = this.size.h < 11 ? 11 : this.size.h;
+
+        // local mouse and zone
+        this.local = new V2().neg();
+        this.zone = { x:0, y:0, w:this.size.w, h:0 };
+
+        // virtual mouse
+        this.mouse = new V2().neg();
+
+        this.h = 0;
+        //this.prevY = -1;
+        this.sw = 0;
+
+        this.margin = this.colors.sy;
+        this.marginDiv = Tools.isDivid( this.margin );
+
+        // bottom and close height
+        this.isWithClose = o.close !== undefined ? o.close : true;
+        this.bh = !this.isWithClose ? 0 : this.size.h;
+
+        this.autoResize = o.autoResize === undefined ? true : o.autoResize;
+
+        // default position
+        this.isCenter = o.center || false;
+        this.isBottom = o.bottom !== undefined ? true : false;
+        this.realTop = 0;
+        this.bottomPosition = o.bottom || 0;
+
+        this.cssGui = o.css !== undefined ? o.css : (this.isCenter ? '' : 'right:10px;');
+
+        this.isOpen = o.open !== undefined ? o.open : true;
+        this.isDown = false;
+        this.isScroll = false;
+
+        this.uis = [];
+        this.current = -1;
+        this.proto = null;
+        this.isEmpty = true;
+        this.decal = 0;
+        this.ratio = 1;
+        this.oy = 0;
+
+        this.isNewTarget = false;
+
+        let cc = this.colors;
+
+        let border = 'border: 2px solid ' + cc.content + '; ';
+
+        this.content = Tools.dom( 'div', this.css.basic + ' width:0px; height:auto; top:0px; background:'+cc.content+'; ' + this.cssGui + border );
+        
+        this.innerContent = Tools.dom( 'div', this.css.basic + 'width:100%; top:0; left:0; height:auto; overflow:hidden;');
+        //this.innerContent = Tools.dom( 'div', this.css.basic + this.css.button + 'width:100%; top:0; left:0; height:auto; overflow:hidden;');
+        this.content.appendChild( this.innerContent );
+
+        //this.inner = Tools.dom( 'div', this.css.basic + 'width:100%; left:0; ')
+        this.useFlex = true; 
+        let flexible = this.useFlex ? 'display:flex; flex-flow: row wrap;' : ''; //' display:flex; justify-content:start; align-items:start;flex-direction: column; justify-content: center; align-items: center;';
+        this.inner = Tools.dom( 'div', this.css.basic + flexible + 'width:100%; left:0; ');
+        this.innerContent.appendChild(this.inner);
+
+        // scroll
+        this.scrollBG = Tools.dom( 'div', this.css.basic + 'right:0; top:0; width:'+ (this.size.s - 1) +'px; height:10px; display:none; background:'+cc.background+';');
+        this.content.appendChild( this.scrollBG );
+
+        this.scroll = Tools.dom( 'div', this.css.basic + 'background:'+cc.button+'; right:2px; top:0; width:'+(this.size.s-4)+'px; height:10px;');
+        this.scrollBG.appendChild( this.scroll );
+
+        // bottom button
+        this.bottomText = o.bottomText || ['open', 'close'];
+
+        let r = cc.radius;
+        this.bottom = Tools.dom( 'div',  this.css.txt + 'width:100%; top:auto; bottom:0; left:0; border-bottom-right-radius:'+r+'px; border-bottom-left-radius:'+r+'px; justify-content:center; height:'+this.bh+'px; line-height:'+(this.bh-5)+'px; color:' + cc.text+';' );// border-top:1px solid '+Tools.colors.stroke+';');
+        this.content.appendChild( this.bottom );
+        this.bottom.textContent = this.isOpen ? this.bottomText[1] : this.bottomText[0];
+        this.bottom.style.background = cc.background;
+
+        //
+
+        this.parent = o.parent !== undefined ? o.parent : null;
+        this.parent = o.target !== undefined ? o.target : this.parent;
+        
+        if( this.parent === null && !this.isCanvas ){ 
+        	this.parent = document.body;
+        }
+
+        if( this.parent !== null ) this.parent.appendChild( this.content );
+
+        if( this.isCanvas && this.parent === null ) this.isCanvasOnly = true;
+
+        if( !this.isCanvasOnly ){ 
+            this.content.style.pointerEvents = 'auto';
+        } else {
+            this.content.style.left = '0px';
+            this.content.style.right = 'auto';
+            o.transition = 0;
+        }
+
+
+        // height transition
+        this.transition = o.transition!==undefined? o.transition : Tools.transition;
+        if( this.transition ) setTimeout( this.addTransition.bind( this ), 1000 );
+        
+
+        this.setWidth();
+
+        if( this.isCanvas ) this.makeCanvas();
+
+        Roots.add( this );
+
+    }
+
+    setLeft( v ) {
+
+        this.content.style.left = v + 'px';
+        Roots.needReZone = true;
+
+    }
+
+    setTop( t, h ) {
+
+        this.content.style.top = t + 'px';
+        if( h !== undefined ) this.forceHeight = h;
+        this.calc();
+
+        Roots.needReZone = true;
+
+    }
+
+    addTransition(){
+
+        if( this.transition && !this.isCanvas ){
+            this.innerContent.style.transition = 'height '+this.transition+'s ease-out';
+            this.content.style.transition = 'height '+this.transition+'s ease-out';
+            this.bottom.style.transition = 'top '+this.transition+'s ease-out';
+            //this.bottom.addEventListener("transitionend", Roots.resize, true);
+        }
+
+        let i = this.uis.length;
+        while( i-- ) this.uis[i].addTransition();
+
+    }
+
+    // ----------------------
+    //   CANVAS
+    // ----------------------
+
+    onDraw () {}
+
+    makeCanvas () {
+
+    	this.canvas = document.createElementNS( 'http://www.w3.org/1999/xhtml', "canvas" );
+    	this.canvas.width = this.zone.w;
+    	this.canvas.height = this.forceHeight ? this.forceHeight : this.zone.h;
+
+        //console.log( this.canvas.width, this.canvas.height )
+
+    }
+
+    draw ( force ) {
+
+    	if( this.canvas === null ) return;
+
+    	let w = this.zone.w;
+    	let h = this.forceHeight ? this.forceHeight : this.zone.h;
+    	Roots.toCanvas( this, w, h, force );
+
+    }
+
+    //////
+
+    getDom () {
+
+        return this.content;
+
+    }
+
+    noMouse () {
+
+        this.mouse.neg();
+
+    }
+
+    setMouse ( uv, flip = true ) {
+
+        if(flip) this.mouse.set( Math.round( uv.x * this.canvas.width ), this.canvas.height - Math.round( uv.y * this.canvas.height ) );
+        else this.mouse.set( Math.round( uv.x * this.canvas.width ), Math.round( uv.y * this.canvas.height ) );
+        //this.mouse.set( m.x, m.y );
+
+    }
+
+    setConfig ( o ) {
+
+        // reset to default text 
+        Tools.setText();
+        this.colors = Tools.defineColor( o );
+
+    }
+
+    setColors ( o ) {
+
+        for( let c in o ){
+            if( this.colors[c] ) this.colors[c] = o[c];
+        }
+
+    }
+
+    setText ( size, color, font, shadow ) {
+
+        Tools.setText( size, color, font, shadow );
+
+    }
+
+    hide ( b ) {
+        this.content.style.visibility = b ? 'hidden' : 'visible'; 
+    }
+
+    display( v = false ) {
+        this.content.style.visibility = v ? 'visible' : 'hidden';
+    }
+
+    onChange ( f ) {
+
+        this.callback = f || null;
+        return this;
+
+    }
+
+    // ----------------------
+    //   STYLES
+    // ----------------------
+
+    mode ( n ) {
+
+    	let needChange = false;
+        let cc = this.colors;
+
+    	if( n !== this.cn ){
+
+	    	this.cn = n;
+
+	    	switch( n ){
+
+	    		case 'def':
+                   Roots.cursor();
+	    		   this.scroll.style.background = cc.button; 
+	    		   this.bottom.style.background = cc.background;
+	    		   this.bottom.style.color = cc.text;
+	    		break;
+
+	    		//case 'scrollDef': this.scroll.style.background = this.colors.scroll; break;
+	    		case 'scrollOver': 
+                    Roots.cursor('ns-resize');
+                    this.scroll.style.background = cc.select;
+                break;
+	    		case 'scrollDown': 
+                    this.scroll.style.background = cc.select;
+                break;
+
+	    		//case 'bottomDef': this.bottom.style.background = this.colors.background; break;
+	    		case 'bottomOver': 
+                    Roots.cursor('pointer');
+                    this.bottom.style.background = cc.backgroundOver; 
+                    this.bottom.style.color = cc.textOver; 
+                break;
+	    		//case 'bottomDown': this.bottom.style.background = this.colors.select; this.bottom.style.color = '#000'; break;
+
+	    	}
+
+	    	needChange = true;
+
+	    }
+
+    	return needChange;
+
+    }
+
+    // ----------------------
+    //   TARGET
+    // ----------------------
+
+    clearTarget () {
+
+    	if( this.current === -1 ) return false;
+        if( this.proto.s ){
+            // if no s target is delete !!
+            this.proto.uiout();
+            this.proto.reset();
+        }
+        
+        this.proto = null;
+        this.current = -1;
+
+        ///console.log(this.isDown)//if(this.isDown)Roots.clearInput();
+
+        
+
+        Roots.cursor();
+        return true;
+
+    }
+
+    // ----------------------
+    //   ZONE TEST
+    // ----------------------
+
+    testZone ( e ) {
+
+
+
+        let l = this.local;
+        if( l.x === -1 && l.y === -1 ) return '';
+
+        //console.log('test', this.zone)
+
+        this.isReset = false;
+
+        let name = '';
+
+        let s = this.isScroll ?  this.zone.w - this.size.s : this.zone.w;
+        
+        if( l.y > this.zone.h - this.bh &&  l.y < this.zone.h ) name = 'bottom';
+        else name = l.x > s ? 'scroll' : 'content';
+
+        return name;
+
+    }
+
+    // ----------------------
+    //   EVENTS
+    // ----------------------
+
+    handleEvent ( e ) {
+
+        //if( this.cleanning ) return
+
+    	let type = e.type;
+
+    	let change = false;
+    	let protoChange = false;
+
+    	let name = this.testZone( e );
+
+    	if( type === 'mouseup' && this.isDown ) this.isDown = false;
+    	if( type === 'mousedown' && !this.isDown ) this.isDown = true;
+
+        if( this.isDown && this.isNewTarget ){ Roots.clearInput(); this.isNewTarget=false; }
+
+    	if( !name ) return;
+
+    	switch( name ){
+
+    		case 'content':
+
+                e.clientY = this.isScroll ? e.clientY + this.decal : e.clientY;
+
+                if( Roots.isMobile && type === 'mousedown' ) this.getNext( e, change );
+
+	    		if( this.proto ) protoChange = this.proto.handleEvent( e );
+
+	    		if( type === 'mousemove' ) change = this.mode('def');
+                if( type === 'wheel' && !protoChange && this.isScroll ) change = this.onWheel( e );
+               
+	    		if( !Roots.lock ) {
+                    this.getNext( e, change );
+                }
+
+    		break;
+    		case 'bottom':
+
+	    		this.clearTarget();
+	    		if( type === 'mousemove' ) change = this.mode('bottomOver');
+	    		if( type === 'mousedown' ) {
+	    			this.isOpen = this.isOpen ? false : true;
+		            this.bottom.textContent = this.isOpen ? this.bottomText[1] : this.bottomText[0];
+		            //this.setHeight();
+                    this.calc();
+		            this.mode('def');
+		            change = true;
+	    		}
+
+    		break;
+    		case 'scroll':
+
+	    		this.clearTarget();
+	    		if( type === 'mousemove' ) change = this.mode('scrollOver');
+	    		if( type === 'mousedown' ) change = this.mode('scrollDown'); 
+                if( type === 'wheel' ) change = this.onWheel( e ); 
+	    		if( this.isDown ) this.update( (e.clientY-this.zone.y)-(this.sh*0.5) );
+
+    		break;
+
+
+    	}
+
+    	if( this.isDown ) change = true;
+    	if( protoChange ) change = true;
+
+        if( type === 'keyup' ) change = true;
+        if( type === 'keydown' ) change = true;
+
+    	if( change ) this.draw();
+
+    }
+
+    getNext ( e, change ) {
+
+        let next = Roots.findTarget( this.uis, e );
+
+        if( next !== this.current ){
+            this.clearTarget();
+            this.current = next;
+            this.isNewTarget = true;
+
+        }
+
+        if( next !== -1 ){ 
+            this.proto = this.uis[ this.current ];
+            this.proto.uiover();
+        }
+
+    }
+
+    onWheel ( e ) {
+
+        this.oy += 20*e.delta;
+        this.update( this.oy );
+        return true;
+
+    }
+
+    // ----------------------
+    //   RESET
+    // ----------------------
+
+    reset ( force ) {
+
+        if( this.isReset ) return;
+
+        //this.resetItem();
+
+        this.mouse.neg();
+        this.isDown = false;
+
+        //Roots.clearInput();
+        let r = this.mode('def');
+        let r2 = this.clearTarget();
+
+        if( r || r2 ) this.draw( true );
+
+        this.isReset = true;
+
+        //Roots.lock = false;
+
+    }
+
+    // ----------------------
+    //   ADD NODE
+    // ----------------------
+
+    add () {
+
+        //if(this.cleanning) this.cleanning = false
+
+        let a = arguments;
+        let ontop = false;
+
+        if( typeof a[1] === 'object' ){ 
+
+            a[1].isUI = true;
+            a[1].main = this;
+
+            ontop = a[1].ontop ? a[1].ontop : false;
+
+        } else if( typeof a[1] === 'string' ){
+
+            if( a[2] === undefined ) [].push.call(a, { isUI:true, main:this });
+            else {
+                a[2].isUI = true;
+                a[2].main = this;
+                //ontop = a[1].ontop ? a[1].ontop : false;
+                ontop = a[2].ontop ? a[2].ontop : false;
+            }
+            
+        } 
+
+        let u = add.apply( this, a );
+
+        if( u === null ) return;
+
+        if( ontop ) this.uis.unshift( u );
+        else this.uis.push( u );
+
+        this.calc();
+
+        this.isEmpty = false;
+
+        return u
+
+    }
+
+    // remove one node
+
+    remove ( n ) {
+
+        if( n.dispose ) n.dispose();
+
+    }
+
+    // call after uis clear
+
+    clearOne ( n ) { 
+
+        let id = this.uis.indexOf( n ); 
+        if ( id !== -1 ) {
+            //this.calc( - (this.uis[ id ].h + 1 ) );
+            this.inner.removeChild( this.uis[ id ].c[0] );
+            this.uis.splice( id, 1 );
+            this.calc(); 
+        }
+
+    }
+
+    // clear all gui
+
+    empty() {
+
+        //this.cleanning = true
+
+        //this.close();
+
+        let i = this.uis.length, item;
+
+        while( i-- ){
+            item = this.uis.pop();
+            this.inner.removeChild( item.c[0] );
+            item.dispose();
+        }
+
+        this.uis = [];
+        this.isEmpty = true;
+        this.calc();
+
+    }
+
+    clear() {
+
+        this.empty();
+
+    }
+
+    clear2() {
+
+        setTimeout( this.empty.bind(this), 0 );
+
+    }
+
+    dispose() {
+
+        this.clear();
+        if( this.parent !== null ) this.parent.removeChild( this.content );
+        Roots.remove( this );
+
+    }
+
+
+    // ----------------------
+    //   ITEMS SPECIAL
+    // ----------------------
+
+    resetItem () {
+
+        if( !this.isItemMode ) return;
+        let i = this.uis.length;
+        while(i--) this.uis[i].selected();
+
+    }
+
+    setItem ( name ) {
+
+        if( !this.isItemMode ) return;
+
+        name = name || '';
+        this.resetItem();
+
+        if( !name ){
+            this.update(0);
+            return
+        } 
+
+        let i = this.uis.length;
+        while(i--){ 
+            if( this.uis[i].value === name ){ 
+                this.uis[i].selected( true );
+                if( this.isScroll ) this.update( ( i*(this.uis[i].h+this.margin) )*this.ratio );
+            }
+        }
+
+    }
+
+
+
+    // ----------------------
+    //   SCROLL
+    // ----------------------
+
+    upScroll ( b ) {
+
+        this.sw = b ? this.size.s : 0;
+        this.oy = b ? this.oy : 0;
+        this.scrollBG.style.display = b ? 'block' : 'none';
+
+        if( b ){
+
+            this.total = this.h;
+
+            this.maxView = this.maxHeight;
+
+            this.ratio = this.maxView / this.total;
+            this.sh = this.maxView * this.ratio;
+
+            this.range = this.maxView - this.sh;
+
+            this.oy = Tools.clamp( this.oy, 0, this.range );
+
+            this.scrollBG.style.height = this.maxView + 'px';
+            this.scroll.style.height = this.sh + 'px';
+
+        }
+
+        this.setItemWidth( this.zone.w - this.sw );
+        this.update( this.oy );
+
+    }
+
+    update ( y ) {
+
+        y = Tools.clamp( y, 0, this.range );
+
+        this.decal = Math.floor( y / this.ratio );
+        this.inner.style.top = - this.decal + 'px';
+        this.scroll.style.top = Math.floor( y ) + 'px';
+        this.oy = y;
+
+    }
+
+    // ----------------------
+    //   RESIZE FUNCTION
+    // ----------------------
+
+    calcUis() {
+
+        return Roots.calcUis( this.uis, this.zone, this.zone.y );
+
+    }
+
+    calc() {
+
+        clearTimeout( this.tmp );
+        this.tmp = setTimeout( this.setHeight.bind( this ), 10 );
+
+    }
+
+    setHeight() {
+
+        if( this.tmp ) clearTimeout( this.tmp );
+
+        //console.log('gui setHeight')
+
+        this.zone.h = this.bh;
+        //if(this.isBottom) this.zone.y =((window.innerHeight-this.zone.h)-this.bottomPosition)
+        this.isScroll = false;
+
+        if( this.isOpen ){
+
+            this.h = this.calcUis();
+
+            //console.log(this.h)
+
+            let hhh = this.forceHeight ? this.forceHeight + this.zone.y : window.innerHeight;
+
+            let py = this.isBottom ? this.bottomPosition : this.zone.y;
+
+            this.maxHeight = hhh - py - this.bh;
+
+            let diff = this.h - this.maxHeight;
+
+            if( diff > 1 ){
+
+                this.isScroll = true;
+                this.zone.h = this.maxHeight + this.bh;
+
+            } else {
+
+                this.zone.h = this.h + this.bh;
+                
+            }
+
+        }
+
+        this.upScroll( this.isScroll );
+
+        this.innerContent.style.height = this.zone.h - this.bh + 'px';
+        this.content.style.height = this.zone.h + 'px';
+        this.bottom.style.top = (this.zone.h - this.bh) + 'px';
+
+        if( this.isBottom ){
+
+            this.realTop = window.innerHeight-this.zone.h-this.bottomPosition;
+            this.zone.y = this.realTop;
+            this.content.style.top = this.realTop+'px';
+            this.calcUis();
+
+        }
+
+
+        if( this.forceHeight && this.lockHeight ) this.content.style.height = this.forceHeight + 'px';
+        if( this.isCanvas ) this.draw( true );
+
+
+    }
+
+    resizeRoot () {
+        Roots.resize();
+        Roots.initEvents();
+    }
+
+    rezone () {
+        Roots.needReZone = true;
+    }
+
+    getRoot () {
+        return Roots;
+    }
+
+    zoneReset () {
+        //console.log(Roots)
+        //Roots.findZone(true);
+    }
+
+    
+
+    setWidth ( w ) {
+
+        if( w ) this.zone.w = w;
+
+        this.zone.w = Math.floor( this.zone.w );
+        this.content.style.width = this.zone.w + 'px';
+        if( this.isCenter ) this.content.style.marginLeft = -(Math.floor(this.zone.w*0.5)) + 'px';
+        this.setItemWidth( this.zone.w - this.sw );
+
+    }
+
+    setItemWidth ( w ) {
+
+        let i = this.uis.length;
+        while(i--){
+            this.uis[i].setSize( w );
+            this.uis[i].rSize();
+        }
+
+    }
+
+}
+
+export { Files, Gui, REVISION, Tools, add };

@@ -16,7 +16,7 @@ demo = () => {
     })
 
     // config physics setting
-    phy.set({ substep:1, gravity:[0,-9.81,0], stabiliz:true });
+    phy.set({ substep:1, gravity:[0,-9.81,0], stabiliz:true, worldScale:1 });
 
     // add static plane
     //

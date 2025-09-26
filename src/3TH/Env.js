@@ -8,9 +8,9 @@ import {
 } from 'three';
 
 //import { HDRJPGLoader } from '../libs/HDRJPGLoader.js';
-import { RGBELoader } from '../jsm/loaders/RGBELoader.js';
-import { EXRLoader } from '../jsm/loaders/EXRLoader.js';
-import { GroundProjectedSkybox } from '../jsm/objects/GroundProjectedSkybox.js';
+import { HDRLoader } from '../../three/examples/jsm/loaders/HDRLoader.js';
+import { EXRLoader } from '../../three/examples/jsm/loaders/EXRLoader.js';
+import { GroundedSkybox } from '../../three/examples/jsm/objects/GroundedSkybox.js';
 import { ImgTool } from './utils/ImgTool.js';
 import { TextureAnalys } from './utils/TextureAnalys.js';
 //import { texture, equirectUV } from 'three/nodes';
@@ -64,7 +64,7 @@ let scene = null, renderer = null;
 let tt = 0;
 
 const tmpSize = new Vector2()
-const hdrLoader = new RGBELoader();
+const hdrLoader = new HDRLoader();
 const exrLoader = new EXRLoader();
 let jpgLoader// = new HDRJPGLoader();
 
@@ -136,7 +136,7 @@ export class Env {
 		if(!hdr) return;
 		if(skybox) Env.clearProject();
 
-		skybox = new GroundProjectedSkybox( hdr );
+		skybox = new GroundedSkybox( hdr );
 		skybox.scale.setScalar( 100 );
 		scene.add( skybox );
 

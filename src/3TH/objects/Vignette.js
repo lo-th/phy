@@ -106,7 +106,7 @@ export class Vignette extends Mesh {
 
     }
 
-    raycast() {  return }
+    raycast() { return }
 
     dispose () {
 

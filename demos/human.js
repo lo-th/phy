@@ -1,16 +1,20 @@
 const debug = 0;
 let player = null;
+let first = true
 
 demo = () => {
 
 	phy.view({
         phi:0, theta:0, distance:5, x:0, y:3, z:5, fov:45, 
-        envmap:'clear', groundReflect:0.2, groundColor:0x808080,
+        envmap:'swiss', groundReflect:0.2, groundColor:0x808080,
+        envIntensity:14, 
+        bgIntensity:6,
+        shadow:0.4,
     });
 
-    phy.lightIntensity( 6, 0, 0.7 );
-    phy.changeShadow({ range:10, near:5, far:30, distance:20 })
-    phy.useRealLight( { aoPower:5 } );
+    phy.lightIntensity( 5, 0, 0.3 );
+    //phy.changeShadow({ intensity:0.4, range:10, near:5, far:30, distance:20 })
+    //phy.useRealLight( { aoPower:5 } );
 
     phy.set({ substep:1, gravity:[0,-9.81,0] });
 
@@ -144,7 +148,7 @@ const Character = ( num = 1 ) => {
             pos: pos,
             //ray: n===0,
             angle:angle,
-            randomMorph:true,
+            randomMorph:!first,
             //randomSize:true,
             
             morph:true,
@@ -160,6 +164,8 @@ const Character = ( num = 1 ) => {
         angle = math.randInt( 0, 360 );
 
     }
+
+    first = false
 
     player = hh[0];
     let model = player.model;

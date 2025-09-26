@@ -2,6 +2,8 @@ const chess = ['king', 'queen', 'bishop', 'knight', 'rook', 'pawn'];
 const h = [ 3.785, 3.4, 2.716, 2.648, 2.138, 1.973 ];
 const chessSize = 0.25;
 
+// real size is 0.53m * 0.53m
+
 demo = () => {
 
     phy.view({ 
@@ -14,7 +16,7 @@ demo = () => {
 
     
 
-    phy.set({ substep:1 })
+    phy.set({ substep:1, worldScale:0.2 })
 
     //phy.lightIntensity( 6, 0, 0.7 );
     
@@ -29,7 +31,7 @@ demo = () => {
 
     // add static ground
     phy.add({ type:'plane', size:[300,1,300], pos:[0, -0.02, 0], visible:false });
-    phy.add({ type:'box', size:[8.9,1,8.9], pos:[0, -0.5, 0], visible:false })
+    phy.add({ type:'box', size:[8.9,1,8.9], pos:[0, -0.5, 0], visible:false, friction:0.5, restitution:0.25 })
 
     
 
@@ -155,7 +157,7 @@ addPiece = ( o, i, model ) => {
     	rot: o.rot || [0,0,0],
     	density: 1,
     	friction:o.friction || 0.5,
-    	restitution:0,
+    	restitution:0.25,
     	//rolling:0.9,
     	//damping:[0, 0.5],
     	margin:0.000001,

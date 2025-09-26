@@ -10,7 +10,6 @@ export class Solver extends Item {
 
 		this.motor = motor;
 		this.Utils = this.motor.utils;
-		
 		this.type = 'solver';
 
 	}
@@ -298,6 +297,13 @@ export class SolverJoint {
 
 		if( this.isDrive ){
 
+			// TODO find methode to increase speed  
+
+			//console.log(dt)
+			//let totalTime = 1/this.time
+
+			//let dt = this.solver.motor.delta*100
+
 		    this.tmp += dt*this.time;
 			let t = this.tmp;
 			t = (t > 1) ? 1 : t;
@@ -306,7 +312,10 @@ export class SolverJoint {
 			//let t = this.tmp // this.time;
 			//t = (t > 1) ? 1 : t;
 
-			let move = MathTool.lerp( this.start, this.target, t );//this.current + (this.target - this.current) * t;
+			//let move = MathTool.lerp( this.start, this.target, t );//this.current + (this.target - this.current) * t;
+			let move = this.target//MathTool.lerp( this.start, this.target, t );
+
+			//let move = MathTool.damp(this.start, this.target, 0.5, dt )
 
 			this.nup = { name:this.name, drivesTarget: [[ this.driveType, move ]] }
 

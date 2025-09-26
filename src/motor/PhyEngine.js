@@ -622,7 +622,7 @@ export class PhyEngine {
 				} else { // is direct version
 
 					if( o.devMode ) this.preLoad( mini, o, url );
-				    else this.preLoadMin( mini, o, url );
+				    else this.preLoadMin( mini, o, url, useLocal );
 
 				}
 
@@ -718,9 +718,12 @@ export class PhyEngine {
 
 		}
 
-		this.preLoadMin = ( name, o, url ) => {
+		this.preLoadMin = ( name, o, url, useLocal = false ) => {
 
 			let link = url + 'build/'+name+'.min.js';
+
+			if( useLocal ) link = new URL( './'+ name + '.min.js', import.meta.url );
+
 			let type = name.toUpperCase();
 			//if(type==='RAPIER') type = 'RAPIER3D';
 
@@ -1309,7 +1312,7 @@ export class PhyEngine {
 		this.setControl = ( Controls ) => { 
 
 			controls = Controls;
-			azimut = controls.getAzimuthalAngle;
+			azimut = ()=>{return controls.getAzimuthalAngle()};
 
 		}
 

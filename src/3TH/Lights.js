@@ -35,7 +35,7 @@ export class Lights {
 			intensity:o.spherical,
 			skyColor:0xddeeff,
 			groundColor:0x0f0e0d,
-			pos:[0,1,0], 
+			pos:[0,1.0,0], 
 			parent:parent
 		})
 
@@ -136,6 +136,7 @@ export class Lights {
 			break;
 			case 'hemi':
 			l = new HemisphereLight( o.skyColor || 0x000000, o.groundColor || 0x000000, o.intensity );
+
 			break;
 		}
 
@@ -152,7 +153,6 @@ export class Lights {
 
 		if( o.shadow !== undefined && o.type!=='hemi'){
 			Lights.setShadow( l, o.shadow );
-
 		}
 
 	    light.push(l);
@@ -165,6 +165,7 @@ export class Lights {
 	static setShadow ( l, o ) {
 
 		const s = l.shadow;
+		//console.log( o)
 		if(!s) return;
 
 		if(o.quality) s.mapSize.width = s.mapSize.height = o.quality;
@@ -188,9 +189,9 @@ export class Lights {
 		if(o.blurSamples) s.blurSamples = o.blurSamples; // only for VSM 
 		if(o.intensity) s.intensity = o.intensity;
 
-		s.needsUpdate = true;
+		/*s.needsUpdate = true;
 		l.updateWorldMatrix( true, true );
-		l.target.updateWorldMatrix( true, true );
+		l.target.updateWorldMatrix( true, true );*/
 
 		l.castShadow = true;
 
@@ -237,6 +238,13 @@ export class Lights {
 
 	static addHelper ( b, pp ) {
 
+
+		// TODO bug that change shadow range ??
+		//return 
+
+
+
+
 		if( b && !debug ){
 
 			let i = light.length, l, h;
@@ -254,17 +262,20 @@ export class Lights {
 					break;
 					case 'HemisphereLight':
 					h = new HemisphereLightHelper( l, 0.25 )
-					h.material.wireframe = false
+					console.log(h)
+					//h.material.wireframe = false
 					break;
 				}
 
 				if(h){ 
 					helper.push(h);
 					pp.add( h )
+					//h.updateMatrix()
 					if( h.shadow ){ 
+						//console.log(h.shadow)
 						helper.push( h.shadow );
 						pp.add( h.shadow )
-						//h.shadow.update()
+						h.shadow.update()
 					}
 				}
 			}

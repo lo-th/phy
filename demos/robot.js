@@ -1,10 +1,18 @@
-const Botsetting = {
+/*const Botsetting = {
     speed: 10,//0.1,//0.1,
-    stiffness: 1000,//3000,//1000,
-    damping: 100,//100,//100,
-    forceLimit: 1000,
-    legMass:10,//100,//1,
-    bodyMass:40,//800,//8,
+    stiffness: 3000,//3000,//1000,
+    damping: 100,//100,//100,//100,
+    forceLimit: 100000,
+    legMass:100,//100,//1,
+    bodyMass:100,//800,//8,
+}*/
+const Botsetting = {
+    speed: 10,
+    stiffness: 1000,
+    damping: 100,
+    forceLimit: 100000,
+    legMass:1,
+    bodyMass:8,
 }
 const debug = 0;
 const single = 0;
@@ -17,7 +25,8 @@ demo = () => {
 
     phy.view({ envmap:'photo', envblur:0.3, ground:true, fog:true, fogDist:0.02 })//envFloor:true,
 
-    phy.set({ substep:1, gravity:[0,-9.81,0], key:true, fps:144 })
+    //phy.set({ substep:1, gravity:[0,-9.81,0], key:true, fps:144 })
+    phy.set({ substep:10, gravity:[0,-9.81,0], key:true, fps:60, woldScale:1 })
 
     phy.add({ type:'plane', size:[300,1,300], visible:false, friction:0.5 });
 

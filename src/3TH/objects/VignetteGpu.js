@@ -58,7 +58,7 @@ export class VignetteGpu extends Mesh {
                 enumerable: true,
                 //get: ( v ) => { console.log(this._color); return this._color.value.getHex(); },
                 get: () => ( this._color.value.getHex() ),
-                set: ( v ) => { console.log(v); this._color.value.setHex( v ) },
+                set: ( v ) => { this._color.value.setHex( v ) },
             },
             offset: {
                 enumerable: true,

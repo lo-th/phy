@@ -3,7 +3,7 @@
  * Copyright 2010-2025 Phy.js Authors
  * SPDX-License-Identifier: MIT
  */
-import { LineSegments, BufferGeometry, BufferAttribute, Float32BufferAttribute, LineBasicMaterial, SphereGeometry, CylinderGeometry, BoxGeometry, PlaneGeometry, CanvasTexture, RepeatWrapping, SRGBColorSpace, MeshPhysicalMaterial, Color, Vector2, MeshStandardMaterial, ShadowMaterial, MeshToonMaterial, MeshBasicMaterial, MeshLambertMaterial, MeshPhongMaterial, DoubleSide, BackSide, FrontSide, SrcAlphaSaturateFactor, OneMinusDstColorFactor, DstColorFactor, OneMinusDstAlphaFactor, DstAlphaFactor, OneMinusSrcAlphaFactor, SrcAlphaFactor, OneMinusSrcColorFactor, SrcColorFactor, OneFactor, ZeroFactor, MaxEquation, MinEquation, ReverseSubtractEquation, SubtractEquation, AddEquation, MultiplyBlending, SubtractiveBlending, AdditiveBlending, NormalBlending, NoBlending, Line, Vector3, Matrix4, InstancedMesh, Quaternion as Quaternion$1, Mesh, InstancedBufferAttribute, CircleGeometry, Box3, Object3D, Line3, Plane, Triangle, Loader, FileLoader, Matrix3, Box2, ShapeUtils, Shape, Path, ShapePath, ShapeGeometry, Euler, TrianglesDrawMode, TriangleFanDrawMode, TriangleStripDrawMode, LoaderUtils, LinearSRGBColorSpace, SpotLight, PointLight, DirectionalLight, TextureLoader, ImageBitmapLoader, InterleavedBuffer, InterleavedBufferAttribute, LinearMipmapLinearFilter, NearestMipmapLinearFilter, LinearMipmapNearestFilter, NearestMipmapNearestFilter, LinearFilter, NearestFilter, MirroredRepeatWrapping, ClampToEdgeWrapping, PointsMaterial, Material, PropertyBinding, SkinnedMesh, LineLoop, Points, Group, PerspectiveCamera, MathUtils, OrthographicCamera, Skeleton, AnimationClip, Bone, InterpolateDiscrete, InterpolateLinear, Texture, VectorKeyframeTrack, NumberKeyframeTrack, QuaternionKeyframeTrack, ColorManagement, Interpolant, Sphere, Vector4, Curve, EquirectangularReflectionMapping, AmbientLight, Uint16BufferAttribute, DataTextureLoader, HalfFloatType, FloatType, DataUtils, RGBAFormat, RGFormat, RedFormat, DataTexture, UVMapping, LinearMipMapLinearFilter, RGBA_S3TC_DXT1_Format, RGB_PVRTC_4BPPV1_Format, RGB_ETC2_Format, RGB_ETC1_Format, RGBA_S3TC_DXT5_Format, RGBA_PVRTC_4BPPV1_Format, RGBA_ETC2_EAC_Format, RGBA_BPTC_Format, RGB_BPTC_UNSIGNED_Format, RGBA_ASTC_4x4_Format, UnsignedByteType, CompressedCubeTexture, CompressedArrayTexture, CompressedTexture, NoColorSpace, RGBA_PVRTC_2BPPV1_Format, RED_GREEN_RGTC2_Format, SIGNED_RED_GREEN_RGTC2_Format, RED_RGTC1_Format, SIGNED_RED_RGTC1_Format, RGBA_S3TC_DXT3_Format, RGB_S3TC_DXT1_Format, RGBA_ASTC_6x6_Format, RGBFormat, UnsignedInt101111Type, UnsignedInt5999Type, Data3DTexture, LoadingManager, AnimationMixer, ObjectSpaceNormalMap, CustomBlending, SkeletonHelper, AnimationUtils, AdditiveAnimationBlendMode, NormalAnimationBlendMode, Raycaster, PMREMGenerator, Scene, WebGLCubeRenderTarget, CubeCamera, IcosahedronGeometry, ShaderMaterial, NoToneMapping, AxesHelper, InstancedBufferGeometry, InstancedInterleavedBuffer, DynamicDrawUsage } from 'three';
+import { LineSegments, BufferGeometry, BufferAttribute, Float32BufferAttribute, LineBasicMaterial, SphereGeometry, CylinderGeometry, BoxGeometry, PlaneGeometry, CanvasTexture, RepeatWrapping, SRGBColorSpace, MeshPhysicalMaterial, Color, Vector2, MeshStandardMaterial, ShadowMaterial, MeshToonMaterial, MeshBasicMaterial, MeshLambertMaterial, MeshPhongMaterial, DoubleSide, BackSide, FrontSide, SrcAlphaSaturateFactor, OneMinusDstColorFactor, DstColorFactor, OneMinusDstAlphaFactor, DstAlphaFactor, OneMinusSrcAlphaFactor, SrcAlphaFactor, OneMinusSrcColorFactor, SrcColorFactor, OneFactor, ZeroFactor, MaxEquation, MinEquation, ReverseSubtractEquation, SubtractEquation, AddEquation, MultiplyBlending, SubtractiveBlending, AdditiveBlending, NormalBlending, NoBlending, Line, Vector3, Matrix4, InstancedMesh, Quaternion as Quaternion$1, Mesh, InstancedBufferAttribute, CircleGeometry, Box3, Object3D, Line3, Plane, Triangle, TrianglesDrawMode, TriangleFanDrawMode, TriangleStripDrawMode, Loader, FileLoader, Matrix3, Box2, ShapeUtils, Shape, Path, ShapePath, ShapeGeometry, Euler, LoaderUtils, LinearSRGBColorSpace, SpotLight, PointLight, DirectionalLight, TextureLoader, ImageBitmapLoader, InterleavedBuffer, InterleavedBufferAttribute, LinearMipmapLinearFilter, NearestMipmapLinearFilter, LinearMipmapNearestFilter, NearestMipmapNearestFilter, LinearFilter, NearestFilter, MirroredRepeatWrapping, ClampToEdgeWrapping, PointsMaterial, Material, PropertyBinding, SkinnedMesh, LineLoop, Points, Group, PerspectiveCamera, MathUtils, OrthographicCamera, Skeleton, AnimationClip, Bone, InterpolateDiscrete, InterpolateLinear, Texture, VectorKeyframeTrack, NumberKeyframeTrack, QuaternionKeyframeTrack, ColorManagement, Interpolant, Sphere, Vector4, Curve, EquirectangularReflectionMapping, AmbientLight, Uint16BufferAttribute, DataTextureLoader, HalfFloatType, FloatType, DataUtils, RGBAFormat, RGFormat, RedFormat, DataTexture, UVMapping, LinearMipMapLinearFilter, RGBA_S3TC_DXT1_Format, RGB_PVRTC_4BPPV1_Format, RGB_ETC2_Format, RGB_ETC1_Format, RGBA_S3TC_DXT5_Format, RGBA_PVRTC_4BPPV1_Format, RGBA_ETC2_EAC_Format, RGBA_BPTC_Format, RGB_BPTC_UNSIGNED_Format, RGBA_ASTC_4x4_Format, UnsignedByteType, CompressedCubeTexture, CompressedArrayTexture, CompressedTexture, NoColorSpace, RGBA_PVRTC_2BPPV1_Format, RED_GREEN_RGTC2_Format, SIGNED_RED_GREEN_RGTC2_Format, RED_RGTC1_Format, SIGNED_RED_RGTC1_Format, RGBA_S3TC_DXT3_Format, RGB_S3TC_DXT1_Format, RGBA_ASTC_6x6_Format, RGBFormat, UnsignedInt101111Type, UnsignedInt5999Type, Data3DTexture, LoadingManager, AnimationMixer, ObjectSpaceNormalMap, CustomBlending, SkeletonHelper, AnimationUtils, AdditiveAnimationBlendMode, NormalAnimationBlendMode, Raycaster, PMREMGenerator, Scene, WebGLCubeRenderTarget, CubeCamera, IcosahedronGeometry, ShaderMaterial, NoToneMapping, AxesHelper, InstancedBufferGeometry, InstancedInterleavedBuffer, DynamicDrawUsage } from 'three';
 
 const PI = Math.PI;
 const torad$3 = PI / 180;
@@ -3467,7 +3467,7 @@ class Quaternion {
  * @param {boolean} [useGroups=false] - Whether to use groups or not.
  * @return {?BufferGeometry} The merged geometry. Returns `null` if the merge does not succeed.
  */
-function mergeGeometries$2( geometries, useGroups = false ) {
+function mergeGeometries$1( geometries, useGroups = false ) {
 
 	const isIndexed = geometries[ 0 ].index !== null;
 
@@ -3605,7 +3605,7 @@ function mergeGeometries$2( geometries, useGroups = false ) {
 
 	for ( const name in attributes ) {
 
-		const mergedAttribute = mergeAttributes$2( attributes[ name ] );
+		const mergedAttribute = mergeAttributes$1( attributes[ name ] );
 
 		if ( ! mergedAttribute ) {
 
@@ -3639,7 +3639,7 @@ function mergeGeometries$2( geometries, useGroups = false ) {
 
 			}
 
-			const mergedMorphAttribute = mergeAttributes$2( morphAttributesToMerge );
+			const mergedMorphAttribute = mergeAttributes$1( morphAttributesToMerge );
 
 			if ( ! mergedMorphAttribute ) {
 
@@ -3665,7 +3665,7 @@ function mergeGeometries$2( geometries, useGroups = false ) {
  * @param {Array<BufferAttribute>} attributes - The attributes to merge.
  * @return {?BufferAttribute} The merged attribute. Returns `null` if the merge does not succeed.
  */
-function mergeAttributes$2( attributes ) {
+function mergeAttributes$1( attributes ) {
 
 	let TypedArray;
 	let itemSize;
@@ -4008,7 +4008,7 @@ class Capsule extends BufferGeometry {
         m2.applyMatrix4( mtx2 );
 
 
-        let g = mergeVertices$1( mergeGeometries$2( [ m0, m1, m2] ) );
+        let g = mergeVertices$1( mergeGeometries$1( [ m0, m1, m2] ) );
         this.copy( g );
 
         /*m0.dispose()
@@ -4172,7 +4172,7 @@ class ChamferCyl extends BufferGeometry {
 
         scaleUV$1( c1, 0, 1-sy, 1, sy );
 
-        let top = mergeGeometries$2( [ c1, c2 ] );
+        let top = mergeGeometries$1( [ c1, c2 ] );
 
         mr.makeTranslation( 0,0,( (height*0.5) - filet) );
         mt.makeRotationX( -p90 );
@@ -4191,7 +4191,7 @@ class ChamferCyl extends BufferGeometry {
 
         scaleUV$1( c1, 0, 1-sy, 1, sy, true );
 
-        let low = mergeGeometries$2( [ c1, c2 ] );
+        let low = mergeGeometries$1( [ c1, c2 ] );
 
         mr.makeTranslation( 0,0,( (height*0.5) - filet) );
         mt.makeRotationX( p90 );
@@ -4200,7 +4200,7 @@ class ChamferCyl extends BufferGeometry {
         /*c1.dispose();
         c2.dispose();*/
 
-        let g = mergeVertices$1( mergeGeometries$2( [ top, mid, low ] ) );
+        let g = mergeVertices$1( mergeGeometries$1( [ top, mid, low ] ) );
 
         /*mid.dispose();
         top.dispose();
@@ -4276,7 +4276,7 @@ let ChamferBox$1 = class ChamferBox extends BufferGeometry {
         mp.makeRotationY( -p90 );
         s2.applyMatrix4( mt.multiply(mr).multiply(mp) );
 
-        let tra = mergeGeometries$2( [ c2, s1, s2 ] );
+        let tra = mergeGeometries$1( [ c2, s1, s2 ] );
         let trc = tra.clone();
 
         /*c2.dispose();
@@ -4303,7 +4303,7 @@ let ChamferBox$1 = class ChamferBox extends BufferGeometry {
         mr.makeRotationZ( -p90 );
         c3.applyMatrix4( mt.multiply(mr) );
 
-        let rf = mergeGeometries$2( [ c1, c3, f, tra, trc ] );
+        let rf = mergeGeometries$1( [ c1, c3, f, tra, trc ] );
         let rg = rf.clone();
 
         mt.makeTranslation( 0, 0, midDepth );
@@ -4336,7 +4336,7 @@ let ChamferBox$1 = class ChamferBox extends BufferGeometry {
         c3.applyMatrix4( mt.multiply(mr) );
 
 
-        let rr = mergeGeometries$2( [ c1, c3, f ] );
+        let rr = mergeGeometries$1( [ c1, c3, f ] );
         let rb = rr.clone();
 
         /*f.dispose();
@@ -4371,7 +4371,7 @@ let ChamferBox$1 = class ChamferBox extends BufferGeometry {
         mr.makeRotationX( p90 );
         f2.applyMatrix4( mt.multiply(mr) );
 
-        let g = mergeVertices$1( mergeGeometries$2( [ rf, rg, rr, rb, f, f2 ] ) );
+        let g = mergeVertices$1( mergeGeometries$1( [ rf, rg, rr, rb, f, f2 ] ) );
 
         /*rf.dispose();
         rg.dispose();
@@ -7971,11 +7971,13 @@ class Body extends Item {
 }
 
 /**
- * @param  {Array<BufferGeometry>} geometries
- * @param  {Boolean} useGroups
- * @return {BufferGeometry}
+ * Merges a set of geometries into a single instance. All geometries must have compatible attributes.
+ *
+ * @param {Array<BufferGeometry>} geometries - The geometries to merge.
+ * @param {boolean} [useGroups=false] - Whether to use groups or not.
+ * @return {?BufferGeometry} The merged geometry. Returns `null` if the merge does not succeed.
  */
-function mergeGeometries$1( geometries, useGroups = false ) {
+function mergeGeometries( geometries, useGroups = false ) {
 
 	const isIndexed = geometries[ 0 ].index !== null;
 
@@ -8113,7 +8115,7 @@ function mergeGeometries$1( geometries, useGroups = false ) {
 
 	for ( const name in attributes ) {
 
-		const mergedAttribute = mergeAttributes$1( attributes[ name ] );
+		const mergedAttribute = mergeAttributes( attributes[ name ] );
 
 		if ( ! mergedAttribute ) {
 
@@ -8147,7 +8149,7 @@ function mergeGeometries$1( geometries, useGroups = false ) {
 
 			}
 
-			const mergedMorphAttribute = mergeAttributes$1( morphAttributesToMerge );
+			const mergedMorphAttribute = mergeAttributes( morphAttributesToMerge );
 
 			if ( ! mergedMorphAttribute ) {
 
@@ -8167,10 +8169,13 @@ function mergeGeometries$1( geometries, useGroups = false ) {
 }
 
 /**
- * @param {Array<BufferAttribute>} attributes
- * @return {BufferAttribute}
+ * Merges a set of attributes into a single instance. All attributes must have compatible properties and types.
+ * Instances of {@link InterleavedBufferAttribute} are not supported.
+ *
+ * @param {Array<BufferAttribute>} attributes - The attributes to merge.
+ * @return {?BufferAttribute} The merged attribute. Returns `null` if the merge does not succeed.
  */
-function mergeAttributes$1( attributes ) {
+function mergeAttributes( attributes ) {
 
 	let TypedArray;
 	let itemSize;
@@ -8259,22 +8264,365 @@ function mergeAttributes$1( attributes ) {
 
 }
 
+/**
+ * Returns a new geometry with vertices for which all similar vertex attributes (within tolerance) are merged.
+ *
+ * @param {BufferGeometry} geometry - The geometry to merge vertices for.
+ * @param {number} [tolerance=1e-4] - The tolerance value.
+ * @return {BufferGeometry} - The new geometry with merged vertices.
+ */
+function mergeVertices( geometry, tolerance = 1e-4 ) {
+
+	tolerance = Math.max( tolerance, Number.EPSILON );
+
+	// Generate an index buffer if the geometry doesn't have one, or optimize it
+	// if it's already available.
+	const hashToIndex = {};
+	const indices = geometry.getIndex();
+	const positions = geometry.getAttribute( 'position' );
+	const vertexCount = indices ? indices.count : positions.count;
+
+	// next value for triangle indices
+	let nextIndex = 0;
+
+	// attributes and new attribute arrays
+	const attributeNames = Object.keys( geometry.attributes );
+	const tmpAttributes = {};
+	const tmpMorphAttributes = {};
+	const newIndices = [];
+	const getters = [ 'getX', 'getY', 'getZ', 'getW' ];
+	const setters = [ 'setX', 'setY', 'setZ', 'setW' ];
+
+	// Initialize the arrays, allocating space conservatively. Extra
+	// space will be trimmed in the last step.
+	for ( let i = 0, l = attributeNames.length; i < l; i ++ ) {
+
+		const name = attributeNames[ i ];
+		const attr = geometry.attributes[ name ];
+
+		tmpAttributes[ name ] = new attr.constructor(
+			new attr.array.constructor( attr.count * attr.itemSize ),
+			attr.itemSize,
+			attr.normalized
+		);
+
+		const morphAttributes = geometry.morphAttributes[ name ];
+		if ( morphAttributes ) {
+
+			if ( ! tmpMorphAttributes[ name ] ) tmpMorphAttributes[ name ] = [];
+			morphAttributes.forEach( ( morphAttr, i ) => {
+
+				const array = new morphAttr.array.constructor( morphAttr.count * morphAttr.itemSize );
+				tmpMorphAttributes[ name ][ i ] = new morphAttr.constructor( array, morphAttr.itemSize, morphAttr.normalized );
+
+			} );
+
+		}
+
+	}
+
+	// convert the error tolerance to an amount of decimal places to truncate to
+	const halfTolerance = tolerance * 0.5;
+	const exponent = Math.log10( 1 / tolerance );
+	const hashMultiplier = Math.pow( 10, exponent );
+	const hashAdditive = halfTolerance * hashMultiplier;
+	for ( let i = 0; i < vertexCount; i ++ ) {
+
+		const index = indices ? indices.getX( i ) : i;
+
+		// Generate a hash for the vertex attributes at the current index 'i'
+		let hash = '';
+		for ( let j = 0, l = attributeNames.length; j < l; j ++ ) {
+
+			const name = attributeNames[ j ];
+			const attribute = geometry.getAttribute( name );
+			const itemSize = attribute.itemSize;
+
+			for ( let k = 0; k < itemSize; k ++ ) {
+
+				// double tilde truncates the decimal value
+				hash += `${ ~ ~ ( attribute[ getters[ k ] ]( index ) * hashMultiplier + hashAdditive ) },`;
+
+			}
+
+		}
+
+		// Add another reference to the vertex if it's already
+		// used by another index
+		if ( hash in hashToIndex ) {
+
+			newIndices.push( hashToIndex[ hash ] );
+
+		} else {
+
+			// copy data to the new index in the temporary attributes
+			for ( let j = 0, l = attributeNames.length; j < l; j ++ ) {
+
+				const name = attributeNames[ j ];
+				const attribute = geometry.getAttribute( name );
+				const morphAttributes = geometry.morphAttributes[ name ];
+				const itemSize = attribute.itemSize;
+				const newArray = tmpAttributes[ name ];
+				const newMorphArrays = tmpMorphAttributes[ name ];
+
+				for ( let k = 0; k < itemSize; k ++ ) {
+
+					const getterFunc = getters[ k ];
+					const setterFunc = setters[ k ];
+					newArray[ setterFunc ]( nextIndex, attribute[ getterFunc ]( index ) );
+
+					if ( morphAttributes ) {
+
+						for ( let m = 0, ml = morphAttributes.length; m < ml; m ++ ) {
+
+							newMorphArrays[ m ][ setterFunc ]( nextIndex, morphAttributes[ m ][ getterFunc ]( index ) );
+
+						}
+
+					}
+
+				}
+
+			}
+
+			hashToIndex[ hash ] = nextIndex;
+			newIndices.push( nextIndex );
+			nextIndex ++;
+
+		}
+
+	}
+
+	// generate result BufferGeometry
+	const result = geometry.clone();
+	for ( const name in geometry.attributes ) {
+
+		const tmpAttribute = tmpAttributes[ name ];
+
+		result.setAttribute( name, new tmpAttribute.constructor(
+			tmpAttribute.array.slice( 0, nextIndex * tmpAttribute.itemSize ),
+			tmpAttribute.itemSize,
+			tmpAttribute.normalized,
+		) );
+
+		if ( ! ( name in tmpMorphAttributes ) ) continue;
+
+		for ( let j = 0; j < tmpMorphAttributes[ name ].length; j ++ ) {
+
+			const tmpMorphAttribute = tmpMorphAttributes[ name ][ j ];
+
+			result.morphAttributes[ name ][ j ] = new tmpMorphAttribute.constructor(
+				tmpMorphAttribute.array.slice( 0, nextIndex * tmpMorphAttribute.itemSize ),
+				tmpMorphAttribute.itemSize,
+				tmpMorphAttribute.normalized,
+			);
+
+		}
+
+	}
+
+	// indices
+
+	result.setIndex( newIndices );
+
+	return result;
+
+}
+
+/**
+ * Returns a new indexed geometry based on `TrianglesDrawMode` draw mode.
+ * This mode corresponds to the `gl.TRIANGLES` primitive in WebGL.
+ *
+ * @param {BufferGeometry} geometry - The geometry to convert.
+ * @param {number} drawMode - The current draw mode.
+ * @return {BufferGeometry} The new geometry using `TrianglesDrawMode`.
+ */
+function toTrianglesDrawMode( geometry, drawMode ) {
+
+	if ( drawMode === TrianglesDrawMode ) {
+
+		console.warn( 'THREE.BufferGeometryUtils.toTrianglesDrawMode(): Geometry already defined as triangles.' );
+		return geometry;
+
+	}
+
+	if ( drawMode === TriangleFanDrawMode || drawMode === TriangleStripDrawMode ) {
+
+		let index = geometry.getIndex();
+
+		// generate index if not present
+
+		if ( index === null ) {
+
+			const indices = [];
+
+			const position = geometry.getAttribute( 'position' );
+
+			if ( position !== undefined ) {
+
+				for ( let i = 0; i < position.count; i ++ ) {
+
+					indices.push( i );
+
+				}
+
+				geometry.setIndex( indices );
+				index = geometry.getIndex();
+
+			} else {
+
+				console.error( 'THREE.BufferGeometryUtils.toTrianglesDrawMode(): Undefined position attribute. Processing not possible.' );
+				return geometry;
+
+			}
+
+		}
+
+		//
+
+		const numberOfTriangles = index.count - 2;
+		const newIndices = [];
+
+		if ( drawMode === TriangleFanDrawMode ) {
+
+			// gl.TRIANGLE_FAN
+
+			for ( let i = 1; i <= numberOfTriangles; i ++ ) {
+
+				newIndices.push( index.getX( 0 ) );
+				newIndices.push( index.getX( i ) );
+				newIndices.push( index.getX( i + 1 ) );
+
+			}
+
+		} else {
+
+			// gl.TRIANGLE_STRIP
+
+			for ( let i = 0; i < numberOfTriangles; i ++ ) {
+
+				if ( i % 2 === 0 ) {
+
+					newIndices.push( index.getX( i ) );
+					newIndices.push( index.getX( i + 1 ) );
+					newIndices.push( index.getX( i + 2 ) );
+
+				} else {
+
+					newIndices.push( index.getX( i + 2 ) );
+					newIndices.push( index.getX( i + 1 ) );
+					newIndices.push( index.getX( i ) );
+
+				}
+
+			}
+
+		}
+
+		if ( ( newIndices.length / 3 ) !== numberOfTriangles ) {
+
+			console.error( 'THREE.BufferGeometryUtils.toTrianglesDrawMode(): Unable to generate correct amount of triangles.' );
+
+		}
+
+		// build final geometry
+
+		const newGeometry = geometry.clone();
+		newGeometry.setIndex( newIndices );
+		newGeometry.clearGroups();
+
+		return newGeometry;
+
+	} else {
+
+		console.error( 'THREE.BufferGeometryUtils.toTrianglesDrawMode(): Unknown draw mode:', drawMode );
+		return geometry;
+
+	}
+
+}
+
 const COLOR_SPACE_SVG = SRGBColorSpace;
 
+/**
+ * A loader for the SVG format.
+ *
+ * Scalable Vector Graphics is an XML-based vector image format for two-dimensional graphics
+ * with support for interactivity and animation.
+ *
+ * ```js
+ * const loader = new SVGLoader();
+ * const data = await loader.loadAsync( 'data/svgSample.svg' );
+ *
+ * const paths = data.paths;
+ * const group = new THREE.Group();
+ *
+ * for ( let i = 0; i < paths.length; i ++ ) {
+ *
+ * 	const path = paths[ i ];
+ * 	const material = new THREE.MeshBasicMaterial( {
+ * 		color: path.color,
+ * 		side: THREE.DoubleSide,
+ * 		depthWrite: false
+ * 	} );
+ *
+ * 	const shapes = SVGLoader.createShapes( path );
+ *
+ * 	for ( let j = 0; j < shapes.length; j ++ ) {
+ *
+ * 		const shape = shapes[ j ];
+ * 		const geometry = new THREE.ShapeGeometry( shape );
+ * 		const mesh = new THREE.Mesh( geometry, material );
+ * 		group.add( mesh );
+ *
+ * 	}
+ *
+ * }
+ *
+ * scene.add( group );
+ * ```
+ *
+ * @augments Loader
+ * @three_import import { SVGLoader } from 'three/addons/loaders/SVGLoader.js';
+ */
 class SVGLoader extends Loader {
 
+	/**
+	 * Constructs a new SVG loader.
+	 *
+	 * @param {LoadingManager} [manager] - The loading manager.
+	 */
 	constructor( manager ) {
 
 		super( manager );
 
-		// Default dots per inch
+		/**
+		 * Default dots per inch.
+		 *
+		 * @type {number}
+		 * @default 90
+		 */
 		this.defaultDPI = 90;
 
-		// Accepted units: 'mm', 'cm', 'in', 'pt', 'pc', 'px'
+		/**
+		 * Default unit.
+		 *
+		 * @type {('mm'|'cm'|'in'|'pt'|'pc'|'px')}
+		 * @default 'px'
+		 */
 		this.defaultUnit = 'px';
 
 	}
 
+	/**
+	 * Starts loading from the given URL and passes the loaded SVG asset
+	 * to the `onLoad()` callback.
+	 *
+	 * @param {string} url - The path/URL of the file to be loaded. This can also be a data URI.
+	 * @param {function({paths:Array<ShapePath>,xml:string})} onLoad - Executed when the loading process has been finished.
+	 * @param {onProgressCallback} onProgress - Executed while the loading is in progress.
+	 * @param {onErrorCallback} onError - Executed when errors occur.
+	 */
 	load( url, onLoad, onProgress, onError ) {
 
 		const scope = this;
@@ -8309,6 +8657,13 @@ class SVGLoader extends Loader {
 
 	}
 
+	/**
+	 * Parses the given SVG data and returns the resulting data.
+	 *
+	 * @param {string} text - The raw SVG data as a string.
+	 * @return {{paths:Array<ShapePath>,xml:string}} An object holding an array of shape paths and the
+	 * SVG XML document.
+	 */
 	parse( text ) {
 
 		const scope = this;
@@ -9018,6 +9373,7 @@ class SVGLoader extends Loader {
 		* According to https://www.w3.org/TR/SVG/shapes.html#RectElementRXAttribute
 		* rounded corner should be rendered to elliptical arc, but bezier curve does the job well enough
 		*/
+
 		function parseRectNode( node ) {
 
 			const x = parseFloatWithUnits( node.getAttribute( 'x' ) || 0 );
@@ -9875,7 +10231,7 @@ class SVGLoader extends Loader {
 					( curve.aEndAngle - curve.aStartAngle ) % ( 2 * Math.PI ) < Number.EPSILON;
 
 				// Do not touch angles of a full ellipse because after transformation they
-				// would converge to a sinle value effectively removing the whole curve
+				// would converge to a single value effectively removing the whole curve
 
 				if ( ! isFullEllipse ) {
 
@@ -10158,10 +10514,13 @@ class SVGLoader extends Loader {
 
 	}
 
+	/**
+	 * Creates from the given shape path and array of shapes.
+	 *
+	 * @param {ShapePath} shapePath - The shape path.
+	 * @return {Array<Shape>} An array of shapes.
+	 */
 	static createShapes( shapePath ) {
-
-		// Param shapePath: a shapepath as returned by the parse function of this class
-		// Returns Shape object
 
 		const BIGNUMBER = 999999999;
 
@@ -10366,7 +10725,7 @@ class SVGLoader extends Loader {
 
 				// check if the center of the bounding box is in the bounding box of the paths.
 				// this is a pruning method to limit the search of intersections in paths that can't envelop of the current path.
-				// if a path envelops another path. The center of that oter path, has to be inside the bounding box of the enveloping path.
+				// if a path envelops another path. The center of that other path, has to be inside the bounding box of the enveloping path.
 				if ( path.boundingBox.containsPoint( center ) ) {
 
 					const intersections = getIntersections( scanline, path.points );
@@ -10602,14 +10961,17 @@ class SVGLoader extends Loader {
 
 	}
 
+	/**
+	 * Returns a stroke style object from the given parameters.
+	 *
+	 * @param {number} [width=1] - The stroke width.
+	 * @param {string} [color='#000'] - The stroke color, as  returned by {@link Color#getStyle}.
+	 * @param {'round'|'bevel'|'miter'|'miter-limit'} [lineJoin='miter'] - The line join style.
+	 * @param {'round'|'square'|'butt'} [lineCap='butt'] - The line cap style.
+	 * @param {number} [miterLimit=4] - Maximum join length, in multiples of the `width` parameter (join is truncated if it exceeds that distance).
+	 * @return {Object} The style object.
+	 */
 	static getStrokeStyle( width, color, lineJoin, lineCap, miterLimit ) {
-
-		// Param width: Stroke width
-		// Param color: As returned by THREE.Color.getStyle()
-		// Param lineJoin: One of "round", "bevel", "miter" or "miter-limit"
-		// Param lineCap: One of "round", "square" or "butt"
-		// Param miterLimit: Maximum join length, in multiples of the "width" parameter (join is truncated if it exceeds that distance)
-		// Returns style object
 
 		width = width !== undefined ? width : 1;
 		color = color !== undefined ? color : '#000';
@@ -10627,15 +10989,17 @@ class SVGLoader extends Loader {
 
 	}
 
+	/**
+	 * Creates a stroke from an array of points.
+	 *
+	 * @param {Array<Vector2>} points - The points in 2D space. Minimum 2 points. The path can be open or closed (last point equals to first point).
+	 * @param {Object} style - Object with SVG properties as returned by `SVGLoader.getStrokeStyle()`, or `SVGLoader.parse()` in the `path.userData.style` object.
+	 * @param {number} [arcDivisions=12] - Arc divisions for round joins and endcaps.
+	 * @param {number} [minDistance=0.001] - Points closer to this distance will be merged.
+	 * @return {?BufferGeometry} The stroke geometry. UV coordinates are generated ('u' along path. 'v' across it, from left to right).
+	 * Returns `null` if not geometry was generated.
+	 */
 	static pointsToStroke( points, style, arcDivisions, minDistance ) {
-
-		// Generates a stroke with some width around the given path.
-		// The path can be open or closed (last point equals to first point)
-		// Param points: Array of Vector2D (the path). Minimum 2 points.
-		// Param style: Object with SVG properties as returned by SVGLoader.getStrokeStyle(), or SVGLoader.parse() in the path.userData.style object
-		// Params arcDivisions: Arc divisions for round joins and endcaps. (Optional)
-		// Param minDistance: Points closer to this distance will be merged. (Optional)
-		// Returns BufferGeometry with stroke triangles (In plane z = 0). UV coordinates are generated ('u' along path. 'v' across it, from left to right)
 
 		const vertices = [];
 		const normals = [];
@@ -10656,6 +11020,19 @@ class SVGLoader extends Loader {
 
 	}
 
+	/**
+	 * Creates a stroke from an array of points.
+	 *
+	 * @param {Array<Vector2>} points - The points in 2D space. Minimum 2 points.
+	 * @param {Object} style - Object with SVG properties as returned by `SVGLoader.getStrokeStyle()`, or `SVGLoader.parse()` in the `path.userData.style` object.
+	 * @param {number} [arcDivisions=12] - Arc divisions for round joins and endcaps.
+	 * @param {number} [minDistance=0.001] - Points closer to this distance will be merged.
+	 * @param {Array<number>} vertices - An array holding vertices.
+	 * @param {Array<number>} normals - An array holding normals.
+	 * @param {Array<number>} uvs - An array holding uvs.
+	 * @param {number} [vertexOffset=0] - The vertex offset.
+	 * @return {number} The number of vertices.
+	 */
 	static pointsToStrokeWithBuffers( points, style, arcDivisions, minDistance, vertices, normals, uvs, vertexOffset ) {
 
 		// This function can be called to update existing arrays or buffers.
@@ -10695,8 +11072,6 @@ class SVGLoader extends Loader {
 		if ( numPoints < 2 ) return 0;
 
 		const isClosed = points[ 0 ].equals( points[ numPoints - 1 ] );
-
-		
 
 		let currentPoint;
 		let previousPoint = points[ 0 ];
@@ -11168,8 +11543,8 @@ class SVGLoader extends Loader {
 			addVertex( currentPointL, u1, 0 );
 
 			addVertex( lastPointR, u0, 1 );
-			addVertex( currentPointL, u1, 1 );
-			addVertex( currentPointR, u1, 0 );
+			addVertex( currentPointL, u1, 0 );
+			addVertex( currentPointR, u1, 1 );
 
 		}
 
@@ -11212,8 +11587,8 @@ class SVGLoader extends Loader {
 					// Bevel join triangle
 
 					addVertex( currentPointR, u, 1 );
-					addVertex( nextPointR, u, 0 );
-					addVertex( innerPoint, u, 0.5 );
+					addVertex( innerPoint, u, 0 );
+					addVertex( nextPointR, u, 1 );
 
 				}
 
@@ -11326,7 +11701,8 @@ class SVGLoader extends Loader {
 						} else {
 
 							tempV2_3.toArray( vertices, 1 * 3 );
-							tempV2_3.toArray( vertices, 3 * 3 );
+							// using tempV2_4 to update 3rd vertex if the uv.y of 3rd vertex is 1
+							uvs[ 3 * 2 + 1 ] === 1 ? tempV2_4.toArray( vertices, 3 * 3 ) : tempV2_3.toArray( vertices, 3 * 3 );
 							tempV2_4.toArray( vertices, 0 * 3 );
 
 						}
@@ -11350,8 +11726,8 @@ class SVGLoader extends Loader {
 
 						} else {
 
-							tempV2_3.toArray( vertices, vl - 2 * 3 );
-							tempV2_4.toArray( vertices, vl - 1 * 3 );
+							tempV2_4.toArray( vertices, vl - 2 * 3 );
+							tempV2_3.toArray( vertices, vl - 1 * 3 );
 							tempV2_4.toArray( vertices, vl - 4 * 3 );
 
 						}
@@ -11691,7 +12067,7 @@ class AutoSvg extends Mesh {
 		let tmpG = this.toGeometry();
         
         if( tmpG ){
-		    this.geometry = mergeGeometries$1( tmpG );
+		    this.geometry = mergeGeometries( tmpG );
 			this.geometry.scale( s, -s, s );
 			this.geometry.rotateY( Math.PI );
 			this.geometry.rotateZ( -Math.PI*0.5 );
@@ -13400,14 +13776,14 @@ class SkeletonBody extends Object3D {
  * @param {Object3D} source - The 3D object to clone.
  * @return {Object3D} The cloned 3D object.
  */
-function clone$1( source ) {
+function clone( source ) {
 
 	const sourceLookup = new Map();
 	const cloneLookup = new Map();
 
 	const clone = source.clone();
 
-	parallelTraverse$1( source, clone, function ( sourceNode, clonedNode ) {
+	parallelTraverse( source, clone, function ( sourceNode, clonedNode ) {
 
 		sourceLookup.set( clonedNode, sourceNode );
 		cloneLookup.set( sourceNode, clonedNode );
@@ -13439,585 +13815,13 @@ function clone$1( source ) {
 
 }
 
-function parallelTraverse$1( a, b, callback ) {
+function parallelTraverse( a, b, callback ) {
 
 	callback( a, b );
 
 	for ( let i = 0; i < a.children.length; i ++ ) {
 
-		parallelTraverse$1( a.children[ i ], b.children[ i ], callback );
-
-	}
-
-}
-
-/**
- * Merges a set of geometries into a single instance. All geometries must have compatible attributes.
- *
- * @param {Array<BufferGeometry>} geometries - The geometries to merge.
- * @param {boolean} [useGroups=false] - Whether to use groups or not.
- * @return {?BufferGeometry} The merged geometry. Returns `null` if the merge does not succeed.
- */
-function mergeGeometries( geometries, useGroups = false ) {
-
-	const isIndexed = geometries[ 0 ].index !== null;
-
-	const attributesUsed = new Set( Object.keys( geometries[ 0 ].attributes ) );
-	const morphAttributesUsed = new Set( Object.keys( geometries[ 0 ].morphAttributes ) );
-
-	const attributes = {};
-	const morphAttributes = {};
-
-	const morphTargetsRelative = geometries[ 0 ].morphTargetsRelative;
-
-	const mergedGeometry = new BufferGeometry();
-
-	let offset = 0;
-
-	for ( let i = 0; i < geometries.length; ++ i ) {
-
-		const geometry = geometries[ i ];
-		let attributesCount = 0;
-
-		// ensure that all geometries are indexed, or none
-
-		if ( isIndexed !== ( geometry.index !== null ) ) {
-
-			console.error( 'THREE.BufferGeometryUtils: .mergeGeometries() failed with geometry at index ' + i + '. All geometries must have compatible attributes; make sure index attribute exists among all geometries, or in none of them.' );
-			return null;
-
-		}
-
-		// gather attributes, exit early if they're different
-
-		for ( const name in geometry.attributes ) {
-
-			if ( ! attributesUsed.has( name ) ) {
-
-				console.error( 'THREE.BufferGeometryUtils: .mergeGeometries() failed with geometry at index ' + i + '. All geometries must have compatible attributes; make sure "' + name + '" attribute exists among all geometries, or in none of them.' );
-				return null;
-
-			}
-
-			if ( attributes[ name ] === undefined ) attributes[ name ] = [];
-
-			attributes[ name ].push( geometry.attributes[ name ] );
-
-			attributesCount ++;
-
-		}
-
-		// ensure geometries have the same number of attributes
-
-		if ( attributesCount !== attributesUsed.size ) {
-
-			console.error( 'THREE.BufferGeometryUtils: .mergeGeometries() failed with geometry at index ' + i + '. Make sure all geometries have the same number of attributes.' );
-			return null;
-
-		}
-
-		// gather morph attributes, exit early if they're different
-
-		if ( morphTargetsRelative !== geometry.morphTargetsRelative ) {
-
-			console.error( 'THREE.BufferGeometryUtils: .mergeGeometries() failed with geometry at index ' + i + '. .morphTargetsRelative must be consistent throughout all geometries.' );
-			return null;
-
-		}
-
-		for ( const name in geometry.morphAttributes ) {
-
-			if ( ! morphAttributesUsed.has( name ) ) {
-
-				console.error( 'THREE.BufferGeometryUtils: .mergeGeometries() failed with geometry at index ' + i + '.  .morphAttributes must be consistent throughout all geometries.' );
-				return null;
-
-			}
-
-			if ( morphAttributes[ name ] === undefined ) morphAttributes[ name ] = [];
-
-			morphAttributes[ name ].push( geometry.morphAttributes[ name ] );
-
-		}
-
-		if ( useGroups ) {
-
-			let count;
-
-			if ( isIndexed ) {
-
-				count = geometry.index.count;
-
-			} else if ( geometry.attributes.position !== undefined ) {
-
-				count = geometry.attributes.position.count;
-
-			} else {
-
-				console.error( 'THREE.BufferGeometryUtils: .mergeGeometries() failed with geometry at index ' + i + '. The geometry must have either an index or a position attribute' );
-				return null;
-
-			}
-
-			mergedGeometry.addGroup( offset, count, i );
-
-			offset += count;
-
-		}
-
-	}
-
-	// merge indices
-
-	if ( isIndexed ) {
-
-		let indexOffset = 0;
-		const mergedIndex = [];
-
-		for ( let i = 0; i < geometries.length; ++ i ) {
-
-			const index = geometries[ i ].index;
-
-			for ( let j = 0; j < index.count; ++ j ) {
-
-				mergedIndex.push( index.getX( j ) + indexOffset );
-
-			}
-
-			indexOffset += geometries[ i ].attributes.position.count;
-
-		}
-
-		mergedGeometry.setIndex( mergedIndex );
-
-	}
-
-	// merge attributes
-
-	for ( const name in attributes ) {
-
-		const mergedAttribute = mergeAttributes( attributes[ name ] );
-
-		if ( ! mergedAttribute ) {
-
-			console.error( 'THREE.BufferGeometryUtils: .mergeGeometries() failed while trying to merge the ' + name + ' attribute.' );
-			return null;
-
-		}
-
-		mergedGeometry.setAttribute( name, mergedAttribute );
-
-	}
-
-	// merge morph attributes
-
-	for ( const name in morphAttributes ) {
-
-		const numMorphTargets = morphAttributes[ name ][ 0 ].length;
-
-		if ( numMorphTargets === 0 ) break;
-
-		mergedGeometry.morphAttributes = mergedGeometry.morphAttributes || {};
-		mergedGeometry.morphAttributes[ name ] = [];
-
-		for ( let i = 0; i < numMorphTargets; ++ i ) {
-
-			const morphAttributesToMerge = [];
-
-			for ( let j = 0; j < morphAttributes[ name ].length; ++ j ) {
-
-				morphAttributesToMerge.push( morphAttributes[ name ][ j ][ i ] );
-
-			}
-
-			const mergedMorphAttribute = mergeAttributes( morphAttributesToMerge );
-
-			if ( ! mergedMorphAttribute ) {
-
-				console.error( 'THREE.BufferGeometryUtils: .mergeGeometries() failed while trying to merge the ' + name + ' morphAttribute.' );
-				return null;
-
-			}
-
-			mergedGeometry.morphAttributes[ name ].push( mergedMorphAttribute );
-
-		}
-
-	}
-
-	return mergedGeometry;
-
-}
-
-/**
- * Merges a set of attributes into a single instance. All attributes must have compatible properties and types.
- * Instances of {@link InterleavedBufferAttribute} are not supported.
- *
- * @param {Array<BufferAttribute>} attributes - The attributes to merge.
- * @return {?BufferAttribute} The merged attribute. Returns `null` if the merge does not succeed.
- */
-function mergeAttributes( attributes ) {
-
-	let TypedArray;
-	let itemSize;
-	let normalized;
-	let gpuType = -1;
-	let arrayLength = 0;
-
-	for ( let i = 0; i < attributes.length; ++ i ) {
-
-		const attribute = attributes[ i ];
-
-		if ( TypedArray === undefined ) TypedArray = attribute.array.constructor;
-		if ( TypedArray !== attribute.array.constructor ) {
-
-			console.error( 'THREE.BufferGeometryUtils: .mergeAttributes() failed. BufferAttribute.array must be of consistent array types across matching attributes.' );
-			return null;
-
-		}
-
-		if ( itemSize === undefined ) itemSize = attribute.itemSize;
-		if ( itemSize !== attribute.itemSize ) {
-
-			console.error( 'THREE.BufferGeometryUtils: .mergeAttributes() failed. BufferAttribute.itemSize must be consistent across matching attributes.' );
-			return null;
-
-		}
-
-		if ( normalized === undefined ) normalized = attribute.normalized;
-		if ( normalized !== attribute.normalized ) {
-
-			console.error( 'THREE.BufferGeometryUtils: .mergeAttributes() failed. BufferAttribute.normalized must be consistent across matching attributes.' );
-			return null;
-
-		}
-
-		if ( gpuType === -1 ) gpuType = attribute.gpuType;
-		if ( gpuType !== attribute.gpuType ) {
-
-			console.error( 'THREE.BufferGeometryUtils: .mergeAttributes() failed. BufferAttribute.gpuType must be consistent across matching attributes.' );
-			return null;
-
-		}
-
-		arrayLength += attribute.count * itemSize;
-
-	}
-
-	const array = new TypedArray( arrayLength );
-	const result = new BufferAttribute( array, itemSize, normalized );
-	let offset = 0;
-
-	for ( let i = 0; i < attributes.length; ++ i ) {
-
-		const attribute = attributes[ i ];
-		if ( attribute.isInterleavedBufferAttribute ) {
-
-			const tupleOffset = offset / itemSize;
-			for ( let j = 0, l = attribute.count; j < l; j ++ ) {
-
-				for ( let c = 0; c < itemSize; c ++ ) {
-
-					const value = attribute.getComponent( j, c );
-					result.setComponent( j + tupleOffset, c, value );
-
-				}
-
-			}
-
-		} else {
-
-			array.set( attribute.array, offset );
-
-		}
-
-		offset += attribute.count * itemSize;
-
-	}
-
-	if ( gpuType !== undefined ) {
-
-		result.gpuType = gpuType;
-
-	}
-
-	return result;
-
-}
-
-/**
- * Returns a new geometry with vertices for which all similar vertex attributes (within tolerance) are merged.
- *
- * @param {BufferGeometry} geometry - The geometry to merge vertices for.
- * @param {number} [tolerance=1e-4] - The tolerance value.
- * @return {BufferGeometry} - The new geometry with merged vertices.
- */
-function mergeVertices( geometry, tolerance = 1e-4 ) {
-
-	tolerance = Math.max( tolerance, Number.EPSILON );
-
-	// Generate an index buffer if the geometry doesn't have one, or optimize it
-	// if it's already available.
-	const hashToIndex = {};
-	const indices = geometry.getIndex();
-	const positions = geometry.getAttribute( 'position' );
-	const vertexCount = indices ? indices.count : positions.count;
-
-	// next value for triangle indices
-	let nextIndex = 0;
-
-	// attributes and new attribute arrays
-	const attributeNames = Object.keys( geometry.attributes );
-	const tmpAttributes = {};
-	const tmpMorphAttributes = {};
-	const newIndices = [];
-	const getters = [ 'getX', 'getY', 'getZ', 'getW' ];
-	const setters = [ 'setX', 'setY', 'setZ', 'setW' ];
-
-	// Initialize the arrays, allocating space conservatively. Extra
-	// space will be trimmed in the last step.
-	for ( let i = 0, l = attributeNames.length; i < l; i ++ ) {
-
-		const name = attributeNames[ i ];
-		const attr = geometry.attributes[ name ];
-
-		tmpAttributes[ name ] = new attr.constructor(
-			new attr.array.constructor( attr.count * attr.itemSize ),
-			attr.itemSize,
-			attr.normalized
-		);
-
-		const morphAttributes = geometry.morphAttributes[ name ];
-		if ( morphAttributes ) {
-
-			if ( ! tmpMorphAttributes[ name ] ) tmpMorphAttributes[ name ] = [];
-			morphAttributes.forEach( ( morphAttr, i ) => {
-
-				const array = new morphAttr.array.constructor( morphAttr.count * morphAttr.itemSize );
-				tmpMorphAttributes[ name ][ i ] = new morphAttr.constructor( array, morphAttr.itemSize, morphAttr.normalized );
-
-			} );
-
-		}
-
-	}
-
-	// convert the error tolerance to an amount of decimal places to truncate to
-	const halfTolerance = tolerance * 0.5;
-	const exponent = Math.log10( 1 / tolerance );
-	const hashMultiplier = Math.pow( 10, exponent );
-	const hashAdditive = halfTolerance * hashMultiplier;
-	for ( let i = 0; i < vertexCount; i ++ ) {
-
-		const index = indices ? indices.getX( i ) : i;
-
-		// Generate a hash for the vertex attributes at the current index 'i'
-		let hash = '';
-		for ( let j = 0, l = attributeNames.length; j < l; j ++ ) {
-
-			const name = attributeNames[ j ];
-			const attribute = geometry.getAttribute( name );
-			const itemSize = attribute.itemSize;
-
-			for ( let k = 0; k < itemSize; k ++ ) {
-
-				// double tilde truncates the decimal value
-				hash += `${ ~ ~ ( attribute[ getters[ k ] ]( index ) * hashMultiplier + hashAdditive ) },`;
-
-			}
-
-		}
-
-		// Add another reference to the vertex if it's already
-		// used by another index
-		if ( hash in hashToIndex ) {
-
-			newIndices.push( hashToIndex[ hash ] );
-
-		} else {
-
-			// copy data to the new index in the temporary attributes
-			for ( let j = 0, l = attributeNames.length; j < l; j ++ ) {
-
-				const name = attributeNames[ j ];
-				const attribute = geometry.getAttribute( name );
-				const morphAttributes = geometry.morphAttributes[ name ];
-				const itemSize = attribute.itemSize;
-				const newArray = tmpAttributes[ name ];
-				const newMorphArrays = tmpMorphAttributes[ name ];
-
-				for ( let k = 0; k < itemSize; k ++ ) {
-
-					const getterFunc = getters[ k ];
-					const setterFunc = setters[ k ];
-					newArray[ setterFunc ]( nextIndex, attribute[ getterFunc ]( index ) );
-
-					if ( morphAttributes ) {
-
-						for ( let m = 0, ml = morphAttributes.length; m < ml; m ++ ) {
-
-							newMorphArrays[ m ][ setterFunc ]( nextIndex, morphAttributes[ m ][ getterFunc ]( index ) );
-
-						}
-
-					}
-
-				}
-
-			}
-
-			hashToIndex[ hash ] = nextIndex;
-			newIndices.push( nextIndex );
-			nextIndex ++;
-
-		}
-
-	}
-
-	// generate result BufferGeometry
-	const result = geometry.clone();
-	for ( const name in geometry.attributes ) {
-
-		const tmpAttribute = tmpAttributes[ name ];
-
-		result.setAttribute( name, new tmpAttribute.constructor(
-			tmpAttribute.array.slice( 0, nextIndex * tmpAttribute.itemSize ),
-			tmpAttribute.itemSize,
-			tmpAttribute.normalized,
-		) );
-
-		if ( ! ( name in tmpMorphAttributes ) ) continue;
-
-		for ( let j = 0; j < tmpMorphAttributes[ name ].length; j ++ ) {
-
-			const tmpMorphAttribute = tmpMorphAttributes[ name ][ j ];
-
-			result.morphAttributes[ name ][ j ] = new tmpMorphAttribute.constructor(
-				tmpMorphAttribute.array.slice( 0, nextIndex * tmpMorphAttribute.itemSize ),
-				tmpMorphAttribute.itemSize,
-				tmpMorphAttribute.normalized,
-			);
-
-		}
-
-	}
-
-	// indices
-
-	result.setIndex( newIndices );
-
-	return result;
-
-}
-
-/**
- * Returns a new indexed geometry based on `TrianglesDrawMode` draw mode.
- * This mode corresponds to the `gl.TRIANGLES` primitive in WebGL.
- *
- * @param {BufferGeometry} geometry - The geometry to convert.
- * @param {number} drawMode - The current draw mode.
- * @return {BufferGeometry} The new geometry using `TrianglesDrawMode`.
- */
-function toTrianglesDrawMode( geometry, drawMode ) {
-
-	if ( drawMode === TrianglesDrawMode ) {
-
-		console.warn( 'THREE.BufferGeometryUtils.toTrianglesDrawMode(): Geometry already defined as triangles.' );
-		return geometry;
-
-	}
-
-	if ( drawMode === TriangleFanDrawMode || drawMode === TriangleStripDrawMode ) {
-
-		let index = geometry.getIndex();
-
-		// generate index if not present
-
-		if ( index === null ) {
-
-			const indices = [];
-
-			const position = geometry.getAttribute( 'position' );
-
-			if ( position !== undefined ) {
-
-				for ( let i = 0; i < position.count; i ++ ) {
-
-					indices.push( i );
-
-				}
-
-				geometry.setIndex( indices );
-				index = geometry.getIndex();
-
-			} else {
-
-				console.error( 'THREE.BufferGeometryUtils.toTrianglesDrawMode(): Undefined position attribute. Processing not possible.' );
-				return geometry;
-
-			}
-
-		}
-
-		//
-
-		const numberOfTriangles = index.count - 2;
-		const newIndices = [];
-
-		if ( drawMode === TriangleFanDrawMode ) {
-
-			// gl.TRIANGLE_FAN
-
-			for ( let i = 1; i <= numberOfTriangles; i ++ ) {
-
-				newIndices.push( index.getX( 0 ) );
-				newIndices.push( index.getX( i ) );
-				newIndices.push( index.getX( i + 1 ) );
-
-			}
-
-		} else {
-
-			// gl.TRIANGLE_STRIP
-
-			for ( let i = 0; i < numberOfTriangles; i ++ ) {
-
-				if ( i % 2 === 0 ) {
-
-					newIndices.push( index.getX( i ) );
-					newIndices.push( index.getX( i + 1 ) );
-					newIndices.push( index.getX( i + 2 ) );
-
-				} else {
-
-					newIndices.push( index.getX( i + 2 ) );
-					newIndices.push( index.getX( i + 1 ) );
-					newIndices.push( index.getX( i ) );
-
-				}
-
-			}
-
-		}
-
-		if ( ( newIndices.length / 3 ) !== numberOfTriangles ) {
-
-			console.error( 'THREE.BufferGeometryUtils.toTrianglesDrawMode(): Unable to generate correct amount of triangles.' );
-
-		}
-
-		// build final geometry
-
-		const newGeometry = geometry.clone();
-		newGeometry.setIndex( newIndices );
-		newGeometry.clearGroups();
-
-		return newGeometry;
-
-	} else {
-
-		console.error( 'THREE.BufferGeometryUtils.toTrianglesDrawMode(): Unknown draw mode:', drawMode );
-		return geometry;
+		parallelTraverse( a.children[ i ], b.children[ i ], callback );
 
 	}
 
@@ -18826,16 +18630,16 @@ version 0.8.2
 
 
 // aliases for shorter compressed code (most minifers don't do this)
-var u8$1 = Uint8Array, u16$1 = Uint16Array, i32 = Int32Array;
+var u8 = Uint8Array, u16 = Uint16Array, i32 = Int32Array;
 // fixed length extra bits
-var fleb$1 = new u8$1([0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 0, /* unused */ 0, 0, /* impossible */ 0]);
+var fleb = new u8([0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 0, /* unused */ 0, 0, /* impossible */ 0]);
 // fixed distance extra bits
-var fdeb$1 = new u8$1([0, 0, 0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 10, 10, 11, 11, 12, 12, 13, 13, /* unused */ 0, 0]);
+var fdeb = new u8([0, 0, 0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 10, 10, 11, 11, 12, 12, 13, 13, /* unused */ 0, 0]);
 // code length index map
-var clim$1 = new u8$1([16, 17, 18, 0, 8, 7, 9, 6, 10, 5, 11, 4, 12, 3, 13, 2, 14, 1, 15]);
+var clim = new u8([16, 17, 18, 0, 8, 7, 9, 6, 10, 5, 11, 4, 12, 3, 13, 2, 14, 1, 15]);
 // get base, reverse index map from extra bits
-var freb$1 = function (eb, start) {
-    var b = new u16$1(31);
+var freb = function (eb, start) {
+    var b = new u16(31);
     for (var i = 0; i < 31; ++i) {
         b[i] = start += 1 << eb[i - 1];
     }
@@ -18848,42 +18652,42 @@ var freb$1 = function (eb, start) {
     }
     return { b: b, r: r };
 };
-var _a$1 = freb$1(fleb$1, 2), fl$1 = _a$1.b, revfl$1 = _a$1.r;
+var _a = freb(fleb, 2), fl = _a.b, revfl = _a.r;
 // we can ignore the fact that the other numbers are wrong; they never happen anyway
-fl$1[28] = 258, revfl$1[258] = 28;
-var _b$1 = freb$1(fdeb$1, 0), fd$1 = _b$1.b;
+fl[28] = 258, revfl[258] = 28;
+var _b = freb(fdeb, 0), fd = _b.b;
 // map of value to reverse (assuming 16 bits)
-var rev$1 = new u16$1(32768);
-for (var i$1 = 0; i$1 < 32768; ++i$1) {
+var rev = new u16(32768);
+for (var i = 0; i < 32768; ++i) {
     // reverse table algorithm from SO
-    var x$2 = ((i$1 & 0xAAAA) >> 1) | ((i$1 & 0x5555) << 1);
-    x$2 = ((x$2 & 0xCCCC) >> 2) | ((x$2 & 0x3333) << 2);
-    x$2 = ((x$2 & 0xF0F0) >> 4) | ((x$2 & 0x0F0F) << 4);
-    rev$1[i$1] = (((x$2 & 0xFF00) >> 8) | ((x$2 & 0x00FF) << 8)) >> 1;
+    var x$1 = ((i & 0xAAAA) >> 1) | ((i & 0x5555) << 1);
+    x$1 = ((x$1 & 0xCCCC) >> 2) | ((x$1 & 0x3333) << 2);
+    x$1 = ((x$1 & 0xF0F0) >> 4) | ((x$1 & 0x0F0F) << 4);
+    rev[i] = (((x$1 & 0xFF00) >> 8) | ((x$1 & 0x00FF) << 8)) >> 1;
 }
 // create huffman tree from u8 "map": index -> code length for code index
 // mb (max bits) must be at most 15
 // TODO: optimize/split up?
-var hMap$1 = (function (cd, mb, r) {
+var hMap = (function (cd, mb, r) {
     var s = cd.length;
     // index
     var i = 0;
     // u16 "map": index -> # of codes with bit length = index
-    var l = new u16$1(mb);
+    var l = new u16(mb);
     // length of cd must be 288 (total # of codes)
     for (; i < s; ++i) {
         if (cd[i])
             ++l[cd[i] - 1];
     }
     // u16 "map": index -> minimum code for bit length = index
-    var le = new u16$1(mb);
+    var le = new u16(mb);
     for (i = 1; i < mb; ++i) {
         le[i] = (le[i - 1] + l[i - 1]) << 1;
     }
     var co;
     if (r) {
         // u16 "map": index -> number of actual bits, symbol for code
-        co = new u16$1(1 << mb);
+        co = new u16(1 << mb);
         // bits to remove for reverser
         var rvb = 15 - mb;
         for (i = 0; i < s; ++i) {
@@ -18898,41 +18702,41 @@ var hMap$1 = (function (cd, mb, r) {
                 // m is end value
                 for (var m = v | ((1 << r_1) - 1); v <= m; ++v) {
                     // every 16 bit value starting with the code yields the same result
-                    co[rev$1[v] >> rvb] = sv;
+                    co[rev[v] >> rvb] = sv;
                 }
             }
         }
     }
     else {
-        co = new u16$1(s);
+        co = new u16(s);
         for (i = 0; i < s; ++i) {
             if (cd[i]) {
-                co[i] = rev$1[le[cd[i] - 1]++] >> (15 - cd[i]);
+                co[i] = rev[le[cd[i] - 1]++] >> (15 - cd[i]);
             }
         }
     }
     return co;
 });
 // fixed length tree
-var flt$1 = new u8$1(288);
-for (var i$1 = 0; i$1 < 144; ++i$1)
-    flt$1[i$1] = 8;
-for (var i$1 = 144; i$1 < 256; ++i$1)
-    flt$1[i$1] = 9;
-for (var i$1 = 256; i$1 < 280; ++i$1)
-    flt$1[i$1] = 7;
-for (var i$1 = 280; i$1 < 288; ++i$1)
-    flt$1[i$1] = 8;
+var flt = new u8(288);
+for (var i = 0; i < 144; ++i)
+    flt[i] = 8;
+for (var i = 144; i < 256; ++i)
+    flt[i] = 9;
+for (var i = 256; i < 280; ++i)
+    flt[i] = 7;
+for (var i = 280; i < 288; ++i)
+    flt[i] = 8;
 // fixed distance tree
-var fdt$1 = new u8$1(32);
-for (var i$1 = 0; i$1 < 32; ++i$1)
-    fdt$1[i$1] = 5;
+var fdt = new u8(32);
+for (var i = 0; i < 32; ++i)
+    fdt[i] = 5;
 // fixed length map
-var flrm$1 = /*#__PURE__*/ hMap$1(flt$1, 9, 1);
+var flrm = /*#__PURE__*/ hMap(flt, 9, 1);
 // fixed distance map
-var fdrm$1 = /*#__PURE__*/ hMap$1(fdt$1, 5, 1);
+var fdrm = /*#__PURE__*/ hMap(fdt, 5, 1);
 // find max of array
-var max$1 = function (a) {
+var max = function (a) {
     var m = a[0];
     for (var i = 1; i < a.length; ++i) {
         if (a[i] > m)
@@ -18941,24 +18745,24 @@ var max$1 = function (a) {
     return m;
 };
 // read d, starting at bit p and mask with m
-var bits$1 = function (d, p, m) {
+var bits = function (d, p, m) {
     var o = (p / 8) | 0;
     return ((d[o] | (d[o + 1] << 8)) >> (p & 7)) & m;
 };
 // read d, starting at bit p continuing for at least 16 bits
-var bits16$1 = function (d, p) {
+var bits16 = function (d, p) {
     var o = (p / 8) | 0;
     return ((d[o] | (d[o + 1] << 8) | (d[o + 2] << 16)) >> (p & 7));
 };
 // get end of byte
-var shft$1 = function (p) { return ((p + 7) / 8) | 0; };
+var shft = function (p) { return ((p + 7) / 8) | 0; };
 // typed array slice - allows garbage collector to free original reference,
 // while being more compatible than .slice
-var slc$1 = function (v, s, e) {
+var slc = function (v, s, e) {
     if (e == null || e > v.length)
         e = v.length;
     // can't use .constructor in case user-supplied
-    return new u8$1(v.subarray(s, e));
+    return new u8(v.subarray(s, e));
 };
 // error codes
 var ec = [
@@ -18988,11 +18792,11 @@ var err = function (ind, msg, nt) {
     return e;
 };
 // expands raw DEFLATE data
-var inflt$1 = function (dat, st, buf, dict) {
+var inflt = function (dat, st, buf, dict) {
     // source length       dict length
     var sl = dat.length, dl = 0;
     if (!sl || st.f && !st.l)
-        return buf || new u8$1(0);
+        return buf || new u8(0);
     var noBuf = !buf;
     // have to estimate size
     var resize = noBuf || st.i != 2;
@@ -19000,14 +18804,14 @@ var inflt$1 = function (dat, st, buf, dict) {
     var noSt = st.i;
     // Assumes roughly 33% compression ratio average
     if (noBuf)
-        buf = new u8$1(sl * 3);
+        buf = new u8(sl * 3);
     // ensure buffer can fit at least l elements
     var cbuf = function (l) {
         var bl = buf.length;
         // need to increase size to fit
         if (l > bl) {
             // Double or set to necessary, whichever is greater
-            var nbuf = new u8$1(Math.max(bl * 2, l));
+            var nbuf = new u8(Math.max(bl * 2, l));
             nbuf.set(buf);
             buf = nbuf;
         }
@@ -19019,13 +18823,13 @@ var inflt$1 = function (dat, st, buf, dict) {
     do {
         if (!lm) {
             // BFINAL - this is only 1 when last chunk is next
-            final = bits$1(dat, pos, 1);
+            final = bits(dat, pos, 1);
             // type: 0 = no compression, 1 = fixed huffman, 2 = dynamic huffman
-            var type = bits$1(dat, pos + 1, 3);
+            var type = bits(dat, pos + 1, 3);
             pos += 3;
             if (!type) {
                 // go to end of byte boundary
-                var s = shft$1(pos) + 4, l = dat[s - 4] | (dat[s - 3] << 8), t = s + l;
+                var s = shft(pos) + 4, l = dat[s - 4] | (dat[s - 3] << 8), t = s + l;
                 if (t > sl) {
                     if (noSt)
                         err(0);
@@ -19041,27 +18845,27 @@ var inflt$1 = function (dat, st, buf, dict) {
                 continue;
             }
             else if (type == 1)
-                lm = flrm$1, dm = fdrm$1, lbt = 9, dbt = 5;
+                lm = flrm, dm = fdrm, lbt = 9, dbt = 5;
             else if (type == 2) {
                 //  literal                            lengths
-                var hLit = bits$1(dat, pos, 31) + 257, hcLen = bits$1(dat, pos + 10, 15) + 4;
-                var tl = hLit + bits$1(dat, pos + 5, 31) + 1;
+                var hLit = bits(dat, pos, 31) + 257, hcLen = bits(dat, pos + 10, 15) + 4;
+                var tl = hLit + bits(dat, pos + 5, 31) + 1;
                 pos += 14;
                 // length+distance tree
-                var ldt = new u8$1(tl);
+                var ldt = new u8(tl);
                 // code length tree
-                var clt = new u8$1(19);
+                var clt = new u8(19);
                 for (var i = 0; i < hcLen; ++i) {
                     // use index map to get real code
-                    clt[clim$1[i]] = bits$1(dat, pos + i * 3, 7);
+                    clt[clim[i]] = bits(dat, pos + i * 3, 7);
                 }
                 pos += hcLen * 3;
                 // code lengths bits
-                var clb = max$1(clt), clbmsk = (1 << clb) - 1;
+                var clb = max(clt), clbmsk = (1 << clb) - 1;
                 // code lengths map
-                var clm = hMap$1(clt, clb, 1);
+                var clm = hMap(clt, clb, 1);
                 for (var i = 0; i < tl;) {
-                    var r = clm[bits$1(dat, pos, clbmsk)];
+                    var r = clm[bits(dat, pos, clbmsk)];
                     // bits read
                     pos += r & 15;
                     // symbol
@@ -19074,11 +18878,11 @@ var inflt$1 = function (dat, st, buf, dict) {
                         //  copy   count
                         var c = 0, n = 0;
                         if (s == 16)
-                            n = 3 + bits$1(dat, pos, 3), pos += 2, c = ldt[i - 1];
+                            n = 3 + bits(dat, pos, 3), pos += 2, c = ldt[i - 1];
                         else if (s == 17)
-                            n = 3 + bits$1(dat, pos, 7), pos += 3;
+                            n = 3 + bits(dat, pos, 7), pos += 3;
                         else if (s == 18)
-                            n = 11 + bits$1(dat, pos, 127), pos += 7;
+                            n = 11 + bits(dat, pos, 127), pos += 7;
                         while (n--)
                             ldt[i++] = c;
                     }
@@ -19086,11 +18890,11 @@ var inflt$1 = function (dat, st, buf, dict) {
                 //    length tree                 distance tree
                 var lt = ldt.subarray(0, hLit), dt = ldt.subarray(hLit);
                 // max length bits
-                lbt = max$1(lt);
+                lbt = max(lt);
                 // max dist bits
-                dbt = max$1(dt);
-                lm = hMap$1(lt, lbt, 1);
-                dm = hMap$1(dt, dbt, 1);
+                dbt = max(dt);
+                lm = hMap(lt, lbt, 1);
+                dm = hMap(dt, dbt, 1);
             }
             else
                 err(1);
@@ -19108,7 +18912,7 @@ var inflt$1 = function (dat, st, buf, dict) {
         var lpos = pos;
         for (;; lpos = pos) {
             // bits read, code
-            var c = lm[bits16$1(dat, pos) & lms], sym = c >> 4;
+            var c = lm[bits16(dat, pos) & lms], sym = c >> 4;
             pos += c & 15;
             if (pos > tbts) {
                 if (noSt)
@@ -19128,19 +18932,19 @@ var inflt$1 = function (dat, st, buf, dict) {
                 // no extra bits needed if less
                 if (sym > 264) {
                     // index
-                    var i = sym - 257, b = fleb$1[i];
-                    add = bits$1(dat, pos, (1 << b) - 1) + fl$1[i];
+                    var i = sym - 257, b = fleb[i];
+                    add = bits(dat, pos, (1 << b) - 1) + fl[i];
                     pos += b;
                 }
                 // dist
-                var d = dm[bits16$1(dat, pos) & dms], dsym = d >> 4;
+                var d = dm[bits16(dat, pos) & dms], dsym = d >> 4;
                 if (!d)
                     err(3);
                 pos += d & 15;
-                var dt = fd$1[dsym];
+                var dt = fd[dsym];
                 if (dsym > 3) {
-                    var b = fdeb$1[dsym];
-                    dt += bits16$1(dat, pos) & (1 << b) - 1, pos += b;
+                    var b = fdeb[dsym];
+                    dt += bits16(dat, pos) & (1 << b) - 1, pos += b;
                 }
                 if (pos > tbts) {
                     if (noSt)
@@ -19166,10 +18970,10 @@ var inflt$1 = function (dat, st, buf, dict) {
             final = 1, st.m = lbt, st.d = dm, st.n = dbt;
     } while (!final);
     // don't reallocate for streams or user buffers
-    return bt != buf.length && noBuf ? slc$1(buf, 0, bt) : buf.subarray(0, bt);
+    return bt != buf.length && noBuf ? slc(buf, 0, bt) : buf.subarray(0, bt);
 };
 // empty
-var et$1 = /*#__PURE__*/ new u8$1(0);
+var et = /*#__PURE__*/ new u8(0);
 // zlib start
 var zls = function (d, dict) {
     if ((d[0] & 15) != 8 || (d[0] >> 4) > 7 || ((d[0] << 8 | d[1]) % 31))
@@ -19184,16 +18988,16 @@ var zls = function (d, dict) {
  * @param opts The decompression options
  * @returns The decompressed version of the data
  */
-function unzlibSync$1(data, opts) {
-    return inflt$1(data.subarray(zls(data), -4), { i: 2 }, opts, opts);
+function unzlibSync(data, opts) {
+    return inflt(data.subarray(zls(data), -4), { i: 2 }, opts, opts);
 }
 // text decoder
-var td$1 = typeof TextDecoder != 'undefined' && /*#__PURE__*/ new TextDecoder();
+var td = typeof TextDecoder != 'undefined' && /*#__PURE__*/ new TextDecoder();
 // text decoder stream
-var tds$1 = 0;
+var tds = 0;
 try {
-    td$1.decode(et$1, { stream: true });
-    tds$1 = 1;
+    td.decode(et, { stream: true });
+    tds = 1;
 }
 catch (e) { }
 
@@ -23498,7 +23302,7 @@ class BinaryParser {
 
 				}
 
-				const data = unzlibSync$1( new Uint8Array( reader.getArrayBuffer( compressedLength ) ) );
+				const data = unzlibSync( new Uint8Array( reader.getArrayBuffer( compressedLength ) ) );
 				const reader2 = new BinaryReader( data.buffer );
 
 				switch ( type ) {
@@ -25895,19 +25699,6 @@ class HDRLoader extends DataTextureLoader {
 
 }
 
-// @deprecated, r180
-
-let RGBELoader$1 = class RGBELoader extends HDRLoader {
-
-	constructor( manager ) {
-
-		console.warn( 'RGBELoader has been deprecated. Please use HDRLoader instead.' );
-		super( manager );
-
-	}
-
-};
-
 // Referred to the original Industrial Light & Magic OpenEXR implementation and the TinyEXR / Syoyo Fujita
 // implementation, so I have preserved their copyright notices.
 
@@ -25991,7 +25782,7 @@ let RGBELoader$1 = class RGBELoader extends HDRLoader {
  * @augments DataTextureLoader
  * @three_import import { EXRLoader } from 'three/addons/loaders/EXRLoader.js';
  */
-let EXRLoader$1 = class EXRLoader extends DataTextureLoader {
+class EXRLoader extends DataTextureLoader {
 
 	/**
 	 * Constructs a new EXR loader.
@@ -27260,7 +27051,7 @@ let EXRLoader$1 = class EXRLoader extends DataTextureLoader {
 
 			const compressed = info.array.slice( info.offset.value, info.offset.value + info.size );
 
-			const rawBuffer = unzlibSync$1( compressed );
+			const rawBuffer = unzlibSync( compressed );
 			const tmpBuffer = new Uint8Array( rawBuffer.length );
 
 			predictor( rawBuffer ); // revert predictor
@@ -27377,7 +27168,7 @@ let EXRLoader$1 = class EXRLoader extends DataTextureLoader {
 
 			const compressed = info.array.slice( info.offset.value, info.offset.value + info.size );
 
-			const rawBuffer = unzlibSync$1( compressed );
+			const rawBuffer = unzlibSync( compressed );
 
 			const byteSize = info.inputChannels.length * info.lines * info.columns * info.totalBytes;
 			const tmpBuffer = new ArrayBuffer( byteSize );
@@ -27560,7 +27351,7 @@ let EXRLoader$1 = class EXRLoader extends DataTextureLoader {
 					case DEFLATE:
 
 						const compressed = info.array.slice( inOffset.value, inOffset.value + dwaHeader.totalAcUncompressedCount );
-						const data = unzlibSync$1( compressed );
+						const data = unzlibSync( compressed );
 						acBuffer = new Uint16Array( data.buffer );
 						inOffset.value += dwaHeader.totalAcUncompressedCount;
 						break;
@@ -27587,7 +27378,7 @@ let EXRLoader$1 = class EXRLoader extends DataTextureLoader {
 			if ( dwaHeader.rleRawSize > 0 ) {
 
 				const compressed = info.array.slice( inOffset.value, inOffset.value + dwaHeader.rleCompressedSize );
-				const data = unzlibSync$1( compressed );
+				const data = unzlibSync( compressed );
 				rleBuffer = decodeRunLength( data.buffer );
 
 				inOffset.value += dwaHeader.rleCompressedSize;
@@ -28676,7 +28467,7 @@ let EXRLoader$1 = class EXRLoader extends DataTextureLoader {
 
 	}
 
-};
+}
 
 /**
  * UltraHDR Image Format - https://developer.android.com/media/platform/hdr-image-format
@@ -32556,14 +32347,14 @@ const Pool = {
 
     loaderRGBE: () => {
 
-        if( !Pool.RGBE ) Pool.RGBE = new RGBELoader$1( Pool.manager );
+        if( !Pool.RGBE ) Pool.RGBE = new HDRLoader( Pool.manager );
         return Pool.RGBE
 
     },
 
     loaderEXR: () => {
 
-        if( !Pool.EXR ) Pool.EXR = new EXRLoader$1( Pool.manager );
+        if( !Pool.EXR ) Pool.EXR = new EXRLoader( Pool.manager );
         return Pool.EXR
 
     },
@@ -33145,7 +32936,7 @@ const setting$4 = {
     hair:0x752002,//0xa43412,
     bow:0x100402,
     sheen:1,//2.25,
-    sheenRoughness:1.0,//1.0,
+    sheenRoughness:0.6,//1.0,
     metalness:0.6,
     roughness:0.4,
     
@@ -33209,7 +33000,7 @@ const Human = {
             normalMap:'avatar_n',
 
             //envMapIntensity:0.7,
-            //reflectivity:1.0,
+            reflectivity:0.2,
 
             roughness:0.54,
             metalness:0.14,
@@ -33220,11 +33011,10 @@ const Human = {
             roughnessMap:'avatar_r',*/
 
             normalScale: new Vector2( setting$4.normal, -setting$4.normal ),
-            
-            /*sheen:setting.sheen,
-            sheenColor:0xFFFFFF,
-            sheenRoughness:setting.sheenRoughness,
-            sheenColorMap:'avatar_c',
+            sheenColor:0x600000,
+            sheen:setting$4.sheen,
+            sheenRoughness:setting$4.sheenRoughness,
+            //sheenColorMap:'avatar_c',
             /*sheenColor:0xff0000,
             sheenColorMap:'avatar_u',
             iridescence:0.1,*/
@@ -33292,6 +33082,7 @@ const Human = {
             alphaMap:'hair_a',
             //alphaTest:setting.alphaTest,
             side: DoubleSide,
+            shadowSide: DoubleSide,
             emissive:setting$4.hair,
             emissiveIntensity:0.5,
             //opacity:1.0,
@@ -33480,7 +33271,7 @@ const Human = {
                     case 'hair': 
                     node.material = Pool.getMaterial( 'hair' ) || def;
                     node.receiveShadow = false;
-                    node.castShadow = false;//true;
+                    node.castShadow = true;
                     //node.matrixWorldAutoUpdate = false
                     node.visible = Human.haveHair ? startHigh : false;
                     break;
@@ -34295,7 +34086,7 @@ class Avatar extends Group {
         if( this.root ){
             this.isClone = true;
             this.tensionTest = false;
-            this.root = clone$1( this.root );
+            this.root = clone( this.root );
             this.init();
 
         } else {
@@ -38215,7 +38006,6 @@ class Solver extends Item {
 
 		this.motor = motor;
 		this.Utils = this.motor.utils;
-		
 		this.type = 'solver';
 
 	}
@@ -38503,6 +38293,13 @@ class SolverJoint {
 
 		if( this.isDrive ){
 
+			// TODO find methode to increase speed  
+
+			//console.log(dt)
+			//let totalTime = 1/this.time
+
+			//let dt = this.solver.motor.delta*100
+
 		    this.tmp += dt*this.time;
 			let t = this.tmp;
 			t = (t > 1) ? 1 : t;
@@ -38511,7 +38308,10 @@ class SolverJoint {
 			//let t = this.tmp // this.time;
 			//t = (t > 1) ? 1 : t;
 
-			let move = MathTool.lerp( this.start, this.target, t );//this.current + (this.target - this.current) * t;
+			//let move = MathTool.lerp( this.start, this.target, t );//this.current + (this.target - this.current) * t;
+			let move = this.target;//MathTool.lerp( this.start, this.target, t );
+
+			//let move = MathTool.damp(this.start, this.target, 0.5, dt )
 
 			this.nup = { name:this.name, drivesTarget: [[ this.driveType, move ]] };
 
@@ -41006,7 +40806,7 @@ class SoftSolver {
 
 }
 
-function h(t,i,n,s){return function(t,i,n,s,e){let r={x:i.x-t.x,y:i.y-t.y},o={x:s.x-n.x,y:s.y-n.y};const a=p(t),h=p(n);if(a===h)return e;const l=p(i);if(l===h)return e;const u=p(s);if(a===u)return e;if(l===u)return e;let c=(t.x-n.x)*o.y-(t.y-n.y)*o.x,g=(i.x-n.x)*o.y-(i.y-n.y)*o.x,d=(n.x-t.x)*r.y-(n.y-t.y)*r.x,f=(s.x-t.x)*r.y-(s.y-t.y)*r.x;return (c>=0&&g<=0||c<=0&&g>=0)&&(d>=0&&f<=0||d<=0&&f>=0)}(t,i,n,s,false)}function l(i,n,s,e){let r=0,o=new Vector3;return f(i)===f(n)||0===s.x&&0===s.y&&0===s.z?null:(r=((e.x-i.x)*s.x+(e.y-i.y)*s.y+(e.z-i.z)*s.z)/((n.x-i.x)*s.x+(n.y-i.y)*s.y+(n.z-i.z)*s.z),r<0||r>1?null:(o=new Vector3(i.x+(n.x-i.x)*r,i.y+(n.y-i.y)*r,i.z+(n.z-i.z)*r),{x:o,s:r}))}function u(t,i,n){return (i.x-t.x)*(n.y-t.y)-(i.y-t.y)*(n.x-t.x)<=0}function c(t){return parseInt(Math.round(1e6*t))}function g(t,i=1e6){return Math.floor(t*i)}function d(t,i){return Math.round((t+i)*(t+i+1)*.5+i)}function p(t){return d(g(t.x),g(t.y))}function f(t){const i=g(t.x),n=g(t.y),s=g(t.z),e=(i+n)*(i+n+1)*.5+n;return (e+s)*(e+s+1)*.5+s}function x$1(t,i,n){return !(i.x*(t.x-n.x)+i.y*(t.y-n.y)+i.z*(t.z-n.z)<0)}class v{constructor(n=new Vector3,s=new Vector3,e=new Vector2){this.position=n,this.normal=s,this.uv=e;}equals(t){return f(this.position)===f(t.position)}toString(){return `Position = ${this.position.x}, ${this.position.y}, ${this.position.z}, Normal = ${this.normal.x}, ${this.normal.y}, ${this.normal.z}, UV = ${this.uv.x}, ${this.uv.y}`}}const y=0,m$1=1;class w{constructor(){this.vertices=[],this.cutVertices=[],this.triangles=[[],[]],this.constraints=[],this.indexMap=[],this.bounds=new Box3,this.vertexAdjacency=[],this.convextested=false;}static fromGeometry(n){const s=n.attributes.position.array,e=n.attributes.normal.array,r=n.attributes.uv.array,o=n.attributes.position.count;let a,h;const l=new w;for(let n=0;n<o;n++)a=3*n,h=2*n,l.vertices.push(new v(new Vector3(s[a],s[a+1],s[a+2]),new Vector3(e[a],e[a+1],e[a+2]),new Vector2(r[h],r[h+1])));return l.triangles=[[...n.index.array],[]],l.calculateBounds(),l}get size(){this.bounds||this.calculateBounds();let i=new Vector3;return this.bounds.getSize(i)}get convex(){return this.convextested||(this.cc=this.isConvex()),this.cc}get triangleCount(){return (this.triangles[0].length+this.triangles[1].length)/3}get vertexCount(){return this.vertices.length+this.cutVertices.length}addCutFaceVertex(t,i,n){const s=new v(t,i,n);this.vertices.push(s),this.cutVertices.push(s),this.vertexAdjacency.push(this.vertices.length-1);}addMappedVertex(t,i){this.vertices.push(t),this.indexMap[i]=this.vertices.length-1;}addTriangle(t,i,n,s){this.triangles[s].push(t,i,n);}addMappedTriangle(t,i,n,s){this.triangles[s].push(this.indexMap[t],this.indexMap[i],this.indexMap[n]);}weldCutFaceVertices(){const t=[],i=[],n=new Array(this.cutVertices.length);let s=0;const e=new Map;this.cutVertices.forEach(((r,o)=>{const a=function(t){let i=c(t.x),n=c(t.y),s=c(t.z),e=(i+n)*(i+n+1)*.5+n;return (e+s)*(e+s+1)*.5+s}(r.position),h=e.get(a);void 0===h?(n[o]=s,e.set(a,s),t.push(this.cutVertices[o]),i.push(this.vertexAdjacency[o]),s++):n[o]=h;}));for(let t=0;t<this.constraints.length;t++){const i=this.constraints[t];i.v1=n[i.v1],i.v2=n[i.v2];}this.cutVertices=t,this.vertexAdjacency=i;}calculateBounds(){if(!this.vertices.length)return;let t=this.vertices[0].position.clone(),i=t.clone();this.vertices.forEach((n=>{t.x=Math.min(t.x,n.position.x),t.y=Math.min(t.y,n.position.y),t.z=Math.min(t.z,n.position.z),i.x=Math.max(i.x,n.position.x),i.y=Math.max(i.y,n.position.y),i.z=Math.max(i.z,n.position.z);})),this.bounds.set(t,i);}calculateBounds_(t=false){null===this.bounds&&(this.bounds=new Box3);let i=this.vertices.length;t&&(i+=this.cutVertices.length);const s=[];let e=-1;for(const t of this.vertices)s[e++]=t.position;if(t)for(const t of this.cutVertices)s[e++]=t.position;this.bounds.setFromPoints(s);}toMesh(i,n=null,r=true,o=0){const a=new Vector3,h=new Vector3;let l=this.toGeometry(r,o);l.boundingBox.getCenter(a),l.boundingBox.getSize(h),l.translate(-a.x,-a.y,-a.z),l.boundingSphere=new Sphere(new Vector3,.5*h.length());let u=i.material;n&&u.isMaterial&&(u=[i.material,n]);const c=new Mesh(l,u);return c.receiveShadow=i.receiveShadow,c.castShadow=i.castShadow,c.sizer=h.length(),a.applyQuaternion(i.quaternion),c.position.copy(i.position).add(a),c.quaternion.copy(i.quaternion),c.userData={origin:c.position.clone(),direction:a.normalize(),size:h},c}makeTrickness(t,i,n,s,e){let r,o=1-e,a=[...t],h=[...i],l=[...n],u=t.length/3,c=u;for(;c--;)r=3*c,a[r]*=o,a[r+1]*=o,a[r+2]*=o;let g=[];for(c=s.length;c--;)g[c]=s[c]+u;return [a,h,l,g]}toGeometry(t,i){let n;const s=new BufferGeometry;let e=[],a=[],h=[];if(this.vertices.forEach((t=>{e.push(t.position.x,t.position.y,t.position.z),a.push(t.normal.x,t.normal.y,t.normal.z),h.push(t.uv.x,t.uv.y);})),0!==i){let t=this.makeTrickness(e,a,h,this.triangles[0],i);e=e.concat(t[0]),a=a.concat(t[1]),h=h.concat(t[2]),n=t[3];}return t&&this.cutVertices.forEach((t=>{e.push(t.position.x,t.position.y,t.position.z),a.push(t.normal.x,t.normal.y,t.normal.z),h.push(t.uv.x,t.uv.y);})),s.addGroup(0,this.triangles[0].length,0),0!==i&&(s.addGroup(this.triangles[0].length,n.length,1),this.triangles[0]=this.triangles[0].concat(n)),t&&s.addGroup(this.triangles[0].length,this.triangles[1].length,1),s.setAttribute("position",new BufferAttribute(new Float32Array(e),3)),s.setAttribute("normal",new BufferAttribute(new Float32Array(a),3)),s.setAttribute("uv",new BufferAttribute(new Float32Array(h),2)),s.setIndex(new BufferAttribute(new Uint32Array(this.triangles.flat()),1)),s.computeBoundingBox(),s}isConvex(i=.001){this.convextested=true;let n=0;const s=this.triangleCount,e=[...this.triangles[0],...this.triangles[1]],r=[...this.vertices,...this.cutVertices],o=r.length;if(0===s||0===o)return  false;const a=new Vector3,h=new Vector3,l=new Vector3,u=new Vector3,c=new Vector3;let g,d;for(let t=0;t<s;t++){n=3*t,c.copy(r[0].position),a.copy(r[e[n]].position),h.copy(r[e[n+1]].position),l.copy(r[e[n+2]].position),h.sub(a),l.sub(a),u.copy(h).cross(l).normalize(),g=c.sub(a).dot(u);for(let t=0;t<o;t++)if(d=c.copy(r[t].position).sub(a).dot(u),Math.abs(g)>i&&Math.abs(d)>i&&g*d<0)return  false}return  true}}class V{constructor(t){this.parent=new Array(t),this.rank=new Array(t);for(let i=0;i<t;i++)this.parent[i]=i,this.rank[i]=1;}find(t){return this.parent[t]!==t&&(this.parent[t]=this.find(this.parent[t])),this.parent[t]}union(t,i){const n=this.find(t),s=this.find(i);n!==s&&(this.rank[n]>this.rank[s]?this.parent[s]=n:this.rank[n]<this.rank[s]?this.parent[n]=s:(this.parent[s]=n,this.rank[n]+=1));}}let M$1 = class M{constructor(t,i,n,s,e){this.v1=t,this.v2=i,this.t1=void 0!==n?n:-1,this.t2=void 0!==s?s:-1,this.t1Edge=void 0!==e?e:0;}equals(t){return this.v1===t.v1&&this.v2===t.v2||this.v1===t.v2&&this.v2===t.v1}toString(){return `Edge: T${this.t1}->T${this.t2} (V${this.v1}->V${this.v2})`}};class T{static getBinNumber(t,i,n){return t%2==0?t*n+i:(t+1)*n-i-1}static sort(t,i,n){if(n<=1)return t;i>t.length&&(i=t.length);const s=new Array(n).fill(0),e=new Array(t.length);for(let n=0;n<i;n++)s[t[n].bin]++;for(let t=1;t<n;t++)s[t]+=s[t-1];for(let n=i-1;n>=0;n--){const i=t[n].bin;s[i]--,e[s[i]]=t[n];}for(let n=i;n<e.length;n++)e[n]=t[n];return e}}let C$1 = class C{constructor(t,i){this.index=t,this.coords=i,this.bin=0;}toString(){return `${this.coords} -> ${this.bin}`}};const z=-1;class b{constructor(n,s){if(this.normalizationScaleFactor=1,this.N=n.length,this.N>=3){this.triangleCount=2*this.N+1,this.triangulation=Array.from({length:this.triangleCount},(()=>new Array(6).fill(0))),this.skipTriangle=new Array(this.triangleCount).fill(false),this.points=new Array(this.N+3),this.normal=s.clone().normalize();let o=n[0].position.clone().sub(n[1].position).normalize(),a=this.normal.clone(),h=new Vector3;h.crossVectors(o,a).normalize();for(let t=0;t<this.N;t++){var e=n[t].position,r=new Vector2(e.dot(o),e.dot(h));this.points[t]=new C$1(t,r);}}else this.triangleCount=0,this.triangulation=[],this.skipTriangle=[],this.points=[],this.normal=new Vector3;}triangulate(){if(this.N<3)return [];this.addSuperTriangle(),this.normalizeCoordinates(),this.computeTriangulation(),this.discardTrianglesWithSuperTriangleVertices();const t=[];for(let i=0;i<this.triangleCount;i++)this.skipTriangle[i]||t.push(this.triangulation[i][0],this.triangulation[i][1],this.triangulation[i][2]);return t}normalizeCoordinates(){let t=Number.MAX_VALUE,n=Number.MIN_VALUE,s=Number.MAX_VALUE,e=Number.MIN_VALUE;for(let i=0;i<this.N;i++)t=Math.min(t,this.points[i].coords.x),n=Math.max(n,this.points[i].coords.x),s=Math.min(s,this.points[i].coords.y),e=Math.max(e,this.points[i].coords.y);const r=Math.max(n-t,e-s);for(let n=0;n<this.N;n++){var o=this.points[n],a=new Vector2((o.coords.x-t)/r,(o.coords.y-s)/r);this.points[n].coords=a;}}sortPointsIntoBins(){const t=Math.round(Math.pow(this.N,.25)),i=t*t;for(let i=0;i<this.N;i++){var n=this.points[i];const s=Math.floor(.99*t*n.coords.y),e=Math.floor(.99*t*n.coords.x);n.bin=T.getBinNumber(s,e,t);}return T.sort(this.points,this.N,i)}computeTriangulation(){let t=0,i=0,n=this.sortPointsIntoBins();for(let s=0;s<this.N;s++){let e=n[s];if(!e)break;let r=0,o=false;for(;!o&&!(r++>i||t===z);){let n=this.points[this.triangulation[t][0]].coords,s=this.points[this.triangulation[t][1]].coords,r=this.points[this.triangulation[t][2]].coords;u(n,s,e.coords)?u(s,r,e.coords)?u(r,n,e.coords)?(this.insertPointIntoTriangle(e,t,i),i+=2,t=i,o=true):t=this.triangulation[t][5]:t=this.triangulation[t][4]:t=this.triangulation[t][3];}}}addSuperTriangle(){this.points[this.N]=new C$1(this.N,new Vector2(-100,-100)),this.points[this.N+1]=new C$1(this.N+1,new Vector2(0,100)),this.points[this.N+2]=new C$1(this.N+2,new Vector2(100,-100)),this.triangulation[0][0]=this.N,this.triangulation[0][1]=this.N+1,this.triangulation[0][2]=this.N+2,this.triangulation[0][3]=z,this.triangulation[0][4]=z,this.triangulation[0][5]=z;}insertPointIntoTriangle(t,i,n){const s=i,e=n+1,r=n+2;this.triangulation[e][0]=t.index,this.triangulation[e][1]=this.triangulation[i][1],this.triangulation[e][2]=this.triangulation[i][2],this.triangulation[e][3]=r,this.triangulation[e][4]=this.triangulation[i][4],this.triangulation[e][5]=s,this.triangulation[r][0]=t.index,this.triangulation[r][1]=this.triangulation[i][0],this.triangulation[r][2]=this.triangulation[i][1],this.triangulation[r][3]=s,this.triangulation[r][4]=this.triangulation[i][3],this.triangulation[r][5]=e,this.updateAdjacency(this.triangulation[i][3],i,r),this.updateAdjacency(this.triangulation[i][4],i,e),this.triangulation[s][1]=this.triangulation[i][2],this.triangulation[s][2]=this.triangulation[i][0],this.triangulation[s][0]=t.index,this.triangulation[s][4]=this.triangulation[i][5],this.triangulation[s][3]=e,this.triangulation[s][5]=r,this.restoreDelauneyTriangulation(t,s,e,r);}restoreDelauneyTriangulation(t,i,n,s){const e=[];for(e.push([i,this.triangulation[i][4]]),e.push([n,this.triangulation[n][4]]),e.push([s,this.triangulation[s][4]]);e.length>0;)if([i,n]=e.pop()??[z,z],n!==z){const s=this.swapQuadDiagonalIfNeeded(t.index,i,n);null!==s&&(e.push([i,s.t3]),e.push([n,s.t4]));}}swapQuadDiagonalIfNeeded(t,i,n){let s=0,e=0,r=0,o=t,a=0,h=0;this.triangulation[n][3]===i?(s=this.triangulation[n][1],e=this.triangulation[n][0],r=this.triangulation[n][2],a=this.triangulation[n][4],h=this.triangulation[n][5]):this.triangulation[n][4]===i?(s=this.triangulation[n][2],e=this.triangulation[n][1],r=this.triangulation[n][0],a=this.triangulation[n][5],h=this.triangulation[n][3]):(s=this.triangulation[n][0],e=this.triangulation[n][2],r=this.triangulation[n][1],a=this.triangulation[n][3],h=this.triangulation[n][4]);return this.swapTest(this.points[s].coords,this.points[e].coords,this.points[r].coords,this.points[o].coords)?(this.updateAdjacency(a,n,i),this.updateAdjacency(this.triangulation[i][5],i,n),this.triangulation[i][0]=o,this.triangulation[i][1]=s,this.triangulation[i][2]=r,this.triangulation[n][0]=o,this.triangulation[n][1]=r,this.triangulation[n][2]=e,this.triangulation[n][3]=i,this.triangulation[n][4]=h,this.triangulation[n][5]=this.triangulation[i][5],this.triangulation[i][4]=a,this.triangulation[i][5]=n,{t3:a,t4:h}):null}discardTrianglesWithSuperTriangleVertices(){for(let t=0;t<this.triangleCount;t++)(this.triangleContainsVertex(t,this.N)||this.triangleContainsVertex(t,this.N+1)||this.triangleContainsVertex(t,this.N+2))&&(this.skipTriangle[t]=true);}swapTest(t,i,n,s){const e=t.x-n.x,r=i.x-n.x,o=t.y-n.y,a=i.y-n.y,h=t.x-s.x,l=i.x-s.x,u=t.y-s.y,c=i.y-s.y,g=e*r+o*a,d=l*h+c*u;if(g>=0&&d>=0)return  false;if(g<0&&d<0)return  true;return (e*a-r*o)*d+(l*u-h*c)*g<0}triangleContainsVertex(t,i){return this.triangulation[t][0]===i||this.triangulation[t][1]===i||this.triangulation[t][2]===i}updateAdjacency(t,i,n){if(t===z)return;const s=this.findSharedEdge(t,i);null!==s&&(this.triangulation[t][s]=n);}findSharedEdge(t,i){return t===z?null:this.triangulation[t][3]===i?3:this.triangulation[t][4]===i?4:this.triangulation[t][5]===i?5:null}}class A{constructor(t,i,n,s,e,r,o,a,h,l){this.q1=t,this.q2=i,this.q3=n,this.q4=s,this.t1=e,this.t2=r,this.t1L=o,this.t1R=a,this.t2L=h,this.t2R=l;}toString(){return `T${this.t1}/T${this.t2} (V${this.q1},V${this.q2},V${this.q3},V${this.q4})`}}class S extends b{edgeVertex1=[0,0,0,0,1,2];edgeVertex2=[0,0,0,1,2,0];oppositePoint=[0,0,0,2,0,1];nextEdge=[0,0,0,4,5,3];previousEdge=[0,0,0,5,3,4];constructor(t,i,n){super(t,n),this.constraints=i,this.vertexTriangles=[],this.visited=[];}triangulate(){if(this.N<3)return [];this.addSuperTriangle(),this.normalizeCoordinates(),this.computeTriangulation(),this.constraints.length>0&&(this.applyConstraints(),this.discardTrianglesViolatingConstraints()),this.discardTrianglesWithSuperTriangleVertices();let t=[];for(let i=0;i<this.triangleCount;i++)this.skipTriangle[i]||(t.push(this.triangulation[i][0]),t.push(this.triangulation[i][1]),t.push(this.triangulation[i][2]));return t}applyConstraints(){const t=this.triangulation.length;this.visited=new Array(t).fill(false),this.vertexTriangles=new Array(this.N+3).fill(0);for(let i=0;i<t;i++)this.vertexTriangles[this.triangulation[i][0]]=i,this.vertexTriangles[this.triangulation[i][1]]=i,this.vertexTriangles[this.triangulation[i][2]]=i;for(let t of this.constraints){if(t.v1===t.v2)continue;const i=this.findIntersectingEdges(t,this.vertexTriangles);this.removeIntersectingEdges(t,i);}}findIntersectingEdges(t,i){const n=[],s=this.findStartingEdge(i,t);if(null===s)return n;n.push(s);let e=s.t1,r=s.t1Edge,o=e,a=false;for(;!a;){o=e,e=this.triangulation[e][r];const i=this.points[t.v1].coords,s=this.points[t.v2].coords,u=this.points[this.triangulation[e][0]].coords,c=this.points[this.triangulation[e][1]].coords,g=this.points[this.triangulation[e][2]].coords;if(this.triangleContainsVertex(e,t.v2))a=true;else if(this.triangulation[e][3]!==o&&h(i,s,u,c)){r=3;var l=new M$1(this.triangulation[e][0],this.triangulation[e][1],e,this.triangulation[e][3],r);n.push(l);}else if(this.triangulation[e][4]!==o&&h(i,s,c,g)){r=4;l=new M$1(this.triangulation[e][1],this.triangulation[e][2],e,this.triangulation[e][4],r);n.push(l);}else {if(this.triangulation[e][5]===o||!h(i,s,g,u)){console.warn("Failed to find final triangle, exiting early.");break}r=5;l=new M$1(this.triangulation[e][2],this.triangulation[e][0],e,this.triangulation[e][5],r);n.push(l);}}return n}findStartingEdge(t,i){let n,s,e,r=new M$1(-1,-1),o=i.v1,a=t[o],h=false,l=null;for(this.visited.fill(false);!l&&!h;){if(this.visited[a]=true,this.triangleContainsConstraint(a,i))return null;if(l=this.edgeConstraintIntersectsTriangle(a,i),l)break;if(n=this.triangulation[a][3],s=this.triangulation[a][4],e=this.triangulation[a][5],-1!==n&&!this.visited[n]&&this.triangleContainsVertex(n,o))a=n;else if(-1!==s&&!this.visited[s]&&this.triangleContainsVertex(s,o))a=s;else {if(-1===e||this.visited[e]||!this.triangleContainsVertex(e,o)){h=true;break}a=e;}}if(l){const t=this.triangulation[a][this.edgeVertex1[l]],i=this.triangulation[a][this.edgeVertex2[l]],n=this.triangulation[a][l];return r=new M$1(t,i,a,n,l),r}return null}removeIntersectingEdges(t,i){let n,s=[],e=0;for(;i.length>0&&e<=i.length;){if(n=i.shift(),null==n)continue;let r=this.findQuadFromSharedEdge(n.t1,n.t1Edge);if(r)if(h(this.points[r.q4].coords,this.points[r.q3].coords,this.points[r.q1].coords,this.points[r.q2].coords)){this.swapQuadDiagonal(r,i,s,this.constraints);let n=new M$1(r.q3,r.q4,r.t1,r.t2,5);h(this.points[t.v1].coords,this.points[t.v2].coords,this.points[r.q3].coords,this.points[r.q4].coords)?i.push(n):(e=0,s.push(n));}else i.push(n);e++;}s.length>0&&this.restoreConstrainedDelauneyTriangulation(t,s);}restoreConstrainedDelauneyTriangulation(t,i){let n=true;for(;n;){n=false;for(let s=0;s<i.length;s++){const e=i[s];if(e.equals(t))continue;let r=this.findQuadFromSharedEdge(e.t1,e.t1Edge);if(r&&this.swapTest(this.points[r.q1].coords,this.points[r.q2].coords,this.points[r.q3].coords,this.points[r.q4].coords)){this.swapQuadDiagonal(r,i,this.constraints,null);const t=r.q3,e=r.q4;i[s]=new M$1(t,e,r.t1,r.t2,5),n=true;}}}}discardTrianglesViolatingConstraints(){this.skipTriangle.fill(true);let t=new Set;for(let i=0;i<this.constraints.length;i++){const n=this.constraints[i];t.add(d(n.v1,n.v2));}this.visited.fill(false);let i,n,s,e,r,o,a=[];for(let h=0;h<this.triangleCount;h++)if(!this.visited[h]&&(i=this.triangulation[h][0],n=this.triangulation[h][1],s=this.triangulation[h][2],e=t.has(d(i,n)),r=t.has(d(n,s)),o=t.has(d(s,i)),e||r||o))for(this.skipTriangle[h]=false,a=[],e||a.push(this.triangulation[h][3]),r||a.push(this.triangulation[h][4]),o||a.push(this.triangulation[h][5]);a.length>0;){const e=a.shift();-1===e||this.visited[e]||(this.skipTriangle[e]=false,this.visited[e]=true,i=this.triangulation[e][0],n=this.triangulation[e][1],s=this.triangulation[e][2],t.has(d(i,n))||a.push(this.triangulation[e][3]),t.has(d(n,s))||a.push(this.triangulation[e][4]),t.has(d(s,i))||a.push(this.triangulation[e][5]));}}triangleContainsConstraint(t,i){return !(t>=this.triangulation.length)&&!(this.triangulation[t][0]!==i.v1&&this.triangulation[t][1]!==i.v1&&this.triangulation[t][2]!==i.v1||this.triangulation[t][0]!==i.v2&&this.triangulation[t][1]!==i.v2&&this.triangulation[t][2]!==i.v2)}edgeConstraintIntersectsTriangle(t,i){const n=this.points[i.v1].coords,s=this.points[i.v2].coords,e=this.points[this.triangulation[t][0]].coords,r=this.points[this.triangulation[t][1]].coords,o=this.points[this.triangulation[t][2]].coords;return h(n,s,e,r)?3:h(n,s,r,o)?4:h(n,s,o,e)?5:null}findQuadFromSharedEdge(t,i){let n,s,e,r,o,a,h,l,u=this.triangulation[t][i],c=this.findSharedEdge(u,t);return c?(3===c?(s=this.triangulation[u][0],n=this.triangulation[u][1],e=this.triangulation[u][2]):4===c?(s=this.triangulation[u][1],n=this.triangulation[u][2],e=this.triangulation[u][0]):(s=this.triangulation[u][2],n=this.triangulation[u][0],e=this.triangulation[u][1]),r=this.triangulation[t][this.oppositePoint[i]],o=this.triangulation[t][this.previousEdge[i]],a=this.triangulation[t][this.nextEdge[i]],h=this.triangulation[u][this.nextEdge[c]],l=this.triangulation[u][this.previousEdge[c]],new A(n,s,e,r,t,u,o,a,h,l)):null}swapQuadDiagonal(t,i,n,s){const e=t.t1,r=t.t2,o=t.t1R,a=t.t1L,h=t.t2R,l=t.t2L;this.triangulation[e][0]=t.q4,this.triangulation[e][1]=t.q1,this.triangulation[e][2]=t.q3,this.triangulation[r][0]=t.q4,this.triangulation[r][1]=t.q3,this.triangulation[r][2]=t.q2,this.triangulation[e][3]=a,this.triangulation[e][4]=l,this.triangulation[e][5]=r,this.triangulation[r][3]=e,this.triangulation[r][4]=h,this.triangulation[r][5]=o,this.updateAdjacency(l,r,e),this.updateAdjacency(o,e,r),this.updateEdgesAfterSwap(i,e,r,a,o,l,h),this.updateEdgesAfterSwap(n,e,r,a,o,l,h),this.updateEdgesAfterSwap(s,e,r,a,o,l,h),this.vertexTriangles[t.q1]=e,this.vertexTriangles[t.q2]=r;}updateEdgesAfterSwap(t,i,n,s,e,r,o){if(t)for(let a of t)a.t1===i&&a.t2===e?(a.t1=n,a.t2=e,a.t1Edge=5):a.t1===i&&a.t2===s?a.t1Edge=3:a.t1===e&&a.t2===i?a.t2=n:a.t1===s&&a.t2===i||(a.t1===n&&a.t2===o?a.t1Edge=4:a.t1===n&&a.t2===r?(a.t1=i,a.t2=r,a.t1Edge=4):a.t1===o&&a.t2===n||a.t1===r&&a.t2===n&&(a.t2=i));}}function E$1(t,n,s,e,r,o,a=true){const h=new w,l=new w,u=new Array(t.vertexCount).fill(false);for(let i=0;i<t.vertices.length;i++){var c=t.vertices[i];u[i]=x$1(c.position,n,s),(u[i]?h:l).addMappedVertex(c,i);}const g=t.vertices.length;for(let i=0;i<t.cutVertices.length;i++){c=t.cutVertices[i];u[i+g]=x$1(c.position,n,s),(u[i+g]?h:l).addMappedVertex(c,i+g);}return N(t,h,l,n,s,u,y),a&&N(t,h,l,n,s,u,m$1),a&&function(t,n,s,e,r,o){t.weldCutFaceVertices();const a=s.clone().negate().normalize();if(t.cutVertices.length<3)return;const h=o?new b(t.cutVertices,a):new S(t.cutVertices,t.constraints,a),l=h.triangulate();for(let o=0;o<t.cutVertices.length;o++){var u=t.cutVertices[o],c=h.points[o];const l=new Vector2(h.normalizationScaleFactor*c.coords.x*e.x+r.x,h.normalizationScaleFactor*c.coords.y*e.y+r.y),g=new v(u.position.clone(),a.clone(),l.clone()),d=new v(u.position.clone(),s.clone(),l.clone());t.cutVertices[o]=g,n.cutVertices[o]=d;}let g=t.vertices.length,d=n.vertices.length;for(let i=0;i<l.length;i+=3)t.addTriangle(g+l[i],g+l[i+1],g+l[i+2],m$1),n.addTriangle(d+l[i],d+l[i+2],d+l[i+1],m$1);}(h,l,n,e,r,o),{topSlice:h,bottomSlice:l}}function N(t,i,n,s,e,r,o){const a=t.triangles[o];let h,l,u;for(let c=0;c<a.length;c+=3)h=a[c],l=a[c+1],u=a[c+2],r[h]&&r[l]&&r[u]?i.addMappedTriangle(h,l,u,o):r[h]||r[l]||r[u]?r[l]&&r[u]&&!r[h]?q$1(l,u,h,s,e,t,i,n,o,true):r[u]&&r[h]&&!r[l]?q$1(u,h,l,s,e,t,i,n,o,true):r[h]&&r[l]&&!r[u]?q$1(h,l,u,s,e,t,i,n,o,true):r[l]||r[u]||!r[h]?r[u]||r[h]||!r[l]?r[h]||r[l]||!r[u]||q$1(h,l,u,s,e,t,i,n,o,false):q$1(u,h,l,s,e,t,i,n,o,false):q$1(l,u,h,s,e,t,i,n,o,false):n.addMappedTriangle(h,l,u,o);}function q$1(n,s,e,r,o,a,h,u,c,g){let d=n<a.vertices.length?a.vertices[n]:a.cutVertices[n-a.vertices.length],p=s<a.vertices.length?a.vertices[s]:a.cutVertices[s-a.vertices.length],f=e<a.vertices.length?a.vertices[e]:a.cutVertices[e-a.vertices.length];const x=l(d.position,f.position,r,o),v=l(p.position,f.position,r,o);if(x&&v){const r=new Vector3(d.normal.x+x.s*(f.normal.x-d.normal.x),d.normal.y+x.s*(f.normal.y-d.normal.y),d.normal.z+x.s*(f.normal.z-d.normal.z)).normalize(),o=new Vector3(p.normal.x+v.s*(f.normal.x-p.normal.x),p.normal.y+v.s*(f.normal.y-p.normal.y),p.normal.z+v.s*(f.normal.z-p.normal.z)).normalize(),a=new Vector2(d.uv.x+x.s*(f.uv.x-d.uv.x),d.uv.y+x.s*(f.uv.y-d.uv.y)),l=new Vector2(p.uv.x+v.s*(f.uv.x-p.uv.x),p.uv.y+v.s*(f.uv.y-p.uv.y));h.addCutFaceVertex(x.x,r,a),h.addCutFaceVertex(v.x,o,l),u.addCutFaceVertex(x.x,r,a),u.addCutFaceVertex(v.x,o,l);const y=h.vertices.length-2,m=h.vertices.length-1,w=u.vertices.length-2,V=u.vertices.length-1;g?(h.addTriangle(m,y,h.indexMap[s],c),h.addTriangle(y,h.indexMap[n],h.indexMap[s],c),u.addTriangle(u.indexMap[e],w,V,c),h.constraints.push(new M$1(h.cutVertices.length-2,h.cutVertices.length-1)),u.constraints.push(new M$1(u.cutVertices.length-1,u.cutVertices.length-2))):(h.addTriangle(y,m,h.indexMap[e],c),u.addTriangle(u.indexMap[n],u.indexMap[s],w,c),u.addTriangle(u.indexMap[s],V,w,c),h.constraints.push(new M$1(h.cutVertices.length-1,h.cutVertices.length-2)),u.constraints.push(new M$1(u.cutVertices.length-2,u.cutVertices.length-1)));}}const k={textureScale:new Vector2(1,1),textureOffset:new Vector2},F$1=new Vector3,$=new Vector3,I$1=new Vector3,P$1=new Plane,j=new Plane;function B$1(i,n,s,e,r,o){const a=[],h=i.matrixWorld.clone().invert(),l=i.position;n.applyMatrix4(h);const u=w.fromGeometry(i.geometry);let c=u.convex;F$1.addVectors(n,s),P$1.setFromCoplanarPoints(n,l,F$1);const g=r+e;return function i(r,u,d,p){if(0===r.vertexCount)return;if(Math.random()<.05*p||p>g)return void a.push(r);let f=Math.PI,x=new Vector3;r.calculateBounds(),r.bounds.getCenter(x);let v=c;if(0===p)j.normal.copy(P$1.normal),j.constant=P$1.constant;else if(p<=e)f=(d-u)*(.2+.6*Math.random())+u,$.copy(l).sub(n).applyAxisAngle(s,f).add(n),j.setFromCoplanarPoints(n,F$1,$);else {let t=x.clone().applyMatrix4(h);f=(.5*(1&p)+.2*(2-Math.random()))*Math.PI,$.copy(n).sub(t).applyAxisAngle(s,f).add(t),I$1.copy(s).add(t),j.setFromCoplanarPoints(t,I$1,$);}const{topSlice:y,bottomSlice:m}=E$1(r,j.normal,$,k.textureScale,k.textureOffset,v,o);let w=y,V=m;v||(w=G(y),V=G(m)),w&&(w instanceof Array?w.length>0&&w.forEach((t=>{t.vertices.length>12&&i(t,u,f,p+1);})):i(w,u,f,p+1)),V&&(V instanceof Array?V.length>0&&V.forEach((t=>{t.vertices.length>12&&i(t,u,f,p+1);})):i(m,f,d,p+1));}(u,0,2*Math.PI,0),a}function Q(t,i,n,s=true,e=0){const r=[];return t.map(((t,o)=>{r.push(t.toMesh(i,n,s,e));})),r}function G(t){const i=new V(t.vertexCount),n={},s=t.vertices.length,e=t.cutVertices.length,r=new Map;t.vertices.forEach(((t,n)=>{const s=f(t.position),e=r.get(s);void 0===e?r.set(s,n):i.union(e,n);}));for(let n=0;n<e;n++)i.union(t.vertexAdjacency[n],n+s);const o=t.triangles;for(let t=0;t<o.length;t++)for(let s=0;s<o[t].length;s+=3){const e=o[t][s],r=o[t][s+1],a=o[t][s+2];i.union(e,r),i.union(r,a);const h=i.find(e);n[h]||(n[h]=[[],[]]),n[h][t].push(e,r,a);}const a={},h=Array(t.vertexCount);for(let n=0;n<s;n++){const s=i.find(n);a[s]||(a[s]=new w),a[s].vertices.push(t.vertices[n]),h[n]=a[s].vertices.length-1;}for(let n=0;n<e;n++){const e=i.find(n+s);a[e].cutVertices.push(t.cutVertices[n]),h[n+s]=a[e].vertices.length+a[e].cutVertices.length-1;}for(const s of Object.keys(n)){let e=Number(s),r=i.parent[e];for(let i=0;i<t.triangles.length;i++)for(const t of n[e][i]){const n=h[t];a[r].triangles[i].push(n);}}return Object.values(a)}
+function h(t,i,n,s){return function(t,i,n,s,e){let r={x:i.x-t.x,y:i.y-t.y},o={x:s.x-n.x,y:s.y-n.y};const a=p(t),h=p(n);if(a===h)return e;const l=p(i);if(l===h)return e;const u=p(s);if(a===u)return e;if(l===u)return e;let c=(t.x-n.x)*o.y-(t.y-n.y)*o.x,g=(i.x-n.x)*o.y-(i.y-n.y)*o.x,d=(n.x-t.x)*r.y-(n.y-t.y)*r.x,f=(s.x-t.x)*r.y-(s.y-t.y)*r.x;return (c>=0&&g<=0||c<=0&&g>=0)&&(d>=0&&f<=0||d<=0&&f>=0)}(t,i,n,s,false)}function l(i,n,s,e){let r=0,o=new Vector3;return f(i)===f(n)||0===s.x&&0===s.y&&0===s.z?null:(r=((e.x-i.x)*s.x+(e.y-i.y)*s.y+(e.z-i.z)*s.z)/((n.x-i.x)*s.x+(n.y-i.y)*s.y+(n.z-i.z)*s.z),r<0||r>1?null:(o=new Vector3(i.x+(n.x-i.x)*r,i.y+(n.y-i.y)*r,i.z+(n.z-i.z)*r),{x:o,s:r}))}function u(t,i,n){return (i.x-t.x)*(n.y-t.y)-(i.y-t.y)*(n.x-t.x)<=0}function c(t){return parseInt(Math.round(1e6*t))}function g(t,i=1e6){return Math.floor(t*i)}function d(t,i){return Math.round((t+i)*(t+i+1)*.5+i)}function p(t){return d(g(t.x),g(t.y))}function f(t){const i=g(t.x),n=g(t.y),s=g(t.z),e=(i+n)*(i+n+1)*.5+n;return (e+s)*(e+s+1)*.5+s}function x(t,i,n){return !(i.x*(t.x-n.x)+i.y*(t.y-n.y)+i.z*(t.z-n.z)<0)}class v{constructor(n=new Vector3,s=new Vector3,e=new Vector2){this.position=n,this.normal=s,this.uv=e;}equals(t){return f(this.position)===f(t.position)}toString(){return `Position = ${this.position.x}, ${this.position.y}, ${this.position.z}, Normal = ${this.normal.x}, ${this.normal.y}, ${this.normal.z}, UV = ${this.uv.x}, ${this.uv.y}`}}const y=0,m$1=1;class w{constructor(){this.vertices=[],this.cutVertices=[],this.triangles=[[],[]],this.constraints=[],this.indexMap=[],this.bounds=new Box3,this.vertexAdjacency=[],this.convextested=false;}static fromGeometry(n){const s=n.attributes.position.array,e=n.attributes.normal.array,r=n.attributes.uv.array,o=n.attributes.position.count;let a,h;const l=new w;for(let n=0;n<o;n++)a=3*n,h=2*n,l.vertices.push(new v(new Vector3(s[a],s[a+1],s[a+2]),new Vector3(e[a],e[a+1],e[a+2]),new Vector2(r[h],r[h+1])));return l.triangles=[[...n.index.array],[]],l.calculateBounds(),l}get size(){this.bounds||this.calculateBounds();let i=new Vector3;return this.bounds.getSize(i)}get convex(){return this.convextested||(this.cc=this.isConvex()),this.cc}get triangleCount(){return (this.triangles[0].length+this.triangles[1].length)/3}get vertexCount(){return this.vertices.length+this.cutVertices.length}addCutFaceVertex(t,i,n){const s=new v(t,i,n);this.vertices.push(s),this.cutVertices.push(s),this.vertexAdjacency.push(this.vertices.length-1);}addMappedVertex(t,i){this.vertices.push(t),this.indexMap[i]=this.vertices.length-1;}addTriangle(t,i,n,s){this.triangles[s].push(t,i,n);}addMappedTriangle(t,i,n,s){this.triangles[s].push(this.indexMap[t],this.indexMap[i],this.indexMap[n]);}weldCutFaceVertices(){const t=[],i=[],n=new Array(this.cutVertices.length);let s=0;const e=new Map;this.cutVertices.forEach(((r,o)=>{const a=function(t){let i=c(t.x),n=c(t.y),s=c(t.z),e=(i+n)*(i+n+1)*.5+n;return (e+s)*(e+s+1)*.5+s}(r.position),h=e.get(a);void 0===h?(n[o]=s,e.set(a,s),t.push(this.cutVertices[o]),i.push(this.vertexAdjacency[o]),s++):n[o]=h;}));for(let t=0;t<this.constraints.length;t++){const i=this.constraints[t];i.v1=n[i.v1],i.v2=n[i.v2];}this.cutVertices=t,this.vertexAdjacency=i;}calculateBounds(){if(!this.vertices.length)return;let t=this.vertices[0].position.clone(),i=t.clone();this.vertices.forEach((n=>{t.x=Math.min(t.x,n.position.x),t.y=Math.min(t.y,n.position.y),t.z=Math.min(t.z,n.position.z),i.x=Math.max(i.x,n.position.x),i.y=Math.max(i.y,n.position.y),i.z=Math.max(i.z,n.position.z);})),this.bounds.set(t,i);}calculateBounds_(t=false){null===this.bounds&&(this.bounds=new Box3);let i=this.vertices.length;t&&(i+=this.cutVertices.length);const s=[];let e=-1;for(const t of this.vertices)s[e++]=t.position;if(t)for(const t of this.cutVertices)s[e++]=t.position;this.bounds.setFromPoints(s);}toMesh(i,n=null,r=true,o=0){const a=new Vector3,h=new Vector3;let l=this.toGeometry(r,o);l.boundingBox.getCenter(a),l.boundingBox.getSize(h),l.translate(-a.x,-a.y,-a.z),l.boundingSphere=new Sphere(new Vector3,.5*h.length());let u=i.material;n&&u.isMaterial&&(u=[i.material,n]);const c=new Mesh(l,u);return c.receiveShadow=i.receiveShadow,c.castShadow=i.castShadow,c.sizer=h.length(),a.applyQuaternion(i.quaternion),c.position.copy(i.position).add(a),c.quaternion.copy(i.quaternion),c.userData={origin:c.position.clone(),direction:a.normalize(),size:h},c}makeTrickness(t,i,n,s,e){let r,o=1-e,a=[...t],h=[...i],l=[...n],u=t.length/3,c=u;for(;c--;)r=3*c,a[r]*=o,a[r+1]*=o,a[r+2]*=o;let g=[];for(c=s.length;c--;)g[c]=s[c]+u;return [a,h,l,g]}toGeometry(t,i){let n;const s=new BufferGeometry;let e=[],a=[],h=[];if(this.vertices.forEach((t=>{e.push(t.position.x,t.position.y,t.position.z),a.push(t.normal.x,t.normal.y,t.normal.z),h.push(t.uv.x,t.uv.y);})),0!==i){let t=this.makeTrickness(e,a,h,this.triangles[0],i);e=e.concat(t[0]),a=a.concat(t[1]),h=h.concat(t[2]),n=t[3];}return t&&this.cutVertices.forEach((t=>{e.push(t.position.x,t.position.y,t.position.z),a.push(t.normal.x,t.normal.y,t.normal.z),h.push(t.uv.x,t.uv.y);})),s.addGroup(0,this.triangles[0].length,0),0!==i&&(s.addGroup(this.triangles[0].length,n.length,1),this.triangles[0]=this.triangles[0].concat(n)),t&&s.addGroup(this.triangles[0].length,this.triangles[1].length,1),s.setAttribute("position",new BufferAttribute(new Float32Array(e),3)),s.setAttribute("normal",new BufferAttribute(new Float32Array(a),3)),s.setAttribute("uv",new BufferAttribute(new Float32Array(h),2)),s.setIndex(new BufferAttribute(new Uint32Array(this.triangles.flat()),1)),s.computeBoundingBox(),s}isConvex(i=.001){this.convextested=true;let n=0;const s=this.triangleCount,e=[...this.triangles[0],...this.triangles[1]],r=[...this.vertices,...this.cutVertices],o=r.length;if(0===s||0===o)return  false;const a=new Vector3,h=new Vector3,l=new Vector3,u=new Vector3,c=new Vector3;let g,d;for(let t=0;t<s;t++){n=3*t,c.copy(r[0].position),a.copy(r[e[n]].position),h.copy(r[e[n+1]].position),l.copy(r[e[n+2]].position),h.sub(a),l.sub(a),u.copy(h).cross(l).normalize(),g=c.sub(a).dot(u);for(let t=0;t<o;t++)if(d=c.copy(r[t].position).sub(a).dot(u),Math.abs(g)>i&&Math.abs(d)>i&&g*d<0)return  false}return  true}}class V{constructor(t){this.parent=new Array(t),this.rank=new Array(t);for(let i=0;i<t;i++)this.parent[i]=i,this.rank[i]=1;}find(t){return this.parent[t]!==t&&(this.parent[t]=this.find(this.parent[t])),this.parent[t]}union(t,i){const n=this.find(t),s=this.find(i);n!==s&&(this.rank[n]>this.rank[s]?this.parent[s]=n:this.rank[n]<this.rank[s]?this.parent[n]=s:(this.parent[s]=n,this.rank[n]+=1));}}let M$1 = class M{constructor(t,i,n,s,e){this.v1=t,this.v2=i,this.t1=void 0!==n?n:-1,this.t2=void 0!==s?s:-1,this.t1Edge=void 0!==e?e:0;}equals(t){return this.v1===t.v1&&this.v2===t.v2||this.v1===t.v2&&this.v2===t.v1}toString(){return `Edge: T${this.t1}->T${this.t2} (V${this.v1}->V${this.v2})`}};class T{static getBinNumber(t,i,n){return t%2==0?t*n+i:(t+1)*n-i-1}static sort(t,i,n){if(n<=1)return t;i>t.length&&(i=t.length);const s=new Array(n).fill(0),e=new Array(t.length);for(let n=0;n<i;n++)s[t[n].bin]++;for(let t=1;t<n;t++)s[t]+=s[t-1];for(let n=i-1;n>=0;n--){const i=t[n].bin;s[i]--,e[s[i]]=t[n];}for(let n=i;n<e.length;n++)e[n]=t[n];return e}}let C$1 = class C{constructor(t,i){this.index=t,this.coords=i,this.bin=0;}toString(){return `${this.coords} -> ${this.bin}`}};const z=-1;class b{constructor(n,s){if(this.normalizationScaleFactor=1,this.N=n.length,this.N>=3){this.triangleCount=2*this.N+1,this.triangulation=Array.from({length:this.triangleCount},(()=>new Array(6).fill(0))),this.skipTriangle=new Array(this.triangleCount).fill(false),this.points=new Array(this.N+3),this.normal=s.clone().normalize();let o=n[0].position.clone().sub(n[1].position).normalize(),a=this.normal.clone(),h=new Vector3;h.crossVectors(o,a).normalize();for(let t=0;t<this.N;t++){var e=n[t].position,r=new Vector2(e.dot(o),e.dot(h));this.points[t]=new C$1(t,r);}}else this.triangleCount=0,this.triangulation=[],this.skipTriangle=[],this.points=[],this.normal=new Vector3;}triangulate(){if(this.N<3)return [];this.addSuperTriangle(),this.normalizeCoordinates(),this.computeTriangulation(),this.discardTrianglesWithSuperTriangleVertices();const t=[];for(let i=0;i<this.triangleCount;i++)this.skipTriangle[i]||t.push(this.triangulation[i][0],this.triangulation[i][1],this.triangulation[i][2]);return t}normalizeCoordinates(){let t=Number.MAX_VALUE,n=Number.MIN_VALUE,s=Number.MAX_VALUE,e=Number.MIN_VALUE;for(let i=0;i<this.N;i++)t=Math.min(t,this.points[i].coords.x),n=Math.max(n,this.points[i].coords.x),s=Math.min(s,this.points[i].coords.y),e=Math.max(e,this.points[i].coords.y);const r=Math.max(n-t,e-s);for(let n=0;n<this.N;n++){var o=this.points[n],a=new Vector2((o.coords.x-t)/r,(o.coords.y-s)/r);this.points[n].coords=a;}}sortPointsIntoBins(){const t=Math.round(Math.pow(this.N,.25)),i=t*t;for(let i=0;i<this.N;i++){var n=this.points[i];const s=Math.floor(.99*t*n.coords.y),e=Math.floor(.99*t*n.coords.x);n.bin=T.getBinNumber(s,e,t);}return T.sort(this.points,this.N,i)}computeTriangulation(){let t=0,i=0,n=this.sortPointsIntoBins();for(let s=0;s<this.N;s++){let e=n[s];if(!e)break;let r=0,o=false;for(;!o&&!(r++>i||t===z);){let n=this.points[this.triangulation[t][0]].coords,s=this.points[this.triangulation[t][1]].coords,r=this.points[this.triangulation[t][2]].coords;u(n,s,e.coords)?u(s,r,e.coords)?u(r,n,e.coords)?(this.insertPointIntoTriangle(e,t,i),i+=2,t=i,o=true):t=this.triangulation[t][5]:t=this.triangulation[t][4]:t=this.triangulation[t][3];}}}addSuperTriangle(){this.points[this.N]=new C$1(this.N,new Vector2(-100,-100)),this.points[this.N+1]=new C$1(this.N+1,new Vector2(0,100)),this.points[this.N+2]=new C$1(this.N+2,new Vector2(100,-100)),this.triangulation[0][0]=this.N,this.triangulation[0][1]=this.N+1,this.triangulation[0][2]=this.N+2,this.triangulation[0][3]=z,this.triangulation[0][4]=z,this.triangulation[0][5]=z;}insertPointIntoTriangle(t,i,n){const s=i,e=n+1,r=n+2;this.triangulation[e][0]=t.index,this.triangulation[e][1]=this.triangulation[i][1],this.triangulation[e][2]=this.triangulation[i][2],this.triangulation[e][3]=r,this.triangulation[e][4]=this.triangulation[i][4],this.triangulation[e][5]=s,this.triangulation[r][0]=t.index,this.triangulation[r][1]=this.triangulation[i][0],this.triangulation[r][2]=this.triangulation[i][1],this.triangulation[r][3]=s,this.triangulation[r][4]=this.triangulation[i][3],this.triangulation[r][5]=e,this.updateAdjacency(this.triangulation[i][3],i,r),this.updateAdjacency(this.triangulation[i][4],i,e),this.triangulation[s][1]=this.triangulation[i][2],this.triangulation[s][2]=this.triangulation[i][0],this.triangulation[s][0]=t.index,this.triangulation[s][4]=this.triangulation[i][5],this.triangulation[s][3]=e,this.triangulation[s][5]=r,this.restoreDelauneyTriangulation(t,s,e,r);}restoreDelauneyTriangulation(t,i,n,s){const e=[];for(e.push([i,this.triangulation[i][4]]),e.push([n,this.triangulation[n][4]]),e.push([s,this.triangulation[s][4]]);e.length>0;)if([i,n]=e.pop()??[z,z],n!==z){const s=this.swapQuadDiagonalIfNeeded(t.index,i,n);null!==s&&(e.push([i,s.t3]),e.push([n,s.t4]));}}swapQuadDiagonalIfNeeded(t,i,n){let s=0,e=0,r=0,o=t,a=0,h=0;this.triangulation[n][3]===i?(s=this.triangulation[n][1],e=this.triangulation[n][0],r=this.triangulation[n][2],a=this.triangulation[n][4],h=this.triangulation[n][5]):this.triangulation[n][4]===i?(s=this.triangulation[n][2],e=this.triangulation[n][1],r=this.triangulation[n][0],a=this.triangulation[n][5],h=this.triangulation[n][3]):(s=this.triangulation[n][0],e=this.triangulation[n][2],r=this.triangulation[n][1],a=this.triangulation[n][3],h=this.triangulation[n][4]);return this.swapTest(this.points[s].coords,this.points[e].coords,this.points[r].coords,this.points[o].coords)?(this.updateAdjacency(a,n,i),this.updateAdjacency(this.triangulation[i][5],i,n),this.triangulation[i][0]=o,this.triangulation[i][1]=s,this.triangulation[i][2]=r,this.triangulation[n][0]=o,this.triangulation[n][1]=r,this.triangulation[n][2]=e,this.triangulation[n][3]=i,this.triangulation[n][4]=h,this.triangulation[n][5]=this.triangulation[i][5],this.triangulation[i][4]=a,this.triangulation[i][5]=n,{t3:a,t4:h}):null}discardTrianglesWithSuperTriangleVertices(){for(let t=0;t<this.triangleCount;t++)(this.triangleContainsVertex(t,this.N)||this.triangleContainsVertex(t,this.N+1)||this.triangleContainsVertex(t,this.N+2))&&(this.skipTriangle[t]=true);}swapTest(t,i,n,s){const e=t.x-n.x,r=i.x-n.x,o=t.y-n.y,a=i.y-n.y,h=t.x-s.x,l=i.x-s.x,u=t.y-s.y,c=i.y-s.y,g=e*r+o*a,d=l*h+c*u;if(g>=0&&d>=0)return  false;if(g<0&&d<0)return  true;return (e*a-r*o)*d+(l*u-h*c)*g<0}triangleContainsVertex(t,i){return this.triangulation[t][0]===i||this.triangulation[t][1]===i||this.triangulation[t][2]===i}updateAdjacency(t,i,n){if(t===z)return;const s=this.findSharedEdge(t,i);null!==s&&(this.triangulation[t][s]=n);}findSharedEdge(t,i){return t===z?null:this.triangulation[t][3]===i?3:this.triangulation[t][4]===i?4:this.triangulation[t][5]===i?5:null}}class A{constructor(t,i,n,s,e,r,o,a,h,l){this.q1=t,this.q2=i,this.q3=n,this.q4=s,this.t1=e,this.t2=r,this.t1L=o,this.t1R=a,this.t2L=h,this.t2R=l;}toString(){return `T${this.t1}/T${this.t2} (V${this.q1},V${this.q2},V${this.q3},V${this.q4})`}}class S extends b{edgeVertex1=[0,0,0,0,1,2];edgeVertex2=[0,0,0,1,2,0];oppositePoint=[0,0,0,2,0,1];nextEdge=[0,0,0,4,5,3];previousEdge=[0,0,0,5,3,4];constructor(t,i,n){super(t,n),this.constraints=i,this.vertexTriangles=[],this.visited=[];}triangulate(){if(this.N<3)return [];this.addSuperTriangle(),this.normalizeCoordinates(),this.computeTriangulation(),this.constraints.length>0&&(this.applyConstraints(),this.discardTrianglesViolatingConstraints()),this.discardTrianglesWithSuperTriangleVertices();let t=[];for(let i=0;i<this.triangleCount;i++)this.skipTriangle[i]||(t.push(this.triangulation[i][0]),t.push(this.triangulation[i][1]),t.push(this.triangulation[i][2]));return t}applyConstraints(){const t=this.triangulation.length;this.visited=new Array(t).fill(false),this.vertexTriangles=new Array(this.N+3).fill(0);for(let i=0;i<t;i++)this.vertexTriangles[this.triangulation[i][0]]=i,this.vertexTriangles[this.triangulation[i][1]]=i,this.vertexTriangles[this.triangulation[i][2]]=i;for(let t of this.constraints){if(t.v1===t.v2)continue;const i=this.findIntersectingEdges(t,this.vertexTriangles);this.removeIntersectingEdges(t,i);}}findIntersectingEdges(t,i){const n=[],s=this.findStartingEdge(i,t);if(null===s)return n;n.push(s);let e=s.t1,r=s.t1Edge,o=e,a=false;for(;!a;){o=e,e=this.triangulation[e][r];const i=this.points[t.v1].coords,s=this.points[t.v2].coords,u=this.points[this.triangulation[e][0]].coords,c=this.points[this.triangulation[e][1]].coords,g=this.points[this.triangulation[e][2]].coords;if(this.triangleContainsVertex(e,t.v2))a=true;else if(this.triangulation[e][3]!==o&&h(i,s,u,c)){r=3;var l=new M$1(this.triangulation[e][0],this.triangulation[e][1],e,this.triangulation[e][3],r);n.push(l);}else if(this.triangulation[e][4]!==o&&h(i,s,c,g)){r=4;l=new M$1(this.triangulation[e][1],this.triangulation[e][2],e,this.triangulation[e][4],r);n.push(l);}else {if(this.triangulation[e][5]===o||!h(i,s,g,u)){console.warn("Failed to find final triangle, exiting early.");break}r=5;l=new M$1(this.triangulation[e][2],this.triangulation[e][0],e,this.triangulation[e][5],r);n.push(l);}}return n}findStartingEdge(t,i){let n,s,e,r=new M$1(-1,-1),o=i.v1,a=t[o],h=false,l=null;for(this.visited.fill(false);!l&&!h;){if(this.visited[a]=true,this.triangleContainsConstraint(a,i))return null;if(l=this.edgeConstraintIntersectsTriangle(a,i),l)break;if(n=this.triangulation[a][3],s=this.triangulation[a][4],e=this.triangulation[a][5],-1!==n&&!this.visited[n]&&this.triangleContainsVertex(n,o))a=n;else if(-1!==s&&!this.visited[s]&&this.triangleContainsVertex(s,o))a=s;else {if(-1===e||this.visited[e]||!this.triangleContainsVertex(e,o)){h=true;break}a=e;}}if(l){const t=this.triangulation[a][this.edgeVertex1[l]],i=this.triangulation[a][this.edgeVertex2[l]],n=this.triangulation[a][l];return r=new M$1(t,i,a,n,l),r}return null}removeIntersectingEdges(t,i){let n,s=[],e=0;for(;i.length>0&&e<=i.length;){if(n=i.shift(),null==n)continue;let r=this.findQuadFromSharedEdge(n.t1,n.t1Edge);if(r)if(h(this.points[r.q4].coords,this.points[r.q3].coords,this.points[r.q1].coords,this.points[r.q2].coords)){this.swapQuadDiagonal(r,i,s,this.constraints);let n=new M$1(r.q3,r.q4,r.t1,r.t2,5);h(this.points[t.v1].coords,this.points[t.v2].coords,this.points[r.q3].coords,this.points[r.q4].coords)?i.push(n):(e=0,s.push(n));}else i.push(n);e++;}s.length>0&&this.restoreConstrainedDelauneyTriangulation(t,s);}restoreConstrainedDelauneyTriangulation(t,i){let n=true;for(;n;){n=false;for(let s=0;s<i.length;s++){const e=i[s];if(e.equals(t))continue;let r=this.findQuadFromSharedEdge(e.t1,e.t1Edge);if(r&&this.swapTest(this.points[r.q1].coords,this.points[r.q2].coords,this.points[r.q3].coords,this.points[r.q4].coords)){this.swapQuadDiagonal(r,i,this.constraints,null);const t=r.q3,e=r.q4;i[s]=new M$1(t,e,r.t1,r.t2,5),n=true;}}}}discardTrianglesViolatingConstraints(){this.skipTriangle.fill(true);let t=new Set;for(let i=0;i<this.constraints.length;i++){const n=this.constraints[i];t.add(d(n.v1,n.v2));}this.visited.fill(false);let i,n,s,e,r,o,a=[];for(let h=0;h<this.triangleCount;h++)if(!this.visited[h]&&(i=this.triangulation[h][0],n=this.triangulation[h][1],s=this.triangulation[h][2],e=t.has(d(i,n)),r=t.has(d(n,s)),o=t.has(d(s,i)),e||r||o))for(this.skipTriangle[h]=false,a=[],e||a.push(this.triangulation[h][3]),r||a.push(this.triangulation[h][4]),o||a.push(this.triangulation[h][5]);a.length>0;){const e=a.shift();-1===e||this.visited[e]||(this.skipTriangle[e]=false,this.visited[e]=true,i=this.triangulation[e][0],n=this.triangulation[e][1],s=this.triangulation[e][2],t.has(d(i,n))||a.push(this.triangulation[e][3]),t.has(d(n,s))||a.push(this.triangulation[e][4]),t.has(d(s,i))||a.push(this.triangulation[e][5]));}}triangleContainsConstraint(t,i){return !(t>=this.triangulation.length)&&!(this.triangulation[t][0]!==i.v1&&this.triangulation[t][1]!==i.v1&&this.triangulation[t][2]!==i.v1||this.triangulation[t][0]!==i.v2&&this.triangulation[t][1]!==i.v2&&this.triangulation[t][2]!==i.v2)}edgeConstraintIntersectsTriangle(t,i){const n=this.points[i.v1].coords,s=this.points[i.v2].coords,e=this.points[this.triangulation[t][0]].coords,r=this.points[this.triangulation[t][1]].coords,o=this.points[this.triangulation[t][2]].coords;return h(n,s,e,r)?3:h(n,s,r,o)?4:h(n,s,o,e)?5:null}findQuadFromSharedEdge(t,i){let n,s,e,r,o,a,h,l,u=this.triangulation[t][i],c=this.findSharedEdge(u,t);return c?(3===c?(s=this.triangulation[u][0],n=this.triangulation[u][1],e=this.triangulation[u][2]):4===c?(s=this.triangulation[u][1],n=this.triangulation[u][2],e=this.triangulation[u][0]):(s=this.triangulation[u][2],n=this.triangulation[u][0],e=this.triangulation[u][1]),r=this.triangulation[t][this.oppositePoint[i]],o=this.triangulation[t][this.previousEdge[i]],a=this.triangulation[t][this.nextEdge[i]],h=this.triangulation[u][this.nextEdge[c]],l=this.triangulation[u][this.previousEdge[c]],new A(n,s,e,r,t,u,o,a,h,l)):null}swapQuadDiagonal(t,i,n,s){const e=t.t1,r=t.t2,o=t.t1R,a=t.t1L,h=t.t2R,l=t.t2L;this.triangulation[e][0]=t.q4,this.triangulation[e][1]=t.q1,this.triangulation[e][2]=t.q3,this.triangulation[r][0]=t.q4,this.triangulation[r][1]=t.q3,this.triangulation[r][2]=t.q2,this.triangulation[e][3]=a,this.triangulation[e][4]=l,this.triangulation[e][5]=r,this.triangulation[r][3]=e,this.triangulation[r][4]=h,this.triangulation[r][5]=o,this.updateAdjacency(l,r,e),this.updateAdjacency(o,e,r),this.updateEdgesAfterSwap(i,e,r,a,o,l,h),this.updateEdgesAfterSwap(n,e,r,a,o,l,h),this.updateEdgesAfterSwap(s,e,r,a,o,l,h),this.vertexTriangles[t.q1]=e,this.vertexTriangles[t.q2]=r;}updateEdgesAfterSwap(t,i,n,s,e,r,o){if(t)for(let a of t)a.t1===i&&a.t2===e?(a.t1=n,a.t2=e,a.t1Edge=5):a.t1===i&&a.t2===s?a.t1Edge=3:a.t1===e&&a.t2===i?a.t2=n:a.t1===s&&a.t2===i||(a.t1===n&&a.t2===o?a.t1Edge=4:a.t1===n&&a.t2===r?(a.t1=i,a.t2=r,a.t1Edge=4):a.t1===o&&a.t2===n||a.t1===r&&a.t2===n&&(a.t2=i));}}function E$1(t,n,s,e,r,o,a=true){const h=new w,l=new w,u=new Array(t.vertexCount).fill(false);for(let i=0;i<t.vertices.length;i++){var c=t.vertices[i];u[i]=x(c.position,n,s),(u[i]?h:l).addMappedVertex(c,i);}const g=t.vertices.length;for(let i=0;i<t.cutVertices.length;i++){c=t.cutVertices[i];u[i+g]=x(c.position,n,s),(u[i+g]?h:l).addMappedVertex(c,i+g);}return N(t,h,l,n,s,u,y),a&&N(t,h,l,n,s,u,m$1),a&&function(t,n,s,e,r,o){t.weldCutFaceVertices();const a=s.clone().negate().normalize();if(t.cutVertices.length<3)return;const h=o?new b(t.cutVertices,a):new S(t.cutVertices,t.constraints,a),l=h.triangulate();for(let o=0;o<t.cutVertices.length;o++){var u=t.cutVertices[o],c=h.points[o];const l=new Vector2(h.normalizationScaleFactor*c.coords.x*e.x+r.x,h.normalizationScaleFactor*c.coords.y*e.y+r.y),g=new v(u.position.clone(),a.clone(),l.clone()),d=new v(u.position.clone(),s.clone(),l.clone());t.cutVertices[o]=g,n.cutVertices[o]=d;}let g=t.vertices.length,d=n.vertices.length;for(let i=0;i<l.length;i+=3)t.addTriangle(g+l[i],g+l[i+1],g+l[i+2],m$1),n.addTriangle(d+l[i],d+l[i+2],d+l[i+1],m$1);}(h,l,n,e,r,o),{topSlice:h,bottomSlice:l}}function N(t,i,n,s,e,r,o){const a=t.triangles[o];let h,l,u;for(let c=0;c<a.length;c+=3)h=a[c],l=a[c+1],u=a[c+2],r[h]&&r[l]&&r[u]?i.addMappedTriangle(h,l,u,o):r[h]||r[l]||r[u]?r[l]&&r[u]&&!r[h]?q$1(l,u,h,s,e,t,i,n,o,true):r[u]&&r[h]&&!r[l]?q$1(u,h,l,s,e,t,i,n,o,true):r[h]&&r[l]&&!r[u]?q$1(h,l,u,s,e,t,i,n,o,true):r[l]||r[u]||!r[h]?r[u]||r[h]||!r[l]?r[h]||r[l]||!r[u]||q$1(h,l,u,s,e,t,i,n,o,false):q$1(u,h,l,s,e,t,i,n,o,false):q$1(l,u,h,s,e,t,i,n,o,false):n.addMappedTriangle(h,l,u,o);}function q$1(n,s,e,r,o,a,h,u,c,g){let d=n<a.vertices.length?a.vertices[n]:a.cutVertices[n-a.vertices.length],p=s<a.vertices.length?a.vertices[s]:a.cutVertices[s-a.vertices.length],f=e<a.vertices.length?a.vertices[e]:a.cutVertices[e-a.vertices.length];const x=l(d.position,f.position,r,o),v=l(p.position,f.position,r,o);if(x&&v){const r=new Vector3(d.normal.x+x.s*(f.normal.x-d.normal.x),d.normal.y+x.s*(f.normal.y-d.normal.y),d.normal.z+x.s*(f.normal.z-d.normal.z)).normalize(),o=new Vector3(p.normal.x+v.s*(f.normal.x-p.normal.x),p.normal.y+v.s*(f.normal.y-p.normal.y),p.normal.z+v.s*(f.normal.z-p.normal.z)).normalize(),a=new Vector2(d.uv.x+x.s*(f.uv.x-d.uv.x),d.uv.y+x.s*(f.uv.y-d.uv.y)),l=new Vector2(p.uv.x+v.s*(f.uv.x-p.uv.x),p.uv.y+v.s*(f.uv.y-p.uv.y));h.addCutFaceVertex(x.x,r,a),h.addCutFaceVertex(v.x,o,l),u.addCutFaceVertex(x.x,r,a),u.addCutFaceVertex(v.x,o,l);const y=h.vertices.length-2,m=h.vertices.length-1,w=u.vertices.length-2,V=u.vertices.length-1;g?(h.addTriangle(m,y,h.indexMap[s],c),h.addTriangle(y,h.indexMap[n],h.indexMap[s],c),u.addTriangle(u.indexMap[e],w,V,c),h.constraints.push(new M$1(h.cutVertices.length-2,h.cutVertices.length-1)),u.constraints.push(new M$1(u.cutVertices.length-1,u.cutVertices.length-2))):(h.addTriangle(y,m,h.indexMap[e],c),u.addTriangle(u.indexMap[n],u.indexMap[s],w,c),u.addTriangle(u.indexMap[s],V,w,c),h.constraints.push(new M$1(h.cutVertices.length-1,h.cutVertices.length-2)),u.constraints.push(new M$1(u.cutVertices.length-2,u.cutVertices.length-1)));}}const k={textureScale:new Vector2(1,1),textureOffset:new Vector2},F$1=new Vector3,$=new Vector3,I$1=new Vector3,P$1=new Plane,j=new Plane;function B$1(i,n,s,e,r,o){const a=[],h=i.matrixWorld.clone().invert(),l=i.position;n.applyMatrix4(h);const u=w.fromGeometry(i.geometry);let c=u.convex;F$1.addVectors(n,s),P$1.setFromCoplanarPoints(n,l,F$1);const g=r+e;return function i(r,u,d,p){if(0===r.vertexCount)return;if(Math.random()<.05*p||p>g)return void a.push(r);let f=Math.PI,x=new Vector3;r.calculateBounds(),r.bounds.getCenter(x);let v=c;if(0===p)j.normal.copy(P$1.normal),j.constant=P$1.constant;else if(p<=e)f=(d-u)*(.2+.6*Math.random())+u,$.copy(l).sub(n).applyAxisAngle(s,f).add(n),j.setFromCoplanarPoints(n,F$1,$);else {let t=x.clone().applyMatrix4(h);f=(.5*(1&p)+.2*(2-Math.random()))*Math.PI,$.copy(n).sub(t).applyAxisAngle(s,f).add(t),I$1.copy(s).add(t),j.setFromCoplanarPoints(t,I$1,$);}const{topSlice:y,bottomSlice:m}=E$1(r,j.normal,$,k.textureScale,k.textureOffset,v,o);let w=y,V=m;v||(w=G(y),V=G(m)),w&&(w instanceof Array?w.length>0&&w.forEach((t=>{t.vertices.length>12&&i(t,u,f,p+1);})):i(w,u,f,p+1)),V&&(V instanceof Array?V.length>0&&V.forEach((t=>{t.vertices.length>12&&i(t,u,f,p+1);})):i(m,f,d,p+1));}(u,0,2*Math.PI,0),a}function Q(t,i,n,s=true,e=0){const r=[];return t.map(((t,o)=>{r.push(t.toMesh(i,n,s,e));})),r}function G(t){const i=new V(t.vertexCount),n={},s=t.vertices.length,e=t.cutVertices.length,r=new Map;t.vertices.forEach(((t,n)=>{const s=f(t.position),e=r.get(s);void 0===e?r.set(s,n):i.union(e,n);}));for(let n=0;n<e;n++)i.union(t.vertexAdjacency[n],n+s);const o=t.triangles;for(let t=0;t<o.length;t++)for(let s=0;s<o[t].length;s+=3){const e=o[t][s],r=o[t][s+1],a=o[t][s+2];i.union(e,r),i.union(r,a);const h=i.find(e);n[h]||(n[h]=[[],[]]),n[h][t].push(e,r,a);}const a={},h=Array(t.vertexCount);for(let n=0;n<s;n++){const s=i.find(n);a[s]||(a[s]=new w),a[s].vertices.push(t.vertices[n]),h[n]=a[s].vertices.length-1;}for(let n=0;n<e;n++){const e=i.find(n+s);a[e].cutVertices.push(t.cutVertices[n]),h[n+s]=a[e].vertices.length+a[e].cutVertices.length-1;}for(const s of Object.keys(n)){let e=Number(s),r=i.parent[e];for(let i=0;i<t.triangles.length;i++)for(const t of n[e][i]){const n=h[t];a[r].triangles[i].push(n);}}return Object.values(a)}
 
 class Breaker {
 
@@ -41166,57 +40966,6 @@ class Breaker {
 		//if( this.nDebris>this.maxDebris ) this.nDebris = 0
 
 		return deb
-
-	}
-
-}
-
-function clone( source ) {
-
-	const sourceLookup = new Map();
-	const cloneLookup = new Map();
-
-	const clone = source.clone();
-
-	parallelTraverse( source, clone, function ( sourceNode, clonedNode ) {
-
-		sourceLookup.set( clonedNode, sourceNode );
-		cloneLookup.set( sourceNode, clonedNode );
-
-	} );
-
-	clone.traverse( function ( node ) {
-
-		if ( ! node.isSkinnedMesh ) return;
-
-		const clonedMesh = node;
-		const sourceMesh = sourceLookup.get( node );
-		const sourceBones = sourceMesh.skeleton.bones;
-
-		clonedMesh.skeleton = sourceMesh.skeleton.clone();
-		clonedMesh.bindMatrix.copy( sourceMesh.bindMatrix );
-
-		clonedMesh.skeleton.bones = sourceBones.map( function ( bone ) {
-
-			return cloneLookup.get( bone );
-
-		} );
-
-		clonedMesh.bind( clonedMesh.skeleton, clonedMesh.bindMatrix );
-
-	} );
-
-	return clone;
-
-}
-
-function parallelTraverse( a, b, callback ) {
-
-	callback( a, b );
-
-	for ( let i = 0; i < a.children.length; i ++ ) {
-
-		parallelTraverse( a.children[ i ], b.children[ i ], callback );
 
 	}
 
@@ -41456,3358 +41205,6 @@ class Debuger extends LineSegments {
         this.geometry.dispose();
 
     }
-
-}
-
-// https://github.com/mrdoob/three.js/issues/5552
-// http://en.wikipedia.org/wiki/RGBE_image_format
-
-class RGBELoader extends DataTextureLoader {
-
-	constructor( manager ) {
-
-		super( manager );
-
-		this.type = HalfFloatType;
-
-	}
-
-	// adapted from http://www.graphics.cornell.edu/~bjw/rgbe.html
-
-	parse( buffer ) {
-
-		const
-			/* default error routine.  change this to change error handling */
-			rgbe_read_error = 1,
-			rgbe_write_error = 2,
-			rgbe_format_error = 3,
-			rgbe_memory_error = 4,
-			rgbe_error = function ( rgbe_error_code, msg ) {
-
-				switch ( rgbe_error_code ) {
-
-					case rgbe_read_error: throw new Error( 'THREE.RGBELoader: Read Error: ' + ( msg || '' ) );
-					case rgbe_write_error: throw new Error( 'THREE.RGBELoader: Write Error: ' + ( msg || '' ) );
-					case rgbe_format_error: throw new Error( 'THREE.RGBELoader: Bad File Format: ' + ( msg || '' ) );
-					default:
-					case rgbe_memory_error: throw new Error( 'THREE.RGBELoader: Memory Error: ' + ( msg || '' ) );
-
-				}
-
-			},
-
-			/* offsets to red, green, and blue components in a data (float) pixel */
-			//RGBE_DATA_RED = 0,
-			//RGBE_DATA_GREEN = 1,
-			//RGBE_DATA_BLUE = 2,
-
-			/* number of floats per pixel, use 4 since stored in rgba image format */
-			//RGBE_DATA_SIZE = 4,
-
-			/* flags indicating which fields in an rgbe_header_info are valid */
-			RGBE_VALID_PROGRAMTYPE = 1,
-			RGBE_VALID_FORMAT = 2,
-			RGBE_VALID_DIMENSIONS = 4,
-
-			NEWLINE = '\n',
-
-			fgets = function ( buffer, lineLimit, consume ) {
-
-				const chunkSize = 128;
-
-				lineLimit = ! lineLimit ? 1024 : lineLimit;
-				let p = buffer.pos,
-					i = -1, len = 0, s = '',
-					chunk = String.fromCharCode.apply( null, new Uint16Array( buffer.subarray( p, p + chunkSize ) ) );
-
-				while ( ( 0 > ( i = chunk.indexOf( NEWLINE ) ) ) && ( len < lineLimit ) && ( p < buffer.byteLength ) ) {
-
-					s += chunk; len += chunk.length;
-					p += chunkSize;
-					chunk += String.fromCharCode.apply( null, new Uint16Array( buffer.subarray( p, p + chunkSize ) ) );
-
-				}
-
-				if ( -1 < i ) {
-
-					/*for (i=l-1; i>=0; i--) {
-						byteCode = m.charCodeAt(i);
-						if (byteCode > 0x7f && byteCode <= 0x7ff) byteLen++;
-						else if (byteCode > 0x7ff && byteCode <= 0xffff) byteLen += 2;
-						if (byteCode >= 0xDC00 && byteCode <= 0xDFFF) i--; //trail surrogate
-					}*/
-					buffer.pos += len + i + 1;
-					return s + chunk.slice( 0, i );
-
-				}
-
-				return false;
-
-			},
-
-			/* minimal header reading.  modify if you want to parse more information */
-			RGBE_ReadHeader = function ( buffer ) {
-
-
-				// regexes to parse header info fields
-				const magic_token_re = /^#\?(\S+)/,
-					gamma_re = /^\s*GAMMA\s*=\s*(\d+(\.\d+)?)\s*$/,
-					exposure_re = /^\s*EXPOSURE\s*=\s*(\d+(\.\d+)?)\s*$/,
-					format_re = /^\s*FORMAT=(\S+)\s*$/,
-					dimensions_re = /^\s*\-Y\s+(\d+)\s+\+X\s+(\d+)\s*$/,
-
-					// RGBE format header struct
-					header = {
-
-						valid: 0, /* indicate which fields are valid */
-
-						string: '', /* the actual header string */
-
-						comments: '', /* comments found in header */
-
-						programtype: 'RGBE', /* listed at beginning of file to identify it after "#?". defaults to "RGBE" */
-
-						format: '', /* RGBE format, default 32-bit_rle_rgbe */
-
-						gamma: 1.0, /* image has already been gamma corrected with given gamma. defaults to 1.0 (no correction) */
-
-						exposure: 1.0, /* a value of 1.0 in an image corresponds to <exposure> watts/steradian/m^2. defaults to 1.0 */
-
-						width: 0, height: 0 /* image dimensions, width/height */
-
-					};
-
-				let line, match;
-
-				if ( buffer.pos >= buffer.byteLength || ! ( line = fgets( buffer ) ) ) {
-
-					rgbe_error( rgbe_read_error, 'no header found' );
-
-				}
-
-				/* if you want to require the magic token then uncomment the next line */
-				if ( ! ( match = line.match( magic_token_re ) ) ) {
-
-					rgbe_error( rgbe_format_error, 'bad initial token' );
-
-				}
-
-				header.valid |= RGBE_VALID_PROGRAMTYPE;
-				header.programtype = match[ 1 ];
-				header.string += line + '\n';
-
-				while ( true ) {
-
-					line = fgets( buffer );
-					if ( false === line ) break;
-					header.string += line + '\n';
-
-					if ( '#' === line.charAt( 0 ) ) {
-
-						header.comments += line + '\n';
-						continue; // comment line
-
-					}
-
-					if ( match = line.match( gamma_re ) ) {
-
-						header.gamma = parseFloat( match[ 1 ] );
-
-					}
-
-					if ( match = line.match( exposure_re ) ) {
-
-						header.exposure = parseFloat( match[ 1 ] );
-
-					}
-
-					if ( match = line.match( format_re ) ) {
-
-						header.valid |= RGBE_VALID_FORMAT;
-						header.format = match[ 1 ];//'32-bit_rle_rgbe';
-
-					}
-
-					if ( match = line.match( dimensions_re ) ) {
-
-						header.valid |= RGBE_VALID_DIMENSIONS;
-						header.height = parseInt( match[ 1 ], 10 );
-						header.width = parseInt( match[ 2 ], 10 );
-
-					}
-
-					if ( ( header.valid & RGBE_VALID_FORMAT ) && ( header.valid & RGBE_VALID_DIMENSIONS ) ) break;
-
-				}
-
-				if ( ! ( header.valid & RGBE_VALID_FORMAT ) ) {
-
-					rgbe_error( rgbe_format_error, 'missing format specifier' );
-
-				}
-
-				if ( ! ( header.valid & RGBE_VALID_DIMENSIONS ) ) {
-
-					rgbe_error( rgbe_format_error, 'missing image size specifier' );
-
-				}
-
-				return header;
-
-			},
-
-			RGBE_ReadPixels_RLE = function ( buffer, w, h ) {
-
-				const scanline_width = w;
-
-				if (
-					// run length encoding is not allowed so read flat
-					( ( scanline_width < 8 ) || ( scanline_width > 0x7fff ) ) ||
-					// this file is not run length encoded
-					( ( 2 !== buffer[ 0 ] ) || ( 2 !== buffer[ 1 ] ) || ( buffer[ 2 ] & 0x80 ) )
-				) {
-
-					// return the flat buffer
-					return new Uint8Array( buffer );
-
-				}
-
-				if ( scanline_width !== ( ( buffer[ 2 ] << 8 ) | buffer[ 3 ] ) ) {
-
-					rgbe_error( rgbe_format_error, 'wrong scanline width' );
-
-				}
-
-				const data_rgba = new Uint8Array( 4 * w * h );
-
-				if ( ! data_rgba.length ) {
-
-					rgbe_error( rgbe_memory_error, 'unable to allocate buffer space' );
-
-				}
-
-				let offset = 0, pos = 0;
-
-				const ptr_end = 4 * scanline_width;
-				const rgbeStart = new Uint8Array( 4 );
-				const scanline_buffer = new Uint8Array( ptr_end );
-				let num_scanlines = h;
-
-				// read in each successive scanline
-				while ( ( num_scanlines > 0 ) && ( pos < buffer.byteLength ) ) {
-
-					if ( pos + 4 > buffer.byteLength ) {
-
-						rgbe_error( rgbe_read_error );
-
-					}
-
-					rgbeStart[ 0 ] = buffer[ pos ++ ];
-					rgbeStart[ 1 ] = buffer[ pos ++ ];
-					rgbeStart[ 2 ] = buffer[ pos ++ ];
-					rgbeStart[ 3 ] = buffer[ pos ++ ];
-
-					if ( ( 2 != rgbeStart[ 0 ] ) || ( 2 != rgbeStart[ 1 ] ) || ( ( ( rgbeStart[ 2 ] << 8 ) | rgbeStart[ 3 ] ) != scanline_width ) ) {
-
-						rgbe_error( rgbe_format_error, 'bad rgbe scanline format' );
-
-					}
-
-					// read each of the four channels for the scanline into the buffer
-					// first red, then green, then blue, then exponent
-					let ptr = 0, count;
-
-					while ( ( ptr < ptr_end ) && ( pos < buffer.byteLength ) ) {
-
-						count = buffer[ pos ++ ];
-						const isEncodedRun = count > 128;
-						if ( isEncodedRun ) count -= 128;
-
-						if ( ( 0 === count ) || ( ptr + count > ptr_end ) ) {
-
-							rgbe_error( rgbe_format_error, 'bad scanline data' );
-
-						}
-
-						if ( isEncodedRun ) {
-
-							// a (encoded) run of the same value
-							const byteValue = buffer[ pos ++ ];
-							for ( let i = 0; i < count; i ++ ) {
-
-								scanline_buffer[ ptr ++ ] = byteValue;
-
-							}
-							//ptr += count;
-
-						} else {
-
-							// a literal-run
-							scanline_buffer.set( buffer.subarray( pos, pos + count ), ptr );
-							ptr += count; pos += count;
-
-						}
-
-					}
-
-
-					// now convert data from buffer into rgba
-					// first red, then green, then blue, then exponent (alpha)
-					const l = scanline_width; //scanline_buffer.byteLength;
-					for ( let i = 0; i < l; i ++ ) {
-
-						let off = 0;
-						data_rgba[ offset ] = scanline_buffer[ i + off ];
-						off += scanline_width; //1;
-						data_rgba[ offset + 1 ] = scanline_buffer[ i + off ];
-						off += scanline_width; //1;
-						data_rgba[ offset + 2 ] = scanline_buffer[ i + off ];
-						off += scanline_width; //1;
-						data_rgba[ offset + 3 ] = scanline_buffer[ i + off ];
-						offset += 4;
-
-					}
-
-					num_scanlines --;
-
-				}
-
-				return data_rgba;
-
-			};
-
-		const RGBEByteToRGBFloat = function ( sourceArray, sourceOffset, destArray, destOffset ) {
-
-			const e = sourceArray[ sourceOffset + 3 ];
-			const scale = Math.pow( 2.0, e - 128.0 ) / 255.0;
-
-			destArray[ destOffset + 0 ] = sourceArray[ sourceOffset + 0 ] * scale;
-			destArray[ destOffset + 1 ] = sourceArray[ sourceOffset + 1 ] * scale;
-			destArray[ destOffset + 2 ] = sourceArray[ sourceOffset + 2 ] * scale;
-			destArray[ destOffset + 3 ] = 1;
-
-		};
-
-		const RGBEByteToRGBHalf = function ( sourceArray, sourceOffset, destArray, destOffset ) {
-
-			const e = sourceArray[ sourceOffset + 3 ];
-			const scale = Math.pow( 2.0, e - 128.0 ) / 255.0;
-
-			// clamping to 65504, the maximum representable value in float16
-			destArray[ destOffset + 0 ] = DataUtils.toHalfFloat( Math.min( sourceArray[ sourceOffset + 0 ] * scale, 65504 ) );
-			destArray[ destOffset + 1 ] = DataUtils.toHalfFloat( Math.min( sourceArray[ sourceOffset + 1 ] * scale, 65504 ) );
-			destArray[ destOffset + 2 ] = DataUtils.toHalfFloat( Math.min( sourceArray[ sourceOffset + 2 ] * scale, 65504 ) );
-			destArray[ destOffset + 3 ] = DataUtils.toHalfFloat( 1 );
-
-		};
-
-		const byteArray = new Uint8Array( buffer );
-		byteArray.pos = 0;
-		const rgbe_header_info = RGBE_ReadHeader( byteArray );
-
-		const w = rgbe_header_info.width,
-			h = rgbe_header_info.height,
-			image_rgba_data = RGBE_ReadPixels_RLE( byteArray.subarray( byteArray.pos ), w, h );
-
-
-		let data, type;
-		let numElements;
-
-		switch ( this.type ) {
-
-			case FloatType:
-
-				numElements = image_rgba_data.length / 4;
-				const floatArray = new Float32Array( numElements * 4 );
-
-				for ( let j = 0; j < numElements; j ++ ) {
-
-					RGBEByteToRGBFloat( image_rgba_data, j * 4, floatArray, j * 4 );
-
-				}
-
-				data = floatArray;
-				type = FloatType;
-				break;
-
-			case HalfFloatType:
-
-				numElements = image_rgba_data.length / 4;
-				const halfArray = new Uint16Array( numElements * 4 );
-
-				for ( let j = 0; j < numElements; j ++ ) {
-
-					RGBEByteToRGBHalf( image_rgba_data, j * 4, halfArray, j * 4 );
-
-				}
-
-				data = halfArray;
-				type = HalfFloatType;
-				break;
-
-			default:
-
-				throw new Error( 'THREE.RGBELoader: unsupported type: ', this.type );
-
-		}
-
-		return {
-			width: w, height: h,
-			data: data,
-			header: rgbe_header_info.string,
-			gamma: rgbe_header_info.gamma,
-			exposure: rgbe_header_info.exposure,
-			type: type
-		};
-
-	}
-
-	setDataType( value ) {
-
-		this.type = value;
-		return this;
-
-	}
-
-	load( url, onLoad, onProgress, onError ) {
-
-		function onLoadCallback( texture, texData ) {
-
-			switch ( texture.type ) {
-
-				case FloatType:
-				case HalfFloatType:
-
-					texture.colorSpace = LinearSRGBColorSpace;
-					texture.minFilter = LinearFilter;
-					texture.magFilter = LinearFilter;
-					texture.generateMipmaps = false;
-					texture.flipY = true;
-
-					//texture.gamma = texData.gamma;
-					//texture.exposure = texData.exposure;
-					//texture.userData = texData;
-
-
-					break;
-
-			}
-
-			if ( onLoad ) onLoad( texture, texData );
-
-		}
-
-		return super.load( url, onLoadCallback, onProgress, onError );
-
-	}
-
-}
-
-/*!
-fflate - fast JavaScript compression/decompression
-<https://101arrowz.github.io/fflate>
-Licensed under MIT. https://github.com/101arrowz/fflate/blob/master/LICENSE
-version 0.6.9
-*/
-
-var durl = function (c) { return URL.createObjectURL(new Blob([c], { type: 'text/javascript' })); };
-try {
-    URL.revokeObjectURL(durl(''));
-}
-catch (e) {
-    // We're in Deno or a very old browser
-    durl = function (c) { return 'data:application/javascript;charset=UTF-8,' + encodeURI(c); };
-}
-
-// aliases for shorter compressed code (most minifers don't do this)
-var u8 = Uint8Array, u16 = Uint16Array, u32 = Uint32Array;
-// fixed length extra bits
-var fleb = new u8([0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 0, /* unused */ 0, 0, /* impossible */ 0]);
-// fixed distance extra bits
-// see fleb note
-var fdeb = new u8([0, 0, 0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 10, 10, 11, 11, 12, 12, 13, 13, /* unused */ 0, 0]);
-// code length index map
-var clim = new u8([16, 17, 18, 0, 8, 7, 9, 6, 10, 5, 11, 4, 12, 3, 13, 2, 14, 1, 15]);
-// get base, reverse index map from extra bits
-var freb = function (eb, start) {
-    var b = new u16(31);
-    for (var i = 0; i < 31; ++i) {
-        b[i] = start += 1 << eb[i - 1];
-    }
-    // numbers here are at max 18 bits
-    var r = new u32(b[30]);
-    for (var i = 1; i < 30; ++i) {
-        for (var j = b[i]; j < b[i + 1]; ++j) {
-            r[j] = ((j - b[i]) << 5) | i;
-        }
-    }
-    return [b, r];
-};
-var _a = freb(fleb, 2), fl = _a[0], revfl = _a[1];
-// we can ignore the fact that the other numbers are wrong; they never happen anyway
-fl[28] = 258, revfl[258] = 28;
-var _b = freb(fdeb, 0), fd = _b[0];
-// map of value to reverse (assuming 16 bits)
-var rev = new u16(32768);
-for (var i = 0; i < 32768; ++i) {
-    // reverse table algorithm from SO
-    var x = ((i & 0xAAAA) >>> 1) | ((i & 0x5555) << 1);
-    x = ((x & 0xCCCC) >>> 2) | ((x & 0x3333) << 2);
-    x = ((x & 0xF0F0) >>> 4) | ((x & 0x0F0F) << 4);
-    rev[i] = (((x & 0xFF00) >>> 8) | ((x & 0x00FF) << 8)) >>> 1;
-}
-// create huffman tree from u8 "map": index -> code length for code index
-// mb (max bits) must be at most 15
-// TODO: optimize/split up?
-var hMap = (function (cd, mb, r) {
-    var s = cd.length;
-    // index
-    var i = 0;
-    // u16 "map": index -> # of codes with bit length = index
-    var l = new u16(mb);
-    // length of cd must be 288 (total # of codes)
-    for (; i < s; ++i)
-        ++l[cd[i] - 1];
-    // u16 "map": index -> minimum code for bit length = index
-    var le = new u16(mb);
-    for (i = 0; i < mb; ++i) {
-        le[i] = (le[i - 1] + l[i - 1]) << 1;
-    }
-    var co;
-    if (r) {
-        // u16 "map": index -> number of actual bits, symbol for code
-        co = new u16(1 << mb);
-        // bits to remove for reverser
-        var rvb = 15 - mb;
-        for (i = 0; i < s; ++i) {
-            // ignore 0 lengths
-            if (cd[i]) {
-                // num encoding both symbol and bits read
-                var sv = (i << 4) | cd[i];
-                // free bits
-                var r_1 = mb - cd[i];
-                // start value
-                var v = le[cd[i] - 1]++ << r_1;
-                // m is end value
-                for (var m = v | ((1 << r_1) - 1); v <= m; ++v) {
-                    // every 16 bit value starting with the code yields the same result
-                    co[rev[v] >>> rvb] = sv;
-                }
-            }
-        }
-    }
-    else {
-        co = new u16(s);
-        for (i = 0; i < s; ++i) {
-            if (cd[i]) {
-                co[i] = rev[le[cd[i] - 1]++] >>> (15 - cd[i]);
-            }
-        }
-    }
-    return co;
-});
-// fixed length tree
-var flt = new u8(288);
-for (var i = 0; i < 144; ++i)
-    flt[i] = 8;
-for (var i = 144; i < 256; ++i)
-    flt[i] = 9;
-for (var i = 256; i < 280; ++i)
-    flt[i] = 7;
-for (var i = 280; i < 288; ++i)
-    flt[i] = 8;
-// fixed distance tree
-var fdt = new u8(32);
-for (var i = 0; i < 32; ++i)
-    fdt[i] = 5;
-// fixed length map
-var flrm = /*#__PURE__*/ hMap(flt, 9, 1);
-// fixed distance map
-var fdrm = /*#__PURE__*/ hMap(fdt, 5, 1);
-// find max of array
-var max = function (a) {
-    var m = a[0];
-    for (var i = 1; i < a.length; ++i) {
-        if (a[i] > m)
-            m = a[i];
-    }
-    return m;
-};
-// read d, starting at bit p and mask with m
-var bits = function (d, p, m) {
-    var o = (p / 8) | 0;
-    return ((d[o] | (d[o + 1] << 8)) >> (p & 7)) & m;
-};
-// read d, starting at bit p continuing for at least 16 bits
-var bits16 = function (d, p) {
-    var o = (p / 8) | 0;
-    return ((d[o] | (d[o + 1] << 8) | (d[o + 2] << 16)) >> (p & 7));
-};
-// get end of byte
-var shft = function (p) { return ((p / 8) | 0) + (p & 7 && 1); };
-// typed array slice - allows garbage collector to free original reference,
-// while being more compatible than .slice
-var slc = function (v, s, e) {
-    if (e == null || e > v.length)
-        e = v.length;
-    // can't use .constructor in case user-supplied
-    var n = new (v instanceof u16 ? u16 : v instanceof u32 ? u32 : u8)(e - s);
-    n.set(v.subarray(s, e));
-    return n;
-};
-// expands raw DEFLATE data
-var inflt = function (dat, buf, st) {
-    // source length
-    var sl = dat.length;
-    if (!sl || (st && !st.l && sl < 5))
-        return buf || new u8(0);
-    // have to estimate size
-    var noBuf = !buf || st;
-    // no state
-    var noSt = !st || st.i;
-    if (!st)
-        st = {};
-    // Assumes roughly 33% compression ratio average
-    if (!buf)
-        buf = new u8(sl * 3);
-    // ensure buffer can fit at least l elements
-    var cbuf = function (l) {
-        var bl = buf.length;
-        // need to increase size to fit
-        if (l > bl) {
-            // Double or set to necessary, whichever is greater
-            var nbuf = new u8(Math.max(bl * 2, l));
-            nbuf.set(buf);
-            buf = nbuf;
-        }
-    };
-    //  last chunk         bitpos           bytes
-    var final = st.f || 0, pos = st.p || 0, bt = st.b || 0, lm = st.l, dm = st.d, lbt = st.m, dbt = st.n;
-    // total bits
-    var tbts = sl * 8;
-    do {
-        if (!lm) {
-            // BFINAL - this is only 1 when last chunk is next
-            st.f = final = bits(dat, pos, 1);
-            // type: 0 = no compression, 1 = fixed huffman, 2 = dynamic huffman
-            var type = bits(dat, pos + 1, 3);
-            pos += 3;
-            if (!type) {
-                // go to end of byte boundary
-                var s = shft(pos) + 4, l = dat[s - 4] | (dat[s - 3] << 8), t = s + l;
-                if (t > sl) {
-                    if (noSt)
-                        throw 'unexpected EOF';
-                    break;
-                }
-                // ensure size
-                if (noBuf)
-                    cbuf(bt + l);
-                // Copy over uncompressed data
-                buf.set(dat.subarray(s, t), bt);
-                // Get new bitpos, update byte count
-                st.b = bt += l, st.p = pos = t * 8;
-                continue;
-            }
-            else if (type == 1)
-                lm = flrm, dm = fdrm, lbt = 9, dbt = 5;
-            else if (type == 2) {
-                //  literal                            lengths
-                var hLit = bits(dat, pos, 31) + 257, hcLen = bits(dat, pos + 10, 15) + 4;
-                var tl = hLit + bits(dat, pos + 5, 31) + 1;
-                pos += 14;
-                // length+distance tree
-                var ldt = new u8(tl);
-                // code length tree
-                var clt = new u8(19);
-                for (var i = 0; i < hcLen; ++i) {
-                    // use index map to get real code
-                    clt[clim[i]] = bits(dat, pos + i * 3, 7);
-                }
-                pos += hcLen * 3;
-                // code lengths bits
-                var clb = max(clt), clbmsk = (1 << clb) - 1;
-                // code lengths map
-                var clm = hMap(clt, clb, 1);
-                for (var i = 0; i < tl;) {
-                    var r = clm[bits(dat, pos, clbmsk)];
-                    // bits read
-                    pos += r & 15;
-                    // symbol
-                    var s = r >>> 4;
-                    // code length to copy
-                    if (s < 16) {
-                        ldt[i++] = s;
-                    }
-                    else {
-                        //  copy   count
-                        var c = 0, n = 0;
-                        if (s == 16)
-                            n = 3 + bits(dat, pos, 3), pos += 2, c = ldt[i - 1];
-                        else if (s == 17)
-                            n = 3 + bits(dat, pos, 7), pos += 3;
-                        else if (s == 18)
-                            n = 11 + bits(dat, pos, 127), pos += 7;
-                        while (n--)
-                            ldt[i++] = c;
-                    }
-                }
-                //    length tree                 distance tree
-                var lt = ldt.subarray(0, hLit), dt = ldt.subarray(hLit);
-                // max length bits
-                lbt = max(lt);
-                // max dist bits
-                dbt = max(dt);
-                lm = hMap(lt, lbt, 1);
-                dm = hMap(dt, dbt, 1);
-            }
-            else
-                throw 'invalid block type';
-            if (pos > tbts) {
-                if (noSt)
-                    throw 'unexpected EOF';
-                break;
-            }
-        }
-        // Make sure the buffer can hold this + the largest possible addition
-        // Maximum chunk size (practically, theoretically infinite) is 2^17;
-        if (noBuf)
-            cbuf(bt + 131072);
-        var lms = (1 << lbt) - 1, dms = (1 << dbt) - 1;
-        var lpos = pos;
-        for (;; lpos = pos) {
-            // bits read, code
-            var c = lm[bits16(dat, pos) & lms], sym = c >>> 4;
-            pos += c & 15;
-            if (pos > tbts) {
-                if (noSt)
-                    throw 'unexpected EOF';
-                break;
-            }
-            if (!c)
-                throw 'invalid length/literal';
-            if (sym < 256)
-                buf[bt++] = sym;
-            else if (sym == 256) {
-                lpos = pos, lm = null;
-                break;
-            }
-            else {
-                var add = sym - 254;
-                // no extra bits needed if less
-                if (sym > 264) {
-                    // index
-                    var i = sym - 257, b = fleb[i];
-                    add = bits(dat, pos, (1 << b) - 1) + fl[i];
-                    pos += b;
-                }
-                // dist
-                var d = dm[bits16(dat, pos) & dms], dsym = d >>> 4;
-                if (!d)
-                    throw 'invalid distance';
-                pos += d & 15;
-                var dt = fd[dsym];
-                if (dsym > 3) {
-                    var b = fdeb[dsym];
-                    dt += bits16(dat, pos) & ((1 << b) - 1), pos += b;
-                }
-                if (pos > tbts) {
-                    if (noSt)
-                        throw 'unexpected EOF';
-                    break;
-                }
-                if (noBuf)
-                    cbuf(bt + 131072);
-                var end = bt + add;
-                for (; bt < end; bt += 4) {
-                    buf[bt] = buf[bt - dt];
-                    buf[bt + 1] = buf[bt + 1 - dt];
-                    buf[bt + 2] = buf[bt + 2 - dt];
-                    buf[bt + 3] = buf[bt + 3 - dt];
-                }
-                bt = end;
-            }
-        }
-        st.l = lm, st.p = lpos, st.b = bt;
-        if (lm)
-            final = 1, st.m = lbt, st.d = dm, st.n = dbt;
-    } while (!final);
-    return bt == buf.length ? buf : slc(buf, 0, bt);
-};
-// empty
-var et = /*#__PURE__*/ new u8(0);
-// zlib valid
-var zlv = function (d) {
-    if ((d[0] & 15) != 8 || (d[0] >>> 4) > 7 || ((d[0] << 8 | d[1]) % 31))
-        throw 'invalid zlib data';
-    if (d[1] & 32)
-        throw 'invalid zlib data: preset dictionaries not supported';
-};
-/**
- * Expands Zlib data
- * @param data The data to decompress
- * @param out Where to write the data. Saves memory if you know the decompressed size and provide an output buffer of that length.
- * @returns The decompressed version of the data
- */
-function unzlibSync(data, out) {
-    return inflt((zlv(data), data.subarray(2, -4)), out);
-}
-// text decoder
-var td = typeof TextDecoder != 'undefined' && /*#__PURE__*/ new TextDecoder();
-// text decoder stream
-var tds = 0;
-try {
-    td.decode(et, { stream: true });
-    tds = 1;
-}
-catch (e) { }
-
-/**
- * OpenEXR loader currently supports uncompressed, ZIP(S), RLE, PIZ and DWA/B compression.
- * Supports reading as UnsignedByte, HalfFloat and Float type data texture.
- *
- * Referred to the original Industrial Light & Magic OpenEXR implementation and the TinyEXR / Syoyo Fujita
- * implementation, so I have preserved their copyright notices.
- */
-
-// /*
-// Copyright (c) 2014 - 2017, Syoyo Fujita
-// All rights reserved.
-
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
-//     * Redistributions of source code must retain the above copyright
-//       notice, this list of conditions and the following disclaimer.
-//     * Redistributions in binary form must reproduce the above copyright
-//       notice, this list of conditions and the following disclaimer in the
-//       documentation and/or other materials provided with the distribution.
-//     * Neither the name of the Syoyo Fujita nor the
-//       names of its contributors may be used to endorse or promote products
-//       derived from this software without specific prior written permission.
-
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
-// ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-// WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-// DISCLAIMED. IN NO EVENT SHALL <COPYRIGHT HOLDER> BE LIABLE FOR ANY
-// DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-// (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-// LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
-// ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// */
-
-// // TinyEXR contains some OpenEXR code, which is licensed under ------------
-
-// ///////////////////////////////////////////////////////////////////////////
-// //
-// // Copyright (c) 2002, Industrial Light & Magic, a division of Lucas
-// // Digital Ltd. LLC
-// //
-// // All rights reserved.
-// //
-// // Redistribution and use in source and binary forms, with or without
-// // modification, are permitted provided that the following conditions are
-// // met:
-// // *       Redistributions of source code must retain the above copyright
-// // notice, this list of conditions and the following disclaimer.
-// // *       Redistributions in binary form must reproduce the above
-// // copyright notice, this list of conditions and the following disclaimer
-// // in the documentation and/or other materials provided with the
-// // distribution.
-// // *       Neither the name of Industrial Light & Magic nor the names of
-// // its contributors may be used to endorse or promote products derived
-// // from this software without specific prior written permission.
-// //
-// // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-// // "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-// // LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-// // A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-// // OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-// // SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-// // LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-// // DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-// // THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-// // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-// // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// //
-// ///////////////////////////////////////////////////////////////////////////
-
-// // End of OpenEXR license -------------------------------------------------
-
-class EXRLoader extends DataTextureLoader {
-
-	constructor( manager ) {
-
-		super( manager );
-
-		this.type = HalfFloatType;
-
-	}
-
-	parse( buffer ) {
-
-		const USHORT_RANGE = ( 1 << 16 );
-		const BITMAP_SIZE = ( USHORT_RANGE >> 3 );
-
-		const HUF_ENCBITS = 16; // literal (value) bit length
-		const HUF_DECBITS = 14; // decoding bit size (>= 8)
-
-		const HUF_ENCSIZE = ( 1 << HUF_ENCBITS ) + 1; // encoding table size
-		const HUF_DECSIZE = 1 << HUF_DECBITS; // decoding table size
-		const HUF_DECMASK = HUF_DECSIZE - 1;
-
-		const NBITS = 16;
-		const A_OFFSET = 1 << ( NBITS - 1 );
-		const MOD_MASK = ( 1 << NBITS ) - 1;
-
-		const SHORT_ZEROCODE_RUN = 59;
-		const LONG_ZEROCODE_RUN = 63;
-		const SHORTEST_LONG_RUN = 2 + LONG_ZEROCODE_RUN - SHORT_ZEROCODE_RUN;
-
-		const ULONG_SIZE = 8;
-		const FLOAT32_SIZE = 4;
-		const INT32_SIZE = 4;
-		const INT16_SIZE = 2;
-		const INT8_SIZE = 1;
-
-		const STATIC_HUFFMAN = 0;
-		const DEFLATE = 1;
-
-		const UNKNOWN = 0;
-		const LOSSY_DCT = 1;
-		const RLE = 2;
-
-		const logBase = Math.pow( 2.7182818, 2.2 );
-
-		function reverseLutFromBitmap( bitmap, lut ) {
-
-			let k = 0;
-
-			for ( let i = 0; i < USHORT_RANGE; ++ i ) {
-
-				if ( ( i == 0 ) || ( bitmap[ i >> 3 ] & ( 1 << ( i & 7 ) ) ) ) {
-
-					lut[ k ++ ] = i;
-
-				}
-
-			}
-
-			const n = k - 1;
-
-			while ( k < USHORT_RANGE ) lut[ k ++ ] = 0;
-
-			return n;
-
-		}
-
-		function hufClearDecTable( hdec ) {
-
-			for ( let i = 0; i < HUF_DECSIZE; i ++ ) {
-
-				hdec[ i ] = {};
-				hdec[ i ].len = 0;
-				hdec[ i ].lit = 0;
-				hdec[ i ].p = null;
-
-			}
-
-		}
-
-		const getBitsReturn = { l: 0, c: 0, lc: 0 };
-
-		function getBits( nBits, c, lc, uInt8Array, inOffset ) {
-
-			while ( lc < nBits ) {
-
-				c = ( c << 8 ) | parseUint8Array( uInt8Array, inOffset );
-				lc += 8;
-
-			}
-
-			lc -= nBits;
-
-			getBitsReturn.l = ( c >> lc ) & ( ( 1 << nBits ) - 1 );
-			getBitsReturn.c = c;
-			getBitsReturn.lc = lc;
-
-		}
-
-		const hufTableBuffer = new Array( 59 );
-
-		function hufCanonicalCodeTable( hcode ) {
-
-			for ( let i = 0; i <= 58; ++ i ) hufTableBuffer[ i ] = 0;
-			for ( let i = 0; i < HUF_ENCSIZE; ++ i ) hufTableBuffer[ hcode[ i ] ] += 1;
-
-			let c = 0;
-
-			for ( let i = 58; i > 0; -- i ) {
-
-				const nc = ( ( c + hufTableBuffer[ i ] ) >> 1 );
-				hufTableBuffer[ i ] = c;
-				c = nc;
-
-			}
-
-			for ( let i = 0; i < HUF_ENCSIZE; ++ i ) {
-
-				const l = hcode[ i ];
-				if ( l > 0 ) hcode[ i ] = l | ( hufTableBuffer[ l ] ++ << 6 );
-
-			}
-
-		}
-
-		function hufUnpackEncTable( uInt8Array, inOffset, ni, im, iM, hcode ) {
-
-			const p = inOffset;
-			let c = 0;
-			let lc = 0;
-
-			for ( ; im <= iM; im ++ ) {
-
-				if ( p.value - inOffset.value > ni ) return false;
-
-				getBits( 6, c, lc, uInt8Array, p );
-
-				const l = getBitsReturn.l;
-				c = getBitsReturn.c;
-				lc = getBitsReturn.lc;
-
-				hcode[ im ] = l;
-
-				if ( l == LONG_ZEROCODE_RUN ) {
-
-					if ( p.value - inOffset.value > ni ) {
-
-						throw new Error( 'Something wrong with hufUnpackEncTable' );
-
-					}
-
-					getBits( 8, c, lc, uInt8Array, p );
-
-					let zerun = getBitsReturn.l + SHORTEST_LONG_RUN;
-					c = getBitsReturn.c;
-					lc = getBitsReturn.lc;
-
-					if ( im + zerun > iM + 1 ) {
-
-						throw new Error( 'Something wrong with hufUnpackEncTable' );
-
-					}
-
-					while ( zerun -- ) hcode[ im ++ ] = 0;
-
-					im --;
-
-				} else if ( l >= SHORT_ZEROCODE_RUN ) {
-
-					let zerun = l - SHORT_ZEROCODE_RUN + 2;
-
-					if ( im + zerun > iM + 1 ) {
-
-						throw new Error( 'Something wrong with hufUnpackEncTable' );
-
-					}
-
-					while ( zerun -- ) hcode[ im ++ ] = 0;
-
-					im --;
-
-				}
-
-			}
-
-			hufCanonicalCodeTable( hcode );
-
-		}
-
-		function hufLength( code ) {
-
-			return code & 63;
-
-		}
-
-		function hufCode( code ) {
-
-			return code >> 6;
-
-		}
-
-		function hufBuildDecTable( hcode, im, iM, hdecod ) {
-
-			for ( ; im <= iM; im ++ ) {
-
-				const c = hufCode( hcode[ im ] );
-				const l = hufLength( hcode[ im ] );
-
-				if ( c >> l ) {
-
-					throw new Error( 'Invalid table entry' );
-
-				}
-
-				if ( l > HUF_DECBITS ) {
-
-					const pl = hdecod[ ( c >> ( l - HUF_DECBITS ) ) ];
-
-					if ( pl.len ) {
-
-						throw new Error( 'Invalid table entry' );
-
-					}
-
-					pl.lit ++;
-
-					if ( pl.p ) {
-
-						const p = pl.p;
-						pl.p = new Array( pl.lit );
-
-						for ( let i = 0; i < pl.lit - 1; ++ i ) {
-
-							pl.p[ i ] = p[ i ];
-
-						}
-
-					} else {
-
-						pl.p = new Array( 1 );
-
-					}
-
-					pl.p[ pl.lit - 1 ] = im;
-
-				} else if ( l ) {
-
-					let plOffset = 0;
-
-					for ( let i = 1 << ( HUF_DECBITS - l ); i > 0; i -- ) {
-
-						const pl = hdecod[ ( c << ( HUF_DECBITS - l ) ) + plOffset ];
-
-						if ( pl.len || pl.p ) {
-
-							throw new Error( 'Invalid table entry' );
-
-						}
-
-						pl.len = l;
-						pl.lit = im;
-
-						plOffset ++;
-
-					}
-
-				}
-
-			}
-
-			return true;
-
-		}
-
-		const getCharReturn = { c: 0, lc: 0 };
-
-		function getChar( c, lc, uInt8Array, inOffset ) {
-
-			c = ( c << 8 ) | parseUint8Array( uInt8Array, inOffset );
-			lc += 8;
-
-			getCharReturn.c = c;
-			getCharReturn.lc = lc;
-
-		}
-
-		const getCodeReturn = { c: 0, lc: 0 };
-
-		function getCode( po, rlc, c, lc, uInt8Array, inOffset, outBuffer, outBufferOffset, outBufferEndOffset ) {
-
-			if ( po == rlc ) {
-
-				if ( lc < 8 ) {
-
-					getChar( c, lc, uInt8Array, inOffset );
-					c = getCharReturn.c;
-					lc = getCharReturn.lc;
-
-				}
-
-				lc -= 8;
-
-				let cs = ( c >> lc );
-				cs = new Uint8Array( [ cs ] )[ 0 ];
-
-				if ( outBufferOffset.value + cs > outBufferEndOffset ) {
-
-					return false;
-
-				}
-
-				const s = outBuffer[ outBufferOffset.value - 1 ];
-
-				while ( cs -- > 0 ) {
-
-					outBuffer[ outBufferOffset.value ++ ] = s;
-
-				}
-
-			} else if ( outBufferOffset.value < outBufferEndOffset ) {
-
-				outBuffer[ outBufferOffset.value ++ ] = po;
-
-			} else {
-
-				return false;
-
-			}
-
-			getCodeReturn.c = c;
-			getCodeReturn.lc = lc;
-
-		}
-
-		function UInt16( value ) {
-
-			return ( value & 0xFFFF );
-
-		}
-
-		function Int16( value ) {
-
-			const ref = UInt16( value );
-			return ( ref > 0x7FFF ) ? ref - 0x10000 : ref;
-
-		}
-
-		const wdec14Return = { a: 0, b: 0 };
-
-		function wdec14( l, h ) {
-
-			const ls = Int16( l );
-			const hs = Int16( h );
-
-			const hi = hs;
-			const ai = ls + ( hi & 1 ) + ( hi >> 1 );
-
-			const as = ai;
-			const bs = ai - hi;
-
-			wdec14Return.a = as;
-			wdec14Return.b = bs;
-
-		}
-
-		function wdec16( l, h ) {
-
-			const m = UInt16( l );
-			const d = UInt16( h );
-
-			const bb = ( m - ( d >> 1 ) ) & MOD_MASK;
-			const aa = ( d + bb - A_OFFSET ) & MOD_MASK;
-
-			wdec14Return.a = aa;
-			wdec14Return.b = bb;
-
-		}
-
-		function wav2Decode( buffer, j, nx, ox, ny, oy, mx ) {
-
-			const w14 = mx < ( 1 << 14 );
-			const n = ( nx > ny ) ? ny : nx;
-			let p = 1;
-			let p2;
-			let py;
-
-			while ( p <= n ) p <<= 1;
-
-			p >>= 1;
-			p2 = p;
-			p >>= 1;
-
-			while ( p >= 1 ) {
-
-				py = 0;
-				const ey = py + oy * ( ny - p2 );
-				const oy1 = oy * p;
-				const oy2 = oy * p2;
-				const ox1 = ox * p;
-				const ox2 = ox * p2;
-				let i00, i01, i10, i11;
-
-				for ( ; py <= ey; py += oy2 ) {
-
-					let px = py;
-					const ex = py + ox * ( nx - p2 );
-
-					for ( ; px <= ex; px += ox2 ) {
-
-						const p01 = px + ox1;
-						const p10 = px + oy1;
-						const p11 = p10 + ox1;
-
-						if ( w14 ) {
-
-							wdec14( buffer[ px + j ], buffer[ p10 + j ] );
-
-							i00 = wdec14Return.a;
-							i10 = wdec14Return.b;
-
-							wdec14( buffer[ p01 + j ], buffer[ p11 + j ] );
-
-							i01 = wdec14Return.a;
-							i11 = wdec14Return.b;
-
-							wdec14( i00, i01 );
-
-							buffer[ px + j ] = wdec14Return.a;
-							buffer[ p01 + j ] = wdec14Return.b;
-
-							wdec14( i10, i11 );
-
-							buffer[ p10 + j ] = wdec14Return.a;
-							buffer[ p11 + j ] = wdec14Return.b;
-
-						} else {
-
-							wdec16( buffer[ px + j ], buffer[ p10 + j ] );
-
-							i00 = wdec14Return.a;
-							i10 = wdec14Return.b;
-
-							wdec16( buffer[ p01 + j ], buffer[ p11 + j ] );
-
-							i01 = wdec14Return.a;
-							i11 = wdec14Return.b;
-
-							wdec16( i00, i01 );
-
-							buffer[ px + j ] = wdec14Return.a;
-							buffer[ p01 + j ] = wdec14Return.b;
-
-							wdec16( i10, i11 );
-
-							buffer[ p10 + j ] = wdec14Return.a;
-							buffer[ p11 + j ] = wdec14Return.b;
-
-
-						}
-
-					}
-
-					if ( nx & p ) {
-
-						const p10 = px + oy1;
-
-						if ( w14 )
-							wdec14( buffer[ px + j ], buffer[ p10 + j ] );
-						else
-							wdec16( buffer[ px + j ], buffer[ p10 + j ] );
-
-						i00 = wdec14Return.a;
-						buffer[ p10 + j ] = wdec14Return.b;
-
-						buffer[ px + j ] = i00;
-
-					}
-
-				}
-
-				if ( ny & p ) {
-
-					let px = py;
-					const ex = py + ox * ( nx - p2 );
-
-					for ( ; px <= ex; px += ox2 ) {
-
-						const p01 = px + ox1;
-
-						if ( w14 )
-							wdec14( buffer[ px + j ], buffer[ p01 + j ] );
-						else
-							wdec16( buffer[ px + j ], buffer[ p01 + j ] );
-
-						i00 = wdec14Return.a;
-						buffer[ p01 + j ] = wdec14Return.b;
-
-						buffer[ px + j ] = i00;
-
-					}
-
-				}
-
-				p2 = p;
-				p >>= 1;
-
-			}
-
-			return py;
-
-		}
-
-		function hufDecode( encodingTable, decodingTable, uInt8Array, inOffset, ni, rlc, no, outBuffer, outOffset ) {
-
-			let c = 0;
-			let lc = 0;
-			const outBufferEndOffset = no;
-			const inOffsetEnd = Math.trunc( inOffset.value + ( ni + 7 ) / 8 );
-
-			while ( inOffset.value < inOffsetEnd ) {
-
-				getChar( c, lc, uInt8Array, inOffset );
-
-				c = getCharReturn.c;
-				lc = getCharReturn.lc;
-
-				while ( lc >= HUF_DECBITS ) {
-
-					const index = ( c >> ( lc - HUF_DECBITS ) ) & HUF_DECMASK;
-					const pl = decodingTable[ index ];
-
-					if ( pl.len ) {
-
-						lc -= pl.len;
-
-						getCode( pl.lit, rlc, c, lc, uInt8Array, inOffset, outBuffer, outOffset, outBufferEndOffset );
-
-						c = getCodeReturn.c;
-						lc = getCodeReturn.lc;
-
-					} else {
-
-						if ( ! pl.p ) {
-
-							throw new Error( 'hufDecode issues' );
-
-						}
-
-						let j;
-
-						for ( j = 0; j < pl.lit; j ++ ) {
-
-							const l = hufLength( encodingTable[ pl.p[ j ] ] );
-
-							while ( lc < l && inOffset.value < inOffsetEnd ) {
-
-								getChar( c, lc, uInt8Array, inOffset );
-
-								c = getCharReturn.c;
-								lc = getCharReturn.lc;
-
-							}
-
-							if ( lc >= l ) {
-
-								if ( hufCode( encodingTable[ pl.p[ j ] ] ) == ( ( c >> ( lc - l ) ) & ( ( 1 << l ) - 1 ) ) ) {
-
-									lc -= l;
-
-									getCode( pl.p[ j ], rlc, c, lc, uInt8Array, inOffset, outBuffer, outOffset, outBufferEndOffset );
-
-									c = getCodeReturn.c;
-									lc = getCodeReturn.lc;
-
-									break;
-
-								}
-
-							}
-
-						}
-
-						if ( j == pl.lit ) {
-
-							throw new Error( 'hufDecode issues' );
-
-						}
-
-					}
-
-				}
-
-			}
-
-			const i = ( 8 - ni ) & 7;
-
-			c >>= i;
-			lc -= i;
-
-			while ( lc > 0 ) {
-
-				const pl = decodingTable[ ( c << ( HUF_DECBITS - lc ) ) & HUF_DECMASK ];
-
-				if ( pl.len ) {
-
-					lc -= pl.len;
-
-					getCode( pl.lit, rlc, c, lc, uInt8Array, inOffset, outBuffer, outOffset, outBufferEndOffset );
-
-					c = getCodeReturn.c;
-					lc = getCodeReturn.lc;
-
-				} else {
-
-					throw new Error( 'hufDecode issues' );
-
-				}
-
-			}
-
-			return true;
-
-		}
-
-		function hufUncompress( uInt8Array, inDataView, inOffset, nCompressed, outBuffer, nRaw ) {
-
-			const outOffset = { value: 0 };
-			const initialInOffset = inOffset.value;
-
-			const im = parseUint32( inDataView, inOffset );
-			const iM = parseUint32( inDataView, inOffset );
-
-			inOffset.value += 4;
-
-			const nBits = parseUint32( inDataView, inOffset );
-
-			inOffset.value += 4;
-
-			if ( im < 0 || im >= HUF_ENCSIZE || iM < 0 || iM >= HUF_ENCSIZE ) {
-
-				throw new Error( 'Something wrong with HUF_ENCSIZE' );
-
-			}
-
-			const freq = new Array( HUF_ENCSIZE );
-			const hdec = new Array( HUF_DECSIZE );
-
-			hufClearDecTable( hdec );
-
-			const ni = nCompressed - ( inOffset.value - initialInOffset );
-
-			hufUnpackEncTable( uInt8Array, inOffset, ni, im, iM, freq );
-
-			if ( nBits > 8 * ( nCompressed - ( inOffset.value - initialInOffset ) ) ) {
-
-				throw new Error( 'Something wrong with hufUncompress' );
-
-			}
-
-			hufBuildDecTable( freq, im, iM, hdec );
-
-			hufDecode( freq, hdec, uInt8Array, inOffset, nBits, iM, nRaw, outBuffer, outOffset );
-
-		}
-
-		function applyLut( lut, data, nData ) {
-
-			for ( let i = 0; i < nData; ++ i ) {
-
-				data[ i ] = lut[ data[ i ] ];
-
-			}
-
-		}
-
-		function predictor( source ) {
-
-			for ( let t = 1; t < source.length; t ++ ) {
-
-				const d = source[ t - 1 ] + source[ t ] - 128;
-				source[ t ] = d;
-
-			}
-
-		}
-
-		function interleaveScalar( source, out ) {
-
-			let t1 = 0;
-			let t2 = Math.floor( ( source.length + 1 ) / 2 );
-			let s = 0;
-			const stop = source.length - 1;
-
-			while ( true ) {
-
-				if ( s > stop ) break;
-				out[ s ++ ] = source[ t1 ++ ];
-
-				if ( s > stop ) break;
-				out[ s ++ ] = source[ t2 ++ ];
-
-			}
-
-		}
-
-		function decodeRunLength( source ) {
-
-			let size = source.byteLength;
-			const out = new Array();
-			let p = 0;
-
-			const reader = new DataView( source );
-
-			while ( size > 0 ) {
-
-				const l = reader.getInt8( p ++ );
-
-				if ( l < 0 ) {
-
-					const count = - l;
-					size -= count + 1;
-
-					for ( let i = 0; i < count; i ++ ) {
-
-						out.push( reader.getUint8( p ++ ) );
-
-					}
-
-
-				} else {
-
-					const count = l;
-					size -= 2;
-
-					const value = reader.getUint8( p ++ );
-
-					for ( let i = 0; i < count + 1; i ++ ) {
-
-						out.push( value );
-
-					}
-
-				}
-
-			}
-
-			return out;
-
-		}
-
-		function lossyDctDecode( cscSet, rowPtrs, channelData, acBuffer, dcBuffer, outBuffer ) {
-
-			let dataView = new DataView( outBuffer.buffer );
-
-			const width = channelData[ cscSet.idx[ 0 ] ].width;
-			const height = channelData[ cscSet.idx[ 0 ] ].height;
-
-			const numComp = 3;
-
-			const numFullBlocksX = Math.floor( width / 8.0 );
-			const numBlocksX = Math.ceil( width / 8.0 );
-			const numBlocksY = Math.ceil( height / 8.0 );
-			const leftoverX = width - ( numBlocksX - 1 ) * 8;
-			const leftoverY = height - ( numBlocksY - 1 ) * 8;
-
-			const currAcComp = { value: 0 };
-			const currDcComp = new Array( numComp );
-			const dctData = new Array( numComp );
-			const halfZigBlock = new Array( numComp );
-			const rowBlock = new Array( numComp );
-			const rowOffsets = new Array( numComp );
-
-			for ( let comp = 0; comp < numComp; ++ comp ) {
-
-				rowOffsets[ comp ] = rowPtrs[ cscSet.idx[ comp ] ];
-				currDcComp[ comp ] = ( comp < 1 ) ? 0 : currDcComp[ comp - 1 ] + numBlocksX * numBlocksY;
-				dctData[ comp ] = new Float32Array( 64 );
-				halfZigBlock[ comp ] = new Uint16Array( 64 );
-				rowBlock[ comp ] = new Uint16Array( numBlocksX * 64 );
-
-			}
-
-			for ( let blocky = 0; blocky < numBlocksY; ++ blocky ) {
-
-				let maxY = 8;
-
-				if ( blocky == numBlocksY - 1 )
-					maxY = leftoverY;
-
-				let maxX = 8;
-
-				for ( let blockx = 0; blockx < numBlocksX; ++ blockx ) {
-
-					if ( blockx == numBlocksX - 1 )
-						maxX = leftoverX;
-
-					for ( let comp = 0; comp < numComp; ++ comp ) {
-
-						halfZigBlock[ comp ].fill( 0 );
-
-						// set block DC component
-						halfZigBlock[ comp ][ 0 ] = dcBuffer[ currDcComp[ comp ] ++ ];
-						// set block AC components
-						unRleAC( currAcComp, acBuffer, halfZigBlock[ comp ] );
-
-						// UnZigZag block to float
-						unZigZag( halfZigBlock[ comp ], dctData[ comp ] );
-						// decode float dct
-						dctInverse( dctData[ comp ] );
-
-					}
-
-					{
-
-						csc709Inverse( dctData );
-
-					}
-
-					for ( let comp = 0; comp < numComp; ++ comp ) {
-
-						convertToHalf( dctData[ comp ], rowBlock[ comp ], blockx * 64 );
-
-					}
-
-				} // blockx
-
-				let offset = 0;
-
-				for ( let comp = 0; comp < numComp; ++ comp ) {
-
-					const type = channelData[ cscSet.idx[ comp ] ].type;
-
-					for ( let y = 8 * blocky; y < 8 * blocky + maxY; ++ y ) {
-
-						offset = rowOffsets[ comp ][ y ];
-
-						for ( let blockx = 0; blockx < numFullBlocksX; ++ blockx ) {
-
-							const src = blockx * 64 + ( ( y & 0x7 ) * 8 );
-
-							dataView.setUint16( offset + 0 * INT16_SIZE * type, rowBlock[ comp ][ src + 0 ], true );
-							dataView.setUint16( offset + 1 * INT16_SIZE * type, rowBlock[ comp ][ src + 1 ], true );
-							dataView.setUint16( offset + 2 * INT16_SIZE * type, rowBlock[ comp ][ src + 2 ], true );
-							dataView.setUint16( offset + 3 * INT16_SIZE * type, rowBlock[ comp ][ src + 3 ], true );
-
-							dataView.setUint16( offset + 4 * INT16_SIZE * type, rowBlock[ comp ][ src + 4 ], true );
-							dataView.setUint16( offset + 5 * INT16_SIZE * type, rowBlock[ comp ][ src + 5 ], true );
-							dataView.setUint16( offset + 6 * INT16_SIZE * type, rowBlock[ comp ][ src + 6 ], true );
-							dataView.setUint16( offset + 7 * INT16_SIZE * type, rowBlock[ comp ][ src + 7 ], true );
-
-							offset += 8 * INT16_SIZE * type;
-
-						}
-
-					}
-
-					// handle partial X blocks
-					if ( numFullBlocksX != numBlocksX ) {
-
-						for ( let y = 8 * blocky; y < 8 * blocky + maxY; ++ y ) {
-
-							const offset = rowOffsets[ comp ][ y ] + 8 * numFullBlocksX * INT16_SIZE * type;
-							const src = numFullBlocksX * 64 + ( ( y & 0x7 ) * 8 );
-
-							for ( let x = 0; x < maxX; ++ x ) {
-
-								dataView.setUint16( offset + x * INT16_SIZE * type, rowBlock[ comp ][ src + x ], true );
-
-							}
-
-						}
-
-					}
-
-				} // comp
-
-			} // blocky
-
-			const halfRow = new Uint16Array( width );
-			dataView = new DataView( outBuffer.buffer );
-
-			// convert channels back to float, if needed
-			for ( let comp = 0; comp < numComp; ++ comp ) {
-
-				channelData[ cscSet.idx[ comp ] ].decoded = true;
-				const type = channelData[ cscSet.idx[ comp ] ].type;
-
-				if ( channelData[ comp ].type != 2 ) continue;
-
-				for ( let y = 0; y < height; ++ y ) {
-
-					const offset = rowOffsets[ comp ][ y ];
-
-					for ( let x = 0; x < width; ++ x ) {
-
-						halfRow[ x ] = dataView.getUint16( offset + x * INT16_SIZE * type, true );
-
-					}
-
-					for ( let x = 0; x < width; ++ x ) {
-
-						dataView.setFloat32( offset + x * INT16_SIZE * type, decodeFloat16( halfRow[ x ] ), true );
-
-					}
-
-				}
-
-			}
-
-		}
-
-		function unRleAC( currAcComp, acBuffer, halfZigBlock ) {
-
-			let acValue;
-			let dctComp = 1;
-
-			while ( dctComp < 64 ) {
-
-				acValue = acBuffer[ currAcComp.value ];
-
-				if ( acValue == 0xff00 ) {
-
-					dctComp = 64;
-
-				} else if ( acValue >> 8 == 0xff ) {
-
-					dctComp += acValue & 0xff;
-
-				} else {
-
-					halfZigBlock[ dctComp ] = acValue;
-					dctComp ++;
-
-				}
-
-				currAcComp.value ++;
-
-			}
-
-		}
-
-		function unZigZag( src, dst ) {
-
-			dst[ 0 ] = decodeFloat16( src[ 0 ] );
-			dst[ 1 ] = decodeFloat16( src[ 1 ] );
-			dst[ 2 ] = decodeFloat16( src[ 5 ] );
-			dst[ 3 ] = decodeFloat16( src[ 6 ] );
-			dst[ 4 ] = decodeFloat16( src[ 14 ] );
-			dst[ 5 ] = decodeFloat16( src[ 15 ] );
-			dst[ 6 ] = decodeFloat16( src[ 27 ] );
-			dst[ 7 ] = decodeFloat16( src[ 28 ] );
-			dst[ 8 ] = decodeFloat16( src[ 2 ] );
-			dst[ 9 ] = decodeFloat16( src[ 4 ] );
-
-			dst[ 10 ] = decodeFloat16( src[ 7 ] );
-			dst[ 11 ] = decodeFloat16( src[ 13 ] );
-			dst[ 12 ] = decodeFloat16( src[ 16 ] );
-			dst[ 13 ] = decodeFloat16( src[ 26 ] );
-			dst[ 14 ] = decodeFloat16( src[ 29 ] );
-			dst[ 15 ] = decodeFloat16( src[ 42 ] );
-			dst[ 16 ] = decodeFloat16( src[ 3 ] );
-			dst[ 17 ] = decodeFloat16( src[ 8 ] );
-			dst[ 18 ] = decodeFloat16( src[ 12 ] );
-			dst[ 19 ] = decodeFloat16( src[ 17 ] );
-
-			dst[ 20 ] = decodeFloat16( src[ 25 ] );
-			dst[ 21 ] = decodeFloat16( src[ 30 ] );
-			dst[ 22 ] = decodeFloat16( src[ 41 ] );
-			dst[ 23 ] = decodeFloat16( src[ 43 ] );
-			dst[ 24 ] = decodeFloat16( src[ 9 ] );
-			dst[ 25 ] = decodeFloat16( src[ 11 ] );
-			dst[ 26 ] = decodeFloat16( src[ 18 ] );
-			dst[ 27 ] = decodeFloat16( src[ 24 ] );
-			dst[ 28 ] = decodeFloat16( src[ 31 ] );
-			dst[ 29 ] = decodeFloat16( src[ 40 ] );
-
-			dst[ 30 ] = decodeFloat16( src[ 44 ] );
-			dst[ 31 ] = decodeFloat16( src[ 53 ] );
-			dst[ 32 ] = decodeFloat16( src[ 10 ] );
-			dst[ 33 ] = decodeFloat16( src[ 19 ] );
-			dst[ 34 ] = decodeFloat16( src[ 23 ] );
-			dst[ 35 ] = decodeFloat16( src[ 32 ] );
-			dst[ 36 ] = decodeFloat16( src[ 39 ] );
-			dst[ 37 ] = decodeFloat16( src[ 45 ] );
-			dst[ 38 ] = decodeFloat16( src[ 52 ] );
-			dst[ 39 ] = decodeFloat16( src[ 54 ] );
-
-			dst[ 40 ] = decodeFloat16( src[ 20 ] );
-			dst[ 41 ] = decodeFloat16( src[ 22 ] );
-			dst[ 42 ] = decodeFloat16( src[ 33 ] );
-			dst[ 43 ] = decodeFloat16( src[ 38 ] );
-			dst[ 44 ] = decodeFloat16( src[ 46 ] );
-			dst[ 45 ] = decodeFloat16( src[ 51 ] );
-			dst[ 46 ] = decodeFloat16( src[ 55 ] );
-			dst[ 47 ] = decodeFloat16( src[ 60 ] );
-			dst[ 48 ] = decodeFloat16( src[ 21 ] );
-			dst[ 49 ] = decodeFloat16( src[ 34 ] );
-
-			dst[ 50 ] = decodeFloat16( src[ 37 ] );
-			dst[ 51 ] = decodeFloat16( src[ 47 ] );
-			dst[ 52 ] = decodeFloat16( src[ 50 ] );
-			dst[ 53 ] = decodeFloat16( src[ 56 ] );
-			dst[ 54 ] = decodeFloat16( src[ 59 ] );
-			dst[ 55 ] = decodeFloat16( src[ 61 ] );
-			dst[ 56 ] = decodeFloat16( src[ 35 ] );
-			dst[ 57 ] = decodeFloat16( src[ 36 ] );
-			dst[ 58 ] = decodeFloat16( src[ 48 ] );
-			dst[ 59 ] = decodeFloat16( src[ 49 ] );
-
-			dst[ 60 ] = decodeFloat16( src[ 57 ] );
-			dst[ 61 ] = decodeFloat16( src[ 58 ] );
-			dst[ 62 ] = decodeFloat16( src[ 62 ] );
-			dst[ 63 ] = decodeFloat16( src[ 63 ] );
-
-		}
-
-		function dctInverse( data ) {
-
-			const a = 0.5 * Math.cos( 3.14159 / 4.0 );
-			const b = 0.5 * Math.cos( 3.14159 / 16.0 );
-			const c = 0.5 * Math.cos( 3.14159 / 8.0 );
-			const d = 0.5 * Math.cos( 3.0 * 3.14159 / 16.0 );
-			const e = 0.5 * Math.cos( 5.0 * 3.14159 / 16.0 );
-			const f = 0.5 * Math.cos( 3.0 * 3.14159 / 8.0 );
-			const g = 0.5 * Math.cos( 7.0 * 3.14159 / 16.0 );
-
-			const alpha = new Array( 4 );
-			const beta = new Array( 4 );
-			const theta = new Array( 4 );
-			const gamma = new Array( 4 );
-
-			for ( let row = 0; row < 8; ++ row ) {
-
-				const rowPtr = row * 8;
-
-				alpha[ 0 ] = c * data[ rowPtr + 2 ];
-				alpha[ 1 ] = f * data[ rowPtr + 2 ];
-				alpha[ 2 ] = c * data[ rowPtr + 6 ];
-				alpha[ 3 ] = f * data[ rowPtr + 6 ];
-
-				beta[ 0 ] = b * data[ rowPtr + 1 ] + d * data[ rowPtr + 3 ] + e * data[ rowPtr + 5 ] + g * data[ rowPtr + 7 ];
-				beta[ 1 ] = d * data[ rowPtr + 1 ] - g * data[ rowPtr + 3 ] - b * data[ rowPtr + 5 ] - e * data[ rowPtr + 7 ];
-				beta[ 2 ] = e * data[ rowPtr + 1 ] - b * data[ rowPtr + 3 ] + g * data[ rowPtr + 5 ] + d * data[ rowPtr + 7 ];
-				beta[ 3 ] = g * data[ rowPtr + 1 ] - e * data[ rowPtr + 3 ] + d * data[ rowPtr + 5 ] - b * data[ rowPtr + 7 ];
-
-				theta[ 0 ] = a * ( data[ rowPtr + 0 ] + data[ rowPtr + 4 ] );
-				theta[ 3 ] = a * ( data[ rowPtr + 0 ] - data[ rowPtr + 4 ] );
-				theta[ 1 ] = alpha[ 0 ] + alpha[ 3 ];
-				theta[ 2 ] = alpha[ 1 ] - alpha[ 2 ];
-
-				gamma[ 0 ] = theta[ 0 ] + theta[ 1 ];
-				gamma[ 1 ] = theta[ 3 ] + theta[ 2 ];
-				gamma[ 2 ] = theta[ 3 ] - theta[ 2 ];
-				gamma[ 3 ] = theta[ 0 ] - theta[ 1 ];
-
-				data[ rowPtr + 0 ] = gamma[ 0 ] + beta[ 0 ];
-				data[ rowPtr + 1 ] = gamma[ 1 ] + beta[ 1 ];
-				data[ rowPtr + 2 ] = gamma[ 2 ] + beta[ 2 ];
-				data[ rowPtr + 3 ] = gamma[ 3 ] + beta[ 3 ];
-
-				data[ rowPtr + 4 ] = gamma[ 3 ] - beta[ 3 ];
-				data[ rowPtr + 5 ] = gamma[ 2 ] - beta[ 2 ];
-				data[ rowPtr + 6 ] = gamma[ 1 ] - beta[ 1 ];
-				data[ rowPtr + 7 ] = gamma[ 0 ] - beta[ 0 ];
-
-			}
-
-			for ( let column = 0; column < 8; ++ column ) {
-
-				alpha[ 0 ] = c * data[ 16 + column ];
-				alpha[ 1 ] = f * data[ 16 + column ];
-				alpha[ 2 ] = c * data[ 48 + column ];
-				alpha[ 3 ] = f * data[ 48 + column ];
-
-				beta[ 0 ] = b * data[ 8 + column ] + d * data[ 24 + column ] + e * data[ 40 + column ] + g * data[ 56 + column ];
-				beta[ 1 ] = d * data[ 8 + column ] - g * data[ 24 + column ] - b * data[ 40 + column ] - e * data[ 56 + column ];
-				beta[ 2 ] = e * data[ 8 + column ] - b * data[ 24 + column ] + g * data[ 40 + column ] + d * data[ 56 + column ];
-				beta[ 3 ] = g * data[ 8 + column ] - e * data[ 24 + column ] + d * data[ 40 + column ] - b * data[ 56 + column ];
-
-				theta[ 0 ] = a * ( data[ column ] + data[ 32 + column ] );
-				theta[ 3 ] = a * ( data[ column ] - data[ 32 + column ] );
-
-				theta[ 1 ] = alpha[ 0 ] + alpha[ 3 ];
-				theta[ 2 ] = alpha[ 1 ] - alpha[ 2 ];
-
-				gamma[ 0 ] = theta[ 0 ] + theta[ 1 ];
-				gamma[ 1 ] = theta[ 3 ] + theta[ 2 ];
-				gamma[ 2 ] = theta[ 3 ] - theta[ 2 ];
-				gamma[ 3 ] = theta[ 0 ] - theta[ 1 ];
-
-				data[ 0 + column ] = gamma[ 0 ] + beta[ 0 ];
-				data[ 8 + column ] = gamma[ 1 ] + beta[ 1 ];
-				data[ 16 + column ] = gamma[ 2 ] + beta[ 2 ];
-				data[ 24 + column ] = gamma[ 3 ] + beta[ 3 ];
-
-				data[ 32 + column ] = gamma[ 3 ] - beta[ 3 ];
-				data[ 40 + column ] = gamma[ 2 ] - beta[ 2 ];
-				data[ 48 + column ] = gamma[ 1 ] - beta[ 1 ];
-				data[ 56 + column ] = gamma[ 0 ] - beta[ 0 ];
-
-			}
-
-		}
-
-		function csc709Inverse( data ) {
-
-			for ( let i = 0; i < 64; ++ i ) {
-
-				const y = data[ 0 ][ i ];
-				const cb = data[ 1 ][ i ];
-				const cr = data[ 2 ][ i ];
-
-				data[ 0 ][ i ] = y + 1.5747 * cr;
-				data[ 1 ][ i ] = y - 0.1873 * cb - 0.4682 * cr;
-				data[ 2 ][ i ] = y + 1.8556 * cb;
-
-			}
-
-		}
-
-		function convertToHalf( src, dst, idx ) {
-
-			for ( let i = 0; i < 64; ++ i ) {
-
-				dst[ idx + i ] = DataUtils.toHalfFloat( toLinear( src[ i ] ) );
-
-			}
-
-		}
-
-		function toLinear( float ) {
-
-			if ( float <= 1 ) {
-
-				return Math.sign( float ) * Math.pow( Math.abs( float ), 2.2 );
-
-			} else {
-
-				return Math.sign( float ) * Math.pow( logBase, Math.abs( float ) - 1.0 );
-
-			}
-
-		}
-
-		function uncompressRAW( info ) {
-
-			return new DataView( info.array.buffer, info.offset.value, info.size );
-
-		}
-
-		function uncompressRLE( info ) {
-
-			const compressed = info.viewer.buffer.slice( info.offset.value, info.offset.value + info.size );
-
-			const rawBuffer = new Uint8Array( decodeRunLength( compressed ) );
-			const tmpBuffer = new Uint8Array( rawBuffer.length );
-
-			predictor( rawBuffer ); // revert predictor
-
-			interleaveScalar( rawBuffer, tmpBuffer ); // interleave pixels
-
-			return new DataView( tmpBuffer.buffer );
-
-		}
-
-		function uncompressZIP( info ) {
-
-			const compressed = info.array.slice( info.offset.value, info.offset.value + info.size );
-
-			const rawBuffer = unzlibSync( compressed );
-			const tmpBuffer = new Uint8Array( rawBuffer.length );
-
-			predictor( rawBuffer ); // revert predictor
-
-			interleaveScalar( rawBuffer, tmpBuffer ); // interleave pixels
-
-			return new DataView( tmpBuffer.buffer );
-
-		}
-
-		function uncompressPIZ( info ) {
-
-			const inDataView = info.viewer;
-			const inOffset = { value: info.offset.value };
-
-			const outBuffer = new Uint16Array( info.columns * info.lines * ( info.inputChannels.length * info.type ) );
-			const bitmap = new Uint8Array( BITMAP_SIZE );
-
-			// Setup channel info
-			let outBufferEnd = 0;
-			const pizChannelData = new Array( info.inputChannels.length );
-			for ( let i = 0, il = info.inputChannels.length; i < il; i ++ ) {
-
-				pizChannelData[ i ] = {};
-				pizChannelData[ i ][ 'start' ] = outBufferEnd;
-				pizChannelData[ i ][ 'end' ] = pizChannelData[ i ][ 'start' ];
-				pizChannelData[ i ][ 'nx' ] = info.columns;
-				pizChannelData[ i ][ 'ny' ] = info.lines;
-				pizChannelData[ i ][ 'size' ] = info.type;
-
-				outBufferEnd += pizChannelData[ i ].nx * pizChannelData[ i ].ny * pizChannelData[ i ].size;
-
-			}
-
-			// Read range compression data
-
-			const minNonZero = parseUint16( inDataView, inOffset );
-			const maxNonZero = parseUint16( inDataView, inOffset );
-
-			if ( maxNonZero >= BITMAP_SIZE ) {
-
-				throw new Error( 'Something is wrong with PIZ_COMPRESSION BITMAP_SIZE' );
-
-			}
-
-			if ( minNonZero <= maxNonZero ) {
-
-				for ( let i = 0; i < maxNonZero - minNonZero + 1; i ++ ) {
-
-					bitmap[ i + minNonZero ] = parseUint8( inDataView, inOffset );
-
-				}
-
-			}
-
-			// Reverse LUT
-			const lut = new Uint16Array( USHORT_RANGE );
-			const maxValue = reverseLutFromBitmap( bitmap, lut );
-
-			const length = parseUint32( inDataView, inOffset );
-
-			// Huffman decoding
-			hufUncompress( info.array, inDataView, inOffset, length, outBuffer, outBufferEnd );
-
-			// Wavelet decoding
-			for ( let i = 0; i < info.inputChannels.length; ++ i ) {
-
-				const cd = pizChannelData[ i ];
-
-				for ( let j = 0; j < pizChannelData[ i ].size; ++ j ) {
-
-					wav2Decode(
-						outBuffer,
-						cd.start + j,
-						cd.nx,
-						cd.size,
-						cd.ny,
-						cd.nx * cd.size,
-						maxValue
-					);
-
-				}
-
-			}
-
-			// Expand the pixel data to their original range
-			applyLut( lut, outBuffer, outBufferEnd );
-
-			// Rearrange the pixel data into the format expected by the caller.
-			let tmpOffset = 0;
-			const tmpBuffer = new Uint8Array( outBuffer.buffer.byteLength );
-			for ( let y = 0; y < info.lines; y ++ ) {
-
-				for ( let c = 0; c < info.inputChannels.length; c ++ ) {
-
-					const cd = pizChannelData[ c ];
-
-					const n = cd.nx * cd.size;
-					const cp = new Uint8Array( outBuffer.buffer, cd.end * INT16_SIZE, n * INT16_SIZE );
-
-					tmpBuffer.set( cp, tmpOffset );
-					tmpOffset += n * INT16_SIZE;
-					cd.end += n;
-
-				}
-
-			}
-
-			return new DataView( tmpBuffer.buffer );
-
-		}
-
-		function uncompressPXR( info ) {
-
-			const compressed = info.array.slice( info.offset.value, info.offset.value + info.size );
-
-			const rawBuffer = unzlibSync( compressed );
-
-			const byteSize = info.inputChannels.length * info.lines * info.columns * info.totalBytes;
-			const tmpBuffer = new ArrayBuffer( byteSize );
-			const viewer = new DataView( tmpBuffer );
-
-			let tmpBufferEnd = 0;
-			let writePtr = 0;
-			const ptr = new Array( 4 );
-
-			for ( let y = 0; y < info.lines; y ++ ) {
-
-				for ( let c = 0; c < info.inputChannels.length; c ++ ) {
-
-					let pixel = 0;
-
-					const type = info.inputChannels[ c ].pixelType;
-					switch ( type ) {
-
-						case 1:
-
-							ptr[ 0 ] = tmpBufferEnd;
-							ptr[ 1 ] = ptr[ 0 ] + info.columns;
-							tmpBufferEnd = ptr[ 1 ] + info.columns;
-
-							for ( let j = 0; j < info.columns; ++ j ) {
-
-								const diff = ( rawBuffer[ ptr[ 0 ] ++ ] << 8 ) | rawBuffer[ ptr[ 1 ] ++ ];
-
-								pixel += diff;
-
-								viewer.setUint16( writePtr, pixel, true );
-								writePtr += 2;
-
-							}
-
-							break;
-
-						case 2:
-
-							ptr[ 0 ] = tmpBufferEnd;
-							ptr[ 1 ] = ptr[ 0 ] + info.columns;
-							ptr[ 2 ] = ptr[ 1 ] + info.columns;
-							tmpBufferEnd = ptr[ 2 ] + info.columns;
-
-							for ( let j = 0; j < info.columns; ++ j ) {
-
-								const diff = ( rawBuffer[ ptr[ 0 ] ++ ] << 24 ) | ( rawBuffer[ ptr[ 1 ] ++ ] << 16 ) | ( rawBuffer[ ptr[ 2 ] ++ ] << 8 );
-
-								pixel += diff;
-
-								viewer.setUint32( writePtr, pixel, true );
-								writePtr += 4;
-
-							}
-
-							break;
-
-					}
-
-				}
-
-			}
-
-			return viewer;
-
-		}
-
-		function uncompressDWA( info ) {
-
-			const inDataView = info.viewer;
-			const inOffset = { value: info.offset.value };
-			const outBuffer = new Uint8Array( info.columns * info.lines * ( info.inputChannels.length * info.type * INT16_SIZE ) );
-
-			// Read compression header information
-			const dwaHeader = {
-
-				version: parseInt64( inDataView, inOffset ),
-				unknownUncompressedSize: parseInt64( inDataView, inOffset ),
-				unknownCompressedSize: parseInt64( inDataView, inOffset ),
-				acCompressedSize: parseInt64( inDataView, inOffset ),
-				dcCompressedSize: parseInt64( inDataView, inOffset ),
-				rleCompressedSize: parseInt64( inDataView, inOffset ),
-				rleUncompressedSize: parseInt64( inDataView, inOffset ),
-				rleRawSize: parseInt64( inDataView, inOffset ),
-				totalAcUncompressedCount: parseInt64( inDataView, inOffset ),
-				totalDcUncompressedCount: parseInt64( inDataView, inOffset ),
-				acCompression: parseInt64( inDataView, inOffset )
-
-			};
-
-			if ( dwaHeader.version < 2 )
-				throw new Error( 'EXRLoader.parse: ' + EXRHeader.compression + ' version ' + dwaHeader.version + ' is unsupported' );
-
-			// Read channel ruleset information
-			const channelRules = new Array();
-			let ruleSize = parseUint16( inDataView, inOffset ) - INT16_SIZE;
-
-			while ( ruleSize > 0 ) {
-
-				const name = parseNullTerminatedString( inDataView.buffer, inOffset );
-				const value = parseUint8( inDataView, inOffset );
-				const compression = ( value >> 2 ) & 3;
-				const csc = ( value >> 4 ) - 1;
-				const index = new Int8Array( [ csc ] )[ 0 ];
-				const type = parseUint8( inDataView, inOffset );
-
-				channelRules.push( {
-					name: name,
-					index: index,
-					type: type,
-					compression: compression,
-				} );
-
-				ruleSize -= name.length + 3;
-
-			}
-
-			// Classify channels
-			const channels = EXRHeader.channels;
-			const channelData = new Array( info.inputChannels.length );
-
-			for ( let i = 0; i < info.inputChannels.length; ++ i ) {
-
-				const cd = channelData[ i ] = {};
-				const channel = channels[ i ];
-
-				cd.name = channel.name;
-				cd.compression = UNKNOWN;
-				cd.decoded = false;
-				cd.type = channel.pixelType;
-				cd.pLinear = channel.pLinear;
-				cd.width = info.columns;
-				cd.height = info.lines;
-
-			}
-
-			const cscSet = {
-				idx: new Array( 3 )
-			};
-
-			for ( let offset = 0; offset < info.inputChannels.length; ++ offset ) {
-
-				const cd = channelData[ offset ];
-
-				for ( let i = 0; i < channelRules.length; ++ i ) {
-
-					const rule = channelRules[ i ];
-
-					if ( cd.name == rule.name ) {
-
-						cd.compression = rule.compression;
-
-						if ( rule.index >= 0 ) {
-
-							cscSet.idx[ rule.index ] = offset;
-
-						}
-
-						cd.offset = offset;
-
-					}
-
-				}
-
-			}
-
-			let acBuffer, dcBuffer, rleBuffer;
-
-			// Read DCT - AC component data
-			if ( dwaHeader.acCompressedSize > 0 ) {
-
-				switch ( dwaHeader.acCompression ) {
-
-					case STATIC_HUFFMAN:
-
-						acBuffer = new Uint16Array( dwaHeader.totalAcUncompressedCount );
-						hufUncompress( info.array, inDataView, inOffset, dwaHeader.acCompressedSize, acBuffer, dwaHeader.totalAcUncompressedCount );
-						break;
-
-					case DEFLATE:
-
-						const compressed = info.array.slice( inOffset.value, inOffset.value + dwaHeader.totalAcUncompressedCount );
-						const data = unzlibSync( compressed );
-						acBuffer = new Uint16Array( data.buffer );
-						inOffset.value += dwaHeader.totalAcUncompressedCount;
-						break;
-
-				}
-
-
-			}
-
-			// Read DCT - DC component data
-			if ( dwaHeader.dcCompressedSize > 0 ) {
-
-				const zlibInfo = {
-					array: info.array,
-					offset: inOffset,
-					size: dwaHeader.dcCompressedSize
-				};
-				dcBuffer = new Uint16Array( uncompressZIP( zlibInfo ).buffer );
-				inOffset.value += dwaHeader.dcCompressedSize;
-
-			}
-
-			// Read RLE compressed data
-			if ( dwaHeader.rleRawSize > 0 ) {
-
-				const compressed = info.array.slice( inOffset.value, inOffset.value + dwaHeader.rleCompressedSize );
-				const data = unzlibSync( compressed );
-				rleBuffer = decodeRunLength( data.buffer );
-
-				inOffset.value += dwaHeader.rleCompressedSize;
-
-			}
-
-			// Prepare outbuffer data offset
-			let outBufferEnd = 0;
-			const rowOffsets = new Array( channelData.length );
-			for ( let i = 0; i < rowOffsets.length; ++ i ) {
-
-				rowOffsets[ i ] = new Array();
-
-			}
-
-			for ( let y = 0; y < info.lines; ++ y ) {
-
-				for ( let chan = 0; chan < channelData.length; ++ chan ) {
-
-					rowOffsets[ chan ].push( outBufferEnd );
-					outBufferEnd += channelData[ chan ].width * info.type * INT16_SIZE;
-
-				}
-
-			}
-
-			// Lossy DCT decode RGB channels
-			lossyDctDecode( cscSet, rowOffsets, channelData, acBuffer, dcBuffer, outBuffer );
-
-			// Decode other channels
-			for ( let i = 0; i < channelData.length; ++ i ) {
-
-				const cd = channelData[ i ];
-
-				if ( cd.decoded ) continue;
-
-				switch ( cd.compression ) {
-
-					case RLE:
-
-						let row = 0;
-						let rleOffset = 0;
-
-						for ( let y = 0; y < info.lines; ++ y ) {
-
-							let rowOffsetBytes = rowOffsets[ i ][ row ];
-
-							for ( let x = 0; x < cd.width; ++ x ) {
-
-								for ( let byte = 0; byte < INT16_SIZE * cd.type; ++ byte ) {
-
-									outBuffer[ rowOffsetBytes ++ ] = rleBuffer[ rleOffset + byte * cd.width * cd.height ];
-
-								}
-
-								rleOffset ++;
-
-							}
-
-							row ++;
-
-						}
-
-						break;
-
-					case LOSSY_DCT: // skip
-
-					default:
-						throw new Error( 'EXRLoader.parse: unsupported channel compression' );
-
-				}
-
-			}
-
-			return new DataView( outBuffer.buffer );
-
-		}
-
-		function parseNullTerminatedString( buffer, offset ) {
-
-			const uintBuffer = new Uint8Array( buffer );
-			let endOffset = 0;
-
-			while ( uintBuffer[ offset.value + endOffset ] != 0 ) {
-
-				endOffset += 1;
-
-			}
-
-			const stringValue = new TextDecoder().decode(
-				uintBuffer.slice( offset.value, offset.value + endOffset )
-			);
-
-			offset.value = offset.value + endOffset + 1;
-
-			return stringValue;
-
-		}
-
-		function parseFixedLengthString( buffer, offset, size ) {
-
-			const stringValue = new TextDecoder().decode(
-				new Uint8Array( buffer ).slice( offset.value, offset.value + size )
-			);
-
-			offset.value = offset.value + size;
-
-			return stringValue;
-
-		}
-
-		function parseRational( dataView, offset ) {
-
-			const x = parseInt32( dataView, offset );
-			const y = parseUint32( dataView, offset );
-
-			return [ x, y ];
-
-		}
-
-		function parseTimecode( dataView, offset ) {
-
-			const x = parseUint32( dataView, offset );
-			const y = parseUint32( dataView, offset );
-
-			return [ x, y ];
-
-		}
-
-		function parseInt32( dataView, offset ) {
-
-			const Int32 = dataView.getInt32( offset.value, true );
-
-			offset.value = offset.value + INT32_SIZE;
-
-			return Int32;
-
-		}
-
-		function parseUint32( dataView, offset ) {
-
-			const Uint32 = dataView.getUint32( offset.value, true );
-
-			offset.value = offset.value + INT32_SIZE;
-
-			return Uint32;
-
-		}
-
-		function parseUint8Array( uInt8Array, offset ) {
-
-			const Uint8 = uInt8Array[ offset.value ];
-
-			offset.value = offset.value + INT8_SIZE;
-
-			return Uint8;
-
-		}
-
-		function parseUint8( dataView, offset ) {
-
-			const Uint8 = dataView.getUint8( offset.value );
-
-			offset.value = offset.value + INT8_SIZE;
-
-			return Uint8;
-
-		}
-
-		const parseInt64 = function ( dataView, offset ) {
-
-			let int;
-
-			if ( 'getBigInt64' in DataView.prototype ) {
-
-				int = Number( dataView.getBigInt64( offset.value, true ) );
-
-			} else {
-
-				int = dataView.getUint32( offset.value + 4, true ) + Number( dataView.getUint32( offset.value, true ) << 32 );
-
-			}
-
-			offset.value += ULONG_SIZE;
-
-			return int;
-
-		};
-
-		function parseFloat32( dataView, offset ) {
-
-			const float = dataView.getFloat32( offset.value, true );
-
-			offset.value += FLOAT32_SIZE;
-
-			return float;
-
-		}
-
-		function decodeFloat32( dataView, offset ) {
-
-			return DataUtils.toHalfFloat( parseFloat32( dataView, offset ) );
-
-		}
-
-		// https://stackoverflow.com/questions/5678432/decompressing-half-precision-floats-in-javascript
-		function decodeFloat16( binary ) {
-
-			const exponent = ( binary & 0x7C00 ) >> 10,
-				fraction = binary & 0x03FF;
-
-			return ( binary >> 15 ? -1 : 1 ) * (
-				exponent ?
-					(
-						exponent === 0x1F ?
-							fraction ? NaN : Infinity :
-							Math.pow( 2, exponent - 15 ) * ( 1 + fraction / 0x400 )
-					) :
-					6.103515625e-5 * ( fraction / 0x400 )
-			);
-
-		}
-
-		function parseUint16( dataView, offset ) {
-
-			const Uint16 = dataView.getUint16( offset.value, true );
-
-			offset.value += INT16_SIZE;
-
-			return Uint16;
-
-		}
-
-		function parseFloat16( buffer, offset ) {
-
-			return decodeFloat16( parseUint16( buffer, offset ) );
-
-		}
-
-		function parseChlist( dataView, buffer, offset, size ) {
-
-			const startOffset = offset.value;
-			const channels = [];
-
-			while ( offset.value < ( startOffset + size - 1 ) ) {
-
-				const name = parseNullTerminatedString( buffer, offset );
-				const pixelType = parseInt32( dataView, offset );
-				const pLinear = parseUint8( dataView, offset );
-				offset.value += 3; // reserved, three chars
-				const xSampling = parseInt32( dataView, offset );
-				const ySampling = parseInt32( dataView, offset );
-
-				channels.push( {
-					name: name,
-					pixelType: pixelType,
-					pLinear: pLinear,
-					xSampling: xSampling,
-					ySampling: ySampling
-				} );
-
-			}
-
-			offset.value += 1;
-
-			return channels;
-
-		}
-
-		function parseChromaticities( dataView, offset ) {
-
-			const redX = parseFloat32( dataView, offset );
-			const redY = parseFloat32( dataView, offset );
-			const greenX = parseFloat32( dataView, offset );
-			const greenY = parseFloat32( dataView, offset );
-			const blueX = parseFloat32( dataView, offset );
-			const blueY = parseFloat32( dataView, offset );
-			const whiteX = parseFloat32( dataView, offset );
-			const whiteY = parseFloat32( dataView, offset );
-
-			return { redX: redX, redY: redY, greenX: greenX, greenY: greenY, blueX: blueX, blueY: blueY, whiteX: whiteX, whiteY: whiteY };
-
-		}
-
-		function parseCompression( dataView, offset ) {
-
-			const compressionCodes = [
-				'NO_COMPRESSION',
-				'RLE_COMPRESSION',
-				'ZIPS_COMPRESSION',
-				'ZIP_COMPRESSION',
-				'PIZ_COMPRESSION',
-				'PXR24_COMPRESSION',
-				'B44_COMPRESSION',
-				'B44A_COMPRESSION',
-				'DWAA_COMPRESSION',
-				'DWAB_COMPRESSION'
-			];
-
-			const compression = parseUint8( dataView, offset );
-
-			return compressionCodes[ compression ];
-
-		}
-
-		function parseBox2i( dataView, offset ) {
-
-			const xMin = parseInt32( dataView, offset );
-			const yMin = parseInt32( dataView, offset );
-			const xMax = parseInt32( dataView, offset );
-			const yMax = parseInt32( dataView, offset );
-
-			return { xMin: xMin, yMin: yMin, xMax: xMax, yMax: yMax };
-
-		}
-
-		function parseLineOrder( dataView, offset ) {
-
-			const lineOrders = [
-				'INCREASING_Y',
-				'DECREASING_Y',
-				'RANDOM_Y',
-			];
-
-			const lineOrder = parseUint8( dataView, offset );
-
-			return lineOrders[ lineOrder ];
-
-		}
-
-		function parseEnvmap( dataView, offset ) {
-
-			const envmaps = [
-				'ENVMAP_LATLONG',
-				'ENVMAP_CUBE'
-			];
-
-			const envmap = parseUint8( dataView, offset );
-
-			return envmaps[ envmap ];
-
-		}
-
-		function parseTiledesc( dataView, offset ) {
-
-			const levelModes = [
-				'ONE_LEVEL',
-				'MIPMAP_LEVELS',
-				'RIPMAP_LEVELS',
-			];
-
-			const roundingModes = [
-				'ROUND_DOWN',
-				'ROUND_UP',
-			];
-
-			const xSize = parseUint32( dataView, offset );
-			const ySize = parseUint32( dataView, offset );
-			const modes = parseUint8( dataView, offset );
-
-			return {
-				xSize: xSize,
-				ySize: ySize,
-				levelMode: levelModes[ modes & 0xf ],
-				roundingMode: roundingModes[ modes >> 4 ]
-			};
-
-		}
-
-		function parseV2f( dataView, offset ) {
-
-			const x = parseFloat32( dataView, offset );
-			const y = parseFloat32( dataView, offset );
-
-			return [ x, y ];
-
-		}
-
-		function parseV3f( dataView, offset ) {
-
-			const x = parseFloat32( dataView, offset );
-			const y = parseFloat32( dataView, offset );
-			const z = parseFloat32( dataView, offset );
-
-			return [ x, y, z ];
-
-		}
-
-		function parseValue( dataView, buffer, offset, type, size ) {
-
-			if ( type === 'string' || type === 'stringvector' || type === 'iccProfile' ) {
-
-				return parseFixedLengthString( buffer, offset, size );
-
-			} else if ( type === 'chlist' ) {
-
-				return parseChlist( dataView, buffer, offset, size );
-
-			} else if ( type === 'chromaticities' ) {
-
-				return parseChromaticities( dataView, offset );
-
-			} else if ( type === 'compression' ) {
-
-				return parseCompression( dataView, offset );
-
-			} else if ( type === 'box2i' ) {
-
-				return parseBox2i( dataView, offset );
-
-			} else if ( type === 'envmap' ) {
-
-				return parseEnvmap( dataView, offset );
-
-			} else if ( type === 'tiledesc' ) {
-
-				return parseTiledesc( dataView, offset );
-
-			} else if ( type === 'lineOrder' ) {
-
-				return parseLineOrder( dataView, offset );
-
-			} else if ( type === 'float' ) {
-
-				return parseFloat32( dataView, offset );
-
-			} else if ( type === 'v2f' ) {
-
-				return parseV2f( dataView, offset );
-
-			} else if ( type === 'v3f' ) {
-
-				return parseV3f( dataView, offset );
-
-			} else if ( type === 'int' ) {
-
-				return parseInt32( dataView, offset );
-
-			} else if ( type === 'rational' ) {
-
-				return parseRational( dataView, offset );
-
-			} else if ( type === 'timecode' ) {
-
-				return parseTimecode( dataView, offset );
-
-			} else if ( type === 'preview' ) {
-
-				offset.value += size;
-				return 'skipped';
-
-			} else {
-
-				offset.value += size;
-				return undefined;
-
-			}
-
-		}
-
-		function roundLog2( x, mode ) {
-
-			const log2 = Math.log2( x );
-			return mode == 'ROUND_DOWN' ? Math.floor( log2 ) : Math.ceil( log2 );
-
-		}
-
-		function calculateTileLevels( tiledesc, w, h ) {
-
-			let num = 0;
-
-			switch ( tiledesc.levelMode ) {
-
-				case 'ONE_LEVEL':
-					num = 1;
-					break;
-
-				case 'MIPMAP_LEVELS':
-					num = roundLog2( Math.max( w, h ), tiledesc.roundingMode ) + 1;
-					break;
-
-				case 'RIPMAP_LEVELS':
-					throw new Error( 'THREE.EXRLoader: RIPMAP_LEVELS tiles currently unsupported.' );
-
-			}
-
-			return num;
-
-		}
-
-		function calculateTiles( count, dataSize, size, roundingMode ) {
-
-			const tiles = new Array( count );
-
-			for ( let i = 0; i < count; i ++ ) {
-
-				const b = ( 1 << i );
-				let s = ( dataSize / b ) | 0;
-
-				if ( roundingMode == 'ROUND_UP' && s * b < dataSize ) s += 1;
-
-				const l = Math.max( s, 1 );
-
-				tiles[ i ] = ( ( l + size - 1 ) / size ) | 0;
-
-			}
-
-			return tiles;
-
-		}
-
-		function parseTiles() {
-
-			const EXRDecoder = this;
-			const offset = EXRDecoder.offset;
-			const tmpOffset = { value: 0 };
-
-			for ( let tile = 0; tile < EXRDecoder.tileCount; tile ++ ) {
-
-				const tileX = parseInt32( EXRDecoder.viewer, offset );
-				const tileY = parseInt32( EXRDecoder.viewer, offset );
-				offset.value += 8; // skip levels - only parsing top-level
-				EXRDecoder.size = parseUint32( EXRDecoder.viewer, offset );
-
-				const startX = tileX * EXRDecoder.blockWidth;
-				const startY = tileY * EXRDecoder.blockHeight;
-				EXRDecoder.columns = ( startX + EXRDecoder.blockWidth > EXRDecoder.width ) ? EXRDecoder.width - startX : EXRDecoder.blockWidth;
-				EXRDecoder.lines = ( startY + EXRDecoder.blockHeight > EXRDecoder.height ) ? EXRDecoder.height - startY : EXRDecoder.blockHeight;
-
-				const bytesBlockLine = EXRDecoder.columns * EXRDecoder.totalBytes;
-				const isCompressed = EXRDecoder.size < EXRDecoder.lines * bytesBlockLine;
-				const viewer = isCompressed ? EXRDecoder.uncompress( EXRDecoder ) : uncompressRAW( EXRDecoder );
-
-				offset.value += EXRDecoder.size;
-
-				for ( let line = 0; line < EXRDecoder.lines; line ++ ) {
-
-					const lineOffset = line * EXRDecoder.columns * EXRDecoder.totalBytes;
-
-					for ( let channelID = 0; channelID < EXRDecoder.inputChannels.length; channelID ++ ) {
-
-						const name = EXRHeader.channels[ channelID ].name;
-						const lOff = EXRDecoder.channelByteOffsets[ name ] * EXRDecoder.columns;
-						const cOff = EXRDecoder.decodeChannels[ name ];
-
-						if ( cOff === undefined ) continue;
-
-						tmpOffset.value = lineOffset + lOff;
-						const outLineOffset = ( EXRDecoder.height - ( 1 + startY + line ) ) * EXRDecoder.outLineWidth;
-
-						for ( let x = 0; x < EXRDecoder.columns; x ++ ) {
-
-							const outIndex = outLineOffset + ( x + startX ) * EXRDecoder.outputChannels + cOff;
-							EXRDecoder.byteArray[ outIndex ] = EXRDecoder.getter( viewer, tmpOffset );
-
-						}
-
-					}
-
-				}
-
-			}
-
-		}
-
-		function parseScanline() {
-
-			const EXRDecoder = this;
-			const offset = EXRDecoder.offset;
-			const tmpOffset = { value: 0 };
-
-			for ( let scanlineBlockIdx = 0; scanlineBlockIdx < EXRDecoder.height / EXRDecoder.blockHeight; scanlineBlockIdx ++ ) {
-
-				const line = parseInt32( EXRDecoder.viewer, offset ) - EXRHeader.dataWindow.yMin; // line_no
-				EXRDecoder.size = parseUint32( EXRDecoder.viewer, offset ); // data_len
-				EXRDecoder.lines = ( ( line + EXRDecoder.blockHeight > EXRDecoder.height ) ? ( EXRDecoder.height - line ) : EXRDecoder.blockHeight );
-
-				const bytesPerLine = EXRDecoder.columns * EXRDecoder.totalBytes;
-				const isCompressed = EXRDecoder.size < EXRDecoder.lines * bytesPerLine;
-				const viewer = isCompressed ? EXRDecoder.uncompress( EXRDecoder ) : uncompressRAW( EXRDecoder );
-
-				offset.value += EXRDecoder.size;
-
-				for ( let line_y = 0; line_y < EXRDecoder.blockHeight; line_y ++ ) {
-
-					const scan_y = scanlineBlockIdx * EXRDecoder.blockHeight;
-					const true_y = line_y + EXRDecoder.scanOrder( scan_y );
-					if ( true_y >= EXRDecoder.height ) continue;
-
-					const lineOffset = line_y * bytesPerLine;
-					const outLineOffset = ( EXRDecoder.height - 1 - true_y ) * EXRDecoder.outLineWidth;
-
-					for ( let channelID = 0; channelID < EXRDecoder.inputChannels.length; channelID ++ ) {
-
-						const name = EXRHeader.channels[ channelID ].name;
-						const lOff = EXRDecoder.channelByteOffsets[ name ] * EXRDecoder.columns;
-						const cOff = EXRDecoder.decodeChannels[ name ];
-
-						if ( cOff === undefined ) continue;
-
-						tmpOffset.value = lineOffset + lOff;
-
-						for ( let x = 0; x < EXRDecoder.columns; x ++ ) {
-
-							const outIndex = outLineOffset + x * EXRDecoder.outputChannels + cOff;
-							EXRDecoder.byteArray[ outIndex ] = EXRDecoder.getter( viewer, tmpOffset );
-
-						}
-
-					}
-
-				}
-
-			}
-
-		}
-
-		function parseHeader( dataView, buffer, offset ) {
-
-			const EXRHeader = {};
-
-			if ( dataView.getUint32( 0, true ) != 20000630 ) { // magic
-
-				throw new Error( 'THREE.EXRLoader: Provided file doesn\'t appear to be in OpenEXR format.' );
-
-			}
-
-			EXRHeader.version = dataView.getUint8( 4 );
-
-			const spec = dataView.getUint8( 5 ); // fullMask
-
-			EXRHeader.spec = {
-				singleTile: !! ( spec & 2 ),
-				longName: !! ( spec & 4 ),
-				deepFormat: !! ( spec & 8 ),
-				multiPart: !! ( spec & 16 ),
-			};
-
-			// start of header
-
-			offset.value = 8; // start at 8 - after pre-amble
-
-			let keepReading = true;
-
-			while ( keepReading ) {
-
-				const attributeName = parseNullTerminatedString( buffer, offset );
-
-				if ( attributeName == 0 ) {
-
-					keepReading = false;
-
-				} else {
-
-					const attributeType = parseNullTerminatedString( buffer, offset );
-					const attributeSize = parseUint32( dataView, offset );
-					const attributeValue = parseValue( dataView, buffer, offset, attributeType, attributeSize );
-
-					if ( attributeValue === undefined ) {
-
-						console.warn( `THREE.EXRLoader: Skipped unknown header attribute type \'${attributeType}\'.` );
-
-					} else {
-
-						EXRHeader[ attributeName ] = attributeValue;
-
-					}
-
-				}
-
-			}
-
-			if ( ( spec & -7 ) != 0 ) { // unsupported deep-image, multi-part
-
-				console.error( 'THREE.EXRHeader:', EXRHeader );
-				throw new Error( 'THREE.EXRLoader: Provided file is currently unsupported.' );
-
-			}
-
-			return EXRHeader;
-
-		}
-
-		function setupDecoder( EXRHeader, dataView, uInt8Array, offset, outputType ) {
-
-			const EXRDecoder = {
-				size: 0,
-				viewer: dataView,
-				array: uInt8Array,
-				offset: offset,
-				width: EXRHeader.dataWindow.xMax - EXRHeader.dataWindow.xMin + 1,
-				height: EXRHeader.dataWindow.yMax - EXRHeader.dataWindow.yMin + 1,
-				inputChannels: EXRHeader.channels,
-				channelByteOffsets: {},
-				scanOrder: null,
-				totalBytes: null,
-				columns: null,
-				lines: null,
-				type: null,
-				uncompress: null,
-				getter: null,
-				format: null,
-				colorSpace: LinearSRGBColorSpace,
-			};
-
-			switch ( EXRHeader.compression ) {
-
-				case 'NO_COMPRESSION':
-					EXRDecoder.blockHeight = 1;
-					EXRDecoder.uncompress = uncompressRAW;
-					break;
-
-				case 'RLE_COMPRESSION':
-					EXRDecoder.blockHeight = 1;
-					EXRDecoder.uncompress = uncompressRLE;
-					break;
-
-				case 'ZIPS_COMPRESSION':
-					EXRDecoder.blockHeight = 1;
-					EXRDecoder.uncompress = uncompressZIP;
-					break;
-
-				case 'ZIP_COMPRESSION':
-					EXRDecoder.blockHeight = 16;
-					EXRDecoder.uncompress = uncompressZIP;
-					break;
-
-				case 'PIZ_COMPRESSION':
-					EXRDecoder.blockHeight = 32;
-					EXRDecoder.uncompress = uncompressPIZ;
-					break;
-
-				case 'PXR24_COMPRESSION':
-					EXRDecoder.blockHeight = 16;
-					EXRDecoder.uncompress = uncompressPXR;
-					break;
-
-				case 'DWAA_COMPRESSION':
-					EXRDecoder.blockHeight = 32;
-					EXRDecoder.uncompress = uncompressDWA;
-					break;
-
-				case 'DWAB_COMPRESSION':
-					EXRDecoder.blockHeight = 256;
-					EXRDecoder.uncompress = uncompressDWA;
-					break;
-
-				default:
-					throw new Error( 'EXRLoader.parse: ' + EXRHeader.compression + ' is unsupported' );
-
-			}
-
-			const channels = {};
-			for ( const channel of EXRHeader.channels ) {
-
-				switch ( channel.name ) {
-
-					case 'Y':
-					case 'R':
-					case 'G':
-					case 'B':
-					case 'A':
-						channels[ channel.name ] = true;
-						EXRDecoder.type = channel.pixelType;
-
-				}
-
-			}
-
-			// RGB images will be converted to RGBA format, preventing software emulation in select devices.
-			let fillAlpha = false;
-
-			if ( channels.R && channels.G && channels.B ) {
-
-				fillAlpha = ! channels.A;
-				EXRDecoder.outputChannels = 4;
-				EXRDecoder.decodeChannels = { R: 0, G: 1, B: 2, A: 3 };
-
-			} else if ( channels.Y ) {
-
-				EXRDecoder.outputChannels = 1;
-				EXRDecoder.decodeChannels = { Y: 0 };
-
-			} else {
-
-				throw new Error( 'EXRLoader.parse: file contains unsupported data channels.' );
-
-			}
-
-			if ( EXRDecoder.type == 1 ) {
-
-				// half
-				switch ( outputType ) {
-
-					case FloatType:
-						EXRDecoder.getter = parseFloat16;
-						break;
-
-					case HalfFloatType:
-						EXRDecoder.getter = parseUint16;
-						break;
-
-				}
-
-			} else if ( EXRDecoder.type == 2 ) {
-
-				// float
-				switch ( outputType ) {
-
-					case FloatType:
-						EXRDecoder.getter = parseFloat32;
-						break;
-
-					case HalfFloatType:
-						EXRDecoder.getter = decodeFloat32;
-
-				}
-
-			} else {
-
-				throw new Error( 'EXRLoader.parse: unsupported pixelType ' + EXRDecoder.type + ' for ' + EXRHeader.compression + '.' );
-
-			}
-
-			EXRDecoder.columns = EXRDecoder.width;
-			const size = EXRDecoder.width * EXRDecoder.height * EXRDecoder.outputChannels;
-
-			switch ( outputType ) {
-
-				case FloatType:
-					EXRDecoder.byteArray = new Float32Array( size );
-
-					// Fill initially with 1s for the alpha value if the texture is not RGBA, RGB values will be overwritten
-					if ( fillAlpha )
-						EXRDecoder.byteArray.fill( 1, 0, size );
-
-					break;
-
-				case HalfFloatType:
-					EXRDecoder.byteArray = new Uint16Array( size );
-
-					if ( fillAlpha )
-						EXRDecoder.byteArray.fill( 0x3C00, 0, size ); // Uint16Array holds half float data, 0x3C00 is 1
-
-					break;
-
-				default:
-					console.error( 'THREE.EXRLoader: unsupported type: ', outputType );
-					break;
-
-			}
-
-			let byteOffset = 0;
-			for ( const channel of EXRHeader.channels ) {
-
-				if ( EXRDecoder.decodeChannels[ channel.name ] !== undefined ) {
-
-					EXRDecoder.channelByteOffsets[ channel.name ] = byteOffset;
-
-				}
-
-				byteOffset += channel.pixelType * 2;
-
-			}
-
-			EXRDecoder.totalBytes = byteOffset;
-			EXRDecoder.outLineWidth = EXRDecoder.width * EXRDecoder.outputChannels;
-
-			if ( EXRHeader.lineOrder === 'INCREASING_Y' ) {
-
-				EXRDecoder.scanOrder = ( y ) => y;
-
-			} else {
-
-				EXRDecoder.scanOrder = ( y ) => EXRDecoder.height - 1 - y;
-
-			}
-
-			if ( EXRDecoder.outputChannels == 4 ) {
-
-				EXRDecoder.format = RGBAFormat;
-				EXRDecoder.colorSpace = LinearSRGBColorSpace;
-
-			} else {
-
-				EXRDecoder.format = RedFormat;
-				EXRDecoder.colorSpace = NoColorSpace;
-
-			}
-
-			if ( EXRHeader.spec.singleTile ) {
-
-				EXRDecoder.blockHeight = EXRHeader.tiles.ySize;
-				EXRDecoder.blockWidth = EXRHeader.tiles.xSize;
-
-				const numXLevels = calculateTileLevels( EXRHeader.tiles, EXRDecoder.width, EXRDecoder.height );
-				// const numYLevels = calculateTileLevels( EXRHeader.tiles, EXRDecoder.width, EXRDecoder.height );
-
-				const numXTiles = calculateTiles( numXLevels, EXRDecoder.width, EXRHeader.tiles.xSize, EXRHeader.tiles.roundingMode );
-				const numYTiles = calculateTiles( numXLevels, EXRDecoder.height, EXRHeader.tiles.ySize, EXRHeader.tiles.roundingMode );
-
-				EXRDecoder.tileCount = numXTiles[ 0 ] * numYTiles[ 0 ];
-
-				for ( let l = 0; l < numXLevels; l ++ )
-					for ( let y = 0; y < numYTiles[ l ]; y ++ )
-						for ( let x = 0; x < numXTiles[ l ]; x ++ )
-							parseInt64( dataView, offset ); // tileOffset
-
-				EXRDecoder.decode = parseTiles.bind( EXRDecoder );
-
-			} else {
-
-				EXRDecoder.blockWidth = EXRDecoder.width;
-				const blockCount = Math.ceil( EXRDecoder.height / EXRDecoder.blockHeight );
-
-				for ( let i = 0; i < blockCount; i ++ )
-					parseInt64( dataView, offset ); // scanlineOffset
-
-				EXRDecoder.decode = parseScanline.bind( EXRDecoder );
-
-			}
-
-			return EXRDecoder;
-
-		}
-
-		// start parsing file [START]
-		const offset = { value: 0 };
-		const bufferDataView = new DataView( buffer );
-		const uInt8Array = new Uint8Array( buffer );
-
-		// get header information and validate format.
-		const EXRHeader = parseHeader( bufferDataView, buffer, offset );
-
-		// get input compression information and prepare decoding.
-		const EXRDecoder = setupDecoder( EXRHeader, bufferDataView, uInt8Array, offset, this.type );
-
-		// parse input data
-		EXRDecoder.decode();
-
-		return {
-			header: EXRHeader,
-			width: EXRDecoder.width,
-			height: EXRDecoder.height,
-			data: EXRDecoder.byteArray,
-			format: EXRDecoder.format,
-			colorSpace: EXRDecoder.colorSpace,
-			type: this.type,
-		};
-
-	}
-
-	setDataType( value ) {
-
-		this.type = value;
-		return this;
-
-	}
-
-	load( url, onLoad, onProgress, onError ) {
-
-		function onLoadCallback( texture, texData ) {
-
-			texture.colorSpace = texData.colorSpace;
-			texture.minFilter = LinearFilter;
-			texture.magFilter = LinearFilter;
-			texture.generateMipmaps = false;
-			texture.flipY = false;
-
-			if ( onLoad ) onLoad( texture, texData );
-
-		}
-
-		return super.load( url, onLoadCallback, onProgress, onError );
-
-	}
 
 }
 
@@ -45271,7 +41668,7 @@ class Envmap {
 
 		switch( this.type ){
 			case 'hdr': 
-			    this.loader = new RGBELoader().load( url, this.end.bind(this), null, this.bug.bind(this) );
+			    this.loader = new HDRLoader().load( url, this.end.bind(this), null, this.bug.bind(this) );
 			break;
 			case 'exr':
 			    this.loader = new EXRLoader().load( url, this.end.bind(this), null, this.bug.bind(this) );
@@ -47855,7 +44252,7 @@ class PhyEngine {
 				} else { // is direct version
 
 					if( o.devMode ) this.preLoad( mini, o, url );
-				    else this.preLoadMin( mini, o, url );
+				    else this.preLoadMin( mini, o, url, useLocal );
 
 				}
 
@@ -47951,9 +44348,12 @@ class PhyEngine {
 
 		};
 
-		this.preLoadMin = ( name, o, url ) => {
+		this.preLoadMin = ( name, o, url, useLocal = false ) => {
 
 			let link = url + 'build/'+name+'.min.js';
+
+			if( useLocal ) link = new URL( './'+ name + '.min.js', import.meta.url );
+
 			let type = name.toUpperCase();
 			//if(type==='RAPIER') type = 'RAPIER3D';
 
@@ -48542,7 +44942,7 @@ class PhyEngine {
 		this.setControl = ( Controls ) => { 
 
 			controls = Controls;
-			azimut = controls.getAzimuthalAngle;
+			azimut = ()=>{return controls.getAzimuthalAngle()};
 
 		};
 

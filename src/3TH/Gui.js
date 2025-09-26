@@ -754,6 +754,7 @@ export const Gui = {
 	    		if( t==='map' || short==='emissive' || short==='sheen' ) colorSpace = 'srgb'
 	    		//g1.add( 'bitmap',  { name:t, rename:short, value:name, type:'bitmap' }).onChange( function( file, img, name ){ Gui.setTexture(file, img, name, m ) } )
 	    	    g1.add( m, t,  { name:t, rename:short, colorSpace:colorSpace, type:'bitmap', h:30 })//.onChange( function( file, img, name ){ Gui.setTexture(file, img, name, m ) } )
+	    	    //console.log(m[t])
 	    	}
 
 	    }

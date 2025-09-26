@@ -2,7 +2,7 @@ import {
 	Points, Color, PointsMaterial, BufferAttribute, FloatType, Texture, Matrix4, Vector3, AdditiveBlending, Mesh, BoxGeometry, SRGBColorSpace
 } from 'three';
 import { math } from '../math.js';
-import { MeshSurfaceSampler } from '../../jsm/math/MeshSurfaceSampler.js';
+import { MeshSurfaceSampler } from '../../../three/examples/jsm/math/MeshSurfaceSampler.js';
 
 export class Sparkle extends Points {
 

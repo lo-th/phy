@@ -64,7 +64,7 @@ export class ReflectorGpu extends Mesh {
 		this.reflect = uniform( o.reflect !== undefined ? o.reflect : 0.4 );
 		this.opacity = uniform( o.opacity !== undefined ? o.opacity : 1.0 );
 
-		this.reflection = reflector( { resolution: 1.0 } );
+		this.reflection = reflector( { resolutionScale: 1.0 } );
 		//reflection.target.rotateX( - Math.PI / 2 );
 		this.add( this.reflection.target );
 
