@@ -63,9 +63,9 @@ const Version = {
 	// best
     PHYSX: '5.06.10',
     HAVOK: '1.2.1',
-    JOLT: '0.37.0',
+    JOLT: '0.39.0',
     // old
-    RAPIER: '0.18.2',
+    RAPIER: '0.20.0',
     OIMO: '1.2.4',
     AMMO: '3.2.6',
 
@@ -304,6 +304,7 @@ export class PhyEngine {
 			if( outsideStep ) timer.setFramerate( settings.fps );
 
 			const data = {
+				...o,
 				...settings,
 				ArPos:_ArPos,
 				isTimeout:isTimeout,

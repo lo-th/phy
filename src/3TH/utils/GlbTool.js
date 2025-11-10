@@ -10,11 +10,34 @@ export const GlbTool = {
 	getMesh:( scene, multyMaterialGroup ) => {
         let meshs = {};
 
- 
-
         if( multyMaterialGroup ){
 
-            let oldGroup = []
+            const oldGroup = {}
+            const newMesh = {}
+
+            gltf.scene.traverse( ( child ) => {
+                if ( child.isGroup ){
+                    let m = GlbTool.groupToMesh(child)
+                    if(m){
+                        m.applyMatrix4( child.matrix )
+                        oldGroup[child.name] = child;
+                        newMesh[child.name] = m
+                    } 
+                }
+            })
+
+            // remove old group and add remplace mesh
+            let parent
+            for(let k in oldGroup){
+
+                //console.log( 'Group remplaced: ', k)
+                parent = oldGroup[k].parent
+                parent.remove(oldGroup[k])
+                parent.add(newMesh[k])
+
+            }
+
+            /*let oldGroup = []
             let nMesh = []
             let tmpMesh = {}
             let groupName = []
@@ -30,7 +53,7 @@ export const GlbTool = {
                         /*m.position.copy(child.position)
                         m.quaternion.copy(child.quaternion)
                         m.scale.copy(child.scale)*/
-                        nMesh.push(m);
+              /*          nMesh.push(m);
 
                         tmpMesh[m.name] = nMesh;
                     }
@@ -49,7 +72,7 @@ export const GlbTool = {
                 
                 p.add(nMesh[i]);
 
-            }
+            }*/
 
         }
         //if( keepMaterial ) GlbTool.keepMaterial( scene )

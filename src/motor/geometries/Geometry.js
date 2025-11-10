@@ -11,7 +11,7 @@ import {
     Box3,
     Vector2
 } from 'three';
-import { mergeVertices, mergeGeometries } from './BufferGeometryUtils.js';
+import { mergeVertices, mergeGeometries, toCreasedNormals } from './BufferGeometryUtils.js';
 import { Tubular } from './Tubular.js';
 
 
@@ -176,7 +176,8 @@ export class Stair extends BufferGeometry {
 */
 export class SphereBox extends BufferGeometry {
 
-    constructor( radius=1, widthSegs=10, heightSegs=10, depthSegs=10, roundness=1 ) {
+    constructor( radius=1, widthSegs=16, heightSegs=16, depthSegs=16, roundness=1 ) {
+    //constructor( radius=1, widthSegs=2, heightSegs=2, depthSegs=2, roundness=1 ) {
 
         super();
 
@@ -193,10 +194,63 @@ export class SphereBox extends BufferGeometry {
         
         let g = new BoxGeometry( 1,1,1, widthSegs, heightSegs, depthSegs ), v = new Vector3(), r = new Vector3(), n;
 
+        
+
+        //;
+
+        //g = mergeVertices( g );
+
+        //createUV( g, 'box' );
+
+        let posCount = g.attributes.position.count
         let ar = g.attributes.position.array;
         let nm = g.attributes.normal.array;
 
-        for ( let i = 0, l = g.attributes.position.count; i < l; i ++ ) {
+        
+
+        // uv for each face
+        let uv = g.attributes.uv.array;
+        let uvCount = g.attributes.uv.count
+        let nn, faceid
+        let fc = uvCount/6
+        let dx = 1/3
+        let dy = 1/2
+        let fx = 0
+        let fy = 0
+
+        for ( let i = 0; i < uvCount; i ++ ) {
+
+            faceid = Math.floor(i/fc)
+            switch(faceid){
+                case 0 : fx = 0; fy = dy; break;
+                case 5 : fx = dx; fy = dy; break;
+
+                case 1 : fx = dx*2; fy = dy; break;
+                case 4 : fx = 0; fy = 1; break;
+
+                case 3 : fx = dx; fy = 1; break;
+                case 2 : fx = dx*2; fy = 1; break;
+            }
+
+            nn = i*2
+            uv[nn] *= dx
+            uv[nn] += fx
+            uv[nn+1] *= -dy
+            uv[nn+1] += fy
+
+            // remove white border
+            //if(faceid===4 && uv[nn]>dx-0.01)uv[nn] -= 0.005
+            //if(faceid===4 && uv[nn]>dx-0.0005)uv[nn] -= 0.0005
+
+            if(uv[nn] > 1.0) uv[nn] = 1.0 
+            if(uv[nn] < 0.0) uv[nn] = 0.0  
+
+            if(uv[nn+1] > 1.0) uv[nn+1] = 1.0 
+            if(uv[nn+1] < 0.0) uv[nn+1] = 0.0
+
+        }
+
+        for ( let i = 0; i < posCount; i ++ ) {
 
             n = i*3;
             v.set( ar[n], ar[n+1], ar[n+2] )
@@ -215,6 +269,19 @@ export class SphereBox extends BufferGeometry {
             nm[n+2] = v.z
             
         }
+
+        //g = mergeVertices( g );
+
+        //g.computeVertexNormals()
+        g.computeTangents()
+
+        //console.log(g)
+
+        //g.normalizeNormals()
+
+        //g = toCreasedNormals(g)
+
+
 
         this.copy(g)
 

@@ -1,5 +1,6 @@
 import {
-    LoadingManager, FileLoader, Texture, Mesh, TextureLoader, SRGBColorSpace, RepeatWrapping, NearestFilter, EquirectangularReflectionMapping, AnimationMixer, ObjectSpaceNormalMap, 
+    LoadingManager, FileLoader, CompressedTexture, Texture, Mesh, TextureLoader, SRGBColorSpace, NoColorSpace, RepeatWrapping, NearestFilter, EquirectangularReflectionMapping, AnimationMixer, ObjectSpaceNormalMap, 
+    LinearMipmapLinearFilter
 } from 'three';
 
 import { GLTFLoader } from '../../three/examples/jsm/loaders/GLTFLoader.js';
@@ -238,11 +239,16 @@ export const Pool = {
         if( !Pool.loaderMap ) Pool.loaderMap = new TextureLoader();
 
         let name = o.name || '';
+        let type = o.format || '';
 
         if( o.url ){ 
-            if( o.url.lastIndexOf('.') !==-1 ) name = o.url.substring( o.url.lastIndexOf('/')+1, o.url.lastIndexOf('.') );
+            if( o.url.lastIndexOf('.') !==-1 ){ 
+                name = o.url.substring( o.url.lastIndexOf('/')+1, o.url.lastIndexOf('.') );
+                type = o.url.substring( o.url.lastIndexOf('.')+1 ).toLowerCase();
+            }
             else name = o.url.substring( o.url.lastIndexOf('/')+1 );
         }
+
 
         if( name.search('_c') !== -1 || name.search('_l') !== -1 || name.search('_u') !== -1|| name.search('_d') !== -1) o.srgb = true
 
@@ -252,13 +258,46 @@ export const Pool = {
             return Pool.getTexture( name, o );
         } else {
 
-            return Pool.loaderMap.load( o.url, function ( t ) { 
+
+            switch(type){
+                case 'ktx2':
+                const texture = new CompressedTexture();
+                Pool.data.set( 'T_' + name, texture )
+                Pool.loaderKTX2().load( o.url, function ( t ) { 
+
+                    Pool.setTextureOption( t, o );
+
+                    texture.copy(t);
+
+                    t.dispose()
+                    //Pool.setTextureOption( texture, o );
+                    
+                    if( o.callback ) o.callback()
+
+                })
+                return texture
+                break;
+                default:
+                return Pool.loaderMap.load( o.url, function ( t ) { 
+                    //console.log('use TextureLoader !!', name )
+                    Pool.setTextureOption( t, o );
+                    Pool.data.set( 'T_' + name, t );
+                    if( o.callback ) o.callback()
+                    return t
+                })
+                break;
+
+            }
+
+            /*return Pool.loaderMap.load( o.url, function ( t ) { 
                 //console.log('use TextureLoader !!', name )
                 Pool.setTextureOption( t, o );
                 Pool.data.set( 'T_' + name, t );
                 if( o.callback ) o.callback()
                 return t
-            })
+            })*/
+
+            
         }
             
         
@@ -290,8 +329,8 @@ export const Pool = {
     setTextureOption:( t, o = {} ) => {
 
         //if( o.colorSpace ) t.colorSpace = o.colorSpace;
-        if( o.encoding ) t.colorSpace = SRGBColorSpace;
-        if( o.srgb ) t.colorSpace = SRGBColorSpace;
+        t.colorSpace = o.encoding || o.srgb ? SRGBColorSpace : NoColorSpace;
+        
         t.flipY = o.flipY!== undefined || o.flip !== undefined ? o.flipY : false
 
         if( o.anisotropy ){
@@ -304,6 +343,11 @@ export const Pool = {
             t.repeat.fromArray( o.repeat );
             t.wrapS = t.wrapT = RepeatWrapping;
         }
+
+        //t.minFilter = LinearMipmapLinearFilter
+        //t.premultiplyAlpha = true
+
+
 
         if( o.center ) t.center.fromArray( o.center );
         if( o.offset ) t.offset.fromArray( o.offset );

@@ -212,7 +212,7 @@ export class Env {
 		if( c !== undefined ){ 
 			backIsColor = true;
 			scene.background = color.setHex(c);
-			console.log('isColor')
+			//console.log('isColor')
 		} else{ 
 			backIsColor = false;
 			scene.background = env;

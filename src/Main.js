@@ -42,6 +42,8 @@ import { DirectionalHelper } from './3TH/helpers/DirectionalHelper.js'
 //import { Motor } from './motor/Motor.js'
 import { phy, phy2 } from './Phy.js'
 
+import { VertexNormalsHelper } from 'three/addons/helpers/VertexNormalsHelper.js';
+import { VertexTangentsHelper } from 'three/addons/helpers/VertexTangentsHelper.js';
 
 
 /** __
@@ -460,6 +462,8 @@ window.Diamond = Diamond
 window.Fluid = Fluid;
 window.TWEEN = TWEEN;
 
+window.VertexNormalsHelper = VertexNormalsHelper
+window.VertexTangentsHelper = VertexTangentsHelper
 
 const init = () => {
 

@@ -3,7 +3,7 @@ import {
 } from 'three';
 
 import { CircleHelper } from '../geometries/CircleHelper.js';
-
+import { SphereBox } from '../geometries/Geometry.js';
 
 //-------------------
 //
@@ -40,6 +40,7 @@ export class Geo {
 				case 'plane':    g = new PlaneGeometry(1,1); g.rotateX( -Math.PI * 0.5 ); break
 				case 'box':      g = new BoxGeometry(1,1,1); break
 				case 'sphere':   g = new SphereGeometry( 1, 16, 12 ); break
+				case 'highSphere': g = new SphereBox( 1 ); break
 				case 'cylinder': g = new CylinderGeometry( 1, 1, 1 , 16 ); break
 				//case 'wheel':    g = new CylinderGeometry( 1, 1, 1 , 16 ); g.rotateX( -Math.PI * 0.5 ); break
 				case 'cone':     g = new CylinderGeometry( 0.001, 1, 1 , 16 ); break

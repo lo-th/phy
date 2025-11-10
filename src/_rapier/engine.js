@@ -162,13 +162,13 @@ export class engine {
 	static initWorld() {
 
     	root.world = new RAPIER.World( root.gravity )
-		root.world.maxStabilizationIterations = 1
+		/*root.world.maxStabilizationIterations = 1
 		root.world.maxVelocityFrictionIterations = 8//8
 		root.world.maxPositionIterations = 1
 		root.world.maxVelocityIterations = 4 //4
-		root.world.timestep = timestep / substep
+		root.world.timestep = timestep / substep*/
 
-		//console.log( root.world )
+		console.log( root.world )
 
     }
 

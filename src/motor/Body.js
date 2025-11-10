@@ -329,7 +329,7 @@ export class Body extends Item {
 
 			break;
 
-			case 'highSphere':
+			/*case 'highSphere':
 
 			    gName = 'highSphere_' + s[ 0 ];
 
@@ -343,7 +343,7 @@ export class Body extends Item {
 			    noScale = true;
 			    o.type = 'sphere';
 
-			break;
+			break;*/
 
 			case 'capsule':
 
@@ -398,6 +398,9 @@ export class Body extends Item {
 			    	unic = true
 			    	noScale = true;
 			    }
+			    
+			    if( t === 'highSphere' ) o.type = 'sphere';
+
 			break;
 
 		}
@@ -962,7 +965,7 @@ export class Body extends Item {
 		else if( b.mass && !b.density ){ 
 			b.density = MathTool.densityFromMass( b.mass, volume );
 			//  force density for engin don't have mass
-			if( this.engine === 'RAPIER' || this.engine === 'OIMO'|| this.engine === 'PHYSX') o.density = b.density;
+			if( this.engine === 'RAPIER' || this.engine === 'OIMO' || this.engine === 'PHYSX') o.density = b.density;
 		}
 
 
