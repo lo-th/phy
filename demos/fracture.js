@@ -105,7 +105,7 @@ test_0 = ( d ) => {
         ignore:['floor', 'wall'],
        //bullet:true,
         // breakOption: [ maxImpulse, maxRadial, maxRandom, levelOfSubdivision, with intern mesh ]
-        breakOption:[ 50, 3, 4, 2, false ],
+        breakOption:[ 50, 3, 4, 2, true ],
         //material:'B', 
         //autoUV:true 
         massInfo:true

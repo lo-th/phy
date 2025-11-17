@@ -3,7 +3,7 @@
  * Copyright 2010-2025 Phy.js Authors
  * SPDX-License-Identifier: MIT
  */
-import { LineSegments, BufferGeometry, BufferAttribute, Float32BufferAttribute, LineBasicMaterial, SphereGeometry, CylinderGeometry, BoxGeometry, PlaneGeometry, CanvasTexture, RepeatWrapping, SRGBColorSpace, MeshPhysicalMaterial, Color, Vector2, MeshStandardMaterial, ShadowMaterial, MeshToonMaterial, MeshBasicMaterial, MeshLambertMaterial, MeshPhongMaterial, DoubleSide, BackSide, FrontSide, SrcAlphaSaturateFactor, OneMinusDstColorFactor, DstColorFactor, OneMinusDstAlphaFactor, DstAlphaFactor, OneMinusSrcAlphaFactor, SrcAlphaFactor, OneMinusSrcColorFactor, SrcColorFactor, OneFactor, ZeroFactor, MaxEquation, MinEquation, ReverseSubtractEquation, SubtractEquation, AddEquation, MultiplyBlending, SubtractiveBlending, AdditiveBlending, NormalBlending, NoBlending, Line, Vector3, Matrix4, InstancedMesh, Quaternion as Quaternion$1, Mesh, InstancedBufferAttribute, CircleGeometry, Box3, Object3D, Line3, Plane, Triangle, TrianglesDrawMode, TriangleFanDrawMode, TriangleStripDrawMode, Loader, FileLoader, Matrix3, Box2, ShapeUtils, Shape, Path, ShapePath, ShapeGeometry, Euler, LoaderUtils, LinearSRGBColorSpace, SpotLight, PointLight, DirectionalLight, TextureLoader, ImageBitmapLoader, InterleavedBuffer, InterleavedBufferAttribute, LinearMipmapLinearFilter, NearestMipmapLinearFilter, LinearMipmapNearestFilter, NearestMipmapNearestFilter, LinearFilter, NearestFilter, MirroredRepeatWrapping, ClampToEdgeWrapping, PointsMaterial, Material, PropertyBinding, SkinnedMesh, LineLoop, Points, Group, PerspectiveCamera, MathUtils, OrthographicCamera, Skeleton, AnimationClip, Bone, InterpolateDiscrete, InterpolateLinear, Texture, VectorKeyframeTrack, NumberKeyframeTrack, QuaternionKeyframeTrack, ColorManagement, Interpolant, Sphere, Vector4, Curve, EquirectangularReflectionMapping, AmbientLight, Uint16BufferAttribute, DataTextureLoader, HalfFloatType, FloatType, DataUtils, RGBAFormat, RGFormat, RedFormat, DataTexture, UVMapping, LinearMipMapLinearFilter, RGBA_S3TC_DXT1_Format, RGB_PVRTC_4BPPV1_Format, RGB_ETC2_Format, RGB_ETC1_Format, RGBA_S3TC_DXT5_Format, RGBA_PVRTC_4BPPV1_Format, RGBA_ETC2_EAC_Format, RGBA_BPTC_Format, RGB_BPTC_UNSIGNED_Format, RGBA_ASTC_4x4_Format, UnsignedByteType, CompressedCubeTexture, CompressedArrayTexture, CompressedTexture, NoColorSpace, RGBA_PVRTC_2BPPV1_Format, RED_GREEN_RGTC2_Format, SIGNED_RED_GREEN_RGTC2_Format, RED_RGTC1_Format, SIGNED_RED_RGTC1_Format, RGBA_S3TC_DXT3_Format, RGB_S3TC_DXT1_Format, RGBA_ASTC_6x6_Format, RGBFormat, UnsignedInt101111Type, UnsignedInt5999Type, Data3DTexture, LoadingManager, AnimationMixer, ObjectSpaceNormalMap, CustomBlending, SkeletonHelper, AnimationUtils, AdditiveAnimationBlendMode, NormalAnimationBlendMode, Raycaster, PMREMGenerator, Scene, WebGLCubeRenderTarget, CubeCamera, IcosahedronGeometry, ShaderMaterial, NoToneMapping, AxesHelper, InstancedBufferGeometry, InstancedInterleavedBuffer, DynamicDrawUsage } from 'three';
+import { LineSegments, BufferGeometry, BufferAttribute, Float32BufferAttribute, LineBasicMaterial, BoxGeometry, Vector3, Matrix4, CylinderGeometry, CircleGeometry, PlaneGeometry, SphereGeometry, Box3, Vector2, CanvasTexture, RepeatWrapping, SRGBColorSpace, MeshPhysicalMaterial, Color, MeshStandardMaterial, ShadowMaterial, MeshToonMaterial, MeshBasicMaterial, MeshLambertMaterial, MeshPhongMaterial, DoubleSide, BackSide, FrontSide, SrcAlphaSaturateFactor, OneMinusDstColorFactor, DstColorFactor, OneMinusDstAlphaFactor, DstAlphaFactor, OneMinusSrcAlphaFactor, SrcAlphaFactor, OneMinusSrcColorFactor, SrcColorFactor, OneFactor, ZeroFactor, MaxEquation, MinEquation, ReverseSubtractEquation, SubtractEquation, AddEquation, MultiplyBlending, SubtractiveBlending, AdditiveBlending, NormalBlending, NoBlending, Line, InstancedMesh, Quaternion as Quaternion$1, Mesh, InstancedBufferAttribute, Object3D, Line3, Plane, Triangle, TrianglesDrawMode, TriangleFanDrawMode, TriangleStripDrawMode, Loader, FileLoader, Matrix3, Box2, ShapeUtils, Shape, Path, ShapePath, ShapeGeometry, Euler, LoaderUtils, LinearSRGBColorSpace, SpotLight, PointLight, DirectionalLight, TextureLoader, ImageBitmapLoader, InterleavedBuffer, InterleavedBufferAttribute, LinearMipmapLinearFilter, NearestMipmapLinearFilter, LinearMipmapNearestFilter, NearestMipmapNearestFilter, LinearFilter, NearestFilter, MirroredRepeatWrapping, ClampToEdgeWrapping, PointsMaterial, Material, PropertyBinding, SkinnedMesh, LineLoop, Points, Group, PerspectiveCamera, MathUtils, OrthographicCamera, Skeleton, AnimationClip, Bone, InterpolateDiscrete, InterpolateLinear, Texture, VectorKeyframeTrack, NumberKeyframeTrack, QuaternionKeyframeTrack, ColorManagement, Interpolant, Sphere, Vector4, Curve, EquirectangularReflectionMapping, AmbientLight, Uint16BufferAttribute, DataTextureLoader, HalfFloatType, FloatType, DataUtils, RGBAFormat, RGFormat, RedFormat, DataTexture, UVMapping, LinearMipMapLinearFilter, RGBA_S3TC_DXT1_Format, RGB_PVRTC_4BPPV1_Format, RGB_ETC2_Format, RGB_ETC1_Format, RGBA_S3TC_DXT5_Format, RGBA_PVRTC_4BPPV1_Format, RGBA_ETC2_EAC_Format, RGBA_BPTC_Format, RGB_BPTC_UNSIGNED_Format, RGBA_ASTC_4x4_Format, UnsignedByteType, CompressedCubeTexture, CompressedArrayTexture, CompressedTexture, NoColorSpace, RGBA_PVRTC_2BPPV1_Format, RED_GREEN_RGTC2_Format, SIGNED_RED_GREEN_RGTC2_Format, RED_RGTC1_Format, SIGNED_RED_RGTC1_Format, RGBA_S3TC_DXT3_Format, RGB_S3TC_DXT1_Format, RGBA_ASTC_6x6_Format, RGBFormat, UnsignedInt101111Type, UnsignedInt5999Type, Data3DTexture, LoadingManager, AnimationMixer, ObjectSpaceNormalMap, CustomBlending, SkeletonHelper, AnimationUtils, AdditiveAnimationBlendMode, NormalAnimationBlendMode, Raycaster, PMREMGenerator, Scene, WebGLCubeRenderTarget, CubeCamera, IcosahedronGeometry, ShaderMaterial, NoToneMapping, AxesHelper, InstancedBufferGeometry, InstancedInterleavedBuffer, DynamicDrawUsage } from 'three';
 
 const PI = Math.PI;
 const torad$3 = PI / 180;
@@ -1433,6 +1433,1450 @@ class CircleHelper extends LineSegments {
 
 }
 
+/**
+ * Merges a set of geometries into a single instance. All geometries must have compatible attributes.
+ *
+ * @param {Array<BufferGeometry>} geometries - The geometries to merge.
+ * @param {boolean} [useGroups=false] - Whether to use groups or not.
+ * @return {?BufferGeometry} The merged geometry. Returns `null` if the merge does not succeed.
+ */
+function mergeGeometries$1( geometries, useGroups = false ) {
+
+	const isIndexed = geometries[ 0 ].index !== null;
+
+	const attributesUsed = new Set( Object.keys( geometries[ 0 ].attributes ) );
+	const morphAttributesUsed = new Set( Object.keys( geometries[ 0 ].morphAttributes ) );
+
+	const attributes = {};
+	const morphAttributes = {};
+
+	const morphTargetsRelative = geometries[ 0 ].morphTargetsRelative;
+
+	const mergedGeometry = new BufferGeometry();
+
+	let offset = 0;
+
+	for ( let i = 0; i < geometries.length; ++ i ) {
+
+		const geometry = geometries[ i ];
+		let attributesCount = 0;
+
+		// ensure that all geometries are indexed, or none
+
+		if ( isIndexed !== ( geometry.index !== null ) ) {
+
+			console.error( 'THREE.BufferGeometryUtils: .mergeGeometries() failed with geometry at index ' + i + '. All geometries must have compatible attributes; make sure index attribute exists among all geometries, or in none of them.' );
+			return null;
+
+		}
+
+		// gather attributes, exit early if they're different
+
+		for ( const name in geometry.attributes ) {
+
+			if ( ! attributesUsed.has( name ) ) {
+
+				console.error( 'THREE.BufferGeometryUtils: .mergeGeometries() failed with geometry at index ' + i + '. All geometries must have compatible attributes; make sure "' + name + '" attribute exists among all geometries, or in none of them.' );
+				return null;
+
+			}
+
+			if ( attributes[ name ] === undefined ) attributes[ name ] = [];
+
+			attributes[ name ].push( geometry.attributes[ name ] );
+
+			attributesCount ++;
+
+		}
+
+		// ensure geometries have the same number of attributes
+
+		if ( attributesCount !== attributesUsed.size ) {
+
+			console.error( 'THREE.BufferGeometryUtils: .mergeGeometries() failed with geometry at index ' + i + '. Make sure all geometries have the same number of attributes.' );
+			return null;
+
+		}
+
+		// gather morph attributes, exit early if they're different
+
+		if ( morphTargetsRelative !== geometry.morphTargetsRelative ) {
+
+			console.error( 'THREE.BufferGeometryUtils: .mergeGeometries() failed with geometry at index ' + i + '. .morphTargetsRelative must be consistent throughout all geometries.' );
+			return null;
+
+		}
+
+		for ( const name in geometry.morphAttributes ) {
+
+			if ( ! morphAttributesUsed.has( name ) ) {
+
+				console.error( 'THREE.BufferGeometryUtils: .mergeGeometries() failed with geometry at index ' + i + '.  .morphAttributes must be consistent throughout all geometries.' );
+				return null;
+
+			}
+
+			if ( morphAttributes[ name ] === undefined ) morphAttributes[ name ] = [];
+
+			morphAttributes[ name ].push( geometry.morphAttributes[ name ] );
+
+		}
+
+		if ( useGroups ) {
+
+			let count;
+
+			if ( isIndexed ) {
+
+				count = geometry.index.count;
+
+			} else if ( geometry.attributes.position !== undefined ) {
+
+				count = geometry.attributes.position.count;
+
+			} else {
+
+				console.error( 'THREE.BufferGeometryUtils: .mergeGeometries() failed with geometry at index ' + i + '. The geometry must have either an index or a position attribute' );
+				return null;
+
+			}
+
+			mergedGeometry.addGroup( offset, count, i );
+
+			offset += count;
+
+		}
+
+	}
+
+	// merge indices
+
+	if ( isIndexed ) {
+
+		let indexOffset = 0;
+		const mergedIndex = [];
+
+		for ( let i = 0; i < geometries.length; ++ i ) {
+
+			const index = geometries[ i ].index;
+
+			for ( let j = 0; j < index.count; ++ j ) {
+
+				mergedIndex.push( index.getX( j ) + indexOffset );
+
+			}
+
+			indexOffset += geometries[ i ].attributes.position.count;
+
+		}
+
+		mergedGeometry.setIndex( mergedIndex );
+
+	}
+
+	// merge attributes
+
+	for ( const name in attributes ) {
+
+		const mergedAttribute = mergeAttributes$1( attributes[ name ] );
+
+		if ( ! mergedAttribute ) {
+
+			console.error( 'THREE.BufferGeometryUtils: .mergeGeometries() failed while trying to merge the ' + name + ' attribute.' );
+			return null;
+
+		}
+
+		mergedGeometry.setAttribute( name, mergedAttribute );
+
+	}
+
+	// merge morph attributes
+
+	for ( const name in morphAttributes ) {
+
+		const numMorphTargets = morphAttributes[ name ][ 0 ].length;
+
+		if ( numMorphTargets === 0 ) break;
+
+		mergedGeometry.morphAttributes = mergedGeometry.morphAttributes || {};
+		mergedGeometry.morphAttributes[ name ] = [];
+
+		for ( let i = 0; i < numMorphTargets; ++ i ) {
+
+			const morphAttributesToMerge = [];
+
+			for ( let j = 0; j < morphAttributes[ name ].length; ++ j ) {
+
+				morphAttributesToMerge.push( morphAttributes[ name ][ j ][ i ] );
+
+			}
+
+			const mergedMorphAttribute = mergeAttributes$1( morphAttributesToMerge );
+
+			if ( ! mergedMorphAttribute ) {
+
+				console.error( 'THREE.BufferGeometryUtils: .mergeGeometries() failed while trying to merge the ' + name + ' morphAttribute.' );
+				return null;
+
+			}
+
+			mergedGeometry.morphAttributes[ name ].push( mergedMorphAttribute );
+
+		}
+
+	}
+
+	return mergedGeometry;
+
+}
+
+/**
+ * Merges a set of attributes into a single instance. All attributes must have compatible properties and types.
+ * Instances of {@link InterleavedBufferAttribute} are not supported.
+ *
+ * @param {Array<BufferAttribute>} attributes - The attributes to merge.
+ * @return {?BufferAttribute} The merged attribute. Returns `null` if the merge does not succeed.
+ */
+function mergeAttributes$1( attributes ) {
+
+	let TypedArray;
+	let itemSize;
+	let normalized;
+	let gpuType = -1;
+	let arrayLength = 0;
+
+	for ( let i = 0; i < attributes.length; ++ i ) {
+
+		const attribute = attributes[ i ];
+
+		if ( TypedArray === undefined ) TypedArray = attribute.array.constructor;
+		if ( TypedArray !== attribute.array.constructor ) {
+
+			console.error( 'THREE.BufferGeometryUtils: .mergeAttributes() failed. BufferAttribute.array must be of consistent array types across matching attributes.' );
+			return null;
+
+		}
+
+		if ( itemSize === undefined ) itemSize = attribute.itemSize;
+		if ( itemSize !== attribute.itemSize ) {
+
+			console.error( 'THREE.BufferGeometryUtils: .mergeAttributes() failed. BufferAttribute.itemSize must be consistent across matching attributes.' );
+			return null;
+
+		}
+
+		if ( normalized === undefined ) normalized = attribute.normalized;
+		if ( normalized !== attribute.normalized ) {
+
+			console.error( 'THREE.BufferGeometryUtils: .mergeAttributes() failed. BufferAttribute.normalized must be consistent across matching attributes.' );
+			return null;
+
+		}
+
+		if ( gpuType === -1 ) gpuType = attribute.gpuType;
+		if ( gpuType !== attribute.gpuType ) {
+
+			console.error( 'THREE.BufferGeometryUtils: .mergeAttributes() failed. BufferAttribute.gpuType must be consistent across matching attributes.' );
+			return null;
+
+		}
+
+		arrayLength += attribute.count * itemSize;
+
+	}
+
+	const array = new TypedArray( arrayLength );
+	const result = new BufferAttribute( array, itemSize, normalized );
+	let offset = 0;
+
+	for ( let i = 0; i < attributes.length; ++ i ) {
+
+		const attribute = attributes[ i ];
+		if ( attribute.isInterleavedBufferAttribute ) {
+
+			const tupleOffset = offset / itemSize;
+			for ( let j = 0, l = attribute.count; j < l; j ++ ) {
+
+				for ( let c = 0; c < itemSize; c ++ ) {
+
+					const value = attribute.getComponent( j, c );
+					result.setComponent( j + tupleOffset, c, value );
+
+				}
+
+			}
+
+		} else {
+
+			array.set( attribute.array, offset );
+
+		}
+
+		offset += attribute.count * itemSize;
+
+	}
+
+	if ( gpuType !== undefined ) {
+
+		result.gpuType = gpuType;
+
+	}
+
+	return result;
+
+}
+
+/**
+ * Returns a new geometry with vertices for which all similar vertex attributes (within tolerance) are merged.
+ *
+ * @param {BufferGeometry} geometry - The geometry to merge vertices for.
+ * @param {number} [tolerance=1e-4] - The tolerance value.
+ * @return {BufferGeometry} - The new geometry with merged vertices.
+ */
+function mergeVertices$1( geometry, tolerance = 1e-4 ) {
+
+	tolerance = Math.max( tolerance, Number.EPSILON );
+
+	// Generate an index buffer if the geometry doesn't have one, or optimize it
+	// if it's already available.
+	const hashToIndex = {};
+	const indices = geometry.getIndex();
+	const positions = geometry.getAttribute( 'position' );
+	const vertexCount = indices ? indices.count : positions.count;
+
+	// next value for triangle indices
+	let nextIndex = 0;
+
+	// attributes and new attribute arrays
+	const attributeNames = Object.keys( geometry.attributes );
+	const tmpAttributes = {};
+	const tmpMorphAttributes = {};
+	const newIndices = [];
+	const getters = [ 'getX', 'getY', 'getZ', 'getW' ];
+	const setters = [ 'setX', 'setY', 'setZ', 'setW' ];
+
+	// Initialize the arrays, allocating space conservatively. Extra
+	// space will be trimmed in the last step.
+	for ( let i = 0, l = attributeNames.length; i < l; i ++ ) {
+
+		const name = attributeNames[ i ];
+		const attr = geometry.attributes[ name ];
+
+		tmpAttributes[ name ] = new attr.constructor(
+			new attr.array.constructor( attr.count * attr.itemSize ),
+			attr.itemSize,
+			attr.normalized
+		);
+
+		const morphAttributes = geometry.morphAttributes[ name ];
+		if ( morphAttributes ) {
+
+			if ( ! tmpMorphAttributes[ name ] ) tmpMorphAttributes[ name ] = [];
+			morphAttributes.forEach( ( morphAttr, i ) => {
+
+				const array = new morphAttr.array.constructor( morphAttr.count * morphAttr.itemSize );
+				tmpMorphAttributes[ name ][ i ] = new morphAttr.constructor( array, morphAttr.itemSize, morphAttr.normalized );
+
+			} );
+
+		}
+
+	}
+
+	// convert the error tolerance to an amount of decimal places to truncate to
+	const halfTolerance = tolerance * 0.5;
+	const exponent = Math.log10( 1 / tolerance );
+	const hashMultiplier = Math.pow( 10, exponent );
+	const hashAdditive = halfTolerance * hashMultiplier;
+	for ( let i = 0; i < vertexCount; i ++ ) {
+
+		const index = indices ? indices.getX( i ) : i;
+
+		// Generate a hash for the vertex attributes at the current index 'i'
+		let hash = '';
+		for ( let j = 0, l = attributeNames.length; j < l; j ++ ) {
+
+			const name = attributeNames[ j ];
+			const attribute = geometry.getAttribute( name );
+			const itemSize = attribute.itemSize;
+
+			for ( let k = 0; k < itemSize; k ++ ) {
+
+				// double tilde truncates the decimal value
+				hash += `${ ~ ~ ( attribute[ getters[ k ] ]( index ) * hashMultiplier + hashAdditive ) },`;
+
+			}
+
+		}
+
+		// Add another reference to the vertex if it's already
+		// used by another index
+		if ( hash in hashToIndex ) {
+
+			newIndices.push( hashToIndex[ hash ] );
+
+		} else {
+
+			// copy data to the new index in the temporary attributes
+			for ( let j = 0, l = attributeNames.length; j < l; j ++ ) {
+
+				const name = attributeNames[ j ];
+				const attribute = geometry.getAttribute( name );
+				const morphAttributes = geometry.morphAttributes[ name ];
+				const itemSize = attribute.itemSize;
+				const newArray = tmpAttributes[ name ];
+				const newMorphArrays = tmpMorphAttributes[ name ];
+
+				for ( let k = 0; k < itemSize; k ++ ) {
+
+					const getterFunc = getters[ k ];
+					const setterFunc = setters[ k ];
+					newArray[ setterFunc ]( nextIndex, attribute[ getterFunc ]( index ) );
+
+					if ( morphAttributes ) {
+
+						for ( let m = 0, ml = morphAttributes.length; m < ml; m ++ ) {
+
+							newMorphArrays[ m ][ setterFunc ]( nextIndex, morphAttributes[ m ][ getterFunc ]( index ) );
+
+						}
+
+					}
+
+				}
+
+			}
+
+			hashToIndex[ hash ] = nextIndex;
+			newIndices.push( nextIndex );
+			nextIndex ++;
+
+		}
+
+	}
+
+	// generate result BufferGeometry
+	const result = geometry.clone();
+	for ( const name in geometry.attributes ) {
+
+		const tmpAttribute = tmpAttributes[ name ];
+
+		result.setAttribute( name, new tmpAttribute.constructor(
+			tmpAttribute.array.slice( 0, nextIndex * tmpAttribute.itemSize ),
+			tmpAttribute.itemSize,
+			tmpAttribute.normalized,
+		) );
+
+		if ( ! ( name in tmpMorphAttributes ) ) continue;
+
+		for ( let j = 0; j < tmpMorphAttributes[ name ].length; j ++ ) {
+
+			const tmpMorphAttribute = tmpMorphAttributes[ name ][ j ];
+
+			result.morphAttributes[ name ][ j ] = new tmpMorphAttribute.constructor(
+				tmpMorphAttribute.array.slice( 0, nextIndex * tmpMorphAttribute.itemSize ),
+				tmpMorphAttribute.itemSize,
+				tmpMorphAttribute.normalized,
+			);
+
+		}
+
+	}
+
+	// indices
+
+	result.setIndex( newIndices );
+
+	return result;
+
+}
+
+/**
+* SPHERE BOX GEOMETRY
+*/
+class SphereBox extends BufferGeometry {
+
+    constructor( radius=1, widthSegs=16, heightSegs=16, depthSegs=16, roundness=1 ) {
+    //constructor( radius=1, widthSegs=2, heightSegs=2, depthSegs=2, roundness=1 ) {
+
+        super();
+
+        this.type = 'SphereBox';
+        this.name = 'SphereBox_' + radius +'_'+widthSegs+'_'+heightSegs+'_'+depthSegs+'_'+roundness;
+
+        radius = radius || 1;
+
+        // segments
+
+        widthSegs = Math.floor( widthSegs );
+        heightSegs = Math.floor( heightSegs );
+        depthSegs = Math.floor( depthSegs );        
+        let g = new BoxGeometry( 1,1,1, widthSegs, heightSegs, depthSegs ), v = new Vector3(), r = new Vector3(), n;
+
+        
+
+        //;
+
+        //g = mergeVertices( g );
+
+        //createUV( g, 'box' );
+
+        let posCount = g.attributes.position.count;
+        let ar = g.attributes.position.array;
+        let nm = g.attributes.normal.array;
+
+        
+
+        // uv for each face
+        let uv = g.attributes.uv.array;
+        let uvCount = g.attributes.uv.count;
+        let nn, faceid;
+        let fc = uvCount/6;
+        let dx = 1/3;
+        let dy = 1/2;
+        let fx = 0;
+        let fy = 0;
+
+        for ( let i = 0; i < uvCount; i ++ ) {
+
+            faceid = Math.floor(i/fc);
+            switch(faceid){
+                case 0 : fx = 0; fy = dy; break;
+                case 5 : fx = dx; fy = dy; break;
+
+                case 1 : fx = dx*2; fy = dy; break;
+                case 4 : fx = 0; fy = 1; break;
+
+                case 3 : fx = dx; fy = 1; break;
+                case 2 : fx = dx*2; fy = 1; break;
+            }
+
+            nn = i*2;
+            uv[nn] *= dx;
+            uv[nn] += fx;
+            uv[nn+1] *= -0.5;
+            uv[nn+1] += fy;
+
+            // remove white border
+            //if(faceid===4 && uv[nn]>dx-0.01)uv[nn] -= 0.005
+            //if(faceid===4 && uv[nn]>dx-0.0005)uv[nn] -= 0.0005
+
+            if(uv[nn] > 1.0) uv[nn] = 1.0; 
+            if(uv[nn] < 0.0) uv[nn] = 0.0;  
+
+            if(uv[nn+1] > 1.0) uv[nn+1] = 1.0; 
+            if(uv[nn+1] < 0.0) uv[nn+1] = 0.0;
+
+        }
+
+        for ( let i = 0; i < posCount; i ++ ) {
+
+            n = i*3;
+            v.set( ar[n], ar[n+1], ar[n+2] );
+            r.copy( v ).normalize();
+
+            v.lerp( r, roundness ).multiplyScalar( radius );
+
+            ar[n] = v.x;
+            ar[n+1] = v.y;
+            ar[n+2] = v.z;
+
+            v.normalize();
+
+            nm[n] = v.x;
+            nm[n+1] = v.y;
+            nm[n+2] = v.z;
+            
+        }
+
+        //g = mergeVertices( g );
+
+        //g.computeVertexNormals()
+        g.computeTangents();
+
+        //console.log(g)
+
+        //g.normalizeNormals()
+
+        //g = toCreasedNormals(g)
+
+
+
+        this.copy(g);
+
+    }
+}
+
+/**
+* CAPSULE GEOMETRY
+*/
+class Capsule extends BufferGeometry {
+
+    constructor( radius = 1, height = 1, radialSegs = 12, heightSegs = 1 ) {
+
+        super();
+
+    	this.type = 'CapsuleGeometry';
+        //this.name = 'Capsule_' + radius +'_'+height+'_'+radialSegs+'_'+heightSegs;
+
+        let pi = Math.PI;
+
+        let th = (radius*2) + height;
+        let sy = radius / th;
+        let hy = 1 - (2*sy);
+
+        radialSegs = Math.floor( radialSegs );
+        heightSegs = Math.floor( heightSegs );
+
+        let sHeight = Math.floor( radialSegs * 0.5 );
+        let o0 = Math.PI * 2;
+        let o1 = Math.PI * 0.5;
+        let m0 = new CylinderGeometry( radius, radius, height, radialSegs, heightSegs, true );
+        //let m0 = new CylinderGeometryFix2( radius, radius, height, radialSegs, heightSegs, true );
+        //let m0 = new CylinderGeometry( radius, radius, height, radialSegs, heightSegs, true );
+        scaleUV$1( m0, 0, sy, 1, hy );
+        let m1 = new SphereGeometry( radius, radialSegs, sHeight, 0, o0, 0, o1);
+        scaleUV$1( m1, 0, 1-sy, 1, sy );
+        let m2 = new SphereGeometry( radius, radialSegs, sHeight, 0, o0, o1, o1);
+        scaleUV$1( m2, 0, 0, 1, sy );
+        let mtx0 = new Matrix4().makeRotationY( -pi*0.5 );
+        let mtx1 = new Matrix4().makeTranslation(0, height*0.5,0);
+        let mtx2 = new Matrix4().makeTranslation(0, -height*0.5,0);
+        m0.applyMatrix4( mtx0 );
+        m1.applyMatrix4( mtx1 );
+        m2.applyMatrix4( mtx2 );
+
+
+        let g = mergeVertices$1( mergeGeometries$1( [ m0, m1, m2] ) );
+        this.copy( g );
+
+        /*m0.dispose()
+        m1.dispose()
+        m2.dispose()
+        g.dispose()*/
+
+    }
+}
+
+
+/**
+* TORUS EXTRA GEOMETRY
+*/
+class TorusGeometryFix extends BufferGeometry {
+
+    constructor( radius = 1, tube = 0.4, radialSegments = 8, tubularSegments = 6, arc= Math.PI * 2, thetaStart=0, thetaLength=Math.PI ) {
+
+        super();
+
+        this.type = 'TorusGeometryFix';
+
+        this.parameters = {
+            radius: radius,
+            tube: tube,
+            radialSegments: radialSegments,
+            tubularSegments: tubularSegments,
+            arc: arc
+        };
+
+        radialSegments = Math.floor( radialSegments );
+        tubularSegments = Math.floor( tubularSegments );
+
+        // buffers
+
+        const indices = [];
+        const vertices = [];
+        const normals = [];
+        const uvs = [];
+
+        // helper variables
+
+        const center = new Vector3();
+        const vertex = new Vector3();
+        const normal = new Vector3();
+
+        let j, i;
+
+        // generate vertices, normals and uvs
+
+        for ( j = 0; j <= radialSegments; j ++ ) {
+
+            for ( i = 0; i <= tubularSegments; i ++ ) {
+
+                const u = i / tubularSegments * arc;
+                //const v = j / radialSegments * Math.PI * 2;
+
+                const v = (j / radialSegments) * thetaLength + thetaStart;
+
+                // vertex
+
+                vertex.x = ( radius + tube * Math.cos( v ) ) * Math.cos( u );
+                vertex.y = ( radius + tube * Math.cos( v ) ) * Math.sin( u );
+                vertex.z = tube * Math.sin( v );
+
+                vertices.push( vertex.x, vertex.y, vertex.z );
+
+                // normal
+
+                center.x = radius * Math.cos( u );
+                center.y = radius * Math.sin( u );
+                normal.subVectors( vertex, center ).normalize();
+
+                normals.push( normal.x, normal.y, normal.z );
+
+                // uv
+
+                uvs.push( i / tubularSegments );
+                uvs.push( j / radialSegments );
+
+            }
+
+        }
+
+        // generate indices
+
+        for ( j = 1; j <= radialSegments; j ++ ) {
+
+            for ( i = 1; i <= tubularSegments; i ++ ) {
+
+                // indices
+
+                const a = ( tubularSegments + 1 ) * j + i - 1;
+                const b = ( tubularSegments + 1 ) * ( j - 1 ) + i - 1;
+                const c = ( tubularSegments + 1 ) * ( j - 1 ) + i;
+                const d = ( tubularSegments + 1 ) * j + i;
+
+                // faces
+
+                indices.push( a, b, d );
+                indices.push( b, c, d );
+
+            }
+
+        }
+
+        // build geometry
+
+        this.setIndex( indices );
+        this.setAttribute( 'position', new Float32BufferAttribute( vertices, 3 ) );
+        this.setAttribute( 'normal', new Float32BufferAttribute( normals, 3 ) );
+        this.setAttribute( 'uv', new Float32BufferAttribute( uvs, 2 ) );
+
+    }
+}
+
+
+/**
+* CHAMFER CYLINDRE GEOMETRY
+*/
+class ChamferCyl extends BufferGeometry {
+
+    constructor( radiusTop = 1, radiusBottom = 1, height = 1, filet =0.01, radialSegs = 12, heightSegs = 1, filetSegs = 2 ) {
+
+        super();
+
+        this.type = 'ChamferCyl';
+        //this.name = 'ChamferCyl_' + radiusTop +'_'+radiusBottom+'_'+height+'_'+filet+'_'+radialSegs+'_'+heightSegs+'_'+filetSegs;
+
+        radialSegs = Math.floor( radialSegs );
+        heightSegs = Math.floor( heightSegs );
+        filetSegs = Math.floor( filetSegs );
+
+        let mr = new Matrix4();
+        let mt = new Matrix4();
+
+        let pi = Math.PI;
+        let p90 = pi * 0.5;
+        let twoPi = pi * 2;
+
+        let start = 0;//(twoPi / radialSegs)*(3/radialSegs)//;
+
+        let th = height;
+        let sy = filet / th;
+        let hy = 1 - (2*sy);
+        //console.log(start)
+
+        //let mid = new CylinderGeometryFix( radiusBottom, radiusTop, height-(filet*2), radialSegs, heightSegs, true, start );
+        let mid = new CylinderGeometry( radiusTop, radiusBottom, height-(filet*2), radialSegs, heightSegs, true, start );
+        mr.makeRotationY( p90 );
+        mid.applyMatrix4( mr );
+
+        scaleUV$1( mid, 0, sy, 1, hy );
+
+        // top
+        let c1 = new TorusGeometryFix( radiusTop-filet, filet, filetSegs, radialSegs, twoPi, 0, p90 );
+        let c2 = new CircleGeometry( radiusTop-filet, radialSegs );
+
+        mt.makeTranslation( 0,0, filet );
+        c2.applyMatrix4( mt );
+
+        scaleUV$1( c1, 0, 1-sy, 1, sy );
+
+        let top = mergeGeometries$1( [ c1, c2 ] );
+
+        mr.makeTranslation( 0,0,( (height*0.5) - filet) );
+        mt.makeRotationX( -p90 );
+
+        top.applyMatrix4( mt.multiply(mr) );
+
+        /*c1.dispose();
+        c2.dispose();*/
+
+        // bottom
+        c1 = new TorusGeometryFix( radiusBottom-filet, filet, filetSegs, radialSegs, twoPi, 0, p90 );
+        c2 = new CircleGeometry( radiusBottom-filet, radialSegs );
+
+        mt.makeTranslation( 0,0, filet );
+        c2.applyMatrix4( mt );
+
+        scaleUV$1( c1, 0, 1-sy, 1, sy, true );
+
+        let low = mergeGeometries$1( [ c1, c2 ] );
+
+        mr.makeTranslation( 0,0,( (height*0.5) - filet) );
+        mt.makeRotationX( p90 );
+        low.applyMatrix4( mt.multiply(mr) );
+
+        /*c1.dispose();
+        c2.dispose();*/
+
+        let g = mergeVertices$1( mergeGeometries$1( [ top, mid, low ] ) );
+
+        /*mid.dispose();
+        top.dispose();
+        low.dispose();*/
+
+        this.copy(g);
+        //g.dispose();
+
+    }
+}
+
+//ChamferCyl.prototype = Object.create( THREE.BufferGeometry.prototype );
+
+/**
+* CHAMFER BOX GEOMETRY
+*/
+let ChamferBox$1 = class ChamferBox extends BufferGeometry {
+
+    constructor( width  = 1, height = 1, depth = 1, filet = 0.01, widthSegs = 1, heightSegs = 1, depthSegs = 1, filetSegs = 2 ) {
+
+        super();
+
+        this.type = 'ChamferBox';
+        //this.name = 'ChamferBox_' + width +'_'+height+'_'+depth+'_'+filet+'_'+widthSegs+'_'+heightSegs+'_'+depthSegs+'_'+filetSegs;
+
+        widthSegs = Math.floor( widthSegs );
+        heightSegs = Math.floor( heightSegs );
+        depthSegs = Math.floor( depthSegs );
+        filetSegs = Math.floor( filetSegs );
+
+        let pi = Math.PI;
+        let p90 = pi * 0.5;
+        let twoFilet = filet * 2;
+
+        let midWidth = width * 0.5;
+        let midHeight = height * 0.5;
+        let midDepth = depth * 0.5;
+
+        let mr = new Matrix4();
+        let mt = new Matrix4();
+        let mp = new Matrix4();
+
+        // uv calc
+
+        let tw = width;
+        let sw = filet / tw;
+        let vw = 1 - (2*sw);
+
+        let th = height;
+        let sh = filet / th;
+        let vh = 1 - (2*sw);
+
+        let td = depth;
+        let sd = filet / td;
+        let vd = 1 - (2*sd);
+
+        let f = new PlaneGeometry( width-twoFilet, height-twoFilet, widthSegs, heightSegs );
+        let c1 = new CylinderGeometry( filet, filet, width-twoFilet, filetSegs, widthSegs, true, 0, p90 );
+        let c2 = new CylinderGeometry( filet, filet, height-twoFilet, filetSegs, heightSegs, true, 0, p90 );
+        let s1 = new SphereGeometryFix$1( filet, filetSegs, filetSegs, 0, p90, 0, -p90 );
+        let s2 = new SphereGeometryFix$1( filet, filetSegs, filetSegs, 0, p90, 0, -p90 );
+
+        scaleUV$1( f, -sw, sh, vw, vh );
+        scaleUV$1( c1, 0, sw, sh, vw );
+       //scaleUV( c2, 0, -sw, vw, sw )
+
+        mt.makeTranslation( 0, midHeight - filet, 0 );
+        mr.makeRotationX( p90 );
+        s1.applyMatrix4( mt.multiply(mr) );
+
+        mt.makeTranslation( 0, -midHeight + filet, 0 );
+        mr.makeRotationX( p90 );
+        mp.makeRotationY( -p90 );
+        s2.applyMatrix4( mt.multiply(mr).multiply(mp) );
+
+        let tra = mergeGeometries$1( [ c2, s1, s2 ] );
+        let trc = tra.clone();
+
+        /*c2.dispose();
+        s1.dispose();
+        s2.dispose();*/
+        
+        mt.makeTranslation( midWidth - filet, 0, -filet );
+
+        tra.applyMatrix4( mt );
+
+        mt.makeTranslation( -midWidth + filet, 0, -filet );
+        mr.makeRotationZ( pi );
+
+        trc.applyMatrix4( mt.multiply(mr) );
+
+        // cylinder
+
+        let c3 = c1.clone();
+
+        mr.makeRotationZ( p90 );
+        mt.makeTranslation( 0, midHeight - filet, -filet );
+        c1.applyMatrix4( mt.multiply(mr) );
+        mt.makeTranslation( 0, -midHeight + filet, -filet );
+        mr.makeRotationZ( -p90 );
+        c3.applyMatrix4( mt.multiply(mr) );
+
+        let rf = mergeGeometries$1( [ c1, c3, f, tra, trc ] );
+        let rg = rf.clone();
+
+        mt.makeTranslation( 0, 0, midDepth );
+        rf.applyMatrix4( mt );
+
+        mt.makeTranslation( 0, 0, -midDepth );
+        mr.makeRotationY( pi );
+        rg.applyMatrix4( mt.multiply(mr) );
+
+        // side left
+
+        /*f.dispose();
+        c1.dispose();
+        c3.dispose();*/
+
+        f = new PlaneGeometry( depth-twoFilet, height-twoFilet, depthSegs, heightSegs );
+        c1 = new CylinderGeometry( filet, filet, depth-twoFilet, filetSegs, depthSegs, true, 0, p90 );
+        c3 = c1.clone();
+
+        scaleUV$1( f, -sd, sh, vd, vh );
+
+        mt.makeTranslation( 0, -(midHeight - filet), -filet, 0 );
+        mr.makeRotationZ( -p90 );
+
+        c1.applyMatrix4( mt.multiply(mr) );
+
+        mt.makeTranslation( 0, midHeight - filet, -filet, 0 );
+        mr.makeRotationZ( p90 );
+
+        c3.applyMatrix4( mt.multiply(mr) );
+
+
+        let rr = mergeGeometries$1( [ c1, c3, f ] );
+        let rb = rr.clone();
+
+        /*f.dispose();
+        c1.dispose();
+        c3.dispose()*/
+
+        mt.makeTranslation( -midWidth, 0, 0 );
+        mr.makeRotationY( -p90 );
+
+        rr.applyMatrix4( mt.multiply(mr) );
+
+        // side right
+
+        mt.makeTranslation( midWidth, 0, 0 );
+        mr.makeRotationY( p90 );
+
+        rb.applyMatrix4( mt.multiply(mr) );
+
+        // top
+        f = new PlaneGeometry( width-twoFilet, depth-twoFilet, widthSegs, depthSegs );
+        scaleUV$1( f, -sw, sd, vw, vd );
+        let f2 = f.clone();
+
+
+
+        mt.makeTranslation( 0, midHeight, 0);
+        mr.makeRotationX( -p90 );
+        f.applyMatrix4( mt.multiply(mr) );
+
+        // bottom
+        mt.makeTranslation( 0, -midHeight, 0);
+        mr.makeRotationX( p90 );
+        f2.applyMatrix4( mt.multiply(mr) );
+
+        let g = mergeVertices$1( mergeGeometries$1( [ rf, rg, rr, rb, f, f2 ] ) );
+
+        /*rf.dispose();
+        rg.dispose();
+        rr.dispose();
+        rb.dispose();
+        f2.dispose();
+        f.dispose();*/
+        //g.computeVertexNormals()
+        //g = g.toNonIndexed()
+        //
+
+        createUV$1(g, 'box');
+
+        this.copy(g);
+        /*g.dispose();*/
+
+    }
+};
+
+let SphereGeometryFix$1 = class SphereGeometryFix extends BufferGeometry {
+
+    constructor( radius = 1, widthSegments = 8, heightSegments = 6, phiStart = 0, phiLength = Math.PI * 2, thetaStart = 0, thetaLength = Math.PI ) {
+
+        super();
+
+        this.type = 'SphereGeometryFix';
+
+        this.parameters = {
+            radius: radius,
+            widthSegments: widthSegments,
+            heightSegments: heightSegments,
+            phiStart: phiStart,
+            phiLength: phiLength,
+            thetaStart: thetaStart,
+            thetaLength: thetaLength
+        };
+
+        widthSegments =  Math.floor( widthSegments );
+        heightSegments =  Math.floor( heightSegments );
+
+        const thetaEnd = Math.min( thetaStart + thetaLength, Math.PI );
+
+        let index = 0;
+        const grid = [];
+
+        const vertex = new Vector3();
+        const normal = new Vector3();
+
+        // buffers
+
+        const indices = [];
+        const vertices = [];
+        const normals = [];
+        const uvs = [];
+
+        // generate vertices, normals and uvs
+
+        for ( let iy = 0; iy <= heightSegments; iy ++ ) {
+
+            const verticesRow = [];
+
+            const v = iy / heightSegments;
+
+            // special case for the poles
+
+            let uOffset = 0;
+
+            if ( iy == 0 && thetaStart == 0 ) {
+
+                uOffset = 0.5 / widthSegments;
+
+            } else if ( iy == heightSegments && thetaEnd == Math.PI ) {
+
+                uOffset = -0.5 / widthSegments;
+
+            }
+
+            for ( let ix = 0; ix <= widthSegments; ix ++ ) {
+
+                const u = ix / widthSegments;
+
+                // vertex
+
+                vertex.x = - radius * Math.cos( phiStart + u * phiLength ) * Math.sin( thetaStart + v * thetaLength );
+                vertex.y = radius * Math.cos( thetaStart + v * thetaLength );
+                vertex.z = radius * Math.sin( phiStart + u * phiLength ) * Math.sin( thetaStart + v * thetaLength );
+
+                vertices.push( vertex.x, vertex.y, vertex.z );
+
+                // normal
+
+                normal.copy( vertex ).normalize();
+                normals.push( normal.x, normal.y, normal.z );
+
+                // uv
+
+                uvs.push( u + uOffset, 1 - v );
+
+                verticesRow.push( index ++ );
+
+            }
+
+            grid.push( verticesRow );
+
+        }
+
+        // indices
+
+        for ( let iy = 0; iy < heightSegments; iy ++ ) {
+
+            for ( let ix = 0; ix < widthSegments; ix ++ ) {
+
+                const a = grid[ iy ][ ix + 1 ];
+                const b = grid[ iy ][ ix ];
+                const c = grid[ iy + 1 ][ ix ];
+                const d = grid[ iy + 1 ][ ix + 1 ];
+
+                if ( iy !== 0 || thetaStart > 0 ) indices.push( a, b, d );
+                if ( iy !== heightSegments - 1 || thetaEnd < Math.PI ) indices.push( b, c, d );
+
+            }
+
+        }
+
+        // build geometry
+
+        this.setIndex( indices );
+        this.setAttribute( 'position', new Float32BufferAttribute( vertices, 3 ) );
+        this.setAttribute( 'normal', new Float32BufferAttribute( normals, 3 ) );
+        this.setAttribute( 'uv', new Float32BufferAttribute( uvs, 2 ) );
+
+    }
+
+};
+
+// { SphereGeometryFix };
+
+
+// UV 
+
+function scaleUV$1( geometry, x=0, y=0, dx=1, dy=1, reverse ) {
+
+    let uv = geometry.attributes.uv;
+    let ar = uv.array;
+    let i = uv.count, n =0;
+
+    while( i-- ){
+        n=i*2;
+        ar[n] = (ar[n]*dx)-x;
+        ar[n+1] = (ar[n+1]*dy)+y;
+
+        if(reverse){
+            ar[n] = 1 - ar[n];
+            ar[n+1] = 1 - ar[n+1];
+        }
+    }
+
+
+}
+
+function createUV$1( geometry, type = 'sphere', boxSize, pos = [0,0,0], quat = [0,0,0,1], transformMatrix ) {
+
+    //type = type || 'sphere';
+
+    if ( transformMatrix === undefined ) transformMatrix = new Matrix4();
+    transformMatrix.compose( {x:pos[0], y:pos[1], z:pos[2] }, { _x:quat[0], _y:quat[1], _z:quat[2], _w:quat[3] }, {x:1, y:1, z:1 });
+
+
+
+    if ( boxSize === undefined ) {
+        if( !geometry.boundingBox ) geometry.computeBoundingBox();
+        let bbox = geometry.boundingBox;
+        boxSize = Math.max( bbox.max.x - bbox.min.x, bbox.max.y - bbox.min.y, bbox.max.z - bbox.min.z );
+    }
+
+    //.expandByScalar(0.9);//new THREE.Box3( new THREE.Vector3(-boxSize / 2, -boxSize / 2, -boxSize / 2), new THREE.Vector3(boxSize / 2, boxSize / 2, boxSize / 2));
+    //_applyBoxUV( bufferGeometry, transformMatrix, uvBbox, boxSize );
+
+    let uvBbox = new Box3(new Vector3(-boxSize / 2, -boxSize / 2, -boxSize / 2), new Vector3(boxSize / 2, boxSize / 2, boxSize / 2));
+    //let uvBbox = new Box3(new Vector3(-(boxSize / 2)/3, -(boxSize / 2)/3, -(boxSize / 2)/3), new Vector3((boxSize / 2)/3, (boxSize / 2)/3, (boxSize / 2)/3));
+    //let uvBbox = bbox
+    
+
+
+    let coords = [];
+    //coords.length = 2 * geometry.attributes.position.array.length / 3;
+    coords.length = 2 * geometry.attributes.position.count;
+
+    //if ( geometry.attributes.uv === undefined ) geometry.addAttribute('uv', new Float32BufferAttribute(coords, 2));
+    if ( geometry.attributes.uv === undefined ) geometry.setAttribute('uv', new Float32BufferAttribute(coords, 2));
+    
+    let makeSphereUVs = function( v0, v1, v2 ) {
+
+        //pre-rotate the model so that cube sides match world axis
+        v0.applyMatrix4(transformMatrix);
+        v1.applyMatrix4(transformMatrix);
+        v2.applyMatrix4(transformMatrix);
+
+        let invTwoPi = 1 / (2.0 * Math.PI);
+        let invPi = 1 / Math.PI;
+
+        v0.normalize();
+        v1.normalize();
+        v2.normalize();
+
+        return {
+            uv0: new Vector2( .5 - Math.atan( v0.z, - v0.x ) * invTwoPi, .5 - Math.asin( v0.y ) * invPi ),
+            uv1: new Vector2( .5 - Math.atan( v1.z, - v1.x ) * invTwoPi, .5 - Math.asin( v1.y ) * invPi ),
+            uv2: new Vector2( .5 - Math.atan( v2.z, - v2.x ) * invTwoPi, .5 - Math.asin( v2.y ) * invPi ),
+        };
+
+    };
+
+
+  
+    //maps 3 verts of 1 face on the better side of the cube
+    //side of the cube can be XY, XZ or YZ
+    let makeCubeUVs = function( v0, v1, v2 ) {
+
+        //pre-rotate the model so that cube sides match world axis
+        v0.applyMatrix4(transformMatrix);
+        v1.applyMatrix4(transformMatrix);
+        v2.applyMatrix4(transformMatrix);
+
+        //get normal of the face, to know into which cube side it maps better
+        let n = new Vector3();
+        n.crossVectors( v1.clone().sub(v0), v1.clone().sub(v2) ).normalize();
+        if(n.x<0 || n.y<0 || n.z<0) ;
+
+        n.x = Math.abs(n.x);
+        n.y = Math.abs(n.y);
+        n.z = Math.abs(n.z);
+
+        let uv0 = new Vector2();
+        let uv1 = new Vector2();
+        let uv2 = new Vector2();
+        let max = 1/boxSize;
+
+        
+        // xz mapping
+        if ( n.y > n.x && n.y > n.z ) {
+
+            uv0.set( v0.x - uvBbox.min.x, uvBbox.max.z - v0.z ).multiplyScalar( max );
+            uv1.set( v1.x - uvBbox.min.x, uvBbox.max.z - v1.z ).multiplyScalar( max );
+            uv2.set( v2.x - uvBbox.min.x, uvBbox.max.z - v2.z ).multiplyScalar( max );
+
+        } else if ( n.x > n.y && n.x > n.z ) {
+
+            uv0.set( v0.z - uvBbox.min.z, v0.y - uvBbox.min.y ).multiplyScalar( max );
+            uv1.set( v1.z - uvBbox.min.z, v1.y - uvBbox.min.y ).multiplyScalar( max );
+            uv2.set( v2.z - uvBbox.min.z, v2.y - uvBbox.min.y ).multiplyScalar( max );
+
+        } else if ( n.z > n.y && n.z > n.x ) {
+
+            uv0.set( v0.x - uvBbox.min.x, v0.y - uvBbox.min.y ).multiplyScalar( max );
+            uv1.set( v1.x - uvBbox.min.x, v1.y - uvBbox.min.y ).multiplyScalar( max );
+            uv2.set( v2.x - uvBbox.min.x, v2.y - uvBbox.min.y ).multiplyScalar( max );
+
+        }
+
+        return { uv0: uv0, uv1: uv1, uv2: uv2 } 
+    };
+
+
+
+    let i, id0, id1, id2, uvs;
+    let v0 = new Vector3();
+    let v1 = new Vector3();
+    let v2 = new Vector3();
+
+    new Vector3();
+    new Vector3();
+    new Vector3();
+
+    const positionAttribute = geometry.getAttribute( 'position' );
+    geometry.getAttribute( 'normal' );
+
+    if ( geometry.index ) { // is it indexed buffer geometry
+
+        for (i = 0; i < geometry.index.count; i+=3 ) {
+
+            //console.log('is index')
+
+            //n = i*3;
+            id0 = geometry.index.getX( i + 0 );
+            id1 = geometry.index.getX( i + 1 );
+            id2 = geometry.index.getX( i + 2 );
+
+            v0.fromBufferAttribute( positionAttribute, id0 );
+            v1.fromBufferAttribute( positionAttribute, id1 );
+            v2.fromBufferAttribute( positionAttribute, id2 );
+
+            /*nn0.fromBufferAttribute( normalAttribute, id0 );
+            nn1.fromBufferAttribute( normalAttribute, id1 );
+            nn2.fromBufferAttribute( normalAttribute, id2 )*/
+
+
+
+            if( type === 'sphere' ) uvs = makeSphereUVs( v0, v1, v2 );
+            else uvs = makeCubeUVs( v0, v1, v2);
+
+            coords[2 * id0] = uvs.uv0.x;
+            coords[2 * id0 + 1] = uvs.uv0.y;
+
+            coords[2 * id1] = uvs.uv1.x;
+            coords[2 * id1 + 1] = uvs.uv1.y;
+
+            coords[2 * id2] = uvs.uv2.x;
+            coords[2 * id2 + 1] = uvs.uv2.y;
+        }
+    } else {
+
+        for ( i = 0; i < positionAttribute.count; i += 3) {
+
+            v0.fromBufferAttribute( positionAttribute, i + 0 );
+            v1.fromBufferAttribute( positionAttribute, i + 1 );
+            v2.fromBufferAttribute( positionAttribute, i + 2 );
+
+            if( type === 'sphere' ) uvs = makeSphereUVs( v0, v1, v2 );
+            else uvs = makeCubeUVs( v0, v1, v2 );
+
+            let idx0 = i;//vi / 3;
+            let idx1 = i+1;//idx0 + 1;
+            let idx2 = i+2;//idx0 + 2;
+
+            coords[2 * idx0] = uvs.uv0.x;
+            coords[2 * idx0 + 1] = uvs.uv0.y;
+
+            coords[2 * idx1] = uvs.uv1.x;
+            coords[2 * idx1 + 1] = uvs.uv1.y;
+
+            coords[2 * idx2] = uvs.uv2.x;
+            coords[2 * idx2 + 1] = uvs.uv2.y;
+        }
+
+    }
+
+    geometry.attributes.uv.array = new Float32Array( coords );
+    geometry.attributes.uv.needsUpdate = true;
+
+}
+
+
+/*
+export function calcNormal( normals, normal, angle ){
+
+    let allowed = normals.filter( n => n.angleTo( normal ) < angle * Math.PI / 180 );
+    return allowed.reduce( (a, b) => a.clone().add( b ) ).normalize();
+
+}
+
+export function computeVertexNormals(geometry, angle){
+
+    geometry.computeFaceNormals();
+    
+    var vertices = geometry.vertices.map( () => [] ); // vertices with normals array
+
+    geometry.faces.map( face => {
+        vertices[ face.a ].push( face.normal );
+        vertices[ face.b ].push( face.normal );
+        vertices[ face.c ].push( face.normal );
+    });
+
+    geometry.faces.map( face => {
+        face.vertexNormals[ 0 ] = calcNormal( vertices[ face.a ], face.normal, angle );
+        face.vertexNormals[ 1 ] = calcNormal( vertices[ face.b ], face.normal, angle );
+        face.vertexNormals[ 2 ] = calcNormal( vertices[ face.c ], face.normal, angle );
+    });
+
+    if ( geometry.faces.length > 0 ) geometry.normalsNeedUpdate = true;
+
+}*/
+
+/*
+
+BufferGeometry.prototype.computeMorphFaceNormals = function () {
+
+        var i, il, f, fl, face;
+
+        // save original normals
+        // - create temp variables on first access
+        //   otherwise just copy (for faster repeated calls)
+
+        for ( f = 0, fl = this.faces.length; f < fl; f ++ ) {
+
+            face = this.faces[ f ];
+
+            if ( ! face.__originalFaceNormal ) {
+
+                face.__originalFaceNormal = face.normal.clone();
+
+            } else {
+
+                face.__originalFaceNormal.copy( face.normal );
+
+            }
+
+        }
+
+        // use temp geometry to compute face normals for each morph
+
+        var tmpGeo = new THREE.Geometry();
+        tmpGeo.faces = this.faces;
+
+        for ( i = 0, il = this.morphTargets.length; i < il; i ++ ) {
+
+            // create on first access
+
+            if ( ! this.morphNormals[ i ] ) {
+
+                this.morphNormals[ i ] = {};
+                this.morphNormals[ i ].faceNormals = [];
+
+                var dstNormalsFace = this.morphNormals[ i ].faceNormals;
+
+                var faceNormal;
+
+                for ( f = 0, fl = this.faces.length; f < fl; f ++ ) {
+
+                    faceNormal = new Vector3();
+
+                    dstNormalsFace.push( faceNormal );
+
+                }
+
+            }
+
+            var morphNormals = this.morphNormals[ i ];
+
+            // set vertices to morph target
+
+            tmpGeo.vertices = this.morphTargets[ i ].vertices;
+
+            // compute morph normals
+
+            tmpGeo.computeFaceNormals();
+
+            // store morph normals
+
+            var faceNormal;
+
+            for ( f = 0, fl = this.faces.length; f < fl; f ++ ) {
+
+                face = this.faces[ f ];
+
+                faceNormal = morphNormals.faceNormals[ f ];
+
+                faceNormal.copy( face.normal );
+            }
+
+        }
+
+        // restore original normals
+
+        for ( f = 0, fl = this.faces.length; f < fl; f ++ ) {
+
+            face = this.faces[ f ];
+
+            face.normal = face.__originalFaceNormal;
+
+        }
+
+    }
+    */
+
 //-------------------
 //
 //  GEOMETRY POOL
@@ -1468,6 +2912,7 @@ let Geo$1 = class Geo {
 				case 'plane':    g = new PlaneGeometry(1,1); g.rotateX( -Math.PI * 0.5 ); break
 				case 'box':      g = new BoxGeometry(1,1,1); break
 				case 'sphere':   g = new SphereGeometry( 1, 16, 12 ); break
+				case 'highSphere': g = new SphereBox( 1 ); break
 				case 'cylinder': g = new CylinderGeometry( 1, 1, 1 , 16 ); break
 				//case 'wheel':    g = new CylinderGeometry( 1, 1, 1 , 16 ); g.rotateX( -Math.PI * 0.5 ); break
 				case 'cone':     g = new CylinderGeometry( 0.001, 1, 1 , 16 ); break
@@ -3459,1383 +4904,6 @@ class Quaternion {
 
 	}
 }
-
-/**
- * Merges a set of geometries into a single instance. All geometries must have compatible attributes.
- *
- * @param {Array<BufferGeometry>} geometries - The geometries to merge.
- * @param {boolean} [useGroups=false] - Whether to use groups or not.
- * @return {?BufferGeometry} The merged geometry. Returns `null` if the merge does not succeed.
- */
-function mergeGeometries$1( geometries, useGroups = false ) {
-
-	const isIndexed = geometries[ 0 ].index !== null;
-
-	const attributesUsed = new Set( Object.keys( geometries[ 0 ].attributes ) );
-	const morphAttributesUsed = new Set( Object.keys( geometries[ 0 ].morphAttributes ) );
-
-	const attributes = {};
-	const morphAttributes = {};
-
-	const morphTargetsRelative = geometries[ 0 ].morphTargetsRelative;
-
-	const mergedGeometry = new BufferGeometry();
-
-	let offset = 0;
-
-	for ( let i = 0; i < geometries.length; ++ i ) {
-
-		const geometry = geometries[ i ];
-		let attributesCount = 0;
-
-		// ensure that all geometries are indexed, or none
-
-		if ( isIndexed !== ( geometry.index !== null ) ) {
-
-			console.error( 'THREE.BufferGeometryUtils: .mergeGeometries() failed with geometry at index ' + i + '. All geometries must have compatible attributes; make sure index attribute exists among all geometries, or in none of them.' );
-			return null;
-
-		}
-
-		// gather attributes, exit early if they're different
-
-		for ( const name in geometry.attributes ) {
-
-			if ( ! attributesUsed.has( name ) ) {
-
-				console.error( 'THREE.BufferGeometryUtils: .mergeGeometries() failed with geometry at index ' + i + '. All geometries must have compatible attributes; make sure "' + name + '" attribute exists among all geometries, or in none of them.' );
-				return null;
-
-			}
-
-			if ( attributes[ name ] === undefined ) attributes[ name ] = [];
-
-			attributes[ name ].push( geometry.attributes[ name ] );
-
-			attributesCount ++;
-
-		}
-
-		// ensure geometries have the same number of attributes
-
-		if ( attributesCount !== attributesUsed.size ) {
-
-			console.error( 'THREE.BufferGeometryUtils: .mergeGeometries() failed with geometry at index ' + i + '. Make sure all geometries have the same number of attributes.' );
-			return null;
-
-		}
-
-		// gather morph attributes, exit early if they're different
-
-		if ( morphTargetsRelative !== geometry.morphTargetsRelative ) {
-
-			console.error( 'THREE.BufferGeometryUtils: .mergeGeometries() failed with geometry at index ' + i + '. .morphTargetsRelative must be consistent throughout all geometries.' );
-			return null;
-
-		}
-
-		for ( const name in geometry.morphAttributes ) {
-
-			if ( ! morphAttributesUsed.has( name ) ) {
-
-				console.error( 'THREE.BufferGeometryUtils: .mergeGeometries() failed with geometry at index ' + i + '.  .morphAttributes must be consistent throughout all geometries.' );
-				return null;
-
-			}
-
-			if ( morphAttributes[ name ] === undefined ) morphAttributes[ name ] = [];
-
-			morphAttributes[ name ].push( geometry.morphAttributes[ name ] );
-
-		}
-
-		if ( useGroups ) {
-
-			let count;
-
-			if ( isIndexed ) {
-
-				count = geometry.index.count;
-
-			} else if ( geometry.attributes.position !== undefined ) {
-
-				count = geometry.attributes.position.count;
-
-			} else {
-
-				console.error( 'THREE.BufferGeometryUtils: .mergeGeometries() failed with geometry at index ' + i + '. The geometry must have either an index or a position attribute' );
-				return null;
-
-			}
-
-			mergedGeometry.addGroup( offset, count, i );
-
-			offset += count;
-
-		}
-
-	}
-
-	// merge indices
-
-	if ( isIndexed ) {
-
-		let indexOffset = 0;
-		const mergedIndex = [];
-
-		for ( let i = 0; i < geometries.length; ++ i ) {
-
-			const index = geometries[ i ].index;
-
-			for ( let j = 0; j < index.count; ++ j ) {
-
-				mergedIndex.push( index.getX( j ) + indexOffset );
-
-			}
-
-			indexOffset += geometries[ i ].attributes.position.count;
-
-		}
-
-		mergedGeometry.setIndex( mergedIndex );
-
-	}
-
-	// merge attributes
-
-	for ( const name in attributes ) {
-
-		const mergedAttribute = mergeAttributes$1( attributes[ name ] );
-
-		if ( ! mergedAttribute ) {
-
-			console.error( 'THREE.BufferGeometryUtils: .mergeGeometries() failed while trying to merge the ' + name + ' attribute.' );
-			return null;
-
-		}
-
-		mergedGeometry.setAttribute( name, mergedAttribute );
-
-	}
-
-	// merge morph attributes
-
-	for ( const name in morphAttributes ) {
-
-		const numMorphTargets = morphAttributes[ name ][ 0 ].length;
-
-		if ( numMorphTargets === 0 ) break;
-
-		mergedGeometry.morphAttributes = mergedGeometry.morphAttributes || {};
-		mergedGeometry.morphAttributes[ name ] = [];
-
-		for ( let i = 0; i < numMorphTargets; ++ i ) {
-
-			const morphAttributesToMerge = [];
-
-			for ( let j = 0; j < morphAttributes[ name ].length; ++ j ) {
-
-				morphAttributesToMerge.push( morphAttributes[ name ][ j ][ i ] );
-
-			}
-
-			const mergedMorphAttribute = mergeAttributes$1( morphAttributesToMerge );
-
-			if ( ! mergedMorphAttribute ) {
-
-				console.error( 'THREE.BufferGeometryUtils: .mergeGeometries() failed while trying to merge the ' + name + ' morphAttribute.' );
-				return null;
-
-			}
-
-			mergedGeometry.morphAttributes[ name ].push( mergedMorphAttribute );
-
-		}
-
-	}
-
-	return mergedGeometry;
-
-}
-
-/**
- * Merges a set of attributes into a single instance. All attributes must have compatible properties and types.
- * Instances of {@link InterleavedBufferAttribute} are not supported.
- *
- * @param {Array<BufferAttribute>} attributes - The attributes to merge.
- * @return {?BufferAttribute} The merged attribute. Returns `null` if the merge does not succeed.
- */
-function mergeAttributes$1( attributes ) {
-
-	let TypedArray;
-	let itemSize;
-	let normalized;
-	let gpuType = -1;
-	let arrayLength = 0;
-
-	for ( let i = 0; i < attributes.length; ++ i ) {
-
-		const attribute = attributes[ i ];
-
-		if ( TypedArray === undefined ) TypedArray = attribute.array.constructor;
-		if ( TypedArray !== attribute.array.constructor ) {
-
-			console.error( 'THREE.BufferGeometryUtils: .mergeAttributes() failed. BufferAttribute.array must be of consistent array types across matching attributes.' );
-			return null;
-
-		}
-
-		if ( itemSize === undefined ) itemSize = attribute.itemSize;
-		if ( itemSize !== attribute.itemSize ) {
-
-			console.error( 'THREE.BufferGeometryUtils: .mergeAttributes() failed. BufferAttribute.itemSize must be consistent across matching attributes.' );
-			return null;
-
-		}
-
-		if ( normalized === undefined ) normalized = attribute.normalized;
-		if ( normalized !== attribute.normalized ) {
-
-			console.error( 'THREE.BufferGeometryUtils: .mergeAttributes() failed. BufferAttribute.normalized must be consistent across matching attributes.' );
-			return null;
-
-		}
-
-		if ( gpuType === -1 ) gpuType = attribute.gpuType;
-		if ( gpuType !== attribute.gpuType ) {
-
-			console.error( 'THREE.BufferGeometryUtils: .mergeAttributes() failed. BufferAttribute.gpuType must be consistent across matching attributes.' );
-			return null;
-
-		}
-
-		arrayLength += attribute.count * itemSize;
-
-	}
-
-	const array = new TypedArray( arrayLength );
-	const result = new BufferAttribute( array, itemSize, normalized );
-	let offset = 0;
-
-	for ( let i = 0; i < attributes.length; ++ i ) {
-
-		const attribute = attributes[ i ];
-		if ( attribute.isInterleavedBufferAttribute ) {
-
-			const tupleOffset = offset / itemSize;
-			for ( let j = 0, l = attribute.count; j < l; j ++ ) {
-
-				for ( let c = 0; c < itemSize; c ++ ) {
-
-					const value = attribute.getComponent( j, c );
-					result.setComponent( j + tupleOffset, c, value );
-
-				}
-
-			}
-
-		} else {
-
-			array.set( attribute.array, offset );
-
-		}
-
-		offset += attribute.count * itemSize;
-
-	}
-
-	if ( gpuType !== undefined ) {
-
-		result.gpuType = gpuType;
-
-	}
-
-	return result;
-
-}
-
-/**
- * Returns a new geometry with vertices for which all similar vertex attributes (within tolerance) are merged.
- *
- * @param {BufferGeometry} geometry - The geometry to merge vertices for.
- * @param {number} [tolerance=1e-4] - The tolerance value.
- * @return {BufferGeometry} - The new geometry with merged vertices.
- */
-function mergeVertices$1( geometry, tolerance = 1e-4 ) {
-
-	tolerance = Math.max( tolerance, Number.EPSILON );
-
-	// Generate an index buffer if the geometry doesn't have one, or optimize it
-	// if it's already available.
-	const hashToIndex = {};
-	const indices = geometry.getIndex();
-	const positions = geometry.getAttribute( 'position' );
-	const vertexCount = indices ? indices.count : positions.count;
-
-	// next value for triangle indices
-	let nextIndex = 0;
-
-	// attributes and new attribute arrays
-	const attributeNames = Object.keys( geometry.attributes );
-	const tmpAttributes = {};
-	const tmpMorphAttributes = {};
-	const newIndices = [];
-	const getters = [ 'getX', 'getY', 'getZ', 'getW' ];
-	const setters = [ 'setX', 'setY', 'setZ', 'setW' ];
-
-	// Initialize the arrays, allocating space conservatively. Extra
-	// space will be trimmed in the last step.
-	for ( let i = 0, l = attributeNames.length; i < l; i ++ ) {
-
-		const name = attributeNames[ i ];
-		const attr = geometry.attributes[ name ];
-
-		tmpAttributes[ name ] = new attr.constructor(
-			new attr.array.constructor( attr.count * attr.itemSize ),
-			attr.itemSize,
-			attr.normalized
-		);
-
-		const morphAttributes = geometry.morphAttributes[ name ];
-		if ( morphAttributes ) {
-
-			if ( ! tmpMorphAttributes[ name ] ) tmpMorphAttributes[ name ] = [];
-			morphAttributes.forEach( ( morphAttr, i ) => {
-
-				const array = new morphAttr.array.constructor( morphAttr.count * morphAttr.itemSize );
-				tmpMorphAttributes[ name ][ i ] = new morphAttr.constructor( array, morphAttr.itemSize, morphAttr.normalized );
-
-			} );
-
-		}
-
-	}
-
-	// convert the error tolerance to an amount of decimal places to truncate to
-	const halfTolerance = tolerance * 0.5;
-	const exponent = Math.log10( 1 / tolerance );
-	const hashMultiplier = Math.pow( 10, exponent );
-	const hashAdditive = halfTolerance * hashMultiplier;
-	for ( let i = 0; i < vertexCount; i ++ ) {
-
-		const index = indices ? indices.getX( i ) : i;
-
-		// Generate a hash for the vertex attributes at the current index 'i'
-		let hash = '';
-		for ( let j = 0, l = attributeNames.length; j < l; j ++ ) {
-
-			const name = attributeNames[ j ];
-			const attribute = geometry.getAttribute( name );
-			const itemSize = attribute.itemSize;
-
-			for ( let k = 0; k < itemSize; k ++ ) {
-
-				// double tilde truncates the decimal value
-				hash += `${ ~ ~ ( attribute[ getters[ k ] ]( index ) * hashMultiplier + hashAdditive ) },`;
-
-			}
-
-		}
-
-		// Add another reference to the vertex if it's already
-		// used by another index
-		if ( hash in hashToIndex ) {
-
-			newIndices.push( hashToIndex[ hash ] );
-
-		} else {
-
-			// copy data to the new index in the temporary attributes
-			for ( let j = 0, l = attributeNames.length; j < l; j ++ ) {
-
-				const name = attributeNames[ j ];
-				const attribute = geometry.getAttribute( name );
-				const morphAttributes = geometry.morphAttributes[ name ];
-				const itemSize = attribute.itemSize;
-				const newArray = tmpAttributes[ name ];
-				const newMorphArrays = tmpMorphAttributes[ name ];
-
-				for ( let k = 0; k < itemSize; k ++ ) {
-
-					const getterFunc = getters[ k ];
-					const setterFunc = setters[ k ];
-					newArray[ setterFunc ]( nextIndex, attribute[ getterFunc ]( index ) );
-
-					if ( morphAttributes ) {
-
-						for ( let m = 0, ml = morphAttributes.length; m < ml; m ++ ) {
-
-							newMorphArrays[ m ][ setterFunc ]( nextIndex, morphAttributes[ m ][ getterFunc ]( index ) );
-
-						}
-
-					}
-
-				}
-
-			}
-
-			hashToIndex[ hash ] = nextIndex;
-			newIndices.push( nextIndex );
-			nextIndex ++;
-
-		}
-
-	}
-
-	// generate result BufferGeometry
-	const result = geometry.clone();
-	for ( const name in geometry.attributes ) {
-
-		const tmpAttribute = tmpAttributes[ name ];
-
-		result.setAttribute( name, new tmpAttribute.constructor(
-			tmpAttribute.array.slice( 0, nextIndex * tmpAttribute.itemSize ),
-			tmpAttribute.itemSize,
-			tmpAttribute.normalized,
-		) );
-
-		if ( ! ( name in tmpMorphAttributes ) ) continue;
-
-		for ( let j = 0; j < tmpMorphAttributes[ name ].length; j ++ ) {
-
-			const tmpMorphAttribute = tmpMorphAttributes[ name ][ j ];
-
-			result.morphAttributes[ name ][ j ] = new tmpMorphAttribute.constructor(
-				tmpMorphAttribute.array.slice( 0, nextIndex * tmpMorphAttribute.itemSize ),
-				tmpMorphAttribute.itemSize,
-				tmpMorphAttribute.normalized,
-			);
-
-		}
-
-	}
-
-	// indices
-
-	result.setIndex( newIndices );
-
-	return result;
-
-}
-
-/**
-* SPHERE BOX GEOMETRY
-*/
-class SphereBox extends BufferGeometry {
-
-    constructor( radius=1, widthSegs=10, heightSegs=10, depthSegs=10, roundness=1 ) {
-
-        super();
-
-        this.type = 'SphereBox';
-        this.name = 'SphereBox_' + radius +'_'+widthSegs+'_'+heightSegs+'_'+depthSegs+'_'+roundness;
-
-        radius = radius || 1;
-
-        // segments
-
-        widthSegs = Math.floor( widthSegs );
-        heightSegs = Math.floor( heightSegs );
-        depthSegs = Math.floor( depthSegs );        
-        let g = new BoxGeometry( 1,1,1, widthSegs, heightSegs, depthSegs ), v = new Vector3(), r = new Vector3(), n;
-
-        let ar = g.attributes.position.array;
-        let nm = g.attributes.normal.array;
-
-        for ( let i = 0, l = g.attributes.position.count; i < l; i ++ ) {
-
-            n = i*3;
-            v.set( ar[n], ar[n+1], ar[n+2] );
-            r.copy( v ).normalize();
-
-            v.lerp( r, roundness ).multiplyScalar( radius );
-
-            ar[n] = v.x;
-            ar[n+1] = v.y;
-            ar[n+2] = v.z;
-
-            v.normalize();
-
-            nm[n] = v.x;
-            nm[n+1] = v.y;
-            nm[n+2] = v.z;
-            
-        }
-
-        this.copy(g);
-
-    }
-}
-
-/**
-* CAPSULE GEOMETRY
-*/
-class Capsule extends BufferGeometry {
-
-    constructor( radius = 1, height = 1, radialSegs = 12, heightSegs = 1 ) {
-
-        super();
-
-    	this.type = 'CapsuleGeometry';
-        //this.name = 'Capsule_' + radius +'_'+height+'_'+radialSegs+'_'+heightSegs;
-
-        let pi = Math.PI;
-
-        let th = (radius*2) + height;
-        let sy = radius / th;
-        let hy = 1 - (2*sy);
-
-        radialSegs = Math.floor( radialSegs );
-        heightSegs = Math.floor( heightSegs );
-
-        let sHeight = Math.floor( radialSegs * 0.5 );
-        let o0 = Math.PI * 2;
-        let o1 = Math.PI * 0.5;
-        let m0 = new CylinderGeometry( radius, radius, height, radialSegs, heightSegs, true );
-        //let m0 = new CylinderGeometryFix2( radius, radius, height, radialSegs, heightSegs, true );
-        //let m0 = new CylinderGeometry( radius, radius, height, radialSegs, heightSegs, true );
-        scaleUV$1( m0, 0, sy, 1, hy );
-        let m1 = new SphereGeometry( radius, radialSegs, sHeight, 0, o0, 0, o1);
-        scaleUV$1( m1, 0, 1-sy, 1, sy );
-        let m2 = new SphereGeometry( radius, radialSegs, sHeight, 0, o0, o1, o1);
-        scaleUV$1( m2, 0, 0, 1, sy );
-        let mtx0 = new Matrix4().makeRotationY( -pi*0.5 );
-        let mtx1 = new Matrix4().makeTranslation(0, height*0.5,0);
-        let mtx2 = new Matrix4().makeTranslation(0, -height*0.5,0);
-        m0.applyMatrix4( mtx0 );
-        m1.applyMatrix4( mtx1 );
-        m2.applyMatrix4( mtx2 );
-
-
-        let g = mergeVertices$1( mergeGeometries$1( [ m0, m1, m2] ) );
-        this.copy( g );
-
-        /*m0.dispose()
-        m1.dispose()
-        m2.dispose()
-        g.dispose()*/
-
-    }
-}
-
-
-/**
-* TORUS EXTRA GEOMETRY
-*/
-class TorusGeometryFix extends BufferGeometry {
-
-    constructor( radius = 1, tube = 0.4, radialSegments = 8, tubularSegments = 6, arc= Math.PI * 2, thetaStart=0, thetaLength=Math.PI ) {
-
-        super();
-
-        this.type = 'TorusGeometryFix';
-
-        this.parameters = {
-            radius: radius,
-            tube: tube,
-            radialSegments: radialSegments,
-            tubularSegments: tubularSegments,
-            arc: arc
-        };
-
-        radialSegments = Math.floor( radialSegments );
-        tubularSegments = Math.floor( tubularSegments );
-
-        // buffers
-
-        const indices = [];
-        const vertices = [];
-        const normals = [];
-        const uvs = [];
-
-        // helper variables
-
-        const center = new Vector3();
-        const vertex = new Vector3();
-        const normal = new Vector3();
-
-        let j, i;
-
-        // generate vertices, normals and uvs
-
-        for ( j = 0; j <= radialSegments; j ++ ) {
-
-            for ( i = 0; i <= tubularSegments; i ++ ) {
-
-                const u = i / tubularSegments * arc;
-                //const v = j / radialSegments * Math.PI * 2;
-
-                const v = (j / radialSegments) * thetaLength + thetaStart;
-
-                // vertex
-
-                vertex.x = ( radius + tube * Math.cos( v ) ) * Math.cos( u );
-                vertex.y = ( radius + tube * Math.cos( v ) ) * Math.sin( u );
-                vertex.z = tube * Math.sin( v );
-
-                vertices.push( vertex.x, vertex.y, vertex.z );
-
-                // normal
-
-                center.x = radius * Math.cos( u );
-                center.y = radius * Math.sin( u );
-                normal.subVectors( vertex, center ).normalize();
-
-                normals.push( normal.x, normal.y, normal.z );
-
-                // uv
-
-                uvs.push( i / tubularSegments );
-                uvs.push( j / radialSegments );
-
-            }
-
-        }
-
-        // generate indices
-
-        for ( j = 1; j <= radialSegments; j ++ ) {
-
-            for ( i = 1; i <= tubularSegments; i ++ ) {
-
-                // indices
-
-                const a = ( tubularSegments + 1 ) * j + i - 1;
-                const b = ( tubularSegments + 1 ) * ( j - 1 ) + i - 1;
-                const c = ( tubularSegments + 1 ) * ( j - 1 ) + i;
-                const d = ( tubularSegments + 1 ) * j + i;
-
-                // faces
-
-                indices.push( a, b, d );
-                indices.push( b, c, d );
-
-            }
-
-        }
-
-        // build geometry
-
-        this.setIndex( indices );
-        this.setAttribute( 'position', new Float32BufferAttribute( vertices, 3 ) );
-        this.setAttribute( 'normal', new Float32BufferAttribute( normals, 3 ) );
-        this.setAttribute( 'uv', new Float32BufferAttribute( uvs, 2 ) );
-
-    }
-}
-
-
-/**
-* CHAMFER CYLINDRE GEOMETRY
-*/
-class ChamferCyl extends BufferGeometry {
-
-    constructor( radiusTop = 1, radiusBottom = 1, height = 1, filet =0.01, radialSegs = 12, heightSegs = 1, filetSegs = 2 ) {
-
-        super();
-
-        this.type = 'ChamferCyl';
-        //this.name = 'ChamferCyl_' + radiusTop +'_'+radiusBottom+'_'+height+'_'+filet+'_'+radialSegs+'_'+heightSegs+'_'+filetSegs;
-
-        radialSegs = Math.floor( radialSegs );
-        heightSegs = Math.floor( heightSegs );
-        filetSegs = Math.floor( filetSegs );
-
-        let mr = new Matrix4();
-        let mt = new Matrix4();
-
-        let pi = Math.PI;
-        let p90 = pi * 0.5;
-        let twoPi = pi * 2;
-
-        let start = 0;//(twoPi / radialSegs)*(3/radialSegs)//;
-
-        let th = height;
-        let sy = filet / th;
-        let hy = 1 - (2*sy);
-        //console.log(start)
-
-        //let mid = new CylinderGeometryFix( radiusBottom, radiusTop, height-(filet*2), radialSegs, heightSegs, true, start );
-        let mid = new CylinderGeometry( radiusTop, radiusBottom, height-(filet*2), radialSegs, heightSegs, true, start );
-        mr.makeRotationY( p90 );
-        mid.applyMatrix4( mr );
-
-        scaleUV$1( mid, 0, sy, 1, hy );
-
-        // top
-        let c1 = new TorusGeometryFix( radiusTop-filet, filet, filetSegs, radialSegs, twoPi, 0, p90 );
-        let c2 = new CircleGeometry( radiusTop-filet, radialSegs );
-
-        mt.makeTranslation( 0,0, filet );
-        c2.applyMatrix4( mt );
-
-        scaleUV$1( c1, 0, 1-sy, 1, sy );
-
-        let top = mergeGeometries$1( [ c1, c2 ] );
-
-        mr.makeTranslation( 0,0,( (height*0.5) - filet) );
-        mt.makeRotationX( -p90 );
-
-        top.applyMatrix4( mt.multiply(mr) );
-
-        /*c1.dispose();
-        c2.dispose();*/
-
-        // bottom
-        c1 = new TorusGeometryFix( radiusBottom-filet, filet, filetSegs, radialSegs, twoPi, 0, p90 );
-        c2 = new CircleGeometry( radiusBottom-filet, radialSegs );
-
-        mt.makeTranslation( 0,0, filet );
-        c2.applyMatrix4( mt );
-
-        scaleUV$1( c1, 0, 1-sy, 1, sy, true );
-
-        let low = mergeGeometries$1( [ c1, c2 ] );
-
-        mr.makeTranslation( 0,0,( (height*0.5) - filet) );
-        mt.makeRotationX( p90 );
-        low.applyMatrix4( mt.multiply(mr) );
-
-        /*c1.dispose();
-        c2.dispose();*/
-
-        let g = mergeVertices$1( mergeGeometries$1( [ top, mid, low ] ) );
-
-        /*mid.dispose();
-        top.dispose();
-        low.dispose();*/
-
-        this.copy(g);
-        //g.dispose();
-
-    }
-}
-
-//ChamferCyl.prototype = Object.create( THREE.BufferGeometry.prototype );
-
-/**
-* CHAMFER BOX GEOMETRY
-*/
-let ChamferBox$1 = class ChamferBox extends BufferGeometry {
-
-    constructor( width  = 1, height = 1, depth = 1, filet = 0.01, widthSegs = 1, heightSegs = 1, depthSegs = 1, filetSegs = 2 ) {
-
-        super();
-
-        this.type = 'ChamferBox';
-        //this.name = 'ChamferBox_' + width +'_'+height+'_'+depth+'_'+filet+'_'+widthSegs+'_'+heightSegs+'_'+depthSegs+'_'+filetSegs;
-
-        widthSegs = Math.floor( widthSegs );
-        heightSegs = Math.floor( heightSegs );
-        depthSegs = Math.floor( depthSegs );
-        filetSegs = Math.floor( filetSegs );
-
-        let pi = Math.PI;
-        let p90 = pi * 0.5;
-        let twoFilet = filet * 2;
-
-        let midWidth = width * 0.5;
-        let midHeight = height * 0.5;
-        let midDepth = depth * 0.5;
-
-        let mr = new Matrix4();
-        let mt = new Matrix4();
-        let mp = new Matrix4();
-
-        // uv calc
-
-        let tw = width;
-        let sw = filet / tw;
-        let vw = 1 - (2*sw);
-
-        let th = height;
-        let sh = filet / th;
-        let vh = 1 - (2*sw);
-
-        let td = depth;
-        let sd = filet / td;
-        let vd = 1 - (2*sd);
-
-        let f = new PlaneGeometry( width-twoFilet, height-twoFilet, widthSegs, heightSegs );
-        let c1 = new CylinderGeometry( filet, filet, width-twoFilet, filetSegs, widthSegs, true, 0, p90 );
-        let c2 = new CylinderGeometry( filet, filet, height-twoFilet, filetSegs, heightSegs, true, 0, p90 );
-        let s1 = new SphereGeometryFix$1( filet, filetSegs, filetSegs, 0, p90, 0, -p90 );
-        let s2 = new SphereGeometryFix$1( filet, filetSegs, filetSegs, 0, p90, 0, -p90 );
-
-        scaleUV$1( f, -sw, sh, vw, vh );
-        scaleUV$1( c1, 0, sw, sh, vw );
-       //scaleUV( c2, 0, -sw, vw, sw )
-
-        mt.makeTranslation( 0, midHeight - filet, 0 );
-        mr.makeRotationX( p90 );
-        s1.applyMatrix4( mt.multiply(mr) );
-
-        mt.makeTranslation( 0, -midHeight + filet, 0 );
-        mr.makeRotationX( p90 );
-        mp.makeRotationY( -p90 );
-        s2.applyMatrix4( mt.multiply(mr).multiply(mp) );
-
-        let tra = mergeGeometries$1( [ c2, s1, s2 ] );
-        let trc = tra.clone();
-
-        /*c2.dispose();
-        s1.dispose();
-        s2.dispose();*/
-        
-        mt.makeTranslation( midWidth - filet, 0, -filet );
-
-        tra.applyMatrix4( mt );
-
-        mt.makeTranslation( -midWidth + filet, 0, -filet );
-        mr.makeRotationZ( pi );
-
-        trc.applyMatrix4( mt.multiply(mr) );
-
-        // cylinder
-
-        let c3 = c1.clone();
-
-        mr.makeRotationZ( p90 );
-        mt.makeTranslation( 0, midHeight - filet, -filet );
-        c1.applyMatrix4( mt.multiply(mr) );
-        mt.makeTranslation( 0, -midHeight + filet, -filet );
-        mr.makeRotationZ( -p90 );
-        c3.applyMatrix4( mt.multiply(mr) );
-
-        let rf = mergeGeometries$1( [ c1, c3, f, tra, trc ] );
-        let rg = rf.clone();
-
-        mt.makeTranslation( 0, 0, midDepth );
-        rf.applyMatrix4( mt );
-
-        mt.makeTranslation( 0, 0, -midDepth );
-        mr.makeRotationY( pi );
-        rg.applyMatrix4( mt.multiply(mr) );
-
-        // side left
-
-        /*f.dispose();
-        c1.dispose();
-        c3.dispose();*/
-
-        f = new PlaneGeometry( depth-twoFilet, height-twoFilet, depthSegs, heightSegs );
-        c1 = new CylinderGeometry( filet, filet, depth-twoFilet, filetSegs, depthSegs, true, 0, p90 );
-        c3 = c1.clone();
-
-        scaleUV$1( f, -sd, sh, vd, vh );
-
-        mt.makeTranslation( 0, -(midHeight - filet), -filet, 0 );
-        mr.makeRotationZ( -p90 );
-
-        c1.applyMatrix4( mt.multiply(mr) );
-
-        mt.makeTranslation( 0, midHeight - filet, -filet, 0 );
-        mr.makeRotationZ( p90 );
-
-        c3.applyMatrix4( mt.multiply(mr) );
-
-
-        let rr = mergeGeometries$1( [ c1, c3, f ] );
-        let rb = rr.clone();
-
-        /*f.dispose();
-        c1.dispose();
-        c3.dispose()*/
-
-        mt.makeTranslation( -midWidth, 0, 0 );
-        mr.makeRotationY( -p90 );
-
-        rr.applyMatrix4( mt.multiply(mr) );
-
-        // side right
-
-        mt.makeTranslation( midWidth, 0, 0 );
-        mr.makeRotationY( p90 );
-
-        rb.applyMatrix4( mt.multiply(mr) );
-
-        // top
-        f = new PlaneGeometry( width-twoFilet, depth-twoFilet, widthSegs, depthSegs );
-        scaleUV$1( f, -sw, sd, vw, vd );
-        let f2 = f.clone();
-
-
-
-        mt.makeTranslation( 0, midHeight, 0);
-        mr.makeRotationX( -p90 );
-        f.applyMatrix4( mt.multiply(mr) );
-
-        // bottom
-        mt.makeTranslation( 0, -midHeight, 0);
-        mr.makeRotationX( p90 );
-        f2.applyMatrix4( mt.multiply(mr) );
-
-        let g = mergeVertices$1( mergeGeometries$1( [ rf, rg, rr, rb, f, f2 ] ) );
-
-        /*rf.dispose();
-        rg.dispose();
-        rr.dispose();
-        rb.dispose();
-        f2.dispose();
-        f.dispose();*/
-        //g.computeVertexNormals()
-        //g = g.toNonIndexed()
-        //
-
-        createUV$1(g, 'box');
-
-        this.copy(g);
-        /*g.dispose();*/
-
-    }
-};
-
-let SphereGeometryFix$1 = class SphereGeometryFix extends BufferGeometry {
-
-    constructor( radius = 1, widthSegments = 8, heightSegments = 6, phiStart = 0, phiLength = Math.PI * 2, thetaStart = 0, thetaLength = Math.PI ) {
-
-        super();
-
-        this.type = 'SphereGeometryFix';
-
-        this.parameters = {
-            radius: radius,
-            widthSegments: widthSegments,
-            heightSegments: heightSegments,
-            phiStart: phiStart,
-            phiLength: phiLength,
-            thetaStart: thetaStart,
-            thetaLength: thetaLength
-        };
-
-        widthSegments =  Math.floor( widthSegments );
-        heightSegments =  Math.floor( heightSegments );
-
-        const thetaEnd = Math.min( thetaStart + thetaLength, Math.PI );
-
-        let index = 0;
-        const grid = [];
-
-        const vertex = new Vector3();
-        const normal = new Vector3();
-
-        // buffers
-
-        const indices = [];
-        const vertices = [];
-        const normals = [];
-        const uvs = [];
-
-        // generate vertices, normals and uvs
-
-        for ( let iy = 0; iy <= heightSegments; iy ++ ) {
-
-            const verticesRow = [];
-
-            const v = iy / heightSegments;
-
-            // special case for the poles
-
-            let uOffset = 0;
-
-            if ( iy == 0 && thetaStart == 0 ) {
-
-                uOffset = 0.5 / widthSegments;
-
-            } else if ( iy == heightSegments && thetaEnd == Math.PI ) {
-
-                uOffset = -0.5 / widthSegments;
-
-            }
-
-            for ( let ix = 0; ix <= widthSegments; ix ++ ) {
-
-                const u = ix / widthSegments;
-
-                // vertex
-
-                vertex.x = - radius * Math.cos( phiStart + u * phiLength ) * Math.sin( thetaStart + v * thetaLength );
-                vertex.y = radius * Math.cos( thetaStart + v * thetaLength );
-                vertex.z = radius * Math.sin( phiStart + u * phiLength ) * Math.sin( thetaStart + v * thetaLength );
-
-                vertices.push( vertex.x, vertex.y, vertex.z );
-
-                // normal
-
-                normal.copy( vertex ).normalize();
-                normals.push( normal.x, normal.y, normal.z );
-
-                // uv
-
-                uvs.push( u + uOffset, 1 - v );
-
-                verticesRow.push( index ++ );
-
-            }
-
-            grid.push( verticesRow );
-
-        }
-
-        // indices
-
-        for ( let iy = 0; iy < heightSegments; iy ++ ) {
-
-            for ( let ix = 0; ix < widthSegments; ix ++ ) {
-
-                const a = grid[ iy ][ ix + 1 ];
-                const b = grid[ iy ][ ix ];
-                const c = grid[ iy + 1 ][ ix ];
-                const d = grid[ iy + 1 ][ ix + 1 ];
-
-                if ( iy !== 0 || thetaStart > 0 ) indices.push( a, b, d );
-                if ( iy !== heightSegments - 1 || thetaEnd < Math.PI ) indices.push( b, c, d );
-
-            }
-
-        }
-
-        // build geometry
-
-        this.setIndex( indices );
-        this.setAttribute( 'position', new Float32BufferAttribute( vertices, 3 ) );
-        this.setAttribute( 'normal', new Float32BufferAttribute( normals, 3 ) );
-        this.setAttribute( 'uv', new Float32BufferAttribute( uvs, 2 ) );
-
-    }
-
-};
-
-// { SphereGeometryFix };
-
-
-// UV 
-
-function scaleUV$1( geometry, x=0, y=0, dx=1, dy=1, reverse ) {
-
-    let uv = geometry.attributes.uv;
-    let ar = uv.array;
-    let i = uv.count, n =0;
-
-    while( i-- ){
-        n=i*2;
-        ar[n] = (ar[n]*dx)-x;
-        ar[n+1] = (ar[n+1]*dy)+y;
-
-        if(reverse){
-            ar[n] = 1 - ar[n];
-            ar[n+1] = 1 - ar[n+1];
-        }
-    }
-
-
-}
-
-function createUV$1( geometry, type = 'sphere', boxSize, pos = [0,0,0], quat = [0,0,0,1], transformMatrix ) {
-
-    //type = type || 'sphere';
-
-    if ( transformMatrix === undefined ) transformMatrix = new Matrix4();
-    transformMatrix.compose( {x:pos[0], y:pos[1], z:pos[2] }, { _x:quat[0], _y:quat[1], _z:quat[2], _w:quat[3] }, {x:1, y:1, z:1 });
-
-
-
-    if ( boxSize === undefined ) {
-        if( !geometry.boundingBox ) geometry.computeBoundingBox();
-        let bbox = geometry.boundingBox;
-        boxSize = Math.max( bbox.max.x - bbox.min.x, bbox.max.y - bbox.min.y, bbox.max.z - bbox.min.z );
-    }
-
-    //.expandByScalar(0.9);//new THREE.Box3( new THREE.Vector3(-boxSize / 2, -boxSize / 2, -boxSize / 2), new THREE.Vector3(boxSize / 2, boxSize / 2, boxSize / 2));
-    //_applyBoxUV( bufferGeometry, transformMatrix, uvBbox, boxSize );
-
-    let uvBbox = new Box3(new Vector3(-boxSize / 2, -boxSize / 2, -boxSize / 2), new Vector3(boxSize / 2, boxSize / 2, boxSize / 2));
-    //let uvBbox = new Box3(new Vector3(-(boxSize / 2)/3, -(boxSize / 2)/3, -(boxSize / 2)/3), new Vector3((boxSize / 2)/3, (boxSize / 2)/3, (boxSize / 2)/3));
-    //let uvBbox = bbox
-    
-
-
-    let coords = [];
-    //coords.length = 2 * geometry.attributes.position.array.length / 3;
-    coords.length = 2 * geometry.attributes.position.count;
-
-    //if ( geometry.attributes.uv === undefined ) geometry.addAttribute('uv', new Float32BufferAttribute(coords, 2));
-    if ( geometry.attributes.uv === undefined ) geometry.setAttribute('uv', new Float32BufferAttribute(coords, 2));
-    
-    let makeSphereUVs = function( v0, v1, v2 ) {
-
-        //pre-rotate the model so that cube sides match world axis
-        v0.applyMatrix4(transformMatrix);
-        v1.applyMatrix4(transformMatrix);
-        v2.applyMatrix4(transformMatrix);
-
-        let invTwoPi = 1 / (2.0 * Math.PI);
-        let invPi = 1 / Math.PI;
-
-        v0.normalize();
-        v1.normalize();
-        v2.normalize();
-
-        return {
-            uv0: new Vector2( .5 - Math.atan( v0.z, - v0.x ) * invTwoPi, .5 - Math.asin( v0.y ) * invPi ),
-            uv1: new Vector2( .5 - Math.atan( v1.z, - v1.x ) * invTwoPi, .5 - Math.asin( v1.y ) * invPi ),
-            uv2: new Vector2( .5 - Math.atan( v2.z, - v2.x ) * invTwoPi, .5 - Math.asin( v2.y ) * invPi ),
-        };
-
-    };
-
-
-  
-    //maps 3 verts of 1 face on the better side of the cube
-    //side of the cube can be XY, XZ or YZ
-    let makeCubeUVs = function( v0, v1, v2 ) {
-
-        //pre-rotate the model so that cube sides match world axis
-        v0.applyMatrix4(transformMatrix);
-        v1.applyMatrix4(transformMatrix);
-        v2.applyMatrix4(transformMatrix);
-
-        //get normal of the face, to know into which cube side it maps better
-        let n = new Vector3();
-        n.crossVectors( v1.clone().sub(v0), v1.clone().sub(v2) ).normalize();
-        if(n.x<0 || n.y<0 || n.z<0) ;
-
-        n.x = Math.abs(n.x);
-        n.y = Math.abs(n.y);
-        n.z = Math.abs(n.z);
-
-        let uv0 = new Vector2();
-        let uv1 = new Vector2();
-        let uv2 = new Vector2();
-        let max = 1/boxSize;
-
-        
-        // xz mapping
-        if ( n.y > n.x && n.y > n.z ) {
-
-            uv0.set( v0.x - uvBbox.min.x, uvBbox.max.z - v0.z ).multiplyScalar( max );
-            uv1.set( v1.x - uvBbox.min.x, uvBbox.max.z - v1.z ).multiplyScalar( max );
-            uv2.set( v2.x - uvBbox.min.x, uvBbox.max.z - v2.z ).multiplyScalar( max );
-
-        } else if ( n.x > n.y && n.x > n.z ) {
-
-            uv0.set( v0.z - uvBbox.min.z, v0.y - uvBbox.min.y ).multiplyScalar( max );
-            uv1.set( v1.z - uvBbox.min.z, v1.y - uvBbox.min.y ).multiplyScalar( max );
-            uv2.set( v2.z - uvBbox.min.z, v2.y - uvBbox.min.y ).multiplyScalar( max );
-
-        } else if ( n.z > n.y && n.z > n.x ) {
-
-            uv0.set( v0.x - uvBbox.min.x, v0.y - uvBbox.min.y ).multiplyScalar( max );
-            uv1.set( v1.x - uvBbox.min.x, v1.y - uvBbox.min.y ).multiplyScalar( max );
-            uv2.set( v2.x - uvBbox.min.x, v2.y - uvBbox.min.y ).multiplyScalar( max );
-
-        }
-
-        return { uv0: uv0, uv1: uv1, uv2: uv2 } 
-    };
-
-
-
-    let i, id0, id1, id2, uvs;
-    let v0 = new Vector3();
-    let v1 = new Vector3();
-    let v2 = new Vector3();
-
-    new Vector3();
-    new Vector3();
-    new Vector3();
-
-    const positionAttribute = geometry.getAttribute( 'position' );
-    geometry.getAttribute( 'normal' );
-
-    if ( geometry.index ) { // is it indexed buffer geometry
-
-        for (i = 0; i < geometry.index.count; i+=3 ) {
-
-            //console.log('is index')
-
-            //n = i*3;
-            id0 = geometry.index.getX( i + 0 );
-            id1 = geometry.index.getX( i + 1 );
-            id2 = geometry.index.getX( i + 2 );
-
-            v0.fromBufferAttribute( positionAttribute, id0 );
-            v1.fromBufferAttribute( positionAttribute, id1 );
-            v2.fromBufferAttribute( positionAttribute, id2 );
-
-            /*nn0.fromBufferAttribute( normalAttribute, id0 );
-            nn1.fromBufferAttribute( normalAttribute, id1 );
-            nn2.fromBufferAttribute( normalAttribute, id2 )*/
-
-
-
-            if( type === 'sphere' ) uvs = makeSphereUVs( v0, v1, v2 );
-            else uvs = makeCubeUVs( v0, v1, v2);
-
-            coords[2 * id0] = uvs.uv0.x;
-            coords[2 * id0 + 1] = uvs.uv0.y;
-
-            coords[2 * id1] = uvs.uv1.x;
-            coords[2 * id1 + 1] = uvs.uv1.y;
-
-            coords[2 * id2] = uvs.uv2.x;
-            coords[2 * id2 + 1] = uvs.uv2.y;
-        }
-    } else {
-
-        for ( i = 0; i < positionAttribute.count; i += 3) {
-
-            v0.fromBufferAttribute( positionAttribute, i + 0 );
-            v1.fromBufferAttribute( positionAttribute, i + 1 );
-            v2.fromBufferAttribute( positionAttribute, i + 2 );
-
-            if( type === 'sphere' ) uvs = makeSphereUVs( v0, v1, v2 );
-            else uvs = makeCubeUVs( v0, v1, v2 );
-
-            let idx0 = i;//vi / 3;
-            let idx1 = i+1;//idx0 + 1;
-            let idx2 = i+2;//idx0 + 2;
-
-            coords[2 * idx0] = uvs.uv0.x;
-            coords[2 * idx0 + 1] = uvs.uv0.y;
-
-            coords[2 * idx1] = uvs.uv1.x;
-            coords[2 * idx1 + 1] = uvs.uv1.y;
-
-            coords[2 * idx2] = uvs.uv2.x;
-            coords[2 * idx2 + 1] = uvs.uv2.y;
-        }
-
-    }
-
-    geometry.attributes.uv.array = new Float32Array( coords );
-    geometry.attributes.uv.needsUpdate = true;
-
-}
-
-
-/*
-export function calcNormal( normals, normal, angle ){
-
-    let allowed = normals.filter( n => n.angleTo( normal ) < angle * Math.PI / 180 );
-    return allowed.reduce( (a, b) => a.clone().add( b ) ).normalize();
-
-}
-
-export function computeVertexNormals(geometry, angle){
-
-    geometry.computeFaceNormals();
-    
-    var vertices = geometry.vertices.map( () => [] ); // vertices with normals array
-
-    geometry.faces.map( face => {
-        vertices[ face.a ].push( face.normal );
-        vertices[ face.b ].push( face.normal );
-        vertices[ face.c ].push( face.normal );
-    });
-
-    geometry.faces.map( face => {
-        face.vertexNormals[ 0 ] = calcNormal( vertices[ face.a ], face.normal, angle );
-        face.vertexNormals[ 1 ] = calcNormal( vertices[ face.b ], face.normal, angle );
-        face.vertexNormals[ 2 ] = calcNormal( vertices[ face.c ], face.normal, angle );
-    });
-
-    if ( geometry.faces.length > 0 ) geometry.normalsNeedUpdate = true;
-
-}*/
-
-/*
-
-BufferGeometry.prototype.computeMorphFaceNormals = function () {
-
-        var i, il, f, fl, face;
-
-        // save original normals
-        // - create temp variables on first access
-        //   otherwise just copy (for faster repeated calls)
-
-        for ( f = 0, fl = this.faces.length; f < fl; f ++ ) {
-
-            face = this.faces[ f ];
-
-            if ( ! face.__originalFaceNormal ) {
-
-                face.__originalFaceNormal = face.normal.clone();
-
-            } else {
-
-                face.__originalFaceNormal.copy( face.normal );
-
-            }
-
-        }
-
-        // use temp geometry to compute face normals for each morph
-
-        var tmpGeo = new THREE.Geometry();
-        tmpGeo.faces = this.faces;
-
-        for ( i = 0, il = this.morphTargets.length; i < il; i ++ ) {
-
-            // create on first access
-
-            if ( ! this.morphNormals[ i ] ) {
-
-                this.morphNormals[ i ] = {};
-                this.morphNormals[ i ].faceNormals = [];
-
-                var dstNormalsFace = this.morphNormals[ i ].faceNormals;
-
-                var faceNormal;
-
-                for ( f = 0, fl = this.faces.length; f < fl; f ++ ) {
-
-                    faceNormal = new Vector3();
-
-                    dstNormalsFace.push( faceNormal );
-
-                }
-
-            }
-
-            var morphNormals = this.morphNormals[ i ];
-
-            // set vertices to morph target
-
-            tmpGeo.vertices = this.morphTargets[ i ].vertices;
-
-            // compute morph normals
-
-            tmpGeo.computeFaceNormals();
-
-            // store morph normals
-
-            var faceNormal;
-
-            for ( f = 0, fl = this.faces.length; f < fl; f ++ ) {
-
-                face = this.faces[ f ];
-
-                faceNormal = morphNormals.faceNormals[ f ];
-
-                faceNormal.copy( face.normal );
-            }
-
-        }
-
-        // restore original normals
-
-        for ( f = 0, fl = this.faces.length; f < fl; f ++ ) {
-
-            face = this.faces[ f ];
-
-            face.normal = face.__originalFaceNormal;
-
-        }
-
-    }
-    */
 
 class CapsuleHelper extends Object3D {
 
@@ -7137,21 +7205,21 @@ class Body extends Item {
 
 			break;
 
-			case 'highSphere':
+			/*case 'highSphere':
 
 			    gName = 'highSphere_' + s[ 0 ];
 
 			    g = Geo.get( gName );
 			    if(!g){
 			    	g = new SphereBox( s[ 0 ] );
-					g.name = gName;
+					g.name = gName
 			    } else {
-					gName = '';
+					gName = ''
 				}
 			    noScale = true;
 			    o.type = 'sphere';
 
-			break;
+			break;*/
 
 			case 'capsule':
 
@@ -7206,6 +7274,9 @@ class Body extends Item {
 			    	unic = true;
 			    	noScale = true;
 			    }
+			    
+			    if( t === 'highSphere' ) o.type = 'sphere';
+
 			break;
 
 		}
@@ -7770,7 +7841,7 @@ class Body extends Item {
 		else if( b.mass && !b.density ){ 
 			b.density = MathTool.densityFromMass( b.mass, volume );
 			//  force density for engin don't have mass
-			if( this.engine === 'RAPIER' || this.engine === 'OIMO'|| this.engine === 'PHYSX') o.density = b.density;
+			if( this.engine === 'RAPIER' || this.engine === 'OIMO' || this.engine === 'PHYSX') o.density = b.density;
 		}
 
 
@@ -10027,8 +10098,8 @@ class SVGLoader extends Loader {
 
 			if ( node.nodeName === 'use' && ( node.hasAttribute( 'x' ) || node.hasAttribute( 'y' ) ) ) {
 
-				const tx = parseFloatWithUnits( node.getAttribute( 'x' ) );
-				const ty = parseFloatWithUnits( node.getAttribute( 'y' ) );
+				const tx = parseFloatWithUnits( node.getAttribute( 'x' ) || 0 );
+				const ty = parseFloatWithUnits( node.getAttribute( 'y' ) || 0 );
 
 				transform.translate( tx, ty );
 
@@ -13830,7 +13901,7 @@ function parallelTraverse( a, b, callback ) {
 /**
  * A loader for the glTF 2.0 format.
  *
- * [glTF]{@link https://www.khronos.org/gltf/} (GL Transmission Format) is an [open format specification]{@link https://github.com/KhronosGroup/glTF/tree/main/specification/2.0}
+ * [glTF](https://www.khronos.org/gltf/} (GL Transmission Format) is an [open format specification]{@link https://github.com/KhronosGroup/glTF/tree/main/specification/2.0)
  * for efficient delivery and loading of 3D content. Assets may be provided either in JSON (.gltf) or binary (.glb)
  * format. External files store textures (.jpg, .png) and additional binary data (.bin). A glTF asset may deliver
  * one or more scenes, including meshes, materials, textures, skins, skeletons, morph targets, animations, lights,
@@ -13859,8 +13930,10 @@ function parallelTraverse( a, b, callback ) {
  * - EXT_mesh_gpu_instancing
  *
  * The following glTF 2.0 extension is supported by an external user plugin:
- * - [KHR_materials_variants]{@link https://github.com/takahirox/three-gltf-extensions}
- * - [MSFT_texture_dds]{@link https://github.com/takahirox/three-gltf-extensions}
+ * - [KHR_materials_variants](https://github.com/takahirox/three-gltf-extensions)
+ * - [MSFT_texture_dds](https://github.com/takahirox/three-gltf-extensions)
+ * - [KHR_animation_pointer](https://github.com/needle-tools/three-animation-pointer)
+ * - [NEEDLE_progressive](https://github.com/needle-tools/gltf-progressive)
  *
  * ```js
  * const loader = new GLTFLoader();
@@ -19566,10 +19639,10 @@ let sceneGraph;
  * - Morph normals / blend shape normals
  *
  * FBX format references:
- * - [C++ SDK reference]{@link https://help.autodesk.com/view/FBX/2017/ENU/?guid=__cpp_ref_index_html}
+ * - [C++ SDK reference](https://help.autodesk.com/view/FBX/2017/ENU/?guid=__cpp_ref_index_html)
  *
  * Binary format specification:
- * - [FBX binary file format specification]{@link https://code.blender.org/2013/08/fbx-binary-file-format-specification/}
+ * - [FBX binary file format specification](https://code.blender.org/2013/08/fbx-binary-file-format-specification/)
  *
  * ```js
  * const loader = new FBXLoader();
@@ -24301,7 +24374,7 @@ function ParserState() {
 /**
  * A loader for the OBJ format.
  *
- * The [OBJ format]{@link https://en.wikipedia.org/wiki/Wavefront_.obj_file} is a simple data-format that
+ * The [OBJ format](https://en.wikipedia.org/wiki/Wavefront_.obj_file) is a simple data-format that
  * represents 3D geometry in a human readable format as the position of each vertex, the UV position of
  * each texture coordinate vertex, vertex normals, and the faces that make each polygon defined as a list
  * of vertices, and texture vertices.
@@ -28496,7 +28569,7 @@ const SRGB_TO_LINEAR = Array( 1024 )
 /**
  * A loader for the Ultra HDR Image Format.
  *
- * Existing HDR or EXR textures can be converted to Ultra HDR with this [tool]{@link https://gainmap-creator.monogrid.com/}.
+ * Existing HDR or EXR textures can be converted to Ultra HDR with this [tool](https://gainmap-creator.monogrid.com/).
  *
  * Current feature set:
  * - JPEG headers (required)
@@ -30060,9 +30133,9 @@ class WorkerPool {
 
 }
 
-const t=0,n=2,u$1=1,y$1=2,S$1=0,E$2=1,X=10,it=0,ht=9,gt=15,xt=16,dt=22,Ft=37,Et=43,te=76,ae=83,ue=97,ye=100,de=103,Ae=109,We=122,He=123,qe=131,Je=132,Qe=133,Ze=134,en=137,nn=138,sn=139,an=140,rn=141,on=142,cn=145,Un=146,pn=148,xn=152,Dn=157,wn=158,Vn=165,Cn=166,ri=1000054e3,oi=1000054001,ci=1000054004,Ui=1000054005,_i=1000066e3,yi=1000066004;class Ci{constructor(t,e,n,i){this._dataView=void 0,this._littleEndian=void 0,this._offset=void 0,this._dataView=new DataView(t.buffer,t.byteOffset+e,n),this._littleEndian=i,this._offset=0;}_nextUint8(){const t=this._dataView.getUint8(this._offset);return this._offset+=1,t}_nextUint16(){const t=this._dataView.getUint16(this._offset,this._littleEndian);return this._offset+=2,t}_nextUint32(){const t=this._dataView.getUint32(this._offset,this._littleEndian);return this._offset+=4,t}_nextUint64(){const t=this._dataView.getUint32(this._offset,this._littleEndian)+2**32*this._dataView.getUint32(this._offset+4,this._littleEndian);return this._offset+=8,t}_nextInt32(){const t=this._dataView.getInt32(this._offset,this._littleEndian);return this._offset+=4,t}_nextUint8Array(t){const e=new Uint8Array(this._dataView.buffer,this._dataView.byteOffset+this._offset,t);return this._offset+=t,e}_skip(t){return this._offset+=t,this}_scan(t,e=0){const n=this._offset;let i=0;for(;this._dataView.getUint8(this._offset)!==e&&i<t;)i++,this._offset++;return i<t&&this._offset++,new Uint8Array(this._dataView.buffer,this._dataView.byteOffset+n,i)}}const Oi=[171,75,84,88,32,50,48,187,13,10,26,10];function Si(t){return (new TextDecoder).decode(t)}function Mi(t){const e=new Uint8Array(t.buffer,t.byteOffset,Oi.length);if(e[0]!==Oi[0]||e[1]!==Oi[1]||e[2]!==Oi[2]||e[3]!==Oi[3]||e[4]!==Oi[4]||e[5]!==Oi[5]||e[6]!==Oi[6]||e[7]!==Oi[7]||e[8]!==Oi[8]||e[9]!==Oi[9]||e[10]!==Oi[10]||e[11]!==Oi[11])throw new Error("Missing KTX 2.0 identifier.");const n={vkFormat:0,typeSize:1,pixelWidth:0,pixelHeight:0,pixelDepth:0,layerCount:0,faceCount:1,levelCount:0,supercompressionScheme:0,levels:[],dataFormatDescriptor:[{vendorId:0,descriptorType:0,versionNumber:2,colorModel:0,colorPrimaries:1,transferFunction:2,flags:0,texelBlockDimension:[0,0,0,0],bytesPlane:[0,0,0,0,0,0,0,0],samples:[]}],keyValue:{},globalData:null},i=17*Uint32Array.BYTES_PER_ELEMENT,s=new Ci(t,Oi.length,i,true);n.vkFormat=s._nextUint32(),n.typeSize=s._nextUint32(),n.pixelWidth=s._nextUint32(),n.pixelHeight=s._nextUint32(),n.pixelDepth=s._nextUint32(),n.layerCount=s._nextUint32(),n.faceCount=s._nextUint32(),n.levelCount=s._nextUint32(),n.supercompressionScheme=s._nextUint32();const a=s._nextUint32(),r=s._nextUint32(),o=s._nextUint32(),l=s._nextUint32(),f=s._nextUint64(),c=s._nextUint64(),U=3*Math.max(n.levelCount,1)*8,h=new Ci(t,Oi.length+i,U,true);for(let e=0,i=Math.max(n.levelCount,1);e<i;e++)n.levels.push({levelData:new Uint8Array(t.buffer,t.byteOffset+h._nextUint64(),h._nextUint64()),uncompressedByteLength:h._nextUint64()});const p=new Ci(t,a,r,true);p._skip(4);const _=p._nextUint16(),u=p._nextUint16(),g=p._nextUint16(),x=p._nextUint16(),y={vendorId:_,descriptorType:u,versionNumber:g,colorModel:p._nextUint8(),colorPrimaries:p._nextUint8(),transferFunction:p._nextUint8(),flags:p._nextUint8(),texelBlockDimension:[p._nextUint8(),p._nextUint8(),p._nextUint8(),p._nextUint8()],bytesPlane:[p._nextUint8(),p._nextUint8(),p._nextUint8(),p._nextUint8(),p._nextUint8(),p._nextUint8(),p._nextUint8(),p._nextUint8()],samples:[]},b=(x/4-6)/4;for(let t=0;t<b;t++){const e={bitOffset:p._nextUint16(),bitLength:p._nextUint8(),channelType:p._nextUint8(),samplePosition:[p._nextUint8(),p._nextUint8(),p._nextUint8(),p._nextUint8()],sampleLower:Number.NEGATIVE_INFINITY,sampleUpper:Number.POSITIVE_INFINITY};64&e.channelType?(e.sampleLower=p._nextInt32(),e.sampleUpper=p._nextInt32()):(e.sampleLower=p._nextUint32(),e.sampleUpper=p._nextUint32()),y.samples[t]=e;}n.dataFormatDescriptor.length=0,n.dataFormatDescriptor.push(y);const m=new Ci(t,o,l,true);for(;m._offset<l;){const t=m._nextUint32(),e=m._scan(t),i=Si(e);if(n.keyValue[i]=m._nextUint8Array(t-e.byteLength-1),i.match(/^ktx/i)){const t=Si(n.keyValue[i]);n.keyValue[i]=t.substring(0,t.lastIndexOf("\0"));}m._skip(t%4?4-t%4:0);}if(c<=0)return n;const d=new Ci(t,f,c,true),D=d._nextUint16(),w=d._nextUint16(),v=d._nextUint32(),B=d._nextUint32(),L=d._nextUint32(),A=d._nextUint32(),k=[];for(let t=0,e=Math.max(n.levelCount,1);t<e;t++)k.push({imageFlags:d._nextUint32(),rgbSliceByteOffset:d._nextUint32(),rgbSliceByteLength:d._nextUint32(),alphaSliceByteOffset:d._nextUint32(),alphaSliceByteLength:d._nextUint32()});const I=f+d._offset,V=I+v,C=V+B,F=C+L,O=new Uint8Array(t.buffer,t.byteOffset+I,v),T=new Uint8Array(t.buffer,t.byteOffset+V,B),S=new Uint8Array(t.buffer,t.byteOffset+C,L),E=new Uint8Array(t.buffer,t.byteOffset+F,A);return n.globalData={endpointCount:D,selectorCount:w,imageDescs:k,endpointsData:O,selectorsData:T,tablesData:S,extendedData:E},n}
+const t=0,n=2,u$1=1,y$1=2,S$1=0,E$2=1,X$1=10,it=0,ht=9,gt=15,xt=16,dt=22,Ft=37,Et=43,te=76,ae=83,ue=97,ye=100,de=103,Ae=109,We=122,He=123,qe=131,Je=132,Qe=133,Ze=134,en=137,nn=138,sn=139,an=140,rn=141,on=142,cn=145,Un=146,pn=148,xn=152,Dn=157,wn=158,Vn=165,Cn=166,ri=1000054e3,oi=1000054001,ci=1000054004,Ui=1000054005,_i=1000066e3,yi=1000066004;class Ci{constructor(t,e,n,i){this._dataView=void 0,this._littleEndian=void 0,this._offset=void 0,this._dataView=new DataView(t.buffer,t.byteOffset+e,n),this._littleEndian=i,this._offset=0;}_nextUint8(){const t=this._dataView.getUint8(this._offset);return this._offset+=1,t}_nextUint16(){const t=this._dataView.getUint16(this._offset,this._littleEndian);return this._offset+=2,t}_nextUint32(){const t=this._dataView.getUint32(this._offset,this._littleEndian);return this._offset+=4,t}_nextUint64(){const t=this._dataView.getUint32(this._offset,this._littleEndian)+2**32*this._dataView.getUint32(this._offset+4,this._littleEndian);return this._offset+=8,t}_nextInt32(){const t=this._dataView.getInt32(this._offset,this._littleEndian);return this._offset+=4,t}_nextUint8Array(t){const e=new Uint8Array(this._dataView.buffer,this._dataView.byteOffset+this._offset,t);return this._offset+=t,e}_skip(t){return this._offset+=t,this}_scan(t,e=0){const n=this._offset;let i=0;for(;this._dataView.getUint8(this._offset)!==e&&i<t;)i++,this._offset++;return i<t&&this._offset++,new Uint8Array(this._dataView.buffer,this._dataView.byteOffset+n,i)}}const Oi=[171,75,84,88,32,50,48,187,13,10,26,10];function Si(t){return (new TextDecoder).decode(t)}function Mi(t){const e=new Uint8Array(t.buffer,t.byteOffset,Oi.length);if(e[0]!==Oi[0]||e[1]!==Oi[1]||e[2]!==Oi[2]||e[3]!==Oi[3]||e[4]!==Oi[4]||e[5]!==Oi[5]||e[6]!==Oi[6]||e[7]!==Oi[7]||e[8]!==Oi[8]||e[9]!==Oi[9]||e[10]!==Oi[10]||e[11]!==Oi[11])throw new Error("Missing KTX 2.0 identifier.");const n={vkFormat:0,typeSize:1,pixelWidth:0,pixelHeight:0,pixelDepth:0,layerCount:0,faceCount:1,levelCount:0,supercompressionScheme:0,levels:[],dataFormatDescriptor:[{vendorId:0,descriptorType:0,versionNumber:2,colorModel:0,colorPrimaries:1,transferFunction:2,flags:0,texelBlockDimension:[0,0,0,0],bytesPlane:[0,0,0,0,0,0,0,0],samples:[]}],keyValue:{},globalData:null},i=17*Uint32Array.BYTES_PER_ELEMENT,s=new Ci(t,Oi.length,i,true);n.vkFormat=s._nextUint32(),n.typeSize=s._nextUint32(),n.pixelWidth=s._nextUint32(),n.pixelHeight=s._nextUint32(),n.pixelDepth=s._nextUint32(),n.layerCount=s._nextUint32(),n.faceCount=s._nextUint32(),n.levelCount=s._nextUint32(),n.supercompressionScheme=s._nextUint32();const a=s._nextUint32(),r=s._nextUint32(),o=s._nextUint32(),l=s._nextUint32(),f=s._nextUint64(),c=s._nextUint64(),U=3*Math.max(n.levelCount,1)*8,h=new Ci(t,Oi.length+i,U,true);for(let e=0,i=Math.max(n.levelCount,1);e<i;e++)n.levels.push({levelData:new Uint8Array(t.buffer,t.byteOffset+h._nextUint64(),h._nextUint64()),uncompressedByteLength:h._nextUint64()});const p=new Ci(t,a,r,true);p._skip(4);const _=p._nextUint16(),u=p._nextUint16(),g=p._nextUint16(),x=p._nextUint16(),y={vendorId:_,descriptorType:u,versionNumber:g,colorModel:p._nextUint8(),colorPrimaries:p._nextUint8(),transferFunction:p._nextUint8(),flags:p._nextUint8(),texelBlockDimension:[p._nextUint8(),p._nextUint8(),p._nextUint8(),p._nextUint8()],bytesPlane:[p._nextUint8(),p._nextUint8(),p._nextUint8(),p._nextUint8(),p._nextUint8(),p._nextUint8(),p._nextUint8(),p._nextUint8()],samples:[]},b=(x/4-6)/4;for(let t=0;t<b;t++){const e={bitOffset:p._nextUint16(),bitLength:p._nextUint8(),channelType:p._nextUint8(),samplePosition:[p._nextUint8(),p._nextUint8(),p._nextUint8(),p._nextUint8()],sampleLower:Number.NEGATIVE_INFINITY,sampleUpper:Number.POSITIVE_INFINITY};64&e.channelType?(e.sampleLower=p._nextInt32(),e.sampleUpper=p._nextInt32()):(e.sampleLower=p._nextUint32(),e.sampleUpper=p._nextUint32()),y.samples[t]=e;}n.dataFormatDescriptor.length=0,n.dataFormatDescriptor.push(y);const m=new Ci(t,o,l,true);for(;m._offset<l;){const t=m._nextUint32(),e=m._scan(t),i=Si(e);if(n.keyValue[i]=m._nextUint8Array(t-e.byteLength-1),i.match(/^ktx/i)){const t=Si(n.keyValue[i]);n.keyValue[i]=t.substring(0,t.lastIndexOf("\0"));}m._skip(t%4?4-t%4:0);}if(c<=0)return n;const d=new Ci(t,f,c,true),D=d._nextUint16(),w=d._nextUint16(),v=d._nextUint32(),B=d._nextUint32(),L=d._nextUint32(),A=d._nextUint32(),k=[];for(let t=0,e=Math.max(n.levelCount,1);t<e;t++)k.push({imageFlags:d._nextUint32(),rgbSliceByteOffset:d._nextUint32(),rgbSliceByteLength:d._nextUint32(),alphaSliceByteOffset:d._nextUint32(),alphaSliceByteLength:d._nextUint32()});const I=f+d._offset,V=I+v,C=V+B,F=C+L,O=new Uint8Array(t.buffer,t.byteOffset+I,v),T=new Uint8Array(t.buffer,t.byteOffset+V,B),S=new Uint8Array(t.buffer,t.byteOffset+C,L),E=new Uint8Array(t.buffer,t.byteOffset+F,A);return n.globalData={endpointCount:D,selectorCount:w,imageDescs:k,endpointsData:O,selectorsData:T,tablesData:S,extendedData:E},n}
 
-let A$1,I$2,B$2;const g$1={env:{emscripten_notify_memory_growth:function(A){B$2=new Uint8Array(I$2.exports.memory.buffer);}}};let Q$1 = class Q{init(){return A$1||(A$1="undefined"!=typeof fetch?fetch("data:application/wasm;base64,"+C$2).then(A=>A.arrayBuffer()).then(A=>WebAssembly.instantiate(A,g$1)).then(this._init):WebAssembly.instantiate(Buffer.from(C$2,"base64"),g$1).then(this._init),A$1)}_init(A){I$2=A.instance,g$1.env.emscripten_notify_memory_growth(0);}decode(A,g=0){if(!I$2)throw new Error("ZSTDDecoder: Await .init() before decoding.");const Q=A.byteLength,C=I$2.exports.malloc(Q);B$2.set(A,C),g=g||Number(I$2.exports.ZSTD_findDecompressedSize(C,Q));const E=I$2.exports.malloc(g),i=I$2.exports.ZSTD_decompress(E,g,C,Q),D=B$2.slice(E,E+i);return I$2.exports.free(C),I$2.exports.free(E),D}};const C$2="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IAMNACAEQQNxBEADQCACRQ0FIAAgAkF/aiICaiIDIAEgAmotAAA6AAAgA0EDcQ0ACwsgAkEDTQ0AA0AgACACQXxqIgJqIAEgAmooAgA2AgAgAkEDSw0ACwsgAkUNAgNAIAAgAkF/aiICaiABIAJqLQAAOgAAIAINAAsMAgsgAkEDTQ0AIAIhBANAIAMgASgCADYCACABQQRqIQEgA0EEaiEDIARBfGoiBEEDSw0ACyACQQNxIQILIAJFDQADQCADIAEtAAA6AAAgA0EBaiEDIAFBAWohASACQX9qIgINAAsLIAAL8wICAn8BfgJAIAJFDQAgACACaiIDQX9qIAE6AAAgACABOgAAIAJBA0kNACADQX5qIAE6AAAgACABOgABIANBfWogAToAACAAIAE6AAIgAkEHSQ0AIANBfGogAToAACAAIAE6AAMgAkEJSQ0AIABBACAAa0EDcSIEaiIDIAFB/wFxQYGChAhsIgE2AgAgAyACIARrQXxxIgRqIgJBfGogATYCACAEQQlJDQAgAyABNgIIIAMgATYCBCACQXhqIAE2AgAgAkF0aiABNgIAIARBGUkNACADIAE2AhggAyABNgIUIAMgATYCECADIAE2AgwgAkFwaiABNgIAIAJBbGogATYCACACQWhqIAE2AgAgAkFkaiABNgIAIAQgA0EEcUEYciIEayICQSBJDQAgAa0iBUIghiAFhCEFIAMgBGohAQNAIAEgBTcDGCABIAU3AxAgASAFNwMIIAEgBTcDACABQSBqIQEgAkFgaiICQR9LDQALCyAACy8BAn8gACgCBCAAKAIAQQJ0aiICLQACIQMgACACLwEAIAEgAi0AAxAIajYCACADCy8BAn8gACgCBCAAKAIAQQJ0aiICLQACIQMgACACLwEAIAEgAi0AAxAFajYCACADCx8AIAAgASACKAIEEAg2AgAgARAEGiAAIAJBCGo2AgQLCAAgAGdBH3MLugUBDX8jAEEQayIKJAACfyAEQQNNBEAgCkEANgIMIApBDGogAyAEEAsaIAAgASACIApBDGpBBBAVIgBBbCAAEAMbIAAgACAESxsMAQsgAEEAIAEoAgBBAXRBAmoQECENQVQgAygAACIGQQ9xIgBBCksNABogAiAAQQVqNgIAIAMgBGoiAkF8aiEMIAJBeWohDiACQXtqIRAgAEEGaiELQQQh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ASIDNgLE4AEgACgCvOABIQQgACABNgK84AEgACABIAJqNgK44AEgACABIAQgA2tqNgLA4AELpgEBAX8gACAAKALs4QEQFjYCyOABIABCADcD+OABIABCADcDuOABIABBwOABakIANwMAIABBqNAAaiIBQYyAgOAANgIAIABBADYCmOIBIABCADcDiOEBIABCAzcDgOEBIABBrNABakHgEikCADcCACAAQbTQAWpB6BIoAgA2AgAgACABNgIMIAAgAEGYIGo2AgggACAAQaAwajYCBCAAIABBEGo2AgALYQEBf0G4fyEDAkAgAUEDSQ0AIAIgABAhIgFBA3YiADYCCCACIAFBAXE2AgQgAiABQQF2QQNxIgM2AgACQCADQX9qIgFBAksNAAJAIAFBAWsOAgEAAgtBbA8LIAAhAwsgAwsMACAAIAEgAkEAEC4LiAQCA38CfiADEBYhBCAAQQBBKBAQIQAgBCACSwRAIAQPCyABRQRAQX8PCwJAAkAgA0EBRg0AIAEoAAAiBkGo6r5pRg0AQXYhAyAGQXBxQdDUtMIBRw0BQQghAyACQQhJDQEgAEEAQSgQECEAIAEoAAQhASAAQQE2AhQgACABrTcDAEEADwsgASACIAMQLyIDIAJLDQAgACADNgIYQXIhAyABIARqIgVBf2otAAAiAkEIcQ0AIAJBIHEiBkUEQEFwIQMgBS0AACIFQacBSw0BIAVBB3GtQgEgBUEDdkEKaq2GIgdCA4h+IAd8IQggBEEBaiEECyACQQZ2IQMgAkECdiEFAkAgAkEDcUF/aiICQQJLBEBBACECDAELAkACQAJAIAJBAWsOAgECAAsgASAEai0AACECIARBAWohBAwCCyABIARqLwAAIQIgBEECaiEEDAELIAEgBGooAAAhAiAEQQRqIQQLIAVBAXEhBQJ+AkACQAJAIANBf2oiA0ECTQRAIANBAWsOAgIDAQtCfyAGRQ0DGiABIARqMQAADAMLIAEgBGovAACtQoACfAwCCyABIARqKAAArQwBCyABIARqKQAACyEHIAAgBTYCICAAIAI2AhwgACAHNwMAQQAhAyAAQQA2AhQgACAHIAggBhsiBzcDCCAAIAdCgIAIIAdCgIAIVBs+AhALIAMLWwEBf0G4fyEDIAIQFiICIAFNBH8gACACakF/ai0AACIAQQNxQQJ0QaAeaigC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C0Egak8NAQsgByAHKQNoNwMQIAcgBykDYDcDCCAEIA0gB0EIaiAHQdwAaiAPIA4gESAQEB4hCwwBCyACIARqIQggBCAKEAcgAkERTwRAIARBEGohAgNAIAIgCkEQaiIKEAcgAkEQaiICIAhJDQALCyAIIAlrIQIgByATNgJcIAkgCCAOa0sEQCAJIAggEWtLBEBBbCELDAILIBAgAiAOayICaiIKIANqIBBNBEAgCCAKIAMQDxoMAgsgCCAKQQAgAmsQDyEIIAcgAiADaiIDNgJkIAggAmshCCAOIQILIAlBEE8EQCADIAhqIQMDQCAIIAIQByACQRBqIQIgCEEQaiIIIANJDQALDAELAkAgCUEHTQRAIAggAi0AADoAACAIIAItAAE6AAEgCCACLQACOgACIAggAi0AAzoAAyAIQQRqIAIgCUECdCIDQcAeaigCAGoiAhAXIAIgA0HgHmooAgBrIQIgBygCZCEDDAELIAggAhAMCyADQQlJDQAgAyAIaiEDIAhBCGoiCCACQQhqIgJrQQ9MBEADQCAIIAIQDCACQQhqIQIgCEEIaiIIIANJDQAMAgALAAsDQCAIIAIQByACQRBqIQIgCEEQaiIIIANJDQALCyAHQRhqEAQaIAsgDCALEAMiAhshDCAEIAQgC2ogAhshBCAFQX9qIgUNAAsgDBADDQFBbCEMIAdBGGoQBEECSQ0BQQAhCANAIAhBA0cEQCAAIAhBAnQiAmpBrNABaiACIAdqKAJENgIAIAhBAWohCAwBCwsgBygCXCEIC0G6fyEMIA8gCGsiACANIARrSw0AIAQEfyAEIAggABALIABqBUEACyABayEMCyAHQfAAaiQAIAwLkRcCFn8FfiMAQdABayIHJAAgByAAKALw4QEiCDYCvAEgASACaiESIAggACgCgOIBaiETAkACQCAFRQRAIAEhAwwBCyAAKALE4AEhESAAKALA4AEhFSAAKAK84AEhDyAAQQE2AozhAUEAIQgDQCAIQQNHBEAgByAIQQJ0IgJqIAAgAmpBrNABaigCADYCVCAIQQFqIQgMAQsLIAcgETYCZCAHIA82AmAgByABIA9rNgJoQWwhECAHQShqIAMgBBAGEAMNASAFQQQgBUEESBshFyAHQTxqIAdBKGogACgCABATIAdBxABqIAdBKGogACgCCBATIAdBzABqIAdB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IAdB0AFqJAAgEAslACAAQgA3AgAgAEEAOwEIIABBADoACyAAIAE2AgwgACACOgAKC7QFAQN/IwBBMGsiBCQAIABB/wFqIgVBfWohBgJAIAMvAQIEQCAEQRhqIAEgAhAGIgIQAw0BIARBEGogBEEYaiADEBwgBEEIaiAEQRhqIAMQHCAAIQMDQAJAIARBGGoQBCADIAZPckUEQCADIARBEGogBEEYahASOgAAIAMgBEEIaiAEQRhqEBI6AAEgBEEYahAERQ0BIANBAmohAwsgBUF+aiEFAn8DQEG6fyECIAMiASAFSw0FIAEgBEEQaiAEQRhqEBI6AAAgAUEBaiEDIARBGGoQBEEDRgRAQQIhAiAEQQhqDAILIAMgBUsNBSABIARBCGogBEEYahASOgABIAFBAmohA0EDIQIgBEEYahAEQQNHDQALIARBEGoLIQUgAyAFIARBGGoQEjoAACABIAJqIABrIQIMAwsgAyAEQRBqIARBGGoQEjoAAiADIARBCGogBEEYahASOgADIANBBGohAwwAAAsACyAEQRhqIAEgAhAGIgIQAw0AIARBEGogBEEYaiADEBwgBEEIaiAEQRhqIAMQHCAAIQMDQAJAIARBGGoQBCADIAZPckUEQCADIARBEGogBEEYahAROgAAIAMgBEEIaiAEQRhqEBE6AAEgBEEYahAERQ0BIANBAmohAwsgBUF+aiEFAn8DQEG6fyECIAMiASAFSw0EIAEgBEEQaiAEQRhqEBE6AAAgAUEBaiEDIARBGGoQBEEDRgRAQQIhAiAEQQhqDAILIAMgBUsNBCABIARBCGogBEEYahAROgABIAFBAmohA0EDIQIgBEEYahAEQQNHDQALIARBEGoLIQUgAyAFIARBGGoQEToAACABIAJqIABrIQIMAgsgAyAEQRBqIARBGGoQEToAAiADIARBCGogBEEYahAROgADIANBBGohAwwAAAsACyAEQTBqJAAgAgtpAQF/An8CQAJAIAJBB00NACABKAAAQbfIwuF+Rw0AIAAgASgABDYCmOIBQWIgAEEQaiABIAIQPiIDEAMNAhogAEKBgICAEDcDiOEBIAAgASADaiACIANrECoMAQsgACABIAIQKgtBAAsLrQMBBn8jAEGAAWsiAyQAQWIhCAJAIAJBCUkNACAAQZjQAGogAUEIaiIEIAJBeGogAEGY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wOABCwutAgIEfwF+IwBBQGoiBCQAAkACQCACQQhJDQAgASgAAEFwcUHQ1LTCAUcNACABIAIQIiEBIABCADcDCCAAQQA2AgQgACABNgIADAELIARBGGogASACEC0iAxADBEAgACADEBoMAQsgAwRAIABBuH8QGgwBCyACIAQoAjAiA2shAiABIANqIQMDQAJAIAAgAyACIARBCGoQLCIFEAMEfyAFBSACIAVBA2oiBU8NAUG4fwsQGgwCCyAGQQFqIQYgAiAFayECIAMgBWohAyAEKAIMRQ0ACyAEKAI4BEAgAkEDTQRAIABBuH8QGgwCCyADQQRqIQMLIAQoAighAiAEKQMYIQcgAEEANgIEIAAgAyABazYCACAAIAIgBmytIAcgB0J/URs3AwgLIARBQGskAAslAQF/IwBBEGsiAiQAIAIgACABEFEgAigCACEAIAJBEGokACAAC30BBH8jAEGQBGsiBCQAIARB/wE2AggCQCAEQRBqIARBCGogBEEMaiABIAIQFSIGEAMEQCAGIQUMAQtBVCEFIAQoAgwiB0EGSw0AIAMgBEEQaiAEKAIIIAcQQSIFEAMNACAAIAEgBmogAiAGayADEDwhBQsgBEGQBGokACAFC4cBAgJ/An5BABAWIQMCQANAIAEgA08EQAJAIAAoAABBcHFB0NS0wgFGBEAgACABECIiAhADRQ0BQn4PCyAAIAEQVSIEQn1WDQMgBCAFfCIFIARUIQJCfiEEIAINAyAAIAEQUiICEAMNAwsgASACayEBIAAgAmohAAwBCwtCfiAFIAEbIQQLIAQLPwIBfwF+IwBBMGsiAiQAAn5CfiACQQhqIAAgARAtDQAaQgAgAigCHEEBRg0AGiACKQMICyEDIAJBMGokACADC40BAQJ/IwBBMGsiASQAAkAgAEUNACAAKAKI4gENACABIABB/OEBaigCADYCKCABIAApAvThATcDICAAEDAgACgCqOIBIQIgASABKAIoNgIYIAEgASkDIDcDECACIAFBEGoQGyAAQQA2AqjiASABIAEoAig2AgggASABKQMgNwMAIAAgARAbCyABQTBqJAALKgECfyMAQRBrIgAkACAAQQA2AgggAEIANwMAIAAQWCEBIABBEGokACABC4cBAQN/IwBBEGsiAiQAAkAgACgCAEUgACgCBEVzDQAgAiAAKAIINgIIIAIgACkCADcDAAJ/IAIoAgAiAQRAIAIoAghBqOMJIAERBQAMAQtBqOMJECgLIgFFDQAgASAAKQIANwL04QEgAUH84QFqIAAoAgg2AgAgARBZIAEhAwsgAkEQaiQAIAMLywEBAn8jAEEgayIBJAAgAEGBgIDAADYCtOIBIABBADYCiOIBIABBADYC7OEBIABCADcDkOIBIABBADYCpOMJIABBADYC3OIBIABCADcCzOIBIABBADYCvOIBIABBADYCxOABIABCADcCnOIBIABBpOIBakIANwIAIABBrOIBakEANgIAIAFCADcCECABQgA3AhggASABKQMYNwMIIAEgASkDEDcDACABKAIIQQh2QQFxIQIgAEEANgLg4gEgACACNgKM4gEgAUEgaiQAC3YBA38jAEEwayIBJAAgAARAIAEgAEHE0AFqIgIoAgA2AiggASAAKQK80AE3AyAgACgCACEDIAEgAigCADYCGCABIAApArzQATcDECADIAFBEGoQGyABIAEoAig2AgggASABKQMgNwMAIAAgARAbCyABQTBqJAALzAEBAX8gACABKAK00AE2ApjiASAAIAEoAgQiAjYCwOABIAAgAjYCvOABIAAgAiABKAIIaiICNgK44AEgACACNgLE4AEgASgCuNABBEAgAEKBgICAEDcDiOEBIAAgAUGk0ABqNgIMIAAgAUGUIGo2AgggACABQZwwajYCBCAAIAFBDGo2AgAgAEGs0AFqIAFBqNABaigCADYCACAAQbDQAWogAUGs0AFqKAIANgIAIABBtNABaiABQbDQAWooAgA2AgAPCyAAQgA3A4jhAQs7ACACRQRAQbp/DwsgBEUEQEFsDwsgAiAEEGAEQCAAIAEgAiADIAQgBRBhDwsgACABIAIgAyAEIAUQZQtGAQF/IwBBEGsiBSQAIAVBCGogBBAOAn8gBS0ACQRAIAAgASACIAMgBBAyDAELIAAgASACIAMgBBA0CyEAIAVBEGokACAACzQAIAAgAyAEIAUQNiIFEAMEQCAFDwsgBSAESQR/IAEgAiADIAVqIAQgBWsgABA1BUG4fwsLRgEBfyMAQRBrIgUkACAFQQhqIAQQDgJ/IAUtAAkEQCAAIAEgAiADIAQQYgwBCyAAIAEgAiADIAQQNQshACAFQRBqJAAgAAtZAQF/QQ8hAiABIABJBEAgAUEE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";
+let A$1,I$2,B$1;const g$1={env:{emscripten_notify_memory_growth:function(A){B$1=new Uint8Array(I$2.exports.memory.buffer);}}};class Q{init(){return A$1||(A$1="undefined"!=typeof fetch?fetch("data:application/wasm;base64,"+C$2).then(A=>A.arrayBuffer()).then(A=>WebAssembly.instantiate(A,g$1)).then(this._init):WebAssembly.instantiate(Buffer.from(C$2,"base64"),g$1).then(this._init),A$1)}_init(A){I$2=A.instance,g$1.env.emscripten_notify_memory_growth(0);}decode(A,g=0){if(!I$2)throw new Error("ZSTDDecoder: Await .init() before decoding.");const Q=A.byteLength,C=I$2.exports.malloc(Q);B$1.set(A,C),g=g||Number(I$2.exports.ZSTD_findDecompressedSize(C,Q));const E=I$2.exports.malloc(g),i=I$2.exports.ZSTD_decompress(E,g,C,Q),D=B$1.slice(E,E+i);return I$2.exports.free(C),I$2.exports.free(E),D}}const C$2="AGFzbQEAAAABpQEVYAF/AX9gAn9/AGADf39/AX9gBX9/f39/AX9gAX8AYAJ/fwF/YAR/f39/AX9gA39/fwBgBn9/f39/fwF/YAd/f39/f39/AX9gAn9/AX5gAn5+AX5gAABgBX9/f39/AGAGf39/f39/AGAIf39/f39/f38AYAl/f39/f39/f38AYAABf2AIf39/f39/f38Bf2ANf39/f39/f39/f39/fwF/YAF/AX4CJwEDZW52H2Vtc2NyaXB0ZW5fbm90aWZ5X21lbW9yeV9ncm93dGgABANpaAEFAAAFAgEFCwACAQABAgIFBQcAAwABDgsBAQcAEhMHAAUBDAQEAAANBwQCAgYCBAgDAwMDBgEACQkHBgICAAYGAgQUBwYGAwIGAAMCAQgBBwUGCgoEEQAEBAEIAwgDBQgDEA8IAAcABAUBcAECAgUEAQCAAgYJAX8BQaCgwAILB2AHBm1lbW9yeQIABm1hbGxvYwAoBGZyZWUAJgxaU1REX2lzRXJyb3IAaBlaU1REX2ZpbmREZWNvbXByZXNzZWRTaXplAFQPWlNURF9kZWNvbXByZXNzAEoGX3N0YXJ0ACQJBwEAQQELASQKussBaA8AIAAgACgCBCABajYCBAsZACAAKAIAIAAoAgRBH3F0QQAgAWtBH3F2CwgAIABBiH9LC34BBH9BAyEBIAAoAgQiA0EgTQRAIAAoAggiASAAKAIQTwRAIAAQDQ8LIAAoAgwiAiABRgRAQQFBAiADQSBJGw8LIAAgASABIAJrIANBA3YiBCABIARrIAJJIgEbIgJrIgQ2AgggACADIAJBA3RrNgIEIAAgBCgAADYCAAsgAQsUAQF/IAAgARACIQIgACABEAEgAgv3AQECfyACRQRAIABCADcCACAAQQA2AhAgAEIANwIIQbh/DwsgACABNgIMIAAgAUEEajYCECACQQRPBEAgACABIAJqIgFBfGoiAzYCCCAAIAMoAAA2AgAgAUF/ai0AACIBBEAgAEEIIAEQFGs2AgQgAg8LIABBADYCBEF/DwsgACABNgIIIAAgAS0AACIDNgIAIAJBfmoiBEEBTQRAIARBAWtFBEAgACABLQACQRB0IANyIgM2AgALIAAgAS0AAUEIdCADajYCAAsgASACakF/ai0AACIBRQRAIABBADYCBEFsDwsgAEEoIAEQFCACQQN0ams2AgQgAgsWACAAIAEpAAA3AAAgACABKQAINwAICy8BAX8gAUECdEGgHWooAgAgACgCAEEgIAEgACgCBGprQR9xdnEhAiAAIAEQASACCyEAIAFCz9bTvtLHq9lCfiAAfEIfiUKHla+vmLbem55/fgsdAQF/IAAoAgggACgCDEYEfyAAKAIEQSBGBUEACwuCBAEDfyACQYDAAE8EQCAAIAEgAhBnIAAPCyAAIAJqIQMCQCAAIAFzQQNxRQRAAkAgAkEBSARAIAAhAgwBCyAAQQNxRQRAIAAhAgwBCyAAIQIDQCACIAEtAAA6AAAgAUEBaiEBIAJBAWoiAiADTw0BIAJBA3ENAAsLAkAgA0F8cSIEQcAASQ0AIAIgBEFAaiIFSw0AA0AgAiABKAIANgIAIAIgASgCBDYCBCACIAEoAgg2AgggAiABKAIMNgIMIAIgASgCEDYCECACIAEoAhQ2AhQgAiABKAIYNgIYIAIgASgCHDYCHCACIAEoAiA2AiAgAiABKAIkNgIkIAIgASgCKDYCKCACIAEoAiw2AiwgAiABKAIwNgIwIAIgASgCNDYCNCACIAEoAjg2AjggAiABKAI8NgI8IAFBQGshASACQUBrIgIgBU0NAAsLIAIgBE8NAQNAIAIgASgCADYCACABQQRqIQEgAkEEaiICIARJDQALDAELIANBBEkEQCAAIQIMAQsgA0F8aiIEIABJBEAgACECDAELIAAhAgNAIAIgAS0AADoAACACIAEtAAE6AAEgAiABLQACOgACIAIgAS0AAzoAAyABQQRqIQEgAkEEaiICIARNDQALCyACIANJBEADQCACIAEtAAA6AAAgAUEBaiEBIAJBAWoiAiADRw0ACwsgAAsMACAAIAEpAAA3AAALQQECfyAAKAIIIgEgACgCEEkEQEEDDwsgACAAKAIEIgJBB3E2AgQgACABIAJBA3ZrIgE2AgggACABKAAANgIAQQALDAAgACABKAIANgAAC/cCAQJ/AkAgACABRg0AAkAgASACaiAASwRAIAAgAmoiBCABSw0BCyAAIAEgAhALDwsgACABc0EDcSEDAkACQCAAIAFJBEAgAwRAIAAhAwwDCyAAQQNxRQRAIAAhAwwCCyAAIQMDQCACRQ0EIAMgAS0AADoAACABQQFqIQEgAkF/aiECIANBAWoiA0EDcQ0ACwwBCwJAIAMNACAEQQNxBEADQCACRQ0FIAAgAkF/aiICaiIDIAEgAmotAAA6AAAgA0EDcQ0ACwsgAkEDTQ0AA0AgACACQXxqIgJqIAEgAmooAgA2AgAgAkEDSw0ACwsgAkUNAgNAIAAgAkF/aiICaiABIAJqLQAAOgAAIAINAAsMAgsgAkEDTQ0AIAIhBANAIAMgASgCADYCACABQQRqIQEgA0EEaiEDIARBfGoiBEEDSw0ACyACQQNxIQILIAJFDQADQCADIAEtAAA6AAAgA0EBaiEDIAFBAWohASACQX9qIgINAAsLIAAL8wICAn8BfgJAIAJFDQAgACACaiIDQX9qIAE6AAAgACABOgAAIAJBA0kNACADQX5qIAE6AAAgACABOgABIANBfWogAToAACAAIAE6AAIgAkEHSQ0AIANBfGogAToAACAAIAE6AAMgAkEJSQ0AIABBACAAa0EDcSIEaiIDIAFB/wFxQYGChAhsIgE2AgAgAyACIARrQXxxIgRqIgJBfGogATYCACAEQQlJDQAgAyABNgIIIAMgATYCBCACQXhqIAE2AgAgAkF0aiABNgIAIARBGUkNACADIAE2AhggAyABNgIUIAMgATYCECADIAE2AgwgAkFwaiABNgIAIAJBbGogATYCACACQWhqIAE2AgAgAkFkaiABNgIAIAQgA0EEcUEYciIEayICQSBJDQAgAa0iBUIghiAFhCEFIAMgBGohAQNAIAEgBTcDGCABIAU3AxAgASAFNwMIIAEgBTcDACABQSBqIQEgAkFgaiICQR9LDQALCyAACy8BAn8gACgCBCAAKAIAQQJ0aiICLQACIQMgACACLwEAIAEgAi0AAxAIajYCACADCy8BAn8gACgCBCAAKAIAQQJ0aiICLQACIQMgACACLwEAIAEgAi0AAxAFajYCACADCx8AIAAgASACKAIEEAg2AgAgARAEGiAAIAJBCGo2AgQLCAAgAGdBH3MLugUBDX8jAEEQayIKJAACfyAEQQNNBEAgCkEANgIMIApBDGogAyAEEAsaIAAgASACIApBDGpBBBAVIgBBbCAAEAMbIAAgACAESxsMAQsgAEEAIAEoAgBBAXRBAmoQECENQVQgAygAACIGQQ9xIgBBCksNABogAiAAQQVqNgIAIAMgBGoiAkF8aiEMIAJBeWohDiACQXtqIRAgAEEGaiELQQQh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ASIDNgLE4AEgACgCvOABIQQgACABNgK84AEgACABIAJqNgK44AEgACABIAQgA2tqNgLA4AELpgEBAX8gACAAKALs4QEQFjYCyOABIABCADcD+OABIABCADcDuOABIABBwOABakIANwMAIABBqNAAaiIBQYyAgOAANgIAIABBADYCmOIBIABCADcDiOEBIABCAzcDgOEBIABBrNABakHgEikCADcCACAAQbTQAWpB6BIoAgA2AgAgACABNgIMIAAgAEGYIGo2AgggACAAQaAwajYCBCAAIABBEGo2AgALYQEBf0G4fyEDAkAgAUEDSQ0AIAIgABAhIgFBA3YiADYCCCACIAFBAXE2AgQgAiABQQF2QQNxIgM2AgACQCADQX9qIgFBAksNAAJAIAFBAWsOAgEAAgtBbA8LIAAhAwsgAwsMACAAIAEgAkEAEC4LiAQCA38CfiADEBYhBCAAQQBBKBAQIQAgBCACSwRAIAQPCyABRQRAQX8PCwJAAkAgA0EBRg0AIAEoAAAiBkGo6r5pRg0AQXYhAyAGQXBxQdDUtMIBRw0BQQghAyACQQhJDQEgAEEAQSgQECEAIAEoAAQhASAAQQE2AhQgACABrTcDAEEADwsgASACIAMQLyIDIAJLDQAgACADNgIYQXIhAyABIARqIgVBf2otAAAiAkEIcQ0AIAJBIHEiBkUEQEFwIQMgBS0AACIFQacBSw0BIAVBB3GtQgEgBUEDdkEKaq2GIgdCA4h+IAd8IQggBEEBaiEECyACQQZ2IQMgAkECdiEFAkAgAkEDcUF/aiICQQJLBEBBACECDAELAkACQAJAIAJBAWsOAgECAAsgASAEai0AACECIARBAWohBAwCCyABIARqLwAAIQIgBEECaiEEDAELIAEgBGooAAAhAiAEQQRqIQQLIAVBAXEhBQJ+AkACQAJAIANBf2oiA0ECTQRAIANBAWsOAgIDAQtCfyAGRQ0DGiABIARqMQAADAMLIAEgBGovAACtQoACfAwCCyABIARqKAAArQwBCyABIARqKQAACyEHIAAgBTYCICAAIAI2AhwgACAHNwMAQQAhAyAAQQA2AhQgACAHIAggBhsiBzcDCCAAIAdCgIAIIAdCgIAIVBs+AhALIAMLWwEBf0G4fyEDIAIQFiICIAFNBH8gACACakF/ai0AACIAQQNxQQJ0QaAeaigC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C0Egak8NAQsgByAHKQNoNwMQIAcgBykDYDcDCCAEIA0gB0EIaiAHQdwAaiAPIA4gESAQEB4hCwwBCyACIARqIQggBCAKEAcgAkERTwRAIARBEGohAgNAIAIgCkEQaiIKEAcgAkEQaiICIAhJDQALCyAIIAlrIQIgByATNgJcIAkgCCAOa0sEQCAJIAggEWtLBEBBbCELDAILIBAgAiAOayICaiIKIANqIBBNBEAgCCAKIAMQDxoMAgsgCCAKQQAgAmsQDyEIIAcgAiADaiIDNgJkIAggAmshCCAOIQILIAlBEE8EQCADIAhqIQMDQCAIIAIQByACQRBqIQIgCEEQaiIIIANJDQALDAELAkAgCUEHTQRAIAggAi0AADoAACAIIAItAAE6AAEgCCACLQACOgACIAggAi0AAzoAAyAIQQRqIAIgCUECdCIDQcAeaigCAGoiAhAXIAIgA0HgHmooAgBrIQIgBygCZCEDDAELIAggAhAMCyADQQlJDQAgAyAIaiEDIAhBCGoiCCACQQhqIgJrQQ9MBEADQCAIIAIQDCACQQhqIQIgCEEIaiIIIANJDQAMAgALAAsDQCAIIAIQByACQRBqIQIgCEEQaiIIIANJDQALCyAHQRhqEAQaIAsgDCALEAMiAhshDCAEIAQgC2ogAhshBCAFQX9qIgUNAAsgDBADDQFBbCEMIAdBGGoQBEECSQ0BQQAhCANAIAhBA0cEQCAAIAhBAnQiAmpBrNABaiACIAdqKAJENgIAIAhBAWohCAwBCwsgBygCXCEIC0G6fyEMIA8gCGsiACANIARrSw0AIAQEfyAEIAggABALIABqBUEACyABayEMCyAHQfAAaiQAIAwLkRcCFn8FfiMAQdABayIHJAAgByAAKALw4QEiCDYCvAEgASACaiESIAggACgCgOIBaiETAkACQCAFRQRAIAEhAwwBCyAAKALE4AEhESAAKALA4AEhFSAAKAK84AEhDyAAQQE2AozhAUEAIQgDQCAIQQNHBEAgByAIQQJ0IgJqIAAgAmpBrNABaigCADYCVCAIQQFqIQgMAQsLIAcgETYCZCAHIA82AmAgByABIA9rNgJoQWwhECAHQShqIAMgBBAGEAMNASAFQQQgBUEESBshFyAHQTxqIAdBKGogACgCABATIAdBxABqIAdBKGogACgCCBATIAdBzABqIAdB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IAdB0AFqJAAgEAslACAAQgA3AgAgAEEAOwEIIABBADoACyAAIAE2AgwgACACOgAKC7QFAQN/IwBBMGsiBCQAIABB/wFqIgVBfWohBgJAIAMvAQIEQCAEQRhqIAEgAhAGIgIQAw0BIARBEGogBEEYaiADEBwgBEEIaiAEQRhqIAMQHCAAIQMDQAJAIARBGGoQBCADIAZPckUEQCADIARBEGogBEEYahASOgAAIAMgBEEIaiAEQRhqEBI6AAEgBEEYahAERQ0BIANBAmohAwsgBUF+aiEFAn8DQEG6fyECIAMiASAFSw0FIAEgBEEQaiAEQRhqEBI6AAAgAUEBaiEDIARBGGoQBEEDRgRAQQIhAiAEQQhqDAILIAMgBUsNBSABIARBCGogBEEYahASOgABIAFBAmohA0EDIQIgBEEYahAEQQNHDQALIARBEGoLIQUgAyAFIARBGGoQEjoAACABIAJqIABrIQIMAwsgAyAEQRBqIARBGGoQEjoAAiADIARBCGogBEEYahASOgADIANBBGohAwwAAAsACyAEQRhqIAEgAhAGIgIQAw0AIARBEGogBEEYaiADEBwgBEEIaiAEQRhqIAMQHCAAIQMDQAJAIARBGGoQBCADIAZPckUEQCADIARBEGogBEEYahAROgAAIAMgBEEIaiAEQRhqEBE6AAEgBEEYahAERQ0BIANBAmohAwsgBUF+aiEFAn8DQEG6fyECIAMiASAFSw0EIAEgBEEQaiAEQRhqEBE6AAAgAUEBaiEDIARBGGoQBEEDRgRAQQIhAiAEQQhqDAILIAMgBUsNBCABIARBCGogBEEYahAROgABIAFBAmohA0EDIQIgBEEYahAEQQNHDQALIARBEGoLIQUgAyAFIARBGGoQEToAACABIAJqIABrIQIMAgsgAyAEQRBqIARBGGoQEToAAiADIARBCGogBEEYahAROgADIANBBGohAwwAAAsACyAEQTBqJAAgAgtpAQF/An8CQAJAIAJBB00NACABKAAAQbfIwuF+Rw0AIAAgASgABDYCmOIBQWIgAEEQaiABIAIQPiIDEAMNAhogAEKBgICAEDcDiOEBIAAgASADaiACIANrECoMAQsgACABIAIQKgtBAAsLrQMBBn8jAEGAAWsiAyQAQWIhCAJAIAJBCUkNACAAQZjQAGogAUEIaiIEIAJBeGogAEGY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wOABCwutAgIEfwF+IwBBQGoiBCQAAkACQCACQQhJDQAgASgAAEFwcUHQ1LTCAUcNACABIAIQIiEBIABCADcDCCAAQQA2AgQgACABNgIADAELIARBGGogASACEC0iAxADBEAgACADEBoMAQsgAwRAIABBuH8QGgwBCyACIAQoAjAiA2shAiABIANqIQMDQAJAIAAgAyACIARBCGoQLCIFEAMEfyAFBSACIAVBA2oiBU8NAUG4fwsQGgwCCyAGQQFqIQYgAiAFayECIAMgBWohAyAEKAIMRQ0ACyAEKAI4BEAgAkEDTQRAIABBuH8QGgwCCyADQQRqIQMLIAQoAighAiAEKQMYIQcgAEEANgIEIAAgAyABazYCACAAIAIgBmytIAcgB0J/URs3AwgLIARBQGskAAslAQF/IwBBEGsiAiQAIAIgACABEFEgAigCACEAIAJBEGokACAAC30BBH8jAEGQBGsiBCQAIARB/wE2AggCQCAEQRBqIARBCGogBEEMaiABIAIQFSIGEAMEQCAGIQUMAQtBVCEFIAQoAgwiB0EGSw0AIAMgBEEQaiAEKAIIIAcQQSIFEAMNACAAIAEgBmogAiAGayADEDwhBQsgBEGQBGokACAFC4cBAgJ/An5BABAWIQMCQANAIAEgA08EQAJAIAAoAABBcHFB0NS0wgFGBEAgACABECIiAhADRQ0BQn4PCyAAIAEQVSIEQn1WDQMgBCAFfCIFIARUIQJCfiEEIAINAyAAIAEQUiICEAMNAwsgASACayEBIAAgAmohAAwBCwtCfiAFIAEbIQQLIAQLPwIBfwF+IwBBMGsiAiQAAn5CfiACQQhqIAAgARAtDQAaQgAgAigCHEEBRg0AGiACKQMICyEDIAJBMGokACADC40BAQJ/IwBBMGsiASQAAkAgAEUNACAAKAKI4gENACABIABB/OEBaigCADYCKCABIAApAvThATcDICAAEDAgACgCqOIBIQIgASABKAIoNgIYIAEgASkDIDcDECACIAFBEGoQGyAAQQA2AqjiASABIAEoAig2AgggASABKQMgNwMAIAAgARAbCyABQTBqJAALKgECfyMAQRBrIgAkACAAQQA2AgggAEIANwMAIAAQWCEBIABBEGokACABC4cBAQN/IwBBEGsiAiQAAkAgACgCAEUgACgCBEVzDQAgAiAAKAIINgIIIAIgACkCADcDAAJ/IAIoAgAiAQRAIAIoAghBqOMJIAERBQAMAQtBqOMJECgLIgFFDQAgASAAKQIANwL04QEgAUH84QFqIAAoAgg2AgAgARBZIAEhAwsgAkEQaiQAIAMLywEBAn8jAEEgayIBJAAgAEGBgIDAADYCtOIBIABBADYCiOIBIABBADYC7OEBIABCADcDkOIBIABBADYCpOMJIABBADYC3OIBIABCADcCzOIBIABBADYCvOIBIABBADYCxOABIABCADcCnOIBIABBpOIBakIANwIAIABBrOIBakEANgIAIAFCADcCECABQgA3AhggASABKQMYNwMIIAEgASkDEDcDACABKAIIQQh2QQFxIQIgAEEANgLg4gEgACACNgKM4gEgAUEgaiQAC3YBA38jAEEwayIBJAAgAARAIAEgAEHE0AFqIgIoAgA2AiggASAAKQK80AE3AyAgACgCACEDIAEgAigCADYCGCABIAApArzQATcDECADIAFBEGoQGyABIAEoAig2AgggASABKQMgNwMAIAAgARAbCyABQTBqJAALzAEBAX8gACABKAK00AE2ApjiASAAIAEoAgQiAjYCwOABIAAgAjYCvOABIAAgAiABKAIIaiICNgK44AEgACACNgLE4AEgASgCuNABBEAgAEKBgICAEDcDiOEBIAAgAUGk0ABqNgIMIAAgAUGUIGo2AgggACABQZwwajYCBCAAIAFBDGo2AgAgAEGs0AFqIAFBqNABaigCADYCACAAQbDQAWogAUGs0AFqKAIANgIAIABBtNABaiABQbDQAWooAgA2AgAPCyAAQgA3A4jhAQs7ACACRQRAQbp/DwsgBEUEQEFsDwsgAiAEEGAEQCAAIAEgAiADIAQgBRBhDwsgACABIAIgAyAEIAUQZQtGAQF/IwBBEGsiBSQAIAVBCGogBBAOAn8gBS0ACQRAIAAgASACIAMgBBAyDAELIAAgASACIAMgBBA0CyEAIAVBEGokACAACzQAIAAgAyAEIAUQNiIFEAMEQCAFDwsgBSAESQR/IAEgAiADIAVqIAQgBWsgABA1BUG4fwsLRgEBfyMAQRBrIgUkACAFQQhqIAQQDgJ/IAUtAAkEQCAAIAEgAiADIAQQYgwBCyAAIAEgAiADIAQQNQshACAFQRBqJAAgAAtZAQF/QQ8hAiABIABJBEAgAUEE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";
 
 /**
  * Display-P3 color space.
@@ -30121,9 +30194,9 @@ let _zstd;
  * This loader relies on Web Assembly which is not supported in older browsers.
  *
  * References:
- * - [KTX specification]{@link http://github.khronos.org/KTX-Specification/}
- * - [DFD]{@link https://www.khronos.org/registry/DataFormat/specs/1.3/dataformat.1.3.html#basicdescriptor}
- * - [BasisU HDR]{@link https://github.com/BinomialLLC/basis_universal/wiki/UASTC-HDR-Texture-Specification-v1.0}
+ * - [KTX specification](http://github.khronos.org/KTX-Specification/)
+ * - [DFD](https://www.khronos.org/registry/DataFormat/specs/1.3/dataformat.1.3.html#basicdescriptor)
+ * - [BasisU HDR](https://github.com/BinomialLLC/basis_universal/wiki/UASTC-HDR-Texture-Specification-v1.0)
  *
  * ```js
  * const loader = new KTX2Loader();
@@ -30202,22 +30275,17 @@ let KTX2Loader$1 = class KTX2Loader extends Loader {
 	 * Async version of {@link KTX2Loader#detectSupport}.
 	 *
 	 * @async
-	 * @param {WebGPURenderer|WebGLRenderer} renderer - The renderer.
+	 * @deprecated
+	 * @param {WebGPURenderer} renderer - The renderer.
 	 * @return {Promise} A Promise that resolves when the support has been detected.
 	 */
 	async detectSupportAsync( renderer ) {
 
-		this.workerConfig = {
-			astcSupported: await renderer.hasFeatureAsync( 'texture-compression-astc' ),
-			astcHDRSupported: false, // https://github.com/gpuweb/gpuweb/issues/3856
-			etc1Supported: await renderer.hasFeatureAsync( 'texture-compression-etc2' ),
-			etc2Supported: await renderer.hasFeatureAsync( 'texture-compression-etc2' ),
-			dxtSupported: await renderer.hasFeatureAsync( 'texture-compression-bc' ),
-			bptcSupported: await renderer.hasFeatureAsync( 'texture-compression-bc' ),
-			pvrtcSupported: await renderer.hasFeatureAsync( 'texture-compression-pvrtc' )
-		};
+		console.warn( 'KTX2Loader: "detectSupportAsync()" has been deprecated. Use "detectSupport()" and "await renderer.init();" when creating the renderer.' ); // @deprecated r181
 
-		return this;
+		await renderer.init();
+
+		return this.detectSupport( renderer );
 
 	}
 
@@ -30235,9 +30303,9 @@ let KTX2Loader$1 = class KTX2Loader extends Loader {
 			this.workerConfig = {
 				astcSupported: renderer.hasFeature( 'texture-compression-astc' ),
 				astcHDRSupported: false, // https://github.com/gpuweb/gpuweb/issues/3856
-				etc1Supported: renderer.hasFeature( 'texture-compression-etc2' ),
+				etc1Supported: renderer.hasFeature( 'texture-compression-etc1' ),
 				etc2Supported: renderer.hasFeature( 'texture-compression-etc2' ),
-				dxtSupported: renderer.hasFeature( 'texture-compression-bc' ),
+				dxtSupported: renderer.hasFeature( 'texture-compression-s3tc' ),
 				bptcSupported: renderer.hasFeature( 'texture-compression-bc' ),
 				pvrtcSupported: renderer.hasFeature( 'texture-compression-pvrtc' )
 			};
@@ -30255,6 +30323,21 @@ let KTX2Loader$1 = class KTX2Loader extends Loader {
 				pvrtcSupported: renderer.extensions.has( 'WEBGL_compressed_texture_pvrtc' )
 					|| renderer.extensions.has( 'WEBKIT_WEBGL_compressed_texture_pvrtc' )
 			};
+
+			if ( typeof navigator !== 'undefined' &&
+				navigator.platform.indexOf( 'Linux' ) >= 0 && navigator.userAgent.indexOf( 'Firefox' ) >= 0 &&
+				this.workerConfig.astcSupported && this.workerConfig.etc2Supported &&
+				this.workerConfig.bptcSupported && this.workerConfig.dxtSupported ) {
+
+				// On Linux, Mesa drivers for AMD and Intel GPUs expose ETC2 and ASTC even though the hardware doesn't support these.
+				// Using these extensions will result in expensive software decompression on the main thread inside the driver, causing performance issues.
+				// When using ANGLE (e.g. via Chrome), these extensions are not exposed except for some specific Intel GPU models - however, Firefox doesn't perform this filtering.
+				// Since a granular filter is a little too fragile and we can transcode into other GPU formats, disable formats that are likely to be emulated.
+
+				this.workerConfig.astcSupported = false;
+				this.workerConfig.etc2Supported = false;
+
+			}
 
 		}
 
@@ -30357,6 +30440,7 @@ let KTX2Loader$1 = class KTX2Loader extends Loader {
 		loader.setPath( this.path );
 		loader.setCrossOrigin( this.crossOrigin );
 		loader.setWithCredentials( this.withCredentials );
+		loader.setRequestHeader( this.requestHeader );
 		loader.setResponseType( 'arraybuffer' );
 
 		loader.load( url, ( buffer ) => {
@@ -30854,13 +30938,9 @@ KTX2Loader$1.BasisWorker = function () {
 	];
 
 	const OPTIONS = {
-		// TODO: For ETC1S we intentionally sort by _UASTC_ priority, preserving
-		// a historical accident shown to avoid performance pitfalls for Linux with
-		// Firefox & AMD GPU (RadeonSI). Further work needed.
-		// See https://github.com/mrdoob/three.js/pull/29730.
 		[ BasisFormat.ETC1S ]: FORMAT_OPTIONS
 			.filter( ( opt ) => opt.basisFormat.includes( BasisFormat.ETC1S ) )
-			.sort( ( a, b ) => a.priorityUASTC - b.priorityUASTC ),
+			.sort( ( a, b ) => a.priorityETC1S - b.priorityETC1S ),
 
 		[ BasisFormat.UASTC ]: FORMAT_OPTIONS
 			.filter( ( opt ) => opt.basisFormat.includes( BasisFormat.UASTC ) )
@@ -31082,7 +31162,7 @@ async function createRawTexture( container ) {
 
 			_zstd = new Promise( async ( resolve ) => {
 
-				const zstd = new Q$1();
+				const zstd = new Q();
 				await zstd.init();
 				resolve( zstd );
 
@@ -31216,7 +31296,7 @@ function parseColorSpace( container ) {
 
 		return dfd.transferFunction === y$1 ? SRGBColorSpace : LinearSRGBColorSpace;
 
-	} else if ( dfd.colorPrimaries === X ) {
+	} else if ( dfd.colorPrimaries === X$1 ) {
 
 		return dfd.transferFunction === y$1 ? DisplayP3ColorSpace : LinearDisplayP3ColorSpace;
 
@@ -31486,38 +31566,61 @@ const GlbTool = {
 	getMesh:( scene, multyMaterialGroup ) => {
         let meshs = {};
 
- 
-
         if( multyMaterialGroup ){
 
-            let oldGroup = [];
-            let nMesh = [];
-            let tmpMesh = {};
-            let groupName = [];
+            const oldGroup = {};
+            const newMesh = {};
+
+            scene.traverse( ( child ) => {
+                if ( child.isGroup ){
+                    let m = GlbTool.groupToMesh(child);
+                    if(m){
+                        m.applyMatrix4( child.matrix );
+                        oldGroup[child.name] = child;
+                        newMesh[child.name] = m;
+                    } 
+                }
+            });
+
+            // remove old group and add remplace mesh
+            let parent;
+            for(let k in oldGroup){
+
+                //console.log( 'Group remplaced: ', k)
+                parent = oldGroup[k].parent;
+                parent.remove(oldGroup[k]);
+                parent.add(newMesh[k]);
+
+            }
+
+            /*let oldGroup = []
+            let nMesh = []
+            let tmpMesh = {}
+            let groupName = []
             scene.traverse( ( child ) => {
                 if ( child.isGroup ){ 
                     let m = GlbTool.groupToMesh(child);
 
                     if(m){
                         oldGroup.push(child);
-                        groupName.push( child.name );
+                        groupName.push( child.name )
 
-                        m.applyMatrix4(child.matrix);
+                        m.applyMatrix4(child.matrix)
                         /*m.position.copy(child.position)
                         m.quaternion.copy(child.quaternion)
                         m.scale.copy(child.scale)*/
-                        nMesh.push(m);
+              /*          nMesh.push(m);
 
                         tmpMesh[m.name] = nMesh;
                     }
                 }
-            });
+            })
 
             // remove old group and add remplace mesh
-            let i = oldGroup.length, p, name;
+            let i = oldGroup.length, p, name
             while(i--){
                 p = oldGroup[i].parent;
-                name = p.name;
+                name = p.name
 
                 p.remove(oldGroup[i]);
 
@@ -31525,7 +31628,7 @@ const GlbTool = {
                 
                 p.add(nMesh[i]);
 
-            }
+            }*/
 
         }
         //if( keepMaterial ) GlbTool.keepMaterial( scene )
@@ -31971,11 +32074,16 @@ const Pool = {
         if( !Pool.loaderMap ) Pool.loaderMap = new TextureLoader();
 
         let name = o.name || '';
+        let type = o.format || '';
 
         if( o.url ){ 
-            if( o.url.lastIndexOf('.') !==-1 ) name = o.url.substring( o.url.lastIndexOf('/')+1, o.url.lastIndexOf('.') );
+            if( o.url.lastIndexOf('.') !==-1 ){ 
+                name = o.url.substring( o.url.lastIndexOf('/')+1, o.url.lastIndexOf('.') );
+                type = o.url.substring( o.url.lastIndexOf('.')+1 ).toLowerCase();
+            }
             else name = o.url.substring( o.url.lastIndexOf('/')+1 );
         }
+
 
         if( name.search('_c') !== -1 || name.search('_l') !== -1 || name.search('_u') !== -1|| name.search('_d') !== -1) o.srgb = true;
 
@@ -31985,13 +32093,44 @@ const Pool = {
             return Pool.getTexture( name, o );
         } else {
 
-            return Pool.loaderMap.load( o.url, function ( t ) { 
+
+            switch(type){
+                case 'ktx2':
+                const texture = new CompressedTexture();
+                Pool.data.set( 'T_' + name, texture );
+                Pool.loaderKTX2().load( o.url, function ( t ) { 
+
+                    Pool.setTextureOption( t, o );
+
+                    texture.copy(t);
+
+                    t.dispose();
+                    //Pool.setTextureOption( texture, o );
+                    
+                    if( o.callback ) o.callback();
+
+                });
+                return texture
+                default:
+                return Pool.loaderMap.load( o.url, function ( t ) { 
+                    //console.log('use TextureLoader !!', name )
+                    Pool.setTextureOption( t, o );
+                    Pool.data.set( 'T_' + name, t );
+                    if( o.callback ) o.callback();
+                    return t
+                })
+
+            }
+
+            /*return Pool.loaderMap.load( o.url, function ( t ) { 
                 //console.log('use TextureLoader !!', name )
                 Pool.setTextureOption( t, o );
                 Pool.data.set( 'T_' + name, t );
-                if( o.callback ) o.callback();
+                if( o.callback ) o.callback()
                 return t
-            })
+            })*/
+
+            
         }
             
         
@@ -32023,8 +32162,8 @@ const Pool = {
     setTextureOption:( t, o = {} ) => {
 
         //if( o.colorSpace ) t.colorSpace = o.colorSpace;
-        if( o.encoding ) t.colorSpace = SRGBColorSpace;
-        if( o.srgb ) t.colorSpace = SRGBColorSpace;
+        t.colorSpace = o.encoding || o.srgb ? SRGBColorSpace : NoColorSpace;
+        
         t.flipY = o.flipY!== undefined || o.flip !== undefined ? o.flipY : false;
 
         if( o.anisotropy ){
@@ -32037,6 +32176,11 @@ const Pool = {
             t.repeat.fromArray( o.repeat );
             t.wrapS = t.wrapT = RepeatWrapping;
         }
+
+        //t.minFilter = LinearMipmapLinearFilter
+        //t.premultiplyAlpha = true
+
+
 
         if( o.center ) t.center.fromArray( o.center );
         if( o.offset ) t.offset.fromArray( o.offset );
@@ -40806,7 +40950,7 @@ class SoftSolver {
 
 }
 
-function h(t,i,n,s){return function(t,i,n,s,e){let r={x:i.x-t.x,y:i.y-t.y},o={x:s.x-n.x,y:s.y-n.y};const a=p(t),h=p(n);if(a===h)return e;const l=p(i);if(l===h)return e;const u=p(s);if(a===u)return e;if(l===u)return e;let c=(t.x-n.x)*o.y-(t.y-n.y)*o.x,g=(i.x-n.x)*o.y-(i.y-n.y)*o.x,d=(n.x-t.x)*r.y-(n.y-t.y)*r.x,f=(s.x-t.x)*r.y-(s.y-t.y)*r.x;return (c>=0&&g<=0||c<=0&&g>=0)&&(d>=0&&f<=0||d<=0&&f>=0)}(t,i,n,s,false)}function l(i,n,s,e){let r=0,o=new Vector3;return f(i)===f(n)||0===s.x&&0===s.y&&0===s.z?null:(r=((e.x-i.x)*s.x+(e.y-i.y)*s.y+(e.z-i.z)*s.z)/((n.x-i.x)*s.x+(n.y-i.y)*s.y+(n.z-i.z)*s.z),r<0||r>1?null:(o=new Vector3(i.x+(n.x-i.x)*r,i.y+(n.y-i.y)*r,i.z+(n.z-i.z)*r),{x:o,s:r}))}function u(t,i,n){return (i.x-t.x)*(n.y-t.y)-(i.y-t.y)*(n.x-t.x)<=0}function c(t){return parseInt(Math.round(1e6*t))}function g(t,i=1e6){return Math.floor(t*i)}function d(t,i){return Math.round((t+i)*(t+i+1)*.5+i)}function p(t){return d(g(t.x),g(t.y))}function f(t){const i=g(t.x),n=g(t.y),s=g(t.z),e=(i+n)*(i+n+1)*.5+n;return (e+s)*(e+s+1)*.5+s}function x(t,i,n){return !(i.x*(t.x-n.x)+i.y*(t.y-n.y)+i.z*(t.z-n.z)<0)}class v{constructor(n=new Vector3,s=new Vector3,e=new Vector2){this.position=n,this.normal=s,this.uv=e;}equals(t){return f(this.position)===f(t.position)}toString(){return `Position = ${this.position.x}, ${this.position.y}, ${this.position.z}, Normal = ${this.normal.x}, ${this.normal.y}, ${this.normal.z}, UV = ${this.uv.x}, ${this.uv.y}`}}const y=0,m$1=1;class w{constructor(){this.vertices=[],this.cutVertices=[],this.triangles=[[],[]],this.constraints=[],this.indexMap=[],this.bounds=new Box3,this.vertexAdjacency=[],this.convextested=false;}static fromGeometry(n){const s=n.attributes.position.array,e=n.attributes.normal.array,r=n.attributes.uv.array,o=n.attributes.position.count;let a,h;const l=new w;for(let n=0;n<o;n++)a=3*n,h=2*n,l.vertices.push(new v(new Vector3(s[a],s[a+1],s[a+2]),new Vector3(e[a],e[a+1],e[a+2]),new Vector2(r[h],r[h+1])));return l.triangles=[[...n.index.array],[]],l.calculateBounds(),l}get size(){this.bounds||this.calculateBounds();let i=new Vector3;return this.bounds.getSize(i)}get convex(){return this.convextested||(this.cc=this.isConvex()),this.cc}get triangleCount(){return (this.triangles[0].length+this.triangles[1].length)/3}get vertexCount(){return this.vertices.length+this.cutVertices.length}addCutFaceVertex(t,i,n){const s=new v(t,i,n);this.vertices.push(s),this.cutVertices.push(s),this.vertexAdjacency.push(this.vertices.length-1);}addMappedVertex(t,i){this.vertices.push(t),this.indexMap[i]=this.vertices.length-1;}addTriangle(t,i,n,s){this.triangles[s].push(t,i,n);}addMappedTriangle(t,i,n,s){this.triangles[s].push(this.indexMap[t],this.indexMap[i],this.indexMap[n]);}weldCutFaceVertices(){const t=[],i=[],n=new Array(this.cutVertices.length);let s=0;const e=new Map;this.cutVertices.forEach(((r,o)=>{const a=function(t){let i=c(t.x),n=c(t.y),s=c(t.z),e=(i+n)*(i+n+1)*.5+n;return (e+s)*(e+s+1)*.5+s}(r.position),h=e.get(a);void 0===h?(n[o]=s,e.set(a,s),t.push(this.cutVertices[o]),i.push(this.vertexAdjacency[o]),s++):n[o]=h;}));for(let t=0;t<this.constraints.length;t++){const i=this.constraints[t];i.v1=n[i.v1],i.v2=n[i.v2];}this.cutVertices=t,this.vertexAdjacency=i;}calculateBounds(){if(!this.vertices.length)return;let t=this.vertices[0].position.clone(),i=t.clone();this.vertices.forEach((n=>{t.x=Math.min(t.x,n.position.x),t.y=Math.min(t.y,n.position.y),t.z=Math.min(t.z,n.position.z),i.x=Math.max(i.x,n.position.x),i.y=Math.max(i.y,n.position.y),i.z=Math.max(i.z,n.position.z);})),this.bounds.set(t,i);}calculateBounds_(t=false){null===this.bounds&&(this.bounds=new Box3);let i=this.vertices.length;t&&(i+=this.cutVertices.length);const s=[];let e=-1;for(const t of this.vertices)s[e++]=t.position;if(t)for(const t of this.cutVertices)s[e++]=t.position;this.bounds.setFromPoints(s);}toMesh(i,n=null,r=true,o=0){const a=new Vector3,h=new Vector3;let l=this.toGeometry(r,o);l.boundingBox.getCenter(a),l.boundingBox.getSize(h),l.translate(-a.x,-a.y,-a.z),l.boundingSphere=new Sphere(new Vector3,.5*h.length());let u=i.material;n&&u.isMaterial&&(u=[i.material,n]);const c=new Mesh(l,u);return c.receiveShadow=i.receiveShadow,c.castShadow=i.castShadow,c.sizer=h.length(),a.applyQuaternion(i.quaternion),c.position.copy(i.position).add(a),c.quaternion.copy(i.quaternion),c.userData={origin:c.position.clone(),direction:a.normalize(),size:h},c}makeTrickness(t,i,n,s,e){let r,o=1-e,a=[...t],h=[...i],l=[...n],u=t.length/3,c=u;for(;c--;)r=3*c,a[r]*=o,a[r+1]*=o,a[r+2]*=o;let g=[];for(c=s.length;c--;)g[c]=s[c]+u;return [a,h,l,g]}toGeometry(t,i){let n;const s=new BufferGeometry;let e=[],a=[],h=[];if(this.vertices.forEach((t=>{e.push(t.position.x,t.position.y,t.position.z),a.push(t.normal.x,t.normal.y,t.normal.z),h.push(t.uv.x,t.uv.y);})),0!==i){let t=this.makeTrickness(e,a,h,this.triangles[0],i);e=e.concat(t[0]),a=a.concat(t[1]),h=h.concat(t[2]),n=t[3];}return t&&this.cutVertices.forEach((t=>{e.push(t.position.x,t.position.y,t.position.z),a.push(t.normal.x,t.normal.y,t.normal.z),h.push(t.uv.x,t.uv.y);})),s.addGroup(0,this.triangles[0].length,0),0!==i&&(s.addGroup(this.triangles[0].length,n.length,1),this.triangles[0]=this.triangles[0].concat(n)),t&&s.addGroup(this.triangles[0].length,this.triangles[1].length,1),s.setAttribute("position",new BufferAttribute(new Float32Array(e),3)),s.setAttribute("normal",new BufferAttribute(new Float32Array(a),3)),s.setAttribute("uv",new BufferAttribute(new Float32Array(h),2)),s.setIndex(new BufferAttribute(new Uint32Array(this.triangles.flat()),1)),s.computeBoundingBox(),s}isConvex(i=.001){this.convextested=true;let n=0;const s=this.triangleCount,e=[...this.triangles[0],...this.triangles[1]],r=[...this.vertices,...this.cutVertices],o=r.length;if(0===s||0===o)return  false;const a=new Vector3,h=new Vector3,l=new Vector3,u=new Vector3,c=new Vector3;let g,d;for(let t=0;t<s;t++){n=3*t,c.copy(r[0].position),a.copy(r[e[n]].position),h.copy(r[e[n+1]].position),l.copy(r[e[n+2]].position),h.sub(a),l.sub(a),u.copy(h).cross(l).normalize(),g=c.sub(a).dot(u);for(let t=0;t<o;t++)if(d=c.copy(r[t].position).sub(a).dot(u),Math.abs(g)>i&&Math.abs(d)>i&&g*d<0)return  false}return  true}}class V{constructor(t){this.parent=new Array(t),this.rank=new Array(t);for(let i=0;i<t;i++)this.parent[i]=i,this.rank[i]=1;}find(t){return this.parent[t]!==t&&(this.parent[t]=this.find(this.parent[t])),this.parent[t]}union(t,i){const n=this.find(t),s=this.find(i);n!==s&&(this.rank[n]>this.rank[s]?this.parent[s]=n:this.rank[n]<this.rank[s]?this.parent[n]=s:(this.parent[s]=n,this.rank[n]+=1));}}let M$1 = class M{constructor(t,i,n,s,e){this.v1=t,this.v2=i,this.t1=void 0!==n?n:-1,this.t2=void 0!==s?s:-1,this.t1Edge=void 0!==e?e:0;}equals(t){return this.v1===t.v1&&this.v2===t.v2||this.v1===t.v2&&this.v2===t.v1}toString(){return `Edge: T${this.t1}->T${this.t2} (V${this.v1}->V${this.v2})`}};class T{static getBinNumber(t,i,n){return t%2==0?t*n+i:(t+1)*n-i-1}static sort(t,i,n){if(n<=1)return t;i>t.length&&(i=t.length);const s=new Array(n).fill(0),e=new Array(t.length);for(let n=0;n<i;n++)s[t[n].bin]++;for(let t=1;t<n;t++)s[t]+=s[t-1];for(let n=i-1;n>=0;n--){const i=t[n].bin;s[i]--,e[s[i]]=t[n];}for(let n=i;n<e.length;n++)e[n]=t[n];return e}}let C$1 = class C{constructor(t,i){this.index=t,this.coords=i,this.bin=0;}toString(){return `${this.coords} -> ${this.bin}`}};const z=-1;class b{constructor(n,s){if(this.normalizationScaleFactor=1,this.N=n.length,this.N>=3){this.triangleCount=2*this.N+1,this.triangulation=Array.from({length:this.triangleCount},(()=>new Array(6).fill(0))),this.skipTriangle=new Array(this.triangleCount).fill(false),this.points=new Array(this.N+3),this.normal=s.clone().normalize();let o=n[0].position.clone().sub(n[1].position).normalize(),a=this.normal.clone(),h=new Vector3;h.crossVectors(o,a).normalize();for(let t=0;t<this.N;t++){var e=n[t].position,r=new Vector2(e.dot(o),e.dot(h));this.points[t]=new C$1(t,r);}}else this.triangleCount=0,this.triangulation=[],this.skipTriangle=[],this.points=[],this.normal=new Vector3;}triangulate(){if(this.N<3)return [];this.addSuperTriangle(),this.normalizeCoordinates(),this.computeTriangulation(),this.discardTrianglesWithSuperTriangleVertices();const t=[];for(let i=0;i<this.triangleCount;i++)this.skipTriangle[i]||t.push(this.triangulation[i][0],this.triangulation[i][1],this.triangulation[i][2]);return t}normalizeCoordinates(){let t=Number.MAX_VALUE,n=Number.MIN_VALUE,s=Number.MAX_VALUE,e=Number.MIN_VALUE;for(let i=0;i<this.N;i++)t=Math.min(t,this.points[i].coords.x),n=Math.max(n,this.points[i].coords.x),s=Math.min(s,this.points[i].coords.y),e=Math.max(e,this.points[i].coords.y);const r=Math.max(n-t,e-s);for(let n=0;n<this.N;n++){var o=this.points[n],a=new Vector2((o.coords.x-t)/r,(o.coords.y-s)/r);this.points[n].coords=a;}}sortPointsIntoBins(){const t=Math.round(Math.pow(this.N,.25)),i=t*t;for(let i=0;i<this.N;i++){var n=this.points[i];const s=Math.floor(.99*t*n.coords.y),e=Math.floor(.99*t*n.coords.x);n.bin=T.getBinNumber(s,e,t);}return T.sort(this.points,this.N,i)}computeTriangulation(){let t=0,i=0,n=this.sortPointsIntoBins();for(let s=0;s<this.N;s++){let e=n[s];if(!e)break;let r=0,o=false;for(;!o&&!(r++>i||t===z);){let n=this.points[this.triangulation[t][0]].coords,s=this.points[this.triangulation[t][1]].coords,r=this.points[this.triangulation[t][2]].coords;u(n,s,e.coords)?u(s,r,e.coords)?u(r,n,e.coords)?(this.insertPointIntoTriangle(e,t,i),i+=2,t=i,o=true):t=this.triangulation[t][5]:t=this.triangulation[t][4]:t=this.triangulation[t][3];}}}addSuperTriangle(){this.points[this.N]=new C$1(this.N,new Vector2(-100,-100)),this.points[this.N+1]=new C$1(this.N+1,new Vector2(0,100)),this.points[this.N+2]=new C$1(this.N+2,new Vector2(100,-100)),this.triangulation[0][0]=this.N,this.triangulation[0][1]=this.N+1,this.triangulation[0][2]=this.N+2,this.triangulation[0][3]=z,this.triangulation[0][4]=z,this.triangulation[0][5]=z;}insertPointIntoTriangle(t,i,n){const s=i,e=n+1,r=n+2;this.triangulation[e][0]=t.index,this.triangulation[e][1]=this.triangulation[i][1],this.triangulation[e][2]=this.triangulation[i][2],this.triangulation[e][3]=r,this.triangulation[e][4]=this.triangulation[i][4],this.triangulation[e][5]=s,this.triangulation[r][0]=t.index,this.triangulation[r][1]=this.triangulation[i][0],this.triangulation[r][2]=this.triangulation[i][1],this.triangulation[r][3]=s,this.triangulation[r][4]=this.triangulation[i][3],this.triangulation[r][5]=e,this.updateAdjacency(this.triangulation[i][3],i,r),this.updateAdjacency(this.triangulation[i][4],i,e),this.triangulation[s][1]=this.triangulation[i][2],this.triangulation[s][2]=this.triangulation[i][0],this.triangulation[s][0]=t.index,this.triangulation[s][4]=this.triangulation[i][5],this.triangulation[s][3]=e,this.triangulation[s][5]=r,this.restoreDelauneyTriangulation(t,s,e,r);}restoreDelauneyTriangulation(t,i,n,s){const e=[];for(e.push([i,this.triangulation[i][4]]),e.push([n,this.triangulation[n][4]]),e.push([s,this.triangulation[s][4]]);e.length>0;)if([i,n]=e.pop()??[z,z],n!==z){const s=this.swapQuadDiagonalIfNeeded(t.index,i,n);null!==s&&(e.push([i,s.t3]),e.push([n,s.t4]));}}swapQuadDiagonalIfNeeded(t,i,n){let s=0,e=0,r=0,o=t,a=0,h=0;this.triangulation[n][3]===i?(s=this.triangulation[n][1],e=this.triangulation[n][0],r=this.triangulation[n][2],a=this.triangulation[n][4],h=this.triangulation[n][5]):this.triangulation[n][4]===i?(s=this.triangulation[n][2],e=this.triangulation[n][1],r=this.triangulation[n][0],a=this.triangulation[n][5],h=this.triangulation[n][3]):(s=this.triangulation[n][0],e=this.triangulation[n][2],r=this.triangulation[n][1],a=this.triangulation[n][3],h=this.triangulation[n][4]);return this.swapTest(this.points[s].coords,this.points[e].coords,this.points[r].coords,this.points[o].coords)?(this.updateAdjacency(a,n,i),this.updateAdjacency(this.triangulation[i][5],i,n),this.triangulation[i][0]=o,this.triangulation[i][1]=s,this.triangulation[i][2]=r,this.triangulation[n][0]=o,this.triangulation[n][1]=r,this.triangulation[n][2]=e,this.triangulation[n][3]=i,this.triangulation[n][4]=h,this.triangulation[n][5]=this.triangulation[i][5],this.triangulation[i][4]=a,this.triangulation[i][5]=n,{t3:a,t4:h}):null}discardTrianglesWithSuperTriangleVertices(){for(let t=0;t<this.triangleCount;t++)(this.triangleContainsVertex(t,this.N)||this.triangleContainsVertex(t,this.N+1)||this.triangleContainsVertex(t,this.N+2))&&(this.skipTriangle[t]=true);}swapTest(t,i,n,s){const e=t.x-n.x,r=i.x-n.x,o=t.y-n.y,a=i.y-n.y,h=t.x-s.x,l=i.x-s.x,u=t.y-s.y,c=i.y-s.y,g=e*r+o*a,d=l*h+c*u;if(g>=0&&d>=0)return  false;if(g<0&&d<0)return  true;return (e*a-r*o)*d+(l*u-h*c)*g<0}triangleContainsVertex(t,i){return this.triangulation[t][0]===i||this.triangulation[t][1]===i||this.triangulation[t][2]===i}updateAdjacency(t,i,n){if(t===z)return;const s=this.findSharedEdge(t,i);null!==s&&(this.triangulation[t][s]=n);}findSharedEdge(t,i){return t===z?null:this.triangulation[t][3]===i?3:this.triangulation[t][4]===i?4:this.triangulation[t][5]===i?5:null}}class A{constructor(t,i,n,s,e,r,o,a,h,l){this.q1=t,this.q2=i,this.q3=n,this.q4=s,this.t1=e,this.t2=r,this.t1L=o,this.t1R=a,this.t2L=h,this.t2R=l;}toString(){return `T${this.t1}/T${this.t2} (V${this.q1},V${this.q2},V${this.q3},V${this.q4})`}}class S extends b{edgeVertex1=[0,0,0,0,1,2];edgeVertex2=[0,0,0,1,2,0];oppositePoint=[0,0,0,2,0,1];nextEdge=[0,0,0,4,5,3];previousEdge=[0,0,0,5,3,4];constructor(t,i,n){super(t,n),this.constraints=i,this.vertexTriangles=[],this.visited=[];}triangulate(){if(this.N<3)return [];this.addSuperTriangle(),this.normalizeCoordinates(),this.computeTriangulation(),this.constraints.length>0&&(this.applyConstraints(),this.discardTrianglesViolatingConstraints()),this.discardTrianglesWithSuperTriangleVertices();let t=[];for(let i=0;i<this.triangleCount;i++)this.skipTriangle[i]||(t.push(this.triangulation[i][0]),t.push(this.triangulation[i][1]),t.push(this.triangulation[i][2]));return t}applyConstraints(){const t=this.triangulation.length;this.visited=new Array(t).fill(false),this.vertexTriangles=new Array(this.N+3).fill(0);for(let i=0;i<t;i++)this.vertexTriangles[this.triangulation[i][0]]=i,this.vertexTriangles[this.triangulation[i][1]]=i,this.vertexTriangles[this.triangulation[i][2]]=i;for(let t of this.constraints){if(t.v1===t.v2)continue;const i=this.findIntersectingEdges(t,this.vertexTriangles);this.removeIntersectingEdges(t,i);}}findIntersectingEdges(t,i){const n=[],s=this.findStartingEdge(i,t);if(null===s)return n;n.push(s);let e=s.t1,r=s.t1Edge,o=e,a=false;for(;!a;){o=e,e=this.triangulation[e][r];const i=this.points[t.v1].coords,s=this.points[t.v2].coords,u=this.points[this.triangulation[e][0]].coords,c=this.points[this.triangulation[e][1]].coords,g=this.points[this.triangulation[e][2]].coords;if(this.triangleContainsVertex(e,t.v2))a=true;else if(this.triangulation[e][3]!==o&&h(i,s,u,c)){r=3;var l=new M$1(this.triangulation[e][0],this.triangulation[e][1],e,this.triangulation[e][3],r);n.push(l);}else if(this.triangulation[e][4]!==o&&h(i,s,c,g)){r=4;l=new M$1(this.triangulation[e][1],this.triangulation[e][2],e,this.triangulation[e][4],r);n.push(l);}else {if(this.triangulation[e][5]===o||!h(i,s,g,u)){console.warn("Failed to find final triangle, exiting early.");break}r=5;l=new M$1(this.triangulation[e][2],this.triangulation[e][0],e,this.triangulation[e][5],r);n.push(l);}}return n}findStartingEdge(t,i){let n,s,e,r=new M$1(-1,-1),o=i.v1,a=t[o],h=false,l=null;for(this.visited.fill(false);!l&&!h;){if(this.visited[a]=true,this.triangleContainsConstraint(a,i))return null;if(l=this.edgeConstraintIntersectsTriangle(a,i),l)break;if(n=this.triangulation[a][3],s=this.triangulation[a][4],e=this.triangulation[a][5],-1!==n&&!this.visited[n]&&this.triangleContainsVertex(n,o))a=n;else if(-1!==s&&!this.visited[s]&&this.triangleContainsVertex(s,o))a=s;else {if(-1===e||this.visited[e]||!this.triangleContainsVertex(e,o)){h=true;break}a=e;}}if(l){const t=this.triangulation[a][this.edgeVertex1[l]],i=this.triangulation[a][this.edgeVertex2[l]],n=this.triangulation[a][l];return r=new M$1(t,i,a,n,l),r}return null}removeIntersectingEdges(t,i){let n,s=[],e=0;for(;i.length>0&&e<=i.length;){if(n=i.shift(),null==n)continue;let r=this.findQuadFromSharedEdge(n.t1,n.t1Edge);if(r)if(h(this.points[r.q4].coords,this.points[r.q3].coords,this.points[r.q1].coords,this.points[r.q2].coords)){this.swapQuadDiagonal(r,i,s,this.constraints);let n=new M$1(r.q3,r.q4,r.t1,r.t2,5);h(this.points[t.v1].coords,this.points[t.v2].coords,this.points[r.q3].coords,this.points[r.q4].coords)?i.push(n):(e=0,s.push(n));}else i.push(n);e++;}s.length>0&&this.restoreConstrainedDelauneyTriangulation(t,s);}restoreConstrainedDelauneyTriangulation(t,i){let n=true;for(;n;){n=false;for(let s=0;s<i.length;s++){const e=i[s];if(e.equals(t))continue;let r=this.findQuadFromSharedEdge(e.t1,e.t1Edge);if(r&&this.swapTest(this.points[r.q1].coords,this.points[r.q2].coords,this.points[r.q3].coords,this.points[r.q4].coords)){this.swapQuadDiagonal(r,i,this.constraints,null);const t=r.q3,e=r.q4;i[s]=new M$1(t,e,r.t1,r.t2,5),n=true;}}}}discardTrianglesViolatingConstraints(){this.skipTriangle.fill(true);let t=new Set;for(let i=0;i<this.constraints.length;i++){const n=this.constraints[i];t.add(d(n.v1,n.v2));}this.visited.fill(false);let i,n,s,e,r,o,a=[];for(let h=0;h<this.triangleCount;h++)if(!this.visited[h]&&(i=this.triangulation[h][0],n=this.triangulation[h][1],s=this.triangulation[h][2],e=t.has(d(i,n)),r=t.has(d(n,s)),o=t.has(d(s,i)),e||r||o))for(this.skipTriangle[h]=false,a=[],e||a.push(this.triangulation[h][3]),r||a.push(this.triangulation[h][4]),o||a.push(this.triangulation[h][5]);a.length>0;){const e=a.shift();-1===e||this.visited[e]||(this.skipTriangle[e]=false,this.visited[e]=true,i=this.triangulation[e][0],n=this.triangulation[e][1],s=this.triangulation[e][2],t.has(d(i,n))||a.push(this.triangulation[e][3]),t.has(d(n,s))||a.push(this.triangulation[e][4]),t.has(d(s,i))||a.push(this.triangulation[e][5]));}}triangleContainsConstraint(t,i){return !(t>=this.triangulation.length)&&!(this.triangulation[t][0]!==i.v1&&this.triangulation[t][1]!==i.v1&&this.triangulation[t][2]!==i.v1||this.triangulation[t][0]!==i.v2&&this.triangulation[t][1]!==i.v2&&this.triangulation[t][2]!==i.v2)}edgeConstraintIntersectsTriangle(t,i){const n=this.points[i.v1].coords,s=this.points[i.v2].coords,e=this.points[this.triangulation[t][0]].coords,r=this.points[this.triangulation[t][1]].coords,o=this.points[this.triangulation[t][2]].coords;return h(n,s,e,r)?3:h(n,s,r,o)?4:h(n,s,o,e)?5:null}findQuadFromSharedEdge(t,i){let n,s,e,r,o,a,h,l,u=this.triangulation[t][i],c=this.findSharedEdge(u,t);return c?(3===c?(s=this.triangulation[u][0],n=this.triangulation[u][1],e=this.triangulation[u][2]):4===c?(s=this.triangulation[u][1],n=this.triangulation[u][2],e=this.triangulation[u][0]):(s=this.triangulation[u][2],n=this.triangulation[u][0],e=this.triangulation[u][1]),r=this.triangulation[t][this.oppositePoint[i]],o=this.triangulation[t][this.previousEdge[i]],a=this.triangulation[t][this.nextEdge[i]],h=this.triangulation[u][this.nextEdge[c]],l=this.triangulation[u][this.previousEdge[c]],new A(n,s,e,r,t,u,o,a,h,l)):null}swapQuadDiagonal(t,i,n,s){const e=t.t1,r=t.t2,o=t.t1R,a=t.t1L,h=t.t2R,l=t.t2L;this.triangulation[e][0]=t.q4,this.triangulation[e][1]=t.q1,this.triangulation[e][2]=t.q3,this.triangulation[r][0]=t.q4,this.triangulation[r][1]=t.q3,this.triangulation[r][2]=t.q2,this.triangulation[e][3]=a,this.triangulation[e][4]=l,this.triangulation[e][5]=r,this.triangulation[r][3]=e,this.triangulation[r][4]=h,this.triangulation[r][5]=o,this.updateAdjacency(l,r,e),this.updateAdjacency(o,e,r),this.updateEdgesAfterSwap(i,e,r,a,o,l,h),this.updateEdgesAfterSwap(n,e,r,a,o,l,h),this.updateEdgesAfterSwap(s,e,r,a,o,l,h),this.vertexTriangles[t.q1]=e,this.vertexTriangles[t.q2]=r;}updateEdgesAfterSwap(t,i,n,s,e,r,o){if(t)for(let a of t)a.t1===i&&a.t2===e?(a.t1=n,a.t2=e,a.t1Edge=5):a.t1===i&&a.t2===s?a.t1Edge=3:a.t1===e&&a.t2===i?a.t2=n:a.t1===s&&a.t2===i||(a.t1===n&&a.t2===o?a.t1Edge=4:a.t1===n&&a.t2===r?(a.t1=i,a.t2=r,a.t1Edge=4):a.t1===o&&a.t2===n||a.t1===r&&a.t2===n&&(a.t2=i));}}function E$1(t,n,s,e,r,o,a=true){const h=new w,l=new w,u=new Array(t.vertexCount).fill(false);for(let i=0;i<t.vertices.length;i++){var c=t.vertices[i];u[i]=x(c.position,n,s),(u[i]?h:l).addMappedVertex(c,i);}const g=t.vertices.length;for(let i=0;i<t.cutVertices.length;i++){c=t.cutVertices[i];u[i+g]=x(c.position,n,s),(u[i+g]?h:l).addMappedVertex(c,i+g);}return N(t,h,l,n,s,u,y),a&&N(t,h,l,n,s,u,m$1),a&&function(t,n,s,e,r,o){t.weldCutFaceVertices();const a=s.clone().negate().normalize();if(t.cutVertices.length<3)return;const h=o?new b(t.cutVertices,a):new S(t.cutVertices,t.constraints,a),l=h.triangulate();for(let o=0;o<t.cutVertices.length;o++){var u=t.cutVertices[o],c=h.points[o];const l=new Vector2(h.normalizationScaleFactor*c.coords.x*e.x+r.x,h.normalizationScaleFactor*c.coords.y*e.y+r.y),g=new v(u.position.clone(),a.clone(),l.clone()),d=new v(u.position.clone(),s.clone(),l.clone());t.cutVertices[o]=g,n.cutVertices[o]=d;}let g=t.vertices.length,d=n.vertices.length;for(let i=0;i<l.length;i+=3)t.addTriangle(g+l[i],g+l[i+1],g+l[i+2],m$1),n.addTriangle(d+l[i],d+l[i+2],d+l[i+1],m$1);}(h,l,n,e,r,o),{topSlice:h,bottomSlice:l}}function N(t,i,n,s,e,r,o){const a=t.triangles[o];let h,l,u;for(let c=0;c<a.length;c+=3)h=a[c],l=a[c+1],u=a[c+2],r[h]&&r[l]&&r[u]?i.addMappedTriangle(h,l,u,o):r[h]||r[l]||r[u]?r[l]&&r[u]&&!r[h]?q$1(l,u,h,s,e,t,i,n,o,true):r[u]&&r[h]&&!r[l]?q$1(u,h,l,s,e,t,i,n,o,true):r[h]&&r[l]&&!r[u]?q$1(h,l,u,s,e,t,i,n,o,true):r[l]||r[u]||!r[h]?r[u]||r[h]||!r[l]?r[h]||r[l]||!r[u]||q$1(h,l,u,s,e,t,i,n,o,false):q$1(u,h,l,s,e,t,i,n,o,false):q$1(l,u,h,s,e,t,i,n,o,false):n.addMappedTriangle(h,l,u,o);}function q$1(n,s,e,r,o,a,h,u,c,g){let d=n<a.vertices.length?a.vertices[n]:a.cutVertices[n-a.vertices.length],p=s<a.vertices.length?a.vertices[s]:a.cutVertices[s-a.vertices.length],f=e<a.vertices.length?a.vertices[e]:a.cutVertices[e-a.vertices.length];const x=l(d.position,f.position,r,o),v=l(p.position,f.position,r,o);if(x&&v){const r=new Vector3(d.normal.x+x.s*(f.normal.x-d.normal.x),d.normal.y+x.s*(f.normal.y-d.normal.y),d.normal.z+x.s*(f.normal.z-d.normal.z)).normalize(),o=new Vector3(p.normal.x+v.s*(f.normal.x-p.normal.x),p.normal.y+v.s*(f.normal.y-p.normal.y),p.normal.z+v.s*(f.normal.z-p.normal.z)).normalize(),a=new Vector2(d.uv.x+x.s*(f.uv.x-d.uv.x),d.uv.y+x.s*(f.uv.y-d.uv.y)),l=new Vector2(p.uv.x+v.s*(f.uv.x-p.uv.x),p.uv.y+v.s*(f.uv.y-p.uv.y));h.addCutFaceVertex(x.x,r,a),h.addCutFaceVertex(v.x,o,l),u.addCutFaceVertex(x.x,r,a),u.addCutFaceVertex(v.x,o,l);const y=h.vertices.length-2,m=h.vertices.length-1,w=u.vertices.length-2,V=u.vertices.length-1;g?(h.addTriangle(m,y,h.indexMap[s],c),h.addTriangle(y,h.indexMap[n],h.indexMap[s],c),u.addTriangle(u.indexMap[e],w,V,c),h.constraints.push(new M$1(h.cutVertices.length-2,h.cutVertices.length-1)),u.constraints.push(new M$1(u.cutVertices.length-1,u.cutVertices.length-2))):(h.addTriangle(y,m,h.indexMap[e],c),u.addTriangle(u.indexMap[n],u.indexMap[s],w,c),u.addTriangle(u.indexMap[s],V,w,c),h.constraints.push(new M$1(h.cutVertices.length-1,h.cutVertices.length-2)),u.constraints.push(new M$1(u.cutVertices.length-2,u.cutVertices.length-1)));}}const k={textureScale:new Vector2(1,1),textureOffset:new Vector2},F$1=new Vector3,$=new Vector3,I$1=new Vector3,P$1=new Plane,j=new Plane;function B$1(i,n,s,e,r,o){const a=[],h=i.matrixWorld.clone().invert(),l=i.position;n.applyMatrix4(h);const u=w.fromGeometry(i.geometry);let c=u.convex;F$1.addVectors(n,s),P$1.setFromCoplanarPoints(n,l,F$1);const g=r+e;return function i(r,u,d,p){if(0===r.vertexCount)return;if(Math.random()<.05*p||p>g)return void a.push(r);let f=Math.PI,x=new Vector3;r.calculateBounds(),r.bounds.getCenter(x);let v=c;if(0===p)j.normal.copy(P$1.normal),j.constant=P$1.constant;else if(p<=e)f=(d-u)*(.2+.6*Math.random())+u,$.copy(l).sub(n).applyAxisAngle(s,f).add(n),j.setFromCoplanarPoints(n,F$1,$);else {let t=x.clone().applyMatrix4(h);f=(.5*(1&p)+.2*(2-Math.random()))*Math.PI,$.copy(n).sub(t).applyAxisAngle(s,f).add(t),I$1.copy(s).add(t),j.setFromCoplanarPoints(t,I$1,$);}const{topSlice:y,bottomSlice:m}=E$1(r,j.normal,$,k.textureScale,k.textureOffset,v,o);let w=y,V=m;v||(w=G(y),V=G(m)),w&&(w instanceof Array?w.length>0&&w.forEach((t=>{t.vertices.length>12&&i(t,u,f,p+1);})):i(w,u,f,p+1)),V&&(V instanceof Array?V.length>0&&V.forEach((t=>{t.vertices.length>12&&i(t,u,f,p+1);})):i(m,f,d,p+1));}(u,0,2*Math.PI,0),a}function Q(t,i,n,s=true,e=0){const r=[];return t.map(((t,o)=>{r.push(t.toMesh(i,n,s,e));})),r}function G(t){const i=new V(t.vertexCount),n={},s=t.vertices.length,e=t.cutVertices.length,r=new Map;t.vertices.forEach(((t,n)=>{const s=f(t.position),e=r.get(s);void 0===e?r.set(s,n):i.union(e,n);}));for(let n=0;n<e;n++)i.union(t.vertexAdjacency[n],n+s);const o=t.triangles;for(let t=0;t<o.length;t++)for(let s=0;s<o[t].length;s+=3){const e=o[t][s],r=o[t][s+1],a=o[t][s+2];i.union(e,r),i.union(r,a);const h=i.find(e);n[h]||(n[h]=[[],[]]),n[h][t].push(e,r,a);}const a={},h=Array(t.vertexCount);for(let n=0;n<s;n++){const s=i.find(n);a[s]||(a[s]=new w),a[s].vertices.push(t.vertices[n]),h[n]=a[s].vertices.length-1;}for(let n=0;n<e;n++){const e=i.find(n+s);a[e].cutVertices.push(t.cutVertices[n]),h[n+s]=a[e].vertices.length+a[e].cutVertices.length-1;}for(const s of Object.keys(n)){let e=Number(s),r=i.parent[e];for(let i=0;i<t.triangles.length;i++)for(const t of n[e][i]){const n=h[t];a[r].triangles[i].push(n);}}return Object.values(a)}
+const u=Math.max(1e-9,Number.EPSILON),c=.5*u,g=Math.log10(1/u),d=Math.pow(10,g),p=c*d;function x(t,n,i,e){return function(t,n,i,e,s){let o={x:n.x-t.x,y:n.y-t.y},r={x:e.x-i.x,y:e.y-i.y};const a=w(t),h=w(i);if(a===h)return s;const l=w(n);if(l===h)return s;const u=w(e);if(a===u)return s;if(l===u)return s;let c=(t.x-i.x)*r.y-(t.y-i.y)*r.x,g=(n.x-i.x)*r.y-(n.y-i.y)*r.x,d=(i.x-t.x)*o.y-(i.y-t.y)*o.x,p=(e.x-t.x)*o.y-(e.y-t.y)*o.x;return (c>=0&&g<=0||c<=0&&g>=0)&&(d>=0&&p<=0||d<=0&&p>=0)}(t,n,i,e,false)}function m$1(n,i,e,s){let o=0,r=new Vector3;return M$1(n)===M$1(i)||0===e.x&&0===e.y&&0===e.z?null:(o=((s.x-n.x)*e.x+(s.y-n.y)*e.y+(s.z-n.z)*e.z)/((i.x-n.x)*e.x+(i.y-n.y)*e.y+(i.z-n.z)*e.z),o>=0&&o<=1?(r=new Vector3(n.x+(i.x-n.x)*o,n.y+(i.y-n.y)*o,n.z+(i.z-n.z)*o),{x:r,s:o}):null)}function f(t,n,i){return (n.x-t.x)*(i.y-t.y)-(n.y-t.y)*(i.x-t.x)<=0}function y(t){return ~~(t*d+p)}function v(t,n){return Math.round((t+n)*(t+n+1)*.5+n)}function w(t){return v(y(t.x),y(t.y))}function M$1(t){return function(t,n,i){const e=(t+n)*(t+n+1)*.5+n;return (e+i)*(e+i+1)*.5+i}(y(t.x),y(t.y),y(t.z))}function z(t,n,i){return n.x*(t.x-i.x)+n.y*(t.y-i.y)+n.z*(t.z-i.z)>=0}class b{constructor(i=new Vector3,e=new Vector3,s=new Vector2){this.position=i,this.normal=e,this.uv=s;}clone(t){return new b(this.position.clone(),this.normal.clone(),this.uv.clone())}equals(t){return M$1(this.position)===M$1(t.position)}toString(){return `Position = ${this.position.x}, ${this.position.y}, ${this.position.z}, Normal = ${this.normal.x}, ${this.normal.y}, ${this.normal.z}, UV = ${this.uv.x}, ${this.uv.y}`}}const V=0,A=1;let C$1 = class C{constructor(t=null){this.isFragment=true,this.vertices=[],this.cutVertices=[],this.triangles=[[],[]],this.constraints=[],this.indexMap=[],this.bounds=new Box3,this.vertexAdjacency=[],this.convextested=false,this.minSize=.005,this.good=true,null!==t&&this.fromArgs(t);}fromArgs(i){const{positions:e,normals:s,uvs:o,indices:r}=i;for(let i=0;i<e.length/3;i++){const r=new Vector3(e[3*i],e[3*i+1],e[3*i+2]),a=new Vector3(s[3*i],s[3*i+1],s[3*i+2]),h=o?new Vector2(o[2*i],o[2*i+1]):new Vector2(0,0);this.vertices.push(new b(r,a,h));}if(r)this.triangles=[Array.from(r),[]];else {const t=e.length/3;this.triangles=[Array.from({length:t},((t,n)=>n)),[]];}this.calculateBounds();}get valid(){let t=this.triangleCount>6&&this.vertexCount>14;return this.volume()<this.minSize&&(t=false),t}get size(){this.bounds||this.calculateBounds();let n=new Vector3;return this.bounds.getSize(n)}get convex(){return this.convextested||(this.cc=this.isConvex()),this.cc}get triangleCount(){return (this.triangles[0].length+this.triangles[1].length)/3}get vertexCount(){return this.vertices.length+this.cutVertices.length}addCutFaceVertex(t,n,i){const e=new b(t,n,i);this.vertices.push(e),this.cutVertices.push(e),this.vertexAdjacency.push(this.vertices.length-1);}addMappedVertex(t,n){this.vertices.push(t),this.indexMap[n]=this.vertices.length-1;}addTriangle(t,n,i,e){this.triangles[e].push(t,n,i);}addMappedTriangle(t,n,i,e){this.triangles[e].push(this.indexMap[t],this.indexMap[n],this.indexMap[i]);}weldCutFaceVertices(){const t=[],n=[],i=new Array(this.cutVertices.length);let e=0;const s=new Map;this.cutVertices.forEach(((o,r)=>{const a=M$1(o.position),h=s.get(a);s.has(a)?i[r]=h:(i[r]=e,s.set(a,e),t.push(this.cutVertices[r]),n.push(this.vertexAdjacency[r]),e++);}));const o=[];for(let t=0;t<this.constraints.length;t++){const n=this.constraints[t];n.v1=i[n.v1],n.v2=i[n.v2],Math.abs(n.v1-n.v2)<1e-9||o.push(n);}this.constraints=o,this.cutVertices=t,this.vertexAdjacency=n;}volume(){let t=[];this.vertices.forEach((n=>{t.push(n.position.x,n.position.y,n.position.z);})),this.cutVertices.forEach((n=>{t.push(n.position.x,n.position.y,n.position.z);}));let n,i=t.length/3,e=[0,0,0],s=[0,0,0];for(;i--;)n=3*i,t[n]<e[0]?e[0]=t[n]:t[n]>s[0]&&(s[0]=t[n]),t[n+1]<e[1]?e[1]=t[n+1]:t[n+1]>s[1]&&(s[1]=t[n+1]),t[n+2]<e[2]?e[2]=t[n+2]:t[n+2]>s[2]&&(s[2]=t[n+2]);let o=[s[0]-e[0],s[1]-e[1],s[2]-e[2]];return .5*o[0]*8*(.5*o[1])*(.5*o[2])}calculateBounds(){if(!this.vertices.length)return;let t=this.vertices[0].position.clone(),n=t.clone();this.vertices.forEach((i=>{t.x=Math.min(t.x,i.position.x),t.y=Math.min(t.y,i.position.y),t.z=Math.min(t.z,i.position.z),n.x=Math.max(n.x,i.position.x),n.y=Math.max(n.y,i.position.y),n.z=Math.max(n.z,i.position.z);})),this.bounds=new Box3(t,n);}toMesh(n,i=null,o=true,r=0){const a=new Vector3,h=new Vector3;let l=this.toGeometry(o,r);l.boundingBox.getCenter(a),l.boundingBox.getSize(h),l.translate(-a.x,-a.y,-a.z),l.boundingSphere=new Sphere(new Vector3,.5*h.length());let u=n.material;i&&u.isMaterial&&(u=[n.material,i]);const c=new Mesh(l,u);return c.receiveShadow=n.receiveShadow,c.castShadow=n.castShadow,c.matrixAutoUpdate=n.matrixAutoUpdate,c.frustumCulled=n.frustumCulled,c.renderOrder=n.renderOrder,c.sizer=h.length(),a.applyQuaternion(n.quaternion),c.position.copy(n.position).add(a),c.quaternion.copy(n.quaternion),c.userData={origin:c.position.clone(),direction:a.normalize(),size:h},c}makeTrickness(t,n,i,e,s){let o,r=1-s,a=[...t],h=[...n],l=[...i],u=t.length/3,c=u;for(;c--;)o=3*c,a[o]*=r,a[o+1]*=r,a[o+2]*=r;let g=[];for(c=e.length;c--;)g[c]=e[c]+u;return [a,h,l,g]}toGeometry(t,n){let i;const e=new BufferGeometry;let s=[],a=[],h=[];if(this.vertices.forEach((t=>{s.push(t.position.x,t.position.y,t.position.z),a.push(t.normal.x,t.normal.y,t.normal.z),h.push(t.uv.x,t.uv.y);})),0!==n){let t=this.makeTrickness(s,a,h,this.triangles[0],n);s=s.concat(t[0]),a=a.concat(t[1]),h=h.concat(t[2]),i=t[3];}return t&&this.cutVertices.forEach((t=>{s.push(t.position.x,t.position.y,t.position.z),a.push(t.normal.x,t.normal.y,t.normal.z),h.push(t.uv.x,t.uv.y);})),e.addGroup(0,this.triangles[0].length,0),0!==n&&(e.addGroup(this.triangles[0].length,i.length,1),this.triangles[0]=this.triangles[0].concat(i)),t&&e.addGroup(this.triangles[0].length,this.triangles[1].length,1),e.setAttribute("position",new BufferAttribute(new Float32Array(s),3)),e.setAttribute("normal",new BufferAttribute(new Float32Array(a),3)),e.setAttribute("uv",new BufferAttribute(new Float32Array(h),2)),e.setIndex(new BufferAttribute(new Uint32Array(this.triangles.flat()),1)),e.computeBoundingBox(),e}isConvex(n=.001){this.convextested=true;let i=0;const e=this.triangleCount,s=[...this.triangles[0],...this.triangles[1]],o=[...this.vertices,...this.cutVertices],r=o.length;if(0===e||0===r)return  false;const a=new Vector3,h=new Vector3,l=new Vector3,u=new Vector3,c=new Vector3;let g,d;for(let t=0;t<e;t++){i=3*t,c.copy(o[0].position),a.copy(o[s[i]].position),h.copy(o[s[i+1]].position),l.copy(o[s[i+2]].position),h.sub(a),l.sub(a),u.copy(h).cross(l).normalize(),g=c.sub(a).dot(u);for(let t=0;t<r;t++)if(d=c.copy(o[t].position).sub(a).dot(u),Math.abs(g)>n&&Math.abs(d)>n&&g*d<0)return  false}return  true}};class T{constructor(t,n,i=-1,e=-1,s=0){this.v1=t,this.v2=n,this.t1=i,this.t2=e,this.t1Edge=s;}clone(){return new T(this.v1,this.v2,this.t1,this.t2,this.t1Edge)}equals(t){return this.v1===t.v1&&this.v2===t.v2||this.v1===t.v2&&this.v2===t.v1}toString(){return `Edge: T${this.t1}->T${this.t2} (V${this.v1}->V${this.v2})`}}class S{static getBinNumber(t,n,i){return t%2==0?t*i+n:(t+1)*i-n-1}static sort(t,n,i){if(i<=1)return t;n>t.length&&(n=t.length);const e=new Array(i).fill(0),s=new Array(t.length);for(let i=0;i<n;i++)e[t[i].bin]++;for(let t=1;t<i;t++)e[t]+=e[t-1];for(let i=n-1;i>=0;i--){const n=t[i].bin;e[n]--,s[e[n]]=t[i];}for(let i=n;i<s.length;i++)s[i]=t[i];return s}}let E$1 = class E{constructor(t,n){this.index=t,this.coords=n,this.bin=0;}toString(){return `${this.coords} -> ${this.bin}`}};const N=-1;let q$1 = class q{constructor(i,e){if(this.normalizationScaleFactor=1,this.N=i.length,this.N>=3){this.triangleCount=2*this.N+1,this.triangulation=Array.from({length:this.triangleCount},(()=>new Array(6).fill(0))),this.skipTriangle=new Array(this.triangleCount).fill(false),this.points=new Array(this.N+3),this.normal=e.clone().normalize();let r=i[0].position.clone().sub(i[1].position).normalize(),a=this.normal.clone(),h=new Vector3;h.crossVectors(r,a).normalize();for(let t=0;t<this.N;t++){var s=i[t].position,o=new Vector2(s.dot(r),s.dot(h));this.points[t]=new E$1(t,o);}}else this.triangleCount=0,this.triangulation=[],this.skipTriangle=[],this.points=[],this.normal=new Vector3;}triangulate(){if(this.N<3)return [];this.addSuperTriangle(),this.normalizeCoordinates(),this.computeTriangulation(),this.discardTrianglesWithSuperTriangleVertices();const t=[];for(let n=0;n<this.triangleCount;n++)this.skipTriangle[n]||t.push(this.triangulation[n][0],this.triangulation[n][1],this.triangulation[n][2]);return t}normalizeCoordinates(){let t=Number.MAX_VALUE,i=Number.MIN_VALUE,e=Number.MAX_VALUE,s=Number.MIN_VALUE;for(let n=0;n<this.N;n++)t=Math.min(t,this.points[n].coords.x),i=Math.max(i,this.points[n].coords.x),e=Math.min(e,this.points[n].coords.y),s=Math.max(s,this.points[n].coords.y);const o=Math.max(i-t,s-e);for(let i=0;i<this.N;i++){var r=this.points[i],a=new Vector2((r.coords.x-t)/o,(r.coords.y-e)/o);this.points[i].coords=a;}}sortPointsIntoBins(){const t=Math.round(Math.pow(this.N,.25)),n=t*t;for(let n=0;n<this.N;n++){var i=this.points[n];const e=Math.floor(.99*t*i.coords.y),s=Math.floor(.99*t*i.coords.x);i.bin=S.getBinNumber(e,s,t);}return S.sort(this.points,this.N,n)}computeTriangulation(){let t=0,n=0,i=this.sortPointsIntoBins();for(let e=0;e<this.N;e++){let s=i[e];if(!s)break;let o=0,r=false;for(;!r&&!(o++>n||t===N);){let i=this.points[this.triangulation[t][0]].coords,e=this.points[this.triangulation[t][1]].coords,o=this.points[this.triangulation[t][2]].coords;f(i,e,s.coords)?f(e,o,s.coords)?f(o,i,s.coords)?(this.insertPointIntoTriangle(s,t,n),n+=2,t=n,r=true):t=this.triangulation[t][5]:t=this.triangulation[t][4]:t=this.triangulation[t][3];}}}addSuperTriangle(){this.points[this.N]=new E$1(this.N,new Vector2(-100,-100)),this.points[this.N+1]=new E$1(this.N+1,new Vector2(0,100)),this.points[this.N+2]=new E$1(this.N+2,new Vector2(100,-100)),this.triangulation[0][0]=this.N,this.triangulation[0][1]=this.N+1,this.triangulation[0][2]=this.N+2,this.triangulation[0][3]=N,this.triangulation[0][4]=N,this.triangulation[0][5]=N;}insertPointIntoTriangle(t,n,i){const e=n,s=i+1,o=i+2;this.triangulation[s][0]=t.index,this.triangulation[s][1]=this.triangulation[n][1],this.triangulation[s][2]=this.triangulation[n][2],this.triangulation[s][3]=o,this.triangulation[s][4]=this.triangulation[n][4],this.triangulation[s][5]=e,this.triangulation[o][0]=t.index,this.triangulation[o][1]=this.triangulation[n][0],this.triangulation[o][2]=this.triangulation[n][1],this.triangulation[o][3]=e,this.triangulation[o][4]=this.triangulation[n][3],this.triangulation[o][5]=s,this.updateAdjacency(this.triangulation[n][3],n,o),this.updateAdjacency(this.triangulation[n][4],n,s),this.triangulation[e][1]=this.triangulation[n][2],this.triangulation[e][2]=this.triangulation[n][0],this.triangulation[e][0]=t.index,this.triangulation[e][4]=this.triangulation[n][5],this.triangulation[e][3]=s,this.triangulation[e][5]=o,this.restoreDelauneyTriangulation(t,e,s,o);}restoreDelauneyTriangulation(t,n,i,e){const s=[];for(s.push([n,this.triangulation[n][4]]),s.push([i,this.triangulation[i][4]]),s.push([e,this.triangulation[e][4]]);s.length>0;)if([n,i]=s.pop()??[N,N],i!==N){const e=this.swapQuadDiagonalIfNeeded(t.index,n,i);null!==e&&(s.push([n,e.t3]),s.push([i,e.t4]));}}swapQuadDiagonalIfNeeded(t,n,i){let e=0,s=0,o=0,r=t,a=0,h=0;this.triangulation[i][3]===n?(e=this.triangulation[i][1],s=this.triangulation[i][0],o=this.triangulation[i][2],a=this.triangulation[i][4],h=this.triangulation[i][5]):this.triangulation[i][4]===n?(e=this.triangulation[i][2],s=this.triangulation[i][1],o=this.triangulation[i][0],a=this.triangulation[i][5],h=this.triangulation[i][3]):(e=this.triangulation[i][0],s=this.triangulation[i][2],o=this.triangulation[i][1],a=this.triangulation[i][3],h=this.triangulation[i][4]);return this.swapTest(this.points[e].coords,this.points[s].coords,this.points[o].coords,this.points[r].coords)?(this.updateAdjacency(a,i,n),this.updateAdjacency(this.triangulation[n][5],n,i),this.triangulation[n][0]=r,this.triangulation[n][1]=e,this.triangulation[n][2]=o,this.triangulation[i][0]=r,this.triangulation[i][1]=o,this.triangulation[i][2]=s,this.triangulation[i][3]=n,this.triangulation[i][4]=h,this.triangulation[i][5]=this.triangulation[n][5],this.triangulation[n][4]=a,this.triangulation[n][5]=i,{t3:a,t4:h}):null}discardTrianglesWithSuperTriangleVertices(){for(let t=0;t<this.triangleCount;t++)(this.triangleContainsVertex(t,this.N)||this.triangleContainsVertex(t,this.N+1)||this.triangleContainsVertex(t,this.N+2))&&(this.skipTriangle[t]=true);}swapTest(t,n,i,e){const s=t.x-i.x,o=n.x-i.x,r=t.y-i.y,a=n.y-i.y,h=t.x-e.x,l=n.x-e.x,u=t.y-e.y,c=n.y-e.y,g=s*o+r*a,d=l*h+c*u;if(g>=0&&d>=0)return  false;if(g<0&&d<0)return  true;return (s*a-o*r)*d+(l*u-h*c)*g<0}triangleContainsVertex(t,n){return this.triangulation[t][0]===n||this.triangulation[t][1]===n||this.triangulation[t][2]===n}updateAdjacency(t,n,i){if(t===N)return;const e=this.findSharedEdge(t,n);e&&(this.triangulation[t][e]=i);}findSharedEdge(t,n){return t===N?null:this.triangulation[t][3]===n?3:this.triangulation[t][4]===n?4:this.triangulation[t][5]===n?5:null}};let P$1 = class P{constructor(t,n,i,e,s,o,r,a,h,l){this.q1=t,this.q2=n,this.q3=i,this.q4=e,this.t1=s,this.t2=o,this.t1L=r,this.t1R=a,this.t2L=h,this.t2R=l;}toString(){return `T${this.t1}/T${this.t2} (V${this.q1},V${this.q2},V${this.q3},V${this.q4})`}};let F$1 = class F extends q$1{edgeVertex1=[0,0,0,0,1,2];edgeVertex2=[0,0,0,1,2,0];oppositePoint=[0,0,0,2,0,1];nextEdge=[0,0,0,4,5,3];previousEdge=[0,0,0,5,3,4];constructor(t,n,i){super(t,i),this.constraints=n,this.vertexTriangles=[];}triangulate(){if(this.N<3)return [];this.addSuperTriangle(),this.normalizeCoordinates(),this.computeTriangulation(),this.constraints.length>0&&(this.applyConstraints(),this.discardTrianglesViolatingConstraints()),this.discardTrianglesWithSuperTriangleVertices();let t=[];for(let n=0;n<this.triangleCount;n++)this.skipTriangle[n]||(t.push(this.triangulation[n][0]),t.push(this.triangulation[n][1]),t.push(this.triangulation[n][2]));return t}applyConstraints(){const t=this.triangulation.length;this.vertexTriangles=new Array(this.N+3).fill(0);for(let n=0;n<t;n++)this.vertexTriangles[this.triangulation[n][0]]=n,this.vertexTriangles[this.triangulation[n][1]]=n,this.vertexTriangles[this.triangulation[n][2]]=n;for(let t of this.constraints){if(t.v1===t.v2)continue;const n=this.findIntersectingEdges(t,this.vertexTriangles);this.removeIntersectingEdges(t,n);}}findIntersectingEdges(t,n){const i=[],e=this.findStartingEdge(n,t);if(null===e)return i;i.push(e);let s=e.t1,o=e.t1Edge,r=s,a=false;for(;!a;){r=s,s=this.triangulation[s][o];const n=this.points[t.v1].coords,e=this.points[t.v2].coords,h=this.points[this.triangulation[s][0]].coords,l=this.points[this.triangulation[s][1]].coords,u=this.points[this.triangulation[s][2]].coords;if(this.triangleContainsVertex(s,t.v2))a=true;else if(this.triangulation[s][3]!==r&&x(n,e,h,l)){o=3;const t=new T(this.triangulation[s][0],this.triangulation[s][1],s,this.triangulation[s][3],o);i.push(t);}else if(this.triangulation[s][4]!==r&&x(n,e,l,u)){o=4;const t=new T(this.triangulation[s][1],this.triangulation[s][2],s,this.triangulation[s][4],o);i.push(t);}else {if(this.triangulation[s][5]===r||!x(n,e,u,h)){console.warn("Failed to find final triangle, exiting early.");break}{o=5;const t=new T(this.triangulation[s][2],this.triangulation[s][0],s,this.triangulation[s][5],o);i.push(t);}}}return i}findStartingEdge(t,n){let i,e,s,o=new T(-1,-1),r=n.v1,a=t[r],h=false,l=null;const u=new Array(this.triangulation.length);for(;!l&&!h;){if(u[a]=true,this.triangleContainsConstraint(a,n))return null;if(l=this.edgeConstraintIntersectsTriangle(a,n),l)break;if(i=this.triangulation[a][3],e=this.triangulation[a][4],s=this.triangulation[a][5],-1!==i&&!u[i]&&this.triangleContainsVertex(i,r))a=i;else if(-1!==e&&!u[e]&&this.triangleContainsVertex(e,r))a=e;else {if(-1===s||u[s]||!this.triangleContainsVertex(s,r)){h=true;break}a=s;}}if(l){const t=this.triangulation[a][this.edgeVertex1[l]],n=this.triangulation[a][this.edgeVertex2[l]],i=this.triangulation[a][l];return o=new T(t,n,a,i,l),o}return null}removeIntersectingEdges(t,n){let i,e=[],s=0;for(;n.length>0&&s<=n.length;){i=n.shift(),null==i&&console.log("no edge !!");let o=this.findQuadFromSharedEdge(i.t1,i.t1Edge);if(o)if(x(this.points[o.q4].coords,this.points[o.q3].coords,this.points[o.q1].coords,this.points[o.q2].coords)){this.swapQuadDiagonal(o,n,e,this.constraints);let i=new T(o.q3,o.q4,o.t1,o.t2,5);x(this.points[t.v1].coords,this.points[t.v2].coords,this.points[o.q3].coords,this.points[o.q4].coords)?n.push(i):(s=0,e.push(i));}else n.push(i);s++;}e.length>0&&this.restoreConstrainedDelauneyTriangulation(t,e);}restoreConstrainedDelauneyTriangulation(t,n){let i=true;for(;i;){i=false;for(let e=0;e<n.length;e++){const s=n[e];if(s.equals(t))continue;let o=this.findQuadFromSharedEdge(s.t1,s.t1Edge);if(o&&this.swapTest(this.points[o.q1].coords,this.points[o.q2].coords,this.points[o.q3].coords,this.points[o.q4].coords)){this.swapQuadDiagonal(o,n,this.constraints,null);const t=o.q3,s=o.q4;n[e]=new T(t,s,o.t1,o.t2,5),i=true;}}}}discardTrianglesViolatingConstraints(){this.skipTriangle.fill(true);let t=new Set;for(let n=0;n<this.constraints.length;n++){const i=this.constraints[n];t.add(v(i.v1,i.v2));}let n,i,e,s,o,r,a,h,l,u=[];const c=new Array(this.triangulation.length);for(let g=0;g<this.triangleCount;g++)if(!c[g]&&(n=this.triangulation[g][0],i=this.triangulation[g][1],e=this.triangulation[g][2],s=t.has(v(n,i)),o=t.has(v(i,e)),r=t.has(v(e,n)),a=t.has(v(i,n)),h=t.has(v(e,i)),l=t.has(v(n,e)),!(a||h||l)&&(s||o||r)))for(this.skipTriangle[g]=false,u=[],s||u.push(this.triangulation[g][3]),o||u.push(this.triangulation[g][4]),r||u.push(this.triangulation[g][5]);u.length>0;){const s=u.shift();void 0===s||-1===s||c[s]||(n=this.triangulation[s][0],i=this.triangulation[s][1],e=this.triangulation[s][2],a=t.has(v(i,n)),h=t.has(v(e,i)),l=t.has(v(n,e)),a||h||l?c[s]=true:(this.skipTriangle[s]=false,c[s]=true,t.has(v(n,i))||u.push(this.triangulation[s][3]),t.has(v(i,e))||u.push(this.triangulation[s][4]),t.has(v(e,n))||u.push(this.triangulation[s][5])));}}triangleContainsConstraint(t,n){return !(t>=this.triangulation.length)&&!(this.triangulation[t][0]!==n.v1&&this.triangulation[t][1]!==n.v1&&this.triangulation[t][2]!==n.v1||this.triangulation[t][0]!==n.v2&&this.triangulation[t][1]!==n.v2&&this.triangulation[t][2]!==n.v2)}edgeConstraintIntersectsTriangle(t,n){const i=this.points[n.v1].coords,e=this.points[n.v2].coords,s=this.points[this.triangulation[t][0]].coords,o=this.points[this.triangulation[t][1]].coords,r=this.points[this.triangulation[t][2]].coords;return x(i,e,s,o)?3:x(i,e,o,r)?4:x(i,e,r,s)?5:null}findQuadFromSharedEdge(t,n){let i,e,s,o,r,a,h,l,u=this.triangulation[t][n],c=this.findSharedEdge(u,t);return c?(3===c?(e=this.triangulation[u][0],i=this.triangulation[u][1],s=this.triangulation[u][2]):4===c?(e=this.triangulation[u][1],i=this.triangulation[u][2],s=this.triangulation[u][0]):(e=this.triangulation[u][2],i=this.triangulation[u][0],s=this.triangulation[u][1]),o=this.triangulation[t][this.oppositePoint[n]],r=this.triangulation[t][this.previousEdge[n]],a=this.triangulation[t][this.nextEdge[n]],h=this.triangulation[u][this.nextEdge[c]],l=this.triangulation[u][this.previousEdge[c]],new P$1(i,e,s,o,t,u,r,a,h,l)):null}swapQuadDiagonal(t,n,i,e){const s=t.t1,o=t.t2,r=t.t1R,a=t.t1L,h=t.t2R,l=t.t2L;this.triangulation[s][0]=t.q4,this.triangulation[s][1]=t.q1,this.triangulation[s][2]=t.q3,this.triangulation[o][0]=t.q4,this.triangulation[o][1]=t.q3,this.triangulation[o][2]=t.q2,this.triangulation[s][3]=a,this.triangulation[s][4]=l,this.triangulation[s][5]=o,this.triangulation[o][3]=s,this.triangulation[o][4]=h,this.triangulation[o][5]=r,this.updateAdjacency(l,o,s),this.updateAdjacency(r,s,o),this.updateEdgesAfterSwap(n,s,o,a,r,l,h),this.updateEdgesAfterSwap(i,s,o,a,r,l,h),this.updateEdgesAfterSwap(e,s,o,a,r,l,h),this.vertexTriangles[t.q1]=s,this.vertexTriangles[t.q2]=o;}updateEdgesAfterSwap(t,n,i,e,s,o,r){if(t)for(let a of t)a.t1===n&&a.t2===s?(a.t1=i,a.t2=s,a.t1Edge=5):a.t1===n&&a.t2===e?a.t1Edge=3:a.t1===s&&a.t2===n?a.t2=i:a.t1===e&&a.t2===n||(a.t1===i&&a.t2===r?a.t1Edge=4:a.t1===i&&a.t2===o?(a.t1=n,a.t2=o,a.t1Edge=4):a.t1===r&&a.t2===i||a.t1===o&&a.t2===i&&(a.t2=n));}};function I$1(t,i,e,s,o,r=false,a=true){const h=new C$1,l=new C$1,u=new Array(t.vertexCount).fill(false);for(let n=0;n<t.vertices.length;n++){const s=t.vertices[n];u[n]=z(s.position,i,e);(u[n]?h:l).addMappedVertex(s,n);}const c=t.vertices.length;for(let n=0;n<t.cutVertices.length;n++){const s=t.cutVertices[n];u[n+c]=z(s.position,i,e);(u[n+c]?h:l).addMappedVertex(s,n+c);}return k(t,h,l,i,e,u,V),a&&k(t,h,l,i,e,u,A),a&&function(t,i,e,s,o,r){if(t.weldCutFaceVertices(),i.weldCutFaceVertices(),t.cutVertices.length<3)return;const a=r?new q$1(t.cutVertices,e):new F$1(t.cutVertices,t.constraints,e),h=a.triangulate();for(let r=0;r<t.cutVertices.length;r++){var l=t.cutVertices[r],u=a.points[r];const h=new Vector2(a.normalizationScaleFactor*u.coords.x*s.x+o.x,a.normalizationScaleFactor*u.coords.y*s.y+o.y),c=new b(l.position.clone(),e.clone(),h.clone()),g=new b(l.position.clone(),e.clone().negate(),h.clone());t.cutVertices[r]=c,i.cutVertices[r]=g;}let c=t.vertices.length,g=i.vertices.length;for(let n=0;n<h.length;n+=3)t.addTriangle(c+h[n],c+h[n+1],c+h[n+2],A),i.addTriangle(g+h[n],g+h[n+2],g+h[n+1],A);}(h,l,i.clone().negate(),s,o,r),{topSlice:h,bottomSlice:l}}function k(t,n,i,e,s,o,r){const a=t.triangles[r];let h,l,u;for(let c=0;c<a.length;c+=3)h=a[c],l=a[c+1],u=a[c+2],o[h]&&o[l]&&o[u]?n.addMappedTriangle(h,l,u,r):o[h]||o[l]||o[u]?o[l]&&o[u]&&!o[h]?j(l,u,h,e,s,t,n,i,r,true):o[u]&&o[h]&&!o[l]?j(u,h,l,e,s,t,n,i,r,true):o[h]&&o[l]&&!o[u]?j(h,l,u,e,s,t,n,i,r,true):o[l]||o[u]||!o[h]?o[u]||o[h]||!o[l]?o[h]||o[l]||!o[u]||j(h,l,u,e,s,t,n,i,r,false):j(u,h,l,e,s,t,n,i,r,false):j(l,u,h,e,s,t,n,i,r,false):i.addMappedTriangle(h,l,u,r);}function j(i,e,s,o,r,a,h,l,u,c){const g=a.vertices.length;let d=i<g?a.vertices[i]:a.cutVertices[i-g],p=e<g?a.vertices[e]:a.cutVertices[e-g],x=s<g?a.vertices[s]:a.cutVertices[s-g];const f=m$1(d.position,x.position,o,r),y=m$1(p.position,x.position,o,r);if(f&&y){const o=new Vector3(d.normal.x+f.s*(x.normal.x-d.normal.x),d.normal.y+f.s*(x.normal.y-d.normal.y),d.normal.z+f.s*(x.normal.z-d.normal.z)).normalize(),r=new Vector3(p.normal.x+y.s*(x.normal.x-p.normal.x),p.normal.y+y.s*(x.normal.y-p.normal.y),p.normal.z+y.s*(x.normal.z-p.normal.z)).normalize(),a=new Vector2(d.uv.x+f.s*(x.uv.x-d.uv.x),d.uv.y+f.s*(x.uv.y-d.uv.y)),g=new Vector2(p.uv.x+y.s*(x.uv.x-p.uv.x),p.uv.y+y.s*(x.uv.y-p.uv.y));h.addCutFaceVertex(f.x,o,a),h.addCutFaceVertex(y.x,r,g),l.addCutFaceVertex(f.x,o,a),l.addCutFaceVertex(y.x,r,g);const m=h.vertices.length,v=l.vertices.length,w=h.cutVertices.length,M=l.cutVertices.length,z=m-2,b=m-1,V=v-2,A=v-1;c?(h.addTriangle(b,z,h.indexMap[e],u),h.addTriangle(z,h.indexMap[i],h.indexMap[e],u),l.addTriangle(l.indexMap[s],V,A,u),h.constraints.push(new T(w-2,w-1)),l.constraints.push(new T(M-1,M-2))):(h.addTriangle(z,b,h.indexMap[s],u),l.addTriangle(l.indexMap[i],l.indexMap[e],V,u),l.addTriangle(l.indexMap[e],A,V,u),h.constraints.push(new T(w-1,w-2)),l.constraints.push(new T(M-2,M-1)));}}function D$1(i){const e=i.attributes.position.array,s=i.attributes.normal.array,o=i.attributes.uv?.array,r=new C$1,a=i.attributes.position.count;let h,l,u;for(let i=0;i<a;i++){h=3*i,l=2*i;const a=new Vector3(e[h],e[h+1],e[h+2]),u=new Vector3(s[h],s[h+1],s[h+2]),c=o?new Vector2(o[l],o[l+1]):new Vector2(0,0);r.vertices.push(new b(a,u,c));}if(i.index)u=Array.from(i.index.array);else {const t=e.length/3;u=Array.from({length:t},((t,n)=>n));}if(i.groups&&2===i.groups.length){const t=[],n=[];for(const e of i.groups){const i=0===e.materialIndex?t:n,s=e.start,o=s+e.count;for(let t=s;t<o;t++)i.push(u[t]);}r.triangles=[t,n];}else r.triangles=[u,[]];return r.calculateBounds(),r}let O$1 = class O{constructor(t){this.parent=[],this.rank=[];for(let n=0;n<t;n++)this.parent[n]=n,this.rank[n]=1;}find(t){return this.parent[t]!==t&&(this.parent[t]=this.find(this.parent[t])),this.parent[t]}union(t,n){const i=this.find(t),e=this.find(n);i!==e&&(this.rank[i]>this.rank[e]?this.parent[e]=i:this.rank[i]<this.rank[e]?this.parent[i]=e:(this.parent[e]=i,this.rank[i]+=1));}};function U(t){const n=new O$1(t.vertexCount),i={},e=t.vertices.length,s=t.cutVertices.length,o=new Map;t.vertices.forEach(((t,i)=>{const e=M$1(t.position),s=o.get(e);void 0===s?o.set(e,i):n.union(s,i);}));for(let i=0;i<s;i++)n.union(t.vertexAdjacency[i],i+e);const r=t.triangles;for(let t=0;t<r.length;t++)for(let e=0;e<r[t].length;e+=3){const s=r[t][e],o=r[t][e+1],a=r[t][e+2];n.union(s,o),n.union(o,a);const h=n.find(s);i[h]||(i[h]=[[],[]]),i[h][t].push(s,o,a);}const a={},h=Array(t.vertexCount);for(let i=0;i<e;i++){const e=n.find(i);a[e]||(a[e]=new C$1),a[e].vertices.push(t.vertices[i]),h[i]=a[e].vertices.length-1;}for(let i=0;i<s;i++){const s=n.find(i+e);a[s].cutVertices.push(t.cutVertices[i]),h[i+e]=a[s].vertices.length+a[s].cutVertices.length-1;}for(const e of Object.keys(i)){let s=Number(e),o=n.parent[s];for(let n=0;n<t.triangles.length;n++)for(const t of i[s][n]){const i=h[t];a[o].triangles[n].push(i);}}return Object.values(a)}const R$1={textureScale:new Vector2(1,1),textureOffset:new Vector2};const W$1=new Vector3,_=new Vector3,X=new Vector3,H=new Plane,J$1=new Plane;function K$1(n,i,e,s,o,r){const a=[],h=n.matrixWorld.clone().invert(),l=n.position;i.applyMatrix4(h);const u=D$1(n.geometry);let c=u.convex,g=.03*u.volume();W$1.addVectors(i,e),H.setFromCoplanarPoints(i,l,W$1);const d=o+s;return function n(o,u,p,x){if(!o)return;if(Math.random()<.05*x||x>d)return void(o.valid&&a.push(o));let m=Math.PI,f=new Vector3;o.calculateBounds(),o.bounds.getCenter(f);let y=c;if(0===x)J$1.normal.copy(H.normal),J$1.constant=H.constant;else if(x<=s)m=(p-u)*(.2+.6*Math.random())+u,_.copy(l).sub(i).applyAxisAngle(e,m).add(i),J$1.setFromCoplanarPoints(i,W$1,_);else {let t=f.clone().applyMatrix4(h);m=(.5*(1&x)+.2*(2-Math.random()))*Math.PI,_.copy(i).sub(t).applyAxisAngle(e,m).add(t),X.copy(e).add(t),J$1.setFromCoplanarPoints(t,X,_);}const{topSlice:v,bottomSlice:w}=I$1(o,J$1.normal,_,R$1.textureScale,R$1.textureOffset,y,r);let M=v,z=w;M=U(v),z=U(w),M&&(M.isFragment&&(M=[M]),M=Y(M,g),M.length>0&&M.forEach(((t,i)=>{0===i?n(t,m,p,x+1):a.push(t);}))),z&&(z.isFragment&&(z=[z]),z=Y(z,g),z.length>0&&z.forEach(((t,i)=>{0===i?n(t,m,p,x+1):a.push(t);})));}(u,0,2*Math.PI,0),a}function Y(t,n){if(0===t.length)return [];let i=0,e=-1,s=[];return t.forEach(((t,s)=>{t.minSize=n,t.bounds=null;let o=.5*t.size.length();t.valid&&o>0?o>i&&(i=o,e=s):t.good=false;})),-1!==e&&s.push(t[e]),t.forEach(((t,n)=>{t.good&&n!==e&&s.push(t);})),s}function tt(t,n,i,e=true,s=0){const o=[];return t.map(((t,r)=>{o.push(t.toMesh(n,i,e,s));})),o}
 
 class Breaker {
 
@@ -40884,8 +41028,8 @@ class Breaker {
 		//let debris = this.convexBreaker.subdivideByImpact( mesh, this.tpos.fromArray(pos), this.tnormal.fromArray(normal), breakOption[ 1 ], breakOption[ 2 ] );
 
 		//                                                                                              maxRadialIterations, maxRandomIterations
-		let fragment = B$1( mesh, this.tpos.fromArray(pos), this.tnormal.fromArray(normal), breakOption[ 1 ], breakOption[ 2 ], intern );
-		let debris = Q( fragment, mesh, this.interneMat, intern, 0 );
+		let fragment = K$1( mesh, this.tpos.fromArray(pos), this.tnormal.fromArray(normal), breakOption[ 1 ], breakOption[ 2 ], intern );
+		let debris = tt( fragment, mesh, this.interneMat, intern, 0 );
 
 		//console.log( debris.length )
 
@@ -43703,9 +43847,9 @@ const Version = {
 	// best
     PHYSX: '5.06.10',
     HAVOK: '1.2.1',
-    JOLT: '0.37.0',
+    JOLT: '0.39.0',
     // old
-    RAPIER: '0.18.2',
+    RAPIER: '0.20.0',
     OIMO: '1.2.4',
     AMMO: '3.2.6',
 
@@ -43936,6 +44080,7 @@ class PhyEngine {
 			if( outsideStep ) timer.setFramerate( settings.fps );
 
 			const data = {
+				...o,
 				...settings,
 				ArPos:_ArPos,
 				isTimeout:isTimeout,

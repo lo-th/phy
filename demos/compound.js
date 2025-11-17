@@ -29,7 +29,10 @@ function demo() {
 
 function onComplete(){
 
+
+
     model = phy.getMesh('furniture', true, true );
+
 
     items = [
         {mesh:model.can, meshPos:[0, -0.058, 0], type:'cylinder', size:[0.033, 0.116], density:0.5, py:0.058 }, 

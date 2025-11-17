@@ -15,7 +15,7 @@ export const GlbTool = {
             const oldGroup = {}
             const newMesh = {}
 
-            gltf.scene.traverse( ( child ) => {
+            scene.traverse( ( child ) => {
                 if ( child.isGroup ){
                     let m = GlbTool.groupToMesh(child)
                     if(m){
