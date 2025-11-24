@@ -1,0 +1,43 @@
+{
+    "Basic": [ 
+        "benchmark", "start", "basic", "joint", "capsule", "compound", "bridge", "ray_car", "alpine",
+        "gears", "terrain", "character", "kinematic", "random", "tower",
+        "gravity", "evangelion", "simple",
+        "blast", "skeleton", "skeleton_old", "material", "keva", "test", "collision",
+        "dragon", "raycast", "human", "player", "auto_ragdoll", "badaboum", "kart", "fracture", "nefertiti"
+    ],
+    "Dev" : [ 
+        "spring", "gears2", "mass", "empty", "empty2", "empty3", "group_mask",
+        "car", "buttons", "robot_arm", "pinball", "bullet", "build", 
+        "kaneda", "vehicle3", "mesh", "stacking",  "house", "direct", "nefertiti2",
+        "solver", "wall", "skylab", "colors", "barbados", "barbados2", "blob", "coin", "havok_car", "joint_test", "event"
+    ],
+    "Advanced" : [ 
+        "diamond", "ragdoll", "chess", "million", "museum", "soft_body"
+    ],
+
+    "Private" : [
+    ],
+
+    "PHYSX": [
+        "vehicle" , "vehicle4", "robot"
+    ],
+
+    "AMMO": [
+        "vehicle", "vehicle4"
+    ],
+
+    "OIMO": [],
+    "RAPIER": [],
+    "CANNON": [],
+    "JOLT": [],
+    "HAVOK": [],
+
+    "Envmap": [ 
+        "null", "cube","basic", "factory", "studio", "beach", "tomoco",
+        "tatami", "box", "park", "color", "room", "tokyo",
+        "gallery", "river", "cave", "histo", "bed", "forest",
+        "small", "garden", "port", "querry", "bridge", 
+        "point", "golf", "esplanade", "clear", "swiss", "alien", "pendora", "lobe", "room2", "photo"
+    ]
+}

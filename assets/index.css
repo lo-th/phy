@@ -28,13 +28,12 @@ body{
 	margin:0; 
 	padding:0; 
 	overflow:hidden;
-	text-rendering
     color: #fff;
 
-    -webkit-font-smoothing: antialiased;
+    /*-webkit-font-smoothing: antialiased;
     text-rendering: optimizelegibility;
     -webkit-text-size-adjust: 100%;
-    -ms-text-size-adjust: 100%;
+    -ms-text-size-adjust: 100%;*/
 
     font-family: 'SegoeUI', "Segoe UI", "Helvetica Neue", -apple-system, BlinkMacSystemFont, Roboto, Oxygen-Sans, Ubuntu, Cantarell, sans-serif;
 
@@ -50,7 +49,7 @@ body{
 }
 
 .down {
-	flex:1;
+	/*flex:1;*/
 	pointer-events:auto;
 	cursor: pointer;
 	padding: 4px 0px;

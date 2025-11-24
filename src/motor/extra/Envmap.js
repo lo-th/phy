@@ -4,8 +4,8 @@ import {
     LinearFilter, HalfFloatType, LinearSRGBColorSpace, SRGBColorSpace, ShaderMaterial,
 } from 'three';
 //import { HDRJPGLoader } from '../../libs/HDRJPGLoader.js';
-import { HDRLoader } from '../../../three/examples/jsm/loaders/HDRLoader.js';
-import { EXRLoader } from '../../../three/examples/jsm/loaders/EXRLoader.js';
+import { HDRLoader } from 'three/addons/loaders/HDRLoader.js';
+import { EXRLoader } from 'three/addons/loaders/EXRLoader.js';
 
 import { SkyShader, skyOption } from './SkyShader.js';
 

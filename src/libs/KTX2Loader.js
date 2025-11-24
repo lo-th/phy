@@ -1,39 +1,7 @@
-import {
-	CompressedArrayTexture,
-	CompressedCubeTexture,
-	CompressedTexture,
-	Data3DTexture,
-	DataTexture,
-	FileLoader,
-	FloatType,
-	HalfFloatType,
-	LinearFilter,
-	LinearMipmapLinearFilter,
-	LinearSRGBColorSpace,
-	Loader,
-	NoColorSpace,
-	RGBAFormat,
-	RGBA_ASTC_4x4_Format,
-	RGBA_ASTC_6x6_Format,
-	RGBA_BPTC_Format,
-	RGBA_S3TC_DXT3_Format,
-	RGBA_ETC2_EAC_Format,
-	RGBA_PVRTC_4BPPV1_Format,
-	RGBA_S3TC_DXT1_Format,
-	RGBA_S3TC_DXT5_Format,
-	RGB_BPTC_UNSIGNED_Format,
-	RGB_ETC1_Format,
-	RGB_ETC2_Format,
-	RGB_PVRTC_4BPPV1_Format,
-	RGB_S3TC_DXT1_Format,
-	RGFormat,
-	RedFormat,
-	SRGBColorSpace,
-	UnsignedByteType
-} from 'three';
 
-import { KTX2Loader as KTX2LoaderBase } from '../../three/examples/jsm/loaders/KTX2Loader.js';
 
+//import { KTX2Loader as KTX2LoaderBase } from '../../three/examples/jsm/loaders/KTX2Loader.js';
+import { KTX2Loader as KTX2LoaderBase } from 'three/addons/loaders/KTX2Loader.js';
 
 const _taskCache = new WeakMap();
 

@@ -50,9 +50,18 @@ const M = {
     candelaToLumens : (v) => ( v * 4 * Math.PI ),
     lumensToCandela : (v) => ( v / ( 4 * Math.PI ) ),
 
+    average: arr => arr?.reduce((a, b) => a + b, 0) / arr.length,
+
     //-----------------------
     //  MATH
     //-----------------------
+
+    atan2: ( y, x ) => ( Math.fround(Math.atan2(y, x)) ),
+    pow: ( y, x ) => ( Math.fround(Math.pow(y, x)) ),
+    sin: ( a ) => ( Math.fround(Math.sin(a)) ),
+    cos: ( a ) => ( Math.fround(Math.cos(a)) ),
+    sqrt: ( a ) => ( Math.fround(Math.sqrt(a)) ),
+    exp: ( a ) => ( Math.fround(Math.exp(a)) ),
 
     todeg:todeg,
     torad:torad,

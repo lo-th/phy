@@ -3,7 +3,7 @@ import {
 } from 'three';
 
 //import { Shader } from '../Shader.js'
-import { mergeGeometries } from '../../../three/examples/jsm/utils/BufferGeometryUtils.js';
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 
 export const GlbTool = {
 

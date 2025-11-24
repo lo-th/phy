@@ -23,6 +23,22 @@ export const Num = {
 }
 
 
+export const initArray = function ( length, is64 = false ){
+
+    return is64 ? new Float64Array( length ) : new Float32Array( length );
+
+    /*if (typeof SharedArrayBuffer === 'undefined') {
+        console.log('SharedArrayBuffer not available. Requires COEP/COOP headers.')
+        return is64 ? new Float64Array( length ) : new Float32Array( length );
+    } else {
+        //console.log('SharedArrayBuffer '+(is64?'64':'32')+' is ready')
+        const sharedBuffer = is64 ? new SharedArrayBuffer(Float64Array.BYTES_PER_ELEMENT * length) : new SharedArrayBuffer(Float32Array.BYTES_PER_ELEMENT * length);
+        return is64 ? new Float32Array( sharedBuffer ) : new Float32Array( sharedBuffer );
+    }*/
+
+}
+
+
 // Define how many body phy can manage
 
 export const getArray = function ( engine, full = false ){

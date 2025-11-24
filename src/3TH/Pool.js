@@ -2,15 +2,22 @@ import {
     LoadingManager, FileLoader, CompressedTexture, Texture, Mesh, TextureLoader, SRGBColorSpace, NoColorSpace, RepeatWrapping, NearestFilter, EquirectangularReflectionMapping, AnimationMixer, ObjectSpaceNormalMap, 
     LinearMipmapLinearFilter
 } from 'three';
-
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { FBXLoader } from 'three/addons/loaders/FBXLoader.js';
+import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
+import { STLLoader } from 'three/addons/loaders/STLLoader.js';
+import { HDRLoader } from 'three/addons/loaders/HDRLoader.js';
+import { EXRLoader } from 'three/addons/loaders/EXRLoader.js';
+import { UltraHDRLoader } from 'three/addons/loaders/UltraHDRLoader.js';
+/*
 import { GLTFLoader } from '../../three/examples/jsm/loaders/GLTFLoader.js';
 import { FBXLoader } from '../../three/examples/jsm/loaders/FBXLoader.js';
 import { OBJLoader } from '../../three/examples/jsm/loaders/OBJLoader.js';
 import { STLLoader } from '../../three/examples/jsm/loaders/STLLoader.js';
 import { HDRLoader } from '../../three/examples/jsm/loaders/HDRLoader.js';
-import { EXRLoader } from '../../three/examples/jsm/loaders/EXRLoader.js';
+import { EXRLoader } from '../../three/examples/jsm/loaders/EXRLoader.js';*/
 //import { MeshoptDecoder } from '../../three/examples/jsm/libs/meshopt_decoder.module.js';
-import { UltraHDRLoader } from '../../three/examples/jsm/loaders/UltraHDRLoader.js';
+//import { UltraHDRLoader } from '../../three/examples/jsm/loaders/UltraHDRLoader.js';
 
 import { MeshoptDecoder } from '../libs/meshopt_decoder.module.js';
 

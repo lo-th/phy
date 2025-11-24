@@ -1,5 +1,5 @@
 import { root, Utils, Vec3 } from './root.js';
-import { Num, getType, getArray } from '../core/Config.js';
+import { Num, getType, getArray, initArray } from '../core/Config.js';
 
 import { Ray } from './Ray.js';
 import { Body } from './Body.js';
@@ -140,7 +140,7 @@ export class engine {
 		if( root.world === null ){
 
 			// define transfer array
-		    root.Ar = new Float32Array( root.ArPos.total )
+		    root.Ar = initArray( root.ArPos.total );
 
 		    // create new world
 			engine.initWorld()

@@ -1,5 +1,5 @@
 import { root, Utils } from './root.js';
-import { Num, Max, getType, getArray } from '../core/Config.js';
+import { Num, Max, getType, getArray, initArray } from '../core/Config.js';
 
 import { Body } from './Body.js';
 import { Joint } from './Joint.js';
@@ -142,7 +142,7 @@ export class engine {
 		if( root.world  === null ){
 
 			// define transfer array
-		    root.Ar = new Float32Array( root.ArPos.total );
+		    root.Ar = initArray( root.ArPos.total );
 
 		    // create new world
 			engine.initWorld();

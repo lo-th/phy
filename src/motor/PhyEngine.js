@@ -22,17 +22,17 @@ import { Solver } from './Solver.js';
 import { Collision } from './Collision.js';
 
 // extension
-
+import { Stats } from './extra/Stats.js';
 import { Button } from './extra/Button.js';
 import { Textfield } from './extra/Textfield.js';
-import { Container } from './extra/Container.js';
 import { MouseTool } from './extra/MouseTool.js';
 import { SoftSolver } from './extra/SoftSolver.js';
 import { Breaker } from './extra/Breaker.js';
-
 import { AutoRagdoll } from './extra/AutoRagdoll.js';
 import { Debuger } from './extra/Debuger.js';
 import { Envmap } from './extra/Envmap.js';
+
+import { Container } from './geometries/Container.js';
 
 import { RayCar } from './vehicles/RayCar.js';
 import { Helicopter } from './vehicles/Helicopter.js';
@@ -78,11 +78,16 @@ export class PhyEngine {
 
 		this.noBuffer = true;
 
+		this.stats = new Stats()
+
 		this.geo = new Geo();
 		this.mat = new Mat();
 
 		this.math = MathTool;
 		this.pool = Pool;
+
+
+		//console.log(MathTool.pow(25.66,3), Math.pow(25.66,3))
 		//this.RayCar = RayCar;
 		
 		this.version = Version.PHY;
@@ -369,7 +374,10 @@ export class PhyEngine {
 			if( e.Ar ) _Ar = e.Ar;
 			if( e.reflow ){
 				this.reflow = e.reflow;
-				if(this.reflow.stat.delta) elapsedTime += this.reflow.stat.delta;
+				if(this.reflow.stat.delta){ 
+					this.stats.up( this.reflow.stat )
+					elapsedTime += this.reflow.stat.delta;
+				}
 			}
 		
 			_this[ e.m ]( e.o );
@@ -698,7 +706,9 @@ export class PhyEngine {
 	            n.charset = "utf-8";
 	            n.async = true;
 	            n.innerHTML = code;
+
 	            document.getElementsByTagName('head')[0].appendChild(n);
+	            //document.body.appendChild(n);
 
 	            directMessage = window[type].engine.message;
 				o.message = this.message;
@@ -740,8 +750,11 @@ export class PhyEngine {
 	                    n.charset = "utf-8";
 	                    n.async = true;
 	                    n.innerHTML = xml.responseText;
+
+	                    console.log( xml.responseText)
 	                    //this.extraCode.push(n)
 	                    document.getElementsByTagName('head')[0].appendChild(n);
+	                    //document.body.appendChild(n);
 
 					    directMessage = window[type].engine.message;
 						o.message = this.message;
@@ -879,6 +892,8 @@ export class PhyEngine {
 		    // clear temporary mesh
 			this.disposeTmp();
 
+			this.stats.reset();
+
 			this.garbage = [];
 
 			colorChecker =  null;
@@ -951,8 +966,12 @@ export class PhyEngine {
 
 		this.morph = ( obj, name, value ) => { this.utils.morph( obj, name, value ) }
 
-		this.getFps = () => { return this.reflow.stat.fps }
-		this.getMs = () => { return this.reflow.stat.ms.toFixed(1) }
+		//this.getFps = () => { return this.reflow.stat.fps }
+		//this.getMs = () => { return this.reflow.stat.ms.toFixed(1) }
+
+		this.getFps = () => { return this.stats.fps.toFixed(0) }
+		this.getMs = () => { return this.stats.ms.toFixed(1) }
+		this.getGpu = () => { return this.stats.gpu.toFixed(1) }
 		
 		this.getDelta2 = () => { return this.delta }
 		this.getElapsedTime2 = () => { return elapsedTime }

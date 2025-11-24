@@ -4,7 +4,7 @@ import {
 } from 'three';
 //import * as TWEEN from 'tween'
 import * as TWEEN from '../libs/tween.esm.js'
-import { OrbitControls } from '../../three/examples/jsm/controls/OrbitControls.js';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 //import { OrbitControls } from './OrbitControls.js';
 import { math } from './math.js';
 

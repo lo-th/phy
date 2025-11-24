@@ -1,5 +1,5 @@
 import * as THREE from 'three'
-import * as TWEEN from 'tween'
+import * as TWEEN from './libs/tween.esm.js'
 import * as UIL from './libs/uil.module.js'
 
 //import './libs/webgl-memory.js'
@@ -61,7 +61,7 @@ const Motor = phy;
 
 let isWebGPU = false;
 let lockPixelRatio = true;
-
+const testGPU = false
 //let drawCall = false
 //let debugLight = false
 
@@ -332,28 +332,22 @@ export const Main = {
 	getGround:() => ( ground ),
 
 	getHub3d:() => ( vignette ),
-	//getWorker:() => ( 'Worker' + (Main.isWorker ? ' On' : ' Off') ),
+
+	
 	getDemos:() => {
 
 		let d = Motor.get('demos', 'json')
-		Main.demoLink = [ ...d.Basic, ...d.Advanced, ...d[Main.engineType] ]
-		Main.devLink = [ ...d.Dev ];
-		if( Main.devMode ){ 
-			Main.demoLink = [ ...Main.demoLink, ...d.Dev, ...d.Private ];
-			let j = d.Dev.length;
-			while(j--){
-				let name = d.Dev[j];
-				name = name.substring( name.lastIndexOf('/')+1 );
-				name = name.toUpperCase().substring(0,1) + name.substring(1).toLowerCase();
-				Main.devDemo[name] = true;
-			}
-		}
 
-		let i = Main.demoLink.length, l
-	    while(i--){
-	    	l =  Main.demoLink[i];
-	    	Main.demoList[i] = l.substring( l.lastIndexOf('/')+1 );
+	    Main.demoList = d.Demo;
+
+	    for(let l in Main.demoList){
+	    	Main.demoList[l].sort()
 	    }
+
+	    if( !Main.devMode ){ 
+            delete Main.demoList.private
+        }
+
 
 		Main.envList = [...d.Envmap];
 		//return Main.demoList
@@ -529,6 +523,8 @@ const init = () => {
 	if( options.mode !== 'LOW' && !isWebGPU ) Motor.setMaxAnisotropy( renderer.capabilities.getMaxAnisotropy() );
 
 	Motor.setRenderer(renderer);
+
+	if(testGPU) Motor.stats.setRenderer(renderer);
 
 	// DOM
     document.body.appendChild( renderer.domElement );
@@ -937,13 +933,26 @@ const directDemo = ( name, result ) => {
 
 const loadDemo = ( name ) => {
 
-	let idd = Main.demoList.indexOf(name)
+	//let idd = -1//Main.demoList.indexOf(name)
 	let expath = '';
-	if( Main.devLink.indexOf(name)!==-1 ) expath = 'dev/' 
+	let rubric = ''
 
-	if( idd === -1 && expath === '' ){ 
+	for (let r in Main.demoList){
+		if( Main.demoList[r].indexOf(name)!==-1 ) rubric = r
+	}
+
+    //console.log(rubric)
+
+    switch(rubric){
+    	case 'dev': expath = 'dev/'; break
+    	case 'private': expath = 'private/'; break
+    }
+
+	//if( Main.devLink.indexOf(name)!==-1 ) expath = 'dev/' 
+
+	if( rubric === '' ){ 
 		name = 'start'
-		idd = 0
+		//idd = 0
 	}
 
 	//let findDemo = Gui.resetDemoGroup( name )
@@ -1103,8 +1112,16 @@ const render = ( stamp = 0 ) => {
 
 	update( stamp );
 
+
+
+
+
 	if( composer && composer.enabled ) composer.render( tm.delta );
 	else renderer.render( scene, camera );
+
+	
+    if(testGPU) Motor.stats.upGpu()
+
 
 	loop = requestAnimationFrame( render );
 
@@ -1163,7 +1180,9 @@ const upStat = () => {
 	}
 
 	//Hub.setFps( 'T:' + tm.fps + ' | P:' + Motor.getFps() )
-	Hub.setFps(  tm.fps + ' ~ ' + Motor.getFps() + ' | ' + Motor.getMs()+' ms' )
+	if(testGPU) Hub.setFps(  tm.fps + ' ~ ' + Motor.getFps() + ' | ' + Motor.getMs()+' ms'+ ' | ' + Motor.stats.gpu+' ms'  )
+	else Hub.setFps(  tm.fps + ' ~ ' + Motor.getFps() + ' | ' + Motor.getMs()+' ms'  )
+	//
 	getFullStats()
 
 }

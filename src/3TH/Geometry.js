@@ -12,7 +12,7 @@ import {
     Vector2
 } from 'three';
 
-import { mergeVertices, mergeGeometries } from '../../three/examples/jsm/utils/BufferGeometryUtils.js';
+import { mergeVertices, mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { Tubular } from './geometries/Tubular.js';
 
 

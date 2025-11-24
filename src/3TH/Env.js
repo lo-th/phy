@@ -8,9 +8,9 @@ import {
 } from 'three';
 
 //import { HDRJPGLoader } from '../libs/HDRJPGLoader.js';
-import { HDRLoader } from '../../three/examples/jsm/loaders/HDRLoader.js';
-import { EXRLoader } from '../../three/examples/jsm/loaders/EXRLoader.js';
-import { GroundedSkybox } from '../../three/examples/jsm/objects/GroundedSkybox.js';
+import { HDRLoader } from 'three/addons/loaders/HDRLoader.js';
+import { EXRLoader } from 'three/addons/loaders/EXRLoader.js';
+import { GroundedSkybox } from 'three/addons/objects/GroundedSkybox.js';
 import { ImgTool } from './utils/ImgTool.js';
 import { TextureAnalys } from './utils/TextureAnalys.js';
 //import { texture, equirectUV } from 'three/nodes';

@@ -9,11 +9,16 @@ import { Pool } from './Pool.js';
 
 
 const Styles = {
-    menuName:'font-size:14px; font-weight:400;  text-shadow: 1px 1px 2px black;',//letter-spacing: -0.022em;
-    demoName:'font-size:14px; width:fit-content; font-weight:400; text-shadow: 1px 1px 2px black; margin:-2px 0px; ',
+    menuName:'font-size:14px; font-weight:400; text-shadow: 1px 1px 2px black; padding:4px 10px;',//letter-spacing: -0.022em;
+    //demoName:'font-size:14px; width:fit-content; font-weight:400; text-shadow: 1px 1px 2px black; margin:-2px 0px; ',
+    demoName:'font-size:14px; width:120px; max-width:120px; max-height:22px; height:22px; font-weight:400; text-shadow: 1px 1px 2px black; margin:0px 0px; flex:1 1 120px; padding:2px 10px;',
+    rubric:'font-size:14px; width:100%; max-height:22px; height:22px; font-weight:400; margin:0px 0px; flex:1 1 auto; padding:2px 10px; white-space: nowrap; font-style: italic; color:#999999;',
 }
 //text-shadow: 1px 1px 3px #000000;
 //letter-spacing: -0.022em;
+
+//Styles.demoName +=' background:blue;'
+//Styles.rubric +=' background:red;'
 
 let Main = null;
 
@@ -26,6 +31,7 @@ let isTopDown = true;
 //
 
 const marge = [40,40];
+const margin = 40;
 
 let svg = UIL.Tools.dom;
 let setSvg = UIL.Tools.setSvg;
@@ -48,9 +54,9 @@ let top = null;
 let ratio = 1;
 let listHeight = 0;
 let listTop = 60//54;
-let maxHeight = 0;
-let sh = 0, range = 0;
-let maxListItem = 10;
+//let maxHeight = 0;
+//let sh = 0, range = 0;
+//let maxListItem = 10;
 let full = true;
 
 let guiOpen = false;
@@ -62,9 +68,8 @@ let h1,h2
 const listdata = {
     home : ['Code', 'Worker', 'Github', 'Docs'],
     engine : [],
-    demo:[],
     visited:[],
-    //dev:[],
+    demo:{},
 }
 
 let isDisplay = false;
@@ -291,9 +296,6 @@ export class Hub {
             function(){ loader.style.display = 'none'; }
         )
 
-        
-
-
         /*let logo = `<svg xmlns='http://www.w3.org/2000/svg' version='1.1' xmlns:xlink='http://www.w3.org/1999/xlink' style='pointer-events:none;' 
         preserveAspectRatio='xMinYMax meet' x='0px' y='0px' width='20px' height='20px' viewBox='0 0 256 256'>
         <path id='svgLogo' stroke='${color}' stroke-width='30' style='stroke-opacity: 1;' stroke-linejoin='round' stroke-linecap='round' 
@@ -346,16 +348,21 @@ export class Hub {
         }
 
         menu = document.createElement( 'div' );
-        menu.style.cssText = 'position:absolute; top:24px; background:'+bg+'; left:'+marge[0]+'px; display:flex; align-self: stretch; justify-content: flex-start; gap: 0px 6px; align-items:baseline; '
+        menu.style.cssText = 'position:absolute; top:24px; background:'+bg+'; left:'+margin+'px; display:flex; align-self: stretch; justify-content: flex-start; gap: 0px 6px; align-items:baseline; '
         content.appendChild( menu );
 
         downMenu = document.createElement( 'div' );
-        downMenu.style.cssText = 'position:absolute; top:60px; left:'+marge[0]+'px; overflow:hidden; background:'+bg+'; height:0px; width:0px;'//'top:54px; width:0px;' //transition: all .1s ease-in-out;
-        //downMenu.style.background = 'rgba(10,10, 10,0.2)'
+        downMenu.style.cssText = 'position:absolute; top:60px; overflow:hidden; background:'+bg+'; height:0px; width:100%; '//'top:54px; width:0px;' //transition: all .1s ease-in-out;
+        //downMenu.style.background = 'blue'
         content.appendChild( downMenu );
 
         innerMenu = document.createElement( 'div' );
-        innerMenu.style.cssText = 'box-sizing: border-box; position:absolute; overflow:hidden; background:'+bg+'; display:flex; flex-wrap:warp; opacity:0; transition-delay: 0.12s; transition:opacity 0.5s allow-discrete ease-out;';
+        innerMenu.style.cssText = 'position:absolute; display:flex; flex-wrap:warp; opacity:0; flex-flow:row wrap; padding:10px 0px;width:auto;';
+        //innerMenu.style.cssText += 'transition-delay: 1s; transition:opacity 0.5s allow-discrete ease-out;'
+        //innerMenu.style.background = 'rgba(10,10, 10,0.2)'//box-sizing: border-box;
+        downMenu.appendChild( innerMenu );
+
+
         if(!isTopDown){
             innerMenu.style.opacity = '0';
             //innerMenu.style.transition = 'opacity 0.5s allow-discrete ease-out;';
@@ -364,7 +371,7 @@ export class Hub {
             //innerMenu.style.borderRadius = '6px';
             innerMenu.style.backdropFilter = bgBlur;
         }
-        downMenu.appendChild( innerMenu );
+        
         
 
         zoning.addEventListener("pointerleave", (e) => {
@@ -382,34 +389,29 @@ export class Hub {
         // MENU CONTENT
 
         title = document.createElement( 'div' );
-        menu.appendChild( title )
-        title.id = 'home'
+        title.style.cssText = Styles.menuName;
         title.innerHTML = Hub.miniIcon('logo', color );
+        title.id = 'home'
 
         engine = document.createElement( 'div' );
         engine.style.cssText = Styles.menuName;
         engine.id = 'engine'
-        menu.appendChild( engine )
         
         demo = document.createElement( 'div' );
         demo.style.cssText = Styles.menuName;
         demo.id = 'demo'
-        menu.appendChild( demo )
 
-        /*dev = document.createElement( 'div' );
-        dev.style.cssText = Styles.menuName;
-        dev.id = 'dev'
-        menu.appendChild( dev )
-        dev.textContent = 'dev'*/
+        menu.appendChild( title )
+        menu.appendChild( engine )
+        menu.appendChild( demo )
         
         this.effect(title)
         this.effect(engine)
         this.effect(demo)
-        //this.effect(dev)
 
 
         debug = document.createElement( 'div' );
-        debug.style.cssText = 'position:absolute; width:300px; bottom:15px; left:'+(marge[0]+8)+'px; font-size:12px; vertical-align:bottom; text-align:left;'
+        debug.style.cssText = 'position:absolute; width:300px; bottom:15px; left:'+(margin+8)+'px; font-size:12px; vertical-align:bottom; text-align:left;'
         //debug.style.cssText = 'position:absolute; background:'+bg+'; width:300px; margin-left:-150px; bottom:25px; left:50%; font-size:14px; font-weight:500; vertical-align:bottom; text-align:center;'
         content.appendChild( debug )
 
@@ -424,11 +426,11 @@ export class Hub {
         content.appendChild( top )
 
         fps = document.createElement( 'div' );
-        fps.style.cssText = Styles.menuName + 'position:absolute; top:33px; right:'+(marge[0]+20)+'px; text-align:right; '
+        fps.style.cssText = Styles.menuName + 'position:absolute; top:33px; right:'+(margin+20)+'px; text-align:right; padding:0px 0px;'
         content.appendChild( fps )
 
         guiButton = document.createElement( 'div' );
-        guiButton.style.cssText = 'position:absolute; right:'+marge[0]+'px;  top:31px; pointer-events:auto; cursor: pointer;'
+        guiButton.style.cssText = 'position:absolute; right:'+margin+'px;  top:31px; pointer-events:auto; cursor: pointer;'
         content.appendChild( guiButton )
         guiButton.innerHTML = `<svg xmlns='http://www.w3.org/2000/svg' version='1.1' xmlns:xlink='http://www.w3.org/1999/xlink' style='pointer-events:none;' 
         preserveAspectRatio='xMinYMax meet' x='0px' y='0px' width='10px' height='10px' viewBox='0 0 10 10'>
@@ -503,9 +505,13 @@ export class Hub {
 
     }
 
+    
+
+
     static switchGuiButton( b ){
 
         if(isTopDown) topDown.style.width = b ? 'calc(100% - 260px)': '100%'
+        //else downMenu.style.width = b ? 'calc(100% - 260px)': '100%'
 
         document.querySelector("#guiPath").setAttributeNS(null, 'd', b ? p1 : p0)
         guiOpen = b;
@@ -520,25 +526,39 @@ export class Hub {
     static hideMenu () {
 
         menuIsDisplay = false;
+        currentMenu = '';
 
         Hub.clearLogoImage();
 
-        downMenu.style.height = '0px'
+        downMenu.style.height = '0px';
         innerMenu.innerHTML = '';
-        //innerMenu.style.background = 'none';
+        innerMenu.style.opacity = 0;
+        innerMenu.style.transition = 'none';
         
         zoning.style.width = '0px';
         zoning.style.height = '0px';
-        currentMenu = '';
+        
+
         if(isTopDown){ 
             topDown.style.height = '0px'
-            topDown.style.opacity = 0;
+            //topDown.style.opacity = 0;
         }
-        
-        innerMenu.style.opacity = 0;
         
         Hub.updatePad(null);
 
+    }
+
+    static insertRubric ( name ) {
+
+        let r = document.createElement( 'div' );
+        r.style.cssText = Styles.rubric;
+        r.textContent =  name.toUpperCase();
+        innerMenu.appendChild( r );
+
+        let l = document.createElement( 'div' );
+        l.style.cssText ='width:100%; height:1px; bottom:0px; background:#999999; '
+        r.appendChild( l );
+    
     }
 
     static showMenu ( target ) {
@@ -553,102 +573,38 @@ export class Hub {
 
         currentMenu = type;
 
-        //downMenu.style.left = ( type === 'engine' ? 125:80 ) + 'px'
-        //if(type === 'home') downMenu.style.left = '70px'
-        downMenu.style.left = marge[0] + 'px'
-        if(type === 'home') downMenu.style.left = (marge[0]-10) + 'px'
+        let w = guiOpen ? 'calc(100% - '+((margin*2)+260)+'px)': 'calc(100% - '+(margin*2)+'px)'
+
+        innerMenu.style.flexDirection = type === 'demo' ? 'row' : 'column';
+        innerMenu.style.width = type === 'demo' ? w : '120px';
+        innerMenu.style.left = (type === 'engine' ? margin+46 : margin) + 'px';
+
         if(type === 'engine'){ 
-            downMenu.style.left = (marge[0]+36) + 'px';
             Hub.addLogoImage();
         } else {
             Hub.clearLogoImage();
         }
 
-        let list = listdata[ type ];
-        /*type === 'demo' ?  demolist : engineList
-        if( type === 'logo') list = ['Github', 'About']*/
-        let i = list.length, m, n=0, itemH = 0, name
-        let listLength = i
-
-        //innerMenu.style.cssText = " top:0px; width:auto; display:flex; flex-direction:column; "
-        innerMenu.style.padding = '10px 0px';
-        //innerMenu.style.padding = '2px 0px';
-        innerMenu.style.top = '0px';
-        innerMenu.style.width = 'auto';
-        innerMenu.style.display = 'flex';
-        innerMenu.style.flexDirection = 'column';
-        //innerMenu.style.background = panelBackground;
-        //innerMenu.style.border = '4px solid rgba(20,20,20,0.1)'
-        innerMenu.style.opacity = 1
-
-
-
-        const bb = [];
-        
-        while( i-- ){
-
-            name = list[n];
-            m = document.createElement( 'div' );
-            innerMenu.appendChild( m );
-            m.classList.add("down");
-            
-            m.style.cssText = Styles.demoName;
-            m.id = name;
-            m.textContent = name;
-
-            if( listdata.visited.indexOf(name) !== -1 ) m.style.color = colorVisite;
-            if( Main.devDemo[name] ) m.style.color = colorDemo;
-            if( name === 'Worker' ) m.style.color = Main.isWorker ? color : colorVisite;
-            if( name === 'Code' ) m.style.color = Main.isEditor ? color : colorVisite;
-
-            if( n===0 ) itemH = m.offsetHeight;
-            //bb[n] = m
-            
-            this.effect( m, true );
-            n++;
-
-        }
-
-        
-        let rect = innerMenu.getBoundingClientRect();
-        let max = maxListItem * itemH;
-        let maxH = n * itemH;
-        maxHeight = maxH > max ? max : rect.height;
-        ratio = maxHeight / maxH;
-        sh = maxHeight * ratio;
-        range = maxHeight - sh;
-
         if( type === 'demo' ){
 
-            let dw = guiOpen ? (255+80) : 160;
-            let maxC = Math.floor((contentWidth-dw) / 120);
-            let maxR = Math.round(listLength/maxC);
-
-            innerMenu.style.display = 'grid';
-            innerMenu.style.gridTemplateRows = 'repeat('+maxR+', 22px)';
-            innerMenu.style.gap = '0px';
-            innerMenu.style.gridAutoFlow = 'column';
-            innerMenu.style.gridAutoColumns = '120px';
-
-            downMenu.style.left = 80 + 'px'
-            downMenu.style.width = 'calc(100% - '+dw+'px)';
-            innerMenu.style.width = '100%'
-            rect = innerMenu.getBoundingClientRect();
-            downMenu.style.height = rect.height+'px';
+            Hub.demoDisplay()
 
         } else {
 
-            downMenu.style.width = rect.width + 'px';
-            downMenu.style.height = maxHeight + 'px';
+            Hub.listDisplay( listdata[ type ] )
 
         }
+        
+        let rect = innerMenu.getBoundingClientRect();
+        downMenu.style.height = rect.height+'px';
+        
+        innerMenu.style.opacity = 1
+        innerMenu.style.transition = 'opacity 0.25s allow-discrete ease-out'
+        
 
         zoning.style.left = (rect.left-20) + 'px';
         zoning.style.width = (rect.width + 40) + 'px';
         zoning.style.height = (rect.height + 50) + 'px';
-        //zoning.style.height = (rect.height + 70) + 'px';
-
-        //const rect = elem.getBoundingClientRect();
 
         if(isTopDown){ 
             topDown.style.height = 60 + rect.height+'px'
@@ -657,34 +613,67 @@ export class Hub {
 
     }
 
+    static listDisplay ( list ) {
+
+        let name, m;
+
+        for( let i = 0, lng = list.length; i<lng; i++  ){
+
+            name = list[i];
+            m = document.createElement( 'div' );
+            m.style.cssText = Styles.demoName;
+            m.id = name;
+            m.textContent = Hub.reformat(name);
+            
+            //m.classList.add("down");
+            innerMenu.appendChild( m );
+
+            if( listdata.visited.indexOf(name) !== -1 ) m.style.color = colorVisite;
+            //if( Main.devDemo[name] ) m.style.color = colorDemo;
+            if( name === 'Worker' ) m.style.color = Main.isWorker ? color : colorVisite;
+            if( name === 'Code' ) m.style.color = Main.isEditor ? color : colorVisite;
+            
+            Hub.effect( m, true );
+
+        }
+
+    }
+
+    static demoDisplay () {
+
+        let demoList = listdata.demo;
+
+        for(let rubric in demoList){
+
+            Hub.insertRubric(rubric)
+            Hub.listDisplay( demoList[rubric] )
+
+        }
+
+    }
+
     static upMenu () {
 
-        
+        engine.textContent = Hub.reformat( Main.engineType )
+        demo.textContent = Hub.reformat( Main.currentDemo )
 
-        engine.textContent = this.reformat( Main.engineType )
+        // VISITED
 
-        
-        demo.textContent = this.reformat( Main.currentDemo )
+        listdata.visited.push( Main.currentDemo )
 
-        let isDev = Main.devDemo[demo.textContent] 
-        demo.style.color = isDev ? colorDemo : color
+        // DEMO
 
-        //console.log(Main.devDemo, isDev)
-        
+        listdata.demo = {...Main.demoList}
 
-        listdata.visited.push( demo.textContent )
+        if( !Main.devMode ){
+            delete listdata.demo.dev
+        }
 
-        let list = [...Main.demoList]
-        list.splice(list.indexOf(Main.currentDemo), 1);
-        list.sort();
-        list = list.map( x => Hub.reformat(x) );
+        // ENGINE
 
-        listdata.demo = list;
-
-        list = [...Main.engineList]
-        list.sort();
+        let list = [...Main.engineList]
         list.splice(list.indexOf(Main.engineType), 1);
-        list = list.map( x => Hub.reformat(x) );
+        list.sort();
 
         listdata.engine = list;
 
@@ -702,12 +691,9 @@ export class Hub {
 
         if(!Main.isMobile) dom.addEventListener("pointermove", Hub.moving );
 
-        dom.style.padding = '4px 10px';
+        //dom.style.padding = '4px 10px';
 
-        dom.addEventListener( 'pointerleave', (e) => {
-            
-            Hub.setTextStyle( e.target, false );
-        })
+        dom.addEventListener( 'pointerleave', (e) => { Hub.setTextStyle( e.target, false ); })
        
         dom.addEventListener("pointerdown", (e) => {
             //e.target.style.textDecoration = 'underline ' + color;
@@ -724,11 +710,13 @@ export class Hub {
 
         lock = false;
         Hub.hideMenu();
+
+        //console.log(name)
         
         timeout = setTimeout( function(){ 
             if( listdata.engine.indexOf(name) !== -1 ) Hub.swapEngine( name )
             else if( listdata.home.indexOf(name) !== -1 ) Hub.homeLink( name )
-            else Main.loadDemo( name.toLowerCase() ) 
+            else Main.loadDemo( name ) 
         }, 100 );
 
     }
@@ -818,17 +806,25 @@ export class Hub {
             if(isLiner){ 
                 target.style.textDecoration = 'underline '+ color;
             } else {
-                target.style.fontWeight = 500;
-                target.style.letterSpacing  = '-0.3px'
-                target.style.wordSpacing   = '-0.3px'
+                if(target.id === 'home'){
+                    document.querySelector("#svgLogo").setAttributeNS(null, 'stroke-width', 4 );
+                } else {
+                    target.style.fontWeight = 500;
+                    target.style.letterSpacing = '-0.3px'
+                    target.style.wordSpacing = '-0.3px'
+                }
             }
         } else {
             if(isLiner){ 
                 target.style.textDecoration = 'none';
             } else {
-                target.style.fontWeight = 400;
-                target.style.letterSpacing  = 'normal'
-                target.style.wordSpacing   = 'normal'
+                if(target.id === 'home'){
+                    document.querySelector("#svgLogo").setAttributeNS(null, 'stroke-width', 3 );
+                } else {
+                    target.style.fontWeight = 400;
+                    target.style.letterSpacing = 'normal'
+                    target.style.wordSpacing = 'normal'
+                }
             }
         }
     }
@@ -860,7 +856,7 @@ export class Hub {
 
         if( full ) return 
 
-        if( ratio!==1 ){
+        /*if( ratio!==1 ){
 
             let my = e.clientY - listTop
             my = my < 0 ? 0 : my;
@@ -875,7 +871,7 @@ export class Hub {
 
             innerMenu.style.top = -Math.floor( y / ratio ) + 'px'
 
-        }
+        }*/
 
     }
 
