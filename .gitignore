@@ -1,7 +1,7 @@
 rollup/builder
 rollup/test
 node_modules/*
-!node_modules/three
+!node_modules/three/
 package-lock.json
 npm-debug.log
 prepa
