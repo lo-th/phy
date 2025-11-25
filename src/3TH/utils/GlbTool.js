@@ -104,7 +104,7 @@ export const GlbTool = {
         const groups = {};
         scene.traverse( ( child ) => {
             if ( child.isGroup ){ 
-            	groups[ child.name ] = autoMesh ? GlbTool.groupToMesh(child, mats) : child;
+            	groups[ child.name ] = autoMesh ? GlbTool.groupToMesh(child) : child;
             }
         })
         return groups;

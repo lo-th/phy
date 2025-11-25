@@ -1,11 +1,4 @@
-/*const Botsetting = {
-    speed: 10,//0.1,//0.1,
-    stiffness: 3000,//3000,//1000,
-    damping: 100,//100,//100,//100,
-    forceLimit: 100000,
-    legMass:100,//100,//1,
-    bodyMass:100,//800,//8,
-}*/
+
 const Botsetting = {
     speed: 10,
     stiffness: 1000,
@@ -23,7 +16,7 @@ demo = () => {
 
     phy.log('use key WSAD or ZSQD to move')
 
-    phy.view({ envmap:'photo', envblur:0.3, ground:true, fog:true, fogDist:0.02 })//envFloor:true,
+    phy.view({ envmap:'photo', envblur:0.3, ground:true, fog:true, fogDist:0.02, reflect:0 })
 
     //phy.set({ substep:1, gravity:[0,-9.81,0], key:true, fps:144 })
     phy.set({ substep:10, gravity:[0,-9.81,0], key:true, fps:60, woldScale:1 })
@@ -32,8 +25,8 @@ demo = () => {
 
     phy.load(['./assets/models/spider.glb'], onComplete )
 
-    let g = phy.getGround()
-    g.material.map = phy.texture({ url:'./assets/textures/grid.png', repeat:[60,60] })
+    //let g = phy.getGround()
+    //g.material.map = phy.texture({ url:'./assets/textures/grid.png', repeat:[60,60] })
 
 }
 
@@ -54,12 +47,12 @@ initRobot = () => {
         //restitution: 0.1,
         maplevels:[0.5, 0.5, 0, 0.25],
         pos: [0,0,0],
-        size: [30, 1, 30],
+        size: [100, 2, 100],
         sample: [128, 128],
         frequency: [0.016,0.05,0.2],
         expo: 2,
         zone:1.0,
-        uv: 10,
+        uv: 30,
     })
 
     meshes = phy.getMesh('spider', true );

@@ -9,6 +9,9 @@
             "blast", "skeleton", "skeleton_old", "material", "keva", "test", "collision",
              "raycast", "human", "player", "auto_ragdoll", "badaboum", "kart", "fracture", "nefertiti"
         ],
+        "physx": [
+            "buggy" , "vehicle4", "robot"
+        ],
         "dev": [
             "spring", "gears2", "mass", "empty", "empty2", "empty3", "group_mask",
             "car", "buttons", "robot_arm", "pinball", "bullet", "build", 
@@ -18,6 +21,7 @@
         "private": [
             "break_vase"
         ]
+
     },
 
     "Envmap": [ 

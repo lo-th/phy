@@ -63,6 +63,9 @@ onComplete = () => {
         maxSteering:14,// the max steer angle in degree
         s_travel:0.4,// the total length of suspension
 
+        //engine:6000,
+        //acceleration:100,
+
     })
 
     // add top spare wheel
@@ -133,10 +136,6 @@ update = () => {
 applyMaterial = ( model ) => {
 
     const mat = {}
-
-
-
-
 
 
     //let Mat = phy.getMat()

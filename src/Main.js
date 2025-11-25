@@ -348,6 +348,10 @@ export const Main = {
             delete Main.demoList.private
         }
 
+        if( Main.engineType !== 'PHYSX' ){ 
+            delete Main.demoList.physx
+        }
+
 
 		Main.envList = [...d.Envmap];
 		//return Main.demoList
@@ -618,8 +622,6 @@ const drop = (e) => {
     const type = name.substring(name.lastIndexOf('.')+1, name.length )
     const finalName = name.substring( name.lastIndexOf('/')+1, name.lastIndexOf('.') )
 
-    //console.log(type, name)
-
     switch( type ){
     	case 'js': reader.readAsText( file ); break;
     	case 'fbx': case 'glb':  reader.readAsArrayBuffer( file ); break;
@@ -633,7 +635,6 @@ const drop = (e) => {
 
     	switch(type){
 	    	case 'js': directDemo( finalName, e.target.result ); break;
-	    	
 	    }
     }
 
@@ -723,13 +724,13 @@ const addLight = () => {
 
 	//if( !isWebGPU ){
 
-		Lights.castShadow( options.shadow !== 0 )
-		renderer.shadowMap.enabled = options.shadow !== 0 
-		renderer.shadowMap.type = shadowMapType[options.shadowType]
+	Lights.castShadow( options.shadow !== 0 )
+	renderer.shadowMap.enabled = options.shadow !== 0 
+	renderer.shadowMap.type = shadowMapType[options.shadowType]
 
-		//console.log(options.shadowType, renderer.shadowMap.type, shadowMapType)
-		//renderer.shadowMap.autoUpdate = false;
-		//renderer.shadowMap.needsUpdate= true;
+	//console.log(options.shadowType, renderer.shadowMap.type, shadowMapType)
+	//renderer.shadowMap.autoUpdate = false;
+	//renderer.shadowMap.needsUpdate= true;
 
 	//}
 

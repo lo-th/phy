@@ -34,6 +34,7 @@ class DRACOLoader extends Loader {
 			color: 'COLOR',
 			uv: 'TEX_COORD'
 		};
+		
 		this.defaultAttributeTypes = {
 			position: 'Float32Array',
 			normal: 'Float32Array',

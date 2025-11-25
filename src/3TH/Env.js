@@ -136,12 +136,14 @@ export class Env {
 		if(!hdr) return;
 		if(skybox) Env.clearProject();
 
-		skybox = new GroundedSkybox( hdr );
+		let smoothHeight = .25;
+		skybox = new GroundedSkybox( hdr, smoothHeight , 1, 64 );
+		skybox.position.y+=(height * smoothHeight)-1;
 		skybox.scale.setScalar( 100 );
 		scene.add( skybox );
 
-		skybox.radius = radius;// 200 / 600
-		skybox.height = height;// 20 / 50
+		//skybox.radius = radius;// 200 / 600
+		//skybox.height = height;// 20 / 50
 
 	}
 
