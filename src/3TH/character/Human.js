@@ -49,7 +49,7 @@ export const Human = {
     skeletonRef:'body',
 	fullMorph: ['MUSCLE', 'LOW', 'BIG','MONSTER'],//, 
 
-    textureQuality:1,
+    textureQuality:2,
 	textureRef:'avatar_c',
 	texturePath: 'assets/textures/avatar_',
 	textures: [
@@ -70,6 +70,9 @@ export const Human = {
     materials:{
         skin:{
             type:'Sss',
+            //type:'Physical',
+            //type:'Standard',
+
             map: 'avatar_c', 
             normalMap:'avatar_n',
 
@@ -88,6 +91,8 @@ export const Human = {
             sheenColor:0x600000,
             sheen:setting.sheen,
             sheenRoughness:setting.sheenRoughness,
+
+
             //sheenColorMap:'avatar_c',
             /*sheenColor:0xff0000,
             sheenColorMap:'avatar_u',

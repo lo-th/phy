@@ -3,7 +3,7 @@
  * Copyright 2010-2025 Phy.js Authors
  * SPDX-License-Identifier: MIT
  */
-import { LineSegments, BufferGeometry, BufferAttribute, Float32BufferAttribute, LineBasicMaterial, BoxGeometry, Vector3, Matrix4, CylinderGeometry, CircleGeometry, PlaneGeometry, SphereGeometry, Box3, Vector2, CanvasTexture, RepeatWrapping, SRGBColorSpace, MeshPhysicalMaterial, Color, MeshStandardMaterial, ShadowMaterial, MeshToonMaterial, MeshBasicMaterial, MeshLambertMaterial, MeshPhongMaterial, DoubleSide, BackSide, FrontSide, SrcAlphaSaturateFactor, OneMinusDstColorFactor, DstColorFactor, OneMinusDstAlphaFactor, DstAlphaFactor, OneMinusSrcAlphaFactor, SrcAlphaFactor, OneMinusSrcColorFactor, SrcColorFactor, OneFactor, ZeroFactor, MaxEquation, MinEquation, ReverseSubtractEquation, SubtractEquation, AddEquation, MultiplyBlending, SubtractiveBlending, AdditiveBlending, NormalBlending, NoBlending, Line, InstancedMesh, Quaternion as Quaternion$1, Mesh, InstancedBufferAttribute, Object3D, Line3, Plane, Triangle, ShapeGeometry, Euler, Loader, FileLoader as FileLoader$1, LinearSRGBColorSpace, LoadingManager, EquirectangularReflectionMapping, AnimationMixer, NoColorSpace, NearestFilter, Texture, TextureLoader, CompressedTexture, ObjectSpaceNormalMap, Vector4, CustomBlending, Group, SkeletonHelper, AnimationClip, AnimationUtils, VectorKeyframeTrack, QuaternionKeyframeTrack, AdditiveAnimationBlendMode, NormalAnimationBlendMode, Raycaster, Sphere, PMREMGenerator, Scene, WebGLCubeRenderTarget, HalfFloatType, LinearFilter, CubeCamera, IcosahedronGeometry, ShaderMaterial, NoToneMapping, AxesHelper, Skeleton, MathUtils, Points, InstancedBufferGeometry, InterleavedBuffer, InterleavedBufferAttribute, InstancedInterleavedBuffer, DynamicDrawUsage, DataTexture, RGBAFormat, Matrix3 } from 'three';
+import { LineSegments, BufferGeometry, BufferAttribute, Float32BufferAttribute, LineBasicMaterial, BoxGeometry, Vector3, Matrix4, CylinderGeometry, CircleGeometry, PlaneGeometry, SphereGeometry, Box3, Vector2, CanvasTexture, RepeatWrapping, SRGBColorSpace, MeshPhysicalMaterial, Color, MeshStandardMaterial, ShadowMaterial, MeshToonMaterial, MeshBasicMaterial, MeshLambertMaterial, MeshPhongMaterial, DoubleSide, BackSide, FrontSide, SrcAlphaSaturateFactor, OneMinusDstColorFactor, DstColorFactor, OneMinusDstAlphaFactor, DstAlphaFactor, OneMinusSrcAlphaFactor, SrcAlphaFactor, OneMinusSrcColorFactor, SrcColorFactor, OneFactor, ZeroFactor, MaxEquation, MinEquation, ReverseSubtractEquation, SubtractEquation, AddEquation, MultiplyBlending, SubtractiveBlending, AdditiveBlending, NormalBlending, NoBlending, Line, InstancedMesh, Quaternion as Quaternion$1, Mesh, InstancedBufferAttribute, Object3D, Line3, Plane, Triangle, ShapeGeometry, Euler, Loader, FileLoader, LinearSRGBColorSpace, LoadingManager, EquirectangularReflectionMapping, AnimationMixer, NoColorSpace, NearestFilter, Texture, TextureLoader, CompressedTexture, ObjectSpaceNormalMap, Vector4, CustomBlending, Group, SkeletonHelper, AnimationClip, AnimationUtils, VectorKeyframeTrack, QuaternionKeyframeTrack, AdditiveAnimationBlendMode, NormalAnimationBlendMode, Raycaster, Sphere, PMREMGenerator, Scene, WebGLCubeRenderTarget, HalfFloatType, LinearFilter, CubeCamera, IcosahedronGeometry, ShaderMaterial, NoToneMapping, AxesHelper, Skeleton, MathUtils, Points, InstancedBufferGeometry, InterleavedBuffer, InterleavedBufferAttribute, InstancedInterleavedBuffer, DynamicDrawUsage, DataTexture, RGBAFormat, Matrix3 } from 'three';
 import { mergeGeometries as mergeGeometries$1, mergeVertices as mergeVertices$1 } from 'three/addons/utils/BufferGeometryUtils.js';
 import { SVGLoader } from 'three/addons/loaders/SVGLoader.js';
 import * as SkeletonUtils from 'three/addons/utils/SkeletonUtils.js';
@@ -3665,6 +3665,8 @@ let Mat$3 = class Mat {
 				if( !o.normalScale.isVector2 ) o.normalScale = new Vector2().fromArray(o.normalScale);
 			}
 
+		    //if( o.map ) o.map.colorSpace = SRGBColorSpace;
+
 		    if( o.side ) o.side = this.findValue( o.side );
 		    if( o.shadowSide ) o.shadowSide = this.findValue( o.shadowSide );
 		    if( o.blending ) o.blending = this.findValue( o.blending );
@@ -3685,12 +3687,12 @@ let Mat$3 = class Mat {
 
 				case 'physical': 
 					m = new MeshPhysicalMaterial( o ); 
-					m.defines = {
+					/*m.defines = {
 						'STANDARD': '',
 						'PHYSICAL': '',
 						'USE_UV':'',
 						'USE_SPECULAR':''
-					};
+					}*/
 				break;
 				case 'phong': m = new MeshPhongMaterial( o ); break;
 				case 'lambert': m = new MeshLambertMaterial( o ); break;
@@ -10266,6 +10268,7 @@ class DRACOLoader extends Loader {
 			color: 'COLOR',
 			uv: 'TEX_COORD'
 		};
+		
 		this.defaultAttributeTypes = {
 			position: 'Float32Array',
 			normal: 'Float32Array',
@@ -10309,7 +10312,7 @@ class DRACOLoader extends Loader {
 
 	load( url, onLoad, onProgress, onError ) {
 
-		const loader = new FileLoader$1( this.manager );
+		const loader = new FileLoader( this.manager );
 
 		loader.setPath( this.path );
 		loader.setResponseType( 'arraybuffer' );
@@ -10487,7 +10490,7 @@ class DRACOLoader extends Loader {
 
 	_loadLibrary( url, responseType ) {
 
-		const loader = new FileLoader$1( this.manager );
+		const loader = new FileLoader( this.manager );
 		loader.setPath( this.decoderPath );
 		loader.setResponseType( responseType );
 		loader.setWithCredentials( this.withCredentials );
@@ -11205,7 +11208,7 @@ const GlbTool = {
         const groups = {};
         scene.traverse( ( child ) => {
             if ( child.isGroup ){ 
-            	groups[ child.name ] = autoMesh ? GlbTool.groupToMesh(child, mats) : child;
+            	groups[ child.name ] = autoMesh ? GlbTool.groupToMesh(child) : child;
             }
         });
         return groups;
@@ -11698,9 +11701,12 @@ const Pool = {
             }
             t = new Texture( im );
             if( name.search('_c') !== -1 || name.search('_d') !== -1 || name.search('_l') !== -1 || name.search('_u') !== -1 ) o.srgb = true;
+            Pool.setTextureOption( t, o );
             Pool.data.set( 'T_' + name, t );
         }
-        Pool.setTextureOption( t, o );
+
+        //console.log(name, o.srgb)
+        
         return t;
     },
 
@@ -11959,7 +11965,7 @@ const Pool = {
 
     loaderFILE: () => {
 
-        if( !Pool.FILE ) Pool.FILE = new FileLoader$1( Pool.manager );
+        if( !Pool.FILE ) Pool.FILE = new FileLoader( Pool.manager );
         return Pool.FILE
 
     },
@@ -12664,7 +12670,7 @@ const Human = {
     skeletonRef:'body',
 	fullMorph: ['MUSCLE', 'LOW', 'BIG','MONSTER'],//, 
 
-    textureQuality:1,
+    textureQuality:2,
 	textureRef:'avatar_c',
 	texturePath: 'assets/textures/avatar_',
 	textures: [
@@ -12685,6 +12691,9 @@ const Human = {
     materials:{
         skin:{
             type:'Sss',
+            //type:'Physical',
+            //type:'Standard',
+
             map: 'avatar_c', 
             normalMap:'avatar_n',
 
@@ -12703,6 +12712,8 @@ const Human = {
             sheenColor:0x600000,
             sheen:setting$4.sheen,
             sheenRoughness:setting$4.sheenRoughness,
+
+
             //sheenColorMap:'avatar_c',
             /*sheenColor:0xff0000,
             sheenColorMap:'avatar_u',
@@ -25016,7 +25027,9 @@ class PhyEngine {
 		};
 
 		this.poolDispose = ()=>{
-			return Pool.dispose();
+
+			// TODO bug on dispose pool !!!
+			//return Pool.dispose();
 		};
 
 		this.setDracoPath = ( src ) => {

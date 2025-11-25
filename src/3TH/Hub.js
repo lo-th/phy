@@ -291,6 +291,10 @@ export class Hub {
         //txt.textContent ='';
         //txt.style.display = 'none'
 
+        statistics = document.createElement( 'div' );
+        statistics.style.cssText = 'position:absolute; top:60px; left:10px; font-size:14px; width:400px; white-space: pre; line-height:20px; margin-left:10px;'
+        content.appendChild( statistics )
+
         Pool.setLoadEvent(
             function(){ loader.style.display = 'block'; },
             function(){ loader.style.display = 'none'; }
@@ -415,9 +419,7 @@ export class Hub {
         //debug.style.cssText = 'position:absolute; background:'+bg+'; width:300px; margin-left:-150px; bottom:25px; left:50%; font-size:14px; font-weight:500; vertical-align:bottom; text-align:center;'
         content.appendChild( debug )
 
-        statistics = document.createElement( 'div' );
-        statistics.style.cssText = 'position:absolute; bottom:25px; left:10px; font-size:14px; width:400px; white-space: pre; line-height:20px; margin-left:10px;'
-        content.appendChild( statistics )
+        
 
         // gui bg
         top = document.createElement( 'div' )

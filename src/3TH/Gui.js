@@ -796,7 +796,7 @@ export const Gui = {
 		if(m.reflectivity!==undefined) g3.add( m, 'reflectivity', {...deff})
 
 		if(m.specularIntensity!==undefined) g3.add( m, 'specularIntensity', { ...deff })
-		if(m.aoMapIntensity!==undefined) g3.add( m, 'aoMapIntensity', { ...deff, rename:'ax' })
+		if(m.aoMapIntensity!==undefined) g3.add( m, 'aoMapIntensity', { ...deff, max:20, rename:'ao' })
 		if(m.emissiveIntensity!==undefined) g3.add( m, 'emissiveIntensity', { ...deff, rename:'emissive', max:3 })
 
 		if(m.displacementScale!==undefined) g3.add( m, 'displacementScale', { ...deff, min:-0.1, max:0.1 })

@@ -23,7 +23,7 @@ const useHalfFloat = true
 let gamma = 2.2;
 let envName = '';
 let autosun = true;
-let usePmrem = true;
+let usePmrem = false; //true;
 let isWebGPU = false;
 
 let textureAnalys = null;

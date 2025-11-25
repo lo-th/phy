@@ -327,9 +327,12 @@ export const Pool = {
             }
             t = new Texture( im );
             if( name.search('_c') !== -1 || name.search('_d') !== -1 || name.search('_l') !== -1 || name.search('_u') !== -1 ) o.srgb = true
+            Pool.setTextureOption( t, o );
             Pool.data.set( 'T_' + name, t );
         }
-        Pool.setTextureOption( t, o );
+
+        //console.log(name, o.srgb)
+        
         return t;
     },
 

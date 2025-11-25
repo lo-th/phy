@@ -7,12 +7,12 @@ demo = () => {
 	phy.view({
         phi:0, theta:0, distance:5, x:0, y:3, z:5, fov:45, 
         envmap:'swiss', groundReflect:0.2, groundColor:0x808080,
-        envIntensity:14, 
-        bgIntensity:6,
+        //envIntensity:14, 
+        //bgIntensity:6,
         shadow:0.4,
     });
 
-    phy.lightIntensity( 5, 0, 0.3 );
+    //phy.lightIntensity( 5, 0, 0.3 );
     //phy.changeShadow({ intensity:0.4, range:10, near:5, far:30, distance:20 })
     //phy.useRealLight( { aoPower:5 } );
 

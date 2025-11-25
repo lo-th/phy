@@ -1500,7 +1500,9 @@ export class PhyEngine {
 		}
 
 		this.poolDispose = ()=>{
-			return Pool.dispose();
+
+			// TODO bug on dispose pool !!!
+			//return Pool.dispose();
 		}
 
 		this.setDracoPath = ( src ) => {

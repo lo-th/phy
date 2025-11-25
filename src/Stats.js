@@ -12,6 +12,13 @@ export class Stats {
     get(){
 
     	const info = this.memo.getMemoryInfo()
+
+        // every texture, it's size, a stack of where it was created and a stack of where it was last updated.
+        //const textures = ext.getResourcesInfo(WebGLTexture);
+        // every buffer, it's size, a stack of where it was created and a stack of where it was last updated.
+        //const buffers = ext.getResourcesInfo(WebGLBuffer);
+
+
 	    const eng = this.renderer.info
 
 	    info['engine'] = {

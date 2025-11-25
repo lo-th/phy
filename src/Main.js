@@ -835,8 +835,6 @@ const removeVignette = () => {
 
 const addGround = ( o ) => {
 
-
-
 	if( ground === null ){
 
 		if(Main.webgpu){
