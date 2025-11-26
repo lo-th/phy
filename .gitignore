@@ -13,5 +13,6 @@ assets/models/private
 assets/animation/animations.json
 assets/animation/fbx
 assets/textures/avatar_4k
+demos/private
 *.sh
 desktop.ini

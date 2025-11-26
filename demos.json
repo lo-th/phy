@@ -1,10 +1,10 @@
 {
     "Demo":{
         "advanced": [ 
-            "diamond", "ragdoll", "chess", "million", "museum", "dragon", "soft_body"
+            "diamond", "chess", "million", "museum", "dragon", "soft_body"
         ],
         "basic": [
-            "benchmark", "start", "basic", "joint", "capsule", "compound", "bridge", "ray_car", "alpine",
+            "benchmark", "start", "ragdoll", "basic", "joint", "capsule", "compound", "bridge", "ray_car", "alpine",
             "gears", "terrain", "character", "kinematic", "random", "tower", "gravity", "evangelion", "simple",
             "blast", "skeleton", "skeleton_old", "material", "keva", "test", "collision",
              "raycast", "human", "player", "auto_ragdoll", "badaboum", "kart", "fracture", "nefertiti"
@@ -16,10 +16,10 @@
             "spring", "gears2", "mass", "empty", "empty2", "empty3", "group_mask",
             "car", "buttons", "robot_arm", "pinball", "bullet", "build", 
             "kaneda", "vehicle3", "mesh", "stacking",  "house", "direct", "nefertiti2",
-            "solver", "wall", "skylab", "colors", "barbados", "barbados2", "blob", "coin", "havok_car", "joint_test", "event"
+            "solver", "wall", "skylab", "colors", "barbados", "barbados2", "blob", "havok_car", "joint_test", "event"
         ],
         "private": [
-            "break_vase"
+            "break_vase", "coin"
         ]
 
     },

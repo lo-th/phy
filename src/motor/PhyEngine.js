@@ -1,5 +1,5 @@
 
-import { Group, Vector3, Vector2, Quaternion, Matrix3 } from 'three';
+import { Group, Vector3, Vector2, Quaternion, Matrix3, Mesh, BatchedMesh } from 'three';
 
 import { MathTool } from '../core/MathTool.js';
 import { Max, Num, getArray, getType } from '../core/Config.js';
@@ -48,6 +48,11 @@ import { preloadAvatar } from '../3TH/character/Avatar.js';
 
 import { Smoke } from '../libs/smoke.module.js';
 import { WiggleGroup } from "../libs/wiggle.module.js";
+
+// bvh test 
+import { acceleratedRaycast, computeBatchedBoundsTree  } from "../libs/bvhlab.module.js";
+Mesh.prototype.raycast = acceleratedRaycast;
+BatchedMesh.prototype.computeBoundsTree = computeBatchedBoundsTree;
 
 /** __
 *    _)_|_|_

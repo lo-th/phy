@@ -3,10 +3,10 @@ const debug = 0
 
 demo = () => {
 
-    //phy.view({ envmap:'bed', ground:true })
+    phy.view({ envmap:'bed', ground:true, distance:debug?4:12 })
 
     // config physics setting
-    phy.set( {substep:2, gravity:[0,debug? 0: -9.81,0]})
+    phy.set( {substep:1, gravity:[0,debug? 0: -9.81,0]})
 
     // add static plane
     //phy.add({ type:'plane', size:[300,1,300], visible:false })
@@ -21,7 +21,7 @@ demo = () => {
         let j = 20, n;
         while(j--){
             n = (j*3)*0.1;
-            phy.add({ type:'box', size:[8,0.3,1], pos:[0,0.15+n,3-n*1.2], radius:0.02 })
+            phy.add({  type:'box', size:[8,0.3,1], pos:[0,0.15+n,3-n*1.2], radius:0.02, instance:'stair', ray:false })
         }
 
         // add ragdoll
@@ -45,6 +45,20 @@ ragdoll = ( o ) => {
     let upperArm = 0.35
     let lowerArm = 0.35
     //let dc = 0.
+
+    const instanced = {
+        head:'head',
+        body1: 'body1',
+        body2: 'body2',
+        legL1: 'leg1',
+        legL2: 'leg1',
+        legR1: 'leg1',
+        legR2: 'leg1',
+        armL1: 'arm1',
+        armL2: 'arm1',
+        armR1: 'arm1',
+        armR2: 'arm1',
+    }
 
     const data = {
         head: { size:[ headHeight / 2 * 0.8, (headHeight / 2 * 0.2)*2], pos:[0, lowerBody + upperBody + bodyRadius + headHeight / 2, 0] },
@@ -87,6 +101,7 @@ ragdoll = ( o ) => {
 
     for( let n in data ){
         b[ n ] = phy.add({ 
+            instance:instanced[n],
             type:'capsule', 
             density:0.1, restitution:0.1, friction:0.4, 
             phySize:dataP[n].size, 
@@ -168,6 +183,7 @@ ragdoll = ( o ) => {
         lm:[ ['twist', -90, 90], ['swing1', -90, 90], ['swing2', -90, 90] ],
         //motion:[['twist','locked'], ['swing1','limited'], ['swing2','limited']],
     })
+
     phy.add({ 
         ...defJoint,
         mode:'ragdoll', 
@@ -183,13 +199,15 @@ ragdoll = ( o ) => {
         lm:[ ['twist', -90, 90], ['swing1', -90, 90], ['swing2', -90, 90] ],
     })
 
+    // FOR ARM JOINT
+
     phy.add({ 
         ...defJoint,
         mode:'revolute', 
         b1:b.armL1, b2:b.armL2, 
         worldAnchor:math.addArray( o.pos, [-bodyRadius - upperArm, lowerBody + upperBody, 0]), 
         //worldAxis:[0,1,0],
-        lm:[0,160],
+        lm:[0,90],
         sd:[10, 1],
     })
 
@@ -199,7 +217,7 @@ ragdoll = ( o ) => {
         b1:b.armR1, b2:b.armR2, 
         worldAnchor:math.addArray( o.pos, [bodyRadius + upperArm, lowerBody + upperBody, 0]), 
         //worldAxis:[0,-1,0],
-        lm:[0,160],
+        lm:[0,90],
         sd:[10, 1],
     })
 
@@ -250,7 +268,7 @@ ragdoll = ( o ) => {
         b1:b.legL1, b2:b.legL2, 
         worldAnchor:math.addArray( o.pos, [-legInterval, -legInterval - upperLeg, 0]), 
         worldAxis:[1,0,0],
-        lm:[1,160],
+        lm:[1,100],
         //sd:[10, 1],
     })
 
@@ -260,7 +278,7 @@ ragdoll = ( o ) => {
         b1:b.legR1, b2:b.legR2, 
         worldAnchor:math.addArray( o.pos, [legInterval, -legInterval - upperLeg, 0]), 
         worldA1xis:[1,0,0],
-        lm:[1,160],
+        lm:[1,100],
         //sd:[10, 1],
     })
 

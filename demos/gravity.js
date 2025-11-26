@@ -10,7 +10,7 @@ demo = () => {
     })
 
     // config physics setting with null gravity
-    phy.set({ substep:2, gravity:[0,0,0], fps:60 })
+    phy.set({ substep:1, gravity:[0,0,0], fps:60 })
 
     // add static planete
     const planet = new Planet({
@@ -49,6 +49,23 @@ demo = () => {
         s = math.rand(0.25, 0.5);
 
         box[i] = phy.add({ 
+            //instance:'boxy',
+            name:'box'+i, 
+            type:'box', 
+            radius:0.03,
+            //size:[math.rand(0.1, 0.9),math.rand(0.1, 0.9),math.rand(0.1, 0.9)],
+            rot:[math.rand(0, 360),math.rand(0, 360),math.rand(0, 360)],  
+            pos:p.toArray(), 
+            size:[s*2,s*2,s*2],
+            //density:s, 
+            mass:s*0.01, 
+            friction:0.2, 
+            restitution:0.5,
+            damping:[0.25,0.5],
+            material:'silver'
+        })
+
+        /*box[i] = phy.add({ 
             name:'box'+i, 
             type:'compound', 
             radius:0.03,
@@ -64,7 +81,7 @@ demo = () => {
             restitution:0.5,
             damping:[0.25,0.5],
             material:'silver'
-        })
+        })*/
     }
 
     // update on each physic step

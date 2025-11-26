@@ -586,7 +586,7 @@ export class Body extends Item {
 	    	noMat = true;
 	    	//defMat = this.type === 'body'
 	    	material = Mat.get( this.type );
-	    	if( o.instance ) material = Mat.get( 'base' );
+	    	if( o.instance && this.type!=='solid') material = Mat.get( 'base' );
 	    }
 
 	    if( o.unicMat ) {
