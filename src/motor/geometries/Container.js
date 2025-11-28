@@ -1,5 +1,6 @@
-import { MathTool } from '../../core/MathTool.js';
 import { BoxGeometry, Mesh } from 'three';
+
+import { MathTool } from '../../core/MathTool.js';
 import { ChamferBox } from '../../3TH/Geometry.js';
 import { BoxHelper } from '../../3TH/helpers/BoxHelper.js'
 

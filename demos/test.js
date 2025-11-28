@@ -56,6 +56,8 @@ next = () => {
 
 run = () => {
 
+    // TODO bug in worker !!!
+
     phy.clearGarbage();
 
     // add ground
@@ -129,5 +131,5 @@ test_4 = () => {
         phy.add({ ...data.stone, name:'s'+i, pos:[0, 0.25+(i*0.5), -0.5 ], friction: 0.5, density:1, pv:2, mci:2, inertiaScale:2, massInfo:false  })
     }
 
-    phy.remove(['a2','b6','c8'])
+    //phy.remove(['a2','b6','c8'])
 }

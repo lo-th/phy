@@ -11,7 +11,8 @@ import {
     Box3,
     Vector2
 } from 'three';
-import { mergeVertices, mergeGeometries, toCreasedNormals } from './BufferGeometryUtils.js';
+//import { mergeVertices, mergeGeometries, toCreasedNormals } from './BufferGeometryUtils.js';
+import { mergeVertices, mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { Tubular } from './Tubular.js';
 
 
@@ -519,6 +520,8 @@ export class ChamferCyl extends BufferGeometry {
 
         /*c1.dispose();
         c2.dispose();*/
+
+        //this.geometry = mergeVertices( mergeGeometries( [ top, mid, low ] ) );
 
         let g = mergeVertices( mergeGeometries( [ top, mid, low ] ) );
 

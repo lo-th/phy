@@ -160,7 +160,6 @@ const demo_rotation = () => {
     sph = []
     j = 1000;
     while(j--){
-
         s = math.rand( 0.1,0.2 )
         a = math.rand(-Math.PI, Math.PI)
         d = math.rand(2, 5)

@@ -2,7 +2,7 @@
     "Basic": [ 
         "benchmark", "start", "basic", "joint", "capsule", "compound", "bridge", "ray_car", "alpine",
         "gears", "terrain", "character", "kinematic", "random", "tower",
-        "gravity", "evangelion", "simple",
+        "gravity", "evangelion", "simple", "grass",
         "blast", "skeleton", "skeleton_old", "material", "keva", "test", "collision",
         "dragon", "raycast", "human", "player", "auto_ragdoll", "badaboum", "kart", "fracture", "nefertiti"
     ],

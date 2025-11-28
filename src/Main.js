@@ -3,7 +3,7 @@ import * as TWEEN from './libs/tween.esm.js'
 import * as UIL from './libs/uil.module.js'
 
 //import './libs/webgl-memory.js'
-import { Stats } from './Stats.js';
+//import { Stats } from './Stats.js';
 import { getGPUTier } from './libs/detect-gpu.esm.js';
 
 //import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
@@ -1426,7 +1426,7 @@ const showStatistic = ( b ) => {
 	if( isWebGPU ) return
 
 	if( b && !stats ){
-		stats = new Stats( renderer );
+		//stats = new Stats( renderer );
 	}
 
 	if( !b && stats ){

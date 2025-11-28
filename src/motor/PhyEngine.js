@@ -31,12 +31,14 @@ import { Breaker } from './extra/Breaker.js';
 import { AutoRagdoll } from './extra/AutoRagdoll.js';
 import { Debuger } from './extra/Debuger.js';
 import { Envmap } from './extra/Envmap.js';
+import { Grass } from './extra/Grass.js';
 
 import { Container } from './geometries/Container.js';
 
 import { RayCar } from './vehicles/RayCar.js';
 import { Helicopter } from './vehicles/Helicopter.js';
 import { Kart } from './vehicles/Kart.js';
+
 
 // to clean
 
@@ -49,10 +51,7 @@ import { preloadAvatar } from '../3TH/character/Avatar.js';
 import { Smoke } from '../libs/smoke.module.js';
 import { WiggleGroup } from "../libs/wiggle.module.js";
 
-// bvh test 
-import { acceleratedRaycast, computeBatchedBoundsTree  } from "../libs/bvhlab.module.js";
-Mesh.prototype.raycast = acceleratedRaycast;
-BatchedMesh.prototype.computeBoundsTree = computeBatchedBoundsTree;
+
 
 /** __
 *    _)_|_|_
@@ -1564,6 +1563,20 @@ export class PhyEngine {
 			for ( const key in buttons ) buttons[key].update();
 		}
 
+	    //-----------------------
+		//  GRASS
+		//-----------------------
+
+		this.addGrass = ( o ) => {
+
+			let t = new Grass( o, this );
+			//if( o.parent ) o.parent.add( t.mesh );
+			//else this.scenePlus.add( t.mesh );
+			//textfields.push(t);
+			return t;
+
+		}
+
 
 		//-----------------------
 		//  TEXT
@@ -1795,7 +1808,7 @@ export class Utils {
 
 		}
 
-		if( b.isInstance && b.refName !== b.name ) this.map.set( b.refName, b );
+		//if( b.isInstance && b.refName !== b.name ) this.map.set( b.refName, b );
 
 		this.map.set( b.name, b );
 
@@ -1806,7 +1819,7 @@ export class Utils {
 		if( b.dispose ) b.dispose();
 		if( b.parent ) b.parent.remove( b );
 		if( b.isInstance ) { 
-			if( b.refName !== b.name ) this.map.delete( b.refName );
+			//if( b.refName !== b.name ) this.map.delete( b.refName );
 			b.instance.remove( b.idx );
 		}
 		this.map.delete( b.name );
