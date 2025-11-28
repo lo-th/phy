@@ -45,6 +45,8 @@ export class Grass {
 			new GrassGeometry(),
 			new GrassGeometry(),
 			new GrassGeometry(),
+			new GrassGeometry(),
+			new GrassGeometry(),
 		]
 
 		if(this.useLod){ 
@@ -127,7 +129,7 @@ export class Grass {
 
 		        const geometryLOD = this.geometriesLOD[ i ];
 		        const geometryId = mesh.addGeometry( geometryLOD[ 0 ], - 1, this.LODIndexCount[ i ] );
-		        mesh.addGeometryLOD( geometryId, geometryLOD[ 1 ], 10 );
+		        mesh.addGeometryLOD( geometryId, geometryLOD[ 1 ], 15 );
 		        mesh.addGeometryLOD( geometryId, geometryLOD[ 2 ], 20 );
 
 		    }

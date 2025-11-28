@@ -16,6 +16,8 @@ function demo() {
         substep:1,
     })
 
+    phy.lightIntensity( 13, 0.5, 0.5 );
+
 
     phy.addGrass()
 

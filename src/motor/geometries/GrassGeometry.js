@@ -19,7 +19,7 @@ export class GrassGeometry extends BufferGeometry {
 
         const pp = []
 
-        let p 
+        let p, s 
         let r = 360/lod
 
         for(let i = 0; i<lod; i++){
@@ -27,6 +27,8 @@ export class GrassGeometry extends BufferGeometry {
             p.translate( rand(-0.2,0.2), 0, rand(-0.2,0.2) );
             p.rotateX( rand(-22,22)*rad )
             p.rotateY( ((r*i) + rand(-10,10))*rad )
+            s = rand(0.8, 1.2)
+            p.scale(s,s,s)
             pp.push(p)
         }
 

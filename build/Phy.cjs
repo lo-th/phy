@@ -20400,7 +20400,7 @@ class GrassGeometry extends three.BufferGeometry {
 
         const pp = [];
 
-        let p; 
+        let p, s; 
         let r = 360/lod;
 
         for(let i = 0; i<lod; i++){
@@ -20408,6 +20408,8 @@ class GrassGeometry extends three.BufferGeometry {
             p.translate( rand(-0.2,0.2), 0, rand(-0.2,0.2) );
             p.rotateX( rand(-22,22)*rad );
             p.rotateY( ((r*i) + rand(-10,10))*rad );
+            s = rand(0.8, 1.2);
+            p.scale(s,s,s);
             pp.push(p);
         }
 
@@ -20457,6 +20459,8 @@ class Grass {
 
 		this.geometriesLOD = [];
 		this.geo = [
+			new GrassGeometry(),
+			new GrassGeometry(),
 			new GrassGeometry(),
 			new GrassGeometry(),
 			new GrassGeometry(),
@@ -20542,7 +20546,7 @@ class Grass {
 
 		        const geometryLOD = this.geometriesLOD[ i ];
 		        const geometryId = mesh.addGeometry( geometryLOD[ 0 ], -1, this.LODIndexCount[ i ] );
-		        mesh.addGeometryLOD( geometryId, geometryLOD[ 1 ], 10 );
+		        mesh.addGeometryLOD( geometryId, geometryLOD[ 1 ], 15 );
 		        mesh.addGeometryLOD( geometryId, geometryLOD[ 2 ], 20 );
 
 		    }
