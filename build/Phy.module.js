@@ -20467,11 +20467,11 @@ class Grass {
 
 				//this.material = new MeshNormalMaterial({side:DoubleSide});
 				this.material = new MeshStandardMaterial({side:DoubleSide, alphaTest:0.6, roughness:1});
-				this.material.map = this.motor.texture({ url:'../../assets/textures/plante/grass_c.jpg', flipY:true, encoding:true });
-				this.material.alphaMap = this.motor.texture({ url:'../../assets/textures/plante/grass_a.jpg', flipY:true, encoding:false });
-				this.material.normalMap = this.motor.texture({ url:'../../assets/textures/plante/grass_n.jpg', flipY:true, encoding:false });
-				this.material.aoMap = this.motor.texture({ url:'../../assets/textures/plante/grass_ao.jpg', flipY:true, encoding:false });
-				this.material.roughnessMap = this.motor.texture({ url:'../../assets/textures/plante/grass_r.jpg', flipY:true, encoding:false });
+				this.material.map = this.motor.texture({ url:'./assets/textures/plante/grass_c.jpg', flipY:true, encoding:true });
+				this.material.alphaMap = this.motor.texture({ url:'./assets/textures/plante/grass_a.jpg', flipY:true, encoding:false });
+				this.material.normalMap = this.motor.texture({ url:'./assets/textures/plante/grass_n.jpg', flipY:true, encoding:false });
+				this.material.aoMap = this.motor.texture({ url:'./assets/textures/plante/grass_ao.jpg', flipY:true, encoding:false });
+				this.material.roughnessMap = this.motor.texture({ url:'./assets/textures/plante/grass_r.jpg', flipY:true, encoding:false });
 				//this.material.roughnessMap = this.motor.texture({ url:'../../assets/textures/plante/grass_ao.jpg', flipY:true, encoding:false });
 
 			}
