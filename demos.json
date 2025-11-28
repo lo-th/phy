@@ -6,7 +6,7 @@
         "basic": [
             "benchmark", "start", "ragdoll", "basic", "joint", "capsule", "compound", "bridge", "ray_car", "alpine",
             "gears", "terrain", "character", "kinematic", "random", "tower", "gravity", "evangelion", "simple",
-            "blast", "skeleton", "skeleton_old", "material", "keva", "test", "collision", "ball",
+            "blast", "skeleton", "skeleton_old", "material", "keva", "test", "collision", "ball", "grass",
              "raycast", "human", "player", "auto_ragdoll", "badaboum", "kart", "fracture", "nefertiti"
         ],
         "physx": [
