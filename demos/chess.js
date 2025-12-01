@@ -4,7 +4,7 @@ const chessSize = 0.25;
 
 // real size is 0.53m * 0.53m
 
-demo = () => {
+ demo = async() => {
 
     phy.view({ 
         theta:15,
@@ -36,7 +36,7 @@ demo = () => {
     
 
     let g = phy.getGround()
-    g.material.map = phy.texture({ url:'./assets/textures/chess/chessboard.jpg', repeat:[1,1], flip:true, encoding:true });
+    g.material.map = await phy.texture2({ url:'./assets/textures/chess/chessboard.jpg', repeat:[1,1], flip:true, encoding:true });
     g.material.roughness = 0.7;
     g.material.metalness = 0.0;
 

@@ -1,5 +1,5 @@
-const numRagdoll = 30
-const debug = 0
+const numRagdoll = 100
+const debug = false
 
 demo = () => {
 
@@ -8,7 +8,7 @@ demo = () => {
     // config physics setting
     phy.set( {substep:1, gravity:[0,debug? 0: -9.81,0]})
 
-    // add static plane
+    // add static ground plane
     //phy.add({ type:'plane', size:[300,1,300], visible:false })
     phy.add({ type:'box', size:[30,1,30], pos:[0, -0.5, 0], visible:false })
 
@@ -24,26 +24,33 @@ demo = () => {
             phy.add({  type:'box', size:[8,0.3,1], pos:[0,0.15+n,3-n*1.2], radius:0.02, instance:'stair', ray:false })
         }
 
+        // add some wall
+        phy.add({ type:'box', size:[0.5,3,5], pos:[4.25,1.5,1.6], radius:0.02, ray:false })
+        phy.add({ type:'box', size:[0.5,3,5], pos:[-4.25,1.5,1.6], radius:0.02, ray:false })
+        phy.add({ type:'box', size:[0.5,3,5], pos:[0,1.5,1.6], radius:0.02, ray:false })
+
         // add ragdoll
         let i = numRagdoll
-        while(i--) ragdoll({ pos:[math.rand(-3, 3), 10+i*2, -3] })
+        while(i--) ragdoll({ pos:[math.rand(-3, 3), 10+i, -3] })
     }
     
 }
 
 ragdoll = ( o ) => {
 
-    let headHeight = 0.3
-    let upperBody = 0.35
-    let lowerBody = 0.35
-    let bodyRadius = 0.2
-    let legRadius = 0.1
-    let legInterval = 0.15
-    let upperLeg = 0.5
-    let lowerLeg = 0.5
-    let armRadius = 0.075
-    let upperArm = 0.35
-    let lowerArm = 0.35
+    let s = 0.6
+
+    let headHeight = 0.3*s
+    let upperBody = 0.35*s
+    let lowerBody = 0.35*s
+    let bodyRadius = 0.2*s
+    let legRadius = 0.1*s
+    let legInterval = 0.15*s
+    let upperLeg = 0.5*s
+    let lowerLeg = 0.5*s
+    let armRadius = 0.075*s
+    let upperArm = 0.35*s
+    let lowerArm = 0.35*s
     //let dc = 0.
 
     const instanced = {
@@ -118,7 +125,7 @@ ragdoll = ( o ) => {
     const defJoint = {
         type:'joint', 
         visible:debug, 
-        collision:1
+        collision:true
     }
 
     // BODY JOINT
@@ -135,10 +142,7 @@ ragdoll = ( o ) => {
         twistSd:[10, 1],
         twistLm:[-90,90],
         swingLimit:[90,90, 10,1],
-        //twistLimit:[-45,45],
         lm:[ ['twist', -90, 90], ['swing1', -90, 90], ['swing2', -70, 70] ],
-        //lm:[ ['swing1', -90, 90]],
-        //motion:[['twist','locked'], ['swing1','limited'], ['swing2','limited']],
 
         
     })
@@ -155,10 +159,8 @@ ragdoll = ( o ) => {
         twistSd:[10, 1],
         twistLm:[-45,45],
         swingLimit:[90,90, 10,1],
-        //twistLimit:[-45,45],
         lm:[ ['twist', -45, 45], ['swing1', -60, 60], ['swing2', -45, 45] ],
-        //motion:[['twist','locked'], ['swing1','limited'], ['swing2','limited']],
-        collision:0
+        collision:false
     })
 
     // ARM JOINT
@@ -176,12 +178,7 @@ ragdoll = ( o ) => {
         twistSd:[10, 1],
         twistLm:[-90,90],
         swingLm: [ 90, 90 ],
-        //lm:[['twist', -90,90 ], ['swing1', 90, 90]],
-        //mainAxis:[1,0,0],
-        //mainDeg: 0,
-        //motion:[['twist','locked'], ['swing1','free'], ['swing2','free']],
         lm:[ ['twist', -90, 90], ['swing1', -90, 90], ['swing2', -90, 90] ],
-        //motion:[['twist','locked'], ['swing1','limited'], ['swing2','limited']],
     })
 
     phy.add({ 
@@ -195,7 +192,6 @@ ragdoll = ( o ) => {
         swingSd:[10, 1],
         twistSd:[10, 1],
         twistLm:[-90,90],
-        //motion:[['twist','locked'], ['swing1','limited'], ['swing2','limited']],
         lm:[ ['twist', -90, 90], ['swing1', -90, 90], ['swing2', -90, 90] ],
     })
 
@@ -239,8 +235,6 @@ ragdoll = ( o ) => {
         twistLm:[-90,90],
 
         lm:[ ['twist', -90, 90], ['swing1', -90, 90], ['swing2', -70, 70] ],
-        //lm:[['twist','locked'], ['swing1','limited'], ['swing2','limited']]
-        //motion:[['twist','locked'], ['swing1','limited'], ['swing2','limited']],
     })
 
 
@@ -256,9 +250,7 @@ ragdoll = ( o ) => {
         swingSd:[10, 1],
         twistSd:[10, 1],
         twistLm:[-90,90],
-
         lm:[ ['twist', -90, 90], ['swing1', -20, 20], ['swing2', -20, 20] ],
-        //motion:[['twist','locked'], ['swing1','limited'], ['swing2','limited']],
     })
 
 
@@ -269,7 +261,6 @@ ragdoll = ( o ) => {
         worldAnchor:math.addArray( o.pos, [-legInterval, -legInterval - upperLeg, 0]), 
         worldAxis:[1,0,0],
         lm:[1,100],
-        //sd:[10, 1],
     })
 
     phy.add({ 
@@ -279,7 +270,6 @@ ragdoll = ( o ) => {
         worldAnchor:math.addArray( o.pos, [legInterval, -legInterval - upperLeg, 0]), 
         worldA1xis:[1,0,0],
         lm:[1,100],
-        //sd:[10, 1],
     })
 
 }

@@ -1421,7 +1421,10 @@ export class PhyEngine {
 		//  TEXTURE
 		//-----------------------
 
-		this.texture = ( o={} ) => ( Pool.texture( o ) );
+		this.texture2 = Pool.textureAsync
+		this.texture = Pool.texture
+
+		//this.texture = ( o={} ) => ( Pool.texture( o ) );
 		this.getTexture = ( name, o={} ) => ( Pool.getTexture( name, o ) );
 		//this.texture( o = {} ) { return Pool.texture( o );}
 

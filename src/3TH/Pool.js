@@ -241,9 +241,50 @@ export const Pool = {
     //   TEXTURES
     //--------------------
 
+    textureAsync:async ( o = {} ) => {
+
+        //if( !Pool.loaderMap ) Pool.loaderMap = new TextureLoader();
+
+        let name = o.name || '';
+        let type = o.format || '';
+
+        if( o.url ){ 
+            if( o.url.lastIndexOf('.') !==-1 ){ 
+                name = o.url.substring( o.url.lastIndexOf('/')+1, o.url.lastIndexOf('.') );
+                type = o.url.substring( o.url.lastIndexOf('.')+1 ).toLowerCase();
+            }
+            else name = o.url.substring( o.url.lastIndexOf('/')+1 );
+        }
+
+
+        if( name.search('_c') !== -1 || name.search('_l') !== -1 || name.search('_u') !== -1|| name.search('_d') !== -1) o.srgb = true
+
+        if( Pool.exist( name, 'texture' )) return Pool.get( name, 'texture' );
+        else if( Pool.exist( name, 'image' )) {
+            //console.log('preload', name )
+            return Pool.getTexture( name, o );
+        } else {
+
+            const loader = type === 'ktx2' ? Pool.loaderKTX2() : Pool.loaderTXT()
+
+            try {
+
+                const texture = await loader.loadAsync( o.url );
+                Pool.setTextureOption( texture, o );
+                Pool.data.set( 'T_' + name, texture );
+                return texture
+
+            } catch ( e ) {
+
+                console.error( `Failed to load ${path}`, e );
+
+            }
+        }
+    },
+
     texture:( o = {} ) => {
 
-        if( !Pool.loaderMap ) Pool.loaderMap = new TextureLoader();
+        //if( !Pool.loaderMap ) Pool.loaderMap = new TextureLoader();
 
         let name = o.name || '';
         let type = o.format || '';
@@ -268,24 +309,29 @@ export const Pool = {
 
             switch(type){
                 case 'ktx2':
-                const texture = new CompressedTexture();
-                Pool.data.set( 'T_' + name, texture )
-                Pool.loaderKTX2().load( o.url, function ( t ) { 
+                    const texture = new CompressedTexture();
+                    Pool.data.set( 'T_' + name, texture )
+                    Pool.loaderKTX2().load( o.url, function ( t ) { 
 
-                    Pool.setTextureOption( t, o );
+                        //Pool.setTextureOption( t, o );
+                        //Pool.data.set( 'T_' + name, t );
 
-                    texture.copy(t);
+                        texture.copy(t);
+                        Pool.setTextureOption( texture, o );
+                        console.log(texture)
+                        //Pool.setTextureOption( texture, o );
 
-                    t.dispose()
-                    //Pool.setTextureOption( texture, o );
-                    
-                    if( o.callback ) o.callback()
+                        t.dispose()
+                        //Pool.setTextureOption( texture, o );*/
+                        
+                        if( o.callback ) o.callback()
+                        
 
-                })
-                return texture
+                    })
+                    return texture
                 break;
                 default:
-                return Pool.loaderMap.load( o.url, function ( t ) { 
+                return Pool.loaderTXT().load( o.url, function ( t ) { 
                     //console.log('use TextureLoader !!', name )
                     Pool.setTextureOption( t, o );
                     Pool.data.set( 'T_' + name, t );
@@ -618,11 +664,16 @@ export const Pool = {
 
     },
 
+    loaderTXT: () => {
+
+        if( !Pool.TXT ) Pool.TXT = new TextureLoader( Pool.manager )
+        return Pool.TXT
+
+    },
+
     loaderKTX2: () => {
 
-        if( Pool.KTX2 ) return Pool.KTX2
-
-        Pool.KTX2 = new KTX2Loader( Pool.manager )
+        if( !Pool.KTX2 ) Pool.KTX2 = new KTX2Loader( Pool.manager )
             .setTranscoderPath( Pool.basisPath )
             .detectSupport( Pool.renderer )
             .setUseLocal( Pool.useLocal )

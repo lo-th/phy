@@ -72,16 +72,22 @@ export class Grass {
 
 	createMaterial(){
 
+		const res = '128'
+		const format = 'jpg'
+		const flipY = true
+
 		if ( ! this.material ) {
 
 				//this.material = new MeshNormalMaterial({side:DoubleSide});
-				this.material = new MeshStandardMaterial({side:DoubleSide, alphaTest:0.6, roughness:1});
-				this.material.map = this.motor.texture({ url:'./assets/textures/plante/grass_c.jpg', flipY:true, encoding:true });
-				this.material.alphaMap = this.motor.texture({ url:'./assets/textures/plante/grass_a.jpg', flipY:true, encoding:false });
-				this.material.normalMap = this.motor.texture({ url:'./assets/textures/plante/grass_n.jpg', flipY:true, encoding:false });
-				this.material.aoMap = this.motor.texture({ url:'./assets/textures/plante/grass_ao.jpg', flipY:true, encoding:false });
-				this.material.roughnessMap = this.motor.texture({ url:'./assets/textures/plante/grass_r.jpg', flipY:true, encoding:false });
-				//this.material.roughnessMap = this.motor.texture({ url:'../../assets/textures/plante/grass_ao.jpg', flipY:true, encoding:false });
+				this.material = new MeshStandardMaterial({side:DoubleSide, alphaTest:0.6, roughness:1, metalness:1 });
+				
+				this.material.map = this.motor.texture({ url:'./assets/textures/plante/'+res+'/grass_c.' + format, flipY:flipY, srgb:true });
+				this.material.alphaMap = this.motor.texture({ url:'./assets/textures/plante/'+res+'/grass_a.' + format, flipY:flipY, srgb:false });
+				this.material.normalMap = this.motor.texture({ url:'./assets/textures/plante/'+res+'/grass_n.' + format, flipY:flipY, srgb:false });
+				const arm = this.motor.texture({ url:'./assets/textures/plante/'+res+'/grass_arm.' + format, flipY:flipY, srgb:false });
+				this.material.aoMap = arm;
+				this.material.roughnessMap = arm;
+				this.material.metalnessMap = arm;
 
 			}
 
@@ -175,8 +181,8 @@ export class Grass {
 	    // disable raycast
 	    mesh.raycast = () => {return}
 
-		mesh.castShadow = true
-		mesh.receiveShadow = false
+		//mesh.castShadow = true
+		//mesh.receiveShadow = false
 
 		//this.mesh = mesh
 

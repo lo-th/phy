@@ -434,7 +434,7 @@ export class Mat {
 				//case 'wood':   m = this.create({ name:'wood', color:0xe8c2a1, metalness: 0, roughness: 1 }); break
 				
 				//case 'hero':   m = new MeshStandardMaterial({ color:0x00FF88, ...matExtra }); break
-				case 'skinny':   m = this.create({ name:'skinny', color:0xe0ac69, ...matExtra }); break
+				case 'skinny':   m = this.create({ name:'skinny', type:'physical', color:0xFFC9A9, metalness: 0.1, roughness: 0.5, sheen:1, sheenColor:0xF85F41, sheenRoughness:0.2  }); break
 				
 				case 'glass':  m = this.create({ name:'glass', color:0xFFFFff, transparent:true, roughness:0.02, metalness:0.0, side:DoubleSide, alphaToCoverage:true, premultipliedAlpha:true, transmission:1, clearcoat:1, thickness:0.01  }); break
 				//case 'glassX':  m = this.create({ name:'glassX', color:0xeeeeee, transparent:false, opacity:1.0, roughness:0.03, metalness:0,  side:DoubleSide, transmission:1.0, clearcoat:1, clearcoatRoughness:0.0, thickness:0.02, ior:1.52, shadowSide:1, reflectivity:0.5, iridescence:0 }); break

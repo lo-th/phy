@@ -41,11 +41,11 @@ demo = () => {
         phi:20, theta:20, distance:14, x:4, y:6, z:0, fov:70 
     })
 
-    phy.set({ substep:1, gravity:[0,-9.81,0] })
+    phy.set({ substep:10, gravity:[0,-9.81,0], ccd:true })
 
     phy.add({ type:'plane', size:[300,1,300], visible:false });
     phy.add({ pos:[10,0.25,0], rot:[0,0,0], size:[3.0,0.5,0.5], mass:1, //penetrationVelocity:3,
-        friction:0.5//, enableCCD:true, speculativeCCD:true//, enableCCD_FRICTION:true, ccdMaxContact:0.001, 
+        friction:0.5, enableCCD:true,// speculativeCCD:true//, enableCCD_FRICTION:true, ccdMaxContact:0.001, 
     })
 
     phy.load(['./assets/models/kuka_arm.glb'], onComplete )
@@ -58,57 +58,73 @@ onComplete = () => {
     const groups = phy.getGroup('kuka_arm', true, true );
 
     solver = phy.add({ type:'solver', name:'ARM', iteration:32, fix:true, needData:true });
+    solver.speed = 1
 
     //-----------------------------------------
     //    BONES
     //-----------------------------------------
 
+    let def = {
+            solver:'ARM',
+            debug:debug,
+            penetrationVelocity:3,
+            friction:1,
+            // material:mats
+        }
+
     phy.add({
-        type:'box', name:'base', linked:'null', solver:'ARM',
-        mesh:groups.base, meshSize:10, debug:debug,// material:mats,
+        ...def,
+        type:'box', name:'base', linked:'null', 
+        mesh:groups.base, meshSize:10,
         pos:[0, 0, 0], size:[ 2.1, 2.24, 2.1 ], localPos:[0, 1.12, 0], mass:15,
         filter:[2,-1,1,0], dmv:[0.2,0.2,100,20],
         ray:false
     });
 
     phy.add({
-        type:'box', name:'axis_1', linked:'base', solver:'ARM',
-        mesh:groups.axis_1, meshSize:10, debug:debug,// material:mats,
+        ...def,
+        type:'box', name:'axis_1', linked:'base',
+        mesh:groups.axis_1, meshSize:10,
         pos:[0, 2.24, 0], size:[ 2.1, 2.62, 2.8 ], localPos:[0, 1.31, 0], mass:15,
         filter:[2,1,1,0], dmv:[0.2,0.2,100,20],
     });
 
     phy.add({
-        type:'box', name:'axis_2',  linked:'axis_1', solver:'ARM',
-        mesh:groups.axis_2, meshSize:10, debug:debug,// material:mats,
+        ...def,
+        type:'box', name:'axis_2',  linked:'axis_1',
+        mesh:groups.axis_2, meshSize:10,
         pos:[0.25, 4, 0], size:[ 1.2, 5.6, 1.2 ], localPos:[0, 2.8, 0], mass:10,
         filter:[2,1,1,0], dmv:[0.2,0.2,100,20],
     });
 
     phy.add({
-        type:'box', name:'axis_3', linked:'axis_2', solver:'ARM',
-        mesh:groups.axis_3, meshSize:10, meshRot:[0,0,0], debug:debug,// material:mats,
+        ...def,
+        type:'box', name:'axis_3', linked:'axis_2',
+        mesh:groups.axis_3, meshSize:10, meshRot:[0,0,0],
         pos:[0.25, 9.6, 0], size:[ 1.2, 1.17, 1.9 ], localPos:[0, 0.585, 0], mass:4,
         filter:[2,1,1,0], dmv:[0.2,0.2,100,20],
     });
 
     phy.add({
-        type:'box', name:'axis_4', linked:'axis_3', solver:'ARM',
-        mesh:groups.axis_4, meshSize:10, debug:debug,// material:mats,
+        ...def,
+        type:'box', name:'axis_4', linked:'axis_3',
+        mesh:groups.axis_4, meshSize:10,
         pos:[-0.1, 10.77, 0], size:[ 1.2, 3.978, 1.2 ], localPos:[0, 1.989, 0], mass:6,
         filter:[2,1,1,0], dmv:[0.2,0.2,100,20],
     });
 
     phy.add({
-        type:'box', name:'axis_5', linked:'axis_4', solver:'ARM',
-        mesh:groups.axis_5, meshSize:10, debug:debug,// material:mats,
+        ...def,
+        type:'box', name:'axis_5', linked:'axis_4',
+        mesh:groups.axis_5, meshSize:10,
         pos:[-0.1, 14.75, 0], size:[ 0.6, 0.665, 0.6 ], localPos:[0, 0.3325, 0], mass:3,
         filter:[2,1,1,0], dmv:[0.2,0.2,100,20],
     });
 
     phy.add({
-        type:'box', name:'axis_6', linked:'axis_5', solver:'ARM',
-        mesh:groups.axis_6, meshSize:10, debug:debug,// material:mats,
+        ...def,
+        type:'box', name:'axis_6', linked:'axis_5',
+        mesh:groups.axis_6, meshSize:10, 
         pos:[-0.1, 15.415, 0], size:[ 0.6, 1.135, 0.6 ], localPos:[0, 0.5675, 0], mass:2,
         filter:[2,1,1,0], dmv:[0.2,0.2,100,20],
     });
@@ -116,22 +132,26 @@ onComplete = () => {
     // gripper
 
     phy.add({
-        type:'box', name:'finger_2', linked:'axis_6', solver:'ARM',
-        mesh:groups.finger_2, meshSize:10, meshRot:[0,0,0], debug:debug,// material:mats,
+        ...def,
+        type:'box', name:'finger_2', linked:'axis_6',
+        mesh:groups.finger_2, meshSize:10, meshRot:[0,0,0],
         pos:[-0.1, 16.55, 0], size:[ 0.2, 0.46, 0.1 ], localPos:[0, 0.23, 0.05], mass:1,
         filter:[2,1,1,0], dmv:[0.2,0.2,100,20],
         friction:0.5, 
+        enableCCD:true
         //enableCCD:true, speculativeCCD:true//, enableCCD_FRICTION:true, ccdMaxContact:0.001, 
         //penetrationVelocity:3,
 
     });
 
     phy.add({
-        type:'box', name:'finger_1', linked:'axis_6', solver:'ARM',
-        mesh:groups.finger_1, meshSize:10, meshRot:[0,0,0], debug:debug,// material:mats,
+        ...def,
+        type:'box', name:'finger_1', linked:'axis_6',
+        mesh:groups.finger_1, meshSize:10, meshRot:[0,0,0],
         pos:[-0.1, 16.55, 0], size:[ 0.2, 0.46, 0.1 ], localPos:[0, 0.23, -0.05], mass:1,
         filter:[2,1,1,0], dmv:[0.2,0.2,100,20],
-        friction:0.5, 
+        friction:0.5,
+        enableCCD:true
         //enableCCD:true, speculativeCCD:true//, enableCCD_FRICTION:true, ccdMaxContact:0.001, 
         //penetrationVelocity:3,
     });
@@ -141,8 +161,8 @@ onComplete = () => {
     //    JOINT
     //-----------------------------------------
 
-    const stiffness = 100000000;
-    const damping = 0;
+    const stiffness = 100000//000;
+    const damping = 10000//0;
     const forceLimit = Infinity;
     const acceleration = false;
     const forceLimit2 = 100;
@@ -227,7 +247,7 @@ onComplete = () => {
     //    ID Inverse Dynamics Computations
     //-----------------------------------------
 
-    //solver.commonInit();
+    solver.commonInit();
 
 
     //-----------------------------------------
@@ -265,12 +285,12 @@ update = ( dt ) => {
 
     }*/
 
-    solver.driveJoints( dt );
+    solver.driveJoints( dt*0.5 );
 
     //solver.driveJoints( 0.016 );
 }
 
-autoCommand = ( n = 0, time = 1.0 ) => {
+autoCommand = ( n = 0, time = 1 ) => {
 
     if( n === angle.length ){
         console.log('complete')

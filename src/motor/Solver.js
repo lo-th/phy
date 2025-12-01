@@ -313,7 +313,7 @@ export class SolverJoint {
 			//t = (t > 1) ? 1 : t;
 
 			//let move = MathTool.lerp( this.start, this.target, t );//this.current + (this.target - this.current) * t;
-			let move = this.target//MathTool.lerp( this.start, this.target, t );
+			let move = MathTool.lerp( this.start, this.target, t );
 
 			//let move = MathTool.damp(this.start, this.target, 0.5, dt )
 

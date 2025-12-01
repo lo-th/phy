@@ -3,7 +3,7 @@
  * Copyright 2010-2025 Phy.js Authors
  * SPDX-License-Identifier: MIT
  */
-import { LineSegments, BufferGeometry, BufferAttribute, Float32BufferAttribute, LineBasicMaterial, BoxGeometry, Vector3, Matrix4, CylinderGeometry, CircleGeometry, PlaneGeometry, SphereGeometry, Box3, Vector2, CanvasTexture, RepeatWrapping, SRGBColorSpace, MeshPhysicalMaterial, Color, MeshStandardMaterial, ShadowMaterial, MeshToonMaterial, MeshBasicMaterial, MeshLambertMaterial, MeshPhongMaterial, DoubleSide, BackSide, FrontSide, SrcAlphaSaturateFactor, OneMinusDstColorFactor, DstColorFactor, OneMinusDstAlphaFactor, DstAlphaFactor, OneMinusSrcAlphaFactor, SrcAlphaFactor, OneMinusSrcColorFactor, SrcColorFactor, OneFactor, ZeroFactor, MaxEquation, MinEquation, ReverseSubtractEquation, SubtractEquation, AddEquation, MultiplyBlending, SubtractiveBlending, AdditiveBlending, NormalBlending, NoBlending, Line, InstancedMesh, Quaternion as Quaternion$1, Mesh, InstancedBufferAttribute, Object3D, Line3, Plane, Triangle, ShapeGeometry, Euler, Loader, FileLoader, LinearSRGBColorSpace, LoadingManager, EquirectangularReflectionMapping, AnimationMixer, NoColorSpace, NearestFilter, Texture, TextureLoader, CompressedTexture, ObjectSpaceNormalMap, Vector4, CustomBlending, Group, SkeletonHelper, AnimationClip, AnimationUtils, VectorKeyframeTrack, QuaternionKeyframeTrack, AdditiveAnimationBlendMode, NormalAnimationBlendMode, Raycaster, Sphere, PMREMGenerator, Scene, WebGLCubeRenderTarget, HalfFloatType, LinearFilter, CubeCamera, IcosahedronGeometry, ShaderMaterial, NoToneMapping, Ray as Ray$1, BatchedMesh, Frustum, REVISION, DataTexture, FloatType, UnsignedIntType, IntType, WebGLUtils, ColorManagement, RGBAFormat, RGBAIntegerFormat, RGFormat, RGIntegerFormat, RedFormat, RedIntegerFormat, WebGLCoordinateSystem, AxesHelper, Skeleton, MathUtils, Points, InstancedBufferGeometry, InterleavedBuffer, InterleavedBufferAttribute, InstancedInterleavedBuffer, DynamicDrawUsage, Matrix3 } from 'three';
+import { LineSegments, BufferGeometry, BufferAttribute, Float32BufferAttribute, LineBasicMaterial, BoxGeometry, Vector3, Matrix4, CylinderGeometry, CircleGeometry, PlaneGeometry, SphereGeometry, Box3, Vector2, CanvasTexture, RepeatWrapping, SRGBColorSpace, MeshPhysicalMaterial, Color, MeshStandardMaterial, ShadowMaterial, MeshToonMaterial, MeshBasicMaterial, MeshLambertMaterial, MeshPhongMaterial, DoubleSide, BackSide, FrontSide, SrcAlphaSaturateFactor, OneMinusDstColorFactor, DstColorFactor, OneMinusDstAlphaFactor, DstAlphaFactor, OneMinusSrcAlphaFactor, SrcAlphaFactor, OneMinusSrcColorFactor, SrcColorFactor, OneFactor, ZeroFactor, MaxEquation, MinEquation, ReverseSubtractEquation, SubtractEquation, AddEquation, MultiplyBlending, SubtractiveBlending, AdditiveBlending, NormalBlending, NoBlending, Line, InstancedMesh, Quaternion as Quaternion$1, Mesh, InstancedBufferAttribute, Object3D, Line3, Plane, Triangle, ShapeGeometry, Euler, Loader, FileLoader, LinearSRGBColorSpace, LoadingManager, EquirectangularReflectionMapping, AnimationMixer, TextureLoader, NoColorSpace, NearestFilter, Texture, CompressedTexture, ObjectSpaceNormalMap, Vector4, CustomBlending, Group, SkeletonHelper, AnimationClip, AnimationUtils, VectorKeyframeTrack, QuaternionKeyframeTrack, AdditiveAnimationBlendMode, NormalAnimationBlendMode, Raycaster, Sphere, PMREMGenerator, Scene, WebGLCubeRenderTarget, HalfFloatType, LinearFilter, CubeCamera, IcosahedronGeometry, ShaderMaterial, NoToneMapping, Ray as Ray$1, BatchedMesh, Frustum, REVISION, DataTexture, FloatType, UnsignedIntType, IntType, WebGLUtils, ColorManagement, RGBAFormat, RGBAIntegerFormat, RGFormat, RGIntegerFormat, RedFormat, RedIntegerFormat, WebGLCoordinateSystem, AxesHelper, Skeleton, MathUtils, Points, InstancedBufferGeometry, InterleavedBuffer, InterleavedBufferAttribute, InstancedInterleavedBuffer, DynamicDrawUsage, Matrix3 } from 'three';
 import { mergeGeometries, mergeVertices } from 'three/addons/utils/BufferGeometryUtils.js';
 import { SVGLoader } from 'three/addons/loaders/SVGLoader.js';
 import * as SkeletonUtils from 'three/addons/utils/SkeletonUtils.js';
@@ -3352,7 +3352,7 @@ let Mat$3 = class Mat {
 				//case 'wood':   m = this.create({ name:'wood', color:0xe8c2a1, metalness: 0, roughness: 1 }); break
 				
 				//case 'hero':   m = new MeshStandardMaterial({ color:0x00FF88, ...matExtra }); break
-				case 'skinny':   this.create({ name:'skinny', color:0xe0ac69, ...matExtra }); break
+				case 'skinny':   this.create({ name:'skinny', type:'physical', color:0xFFC9A9, metalness: 0.1, roughness: 0.5, sheen:1, sheenColor:0xF85F41, sheenRoughness:0.2  }); break
 				
 				case 'glass':  this.create({ name:'glass', color:0xFFFFff, transparent:true, roughness:0.02, metalness:0.0, side:DoubleSide, alphaToCoverage:true, premultipliedAlpha:true, transmission:1, clearcoat:1, thickness:0.01  }); break
 				//case 'glassX':  m = this.create({ name:'glassX', color:0xeeeeee, transparent:false, opacity:1.0, roughness:0.03, metalness:0,  side:DoubleSide, transmission:1.0, clearcoat:1, clearcoatRoughness:0.0, thickness:0.02, ior:1.52, shadowSide:1, reflectivity:0.5, iridescence:0 }); break
@@ -11161,9 +11161,50 @@ const Pool = {
     //   TEXTURES
     //--------------------
 
+    textureAsync:async ( o = {} ) => {
+
+        //if( !Pool.loaderMap ) Pool.loaderMap = new TextureLoader();
+
+        let name = o.name || '';
+        let type = o.format || '';
+
+        if( o.url ){ 
+            if( o.url.lastIndexOf('.') !==-1 ){ 
+                name = o.url.substring( o.url.lastIndexOf('/')+1, o.url.lastIndexOf('.') );
+                type = o.url.substring( o.url.lastIndexOf('.')+1 ).toLowerCase();
+            }
+            else name = o.url.substring( o.url.lastIndexOf('/')+1 );
+        }
+
+
+        if( name.search('_c') !== -1 || name.search('_l') !== -1 || name.search('_u') !== -1|| name.search('_d') !== -1) o.srgb = true;
+
+        if( Pool.exist( name, 'texture' )) return Pool.get( name, 'texture' );
+        else if( Pool.exist( name, 'image' )) {
+            //console.log('preload', name )
+            return Pool.getTexture( name, o );
+        } else {
+
+            const loader = type === 'ktx2' ? Pool.loaderKTX2() : Pool.loaderTXT();
+
+            try {
+
+                const texture = await loader.loadAsync( o.url );
+                Pool.setTextureOption( texture, o );
+                Pool.data.set( 'T_' + name, texture );
+                return texture
+
+            } catch ( e ) {
+
+                console.error( `Failed to load ${path}`, e );
+
+            }
+        }
+    },
+
     texture:( o = {} ) => {
 
-        if( !Pool.loaderMap ) Pool.loaderMap = new TextureLoader();
+        //if( !Pool.loaderMap ) Pool.loaderMap = new TextureLoader();
 
         let name = o.name || '';
         let type = o.format || '';
@@ -11188,23 +11229,28 @@ const Pool = {
 
             switch(type){
                 case 'ktx2':
-                const texture = new CompressedTexture();
-                Pool.data.set( 'T_' + name, texture );
-                Pool.loaderKTX2().load( o.url, function ( t ) { 
+                    const texture = new CompressedTexture();
+                    Pool.data.set( 'T_' + name, texture );
+                    Pool.loaderKTX2().load( o.url, function ( t ) { 
 
-                    Pool.setTextureOption( t, o );
+                        //Pool.setTextureOption( t, o );
+                        //Pool.data.set( 'T_' + name, t );
 
-                    texture.copy(t);
+                        texture.copy(t);
+                        Pool.setTextureOption( texture, o );
+                        console.log(texture);
+                        //Pool.setTextureOption( texture, o );
 
-                    t.dispose();
-                    //Pool.setTextureOption( texture, o );
-                    
-                    if( o.callback ) o.callback();
+                        t.dispose();
+                        //Pool.setTextureOption( texture, o );*/
+                        
+                        if( o.callback ) o.callback();
+                        
 
-                });
-                return texture
+                    });
+                    return texture
                 default:
-                return Pool.loaderMap.load( o.url, function ( t ) { 
+                return Pool.loaderTXT().load( o.url, function ( t ) { 
                     //console.log('use TextureLoader !!', name )
                     Pool.setTextureOption( t, o );
                     Pool.data.set( 'T_' + name, t );
@@ -11536,11 +11582,16 @@ const Pool = {
 
     },
 
+    loaderTXT: () => {
+
+        if( !Pool.TXT ) Pool.TXT = new TextureLoader( Pool.manager );
+        return Pool.TXT
+
+    },
+
     loaderKTX2: () => {
 
-        if( Pool.KTX2 ) return Pool.KTX2
-
-        Pool.KTX2 = new KTX2Loader( Pool.manager )
+        if( !Pool.KTX2 ) Pool.KTX2 = new KTX2Loader( Pool.manager )
             .setTranscoderPath( Pool.basisPath )
             .detectSupport( Pool.renderer )
             .setUseLocal( Pool.useLocal );
@@ -17553,7 +17604,7 @@ class SolverJoint {
 			//t = (t > 1) ? 1 : t;
 
 			//let move = MathTool.lerp( this.start, this.target, t );//this.current + (this.target - this.current) * t;
-			let move = this.target;//MathTool.lerp( this.start, this.target, t );
+			let move = MathTool.lerp( this.start, this.target, t );
 
 			//let move = MathTool.damp(this.start, this.target, 0.5, dt )
 
@@ -20467,16 +20518,22 @@ class Grass {
 
 	createMaterial(){
 
+		const res = '128';
+		const format = 'jpg';
+		const flipY = true;
+
 		if ( ! this.material ) {
 
 				//this.material = new MeshNormalMaterial({side:DoubleSide});
-				this.material = new MeshStandardMaterial({side:DoubleSide, alphaTest:0.6, roughness:1});
-				this.material.map = this.motor.texture({ url:'./assets/textures/plante/grass_c.jpg', flipY:true, encoding:true });
-				this.material.alphaMap = this.motor.texture({ url:'./assets/textures/plante/grass_a.jpg', flipY:true, encoding:false });
-				this.material.normalMap = this.motor.texture({ url:'./assets/textures/plante/grass_n.jpg', flipY:true, encoding:false });
-				this.material.aoMap = this.motor.texture({ url:'./assets/textures/plante/grass_ao.jpg', flipY:true, encoding:false });
-				this.material.roughnessMap = this.motor.texture({ url:'./assets/textures/plante/grass_r.jpg', flipY:true, encoding:false });
-				//this.material.roughnessMap = this.motor.texture({ url:'../../assets/textures/plante/grass_ao.jpg', flipY:true, encoding:false });
+				this.material = new MeshStandardMaterial({side:DoubleSide, alphaTest:0.6, roughness:1, metalness:1 });
+				
+				this.material.map = this.motor.texture({ url:'./assets/textures/plante/'+res+'/grass_c.' + format, flipY:flipY, srgb:true });
+				this.material.alphaMap = this.motor.texture({ url:'./assets/textures/plante/'+res+'/grass_a.' + format, flipY:flipY, srgb:false });
+				this.material.normalMap = this.motor.texture({ url:'./assets/textures/plante/'+res+'/grass_n.' + format, flipY:flipY, srgb:false });
+				const arm = this.motor.texture({ url:'./assets/textures/plante/'+res+'/grass_arm.' + format, flipY:flipY, srgb:false });
+				this.material.aoMap = arm;
+				this.material.roughnessMap = arm;
+				this.material.metalnessMap = arm;
 
 			}
 
@@ -20570,8 +20627,8 @@ class Grass {
 	    // disable raycast
 	    mesh.raycast = () => {return};
 
-		mesh.castShadow = true;
-		mesh.receiveShadow = false;
+		//mesh.castShadow = true
+		//mesh.receiveShadow = false
 
 		//this.mesh = mesh
 
@@ -24718,7 +24775,10 @@ class PhyEngine {
 		//  TEXTURE
 		//-----------------------
 
-		this.texture = ( o={} ) => ( Pool.texture( o ) );
+		this.texture2 = Pool.textureAsync;
+		this.texture = Pool.texture;
+
+		//this.texture = ( o={} ) => ( Pool.texture( o ) );
 		this.getTexture = ( name, o={} ) => ( Pool.getTexture( name, o ) );
 		//this.texture( o = {} ) { return Pool.texture( o );}
 
