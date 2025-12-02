@@ -4,7 +4,7 @@ demo = () => {
 
 	phy.view({
 		envmap:'clear', water:true, groundSize:[512,512], 
-		fog:true, fogRange:[50,100], fogMode:1,
+		fog:true, fogRange:[50,100],
 		reflect:0.5, envblur:0.1 
 	})
 	
@@ -39,7 +39,7 @@ addTerrain = () => {
     	zone:0.5, // physics simulated zone
     	uv: 60,
     	island:true,
-    	//debug:true,
+    	debug:true,
     };
 
     if( engine === 'OIMO' ){

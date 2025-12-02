@@ -466,9 +466,9 @@ export const Pool = {
         let name = url.substring( url.lastIndexOf('/')+1, url.lastIndexOf('.') );
         let type = url.substring( url.lastIndexOf('.')+1 ).toLowerCase();
 
-        if( type==='jpg' || type==='png' ) name = (Pool.tmp[0].quality ? Pool.tmp[0].quality+'k_':'') + name;
+        //console.log(url, name, type)
 
-        //console.log(name)
+        if( type==='jpg' || type==='png' ) name = (Pool.tmp[0].quality ? Pool.tmp[0].quality+'k_':'') + name;
 
         if( Pool.exist( name, type ) ) Pool.next();
         else Pool.loading( url, name, type );

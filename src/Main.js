@@ -597,6 +597,9 @@ const init = () => {
 
 	start();
 
+	const rUrl = '?v=' + math.randInt(0,6666)
+	//console.log(rUrl)
+
 	Motor.load( 'demos.json', next );
 
 }
@@ -1255,15 +1258,18 @@ const view = ( o = {} ) => {
 	setShadow( o.shadow )
 
 	// FOG
-	let fogMode = o.fogMode || 0; 
+	//let fogMode = o.fogMode || 0; 
 	if( o.fog ){ 
-		let range = o.fogRange || [1,50];
-		scene.fog = new THREE.Fog( Env.getFogColor().getHex(), range[0], range[1] );
-		options.fogMode = fogMode;
-	}
-	else if( o.fogexp ){ 
-		scene.fog = new THREE.FogExp2( Env.getFogColor().getHex(), o.fogexp || 0.01 )
-		options.fogMode = fogMode;
+
+		if( o.fogExp ){ 
+			scene.fog = new THREE.FogExp2( Env.getFogColor().getHex(), o.fogExp || 0.01 )
+			//options.fogMode = fogMode;
+		} else {
+			let range = o.fogRange || [1,50];
+			scene.fog = new THREE.Fog( Env.getFogColor().getHex(), range[0], range[1] );
+			//options.fogMode = fogMode;
+		}
+
 	}
 	else scene.fog = null
 

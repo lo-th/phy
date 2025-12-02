@@ -137,11 +137,11 @@ ragdoll = ( o ) => {
         worldAnchor:math.addArray( o.pos, [0,  lowerBody + upperBody + bodyRadius, 0]), 
         worldTwistAxis:[0,1,0],
         worldSwingAxis:[1,0,0],
-        maxSwing1:90, maxSwing2:70,
+        /*maxSwing1:90, maxSwing2:70,
         swingSd:[10, 1],
         twistSd:[10, 1],
         twistLm:[-90,90],
-        swingLimit:[90,90, 10,1],
+        swingLimit:[90,90, 10,1],*/
         lm:[ ['twist', -90, 90], ['swing1', -90, 90], ['swing2', -70, 70] ],
 
         
@@ -154,11 +154,11 @@ ragdoll = ( o ) => {
         worldAnchor:math.addArray( o.pos, [0, lowerBody, 0]), 
         worldTwistAxis:[0,1,0],
         worldSwingAxis:[1,0,0],
-        maxSwing1:60, maxSwing2:45,
+        /*maxSwing1:60, maxSwing2:45,
         swingSd:[10, 1],
         twistSd:[10, 1],
         twistLm:[-45,45],
-        swingLimit:[90,90, 10,1],
+        swingLimit:[90,90, 10,1],*/
         lm:[ ['twist', -45, 45], ['swing1', -60, 60], ['swing2', -45, 45] ],
         collision:false
     })
@@ -174,10 +174,10 @@ ragdoll = ( o ) => {
         worldTwistAxis:[1,0,0],
         worldSwingAxis:[0,0,1],
         maxSwing1:90, maxSwing2:90,
-        swingSd:[10, 1],
+        /*swingSd:[10, 1],
         twistSd:[10, 1],
         twistLm:[-90,90],
-        swingLm: [ 90, 90 ],
+        swingLm: [ 90, 90 ],*/
         lm:[ ['twist', -90, 90], ['swing1', -90, 90], ['swing2', -90, 90] ],
     })
 
@@ -188,10 +188,10 @@ ragdoll = ( o ) => {
         worldAnchor:math.addArray( o.pos, [bodyRadius, lowerBody + upperBody, 0]), 
         worldTwistAxis:[-1,0,0],
         worldSwingAxis:[0,0,1],
-        maxSwing1:90, maxSwing2:90,
+        /*maxSwing1:90, maxSwing2:90,
         swingSd:[10, 1],
         twistSd:[10, 1],
-        twistLm:[-90,90],
+        twistLm:[-90,90],*/
         lm:[ ['twist', -90, 90], ['swing1', -90, 90], ['swing2', -90, 90] ],
     })
 
@@ -229,10 +229,10 @@ ragdoll = ( o ) => {
         worldTwistAxis:[0,1,0],
         worldSwingAxis:[1,0,0],
         //axis1:[0,0,-1],
-        maxSwing1:90, maxSwing2:70,
+        /*maxSwing1:90, maxSwing2:70,
         swingSd:[10, 1],
         twistSd:[10, 1],
-        twistLm:[-90,90],
+        twistLm:[-90,90],*/
 
         lm:[ ['twist', -90, 90], ['swing1', -90, 90], ['swing2', -70, 70] ],
     })
@@ -246,10 +246,10 @@ ragdoll = ( o ) => {
         worldTwistAxis:[0,1,0],
         worldSwingAxis:[1,0,0],
         //axis1:[0,0,-1],
-        maxSwing1:90, maxSwing2:70,
+        /*maxSwing1:90, maxSwing2:70,
         swingSd:[10, 1],
         twistSd:[10, 1],
-        twistLm:[-90,90],
+        twistLm:[-90,90],*/
         lm:[ ['twist', -90, 90], ['swing1', -20, 20], ['swing2', -20, 20] ],
     })
 

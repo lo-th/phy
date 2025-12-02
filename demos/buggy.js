@@ -1,13 +1,13 @@
-const debug = 0
+const debug = false
 let buggy, maxDistance = 50;
 
 demo = () => {
 
     phy.log('use key WSAD or ZSQD<br>SPACE to handbrake')
 
-    phy.view({ envmap:'basic', ground:debug, fog:true, fogDist:0.01 })
+    phy.view({ envmap:'basic', ground:debug, fog:true, fogExp:0.01 })
 
-    phy.set( {substep:2, gravity:[0,-9.81,0], key:true })
+    phy.set( {substep:1, gravity:[0,-9.81,0], key:true, fps:60 })
 
     phy.add({ type:'plane', name:'floor', size:[300,1,300], visible:false });
     //phy.add({ pos:[0,20,0], rot:[0,0,0], size:[0.5,0.5,0.5], mass:30})
@@ -62,9 +62,14 @@ onComplete = () => {
 
         maxSteering:14,// the max steer angle in degree
         s_travel:0.4,// the total length of suspension
+        s_stiffness:32,
+        s_damping:8,
 
+        mass:2000,
+        wMass:25,
         //engine:6000,
         //acceleration:100,
+        speed:1,
 
     })
 
@@ -102,6 +107,9 @@ terrainTest = () => {
         frequency: [0.016,0.05,0.2],
         level:[ 1, 0.2, 0.05 ],
         expo: 2,
+
+        zone:0.25, // physics simulated zone
+        //debug:true,
     })
 
     let py = terrain.getHeight( 0, 0 )+3

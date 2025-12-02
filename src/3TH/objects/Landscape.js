@@ -194,8 +194,8 @@ export class Landscape extends Mesh {
             this.material.roughness = 0.1;
         } else {
             this.material.reflectivity = 0.0
-            this.material.metalness = o.metalness || 0.0;
-            this.material.roughness = o.roughness || 0.3;//0.7; 
+            this.material.metalness = o.metalness || 0.1;
+            this.material.roughness = o.roughness || 0.8;//0.7; 
         }
 
         if( isORM ){
@@ -361,7 +361,7 @@ export class Landscape extends Mesh {
         this.geometryZ.rotateX( -math.PI90 );
         this.verticesZ = this.geometryZ.attributes.position.array;
         
-        const debuger = new Mesh( this.geometryZ, new MeshBasicMaterial({ color:0x000000, wireframe:true, transparent:true, opacity:0.1 } ));
+        const debuger = new Mesh( this.geometryZ, new MeshBasicMaterial({ color:0xff9900, wireframe:true } ));
         //if( o.pos ) debuger.position.fromArray( o.pos );
         this.add( debuger );
 
@@ -395,8 +395,8 @@ export class Landscape extends Mesh {
     	this.borderMaterial = new MeshStandardMaterial({ 
 
     		vertexColors: true, 
-    		metalness: this.isWater ? 0.8 : 0.4, 
-       		roughness: this.isWater ? 0.2 : 0.6, 
+    		metalness: this.isWater ? 0.8 : 0.1, 
+       		roughness: this.isWater ? 0.2 : 0.8, 
        
             //envMap: view.getEnvMap(),
             //normalMap:this.wn,

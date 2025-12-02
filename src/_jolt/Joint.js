@@ -23,7 +23,8 @@ export class Joint extends Item {
 		this.min = new Jolt.RVec3(0,0,0);
 		this.max = new Jolt.RVec3(0,0,0);
 
-		
+		this.Rmin = new Jolt.RVec3(0,0,0);
+		this.Rmax = new Jolt.RVec3(0,0,0);
 		/*this.ConstraintAxis = {
 			LINEAR_X: Jolt.EAxis.TranslationX,
 			LINEAR_Y: Jolt.EAxis.TranslationY,
@@ -34,6 +35,24 @@ export class Joint extends Item {
 			//LINEAR_DISTANCE: Jolt.EAxis.NumTranslation,
 			//LINEAR_DISTANCE: Jolt.EAxis.Num,
 		}*/
+
+		this.convert = {
+			x:'y',
+			y:'y',
+			z:'z',
+			rx:'rx',
+			ry:'ry',
+			rz:'rz',
+			//distance:'LINEAR_DISTANCE',
+			twist:'rx',
+			swing1:'ry',
+			swing2:'rz',
+			/*free:'FREE',
+			locked:'LOCKED',
+			limited:'LIMITED',*/
+		}
+
+		this.angulars = ['rx', 'ry', 'rz' ]
 
 	}
 
@@ -111,8 +130,8 @@ export class Joint extends Item {
             case 'prismatic': jc = new Jolt.SliderConstraintSettings(); jtype = 'SliderConstraint';break;
             case 'spherical': jc = new Jolt.PointConstraintSettings(); jtype = 'PointConstraintConstraint';break;
             case 'cone': jc = new Jolt.ConeConstraintSettings(); jtype = 'ConeConstraint';break;
-            case 'ragdoll': jc = new Jolt.SwingTwistConstraintSettings(); jtype = 'SwingTwistConstraint'; break;
-            case "generic":  case "cylindrical": jc = new Jolt.SixDOFConstraintSettings(); jtype = 'SixDOFConstraint'; break;
+            //case 'ragdoll': jc = new Jolt.SwingTwistConstraintSettings(); jtype = 'SwingTwistConstraint'; break;
+            case 'ragdoll': case "generic":  case "cylindrical": jc = new Jolt.SixDOFConstraintSettings(); jtype = 'SixDOFConstraint'; break;
 		}
 
 		if(!jc) return
@@ -278,13 +297,26 @@ export class Joint extends Item {
 			j.SetEnabled(true);
 			//console.log(j)
 			break;
-			case "generic":
+			case "generic": case "ragdoll":
 			if( o.lm ){
+
+				this.min.set(0,0,0)
+				this.max.set(0,0,0)
+				this.Rmin.set(0,0,0)
+				this.Rmax.set(0,0,0)
+
+				let i = o.lm.length;
+				while(i--){
+					//this.setLimit( j, [o.lm[i][1], o.lm[i][2]], this.convert[ o.lm[i][0] ] )
+					this.setLimit( o.lm[i] )
+				}
 				//j.IsFixedAxis(0)
 				//j.IsFixedAxis(1)
 				//j.IsFreeAxis(EAxis)
 				j.SetTranslationLimits( this.min, this.max );
-				j.SetRotationLimits( this.min, this.max );
+				j.SetRotationLimits( this.Rmin, this.Rmax );
+
+				
 				//j.SetLimitsSpringSettings(	EAxis,  SpringSettings )
 				//j.SetMaxFriction(EAxis, c)
 				//j.SetMotorState (EAxis inAxis, EMotorState inState)
@@ -296,6 +328,26 @@ export class Joint extends Item {
 
 
 		}
+
+	}
+
+	setLimit( limit ){
+
+		const lim = this.convert[ limit[0] ]
+		const isAngle = this.angulars.indexOf( lim ) !== -1 ? torad : 1;
+		let axe = isAngle !== 1 ? lim.substring(1) : lim
+
+		console.log(axe)
+
+		if(isAngle !== 1 ){
+			this.Rmin[axe] = limit[1]*isAngle 
+		    this.Rmax[axe] = limit[2]*isAngle;
+		} else {
+			this.min[axe] = limit[1] 
+		    this.max[axe] = limit[2];
+		}
+
+		
 
 	}
 
