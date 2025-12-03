@@ -976,7 +976,7 @@ export class Hub {
         ctx.lineTo(p.x, p.y);
         p = Hub.getPoint('constraint', data.constraint )
         ctx.lineTo(p.x, p.y);
-        p = Hub.getPoint('stability', data.stability )
+        p = Hub.getPoint('collision', data.collision )
         ctx.lineTo(p.x, p.y);
         p = Hub.getPoint('precision', data.precision )
         ctx.lineTo(p.x, p.y);
@@ -995,7 +995,7 @@ export class Hub {
             case 'option': a = 300; break;
             case 'vehicle': a = 240; break;
             case 'constraint': a = 180; break;
-            case 'stability': a = 120; break;
+            case 'collision': a = 120; break;
             case 'precision': a = 60; break;
             
         }
