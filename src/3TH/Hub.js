@@ -105,6 +105,8 @@ let dayColor = ['#000', '#444', '#feb', 'rgba(213,211,212,0.32)'];
 let nightColor = ['#fff', '#bee', '#bfb', 'rgba(0,0,0,0.4)'];
 
 let engineLogo = null;
+let engineSkill = null;
+let engineCanvas = null
 
 let setting = {
     cross:4,
@@ -914,7 +916,12 @@ export class Hub {
 
         if(!engineLogo) return;
         menu.removeChild(engineLogo);
+        topDown.removeChild(engineCanvas);
+        topDown.removeChild(engineSkill);
+
         engineLogo = null;
+        engineSkill = null;
+        engineCanvas = null;
 
     }
 
@@ -925,6 +932,16 @@ export class Hub {
         engineLogo = new Image(256, 128);
         engineLogo.style.cssText = 'position:absolute; top:40px; left:200px; width:256px; height: 128px;';
         menu.appendChild(engineLogo);
+
+        engineSkill = new Image(256, 256);
+        engineSkill.style.cssText = 'position:absolute; top:0px; left:500px; height:100%; width:auto;';
+        topDown.appendChild(engineSkill);
+
+        engineCanvas = document.createElement( 'canvas' );
+        engineCanvas.width = engineCanvas.height = 256;
+        engineCanvas.style.cssText = 'position:absolute; top:0px; left:500px; height:100%; width:auto;';//'position:absolute; width:100%; height:100%;';
+        topDown.appendChild(engineCanvas);
+
         Hub.setLogoImage();
 
     }
@@ -934,6 +951,60 @@ export class Hub {
         if(!engineLogo) return;
         name = name ? name.toLowerCase() : Main.engineType.toLowerCase();
         engineLogo.src = './assets/logo/'+name+'.png';
+        engineSkill.src = './assets/logo/skill.png';
+        Hub.setEnginSkill(name);
+
+    }
+
+    static setEnginSkill( name ) {
+
+        const ctx = engineCanvas.getContext( '2d' );
+        const data = Main.engineSkill[name]
+
+        ctx.clearRect(0, 0, 256, 256);
+
+        //console.log(data)
+        ctx.fillStyle = data.c;
+        ctx.strokeStyle = data.c;
+
+        ctx.beginPath();
+        let p = Hub.getPoint('speed', data.speed )
+        ctx.moveTo(p.x, p.y);
+        p = Hub.getPoint('option', data.option )
+        ctx.lineTo(p.x, p.y);
+        p = Hub.getPoint('vehicle', data.vehicle )
+        ctx.lineTo(p.x, p.y);
+        p = Hub.getPoint('constraint', data.constraint )
+        ctx.lineTo(p.x, p.y);
+        p = Hub.getPoint('stability', data.stability )
+        ctx.lineTo(p.x, p.y);
+        p = Hub.getPoint('precision', data.precision )
+        ctx.lineTo(p.x, p.y);
+        p = Hub.getPoint('speed', data.speed )
+        ctx.lineTo(p.x, p.y);
+        ctx.fill();
+        ctx.stroke();
+
+
+    }
+
+    static getPoint( d, v ) {
+        let a = 0
+        switch(d){
+            case 'speed': a = 0; break;
+            case 'option': a = 300; break;
+            case 'vehicle': a = 240; break;
+            case 'constraint': a = 180; break;
+            case 'stability': a = 120; break;
+            case 'precision': a = 60; break;
+            
+        }
+
+        let angle = (a-180) * (Math.PI/180)
+        let x = 128 + ((75*v) * Math.sin(angle))
+        let y = 128 + ((75*v) * Math.cos(angle))
+
+        return {x:x,y:y}
 
     }
 

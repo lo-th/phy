@@ -113,7 +113,7 @@ const setting = {
 	shadow:0.75,
 
 	exposure: 0.5,//0.68,//1,
-	direct:8, //3.14,
+	direct:13, //9,
 	spherical: 1,
 	envIntensity:2.0,//1.3,
 	bgIntensity:1.5,//1,
@@ -233,6 +233,14 @@ export const Main = {
 	isWorker:true,
 	devMode:false,
 	engineList: [ 'OIMO', 'AMMO', 'PHYSX', 'HAVOK', 'RAPIER', 'JOLT' ],
+	engineSkill: {
+		physx: {c:'rgba(125,201,0,0.5)',   speed:0.9, option:1.0, precision:0.9, stability:0.9, constraint:1.0, vehicle:1.0 },
+		havok: {c:'rgba(255,187,0,0.5)',   speed:1.0, option:0.9, precision:1.0, stability:1.0, constraint:0.8, vehicle:0.1 },
+		jolt:  {c:'rgba(22,147,197,0.5)',  speed:0.6, option:0.9, precision:0.8, stability:0.8, constraint:0.6, vehicle:0.7 },
+		rapier:{c:'rgba(168,251,194,0.5)', speed:0.6, option:0.8, precision:0.9, stability:0.5, constraint:0.7, vehicle:0.2 },
+		ammo : {c:'rgba(255,154,0,0.5)',   speed:0.4, option:0.7, precision:0.6, stability:0.5, constraint:0.8, vehicle:0.8 },
+		oimo:  {c:'rgba(246,82,22,0.5)',   speed:0.3, option:0.5, precision:0.6, stability:0.5, constraint:0.8, vehicle:0.2 },
+	},
 	demoList:[],
 	demoLink:[],
 	devLink:[],

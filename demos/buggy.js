@@ -12,8 +12,7 @@ demo = () => {
     phy.add({ type:'plane', name:'floor', size:[300,1,300], visible:false });
     //phy.add({ pos:[0,20,0], rot:[0,0,0], size:[0.5,0.5,0.5], mass:30})
     //phy.add({ type:'box', size:[4,1,6], rot:[1,0,0], pos:[0,0.5,0],  radius:0.025 })
-
-    // phy.add({ type:'box', size:[4,4,1],  pos:[0,2,10],  radius:0.025 })
+    //phy.add({ type:'box', size:[4,4,1],  pos:[0,2,10],  radius:0.025 })
 
     // preLoad
     const maps = [
@@ -38,8 +37,6 @@ onComplete = () => {
     const wheel = model['h_wheel']
     const suspension = model['h_susp_base']
     const brake = model['h_brake']
-
-    
 
     buggy = phy.add( { 
 
@@ -125,8 +122,8 @@ terrainTest = () => {
 
 update = () => {
 
+    // decal terrain > 50
     let p = buggy.position;
-    //let d = math.distance({ x:p.x, z:p.z });
     let d = math.distanceArray([p.x, 0, p.z])
 
     if( d > 50 ){
@@ -136,20 +133,11 @@ update = () => {
         ])
     }
 
-    //let key = phy.getKey()
-    //phy.update( { name:'buggy', key:key } )
-
 }
 
 applyMaterial = ( model ) => {
 
     const mat = {}
-
-
-    //let Mat = phy.getMat()
-    //let clear = Mat.get('clear')
-
-    const path = './assets/textures/buggy/'
 
     mat['carGlass'] = phy.getMat('carGlass');
 
@@ -158,7 +146,7 @@ applyMaterial = ( model ) => {
         roughness: 0.5,
         metalness: 1.0,
         envMapIntensity: 1.35,
-        map: phy.texture({ url:path + 'body_c.jpg' }),
+        map: phy.getTexture('body_c'),
         clearcoat: 1.0, clearcoatRoughness: 0.03, sheen: 0.5,
     });
 
@@ -166,8 +154,8 @@ applyMaterial = ( model ) => {
         name:'extra',
         roughness: 0.1,
         metalness: 0.6,
-        map: phy.texture({ url:path + 'extra_c.jpg' }),
-        normalMap: phy.texture({ url:path + 'extra_n.jpg' }),
+        map: phy.getTexture('extra_c'),
+        normalMap: phy.getTexture('extra_n'),
         normalScale: [ 1, -1 ],
     });
 
@@ -175,11 +163,11 @@ applyMaterial = ( model ) => {
         name:'pilote',
         roughness: 0.4,
         metalness: 0.6,
-        map: phy.texture({ url:path + 'pilote_c.jpg' }),
+        map: phy.getTexture('pilote_c'),
     });
 
-    let wheel_map = phy.texture({ url:path + 'wheel_c.jpg' })
-    let wheel_normal = phy.texture({ url:path + 'wheel_n.jpg' })
+    let wheel_map = phy.getTexture('wheel_c')
+    let wheel_normal = phy.getTexture('wheel_n')
 
     mat['wheel'] = phy.material({
         name:'wheel',
@@ -204,7 +192,7 @@ applyMaterial = ( model ) => {
         name:'susp',
         roughness: 0.6,
         metalness: 0.4,
-        map: phy.texture({ url:path + 'suspension_c.jpg' }),
+        map: phy.getTexture('suspension_c'),
     });
 
     mat['brake'] = phy.material({

@@ -83,6 +83,15 @@ onComplete2 = () => {
     const models = phy.getMesh('palette')
     let m = models.palette;
 
+    /*
+    // test basic material
+    const mat = phy.material({type:'basic', map:m.material.map })
+    m.children[0].children[0].material = mat
+    m.children[1].children[0].material = mat
+    */
+
+    console.log(m)
+
     m.castShadow = true
     m.receiveShadow = false;
     m.position.set(0,0.3125,1.2)
