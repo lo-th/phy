@@ -1,3 +1,4 @@
+let g
 
 function demo() {
 
@@ -16,10 +17,19 @@ function demo() {
         substep:1,
     })
 
-    phy.lightIntensity( 13, 0.5, 0.5 );
+    
+    g = phy.addGrass()
+
+    phy.setRenderUpdate( update )
 
 
-    phy.addGrass()
+}
 
+function update(delta){
+
+    const shader = g.mesh.material.userData.shader;
+    if(shader){
+        shader.uniforms.time.value += delta;
+    }
 
 }

@@ -169,6 +169,7 @@ export class Lights {
 		if(!s) return;
 
 		if(o.quality) s.mapSize.width = s.mapSize.height = o.quality;
+		//console.log(s.mapSize.width )
 		const cam = s.camera;
 
 		if( cam.isOrthographicCamera ){
@@ -185,7 +186,7 @@ export class Lights {
 		}
 
 		if(o.bias) s.bias = o.bias;
-		//if(o.radius) s.radius = o.radius;
+		if(o.radius) s.radius = o.radius;
 		if(o.blurSamples) s.blurSamples = o.blurSamples; // only for VSM 
 		if(o.intensity) s.intensity = o.intensity;
 

@@ -10,12 +10,12 @@
              "raycast", "human", "player", "auto_ragdoll", "badaboum", "kart", "fracture", "nefertiti"
         ],
         "physx": [
-            "buggy", "vehicle4", "robot", "robot_arm"
+            "buggy", "vehicle4", "robot", "robot_arm", "kaneda"
         ],
         "dev": [
             "spring", "gears2", "mass", "empty", "empty2", "empty3", "group_mask",
             "car", "buttons", "pinball", "bullet", "build", 
-            "kaneda", "vehicle3", "mesh", "stacking",  "house", "direct", "nefertiti2",
+             "vehicle3", "mesh", "stacking",  "house", "direct", "nefertiti2",
             "solver", "wall", "skylab", "colors", "barbados", "barbados2", "blob", "havok_car", "joint_test", "event"
         ],
         "private": [

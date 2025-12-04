@@ -124,6 +124,7 @@ class Car extends Object3D {//extends Object3D {
 		this.size = o.size || [0.85*2, 0.5*2, 2.5*2];
 		this.massCenter = o.massCenter || [0, 0.55, 1.594]
 		this.chassisPos = o.chassisPos || [0, 0.83, 0]
+		this.meshPos = o.meshPos || [0, 0, 0]
 
 		this.maxSteering = o.maxSteering || 24
 		this.incSteering = o.incSteering || 2
@@ -238,7 +239,7 @@ class Car extends Object3D {//extends Object3D {
 
 		if(o.chassisMesh){
 			m = o.noClone ? o.chassisMesh : o.chassisMesh.clone()
-			m.position.set( 0, 0, 0 )
+			m.position.fromArray( this.meshPos )
 			this.Utils.noRay( m )
 			m.scale.set( scale, scale, scale )
 			this.children[0].add( m )

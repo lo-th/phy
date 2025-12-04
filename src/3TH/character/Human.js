@@ -1,5 +1,5 @@
 
-import { Vector2, Color, CustomBlending, DoubleSide, ZeroFactor, SrcAlphaFactor  } from 'three';
+import { Vector2, Color, CustomBlending, DoubleSide, ZeroFactor, SrcAlphaFactor, BackSide, FrontSide  } from 'three';
 import { Pool } from '../Pool.js';
 
 const setting = {
@@ -92,6 +92,8 @@ export const Human = {
             sheen:setting.sheen,
             sheenRoughness:setting.sheenRoughness,
 
+            shadowSide: BackSide,
+
 
             //sheenColorMap:'avatar_c',
             /*sheenColor:0xff0000,
@@ -161,7 +163,7 @@ export const Human = {
             alphaMap:'hair_a',
             //alphaTest:setting.alphaTest,
             side: DoubleSide,
-            shadowSide: DoubleSide,
+            shadowSide: BackSide,
             emissive:setting.hair,
             emissiveIntensity:0.5,
             //opacity:1.0,

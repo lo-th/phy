@@ -439,7 +439,9 @@ export const Main = {
 
 Motor.log = Hub.log;
 
+let renderUpdate = ()=>{}
 
+Motor.setRenderUpdate = ( f ) => { renderUpdate = f !== null ? f : ()=>{} }
 Motor.changeShadow = Main.changeShadow;
 
 /*Motor.initParticle = Main.initParticle
@@ -1122,9 +1124,8 @@ const render = ( stamp = 0 ) => {
 
 	update( stamp );
 
-
-
-
+	// for external update
+	renderUpdate( tm.delta );
 
 	if( composer && composer.enabled ) composer.render( tm.delta );
 	else renderer.render( scene, camera );

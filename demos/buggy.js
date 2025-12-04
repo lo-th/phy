@@ -15,12 +15,14 @@ demo = () => {
     //phy.add({ type:'box', size:[4,4,1],  pos:[0,2,10],  radius:0.025 })
 
     // preLoad
-    const maps = [
-        'textures/buggy/body_c.jpg', 'textures/buggy/extra_c.jpg',
-        'textures/buggy/extra_n.jpg', 'textures/buggy/pilote_c.jpg',
-        'textures/buggy/wheel_c.jpg', 'textures/buggy/wheel_n.jpg',
-        'textures/buggy/suspension_c.jpg'
+    let maps = [
+        'body_c', 'extra_c',
+        'extra_n', 'pilote_c',
+        'wheel_c', 'wheel_n',
+        'suspension_c'
     ]
+
+    maps = maps.map((name) => 'textures/buggy/'+name+'.jpg');
 
     phy.load(['models/buggy.glb', ...maps], onComplete, './assets/' )
 

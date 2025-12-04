@@ -8588,6 +8588,7 @@ class Car extends three.Object3D {//extends Object3D {
 		this.size = o.size || [0.85*2, 0.5*2, 2.5*2];
 		this.massCenter = o.massCenter || [0, 0.55, 1.594];
 		this.chassisPos = o.chassisPos || [0, 0.83, 0];
+		this.meshPos = o.meshPos || [0, 0, 0];
 
 		this.maxSteering = o.maxSteering || 24;
 		this.incSteering = o.incSteering || 2;
@@ -8702,7 +8703,7 @@ class Car extends three.Object3D {//extends Object3D {
 
 		if(o.chassisMesh){
 			m = o.noClone ? o.chassisMesh : o.chassisMesh.clone();
-			m.position.set( 0, 0, 0 );
+			m.position.fromArray( this.meshPos );
 			this.Utils.noRay( m );
 			m.scale.set( scale, scale, scale );
 			this.children[0].add( m );
@@ -12330,6 +12331,8 @@ const Human = {
             sheen:setting$4.sheen,
             sheenRoughness:setting$4.sheenRoughness,
 
+            shadowSide: three.BackSide,
+
 
             //sheenColorMap:'avatar_c',
             /*sheenColor:0xff0000,
@@ -12399,7 +12402,7 @@ const Human = {
             alphaMap:'hair_a',
             //alphaTest:setting.alphaTest,
             side: three.DoubleSide,
-            shadowSide: three.DoubleSide,
+            shadowSide: three.BackSide,
             emissive:setting$4.hair,
             emissiveIntensity:0.5,
             //opacity:1.0,
@@ -20544,20 +20547,84 @@ class Grass {
 		const format = 'jpg';
 		const flipY = true;
 
-		if ( ! this.material ) {
+		if ( !this.material ) {
 
 				//this.material = new MeshNormalMaterial({side:DoubleSide});
-				this.material = new three.MeshStandardMaterial({side:three.DoubleSide, alphaTest:0.6, roughness:1, metalness:1 });
+				const material = new three.MeshStandardMaterial({side:three.DoubleSide, alphaTest:0.6, roughness:1, metalness:1 });
 				
-				this.material.map = this.motor.texture({ url:'./assets/textures/plante/'+res+'/grass_c.' + format, flipY:flipY, srgb:true });
-				this.material.alphaMap = this.motor.texture({ url:'./assets/textures/plante/'+res+'/grass_a.' + format, flipY:flipY, srgb:false });
-				this.material.normalMap = this.motor.texture({ url:'./assets/textures/plante/'+res+'/grass_n.' + format, flipY:flipY, srgb:false });
+				material.map = this.motor.texture({ url:'./assets/textures/plante/'+res+'/grass_c.' + format, flipY:flipY, srgb:true });
+				material.alphaMap = this.motor.texture({ url:'./assets/textures/plante/'+res+'/grass_a.' + format, flipY:flipY, srgb:false });
+				//material.normalMap = this.motor.texture({ url:'./assets/textures/plante/'+res+'/grass_n.' + format, flipY:flipY, srgb:false });
 				const arm = this.motor.texture({ url:'./assets/textures/plante/'+res+'/grass_arm.' + format, flipY:flipY, srgb:false });
-				this.material.aoMap = arm;
-				this.material.roughnessMap = arm;
-				this.material.metalnessMap = arm;
+				material.aoMap = arm;
+				material.roughnessMap = arm;
+				material.metalnessMap = arm;
+
+				material.onBeforeCompile = function ( shader ) {
+
+					// https://gist.github.com/patriciogonzalezvivo/670c22f3966e662d2f83
+
+					shader.uniforms.time = { value: 0 };
+
+					shader.vertexShader = `
+					uniform float time;
+					` + noise + shader.vertexShader;
+
+					shader.vertexShader = shader.vertexShader.replace(
+						'#include <begin_vertex>',`
+
+						
+
+						vec4 wPosition = vec4( position, 1.0 );
+						wPosition = batchingMatrix * wPosition;
+						float noi = snoise(vec2(wPosition.x+(time*5.0), wPosition.z+(time*5.0))*0.08);
+
+						float nox = (1.0+noi)*0.5;
+						float noy = 1.0+(nox*0.5);
+
+
+						float theta = sin( time + wPosition.y ) / 2.0;
+						float c = cos( theta );
+						float s = sin( theta );
+						mat3 m = mat3( c, 0, s, 0, 1, 0, -s, 0, c )*noy;
+
+						
+						vec3 transformed = vec3( position );
+						if(position.y>0.5) {
+							
+							transformed.y = 0.5+(nox*0.25); //1.0 + (noi*0.25);
+							transformed *= m;
+						}
+
+						#ifdef USE_ALPHAHASH
+
+							vPosition = vec3( position ) * m;
+
+						#endif
+						`
+					);
+					/*shader.vertexShader = shader.vertexShader.replace(
+						'#include <begin_vertex>',
+						[
+							`float theta = sin( time + position.y ) / 2.0;`,
+							'float c = cos( theta );',
+							'float s = sin( theta );',
+							'mat3 m = mat3( c, 0, s, 0, 1, 0, -s, 0, c );',
+							'vec3 transformed = vec3( position ) * m;',
+							'vNormal = vNormal * m;'
+						].join( '\n' )
+					);*/
+
+					//console.log(shader.vertexShader)
+
+					material.userData.shader = shader;
+				};
+
+				this.material = material;
 
 			}
+
+
 
 			return this.material;
 
@@ -20566,7 +20633,7 @@ class Grass {
 	randomizeMatrix( matrix ){
 
 		position.x = Math.random() * 40 - 20;
-		//position.y = Math.random() * 40 - 20;
+		position.y = 0;//Math.random() * 40 - 20;
 		position.z = Math.random() * 40 - 20;
 
 		//rotation.x = Math.random() * 2 * Math.PI;
@@ -20583,7 +20650,7 @@ class Grass {
 
 	initBatchedMesh(){
 
-		const instancesCount = 16000;
+		const instancesCount = 25000;
 
 
 		new three.Euler();
@@ -20640,7 +20707,7 @@ class Grass {
 		}
 
 		// compute blas (bottom-level acceleration structure) bvh ( three-mesh-bvh 
-		//mesh.computeBoundsTree();
+		mesh.computeBoundsTree();
 
 	    // compute tlas (top-level acceleration structure) bvh ( @three.ez/batched-mesh-extensions )
 	    // To speed up raycasting and frustum culling,
@@ -20659,6 +20726,8 @@ class Grass {
 
 		this.motor.scenePlus.add( mesh );
 
+		this.mesh = mesh;
+
 		/*const lods = mesh._geometryInfo.map( x => x.LOD );
 		const geometryInfo = mesh._geometryInfo;
         for ( let i = 0; i < geometryInfo.length; i ++ ) {
@@ -20670,6 +20739,51 @@ class Grass {
 	}
 
 }
+
+const noise = `
+float randd(vec2 n) { 
+	return fract(sin(dot(n, vec2(12.9898, 4.1414))) * 43758.5453);
+}
+
+float noise(vec2 p){
+	vec2 ip = floor(p);
+	vec2 u = fract(p);
+	u = u*u*(3.0-2.0*u);
+	
+	float res = mix(
+		mix(randd(ip),randd(ip+vec2(1.0,0.0)),u.x),
+		mix(randd(ip+vec2(0.0,1.0)),randd(ip+vec2(1.0,1.0)),u.x),u.y);
+	return res*res;
+}
+
+vec3 permute(vec3 x) { return mod(((x*34.0)+1.0)*x, 289.0); }
+
+float snoise(vec2 v){
+  const vec4 C = vec4(0.211324865405187, 0.366025403784439, -0.577350269189626, 0.024390243902439);
+  vec2 i  = floor(v + dot(v, C.yy) );
+  vec2 x0 = v -   i + dot(i, C.xx);
+  vec2 i1;
+  i1 = (x0.x > x0.y) ? vec2(1.0, 0.0) : vec2(0.0, 1.0);
+  vec4 x12 = x0.xyxy + C.xxzz;
+  x12.xy -= i1;
+  i = mod(i, 289.0);
+  vec3 p = permute( permute( i.y + vec3(0.0, i1.y, 1.0 ))
+  + i.x + vec3(0.0, i1.x, 1.0 ));
+  vec3 m = max(0.5 - vec3(dot(x0,x0), dot(x12.xy,x12.xy),
+    dot(x12.zw,x12.zw)), 0.0);
+  m = m*m ;
+  m = m*m ;
+  vec3 x = 2.0 * fract(p * C.www) - 1.0;
+  vec3 h = abs(x) - 0.5;
+  vec3 ox = floor(x + 0.5);
+  vec3 a0 = x - ox;
+  m *= 1.79284291400159 - 0.85373472095314 * ( a0*a0 + h*h );
+  vec3 g;
+  g.x  = a0.x  * x0.x  + h.x  * x0.y;
+  g.yz = a0.yz * x12.xz + h.yz * x12.yw;
+  return 130.0 * dot(m, g);
+}
+`;
 
 //ChamferCyl.prototype = Object.create( THREE.BufferGeometry.prototype );
 

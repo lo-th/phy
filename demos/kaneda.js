@@ -1,11 +1,11 @@
-const debug = 0
+const debug = false
 let bike, model, meshes, maxDistance = 50, oldv = 0, w1, w2;
 const TimeFrame = 1/30;
-let modelName = 'akira2'
+let modelName = 'akira'
 
 const setting = {
 
-    s_travel:0.15,
+    s_travel:0.03,
     s_stiffness:10,//32
     s_damping:4,
     s_force:5000,
@@ -17,17 +17,27 @@ demo = () => {
     
     //phy.log('use key WSAD or ZSQD<br>SPACE to handbrake')
 
-    phy.view({ envmap:'clear', ground:true, fog:true, fogDist:0.01, distance:3, phi:0, theta:-90, target:[0,1,0], y:1 })
+    phy.view({ envmap:'clear', ground:true, fog:true, fogExp:0.01, distance:3, phi:0, theta:-90, target:[0,1,0], y:1 })
 
-    phy.useRealLight( {} );
+    //phy.useRealLight( {} );
 
-    phy.set( {substep:1, gravity:[0,-9.81,0], key:true })
+    phy.set( {substep:10, gravity:[0,-9.81,0], key:true })
 
     phy.add({ type:'plane', name:'floor', size:[20,1,20], visible:false, friction:1.0 });
     //phy.add({ pos:[0,20,0], rot:[0,0,0], size:[0.5,0.5,0.5], mass:30})
     //phy.add({ type:'box', size:[4,1,6], rot:[1,0,0], pos:[0,0.5,0],  radius:0.025 })
 
-    phy.load(['./assets/models/'+modelName+'.glb'], onComplete )
+    let maps = [
+        'kaneda_c', 'kaneda_n', 'kaneda_arm',
+        'bike_1_c', 'bike_1_n', 'bike_1_arm',
+        'bike_2_c', 'bike_2_n', 'bike_2_arm',
+        'bike_3_c', 'bike_3_n', 'bike_3_arm', 'bike_3_l',
+        'tires_c', 'tires_n'
+    ]
+
+    maps = maps.map((name) => 'textures/akira/'+name+'.jpg');
+
+    phy.load(['models/'+modelName+'.glb', ...maps], onComplete, './assets/' )
 
 }
 
@@ -44,9 +54,24 @@ onComplete = () => {
 
     model = phy.get(modelName, 'O')
     model.rotation.y = -90 * math.torad;
-   // model.position.y = -0.05
+    //model.position.y = -1
+
+    //let m = model.matrixWorld.clone().invert()
 
     //model.scale.set(0.1,0.1,0.1)
+
+    let p1 = meshes.ak_axis_front.position
+    let p2 = meshes.ak_rim_av.position
+
+    let dir1 = p1.clone().sub(p2).normalize()
+
+    p1 = meshes.ak_axis_back_pos.position
+    p2 = meshes.ak_axis_back.position
+
+    let dir2 = p1.clone().sub(p2).normalize()
+
+
+    
 
     //phy.getScene().add(model)
 
@@ -77,6 +102,7 @@ onComplete = () => {
         chassisPos:[0,0,0],
         massCenter:[0,0,0],
 
+
         pos:[0,0,0],
 
         ray:debug,
@@ -93,6 +119,7 @@ onComplete = () => {
         noClone:true,
 
         chassisMesh:model,
+        meshPos:[0,0.02,0],
         debug:debug,
         //wheelMesh: wheel,
         //brakeMesh: brake,
@@ -103,14 +130,19 @@ onComplete = () => {
         numWheel:2,
 
         suspensionTravelDir:[
-            [0,-0.3,0.7],
-            [0,-0.9,-0.1],
+        //[0,-dir1.y,-dir1.x],
+        [0,-dir1.x,dir1.y],
+        [0,-dir2.y,-dir2.x],
+            //[0,-0.3,0.7],
+            //[0,-0.9,0.1],
+            //[0,-0.9,-0.1],
         ],
 
         maxSteering:12,
 
+
         /*
-        s_travel:0.2,
+        s_travel:0.1,
         s_stiffness:16,//32,
         s_damping:4,//8,
         s_force:10000,
@@ -157,7 +189,7 @@ const addGui = () => {
     for(let n in setting){
         min = 0.01
         max = 100
-        if( n==='s_travel' )max =1
+        if( n==='s_travel' )max =0.1
         if( n==='dampingRate' )max =2
             if( n==='s_force' )max =10000
         gui.add( setting, n, { min:min, max:max} ).onChange( (v)=>{ 
@@ -175,18 +207,21 @@ terrainTest = () => {
          
         maps:['road2', 'road3', 'asph'],
         ns:4,
-        roughness:0.4,
-        metalness:0.4,
+        roughness:0.7,
+        metalness:0.1,
         //staticFriction:0.5,
         friction: 0.5,
         restitution: 0,
         uv: 150,
         pos: [0,0,0],
-        size:[512, 10, 512],
+        size:[512, 5, 512],
         sample: [512, 512],
         frequency: [0.016,0.05,0.2],
         level:[ 1, 0.2, 0.05 ],
         expo: 1,
+
+        zone:0.25, // physics simulated zone
+        //debug:true,
     })
 
     let py = terrain.getHeight( 0, 0 )
@@ -230,6 +265,8 @@ frontSusp = ( n ) => {
 
 backSusp = ( n ) => {
 
+    n = math.clamp(n, 0, 1);
+
     meshes.ak_rim_ar.position.y = (n*0.6)-0.3//0.3//n;
     //phy.morph( meshes.ak_axis_back,'low', ((-n+0.3)*1.66666) )
     phy.morph( meshes.ak_axis_back,'low', n)
@@ -246,13 +283,8 @@ updateAnimation = () => {
         else playFrame('right_on', Math.floor(-v*12) )
     }
 
-    //console.log( (-(bike.suspension[0])+1.0)*0.5 )
-
-    //frontSusp( (-(bike.suspension[0])+0.5)*0.4 )
-    //frontSusp( (-(bike.suspension[0])+1.0)*0.5 )
     frontSusp( (bike.suspension[0]*0.5)+0.5 )
     backSusp( (bike.suspension[1]*0.5)+0.5 )
-    //backSusp( (-(bike.suspension[1])*0.5)*0.4 )
 }
 
 update = () => {
@@ -283,75 +315,87 @@ update = () => {
 applyMaterial = ( model ) => {
 
     const mat = {}
-    const path = './assets/textures/akira/'
+    //const path = './assets/textures/akira/'
     const ao = 1
+
+    
 
     //let Mat = phy.getMat()
     mat['carGlass'] = phy.getMat('carGlass');
 
+    let arm = phy.getTexture('kaneda_arm')
+
     mat['kaneda'] = phy.material({
         name:'kaneda',
-        roughness: 1,
+        roughness: 0.8,
         metalness: 1,
-        map: phy.texture({ url:path + 'kaneda_c.jpg' }),
-        normalMap: phy.texture({ url:path + 'kaneda_n.jpg' }),
-        metalnessMap: phy.texture({ url:path + 'kaneda_m.jpg' }),
-        roughnessMap: phy.texture({ url:path + 'kaneda_r.jpg' }),
-        aoMap: phy.texture({ url:path + 'kaneda_a.jpg' }),
+        map: phy.getTexture('kaneda_c'),
+        normalMap: phy.getTexture('kaneda_n'),
+        metalnessMap: arm,
+        roughnessMap: arm,
+        aoMap: arm,
         normalScale: [ 1, -1 ],
         aoMapIntensity:ao,
-
     });
+
+    arm = phy.getTexture('bike_1_arm')
 
     mat['bike1'] = phy.material({
         name:'bike1',
         roughness: 1,
         metalness: 1,
-        map: phy.texture({ url:path + 'bike_1_c.jpg' }),
-        normalMap: phy.texture({ url:path + 'bike_1_n.jpg' }),
-        metalnessMap: phy.texture({ url:path + 'bike_1_m.jpg' }),
-        roughnessMap: phy.texture({ url:path + 'bike_1_r.jpg' }),
-        aoMap: phy.texture({ url:path + 'bike_1_a.jpg' }),
+        map: phy.getTexture('bike_1_c'),
+        normalMap: phy.getTexture('bike_1_n'),
         normalScale: [ 1, -1 ],
+        metalnessMap: arm,
+        roughnessMap: arm,
+        aoMap: arm,
         aoMapIntensity:ao,
-        clearcoat: 1.0, clearcoatRoughness: 0.03, sheen: 0.5,
+        clearcoat: 1.0, clearcoatRoughness: 0.03, //sheen: 0.5,
     });
+
+    arm = phy.getTexture('bike_2_arm')
 
     mat['bike2'] = phy.material({
         name:'bike2',
         roughness: 1,
         metalness: 1,
-        map: phy.texture({ url:path + 'bike_2_c.jpg' }),
-        metalnessMap: phy.texture({ url:path + 'bike_2_m.jpg' }),
-        roughnessMap: phy.texture({ url:path + 'bike_2_r.jpg' }),
-        aoMap: phy.texture({ url:path + 'bike_2_a.jpg' }),
+        map: phy.getTexture('bike_2_c'),
+        normalMap: phy.getTexture('bike_2_n'),
+        normalScale: [ 1, -1 ],
+        metalnessMap: arm,
+        roughnessMap: arm,
+        aoMap: arm,
         aoMapIntensity:ao,
-        clearcoat: 1.0, clearcoatRoughness: 0.03, sheen: 0.5,
+        clearcoat: 1.0, clearcoatRoughness: 0.03, //sheen: 0.5,
     });
+
+    arm = phy.getTexture('bike_3_arm')
 
     mat['bike3'] = phy.material({
         name:'bike3',
         roughness: 1,
         metalness: 1,
         emissive:0xffffff,
-        map: phy.texture({ url:path + 'bike_3_c.jpg' }),
-        emissiveMap: phy.texture({ url:path + 'bike_3_l.jpg' }),
-        metalnessMap: phy.texture({ url:path + 'bike_3_m.jpg' }),
-        roughnessMap: phy.texture({ url:path + 'bike_3_r.jpg' }),
-        aoMap: phy.texture({ url:path + 'bike_3_a.jpg' }),
-        normalMap: phy.texture({ url:path + 'bike_3_n.jpg' }),
+        emissiveIntensity:3,
+        map: phy.getTexture('bike_3_c'),
+        emissiveMap: phy.getTexture('bike_3_l'),
+        normalMap: phy.getTexture('bike_3_n'),
         normalScale: [ 1, -1 ],
+        metalnessMap: arm,
+        roughnessMap: arm,
+        aoMap: arm,
         aoMapIntensity:ao,
-        clearcoat: 1.0, clearcoatRoughness: 0.03, sheen: 0.5
+        clearcoat: 1.0, clearcoatRoughness: 0.03,// sheen: 0.5
     });
 
     mat['tire'] = phy.material({
         name:'tire',
-        roughness: 0.7,
+        roughness: 0.5,
         metalness: 0.1,
-        map: phy.texture({ url:path + 'tires_c.jpg' }),
-        normalMap: phy.texture({ url:path + 'tires_n.jpg' }),
-        normalScale: [ 2, 2 ],
+        map: phy.getTexture('tires_c'),
+        normalMap: phy.getTexture('tires_n'),
+        normalScale: [ 4, 4 ],
     });
 
     let m
