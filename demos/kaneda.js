@@ -227,7 +227,7 @@ terrainTest = () => {
     let py = terrain.getHeight( 0, 0 )
 
     //phy.up( { name:'bike', pos:[0,py,0] } )
-    bike.set({pos:[0,py,0]})
+    bike.set({pos:[0,py+0.2,0]})
     phy.remove( 'floor' )
 
     // update after physic step
@@ -391,8 +391,8 @@ applyMaterial = ( model ) => {
 
     mat['tire'] = phy.material({
         name:'tire',
-        roughness: 0.5,
-        metalness: 0.1,
+        roughness: 0.66,
+        metalness: 0.12,
         map: phy.getTexture('tires_c'),
         normalMap: phy.getTexture('tires_n'),
         normalScale: [ 4, 4 ],
