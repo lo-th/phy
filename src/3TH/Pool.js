@@ -318,7 +318,7 @@ export const Pool = {
 
                         texture.copy(t);
                         Pool.setTextureOption( texture, o );
-                        console.log(texture)
+                        //console.log(texture)
                         //Pool.setTextureOption( texture, o );
 
                         t.dispose()
@@ -389,9 +389,14 @@ export const Pool = {
         
         t.flipY = o.flipY!== undefined || o.flip !== undefined ? o.flipY : false
 
+       //t.anisotropy = Pool.maxAnisotropy;
+
+
         if( o.anisotropy ){
             t.anisotropy = o.anisotropy === 'max' ? Pool.maxAnisotropy : o.anisotropy;
         }
+
+        //console.log(t.anisotropy)
            
         //if( o.anisotropy !== undefined ) t.anisotropy = o.anisotropy
         if( o.generateMipmaps !== undefined ) t.generateMipmaps = o.generateMipmaps

@@ -382,7 +382,7 @@ export class Controller extends OrbitControls {
 
         if( cam.simple ){
 
-            if(radius<2) cam.decalY = (2-radius)*0.5
+            if(radius<2) cam.decalY = (2-radius)*0.4
 
             this.tmpV.copy( cam.decal )//.applyAxisAngle( { x:1, y:0, z:0 }, phi - math.PI90 )
 

@@ -9,8 +9,8 @@ const setting = {
     normal:0.25,
     hair:0x752002,//0xa43412,
     bow:0x100402,
-    sheen:1,//2.25,
-    sheenRoughness:0.6,//1.0,
+    sheen:6,//2.25,
+    sheenRoughness:0.5,//1.0,
     metalness:0.6,
     roughness:0.4,
     
@@ -41,6 +41,7 @@ export const Human = {
     morphRelative:false,
 
     haveLOD:true,
+    anisotropy:'max',
 
     levelHigh:['body', 'Head', 'crane', 'eyelash', 'eyebrow', 'tear', 'eye_l', 'eye_r', 'eye_l_s', 'eye_r_s'],
     levelHair:['hair', 'hair_man'],
@@ -77,7 +78,7 @@ export const Human = {
             normalMap:'avatar_n',
 
             //envMapIntensity:0.7,
-            reflectivity:0.2,
+            //reflectivity:0.2,
 
             roughness:0.54,
             metalness:0.14,
@@ -88,11 +89,14 @@ export const Human = {
             roughnessMap:'avatar_r',*/
 
             normalScale: new Vector2( setting.normal, -setting.normal ),
-            sheenColor:0x600000,
+            sheenColor:0x4A1B00,
             sheen:setting.sheen,
             sheenRoughness:setting.sheenRoughness,
 
             shadowSide: BackSide,
+
+            clearcoat:0.5,
+            clearcoatRoughness:0.5,
 
 
             //sheenColorMap:'avatar_c',
@@ -104,7 +108,7 @@ export const Human = {
             aoMap:'avatar_ao',
             aoMapIntensity:1.0,
 
-            //ior:1.4,
+            ior:1.5,
             vertexColors:false,
 
             sssMap:'avatar_t',
@@ -129,7 +133,20 @@ export const Human = {
             normalMap:'mouth_n',
             normalScale: new Vector2( 0.5, -0.5 ),
     	},
-    	sub_eye:{
+        sub_eye:{
+            type:'Physical',
+            roughness:0,//0.568,
+            metalness:0,
+            ior:1.52,
+            opacity:1.0,
+            alphaToCoverage:true,
+            premultipliedAlpha:true,
+            clearcoat:0.5,
+            transparent:true,
+            thickness:0.0002,
+            transmission:1,
+        },
+    	/*sub_eye:{
             type:'Physical',
             roughness:0,//0.568,
             metalness:1,
@@ -140,15 +157,15 @@ export const Human = {
             transparent:true,
             //envMapIntensity:0,
             //wireframe:true
-        },
+        },*/
         eye:{
             type:'Physical',
         	map:'eye_c',
-            roughness:0.7,
-            metalness:0.15,
+            roughness:0.85,
+            metalness:0.0,
             normalMap:'eye_n',
             normalScale:new Vector2( 2, -2),
-            clearcoat:0.25,
+            //clearcoat:0.25,
             //clearcoatRoughness:0.5,
         },
         hair:{
@@ -221,7 +238,7 @@ export const Human = {
             //normalMap:'eyelash_n',
             //normalScale:new Vector2( 1, -1)
         },
-        tear:{
+        /*tear:{
             type:'Standard',
         	map:'eyelash_c',
             roughness:0.0,
@@ -230,6 +247,21 @@ export const Human = {
             transparent:true,
             alphaToCoverage:true,
             opacity:1,
+        },*/
+        tear:{
+            type:'Physical',
+            roughness:0,//0.568,
+            metalness:0,
+            ior:1.52,
+            opacity:1.0,
+            //reflectivity:1.0,
+            alphaToCoverage:true,
+            premultipliedAlpha:true,
+           //blending:AdditiveBlending,
+            clearcoat:0.5,
+            transparent:true,
+            thickness:0.0002,
+            transmission:1,
         },
         low:{
             type:'Basic',

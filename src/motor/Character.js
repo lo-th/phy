@@ -1,6 +1,6 @@
 import { Item } from '../core/Item.js';
 import { Num } from '../core/Config.js';
-import { Hero } from './extra/Hero.js';
+import { Hero } from './character/Hero.js';
 
 // THREE CHARACTER
 

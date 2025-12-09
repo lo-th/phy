@@ -223,7 +223,7 @@ export class Avatar extends Group {
             return
         }
 
-        this.skin = Pool.getTexture( this.ref.textureRef, { quality:this.textureQuality } );
+        this.skin = Pool.getTexture( this.ref.textureRef, { quality:this.textureQuality, anisotropy:this.ref.anisotropy || 1 } );
 
         if( !this.skin ){
 
@@ -395,12 +395,12 @@ export class Avatar extends Group {
 
         for( const name in this.ref.materials ){
 
-            data = {...this.ref.materials[name]}
+            data = { ...this.ref.materials[name] }
             type = data.type
             delete data.type
             for( const t in data ){
                 if(t!=='envMapIntensity' && t!=='normalMapType' && t!=='aoMapIntensity' && t!=='aoMapIntensity'){
-                    if(t==='map' || t.search('Map')!==-1 ) data[t] = Pool.getTexture( data[t], {quality:this.textureQuality } );
+                    if(t==='map' || t.search('Map')!==-1 ) data[t] = Pool.getTexture( data[t], { quality:this.textureQuality, anisotropy:this.ref.anisotropy || 1 } );
                 }
             }
 
@@ -513,6 +513,12 @@ export class Avatar extends Group {
             // add morph 
             if( this.haveMorph ) Pool.applyMorph( this.model+'_morph', this.mesh, this.ref.morphNormal, this.ref.morphRelative );
             Pool.set( this.model, this.root, 'O' )
+
+            //console.log(this.mesh)
+
+            if(this.mesh.Head){
+                this.connectHead(this.mesh.body, this.mesh.Head)
+            }
             
         }
 
@@ -540,6 +546,78 @@ export class Avatar extends Group {
 
         
              
+    }
+
+    nearEquals( a, b, t = 1e-4 ){ return Math.abs(a - b) <= t ? true : false }
+
+    connectHead(body, head){
+
+        //console.log(body.geometry.attributes.position, body.geometry.attributes.tangent)
+
+        let p1 = body.geometry.attributes.position
+        let p2 = head.geometry.attributes.position
+
+        let a1 = p1.array
+        let a2 = p2.array
+
+        let n1 = 0, n2=0, nr1 = 0, nr2 = 0
+        let l1 = p1.count
+        let l2 = p2.count
+
+        let pp = []
+        let v1 = new Vector3()
+        let v2 = new Vector3()
+
+        // find same
+        for(let i = 0; i<l1; i++){
+            n1 = i*3
+            v1.set(a1[n1] , a1[n1+1] , a1[n1+2])
+            for(let j = 0; j<l2; j++){
+                n2 = j*3
+                v2.set(a2[n2], a2[n2+1], a2[n2+2])
+                if(v1.distanceTo(v2)<0.00001) pp.push([i,j])
+            }
+        }
+
+        //console.log(pp.length)
+
+
+        // copy normal
+        let nn1 = body.geometry.attributes.normal.array
+        let nn2 = head.geometry.attributes.normal.array
+
+        let tt1 = body.geometry.attributes.tangent.array
+        let tt2 = head.geometry.attributes.tangent.array
+
+        for(let i = 0; i<pp.length; i++){
+
+            n1 = pp[i][0]*3
+            n2 = pp[i][1]*3
+
+            nn1[n1] = nn2[n2]
+            nn1[n1+1] = nn2[n2+1]
+            nn1[n1+2] = nn2[n2+2]
+
+            tt1[n1] = tt2[n2]
+            tt1[n1+1] = tt2[n2+1]
+            tt1[n1+2] = tt2[n2+2]
+
+            /*nn2[n2] = nn1[n1]
+            nn2[n2+1] = nn1[n1+1]
+            nn2[n2+2] = nn1[n1+2]
+
+            tt2[n2] = tt1[n1]
+            tt2[n2+1] = tt1[n1+1]
+            tt2[n2+2] = tt1[n1+2]*/
+
+        }
+
+        body.geometry.attributes.tangent.needsUpdate = true;
+        body.geometry.attributes.normal.needsUpdate = true;
+
+
+
+
     }
 
     setRealSize( s ){

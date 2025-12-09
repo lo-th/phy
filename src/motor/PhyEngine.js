@@ -28,10 +28,11 @@ import { Textfield } from './extra/Textfield.js';
 import { MouseTool } from './extra/MouseTool.js';
 import { SoftSolver } from './extra/SoftSolver.js';
 import { Breaker } from './extra/Breaker.js';
-import { AutoRagdoll } from './extra/AutoRagdoll.js';
 import { Debuger } from './extra/Debuger.js';
 import { Envmap } from './extra/Envmap.js';
 import { Grass } from './extra/Grass.js';
+
+import { AutoRagdoll } from './character/AutoRagdoll.js';
 
 import { Container } from './geometries/Container.js';
 

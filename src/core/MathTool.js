@@ -1,9 +1,9 @@
-export const PI = Math.PI;
+export const PI = 3.14159265358979323846;//Math.PI;
 export const torad = PI / 180;
 export const todeg = 180 / PI;
 export const max32 = Number.MAX_SAFE_INTEGER;
 export const EPSILON = Number.EPSILON;//0.00001;
-
+export const LN2 = 0.69314718056; // natural logarithm
 export const TwoPI = PI * 2;
 export const PI90 = PI*0.5;
 export const PI45 = PI*0.25;
@@ -11,6 +11,7 @@ export const PI270 = (PI*0.5)*3;
 
 export const inv255 = 0.003921569;
 export const GOLD = 1.618033;
+const copySign = (x, y) => (Math.sign(x) === Math.sign(y) ? x : -x);
 
 
 const M = {
@@ -69,11 +70,23 @@ const M = {
     toFixed: ( x, n = 3 ) => ( x.toFixed(n) * 1 ),
     toRound: ( x, n = 3 ) => ( Math.trunc(x) ),
 
-    clamp: ( v, min = 0, max = 1 ) => {
-        v = v < min ? min : v;
-        v = v > max ? max : v;
-        return v;
+    clamp: ( x, min = 0, max = 1 ) => ( x < min ? min : x > max ? max : x ),
+    min: ( x, y ) => ( x < y ? x : y ),
+    max: ( x, y ) => ( x > y ? x : y ),
+    lerp: ( x, y, t ) => ( ( 1 - t ) * x + t * y ),
+    sign:( x ) => ( x > 0.0 ? 1.0 : x < 0.0 ? -1.0 : 0.0 ),
+    fast_negexp:( x ) => ( 1.0 / (1.0 + x + 0.48*x*x + 0.235*x*x*x) ),
+    fast_atan:( x ) => {
+        let z = Math.abs(x);
+        let w = z > 1.0 ? 1.0 / z : z;
+        let y = (PI / 4.0)*w - w*(w - 1.0)*(0.2447 + 0.0663*w);
+        return copysign(z > 1.0 ? PI / 2.0 - y : y, x);
     },
+    /*clamp: ( v, min = 0, max = 1 ) => {
+        //v = v < min ? min : v;
+        //v = v > max ? max : v;
+        //return v;
+    },*/
 
     clampA: ( v, min, max ) => ( Math.max( min, Math.min( max, v ) ) ),
 
@@ -87,7 +100,7 @@ const M = {
         return min + (f - fmin) * (max - min) / (fmax - fmin);
     },
 
-    lerp: ( x, y, t ) => ( ( 1 - t ) * x + t * y ),
+    
     damp: ( x, y, lambda, dt ) => ( M.lerp( x, y, 1 - Math.exp( - lambda * dt ) ) ),
 
     nearAngle: ( s1, s2, deg = false ) => ( s2 + Math.atan2(Math.sin(s1-s2), Math.cos(s1-s2)) * (deg ? todeg : 1) ),

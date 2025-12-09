@@ -174,7 +174,7 @@ onComplete = () => {
     // update after physic step
     
 
-    phy.follow( 'bike', { direct:true, simple:true, distance:3, phi:0, theta:-90, decal:[0, 1, 0] })
+    phy.follow( 'bike', { direct:true, simple:true, fov:60, distance:3, phi:0, theta:-90, decal:[0, 1, 0] })
     //phy.control( 'bike' )
 
 

@@ -739,7 +739,7 @@ const addLight = () => {
 
 	Lights.castShadow( options.shadow !== 0 )
 	renderer.shadowMap.enabled = options.shadow !== 0 
-	renderer.shadowMap.type = shadowMapType[options.shadowType]
+	//renderer.shadowMap.type = shadowMapType[options.shadowType]
 
 	//console.log(options.shadowType, renderer.shadowMap.type, shadowMapType)
 	//renderer.shadowMap.autoUpdate = false;

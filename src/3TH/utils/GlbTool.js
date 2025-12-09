@@ -277,7 +277,7 @@ export const GlbTool = {
                     //console.log( target.name + ' have morph call '+ tName )
 
 				} else {
-					console.warn( 'Morph '+ tName + ' target is no good on ' + target.name )
+					console.warn( 'Morph '+ tName + ' target is no good on ' + target.name + ' ' + g.attributes.position.count +'/'+ gm.attributes.position.count )
 				}
 
 			}

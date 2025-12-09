@@ -39,7 +39,7 @@ function _interopNamespaceDefault(e) {
 
 var SkeletonUtils__namespace = /*#__PURE__*/_interopNamespaceDefault(SkeletonUtils);
 
-const PI = Math.PI;
+const PI = 3.14159265358979323846;//Math.PI;
 const torad$3 = PI / 180;
 const todeg$1 = 180 / PI;
 const EPSILON = Number.EPSILON;//0.00001;
@@ -102,11 +102,23 @@ const M$3 = {
     toFixed: ( x, n = 3 ) => ( x.toFixed(n) * 1 ),
     toRound: ( x, n = 3 ) => ( Math.trunc(x) ),
 
-    clamp: ( v, min = 0, max = 1 ) => {
-        v = v < min ? min : v;
-        v = v > max ? max : v;
-        return v;
+    clamp: ( x, min = 0, max = 1 ) => ( x < min ? min : x > max ? max : x ),
+    min: ( x, y ) => ( x < y ? x : y ),
+    max: ( x, y ) => ( x > y ? x : y ),
+    lerp: ( x, y, t ) => ( ( 1 - t ) * x + t * y ),
+    sign:( x ) => ( x > 0.0 ? 1.0 : x < 0.0 ? -1 : 0.0 ),
+    fast_negexp:( x ) => ( 1.0 / (1.0 + x + 0.48*x*x + 0.235*x*x*x) ),
+    fast_atan:( x ) => {
+        let z = Math.abs(x);
+        let w = z > 1.0 ? 1.0 / z : z;
+        let y = (PI / 4.0)*w - w*(w - 1.0)*(0.2447 + 0.0663*w);
+        return copysign(z > 1.0 ? PI / 2.0 - y : y, x);
     },
+    /*clamp: ( v, min = 0, max = 1 ) => {
+        //v = v < min ? min : v;
+        //v = v > max ? max : v;
+        //return v;
+    },*/
 
     clampA: ( v, min, max ) => ( Math.max( min, Math.min( max, v ) ) ),
 
@@ -120,7 +132,7 @@ const M$3 = {
         return min + (f - fmin) * (max - min) / (fmax - fmin);
     },
 
-    lerp: ( x, y, t ) => ( ( 1 - t ) * x + t * y ),
+    
     damp: ( x, y, lambda, dt ) => ( M$3.lerp( x, y, 1 - Math.exp( - lambda * dt ) ) ),
 
     nearAngle: ( s1, s2, deg = false ) => ( s2 + Math.atan2(Math.sin(s1-s2), Math.cos(s1-s2)) * (deg ? todeg$1 : 1) ),
@@ -6657,7 +6669,7 @@ class Body extends Item {
 	    if( this.engine === 'PHYSX' && o.type==='cylinder' ){
 			// convert geometry to convex if not in physics
 	    	let geom = new three.CylinderGeometry( o.size[ 0 ], o.size[ 0 ], o.size[ 1 ], seg, 1 );//24
-	    	if( o.isWheel ) geom.rotateZ( -PI90 );
+	    	if( o.isWheel ) geom.rotateZ( -1.5707963267948966 );
 	    	o.v = MathTool.getVertex( geom );
 	    	o.type = 'convex';
 
@@ -6889,7 +6901,7 @@ class Body extends Item {
 
     	if( o.isWheel ){
     		g = g.clone();
-    		g.rotateZ( -PI90 );
+    		g.rotateZ( -1.5707963267948966 );
     		unic = true;
     	}
     	
@@ -8932,7 +8944,7 @@ const _s = /*@__PURE__*/ new three.Vector3();
 
 const _matrixWorldInv = /*@__PURE__*/ new three.Matrix4();
 const _boneMatrix = /*@__PURE__*/ new three.Matrix4();
-const Spine = [ 'hip', 'abdomen', 'chest', 'neck', 'head', 'rCollar', 'lCollar', 'lShldr', 'rShldr', 'lThigh', 'rThigh', 'rBreast', 'lBreast' ];
+const Spine = [ 'hip', 'abdomen', 'abdomen2', 'chest', 'neck', 'head', 'rCollar', 'lCollar', 'lShldr', 'rShldr', 'lThigh', 'rThigh', 'rBreast', 'lBreast' ];
 
 class SkeletonBody extends three.Object3D {
 
@@ -8974,9 +8986,25 @@ class SkeletonBody extends three.Object3D {
         this.useDrive = option.useDrive !== undefined ?  option.useDrive : true;
         this.showJoint = option.showJoint !== undefined ?  option.showJoint : false;
 
+        this.detectSpineNum();
 		this.init();
 
 	}
+
+    detectSpineNum(){
+
+        this.isTreeSpine = false;
+
+        let i, lng = this.bones.length;
+        for( i = 0; i < lng; i++ ){
+
+            if(this.bones[i].name === 'abdomen2') this.isTreeSpine = true;
+
+        }
+
+        console.log('is three spine model '+ this.isTreeSpine);
+
+    }
 
     setMass( mass ){
 
@@ -9129,7 +9157,15 @@ class SkeletonBody extends three.Object3D {
                 
                 //if( n==='hip' && name==='abdomen' ){ type = 'capsule'; size = [  dist*1.8, 0.08 ]; translate = [ 0, 0, -dist * 0.5 ]; rot = [0,0,90]; link='null';}
                 if( n==='hip' && name==='abdomen' ){ type = 'capsule'; size = [  dist*sizer[0], 0.08 ]; translate = [ 0, 0, -dist*sizer[0] ]; rot = [0,0,90];}
+
                 if( n==='abdomen' && name==='chest'  ){ type = 'capsule'; size = [ dist*0.7*sizer[1], 0.08   ]; translate = [ 0, 0, (-dist * 0.5)-0.06 ]; rot = [90,0,0];}
+
+
+                if( n==='abdomen' && name==='abdomen2'  ){ type = 'capsule'; size = [ dist*0.7*sizer[1], 0.08   ]; translate = [ 0, 0, (-dist * 0.5)-0.06 ]; rot = [90,0,0];}
+                if( n==='abdomen2' && name==='chest'  ){ type = 'capsule'; size = [ dist*0.7*sizer[1], 0.08   ]; translate = [ 0, 0, (-dist * 0.5)-0.06 ]; rot = [90,0,0];}
+
+
+
                 if( n==='chest' && name==='neck' ){ type = 'capsule'; size = [  dist*0.4*sizer[2], 0.04 ]; translate = [ 0, 0, (-dist * 0.5)-0.02 ]; rot = [0,0,90];}
                 if( n==='neck' && name === 'head' ){ type = 'capsule'; size = [ 0.06*sizer[3], dist ]; translate = [ 0, 0, -dist * 0.5 ]; rot = [90,0,0]; }
                 if( n==='head' && name === 'End_head' ){ type = 'capsule'; size = [ 0.1*sizer[4], dist-0.17 ]; translate = [ 0, 0.02, (-dist * 0.5)+0.02 ]; rot = [90,0,0]; }
@@ -9462,7 +9498,17 @@ class SkeletonBody extends three.Object3D {
         
 
         data.push({ ...sett, b1:p+'hip', b2:p+'abdomen', worldPos:this.posRef[p+'abdomen'], worldQuat:this.quatRef[p+'hip'], lm:[ ['rx',-20,20,...sp], ['ry',-20,20,...sp], ['rz',-20,20,...sp]] });
-        data.push({ ...sett, b1:p+'abdomen', b2:p+'chest', worldPos:this.posRef[p+'chest'], worldQuat:this.quatRef[p+'chest'], lm:[ ['rx',-20,20,...sp], ['ry',-20,20,...sp], ['rz',-20,20,...sp]] });
+
+        if(this.isTreeSpine){
+            data.push({ ...sett, b1:p+'abdomen', b2:p+'abdomen2', worldPos:this.posRef[p+'abdomen2'], worldQuat:this.quatRef[p+'abdomen2'], lm:[ ['rx',-20,20,...sp], ['ry',-20,20,...sp], ['rz',-20,20,...sp]] });
+            data.push({ ...sett, b1:p+'abdomen2', b2:p+'chest', worldPos:this.posRef[p+'chest'], worldQuat:this.quatRef[p+'chest'], lm:[ ['rx',-20,20,...sp], ['ry',-20,20,...sp], ['rz',-20,20,...sp]] });
+
+        } else {
+            data.push({ ...sett, b1:p+'abdomen', b2:p+'chest', worldPos:this.posRef[p+'chest'], worldQuat:this.quatRef[p+'chest'], lm:[ ['rx',-20,20,...sp], ['ry',-20,20,...sp], ['rz',-20,20,...sp]] });
+        }
+
+
+
         //data.push({ ...sett, b1:p+'chest', b2:p+'neck', worldPos:this.posRef[p+'neck'], worldQuat:this.quatRef[p+'neck'], lm:[ ['rx',-60,60,...sp], ['ry',-1,1,...sp], ['rz',-30,30,...sp]] })
         //data.push({ ...sett, b1:p+'neck', b2:p+'head', worldPos:this.posRef[p+'head'], worldQuat:this.quatRef[p+'head'], lm:[ ['rx',-60,60,...sp], ['ry',-1,1,...sp], ['rz',-30,30,...sp]] })
         data.push({ ...sett, b1:p+'chest', b2:p+'neck', worldPos:this.posRef[p+'neck'], worldQuat:this.quatRef[p+'neck'], lm:[ ['rx',0,30,...sp], ['ry',-1,1,...sp], ['rz',-30,30,...sp]] });
@@ -10948,7 +10994,7 @@ const GlbTool = {
                     //console.log( target.name + ' have morph call '+ tName )
 
 				} else {
-					console.warn( 'Morph '+ tName + ' target is no good on ' + target.name );
+					console.warn( 'Morph '+ tName + ' target is no good on ' + target.name + ' ' + g.attributes.position.count +'/'+ gm.attributes.position.count );
 				}
 
 			}
@@ -11261,7 +11307,7 @@ const Pool = {
 
                         texture.copy(t);
                         Pool.setTextureOption( texture, o );
-                        console.log(texture);
+                        //console.log(texture)
                         //Pool.setTextureOption( texture, o );
 
                         t.dispose();
@@ -11330,9 +11376,14 @@ const Pool = {
         
         t.flipY = o.flipY!== undefined || o.flip !== undefined ? o.flipY : false;
 
+       //t.anisotropy = Pool.maxAnisotropy;
+
+
         if( o.anisotropy ){
             t.anisotropy = o.anisotropy === 'max' ? Pool.maxAnisotropy : o.anisotropy;
         }
+
+        //console.log(t.anisotropy)
            
         //if( o.anisotropy !== undefined ) t.anisotropy = o.anisotropy
         if( o.generateMipmaps !== undefined ) t.generateMipmaps = o.generateMipmaps;
@@ -12248,8 +12299,8 @@ const setting$4 = {
     normal:0.25,
     hair:0x752002,//0xa43412,
     bow:0x100402,
-    sheen:1,//2.25,
-    sheenRoughness:0.6,//1.0,
+    sheen:6,//2.25,
+    sheenRoughness:0.5,//1.0,
     metalness:0.6,
     roughness:0.4,
     
@@ -12280,6 +12331,7 @@ const Human = {
     morphRelative:false,
 
     haveLOD:true,
+    anisotropy:'max',
 
     levelHigh:['body', 'Head', 'crane', 'eyelash', 'eyebrow', 'tear', 'eye_l', 'eye_r', 'eye_l_s', 'eye_r_s'],
     levelHair:['hair', 'hair_man'],
@@ -12316,7 +12368,7 @@ const Human = {
             normalMap:'avatar_n',
 
             //envMapIntensity:0.7,
-            reflectivity:0.2,
+            //reflectivity:0.2,
 
             roughness:0.54,
             metalness:0.14,
@@ -12327,11 +12379,14 @@ const Human = {
             roughnessMap:'avatar_r',*/
 
             normalScale: new three.Vector2( setting$4.normal, -setting$4.normal ),
-            sheenColor:0x600000,
+            sheenColor:0x4A1B00,
             sheen:setting$4.sheen,
             sheenRoughness:setting$4.sheenRoughness,
 
             shadowSide: three.BackSide,
+
+            clearcoat:0.5,
+            clearcoatRoughness:0.5,
 
 
             //sheenColorMap:'avatar_c',
@@ -12343,7 +12398,7 @@ const Human = {
             aoMap:'avatar_ao',
             aoMapIntensity:1.0,
 
-            //ior:1.4,
+            ior:1.5,
             vertexColors:false,
 
             sssMap:'avatar_t',
@@ -12368,7 +12423,20 @@ const Human = {
             normalMap:'mouth_n',
             normalScale: new three.Vector2( 0.5, -0.5 ),
     	},
-    	sub_eye:{
+        sub_eye:{
+            type:'Physical',
+            roughness:0,//0.568,
+            metalness:0,
+            ior:1.52,
+            opacity:1.0,
+            alphaToCoverage:true,
+            premultipliedAlpha:true,
+            clearcoat:0.5,
+            transparent:true,
+            thickness:0.0002,
+            transmission:1,
+        },
+    	/*sub_eye:{
             type:'Physical',
             roughness:0,//0.568,
             metalness:1,
@@ -12379,15 +12447,15 @@ const Human = {
             transparent:true,
             //envMapIntensity:0,
             //wireframe:true
-        },
+        },*/
         eye:{
             type:'Physical',
         	map:'eye_c',
-            roughness:0.7,
-            metalness:0.15,
+            roughness:0.85,
+            metalness:0.0,
             normalMap:'eye_n',
             normalScale:new three.Vector2( 2, -2),
-            clearcoat:0.25,
+            //clearcoat:0.25,
             //clearcoatRoughness:0.5,
         },
         hair:{
@@ -12460,7 +12528,7 @@ const Human = {
             //normalMap:'eyelash_n',
             //normalScale:new Vector2( 1, -1)
         },
-        tear:{
+        /*tear:{
             type:'Standard',
         	map:'eyelash_c',
             roughness:0.0,
@@ -12469,6 +12537,21 @@ const Human = {
             transparent:true,
             alphaToCoverage:true,
             opacity:1,
+        },*/
+        tear:{
+            type:'Physical',
+            roughness:0,//0.568,
+            metalness:0,
+            ior:1.52,
+            opacity:1.0,
+            //reflectivity:1.0,
+            alphaToCoverage:true,
+            premultipliedAlpha:true,
+           //blending:AdditiveBlending,
+            clearcoat:0.5,
+            transparent:true,
+            thickness:0.0002,
+            transmission:1,
         },
         low:{
             type:'Basic',
@@ -13427,7 +13510,7 @@ class Avatar extends three.Group {
             return
         }
 
-        this.skin = Pool.getTexture( this.ref.textureRef, { quality:this.textureQuality } );
+        this.skin = Pool.getTexture( this.ref.textureRef, { quality:this.textureQuality, anisotropy:this.ref.anisotropy || 1 } );
 
         if( !this.skin ){
 
@@ -13599,12 +13682,12 @@ class Avatar extends three.Group {
 
         for( const name in this.ref.materials ){
 
-            data = {...this.ref.materials[name]};
+            data = { ...this.ref.materials[name] };
             type = data.type;
             delete data.type;
             for( const t in data ){
                 if(t!=='envMapIntensity' && t!=='normalMapType' && t!=='aoMapIntensity' && t!=='aoMapIntensity'){
-                    if(t==='map' || t.search('Map')!==-1 ) data[t] = Pool.getTexture( data[t], {quality:this.textureQuality } );
+                    if(t==='map' || t.search('Map')!==-1 ) data[t] = Pool.getTexture( data[t], { quality:this.textureQuality, anisotropy:this.ref.anisotropy || 1 } );
                 }
             }
 
@@ -13717,6 +13800,12 @@ class Avatar extends three.Group {
             // add morph 
             if( this.haveMorph ) Pool.applyMorph( this.model+'_morph', this.mesh, this.ref.morphNormal, this.ref.morphRelative );
             Pool.set( this.model, this.root, 'O' );
+
+            //console.log(this.mesh)
+
+            if(this.mesh.Head){
+                this.connectHead(this.mesh.body, this.mesh.Head);
+            }
             
         }
 
@@ -13744,6 +13833,78 @@ class Avatar extends three.Group {
 
         
              
+    }
+
+    nearEquals( a, b, t = 1e-4 ){ return Math.abs(a - b) <= t ? true : false }
+
+    connectHead(body, head){
+
+        //console.log(body.geometry.attributes.position, body.geometry.attributes.tangent)
+
+        let p1 = body.geometry.attributes.position;
+        let p2 = head.geometry.attributes.position;
+
+        let a1 = p1.array;
+        let a2 = p2.array;
+
+        let n1 = 0, n2=0;
+        let l1 = p1.count;
+        let l2 = p2.count;
+
+        let pp = [];
+        let v1 = new three.Vector3();
+        let v2 = new three.Vector3();
+
+        // find same
+        for(let i = 0; i<l1; i++){
+            n1 = i*3;
+            v1.set(a1[n1] , a1[n1+1] , a1[n1+2]);
+            for(let j = 0; j<l2; j++){
+                n2 = j*3;
+                v2.set(a2[n2], a2[n2+1], a2[n2+2]);
+                if(v1.distanceTo(v2)<0.00001) pp.push([i,j]);
+            }
+        }
+
+        //console.log(pp.length)
+
+
+        // copy normal
+        let nn1 = body.geometry.attributes.normal.array;
+        let nn2 = head.geometry.attributes.normal.array;
+
+        let tt1 = body.geometry.attributes.tangent.array;
+        let tt2 = head.geometry.attributes.tangent.array;
+
+        for(let i = 0; i<pp.length; i++){
+
+            n1 = pp[i][0]*3;
+            n2 = pp[i][1]*3;
+
+            nn1[n1] = nn2[n2];
+            nn1[n1+1] = nn2[n2+1];
+            nn1[n1+2] = nn2[n2+2];
+
+            tt1[n1] = tt2[n2];
+            tt1[n1+1] = tt2[n2+1];
+            tt1[n1+2] = tt2[n2+2];
+
+            /*nn2[n2] = nn1[n1]
+            nn2[n2+1] = nn1[n1+1]
+            nn2[n2+2] = nn1[n1+2]
+
+            tt2[n2] = tt1[n1]
+            tt2[n2+1] = tt1[n1+1]
+            tt2[n2+2] = tt1[n1+2]*/
+
+        }
+
+        body.geometry.attributes.tangent.needsUpdate = true;
+        body.geometry.attributes.normal.needsUpdate = true;
+
+
+
+
     }
 
     setRealSize( s ){
@@ -19649,123 +19810,6 @@ class Breaker {
 
 }
 
-class AutoRagdoll {
-	
-	constructor( o = {}, motor ){
-
-		this.motor = motor;
-		this.utils = this.motor.utils;
-
-		this.id = 0;
-		this.type = 'autoRagdoll';
-		this.name = o.name || this.type+this.id++;
-
-		let b = this.utils.byName( this.name );
-		if( b ) this.utils.remove( b );
-
-		//this.isAutoRagdoll = true;
-
-		this._mode = o.mode || 'follow';
-		this._size = o.size || 1;
-		this._debug = o.debug || false;
-
-		const model = SkeletonUtils__namespace.clone( o.model );
-		model.scale.set(1,1,1).multiplyScalar( this._size );
-		if(o.pos) model.position.fromArray(o.pos);
-
-		model.raycast = function (){ return };
-		model.name = this.name;
-		//model.frustumCulled = false;
-
-		let bones;
-
-		model.traverse( ( child ) => {
-			if ( child.isMesh ){
-				child.frustumCulled = false;
-			}
-			if ( child.isSkinnedMesh ){
-				child.raycast = function (){ return };
-				child.frustumCulled = false;
-				child.matrixAutoUpdate = false;
-				child.receiveShadow = true;
-				child.castShadow = true;
-				if( o.material ) child.material = o.material;
-				child.skeleton.resetScalling();
-				bones = child.skeleton.bones;
-			}
-		});
-
-		let mass = o.mass || null;
-		
-		this.skeletonBody = new SkeletonBody( this.motor, model.name, model, bones, mass, o.option );
-
-		this.debug = this._debug;
-		this.mode = this._mode;
-
-		/*this.skeletonBody.addEventListener ( 'start', function ( event ) {
-			console.log( event.message );
-		});*/
-
-
-
-		/* 
-		// basic three helper
-		let helper = new SkeletonHelper( m );
-		helper.raycast = function (){ return }
-        helper.matrix = m.matrix;
-        root.scene.add( helper );
-        */
-
-		model.add( this.skeletonBody );
-
-		this.model = model;
-
-		this.utils.add( this );
-
-		return this;
-
-	}
-
-	getRealPosition() {
-		let node = this.utils.byName( this.skeletonBody.nodes[0].name );
-		return node.position;
-	}
-
-	dispose () {
-
-		if( this.skeletonBody ) this.skeletonBody.dispose();
-		if( this.model ) this.model.parent.remove( this.model );
-
-	}
-
-	//
-
-	get position () { return model.position; }
-
-	get size () { return this._size; }
-	set size (value) {
-		this._size = value;
-		this.model.scale.set(1,1,1).multiplyScalar( this._size );
-	}
-
-	//
-
-	get debug () { return this._debug; }
-	set debug (value) {
-		this._debug = value;
-		this.skeletonBody.isVisible( this._debug );
-	}
-
-	get mode () { return this._mode; }
-	set mode (value) {
-		this._mode = value;
-		this.skeletonBody.setMode( this._mode );
-	}
-
-
-
-}
-
 class Debuger extends three.LineSegments {
 
 	constructor( motor ) {
@@ -20784,6 +20828,123 @@ float snoise(vec2 v){
   return 130.0 * dot(m, g);
 }
 `;
+
+class AutoRagdoll {
+	
+	constructor( o = {}, motor ){
+
+		this.motor = motor;
+		this.utils = this.motor.utils;
+
+		this.id = 0;
+		this.type = 'autoRagdoll';
+		this.name = o.name || this.type+this.id++;
+
+		let b = this.utils.byName( this.name );
+		if( b ) this.utils.remove( b );
+
+		//this.isAutoRagdoll = true;
+
+		this._mode = o.mode || 'follow';
+		this._size = o.size || 1;
+		this._debug = o.debug || false;
+
+		const model = SkeletonUtils__namespace.clone( o.model );
+		model.scale.set(1,1,1).multiplyScalar( this._size );
+		if(o.pos) model.position.fromArray(o.pos);
+
+		model.raycast = function (){ return };
+		model.name = this.name;
+		//model.frustumCulled = false;
+
+		let bones;
+
+		model.traverse( ( child ) => {
+			if ( child.isMesh ){
+				child.frustumCulled = false;
+			}
+			if ( child.isSkinnedMesh ){
+				child.raycast = function (){ return };
+				child.frustumCulled = false;
+				child.matrixAutoUpdate = false;
+				child.receiveShadow = true;
+				child.castShadow = true;
+				if( o.material ) child.material = o.material;
+				child.skeleton.resetScalling();
+				bones = child.skeleton.bones;
+			}
+		});
+
+		let mass = o.mass || null;
+		
+		this.skeletonBody = new SkeletonBody( this.motor, model.name, model, bones, mass, o.option );
+
+		this.debug = this._debug;
+		this.mode = this._mode;
+
+		/*this.skeletonBody.addEventListener ( 'start', function ( event ) {
+			console.log( event.message );
+		});*/
+
+
+
+		/* 
+		// basic three helper
+		let helper = new SkeletonHelper( m );
+		helper.raycast = function (){ return }
+        helper.matrix = m.matrix;
+        root.scene.add( helper );
+        */
+
+		model.add( this.skeletonBody );
+
+		this.model = model;
+
+		this.utils.add( this );
+
+		return this;
+
+	}
+
+	getRealPosition() {
+		let node = this.utils.byName( this.skeletonBody.nodes[0].name );
+		return node.position;
+	}
+
+	dispose () {
+
+		if( this.skeletonBody ) this.skeletonBody.dispose();
+		if( this.model ) this.model.parent.remove( this.model );
+
+	}
+
+	//
+
+	get position () { return model.position; }
+
+	get size () { return this._size; }
+	set size (value) {
+		this._size = value;
+		this.model.scale.set(1,1,1).multiplyScalar( this._size );
+	}
+
+	//
+
+	get debug () { return this._debug; }
+	set debug (value) {
+		this._debug = value;
+		this.skeletonBody.isVisible( this._debug );
+	}
+
+	get mode () { return this._mode; }
+	set mode (value) {
+		this._mode = value;
+		this.skeletonBody.setMode( this._mode );
+	}
+
+
+
+}
 
 //ChamferCyl.prototype = Object.create( THREE.BufferGeometry.prototype );
 

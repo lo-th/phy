@@ -6,9 +6,12 @@ demo = () => {
 
 	phy.view({
         phi:0, theta:0, distance:5, x:0, y:3, z:5, fov:45, 
-        envmap:'swiss', groundReflect:0.2, groundColor:0x808080,
-        //envIntensity:14, 
-        //bgIntensity:6,
+        envmap:'small', reflect:0.1, groundColor:0x505050,
+        background:0x353230,
+        envIntensity:2,
+        bgIntensity:2,
+        exposure:0.25,
+        envBlur:0.5,
         shadow:0.4,
     });
 
@@ -19,7 +22,9 @@ demo = () => {
     phy.set({ substep:1, gravity:[0,-9.81,0] });
 
     let g = phy.getGround()
-    g.material.map = phy.texture({ url:'./assets/textures/grid.png', repeat:[60,60], offset:[0.5,0.5], anisotropy:4 });
+    g.material.map = phy.texture({ url:'./assets/textures/grid2.png', repeat:[60,60], offset:[0.5,0.5], anisotropy:4 });
+    g.material.normalMap = phy.texture({ url:'./assets/textures/grid_n.png', repeat:[60,60], offset:[0.5,0.5], anisotropy:4 });
+    g.material.normalScale.set(0.1,-0.1)
     g.material.roughness = 0.8;
     g.material.metalness = 0;
 
@@ -36,14 +41,12 @@ onComplete_1 = () => {
 	const model = phy.getMesh('column');
 
 	let m = phy.texture({ url:'./assets/textures/column_ao.jpg', flip:false });
-	phy.material({ name:'column', color:0xc8c4a9, roughness: 0.25, metalness: 0.0, aoMap:m });
+	phy.material({ name:'column', color:0x606060, roughness: 0.9, metalness: 0.01, aoMap:m });//0xc8c4a9
 
     Colomn( 8, [ 4, 0, 0 ]);
     Colomn( 5, [ -4, 0, 0 ]);
 
     phy.preload( ['man', 'woman'], onComplete_2 );
-
-    //onComplete_2()
 
 }
 
@@ -185,10 +188,10 @@ const Character = ( num = 1 ) => {
 const addGui = () => {
 
     gui = phy.gui();
-    gui.add( option, 'faceMorph',{ type:'pad', name:'type', min:-1, max:1 }).listen().onChange( faceMorph );
-    gui.add( option, 'bodyMorph',{ type:'pad', name:'type', min:-1, max:1 }).listen().onChange( bodyMorph );
-    gui.add( option, 'realSize',{  min:1.0, max:2.0}).listen().onChange( resize )
-    gui.add('button',{name:'Random', h:30, radius:15}).onChange( ()=>{Character()} )
+    gui.add( option, 'faceMorph',{ rename:'FACE morph', type:'pad', name:'type', min:-1, max:1, w:120 }).listen().onChange( faceMorph );
+    gui.add( option, 'bodyMorph',{ rename:'BODY morph',type:'pad', name:'type', min:-1, max:1, w:120 }).listen().onChange( bodyMorph );
+    gui.add( option, 'realSize',{ rename:'SIZE', min:1.0, max:2.0, mode:1}).listen().onChange( resize )
+    gui.add('button',{name:'Random', h:30, radius:4}).onChange( ()=>{Character()} )
     gui.add('bool',{name:'Debug'}).onChange( showDebug )
 
 }
@@ -208,12 +211,9 @@ const faceMorph = ( v ) => {
 }
 
 const resize = ( v ) => {
-
-    //if(!player.model) return
-    player.setHeight( v );//model.setRealSize(v);
-
+    if(player) player.setHeight( v );
 }
 
 const showDebug = (debug) => {
-    if( player ) player.debugMode( debug );
+    if(player) player.debugMode( debug );
 }
