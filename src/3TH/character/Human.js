@@ -45,7 +45,8 @@ export const Human = {
 
     levelHigh:['body', 'Head', 'crane', 'eyelash', 'eyebrow', 'tear', 'eye_l', 'eye_r', 'eye_l_s', 'eye_r_s'],
     levelHair:['hair', 'hair_man'],
-    levelLow:['body_low'],
+    levelLow:['body_low', 'hair_low_2'],
+    levelHairLow:['hair_low'],
 
     skeletonRef:'body',
 	fullMorph: ['MUSCLE', 'LOW', 'BIG','MONSTER'],//, 

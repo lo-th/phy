@@ -684,11 +684,14 @@ export class Avatar extends Group {
 
         this.hideAll();
 
-        if( this.lod === 0 ) this.setVisible( this.ref.levelLow, true );
-        else { 
+        if( this.lod === 0 ){
+            this.setVisible( this.ref.levelLow, true );
+            if( this.ref.haveHair ){ 
+                this.setVisible( this.ref.levelHairLow, true );
+            }
+        } else { 
             this.setVisible( this.ref.levelHigh, true );
             if( this.ref.haveHair ){ 
-                //this.mesh.body.visible = false;
                 this.setVisible( this.ref.levelHair, true );
             }
         }

@@ -135,6 +135,8 @@ const Character = () => {
             randomMorph:true,
             morph:true,
             callback:count,
+            useImpulse:true,
+            floating:true,
         });
 
         n++

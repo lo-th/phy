@@ -404,7 +404,7 @@ export const Main = {
 
 		//console.log( palette )
 
-		if( vignette ) vignette.color = Gui.tool.htmlToHex( palette.darkVibrant ) 
+		if( vignette ) vignette.color = Gui.tool.htmlToHex( palette.darkMuted )//darkVibrant ) 
 
 		groundColor = Gui.tool.htmlToHex( palette.ground )
 

@@ -186,6 +186,7 @@ export class Hero extends Object3D {
 
 		this.tmpV1 = new Vector3()
 		this.tmpV2 = new Vector3()
+		this.tmpV3 = new Vector3()
 		this.ease = new Vector3()
 		this.tmpAcc = 0
 		this.rs = 0
@@ -461,17 +462,21 @@ export class Hero extends Object3D {
 		if( !this.model.haveLOD ) return
 
 		const camera = this.motor.getCamera();
-		//this.tmpV1.setFromMatrixPosition( camera.matrixWorld );
-		this.tmpV1.copy( this.motor.getCurrentCharacterPosition() );
+		this.tmpV1.setFromMatrixPosition( camera.matrixWorld );
+		//this.tmpV1.copy( this.motor.getCurrentCharacterPosition() );
 		this.tmpV2.copy( this.position );//setFromMatrixPosition( this.matrixWorld );
-		const distance = this.tmpV1.distanceTo( this.tmpV2 ) / camera.zoom;
+		//this.tmpV3.copy( this.motor.getCurrentCharacterPosition() );
+
+
+
+		let distance = this.tmpV1.distanceTo( this.tmpV2 ) / camera.zoom;
 
 		//console.log(distance)
 
-		let level = distance > 3 ? 0 : 1;
+		let level = distance > 5 ? 0 : 1;
 		//if( level !== this.lod ){
 		//	this.lod = level;
-			this.model.setLevel( level );
+		this.model.setLevel( level );
 		
 	}
 

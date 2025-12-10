@@ -263,7 +263,7 @@ export class Lights {
 					break;
 					case 'HemisphereLight':
 					h = new HemisphereLightHelper( l, 0.25 )
-					console.log(h)
+					//console.log(h)
 					//h.material.wireframe = false
 					break;
 				}
