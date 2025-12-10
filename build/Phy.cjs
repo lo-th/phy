@@ -6665,8 +6665,8 @@ class Body extends Item {
 			else t = 'direct';
 		} 
 
-
-	    if( this.engine === 'PHYSX' && o.type==='cylinder' ){
+		// physx new ConvexCoreCylinder is more slow, use real to enable
+	    if( this.engine === 'PHYSX' && o.type==='cylinder' && !o.real){
 			// convert geometry to convex if not in physics
 	    	let geom = new three.CylinderGeometry( o.size[ 0 ], o.size[ 0 ], o.size[ 1 ], seg, 1 );//24
 	    	if( o.isWheel ) geom.rotateZ( -1.5707963267948966 );
