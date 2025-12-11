@@ -12594,8 +12594,6 @@ const Human = {
         root.traverse( ( node ) => {
 
             if ( node.isMesh ){
-
-                console.log(node.name);
                 switch( node.name ){
                     case 'body':
                     node.material = def;
