@@ -53,7 +53,7 @@ export const Human_low = {
             
             
         },
-        hair_low:{
+        hair_man_low:{
             //color:0xE24C00,
             type:'Standard',
             color:setting.hair,
@@ -65,7 +65,7 @@ export const Human_low = {
             //alphaToCoverage:true,
         },
 
-        hair_low_2:{
+        hair_wom_low:{
             //color:0xE24C00,
             type:'Standard',
             color:setting.hair,
@@ -121,13 +121,13 @@ export const Human_low = {
                     node.receiveShadow = true;
                     node.castShadow = true;
                     break;
-                    case 'hair_low':
-                    node.material = Pool.getMaterial( 'hair_low' ) || def;
+                    case 'hair_man_low':
+                    node.material = Pool.getMaterial( 'hair_man_low' ) || def;
                     node.receiveShadow = false;
                     node.castShadow = false;
                     break;
-                    case 'hair_low_2':
-                    node.material = Pool.getMaterial( 'hair_low_2' ) || def;
+                    case 'hair_wom_low':
+                    node.material = Pool.getMaterial( 'hair_wom_low' ) || def;
                     node.receiveShadow = false;
                     node.castShadow = false;
                     break;
