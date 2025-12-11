@@ -12312,9 +12312,10 @@ const Human = {
     anisotropy:'max',
 
     levelHigh:['body', 'Head', 'crane', 'eyelash', 'eyebrow', 'tear', 'eye_l', 'eye_r', 'eye_l_s', 'eye_r_s'],
-    levelHair:['hair', 'hair_man'],
     levelLow:['body_low'],
-    levelHairLow:['hair_low', 'hair_low_2'],
+    
+    levelHair:['hair_wom', 'hair_man'],
+    levelHairLow:['hair_wom_low', 'hair_man_low'],
 
     skeletonRef:'body',
 	fullMorph: ['MUSCLE', 'LOW', 'BIG','MONSTER'],//, 
@@ -12437,7 +12438,7 @@ const Human = {
             //clearcoat:0.25,
             //clearcoatRoughness:0.5,
         },
-        hair:{
+        hair_wom:{
             type:'Standard',
         	//map:'hair',
             color:setting$4.hair,
@@ -12651,13 +12652,27 @@ const Human = {
                     node.castShadow = false;
                     node.visible = startHigh;
                     break;
-                    case 'hair': 
-                    node.material = Pool.getMaterial( 'hair' ) || def;
+
+                    ///
+
+                    case 'hair_wom': 
+                    node.material = Pool.getMaterial( 'hair_wom' ) || def;
                     node.receiveShadow = false;
                     node.castShadow = true;
                     //node.matrixWorldAutoUpdate = false
                     node.visible = Human.haveHair ? startHigh : false;
                     break;
+
+                    case 'hair_wom_low': 
+                    node.material = Pool.getMaterial( 'hair_wom' ) || def;
+                    node.receiveShadow = false;
+                    node.castShadow = true;
+                    //node.matrixWorldAutoUpdate = false
+                    node.visible = Human.haveHair ? false : false;
+                    break;
+
+                    ///
+
                     case 'hair_man': 
                     node.material = Pool.getMaterial( 'hair_man' ) || def;
                     node.receiveShadow = false;
@@ -12666,12 +12681,13 @@ const Human = {
                     node.visible = Human.haveHair ? startHigh : false;
                     break;
 
-                    case 'hair_low': case 'hair_low_2': 
-                        node.material =Pool.getMaterial( 'hair' ) || def;
-                        node.receiveShadow = false;
-                        node.castShadow = false;
-                        node.visible = false;
+                    case 'hair_man_low':  
+                    node.material = Pool.getMaterial( 'hair_man' ) || def;
+                    node.receiveShadow = false;
+                    node.castShadow = false;
+                    node.visible = Human.haveHair ? false : false;
                     break;
+
                 }
             }
 
@@ -13436,10 +13452,8 @@ class Avatar extends Group {
         this.haveBlink = this.ref.haveBlink || false;
 
         this.haveLOD = this.ref.haveLOD || false;
-        if( o.noLOD ){
-            this.ref.haveLOD = false; 
-            this.haveLOD = false;
-        }
+        if( o.noLOD ) this.haveLOD = false;
+        
         this.lod = -1;
 
         this.decalY = this.ref.decalY || 0;
