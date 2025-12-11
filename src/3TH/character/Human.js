@@ -45,8 +45,8 @@ export const Human = {
 
     levelHigh:['body', 'Head', 'crane', 'eyelash', 'eyebrow', 'tear', 'eye_l', 'eye_r', 'eye_l_s', 'eye_r_s'],
     levelHair:['hair', 'hair_man'],
-    levelLow:['body_low', 'hair_low_2'],
-    levelHairLow:['hair_low'],
+    levelLow:['body_low'],
+    levelHairLow:['hair_low', 'hair_low_2'],
 
     skeletonRef:'body',
 	fullMorph: ['MUSCLE', 'LOW', 'BIG','MONSTER'],//, 
@@ -326,6 +326,8 @@ export const Human = {
         root.traverse( ( node ) => {
 
             if ( node.isMesh ){
+
+                console.log(node.name)
                 switch( node.name ){
                     case 'body':
                     node.material = def;
@@ -339,6 +341,7 @@ export const Human = {
                         node.castShadow = true;
                         node.visible = !startHigh
                     break;
+
                     case 'Head': 
                     node.material = def;
                     node.receiveShadow = true;
@@ -395,6 +398,13 @@ export const Human = {
                     node.castShadow = false;//true;
                     //node.matrixWorldAutoUpdate = false
                     node.visible = Human.haveHair ? startHigh : false;
+                    break;
+
+                    case 'hair_low': case 'hair_low_2': 
+                        node.material =Pool.getMaterial( 'hair' ) || def;
+                        node.receiveShadow = false;
+                        node.castShadow = false;
+                        node.visible = !startHigh
                     break;
                 }
             }
