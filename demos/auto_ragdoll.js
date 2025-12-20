@@ -52,7 +52,6 @@ onComplete = () => {
 
     const map = phy.texture({ url:'./assets/textures/lee_c.jpg', flip:true, encoding:true })
 
-
     const mat_01 = phy.material({ 
         name:'lee', 
         map:map,
@@ -62,6 +61,7 @@ onComplete = () => {
 
     let remove = []
     model = phy.getGlb(modelName );
+    
     model.traverse( ( child ) => {
         if ( child.isSkinnedMesh ) child.material = mat_01;
     })

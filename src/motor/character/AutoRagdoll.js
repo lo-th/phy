@@ -21,31 +21,62 @@ export class AutoRagdoll {
 		this._size = o.size || 1;
 		this._debug = o.debug || false;
 
-		const model = SkeletonUtils.clone( o.model );
-		model.scale.set(1,1,1).multiplyScalar( this._size );
-		if(o.pos) model.position.fromArray(o.pos);
+		
 
-		model.raycast = function (){ return }
-		model.name = this.name;
-		//model.frustumCulled = false;
+		const model = SkeletonUtils.clone( o.model );
+
+	    /*model.traverse( ( child ) => {
+			if ( child.isSkinnedMesh ) child.skeleton.bones[0].updateWorldMatrix( true, true );
+			if ( child.isBone ) child.updateWorldMatrix( true, true );
+		})*/
+
+		
 
 		let bones;
 
 		model.traverse( ( child ) => {
+
+			child.raycast = function(){ return }
+
 			if ( child.isMesh ){
 				child.frustumCulled = false;
 			}
 			if ( child.isSkinnedMesh ){
+				//child.updateMatrix();
 				child.raycast = function (){ return }
 				child.frustumCulled = false;
 				child.matrixAutoUpdate = false;
 				child.receiveShadow = true;
 				child.castShadow = true;
 				if( o.material ) child.material = o.material;
-				child.skeleton.resetScalling();
+				if( child.skeleton.resetScalling ) child.skeleton.resetScalling();
 				bones = child.skeleton.bones;
+
 			}
 		})
+
+		/*for(let b in bones ){
+			bones[b].updateWorldMatrix( true, false );
+		}*/
+
+		//model.skeleton.bones[0].updateWorldMatrix( true, true );
+
+		//model.updateWorldMatrix( true, true );
+		//
+		model.scale.set(1,1,1).multiplyScalar( this._size );
+		if(o.pos) model.position.fromArray(o.pos);
+		//model.updateWorldMatrix( false, true );
+		//model.updateMatrix();
+
+		//model.raycast = function (){ return }
+		model.name = this.name;
+
+		//
+		//model.frustumCulled = false;
+
+		//console.log(model)
+
+		
 
 		let mass = o.mass || null
 		
@@ -57,6 +88,9 @@ export class AutoRagdoll {
 		/*this.skeletonBody.addEventListener ( 'start', function ( event ) {
 			console.log( event.message );
 		});*/
+
+
+		//model.updateMatrix();
 
 
 
@@ -106,6 +140,7 @@ export class AutoRagdoll {
 	set debug (value) {
 		this._debug = value;
 		this.skeletonBody.isVisible( this._debug );
+		this.skeletonBody.displayJoint( this._debug );
 	}
 
 	get mode () { return this._mode; }

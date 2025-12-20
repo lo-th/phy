@@ -94,8 +94,14 @@ K.resetScalling = function (b) {
     for ( let i = 0, il = this.bones.length; i < il; i ++ ) {
 
         //this.bones[i].scalling = new Vector3(1,1,1);
-        this.bones[i].isPhysics = false;
-        this.bones[i].phyMtx = new Matrix4();
+        if(this.bones[i].name==='root'){
+            //this.bones[i].updateMatrixWorld( true );
+
+        } //else {
+            this.bones[i].isPhysics = false;
+            this.bones[i].phyMtx = new Matrix4();
+       // }
+        
 
     }
 

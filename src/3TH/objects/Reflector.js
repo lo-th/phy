@@ -80,7 +80,7 @@ export class Reflector extends Mesh {
 		//this.opacity = o.opacity !== undefined ? o.opacity : 1;
 		this.isWater = o.water !== undefined ? o.water : false;
 		this.uv = o.uv || 1;
-		this.normalScale = o.normalScale || 1;
+		this.normalScale = o.normalScale || 2;
 
 		this.multisample = o.multisample !== undefined ? o.multisample : 4;
 
@@ -120,6 +120,7 @@ export class Reflector extends Mesh {
 		const rotationMatrix = new Matrix4();
 		const lookAtPosition = new Vector3( 0, 0, - 1 );
 		const clipPlane = new Vector4();
+		const eye = new Vector3( 0, 0, 0 );
 
 		const view = new Vector3();
 		const target = new Vector3();
@@ -194,6 +195,7 @@ export class Reflector extends Mesh {
 			uniforms[ "reflectif" ] =  this.userData.reflectif;
 
 			uniforms[ "blackAll" ] = this.userData.blackAll;
+			uniforms[ "eye" ] = { value: eye };
 			//uniforms[ "shadowPower" ] =  { value: 0.01 };
 			shader.uniforms = uniforms;
 
@@ -206,7 +208,7 @@ export class Reflector extends Mesh {
 			shader.vertexShader = vertex;
 
 			var fragment = shader.fragmentShader;
-			fragment = fragment.replace( 'uniform vec3 diffuse;', ['uniform vec3 diffuse;', 'varying vec4 vUvR;', 'uniform float reflectif;', 'uniform sampler2D mirrorMap;', 'uniform int blackAll;'].join("\n") );
+			fragment = fragment.replace( 'uniform vec3 diffuse;', ['uniform vec3 diffuse;', 'varying vec4 vUvR;', 'uniform float reflectif;', 'uniform sampler2D mirrorMap;', 'uniform int blackAll;', 'uniform vec3 eye;'].join("\n") );
 			//fragment = fragment.replace( '#include <map_fragment>', ReflectShader.map_fragment );
 			fragment = fragment.replace( '#include <lights_fragment_maps>', ReflectShader.lights_fragment_maps );
 			fragment = fragment.replace( '#include <fog_fragment>', ReflectShader.fog_fragment );
@@ -244,7 +246,7 @@ export class Reflector extends Mesh {
 			if( self.reflect === 0 ) return;
 
 			if( self.isWater ) {
-				self.material.normalMap.offset.x+=0.0005;
+				self.material.normalMap.offset.x+=0.0001;
 				self.material.normalMap.offset.y+=0.00025;
 			}
 
@@ -321,6 +323,8 @@ export class Reflector extends Mesh {
 			projectionMatrix.elements[ 6 ] = clipPlane.y;
 			projectionMatrix.elements[ 10 ] = clipPlane.z + 1.0 - clipBias;
 			projectionMatrix.elements[ 14 ] = clipPlane.w;
+
+			eye.setFromMatrixPosition( camera.matrixWorld );
 
 			// Render
 
@@ -484,11 +488,12 @@ export class Reflector extends Mesh {
 			this.uv = 30
 			var r = repeat !== undefined ? repeat : this.uv;
 			var s = scale !== undefined ? scale : this.normalScale;
-			this.material.normalMap = Pool.texture( { url:'./assets/textures/terrain/water_n.jpg', flip:false, repeat:[r,r] });//null;//Tools.loadTextures('./textures/terrain/water_n.jpg', { repeat:[r,r], anisotropy:4, generateMipmaps:true });
+			this.material.normalMap = Pool.texture( { url:'./assets/textures/terrain/water_n.jpg', flip:false, repeat:[r,r] });
 			this.material.normalScale.set( s, s );
 			this.material.roughness = 0.;
-			this.material.metalness = 0.;
+			this.material.metalness = 0.6;
 			this.material.opacity = 0.8;
+			this.material.premultipliedAlpha = true;
 			this.material.side = DoubleSide;
 			//console.log('water')
 		} else {

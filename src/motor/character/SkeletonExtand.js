@@ -87,9 +87,9 @@ K.setScalling = function ( b, x, y, z ) {
 
 K.resetScalling = function (b) {
 
-    this.pose()
+    //this.pose()
 
-    this.scalled = true
+    this.scalled = false; //true
 
     for ( let i = 0, il = this.bones.length; i < il; i ++ ) {
 

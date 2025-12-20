@@ -12,6 +12,8 @@ import { Quaternion } from '../core/MiniMath.js';
 
 import { SphereBox, Capsule, ChamferCyl, ChamferBox, createUV, Stair  } from './geometries/Geometry.js';
 import { CapsuleHelper } from './geometries/CapsuleHelper.js';
+import { SphereHelper } from './geometries/SphereHelper.js';
+import { BoxHelperExtra } from './geometries/BoxHelperExtra.js';
 import { ConvexGeometry } from './geometries/ConvexGeometry.js';
 
 
@@ -347,11 +349,14 @@ export class Body extends Item {
 
 			case 'capsule':
 
+			    if( o.helper ) seg = 4
+
 			    gName = 'capsule_' + s[ 0 ] +'_'+s[ 1 ] + '_' + seg; 
 
 			    g = Geo.get( gName )
 			    if(!g){
 			    	//if( o.helper ) g = new CapsuleHelperGeometry( s[ 0 ], s[ 1 ] )
+
 					//else 
 					g = new Capsule( s[ 0 ], s[ 1 ], seg )
 					g.name = gName
@@ -459,7 +464,10 @@ export class Body extends Item {
 			let hcolor2 = o.hcolor2 || [0.8,0.2,0.0];
 
 			// TODO bug with character
-			let hh = new CapsuleHelper( s[ 0 ], s[ 1 ]+(s[ 0 ]*2), false, Mat.get( 'liner' ), hcolor, hcolor2, true )
+			let hh
+			if(t === 'capsule') hh = new CapsuleHelper( s[ 0 ], s[ 1 ]+(s[ 0 ]*2), false, Mat.get( 'liner' ), hcolor, hcolor2, true )
+			else if(t==='sphere') hh = new SphereHelper( Mat.get( 'liner' ), hcolor )
+			else hh = new BoxHelperExtra( Mat.get( 'liner' ), hcolor )
 			m.add( hh );
 			m.userData['helper'] = hh;
 
@@ -480,7 +488,7 @@ export class Body extends Item {
     	// add or not add
     	if( !o.meshRemplace || o.debug ){ 
     		b.add( m )
-    		if(m.userData.helper) b.over = (b)=>{ m.userData.helper.over(b) }
+    		//if(m.userData.helper) b.over = (b)=>{ m.userData.helper.over(b) }
     	}
 
 	}
@@ -847,21 +855,33 @@ export class Body extends Item {
 		    	// extra function to display wireframe over object
 
 		    	b.addOutLine = function(){
-		    		if( !this.children[0].isMesh ) return;
-		    		this.outline = new Mesh().copy( this.children[0] );
-					this.outline.name = "outline";
-					this.outline.material = this.overMaterial;
-					this.outline.matrixAutoUpdate = false;
-					this.outline.receiveShadow = false;
-					this.outline.castShadow = false;
-					this.outline.raycast = () => ( false );
-					this.add( this.outline );
+		    		let child = this.children[0]
+		    		if( !child.isMesh ) return;
+
+		    		if(child.userData.helper) child.userData.helper.over(true)
+		    		else {
+		    			this.outline = new Mesh().copy( child );
+						this.outline.name = "outline";
+						this.outline.material = this.overMaterial;
+						this.outline.matrixAutoUpdate = false;
+						this.outline.receiveShadow = false;
+						this.outline.castShadow = false;
+						this.outline.raycast = () => ( false );
+						this.add( this.outline );
+		    		}
+		    		
 		    	}.bind(b)
 
 		    	b.clearOutLine = function(){
-		    		if( !this.outline ) return;
-					this.remove(this.outline);
-					this.outline = null;
+
+		    		let child = this.children[0]
+		    		
+		    		if(child && child.userData.helper) child.userData.helper.over(false)
+					else {
+						if( !this.outline ) return;
+						this.remove(this.outline);
+						this.outline = null;
+					}
 		    	}.bind(b)
 
 		    	b.over = function(v){

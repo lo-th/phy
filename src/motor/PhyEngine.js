@@ -1,5 +1,5 @@
 
-import { Group, Vector3, Vector2, Quaternion, Matrix3, Mesh, BatchedMesh } from 'three';
+import { Group, Vector3, Vector2, Quaternion, Matrix3, Matrix4, Mesh, BatchedMesh } from 'three';
 
 import { MathTool } from '../core/MathTool.js';
 import { Max, Num, getArray, getType } from '../core/Config.js';
@@ -67,7 +67,7 @@ const Version = {
 	PHY: '0.5.0',
 	// best
     PHYSX: '5.06.10',
-    HAVOK: '1.2.1',
+    HAVOK: '1.3.11',
     JOLT: '0.39.0',
     // old
     RAPIER: '0.20.0',
@@ -1773,6 +1773,11 @@ class Solid extends Body {
 //  UTILS
 //
 //-------------------
+const _v1 = new Vector3()
+const _m1 = new Matrix4()
+const _m3 = new Matrix3()
+const _q1 = new Quaternion()
+const _q2 = new Quaternion()
 
 export class Utils {
 
@@ -1849,6 +1854,11 @@ export class Utils {
 
     toLocal ( v, obj, isAxe = false ) {
 
+    	if( obj.isObject3D ) {
+    		obj.updateWorldMatrix( true, false )
+    		obj.updateMatrix()
+    	}
+
     	//if( obj.isObject3D ) obj.updateWorldMatrix( true, false )
     	// apply position
     	if(!isAxe) v.sub( obj.position );
@@ -1858,28 +1868,61 @@ export class Utils {
     	//v.applyQuaternion(q.clone().invert())
     	//v.applyQuaternion({x:-q.x, y:-q.y, z:-q.z, w:q.w})
     	v.applyQuaternion({x:-q._x, y:-q._y, z:-q._z, w:q._w})
-    	//if(isAxe) v.normalize()
+    	if(isAxe) v.normalize()
     	return v
+
+    }
+
+    toLocal2 ( v, obj, isAxe = false ) {
+
+    	if( obj.isObject3D ) {
+    		obj.updateWorldMatrix( true, false )
+    		obj.updateMatrix()
+    	}
+
+    	_v1.fromArray(v)
+
+    	if(!isAxe) _v1.sub( obj.position );
+    	//if(!isAxe) v.sub( obj.position );
+    	//_q1.copy(obj.quaternion)//.invert();
+
+    	//_v1.applyQuaternion({x:-_q1._x, y:-_q1._y, z:-_q1._z, w:_q1._w})
+
+    	let q = obj.quaternion//.normalize();
+    	//v.applyQuaternion(q.clone().invert())
+    	//v.applyQuaternion({x:-q.x, y:-q.y, z:-q.z, w:q.w})
+    	_v1.applyQuaternion({x:-q._x, y:-q._y, z:-q._z, w:q._w})
+    	//console.log(_q1)// ????
+    	//_v1.applyQuaternion(_q1)
+    	if(isAxe) _v1.normalize()
+
+    	return _v1.toArray();
 
     }
 
     quatLocal ( q, obj ) {
 
-    	if( obj.isObject3D ) obj.updateWorldMatrix( true, false );
+    	if( obj.isObject3D ){ 
+    		obj.updateWorldMatrix( true, false );
+    		obj.updateMatrix()
+    	}
     	// apply position
     	//if(!isAxe) v.sub( obj.position )
     	// apply invers rotation
-    	let q1 = new Quaternion().fromArray(q);
-    	let q2 = obj.quaternion.clone().invert();
-    	q1.premultiply(q2);
+    	_q1.fromArray(q);
+    	_q2.copy(obj.quaternion).invert();
+    	_q1.premultiply(_q2);
     	//v.applyQuaternion({x:-q.x, y:-q.y, z:-q.z, w:q.w})
-    	return q1.normalize().toArray();
+    	return _q1.normalize().toArray();
 
     }
 
     axisLocal ( v, obj ) {
 
-    	if( obj.isObject3D ) obj.updateWorldMatrix( true, false )
+    	if( obj.isObject3D ){ 
+    		obj.updateWorldMatrix( true, false )
+    		obj.updateMatrix()
+    	}
     	// apply position
 
         let m3 = new Matrix3().setFromMatrix4( obj.matrixWorld )//.invert()

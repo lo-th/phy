@@ -4,7 +4,7 @@ demo = () => {
 
 	phy.view({
 		envmap:'clear', water:true, groundSize:[512,512], 
-		fog:true, fogRange:[50,100],
+		fog:true, fogExp:0.02,
 		reflect:0.5, envblur:0.1 
 	})
 	

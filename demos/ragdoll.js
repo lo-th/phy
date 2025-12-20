@@ -110,7 +110,9 @@ ragdoll = ( o ) => {
         b[ n ] = phy.add({ 
             instance:instanced[n],
             type:'capsule', 
-            density:0.1, restitution:0.1, friction:0.4, 
+            mass:1,
+            //density:0.1, 
+            restitution:0.1, friction:0.4, 
             phySize:dataP[n].size, 
             phyPos:math.addArray( o.pos, dataP[n].pos ),
             size: debug ? dataP[n].size : data[n].size, 
@@ -202,7 +204,7 @@ ragdoll = ( o ) => {
         mode:'revolute', 
         b1:b.armL1, b2:b.armL2, 
         worldAnchor:math.addArray( o.pos, [-bodyRadius - upperArm, lowerBody + upperBody, 0]), 
-        //worldAxis:[0,1,0],
+        worldAxis:[0,1,0],
         lm:[0,90],
         sd:[10, 1],
     })
@@ -212,7 +214,7 @@ ragdoll = ( o ) => {
         mode:'revolute', 
         b1:b.armR1, b2:b.armR2, 
         worldAnchor:math.addArray( o.pos, [bodyRadius + upperArm, lowerBody + upperBody, 0]), 
-        //worldAxis:[0,-1,0],
+        worldAxis:[0,-1,0],
         lm:[0,90],
         sd:[10, 1],
     })

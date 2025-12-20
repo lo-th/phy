@@ -600,8 +600,8 @@ export class MouseTool {
 		if( this.moveDirect ){
 			this.motor.change({ name:this.selected.name, kinematic:false, gravity:false, damping:[0.9,0.9]  })
 		} else {
-			let def = [-0.1, 0.1, 600, 1]
-			let defr = [-0.1, 0.1, 600, 1]
+			let def = [-0.1, 0.1, 100, 50]//600, 1
+			let defr = [-0.1, 0.1, 100, 50]
 			//let defr = [0, 0]
 			let notUseKinematic = engine === 'OIMO' || engine ==='RAPIER' || engine ==='JOLT'//|| engine ==='HAVOK'
 			let jtype = this.selected.link === 0 ? 'fixe' : 'd6';//root.engine === 'HAVOK' ? 'fixe' : 'd6';
@@ -609,8 +609,9 @@ export class MouseTool {
 			if( engine === 'JOLT' ) jtype = 'fixe';
 
 			let limite = [['x',...def], ['y',...def], ['z',...def], ['rx',...defr], ['ry',...defr], ['rz',...defr]]
+			//let motor = 
 
-			if( engine === 'HAVOK' ) limite = [ ['x',...def], ['y',...def], ['z',...def] ]
+			//if( engine === 'HAVOK' ) limite = [ ['x',...def], ['y',...def], ['z',...def] ]
 
 			if( engine === 'OIMO' ){
 				revert = true;
@@ -620,20 +621,14 @@ export class MouseTool {
 				//limite = [ 4.0, 1.0 ]
 			}
 
-			if( engine === 'HAVOK' ){
-				//revert = true;
-				jtype = this.selected.link === 0 ? 'fixe' : 'spherical';
-				limite = [ -180, 180, 0.1, 0.1 ]
-
-				//jtype = 'fixe'
-			}
+			
 
 			//console.log(jtype)
 
 			this.motor.add([
 				{ 
 					name:'mouse', 
-					type:'null', 
+					type:'null',
 					pos:p, 
 					quat:quat, 
 					kinematic:notUseKinematic ? false : true,
@@ -644,8 +639,11 @@ export class MouseTool {
 					name:'mouseJoint', type:'joint',
 					mode:jtype,
 					lm:limite,
+					//motor:motor,
 					sd:[4.0, 1.0],
-					autoDrive: true,
+					//autoDrive: true,
+
+
 					b1:revert ? this.selected.name : 'mouse',
 					b2:revert ? 'mouse' : this.selected.name,  
 					worldAnchor: p, 
@@ -714,7 +712,7 @@ export class MouseTool {
 			this.motor.change({ name:this.selected.name, kinematic:false, wake:true, gravity:true, damping:[0,0.1] })
 		} else {
 			this.motor.remove(['mouseJoint','mouse'])
-			this.motor.change({ name:this.selected.name, neverSleep:false, wake:true })
+			this.motor.change({ name:this.selected.name, wake:true })
 		}
 		
 		this.raycastTest = true;

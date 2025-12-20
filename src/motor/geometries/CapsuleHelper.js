@@ -1,5 +1,5 @@
-import { Vector3, Object3D, LineSegments, LineBasicMaterial, Float32BufferAttribute, BufferGeometry } from 'three';
-
+import { Vector3, Object3D, LineSegments, LineBasicMaterial, BufferAttribute, Float32BufferAttribute, BufferGeometry } from 'three';
+//import { mergeVertices } from 'three/addons/utils/BufferGeometryUtils.js';
 
 
 const _vector = /*@__PURE__*/ new Vector3();
@@ -111,7 +111,12 @@ class CapsuleHelper extends Object3D {
 		geometry.setAttribute( 'position', new Float32BufferAttribute( positions, 3 ) );
 		geometry.setAttribute( 'color', new Float32BufferAttribute( colors, 3 ) );
 
+		//const indices = geometry.getIndex();
+		//console.log(indices)
+
+		//geometry = mergeVertices( geometry );
 		geometry.computeBoundingSphere()
+
 
 		this.colors = geometry.attributes.color.array;
 		this.colorsbase = [...this.colors]

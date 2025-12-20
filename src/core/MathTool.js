@@ -201,6 +201,93 @@ const M = {
     },
 
     //-----------------------
+    //  MATRIX3
+    //-----------------------
+
+    Mat3FromQuatArray: ( q ) => {
+
+        let q0 = q[3];//w
+        let q1 = q[0];//x
+        let q2 = q[1];//y
+        let q3 = q[2];//z
+
+        // First row of the rotation matrix
+        let r00 = 2 * (q0 * q0 + q1 * q1) - 1
+        let r01 = 2 * (q1 * q2 - q0 * q3)
+        let r02 = 2 * (q1 * q3 + q0 * q2)
+         
+        // Second row of the rotation matrix
+        let r10 = 2 * (q1 * q2 + q0 * q3)
+        let r11 = 2 * (q0 * q0 + q2 * q2) - 1
+        let r12 = 2 * (q2 * q3 - q0 * q1)
+         
+        // Third row of the rotation matrix
+        let r20 = 2 * (q1 * q3 - q0 * q2)
+        let r21 = 2 * (q2 * q3 + q0 * q1)
+        let r22 = 2 * (q0 * q0 + q3 * q3) - 1
+
+        // ROW
+        /*let d = [
+            [r00, r01, r02], 
+            [r01, r11, r12],
+            [r20, r21, r22]
+        ]*/
+
+        // COL
+        let d = [
+            [r00, r10, r20], // axe X
+            [r01, r11, r21], // axe y
+            [r02, r12, r22]  // axe z
+        ]
+
+        //return d;
+
+        // METHODE 2 ?? 
+        
+
+        /*let x = q[0];
+        let y = q[1];
+        let z = q[2];
+        let w = q[3];
+
+        let x2 = 2 * x;
+        let y2 = 2 * y;
+        let z2 = 2 * z;
+
+        let xx = x * x2;
+        let yy = y * y2;
+        let zz = z * z2;
+        let xy = x * y2;
+        let yz = y * z2;
+        let xz = x * z2;
+        let wx = w * x2;
+        let wy = w * y2;
+        let wz = w * z2;*/
+
+        // ROW
+        /*let d = [
+            [1 - yy - zz, xy - wz, xz + wy], 
+            [xy + wz, 1 - xx - zz, yz - wx],
+            [xz - wy, yz + wx, 1 - xx - yy]
+        ]*/
+        // COL
+        /*let d = [
+            [1 - yy - zz, xy + wz, xz - wy], 
+            [ xy - wz, 1 - xx - zz, yz + wx],
+            [xz + wy, yz - wx, 1 - xx - yy]
+        ]*/
+
+        //console.log(d,d2)
+
+
+
+
+        return d;
+        
+
+    },
+
+    //-----------------------
     //  MATRIX
     //-----------------------
 
@@ -588,12 +675,23 @@ const M = {
     quatToAxis:( q ) => {
 
         let w = 2 * Math.acos( q[3] );
-        const s = Math.sqrt( 1 - q[3] * q[3] );
-        if ( s < 0.0001 ) {
+        let s = Math.sqrt( 1 - q[3] * q[3] );
+
+        if ( s < 0.00001 ) {
+            // test to avoid divide by zero, s is always positive due to sqrt
+            // if s close to zero then direction of axis not important
+            // http://www.euclideanspace.com/maths/geometry/rotations/conversions/quaternionToAngle/   
+            s = 1
+        } 
+        
+        return [ q[0] / s, q[1] / s, q[2] / s ]
+        
+
+        /*if ( s < 0.00001 ) {
             return [1,0,0]
         } else {
              return [ q[0] / s, q[1] / s, q[2] / s, w ]
-        }
+        }*/
     },
 
     eulerFromMatrix: (te) => {
@@ -637,16 +735,85 @@ const M = {
 
     getSize: ( r ) => ( ( r.byteLength * 0.001 ) +'kb' ),
 
-    // Creates a vector normal (perpendicular) to the current Vector3
+    // Creates a vector normal (perpendicular) to the current Vector3 
+    // TODO bug !!!! function from babylone js
 
+    
+
+     // computes a normalized vector perpendicular to the src
+
+    perpendicularArray0: ( v ) => { 
+
+        const x1 = v[0]
+        const y1 = v[1]
+        const z1 = v[2]
+
+        const x2 = x1 * x1
+        const y2 = y1 * y1
+        const z2 = z1 * z1
+
+        let d
+        let axe// = 'X'
+
+        if(x2<y2){
+            if(x2<z2){
+                axe = 'X'
+            }else{
+                axe = 'Z'
+            }
+        } else {
+            if(y2<z2){
+                axe = 'Y'
+            } else {
+                axe = 'Z'
+            }
+        }
+
+        switch(axe){
+            case 'X':
+            d = 1 / Math.sqrt(y2 + z2);
+            return [0, z1 * d, -y1 * d]
+            break;
+            case 'Y':
+            d = 1 / Math.sqrt(z2 + x2);
+            return [-z1 * d, 0, x1 * d]
+            break;
+            case 'Z':
+            d = 1 / Math.sqrt(x2 + y2);
+            return [y1 * d, -x1 * d, 0]
+            break;
+        }
+
+    },
+    /**
+     * Creates a vector normal (perpendicular) to the current Vector3 and stores the result in the given vector
+     * Out of the infinite possibilities the normal chosen is the one formed by rotating the current vector
+     * 90 degrees about an axis which lies perpendicular to the current vector
+     * and its projection on the xz plane. In the case of a current vector in the xz plane
+     * the normal is calculated to be along the y axis.
+     * Example Playground https://playground.babylonjs.com/#R1F8YU#230
+     * Example Playground https://playground.babylonjs.com/#R1F8YU#231
+     * @param result defines the Vector3 object where to store the resultant normal
+     * @returns the result
+     */
     perpendicularArray: ( v ) => { 
 
         const radius = Math.sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]);
         let theta = Math.acos(v[1] / radius);
         const phi = Math.atan2(v[2], v[0]);
+
         //makes angle 90 degs to current vector
-        if( theta > PI90 ) theta -= PI90;
-        else theta += PI90;
+        /*if (theta > Math.PI / 2) {
+            theta -= Math.PI / 2;
+        } else {
+            theta += Math.PI / 2;
+        }*/
+
+        //console.log(theta < PI90)
+        //makes angle 90 degs to current vector
+        //if( theta > PI90 ) theta -= PI90;
+        //else 
+         theta -= PI90;
         //Calculates resutant normal vector from spherical coordinate of perpendicular vector
         const x = radius * Math.sin(theta) * Math.cos(phi);
         const y = radius * Math.cos(theta);

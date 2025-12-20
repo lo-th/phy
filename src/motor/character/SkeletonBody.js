@@ -29,6 +29,8 @@ const _boneMatrix = /*@__PURE__*/ new Matrix4();
 const fingers = [ 'Thumb', 'Index', 'Mid', 'Ring', 'Pinky' ];
 const Spine = [ 'hip', 'abdomen', 'abdomen2', 'chest', 'neck', 'head', 'rCollar', 'lCollar', 'lShldr', 'rShldr', 'lThigh', 'rThigh', 'rBreast', 'lBreast' ];
 
+//const NeedFixe = [  'abdomen', 'neck'];
+
 export class SkeletonBody extends Object3D {
 
 	constructor ( motor, name, model, bones, mass = null, option = {} ) {
@@ -44,8 +46,11 @@ export class SkeletonBody extends Object3D {
         this.withFinger = false
 
         this.nodes = [];
-		this.bones = bones;//character.model.skeleton.bones;
+		//this.bones = bones;//character.model.skeleton.bones;
 		this.model = model//character.model.root;
+
+        // HERE IS THE FIXE :)
+        this.bones = getBoneList(model)
        
         this.scaler = this.model.scale.x; 
         this.posRef = {};
@@ -60,6 +65,9 @@ export class SkeletonBody extends Object3D {
         this.breast = false;
         this.ready = false;
 
+        this.withBreast = option.breast || false
+
+        this.matrix = model.matrixWorld
         this.matrixAutoUpdate = false;
 
         this.mass = mass; 
@@ -80,12 +88,22 @@ export class SkeletonBody extends Object3D {
 
         let i, lng = this.bones.length;
         for( i = 0; i < lng; i++ ){
-
+            //this.bones[i].updateMatrixWorld( true, false );
             if(this.bones[i].name === 'abdomen2') this.isTreeSpine = true
 
         }
 
-        console.log('is three spine model '+ this.isTreeSpine)
+        //this.bones[0].updateMatrixWorld( true, true );
+        //console.log('is three spine model '+ this.isTreeSpine)
+
+    }
+
+    wake(){
+
+        const d = []
+        let i = this.nodes.length;
+        while( i-- ) d.push( { name:this.nodes[i].name, wake:true } )
+        this.motor.change( d );
 
     }
 
@@ -152,20 +170,42 @@ export class SkeletonBody extends Object3D {
 
     }
 
+    init(){
+            
+        this.addNode()
+        this.addLink()
 
-	init(){
+        
+        if( this.useSolver ){
 
-        if( this.useSolver ) this.solver = this.motor.add({ 
-            type:'solver', name:this.prefix+'_solver', iteration:32,
-            fix:true, needData:true
-        });
+            this.solver = this.motor.add({ type:'solver', name:this.prefix+'_solver', iteration:32, fix:true, needData:false });
+            
+            this.motor.add( [...this.bodyData ] )
+            for(let j in this.linkData){
+                this.solver.addJoint(this.linkData[j])
+            }
+
+            this.solver.start();
+            //this.solver.commonInit();
+
+        } else {
+
+            this.motor.add( [...this.bodyData, ...this.linkData ] )
+        }
+
+        
+        this.dispatchEvent( { type: 'start', message: 'go !' } );
+        this.ready = true
+
+    }
+
+	addNode(){
 
         this.useAggregate = this.motor.engine === 'PHYSX'// && this.option.useAggregate
+        this.useAggregate = !this.useSolver
 
 		const data = []
         
-       
-
         // get character bones var bones = character.skeleton.bones;
 
         let scaleMatrix = new Matrix4().makeScale(this.scaler, this.scaler, this.scaler)
@@ -177,24 +217,24 @@ export class SkeletonBody extends Object3D {
         let e = new Euler();
         let mtx = new Matrix4();
 
-        let tmpMtx = new Matrix4();
-        let tmpMtxR = new Matrix4();
-
-        //this.model.updateWorldMatrix( true, false );
-        _matrixWorldInv.copy( this.model.matrixWorld ).invert();
-
         let p1 = new Vector3();
         let p2 = new Vector3();
+
+        let tmpMtx = new Matrix4();
+        let tmpMtxR = new Matrix4();
+        let rootMtx = new Matrix4();
+
+        _matrixWorldInv.copy( this.model.matrixWorld ).invert();
 
         let sizer  =  [1,1,1,1,1,1,1]
         if(this.option.sizer){
             sizer = this.option.sizer
         }
 
-        //let headDone = false
 
         let i, lng = this.bones.length, name, n, boneId, bone, parent;///, child, o, parentName;
         let size, dist, rot, type, mesh, r, kinematic, translate, phyName, motion, link;
+        let forceName
 
         let averageMass = 0;
         if(this.mass) averageMass = this.mass / lng;
@@ -203,25 +243,27 @@ export class SkeletonBody extends Object3D {
 
         	type = null;
             bone = this.bones[i];
+
             name = bone.name;
             parent = bone.parent;
 
-            if( parent ) {
+            forceName = ''
+
+            if( parent && parent.isBone) {
 
             	n = parent.name;
 
                 _boneMatrix.multiplyMatrices( _matrixWorldInv, bone.matrixWorld );
                 p1.setFromMatrixPosition( _boneMatrix );
 
-                _boneMatrix.multiplyMatrices( _matrixWorldInv, parent.matrixWorld );
+                _boneMatrix.multiplyMatrices( _matrixWorldInv, parent.matrixWorld )
                 p2.setFromMatrixPosition( _boneMatrix );
 
 
             	//p1.setFromMatrixPosition( parent.matrixWorld );
             	//p2.setFromMatrixPosition( bone.matrixWorld );
-                dist = p1.distanceTo( p2 );// * this.scaler;
 
-                //if( n==='hip' && name==='abdomen' ) console.log( dist )
+                dist = p1.distanceTo( p2 );// * this.scaler;
 
 	            //translate = [ -dist * 0.5, 0, 0 ];
 	            translate = [ 0, 0, dist * 0.5 ];
@@ -231,38 +273,34 @@ export class SkeletonBody extends Object3D {
                 motion = false;
                 link = 'null'
 
-                //type = 'capsule'
-                
 
-                //if( n==='hip' && name==='abdomen' ){ type = 'capsule'; size = [  0.1,dist*1.8 ]; translate = [ 0, 0, -(dist*1.8) * 0.5 ]; rot = [0,0,90]; link='null';}
-                
-                // body
-                //if( n==='hip' && name==='abdomen' ){ type = 'capsule'; size = [  0.1,dist*1.8 ]; translate = [ 0, 0, -(dist*1.8) * 0.5 ]; rot = [0,0,90]; link='null';}
-                
-                //if( n==='hip' && name==='abdomen' ){ type = 'capsule'; size = [  dist*1.8, 0.08 ]; translate = [ 0, 0, -dist * 0.5 ]; rot = [0,0,90]; link='null';}
                 if( n==='hip' && name==='abdomen' ){ type = 'capsule'; size = [  dist*sizer[0], 0.08 ]; translate = [ 0, 0, -dist*sizer[0] ]; rot = [0,0,90]; link='null';}
 
-                if( n==='abdomen' && name==='chest'  ){ type = 'capsule'; size = [ dist*0.7*sizer[1], 0.08   ]; translate = [ 0, 0, (-dist * 0.5)-0.06 ]; rot = [90,0,0]; link='hip';}
+                if(this.isTreeSpine){
 
+                    if( n==='abdomen' && name==='abdomen2'  ){ type = 'capsule'; size = [ dist*0.8*sizer[1], 0.08 ]; translate = [ 0, 0, (-dist * 0.5)-0.06 ]; rot = [90,0,0]; link='hip';  }
+                    if( n==='abdomen2' && name==='chest'  ){ type = 'capsule'; size = [ dist*0.8*sizer[1], 0.08 ]; translate = [ 0, 0, (-dist * 0.5)-0.06 ]; rot = [90,0,0]; link='abdomen';  }
 
-                if( n==='abdomen' && name==='abdomen2'  ){ type = 'capsule'; size = [ dist*0.7*sizer[1], 0.08   ]; translate = [ 0, 0, (-dist * 0.5)-0.06 ]; rot = [90,0,0]; link='hip';}
-                if( n==='abdomen2' && name==='chest'  ){ type = 'capsule'; size = [ dist*0.7*sizer[1], 0.08   ]; translate = [ 0, 0, (-dist * 0.5)-0.06 ]; rot = [90,0,0]; link='abdomen';}
+                  }else{
+                    if( n==='abdomen' && name==='chest' ){ type = 'capsule'; size = [ dist*0.7*sizer[1], 0.08 ]; translate = [ 0, 0, (-dist * 0.5)-0.06 ]; rot = [90,0,0]; link='hip'; }
+                }
 
-
-
-                if( n==='chest' && name==='neck' ){ type = 'capsule'; size = [  dist*0.4*sizer[2], 0.04 ]; translate = [ 0, 0, (-dist * 0.5)-0.02 ]; rot = [0,0,90]; link='abdomen';}
+                
+                if( n==='chest' && name === 'neck' ){ type = 'capsule'; size = [  dist*0.4*sizer[2], 0.04 ]; translate = [ 0, 0, (-dist * 0.5)-0.02 ]; rot = [0,0,90]; link=this.isTreeSpine? 'abdomen2':'abdomen';}
                 if( n==='neck' && name === 'head' ){ type = 'capsule'; size = [ 0.06*sizer[3], dist ]; translate = [ 0, 0, -dist * 0.5 ]; rot = [90,0,0]; link='chest'; }
-                if( n==='head' && name === 'End_head' ){ type = 'capsule'; size = [ 0.1*sizer[4], dist-0.17 ]; translate = [ 0, 0.02, (-dist * 0.5)+0.02 ]; rot = [90,0,0]; link='neck'; }
+                if( n==='head' && name === 'End_head' ){ type = 'capsule'; size = [ 0.08*sizer[4], dist-0.17 ]; translate = [ 0, 0.02, (-dist * 0.5)+0.02 ]; rot = [90,0,0]; link='neck'; }
                 
                 //if( n==='head' && !headDone ){ console.log(name); headDone = true; type = 'sphere'; dist=0.08; size = [ 0.08, 0.2, dist ]; translate = [ 0, 0.025, -0.08 ]; }
 	            //if( n==='chest' && name==='neck' ){ type = 'box'; size = [  0.28, 0.24, dist ]; translate = [ 0, 0, -dist * 0.5 ]; }
 	            //if( n==='abdomen' && name==='chest'  ){ type = 'box'; size = [ 0.24, 0.20,  dist ]; translate = [ 0, 0, -dist * 0.5 ]; }
-              
+
+
+                // TODO bug with worker !!!!
+                if(this.withBreast){
+                    if( n==='chest' && name==='rBreast' && this.motor.engine!=='HAVOK' ){ n='rBreast'; parent = bone; type = 'sphere'; size = [ 0.065 ]; translate = [ 0.065,0,0 ]; this.breast=true; motion = true; link='chest'; }
+                    if( n==='chest' && name==='lBreast' && this.motor.engine!=='HAVOK' ){ n='lBreast'; parent = bone; type = 'sphere'; size = [ 0.065 ]; translate = [ 0.065,0,0 ]; this.breast=true; motion = true; link='chest'; }
+                }
                 
-
-
-                if( n==='chest' && name==='rBreast' && this.motor.engine!=='HAVOK' ){ n='rBreast'; parent = bone; type = 'sphere'; size = [ 0.065 ]; translate = [ 0.065,0,0 ]; this.breast=true; motion = true; link='chest'; }
-                if( n==='chest' && name==='lBreast' && this.motor.engine!=='HAVOK' ){ n='lBreast'; parent = bone; type = 'sphere'; size = [ 0.065 ]; translate = [ 0.065,0,0 ]; this.breast=true; motion = true; link='chest'; }
                 
 
                 // arm
@@ -372,7 +410,7 @@ export class SkeletonBody extends Object3D {
 
                     this.quatRef[phyName] = q.toArray();
                      
-                    //mtx.multiplyMatrices( parent.matrixWorld, tmpMtx );
+                    mtx.multiplyMatrices( parent.matrixWorld, tmpMtx );
                     mtx.multiplyMatrices( _boneMatrix, tmpMtx );
                     mtx.decompose( p, q, s );
 
@@ -399,7 +437,6 @@ export class SkeletonBody extends Object3D {
                         type: type,
                         size: MathTool.scaleArray(size,this.scaler,3),
                         pos: p.toArray(),
-                        //rot: rot,
                         quat: q.toArray(),
                         kinematic: kinematic,
                         
@@ -409,7 +446,7 @@ export class SkeletonBody extends Object3D {
                         material:'hide',
                         //material:'debug',
                         shadow:false,
-                        neverSleep: true,
+                        //neverSleep: true,
                         helper: true,
                         hcolor:[0.0, 0.5, 1],
                         hcolor2:[0.0, 0.2, 1],
@@ -465,50 +502,40 @@ export class SkeletonBody extends Object3D {
                     if( this.mass !== null ) bb['mass'] = averageMass;
                     else bb['density'] = 1;
 
+                    if( this.useSolver ){
+                        bb['solver'] = this.prefix+'_solver'
+                        bb['linked'] = this.prefix+'_bone_'+link
+                        bb['kinematic'] = false
+                    }
+
                     data.push(bb)
-
-
-
-                    /*if( this.useSolver ){
-                        physicData['solver'] = this.prefix+'_solver'
-                        physicData['linked'] = this.prefix+'_bone_'+link
-                        physicData['kinematic'] = false
-                    }*/
-
-                     //physicData )
 
                     let inv = tmpMtx.clone().invert().premultiply(scaleMatrix);
 
-                    this.nodes.push({
-                    	name: phyName,
+                    const finalNodeData = {
+                        name: phyName,
                         kinematic: kinematic,
                         motion:motion,// auto move
-                    	bone:parent,
+                        bone:parent,
                         decal:tmpMtx.clone(),
                         decalinv:inv,
                         quat:q.toArray(),
                         pos:p.toArray(),
                         //scaler:this.scaler,
                         cc:0,
-                    })
+                    }
+
+                    this.nodes.push(finalNodeData)
                 }
 
             }
         }
 
-        //console.log( data )
 
-        this.motor.add( data )
-
-        //if( this.useSolver ) this.solver.start();
-       
-        this.addLink()
-
-        
-        this.dispatchEvent( { type: 'start', message: 'go !' } );
-        this.ready = true
+        this.bodyData = data
 
 	}
+
 
     existe( name ){
         return this.nameList.indexOf(name) !== -1 ? true : false
@@ -553,7 +580,7 @@ export class SkeletonBody extends Object3D {
             lm:[  ['ry',-180,180,...sp], ['rz',-180,180,...sp] ],
 
             collision:false,
-            helperSize:0.05,
+            helperSize:0.1,
             visible:this.showJoint,
 
             //acc:true,
@@ -578,7 +605,7 @@ export class SkeletonBody extends Object3D {
             ]
         }
 
-        let breastMotion = [-0.001, 0.001, 100, 0.2, 0.5]
+        let breastMotion = [-0.001, 0.001, 1000, 0.2, 0.5]//100, 0.2, 0.5
         
 
         data.push({ ...sett, b1:p+'hip', b2:p+'abdomen', worldPos:this.posRef[p+'abdomen'], worldQuat:this.quatRef[p+'hip'], lm:[ ['rx',-20,20,...sp], ['ry',-20,20,...sp], ['rz',-20,20,...sp]] })
@@ -623,16 +650,16 @@ export class SkeletonBody extends Object3D {
 
         // leg
 
-        data.push({ ...sett, b1:p+'hip', b2:p+'rThigh', worldPos:this.posRef[p+'rThigh'],  worldQuat:this.quatRef[p+'rThigh'] })
-        data.push({ ...sett, b1:p+'hip', b2:p+'lThigh', worldPos:this.posRef[p+'lThigh'],  worldQuat:this.quatRef[p+'lThigh'] })
+        data.push({ ...sett, b1:p+'hip', b2:p+'rThigh', worldPos:this.posRef[p+'rThigh'], worldQuat:this.quatRef[p+'rThigh'] })
+        data.push({ ...sett, b1:p+'hip', b2:p+'lThigh', worldPos:this.posRef[p+'lThigh'], worldQuat:this.quatRef[p+'lThigh'] })
 
-        if( this.existe(p+'rShin') )data.push({ ...sett, b1:p+'rThigh', b2:p+'rShin', worldPos:this.posRef[p+'rShin'], lm:[['rx',0,160,...sp]], worldQuat:this.quatRef[p+'rShin'] })
-        if( this.existe(p+'lShin') )data.push({ ...sett, b1:p+'lThigh', b2:p+'lShin', worldPos:this.posRef[p+'lShin'], lm:[['rx',0,160,...sp]], worldQuat:this.quatRef[p+'lShin'] })
+        if( this.existe(p+'rShin') ) data.push({ ...sett, b1:p+'rThigh', b2:p+'rShin', worldPos:this.posRef[p+'rShin'], lm:[['rx',0,160,...sp]], worldQuat:this.quatRef[p+'rShin'] })
+        if( this.existe(p+'lShin') ) data.push({ ...sett, b1:p+'lThigh', b2:p+'lShin', worldPos:this.posRef[p+'lShin'], lm:[['rx',0,160,...sp]], worldQuat:this.quatRef[p+'lShin'] })
 
         if( this.existe(p+'rFoot') ) data.push({ ...sett, b1:p+'rShin', b2:p+'rFoot', worldPos:this.posRef[p+'rFoot'], lm:[['rx',-10,30,...sp], ['rz',-10,10,...sp]], worldQuat:this.quatRef[p+'rFoot'] })
         if( this.existe(p+'lFoot') ) data.push({ ...sett, b1:p+'lShin', b2:p+'lFoot', worldPos:this.posRef[p+'lFoot'], lm:[['rx',-10,30,...sp], ['rz',-10,10,...sp]], worldQuat:this.quatRef[p+'lFoot'] })
 
-        if(this.breast){
+        if(this.withBreast){
             if( this.existe(p+'rBreast') ) data.push({ ...sett, b1:p+'chest', b2:p+'rBreast', worldPos:this.posRef[p+'rBreast'], worldQuat:this.quatRef[p+'rBreast'], lm:[['x',...breastMotion], ['y',...breastMotion], ['z',...breastMotion]] })
             if( this.existe(p+'lBreast') ) data.push({ ...sett, b1:p+'chest', b2:p+'lBreast', worldPos:this.posRef[p+'lBreast'], worldQuat:this.quatRef[p+'lBreast'], lm:[['x',...breastMotion], ['y',...breastMotion], ['z',...breastMotion]] })
         }
@@ -658,8 +685,19 @@ export class SkeletonBody extends Object3D {
             x++
         }
 
+        this.linkData = data;
 
-        this.motor.add( data )
+    }
+
+    displayJoint(v){
+
+        let dt = []
+
+        for( let b in this.jointList ){
+            dt.push({ name:this.jointList[b], visible:v })
+        }
+
+        this.motor.change( dt )
 
     }
 
@@ -683,7 +721,7 @@ export class SkeletonBody extends Object3D {
 
 	updateMatrixWorld( force ){
 
-        if(!this.ready) return
+        //if(!this.ready) return
 
 		let up = []
 
@@ -699,6 +737,8 @@ export class SkeletonBody extends Object3D {
 
             if( node.kinematic ){
 
+                // update from three to physic
+
                 _endMatrix.multiplyMatrices( bone.matrixWorld, node.decal );
                 _endMatrix.decompose( _p, _q, _s );
 
@@ -711,18 +751,25 @@ export class SkeletonBody extends Object3D {
 
             } else {
 
+                // update from physic to three
+
                 body = this.motor.byName( node.name );
 
                 if(body){
-                    _endMatrix.copy( body.matrixWorld ).multiply( node.decalinv );
-                    bone.phyMtx.copy( _endMatrix );
-                    bone.isPhysics = true;
+                    if(body.actif){
+                        _endMatrix.copy( body.matrixWorld ).multiply( node.decalinv );
+                        bone.phyMtx.copy( _endMatrix );
+                        bone.isPhysics = true;
+                    }
+                    
                 }
             }
 
         }
 
         if( up.length !== 0 ) this.motor.change( up, true );
+
+        super.updateMatrixWorld( force );
 
 	}
 
@@ -749,19 +796,12 @@ export class SkeletonBody extends Object3D {
 function getBoneList( object ) {
 
     const boneList = [];
-
     if ( object.isBone === true ) {
-
         boneList.push( object );
-
     }
-
     for ( let i = 0; i < object.children.length; i ++ ) {
-
-        boneList.push.apply( boneList, getBoneList( object.children[ i ] ) );
-
+        boneList.push( ...getBoneList( object.children[ i ] ) );
     }
-
     return boneList;
 
 }

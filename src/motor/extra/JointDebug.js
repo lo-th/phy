@@ -4,6 +4,10 @@ import {
 
 import { MathTool } from '../../core/MathTool.js';
 import { AutoSvg } from '../../3TH/AutoSvg.js';
+import { CircleHelper } from '../geometries/CircleHelper.js';
+
+const baseGeo1 = new CircleHelper().geometry
+const baseGeo2 = new CircleHelper(null, 1).geometry
 
 export class JointDebug extends Object3D {
 
@@ -14,6 +18,8 @@ export class JointDebug extends Object3D {
 	    this.motor = motor;
 
 	    this.isJoint = true;
+
+	    this.defJoint = false;
 
 	    this.type = 'joint';
 	    this.mode = o.mode || 'hinge';
@@ -87,18 +93,19 @@ export class JointDebug extends Object3D {
 	    	break;
 	    	default:
 
-		    	const geom = this.motor.geo.get('joint');
-			    let g = geom.clone() 
+	    	    this.defJoint = true
+
+		    	//const geom = this.motor.geo.get('joint');
+			    let g = baseGeo1.clone() 
 			    g.scale( this.size, this.size, this.size)
 			    this.m1 = new LineSegments( g, material )
 			    
 			    
 			    this.add( this.m1 )
 
-			    g = geom.clone() 
+			    g = baseGeo2.clone() 
 			    g.scale( this.size*0.8, this.size*0.8, this.size*0.8 );
 			    this.m2 = new LineSegments( g, material )
-			    //this.m2.scale.set( this.size, this.size, this.size)
 			    this.add( this.m2 );
 		    
 	    	break;
@@ -131,6 +138,11 @@ export class JointDebug extends Object3D {
 
 	    this.mat1.setPosition( o.pos1[0], o.pos1[1], o.pos1[2] )
 	    this.mat2.setPosition( o.pos2[0], o.pos2[1], o.pos2[2] )
+
+	    /*if(this.defJoint){
+	    	this.mat1.scale( this.size, this.size, this.size )
+	    	this.mat2.scale( this.size*0.8, this.size*0.8, this.size*0.8 )
+	    }*/
 	    
 	    
 	    const positions = [ 0, 0, 0, 0, 0, 0 ]

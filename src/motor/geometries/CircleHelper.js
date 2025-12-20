@@ -4,9 +4,12 @@ import {
 
 class CircleHelper extends LineSegments {
 
-	constructor( box, color = 0xffff00 ) {
+	constructor( box, color = 0 ) {
 
 		let size=0.6
+
+		let c = [ [1, 0, 0], [0, 1, 0], [0, 0, 1] ]
+		if(color === 1) c = [ [1, 0.2, 0], [0.2, 1, 0], [0, 0.2, 1] ]
 
 		const indices = new Uint16Array( [ 
 			0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 0,   
@@ -19,8 +22,6 @@ class CircleHelper extends LineSegments {
 		   
 		}
 		const positions = [
-
-		
 
 		 0.5, 0.0, 0.0,
 		0.25, 0.433, 0.0,
@@ -52,30 +53,30 @@ class CircleHelper extends LineSegments {
 
 		const colors = [
 
-		0, 0, 1,
-		0, 0, 1,
-		0, 0, 1,
-		0, 0, 1,
-		0, 0, 1,
-		0, 0, 1,
+		...c[2],
+		...c[2],
+		...c[2],
+		...c[2],
+		...c[2],
+		...c[2],
 		
-		0, 1, 0,
-		0, 1, 0,
-		0, 1, 0,
-		0, 1, 0,
-		0, 1, 0,
-		0, 1, 0,
+		...c[1],
+		...c[1],
+		...c[1],
+		...c[1],
+		...c[1],
+		...c[1],
 
-        1, 0, 0,
-		1, 0, 0,
-		1, 0, 0,
-		1, 0, 0,
-		1, 0, 0,
-		1, 0, 0,
+        ...c[0],
+		...c[0],
+		...c[0],
+		...c[0],
+		...c[0],
+		...c[0],
 
-		1, 0, 0,	1, 0, 0,
-		0, 1, 0,	0, 1, 0,
-		0, 0, 1,	0, 0, 1,
+		...c[0],	...c[0],
+		...c[1],	...c[1],
+		...c[2],	...c[2],
 
 		];
 
@@ -86,7 +87,7 @@ class CircleHelper extends LineSegments {
 		geometry.setAttribute( 'position', new Float32BufferAttribute( positions, 3 ) );
 		geometry.setAttribute( 'color', new Float32BufferAttribute( colors, 3 ) );
 
-		super( geometry, new LineBasicMaterial( { color: color, depthTest: false, depthWrite: false, toneMapped: false, transparent: true } ) );
+		super( geometry  );//new LineBasicMaterial( { color: color, depthTest: false, depthWrite: false, toneMapped: false, transparent: true } )
 
 		this.box = box;
 

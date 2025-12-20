@@ -1310,12 +1310,12 @@ const setCamera = ( o ) => {
 
 	//if(o) for( let i in o ){ if( cam[i] !== undefined ) cam[i] = o[i] }
 
-    controls.moveCam( {...CameraBase, ...o } )
+    controls.moveCam( { ...CameraBase, ...o } )
     controls.update()
 
 }
 
-
+Motor.setCamera = setCamera;
 
 //async function setEnv( name, chageUI ) {
 const setEnv = ( name, chageUI ) => {

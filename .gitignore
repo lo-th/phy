@@ -10,6 +10,7 @@ src/_havok
 src/motor_old
 build/old
 assets/models/private
+assets/models/avatar/old
 assets/animation/animations.json
 assets/animation/fbx
 assets/textures/avatar_4k

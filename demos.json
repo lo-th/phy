@@ -4,7 +4,7 @@
             "diamond", "chess", "million", "museum", "dragon", "human", "random", "auto_ragdoll"
         ],
         "basic": [
-            "benchmark", "start", "ragdoll", "basic", "joint", "capsule", "compound", "bridge", "ray_car", "alpine",
+            "benchmark", "start", "ragdoll", "ragdoll2", "basic", "joint", "capsule", "compound", "bridge", "ray_car", "alpine",
             "gears", "terrain", "character", "kinematic", "tower", "gravity", "evangelion", "simple",
             "blast", "material", "keva", "test", "collision", "ball",
             "raycast", "player", "badaboum", "nefertiti", "group_mask"

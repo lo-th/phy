@@ -3,7 +3,7 @@
  * Copyright 2010-2025 Phy.js Authors
  * SPDX-License-Identifier: MIT
  */
-import { LineSegments, BufferGeometry, BufferAttribute, Float32BufferAttribute, LineBasicMaterial, BoxGeometry, Vector3, Matrix4, CylinderGeometry, CircleGeometry, PlaneGeometry, SphereGeometry, Box3, Vector2, CanvasTexture, RepeatWrapping, SRGBColorSpace, MeshPhysicalMaterial, Color, MeshStandardMaterial, ShadowMaterial, MeshToonMaterial, MeshBasicMaterial, MeshLambertMaterial, MeshPhongMaterial, DoubleSide, BackSide, FrontSide, SrcAlphaSaturateFactor, OneMinusDstColorFactor, DstColorFactor, OneMinusDstAlphaFactor, DstAlphaFactor, OneMinusSrcAlphaFactor, SrcAlphaFactor, OneMinusSrcColorFactor, SrcColorFactor, OneFactor, ZeroFactor, MaxEquation, MinEquation, ReverseSubtractEquation, SubtractEquation, AddEquation, MultiplyBlending, SubtractiveBlending, AdditiveBlending, NormalBlending, NoBlending, Line, InstancedMesh, Quaternion as Quaternion$1, Mesh, InstancedBufferAttribute, Object3D, Line3, Plane, Triangle, ShapeGeometry, Euler, Loader, FileLoader, LinearSRGBColorSpace, LoadingManager, EquirectangularReflectionMapping, AnimationMixer, TextureLoader, NoColorSpace, NearestFilter, Texture, CompressedTexture, ObjectSpaceNormalMap, Vector4, CustomBlending, Group, SkeletonHelper, AnimationClip, AnimationUtils, VectorKeyframeTrack, QuaternionKeyframeTrack, AdditiveAnimationBlendMode, NormalAnimationBlendMode, Raycaster, Sphere, PMREMGenerator, Scene, WebGLCubeRenderTarget, HalfFloatType, LinearFilter, CubeCamera, IcosahedronGeometry, ShaderMaterial, NoToneMapping, Ray as Ray$1, BatchedMesh, Frustum, REVISION, DataTexture, FloatType, UnsignedIntType, IntType, WebGLUtils, ColorManagement, RGBAFormat, RGBAIntegerFormat, RGFormat, RGIntegerFormat, RedFormat, RedIntegerFormat, WebGLCoordinateSystem, AxesHelper, Skeleton, MathUtils, Points, InstancedBufferGeometry, InterleavedBuffer, InterleavedBufferAttribute, InstancedInterleavedBuffer, DynamicDrawUsage, Matrix3 } from 'three';
+import { LineSegments, BufferGeometry, BufferAttribute, Float32BufferAttribute, BoxGeometry, Vector3, Matrix4, CylinderGeometry, CircleGeometry, PlaneGeometry, SphereGeometry, Box3, Vector2, CanvasTexture, RepeatWrapping, SRGBColorSpace, MeshPhysicalMaterial, Color, MeshStandardMaterial, ShadowMaterial, MeshToonMaterial, LineBasicMaterial, MeshBasicMaterial, MeshLambertMaterial, MeshPhongMaterial, DoubleSide, BackSide, FrontSide, SrcAlphaSaturateFactor, OneMinusDstColorFactor, DstColorFactor, OneMinusDstAlphaFactor, DstAlphaFactor, OneMinusSrcAlphaFactor, SrcAlphaFactor, OneMinusSrcColorFactor, SrcColorFactor, OneFactor, ZeroFactor, MaxEquation, MinEquation, ReverseSubtractEquation, SubtractEquation, AddEquation, MultiplyBlending, SubtractiveBlending, AdditiveBlending, NormalBlending, NoBlending, Line, InstancedMesh, Quaternion as Quaternion$1, Mesh, InstancedBufferAttribute, Object3D, Line3, Plane, Triangle, ShapeGeometry, Euler, Loader, FileLoader, LinearSRGBColorSpace, LoadingManager, EquirectangularReflectionMapping, AnimationMixer, TextureLoader, NoColorSpace, NearestFilter, Texture, CompressedTexture, ObjectSpaceNormalMap, Vector4, CustomBlending, Group, SkeletonHelper, AnimationClip, AnimationUtils, VectorKeyframeTrack, QuaternionKeyframeTrack, AdditiveAnimationBlendMode, NormalAnimationBlendMode, Raycaster, Sphere, PMREMGenerator, Scene, WebGLCubeRenderTarget, HalfFloatType, LinearFilter, CubeCamera, IcosahedronGeometry, ShaderMaterial, NoToneMapping, Ray as Ray$1, BatchedMesh, Frustum, REVISION, DataTexture, FloatType, UnsignedIntType, IntType, WebGLUtils, ColorManagement, RGBAFormat, RGBAIntegerFormat, RGFormat, RGIntegerFormat, RedFormat, RedIntegerFormat, WebGLCoordinateSystem, AxesHelper, Skeleton, MathUtils, Points, InstancedBufferGeometry, InterleavedBuffer, InterleavedBufferAttribute, InstancedInterleavedBuffer, DynamicDrawUsage, Matrix3 } from 'three';
 import { mergeGeometries, mergeVertices } from 'three/addons/utils/BufferGeometryUtils.js';
 import { SVGLoader } from 'three/addons/loaders/SVGLoader.js';
 import * as SkeletonUtils from 'three/addons/utils/SkeletonUtils.js';
@@ -208,6 +208,93 @@ const M$3 = {
         p = M$3.lerpArray(op, p, t);
         q = M$3.slerpQuatArray(oq, q, t);
         return [p,q]
+    },
+
+    //-----------------------
+    //  MATRIX3
+    //-----------------------
+
+    Mat3FromQuatArray: ( q ) => {
+
+        let q0 = q[3];//w
+        let q1 = q[0];//x
+        let q2 = q[1];//y
+        let q3 = q[2];//z
+
+        // First row of the rotation matrix
+        let r00 = 2 * (q0 * q0 + q1 * q1) - 1;
+        let r01 = 2 * (q1 * q2 - q0 * q3);
+        let r02 = 2 * (q1 * q3 + q0 * q2);
+         
+        // Second row of the rotation matrix
+        let r10 = 2 * (q1 * q2 + q0 * q3);
+        let r11 = 2 * (q0 * q0 + q2 * q2) - 1;
+        let r12 = 2 * (q2 * q3 - q0 * q1);
+         
+        // Third row of the rotation matrix
+        let r20 = 2 * (q1 * q3 - q0 * q2);
+        let r21 = 2 * (q2 * q3 + q0 * q1);
+        let r22 = 2 * (q0 * q0 + q3 * q3) - 1;
+
+        // ROW
+        /*let d = [
+            [r00, r01, r02], 
+            [r01, r11, r12],
+            [r20, r21, r22]
+        ]*/
+
+        // COL
+        let d = [
+            [r00, r10, r20], // axe X
+            [r01, r11, r21], // axe y
+            [r02, r12, r22]  // axe z
+        ];
+
+        //return d;
+
+        // METHODE 2 ?? 
+        
+
+        /*let x = q[0];
+        let y = q[1];
+        let z = q[2];
+        let w = q[3];
+
+        let x2 = 2 * x;
+        let y2 = 2 * y;
+        let z2 = 2 * z;
+
+        let xx = x * x2;
+        let yy = y * y2;
+        let zz = z * z2;
+        let xy = x * y2;
+        let yz = y * z2;
+        let xz = x * z2;
+        let wx = w * x2;
+        let wy = w * y2;
+        let wz = w * z2;*/
+
+        // ROW
+        /*let d = [
+            [1 - yy - zz, xy - wz, xz + wy], 
+            [xy + wz, 1 - xx - zz, yz - wx],
+            [xz - wy, yz + wx, 1 - xx - yy]
+        ]*/
+        // COL
+        /*let d = [
+            [1 - yy - zz, xy + wz, xz - wy], 
+            [ xy - wz, 1 - xx - zz, yz + wx],
+            [xz + wy, yz - wx, 1 - xx - yy]
+        ]*/
+
+        //console.log(d,d2)
+
+
+
+
+        return d;
+        
+
     },
 
     //-----------------------
@@ -597,13 +684,24 @@ const M$3 = {
 
     quatToAxis:( q ) => {
 
-        let w = 2 * Math.acos( q[3] );
-        const s = Math.sqrt( 1 - q[3] * q[3] );
-        if ( s < 0.0001 ) {
+        2 * Math.acos( q[3] );
+        let s = Math.sqrt( 1 - q[3] * q[3] );
+
+        if ( s < 0.00001 ) {
+            // test to avoid divide by zero, s is always positive due to sqrt
+            // if s close to zero then direction of axis not important
+            // http://www.euclideanspace.com/maths/geometry/rotations/conversions/quaternionToAngle/   
+            s = 1;
+        } 
+        
+        return [ q[0] / s, q[1] / s, q[2] / s ]
+        
+
+        /*if ( s < 0.00001 ) {
             return [1,0,0]
         } else {
              return [ q[0] / s, q[1] / s, q[2] / s, w ]
-        }
+        }*/
     },
 
     eulerFromMatrix: (te) => {
@@ -647,16 +745,82 @@ const M$3 = {
 
     getSize: ( r ) => ( ( r.byteLength * 0.001 ) +'kb' ),
 
-    // Creates a vector normal (perpendicular) to the current Vector3
+    // Creates a vector normal (perpendicular) to the current Vector3 
+    // TODO bug !!!! function from babylone js
 
+    
+
+     // computes a normalized vector perpendicular to the src
+
+    perpendicularArray0: ( v ) => { 
+
+        const x1 = v[0];
+        const y1 = v[1];
+        const z1 = v[2];
+
+        const x2 = x1 * x1;
+        const y2 = y1 * y1;
+        const z2 = z1 * z1;
+
+        let d;
+        let axe;// = 'X'
+
+        if(x2<y2){
+            if(x2<z2){
+                axe = 'X';
+            }else {
+                axe = 'Z';
+            }
+        } else {
+            if(y2<z2){
+                axe = 'Y';
+            } else {
+                axe = 'Z';
+            }
+        }
+
+        switch(axe){
+            case 'X':
+            d = 1 / Math.sqrt(y2 + z2);
+            return [0, z1 * d, -y1 * d]
+            case 'Y':
+            d = 1 / Math.sqrt(z2 + x2);
+            return [-z1 * d, 0, x1 * d]
+            case 'Z':
+            d = 1 / Math.sqrt(x2 + y2);
+            return [y1 * d, -x1 * d, 0]
+        }
+
+    },
+    /**
+     * Creates a vector normal (perpendicular) to the current Vector3 and stores the result in the given vector
+     * Out of the infinite possibilities the normal chosen is the one formed by rotating the current vector
+     * 90 degrees about an axis which lies perpendicular to the current vector
+     * and its projection on the xz plane. In the case of a current vector in the xz plane
+     * the normal is calculated to be along the y axis.
+     * Example Playground https://playground.babylonjs.com/#R1F8YU#230
+     * Example Playground https://playground.babylonjs.com/#R1F8YU#231
+     * @param result defines the Vector3 object where to store the resultant normal
+     * @returns the result
+     */
     perpendicularArray: ( v ) => { 
 
         const radius = Math.sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]);
         let theta = Math.acos(v[1] / radius);
         const phi = Math.atan2(v[2], v[0]);
+
         //makes angle 90 degs to current vector
-        if( theta > PI90 ) theta -= PI90;
-        else theta += PI90;
+        /*if (theta > Math.PI / 2) {
+            theta -= Math.PI / 2;
+        } else {
+            theta += Math.PI / 2;
+        }*/
+
+        //console.log(theta < PI90)
+        //makes angle 90 degs to current vector
+        //if( theta > PI90 ) theta -= PI90;
+        //else 
+         theta -= PI90;
         //Calculates resutant normal vector from spherical coordinate of perpendicular vector
         const x = radius * Math.sin(theta) * Math.cos(phi);
         const y = radius * Math.cos(theta);
@@ -1353,9 +1517,12 @@ const getType = function ( o ) {
 
 class CircleHelper extends LineSegments {
 
-	constructor( box, color = 0xffff00 ) {
+	constructor( box, color = 0 ) {
 
 		let size=0.6;
+
+		let c = [ [1, 0, 0], [0, 1, 0], [0, 0, 1] ];
+		if(color === 1) c = [ [1, 0.2, 0], [0.2, 1, 0], [0, 0.2, 1] ];
 
 		const indices = new Uint16Array( [ 
 			0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 0,   
@@ -1364,8 +1531,6 @@ class CircleHelper extends LineSegments {
 			18,19, 20,21, 22, 23,
 			] );
 		const positions = [
-
-		
 
 		 0.5, 0.0, 0.0,
 		0.25, 0.433, 0.0,
@@ -1397,30 +1562,30 @@ class CircleHelper extends LineSegments {
 
 		const colors = [
 
-		0, 0, 1,
-		0, 0, 1,
-		0, 0, 1,
-		0, 0, 1,
-		0, 0, 1,
-		0, 0, 1,
+		...c[2],
+		...c[2],
+		...c[2],
+		...c[2],
+		...c[2],
+		...c[2],
 		
-		0, 1, 0,
-		0, 1, 0,
-		0, 1, 0,
-		0, 1, 0,
-		0, 1, 0,
-		0, 1, 0,
+		...c[1],
+		...c[1],
+		...c[1],
+		...c[1],
+		...c[1],
+		...c[1],
 
-        1, 0, 0,
-		1, 0, 0,
-		1, 0, 0,
-		1, 0, 0,
-		1, 0, 0,
-		1, 0, 0,
+        ...c[0],
+		...c[0],
+		...c[0],
+		...c[0],
+		...c[0],
+		...c[0],
 
-		1, 0, 0,	1, 0, 0,
-		0, 1, 0,	0, 1, 0,
-		0, 0, 1,	0, 0, 1,
+		...c[0],	...c[0],
+		...c[1],	...c[1],
+		...c[2],	...c[2],
 
 		];
 
@@ -1431,7 +1596,7 @@ class CircleHelper extends LineSegments {
 		geometry.setAttribute( 'position', new Float32BufferAttribute( positions, 3 ) );
 		geometry.setAttribute( 'color', new Float32BufferAttribute( colors, 3 ) );
 
-		super( geometry, new LineBasicMaterial( { color: color, depthTest: false, depthWrite: false, toneMapped: false, transparent: true } ) );
+		super( geometry  );//new LineBasicMaterial( { color: color, depthTest: false, depthWrite: false, toneMapped: false, transparent: true } )
 
 		this.box = box;
 
@@ -4590,7 +4755,12 @@ class CapsuleHelper extends Object3D {
 		geometry.setAttribute( 'position', new Float32BufferAttribute( positions, 3 ) );
 		geometry.setAttribute( 'color', new Float32BufferAttribute( colors, 3 ) );
 
+		//const indices = geometry.getIndex();
+		//console.log(indices)
+
+		//geometry = mergeVertices( geometry );
 		geometry.computeBoundingSphere();
+
 
 		this.colors = geometry.attributes.color.array;
 		this.colorsbase = [...this.colors];
@@ -4726,10 +4896,345 @@ class CapsuleHelper extends Object3D {
 
 }
 
+/**
+ * Helper object to graphically show the world-axis-aligned bounding box
+ * around an object. The actual bounding box is handled with {@link Box3},
+ * this is just a visual helper for debugging. It can be automatically
+ * resized with {@link BoxHelper#update} when the object it's created from
+ * is transformed. Note that the object must have a geometry for this to work,
+ * so it won't work with sprites.
+ *
+ * ```js
+ * const sphere = new THREE.SphereGeometry();
+ * const object = new THREE.Mesh( sphere, new THREE.MeshBasicMaterial( 0xff0000 ) );
+ * const box = new THREE.BoxHelper( object, 0xffff00 );
+ * scene.add( box );
+ * ```
+ *
+ * @augments LineSegments
+ */
+class SphereHelper extends LineSegments {
+
+	/**
+	 * Constructs a new box helper.
+	 *
+	 * @param {Object3D} [object] - The 3D object to show the world-axis-aligned bounding box.
+	 * @param {number|Color|string} [color=0xffff00] - The box's color.
+	 */
+	constructor( material, c1 = [0,1,0] ) {
+
+		//const indices = new Uint16Array( [ 0, 1, 1, 2, 2, 3, 3, 0, 4, 5, 5, 6, 6, 7, 7, 4, 0, 4, 1, 5, 2, 6, 3, 7 ] );
+		const positions = [];//new Float32Array( 8 * 3 );
+		const colors = [];//new Float32Array( 8 * 3 );
+
+		let side = 12;
+		let r = 1;
+
+		for ( let i = 0, j = 1; i < side; i ++, j ++ ) {
+
+			const p1 = ( i / side ) * Math.PI * 2;
+			const p2 = ( j / side ) * Math.PI * 2;
+
+			positions.push(
+				r*Math.cos( p1 ), 0, r*Math.sin( p1 ),
+				r*Math.cos( p2 ), 0, r*Math.sin( p2 ),
+
+				r*Math.cos( p1 ), 0, r*Math.sin( p1 ),
+				r*Math.cos( p2 ), 0, r*Math.sin( p2 ),
+			);
+
+			colors.push(
+				...c1,...c1,
+				...c1,...c1,
+			);
+
+		}
+
+		for ( let i = 0, j = 1; i < side; i ++, j ++ ) {
+
+			const p1 = ( i / side ) * Math.PI * 2;
+			const p2 = ( j / side ) * Math.PI * 2;
+
+			positions.push(
+				r*Math.cos( p1 ), r*Math.sin( p1 ), 0,
+				r*Math.cos( p2 ), r*Math.sin( p2 ), 0,
+
+				r*Math.cos( p1 ), r*Math.sin( p1 ), 0,
+				r*Math.cos( p2 ), r*Math.sin( p2 ), 0,
+			);
+
+			colors.push(
+				...c1,...c1,
+				...c1,...c1,
+			);
+
+		}
+
+		for ( let i = 0, j = 1; i < side; i ++, j ++ ) {
+
+			const p1 = ( i / side ) * Math.PI * 2;
+			const p2 = ( j / side ) * Math.PI * 2;
+
+			positions.push(
+				0,r*Math.cos( p1 ), r*Math.sin( p1 ),
+				0,r*Math.cos( p2 ), r*Math.sin( p2 ),
+
+				0,r*Math.cos( p1 ), r*Math.sin( p1 ),
+				0,r*Math.cos( p2 ), r*Math.sin( p2 ),
+			);
+
+			colors.push(
+				...c1,...c1,
+				...c1,...c1,
+			);
+
+		}
+
+		const geometry = new BufferGeometry();
+		//geometry.setIndex( new BufferAttribute( indices, 1 ) );
+		geometry.setAttribute( 'position', new Float32BufferAttribute( positions, 3 ) );
+		geometry.setAttribute( 'color', new Float32BufferAttribute( colors, 3 ) );
+
+		//geometry = mergeVertices( geometry );
+
+		super( geometry, material );
+
+		/**
+		 * The 3D object being visualized.
+		 *
+		 * @type {Object3D}
+		 */
+		//this.object = object;
+		this.type = 'SphereHelper';
+		this.isOver = false;
+		this.colorsbase = [...geometry.attributes.color.array];
+		this.colors = geometry.attributes.color.array;
+
+		this.matrixAutoUpdate = false;
+
+	}
+
+	over(b){
+
+		if(b){
+			if(!this.isOver){
+				this.isOver = true;
+				this.setColor(this.isOver);
+			}
+		}else {
+			if(this.isOver){
+				this.isOver = false;
+				this.setColor(this.isOver);
+		    }
+		}
+
+	}
+
+	setColor(b) {
+
+		let i = this.colors.length;
+		while(i--) this.colors[i] = b ? 1 : this.colorsbase[i];
+		if( this.geometry ) this.geometry.attributes.color.needsUpdate = true;
+
+	}
+
+	copy( source, recursive ) {
+
+		super.copy( source, recursive );
+
+		this.object = source.object;
+
+		return this;
+
+	}
+
+	/**
+	 * Frees the GPU-related resources allocated by this instance. Call this
+	 * method whenever this instance is no longer used in your app.
+	 */
+	dispose() {
+
+		this.geometry.dispose();
+		this.material.dispose();
+
+	}
+
+	raycast(){
+		return false
+	}
+
+}
+
+/**
+ * Helper object to graphically show the world-axis-aligned bounding box
+ * around an object. The actual bounding box is handled with {@link Box3},
+ * this is just a visual helper for debugging. It can be automatically
+ * resized with {@link BoxHelper#update} when the object it's created from
+ * is transformed. Note that the object must have a geometry for this to work,
+ * so it won't work with sprites.
+ *
+ * ```js
+ * const sphere = new THREE.SphereGeometry();
+ * const object = new THREE.Mesh( sphere, new THREE.MeshBasicMaterial( 0xff0000 ) );
+ * const box = new THREE.BoxHelper( object, 0xffff00 );
+ * scene.add( box );
+ * ```
+ *
+ * @augments LineSegments
+ */
+class BoxHelperExtra extends LineSegments {
+
+	/**
+	 * Constructs a new box helper.
+	 *
+	 * @param {Object3D} [object] - The 3D object to show the world-axis-aligned bounding box.
+	 * @param {number|Color|string} [color=0xffff00] - The box's color.
+	 */
+	constructor( material, c1 = [0,1,0] ) {
+
+		const indices = new Uint16Array( [ 0, 1, 1, 2, 2, 3, 3, 0, 4, 5, 5, 6, 6, 7, 7, 4, 0, 4, 1, 5, 2, 6, 3, 7 ] );
+		const positions = new Float32Array( 8 * 3 );
+		const colors = new Float32Array( 8 * 3 );
+
+
+
+		
+
+		const geometry = new BufferGeometry();
+		geometry.setIndex( new BufferAttribute( indices, 1 ) );
+		geometry.setAttribute( 'position', new BufferAttribute( positions, 3 ) );
+		geometry.setAttribute( 'color', new BufferAttribute( colors, 3 ) );
+
+		super( geometry, material );
+
+		/**
+		 * The 3D object being visualized.
+		 *
+		 * @type {Object3D}
+		 */
+		//this.object = object;
+		this.type = 'BoxHelper';
+		this.isOver = false;
+		this.colorsbase = [...c1, ...c1, ...c1, ...c1, ...c1, ...c1, ...c1, ...c1];
+		this.colors = geometry.attributes.color.array;
+
+		this.matrixAutoUpdate = false;
+
+		this.update();
+
+	}
+
+	/**
+	 * Updates the helper's geometry to match the dimensions of the object,
+	 * including any children.
+	 */
+	update() {
+
+		/*if ( this.object !== undefined ) {
+
+			_box.setFromObject( this.object );
+
+		}
+
+		if ( _box.isEmpty() ) return;*/
+
+		//const min = {x:-size[0]*0.5, y:-size[1]*0.5, z:-size[2]*0.5 };
+		//const max = {x:size[0]*0.5, y:size[1]*0.5, z:size[2]*0.5 };
+
+		const min = {x:-0.5, y:-0.5, z:-0.5 };
+		const max = {x:0.5, y:0.5, z:0.5 };
+
+		/*
+			5____4
+		1/___0/|
+		| 6__|_7
+		2/___3/
+
+		0: max.x, max.y, max.z
+		1: min.x, max.y, max.z
+		2: min.x, min.y, max.z
+		3: max.x, min.y, max.z
+		4: max.x, max.y, min.z
+		5: min.x, max.y, min.z
+		6: min.x, min.y, min.z
+		7: max.x, min.y, min.z
+		*/
+
+		const position = this.geometry.attributes.position;
+		const array = position.array;
+
+		array[ 0 ] = max.x; array[ 1 ] = max.y; array[ 2 ] = max.z;
+		array[ 3 ] = min.x; array[ 4 ] = max.y; array[ 5 ] = max.z;
+		array[ 6 ] = min.x; array[ 7 ] = min.y; array[ 8 ] = max.z;
+		array[ 9 ] = max.x; array[ 10 ] = min.y; array[ 11 ] = max.z;
+		array[ 12 ] = max.x; array[ 13 ] = max.y; array[ 14 ] = min.z;
+		array[ 15 ] = min.x; array[ 16 ] = max.y; array[ 17 ] = min.z;
+		array[ 18 ] = min.x; array[ 19 ] = min.y; array[ 20 ] = min.z;
+		array[ 21 ] = max.x; array[ 22 ] = min.y; array[ 23 ] = min.z;
+
+		position.needsUpdate = true;
+
+		this.setColor(false);
+
+		this.geometry.computeBoundingSphere();
+
+	}
+
+	over(b){
+
+		if(b){
+			if(!this.isOver){
+				this.isOver = true;
+				this.setColor(this.isOver);
+			}
+		}else {
+			if(this.isOver){
+				this.isOver = false;
+				this.setColor(this.isOver);
+		    }
+		}
+
+	}
+
+	setColor(b) {
+
+		let i = this.colors.length;
+		while(i--) this.colors[i] = b ? 1 : this.colorsbase[i];
+		if( this.geometry ) this.geometry.attributes.color.needsUpdate = true;
+
+	}
+
+	copy( source, recursive ) {
+
+		super.copy( source, recursive );
+
+		this.object = source.object;
+
+		return this;
+
+	}
+
+	/**
+	 * Frees the GPU-related resources allocated by this instance. Call this
+	 * method whenever this instance is no longer used in your app.
+	 */
+	dispose() {
+
+		this.geometry.dispose();
+		this.material.dispose();
+
+	}
+
+	raycast(){
+		return false
+	}
+
+}
+
 const Visible = 0;
 const Deleted = 1;
 
-const _v1 = new Vector3();
+const _v1$1 = new Vector3();
 const _line3 = new Line3();
 const _plane = new Plane();
 const _closestPoint = new Vector3();
@@ -4959,7 +5464,7 @@ class ConvexHull {
 	 */
 	intersectsRay( ray ) {
 
-		return this.intersectRay( ray, _v1 ) !== null;
+		return this.intersectRay( ray, _v1$1 ) !== null;
 
 	}
 
@@ -6801,11 +7306,14 @@ class Body extends Item {
 
 			case 'capsule':
 
+			    if( o.helper ) seg = 4;
+
 			    gName = 'capsule_' + s[ 0 ] +'_'+s[ 1 ] + '_' + seg; 
 
 			    g = Geo.get( gName );
 			    if(!g){
 			    	//if( o.helper ) g = new CapsuleHelperGeometry( s[ 0 ], s[ 1 ] )
+
 					//else 
 					g = new Capsule( s[ 0 ], s[ 1 ], seg );
 					g.name = gName;
@@ -6913,7 +7421,10 @@ class Body extends Item {
 			let hcolor2 = o.hcolor2 || [0.8,0.2,0.0];
 
 			// TODO bug with character
-			let hh = new CapsuleHelper( s[ 0 ], s[ 1 ]+(s[ 0 ]*2), false, Mat$2.get( 'liner' ), hcolor, hcolor2, true );
+			let hh;
+			if(t === 'capsule') hh = new CapsuleHelper( s[ 0 ], s[ 1 ]+(s[ 0 ]*2), false, Mat$2.get( 'liner' ), hcolor, hcolor2, true );
+			else if(t==='sphere') hh = new SphereHelper( Mat$2.get( 'liner' ), hcolor );
+			else hh = new BoxHelperExtra( Mat$2.get( 'liner' ), hcolor );
 			m.add( hh );
 			m.userData['helper'] = hh;
 
@@ -6934,7 +7445,7 @@ class Body extends Item {
     	// add or not add
     	if( !o.meshRemplace || o.debug ){ 
     		b.add( m );
-    		if(m.userData.helper) b.over = (b)=>{ m.userData.helper.over(b); };
+    		//if(m.userData.helper) b.over = (b)=>{ m.userData.helper.over(b) }
     	}
 
 	}
@@ -7301,21 +7812,33 @@ class Body extends Item {
 		    	// extra function to display wireframe over object
 
 		    	b.addOutLine = function(){
-		    		if( !this.children[0].isMesh ) return;
-		    		this.outline = new Mesh().copy( this.children[0] );
-					this.outline.name = "outline";
-					this.outline.material = this.overMaterial;
-					this.outline.matrixAutoUpdate = false;
-					this.outline.receiveShadow = false;
-					this.outline.castShadow = false;
-					this.outline.raycast = () => ( false );
-					this.add( this.outline );
+		    		let child = this.children[0];
+		    		if( !child.isMesh ) return;
+
+		    		if(child.userData.helper) child.userData.helper.over(true);
+		    		else {
+		    			this.outline = new Mesh().copy( child );
+						this.outline.name = "outline";
+						this.outline.material = this.overMaterial;
+						this.outline.matrixAutoUpdate = false;
+						this.outline.receiveShadow = false;
+						this.outline.castShadow = false;
+						this.outline.raycast = () => ( false );
+						this.add( this.outline );
+		    		}
+		    		
 		    	}.bind(b);
 
 		    	b.clearOutLine = function(){
-		    		if( !this.outline ) return;
-					this.remove(this.outline);
-					this.outline = null;
+
+		    		let child = this.children[0];
+		    		
+		    		if(child && child.userData.helper) child.userData.helper.over(false);
+					else {
+						if( !this.outline ) return;
+						this.remove(this.outline);
+						this.outline = null;
+					}
 		    	}.bind(b);
 
 		    	b.over = function(v){
@@ -7928,6 +8451,9 @@ class AutoSvg extends Mesh {
 
 }
 
+const baseGeo1 = new CircleHelper().geometry;
+const baseGeo2 = new CircleHelper(null, 1).geometry;
+
 class JointDebug extends Object3D {
 
 	constructor( o = {}, motor ) {
@@ -7937,6 +8463,8 @@ class JointDebug extends Object3D {
 	    this.motor = motor;
 
 	    this.isJoint = true;
+
+	    this.defJoint = false;
 
 	    this.type = 'joint';
 	    this.mode = o.mode || 'hinge';
@@ -8010,18 +8538,19 @@ class JointDebug extends Object3D {
 	    	break;
 	    	default:
 
-		    	const geom = this.motor.geo.get('joint');
-			    let g = geom.clone(); 
+	    	    this.defJoint = true;
+
+		    	//const geom = this.motor.geo.get('joint');
+			    let g = baseGeo1.clone(); 
 			    g.scale( this.size, this.size, this.size);
 			    this.m1 = new LineSegments( g, material );
 			    
 			    
 			    this.add( this.m1 );
 
-			    g = geom.clone(); 
+			    g = baseGeo2.clone(); 
 			    g.scale( this.size*0.8, this.size*0.8, this.size*0.8 );
 			    this.m2 = new LineSegments( g, material );
-			    //this.m2.scale.set( this.size, this.size, this.size)
 			    this.add( this.m2 );
 		    
 	    	break;
@@ -8054,6 +8583,11 @@ class JointDebug extends Object3D {
 
 	    this.mat1.setPosition( o.pos1[0], o.pos1[1], o.pos1[2] );
 	    this.mat2.setPosition( o.pos2[0], o.pos2[1], o.pos2[2] );
+
+	    /*if(this.defJoint){
+	    	this.mat1.scale( this.size, this.size, this.size )
+	    	this.mat2.scale( this.size*0.8, this.size*0.8, this.size*0.8 )
+	    }*/
 	    
 	    
 	    const positions = [ 0, 0, 0, 0, 0, 0 ];
@@ -8151,6 +8685,9 @@ class JointDebug extends Object3D {
 
 }
 
+const Q$1 = new Quaternion$1();
+
+
 //----------------
 //  MOTOR JOINT 
 //----------------
@@ -8232,10 +8769,21 @@ class Joint extends Item {
 
 		// world to local
 		if ( o.worldPos ) o.worldAnchor = o.worldPos;
+
 		if ( o.worldAnchor ){
 
-			o.pos1 = body1 ? this.Utils.toLocal( this.v1.fromArray( o.worldAnchor ), body1 ).toArray() : o.worldAnchor;
-			o.pos2 = body2 ? this.Utils.toLocal( this.v2.fromArray( o.worldAnchor ), body2 ).toArray() : o.worldAnchor;
+			//o.pos1 = body1 ? this.Utils.toLocal( this.v1.fromArray( o.worldAnchor ), body1 ).toArray() : o.worldAnchor;
+			//o.pos2 = body2 ? this.Utils.toLocal( this.v2.fromArray( o.worldAnchor ), body2 ).toArray() : o.worldAnchor;
+
+			//o.pos1 = body1 ? this.Utils.toLocal2( o.worldAnchor, body1 ) : o.worldAnchor;
+			//o.pos2 = body2 ? this.Utils.toLocal2( o.worldAnchor, body2 ) : o.worldAnchor;
+
+			o.pos1 = body1 ? this.Utils.toLocal2( o.worldAnchor, body1 ) : o.worldAnchor;
+			o.pos2 = body2 ? this.Utils.toLocal2( o.worldAnchor, body2 ) : o.worldAnchor;
+
+			//console.log("POS", o.pos1, o.pos2, os1, os2)
+			
+
 			/*if(body1){ 
 				this.v1 = body1.worldToLocal(this.v2.fromArray( o.worldAnchor ));
 				o.pos1 = this.v1.toArray();
@@ -8249,20 +8797,32 @@ class Joint extends Item {
 
 		if ( o.worldAxis ){
 
-			
-			/*if( this.engine === 'JOLT'){
-				o.axis1 = o.worldAxis;
-				o.axis2 = o.worldAxis;
-			}else{*/
-				o.axis1 = body1 ? this.Utils.toLocal( this.v1.fromArray( o.worldAxis ), body1, true ).toArray() : o.worldAxis;
-			    o.axis2 = body2 ? this.Utils.toLocal( this.v2.fromArray( o.worldAxis ), body2, true ).toArray() : o.worldAxis;
-			//}
+			//o.axis1 = body1 ? this.Utils.toLocal( this.v1.fromArray( o.worldAxis ), body1, true ).toArray() : o.worldAxis;
+		    //o.axis2 = body2 ? this.Utils.toLocal( this.v2.fromArray( o.worldAxis ), body2, true ).toArray() : o.worldAxis;
+
+			o.axis1 = body1 ? this.Utils.toLocal2( o.worldAxis, body1, true ) : o.worldAxis;
+		    o.axis2 = body2 ? this.Utils.toLocal2( o.worldAxis, body2, true ) : o.worldAxis;
+
+			 
 			
 			//o.quat1 = new Quaternion().setFromUnitVectors( new Vector3(1, 0, 0), new Vector3().fromArray(o.axis1).normalize() ).toArray();
 		    //o.quat2 = new Quaternion().setFromUnitVectors( new Vector3(1, 0, 0), new Vector3().fromArray(o.axis2).normalize() ).toArray();
 
 			//console.log(o.worldAxis, o.axis1, o.axis2)
 			isWorldAxis = true;
+
+			/*if( this.engine === 'HAVOK' ){
+
+				let a1 = new Vector3().fromArray(o.axis1)
+				let a2 = new Vector3().fromArray(o.axis2)
+
+				o.axis1 = MathTool.quatToAxis(new Quaternion().setFromUnitVectors( a1, new Vector3(1, 0, 0) ).toArray());
+			    o.axis2 = MathTool.quatToAxis(new Quaternion().setFromUnitVectors( a2, new Vector3(1, 0, 0) ).toArray());
+
+				o.axis1Y = MathTool.quatToAxis(new Quaternion().setFromUnitVectors( a1, new Vector3(0, 1, 0) ).toArray());
+			    o.axis2Y = MathTool.quatToAxis(new Quaternion().setFromUnitVectors( a2, new Vector3(0, 1, 0) ).toArray());
+			    
+			}*/
 
 			delete o.worldAxis;
 
@@ -8273,18 +8833,56 @@ class Joint extends Item {
 			o.quat1 = this.Utils.quatLocal(o.worldQuat, body1);
 			o.quat2 = this.Utils.quatLocal(o.worldQuat, body2);
 
-
-
-			if( this.engine === 'OIMO' || this.engine === 'HAVOK' || this.engine === 'JOLT' ){
+			if( this.engine === 'OIMO' ||  this.engine === 'JOLT' ){//this.engine === 'HAVOK' ||
 
 				//this.v1.fromArray( math.quadToAxisArray( o.worldQuat ) ).normalize()
 				//this.v2.fromArray( math.quadToAxisArray( o.worldQuat ) ).normalize()
+                /*let q1 = new Quaternion().fromArray(o.worldQuat)
+                let q2 = new Quaternion().setFromAxisAngle({x:0,y:1,z:0}, -Math.PI*0.5)
+				let qqq = q2.multiply(q1).normalize().toArray()*/
+
+				//console.log(q1, q2, qqq)
 
 				//o.axis1 = Utils.axisLocal( math.quadToAxisArray( o.worldQuat ), body1)//this.v1.fromArray( math.quadToAxisArray( o.quat1 ) ).normalize().toArray()
 				//o.axis2 = Utils.axisLocal( math.quadToAxisArray( o.worldQuat ), body2)//this.v2.fromArray( math.quadToAxisArray( o.quat2 ) ).normalize().toArray()
 
-				o.axis1 = this.Utils.axisLocal( MathTool.quatToAxis( o.worldQuat ), body1);
-				o.axis2 = this.Utils.axisLocal( MathTool.quatToAxis( o.worldQuat ), body2);
+				MathTool.quatToAxis( o.worldQuat );
+				//let axeB = MathTool.perpendicularArray0( axeA )//this.v1.fromArray(MathTool.quatToAxis( o.worldQuat )).applyAxisAngle({x:0,y:1,z:0}, -Math.PI*0.5 ).toArray()
+				//let axeB = MathTool.normalizeArray( MathTool.quatToAxis( qqq ))//this.v1.fromArray(axeA).applyAxisAngle({x:0,y:1,z:0}, Math.PI*0.5 ).toArray()
+
+				o.axis1 = MathTool.quatToAxis( o.quat1 );//this.Utils.axisLocal( axeA, body1)
+				o.axis2 = MathTool.quatToAxis( o.quat2 );//this.Utils.axisLocal( axeA, body2)
+
+				//console.log("B", axeB)
+
+				/*if( this.engine === 'HAVOK' ){
+
+					let a1 = new Vector3().fromArray(o.axis1)
+					let a2 = new Vector3().fromArray(o.axis2)
+
+					o.axis1 = MathTool.quatToAxis(new Quaternion().setFromUnitVectors( a1, new Vector3(1, 0, 0) ).toArray());
+				    o.axis2 = MathTool.quatToAxis(new Quaternion().setFromUnitVectors( a2,  new Vector3(1, 0, 0), ).toArray());
+
+					o.axis1Y = MathTool.quatToAxis(new Quaternion().setFromUnitVectors( a1, new Vector3(0, 1, 0) ).toArray());
+				    o.axis2Y = MathTool.quatToAxis(new Quaternion().setFromUnitVectors( a2,  new Vector3(0, 1, 0), ).toArray());
+				    
+				}*/
+
+				/*
+
+				
+
+				o.axis1Y = this.Utils.axisLocal( qqq, body1)
+				o.axis2Y = this.Utils.axisLocal( qqq, body2)*/
+				//let qq2 = MathTool.quatMultiply( qq, MathTool.quatToAxis( o.worldQuat ) )
+
+				//o.axis1Y = this.v1.fromArray(MathTool.quatToAxis( o.worldQuat )).applyAxisAngle({x:0,y:1,z:0}, -Math.PI*0.5 ).toArray()
+				//o.axis2Y = this.v2.fromArray(MathTool.quatToAxis( o.worldQuat )).applyAxisAngle({x:0,y:1,z:0}, -Math.PI*0.5 ).toArray()
+
+				
+
+				//o.axis1Y = this.Utils.axisLocal( axeB, body1)
+				//o.axis2Y = this.Utils.axisLocal( axeB, body2)
 
 				//o.axis1 = body1 ? Utils.toLocal( this.v1, body1, true ).toArray():[1,0,0]
 				//o.axis2 = body2 ? Utils.toLocal( this.v2, body2, true ).toArray():[1,0,0]
@@ -8305,9 +8903,6 @@ class Joint extends Item {
 
 		}
 
-		
-
-		
 
 		/*if( o.b2 ) body2 = typeof o.b2 !== 'string' ? o.b2 : Utils.byName(o.b2)
 		if( o.b1 && typeof o.b1 !== 'string') o.b1 = o.b1.name;
@@ -8316,8 +8911,21 @@ class Joint extends Item {
 		if( o.rot1 !== undefined ){ o.quat1 = MathTool.quatFromEuler( o.rot1 ); delete ( o.rot1 ); }
 		if( o.rot2 !== undefined ){ o.quat2 = MathTool.quatFromEuler( o.rot2 ); delete ( o.rot2 ); }
 
-		if( !o.quat1 ) o.quat1 = new Quaternion$1().setFromUnitVectors( new Vector3(1, 0, 0), new Vector3().fromArray(o.axis1).normalize() ).toArray();
-		if( !o.quat2 ) o.quat2 = new Quaternion$1().setFromUnitVectors( new Vector3(1, 0, 0), new Vector3().fromArray(o.axis2).normalize() ).toArray();
+		if( !o.quat1 ) o.quat1 = Q$1.setFromUnitVectors( new Vector3(1, 0, 0), new Vector3().fromArray(o.axis1).normalize() ).toArray();
+		if( !o.quat2 ) o.quat2 = Q$1.setFromUnitVectors( new Vector3(1, 0, 0), new Vector3().fromArray(o.axis2).normalize() ).toArray();
+
+
+		if( this.engine === 'HAVOK' ){ 
+			//o.quat1 = MathTool.quatNomalize(o.quat1)
+			let m31 = MathTool.Mat3FromQuatArray( o.quat1 );
+			let m32 = MathTool.Mat3FromQuatArray( o.quat2 );
+
+			o.axis1 = m31[0];
+			o.axis1Y = m31[1];
+
+			o.axis2 = m32[0];
+			o.axis2Y = m32[1];
+		}
 
 		if( this.engine === 'AMMO' && isWorldAxis && o.mode === 'hinge') {
 			let ee = new Euler(0, -90*torad$3, 0);
@@ -8341,6 +8949,8 @@ class Joint extends Item {
 
 		// add to world
 		this.addToWorld( j, o.id );
+
+		//console.log(j)
 
 		// add to worker 
 		this.motor.post( { m:'add', o:o } );
@@ -8924,6 +9534,8 @@ const _matrixWorldInv = /*@__PURE__*/ new Matrix4();
 const _boneMatrix = /*@__PURE__*/ new Matrix4();
 const Spine = [ 'hip', 'abdomen', 'abdomen2', 'chest', 'neck', 'head', 'rCollar', 'lCollar', 'lShldr', 'rShldr', 'lThigh', 'rThigh', 'rBreast', 'lBreast' ];
 
+//const NeedFixe = [  'abdomen', 'neck'];
+
 class SkeletonBody extends Object3D {
 
 	constructor ( motor, name, model, bones, mass = null, option = {} ) {
@@ -8939,8 +9551,11 @@ class SkeletonBody extends Object3D {
         this.withFinger = false;
 
         this.nodes = [];
-		this.bones = bones;//character.model.skeleton.bones;
+		//this.bones = bones;//character.model.skeleton.bones;
 		this.model = model;//character.model.root;
+
+        // HERE IS THE FIXE :)
+        this.bones = getBoneList(model);
        
         this.scaler = this.model.scale.x; 
         this.posRef = {};
@@ -8955,6 +9570,9 @@ class SkeletonBody extends Object3D {
         this.breast = false;
         this.ready = false;
 
+        this.withBreast = option.breast || false;
+
+        this.matrix = model.matrixWorld;
         this.matrixAutoUpdate = false;
 
         this.mass = mass; 
@@ -8975,12 +9593,22 @@ class SkeletonBody extends Object3D {
 
         let i, lng = this.bones.length;
         for( i = 0; i < lng; i++ ){
-
+            //this.bones[i].updateMatrixWorld( true, false );
             if(this.bones[i].name === 'abdomen2') this.isTreeSpine = true;
 
         }
 
-        console.log('is three spine model '+ this.isTreeSpine);
+        //this.bones[0].updateMatrixWorld( true, true );
+        //console.log('is three spine model '+ this.isTreeSpine)
+
+    }
+
+    wake(){
+
+        const d = [];
+        let i = this.nodes.length;
+        while( i-- ) d.push( { name:this.nodes[i].name, wake:true } );
+        this.motor.change( d );
 
     }
 
@@ -9047,20 +9675,42 @@ class SkeletonBody extends Object3D {
 
     }
 
+    init(){
+            
+        this.addNode();
+        this.addLink();
 
-	init(){
+        
+        if( this.useSolver ){
 
-        if( this.useSolver ) this.solver = this.motor.add({ 
-            type:'solver', name:this.prefix+'_solver', iteration:32,
-            fix:true, needData:true
-        });
+            this.solver = this.motor.add({ type:'solver', name:this.prefix+'_solver', iteration:32, fix:true, needData:false });
+            
+            this.motor.add( [...this.bodyData ] );
+            for(let j in this.linkData){
+                this.solver.addJoint(this.linkData[j]);
+            }
+
+            this.solver.start();
+            //this.solver.commonInit();
+
+        } else {
+
+            this.motor.add( [...this.bodyData, ...this.linkData ] );
+        }
+
+        
+        this.dispatchEvent( { type: 'start', message: 'go !' } );
+        this.ready = true;
+
+    }
+
+	addNode(){
 
         this.useAggregate = this.motor.engine === 'PHYSX';// && this.option.useAggregate
+        this.useAggregate = !this.useSolver;
 
 		const data = [];
         
-       
-
         // get character bones var bones = character.skeleton.bones;
 
         let scaleMatrix = new Matrix4().makeScale(this.scaler, this.scaler, this.scaler);
@@ -9072,24 +9722,23 @@ class SkeletonBody extends Object3D {
         let e = new Euler();
         let mtx = new Matrix4();
 
-        let tmpMtx = new Matrix4();
-        let tmpMtxR = new Matrix4();
-
-        //this.model.updateWorldMatrix( true, false );
-        _matrixWorldInv.copy( this.model.matrixWorld ).invert();
-
         let p1 = new Vector3();
         let p2 = new Vector3();
+
+        let tmpMtx = new Matrix4();
+        let tmpMtxR = new Matrix4();
+        new Matrix4();
+
+        _matrixWorldInv.copy( this.model.matrixWorld ).invert();
 
         let sizer  =  [1,1,1,1,1,1,1];
         if(this.option.sizer){
             sizer = this.option.sizer;
         }
 
-        //let headDone = false
 
         let i, lng = this.bones.length, name, n, bone, parent;///, child, o, parentName;
-        let size, dist, rot, type, kinematic, translate, phyName, motion;
+        let size, dist, rot, type, kinematic, translate, phyName, motion, link;
 
         let averageMass = 0;
         if(this.mass) averageMass = this.mass / lng;
@@ -9098,10 +9747,11 @@ class SkeletonBody extends Object3D {
 
         	type = null;
             bone = this.bones[i];
+
             name = bone.name;
             parent = bone.parent;
 
-            if( parent ) {
+            if( parent && parent.isBone) {
 
             	n = parent.name;
 
@@ -9114,9 +9764,8 @@ class SkeletonBody extends Object3D {
 
             	//p1.setFromMatrixPosition( parent.matrixWorld );
             	//p2.setFromMatrixPosition( bone.matrixWorld );
-                dist = p1.distanceTo( p2 );// * this.scaler;
 
-                //if( n==='hip' && name==='abdomen' ) console.log( dist )
+                dist = p1.distanceTo( p2 );// * this.scaler;
 
 	            //translate = [ -dist * 0.5, 0, 0 ];
 	            translate = [ 0, 0, dist * 0.5 ];
@@ -9124,39 +9773,36 @@ class SkeletonBody extends Object3D {
                 rot = null;//[0,0,0];
                 kinematic = true;
                 motion = false;
+                link = 'null';
 
-                //type = 'capsule'
+
+                if( n==='hip' && name==='abdomen' ){ type = 'capsule'; size = [  dist*sizer[0], 0.08 ]; translate = [ 0, 0, -dist*sizer[0] ]; rot = [0,0,90]; link='null';}
+
+                if(this.isTreeSpine){
+
+                    if( n==='abdomen' && name==='abdomen2'  ){ type = 'capsule'; size = [ dist*0.8*sizer[1], 0.08 ]; translate = [ 0, 0, (-dist * 0.5)-0.06 ]; rot = [90,0,0]; link='hip';  }
+                    if( n==='abdomen2' && name==='chest'  ){ type = 'capsule'; size = [ dist*0.8*sizer[1], 0.08 ]; translate = [ 0, 0, (-dist * 0.5)-0.06 ]; rot = [90,0,0]; link='abdomen';  }
+
+                  }else {
+                    if( n==='abdomen' && name==='chest' ){ type = 'capsule'; size = [ dist*0.7*sizer[1], 0.08 ]; translate = [ 0, 0, (-dist * 0.5)-0.06 ]; rot = [90,0,0]; link='hip'; }
+                }
+
                 
-
-                //if( n==='hip' && name==='abdomen' ){ type = 'capsule'; size = [  0.1,dist*1.8 ]; translate = [ 0, 0, -(dist*1.8) * 0.5 ]; rot = [0,0,90]; link='null';}
-                
-                // body
-                //if( n==='hip' && name==='abdomen' ){ type = 'capsule'; size = [  0.1,dist*1.8 ]; translate = [ 0, 0, -(dist*1.8) * 0.5 ]; rot = [0,0,90]; link='null';}
-                
-                //if( n==='hip' && name==='abdomen' ){ type = 'capsule'; size = [  dist*1.8, 0.08 ]; translate = [ 0, 0, -dist * 0.5 ]; rot = [0,0,90]; link='null';}
-                if( n==='hip' && name==='abdomen' ){ type = 'capsule'; size = [  dist*sizer[0], 0.08 ]; translate = [ 0, 0, -dist*sizer[0] ]; rot = [0,0,90];}
-
-                if( n==='abdomen' && name==='chest'  ){ type = 'capsule'; size = [ dist*0.7*sizer[1], 0.08   ]; translate = [ 0, 0, (-dist * 0.5)-0.06 ]; rot = [90,0,0];}
-
-
-                if( n==='abdomen' && name==='abdomen2'  ){ type = 'capsule'; size = [ dist*0.7*sizer[1], 0.08   ]; translate = [ 0, 0, (-dist * 0.5)-0.06 ]; rot = [90,0,0];}
-                if( n==='abdomen2' && name==='chest'  ){ type = 'capsule'; size = [ dist*0.7*sizer[1], 0.08   ]; translate = [ 0, 0, (-dist * 0.5)-0.06 ]; rot = [90,0,0];}
-
-
-
-                if( n==='chest' && name==='neck' ){ type = 'capsule'; size = [  dist*0.4*sizer[2], 0.04 ]; translate = [ 0, 0, (-dist * 0.5)-0.02 ]; rot = [0,0,90];}
-                if( n==='neck' && name === 'head' ){ type = 'capsule'; size = [ 0.06*sizer[3], dist ]; translate = [ 0, 0, -dist * 0.5 ]; rot = [90,0,0]; }
-                if( n==='head' && name === 'End_head' ){ type = 'capsule'; size = [ 0.1*sizer[4], dist-0.17 ]; translate = [ 0, 0.02, (-dist * 0.5)+0.02 ]; rot = [90,0,0]; }
+                if( n==='chest' && name === 'neck' ){ type = 'capsule'; size = [  dist*0.4*sizer[2], 0.04 ]; translate = [ 0, 0, (-dist * 0.5)-0.02 ]; rot = [0,0,90]; link=this.isTreeSpine? 'abdomen2':'abdomen';}
+                if( n==='neck' && name === 'head' ){ type = 'capsule'; size = [ 0.06*sizer[3], dist ]; translate = [ 0, 0, -dist * 0.5 ]; rot = [90,0,0]; link='chest'; }
+                if( n==='head' && name === 'End_head' ){ type = 'capsule'; size = [ 0.08*sizer[4], dist-0.17 ]; translate = [ 0, 0.02, (-dist * 0.5)+0.02 ]; rot = [90,0,0]; link='neck'; }
                 
                 //if( n==='head' && !headDone ){ console.log(name); headDone = true; type = 'sphere'; dist=0.08; size = [ 0.08, 0.2, dist ]; translate = [ 0, 0.025, -0.08 ]; }
 	            //if( n==='chest' && name==='neck' ){ type = 'box'; size = [  0.28, 0.24, dist ]; translate = [ 0, 0, -dist * 0.5 ]; }
 	            //if( n==='abdomen' && name==='chest'  ){ type = 'box'; size = [ 0.24, 0.20,  dist ]; translate = [ 0, 0, -dist * 0.5 ]; }
-              
+
+
+                // TODO bug with worker !!!!
+                if(this.withBreast){
+                    if( n==='chest' && name==='rBreast' && this.motor.engine!=='HAVOK' ){ n='rBreast'; parent = bone; type = 'sphere'; size = [ 0.065 ]; translate = [ 0.065,0,0 ]; this.breast=true; motion = true; link='chest'; }
+                    if( n==='chest' && name==='lBreast' && this.motor.engine!=='HAVOK' ){ n='lBreast'; parent = bone; type = 'sphere'; size = [ 0.065 ]; translate = [ 0.065,0,0 ]; this.breast=true; motion = true; link='chest'; }
+                }
                 
-
-
-                if( n==='chest' && name==='rBreast' && this.motor.engine!=='HAVOK' ){ n='rBreast'; parent = bone; type = 'sphere'; size = [ 0.065 ]; translate = [ 0.065,0,0 ]; this.breast=true; motion = true; }
-                if( n==='chest' && name==='lBreast' && this.motor.engine!=='HAVOK' ){ n='lBreast'; parent = bone; type = 'sphere'; size = [ 0.065 ]; translate = [ 0.065,0,0 ]; this.breast=true; motion = true; }
                 
 
                 // arm
@@ -9164,62 +9810,62 @@ class SkeletonBody extends Object3D {
                 let r = 0.04*sizer[5];
                 let w = dist-r;
 
-                if( n==='lCollar' && name==='lShldr'){ type = 'capsule'; size = [  r, dist*0.3 ]; translate = [dist*0.6 , 0, 0 ]; rot = [0,0,90]; }
-                if( n==='lShldr' && name==='lForeArm'){ type = 'capsule'; size = [  r, w ]; translate = [w * 0.5, 0, 0 ]; rot = [0,0,90]; }
-                if( n==='lForeArm' && name==='lHand'){ type = 'capsule'; size = [ r, w ]; translate = [w * 0.5, 0, 0 ]; rot = [0,0,90]; }
-                if( n==='lHand' && name==='lMid1'){ type = 'box'; size = [ dist*2, 0.09, 0.05 ]; translate = [dist, 0, 0 ]; }
+                if( n==='lCollar' && name==='lShldr'){ type = 'capsule'; size = [  r, dist*0.3 ]; translate = [dist*0.6 , 0, 0 ]; rot = [0,0,90]; link='chest'; }
+                if( n==='lShldr' && name==='lForeArm'){ type = 'capsule'; size = [  r, w ]; translate = [w * 0.5, 0, 0 ]; rot = [0,0,90]; link='lCollar'; }
+                if( n==='lForeArm' && name==='lHand'){ type = 'capsule'; size = [ r, w ]; translate = [w * 0.5, 0, 0 ]; rot = [0,0,90]; link='lShldr'; }
+                if( n==='lHand' && name==='lMid1'){ type = 'box'; size = [ dist*2, 0.09, 0.05 ]; translate = [dist, 0, 0 ]; link='lForeArm'; }
 
-                if( n==='rCollar' && name==='rShldr'){ type = 'capsule'; size = [  r, dist*0.3 ]; translate = [-dist*0.6, 0, 0 ]; rot = [0,0,90]; }
-                if( n==='rShldr' && name==='rForeArm'){ type = 'capsule'; size = [  r, w ]; translate = [-w * 0.5, 0, 0 ]; rot = [0,0,90]; }
-                if( n==='rForeArm' && name==='rHand' ){ type = 'capsule'; size = [ r, w ]; translate = [-w * 0.5, 0, 0 ]; rot = [0,0,90]; }
-                if( n==='rHand' && name==='rMid1'){ type = 'box'; size = [ dist*2, 0.09, 0.05 ]; translate = [-dist, 0, 0 ]; }
+                if( n==='rCollar' && name==='rShldr'){ type = 'capsule'; size = [  r, dist*0.3 ]; translate = [-dist*0.6, 0, 0 ]; rot = [0,0,90]; link='chest'; }
+                if( n==='rShldr' && name==='rForeArm'){ type = 'capsule'; size = [  r, w ]; translate = [-w * 0.5, 0, 0 ]; rot = [0,0,90]; link='rCollar'; }
+                if( n==='rForeArm' && name==='rHand' ){ type = 'capsule'; size = [ r, w ]; translate = [-w * 0.5, 0, 0 ]; rot = [0,0,90]; link='rShldr'; }
+                if( n==='rHand' && name==='rMid1'){ type = 'box'; size = [ dist*2, 0.09, 0.05 ]; translate = [-dist, 0, 0 ]; link='rForeArm'; }
 
 	            // legs
 
                 r = 0.06*sizer[6];
                 w = dist-r;
 
-                if( n==='lThigh' ){ type = 'capsule'; size = [  r, dist ]; rot = [90,0,0]; translate = [ 0, 0, w * 0.5 ]; }
-                if( n==='lShin' ){ type = 'capsule'; size = [  r, dist ]; rot = [90,0,0]; translate = [ 0, 0, w * 0.5 ]; }
+                if( n==='lThigh' ){ type = 'capsule'; size = [  r, dist ]; rot = [90,0,0]; translate = [ 0, 0, w * 0.5 ]; link='hip'; }
+                if( n==='lShin' ){ type = 'capsule'; size = [  r, dist ]; rot = [90,0,0]; translate = [ 0, 0, w * 0.5 ]; link='lThigh'; }
                 //if( n==='lFoot' ){ type = 'box'; size = [  0.1, dist*1.4, 0.06 ]; translate = [0, (dist * 0.5)-0.025, 0.06 ]; link:'lShin'; }
-                if( n==='lFoot' ){ type = 'capsule'; size = [  0.05, dist ]; translate = [0, (dist * 0.5)-0.025, 0.04 ]; }
+                if( n==='lFoot' ){ type = 'capsule'; size = [  0.05, dist ]; translate = [0, (dist * 0.5)-0.025, 0.04 ]; link='lShin'; }
 
-                if( n==='rThigh' ){ type = 'capsule'; size = [  r, dist ]; rot = [90,0,0]; translate = [ 0, 0, w * 0.5 ]; }
-                if( n==='rShin' ){ type = 'capsule'; size = [  r, dist ]; rot = [90,0,0]; translate = [ 0, 0, w * 0.5 ]; }
+                if( n==='rThigh' ){ type = 'capsule'; size = [  r, dist ]; rot = [90,0,0]; translate = [ 0, 0, w * 0.5 ]; link='hip'; }
+                if( n==='rShin' ){ type = 'capsule'; size = [  r, dist ]; rot = [90,0,0]; translate = [ 0, 0, w * 0.5 ]; link='rThigh'; }
                 //if( n==='rFoot' ){ type = 'box'; size = [  0.1, dist*1.4, 0.06 ]; translate = [0, (dist * 0.5)-0.025, 0.06 ]; link:'rShin';}
-                if( n==='rFoot' ){ type = 'capsule'; size = [  0.05, dist ]; translate = [0, (dist * 0.5)-0.025, 0.04 ]; }
+                if( n==='rFoot' ){ type = 'capsule'; size = [  0.05, dist ]; translate = [0, (dist * 0.5)-0.025, 0.04 ]; link='rShin'; }
 
                 // extra ear
                 r = 0.04;
                 w = dist-r;
                 
                 
-                if( n==='rEar_0'){ type = 'capsule'; size = [  r, dist ]; rot = [0,0,90]; translate = [ w * 0.5, 0, 0 ]; Spine.push('rEar_0'); }
-                if( n==='rEar_1'){ type = 'capsule'; size = [  r, dist ]; rot = [0,0,90]; translate = [ w * 0.5, 0, 0 ]; Spine.push('rEar_1');}
-                if( n==='rEar_2' ){ type = 'capsule'; size = [  r, dist ]; rot = [0,0,90]; translate = [ w * 0.5, 0, 0 ]; Spine.push('rEar_2');}
-                if( n==='rEar_3' ){ type = 'capsule'; size = [  r, dist ]; rot = [0,0,90]; translate = [ w * 0.5, 0, 0 ]; }
+                if( n==='rEar_0'){ type = 'capsule'; size = [  r, dist ]; rot = [0,0,90]; translate = [ w * 0.5, 0, 0 ]; link='head'; Spine.push('rEar_0'); }
+                if( n==='rEar_1'){ type = 'capsule'; size = [  r, dist ]; rot = [0,0,90]; translate = [ w * 0.5, 0, 0 ]; link='rEar_0'; Spine.push('rEar_1');}
+                if( n==='rEar_2' ){ type = 'capsule'; size = [  r, dist ]; rot = [0,0,90]; translate = [ w * 0.5, 0, 0 ]; link='rEar_1'; Spine.push('rEar_2');}
+                if( n==='rEar_3' ){ type = 'capsule'; size = [  r, dist ]; rot = [0,0,90]; translate = [ w * 0.5, 0, 0 ]; link='rEar_2'; }
 
-                if( n==='lEar_0'){ type = 'capsule'; size = [  r, dist ]; rot = [0,0,90]; translate = [ w * 0.5, 0, 0 ]; Spine.push('lEar_0');}
-                if( n==='lEar_1'){ type = 'capsule'; size = [  r, dist ]; rot = [0,0,90]; translate = [ w * 0.5, 0, 0 ]; Spine.push('lEar_1');}
-                if( n==='lEar_2' ){ type = 'capsule'; size = [  r, dist ]; rot = [0,0,90]; translate = [ w * 0.5, 0, 0 ]; Spine.push('lEar_2');}   
-                if( n==='lEar_3' ){ type = 'capsule'; size = [  r, dist ]; rot = [0,0,90]; translate = [ w * 0.5, 0, 0 ]; }
+                if( n==='lEar_0'){ type = 'capsule'; size = [  r, dist ]; rot = [0,0,90]; translate = [ w * 0.5, 0, 0 ]; link='head'; Spine.push('lEar_0');}
+                if( n==='lEar_1'){ type = 'capsule'; size = [  r, dist ]; rot = [0,0,90]; translate = [ w * 0.5, 0, 0 ]; link='lEar_0'; Spine.push('lEar_1');}
+                if( n==='lEar_2' ){ type = 'capsule'; size = [  r, dist ]; rot = [0,0,90]; translate = [ w * 0.5, 0, 0 ]; link='lEar_1'; Spine.push('lEar_2');}   
+                if( n==='lEar_3' ){ type = 'capsule'; size = [  r, dist ]; rot = [0,0,90]; translate = [ w * 0.5, 0, 0 ]; link='lEar_2'; }
 
                 //if( n==='rFoot' && name==='lToes' ){ n='lToes'; parent = bone; type = 'capsule'; size = [  0.05, 0.1 ]; translate = [0, 0, 0 ]; link='rFoot'; rot = [0,0,0]; }
                 //if( n==='lFoot' && name==='rToes' ){ n='rToes'; parent = bone; type = 'capsule'; size = [  0.05, 0.1 ]; translate = [0, 0, 0 ]; link='rFoot'; rot = [0,0,0]; }
 
                 if( this.withFinger ) {
 
-                    if( n==='lHand' && name==='lMid1'){ type = 'box'; size = [ dist, 0.09, 0.05 ]; translate = [dist*0.5, 0, 0 ]; }
-                    if( n==='rHand' && name==='rMid1'){ type = 'box'; size = [ dist, 0.09, 0.05 ]; translate = [-dist*0.5, 0, 0 ]; }
+                    if( n==='lHand' && name==='lMid1'){ type = 'box'; size = [ dist, 0.09, 0.05 ]; translate = [dist*0.5, 0, 0 ]; link='lForeArm'; }
+                    if( n==='rHand' && name==='rMid1'){ type = 'box'; size = [ dist, 0.09, 0.05 ]; translate = [-dist*0.5, 0, 0 ]; link='rForeArm'; }
 
 
-                    if( n==='rThumb1' && name==='rThumb2' ){ type = 'capsule'; size = [  0.02, dist ]; rot = [0,0,90]; }
-                    if( n==='rThumb2' && name==='rThumb3' ){ type = 'capsule'; size = [  0.02, dist ]; rot = [0,0,90]; }
+                    if( n==='rThumb1' && name==='rThumb2' ){ type = 'capsule'; size = [  0.02, dist ]; rot = [0,0,90]; link='rHand'; }
+                    if( n==='rThumb2' && name==='rThumb3' ){ type = 'capsule'; size = [  0.02, dist ]; rot = [0,0,90]; link='rHand'; }
 
 
-                    if( n==='rHand' && name==='rMid1' ){ type = 'capsule'; size = [  0.02, dist ]; rot = [0,0,90]; translate = [-dist*0.6, 0, 0 ]; }
-                    if( n==='rMid1' && name==='rMid2' ){ type = 'capsule'; size = [  0.02, dist ]; rot = [0,0,90]; translate = [-dist*0.6, 0, 0 ]; }
-                    if( n==='rMid2' && name==='rMid3' ){ type = 'capsule'; size = [  0.02, dist ]; rot = [0,0,90]; translate = [-dist*0.6, 0, 0 ]; }
+                    if( n==='rHand' && name==='rMid1' ){ type = 'capsule'; size = [  0.02, dist ]; rot = [0,0,90]; translate = [-dist*0.6, 0, 0 ]; link='rHand'; }
+                    if( n==='rMid1' && name==='rMid2' ){ type = 'capsule'; size = [  0.02, dist ]; rot = [0,0,90]; translate = [-dist*0.6, 0, 0 ]; link='rHand'; }
+                    if( n==='rMid2' && name==='rMid3' ){ type = 'capsule'; size = [  0.02, dist ]; rot = [0,0,90]; translate = [-dist*0.6, 0, 0 ]; link='rHand'; }
 
                 }
 
@@ -9266,7 +9912,7 @@ class SkeletonBody extends Object3D {
 
                     this.quatRef[phyName] = q.toArray();
                      
-                    //mtx.multiplyMatrices( parent.matrixWorld, tmpMtx );
+                    mtx.multiplyMatrices( parent.matrixWorld, tmpMtx );
                     mtx.multiplyMatrices( _boneMatrix, tmpMtx );
                     mtx.decompose( p, q, s );
 
@@ -9293,7 +9939,6 @@ class SkeletonBody extends Object3D {
                         type: type,
                         size: MathTool.scaleArray(size,this.scaler,3),
                         pos: p.toArray(),
-                        //rot: rot,
                         quat: q.toArray(),
                         kinematic: kinematic,
                         
@@ -9303,7 +9948,7 @@ class SkeletonBody extends Object3D {
                         material:'hide',
                         //material:'debug',
                         shadow:false,
-                        neverSleep: true,
+                        //neverSleep: true,
                         helper: true,
                         hcolor:[0.0, 0.5, 1],
                         hcolor2:[0.0, 0.2, 1],
@@ -9359,50 +10004,40 @@ class SkeletonBody extends Object3D {
                     if( this.mass !== null ) bb['mass'] = averageMass;
                     else bb['density'] = 1;
 
+                    if( this.useSolver ){
+                        bb['solver'] = this.prefix+'_solver';
+                        bb['linked'] = this.prefix+'_bone_'+link;
+                        bb['kinematic'] = false;
+                    }
+
                     data.push(bb);
-
-
-
-                    /*if( this.useSolver ){
-                        physicData['solver'] = this.prefix+'_solver'
-                        physicData['linked'] = this.prefix+'_bone_'+link
-                        physicData['kinematic'] = false
-                    }*/
-
-                     //physicData )
 
                     let inv = tmpMtx.clone().invert().premultiply(scaleMatrix);
 
-                    this.nodes.push({
-                    	name: phyName,
+                    const finalNodeData = {
+                        name: phyName,
                         kinematic: kinematic,
                         motion:motion,// auto move
-                    	bone:parent,
+                        bone:parent,
                         decal:tmpMtx.clone(),
                         decalinv:inv,
                         quat:q.toArray(),
                         pos:p.toArray(),
                         //scaler:this.scaler,
                         cc:0,
-                    });
+                    };
+
+                    this.nodes.push(finalNodeData);
                 }
 
             }
         }
 
-        //console.log( data )
 
-        this.motor.add( data );
-
-        //if( this.useSolver ) this.solver.start();
-       
-        this.addLink();
-
-        
-        this.dispatchEvent( { type: 'start', message: 'go !' } );
-        this.ready = true;
+        this.bodyData = data;
 
 	}
+
 
     existe( name ){
         return this.nameList.indexOf(name) !== -1 ? true : false
@@ -9447,7 +10082,7 @@ class SkeletonBody extends Object3D {
             lm:[  ['ry',-180,180,...sp], ['rz',-180,180,...sp] ],
 
             collision:false,
-            helperSize:0.05,
+            helperSize:0.1,
             visible:this.showJoint,
 
             //acc:true,
@@ -9472,7 +10107,7 @@ class SkeletonBody extends Object3D {
             ];
         }
 
-        let breastMotion = [-1e-3, 0.001, 100, 0.2, 0.5];
+        let breastMotion = [-1e-3, 0.001, 1000, 0.2, 0.5];//100, 0.2, 0.5
         
 
         data.push({ ...sett, b1:p+'hip', b2:p+'abdomen', worldPos:this.posRef[p+'abdomen'], worldQuat:this.quatRef[p+'hip'], lm:[ ['rx',-20,20,...sp], ['ry',-20,20,...sp], ['rz',-20,20,...sp]] });
@@ -9517,16 +10152,16 @@ class SkeletonBody extends Object3D {
 
         // leg
 
-        data.push({ ...sett, b1:p+'hip', b2:p+'rThigh', worldPos:this.posRef[p+'rThigh'],  worldQuat:this.quatRef[p+'rThigh'] });
-        data.push({ ...sett, b1:p+'hip', b2:p+'lThigh', worldPos:this.posRef[p+'lThigh'],  worldQuat:this.quatRef[p+'lThigh'] });
+        data.push({ ...sett, b1:p+'hip', b2:p+'rThigh', worldPos:this.posRef[p+'rThigh'], worldQuat:this.quatRef[p+'rThigh'] });
+        data.push({ ...sett, b1:p+'hip', b2:p+'lThigh', worldPos:this.posRef[p+'lThigh'], worldQuat:this.quatRef[p+'lThigh'] });
 
-        if( this.existe(p+'rShin') )data.push({ ...sett, b1:p+'rThigh', b2:p+'rShin', worldPos:this.posRef[p+'rShin'], lm:[['rx',0,160,...sp]], worldQuat:this.quatRef[p+'rShin'] });
-        if( this.existe(p+'lShin') )data.push({ ...sett, b1:p+'lThigh', b2:p+'lShin', worldPos:this.posRef[p+'lShin'], lm:[['rx',0,160,...sp]], worldQuat:this.quatRef[p+'lShin'] });
+        if( this.existe(p+'rShin') ) data.push({ ...sett, b1:p+'rThigh', b2:p+'rShin', worldPos:this.posRef[p+'rShin'], lm:[['rx',0,160,...sp]], worldQuat:this.quatRef[p+'rShin'] });
+        if( this.existe(p+'lShin') ) data.push({ ...sett, b1:p+'lThigh', b2:p+'lShin', worldPos:this.posRef[p+'lShin'], lm:[['rx',0,160,...sp]], worldQuat:this.quatRef[p+'lShin'] });
 
         if( this.existe(p+'rFoot') ) data.push({ ...sett, b1:p+'rShin', b2:p+'rFoot', worldPos:this.posRef[p+'rFoot'], lm:[['rx',-10,30,...sp], ['rz',-10,10,...sp]], worldQuat:this.quatRef[p+'rFoot'] });
         if( this.existe(p+'lFoot') ) data.push({ ...sett, b1:p+'lShin', b2:p+'lFoot', worldPos:this.posRef[p+'lFoot'], lm:[['rx',-10,30,...sp], ['rz',-10,10,...sp]], worldQuat:this.quatRef[p+'lFoot'] });
 
-        if(this.breast){
+        if(this.withBreast){
             if( this.existe(p+'rBreast') ) data.push({ ...sett, b1:p+'chest', b2:p+'rBreast', worldPos:this.posRef[p+'rBreast'], worldQuat:this.quatRef[p+'rBreast'], lm:[['x',...breastMotion], ['y',...breastMotion], ['z',...breastMotion]] });
             if( this.existe(p+'lBreast') ) data.push({ ...sett, b1:p+'chest', b2:p+'lBreast', worldPos:this.posRef[p+'lBreast'], worldQuat:this.quatRef[p+'lBreast'], lm:[['x',...breastMotion], ['y',...breastMotion], ['z',...breastMotion]] });
         }
@@ -9552,8 +10187,19 @@ class SkeletonBody extends Object3D {
             x++;
         }
 
+        this.linkData = data;
 
-        this.motor.add( data );
+    }
+
+    displayJoint(v){
+
+        let dt = [];
+
+        for( let b in this.jointList ){
+            dt.push({ name:this.jointList[b], visible:v });
+        }
+
+        this.motor.change( dt );
 
     }
 
@@ -9577,7 +10223,7 @@ class SkeletonBody extends Object3D {
 
 	updateMatrixWorld( force ){
 
-        if(!this.ready) return
+        //if(!this.ready) return
 
 		let up = [];
 
@@ -9593,6 +10239,8 @@ class SkeletonBody extends Object3D {
 
             if( node.kinematic ){
 
+                // update from three to physic
+
                 _endMatrix.multiplyMatrices( bone.matrixWorld, node.decal );
                 _endMatrix.decompose( _p, _q, _s );
 
@@ -9605,18 +10253,25 @@ class SkeletonBody extends Object3D {
 
             } else {
 
+                // update from physic to three
+
                 body = this.motor.byName( node.name );
 
                 if(body){
-                    _endMatrix.copy( body.matrixWorld ).multiply( node.decalinv );
-                    bone.phyMtx.copy( _endMatrix );
-                    bone.isPhysics = true;
+                    if(body.actif){
+                        _endMatrix.copy( body.matrixWorld ).multiply( node.decalinv );
+                        bone.phyMtx.copy( _endMatrix );
+                        bone.isPhysics = true;
+                    }
+                    
                 }
             }
 
         }
 
         if( up.length !== 0 ) this.motor.change( up, true );
+
+        super.updateMatrixWorld( force );
 
 	}
 
@@ -9636,6 +10291,20 @@ class SkeletonBody extends Object3D {
         this.jointList = [];
 		
 	}
+
+}
+
+
+function getBoneList( object ) {
+
+    const boneList = [];
+    if ( object.isBone === true ) {
+        boneList.push( object );
+    }
+    for ( let i = 0; i < object.children.length; i ++ ) {
+        boneList.push( ...getBoneList( object.children[ i ] ) );
+    }
+    return boneList;
 
 }
 
@@ -12792,7 +13461,7 @@ const Human_low = {
             
             
         },
-        hair_low:{
+        hair_man_low:{
             //color:0xE24C00,
             type:'Standard',
             color:setting$3.hair,
@@ -12804,7 +13473,7 @@ const Human_low = {
             //alphaToCoverage:true,
         },
 
-        hair_low_2:{
+        hair_wom_low:{
             //color:0xE24C00,
             type:'Standard',
             color:setting$3.hair,
@@ -12860,13 +13529,13 @@ const Human_low = {
                     node.receiveShadow = true;
                     node.castShadow = true;
                     break;
-                    case 'hair_low':
-                    node.material = Pool.getMaterial( 'hair_low' ) || def;
+                    case 'hair_man_low':
+                    node.material = Pool.getMaterial( 'hair_man_low' ) || def;
                     node.receiveShadow = false;
                     node.castShadow = false;
                     break;
-                    case 'hair_low_2':
-                    node.material = Pool.getMaterial( 'hair_low_2' ) || def;
+                    case 'hair_wom_low':
+                    node.material = Pool.getMaterial( 'hair_wom_low' ) || def;
                     node.receiveShadow = false;
                     node.castShadow = false;
                     break;
@@ -18940,8 +19609,8 @@ class MouseTool {
 		if( this.moveDirect ){
 			this.motor.change({ name:this.selected.name, kinematic:false, gravity:false, damping:[0.9,0.9]  });
 		} else {
-			let def = [-0.1, 0.1, 600, 1];
-			let defr = [-0.1, 0.1, 600, 1];
+			let def = [-0.1, 0.1, 100, 50];//600, 1
+			let defr = [-0.1, 0.1, 100, 50];
 			//let defr = [0, 0]
 			let notUseKinematic = engine === 'OIMO' || engine ==='RAPIER' || engine ==='JOLT';//|| engine ==='HAVOK'
 			let jtype = this.selected.link === 0 ? 'fixe' : 'd6';//root.engine === 'HAVOK' ? 'fixe' : 'd6';
@@ -18949,8 +19618,9 @@ class MouseTool {
 			if( engine === 'JOLT' ) jtype = 'fixe';
 
 			let limite = [['x',...def], ['y',...def], ['z',...def], ['rx',...defr], ['ry',...defr], ['rz',...defr]];
+			//let motor = 
 
-			if( engine === 'HAVOK' ) limite = [ ['x',...def], ['y',...def], ['z',...def] ];
+			//if( engine === 'HAVOK' ) limite = [ ['x',...def], ['y',...def], ['z',...def] ]
 
 			if( engine === 'OIMO' ){
 				revert = true;
@@ -18960,20 +19630,14 @@ class MouseTool {
 				//limite = [ 4.0, 1.0 ]
 			}
 
-			if( engine === 'HAVOK' ){
-				//revert = true;
-				jtype = this.selected.link === 0 ? 'fixe' : 'spherical';
-				limite = [ -180, 180, 0.1, 0.1 ];
-
-				//jtype = 'fixe'
-			}
+			
 
 			//console.log(jtype)
 
 			this.motor.add([
 				{ 
 					name:'mouse', 
-					type:'null', 
+					type:'null',
 					pos:p, 
 					quat:quat, 
 					kinematic:notUseKinematic ? false : true,
@@ -18984,8 +19648,11 @@ class MouseTool {
 					name:'mouseJoint', type:'joint',
 					mode:jtype,
 					lm:limite,
+					//motor:motor,
 					sd:[4.0, 1.0],
-					autoDrive: true,
+					//autoDrive: true,
+
+
 					b1:revert ? this.selected.name : 'mouse',
 					b2:revert ? 'mouse' : this.selected.name,  
 					worldAnchor: p, 
@@ -19054,7 +19721,7 @@ class MouseTool {
 			this.motor.change({ name:this.selected.name, kinematic:false, wake:true, gravity:true, damping:[0,0.1] });
 		} else {
 			this.motor.remove(['mouseJoint','mouse']);
-			this.motor.change({ name:this.selected.name, neverSleep:false, wake:true });
+			this.motor.change({ name:this.selected.name, wake:true });
 		}
 		
 		this.raycastTest = true;
@@ -20858,31 +21525,62 @@ class AutoRagdoll {
 		this._size = o.size || 1;
 		this._debug = o.debug || false;
 
-		const model = SkeletonUtils.clone( o.model );
-		model.scale.set(1,1,1).multiplyScalar( this._size );
-		if(o.pos) model.position.fromArray(o.pos);
+		
 
-		model.raycast = function (){ return };
-		model.name = this.name;
-		//model.frustumCulled = false;
+		const model = SkeletonUtils.clone( o.model );
+
+	    /*model.traverse( ( child ) => {
+			if ( child.isSkinnedMesh ) child.skeleton.bones[0].updateWorldMatrix( true, true );
+			if ( child.isBone ) child.updateWorldMatrix( true, true );
+		})*/
+
+		
 
 		let bones;
 
 		model.traverse( ( child ) => {
+
+			child.raycast = function(){ return };
+
 			if ( child.isMesh ){
 				child.frustumCulled = false;
 			}
 			if ( child.isSkinnedMesh ){
+				//child.updateMatrix();
 				child.raycast = function (){ return };
 				child.frustumCulled = false;
 				child.matrixAutoUpdate = false;
 				child.receiveShadow = true;
 				child.castShadow = true;
 				if( o.material ) child.material = o.material;
-				child.skeleton.resetScalling();
+				if( child.skeleton.resetScalling ) child.skeleton.resetScalling();
 				bones = child.skeleton.bones;
+
 			}
 		});
+
+		/*for(let b in bones ){
+			bones[b].updateWorldMatrix( true, false );
+		}*/
+
+		//model.skeleton.bones[0].updateWorldMatrix( true, true );
+
+		//model.updateWorldMatrix( true, true );
+		//
+		model.scale.set(1,1,1).multiplyScalar( this._size );
+		if(o.pos) model.position.fromArray(o.pos);
+		//model.updateWorldMatrix( false, true );
+		//model.updateMatrix();
+
+		//model.raycast = function (){ return }
+		model.name = this.name;
+
+		//
+		//model.frustumCulled = false;
+
+		//console.log(model)
+
+		
 
 		let mass = o.mass || null;
 		
@@ -20894,6 +21592,9 @@ class AutoRagdoll {
 		/*this.skeletonBody.addEventListener ( 'start', function ( event ) {
 			console.log( event.message );
 		});*/
+
+
+		//model.updateMatrix();
 
 
 
@@ -20943,6 +21644,7 @@ class AutoRagdoll {
 	set debug (value) {
 		this._debug = value;
 		this.skeletonBody.isVisible( this._debug );
+		this.skeletonBody.displayJoint( this._debug );
 	}
 
 	get mode () { return this._mode; }
@@ -23567,8 +24269,11 @@ K.resetScalling = function (b) {
     for ( let i = 0, il = this.bones.length; i < il; i ++ ) {
 
         //this.bones[i].scalling = new Vector3(1,1,1);
-        this.bones[i].isPhysics = false;
-        this.bones[i].phyMtx = new Matrix4();
+        if(this.bones[i].name==='root'); //else {
+            this.bones[i].isPhysics = false;
+            this.bones[i].phyMtx = new Matrix4();
+       // }
+        
 
     }
 
@@ -23736,7 +24441,7 @@ const Version = {
 	PHY: '0.5.0',
 	// best
     PHYSX: '5.06.10',
-    HAVOK: '1.2.1',
+    HAVOK: '1.3.11',
     JOLT: '0.39.0',
     // old
     RAPIER: '0.20.0',
@@ -25432,6 +26137,11 @@ class Solid extends Body {
 //  UTILS
 //
 //-------------------
+const _v1 = new Vector3();
+new Matrix4();
+new Matrix3();
+const _q1 = new Quaternion$1();
+const _q2 = new Quaternion$1();
 
 class Utils {
 
@@ -25508,6 +26218,11 @@ class Utils {
 
     toLocal ( v, obj, isAxe = false ) {
 
+    	if( obj.isObject3D ) {
+    		obj.updateWorldMatrix( true, false );
+    		obj.updateMatrix();
+    	}
+
     	//if( obj.isObject3D ) obj.updateWorldMatrix( true, false )
     	// apply position
     	if(!isAxe) v.sub( obj.position );
@@ -25517,28 +26232,61 @@ class Utils {
     	//v.applyQuaternion(q.clone().invert())
     	//v.applyQuaternion({x:-q.x, y:-q.y, z:-q.z, w:q.w})
     	v.applyQuaternion({x:-q._x, y:-q._y, z:-q._z, w:q._w});
-    	//if(isAxe) v.normalize()
+    	if(isAxe) v.normalize();
     	return v
+
+    }
+
+    toLocal2 ( v, obj, isAxe = false ) {
+
+    	if( obj.isObject3D ) {
+    		obj.updateWorldMatrix( true, false );
+    		obj.updateMatrix();
+    	}
+
+    	_v1.fromArray(v);
+
+    	if(!isAxe) _v1.sub( obj.position );
+    	//if(!isAxe) v.sub( obj.position );
+    	//_q1.copy(obj.quaternion)//.invert();
+
+    	//_v1.applyQuaternion({x:-_q1._x, y:-_q1._y, z:-_q1._z, w:_q1._w})
+
+    	let q = obj.quaternion;//.normalize();
+    	//v.applyQuaternion(q.clone().invert())
+    	//v.applyQuaternion({x:-q.x, y:-q.y, z:-q.z, w:q.w})
+    	_v1.applyQuaternion({x:-q._x, y:-q._y, z:-q._z, w:q._w});
+    	//console.log(_q1)// ????
+    	//_v1.applyQuaternion(_q1)
+    	if(isAxe) _v1.normalize();
+
+    	return _v1.toArray();
 
     }
 
     quatLocal ( q, obj ) {
 
-    	if( obj.isObject3D ) obj.updateWorldMatrix( true, false );
+    	if( obj.isObject3D ){ 
+    		obj.updateWorldMatrix( true, false );
+    		obj.updateMatrix();
+    	}
     	// apply position
     	//if(!isAxe) v.sub( obj.position )
     	// apply invers rotation
-    	let q1 = new Quaternion$1().fromArray(q);
-    	let q2 = obj.quaternion.clone().invert();
-    	q1.premultiply(q2);
+    	_q1.fromArray(q);
+    	_q2.copy(obj.quaternion).invert();
+    	_q1.premultiply(_q2);
     	//v.applyQuaternion({x:-q.x, y:-q.y, z:-q.z, w:q.w})
-    	return q1.normalize().toArray();
+    	return _q1.normalize().toArray();
 
     }
 
     axisLocal ( v, obj ) {
 
-    	if( obj.isObject3D ) obj.updateWorldMatrix( true, false );
+    	if( obj.isObject3D ){ 
+    		obj.updateWorldMatrix( true, false );
+    		obj.updateMatrix();
+    	}
     	// apply position
 
         let m3 = new Matrix3().setFromMatrix4( obj.matrixWorld );//.invert()

@@ -6,6 +6,8 @@ import { Num } from '../core/Config.js';
 import { MathTool, torad } from '../core/MathTool.js';
 import { JointDebug } from './extra/JointDebug.js';
 
+const Q = new Quaternion()
+
 
 //----------------
 //  MOTOR JOINT 
@@ -88,10 +90,21 @@ export class Joint extends Item {
 
 		// world to local
 		if ( o.worldPos ) o.worldAnchor = o.worldPos;
+
 		if ( o.worldAnchor ){
 
-			o.pos1 = body1 ? this.Utils.toLocal( this.v1.fromArray( o.worldAnchor ), body1 ).toArray() : o.worldAnchor;
-			o.pos2 = body2 ? this.Utils.toLocal( this.v2.fromArray( o.worldAnchor ), body2 ).toArray() : o.worldAnchor;
+			//o.pos1 = body1 ? this.Utils.toLocal( this.v1.fromArray( o.worldAnchor ), body1 ).toArray() : o.worldAnchor;
+			//o.pos2 = body2 ? this.Utils.toLocal( this.v2.fromArray( o.worldAnchor ), body2 ).toArray() : o.worldAnchor;
+
+			//o.pos1 = body1 ? this.Utils.toLocal2( o.worldAnchor, body1 ) : o.worldAnchor;
+			//o.pos2 = body2 ? this.Utils.toLocal2( o.worldAnchor, body2 ) : o.worldAnchor;
+
+			o.pos1 = body1 ? this.Utils.toLocal2( o.worldAnchor, body1 ) : o.worldAnchor;
+			o.pos2 = body2 ? this.Utils.toLocal2( o.worldAnchor, body2 ) : o.worldAnchor;
+
+			//console.log("POS", o.pos1, o.pos2, os1, os2)
+			
+
 			/*if(body1){ 
 				this.v1 = body1.worldToLocal(this.v2.fromArray( o.worldAnchor ));
 				o.pos1 = this.v1.toArray();
@@ -105,20 +118,32 @@ export class Joint extends Item {
 
 		if ( o.worldAxis ){
 
-			
-			/*if( this.engine === 'JOLT'){
-				o.axis1 = o.worldAxis;
-				o.axis2 = o.worldAxis;
-			}else{*/
-				o.axis1 = body1 ? this.Utils.toLocal( this.v1.fromArray( o.worldAxis ), body1, true ).toArray() : o.worldAxis;
-			    o.axis2 = body2 ? this.Utils.toLocal( this.v2.fromArray( o.worldAxis ), body2, true ).toArray() : o.worldAxis;
-			//}
+			//o.axis1 = body1 ? this.Utils.toLocal( this.v1.fromArray( o.worldAxis ), body1, true ).toArray() : o.worldAxis;
+		    //o.axis2 = body2 ? this.Utils.toLocal( this.v2.fromArray( o.worldAxis ), body2, true ).toArray() : o.worldAxis;
+
+			o.axis1 = body1 ? this.Utils.toLocal2( o.worldAxis, body1, true ) : o.worldAxis;
+		    o.axis2 = body2 ? this.Utils.toLocal2( o.worldAxis, body2, true ) : o.worldAxis;
+
+			 
 			
 			//o.quat1 = new Quaternion().setFromUnitVectors( new Vector3(1, 0, 0), new Vector3().fromArray(o.axis1).normalize() ).toArray();
 		    //o.quat2 = new Quaternion().setFromUnitVectors( new Vector3(1, 0, 0), new Vector3().fromArray(o.axis2).normalize() ).toArray();
 
 			//console.log(o.worldAxis, o.axis1, o.axis2)
 			isWorldAxis = true;
+
+			/*if( this.engine === 'HAVOK' ){
+
+				let a1 = new Vector3().fromArray(o.axis1)
+				let a2 = new Vector3().fromArray(o.axis2)
+
+				o.axis1 = MathTool.quatToAxis(new Quaternion().setFromUnitVectors( a1, new Vector3(1, 0, 0) ).toArray());
+			    o.axis2 = MathTool.quatToAxis(new Quaternion().setFromUnitVectors( a2, new Vector3(1, 0, 0) ).toArray());
+
+				o.axis1Y = MathTool.quatToAxis(new Quaternion().setFromUnitVectors( a1, new Vector3(0, 1, 0) ).toArray());
+			    o.axis2Y = MathTool.quatToAxis(new Quaternion().setFromUnitVectors( a2, new Vector3(0, 1, 0) ).toArray());
+			    
+			}*/
 
 			delete o.worldAxis;
 
@@ -129,18 +154,56 @@ export class Joint extends Item {
 			o.quat1 = this.Utils.quatLocal(o.worldQuat, body1)
 			o.quat2 = this.Utils.quatLocal(o.worldQuat, body2)
 
-
-
-			if( this.engine === 'OIMO' || this.engine === 'HAVOK' || this.engine === 'JOLT' ){
+			if( this.engine === 'OIMO' ||  this.engine === 'JOLT' ){//this.engine === 'HAVOK' ||
 
 				//this.v1.fromArray( math.quadToAxisArray( o.worldQuat ) ).normalize()
 				//this.v2.fromArray( math.quadToAxisArray( o.worldQuat ) ).normalize()
+                /*let q1 = new Quaternion().fromArray(o.worldQuat)
+                let q2 = new Quaternion().setFromAxisAngle({x:0,y:1,z:0}, -Math.PI*0.5)
+				let qqq = q2.multiply(q1).normalize().toArray()*/
+
+				//console.log(q1, q2, qqq)
 
 				//o.axis1 = Utils.axisLocal( math.quadToAxisArray( o.worldQuat ), body1)//this.v1.fromArray( math.quadToAxisArray( o.quat1 ) ).normalize().toArray()
 				//o.axis2 = Utils.axisLocal( math.quadToAxisArray( o.worldQuat ), body2)//this.v2.fromArray( math.quadToAxisArray( o.quat2 ) ).normalize().toArray()
 
-				o.axis1 = this.Utils.axisLocal( MathTool.quatToAxis( o.worldQuat ), body1)
-				o.axis2 = this.Utils.axisLocal( MathTool.quatToAxis( o.worldQuat ), body2)
+				let axeA = MathTool.quatToAxis( o.worldQuat )
+				//let axeB = MathTool.perpendicularArray0( axeA )//this.v1.fromArray(MathTool.quatToAxis( o.worldQuat )).applyAxisAngle({x:0,y:1,z:0}, -Math.PI*0.5 ).toArray()
+				//let axeB = MathTool.normalizeArray( MathTool.quatToAxis( qqq ))//this.v1.fromArray(axeA).applyAxisAngle({x:0,y:1,z:0}, Math.PI*0.5 ).toArray()
+
+				o.axis1 = MathTool.quatToAxis( o.quat1 )//this.Utils.axisLocal( axeA, body1)
+				o.axis2 = MathTool.quatToAxis( o.quat2 )//this.Utils.axisLocal( axeA, body2)
+
+				//console.log("B", axeB)
+
+				/*if( this.engine === 'HAVOK' ){
+
+					let a1 = new Vector3().fromArray(o.axis1)
+					let a2 = new Vector3().fromArray(o.axis2)
+
+					o.axis1 = MathTool.quatToAxis(new Quaternion().setFromUnitVectors( a1, new Vector3(1, 0, 0) ).toArray());
+				    o.axis2 = MathTool.quatToAxis(new Quaternion().setFromUnitVectors( a2,  new Vector3(1, 0, 0), ).toArray());
+
+					o.axis1Y = MathTool.quatToAxis(new Quaternion().setFromUnitVectors( a1, new Vector3(0, 1, 0) ).toArray());
+				    o.axis2Y = MathTool.quatToAxis(new Quaternion().setFromUnitVectors( a2,  new Vector3(0, 1, 0), ).toArray());
+				    
+				}*/
+
+				/*
+
+				
+
+				o.axis1Y = this.Utils.axisLocal( qqq, body1)
+				o.axis2Y = this.Utils.axisLocal( qqq, body2)*/
+				//let qq2 = MathTool.quatMultiply( qq, MathTool.quatToAxis( o.worldQuat ) )
+
+				//o.axis1Y = this.v1.fromArray(MathTool.quatToAxis( o.worldQuat )).applyAxisAngle({x:0,y:1,z:0}, -Math.PI*0.5 ).toArray()
+				//o.axis2Y = this.v2.fromArray(MathTool.quatToAxis( o.worldQuat )).applyAxisAngle({x:0,y:1,z:0}, -Math.PI*0.5 ).toArray()
+
+				
+
+				//o.axis1Y = this.Utils.axisLocal( axeB, body1)
+				//o.axis2Y = this.Utils.axisLocal( axeB, body2)
 
 				//o.axis1 = body1 ? Utils.toLocal( this.v1, body1, true ).toArray():[1,0,0]
 				//o.axis2 = body2 ? Utils.toLocal( this.v2, body2, true ).toArray():[1,0,0]
@@ -161,9 +224,6 @@ export class Joint extends Item {
 
 		}
 
-		
-
-		
 
 		/*if( o.b2 ) body2 = typeof o.b2 !== 'string' ? o.b2 : Utils.byName(o.b2)
 		if( o.b1 && typeof o.b1 !== 'string') o.b1 = o.b1.name;
@@ -172,8 +232,21 @@ export class Joint extends Item {
 		if( o.rot1 !== undefined ){ o.quat1 = MathTool.quatFromEuler( o.rot1 ); delete ( o.rot1 ); }
 		if( o.rot2 !== undefined ){ o.quat2 = MathTool.quatFromEuler( o.rot2 ); delete ( o.rot2 ); }
 
-		if( !o.quat1 ) o.quat1 = new Quaternion().setFromUnitVectors( new Vector3(1, 0, 0), new Vector3().fromArray(o.axis1).normalize() ).toArray();
-		if( !o.quat2 ) o.quat2 = new Quaternion().setFromUnitVectors( new Vector3(1, 0, 0), new Vector3().fromArray(o.axis2).normalize() ).toArray();
+		if( !o.quat1 ) o.quat1 = Q.setFromUnitVectors( new Vector3(1, 0, 0), new Vector3().fromArray(o.axis1).normalize() ).toArray();
+		if( !o.quat2 ) o.quat2 = Q.setFromUnitVectors( new Vector3(1, 0, 0), new Vector3().fromArray(o.axis2).normalize() ).toArray();
+
+
+		if( this.engine === 'HAVOK' ){ 
+			//o.quat1 = MathTool.quatNomalize(o.quat1)
+			let m31 = MathTool.Mat3FromQuatArray( o.quat1 )
+			let m32 = MathTool.Mat3FromQuatArray( o.quat2 )
+
+			o.axis1 = m31[0]
+			o.axis1Y = m31[1]
+
+			o.axis2 = m32[0]
+			o.axis2Y = m32[1]
+		}
 
 		if( this.engine === 'AMMO' && isWorldAxis && o.mode === 'hinge') {
 			let ee = new Euler(0, -90*torad, 0);
@@ -197,6 +270,8 @@ export class Joint extends Item {
 
 		// add to world
 		this.addToWorld( j, o.id );
+
+		//console.log(j)
 
 		// add to worker 
 		this.motor.post( { m:'add', o:o } );
