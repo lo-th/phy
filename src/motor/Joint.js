@@ -38,8 +38,10 @@ export class Joint extends Item {
 
 			j = this.list[i];
 			n = N + ( i * Num.joint );
-			if( Num.joint === 16 ) j.updateFromPhy( AR, n );
-			else j.update();
+			//if( Num.joint === 16 ) j.updateFromPhy( AR, n );
+			//else 
+
+			j.update(AR, n);
 
 		}
 

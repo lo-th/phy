@@ -8,7 +8,8 @@ let model1, model2;
 let deco = false
 let skin, hair
 
-let startMode = 'simulation'
+//let startMode = 'simulation'
+let startMode = 'debug'
 
 const setting = { 
     mass:10,
@@ -57,7 +58,7 @@ initMaterial = () => {
         roughness:0.5, 
         metalness:0,
         transparent:true,
-        opacity:0.5,
+        opacity:0.6,
     })
 
     hair = phy.material({ 
@@ -66,7 +67,7 @@ initMaterial = () => {
         roughness:0.5, 
         metalness:0,
         transparent:true,
-        opacity:0.5,
+        opacity:0.6,
     })
 
 }
@@ -120,7 +121,6 @@ addGui = () => {
     gui.add( setting, 'mass', { min:1, max:100, mode:2 } ).onChange( (v) => { mass(v) } )
 
     gui.add( 'button', {  value: ['clear', 'add'] } ).onChange( (n) => { switch(n){ case 'clear':clear(); break; case 'add':add(); break; } } )
-    
     
 }
 
@@ -203,7 +203,7 @@ addRagdoll = ( i, x, y, z, s ) => {
             damping:[0.0,0.25],
             neverSleep:false,
             wake:true,
-            useAggregate:true,
+            useAggregate:false,
         },
     })
 

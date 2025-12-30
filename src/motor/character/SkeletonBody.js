@@ -9,6 +9,7 @@ import { MathTool, torad } from '../../core/MathTool.js';
 * 
 *  SKELETON BODY
 *  make and controle rigidbody from skeleton bones 
+*  https://wheecorea.com/total-football-way/flexibility-and-joint-limitations/
 */
 
 let Nb = 0
@@ -58,6 +59,10 @@ export class SkeletonBody extends Object3D {
 
         this.useSolver = false 
         if( this.motor.engine !== 'PHYSX' ) this.useSolver = false;
+        this.useAggregate = false
+        if(this.motor.engine === 'PHYSX'){
+            this.useAggregate = !this.useSolver
+        }
 
         this.nameList = [];
         this.jointList = [];
@@ -201,8 +206,9 @@ export class SkeletonBody extends Object3D {
 
 	addNode(){
 
-        this.useAggregate = this.motor.engine === 'PHYSX'// && this.option.useAggregate
-        this.useAggregate = !this.useSolver
+        
+
+        
 
 		const data = []
         
@@ -226,15 +232,17 @@ export class SkeletonBody extends Object3D {
 
         _matrixWorldInv.copy( this.model.matrixWorld ).invert();
 
-        let sizer  =  [1,1,1,1,1,1,1]
+        let sizer  =  [1.4,1,1,1,1,1,1]
         if(this.option.sizer){
             sizer = this.option.sizer
         }
 
 
         let i, lng = this.bones.length, name, n, boneId, bone, parent;///, child, o, parentName;
-        let size, dist, rot, type, mesh, r, kinematic, translate, phyName, motion, link;
+        let size, dist, rot, type, mesh, kinematic, translate, phyName, motion, link;
         let forceName
+
+        let r, w
 
         let averageMass = 0;
         if(this.mass) averageMass = this.mass / lng;
@@ -273,20 +281,23 @@ export class SkeletonBody extends Object3D {
                 motion = false;
                 link = 'null'
 
+                r = dist*sizer[0]
+                w = r*1.2
 
-                if( n==='hip' && name==='abdomen' ){ type = 'capsule'; size = [  dist*sizer[0], 0.08 ]; translate = [ 0, 0, -dist*sizer[0] ]; rot = [0,0,90]; link='null';}
+                if( n==='hip' && name==='abdomen' ){ type = 'capsule'; size = [ r, w ]; translate = [ 0, 0, 0 ]; rot = [0,0,90]; link='null';}
 
                 if(this.isTreeSpine){
-
-                    if( n==='abdomen' && name==='abdomen2'  ){ type = 'capsule'; size = [ dist*0.8*sizer[1], 0.08 ]; translate = [ 0, 0, (-dist * 0.5)-0.06 ]; rot = [90,0,0]; link='hip';  }
-                    if( n==='abdomen2' && name==='chest'  ){ type = 'capsule'; size = [ dist*0.8*sizer[1], 0.08 ]; translate = [ 0, 0, (-dist * 0.5)-0.06 ]; rot = [90,0,0]; link='abdomen';  }
+                    r = dist*0.8*sizer[1]
+                    if( n==='abdomen' && name==='abdomen2'  ){ type = 'capsule'; size = [ r, r*0.3 ]; translate = [ 0, r*0.3, (-dist * 0.5)-0.06 ]; rot = [90,0,0]; link='hip';  }
+                    r = dist*0.9*sizer[1]
+                    if( n==='abdomen2' && name==='chest'  ){ type = 'capsule'; size = [ r, r*0.3 ]; translate = [ 0, r*0.15, (-dist * 0.5)-0.06 ]; rot = [90,0,0]; link='abdomen';  }
 
                   }else{
                     if( n==='abdomen' && name==='chest' ){ type = 'capsule'; size = [ dist*0.7*sizer[1], 0.08 ]; translate = [ 0, 0, (-dist * 0.5)-0.06 ]; rot = [90,0,0]; link='hip'; }
                 }
 
-                
-                if( n==='chest' && name === 'neck' ){ type = 'capsule'; size = [  dist*0.4*sizer[2], 0.04 ]; translate = [ 0, 0, (-dist * 0.5)-0.02 ]; rot = [0,0,90]; link=this.isTreeSpine? 'abdomen2':'abdomen';}
+                r = dist*0.4*sizer[2]
+                if( n==='chest' && name === 'neck' ){  type = 'capsule'; size = [  r, 0.04 ]; translate = [ 0, 0, -r ]; rot = [0,0,90]; link=this.isTreeSpine? 'abdomen2':'abdomen';}
                 if( n==='neck' && name === 'head' ){ type = 'capsule'; size = [ 0.06*sizer[3], dist ]; translate = [ 0, 0, -dist * 0.5 ]; rot = [90,0,0]; link='chest'; }
                 if( n==='head' && name === 'End_head' ){ type = 'capsule'; size = [ 0.08*sizer[4], dist-0.17 ]; translate = [ 0, 0.02, (-dist * 0.5)+0.02 ]; rot = [90,0,0]; link='neck'; }
                 
@@ -305,8 +316,8 @@ export class SkeletonBody extends Object3D {
 
                 // arm
 
-                let r = 0.04*sizer[5];
-                let w = dist-r
+                r = 0.04*sizer[5];
+                w = dist-r
 
                 if( n==='lCollar' && name==='lShldr'){ type = 'capsule'; size = [  r, dist*0.3 ]; translate = [dist*0.6 , 0, 0 ]; rot = [0,0,90]; link='chest'; }
                 if( n==='lShldr' && name==='lForeArm'){ type = 'capsule'; size = [  r, w ]; translate = [w * 0.5, 0, 0 ]; rot = [0,0,90]; link='lCollar'; }
@@ -323,13 +334,13 @@ export class SkeletonBody extends Object3D {
                 r = 0.06*sizer[6];
                 w = dist-r
 
-                if( n==='lThigh' ){ type = 'capsule'; size = [  r, dist ]; rot = [90,0,0]; translate = [ 0, 0, w * 0.5 ]; link='hip'; }
-                if( n==='lShin' ){ type = 'capsule'; size = [  r, dist ]; rot = [90,0,0]; translate = [ 0, 0, w * 0.5 ]; link='lThigh'; }
+                if( n==='lThigh' ){ type = 'capsule'; size = [ r, w ]; rot = [90,0,0]; translate = [ 0, 0, w * 0.5  ]; link='hip'; }
+                if( n==='lShin' ){ type = 'capsule'; size = [  r, w ]; rot = [90,0,0]; translate = [ 0, 0, w * 0.5 ]; link='lThigh'; }
                 //if( n==='lFoot' ){ type = 'box'; size = [  0.1, dist*1.4, 0.06 ]; translate = [0, (dist * 0.5)-0.025, 0.06 ]; link:'lShin'; }
                 if( n==='lFoot' ){ type = 'capsule'; size = [  0.05, dist ]; translate = [0, (dist * 0.5)-0.025, 0.04 ]; link='lShin'; }
 
-                if( n==='rThigh' ){ type = 'capsule'; size = [  r, dist ]; rot = [90,0,0]; translate = [ 0, 0, w * 0.5 ]; link='hip'; }
-                if( n==='rShin' ){ type = 'capsule'; size = [  r, dist ]; rot = [90,0,0]; translate = [ 0, 0, w * 0.5 ]; link='rThigh'; }
+                if( n==='rThigh' ){ type = 'capsule'; size = [  r, w ]; rot = [90,0,0]; translate = [ 0, 0, w * 0.5 ]; link='hip'; }
+                if( n==='rShin' ){ type = 'capsule'; size = [  r, w ]; rot = [90,0,0]; translate = [ 0, 0, w * 0.5 ]; link='rThigh'; }
                 //if( n==='rFoot' ){ type = 'box'; size = [  0.1, dist*1.4, 0.06 ]; translate = [0, (dist * 0.5)-0.025, 0.06 ]; link:'rShin';}
                 if( n==='rFoot' ){ type = 'capsule'; size = [  0.05, dist ]; translate = [0, (dist * 0.5)-0.025, 0.04 ]; link='rShin'; }
 
@@ -399,14 +410,33 @@ export class SkeletonBody extends Object3D {
                     //p.copy(p2)
 
                     this.posRef[phyName] = p.toArray()
+
+                    let side = 1;
+                    side = n.substring(0, 1) === 'r' ? -1 : side;
+
                     //this.posRef[phyName] = p2.toArray()
                     // if( n==='lForeArm'  )console.log(this.posRef[phyName])
                     //this.posRef[phyName] = MathTool.scaleArray(p.toArray(),this.scaler,3)
 
-                    if( n==='lForeArm' || n==='rForeArm' ){
+                    if( n==='hip' || n==='abdomen'|| n==='abdomen2'|| n==='chest'|| n==='neck' ){
                         _q.setFromAxisAngle( {x:0, y:1, z:0}, -90*torad )
                         q.multiply( _q )
+                    }
+
+                    if( n==='lForeArm' || n==='rForeArm'){
+                        _q.setFromAxisAngle( {x:0, y:1, z:0}, 90*torad*side )
+                        q.multiply( _q )
                     } 
+
+                    if( n==='lShldr' || n==='lHand' || n==='rShldr' || n==='rHand' ){
+                        _q.setFromAxisAngle( {x:0, y:0, z:1}, 90*torad*side )
+                        q.multiply( _q )
+                    }
+
+                    /*if( n==='rThigh' || n==='lThigh' ){
+                        _q.setFromAxisAngle( {x:0, y:1, z:0}, 90*torad )
+                        q.multiply( _q )
+                    } */
 
                     this.quatRef[phyName] = q.toArray();
                      
@@ -473,8 +503,6 @@ export class SkeletonBody extends Object3D {
                         
                     }
 
-
-
                     if( this.useAggregate ){
 
                         // aggregate test
@@ -485,19 +513,27 @@ export class SkeletonBody extends Object3D {
                         bb['mask'] = 1|2;
 
                     } else {
-                        let mask =  1|2;
+
+                        let g1 = 1 << 6 // 64
+                        let g2 = 1 << 7 // 128
+                        let g3 = 1 << 8 // 256
+
+
+                        /*let mask =  1|2;
+                        //if( n==='rThigh' || n==='lThigh'  ) mask = 1|2|32;
                         if( n==='lForeArm' || n==='rForeArm' || n==='lShin' || n==='rShin'  ) mask = 1|2|32;
                         if( n==='rEar_1' || n==='rEar_2' || n==='rEar_3' || n==='lEar_1'|| n==='lEar_2'|| n==='lEar_3' ) mask = 1|2|32;
                         if( n==='rEar_0' || n==='rEar_0') mask = 0;
 
                         bb['group'] = 32;
-                        bb['mask'] = mask;
+                        bb['mask'] = mask;*/
+
+
                     }
                     
 
                     //
                     
-
 
                     if( this.mass !== null ) bb['mass'] = averageMass;
                     else bb['density'] = 1;
@@ -507,6 +543,7 @@ export class SkeletonBody extends Object3D {
                         bb['linked'] = this.prefix+'_bone_'+link
                         bb['kinematic'] = false
                     }
+
 
                     data.push(bb)
 
@@ -546,12 +583,13 @@ export class SkeletonBody extends Object3D {
         // Stiffness / Damping
         // raideur / amortissement
         //let sp = [0.05,1]
-        let sp = [0.05, 1, 0]
+        //let sp = [0.05, 1, 0]
+        let sp = [100,1]
         if(this.motor.engine==='PHYSX'){
             // stiffness / damping / restitution / bounceThreshold / contactDistance
             //[0,0, 0, 0.5]
             // raideur / amortissement
-            sp = [50,10, 0, 0.5]
+            //sp = [50,10, 0, 0.5]
         }
 
         let driveSetting = {
@@ -606,16 +644,17 @@ export class SkeletonBody extends Object3D {
         }
 
         let breastMotion = [-0.001, 0.001, 1000, 0.2, 0.5]//100, 0.2, 0.5
-        
 
-        data.push({ ...sett, b1:p+'hip', b2:p+'abdomen', worldPos:this.posRef[p+'abdomen'], worldQuat:this.quatRef[p+'hip'], lm:[ ['rx',-20,20,...sp], ['ry',-20,20,...sp], ['rz',-20,20,...sp]] })
+        let spineLm = [ ['rx',-20,20,...sp], ['ry',-20,20,...sp], ['rz',-20,20,...sp]];
+        data.push({ ...sett, b1:p+'hip', b2:p+'abdomen', worldPos:this.posRef[p+'abdomen'], worldQuat:this.quatRef[p+'hip'], lm:spineLm })
+
 
         if(this.isTreeSpine){
-            data.push({ ...sett, b1:p+'abdomen', b2:p+'abdomen2', worldPos:this.posRef[p+'abdomen2'], worldQuat:this.quatRef[p+'abdomen2'], lm:[ ['rx',-20,20,...sp], ['ry',-20,20,...sp], ['rz',-20,20,...sp]] })
-            data.push({ ...sett, b1:p+'abdomen2', b2:p+'chest', worldPos:this.posRef[p+'chest'], worldQuat:this.quatRef[p+'chest'], lm:[ ['rx',-20,20,...sp], ['ry',-20,20,...sp], ['rz',-20,20,...sp]] })
+            data.push({ ...sett, b1:p+'abdomen', b2:p+'abdomen2', worldPos:this.posRef[p+'abdomen2'], worldQuat:this.quatRef[p+'abdomen2'], lm:spineLm })
+            data.push({ ...sett, b1:p+'abdomen2', b2:p+'chest', worldPos:this.posRef[p+'chest'], worldQuat:this.quatRef[p+'chest'], lm:spineLm })
 
         } else {
-            data.push({ ...sett, b1:p+'abdomen', b2:p+'chest', worldPos:this.posRef[p+'chest'], worldQuat:this.quatRef[p+'chest'], lm:[ ['rx',-20,20,...sp], ['ry',-20,20,...sp], ['rz',-20,20,...sp]] })
+            data.push({ ...sett, b1:p+'abdomen', b2:p+'chest', worldPos:this.posRef[p+'chest'], worldQuat:this.quatRef[p+'chest'], lm:spineLm })
         }
 
 
@@ -633,31 +672,36 @@ export class SkeletonBody extends Object3D {
         data.push({ ...sett, b1:p+'chest', b2:p+'rCollar', worldPos:this.posRef[p+'rCollar'],  worldQuat:this.quatRef[p+'rCollar'], mode:'fixe' })
         data.push({ ...sett, b1:p+'chest', b2:p+'lCollar', worldPos:this.posRef[p+'lCollar'],  worldQuat:this.quatRef[p+'lCollar'], mode:'fixe' })
 
-        data.push({ ...sett, b1:p+'rCollar', b2:p+'rShldr', worldPos:this.posRef[p+'rShldr'],  worldQuat:this.quatRef[p+'rShldr'] })
-        data.push({ ...sett, b1:p+'lCollar', b2:p+'lShldr', worldPos:this.posRef[p+'lShldr'],  worldQuat:this.quatRef[p+'lShldr'] })
+        let shldrLm = [  ['rx',-90,120,...sp], ['ry',-10,10,...sp], ['rz',-90,90,...sp] ];
+
+        data.push({ ...sett, b1:p+'rCollar', b2:p+'rShldr', worldPos:this.posRef[p+'rShldr'],  worldQuat:this.quatRef[p+'rShldr'], lm:shldrLm })
+        data.push({ ...sett, b1:p+'lCollar', b2:p+'lShldr', worldPos:this.posRef[p+'lShldr'],  worldQuat:this.quatRef[p+'lShldr'], lm:shldrLm })
 
        //data.push({ ...sett, b1:p+'chest', b2:p+'rShldr', worldPos:this.posRef[p+'rShldr'], worldQuat:this.quatRef[p+'rShldr'] })
         //data.push({ ...sett, b1:p+'chest', b2:p+'lShldr', worldPos:this.posRef[p+'lShldr'], worldQuat:this.quatRef[p+'lShldr'] })
 
-        if( this.existe(p+'rForeArm') ) data.push({ ...sett, b1:p+'rShldr', b2:p+'rForeArm', worldPos:this.posRef[p+'rForeArm'], worldQuat:this.quatRef[p+'rForeArm'], lm:[['rx',0,160,...sp]] })
-        if( this.existe(p+'lForeArm') ) data.push({ ...sett, b1:p+'lShldr', b2:p+'lForeArm', worldPos:this.posRef[p+'lForeArm'], worldQuat:this.quatRef[p+'lForeArm'], lm:[['rx',0,160,...sp]] })
+        if( this.existe(p+'rForeArm') ) data.push({ ...sett, b1:p+'rShldr', b2:p+'rForeArm', worldPos:this.posRef[p+'rForeArm'], worldQuat:this.quatRef[p+'rForeArm'], lm:[['rx',-150,1,...sp]] })
+        if( this.existe(p+'lForeArm') ) data.push({ ...sett, b1:p+'lShldr', b2:p+'lForeArm', worldPos:this.posRef[p+'lForeArm'], worldQuat:this.quatRef[p+'lForeArm'], lm:[['rx',-150,1,...sp]] })
 
-        if( this.existe(p+'rHand') ) data.push({ ...sett, b1:p+'rForeArm', b2:p+'rHand', worldPos:this.posRef[p+'rHand'], worldQuat:this.quatRef[p+'rHand'], lm:[['rx',0,160,...sp], ['ry',-10,10,...sp]] })
-        if( this.existe(p+'lHand') ) data.push({ ...sett, b1:p+'lForeArm', b2:p+'lHand', worldPos:this.posRef[p+'lHand'], worldQuat:this.quatRef[p+'lHand'], lm:[['rx',0,160,...sp], ['ry',-10,10,...sp]] })
+        let handLm = [  ['rx',-90,90,...sp], ['ry',-40,40,...sp], ['rz',-20,20,...sp] ];
+        if( this.existe(p+'rHand') ) data.push({ ...sett, b1:p+'rForeArm', b2:p+'rHand', worldPos:this.posRef[p+'rHand'], worldQuat:this.quatRef[p+'rHand'], lm:handLm })
+        if( this.existe(p+'lHand') ) data.push({ ...sett, b1:p+'lForeArm', b2:p+'lHand', worldPos:this.posRef[p+'lHand'], worldQuat:this.quatRef[p+'lHand'], lm:handLm })
 
         //data.push({ ...sett, b1:p+'rShldr', b2:p+'rForeArm', worldPos:this.posRef[p+'rForeArm'], worldAxis:[1,0,0], lm:[['rx',-120, 0]] })
         //data.push({ ...sett, b1:p+'lShldr', b2:p+'lForeArm', worldPos:this.posRef[p+'lForeArm'], worldAxis:[1,0,0], lm:[['rx',-120, 0]] })
 
         // leg
 
-        data.push({ ...sett, b1:p+'hip', b2:p+'rThigh', worldPos:this.posRef[p+'rThigh'], worldQuat:this.quatRef[p+'rThigh'] })
-        data.push({ ...sett, b1:p+'hip', b2:p+'lThigh', worldPos:this.posRef[p+'lThigh'], worldQuat:this.quatRef[p+'lThigh'] })
+        let legLm = [  ['rx',-10,180,...sp], ['ry',-40,40,...sp], ['rz',-20,20,...sp] ];
 
-        if( this.existe(p+'rShin') ) data.push({ ...sett, b1:p+'rThigh', b2:p+'rShin', worldPos:this.posRef[p+'rShin'], lm:[['rx',0,160,...sp]], worldQuat:this.quatRef[p+'rShin'] })
-        if( this.existe(p+'lShin') ) data.push({ ...sett, b1:p+'lThigh', b2:p+'lShin', worldPos:this.posRef[p+'lShin'], lm:[['rx',0,160,...sp]], worldQuat:this.quatRef[p+'lShin'] })
+        data.push({ ...sett, b1:p+'hip', b2:p+'rThigh', worldPos:this.posRef[p+'rThigh'], worldQuat:this.quatRef[p+'rThigh'], lm:legLm })
+        data.push({ ...sett, b1:p+'hip', b2:p+'lThigh', worldPos:this.posRef[p+'lThigh'], worldQuat:this.quatRef[p+'lThigh'], lm:legLm })
 
-        if( this.existe(p+'rFoot') ) data.push({ ...sett, b1:p+'rShin', b2:p+'rFoot', worldPos:this.posRef[p+'rFoot'], lm:[['rx',-10,30,...sp], ['rz',-10,10,...sp]], worldQuat:this.quatRef[p+'rFoot'] })
-        if( this.existe(p+'lFoot') ) data.push({ ...sett, b1:p+'lShin', b2:p+'lFoot', worldPos:this.posRef[p+'lFoot'], lm:[['rx',-10,30,...sp], ['rz',-10,10,...sp]], worldQuat:this.quatRef[p+'lFoot'] })
+        if( this.existe(p+'rShin') ) data.push({ ...sett, b1:p+'rThigh', b2:p+'rShin', worldPos:this.posRef[p+'rShin'], worldQuat:this.quatRef[p+'rShin'], lm:[['rx',0,145,...sp]] })
+        if( this.existe(p+'lShin') ) data.push({ ...sett, b1:p+'lThigh', b2:p+'lShin', worldPos:this.posRef[p+'lShin'], worldQuat:this.quatRef[p+'lShin'], lm:[['rx',0,145,...sp]] })
+
+        if( this.existe(p+'rFoot') ) data.push({ ...sett, b1:p+'rShin', b2:p+'rFoot', worldPos:this.posRef[p+'rFoot'], worldQuat:this.quatRef[p+'rFoot'], lm:[['rx',-10,30,...sp], ['rz',-10,10,...sp]] })
+        if( this.existe(p+'lFoot') ) data.push({ ...sett, b1:p+'lShin', b2:p+'lFoot', worldPos:this.posRef[p+'lFoot'], worldQuat:this.quatRef[p+'lFoot'], lm:[['rx',-10,30,...sp], ['rz',-10,10,...sp]] })
 
         if(this.withBreast){
             if( this.existe(p+'rBreast') ) data.push({ ...sett, b1:p+'chest', b2:p+'rBreast', worldPos:this.posRef[p+'rBreast'], worldQuat:this.quatRef[p+'rBreast'], lm:[['x',...breastMotion], ['y',...breastMotion], ['z',...breastMotion]] })

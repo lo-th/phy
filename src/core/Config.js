@@ -61,9 +61,9 @@ export const getArray = function ( engine, full = false ){
         counts['solver'] = Max.solver * Num.solver;
     }
 
-    if( engine === 'HAVOK' || engine === 'RAPIER' || engine === 'JOLT' ){ 
+    /*if( engine === 'HAVOK' || engine === 'RAPIER' || engine === 'JOLT' ){ 
         Num.joint = 0;
-    }
+    }*/
 
     let prev = 0;
 

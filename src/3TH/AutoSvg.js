@@ -28,6 +28,12 @@ export class AutoSvg extends Mesh {
 		this.size = option.size || 1
 		this.scaler = 1/this.size;
 
+		//let c = [ '#FF0000', '#0050FF', '#FFFFFF' ]
+
+		let c = [ '#EF1D26', '#F68F1E', '#FF8080' ]
+		if(option.axis === 'y') c = [ '#2FB350', '#FAEE1E', '#80FF80' ]
+		if(option.axis === 'z') c = [ '#4066AF', '#772F92', '#8080FF' ]
+
 		//let w = 10
 		//this.set( { viewBox:'0 0 '+w+' '+w, width:w, height:w, preserveAspectRatio:'none' })
 
@@ -41,16 +47,18 @@ export class AutoSvg extends Mesh {
 			...option
 		}
 
+		//let c = this.color
+
 		switch( this.model ){
 
 			case 'angle':
 			this.fill = o.fill !== undefined ? o.fill : true;
 	        this.stroke = o.stroke !== undefined ? o.stroke : true;
 	        let min = Math.abs(o.min);
-			this.add( 'path', { d: this.circle(0,0, o.radius, 180,180+o.max, true ), stroke:'none', fill:'#FF0000', 'fill-opacity':0.1 } );
-			this.add( 'path', { d: this.circle(0,0, o.radius, 180,180+o.max, false, false, 0.3), stroke:'#FF0000', 'stroke-opacity':1, 'stroke-width':o.strokeSize, fill:'none', 'stroke-linecap':'round' } );
-			this.add( 'path', { d: this.circle(0,0, o.radius, 180-min,180, true ), stroke:'none', fill:'#0050FF', 'fill-opacity':0.1 } );
-	        this.add( 'path', { d: this.circle(0,0, o.radius, 180-min,180, false, false, 0.3, true), stroke:'#0050FF', 'stroke-opacity':1, 'stroke-width':o.strokeSize, fill:'none', 'stroke-linecap':'round' } );
+			this.add( 'path', { d: this.circle(0,0, o.radius, 180,180+o.max, true ), stroke:'none', fill:c[0], 'fill-opacity':0.1 } );
+			this.add( 'path', { d: this.circle(0,0, o.radius, 180,180+o.max, false, false, 0.3), stroke:c[0], 'stroke-opacity':1, 'stroke-width':o.strokeSize, fill:'none', 'stroke-linecap':'round' } );
+			this.add( 'path', { d: this.circle(0,0, o.radius, 180-min,180, true ), stroke:'none', fill:c[1], 'fill-opacity':0.1 } );
+	        this.add( 'path', { d: this.circle(0,0, o.radius, 180-min,180, false, false, 0.3, true), stroke:c[1], 'stroke-opacity':1, 'stroke-width':o.strokeSize, fill:'none', 'stroke-linecap':'round' } );
 			break;
 
 			case 'liner':
@@ -59,28 +67,28 @@ export class AutoSvg extends Mesh {
 			let y2 = o.min*this.scaler;
 			this.fill = o.fill !== undefined ? o.fill : true;
 	        this.stroke = o.stroke !== undefined ? o.stroke : true;
-	        this.add( 'path', { d: this.segment({x:-r, y:0}, {x:r, y:0} ), stroke:'#FFFFFF', 'stroke-opacity':1, 'stroke-width':o.strokeSize, fill:'none', 'stroke-linecap':'butt' } );
-	        this.add( 'path', { d: this.segment({x:-r, y:y1}, {x:r, y:y1} ), stroke:'#FF0000', 'stroke-opacity':1, 'stroke-width':o.strokeSize, fill:'none', 'stroke-linecap':'butt' } );
-	        this.add( 'path', { d: this.segment({x:-r, y:y2}, {x:r, y:y2} ), stroke:'#0050FF', 'stroke-opacity':1, 'stroke-width':o.strokeSize, fill:'none', 'stroke-linecap':'butt' } );
+	        this.add( 'path', { d: this.segment({x:-r, y:0}, {x:r, y:0} ), stroke:c[2], 'stroke-opacity':1, 'stroke-width':o.strokeSize, fill:'none', 'stroke-linecap':'butt' } );
+	        this.add( 'path', { d: this.segment({x:-r, y:y1}, {x:r, y:y1} ), stroke:c[0], 'stroke-opacity':1, 'stroke-width':o.strokeSize, fill:'none', 'stroke-linecap':'butt' } );
+	        this.add( 'path', { d: this.segment({x:-r, y:y2}, {x:r, y:y2} ), stroke:c[1], 'stroke-opacity':1, 'stroke-width':o.strokeSize, fill:'none', 'stroke-linecap':'butt' } );
 	        //
-	        this.add( 'path', { d: this.segment({x:0, y:0}, {x:0, y:y1} ), stroke:'#FF0000', 'stroke-opacity':1, 'stroke-width':o.strokeSize, fill:'none', 'stroke-linecap':'butt' } );
-	        this.add( 'path', { d: this.segment({x:0, y:0}, {x:0, y:y2} ), stroke:'#0050FF', 'stroke-opacity':1, 'stroke-width':o.strokeSize, fill:'none', 'stroke-linecap':'butt' } );
+	        this.add( 'path', { d: this.segment({x:0, y:0}, {x:0, y:y1} ), stroke:c[0], 'stroke-opacity':1, 'stroke-width':o.strokeSize, fill:'none', 'stroke-linecap':'butt' } );
+	        this.add( 'path', { d: this.segment({x:0, y:0}, {x:0, y:y2} ), stroke:c[1], 'stroke-opacity':1, 'stroke-width':o.strokeSize, fill:'none', 'stroke-linecap':'butt' } );
 	        break;
 
 			case 'needle':
 			this.fill = o.fill !== undefined ? o.fill : true;
 	        this.stroke = o.stroke !== undefined ? o.stroke : true;
-			this.add( 'path', { d: this.circle(0,0, 0.7, 0, 360, false, true, 0), stroke:'#FFFFFF', 'stroke-opacity':1, 'stroke-width':o.strokeSize, fill:'none', 'stroke-linecap':'butt' } );
-			this.add( 'path', { d: this.segment({x:0, y:0}, {x:0, y:4.4} ), stroke:'#FFFFFF', 'stroke-opacity':1, 'stroke-width':o.strokeSize, fill:'none', 'stroke-linecap':'round' } );
+			this.add( 'path', { d: this.circle(0,0, 0.7, 0, 360, false, true, 0), stroke:c[2], 'stroke-opacity':1, 'stroke-width':o.strokeSize, fill:'none', 'stroke-linecap':'butt' } );
+			this.add( 'path', { d: this.segment({x:0, y:0}, {x:0, y:4.4} ), stroke:c[2], 'stroke-opacity':1, 'stroke-width':o.strokeSize, fill:'none', 'stroke-linecap':'round' } );
 			break;
 
 			case 'middle':
 			let mm = o.radius*0.5;
 			this.fill = o.fill !== undefined ? o.fill : true;
 	        this.stroke = o.stroke !== undefined ? o.stroke : true;
-			this.add( 'path', { d: this.circle(0,0, 0.7, 0, 360, false, true, 0), stroke:'#FFFFFF', 'stroke-opacity':1, 'stroke-width':o.strokeSize, fill:'none', 'stroke-linecap':'butt' } );
-			this.add( 'path', { d: this.segment({x:0, y:-mm}, {x:0, y:mm} ), stroke:'#FFFFFF', 'stroke-opacity':1, 'stroke-width':o.strokeSize, fill:'none', 'stroke-linecap':'butt' } );
-			this.add( 'path', { d: this.segment({x:-mm, y:0}, {x:mm, y:0} ), stroke:'#FFFFFF', 'stroke-opacity':1, 'stroke-width':o.strokeSize, fill:'none', 'stroke-linecap':'butt' } );
+			this.add( 'path', { d: this.circle(0,0, 0.7, 0, 360, false, true, 0), stroke:c[2], 'stroke-opacity':1, 'stroke-width':o.strokeSize, fill:'none', 'stroke-linecap':'butt' } );
+			this.add( 'path', { d: this.segment({x:0, y:-mm}, {x:0, y:mm} ), stroke:c[2], 'stroke-opacity':1, 'stroke-width':o.strokeSize, fill:'none', 'stroke-linecap':'butt' } );
+			this.add( 'path', { d: this.segment({x:-mm, y:0}, {x:mm, y:0} ), stroke:c[2], 'stroke-opacity':1, 'stroke-width':o.strokeSize, fill:'none', 'stroke-linecap':'butt' } );
 			break;
 
 
@@ -116,8 +124,6 @@ export class AutoSvg extends Mesh {
 
 			this.change( 'd', this.circle(0,0, o.radius, 180-min,180, true ), 2 );
 	        this.change( 'd', this.circle(0,0, o.radius, 180-min,180, false, false, 0.3, true), 3 );
-
-
 
 			break;
 
@@ -239,7 +245,7 @@ export class AutoSvg extends Mesh {
 
 						this.geomColor( geometry, this.color, opacity );
 
-						let gg = new BufferGeometry().copy(geometry).toNonIndexed()
+						let gg = new BufferGeometry().copy(geometry)//.toNonIndexed()
 						gg.translate( 0, 0, -layer*this.layerUp );
 						geom.push( gg )
 
@@ -306,7 +312,6 @@ export class AutoSvg extends Mesh {
 	}
 
 	dispose(){
-		
 		if( this.material && !this.outMaterial ) this.material.dispose()
 		if( this.geometry ) this.geometry.dispose()
 	}

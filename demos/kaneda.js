@@ -212,7 +212,7 @@ terrainTest = () => {
         //staticFriction:0.5,
         friction: 0.5,
         restitution: 0,
-        uv: 150,
+        uv: 300,
         pos: [0,0,0],
         size:[512, 5, 512],
         sample: [512, 512],

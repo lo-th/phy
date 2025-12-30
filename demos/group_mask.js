@@ -39,7 +39,7 @@ function demo() {
 
     	phy.add({ size:[0.2], pos:pos, density:ds, restitution:0, friction:0.5, radius:0.03, group:g1, mask:2|g1 })
         phy.add({ type:'sphere', size:[0.1], pos:pos, density:ds, restitution:0, friction:0.5, group:g2, mask:2|g2 })
-        phy.add({ type:'cylinder', size:[0.1, 0.2], pos:pos, density:ds, restitution:0, friction:0.5, radius:0.03, group:g3, mask:2|g3 })
+        phy.add({ type:'cylinder', size:[0.1, 0.2], pos:pos, density:ds, restitution:0, friction:0.5, radius:0.03, group:g3, mask:2|g2 })
 
     }
 
