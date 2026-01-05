@@ -193,6 +193,16 @@ export const Pool = {
         return GlbTool.getGroup( obj, autoMesh, autoMaterial )
     },
 
+    addMorph( model, morph, normal = true, relative = true ){
+
+        
+        if(model.isGroup){
+           model = GlbTool.getMesh(model) 
+        }
+        GlbTool.autoMorph( morph, model, normal, relative );
+
+    },
+
     applyMorph( modelName, meshs = null, normal = true, relative = true ){
 
         let model
@@ -201,6 +211,8 @@ export const Pool = {
 
         if( !meshs ) meshs = Pool.getMesh( modelName );
         if( !model || !meshs ) return
+
+        console.log(meshs)
         GlbTool.autoMorph( model, meshs, normal, relative );
 
     },

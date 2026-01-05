@@ -554,6 +554,9 @@ export class MouseTool {
 	    let quat = [0,0,0,1]
 
 		this.selected = obj;
+
+		///console.log(this.selected.name)
+		
 		//this.setOver( obj );
 		/*if( this.selected.isInstance ) quat = this.selected.instance.getInfo( this.selected.id ).quat;
 		else if( this.selected.isObject3D ){

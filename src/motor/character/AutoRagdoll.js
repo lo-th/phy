@@ -42,6 +42,8 @@ export class AutoRagdoll {
 				child.frustumCulled = false;
 			}
 			if ( child.isSkinnedMesh ){
+
+				this.skin = child
 				//child.updateMatrix();
 				child.raycast = function (){ return }
 				child.frustumCulled = false;

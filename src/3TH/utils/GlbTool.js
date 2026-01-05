@@ -8,6 +8,7 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 export const GlbTool = {
 
 	getMesh:( scene, multyMaterialGroup ) => {
+
         let meshs = {};
 
         if( multyMaterialGroup ){
@@ -37,48 +38,12 @@ export const GlbTool = {
 
             }
 
-            /*let oldGroup = []
-            let nMesh = []
-            let tmpMesh = {}
-            let groupName = []
-            scene.traverse( ( child ) => {
-                if ( child.isGroup ){ 
-                    let m = GlbTool.groupToMesh(child);
-
-                    if(m){
-                        oldGroup.push(child);
-                        groupName.push( child.name )
-
-                        m.applyMatrix4(child.matrix)
-                        /*m.position.copy(child.position)
-                        m.quaternion.copy(child.quaternion)
-                        m.scale.copy(child.scale)*/
-              /*          nMesh.push(m);
-
-                        tmpMesh[m.name] = nMesh;
-                    }
-                }
-            })
-
-            // remove old group and add remplace mesh
-            let i = oldGroup.length, p, name
-            while(i--){
-                p = oldGroup[i].parent;
-                name = p.name
-
-                p.remove(oldGroup[i]);
-
-                if(groupName.indexOf(name)!==-1) p = tmpMesh[name];
-                
-                p.add(nMesh[i]);
-
-            }*/
-
         }
-        //if( keepMaterial ) GlbTool.keepMaterial( scene )
+
         scene.traverse( ( child ) => {
             if ( child.isMesh ) meshs[ child.name ] = child;
         })
+
         return meshs;
     },
 
@@ -193,14 +158,18 @@ export const GlbTool = {
     },
 
 
-    autoMorph: ( mod, meshs, normal = true, relative = false ) => {
+    autoMorph: ( morphGlb, meshs, normal = true, relative = false ) => {
+
+
 
     	let morph = {};
     	let tmpMesh = [];
-        mod.traverse( ( node ) => { 
+        morphGlb.traverse( ( node ) => { 
             if ( node.isMesh && node.name.search('__M__') !== -1){ 
             	morph[ node.name ] = node.geometry;
             	tmpMesh.push(node);
+
+
             }
         })
 

@@ -68,6 +68,8 @@ export class Joint extends Item {
 		if( o.limit ) o.lm = o.limit;
 		else if( o.lm ) o.limit = o.lm;
 
+		/*if(o.lm) o.lm = [...o.lm]*/
+
 		// STRICT MODE
 
 		if(o.mode==='universal'||o.mode==='dof'||o.mode==='d6') o.mode = 'generic';

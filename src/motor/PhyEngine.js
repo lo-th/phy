@@ -1476,6 +1476,10 @@ export class PhyEngine {
 			await Pool.loadAsync( Urls, Path, msg );
 		}*/
 
+		this.addMorph = ( model, morph, normal = true, relative = true )=>{
+			Pool.addMorph( model, morph, normal = true, relative = true );
+		}
+
 		this.applyMorph = ( modelName, meshs = null, normal = true, relative = true )=>{
 			Pool.applyMorph( modelName, meshs = null, normal = true, relative = true );
 		}

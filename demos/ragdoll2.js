@@ -4,6 +4,7 @@ let modelName1 = "man_low";
 let modelName2 = "woman_low";
 
 let list = [];
+let num = 0
 let model1, model2;
 let deco = false
 let skin, hair
@@ -15,7 +16,10 @@ const setting = {
     mass:10,
     gravity:-10,//-9.81, 
     ragdoll:true,
-    debug:false, 
+    debug:false,
+    stiffness:100,
+    damping:1,
+    friction:0,
 };
 
 function demo() {
@@ -44,7 +48,7 @@ function demo() {
     initMaterial()
     addGui()
 
-    phy.load([modelName1+'.glb', modelName2+'.glb'], onComplete, './assets/models/avatar/' )
+    phy.load([modelName1+'.glb', modelName2+'.glb', modelName1+'_morph.glb', modelName2+'_morph.glb' ], onComplete, './assets/models/avatar/' )
  
 }
 
@@ -87,12 +91,12 @@ demoMode = (name) => {
     switch(name){
         case 'debug':
         phy.setCamera({ phi:0, theta:0, distance:3, y:1 })
-        addRagdoll(0, 0, 0, 0, 1)
+        addRagdoll(0, 0, 0, 0, 1, false)
         break;
         case 'simulation':
         phy.setCamera({ phi:12, theta:25, distance:14, y:3 })
         addDeco()
-        populate(25)
+        populate(30)
         break;
     }
 
@@ -119,6 +123,9 @@ addGui = () => {
 
     gui.add( setting, 'gravity', { min:-10, max:10, mode:2 } ).onChange( (v) => { phy.setGravity([0,v,0]); wake(); } ).listen()
     gui.add( setting, 'mass', { min:1, max:100, mode:2 } ).onChange( (v) => { mass(v) } )
+    gui.add( setting, 'stiffness', { min:0, max:10000, mode:2 } ).onChange( () => { setSpring() } )
+    gui.add( setting, 'damping', { min:0, max:10000, mode:2 } ).onChange( () => { setSpring() } )
+    gui.add( setting, 'friction', { min:0, max:100, mode:2 } ).onChange( () => { setFriction() } )
 
     gui.add( 'button', {  value: ['clear', 'add'] } ).onChange( (n) => { switch(n){ case 'clear':clear(); break; case 'add':add(); break; } } )
     
@@ -131,10 +138,11 @@ addDeco = () => {
     if(deco) return
     
 
-    let j = 20, n;
+    let j = 19, n = 0;
     while(j--){
-        n = (j*3)*0.1;
-        phy.add({ type:'box', size:[8,0.3,1], pos:[0,0.15+n,3-n*1.2], radius:0.02, instance:'stair', ray:false })
+        //n = (j*3)*0.1;
+        phy.add({ type:'box', size:[8,0.3,1], pos:[0,0.15+(n*0.3),3-(n*0.4)], radius:0.02, instance:'stair', ray:false })
+        n++
     }
 
     phy.add({ name:'wall1',type:'box', size:[0.5,3,5], pos:[4.25,1.5,1.6], radius:0.02, ray:false })
@@ -157,8 +165,16 @@ clearDeco = () => {
 onComplete = () => {
 
     let remove = []
-    model1 = phy.getGlb( modelName1, false, false );
-    model2 = phy.getGlb( modelName2, false, false );
+    model1 = phy.getGlb( modelName1 );
+    model2 = phy.getGlb( modelName2 );
+
+    morph1 = phy.getGlb( modelName1+'_morph' );
+    morph2 = phy.getGlb( modelName2+'_morph' );
+
+    
+    phy.addMorph( model1, morph1 )
+    phy.addMorph( model2, morph2 )
+    
 
     model1.traverse( ( child ) => {
         if ( child.isSkinnedMesh ) child.material = skin;
@@ -181,15 +197,15 @@ populate = ( n = 1 ) => {
     
 }
 
-addRagdoll = ( i, x, y, z, s ) => {
+addRagdoll = ( i, x, y, z, s, morph = true ) => {
 
-    if(!i) i = list.length; 
+    if(!i) i = num++ 
 
     let t = math.randInt(0,1);
     x = x !== undefined ? x : math.rand(-3,3);
     y = y !== undefined ? y : 6.0 + i
     z = z !== undefined ? z : math.rand(-3,-2);
-    s = s || math.rand(1.2,1.5);
+    s = s || math.rand(0.9,1.3);
 
     let doll = phy.autoRagdoll({ 
         name:'doll_'+i, 
@@ -204,17 +220,41 @@ addRagdoll = ( i, x, y, z, s ) => {
             neverSleep:false,
             wake:true,
             useAggregate:false,
+            spring:[setting.stiffness, setting.damping],
         },
     })
 
+    if(morph) randomMorph(doll.skin)
+
     list.push(doll);
     
+}
+
+randomMorph = ( skin ) => {
+    let list = ['MUSCLE', 'LOW', 'BIG', 'MONSTER' ]
+    let name = list[math.randInt(0,3)]
+    let value = math.rand(0,2);
+    skin.morphTargetInfluences[ skin.morphTargetDictionary[name] ] = value;
 }
 
 wake = (v) => {
     let i = list.length;
     while(i--){
         list[i].skeletonBody.wake()
+    }
+}
+
+setSpring = () => {
+    let i = list.length;
+    while(i--){
+        list[i].skeletonBody.setSpring(setting.stiffness, setting.damping)
+    }
+}
+
+setFriction = () => {
+    let i = list.length;
+    while(i--){
+        list[i].skeletonBody.setFriction(setting.friction)
     }
 }
 
@@ -226,6 +266,7 @@ mass = (v) => {
 }
 
 clear  = () => {
+    num = 0
     let i = list.length;
     while(i--){
         phy.remove(list[i].name)

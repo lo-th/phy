@@ -8550,6 +8550,10 @@ class JointDebug extends three.Object3D {
 	    let o1, o2;
 
 	    switch( this.mode ){
+	    	case 'fixe':
+	    	o2 = this.svg('middle', 0, 0 );
+	    	this.m2.add( o2 );
+	    	break;
 	    	case 'prismatic':
 
 	    	    min = -180;
@@ -8954,6 +8958,8 @@ class Joint extends Item {
 
 		if( o.limit ) o.lm = o.limit;
 		else if( o.lm ) o.limit = o.lm;
+
+		/*if(o.lm) o.lm = [...o.lm]*/
 
 		// STRICT MODE
 
@@ -9796,6 +9802,29 @@ class SkeletonBody extends three.Object3D {
         this.useDrive = option.useDrive !== undefined ?  option.useDrive : true;
         this.showJoint = option.showJoint !== undefined ?  option.showJoint : false;
 
+        // Stiffness / Damping
+        // raideur / amortissement
+        this.spring = option.spring !== undefined ? option.spring : [100,1];
+
+        this.limit = {
+            // spine
+            neck:[['rx',-25,30], ['ry',-15,15], ['rz',-30,30]],
+            spine:[['rx',-20,75], ['ry',-30,30], ['rz',-10,10]],
+            // arm
+            shoulder:[['rx',-90,120], ['ry',-10,10], ['rz',-90,90]],
+            elbow:[['rx',-150,1]],
+            hand:[['rx',-90,180], ['ry',-70,70], ['rz',-20,20]],
+            // leg
+            leg:[['rx',-110,30], ['ry',-45,45], ['rz',-40,40]],
+            knee:[['rx',0,145]],
+            foot:[['rx',-45,30], ['ry',-20,20], ['rz',-5,5]],
+            // extra
+            ear:[['rx',-10,30], ['rz',-10,10]]
+
+        };
+
+
+
         this.detectSpineNum();
 		this.init();
 
@@ -10125,14 +10154,10 @@ class SkeletonBody extends three.Object3D {
                     let side = 1;
                     side = n.substring(0, 1) === 'r' ? -1 : side;
 
-                    //this.posRef[phyName] = p2.toArray()
-                    // if( n==='lForeArm'  )console.log(this.posRef[phyName])
-                    //this.posRef[phyName] = MathTool.scaleArray(p.toArray(),this.scaler,3)
-
-                    if( n==='hip' || n==='abdomen'|| n==='abdomen2'|| n==='chest'|| n==='neck' ){
-                        _q.setFromAxisAngle( {x:0, y:1, z:0}, -90*torad$3 );
+                    if( n==='lHand' || n==='rHand'){
+                        _q.setFromAxisAngle( {x:0, y:0, z:1}, 90*torad$3*side );
                         q.multiply( _q );
-                    }
+                    } 
 
                     if( n==='lForeArm' || n==='rForeArm'){
                         _q.setFromAxisAngle( {x:0, y:1, z:0}, 90*torad$3*side );
@@ -10144,10 +10169,7 @@ class SkeletonBody extends three.Object3D {
                         q.multiply( _q );
                     }
 
-                    /*if( n==='rThigh' || n==='lThigh' ){
-                        _q.setFromAxisAngle( {x:0, y:1, z:0}, 90*torad )
-                        q.multiply( _q )
-                    } */
+                     
 
                     this.quatRef[phyName] = q.toArray();
                      
@@ -10274,11 +10296,17 @@ class SkeletonBody extends three.Object3D {
 
     addLink () {
 
+        
+
+        
+
+        this.jointData = {};
+
         // Stiffness / Damping
         // raideur / amortissement
         //let sp = [0.05,1]
         //let sp = [0.05, 1, 0]
-        let sp = [100,1];
+        //let sp = [100,1]
         if(this.motor.engine==='PHYSX');
 
         let driveSetting = {
@@ -10303,8 +10331,6 @@ class SkeletonBody extends three.Object3D {
         let sett = {
             type:'joint', 
             mode:'d6',
-            
-            lm:[  ['ry',-180,180,...sp], ['rz',-180,180,...sp] ],
 
             collision:false,
             helperSize:0.1,
@@ -10332,65 +10358,92 @@ class SkeletonBody extends three.Object3D {
             ];
         }
 
+        
+
+
+        //
+
         let breastMotion = [-1e-3, 0.001, 1000, 0.2, 0.5];//100, 0.2, 0.5
 
-        let spineLm = [ ['rx',-20,20,...sp], ['ry',-20,20,...sp], ['rz',-20,20,...sp]];
+        let spineLm = this.getLimit('spine');//[ ['rx',-30,75,...sp], ['ry',-30,30,...sp], ['rz',-10,10,...sp]];
         data.push({ ...sett, b1:p+'hip', b2:p+'abdomen', worldPos:this.posRef[p+'abdomen'], worldQuat:this.quatRef[p+'hip'], lm:spineLm });
+
+        this.jointData[p+'abdomen'] = 'spine';
+
 
 
         if(this.isTreeSpine){
             data.push({ ...sett, b1:p+'abdomen', b2:p+'abdomen2', worldPos:this.posRef[p+'abdomen2'], worldQuat:this.quatRef[p+'abdomen2'], lm:spineLm });
             data.push({ ...sett, b1:p+'abdomen2', b2:p+'chest', worldPos:this.posRef[p+'chest'], worldQuat:this.quatRef[p+'chest'], lm:spineLm });
-
+            this.jointData[p+'abdomen2'] = 'spine';
+            this.jointData[p+'chest'] = 'spine';
         } else {
             data.push({ ...sett, b1:p+'abdomen', b2:p+'chest', worldPos:this.posRef[p+'chest'], worldQuat:this.quatRef[p+'chest'], lm:spineLm });
+            this.jointData[p+'chest'] = 'spine';
         }
 
 
 
-        //data.push({ ...sett, b1:p+'chest', b2:p+'neck', worldPos:this.posRef[p+'neck'], worldQuat:this.quatRef[p+'neck'], lm:[ ['rx',-60,60,...sp], ['ry',-1,1,...sp], ['rz',-30,30,...sp]] })
-        //data.push({ ...sett, b1:p+'neck', b2:p+'head', worldPos:this.posRef[p+'head'], worldQuat:this.quatRef[p+'head'], lm:[ ['rx',-60,60,...sp], ['ry',-1,1,...sp], ['rz',-30,30,...sp]] })
-        data.push({ ...sett, b1:p+'chest', b2:p+'neck', worldPos:this.posRef[p+'neck'], worldQuat:this.quatRef[p+'neck'], lm:[ ['rx',0,30,...sp], ['ry',-1,1,...sp], ['rz',-30,30,...sp]] });
-        data.push({ ...sett, b1:p+'neck', b2:p+'head', worldPos:this.posRef[p+'head'], worldQuat:this.quatRef[p+'head'], lm:[ ['rx',0,30,...sp], ['ry',-1,1,...sp], ['rz',-30,30,...sp]] });
-        //data.push({ type:'joint', mode:'d6', b1:this.prefix*'chest', b2:this.prefix*'abdomen' })
+        // neck
+        let neckLm = this.getLimit('neck');
+        //console.log(neckLm)
+        data.push({ ...sett, b1:p+'chest', b2:p+'neck', worldPos:this.posRef[p+'neck'], worldQuat:this.quatRef[p+'neck'], lm:neckLm });
+        data.push({ ...sett, b1:p+'neck', b2:p+'head', worldPos:this.posRef[p+'head'], worldQuat:this.quatRef[p+'head'], lm:neckLm });
+        this.jointData[p+'neck'] = 'neck';
+        this.jointData[p+'head'] = 'neck';
 
         // arm
 
-        //data.push({ ...sett, b1:p+'chest', b2:p+'rCollar', worldPos:this.posRef[p+'rCollar'],  worldQuat:this.quatRef[p+'rCollar'], lm:[ ['rx',-10,10,...sp], ['ry',-10,10,...sp], ['rz',-10,10,...sp]] })
-        //data.push({ ...sett, b1:p+'chest', b2:p+'lCollar', worldPos:this.posRef[p+'lCollar'],  worldQuat:this.quatRef[p+'lCollar'], lm:[ ['rx',-10,10,...sp], ['ry',-10,10,...sp], ['rz',-10,10,...sp]] })
         data.push({ ...sett, b1:p+'chest', b2:p+'rCollar', worldPos:this.posRef[p+'rCollar'],  worldQuat:this.quatRef[p+'rCollar'], mode:'fixe' });
         data.push({ ...sett, b1:p+'chest', b2:p+'lCollar', worldPos:this.posRef[p+'lCollar'],  worldQuat:this.quatRef[p+'lCollar'], mode:'fixe' });
 
-        let shldrLm = [  ['rx',-90,120,...sp], ['ry',-10,10,...sp], ['rz',-90,90,...sp] ];
-
-        data.push({ ...sett, b1:p+'rCollar', b2:p+'rShldr', worldPos:this.posRef[p+'rShldr'],  worldQuat:this.quatRef[p+'rShldr'], lm:shldrLm });
-        data.push({ ...sett, b1:p+'lCollar', b2:p+'lShldr', worldPos:this.posRef[p+'lShldr'],  worldQuat:this.quatRef[p+'lShldr'], lm:shldrLm });
-
-       //data.push({ ...sett, b1:p+'chest', b2:p+'rShldr', worldPos:this.posRef[p+'rShldr'], worldQuat:this.quatRef[p+'rShldr'] })
-        //data.push({ ...sett, b1:p+'chest', b2:p+'lShldr', worldPos:this.posRef[p+'lShldr'], worldQuat:this.quatRef[p+'lShldr'] })
-
-        if( this.existe(p+'rForeArm') ) data.push({ ...sett, b1:p+'rShldr', b2:p+'rForeArm', worldPos:this.posRef[p+'rForeArm'], worldQuat:this.quatRef[p+'rForeArm'], lm:[['rx',-150,1,...sp]] });
-        if( this.existe(p+'lForeArm') ) data.push({ ...sett, b1:p+'lShldr', b2:p+'lForeArm', worldPos:this.posRef[p+'lForeArm'], worldQuat:this.quatRef[p+'lForeArm'], lm:[['rx',-150,1,...sp]] });
-
-        let handLm = [  ['rx',-90,90,...sp], ['ry',-40,40,...sp], ['rz',-20,20,...sp] ];
-        if( this.existe(p+'rHand') ) data.push({ ...sett, b1:p+'rForeArm', b2:p+'rHand', worldPos:this.posRef[p+'rHand'], worldQuat:this.quatRef[p+'rHand'], lm:handLm });
-        if( this.existe(p+'lHand') ) data.push({ ...sett, b1:p+'lForeArm', b2:p+'lHand', worldPos:this.posRef[p+'lHand'], worldQuat:this.quatRef[p+'lHand'], lm:handLm });
-
-        //data.push({ ...sett, b1:p+'rShldr', b2:p+'rForeArm', worldPos:this.posRef[p+'rForeArm'], worldAxis:[1,0,0], lm:[['rx',-120, 0]] })
-        //data.push({ ...sett, b1:p+'lShldr', b2:p+'lForeArm', worldPos:this.posRef[p+'lForeArm'], worldAxis:[1,0,0], lm:[['rx',-120, 0]] })
+        if( this.existe(p+'rShldr') ){
+            let shldrLm = this.getLimit('shoulder');
+            data.push({ ...sett, b1:p+'rCollar', b2:p+'rShldr', worldPos:this.posRef[p+'rShldr'],  worldQuat:this.quatRef[p+'rShldr'], lm:shldrLm });
+            data.push({ ...sett, b1:p+'lCollar', b2:p+'lShldr', worldPos:this.posRef[p+'lShldr'],  worldQuat:this.quatRef[p+'lShldr'], lm:shldrLm });
+            this.jointData[p+'rShldr'] = 'shoulder';
+            this.jointData[p+'lShldr'] = 'shoulder';
+        }
+        if( this.existe(p+'rForeArm') ){
+            let elbowLm = this.getLimit('elbow');
+            data.push({ ...sett, b1:p+'rShldr', b2:p+'rForeArm', worldPos:this.posRef[p+'rForeArm'], worldQuat:this.quatRef[p+'rForeArm'], lm:elbowLm });
+            data.push({ ...sett, b1:p+'lShldr', b2:p+'lForeArm', worldPos:this.posRef[p+'lForeArm'], worldQuat:this.quatRef[p+'lForeArm'], lm:elbowLm });
+            this.jointData[p+'rForeArm'] = 'elbow';
+            this.jointData[p+'lForeArm'] = 'elbow';
+        }
+        if( this.existe(p+'rHand') ){
+            let handLm = this.getLimit('hand');
+            data.push({ ...sett, b1:p+'rForeArm', b2:p+'rHand', worldPos:this.posRef[p+'rHand'], worldQuat:this.quatRef[p+'rHand'], lm:handLm });
+            data.push({ ...sett, b1:p+'lForeArm', b2:p+'lHand', worldPos:this.posRef[p+'lHand'], worldQuat:this.quatRef[p+'lHand'], lm:handLm });
+            this.jointData[p+'rHand'] = 'hand';
+            this.jointData[p+'lHand'] = 'hand';
+        }
 
         // leg
 
-        let legLm = [  ['rx',-10,180,...sp], ['ry',-40,40,...sp], ['rz',-20,20,...sp] ];
+        if( this.existe(p+'rThigh') ){
+            let legLm = this.getLimit('leg');//[  ['rx',-110,30,...sp], ['ry',-45,45,...sp], ['rz',-40,40,...sp] ];
+            data.push({ ...sett, b1:p+'hip', b2:p+'rThigh', worldPos:this.posRef[p+'rThigh'], worldQuat:this.quatRef[p+'rThigh'], lm:legLm });
+            data.push({ ...sett, b1:p+'hip', b2:p+'lThigh', worldPos:this.posRef[p+'lThigh'], worldQuat:this.quatRef[p+'lThigh'], lm:legLm });
+            this.jointData[p+'rThigh'] = 'leg';
+            this.jointData[p+'lThigh'] = 'leg';
+        }
+        if( this.existe(p+'rShin') ){
+            let kneeLm = this.getLimit('knee');
+            data.push({ ...sett, b1:p+'rThigh', b2:p+'rShin', worldPos:this.posRef[p+'rShin'], worldQuat:this.quatRef[p+'rShin'], lm:kneeLm });
+            data.push({ ...sett, b1:p+'lThigh', b2:p+'lShin', worldPos:this.posRef[p+'lShin'], worldQuat:this.quatRef[p+'lShin'], lm:kneeLm });
+            this.jointData[p+'rShin'] = 'knee';
+            this.jointData[p+'lShin'] = 'knee';
+        }
+        if( this.existe(p+'rFoot') ){
+            let footLm = this.getLimit('foot');
+            data.push({ ...sett, b1:p+'rShin', b2:p+'rFoot', worldPos:this.posRef[p+'rFoot'], worldQuat:this.quatRef[p+'rFoot'], lm:footLm });
+            data.push({ ...sett, b1:p+'lShin', b2:p+'lFoot', worldPos:this.posRef[p+'lFoot'], worldQuat:this.quatRef[p+'lFoot'], lm:footLm });
+            this.jointData[p+'rFoot'] = 'foot';
+            this.jointData[p+'lFoot'] = 'foot';
+        }
 
-        data.push({ ...sett, b1:p+'hip', b2:p+'rThigh', worldPos:this.posRef[p+'rThigh'], worldQuat:this.quatRef[p+'rThigh'], lm:legLm });
-        data.push({ ...sett, b1:p+'hip', b2:p+'lThigh', worldPos:this.posRef[p+'lThigh'], worldQuat:this.quatRef[p+'lThigh'], lm:legLm });
-
-        if( this.existe(p+'rShin') ) data.push({ ...sett, b1:p+'rThigh', b2:p+'rShin', worldPos:this.posRef[p+'rShin'], worldQuat:this.quatRef[p+'rShin'], lm:[['rx',0,145,...sp]] });
-        if( this.existe(p+'lShin') ) data.push({ ...sett, b1:p+'lThigh', b2:p+'lShin', worldPos:this.posRef[p+'lShin'], worldQuat:this.quatRef[p+'lShin'], lm:[['rx',0,145,...sp]] });
-
-        if( this.existe(p+'rFoot') ) data.push({ ...sett, b1:p+'rShin', b2:p+'rFoot', worldPos:this.posRef[p+'rFoot'], worldQuat:this.quatRef[p+'rFoot'], lm:[['rx',-10,30,...sp], ['rz',-10,10,...sp]] });
-        if( this.existe(p+'lFoot') ) data.push({ ...sett, b1:p+'lShin', b2:p+'lFoot', worldPos:this.posRef[p+'lFoot'], worldQuat:this.quatRef[p+'lFoot'], lm:[['rx',-10,30,...sp], ['rz',-10,10,...sp]] });
+        // breast
 
         if(this.withBreast){
             if( this.existe(p+'rBreast') ) data.push({ ...sett, b1:p+'chest', b2:p+'rBreast', worldPos:this.posRef[p+'rBreast'], worldQuat:this.quatRef[p+'rBreast'], lm:[['x',...breastMotion], ['y',...breastMotion], ['z',...breastMotion]] });
@@ -10399,26 +10452,75 @@ class SkeletonBody extends three.Object3D {
 
         // EAR
 
-        if( this.existe(p+'lEar_0') ) data.push({ ...sett, b1:p+'head',   b2:p+'lEar_0', worldPos:this.posRef[p+'lEar_0'], worldQuat:this.quatRef[p+'lEar_0'], lm:[['rx',-10,30,...sp], ['rz',-10,10,...sp]] }); 
-        if( this.existe(p+'lEar_1') ) data.push({ ...sett, b1:p+'lEar_0', b2:p+'lEar_1', worldPos:this.posRef[p+'lEar_1'], worldQuat:this.quatRef[p+'lEar_1'], lm:[['rx',-10,30,...sp], ['rz',-10,10,...sp]] });
-        if( this.existe(p+'lEar_2') ) data.push({ ...sett, b1:p+'lEar_1', b2:p+'lEar_2', worldPos:this.posRef[p+'lEar_2'], worldQuat:this.quatRef[p+'lEar_2'], lm:[['rx',-10,30,...sp], ['rz',-10,10,...sp]] });
-        if( this.existe(p+'lEar_3') ) data.push({ ...sett, b1:p+'lEar_2', b2:p+'lEar_3', worldPos:this.posRef[p+'lEar_3'], worldQuat:this.quatRef[p+'lEar_3'], lm:[['rx',-10,30,...sp], ['rz',-10,10,...sp]] });
+        let earLm = this.getLimit('ear');
+        if( this.existe(p+'lEar_0') ) data.push({ ...sett, b1:p+'head',   b2:p+'lEar_0', worldPos:this.posRef[p+'lEar_0'], worldQuat:this.quatRef[p+'lEar_0'], lm:earLm }); 
+        if( this.existe(p+'lEar_1') ) data.push({ ...sett, b1:p+'lEar_0', b2:p+'lEar_1', worldPos:this.posRef[p+'lEar_1'], worldQuat:this.quatRef[p+'lEar_1'], lm:earLm });
+        if( this.existe(p+'lEar_2') ) data.push({ ...sett, b1:p+'lEar_1', b2:p+'lEar_2', worldPos:this.posRef[p+'lEar_2'], worldQuat:this.quatRef[p+'lEar_2'], lm:earLm });
+        if( this.existe(p+'lEar_3') ) data.push({ ...sett, b1:p+'lEar_2', b2:p+'lEar_3', worldPos:this.posRef[p+'lEar_3'], worldQuat:this.quatRef[p+'lEar_3'], lm:earLm });
         
-        if( this.existe(p+'rEar_0') ) data.push({ ...sett, b1:p+'head',   b2:p+'rEar_0', worldPos:this.posRef[p+'rEar_0'], worldQuat:this.quatRef[p+'rEar_0'], lm:[['rx',-10,30,...sp], ['rz',-10,10,...sp]] });
-        if( this.existe(p+'rEar_1') ) data.push({ ...sett, b1:p+'rEar_0', b2:p+'rEar_1', worldPos:this.posRef[p+'rEar_1'], worldQuat:this.quatRef[p+'rEar_1'], lm:[['rx',-10,30,...sp], ['rz',-10,10,...sp]] });
-        if( this.existe(p+'rEar_2') ) data.push({ ...sett, b1:p+'rEar_1', b2:p+'rEar_2', worldPos:this.posRef[p+'rEar_2'], worldQuat:this.quatRef[p+'rEar_2'], lm:[['rx',-10,30,...sp], ['rz',-10,10,...sp]] });
-        if( this.existe(p+'rEar_3') ) data.push({ ...sett, b1:p+'rEar_2', b2:p+'rEar_3', worldPos:this.posRef[p+'rEar_3'], worldQuat:this.quatRef[p+'rEar_3'], lm:[['rx',-10,30,...sp], ['rz',-10,10,...sp]] });
+        if( this.existe(p+'rEar_0') ) data.push({ ...sett, b1:p+'head',   b2:p+'rEar_0', worldPos:this.posRef[p+'rEar_0'], worldQuat:this.quatRef[p+'rEar_0'], lm:earLm });
+        if( this.existe(p+'rEar_1') ) data.push({ ...sett, b1:p+'rEar_0', b2:p+'rEar_1', worldPos:this.posRef[p+'rEar_1'], worldQuat:this.quatRef[p+'rEar_1'], lm:earLm });
+        if( this.existe(p+'rEar_2') ) data.push({ ...sett, b1:p+'rEar_1', b2:p+'rEar_2', worldPos:this.posRef[p+'rEar_2'], worldQuat:this.quatRef[p+'rEar_2'], lm:earLm });
+        if( this.existe(p+'rEar_3') ) data.push({ ...sett, b1:p+'rEar_2', b2:p+'rEar_3', worldPos:this.posRef[p+'rEar_3'], worldQuat:this.quatRef[p+'rEar_3'], lm:earLm });
 
 
-        let x = 0;
         for( let j in data ){
-            data[j].name = this.prefix + '_joint_'+ x;
-            //this.nameList.push( data[j].name )
+            data[j].name = 'J_'+ data[j].b2;
             this.jointList.push( data[j].name );
-            x++;
         }
 
+
+
         this.linkData = data;
+
+    }
+
+    setFriction( friction = 0 ){
+
+        if(this.motor.engine!=='HAVOK') return
+
+        let dt = [];
+        for( let j in this.jointData ){
+            dt.push({ name:'J_'+j, friction:friction });
+        }
+
+        this.motor.change( dt );
+
+    }
+
+    setSpring( stiffness = 50, damping = 1 ){
+
+        this.spring[0] = stiffness;
+        this.spring[1] = damping;
+
+        let dt = [];
+        for( let j in this.jointData ){
+            dt.push({ name:'J_'+j, lm:this.getLimit( this.jointData[j] ) });
+        }
+
+        //console.log(dt)
+
+        this.motor.change( dt );
+
+    }
+
+    getLimit( name ){
+
+        if(!this.limit[name]) return []
+
+        const ref = this.limit[name];
+        const lmn = [];
+
+        for(let i = 0, lng = ref.length; i<lng; i++ ){
+
+            lmn.push( [...ref[i], ...this.spring ] );
+
+        }
+
+
+        //console.log(name, lmn)
+
+        return lmn
 
     }
 
@@ -11603,6 +11705,7 @@ const LZMA = {
 const GlbTool = {
 
 	getMesh:( scene, multyMaterialGroup ) => {
+
         let meshs = {};
 
         if( multyMaterialGroup ){
@@ -11632,48 +11735,12 @@ const GlbTool = {
 
             }
 
-            /*let oldGroup = []
-            let nMesh = []
-            let tmpMesh = {}
-            let groupName = []
-            scene.traverse( ( child ) => {
-                if ( child.isGroup ){ 
-                    let m = GlbTool.groupToMesh(child);
-
-                    if(m){
-                        oldGroup.push(child);
-                        groupName.push( child.name )
-
-                        m.applyMatrix4(child.matrix)
-                        /*m.position.copy(child.position)
-                        m.quaternion.copy(child.quaternion)
-                        m.scale.copy(child.scale)*/
-              /*          nMesh.push(m);
-
-                        tmpMesh[m.name] = nMesh;
-                    }
-                }
-            })
-
-            // remove old group and add remplace mesh
-            let i = oldGroup.length, p, name
-            while(i--){
-                p = oldGroup[i].parent;
-                name = p.name
-
-                p.remove(oldGroup[i]);
-
-                if(groupName.indexOf(name)!==-1) p = tmpMesh[name];
-                
-                p.add(nMesh[i]);
-
-            }*/
-
         }
-        //if( keepMaterial ) GlbTool.keepMaterial( scene )
+
         scene.traverse( ( child ) => {
             if ( child.isMesh ) meshs[ child.name ] = child;
         });
+
         return meshs;
     },
 
@@ -11788,14 +11855,18 @@ const GlbTool = {
     },
 
 
-    autoMorph: ( mod, meshs, normal = true, relative = false ) => {
+    autoMorph: ( morphGlb, meshs, normal = true, relative = false ) => {
+
+
 
     	let morph = {};
     	let tmpMesh = [];
-        mod.traverse( ( node ) => { 
+        morphGlb.traverse( ( node ) => { 
             if ( node.isMesh && node.name.search('__M__') !== -1){ 
             	morph[ node.name ] = node.geometry;
             	tmpMesh.push(node);
+
+
             }
         });
 
@@ -12060,6 +12131,16 @@ const Pool = {
         return GlbTool.getGroup( obj, autoMesh, autoMaterial )
     },
 
+    addMorph( model, morph, normal = true, relative = true ){
+
+        
+        if(model.isGroup){
+           model = GlbTool.getMesh(model); 
+        }
+        GlbTool.autoMorph( morph, model, normal, relative );
+
+    },
+
     applyMorph( modelName, meshs = null, normal = true, relative = true ){
 
         let model;
@@ -12068,6 +12149,8 @@ const Pool = {
 
         if( !meshs ) meshs = Pool.getMesh( modelName );
         if( !model || !meshs ) return
+
+        console.log(meshs);
         GlbTool.autoMorph( model, meshs, normal, relative );
 
     },
@@ -19794,6 +19877,9 @@ class MouseTool {
 	    let quat = [0,0,0,1];
 
 		this.selected = obj;
+
+		///console.log(this.selected.name)
+		
 		//this.setOver( obj );
 		/*if( this.selected.isInstance ) quat = this.selected.instance.getInfo( this.selected.id ).quat;
 		else if( this.selected.isObject3D ){
@@ -21777,6 +21863,8 @@ class AutoRagdoll {
 				child.frustumCulled = false;
 			}
 			if ( child.isSkinnedMesh ){
+
+				this.skin = child;
 				//child.updateMatrix();
 				child.raycast = function (){ return };
 				child.frustumCulled = false;
@@ -26070,6 +26158,10 @@ class PhyEngine {
 		/*this.async loadAsync ( Urls, Path = '', msg = '' ){
 			await Pool.loadAsync( Urls, Path, msg );
 		}*/
+
+		this.addMorph = ( model, morph, normal = true, relative = true )=>{
+			Pool.addMorph( model, morph, normal = true, relative = true );
+		};
 
 		this.applyMorph = ( modelName, meshs = null, normal = true, relative = true )=>{
 			Pool.applyMorph( modelName, meshs = null, normal = true, relative = true );

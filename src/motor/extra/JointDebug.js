@@ -79,6 +79,10 @@ export class JointDebug extends Object3D {
 	    let o1, o2, o3
 
 	    switch( this.mode ){
+	    	case 'fixe':
+	    	o2 = this.svg('middle', 0, 0 );
+	    	this.m2.add( o2 );
+	    	break;
 	    	case 'prismatic':
 
 	    	    min = -180
