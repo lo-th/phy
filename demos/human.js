@@ -7,12 +7,13 @@ demo = () => {
 	phy.view({
         phi:0, theta:0, distance:5, x:0, y:3, z:5, fov:45, 
         envmap:'small', reflect:0.1, groundColor:0x505050,
-        background:0x353230,
+        background:0x151414,
         envIntensity:2,
         bgIntensity:2,
         exposure:0.25,
         envBlur:0.5,
         shadow:0.4,
+        fog:true, fogExp:0.1,
     });
 
     //phy.lightIntensity( 5, 0, 0.3 );

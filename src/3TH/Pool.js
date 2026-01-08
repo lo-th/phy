@@ -212,7 +212,6 @@ export const Pool = {
         if( !meshs ) meshs = Pool.getMesh( modelName );
         if( !model || !meshs ) return
 
-        console.log(meshs)
         GlbTool.autoMorph( model, meshs, normal, relative );
 
     },

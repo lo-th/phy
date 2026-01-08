@@ -335,10 +335,10 @@ export const Human = {
                     node.visible = startHigh
                     break;
                     case 'body_low': 
-                        node.material = def;
-                        node.receiveShadow = true;
-                        node.castShadow = true;
-                        node.visible = !startHigh
+                    node.material = def;
+                    node.receiveShadow = true;
+                    node.castShadow = true;
+                    node.visible = !startHigh
                     break;
 
                     case 'Head': 
@@ -445,17 +445,22 @@ export const Human = {
         {name:'neck', values:[-5,0,0]},
         {name:'chest', values:[5,0,0]},
         
-        {name:'lCollar', values:[0,0,-10]},
-        {name:'rCollar', values:[0,0,10]},
+        {name:'lCollar', values:[0,-2,-6]},
+        {name:'rCollar', values:[0,2,6]},
 
-        {name:'lShldr', values:[-20,2,5]},
-        {name:'rShldr', values:[-20,-2,-5]},
+        //{name:'lShldr', values:[-20,2,5]},
+        //{name:'rShldr', values:[-20,-2,-5]},
+        {name:'lShldr', values:[-20,2,3]},
+        {name:'rShldr', values:[-20,-2,-3]},
 
         //{name:'lShldr', values:[-5,2,0]},
         //{name:'rShldr', values:[-5,-2,0]},
 
-        {name:'lForeArm', values:[0,0,10]},
-        {name:'rForeArm', values:[0,0,-10]},
+        {name:'lForeArm', values:[0,0,6]},
+        {name:'rForeArm', values:[0,0,-6]},
+
+        //{name:'lForeArm', values:[0,0,10]},
+        //{name:'rForeArm', values:[0,0,-10]},
 
         {name:'lHand', values:[0,15,10]},
         {name:'rHand', values:[0,-15,-10]},

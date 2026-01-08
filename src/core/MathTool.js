@@ -206,7 +206,27 @@ const M = {
 
     Mat3FromQuatArray: ( q ) => {
 
-        let q0 = q[3];//w
+        const x = q[0], y = q[1], z = q[2], w = q[3];
+        const x2 = x + x,   y2 = y + y, z2 = z + z;
+        const xx = x * x2, xy = x * y2, xz = x * z2;
+        const yy = y * y2, yz = y * z2, zz = z * z2;
+        const wx = w * x2, wy = w * y2, wz = w * z2;
+        const sx = 1, sy = 1, sz = 1;
+
+        let r00 = ( 1 - ( yy + zz ) ) * sx;
+        let r01 = ( xy + wz ) * sx;
+        let r02 = ( xz - wy ) * sx;
+
+        let r10 = ( xy - wz ) * sy;
+        let r11 = ( 1 - ( xx + zz ) ) * sy;
+        let r12 = ( yz + wx ) * sy;
+
+        let r20 = ( xz + wy ) * sz;
+        let r21 = ( yz - wx ) * sz;
+        let r22 = ( 1 - ( xx + yy ) ) * sz;
+
+
+        /*let q0 = q[3];//w
         let q1 = q[0];//x
         let q2 = q[1];//y
         let q3 = q[2];//z
@@ -224,7 +244,7 @@ const M = {
         // Third row of the rotation matrix
         let r20 = 2 * (q1 * q3 - q0 * q2)
         let r21 = 2 * (q2 * q3 + q0 * q1)
-        let r22 = 2 * (q0 * q0 + q3 * q3) - 1
+        let r22 = 2 * (q0 * q0 + q3 * q3) - 1*/
 
         // ROW
         /*let d = [
@@ -616,21 +636,64 @@ const M = {
 
     },
 
-    quatFromEuler: ( r = [0,0,0], isDeg = true ) => {
+    quatFromEuler: ( r = [0,0,0], isDeg = true, order = 'XYZ' ) => {
 
         const cos = Math.cos;
         const sin = Math.sin;
         const n = isDeg ? torad : 1 
-        const x = (r[0]*n) * 0.5, y = (r[1]*n) * 0.5, z = (r[2]*n) * 0.5
+        const x = (r[0]*n) / 2, y = (r[1]*n) / 2, z = (r[2]*n) / 2
         const c1 = cos( x ), c2 = cos( y ), c3 = cos( z );
         const s1 = sin( x ), s2 = sin( y ), s3 = sin( z );
 
-        return [
-            s1 * c2 * c3 + c1 * s2 * s3,
-            c1 * s2 * c3 - s1 * c2 * s3,
-            c1 * c2 * s3 + s1 * s2 * c3,
-            c1 * c2 * c3 - s1 * s2 * s3
-        ]
+        let _x, _y, _z, _w
+
+        switch ( order ) {
+
+            case 'XYZ':
+                _x = s1 * c2 * c3 + c1 * s2 * s3;
+                _y = c1 * s2 * c3 - s1 * c2 * s3;
+                _z = c1 * c2 * s3 + s1 * s2 * c3;
+                _w = c1 * c2 * c3 - s1 * s2 * s3;
+                break;
+
+            case 'YXZ':
+                _x = s1 * c2 * c3 + c1 * s2 * s3;
+                _y = c1 * s2 * c3 - s1 * c2 * s3;
+                _z = c1 * c2 * s3 - s1 * s2 * c3;
+                _w = c1 * c2 * c3 + s1 * s2 * s3;
+                break;
+
+            case 'ZXY':
+                _x = s1 * c2 * c3 - c1 * s2 * s3;
+                _y = c1 * s2 * c3 + s1 * c2 * s3;
+                _z = c1 * c2 * s3 + s1 * s2 * c3;
+                _w = c1 * c2 * c3 - s1 * s2 * s3;
+                break;
+
+            case 'ZYX':
+                _x = s1 * c2 * c3 - c1 * s2 * s3;
+                _y = c1 * s2 * c3 + s1 * c2 * s3;
+                _z = c1 * c2 * s3 - s1 * s2 * c3;
+                _w = c1 * c2 * c3 + s1 * s2 * s3;
+                break;
+
+            case 'YZX':
+                _x = s1 * c2 * c3 + c1 * s2 * s3;
+                _y = c1 * s2 * c3 + s1 * c2 * s3;
+                _z = c1 * c2 * s3 - s1 * s2 * c3;
+                _w = c1 * c2 * c3 - s1 * s2 * s3;
+                break;
+
+            case 'XZY':
+                _x = s1 * c2 * c3 - c1 * s2 * s3;
+                _y = c1 * s2 * c3 - s1 * c2 * s3;
+                _z = c1 * c2 * s3 + s1 * s2 * c3;
+                _w = c1 * c2 * c3 + s1 * s2 * s3;
+                break;
+
+        }
+
+        return [ _x, _y, _z, _w ]
         
     },
 

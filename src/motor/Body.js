@@ -153,6 +153,8 @@ export class Body extends Item {
 		let noScale = false, unic = false;
 		let seg = o.seg || 16;
 
+
+
 		const noIndex = this.engine === 'OIMO' || this.engine === 'JOLT' || this.engine === 'AMMO' || this.engine === 'CANNON';
 
 		//if( o.instance && t!== 'capsule'&& !o.radius) s = o.instanceSize || [1,1,1]
@@ -185,6 +187,7 @@ export class Body extends Item {
 
 		// physx new ConvexCoreCylinder is more slow, use real to enable
 	    if( this.engine === 'PHYSX' && o.type==='cylinder' && !o.real){
+	    	
 			// convert geometry to convex if not in physics
 	    	let geom = new CylinderGeometry( o.size[ 0 ], o.size[ 0 ], o.size[ 1 ], seg, 1 );//24
 	    	if( o.isWheel ) geom.rotateZ( -PI90 );

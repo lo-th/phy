@@ -2,6 +2,8 @@ import * as THREE from 'three'
 import * as TWEEN from './libs/tween.esm.js'
 import * as UIL from './libs/uil.module.js'
 
+
+import { Version } from './constants.js';
 //import './libs/webgl-memory.js'
 //import { Stats } from './Stats.js';
 import { getGPUTier } from './libs/detect-gpu.esm.js';
@@ -67,7 +69,7 @@ const testGPU = false
 
 let oldPause = false
 
-let engineName, version, introText
+let introText
 let oldLeft = 0
 
 let video = null
@@ -91,6 +93,7 @@ const CameraBase = {
 	y:2,
 	z:0,
 	time:0
+
 }
 
 
@@ -214,10 +217,6 @@ const shadowMapType = {
 }
 
 
-/*const LinkWasm = {
-    Ammo:'./build/ammo3.wasm.js',
-    Physx:'./build/physx-js-webidl.js',
-}*/
 
 let statistic = null
 
@@ -233,14 +232,6 @@ export const Main = {
 	isWorker:true,
 	devMode:false,
 	engineList: [ 'OIMO', 'AMMO', 'PHYSX', 'HAVOK', 'RAPIER', 'JOLT' ],
-	engineSkill: {
-		physx: {c:'rgba(125,201,0,0.5)',   speed:0.9, option:1.0, precision:0.9, collision:0.9, constraint:1.0, vehicle:1.0 },
-		havok: {c:'rgba(255,187,0,0.5)',   speed:1.0, option:0.9, precision:1.0, collision:1.0, constraint:0.8, vehicle:0.1 },
-		jolt:  {c:'rgba(22,147,197,0.5)',  speed:0.6, option:0.9, precision:0.8, collision:0.2, constraint:0.6, vehicle:0.7 },
-		rapier:{c:'rgba(168,251,194,0.5)', speed:0.6, option:0.8, precision:0.9, collision:0.8, constraint:0.7, vehicle:0.2 },
-		ammo : {c:'rgba(255,154,0,0.5)',   speed:0.4, option:0.7, precision:0.6, collision:0.1, constraint:0.8, vehicle:0.8 },
-		oimo:  {c:'rgba(246,82,22,0.5)',   speed:0.3, option:0.5, precision:0.6, collision:0.2, constraint:0.8, vehicle:0.2 },
-	},
 	demoList:[],
 	demoLink:[],
 	devLink:[],
@@ -292,11 +283,6 @@ export const Main = {
 			Main.engineType = eng.substring( eng.lastIndexOf('_')+1 ).toUpperCase();
 		}
 
-		let n = Main.engineType.toLowerCase();
-		engineName = n.charAt(0).toUpperCase() + n.slice(1);
-
-		version = Motor.Version[ Main.engineType ];
-
 		// test cannon physics
 		//if( Main.devMode ) Main.engineList.push('CANNON');
 
@@ -306,12 +292,12 @@ export const Main = {
 		o.worker = Main.isWorker;
 		o.callback = init;
 
-		introText = ( Main.isWorker ? 'WORKER ' : 'DIRECT ' ) + Main.engineType + ' ' + version;
+		introText = ( Main.isWorker ? 'WORKER ' : 'DIRECT ' ) + Main.engineType + ' ' + Version[ Main.engineType ];
 
 		//options.show_stat = Main.devMode;
 
 		//Motor.engine = Main.engineType
-		window.engine = Main.engineType;//Motor.engine
+		window.engine = Main.engineType;
 
 
 		Motor.init( o );

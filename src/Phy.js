@@ -1,7 +1,7 @@
 import { MathTool } from './core/MathTool.js';
-import { PhyEngine } from './motor/PhyEngine.js';
+import { Engine } from './motor/Engine.js';
 import { Pool } from './3TH/Pool.js';
-export const phy = new PhyEngine();
-export const phy2 = PhyEngine;
+export const phy = new Engine();
+export const phy2 = Engine;
 export const math = MathTool;
 export const pool = Pool;

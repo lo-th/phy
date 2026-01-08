@@ -1,6 +1,6 @@
 import * as UIL from '../libs/uil.module.js'
 import { Pool } from './Pool.js';
-
+import { EnginSkill } from '../constants.js';
 /** __
 *    _)_|_|_
 *   __) |_| | 2023
@@ -949,17 +949,17 @@ export class Hub {
     static setLogoImage( name ) {
 
         if(!engineLogo) return;
-        name = name ? name.toLowerCase() : Main.engineType.toLowerCase();
-        engineLogo.src = './assets/logo/'+name+'.png';
+        name = name ? name : Main.engineType;
+        engineLogo.src = './assets/logo/'+name.toLowerCase()+'.png';
         engineSkill.src = './assets/logo/skill.png';
         Hub.setEnginSkill(name);
 
     }
 
-    static setEnginSkill( name ) {
+    static setEnginSkill(name) {
 
         const ctx = engineCanvas.getContext( '2d' );
-        const data = Main.engineSkill[name]
+        const data = EnginSkill[name]
 
         ctx.clearRect(0, 0, 256, 256);
 

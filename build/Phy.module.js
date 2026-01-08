@@ -216,25 +216,45 @@ const M$2 = {
 
     Mat3FromQuatArray: ( q ) => {
 
-        let q0 = q[3];//w
+        const x = q[0], y = q[1], z = q[2], w = q[3];
+        const x2 = x + x,   y2 = y + y, z2 = z + z;
+        const xx = x * x2, xy = x * y2, xz = x * z2;
+        const yy = y * y2, yz = y * z2, zz = z * z2;
+        const wx = w * x2, wy = w * y2, wz = w * z2;
+        const sx = 1, sy = 1, sz = 1;
+
+        let r00 = ( 1 - ( yy + zz ) ) * sx;
+        let r01 = ( xy + wz ) * sx;
+        let r02 = ( xz - wy ) * sx;
+
+        let r10 = ( xy - wz ) * sy;
+        let r11 = ( 1 - ( xx + zz ) ) * sy;
+        let r12 = ( yz + wx ) * sy;
+
+        let r20 = ( xz + wy ) * sz;
+        let r21 = ( yz - wx ) * sz;
+        let r22 = ( 1 - ( xx + yy ) ) * sz;
+
+
+        /*let q0 = q[3];//w
         let q1 = q[0];//x
         let q2 = q[1];//y
         let q3 = q[2];//z
 
         // First row of the rotation matrix
-        let r00 = 2 * (q0 * q0 + q1 * q1) - 1;
-        let r01 = 2 * (q1 * q2 - q0 * q3);
-        let r02 = 2 * (q1 * q3 + q0 * q2);
+        let r00 = 2 * (q0 * q0 + q1 * q1) - 1
+        let r01 = 2 * (q1 * q2 - q0 * q3)
+        let r02 = 2 * (q1 * q3 + q0 * q2)
          
         // Second row of the rotation matrix
-        let r10 = 2 * (q1 * q2 + q0 * q3);
-        let r11 = 2 * (q0 * q0 + q2 * q2) - 1;
-        let r12 = 2 * (q2 * q3 - q0 * q1);
+        let r10 = 2 * (q1 * q2 + q0 * q3)
+        let r11 = 2 * (q0 * q0 + q2 * q2) - 1
+        let r12 = 2 * (q2 * q3 - q0 * q1)
          
         // Third row of the rotation matrix
-        let r20 = 2 * (q1 * q3 - q0 * q2);
-        let r21 = 2 * (q2 * q3 + q0 * q1);
-        let r22 = 2 * (q0 * q0 + q3 * q3) - 1;
+        let r20 = 2 * (q1 * q3 - q0 * q2)
+        let r21 = 2 * (q2 * q3 + q0 * q1)
+        let r22 = 2 * (q0 * q0 + q3 * q3) - 1*/
 
         // ROW
         /*let d = [
@@ -626,21 +646,64 @@ const M$2 = {
 
     },
 
-    quatFromEuler: ( r = [0,0,0], isDeg = true ) => {
+    quatFromEuler: ( r = [0,0,0], isDeg = true, order = 'XYZ' ) => {
 
         const cos = Math.cos;
         const sin = Math.sin;
         const n = isDeg ? torad$3 : 1; 
-        const x = (r[0]*n) * 0.5, y = (r[1]*n) * 0.5, z = (r[2]*n) * 0.5;
+        const x = (r[0]*n) / 2, y = (r[1]*n) / 2, z = (r[2]*n) / 2;
         const c1 = cos( x ), c2 = cos( y ), c3 = cos( z );
         const s1 = sin( x ), s2 = sin( y ), s3 = sin( z );
 
-        return [
-            s1 * c2 * c3 + c1 * s2 * s3,
-            c1 * s2 * c3 - s1 * c2 * s3,
-            c1 * c2 * s3 + s1 * s2 * c3,
-            c1 * c2 * c3 - s1 * s2 * s3
-        ]
+        let _x, _y, _z, _w;
+
+        switch ( order ) {
+
+            case 'XYZ':
+                _x = s1 * c2 * c3 + c1 * s2 * s3;
+                _y = c1 * s2 * c3 - s1 * c2 * s3;
+                _z = c1 * c2 * s3 + s1 * s2 * c3;
+                _w = c1 * c2 * c3 - s1 * s2 * s3;
+                break;
+
+            case 'YXZ':
+                _x = s1 * c2 * c3 + c1 * s2 * s3;
+                _y = c1 * s2 * c3 - s1 * c2 * s3;
+                _z = c1 * c2 * s3 - s1 * s2 * c3;
+                _w = c1 * c2 * c3 + s1 * s2 * s3;
+                break;
+
+            case 'ZXY':
+                _x = s1 * c2 * c3 - c1 * s2 * s3;
+                _y = c1 * s2 * c3 + s1 * c2 * s3;
+                _z = c1 * c2 * s3 + s1 * s2 * c3;
+                _w = c1 * c2 * c3 - s1 * s2 * s3;
+                break;
+
+            case 'ZYX':
+                _x = s1 * c2 * c3 - c1 * s2 * s3;
+                _y = c1 * s2 * c3 + s1 * c2 * s3;
+                _z = c1 * c2 * s3 - s1 * s2 * c3;
+                _w = c1 * c2 * c3 + s1 * s2 * s3;
+                break;
+
+            case 'YZX':
+                _x = s1 * c2 * c3 + c1 * s2 * s3;
+                _y = c1 * s2 * c3 + s1 * c2 * s3;
+                _z = c1 * c2 * s3 - s1 * s2 * c3;
+                _w = c1 * c2 * c3 - s1 * s2 * s3;
+                break;
+
+            case 'XZY':
+                _x = s1 * c2 * c3 - c1 * s2 * s3;
+                _y = c1 * s2 * c3 - s1 * c2 * s3;
+                _z = c1 * c2 * s3 + s1 * s2 * c3;
+                _w = c1 * c2 * c3 + s1 * s2 * s3;
+                break;
+
+        }
+
+        return [ _x, _y, _z, _w ]
         
     },
 
@@ -1425,8 +1488,22 @@ get_blend_space_2d_node_influences :: (using space : *Blend_Space_2d, position :
 }
 */
 
-const WithMassCenter = ['PHYSX', 'HAVOK'];
+const Version = {
+    
+    PHY: '0.13.1',
+    // best
+    PHYSX: '5.06.10',
+    HAVOK: '1.3.11',
+    // young
+    JOLT: '0.39.0',
+    RAPIER: '0.20.0',
+    // old
+    OIMO: '1.2.4',
+    AMMO: '3.2.6',
 
+};
+
+const WithMassCenter = ['PHYSX', 'HAVOK'];
 
 const Max = {
 	body:4000,
@@ -7118,6 +7195,8 @@ class Body extends Item {
 		let noScale = false, unic = false;
 		let seg = o.seg || 16;
 
+
+
 		const noIndex = this.engine === 'OIMO' || this.engine === 'JOLT' || this.engine === 'AMMO' || this.engine === 'CANNON';
 
 		//if( o.instance && t!== 'capsule'&& !o.radius) s = o.instanceSize || [1,1,1]
@@ -7150,6 +7229,7 @@ class Body extends Item {
 
 		// physx new ConvexCoreCylinder is more slow, use real to enable
 	    if( this.engine === 'PHYSX' && o.type==='cylinder' && !o.real){
+	    	
 			// convert geometry to convex if not in physics
 	    	let geom = new CylinderGeometry( o.size[ 0 ], o.size[ 0 ], o.size[ 1 ], seg, 1 );//24
 	    	if( o.isWheel ) geom.rotateZ( -1.5707963267948966 );
@@ -9129,7 +9209,7 @@ class Joint extends Item {
 			//o.quat2 = MathTool.quatMultiply(o.quat2, qq);
 		}
 
-		if( o.drivePosition ) if( o.drivePosition.rot !== undefined ){ o.drivePosition.quat = MathTool.quatFromEuler( o.drivePosition.rot ); delete ( o.drivePosition.rot ); }
+
 
 		let j = new JointDebug( o, this.motor );
 		j.name = name;
@@ -9155,9 +9235,16 @@ class Joint extends Item {
 
 	set ( o = {}, j = null ) {
 
+		
+
 		if( j === null ) j = this.byName( o.name );
 		if( j === null ) return;
 		if( o.visible !== undefined ) j.visible = o.visible;
+
+		/*if( o.drivePosition && this.engine !== 'HAVOK') {
+			if( o.drivePosition.rot !== undefined ){ o.drivePosition.quat = MathTool.quatFromEuler( o.drivePosition.rot ); delete ( o.drivePosition.rot ); }
+			console.log(o.drivePosition)
+		}*/
 
 	}
 
@@ -12128,7 +12215,6 @@ const Pool = {
         if( !meshs ) meshs = Pool.getMesh( modelName );
         if( !model || !meshs ) return
 
-        console.log(meshs);
         GlbTool.autoMorph( model, meshs, normal, relative );
 
     },
@@ -13564,10 +13650,10 @@ const Human = {
                     node.visible = startHigh;
                     break;
                     case 'body_low': 
-                        node.material = def;
-                        node.receiveShadow = true;
-                        node.castShadow = true;
-                        node.visible = false;
+                    node.material = def;
+                    node.receiveShadow = true;
+                    node.castShadow = true;
+                    node.visible = false;
                     break;
 
                     case 'Head': 
@@ -13674,17 +13760,22 @@ const Human = {
         {name:'neck', values:[-5,0,0]},
         {name:'chest', values:[5,0,0]},
         
-        {name:'lCollar', values:[0,0,-10]},
-        {name:'rCollar', values:[0,0,10]},
+        {name:'lCollar', values:[0,-2,-6]},
+        {name:'rCollar', values:[0,2,6]},
 
-        {name:'lShldr', values:[-20,2,5]},
-        {name:'rShldr', values:[-20,-2,-5]},
+        //{name:'lShldr', values:[-20,2,5]},
+        //{name:'rShldr', values:[-20,-2,-5]},
+        {name:'lShldr', values:[-20,2,3]},
+        {name:'rShldr', values:[-20,-2,-3]},
 
         //{name:'lShldr', values:[-5,2,0]},
         //{name:'rShldr', values:[-5,-2,0]},
 
-        {name:'lForeArm', values:[0,0,10]},
-        {name:'rForeArm', values:[0,0,-10]},
+        {name:'lForeArm', values:[0,0,6]},
+        {name:'rForeArm', values:[0,0,-6]},
+
+        //{name:'lForeArm', values:[0,0,10]},
+        //{name:'rForeArm', values:[0,0,-10]},
 
         {name:'lHand', values:[0,15,10]},
         {name:'rHand', values:[0,-15,-10]},
@@ -24733,22 +24824,8 @@ new Vector3;new Vector3;new Mesh(new SphereGeometry(.03),new MeshBasicMaterial({
 *    THREE.JS BRIDGE ENGINE
 */
 
-const Version = {
-	
-	PHY: '0.5.0',
-	// best
-    PHYSX: '5.06.10',
-    HAVOK: '1.3.11',
-    JOLT: '0.39.0',
-    // old
-    RAPIER: '0.20.0',
-    OIMO: '1.2.4',
-    AMMO: '3.2.6',
 
-};
-
-
-class PhyEngine {
+class Engine {
 
 	constructor( parameters = {} ) {
 
@@ -24767,7 +24844,6 @@ class PhyEngine {
 		//this.RayCar = RayCar;
 		
 		this.version = Version.PHY;
-		this.Version = Version;
 
 		this.engine = '';
 
@@ -25942,18 +26018,22 @@ class PhyEngine {
 
 		this.changeOne = ( o = {}, direct = false ) => {
 
+
+
 			if( o.heightData ) return
 
 			let b = this.byName( o.name );
 			if( b === null ) return null;
 			let type = b.type;
 
-			if( o.drivePosition ){
+
+			if( o.drivePosition && this.engine !== 'HAVOK'){
 				if( o.drivePosition.rot !== undefined ){  
 					o.drivePosition.quat = MathTool.quatFromEuler( o.drivePosition.rot ); 
 					delete ( o.drivePosition.rot ); 
 				}
 			}
+			
 			if( o.rot !== undefined ){ o.quat = MathTool.quatFromEuler( o.rot ); delete ( o.rot ); }
 			//if( o.rot1 !== undefined ){ o.quat1 = math.toQuatArray( o.rot1 ); delete ( o.rot1 ); }
 			//if( o.rot2 !== undefined ){ o.quat2 = math.toQuatArray( o.rot2 ); delete ( o.rot2 ); }
@@ -26652,8 +26732,8 @@ class Utils {
 
 }
 
-const phy$1 = new PhyEngine();
-const phy2 = PhyEngine;
+const phy$1 = new Engine();
+const phy2 = Engine;
 const math$1 = MathTool;
 const pool = Pool;
 

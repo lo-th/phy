@@ -260,7 +260,7 @@ export class Joint extends Item {
 			//o.quat2 = MathTool.quatMultiply(o.quat2, qq);
 		}
 
-		if( o.drivePosition ) if( o.drivePosition.rot !== undefined ){ o.drivePosition.quat = MathTool.quatFromEuler( o.drivePosition.rot ); delete ( o.drivePosition.rot ); }
+
 
 		let j = new JointDebug( o, this.motor );
 		j.name = name;
@@ -286,9 +286,16 @@ export class Joint extends Item {
 
 	set ( o = {}, j = null ) {
 
+		
+
 		if( j === null ) j = this.byName( o.name );
 		if( j === null ) return;
 		if( o.visible !== undefined ) j.visible = o.visible;
+
+		/*if( o.drivePosition && this.engine !== 'HAVOK') {
+			if( o.drivePosition.rot !== undefined ){ o.drivePosition.quat = MathTool.quatFromEuler( o.drivePosition.rot ); delete ( o.drivePosition.rot ); }
+			console.log(o.drivePosition)
+		}*/
 
 	}
 
