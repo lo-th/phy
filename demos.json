@@ -7,7 +7,7 @@
             "benchmark", "start", "ragdoll", "ragdoll2", "basic", "joint", "capsule", "compound", "bridge", "ray_car", "alpine",
             "gears", "terrain", "character", "kinematic", "tower", "gravity", "evangelion", "simple",
             "blast", "material", "keva", "test", "collision", "ball", "spring",
-            "raycast", "player", "badaboum", "nefertiti", "group_mask"
+            "raycast", "player", "badaboum", "nefertiti", "group_mask", "basic_car"
         ],
         "experiment":[
             "soft_body", "fracture", "grass", "skeleton", "kart"

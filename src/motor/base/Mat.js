@@ -459,7 +459,7 @@ export class Mat {
 				case 'debug': m = this.create({ name:'debug', type:'Basic', color:0xF37042, wireframe:true, toneMapped: false, transparent:true, opacity:0.5 }); break
 				//case 'debug': m = this.create({ name:'debug', color:0xF37042, wireframe:true, toneMapped: false, transparent:true, opacity:0.5 }); break
 				
-				//case 'debug2': m = this.create({ name:'debug2', type:'Basic', color:0x00FFFF, wireframe:true, toneMapped: false }); break
+				case 'debug2': m = this.create({ name:'debug2', type:'Basic', color:0x00FFFF, wireframe:true, toneMapped: false, transparent:true, opacity:0.5 }); break
 				//case 'debug3':  m = this.create({ name:'debug3', type:'Basic', color:0x000000, wireframe:true, transparent:true, opacity:0.1, toneMapped: false }); break
 				//case 'shadows': m = this.create({ name:'shadows', type:'Basic', transparent:true, opacity:0.01 }); break
 

@@ -603,8 +603,12 @@ export class MouseTool {
 		if( this.moveDirect ){
 			this.motor.change({ name:this.selected.name, kinematic:false, gravity:false, damping:[0.9,0.9]  })
 		} else {
-			let def = [-0.1, 0.1, 100, 50]//600, 1
-			let defr = [-0.1, 0.1, 100, 50]
+			//let def = [-0.1, 0.1, 100, 50]//600, 1
+			//let defr = [-0.1, 0.1, 100, 50]
+
+			let spring = []
+			let def = [-0.1, 0.1, ...spring]//600, 1
+			let defr = [-0.1, 0.1, ...spring]
 			//let defr = [0, 0]
 			let notUseKinematic = engine === 'OIMO' || engine ==='RAPIER' || engine ==='JOLT'//|| engine ==='HAVOK'
 			let jtype = this.selected.link === 0 ? 'fixe' : 'd6';//root.engine === 'HAVOK' ? 'fixe' : 'd6';
@@ -626,7 +630,7 @@ export class MouseTool {
 
 			
 
-			//console.log(jtype)
+			
 
 			this.motor.add([
 				{ 

@@ -3653,7 +3653,7 @@ let Mat$3 = class Mat {
 				case 'debug': this.create({ name:'debug', type:'Basic', color:0xF37042, wireframe:true, toneMapped: false, transparent:true, opacity:0.5 }); break
 				//case 'debug': m = this.create({ name:'debug', color:0xF37042, wireframe:true, toneMapped: false, transparent:true, opacity:0.5 }); break
 				
-				//case 'debug2': m = this.create({ name:'debug2', type:'Basic', color:0x00FFFF, wireframe:true, toneMapped: false }); break
+				case 'debug2': this.create({ name:'debug2', type:'Basic', color:0x00FFFF, wireframe:true, toneMapped: false, transparent:true, opacity:0.5 }); break
 				//case 'debug3':  m = this.create({ name:'debug3', type:'Basic', color:0x000000, wireframe:true, transparent:true, opacity:0.1, toneMapped: false }); break
 				//case 'shadows': m = this.create({ name:'shadows', type:'Basic', transparent:true, opacity:0.01 }); break
 
@@ -7616,6 +7616,7 @@ class Body extends Item {
 			if(o.collision === false){
 				if( this.engine === 'PHYSX' ) o.flags = 0;
 				if( this.engine === 'OIMO' ) o.mask = 0;
+				if( this.engine === 'HAVOK' ) o.mask =32;
 				//o.mask = 0
 			}
 			
@@ -9065,7 +9066,6 @@ class Joint extends Item {
 
 		// world to local
 		if ( o.worldPos ) o.worldAnchor = o.worldPos;
-
 		if ( o.worldAnchor ){
 
 			//o.pos1 = body1 ? this.Utils.toLocal( this.v1.fromArray( o.worldAnchor ), body1 ).toArray() : o.worldAnchor;
@@ -9209,6 +9209,8 @@ class Joint extends Item {
 
 		if( !o.quat1 ) o.quat1 = Q$1.setFromUnitVectors( new three.Vector3(1, 0, 0), new three.Vector3().fromArray(o.axis1).normalize() ).toArray();
 		if( !o.quat2 ) o.quat2 = Q$1.setFromUnitVectors( new three.Vector3(1, 0, 0), new three.Vector3().fromArray(o.axis2).normalize() ).toArray();
+
+		//console.log(o.quat1, o.quat2)
 
 
 		if( this.engine === 'HAVOK' ){ 
@@ -20017,8 +20019,12 @@ class MouseTool {
 		if( this.moveDirect ){
 			this.motor.change({ name:this.selected.name, kinematic:false, gravity:false, damping:[0.9,0.9]  });
 		} else {
-			let def = [-0.1, 0.1, 100, 50];//600, 1
-			let defr = [-0.1, 0.1, 100, 50];
+			//let def = [-0.1, 0.1, 100, 50]//600, 1
+			//let defr = [-0.1, 0.1, 100, 50]
+
+			let spring = [];
+			let def = [-0.1, 0.1, ...spring];//600, 1
+			let defr = [-0.1, 0.1, ...spring];
 			//let defr = [0, 0]
 			let notUseKinematic = engine === 'OIMO' || engine ==='RAPIER' || engine ==='JOLT';//|| engine ==='HAVOK'
 			let jtype = this.selected.link === 0 ? 'fixe' : 'd6';//root.engine === 'HAVOK' ? 'fixe' : 'd6';
@@ -20040,7 +20046,7 @@ class MouseTool {
 
 			
 
-			//console.log(jtype)
+			
 
 			this.motor.add([
 				{ 

@@ -94,7 +94,6 @@ export class Joint extends Item {
 
 		// world to local
 		if ( o.worldPos ) o.worldAnchor = o.worldPos;
-
 		if ( o.worldAnchor ){
 
 			//o.pos1 = body1 ? this.Utils.toLocal( this.v1.fromArray( o.worldAnchor ), body1 ).toArray() : o.worldAnchor;
@@ -238,6 +237,8 @@ export class Joint extends Item {
 
 		if( !o.quat1 ) o.quat1 = Q.setFromUnitVectors( new Vector3(1, 0, 0), new Vector3().fromArray(o.axis1).normalize() ).toArray();
 		if( !o.quat2 ) o.quat2 = Q.setFromUnitVectors( new Vector3(1, 0, 0), new Vector3().fromArray(o.axis2).normalize() ).toArray();
+
+		//console.log(o.quat1, o.quat2)
 
 
 		if( this.engine === 'HAVOK' ){ 

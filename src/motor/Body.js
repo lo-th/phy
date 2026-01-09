@@ -560,6 +560,7 @@ export class Body extends Item {
 			if(o.collision === false){
 				if( this.engine === 'PHYSX' ) o.flags = 0
 				if( this.engine === 'OIMO' ) o.mask = 0
+				if( this.engine === 'HAVOK' ) o.mask =32
 				//o.mask = 0
 			}
 			
