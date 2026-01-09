@@ -30,8 +30,8 @@ demo = () => {
 
 
     testCar.push(new Car())
-    testCar.push(new Car([-4,1,0]))
-    testCar.push(new Car([4,1,0]))
+    testCar.push(new Car([-4,1,0], [1,0.2,2]))
+    testCar.push(new Car([4,1,0], [2,0.2,2]))
 
 
     // update after physic step
@@ -61,7 +61,7 @@ update = () => {
 
 class Car {
 
-    constructor ( pos ) {
+    constructor ( pos, size ) {
 
         this.name = 'car'+N;
         N++
@@ -72,6 +72,8 @@ class Car {
         this.maxSteering = 25
 
         this.drive = ['rx', 10, 100, 1000000, true]
+        this.driveSterring = ['ry', 10000, 10, 100000]
+
         this.suspension = ['y', -0.02, 0.02, 10000, 100]
         this.steering = ['ry', -this.maxSteering, this.maxSteering, 10000, 100]
 
@@ -82,15 +84,15 @@ class Car {
         this.w_mass = 20
 
         this.pos = pos || [0,1,0];
-        this.size = [2,0.1,4]
+        this.size = size || [2,0.2,4]
 
         
         this.w_friction = 20
 
         this.w_radius = 0.3
         this.w_width = 0.3
-        this.w_x = 1
-        this.w_z = 1.8
+        this.w_x = (this.size[0]*0.5)+(this.w_width*0.5)//1
+        this.w_z = (this.size[2]*0.5)-this.w_radius//1.8
 
         this.w_sphere = false
 
@@ -128,7 +130,7 @@ class Car {
     update( key, delta ){
 
         if(key[1]!==0){
-            this.currentSpeed += -key[1]*20*delta
+            this.currentSpeed += -key[1]*40*delta
             this.currentSpeed = math.clamp(this.currentSpeed, -this.maxSpeed*0.5, this.maxSpeed)
         } else {
             this.currentSpeed *= 0.1
@@ -233,8 +235,8 @@ class Car {
             worldPos:pos,
             worldAxis:[1,0,0],
             limit:lm,
-            drive: isBack ? [] : [['ry', 10000, 10, 100000]],
-            friction:0, collision:false, //visible:true 
+            drive: isBack ? [] : [[...this.driveSterring]],
+            friction:0, collision:false, visible:true 
         })
 
         phy.add({ 
