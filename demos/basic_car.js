@@ -8,6 +8,8 @@ let testCar = []
 
 demo = () => {
 
+    
+
     phy.view({ 
         envmap:'small', groundColor:0x505050, background:0x151414, 
         envblur:0.5, d:10, theta:0, phi:25, reflect:0.1 , fog:true, fogExp:0.05,
@@ -21,7 +23,7 @@ demo = () => {
     g.material.metalness = 0;
 
     // config physics setting
-    phy.set({ substep:1, gravity:[0,-9.81,0], key:true })
+    phy.set({ fps:60, substep:1, gravity:[0,-9.81,0], key:true })
 
     // add static ground box
     phy.add({ type:'box', size:[100,4,100], pos:[0, -2, 0], restitution:0.2, visible:false })
@@ -33,7 +35,6 @@ demo = () => {
     testCar.push(new Car([-4,1,0], [1,0.2,2]))
     testCar.push(new Car([4,1,0], [2,0.2,2]))
 
-
     // update after physic step
     phy.setPostUpdate ( update )
 
@@ -41,7 +42,9 @@ demo = () => {
 
 const addGui = () => {
 
-    gui = phy.gui();
+    phy.log('Use key to move<br>Only work on PHYSX and HAVOK')
+
+    //gui = phy.gui();
     /*gui.add('grid',{ values:['SAVE', 'RESTOR'], selectable:false, radius:6 }).onChange( (n)=>{
         if(n==='SAVE') save()
         if(n==='RESTOR') begin(saving)
@@ -91,13 +94,12 @@ class Car {
 
         this.w_radius = 0.3
         this.w_width = 0.3
-        this.w_x = (this.size[0]*0.5)+(this.w_width*0.5)//1
-        this.w_z = (this.size[2]*0.5)-this.w_radius//1.8
+        this.w_x = (this.size[0]*0.5)+(this.w_width*0.5)
+        this.w_z = (this.size[2]*0.5)-this.w_radius
 
         this.w_sphere = false
 
         this.group = 1 << 3 // 8
-        this.noCollision = 1 << 5 // 32
 
         this.init()
 
@@ -109,7 +111,8 @@ class Car {
             name:this.name+'_chassie', type:'box',
             aggregate:this.name+'_group',
             size:this.size, pos:this.pos, 
-            mass:this.mass, massCenter:[0,-this.w_radius*2, 0],
+            mass:this.mass, 
+            //massCenter:[0,-this.w_radius*2, 0],
             restitution:0.2, friction:0.5, 
             group:this.group, 
             //mask:1|2 
@@ -117,7 +120,7 @@ class Car {
 
         let r = this.w_radius
         let d = this.w_width
-        let wheelGeo = new THREE.CylinderGeometry( r, r, d, 60, 1 );
+        let wheelGeo = new THREE.CylinderGeometry( r, r, d, 48, 2 );
         wheelGeo.rotateZ( -Math.PI*0.5 );
         this.wheelMesh = new THREE.Mesh(wheelGeo)
 

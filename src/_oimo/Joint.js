@@ -204,6 +204,8 @@ export class Joint extends Item {
 		j.mode = mode;
 		j.visible = false; 
 
+		console.log(j)
+
 		//if( j.mode ==='Generic' ) console.log( j.getAxisY() )
 
 
@@ -310,6 +312,17 @@ export class Joint extends Item {
 			}*/
 
 			// MOTOR
+
+			if(o.driveVelocity){
+				rotate = j.getRotationalLimitMotors()
+
+				if(o.driveVelocity.rot){
+					this.motor( rotate[0], [ o.driveVelocity.rot[0], o.driveVelocity.rot[0] ] )
+					this.motor( rotate[1], [ o.driveVelocity.rot[1], o.driveVelocity.rot[1] ] )
+					this.motor( rotate[2], [ o.driveVelocity.rot[2], o.driveVelocity.rot[2] ] )
+				}
+
+			}
 
 			if( o.motor ){
 
