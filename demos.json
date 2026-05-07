@@ -19,7 +19,8 @@
             "gears2", "mass", "empty", "empty2", "empty3",
             "car", "buttons", "pinball", "bullet", "build", "skeleton_old", 
              "vehicle3", "mesh", "stacking",  "house", "direct", "nefertiti2",
-            "solver", "wall", "skylab", "colors", "barbados", "barbados2", "blob", "joint_test", "event", "human2"
+            "solver", "wall", "skylab", "colors", "barbados", "barbados2", "blob", "joint_test", "event", "human2",
+            "floating"
         ],
         "private": [
             "break_vase", "coin"

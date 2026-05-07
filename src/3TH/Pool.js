@@ -24,7 +24,7 @@ import { MeshoptDecoder } from '../libs/meshopt_decoder.module.js';
 import { DRACOLoader } from '../libs/DRACOLoader.js';
 import { KTX2Loader } from '../libs/KTX2Loader.js';
 
-import { LZMA } from '../libs/lzma.js';
+import { initWasm, compress, decompress } from '../libs/lzma-wasm.js';
 
 import { GlbTool } from './utils/GlbTool.js';
 
@@ -46,7 +46,7 @@ export const Pool = {
     data: new Map(),
     tmp: [],
 
-    lzma:null,
+    //lzma:null,
     //extraTexture: [],
     dracoLoader: null,
     //dracoLoaderType:'js',
@@ -59,6 +59,33 @@ export const Pool = {
         draco:true,
         ktx2: false,
         meshop: false,
+    },
+
+    lzmaReady:false,
+
+    initLzma: async(n) => { 
+
+        if(Pool.lzmaReady) return;
+        await initWasm(); 
+        Pool.lzmaReady = true;
+    
+    },
+    
+    compress: (buffer) => {
+
+        const rawData = new TextEncoder().encode(buffer);
+        const result = compress( rawData, { format: 'xz', level: 6 });
+        return result;
+
+    },
+
+    decompress: (buffer) => {
+
+        if(!Pool.lzmaReady) this.initLzma()
+        const decompressed = decompress(new Uint8Array( buffer ))
+        const result = new TextDecoder().decode(decompressed);
+        return result;
+
     },
 
     setSupport: ( o ) => {
@@ -606,7 +633,12 @@ export const Pool = {
                     function( error ){ console.error('decodeAudioData error', error); }
                 );
             break;
-            case 'hex': case 'bin': LZMA.decompress( response, ( result ) => { Pool.add( name, result, type ) }); break;
+            case 'hex': case 'bin':
+               const result = Pool.decompress( response );
+               Pool.add( name, result, type )
+               console.log(name, type)
+               //LZMA.decompress( response, ( result ) => { Pool.add( name, result, type ) }); 
+            break;
             case 'wasm': Pool.add( name, new Uint8Array( response ), type ); break;
             case 'json': Pool.add( name, JSON.parse( response ), type ); break;
             case 'js': Pool.add( name, response, type ); break;

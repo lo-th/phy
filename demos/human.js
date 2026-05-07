@@ -2,6 +2,12 @@ const debug = 0;
 let player = null;
 let first = true
 let speech = null
+let oldControl = null;
+const option = {
+    bodyMorph:[0,0],
+    faceMorph:[0,0],
+    realSize:1.0
+}
 
 demo = () => {
 
@@ -31,9 +37,9 @@ demo = () => {
     g.material.roughness = 0.8;
     g.material.metalness = 0;
 
-    phy.add({ type:'plane', size:[300,1,300], visible:false });
+    //phy.add({ type:'box', size:[1,1.8,1], pos:[2,0.9,0], visible:true });
 
-    //phy.add({ type:'box', size:[0.6,0.3,0.6], pos:[0.5,0.3*0.5,5]  });
+    phy.add({ type:'plane', size:[300,1,300], visible:false });
 
     phy.load(['./assets/models/column.glb'], onComplete_1 );
     
@@ -55,10 +61,10 @@ onComplete_1 = () => {
 
 onComplete_2 = () => {
 
+    console.log('ready')
+
     Character(1);
     addGui();
-
-    
 
 }
 
@@ -124,22 +130,18 @@ const Colomn = ( h = 5, pos = [0,0,0] ) => {
 
 }
 
-const option = {
 
-    bodyMorph:[0,0],
-    faceMorph:[0,0],
-    realSize:1.0
-
-}
 
 const Character = ( num = 1 ) => {
+
+    oldControl = phy.getControl().info;
 
     phy.control();
 
     let i = num, n = 0,  g;
     let pos = [0,0,5], angle = 0;
     let hh = [];
-    let gender =  ['man', 'woman'];
+    let gender = ['man', 'woman'];
 
     while( i-- ){
 
@@ -151,7 +153,7 @@ const Character = ( num = 1 ) => {
             gender: gender[g],
             //debug: true,
             radius: 0.3,
-            //height: 1.8,
+            height: 1.8,
             pos: pos,
             //ray: n===0,
             angle:angle,
@@ -180,21 +182,34 @@ const Character = ( num = 1 ) => {
     option.bodyMorph = model.bodyMorph;
     option.realSize = model.realSize;
 
-    
+    console.log(model)
 
+    
     //phy.follow('c_0', { direct:true, simple:true, distance:5, phi:0, theta:0, decal:[0.3, 0.5, -0.3], fov:60, zoom:1.0 })
-    phy.follow( 'c_0', { direct:true, simple:true, distance:3, phi:10, theta:0, decal:[0, 0, 0], fov:50, zoom:1.0, zoomUp:true })
+   
     // active keyboard
     phy.control( 'c_0' );
 
-
     let text = 'hello my name is ' + (gender[g] === 'man' ? 'bob': 'dianna')
-    speech = phy.addSpeech( text );
-    speech.initInterface(gender[g]);
-    speech.dispatch = (seq, time)=>{ player.model.speak( seq, time); } 
+    if( !speech ){
 
-    speech.content.style.left = '40px'
-    speech.content.style.bottom = '410px'
+        phy.follow( 'c_0', { direct:true, simple:true, distance:3, phi:10, theta:0, decal:[0, 0, 0], fov:50, zoom:1.0, zoomUp:true })
+
+        speech = phy.addSpeech( text );
+        speech.initInterface(gender[g]);
+        speech.dispatch = (seq, time)=>{ player.model.speak( seq, time); } 
+
+        speech.content.style.left = '40px'
+        speech.content.style.bottom = '244px'
+    } else {
+
+        phy.follow( 'c_0', { direct:true, simple:true, zoomUp:true, ...oldControl })
+
+
+
+        speech.setOption(text, gender[g])
+    }
+    
 
 }
 
@@ -204,9 +219,9 @@ const addGui = () => {
 
     gui = phy.gui();
     //gui.add( 'string', { name:'String', value:'welcome to uil', h:200, p:0 });
-    gui.add( option, 'faceMorph',{ rename:'FACE morph', type:'pad', name:'type', min:-1, max:1, w:120 }).listen().onChange( faceMorph );
-    gui.add( option, 'bodyMorph',{ rename:'BODY morph',type:'pad', name:'type', min:-1, max:1, w:120 }).listen().onChange( bodyMorph );
-    gui.add( option, 'realSize',{ rename:'SIZE', min:1.0, max:2.0, mode:1}).listen().onChange( resize )
+    gui.add( option, 'faceMorph',{ rename:'FACE morph', type:'pad', name:'type', min:-1, max:1, w:100, mode:1 }).listen().onChange( faceMorph );
+    gui.add( option, 'bodyMorph',{ rename:'BODY morph',type:'pad', name:'type', min:-1, max:1, w:100, mode:1 }).listen().onChange( bodyMorph );
+    gui.add( option, 'realSize',{ rename:'SIZE', min:1.0, max:2.0, precision:2, mode:2}).listen().onChange( resize )
     gui.add('button',{name:'Random', h:30, radius:4}).onChange( ()=>{Character()} )
     gui.add('bool',{name:'Debug'}).onChange( showDebug )
 

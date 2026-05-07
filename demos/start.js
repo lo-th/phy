@@ -104,7 +104,7 @@ onComplete = () => {
         mesh:model.logo,
         damping:[1.5,0.7],
         //meshSize:1,
-        //mass:20,
+        //mass:1,
         density:1,
         material:'chrome',
         getVelocity:true,
@@ -112,8 +112,21 @@ onComplete = () => {
         massCenter:[0,0,0],
 
         
+
+        
         ...option
     })
+
+
+    /*phy.add({
+        type:'sphere',
+        name:'ball',
+        size:[0.25],
+        pos:[ 1, 1,0 ],
+        mass:4,
+
+        massInfo: true,
+    })*/
     // add some dynamics object
 
     //i = 20;
@@ -180,11 +193,19 @@ update = ( dt ) => {
     const logo = phy.byName('logo')
     let pos = logo.position;
     let f = math.lerp(0.1, 0, pos.y)
+    //let f = math.lerp(100, 0, pos.y)
 
     //console.log(logo.velocity)
 
 
-    if(pos.y<1) phy.change({name:'logo',force:[0,f,0], forcePosition:[pos.x,0,pos.z] })
+    if(pos.y<1) phy.change({name:'logo', force:[0,f,0], forcePosition:[pos.x,0,pos.z] })
+
+    /*const ball = phy.byName('ball')
+    let posb = ball.position;
+    let fb = math.lerp(4, 0, 1-posb.y)
+    console.log(fb)
+
+    if(posb.y<1) phy.change({name:'ball', impulse:[0,fb,0], impulseCenter:[posb.x,posb.y,posb.z] })*/
 
 
 }

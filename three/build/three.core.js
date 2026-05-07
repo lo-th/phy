@@ -3,7 +3,7 @@
  * Copyright 2010-2026 Three.js Authors
  * SPDX-License-Identifier: MIT
  */
-const REVISION = '184';
+const REVISION = '185dev';
 
 /**
  * Represents mouse buttons and interaction types in context of controls.
@@ -9114,7 +9114,8 @@ class RenderTarget extends EventDispatcher {
 	 * @property {number} [samples=0] - The MSAA samples count.
 	 * @property {number} [count=1] - Defines the number of color attachments . Must be at least `1`.
 	 * @property {number} [depth=1] - The texture depth.
-	 * @property {boolean} [multiview=false] - Whether this target is used for multiview rendering.
+	 * @property {boolean} [multiview=false] - Whether this target is used for multiview rendering (WebGL OVR_multiview2 extension).
+	 * @property {boolean} [useArrayDepthTexture=false] - Whether to create the depth texture as an array texture for per-layer depth testing. This is separate from multiview so layered render targets can use array depth without the multiview extension.
 	 */
 
 	/**
@@ -9140,7 +9141,8 @@ class RenderTarget extends EventDispatcher {
 			samples: 0,
 			count: 1,
 			depth: 1,
-			multiview: false
+			multiview: false,
+			useArrayDepthTexture: false
 		}, options );
 
 		/**
@@ -9276,6 +9278,16 @@ class RenderTarget extends EventDispatcher {
 		 * @default false
 		 */
 		this.multiview = options.multiview;
+
+		/**
+		 * Whether to create the depth texture as an array texture for per-layer depth testing.
+		 * This is separate from multiview so layered render targets can use array depth without
+		 * the multiview extension.
+		 *
+		 * @type {boolean}
+		 * @default false
+		 */
+		this.useArrayDepthTexture = options.useArrayDepthTexture;
 
 	}
 
@@ -9448,6 +9460,7 @@ class RenderTarget extends EventDispatcher {
 
 		this.samples = source.samples;
 		this.multiview = source.multiview;
+		this.useArrayDepthTexture = source.useArrayDepthTexture;
 
 		return this;
 
@@ -18953,13 +18966,14 @@ class BufferGeometry extends EventDispatcher {
 		const normalAttribute = attributes.normal;
 		const uvAttribute = attributes.uv;
 
-		if ( this.hasAttribute( 'tangent' ) === false ) {
+		let tangentAttribute = this.getAttribute( 'tangent' );
 
-			this.setAttribute( 'tangent', new BufferAttribute( new Float32Array( 4 * positionAttribute.count ), 4 ) );
+		if ( tangentAttribute === undefined || tangentAttribute.count !== positionAttribute.count ) {
+
+			tangentAttribute = new BufferAttribute( new Float32Array( 4 * positionAttribute.count ), 4 );
+			this.setAttribute( 'tangent', tangentAttribute );
 
 		}
-
-		const tangentAttribute = this.getAttribute( 'tangent' );
 
 		const tan1 = [], tan2 = [];
 
@@ -19105,7 +19119,7 @@ class BufferGeometry extends EventDispatcher {
 
 			let normalAttribute = this.getAttribute( 'normal' );
 
-			if ( normalAttribute === undefined ) {
+			if ( normalAttribute === undefined || normalAttribute.count !== positionAttribute.count ) {
 
 				normalAttribute = new BufferAttribute( new Float32Array( positionAttribute.count * 3 ), 3 );
 				this.setAttribute( 'normal', normalAttribute );
@@ -20972,7 +20986,11 @@ class Material extends EventDispatcher {
 
 				currentValue.set( newValue );
 
-			} else if ( ( currentValue && currentValue.isVector3 ) && ( newValue && newValue.isVector3 ) ) {
+			} else if (
+				( ( currentValue && currentValue.isVector2 ) && ( newValue && newValue.isVector2 ) ) ||
+				( ( currentValue && currentValue.isEuler ) && ( newValue && newValue.isEuler ) ) ||
+				( ( currentValue && currentValue.isVector3 ) && ( newValue && newValue.isVector3 ) )
+			) {
 
 				currentValue.copy( newValue );
 
@@ -38095,7 +38113,9 @@ class MeshStandardMaterial extends Material {
 		 * displaced vertices can cast shadows, block other objects, and otherwise
 		 * act as real geometry. The displacement texture is an image where the value
 		 * of each pixel (white being the highest) is mapped against, and
-		 * repositions, the vertices of the mesh.
+		 * repositions, the vertices of the mesh. For best results, pair a
+		 * displacement map with a matching normal map, since the renderer can
+		 * not recompute surface normals from the displaced vertices.
 		 *
 		 * @type {?Texture}
 		 * @default null
@@ -39018,7 +39038,9 @@ class MeshPhongMaterial extends Material {
 		 * displaced vertices can cast shadows, block other objects, and otherwise
 		 * act as real geometry. The displacement texture is an image where the value
 		 * of each pixel (white being the highest) is mapped against, and
-		 * repositions, the vertices of the mesh.
+		 * repositions, the vertices of the mesh. For best results, pair a
+		 * displacement map with a matching normal map, since the renderer can
+		 * not recompute surface normals from the displaced vertices.
 		 *
 		 * @type {?Texture}
 		 * @default null
@@ -39418,7 +39440,9 @@ class MeshToonMaterial extends Material {
 		 * displaced vertices can cast shadows, block other objects, and otherwise
 		 * act as real geometry. The displacement texture is an image where the value
 		 * of each pixel (white being the highest) is mapped against, and
-		 * repositions, the vertices of the mesh.
+		 * repositions, the vertices of the mesh. For best results, pair a
+		 * displacement map with a matching normal map, since the renderer can
+		 * not recompute surface normals from the displaced vertices.
 		 *
 		 * @type {?Texture}
 		 * @default null
@@ -39641,7 +39665,9 @@ class MeshNormalMaterial extends Material {
 		 * displaced vertices can cast shadows, block other objects, and otherwise
 		 * act as real geometry. The displacement texture is an image where the value
 		 * of each pixel (white being the highest) is mapped against, and
-		 * repositions, the vertices of the mesh.
+		 * repositions, the vertices of the mesh. For best results, pair a
+		 * displacement map with a matching normal map, since the renderer can
+		 * not recompute surface normals from the displaced vertices.
 		 *
 		 * @type {?Texture}
 		 * @default null
@@ -39902,7 +39928,9 @@ class MeshLambertMaterial extends Material {
 		 * displaced vertices can cast shadows, block other objects, and otherwise
 		 * act as real geometry. The displacement texture is an image where the value
 		 * of each pixel (white being the highest) is mapped against, and
-		 * repositions, the vertices of the mesh.
+		 * repositions, the vertices of the mesh. For best results, pair a
+		 * displacement map with a matching normal map, since the renderer can
+		 * not recompute surface normals from the displaced vertices.
 		 *
 		 * @type {?Texture}
 		 * @default null
@@ -40500,7 +40528,9 @@ class MeshMatcapMaterial extends Material {
 		 * displaced vertices can cast shadows, block other objects, and otherwise
 		 * act as real geometry. The displacement texture is an image where the value
 		 * of each pixel (white being the highest) is mapped against, and
-		 * repositions, the vertices of the mesh.
+		 * repositions, the vertices of the mesh. For best results, pair a
+		 * displacement map with a matching normal map, since the renderer can
+		 * not recompute surface normals from the displaced vertices.
 		 *
 		 * @type {?Texture}
 		 * @default null
@@ -41741,9 +41771,8 @@ class DiscreteInterpolant extends Interpolant {
  * each keyframe has explicit in/out tangent control points specified as
  * 2D coordinates (time, value).
  *
- * The tangent data must be provided via the `settings` object:
- * - `settings.inTangents`: Float32Array with [time, value] pairs per keyframe per component
- * - `settings.outTangents`: Float32Array with [time, value] pairs per keyframe per component
+ * Tangent data is read from `inTangents` and `outTangents` on the interpolant
+ * (populated by `KeyframeTrack.InterpolantFactoryMethodBezier`).
  *
  * For a track with N keyframes and stride S:
  * - Each tangent array has N * S * 2 values
@@ -41763,9 +41792,8 @@ class BezierInterpolant extends Interpolant {
 		const offset1 = i1 * stride;
 		const offset0 = offset1 - stride;
 
-		const settings = this.settings || this.DefaultSettings_;
-		const inTangents = settings.inTangents;
-		const outTangents = settings.outTangents;
+		const inTangents = this.inTangents;
+		const outTangents = this.outTangents;
 
 		// If no tangent data, fall back to linear interpolation
 		if ( ! inTangents || ! outTangents ) {
@@ -41986,10 +42014,10 @@ class KeyframeTrack {
 
 		const interpolant = new BezierInterpolant( this.times, this.values, this.getValueSize(), result );
 
-		// Pass tangent data from track settings to interpolant
 		if ( this.settings ) {
 
-			interpolant.settings = this.settings;
+			interpolant.inTangents = this.settings.inTangents;
+			interpolant.outTangents = this.settings.outTangents;
 
 		}
 
@@ -43032,144 +43060,6 @@ class AnimationClip {
 	}
 
 	/**
-	 * Parses the `animation.hierarchy` format and returns a new animation clip.
-	 *
-	 * @static
-	 * @deprecated since r175.
-	 * @param {Object} animation - A serialized animation clip as JSON.
-	 * @param {Array<Bone>} bones - An array of bones.
-	 * @return {?AnimationClip} The new animation clip.
-	 */
-	static parseAnimation( animation, bones ) {
-
-		warn( 'AnimationClip: parseAnimation() is deprecated and will be removed with r185' );
-
-		if ( ! animation ) {
-
-			error( 'AnimationClip: No animation in JSONLoader data.' );
-			return null;
-
-		}
-
-		const addNonemptyTrack = function ( trackType, trackName, animationKeys, propertyName, destTracks ) {
-
-			// only return track if there are actually keys.
-			if ( animationKeys.length !== 0 ) {
-
-				const times = [];
-				const values = [];
-
-				flattenJSON( animationKeys, times, values, propertyName );
-
-				// empty keys are filtered out, so check again
-				if ( times.length !== 0 ) {
-
-					destTracks.push( new trackType( trackName, times, values ) );
-
-				}
-
-			}
-
-		};
-
-		const tracks = [];
-
-		const clipName = animation.name || 'default';
-		const fps = animation.fps || 30;
-		const blendMode = animation.blendMode;
-
-		// automatic length determination in AnimationClip.
-		let duration = animation.length || -1;
-
-		const hierarchyTracks = animation.hierarchy || [];
-
-		for ( let h = 0; h < hierarchyTracks.length; h ++ ) {
-
-			const animationKeys = hierarchyTracks[ h ].keys;
-
-			// skip empty tracks
-			if ( ! animationKeys || animationKeys.length === 0 ) continue;
-
-			// process morph targets
-			if ( animationKeys[ 0 ].morphTargets ) {
-
-				// figure out all morph targets used in this track
-				const morphTargetNames = {};
-
-				let k;
-
-				for ( k = 0; k < animationKeys.length; k ++ ) {
-
-					if ( animationKeys[ k ].morphTargets ) {
-
-						for ( let m = 0; m < animationKeys[ k ].morphTargets.length; m ++ ) {
-
-							morphTargetNames[ animationKeys[ k ].morphTargets[ m ] ] = -1;
-
-						}
-
-					}
-
-				}
-
-				// create a track for each morph target with all zero
-				// morphTargetInfluences except for the keys in which
-				// the morphTarget is named.
-				for ( const morphTargetName in morphTargetNames ) {
-
-					const times = [];
-					const values = [];
-
-					for ( let m = 0; m !== animationKeys[ k ].morphTargets.length; ++ m ) {
-
-						const animationKey = animationKeys[ k ];
-
-						times.push( animationKey.time );
-						values.push( ( animationKey.morphTarget === morphTargetName ) ? 1 : 0 );
-
-					}
-
-					tracks.push( new NumberKeyframeTrack( '.morphTargetInfluence[' + morphTargetName + ']', times, values ) );
-
-				}
-
-				duration = morphTargetNames.length * fps;
-
-			} else {
-
-				// ...assume skeletal animation
-
-				const boneName = '.bones[' + bones[ h ].name + ']';
-
-				addNonemptyTrack(
-					VectorKeyframeTrack, boneName + '.position',
-					animationKeys, 'pos', tracks );
-
-				addNonemptyTrack(
-					QuaternionKeyframeTrack, boneName + '.quaternion',
-					animationKeys, 'rot', tracks );
-
-				addNonemptyTrack(
-					VectorKeyframeTrack, boneName + '.scale',
-					animationKeys, 'scl', tracks );
-
-			}
-
-		}
-
-		if ( tracks.length === 0 ) {
-
-			return null;
-
-		}
-
-		const clip = new this( clipName, duration, tracks, blendMode );
-
-		return clip;
-
-	}
-
-	/**
 	 * Sets the duration of this clip to the duration of its longest keyframe track.
 	 *
 	 * @return {AnimationClip} A reference to this animation clip.
@@ -43632,6 +43522,11 @@ class LoadingManager {
 		 * @return {string} The resolved URL.
 		 */
 		this.resolveURL = function ( url ) {
+
+			// Normalize to NFC so that Unicode URIs (e.g. from glTF)
+			// are percent-encoded correctly per RFC 3987.
+
+			url = url.normalize( 'NFC' );
 
 			if ( urlModifier ) {
 
@@ -53418,15 +53313,6 @@ class AnimationAction {
 
 			const interpolant = tracks[ i ].createInterpolant( null );
 			interpolants[ i ] = interpolant;
-
-			// preserve interpolant settings (like tangent data from BezierInterpolant)
-
-			if ( interpolant.settings ) {
-
-				Object.assign( interpolantSettings, interpolant.settings );
-
-			}
-
 			interpolant.settings = interpolantSettings;
 
 		}
@@ -58973,6 +58859,14 @@ class ShapePath {
 		 */
 		this.currentPath = null;
 
+		/**
+		 * An object that can be used to store custom data about the shape path.
+		 * Mainly used by SVGLoader to store style information.
+		 *
+		 * @type {Object}
+		 */
+		this.userData = {};
+
 	}
 
 	/**
@@ -59064,234 +58958,211 @@ class ShapePath {
 	/**
 	 * Converts the paths into an array of shapes.
 	 *
-	 * @param {boolean} isCCW - By default solid shapes are  defined clockwise (CW) and holes are defined counterclockwise (CCW).
-	 * If this flag is set to `true`, then those are flipped.
 	 * @return {Array<Shape>} An array of shapes.
 	 */
-	toShapes( isCCW ) {
+	toShapes() {
 
-		function toShapesNoHoles( inSubpaths ) {
+		// Point-in-polygon test using the even-odd ray-casting rule. Valid for
+		// simple (non self-intersecting) polygons.
+		function pointInPolygon( p, polygon ) {
 
-			const shapes = [];
-
-			for ( let i = 0, l = inSubpaths.length; i < l; i ++ ) {
-
-				const tmpPath = inSubpaths[ i ];
-
-				const tmpShape = new Shape();
-				tmpShape.curves = tmpPath.curves;
-
-				shapes.push( tmpShape );
-
-			}
-
-			return shapes;
-
-		}
-
-		function isPointInsidePolygon( inPt, inPolygon ) {
-
-			const polyLen = inPolygon.length;
-
-			// inPt on polygon contour => immediate success    or
-			// toggling of inside/outside at every single! intersection point of an edge
-			//  with the horizontal line through inPt, left of inPt
-			//  not counting lowerY endpoints of edges and whole edges on that line
 			let inside = false;
-			for ( let p = polyLen - 1, q = 0; q < polyLen; p = q ++ ) {
+			const n = polygon.length;
 
-				let edgeLowPt = inPolygon[ p ];
-				let edgeHighPt = inPolygon[ q ];
+			for ( let i = 0, j = n - 1; i < n; j = i ++ ) {
 
-				let edgeDx = edgeHighPt.x - edgeLowPt.x;
-				let edgeDy = edgeHighPt.y - edgeLowPt.y;
+				const a = polygon[ i ];
+				const b = polygon[ j ];
 
-				if ( Math.abs( edgeDy ) > Number.EPSILON ) {
+				if ( ( a.y > p.y ) !== ( b.y > p.y ) &&
+							p.x < ( b.x - a.x ) * ( p.y - a.y ) / ( b.y - a.y ) + a.x ) {
 
-					// not parallel
-					if ( edgeDy < 0 ) {
-
-						edgeLowPt = inPolygon[ q ]; edgeDx = - edgeDx;
-						edgeHighPt = inPolygon[ p ]; edgeDy = - edgeDy;
-
-					}
-
-					if ( ( inPt.y < edgeLowPt.y ) || ( inPt.y > edgeHighPt.y ) ) 		continue;
-
-					if ( inPt.y === edgeLowPt.y ) {
-
-						if ( inPt.x === edgeLowPt.x )		return	true;		// inPt is on contour ?
-						// continue;				// no intersection or edgeLowPt => doesn't count !!!
-
-					} else {
-
-						const perpEdge = edgeDy * ( inPt.x - edgeLowPt.x ) - edgeDx * ( inPt.y - edgeLowPt.y );
-						if ( perpEdge === 0 )				return	true;		// inPt is on contour ?
-						if ( perpEdge < 0 ) 				continue;
-						inside = ! inside;		// true intersection left of inPt
-
-					}
-
-				} else {
-
-					// parallel or collinear
-					if ( inPt.y !== edgeLowPt.y ) 		continue;			// parallel
-					// edge lies on the same horizontal line as inPt
-					if ( ( ( edgeHighPt.x <= inPt.x ) && ( inPt.x <= edgeLowPt.x ) ) ||
-						 ( ( edgeLowPt.x <= inPt.x ) && ( inPt.x <= edgeHighPt.x ) ) )		return	true;	// inPt: Point on contour !
-					// continue;
+					inside = ! inside;
 
 				}
 
 			}
 
-			return	inside;
+			return inside;
 
 		}
 
-		const isClockWise = ShapeUtils.isClockWise;
+		// Returns a point guaranteed to be strictly inside the given simple
+		// polygon. First tries the bounding-box center; if that falls outside
+		// the polygon, casts a horizontal ray at the center's y and picks the
+		// midpoint between the first two sorted intercepts.
+		//
+		// Port of paper.js' Path#getInteriorPoint()
+		// https://github.com/paperjs/paper.js/blob/develop/src/path/PathItem.Boolean.js
+		function getInteriorPoint( polygon, boundingBox ) {
 
-		const subPaths = this.subPaths;
-		if ( subPaths.length === 0 ) return [];
+			const point = boundingBox.getCenter( new Vector2() );
 
-		let solid, tmpPath, tmpShape;
+			if ( pointInPolygon( point, polygon ) ) return point;
+
+			const y = point.y;
+			const intercepts = [];
+			const n = polygon.length;
+
+			for ( let i = 0; i < n; i ++ ) {
+
+				const a = polygon[ i ];
+				const b = polygon[ ( i + 1 ) % n ];
+
+				// Half-open crossing rule — counts each vertex exactly once and
+				// skips horizontal edges.
+				if ( ( a.y > y ) !== ( b.y > y ) ) {
+
+					const x = a.x + ( y - a.y ) * ( b.x - a.x ) / ( b.y - a.y );
+					intercepts.push( x );
+
+				}
+
+			}
+
+			if ( intercepts.length > 1 ) {
+
+				intercepts.sort( ( a, b ) => a - b );
+				point.x = ( intercepts[ 0 ] + intercepts[ 1 ] ) / 2;
+
+			}
+
+			return point;
+
+		}
+
+		// Resolve fill-rule. Defaults to 'nonzero'.
+		let fillRule = ( this.userData.style && this.userData.style.fillRule ) || 'nonzero';
+
+		if ( fillRule !== 'nonzero' && fillRule !== 'evenodd' ) {
+
+			warn( 'Fill-rule "' + fillRule + '" is not supported, falling back to "nonzero".' );
+			fillRule = 'nonzero';
+
+		}
+
+		// Predicate that decides whether a winding number falls inside the fill
+		// region, per the SVG fill-rule spec. Works for negative windings too,
+		// because JavaScript's bitwise AND preserves odd/even under two's
+		// complement.
+		const isInside = fillRule === 'nonzero'
+			? ( w => w !== 0 )
+			: ( w => ( w & 1 ) !== 0 );
+
+		// Build an entry per usable subpath. Self-winding follows the standard
+		// convention used by ShapeUtils: counter-clockwise (signed area > 0)
+		// contributes +1 to the winding number at an interior point,
+		// clockwise contributes -1.
+		const entries = [];
+
+		for ( const subPath of this.subPaths ) {
+
+			const points = subPath.getPoints();
+			if ( points.length < 3 ) continue;
+
+			const area = ShapeUtils.area( points );
+			if ( area === 0 ) continue;
+
+			const boundingBox = new Box2();
+			for ( let i = 0; i < points.length; i ++ ) boundingBox.expandByPoint( points[ i ] );
+
+			entries.push( {
+				subPath: subPath,
+				points: points,
+				boundingBox: boundingBox,
+				interiorPoint: getInteriorPoint( points, boundingBox ),
+				absArea: Math.abs( area ),
+				winding: area < 0 ? -1 : 1,
+				container: null,
+				exclude: false,
+				role: null
+			} );
+
+		}
+
+		// Sort by area descending. This guarantees that any subpath that could
+		// contain `entries[i]` is located at a smaller index and has already
+		// been processed when it's entries[i]'s turn. Port of paper.js'
+		// reorientPaths() algorithm.
+		entries.sort( ( a, b ) => b.absArea - a.absArea );
+
+		// Walk already-processed entries from closest-in-size to largest,
+		// stopping at the innermost container. Accumulate the container's
+		// cumulative winding into this entry's winding so that the final value
+		// equals the winding number at this entry's interior point.
+		//
+		// A subpath only contributes to the fill boundary when crossing it
+		// actually flips the "insideness" per the fill rule; otherwise it's a
+		// redundant overlap and gets excluded to avoid double-counting.
+		for ( let i = 0; i < entries.length; i ++ ) {
+
+			const entry = entries[ i ];
+			let containerWinding = 0;
+
+			for ( let j = i - 1; j >= 0; j -- ) {
+
+				const candidate = entries[ j ];
+				if ( ! candidate.boundingBox.containsPoint( entry.interiorPoint ) ) continue;
+				if ( ! pointInPolygon( entry.interiorPoint, candidate.points ) ) continue;
+
+				entry.container = candidate.exclude ? candidate.container : candidate;
+				containerWinding = candidate.winding;
+				entry.winding += containerWinding;
+				break;
+
+			}
+
+			if ( isInside( entry.winding ) === isInside( containerWinding ) ) {
+
+				entry.exclude = true;
+
+			}
+
+		}
+
+		// Classify retained entries. An entry is an outer shape if it has no
+		// container or if its container is itself a hole (a solid nested inside
+		// a hole becomes a new top-level shape); otherwise it's a hole in its
+		// container. Entries were already sorted outermost-first, so each
+		// container's role is known by the time we look at it.
+		for ( const entry of entries ) {
+
+			if ( entry.exclude ) continue;
+			entry.role = ( entry.container === null || entry.container.role === 'hole' ) ? 'outer' : 'hole';
+
+		}
+
+		// Build Shapes for outers first, then attach holes to their container's
+		// Shape.
 		const shapes = [];
+		const shapeByEntry = new Map();
 
-		if ( subPaths.length === 1 ) {
+		for ( const entry of entries ) {
 
-			tmpPath = subPaths[ 0 ];
-			tmpShape = new Shape();
-			tmpShape.curves = tmpPath.curves;
-			shapes.push( tmpShape );
-			return shapes;
+			if ( entry.exclude || entry.role !== 'outer' ) continue;
 
-		}
-
-		let holesFirst = ! isClockWise( subPaths[ 0 ].getPoints() );
-		holesFirst = isCCW ? ! holesFirst : holesFirst;
-
-		// log("Holes first", holesFirst);
-
-		const betterShapeHoles = [];
-		const newShapes = [];
-		let newShapeHoles = [];
-		let mainIdx = 0;
-		let tmpPoints;
-
-		newShapes[ mainIdx ] = undefined;
-		newShapeHoles[ mainIdx ] = [];
-
-		for ( let i = 0, l = subPaths.length; i < l; i ++ ) {
-
-			tmpPath = subPaths[ i ];
-			tmpPoints = tmpPath.getPoints();
-			solid = isClockWise( tmpPoints );
-			solid = isCCW ? ! solid : solid;
-
-			if ( solid ) {
-
-				if ( ( ! holesFirst ) && ( newShapes[ mainIdx ] ) )	mainIdx ++;
-
-				newShapes[ mainIdx ] = { s: new Shape(), p: tmpPoints };
-				newShapes[ mainIdx ].s.curves = tmpPath.curves;
-
-				if ( holesFirst )	mainIdx ++;
-				newShapeHoles[ mainIdx ] = [];
-
-				//log('cw', i);
-
-			} else {
-
-				newShapeHoles[ mainIdx ].push( { h: tmpPath, p: tmpPoints[ 0 ] } );
-
-				//log('ccw', i);
-
-			}
+			const shape = new Shape();
+			shape.curves = entry.subPath.curves;
+			shapes.push( shape );
+			shapeByEntry.set( entry, shape );
 
 		}
 
-		// only Holes? -> probably all Shapes with wrong orientation
-		if ( ! newShapes[ 0 ] )	return	toShapesNoHoles( subPaths );
+		for ( const entry of entries ) {
 
+			if ( entry.exclude || entry.role !== 'hole' ) continue;
 
-		if ( newShapes.length > 1 ) {
+			const shape = shapeByEntry.get( entry.container );
+			if ( ! shape ) continue;
 
-			let ambiguous = false;
-			let toChange = 0;
-
-			for ( let sIdx = 0, sLen = newShapes.length; sIdx < sLen; sIdx ++ ) {
-
-				betterShapeHoles[ sIdx ] = [];
-
-			}
-
-			for ( let sIdx = 0, sLen = newShapes.length; sIdx < sLen; sIdx ++ ) {
-
-				const sho = newShapeHoles[ sIdx ];
-
-				for ( let hIdx = 0; hIdx < sho.length; hIdx ++ ) {
-
-					const ho = sho[ hIdx ];
-					let hole_unassigned = true;
-
-					for ( let s2Idx = 0; s2Idx < newShapes.length; s2Idx ++ ) {
-
-						if ( isPointInsidePolygon( ho.p, newShapes[ s2Idx ].p ) ) {
-
-							if ( sIdx !== s2Idx )	toChange ++;
-
-							if ( hole_unassigned ) {
-
-								hole_unassigned = false;
-								betterShapeHoles[ s2Idx ].push( ho );
-
-							} else {
-
-								ambiguous = true;
-
-							}
-
-						}
-
-					}
-
-					if ( hole_unassigned ) {
-
-						betterShapeHoles[ sIdx ].push( ho );
-
-					}
-
-				}
-
-			}
-
-			if ( toChange > 0 && ambiguous === false ) {
-
-				newShapeHoles = betterShapeHoles;
-
-			}
+			const hole = new Path();
+			hole.curves = entry.subPath.curves;
+			shape.holes.push( hole );
 
 		}
-
-		let tmpHoles;
-
-		for ( let i = 0, il = newShapes.length; i < il; i ++ ) {
-
-			tmpShape = newShapes[ i ].s;
-			shapes.push( tmpShape );
-			tmpHoles = newShapeHoles[ i ];
-
-			for ( let j = 0, jl = tmpHoles.length; j < jl; j ++ ) {
-
-				tmpShape.holes.push( tmpHoles[ j ].h );
-
-			}
-
-		}
-
-		//log("shape", shapes);
 
 		return shapes;
+
 
 	}
 

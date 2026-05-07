@@ -144,7 +144,7 @@ const options = {
 	fps:60,
 	gravity:[0,-9.81,0],
 
-	tone:'Neutral', //'ACESFilmic',
+	tone:THREE.NeutralToneMapping, //'ACESFilmic',
 
 	exposure: 0.5, //0.68,//1,,
 	direct:5, //3.14,
@@ -515,7 +515,7 @@ const init = async () => {
 	renderer.setPixelRatio( pixelRatio );
 	renderer.setSize( size.w, size.h );
 	renderer.setClearColor( 0x000000, 1 );
-	renderer.toneMapping = toneMappingOptions[options.tone];
+	renderer.toneMapping = options.tone;
 	renderer.toneMappingExposure = options.exposure;
 
 	renderer.transmissionResolutionScale = options.mode === 'LOW' ? 0.5 : 1.5;

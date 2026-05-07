@@ -80,6 +80,7 @@ export class Engine {
 
 		this.math = MathTool;
 		this.pool = Pool;
+		this.pool.initLzma();
 
 
 		//console.log(MathTool.pow(25.66,3), Math.pow(25.66,3))
@@ -603,8 +604,6 @@ export class Engine {
 
 					if( useLocal ) workerSourceURL = new URL( `./${fileName}`, import.meta.url );
 					else workerSourceURL = url + path + fileName;
-
-					
 
 				    worker = new Worker( workerSourceURL, { type: useModule ? 'module' : 'classic'} )
 				    worker.postMessage = worker.webkitPostMessage || worker.postMessage;
@@ -1333,7 +1332,7 @@ export class Engine {
 		this.setControl = ( Controls ) => { 
 
 			controls = Controls;
-			azimut = ()=>{return controls.getAzimuthalAngle()};
+			azimut = ()=>{ return controls.getAzimuthalAngle() };
 
 		}
 

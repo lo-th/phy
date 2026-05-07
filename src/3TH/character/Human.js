@@ -1,5 +1,5 @@
 
-import { Vector2, Color, CustomBlending, DoubleSide, ZeroFactor, SrcAlphaFactor, BackSide, FrontSide  } from 'three';
+import { Vector2, Color, CustomBlending, DoubleSide, ZeroFactor, SrcAlphaFactor, BackSide, FrontSide, OneMinusSrcAlphaFactor, OneFactor, ConstantAlphaFactor  } from 'three';
 import { Pool } from '../Pool.js';
 
 const setting = {
@@ -62,7 +62,7 @@ export const Human = {
 	textures: [
         'avatar_c.jpg', 'avatar_n.jpg', 'avatar_t.jpg','avatar_arm.jpg', 'avatar_u.jpg',
         'mouth_c.jpg', 'mouth_a.jpg', 'mouth_n.jpg', 'logo.png', 
-        'eye_c.jpg', 'eye_n.jpg', 'hair.jpg', 'hair_a.jpg',
+        'eye_c.jpg', 'eye_n.jpg', 'hair.jpg', 'hair_a.png','hair_n.jpg',
         'eyelash_c.jpg', 'eyelash_a.jpg', 'eyelash_n.jpg',
         'hair_man.jpg', 'hair_man_a.jpg', 
     ],
@@ -82,22 +82,19 @@ export const Human = {
 
             map: 'avatar_c', 
             normalMap:'avatar_n',
-
-            //envMapIntensity:0.7,
-            //reflectivity:0.2,
-
-            /*roughness:0.7,
-            metalness:0.14,*/
+            metalnessMap:'avatar_arm',
+            roughnessMap:'avatar_arm',
+            sheenColorMap:'avatar_u',
+            aoMap:'avatar_arm',
             
             roughness:1,
             metalness:1,
-            metalnessMap:'avatar_arm',
-            roughnessMap:'avatar_arm',
+            
 
             normalScale: new Vector2( setting.normal, -setting.normal ),
             sheenColor:0xFFFFFF, //4A1B00,
             sheen:setting.sheen,
-            sheenColorMap:'avatar_u',
+            
             sheenRoughness:setting.sheenRoughness,
 
             shadowSide: BackSide,
@@ -111,9 +108,6 @@ export const Human = {
             
             iridescence:0.1,*/
             wireframe:setting.wireframe,
-
-            aoMap:'avatar_arm',
-            aoMapIntensity:1.0,
 
             //ior:1.5,
             vertexColors:false,
@@ -175,9 +169,9 @@ export const Human = {
             //clearcoat:0.25,
             //clearcoatRoughness:0.5,
         },
-        hair_wom:{
+        /*hair_wom_ori:{
             type:'Standard',
-        	//map:'hair',
+            //map:'hair',
             color:setting.hair,
             aoMap:'hair',
             metalnessMap:'hair',
@@ -191,25 +185,80 @@ export const Human = {
             emissive:setting.hair,
             emissiveIntensity:0.5,
             //opacity:1.0,
-            transparent:true,
+            //transparent:true,
+            //alphaTest:0.3,
+            //dithering:true,
             blending:CustomBlending,
             blendDst:ZeroFactor,
             blendDstAlpha:SrcAlphaFactor,
+
+            //forceSinglePass:true,
+            //alphaHash:true,
+            //premultipliedAlpha:true,
+            alphaToCoverage:true,
+        },*/
+        hair_wom:{
+            type:'Physical',
+        	//map:'hair',
+            color:setting.hair,
+            aoMap:'hair',
+
+            sheen:1,
+            sheenColor:setting.hair,
+            sheenRoughness:0.5,
+            //metalnessMap:'hair',
+            normalMap:'hair_n',
+            normalScale:new Vector2( 0.1, -0.1),
+            //bumpScale:-5,
+            roughness:0.2,//setting.h_rough,
+            metalness:0.0,//setting.h_metal,
+            alphaMap:'hair_a',
+            //alphaTest:setting.alphaTest,
+            side: DoubleSide,
+            shadowSide: BackSide,
+            //emissive:setting.hair,
+            //emissiveIntensity:0.5,
+            //opacity:1.0,
+            //transparent:true,
+            //alphaTest:0.3,
+            //dithering:true,
+           /*blending:CustomBlending,
+            blendSrc: OneFactor,
+            blendDst: ConstantAlphaFactor,*/
+
+
+            /*polygonOffset: true,                
+            polygonOffsetFactor: -1,// - 4,
+            polygonOffsetUnits :1,*/
+
+            //blendSrcAlpha: 0,
+            //blendDstAlpha: 1,
+            //depthWrite:false,
+            //sdepthTest:false,
+            //blendDst:ZeroFactor,
+            //blendDstAlpha:SrcAlphaFactor,
+
             //forceSinglePass:true,
             //alphaHash:true,
             //premultipliedAlpha:true,
             alphaToCoverage:true,
         },
         hair_man:{
-            type:'Standard',
+            type:'Physical',
             color:setting.hair,
         	//map:'hair_man',
             aoMap:'hair_man',
-            metalnessMap:'hair_man',
+            //metalnessMap:'hair_man',
             roughness:0.6,
-            metalness:1.0,//setting.h_metal,
+            metalness:0,//setting.h_metal,
             alphaMap:'hair_man_a',
             side: DoubleSide,
+
+            sheen:1,
+            sheenColor:setting.hair,
+            sheenRoughness:0.5,
+
+
 
             //alphaTest:setting.alphaTest,
             
@@ -219,11 +268,14 @@ export const Human = {
             //sheen:1.0,
             //sheenColor:setting.hair,
             //sheenRoughness:1.0,
-            transparent:true,
-            blending:CustomBlending,
+            //transparent:true,
+            /*blending:CustomBlending,
             blendDst:ZeroFactor,
-            blendDstAlpha:SrcAlphaFactor,
-            forceSinglePass:true,
+            blendDstAlpha:SrcAlphaFactor,*/
+            /*blending:CustomBlending,
+            blendSrc: OneFactor,
+            blendDst: ConstantAlphaFactor,*/
+            //forceSinglePass:true,
             //alphaHash:true,
             //premultipliedAlpha:true,
             alphaToCoverage:true,
@@ -241,7 +293,8 @@ export const Human = {
             side: DoubleSide,
             alphaToCoverage:true,
             polygonOffset: true,                
-            polygonOffsetFactor: - 4,
+            polygonOffsetFactor: -4,// - 4,
+            polygonOffsetUnits :1,
             //normalMap:'eyelash_n',
             //normalScale:new Vector2( 1, -1)
         },
@@ -332,8 +385,6 @@ export const Human = {
 
         // apply Material
 
-
-
         const startHigh = true;//!Human.haveLOD;
         //console.log(startHigh, Human.haveLOD)
 
@@ -393,6 +444,7 @@ export const Human = {
                     node.receiveShadow = false;
                     node.castShadow = false;
                     node.visible = startHigh
+                    node.frustumCulled = false
                     break;
                     case 'tear': 
                     node.material = Pool.getMaterial( 'tear' ) || def;
@@ -418,6 +470,7 @@ export const Human = {
                     node.material = Pool.getMaterial( 'hair_wom' ) || def;
                     node.receiveShadow = false;
                     node.castShadow = true;
+                    node.frustumCulled = false
                     //node.matrixWorldAutoUpdate = false
                     node.visible = Human.haveHair ? startHigh : false;
                     break;

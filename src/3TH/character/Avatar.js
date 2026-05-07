@@ -15,6 +15,8 @@ import {
     AdditiveAnimationBlendMode, NormalAnimationBlendMode,
 } from 'three';
 
+import { AvatarTools } from './AvatarTools.js';
+
 import { MeshSssMaterial } from '../materials/MeshSssMaterial.js';
 
 import * as SkeletonUtils from 'three/addons/utils/SkeletonUtils.js';
@@ -22,7 +24,7 @@ import * as SkeletonUtils from 'three/addons/utils/SkeletonUtils.js';
 import * as TWEEN from '../../libs/tween.esm.js'
 
 import { Pool } from '../Pool.js';
-import { LZMA } from '../../libs/lzma.js';
+
 import { Tension } from '../Tension.js';
 
 import { ExoSkeleton } from './ExoSkeleton.js';
@@ -106,7 +108,7 @@ export class Avatar extends Group {
         this.fixWeight = o.fixWeight !== undefined ? o.fixWeight : true;
 
         this.rootPath = o.path || './';
-        this.lzmaPath = this.rootPath + 'src/libs/lzma_worker.js';
+        //this.lzmaPath = this.rootPath + 'src/libs/lzma_worker.js';
         //Pool.dracoPath =  this.rootPath + 'src/libs/draco/';
 
         this.callback = o.callback || function (){};
@@ -141,7 +143,6 @@ export class Avatar extends Group {
         this.compact = o.compact !== undefined ? o.compact : true;
         this.haveMorph = o.morph !== undefined ? o.morph : false;
         this.fullMaterial = o.material !== undefined ? o.material : true;
-
 
 
         this.size = o.size || 1;
@@ -420,7 +421,11 @@ export class Avatar extends Group {
             delete data.type
             for( const t in data ){
                 if(t!=='envMapIntensity' && t!=='normalMapType' && t!=='aoMapIntensity' && t!=='aoMapIntensity'){
-                    if(t==='map' || t.search('Map')!==-1 ) data[t] = Pool.getTexture( data[t], { quality:this.textureQuality, anisotropy:this.ref.anisotropy || 1 } );
+                    if(t==='map' || t.search('Map')!==-1 ){ 
+                        //if(t==='alphaMap') data[t] = Pool.getTexture( data[t], { quality:this.textureQuality, anisotropy:0, filter:'near' } );
+                        //else 
+                        data[t] = Pool.getTexture( data[t], { quality:this.textureQuality, anisotropy:this.ref.anisotropy || 1 } );
+                    }
                 }
             }
 
@@ -465,6 +470,12 @@ export class Avatar extends Group {
 
     init(){
 
+        // TODO avoid multiple init on preload !!!
+
+        //if( this.isPreload ) { this.callback(); return; }
+
+        //console.log('avatar init!')
+
         this.initMaterial()
 
         if( !this.isClone ) {
@@ -481,6 +492,9 @@ export class Avatar extends Group {
 
         this.realSize = 0;
 
+        let bodySize = 0;
+        let headSize = 0;
+
         // get data
         this.root.traverse( function ( node ) {
             
@@ -493,15 +507,11 @@ export class Avatar extends Group {
 
                     this.skeleton = node.skeleton;
                     if( this.skeleton.resetScalling ) this.skeleton.resetScalling()
-
-                    this.realSize = node.geometry.boundingBox.max.y;
-
-
-
-                    //console.log( node.geometry.boundingSphere, node.geometry.boundingBox, node.frustumCulled )
-                    //node.geometry.boundingSphere.radius = 0.1;
+                    bodySize = node.geometry.boundingBox.max.y;
                 }
-                if( node.name === 'Head' ) this.realSize = node.geometry.boundingBox.max.y;
+                if( node.name === 'Head' ){ 
+                    headSize = node.geometry.boundingBox.max.y;
+                }
                 
                 this.mesh[node.name] = node;
             }
@@ -512,6 +522,7 @@ export class Avatar extends Group {
             }
         }.bind(this))
 
+        this.realSize = headSize > bodySize ? headSize : bodySize;
         this.realSizeRatio = 1 / this.realSize;
         this.baseSize = this.realSize;
 
@@ -548,24 +559,97 @@ export class Avatar extends Group {
 
 
         // animation
+
         this.mixer = new AnimationMixer( this );
 
-        
+        // load compact animation
 
-        if( Pool.clip.length === 0 ){ 
+        if( AvatarTools.clips.length === 0 ){ 
+            const url = this.rootPath +'assets/animation/animations.bin';
+            const ccc = this.moreAnimation.bind(this);
+            AvatarTools.loadCompactAnimations( url, ccc );
+        } else {
+            this.animationReady();
+        }
+
+        
+        /*if( Pool.clip.length === 0 ){ 
+            //this.loadCompactAnimation( this.rootPath +'assets/animation/ual.bin' )
+            this.loadCompactAnimation( this.rootPath +'assets/animation/animations.bin' )
             // load animation include in json or the compacted version
-            if( this.compact ) this.loadCompactAnimation(this.rootPath +'assets/animation/animations.bin')
-            else this.loadAnimationJson(this.rootPath +'assets/animation/animations.json', this.start.bind(this) )
+            //if( this.compact ) this.loadCompactAnimation(this.rootPath +'assets/animation/animations.bin')
+            //else this.loadAnimationJson(this.rootPath +'assets/animation/animations.json', this.start.bind(this) )
 
         } else {
             let i = Pool.clip.length;
             while(i--) this.addAction( Pool.clip[i] );
             this.start()
-        }
+        }*/
 
         
              
     }
+
+    moreAnimation(){
+
+        const url = this.rootPath +'assets/animation/ual.bin';
+        const ccc = this.animationReady.bind(this);
+        AvatarTools.loadCompactAnimations( url, ccc );
+
+    }
+
+    animationReady(){
+
+        let i = AvatarTools.clips.length;
+        while(i--) this.addAction( AvatarTools.clips[i] );
+        this.start()
+
+    }
+
+    start(){
+
+        if( this.isPreload ) { this.callback(); return; }
+        if( this.done ) return;
+
+        //this.updateMatrix()
+
+        this.done = true;
+ 
+        
+
+        this.onReady();
+        //this.playAll();
+        
+        this.play( this.startAnimation );
+
+
+
+        if( this.ref.adjustment ){
+            this.makePoseTrack('adjustment', this.ref.adjustment(), true );
+        }
+
+        // Random Human
+        if( this.randomMorph ){ 
+            this.setBodyMorph([this.rand(-1,1), this.rand(-1,1)])
+            this.setFaceMorph([this.rand(-0.4,0.4), this.rand(-0.4,0.4)])
+        }
+        if( this.randomSize ) this.setRealSize(this.rand(1,2));
+
+
+        //this.add( this.root );
+
+
+        //setTimeout( this.callback, 100 );
+        setTimeout( function(){ 
+            this.add( this.root );
+            this.root.position.y = this.decalY
+            this.callback();
+        }.bind(this), 100 )
+        //this.callback()
+
+    }
+
+
 
     nearEquals( a, b, t = 1e-4 ){ return Math.abs(a - b) <= t ? true : false }
 
@@ -633,9 +717,6 @@ export class Avatar extends Group {
 
         body.geometry.attributes.tangent.needsUpdate = true;
         body.geometry.attributes.normal.needsUpdate = true;
-
-
-
 
     }
 
@@ -776,6 +857,8 @@ export class Avatar extends Group {
 
     dispose(){
 
+        //if( this.isPreload ) { return; }
+
         if( this.exoskel ) this.addExo()
         if( this.helper ) this.addHelper()
 
@@ -796,45 +879,7 @@ export class Avatar extends Group {
         }
     }
 
-    start(){
-
-        if( this.isPreload ) { this.callback(); return; }
-        if( this.done ) return;
-
-        //this.updateMatrix()
-
-        this.done = true;
- 
-        
-
-        this.onReady();
-        //this.playAll();
-        
-        this.play( this.startAnimation );
-
-
-
-        if( this.ref.adjustment ){
-            this.makePoseTrack('adjustment', this.ref.adjustment(), true );
-        }
-
-        // Random Human
-        if( this.randomMorph ) this.setBodyMorph([this.rand(-1,1), this.rand(-1,1)])
-        if( this.randomSize ) this.setRealSize(this.rand(1,2));
-
-
-        //this.add( this.root );
-
-
-        //setTimeout( this.callback, 100 );
-        setTimeout( function(){ 
-            this.add( this.root );
-            this.root.position.y = this.decalY
-            this.callback();
-        }.bind(this), 100 )
-        //this.callback()
-
-    }
+    
 
     setBodyMorph( v ){
 
@@ -910,7 +955,7 @@ export class Avatar extends Group {
 
     }
 
-    loadAnimationJson( url, callback ){
+    /*loadAnimationJson( url, callback ){
 
         const request = new XMLHttpRequest();
         request.open('GET', url, true);
@@ -961,18 +1006,18 @@ export class Avatar extends Group {
                 const data = JSON.parse(result);
                 
                 for(let c in data) glb.animations.push( AnimationClip.parse( data[c] ) ); 
-                //console.log( glb )
+                //console.log( glb.animations )
                 self.applydAnimation( glb );
                 self.start();
             })
         };
         request.send();
 
-    }
+    }*/
 
     /// GLB ///
 
-    loadAnimationGlb( url, callback ){
+    /*loadAnimationGlb( url, callback ){
 
         let name = url.substring( url.lastIndexOf('/')+1, url.lastIndexOf('.') );
         Pool.loaderGLTF().load( url, function ( glb ) {
@@ -1042,7 +1087,7 @@ export class Avatar extends Group {
 
         AnimRetarget.importPack( url, debug, this )
 
-    }
+    }*/
 
     /*retargetModel( skeleton, clip ) {
 
@@ -1209,7 +1254,7 @@ export class Avatar extends Group {
 
     ///
 
-    addClip( clip, additive = false ){
+    /*addClip( clip, additive = false ){
 
         // Make the clip additive and remove the reference frame
         if( additive ){ 
@@ -1227,7 +1272,7 @@ export class Avatar extends Group {
         //clip.optimize();
         //console.log(clip)
         Pool.clip.push( clip );
-    }
+    }*/
 
     addAction( clip, play = false ){
 
@@ -1268,7 +1313,7 @@ export class Avatar extends Group {
 
     /// EXPORT
 
-    getAnimation( toJson = false, fromPool = false ){
+    /*getAnimation( toJson = false, fromPool = false ){
 
         let anim = [], n = 0
         if(fromPool){
@@ -1311,7 +1356,7 @@ export class Avatar extends Group {
                 link.click();
             }
         })
-    }
+    }*/
 
     /*exportGLB( callback ){
 
@@ -1365,7 +1410,7 @@ export class Avatar extends Group {
     }
 
 
-    directGlbTest( data, name ){
+    /*directGlbTest( data, name ){
 
         Pool.loaderGLTF().parse( data, '', function ( glb ) {
             this.stop();
@@ -1381,15 +1426,15 @@ export class Avatar extends Group {
             //console.log(glb.animations)
 
             
-            this.convertGlbAnimation( glb.animations[58] ); //idle_loop
+    /*        this.convertGlbAnimation( glb.animations[58] ); //idle_loop
             this.convertGlbAnimation( glb.animations[65] ); //interact
             this.convertGlbAnimation( glb.animations[126] ); //walk_loop
             this.convertGlbAnimation( glb.animations[0] );
             //this.applydAnimation( glb, name );
         }.bind(this))
-    }
+    }*/
 
-    convertGlbAnimation(anim, autoplay = false){
+    /*convertGlbAnimation(anim, autoplay = false){
 
         const clip = AnimPack.convertAnimation(anim)
 
@@ -1409,7 +1454,7 @@ export class Avatar extends Group {
         this.addClip( clip );
         this.addAction( clip, autoplay );
 
-    }
+    }*/
 
     makePoseTrack( name, data, isAdd = false ){
 

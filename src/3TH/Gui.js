@@ -11,6 +11,66 @@ import { ColorCheck } from './ColorCheck.js';
 *   __) |_| | 2023
 * @author lo.th / https://github.com/lo-th
 */
+const BlendOption = { // or .blendDstAlpha 
+	ZeroFactor:200,
+	OneFactor:201,
+	SrcColorFactor:202,
+	OneMinusSrcColorFactor:203,
+	SrcAlphaFactor:204,
+	OneMinusSrcAlphaFactor:205,
+	DstAlphaFactor:206,
+	OneMinusDstAlphaFactor:207,
+	DstColorFactor:208,
+	OneMinusDstColorFactor:209,
+	SrcAlphaSaturateFactor:210,
+	ConstantColorFactor:211,
+	OneMinusConstantColorFactor:212,
+	ConstantAlphaFactor:213,
+	OneMinusConstantAlphaFactor:214
+}
+
+const SideOption = { // or .blendDstAlpha 
+	FrontSide:0,
+	BackSide:1,
+	DoubleSide:2,
+}
+const blendingOption = { 
+	NoBlending:0,
+	NormalBlending:1,
+	AdditiveBlending:2,
+	SubtractiveBlending:3,
+	MultiplyBlending:4,
+	CustomBlending:5,
+}
+
+const blendEquation = {
+	AddEquation:100,
+	SubtractEquation:101,
+	ReverseSubtractEquation:102,
+	MinEquation:103,
+	MaxEquation:104,
+}
+const depthFuncOption = {
+	NeverDepth:0,
+	AlwaysDepth:1,
+	LessDepth:3,
+	LessEqualDepth:4,
+	EqualDepth:5,
+	GreaterEqualDepth:6,
+	GreaterDepth:7,
+	NotEqualDepth:8,
+}
+
+const stencilFuncOption = {
+	NeverStencilFunc:512,
+	LessStencilFunc:513,
+	EqualStencilFunc:514,
+	LessEqualStencilFunc:515,
+	GreaterStencilFunc:516,
+	NotEqualStencilFunc:517,
+	GreaterEqualStencilFunc:518,
+	AlwaysStencilFunc:519
+}
 
 const menuList = ['ENV', 'PHY', 'CAM', 'POST', 'MAT', 'OBJ'];
 const toneMappingOptions = {
@@ -49,7 +109,7 @@ export const Gui = {
 	matList:null,
 
 	imageMap: ['map', 'map1', 'map2', 'emissiveMap', 'sheenColorMap'],
-	imageNormal: [ 'normalMap', 'normalMap1','normalMap2','aoMap', 'metalnessMap', 'thicknessMap', 'roughnessMap', 'alphaMap','anisotropyMap', 'specularIntensityMap', 'displacementMap', 'bumpMap' ],
+	imageNormal: [ 'normalMap', 'normalMap1','normalMap2','aoMap', 'metalnessMap', 'thicknessMap', 'roughnessMap', 'alphaMap','anisotropyMap', 'specularIntensityMap', 'displacementMap', 'bumpMap', 'clearcoatMap', 'clearcoatNormalMap' ],
 	
 	MaterialMesh:[ 'Basic', 'Physical', 'Standard', 'Toon', 'Lambert', 'Phong', 'Shader' ],
 
@@ -256,7 +316,7 @@ export const Gui = {
 		
 
 		ui.add( options, 'tone',  { type:'list', list:toneMappingOptions, full:true }).onChange( function(v){
-			renderer.toneMapping  = toneMappingOptions[ options.tone ]
+			renderer.toneMapping  = options.tone
 		})
 
 		ui.add( options, 'exposure', { min:0, max:1, step:0.001, pecision:3, mode:mode } ).onChange( function( v ){ 
@@ -711,7 +771,7 @@ export const Gui = {
 
 		}
 		
-		let m = mats[ Gui.currentMat ]
+		let m = Gui.currentMat//mats[ Gui.currentMat ]
 
 		//console.log(m)
 
@@ -723,8 +783,36 @@ export const Gui = {
 
 		ui.add( 'list', { name:'Type', list:Gui.MaterialMesh, value:type, h:30 }).onChange()
 
-		if(m.side!==undefined) ui.add( m, 'side', { type:'list', list:{ front:0, back:1, double:2 } }).onChange( function( c ){ m.side = this.list.indexOf(c) })
-		if(m.shadowSide!==undefined) ui.add( m, 'shadowSide', { type:'list', list:{ front:0, back:1, double:2 } }).onChange( function( c ){ m.shadowSide = this.list.indexOf(c) })
+		if(m.side!==undefined) ui.add( m, 'side', { type:'list', list:SideOption })
+		if(m.shadowSide!==undefined) ui.add( m, 'shadowSide', { type:'list', list:SideOption })
+
+		let gz = ui.add('group', { name:'BLENDING', color:'#FF8822', h:30 });
+
+			
+		if(m.blending!==undefined) gz.add( m, 'blending', { type:'list', list:blendingOption })
+		if(m.depthFunc!==undefined) gz.add( m, 'depthFunc', { type:'list', list:depthFuncOption })
+
+		gz.add( 'empty', { h:4 })
+	    if(m.blendEquation!==undefined) gz.add( m, 'blendEquation', { type:'list', list:blendEquation })
+	    if(m.blendEquationAlpha!==undefined) gz.add( m, 'blendEquationAlpha', { type:'list', list:blendEquation })
+
+	    gz.add( 'empty', { h:4 })
+			
+		if(m.blendSrc!==undefined) gz.add( m, 'blendSrc', { rename:'Src', type:'list', list:BlendOption })
+		if(m.blendDst!==undefined) gz.add( m, 'blendDst', { rename:'Dst',type:'list', list:BlendOption })
+
+		gz.add( 'empty', { h:4 })
+
+		if(m.blendSrcAlpha!==undefined) gz.add( m, 'blendSrcAlpha', { rename:'SrcAlpha', type:'list', list:BlendOption })
+		if(m.blendDstAlpha!==undefined) gz.add( m, 'blendDstAlpha', { rename:'DstAlpha', type:'list', list:BlendOption })
+
+		gz.add( 'empty', { h:4 })
+		if(m.blendAlpha!==undefined) gz.add( m, 'blendAlpha', {  min:0, max:1, precision:2 })
+
+		gz.add( 'empty', { h:6 })
+		if(m.stencilFunc!==undefined) gz.add( m, 'stencilFunc', { type:'list', list:stencilFuncOption })
+		if(m.stencilRef!==undefined) gz.add( m, 'stencilRef', {  min:0, max:1, precision:2 })
+			
 
 		//return
 
@@ -771,6 +859,8 @@ export const Gui = {
 		if(m.alphaToCoverage!==undefined) g2.add( m, 'alphaToCoverage', {  })
 		if(m.premultipliedAlpha!==undefined) g2.add( m, 'premultipliedAlpha', {  })
 		if(m.transparent!==undefined) g2.add( m, 'transparent', {  })
+		if(m.dithering!==undefined) g2.add( m, 'dithering', {  })
+		if(m.alphaHash!==undefined) g2.add( m, 'alphaHash', {  })
 
 		let g3 = ui.add('group', { name:'VALUES', open:true, h:30 })
 
@@ -809,6 +899,9 @@ export const Gui = {
 	    if(m.thickness!==undefined) g3.add( m, 'thickness', { ...deff, min:-4, max:4 })
 	    if(m.clearcoat!==undefined) g3.add( m, 'clearcoat', { ...deff })
 	    if(m.clearcoatRoughness!==undefined) g3.add( m, 'clearcoatRoughness', { ...deff })
+
+	    if(m.alphaTest!==undefined) g3.add( m, 'alphaTest', { ...deff })
+	    	
 
 
 

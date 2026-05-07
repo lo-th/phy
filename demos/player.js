@@ -25,7 +25,7 @@ demo = () => {
     phy.view({
         phi:12, theta:0, distance:5, x:0, y:3, z:15, fov:55, 
         envmap:'night', exposure:0.25, fog:true, fogExp:0.05,
-        reflect:0, groundColor:0x505050,
+        reflect:0, groundColor:0x505050, background:0x151414,
     })
 
     //phy.lightIntensity( 6, 0, 0.7 );
@@ -136,6 +136,7 @@ const addHero = () => {
         radius: 0.3,
         pos: pos,
         //mass:75,
+        mass:10,
         //ray: n===0,
         angle:angle,
 
@@ -146,6 +147,7 @@ const addHero = () => {
 
         useImpulse:true,
         floating:true,
+        isPlayer:isPlayer,
         
         //massInfo:true,
         //debug:true,
@@ -216,17 +218,17 @@ const addDecor = () => {
 
 const addDynamicPlatforms = () => {
 
-    phy.add({ name:'verticalMovePlatformRef', type:'box', size:[5,0.2,5], pos:[-25,2,0], kinematic:true })
-    phy.add({ name:'sideMovePlatformRef', type:'box', size:[5,0.2,5], pos:[-25,0.5,-10], kinematic:true })
-    phy.add({ name:'rotatePlatformRef', type:'box', size:[5,0.2,5], pos:[-25,0.5,-10], kinematic:true })
-    phy.add({ name:'rotationDrumRef', type:'cylinder', size:[1,10], pos:[-15,0,-15], rot:[0,0,90], kinematic:true })
+    phy.add({ name:'verticalMovePlatformRef', type:'box', size:[5,0.2,5], pos:[-25,2,0], kinematic:true, getVelocity:true })
+    phy.add({ name:'sideMovePlatformRef', type:'box', size:[5,0.2,5], pos:[-25,0.5,-10], kinematic:true, getVelocity:true })
+    phy.add({ name:'rotatePlatformRef', type:'box', size:[5,0.2,5], pos:[-25,0.5,-10], kinematic:true, getVelocity:true })
+    phy.add({ name:'rotationDrumRef', type:'cylinder', size:[1,10], pos:[-15,0,-15], rot:[0,0,90], kinematic:true, getVelocity:true })
     isKinematic = true;
    
 }
 
 const addFloatingPlatform = () => {
 
-    phy.add({ name:'floatingPlateRef', type:'box', size:[5,0.2,5], pos:[0,5,-10], mass:1, angularFactor:[0,0,0], getVelocity:true })
+    phy.add({ name:'floatingPlateRef', type:'box', size:[5,0.2,5], pos:[0,5,-10], mass:1, /*angularFactor:[0,0,0],*/ getVelocity:true })
     phy.add({ name:'floatingPlateRef2', type:'box', size:[5,0.2,5], pos:[7,5,-10], mass:1, linearFactor:[0,1,0], angularFactor:[0,1,0], getVelocity:true })
     phy.add({ name:'floatingMovingPlateRef', type:'box', size:[2.5,0.2,2.5], pos:[0,5,-17], mass:1, linearFactor:[1,1,0], angularFactor:[0,1,0], getVelocity:true })
 

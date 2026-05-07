@@ -2755,6 +2755,9 @@ class Proto {
         v = v || this.value;
         if( v instanceof Array && v.length === 1 ) v = v[0];
 
+        // for list
+        if(this.refObject) v = this.refObject[v];
+
         this.isSend = true;
         if( this.objectLink !== null ){ 
             if( this.objectLink[ this.objectKey ] && this.objectLink[ this.objectKey ].isColor ) this.objectLink[ this.objectKey ].setHex( v );
@@ -5802,11 +5805,21 @@ class List extends Proto {
         this.c[2].appendChild( this.scroller );
 
         if( o.value !== undefined ){
-            if(!isNaN(o.value)) this.value = this.list[ o.value ];
-            else this.value = o.value;
+
+            if(this.refObject){
+                let ccc = null;
+                for( let g in this.refObject ){ if(this.refObject[g] === o.value ) ccc = g; }
+                if(ccc) this.value = this.list[ this.list.indexOf(ccc) ];
+            } else {
+                if(!isNaN(o.value)) this.value = this.list[ o.value ];
+                else this.value = o.value;
+            }
+            
         }else {
             this.value = this.list[0];
         }
+
+
 
         this.isOpenOnStart = o.open || false;
 
@@ -6351,10 +6364,14 @@ class List extends Proto {
 
     setValue ( value ) {
 
-        if(!isNaN(value)) this.value = this.list[ value ];
-        else this.value = value;
-
-        //this.tmpId = value
+        if(this.refObject){
+            let ccc = null;
+            for( let g in this.refObject ){ if(this.refObject[g] === o.value ) ccc = g; }
+            if(ccc) this.value = this.list[ this.list.indexOf(ccc) ];
+        } else {
+            if(!isNaN(value)) this.value = this.list[ value ];
+            else this.value = value;
+        }
 
         this.setTopItem();
 
@@ -6399,7 +6416,6 @@ class List extends Proto {
             }
 
             this.ctx.drawImage( this.tmpImage[ this.value ], 0, 0 );
-
 
         }
 

@@ -43,8 +43,6 @@ export class Ray extends Item {
 
 		let name = this.setName( o );
 
-		
-
 		let r = new ExtraRay( o, this.motor );
 
 		r.visible = o.visible !== undefined ? o.visible : true;
@@ -89,9 +87,14 @@ export class ExtraRay extends Line {
 		this.Utils = this.motor.utils;
 
 	    this.isRay = true;
+	    this.type = 'ray';
+	    this.name = o.name;
+
+	    this.extraMatrix = null;
 
 	    this.data = {
 
+	    	name:o.name,
 			hit:false,
 			body: '',
 			point: [0,0,0],
@@ -101,9 +104,6 @@ export class ExtraRay extends Line {
 			parent:null
 
 		};
-
-	    this.type = 'ray';
-	    this.name = o.name;
 
 	    this.parentMesh = null;
 	    if(o.parent){
@@ -149,6 +149,12 @@ export class ExtraRay extends Line {
 	    this.matrixAutoUpdate = false;
 	    this.frustumCulled = false;
 
+	}
+
+	applyRotation(m){
+		let v1 = this.begin.clone().applyMatrix4(m)
+		let v2 = this.end.clone().applyMatrix4(m)
+		this.motor.post({ m:'change', o:{name:this.name, begin:v1.toArray(), end:v2.toArray()} }, null, false );
 	}
 
 	setRay( o ){
@@ -199,6 +205,8 @@ export class ExtraRay extends Line {
 				} else {
 					mtx = this.parentMesh.matrixWorld;
 				}
+
+
 				//this.parentMesh.updateWorldMatrix( true, false )
 				
 				this.tmp.copy( this.begin ).applyMatrix4(mtx).toArray( this.local, 0 );
