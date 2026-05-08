@@ -8007,7 +8007,11 @@ class Body extends Item {
 		b.mass = o.mass || 0;
 		b.density = o.density || 0;
 
-		if( b.density && !b.mass ) b.mass = MathTool.massFromDensity( b.density, volume );
+		if( b.density && !b.mass ){ 
+			b.mass = MathTool.massFromDensity( b.density, volume );
+			o.mass = b.mass;
+			o.densityFirst = true;
+		}
 		else if( b.mass && !b.density ){ 
 			b.density = MathTool.densityFromMass( b.mass, volume );
 			//  force density for engin don't have mass
@@ -14091,7 +14095,7 @@ const Human = {
     refSize:1.81,
     //refSize:1.75,
 
-    decalY:-0.035,
+    decalY:-5e-3,//-0.035,
 
 	isBreath:false,
 	isEyeMove:false,
@@ -17168,6 +17172,7 @@ class Hero extends three.Object3D {
 			rejectVelMult: 4,
 			moveImpulsePointY: 0.5,
 			camFollowMult: 11,
+			initialGravityScale:1,
 			fallingGravityScale: 2.5,
 			fallingMaxVel: -20,
 			wakeUpDelay: 200,
@@ -17275,8 +17280,8 @@ class Hero extends three.Object3D {
 			characterMassForce: new three.Vector3(),
 
 			// slope
-			slopeAngle:null,
-			actualSlopeAngle:null,
+			slopeAngle:0,
+			actualSlopeAngle:0,
 			actualSlopeNormalVec: new three.Vector3(),
 			floorNormal: new three.Vector3(0, 1, 0),
 			slopeRayOriginRef: new three.Vector3(),
@@ -17319,6 +17324,8 @@ class Hero extends three.Object3D {
 		this.wantJump = false;
 
 		this.prevAngle = -1;
+
+		this.gravityScale = 1;
 
 		//this.lod = -1;
 
@@ -17526,7 +17533,7 @@ class Hero extends three.Object3D {
 
 		let j = this.rays.length;
 		while(j--){
-			this.rays[j].applyRotation(this.extraMatrix);
+			if(j!==0) this.rays[j].applyRotation(this.extraMatrix);
 		}
 
 	}
@@ -17538,7 +17545,7 @@ class Hero extends three.Object3D {
 		let j = this.rays.length, r, goodData = { hit:false };
 		while(j--){
 			r = this.rays[j].data;
-			if(r.hit && r.distance<dist){ 
+			if( r.hit && r.distance < dist){ 
 				dist = r.distance;
 				goodData = r;
 			}
@@ -17553,7 +17560,17 @@ class Hero extends three.Object3D {
     	const o = this.option;
     	const v = this.v;
 
-    	if( r.hit ){
+    	// jump condition only on central ray
+    	const rc = this.rays[0].data;
+		if(rc.hit && rc.distance < o.floatingDis + o.rayHitForgiveness){
+			if (v.actualSlopeAngle < o.slopeMaxAngle) {
+				v.canJump = true;
+			}
+		}else {
+			v.canJump = false;
+		}
+
+    	if( r.hit && v.canJump ){
 
     		v.standingForcePoint.set(
     			r.point[0],
@@ -17564,7 +17581,7 @@ class Hero extends three.Object3D {
     		this.rayHit = true;
     		this.distance = r.distance;
     		this.rayAngle = r.angle;
-    		v.canJump = true;
+
     		this.hitPoint = r.point;
     		this.hitObject = this.motor.byName(r.body);
     		let hitMass = this.hitObject.mass;
@@ -17595,13 +17612,15 @@ class Hero extends three.Object3D {
 	            this.resetMovingObject();
 	        }
 
-    		this.v.actualSlopeNormalVec.fromArray(r.normal);
-    		this.v.actualSlopeAngle = this.v.actualSlopeNormalVec.angleTo(this.v.floorNormal);
+    		v.actualSlopeNormalVec.fromArray(r.normal);
+    		v.actualSlopeAngle = v.actualSlopeNormalVec.angleTo(v.floorNormal);
+
+    		
 
     		// slope = pente 
     		if(this.distance<o.floatingDis + 0.5){
     			// Round the slope angle to 2 decimal places
-    			if (this.v.canJump) v.slopeAngle = Math.atan( ( o.slopeRayLength- this.distance) / o.slopeRayOriginOffest ).toFixed(2);
+    			if (v.canJump) v.slopeAngle = Math.atan( ( o.slopeRayLength- this.distance) / o.slopeRayOriginOffest ).toFixed(2);
     				else v.slopeAngle = 0;
     		} else {
     			v.slopeAngle = 0;
@@ -17999,7 +18018,7 @@ class Hero extends three.Object3D {
 		const v = this.v;
 		const o = this.option;
 
-		//if(v.canJump) return
+		if(!v.canJump) return
 
 		
 
@@ -18014,6 +18033,15 @@ class Hero extends three.Object3D {
 		    linearVelocity:this.v.jumpDirection.toArray()
 
 		});
+
+		v.characterMassForce.y *= o.jumpForceToGroundMult;//.set(0, floatingForce > 0 ? -floatingForce : 0, 0);
+	    /*if(this.hitObject.mass !== 0 ){
+		    this.motor.change({
+			    name:this.hitObject.name,
+			    impulse: v.characterMassForce.toArray(), 
+			    impulseCenter: this.v.standingForcePoint.toArray(),
+			});
+		}*/
 	}
 
 	getFloating (){
@@ -18021,17 +18049,17 @@ class Hero extends three.Object3D {
 		const v = this.v;
 		const o = this.option;
 
-		if(this.rayHit){
+		if( this.rayHit ){
 			const dist = o.floatingDis - this.distance;
-		    const floatingForce = ( o.springK * dist ) - ( this.velocity.y * o.dampingC );
+		    const floatingForce = ( o.springK * dist ) - ( v.currentVel.y * o.dampingC );
 		    v.moveImpulse.y = floatingForce * this.mass;
 
 		    // Apply opposite force to standing object
-		    this.v.characterMassForce.set(0, floatingForce > 0 ? -floatingForce : 0, 0);
+		    v.characterMassForce.set(0, floatingForce > 0 ? -floatingForce : 0, 0);
 		    if(this.hitObject.mass !== 0 ){
 			    this.motor.change({
 				    name:this.hitObject.name,
-				    impulse: this.v.characterMassForce.toArray(), 
+				    impulse: v.characterMassForce.toArray(), 
 				    impulseCenter: this.v.standingForcePoint.toArray(),
 				});
 			}
@@ -18070,6 +18098,30 @@ class Hero extends three.Object3D {
 	    v.dragForce.multiplyScalar( this.mass );
 
 	    v.moveImpulse.add(v.dragForce);
+
+	    /**
+	    * Detect character falling state
+	    */
+	    v.isFalling = (v.currentVel.y < 0 && !v.canJump) ? true : false;
+	    /**
+	     * Setup max falling speed && extra falling gravity
+	     * Remove gravity if falling speed higher than fallingMaxVel (negetive number so use "<")
+	     */
+		if (v.currentVel.y < o.fallingMaxVel) {
+			if (this.gravityScale !== 0) {
+				this.gravityScale = 0;//characterRef.current.setGravityScale(0, true)
+			}
+		} else {
+			if (!v.isFalling && this.gravityScale !== o.initialGravityScale) {
+				// Apply initial gravity after landed
+				this.gravityScale = o.initialGravityScale;
+			} else if (v.isFalling && this.gravityScale !== o.fallingGravityScale) {
+				// Apply larger gravity when falling (if initialGravityScale === fallingGravityScale, won't trigger this)
+				this.gravityScale = o.fallingGravityScale;
+			}
+
+
+		}
 
 	    
 	    /*this.motor.change({
@@ -18167,8 +18219,6 @@ class Hero extends three.Object3D {
 	    	else this.stopMoving();
 
 	    	if( this.wantJump ) this.jumping();
-	    	//else this.v.jumpDirection.copy(this.v.currentVel)
-
 	        if( this.useFloating ) this.getFloating();
 
 	        //this.applyDragForce()
@@ -18179,6 +18229,8 @@ class Hero extends three.Object3D {
 			    impulse: this.v.moveImpulse.toArray(), 
 			    impulseCenter: this.v.impulseCenter.toArray(),
 			    //linearVelocity:this.v.jumpDirection.toArray()
+
+			    gravityScale:this.gravityScale,
 
 			});
 

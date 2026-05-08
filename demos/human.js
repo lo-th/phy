@@ -155,6 +155,7 @@ const Character = ( num = 1 ) => {
             radius: 0.3,
             height: 1.8,
             pos: pos,
+            mass:60,
             //ray: n===0,
             angle:angle,
             randomMorph:!first,
@@ -165,6 +166,7 @@ const Character = ( num = 1 ) => {
 
             useImpulse:true,
             floating:true,
+            isPlayer:true,
             //callback:count,
         });
 

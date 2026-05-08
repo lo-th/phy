@@ -985,7 +985,11 @@ export class Body extends Item {
 		b.mass = o.mass || 0;
 		b.density = o.density || 0;
 
-		if( b.density && !b.mass ) b.mass = MathTool.massFromDensity( b.density, volume );
+		if( b.density && !b.mass ){ 
+			b.mass = MathTool.massFromDensity( b.density, volume );
+			o.mass = b.mass;
+			o.densityFirst = true;
+		}
 		else if( b.mass && !b.density ){ 
 			b.density = MathTool.densityFromMass( b.mass, volume );
 			//  force density for engin don't have mass

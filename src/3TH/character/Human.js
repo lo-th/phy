@@ -31,7 +31,7 @@ export const Human = {
     refSize:1.81,
     //refSize:1.75,
 
-    decalY:-0.035,
+    decalY:-0.005,//-0.035,
 
 	isBreath:false,
 	isEyeMove:false,

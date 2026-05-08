@@ -136,7 +136,7 @@ const addHero = () => {
         radius: 0.3,
         pos: pos,
         //mass:75,
-        mass:10,
+        mass:60,
         //ray: n===0,
         angle:angle,
 

@@ -15,7 +15,7 @@ let s0,s1,s2
 
 demo = () => {
 
-	phy.view({ distance:6, y:1 })
+	phy.view({ distance:4, y:1, phi:20, theta:-30 })
 
 	// config physics setting
     phy.set({ substep:1, gravity:[0,-9.81,0], fps:60, fixe:true })
@@ -39,6 +39,10 @@ demo = () => {
     phy.add({ name:'R0', type:'ray', parent:'s0', begin:[0,0,0], end:[0,-1, 0], callback:Y0, visible:true })
     phy.add({ name:'R1', type:'ray', parent:'s1', begin:[0,0,0], end:[0,-1, 0], callback:Y1, visible:true })
     phy.add({ name:'R2', type:'ray', parent:'s2', begin:[0,0,0], end:[0,-1, 0], callback:Y2, visible:true })
+
+    phy.add({ type:'box', name:'A', size:[0.5,0.5,0.5], pos:[-1,3,-2], mass:1, gravityScale:0.04 });
+    phy.add({ type:'box', name:'B', size:[0.5,0.5,0.5], pos:[0,3,-2], mass:10, gravityScale:0.1 });
+    phy.add({ type:'box', name:'C', size:[0.5,0.5,0.5], pos:[1,3,-2], mass:100, gravityScale:3 });
 
     phy.onStep = update;
 
