@@ -8004,7 +8004,46 @@ class Body extends Item {
 		//  Mass and Density
 		//---------------------------
 
-		b.mass = o.mass || 0;
+		let density = 0;
+		let mass = 0;
+		let densityFirst = false;
+
+		if( o.density !== undefined ){
+			if( o.density !== 0 ){
+				density = o.density;
+				if( o.mass === undefined ){ 
+					mass = MathTool.massFromDensity( density, volume );
+					densityFirst = true;
+				}
+			}
+		}
+
+		if( o.mass !== undefined ){
+			if( o.mass !== 0 ){
+				mass = o.mass;
+				if( o.density === undefined ){ 
+					density = MathTool.densityFromMass( mass, volume );
+					densityFirst = false;
+				}
+			}
+		}
+
+		//console.log(density, mass, densityFirst)
+
+		b.mass = mass;
+		b.density = density;
+
+		o.mass = mass;
+		o.density = density;
+		o.densityFirst = densityFirst;
+
+		//if( o.density && !o.mass )
+
+
+
+
+
+		/*b.mass = o.mass || 0;
 		b.density = o.density || 0;
 
 		if( b.density && !b.mass ){ 
@@ -8016,7 +8055,7 @@ class Body extends Item {
 			b.density = MathTool.densityFromMass( b.mass, volume );
 			//  force density for engin don't have mass
 			if( this.engine === 'RAPIER' || this.engine === 'OIMO' || this.engine === 'PHYSX') o.density = b.density;
-		}
+		}*/
 
 
 		if( o.massInfo ) console.log( '%c'+b.name+ ' %c' + 'density:' + b.density + ' mass:'+ b.mass, "font-size:16px", "font-size:12px" );
@@ -9839,9 +9878,7 @@ class SkeletonBody extends three.Object3D {
         this.useSolver = false; 
         if( this.motor.engine !== 'PHYSX' ) this.useSolver = false;
         this.useAggregate = false;
-        if(this.motor.engine === 'PHYSX'){
-            this.useAggregate = !this.useSolver;
-        }
+        if(this.motor.engine === 'PHYSX');
 
         this.nameList = [];
         this.jointList = [];
@@ -10008,10 +10045,6 @@ class SkeletonBody extends three.Object3D {
 
 	addNode(){
 
-        
-
-        
-
 		const data = [];
         
         // get character bones var bones = character.skeleton.bones;
@@ -10083,15 +10116,17 @@ class SkeletonBody extends three.Object3D {
                 r = dist*sizer[0];
                 w = r*1.2;
 
-                if( n==='hip' && name==='abdomen' ){ type = 'capsule'; size = [ r, w ]; translate = [ 0, 0, 0 ]; rot = [0,0,90]; link='null';}
+                //if( n==='hip' && name==='abdomen' ){ type = 'capsule'; size = [ r, w ]; translate = [ 0, 0, 0 ]; rot = [0,0,90]; link='null';}
 
                 if(this.isTreeSpine){
+                    if( n==='hip' && name==='abdomen' ){ type = 'capsule'; size = [ r*0.5, w*0.5 ]; translate = [ 0, r*0.2, -r*0.4 ]; rot = [0,0,90]; link='null';}
                     r = dist*0.8*sizer[1];
-                    if( n==='abdomen' && name==='abdomen2'  ){ type = 'capsule'; size = [ r, r*0.3 ]; translate = [ 0, r*0.3, (-dist * 0.5)-0.06 ]; rot = [90,0,0]; link='hip';  }
+                    if( n==='abdomen' && name==='abdomen2'  ){ type = 'capsule'; size = [ r, r*0.3 ]; translate = [ 0, r*0.3, (-dist * 0.5) ]; rot = [90,0,0]; link='hip';  }
                     r = dist*0.9*sizer[1];
-                    if( n==='abdomen2' && name==='chest'  ){ type = 'capsule'; size = [ r, r*0.3 ]; translate = [ 0, r*0.15, (-dist * 0.5)-0.06 ]; rot = [90,0,0]; link='abdomen';  }
+                    if( n==='abdomen2' && name==='chest'  ){ type = 'capsule'; size = [ r, r*0.3 ]; translate = [ 0, r*0.15, (-dist * 0.5) ]; rot = [90,0,0]; link='abdomen';  }
 
                   }else {
+                    if( n==='hip' && name==='abdomen' ){ type = 'capsule'; size = [ r, w ]; translate = [ 0, 0, 0 ]; rot = [0,0,90]; link='null';}
                     if( n==='abdomen' && name==='chest' ){ type = 'capsule'; size = [ dist*0.7*sizer[1], 0.08 ]; translate = [ 0, 0, (-dist * 0.5)-0.06 ]; rot = [90,0,0]; link='hip'; }
                 }
 
@@ -10111,8 +10146,6 @@ class SkeletonBody extends three.Object3D {
                     if( n==='chest' && name==='lBreast' && this.motor.engine!=='HAVOK' ){ n='lBreast'; parent = bone; type = 'sphere'; size = [ 0.065 ]; translate = [ 0.065,0,0 ]; this.breast=true; motion = true; link='chest'; }
                 }
                 
-                
-
                 // arm
 
                 r = 0.04*sizer[5];
@@ -10262,7 +10295,8 @@ class SkeletonBody extends three.Object3D {
                         quat: q.toArray(),
                         kinematic: kinematic,
                         
-                        //group:16,
+                        group:64,
+                        mask:1|2|64,
                         //mask:mask,
                         //mask:0,
                         material:'hide',
@@ -10285,6 +10319,8 @@ class SkeletonBody extends three.Object3D {
                         //iterations:[4,4],
                         //inertiaScale:[20,20,20],
                         //iterations:[4,2],
+
+                        isBone:true,
 
 
                         /*bone:parent,
@@ -10355,10 +10391,6 @@ class SkeletonBody extends three.Object3D {
 
     addLink () {
 
-        
-
-        
-
         this.jointData = {};
 
         // Stiffness / Damping
@@ -10425,7 +10457,8 @@ class SkeletonBody extends three.Object3D {
         let breastMotion = [-1e-3, 0.001, 1000, 0.2, 0.5];//100, 0.2, 0.5
 
         let spineLm = this.getLimit('spine');//[ ['rx',-30,75,...sp], ['ry',-30,30,...sp], ['rz',-10,10,...sp]];
-        data.push({ ...sett, b1:p+'hip', b2:p+'abdomen', worldPos:this.posRef[p+'abdomen'], worldQuat:this.quatRef[p+'hip'], lm:spineLm });
+        //data.push({ ...sett, b1:p+'hip', b2:p+'abdomen', worldPos:this.posRef[p+'abdomen'], worldQuat:this.quatRef[p+'hip'], lm:spineLm })
+        data.push({ ...sett, b1:p+'hip', b2:p+'abdomen', worldPos:this.posRef[p+'abdomen'], worldQuat:this.quatRef[p+'abdomen'], lm:spineLm });
 
         this.jointData[p+'abdomen'] = 'spine';
 
@@ -10661,9 +10694,11 @@ class SkeletonBody extends three.Object3D {
 
         }
 
+        super.updateMatrixWorld( force );
+
         if( up.length !== 0 ) this.motor.change( up, true );
 
-        super.updateMatrixWorld( force );
+        
 
 	}
 
@@ -14401,6 +14436,12 @@ const Human = {
             type:'Basic',
         	//color:0x000000,
             //wireframe: true,
+        },
+        looker:{
+            type:'Basic',
+            visible:false
+            //color:0x000000,
+            //wireframe: true,
         }
 
     },
@@ -14562,6 +14603,13 @@ const Human = {
                     node.receiveShadow = false;
                     node.castShadow = false;
                     node.visible = Human.haveHair ? false : false;
+                    break;
+
+                    case 'headlook':  
+                    node.material = Pool.getMaterial( 'looker' );
+                    node.receiveShadow = false;
+                    node.castShadow = false;
+                    node.visible =true;// Human.haveHair ? !startHigh : false;
                     break;
 
                 }
@@ -15466,6 +15514,16 @@ class Avatar extends three.Group {
             }
         }
 
+        //this.updateMatrix()
+
+    }
+
+    raycast( raycaster, intersects ){
+        if(this.mesh.headlook){ 
+            //console.log('ray ?')
+            return this.mesh.headlook.raycast( raycaster, intersects )
+        }
+        return 
     }
 
     eyeBlink(){
@@ -15669,6 +15727,8 @@ class Avatar extends three.Group {
                 if( node.name === 'Head' ){ 
                     headSize = node.geometry.boundingBox.max.y;
                 }
+
+
                 
                 this.mesh[node.name] = node;
             }
@@ -17135,7 +17195,7 @@ class Hero extends three.Object3D {
 
 		this.waitRotation = false;
 
-		let floatHeight = 0.3;
+		let floatHeight = 0.2;
 		let radius = o.radius || 0.3;
 		let height = o.height || 1.8;//0.7
 
@@ -17162,7 +17222,7 @@ class Hero extends three.Object3D {
 			turnVelMultiplier: 0.2,
 			turnSpeed: 15,
 			sprintMult: 2,
-			jumpVel: 4,
+			jumpVel: 5,//4,
 			jumpForceToGroundMult: 5,
 			slopJumpMult: 0.25,
 			sprintJumpMult: 1.2,
@@ -17182,9 +17242,9 @@ class Hero extends three.Object3D {
 			rayLength: radius + 2,
 			rayDir: { x: 0, y: -1, z: 0 },
 
-			floatingDis: radius + floatHeight+0.02, //+ 0.08,
-			springK: 2, //1.2,
-			dampingC: 0.2,//0.08,
+			floatingDis: radius + floatHeight, //+ 0.08,
+			springK: 4,//2,,
+			dampingC: 0.5,//0.2,,
 			forceMultiply: 5, 
 			// Slope Ray setups
 			showSlopeRayOrigin: false,
@@ -17442,7 +17502,7 @@ class Hero extends three.Object3D {
 		o.pos[1] += this.height*0.5;
 		if( this.useFloating ) o.pos[1] += this.option.floatHeight;
 
-		if( this.globalRay ) this.motor.getGeometryRef( { ...o, type:'capsule', ray:true }, this, this.motor.mat.get('hide') );
+		if( this.globalRay ) this.motor.getGeometryRef( {  ...o, type:'capsule', ray:true,  }, this, this.motor.mat.get('hide') );
 
 		this.phyData = {
 
@@ -17453,9 +17513,10 @@ class Hero extends three.Object3D {
 			shapeType: o.shapeType || 'capsule',
 			//density: 1,//o.density || 1,
 			mass: this.mass, 
-			friction: o.friction !== undefined ? o.friction : 0.5,
+			friction: o.friction !== undefined ? o.friction : 0.0,//0.5
 			angularFactor:[0,0,0],
 			group: 16,
+			mask: 1|2,
 			regular:true,
 			getVelocity:true,
 
@@ -17478,12 +17539,11 @@ class Hero extends three.Object3D {
 
         this.extraRay = this.isPlayer;
 
-        
 
         // add bottom RAY
         if( this.useFloating ){ 
         	this.withRay = true;
-        	let def = { type:'ray', callback:null, visible:false, parent:this.name, noRotation:true };//this.selfRay.bind(this)
+        	let def = { type:'ray', callback:null, visible:false, parent:this.name, noRotation:true, mask:1|2 };//this.selfRay.bind(this)
         	this.rays.push( this.motor.add({ ...def, name:this.name + '_ray', begin:[0,this.rayStart,0], end:[0,this.rayEnd, 0] }) );
         	if(this.extraRay){
         		let r = this.radius*0.5;
@@ -17494,8 +17554,6 @@ class Hero extends three.Object3D {
         		this.rays.push( this.motor.add({ ...def, name:this.name + '_ray_r', begin:[-r,this.rayStart,-r2], end:[-r,this.rayEnd, -r2] }) );
         	}
         }
-
-
 
         // add skinning character model
         if( o.gender ) this.addModel( o );
@@ -17522,6 +17580,28 @@ class Hero extends three.Object3D {
 	// hit.timeOfImpact ?? 
 	//
 
+	upRay(){
+
+		this.basedist = this.option.rayLength;
+		this.rayData = { hit:false };
+
+		let j = this.rays.length, r;
+		while(j--){
+			r = this.rays[j].data;
+			if( r.hit ){ 
+				if(r.distance < this.basedist){
+					this.basedist = r.distance;
+				    this.rayData = {...r};
+				}
+			}
+		}
+
+		//this.rays[0].data = {...r}
+
+		//return goodData
+
+	}
+
 	rotateRay( angle ){
 
 		if(!this.isPlayer) return;
@@ -17538,30 +17618,37 @@ class Hero extends three.Object3D {
 
 	}
 
-	goodRay(){
+	/*goodRay(){
 
-		let dist = 1000;
+		this.basedist = this.option.rayLength
 
-		let j = this.rays.length, r, goodData = { hit:false };
+		let j = this.rays.length, r, goodData = { hit:false }
 		while(j--){
-			r = this.rays[j].data;
-			if( r.hit && r.distance < dist){ 
-				dist = r.distance;
-				goodData = r;
+			r = this.rays[j].data
+			if( r.hit ){ 
+				if(r.distance < this.basedist){
+					this.basedist = r.distance
+				    goodData = r
+				}
 			}
 		}
 
+		//this.rays[0].data = {...r}
+
 		return goodData
 
-	}
+	}*/
 
-    selfRay( r ){
+    selfRay(){
 
     	const o = this.option;
     	const v = this.v;
+    	const r = this.rayData;
+
+    	if(!r) return
 
     	// jump condition only on central ray
-    	const rc = this.rays[0].data;
+    	const rc = r;//this.rays[0].data
 		if(rc.hit && rc.distance < o.floatingDis + o.rayHitForgiveness){
 			if (v.actualSlopeAngle < o.slopeMaxAngle) {
 				v.canJump = true;
@@ -17569,7 +17656,7 @@ class Hero extends three.Object3D {
 		}else {
 			v.canJump = false;
 		}
-
+ 
     	if( r.hit && v.canJump ){
 
     		v.standingForcePoint.set(
@@ -17582,13 +17669,13 @@ class Hero extends three.Object3D {
     		this.distance = r.distance;
     		this.rayAngle = r.angle;
 
-    		this.hitPoint = r.point;
+    		//this.hitPoint = r.point;
     		this.hitObject = this.motor.byName(r.body);
     		let hitMass = this.hitObject.mass;
     		let type = this.hitObject.type;
     		if(hitMass === 0 && type ==='body') type = 'kinematic';
     		if(hitMass !== 0 ) this.massRatio = this.mass / hitMass;
-    		this.motor.log(r.body + ' ' + hitMass + ' ' + type);
+    		//this.motor.log(r.body + ' ' + hitMass + ' ' + type)
 
     		if(type === 'body' || type==='kinematic'){
     			v.isOnMovingObject = true;
@@ -17649,6 +17736,8 @@ class Hero extends three.Object3D {
 
     	this.contact = d;
 
+    	//console.log(d)
+
     }
 
     showHelper( b ){
@@ -17672,15 +17761,21 @@ class Hero extends three.Object3D {
 
     }
 
-    addSkeleton(){
+    addSkeleton( visible = false ){
 
-    	if( this.skeletonBody ) return
     	if( !this.model ) return
+    	if( this.skeletonBody ) return
     	//this.skeletonBody = new SkeletonBody( this )
         this.skeletonBody = new SkeletonBody( this.motor, this.name, this.model.root, this.model.skeleton.bones );
     	this.motor.scene.add( this.skeletonBody );
-    	this.skeletonBody.isVisible( false );
+    	this.skeletonBody.isVisible( visible );
 
+    }
+
+    removeSkeleton(){
+    	if( !this.skeletonBody ) return
+    	this.skeletonBody.dispose();
+        this.skeletonBody = null;
     }
 
     debugMode( v = false ){
@@ -17728,17 +17823,28 @@ class Hero extends three.Object3D {
 
 	}
 
-	raycast(){
+	raycast(raycaster, intersects){
+		if(this.model) return this.model.raycast(raycaster, intersects)
 		return;// false;
 	}
 
-	/*preStep(){
-		if(this.skeletonBody) this.skeletonBody.update()
-	}*/
+	preStep(){
+
+		if( this.withRay ) this.upRay();
+
+		//if(this.skeletonBody) this.skeletonBody.updateMatrix()
+
+		//if(this.isPlayer) this.move()
+		//if(this.skeletonBody) this.skeletonBody.update()
+	}
 
 	step ( AR, n ) {
 
-		if( this.withRay ) this.selfRay(this.goodRay());
+		if( this.withRay ){ 
+			this.selfRay();//this.goodRay())
+		}
+
+		
 		
 		this.position.fromArray( AR, n + 1 );
 		this.quaternion.fromArray( AR, n + 4 );
@@ -17755,10 +17861,7 @@ class Hero extends three.Object3D {
 	    this.v.currentVel.copy(this.velocity);
 		
 
-		if( this.model ) {
-			this.model.update( this.motor.delta );
-			this.getDistanceToCamera();
-		}
+		
 
 
 		if( this.useFloating && !this.isPlayer ){ 
@@ -17777,8 +17880,18 @@ class Hero extends three.Object3D {
 
 	    }
 
-		//if(this.skeletonBody) this.skeletonBody.update()
-		this.updateMatrix();
+	    if(this.isPlayer) this.move();
+	    this.updateMatrix();
+
+	    if( this.model ) {
+			this.model.update( this.motor.delta );
+			this.getDistanceToCamera();
+			this.model.updateMatrix();
+		}
+	    
+
+		//if(this.skeletonBody) this.skeletonBody.updateMatrix()
+		
 
 	}
 
@@ -17818,7 +17931,7 @@ class Hero extends three.Object3D {
 		//console.log('dispose')
 
 		this.callback = null;
-		if( this.skeletonBody ) this.skeletonBody.dispose();
+		if( this.skeletonBody ) this.removeSkeleton();
 		if( this.model ) this.model.dispose();
 		if( this.helper ) this.showHelper();
 
@@ -18051,8 +18164,11 @@ class Hero extends three.Object3D {
 
 		if( this.rayHit ){
 			const dist = o.floatingDis - this.distance;
-		    const floatingForce = ( o.springK * dist ) - ( v.currentVel.y * o.dampingC );
+			let amotiseur = MathTool.clamp(-dist, 0, 2);
+		    const floatingForce = ( (o.springK-amotiseur) * dist ) - ( v.currentVel.y * (o.dampingC+amotiseur) );
 		    v.moveImpulse.y = floatingForce * this.mass;
+
+		    //this.motor.log(amotiseur)
 
 		    // Apply opposite force to standing object
 		    v.characterMassForce.set(0, floatingForce > 0 ? -floatingForce : 0, 0);
@@ -18065,7 +18181,7 @@ class Hero extends three.Object3D {
 			}
 		    
 		}
-
+ 
 		//this.motor.log('D:'+ this.distance + ' F:'+floatingForce)
 		
 	}
@@ -18136,9 +18252,13 @@ class Hero extends three.Object3D {
 		this.v;    
 		this.option;
 
+
+
 		this.v.moveImpulse.set(0,0,0);
 
 		this.applyDragForce();
+
+		
 
 		// slowdown
 
@@ -18166,7 +18286,7 @@ class Hero extends three.Object3D {
 
 		const key = this.motor.getKey();
 		const azimut = this.motor.getAzimut();
-		const delta = this.motor.delta;
+		const delta = this.motor.getDelta();//delta;
 		
 		// 1°/ find the good animation
 
@@ -18341,7 +18461,7 @@ class Hero extends three.Object3D {
 	    	//console.log(diff)
 	    	//this.model.rotation.y = anim === 'fight' ? (azimut + Math.PI) : math.lerp( pp, aa, 0.25 )
 	    	this.model.rotation.y = anim === 'fight' ? (azimut + Math.PI) : MathTool.lerp( pp, aa, 0.2 - (diff*0.1) );
-	    	this.model.updateMatrix();
+	    	
 	    	//this.model.setTimescale( this.tmpAcc * (1*genSpeed) )
 
 	    	
@@ -18378,12 +18498,12 @@ class Character extends Item {
 
 	}
 
-	/*prestep () {
+	prestep () {
 
 		let i = this.list.length;
 		while( i-- ) this.list[i].preStep( );
 
-	}*/
+	}
 
 	step (AR, N) {
 		
@@ -27386,6 +27506,8 @@ class Engine {
 			this.flow.current = currentControle !== null ? currentControle.name : '';
 	        //prevUpdate( timer.delta )
 
+	        if( currentControle !== null ) currentControle.move();
+
 			this.stepItems();
 			this.collision.step();
 
@@ -27393,7 +27515,7 @@ class Engine {
 
 			//if( breaker !== null ) breaker.step();
 
-			if( currentControle !== null ) currentControle.move();
+			//if( currentControle !== null ) currentControle.move();
 
 			if( this.debuger !== null ) this.debuger.draw();
 
@@ -27405,7 +27527,7 @@ class Engine {
 			postUpdate( delta );
 
 
-			//items.character.prestep()
+			items.character.prestep();
 
 			// update this.object for this side !
 			this.changes( this.flow.tmp );
@@ -27451,10 +27573,10 @@ class Engine {
 				if( currentControle ) currentControle.isPlayer = true;
 			}
 
+			if(currentControle && currentControle.isCharacter) currentControle = null;
+
 		};
-
 		
-
 		this.getAllBody = ( name ) => {
 
 			return items.body.list;
@@ -27489,6 +27611,7 @@ class Engine {
 
 		this.initItems = () => {
 
+			
 			items['body'] = new Body(_this);
 			items['ray'] = new Ray(_this);
 			items['joint'] = new Joint(_this);

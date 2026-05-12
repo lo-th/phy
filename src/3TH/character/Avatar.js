@@ -309,6 +309,16 @@ export class Avatar extends Group {
             }
         }
 
+        //this.updateMatrix()
+
+    }
+
+    raycast( raycaster, intersects ){
+        if(this.mesh.headlook){ 
+            //console.log('ray ?')
+            return this.mesh.headlook.raycast( raycaster, intersects )
+        }
+        return 
     }
 
     eyeBlink(){
@@ -512,6 +522,8 @@ export class Avatar extends Group {
                 if( node.name === 'Head' ){ 
                     headSize = node.geometry.boundingBox.max.y;
                 }
+
+
                 
                 this.mesh[node.name] = node;
             }

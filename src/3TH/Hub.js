@@ -9,10 +9,10 @@ import { EnginSkill } from '../constants.js';
 
 
 const Styles = {
-    menuName:'font-size:14px; font-weight:400; text-shadow: 1px 1px 2px black; padding:4px 10px;',//letter-spacing: -0.022em;
+    menuName:'font-size:14px; height:18px; font-weight:400; text-shadow: 1px 1px 2px black; padding:4px 10px;',//letter-spacing: -0.022em;
     //demoName:'font-size:14px; width:fit-content; font-weight:400; text-shadow: 1px 1px 2px black; margin:-2px 0px; ',
-    demoName:'font-size:14px; width:120px; max-width:120px; max-height:22px; height:22px; font-weight:400; text-shadow: 1px 1px 2px black; margin:0px 0px; flex:1 1 120px; padding:2px 10px;',
-    rubric:'font-size:14px; width:100%; max-height:22px; height:22px; font-weight:400; margin:0px 0px; flex:1 1 auto; padding:2px 10px; white-space: nowrap; font-style: italic; color:#999999;',
+    demoName:'font-size:14px; width:120px; max-width:120px; max-height:22px; height:18px; font-weight:400; text-shadow: 1px 1px 2px black; margin:0px 0px; flex:1 1 120px; padding:2px 10px;',
+    rubric:'font-size:14px; width:100%; max-height:22px; height:18px; font-weight:400; margin:0px 0px; flex:1 1 auto; padding:2px 10px; white-space:nowrap; font-style: italic; color:#999999;',
 }
 //text-shadow: 1px 1px 3px #000000;
 //letter-spacing: -0.022em;
@@ -363,7 +363,7 @@ export class Hub {
         content.appendChild( downMenu );
 
         innerMenu = document.createElement( 'div' );
-        innerMenu.style.cssText = 'position:absolute; display:flex; flex-wrap:warp; opacity:0; flex-flow:row wrap; padding:10px 0px;width:auto;';
+        innerMenu.style.cssText = 'position:absolute; display:flex; flex-wrap:warp; opacity:0; flex-flow:row wrap; padding:10px 0px; width:auto;';
         //innerMenu.style.cssText += 'transition-delay: 1s; transition:opacity 0.5s allow-discrete ease-out;'
         //innerMenu.style.background = 'rgba(10,10, 10,0.2)'//box-sizing: border-box;
         downMenu.appendChild( innerMenu );

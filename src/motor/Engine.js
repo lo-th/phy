@@ -994,6 +994,8 @@ export class Engine {
 			this.flow.current = currentControle !== null ? currentControle.name : ''
 	        //prevUpdate( timer.delta )
 
+	        if( currentControle !== null ) currentControle.move();
+
 			this.stepItems();
 			this.collision.step();
 
@@ -1001,7 +1003,7 @@ export class Engine {
 
 			//if( breaker !== null ) breaker.step();
 
-			if( currentControle !== null ) currentControle.move();
+			//if( currentControle !== null ) currentControle.move();
 
 			if( this.debuger !== null ) this.debuger.draw();
 
@@ -1013,7 +1015,7 @@ export class Engine {
 			postUpdate( delta );
 
 
-			//items.character.prestep()
+			items.character.prestep()
 
 			// update this.object for this side !
 			this.changes( this.flow.tmp );
@@ -1059,10 +1061,10 @@ export class Engine {
 				if( currentControle ) currentControle.isPlayer = true;
 			}
 
+			if(currentControle && currentControle.isCharacter) currentControle = null
+
 		}
-
 		
-
 		this.getAllBody = ( name ) => {
 
 			return items.body.list;
@@ -1097,6 +1099,7 @@ export class Engine {
 
 		this.initItems = () => {
 
+			
 			items['body'] = new Body(_this);
 			items['ray'] = new Ray(_this);
 			items['joint'] = new Joint(_this);

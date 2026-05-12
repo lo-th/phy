@@ -6,16 +6,16 @@ const setting = {
 
 function demo() {
 
-    phy.set({ substep:1, gravity:[0,-0.9,0] })
+    phy.set({ substep:1, gravity:[0,-10,0] })
 
     phy.add({ type:'plane' })
 
-    phy.add({ type:'box', name:'planche', size:[2,0.2,6], rot:[10,0,0], pos:[0,0.85,0], friction:0.8, restitution:0.1, radius:0.025 })
+    phy.add({ type:'box', name:'planche', size:[2,0.2,6], rot:[10,0,0], pos:[0,0.85,0], friction:0.5, restitution:0.5, radius:0.025 })
 
+    ball = phy.add({ type:'highSphere', name:'ball', size:[0.3], pos:[0,5,-2.5], density:1, friction:0.5, restitution:0.5, group:1, mask:1|2, material:'base' })
 
-    ball = phy.add({ type:'highSphere', name:'ball', size:[0.3], pos:[0,5,-2.5], density:1, friction:0.8, restitution:0.5, group:2, mask:1|2, material:'base' })
-
-    phy.add({ type:'contact', b1:'ball', b2:'planche', callback: ballContact });
+    //phy.add({ type:'contact', b1:'ball', b2:'planche', callback: ballContact });
+    phy.addCollision({ name:'ball', vs:'planche', callback: ballContact })
 
 
     //phy.add({ type:'box', name:'bb1', size:[2,3,2], pos:[2,1.5,0], density:2, friction:0.8, restitution:0.8, group:2, mask:1|2 })
@@ -25,7 +25,7 @@ function demo() {
     var i = 20, x;
     while(i--){
         x = (i*0.5)-4.5;
-        phy.add({ name:'R_'+i, type:'ray', begin:[x*0.1,3,0], end:[x*0.1,1, 0], callback:Yoch, visible:true })
+        phy.add({ name:'R_'+i, type:'ray', begin:[x*0.1,3,0], end:[x*0.1,1, 0], callback:Yoch, visible:true, mask:1 })
     }
 
 
@@ -38,12 +38,31 @@ function demo() {
     // little gui
     addGui()
 
+
+    /*let a = 1 << 0 // 1
+    let b = 1 << 1 // 2
+    let c = 1 << 2 // 4
+    let d = 1 << 3 // 8
+    let e = 1 << 4 // 16
+    let f = 1 << 5 // 32
+
+    let z = a|e|f
+
+    console.log( a,b,c,d,e,f  )
+
+    let h = z ^ 4
+    console.log( h , z )*/
+    /*//Inverts the bits of its operand.
+    console.log(1 << 0)
+    console.log(~2)
+    console.log(~16)*/
+
 };
 
 ballContact = ( d ) => {
 
-    if( d.hit ) ball.material.color.setHex( 0xFF0000 )
-    else ball.material.color.setHex( 0xFFFF00 )
+    if( d.hit < 1 ) ball.material.color.setHex( 0xffffff )
+    else ball.material.color.setHex( d.hit ===1 ? 0xFF0000:0xFFFF00  )
 
     //if( d.hit ) console.log('bob collision on trigger', d )
 }
@@ -62,14 +81,14 @@ function attachRay( b ){
         let spherical = new THREE.Spherical();
         let p1 = new THREE.Vector3();
         let p2 = new THREE.Vector3();
-        let i = 60, theta, phi;
+        let i = 200, theta, phi;
 
         while( i-- ){
             theta = math.rand( -180, 180 ) * math.torad;
             phi = math.rand( -180, 180 )  * math.torad;
             spherical.set(0.2, phi, theta);
             p1.setFromSpherical(spherical);
-            spherical.set(1, phi, theta);
+            spherical.set(0.5, phi, theta);
             p2.setFromSpherical(spherical);
             phy.add({ type:'ray', name:'B_'+ i, begin:p1.toArray(), end:p2.toArray(), callback:Yoch, visible:true, parent:ball });
             raylist.push( 'B_'+ i );

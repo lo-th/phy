@@ -948,6 +948,7 @@ const loadDemo = ( name ) => {
     switch(rubric){
     	case 'dev': expath = 'dev/'; break
     	case 'private': expath = 'private/'; break
+    	case 'advanced': expath = 'advanced/'; break
     }
 
 	//if( Main.devLink.indexOf(name)!==-1 ) expath = 'dev/' 
@@ -1144,10 +1145,8 @@ const update = ( stamp = 0 ) => {
 	if( !Main.isWorker ) Motor.doStep( stamp );
 	else Motor.setDelta( tm.delta );
 
-
 	// UPDATE CAMERA CONTROLER
     if( controls ) controls.up( tm.delta );
-
 
     // UPDATE TWEEN
 	TWEEN.update( stamp );

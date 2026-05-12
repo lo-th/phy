@@ -1,16 +1,16 @@
 {
     "Demo":{
         "advanced": [ 
-            "diamond", "chess", "million", "museum", "dragon", "human", "random", "auto_ragdoll", "player"
+            "chess", "dragon", "human", "player", "ragdoll", "random", "million"
         ],
         "basic": [
-            "benchmark", "start", "ragdoll", "ragdoll2", "basic", "joint", "capsule", "compound", "bridge", "ray_car", "alpine",
+            "benchmark", "start", "ragdoll_1", "ragdoll_2", "basic", "joint", "capsule", "compound", "bridge", "ray_car", "alpine",
             "gears", "terrain", "character", "kinematic", "tower", "gravity", "evangelion", "simple",
             "blast", "material", "keva", "test", "collision", "ball", "spring",
             "raycast", "badaboum", "nefertiti", "group_mask", "basic_car"
         ],
         "experiment":[
-            "soft_body", "fracture", "grass", "skeleton", "kart"
+            "soft_body", "fracture", "grass", "skeleton", "kart", "diamond", "museum"
         ],
         "physx": [
             "buggy", "vehicle4", "robot", "robot_arm", "kaneda"

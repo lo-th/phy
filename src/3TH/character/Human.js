@@ -337,6 +337,12 @@ export const Human = {
             type:'Basic',
         	//color:0x000000,
             //wireframe: true,
+        },
+        looker:{
+            type:'Basic',
+            visible:false
+            //color:0x000000,
+            //wireframe: true,
         }
 
     },
@@ -498,6 +504,13 @@ export const Human = {
                     node.receiveShadow = false;
                     node.castShadow = false;
                     node.visible = Human.haveHair ? !startHigh : false;
+                    break;
+
+                    case 'headlook':  
+                    node.material = Pool.getMaterial( 'looker' );
+                    node.receiveShadow = false;
+                    node.castShadow = false;
+                    node.visible =true;// Human.haveHair ? !startHigh : false;
                     break;
 
                 }

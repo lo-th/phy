@@ -982,7 +982,46 @@ export class Body extends Item {
 		//  Mass and Density
 		//---------------------------
 
-		b.mass = o.mass || 0;
+		let density = 0;
+		let mass = 0;
+		let densityFirst = false;
+
+		if( o.density !== undefined ){
+			if( o.density !== 0 ){
+				density = o.density;
+				if( o.mass === undefined ){ 
+					mass = MathTool.massFromDensity( density, volume );
+					densityFirst = true;
+				}
+			}
+		}
+
+		if( o.mass !== undefined ){
+			if( o.mass !== 0 ){
+				mass = o.mass;
+				if( o.density === undefined ){ 
+					density = MathTool.densityFromMass( mass, volume );
+					densityFirst = false;
+				}
+			}
+		}
+
+		//console.log(density, mass, densityFirst)
+
+		b.mass = mass;
+		b.density = density;
+
+		o.mass = mass;
+		o.density = density
+		o.densityFirst = densityFirst;
+
+		//if( o.density && !o.mass )
+
+
+
+
+
+		/*b.mass = o.mass || 0;
 		b.density = o.density || 0;
 
 		if( b.density && !b.mass ){ 
@@ -994,7 +1033,7 @@ export class Body extends Item {
 			b.density = MathTool.densityFromMass( b.mass, volume );
 			//  force density for engin don't have mass
 			if( this.engine === 'RAPIER' || this.engine === 'OIMO' || this.engine === 'PHYSX') o.density = b.density;
-		}
+		}*/
 
 
 		if( o.massInfo ) console.log( '%c'+b.name+ ' %c' + 'density:' + b.density + ' mass:'+ b.mass, "font-size:16px", "font-size:12px" );

@@ -33,7 +33,7 @@ export class Hero extends Object3D {
 
 		this.waitRotation = false;
 
-		let floatHeight = 0.3;
+		let floatHeight = 0.2;
 		let radius = o.radius || 0.3;
 		let height = o.height || 1.8;//0.7
 
@@ -60,7 +60,7 @@ export class Hero extends Object3D {
 			turnVelMultiplier: 0.2,
 			turnSpeed: 15,
 			sprintMult: 2,
-			jumpVel: 4,
+			jumpVel: 5,//4,
 			jumpForceToGroundMult: 5,
 			slopJumpMult: 0.25,
 			sprintJumpMult: 1.2,
@@ -80,9 +80,9 @@ export class Hero extends Object3D {
 			rayLength: radius + 2,
 			rayDir: { x: 0, y: -1, z: 0 },
 
-			floatingDis: radius + floatHeight+0.02, //+ 0.08,
-			springK: 2, //1.2,
-			dampingC: 0.2,//0.08,
+			floatingDis: radius + floatHeight, //+ 0.08,
+			springK: 4,//2,,
+			dampingC: 0.5,//0.2,,
 			forceMultiply: 5, 
 			// Slope Ray setups
 			showSlopeRayOrigin: false,
@@ -340,7 +340,7 @@ export class Hero extends Object3D {
 		o.pos[1] += this.height*0.5;
 		if( this.useFloating ) o.pos[1] += this.option.floatHeight;
 
-		if( this.globalRay ) this.motor.getGeometryRef( { ...o, type:'capsule', ray:true }, this, this.motor.mat.get('hide') )
+		if( this.globalRay ) this.motor.getGeometryRef( {  ...o, type:'capsule', ray:true,  }, this, this.motor.mat.get('hide') )
 
 		this.phyData = {
 
@@ -351,9 +351,10 @@ export class Hero extends Object3D {
 			shapeType: o.shapeType || 'capsule',
 			//density: 1,//o.density || 1,
 			mass: this.mass, 
-			friction: o.friction !== undefined ? o.friction : 0.5,
+			friction: o.friction !== undefined ? o.friction : 0.0,//0.5
 			angularFactor:[0,0,0],
 			group: 16,
+			mask: 1|2,
 			regular:true,
 			getVelocity:true,
 
@@ -374,14 +375,13 @@ export class Hero extends Object3D {
         // add capsule to physics
         this.motor.post({ m:'add', o:this.phyData });
 
-        this.extraRay = this.isPlayer
+        this.extraRay = this.isPlayer;
 
-        
 
         // add bottom RAY
         if( this.useFloating ){ 
         	this.withRay = true;
-        	let def = { type:'ray', callback:null, visible:false, parent:this.name, noRotation:true }//this.selfRay.bind(this)
+        	let def = { type:'ray', callback:null, visible:false, parent:this.name, noRotation:true, mask:1|2 }//this.selfRay.bind(this)
         	this.rays.push( this.motor.add({ ...def, name:this.name + '_ray', begin:[0,this.rayStart,0], end:[0,this.rayEnd, 0] }) );
         	if(this.extraRay){
         		let r = this.radius*0.5;
@@ -392,8 +392,6 @@ export class Hero extends Object3D {
         		this.rays.push( this.motor.add({ ...def, name:this.name + '_ray_r', begin:[-r,this.rayStart,-r2], end:[-r,this.rayEnd, -r2] }) );
         	}
         }
-
-
 
         // add skinning character model
         if( o.gender ) this.addModel( o );
@@ -420,6 +418,28 @@ export class Hero extends Object3D {
 	// hit.timeOfImpact ?? 
 	//
 
+	upRay(){
+
+		this.basedist = this.option.rayLength
+		this.rayData = { hit:false }
+
+		let j = this.rays.length, r
+		while(j--){
+			r = this.rays[j].data
+			if( r.hit ){ 
+				if(r.distance < this.basedist){
+					this.basedist = r.distance
+				    this.rayData = {...r}
+				}
+			}
+		}
+
+		//this.rays[0].data = {...r}
+
+		//return goodData
+
+	}
+
 	rotateRay( angle ){
 
 		if(!this.isPlayer) return;
@@ -436,30 +456,37 @@ export class Hero extends Object3D {
 
 	}
 
-	goodRay(){
+	/*goodRay(){
 
-		let dist = 1000
+		this.basedist = this.option.rayLength
 
 		let j = this.rays.length, r, goodData = { hit:false }
 		while(j--){
 			r = this.rays[j].data
-			if( r.hit && r.distance < dist){ 
-				dist = r.distance
-				goodData = r
+			if( r.hit ){ 
+				if(r.distance < this.basedist){
+					this.basedist = r.distance
+				    goodData = r
+				}
 			}
 		}
 
+		//this.rays[0].data = {...r}
+
 		return goodData
 
-	}
+	}*/
 
-    selfRay( r ){
+    selfRay(){
 
     	const o = this.option
     	const v = this.v
+    	const r = this.rayData
+
+    	if(!r) return
 
     	// jump condition only on central ray
-    	const rc = this.rays[0].data
+    	const rc = r//this.rays[0].data
 		if(rc.hit && rc.distance < o.floatingDis + o.rayHitForgiveness){
 			if (v.actualSlopeAngle < o.slopeMaxAngle) {
 				v.canJump = true;
@@ -467,7 +494,7 @@ export class Hero extends Object3D {
 		}else{
 			v.canJump = false;
 		}
-
+ 
     	if( r.hit && v.canJump ){
 
     		v.standingForcePoint.set(
@@ -480,13 +507,13 @@ export class Hero extends Object3D {
     		this.distance = r.distance;
     		this.rayAngle = r.angle;
 
-    		this.hitPoint = r.point;
+    		//this.hitPoint = r.point;
     		this.hitObject = this.motor.byName(r.body);
     		let hitMass = this.hitObject.mass;
     		let type = this.hitObject.type;
     		if(hitMass === 0 && type ==='body') type = 'kinematic'
     		if(hitMass !== 0 ) this.massRatio = this.mass / hitMass;
-    		this.motor.log(r.body + ' ' + hitMass + ' ' + type)
+    		//this.motor.log(r.body + ' ' + hitMass + ' ' + type)
 
     		if(type === 'body' || type==='kinematic'){
     			v.isOnMovingObject = true;
@@ -552,6 +579,8 @@ export class Hero extends Object3D {
 
     	this.contact = d;
 
+    	//console.log(d)
+
     }
 
     showHelper( b ){
@@ -575,15 +604,21 @@ export class Hero extends Object3D {
 
     }
 
-    addSkeleton(){
+    addSkeleton( visible = false ){
 
-    	if( this.skeletonBody ) return
     	if( !this.model ) return
+    	if( this.skeletonBody ) return
     	//this.skeletonBody = new SkeletonBody( this )
         this.skeletonBody = new SkeletonBody( this.motor, this.name, this.model.root, this.model.skeleton.bones )
     	this.motor.scene.add( this.skeletonBody )
-    	this.skeletonBody.isVisible( false )
+    	this.skeletonBody.isVisible( visible )
 
+    }
+
+    removeSkeleton(){
+    	if( !this.skeletonBody ) return
+    	this.skeletonBody.dispose()
+        this.skeletonBody = null;
     }
 
     debugMode( v = false ){
@@ -631,17 +666,28 @@ export class Hero extends Object3D {
 
 	}
 
-	raycast(){
+	raycast(raycaster, intersects){
+		if(this.model) return this.model.raycast(raycaster, intersects)
 		return;// false;
 	}
 
-	/*preStep(){
-		if(this.skeletonBody) this.skeletonBody.update()
-	}*/
+	preStep(){
+
+		if( this.withRay ) this.upRay()
+
+		//if(this.skeletonBody) this.skeletonBody.updateMatrix()
+
+		//if(this.isPlayer) this.move()
+		//if(this.skeletonBody) this.skeletonBody.update()
+	}
 
 	step ( AR, n ) {
 
-		if( this.withRay ) this.selfRay(this.goodRay())
+		if( this.withRay ){ 
+			this.selfRay()//this.goodRay())
+		}
+
+		
 		
 		this.position.fromArray( AR, n + 1 );
 		this.quaternion.fromArray( AR, n + 4 );
@@ -658,10 +704,7 @@ export class Hero extends Object3D {
 	    this.v.currentVel.copy(this.velocity);
 		
 
-		if( this.model ) {
-			this.model.update( this.motor.delta );
-			this.getDistanceToCamera()
-		}
+		
 
 
 		if( this.useFloating && !this.isPlayer ){ 
@@ -680,8 +723,18 @@ export class Hero extends Object3D {
 
 	    }
 
-		//if(this.skeletonBody) this.skeletonBody.update()
-		this.updateMatrix();
+	    if(this.isPlayer) this.move()
+	    this.updateMatrix();
+
+	    if( this.model ) {
+			this.model.update( this.motor.delta );
+			this.getDistanceToCamera()
+			this.model.updateMatrix()
+		}
+	    
+
+		//if(this.skeletonBody) this.skeletonBody.updateMatrix()
+		
 
 	}
 
@@ -721,7 +774,7 @@ export class Hero extends Object3D {
 		//console.log('dispose')
 
 		this.callback = null
-		if( this.skeletonBody ) this.skeletonBody.dispose()
+		if( this.skeletonBody ) this.removeSkeleton()
 		if( this.model ) this.model.dispose()
 		if( this.helper ) this.showHelper()
 
@@ -953,9 +1006,12 @@ export class Hero extends Object3D {
 		const o = this.option;
 
 		if( this.rayHit ){
-			const dist = o.floatingDis - this.distance
-		    const floatingForce = ( o.springK * dist ) - ( v.currentVel.y * o.dampingC );
+			const dist = o.floatingDis - this.distance;
+			let amotiseur = MathTool.clamp(-dist, 0, 2);
+		    const floatingForce = ( (o.springK-amotiseur) * dist ) - ( v.currentVel.y * (o.dampingC+amotiseur) );
 		    v.moveImpulse.y = floatingForce * this.mass;
+
+		    //this.motor.log(amotiseur)
 
 		    // Apply opposite force to standing object
 		    v.characterMassForce.set(0, floatingForce > 0 ? -floatingForce : 0, 0);
@@ -968,7 +1024,7 @@ export class Hero extends Object3D {
 			}
 		    
 		}
-
+ 
 		//this.motor.log('D:'+ this.distance + ' F:'+floatingForce)
 		
 	}
@@ -1043,9 +1099,13 @@ export class Hero extends Object3D {
 		const v = this.v;    
 		const o = this.option;
 
+
+
 		this.v.moveImpulse.set(0,0,0);
 
 		this.applyDragForce();
+
+		
 
 		// slowdown
 
@@ -1073,7 +1133,7 @@ export class Hero extends Object3D {
 
 		const key = this.motor.getKey();
 		const azimut = this.motor.getAzimut();
-		const delta = this.motor.delta;
+		const delta = this.motor.getDelta()//delta;
 		
 		// 1°/ find the good animation
 
@@ -1248,7 +1308,7 @@ export class Hero extends Object3D {
 	    	//console.log(diff)
 	    	//this.model.rotation.y = anim === 'fight' ? (azimut + Math.PI) : math.lerp( pp, aa, 0.25 )
 	    	this.model.rotation.y = anim === 'fight' ? (azimut + Math.PI) : MathTool.lerp( pp, aa, 0.2 - (diff*0.1) )
-	    	this.model.updateMatrix()
+	    	
 	    	//this.model.setTimescale( this.tmpAcc * (1*genSpeed) )
 
 	    	

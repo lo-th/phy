@@ -18,12 +18,12 @@ export class Character extends Item {
 
 	}
 
-	/*prestep () {
+	prestep () {
 
 		let i = this.list.length;
 		while( i-- ) this.list[i].preStep( );
 
-	}*/
+	}
 
 	step (AR, N) {
 		

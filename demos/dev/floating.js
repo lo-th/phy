@@ -1,4 +1,4 @@
-
+let deltaTime = 0
 const dt = [
 	{name:'s0', impulse:[0,0,0] },
 	{name:'s1', impulse:[0,0,0] },
@@ -50,7 +50,7 @@ demo = () => {
 }
 
 update = ( delta ) => {
-
+	deltaTime = delta
 	phy.change(dt);
 }
 
@@ -61,7 +61,14 @@ function Y0( r ){
 	if(r.hit){
 		d = r.distance
 		let dist = setting.floatingDis - d
-		let floatingForce = ( setting.spring * dist ) - ( s0.velocity.y * setting.damping );
+		//let f = math.lerp(0.1, 0, pos.y)
+		//let floatingForce = ( setting.spring * dist ) - ( s0.velocity.y * setting.damping );
+		let vv = (-dist)
+		if(vv<0) vv = 0
+		
+		let floatingForce = ( (2+vv) * dist ) - ( s0.velocity.y * (0.5-vv) );
+		//phy.log(floatingForce + ' '+ s0.velocity.y)
+		phy.log(dist)
 
 		dt[0].impulse[1] = floatingForce * s0.mass
 
