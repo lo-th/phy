@@ -1309,6 +1309,15 @@ export class Engine {
 				case 'joint': b = items.joint.set( o, b );  break;
 				case 'body':
 
+				if(o.editShape){ 
+					let k = o.editShape.length, m
+					while(k--){
+						m = o.editShape[k]
+						if(m.rot) { m.quat = MathTool.quatFromEuler( m.rot ); delete ( m.rot ); }
+					}
+					items.body.set( o, b );
+				}
+
 				if( !b.isKinematic ){
 				//if( this.engine !== 'HAVOK' ){
 

@@ -247,6 +247,8 @@ export class Body extends Item {
 			group = 4
 		}
 
+		if( o.shapeType ) o.type = o.shapeType;
+
 		// shape goemetry
 
 		let g = null; 
@@ -283,7 +285,7 @@ export class Body extends Item {
 			break;
 			default:
 			
-			    if( o.shapeType ) o.type = o.shapeType;
+			    
 			    g = this.shape( o );
 
 			break;

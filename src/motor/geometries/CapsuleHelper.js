@@ -17,99 +17,19 @@ class CapsuleHelper extends Object3D {
 		if(!r) return
 		if(!h) return
 
-		
+		this.segment = 12
+	    this.full = full
+	    this.r = r
+	    this.h = h
+	    this.c1 = c1
+	    this.c2 = c2
+
+
+		const ar = this.getPoint();
 
 		const geometry = new BufferGeometry();
-
-		let py = (h*0.5)-r
-		let side = 12//32;
-		let dir = r*0.2
-
-
-		let colors = [];
-
-		const positions = [
-		    r, py, 0 ,   r, -py, 0,
-		    -r, py, 0 ,   -r, -py, 0,
-		    0, py, r-dir ,   0, py, r+dir,
-		];
-
-
-
-		//console.log( r )
-
-		colors.push(
-			...c1,...c2,
-			...c1,...c2,
-			...c2,...c2
-		)
-
-		if(full){ 
-			positions.push(
-				0, py, r, 0, -py, r,
-				0, py, -r, 0, -py, -r 
-			);
-			colors.push(
-				...c1,...c2,
-				...c1,...c2,
-			)
-		}
-
-
-		// circle top / bottom
-
-		for ( let i = 0, j = 1; i < side; i ++, j ++ ) {
-
-			const p1 = ( i / side ) * Math.PI * 2;
-			const p2 = ( j / side ) * Math.PI * 2;
-
-			positions.push(
-				r*Math.cos( p1 ), py, r*Math.sin( p1 ),
-				r*Math.cos( p2 ), py, r*Math.sin( p2 ),
-
-				r*Math.cos( p1 ), -py, r*Math.sin( p1 ),
-				r*Math.cos( p2 ), -py, r*Math.sin( p2 ),
-			);
-
-			colors.push(
-				...c1,...c1,
-				...c2,...c2,
-			)
-
-		}
-
-		// circle start / end
-
-		for ( let i = 0, j = 1; i < side; i ++, j ++ ) {
-
-			const p1 = ( i / side ) * Math.PI * 2;
-			const p2 = ( j / side ) * Math.PI * 2;
-
-			let s = j <= side*0.5 ? 1 : -1 
-
-			positions.push(
-				r*Math.cos( p1 ), py*s + r*Math.sin( p1 ),0,
-				r*Math.cos( p2 ), py*s + r*Math.sin( p2 ),0,
-			);
-
-			if(s===1) colors.push( ...c1,...c1 )
-			else colors.push( ...c2,...c2 )
-
-			if(full){
-				positions.push(
-					0, py*s + r*Math.sin( p1 ),r*Math.cos( p1 ),
-					0, py*s + r*Math.sin( p2 ),r*Math.cos( p2 ),
-				);
-				if(s===1) colors.push( ...c1,...c1 )
-			    else colors.push( ...c2,...c2 )
-			}
-
-		}
-
-		//console.log( positions )
-
-		geometry.setAttribute( 'position', new Float32BufferAttribute( positions, 3 ) );
-		geometry.setAttribute( 'color', new Float32BufferAttribute( colors, 3 ) );
+		geometry.setAttribute( 'position', new Float32BufferAttribute( ar[0], 3 ) );
+		geometry.setAttribute( 'color', new Float32BufferAttribute( ar[1], 3 ) );
 
 		//const indices = geometry.getIndex();
 		//console.log(indices)
@@ -139,6 +59,106 @@ class CapsuleHelper extends Object3D {
 		if(!useDir) return
 
 		const geometry2 = new BufferGeometry();
+		geometry2.setAttribute( 'position', new Float32BufferAttribute( ar[2], 3 ) );
+		geometry2.setAttribute( 'color', new Float32BufferAttribute( ar[3], 3 ) );
+
+		this.geometry2 = geometry2;
+
+		this.direction = new LineSegments( geometry2, material );
+		this.direction.raycast = function(){return false}
+		this.add( this.direction );
+
+	}
+
+	resize(h){
+		
+		this.h = h
+		const ar = this.getPoint();
+		let pos = this.geometry.attributes.position;
+		let pos2 = this.geometry2.attributes.position;
+
+		let a = pos.array
+		let i = a.length
+		while(i--) a[i] = ar[0][i]
+
+		a = pos2.array
+	    i = a.length
+		while(i--) a[i] = ar[2][i]
+
+		pos.needsUpdate = true;
+		pos2.needsUpdate = true;
+
+	}
+
+	getPoint(){
+
+		const r = this.r
+		const c1 = this.c1
+	    const c2 = this.c2
+		let py = (this.h*0.5)-r
+		let side = this.segment;
+		let dir = r*0.2;
+		
+		const colors = [];
+		const positions = [
+		    r, py, 0 ,   r, -py, 0,
+		    -r, py, 0 ,   -r, -py, 0,
+		    0, py, r-dir ,   0, py, r+dir,
+		];
+
+		colors.push( ...c1,...c2, ...c1,...c2, ...c2,...c2 );
+
+		if(this.full){ 
+			positions.push( 0, py, r, 0, -py, r, 0, py, -r, 0, -py, -r  );
+			colors.push( ...c1,...c2, ...c1,...c2 );
+		}
+
+		// circle top / bottom
+
+		for ( let i = 0, j = 1; i < side; i ++, j ++ ) {
+
+			const p1 = ( i / side ) * Math.PI * 2;
+			const p2 = ( j / side ) * Math.PI * 2;
+
+			positions.push(
+				r*Math.cos( p1 ), py, r*Math.sin( p1 ),
+				r*Math.cos( p2 ), py, r*Math.sin( p2 ),
+
+				r*Math.cos( p1 ), -py, r*Math.sin( p1 ),
+				r*Math.cos( p2 ), -py, r*Math.sin( p2 ),
+			);
+
+			colors.push( ...c1,...c1, ...c2,...c2 )
+
+		}
+
+		// circle start / end
+
+		for ( let i = 0, j = 1; i < side; i ++, j ++ ) {
+
+			const p1 = ( i / side ) * Math.PI * 2;
+			const p2 = ( j / side ) * Math.PI * 2;
+
+			let s = j <= side*0.5 ? 1 : -1 
+
+			positions.push(
+				r*Math.cos( p1 ), py*s + r*Math.sin( p1 ),0,
+				r*Math.cos( p2 ), py*s + r*Math.sin( p2 ),0,
+			);
+
+			if(s===1) colors.push( ...c1,...c1 )
+			else colors.push( ...c2,...c2 )
+
+			if(this.full){
+				positions.push(
+					0, py*s + r*Math.sin( p1 ),r*Math.cos( p1 ),
+					0, py*s + r*Math.sin( p2 ),r*Math.cos( p2 ),
+				);
+				if(s===1) colors.push( ...c1,...c1 )
+			    else colors.push( ...c2,...c2 )
+			}
+
+		}
 
 		const positions2 = [
 		    dir*0.5, -py, r-dir ,   dir*0.5, -py, r+dir,
@@ -152,22 +172,13 @@ class CapsuleHelper extends Object3D {
 		    dir, -py, r+dir , 0, -py, r+dir*2 ,
 		];
 
-		colors = []
+		const colors2 = []
 		let cc = positions2.length/3
 		while(cc--){
-			colors.push(1,0,0)
+			colors2.push(1,1,0)
 		}
 
-		geometry2.setAttribute( 'position', new Float32BufferAttribute( positions2, 3 ) );
-		geometry2.setAttribute( 'color', new Float32BufferAttribute( colors, 3 ) );
-
-
-
-		//const material2 = new LineBasicMaterial( { color:0xFF0000, fog: false, toneMapped: false } );
-
-		this.direction = new LineSegments( geometry2, material );
-		this.direction.raycast = function(){return false}
-		this.add( this.direction );
+		return [ positions, colors, positions2, colors2 ]
 
 	}
 

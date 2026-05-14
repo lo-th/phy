@@ -1001,6 +1001,25 @@ const M$2 = {
     //  VOLUME
     //-----------------------
 
+    getCenterPoint: (vertices) => {
+        let minX = Infinity, minY = Infinity, minZ = Infinity;
+        let maxX = -Infinity, maxY = -Infinity, maxZ = -Infinity;
+
+        for (let i = 0; i < vertices.length; i += 3) {
+            const x = vertices[i], y = vertices[i+1], z = vertices[i+2];
+            if (x < minX) minX = x; if (x > maxX) maxX = x;
+            if (y < minY) minY = y; if (y > maxY) maxY = y;
+            if (z < minZ) minZ = z; if (z > maxZ) maxZ = z;
+        }
+
+        return [
+            (minX + maxX) / 2,
+            (minY + maxY) / 2,
+            (minZ + maxZ) / 2
+        ];
+    },
+
+
     getCenter:( g, center ) => {
 
         g.computeBoundingBox();
@@ -1048,8 +1067,9 @@ const M$2 = {
 
         let s = [ max[0]-min[0], max[1]-min[1], max[2]-min[2] ];
 
-        return 8 * (s[0]*0.5)*(s[1]*0.5)*(s[2]*0.5);
-        //return (max[0]-min[0])*(max[1]-min[1])*(max[2]-min[2])
+        let v1 = 8 * (s[0]*0.5)*(s[1]*0.5)*(s[2]*0.5);
+
+        return v1;
 
     },
 
@@ -4726,99 +4746,19 @@ class CapsuleHelper extends three.Object3D {
 		if(!r) return
 		if(!h) return
 
-		
+		this.segment = 12;
+	    this.full = full;
+	    this.r = r;
+	    this.h = h;
+	    this.c1 = c1;
+	    this.c2 = c2;
+
+
+		const ar = this.getPoint();
 
 		const geometry = new three.BufferGeometry();
-
-		let py = (h*0.5)-r;
-		let side = 12;//32;
-		let dir = r*0.2;
-
-
-		let colors = [];
-
-		const positions = [
-		    r, py, 0 ,   r, -py, 0,
-		    -r, py, 0 ,   -r, -py, 0,
-		    0, py, r-dir ,   0, py, r+dir,
-		];
-
-
-
-		//console.log( r )
-
-		colors.push(
-			...c1,...c2,
-			...c1,...c2,
-			...c2,...c2
-		);
-
-		if(full){ 
-			positions.push(
-				0, py, r, 0, -py, r,
-				0, py, -r, 0, -py, -r 
-			);
-			colors.push(
-				...c1,...c2,
-				...c1,...c2,
-			);
-		}
-
-
-		// circle top / bottom
-
-		for ( let i = 0, j = 1; i < side; i ++, j ++ ) {
-
-			const p1 = ( i / side ) * Math.PI * 2;
-			const p2 = ( j / side ) * Math.PI * 2;
-
-			positions.push(
-				r*Math.cos( p1 ), py, r*Math.sin( p1 ),
-				r*Math.cos( p2 ), py, r*Math.sin( p2 ),
-
-				r*Math.cos( p1 ), -py, r*Math.sin( p1 ),
-				r*Math.cos( p2 ), -py, r*Math.sin( p2 ),
-			);
-
-			colors.push(
-				...c1,...c1,
-				...c2,...c2,
-			);
-
-		}
-
-		// circle start / end
-
-		for ( let i = 0, j = 1; i < side; i ++, j ++ ) {
-
-			const p1 = ( i / side ) * Math.PI * 2;
-			const p2 = ( j / side ) * Math.PI * 2;
-
-			let s = j <= side*0.5 ? 1 : -1; 
-
-			positions.push(
-				r*Math.cos( p1 ), py*s + r*Math.sin( p1 ),0,
-				r*Math.cos( p2 ), py*s + r*Math.sin( p2 ),0,
-			);
-
-			if(s===1) colors.push( ...c1,...c1 );
-			else colors.push( ...c2,...c2 );
-
-			if(full){
-				positions.push(
-					0, py*s + r*Math.sin( p1 ),r*Math.cos( p1 ),
-					0, py*s + r*Math.sin( p2 ),r*Math.cos( p2 ),
-				);
-				if(s===1) colors.push( ...c1,...c1 );
-			    else colors.push( ...c2,...c2 );
-			}
-
-		}
-
-		//console.log( positions )
-
-		geometry.setAttribute( 'position', new three.Float32BufferAttribute( positions, 3 ) );
-		geometry.setAttribute( 'color', new three.Float32BufferAttribute( colors, 3 ) );
+		geometry.setAttribute( 'position', new three.Float32BufferAttribute( ar[0], 3 ) );
+		geometry.setAttribute( 'color', new three.Float32BufferAttribute( ar[1], 3 ) );
 
 		//const indices = geometry.getIndex();
 		//console.log(indices)
@@ -4848,6 +4788,106 @@ class CapsuleHelper extends three.Object3D {
 		if(!useDir) return
 
 		const geometry2 = new three.BufferGeometry();
+		geometry2.setAttribute( 'position', new three.Float32BufferAttribute( ar[2], 3 ) );
+		geometry2.setAttribute( 'color', new three.Float32BufferAttribute( ar[3], 3 ) );
+
+		this.geometry2 = geometry2;
+
+		this.direction = new three.LineSegments( geometry2, material );
+		this.direction.raycast = function(){return false};
+		this.add( this.direction );
+
+	}
+
+	resize(h){
+		
+		this.h = h;
+		const ar = this.getPoint();
+		let pos = this.geometry.attributes.position;
+		let pos2 = this.geometry2.attributes.position;
+
+		let a = pos.array;
+		let i = a.length;
+		while(i--) a[i] = ar[0][i];
+
+		a = pos2.array;
+	    i = a.length;
+		while(i--) a[i] = ar[2][i];
+
+		pos.needsUpdate = true;
+		pos2.needsUpdate = true;
+
+	}
+
+	getPoint(){
+
+		const r = this.r;
+		const c1 = this.c1;
+	    const c2 = this.c2;
+		let py = (this.h*0.5)-r;
+		let side = this.segment;
+		let dir = r*0.2;
+		
+		const colors = [];
+		const positions = [
+		    r, py, 0 ,   r, -py, 0,
+		    -r, py, 0 ,   -r, -py, 0,
+		    0, py, r-dir ,   0, py, r+dir,
+		];
+
+		colors.push( ...c1,...c2, ...c1,...c2, ...c2,...c2 );
+
+		if(this.full){ 
+			positions.push( 0, py, r, 0, -py, r, 0, py, -r, 0, -py, -r  );
+			colors.push( ...c1,...c2, ...c1,...c2 );
+		}
+
+		// circle top / bottom
+
+		for ( let i = 0, j = 1; i < side; i ++, j ++ ) {
+
+			const p1 = ( i / side ) * Math.PI * 2;
+			const p2 = ( j / side ) * Math.PI * 2;
+
+			positions.push(
+				r*Math.cos( p1 ), py, r*Math.sin( p1 ),
+				r*Math.cos( p2 ), py, r*Math.sin( p2 ),
+
+				r*Math.cos( p1 ), -py, r*Math.sin( p1 ),
+				r*Math.cos( p2 ), -py, r*Math.sin( p2 ),
+			);
+
+			colors.push( ...c1,...c1, ...c2,...c2 );
+
+		}
+
+		// circle start / end
+
+		for ( let i = 0, j = 1; i < side; i ++, j ++ ) {
+
+			const p1 = ( i / side ) * Math.PI * 2;
+			const p2 = ( j / side ) * Math.PI * 2;
+
+			let s = j <= side*0.5 ? 1 : -1; 
+
+			positions.push(
+				r*Math.cos( p1 ), py*s + r*Math.sin( p1 ),0,
+				r*Math.cos( p2 ), py*s + r*Math.sin( p2 ),0,
+			);
+
+			if(s===1) colors.push( ...c1,...c1 );
+			else colors.push( ...c2,...c2 );
+
+			if(this.full){
+				positions.push(
+					0, py*s + r*Math.sin( p1 ),r*Math.cos( p1 ),
+					0, py*s + r*Math.sin( p2 ),r*Math.cos( p2 ),
+				);
+				if(s===1) colors.push( ...c1,...c1 );
+			    else colors.push( ...c2,...c2 );
+			}
+
+		}
 
 		const positions2 = [
 		    dir*0.5, -py, r-dir ,   dir*0.5, -py, r+dir,
@@ -4861,22 +4901,13 @@ class CapsuleHelper extends three.Object3D {
 		    dir, -py, r+dir , 0, -py, r+dir*2 ,
 		];
 
-		colors = [];
+		const colors2 = [];
 		let cc = positions2.length/3;
 		while(cc--){
-			colors.push(1,0,0);
+			colors2.push(1,1,0);
 		}
 
-		geometry2.setAttribute( 'position', new three.Float32BufferAttribute( positions2, 3 ) );
-		geometry2.setAttribute( 'color', new three.Float32BufferAttribute( colors, 3 ) );
-
-
-
-		//const material2 = new LineBasicMaterial( { color:0xFF0000, fog: false, toneMapped: false } );
-
-		this.direction = new three.LineSegments( geometry2, material );
-		this.direction.raycast = function(){return false};
-		this.add( this.direction );
+		return [ positions, colors, positions2, colors2 ]
 
 	}
 
@@ -7729,6 +7760,8 @@ class Body extends Item {
 		b.sleep = o.sleep || false;
 		b.defMat = false;
 
+		b.meshRemplace = o.meshRemplace || false;
+
 		// for buttton only
 		if( o.button ) b.isButton = true;
 
@@ -8153,6 +8186,35 @@ class Body extends Item {
 				b.matrixAutoUpdate = true;
 			}
 		}
+
+		//-------------------------
+	    //  edit compound shape
+	    //-------------------------
+
+		if(o.editShape){
+			this.editShape(o.editShape, b);
+		}
+
+	}
+
+	editShape (data, b){
+
+		if(b.meshRemplace) return
+		let i = b.children.length, shape, o;
+	    while(i--){
+			o = data[i];
+			shape = b.children[i];
+
+			if( o.pos || o.quat ){
+
+				if( o.pos ) shape.position.fromArray(o.pos);
+				if( o.quat ) shape.quaternion.fromArray(o.pos);
+
+			}
+
+		}
+
+
 
 	}
 
@@ -17195,9 +17257,9 @@ class Hero extends three.Object3D {
 
 		this.waitRotation = false;
 
-		let floatHeight = 0.2;
+		let floatHeight = 0.3;
 		let radius = o.radius || 0.3;
-		let height = o.height || 1.8;//0.7
+		let height = o.height || 1.81;//0.7
 
 		this.realHeight = height;
 
@@ -17207,12 +17269,11 @@ class Hero extends three.Object3D {
 
 		this.option = {
 
+			
 			debug: false,
-			capsuleHalfHeight: height*0.5,
-			capsuleRadius: radius,
+			
 			floatHeight: floatHeight,
-			characterInitDir: 0, // in rad
-			//followLight: false,
+
 			// Follow camera setups
 			camInitDis: -5,
 			camMaxDis: -7,
@@ -17227,7 +17288,7 @@ class Hero extends three.Object3D {
 			slopJumpMult: 0.25,
 			sprintJumpMult: 1.2,
 			airDragMultiplier: 0.2,
-			slowDown: 0.9,//dragDampingC // 0.15,
+			slowDown: 0.9,//dragDamping // 0.15,
 			accDeltaTime: 8,
 			rejectVelMult: 4,
 			moveImpulsePointY: 0.5,
@@ -17239,12 +17300,11 @@ class Hero extends three.Object3D {
 			// Floating Ray setups
 			rayOriginOffest: { x: 0, y: -height*0.5, z: 0 },
 			rayHitForgiveness: 0.1,
-			rayLength: radius + 2,
 			rayDir: { x: 0, y: -1, z: 0 },
 
-			floatingDis: radius + floatHeight, //+ 0.08,
-			springK: 4,//2,,
-			dampingC: 0.5,//0.2,,
+			//floatingDis: radius + floatHeight, //+ 0.08,
+			Spring: 4,//2,,
+			Damping: 0.5,//0.2,,
 			forceMultiply: 5, 
 			// Slope Ray setups
 			showSlopeRayOrigin: false,
@@ -17256,8 +17316,8 @@ class Hero extends three.Object3D {
 			slopeDownExtraForce: 0.2,
 			// AutoBalance Force setups
 			autoBalance: false,
-			autoBalanceSpringK: 0.3,//1.2,//0.3,
-			autoBalanceDampingC: 0.03,//0.04,
+			autoBalanceSpring: 0.3,//1.2,//0.3,
+			autoBalanceDamping: 0.03,//0.04,
 			autoBalanceSpringOnY: 0.5, //0.7,
 			autoBalanceDampingOnY: 0.015,//0.05,
 			// Animation temporary setups
@@ -17277,8 +17337,8 @@ class Hero extends three.Object3D {
 
 		this.optionGui = {
 			// speed
-			maxVelLimit:{ min:0, max:10, step:0.01, color:cc.speed },
-			turnVelMultiplier:{ min:0, max:1, step:0.01, color:cc.speed },
+			maxVelLimit:{ rename:'Max Vel', min:0, max:10, step:0.01, color:cc.speed },
+			turnVelMultiplier:{ rename:'Turn Vel', min:0, max:1, step:0.01, color:cc.speed },
 			turnSpeed:{ min:5, max:30, step:0.1, color:cc.speed },
 			sprintMult:{ min:1, max:5, step:0.01, color:cc.speed },
 			// jump
@@ -17294,16 +17354,18 @@ class Hero extends three.Object3D {
 			moveImpulsePointY:{ min:0, max:3, step:0.1 },
 			camFollowMult:{ min:0, max:15, step:0.1 },
 			//ray
-			rayHitForgiveness:{ min:0, max:0.5, step:0.01, color:cc.ray },
-			rayLength:{ min:0, max:radius+10, step:0.01, color:cc.ray },
-			floatingDis:{ min:0, max:radius+2, step:0.01, color:cc.ray },
-			springK:{ min:0, max:5, step:0.01, color:cc.ray },
-			dampingC:{ min:0, max:3, step:0.01, color:cc.ray },
+
+			floatHeight:{ min:0, max:radius*3, step:0.01, color:cc.ray },
+
+			rayHitForgiveness:{ rename:'Forgiveness', min:0, max:0.5, step:0.01, color:cc.ray },
+			//rayLength:{ min:0, max:radius+10, step:0.01, color:cc.ray },
+			Spring:{ min:0, max:5, step:0.01, color:cc.ray },
+			Damping:{ min:0, max:3, step:0.01, color:cc.ray },
 			forceMultiply:{ min:0, max:10, step:0.01, color:cc.ray },
 			// balance
 			autoBalance:{ rename:'Balance', type:'bool', color:cc.balance },
-			autoBalanceSpringK:{ rename:'B spring K', min:0, max:5, step:0.01, color:cc.balance },
-			autoBalanceDampingC:{ rename:'B damp C', min:0, max:0.1, step:0.001, color:cc.balance },
+			autoBalanceSpring:{ rename:'B spring K', min:0, max:5, step:0.01, color:cc.balance },
+			autoBalanceDamping:{ rename:'B damp C', min:0, max:0.1, step:0.001, color:cc.balance },
 			autoBalanceSpringOnY:{ rename:'B spring Y', min:0, max:5, step:0.01, color:cc.balance },
 			autoBalanceDampingOnY:{ rename:'B damp Y', min:0, max:0.1, step:0.001, color:cc.balance },
 
@@ -17358,6 +17420,7 @@ class Hero extends three.Object3D {
 			vectorZ: new three.Vector3(0, 0, 1),
 
 			canJump:false,
+			startJump:false,
 			isFalling:false,
 			//run:false,
 			isOnMovingObject:false,
@@ -17400,10 +17463,11 @@ class Hero extends three.Object3D {
 
 		this.distance = 0;
 		this.rayAngle = 0;
+		this.maxRayDistance = 4*this.radius;
 		this.rayStart = -(this.height*0.5)+this.radius;
-		//this.rayEnd = this.rayStart - (radius + 2);//this.height;
-		this.rayEnd = this.rayStart - (4*floatHeight);//this.height;
-		this.maxRayDistance = this.height;
+		this.rayEnd = this.rayStart - this.maxRayDistance;
+		
+
 
 		this.contact = false;
 
@@ -17504,15 +17568,22 @@ class Hero extends three.Object3D {
 
 		if( this.globalRay ) this.motor.getGeometryRef( {  ...o, type:'capsule', ray:true,  }, this, this.motor.mat.get('hide') );
 
+		let h = this.height-(2*this.radius);
+	    this.startHeight = h*0.5;
+		this.shapes = [{ type:'sphere', pos:[0,-this.startHeight,0], size:[ this.radius ] }, { type:'sphere', pos:[0,this.startHeight,0], size:[ this.radius ] }];
+
 		this.phyData = {
 
 			name: this.name,
 			size: o.size,
 			pos: o.pos,
 			type: 'character',
-			shapeType: o.shapeType || 'capsule',
+
+			shapeType:'compound',
+			shapes:this.shapes,
+			//shapeType: o.shapeType || 'capsule',
 			//density: 1,//o.density || 1,
-			mass: this.mass, 
+			mass: this.mass,
 			friction: o.friction !== undefined ? o.friction : 0.0,//0.5
 			angularFactor:[0,0,0],
 			group: 16,
@@ -17524,7 +17595,7 @@ class Hero extends three.Object3D {
 		};
 
 		// lock rotation
-		if(this.motor.engine === 'HAVOK') this.phyData['inertia'] = [0,0,0];
+		if( this.motor.engine === 'HAVOK' ) this.phyData['inertia'] = [0,0,0];
 
 		if( o.mask ) this.phyData['mask'] = o.mask;
 
@@ -17563,6 +17634,24 @@ class Hero extends three.Object3D {
 		
 	}
 
+	setPhysicsHeight( h ) {
+
+		if(this.useFloating){
+			h -= this.option.floatHeight;
+		}
+
+		let d = (h*0.5)-this.radius;
+		let dif = this.startHeight - d;
+		phy.change({ name:this.name, editShape:[{ pos:[0,-this.startHeight,0] }, { pos:[0,d-(dif),0] }] });
+
+		if( this.helper ){
+		    
+			this.helper.resize(h);
+			this.helper.position.y = -dif;
+		}
+
+	}
+
 	extraRemove(){
 		// TODO bug with delete ray ?!
 		if( this.withRay ){ 
@@ -17582,7 +17671,7 @@ class Hero extends three.Object3D {
 
 	upRay(){
 
-		this.basedist = this.option.rayLength;
+		this.basedist = this.maxRayDistance;
 		this.rayData = { hit:false };
 
 		let j = this.rays.length, r;
@@ -17647,17 +17736,20 @@ class Hero extends three.Object3D {
 
     	if(!r) return
 
+    	const floatingDis = this.radius + o.floatHeight;
+
     	// jump condition only on central ray
     	const rc = r;//this.rays[0].data
-		if(rc.hit && rc.distance < o.floatingDis + o.rayHitForgiveness){
-			if (v.actualSlopeAngle < o.slopeMaxAngle) {
+		if(rc.hit && rc.distance < floatingDis + o.rayHitForgiveness){
+			if(v.actualSlopeAngle < o.slopeMaxAngle) {
 				v.canJump = true;
+				v.startJump = false;
 			}
 		}else {
 			v.canJump = false;
 		}
  
-    	if( r.hit && v.canJump ){
+    	if( r.hit && !v.startJump ){ //&& v.canJump
 
     		v.standingForcePoint.set(
     			r.point[0],
@@ -17675,6 +17767,7 @@ class Hero extends three.Object3D {
     		let type = this.hitObject.type;
     		if(hitMass === 0 && type ==='body') type = 'kinematic';
     		if(hitMass !== 0 ) this.massRatio = this.mass / hitMass;
+
     		//this.motor.log(r.body + ' ' + hitMass + ' ' + type)
 
     		if(type === 'body' || type==='kinematic'){
@@ -17705,10 +17798,10 @@ class Hero extends three.Object3D {
     		
 
     		// slope = pente 
-    		if(this.distance<o.floatingDis + 0.5){
+    		if(this.distance<floatingDis + 0.5){
     			// Round the slope angle to 2 decimal places
     			if (v.canJump) v.slopeAngle = Math.atan( ( o.slopeRayLength- this.distance) / o.slopeRayOriginOffest ).toFixed(2);
-    				else v.slopeAngle = 0;
+    			else v.slopeAngle = 0;
     		} else {
     			v.slopeAngle = 0;
     		}
@@ -17716,10 +17809,11 @@ class Hero extends three.Object3D {
     	} else {
     		this.resetMovingObject();
     		this.rayHit = false;
-	        this.distance = this.option.rayLength;//maxRayDistance;
+	        this.distance = this.maxRayDistance;
 	        this.rayAngle = 0;
 	        v.canJump = false;	
-	        this.hitObject = null;    
+	        this.hitObject = null;  
+	        //this.motor.log('no hit')
 
 	    }
 
@@ -17744,7 +17838,7 @@ class Hero extends three.Object3D {
 
     	if(b){
     		if(!this.helper){
-    			this.helper = new CapsuleHelper(this.radius, this.height, true, this.motor.mat.get('line'), [1,0.6,0], [0.6,0.2,0] );
+    			this.helper = new CapsuleHelper( this.radius, this.height, true, this.motor.mat.get('line'), [1,0.6,0], [0.6,0.2,0] );
     			this.helper.setDirection( this.angle ); 
 		        this.add( this.helper );
     		}
@@ -17982,15 +18076,15 @@ class Hero extends three.Object3D {
 	    v.crossVecOnZ.copy(v.vectorY).cross(v.bodyBalanceVecOnZ);
 
 		v.dragAngForce.set(
-		    (v.crossVecOnX.x < 0 ? 1 : -1) * o.autoBalanceSpringK * (v.bodyBalanceVecOnX.angleTo(v.vectorY)) - this.angular.x * o.autoBalanceDampingC,
+		    (v.crossVecOnX.x < 0 ? 1 : -1) * o.autoBalanceSpring * (v.bodyBalanceVecOnX.angleTo(v.vectorY)) - this.angular.x * o.autoBalanceDamping,
 		    (v.crossVecOnY.y < 0 ? 1 : -1) * o.autoBalanceSpringOnY * (v.modelFacingVec.angleTo(v.bodyFacingVecOnY)) - this.angular.y * o.autoBalanceDampingOnY,
-		    (v.crossVecOnZ.z < 0 ? 1 : -1) * o.autoBalanceSpringK * (v.bodyBalanceVecOnZ.angleTo(v.vectorY)) - this.angular.z * o.autoBalanceDampingC,
+		    (v.crossVecOnZ.z < 0 ? 1 : -1) * o.autoBalanceSpring * (v.bodyBalanceVecOnZ.angleTo(v.vectorY)) - this.angular.z * o.autoBalanceDamping,
 		);
 
 		/*v.dragAngForce.set(
-		    -o.autoBalanceSpringK * r.x - this.angular.x * o.autoBalanceDampingC,
-		    -o.autoBalanceSpringK * r.y - this.angular.y * o.autoBalanceDampingOnY,
-		    -o.autoBalanceSpringK * r.z - this.angular.z * o.autoBalanceDampingC
+		    -o.autoBalanceSpring * r.x - this.angular.x * o.autoBalanceDamping,
+		    -o.autoBalanceSpring * r.y - this.angular.y * o.autoBalanceDampingOnY,
+		    -o.autoBalanceSpring * r.z - this.angular.z * o.autoBalanceDamping
 		)*/
 
 		// Apply balance torque impulse
@@ -18133,6 +18227,10 @@ class Hero extends three.Object3D {
 
 		if(!v.canJump) return
 
+		v.startJump = true;
+
+
+
 		
 
 		//this.v.canJump = false
@@ -18162,10 +18260,12 @@ class Hero extends three.Object3D {
 		const v = this.v;
 		const o = this.option;
 
+		const floatingDis = this.radius + o.floatHeight;
+
 		if( this.rayHit ){
-			const dist = o.floatingDis - this.distance;
+			const dist = floatingDis - this.distance;
 			let amotiseur = MathTool.clamp(-dist, 0, 2);
-		    const floatingForce = ( (o.springK-amotiseur) * dist ) - ( v.currentVel.y * (o.dampingC+amotiseur) );
+		    const floatingForce = ( (o.Spring-amotiseur) * dist ) - ( v.currentVel.y * (o.Damping+amotiseur) );
 		    v.moveImpulse.y = floatingForce * this.mass;
 
 		    //this.motor.log(amotiseur)
@@ -27820,6 +27920,15 @@ class Engine {
 				case 'solid': b = items.solid.set( o, b ); break;
 				case 'joint': b = items.joint.set( o, b );  break;
 				case 'body':
+
+				if(o.editShape){ 
+					let k = o.editShape.length, m;
+					while(k--){
+						m = o.editShape[k];
+						if(m.rot) { m.quat = MathTool.quatFromEuler( m.rot ); delete ( m.rot ); }
+					}
+					items.body.set( o, b );
+				}
 
 				if( !b.isKinematic ){
 				//if( this.engine !== 'HAVOK' ){

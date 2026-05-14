@@ -974,25 +974,6 @@ const M = {
     //  VOLUME
     //-----------------------
 
-    getCenterPoint: (vertices) => {
-        let minX = Infinity, minY = Infinity, minZ = Infinity;
-        let maxX = -Infinity, maxY = -Infinity, maxZ = -Infinity;
-
-        for (let i = 0; i < vertices.length; i += 3) {
-            const x = vertices[i], y = vertices[i+1], z = vertices[i+2];
-            if (x < minX) minX = x; if (x > maxX) maxX = x;
-            if (y < minY) minY = y; if (y > maxY) maxY = y;
-            if (z < minZ) minZ = z; if (z > maxZ) maxZ = z;
-        }
-
-        return [
-            (minX + maxX) / 2,
-            (minY + maxY) / 2,
-            (minZ + maxZ) / 2
-        ];
-    },
-
-
     getCenter:( g, center ) => {
 
         g.computeBoundingBox();
@@ -1040,9 +1021,8 @@ const M = {
 
         let s = [ max[0]-min[0], max[1]-min[1], max[2]-min[2] ]
 
-        let v1 = 8 * (s[0]*0.5)*(s[1]*0.5)*(s[2]*0.5)
-
-        return v1;
+        return 8 * (s[0]*0.5)*(s[1]*0.5)*(s[2]*0.5);
+        //return (max[0]-min[0])*(max[1]-min[1])*(max[2]-min[2])
 
     },
 
@@ -1461,4 +1441,3 @@ get_blend_space_2d_node_influences :: (using space : *Blend_Space_2d, position :
     return weights;
 }
 */
-

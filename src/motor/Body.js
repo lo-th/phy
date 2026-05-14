@@ -707,6 +707,8 @@ export class Body extends Item {
 		b.sleep = o.sleep || false
 		b.defMat = false;
 
+		b.meshRemplace = o.meshRemplace || false
+
 		// for buttton only
 		if( o.button ) b.isButton = true
 
@@ -1131,6 +1133,35 @@ export class Body extends Item {
 				b.matrixAutoUpdate = true;
 			}
 		}
+
+		//-------------------------
+	    //  edit compound shape
+	    //-------------------------
+
+		if(o.editShape){
+			this.editShape(o.editShape, b);
+		}
+
+	}
+
+	editShape (data, b){
+
+		if(b.meshRemplace) return
+		let i = b.children.length, shape, o, local;
+	    while(i--){
+			o = data[i];
+			shape = b.children[i]
+
+			if( o.pos || o.quat ){
+
+				if( o.pos ) shape.position.fromArray(o.pos);
+				if( o.quat ) shape.quaternion.fromArray(o.pos);
+
+			}
+
+		}
+
+
 
 	}
 

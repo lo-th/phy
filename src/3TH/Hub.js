@@ -626,6 +626,9 @@ export class Hub {
             name = list[i];
             m = document.createElement( 'div' );
             m.style.cssText = Styles.demoName;
+
+            if( name==='PHYSX' || name==='HAVOK' ) m.style.fontWeight = 600;
+
             m.id = name;
             m.textContent = Hub.reformat(name);
             
@@ -814,6 +817,7 @@ export class Hub {
                     document.querySelector("#svgLogo").setAttributeNS(null, 'stroke-width', 4 );
                 } else {
                     target.style.fontWeight = 500;
+                    if( target.id==='PHYSX' || target.id==='HAVOK' ) target.style.fontWeight = 700;
                     target.style.letterSpacing = '-0.3px'
                     target.style.wordSpacing = '-0.3px'
                 }
@@ -826,6 +830,7 @@ export class Hub {
                     document.querySelector("#svgLogo").setAttributeNS(null, 'stroke-width', 3 );
                 } else {
                     target.style.fontWeight = 400;
+                    if( target.id==='PHYSX' || target.id==='HAVOK' ) target.style.fontWeight = 600;
                     target.style.letterSpacing = 'normal'
                     target.style.wordSpacing = 'normal'
                 }

@@ -206,6 +206,8 @@ export class Body extends Item {
 
 		let bodyDesc
 
+		if( o.shapeType ) o.type = o.shapeType;
+
 		
 
 		switch( this.type ){
@@ -267,7 +269,7 @@ export class Body extends Item {
 			break;
 			default:
 
-			    if( o.shapeType ) o.type = o.shapeType;
+			    
 			    collider = root.world.createCollider( this.shape( o ), b );
 			    mapCollider.set( collider.handle, collider )
 

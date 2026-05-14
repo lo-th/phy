@@ -279,6 +279,8 @@ export class Body extends Item {
 
 		let bcs;
 
+		if( o.shapeType ) o.type = o.shapeType;
+
 		switch( o.type ){
 
 			case 'null': 
@@ -310,7 +312,7 @@ export class Body extends Item {
 
 			default:
 
-			    if( o.shapeType ) o.type = o.shapeType;
+			    
 			    let sp = this.shape( o );
 			    volume = sp.volume;
 			    bcs = new Jolt.BodyCreationSettings( sp, this.v.fromArray(o.pos || [0,0,0]), this.q.fromArray(o.quat || [0,0,0,1]), tt , move );

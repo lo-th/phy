@@ -111,9 +111,6 @@ onComplete = () => {
 
         massCenter:[0,0,0],
 
-        
-
-        
         ...option
     })
 

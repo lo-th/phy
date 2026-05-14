@@ -17,6 +17,7 @@ let t1 = 0;
 const setting = {
     debug:true,
     skeleton:false,
+    height:1.81
 
 };
 
@@ -48,6 +49,11 @@ demo = () => {
     // add static ground
     //phy.add({ type:'plane', size:[300,1,300], visible:false })
     phy.add({ type:'box', size:[300,1,300], pos:[0,-0.5,0], visible:false })
+
+    phy.add({ type:'sphere', size:[0.2], pos:[1,0.2,0], mass:1 })
+    phy.add({ type:'box', size:[0.2, 0.2, 0.2], pos:[-1,0.2,0], mass:1 })
+
+    phy.add({ type:'sphere', size:[0.3], pos:[0,0,1], mass:0 })
     
     addDecor();
     addCharacter();
@@ -75,13 +81,14 @@ const addGui = () => {
     for(let v in db){
         gui.add( option, v, {...db[v], h:18} );
     }
+
+    gui.add( setting, 'height', {min:0.6, max:3, h:18} ).onChange( (v)=>{ heroes[0].setPhysicsHeight(v) } );
     
 
     gui.add(setting, 'debug',{}).onChange( showDebug );
-    gui.add( setting, 'skeleton',{type:'bool'}).onChange( setSkeleton )
+    gui.add(setting, 'skeleton',{type:'bool'}).onChange( setSkeleton )
     gui.add( 'bool', { name:'add clone', onName:'remove clone', value:false, mode:1, radius:12 }).onChange( addClone )
-    
-    
+      
 }
 
 const setSkeleton = ( b ) => {

@@ -33,9 +33,9 @@ export class Hero extends Object3D {
 
 		this.waitRotation = false;
 
-		let floatHeight = 0.2;
+		let floatHeight = 0.3;
 		let radius = o.radius || 0.3;
-		let height = o.height || 1.8;//0.7
+		let height = o.height || 1.81;//0.7
 
 		this.realHeight = height;
 
@@ -45,12 +45,11 @@ export class Hero extends Object3D {
 
 		this.option = {
 
+			
 			debug: false,
-			capsuleHalfHeight: height*0.5,
-			capsuleRadius: radius,
+			
 			floatHeight: floatHeight,
-			characterInitDir: 0, // in rad
-			//followLight: false,
+
 			// Follow camera setups
 			camInitDis: -5,
 			camMaxDis: -7,
@@ -65,7 +64,7 @@ export class Hero extends Object3D {
 			slopJumpMult: 0.25,
 			sprintJumpMult: 1.2,
 			airDragMultiplier: 0.2,
-			slowDown: 0.9,//dragDampingC // 0.15,
+			slowDown: 0.9,//dragDamping // 0.15,
 			accDeltaTime: 8,
 			rejectVelMult: 4,
 			moveImpulsePointY: 0.5,
@@ -77,12 +76,11 @@ export class Hero extends Object3D {
 			// Floating Ray setups
 			rayOriginOffest: { x: 0, y: -height*0.5, z: 0 },
 			rayHitForgiveness: 0.1,
-			rayLength: radius + 2,
 			rayDir: { x: 0, y: -1, z: 0 },
 
-			floatingDis: radius + floatHeight, //+ 0.08,
-			springK: 4,//2,,
-			dampingC: 0.5,//0.2,,
+			//floatingDis: radius + floatHeight, //+ 0.08,
+			Spring: 4,//2,,
+			Damping: 0.5,//0.2,,
 			forceMultiply: 5, 
 			// Slope Ray setups
 			showSlopeRayOrigin: false,
@@ -94,8 +92,8 @@ export class Hero extends Object3D {
 			slopeDownExtraForce: 0.2,
 			// AutoBalance Force setups
 			autoBalance: false,
-			autoBalanceSpringK: 0.3,//1.2,//0.3,
-			autoBalanceDampingC: 0.03,//0.04,
+			autoBalanceSpring: 0.3,//1.2,//0.3,
+			autoBalanceDamping: 0.03,//0.04,
 			autoBalanceSpringOnY: 0.5, //0.7,
 			autoBalanceDampingOnY: 0.015,//0.05,
 			// Animation temporary setups
@@ -115,8 +113,8 @@ export class Hero extends Object3D {
 
 		this.optionGui = {
 			// speed
-			maxVelLimit:{ min:0, max:10, step:0.01, color:cc.speed },
-			turnVelMultiplier:{ min:0, max:1, step:0.01, color:cc.speed },
+			maxVelLimit:{ rename:'Max Vel', min:0, max:10, step:0.01, color:cc.speed },
+			turnVelMultiplier:{ rename:'Turn Vel', min:0, max:1, step:0.01, color:cc.speed },
 			turnSpeed:{ min:5, max:30, step:0.1, color:cc.speed },
 			sprintMult:{ min:1, max:5, step:0.01, color:cc.speed },
 			// jump
@@ -132,16 +130,18 @@ export class Hero extends Object3D {
 			moveImpulsePointY:{ min:0, max:3, step:0.1 },
 			camFollowMult:{ min:0, max:15, step:0.1 },
 			//ray
-			rayHitForgiveness:{ min:0, max:0.5, step:0.01, color:cc.ray },
-			rayLength:{ min:0, max:radius+10, step:0.01, color:cc.ray },
-			floatingDis:{ min:0, max:radius+2, step:0.01, color:cc.ray },
-			springK:{ min:0, max:5, step:0.01, color:cc.ray },
-			dampingC:{ min:0, max:3, step:0.01, color:cc.ray },
+
+			floatHeight:{ min:0, max:radius*3, step:0.01, color:cc.ray },
+
+			rayHitForgiveness:{ rename:'Forgiveness', min:0, max:0.5, step:0.01, color:cc.ray },
+			//rayLength:{ min:0, max:radius+10, step:0.01, color:cc.ray },
+			Spring:{ min:0, max:5, step:0.01, color:cc.ray },
+			Damping:{ min:0, max:3, step:0.01, color:cc.ray },
 			forceMultiply:{ min:0, max:10, step:0.01, color:cc.ray },
 			// balance
 			autoBalance:{ rename:'Balance', type:'bool', color:cc.balance },
-			autoBalanceSpringK:{ rename:'B spring K', min:0, max:5, step:0.01, color:cc.balance },
-			autoBalanceDampingC:{ rename:'B damp C', min:0, max:0.1, step:0.001, color:cc.balance },
+			autoBalanceSpring:{ rename:'B spring K', min:0, max:5, step:0.01, color:cc.balance },
+			autoBalanceDamping:{ rename:'B damp C', min:0, max:0.1, step:0.001, color:cc.balance },
 			autoBalanceSpringOnY:{ rename:'B spring Y', min:0, max:5, step:0.01, color:cc.balance },
 			autoBalanceDampingOnY:{ rename:'B damp Y', min:0, max:0.1, step:0.001, color:cc.balance },
 
@@ -196,6 +196,7 @@ export class Hero extends Object3D {
 			vectorZ: new Vector3(0, 0, 1),
 
 			canJump:false,
+			startJump:false,
 			isFalling:false,
 			//run:false,
 			isOnMovingObject:false,
@@ -238,10 +239,11 @@ export class Hero extends Object3D {
 
 		this.distance = 0
 		this.rayAngle = 0
+		this.maxRayDistance = 4*this.radius;
 		this.rayStart = -(this.height*0.5)+this.radius;
-		//this.rayEnd = this.rayStart - (radius + 2);//this.height;
-		this.rayEnd = this.rayStart - (4*floatHeight);//this.height;
-		this.maxRayDistance = this.height;
+		this.rayEnd = this.rayStart - this.maxRayDistance;
+		
+
 
 		this.contact = false
 
@@ -342,15 +344,22 @@ export class Hero extends Object3D {
 
 		if( this.globalRay ) this.motor.getGeometryRef( {  ...o, type:'capsule', ray:true,  }, this, this.motor.mat.get('hide') )
 
+		let h = this.height-(2*this.radius)
+	    this.startHeight = h*0.5;
+		this.shapes = [{ type:'sphere', pos:[0,-this.startHeight,0], size:[ this.radius ] }, { type:'sphere', pos:[0,this.startHeight,0], size:[ this.radius ] }]
+
 		this.phyData = {
 
 			name: this.name,
 			size: o.size,
 			pos: o.pos,
 			type: 'character',
-			shapeType: o.shapeType || 'capsule',
+
+			shapeType:'compound',
+			shapes:this.shapes,
+			//shapeType: o.shapeType || 'capsule',
 			//density: 1,//o.density || 1,
-			mass: this.mass, 
+			mass: this.mass,
 			friction: o.friction !== undefined ? o.friction : 0.0,//0.5
 			angularFactor:[0,0,0],
 			group: 16,
@@ -362,7 +371,7 @@ export class Hero extends Object3D {
 		}
 
 		// lock rotation
-		if(this.motor.engine === 'HAVOK') this.phyData['inertia'] = [0,0,0]
+		if( this.motor.engine === 'HAVOK' ) this.phyData['inertia'] = [0,0,0]
 
 		if( o.mask ) this.phyData['mask'] = o.mask;
 
@@ -401,6 +410,24 @@ export class Hero extends Object3D {
 		
 	}
 
+	setPhysicsHeight( h ) {
+
+		if(this.useFloating){
+			h -= this.option.floatHeight
+		}
+
+		let d = (h*0.5)-this.radius;
+		let dif = this.startHeight - d;
+		phy.change({ name:this.name, editShape:[{ pos:[0,-this.startHeight,0] }, { pos:[0,d-(dif),0] }] })
+
+		if( this.helper ){
+		    
+			this.helper.resize(h);
+			this.helper.position.y = -dif;
+		}
+
+	}
+
 	extraRemove(){
 		// TODO bug with delete ray ?!
 		if( this.withRay ){ 
@@ -420,7 +447,7 @@ export class Hero extends Object3D {
 
 	upRay(){
 
-		this.basedist = this.option.rayLength
+		this.basedist = this.maxRayDistance
 		this.rayData = { hit:false }
 
 		let j = this.rays.length, r
@@ -485,17 +512,20 @@ export class Hero extends Object3D {
 
     	if(!r) return
 
+    	const floatingDis = this.radius + o.floatHeight;
+
     	// jump condition only on central ray
     	const rc = r//this.rays[0].data
-		if(rc.hit && rc.distance < o.floatingDis + o.rayHitForgiveness){
-			if (v.actualSlopeAngle < o.slopeMaxAngle) {
+		if(rc.hit && rc.distance < floatingDis + o.rayHitForgiveness){
+			if(v.actualSlopeAngle < o.slopeMaxAngle) {
 				v.canJump = true;
+				v.startJump = false;
 			}
 		}else{
 			v.canJump = false;
 		}
  
-    	if( r.hit && v.canJump ){
+    	if( r.hit && !v.startJump ){ //&& v.canJump
 
     		v.standingForcePoint.set(
     			r.point[0],
@@ -513,6 +543,7 @@ export class Hero extends Object3D {
     		let type = this.hitObject.type;
     		if(hitMass === 0 && type ==='body') type = 'kinematic'
     		if(hitMass !== 0 ) this.massRatio = this.mass / hitMass;
+
     		//this.motor.log(r.body + ' ' + hitMass + ' ' + type)
 
     		if(type === 'body' || type==='kinematic'){
@@ -548,10 +579,10 @@ export class Hero extends Object3D {
     		
 
     		// slope = pente 
-    		if(this.distance<o.floatingDis + 0.5){
+    		if(this.distance<floatingDis + 0.5){
     			// Round the slope angle to 2 decimal places
     			if (v.canJump) v.slopeAngle = Math.atan( ( o.slopeRayLength- this.distance) / o.slopeRayOriginOffest ).toFixed(2)
-    				else v.slopeAngle = 0;
+    			else v.slopeAngle = 0;
     		} else {
     			v.slopeAngle = 0;
     		}
@@ -559,10 +590,11 @@ export class Hero extends Object3D {
     	} else {
     		this.resetMovingObject()
     		this.rayHit = false;
-	        this.distance = this.option.rayLength//maxRayDistance;
+	        this.distance = this.maxRayDistance;
 	        this.rayAngle = 0;
 	        v.canJump = false;	
-	        this.hitObject = null;    
+	        this.hitObject = null;  
+	        //this.motor.log('no hit')
 
 	    }
 
@@ -587,7 +619,7 @@ export class Hero extends Object3D {
 
     	if(b){
     		if(!this.helper){
-    			this.helper = new CapsuleHelper(this.radius, this.height, true, this.motor.mat.get('line'), [1,0.6,0], [0.6,0.2,0] );
+    			this.helper = new CapsuleHelper( this.radius, this.height, true, this.motor.mat.get('line'), [1,0.6,0], [0.6,0.2,0] );
     			this.helper.setDirection( this.angle ) 
 		        this.add( this.helper );
     		}
@@ -825,15 +857,15 @@ export class Hero extends Object3D {
 	    v.crossVecOnZ.copy(v.vectorY).cross(v.bodyBalanceVecOnZ);
 
 		v.dragAngForce.set(
-		    (v.crossVecOnX.x < 0 ? 1 : -1) * o.autoBalanceSpringK * (v.bodyBalanceVecOnX.angleTo(v.vectorY)) - this.angular.x * o.autoBalanceDampingC,
+		    (v.crossVecOnX.x < 0 ? 1 : -1) * o.autoBalanceSpring * (v.bodyBalanceVecOnX.angleTo(v.vectorY)) - this.angular.x * o.autoBalanceDamping,
 		    (v.crossVecOnY.y < 0 ? 1 : -1) * o.autoBalanceSpringOnY * (v.modelFacingVec.angleTo(v.bodyFacingVecOnY)) - this.angular.y * o.autoBalanceDampingOnY,
-		    (v.crossVecOnZ.z < 0 ? 1 : -1) * o.autoBalanceSpringK * (v.bodyBalanceVecOnZ.angleTo(v.vectorY)) - this.angular.z * o.autoBalanceDampingC,
+		    (v.crossVecOnZ.z < 0 ? 1 : -1) * o.autoBalanceSpring * (v.bodyBalanceVecOnZ.angleTo(v.vectorY)) - this.angular.z * o.autoBalanceDamping,
 		)
 
 		/*v.dragAngForce.set(
-		    -o.autoBalanceSpringK * r.x - this.angular.x * o.autoBalanceDampingC,
-		    -o.autoBalanceSpringK * r.y - this.angular.y * o.autoBalanceDampingOnY,
-		    -o.autoBalanceSpringK * r.z - this.angular.z * o.autoBalanceDampingC
+		    -o.autoBalanceSpring * r.x - this.angular.x * o.autoBalanceDamping,
+		    -o.autoBalanceSpring * r.y - this.angular.y * o.autoBalanceDampingOnY,
+		    -o.autoBalanceSpring * r.z - this.angular.z * o.autoBalanceDamping
 		)*/
 
 		// Apply balance torque impulse
@@ -976,6 +1008,10 @@ export class Hero extends Object3D {
 
 		if(!v.canJump) return
 
+		v.startJump = true;
+
+
+
 		
 
 		//this.v.canJump = false
@@ -1005,10 +1041,12 @@ export class Hero extends Object3D {
 		const v = this.v;
 		const o = this.option;
 
+		const floatingDis = this.radius + o.floatHeight;
+
 		if( this.rayHit ){
-			const dist = o.floatingDis - this.distance;
+			const dist = floatingDis - this.distance;
 			let amotiseur = MathTool.clamp(-dist, 0, 2);
-		    const floatingForce = ( (o.springK-amotiseur) * dist ) - ( v.currentVel.y * (o.dampingC+amotiseur) );
+		    const floatingForce = ( (o.Spring-amotiseur) * dist ) - ( v.currentVel.y * (o.Damping+amotiseur) );
 		    v.moveImpulse.y = floatingForce * this.mass;
 
 		    //this.motor.log(amotiseur)

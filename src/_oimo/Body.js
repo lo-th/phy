@@ -311,6 +311,8 @@ export class Body extends Item {
 
 		let b = new RigidBody( bodyConfig ); 
 
+		if( o.shapeType ) o.type = o.shapeType;
+
 		if(o.type === 'mesh') this.autoMesh( o );
 
 		switch( o.type ){
@@ -344,7 +346,7 @@ export class Body extends Item {
 			break;
 			default:
 			
-			    if( o.shapeType ) o.type = o.shapeType;
+			    
 			    b.addShape( this.shape( o ) );
 
 			break;
