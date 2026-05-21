@@ -51,7 +51,7 @@ export class SkeletonBody extends Object3D {
 		this.model = model//character.model.root;
 
         // HERE IS THE FIXE :)
-        this.bones = getBoneList(model)
+        this.bones = getBoneList( model )
        
         this.scaler = this.model.scale.x; 
         this.posRef = {};
@@ -72,7 +72,7 @@ export class SkeletonBody extends Object3D {
 
         this.withBreast = option.breast || false
 
-        this.matrix = model.matrixWorld
+        //this.matrix = model.matrixWorld
         this.matrixAutoUpdate = false;
 
         this.mass = mass; 
@@ -203,7 +203,6 @@ export class SkeletonBody extends Object3D {
         this.addNode()
         this.addLink()
 
-        
         if( this.useSolver ){
 
             this.solver = this.motor.add({ type:'solver', name:this.prefix+'_solver', iteration:32, fix:true, needData:false });
@@ -341,12 +340,13 @@ export class SkeletonBody extends Object3D {
                 if( n==='lCollar' && name==='lShldr'){ type = 'capsule'; size = [  r, dist*0.3 ]; translate = [dist*0.6 , 0, 0 ]; rot = [0,0,90]; link='chest'; }
                 if( n==='lShldr' && name==='lForeArm'){ type = 'capsule'; size = [  r, w ]; translate = [w * 0.5, 0, 0 ]; rot = [0,0,90]; link='lCollar'; }
                 if( n==='lForeArm' && name==='lHand'){ type = 'capsule'; size = [ r, w ]; translate = [w * 0.5, 0, 0 ]; rot = [0,0,90]; link='lShldr'; }
-                if( n==='lHand' && name==='lMid1'){ type = 'box'; size = [ dist*2, 0.09, 0.05 ]; translate = [dist, 0, 0 ]; link='lForeArm'; }
+                //if( n==='lHand' && name==='lMid1'){ type = 'box'; size = [ dist*2, 0.09, 0.05 ]; translate = [dist, 0, 0 ]; link='lForeArm'; }
+                if( n==='lHand' && name==='lMid1'){ type = 'box'; size = [ dist, 0.09, 0.05 ]; translate = [dist*0.5, 0, 0 ]; link='lForeArm'; }
 
                 if( n==='rCollar' && name==='rShldr'){ type = 'capsule'; size = [  r, dist*0.3 ]; translate = [-dist*0.6, 0, 0 ]; rot = [0,0,90]; link='chest'; }
                 if( n==='rShldr' && name==='rForeArm'){ type = 'capsule'; size = [  r, w ]; translate = [-w * 0.5, 0, 0 ]; rot = [0,0,90]; link='rCollar'; }
                 if( n==='rForeArm' && name==='rHand' ){ type = 'capsule'; size = [ r, w ]; translate = [-w * 0.5, 0, 0 ]; rot = [0,0,90]; link='rShldr'; }
-                if( n==='rHand' && name==='rMid1'){ type = 'box'; size = [ dist*2, 0.09, 0.05 ]; translate = [-dist, 0, 0 ]; link='rForeArm'; }
+                if( n==='rHand' && name==='rMid1'){ type = 'box'; size = [ dist, 0.09, 0.05 ]; translate = [-dist*0.5, 0, 0 ]; link='rForeArm'; }
 
 	            // legs
 
@@ -355,13 +355,13 @@ export class SkeletonBody extends Object3D {
 
                 if( n==='lThigh' ){ type = 'capsule'; size = [ r, w ]; rot = [90,0,0]; translate = [ 0, 0, w * 0.5  ]; link='hip'; }
                 if( n==='lShin' ){ type = 'capsule'; size = [  r, w ]; rot = [90,0,0]; translate = [ 0, 0, w * 0.5 ]; link='lThigh'; }
-                //if( n==='lFoot' ){ type = 'box'; size = [  0.1, dist*1.4, 0.06 ]; translate = [0, (dist * 0.5)-0.025, 0.06 ]; link:'lShin'; }
-                if( n==='lFoot' ){ type = 'capsule'; size = [  0.05, dist ]; translate = [0, (dist * 0.5)-0.025, 0.04 ]; link='lShin'; }
+                if( n==='lFoot' ){ type = 'box'; size = [  0.1, dist*1.4, 0.06 ]; translate = [0, (dist * 0.5)-0.025, 0.06 ]; link:'lShin'; }
+                //if( n==='lFoot' ){ type = 'capsule'; size = [  0.05, dist ]; translate = [0, (dist * 0.5)-0.025, 0.04 ]; link='lShin'; }
 
                 if( n==='rThigh' ){ type = 'capsule'; size = [  r, w ]; rot = [90,0,0]; translate = [ 0, 0, w * 0.5 ]; link='hip'; }
                 if( n==='rShin' ){ type = 'capsule'; size = [  r, w ]; rot = [90,0,0]; translate = [ 0, 0, w * 0.5 ]; link='rThigh'; }
-                //if( n==='rFoot' ){ type = 'box'; size = [  0.1, dist*1.4, 0.06 ]; translate = [0, (dist * 0.5)-0.025, 0.06 ]; link:'rShin';}
-                if( n==='rFoot' ){ type = 'capsule'; size = [  0.05, dist ]; translate = [0, (dist * 0.5)-0.025, 0.04 ]; link='rShin'; }
+                if( n==='rFoot' ){ type = 'box'; size = [  0.1, dist*1.4, 0.06 ]; translate = [0, (dist * 0.5)-0.025, 0.06 ]; link:'rShin';}
+                //if( n==='rFoot' ){ type = 'capsule'; size = [  0.05, dist ]; translate = [0, (dist * 0.5)-0.025, 0.04 ]; link='rShin'; }
 
                 // extra ear
                 r = 0.04;
@@ -527,6 +527,8 @@ export class SkeletonBody extends Object3D {
                         /*bone:parent,
                         decal:tmpMtx.clone(),
                         decalinv:tmpMtx.clone().invert(),*/
+
+                        //parent:this.model,
 
                         ...this.option
                         
@@ -917,11 +919,9 @@ export class SkeletonBody extends Object3D {
 
         }
 
-        super.updateMatrixWorld( force );
-
         if( up.length !== 0 ) this.motor.change( up, true );
 
-        
+        super.updateMatrixWorld( force );
 
 	}
 

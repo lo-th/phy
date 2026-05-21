@@ -365,13 +365,9 @@ const R = {
 
         let i = R.ui.length, next = -1, u, x, y;
 
-
-
         while( i-- ){
 
             u = R.ui[i];
-
-
 
             if( u.isCanvasOnly ) {
 
@@ -452,7 +448,8 @@ const R = {
                 
                 px += u.zone.w;
 
-                if( px >= zone.w ) { 
+                if( px >= zone.w ) {
+                //if( px+u.zone.w >= zone.w ) { 
                     py += u.h + m;
                     //if(div) py += m * 0.5
                     px = 0;
@@ -516,7 +513,7 @@ const R = {
 
     onZone: function ( o, x, y ) {
 
-        //console.log(o, x, y)
+        //
 
         if( x === undefined || y === undefined ) return false;
 
@@ -8313,15 +8310,12 @@ class Pad2D extends Proto {
         this.range = (this.max - this.min)*0.5;  
 
         this.cmode = 0;
+        this.flipY = o.flipY || false;
 
 
         //console.log(this.range)
 
         this.c[0].style.display = 'block';
-
-        
-
-
 
         this.precision = o.precision === undefined ? 2 : o.precision;
 
@@ -8526,8 +8520,10 @@ class Pad2D extends Proto {
 
         let r = 1/this.maxPos;
 
+        let m = this.flipY ? 1:-1;
+
         this.value[0] = ((p[0]*r)*this.range).toFixed( this.precision );
-        this.value[1] = ((p[1]*r)*this.range).toFixed( this.precision );
+        this.value[1] = m * ((p[1]*r)*this.range).toFixed( this.precision );
 
     }
 
@@ -8535,17 +8531,12 @@ class Pad2D extends Proto {
 
         if( v === undefined ) v = this.value;
 
-        /*if ( v[0] < this.bounds.x1 ) v[0] = this.bounds.x1;
-        if ( v[0] > this.bounds.x2 ) v[0] = this.bounds.x2;
-        if ( v[1] < this.bounds.y1 ) v[1] = this.bounds.y1;
-        if ( v[1] > this.bounds.y2 ) v[1] = this.bounds.y2;*/
+        let m = this.flipY ? 1:-1;
 
         this.value[0] = Math.min( this.max, Math.max( this.min, v[0] ) ).toFixed( this.precision ) * 1;
         this.value[1] = Math.min( this.max, Math.max( this.min, v[1] ) ).toFixed( this.precision ) * 1;
 
-        this.pos.set( ((this.value[0]/this.range)*this.maxPos)+128  , ((this.value[1]/this.range)*this.maxPos)+128 );
-
-        //console.log(this.pos)
+        this.pos.set( ((this.value[0]/this.range)*this.maxPos)+128  , m*((this.value[1]/this.range)*this.maxPos)+128 );
 
         this.update( up );
 

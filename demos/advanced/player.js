@@ -15,8 +15,8 @@ let player = null;
 let t1 = 0;
 
 const setting = {
-    debug:true,
-    skeleton:false,
+    debug:false,
+    skeleton:true,
     height:1.81
 
 };
@@ -27,8 +27,8 @@ demo = () => {
 
     phy.view({
         phi:12, theta:0, distance:5, x:0, y:3, z:15, fov:55, 
-        envmap:'night', exposure:0.25, fog:true, fogExp:0.05,
-        reflect:0, groundColor:0x505050, background:0x151414,
+        envmap:'swiss', exposure:0.5, fog:true, fogExp:0.05, envIntensity:4,
+        reflect:0, groundColor:0x505050, //background:0x151414,
     })
 
     //phy.lightIntensity( 6, 0, 0.7 );
@@ -53,10 +53,13 @@ demo = () => {
     phy.add({ type:'sphere', size:[0.2], pos:[1,0.2,0], mass:1 })
     phy.add({ type:'box', size:[0.2, 0.2, 0.2], pos:[-1,0.2,0], mass:1 })
 
-    phy.add({ type:'sphere', size:[0.3], pos:[0,0,1], mass:0 })
+    //phy.add({ type:'sphere', size:[0.3], pos:[0,0,1], mass:0 })
+
+    
     
     addDecor();
     addCharacter();
+    addPool()
     
 }
 
@@ -229,6 +232,21 @@ const addDecor = () => {
     addFloatingPlatform();
 
     phy.setPostUpdate( update );
+
+}
+
+const addPool = () => {
+
+    // add box container without up face 
+    phy.add({ type:'container', material:'concrete', size:[6,0.6,6], pos:[8.5,0.29,0], wall:0.2, friction:0.2, restitution:0.2, intern:true, remplace:false, face:{up:0} });//material:'debug',
+
+    let i = 1000, s, p;
+    while(i--){
+        s = math.rand(0.08, 0.12)
+        p = [8.5+ math.rand(-2.8, 2.8), s+math.rand(0, 2), math.rand(-2.8, 2.8)]
+        phy.add({ type:'sphere', size:[s], pos:p, mass:s*2, group:64, mask:1|2|64, instance:'ball', randomColor:true, friction:0.5, restitution:0.5 })
+    }
+
 
 }
 

@@ -11,6 +11,13 @@ export const PI270 = (PI*0.5)*3;
 
 export const inv255 = 0.003921569;
 export const GOLD = 1.618033;
+
+const Colors = [
+"#C6454D", "#AE383E", "#AE383E", "#DA6266", "#E87857", "#D76344", "#F6D164", "#EBBE54", "#E2D05D", "#DAC553",
+"#ABD272", "#97BF5C", "#66C877", "#5DB66C", "#73CCAF", "#63B89C", "#AACDCB", "#89AFB0", "#72BDE5", "#61ABD7", 
+"#6F9BE4", "#5D87D8", "#A993E8", "#937CD8", "#7D68B4", "#6751A3", "#DE8DBE", "#C976AD", "#B5A388", "#A58F6C",
+"#8C8372", "#797163", "#F6F7FA", "#E7E9EE", "#CDD0D8", "#ACB2BD", "#676D78", "#454A53", "#3C3C3E", "#323234",
+]
 const copySign = (x, y) => (Math.sign(x) === Math.sign(y) ? x : -x);
 
 
@@ -100,12 +107,11 @@ const M = {
         return min + (f - fmin) * (max - min) / (fmax - fmin);
     },
 
-    
     damp: ( x, y, lambda, dt ) => ( M.lerp( x, y, 1 - Math.exp( - lambda * dt ) ) ),
 
     nearAngle: ( s1, s2, deg = false ) => ( s2 + Math.atan2(Math.sin(s1-s2), Math.cos(s1-s2)) * (deg ? todeg : 1) ),
 
-    unwrapDeg: ( r ) => ( r - (Math.floor((r + 180)/360))*360 ), 
+    unwrapDeg: ( r ) => ( r - (Math.floor((r + 180)/360))*360 ),
     //unwrapRad: ( r ) => (r - (Math.floor((r + Math.PI)/(2*Math.PI)))*2*Math.PI),
     unwrapRad: ( r ) => ( Math.atan2(Math.sin(r), Math.cos(r)) ),
 
@@ -143,6 +149,27 @@ const M = {
         return Math.sqrt( dx * dx + dy * dy + dz * dz );
 
     },*/
+
+
+    //-----------------------
+    //  COLOR
+    //-----------------------
+
+    u255: function( c, i ){
+        return parseInt(c.substring(i, i + 2), 16) / 255
+    },
+
+    unpack: function( c ){
+
+        return [ M.u255(c, 1), M.u255(c, 3), M.u255(c, 5) ];
+        //else if (c.length == 4) return [ T.u16(c,1), T.u16(c,2), T.u16(c,3) ];
+
+    },
+
+    randomColor: () => {
+        let n = M.randInt(0, Colors.length-1);
+        return M.unpack( Colors[n] );
+    },
 
 
     //-----------------------

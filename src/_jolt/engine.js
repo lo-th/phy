@@ -5,7 +5,6 @@ import { Body } from './Body.js';
 import { Joint } from './Joint.js';
 import { Ray } from './Ray.js';
 import { Contact } from './Contact.js';
-//import { Character } from './Character.js';
 import { Terrain } from './Terrain.js';
 
 import initJolt from '../libs_physics/X_Jolt.js';
@@ -191,6 +190,10 @@ export class engine {
 
 		// Initialize Jolt
 		let settings = new Jolt.JoltSettings();
+		settings.mMaxBodies = 4096; // Use your config or default to 4096
+	    settings.mNumBodyMutexes = 0; // 0 means single-threaded (standard for Web Workers)
+	    settings.mPositionThreshold = 0.001; // Prevents jittering on small bodies
+	    settings.mRotationThreshold = 0.001;
 		settings.mObjectLayerPairFilter = objectFilter;
 		settings.mBroadPhaseLayerInterface = bpInterface;
 		settings.mObjectVsBroadPhaseLayerFilter = new Jolt.ObjectVsBroadPhaseLayerFilterTable(settings.mBroadPhaseLayerInterface, 2, settings.mObjectLayerPairFilter, 2);
@@ -199,26 +202,46 @@ export class engine {
 		//root.settings.mMaxContactConstraints = Max.body;//10240
 
 
-		root.world = new Jolt.JoltInterface( settings );
-		Jolt.destroy(settings);
+		
 
-		root.physicsSystem = root.world.GetPhysicsSystem();
-		root.bodyInterface = root.physicsSystem.GetBodyInterface();
+		
 		//root.broadPhase = root.physicsSystem.GetBroadPhaseQuery();
 		//root.narrowPhase = root.physicsSystem.GetNarrowPhaseQuery()
 
-		root.physicsSystem.SetGravity( root.gravity )
-		// missing
-		//root.physicsSystem.SetCombineRestitution() // Default method is max(restitution1, restitution1)
-		// should be min
-
-		root.physicsSystem.OptimizeBroadPhase() // ?
+		
 
 
 		// for collision group ??
 		// https://jrouwe.github.io/JoltPhysics/class_group_filter_table.html
 		// Constructs the table with inNumSubGroups subgroups, initially all collision pairs are enabled except when the sub group ID is the same
-		root.groupFilter = new Jolt.GroupFilterTable( 2 );
+		
+		root.groupFilter = new Jolt.GroupFilterTable(2);
+
+
+	    // Disable Static vs Static (Huge performance boost for static scenes)
+	    /*root.groupFilter.Set(0, 0, false); 
+	    
+	    // Enable Dynamic vs Static
+	    root.groupFilter.Set(0, 1, true);
+	    root.groupFilter.Set(1, 0, true);
+	    
+	    // Enable Dynamic vs Dynamic
+	    root.groupFilter.Set(1, 1, true);*/
+
+	    root.world = new Jolt.JoltInterface( settings );
+		Jolt.destroy(settings);
+
+		root.physicsSystem = root.world.GetPhysicsSystem();
+		root.bodyInterface = root.physicsSystem.GetBodyInterface();
+
+		root.physicsSystem.SetGravity( root.gravity )
+
+		// Apply Collision Groups to the system
+	    // This ensures the system actually uses the rules we defined above
+	    //root.physicsSystem.SetGroupFilter(root.groupFilter);
+
+	    // Optimize the Broadphase (Build the spatial index)
+		root.physicsSystem.OptimizeBroadPhase() // ?
 
 
 		// TODO find a way to set collision or not 

@@ -21,6 +21,9 @@ export class Hero extends Object3D {
 
 		super()
 
+		this._timeScale = 1
+		this.matrixAutoUpdate = false;
+
 		this.motor = motor;
 		this.utils = this.motor.utils;
 
@@ -32,6 +35,9 @@ export class Hero extends Object3D {
 		this.useFloating = o.floating || false;
 
 		this.waitRotation = false;
+
+		this.Oanim = ''
+		this.Canim = ''
 
 		let floatHeight = 0.3;
 		let radius = o.radius || 0.3;
@@ -45,7 +51,6 @@ export class Hero extends Object3D {
 
 		this.option = {
 
-			
 			debug: false,
 			
 			floatHeight: floatHeight,
@@ -55,10 +60,12 @@ export class Hero extends Object3D {
 			camMaxDis: -7,
 			camMinDis: -0.7,
 			// Base control setups
-			maxVelLimit: 5,//2.5,
+			maxVelLimit: 1,//2.235,//5,//2.5,
 			turnVelMultiplier: 0.2,
 			turnSpeed: 15,
-			sprintMult: 2,
+			sprintMult: 2.94,//2
+			crouchMult: 0.442,//2
+			crawlMult: 0.506,//2
 			jumpVel: 5,//4,
 			jumpForceToGroundMult: 5,
 			slopJumpMult: 0.25,
@@ -113,10 +120,10 @@ export class Hero extends Object3D {
 
 		this.optionGui = {
 			// speed
-			maxVelLimit:{ rename:'Max Vel', min:0, max:10, step:0.01, color:cc.speed },
+			maxVelLimit:{ rename:'Max Vel', min:0, max:2, step:0.01, color:cc.speed },
 			turnVelMultiplier:{ rename:'Turn Vel', min:0, max:1, step:0.01, color:cc.speed },
 			turnSpeed:{ min:5, max:30, step:0.1, color:cc.speed },
-			sprintMult:{ min:1, max:5, step:0.01, color:cc.speed },
+			//sprintMult:{ min:1, max:5, step:0.01, color:cc.speed },
 			// jump
 			jumpVel:{ min:0, max:10, step:0.01, color:cc.jump },
 			jumpForceToGroundMult:{ min:0, max:80, step:0.1, color:cc.jump },
@@ -139,11 +146,11 @@ export class Hero extends Object3D {
 			Damping:{ min:0, max:3, step:0.01, color:cc.ray },
 			forceMultiply:{ min:0, max:10, step:0.01, color:cc.ray },
 			// balance
-			autoBalance:{ rename:'Balance', type:'bool', color:cc.balance },
+			/*autoBalance:{ rename:'Balance', type:'bool', color:cc.balance },
 			autoBalanceSpring:{ rename:'B spring K', min:0, max:5, step:0.01, color:cc.balance },
 			autoBalanceDamping:{ rename:'B damp C', min:0, max:0.1, step:0.001, color:cc.balance },
 			autoBalanceSpringOnY:{ rename:'B spring Y', min:0, max:5, step:0.01, color:cc.balance },
-			autoBalanceDampingOnY:{ rename:'B damp Y', min:0, max:0.1, step:0.001, color:cc.balance },
+			autoBalanceDampingOnY:{ rename:'B damp Y', min:0, max:0.1, step:0.001, color:cc.balance },**/
 
 		}
 
@@ -196,6 +203,8 @@ export class Hero extends Object3D {
 			vectorZ: new Vector3(0, 0, 1),
 
 			canJump:false,
+			inJump:false,
+			endJump:false,
 			startJump:false,
 			isFalling:false,
 			//run:false,
@@ -286,7 +295,7 @@ export class Hero extends Object3D {
 		this.oy = 0
 		this.vy = 0;
 
-		this.timeScale = 1.25;
+		//this.timeScale = 1.25;
 
 		this.angle = ( o.angle || 0 ) * torad
 
@@ -309,6 +318,18 @@ export class Hero extends Object3D {
 
 		this.initPhysic( o );
 
+	}
+
+	set timeScale( v ){
+
+		this._timeScale = v;
+		this.option.maxVelLimit = 1 * this._timeScale
+		if(this.model) this.model.animator.timeScale = this._timeScale 
+
+	}
+
+	get timeScale(){
+		return this._timeScale
 	}
 
 	setHeight( H ) {
@@ -363,7 +384,7 @@ export class Hero extends Object3D {
 			friction: o.friction !== undefined ? o.friction : 0.0,//0.5
 			angularFactor:[0,0,0],
 			group: 16,
-			mask: 1|2,
+			mask: 1|2|16,
 			regular:true,
 			getVelocity:true,
 
@@ -402,9 +423,15 @@ export class Hero extends Object3D {
         	}
         }
 
+
+
         // add skinning character model
         if( o.gender ) this.addModel( o );
         else this.showHelper( true );
+
+        
+
+
 
         this.enable = true;
 		
@@ -610,7 +637,6 @@ export class Hero extends Object3D {
     hit( d ){
 
     	this.contact = d;
-
     	//console.log(d)
 
     }
@@ -642,7 +668,8 @@ export class Hero extends Object3D {
     	if( this.skeletonBody ) return
     	//this.skeletonBody = new SkeletonBody( this )
         this.skeletonBody = new SkeletonBody( this.motor, this.name, this.model.root, this.model.skeleton.bones )
-    	this.motor.scene.add( this.skeletonBody )
+    	//this.motor.scene.add( this.skeletonBody )
+    	this.add( this.skeletonBody )
     	this.skeletonBody.isVisible( visible )
 
     }
@@ -657,7 +684,7 @@ export class Hero extends Object3D {
 
     	if( this.skeletonBody ) this.skeletonBody.isVisible(v)
     	//if( this.model ) this.model.setMaterial( { wireframe: v, visible:!v })
-    	if( this.model && this.skeletonBody ) this.model.setMaterial( { transparent:v, opacity:v?0.8:1.0 }, !v )
+    	if( this.model && this.skeletonBody ) this.model.setMaterial( { transparent:v, opacity:v?0.8:1.0, alphaTest:0.02 }, !v )
     	
     	this.showHelper( v );
         
@@ -673,11 +700,11 @@ export class Hero extends Object3D {
 
     }
 
-	addModel( o ){
+	addModel( o ) {
 
 		this.model = new Avatar({ 
 			type:o.gender, 
-			anim: o.anim !== undefined ? o.anim : 'idle', 
+			anim: o.anim !== undefined ? o.anim : 'Idle', 
 			compact:true, 
 			material:!o.noMat, 
 			morph:o.morph || false, 
@@ -690,11 +717,15 @@ export class Hero extends Object3D {
 
 		this.add( this.model );
 		///this.model.rotation.order = 'YXZ'
-		let ypos = -(this.height*0.5)
+		let ypos = -(this.height*0.5)+0.05
 		if( this.useFloating ) ypos -= this.option.floatHeight
 		this.model.setPosition(0, this.model.decalY + ypos, 0);
 		this.model.rotation.y = this.angle;
 		this.model.updateMatrix();
+
+		this.timeScale = 2
+
+		if(this.isPlayer) this.addSkeleton();
 
 	}
 
@@ -707,6 +738,8 @@ export class Hero extends Object3D {
 
 		if( this.withRay ) this.upRay()
 
+		//if(this.isPlayer) this.move()
+
 		//if(this.skeletonBody) this.skeletonBody.updateMatrix()
 
 		//if(this.isPlayer) this.move()
@@ -714,6 +747,8 @@ export class Hero extends Object3D {
 	}
 
 	step ( AR, n ) {
+
+
 
 		if( this.withRay ){ 
 			this.selfRay()//this.goodRay())
@@ -734,6 +769,8 @@ export class Hero extends Object3D {
 
 		this.v.currentPos.copy(this.position);
 	    this.v.currentVel.copy(this.velocity);
+
+	    if(this.isPlayer) this.move()
 		
 
 		
@@ -755,19 +792,27 @@ export class Hero extends Object3D {
 
 	    }
 
-	    if(this.isPlayer) this.move()
+	    
+
 	    this.updateMatrix();
 
 	    if( this.model ) {
-			this.model.update( this.motor.delta );
+	    	this.model.updateMatrix()
+	    	if(this.skeletonBody) this.skeletonBody.updateMatrixWorld()
+		    this.model.update( this.motor.delta );
+			//this.model.update( this.motor.getDelta() );
 			this.getDistanceToCamera()
-			this.model.updateMatrix()
+			
 		}
+
+
+		//if(this.isPlayer) this.move()
+
+		
 	    
 
-		//if(this.skeletonBody) this.skeletonBody.updateMatrix()
+		//
 		
-
 	}
 
 	getDistanceToCamera () {
@@ -931,14 +976,20 @@ export class Hero extends Object3D {
 	    v.wantToMoveVel.set( v.movingDirection.x * wantToMoveMeg, 0, v.movingDirection.z * wantToMoveMeg );
 	    v.rejectVel.copy(v.currentVel).sub(v.wantToMoveVel);
 
+
+	    let moveMultyplier = this.running ? o.sprintMult : 1
+	    moveMultyplier = this.crouch ? o.crouchMult : moveMultyplier
+
 	    // Calculate required accelaration and force: a = Δv/Δt
 	    // If it's on a moving/rotating platform, apply platform velocity to Δv accordingly
 	    // Also, apply reject velocity when character is moving opposite of it's moving direction
+
+
 	    
 	    v.moveAccNeeded.set(
-	        (v.movingDirection.x * (o.maxVelLimit * (this.running ? o.sprintMult : 1) + v.movingObjectVelocityInCharacterDir.x) - (v.currentVel.x - v.movingObjectVelocity.x * Math.sin(angleBetweenCharacterDirAndObjectDir) + v.rejectVel.x * (v.isOnMovingObject ? 0 : o.rejectVelMult))) / o.accDeltaTime,
+	        (v.movingDirection.x * (o.maxVelLimit * moveMultyplier + v.movingObjectVelocityInCharacterDir.x) - (v.currentVel.x - v.movingObjectVelocity.x * Math.sin(angleBetweenCharacterDirAndObjectDir) + v.rejectVel.x * (v.isOnMovingObject ? 0 : o.rejectVelMult))) / o.accDeltaTime,
 	        0,
-	        (v.movingDirection.z * (o.maxVelLimit * (this.running ? o.sprintMult : 1) + v.movingObjectVelocityInCharacterDir.z) - (v.currentVel.z - v.movingObjectVelocity.z * Math.sin(angleBetweenCharacterDirAndObjectDir) + v.rejectVel.z * (v.isOnMovingObject ? 0 : o.rejectVelMult))) / o.accDeltaTime
+	        (v.movingDirection.z * (o.maxVelLimit * moveMultyplier + v.movingObjectVelocityInCharacterDir.z) - (v.currentVel.z - v.movingObjectVelocity.z * Math.sin(angleBetweenCharacterDirAndObjectDir) + v.rejectVel.z * (v.isOnMovingObject ? 0 : o.rejectVelMult))) / o.accDeltaTime
 	    );
 
 	    // Wanted to move force function: F = ma
@@ -959,7 +1010,7 @@ export class Hero extends Object3D {
 	    		v.slopeAngle === null || v.slopeAngle == 0 // if it's on a slope, apply extra up/down force to the body
 	            ? 0 : v.movingDirection.y * o.turnVelMultiplier *
 	            (v.movingDirection.y > 0 // check it is on slope up or slope down
-	            ? o.slopeUpExtraForce : o.slopeDownExtraForce) * (this.running ? o.sprintMult : 1),
+	            ? o.slopeUpExtraForce : o.slopeDownExtraForce) * moveMultyplier,
 	            moveForceNeeded.z * o.turnVelMultiplier * (v.canJump ? 1 : o.airDragMultiplier) // if it's in the air, give it less control
 	        );
 	    }
@@ -969,7 +1020,7 @@ export class Hero extends Object3D {
 	        	moveForceNeeded.x * (v.canJump ? 1 : o.airDragMultiplier),
 	        	v.slopeAngle === null || v.slopeAngle == 0 // if it's on a slope, apply extra up/down force to the body
 	        	? 0 : v.movingDirection.y * (v.movingDirection.y > 0 // check it is on slope up or slope down
-	            ? o.slopeUpExtraForce : o.slopeDownExtraForce) * (this.running ? o.sprintMult : 1),
+	            ? o.slopeUpExtraForce : o.slopeDownExtraForce) * moveMultyplier,
 	            moveForceNeeded.z * (v.canJump ? 1 : o.airDragMultiplier)
 	        );
 	    }
@@ -1009,10 +1060,8 @@ export class Hero extends Object3D {
 		if(!v.canJump) return
 
 		v.startJump = true;
-
-
-
-		
+	    v.inJump = true;
+	    this.jump = true;
 
 		//this.v.canJump = false
 
@@ -1049,7 +1098,7 @@ export class Hero extends Object3D {
 		    const floatingForce = ( (o.Spring-amotiseur) * dist ) - ( v.currentVel.y * (o.Damping+amotiseur) );
 		    v.moveImpulse.y = floatingForce * this.mass;
 
-		    //this.motor.log(amotiseur)
+		    //this.motor.log(v.moveImpulse.y)
 
 		    // Apply opposite force to standing object
 		    v.characterMassForce.set(0, floatingForce > 0 ? -floatingForce : 0, 0);
@@ -1072,7 +1121,8 @@ export class Hero extends Object3D {
 		const v = this.v;
 		const o = this.option;
 
-		let autowake = false
+		let autowake = false;
+
 		/**
 	    * Apply drag force if it's not moving
 	    */
@@ -1097,7 +1147,6 @@ export class Hero extends Object3D {
 	    }
 
 	    v.dragForce.multiplyScalar( this.mass );
-
 	    v.moveImpulse.add(v.dragForce)
 
 	    /**
@@ -1167,11 +1216,16 @@ export class Hero extends Object3D {
 
 	move () {
 
-		const v = this.v;
 
+
+
+		const v = this.v;
 		const key = this.motor.getKey();
 		const azimut = this.motor.getAzimut();
-		const delta = this.motor.getDelta()//delta;
+		//const delta = this.motor.getDelta()//delta;
+		const delta = this.motor.delta;
+
+		
 		
 		// 1°/ find the good animation
 
@@ -1187,34 +1241,34 @@ export class Hero extends Object3D {
 	    if( ( anim==='walk' || anim==='run') && this.crouch ) anim = 'crouch';
 	    if( key[6] === 1 ) anim = 'fight';
 
-	    if( !this.jump && key[4] ){ this.vy = 22; this.jump = true; } // SPACE KEY
-
-	    if( this.jump ){
-	        this.vy-=1;
-	        if(this.vy <= 0 ){ 
-	            this.vy = 0; 
-	            if( this.floor ) this.jump = false;
-
-	            //if( MathTool.nearEquals(this.position.y, this.oy, 0.1)) this.jump = false;
-	            //this.position.y === this.oy 
-	        }
-	    }
+	    
 
 	    let mAnim = 'idle'
 	    switch( anim ){
-	    	case 'idle': mAnim = this.crouch ? 'Crouch Idle' : 'idle'; break;
-	    	case 'walk': mAnim = 'Jog Forward'; break;
-	    	case 'run': mAnim = 'Standard Run'; break;
-	    	case 'crouch': mAnim = 'Crouch Walk'; break;
+	    	case 'idle': mAnim = this.crouch ? 'Crouch_Idle' : 'Idle'; break;
+	    	case 'walk': mAnim = 'Walk_F'; break;//'Jog Forward'
+	    	case 'run': mAnim = 'Jog_F'; break;//'Standard Run'
+	    	case 'crouch': mAnim = 'Crouch_F'; break;//'Crouch Walk'
 	    	case 'fight': mAnim = 'Attack'; break;
 	    }
+
+	    if(mAnim === 'Idle'){ 
+	    	if(v.endJump ) mAnim = 'Jump_Land';
+	    } else {
+	    	v.endJump = false
+	    }
+
+
+	     
+
+	    const isNewAnim = this.Oanim !== mAnim;
+	    this.Oanim = mAnim;
 
 	    this.moving = key[0] !== 0 || key[1] !== 0;
 	    this.running = key[7] !== 0;
 	    this.wantJump = key[4] !== 0;
 
 	    let angle = MathTool.unwrapRad( ( Math.atan2(key[0], key[1])) + azimut );
-
 
 	    // 2°/ physic control
 
@@ -1243,6 +1297,19 @@ export class Hero extends Object3D {
 
 	    } else { // old method
 
+	    	if( !this.jump && key[4] ){ this.vy = 22; this.jump = true; } // SPACE KEY
+
+		    if( this.jump ){
+		        this.vy-=1;
+		        if(this.vy <= 0 ){ 
+		            this.vy = 0; 
+		            if( this.floor ) this.jump = false;
+
+		            //if( MathTool.nearEquals(this.position.y, this.oy, 0.1)) this.jump = false;
+		            //this.position.y === this.oy 
+		        }
+		    }
+
 	    	this.tmpAcc += delta*4//MathTool.lerp( tmpAcc, 1, delta/10 )
 	        //this.tmpAcc += MathTool.lerp( this.tmpAcc, 1, delta/10 )
 	        //this.tmpAcc = MathTool.clamp( this.tmpAcc, 1, speed )
@@ -1254,14 +1321,14 @@ export class Hero extends Object3D {
 	        //this.rs += key[0] //* this.tmpAcc 
 	        //this.ts += key[1] //* this.tmpAcc
 			if( this.moving ){
-		        this.rs = key[0] * speed; 
+		        this.rs = key[0] * speed;
 		        this.ts = key[1] * speed;
 		    }
 
-		    if( key[0] === 0 && key[1] === 0 ) this.tmpAcc = 0//*= 0.9
+		    if( key[0] === 0 && key[1] === 0 ) this.tmpAcc = 0;//*= 0.9
 		    if( this.tmpAcc>1 ) this.tmpAcc = 1;
 
-		    this.ease.set( this.rs, 0, this.ts ).multiplyScalar( this.tmpAcc * m )
+		    this.ease.set( this.rs, 0, this.ts ).multiplyScalar( this.tmpAcc * m );
 
 		    //let angle = math.unwrapRad( (Math.atan2(this.ease.z, this.ease.x)) + azimut );
 		    //let angle = MathTool.unwrapRad( ( Math.atan2(key[0], key[1])) + azimut );
@@ -1269,7 +1336,7 @@ export class Hero extends Object3D {
 
 		    let acc = this.ease.length(); //((Math.abs(this.ease.x) + Math.abs(this.ease.z)))
 
-	        if( this.static ) this.ease.x = this.ease.z = 0
+	        if( this.static ) this.ease.x = this.ease.z = 0;
 
 		    let g = this.vy - 9.81;
 		    this.ease.y = g;
@@ -1289,7 +1356,6 @@ export class Hero extends Object3D {
 	    }
 
 
-
 		if( this.helper ){ 
 
 			this.helper.updateMatrix()
@@ -1306,31 +1372,24 @@ export class Hero extends Object3D {
         if( !this.model ) return
 
 
-        //const distanceToCamera = this.getDistanceToCamera();
-
-        //if()
-
-        //this.model.setTimescale(this.tmpAcc)
-
-        //this.model.setWeight( 'idle', 1-jj )
-	    /*this.model.setWeight( 'Jog Forward', -this.ease.x )
-	    this.model.setWeight( 'Jog Backward', this.ease.x )
-	    this.model.setWeight( 'Jog Strafe Left',-this.ease.z )
-	    this.model.setWeight( 'Jog Strafe Right', this.ease.z )*/
-	    
-	   
-
-	    //if(anim!=='idle') this.model.syncro('Jog Forward')
-
-	    //console.log(tmpAcc)
-
         
 	    if( this.jump ){
-	    	this.model.play( 'Jump', 0.5 )
+	    	this.model.play( 'Jump_Start', 0.5 )
+	    	this.jump = false
 	    	//this.model.setTimescale( 1 )
-	    }else {
-
-	    	this.model.play( mAnim, 0.75 )
+	    } else {
+	    	if(!v.inJump){ 
+	    		if( isNewAnim ){ 
+	    			this.model.play( mAnim, 0.5 )
+	    		}
+	    	} else {
+	    		if(this.rayHit){
+	    			this.v.inJump = false;
+	    			this.v.endJump = true;
+	    			this.Oanim = 'Jump_Land';
+	    			this.model.play( 'Jump_Land', 0.2, this.endJump.bind(this) )
+	    		} 
+	    	}
 	    	//this.model.setTimescale( this.timeScale )
 	    	//this.model.setTimescale( 1 )
 	    }
@@ -1361,6 +1420,12 @@ export class Hero extends Object3D {
 	    }
 
 	    //if( this.helper ) this.helper.setDirection( this.model.rotation.y )
+
+	}
+
+	endJump() {
+		
+		this.v.endJump = false;
 
 	}
 

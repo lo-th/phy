@@ -704,6 +704,8 @@ export class Body extends Item {
 		b.velocity = new Vector3();
 		b.angular = new Vector3();
 
+		b.isBone = o.isBone || false
+
 		b.sleep = o.sleep || false
 		b.defMat = false;
 
@@ -751,6 +753,13 @@ export class Body extends Item {
 			
 			b.idx = b.instance.count;
 			//b.unicId = MathUtils.generateUUID();
+
+			if(o.randomColor){
+				o.color = math.randomColor()
+				//o.color = [ math.rand(0, 1.0), math.rand(0, 1.0), math.rand(0, 1.0) ]
+				b.defMat = false;
+			}
+			
 
 			//b.mass = o.mass || 0
 

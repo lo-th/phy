@@ -43,7 +43,7 @@ let unselectable = '-o-user-select:none; -ms-user-select:none; -khtml-user-selec
 
 let menu, pin, title, engine, demo, dev, downMenu, innerMenu, zoning, guiButton, overpad, prevOver, tmpLeft = 0, contentWidth= 0;
 let corner
-
+let bottom
 //let mousePos = [0,0];
 //let mouseLast = [0,0];
 let overTime = null
@@ -185,6 +185,10 @@ export class Hub {
         corner.style.cssText = unselectable + 'position:absolute; margin:0; padding:0; top:0px; left:0px; width:1px; height:1px; display:block; background:none;'// font-family: Mulish,sans-serif;
         content.appendChild( corner );
 
+        bottom = document.createElement( 'div' );
+        bottom.style.cssText = 'position:absolute; margin:0; padding:0; bottom:0px; left:0px; width:1px; height:1px; display:block;  pointer-events:auto;'// font-family: Mulish,sans-serif;
+        content.appendChild( bottom );
+
         
         txt = document.createElement( 'div' );
         txt.style.cssText = " color: #fff; font-size:16px; text-align:center; position:absolute; margin:0; padding:0; top:50%; left:50%; width:512px; height:20px; margin-left:-256px; margin-top:-38px; display:block; pointer-events:none; text-shadow: 2px 2px #000000;";
@@ -199,6 +203,10 @@ export class Hub {
         isDisplay = true
         isReady = true
 
+    }
+
+    static getBottom() {
+        return bottom;
     }
 
     static getCorner() {

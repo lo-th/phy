@@ -635,8 +635,8 @@ export class Engine {
 
 		this.supportModuleWorker = () => {
 
-			 let supports = false;
-			 const tester = {
+			let supports = false;
+			const tester = {
 			      get type() { supports = true; }
 			};
 			try {
@@ -1014,11 +1014,11 @@ export class Engine {
 
 			postUpdate( delta );
 
-
+			this.changes( this.flow.tmp );
 			items.character.prestep()
 
 			// update this.object for this side !
-			this.changes( this.flow.tmp );
+			
 
 			// finally post flow change to physx
 			if( isBuffer ) this.post( { m:'poststep', flow:this.flow, Ar:_Ar }, [ _Ar.buffer ] );
@@ -1318,14 +1318,19 @@ export class Engine {
 					items.body.set( o, b );
 				}
 
-				if( !b.isKinematic ){
-				//if( this.engine !== 'HAVOK' ){
+				if(b.isBone) items.body.set( o, b );
+				else{
+					if( !b.isKinematic ){
+					//if( this.engine !== 'HAVOK' ){
 
 
-					//if( b.isKinematic ) items.body.set( o, b );
-		            if( !b.actif || b.sleep ) items.body.set( o, b );
-		            if( o.sleep ) items.body.set( o, b );
-		        } 
+						//if( b.isKinematic ) items.body.set( o, b );
+			            if( !b.actif || b.sleep ) items.body.set( o, b );
+			            if( o.sleep ) items.body.set( o, b );
+			        } 
+				}
+
+				
 				break;
 
 			}

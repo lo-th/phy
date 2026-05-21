@@ -440,6 +440,7 @@ Motor.getGround = Main.getGround;
 
 Motor.extraCode = Main.extraCode;
 Motor.debugMode = Main.debugMode;
+Motor.hub = Hub;
 Motor.gui = Gui.extraUi;
 
 Motor.setCamera = Main.setCamera;

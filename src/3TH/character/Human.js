@@ -34,7 +34,7 @@ export const Human = {
     decalY:-0.005,//-0.035,
 
 	isBreath:false,
-	isEyeMove:false,
+	isEyeMove:true,
 	
     haveHair:true,
     haveBlink:true,
@@ -340,7 +340,9 @@ export const Human = {
         },
         looker:{
             type:'Basic',
-            visible:false
+            transparent:true,
+            opacity:0.1,
+            //visible:false
             //color:0x000000,
             //wireframe: true,
         }
@@ -510,7 +512,7 @@ export const Human = {
                     node.material = Pool.getMaterial( 'looker' );
                     node.receiveShadow = false;
                     node.castShadow = false;
-                    node.visible =true;// Human.haveHair ? !startHigh : false;
+                    node.visible = false;// Human.haveHair ? !startHigh : false;
                     break;
 
                 }

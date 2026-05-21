@@ -8,7 +8,9 @@ const option = {
     faceMorph:[0,0],
     realSize:1.0,
     debug:false,
-    Skeleton:false,
+    Skeleton:true,
+    eyeLook:[0,0],
+    headLook:[0,0.15],
 }
 
 demo = () => {
@@ -199,11 +201,12 @@ const Character = ( num = 1 ) => {
         phy.follow( 'c_0', { direct:true, simple:true, distance:3, phi:10, theta:0, decal:[0, 0, 0], fov:50, zoom:1.0, zoomUp:true })
 
         speech = phy.addSpeech( text );
-        speech.initInterface(gender[g]);
+      
+        speech.initInterface(gender[g], phy.hub.getBottom());
         speech.dispatch = (seq, time)=>{ player.model.speak( seq, time); } 
 
         speech.content.style.left = '40px'
-        speech.content.style.bottom = '264px'
+        speech.content.style.bottom = '386px'
     } else {
 
         phy.follow( 'c_0', { direct:true, simple:true, zoomUp:true, ...oldControl })
@@ -226,6 +229,22 @@ const addGui = () => {
     gui.add('button',{name:'Random', h:30, radius:4}).onChange( ()=>{Character()} )
     gui.add( option, 'Debug',{type:'bool'}).onChange( showDebug )
     gui.add( option, 'Skeleton',{type:'bool'}).onChange( setSkeleton )
+
+    gui.add( option, 'eyeLook',{ rename:'eye look', type:'pad', name:'type', min:-1, max:1, w:100, mode:1 }).onChange( bodyLook );
+    gui.add( option, 'headLook',{ rename:'head look',type:'pad', name:'type', min:-1, max:1, w:100, mode:1 }).onChange( bodyLook );
+
+    /*gui.add( option, 'lookX',{ rename:'LX', min:-1.0, max:1.0, precision:2, mode:2, h:16}).onChange( bodyLook )
+    gui.add( option, 'lookY',{ rename:'LY', min:-1.0, max:1.0, precision:2, mode:2, h:16}).onChange( bodyLook )
+    gui.add( option, 'lookNX',{ rename:'NX', min:-1.0, max:1.0, precision:2, mode:2, h:16}).onChange( bodyLook )
+    gui.add( option, 'lookNY',{ rename:'NY', min:-1.0, max:1.0, precision:2, mode:2, h:16}).onChange( bodyLook )*/
+
+}
+
+const bodyLook = ( v ) => {
+
+    if(!player.model) return
+    player.model.eyeLook = option.eyeLook;
+    player.model.headLook = option.headLook;
 
 }
 
