@@ -240,9 +240,9 @@ const addPool = () => {
     // add box container without up face 
     phy.add({ type:'container', material:'concrete', size:[6,0.6,6], pos:[8.5,0.29,0], wall:0.2, friction:0.2, restitution:0.2, intern:true, remplace:false, face:{up:0} });//material:'debug',
 
-    let i = 1000, s, p;
+    let i = 800, s, p;
     while(i--){
-        s = math.rand(0.08, 0.12)
+        s = math.rand(0.08, 0.14)
         p = [8.5+ math.rand(-2.8, 2.8), s+math.rand(0, 2), math.rand(-2.8, 2.8)]
         phy.add({ type:'sphere', size:[s], pos:p, mass:s*2, group:64, mask:1|2|64, instance:'ball', randomColor:true, friction:0.5, restitution:0.5 })
     }
