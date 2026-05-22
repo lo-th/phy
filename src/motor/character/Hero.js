@@ -136,7 +136,7 @@ export class Hero extends Object3D {
 			rejectVelMult:{ min:0, max:10, step:0.1 },
 			moveImpulsePointY:{ min:0, max:3, step:0.1 },
 			camFollowMult:{ min:0, max:15, step:0.1 },
-			//ray
+			//rayd
 
 			floatHeight:{ min:0, max:radius*3, step:0.01, color:cc.ray },
 
