@@ -170,11 +170,13 @@ export const Gui = {
 
 		Gui.bb = UIL.add('bool', { parent:Main.getCorner(), mode:1, name:'‏⛯', w:24, h:26, pos:{left:'-2px', bottom:'40px'}, simple:true }).onChange( (b)=>{ 
 			if(Main.motor.speech)Main.motor.speech.content.style.visibility = b ? 'hidden' : 'visible'; 
-			Gui.uix.hide(b); 
+			Gui.uix.isOpen = !b
+			Gui.uix.calc()
+			//Gui.uix.hide(b); 
 		} )
 		Gui.bb.c[2].style.fontSize = '20px';
 		Gui.bb.c[2].style.lineHeight = '26px';
-		Gui.bb.colors.select ='#023612';
+		Gui.bb.colors.select ='rgba(0,0,0,0)';
 		Gui.bb.colors.over ='#025B18';
 
 		if( data ){
