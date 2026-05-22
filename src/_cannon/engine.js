@@ -1,5 +1,5 @@
 
-import * as CANNON from '../libs/cannon-es.js'
+import * as CANNON from './cannon-es.js'
 
 import { root, Utils, Vec3, Quat } from './root.js';
 import { Num, getType, getArray } from '../core/Config.js';
