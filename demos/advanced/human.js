@@ -202,7 +202,7 @@ const Character = ( num = 1 ) => {
 
         speech = phy.addSpeech( text );
       
-        speech.initInterface(gender[g], phy.hub.getBottom());
+        speech.initInterface( gender[g], phy.hub.getBottom() );
         speech.dispatch = (seq, time)=>{ player.model.speak( seq, time); } 
 
         speech.content.style.left = '40px'

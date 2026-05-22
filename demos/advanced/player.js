@@ -27,7 +27,7 @@ demo = () => {
 
     phy.view({
         phi:12, theta:0, distance:5, x:0, y:3, z:15, fov:55, 
-        envmap:'swiss', exposure:0.5, fog:true, fogExp:0.05, envIntensity:4,
+        envmap:'swiss', exposure:0.5, fog:true, fogExp:0.05, envIntensity:2.5,
         reflect:0, groundColor:0x505050, //background:0x151414,
     })
 
@@ -55,8 +55,6 @@ demo = () => {
 
     //phy.add({ type:'sphere', size:[0.3], pos:[0,0,1], mass:0 })
 
-    
-    
     addDecor();
     addCharacter();
     addPool()

@@ -96,6 +96,7 @@ export const Gui = {
 
 	ui:null,
 	uix:null,
+	bb:null,
 	gp:null,
 	video:null,
 	envui:null,
@@ -160,12 +161,21 @@ export const Gui = {
 
 		if( Gui.uix ){ 
 			Gui.uix.dispose();
-			console.log('uix dispose')
+			Gui.bb.dispose();
+			//console.log('uix dispose')
 		}
 
-		//console.log('uix add')
 
 		Gui.uix = new UIL.Gui( { parent:Main.getCorner(), w:w, h:24, open:true, close:false, css:'left:40px;', bottom:40, colors:Gui.colors, transition:0 } )//
+
+		Gui.bb = UIL.add('bool', { parent:Main.getCorner(), mode:1, name:'‏⛯', w:24, h:26, pos:{left:'-2px', bottom:'40px'}, simple:true }).onChange( (b)=>{ 
+			if(Main.motor.speech)Main.motor.speech.content.style.visibility = b ? 'hidden' : 'visible'; 
+			Gui.uix.hide(b); 
+		} )
+		Gui.bb.c[2].style.fontSize = '20px';
+		Gui.bb.c[2].style.lineHeight = '26px';
+		Gui.bb.colors.select ='#023612';
+		Gui.bb.colors.over ='#025B18';
 
 		if( data ){
 			let d;
@@ -282,6 +292,7 @@ export const Gui = {
 	resetExtra: () => {
 		if( Gui.uix ) { 
 			Gui.uix.dispose(); 
+			Gui.bb.dispose();
 			Gui.uix = null;
 			//console.log('uix dispose')
 		}
