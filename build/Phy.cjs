@@ -17158,7 +17158,7 @@ class Hero extends three.Object3D {
 			rejectVelMult:{ min:0, max:10, step:0.1 },
 			moveImpulsePointY:{ min:0, max:3, step:0.1 },
 			camFollowMult:{ min:0, max:15, step:0.1 },
-			//ray
+			//rayd
 
 			floatHeight:{ min:0, max:radius*3, step:0.01, color:cc.ray },
 
@@ -27045,13 +27045,13 @@ class Engine {
 
 				if( useLocal ){
 				
-					if( useModule ) Pool.load( new URL( '../' + path + mini + '.module.hex', (typeof document === 'undefined' ? require('u' + 'rl').pathToFileURL(__filename).href : (_documentCurrentScript && _documentCurrentScript.tagName.toUpperCase() === 'SCRIPT' && _documentCurrentScript.src || new URL('Phy.cjs', document.baseURI).href))), function(){ _this.onCompactDone(o); } );
-		    		else Pool.load( new URL( '../' + path + mini + '.hex', (typeof document === 'undefined' ? require('u' + 'rl').pathToFileURL(__filename).href : (_documentCurrentScript && _documentCurrentScript.tagName.toUpperCase() === 'SCRIPT' && _documentCurrentScript.src || new URL('Phy.cjs', document.baseURI).href))), function(){ _this.onCompactDone(o); } );
+					if( useModule ) Pool.load( new URL( '../' + path + mini + '.module.bin', (typeof document === 'undefined' ? require('u' + 'rl').pathToFileURL(__filename).href : (_documentCurrentScript && _documentCurrentScript.tagName.toUpperCase() === 'SCRIPT' && _documentCurrentScript.src || new URL('Phy.cjs', document.baseURI).href))), function(){ _this.onCompactDone(o); } );
+		    		else Pool.load( new URL( '../' + path + mini + '.bin', (typeof document === 'undefined' ? require('u' + 'rl').pathToFileURL(__filename).href : (_documentCurrentScript && _documentCurrentScript.tagName.toUpperCase() === 'SCRIPT' && _documentCurrentScript.src || new URL('Phy.cjs', document.baseURI).href))), function(){ _this.onCompactDone(o); } );
 				
 				} else {
 
-					if( useModule ) Pool.load( url + path + mini + '.module.hex', function(){ _this.onCompactDone(o); } );
-					else Pool.load( url + path + mini + '.hex', function(){ _this.onCompactDone(o); } );
+					if( useModule ) Pool.load( url + path + mini + '.module.bin', function(){ _this.onCompactDone(o); } );
+					else Pool.load( url + path + mini + '.bin', function(){ _this.onCompactDone(o); } );
 
 				}
 

@@ -17136,7 +17136,7 @@ class Hero extends Object3D {
 			rejectVelMult:{ min:0, max:10, step:0.1 },
 			moveImpulsePointY:{ min:0, max:3, step:0.1 },
 			camFollowMult:{ min:0, max:15, step:0.1 },
-			//ray
+			//rayd
 
 			floatHeight:{ min:0, max:radius*3, step:0.01, color:cc.ray },
 
@@ -27023,13 +27023,13 @@ class Engine {
 
 				if( useLocal ){
 				
-					if( useModule ) Pool.load( new URL( '../' + path + mini + '.module.hex', import.meta.url), function(){ _this.onCompactDone(o); } );
-		    		else Pool.load( new URL( '../' + path + mini + '.hex', import.meta.url), function(){ _this.onCompactDone(o); } );
+					if( useModule ) Pool.load( new URL( '../' + path + mini + '.module.bin', import.meta.url), function(){ _this.onCompactDone(o); } );
+		    		else Pool.load( new URL( '../' + path + mini + '.bin', import.meta.url), function(){ _this.onCompactDone(o); } );
 				
 				} else {
 
-					if( useModule ) Pool.load( url + path + mini + '.module.hex', function(){ _this.onCompactDone(o); } );
-					else Pool.load( url + path + mini + '.hex', function(){ _this.onCompactDone(o); } );
+					if( useModule ) Pool.load( url + path + mini + '.module.bin', function(){ _this.onCompactDone(o); } );
+					else Pool.load( url + path + mini + '.bin', function(){ _this.onCompactDone(o); } );
 
 				}
 
