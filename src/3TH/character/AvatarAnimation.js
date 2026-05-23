@@ -75,7 +75,7 @@ export class AvatarAnimation extends EventDispatcher {
         if(this.actionType === 'Idle'){
 
             if(this.current._loopCount > this.nextIdle){
-                console.log('yo')
+                //console.log('yo')
                 this.nextIdle = this.randInt(4,7)
                 let n = this.randInt(0,3)
                 this.play(IdleClip[n])
