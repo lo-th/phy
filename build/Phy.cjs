@@ -10223,8 +10223,8 @@ class SkeletonBody extends three.Object3D {
                     r = dist*0.9*sizer[1];
                     if( n==='abdomen2' && name==='chest'  ){ type = 'capsule'; size = [ r, r*0.3 ]; translate = [ 0, r*0.15, (-dist * 0.5) ]; rot = [90,0,0]; link='abdomen';  }
 
-                  }else {
-                    if( n==='hip' && name==='abdomen' ){ type = 'capsule'; size = [ r, w ]; translate = [ 0, 0, 0 ]; rot = [0,0,90]; link='null';}
+                  } else {
+                    if( n==='hip' && name==='abdomen' ){ type = 'capsule'; size = [ r*0.5, w*0.5 ]; translate = [ 0, 0, 0 ]; rot = [0,0,90]; link='null';}
                     if( n==='abdomen' && name==='chest' ){ type = 'capsule'; size = [ dist*0.7*sizer[1], 0.08 ]; translate = [ 0, 0, (-dist * 0.5)-0.06 ]; rot = [90,0,0]; link='hip'; }
                 }
 
@@ -10344,6 +10344,11 @@ class SkeletonBody extends three.Object3D {
 
                     let side = 1;
                     side = n.substring(0, 1) === 'r' ? -1 : side;
+
+                    //if( n==='hip' || n==='abdomen'|| n==='abdomen2'|| n==='chest' ){
+                        //_q.setFromAxisAngle( {x:0, y:1, z:0}, -90*torad )
+                        //q.multiply( _q )
+                    //}
 
                     if( n==='lHand' || n==='rHand'){
                         _q.setFromAxisAngle( {x:0, y:0, z:1}, 90*torad$3*side );
@@ -14216,6 +14221,8 @@ class AvatarAnimation extends three.EventDispatcher {
 		this.mixer = mixer;
 
         this.actionType = '';
+        this.nextIdle = 5;
+        this.alternativeIdle = false;
 
         //console.log(this.mixer)
 		this.actions = new Map();
@@ -14253,11 +14260,20 @@ class AvatarAnimation extends three.EventDispatcher {
 	update( delta ){
 
         this.oldTime = this.mixer.time;
-
 		this.mixer.update( delta );
+
+        if(this.alternativeIdle){
+            if(this.current._loopCount === 1){
+                this.alternativeIdle = false;
+                this.play('Idle');
+            }
+        }
+
         if(this.actionType === 'Idle'){
-            if(this.current._loopCount > 5){
-                //console.log('yo')
+
+            if(this.current._loopCount > this.nextIdle){
+                console.log('yo');
+                this.nextIdle = this.randInt(4,7);
                 let n = this.randInt(0,3);
                 this.play(IdleClip[n]);
             }
@@ -14537,7 +14553,8 @@ class AvatarAnimation extends three.EventDispatcher {
                 }
 
                 if(IdleClip.indexOf(name)!==-1) {
-                    this.playNext(this.current, 'Idle' );
+                    this.alternativeIdle = true;
+                    //this.playNext(this.current, 'Idle' )
                 }
 
                 
@@ -15712,15 +15729,15 @@ const Lee$1 = {
 
 const setting = {
 
-    metalness:0.2,
-    roughness:0.8,
+    metalness:0.8,
+    roughness:0.1,
     wireframe:false,
     
 };
 
 const Barbados = {
 
-    decalY:-0.06,
+    decalY:0.1,
 
 	isBreath:false,
 	isEyeMove:false,
@@ -15802,19 +15819,23 @@ const Barbados = {
 
     applyMaterial:( root, model ) => {
 
-    	/*const def = Pool.getMaterial( 'bb' );
+    	Pool.getMaterial( 'bb' );
 
         root.traverse( ( node ) => {
 
             if ( node.isMesh ){
+
+                let m = node.material;
+                m.roughness = setting.roughness;
+                m.metalness = setting.metalness;
             	
-            	node.material = def;
+            	//node.material = def;
                 node.receiveShadow = true;
                 node.castShadow = true;
 
             }
 
-        })*/
+        });
 
     },
 
@@ -16525,20 +16546,13 @@ class Avatar extends three.Group {
         if( this.randomSize ) this.setRealSize(this.rand(1,2));
 
 
-
-
-
         //this.add( this.root );
 
-       
-
-
-        //setTimeout( this.callback, 100 );
         setTimeout( function(){ 
             this.add( this.root );
             this.root.position.y = this.decalY;
-            this.callback();
             this.dispatchEvent({ type: 'Ready', message: "Model is ready" });
+            this.callback();
         }.bind(this), 100 );
         //this.callback()
 
@@ -17749,6 +17763,8 @@ class Hero extends three.Object3D {
 
     debugMode( v = false ){
 
+    	
+
     	if( this.skeletonBody ) this.skeletonBody.isVisible(v);
     	//if( this.model ) this.model.setMaterial( { wireframe: v, visible:!v })
     	if( this.model && this.skeletonBody ) this.model.setMaterial( { transparent:v, opacity:v?0.8:1.0, alphaTest:0.02 }, !v );
@@ -17781,10 +17797,6 @@ class Hero extends three.Object3D {
 			fixWeight: this.fixWeight,
 			noLOD : o.noLOD || false,
 		});
-
-		
-
-		
 
 		this.model.addEventListener('Ready', () =>{ 
 			//console.log('ok is good')
@@ -20126,6 +20138,9 @@ vec4 textureNoTile( sampler2D mapper, in vec2 uv ){
 
 }
 `;
+
+// next gen
+// https://www.youtube.com/watch?v=r4V21_uUK8Y&t=29s
 
 // THREE TERRAIN
 let Mat = null;

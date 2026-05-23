@@ -24,6 +24,8 @@ export class AvatarAnimation extends EventDispatcher {
 		this.mixer = mixer;
 
         this.actionType = '';
+        this.nextIdle = 5;
+        this.alternativeIdle = false;
 
         //console.log(this.mixer)
 		this.actions = new Map();
@@ -61,11 +63,20 @@ export class AvatarAnimation extends EventDispatcher {
 	update( delta ){
 
         this.oldTime = this.mixer.time
-
 		this.mixer.update( delta );
+
+        if(this.alternativeIdle){
+            if(this.current._loopCount === 1){
+                this.alternativeIdle = false;
+                this.play('Idle')
+            }
+        }
+
         if(this.actionType === 'Idle'){
-            if(this.current._loopCount > 5){
-                //console.log('yo')
+
+            if(this.current._loopCount > this.nextIdle){
+                console.log('yo')
+                this.nextIdle = this.randInt(4,7)
                 let n = this.randInt(0,3)
                 this.play(IdleClip[n])
             }
@@ -345,7 +356,8 @@ export class AvatarAnimation extends EventDispatcher {
                 }
 
                 if(IdleClip.indexOf(name)!==-1) {
-                    this.playNext(this.current, 'Idle' )
+                    this.alternativeIdle = true;
+                    //this.playNext(this.current, 'Idle' )
                 }
 
                 
