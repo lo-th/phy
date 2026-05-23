@@ -270,11 +270,20 @@ export class MouseTool {
 
 	}
 
+	activeControl( b ){
+
+		this.controler.enableRotate = b
+		this.controler.enablePan = b
+	
+	}
+
 	castray () {
 
 		let inters, m, g, h, id, cursor = 'auto'
 
 		if( this.selected !== null ){
+
+
 
 			this.raycast.setFromCamera( this.mouse, this.controler.object )
 			inters = this.raycast.intersectObject( this.dragPlane )
@@ -289,9 +298,10 @@ export class MouseTool {
 			if( !this.raycastTest ) return;
 
 			//this.controler.enabled = false
+			this.activeControl(false)
 
-			this.controler.enableRotate = false
-			this.controler.enablePan = false
+			//this.controler.enableRotate = false
+			//this.controler.enablePan = false
 
 			this.raycast.setFromCamera( this.mouse, this.controler.object )
 
@@ -336,19 +346,19 @@ export class MouseTool {
 			} else {
 
 				this.resetOver()
-				this.controler.enableRotate = true
-				this.controler.enablePan = true
+				this.activeControl(true)
 				
 				//this.controler.enabled = true
 			}
 
 			//console.log(this.release, cursor)
 			if( this.release ){
-				this.release = false
-				this.controler.enableRotate = true
-				this.controler.enablePan = true
+
 				cursor = 'auto'
+				this.release = false
 				this.resetOver()
+				this.activeControl(true)
+				
 				
 			}
 
@@ -511,6 +521,8 @@ export class MouseTool {
 		//if( this.overLock ) return;
 		if( !obj ) return;
 
+		//console.log(obj)
+
 		if( this.overObj ){
 			if( obj.name !== this.overObj.name ) this.resetOver();
 		}
@@ -531,13 +543,27 @@ export class MouseTool {
 
 	select ( obj, point ) {
 
+		if( !this.mouseDown ) this.setOver( obj );
+
 		//this.controler.enabled = false
+
+		const kinematic = obj.isKinematic || false
+		const isBone = obj.isBone || false
+
+		if( kinematic && isBone){
+
+			this.activeControl(true)
+			if(!obj.visible) return
+			return 'pointer'
+
+		}
+
 
 		//if( this.selected !== null ) return 'pointer'
 		//if( !this.mouseDown ) return 'auto'
 		//if( this.selected === obj ) return 'grab'//'pointer'
 
-		if( !this.mouseDown ) this.setOver( obj );
+		
 
 		
 
@@ -600,8 +626,11 @@ export class MouseTool {
 
 		const engine = this.motor.engine;
 
+		this.moveDirect = kinematic
+
 		if( this.moveDirect ){
-			this.motor.change({ name:this.selected.name, kinematic:false, gravity:false, damping:[0.9,0.9]  })
+			this.motor.change({ name:this.selected.name, gravity:false, damping:[0.9,0.9]  })
+			//this.motor.change({ name:this.selected.name, kinematic:false, gravity:false, damping:[0.9,0.9]  })
 		} else {
 			//let def = [-0.1, 0.1, 100, 50]//600, 1
 			//let defr = [-0.1, 0.1, 100, 50]
@@ -627,6 +656,8 @@ export class MouseTool {
 				//if(this.selected.link !== 0)
 				//limite = [ 4.0, 1.0 ]
 			}
+
+
 
 			
 
@@ -718,7 +749,7 @@ export class MouseTool {
 		this.clearDrag()
 
 		if( this.moveDirect ){
-			this.motor.change({ name:this.selected.name, kinematic:false, wake:true, gravity:true, damping:[0,0.1] })
+			this.motor.change({ name:this.selected.name, /*kinematic:false,*/ wake:true, gravity:true, damping:[0,0.1] })
 		} else {
 			this.motor.remove(['mouseJoint','mouse'])
 			this.motor.change({ name:this.selected.name, wake:true })
