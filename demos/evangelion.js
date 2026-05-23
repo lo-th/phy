@@ -2,28 +2,19 @@ let perso
 
 demo = () => {
 
-    //phy.log('use key WSAD or ZSQD<br>E to fight / C to crouch<br>SPACE to jump / SHIFT to run')
-
+    phy.log('move WSAD or ZSQD / run SHIFT / jump SPACE / crouch C')
     phy.view({ envmap:'clear', envblur: 0.05, ground:false, fog:true, fogDist:0.01 })
 
 	// setting physics
 	phy.set({ substep:1, gravity:[0,-9.81,0], key:true })
 
-    phy.lightIntensity( 7, 0.5, 1.0 );
-    phy.useRealLight( {aoColor:0x441c00, irradianceColor:0xffFFFF, envPower:1.5} );
-
-
-	// add static plane 
-	//phy.add({ type:'plane', name:'floor', size:[ 300,1,300 ], visible:false, friction: 0.5,  });
-	//phy.add({ type:'box', name:'j', size:[0.1,0.01,0.1], pos:[0, 0.005, 0], material:'body' /*filter:[1,-1,[5,9], 0]*/ })
-
-
     makeTerrain()
-
-    
 
 }
 
+//-----------
+//  TERRAIN
+//-----------
 
 makeTerrain = () => {
 
@@ -50,29 +41,20 @@ makeTerrain = () => {
 
     })
 
-    let py = terrain.getHeight( 0, 0 )+2
-    //if(py<1) py = 1
-
-
+    let py = terrain.getHeight( 0, 0 ) + 2
     addCharacter( py )
-
-
-
-    //phy.change( { name:'eva', pos:[0,py,0] } )
-    //phy.remove( 'floor' )
-
-    // update after physic step
-    
 
 }
 
+//-----------
+//   HERO
+//-----------
+
 addCharacter = ( py ) => {
 
-    let n = math.randInt(0,2)
-    // create character
     perso = phy.add({ 
         type:'character',
-        gender:'eva0'+n,
+        gender:'eva0' + math.randInt(0,2),
         name:'eva',
         callback:end,
         pos:[0,py,0],
@@ -82,19 +64,20 @@ addCharacter = ( py ) => {
     })
 
     phy.follow('eva', { direct:true, simple:true, distance:3, phi:-10, theta:5, decal:[0.3, 0.5, -0.3], fov:75, zoom:1.0 })
-    //phy.control('eva')
     phy.setPostUpdate( update )
 
-    
 }
 
 end = ( py ) => {
 
-    //perso.debugMode( true );
     hub.addCross()
+    addGui()
 
 }
 
+//-----------
+//    UP
+//-----------
 
 update = () => {
 
@@ -107,5 +90,15 @@ update = () => {
         ])
     }
 
+}
 
+//-----------
+//    GUI
+//-----------
+
+const addGui = () => {
+
+    gui = phy.gui(null, 120)
+    gui.add('bool',{name:'Show Helper', onName:'Hide Helper', mode:1}).onChange( (b)=>{ perso.debugMode( b ) } )
+      
 }

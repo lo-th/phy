@@ -425,7 +425,7 @@ export class Hub {
 
 
         debug = document.createElement( 'div' );
-        debug.style.cssText = 'position:absolute; width:300px; bottom:15px; left:'+(margin+8)+'px; font-size:12px; vertical-align:bottom; text-align:left;'
+        debug.style.cssText = 'position:absolute; width:400px; bottom:15px; left:'+(margin+8)+'px; font-size:12px; vertical-align:bottom; text-align:left;'
         //debug.style.cssText = 'position:absolute; background:'+bg+'; width:300px; margin-left:-150px; bottom:25px; left:50%; font-size:14px; font-weight:500; vertical-align:bottom; text-align:center;'
         content.appendChild( debug )
 

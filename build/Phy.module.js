@@ -17741,7 +17741,7 @@ class Hero extends Object3D {
 
     debugMode( v = false ){
 
-    	
+
 
     	if( this.skeletonBody ) this.skeletonBody.isVisible(v);
     	//if( this.model ) this.model.setMaterial( { wireframe: v, visible:!v })
@@ -18309,7 +18309,7 @@ class Hero extends Object3D {
 	    	case 'walk': mAnim = 'Walk_F'; break;//'Jog Forward'
 	    	case 'run': mAnim = 'Jog_F'; break;//'Standard Run'
 	    	case 'crouch': mAnim = 'Crouch_F'; break;//'Crouch Walk'
-	    	case 'fight': mAnim = 'Attack'; break;
+	    	case 'fight': mAnim = 'Melee_Hook'; break;
 	    }
 
 	    if(mAnim === 'Idle'){ 
