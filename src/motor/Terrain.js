@@ -5,6 +5,9 @@ import { Num } from '../core/Config.js';
 
 import { Landscape } from '../3TH/objects/Landscape.js';
 
+// next gen
+// https://www.youtube.com/watch?v=r4V21_uUK8Y&t=29s
+
 // THREE TERRAIN
 let Mat = null;
 

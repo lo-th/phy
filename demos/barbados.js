@@ -4,10 +4,10 @@ demo = () => {
 
     //phy.log('use key WSAD or ZSQD<br>E to fight / C to crouch<br>SPACE to jump / SHIFT to run')
 
-    phy.view({ envmap:'clear', envblur: 0.05, ground:false, fog:true, fogDist:0.01 })
+    phy.view({ envmap:'pendora', envblur: 0.05, ground:false, fog:true, fogDist:0.01 })
 
 	// setting physics
-	phy.set({ substep:2, gravity:[0,-9.81,0], key:true })
+	phy.set({ substep:1, gravity:[0,-9.81,0], key:true })
 
     phy.lightIntensity( 7, 0.5, 1.0 );
     phy.useRealLight( {aoColor:0x441c00, irradianceColor:0xffFFFF, envPower:1.5} );
@@ -43,13 +43,14 @@ makeTerrain = () => {
         frequency:[0.02*z,0.05*z,0.1*z],
         level:[ 1.0, 0.5, 0.2 ],
         expo:2.5,
+        zone:0.25,
 
         friction: 0.5,
         restitution: 0.0,
 
     })
 
-    let py = terrain.getHeight( 0, 0 )+1
+    let py = terrain.getHeight( 0, 0 )+2
     //if(py<1) py = 1
 
 
@@ -75,7 +76,9 @@ addCharacter = ( py ) => {
         name:'hero',
         callback:end,
         pos:[0,py,0],
-        debug:true
+        useImpulse:true,
+        floating:true,
+        isPlayer:true,
     })
 
     phy.follow('hero', { direct:true, simple:true, distance:3, phi:-10, theta:5, decal:[0.3, 0.5, -0.3], fov:75, zoom:1.0 })
@@ -86,8 +89,8 @@ addCharacter = ( py ) => {
 
 end = ( py ) => {
 
-    
-    //hub.addCross()
+    //perso.debugMode( true );
+    hub.addCross()
 
 }
 

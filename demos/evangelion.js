@@ -7,7 +7,7 @@ demo = () => {
     phy.view({ envmap:'clear', envblur: 0.05, ground:false, fog:true, fogDist:0.01 })
 
 	// setting physics
-	phy.set({ substep:2, gravity:[0,-9.81,0], key:true })
+	phy.set({ substep:1, gravity:[0,-9.81,0], key:true })
 
     phy.lightIntensity( 7, 0.5, 1.0 );
     phy.useRealLight( {aoColor:0x441c00, irradianceColor:0xffFFFF, envPower:1.5} );
@@ -50,7 +50,7 @@ makeTerrain = () => {
 
     })
 
-    let py = terrain.getHeight( 0, 0 )+10
+    let py = terrain.getHeight( 0, 0 )+2
     //if(py<1) py = 1
 
 
@@ -91,7 +91,7 @@ addCharacter = ( py ) => {
 end = ( py ) => {
 
     //perso.debugMode( true );
-    //hub.addCross()
+    hub.addCross()
 
 }
 

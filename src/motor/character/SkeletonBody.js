@@ -311,8 +311,8 @@ export class SkeletonBody extends Object3D {
                     r = dist*0.9*sizer[1]
                     if( n==='abdomen2' && name==='chest'  ){ type = 'capsule'; size = [ r, r*0.3 ]; translate = [ 0, r*0.15, (-dist * 0.5) ]; rot = [90,0,0]; link='abdomen';  }
 
-                  }else{
-                    if( n==='hip' && name==='abdomen' ){ type = 'capsule'; size = [ r, w ]; translate = [ 0, 0, 0 ]; rot = [0,0,90]; link='null';}
+                  } else {
+                    if( n==='hip' && name==='abdomen' ){ type = 'capsule'; size = [ r*0.5, w*0.5 ]; translate = [ 0, 0, 0 ]; rot = [0,0,90]; link='null';}
                     if( n==='abdomen' && name==='chest' ){ type = 'capsule'; size = [ dist*0.7*sizer[1], 0.08 ]; translate = [ 0, 0, (-dist * 0.5)-0.06 ]; rot = [90,0,0]; link='hip'; }
                 }
 
@@ -442,10 +442,10 @@ export class SkeletonBody extends Object3D {
                         //q.multiply( _q )
                     }
 
-                    if( n==='hip' || n==='abdomen'|| n==='abdomen2'|| n==='chest' ){
+                    //if( n==='hip' || n==='abdomen'|| n==='abdomen2'|| n==='chest' ){
                         //_q.setFromAxisAngle( {x:0, y:1, z:0}, -90*torad )
                         //q.multiply( _q )
-                    }
+                    //}
 
                     if( n==='lHand' || n==='rHand'){
                         _q.setFromAxisAngle( {x:0, y:0, z:1}, 90*torad*side )

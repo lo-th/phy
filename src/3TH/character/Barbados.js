@@ -3,15 +3,15 @@ import { Pool } from '../Pool.js';
 
 const setting = {
 
-    metalness:0.2,
-    roughness:0.8,
+    metalness:0.8,
+    roughness:0.1,
     wireframe:false,
     
 }
 
 export const Barbados = {
 
-    decalY:-0.06,
+    decalY:0.1,
 
 	isBreath:false,
 	isEyeMove:false,
@@ -93,19 +93,23 @@ export const Barbados = {
 
     applyMaterial:( root, model ) => {
 
-    	/*const def = Pool.getMaterial( 'bb' );
+    	const def = Pool.getMaterial( 'bb' );
 
         root.traverse( ( node ) => {
 
             if ( node.isMesh ){
+
+                let m = node.material
+                m.roughness = setting.roughness
+                m.metalness = setting.metalness
             	
-            	node.material = def;
+            	//node.material = def;
                 node.receiveShadow = true;
                 node.castShadow = true;
 
             }
 
-        })*/
+        })
 
     },
 

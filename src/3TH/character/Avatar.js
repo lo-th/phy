@@ -746,20 +746,13 @@ export class Avatar extends Group {
         if( this.randomSize ) this.setRealSize(this.rand(1,2));
 
 
-
-
-
         //this.add( this.root );
 
-       
-
-
-        //setTimeout( this.callback, 100 );
         setTimeout( function(){ 
             this.add( this.root );
             this.root.position.y = this.decalY
-            this.callback();
             this.dispatchEvent({ type: 'Ready', message: "Model is ready" });
+            this.callback();
         }.bind(this), 100 )
         //this.callback()
 

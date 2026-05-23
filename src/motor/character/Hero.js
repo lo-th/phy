@@ -680,6 +680,8 @@ export class Hero extends Object3D {
 
     debugMode( v = false ){
 
+    	
+
     	if( this.skeletonBody ) this.skeletonBody.isVisible(v)
     	//if( this.model ) this.model.setMaterial( { wireframe: v, visible:!v })
     	if( this.model && this.skeletonBody ) this.model.setMaterial( { transparent:v, opacity:v?0.8:1.0, alphaTest:0.02 }, !v )
@@ -712,10 +714,6 @@ export class Hero extends Object3D {
 			fixWeight: this.fixWeight,
 			noLOD : o.noLOD || false,
 		});
-
-		
-
-		
 
 		this.model.addEventListener('Ready', () =>{ 
 			//console.log('ok is good')
