@@ -31,8 +31,8 @@ export class Hero extends Object3D {
 		this.isPlayer = o.isPlayer || false;
 		this.enable = false
 
-		this.useImpulse = o.useImpulse || false;
-		this.useFloating = o.floating || false;
+		this.useImpulse = o.useImpulse !== undefined ? o.useImpulse :false;
+		this.useFloating = o.floating !== undefined ? o.floating :false;
 
 		this.waitRotation = false;
 
@@ -324,7 +324,7 @@ export class Hero extends Object3D {
 
 		this._timeScale = v;
 		this.option.maxVelLimit = 1 * this._timeScale
-		if(this.model) this.model.animator.timeScale = this._timeScale 
+		if(this.model && this.model.animator) this.model.animator.timeScale = this._timeScale 
 
 	}
 
@@ -428,9 +428,6 @@ export class Hero extends Object3D {
         // add skinning character model
         if( o.gender ) this.addModel( o );
         else this.showHelper( true );
-
-        
-
 
 
         this.enable = true;
@@ -566,6 +563,7 @@ export class Hero extends Object3D {
 
     		//this.hitPoint = r.point;
     		this.hitObject = this.motor.byName(r.body);
+    		
     		let hitMass = this.hitObject.mass;
     		let type = this.hitObject.type;
     		if(hitMass === 0 && type ==='body') type = 'kinematic'
@@ -715,17 +713,24 @@ export class Hero extends Object3D {
 			noLOD : o.noLOD || false,
 		});
 
-		this.add( this.model );
-		///this.model.rotation.order = 'YXZ'
-		let ypos = -(this.height*0.5)+0.05
-		if( this.useFloating ) ypos -= this.option.floatHeight
-		this.model.setPosition(0, this.model.decalY + ypos, 0);
-		this.model.rotation.y = this.angle;
-		this.model.updateMatrix();
+		
 
-		this.timeScale = 2
+		
 
-		if(this.isPlayer) this.addSkeleton();
+		this.model.addEventListener('Ready', () =>{ 
+			//console.log('ok is good')
+			this.add( this.model );
+			///this.model.rotation.order = 'YXZ'
+			let ypos = -(this.height*0.5)+0.05
+			if( this.useFloating ) ypos -= this.option.floatHeight
+			this.model.setPosition(0, this.model.decalY + ypos, 0);
+			this.model.rotation.y = this.angle;
+			this.model.updateMatrix();
+			this.timeScale = 2
+			if(this.isPlayer) this.addSkeleton();
+		});
+
+		//if(this.isPlayer) this.addSkeleton();
 
 	}
 
@@ -1370,6 +1375,7 @@ export class Hero extends Object3D {
 	   // if(anim!=='idle') this.model.setRotation( 0, azimut + Math.PI, 0, 0.25 )
         
         if( !this.model ) return
+        if( !this.model.animator ) return
 
 
         

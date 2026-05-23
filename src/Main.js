@@ -648,7 +648,6 @@ const next = () => {
 
 	Main.getDemos()
 
-
 	//hideMat = Motor.getHideMat()
 
     Motor.setContent( scene )

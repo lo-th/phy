@@ -16172,6 +16172,53 @@ class Avatar extends three.Group {
 
         return
 
+        //if( !this.animator.current ) return
+
+        //if(this.animator.mixer.time === this.animator.oldTime) return
+
+        //if(this.prevQ.equals(this.bones.head.quaternion)) return
+        //this.prevQ = this.bones.head.quaternion.clone()
+
+        // head and neck bones
+
+        /*let ax = -this.headLook[1]*40*torad;
+        let ay = -this.headLook[0]*40*torad;
+
+        tmpQ.setFromEuler( { _x:ax, _y:0, _z:ay, _order:'XYZ' }, false );
+        this.bones.head.quaternion.premultiply(tmpQ);
+
+        tmpQ.setFromEuler( { _x:ax*0.5, _y:0, _z:ay*0.5, _order:'XYZ' }, false );
+        this.bones.neck.quaternion.premultiply(tmpQ);
+
+
+
+        // eyes bones
+
+        if(!this.isEyeMove) return;
+
+        let bx = -this.eyeLook[1]*15*torad;
+        let by = -this.eyeLook[0]*30*torad;
+
+        tmpQ.setFromEuler( { _x:bx, _y:0, _z:by, _order:'XYZ' }, false )
+        this.eyeBase.quaternion.copy(tmpQ);
+
+        let ER = this.bones.ER;
+        let EL = this.bones.EL;
+
+        tmpP.copy( this.TL.position );
+        tmpP.applyMatrix4( this.eyeTarget.matrix );
+        tmpP.applyMatrix4( this.eyeBase.matrix );
+
+        tmpMtx.lookAt( EL.position, tmpP, UPZ );
+        EL.quaternion.setFromRotationMatrix( tmpMtx ).multiply(Q);
+
+        tmpP.copy( this.TR.position );
+        tmpP.applyMatrix4( this.eyeTarget.matrix );
+        tmpP.applyMatrix4( this.eyeBase.matrix );
+
+        tmpMtx.lookAt( ER.position, tmpP, UPZ );
+        ER.quaternion.setFromRotationMatrix( tmpMtx ).multiply(Q);*/
+
     }
 
     breathing(){
@@ -16379,7 +16426,6 @@ class Avatar extends three.Group {
 
 
         // animation
-
         this.mixer = new three.AnimationMixer( this );
         this.animator = new AvatarAnimation( this.mixer );
 
@@ -16479,7 +16525,12 @@ class Avatar extends three.Group {
         if( this.randomSize ) this.setRealSize(this.rand(1,2));
 
 
+
+
+
         //this.add( this.root );
+
+       
 
 
         //setTimeout( this.callback, 100 );
@@ -16487,6 +16538,7 @@ class Avatar extends three.Group {
             this.add( this.root );
             this.root.position.y = this.decalY;
             this.callback();
+            this.dispatchEvent({ type: 'Ready', message: "Model is ready" });
         }.bind(this), 100 );
         //this.callback()
 
@@ -17055,8 +17107,8 @@ class Hero extends three.Object3D {
 		this.isPlayer = o.isPlayer || false;
 		this.enable = false;
 
-		this.useImpulse = o.useImpulse || false;
-		this.useFloating = o.floating || false;
+		this.useImpulse = o.useImpulse !== undefined ? o.useImpulse :false;
+		this.useFloating = o.floating !== undefined ? o.floating :false;
 
 		this.waitRotation = false;
 
@@ -17346,7 +17398,7 @@ class Hero extends three.Object3D {
 
 		this._timeScale = v;
 		this.option.maxVelLimit = 1 * this._timeScale;
-		if(this.model) this.model.animator.timeScale = this._timeScale; 
+		if(this.model && this.model.animator) this.model.animator.timeScale = this._timeScale; 
 
 	}
 
@@ -17450,9 +17502,6 @@ class Hero extends three.Object3D {
         // add skinning character model
         if( o.gender ) this.addModel( o );
         else this.showHelper( true );
-
-        
-
 
 
         this.enable = true;
@@ -17588,6 +17637,7 @@ class Hero extends three.Object3D {
 
     		//this.hitPoint = r.point;
     		this.hitObject = this.motor.byName(r.body);
+    		
     		let hitMass = this.hitObject.mass;
     		let type = this.hitObject.type;
     		if(hitMass === 0 && type ==='body') type = 'kinematic';
@@ -17732,17 +17782,24 @@ class Hero extends three.Object3D {
 			noLOD : o.noLOD || false,
 		});
 
-		this.add( this.model );
-		///this.model.rotation.order = 'YXZ'
-		let ypos = -(this.height*0.5)+0.05;
-		if( this.useFloating ) ypos -= this.option.floatHeight;
-		this.model.setPosition(0, this.model.decalY + ypos, 0);
-		this.model.rotation.y = this.angle;
-		this.model.updateMatrix();
+		
 
-		this.timeScale = 2;
+		
 
-		if(this.isPlayer) this.addSkeleton();
+		this.model.addEventListener('Ready', () =>{ 
+			//console.log('ok is good')
+			this.add( this.model );
+			///this.model.rotation.order = 'YXZ'
+			let ypos = -(this.height*0.5)+0.05;
+			if( this.useFloating ) ypos -= this.option.floatHeight;
+			this.model.setPosition(0, this.model.decalY + ypos, 0);
+			this.model.rotation.y = this.angle;
+			this.model.updateMatrix();
+			this.timeScale = 2;
+			if(this.isPlayer) this.addSkeleton();
+		});
+
+		//if(this.isPlayer) this.addSkeleton();
 
 	}
 
@@ -18383,6 +18440,7 @@ class Hero extends three.Object3D {
 	   // if(anim!=='idle') this.model.setRotation( 0, azimut + Math.PI, 0, 0.25 )
         
         if( !this.model ) return
+        if( !this.model.animator ) return
 
 
         
@@ -20123,12 +20181,10 @@ class Terrain extends Item {
 			//o.isReverse = false
 		}
 
-		if( this.engine !== 'OIMO'){
-			o.zone = o.zone || 0.25;
-			//o.debuger = true
-		}
+		if( this.engine !== 'OIMO');
 
 		const t = new Landscape( o );
+		t.mass = 0;
 
 		Mat.extendShader( t.material, t.material.onBeforeCompile );
 

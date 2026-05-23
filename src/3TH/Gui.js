@@ -231,7 +231,6 @@ export const Gui = {
 
 		Gui.ui = new UIL.Gui( { w:250, h:25, open:false, close:false, css:'right:5px; top:97px;', colors:Gui.colors, transition:0 } )//
 
-
 		//Gui.display()
 
 		Gui.setMode(Gui.startMode)
@@ -325,8 +324,6 @@ export const Gui = {
 		ui.add( options, 'show_stat', { type:'bool' }).onChange( Main.showStatistic )
 
 		//ui.add( options, 'fogMode', { type:'selector', values:[0,1], selectable:true, unselect:false, h:24 }).onChange( function(n){ Shader.up( options ) })
-
-		
 
 		ui.add( options, 'tone',  { type:'list', list:toneMappingOptions, full:true }).onChange( function(v){
 			renderer.toneMapping  = options.tone

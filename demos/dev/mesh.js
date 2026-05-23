@@ -31,6 +31,17 @@ function onComplete2(){
     }
 
     phy.add( {
+        type:'box',
+        name:'bb',
+        size:[1,0.2,1],
+        restitution:0.25, friction:0.5,
+        pos:[0,3,3],
+        kinematic:true
+    })
+
+    phy.add({ name:'ray', type:'ray', begin:[0,-0.2,0], end:[0,-10, 0], parent:'bb', callback:Yoch, visible:true })
+
+    phy.add( {
         type:'mesh',
         shape: model['base'].geometry,
         restitution:0.25, friction:0.5,
@@ -53,6 +64,26 @@ function onComplete2(){
         //density:10
     })
 
+    let z = 0.75
+
+    let terrain = phy.add({
+        type:'terrain',
+        name:'terra',
+
+        uv: 18,
+        pos:[ 0, 1, 4 ] ,
+        size:[ 4, 2, 4 ],
+        sample:[ 32, 32 ],
+        frequency:[0.02*z,0.05*z,0.1*z],
+        level:[ 1.0, 0.5, 0.2 ],
+        expo:2.5,
+        zone:1,
+
+        friction: 0.5,
+        restitution: 0.0,
+
+    })
+
 
     phy.setPostUpdate ( onUp )
 
@@ -60,6 +91,12 @@ function onComplete2(){
 
    
     
+}
+
+function Yoch( o ){
+
+    if(o.hit) phy.log(o.body)//console.log( o )
+
 }
 
 function onUp(){

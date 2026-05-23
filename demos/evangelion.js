@@ -43,13 +43,14 @@ makeTerrain = () => {
         frequency:[0.02*z,0.05*z,0.1*z],
         level:[ 1.0, 0.5, 0.2 ],
         expo:2.5,
+        zone:0.25,
 
         friction: 0.5,
         restitution: 0.0,
 
     })
 
-    let py = terrain.getHeight( 0, 0 )+1
+    let py = terrain.getHeight( 0, 0 )+10
     //if(py<1) py = 1
 
 
@@ -75,17 +76,21 @@ addCharacter = ( py ) => {
         name:'eva',
         callback:end,
         pos:[0,py,0],
+        useImpulse:true,
+        floating:true,
+        isPlayer:true,
     })
 
     phy.follow('eva', { direct:true, simple:true, distance:3, phi:-10, theta:5, decal:[0.3, 0.5, -0.3], fov:75, zoom:1.0 })
-    phy.control('eva')
+    //phy.control('eva')
     phy.setPostUpdate( update )
 
+    
 }
 
 end = ( py ) => {
 
-    
+    //perso.debugMode( true );
     //hub.addCross()
 
 }

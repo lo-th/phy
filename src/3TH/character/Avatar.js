@@ -402,7 +402,7 @@ export class Avatar extends Group {
 
         // head and neck bones
 
-        let ax = -this.headLook[1]*40*torad;
+        /*let ax = -this.headLook[1]*40*torad;
         let ay = -this.headLook[0]*40*torad;
 
         tmpQ.setFromEuler( { _x:ax, _y:0, _z:ay, _order:'XYZ' }, false );
@@ -438,7 +438,7 @@ export class Avatar extends Group {
         tmpP.applyMatrix4( this.eyeBase.matrix );
 
         tmpMtx.lookAt( ER.position, tmpP, UPZ );
-        ER.quaternion.setFromRotationMatrix( tmpMtx ).multiply(Q);
+        ER.quaternion.setFromRotationMatrix( tmpMtx ).multiply(Q);*/
 
     }
 
@@ -647,7 +647,6 @@ export class Avatar extends Group {
 
 
         // animation
-
         this.mixer = new AnimationMixer( this );
         this.animator = new AvatarAnimation( this.mixer );
 
@@ -747,7 +746,12 @@ export class Avatar extends Group {
         if( this.randomSize ) this.setRealSize(this.rand(1,2));
 
 
+
+
+
         //this.add( this.root );
+
+       
 
 
         //setTimeout( this.callback, 100 );
@@ -755,6 +759,7 @@ export class Avatar extends Group {
             this.add( this.root );
             this.root.position.y = this.decalY
             this.callback();
+            this.dispatchEvent({ type: 'Ready', message: "Model is ready" });
         }.bind(this), 100 )
         //this.callback()
 

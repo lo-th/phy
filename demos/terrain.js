@@ -36,7 +36,7 @@ addTerrain = () => {
     	sample: [256, 256],
     	frequency: [0.016,0.05,0.2],
     	expo: 2,
-    	zone:0.5, // physics simulated zone
+    	zone:0.5, // physics simulated zone 
     	uv: 60,
     	island:true,
     	debug:true,

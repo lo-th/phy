@@ -60,11 +60,12 @@ export class Terrain extends Item {
 		}
 
 		if( this.engine !== 'OIMO'){
-			o.zone = o.zone || 0.25
+			//o.zone = o.zone || 0.25
 			//o.debuger = true
 		}
 
 		const t = new Landscape( o );
+		t.mass = 0
 
 		Mat.extendShader( t.material, t.material.onBeforeCompile );
 
