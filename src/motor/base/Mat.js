@@ -283,7 +283,7 @@ export class Mat {
 			beforeCompile = o.beforeCompile || null
 		    if( o.beforeCompile ) delete o.beforeCompile;
 
-			if( o.thickness || o.sheen || o.clearcoat || o.transmission || o.specularColor ) type = 'Physical';
+			if( o.thickness || o.sheen || o.clearcoat || o.transmission || o.specularColor || o.ior ) type = 'Physical';
 
 			if(o.normalScale){
 				if( !o.normalScale.isVector2 ) o.normalScale = new Vector2().fromArray(o.normalScale)

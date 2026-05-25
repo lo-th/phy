@@ -389,7 +389,7 @@ export class Body extends Item {
 		// apply option
 		this.set( o, b )
 
-		//console.log(b)
+		//console.log(name, o.mass, o.density)
 
 	}
 
@@ -478,6 +478,7 @@ export class Body extends Item {
 		    if( o.impulse ){
 		    	if( o.impulseCenter ){ 
 		    		//b.getPositionTo( this.v3 );
+		    		//console.log('impules !!', o.impulse, o.impulseCenter)
 		    		this.v2.fromArray( o.impulseCenter )//.sub( this.v3 );
 		    		b.applyImpulse( this.v3.fromArray( o.impulse ), this.v2 );
 		    		

@@ -415,7 +415,8 @@ export class Body extends Item {
 
 		if( o.massInfo ) this.getMassInfo( b );
 
-		if( o.bullet !== undefined ) b.setCcdEnabled( o.bullet );
+		console.log(b)
+		//if( o.bullet !== undefined ) b.setCcdEnabled( o.bullet );
 
 	}
 

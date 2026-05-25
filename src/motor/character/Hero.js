@@ -365,6 +365,8 @@ export class Hero extends Object3D {
 
 		if( this.globalRay ) this.motor.getGeometryRef( {  ...o, type:'capsule', ray:true,  }, this, this.motor.mat.get('hide') )
 
+		const useCompound = false
+
 		let h = this.height-(2*this.radius)
 	    this.startHeight = h*0.5;
 		this.shapes = [{ type:'sphere', pos:[0,-this.startHeight,0], size:[ this.radius ] }, { type:'sphere', pos:[0,this.startHeight,0], size:[ this.radius ] }]
@@ -376,11 +378,11 @@ export class Hero extends Object3D {
 			pos: o.pos,
 			type: 'character',
 
-			shapeType:'compound',
-			shapes:this.shapes,
-			//shapeType: o.shapeType || 'capsule',
-			//density: 1,//o.density || 1,
+			shapeType: useCompound ? 'compound':'capsule',
+			shapes: useCompound ? this.shapes : null,
+			
 			mass: this.mass,
+
 			friction: o.friction !== undefined ? o.friction : 0.0,//0.5
 			angularFactor:[0,0,0],
 			group: 16,
@@ -391,8 +393,13 @@ export class Hero extends Object3D {
 			massInfo: o.massInfo,
 		}
 
+		const volume = MathTool.getVolume( 'capsule', o.size );
+
 		// lock rotation
 		if( this.motor.engine === 'HAVOK' ) this.phyData['inertia'] = [0,0,0]
+		if( this.motor.engine === 'OIMO' || this.motor.engine === 'RAPIER' ) {
+			this.phyData['density'] = MathTool.densityFromMass( this.mass, volume );
+		}
 
 		if( o.mask ) this.phyData['mask'] = o.mask;
 
@@ -693,7 +700,7 @@ export class Hero extends Object3D {
 
     setMode( name ){
 
-    	if( this.skeletonBody ) this.skeletonBody.setMode( name )
+    	if( this.skeletonBody ) this.skeletonBody.setMode( name );
 
     	//this.skeletonBody = new SkeletonBody( this )
     	//this.model.add( this.skeletonBody )

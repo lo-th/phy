@@ -1120,6 +1120,8 @@ export class Body extends Item {
 		if( b === null ) b = this.byName( o.name );
 		if( b === null ) return;
 
+		if(o.kinematic !== undefined ) b.isKinematic = o.kinematic;
+
 		if( o.getVelocity !== undefined ) b.getVelocity = o.getVelocity;
 
 		if( b.isInstance ){

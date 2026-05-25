@@ -20,7 +20,7 @@
             "car", "buttons", "pinball", "bullet", "build", "skeleton_old", 
              "vehicle3", "mesh", "stacking",  "house", "direct", "nefertiti2",
             "solver", "wall", "skylab", "colors", "blob", "joint_test", "event", "human2",
-            "floating"
+            "floating", "hero"
         ],
         "private": [
             "break_vase", "coin"

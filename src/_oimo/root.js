@@ -119,7 +119,6 @@ export const Shape = oimo.dynamics.rigidbody.Shape;
 export const RayCastClosest = oimo.dynamics.callback.RayCastClosest;
 export const ContactCallback = oimo.dynamics.callback.ContactCallback;
 
-
 /*
 export const Proxy = oimo.collision.broadphase.Proxy;
 export const ProxyPair = oimo.collision.broadphase.ProxyPair;

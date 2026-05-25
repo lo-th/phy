@@ -69,11 +69,11 @@ const addModel = ( type ) => {
         name:'avatar',
         gender:gender,
         callback:done,
-        //mask:2,
         noLOD:true,
- //height: 3,
-        //useImpulse:true,
-        //floating:true,
+        useImpulse:true,
+        floating:true,
+        isPlayer:true,
+        mass:60,
     })
 
 
@@ -86,8 +86,8 @@ const addGui = () => {
 		avatar.setMode( b ? 'ragdoll':'follow' );
 		phy.control( b ? '' : 'avatar' );
 	} );
-	gui.add( setting, 'debug', { } ).onChange( (b)=>{avatar.debugMode(b)} );
-	gui.add( setting, 'height', { min:0.1, max:4.0} ).onChange( (v)=>{avatar.model.setRealSize(v)} );
+	gui.add( setting, 'debug', { } ).onChange( (b)=>{ avatar.debugMode(b) } );
+	gui.add( setting, 'height', { min:0.1, max:4.0} ).onChange( (v)=>{ avatar.model.setRealSize(v) } );
 	gui.add( setting, 'name', { type:'button', values:modelList, selectable:true, h:26, p:0 } ).onChange( addModel );
     /*gui.add( setting, 'auto' ).onChange( (v) => { 
         b1.skeletonBody.setMode(v ? 'ragdoll':'follow' );

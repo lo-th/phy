@@ -14,6 +14,7 @@ function demo() {
 }
 
 const balls = []
+
 function onComplete2(){
 
     const model = phy.getMesh('simple2')

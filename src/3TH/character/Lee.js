@@ -11,7 +11,7 @@ const setting = {
 
 export const Lee = {
 
-    decalY:-0.06,
+    decalY:-0.01,
 
 	isBreath:false,
 	isEyeMove:false,

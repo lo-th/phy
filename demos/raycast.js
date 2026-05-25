@@ -1,7 +1,9 @@
-let ball, raytest, raylist = [];
+let ball, box, raytest, raylist = [];
+let side = 1
 
 const setting = {
-    selfRay: true
+    selfRay: true,
+    speed: 2,
 }
 
 function demo() {
@@ -31,6 +33,7 @@ function demo() {
 
     // or ray can be attach to any mesh
     attachRay( setting.selfRay );
+    rayFilter()
 
     // update after physic step
     phy.setPostUpdate ( up );
@@ -64,7 +67,6 @@ ballContact = ( d ) => {
     if( d.hit < 1 ) ball.material.color.setHex( 0xffffff )
     else ball.material.color.setHex( d.hit ===1 ? 0xFF0000:0xFFFF00  )
 
-    //if( d.hit ) console.log('bob collision on trigger', d )
 }
 
 
@@ -74,7 +76,22 @@ function Yoch( o ){
 
 }
 
-function attachRay( b ){
+const rayFilter = () => {
+
+    box = phy.add({ type:'box', name:'kineBox', size:[0.3,0.01,0.3], pos:[0,3,5], material:'debug', kinematic:true  })
+    phy.add({ name:'ray', type:'ray', begin:[0,0,0], end:[0,-2.9, 0], parent:'kineBox', callback:Yoch, visible:true, mask:1|4 })
+
+    let s = 0.3
+
+    phy.add({ type:'cylinder', size:[s,s], pos:[0,s,5], rot:[90,0,0], mass:1, group:8, material:'concrete'  })
+    phy.add({ type:'sphere', size:[s], pos:[1,s,5], mass:1, group:1, material:'sand'   })
+    phy.add({ type:'sphere', size:[s], pos:[2,s,5], mass:1, group:16, material:'copper'  })
+
+    phy.add({ type:'sphere', size:[s], pos:[-1,s,5], mass:1, group:1, material:'sand'  })
+    phy.add({ type:'sphere', size:[s], pos:[-2,s,5], mass:1, group:16, material:'copper'  })
+}
+
+const attachRay = ( b ) => {
 
     if(b){
 
@@ -106,14 +123,23 @@ function attachRay( b ){
 
     }
 
-    
-
 }
 
 function up () {
 
     // if ball position y is under 10, ball is replaved and velocity reset
     if( ball.position.y<0.34 ) phy.change( { name:'ball', pos: [ math.rand(-0.4,0.4),5,-2.5 ], rot:[math.randInt(-180,180),0,math.randInt(-180,180)], reset:true } )
+
+    let p = box.position.x;
+    if(side > 0){
+        p += setting.speed * 0.01
+        if( p > 3) side = -1
+    } else if(side < 0){
+        p -= setting.speed * 0.01
+        if( p < -3) side = 1
+    }
+
+    phy.change( { name:'kineBox', pos: [p,3,5] } )
 
 }
 
@@ -122,5 +148,6 @@ const addGui = () => {
 
     gui = phy.gui();
     gui.add( setting, 'selfRay',{}).onChange( attachRay );
+    gui.add( setting, 'speed', {min:0.1, max:10});
     
 }

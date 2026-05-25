@@ -3485,7 +3485,7 @@ let Mat$3 = class Mat {
 			beforeCompile = o.beforeCompile || null;
 		    if( o.beforeCompile ) delete o.beforeCompile;
 
-			if( o.thickness || o.sheen || o.clearcoat || o.transmission || o.specularColor ) type = 'Physical';
+			if( o.thickness || o.sheen || o.clearcoat || o.transmission || o.specularColor || o.ior ) type = 'Physical';
 
 			if(o.normalScale){
 				if( !o.normalScale.isVector2 ) o.normalScale = new three.Vector2().fromArray(o.normalScale);
@@ -8200,6 +8200,8 @@ class Body extends Item {
 
 		if( b === null ) b = this.byName( o.name );
 		if( b === null ) return;
+
+		if(o.kinematic !== undefined ) b.isKinematic = o.kinematic;
 
 		if( o.getVelocity !== undefined ) b.getVelocity = o.getVelocity;
 
@@ -15613,7 +15615,7 @@ const setting$1 = {
 
 const Lee$1 = {
 
-    decalY:-0.06,
+    decalY:-0.01,
 
 	isBreath:false,
 	isEyeMove:false,
@@ -17464,11 +17466,11 @@ class Hero extends three.Object3D {
 			pos: o.pos,
 			type: 'character',
 
-			shapeType:'compound',
-			shapes:this.shapes,
-			//shapeType: o.shapeType || 'capsule',
-			//density: 1,//o.density || 1,
+			shapeType: 'capsule',
+			shapes: null,
+			
 			mass: this.mass,
+
 			friction: o.friction !== undefined ? o.friction : 0.0,//0.5
 			angularFactor:[0,0,0],
 			group: 16,
@@ -17479,8 +17481,13 @@ class Hero extends three.Object3D {
 			massInfo: o.massInfo,
 		};
 
+		const volume = MathTool.getVolume( 'capsule', o.size );
+
 		// lock rotation
 		if( this.motor.engine === 'HAVOK' ) this.phyData['inertia'] = [0,0,0];
+		if( this.motor.engine === 'OIMO' || this.motor.engine === 'RAPIER' ) {
+			this.phyData['density'] = MathTool.densityFromMass( this.mass, volume );
+		}
 
 		if( o.mask ) this.phyData['mask'] = o.mask;
 
