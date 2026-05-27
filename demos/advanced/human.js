@@ -11,6 +11,7 @@ const option = {
     Skeleton:true,
     eyeLook:[0,0],
     headLook:[0,0.15],
+    LOD:false,
 }
 
 demo = () => {
@@ -163,7 +164,7 @@ const Character = ( num = 1 ) => {
             //randomSize:true,
             
             morph:true,
-            noLOD:true,
+            autoLOD:false,
 
             useImpulse:true,
             floating:true,
@@ -206,7 +207,7 @@ const Character = ( num = 1 ) => {
         speech.dispatch = (seq, time)=>{ player.model.speak( seq, time); } 
 
         speech.content.style.left = '40px'
-        speech.content.style.bottom = '386px'
+        speech.content.style.bottom = '416px'
     } else {
 
         phy.follow( 'c_0', { direct:true, simple:true, zoomUp:true, ...oldControl })
@@ -229,6 +230,7 @@ const addGui = () => {
     gui.add('button',{name:'Random', h:30, radius:4}).onChange( ()=>{Character()} )
     gui.add( option, 'Debug',{type:'bool'}).onChange( showDebug )
     gui.add( option, 'Skeleton',{type:'bool'}).onChange( setSkeleton )
+    gui.add( option, 'LOD',{type:'bool'}).onChange( setLOD )
 
     gui.add( option, 'eyeLook',{ rename:'eye look', type:'pad', name:'type', min:-1, max:1, w:100, mode:1 }).onChange( bodyLook );
     gui.add( option, 'headLook',{ rename:'head look',type:'pad', name:'type', min:-1, max:1, w:100, mode:1 }).onChange( bodyLook );
@@ -266,10 +268,14 @@ const resize = ( v ) => {
     if(player) player.setHeight( v );
 }
 
+const setLOD = ( v ) => {
+    if(!player) return
+    player.model.setLevel( v ? 0 : 1 );
+}
+
 const showDebug = (debug) => {
     if(!player) return
     player.debugMode( debug );
-//player.model.addHelper();
 }
 
 const setSkeleton = ( b ) => {

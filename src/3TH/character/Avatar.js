@@ -183,7 +183,6 @@ export class Avatar extends Group {
         this.haveBlink = this.ref.haveBlink || false;
 
         this.haveLOD = this.ref.haveLOD || false;
-        if( o.noLOD ) this.haveLOD = false;
         
         this.lod = -1;
 

@@ -82,6 +82,8 @@ export class Engine {
 		this.pool = Pool;
 		this.pool.initLzma();
 
+		this.interpolate = false
+
 
 		//console.log(MathTool.pow(25.66,3), Math.pow(25.66,3))
 		//this.RayCar = RayCar;
@@ -381,7 +383,7 @@ export class Engine {
 
 		this.worldScaler = ( o ) => {
 
-			const w = this.ws
+			const w = this.ws;
 
 			if(o.pos) o.pos = MathTool.worldscale( o.pos, w );
 			if(o.localPos) o.localPos = MathTool.worldscale(o.localPos, w );
@@ -744,7 +746,7 @@ export class Engine {
 	                    n.async = true;
 	                    n.innerHTML = xml.responseText;
 
-	                    console.log( xml.responseText)
+	                    //console.log( xml.responseText)
 	                    //this.extraCode.push(n)
 	                    document.getElementsByTagName('head')[0].appendChild(n);
 	                    //document.body.appendChild(n);

@@ -133,6 +133,11 @@ export class Body extends Item {
 
         //console.log( o.mass, density )
 
+        /*g.setCollisionGroups(o.group)
+        g.setSolverGroups(o.group);
+        g.setActiveCollisionTypes(o.mask)
+        */
+
         g.setDensity( density );
 
 
@@ -208,7 +213,8 @@ export class Body extends Item {
 
 		if( o.shapeType ) o.type = o.shapeType;
 
-		
+		if( o.group !== undefined ) o.group = this.type === 'body' ? 1 : 2;
+		if( o.mask !== undefined ) o.mask = -1;
 
 		switch( this.type ){
 			case 'body':
@@ -225,6 +231,8 @@ export class Body extends Item {
 			bodyDesc = RAPIER.RigidBodyDesc.fixed()
 			break;
 		}
+
+
 
 		//console.log(bodyDesc)
 
@@ -415,7 +423,7 @@ export class Body extends Item {
 
 		if( o.massInfo ) this.getMassInfo( b );
 
-		console.log(b)
+		//console.log(b)
 		//if( o.bullet !== undefined ) b.setCcdEnabled( o.bullet );
 
 	}

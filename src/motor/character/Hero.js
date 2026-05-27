@@ -23,6 +23,7 @@ export class Hero extends Object3D {
 
 		this._timeScale = 1
 		this.matrixAutoUpdate = false;
+		this.autoLOD = o.autoLOD || false;
 
 		this.motor = motor;
 		this.utils = this.motor.utils;
@@ -389,7 +390,6 @@ export class Hero extends Object3D {
 			mask: 1|2|16,
 			regular:true,
 			getVelocity:true,
-
 			massInfo: o.massInfo,
 		}
 
@@ -680,9 +680,11 @@ export class Hero extends Object3D {
     }
 
     removeSkeleton(){
+
     	if( !this.skeletonBody ) return
     	this.skeletonBody.dispose()
         this.skeletonBody = null;
+
     }
 
     debugMode( v = false ){
@@ -719,7 +721,6 @@ export class Hero extends Object3D {
 			randomSize:o.randomSize || false,
 			callback:this.callback,
 			fixWeight: this.fixWeight,
-			noLOD : o.noLOD || false,
 		});
 
 		this.model.addEventListener('Ready', () =>{ 
@@ -734,8 +735,6 @@ export class Hero extends Object3D {
 			this.timeScale = 2
 			if(this.isPlayer) this.addSkeleton();
 		});
-
-		//if(this.isPlayer) this.addSkeleton();
 
 	}
 
@@ -826,6 +825,10 @@ export class Hero extends Object3D {
 	}
 
 	getDistanceToCamera () {
+
+		return
+
+		if( !this.autoLOD ) return
 
 		if( !this.model ) return
 		if( !this.model.haveLOD ) return

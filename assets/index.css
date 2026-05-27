@@ -56,3 +56,15 @@ body{
 	white-space: nowrap;
 	text-underline-offset: 6px;
 }
+
+
+ /* loading keyframe */
+@keyframes loading {
+    0% {  transform: rotate(0); }
+    100% { transform: rotate(360deg); }
+}
+
+/* apply the loading keyframe to element */
+.rotate{
+    animation: loading 1s linear infinite;
+}

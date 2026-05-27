@@ -2515,7 +2515,7 @@ class PA {
 async function WA(I2) {
   if (A !== void 0)
     return A;
-  I2 !== void 0 && (Object.getPrototypeOf(I2) === Object.prototype ? {module_or_path: I2} = I2 : console.warn("using deprecated parameters for the initialization function; pass a single object instead")), I2 === void 0 && (I2 = new URL("rapier_wasm3d_bg.wasm", "<deleted>"));
+  I2 !== void 0 && (Object.getPrototypeOf(I2) === Object.prototype ? {module_or_path: I2} = I2 : console.log()), I2 === void 0 && (I2 = new URL("rapier_wasm3d_bg.wasm", "<deleted>"));
   const C2 = function() {
     const I3 = {wbg: {}};
     return I3.wbg.__wbg_bind_c8359b1cba058168 = function(A2, I4, C3, Q2) {

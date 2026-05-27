@@ -63,11 +63,12 @@ export class Ray extends Item {
 				let name = hit.collider._parent.name
 				if( !r.selfHit && r.parent && name === r.parent ) return true; // ignore parent body
 
+
 				if(!first) return true;
 				first = false;
 
 				AR[n] = 1
-				let hitPoint = this.ray.pointAt(hit.toi)
+				let hitPoint = this.ray.pointAt(hit.timeOfImpact)
 
 				ph = [ hitPoint.x, hitPoint.y, hitPoint.z ]
 
@@ -76,13 +77,15 @@ export class Ray extends Item {
 				AR[n+3] = pp[0][1]
 				AR[n+4] = pp[0][2]
 
-				AR[n+5] = hitPoint.x
-				AR[n+6] = hitPoint.y
-				AR[n+7] = hitPoint.z
+				AR[n+5] = ph[0]
+				AR[n+6] = ph[1]
+				AR[n+7] = ph[2]
 
 				AR[n+8] = hit.normal.x
 				AR[n+9] = hit.normal.y
 				AR[n+10] = hit.normal.z
+
+				console.log(hit.collider._parent)
 
 				root.reflow.ray[i] = hit.collider._parent.name
 			})
@@ -119,7 +122,10 @@ export class ExtraRay {
 	    this.type = 'ray'
 	    this.name = o.name
 
-	    this.group = o.group !== undefined || 0xfffffffff
+	    this.group = o.group !== undefined ? o.group : 0//1 << 4
+	    this.mask = o.mask !== undefined ? o.mask : -1//2//0xFFFFFFFF
+
+	    //this.group = o.group !== undefined || 0xfffffffff
 	    this.parent = o.parent || ''
 
 	    this.selfHit = o.selfHit || false;

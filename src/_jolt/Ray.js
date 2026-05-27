@@ -52,11 +52,20 @@ export class Ray extends Item {
 
 		// Create ray cast settings (e.g. if we want back face culling)
 		this.ray_settings = new Jolt.RayCastSettings;
-		this.ray_settings.mTreatConvexAsSolid = false;
+		//this.ray_settings.mTreatConvexAsSolid = false;
 
-		// Perform the ray cast as if we were a moving object
+		let group = 1
+		let mask = -1
+
+		//this.bp_filter = new Jolt.BroadPhaseLayerInterfaceMask(2);
+		//this.object_filter = Jolt.ObjectLayerPairFilterMask.prototype.sGetObjectLayer(group, mask);//new Jolt.DefaultObjectLayerFilter(root.world.ObjectLayerPairFilterMask(), mask );
+
 		this.bp_filter = new Jolt.DefaultBroadPhaseLayerFilter(root.world.GetObjectVsBroadPhaseLayerFilter(), root.LAYER_MOVING  );
 		this.object_filter = new Jolt.DefaultObjectLayerFilter(root.world.GetObjectLayerPairFilter(), root.LAYER_ALL );
+
+		// Perform the ray cast as if we were a moving object
+		//this.bp_filter = new Jolt.DefaultBroadPhaseLayerFilter(root.world.GetObjectVsBroadPhaseLayerFilter(), root.LAYER_MOVING  );
+		//this.object_filter = new Jolt.DefaultObjectLayerFilter(root.world.GetObjectLayerPairFilter(), root.LAYER_ALL );
 		this.body_filter = new Jolt.BodyFilter(); // We don't want to filter out any bodies
 		this.shape_filter = new Jolt.ShapeFilter(); // We don't want to filter out any shapes
 

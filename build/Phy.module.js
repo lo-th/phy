@@ -1502,7 +1502,7 @@ const Version = {
     HAVOK: '1.3.11',
     // young
     JOLT: '0.39.0',
-    RAPIER: '0.20.0',
+    RAPIER: '0.19.3',
     // old
     OIMO: '1.2.4',
     AMMO: '3.2.6',
@@ -7165,10 +7165,7 @@ class Body extends Item {
 
 			if( b.sleep && !b.isKinematic ) continue; 
 
-			
-
 			// update position / rotation
-
 			b.position.fromArray( AR, n + 1 );
 	        b.quaternion.fromArray( AR, n + 4 );
 
@@ -14727,7 +14724,7 @@ const Human = {
     haveLOD:true,
     anisotropy:'max',
 
-    levelHigh:['body', 'Head', 'crane', 'eyelash', 'eyebrow', 'tear', 'eye_l', 'eye_r', 'eye_l_s', 'eye_r_s'],
+    levelHigh:['body', 'Head', 'crane', 'eyelash', 'eyebrow', 'tear', 'eye_l', 'eye_r', 'eye_l_s', 'eye_r_s', 'socks'],
     levelLow:['body_low'],
     
     levelHair:['hair_wom', 'hair_man'],
@@ -15963,7 +15960,6 @@ class Avatar extends Group$1 {
         this.haveBlink = this.ref.haveBlink || false;
 
         this.haveLOD = this.ref.haveLOD || false;
-        if( o.noLOD ) this.haveLOD = false;
         
         this.lod = -1;
 
@@ -17093,6 +17089,7 @@ class Hero extends Object3D {
 
 		this._timeScale = 1;
 		this.matrixAutoUpdate = false;
+		this.autoLOD = o.autoLOD || false;
 
 		this.motor = motor;
 		this.utils = this.motor.utils;
@@ -17455,7 +17452,6 @@ class Hero extends Object3D {
 			mask: 1|2|16,
 			regular:true,
 			getVelocity:true,
-
 			massInfo: o.massInfo,
 		};
 
@@ -17741,9 +17737,11 @@ class Hero extends Object3D {
     }
 
     removeSkeleton(){
+
     	if( !this.skeletonBody ) return
     	this.skeletonBody.dispose();
         this.skeletonBody = null;
+
     }
 
     debugMode( v = false ){
@@ -17780,7 +17778,6 @@ class Hero extends Object3D {
 			randomSize:o.randomSize || false,
 			callback:this.callback,
 			fixWeight: this.fixWeight,
-			noLOD : o.noLOD || false,
 		});
 
 		this.model.addEventListener('Ready', () =>{ 
@@ -17795,8 +17792,6 @@ class Hero extends Object3D {
 			this.timeScale = 2;
 			if(this.isPlayer) this.addSkeleton();
 		});
-
-		//if(this.isPlayer) this.addSkeleton();
 
 	}
 
@@ -17888,23 +17883,7 @@ class Hero extends Object3D {
 
 	getDistanceToCamera () {
 
-		if( !this.model ) return
-		if( !this.model.haveLOD ) return
-
-		const camera = this.motor.getCamera();
-		this.tmpV1.setFromMatrixPosition( camera.matrixWorld );
-		//this.tmpV1.copy( this.motor.getCurrentCharacterPosition() );
-		this.tmpV2.copy( this.position );//setFromMatrixPosition( this.matrixWorld );
-		//this.tmpV3.copy( this.motor.getCurrentCharacterPosition() );
-
-		let distance = this.tmpV1.distanceTo( this.tmpV2 ) / camera.zoom;
-
-		//console.log(distance)
-
-		let level = distance > 5 ? 0 : 1;
-		//if( level !== this.lod ){
-		//	this.lod = level;
-		this.model.setLevel( level );
+		return
 		
 	}
 
@@ -26654,6 +26633,8 @@ class Engine {
 		this.pool = Pool;
 		this.pool.initLzma();
 
+		this.interpolate = false;
+
 
 		//console.log(MathTool.pow(25.66,3), Math.pow(25.66,3))
 		//this.RayCar = RayCar;
@@ -27306,7 +27287,7 @@ class Engine {
 	                    n.async = true;
 	                    n.innerHTML = xml.responseText;
 
-	                    console.log( xml.responseText);
+	                    //console.log( xml.responseText)
 	                    //this.extraCode.push(n)
 	                    document.getElementsByTagName('head')[0].appendChild(n);
 	                    //document.body.appendChild(n);

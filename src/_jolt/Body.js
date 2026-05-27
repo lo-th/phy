@@ -429,8 +429,11 @@ export class Body extends Item {
 			bcs.mAngularDamping = 0.05;
 		}*/
 
+		//console.log(bcs)
 
-		
+
+		bcs.set_mObjectLayer(this.setFilter(o))
+
 
 		//if( o.kinematic !== undefined ) console.log( bcs )
 
@@ -476,6 +479,16 @@ export class Body extends Item {
 
 	}
 
+	setFilter( o ){
+
+		if(!o.mask) o.mask = -1
+		// collid with
+		if(!o.group) o.group = this.type === 'body' ? 1 : 2
+
+		return Jolt.ObjectLayerPairFilterMask.prototype.sGetObjectLayer(o.group, o.mask);
+
+	}
+
 
 	set ( o = {}, b = null ) {
 
@@ -491,7 +504,7 @@ export class Body extends Item {
 
 	    // COLLISION GROUP
 
-	    if(o.group !== undefined && o.mask !== undefined ){
+	    /*if(o.group !== undefined && o.mask !== undefined ){
 	    	o.filter = [o.group, o.mask]
 	    }
 
@@ -513,11 +526,11 @@ export class Body extends Item {
 
 	    	//console.log(cg)
 
-	    	cg.SetGroupFilter( root.groupFilter ); //  GroupFilter define in main engine
+	    /*	cg.SetGroupFilter( root.groupFilter ); //  GroupFilter define in main engine
 	    	cg.SetGroupID( o.filter[0] );
 	    	cg.SetSubGroupID( o.filter[1] );
 
-	    }
+	    }*/
 
 	    //----------------
 	    //  TYPE
@@ -669,6 +682,8 @@ export class Body extends Item {
 		//if( o.inertiaScale !== undefined ) b.G  etMotionProperties().MultiplyWorldSpaceInverseInertiaByVector(b.GetID(), this.v2.fromArray( [o.inertiaScale, o.inertiaScale, o.inertiaScale ] ))
 
 	}
+
+	
 
 	setMass( b, mass ) {
 		b.GetMotionProperties().SetInverseMass( 1.0 / mass );

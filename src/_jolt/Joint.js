@@ -80,7 +80,7 @@ export class Joint extends Item {
 		let b1 = this.byName(o.b1);
 		let b2 = this.byName(o.b2);
 
-		console.log(b1)
+		//console.log(b1)
 
 		let b1Pos = [0,0,0]
 		let b2Pos = [0,0,0]

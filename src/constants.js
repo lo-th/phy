@@ -6,7 +6,7 @@ export const Version = {
     HAVOK: '1.3.11',
     // young
     JOLT: '0.39.0',
-    RAPIER: '0.20.0',
+    RAPIER: '0.19.3',
     // old
     OIMO: '1.2.4',
     AMMO: '3.2.6',

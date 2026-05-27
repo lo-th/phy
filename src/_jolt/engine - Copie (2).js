@@ -33,10 +33,6 @@ let substep = 1;
 let broadphase = 2;
 let fixe = true;
 
-let isLoopRunning = false;
-let accumulator = 0
-let maxAccumulator = timestep * 10;
-
 let isTimeout = false;
 let outsideStep = false;
 let isBuffer = false;
@@ -156,22 +152,15 @@ export class engine {
 		isStop = false;
 		isReset = false;
 		root.tmpStep = 0;
-		// fixe unpause bad timing
-		lastTime = Time.now()-interval;
+		lastTime = 0;
 
 		if( outsideStep ) return
 
-		if( isLoopRunning ) return;
-		lastTime = performance.now();
-	    accumulator = 0;
-	    isLoopRunning = true;
-	    engine.update();
-
-		/*if( isTimeout ){
+		if( isTimeout ){
 		    if( timeout ) clearTimeout( timeout ); 
 			timeout = setTimeout( engine.step, 0 );
 		}
-		else interut = setInterval( engine.step, interval );*/
+		else interut = setInterval( engine.step, interval );
 		
 
 	}
@@ -213,10 +202,6 @@ export class engine {
 	    root.world = new Jolt.JoltInterface( settings );
 		Jolt.destroy(settings);
 
-		//console.log(root.world)
-
-		console.log(Jolt)
-
 		root.physicsSystem = root.world.GetPhysicsSystem();
 		root.bodyInterface = root.physicsSystem.GetBodyInterface();
 
@@ -236,6 +221,7 @@ export class engine {
 
 		//console.log(root.groupFilter)
 		//console.log(root.settings)
+		//console.log(root.world)
 		//console.log(root.bodyInterface)
 		//console.log(root.physicsSystem)
 		//console.log(root.physicsSystem.GetBroadPhaseQuery())
@@ -268,9 +254,6 @@ export class engine {
 		settings.mObjectLayerPairFilter = objectFilter;
 		settings.mBroadPhaseLayerInterface = bpInterface;
 		settings.mObjectVsBroadPhaseLayerFilter = new Jolt.ObjectVsBroadPhaseLayerFilterMask(bpInterface);
-
-		root.objectFilter = objectFilter
-		root.bpInterface = bpInterface
     }
 
     static clearWorld () {
@@ -320,7 +303,7 @@ export class engine {
 
 		root.tmpStep = 1;
 
-		/*engine.dispatch();
+		engine.dispatch();
 
 		if( outsideStep ) return;//engine.step()
 
@@ -333,38 +316,8 @@ export class engine {
             if( delay < 0 ) delay = 0;
             timeout = setTimeout( engine.step, delay );
 
-		}*/
+		}
 
-	}
-
-	static update() {
-
-		if (outsideStep) return;
-	    if (!isLoopRunning || isStop) return;
-
-	    const now = performance.now();
-	    const frameTime = (now - lastTime) / 1000;
-	    lastTime = now;
-
-	    //
-
-	    accumulator += frameTime;
-
-	    // Prévenir le "spiral of death" en cas de lag prolongé
-	    if (accumulator > maxAccumulator) accumulator = maxAccumulator;
-
-	    while (accumulator >= timestep) {
-	    	engine.getFps(now)
-	        engine.step(timestep);
-	        accumulator -= timestep;
-	    }
-
-	    // Scheduling universel (marche en Worker & Main Thread)
-	    setTimeout(engine.update, 0);
-	}
-
-	static getFps ( now ){
-		if ( now - 1000 > t.tmp ){ t.tmp = now; root.reflow.stat.fps = t.n; t.n = 0; }; t.n++;
 	}
 
 	static step ( stamp ) {
@@ -372,25 +325,12 @@ export class engine {
 		if( isReset ) engine.endReset();
 		if( isStop || root.tmpStep >= 2 ) return;
 
-		engine.dispatch()
-
 		root.tmpStep = 2;
 
-		if (outsideStep){
-			const now = stamp || performance.now();
-			root.ms = now - lastTime;
-			root.delta = root.ms / 1000;
-			lastTime = now;
-			engine.getFps(now)
-		}else{
-			root.ms = stamp * 1000;
-	        root.delta = stamp; // Maintenant toujours fixe
-		}
-
-		/*startTime = stamp || Time.now();
+		startTime = stamp || Time.now();
 		root.ms = startTime - lastTime;
 		root.delta = root.ms / 1000;
-		lastTime = startTime;*/
+		lastTime = startTime;
 
 		//root.deltaTime = fixe ? timestep / substep : root.delta / substep
 		root.deltaTime = fixe ? timestep : root.delta;
@@ -409,12 +349,7 @@ export class engine {
 		engine.stepItems();
 
 		// get simulation stat
-		/*if ( startTime - 1000 > t.tmp ){ t.tmp = startTime; root.reflow.stat.fps = t.n; t.n = 0; }; t.n++;
-		root.reflow.stat.ms = root.ms;
-		root.reflow.stat.delta = root.delta;*/
-
-		// get simulation stat
-		
+		if ( startTime - 1000 > t.tmp ){ t.tmp = startTime; root.reflow.stat.fps = t.n; t.n = 0; }; t.n++;
 		root.reflow.stat.ms = root.ms;
 		root.reflow.stat.delta = root.delta;
 
@@ -472,7 +407,6 @@ export class engine {
 	static stop () {
 
 		isStop = true;
-		isLoopRunning = false;
 
 		if( outsideStep ) return;
 		if( timeout ) clearTimeout( timeout );

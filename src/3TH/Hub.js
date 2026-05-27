@@ -197,7 +197,8 @@ export class Hub {
 
         loader = document.createElement( 'div' );
         loader.style.cssText = "position:absolute; top:50%; left:50%; width:60px; height:60px; margin-left:-30px; margin-top:-30px; display:block; ";
-        loader.innerHTML = this.miniLoader( '#000' )
+        loader.classList.add('rotate');
+        loader.innerHTML = this.miniLoader( color )
         content.appendChild( loader );
  
         isDisplay = true
@@ -306,8 +307,14 @@ export class Hub {
         content.appendChild( statistics )
 
         Pool.setLoadEvent(
-            function(){ loader.style.display = 'block'; },
-            function(){ loader.style.display = 'none'; }
+            ()=>{ 
+                loader.classList.add('rotate');
+                loader.style.display = 'block'; 
+            },
+            ()=>{ 
+                loader.classList.remove('rotate');
+                loader.style.display = 'none';
+            }
         )
 
         /*let logo = `<svg xmlns='http://www.w3.org/2000/svg' version='1.1' xmlns:xlink='http://www.w3.org/1999/xlink' style='pointer-events:none;' 
@@ -362,7 +369,7 @@ export class Hub {
         }
 
         menu = document.createElement( 'div' );
-        menu.style.cssText = 'position:absolute; top:24px; background:'+bg+'; left:'+margin+'px; display:flex; align-self: stretch; justify-content: flex-start; gap: 0px 6px; align-items:baseline; '
+        menu.style.cssText = 'position:absolute; top:24px; background:'+bg+'; height:20px; left:'+margin+'px; display:flex; align-self:stretch; justify-content:flex-end; gap: 0px 6px; align-items:stretch;  '
         content.appendChild( menu );
 
         downMenu = document.createElement( 'div' );
@@ -404,7 +411,11 @@ export class Hub {
 
         title = document.createElement( 'div' );
         title.style.cssText = Styles.menuName;
-        title.innerHTML = Hub.miniIcon('logo', color );
+        title.style.fontSize = '20px'
+       //title.style.lineHeight = '40px'
+        title.style.padding = '0px 10px';
+        title.style.margin = '-4px 0px 0px 3px'
+        title.innerHTML = 'φ'//Hub.miniIcon('logo', color );
         title.id = 'home'
 
         engine = document.createElement( 'div' );
@@ -494,10 +505,11 @@ export class Hub {
         <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
         viewBox="0 0 100 100" enable-background="new 0 0 0 0" xml:space="preserve">
         <path id="svgLoader" fill="${color}" d="M73,50c0-12.7-10.3-23-23-23S27,37.3,27,50 M30.9,50c0-10.5,8.5-19.1,19.1-19.1S69.1,39.5,69.1,50">
-        <animateTransform attributeName="transform" attributeType="XML" type="rotate" dur="1s" from="0 50 50" to="360 50 50" repeatCount="indefinite" />
         </path></svg>
         `
     }
+
+    //<animateTransform attributeName="transform" attributeType="XML" type="rotate" dur="1s" from="0 50 50" to="360 50 50" repeatCount="indefinite" />
 
     static miniIcon( name, color ){
 
@@ -821,27 +833,27 @@ export class Hub {
             if(isLiner){ 
                 target.style.textDecoration = 'underline '+ color;
             } else {
-                if(target.id === 'home'){
+                /*if(target.id === 'home'){
                     document.querySelector("#svgLogo").setAttributeNS(null, 'stroke-width', 4 );
-                } else {
+                } else {*/
                     target.style.fontWeight = 500;
                     if( target.id==='PHYSX' || target.id==='HAVOK' ) target.style.fontWeight = 700;
                     target.style.letterSpacing = '-0.3px'
                     target.style.wordSpacing = '-0.3px'
-                }
+                //}
             }
         } else {
             if(isLiner){ 
                 target.style.textDecoration = 'none';
             } else {
-                if(target.id === 'home'){
+                /*if(target.id === 'home'){
                     document.querySelector("#svgLogo").setAttributeNS(null, 'stroke-width', 3 );
-                } else {
+                } else {*/
                     target.style.fontWeight = 400;
                     if( target.id==='PHYSX' || target.id==='HAVOK' ) target.style.fontWeight = 600;
                     target.style.letterSpacing = 'normal'
                     target.style.wordSpacing = 'normal'
-                }
+                //}
             }
         }
     }

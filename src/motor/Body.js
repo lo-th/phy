@@ -98,10 +98,7 @@ export class Body extends Item {
 
 			if( b.sleep && !b.isKinematic ) continue; 
 
-			
-
 			// update position / rotation
-
 			b.position.fromArray( AR, n + 1 );
 	        b.quaternion.fromArray( AR, n + 4 );
 

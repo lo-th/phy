@@ -7,9 +7,9 @@ export const contactmap = new Map();
 export const root = {
 
 	// Object layers
-	LAYER_NON_MOVING: 0,
+	LAYER_NON_MOVING: 2,
 	LAYER_MOVING: 1,
-	LAYER_ALL: 0|1,
+	LAYER_ALL: 1|2,
 
 	Ar:null, 
 	ArPos: {},
@@ -17,6 +17,9 @@ export const root = {
 	ms:0,
 	deltaTime : 0,
 	invDelta : 0,
+
+	objectFilter:null,
+	bpInterface:null,
 
 	//settings:null,
 	physicsSystem:null,

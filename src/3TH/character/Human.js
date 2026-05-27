@@ -47,7 +47,7 @@ export const Human = {
     haveLOD:true,
     anisotropy:'max',
 
-    levelHigh:['body', 'Head', 'crane', 'eyelash', 'eyebrow', 'tear', 'eye_l', 'eye_r', 'eye_l_s', 'eye_r_s'],
+    levelHigh:['body', 'Head', 'crane', 'eyelash', 'eyebrow', 'tear', 'eye_l', 'eye_r', 'eye_l_s', 'eye_r_s', 'socks'],
     levelLow:['body_low'],
     
     levelHair:['hair_wom', 'hair_man'],

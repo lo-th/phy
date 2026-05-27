@@ -80,6 +80,7 @@ let isExternEditor = false
 
 let stats = null;
 let maxFps = 60;
+let timer;
 
 let groundColor = 0x808080
 let groundAutoColor = true;
@@ -192,7 +193,6 @@ let script = null
 let isLoadCode = true
 let needResize = true
 
-//const timer = new Timer(60)
 const size = { w:0, h:0, r:0, left:0, px:1 }
 const tm = { now:0, then:0, inter: 1000/60, tmp:0, n:0, fps:0, elapsed:0, delta:0 }
 
@@ -493,6 +493,9 @@ const init = async () => {
 	size.r = size.w / size.h;
 	size.px = pixelRatio;
 
+	timer = new THREE.Timer();
+	timer.connect( document );
+
 	// RENDERER
 
 	if( isWebGPU ){
@@ -503,13 +506,13 @@ const init = async () => {
 	} else {
 		renderer = new THREE.WebGLRenderer({ 
 			antialias:antialias, 
-			powerPreference:powerPreference,
-			alpha: false,
+			//powerPreference:powerPreference,
+			/*alpha: false,
 		    depth: true,
 		    stencil: true,
 		    premultipliedAlpha: true,
 		    preserveDrawingBuffer: false,
-		    failIfMajorPerformanceCaveat: false,
+		    failIfMajorPerformanceCaveat: false,*/
 		})
 	}
 	
@@ -1115,6 +1118,8 @@ const renderGPU = ( stamp = 0 ) => {
 
 const render = ( stamp = 0 ) => {
 
+
+
 	update( stamp );
 
 	// for external update
@@ -1126,18 +1131,19 @@ const render = ( stamp = 0 ) => {
 	
     if(testGPU) Motor.stats.upGpu()
 
-
 	loop = requestAnimationFrame( render );
 
 }
 
 const update = ( stamp = 0 ) => {
 
+	timer.update(stamp);
+
 	// TIME
 	tm.now = stamp
-	tm.delta = (tm.now - tm.then)/1000;
+	tm.delta = timer.getDelta()//(tm.now - tm.then)/1000;
 	tm.then = tm.now;
-	tm.elapsed += tm.delta;
+	tm.elapsed = timer.getElapsed()//+= tm.delta;
 
 	if( needResize ) doResize()
 
