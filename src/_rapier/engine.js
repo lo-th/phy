@@ -118,7 +118,7 @@ export class engine {
 		substep = o.substep || 1;
 		fixe = o.fixe !== undefined ? o.fixe : true;
 
-		console.log(substep)
+		//console.log(substep)
 
 		root.timestep = timestep;
 
@@ -166,13 +166,17 @@ export class engine {
 	static initWorld() {
 
     	root.world = new RAPIER.World( root.gravity )
-		root.world.maxStabilizationIterations = 1
-		root.world.maxVelocityFrictionIterations = 8//8
-		root.world.maxPositionIterations = 1
-		root.world.maxVelocityIterations = 4 //4
+		//root.world.maxStabilizationIterations = 1
+		//root.world.maxVelocityFrictionIterations = 8//8
+		//root.world.maxPositionIterations = 1
+		//root.world.maxVelocityIterations = 4 //4
+		root.world.lengthUnit = 1
 		root.world.timestep = timestep / substep
+		root.world.numInternalPgsIterations = 1//substep//1
+		root.world.maxCcdSubsteps = 1//substep//1
+		root.numSolverIterations = 4
 
-		//console.log( root.world )
+		console.log( root.world )
 
     }
 

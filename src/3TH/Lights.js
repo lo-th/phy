@@ -36,7 +36,7 @@ export class Lights {
     	renderer = Renderer;
     	scene = Scene;
 
-    	console.log(renderer)
+    	//console.log(renderer)
 
     	Lights.add({ 
 			type:'direct', name:'sun',
