@@ -22,6 +22,8 @@ demo = () => {
         jointVisible:true
 	})
 
+    phy.getUser().activeGachette();
+
 	phy.load(['./assets/models/pinball.glb'], onComplete )
 
 }
@@ -323,10 +325,10 @@ update = () => {
     let r = []
 
     let dt = phy.getDelta()
-    let key = phy.getKey2()
+    let key = phy.getKey()
 
-    let vl = key[0]
-    let vr = key[1]
+    let vl = key[8]
+    let vr = key[9]
     let torque = 300
     let mod = 'force'
     

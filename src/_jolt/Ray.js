@@ -39,6 +39,8 @@ export class Ray extends Item {
 
 	}
 
+	
+
 	init () {
 
 		if( this.initRay ) return;
@@ -55,19 +57,22 @@ export class Ray extends Item {
 		//this.ray_settings.mTreatConvexAsSolid = false;
 
 		let group = 1
-		let mask = -1
+		let mask =  -1
 
 		//this.bp_filter = new Jolt.BroadPhaseLayerInterfaceMask(2);
 		//this.object_filter = Jolt.ObjectLayerPairFilterMask.prototype.sGetObjectLayer(group, mask);//new Jolt.DefaultObjectLayerFilter(root.world.ObjectLayerPairFilterMask(), mask );
 
-		this.bp_filter = new Jolt.DefaultBroadPhaseLayerFilter(root.world.GetObjectVsBroadPhaseLayerFilter(), root.LAYER_MOVING  );
-		this.object_filter = new Jolt.DefaultObjectLayerFilter(root.world.GetObjectLayerPairFilter(), root.LAYER_ALL );
+		//this.bp_filter = new Jolt.DefaultBroadPhaseLayerFilter(root.world.GetObjectVsBroadPhaseLayerFilter(), root.LAYER_MOVING  );
+		//this.bp_filter = new Jolt.DefaultBroadPhaseLayerFilter(new Jolt.ObjectVsBroadPhaseLayerFilterMask(), mask  );
+		//this.object_filter = new Jolt.DefaultObjectLayerFilter(root.world.GetObjectLayerPairFilter(), root.LAYER_ALL );
 
 		// Perform the ray cast as if we were a moving object
-		//this.bp_filter = new Jolt.DefaultBroadPhaseLayerFilter(root.world.GetObjectVsBroadPhaseLayerFilter(), root.LAYER_MOVING  );
-		//this.object_filter = new Jolt.DefaultObjectLayerFilter(root.world.GetObjectLayerPairFilter(), root.LAYER_ALL );
+		this.bp_filter = new Jolt.DefaultBroadPhaseLayerFilter(root.world.GetObjectVsBroadPhaseLayerFilter(), mask  );
+		this.object_filter = new Jolt.DefaultObjectLayerFilter(root.world.GetObjectLayerPairFilter(), mask );
 		this.body_filter = new Jolt.BodyFilter(); // We don't want to filter out any bodies
 		this.shape_filter = new Jolt.ShapeFilter(); // We don't want to filter out any shapes
+
+		//console.log(this.body_filter)
 
 		// Create collector
 		this.collector = new Jolt.CastRayCollectorJS();
@@ -116,6 +121,11 @@ export class Ray extends Item {
 
 	}
 
+	get_filter (group, mask) { 
+		let object_layer = Jolt.ObjectLayerPairFilterMask.prototype.sGetObjectLayer(group, mask);
+		return [ new Jolt.DefaultBroadPhaseLayerFilter(root.world.GetObjectVsBroadPhaseLayerFilter(), object_layer), new Jolt.DefaultObjectLayerFilter(root.world.GetObjectLayerPairFilter(), object_layer) ];
+	}
+
 	step () {
 
 		const AR = root.Ar;
@@ -133,6 +143,16 @@ export class Ray extends Item {
 
 			r = this.list[i];
 			pp = r.getPoint();
+
+			const [ bpFilter, objectFilter ] = this.get_filter(r.group, -1);
+
+			this.bp_filter = bpFilter//new Jolt.DefaultBroadPhaseLayerFilter( root.world.GetObjectVsBroadPhaseLayerFilter(), -1  );
+			//this.bp_filter = new Jolt.DefaultBroadPhaseLayerFilter( root.world.mObjectVsBroadPhaseLayerFilter, r.mask  );
+			this.object_filter = objectFilter//new Jolt.DefaultObjectLayerFilter(root.world.GetObjectLayerPairFilter(), -1 );
+
+
+
+			//let filter = Jolt.ObjectLayerPairFilterMask.prototype.sGetObjectLayer(r.group, r.mask);
 
 			this.ray.mOrigin.fromArray( pp[0] );
 			// direction is not normalized
@@ -189,6 +209,11 @@ export class ExtraRay {
 	    this.selfHit = o.selfHit || false;
 
 	    this.noRotation = o.noRotation || false;
+
+	    this.mask = o.mask || 0
+	    this.group = o.group || 0
+
+	    console.log(this.mask, this.group )
 
 	    this.begin = o.begin || [0,0,0];
 	    this.end = o.end || [0,0,1];

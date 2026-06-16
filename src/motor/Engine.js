@@ -351,8 +351,10 @@ export class Engine {
 		}
 
 		this.setKey =(i, v) => { return user.setKey(i,v) }
-		this.getKey =() => { return user.key }
-		this.getKey2 =() => { return user.key2 }
+		
+		this.getKey =() => ( user.key )
+		this.getUser =() => ( user )
+		//this.getKey2 =() => { return user.key2 }
 		this.getAzimut =() => { return azimut() }
 
 		this.setContent = ( Scene ) => {
@@ -858,6 +860,8 @@ export class Engine {
 				particles = null;
 			}
 
+			user.reset();
+
 			endReset = callback;
 
 			postUpdate = function () {};
@@ -992,7 +996,7 @@ export class Engine {
 			// time of physic engine step
 			this.delta = this.reflow.stat.delta;
 	        // user key interaction
-			this.flow.key = user.update();
+			this.flow.key = user.update(this.delta);
 			this.flow.current = currentControle !== null ? currentControle.name : ''
 	        //prevUpdate( timer.delta )
 

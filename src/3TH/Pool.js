@@ -21,7 +21,8 @@ import { EXRLoader } from '../../three/examples/jsm/loaders/EXRLoader.js';*/
 
 import { MeshoptDecoder } from '../libs/meshopt_decoder.module.js';
 
-import { DRACOLoader } from '../libs/DRACOLoader.js';
+//import { DRACOLoader } from '../libs/DRACOLoader.js';
+import { DRACOLoader } from '../libs/DRACOLoader.min.js';
 import { KTX2Loader } from '../libs/KTX2Loader.js';
 
 import { initWasm, compress, decompress } from '../libs/lzma-wasm.js';
@@ -704,8 +705,8 @@ export const Pool = {
 
         Pool.dracoLoader = new DRACOLoader()
             .setDecoderConfig( { type: Pool.dracoLoaderType } )
-            .setDecoderPath( Pool.dracoPath )
-            .setUseLocal( Pool.useLocal )
+            //.setDecoderPath( Pool.dracoPath )
+            //.setUseLocal( Pool.useLocal )
             //.setWorkerLimit(1)
 
         return Pool.dracoLoader

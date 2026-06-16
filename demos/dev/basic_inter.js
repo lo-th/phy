@@ -25,7 +25,6 @@ begin = () => {
 
     phy.add({ type:'highSphere', name:'sphere', size:[0.4], pos:[0,top,0], density:5, restitution:0.8, friction:0.2, sleep:true, material:'chrome' })
 
-    
     createBuilding({ block:s, height:h, length:l, deep:d })
     phy.setTimeout( activeSphere, 2000 );
 

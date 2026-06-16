@@ -271,6 +271,9 @@ export class engine {
 
 		root.objectFilter = objectFilter
 		root.bpInterface = bpInterface
+
+		root.LAYER_MOVING = 1
+		root.LAYER_ALL = BP_LAYER_DYNAMIC, GROUP_DYNAMIC | GROUP_FLOOR2 | GROUP_FLOOR3
     }
 
     static clearWorld () {

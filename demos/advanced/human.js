@@ -214,6 +214,9 @@ const Character = ( num = 1 ) => {
 
         speech.setOption(text, gender[g])
     }
+
+    //phy.add({type:'box', size:[10,3,1], pos:[0,1.5,-3], material:'brick'})
+    //phy.light.add({type:'probe', name:'probe', size:[4.6,2.6,4.6], pos:[0,1.4,0], sample:[4,4,4], bounces:2 })
     
 
 }

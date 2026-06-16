@@ -18,6 +18,8 @@ demo = () => {
     // add static ground
     phy.add({ type:'plane', size:[300,1,300], visible:false })
 
+
+
     
     // preLoad
     const maps = [
@@ -48,6 +50,7 @@ onComplete = () => {
     phy.add({ type:'box', size:[0.5,3,6], pos:[-2.75,1.5,0], visible:false })
     phy.add({ type:'box', size:[0.5,3,6], pos:[2.75,1.5,0], visible:false })
 
+    // the room
 
     let room = roomModel.Room.clone();
     room.material = phy.getMaterial('room');
@@ -178,6 +181,8 @@ onComplete = () => {
 
     phy.add(ar)
 
+    //phy.light.add({type:'probe', name:'probe', size:[4.6,2.6,4.6], pos:[0,1.4,0], sample:[4,4,4], bounces:2 })
+
     if( addHuman ) phy.preload( ['man', 'woman'], onComplete_2 )
 
     phy.onStep = update;
@@ -225,13 +230,13 @@ makeMaterial = () => {
         //normalScale:[0.3,-0.3],
     })
 
-    phy.material({ name:'wall', color:0xFFFFFF, roughness: 1, metalness: 0, //color:0x8cc0e5,
+    /*phy.material({ name:'wall', color:0xFFFFFF, roughness: 1, metalness: 0, //color:0x8cc0e5,
         map:phy.texture({ url:'./assets/textures/stucco_c.jpg', repeat:[3,1.5], srgb:true }),
         //normalMap:phy.texture({ url:'./assets/textures/model/sofa_n.jpg' }),
         //roughnessMap:phy.texture({ url:'./assets/textures/model/sofa_r.jpg' }),
         roughness:0.88,
         normalScale:[0.3,-0.3],
-    })
+    })*/
 
     phy.material({ name:'sofa', color:0xFFFFFF, roughness: 1, metalness: 0, 
         map:phy.texture({ url:'./assets/textures/model/sofa_c.jpg', srgb:true }),

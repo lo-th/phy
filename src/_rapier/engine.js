@@ -79,6 +79,8 @@ export class engine {
 		if( o.fps !== undefined ) timestep = 1 / o.fps
 		if( o.substep !== undefined ) substep = o.substep
 
+
+
 		if( o.message ){ 
 			returnMessage = o.message;
 			isWorker = false;
@@ -115,6 +117,8 @@ export class engine {
 		interval = timestep*1000;
 		substep = o.substep || 1;
 		fixe = o.fixe !== undefined ? o.fixe : true;
+
+		console.log(substep)
 
 		root.timestep = timestep;
 
@@ -237,9 +241,10 @@ export class engine {
 
 		root.invDelta = 1 / (fixe ? root.world.timestep : root.delta);
 
+		//if( !fixe ) root.world.timestep = root.delta/substep
+		root.world.timestep = timestep/substep
 		let n = substep;
 		while( n-- ){
-			if( !fixe ) root.world.timestep = root.delta/substep
 			root.world.step()
 		}
 

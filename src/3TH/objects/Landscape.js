@@ -607,6 +607,10 @@ export class Landscape extends Mesh {
 
         if( o.ease ) this.easing( o.key, o.azimut )
         if( o.decal ) this.decal( o.decal, true )
+        if( o.height ){ 
+            this.size[ 1 ] = o.height;
+            this.update( true )
+        }
 
     }
 

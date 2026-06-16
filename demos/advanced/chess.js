@@ -10,7 +10,8 @@ const chessSize = 0.25;
         theta:15,
         envmap:'photo', envblur: 0.5, ground:true, groundAlpha:false,
         groundSize:[ 8.9, 8.9 ], groundReflect:0.05,
-        exposure:0.2,
+        envIntensity:1, bgIntensity:1,
+        exposure:0.25,
         direct:20,
      })
 
@@ -104,6 +105,11 @@ onComplete = () => {
 
     let i = p.length
     while(i--) phy.add( addPiece( p[i], i, model ))
+
+    //phy.add({type:'box', size:[10,3,0.1], pos:[0,1.5,6], material:'blue'})
+    //phy.add({type:'box', size:[10,3,0.1], pos:[0,1.5,-6], material:'purple'})
+    /*phy.light.add({type:'probe', name:'probe', size:[10,2.6,10], pos:[0,1.4,0], far:40, sample:[4,4,4], bounces:0 })*/
+
 
 }
 

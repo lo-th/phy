@@ -6,7 +6,7 @@ import {
     NormalAnimationBlendMode, AdditiveAnimationBlendMode
 } from 'three';
 
-import { BlendSpace2D, Pad2d, PoseFromClip } from '../../libs/animlab.module.js';
+import { BlendSpaces, PoseFromClip } from '../../libs/animlab.module.js';
 
 const FrameTime = 24//30;
 const TimeFrame = 1/FrameTime;

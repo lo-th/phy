@@ -321,22 +321,19 @@ export const Gui = {
 		ui.add( options, 'colorCheck', { type:'bool' }).onChange( Gui.showCheker )
 		ui.add( options, 'harmony', { type:'bool' }).onChange( Hub.harmony )
 		ui.add( options, 'show_light', { type:'bool' }).onChange( Main.showDebugLight )
-		ui.add( options, 'show_stat', { type:'bool' }).onChange( Main.showStatistic )
+		//ui.add( options, 'show_stat', { type:'bool' }).onChange( Main.showStatistic )
 
 		//ui.add( options, 'fogMode', { type:'selector', values:[0,1], selectable:true, unselect:false, h:24 }).onChange( function(n){ Shader.up( options ) })
 
-		ui.add( options, 'tone',  { type:'list', list:toneMappingOptions, full:true }).onChange( function(v){
-			renderer.toneMapping  = options.tone
-		})
+		ui.add( options, 'tone',  { type:'list', list:toneMappingOptions, full:true }).onChange( (v)=>{ renderer.toneMapping = v })
+		ui.add( options, 'exposure', { min:0, max:1, step:0.001, pecision:3, mode:mode } ).onChange( ( v )=>{ renderer.toneMappingExposure = v; })
 
-		ui.add( options, 'exposure', { min:0, max:1, step:0.001, pecision:3, mode:mode } ).onChange( function( v ){ 
-			renderer.toneMappingExposure = v; 
-			//Env.up()
-		})
+		const light = Main.motor.light.getLights()
 
-		ui.add( options, 'direct', { rename:'Light Direct', min:0, max:100, mode:mode, color:'#ff0' } ).onChange( Main.lightIntensity )
-		ui.add( options, 'spherical', { rename:'Light Hemi', min:0, max:10, mode:mode, color:'#ff0' } ).onChange( Main.lightIntensity )
+		if(light.sun) ui.add( options, 'direct', { rename:'Light Direct', min:0, max:100, mode:mode, color:'#ff0' } ).onChange( Main.lightIntensity )
+		if(light.hemi) ui.add( options, 'spherical', { rename:'Light Hemi', min:0, max:10, mode:mode, color:'#ff0' } ).onChange( Main.lightIntensity )
 		ui.add( options, 'shadowIntensity', { rename:'shadow', min:0, max:1, mode:mode, color:'#ff0' } ).onChange( Main.shadowIntensity )
+	    if(light.probe) ui.add( light.probe, 'visible', { rename:'GI' } )//.onChange( Main.lightIntensity )
 
 		ui.add( options, 'envIntensity', { min:0, max:20, mode:mode, color:'#8ff' } ).onChange( Main.envmapIntensity )
 		ui.add( options, 'bgIntensity', { min:0, max:20, mode:mode, color:'#8ff' } ).onChange( Main.bgIntensity )
@@ -411,13 +408,14 @@ export const Gui = {
 		const ui = Gui.ui
 
 	    const setting = Main.motor.getSetting()
+	    const engineName = Main.engineType
 
 	    Gui.graph = ui.add('fps', { 
-	        name:'stat', h:22, hplus:180, custom:true, alpha:0.5, res:50, 
-	        names:['three','phy'], cc:['200,200,200','50,120,220'], 
+	        name:'Performance', h:22, hplus:180, custom:true, alpha:0.5, res:50, 
+	        names:['three',engineName.toLowerCase()], cc:['200,200,200','20,230,10'], 
 	        range:[25,25], precision:2, radius:4, color:'#EEEEEE', adding:false  
 	    })
-	    Gui.graph.open()
+	    //Gui.graph.open()
 
 	   //ui.add('button', { values:Main.engineList, selectable:true, value:Main.engineType, h:30  }).onChange( Gui.swapEngine )
 		//if( Main.devMode ) ui.add('button', { values:['RAPIER','CANNON'], selectable:true, value:Main.engineType }).onChange( Gui.swapEngine )

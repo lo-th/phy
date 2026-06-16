@@ -2,7 +2,7 @@ let decal = 0
 
 demo = () => {
 
-    phy.view({ distance:20, y:5, x:decal })
+    phy.view({ distance:40, y:15, x:decal })
 
     phy.set({ forceSubstep:10, substep:10, gravity:[0,-9.81,0] })
 

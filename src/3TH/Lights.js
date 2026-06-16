@@ -5,29 +5,45 @@ import {
 } from 'three';
 
 import { DirectionalHelper } from './helpers/DirectionalHelper.js'
+import { LightProbeGrid } from '../3TH/lighting/LightProbeGrid.js';
+import { LightProbeGridHelper } from 'three/addons/helpers/LightProbeGridHelper.js';
 
+import { LightProbeGridGPU } from '../3TH/lighting/LightProbeGridGPU.js';
+import { LightProbeGridHelperGPU } from '../3TH/helpers/LightProbeGridHelperGPU.js';
 
-let light = [];
+//let light = [];
 let LL = {};
 let helper = [];
 let debug = false;
-
+let renderer = null
+let scene = null
+let N = 0
+let isWebGPU = false
 
 export class Lights {
 
 	//get debug() { return debug; }
     //set debug( value ) { Lights.debug(value) }
 
-    static define ( o = {}, parent, isWebGPU = false ) {
+    static getLights(){ return LL }
+
+    static define ( o = {}, parent, webGPU = false, Renderer, Scene ) {
+
+    	isWebGPU = webGPU;
 
     	let biasSide = 1//o.shadowType === 'PCSS' ? -1:1
+
+    	renderer = Renderer;
+    	scene = Scene;
+
+    	console.log(renderer)
 
     	Lights.add({ 
 			type:'direct', name:'sun',
 			intensity:o.direct,
 			distance:30, 
 			parent:parent,
-		    shadow:{ range:30, near:5, far:70, bias:  0.0001 * biasSide, radius:4, quality: 2048 * o.quality, intensity:o.shadowIntensity }
+		    shadow:{ range:30, near:5, far:70, bias:  0.0001 * biasSide, radius:4, quality: 2048, intensity:o.shadowIntensity }
 		})
 
 		Lights.add({ 
@@ -46,14 +62,7 @@ export class Lights {
     	let move = false;
 
     	if( o.sunIntensity!==undefined ){
-
-    		/*if( LL.sun && LL.sun2 ){
-    			LL.sun.intensity = o.sunIntensity*0.3;
-    			if( LL.sun2 ) LL.sun2.intensity = o.sunIntensity*0.7;
-    		} else {*/
-    			if( LL.sun ) LL.sun.intensity = o.sunIntensity;
-    		//}
-    		
+    		if( LL.sun ) LL.sun.intensity = o.sunIntensity;
     	}
 
     	if( o.shadowIntensity!==undefined ){
@@ -65,24 +74,17 @@ export class Lights {
     			LL.sun.position.fromArray( o.sunPos ).multiplyScalar( LL.sun.distance );
     			LL.sun.target.position.set( 0, 1, 0 )
     			move = true;
-    			//LL.sun.updateMatrixWorld();
-    		}
-    		if( LL.sun2 ){ 
-    			LL.sun2.position.fromArray( o.sunPos ).multiplyScalar( LL.sun2.distance );
-    			LL.sun2.target.position.set( 0, 1, 0 )
-    			move = true;
-    			//LL.sun2.updateMatrixWorld();
     		}
     	}
 
     	if(o.sunColor){
     		if( LL.sun ) Lights.setColor(LL.sun.color, o.sunColor );
-    		if( LL.sun2 ) Lights.setColor(LL.sun2.color, o.sunColor );
+    		//if( LL.sun2 ) Lights.setColor(LL.sun2.color, o.sunColor );
     		move = true;
     	}
 
     	if( LL.hemi ){
-    		if(o.hemiIntensity!==undefined) LL.hemi.intensity = o.hemiIntensity//*0.7;
+    		if(o.hemiIntensity!==undefined) LL.hemi.intensity = o.hemiIntensity;
     		if(o.skyColor) Lights.setColor(LL.hemi.color, o.skyColor );
     		if(o.groundColor) Lights.setColor(LL.hemi.groundColor, o.groundColor );
     		move = true;
@@ -92,9 +94,45 @@ export class Lights {
     
     }
 
+    static reset () {
+
+    	this.dispose(true);
+
+    	const dt = {
+			sunPos: [0.27, 1, 0.5],
+			sunColor: 0xFFFFFF,
+			skyColor: 0xFFFFFF,
+			groundColor: 0x808080, 
+		}
+
+		Lights.update( dt );
+
+    }
+
+    static dispose ( keepBasic ) {
+
+		Lights.disposeHelper();
+
+		let l;
+		for( let n in LL ){
+			if( keepBasic ){
+				if(n==='sun' || n==='hemi') continue
+			}
+
+			l = LL[n];
+			if( l.parent ) l.parent.remove(l);
+			if( l.target && l.target.parent ) l.target.parent.remove(l.target);
+			l.dispose()
+			delete LL[n];
+		}
+
+	}
+
     static setColor ( c, v ) {
+
     	if( v.isColor ) c.copy( v );
     	else c.setHex( v );
+
     }
 
     static adds ( ar ) {
@@ -107,8 +145,6 @@ export class Lights {
     }
 
 	static add ( o = {} ) {
-
-
 
 		if ( o.constructor === Array ) return Lights.adds( o );
 
@@ -136,26 +172,36 @@ export class Lights {
 			break;
 			case 'hemi':
 			l = new HemisphereLight( o.skyColor || 0x000000, o.groundColor || 0x000000, o.intensity );
-
+			break;
+			case 'probe':
+			l = isWebGPU ? new LightProbeGridGPU( o.size[0], o.size[1], o.size[2], o.sample[0], o.sample[1], o.sample[2] ) 
+			: new LightProbeGrid( o.size[0], o.size[1], o.size[2], o.sample[0], o.sample[1], o.sample[2] );
+			l.type = 'probesLight'
+			l.bake( renderer, scene, { cubemapSize: o.mapSize || 32, near: o.near || 0.05, far: o.far || 20, bounces:o.bounces || 0 } );
+			l.visible = true;
 			break;
 		}
 
 		if(!l) return
 
-		l.name = o.name || 'light' + light.length;
+		l.name = o.name || 'light' + N;
+	    N++
 
 		if( o.pos ) l.position.fromArray( o.pos );
 
 		if( o.parent ){
 			if( l.target ) o.parent.add( l.target );
 			o.parent.add( l );
+		} else {
+			scene.add(l)
 		}
 
 		if( o.shadow !== undefined && o.type!=='hemi'){
 			Lights.setShadow( l, o.shadow );
 		}
 
-	    light.push(l);
+	    //light.push(l);
+
 	    LL[l.name] = l;
 
 	    return l
@@ -202,28 +248,13 @@ export class Lights {
 		return LL[name]
 	}
 
-	static dispose () {
-
-		Lights.disposeHelper();
-
-		let i = light.length, l;
-		while(i--){
-			l = light[i];
-			if( l.parent ) l.parent.remove(l);
-			if( l.target && l.target.parent ) l.target.parent.remove(l.target);
-			l.dispose()
-		}
-
-		light = [];
-		LL = {}
-
-	}
+	
 
 	static castShadow ( v ) {
 
-		let i = light.length, l;
-		while(i--){
-			l = light[i];
+		let l;
+		for(let n in LL){
+			l = LL[n];
 			if( l.shadow !== undefined ){ 
 				l.castShadow = v;
 				if(!v) l.shadow.dispose();
@@ -243,14 +274,13 @@ export class Lights {
 		// TODO bug that change shadow range ??
 		//return 
 
+		if(b){
 
+			if(debug) return
 
-
-		if( b && !debug ){
-
-			let i = light.length, l, h;
-			while(i--){
-				l = light[i];
+			let l, h
+			for(let n in LL){
+				l = LL[n];
 				switch(l.type){
 					case 'DirectionalLight':
 					h = new DirectionalHelper( l );
@@ -266,11 +296,20 @@ export class Lights {
 					//console.log(h)
 					//h.material.wireframe = false
 					break;
+					case 'probesLight':
+
+
+					h = isWebGPU ? new LightProbeGridHelperGPU( l, 0.05 ) : new LightProbeGridHelper( l, 0.05 );
+					
+					//scene.add( h );
+					//console.log(h)
+					//h.material.wireframe = false
+					break;
 				}
 
 				if(h){ 
 					helper.push(h);
-					pp.add( h )
+					pp.add(h)
 					//h.updateMatrix()
 					if( h.shadow ){ 
 						//console.log(h.shadow)
@@ -283,9 +322,7 @@ export class Lights {
 
 			debug = true;
 
-		}
-
-		if( !b ){
+		}else{
 			Lights.disposeHelper();
 		}
 

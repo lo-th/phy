@@ -8,6 +8,7 @@ private
 src/_physx
 src/_havok
 src/motor_old
+three/build_test
 build/old
 assets/models/private
 assets/models/avatar/old

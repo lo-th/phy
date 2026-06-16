@@ -14,7 +14,9 @@ demo = () => {
 
     addTerrain();
 
-    if(engine!=='OIMO') addRandomTree();
+    console.log(phy.engine)
+
+    if(phy.engine !== 'OIMO') addRandomTree();
     addRandomObject();
 
 	// update after physic step
@@ -42,7 +44,7 @@ addTerrain = () => {
     	debug:true,
     };
 
-    if( engine === 'OIMO' ){
+    if( phy.engine === 'OIMO' ){
     	// oimo is too slow for large terrain
     	data = {
     		...data,
@@ -102,7 +104,7 @@ addRandomObject = () => {
 
 	let setting = { density:1, friction:0.1, staticFriction:0.1, restitution: 0.1, neverSleep:true, material:'copper' }
 	let j = 100, s, p;
-	let d = engine === 'OIMO' ?10:20;
+	let d = phy.engine === 'OIMO' ?10:20;
 	let h = 30;
 	while(j--){
 		s = math.rand(0.2,2.0);

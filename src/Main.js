@@ -64,11 +64,11 @@ const Motor = phy;
 
 let isWebGPU = false;
 let lockPixelRatio = true;
-const testGPU = false
+const testGPU = false;
 //let drawCall = false
 //let debugLight = false
 
-let oldPause = false
+let oldPause = false;
 
 let introText
 let oldLeft = 0
@@ -104,7 +104,6 @@ const CameraBase = {
 // default config
 const setting = {
 
-	//exposure: 1,
 	envmap:'clear',//'basic',
 	
 	groundSize:[ 60, 60 ],
@@ -166,7 +165,7 @@ const options = {
 	shadow:0.5,//0.25,
 	shadowType: 'PCFSoft',
 
-    reflect:0.1,
+    //reflect:0.1,
     
     fogMode:1,
 
@@ -179,8 +178,6 @@ const options = {
     colorCheck:false,
 
 }
-
-
 
 let vignette = null
 let renderStart = false
@@ -261,16 +258,16 @@ export const Main = {
 	    Main.isMobile = perf.isMobile;
 	    Main.webgpu = o.useWebgpu || false;
 
-		if( Main.isMobile || perf.fps < 60 ){ 
+		if( Main.isMobile || perf.fps < 60 ){
 			options.mode = 'LOW';
 			options.quality = 1;
 		}
 
-		switch(perf.tier){
-			case 1: options.fps = 15; break
+		/*switch( perf.tier ){
+			case 1: options.fps = 30; break
 			case 2: options.fps = 30; break
 			case 3: options.fps = 60; break
-		}
+		}*/
 
 		Main.engineType = o.type || 'PHYSX';
 
@@ -298,7 +295,7 @@ export const Main = {
 		//options.show_stat = Main.devMode;
 
 		//Motor.engine = Main.engineType
-		window.engine = Main.engineType;
+		//window.engine = Main.engineType;
 
 
 		Motor.init( o );
@@ -312,7 +309,7 @@ export const Main = {
 
     setComposer:( b ) => { setComposer(b) },
     showDebugLight:( b ) => { showDebugLight(b) },
-    showStatistic:( b ) => { showStatistic(b) },
+    //showStatistic:( b ) => { showStatistic(b) },
 
     setShadow:( v ) => { setShadow(v) },
     setShadowType:() => { setShadowType() },
@@ -442,9 +439,8 @@ Motor.extraCode = Main.extraCode;
 Motor.debugMode = Main.debugMode;
 Motor.hub = Hub;
 Motor.gui = Gui.extraUi;
-
 Motor.setCamera = Main.setCamera;
-
+Motor.light = Lights;
 
 window.phy = Motor
 window.math = Motor.math
@@ -459,6 +455,8 @@ window.Sparkle = Sparkle
 window.Diamond = Diamond
 window.Fluid = Fluid;
 window.TWEEN = TWEEN;
+
+
 
 window.VertexNormalsHelper = VertexNormalsHelper
 window.VertexTangentsHelper = VertexTangentsHelper
@@ -721,7 +719,7 @@ Motor.lightIntensity = lightIntensity;
 
 const addLight = () => {
 
-	Lights.define( options, followGroup, isWebGPU );
+	Lights.define( options, followGroup, isWebGPU, renderer, scene );
 
 	if( options.mode === 'LOW' ){
 		options.shadow = 0
@@ -757,18 +755,7 @@ const clearLight = ( o ) => {
 	
 }*/
 
-const resetLight = ( o ) => {
 
-	const dt = {
-		sunPos: [0.27, 1, 0.5],
-		sunColor: 0xFFFFFF,
-		skyColor: 0xFFFFFF,
-		groundColor: 0x808080, 
-	}
-
-	Lights.update( dt );
-
-}
 
 const showDebugLight = ( b ) => {
 
@@ -849,7 +836,7 @@ const addGround = ( o ) => {
 		    	textureSize: 1024 * options.quality,
 		        clipBias:0.003,
 		        encoding:true,
-		        reflect: options.mode === 'LOW' ? 0 : options.reflect,
+		        reflect: options.mode === 'LOW' ? 0 : o.reflect,
 		        water:o.water,
 		        //color:groundColor,
 		        round:true,
@@ -862,7 +849,7 @@ const addGround = ( o ) => {
 		    	textureSize: 1024 * options.quality,
 		        clipBias:0.003,
 		        encoding:true,
-		        reflect: options.mode === 'LOW' ? 0 : options.reflect,
+		        reflect: options.mode === 'LOW' ? 0 : o.reflect,
 		        water:o.water,
 		        //color:groundColor,
 		        round:true,
@@ -952,6 +939,7 @@ const loadDemo = ( name ) => {
     	case 'dev': expath = 'dev/'; break
     	case 'private': expath = 'private/'; break
     	case 'advanced': expath = 'advanced/'; break
+    	case 'physx': expath = 'physx/'; break
     }
 
 	//if( Main.devLink.indexOf(name)!==-1 ) expath = 'dev/' 
@@ -1001,8 +989,7 @@ const inject = ( newCode, force = false ) => {
 	
 	if( isLoadCode ){
 		//console.log('is full reset !!!')
-		//Shader.reset()
-	    resetLight() 
+	    Lights.reset() 
 		Motor.poolDispose();
 	}
 
@@ -1228,12 +1215,11 @@ const view = ( o = {} ) => {
 
 	groundAutoColor = !o.groundColor//false
 
-	if( options.mode === 'LOW' ){
+	/*if( options.mode === 'LOW' ){
 		o.shadow = 0;
-		o.groundReflect = 0;
-		options.reflect = 0;
+		o.reflect = 0;
 		options.quality = 1;
-	}
+	}*/
 
 
     options.reflect = o.reflect;
@@ -1432,25 +1418,6 @@ const setEnvmapIntensity = () => {
 	scene.environmentIntensity = options.envIntensity;
 
 }
-
-const showStatistic = ( b ) => {
-
-	if( isWebGPU ) return
-
-	if( b && !stats ){
-		//stats = new Stats( renderer );
-	}
-
-	if( !b && stats ){
-
-		stats = null;
-		Hub.setStats();
-		
-	}
-
-}
-
-
 
 const getFullStats = () => {
 

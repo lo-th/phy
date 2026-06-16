@@ -65,6 +65,8 @@ demo = () => {
 const update = () => {
 
     updateDecor();
+    let k = phy.getKey()
+    //phy.log(k)
 
 }
 
@@ -117,6 +119,10 @@ const addCharacter = () => {
     phy.control( player.name );
 
     addGui();
+
+    /*phy.add({type:'box', size:[10,3,0.1], pos:[0,1.5,6], material:'blue'})
+    phy.add({type:'box', size:[10,3,0.1], pos:[0,1.5,-6], material:'purple'})
+    phy.light.add({type:'probe', name:'probe', size:[10,2.6,10], pos:[0,1.4,0], far:40, sample:[4,4,4], bounces:0 })*/
 
 }
 

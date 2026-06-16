@@ -410,6 +410,9 @@ export class Mat {
 			    case 'brick':  m = this.create({ name:'brick', color:Colors.brick, metalness: 0.0, roughness: 0.6 }); break
 			    case 'sand':  m = this.create({ name:'sand', color:Colors.sand, metalness: 0.0, roughness: 0.9 }); break
 
+			    case 'purple':  m = this.create({ name:'purple', color:new Color( 0.2, 0.02, 0 ), emissive:new Color( 100, 0.2, 0 ), metalness: 0.0, roughness: 1.0 }); break
+			    case 'blue':  m = this.create({ name:'blue', color:new Color( 0, 0.02, 0.02 ), emissive:new Color( 0, 0.2, 100 ), metalness: 0.0, roughness: 1.0 }); break
+
 			    
 
 			    

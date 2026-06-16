@@ -24,26 +24,63 @@ export class User {
 
     // 20 : Keyboard or Gamepad    0-1
 
+
 	constructor () {
 
-		this.key = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
-        this.key2 = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+		this.key = [
+        0,0,0,0,0,
+        0,0,0,0,0,
+        0,0,0,0,0,
+        0,0,0,0,0,
+
+        ]
+
+        this.ease = [
+        0,0,0,0,0,
+        0,0,0,0,0,
+        0,0,0,0,0,
+        0,0,0,0,0,
+
+        ]
+
+        this.easing = [
+        1,1,1,1,0,
+        0,0,0,0,0,
+        1,1
+        ]
 
 		this.gamepad = new Gamepad( this.key ); 
 
-		this.useGamepad = false
-		this.sameAxis = true
 
-		document.addEventListener( 'keydown', function(e){this.keyDown(e)}.bind(this), false );
-        document.addEventListener( 'keyup', function(e){this.keyUp(e)}.bind(this), false );
+
+		this.useGamepad = false;
+		this.sameAxis = true;
+        this.forceGachette = false;
+        this.useEase = false
+
+        this._down = this.keyDown.bind(this)
+        this._up = this.keyUp.bind(this)
+
+        document.addEventListener( 'keydown', this._down, false );
+        document.addEventListener( 'keyup', this._up, false );
 
 	}
+
+    reset(){
+        //this.forceGachette = false;
+    }
+
+    activeGachette(){
+        this.forceGachette = true;
+    }
 
     setKey( i, v ){
         this.key[i] = v
     }
 
-	update () {
+	update ( delta ) {
+
+        this.upKey(delta)
 
 		this.gamepad.update();
 
@@ -64,20 +101,55 @@ export class User {
 
 	}
 
+    upKey(delta){
+
+        if(!this.useEase) return
+        let i = this.key.length;
+        let k, e, f
+        let t = 0.025
+
+        while(i--){
+            k = this.key[i]
+            e = this.ease[i] 
+            f = this.easing[i] || 0
+            if(f===1){
+                if( e!==k ){
+                    if(e===0){
+                        if(k>0){ k-=t*2; if(k<0) k=0 }
+                        else{ k+=t*2; if(k>0) k=0 }
+                    }else{
+                        if(e>0){ k+=t; if(k>1) k=1 }
+                        else{ k-=t; if(k<-1) k=-1 }
+                    }
+                }
+                this.key[i] = k
+            }
+        }
+    }
+
+    changeKey( i, v ){
+
+        if(!this.useEase) this.key[i] = v
+        else this.ease[i] = v
+
+    }
+
 	keyDown (e) {
 
-		var key = this.key;
-        var key2 = this.key2;
+		const key = this.key;
+        const lr = this.forceGachette;
+        const k = this.changeKey.bind(this)
+
         e = e || window.event;
 
         if( this.sameAxis ){
 
             switch ( e.which ) {
                 // axe L
-                case 65: case 81: case 37: key[0] = -1; key2[0] = 1; break;//key[0]<=-1 ? -1:key[0]-= 0.1; break; // left, A, Q
-                case 68:  case 39:         key[0] = 1;  key2[1] = 1; break; // right, D
-                case 87: case 90:  case 38: key[1] = -1; break; // up, W, Z
-                case 83: case 40:          key[1] = 1;  break; // down, S
+                case 65: case 81: case 37:  k(0,-1); if(lr)k(8,1); break;//key[0]<=-1 ? -1:key[0]-= 0.1; break; // left, A, Q
+                case 68: case 39:           k(0, 1); if(lr)k(9,1); break; // right, D
+                case 87: case 90: case 38:  k(1,-1); break; // up, W, Z
+                case 83: case 40:           k(1, 1); break; // down, S
 
                 case 32:          key[4] = 1; break; // space
                 case 17: case 67: key[5] = 1; break; // ctrl, C
@@ -93,21 +165,20 @@ export class User {
 
             switch ( e.which ) {
                 // axe L
-                case 65: case 81: key[0] = -1; key2[0] = 1; break;//key[0]<=-1 ? -1:key[0]-= 0.1; break; // left, A, Q
-                case 68:          key[0] = 1; key2[1] = 1; break; // right, D
-                case 87: case 90: key[1] = -1; break; // up, W, Z
-                case 83:          key[1] = 1;  break; // down, S
+                case 65: case 81: k(0,-1); if(lr)k(8,1); break;//key[0]<=-1 ? -1:key[0]-= 0.1; break; // left, A, Q
+                case 68:          k(0, 1); if(lr)k(9,1); break; // right, D
+                case 87: case 90: k(1,-1); break; // up, W, Z
+                case 83:          k(1, 1); break; // down, S
                 // axe R
-                case 37:          key[2] = -1;  key2[0] = 1;break; // left
-                case 39:          key[2] = 1;  key2[1] = 1;break; // right
-                case 38:          key[3] = -1; break; // up
-                case 40:          key[3] = 1;  break; // down
+                case 37:          k(2,-1); if(lr)k(8,1); break; // left
+                case 39:          k(2, 1); if(lr)k(9,1); break; // right
+                case 38:          k(3,-1); break; // up
+                case 40:          k(3, 1); break; // down
                 
 
                 case 32:          key[4] = 1; break; // space
                 case 17: case 67: key[5] = 1; break; // ctrl, C
                 case 69:          key[6] = 1; break; // E
-                
                 case 16:          key[7] = 1; break; // shift
                 //case 121:         noui(); break; // f10
                 //case 122:         fscreen(); break; // f11
@@ -117,29 +188,36 @@ export class User {
         }
 
         this.gamepad.reset();
+        key[20] = 0;
+
         //e.preventDefault();
 
 	}
 
 	keyUp (e) {
 
-		var key = this.key;
-        var key2 = this.key2;
+		const key = this.key;
+        const lr = this.forceGachette;
+        const k = this.changeKey.bind(this)
         e = e || window.event;
 
         if( this.sameAxis ){
 
             switch ( e.which ) {
+
+                /*case 65: case 81: case 37: k(0, 0); if(lr)k(8, 0); break; // left, A, Q
+                case 68: case 39:          k(0, 0); if(lr)k(8, 0); break; // right, D
+                case 87: case 90: case 38:key[1] = 0; break; // up, W, Z
+                case 83: case 40:         key[1] = 0; break; // down, S*/
                  // axe L
-                case 65: case 81: case 37: key[0] = key[0]<0 ? 0:key[0]; key2[0] = 0; break; // left, A, Q
-                case 68: case 39:         key[0] = key[0]>0 ? 0:key[0]; key2[1] = 0; break; // right, D
-                case 87: case 90: case 38:key[1] = key[1]<0 ? 0:key[1]; break; // up, W, Z
-                case 83: case 40:         key[1] = key[1]>0 ? 0:key[1]; break; // down, S
+                case 65: case 81: case 37:if(key[0]<0) k(0,0); if(lr)key[8] = k(8,0); break; // left, A, Q
+                case 68: case 39:         if(key[0]>0) k(0,0); if(lr)key[9] = k(9,0); break; // right, D
+                case 87: case 90: case 38:if(key[1]<0) k(1,0); break; // up, W, Z
+                case 83: case 40:         if(key[1]>0) k(1,0); break; // down, S
 
                 case 32:          key[4] = 0; break; // space
                 case 17: case 67: key[5] = 0; break; // ctrl, C
                 case 69:          key[6] = 0; break; // E
-                
                 case 16:          key[7] = 0; break; // shift
             }
 
@@ -148,13 +226,13 @@ export class User {
             switch( e.which ) {
                 
                 // axe L
-                case 65: case 81: key[0] = key[0]<0 ? 0:key[0]; key2[0] = 0; break; // left, A, Q
-                case 68:          key[0] = key[0]>0 ? 0:key[0]; key2[1] = 0; break; // right, D
+                case 65: case 81: key[0] = key[0]<0 ? 0:key[0]; if(lr)key[8] = 0; break; // left, A, Q
+                case 68:          key[0] = key[0]>0 ? 0:key[0]; if(lr)key[9] = 0; break; // right, D
                 case 87: case 90: key[1] = key[1]<0 ? 0:key[1]; break; // up, W, Z
                 case 83:          key[1] = key[1]>0 ? 0:key[1]; break; // down, S
                 // axe R
-                case 37:          key[2] = key[2]<0 ? 0:key[2]; key2[0] = 0;break; // left
-                case 39:          key[2] = key[2]>0 ? 0:key[2]; key2[1] = 0;break; // right
+                case 37:          key[2] = key[2]<0 ? 0:key[2]; if(lr)key[8] = 0; break; // left
+                case 39:          key[2] = key[2]>0 ? 0:key[2]; if(lr)key[9] = 0; break; // right
                 case 38:          key[3] = key[3]<0 ? 0:key[3]; break; // up
                 case 40:          key[3] = key[3]>0 ? 0:key[3]; break; // down
 
@@ -231,6 +309,8 @@ class Gamepad {
             if(this.ready == 0 && v !== 0 ) this.ready = 1;
             this.key[i] = v;
         }
+
+        this.key[20] = this.ready
 
 	}
 
