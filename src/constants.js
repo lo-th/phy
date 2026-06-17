@@ -3,7 +3,7 @@ export const Version = {
     PHY: '0.13.1',
     // best
     PHYSX: '5.06.10',
-    HAVOK: '1.3.11',
+    HAVOK: '1.3.12',
     // young
     JOLT: '0.39.0',
     RAPIER: '0.19.3',

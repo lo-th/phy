@@ -68,6 +68,7 @@
 
 				controler = new OrbitControls( camera, renderer.domElement );
 				controler.target.set( 0, 3, 0 );
+				controler.enableZoom = false;
 			    controler.screenSpacePanning = true;
 			    controler.update();
 

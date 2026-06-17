@@ -93,6 +93,8 @@ export class engine {
 
 			self.RAPIER = RAPIER;
 
+			//console.log(RAPIER.version())
+
 			engine.initItems();
 			engine.post( { m:'ready', o:{} } );
 
@@ -176,7 +178,7 @@ export class engine {
 		root.world.maxCcdSubsteps = 1//substep//1
 		root.numSolverIterations = 4
 
-		console.log( root.world )
+		//console.log( root.world )
 
     }
 
