@@ -61,9 +61,7 @@
 				renderer.toneMapping = THREE.NeutralToneMapping;
 				renderer.shadowMap.enabled = true;
 				renderer.toneMappingExposure = Math.pow( 0.68, 5.0 );
-				//console.log(renderer.toneMappingExposure)
 				document.body.appendChild( renderer.domElement );
-				//renderer.useLegacyLights = true;
 
 				camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 0.1, 300 );
 				camera.position.set(0,3,7);
