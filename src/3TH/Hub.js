@@ -1,4 +1,4 @@
-import * as UIL from '../libs/uil.module.js'
+import * as UIL from '../libs/uil.module.min.js'
 import { Pool } from './Pool.js';
 import { EnginSkill } from '../constants.js';
 /** __
@@ -35,7 +35,7 @@ const margin = 40;
 
 let svg = UIL.Tools.dom;
 let setSvg = UIL.Tools.setSvg;
-let grad = UIL.Tools.makeGradiant;
+//let grad = UIL.Tools.makeGradiant;
 
 let parent;
 let content, cross = null, border, counter, counter2, zone, path, txt, info, loader, textRight, textLeft, textLeft2;
@@ -1041,7 +1041,7 @@ export class Hub {
     //-------------------------
 
 
-    static addBorder() {
+    /*static addBorder() {
 
         let ccc = [ 
             [68, setting.border, 0], 
@@ -1059,7 +1059,7 @@ export class Hub {
 
         content.appendChild( border );
 
-    }
+    }*/
 
 
     //-------------------------

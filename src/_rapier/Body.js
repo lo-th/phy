@@ -435,7 +435,7 @@ export class Body extends Item {
 			o.mass !== undefined ? o.mass : bd.mass,
 			o.massCenter ? {x:o.massCenter[0], y:o.massCenter[1], z:o.massCenter[2]} : bd.centerOfMass,
 			o.inertia ? {x:o.inertia[0], y:o.inertia[1], z:o.inertia[2]} : bd.principalAngularInertia,
-			o.inertiaOrientation? {x:o.inertiaOrientation[0], y:o.inertiaOrientation[1], z:o.inertiaOrientation[2], w:o.inertiaOrientation[3]} : bd.angularInertiaLocalFrame,
+			o.inertiaOrientation ? {x:o.inertiaOrientation[0], y:o.inertiaOrientation[1], z:o.inertiaOrientation[2], w:o.inertiaOrientation[3]} : bd.angularInertiaLocalFrame,
 		)
 
 		//console.log(bd)

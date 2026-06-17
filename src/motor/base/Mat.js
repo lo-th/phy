@@ -380,6 +380,7 @@ export class Mat {
 	getList () {
 
 		let l = {...this.mat}
+		//let l = [...this.mat.keys()]
 		const ignor = ['line', 'debug', 'hide', 'svg']
 		let i = ignor.length;
 		while(i--) delete l[ignor[i]];

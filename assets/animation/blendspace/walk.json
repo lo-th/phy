@@ -1,0 +1,222 @@
+{
+    "option": {
+        "time": 1,
+        "mode": "none",
+        "weight": 3,
+        "onGrid": true,
+        "x_div": 8,
+        "x_size": 500,
+        "x_range": [
+            -180,
+            180
+        ],
+        "x_name": "Direction",
+        "y_div": 8,
+        "y_size": 200,
+        "y_range": [
+            0,
+            100
+        ],
+        "y_name": "Speed",
+        "smoothing": 1,
+        "smoothingEase": 1,
+        "order": "tangent",
+        "showName": false,
+        "showTriangle": true
+    },
+    "values": {
+        "x": 0,
+        "y": 0
+    },
+    "slots": [
+        {
+            "p": [
+                260,
+                210
+            ],
+            "name": "Idle"
+        },
+        {
+            "p": [
+                197.5,
+                210
+            ],
+            "name": "Idle"
+        },
+        {
+            "p": [
+                135,
+                210
+            ],
+            "name": "Idle"
+        },
+        {
+            "p": [
+                72.5,
+                210
+            ],
+            "name": "Idle"
+        },
+        {
+            "p": [
+                10,
+                210
+            ],
+            "name": "Idle"
+        },
+        {
+            "p": [
+                322.5,
+                210
+            ],
+            "name": "Idle"
+        },
+        {
+            "p": [
+                385,
+                210
+            ],
+            "name": "Idle"
+        },
+        {
+            "p": [
+                447.5,
+                210
+            ],
+            "name": "Idle"
+        },
+        {
+            "p": [
+                510,
+                210
+            ],
+            "name": "Idle"
+        },
+        {
+            "p": [
+                260,
+                110
+            ],
+            "name": "Walk_F"
+        },
+        {
+            "p": [
+                10,
+                110
+            ],
+            "name": "Walk_B"
+        },
+        {
+            "p": [
+                510,
+                110
+            ],
+            "name": "Walk_B"
+        },
+        {
+            "p": [
+                72.5,
+                110
+            ],
+            "name": "Walk_B_L"
+        },
+        {
+            "p": [
+                447.5,
+                110
+            ],
+            "name": "Walk_B_R"
+        },
+        {
+            "p": [
+                135,
+                110
+            ],
+            "name": "Walk_L"
+        },
+        {
+            "p": [
+                322.5,
+                110
+            ],
+            "name": "Walk_F_R"
+        },
+        {
+            "p": [
+                385,
+                110
+            ],
+            "name": "Walk_R"
+        },
+        {
+            "p": [
+                197.5,
+                110
+            ],
+            "name": "Walk_F_L"
+        },
+        {
+            "p": [
+                260,
+                10
+            ],
+            "name": "Jog_F"
+        },
+        {
+            "p": [
+                322.5,
+                10
+            ],
+            "name": "Jog_F_R"
+        },
+        {
+            "p": [
+                385,
+                10
+            ],
+            "name": "Jog_R"
+        },
+        {
+            "p": [
+                135,
+                10
+            ],
+            "name": "Jog_L"
+        },
+        {
+            "p": [
+                197.5,
+                10
+            ],
+            "name": "Jog_F_L"
+        },
+        {
+            "p": [
+                447.5,
+                10
+            ],
+            "name": "Jog_B_R"
+        },
+        {
+            "p": [
+                510,
+                10
+            ],
+            "name": "Jog_B"
+        },
+        {
+            "p": [
+                10,
+                10
+            ],
+            "name": "Jog_B"
+        },
+        {
+            "p": [
+                72.5,
+                10
+            ],
+            "name": "Jog_B_L"
+        }
+    ]
+}

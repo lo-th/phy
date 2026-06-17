@@ -1,7 +1,6 @@
 import * as THREE from 'three'
 import * as THREE2 from 'three/webgpu'
 import * as TWEEN from './libs/tween.esm.js'
-import * as UIL from './libs/uil.module.js'
 
 
 import { Version } from './constants.js';
@@ -324,6 +323,7 @@ export const Main = {
 	getControler:() => ( controls ),
 	getCodeName:() => ( options.demo ),
 	getGround:() => ( ground ),
+	getLight:() => ( Lights ),
 
 	getHub3d:() => ( vignette ),
 

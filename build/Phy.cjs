@@ -3581,6 +3581,7 @@ let Mat$3 = class Mat {
 	getList () {
 
 		let l = {...this.mat};
+		//let l = [...this.mat.keys()]
 		const ignor = ['line', 'debug', 'hide', 'svg'];
 		let i = ignor.length;
 		while(i--) delete l[ignor[i]];
@@ -11554,7 +11555,7 @@ const Pool = {
 
     decompress: (buffer) => {
 
-        if(!Pool.lzmaReady) undefined.initLzma();
+        if(!Pool.lzmaReady) Pool.initLzma();
         const decompressed = m$4(new Uint8Array( buffer ));
         const result = new TextDecoder().decode(decompressed);
         return result;
@@ -12406,7 +12407,7 @@ const AvatarTools = {
 
         const anim = JSON.parse(result);
         for(let c in anim){
-            AvatarTools.clips.push( THREE.AnimationClip.parse( anim[c] ) );
+            AvatarTools.clips.push( three.AnimationClip.parse( anim[c] ) );
             AvatarTools.clipName.push( anim[c].name );
         }
         callback();

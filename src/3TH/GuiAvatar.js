@@ -1,5 +1,5 @@
 //import * as UIL from 'uil';
-import * as UIL from '../libs/uil.module.js'
+import * as UIL from '../libs/uil.module.min.js'
 //import { Shader } from './Shader.js';
 
 
@@ -69,7 +69,7 @@ export class Gui {
 		ui.add( 'bool', { name:'exo', value:false, h:20 }).onChange( function (b){ ref.addExo(b); if(ref2)ref2.addExo(b);}	 )
 
 		//ui.add( 'bool', { name:'CLONE TEST', value:false, h:20 }).onChange( function (b){ fun(b); } )
-		ui.add( 'bool', { name:'REFLECT', value:false, h:20 }).onChange( function (b){ fun2(b); } )
+		//ui.add( 'bool', { name:'REFLECT', value:false, h:20 }).onChange( function (b){ fun2(b); } )
 
 		ui.add( 'slide', { name:'scale', value: 1, min:0, max:2 }).onChange( function (v){ ref.setBoneScale(v); ref2.setBoneScale(v);} )
 

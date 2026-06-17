@@ -12,7 +12,7 @@
 		<script type="importmap">{ "imports": { 
 			"three": "../../three/build/three.module.js",
 			"three/addons/": "../../three/examples/jsm/",
-			"uil": "../../src/libs/uil.module.js"
+			"uil": "../../src/libs/uil.module.min.js"
 		}}</script>
 
 	
@@ -129,9 +129,7 @@
 
 			function next( info ){
 
-				/*light.position.copy( info.pos ).multiplyScalar( 40 );
-				light.color.copy( info.color );
-			    fog.color.copy( info.fog );*/
+			
 
 
 				reflector = new Reflector({
@@ -272,7 +270,6 @@
 
 			}
 
-			//
 
 			function render() {
 

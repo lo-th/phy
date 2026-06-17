@@ -3,7 +3,7 @@
  * Copyright 2010-2025 Phy.js Authors
  * SPDX-License-Identifier: MIT
  */
-import { LineSegments, BufferGeometry, BufferAttribute, Float32BufferAttribute, BoxGeometry, Vector3, Matrix4, CylinderGeometry, CircleGeometry, PlaneGeometry, SphereGeometry, Box3, Vector2, CanvasTexture, RepeatWrapping, SRGBColorSpace, MeshPhysicalMaterial, Color, MeshStandardMaterial, ShadowMaterial, MeshToonMaterial, LineBasicMaterial, MeshBasicMaterial, MeshLambertMaterial, MeshPhongMaterial, DoubleSide, BackSide, FrontSide, SrcAlphaSaturateFactor, OneMinusDstColorFactor, DstColorFactor, OneMinusDstAlphaFactor, DstAlphaFactor, OneMinusSrcAlphaFactor, SrcAlphaFactor, OneMinusSrcColorFactor, SrcColorFactor, OneFactor, ZeroFactor, MaxEquation, MinEquation, ReverseSubtractEquation, SubtractEquation, AddEquation, MultiplyBlending, SubtractiveBlending, AdditiveBlending, NormalBlending, NoBlending, Line, InstancedMesh, Quaternion as Quaternion$1, Mesh, InstancedBufferAttribute, Object3D, Line3, Plane, Triangle, ShapeGeometry, Group as Group$1, Euler, Loader, FileLoader, LinearSRGBColorSpace, ColorManagement, LoadingManager, EquirectangularReflectionMapping, AnimationMixer, TextureLoader, NoColorSpace, NearestFilter, Texture, CompressedTexture, ObjectSpaceNormalMap, Vector4, EventDispatcher, LoopRepeat, LoopOnce, QuaternionKeyframeTrack, AnimationClip, AdditiveAnimationBlendMode, NormalAnimationBlendMode, SkeletonHelper, Raycaster, Sphere, PMREMGenerator, Scene, WebGLCubeRenderTarget, HalfFloatType, LinearFilter, CubeCamera, IcosahedronGeometry, ShaderMaterial, NoToneMapping, Ray as Ray$1, BatchedMesh, Frustum, REVISION, DataTexture, FloatType, UnsignedIntType, IntType, WebGLUtils, RGBAFormat, RGBAIntegerFormat, RGFormat, RGIntegerFormat, RedFormat, RedIntegerFormat, WebGLCoordinateSystem, TorusGeometry, AxesHelper, Skeleton, MathUtils, Points, InstancedBufferGeometry, InterleavedBuffer, InterleavedBufferAttribute, InstancedInterleavedBuffer, DynamicDrawUsage, Matrix3 } from 'three';
+import { LineSegments, BufferGeometry, BufferAttribute, Float32BufferAttribute, BoxGeometry, Vector3, Matrix4, CylinderGeometry, CircleGeometry, PlaneGeometry, SphereGeometry, Box3, Vector2, CanvasTexture, RepeatWrapping, SRGBColorSpace, MeshPhysicalMaterial, Color, MeshStandardMaterial, ShadowMaterial, MeshToonMaterial, LineBasicMaterial, MeshBasicMaterial, MeshLambertMaterial, MeshPhongMaterial, DoubleSide, BackSide, FrontSide, SrcAlphaSaturateFactor, OneMinusDstColorFactor, DstColorFactor, OneMinusDstAlphaFactor, DstAlphaFactor, OneMinusSrcAlphaFactor, SrcAlphaFactor, OneMinusSrcColorFactor, SrcColorFactor, OneFactor, ZeroFactor, MaxEquation, MinEquation, ReverseSubtractEquation, SubtractEquation, AddEquation, MultiplyBlending, SubtractiveBlending, AdditiveBlending, NormalBlending, NoBlending, Line, InstancedMesh, Quaternion as Quaternion$1, Mesh, InstancedBufferAttribute, Object3D, Line3, Plane, Triangle, ShapeGeometry, Group as Group$1, Euler, Loader, FileLoader, LinearSRGBColorSpace, ColorManagement, LoadingManager, EquirectangularReflectionMapping, AnimationMixer, TextureLoader, NoColorSpace, NearestFilter, Texture, CompressedTexture, ObjectSpaceNormalMap, AnimationClip, Vector4, EventDispatcher, LoopRepeat, LoopOnce, QuaternionKeyframeTrack, AdditiveAnimationBlendMode, NormalAnimationBlendMode, SkeletonHelper, Raycaster, Sphere, PMREMGenerator, Scene, WebGLCubeRenderTarget, HalfFloatType, LinearFilter, CubeCamera, IcosahedronGeometry, ShaderMaterial, NoToneMapping, Ray as Ray$1, BatchedMesh, Frustum, REVISION, DataTexture, FloatType, UnsignedIntType, IntType, WebGLUtils, RGBAFormat, RGBAIntegerFormat, RGFormat, RGIntegerFormat, RedFormat, RedIntegerFormat, WebGLCoordinateSystem, TorusGeometry, AxesHelper, Skeleton, MathUtils, Points, InstancedBufferGeometry, InterleavedBuffer, InterleavedBufferAttribute, InstancedInterleavedBuffer, DynamicDrawUsage, Matrix3 } from 'three';
 import { mergeGeometries, mergeVertices } from 'three/addons/utils/BufferGeometryUtils.js';
 import { SVGLoader } from 'three/addons/loaders/SVGLoader.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
@@ -3559,6 +3559,7 @@ let Mat$3 = class Mat {
 	getList () {
 
 		let l = {...this.mat};
+		//let l = [...this.mat.keys()]
 		const ignor = ['line', 'debug', 'hide', 'svg'];
 		let i = ignor.length;
 		while(i--) delete l[ignor[i]];
@@ -11532,7 +11533,7 @@ const Pool = {
 
     decompress: (buffer) => {
 
-        if(!Pool.lzmaReady) undefined.initLzma();
+        if(!Pool.lzmaReady) Pool.initLzma();
         const decompressed = m$4(new Uint8Array( buffer ));
         const result = new TextDecoder().decode(decompressed);
         return result;
@@ -12384,7 +12385,7 @@ const AvatarTools = {
 
         const anim = JSON.parse(result);
         for(let c in anim){
-            AvatarTools.clips.push( THREE.AnimationClip.parse( anim[c] ) );
+            AvatarTools.clips.push( AnimationClip.parse( anim[c] ) );
             AvatarTools.clipName.push( anim[c].name );
         }
         callback();

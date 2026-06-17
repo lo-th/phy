@@ -1,5 +1,5 @@
 import {
-	Color, Spherical, Vector3, SRGBColorSpace
+	Color, Spherical, Vector3, SRGBColorSpace, CanvasTexture, DataUtils
 } from 'three';
 
 import { ImgTool } from './ImgTool.js';
@@ -186,7 +186,7 @@ async function resize_texture( texture, res = 2048, tex_flip = false, m_type = '
             if(getImageData){
             	resolve( tex = ctx2.getImageData(0,0,canvas2.width, canvas2.height));
             } else {
-            	resolve( tex = new THREE.CanvasTexture( canvas2 ) );
+            	resolve( tex = new CanvasTexture( canvas2 ) );
             }
 
         }
@@ -232,7 +232,7 @@ async function resize_texture( texture, res = 2048, tex_flip = false, m_type = '
                 let u8 = new Uint8Array( image.data.length );
 
                 for ( let i = 0; i < image.data.length; i ++ ) {
-	                let tmp = Math.max( -1, Math.min( 1, THREE.DataUtils.fromHalfFloat( image.data[ i ] ) ) );
+	                let tmp = Math.max( -1, Math.min( 1, DataUtils.fromHalfFloat( image.data[ i ] ) ) );
 	                tmp = tmp < 0 ? ( tmp * 0x8000 ) : ( tmp * 0x7FFF );
 	                u8[ i ] = tmp / 128.0;
                 }

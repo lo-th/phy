@@ -60,7 +60,9 @@ function init() {
 
 	//Shader.init()
 
-	Pool.dracoPath = '../../src/libs/draco/';
+	Pool.initLzma();
+
+	//Pool.dracoPath = '../../src/libs/draco/';
 
 	scene = new THREE.Scene();
 
@@ -76,32 +78,13 @@ function init() {
     scene.add( floor )
 
 
-    /*floor.material.onBeforeCompile = function ( shader ) {
-        Shader.modify( shader );
-        shader.fragmentShader = shader.fragmentShader.replace(
-            `gl_FragColor = vec4( color, opacity * ( 1.0 - getShadowMask() ) );`,`gl_FragColor = vec4( color, shadow * ( 1.0 - getShadowMask() ) );`)
-    }
-	scene.add( floor );*/
-
-	//const mesh2 = new THREE.GridHelper( 5, 5, 0x101010, 0x050505 );
-	//scene.add( mesh2 );
-
 	renderer = new THREE.WebGLRenderer( { antialias: true } );
 	renderer.setPixelRatio( 1 );
 	renderer.setSize( vs.w, vs.h );
-	renderer.setClearColor( 0x1e1c1c, 1 );//212121
-	//renderer.useLegacyLights = false
-	//renderer.physicallyCorrectLights = true
-
+	renderer.setClearColor( 0x1e1c1c, 1 );
 	renderer.shadowMap.enabled = true;
-	//renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-	//renderer.shadowMap.type = THREE.BasicShadowMap;
-	//renderer.shadowMap.type = THREE.VSMShadowMap;
-
-	//renderer.toneMapping = THREE.CustomToneMapping//
-	renderer.toneMapping = THREE.ACESFilmicToneMapping;
+	renderer.toneMapping = THREE.NeutralToneMapping;
 	renderer.toneMappingExposure = 1.0;
-	//renderer.outputEncoding = THREE.sRGBEncoding;
 
 
 	
@@ -149,9 +132,9 @@ function init() {
 	scene.add( spotLight )*/
 
 	camera = new THREE.PerspectiveCamera( 50, vs.r, 0.01, 200 );
-	camera.position.set( -1, 1.0, 3 );
+	camera.position.set( 0, 1.2, 4 );
 	controls = new OrbitControls( camera, renderer.domElement );
-	controls.target.set( 0.5, 0.9, 0 );
+	controls.target.set( 0, 1.2, 0 );
 	controls.update();
 
 
@@ -192,7 +175,7 @@ function next(){
 	hero = new Avatar( { compact:false, quality:1, compact:true, path:'../../' } );
 	//hero = new Avatar( { compact:true, material:false, morph:false } );
 	scene.add( hero );
-	hero.setPosition(0.5,0,0)
+	hero.setPosition(0.5,0,0.5)
 
 	console.time("man time");
 
@@ -204,11 +187,11 @@ function next(){
 		
 		hero2 = new Avatar({ type:'woman', path:'../../' });
 		scene.add( hero2 );
-		hero2.setPosition(-0.5,0,0)
+		hero2.setPosition(-0.5,0,0.5)
 
 		console.time("woman time");
 
-		window.gui = new Gui( hero, hero2, cloneTest, addReflection, playAnim, upMaterial );
+		//window.gui = new Gui( hero, hero2, cloneTest, addReflection, playAnim, upMaterial );
 
 		hero2.onReady = function () {
 

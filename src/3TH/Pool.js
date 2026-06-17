@@ -82,7 +82,7 @@ export const Pool = {
 
     decompress: (buffer) => {
 
-        if(!Pool.lzmaReady) this.initLzma()
+        if(!Pool.lzmaReady) Pool.initLzma()
         const decompressed = decompress(new Uint8Array( buffer ))
         const result = new TextDecoder().decode(decompressed);
         return result;

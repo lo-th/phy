@@ -1,4 +1,4 @@
-import * as UIL from '../libs/uil.module.js'
+import * as UIL from '../libs/uil.module.min.js'
 import { Video } from './Video.js'
 import { Env } from './Env.js'
 import { Hub } from './Hub.js'
@@ -731,6 +731,15 @@ export const Gui = {
         const Mat = Main.motor.getMatRef();
         let mats = Mat.getList();
 
+        const emojii = []
+        for(let m in mats){
+        	let t = mats[m].type
+        	if(t.search('Standard')!==-1) emojii.push('🟢')
+        	else if(t.search('Physical')!==-1) emojii.push('🟠')
+        	else if(t.search('Lambert')!==-1) emojii.push('🔵')
+        	else emojii.push('⚪')
+        }
+
         /*if( Mat.isRealism ) {
 
         	let options = Mat.realismOption
@@ -769,9 +778,13 @@ export const Gui = {
 
         }*/
 
-		//let mats = Main.motor.getMaterialList();
-		const matList = ui.add( 'list', { name:'', list:mats, p:0, value:Gui.currentMat, h:40 }).onChange( Gui.materialEdit )
+        //console.log(mats)
 
+        
+
+		//let mats = Main.motor.getMaterialList();
+		const matList = ui.add( 'list', { name:'', list:mats, p:0, value:Gui.currentMat, miniIcon:true, emojii:emojii, extraSpace:12, h:40 }).onChange( Gui.materialEdit )
+//return
 		if( !Gui.currentMat ) {
 
 			matList.text('Select Material')

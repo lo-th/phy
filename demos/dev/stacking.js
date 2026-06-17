@@ -4,7 +4,7 @@ demo = () => {
 
     phy.view({ distance:40, y:15, x:decal })
 
-    phy.set({ forceSubstep:10, substep:10, gravity:[0,-9.81,0] })
+    phy.set({ substep:10, gravity:[0,-9.81,0] })
 
     //phy.add({ type:'plane' })
     phy.add({ type:'box', size:[50, 1, 50], pos:[decal,-0.5,0], visible:false })
@@ -40,9 +40,9 @@ addStack = ( o ) => {
             type:"box",
             size: o.size,
             pos:[decal,py,0],
-            rot:[0,r,0],
+            rot:[0,r+(i*22.5),0],
             //rot  :[0,angle*(180 / Math.PI),0],
-            //density:density,
+            //density:1,
             mass:o.mass || 1,
             restitution:0.0,
             friction:0.5,

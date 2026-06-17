@@ -14,7 +14,7 @@ import { GroundedSkybox } from 'three/addons/objects/GroundedSkybox.js';
 import { ImgTool } from './utils/ImgTool.js';
 import { TextureAnalys } from './utils/TextureAnalys.js';
 //import { texture, equirectUV } from 'three/nodes';
-import { Lights } from './Lights.js';
+//import { Lights } from './Lights.js';
 //import { HDRTool } from './utils/HDRTool.js';
 
 const autoSize = 0.25
@@ -499,7 +499,9 @@ export class Env {
 			groundColor: r.color.ground, 
 		}
 
-		Lights.update( dt );
+		if(main) main.getLight().update( dt );
+
+		//Lights.update( dt );
 	
 	}
 
