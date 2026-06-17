@@ -37,11 +37,20 @@
 
 			init();
 			initEngine()
-			animate();
+			
 
 			function init() {
 
+				let color = 0xe26128
+			    if(engine==='HAVOK') color = 0xf3bf36
+			    if(engine==='PHYSX') color = 0x8fc733
+			    if(engine==='JOLT') color = 0x4890c2
+			    if(engine==='AMMO') color = 0xefa02e
+			    if(engine==='RAPIER') color = 0x9acea3
+
 				scene = new THREE.Scene();
+			    scene.background = new THREE.Color(color)
+			    scene.fog = new THREE.Fog(color, 10, 50)
 
 				const texture = new THREE.TextureLoader().load( '../../assets/textures/check.jpg' );
 				material = new THREE.MeshStandardMaterial( { map: texture } );
@@ -49,14 +58,14 @@
 				renderer = new THREE.WebGLRenderer( { antialias: true } );
 				renderer.setPixelRatio( window.devicePixelRatio );
 				renderer.setSize( window.innerWidth, window.innerHeight );
-				renderer.toneMapping = THREE.ReinhardToneMapping;
+				renderer.toneMapping = THREE.NeutralToneMapping;
 				renderer.shadowMap.enabled = true;
 				renderer.toneMappingExposure = Math.pow( 0.68, 5.0 );
 				//console.log(renderer.toneMappingExposure)
 				document.body.appendChild( renderer.domElement );
 				//renderer.useLegacyLights = true;
 
-				camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 1, 1000 );
+				camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 0.1, 300 );
 				camera.position.set(0,3,7);
 
 				controler = new OrbitControls( camera, renderer.domElement );
@@ -72,14 +81,16 @@
 			    light.castShadow = true;
 			    scene.add(light);
 
-			    let light2 = new THREE.PointLight(0xff0000, 1000, 100, 2);
+			    
+
+			    let light2 = new THREE.PointLight(color, 1000, 100, 2);
 			    light2.position.set(6,3,-5);
 			    light2.castShadow = true;
 			    scene.add(light2);
 
 
 
-			    scene.background = new THREE.Color( 0x000000 );
+			    //scene.background = new THREE.Color( 0x000000 );
 			    //scene.add( new THREE.AmbientLight( 0x808080 ));
 
 				window.addEventListener( 'resize', onWindowResize );
@@ -113,17 +124,19 @@
 					callback:startDemo, 
 				})
 
+
+
 			}
 
 			function startDemo() {
 
-				phy.set({ substep:1, gravity:[0,-9.81,0], fps:60 })
+				phy.set({ substep:2, gravity:[0,-9.81,0], fps:60 })
 
 				// add static ground
 				let p = phy.add({ type:'plane', size:[300,1,300], visible:true });
 				p.castShadow = false;
 
-				phy.add({ type:'highSphere', size:[2], pos:[0,2,-10], mass:2, impulse:[0,0,40] });
+				phy.add({ type:'highSphere', size:[2], pos:[0,2,-40], mass:40, impulse:[0,0,1200], friction:0.5 });
 
 				let i = 100, d = 0, l=0;
 				let pos = [0, 0, 0];
@@ -135,13 +148,15 @@
 					pos = [decalX + d*2, 0.5 + l*1, 0]
 					if(l%2 == 0) pos[0] += 0.5
 					else pos[0] -= 0.5
-					phy.add({ type:'box', size:[2,1,0.5], pos:pos, mass:1, radius:0.1 });
+					phy.add({ type:'box', size:[2,1,1], pos:pos, mass:10, radius:0.05, friction:0.25 });
 					d++
 					if(d===maxLine){ 
 						d = 0
 						l++
 					}
 				}
+
+				animate();
 
 			}
 
