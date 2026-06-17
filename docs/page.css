@@ -44,6 +44,9 @@
 	font-style: normal;
 	font-weight: 700;
 }
+img {
+	width: 25%;
+}
 
 html {
 	font-family: 'Mulish', sans-serif;
