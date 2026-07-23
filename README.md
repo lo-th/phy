@@ -3,7 +3,8 @@
 [Rapier](https://github.com/dimforge/rapier.js) &mdash;
 [Jolt](https://github.com/jrouwe/JoltPhysics.js) &mdash;
 [Havok](https://github.com/BabylonJS/Babylon.js) &mdash;
-[Physx](https://github.com/fabmax/physx-js-webidl)<br>
+[Physx](https://github.com/fabmax/physx-js-webidl) &mdash;
+[Box3d](https://github.com/isaac-mason/box3d.js)<br>
 [<img src="./assets/icons/phy_map.png"/>](https://lo-th.github.io/phy/)<br>
 
 [START DEMO/EDITOR](https://lo-th.github.io/phy/)<br>
