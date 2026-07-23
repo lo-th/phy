@@ -228,7 +228,7 @@ export const Main = {
 	webgpu:false,
 	isWorker:true,
 	devMode:false,
-	engineList: [ 'OIMO', 'AMMO', 'PHYSX', 'HAVOK', 'RAPIER', 'JOLT' ],
+	engineList: [ 'OIMO', 'AMMO', 'PHYSX', 'HAVOK', 'RAPIER', 'JOLT', 'BOX3D' ],
 	demoList:[],
 	demoLink:[],
 	devLink:[],

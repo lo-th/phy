@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<base href="../" />
+		<script src="page.js"></script>
+		<link type="text/css" rel="stylesheet" href="page.css" />
+	</head>
+	<body>
+
+		<img src="https://lo-th.github.io/phy/assets/logo/box3d.png" />
+
+		<p class="desc">[name] version 1:1</p>
+
+		<p>Is Box3d from Erin Catto's 3D rigid body physics engine - JS compiled with Emscripten. Integration in progress, very light and powerfull !!</p>
+
+		<iframe id="scene" src="scenes/engines.html#BOX3D"></iframe>
+
+		<script>
+
+		// iOS iframe auto-resize workaround
+
+		if ( /(iPad|iPhone|iPod)/g.test( navigator.userAgent ) ) {
+
+			const scene = document.getElementById( 'scene' );
+
+			scene.style.width = getComputedStyle( scene ).width;
+			scene.style.height = getComputedStyle( scene ).height;
+			scene.setAttribute( 'scrolling', 'no' );
+
+		}
+
+		</script>
+
+		<h2>Code Example</h2>
+
+<code>
+import { phy } from './build/Phy.module.js';
+
+phy.init({ 
+	type:'BOX3D', 
+	worker:false, 
+	callback:startDemo, 
+	scene:scene,
+	path:'./build/'
+})
+</code>
+
+        <h2>Resources need</h2>
+
+		<p>
+		in /build folder<br/>
+		<b>Box3d.module.js</b> __ module version<br/>
+		or <b>Box3d.min.js</b> __ for worker version<br/><br/>
+		in /compact folder<br/>
+		<b>Box3d.bin</b> or <b>Box3d.module.bin</b> __ compact version<br/>
+		</p>
+
+<h2>About</h2>
+<p>
+[link:https://github.com/isaac-mason/box3d.js Made by Isaac Mason]
+</p>
+
+</body>
+</html>

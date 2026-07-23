@@ -51,7 +51,7 @@ demo = () => {
     phy.add({ type:'box', size:[300,1,300], pos:[0,-0.5,0], visible:false })
 
     phy.add({ type:'sphere', size:[0.2], pos:[1,0.2,0], mass:1 })
-    phy.add({ type:'box', size:[0.2, 0.2, 0.2], pos:[-1,0.2,0], mass:1 })
+    phy.add({ type:'box', size:[1, 0.2, 1], pos:[-1,0.2,0], mass:1 })
 
     //phy.add({ type:'sphere', size:[0.3], pos:[0,0,1], mass:0 })
 

@@ -39,6 +39,7 @@
     "wiggle": "rollup -c rollup/extra.wiggle.js",
     "codeflask": "rollup -c rollup/extra.codeflask.js",
     "phy": "rollup -c rollup/rollup.config.phy.js",
+    "box3d": "rollup -c rollup/rollup.config.box3d.js",
     "oimo": "rollup -c rollup/rollup.config.oimo.js",
     "ammo": "rollup -c rollup/rollup.config.ammo.js",
     "physx": "rollup -c rollup/rollup.config.physx.js",

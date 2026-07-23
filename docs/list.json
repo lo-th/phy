@@ -22,7 +22,8 @@
 				"Ammo": "manual/Ammo-engine",
 				"Havok": "manual/Havok-engine",
 				"Jolt": "manual/Jolt-engine",
-				"Physx": "manual/Physx-engine"
+				"Physx": "manual/Physx-engine",
+				"Box3d": "manual/Box3d-engine"
 			},
 
 			"Command": {

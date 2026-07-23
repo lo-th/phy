@@ -3,7 +3,7 @@
  * Copyright 2010-2026 Three.js Authors
  * SPDX-License-Identifier: MIT
  */
-const REVISION = '185dev';
+const REVISION = '186dev';
 
 /**
  * Represents mouse buttons and interaction types in context of controls.
@@ -10083,7 +10083,7 @@ class Matrix4 {
 	 */
 	extractBasis( xAxis, yAxis, zAxis ) {
 
-		if ( this.determinant() === 0 ) {
+		if ( this.determinantAffine() === 0 ) {
 
 			xAxis.set( 1, 0, 0 );
 			yAxis.set( 0, 1, 0 );
@@ -10133,7 +10133,7 @@ class Matrix4 {
 	 */
 	extractRotation( m ) {
 
-		if ( m.determinant() === 0 ) {
+		if ( m.determinantAffine() === 0 ) {
 
 			return this.identity();
 
@@ -10491,6 +10491,31 @@ class Matrix4 {
 			n12 * ( n41 * t11 - n43 * t21 + n44 * t22 ) +
 			n13 * ( n41 * t12 - n42 * t21 + n44 * t23 ) -
 			n14 * ( n41 * t13 - n42 * t22 + n43 * t23 );
+
+	}
+
+	/**
+	 * Computes and returns the determinant of the 4x4 matrix, but assumes the
+	 * matrix is affine, saving some computations.
+	 *
+	 * For affine matrices (like an object's world matrix), this value equals the
+	 * full 4x4 {@link Matrix4#determinant} but is cheaper to compute.
+	 *
+	 * Assumes the bottom row is [0, 0, 0, 1].
+	 *
+	 * @return {number} The determinant of the matrix.
+	 */
+	determinantAffine() {
+
+		const te = this.elements;
+
+		const n11 = te[ 0 ], n12 = te[ 4 ], n13 = te[ 8 ];
+		const n21 = te[ 1 ], n22 = te[ 5 ], n23 = te[ 9 ];
+		const n31 = te[ 2 ], n32 = te[ 6 ], n33 = te[ 10 ];
+
+		return n11 * ( n22 * n33 - n23 * n32 ) -
+			n12 * ( n21 * n33 - n23 * n31 ) +
+			n13 * ( n21 * n32 - n22 * n31 );
 
 	}
 
@@ -10903,7 +10928,7 @@ class Matrix4 {
 		position.y = te[ 13 ];
 		position.z = te[ 14 ];
 
-		const det = this.determinant();
+		const det = this.determinantAffine();
 
 		if ( det === 0 ) {
 
@@ -22360,10 +22385,6 @@ const _segCenter = /*@__PURE__*/ new Vector3();
 const _segDir = /*@__PURE__*/ new Vector3();
 const _diff = /*@__PURE__*/ new Vector3();
 
-const _edge1 = /*@__PURE__*/ new Vector3();
-const _edge2 = /*@__PURE__*/ new Vector3();
-const _normal$1 = /*@__PURE__*/ new Vector3();
-
 /**
  * A ray that emits from an origin in a certain direction. The class is used by
  * {@link Raycaster} to assist with raycasting. Raycasting is used for
@@ -22894,76 +22915,128 @@ class Ray {
 	 */
 	intersectTriangle( a, b, c, backfaceCulling, target ) {
 
-		// Compute the offset origin, edges, and normal.
+		// Watertight ray/triangle intersection. Reference: Woop, Benthin, Wald,
+		// "Watertight Ray/Triangle Intersection", JCGT vol. 2 no. 1 (2013), Appendix A.
+		// https://jcgt.org/published/0002/01/05/
 
-		// from https://github.com/pmjoniak/GeometricTools/blob/master/GTEngine/Include/Mathematics/GteIntrRay3Triangle3.h
+		const origin = this.origin;
+		const direction = this.direction;
 
-		_edge1.subVectors( b, a );
-		_edge2.subVectors( c, a );
-		_normal$1.crossVectors( _edge1, _edge2 );
+		const dx = direction.x;
+		const dy = direction.y;
+		const dz = direction.z;
 
-		// Solve Q + t*D = b1*E1 + b2*E2 (Q = kDiff, D = ray direction,
-		// E1 = kEdge1, E2 = kEdge2, N = Cross(E1,E2)) by
-		//   |Dot(D,N)|*b1 = sign(Dot(D,N))*Dot(D,Cross(Q,E2))
-		//   |Dot(D,N)|*b2 = sign(Dot(D,N))*Dot(D,Cross(E1,Q))
-		//   |Dot(D,N)|*t = -sign(Dot(D,N))*Dot(Q,N)
-		let DdN = this.direction.dot( _normal$1 );
-		let sign;
+		// triangle vertices relative to the ray origin
 
-		if ( DdN > 0 ) {
+		const aox = a.x - origin.x, aoy = a.y - origin.y, aoz = a.z - origin.z;
+		const box = b.x - origin.x, boy = b.y - origin.y, boz = b.z - origin.z;
+		const cox = c.x - origin.x, coy = c.y - origin.y, coz = c.z - origin.z;
 
-			if ( backfaceCulling ) return null;
-			sign = 1;
+		// Use the dimension where the ray direction is maximal as the projection
+		// axis (kz) and read every component already permuted into (kx, ky, kz).
+		// kx and ky are swapped when the direction's kz component is negative, to
+		// preserve the winding order of triangles.
 
-		} else if ( DdN < 0 ) {
+		const adx = Math.abs( dx ), ady = Math.abs( dy ), adz = Math.abs( dz );
 
-			sign = -1;
-			DdN = - DdN;
+		let dkx, dky, dkz;
+		let akx, aky, akz, bkx, bky, bkz, ckx, cky, ckz;
+
+		if ( adx >= ady && adx >= adz ) {
+
+			dkz = dx; akz = aox; bkz = box; ckz = cox;
+
+			if ( dx >= 0 ) {
+
+				dkx = dy; dky = dz;
+				akx = aoy; aky = aoz; bkx = boy; bky = boz; ckx = coy; cky = coz;
+
+			} else {
+
+				dkx = dz; dky = dy;
+				akx = aoz; aky = aoy; bkx = boz; bky = boy; ckx = coz; cky = coy;
+
+			}
+
+		} else if ( ady >= adz ) {
+
+			dkz = dy; akz = aoy; bkz = boy; ckz = coy;
+
+			if ( dy >= 0 ) {
+
+				dkx = dz; dky = dx;
+				akx = aoz; aky = aox; bkx = boz; bky = box; ckx = coz; cky = cox;
+
+			} else {
+
+				dkx = dx; dky = dz;
+				akx = aox; aky = aoz; bkx = box; bky = boz; ckx = cox; cky = coz;
+
+			}
 
 		} else {
 
-			return null;
+			dkz = dz; akz = aoz; bkz = boz; ckz = coz;
+
+			if ( dz >= 0 ) {
+
+				dkx = dx; dky = dy;
+				akx = aox; aky = aoy; bkx = box; bky = boy; ckx = cox; cky = coy;
+
+			} else {
+
+				dkx = dy; dky = dx;
+				akx = aoy; aky = aox; bkx = boy; bky = box; ckx = coy; cky = cox;
+
+			}
 
 		}
 
-		_diff.subVectors( this.origin, a );
-		const DdQxE2 = sign * this.direction.dot( _edge2.crossVectors( _diff, _edge2 ) );
+		// a zero direction has no maximal axis and cannot intersect
 
-		// b1 < 0, no intersection
-		if ( DdQxE2 < 0 ) {
+		if ( dkz === 0 ) return null;
 
-			return null;
+		// shear constants that align the ray with the +kz axis
 
-		}
+		const sx = dkx / dkz, sy = dky / dkz, sz = 1 / dkz;
 
-		const DdE1xQ = sign * this.direction.dot( _edge1.cross( _diff ) );
+		// sheared and scaled vertices
 
-		// b2 < 0, no intersection
-		if ( DdE1xQ < 0 ) {
+		const ax = akx - sx * akz, ay = aky - sy * akz;
+		const bx = bkx - sx * bkz, by = bky - sy * bkz;
+		const cx = ckx - sx * ckz, cy = cky - sy * ckz;
 
-			return null;
+		// scaled barycentric coordinates (signed edge functions); the shear makes a
+		// shared edge evaluate identically for both adjacent triangles, so the ray
+		// can never fall between them
 
-		}
+		const u = cx * by - cy * bx;
+		const v = ax * cy - ay * cx;
+		const w = bx * ay - by * ax;
 
-		// b1+b2 > 1, no intersection
-		if ( DdQxE2 + DdE1xQ > DdN ) {
+		if ( backfaceCulling ) {
 
-			return null;
+			if ( u < 0 || v < 0 || w < 0 ) return null;
 
-		}
+		} else {
 
-		// Line intersects triangle, check if ray does.
-		const QdN = - sign * _diff.dot( _normal$1 );
-
-		// t < 0, no intersection
-		if ( QdN < 0 ) {
-
-			return null;
+			if ( ( u < 0 || v < 0 || w < 0 ) && ( u > 0 || v > 0 || w > 0 ) ) return null;
 
 		}
 
-		// Ray intersects triangle.
-		return this.at( QdN / DdN, target );
+		const det = u + v + w;
+
+		// ray is co-planar with the triangle
+
+		if ( det === 0 ) return null;
+
+		// scaled hit distance; t = tScaled / det must lie in front of the origin
+
+		const tScaled = sz * ( u * akz + v * bkz + w * ckz );
+
+		if ( det > 0 ? tScaled < 0 : tScaled > 0 ) return null;
+
+		return this.at( tScaled / det, target );
 
 	}
 
@@ -25720,7 +25793,6 @@ class Frustum {
 }
 
 const _projScreenMatrix$1 = /*@__PURE__*/ new Matrix4();
-const _frustum$1 = /*@__PURE__*/ new Frustum();
 
 /**
  * FrustumArray is used to determine if an object is visible in at least one camera
@@ -25742,220 +25814,191 @@ class FrustumArray {
 		 */
 		this.coordinateSystem = WebGLCoordinateSystem;
 
+		/**
+		 * A pool of frustum instances. It may hold more entries than are
+		 * currently in use; surplus instances are kept for reuse to avoid
+		 * reallocating when array cameras of different lengths are rendered.
+		 *
+		 * @private
+		 * @type {Array<Frustum>}
+		 */
+		this._frustums = [];
+
+		/**
+		 * The number of frustums in {@link FrustumArray#_frustums} that are currently
+		 * in use.
+		 *
+		 * @private
+		 * @type {number}
+		 * @default 0
+		 */
+		this._count = 0;
+
 	}
 
 	/**
-	 * Returns `true` if the 3D object's bounding sphere is intersecting any frustum
-	 * from the camera array.
+	 * Computes and caches a frustum for each camera of the given array camera.
+	 *
+	 * @param {ArrayCamera} cameraArray - The array camera whose sub-cameras define the frustums.
+	 * @return {FrustumArray} A reference to this frustum array.
+	 */
+	setFromArrayCamera( cameraArray ) {
+
+		const cameras = cameraArray.cameras;
+		const frustums = this._frustums;
+
+		for ( let i = 0; i < cameras.length; i ++ ) {
+
+			const camera = cameras[ i ];
+
+			_projScreenMatrix$1.multiplyMatrices( camera.projectionMatrix, camera.matrixWorldInverse );
+
+			if ( frustums[ i ] === undefined ) frustums[ i ] = new Frustum();
+
+			frustums[ i ].setFromProjectionMatrix( _projScreenMatrix$1, camera.coordinateSystem, camera.reversedDepth );
+
+		}
+
+		this._count = cameras.length;
+
+		return this;
+
+	}
+
+	/**
+	 * Returns `true` if the 3D object's bounding sphere is intersecting any cached frustum.
+	 *
+	 * {@link FrustumArray#setFromArrayCamera} must be called once per render before this method.
 	 *
 	 * @param {Object3D} object - The 3D object to test.
-	 * @param {Object} cameraArray - An object with a cameras property containing an array of cameras.
 	 * @return {boolean} Whether the 3D object is visible in any camera.
 	 */
-	intersectsObject( object, cameraArray ) {
+	intersectsObject( object ) {
 
-		if ( ! cameraArray.isArrayCamera || cameraArray.cameras.length === 0 ) {
+		const frustums = this._frustums;
 
-			return false;
+		for ( let i = 0; i < this._count; i ++ ) {
 
-		}
-
-		for ( let i = 0; i < cameraArray.cameras.length; i ++ ) {
-
-			const camera = cameraArray.cameras[ i ];
-
-			_projScreenMatrix$1.multiplyMatrices(
-				camera.projectionMatrix,
-				camera.matrixWorldInverse
-			);
-
-			_frustum$1.setFromProjectionMatrix(
-				_projScreenMatrix$1,
-				camera.coordinateSystem,
-				camera.reversedDepth
-			);
-
-			if ( _frustum$1.intersectsObject( object ) ) {
-
-				return true; // Object is visible in at least one camera
-
-			}
+			if ( frustums[ i ].intersectsObject( object ) ) return true;
 
 		}
 
-		return false; // Not visible in any camera
+		return false;
 
 	}
 
 	/**
-	 * Returns `true` if the given sprite is intersecting any frustum
-	 * from the camera array.
+	 * Returns `true` if the given sprite is intersecting any cached frustum.
+	 *
+	 * {@link FrustumArray#setFromArrayCamera} must be called once per render before this method.
 	 *
 	 * @param {Sprite} sprite - The sprite to test.
-	 * @param {Object} cameraArray - An object with a cameras property containing an array of cameras.
 	 * @return {boolean} Whether the sprite is visible in any camera.
 	 */
-	intersectsSprite( sprite, cameraArray ) {
+	intersectsSprite( sprite ) {
 
-		if ( ! cameraArray || ! cameraArray.cameras || cameraArray.cameras.length === 0 ) {
+		const frustums = this._frustums;
 
-			return false;
+		for ( let i = 0; i < this._count; i ++ ) {
 
-		}
-
-		for ( let i = 0; i < cameraArray.cameras.length; i ++ ) {
-
-			const camera = cameraArray.cameras[ i ];
-
-			_projScreenMatrix$1.multiplyMatrices(
-				camera.projectionMatrix,
-				camera.matrixWorldInverse
-			);
-
-			_frustum$1.setFromProjectionMatrix(
-				_projScreenMatrix$1,
-				camera.coordinateSystem,
-				camera.reversedDepth
-			);
-
-			if ( _frustum$1.intersectsSprite( sprite ) ) {
-
-				return true; // Sprite is visible in at least one camera
-
-			}
+			if ( frustums[ i ].intersectsSprite( sprite ) ) return true;
 
 		}
 
-		return false; // Not visible in any camera
+		return false;
 
 	}
 
 	/**
-	 * Returns `true` if the given bounding sphere is intersecting any frustum
-	 * from the camera array.
+	 * Returns `true` if the given bounding sphere is intersecting any cached frustum.
+	 *
+	 * {@link FrustumArray#setFromArrayCamera} must be called once per render before this method.
 	 *
 	 * @param {Sphere} sphere - The bounding sphere to test.
-	 * @param {Object} cameraArray - An object with a cameras property containing an array of cameras.
 	 * @return {boolean} Whether the sphere is visible in any camera.
 	 */
-	intersectsSphere( sphere, cameraArray ) {
+	intersectsSphere( sphere ) {
 
-		if ( ! cameraArray || ! cameraArray.cameras || cameraArray.cameras.length === 0 ) {
+		const frustums = this._frustums;
 
-			return false;
+		for ( let i = 0; i < this._count; i ++ ) {
 
-		}
-
-		for ( let i = 0; i < cameraArray.cameras.length; i ++ ) {
-
-			const camera = cameraArray.cameras[ i ];
-
-			_projScreenMatrix$1.multiplyMatrices(
-				camera.projectionMatrix,
-				camera.matrixWorldInverse
-			);
-
-			_frustum$1.setFromProjectionMatrix(
-				_projScreenMatrix$1,
-				camera.coordinateSystem,
-				camera.reversedDepth
-			);
-
-			if ( _frustum$1.intersectsSphere( sphere ) ) {
-
-				return true; // Sphere is visible in at least one camera
-
-			}
+			if ( frustums[ i ].intersectsSphere( sphere ) ) return true;
 
 		}
 
-		return false; // Not visible in any camera
+		return false;
 
 	}
 
 	/**
-	 * Returns `true` if the given bounding box is intersecting any frustum
-	 * from the camera array.
+	 * Returns `true` if the given bounding box is intersecting any cached frustum.
+	 *
+	 * {@link FrustumArray#setFromArrayCamera} must be called once per render before this method.
 	 *
 	 * @param {Box3} box - The bounding box to test.
-	 * @param {Object} cameraArray - An object with a cameras property containing an array of cameras.
 	 * @return {boolean} Whether the box is visible in any camera.
 	 */
-	intersectsBox( box, cameraArray ) {
+	intersectsBox( box ) {
 
-		if ( ! cameraArray || ! cameraArray.cameras || cameraArray.cameras.length === 0 ) {
+		const frustums = this._frustums;
 
-			return false;
+		for ( let i = 0; i < this._count; i ++ ) {
 
-		}
-
-		for ( let i = 0; i < cameraArray.cameras.length; i ++ ) {
-
-			const camera = cameraArray.cameras[ i ];
-
-			_projScreenMatrix$1.multiplyMatrices(
-				camera.projectionMatrix,
-				camera.matrixWorldInverse
-			);
-
-			_frustum$1.setFromProjectionMatrix(
-				_projScreenMatrix$1,
-				camera.coordinateSystem,
-				camera.reversedDepth
-			);
-
-			if ( _frustum$1.intersectsBox( box ) ) {
-
-				return true; // Box is visible in at least one camera
-
-			}
+			if ( frustums[ i ].intersectsBox( box ) ) return true;
 
 		}
 
-		return false; // Not visible in any camera
+		return false;
 
 	}
 
 	/**
-	 * Returns `true` if the given point lies within any frustum
-	 * from the camera array.
+	 * Returns `true` if the given point lies within any cached frustum.
+	 *
+	 * {@link FrustumArray#setFromArrayCamera} must be called once per render before this method.
 	 *
 	 * @param {Vector3} point - The point to test.
-	 * @param {Object} cameraArray - An object with a cameras property containing an array of cameras.
 	 * @return {boolean} Whether the point is visible in any camera.
 	 */
-	containsPoint( point, cameraArray ) {
+	containsPoint( point ) {
 
-		if ( ! cameraArray || ! cameraArray.cameras || cameraArray.cameras.length === 0 ) {
+		const frustums = this._frustums;
 
-			return false;
+		for ( let i = 0; i < this._count; i ++ ) {
 
-		}
-
-		for ( let i = 0; i < cameraArray.cameras.length; i ++ ) {
-
-			const camera = cameraArray.cameras[ i ];
-
-			_projScreenMatrix$1.multiplyMatrices(
-				camera.projectionMatrix,
-				camera.matrixWorldInverse
-			);
-
-			_frustum$1.setFromProjectionMatrix(
-				_projScreenMatrix$1,
-				camera.coordinateSystem,
-				camera.reversedDepth
-			);
-
-			if ( _frustum$1.containsPoint( point ) ) {
-
-				return true; // Point is visible in at least one camera
-
-			}
+			if ( frustums[ i ].containsPoint( point ) ) return true;
 
 		}
 
-		return false; // Not visible in any camera
+		return false;
+
+	}
+
+	/**
+	 * Copies the values of the given frustum array to this instance.
+	 *
+	 * @param {FrustumArray} frustumArray - The frustum array to copy.
+	 * @return {FrustumArray} A reference to this frustum array.
+	 */
+	copy( source ) {
+
+		this.coordinateSystem = source.coordinateSystem;
+
+		const frustums = this._frustums;
+		const sourceFrustums = source._frustums;
+
+		for ( let i = 0; i < source._count; i ++ ) {
+
+			if ( frustums[ i ] === undefined ) frustums[ i ] = new Frustum();
+
+			frustums[ i ].copy( sourceFrustums[ i ] );
+
+		}
+
+		this._count = source._count;
+
+		return this;
 
 	}
 
@@ -25966,7 +26009,7 @@ class FrustumArray {
 	 */
 	clone() {
 
-		return new FrustumArray();
+		return new FrustumArray().copy( this );
 
 	}
 
@@ -27512,17 +27555,25 @@ class BatchedMesh extends Mesh {
 
 		const frustum = camera.isArrayCamera ? _frustumArray : _frustum;
 		// prepare the frustum in the local frame
-		if ( perObjectFrustumCulled && ! camera.isArrayCamera ) {
+		if ( perObjectFrustumCulled ) {
 
-			_matrix$1
-				.multiplyMatrices( camera.projectionMatrix, camera.matrixWorldInverse )
-				.multiply( this.matrixWorld );
+			if ( camera.isArrayCamera ) {
 
-			_frustum.setFromProjectionMatrix(
-				_matrix$1,
-				camera.coordinateSystem,
-				camera.reversedDepth
-			);
+				frustum.setFromArrayCamera( camera );
+
+			} else {
+
+				_matrix$1
+					.multiplyMatrices( camera.projectionMatrix, camera.matrixWorldInverse )
+					.multiply( this.matrixWorld );
+
+				frustum.setFromProjectionMatrix(
+					_matrix$1,
+					camera.coordinateSystem,
+					camera.reversedDepth
+				);
+
+			}
 
 		}
 
@@ -27548,7 +27599,7 @@ class BatchedMesh extends Mesh {
 					let culled = false;
 					if ( perObjectFrustumCulled ) {
 
-						culled = ! frustum.intersectsSphere( _sphere$2, camera );
+						culled = ! frustum.intersectsSphere( _sphere$2 );
 
 					}
 
@@ -27605,7 +27656,7 @@ class BatchedMesh extends Mesh {
 						// get the bounds in world space
 						this.getMatrixAt( i, _matrix$1 );
 						this.getBoundingSphereAt( geometryId, _sphere$2 ).applyMatrix4( _matrix$1 );
-						culled = ! frustum.intersectsSphere( _sphere$2, camera );
+						culled = ! frustum.intersectsSphere( _sphere$2 );
 
 					}
 
@@ -29393,9 +29444,6 @@ class CubeDepthTexture extends DepthTexture {
  *
  * This may be a texture from a protected media stream, device camera feed,
  * or other data feeds like a depth sensor.
- *
- * Note that this class is only supported in {@link WebGLRenderer}, and in
- * the {@link WebGPURenderer} WebGPU backend.
  *
  * @augments Texture
  */
@@ -56137,6 +56185,10 @@ class Raycaster {
 	 * be detected. To raycast against both faces of an object, you'll want to set  {@link Material#side}
 	 * to `THREE.DoubleSide`.
 	 *
+	 * Note that a ray hitting a triangle mesh exactly along an edge shared by two faces may be
+	 * reported by both faces, resulting in two coincident intersections (identical point and
+	 * distance) in the returned array.
+	 *
 	 * @param {Object3D} object - The 3D object to check for intersection with the ray.
 	 * @param {boolean} [recursive=true] - If set to `true`, it also checks all descendants.
 	 * Otherwise it only checks intersection with the object.
@@ -59505,7 +59557,8 @@ class ShapePath {
 			for ( let j = i - 1; j >= 0; j -- ) {
 
 				const candidate = entries[ j ];
-				if ( ! candidate.boundingBox.containsPoint( entry.interiorPoint ) ) continue;
+
+				if ( ! candidate.boundingBox.containsBox( entry.boundingBox ) ) continue;
 				if ( ! pointInPolygon( entry.interiorPoint, candidate.points ) ) continue;
 
 				entry.container = candidate.exclude ? candidate.container : candidate;
@@ -59652,13 +59705,6 @@ class Controls extends EventDispatcher {
 	 * @param {HTMLElement} element - The DOM element to connect to.
 	 */
 	connect( element ) {
-
-		if ( element === undefined ) {
-
-			warn( 'Controls: connect() now requires an element.' ); // @deprecated, the warning can be removed with r185
-			return;
-
-		}
 
 		if ( this.domElement !== null ) this.disconnect();
 

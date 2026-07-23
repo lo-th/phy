@@ -254,6 +254,9 @@ export class Profiler extends EventDispatcher {
 
 		this.domElement.classList.add( 'three-inspector' );
 
+		this.domElement.addEventListener( 'keydown', ( e ) => e.stopPropagation() );
+		this.domElement.addEventListener( 'keyup', ( e ) => e.stopPropagation() );
+
 		this.toggleButton = document.createElement( 'button' );
 		this.toggleButton.classList.add( 'profiler-toggle' );
 		this.toggleButton.innerHTML = `
@@ -1175,13 +1178,7 @@ export class Profiler extends EventDispatcher {
 		windowPanel.style.left = `${ constrainedX }px`;
 		windowPanel.style.top = `${ constrainedY }px`;
 
-		if ( ! this.panel.classList.contains( 'visible' ) ) {
 
-			windowPanel.style.opacity = '0';
-			windowPanel.style.visibility = 'hidden';
-			windowPanel.style.pointerEvents = 'none';
-
-		}
 
 		// Hide detached window if tab is not visible
 		if ( ! tab.isVisible ) {
@@ -1536,6 +1533,8 @@ export class Profiler extends EventDispatcher {
 
 				}
 
+				this.dispatchEvent( { type: 'resize' } );
+
 			};
 
 			const onResizeEnd = () => {
@@ -1691,24 +1690,6 @@ export class Profiler extends EventDispatcher {
 			this.tabs[ this.activeTabId ].setActive( true );
 
 		}
-
-		this.detachedWindows.forEach( detachedWindow => {
-
-			if ( isVisible ) {
-
-				detachedWindow.panel.style.opacity = '';
-				detachedWindow.panel.style.visibility = '';
-				detachedWindow.panel.style.pointerEvents = '';
-
-			} else {
-
-				detachedWindow.panel.style.opacity = '0';
-				detachedWindow.panel.style.visibility = 'hidden';
-				detachedWindow.panel.style.pointerEvents = 'none';
-
-			}
-
-		} );
 
 		this.dispatchEvent( { type: 'resize' } );
 

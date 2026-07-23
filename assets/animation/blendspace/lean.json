@@ -1,0 +1,55 @@
+{
+    "option": {
+        "weight": 3,
+        "mode": "none",
+        "time": 1,
+        "onGrid": true,
+        "x_div": 8,
+        "x_size": 500,
+        "x_range": [
+            -180,
+            180
+        ],
+        "x_name": "Direction",
+        "y_div": 8,
+        "y_size": 200,
+        "y_range": [
+            0,
+            100
+        ],
+        "y_name": "Speed",
+        "smoothing": 1,
+        "smoothingEase": 1,
+        "order": "radial",
+        "showName": false,
+        "showTriangle": true
+    },
+    "values": {
+        "x": 1.0472607421875182,
+        "y": 50
+    },
+    "slots": [
+        {
+            "p": [
+                260,
+                110
+            ],
+            "name": "Jog_lean_M"
+        },
+        {
+            "p": [
+                10,
+                110
+            ],
+            "name": "Jog_lean_L"
+        },
+        {
+            "p": [
+                510,
+                110
+            ],
+            "name": "Jog_lean_R"
+        }
+    ],
+    "refAnimation": "Jog_F"
+}

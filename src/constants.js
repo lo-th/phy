@@ -11,6 +11,8 @@ export const Version = {
     OIMO: '1.2.4',
     AMMO: '3.2.6',
 
+    BOX3D: '0.1.1',
+
 }
 
 export const EnginSkill = {
@@ -20,4 +22,5 @@ export const EnginSkill = {
     RAPIER:{c:'rgba(168,251,194,0.5)', speed:0.6, option:0.8, precision:0.9, collision:0.8, constraint:0.7, vehicle:0.2 },
     AMMO : {c:'rgba(255,154,0,0.5)',   speed:0.4, option:0.7, precision:0.6, collision:0.1, constraint:0.8, vehicle:0.8 },
     OIMO:  {c:'rgba(246,82,22,0.5)',   speed:0.3, option:0.5, precision:0.6, collision:0.2, constraint:0.8, vehicle:0.2 },
+    BOX3D:  {c:'rgba(255,0,28,0.5)',   speed:1.0, option:0.8, precision:1.0, collision:1.0, constraint:0.6, vehicle:0.2 },
 }
