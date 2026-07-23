@@ -150,7 +150,7 @@ export class engine {
 		
 		fixe = o.fixe !== undefined ? o.fixe : true;
 
-		root.gravity =  { x: 0, y: -10, z: 0 }//[ 0, -9.80665, 0 ];
+		root.gravity =  o.gravity ? Utils.toVec(o.gravity) : { x: 0, y: -10, z: 0 };
 
 		if( root.world === null ) engine.start();
 		//else root.world.setGravity( gravity );
@@ -159,8 +159,8 @@ export class engine {
 
 	static setGravity( o ) {
 		
-		root.gravity = o.gravity;
-		if( root.world ) root.world.gravity = root.gravity;
+		if( o.gravity ) root.gravity = Utils.toVec(o.gravity);
+		if( root.world ) b3.b3World_SetGravity(root.world, root.gravity)
 
 	}
 	
@@ -222,8 +222,12 @@ export class engine {
     	//root.queryCollector = havok.HP_QueryCollector_Create(1000)[1];
 
 
-    	//havok.HP_World_SetGravity( root.world, root.gravity );
-    	root.world.gravity = root.gravity;
+    	//root.world.gravity = root.gravity;
+
+    	b3.b3World_SetGravity(root.world, root.gravity)
+
+
+    	console.log(root.world)
 
     	// 200 m/s (which is about two thirds the speed of sound, so pretty fast :))
     	//havok.HP_World_SetSpeedLimit( root.world, maxLinearVelocity, maxAngularVelocity );
