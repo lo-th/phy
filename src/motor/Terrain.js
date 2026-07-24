@@ -62,6 +62,12 @@ export class Terrain extends Item {
 			//o.isReverse = false
 		}
 
+		if( this.engine === 'BOX3D'){
+			o.isAbsolute = true
+			o.isTurned = false
+			//o.isReverse = true
+		}
+
 		if( this.engine !== 'OIMO'){
 			//o.zone = o.zone || 0.25
 			//o.debuger = true
@@ -108,7 +114,7 @@ const toPhysics = function( t, engine ) {
 		quat:engine === 'PHYSX' ? [0,0,0,1]:t.quaternion.toArray(), // physx terrain can't turn !!
 	}
 
-	if( engine === 'PHYSX' || engine === 'AMMO' || engine === 'HAVOK' || engine === 'JOLT'){
+	if( engine === 'PHYSX' || engine === 'AMMO' || engine === 'HAVOK' || engine === 'JOLT' || engine === 'BOX3D'){
 		o.type = 'terrain';
 		o.size = t.sizeZ;
 		o.sample = t.sampleZ;

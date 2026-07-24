@@ -113,6 +113,11 @@ export const Utils = {
 				//b3.b3DestroyShape(s, true);
 				//b3.b3DestroyMesh(b);
 
+				if(b.type==='terrain'){
+					b3.b3DestroyShape(b.shape, false)
+					b3.b3DestroyHeightField(b.HeightFieldData)
+				}
+
 				// Remove a body from the world.
 				b3.b3DestroyBody(b);
 				//if(b.compound) b.compound.delete();

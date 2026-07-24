@@ -686,6 +686,11 @@ export class Body extends Item {
 	    if(o.ccd) o.bullet = o.ccd
 	    if(o.bullet) b3.b3Body_SetBullet(b, o.bullet);
 
+	    if(o.enable !== undefined){ 
+	    	if(o.enable) b3.b3Body_Enable(b);
+	    	else b3.b3Body_Disable (b);
+	    }
+
 
 		// return velocity on each frame for this body
 		if( o.getVelocity !== undefined ) b.getVelocity = o.getVelocity;

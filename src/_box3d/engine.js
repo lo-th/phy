@@ -5,8 +5,8 @@ import { MathTool } from '../core/MathTool.js';
 import { Ray } from './Ray.js';
 import { Body } from './Body.js';
 import { Joint } from './Joint.js';
-/*import { Terrain } from './Terrain.js';
-import { Contact, TriggerEvent, CollisionEvent } from './Contact.js';
+import { Terrain } from './Terrain.js';
+/*import { Contact, TriggerEvent, CollisionEvent } from './Contact.js';
 //import { Character } from './Character.js';*/
 
 import Box3dPhysics from '../libs_physics/X_Box3d.js';
@@ -723,7 +723,7 @@ export class engine {
 		items['joint'] = new Joint();
 		//
 		//items['contact'] = new Contact();
-		//items['terrain'] = new Terrain();
+		items['terrain'] = new Terrain();
 		items['character'] = new Character();
 
 		root.bodyRef = items.body;
