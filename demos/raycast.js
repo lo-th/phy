@@ -128,7 +128,7 @@ const attachRay = ( b ) => {
 function up () {
 
     // if ball position y is under 10, ball is replaved and velocity reset
-    if( ball.position.y<0.34 ) phy.change( { name:'ball', pos: [ math.rand(-0.4,0.4),5,-2.5 ], rot:[math.randInt(-180,180),0,math.randInt(-180,180)], reset:true } )
+    if( ball.position.y<0.5 ) phy.change( { name:'ball', pos: [ math.rand(-0.4,0.4),5,-2.5 ], rot:[math.randInt(-180,180),0,math.randInt(-180,180)], reset:true } )
 
     let p = box.position.x;
     if(side > 0){

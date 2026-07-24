@@ -10,6 +10,8 @@ const vToAr = Utils.vToAr
 const qToAr = Utils.qToAr
 const toQuat = Utils.toQuat
 const toVec = Utils.toVec
+const transToAr = Utils.transToAr
+const toTrans = Utils.toTrans
 
 export class Ray extends Item {
 
@@ -192,7 +194,7 @@ export class ExtraRay {
 		if( this.parent ){
 			const b = Utils.byName( this.parent )
 			if(b){
-				const ar = havok.HP_Body_GetQTransform(b)[1]
+				const ar = transToAr(b3.b3Body_GetTransform (b))
 				const p = ar[0]
 				const q = this.noRotation ? [0,0,0,1] : ar[1]
 				return [

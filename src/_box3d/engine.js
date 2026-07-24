@@ -222,12 +222,13 @@ export class engine {
     	//root.queryCollector = havok.HP_QueryCollector_Create(1000)[1];
 
 
-    	//root.world.gravity = root.gravity;
 
-    	b3.b3World_SetGravity(root.world, root.gravity)
+    	b3.b3World_SetGravity( root.world, root.gravity )
+
+    	//b3.b3World_SetWorkerCount(root.world, 20)
 
 
-    	console.log(root.world)
+    	//console.log(b3.b3World_GetWorkerCount(root.world))
 
     	// 200 m/s (which is about two thirds the speed of sound, so pretty fast :))
     	//havok.HP_World_SetSpeedLimit( root.world, maxLinearVelocity, maxAngularVelocity );
@@ -613,17 +614,9 @@ export class engine {
 		engine.postItems();
 
 		
-		b3.b3World_Step(root.world, root.deltaTime, substep);
+		b3.b3World_Step( root.world, root.deltaTime, substep );
 
 
-		/*let n = substep;
-		while( n-- ) {
-			// Simulate the world and advance time by `timestep` seconds.
-			havok.HP_World_Step( root.world, root.deltaTime );
-			engine.onContact();
-	        engine.onTrigger();
-			root.tmpStep++;
-		}*/
 
 		//engine.onContact();
 	    //engine.onTrigger();
@@ -806,8 +799,47 @@ class Character extends Body {
 
 }
 
-
-// character bof
-// https://github.com/armomu/ergoudan?tab=readme-ov-file
-// drag and drop 
-// https://github.com/Namide/havok-test?tab=readme-ov-file
+/*
+b3World_CastMover (arg0,arg1,arg2,arg3,arg4,arg5)
+b3World_CastRay (arg0,arg1,arg2,arg3,arg4)
+b3World_CastRayClosest (arg0,arg1,arg2,arg3)
+b3World_CastShape (arg0,arg1,arg2,arg3,arg4,arg5,arg6)
+b3World_CollideMover (arg0,arg1,arg2,arg3,arg4)
+b3World_Draw (arg0,arg1)
+b3World_DumpShapeBounds (arg0,arg1)
+b3World_EnableContinuous (arg0,arg1)
+b3World_EnableSleeping (arg0,arg1)
+b3World_EnableSpeculative (arg0,arg1)
+b3World_EnableWarmStarting (arg0,arg1)
+b3World_Explode (arg0,arg1)
+b3World_GetAwakeBodyCount (arg0)
+b3World_GetBounds (arg0)
+b3World_GetContactRecycleDistance (arg0)
+b3World_GetCounters (arg0)
+b3World_GetGravity (arg0)
+b3World_GetHitEventThreshold (arg0)
+b3World_GetMaxCapacity (arg0)
+b3World_GetMaximumLinearSpeed (arg0)
+b3World_GetProfile (arg0)
+b3World_GetRestitutionThreshold (arg0)
+b3World_GetWorkerCount (arg0)
+b3World_IsContinuousEnabled (arg0)
+b3World_IsSleepingEnabled (arg0)
+b3World_IsValid (arg0)
+b3World_IsWarmStartingEnabled (arg0)
+b3World_OverlapAABB (arg0,arg1,arg2,arg3)
+b3World_OverlapShape (arg0,arg1,arg2,arg3,arg4,arg5)
+b3World_RebuildStaticTree (arg0)
+b3World_SetContactRecycleDistance (arg0,arg1)
+b3World_SetContactTuning (arg0,arg1,arg2,arg3)
+b3World_SetCustomFilterCallback (arg0,arg1)
+b3World_SetGravity (arg0,arg1)
+b3World_SetHitEventThreshold (arg0,arg1)
+b3World_SetMaximumLinearSpeed (arg0,arg1)
+b3World_SetPreSolveCallback (arg0,arg1)
+b3World_SetRestitutionThreshold (arg0,arg1)
+b3World_SetWorkerCount (arg0,arg1)
+b3World_StartRecording (arg0,arg1)
+b3World_Step (arg0,arg1,arg2)
+b3World_StopRecording (arg0)
+*/

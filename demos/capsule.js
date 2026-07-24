@@ -18,7 +18,9 @@ demo = () => {
     phy.set( { full:true, substep:1, gravity:[0,-9.81,0] });
 
     // add static ground
-    phy.add({ type:'plane', size:[300,1,300], visible:false });
+    //phy.add({ type:'plane', size:[300,1,300], visible:false });
+    phy.add({ type:'box', size:[300,1,300], pos:[0,-0.5,0], visible:false });
+
 
     onComplete()
 
@@ -115,7 +117,8 @@ return*/
         	material:mats,
         	//material: m===1 ? 'debug' : 'body',
         	friction:0.5,
-        	density:1,
+        	density:1000,
+        	
         	//angularFactor:[0,1,0],
         	massCenter:[ 0,-0.75, 0 ],
         	//localPos:[ 0,0.75, 0 ],

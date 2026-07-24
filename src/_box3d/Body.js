@@ -231,7 +231,7 @@ export class Body extends Item {
 			b3.b3CreateHullShape(body, sd, planeData);
 			planeData.delete()*/
 
-			b3.b3CreateBoxShape(body, sd, s[0]*0.5, 0.01, s[2]*0.5);
+			b3.b3CreateBoxShape(body, sd, s[0]*0.5, 0.1, s[2]*0.5);
 
 			break;
 
@@ -374,41 +374,7 @@ export class Body extends Item {
 
     }
 
-	setMaterial ( shape, o ) {
-
-		// Static Friction can be zero.
-		// Dynamic Friction can never be zero.
-
-		// https://www.geeksforgeeks.org/physics/difference-between-static-friction-and-dynamic-friction/
-
-		//if(o.friction === 0.5 && !o.restitution === 0 ) return
-        const dynamicFriction = o.friction !== undefined ? o.friction : 0.5;// Dynamic Friction
-        const staticFriction = o.staticFriction  !== undefined ?  o.staticFriction : dynamicFriction;
-        const restitution = o.restitution !== undefined ? o.restitution : 0.0;
-        const frictionCombine = o.frictionMode ?? 'geo';// min
-        const restitutionCombine = o.restitutionMode ?? 'geo';// max
-
-        const hpMaterial = [staticFriction, dynamicFriction, restitution, this.materialCombine(frictionCombine), this.materialCombine(restitutionCombine)];
-        havok.HP_Shape_SetMaterial( shape, hpMaterial );
-
-    }
-
-    materialCombine ( mode ) {
-
-        switch ( mode ) {
-            case 'GEOMETRIC_MEAN': case 'geo':
-                return havok.MaterialCombine.GEOMETRIC_MEAN;
-            case 'MINIMUM': case 'min':
-                return havok.MaterialCombine.MINIMUM;
-            case 'MAXIMUM': case 'max':
-                return havok.MaterialCombine.MAXIMUM;
-            case 'ARITHMETIC_MEAN': case 'num':
-                return havok.MaterialCombine.ARITHMETIC_MEAN;
-            case 'MULTIPLY': case 'mult':
-                return havok.MaterialCombine.MULTIPLY;
-        }
-
-    }
+	
 
     boxHull(hx, hy, hz) {
 		return b3.b3CreateHull([
@@ -559,6 +525,8 @@ export class Body extends Item {
 			
 		}
 
+		//this.setMassInfo(b,o)
+
 
 
 
@@ -679,12 +647,16 @@ export class Body extends Item {
 
 		let massData = b3.b3Body_GetMassData( b )
 
+		
 		if(o.massCenter) massData.center = toVec(o.massCenter);
-		if(o.mass) massData.mass = o.mass;
+		//if(o.mass) massData.mass = 100//o.mass;
 		//if(o.inertia) massPropsTuple[2] = o.inertia; // [1,1,1]
 		//if(o.inertiaOrientation) massPropsTuple[3] = o.inertiaOrientation; // [0,0,0,1]
+		console.log(massData)
+
 
         b3.b3Body_SetMassData( b, massData )
+        //b3.b3Body_ApplyMassFromShapes(b)
 
 	}
 
@@ -790,6 +762,8 @@ export class Body extends Item {
 			let qq = o.quat ? o.quat : qToAr(b3.b3Body_GetRotation(b))
 
 			b.transform = [ pp, qq ];
+
+			if( !b.isKinematic ) b3.b3Body_SetTransform( b, toVec(pp), toQuat(qq) );
 
 			
 
