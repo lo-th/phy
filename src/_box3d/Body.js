@@ -215,23 +215,18 @@ export class Body extends Item {
 		switch( t ){
 
 			case 'plane':
-			
-			if( s[0]===1 ) s = [300,0,300]
 
-			s[1] = 0;
+				s[1] = 0.01;
 
-			/*h = [
-			    s[0]*0.5, 0, s[2]*0.5,
-			    s[0]*0.5, 0, -s[2]*0.5,
-			    -s[0]*0.5, 0, -s[2]*0.5,
-			    -s[0]*0.5, 0, s[2]*0.5,
-			]
-
-			let planeData = b3.b3CreateHull(h);
-			b3.b3CreateHullShape(body, sd, planeData);
-			planeData.delete()*/
-
-			b3.b3CreateBoxShape(body, sd, s[0]*0.5, 0.1, s[2]*0.5);
+				let tmpPlane = this.boxHull(s[0]*0.5, s[1]*0.5, s[2]*0.5)
+				tt = { 
+					p:{ x:0, y:-s[1]*0.5, z:0 }, 
+					q:{ v:{ x:0, y:0, z:0 }, s: 1 } 
+				}
+				let planeData = b3.b3CloneAndTransformHull(tmpPlane, tt, scale)
+				b3.b3CreateHullShape(body, sd, planeData);
+				planeData.delete()
+				tmpPlane.delete()
 
 			break;
 
@@ -240,26 +235,28 @@ export class Body extends Item {
 			case 'particle' : b3.b3CreateSphereShape(body, sd, { center: { x: 0, y: 0, z: 0 }, radius: o.pSize }); break;
 			case 'cone' : 
 
-				let coneData = b3.b3CreateCone(s[1], s[0], 0.0, segment);
+				let coneTmp = b3.b3CreateCone(s[1], s[0], 0.0, segment);
 				tt = { 
 					p:{ x:0, y:-s[1]*0.5, z:0 }, 
 					q:{ v:{ x:0, y:0, z:0 }, s: 1 } 
 				}
-				coneData = b3.b3CloneAndTransformHull(coneData, tt, scale)
+				let coneData = b3.b3CloneAndTransformHull(coneTmp, tt, scale)
 				b3.b3CreateHullShape(body, sd, coneData);
 				coneData.delete();
+				coneTmp.delete();
 
 			break;
 			case 'cylinder' : 
 
-				let cylData = b3.b3CreateCylinder(s[1], s[0], 0.0, segment);
+				let cylTmp = b3.b3CreateCylinder(s[1], s[0], 0.0, segment);
 				tt = { 
 					p:{ x:0, y:-s[1]*0.5, z:0 }, 
 					q:{ v:{ x:0, y:0, z:0 }, s: 1 } 
 				}
-				cylData = b3.b3CloneAndTransformHull(cylData, tt, scale)
+				let cylData = b3.b3CloneAndTransformHull(cylTmp, tt, scale)
 				b3.b3CreateHullShape(body, sd, cylData);
-				cylData.delete(); 
+				cylData.delete();
+				cylTmp.delete();
 
 			break;
 
@@ -274,8 +271,8 @@ export class Body extends Item {
 			break;
 
 			case 'convex' :
-			    
-			    const hullData = b3.b3CreateHull(o.v);
+
+			    let hullData = b3.b3CreateHull(o.v);
 				b3.b3CreateHullShape(body, sd, hullData);
 				hullData.delete()
 
@@ -283,7 +280,7 @@ export class Body extends Item {
 
 			case 'mesh':
 
-			   const meshData = b3.b3CreateMesh(o.v, o.index);
+			   let meshData = b3.b3CreateMesh(o.v, o.index);
 			   b3.b3CreateMeshShape(body, sd, meshData, scale);
 			   meshData.delete();
 
@@ -291,9 +288,6 @@ export class Body extends Item {
 
 		}
 
-		//
-
-		//console.log(this.getShape(body))
 
 		if( o.density ){ 
 
@@ -302,9 +296,10 @@ export class Body extends Item {
 			// You should generally use similar densities for all your shapes. 
 			// This will improve stacking stability.
 
+			//console.log(o.density)
+
 			// the body mass immediately or defer for a later call to b3Body_ApplyMassFromShapes()
 			let updateMass = true;
-
 			b3.b3Shape_SetDensity ( this.getShape(body), o.density, updateMass )
 
 		}
@@ -452,7 +447,7 @@ export class Body extends Item {
 			    		bb = this.boxHull(n.size[0]*0.5, n.size[1]*0.5, n.size[2]*0.5)
 			    		spec.hulls.push({
 			    			hull: bb,
-			    			transform: { p: toVec(p), q: toQuat(q) },
+			    			transform: { p:toVec(p), q:toQuat(q) },
 			    		})
 			    	}
 			    }
@@ -462,9 +457,8 @@ export class Body extends Item {
 			    //console.log(spec)
 
 			    const compound = b3.b3CreateCompound(spec);
-			    b3.b3CreateCompoundShape( b, b3.b3DefaultShapeDef(), compound);
-			    b.compound = compound
-			    /*compoundData.delete();*/
+			    b3.b3CreateCompoundShape( b, b3.b3DefaultShapeDef(), compound );
+			    b.compound = compound;
 
 
 			    /*g = havok.HP_Shape_CreateContainer()[1]

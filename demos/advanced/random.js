@@ -1,5 +1,6 @@
 let max = 50, n = 0, tt = 300, models
 const dices = ['D20', 'D12', 'D10', 'D8', 'D6', 'D4']
+const dices_high = ['H20', 'H12', 'H10', 'H8', 'H6', 'H4']
 
 demo = () => {
 
@@ -20,7 +21,7 @@ demo = () => {
     phy.set({ substep:2, gravity:[0,-10,0], worldScale:0.2 })
 
     // add static plane 
-    phy.add({ type:'plane', size:[300,1,300], visible:false, friction:0.5, restitution:0.1 })
+    phy.add({ type:'plane', size:[300,1,300], visible:false, friction:1, restitution:0.1 })
 
     phy.load( ['./assets/models/dices.glb', './assets/models/slide.glb'], onComplete )
 
@@ -39,6 +40,7 @@ onComplete = () => {
 
     models = phy.getMesh('dices');
 
+
     // make dices material
     phy.material({ 
         name:'dices', 
@@ -56,7 +58,7 @@ onComplete = () => {
         type:'mesh',
         mesh: slideMesh.slide_h,
         shape: slideMesh.slide.geometry,
-        restitution:0.2, friction:0.01,
+        restitution:0.2, friction:0.02,
         size:[0.36],
         meshScale:[0.36],
        // material:'plexi'
@@ -85,17 +87,21 @@ add = () => {
     // by default engine remove object with the same name
     // you can also use phy.remove(name)
 
+    let num = math.randInt(0, 5)
+    let s = math.rand(20, 60)
+
     phy.add({
         type:'convex',
         name: 'dice' + n,
         material:'dices',
-        shape: models[ dices[math.randInt(0, 5)] ].geometry,
-        size:[math.rand(20, 60)],
+        shape: models[ dices[num] ].geometry,
+        mesh: models[ dices_high[num] ],
+        meshSize:[s],
+        size:[s],
         pos:[4.8,10,2],
         rot:[math.rand(-180, 180),math.rand(-180, 180),math.rand(-180, 180)],
-        density:0.5,
-        friction:0.2,
-        staticFriction:0,
+        density:1000,
+        friction:0.02,
         restitution:0.2,
     })
 

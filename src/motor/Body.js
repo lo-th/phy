@@ -152,7 +152,7 @@ export class Body extends Item {
 
 
 
-		const noIndex = this.engine === 'OIMO' || this.engine === 'JOLT' || this.engine === 'AMMO' || this.engine === 'CANNON';
+		let noIndex = this.engine === 'OIMO' || this.engine === 'JOLT' || this.engine === 'AMMO' || this.engine === 'CANNON';
 
 		//if( o.instance && t!== 'capsule'&& !o.radius) s = o.instanceSize || [1,1,1]
 
@@ -224,6 +224,8 @@ export class Body extends Item {
 
 			case 'convex':
 
+			    //noIndex = this.engine === 'BOX3D'
+
 				if( o.v ){ 
 
 					if( o.nogeo ) g = new BufferGeometry();
@@ -248,6 +250,10 @@ export class Body extends Item {
 					g = o.shape.clone();
 					if( o.size ) g.scale( o.size[0], o.size[0], o.size[0] );
 					if( o.shapeScale ) g.scale( o.shapeScale[0], o.shapeScale[1], o.shapeScale[2] );
+
+					/*let tg = MathTool.toNonIndexed(g);
+					o.v = MathTool.getVertex( tg , true );
+					o.index = MathTool.getIndex( tg , true );*/
 
 					let tg = noIndex ? MathTool.toNonIndexed(g) : null;
 					o.v = MathTool.getVertex( tg || g, noIndex );

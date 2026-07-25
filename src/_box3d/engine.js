@@ -23,6 +23,22 @@ import Box3dPhysics from '../libs_physics/X_Box3d.js';
 // https://box2d.org/documentation3d/md_collision.html#autotoc_md51
 // https://box2d.org/documentation3d/md_simulation.html
 
+/*
+
+box3d.js wraps a WASM module, so some objects are allocated on the WASM 
+heap and must be freed explicitly.
+
+Hull data is copied into the world's internal database on shape creation, 
+so b3HullData handles can be destroyed immediately after - 
+or reused across multiple shapes before being destroyed.
+
+Mesh, compound, and heightfield data are not copied - 
+the world stores a raw pointer. b3MeshData, b3CompoundData, 
+and b3HeightFieldData must be kept alive for as long as the shape (or world) exists,
+and destroyed only after.
+
+*/
+
 self.onmessage = function ( m ) { engine.message( m ) };
 
 let isTimeout = false;

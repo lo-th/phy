@@ -62,11 +62,11 @@ buildBlock = ( halfExtents, shift, numx, numy, numz ) => {
     let option = {
         instance:'keva',
         type:'box',
-        friction:0.5, restitution:0.0, sleep:true, radius:0.01,
-        density:0.1,
-        //mass:1,//0.02,
-        // margin:0.001, friction:0.2, restitution:0.1, sleep:true, radius:0.02, 
-        //sizeByInstance:true,
+        friction:0.5, 
+        restitution:0.0, 
+        sleep:true, 
+        radius:0.01,
+        density:100,
         startSleep:true,
         material:'wood',
     }
@@ -118,7 +118,7 @@ buildBlock = ( halfExtents, shift, numx, numy, numz ) => {
         }
     }
 
-    // change size to rotation 
+    // change size to rotation
     i = list.length
     while(i--){
         if( list[i].size[0] === halfExtents.z ){

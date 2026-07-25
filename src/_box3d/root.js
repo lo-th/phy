@@ -118,6 +118,8 @@ export const Utils = {
 					b3.b3DestroyHeightField(b.HeightFieldData)
 				}
 
+				if(b.compound) b.compound.delete()
+
 				// Remove a body from the world.
 				b3.b3DestroyBody(b);
 				//if(b.compound) b.compound.delete();
