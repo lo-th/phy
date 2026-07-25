@@ -22,7 +22,7 @@ import Box3dPhysics from '../libs_physics/X_Box3d.js';
 // https://github.com/isaac-mason/box3d.js
 // https://box2d.org/documentation3d/md_collision.html#autotoc_md51
 // https://box2d.org/documentation3d/md_simulation.html
-
+// https://fr.news.hada.io/topic?id=31717
 /*
 
 box3d.js wraps a WASM module, so some objects are allocated on the WASM 

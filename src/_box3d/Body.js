@@ -385,7 +385,6 @@ export class Body extends Item {
 	}
 
 	
-
 	add ( o = {} ) {
 
 		let name = this.setName( o );

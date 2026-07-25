@@ -104,14 +104,6 @@ export const Utils = {
 				break;
 				default: 
 
-				/*if(b.type==='terrain'){
-					if(b.geometry) havok.HP_Shape_Release(b.geometry);
-					
-				}*/
-
-				//let s = b3.b3Body_GetShapes(b)
-				//b3.b3DestroyShape(s, true);
-				//b3.b3DestroyMesh(b);
 
 				if(b.type==='terrain'){
 					b3.b3DestroyShape(b.shape, false)
