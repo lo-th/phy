@@ -402,7 +402,6 @@ export class Hero extends Object3D {
 		if( this.motor.engine === 'HAVOK' ) this.phyData['inertia'] = [0,0,0]
 		if( this.motor.engine === 'OIMO' || this.motor.engine === 'RAPIER' || this.motor.engine === 'BOX3D') {
 			this.phyData['density'] = MathTool.densityFromMass( this.mass, volume );
-			console.log(this.phyData['density'], this.mass)
 		}
 
 		if( o.mask ) this.phyData['mask'] = o.mask;
