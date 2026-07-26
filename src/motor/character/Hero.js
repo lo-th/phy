@@ -383,6 +383,7 @@ export class Hero extends Object3D {
 			shapes: useCompound ? this.shapes : null,
 			
 			mass: this.mass,
+			//density: 200,
 
 			friction: o.friction !== undefined ? o.friction : 0.0,//0.5
 			angularFactor:[0,0,0],
@@ -390,15 +391,18 @@ export class Hero extends Object3D {
 			mask: 1|2|16,
 			regular:true,
 			getVelocity:true,
-			massInfo: o.massInfo,
+			massInfo: true,
 		}
+
+
 
 		const volume = MathTool.getVolume( 'capsule', o.size );
 
 		// lock rotation
 		if( this.motor.engine === 'HAVOK' ) this.phyData['inertia'] = [0,0,0]
-		if( this.motor.engine === 'OIMO' || this.motor.engine === 'RAPIER' ) {
+		if( this.motor.engine === 'OIMO' || this.motor.engine === 'RAPIER' || this.motor.engine === 'BOX3D') {
 			this.phyData['density'] = MathTool.densityFromMass( this.mass, volume );
+			console.log(this.phyData['density'], this.mass)
 		}
 
 		if( o.mask ) this.phyData['mask'] = o.mask;

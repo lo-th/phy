@@ -163,6 +163,7 @@ export class Body extends Item {
 
 		let g;
 		let t = o.type || 'box'
+		if( o.shapeType ) t = o.shapeType;
 		let s = o.size || [1,1,1];
 
 		let tt, h, i, n, j, numVertices, vertices;
@@ -191,6 +192,10 @@ export class Body extends Item {
 
 
 		if( o.isTrigger ) sd.isSensor = true;
+
+		//if( o.density ) sd.density = o.density
+
+	   
 
 		/*
 		sd.density = 1000
@@ -518,7 +523,7 @@ export class Body extends Item {
 			
 		}
 
-		//this.setMassInfo(b,o)
+		//this.setMass(b,o)
 
 
 
@@ -578,6 +583,8 @@ export class Body extends Item {
         	havok.HP_Body_SetActivationControl( b, havok.ActivationControl.ALWAYS_INACTIVE );
         }*/
 
+        if(o.massInfo) this.getMassInfo(b)
+
 
 
 		// add to reference
@@ -636,20 +643,20 @@ export class Body extends Item {
 
 
 
-	setMassInfo ( b, o ){
+	setMass ( b, o ){
 
 		let massData = b3.b3Body_GetMassData( b )
 
 		
 		if(o.massCenter) massData.center = toVec(o.massCenter);
-		//if(o.mass) massData.mass = 100//o.mass;
+		if(o.mass) massData.mass = o.mass
 		//if(o.inertia) massPropsTuple[2] = o.inertia; // [1,1,1]
 		//if(o.inertiaOrientation) massPropsTuple[3] = o.inertiaOrientation; // [0,0,0,1]
-		console.log(massData)
+		//console.log(massData)
 
 
         b3.b3Body_SetMassData( b, massData )
-        //b3.b3Body_ApplyMassFromShapes(b)
+        b3.b3Body_ApplyMassFromShapes(b)
 
 	}
 
@@ -658,9 +665,12 @@ export class Body extends Item {
 		
 		let massData = b3.b3Body_GetMassData (b)
 
+		let d = b3.b3Shape_GetDensity ( this.getShape(b) )
+
 		const info = {
             centerOfMass: massData.center,
             mass: massData.mass,
+            density:d,
             inertia: massData.inertia,
         };
 
@@ -849,7 +859,7 @@ export class Body extends Item {
 		//const mass = b3.b3Body_GetMass(b);
 
 		if( o.impulse ){
-			o.impulse = MathTool.scaleArray( o.impulse, b.mass, 3 );
+			//o.impulse = MathTool.scaleArray( o.impulse, b.mass, 3 );
 	    	if( o.impulseCenter ) b3.b3Body_ApplyLinearImpulse(b, toVec(o.impulse), toVec(o.impulseCenter), true);
 	    	else b3.b3Body_ApplyLinearImpulseToCenter(b, toVec(o.impulse), true);
 	    	//else havok.HP_Body_ApplyImpulse( b, b.pos, o.impulse )
