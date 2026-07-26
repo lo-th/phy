@@ -21,7 +21,7 @@ demo = () => {
     phy.set({ substep:2, gravity:[0,-10,0], worldScale:0.2 })
 
     // add static plane 
-    phy.add({ type:'plane', size:[300,1,300], visible:false, friction:1, restitution:0.1 })
+    phy.add({ type:'plane', size:[300,1,300], visible:false, friction:1, restitution:0.1, frictionMode:'num' })
 
     phy.load( ['./assets/models/dices.glb', './assets/models/slide.glb'], onComplete )
 
