@@ -111,6 +111,7 @@ export const Utils = {
 				}
 
 				if(b.compound) b.compound.delete()
+				if(b.meshData) b.meshData.delete()
 
 				// Remove a body from the world.
 				b3.b3DestroyBody(b);

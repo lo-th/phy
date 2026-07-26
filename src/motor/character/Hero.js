@@ -391,7 +391,7 @@ export class Hero extends Object3D {
 			mask: 1|2|16,
 			regular:true,
 			getVelocity:true,
-			massInfo: true,
+			massInfo: o.massInfo,
 		}
 
 

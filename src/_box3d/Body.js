@@ -159,7 +159,7 @@ export class Body extends Item {
 
 	///
 
-	shape ( body, o = {} ) {
+	shape ( b, o = {} ) {
 
 		let g;
 		let t = o.type || 'box'
@@ -229,15 +229,15 @@ export class Body extends Item {
 					q:{ v:{ x:0, y:0, z:0 }, s: 1 } 
 				}
 				let planeData = b3.b3CloneAndTransformHull(tmpPlane, tt, scale)
-				b3.b3CreateHullShape(body, sd, planeData);
+				b3.b3CreateHullShape(b, sd, planeData);
 				planeData.delete()
 				tmpPlane.delete()
 
 			break;
 
-			case 'box' : b3.b3CreateBoxShape(body, sd, s[0]*0.5, s[1]*0.5, s[2]*0.5); break;
-			case 'sphere' : b3.b3CreateSphereShape(body, sd, { center: { x: 0, y: 0, z: 0 }, radius: s[0] }); break;
-			case 'particle' : b3.b3CreateSphereShape(body, sd, { center: { x: 0, y: 0, z: 0 }, radius: o.pSize }); break;
+			case 'box' : b3.b3CreateBoxShape(b, sd, s[0]*0.5, s[1]*0.5, s[2]*0.5); break;
+			case 'sphere' : b3.b3CreateSphereShape(b, sd, { center: { x: 0, y: 0, z: 0 }, radius: s[0] }); break;
+			case 'particle' : b3.b3CreateSphereShape(b, sd, { center: { x: 0, y: 0, z: 0 }, radius: o.pSize }); break;
 			case 'cone' : 
 
 				let coneTmp = b3.b3CreateCone(s[1], s[0], 0.0, segment);
@@ -246,7 +246,7 @@ export class Body extends Item {
 					q:{ v:{ x:0, y:0, z:0 }, s: 1 } 
 				}
 				let coneData = b3.b3CloneAndTransformHull(coneTmp, tt, scale)
-				b3.b3CreateHullShape(body, sd, coneData);
+				b3.b3CreateHullShape(b, sd, coneData);
 				coneData.delete();
 				coneTmp.delete();
 
@@ -259,7 +259,7 @@ export class Body extends Item {
 					q:{ v:{ x:0, y:0, z:0 }, s: 1 } 
 				}
 				let cylData = b3.b3CloneAndTransformHull(cylTmp, tt, scale)
-				b3.b3CreateHullShape(body, sd, cylData);
+				b3.b3CreateHullShape(b, sd, cylData);
 				cylData.delete();
 				cylTmp.delete();
 
@@ -267,7 +267,7 @@ export class Body extends Item {
 
 			case 'capsule' : 
 
-			    b3.b3CreateCapsuleShape(body, sd, {
+			    b3.b3CreateCapsuleShape(b, sd, {
 				    center1: { x: p1[0], y: p1[1], z: p1[2] },
 				    center2: { x: p2[0], y: p2[1], z: p2[2] },
 				    radius: s[0],
@@ -278,7 +278,7 @@ export class Body extends Item {
 			case 'convex' :
 
 			    let hullData = b3.b3CreateHull(o.v);
-				b3.b3CreateHullShape(body, sd, hullData);
+				b3.b3CreateHullShape(b, sd, hullData);
 				hullData.delete()
 
 			break;
@@ -286,8 +286,9 @@ export class Body extends Item {
 			case 'mesh':
 
 			   let meshData = b3.b3CreateMesh(o.v, o.index);
-			   b3.b3CreateMeshShape(body, sd, meshData, scale);
-			   meshData.delete();
+			   b3.b3CreateMeshShape(b, sd, meshData, scale);
+			   b.meshData = meshData;
+			   //meshData.delete();
 
 			break;
 
@@ -305,7 +306,7 @@ export class Body extends Item {
 
 			// the body mass immediately or defer for a later call to b3Body_ApplyMassFromShapes()
 			let updateMass = true;
-			b3.b3Shape_SetDensity ( this.getShape(body), o.density, updateMass )
+			b3.b3Shape_SetDensity ( this.getShape(b), o.density, updateMass )
 
 		}
 		
