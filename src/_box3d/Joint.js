@@ -66,9 +66,8 @@ export class Joint extends Item {
 
 		let mode = o.mode || 'hinge';
 
-		if(mode==='generic'){
-        	mode = 'spherical'
-        }
+		if(mode==='generic') mode = 'spherical'
+        if(mode==='ragdoll') mode = 'spherical'
 
 		let jd //jointDef
 		
@@ -166,6 +165,7 @@ export class Joint extends Item {
 
 		switch ( mode ) {
 			case 'fixe':
+			// Both translation and rotation can have spring-damper softness.
 			j = b3.b3CreateWeldJoint(root.world, jd);
 			break;
 			//case 'distance': this.lock( j, ['rx', 'ry', 'rz'] ); break;
@@ -182,18 +182,28 @@ export class Joint extends Item {
             break;
             case 'spherical': 
             // Spherical: cone centered on frame Z
-            //This gives 3 rotational degrees of freedom with no translation
+            // This gives 3 rotational degrees of freedom with no translation
             j = b3.b3CreateSphericalJoint(root.world, jd);
             break;
             case 'wheel': 
+            // The wheel joint is designed specifically for vehicles. 
+            //Body A is the chassis and body B is the wheel. The wheel:
+            //   translates along the x-axis of frame A (suspension direction),
+            //   spins about the z-axis of frame B,
+            //   optionally steers about the suspension axis.
+
             j = b3.b3CreateWheelJoint(root.world, jd);
             break;
 
             case 'motor': 
+            // A motor joint lets you control the motion of a body by specifying target linear and angular velocities
             j = b3.b3CreateMotorJoint(root.world, jd);
             break;
 
             case 'parallel': 
+            // The parallel joint constrains the z-axis of body B to remain parallel to the z-axis of body A,
+            // using a spring-damper. This is useful for keeping a body upright without 
+            // fully fixing its translation or other rotation axes.
             j = b3.b3CreateParallelJoint(root.world, jd);
             break;
             case 'filter': 
@@ -283,6 +293,8 @@ export class Joint extends Item {
 				if(o.limit[3]) b3.b3RevoluteJoint_SetSpringDampingRatio(j, o.limit[3])
 		    }
 
+		    if( o.friction ) o.motor = [o.friction, 0]
+
 			if( o.motor ){
 				b3.b3PrismaticJoint_EnableMotor (j, o.motor[0]>0)
 				b3.b3RevoluteJoint_SetMaxMotorTorque (j, o.motor[0])
@@ -313,7 +325,7 @@ export class Joint extends Item {
 				if(o.limit[3]) b3.b3PrismaticJoint_SetSpringDampingRatio(j, o.limit[3])
 		    }
 
-		    if( o.friction ) o.motor = [o.friction]
+		    if( o.friction ) o.motor = [o.friction, 0]
 			if( o.motor ){
 				b3.b3PrismaticJoint_EnableMotor (j, o.motor[0]>0)
 				b3.b3PrismaticJoint_SetMaxMotorForce (j, o.motor[0])

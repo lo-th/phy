@@ -15,6 +15,7 @@ const toQuat = Utils.toQuat
 const toVec = Utils.toVec
 const transToAr = Utils.transToAr
 const toTrans = Utils.toTrans
+const transToFlow = Utils.transToFlow
 
 export class Body extends Item {
 
@@ -125,16 +126,8 @@ export class Body extends Item {
 
 			if( b.sleep ) continue;
 
-			//p = b3.b3Body_GetPosition(b);
-			//q = b3.b3Body_GetRotation(b);
 			t = b3.b3Body_GetTransform(b)
-
-			tar = [[t.p.x, t.p.y, t.p.z], [t.q.v.x, t.q.v.y, t.q.v.z, t.q.s ]];
-
-			MathTool.fillArray( tar[0], AR, n+1, 3 );
-			MathTool.fillArray( tar[1], AR, n+4, 4 );
-
-			
+			MathTool.fillArray( transToFlow(t), AR, n+1, 7 );
 
 			if( this.full ){
 
@@ -526,7 +519,7 @@ export class Body extends Item {
 			
 		}
 
-		//this.setMass(b,o)
+		this.setMass(b,o)
 
 
 
@@ -652,14 +645,25 @@ export class Body extends Item {
 
 		
 		if(o.massCenter) massData.center = toVec(o.massCenter);
-		if(o.mass) massData.mass = o.mass
-		//if(o.inertia) massPropsTuple[2] = o.inertia; // [1,1,1]
-		//if(o.inertiaOrientation) massPropsTuple[3] = o.inertiaOrientation; // [0,0,0,1]
-		//console.log(massData)
+		if(!o.densityFirst && o.mass) massData.mass = o.mass
+		//  When all angular motion locks are active, the rotational inertia is effectively zero.
+		if(o.inertia){
+			/*
+			massData.inertia.cx = {x: o.inertia[0], y: 0, z: 0}
+			massData.inertia.cy = {x: 0, y: o.inertia[1], z: 0}
+			massData.inertia.cz = {x: 0, y: 0, z: o.inertia[2]}
+			*/
+		}
+		if(o.inertiaOrientation){ 
+			/*massData.inertia.cx = {x: 264, y: 0, z: 0}
+			massData.inertia.cy = {x: 0, y: 264, z: 0}
+			massData.inertia.cz = {x: 0, y: 0, z: 264}*/
+		}
 
 
         b3.b3Body_SetMassData( b, massData )
-        b3.b3Body_ApplyMassFromShapes(b)
+        // reset to def
+        //b3.b3Body_ApplyMassFromShapes(b)
 
 	}
 

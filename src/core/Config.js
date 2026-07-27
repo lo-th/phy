@@ -1,5 +1,5 @@
 
-export const WithMassCenter = ['PHYSX', 'HAVOK', 'RAPIER'];
+export const WithMassCenter = ['PHYSX', 'HAVOK', 'RAPIER', 'BOX3D'];
 
 export const Max = {
 	body:4000,

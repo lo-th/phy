@@ -101,7 +101,9 @@ export const Utils = {
 				//case 'terrain': b.release(); break;
 				case 'joint':
 				if(b) {
-					if(b3.b3Joint_IsValid(b)) b3.b3DestroyJoint(b, false);
+					if(b3.b3Joint_IsValid(b)) {
+						b3.b3DestroyJoint(b, false);
+					}
 				}
 				break;
 				default: 
@@ -145,6 +147,8 @@ export const Utils = {
 		[ t.p.x, t.p.y, t.p.z ],
 		[ t.q.v.x, t.q.v.y, t.q.v.z, t.q.s ]
 	]),
+
+	transToFlow: (t)=>( [ t.p.x, t.p.y, t.p.z, t.q.v.x, t.q.v.y, t.q.v.z, t.q.s ] ),
 	
 	toTrans: (ar)=>({ 
 		p:{ x:ar[0][0], y:ar[0][1], z:ar[0][2] }, 
