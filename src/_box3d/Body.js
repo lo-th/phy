@@ -221,6 +221,8 @@ export class Body extends Item {
 
 			case 'plane':
 
+			    if(o.size) s = [100,0.01,100]
+
 				s[1] = 0.01;
 
 				let tmpPlane = this.boxHull(s[0]*0.5, s[1]*0.5, s[2]*0.5)
@@ -913,12 +915,8 @@ export class Body extends Item {
 
 	velocityOperation ( o, b ){
 
-		const lv = b3.b3Body_GetLinearVelocity(b);
-		const av = b3.b3Body_GetAngularVelocity(b);
-
-
-		let linear = [lv[0], lv[1], lv[2]];
-		let angular = [av[0], av[1], av[2]];
+		let linear = vToAr(b3.b3Body_GetLinearVelocity(b));
+		let angular = vToAr(b3.b3Body_GetAngularVelocity(b));
 
 		switch( o.velocityOperation ){
 
@@ -954,8 +952,8 @@ export class Body extends Item {
 
 		}
 
-		b3.b3Body_SetLinearVelocity(b, { x: linear[0], y: linear[1], z: linear[2] });
-		b3.b3Body_SetAngularVelocity(b, { x: angular[0], y: angular[1], z: angular[2] });
+		b3.b3Body_SetLinearVelocity(b, toVec(linear))
+		b3.b3Body_SetAngularVelocity(b, toVec(angular))
 
 	}
 

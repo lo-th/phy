@@ -30,6 +30,11 @@ export class Joint extends Item {
 		//const AR = root.Ar;
 		//const N = root.ArPos[this.type];
 
+		//b3Joint_GetBodyA (arg0)
+		//b3Joint_GetBodyB (arg0)
+		//b3Joint_GetLocalFrameA (j)
+		//b3Joint_GetLocalFrameB (j)
+
 	}
 
 	// Creates a vector normal (perpendicular) to the current Vector3
@@ -61,43 +66,50 @@ export class Joint extends Item {
 
 		let mode = o.mode || 'hinge';
 
-		let j //jointDef
+		if(mode==='generic'){
+        	mode = 'spherical'
+        }
+
+		let jd //jointDef
 		
 		switch ( mode ) {
 			case 'fixe':
 			//It is tempting to use the weld joint to define breakable structures.
-			j = b3.b3DefaultWeldJointDef();
+			jd = b3.b3DefaultWeldJointDef();
 			break;
 			case 'hinge': 
-			j = b3.b3DefaultRevoluteJointDef(); 
+			jd = b3.b3DefaultRevoluteJointDef(); 
 			break;
 			case 'distance': 
-            j = b3.b3DefaultDistanceJointDef()
+            jd = b3.b3DefaultDistanceJointDef()
             break;
             case 'prismatic': 
-            j = b3.b3DefaultPrismaticJointDef();
+            jd = b3.b3DefaultPrismaticJointDef();
+            /*j.enableLimit = true;
+			j.lowerTranslation = -2.0;
+			j.upperTranslation =  2.0;*/
             break;
             //case 'cylindrical': 
             //j = b3.b3DefaultSphericalJointDef();
             //break;
             case 'spherical': 
-            j = b3.b3DefaultSphericalJointDef();
+            jd = b3.b3DefaultSphericalJointDef();
             break;
             case 'wheel': 
-            j = b3.b3DefaultWheelJointDef();
+            jd = b3.b3DefaultWheelJointDef();
             break;
 
             case 'motor': 
             // A motor joint lets you control the motion of a body by specifying target linear and angular velocities. 
-            j = b3.b3DefaultMotorJointDef();
+            jd = b3.b3DefaultMotorJointDef();
             break;
 
             case 'parallel': 
-            j = b3.b3DefaultParallelJointDef();
+            jd = b3.b3DefaultParallelJointDef();
             break;
             case 'filter': 
             //The filter (or null) joint is used to disable collision between two specific bodie
-            j = b3.b3DefaultParallelJointDef();
+            jd = b3.b3DefaultParallelJointDef();
             break;
             //case 'spherical': this.lock( j, ['x', 'y', 'z'] ); break;
             //case 'ragdoll': this.lock( j, ['x', 'y', 'z'] ); break;
@@ -105,16 +117,29 @@ export class Joint extends Item {
             //default: this.lock( j, ['x', 'y', 'z', 'rx', 'ry', 'rz'] ); break;
 		}
 
-		if(!j) return
+		if(!jd){ 
+			console.log('miss joint', mode)
+			return
+		}
 			//console.log(j)
 
 		// define body b1 and b2 is string body name
         // note: b1 / b2 can be null
 		let b1 = this.byName(o.b1)
 		let b2 = this.byName(o.b2)
+		let massA = 0 
+		let massB = 0
 
-		if(b1!==null) j.base.bodyIdA = b1;
-        if(b2!==null) j.base.bodyIdB = b2;
+
+
+		if(b1!==null) {
+			jd.base.bodyIdA = b1;
+			massA = b3.b3Body_GetMass(b1)
+		}
+        if(b2!==null) {
+        	jd.base.bodyIdB = b2;
+        	massB = b3.b3Body_GetMass(b2)
+        }
 
         // anchors
         let posA =  o.pos1 || [0,0,0] 
@@ -122,65 +147,58 @@ export class Joint extends Item {
 
 		let quatA =  o.quat1 || [0,0,0,1]
 		let quatB =  o.quat2 || [0,0,0,1]
-        j.base.localFrameA = { p: toVec(posA), q: toQuat(quatA) };
-        j.base.localFrameB = { p: toVec(posB), q: toQuat(quatB) };
+
+		if(mode==='hinge'){
+			quatA = MathTool.quatMultiply(quatA, o.quatY);
+		    quatB = MathTool.quatMultiply(quatB, o.quatY);
+		}
+
+        jd.base.localFrameA = { p: toVec(posA), q: toQuat(quatA) };
+        jd.base.localFrameB = { p: toVec(posB), q: toQuat(quatB) };
 
         //
-        j.base.collideConnected = o.collision !== undefined ? o.collision : false;
+        jd.base.collideConnected = o.collision !== undefined ? o.collision : false;
 
 
 
-		
-		j.name = name;
-		j.type = this.type;
-		j.mode = mode;
-		j.visible = o.visible !== undefined ? o.visible : true; 
 
-		//j.isAcceleration = false
-
-		//if(b1) j.massInfo1 =  this.getMassInfo(b1)
-		//if(b2) j.massInfo2 =  this.getMassInfo(b2)
-
-		//console.log(j)
-
-
-		// apply option
-		//this.set( o, j );
-
-		let joint
+		let j
 
 		switch ( mode ) {
 			case 'fixe':
-			joint = b3.b3CreateWeldJoint(root.world, j);
+			j = b3.b3CreateWeldJoint(root.world, jd);
 			break;
 			//case 'distance': this.lock( j, ['rx', 'ry', 'rz'] ); break;
 			case 'hinge': 
-			joint = b3.b3CreateRevoluteJoint(root.world, j);
+			//Revolute: rotates about the joint frame's local Z-axis
+			j = b3.b3CreateRevoluteJoint(root.world, jd);
 			break;
 			case 'distance': 
-            joint = b3.b3CreateDistanceJoint(root.world, j);
+            j = b3.b3CreateDistanceJoint(root.world, jd);
             break;
             case 'prismatic': 
-            joint = b3.b3CreatePrismaticJoint(root.world, j);
+            // Prismatic: slides along the joint frame's local X-axis
+            j = b3.b3CreatePrismaticJoint(root.world, jd);
             break;
             case 'spherical': 
+            // Spherical: cone centered on frame Z
             //This gives 3 rotational degrees of freedom with no translation
-            joint = b3.b3CreateSphericalJoint(root.world, j);
+            j = b3.b3CreateSphericalJoint(root.world, jd);
             break;
             case 'wheel': 
-            joint = b3.b3CreateWheelJoint(root.world, j);
+            j = b3.b3CreateWheelJoint(root.world, jd);
             break;
 
             case 'motor': 
-            joint = b3.b3CreateMotorJoint(root.world, j);
+            j = b3.b3CreateMotorJoint(root.world, jd);
             break;
 
             case 'parallel': 
-            joint = b3.b3CreateParallelJoint(root.world, j);
+            j = b3.b3CreateParallelJoint(root.world, jd);
             break;
             case 'filter': 
             //The filter (or null) joint is used to disable collision between two specific bodie
-            joint = b3.b3CreateFilterJoint(root.world, j);
+            j = b3.b3CreateFilterJoint(root.world, jd);
             break;
             //case 'spherical': this.lock( j, ['x', 'y', 'z'] ); break;
             //case 'ragdoll': this.lock( j, ['x', 'y', 'z'] ); break;
@@ -188,7 +206,16 @@ export class Joint extends Item {
             //default: this.lock( j, ['x', 'y', 'z', 'rx', 'ry', 'rz'] ); break;
 		}
 
-		j.joint = joint
+		
+
+		// apply option
+		j.name = name;
+		j.type = this.type;
+		j.mode = mode;
+		j.massA = massA 
+		j.massB = massB
+		j.visible = o.visible !== undefined ? o.visible : true; 
+		this.set( o, j );
 
 		// add to world
 		this.addToWorld( j );
@@ -196,6 +223,18 @@ export class Joint extends Item {
 
 		//console.log(j)
 
+
+	}
+
+	stiffnessToHertz( stiffness, mass ) {
+	    // Vérification pour éviter les erreurs de division par zéro ou racine négative
+	    if (mass <= 0 || stiffness < 0) {
+	        throw new Error("Les valeurs de m doivent être strictement positives et k doit être non-négatif.");
+	    }
+
+	    const f = (1 / (2 * Math.PI)) * Math.sqrt(stiffness / mass);
+	    console.log(f)
+	    return f;
 
 	}
 
@@ -219,44 +258,72 @@ export class Joint extends Item {
 		if( j === null ) j = this.byName( o.name );
 		if( j === null ) return;
 
-		
-
-
 		//if( o.enable !== undefined ) havok.HP_Constraint_SetEnabled(j, o.enable);
 
 		switch(j.mode ){
 
-			case 'hinge':
-			//if( o.limit ) this.setLimit( j, [ 'rx', ...o.limit ] );
-			//if( o.spring ) this.setSpring( j, [ 'rx', ...o.spring ] );
-			if( o.motor ){ 
-				j.enableMotor = true;
-				j.motorSpeed = o.motor[1]//2.0;          // rad/s
-				j.maxMotorTorque = o.motor[2]//10000;    // must be large enough to overcome inertia
-
-				//this.setDrive(j, ['rx', o.motor[1], o.motor[2]])
-				//const axis = this.ConstraintAxis[ 'ANGULAR_X' ]
-	            //if(o.motor[1])havok.HP_Constraint_SetAxisMotorMaxForce( j, axis, o.motor[1] );
-				//this.setDriveVelocity(j, {rot:[o.motor[0],0,0]})
+			case 'fixe':
+			if(o.spring){
+				b3.b3WeldJoint_SetLinearHertz (j,o.spring[0])
+				b3.b3WeldJoint_SetLinearDampingRatio (j,o.spring[1])
+				b3.b3WeldJoint_SetAngularHertz (j,o.spring[2])
+				b3.b3WeldJoint_SetAngularDampingRatio (j,o.spring[3])
 			}
-			//if( o.motor ) this.setMotor( j, o.motor[1], o.motor[2], 'ANGULAR_X' )
-			// Adds a friction coefficient which resists movement along the specified axis. 
-			//if( o.friction !== undefined ) this.setFriction( j, 'rx', o.friction )
-			//if( o.lm ) this.setLimit( j, o.lm, 'ANGULAR_Z' )
+			break;
+
+			case 'hinge':
+
+			if( o.lm ) o.limit = o.lm
+		    if( o.limit ){
+		    	b3.b3RevoluteJoint_EnableLimit(j,true)
+				b3.b3RevoluteJoint_SetLimits(j, o.limit[0]*torad, o.limit[1]*torad )
+				if(o.limit[2]){ 
+					b3.b3RevoluteJoint_EnableSpring(j,o.limit[2]>0)
+					b3.b3RevoluteJoint_SetSpringHertz(j, this.stiffnessToHertz(o.limit[2], j.massB ))
+				}
+				if(o.limit[3]) b3.b3RevoluteJoint_SetSpringDampingRatio(j, o.limit[3])
+		    }
+
+			if( o.motor ){
+				b3.b3PrismaticJoint_EnableMotor (j, o.motor[0]>0)
+				b3.b3RevoluteJoint_SetMaxMotorTorque (j, o.motor[0])
+				b3.b3RevoluteJoint_SetMotorSpeed (j, o.motor[1])
+			}
+			
+			if( o.target ) b3.b3RevoluteJoint_SetTargetAngle (j, o.target)
+			
 			break;
 
 		    case "prismatic":
 
+		    /*
+			    Set the prismatic joint stiffness in Hertz.
+			    This should usually be less than a quarter of the simulation rate. 
+			    For example, if the simulation runs at 60Hz then the joint stiffness 
+			    should be 15Hz or less.
+		    */
+
 		    if( o.lm ) o.limit = o.lm
 		    if( o.limit ){
-		    	j.enableLimit = true;
-				j.lowerTranslation = o.limit[0];
-				j.upperTranslation = o.limit[1];
+		    	b3.b3PrismaticJoint_EnableLimit(j,true)
+				b3.b3PrismaticJoint_SetLimits(j, o.limit[0], o.limit[1] )
+				if(o.limit[2]){ 
+					b3.b3PrismaticJoint_SetSpringHertz(j, this.stiffnessToHertz(o.limit[2], j.massB ) )
+					b3.b3PrismaticJoint_EnableSpring(j,true)
+				}
+				if(o.limit[3]) b3.b3PrismaticJoint_SetSpringDampingRatio(j, o.limit[3])
 		    }
-			//if( o.spring ) this.setSpring( j, [ 'x', ...o.spring ] );
-			// Adds a friction coefficient which resists movement along the specified axis. 
-			//if( o.friction ) this.setFriction( j, 'x', o.friction );
-			//if( o.lm ) this.setLimit( j, [ 'x', ...o.lm ] )
+
+		    if( o.friction ) o.motor = [o.friction]
+			if( o.motor ){
+				b3.b3PrismaticJoint_EnableMotor (j, o.motor[0]>0)
+				b3.b3PrismaticJoint_SetMaxMotorForce (j, o.motor[0])
+				b3.b3PrismaticJoint_SetMotorSpeed (j, o.motor[1])
+			}
+			
+			if( o.target ) b3.b3PrismaticJoint_SetTargetTranslation (j, o.target)
+
+
 			break;
 
 		    case 'cylindrical':
@@ -265,155 +332,143 @@ export class Joint extends Item {
 			break;
 
 		    case "spherical":
-			//if( o.lm ){ 
-			//	this.setLimit( j, [ 'rx', ...o.lm ] )
-			//	this.setLimit( j, [ 'ry', ...o.lm ] )
-			//	this.setLimit( j, [ 'rz', ...o.lm ] )
-			//}
+			
+			if( o.limit ){
+				let l
+				for(let i = 0; i<o.limit.length; i++){
+					l = o.limit[i]
+
+					if(l[0] === 'rx'){
+						b3.b3SphericalJoint_EnableTwistLimit (j,true)
+				        b3.b3SphericalJoint_SetTwistLimits (j, l[1]*torad, l[2]*torad)
+					}
+
+					if(l[0] === 'rz'){
+						b3.b3SphericalJoint_EnableConeLimit (j, l[2]>0 )
+					    b3.b3SphericalJoint_SetConeLimit (j, l[2]*torad)
+					}
+
+				}
+
+				/*b3.b3SphericalJoint_EnableTwistLimit (j,true)
+				// range [-0.99*pi, 0.99*pi]
+				b3.b3SphericalJoint_SetTwistLimits (j, o.limit[0], o.limit[1])
+
+				if(o.limit[2]){
+				    //  z-axis  [0, pi]
+					b3.b3SphericalJoint_EnableConeLimit (j, true )
+					b3.b3SphericalJoint_SetConeLimit (j, o.limit[2])
+				}*/
+				
+			}
+			if( o.spring ){
+				b3.b3SphericalJoint_EnableSpring (j, o.spring[0]>0 )
+				b3.b3SphericalJoint_SetSpringHertz (j, this.stiffnessToHertz(o.spring[0], j.massB ) )
+				b3.b3SphericalJoint_SetSpringDampingRatio (j, o.spring[1])
+			}
+
+			if( o.friction ) o.motor = [o.friction]
+
+			if( o.motor ){
+				b3.b3SphericalJoint_EnableMotor (j, o.motor[0]>0)
+				b3.b3SphericalJoint_SetMaxMotorTorque (j,o.motor[0]) // can be use as friction
+				if(o.motor[1]) b3.b3SphericalJoint_SetMotorVelocity (j,o.motor[1])
+			}
+
+			if( o.target )  b3.b3SphericalJoint_SetTargetRotation (j, o.target)
+			
+			break;
+			case "wheel":
+			/*
+			b3WheelJoint_EnableSpinMotor (arg0,arg1)
+			b3WheelJoint_EnableSteering (arg0,arg1)
+			b3WheelJoint_EnableSteeringLimit (arg0,arg1)
+			b3WheelJoint_EnableSuspension (arg0,arg1)
+			b3WheelJoint_EnableSuspensionLimit (arg0,arg1)
+
+			b3WheelJoint_IsSpinMotorEnabled (arg0)
+			b3WheelJoint_IsSteeringEnabled (arg0)
+			b3WheelJoint_IsSteeringLimitEnabled (arg0)
+			b3WheelJoint_IsSuspensionEnabled (arg0)
+			b3WheelJoint_IsSuspensionLimitEnabled (arg0)
+			b3WheelJoint_SetMaxSpinTorque (arg0,arg1)
+			b3WheelJoint_SetMaxSteeringTorque (arg0,arg1)
+			b3WheelJoint_SetSpinMotorSpeed (arg0,arg1)
+			b3WheelJoint_SetSteeringDampingRatio (arg0,arg1)
+			b3WheelJoint_SetSteeringHertz (arg0,arg1)
+			b3WheelJoint_SetSteeringLimits (arg0,arg1,arg2)
+			b3WheelJoint_SetSuspensionDampingRatio (arg0,arg1)
+			b3WheelJoint_SetSuspensionHertz (arg0,arg1)
+			b3WheelJoint_SetSuspensionLimits (arg0,arg1,arg2)
+			b3WheelJoint_SetTargetSteeringAngle (arg0,arg1)
+			*/
+			break;
+
+			case "motor":
+			/*
+			b3MotorJoint_GetAngularDampingRatio (arg0)
+			b3MotorJoint_GetAngularHertz (arg0)
+
+			b3MotorJoint_SetAngularDampingRatio (arg0,arg1)
+			b3MotorJoint_SetAngularHertz (arg0,arg1)
+			b3MotorJoint_SetAngularVelocity (arg0,arg1)
+			b3MotorJoint_SetLinearDampingRatio (arg0,arg1)
+			b3MotorJoint_SetLinearHertz (arg0,arg1)
+			b3MotorJoint_SetLinearVelocity (arg0,arg1)
+			b3MotorJoint_SetMaxSpringForce (arg0,arg1)
+			b3MotorJoint_SetMaxSpringTorque (arg0,arg1)
+			b3MotorJoint_SetMaxVelocityForce (arg0,arg1)
+			b3MotorJoint_SetMaxVelocityTorque (arg0,arg1)
+			*/
 			break;
 
 			case 'distance':
 
-			if( o.limit ) j.length = o.limit[0]; // desired distance in metres
+			if( o.limit ){
+				
+				b3.b3DistanceJoint_EnableLimit (j,true)
+				//b3.b3DistanceJoint_SetLength (j,arg1)
+				b3.b3DistanceJoint_SetLengthRange (j,o.limit[0],o.limit[1])
+			}
 			
-			//if( o.limit ) this.setLimit( j, [ 'distance', ...o.limit ] );
-			//if( o.spring ) this.setSpring( j, [ 'distance', ...o.spring ] );
-			// Adds a friction coefficient which resists movement along the specified axis. 
-			//if( o.friction ) this.setFriction( j, 'distance', o.friction );
+			if( o.spring ){
+				b3.b3DistanceJoint_EnableSpring (j,true)
+				b3.b3DistanceJoint_SetSpringHertz (j, this.stiffnessToHertz(o.spring[0], j.massB ) )
+				b3.b3DistanceJoint_SetSpringDampingRatio (j,o.spring[1])
+				b3.b3DistanceJoint_SetSpringForceRange (j,o.spring[2],o.spring[3])
+			}
 
+			if( o.friction ) o.motor = [o.friction]
+
+			if( o.motor ){
+				b3.b3DistanceJoint_EnableMotor (j,true)
+				b3.b3DistanceJoint_SetMaxMotorForce (j,o.motor[0])// can be use as friction
+				if(o.motor[1]) b3.b3DistanceJoint_SetMotorSpeed (j,o.motor[1])
+			}
+
+			break;
+
+			case "parallel":
+			/*
+			b3ParallelJoint_SetMaxTorque (arg0,arg1)
+			b3ParallelJoint_SetSpringDampingRatio (arg0,arg1)
+			b3ParallelJoint_SetSpringHertz (arg0,arg1)
+			*/
 			break;
 
 
 		    case 'generic': case 'ragdoll': 
 
-		    /*if( o.motion ){ 
-				i = o.motion.length
-				while(i--){
-					this.setLimitMode( j, this.convert[ o.motion[i][0] ], this.convert[ o.motion[i][1] ] )
-				}
-			}
-
-			if( o.lm ){ 
-				i = o.lm.length;
-				while(i--){
-					this.setLimit( j, o.lm[i] )
-				}
-			}
-
-			if( o.drive ){ 
-				i = o.drive.length;
-				while(i--){
-					this.setDrive( j, o.drive[i] )
-					//this.setMotor( j, o.motor[i][0], o.motor[i][1], o.motor[i][2] )
-				}
-			}
-			if( o.friction !== undefined ){ 
-				let frict = []
-				if(o.friction instanceof Array){
-					frict = [...o.friction]
-					
-				} else {
-					let f = o.friction
-					frict = [['x', f], ['y', f], ['z', f], ['rx', f], ['ry', f], ['rz', f]]
-				}
-				// apply friction on each axis if only one value
-				i = frict.length
-				while(i--){
-					// Adds a friction coefficient which resists movement along the specified axis. 
-					this.setFriction( j, frict[i][0], frict[i][1] );
-				}
-
-
-			}
-
-			if( o.drivePosition ){ 
-				this.setDrivePosition( j, o.drivePosition );
-			}
-
-			if( o.driveVelocity ){
-				this.setDriveVelocity( j, o.driveVelocity );
-			}*/
-
 
 			
 			break;
 
 		}
 
-		//if(o.getInfo) this.getInfo(j)
-
-		//havok.HP_Constraint_SetAxisFriction( j, this._constraintAxisToNative(axis), friction);
-
-	}
-
-	/*getDriveTarget(j){
-
-		const d = [
-			havok.HP_Constraint_GetAxisMotorTarget(j, this.ConstraintAxis['LINEAR_X'])[1],
-			havok.HP_Constraint_GetAxisMotorTarget(j, this.ConstraintAxis['LINEAR_Y'])[1],
-			havok.HP_Constraint_GetAxisMotorTarget(j, this.ConstraintAxis['LINEAR_Z'])[1],
-
-			havok.HP_Constraint_GetAxisMotorTarget(j, this.ConstraintAxis['ANGULAR_X'])[1],
-			havok.HP_Constraint_GetAxisMotorTarget(j, this.ConstraintAxis['ANGULAR_Y'])[1],
-			havok.HP_Constraint_GetAxisMotorTarget(j, this.ConstraintAxis['ANGULAR_Z'])[1],
-			0
-		]
-
-		return d
-
-	}
-
-	getInfo(j){
-
-		const info = {
-		}
-
-		console.log(info)
 
 	}
 
 	
-
-	lock( j, axes ){
-		let i = axes.length;
-		while( i-- ) havok.HP_Constraint_SetAxisMode( j, this.ConstraintAxis[ this.convert[axes[i]] ], this.LimitMode.LOCKED );
-	}
-
-	setLimitMode( j, axe, type ){
-
-		havok.HP_Constraint_SetAxisMode( j, this.ConstraintAxis[ axe ], this.LimitMode[ type ] )
-
-	}
-
-	setDriveMode( j, axe, type ){
-
-		havok.HP_Constraint_SetAxisMotorType( j, this.ConstraintAxis[ axe ], this.MotorType[type] )
-
-	}
-
-	setLimit( j, limit ){
-
-		//return
-
-		const a = this.convert[ limit[0] ]
-		const m = this.angulars.indexOf( a ) !== -1 ? torad : 1;
-		const axis = this.ConstraintAxis[ a ];
-
-		//havok.HP_Constraint_SetAxisMotorType( j, axis, this.MotorType.SPRING_ACCELERATION )
-
-		havok.HP_Constraint_SetAxisMode( j, axis, this.LimitMode.LIMITED );
-		havok.HP_Constraint_SetAxisMinLimit( j, axis, limit[1]*m );
-		havok.HP_Constraint_SetAxisMaxLimit( j, axis, limit[2]*m );
-		
-		// if not set limite is hard
-		if(limit.length>3){
-			//let spring = [ limit[0], ...limit.splice(3) ];
-			let spring = [ limit[0], ...limit.slice(3) ];
-			this.setSpring(j, spring);
-		}
-
-	}*/
-
 	
 
 	

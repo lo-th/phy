@@ -261,6 +261,22 @@ export class Joint extends Item {
 			//o.quat2 = MathTool.quatMultiply(o.quat2, qq);
 		}
 
+		if( this.engine === 'BOX3D' ) {
+			let ee = new Euler(0, -90*torad, 0);
+			let qq = new Quaternion().setFromEuler(ee).toArray();
+			o.quatY = qq;
+
+			ee = new Euler (-90*torad, 0, 0);
+			let qq2 = new Quaternion().setFromEuler(ee).toArray();
+			o.quatX = qq2;
+
+			ee = new Euler (0, 0, -90*torad );
+			let qq3 = new Quaternion().setFromEuler(ee).toArray();
+			o.quatZ = qq3;
+			//o.quat1 = MathTool.quatMultiply(o.quat1, qq);
+			//o.quat2 = MathTool.quatMultiply(o.quat2, qq);
+		}
+
 
 
 		let j = new JointDebug( o, this.motor );

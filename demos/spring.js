@@ -2,10 +2,11 @@ let pp, mesh
 let N = 0
 let list = []
 const setting = { 
-    stiffness:100,
-    damping:1,
-    distance:0.01,
+    stiffness:100,//100,
+    damping:1,//1
+    distance:0.01,//0.01
 };
+
 
 function demo() {
 
@@ -24,6 +25,11 @@ function demo() {
 
     // add static ground
     phy.add({ type:'plane', size:[300,1,300], visible:false });
+
+    if(phy.engine === 'BOX3D'){
+        setting.distance = 1
+        setting.damping = 0.2
+    }
 
     let rand = math.rand
 
@@ -88,7 +94,7 @@ addBalls = ( nx, ny, sb=0.1, h=16, sx=6, sy=6  ) => {
 
     for(j = 0; j<nx; j++){
     for(i = 0; i<ny; i++){
-        phy.add({ type:'sphere', pos:[(j*px) - dx, h-math.rand(0,3), (i*py) - dy], size:[sb], mass:0.5, instance:'balls' });
+        phy.add({ type:'sphere', pos:[(j*px) - dx, h-math.rand(0,3), (i*py) - dy], size:[sb], mass:0.5, density:100, instance:'balls' });
     }}
 
 }
@@ -96,7 +102,7 @@ addBalls = ( nx, ny, sb=0.1, h=16, sx=6, sy=6  ) => {
 addSpringyFloor = ( pos, size, h = 2 ) => {
 
     let div = math.scaleArray(size, 0.5);
-    let floor = phy.add({ type:'box', pos:[pos[0],h,pos[2]], size:size, mass:1, friction:0.5, radius:0.05 });
+    let floor = phy.add({ type:'box', pos:[pos[0],h,pos[2]], size:size, mass:1, density:10, friction:0.5, radius:0.05 });
     let base = phy.add({ type:'box', pos:[pos[0],div[1]*0.5,pos[2]], size:div });
     
     let j = phy.add({

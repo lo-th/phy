@@ -100,8 +100,8 @@ export const Utils = {
 			switch( b.type ){
 				//case 'terrain': b.release(); break;
 				case 'joint':
-				if(b.joint) {
-					if(b3.b3Joint_IsValid(b.joint)) b3.b3DestroyJoint(b.joint, false);
+				if(b) {
+					if(b3.b3Joint_IsValid(b)) b3.b3DestroyJoint(b, false);
 				}
 				break;
 				default: 

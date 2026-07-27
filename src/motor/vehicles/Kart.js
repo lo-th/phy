@@ -219,7 +219,7 @@ export class Kart {
 
         this.motor.change({ name:this.sphere.name, linear:ar, velocityOperation:'xz' })
 
-        if(this.chassis)this.motor.change({ name:this.chassis.name, /*linear:ar, velocityOperation:'xz',*/quat:this.car.quaternion.toArray() ,pos:this.car.position.toArray() });
+        if(this.chassis) this.motor.change({ name:this.chassis.name, /*linear:ar, velocityOperation:'xz',*/quat:this.car.quaternion.toArray() ,pos:this.car.position.toArray() });
         
 
 
