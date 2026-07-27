@@ -233,7 +233,6 @@ export class Joint extends Item {
 	    }
 
 	    const f = (1 / (2 * Math.PI)) * Math.sqrt(stiffness / mass);
-	    console.log(f)
 	    return f;
 
 	}
