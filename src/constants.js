@@ -11,7 +11,7 @@ export const Version = {
     OIMO: '1.2.4',
     AMMO: '3.2.6',
 
-    BOX3D: '0.1.1',
+    BOX3D: '0.1.0',
 
 }
 
