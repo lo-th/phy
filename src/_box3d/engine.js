@@ -55,7 +55,7 @@ let substep = 4;
 let fixe = true;
 
 let isLoopRunning = false;
-let accumulator = 0
+let accumulator = 0;
 let maxAccumulator = timestep * 10;
 
 let outsideStep = false;
@@ -227,36 +227,11 @@ export class engine {
     	root.world = b3.b3CreateWorld(worldDef);
 
 
-
-    	/** Returns the address of the world's body buffer, for use with
-	     * HP_Body_GetWorldTransformOffset. This result can be invalidated if a
-	     * body is added to the world.
-	     */
-	    //havok.HP_World_GetBodyBuffer(root.world)//: [Result, number];
-
-    	// Allocates a query collector with sufficient capacity to store the requested number of hits
-    	//root.queryCollector = havok.HP_QueryCollector_Create(1000)[1];
-
-
-
     	b3.b3World_SetGravity( root.world, root.gravity )
 
     	//b3.b3World_SetWorkerCount(root.world, 20)
 
 
-    	//console.log(b3.b3World_GetWorkerCount(root.world))
-
-    	// 200 m/s (which is about two thirds the speed of sound, so pretty fast :))
-    	//havok.HP_World_SetSpeedLimit( root.world, maxLinearVelocity, maxAngularVelocity );
-
-		//const limits = havok.HP_World_GetSpeedLimit(root.world);
-		//console.log(limits)
-
-
-		//console.log(havok)
-
-		//havok.HP_World_ShapeCastWithCollector(arg0, arg1, arg2)
-		//havok.HP_World_ShapeProximityWithCollector(arg0, arg1, arg2)
 
     	// Configure the ideal delta time which you intend to call HP_World_Step(). Defaults to 1/60.
     	// If the delta time passed to the world step differs from this amount, the solver parameters
@@ -266,13 +241,6 @@ export class engine {
     	//else havok.HP_World_SetIdealStepTime( root.world, 0 )
 
     }
-
-    /*static getSpeedLimit () {
-
-    	const limits = havok.HP_World_GetSpeedLimit(root.world)
-    	return limits
-
-    }*/
 
 	static controle ( name ) {
 

@@ -164,6 +164,8 @@ export class Body extends Item {
 		let center = o.localPos || [0,0,0]
 		let p1 = [center[0], center[1]-s[1]*0.5, center[2]]
 		let p2 = [center[0], center[1]+s[1]*0.5, center[2]]
+
+
 		/*//let p1 = [center[0], center[1], center[2]]
 		//let p2 = [center[0], center[1]+s[1], center[2]]
 		let qq = o.localQuat || [0,0,0,1]
@@ -396,7 +398,7 @@ export class Body extends Item {
 		//const motionType = this.type === 'body' ? ( o.kinematic ? "KINEMATIC" : "DYNAMIC" ) : "STATIC";
 
         bodyDef.type = this.type === 'body' ?  o.kinematic ? b3.b3BodyType.b3_kinematicBody : b3.b3BodyType.b3_dynamicBody : b3.b3BodyType.b3_staticBody;
-        
+        if(o.type==='compound')bodyDef.type = b3.b3BodyType.b3_staticBody;
 
         //bodyDef.position = { x: p[0], y: p[1], z: p[2] };
 
@@ -430,11 +432,16 @@ export class Body extends Item {
 			
 			case 'compound':
 
+			    let mat = b3.b3DefaultSurfaceMaterial ()
+
+
+
 			    let n, bb
 			    const spec = {
 				    spheres: [],
 				    capsules: [],
 				    hulls: [],
+				    meshes: [],
 				}
 
 			    for ( let i = 0; i < o.shapes.length; i ++ ) {
@@ -443,21 +450,89 @@ export class Body extends Item {
 			    	p = n.pos || [0,0,0]
 			    	q = n.quat || [0,0,0,1]
 
+			    	if(n.type==='sphere'){
+			    		bb = { center: { x: 0, y: 0, z: 0 }, radius: n.size[0] }
+			    		spec.spheres.push({
+			    			sphere: bb,
+			    			transform: { p:toVec(p), q:toQuat(q) },
+			    			material: mat,
+			    		})
+			    	}
+
+			    	if(n.type==='capsule'){
+
+			    		let center = o.localPos || [0,0,0]
+						let p1 = [center[0], center[1]-n.size[1]*0.5, center[2]]
+						let p2 = [center[0], center[1]+n.size[1]*0.5, center[2]]
+
+						bb = {
+							center1: { x: p1[0], y: p1[1], z: p1[2] },
+							center2: { x: p2[0], y: p2[1], z: p2[2] },
+							radius: n.size[0],
+						}
+
+			    		spec.capsules.push({
+			    			capsule: bb,
+			    			transform: { p:toVec(p), q:toQuat(q) },
+			    			material: mat,
+			    		})
+			    	}
+
 			    	if(n.type==='box'){
 			    		bb = this.boxHull(n.size[0]*0.5, n.size[1]*0.5, n.size[2]*0.5)
 			    		spec.hulls.push({
 			    			hull: bb,
 			    			transform: { p:toVec(p), q:toQuat(q) },
+			    			material: mat,
+			    		})
+			    	}
+
+			    	if(n.type==='convex'){
+			    		bb = b3.b3CreateHull(n.v);
+
+			    		//b3.b3CreateHullShape(b, sd, hullData);
+			    		//hullData.delete()
+			    		//bb = this.boxHull(n.size[0]*0.5, n.size[1]*0.5, n.size[2]*0.5)
+			    		spec.hulls.push({
+			    			hull: bb,
+			    			transform: { p:toVec(p), q:toQuat(q) },
+			    			material: mat,
+			    		})
+
+			    		/**/
+			    	}
+
+			    	if(n.type==='mesh'){
+
+			    		bb = b3.b3CreateMesh(n.v, n.index);
+
+			    		spec.meshes.push({
+
+				    		meshData: bb,
+				    		scale: { x:1.0, y:1.0, z:1.0 },
+				    		transform: { p:toVec(p), q:toQuat(q) },
+			    			material: mat,
+			    			materialCount:1,
 			    		})
 			    	}
 			    }
 
-			    
+			    spec.sphereCount = spec.spheres.length;
+			    spec.capsuleCount = spec.capsules.length;
+			    spec.hullCount = spec.hulls.length;
+			    spec.mesheCount = spec.meshes.length;
 
 			    //console.log(spec)
 
+			    let sd = b3.b3DefaultShapeDef()
+			    sd.baseMaterial.friction = o.friction !== undefined ? o.friction : 0.5; // 0 = frictionless, 1 = rough
+		        sd.baseMaterial.restitution = o.restitution !== undefined ? o.restitution : 0.0;
+		        sd.filter = { categoryBits: 2, maskBits: 1|2, groupIndex: 0 }
+
+		        //console.log(sd)
+
 			    const compound = b3.b3CreateCompound(spec);
-			    b3.b3CreateCompoundShape( b, b3.b3DefaultShapeDef(), compound );
+			    b3.b3CreateCompoundShape( b, sd, compound );
 			    b.compound = compound;
 
 

@@ -1786,6 +1786,9 @@ class GLTFMeshGpuInstancing {
 				}
 
 				// Add instance attributes to the geometry, excluding TRS.
+
+				let instanceGeometry = null;
+
 				for ( const attributeName in attributes ) {
 
 					if ( attributeName === '_COLOR_0' ) {
@@ -1797,7 +1800,36 @@ class GLTFMeshGpuInstancing {
 						 attributeName !== 'ROTATION' &&
 						 attributeName !== 'SCALE' ) {
 
-						mesh.geometry.setAttribute( attributeName, attributes[ attributeName ] );
+						if ( instanceGeometry === null ) {
+
+							// do a shallow clone of the goemetry so per-instance data are not shared
+
+							const source = instancedMesh.geometry;
+							instanceGeometry = new BufferGeometry();
+							instanceGeometry.name = source.name;
+
+							for ( const name in source.attributes ) instanceGeometry.setAttribute( name, source.attributes[ name ] );
+							for ( const name in source.morphAttributes ) instanceGeometry.morphAttributes[ name ] = source.morphAttributes[ name ];
+							if ( source.index !== null ) instanceGeometry.setIndex( source.index );
+
+							instanceGeometry.morphTargetsRelative = source.morphTargetsRelative;
+
+							for ( const group of source.groups ) instanceGeometry.addGroup( group.start, group.count, group.materialIndex );
+
+							if ( source.boundingBox !== null ) instanceGeometry.boundingBox = source.boundingBox.clone();
+							if ( source.boundingSphere !== null ) instanceGeometry.boundingSphere = source.boundingSphere.clone();
+
+							instanceGeometry.drawRange.start = source.drawRange.start;
+							instanceGeometry.drawRange.count = source.drawRange.count;
+
+							instanceGeometry.userData = Object.assign( {}, source.userData );
+
+							instancedMesh.geometry = instanceGeometry;
+
+						}
+
+						const attr = attributes[ attributeName ];
+						instanceGeometry.setAttribute( attributeName, new InstancedBufferAttribute( attr.array, attr.itemSize, attr.normalized ) );
 
 					}
 
@@ -2037,6 +2069,27 @@ class GLTFTextureTransformExtension {
 		if ( transform.scale !== undefined ) {
 
 			texture.repeat.fromArray( transform.scale );
+
+		}
+
+		if ( transform.rotation !== undefined ) {
+
+			// glTF's KHR_texture_transform order differs from three.js:
+			// glTF defines the UV transform as T * R * S
+			// three.js defines the UV transform as T * S * R
+			//
+			// To fix this, we need to override the matrix with the value computed per glTF spec
+			// We still set the other fields so that you can inspect/export the resulting object.
+
+			const c = Math.cos( texture.rotation );
+			const s = Math.sin( texture.rotation );
+
+			texture.matrix.set(
+				texture.repeat.x * c, texture.repeat.y * s, texture.offset.x,
+				- texture.repeat.x * s, texture.repeat.y * c, texture.offset.y,
+				0, 0, 1
+			);
+			texture.matrixAutoUpdate = false;
 
 		}
 
@@ -3854,8 +3907,17 @@ class GLTFParser {
 						primitive.mode === WEBGL_CONSTANTS.TRIANGLE_FAN ||
 						primitive.mode === undefined ) {
 
+					const needsSkinning = meshDef.isSkinnedMesh === true;
+					const hasSkinningAttributes = geometry.hasAttribute( 'skinIndex' ) && geometry.hasAttribute( 'skinWeight' );
+
+					if ( needsSkinning && hasSkinningAttributes === false ) {
+
+						console.warn( 'THREE.GLTFLoader: Missing skinIndex or skinWeight attributes. Skinning disabled.' );
+
+					}
+
 					// .isSkinnedMesh isn't in glTF spec. See ._markDefs()
-					mesh = meshDef.isSkinnedMesh === true
+					mesh = ( needsSkinning && hasSkinningAttributes )
 						? new SkinnedMesh( geometry, material )
 						: new Mesh( geometry, material );
 

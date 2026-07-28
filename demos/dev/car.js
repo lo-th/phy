@@ -5,7 +5,7 @@ function demo() {
     phy.log('under construction')
 
     phy.set({ 
-        substep:16, 
+        substep:4, 
         gravity:[0,-10,0] 
     })
 
@@ -34,7 +34,7 @@ function testCar ( n, pos ){
 
     current = n
 
-    var body = phy.add({ type:'box', name:'chassis'+n, pos:pos, size:[1.4, 1, 2.4],  density:10, friction:0.5, restitution:0, neverSleep:true, massCenter:[0,0.5,0], order:'YXZ' });
+    var body = phy.add({ type:'box', name:'chassis'+n, pos:pos, size:[1.4, 0.2, 2.4],  density:10, friction:0.5, restitution:0, neverSleep:true, massCenter:[0,0.5,0], order:'YXZ' });
 
     var ws = [ 1.1, -0.5, 1 ];
     var radius = 0.3;
@@ -43,8 +43,6 @@ function testCar ( n, pos ){
 
     w1 = [ ws[0], ws[1], ws[2] ];
     w2 = [ -ws[0], ws[1], ws[2] ];
-
-
 
     for (var i = 0; i < 4; i++) {
 
@@ -95,7 +93,7 @@ s
 
             //lm: front ? [ ['rx',-25,25, 1, 10000, Infinity, 10], ['z',-0.1,0.1, 1, 10000, 0.1] ] : [['z',-0.1,0.1, 1, 10000, 0.1]],
 
-            drive:front ?[ ['ry', 1,1000, Infinity, false]]:[],
+            drive:front ? [ ['ry', 1,1000, Infinity, false]]:[],
 
            // friction:[ ['rx', 1], ['ry', 1], ['rz', 1], ['y', 0.2]],
 

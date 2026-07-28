@@ -1520,7 +1520,7 @@ const Version = {
     PHY: '0.13.1',
     // best
     PHYSX: '5.06.10',
-    HAVOK: '1.3.11',
+    HAVOK: '1.3.12',
     // young
     JOLT: '0.39.0',
     RAPIER: '0.19.3',
@@ -1528,9 +1528,11 @@ const Version = {
     OIMO: '1.2.4',
     AMMO: '3.2.6',
 
+    BOX3D: '0.1.1',
+
 };
 
-const WithMassCenter = ['PHYSX', 'HAVOK', 'RAPIER'];
+const WithMassCenter = ['PHYSX', 'HAVOK', 'RAPIER', 'BOX3D'];
 
 const Max = {
 	body:4000,
@@ -7324,7 +7326,7 @@ class Body extends Item {
 
 
 
-		const noIndex = this.engine === 'OIMO' || this.engine === 'JOLT' || this.engine === 'AMMO' || this.engine === 'CANNON';
+		let noIndex = this.engine === 'OIMO' || this.engine === 'JOLT' || this.engine === 'AMMO' || this.engine === 'CANNON';
 
 		//if( o.instance && t!== 'capsule'&& !o.radius) s = o.instanceSize || [1,1,1]
 
@@ -7396,6 +7398,8 @@ class Body extends Item {
 
 			case 'convex':
 
+			    //noIndex = this.engine === 'BOX3D'
+
 				if( o.v ){ 
 
 					if( o.nogeo ) g = new three.BufferGeometry();
@@ -7420,6 +7424,10 @@ class Body extends Item {
 					g = o.shape.clone();
 					if( o.size ) g.scale( o.size[0], o.size[0], o.size[0] );
 					if( o.shapeScale ) g.scale( o.shapeScale[0], o.shapeScale[1], o.shapeScale[2] );
+
+					/*let tg = MathTool.toNonIndexed(g);
+					o.v = MathTool.getVertex( tg , true );
+					o.index = MathTool.getIndex( tg , true );*/
 
 					let tg = noIndex ? MathTool.toNonIndexed(g) : null;
 					o.v = MathTool.getVertex( tg || g, noIndex );
@@ -9419,6 +9427,22 @@ class Joint extends Item {
 			let ee = new three.Euler(0, -90*torad$3, 0);
 			let qq = new three.Quaternion().setFromEuler(ee).toArray();
 			o.quatX = qq;
+			//o.quat1 = MathTool.quatMultiply(o.quat1, qq);
+			//o.quat2 = MathTool.quatMultiply(o.quat2, qq);
+		}
+
+		if( this.engine === 'BOX3D' ) {
+			let ee = new three.Euler(0, -90*torad$3, 0);
+			let qq = new three.Quaternion().setFromEuler(ee).toArray();
+			o.quatY = qq;
+
+			ee = new three.Euler (-90*torad$3, 0, 0);
+			let qq2 = new three.Quaternion().setFromEuler(ee).toArray();
+			o.quatX = qq2;
+
+			ee = new three.Euler (0, 0, -90*torad$3 );
+			let qq3 = new three.Quaternion().setFromEuler(ee).toArray();
+			o.quatZ = qq3;
 			//o.quat1 = MathTool.quatMultiply(o.quat1, qq);
 			//o.quat2 = MathTool.quatMultiply(o.quat2, qq);
 		}
@@ -16939,6 +16963,7 @@ class Hero extends three.Object3D {
 			shapes: null,
 			
 			mass: this.mass,
+			//density: 200,
 
 			friction: o.friction !== undefined ? o.friction : 0.0,//0.5
 			angularFactor:[0,0,0],
@@ -16949,11 +16974,13 @@ class Hero extends three.Object3D {
 			massInfo: o.massInfo,
 		};
 
+
+
 		const volume = MathTool.getVolume( 'capsule', o.size );
 
 		// lock rotation
 		if( this.motor.engine === 'HAVOK' ) this.phyData['inertia'] = [0,0,0];
-		if( this.motor.engine === 'OIMO' || this.motor.engine === 'RAPIER' ) {
+		if( this.motor.engine === 'OIMO' || this.motor.engine === 'RAPIER' || this.motor.engine === 'BOX3D') {
 			this.phyData['density'] = MathTool.densityFromMass( this.mass, volume );
 		}
 
@@ -19658,6 +19685,12 @@ class Terrain extends Item {
 			//o.isReverse = false
 		}
 
+		if( this.engine === 'BOX3D'){
+			o.isAbsolute = true;
+			o.isTurned = false;
+			//o.isReverse = true
+		}
+
 		if( this.engine !== 'OIMO');
 
 		const t = new Landscape( o );
@@ -19701,7 +19734,7 @@ const toPhysics = function( t, engine ) {
 		quat:engine === 'PHYSX' ? [0,0,0,1]:t.quaternion.toArray(), // physx terrain can't turn !!
 	};
 
-	if( engine === 'PHYSX' || engine === 'AMMO' || engine === 'HAVOK' || engine === 'JOLT'){
+	if( engine === 'PHYSX' || engine === 'AMMO' || engine === 'HAVOK' || engine === 'JOLT' || engine === 'BOX3D'){
 		o.type = 'terrain';
 		o.size = t.sizeZ;
 		o.sample = t.sampleZ;
@@ -25804,7 +25837,7 @@ class Kart {
 
         this.motor.change({ name:this.sphere.name, linear:ar, velocityOperation:'xz' });
 
-        if(this.chassis)this.motor.change({ name:this.chassis.name, /*linear:ar, velocityOperation:'xz',*/quat:this.car.quaternion.toArray() ,pos:this.car.position.toArray() });
+        if(this.chassis) this.motor.change({ name:this.chassis.name, /*linear:ar, velocityOperation:'xz',*/quat:this.car.quaternion.toArray() ,pos:this.car.position.toArray() });
         
 
 

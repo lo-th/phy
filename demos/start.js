@@ -63,6 +63,7 @@ onComplete = () => {
     var sofaShape = []
 
     let k = 28
+    // convex ??
     while(k--) sofaShape.push( {type:'convex', shape: sofaModel['sofa_shape_'+k] } )
 
     phy.add({
@@ -74,7 +75,7 @@ onComplete = () => {
         material:'sofa',
         //meshPos:[0,0,0],
         //density:4,
-        mass:80,
+        density:phy.engine === 'BOX3D'? 0:80,
         //debug:true
     })
 
@@ -87,7 +88,7 @@ onComplete = () => {
 
     // the big phy logo
 
-    let sc = 0.01
+    /*let sc = 0.01
     const logoShape = []
     let p = [0,0,0,31.685,16,0,-31.685,16,0,28.547,25.779,0,28.547,6.221,0,-28.547,25.779,0,-28.547,6.221,0,19.755,-1.621,
     0,7.051,-5.973,0,19.755,33.621,0,7.051,37.973,0,-19.755,-1.621,0,-7.051,-5.973,0,-21.92,32.371,0]
@@ -109,6 +110,25 @@ onComplete = () => {
         //meshSize:1,
         //mass:1,
         density:1,
+        material:'chrome',
+        getVelocity:true,
+
+        massCenter:[0,0,0],
+
+        ...option
+    })*/
+
+    phy.add({
+        type:'convex',
+        name:'logo',
+        shape:model.logo_shape,
+        mesh:model.logo,
+        pos:[ 0, 1.8,0 ],
+        
+        damping:[1.5,0.7],
+        //meshSize:1,
+        //mass:1,
+        density:10,
         material:'chrome',
         getVelocity:true,
 

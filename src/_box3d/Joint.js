@@ -37,28 +37,6 @@ export class Joint extends Item {
 
 	}
 
-	// Creates a vector normal (perpendicular) to the current Vector3
-
-	/*getNormalToRef(v) {
-
-        const radius = Math.sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]);
-        let theta = Math.acos(v[1] / radius);
-        const phi = Math.atan2(v[2], v[0]);
-        //makes angle 90 degs to current vector
-        if( theta > Math.PI * 0.5 ) theta -= Math.PI * 0.5;
-        else theta += Math.PI * 0.5;
-        
-        //Calculates resutant normal vector from spherical coordinate of perpendicular vector
-        const x = radius * Math.sin(theta) * Math.cos(phi);
-        const y = radius * Math.cos(theta);
-        const z = radius * Math.sin(theta) * Math.sin(phi);
-
-        return [x, y, z];
-
-    }*/
-
-
-	///
 
 	add ( o = {} ) {
 
@@ -68,12 +46,12 @@ export class Joint extends Item {
 
 		if(mode==='generic') mode = 'spherical'
         if(mode==='ragdoll') mode = 'spherical'
+        if(mode==='cylindrical') mode = 'wheel'
 
 		let jd //jointDef
 		
 		switch ( mode ) {
 			case 'fixe':
-			//It is tempting to use the weld joint to define breakable structures.
 			jd = b3.b3DefaultWeldJointDef();
 			break;
 			case 'hinge': 
@@ -84,36 +62,22 @@ export class Joint extends Item {
             break;
             case 'prismatic': 
             jd = b3.b3DefaultPrismaticJointDef();
-            /*j.enableLimit = true;
-			j.lowerTranslation = -2.0;
-			j.upperTranslation =  2.0;*/
             break;
-            //case 'cylindrical': 
-            //j = b3.b3DefaultSphericalJointDef();
-            //break;
             case 'spherical': 
             jd = b3.b3DefaultSphericalJointDef();
             break;
             case 'wheel': 
             jd = b3.b3DefaultWheelJointDef();
             break;
-
             case 'motor': 
-            // A motor joint lets you control the motion of a body by specifying target linear and angular velocities. 
             jd = b3.b3DefaultMotorJointDef();
             break;
-
             case 'parallel': 
             jd = b3.b3DefaultParallelJointDef();
             break;
-            case 'filter': 
-            //The filter (or null) joint is used to disable collision between two specific bodie
+            case 'filter':
             jd = b3.b3DefaultParallelJointDef();
             break;
-            //case 'spherical': this.lock( j, ['x', 'y', 'z'] ); break;
-            //case 'ragdoll': this.lock( j, ['x', 'y', 'z'] ); break;
-            //case 'generic': this.lock( j, ['x', 'y', 'z', 'rx', 'ry', 'rz'] ); break;
-            //default: this.lock( j, ['x', 'y', 'z', 'rx', 'ry', 'rz'] ); break;
 		}
 
 		if(!jd){ 
@@ -128,8 +92,6 @@ export class Joint extends Item {
 		let b2 = this.byName(o.b2)
 		let massA = 0 
 		let massB = 0
-
-
 
 		if(b1!==null) {
 			jd.base.bodyIdA = b1;
@@ -156,7 +118,9 @@ export class Joint extends Item {
         jd.base.localFrameB = { p: toVec(posB), q: toQuat(quatB) };
 
         //
-        jd.base.collideConnected = o.collision !== undefined ? o.collision : false;
+        //jd.base.collideConnected = o.collision !== undefined ? o.collision : false;
+
+        //console.log( o.collision !== undefined ? o.collision : false )
 
 
 
@@ -166,9 +130,9 @@ export class Joint extends Item {
 		switch ( mode ) {
 			case 'fixe':
 			// Both translation and rotation can have spring-damper softness.
+			//It is tempting to use the weld joint to define breakable structures.
 			j = b3.b3CreateWeldJoint(root.world, jd);
 			break;
-			//case 'distance': this.lock( j, ['rx', 'ry', 'rz'] ); break;
 			case 'hinge': 
 			//Revolute: rotates about the joint frame's local Z-axis
 			j = b3.b3CreateRevoluteJoint(root.world, jd);
@@ -210,11 +174,10 @@ export class Joint extends Item {
             //The filter (or null) joint is used to disable collision between two specific bodie
             j = b3.b3CreateFilterJoint(root.world, jd);
             break;
-            //case 'spherical': this.lock( j, ['x', 'y', 'z'] ); break;
-            //case 'ragdoll': this.lock( j, ['x', 'y', 'z'] ); break;
-            //case 'generic': this.lock( j, ['x', 'y', 'z', 'rx', 'ry', 'rz'] ); break;
-            //default: this.lock( j, ['x', 'y', 'z', 'rx', 'ry', 'rz'] ); break;
+        
 		}
+
+		b3.b3Joint_SetCollideConnected (j,o.collision !== undefined ? o.collision : false)
 
 		
 
@@ -237,6 +200,7 @@ export class Joint extends Item {
 	}
 
 	stiffnessToHertz( stiffness, mass ) {
+
 	    // Vérification pour éviter les erreurs de division par zéro ou racine négative
 	    if (mass <= 0 || stiffness < 0) {
 	        throw new Error("Les valeurs de m doivent être strictement positives et k doit être non-négatif.");
@@ -246,21 +210,6 @@ export class Joint extends Item {
 	    return f;
 
 	}
-
-	/*getMassInfo ( b ){
-
-		const massPropsTuple = havok.HP_Body_GetMassProperties( b )[1];
-		const info = {
-            centerOfMass: massPropsTuple[0],//vector3
-            mass: massPropsTuple[1],
-            inertia: massPropsTuple[2],//vector3
-            inertiaOrientation: massPropsTuple[3],//Quaternion
-            damping: [havok.HP_Body_GetLinearDamping(b)[1], havok.HP_Body_GetAngularDamping(b)[1]],
-        };
-
-        return info
-
-	}*/
 
 	set ( o = {}, j = null ) {
 
@@ -390,47 +339,54 @@ export class Joint extends Item {
 			
 			break;
 			case "wheel":
-			/*
-			b3WheelJoint_EnableSpinMotor (arg0,arg1)
-			b3WheelJoint_EnableSteering (arg0,arg1)
-			b3WheelJoint_EnableSteeringLimit (arg0,arg1)
-			b3WheelJoint_EnableSuspension (arg0,arg1)
-			b3WheelJoint_EnableSuspensionLimit (arg0,arg1)
 
-			b3WheelJoint_IsSpinMotorEnabled (arg0)
-			b3WheelJoint_IsSteeringEnabled (arg0)
-			b3WheelJoint_IsSteeringLimitEnabled (arg0)
-			b3WheelJoint_IsSuspensionEnabled (arg0)
-			b3WheelJoint_IsSuspensionLimitEnabled (arg0)
-			b3WheelJoint_SetMaxSpinTorque (arg0,arg1)
-			b3WheelJoint_SetMaxSteeringTorque (arg0,arg1)
-			b3WheelJoint_SetSpinMotorSpeed (arg0,arg1)
-			b3WheelJoint_SetSteeringDampingRatio (arg0,arg1)
-			b3WheelJoint_SetSteeringHertz (arg0,arg1)
-			b3WheelJoint_SetSteeringLimits (arg0,arg1,arg2)
-			b3WheelJoint_SetSuspensionDampingRatio (arg0,arg1)
-			b3WheelJoint_SetSuspensionHertz (arg0,arg1)
-			b3WheelJoint_SetSuspensionLimits (arg0,arg1,arg2)
-			b3WheelJoint_SetTargetSteeringAngle (arg0,arg1)
-			*/
+			if(o.steeringLimit){
+				
+				b3.b3WheelJoint_EnableSteeringLimit( j, o.steeringLimit>0 )
+				b3.b3WheelJoint_SetSteeringLimits( j, -o.steeringLimit*torad, o.steeringLimit*torad )
+			}
+
+			if(o.steering){
+				b3.b3WheelJoint_EnableSteering(j, o.steering>0)
+				b3.b3WheelJoint_SetMaxSteeringTorque( j, o.steering )
+				b3.b3WheelJoint_SetSteeringHertz (j,arg1)
+				b3.b3WheelJoint_SetSteeringDampingRatio (j,arg1)
+			}
+
+			if( o.steeringTarget ) b3.b3WheelJoint_SetTargetSteeringAngle (j, o.steeringTarget*torad )
+
+			if( o.motor ){
+				b3.b3WheelJoint_EnableSpinMotor (j,arg1)
+				b3.b3WheelJoint_SetMaxSpinTorque (j,arg1)
+			    b3.b3WheelJoint_SetSpinMotorSpeed (j,arg1)
+			}
+			
+			if( o.suspension ){
+				b3.b3WheelJoint_EnableSuspension (j,arg1)
+				b3.b3WheelJoint_EnableSuspensionLimit (j,arg1)
+				b3.b3WheelJoint_SetSuspensionDampingRatio (j,arg1)
+				b3.b3WheelJoint_SetSuspensionHertz (j,arg1)
+				b3.b3WheelJoint_SetSuspensionLimits (j,arg1,arg2)
+			}
+			
+			
 			break;
 
 			case "motor":
-			/*
-			b3MotorJoint_GetAngularDampingRatio (arg0)
-			b3MotorJoint_GetAngularHertz (arg0)
 
-			b3MotorJoint_SetAngularDampingRatio (arg0,arg1)
-			b3MotorJoint_SetAngularHertz (arg0,arg1)
-			b3MotorJoint_SetAngularVelocity (arg0,arg1)
-			b3MotorJoint_SetLinearDampingRatio (arg0,arg1)
-			b3MotorJoint_SetLinearHertz (arg0,arg1)
-			b3MotorJoint_SetLinearVelocity (arg0,arg1)
-			b3MotorJoint_SetMaxSpringForce (arg0,arg1)
-			b3MotorJoint_SetMaxSpringTorque (arg0,arg1)
-			b3MotorJoint_SetMaxVelocityForce (arg0,arg1)
-			b3MotorJoint_SetMaxVelocityTorque (arg0,arg1)
-			*/
+			b3.b3MotorJoint_SetAngularVelocity (j,arg1)
+			b3.b3MotorJoint_SetAngularHertz (j,arg1)
+			b3.b3MotorJoint_SetAngularDampingRatio (j,arg1)
+			
+			b3.b3MotorJoint_SetLinearVelocity (j,arg1)
+			b3.b3MotorJoint_SetLinearHertz (j,arg1)
+			b3.b3MotorJoint_SetLinearDampingRatio (j,arg1)
+			
+			b3.b3MotorJoint_SetMaxSpringForce (j,arg1)
+			b3.b3MotorJoint_SetMaxSpringTorque (j,arg1)
+			b3.b3MotorJoint_SetMaxVelocityForce (j,arg1)
+			b3.b3MotorJoint_SetMaxVelocityTorque (j,arg1)
+			
 			break;
 
 			case 'distance':
