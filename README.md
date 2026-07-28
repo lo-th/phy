@@ -22,12 +22,13 @@ You can use compress or full version of physics engines.<br>
 
 ### Features
 
-math, pool, EnhanceLighning, ES6, chamfer geometry, compact engine, fast worker
+math optimization, assets pool, ES6, extra geometry, advanced character and animation,
+ultra fast compact engine, worker or direct version.
 
 ### Usage
 
 Phy main function is : add, remove and change.<br>
-You can see and edit demo code directlly on [webpage](https://lo-th.github.io/phy/)
+You can see and edit demo code directlly on [editor φ logo](https://lo-th.github.io/phy/)
 
 You can drag file directly on viewport ( code js or environement hdr ) 
 
@@ -39,17 +40,19 @@ Add more function and demo, standardize and clean code.
 
 [docs](https://lo-th.github.io/phy/docs/index.html#manual/Welcome) in progress...
 
-### About
+### About / Sponsorship
 
-Phy is under active development<br>
-You can help me improve phy engine with Sponsor<br><br>
+Phy is under active development.<br>
+Support development of PHY through [Github Sponsors](https://github.com/sponsors/lo-th).<br>
 
 ### Note
 
-For the moment my worker source on Physx and Havok are private.<br>
+For the moment source on Physx and Havok are hide.<br>
 It's a long research work to standardize all engines.<br>
-I'm thinking opening everything but i need more Sponsors<br>
-But is possible to use compile version without restriction.
+I'm thinking opening everything but i need more sponsors.<br>
+
+Is possible to use compile version without restriction.
+Ask me if you have any [issues](https://github.com/lo-th/phy/issues).
 
 [npm]: https://img.shields.io/npm/v/phy-engine
 [npm-url]: https://www.npmjs.com/package/phy-engine
