@@ -5,10 +5,9 @@ import { Utils, root } from './root.js';
 
 
 //----------------
-//  HAVOK BODY 
+//  BOX3D BODY 
 //----------------
 
-// https://dalyup.wordpress.com/2014/07/04/havok-tutorial-02-simple-rigid-bodies/
 const vToAr = Utils.vToAr
 const qToAr = Utils.qToAr
 const toQuat = Utils.toQuat
@@ -274,9 +273,18 @@ export class Body extends Item {
 
 			case 'convex' :
 
+			    console.log(o.v.length/3)
+
 			    let hullData = b3.b3CreateHull(o.v);
-				b3.b3CreateHullShape(b, sd, hullData);
-				hullData.delete()
+			    
+			    if(hullData){
+			    	b3.b3CreateHullShape(b, sd, hullData);
+				    hullData.delete()
+			    }else{
+			    	console.warn('Convex hull is over 255 edge limite !')
+			    	return false
+			    }
+				
 
 			break;
 
@@ -344,7 +352,7 @@ export class Body extends Item {
 		//g.volume = o.volume !== undefined ? o.volume : MathTool.getVolume( t, s, o.v );
 
 
-		//return g
+		return true
 
 	}
 
@@ -568,7 +576,8 @@ export class Body extends Item {
 			break;
 			default:
 
-			    this.shape( b, o )
+			    let ss = this.shape( b, o )
+			    if(!ss) this.addToWorld( {name:name, type: this.type}, null );
 
 			break;
 

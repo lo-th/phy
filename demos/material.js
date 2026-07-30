@@ -55,7 +55,7 @@ onComplete = () => {
             m = phy.add({
                 type: 'convex', 
                 mesh: models.ball_1,
-                shape: models.ball_s,
+                shape: models.ball_shape,
                 mass:1,
                 material:matName[c+n],
                 rot:[0,22.5,0],
@@ -90,7 +90,7 @@ onComplete2 = () => {
     m.children[1].children[0].material = mat
     */
 
-    console.log(m)
+    
 
     m.castShadow = true
     m.receiveShadow = false;
